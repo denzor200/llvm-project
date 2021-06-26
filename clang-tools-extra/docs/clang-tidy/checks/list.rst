@@ -31,8 +31,8 @@ Clang-Tidy Checks
    `abseil-time-subtraction <abseil-time-subtraction.html>`_, "Yes"
    `abseil-upgrade-duration-conversions <abseil-upgrade-duration-conversions.html>`_, "Yes"
    `altera-kernel-name-restriction <altera-kernel-name-restriction.html>`_,
-   `altera-single-work-item-barrier <altera-single-work-item-barrier.html>`_, "Yes"
-   `altera-struct-pack-align <altera-struct-pack-align.html>`_,
+   `altera-single-work-item-barrier <altera-single-work-item-barrier.html>`_,
+   `altera-struct-pack-align <altera-struct-pack-align.html>`_, "Yes"
    `android-cloexec-accept <android-cloexec-accept.html>`_, "Yes"
    `android-cloexec-accept4 <android-cloexec-accept4.html>`_,
    `android-cloexec-creat <android-cloexec-creat.html>`_, "Yes"
@@ -118,7 +118,6 @@ Clang-Tidy Checks
    `cert-msc51-cpp <cert-msc51-cpp.html>`_,
    `cert-oop57-cpp <cert-oop57-cpp.html>`_,
    `cert-oop58-cpp <cert-oop58-cpp.html>`_,
-   `cert-sig30-c <cert-sig30-c.html>`_,
    `clang-analyzer-core.DynamicTypePropagation <clang-analyzer-core.DynamicTypePropagation.html>`_,
    `clang-analyzer-core.uninitialized.CapturedBlockVariable <clang-analyzer-core.uninitialized.CapturedBlockVariable.html>`_,
    `clang-analyzer-cplusplus.InnerPointer <clang-analyzer-cplusplus.InnerPointer.html>`_,
@@ -184,7 +183,6 @@ Clang-Tidy Checks
    `google-readability-todo <google-readability-todo.html>`_,
    `google-runtime-int <google-runtime-int.html>`_,
    `google-runtime-operator <google-runtime-operator.html>`_,
-   `google-runtime-references <google-runtime-references.html>`_,
    `google-upgrade-googletest-case <google-upgrade-googletest-case.html>`_, "Yes"
    `hicpp-avoid-goto <hicpp-avoid-goto.html>`_,
    `hicpp-exception-baseclass <hicpp-exception-baseclass.html>`_,
@@ -217,6 +215,7 @@ Clang-Tidy Checks
    `misc-unused-using-decls <misc-unused-using-decls.html>`_, "Yes"
    `modernize-avoid-bind <modernize-avoid-bind.html>`_, "Yes"
    `modernize-avoid-c-arrays <modernize-avoid-c-arrays.html>`_,
+   `modernize-avoid-recursive-instantiation <modernize-avoid-recursive-instantiation.html>`_, "Yes"
    `modernize-concat-nested-namespaces <modernize-concat-nested-namespaces.html>`_, "Yes"
    `modernize-deprecated-headers <modernize-deprecated-headers.html>`_, "Yes"
    `modernize-deprecated-ios-base-aliases <modernize-deprecated-ios-base-aliases.html>`_, "Yes"
@@ -334,6 +333,7 @@ Clang-Tidy Checks
    `cert-oop11-cpp <cert-oop11-cpp.html>`_, `performance-move-constructor-init <performance-move-constructor-init.html>`_, "Yes"
    `cert-oop54-cpp <cert-oop54-cpp.html>`_, `bugprone-unhandled-self-assignment <bugprone-unhandled-self-assignment.html>`_,
    `cert-pos44-c <cert-pos44-c.html>`_, `bugprone-bad-signal-to-kill-thread <bugprone-bad-signal-to-kill-thread.html>`_,
+   `cert-sig30-c <cert-sig30-c.html>`_, `bugprone-signal-handler <bugprone-signal-handler.html>`_,
    `cert-str34-c <cert-str34-c.html>`_, `bugprone-signed-char-misuse <bugprone-signed-char-misuse.html>`_,
    `clang-analyzer-core.CallAndMessage <clang-analyzer-core.CallAndMessage.html>`_, `Clang Static Analyzer <https://clang.llvm.org/docs/analyzer/checkers.html>`_,
    `clang-analyzer-core.DivideZero <clang-analyzer-core.DivideZero.html>`_, `Clang Static Analyzer <https://clang.llvm.org/docs/analyzer/checkers.html>`_,

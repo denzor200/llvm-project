@@ -317,6 +317,11 @@ New checks
   Alias to the :doc:`bugprone-signal-handler
   <clang-tidy/checks/bugprone-signal-handler>` check.
 
+- New :doc:`modernize-avoid-recursive-instantiation
+  <clang-tidy/checks/modernize-avoid-recursive-instantiation>` check.
+
+  FIXME: add release notes.
+
 - New :doc:`performance-no-int-to-ptr
   <clang-tidy/checks/performance-no-int-to-ptr>` check.
 

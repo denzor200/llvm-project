@@ -6,6 +6,7 @@ set(LLVM_LINK_COMPONENTS
 add_clang_library(clangTidyModernizeModule
   AvoidBindCheck.cpp
   AvoidCArraysCheck.cpp
+  AvoidRecursiveInstantiationCheck.cpp
   ConcatNestedNamespacesCheck.cpp
   DeprecatedHeadersCheck.cpp
   DeprecatedIosBaseAliasesCheck.cpp
