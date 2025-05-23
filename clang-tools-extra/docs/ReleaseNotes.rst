@@ -117,6 +117,11 @@ Improvements to clang-tidy
 New checks
 ^^^^^^^^^^
 
+- New :doc:`bugprone-avoid-dangling-calls
+  <clang-tidy/checks/bugprone/avoid-dangling-calls>` check.
+
+  FIXME: Write a short description.
+
 - New :doc:`bugprone-capturing-this-in-member-variable
   <clang-tidy/checks/bugprone/capturing-this-in-member-variable>` check.
 

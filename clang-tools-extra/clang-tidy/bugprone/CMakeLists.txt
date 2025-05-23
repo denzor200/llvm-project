@@ -7,6 +7,7 @@ add_clang_library(clangTidyBugproneModule STATIC
   ArgumentCommentCheck.cpp
   AssertSideEffectCheck.cpp
   AssignmentInIfConditionCheck.cpp
+  AvoidDanglingCallsCheck.cpp
   BadSignalToKillThreadCheck.cpp
   BitwisePointerCastCheck.cpp
   BoolPointerImplicitConversionCheck.cpp

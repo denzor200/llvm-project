@@ -5,7 +5,6 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
-
 #include "DanglingHandleCheck.h"
 #include "../utils/Matchers.h"
 #include "../utils/OptionsUtils.h"

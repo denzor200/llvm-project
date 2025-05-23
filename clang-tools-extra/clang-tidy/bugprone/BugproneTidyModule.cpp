@@ -12,6 +12,7 @@
 #include "ArgumentCommentCheck.h"
 #include "AssertSideEffectCheck.h"
 #include "AssignmentInIfConditionCheck.h"
+#include "AvoidDanglingCallsCheck.h"
 #include "BadSignalToKillThreadCheck.h"
 #include "BitwisePointerCastCheck.h"
 #include "BoolPointerImplicitConversionCheck.h"
@@ -112,6 +113,8 @@ public:
         "bugprone-assert-side-effect");
     CheckFactories.registerCheck<AssignmentInIfConditionCheck>(
         "bugprone-assignment-in-if-condition");
+    CheckFactories.registerCheck<AvoidDanglingCallsCheck>(
+        "bugprone-avoid-dangling-calls");
     CheckFactories.registerCheck<BadSignalToKillThreadCheck>(
         "bugprone-bad-signal-to-kill-thread");
     CheckFactories.registerCheck<BitwisePointerCastCheck>(
