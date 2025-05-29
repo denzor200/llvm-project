@@ -380,3 +380,67 @@ RangeSelector transformer::expansion(RangeSelector S) {
     return Result.SourceManager->getExpansionRange(*SRange);
   };
 }
+
+// TODO: unit-test for it
+RangeSelector transformer::opcode(std::string ID) {
+  return [ID](const MatchResult &Result) -> Expected<CharSourceRange> {
+    Expected<DynTypedNode> Node = getNode(Result.Nodes, ID);
+    if (!Node)
+      return Node.takeError();
+    if (const auto *Op = Node->get<BinaryOperator>()) {
+      SourceLocation Loc;
+      Loc = Op->getOperatorLoc();
+      
+      if (Loc.isInvalid())
+        return Node.takeError();
+
+      // TODO: bear it in mind
+      SourceLocation expansionLoc = Result.SourceManager->getExpansionLoc(Loc);
+
+      if (expansionLoc.isInvalid())
+        return Node.takeError();
+
+      expansionLoc = Result.SourceManager->getSpellingLoc(expansionLoc);
+      if (expansionLoc.isInvalid() || expansionLoc.isMacroID())
+        return Node.takeError();
+
+      const CharSourceRange TokenRange = CharSourceRange::getTokenRange(expansionLoc);
+      if (TokenRange.isInvalid())
+        return Node.takeError();
+
+      return TokenRange;
+    }
+    return typeError(ID, Node->getNodeKind());
+  };
+}
+
+// TODO: unit-test for it
+RangeSelector transformer::lhs(std::string ID) {
+  return [ID](const MatchResult &Result) -> Expected<CharSourceRange> {
+    Expected<DynTypedNode> Node = getNode(Result.Nodes, ID);
+    if (!Node)
+      return Node.takeError();
+    if (const auto *Op = Node->get<BinaryOperator>()) {
+      const Expr *lhs = Op->getLHS();
+      if (!lhs)
+        return Node.takeError();
+
+      SourceLocation Loc;
+      Loc = lhs->getExprLoc();
+
+      if (Loc.isInvalid())
+        return Node.takeError();
+
+      Loc = Result.SourceManager->getSpellingLoc(Loc);
+      if (Loc.isInvalid() || Loc.isMacroID())
+        return Node.takeError();
+
+      const CharSourceRange TokenRange = CharSourceRange::getTokenRange(Loc);
+      if (TokenRange.isInvalid())
+        return Node.takeError();
+
+      return TokenRange;
+    }
+    return typeError(ID, Node->getNodeKind());
+  };
+}

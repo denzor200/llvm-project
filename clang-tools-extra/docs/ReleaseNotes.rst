@@ -136,6 +136,11 @@ New checks
   Finds unintended character output from ``unsigned char`` and ``signed char``
   to an ``ostream``.
 
+- New :doc:`performance-bitwise-operation-on-bool
+  <clang-tidy/checks/performance/bitwise-operation-on-bool>` check.
+
+  FIXME: Write a short description.
+
 - New :doc:`readability-ambiguous-smartptr-reset-call
   <clang-tidy/checks/readability/ambiguous-smartptr-reset-call>` check.
 

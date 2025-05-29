@@ -107,6 +107,15 @@ RangeSelector elseBranch(std::string ID);
 /// source), if `S` is an expansion, and `S` itself, otherwise.  Corresponds to
 /// `SourceManager::getExpansionRange`.
 RangeSelector expansion(RangeSelector S);
+
+// TODO: make a description
+RangeSelector opcode(std::string ID);
+
+// TODO: make a description
+RangeSelector lhs(std::string ID);
+
+// TODO: rhs
+
 } // namespace transformer
 } // namespace clang
 
