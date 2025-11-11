@@ -139,7 +139,7 @@ Instruction *ArchitectureMips::GetInstructionAtAddress(
 
   if (loop_count > 3) {
     // Scan previous 6 bytes
-    if (IsMips16 | IsMicromips)
+    if (IsMips16 || IsMicromips)
       loop_count = 3;
     // For mips-only, instructions are always 4 bytes, so scan previous 4
     // bytes only.

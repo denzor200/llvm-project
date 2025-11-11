@@ -223,7 +223,7 @@ applyPatternsGreedily(Operation *op, const FrozenRewritePatternSet &patterns,
     bool regionChanged;
     failed |= applyPatternsGreedily(region, patterns, config, &regionChanged)
                   .failed();
-    anyRegionChanged |= regionChanged;
+    anyRegionChanged = anyRegionChanged || regionChanged;
   }
   if (changed)
     *changed = anyRegionChanged;

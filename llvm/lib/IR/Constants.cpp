@@ -3311,7 +3311,7 @@ Value *ConstantArray::handleOperandChangeImpl(Value *From, Value *To) {
       ++NumUpdated;
     }
     Values.push_back(Val);
-    AllSame &= Val == ToC;
+    AllSame = AllSame && Val == ToC;
   }
 
   if (AllSame && ToC->isNullValue())
@@ -3351,7 +3351,7 @@ Value *ConstantStruct::handleOperandChangeImpl(Value *From, Value *To) {
       ++NumUpdated;
     }
     Values.push_back(Val);
-    AllSame &= Val == ToC;
+    AllSame = AllSame && Val == ToC;
   }
 
   if (AllSame && ToC->isNullValue())

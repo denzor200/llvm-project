@@ -323,10 +323,10 @@ bool ThreadList::ShouldStop(Event *event_ptr) {
     const bool thread_should_stop = thread_sp->ShouldStop(event_ptr);
 
     if (thread_should_stop)
-      should_stop |= true;
+      should_stop = should_stop || true;
     else {
       bool this_thread_forces_run = thread_sp->ShouldRunBeforePublicStop();
-      a_thread_needs_to_run |= this_thread_forces_run;
+      a_thread_needs_to_run = a_thread_needs_to_run || this_thread_forces_run;
       if (this_thread_forces_run) 
         LLDB_LOG(log,
                  "ThreadList::{0} thread: {1:x}, "

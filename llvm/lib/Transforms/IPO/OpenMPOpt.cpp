@@ -834,7 +834,7 @@ struct KernelInfoState : AbstractState {
     SPMDCompatibilityTracker ^= KIS.SPMDCompatibilityTracker;
     ReachedKnownParallelRegions ^= KIS.ReachedKnownParallelRegions;
     ReachedUnknownParallelRegions ^= KIS.ReachedUnknownParallelRegions;
-    NestedParallelism |= KIS.NestedParallelism;
+    NestedParallelism = NestedParallelism || KIS.NestedParallelism;
     return *this;
   }
 
@@ -1570,7 +1570,7 @@ private:
       if (WaitMovementPoint)
         WasSplit = splitTargetDataBeginRTC(*RTCall, *WaitMovementPoint);
 
-      Changed |= WasSplit;
+      Changed = Changed || WasSplit;
       return WasSplit;
     };
     if (OMPInfoCache.runtimeFnsAvailable(
@@ -3009,7 +3009,7 @@ bool AAExecutionDomainFunction::mergeInPredecessor(
                           ED.IsReachedFromAlignedBarrierOnly &&
                               PredED.IsReachedFromAlignedBarrierOnly);
   Changed |= setAndRecord(ED.EncounteredNonLocalSideEffect,
-                          ED.EncounteredNonLocalSideEffect |
+                          ED.EncounteredNonLocalSideEffect ||
                               PredED.EncounteredNonLocalSideEffect);
   // Do not track assumptions and barriers as part of Changed.
   if (ED.IsReachedFromAlignedBarrierOnly)
@@ -3040,7 +3040,7 @@ bool AAExecutionDomainFunction::handleCallees(Attributor &A,
                              AllCallSitesKnown)) {
     for (const auto &[CSInED, CSOutED] : CallSiteEDs) {
       mergeInPredecessor(A, EntryBBED, CSInED);
-      ExitED.IsReachingAlignedBarrierOnly &=
+      ExitED.IsReachingAlignedBarrierOnly = ExitED.IsReachingAlignedBarrierOnly &&
           CSOutED.IsReachingAlignedBarrierOnly;
     }
 
@@ -3063,10 +3063,10 @@ bool AAExecutionDomainFunction::handleCallees(Attributor &A,
   bool Changed = false;
   auto &FnED = BEDMap[nullptr];
   Changed |= setAndRecord(FnED.IsReachedFromAlignedBarrierOnly,
-                          FnED.IsReachedFromAlignedBarrierOnly &
+                          FnED.IsReachedFromAlignedBarrierOnly &&
                               EntryBBED.IsReachedFromAlignedBarrierOnly);
   Changed |= setAndRecord(FnED.IsReachingAlignedBarrierOnly,
-                          FnED.IsReachingAlignedBarrierOnly &
+                          FnED.IsReachingAlignedBarrierOnly &&
                               ExitED.IsReachingAlignedBarrierOnly);
   Changed |= setAndRecord(FnED.IsExecutedByInitialThreadOnly,
                           EntryBBED.IsExecutedByInitialThreadOnly);
@@ -3185,8 +3185,8 @@ ChangeStatus AAExecutionDomainFunction::updateImpl(Attributor &A) {
           !IsNoSync && CB &&
           AANoSync::isAlignedBarrier(*CB, AlignedBarrierLastInBlock);
 
-      AlignedBarrierLastInBlock &= IsNoSync;
-      IsExplicitlyAligned &= IsNoSync;
+      AlignedBarrierLastInBlock = AlignedBarrierLastInBlock && IsNoSync;
+      IsExplicitlyAligned = IsExplicitlyAligned && IsNoSync;
 
       // Next we check for calls. Aligned barriers are handled
       // explicitly, everything else is kept for the backward traversal and will
@@ -3229,7 +3229,7 @@ ChangeStatus AAExecutionDomainFunction::updateImpl(Attributor &A) {
                 CalleeED.IsReachedFromAlignedBarrierOnly;
             AlignedBarrierLastInBlock = ED.IsReachedFromAlignedBarrierOnly;
             if (IsNoSync || !CalleeED.IsReachedFromAlignedBarrierOnly)
-              ED.EncounteredNonLocalSideEffect |=
+              ED.EncounteredNonLocalSideEffect = ED.EncounteredNonLocalSideEffect ||
                   CalleeED.EncounteredNonLocalSideEffect;
             else
               ED.EncounteredNonLocalSideEffect =
@@ -3251,7 +3251,7 @@ ChangeStatus AAExecutionDomainFunction::updateImpl(Attributor &A) {
           Changed |= setAndRecord(CallInED.IsReachingAlignedBarrierOnly, false);
           SyncInstWorklist.push_back(&I);
         }
-        AlignedBarrierLastInBlock &= ED.IsReachedFromAlignedBarrierOnly;
+        AlignedBarrierLastInBlock = AlignedBarrierLastInBlock && ED.IsReachedFromAlignedBarrierOnly;
         ED.EncounteredNonLocalSideEffect |= !CB->doesNotAccessMemory();
         auto &CallOutED = CEDMap[{CB, POST}];
         Changed |= mergeInPredecessor(A, CallOutED, ED);
@@ -3310,7 +3310,7 @@ ChangeStatus AAExecutionDomainFunction::updateImpl(Attributor &A) {
     }
 
     ExecutionDomainTy &StoredED = BEDMap[&BB];
-    ED.IsReachingAlignedBarrierOnly = StoredED.IsReachingAlignedBarrierOnly &
+    ED.IsReachingAlignedBarrierOnly = StoredED.IsReachingAlignedBarrierOnly &&
                                       !IsEndAndNotReachingAlignedBarriersOnly;
 
     // Check if we computed anything different as part of the forward

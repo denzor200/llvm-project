@@ -593,8 +593,8 @@ bool ObjCARCContract::run(Function &F, AAResults *A, DominatorTree *D) {
   BundledInsts = &BRV;
 
   std::pair<bool, bool> R = BundledInsts->insertAfterInvokes(F, DT);
-  Changed |= R.first;
-  CFGChanged |= R.second;
+  Changed = Changed || R.first;
+  CFGChanged = CFGChanged || R.second;
 
   DenseMap<BasicBlock *, ColorVector> BlockColors;
   if (F.hasPersonalityFn() &&

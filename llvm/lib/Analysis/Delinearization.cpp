@@ -146,7 +146,7 @@ struct SCEVCollectAddRecMultiplies {
           bool ContainsAddRec = false;
           SCEVHasAddRec ContiansAddRec(ContainsAddRec);
           visitAll(Op, ContiansAddRec);
-          HasAddRec |= ContainsAddRec;
+          HasAddRec = HasAddRec || ContainsAddRec;
         }
       }
       if (Operands.size() == 0)

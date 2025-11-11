@@ -401,7 +401,7 @@ std::array<Value *, 2> Negator::getSortedOperandsOfBinOp(Instruction *I) {
   }
   case Instruction::Shl: {
     // `shl` is negatible if the first operand is negatible.
-    IsNSW &= I->hasNoSignedWrap();
+    IsNSW = IsNSW && I->hasNoSignedWrap();
     if (Value *NegOp0 = negate(I->getOperand(0), IsNSW, Depth + 1))
       return Builder.CreateShl(NegOp0, I->getOperand(1), I->getName() + ".neg",
                                /*HasNUW=*/false, IsNSW);

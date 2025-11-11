@@ -1177,7 +1177,7 @@ bool ABISysV_mips64::RegisterIsCalleeSaved(const RegisterInfo *reg_info) {
     int reg = ((reg_info->byte_offset) / 8);
 
     bool save = (reg >= 16) && (reg <= 23);
-    save |= (reg >= 28) && (reg <= 31);
+    save = save || (reg >= 28) && (reg <= 31);
 
     return save;
   }

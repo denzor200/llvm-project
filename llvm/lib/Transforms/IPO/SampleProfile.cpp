@@ -1219,7 +1219,7 @@ bool SampleProfileLoader::inlineHotFunctions(
                                     PSI->getOrCompHotCountThreshold());
       }
     }
-    Changed |= LocalChanged;
+    Changed = Changed || LocalChanged;
   }
 
   // For CS profile, profile for not inlined context will be merged when

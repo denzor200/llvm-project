@@ -266,7 +266,7 @@ void RewriterBase::replaceUsesWithIf(Value from, Value to,
     bool replace = functor(operand);
     if (replace)
       modifyOpInPlace(operand.getOwner(), [&]() { operand.set(to); });
-    allReplaced &= replace;
+    allReplaced = allReplaced && replace;
   }
   if (allUsesReplaced)
     *allUsesReplaced = allReplaced;
@@ -281,7 +281,7 @@ void RewriterBase::replaceUsesWithIf(ValueRange from, ValueRange to,
     bool r;
     replaceUsesWithIf(std::get<0>(it), std::get<1>(it), functor,
                       /*allUsesReplaced=*/&r);
-    allReplaced &= r;
+    allReplaced = allReplaced && r;
   }
   if (allUsesReplaced)
     *allUsesReplaced = allReplaced;

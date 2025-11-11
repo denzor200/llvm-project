@@ -167,7 +167,7 @@ static LogicalResult checkTileSizes(TilingInterface op,
   for (auto [index, iterator, givenTileSize] :
        llvm::enumerate(iterators, givenTileSizes)) {
     if (!isConstantIntValue(givenTileSize, 0)) {
-      isParallelTiling |= iterator == utils::IteratorType::parallel;
+      isParallelTiling = isParallelTiling || iterator == utils::IteratorType::parallel;
     }
 
     if (loopType == scf::SCFTilingOptions::LoopType::ForallOp &&

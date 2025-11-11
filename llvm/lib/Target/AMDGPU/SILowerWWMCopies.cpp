@@ -167,7 +167,7 @@ bool SILowerWWMCopies::run(MachineFunction &MF) {
 
       // Lower WWM_COPY back to COPY
       MI.setDesc(TII->get(AMDGPU::COPY));
-      Changed |= true;
+      Changed = Changed || true;
     }
   }
 

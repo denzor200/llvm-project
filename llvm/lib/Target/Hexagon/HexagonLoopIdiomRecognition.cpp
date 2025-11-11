@@ -1126,7 +1126,7 @@ bool PolynomialMultiplyRecognize::findCycle(Value *Out, Value *In,
     bool IsPhi = isa<PHINode>(I);
     if (IsPhi && HadPhi)
       return false;
-    HadPhi |= IsPhi;
+    HadPhi = HadPhi || IsPhi;
     if (!Cycle.insert(I))
       return false;
     if (findCycle(I, In, Cycle))

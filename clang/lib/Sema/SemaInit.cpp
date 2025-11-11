@@ -4724,7 +4724,7 @@ static void TryConstructorInitialization(Sema &S,
   // subsumed by the initialization.
   Sequence.AddConstructorInitializationStep(
       Best->FoundDecl, CtorDecl, DestArrayType, HadMultipleCandidates,
-      IsListInit | IsInitListCopy, AsInitializerList);
+      IsListInit || IsInitListCopy, AsInitializerList);
 }
 
 static void TryOrBuildParenListInitialization(

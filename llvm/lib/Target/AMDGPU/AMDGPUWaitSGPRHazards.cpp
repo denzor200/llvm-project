@@ -142,7 +142,7 @@ public:
       SALUHazards |= RHS.SALUHazards;
       VALUHazards |= RHS.VALUHazards;
       VCCHazard |= RHS.VCCHazard;
-      ActiveFlat |= RHS.ActiveFlat;
+      ActiveFlat = ActiveFlat || RHS.ActiveFlat;
     }
   };
 

@@ -656,12 +656,12 @@ void AArch64PrologueEmitter::emitPrologue() {
           .setMIFlag(MachineInstr::FrameSetup);
     }
     // AArch64PointerAuth pass will insert SEH_PACSignLR
-    HasWinCFI |= NeedsWinCFI;
+    HasWinCFI = HasWinCFI || NeedsWinCFI;
   }
 
   if (AFI->needsShadowCallStackPrologueEpilogue(MF)) {
     emitShadowCallStackPrologue(PrologueBeginI, DL);
-    HasWinCFI |= NeedsWinCFI;
+    HasWinCFI = HasWinCFI || NeedsWinCFI;
   }
 
   if (EmitCFI && AFI->isMTETagged())
@@ -1755,7 +1755,7 @@ void AArch64EpilogueEmitter::emitCalleeSavedRestores(
 void AArch64EpilogueEmitter::finalizeEpilogue() const {
   if (AFI->needsShadowCallStackPrologueEpilogue(MF)) {
     emitShadowCallStackEpilogue(MBB.getFirstTerminator(), DL);
-    HasWinCFI |= NeedsWinCFI;
+    HasWinCFI = HasWinCFI || NeedsWinCFI;
   }
   if (EmitCFI)
     emitCalleeSavedGPRRestores(MBB.getFirstTerminator());
@@ -1768,7 +1768,7 @@ void AArch64EpilogueEmitter::finalizeEpilogue() const {
           .setMIFlag(MachineInstr::FrameDestroy);
     }
     // AArch64PointerAuth pass will insert SEH_PACSignLR
-    HasWinCFI |= NeedsWinCFI;
+    HasWinCFI = HasWinCFI || NeedsWinCFI;
   }
   if (HasWinCFI) {
     BuildMI(MBB, MBB.getFirstTerminator(), DL, TII->get(AArch64::SEH_EpilogEnd))

@@ -1502,7 +1502,7 @@ bool SPIRVInstructionSelector::selectAtomicRMW(Register ResVReg,
       GR.CurMF->getFunction().getContext(), MemOp->getSyncScopeID()));
   auto ScopeConstant = buildI32Constant(Scope, I);
   Register ScopeReg = ScopeConstant.first;
-  Result &= ScopeConstant.second;
+  Result = Result && ScopeConstant.second;
 
   Register Ptr = I.getOperand(1).getReg();
   // TODO: Changed as it's implemented in the translator. See test/atomicrmw.ll
@@ -1512,7 +1512,7 @@ bool SPIRVInstructionSelector::selectAtomicRMW(Register ResVReg,
   uint32_t MemSem = static_cast<uint32_t>(getMemSemantics(AO));
   auto MemSemConstant = buildI32Constant(MemSem /*| ScSem*/, I);
   Register MemSemReg = MemSemConstant.first;
-  Result &= MemSemConstant.second;
+  Result = Result && MemSemConstant.second;
 
   Register ValueReg = I.getOperand(2).getReg();
   if (NegateOpcode != 0) {
@@ -1579,7 +1579,7 @@ bool SPIRVInstructionSelector::selectFence(MachineInstr &I) const {
       getMemScope(GR.CurMF->getFunction().getContext(), Ord));
   auto ScopeConstant = buildI32Constant(Scope, I);
   Register ScopeReg = ScopeConstant.first;
-  Result &= ScopeConstant.second;
+  Result = Result && ScopeConstant.second;
   MachineBasicBlock &BB = *I.getParent();
   return Result &&
          BuildMI(BB, I, I.getDebugLoc(), TII.get(SPIRV::OpMemoryBarrier))
@@ -1667,7 +1667,7 @@ bool SPIRVInstructionSelector::selectAtomicCmpXchg(Register ResVReg,
         GR.CurMF->getFunction().getContext(), MemOp->getSyncScopeID()));
     auto ScopeConstant = buildI32Constant(Scope, I);
     ScopeReg = ScopeConstant.first;
-    Result &= ScopeConstant.second;
+    Result = Result && ScopeConstant.second;
 
     unsigned ScSem = static_cast<uint32_t>(
         getMemSemanticsForStorageClass(GR.getPointerStorageClass(Ptr)));
@@ -1675,7 +1675,7 @@ bool SPIRVInstructionSelector::selectAtomicCmpXchg(Register ResVReg,
     unsigned MemSemEq = static_cast<uint32_t>(getMemSemantics(AO)) | ScSem;
     auto MemSemEqConstant = buildI32Constant(MemSemEq, I);
     MemSemEqReg = MemSemEqConstant.first;
-    Result &= MemSemEqConstant.second;
+    Result = Result && MemSemEqConstant.second;
     AtomicOrdering FO = MemOp->getFailureOrdering();
     unsigned MemSemNeq = static_cast<uint32_t>(getMemSemantics(FO)) | ScSem;
     if (MemSemEq == MemSemNeq)
@@ -1683,7 +1683,7 @@ bool SPIRVInstructionSelector::selectAtomicCmpXchg(Register ResVReg,
     else {
       auto MemSemNeqConstant = buildI32Constant(MemSemEq, I);
       MemSemNeqReg = MemSemNeqConstant.first;
-      Result &= MemSemNeqConstant.second;
+      Result = Result && MemSemNeqConstant.second;
     }
   } else {
     ScopeReg = I.getOperand(5).getReg();
@@ -3420,10 +3420,10 @@ bool SPIRVInstructionSelector::selectIntrinsic(Register ResVReg,
     auto MemSemConstant =
         buildI32Constant(SPIRV::MemorySemantics::SequentiallyConsistent, I);
     Register MemSemReg = MemSemConstant.first;
-    Result &= MemSemConstant.second;
+    Result = Result && MemSemConstant.second;
     auto ScopeConstant = buildI32Constant(SPIRV::Scope::Workgroup, I);
     Register ScopeReg = ScopeConstant.first;
-    Result &= ScopeConstant.second;
+    Result = Result && ScopeConstant.second;
     MachineBasicBlock &BB = *I.getParent();
     return Result &&
            BuildMI(BB, I, I.getDebugLoc(), TII.get(SPIRV::OpControlBarrier))

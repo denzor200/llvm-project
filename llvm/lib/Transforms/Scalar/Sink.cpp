@@ -217,7 +217,7 @@ static bool iterativelySinkInstructions(Function &F, DominatorTree &DT,
     // Process all basic blocks.
     for (BasicBlock &I : F)
       MadeChange |= ProcessBlock(I, DT, LI, AA);
-    EverMadeChange |= MadeChange;
+    EverMadeChange = EverMadeChange || MadeChange;
     NumSinkIter++;
   } while (MadeChange);
 

@@ -135,7 +135,7 @@ bool AVRExpandPseudo::runOnMachineFunction(MachineFunction &MF) {
       (void)ExpandCount;
 
       bool BlockModified = expandMBB(MBB);
-      Modified |= BlockModified;
+      Modified = Modified || BlockModified;
       ExpandCount++;
 
       ContinueExpanding = BlockModified;

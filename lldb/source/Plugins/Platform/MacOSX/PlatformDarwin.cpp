@@ -1420,8 +1420,8 @@ PlatformDarwin::GetSDKPathFromDebugInfo(Module &module) {
     if (auto cu_sp = sym_file->GetCompileUnitAtIndex(i)) {
       auto cu_sdk = sym_file->ParseXcodeSDK(*cu_sp);
       bool is_internal_sdk = cu_sdk.IsAppleInternalSDK();
-      found_public_sdk |= !is_internal_sdk;
-      found_internal_sdk |= is_internal_sdk;
+      found_public_sdk = found_public_sdk || !is_internal_sdk;
+      found_internal_sdk = found_internal_sdk || is_internal_sdk;
 
       merged_sdk.Merge(cu_sdk);
     }

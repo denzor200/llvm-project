@@ -130,7 +130,7 @@ void RegisterCommonFlags(FlagParser *parser, CommonFlags *cf) {
 
 void InitializeCommonFlags(CommonFlags *cf) {
   // need to record coverage to generate coverage report.
-  cf->coverage |= cf->html_cov_report;
+  cf->coverage = cf->coverage || cf->html_cov_report;
   SetVerbosity(cf->verbosity);
 
   InitializePlatformCommonFlags(cf);

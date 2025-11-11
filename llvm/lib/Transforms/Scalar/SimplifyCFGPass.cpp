@@ -264,7 +264,7 @@ static bool iterativelySimplifyCFG(Function &F, const TargetTransformInfo &TTI,
         ++NumSimpl;
       }
     }
-    Changed |= LocalChange;
+    Changed = Changed || LocalChange;
   }
   return Changed;
 }

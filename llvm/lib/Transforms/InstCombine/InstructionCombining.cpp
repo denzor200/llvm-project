@@ -3376,7 +3376,7 @@ Instruction *InstCombinerImpl::visitGetElementPtrInst(GetElementPtrInst &GEP) {
             bool ShouldReplace = isa<PtrToAddrInst>(U.getUser()) ||
                                  (!HasNonAddressBits &&
                                   isa<ICmpInst, PtrToIntInst>(U.getUser()));
-            Changed |= ShouldReplace;
+            Changed = Changed || ShouldReplace;
             return ShouldReplace;
           });
           return Changed ? &GEP : nullptr;
@@ -3754,7 +3754,7 @@ Instruction *InstCombinerImpl::visitAllocSite(Instruction &MI) {
     KnowInitUndef = false;
 
   auto Removable =
-      isAllocSiteRemovable(&MI, Users, TLI, KnowInitZero | KnowInitUndef);
+      isAllocSiteRemovable(&MI, Users, TLI, KnowInitZero || KnowInitUndef);
   if (Removable) {
     for (WeakTrackingVH &User : Users) {
       // Lowering all @llvm.objectsize and MTI calls first because they may use
@@ -5181,7 +5181,7 @@ bool InstCombinerImpl::freezeOtherUses(FreezeInst &FI) {
 
   Op->replaceUsesWithIf(&FI, [&](Use &U) -> bool {
     bool Dominates = DT.dominates(&FI, U);
-    Changed |= Dominates;
+    Changed = Changed || Dominates;
     return Dominates;
   });
 
@@ -5929,7 +5929,7 @@ bool InstCombinerImpl::prepareWorklist(Function &F) {
     unsigned NumDeadInstInBB;
     NumDeadInstInBB = removeAllNonTerminatorAndEHPadInstructions(&BB);
 
-    MadeIRChange |= NumDeadInstInBB != 0;
+    MadeIRChange = MadeIRChange || NumDeadInstInBB != 0;
     NumDeadInst += NumDeadInstInBB;
   }
 

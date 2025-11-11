@@ -791,7 +791,7 @@ void PatternLowering::generateRewriter(
     if (type)
       continue;
     bool isVariadic = isa<pdl::RangeType>(it.value().getType());
-    seenVariableLength |= isVariadic;
+    seenVariableLength = seenVariableLength || isVariadic;
 
     // After a variable length result has been seen, we need to use result
     // groups because the exact index of the result is not statically known.

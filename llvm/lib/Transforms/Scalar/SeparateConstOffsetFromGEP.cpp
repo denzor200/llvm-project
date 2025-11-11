@@ -1129,7 +1129,7 @@ bool SeparateConstOffsetFromGEP::splitGEP(GetElementPtrInst *GEP) {
         RecursivelyDeleteTriviallyDeadInstructions(UserChainTail);
         RecursivelyDeleteTriviallyDeadInstructions(Idx);
         Idx = NewIdx;
-        AllNUWPreserved &= PreservesNUW;
+        AllNUWPreserved = AllNUWPreserved && PreservesNUW;
       }
       AllOffsetsNonNegative =
           AllOffsetsNonNegative && isKnownNonNegative(Idx, *DL);
@@ -1140,7 +1140,7 @@ bool SeparateConstOffsetFromGEP::splitGEP(GetElementPtrInst *GEP) {
     AllNUWPreserved &= Base->hasNoUnsignedWrap();
     NewGEPInBounds &= Base->isInBounds();
     NewGEPNUSW &= Base->hasNoUnsignedSignedWrap();
-    AllOffsetsNonNegative &= BaseByteOffset >= 0;
+    AllOffsetsNonNegative = AllOffsetsNonNegative && BaseByteOffset >= 0;
 
     GEP->setOperand(0, NewBase);
     RecursivelyDeleteTriviallyDeadInstructions(Base);
@@ -1180,7 +1180,7 @@ bool SeparateConstOffsetFromGEP::splitGEP(GetElementPtrInst *GEP) {
     // add-operands therefore also don't have their signbit set. Therefore, all
     // indices of the resulting GEPs are non-negative -> we can preserve
     // the inbounds/nusw flag.
-    CanPreserveInBoundsNUSW |= NewGEPNUSW;
+    CanPreserveInBoundsNUSW = CanPreserveInBoundsNUSW || NewGEPNUSW;
   }
 
   if (CanPreserveInBoundsNUSW) {

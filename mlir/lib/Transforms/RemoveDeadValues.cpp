@@ -509,7 +509,7 @@ static void processRegionBranchOp(RegionBranchOpInterface regionBranchOp,
                     ? argsToKeep[successorRegion]
                                 [cast<BlockArgument>(input).getArgNumber()]
                     : resultsToKeep[cast<OpResult>(input).getResultNumber()];
-            valuesToKeep[operandNum] = valuesToKeep[operandNum] | updateBasedOn;
+            valuesToKeep[operandNum] = valuesToKeep[operandNum] || updateBasedOn;
           }
         }
       };
@@ -544,11 +544,11 @@ static void processRegionBranchOp(RegionBranchOpInterface regionBranchOp,
               argsToKeep[successorRegion][cast<BlockArgument>(input)
                                               .getArgNumber()] =
                   argsToKeep[successorRegion]
-                            [cast<BlockArgument>(input).getArgNumber()] |
+                            [cast<BlockArgument>(input).getArgNumber()] ||
                   recomputeBasedOn;
             } else {
               resultsToKeep[cast<OpResult>(input).getResultNumber()] =
-                  resultsToKeep[cast<OpResult>(input).getResultNumber()] |
+                  resultsToKeep[cast<OpResult>(input).getResultNumber()] ||
                   recomputeBasedOn;
             }
           }
@@ -581,11 +581,11 @@ static void processRegionBranchOp(RegionBranchOpInterface regionBranchOp,
                 argsToKeep[successorRegion][cast<BlockArgument>(input)
                                                 .getArgNumber()] =
                     argsToKeep[successorRegion]
-                              [cast<BlockArgument>(input).getArgNumber()] |
+                              [cast<BlockArgument>(input).getArgNumber()] ||
                     recomputeBasedOn;
               } else {
                 resultsToKeep[cast<OpResult>(input).getResultNumber()] =
-                    resultsToKeep[cast<OpResult>(input).getResultNumber()] |
+                    resultsToKeep[cast<OpResult>(input).getResultNumber()] ||
                     recomputeBasedOn;
               }
             }

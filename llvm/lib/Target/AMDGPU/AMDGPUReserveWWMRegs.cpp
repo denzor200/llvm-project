@@ -91,7 +91,7 @@ bool AMDGPUReserveWWMRegs::run(MachineFunction &MF) {
              "All WWM registers should have been allocated by now.");
 
       MFI->reserveWWMRegister(Reg);
-      Changed |= true;
+      Changed = Changed || true;
     }
   }
 

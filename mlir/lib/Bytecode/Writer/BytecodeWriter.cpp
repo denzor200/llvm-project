@@ -1110,7 +1110,7 @@ void BytecodeWriter::writeUseListOrders(EncodingEmitter &emitter,
       // The use-list order achieved when building the IR at parsing always
       // pushes new uses on front. Hence, if the order by unique ID is
       // monotonically decreasing, a roundtrip to bytecode preserves such order.
-      alreadyOrdered &= (prevID > currentID);
+      alreadyOrdered = alreadyOrdered && (prevID > currentID);
       useListPairs.push_back({use.index(), currentID});
       prevID = currentID;
     }

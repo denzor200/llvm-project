@@ -107,7 +107,7 @@ bool RGPassManager::runOnFunction(Function &F) {
         }
 #endif
 
-        Changed |= LocalChanged;
+        Changed = Changed || LocalChanged;
       }
 
       if (isPassDebuggingExecutionsOrMore()) {

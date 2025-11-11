@@ -1053,7 +1053,7 @@ static bool runImpl(Function &F, const TargetTransformInfo &TTI,
         break;
     }
 
-    EverMadeChange |= MadeChange;
+    EverMadeChange = EverMadeChange || MadeChange;
   }
   return EverMadeChange;
 }

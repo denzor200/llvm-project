@@ -326,7 +326,7 @@ bool ArmUnwindInfo::GetUnwindPlan(Target &target, const Address &addr,
 
   bool have_location_for_pc = false;
   for (const auto &offset : register_offsets) {
-    have_location_for_pc |= offset.first == dwarf_pc;
+    have_location_for_pc = have_location_for_pc || offset.first == dwarf_pc;
     row.SetRegisterLocationToAtCFAPlusOffset(offset.first, offset.second - vsp,
                                              true);
   }

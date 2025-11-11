@@ -145,7 +145,7 @@ const MipsAnalyzeImmediate::InstSeq
   InstSeqLs SeqLs;
 
   // Get the list of instruction sequences.
-  if (LastInstrIsADDiu | !Imm)
+  if (LastInstrIsADDiu || !Imm)
     GetInstSeqLsADDiu(Imm, Size, SeqLs);
   else
     GetInstSeqLs(Imm, Size, SeqLs);

@@ -374,7 +374,7 @@ LogicalResult CreateNdDescOp::verify() {
            << ", TensorDesc: " << tdescMemorySpace;
 
   if (size_t offsetRank = getMixedOffsets().size())
-    invalidRank |= (offsetRank != rank);
+    invalidRank = invalidRank || (offsetRank != rank);
 
   // check source type matches the rank if it is a memref.
   // It also should have the same ElementType as TensorDesc.

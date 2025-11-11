@@ -1258,7 +1258,7 @@ bool ABISysV_hexagon::RegisterIsCalleeSaved(const RegisterInfo *reg_info) {
   int reg = ((reg_info->byte_offset) / 4);
 
   bool save = (reg >= 16) && (reg <= 27);
-  save |= (reg >= 29) && (reg <= 32);
+  save = save || (reg >= 29) && (reg <= 32);
 
   return save;
 }

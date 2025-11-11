@@ -65,7 +65,7 @@ void HexagonBlockRanges::IndexRange::merge(const IndexRange &A) {
     TiedEnd = A.TiedEnd;
   } else {
     if (end() == AE)
-      TiedEnd |= A.TiedEnd;
+      TiedEnd = TiedEnd || A.TiedEnd;
   }
   if (A.Fixed)
     Fixed = true;

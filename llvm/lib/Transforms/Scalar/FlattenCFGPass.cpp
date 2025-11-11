@@ -64,7 +64,7 @@ static bool iterativelyFlattenCFG(Function &F, AliasAnalysis *AA) {
         if (FlattenCFG(BB, AA))
           LocalChange = true;
     }
-    Changed |= LocalChange;
+    Changed = Changed || LocalChange;
   }
   return Changed;
 }

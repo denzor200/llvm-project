@@ -693,7 +693,7 @@ GCNMaxOccupancySchedStrategy::GCNMaxOccupancySchedStrategy(
   SchedStages.push_back(GCNSchedStageID::UnclusteredHighRPReschedule);
   SchedStages.push_back(GCNSchedStageID::ClusteredLowOccupancyReschedule);
   SchedStages.push_back(GCNSchedStageID::PreRARematerialize);
-  GCNTrackers = GCNTrackers & !IsLegacyScheduler;
+  GCNTrackers = GCNTrackers && !IsLegacyScheduler;
 }
 
 GCNMaxILPSchedStrategy::GCNMaxILPSchedStrategy(const MachineSchedContext *C)

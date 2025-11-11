@@ -342,7 +342,7 @@ bool YAMLProfileReader::parseFunctionProfile(
   if (YamlBP.Header.Flags & BinaryFunction::PF_BASIC)
     BF.setExecutionCount(FunctionExecutionCount);
 
-  ProfileMatched &= !MismatchedBlocks && !MismatchedCalls && !MismatchedEdges;
+  ProfileMatched = ProfileMatched && !MismatchedBlocks && !MismatchedCalls && !MismatchedEdges;
 
   if (!ProfileMatched) {
     if (opts::Verbosity >= 1)

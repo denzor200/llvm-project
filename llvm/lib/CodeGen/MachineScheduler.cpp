@@ -3327,7 +3327,7 @@ void GenericSchedulerBase::setPolicy(CandPolicy &Policy, bool IsPostRA,
   if (!OtherResLimited &&
       (IsPostRA || shouldReduceLatency(Policy, CurrZone, !RemLatencyComputed,
                                        RemLatency))) {
-    Policy.ReduceLatency |= true;
+    Policy.ReduceLatency = Policy.ReduceLatency || true;
     LLVM_DEBUG(dbgs() << "  " << CurrZone.Available.getName()
                       << " RemainingLatency " << RemLatency << " + "
                       << CurrZone.getCurrCycle() << "c > CritPath "

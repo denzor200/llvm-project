@@ -2004,7 +2004,7 @@ bool VectorCombine::scalarizeExtExtract(Instruction &I) {
     if (cast<Instruction>(U)->use_empty())
       continue;
     ExtCnt += 1;
-    ExtLane0 |= !Idx;
+    ExtLane0 = ExtLane0 || !Idx;
     VectorCost += TTI.getVectorInstrCost(Instruction::ExtractElement, DstTy,
                                          CostKind, Idx, U);
   }

@@ -210,7 +210,7 @@ bool NaryReassociatePass::runImpl(Function &F, AssumptionCache *AC_,
   bool Changed = false, ChangedInThisIteration;
   do {
     ChangedInThisIteration = doOneIteration(F);
-    Changed |= ChangedInThisIteration;
+    Changed = Changed || ChangedInThisIteration;
   } while (ChangedInThisIteration);
   return Changed;
 }

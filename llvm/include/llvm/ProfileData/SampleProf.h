@@ -1077,7 +1077,7 @@ public:
       bool RowOverflow = false;
       TypeCounts[TypeId] = SaturatingMultiplyAdd(
           Count, Weight, TypeCounts[TypeId], &RowOverflow);
-      Overflowed |= RowOverflow;
+      Overflowed = Overflowed || RowOverflow;
     }
     return Overflowed ? sampleprof_error::counter_overflow
                       : sampleprof_error::success;

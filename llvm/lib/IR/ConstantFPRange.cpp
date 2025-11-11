@@ -385,14 +385,14 @@ ConstantFPRange::intersectWith(const ConstantFPRange &CR) const {
   APFloat NewUpper = minnum(Upper, CR.Upper);
   canonicalizeRange(NewLower, NewUpper);
   return ConstantFPRange(std::move(NewLower), std::move(NewUpper),
-                         MayBeQNaN & CR.MayBeQNaN, MayBeSNaN & CR.MayBeSNaN);
+                         MayBeQNaN && CR.MayBeQNaN, MayBeSNaN && CR.MayBeSNaN);
 }
 
 ConstantFPRange ConstantFPRange::unionWith(const ConstantFPRange &CR) const {
   assert(&getSemantics() == &CR.getSemantics() &&
          "Should only use the same semantics");
   return ConstantFPRange(minnum(Lower, CR.Lower), maxnum(Upper, CR.Upper),
-                         MayBeQNaN | CR.MayBeQNaN, MayBeSNaN | CR.MayBeSNaN);
+                         MayBeQNaN || CR.MayBeQNaN, MayBeSNaN || CR.MayBeSNaN);
 }
 
 ConstantFPRange ConstantFPRange::abs() const {
@@ -477,7 +477,7 @@ ConstantFPRange ConstantFPRange::add(const ConstantFPRange &Other) const {
   bool RHSFiniteIsNonEmpty =
       removeInf(RHSLower, RHSUpper, RHSHasPosInf, RHSHasNegInf);
   // -inf + +inf = QNaN
-  ResMayBeQNaN |=
+  ResMayBeQNaN = ResMayBeQNaN ||
       (LHSHasNegInf && RHSHasPosInf) || (LHSHasPosInf && RHSHasNegInf);
   // +inf + finite/+inf = +inf, -inf + finite/-inf = -inf
   bool HasNegInf = (LHSHasNegInf && (RHSFiniteIsNonEmpty || RHSHasNegInf)) ||

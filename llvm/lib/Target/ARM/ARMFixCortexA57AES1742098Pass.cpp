@@ -260,7 +260,7 @@ bool ARMFixCortexA57AES1742098::runOnMachineFunction(MachineFunction &F) {
   LLVM_DEBUG(dbgs() << "Inserting " << FixupLocsForFn.size() << " fixup(s)\n");
   for (AESFixupLocation &FixupLoc : FixupLocsForFn) {
     insertAESFixup(FixupLoc, TII, TRI);
-    Changed |= true;
+    Changed = Changed || true;
   }
 
   return Changed;

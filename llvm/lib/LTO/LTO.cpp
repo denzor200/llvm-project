@@ -701,7 +701,7 @@ void LTO::addModuleToGlobalRes(ArrayRef<InputFile::Symbol> Syms,
     GlobalRes.VisibleOutsideSummary |=
         (Res.VisibleToRegularObj || Sym.isUsed() || !InSummary);
 
-    GlobalRes.ExportDynamic |= Res.ExportDynamic;
+    GlobalRes.ExportDynamic = GlobalRes.ExportDynamic || Res.ExportDynamic;
   }
 }
 
@@ -1004,7 +1004,7 @@ LTO::addRegularLTO(InputFile &Input, ArrayRef<SymbolResolution> InputRes,
         CommonRes.Alignment =
             std::max(Align(SymAlignValue), CommonRes.Alignment);
       }
-      CommonRes.Prevailing |= R.Prevailing;
+      CommonRes.Prevailing = CommonRes.Prevailing || R.Prevailing;
     }
   }
 

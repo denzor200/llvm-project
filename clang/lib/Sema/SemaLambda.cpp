@@ -1353,7 +1353,7 @@ void Sema::ActOnLambdaExpressionAfterIntroducer(LambdaIntroducer &Intro,
       LSI->ExplicitCaptureRanges[LSI->Captures.size() - 1] = C->ExplicitRange;
   }
   finishLambdaExplicitCaptures(LSI);
-  LSI->ContainsUnexpandedParameterPack |= ContainsUnexpandedParameterPack;
+  LSI->ContainsUnexpandedParameterPack = LSI->ContainsUnexpandedParameterPack || ContainsUnexpandedParameterPack;
   PopDeclContext();
 }
 
@@ -2204,7 +2204,7 @@ ExprResult Sema::BuildLambdaExpr(SourceLocation StartLoc,
     }
 
     if (CaptureRange.isValid()) {
-      CurHasPreviousCapture |= IsCaptureUsed;
+      CurHasPreviousCapture = CurHasPreviousCapture || IsCaptureUsed;
       PrevCaptureLoc = CaptureRange.getEnd();
     }
 

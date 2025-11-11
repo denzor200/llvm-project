@@ -638,7 +638,7 @@ static void readMemprof(Module &M, Function &F,
       ArrayRef<GlobalValue::GUID> CalleeGuids(CS.CalleeGuids);
       LocHashToCallSites[StackId].insert({FrameSlice, CalleeGuids});
 
-      ProfileHasColumns |= StackFrame.Column;
+      ProfileHasColumns = ProfileHasColumns || StackFrame.Column;
       // Once we find this function, we can stop recording.
       if (StackFrame.Function == FuncGUID)
         break;

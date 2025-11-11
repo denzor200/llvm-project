@@ -167,7 +167,7 @@ getTreePredicates(std::vector<PositionalPredicate> &predList, Value val,
     bool foundVariableLength = false;
     for (const auto &operandIt : llvm::enumerate(operands)) {
       bool isVariadic = isa<pdl::RangeType>(operandIt.value().getType());
-      foundVariableLength |= isVariadic;
+      foundVariableLength = foundVariableLength || isVariadic;
 
       // Ignore the specified operand, usually because this position was
       // visited in an upward traversal via an iterative choice.
@@ -191,7 +191,7 @@ getTreePredicates(std::vector<PositionalPredicate> &predList, Value val,
   bool foundVariableLength = false;
   for (auto [idx, typeValue] : llvm::enumerate(types)) {
     bool isVariadic = isa<pdl::RangeType>(typeValue.getType());
-    foundVariableLength |= isVariadic;
+    foundVariableLength = foundVariableLength || isVariadic;
 
     auto *resultPos = foundVariableLength
                           ? builder.getResultGroup(pos, idx, isVariadic)

@@ -830,7 +830,7 @@ bool HexagonOptAddrMode::analyzeUses(unsigned tfrDefR,
       KeepTfr = true;
 
     InstrEvalResult[&MI] = CanBeReplaced;
-    HasRepInstr |= CanBeReplaced;
+    HasRepInstr = HasRepInstr || CanBeReplaced;
   }
 
   // Reduce total size by 2 if original tfr can be deleted.
@@ -1128,8 +1128,8 @@ bool HexagonOptAddrMode::processBlock(NodeAddr<BlockNode *> BA) {
       bool Xformed = false;
       if (UseMOnum >= 0 && InstrEvalResult[UseMI])
         Xformed = xformUseMI(MI, UseMI, UseN, UseMOnum);
-      Changed |=  Xformed;
-      KeepTfr |= !Xformed;
+      Changed = Changed ||  Xformed;
+      KeepTfr = KeepTfr || !Xformed;
     }
     if (!KeepTfr)
       Deleted.insert(MI);

@@ -590,7 +590,7 @@ struct FoldExtractFromVectorOfSMELikeCreateMasks
 bool isLegalVectorType(VectorType vType) {
   bool seenFixedDim = false;
   for (bool scalableFlag : llvm::reverse(vType.getScalableDims())) {
-    seenFixedDim |= !scalableFlag;
+    seenFixedDim = seenFixedDim || !scalableFlag;
     if (seenFixedDim && scalableFlag)
       return false;
   }

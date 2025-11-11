@@ -206,7 +206,7 @@ class NearestCommonDominator {
     if (NewResult != Result)
       ResultIsRemembered = false;
     if (NewResult == BB)
-      ResultIsRemembered |= Remember;
+      ResultIsRemembered = ResultIsRemembered || Remember;
     Result = NewResult;
   }
 

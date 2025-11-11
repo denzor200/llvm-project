@@ -1016,7 +1016,7 @@ bool TailDuplicator::tailDuplicate(bool IsSimple, MachineBasicBlock *TailBB,
       if (!Changed)
         return RemovedBranches;
     }
-    Changed |= RemovedBranches;
+    Changed = Changed || RemovedBranches;
   }
 
   // If this is after register allocation, there are no phis to fix.

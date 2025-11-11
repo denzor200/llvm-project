@@ -278,15 +278,15 @@ bool HexagonTfrCleanup::runOnMachineFunction(MachineFunction &MF) {
       NextJ = std::next(J);
       MachineInstr *MI = &*J;
       bool E = eraseIfRedundant(MI, Indexes);
-      Erased |= E;
+      Erased = Erased || E;
       if (E)
         continue;
       Inserted |= rewriteIfImm(MI, IMap, Indexes);
       MachineBasicBlock::iterator NewJ = std::prev(NextJ);
       updateImmMap(&*NewJ, IMap);
     }
-    bool BlockC = Inserted | Erased;
-    Changed |= BlockC;
+    bool BlockC = Inserted || Erased;
+    Changed = Changed || BlockC;
     if (BlockC && Indexes)
       Indexes->repairIndexesInRange(&B, B.begin(), B.end());
   }

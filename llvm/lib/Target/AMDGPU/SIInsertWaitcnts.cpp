@@ -2428,7 +2428,7 @@ bool WaitcntBrackets::merge(const WaitcntBrackets &Other) {
 
   for (int J = 0; J <= VgprUB; J++) {
     unsigned char NewVmemTypes = VgprVmemTypes[J] | Other.VgprVmemTypes[J];
-    StrictDom |= NewVmemTypes != VgprVmemTypes[J];
+    StrictDom = StrictDom || NewVmemTypes != VgprVmemTypes[J];
     VgprVmemTypes[J] = NewVmemTypes;
   }
 

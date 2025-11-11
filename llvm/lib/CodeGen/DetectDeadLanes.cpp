@@ -576,7 +576,7 @@ bool DetectDeadLanes::run(MachineFunction &MF) {
     DLD.computeSubRegisterLaneBitInfo();
     bool LocalChanged;
     std::tie(LocalChanged, Again) = modifySubRegisterOperandStatus(DLD, MF);
-    Changed |= LocalChanged;
+    Changed = Changed || LocalChanged;
   } while (Again);
 
   return Changed;

@@ -78,8 +78,8 @@ struct OptReportLocationItemInfo {
 
   OptReportLocationItemInfo &operator |= (
     const OptReportLocationItemInfo &RHS) {
-    Analyzed |= RHS.Analyzed;
-    Transformed |= RHS.Transformed;
+    Analyzed = Analyzed || RHS.Analyzed;
+    Transformed = Transformed || RHS.Transformed;
 
     return *this;
   }

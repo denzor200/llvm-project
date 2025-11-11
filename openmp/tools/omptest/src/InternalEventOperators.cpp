@@ -248,10 +248,10 @@ bool operator==(const BufferRecord &Expected, const BufferRecord &Observed) {
                 Observed.Record.record.target_data_op.codeptr_ra);
     if (Expected.Record.record.target_data_op.end_time !=
         std::numeric_limits<ompt_device_time_t>::min()) {
-      isEqual &=
+      isEqual = isEqual &&
           ObservedDurationNs <= Expected.Record.record.target_data_op.end_time;
     }
-    isEqual &= ObservedDurationNs >= Expected.Record.time;
+    isEqual = isEqual && ObservedDurationNs >= Expected.Record.time;
     break;
   case ompt_callback_target_submit:
     ObservedDurationNs =
@@ -270,10 +270,10 @@ bool operator==(const BufferRecord &Expected, const BufferRecord &Observed) {
                 Observed.Record.record.target_kernel.host_op_id);
     if (Expected.Record.record.target_kernel.end_time !=
         std::numeric_limits<ompt_device_time_t>::min()) {
-      isEqual &=
+      isEqual = isEqual &&
           ObservedDurationNs <= Expected.Record.record.target_kernel.end_time;
     }
-    isEqual &= ObservedDurationNs >= Expected.Record.time;
+    isEqual = isEqual && ObservedDurationNs >= Expected.Record.time;
     break;
   default:
     assert(false && "Encountered invalid record type");

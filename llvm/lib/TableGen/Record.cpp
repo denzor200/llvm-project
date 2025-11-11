@@ -590,7 +590,7 @@ const Init *BitsInit::resolveReferences(Resolver &R) const {
 
     if (isa<UnsetInit>(NewBit) && R.keepUnsetBits())
       NewBit = CurBit;
-    Changed |= CurBit != NewBit;
+    Changed = Changed || CurBit != NewBit;
   }
 
   if (Changed)
@@ -779,7 +779,7 @@ const Init *ListInit::resolveReferences(Resolver &R) const {
 
   for (const Init *CurElt : getElements()) {
     const Init *E = CurElt->resolveReferences(R);
-    Changed |= E != CurElt;
+    Changed = Changed || E != CurElt;
     Resolved.push_back(E);
   }
 
@@ -2540,7 +2540,7 @@ const Init *VarDefInit::resolveReferences(Resolver &R) const {
   for (const ArgumentInit *Arg : args()) {
     const auto *NewArg = cast<ArgumentInit>(Arg->resolveReferences(UR));
     NewArgs.push_back(NewArg);
-    Changed |= NewArg != Arg;
+    Changed = Changed || NewArg != Arg;
   }
 
   if (Changed) {
@@ -2674,11 +2674,11 @@ const Init *CondOpInit::resolveReferences(Resolver &R) const {
   for (auto [Cond, Val] : getCondAndVals()) {
     const Init *NewCond = Cond->resolveReferences(R);
     NewConds.push_back(NewCond);
-    Changed |= NewCond != Cond;
+    Changed = Changed || NewCond != Cond;
 
     const Init *NewVal = Val->resolveReferences(R);
     NewVals.push_back(NewVal);
-    Changed |= NewVal != Val;
+    Changed = Changed || NewVal != Val;
   }
 
   if (Changed)
@@ -2814,7 +2814,7 @@ const Init *DagInit::resolveReferences(Resolver &R) const {
   for (const Init *Arg : getArgs()) {
     const Init *NewArg = Arg->resolveReferences(R);
     NewArgs.push_back(NewArg);
-    ArgsChanged |= NewArg != Arg;
+    ArgsChanged = ArgsChanged || NewArg != Arg;
   }
 
   const Init *Op = Val->resolveReferences(R);
@@ -3397,7 +3397,7 @@ const Init *TrackUnresolvedResolver::resolve(const Init *VarName) {
       // if there are unresolved variables remaining.
       TrackUnresolvedResolver Sub;
       I->resolveReferences(Sub);
-      FoundUnresolved |= Sub.FoundUnresolved;
+      FoundUnresolved = FoundUnresolved || Sub.FoundUnresolved;
     }
   }
 

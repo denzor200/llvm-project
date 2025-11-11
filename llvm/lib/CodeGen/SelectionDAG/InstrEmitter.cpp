@@ -140,7 +140,7 @@ void InstrEmitter::EmitCopyFromReg(SDValue Op, bool IsClone, Register SrcReg,
         }
       }
     }
-    MatchReg &= Match;
+    MatchReg = MatchReg && Match;
     if (VRBase)
       break;
   }

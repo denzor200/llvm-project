@@ -397,7 +397,7 @@ public:
 
   bool isKill() const {
     assert(isReg() && "Wrong MachineOperand accessor");
-    return IsDeadOrKill & !IsDef;
+    return IsDeadOrKill && !IsDef;
   }
 
   bool isUndef() const {
@@ -851,7 +851,7 @@ public:
     MachineOperand Op(MachineOperand::MO_Register);
     Op.IsDef = isDef;
     Op.IsImp = isImp;
-    Op.IsDeadOrKill = isKill | isDead;
+    Op.IsDeadOrKill = isKill || isDead;
     Op.IsRenamable = isRenamable;
     Op.IsUndef = isUndef;
     Op.IsInternalRead = isInternalRead;

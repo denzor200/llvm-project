@@ -308,7 +308,7 @@ bool SMEPeepholeOpt::runOnMachineFunction(MachineFunction &MF) {
   for (MachineBasicBlock &MBB : MF) {
     bool BlockHasAllSMChangesRemoved;
     Changed |= optimizeStartStopPairs(MBB, BlockHasAllSMChangesRemoved);
-    FunctionHasAllSMChangesRemoved |= BlockHasAllSMChangesRemoved;
+    FunctionHasAllSMChangesRemoved = FunctionHasAllSMChangesRemoved || BlockHasAllSMChangesRemoved;
 
     if (MF.getSubtarget<AArch64Subtarget>().isStreaming()) {
       for (MachineInstr &MI : make_early_inc_range(MBB))

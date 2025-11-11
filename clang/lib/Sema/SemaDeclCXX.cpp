@@ -8151,8 +8151,8 @@ struct DefaultedComparisonInfo {
   }
 
   bool add(const DefaultedComparisonInfo &R) {
-    Deleted |= R.Deleted;
-    Constexpr &= R.Constexpr;
+    Deleted = Deleted || R.Deleted;
+    Constexpr = Constexpr && R.Constexpr;
     Category = commonComparisonType(Category, R.Category);
     return Deleted;
   }
@@ -9028,7 +9028,7 @@ bool Sema::CheckExplicitlyDefaultedComparison(Scope *S, FunctionDecl *FD,
         Ok &= RD->isDependentType() || Context.hasSameType(CTy, ExpectedTy);
       } else {
         RD = CTy->getAsCXXRecordDecl();
-        Ok &= RD != nullptr;
+        Ok = Ok && RD != nullptr;
       }
 
       if (Ok) {

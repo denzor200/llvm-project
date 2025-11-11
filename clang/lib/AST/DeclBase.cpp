@@ -1852,7 +1852,7 @@ StoredDeclsMap *DeclContext::buildLookup() {
       if (DC->hasExternalLexicalStorage()) {
         bool LoadedDecls = DC->LoadLexicalDeclsFromExternalStorage();
         setHasLazyLocalLexicalLookups(
-            hasLazyLocalLexicalLookups() | LoadedDecls );
+            hasLazyLocalLexicalLookups() || LoadedDecls );
       }
     }
 

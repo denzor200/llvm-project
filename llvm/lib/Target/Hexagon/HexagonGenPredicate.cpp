@@ -498,7 +498,7 @@ bool HexagonGenPredicate::runOnMachineFunction(MachineFunction &MF) {
         Again = true;
       }
     }
-    Changed |= Again;
+    Changed = Changed || Again;
 
     auto Done = [Processed] (MachineInstr *MI) -> bool {
       return Processed.count(MI);

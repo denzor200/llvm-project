@@ -319,7 +319,7 @@ bool OpFilter::isOpAllowed(Operation *op) const {
     bool filterResult = entry.fn(op);
     switch (entry.type) {
     case Entry::ALLOW:
-      isAllowed |= filterResult;
+      isAllowed = isAllowed || filterResult;
       break;
     case Entry::DENY:
       if (filterResult)

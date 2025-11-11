@@ -536,7 +536,7 @@ void HexagonExpandCondsets::removeInstr(MachineInstr &MI) {
 void HexagonExpandCondsets::updateLiveness(const std::set<Register> &RegSet,
                                            bool Recalc, bool UpdateKills,
                                            bool UpdateDeads) {
-  UpdateKills |= UpdateDeads;
+  UpdateKills = UpdateKills || UpdateDeads;
   for (Register R : RegSet) {
     if (!R.isVirtual()) {
       assert(R.isPhysical());
@@ -1092,7 +1092,7 @@ bool HexagonExpandCondsets::predicateInBlock(MachineBasicBlock &B,
           removeInstr(MI);
         }
       }
-      Changed |= Done;
+      Changed = Changed || Done;
     }
   }
   return Changed;
@@ -1249,7 +1249,7 @@ bool HexagonExpandCondsets::coalesceSegments(
         }
       }
     }
-    Changed |= Done;
+    Changed = Changed || Done;
   }
   return Changed;
 }

@@ -999,7 +999,7 @@ bool WebAssemblyLowerEmscriptenEHSjLj::runOnModule(Module &M) {
 
   bool SetjmpUsed = SetjmpF && !SetjmpUsers.empty();
   bool LongjmpUsed = LongjmpF && !LongjmpF->use_empty();
-  DoSjLj = (EnableEmSjLj | EnableWasmSjLj) && (SetjmpUsed || LongjmpUsed);
+  DoSjLj = (EnableEmSjLj || EnableWasmSjLj) && (SetjmpUsed || LongjmpUsed);
 
   // Function registration and data pre-gathering for setjmp/longjmp handling
   if (DoSjLj) {

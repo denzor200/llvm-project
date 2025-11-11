@@ -1020,7 +1020,7 @@ public:
         // GV could also be used directly by other kernels. If so, we need to
         // create a new GV used only by this kernel and its function.
         auto NewGV = uniquifyGVPerKernel(M, GV, F);
-        Changed |= (NewGV != GV);
+        Changed = Changed || (NewGV != GV);
         unsigned BarrierScope = llvm::AMDGPU::Barrier::BARRIER_SCOPE_WORKGROUP;
         unsigned BarId = Kernel2BarId[F];
         BarId += NumAbsolutes + 1;
