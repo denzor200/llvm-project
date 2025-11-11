@@ -9,6 +9,7 @@ void general(unsigned flags, bool value) {
     flags = (flags << 1) | (flags << 2) | (flags << 4) | value;
 }
 
+
 void take(bool value) {}
 
 template<bool bb = true | 1>
