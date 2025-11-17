@@ -268,6 +268,7 @@ Clang-Tidy Checks
    :doc:`misc-definitions-in-headers <misc/definitions-in-headers>`, "Yes"
    :doc:`misc-header-include-cycle <misc/header-include-cycle>`,
    :doc:`misc-include-cleaner <misc/include-cleaner>`, "Yes"
+   :doc:`misc-include-correctness <misc/include-correctness>`, "Yes"
    :doc:`misc-misleading-bidirectional <misc/misleading-bidirectional>`,
    :doc:`misc-misleading-identifier <misc/misleading-identifier>`,
    :doc:`misc-misplaced-const <misc/misplaced-const>`,
