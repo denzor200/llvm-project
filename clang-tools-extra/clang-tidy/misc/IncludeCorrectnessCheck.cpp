@@ -43,6 +43,7 @@ public:
     if (!File) return;
 
     // Get the actual file path
+    // TODO: should it be without filename?
     StringRef FilePath = File->getName();
 
     // Determine if this is a system header
