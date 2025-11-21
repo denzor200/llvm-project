@@ -223,7 +223,8 @@ New checks
 - New :doc:`misc-include-correctness
   <clang-tidy/checks/misc/include-correctness>` check.
 
-  FIXME: Write a short description.
+  Checks for correctness of angle brackets (<>) and quotes ("") in #include
+  statements.
 
 - New :doc:`misc-override-with-different-visibility
   <clang-tidy/checks/misc/override-with-different-visibility>` check.
