@@ -53,14 +53,14 @@ public:
     if (IsSystemHeader && !IsAngled) {
       // System header included with quotes - should use angle brackets
       Check.diag(FilenameRange.getBegin(),
-                 "system header %0 should be included with angle brackets <>")
+                 "system header '%0' should be included with angle brackets <>")
           << FileName
           << FixItHint::CreateReplacement(FilenameRange,
                                          "<" + FileName.str() + ">");
     } else if (!IsSystemHeader && IsAngled) {
       // User header included with angle brackets - should use quotes
       Check.diag(FilenameRange.getBegin(),
-                 "user header %0 should be included with quotes \"\"")
+                 "user header '%0' should be included with quotes \"\"")
           << FileName
           << FixItHint::CreateReplacement(FilenameRange,
                                          "\"" + FileName.str() + "\"");
