@@ -33,7 +33,7 @@ public:
 
 private:
   const bool StrictMode;
-  const std::vector<StringRef> AdditionalSystemIncludes;
+  const std::vector<StringRef> SystemIncludes;
 };
 
 } // namespace misc

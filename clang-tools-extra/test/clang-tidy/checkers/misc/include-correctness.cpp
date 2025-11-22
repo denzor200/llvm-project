@@ -1,4 +1,4 @@
-// RUN: %check_clang_tidy %s misc-include-correctness %t -- -header-filter=.* --config='{CheckOptions: {misc-include-correctness.AdditionalSystemIncludes: %S/Inputs/include-correctness/system}}' -- -I%S/Inputs/include-correctness/system -I%S/Inputs/include-correctness/user
+// RUN: %check_clang_tidy %s misc-include-correctness %t -- -header-filter=.* --config='{CheckOptions: {misc-include-correctness.SystemIncludes: %S/Inputs/include-correctness/system}}' -- -I%S/Inputs/include-correctness/system -I%S/Inputs/include-correctness/user
 
 // Should warn: system header with quotes
 #include "vector"

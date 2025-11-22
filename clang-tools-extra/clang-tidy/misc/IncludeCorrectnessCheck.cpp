@@ -19,15 +19,20 @@ using namespace clang::tidy;
 
 namespace {
 
+const auto DefaultSystemDirs = "/usr/include;/usr/local/include;/System/Library;"
+                               "/Library;/Applications/Xcode.app;/opt/local/include;"
+                               "/mingw;/msys;/Windows Kits;/Microsoft Visual Studio;"
+                               "/clang/;/gcc/;/lib/gcc/";
+
 template<typename T>
 class IncludeCorrectnessPPCallbacks : public PPCallbacks {
 public:
   explicit IncludeCorrectnessPPCallbacks(T &Check,
                                          const SourceManager &SM,
                                          bool StrictMode,
-                                         const std::vector<StringRef> &AdditionalSystemIncludes)
+                                         const std::vector<StringRef> &SystemIncludes)
       : Check(Check), SM(SM), StrictMode(StrictMode),
-        AdditionalSystemIncludes(AdditionalSystemIncludes) {}
+        SystemIncludes(SystemIncludes) {}
 
   void InclusionDirective(SourceLocation HashLoc, const Token &IncludeTok,
                           StringRef FileName, bool IsAngled,
@@ -81,7 +86,7 @@ private:
     }
     
     // Check additional user-provided system include directories
-    for (const auto &SystemPath : AdditionalSystemIncludes) {
+    for (const auto &SystemPath : SystemIncludes) {
       if (FilePath.starts_with(SystemPath)) {
         return true;
       }
@@ -96,40 +101,18 @@ private:
   }
   
   bool isInSystemDirectory(StringRef FilePath, StringRef SearchPath) {
-    // Common system include directories
-    static const llvm::StringRef SystemDirs[] = {
-        "/usr/include",
-        "/usr/local/include", 
-        "/System/Library",
-        "/Library",
-        "/Applications/Xcode.app",
-        "/opt/local/include",
-        "/mingw",
-        "/msys",
-        "/Windows Kits",
-        "/Microsoft Visual Studio",
-        "/clang/",
-        "/gcc/",
-        "/lib/gcc/"
-    };
-    
-    // Check if file is in system directory
-    for (StringRef Dir : SystemDirs) {
-      if (FilePath.contains(Dir) || SearchPath.contains(Dir)) {
-        return true;
-      }
-    }
-    
+
     // Check if search path looks like system path
-    if (!SearchPath.empty()) {
-      if (SearchPath.starts_with("/usr") || 
-          SearchPath.starts_with("/System") ||
-          SearchPath.starts_with("/Library") ||
-          SearchPath.contains("MSVC") ||
-          SearchPath.contains("Windows Kits")) {
-        return true;
-      }
-    }
+    // TODO:
+    // if (!SearchPath.empty()) {
+    //   if (SearchPath.starts_with("/usr") || 
+    //       SearchPath.starts_with("/System") ||
+    //       SearchPath.starts_with("/Library") ||
+    //       SearchPath.contains("MSVC") ||
+    //       SearchPath.contains("Windows Kits")) {
+    //     return true;
+    //   }
+    // }
     
     return false;
   }
@@ -180,7 +163,7 @@ private:
   T &Check;
   const SourceManager &SM;
   const bool StrictMode;
-  const std::vector<StringRef> &AdditionalSystemIncludes;
+  const std::vector<StringRef> &SystemIncludes;
 };
 
 } // namespace
@@ -193,19 +176,19 @@ IncludeCorrectnessCheck::IncludeCorrectnessCheck(StringRef Name,
                                                ClangTidyContext *Context)
     : ClangTidyCheck(Name, Context),
       StrictMode(Options.getLocalOrGlobal("StrictMode", false)),
-      AdditionalSystemIncludes(utils::options::parseStringList(Options.getLocalOrGlobal("AdditionalSystemIncludes", "")))
+      SystemIncludes(utils::options::parseStringList(Options.getLocalOrGlobal("SystemIncludes", DefaultSystemDirs)))
     {}
 
 void IncludeCorrectnessCheck::registerPPCallbacks(
     const SourceManager &SM, Preprocessor *PP, Preprocessor *ModuleExpanderPP) {
   PP->addPPCallbacks(std::make_unique<IncludeCorrectnessPPCallbacks<IncludeCorrectnessCheck>>(
-      *this, SM, StrictMode, AdditionalSystemIncludes));
+      *this, SM, StrictMode, SystemIncludes));
 }
 
 void IncludeCorrectnessCheck::storeOptions(
     ClangTidyOptions::OptionMap &Opts) {
   Options.store(Opts, "StrictMode", StrictMode);
-  Options.store(Opts, "AdditionalSystemIncludes", utils::options::serializeStringList(AdditionalSystemIncludes));
+  Options.store(Opts, "SystemIncludes", utils::options::serializeStringList(SystemIncludes));
 }
 
 } // namespace misc

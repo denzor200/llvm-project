@@ -22,11 +22,11 @@ Options
    to identify system headers based on file name patterns in addition to
    directory paths.
 
-.. option:: AdditionalSystemIncludes
+.. option:: SystemIncludes
 
-   A list of additional paths that should be considered as system include
-   directories. For example:
-   ``['/opt/custom/include', '/third_party/libs']``
+   A list of paths that should be considered as system include
+   directories. Defaults to common system directories like ``/usr/include``,
+   ``/usr/local/include``, etc.
 
 Examples
 --------
