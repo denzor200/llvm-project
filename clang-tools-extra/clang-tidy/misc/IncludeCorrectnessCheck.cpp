@@ -14,13 +14,15 @@
 #include "clang/Lex/Preprocessor.h"
 #include "llvm/Support/Path.h"
 
-using namespace clang;
-using namespace clang::tidy;
+namespace clang::tidy::misc {
 
 namespace {
 
-const auto DefaultSystemDirs = "/usr/include;/usr/local/include;/System/Library;"
-                               "/Library;/Applications/Xcode.app;/opt/local/include;"
+const auto DefaultSystemDirs = "/usr/include;/usr/local/include;"
+                               "/System/Library;"      // macOS system headers
+                               // TODO: does it need Frameworks??
+                               "/Library/Frameworks;"  // User-installed frameworks on macOS
+                               "/Applications/Xcode.app;/opt/local/include;"
                                "/mingw;/msys;/Windows Kits;/Microsoft Visual Studio;"
                                "/clang/;/gcc/;/lib/gcc/";
 
@@ -168,10 +170,6 @@ private:
 
 } // namespace
 
-namespace clang {
-namespace tidy {
-namespace misc {
-
 IncludeCorrectnessCheck::IncludeCorrectnessCheck(StringRef Name, 
                                                ClangTidyContext *Context)
     : ClangTidyCheck(Name, Context),
@@ -191,6 +189,4 @@ void IncludeCorrectnessCheck::storeOptions(
   Options.store(Opts, "SystemIncludes", utils::options::serializeStringList(SystemIncludes));
 }
 
-} // namespace misc
-} // namespace tidy
-} // namespace clang
+} // namespace clang::tidy::misc
