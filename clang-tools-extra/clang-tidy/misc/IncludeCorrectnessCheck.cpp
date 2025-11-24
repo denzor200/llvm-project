@@ -32,8 +32,9 @@ public:
   explicit IncludeCorrectnessPPCallbacks(T &Check,
                                          const SourceManager &SM,
                                          bool StrictMode,
+                                         bool Verbose,
                                          const std::vector<StringRef> &SystemIncludes)
-      : Check(Check), SM(SM), StrictMode(StrictMode),
+      : Check(Check), SM(SM), StrictMode(StrictMode), Verbose(Verbose),
         SystemIncludes(SystemIncludes) {}
 
   void InclusionDirective(SourceLocation HashLoc, const Token &IncludeTok,
@@ -64,6 +65,11 @@ public:
           << FileName
           << FixItHint::CreateReplacement(FilenameRange,
                                          "<" + FileName.str() + ">");
+      if (Verbose) {
+        Check.diag(FilenameRange.getBegin(),
+                   "full include path: %0", DiagnosticIDs::Note)
+            << FilePath;
+      }
     } else if (!IsSystemHeader && IsAngled) {
       // User header included with angle brackets - should use quotes
       Check.diag(FilenameRange.getBegin(),
@@ -71,6 +77,11 @@ public:
           << FileName
           << FixItHint::CreateReplacement(FilenameRange,
                                          "\"" + FileName.str() + "\"");
+      if (Verbose) {
+        Check.diag(FilenameRange.getBegin(),
+                   "full include path: %0", DiagnosticIDs::Note)
+            << FilePath;
+      }
     }
   }
 
@@ -165,6 +176,7 @@ private:
   T &Check;
   const SourceManager &SM;
   const bool StrictMode;
+  const bool Verbose;
   const std::vector<StringRef> &SystemIncludes;
 };
 
@@ -174,18 +186,20 @@ IncludeCorrectnessCheck::IncludeCorrectnessCheck(StringRef Name,
                                                ClangTidyContext *Context)
     : ClangTidyCheck(Name, Context),
       StrictMode(Options.getLocalOrGlobal("StrictMode", false)),
+      Verbose(Options.getLocalOrGlobal("Verbose", false)),
       SystemIncludes(utils::options::parseStringList(Options.getLocalOrGlobal("SystemIncludes", DefaultSystemDirs)))
     {}
 
 void IncludeCorrectnessCheck::registerPPCallbacks(
     const SourceManager &SM, Preprocessor *PP, Preprocessor *ModuleExpanderPP) {
   PP->addPPCallbacks(std::make_unique<IncludeCorrectnessPPCallbacks<IncludeCorrectnessCheck>>(
-      *this, SM, StrictMode, SystemIncludes));
+      *this, SM, StrictMode, Verbose, SystemIncludes));
 }
 
 void IncludeCorrectnessCheck::storeOptions(
     ClangTidyOptions::OptionMap &Opts) {
   Options.store(Opts, "StrictMode", StrictMode);
+  Options.store(Opts, "Verbose", Verbose);
   Options.store(Opts, "SystemIncludes", utils::options::serializeStringList(SystemIncludes));
 }
 

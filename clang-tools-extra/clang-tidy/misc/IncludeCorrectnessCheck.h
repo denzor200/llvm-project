@@ -33,6 +33,7 @@ public:
 
 private:
   const bool StrictMode;
+  const bool Verbose;
   const std::vector<StringRef> SystemIncludes;
 };
 

@@ -22,6 +22,10 @@ Options
    to identify system headers based on file name patterns in addition to
    directory paths.
 
+.. option:: Verbose
+
+   TODO: make description
+
 .. option:: SystemIncludes
 
    A list of paths that should be considered as system include
