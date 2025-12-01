@@ -65,8 +65,8 @@ PlatformSP PlatformLinux::CreateInstance(bool force, const ArchSpec *arch) {
 
   bool create = force;
   if (!create && arch && arch->IsValid()) {
-    const llvm::Triple &triple = arch->GetTriple();
-    switch (triple.getOS()) {
+    
+    switch (const llvm::Triple &triple = arch->GetTriple(); triple.getOS()) {
     case llvm::Triple::Linux:
       create = true;
       break;
@@ -329,8 +329,8 @@ MmapArgList PlatformLinux::GetMmapArgumentList(const ArchSpec &arch,
 
 CompilerType PlatformLinux::GetSiginfoType(const llvm::Triple &triple) {
   {
-    std::lock_guard<std::mutex> guard(m_mutex);
-    if (!m_type_system)
+    
+    if (std::lock_guard<std::mutex> guard(m_mutex); !m_type_system)
       m_type_system = std::make_shared<TypeSystemClang>("siginfo", triple);
   }
   TypeSystemClang *ast = m_type_system.get();
@@ -523,8 +523,8 @@ static std::string GetDescriptionFromSiginfo(lldb::ValueObjectSP siginfo_sp) {
   // invariants around kernel sent signals. Such as SIGSEGV won't have an
   // address.
   if (code < 0) {
-    auto sikill = sifields->GetChildMemberWithName("_kill");
-    if (sikill) {
+    
+    if (auto sikill = sifields->GetChildMemberWithName("_kill"); sikill) {
       auto pid_sp = sikill->GetChildMemberWithName("si_pid");
       if (pid_sp)
         pid = pid_sp->GetValueAsUnsigned(-1);

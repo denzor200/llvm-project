@@ -154,8 +154,8 @@ void LinkerDriver::parseMerge(StringRef s) {
   auto pair = ctx.config.merge.insert(std::make_pair(from, to));
   bool inserted = pair.second;
   if (!inserted) {
-    StringRef existing = pair.first->second;
-    if (existing != to)
+    
+    if (StringRef existing = pair.first->second; existing != to)
       Warn(ctx) << s << ": already merged into " << existing;
   }
 }
@@ -290,8 +290,8 @@ void LinkerDriver::parseFunctionPadMin(llvm::opt::Arg *a) {
 
 // Parses /dependentloadflag option argument.
 void LinkerDriver::parseDependentLoadFlags(llvm::opt::Arg *a) {
-  StringRef arg = a->getNumValues() ? a->getValue() : "";
-  if (!arg.empty()) {
+  
+  if (StringRef arg = a->getNumValues() ? a->getValue() : ""; !arg.empty()) {
     if (arg.getAsInteger(0, ctx.config.dependentLoadFlags))
       Err(ctx) << "/dependentloadflag: invalid argument: " << arg;
     return;
@@ -615,10 +615,10 @@ Export LinkerDriver::parseExport(StringRef arg) {
     goto err;
 
   if (e.name.contains('=')) {
-    auto [x, y] = e.name.split("=");
+    
 
     // If "<name>=<dllname>.<name>".
-    if (y.contains(".")) {
+    if (auto [x, y] = e.name.split("="); y.contains(".")) {
       e.name = x;
       e.forwardTo = y;
     } else {
@@ -778,8 +778,8 @@ static void handleColorDiagnostics(COFFLinkerContext &ctx,
   } else if (arg->getOption().getID() == OPT_no_color_diagnostics) {
     ctx.e.errs().enable_colors(false);
   } else {
-    StringRef s = arg->getValue();
-    if (s == "always")
+    
+    if (StringRef s = arg->getValue(); s == "always")
       ctx.e.errs().enable_colors(true);
     else if (s == "never")
       ctx.e.errs().enable_colors(false);
@@ -853,8 +853,8 @@ opt::InputArgList ArgParser::parse(ArrayRef<const char *> argv) {
   handleColorDiagnostics(ctx, args);
 
   for (opt::Arg *arg : args.filtered(OPT_UNKNOWN)) {
-    std::string nearest;
-    if (ctx.optTable.findNearest(arg->getAsString(args), nearest) > 1)
+    
+    if (std::string nearest; ctx.optTable.findNearest(arg->getAsString(args), nearest) > 1)
       Warn(ctx) << "ignoring unknown argument '" << arg->getAsString(args)
                 << "'";
     else

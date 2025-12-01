@@ -68,8 +68,8 @@ yaml2ObjectFile(SmallVectorImpl<char> &Storage, StringRef Yaml,
   Storage.clear();
   raw_svector_ostream OS(Storage);
 
-  yaml::Input YIn(Yaml);
-  if (!convertYAML(YIn, OS, ErrHandler))
+  
+  if (yaml::Input YIn(Yaml); !convertYAML(YIn, OS, ErrHandler))
     return {};
 
   Expected<std::unique_ptr<object::ObjectFile>> ObjOrErr =

@@ -23,8 +23,8 @@ LLVM_LIBC_FUNCTION(int, pkey_free, (int pkey)) {
   libc_errno = ENOSYS;
   return -1;
 #else
-  int ret = LIBC_NAMESPACE::syscall_impl<int>(SYS_pkey_free, pkey);
-  if (ret < 0) {
+  
+  if (int ret = LIBC_NAMESPACE::syscall_impl<int>(SYS_pkey_free, pkey); ret < 0) {
     libc_errno = -ret;
     return -1;
   }

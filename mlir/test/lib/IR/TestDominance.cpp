@@ -86,9 +86,9 @@ public:
         if (printCommonDominatorInfo) {
           llvm::outs() << "Nearest(" << blockIds[block] << ", "
                        << blockIds[nestedBlock] << ") = ";
-          Block *dom =
-              dominanceInfo.findNearestCommonDominator(block, nestedBlock);
-          if (dom)
+          
+          if (Block *dom =
+              dominanceInfo.findNearestCommonDominator(block, nestedBlock); dom)
             llvm::outs() << blockIds[dom];
           else
             llvm::outs() << "<no dom>";

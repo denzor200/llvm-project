@@ -306,8 +306,8 @@ bool AMDGPUPromoteAllocaImpl::run(Function &F, bool PromoteToLDS) {
   Mod = F.getParent();
   DL = &Mod->getDataLayout();
 
-  const AMDGPUSubtarget &ST = AMDGPUSubtarget::get(TM, F);
-  if (!ST.isPromoteAllocaEnabled())
+  
+  if (const AMDGPUSubtarget &ST = AMDGPUSubtarget::get(TM, F); !ST.isPromoteAllocaEnabled())
     return false;
 
   bool SufficientLDS = PromoteToLDS && hasSufficientLocalMem(F);
@@ -537,9 +537,9 @@ static Value *promoteAllocaUserToVector(
         Val, FixedVectorType::get(EltTy, NumPtrElts));
   };
 
-  Type *VecEltTy = VectorTy->getElementType();
+  
 
-  switch (Inst->getOpcode()) {
+  switch (Type *VecEltTy = VectorTy->getElementType(); Inst->getOpcode()) {
   case Instruction::Load: {
     // Loads can only be lowered if the value is known.
     if (!CurVal) {
@@ -811,8 +811,8 @@ bool AMDGPUPromoteAllocaImpl::tryPromoteAllocaToVector(AllocaInst &Alloca) {
     } while ((ArrayTy = dyn_cast<ArrayType>(ElemTy)));
 
     // Check for array of vectors
-    auto *InnerVectorTy = dyn_cast<FixedVectorType>(ElemTy);
-    if (InnerVectorTy) {
+    
+    if (auto *InnerVectorTy = dyn_cast<FixedVectorType>(ElemTy); InnerVectorTy) {
       NumElems *= InnerVectorTy->getNumElements();
       ElemTy = InnerVectorTy->getElementType();
     }
@@ -935,8 +935,8 @@ bool AMDGPUPromoteAllocaImpl::tryPromoteAllocaToVector(AllocaInst &Alloca) {
       if (TransferInst->isVolatile())
         return RejectUser(Inst, "mem transfer inst is volatile");
 
-      ConstantInt *Len = dyn_cast<ConstantInt>(TransferInst->getLength());
-      if (!Len || (Len->getZExtValue() % ElementSize))
+      
+      if (ConstantInt *Len = dyn_cast<ConstantInt>(TransferInst->getLength()); !Len || (Len->getZExtValue() % ElementSize))
         return RejectUser(Inst, "mem transfer inst length is non-constant or "
                                 "not a multiple of the vector element size");
 
@@ -946,8 +946,8 @@ bool AMDGPUPromoteAllocaImpl::tryPromoteAllocaToVector(AllocaInst &Alloca) {
       }
 
       auto getPointerIndexOfAlloca = [&](Value *Ptr) -> ConstantInt * {
-        GetElementPtrInst *GEP = dyn_cast<GetElementPtrInst>(Ptr);
-        if (Ptr != &Alloca && !GEPVectorIdx.count(GEP))
+        
+        if (GetElementPtrInst *GEP = dyn_cast<GetElementPtrInst>(Ptr); Ptr != &Alloca && !GEPVectorIdx.count(GEP))
           return nullptr;
 
         return dyn_cast<ConstantInt>(calculateVectorIndex(Ptr, GEPVectorIdx));
@@ -1002,8 +1002,8 @@ bool AMDGPUPromoteAllocaImpl::tryPromoteAllocaToVector(AllocaInst &Alloca) {
     MemTransferInst *TransferInst = cast<MemTransferInst>(Inst);
     // TODO: Support the case if the pointers are from different alloca or
     // from different address spaces.
-    MemTransferInfo &Info = TransferInfo[TransferInst];
-    if (!Info.SrcIndex || !Info.DestIndex)
+    
+    if (MemTransferInfo &Info = TransferInfo[TransferInst]; !Info.SrcIndex || !Info.DestIndex)
       return RejectUser(
           Inst, "mem transfer inst is missing constant src and/or dst index");
   }
@@ -1033,10 +1033,10 @@ bool AMDGPUPromoteAllocaImpl::tryPromoteAllocaToVector(AllocaInst &Alloca) {
     BasicBlock *BB = I->getParent();
     // On the first pass, we only take values that are trivially known, i.e.
     // where AddAvailableValue was already called in this block.
-    Value *Result = promoteAllocaUserToVector(
+    
+    if (Value *Result = promoteAllocaUserToVector(
         I, *DL, VectorTy, VecStoreSize, ElementSize, TransferInfo, GEPVectorIdx,
-        Updater.FindValueForBlock(BB), DeferredLoads);
-    if (Result)
+        Updater.FindValueForBlock(BB), DeferredLoads); Result)
       Updater.AddAvailableValue(BB, Result);
   });
 
@@ -1046,10 +1046,10 @@ bool AMDGPUPromoteAllocaImpl::tryPromoteAllocaToVector(AllocaInst &Alloca) {
     BasicBlock *BB = I->getParent();
     // On the second pass, we use GetValueInMiddleOfBlock to guarantee we always
     // get a value, inserting PHIs as needed.
-    Value *Result = promoteAllocaUserToVector(
+    
+    if (Value *Result = promoteAllocaUserToVector(
         I, *DL, VectorTy, VecStoreSize, ElementSize, TransferInfo, GEPVectorIdx,
-        Updater.GetValueInMiddleOfBlock(I->getParent()), NewDLs);
-    if (Result)
+        Updater.GetValueInMiddleOfBlock(I->getParent()), NewDLs); Result)
       Updater.AddAvailableValue(BB, Result);
     assert(NewDLs.empty() && "No more deferred loads should be queued!");
   });
@@ -1358,8 +1358,8 @@ bool AMDGPUPromoteAllocaImpl::hasSufficientLocalMem(const Function &F) {
   // possible these arguments require the entire local memory space, so
   // we cannot use local memory in the pass.
   for (Type *ParamTy : FTy->params()) {
-    PointerType *PtrTy = dyn_cast<PointerType>(ParamTy);
-    if (PtrTy && PtrTy->getAddressSpace() == AMDGPUAS::LOCAL_ADDRESS) {
+    
+    if (PointerType *PtrTy = dyn_cast<PointerType>(ParamTy); PtrTy && PtrTy->getAddressSpace() == AMDGPUAS::LOCAL_ADDRESS) {
       LocalMemLimit = 0;
       LLVM_DEBUG(dbgs() << "Function has local memory argument. Promoting to "
                            "local memory disabled.\n");
@@ -1381,8 +1381,8 @@ bool AMDGPUPromoteAllocaImpl::hasSufficientLocalMem(const Function &F) {
         if (Use->getFunction() == &F)
           return true;
       } else {
-        const Constant *C = cast<Constant>(U);
-        if (VisitedConstants.insert(C).second)
+        
+        if (const Constant *C = cast<Constant>(U); VisitedConstants.insert(C).second)
           Stack.push_back(C);
       }
     }
@@ -1403,8 +1403,8 @@ bool AMDGPUPromoteAllocaImpl::hasSufficientLocalMem(const Function &F) {
     // For any ConstantExpr uses, we need to recursively search the users until
     // we see a function.
     while (!Stack.empty()) {
-      const Constant *C = Stack.pop_back_val();
-      if (visitUsers(&GV, C)) {
+      
+      if (const Constant *C = Stack.pop_back_val(); visitUsers(&GV, C)) {
         UsedLDS.insert(&GV);
         Stack.clear();
         break;
@@ -1490,12 +1490,12 @@ bool AMDGPUPromoteAllocaImpl::tryPromoteAllocaToLDS(AllocaInst &I,
   IRBuilder<> Builder(&I);
 
   const Function &ContainingFunction = *I.getFunction();
-  CallingConv::ID CC = ContainingFunction.getCallingConv();
+  
 
   // Don't promote the alloca to LDS for shader calling conventions as the work
   // item ID intrinsics are not supported for these calling conventions.
   // Furthermore not all LDS is available for some of the stages.
-  switch (CC) {
+  switch (CallingConv::ID CC = ContainingFunction.getCallingConv(); CC) {
   case CallingConv::AMDGPU_KERNEL:
   case CallingConv::SPIR_KERNEL:
     break;

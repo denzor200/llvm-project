@@ -56,8 +56,8 @@ TEST(raw_pwrite_ostreamTest, TestFD) {
   // the parent process. Have the parent create the file, pass it via
   // environment variable to the child, let the child crash, and then remove it
   // in the parent.
-  const char *ParentPath = getenv("RAW_PWRITE_TEST_FILE");
-  if (ParentPath) {
+  
+  if (const char *ParentPath = getenv("RAW_PWRITE_TEST_FILE"); ParentPath) {
     Path = ParentPath;
     ASSERT_NO_ERROR(sys::fs::openFileForRead(Path, FD));
   } else {

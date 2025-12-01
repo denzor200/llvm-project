@@ -130,8 +130,8 @@ static QualType getDecayedType(QualType Type) {
 static bool checkParamTypes(const CXXMethodDecl *BaseMD,
                             const CXXMethodDecl *DerivedMD) {
   const unsigned NumParamA = BaseMD->getNumParams();
-  const unsigned NumParamB = DerivedMD->getNumParams();
-  if (NumParamA != NumParamB)
+  
+  if (const unsigned NumParamB = DerivedMD->getNumParams(); NumParamA != NumParamB)
     return false;
 
   for (unsigned I = 0; I < NumParamA; I++) {
@@ -170,8 +170,8 @@ static bool checkOverrideByDerivedMethod(const CXXMethodDecl *BaseMD,
   for (CXXMethodDecl::method_iterator I = DerivedMD->begin_overridden_methods(),
                                       E = DerivedMD->end_overridden_methods();
        I != E; ++I) {
-    const CXXMethodDecl *OverriddenMD = *I;
-    if (BaseMD->getCanonicalDecl() == OverriddenMD->getCanonicalDecl())
+    
+    if (const CXXMethodDecl *OverriddenMD = *I; BaseMD->getCanonicalDecl() == OverriddenMD->getCanonicalDecl())
       return true;
   }
 

@@ -169,8 +169,8 @@ bool SBFileSpec::GetDescription(SBStream &description) const {
   LLDB_INSTRUMENT_VA(this, description);
 
   Stream &strm = description.ref();
-  char path[PATH_MAX];
-  if (m_opaque_up->GetPath(path, sizeof(path)))
+  
+  if (char path[PATH_MAX]; m_opaque_up->GetPath(path, sizeof(path)))
     strm.PutCString(path);
   return true;
 }

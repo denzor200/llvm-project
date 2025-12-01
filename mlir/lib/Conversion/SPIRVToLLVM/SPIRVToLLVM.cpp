@@ -936,8 +936,8 @@ public:
                                     /*isVolatile=*/false,
                                     /*isNonTemporal=*/false);
     }
-    auto memoryAccess = *op.getMemoryAccess();
-    switch (memoryAccess) {
+    
+    switch (auto memoryAccess = *op.getMemoryAccess(); memoryAccess) {
     case spirv::MemoryAccess::Aligned:
     case spirv::MemoryAccess::None:
     case spirv::MemoryAccess::Nontemporal:
@@ -1641,8 +1641,8 @@ public:
     auto newFuncOp = LLVM::LLVMFuncOp::create(rewriter, loc, name, llvmType);
 
     // Convert SPIR-V Function Control to equivalent LLVM function attribute
-    MLIRContext *context = funcOp.getContext();
-    switch (funcOp.getFunctionControl()) {
+    
+    switch (MLIRContext *context = funcOp.getContext(); funcOp.getFunctionControl()) {
     case spirv::FunctionControl::Inline:
       newFuncOp.setAlwaysInline(true);
       break;
@@ -1976,10 +1976,10 @@ void mlir::encodeBindAttribute(ModuleOp module) {
     spvModule.walk([&](spirv::GlobalVariableOp op) {
       IntegerAttr descriptorSet =
           op->getAttrOfType<IntegerAttr>(kDescriptorSet);
-      IntegerAttr binding = op->getAttrOfType<IntegerAttr>(kBinding);
+      
       // For every global variable in the module, get the ones with descriptor
       // set and binding numbers.
-      if (descriptorSet && binding) {
+      if (IntegerAttr binding = op->getAttrOfType<IntegerAttr>(kBinding); descriptorSet && binding) {
         // Encode these numbers into the variable's symbolic name. If the
         // SPIR-V module has a name, add it at the beginning.
         auto moduleAndName =

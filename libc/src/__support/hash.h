@@ -56,8 +56,8 @@ template <typename T> LIBC_INLINE T read_little_endian(const void *ptr) {
 // Specialized read functions for small values. size must be <= 8.
 LIBC_INLINE void read_small_values(const void *ptr, size_t size, uint64_t &low,
                                    uint64_t &high) {
-  const uint8_t *bytes = static_cast<const uint8_t *>(ptr);
-  if (size >= 2) {
+  
+  if (const uint8_t *bytes = static_cast<const uint8_t *>(ptr); size >= 2) {
     if (size >= 4) {
       low = static_cast<uint64_t>(read_little_endian<uint32_t>(&bytes[0]));
       high =
@@ -127,8 +127,8 @@ public:
   LIBC_INLINE void update(const void *ptr, size_t size) {
     uint8_t const *bytes = static_cast<const uint8_t *>(ptr);
     buffer = (buffer + size) * MULTIPLE;
-    uint64_t low, high;
-    if (size > 8) {
+    
+    if (uint64_t low, high; size > 8) {
       if (size > 16) {
         // update tail
         low = read_little_endian<uint64_t>(&bytes[size - 16]);

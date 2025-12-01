@@ -157,8 +157,8 @@ EraseFromParent::EraseFromParent(std::unique_ptr<sandboxir::Value> &&ErasedIPtr)
                      return D0.LLVMI->comesBefore(D1.LLVMI);
                    }) &&
          "Expected reverse program order!");
-  auto *BotLLVMI = cast<llvm::Instruction>(I->Val);
-  if (BotLLVMI->getNextNode() != nullptr)
+  
+  if (auto *BotLLVMI = cast<llvm::Instruction>(I->Val); BotLLVMI->getNextNode() != nullptr)
     NextLLVMIOrBB = BotLLVMI->getNextNode();
   else
     NextLLVMIOrBB = BotLLVMI->getParent();

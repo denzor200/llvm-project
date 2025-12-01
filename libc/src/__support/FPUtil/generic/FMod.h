@@ -134,8 +134,8 @@ template <typename T> struct FModDivisionSimpleHelper {
 template <typename T> struct FModDivisionInvMultHelper {
   LIBC_INLINE constexpr static T execute(int exp_diff, int sides_zeroes_count,
                                          T m_x, T m_y) {
-    constexpr int LENGTH = sizeof(T) * CHAR_BIT;
-    if (exp_diff > sides_zeroes_count) {
+    
+    if (constexpr int LENGTH = sizeof(T) * CHAR_BIT; exp_diff > sides_zeroes_count) {
       T inv_hy = (cpp::numeric_limits<T>::max() / m_y);
       while (exp_diff > sides_zeroes_count) {
         exp_diff -= sides_zeroes_count;

@@ -34,8 +34,8 @@ bool RegularExpression::IsValid() const { return m_regex.isValid(); }
 llvm::StringRef RegularExpression::GetText() const { return m_regex_text; }
 
 llvm::Error RegularExpression::GetError() const {
-  std::string error;
-  if (!m_regex.isValid(error))
+  
+  if (std::string error; !m_regex.isValid(error))
     return llvm::make_error<llvm::StringError>(error,
                                                llvm::inconvertibleErrorCode());
   return llvm::Error::success();

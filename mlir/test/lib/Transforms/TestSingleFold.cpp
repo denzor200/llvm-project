@@ -44,8 +44,8 @@ struct TestSingleFold : public PassWrapper<TestSingleFold, OperationPass<>>,
     existingConstants.push_back(op);
   }
   void notifyOperationErased(Operation *op) override {
-    auto *it = llvm::find(existingConstants, op);
-    if (it != existingConstants.end())
+    
+    if (auto *it = llvm::find(existingConstants, op); it != existingConstants.end())
       existingConstants.erase(it);
   }
 

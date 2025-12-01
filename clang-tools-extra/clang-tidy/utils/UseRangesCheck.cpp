@@ -170,8 +170,8 @@ static void removeFunctionArgs(DiagnosticBuilder &Diag, const CallExpr &Call,
   // The first comma is actually the '(' which we can't remove
   Commas[0] = true;
   for (const unsigned Index : Sorted) {
-    const Expr *Arg = Call.getArg(Index);
-    if (Commas[Index]) {
+    
+    if (const Expr *Arg = Call.getArg(Index); Commas[Index]) {
       if (Index >= Commas.size()) {
         Diag << FixItHint::CreateRemoval(Arg->getSourceRange());
       } else {

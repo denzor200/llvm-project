@@ -113,8 +113,8 @@ NativeRegisterContextDBReg_x86::GetWatchpointHitIndex(uint32_t &wp_index,
   uint32_t num_hw_wps = NumSupportedHardwareWatchpoints();
   for (wp_index = 0; wp_index < num_hw_wps; ++wp_index) {
     bool is_hit;
-    Status error = IsWatchpointHit(wp_index, is_hit);
-    if (error.Fail()) {
+    
+    if (Status error = IsWatchpointHit(wp_index, is_hit); error.Fail()) {
       wp_index = LLDB_INVALID_INDEX32;
       return error;
     } else if (is_hit) {
@@ -208,8 +208,8 @@ bool NativeRegisterContextDBReg_x86::ClearHardwareWatchpoint(
     return false;
 
   RegisterValue dr7;
-  Status error = ReadRegister(GetDR(7), dr7);
-  if (error.Fail())
+  
+  if (Status error = ReadRegister(GetDR(7), dr7); error.Fail())
     return false;
 
   return WriteRegister(GetDR(7), RegisterValue(dr7.GetAsUInt64() &
@@ -222,8 +222,8 @@ Status NativeRegisterContextDBReg_x86::ClearWatchpointHit(uint32_t wp_index) {
     return Status::FromErrorString("Watchpoint index out of range");
 
   RegisterValue dr6;
-  Status error = ReadRegister(GetDR(6), dr6);
-  if (error.Fail())
+  
+  if (Status error = ReadRegister(GetDR(6), dr6); error.Fail())
     return error;
 
   return WriteRegister(
@@ -232,8 +232,8 @@ Status NativeRegisterContextDBReg_x86::ClearWatchpointHit(uint32_t wp_index) {
 
 Status NativeRegisterContextDBReg_x86::ClearAllHardwareWatchpoints() {
   RegisterValue dr7;
-  Status error = ReadRegister(GetDR(7), dr7);
-  if (error.Fail())
+  
+  if (Status error = ReadRegister(GetDR(7), dr7); error.Fail())
     return error;
   return WriteRegister(
       GetDR(7),

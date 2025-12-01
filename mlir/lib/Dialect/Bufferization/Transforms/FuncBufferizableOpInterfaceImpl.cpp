@@ -101,9 +101,9 @@ static FuncOp getCalledFunction(CallOpInterface callOp,
 /// Return the FuncOp called by `callOp`.
 static FuncOp getCalledFunction(CallOpInterface callOp,
                                 const AnalysisState &state) {
-  auto &oneShotAnalysisState = static_cast<const OneShotAnalysisState &>(state);
+  
 
-  if (auto *funcAnalysisState =
+  if (auto *auto &oneShotAnalysisState = static_cast<const OneShotAnalysisState &>(state); funcAnalysisState =
           oneShotAnalysisState.getExtension<FuncAnalysisState>()) {
     // Use the cached symbol tables.
     return getCalledFunction(callOp, funcAnalysisState->symbolTables);
@@ -260,8 +260,8 @@ struct CallOpInterface
     // 1. Compute the result types of the new CallOp.
     SmallVector<Type> resultTypes;
     for (Value result : callOp.getResults()) {
-      Type returnType = result.getType();
-      if (!isa<TensorLikeType>(returnType)) {
+      
+      if (Type returnType = result.getType(); !isa<TensorLikeType>(returnType)) {
         // Non-tensor values are returned.
         resultTypes.push_back(returnType);
         continue;
@@ -415,10 +415,10 @@ struct FuncOpInterface
                 const BufferizationState &state,
                 SmallVector<Value> &invocationStack) const {
     auto funcOp = cast<FuncOp>(op);
-    auto bbArg = cast<BlockArgument>(value);
+    
 
     // Function arguments are special.
-    if (bbArg.getOwner() == &funcOp.getBody().front())
+    if (auto bbArg = cast<BlockArgument>(value); bbArg.getOwner() == &funcOp.getBody().front())
       return getBufferizedFunctionArgType(funcOp, bbArg.getArgNumber(),
                                           options);
 

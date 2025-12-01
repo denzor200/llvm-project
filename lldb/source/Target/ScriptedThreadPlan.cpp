@@ -79,9 +79,9 @@ void ScriptedThreadPlan::DidPush() {
   // the constructor, and doesn't have to care about the details of DidPush.
   m_did_push = true;
   if (m_interface) {
-    auto obj_or_err = m_interface->CreatePluginObject(
-        m_class_name, this->shared_from_this(), m_args_data);
-    if (!obj_or_err) {
+    
+    if (auto obj_or_err = m_interface->CreatePluginObject(
+        m_class_name, this->shared_from_this(), m_args_data); !obj_or_err) {
       m_error_str = llvm::toString(obj_or_err.takeError());
       SetPlanComplete(false);
     } else
@@ -96,8 +96,8 @@ bool ScriptedThreadPlan::ShouldStop(Event *event_ptr) {
 
   bool should_stop = true;
   if (m_implementation_sp) {
-    auto should_stop_or_err = m_interface->ShouldStop(event_ptr);
-    if (!should_stop_or_err) {
+    
+    if (auto should_stop_or_err = m_interface->ShouldStop(event_ptr); !should_stop_or_err) {
       LLDB_LOG_ERROR(GetLog(LLDBLog::Thread), should_stop_or_err.takeError(),
                      "Can't call ScriptedThreadPlan::ShouldStop.");
       SetPlanComplete(false);
@@ -114,8 +114,8 @@ bool ScriptedThreadPlan::IsPlanStale() {
 
   bool is_stale = true;
   if (m_implementation_sp) {
-    auto is_stale_or_err = m_interface->IsStale();
-    if (!is_stale_or_err) {
+    
+    if (auto is_stale_or_err = m_interface->IsStale(); !is_stale_or_err) {
       LLDB_LOG_ERROR(GetLog(LLDBLog::Thread), is_stale_or_err.takeError(),
                      "Can't call ScriptedThreadPlan::IsStale.");
       SetPlanComplete(false);
@@ -132,8 +132,8 @@ bool ScriptedThreadPlan::DoPlanExplainsStop(Event *event_ptr) {
 
   bool explains_stop = true;
   if (m_implementation_sp) {
-    auto explains_stop_or_error = m_interface->ExplainsStop(event_ptr);
-    if (!explains_stop_or_error) {
+    
+    if (auto explains_stop_or_error = m_interface->ExplainsStop(event_ptr); !explains_stop_or_error) {
       LLDB_LOG_ERROR(GetLog(LLDBLog::Thread),
                      explains_stop_or_error.takeError(),
                      "Can't call ScriptedThreadPlan::ExplainsStop.");
@@ -178,11 +178,11 @@ void ScriptedThreadPlan::GetDescription(Stream *s,
   LLDB_LOGF(log, "%s called on Scripted Thread Plan: %s )",
             LLVM_PRETTY_FUNCTION, m_class_name.c_str());
   if (m_implementation_sp) {
-    ScriptInterpreter *script_interp = GetScriptInterpreter();
-    if (script_interp) {
+    
+    if (ScriptInterpreter *script_interp = GetScriptInterpreter(); script_interp) {
       lldb::StreamSP stream = std::make_shared<lldb_private::StreamString>();
-      llvm::Error err = m_interface->GetStopDescription(stream);
-      if (err) {
+      
+      if (llvm::Error err = m_interface->GetStopDescription(stream); err) {
         LLDB_LOG_ERROR(
             GetLog(LLDBLog::Thread), std::move(err),
             "Can't call ScriptedThreadPlan::GetStopDescription: {0}");

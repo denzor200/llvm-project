@@ -241,8 +241,8 @@ void coro::Shape::analyze(Function &F,
         auto CB = cast<CoroBeginInst>(II);
 
         // Ignore coro id's that aren't pre-split.
-        auto Id = dyn_cast<CoroIdInst>(CB->getId());
-        if (Id && !Id->getInfo().isPreSplit())
+        
+        if (auto Id = dyn_cast<CoroIdInst>(CB->getId()); Id && !Id->getInfo().isPreSplit())
           break;
 
         if (CoroBegin)
@@ -293,8 +293,8 @@ void coro::Shape::analyze(Function &F,
     return;
 
   // Determination of ABI and initializing lowering info
-  auto Id = CoroBegin->getId();
-  switch (auto IntrID = Id->getIntrinsicID()) {
+  
+  switch (auto auto Id = CoroBegin->getId(); IntrID = Id->getIntrinsicID()) {
   case Intrinsic::coro_id: {
     ABI = coro::ABI::Switch;
     SwitchLowering.HasFinalSuspend = HasFinalSuspend;
@@ -414,8 +414,8 @@ void coro::AnyRetconABI::init() {
       auto SI = Suspend->value_begin(), SE = Suspend->value_end();
       auto RI = ResultTys.begin(), RE = ResultTys.end();
       for (; SI != SE && RI != RE; ++SI, ++RI) {
-        auto SrcTy = (*SI)->getType();
-        if (SrcTy != *RI) {
+        
+        if (auto SrcTy = (*SI)->getType(); SrcTy != *RI) {
           // The optimizer likes to eliminate bitcasts leading into variadic
           // calls, but that messes with our invariants.  Re-insert the
           // bitcast and ignore this type mismatch.
@@ -649,8 +649,8 @@ void AnyCoroIdRetconInst::checkWellFormed() const {
 }
 
 static void checkAsyncFuncPointer(const Instruction *I, Value *V) {
-  auto *AsyncFuncPtrAddr = dyn_cast<GlobalVariable>(V->stripPointerCasts());
-  if (!AsyncFuncPtrAddr)
+  
+  if (auto *AsyncFuncPtrAddr = dyn_cast<GlobalVariable>(V->stripPointerCasts()); !AsyncFuncPtrAddr)
     fail(I, "llvm.coro.id.async async function pointer not a global", V);
 }
 

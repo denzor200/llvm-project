@@ -214,9 +214,9 @@ Error PDBFile::parseStreamData() {
     if (auto EC = Reader.readArray(Blocks, NumExpectedStreamBlocks))
       return EC;
     for (uint32_t Block : Blocks) {
-      uint64_t BlockEndOffset =
-          (uint64_t)(Block + 1) * ContainerLayout.SB->BlockSize;
-      if (BlockEndOffset > getFileSize())
+      
+      if (uint64_t BlockEndOffset =
+          (uint64_t)(Block + 1) * ContainerLayout.SB->BlockSize; BlockEndOffset > getFileSize())
         return make_error<RawError>(raw_error_code::corrupt_file,
                                     "Stream block map is corrupt.");
     }

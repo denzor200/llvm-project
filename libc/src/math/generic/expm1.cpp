@@ -259,8 +259,8 @@ double set_exceptional(double x) {
   // x >= round(log(MAX_NORMAL), D, RU) = 0x1.62e42fefa39fp+9 or +inf/nan
   // x is finite
   if (x_u < 0x7ff0'0000'0000'0000ULL) {
-    int rounding = fputil::quick_get_round();
-    if (rounding == FE_DOWNWARD || rounding == FE_TOWARDZERO)
+    
+    if (int rounding = fputil::quick_get_round(); rounding == FE_DOWNWARD || rounding == FE_TOWARDZERO)
       return FPBits::max_normal().get_val();
 
     fputil::set_errno_if_required(ERANGE);
@@ -278,7 +278,7 @@ LLVM_LIBC_FUNCTION(double, expm1, (double x)) {
   FPBits xbits(x);
 
   bool x_is_neg = xbits.is_neg();
-  uint64_t x_u = xbits.uintval();
+  
 
   // Upper bound: max normal number = 2^1023 * (2 - 2^-52)
   // > round(log (2^1023 ( 2 - 2^-52 )), D, RU) = 0x1.62e42fefa39fp+9
@@ -291,7 +291,7 @@ LLVM_LIBC_FUNCTION(double, expm1, (double x)) {
 
   // x < log(2^-54) or x >= 0x1.6232bdd7abcd3p+9 or |x| <= 2^-53.
 
-  if (LIBC_UNLIKELY(x_u >= 0xc042b708872320e2 ||
+  if (uint64_t x_u = xbits.uintval(); LIBC_UNLIKELY(x_u >= 0xc042b708872320e2 ||
                     (x_u <= 0xbca0000000000000 && x_u >= 0x40862e42fefa39f0) ||
                     x_u <= 0x3ca0000000000000)) {
     return set_exceptional(x);

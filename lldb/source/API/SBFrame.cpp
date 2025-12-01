@@ -492,12 +492,12 @@ SBValue SBFrame::FindValue(const char *name, ValueType value_type,
     return value_sp;
   } else {
     Target *target = exe_ctx->GetTargetPtr();
-    Process *process = exe_ctx->GetProcessPtr();
-    if (target && process) { // FIXME: this check is redundant.
+    
+    if (Process *process = exe_ctx->GetProcessPtr(); target && process) { // FIXME: this check is redundant.
       if (StackFrame *frame = exe_ctx->GetFramePtr()) {
-        VariableList variable_list;
+        
 
-        switch (value_type) {
+        switch (VariableList variable_list; value_type) {
         case eValueTypeVariableGlobal:      // global variable
         case eValueTypeVariableStatic:      // static variable
         case eValueTypeVariableArgument:    // function argument variables
@@ -508,9 +508,9 @@ SBValue SBFrame::FindValue(const char *name, ValueType value_type,
 
           const bool can_create = true;
           const bool get_parent_variables = true;
-          const bool stop_if_block_is_inlined_function = true;
+          
 
-          if (sc.block)
+          if (const bool stop_if_block_is_inlined_function = true; sc.block)
             sc.block->AppendVariables(
                 can_create, get_parent_variables,
                 stop_if_block_is_inlined_function,
@@ -519,9 +519,9 @@ SBValue SBFrame::FindValue(const char *name, ValueType value_type,
           if (value_type == eValueTypeVariableGlobal 
               || value_type == eValueTypeVariableStatic) {
             const bool get_file_globals = true;
-            VariableList *frame_vars = frame->GetVariableList(get_file_globals,
-                                                              nullptr);
-            if (frame_vars)
+            
+            if (VariableList *frame_vars = frame->GetVariableList(get_file_globals,
+                                                              nullptr); frame_vars)
               frame_vars->AppendVariablesIfUnique(variable_list);
           }
           ConstString const_name(name);
@@ -536,8 +536,8 @@ SBValue SBFrame::FindValue(const char *name, ValueType value_type,
 
         case eValueTypeRegister: // stack frame register value
         {
-          RegisterContextSP reg_ctx(frame->GetRegisterContext());
-          if (reg_ctx) {
+          
+          if (RegisterContextSP reg_ctx(frame->GetRegisterContext()); reg_ctx) {
             if (const RegisterInfo *reg_info =
                     reg_ctx->GetRegisterInfoByName(name)) {
               value_sp = ValueObjectRegister::Create(frame, reg_ctx, reg_info);
@@ -549,12 +549,12 @@ SBValue SBFrame::FindValue(const char *name, ValueType value_type,
         case eValueTypeRegisterSet: // A collection of stack frame register
                                     // values
         {
-          RegisterContextSP reg_ctx(frame->GetRegisterContext());
-          if (reg_ctx) {
+          
+          if (RegisterContextSP reg_ctx(frame->GetRegisterContext()); reg_ctx) {
             const uint32_t num_sets = reg_ctx->GetRegisterSetCount();
             for (uint32_t set_idx = 0; set_idx < num_sets; ++set_idx) {
-              const RegisterSet *reg_set = reg_ctx->GetRegisterSet(set_idx);
-              if (reg_set &&
+              
+              if (const RegisterSet *reg_set = reg_ctx->GetRegisterSet(set_idx); reg_set &&
                   (llvm::StringRef(reg_set->name).equals_insensitive(name) ||
                    llvm::StringRef(reg_set->short_name)
                        .equals_insensitive(name))) {
@@ -570,9 +570,9 @@ SBValue SBFrame::FindValue(const char *name, ValueType value_type,
         case eValueTypeConstResult: // constant result variables
         {
           ConstString const_name(name);
-          ExpressionVariableSP expr_var_sp(
-              target->GetPersistentVariable(const_name));
-          if (expr_var_sp) {
+          
+          if (ExpressionVariableSP expr_var_sp(
+              target->GetPersistentVariable(const_name)); expr_var_sp) {
             value_sp = expr_var_sp->GetValueObject();
             sb_value.SetSP(value_sp, use_dynamic);
           }
@@ -719,8 +719,8 @@ SBValueList SBFrame::GetVariables(const lldb::SBVariablesOptions &options) {
     const lldb::DynamicValueType use_dynamic = options.GetUseDynamic();
 
     std::set<VariableSP> variable_set;
-    Process *process = exe_ctx->GetProcessPtr();
-    if (process) { // FIXME: this check is redundant.
+    
+    if (Process *process = exe_ctx->GetProcessPtr(); process) { // FIXME: this check is redundant.
       if (StackFrame *frame = exe_ctx->GetFramePtr()) {
         Debugger &dbg = process->GetTarget().GetDebugger();
         VariableList *variable_list = nullptr;
@@ -729,8 +729,8 @@ SBValueList SBFrame::GetVariables(const lldb::SBVariablesOptions &options) {
         if (var_error.Fail())
           value_list.SetError(std::move(var_error));
         if (variable_list) {
-          const size_t num_variables = variable_list->GetSize();
-          if (num_variables) {
+          
+          if (const size_t num_variables = variable_list->GetSize(); num_variables) {
             size_t num_produced = 0;
             for (const VariableSP &variable_sp : *variable_list) {
               if (INTERRUPT_REQUESTED(dbg, 
@@ -785,11 +785,11 @@ SBValueList SBFrame::GetVariables(const lldb::SBVariablesOptions &options) {
           }
         }
         if (recognized_arguments) {
-          auto recognized_frame = frame->GetRecognizedFrame();
-          if (recognized_frame) {
-            ValueObjectListSP recognized_arg_list =
-                recognized_frame->GetRecognizedArguments();
-            if (recognized_arg_list) {
+          
+          if (auto recognized_frame = frame->GetRecognizedFrame(); recognized_frame) {
+            
+            if (ValueObjectListSP recognized_arg_list =
+                recognized_frame->GetRecognizedArguments(); recognized_arg_list) {
               for (auto &rec_value_sp : recognized_arg_list->GetObjects()) {
                 SBValue value_sb;
                 value_sb.SetSP(rec_value_sp, use_dynamic);
@@ -816,11 +816,11 @@ SBValueList SBFrame::GetRegisters() {
     return SBValueList();
   } else {
     Target *target = exe_ctx->GetTargetPtr();
-    Process *process = exe_ctx->GetProcessPtr();
-    if (target && process) { // FIXME: this check is redundant.
+    
+    if (Process *process = exe_ctx->GetProcessPtr(); target && process) { // FIXME: this check is redundant.
       if (StackFrame *frame = exe_ctx->GetFramePtr()) {
-        RegisterContextSP reg_ctx(frame->GetRegisterContext());
-        if (reg_ctx) {
+        
+        if (RegisterContextSP reg_ctx(frame->GetRegisterContext()); reg_ctx) {
           const uint32_t num_sets = reg_ctx->GetRegisterSetCount();
           for (uint32_t set_idx = 0; set_idx < num_sets; ++set_idx) {
             value_list.Append(
@@ -846,11 +846,11 @@ SBValue SBFrame::FindRegister(const char *name) {
     return SBValue();
   } else {
     Target *target = exe_ctx->GetTargetPtr();
-    Process *process = exe_ctx->GetProcessPtr();
-    if (target && process) { // FIXME: this check is redundant.
+    
+    if (Process *process = exe_ctx->GetProcessPtr(); target && process) { // FIXME: this check is redundant.
       if (StackFrame *frame = exe_ctx->GetFramePtr()) {
-        RegisterContextSP reg_ctx(frame->GetRegisterContext());
-        if (reg_ctx) {
+        
+        if (RegisterContextSP reg_ctx(frame->GetRegisterContext()); reg_ctx) {
           if (const RegisterInfo *reg_info =
                   reg_ctx->GetRegisterInfoByName(name)) {
             value_sp = ValueObjectRegister::Create(frame, reg_ctx, reg_info);
@@ -1017,8 +1017,8 @@ lldb::SBValue SBFrame::EvaluateExpression(const char *expr,
     expr_result = CreateProcessIsRunningExprEvalError();
   } else {
     Target *target = exe_ctx->GetTargetPtr();
-    Process *process = exe_ctx->GetProcessPtr();
-    if (target && process) { // FIXME: this check is redundant.
+    
+    if (Process *process = exe_ctx->GetProcessPtr(); target && process) { // FIXME: this check is redundant.
       if (StackFrame *frame = exe_ctx->GetFramePtr()) {
         std::unique_ptr<llvm::PrettyStackTraceFormat> stack_trace;
         if (target->GetDisplayExpressionsInCrashlogs()) {

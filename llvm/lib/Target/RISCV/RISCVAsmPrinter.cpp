@@ -178,8 +178,8 @@ void RISCVAsmPrinter::LowerPATCHPOINT(MCStreamer &OutStreamer, StackMaps &SM,
   unsigned EncodedBytes = 0;
 
   if (CalleeMO.isImm()) {
-    uint64_t CallTarget = CalleeMO.getImm();
-    if (CallTarget) {
+    
+    if (uint64_t CallTarget = CalleeMO.getImm(); CallTarget) {
       assert((CallTarget & 0xFFFF'FFFF'FFFF) == CallTarget &&
              "High 16 bits of call target should be zero.");
       // Materialize the jump address:
@@ -216,16 +216,16 @@ void RISCVAsmPrinter::LowerSTATEPOINT(MCStreamer &OutStreamer, StackMaps &SM,
                                       const MachineInstr &MI) {
   unsigned NOPBytes = STI->hasStdExtZca() ? 2 : 4;
 
-  StatepointOpers SOpers(&MI);
-  if (unsigned PatchBytes = SOpers.getNumPatchBytes()) {
+  
+  if (unsigned StatepointOpers SOpers(&MI); PatchBytes = SOpers.getNumPatchBytes()) {
     assert(PatchBytes % NOPBytes == 0 &&
            "Invalid number of NOP bytes requested!");
     emitNops(PatchBytes / NOPBytes);
   } else {
     // Lower call target and choose correct opcode
     const MachineOperand &CallTarget = SOpers.getCallTarget();
-    MCOperand CallTargetMCOp;
-    switch (CallTarget.getType()) {
+    
+    switch (MCOperand CallTargetMCOp; CallTarget.getType()) {
     case MachineOperand::MO_GlobalAddress:
     case MachineOperand::MO_ExternalSymbol:
       lowerOperand(CallTarget, CallTargetMCOp);
@@ -329,8 +329,8 @@ void RISCVAsmPrinter::emitInstruction(const MachineInstr *MI) {
   case TargetOpcode::STATEPOINT:
     return LowerSTATEPOINT(*OutStreamer, SM, *MI);
   case TargetOpcode::PATCHABLE_FUNCTION_ENTER: {
-    const Function &F = MI->getParent()->getParent()->getFunction();
-    if (F.hasFnAttribute("patchable-function-entry")) {
+    
+    if (const Function &F = MI->getParent()->getParent()->getFunction(); F.hasFnAttribute("patchable-function-entry")) {
       unsigned Num;
       [[maybe_unused]] bool Result =
           F.getFnAttribute("patchable-function-entry")
@@ -560,10 +560,10 @@ void RISCVAsmPrinter::emitStartOfAsmFile(Module &M) {
   if (auto *MD = dyn_cast_or_null<MDNode>(M.getModuleFlag("riscv-isa"))) {
     for (auto &ISA : MD->operands()) {
       if (auto *ISAString = dyn_cast_or_null<MDString>(ISA)) {
-        auto ParseResult = llvm::RISCVISAInfo::parseArchString(
+        
+        if (auto ParseResult = llvm::RISCVISAInfo::parseArchString(
             ISAString->getString(), /*EnableExperimentalExtension=*/true,
-            /*ExperimentalExtensionVersionCheck=*/true);
-        if (!errorToBool(ParseResult.takeError())) {
+            /*ExperimentalExtensionVersionCheck=*/true); !errorToBool(ParseResult.takeError())) {
           auto &ISAInfo = *ParseResult;
           for (const auto &Feature : RISCVFeatureKV) {
             if (ISAInfo->hasExtension(Feature.Key) &&
@@ -582,10 +582,10 @@ void RISCVAsmPrinter::emitStartOfAsmFile(Module &M) {
 }
 
 void RISCVAsmPrinter::emitEndOfAsmFile(Module &M) {
-  RISCVTargetStreamer &RTS =
-      static_cast<RISCVTargetStreamer &>(*OutStreamer->getTargetStreamer());
+  
 
-  if (TM.getTargetTriple().isOSBinFormatELF()) {
+  if (RISCVTargetStreamer &RTS =
+      static_cast<RISCVTargetStreamer &>(*OutStreamer->getTargetStreamer()); TM.getTargetTriple().isOSBinFormatELF()) {
     RTS.finishAttributeSection();
     emitNoteGnuProperty(M);
   }
@@ -602,8 +602,8 @@ void RISCVAsmPrinter::emitAttributes(const MCSubtargetInfo &SubtargetInfo) {
 }
 
 void RISCVAsmPrinter::emitFunctionEntryLabel() {
-  const auto *RMFI = MF->getInfo<RISCVMachineFunctionInfo>();
-  if (RMFI->isVectorCall()) {
+  
+  if (const auto *RMFI = MF->getInfo<RISCVMachineFunctionInfo>(); RMFI->isVectorCall()) {
     auto &RTS =
         static_cast<RISCVTargetStreamer &>(*OutStreamer->getTargetStreamer());
     RTS.emitDirectiveVariantCC(*CurrentFnSym);
@@ -1118,10 +1118,10 @@ static bool lowerRISCVVMachineInstrToMCInst(const MachineInstr *MI,
     if (OpNo == MI->getNumExplicitDefs() && MO.isReg() && MO.isTied()) {
       assert(MCID.getOperandConstraint(OpNo, MCOI::TIED_TO) == 0 &&
              "Expected tied to first def.");
-      const MCInstrDesc &OutMCID = TII->get(OutMI.getOpcode());
+      
       // Skip if the next operand in OutMI is not supposed to be tied. Unless it
       // is a _TIED instruction.
-      if (OutMCID.getOperandConstraint(OutMI.getNumOperands(), MCOI::TIED_TO) <
+      if (const MCInstrDesc &OutMCID = TII->get(OutMI.getOpcode()); OutMCID.getOperandConstraint(OutMI.getNumOperands(), MCOI::TIED_TO) <
               0 &&
           !RISCVII::isTiedPseudo(TSFlags))
         continue;
@@ -1192,8 +1192,8 @@ void RISCVAsmPrinter::lowerToMCInst(const MachineInstr *MI, MCInst &OutMI) {
   OutMI.setOpcode(MI->getOpcode());
 
   for (const MachineOperand &MO : MI->operands()) {
-    MCOperand MCOp;
-    if (lowerOperand(MO, MCOp))
+    
+    if (MCOperand MCOp; lowerOperand(MO, MCOp))
       OutMI.addOperand(MCOp);
   }
 }

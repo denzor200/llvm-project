@@ -211,9 +211,9 @@ struct RankMatcher : public ::testing::MatcherInterface<llvm::StringRef> {
       } else {
         std::string Buf;
         llvm::raw_string_ostream Info(Buf);
-        auto AnnotatedMatch = Matcher.dumpLast(Info);
+        
 
-        if (!Str.accepts(AnnotatedMatch)) {
+        if (auto AnnotatedMatch = Matcher.dumpLast(Info); !Str.accepts(AnnotatedMatch)) {
           *OS << "\nDoesn't match " << Str << ", but " << AnnotatedMatch << "\n"
               << Info.str();
           Ok = false;

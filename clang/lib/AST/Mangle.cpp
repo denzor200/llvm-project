@@ -53,8 +53,8 @@ static void mangleFunctionBlock(MangleContext &Context,
                                 StringRef Outer,
                                 const BlockDecl *BD,
                                 raw_ostream &Out) {
-  unsigned discriminator = Context.getBlockId(BD, true);
-  if (discriminator == 0)
+  
+  if (unsigned discriminator = Context.getBlockId(BD, true); discriminator == 0)
     Out << "__" << Outer << "_block_invoke";
   else
     Out << "__" << Outer << "_block_invoke_" << discriminator+1;
@@ -82,11 +82,11 @@ static bool isExternC(const NamedDecl *ND) {
 static CCMangling getCallingConvMangling(const ASTContext &Context,
                                          const NamedDecl *ND) {
   const TargetInfo &TI = Context.getTargetInfo();
-  const llvm::Triple &Triple = TI.getTriple();
+  
 
   // On wasm, the argc/argv form of "main" is renamed so that the startup code
   // can call it with the correct function signature.
-  if (Triple.isWasm())
+  if (const llvm::Triple &Triple = TI.getTriple(); Triple.isWasm())
     if (const FunctionDecl *FD = dyn_cast<FunctionDecl>(ND))
       if (FD->isMain() && FD->getNumParams() == 2)
         return CCM_WasmMainArgcArgv;
@@ -105,8 +105,8 @@ static CCMangling getCallingConvMangling(const ASTContext &Context,
 
   const FunctionType *FT = T->castAs<FunctionType>();
 
-  CallingConv CC = FT->getCallConv();
-  switch (CC) {
+  
+  switch (CallingConv CC = FT->getCallConv(); CC) {
   default:
     return CCM_Other;
   case CC_X86FastCall:
@@ -121,8 +121,8 @@ static CCMangling getCallingConvMangling(const ASTContext &Context,
 bool MangleContext::shouldMangleDeclName(const NamedDecl *D) {
   const ASTContext &ASTContext = getASTContext();
 
-  CCMangling CC = getCallingConvMangling(ASTContext, D);
-  if (CC != CCM_Other)
+  
+  if (CCMangling CC = getCallingConvMangling(ASTContext, D); CC != CCM_Other)
     return true;
 
   // If the declaration has an owning module for linkage purposes that needs to
@@ -204,8 +204,7 @@ void MangleContext::mangleName(GlobalDecl GD, raw_ostream &Out) {
     // tricks normally used for producing aliases (PR9177). Fortunately the
     // llvm mangler on ELF is a nop, so we can just avoid adding the \01
     // marker.
-    StringRef UserLabelPrefix =
-        getASTContext().getTargetInfo().getUserLabelPrefix();
+    
 #ifndef NDEBUG
     char GlobalPrefix =
         llvm::DataLayout(getASTContext().getTargetInfo().getDataLayoutString())
@@ -213,7 +212,8 @@ void MangleContext::mangleName(GlobalDecl GD, raw_ostream &Out) {
     assert((UserLabelPrefix.empty() && !GlobalPrefix) ||
            (UserLabelPrefix.size() == 1 && UserLabelPrefix[0] == GlobalPrefix));
 #endif
-    if (!UserLabelPrefix.empty())
+    if (StringRef UserLabelPrefix =
+        getASTContext().getTargetInfo().getUserLabelPrefix(); !UserLabelPrefix.empty())
       Out << '\01'; // LLVM IR Marker for __asm("foo")
 
     if (ALA->getLabel().starts_with(g_lldb_func_call_label_prefix))
@@ -571,9 +571,9 @@ public:
         if (const auto *TIV = Ctx.getVTableContext()->getThunkInfo(MD)) {
           for (const auto &T : *TIV) {
             std::string ThunkName;
-            std::string ContextualizedName =
-                getMangledThunk(MD, T, /* ElideOverrideInfo */ false);
-            if (Ctx.useAbbreviatedThunkName(MD, ContextualizedName))
+            
+            if (std::string ContextualizedName =
+                getMangledThunk(MD, T, /* ElideOverrideInfo */ false); Ctx.useAbbreviatedThunkName(MD, ContextualizedName))
               ThunkName = getMangledThunk(MD, T, /* ElideOverrideInfo */ true);
             else
               ThunkName = ContextualizedName;

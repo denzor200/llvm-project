@@ -84,10 +84,10 @@ UDPSocket::CreateConnected(llvm::StringRef name) {
   for (struct addrinfo *service_info_ptr = service_info_list;
        service_info_ptr != nullptr;
        service_info_ptr = service_info_ptr->ai_next) {
-    auto send_fd =
+    
+    if (auto send_fd =
         CreateSocket(service_info_ptr->ai_family, service_info_ptr->ai_socktype,
-                     service_info_ptr->ai_protocol, error);
-    if (error.Success()) {
+                     service_info_ptr->ai_protocol, error); error.Success()) {
       socket.reset(new UDPSocket(send_fd));
       socket->m_sockaddr = service_info_ptr;
       break;

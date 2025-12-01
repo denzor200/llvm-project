@@ -88,8 +88,8 @@ bool generateUniversalBinary(SmallVectorImpl<ArchAndFile> &ArchFiles,
                              bool Fat64) {
   // No need to merge one file into a universal fat binary.
   if (ArchFiles.size() == 1) {
-    llvm::StringRef TmpPath = ArchFiles.front().getPath();
-    if (auto EC = sys::fs::rename(TmpPath, OutputFileName)) {
+    
+    if (auto llvm::StringRef TmpPath = ArchFiles.front().getPath(); EC = sys::fs::rename(TmpPath, OutputFileName)) {
       // If we can't rename, try to copy to work around cross-device link
       // issues.
       EC = sys::fs::copy_file(TmpPath, OutputFileName);
@@ -222,19 +222,19 @@ static unsigned transferSymbols(const object::MachOObjectFile &Obj,
   unsigned Syms = 0;
   StringRef Strings = Obj.getStringTableData();
   bool IsLittleEndian = Obj.isLittleEndian();
-  bool InDebugNote = false;
+  
 
-  if (Obj.is64Bit()) {
+  if (bool InDebugNote = false; Obj.is64Bit()) {
     for (const object::SymbolRef &Symbol : Obj.symbols()) {
-      object::DataRefImpl DRI = Symbol.getRawDataRefImpl();
-      if (transferSymbol(Obj.getSymbol64TableEntry(DRI), IsLittleEndian,
+      
+      if (object::DataRefImpl DRI = Symbol.getRawDataRefImpl(); transferSymbol(Obj.getSymbol64TableEntry(DRI), IsLittleEndian,
                          Strings, NewSymtab, NewStrings, InDebugNote))
         ++Syms;
     }
   } else {
     for (const object::SymbolRef &Symbol : Obj.symbols()) {
-      object::DataRefImpl DRI = Symbol.getRawDataRefImpl();
-      if (transferSymbol(Obj.getSymbolTableEntry(DRI), IsLittleEndian, Strings,
+      
+      if (object::DataRefImpl DRI = Symbol.getRawDataRefImpl(); transferSymbol(Obj.getSymbolTableEntry(DRI), IsLittleEndian, Strings,
                          NewSymtab, NewStrings, InDebugNote))
         ++Syms;
     }

@@ -75,9 +75,9 @@ INITIALIZE_PASS_END(X86TileConfig, DEBUG_TYPE, "Tile Register Configure", false,
                     false)
 
 bool X86TileConfig::runOnMachineFunction(MachineFunction &MF) {
-  X86MachineFunctionInfo *X86FI = MF.getInfo<X86MachineFunctionInfo>();
+  
   // Early exit in the common case of non-AMX code.
-  if (X86FI->getAMXProgModel() != AMXProgModelEnum::ManagedRA)
+  if (X86MachineFunctionInfo *X86FI = MF.getInfo<X86MachineFunctionInfo>(); X86FI->getAMXProgModel() != AMXProgModelEnum::ManagedRA)
     return false;
 
   const X86Subtarget &ST = MF.getSubtarget<X86Subtarget>();
@@ -162,8 +162,8 @@ bool X86TileConfig::runOnMachineFunction(MachineFunction &MF) {
       int64_t Imm = INT64_MAX;
       int Offset = IsRow ? 48 + I : 16 + I * 2;
       for (auto &DefMI : MRI.def_instructions(R)) {
-        MachineBasicBlock &MBB = *DefMI.getParent();
-        if (DefMI.isMoveImmediate()) {
+        
+        if (MachineBasicBlock &MBB = *DefMI.getParent(); DefMI.isMoveImmediate()) {
           if (Imm != INT64_MAX) {
             // FIXME: We should handle this case in future.
             assert(Imm == DefMI.getOperand(1).getImm() &&

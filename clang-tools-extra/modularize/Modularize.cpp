@@ -916,9 +916,9 @@ int main(int Argc, const char **Argv) {
     int KindIndex = 0;
     for (EntryBinArray::iterator DI = EntryBins.begin(), DE = EntryBins.end();
          DI != DE; ++DI, ++KindIndex) {
-      int ECount = DI->size();
+      
       // If only 1 occurrence of this entity, skip it, we only report duplicates.
-      if (ECount <= 1)
+      if (int ECount = DI->size(); ECount <= 1)
         continue;
       LocationArray::iterator FI = DI->begin();
       StringRef kindName = Entry::getKindName((Entry::EntryKind)KindIndex);

@@ -145,8 +145,8 @@ void SymbolChangeEventData::DoOnRemoval(Event *event_ptr) {
     if (ModuleSP module_sp =
             target_sp->GetImages().FindModule(m_module_spec.GetUUID())) {
       {
-        std::lock_guard<std::recursive_mutex> guard(module_sp->GetMutex());
-        if (!module_sp->GetSymbolFileFileSpec())
+        
+        if (std::lock_guard<std::recursive_mutex> guard(module_sp->GetMutex()); !module_sp->GetSymbolFileFileSpec())
           module_sp->SetSymbolFileFileSpec(m_module_spec.GetSymbolFileSpec());
       }
       ModuleList module_list;

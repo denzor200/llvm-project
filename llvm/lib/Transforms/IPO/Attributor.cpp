@@ -511,8 +511,8 @@ static bool getPotentialCopiesOfMemoryValue(
           NewCopyOrigins.insert(SI);
       } else {
         assert(isa<StoreInst>(I) && "Expected load or store instruction only!");
-        auto *LI = dyn_cast<LoadInst>(Acc.getRemoteInst());
-        if (!LI && OnlyExact) {
+        
+        if (auto *LI = dyn_cast<LoadInst>(Acc.getRemoteInst()); !LI && OnlyExact) {
           LLVM_DEBUG(dbgs() << "Underlying object read through a non-load "
                                "instruction not supported yet: "
                             << *Acc.getRemoteInst() << "\n";);
@@ -623,11 +623,11 @@ static bool isAssumedReadOnlyOrReadNone(Attributor &A, const IRPosition &IRP,
                  /* IgnoreSubsumingPositions */ true))
     return true;
 
-  IRPosition::Kind Kind = IRP.getPositionKind();
-  if (Kind == IRPosition::IRP_FUNCTION || Kind == IRPosition::IRP_CALL_SITE) {
-    const auto *MemLocAA =
-        A.getAAFor<AAMemoryLocation>(QueryingAA, IRP, DepClassTy::NONE);
-    if (MemLocAA && MemLocAA->isAssumedReadNone()) {
+  
+  if (IRPosition::Kind Kind = IRP.getPositionKind(); Kind == IRPosition::IRP_FUNCTION || Kind == IRPosition::IRP_CALL_SITE) {
+    
+    if (const auto *MemLocAA =
+        A.getAAFor<AAMemoryLocation>(QueryingAA, IRP, DepClassTy::NONE); MemLocAA && MemLocAA->isAssumedReadNone()) {
       IsKnown = MemLocAA->isKnownReadNone();
       if (!IsKnown)
         A.recordDependence(*MemLocAA, QueryingAA, DepClassTy::OPTIONAL);
@@ -842,8 +842,8 @@ bool AA::isAssumedThreadLocalObject(Attributor &A, Value &Obj,
   if (isa<UndefValue>(Obj))
     return true;
   if (isa<AllocaInst>(Obj)) {
-    InformationCache &InfoCache = A.getInfoCache();
-    if (!InfoCache.stackIsAccessibleByOtherThreads()) {
+    
+    if (InformationCache &InfoCache = A.getInfoCache(); !InfoCache.stackIsAccessibleByOtherThreads()) {
       LLVM_DEBUG(
           dbgs() << "[AA] Object '" << Obj
                  << "' is thread local; stack objects are thread local.\n");
@@ -994,8 +994,8 @@ static bool addIfNotExistent(LLVMContext &Ctx, const Attribute &Attr,
     return true;
   }
   if (Attr.isConstantRangeAttribute()) {
-    Attribute::AttrKind Kind = Attr.getKindAsEnum();
-    if (!ForceReplace && AttrSet.hasAttribute(Kind))
+    
+    if (Attribute::AttrKind Kind = Attr.getKindAsEnum(); !ForceReplace && AttrSet.hasAttribute(Kind))
       return false;
     AB.addAttribute(Attr);
     return true;
@@ -1279,8 +1279,8 @@ SubsumingPositionIterator::SubsumingPositionIterator(const IRPosition &IRP) {
             cast<IntrinsicInst>(CB).getIntrinsicID() == Intrinsic ::assume);
   };
 
-  const auto *CB = dyn_cast<CallBase>(&IRP.getAnchorValue());
-  switch (IRP.getPositionKind()) {
+  
+  switch (const auto *CB = dyn_cast<CallBase>(&IRP.getAnchorValue()); IRP.getPositionKind()) {
   case IRPosition::IRP_INVALID:
   case IRPosition::IRP_FLOAT:
   case IRPosition::IRP_FUNCTION:
@@ -1323,8 +1323,8 @@ SubsumingPositionIterator::SubsumingPositionIterator(const IRPosition &IRP) {
     // TODO: We need to look at the operand bundles similar to the redirection
     //       in CallBase.
     if (!CB->hasOperandBundles() || CanIgnoreOperandBundles(*CB)) {
-      auto *Callee = dyn_cast_if_present<Function>(CB->getCalledOperand());
-      if (Callee) {
+      
+      if (auto *Callee = dyn_cast_if_present<Function>(CB->getCalledOperand()); Callee) {
         if (Argument *Arg = IRP.getAssociatedArgument())
           IRPositions.emplace_back(IRPosition::argument(*Arg));
         IRPositions.emplace_back(IRPosition::function(*Callee));
@@ -1488,9 +1488,9 @@ bool Attributor::getAssumedSimplifiedValues(
     if (SimplificationCBs.empty()) {
       // If no high-level/outside simplification occurred, use
       // AAPotentialValues.
-      const auto *PotentialValuesAA =
-          getOrCreateAAFor<AAPotentialValues>(IRP, AA, DepClassTy::OPTIONAL);
-      if (PotentialValuesAA &&
+      
+      if (const auto *PotentialValuesAA =
+          getOrCreateAAFor<AAPotentialValues>(IRP, AA, DepClassTy::OPTIONAL); PotentialValuesAA &&
           PotentialValuesAA->getAssumedSimplifiedValues(*this, Values, S)) {
         UsedAssumedInformation |= !PotentialValuesAA->isAtFixpoint();
       } else if (IRP.getPositionKind() != IRPosition::IRP_RETURNED) {
@@ -1595,9 +1595,9 @@ bool Attributor::isAssumedDead(const Use &U,
   } else if (StoreInst *SI = dyn_cast<StoreInst>(UserI)) {
     if (!CheckBBLivenessOnly && SI->getPointerOperand() != U.get()) {
       const IRPosition IRP = IRPosition::inst(*SI);
-      const AAIsDead *IsDeadAA =
-          getOrCreateAAFor<AAIsDead>(IRP, QueryingAA, DepClassTy::NONE);
-      if (IsDeadAA && IsDeadAA->isRemovableStore()) {
+      
+      if (const AAIsDead *IsDeadAA =
+          getOrCreateAAFor<AAIsDead>(IRP, QueryingAA, DepClassTy::NONE); IsDeadAA && IsDeadAA->isRemovableStore()) {
         if (QueryingAA)
           recordDependence(*IsDeadAA, *QueryingAA, DepClass);
         if (!IsDeadAA->isKnown(AAIsDead::IS_REMOVABLE))
@@ -1688,8 +1688,8 @@ bool Attributor::isAssumedDead(const IRPosition &IRP,
     return false;
   }
 
-  Instruction *CtxI = IRP.getCtxI();
-  if (CtxI &&
+  
+  if (Instruction *CtxI = IRP.getCtxI(); CtxI &&
       isAssumedDead(*CtxI, QueryingAA, FnLivenessAA, UsedAssumedInformation,
                     /* CheckBBLivenessOnly */ true,
                     CheckBBLivenessOnly ? DepClass : DepClassTy::OPTIONAL))
@@ -1728,8 +1728,8 @@ bool Attributor::isAssumedDead(const BasicBlock &BB,
                                DepClassTy DepClass) {
   if (!Configuration.UseLiveness)
     return false;
-  const Function &F = *BB.getParent();
-  if (!FnLivenessAA || FnLivenessAA->getAnchorScope() != &F)
+  
+  if (const Function &F = *BB.getParent(); !FnLivenessAA || FnLivenessAA->getAnchorScope() != &F)
     FnLivenessAA = getOrCreateAAFor<AAIsDead>(IRPosition::function(F),
                                               QueryingAA, DepClassTy::NONE);
 
@@ -1842,8 +1842,8 @@ bool Attributor::checkForAllUses(
       if (&SI->getOperandUse(0) == U) {
         if (!Visited.insert(U).second)
           continue;
-        SmallSetVector<Value *, 4> PotentialCopies;
-        if (AA::getPotentialCopiesOfStoredValue(
+        
+        if (SmallSetVector<Value *, 4> PotentialCopies; AA::getPotentialCopiesOfStoredValue(
                 *this, *SI, PotentialCopies, QueryingAA, UsedAssumedInformation,
                 /* OnlyExact */ true)) {
           DEBUG_WITH_TYPE(VERBOSE_DEBUG_TYPE,
@@ -1968,8 +1968,8 @@ bool Attributor::checkForAllCallSites(function_ref<bool(AbstractCallSite)> Pred,
     unsigned MinArgsParams =
         std::min(size_t(ACS.getNumArgOperands()), Fn.arg_size());
     for (unsigned u = 0; u < MinArgsParams; ++u) {
-      Value *CSArgOp = ACS.getCallArgOperand(u);
-      if (CSArgOp && Fn.getArg(u)->getType() != CSArgOp->getType()) {
+      
+      if (Value *CSArgOp = ACS.getCallArgOperand(u); CSArgOp && Fn.getArg(u)->getType() != CSArgOp->getType()) {
         LLVM_DEBUG(
             dbgs() << "[Attributor] Call site / callee argument type mismatch ["
                    << u << "@" << Fn.getName() << ": "
@@ -2066,8 +2066,8 @@ bool Attributor::checkForAllInstructions(function_ref<bool(Instruction &)> Pred,
           ? (getAAFor<AAIsDead>(*QueryingAA, QueryIRP, DepClassTy::NONE))
           : nullptr;
 
-  auto &OpcodeInstMap = InfoCache.getOpcodeInstMapForFunction(*Fn);
-  if (!checkForAllInstructionsImpl(this, OpcodeInstMap, Pred, QueryingAA,
+  
+  if (auto &OpcodeInstMap = InfoCache.getOpcodeInstMapForFunction(*Fn); !checkForAllInstructionsImpl(this, OpcodeInstMap, Pred, QueryingAA,
                                    LivenessAA, Opcodes, UsedAssumedInformation,
                                    CheckBBLivenessOnly, CheckPotentiallyDead))
     return false;
@@ -2384,8 +2384,8 @@ void Attributor::identifyDeadInternalFunctions() {
       if (!F)
         continue;
 
-      bool UsedAssumedInformation = false;
-      if (checkForAllCallSites(
+      
+      if (bool UsedAssumedInformation = false; checkForAllCallSites(
               [&](AbstractCallSite ACS) {
                 Function *Callee = ACS.getInstruction()->getFunction();
                 return ToBeDeletedFunctions.count(Callee) ||
@@ -2463,18 +2463,18 @@ ChangeStatus Attributor::cleanupIR() {
         DeadInsts.push_back(I);
     }
     if (isa<UndefValue>(NewV) && isa<CallBase>(U->getUser())) {
-      auto *CB = cast<CallBase>(U->getUser());
-      if (CB->isArgOperand(U)) {
+      
+      if (auto *CB = cast<CallBase>(U->getUser()); CB->isArgOperand(U)) {
         unsigned Idx = CB->getArgOperandNo(U);
         CB->removeParamAttr(Idx, Attribute::NoUndef);
-        auto *Callee = dyn_cast_if_present<Function>(CB->getCalledOperand());
-        if (Callee && Callee->arg_size() > Idx)
+        
+        if (auto *Callee = dyn_cast_if_present<Function>(CB->getCalledOperand()); Callee && Callee->arg_size() > Idx)
           Callee->removeParamAttr(Idx, Attribute::NoUndef);
       }
     }
     if (isa<Constant>(NewV) && isa<BranchInst>(U->getUser())) {
-      Instruction *UserI = cast<Instruction>(U->getUser());
-      if (isa<UndefValue>(NewV)) {
+      
+      if (Instruction *UserI = cast<Instruction>(U->getUser()); isa<UndefValue>(NewV)) {
         ToBeChangedToUnreachableInsts.insert(UserI);
       } else {
         TerminatorsToFold.push_back(UserI);
@@ -2515,8 +2515,8 @@ ChangeStatus Attributor::cleanupIR() {
       assert((UnwindBBIsDead || NormalBBIsDead) &&
              "Invoke does not have dead successors!");
       BasicBlock *BB = II->getParent();
-      BasicBlock *NormalDestBB = II->getNormalDest();
-      if (UnwindBBIsDead) {
+      
+      if (BasicBlock *NormalDestBB = II->getNormalDest(); UnwindBBIsDead) {
         Instruction *NormalNextIP = &NormalDestBB->front();
         if (Invoke2CallAllowed) {
           changeToCall(II);
@@ -2690,8 +2690,8 @@ ChangeStatus Attributor::updateAA(AbstractAttribute &AA) {
 
   auto &AAState = AA.getState();
   ChangeStatus CS = ChangeStatus::UNCHANGED;
-  bool UsedAssumedInformation = false;
-  if (!isAssumedDead(AA, nullptr, UsedAssumedInformation,
+  
+  if (bool UsedAssumedInformation = false; !isAssumedDead(AA, nullptr, UsedAssumedInformation,
                      /* CheckBBLivenessOnly */ true))
     CS = AA.update(*this);
 
@@ -3331,8 +3331,8 @@ void Attributor::rememberDependences() {
 template <Attribute::AttrKind AK, typename AAType>
 void Attributor::checkAndQueryIRAttr(const IRPosition &IRP, AttributeSet Attrs,
                                      bool SkipHasAttrCheck) {
-  bool IsKnown;
-  if (SkipHasAttrCheck || !Attrs.hasAttribute(AK))
+  
+  if (bool IsKnown; SkipHasAttrCheck || !Attrs.hasAttribute(AK))
     if (!Configuration.Allowed || Configuration.Allowed->count(&AAType::ID))
       if (!AA::hasAssumedIRAttr<AK>(*this, nullptr, IRP, DepClassTy::NONE,
                                     IsKnown))
@@ -3348,8 +3348,8 @@ void Attributor::identifyDefaultAbstractAttributes(Function &F) {
   // In non-module runs we need to look at the call sites of a function to
   // determine if it is part of a must-tail call edge. This will influence what
   // attributes we can derive.
-  InformationCache::FunctionInfo &FI = InfoCache.getFunctionInfo(F);
-  if (!isModulePass() && !FI.CalledViaMustTail) {
+  
+  if (InformationCache::FunctionInfo &FI = InfoCache.getFunctionInfo(F); !isModulePass() && !FI.CalledViaMustTail) {
     for (const Use &U : F.uses())
       if (const auto *CB = dyn_cast<CallBase>(U.getUser()))
         if (CB->isCallee(&U) && CB->isMustTailCall())
@@ -3570,9 +3570,9 @@ void Attributor::identifyDefaultAbstractAttributes(Function &F) {
       // Every call site argument might be marked "noundef".
       checkAndQueryIRAttr<Attribute::NoUndef, AANoUndef>(CBArgPos, CBArgAttrs);
 
-      Type *ArgTy = CB.getArgOperand(I)->getType();
+      
 
-      if (!ArgTy->isPointerTy()) {
+      if (Type *ArgTy = CB.getArgOperand(I)->getType(); !ArgTy->isPointerTy()) {
         if (AttributeFuncs::isNoFPClassCompatibleType(ArgTy))
           getOrCreateAAFor<AANoFPClass>(CBArgPos);
 
@@ -3857,8 +3857,8 @@ static bool runAttributorOnFunctions(InformationCache &InfoCache,
   if (AllowDeepWrapper) {
     unsigned FunSize = Functions.size();
     for (unsigned u = 0; u < FunSize; u++) {
-      Function *F = Functions[u];
-      if (!F->isDeclaration() && !F->isDefinitionExact() && !F->use_empty() &&
+      
+      if (Function *F = Functions[u]; !F->isDeclaration() && !F->isDefinitionExact() && !F->use_empty() &&
           !GlobalValue::isInterposableLinkage(F->getLinkage())) {
         Function *NewF = Attributor::internalizeFunction(*F);
         assert(NewF && "Could not internalize function.");
@@ -4027,8 +4027,8 @@ PreservedAnalyses AttributorPass::run(Module &M, ModuleAnalysisManager &AM) {
 
   CallGraphUpdater CGUpdater;
   BumpPtrAllocator Allocator;
-  InformationCache InfoCache(M, AG, Allocator, /* CGSCC */ nullptr);
-  if (runAttributorOnFunctions(InfoCache, Functions, AG, CGUpdater,
+  
+  if (InformationCache InfoCache(M, AG, Allocator, /* CGSCC */ nullptr); runAttributorOnFunctions(InfoCache, Functions, AG, CGUpdater,
                                /* DeleteFns */ true, /* IsModulePass */ true)) {
     // FIXME: Think about passes we will preserve and add them here.
     return PreservedAnalyses::none();
@@ -4055,8 +4055,8 @@ PreservedAnalyses AttributorCGSCCPass::run(LazyCallGraph::SCC &C,
   CallGraphUpdater CGUpdater;
   CGUpdater.initialize(CG, C, AM, UR);
   BumpPtrAllocator Allocator;
-  InformationCache InfoCache(M, AG, Allocator, /* CGSCC */ &Functions);
-  if (runAttributorOnFunctions(InfoCache, Functions, AG, CGUpdater,
+  
+  if (InformationCache InfoCache(M, AG, Allocator, /* CGSCC */ &Functions); runAttributorOnFunctions(InfoCache, Functions, AG, CGUpdater,
                                /* DeleteFns */ false,
                                /* IsModulePass */ false)) {
     // FIXME: Think about passes we will preserve and add them here.
@@ -4079,8 +4079,8 @@ PreservedAnalyses AttributorLightPass::run(Module &M,
 
   CallGraphUpdater CGUpdater;
   BumpPtrAllocator Allocator;
-  InformationCache InfoCache(M, AG, Allocator, /* CGSCC */ nullptr);
-  if (runAttributorLightOnFunctions(InfoCache, Functions, AG, CGUpdater, FAM,
+  
+  if (InformationCache InfoCache(M, AG, Allocator, /* CGSCC */ nullptr); runAttributorLightOnFunctions(InfoCache, Functions, AG, CGUpdater, FAM,
                                     /* IsModulePass */ true)) {
     PreservedAnalyses PA;
     // We have not added or removed functions.
@@ -4111,8 +4111,8 @@ PreservedAnalyses AttributorLightCGSCCPass::run(LazyCallGraph::SCC &C,
   CallGraphUpdater CGUpdater;
   CGUpdater.initialize(CG, C, AM, UR);
   BumpPtrAllocator Allocator;
-  InformationCache InfoCache(M, AG, Allocator, /* CGSCC */ &Functions);
-  if (runAttributorLightOnFunctions(InfoCache, Functions, AG, CGUpdater, FAM,
+  
+  if (InformationCache InfoCache(M, AG, Allocator, /* CGSCC */ &Functions); runAttributorLightOnFunctions(InfoCache, Functions, AG, CGUpdater, FAM,
                                     /* IsModulePass */ false)) {
     PreservedAnalyses PA;
     // We have not added or removed functions.

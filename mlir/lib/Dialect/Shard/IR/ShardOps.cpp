@@ -289,8 +289,8 @@ ShapedType shard::shardShapedType(ShapedType shape, GridOp grid,
 }
 
 Type shard::shardType(Type type, GridOp grid, Sharding sharding) {
-  RankedTensorType rankedTensorType = dyn_cast<RankedTensorType>(type);
-  if (rankedTensorType && !rankedTensorType.getShape().empty()) {
+  
+  if (RankedTensorType rankedTensorType = dyn_cast<RankedTensorType>(type); rankedTensorType && !rankedTensorType.getShape().empty()) {
     return shardShapedType(rankedTensorType, grid, sharding);
   }
   return type;
@@ -407,9 +407,9 @@ void mlir::shard::maybeInsertSourceShardingAnnotation(Sharding sharding,
 //===----------------------------------------------------------------------===//
 
 LogicalResult GridOp::verify() {
-  int64_t rank = getRank();
+  
 
-  if (rank <= 0)
+  if (int64_t rank = getRank(); rank <= 0)
     return emitOpError("rank of grid is expected to be a positive integer");
 
   for (int64_t dimSize : getShape()) {
@@ -541,8 +541,8 @@ LogicalResult ShardingOp::verify() {
   };
 
   for (auto subAxes : getSplitAxes().getAxes()) {
-    ArrayRef<GridAxis> subAxesArray = subAxes.asArrayRef();
-    if (failed(checkGridAxis(subAxesArray)))
+    
+    if (ArrayRef<GridAxis> subAxesArray = subAxes.asArrayRef(); failed(checkGridAxis(subAxesArray)))
       return failure();
   }
 
@@ -968,8 +968,8 @@ struct EmptyGridAxesCanonicalizationPattern : OpRewritePattern<Op> {
   using OpRewritePattern<Op>::OpRewritePattern;
   LogicalResult matchAndRewrite(Op op,
                                 PatternRewriter &rewriter) const override {
-    auto gridAxes = op.getGridAxes();
-    if (!gridAxes.empty()) {
+    
+    if (auto gridAxes = op.getGridAxes(); !gridAxes.empty()) {
       return failure();
     }
     if (op.getInput().getType() != op.getResult().getType()) {
@@ -1043,9 +1043,9 @@ static LogicalResult verifyGatherOperandAndResultShape(
   for (int64_t axis = 0; axis < operandType.getRank(); ++axis) {
     auto operandDimSize = DimensionSize(operandType.getDimSize(axis));
     auto resultDimSize = DimensionSize(resultType.getDimSize(axis));
-    auto expectedResultDimSize =
-        axis == gatherAxis ? deviceGroupSize * operandDimSize : operandDimSize;
-    if (failed(verifyDimensionCompatibility(
+    
+    if (auto expectedResultDimSize =
+        axis == gatherAxis ? deviceGroupSize * operandDimSize : operandDimSize; failed(verifyDimensionCompatibility(
             result.getLoc(), expectedResultDimSize, resultDimSize, axis))) {
       return failure();
     }

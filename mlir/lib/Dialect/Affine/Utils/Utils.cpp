@@ -661,18 +661,18 @@ static bool mayHaveEffect(Operation *srcMemOp, Operation *destMemOp,
   // AffineScope. Also, we can only check if our affine scope is isolated from
   // above; otherwise, values can from outside of the affine scope that the
   // check below cannot analyze.
-  Region *srcScope = getAffineAnalysisScope(srcMemOp);
-  if (srcAccess.memref == destAccess.memref &&
+  
+  if (Region *srcScope = getAffineAnalysisScope(srcMemOp); srcAccess.memref == destAccess.memref &&
       srcScope == getAffineAnalysisScope(destMemOp)) {
     unsigned nsLoops = getNumCommonSurroundingLoops(*srcMemOp, *destMemOp);
     FlatAffineValueConstraints dependenceConstraints;
     for (unsigned d = nsLoops + 1; d > minSurroundingLoops; d--) {
-      DependenceResult result = checkMemrefAccessDependence(
-          srcAccess, destAccess, d, &dependenceConstraints,
-          /*dependenceComponents=*/nullptr);
+      
       // A dependence failure or the presence of a dependence implies a
       // side effect.
-      if (!noDependence(result))
+      if (DependenceResult result = checkMemrefAccessDependence(
+          srcAccess, destAccess, d, &dependenceConstraints,
+          /*dependenceComponents=*/nullptr); !noDependence(result))
         return true;
     }
     // No side effect was seen.
@@ -727,9 +727,9 @@ bool mlir::affine::hasNoInterveningEffect(
         // need to consider other potential stores with depth >
         // minSurroundingLoops since `start` would overwrite any store with a
         // smaller number of surrounding loops before.
-        unsigned minSurroundingLoops =
-            getNumCommonSurroundingLoops(*start, *memOp);
-        if (mayHaveEffect(op, memOp, minSurroundingLoops))
+        
+        if (unsigned minSurroundingLoops =
+            getNumCommonSurroundingLoops(*start, *memOp); mayHaveEffect(op, memOp, minSurroundingLoops))
           hasSideEffect = true;
         return;
       }
@@ -1501,8 +1501,8 @@ static LogicalResult getTileSizePos(
   unsigned pos = 0;
   for (AffineExpr expr : map.getResults()) {
     if (expr.getKind() == AffineExprKind::FloorDiv) {
-      AffineBinaryOpExpr binaryExpr = cast<AffineBinaryOpExpr>(expr);
-      if (isa<AffineConstantExpr>(binaryExpr.getRHS()))
+      
+      if (AffineBinaryOpExpr binaryExpr = cast<AffineBinaryOpExpr>(expr); isa<AffineConstantExpr>(binaryExpr.getRHS()))
         floordivExprs.emplace_back(
             std::make_tuple(binaryExpr.getLHS(), binaryExpr.getRHS(), pos));
     }
@@ -1536,9 +1536,9 @@ static LogicalResult getTileSizePos(
         expr.walk([&](AffineExpr e) {
           if (e == floordivExprLHS) {
             if (expr.getKind() == AffineExprKind::Mod) {
-              AffineBinaryOpExpr binaryExpr = cast<AffineBinaryOpExpr>(expr);
+              
               // If LHS and RHS of `mod` are the same with those of floordiv.
-              if (floordivExprLHS == binaryExpr.getLHS() &&
+              if (AffineBinaryOpExpr binaryExpr = cast<AffineBinaryOpExpr>(expr); floordivExprLHS == binaryExpr.getLHS() &&
                   floordivExprRHS == binaryExpr.getRHS()) {
                 // Save tile size (RHS of `mod`), and position of `floordiv` and
                 // `mod` if same expr with `mod` is not found yet.

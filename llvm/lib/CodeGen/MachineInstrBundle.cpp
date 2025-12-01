@@ -52,11 +52,11 @@ bool UnpackMachineBundles::runOnMachineFunction(MachineFunction &MF) {
   for (MachineBasicBlock &MBB : MF) {
     for (MachineBasicBlock::instr_iterator MII = MBB.instr_begin(),
            MIE = MBB.instr_end(); MII != MIE; ) {
-      MachineInstr *MI = &*MII;
+      
 
       // Remove BUNDLE instruction and the InsideBundle flags from bundled
       // instructions.
-      if (MI->isBundle()) {
+      if (MachineInstr *MI = &*MII; MI->isBundle()) {
         while (++MII != MIE && MII->isBundledWithPred()) {
           MII->unbundleFromPred();
           for (MachineOperand &MO  : MII->operands()) {

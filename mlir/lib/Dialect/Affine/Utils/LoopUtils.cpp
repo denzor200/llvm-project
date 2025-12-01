@@ -142,8 +142,8 @@ LogicalResult mlir::affine::promoteIfSingleIteration(AffineForOp forOp) {
     } else {
       auto lbOperands = forOp.getLowerBoundOperands();
       auto lbMap = forOp.getLowerBoundMap();
-      OpBuilder builder(forOp);
-      if (lbMap == builder.getDimIdentityMap()) {
+      
+      if (OpBuilder builder(forOp); lbMap == builder.getDimIdentityMap()) {
         // No need of generating an affine.apply.
         iv.replaceAllUsesWith(lbOperands[0]);
       } else {
@@ -1369,9 +1369,9 @@ mlir::affine::isPerfectlyNested(ArrayRef<AffineForOp> loops) {
 
   auto enclosingLoop = loops.front();
   for (auto loop : loops.drop_front()) {
-    auto parentForOp = dyn_cast<AffineForOp>(loop->getParentOp());
+    
     // parentForOp's body should be just this loop and the terminator.
-    if (parentForOp != enclosingLoop || !hasTwoElements(parentForOp.getBody()))
+    if (auto parentForOp = dyn_cast<AffineForOp>(loop->getParentOp()); parentForOp != enclosingLoop || !hasTwoElements(parentForOp.getBody()))
       return false;
     enclosingLoop = loop;
   }
@@ -1773,8 +1773,8 @@ findHighestBlockForPlacement(const MemRefRegion &region, Block &block,
   for (auto e = enclosingAffineOps.rend(); it != e; ++it) {
     Operation *enclosingOp = *it;
     // We can't hoist past the definition of the memref being copied.
-    Value memref = region.memref;
-    if (!memref.getParentRegion()->isAncestor(enclosingOp->getParentRegion())) {
+    
+    if (Value memref = region.memref; !memref.getParentRegion()->isAncestor(enclosingOp->getParentRegion())) {
       LDBG() << "memref definition will end up not dominating hoist location";
       break;
     }
@@ -2054,8 +2054,8 @@ static LogicalResult generateCopy(
     // Set copy start location for this dimension in the lower memory space
     // memref.
     if (lbs[d].isSingleConstant()) {
-      auto indexVal = lbs[d].getSingleConstantResult();
-      if (indexVal == 0) {
+      
+      if (auto indexVal = lbs[d].getSingleConstantResult(); indexVal == 0) {
         memIndices.push_back(zeroIndex);
       } else {
         memIndices.push_back(
@@ -2201,10 +2201,10 @@ static LogicalResult generateCopy(
 
   // Generate dealloc for the buffer.
   if (!existingBuf) {
-    auto bufDeallocOp = memref::DeallocOp::create(epilogue, loc, fastMemRef);
+    
     // When generating pointwise copies, `nEnd' has to be set to deallocOp on
     // the fast buffer (since it marks the new end insertion point).
-    if (!copyOptions.generateDma && *nEnd == end && isCopyOutAtEndOfBlock)
+    if (auto bufDeallocOp = memref::DeallocOp::create(epilogue, loc, fastMemRef); !copyOptions.generateDma && *nEnd == end && isCopyOutAtEndOfBlock)
       *nEnd = Block::iterator(bufDeallocOp.getOperation());
   }
 
@@ -2471,8 +2471,8 @@ mlir::affine::affineDataCopyGenerate(Block::iterator begin, Block::iterator end,
   }
 
   // For a range of operations, a note will be emitted at the caller.
-  AffineForOp forOp;
-  if (llvm::DebugFlag && (forOp = dyn_cast<AffineForOp>(&*begin))) {
+  
+  if (AffineForOp forOp; llvm::DebugFlag && (forOp = dyn_cast<AffineForOp>(&*begin))) {
     LLVM_DEBUG(forOp.emitRemark()
                << llvm::divideCeil(totalCopyBuffersSizeInBytes, 1024)
                << " KiB of copy buffers in fast memory space for this block");
@@ -2793,10 +2793,10 @@ LogicalResult affine::coalescePerfectlyNestedAffineLoops(AffineForOp op) {
   for (unsigned end = loops.size(); end > 0; --end) {
     unsigned start = 0;
     for (; start < end - 1; ++start) {
-      auto maxPos =
+      
+      if (auto maxPos =
           *std::max_element(std::next(operandsDefinedAbove.begin(), start),
-                            std::next(operandsDefinedAbove.begin(), end));
-      if (maxPos > start)
+                            std::next(operandsDefinedAbove.begin(), end)); maxPos > start)
         continue;
       assert(maxPos == start &&
              "expected loop bounds to be known at the start of the band");

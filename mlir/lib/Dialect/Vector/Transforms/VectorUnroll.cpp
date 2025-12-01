@@ -135,9 +135,9 @@ getUnrollOrder(unsigned numLoops, Operation *op,
   SmallVector<int64_t> loopOrder =
       llvm::to_vector(llvm::seq<int64_t>(0, static_cast<int64_t>(numLoops)));
   if (options.traversalOrderCallback != nullptr) {
-    std::optional<SmallVector<int64_t>> order =
-        options.traversalOrderCallback(op);
-    if (order) {
+    
+    if (std::optional<SmallVector<int64_t>> order =
+        options.traversalOrderCallback(op); order) {
       loopOrder = std::move(*order);
     }
   }
@@ -337,8 +337,8 @@ struct UnrollContractionPattern
           applyPermutationMap(accPermutationMap, ArrayRef<int64_t>(offsets));
       // If a version of the accumulator has already been computed, use it
       // otherwise extract the first version from the original operand.
-      auto *accIt = accCache.find(accOffets);
-      if (accIt != accCache.end())
+      
+      if (auto *accIt = accCache.find(accOffets); accIt != accCache.end())
         slicesOperands[2] = accIt->second;
       else
         extractOperand(2, contractOp.getAcc(), accPermutationMap, accOffets);
@@ -420,8 +420,8 @@ struct UnrollMultiReductionPattern
       SmallVector<int64_t> accStrides(destOffset.size(), 1);
       // If a version of the accumulator has already been computed, use it
       // otherwise extract the first version from the original operand.
-      auto *accIt = accCache.find(destOffset);
-      if (accIt != accCache.end())
+      
+      if (auto *accIt = accCache.find(destOffset); accIt != accCache.end())
         acc = accIt->second;
       else
         acc = rewriter.createOrFold<vector::ExtractStridedSliceOp>(
@@ -1029,8 +1029,8 @@ static bool isContiguous(ArrayRef<int64_t> extractShape,
     shape = shape.drop_front();
   }
 
-  size_t rankDiff = shape.size() - extractShape.size();
-  if (!llvm::equal(extractShape.drop_front(), shape.drop_front(rankDiff + 1)))
+  
+  if (size_t rankDiff = shape.size() - extractShape.size(); !llvm::equal(extractShape.drop_front(), shape.drop_front(rankDiff + 1)))
     return false;
 
   int64_t extractElements = ShapedType::getNumElements(extractShape);

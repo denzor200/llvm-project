@@ -48,8 +48,8 @@ static std::optional<size_t>
 findInListOrAdd(Value value, llvm::SmallVectorImpl<Value> &dims,
                 function_ref<bool(Value)> isValidElement) {
 
-  Value *loopIV = llvm::find(dims, value);
-  if (loopIV != dims.end()) {
+  
+  if (Value *loopIV = llvm::find(dims, value); loopIV != dims.end()) {
     // We found an IV that already has an index, return that index.
     return {std::distance(dims.begin(), loopIV)};
   }
@@ -69,8 +69,8 @@ static AffineExpr toAffineExpr(Value value,
                                llvm::SmallVectorImpl<Value> &affineDims,
                                llvm::SmallVectorImpl<Value> &affineSymbols) {
   using namespace matchers;
-  IntegerAttr::ValueType cst;
-  if (matchPattern(value, m_ConstantInt(&cst))) {
+  
+  if (IntegerAttr::ValueType cst; matchPattern(value, m_ConstantInt(&cst))) {
     return getAffineConstantExpr(cst.getSExtValue(), value.getContext());
   }
 

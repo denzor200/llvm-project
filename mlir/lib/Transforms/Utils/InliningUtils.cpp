@@ -281,8 +281,8 @@ static LogicalResult inlineRegionImpl(
     return failure();
 
   // Check that all of the region arguments have been mapped.
-  auto *srcEntryBlock = &src->front();
-  if (llvm::any_of(srcEntryBlock->getArguments(),
+  
+  if (auto *srcEntryBlock = &src->front(); llvm::any_of(srcEntryBlock->getArguments(),
                    [&](BlockArgument arg) { return !mapper.contains(arg); }))
     return failure();
 
@@ -522,8 +522,8 @@ LogicalResult mlir::inlineCall(
 
     // If the call operand doesn't match the expected region argument, try to
     // generate a cast.
-    Type regionArgType = regionArg.getType();
-    if (operand.getType() != regionArgType) {
+    
+    if (Type regionArgType = regionArg.getType(); operand.getType() != regionArgType) {
       if (!(operand = materializeConversion(callInterface, castOps, castBuilder,
                                             operand, regionArgType, castLoc)))
         return cleanupState();

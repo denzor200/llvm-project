@@ -82,8 +82,8 @@ static radix Radix;
 template <typename T>
 static void parseIntArg(const opt::InputArgList &Args, int ID, T &Value) {
   if (const opt::Arg *A = Args.getLastArg(ID)) {
-    StringRef V(A->getValue());
-    if (!llvm::to_integer(V, Value, 0) || Value <= 0)
+    
+    if (StringRef V(A->getValue()); !llvm::to_integer(V, Value, 0) || Value <= 0)
       reportCmdLineError("expected a positive integer, but got '" + V + "'");
   }
 }

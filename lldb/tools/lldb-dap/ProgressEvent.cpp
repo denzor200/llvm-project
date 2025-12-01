@@ -31,8 +31,8 @@ ProgressEvent::ProgressEvent(uint64_t progress_id,
   if (message)
     m_message = message->str();
 
-  const bool calculate_percentage = total != UINT64_MAX;
-  if (completed == 0) {
+  
+  if (const bool calculate_percentage = total != UINT64_MAX; completed == 0) {
     // Start event
     m_event_type = progressStart;
     // Wait a bit before reporting the start event in case in completes really
@@ -202,8 +202,8 @@ void ProgressEventReporter::ReportStartEvents() {
   std::lock_guard<std::mutex> locker(m_mutex);
 
   while (!m_unreported_start_events.empty()) {
-    ProgressEventManagerSP event_manager = m_unreported_start_events.front();
-    if (event_manager->Finished())
+    
+    if (ProgressEventManagerSP event_manager = m_unreported_start_events.front(); event_manager->Finished())
       m_unreported_start_events.pop();
     else if (event_manager->ReportIfNeeded())
       m_unreported_start_events
@@ -220,8 +220,8 @@ void ProgressEventReporter::Push(uint64_t progress_id, const char *message,
                                  uint64_t completed, uint64_t total) {
   std::lock_guard<std::mutex> locker(m_mutex);
 
-  auto it = m_event_managers.find(progress_id);
-  if (it == m_event_managers.end()) {
+  
+  if (auto it = m_event_managers.find(progress_id); it == m_event_managers.end()) {
     if (std::optional<ProgressEvent> event = ProgressEvent::Create(
             progress_id, StringRef(message), completed, total)) {
       ProgressEventManagerSP event_manager =

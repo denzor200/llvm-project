@@ -283,8 +283,8 @@ static bool isStandardFunction(const FunctionDecl *FD) {
 /// This includes all statements that have a class name with "CXX" prefix
 /// and every other statement that is declared in file ExprCXX.h.
 static bool isCXXOnlyStmt(const Stmt *S) {
-  const StringRef Name = S->getStmtClassName();
-  if (Name.starts_with("CXX"))
+  
+  if (const StringRef Name = S->getStmtClassName(); Name.starts_with("CXX"))
     return true;
   // Check for all other class names in ExprCXX.h that have no 'CXX' prefix.
   return isa<ArrayTypeTraitExpr, BuiltinBitCastExpr, CUDAKernelCallExpr,
@@ -409,8 +409,8 @@ void SignalHandlerCheck::check(const MatchFinder::MatchResult &Result) {
   auto Itr = llvm::df_begin(HandlerNode), ItrE = llvm::df_end(HandlerNode);
   while (Itr != ItrE) {
     const auto *CallF = dyn_cast<FunctionDecl>((*Itr)->getDecl());
-    const unsigned int PathL = Itr.getPathLength();
-    if (CallF) {
+    
+    if (const unsigned int PathL = Itr.getPathLength(); CallF) {
       // A signal handler or a function transitively reachable from the signal
       // handler was found to be unsafe.
       // Generate notes for the whole call chain (including the signal handler
@@ -418,12 +418,12 @@ void SignalHandlerCheck::check(const MatchFinder::MatchResult &Result) {
       const Expr *CallOrRef = (PathL > 1)
                                   ? findCallExpr(Itr.getPath(PathL - 2), *Itr)
                                   : HandlerExpr;
-      auto ChainReporter = [this, &Itr, HandlerExpr](bool SkipPathEnd) {
-        reportHandlerChain(Itr, HandlerExpr, SkipPathEnd);
-      };
+      
       // If problems were found in a function (`CallF`), skip the analysis of
       // functions that are called from it.
-      if (checkFunction(CallF, CallOrRef, ChainReporter))
+      if (auto ChainReporter = [this, &Itr, HandlerExpr](bool SkipPathEnd) {
+        reportHandlerChain(Itr, HandlerExpr, SkipPathEnd);
+      }; checkFunction(CallF, CallOrRef, ChainReporter))
         Itr.skipChildren();
       else
         ++Itr;
@@ -482,8 +482,8 @@ bool SignalHandlerCheck::checkFunctionCPP14(
   }
 
   const FunctionDecl *FBody = nullptr;
-  const Stmt *BodyS = FD->getBody(FBody);
-  if (!BodyS)
+  
+  if (const Stmt *BodyS = FD->getBody(FBody); !BodyS)
     return false;
 
   bool StmtProblemsFound = false;
@@ -491,8 +491,8 @@ bool SignalHandlerCheck::checkFunctionCPP14(
   auto Matches =
       match(decl(forEachDescendant(stmt().bind("stmt"))), *FBody, Ctx);
   for (const auto &Match : Matches) {
-    const auto *FoundS = Match.getNodeAs<Stmt>("stmt");
-    if (isCXXOnlyStmt(FoundS)) {
+    
+    if (const auto *FoundS = Match.getNodeAs<Stmt>("stmt"); isCXXOnlyStmt(FoundS)) {
       const SourceRange R = getSourceRangeOfStmt(FoundS, Ctx);
       if (R.isInvalid())
         continue;
@@ -541,8 +541,8 @@ void SignalHandlerCheck::reportHandlerChain(
   while (CallLevel >= 0) {
     Callee = Caller;
     Caller = Itr.getPath(CallLevel);
-    const Expr *CE = findCallExpr(Caller, Callee);
-    if (SkipPathEnd)
+    
+    if (const Expr *CE = findCallExpr(Caller, Callee); SkipPathEnd)
       SkipPathEnd = false;
     else
       diag(CE->getBeginLoc(), "function %0 called here from %1",

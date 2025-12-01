@@ -269,13 +269,13 @@ SimpleExecutorMemoryManager::createRegionInfo(ExecutorAddrRange R,
   auto I = Slab->Regions.upper_bound(R.Start);
   if (I != Slab->Regions.begin()) {
     auto J = std::prev(I);
-    ExecutorAddrRange PrevRange(J->first, J->second.Size);
-    if (PrevRange.overlaps(R))
+    
+    if (ExecutorAddrRange PrevRange(J->first, J->second.Size); PrevRange.overlaps(R))
       return MakeBadRegionError(PrevRange, true);
   }
   if (I != Slab->Regions.end()) {
-    ExecutorAddrRange NextRange(I->first, I->second.Size);
-    if (NextRange.overlaps(R))
+    
+    if (ExecutorAddrRange NextRange(I->first, I->second.Size); NextRange.overlaps(R))
       return MakeBadRegionError(NextRange, false);
   }
 

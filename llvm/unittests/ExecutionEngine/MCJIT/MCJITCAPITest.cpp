@@ -50,9 +50,9 @@ static uint8_t *roundTripAllocateDataSection(void *object, uintptr_t size,
 
 static LLVMBool roundTripFinalizeMemory(void *object, char **errMsg) {
   std::string errMsgString;
-  bool result =
-    static_cast<SectionMemoryManager*>(object)->finalizeMemory(&errMsgString);
-  if (result) {
+  
+  if (bool result =
+    static_cast<SectionMemoryManager*>(object)->finalizeMemory(&errMsgString); result) {
     *errMsg = LLVMCreateMessage(errMsgString.c_str());
     return 1;
   }

@@ -249,10 +249,10 @@ are no syntax errors may indicate that a function was declared but never called.
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option =
-          g_breakpoint_command_add_options[option_idx].short_option;
+      
 
-      switch (short_option) {
+      switch (const int short_option =
+          g_breakpoint_command_add_options[option_idx].short_option; short_option) {
       case 'o':
         m_use_one_liner = true;
         m_one_liner = std::string(option_arg);
@@ -327,9 +327,9 @@ protected:
     Target &target = m_options.m_use_dummy ? GetDummyTarget() : GetTarget();
 
     const BreakpointList &breakpoints = target.GetBreakpointList();
-    size_t num_breakpoints = breakpoints.GetSize();
+    
 
-    if (num_breakpoints == 0) {
+    if (size_t num_breakpoints = breakpoints.GetSize(); num_breakpoints == 0) {
       result.AppendError("No breakpoints exist to have commands added");
       return;
     }
@@ -353,19 +353,19 @@ protected:
       const size_t count = valid_bp_ids.GetSize();
 
       for (size_t i = 0; i < count; ++i) {
-        BreakpointID cur_bp_id = valid_bp_ids.GetBreakpointIDAtIndex(i);
-        if (cur_bp_id.GetBreakpointID() != LLDB_INVALID_BREAK_ID) {
+        
+        if (BreakpointID cur_bp_id = valid_bp_ids.GetBreakpointIDAtIndex(i); cur_bp_id.GetBreakpointID() != LLDB_INVALID_BREAK_ID) {
           Breakpoint *bp =
               target.GetBreakpointByID(cur_bp_id.GetBreakpointID()).get();
           if (cur_bp_id.GetLocationID() == LLDB_INVALID_BREAK_ID) {
             // This breakpoint does not have an associated location.
             m_bp_options_vec.push_back(bp->GetOptions());
           } else {
-            BreakpointLocationSP bp_loc_sp(
-                bp->FindLocationByID(cur_bp_id.GetLocationID()));
+            
             // This breakpoint does have an associated location. Get its
             // breakpoint options.
-            if (bp_loc_sp)
+            if (BreakpointLocationSP bp_loc_sp(
+                bp->FindLocationByID(cur_bp_id.GetLocationID())); bp_loc_sp)
               m_bp_options_vec.push_back(bp_loc_sp->GetLocationOptions());
           }
         }
@@ -376,10 +376,10 @@ protected:
       // associated with this object.
       if (m_options.m_use_script_language) {
         Status error;
-        ScriptInterpreter *script_interp = GetDebugger().GetScriptInterpreter(
-            /*can_create=*/true, m_options.m_script_language);
+        
         // Special handling for one-liner specified inline.
-        if (m_options.m_use_one_liner) {
+        if (ScriptInterpreter *script_interp = GetDebugger().GetScriptInterpreter(
+            /*can_create=*/true, m_options.m_script_language); m_options.m_use_one_liner) {
           error = script_interp->SetBreakpointCommandCallback(
               m_bp_options_vec, m_options.m_one_liner.c_str());
         } else if (!m_func_options.GetName().empty()) {
@@ -454,9 +454,9 @@ public:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'D':
         m_use_dummy = true;
         break;
@@ -485,9 +485,9 @@ protected:
     Target &target = m_options.m_use_dummy ? GetDummyTarget() : GetTarget();
 
     const BreakpointList &breakpoints = target.GetBreakpointList();
-    size_t num_breakpoints = breakpoints.GetSize();
+    
 
-    if (num_breakpoints == 0) {
+    if (size_t num_breakpoints = breakpoints.GetSize(); num_breakpoints == 0) {
       result.AppendError("No breakpoints exist to have commands deleted");
       return;
     }
@@ -506,14 +506,14 @@ protected:
     if (result.Succeeded()) {
       const size_t count = valid_bp_ids.GetSize();
       for (size_t i = 0; i < count; ++i) {
-        BreakpointID cur_bp_id = valid_bp_ids.GetBreakpointIDAtIndex(i);
-        if (cur_bp_id.GetBreakpointID() != LLDB_INVALID_BREAK_ID) {
+        
+        if (BreakpointID cur_bp_id = valid_bp_ids.GetBreakpointIDAtIndex(i); cur_bp_id.GetBreakpointID() != LLDB_INVALID_BREAK_ID) {
           Breakpoint *bp =
               target.GetBreakpointByID(cur_bp_id.GetBreakpointID()).get();
           if (cur_bp_id.GetLocationID() != LLDB_INVALID_BREAK_ID) {
-            BreakpointLocationSP bp_loc_sp(
-                bp->FindLocationByID(cur_bp_id.GetLocationID()));
-            if (bp_loc_sp)
+            
+            if (BreakpointLocationSP bp_loc_sp(
+                bp->FindLocationByID(cur_bp_id.GetLocationID())); bp_loc_sp)
               bp_loc_sp->ClearCallback();
             else {
               result.AppendErrorWithFormat("Invalid breakpoint ID: %u.%u.\n",
@@ -552,9 +552,9 @@ protected:
     Target &target = GetTarget();
 
     const BreakpointList &breakpoints = target.GetBreakpointList();
-    size_t num_breakpoints = breakpoints.GetSize();
+    
 
-    if (num_breakpoints == 0) {
+    if (size_t num_breakpoints = breakpoints.GetSize(); num_breakpoints == 0) {
       result.AppendError("No breakpoints exist for which to list commands");
       return;
     }
@@ -573,8 +573,8 @@ protected:
     if (result.Succeeded()) {
       const size_t count = valid_bp_ids.GetSize();
       for (size_t i = 0; i < count; ++i) {
-        BreakpointID cur_bp_id = valid_bp_ids.GetBreakpointIDAtIndex(i);
-        if (cur_bp_id.GetBreakpointID() != LLDB_INVALID_BREAK_ID) {
+        
+        if (BreakpointID cur_bp_id = valid_bp_ids.GetBreakpointIDAtIndex(i); cur_bp_id.GetBreakpointID() != LLDB_INVALID_BREAK_ID) {
           Breakpoint *bp =
               target.GetBreakpointByID(cur_bp_id.GetBreakpointID()).get();
 

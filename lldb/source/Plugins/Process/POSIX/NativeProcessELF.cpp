@@ -68,9 +68,9 @@ lldb::addr_t NativeProcessELF::GetELFImageInfoAddress() {
   ELF_PHDR phdr_entry;
   for (size_t i = 0; i < phdr_num_entries; i++) {
     size_t bytes_read;
-    auto error = ReadMemory(phdr_addr + i * phdr_entry_size, &phdr_entry,
-                            sizeof(phdr_entry), bytes_read);
-    if (!error.Success())
+    
+    if (auto error = ReadMemory(phdr_addr + i * phdr_entry_size, &phdr_entry,
+                            sizeof(phdr_entry), bytes_read); !error.Success())
       return LLDB_INVALID_ADDRESS;
     if (phdr_entry.p_type == llvm::ELF::PT_PHDR) {
       load_bias = phdr_addr - phdr_entry.p_vaddr;
@@ -93,9 +93,9 @@ lldb::addr_t NativeProcessELF::GetELFImageInfoAddress() {
   size_t dynamic_num_entries = dynamic_section_size / sizeof(dynamic_entry);
   for (size_t i = 0; i < dynamic_num_entries; i++) {
     size_t bytes_read;
-    auto error = ReadMemory(dynamic_section_addr + i * sizeof(dynamic_entry),
-                            &dynamic_entry, sizeof(dynamic_entry), bytes_read);
-    if (!error.Success())
+    
+    if (auto error = ReadMemory(dynamic_section_addr + i * sizeof(dynamic_entry),
+                            &dynamic_entry, sizeof(dynamic_entry), bytes_read); !error.Success())
       return LLDB_INVALID_ADDRESS;
     // Return the &DT_DEBUG->d_ptr which points to r_debug which contains the
     // link_map.
@@ -118,9 +118,9 @@ llvm::Expected<SVR4LibraryInfo>
 NativeProcessELF::ReadSVR4LibraryInfo(lldb::addr_t link_map_addr) {
   ELFLinkMap<T> link_map;
   size_t bytes_read;
-  auto error =
-      ReadMemory(link_map_addr, &link_map, sizeof(link_map), bytes_read);
-  if (!error.Success())
+  
+  if (auto error =
+      ReadMemory(link_map_addr, &link_map, sizeof(link_map), bytes_read); !error.Success())
     return error.ToError();
 
   char name_buffer[PATH_MAX];

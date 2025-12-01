@@ -113,8 +113,8 @@ void simplifyConstraints(llvm::SetVector<const Formula *> &Constraints,
     llvm::DenseMap<Atom, const Formula *> Substitutions;
     for (const auto &E : EquivalentAtoms) {
       Atom TheAtom = E->getData();
-      Atom Leader = EquivalentAtoms.getLeaderValue(TheAtom);
-      if (TrueAtoms.contains(Leader)) {
+      
+      if (Atom Leader = EquivalentAtoms.getLeaderValue(TheAtom); TrueAtoms.contains(Leader)) {
         if (FalseAtoms.contains(Leader)) {
           contradiction();
           return;

@@ -18,8 +18,8 @@ InstructionCost ScoreBoard::getCost(Instruction *I) const {
 }
 
 void ScoreBoard::remove(Instruction *I) {
-  auto Cost = getCost(I);
-  if (Rgn.contains(I))
+  
+  if (auto Cost = getCost(I); Rgn.contains(I))
     // If `I` is one the newly added ones, then we should adjust `AfterCost`
     AfterCost -= Cost;
   else
@@ -78,8 +78,8 @@ void Region::setAux(ArrayRef<Instruction *> Aux) {
 void Region::setAux(unsigned Idx, Instruction *I) {
   assert((Idx >= Aux.size() || Aux[Idx] == nullptr) &&
          "There is already an Instruction at Idx in Aux!");
-  unsigned ExpectedSz = Idx + 1;
-  if (Aux.size() < ExpectedSz) {
+  
+  if (unsigned ExpectedSz = Idx + 1; Aux.size() < ExpectedSz) {
     auto SzBefore = Aux.size();
     Aux.resize(ExpectedSz);
     // Initialize the gap with nullptr.

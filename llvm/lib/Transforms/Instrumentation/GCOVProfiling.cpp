@@ -221,8 +221,8 @@ static StringRef getFunctionName(const DISubprogram *SP) {
 /// the relative path doesn't exist, reconstruct the absolute path.
 static SmallString<128> getFilename(const DIScope *SP, vfs::FileSystem &VFS) {
   SmallString<128> Path;
-  StringRef RelPath = SP->getFilename();
-  if (VFS.exists(RelPath))
+  
+  if (StringRef RelPath = SP->getFilename(); VFS.exists(RelPath))
     Path = RelPath;
   else
     sys::path::append(Path, SP->getDirectory(), SP->getFilename());
@@ -388,8 +388,8 @@ namespace {
       LLVM_DEBUG(dbgs() << (Blocks.size() + 1) << " blocks\n");
 
       // Emit edges between blocks.
-      const uint32_t Outgoing = EntryBlock.OutEdges.size();
-      if (Outgoing) {
+      
+      if (const uint32_t Outgoing = EntryBlock.OutEdges.size(); Outgoing) {
         write(GCOV_TAG_ARCS);
         write(Outgoing * 2 + 1);
         write(EntryBlock.Number);
@@ -436,8 +436,8 @@ std::vector<Regex> GCOVProfiler::createRegexesFromString(StringRef RegexesStr) {
     std::pair<StringRef, StringRef> HeadTail = RegexesStr.split(';');
     if (!HeadTail.first.empty()) {
       Regex Re(HeadTail.first);
-      std::string Err;
-      if (!Re.isValid(Err)) {
+      
+      if (std::string Err; !Re.isValid(Err)) {
         Ctx->emitError(Twine("Regex ") + HeadTail.first +
                        " is not valid: " + Err);
       }
@@ -616,8 +616,8 @@ bool GCOVProfiler::AddFlushBeforeForkAndExec() {
     for (auto &I : instructions(F)) {
       if (CallInst *CI = dyn_cast<CallInst>(&I)) {
         if (Function *Callee = CI->getCalledFunction()) {
-          LibFunc LF;
-          if (TLI->getLibFunc(*Callee, LF)) {
+          
+          if (LibFunc LF; TLI->getLibFunc(*Callee, LF)) {
             if (LF == LibFunc_fork) {
 #if !defined(_WIN32)
               Forks.push_back(CI);
@@ -898,8 +898,8 @@ bool GCOVProfiler::emitProfileNotes(
         GlobalVariable *Counters = new GlobalVariable(
             *M, CounterTy, false, GlobalValue::InternalLinkage,
             Constant::getNullValue(CounterTy), "__llvm_gcov_ctr");
-        const llvm::Triple &Triple = M->getTargetTriple();
-        if (Triple.getObjectFormat() == llvm::Triple::XCOFF)
+        
+        if (const llvm::Triple &Triple = M->getTargetTriple(); Triple.getObjectFormat() == llvm::Triple::XCOFF)
           Counters->setSection("__llvm_gcov_ctr_section");
         CountersBySP.emplace_back(Counters, SP);
 
@@ -965,8 +965,8 @@ bool GCOVProfiler::emitProfileNotes(
     }
 
     if (EmitGCDA) {
-      const llvm::Triple &Triple = M->getTargetTriple();
-      if (Triple.getObjectFormat() == llvm::Triple::XCOFF)
+      
+      if (const llvm::Triple &Triple = M->getTargetTriple(); Triple.getObjectFormat() == llvm::Triple::XCOFF)
         emitModuleInitFunctionPtrs(CountersBySP);
       else
         emitGlobalConstructor(CountersBySP);

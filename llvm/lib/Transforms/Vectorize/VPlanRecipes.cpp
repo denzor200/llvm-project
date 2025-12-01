@@ -744,8 +744,8 @@ Value *VPInstruction::generate(VPTransformState &State) {
     unsigned UF = getNumOperands() - 3;
     Value *ReducedPartRdx = State.get(getOperand(3));
     RecurKind MinMaxKind;
-    bool IsSigned = RecurrenceDescriptor::isSignedRecurrenceKind(RK);
-    if (RecurrenceDescriptor::isFindLastIVRecurrenceKind(RK))
+    
+    if (bool IsSigned = RecurrenceDescriptor::isSignedRecurrenceKind(RK); RecurrenceDescriptor::isFindLastIVRecurrenceKind(RK))
       MinMaxKind = IsSigned ? RecurKind::SMax : RecurKind::UMax;
     else
       MinMaxKind = IsSigned ? RecurKind::SMin : RecurKind::UMin;
@@ -786,8 +786,8 @@ Value *VPInstruction::generate(VPTransformState &State) {
     } else {
       // Floating-point operations should have some FMF to enable the reduction.
       for (unsigned Part = 1; Part < UF; ++Part) {
-        Value *RdxPart = RdxParts[Part];
-        if (RecurrenceDescriptor::isMinMaxRecurrenceKind(RK))
+        
+        if (Value *RdxPart = RdxParts[Part]; RecurrenceDescriptor::isMinMaxRecurrenceKind(RK))
           ReducedPartRdx = createMinMaxOp(Builder, RK, ReducedPartRdx, RdxPart);
         else {
           Instruction::BinaryOps Opcode;
@@ -928,8 +928,8 @@ Value *VPInstruction::generate(VPTransformState &State) {
 InstructionCost VPRecipeWithIRFlags::getCostForRecipeWithOpcode(
     unsigned Opcode, ElementCount VF, VPCostContext &Ctx) const {
   Type *ScalarTy = Ctx.Types.inferScalarType(this);
-  Type *ResultTy = VF.isVector() ? toVectorTy(ScalarTy, VF) : ScalarTy;
-  switch (Opcode) {
+  
+  switch (Type *ResultTy = VF.isVector() ? toVectorTy(ScalarTy, VF) : ScalarTy; Opcode) {
   case Instruction::FNeg:
     return Ctx.TTI.getArithmeticInstrCost(Opcode, ResultTy, Ctx.CostKind);
   case Instruction::UDiv:
@@ -1850,9 +1850,9 @@ InstructionCost VPHistogramRecipe::computeCost(ElementCount VF,
   InstructionCost MulCost =
       Ctx.TTI.getArithmeticInstrCost(Instruction::Mul, VTy, Ctx.CostKind);
   if (IncAmt->isLiveIn()) {
-    ConstantInt *CI = dyn_cast<ConstantInt>(IncAmt->getLiveInIRValue());
+    
 
-    if (CI && CI->getZExtValue() == 1)
+    if (ConstantInt *CI = dyn_cast<ConstantInt>(IncAmt->getLiveInIRValue()); CI && CI->getZExtValue() == 1)
       MulCost = TTI::TCC_Free;
   }
 
@@ -1925,8 +1925,8 @@ InstructionCost VPWidenSelectRecipe::computeCost(ElementCount VF,
   Type *ScalarTy = Ctx.Types.inferScalarType(this);
   Type *VectorTy = toVectorTy(Ctx.Types.inferScalarType(this), VF);
 
-  VPValue *Op0, *Op1;
-  if (!ScalarCond && ScalarTy->getScalarSizeInBits() == 1 &&
+  
+  if (VPValue *Op0, *Op1; !ScalarCond && ScalarTy->getScalarSizeInBits() == 1 &&
       (match(this, m_LogicalAnd(m_VPValue(Op0), m_VPValue(Op1))) ||
        match(this, m_LogicalOr(m_VPValue(Op0), m_VPValue(Op1))))) {
     // select x, y, false --> x & y
@@ -2059,8 +2059,8 @@ void VPIRFlags::printFlags(raw_ostream &O) const {
 #endif
 
 void VPWidenRecipe::execute(VPTransformState &State) {
-  auto &Builder = State.Builder;
-  switch (Opcode) {
+  
+  switch (auto &Builder = State.Builder; Opcode) {
   case Instruction::Call:
   case Instruction::Br:
   case Instruction::PHI:
@@ -2772,8 +2772,8 @@ VPExpressionRecipe::VPExpressionRecipe(
   // VPExpressionRecipe itself.
   for (auto *R : ExpressionRecipes) {
     for (const auto &[Idx, Op] : enumerate(R->operands())) {
-      auto *Def = Op->getDefiningRecipe();
-      if (Def && ExpressionRecipesAsSetOfUsers.contains(Def))
+      
+      if (auto *Def = Op->getDefiningRecipe(); Def && ExpressionRecipesAsSetOfUsers.contains(Def))
         continue;
       addOperand(Op);
       LiveInPlaceholders.push_back(new VPValue());
@@ -2808,9 +2808,9 @@ InstructionCost VPExpressionRecipe::computeCost(ElementCount VF,
       toVectorTy(Ctx.Types.inferScalarType(getOperand(0)), VF));
   assert(RedTy->isIntegerTy() &&
          "VPExpressionRecipe only supports integer types currently.");
-  unsigned Opcode = RecurrenceDescriptor::getOpcode(
-      cast<VPReductionRecipe>(ExpressionRecipes.back())->getRecurrenceKind());
-  switch (ExpressionType) {
+  
+  switch (unsigned Opcode = RecurrenceDescriptor::getOpcode(
+      cast<VPReductionRecipe>(ExpressionRecipes.back())->getRecurrenceKind()); ExpressionType) {
   case ExpressionTypes::ExtendedReduction: {
     unsigned Opcode = RecurrenceDescriptor::getOpcode(
         cast<VPReductionRecipe>(ExpressionRecipes[1])->getRecurrenceKind());
@@ -2837,8 +2837,8 @@ InstructionCost VPExpressionRecipe::computeCost(ElementCount VF,
     Opcode = Instruction::Sub;
     [[fallthrough]];
   case ExpressionTypes::ExtMulAccReduction: {
-    auto *RedR = cast<VPReductionRecipe>(ExpressionRecipes.back());
-    if (RedR->isPartialReduction()) {
+    
+    if (auto *RedR = cast<VPReductionRecipe>(ExpressionRecipes.back()); RedR->isPartialReduction()) {
       auto *Ext0R = cast<VPWidenCastRecipe>(ExpressionRecipes[0]);
       auto *Ext1R = cast<VPWidenCastRecipe>(ExpressionRecipes[1]);
       auto *Mul = cast<VPWidenRecipe>(ExpressionRecipes[2]);
@@ -3034,11 +3034,11 @@ static void scalarizeInstruction(const Instruction *Instr,
   Instruction *Cloned = Instr->clone();
   if (!IsVoidRetTy) {
     Cloned->setName(Instr->getName() + ".cloned");
-    Type *ResultTy = State.TypeAnalysis.inferScalarType(RepRecipe);
+    
     // The operands of the replicate recipe may have been narrowed, resulting in
     // a narrower result type. Update the type of the cloned instruction to the
     // correct type.
-    if (ResultTy != Cloned->getType())
+    if (Type *ResultTy = State.TypeAnalysis.inferScalarType(RepRecipe); ResultTy != Cloned->getType())
       Cloned->mutateType(ResultTy);
   }
 
@@ -3299,8 +3299,8 @@ InstructionCost VPReplicateRecipe::computeCost(ElementCount VF,
   case Instruction::Store: {
     // TODO: See getMemInstScalarizationCost for how to handle replicating and
     // predicated cases.
-    const VPRegionBlock *ParentRegion = getRegion();
-    if (ParentRegion && ParentRegion->isReplicator())
+    
+    if (const VPRegionBlock *ParentRegion = getRegion(); ParentRegion && ParentRegion->isReplicator())
       break;
 
     bool IsLoad = UI->getOpcode() == Instruction::Load;
@@ -3985,10 +3985,10 @@ void VPInterleaveRecipe::execute(VPTransformState &State) {
   for (unsigned i = 0; i < InterleaveFactor; i++) {
     assert((Group->getMember(i) || MaskForGaps) &&
            "Fail to get a member from an interleaved store group");
-    Instruction *Member = Group->getMember(i);
+    
 
     // Skip the gaps in the group.
-    if (!Member) {
+    if (Instruction *Member = Group->getMember(i); !Member) {
       Value *Undef = PoisonValue::get(SubVT);
       StoredVecs.push_back(Undef);
       continue;
@@ -4138,9 +4138,9 @@ void VPInterleaveEVLRecipe::execute(VPTransformState &State) {
   SmallVector<Value *, 4> StoredVecs;
   const DataLayout &DL = Instr->getDataLayout();
   for (unsigned I = 0, StoredIdx = 0; I < InterleaveFactor; I++) {
-    Instruction *Member = Group->getMember(I);
+    
     // Skip the gaps in the group.
-    if (!Member) {
+    if (Instruction *Member = Group->getMember(I); !Member) {
       StoredVecs.push_back(PoisonValue::get(SubVT));
       continue;
     }

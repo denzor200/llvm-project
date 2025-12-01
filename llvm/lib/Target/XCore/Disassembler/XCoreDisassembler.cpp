@@ -261,8 +261,8 @@ static DecodeStatus Decode2OpInstructionFail(MCInst &Inst, unsigned Insn,
                                              uint64_t Address,
                                              const MCDisassembler *Decoder) {
   // Try and decode as a 3R instruction.
-  unsigned Opcode = fieldFromInstruction(Insn, 11, 5);
-  switch (Opcode) {
+  
+  switch (unsigned Opcode = fieldFromInstruction(Insn, 11, 5); Opcode) {
   case 0x0:
     Inst.setOpcode(XCore::STW_2rus);
     return Decode2RUSInstruction(Inst, Insn, Address, Decoder);
@@ -424,9 +424,9 @@ static DecodeStatus DecodeL2OpInstructionFail(MCInst &Inst, unsigned Insn,
                                               uint64_t Address,
                                               const MCDisassembler *Decoder) {
   // Try and decode as a L3R / L2RUS instruction.
-  unsigned Opcode = fieldFromInstruction(Insn, 16, 4) |
-                    fieldFromInstruction(Insn, 27, 5) << 4;
-  switch (Opcode) {
+  
+  switch (unsigned Opcode = fieldFromInstruction(Insn, 16, 4) |
+                    fieldFromInstruction(Insn, 27, 5) << 4; Opcode) {
   case 0x0c:
     Inst.setOpcode(XCore::STW_l3r);
     return DecodeL3RInstruction(Inst, Insn, Address, Decoder);
@@ -544,8 +544,8 @@ static DecodeStatus DecodeL5RInstructionFail(MCInst &Inst, unsigned Insn,
                                              const MCDisassembler *Decoder) {
   // Try and decode as a L6R instruction.
   Inst.clear();
-  unsigned Opcode = fieldFromInstruction(Insn, 27, 5);
-  switch (Opcode) {
+  
+  switch (unsigned Opcode = fieldFromInstruction(Insn, 27, 5); Opcode) {
   case 0x00:
     Inst.setOpcode(XCore::LMUL_l6r);
     return DecodeL6RInstruction(Inst, Insn, Address, Decoder);

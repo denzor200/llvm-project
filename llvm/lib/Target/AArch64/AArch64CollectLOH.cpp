@@ -494,8 +494,8 @@ static void handleRegMaskClobber(const uint32_t *RegMask, MCPhysReg Reg,
                                  LOHInfo *LOHInfos) {
   if (!MachineOperand::clobbersPhysReg(RegMask, Reg))
     return;
-  int Idx = mapRegToGPRIndex(Reg);
-  if (Idx >= 0)
+  
+  if (int Idx = mapRegToGPRIndex(Reg); Idx >= 0)
     handleClobber(LOHInfos[Idx]);
 }
 
@@ -551,8 +551,8 @@ bool AArch64CollectLOH::runOnMachineFunction(MachineFunction &MF) {
     // Live-out registers are used.
     for (const MachineBasicBlock *Succ : MBB.successors()) {
       for (const auto &LI : Succ->liveins()) {
-        int RegIdx = mapRegToGPRIndex(LI.PhysReg);
-        if (RegIdx >= 0)
+        
+        if (int RegIdx = mapRegToGPRIndex(LI.PhysReg); RegIdx >= 0)
           LOHInfos[RegIdx].OneUser = true;
       }
     }
@@ -561,8 +561,8 @@ bool AArch64CollectLOH::runOnMachineFunction(MachineFunction &MF) {
     // in the process.
     for (const MachineInstr &MI :
          instructionsWithoutDebug(MBB.instr_rbegin(), MBB.instr_rend())) {
-      unsigned Opcode = MI.getOpcode();
-      switch (Opcode) {
+      
+      switch (unsigned Opcode = MI.getOpcode(); Opcode) {
       case AArch64::ADDXri:
       case AArch64::LDRXui:
       case AArch64::LDRWui:

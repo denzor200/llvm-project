@@ -177,8 +177,8 @@ std::array<Value *, 2> Negator::getSortedOperandsOfBinOp(Instruction *I) {
   case Instruction::AShr:
   case Instruction::LShr: {
     // Right-shift sign bit smear is negatible.
-    const APInt *Op1Val;
-    if (match(I->getOperand(1), m_APInt(Op1Val)) && *Op1Val == BitWidth - 1) {
+    
+    if (const APInt *Op1Val; match(I->getOperand(1), m_APInt(Op1Val)) && *Op1Val == BitWidth - 1) {
       Value *BO = I->getOpcode() == Instruction::AShr
                       ? Builder.CreateLShr(I->getOperand(0), I->getOperand(1))
                       : Builder.CreateAShr(I->getOperand(0), I->getOperand(1));
@@ -208,8 +208,8 @@ std::array<Value *, 2> Negator::getSortedOperandsOfBinOp(Instruction *I) {
     // If both arms of the select are constants, we don't need to recurse.
     // Therefore, this transform is not limited by uses.
     auto *Sel = cast<SelectInst>(I);
-    Constant *TrueC, *FalseC;
-    if (match(Sel->getTrueValue(), m_ImmConstant(TrueC)) &&
+    
+    if (Constant *TrueC, *FalseC; match(Sel->getTrueValue(), m_ImmConstant(TrueC)) &&
         match(Sel->getFalseValue(), m_ImmConstant(FalseC))) {
       Constant *NegTrueC = ConstantExpr::getNeg(TrueC);
       Constant *NegFalseC = ConstantExpr::getNeg(FalseC);
@@ -257,9 +257,9 @@ std::array<Value *, 2> Negator::getSortedOperandsOfBinOp(Instruction *I) {
     break;
   }
   case Instruction::And: {
-    Constant *ShAmt;
+    
     // sub(y,and(lshr(x,C),1)) --> add(ashr(shl(x,(BW-1)-C),BW-1),y)
-    if (match(I, m_And(m_OneUse(m_TruncOrSelf(
+    if (Constant *ShAmt; match(I, m_And(m_OneUse(m_TruncOrSelf(
                            m_LShr(m_Value(X), m_ImmConstant(ShAmt)))),
                        m_One()))) {
       unsigned BW = X->getType()->getScalarSizeInBits();
@@ -335,8 +335,8 @@ std::array<Value *, 2> Negator::getSortedOperandsOfBinOp(Instruction *I) {
       NewSelect->setName(I->getName() + ".neg");
       // Poison-generating flags should be dropped
       Value *TV = NewSelect->getTrueValue();
-      Value *FV = NewSelect->getFalseValue();
-      if (match(TV, m_Neg(m_Specific(FV))))
+      
+      if (Value *FV = NewSelect->getFalseValue(); match(TV, m_Neg(m_Specific(FV))))
         cast<Instruction>(TV)->dropPoisonGeneratingFlags();
       else if (match(FV, m_Neg(m_Specific(TV))))
         cast<Instruction>(FV)->dropPoisonGeneratingFlags();

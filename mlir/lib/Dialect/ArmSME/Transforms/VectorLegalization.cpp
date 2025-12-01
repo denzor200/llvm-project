@@ -766,8 +766,8 @@ struct LowerIllegalTransposeStoreViaZA
       return rewriter.notifyMatchFailure(writeOp,
                                          kMatchFailureUnsupportedMaskOp);
 
-    auto permutationMap = writeOp.getPermutationMap();
-    if (!permutationMap.isIdentity())
+    
+    if (auto permutationMap = writeOp.getPermutationMap(); !permutationMap.isIdentity())
       return rewriter.notifyMatchFailure(writeOp,
                                          kMatchFailureNonPermutationMap);
 

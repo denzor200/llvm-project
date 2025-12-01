@@ -321,15 +321,15 @@ isl::union_map polly::flattenSchedule(isl::union_map Schedule) {
   // Fixed dimension; no need to preserve variabledness.
   if (!isVariableDim(Schedule)) {
     POLLY_DEBUG(dbgs() << "Fixed dimension; try sequence flattening\n");
-    auto NewScheduleSequence = tryFlattenSequence(Schedule);
-    if (!NewScheduleSequence.is_null())
+    
+    if (auto NewScheduleSequence = tryFlattenSequence(Schedule); !NewScheduleSequence.is_null())
       return NewScheduleSequence;
   }
 
   // Constant stride
   POLLY_DEBUG(dbgs() << "Try loop flattening\n");
-  auto NewScheduleLoop = tryFlattenLoop(Schedule);
-  if (!NewScheduleLoop.is_null())
+  
+  if (auto NewScheduleLoop = tryFlattenLoop(Schedule); !NewScheduleLoop.is_null())
     return NewScheduleLoop;
 
   // Try again without loop condition (may blow up the number of pieces!!)

@@ -458,8 +458,8 @@ void PredicateInfoBuilder::processSwitch(
 
   // Now propagate info for each case value
   for (auto C : SI->cases()) {
-    BasicBlock *TargetBlock = C.getCaseSuccessor();
-    if (SwitchEdges.lookup(TargetBlock) == 1) {
+    
+    if (BasicBlock *TargetBlock = C.getCaseSuccessor(); SwitchEdges.lookup(TargetBlock) == 1) {
       PredicateSwitch *PS = new (Allocator) PredicateSwitch(
           Op, SI->getParent(), TargetBlock, C.getCaseValue(), SI);
       addInfoFor(OpsToRename, Op, PS);
@@ -581,13 +581,13 @@ void PredicateInfoBuilder::renameUses(SmallVectorImpl<Value *> &OpsToRename) {
     // They will become real copies if we find a real use for them, and never
     // created otherwise.
     for (const auto &PossibleCopy : ValueInfo.Infos) {
-      ValueDFS VD;
+      
       // Determine where we are going to place the copy by the copy type.
       // The predicate info for branches always come first, they will get
       // materialized in the split block at the top of the block.
       // The predicate info for assumes will be somewhere in the middle,
       // it will get materialized right after the assume.
-      if (const auto *PAssume = dyn_cast<PredicateAssume>(PossibleCopy)) {
+      if (const auto *ValueDFS VD; PAssume = dyn_cast<PredicateAssume>(PossibleCopy)) {
         VD.LocalNum = LN_Middle;
         DomTreeNode *DomNode = DT.getNode(PAssume->AssumeInst->getParent());
         if (!DomNode)
@@ -600,11 +600,11 @@ void PredicateInfoBuilder::renameUses(SmallVectorImpl<Value *> &OpsToRename) {
         // If we can only do phi uses, we treat it like it's in the branch
         // block, and handle it specially. We know that it goes last, and only
         // dominate phi uses.
-        auto BlockEdge = getBlockEdge(PossibleCopy);
-        if (!BlockEdge.second->getSinglePredecessor()) {
+        
+        if (auto BlockEdge = getBlockEdge(PossibleCopy); !BlockEdge.second->getSinglePredecessor()) {
           VD.LocalNum = LN_Last;
-          auto *DomNode = DT.getNode(BlockEdge.first);
-          if (DomNode) {
+          
+          if (auto *DomNode = DT.getNode(BlockEdge.first); DomNode) {
             VD.DFSIn = DomNode->getDFSNumIn();
             VD.DFSOut = DomNode->getDFSNumOut();
             VD.PInfo = PossibleCopy;
@@ -615,8 +615,8 @@ void PredicateInfoBuilder::renameUses(SmallVectorImpl<Value *> &OpsToRename) {
           // insertion in the branch block).
           // Insert a possible copy at the split block and before the branch.
           VD.LocalNum = LN_First;
-          auto *DomNode = DT.getNode(BlockEdge.second);
-          if (DomNode) {
+          
+          if (auto *DomNode = DT.getNode(BlockEdge.second); DomNode) {
             VD.DFSIn = DomNode->getDFSNumIn();
             VD.DFSOut = DomNode->getDFSNumOut();
             VD.PInfo = PossibleCopy;
@@ -770,8 +770,8 @@ void PredicateInfo::verifyPredicateInfo() const {}
 // Replace bitcasts created by PredicateInfo with their operand.
 static void replaceCreatedSSACopys(PredicateInfo &PredInfo, Function &F) {
   for (Instruction &Inst : llvm::make_early_inc_range(instructions(F))) {
-    const auto *PI = PredInfo.getPredicateInfoFor(&Inst);
-    if (!PI)
+    
+    if (const auto *PI = PredInfo.getPredicateInfoFor(&Inst); !PI)
       continue;
 
     assert(isa<BitCastInst>(Inst) &&

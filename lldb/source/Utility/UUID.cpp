@@ -105,11 +105,11 @@ bool UUID::SetFromStringRef(llvm::StringRef str) {
   p = p.ltrim();
 
   llvm::SmallVector<uint8_t, 20> bytes;
-  llvm::StringRef rest = UUID::DecodeUUIDBytesFromString(p, bytes);
+  
 
   // Return false if we could not consume the entire string or if the parsed
   // UUID is empty.
-  if (!rest.empty() || bytes.empty())
+  if (llvm::StringRef rest = UUID::DecodeUUIDBytesFromString(p, bytes); !rest.empty() || bytes.empty())
     return false;
 
   *this = UUID(bytes);
@@ -118,10 +118,10 @@ bool UUID::SetFromStringRef(llvm::StringRef str) {
 
 UUID UUID::Generate(uint32_t num_bytes) {
   llvm::SmallVector<uint8_t, 20> bytes(num_bytes);
-  auto ec = llvm::getRandomBytes(bytes.data(), bytes.size());
+  
 
   // If getRandomBytes failed, fall back to a lower entropy source.
-  if (ec) {
+  if (auto ec = llvm::getRandomBytes(bytes.data(), bytes.size()); ec) {
     auto seed = std::chrono::steady_clock::now().time_since_epoch().count();
     std::independent_bits_engine<std::default_random_engine, CHAR_BIT,
                                  unsigned short>

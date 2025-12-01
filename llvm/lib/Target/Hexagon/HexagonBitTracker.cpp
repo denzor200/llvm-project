@@ -83,8 +83,8 @@ BT::BitMask HexagonEvaluator::mask(Register Reg, unsigned Sub) const {
   unsigned ID = RC.getID();
   uint16_t RW = getRegBitWidth(RegisterRef(Reg, Sub));
   const auto &HRI = static_cast<const HexagonRegisterInfo&>(TRI);
-  bool IsSubLo = (Sub == HRI.getHexagonSubRegIndex(RC, Hexagon::ps_sub_lo));
-  switch (ID) {
+  
+  switch (bool IsSubLo = (Sub == HRI.getHexagonSubRegIndex(RC, Hexagon::ps_sub_lo)); ID) {
     case Hexagon::DoubleRegsRegClassID:
     case Hexagon::DoubleRegs_with_isub_hi_in_IntRegsLow8RegClassID:
     case Hexagon::HvxWRRegClassID:
@@ -103,8 +103,8 @@ BT::BitMask HexagonEvaluator::mask(Register Reg, unsigned Sub) const {
 
 uint16_t HexagonEvaluator::getPhysRegBitWidth(MCRegister Reg) const {
   using namespace Hexagon;
-  const auto &HST = MF.getSubtarget<HexagonSubtarget>();
-  if (HST.useHVXOps()) {
+  
+  if (const auto &HST = MF.getSubtarget<HexagonSubtarget>(); HST.useHVXOps()) {
     for (auto &RC : {HvxVRRegClass, HvxWRRegClass, HvxQRRegClass,
                      HvxVQRRegClass})
       if (RC.contains(Reg))
@@ -155,8 +155,8 @@ class RegisterRefs {
 public:
   RegisterRefs(const MachineInstr &MI) : Vector(MI.getNumOperands()) {
     for (unsigned i = 0, n = Vector.size(); i < n; ++i) {
-      const MachineOperand &MO = MI.getOperand(i);
-      if (MO.isReg())
+      
+      if (const MachineOperand &MO = MI.getOperand(i); MO.isReg())
         Vector[i] = BT::RegisterRef(MO);
       // For indices that don't correspond to registers, the entry will
       // remain constructed via the default constructor.
@@ -303,9 +303,9 @@ bool HexagonEvaluator::evaluate(const MachineInstr &MI,
   uint16_t W0 = (Reg[0].Reg != 0) ? getRegBitWidth(Reg[0]) : 0;
 
   // Register id of the 0th operand. It can be 0.
-  unsigned Reg0 = Reg[0].Reg;
+  
 
-  switch (Opc) {
+  switch (unsigned Reg0 = Reg[0].Reg; Opc) {
     // Transfer immediate:
 
     case A2_tfrsi:
@@ -855,8 +855,8 @@ bool HexagonEvaluator::evaluate(const MachineInstr &MI,
     case S2_clbp: {
       uint16_t W1 = getRegBitWidth(Reg[1]);
       RegisterCell R1 = rc(1);
-      BT::BitValue TV = R1[W1-1];
-      if (TV.is(0) || TV.is(1))
+      
+      if (BT::BitValue TV = R1[W1-1]; TV.is(0) || TV.is(1))
         return rr0(eCLB(R1, TV, 32), Outputs);
       break;
     }

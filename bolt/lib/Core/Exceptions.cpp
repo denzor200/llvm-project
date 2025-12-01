@@ -213,8 +213,8 @@ Error BinaryFunction::parseLSDA(ArrayRef<uint8_t> LSDASectionData,
         return Error::success();
       }
 
-      const uint64_t LPOffset = LandingPad - getAddress();
-      if (!getInstructionAtOffset(LPOffset)) {
+      
+      if (const uint64_t LPOffset = LandingPad - getAddress(); !getInstructionAtOffset(LPOffset)) {
         if (opts::Verbosity >= 1)
           BC.errs() << "BOLT-WARNING: landing pad "
                     << Twine::utohexstr(LPOffset)
@@ -236,8 +236,8 @@ Error BinaryFunction::parseLSDA(ArrayRef<uint8_t> LSDASectionData,
     auto IE = Instructions.end();
     assert(II != IE && "exception range not pointing to an instruction");
     do {
-      MCInst &Instruction = II->second;
-      if (BC.MIB->isCall(Instruction) &&
+      
+      if (MCInst &Instruction = II->second; BC.MIB->isCall(Instruction) &&
           !BC.MIB->getConditionalTailCall(Instruction)) {
         assert(!BC.MIB->isInvoke(Instruction) &&
                "overlapping exception ranges detected");

@@ -123,9 +123,9 @@ void llvm::HexagonLowerToMC(const MCInstrInfo &MCII, const MachineInstr *MI,
 
   for (const MachineOperand &MO : MI->operands()) {
     MCOperand MCO;
-    bool MustExtend = MO.getTargetFlags() & HexagonII::HMOTF_ConstExtended;
+    
 
-    switch (MO.getType()) {
+    switch (bool MustExtend = MO.getTargetFlags() & HexagonII::HMOTF_ConstExtended; MO.getType()) {
     default:
       MI->print(errs());
       llvm_unreachable("unknown operand type");

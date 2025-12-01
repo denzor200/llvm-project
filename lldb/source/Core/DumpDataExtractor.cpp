@@ -59,8 +59,8 @@ static std::optional<llvm::APInt> GetAPInt(const DataExtractor &data,
   llvm::SmallVector<uint64_t, 2> uint64_array;
   lldb::offset_t bytes_left = byte_size;
   uint64_t u64;
-  const lldb::ByteOrder byte_order = data.GetByteOrder();
-  if (byte_order == lldb::eByteOrderLittle) {
+  
+  if (const lldb::ByteOrder byte_order = data.GetByteOrder(); byte_order == lldb::eByteOrderLittle) {
     while (bytes_left > 0) {
       if (bytes_left >= 8) {
         u64 = data.GetU64(offset_ptr);
@@ -128,11 +128,11 @@ static lldb::offset_t DumpInstructions(const DataExtractor &DE, Stream *s,
   if (exe_scope)
     target_sp = exe_scope->CalculateTarget();
   if (target_sp) {
-    DisassemblerSP disassembler_sp(Disassembler::FindPlugin(
+    
+    if (DisassemblerSP disassembler_sp(Disassembler::FindPlugin(
         target_sp->GetArchitecture(), target_sp->GetDisassemblyFlavor(),
         target_sp->GetDisassemblyCPU(), target_sp->GetDisassemblyFeatures(),
-        nullptr));
-    if (disassembler_sp) {
+        nullptr)); disassembler_sp) {
       lldb::addr_t addr = base_addr + start_offset;
       lldb_private::Address so_addr;
       bool data_from_file = true;
@@ -281,10 +281,10 @@ GetMemoryTags(lldb::addr_t addr, size_t length,
 
   MemoryTagMap memory_tag_map(*tag_manager_or_err);
   for (const MemoryTagManager::TagRange &range : *tagged_ranges_or_err) {
-    llvm::Expected<std::vector<lldb::addr_t>> tags_or_err =
-        process_sp->ReadMemoryTags(range.GetRangeBase(), range.GetByteSize());
+    
 
-    if (tags_or_err)
+    if (llvm::Expected<std::vector<lldb::addr_t>> tags_or_err =
+        process_sp->ReadMemoryTags(range.GetRangeBase(), range.GetByteSize()); tags_or_err)
       memory_tag_map.InsertTags(range.GetRangeBase(), *tags_or_err);
     else
       llvm::consumeError(tags_or_err.takeError());
@@ -322,9 +322,9 @@ static const llvm::fltSemantics &GetFloatSemantics(const TargetSP &target_sp,
                                                    size_t byte_size,
                                                    lldb::Format format) {
   if (target_sp) {
-    auto type_system_or_err =
-      target_sp->GetScratchTypeSystemForLanguage(eLanguageTypeC);
-    if (!type_system_or_err)
+    
+    if (auto type_system_or_err =
+      target_sp->GetScratchTypeSystemForLanguage(eLanguageTypeC); !type_system_or_err)
       llvm::consumeError(type_system_or_err.takeError());
     else if (auto ts = *type_system_or_err)
       return ts->GetFloatTypeSemantics(byte_size, format);
@@ -483,9 +483,9 @@ lldb::offset_t lldb_private::DumpDataExtractor(
       if (item_count == 1 && item_format == eFormatChar)
         s->PutChar('\'');
 
-      const uint64_t ch = DE.GetMaxU64Bitfield(&offset, item_byte_size,
-                                               item_bit_size, item_bit_offset);
-      if (llvm::isPrint(ch))
+      
+      if (const uint64_t ch = DE.GetMaxU64Bitfield(&offset, item_byte_size,
+                                               item_bit_size, item_bit_offset); llvm::isPrint(ch))
         s->Printf("%c", (char)ch);
       else if (item_format != eFormatCharPrintable) {
         if (!TryDumpSpecialEscapedChar(*s, ch)) {
@@ -553,9 +553,9 @@ lldb::offset_t lldb_private::DumpDataExtractor(
     } break;
 
     case eFormatCString: {
-      const char *cstr = DE.GetCStr(&offset);
+      
 
-      if (!cstr) {
+      if (const char *cstr = DE.GetCStr(&offset); !cstr) {
         s->Printf("NULL");
         offset = LLDB_INVALID_OFFSET;
       } else {
@@ -578,9 +578,9 @@ lldb::offset_t lldb_private::DumpDataExtractor(
       break;
 
     case eFormatComplexInteger: {
-      size_t complex_int_byte_size = item_byte_size / 2;
+      
 
-      if (complex_int_byte_size > 0 && complex_int_byte_size <= 8) {
+      if (size_t complex_int_byte_size = item_byte_size / 2; complex_int_byte_size > 0 && complex_int_byte_size <= 8) {
         s->Printf("%" PRIu64,
                   DE.GetMaxU64Bitfield(&offset, complex_int_byte_size, 0, 0));
         s->Printf(" + %" PRIu64 "i",
@@ -623,8 +623,8 @@ lldb::offset_t lldb_private::DumpDataExtractor(
     case eFormatDefault:
     case eFormatHex:
     case eFormatHexUppercase: {
-      bool wantsuppercase = (item_format == eFormatHexUppercase);
-      switch (item_byte_size) {
+      
+      switch (bool wantsuppercase = (item_format == eFormatHexUppercase); item_byte_size) {
       case 1:
       case 2:
       case 4:
@@ -643,12 +643,12 @@ lldb::offset_t lldb_private::DumpDataExtractor(
         break;
       default: {
         assert(item_bit_size == 0 && item_bit_offset == 0);
-        const uint8_t *bytes =
-            (const uint8_t *)DE.GetData(&offset, item_byte_size);
-        if (bytes) {
+        
+        if (const uint8_t *bytes =
+            (const uint8_t *)DE.GetData(&offset, item_byte_size); bytes) {
           s->PutCString("0x");
-          uint32_t idx;
-          if (DE.GetByteOrder() == eByteOrderBig) {
+          
+          if (uint32_t idx; DE.GetByteOrder() == eByteOrderBig) {
             for (idx = 0; idx < item_byte_size; ++idx)
               s->Printf(wantsuppercase ? "%2.2X" : "%2.2x", bytes[idx]);
           } else {
@@ -714,8 +714,8 @@ lldb::offset_t lldb_private::DumpDataExtractor(
                 (int)(2 * item_byte_size), addr);
       if (exe_scope) {
         TargetSP target_sp(exe_scope->CalculateTarget());
-        lldb_private::Address so_addr;
-        if (target_sp) {
+        
+        if (lldb_private::Address so_addr; target_sp) {
           if (target_sp->ResolveLoadAddress(addr, so_addr)) {
             s->PutChar(' ');
             so_addr.Dump(s, exe_scope, Address::DumpStyleResolvedDescription,
@@ -726,8 +726,8 @@ lldb::offset_t lldb_private::DumpDataExtractor(
                          Address::DumpStyleResolvedPointerDescription);
             if (ProcessSP process_sp = exe_scope->CalculateProcess()) {
               if (ABISP abi_sp = process_sp->GetABI()) {
-                addr_t addr_fixed = abi_sp->FixCodeAddress(addr);
-                if (target_sp->ResolveLoadAddress(addr_fixed, so_addr)) {
+                
+                if (addr_t addr_fixed = abi_sp->FixCodeAddress(addr); target_sp->ResolveLoadAddress(addr_fixed, so_addr)) {
                   s->PutChar(' ');
                   s->Printf("(0x%*.*" PRIx64 ")", (int)(2 * item_byte_size),
                             (int)(2 * item_byte_size), addr_fixed);

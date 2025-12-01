@@ -147,10 +147,10 @@ RuntimeLibcallsInfo::getFunctionTy(LLVMContext &Ctx, const Triple &TT,
       Attribute::NoSync,       Attribute::NoUnwind,   Attribute::WillReturn};
   static constexpr Attribute::AttrKind MemoryFnAttrs[] = {
       Attribute::MustProgress, Attribute::NoUnwind, Attribute::WillReturn};
-  static constexpr Attribute::AttrKind CommonPtrArgAttrs[] = {
-      Attribute::NoAlias, Attribute::WriteOnly, Attribute::NonNull};
+  
 
-  switch (LibcallImpl) {
+  switch (static constexpr Attribute::AttrKind CommonPtrArgAttrs[] = {
+      Attribute::NoAlias, Attribute::WriteOnly, Attribute::NonNull}; LibcallImpl) {
   case RTLIB::impl___sincos_stret:
   case RTLIB::impl___sincosf_stret: {
     if (!darwinHasSinCosStret(TT)) // Non-darwin currently unexpected

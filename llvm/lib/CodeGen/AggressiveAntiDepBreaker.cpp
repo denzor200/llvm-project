@@ -123,8 +123,8 @@ AggressiveAntiDepBreaker::AggressiveAntiDepBreaker(
   /* Collect a bitset of all registers that are only broken if they
      are on the critical path. */
   for (const TargetRegisterClass *RC : CriticalPathRCs) {
-    BitVector CPSet = TRI->getAllocatableSet(MF, RC);
-    if (CriticalPathSet.none())
+    
+    if (BitVector CPSet = TRI->getAllocatableSet(MF, RC); CriticalPathSet.none())
       CriticalPathSet = CPSet;
     else
       CriticalPathSet |= CPSet;
@@ -266,16 +266,16 @@ static void AntiDepEdges(const SUnit *SU, std::vector<const SDep *> &Edges) {
 /// critical path.
 static const SUnit *CriticalPathStep(const SUnit *SU) {
   const SDep *Next = nullptr;
-  unsigned NextDepth = 0;
+  
   // Find the predecessor edge with the greatest depth.
-  if (SU) {
+  if (unsigned NextDepth = 0; SU) {
     for (const SDep &Pred : SU->Preds) {
       const SUnit *PredSU = Pred.getSUnit();
       unsigned PredLatency = Pred.getLatency();
-      unsigned PredTotalLatency = PredSU->getDepth() + PredLatency;
+      
       // In the case of a latency tie, prefer an anti-dependency edge over
       // other types of edges.
-      if (NextDepth < PredTotalLatency ||
+      if (unsigned PredTotalLatency = PredSU->getDepth() + PredLatency; NextDepth < PredTotalLatency ||
           (NextDepth == PredTotalLatency && Pred.getKind() == SDep::Anti)) {
         NextDepth = PredTotalLatency;
         Next = &Pred;
@@ -383,8 +383,8 @@ void AggressiveAntiDepBreaker::PrescanInstruction(
     // Any aliased that are live at this point are completely or
     // partially defined here, so group those aliases with Reg.
     for (MCRegAliasIterator AI(Reg, TRI, false); AI.isValid(); ++AI) {
-      MCRegister AliasReg = *AI;
-      if (State->IsLive(AliasReg)) {
+      
+      if (MCRegister AliasReg = *AI; State->IsLive(AliasReg)) {
         State->UnionGroups(Reg, AliasReg);
         LLVM_DEBUG(dbgs() << "->g" << State->GetGroup(Reg) << "(via "
                           << printReg(AliasReg, TRI) << ")");
@@ -578,11 +578,11 @@ bool AggressiveAntiDepBreaker::FindSuitableFreeRegisters(
   // All group registers should be a subreg of SuperReg.
   for (MCRegister Reg : Regs) {
     if (Reg == SuperReg) continue;
-    bool IsSub = TRI->isSubRegister(SuperReg, Reg);
+    
     // FIXME: remove this once PR18663 has been properly fixed. For now,
     // return a conservative answer:
     // assert(IsSub && "Expecting group subregister");
-    if (!IsSub)
+    if (bool IsSub = TRI->isSubRegister(SuperReg, Reg); !IsSub)
       return false;
   }
 
@@ -642,8 +642,8 @@ bool AggressiveAntiDepBreaker::FindSuitableFreeRegisters(
       if (Reg == SuperReg) {
         NewReg = NewSuperReg;
       } else {
-        unsigned NewSubRegIdx = TRI->getSubRegIndex(SuperReg, Reg);
-        if (NewSubRegIdx != 0)
+        
+        if (unsigned NewSubRegIdx = TRI->getSubRegIndex(SuperReg, Reg); NewSubRegIdx != 0)
           NewReg = TRI->getSubReg(NewSuperReg, NewSubRegIdx);
       }
 
@@ -666,8 +666,8 @@ bool AggressiveAntiDepBreaker::FindSuitableFreeRegisters(
       } else {
         bool found = false;
         for (MCRegAliasIterator AI(NewReg, TRI, false); AI.isValid(); ++AI) {
-          MCRegister AliasReg = *AI;
-          if (State->IsLive(AliasReg) ||
+          
+          if (MCRegister AliasReg = *AI; State->IsLive(AliasReg) ||
               (KillIndices[Reg.id()] > DefIndices[AliasReg.id()])) {
             LLVM_DEBUG(dbgs()
                        << "(alias " << printReg(AliasReg, TRI) << " live)");
@@ -700,8 +700,8 @@ bool AggressiveAntiDepBreaker::FindSuitableFreeRegisters(
         if (!Q.second.Operand->isDef() || !Q.second.Operand->isEarlyClobber())
           continue;
 
-        MachineInstr *DefMI = Q.second.Operand->getParent();
-        if (DefMI->readsRegister(NewReg, TRI)) {
+        
+        if (MachineInstr *DefMI = Q.second.Operand->getParent(); DefMI->readsRegister(NewReg, TRI)) {
           LLVM_DEBUG(dbgs() << "(ec)");
           goto next_super_reg;
         }

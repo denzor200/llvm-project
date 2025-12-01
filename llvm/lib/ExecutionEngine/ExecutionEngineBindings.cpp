@@ -72,8 +72,8 @@ unsigned LLVMGenericValueIntWidth(LLVMGenericValueRef GenValRef) {
 
 unsigned long long LLVMGenericValueToInt(LLVMGenericValueRef GenValRef,
                                          LLVMBool IsSigned) {
-  GenericValue *GenVal = unwrap(GenValRef);
-  if (IsSigned)
+  
+  if (GenericValue *GenVal = unwrap(GenValRef); IsSigned)
     return GenVal->IntVal.getSExtValue();
   else
     return GenVal->IntVal.getZExtValue();
@@ -310,8 +310,8 @@ uint64_t LLVMGetFunctionAddress(LLVMExecutionEngineRef EE, const char *Name) {
 LLVMBool LLVMExecutionEngineGetErrMsg(LLVMExecutionEngineRef EE,
                                       char **OutError) {
   assert(OutError && "OutError must be non-null");
-  auto *ExecEngine = unwrap(EE);
-  if (ExecEngine->hasError()) {
+  
+  if (auto *ExecEngine = unwrap(EE); ExecEngine->hasError()) {
     *OutError = strdup(ExecEngine->getErrorMessage().c_str());
     ExecEngine->clearErrorMessage();
     return true;

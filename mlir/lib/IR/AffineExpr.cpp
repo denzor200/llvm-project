@@ -280,8 +280,8 @@ int64_t AffineExpr::getLargestKnownDivisor() const {
 
 bool AffineExpr::isMultipleOf(int64_t factor) const {
   AffineBinaryOpExpr binExpr(nullptr);
-  uint64_t l, u;
-  switch (getKind()) {
+  
+  switch (uint64_t l, u; getKind()) {
   case AffineExprKind::SymbolId:
     [[fallthrough]];
   case AffineExprKind::DimId:
@@ -1116,8 +1116,8 @@ AffineExpr mlir::getAffineExprFromFlatForm(ArrayRef<int64_t> flatExprs,
   }
 
   // Constant term.
-  int64_t constTerm = flatExprs[flatExprs.size() - 1];
-  if (constTerm != 0)
+  
+  if (int64_t constTerm = flatExprs[flatExprs.size() - 1]; constTerm != 0)
     expr = expr + constTerm;
   return expr;
 }
@@ -1300,8 +1300,8 @@ static AffineExpr getSemiAffineExprFromFlatForm(ArrayRef<int64_t> flatExprs,
   }
 
   // Constant term.
-  int64_t constTerm = flatExprs.back();
-  if (constTerm != 0)
+  
+  if (int64_t constTerm = flatExprs.back(); constTerm != 0)
     expr = expr + constTerm;
   return expr;
 }

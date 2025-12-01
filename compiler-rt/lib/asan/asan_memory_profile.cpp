@@ -35,8 +35,8 @@ class HeapProfile {
     if (cv.IsAllocated()) {
       total_allocated_user_size_ += cv.UsedSize();
       total_allocated_count_++;
-      u32 id = cv.GetAllocStackId();
-      if (id)
+      
+      if (u32 id = cv.GetAllocStackId(); id)
         Insert(id, cv.UsedSize());
     } else if (cv.IsQuarantined()) {
       total_quarantined_user_size_ += cv.UsedSize();

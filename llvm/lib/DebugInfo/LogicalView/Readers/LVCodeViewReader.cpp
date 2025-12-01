@@ -103,8 +103,8 @@ void LVCodeViewReader::printRelocatedField(StringRef Label,
                                            uint32_t Offset,
                                            StringRef *RelocSym) {
   StringRef SymStorage;
-  StringRef &Symbol = RelocSym ? *RelocSym : SymStorage;
-  if (!resolveSymbolName(CoffSection, RelocOffset, Symbol))
+  
+  if (StringRef &Symbol = RelocSym ? *RelocSym : SymStorage; !resolveSymbolName(CoffSection, RelocOffset, Symbol))
     W.printSymbolOffset(Label, Symbol, Offset);
   else
     W.printHex(Label, RelocOffset);
@@ -114,8 +114,8 @@ void LVCodeViewReader::getLinkageName(const coff_section *CoffSection,
                                       uint32_t RelocOffset, uint32_t Offset,
                                       StringRef *RelocSym) {
   StringRef SymStorage;
-  StringRef &Symbol = RelocSym ? *RelocSym : SymStorage;
-  if (resolveSymbolName(CoffSection, RelocOffset, Symbol))
+  
+  if (StringRef &Symbol = RelocSym ? *RelocSym : SymStorage; resolveSymbolName(CoffSection, RelocOffset, Symbol))
     Symbol = "";
 }
 
@@ -179,9 +179,9 @@ Error LVCodeViewReader::resolveSymbol(const coff_section *CoffSection,
   const auto &Relocations = RelocMap[CoffSection];
   basic_symbol_iterator SymI = getObj().symbol_end();
   for (const RelocationRef &Relocation : Relocations) {
-    uint64_t RelocationOffset = Relocation.getOffset();
+    
 
-    if (RelocationOffset == Offset) {
+    if (uint64_t RelocationOffset = Relocation.getOffset(); RelocationOffset == Offset) {
       SymI = Relocation.getSymbol();
       break;
     }
@@ -497,8 +497,8 @@ Error LVCodeViewReader::loadPrecompiledObject(PrecompRecord &Precomp,
   // Append all the type records, skipping the first record which is the
   // reference to the precompiled header object information.
   for (const CVType &Type : CVTypesObj) {
-    ArrayRef<uint8_t> TypeData = Type.data();
-    if (Type.kind() != LF_PRECOMP)
+    
+    if (ArrayRef<uint8_t> TypeData = Type.data(); Type.kind() != LF_PRECOMP)
       Builder->insertRecordBytes(TypeData);
   }
 
@@ -985,8 +985,8 @@ Error LVCodeViewReader::createScopes(PDBFile &Pdb) {
       // one, as the container for all global symbols.
       RecordPrefix Prefix(SymbolKind::S_COMPILE3);
       CVSymbol Symbol(&Prefix, sizeof(Prefix));
-      uint32_t Offset = 0;
-      if (Error Err = Traverser.visitSymbolBegin(Symbol, Offset))
+      
+      if (Error uint32_t Offset = 0; Err = Traverser.visitSymbolBegin(Symbol, Offset))
         consumeError(std::move(Err));
       else {
         // The CodeView compile unit containing the global symbols does not
@@ -1002,8 +1002,8 @@ Error LVCodeViewReader::createScopes(PDBFile &Pdb) {
         BinaryStreamRef SymStream =
             ExpectedSyms->getSymbolArray().getUnderlyingStream();
         for (uint32_t PubSymOff : Table) {
-          Expected<CVSymbol> Sym = readSymbolFromStream(SymStream, PubSymOff);
-          if (Sym) {
+          
+          if (Expected<CVSymbol> Sym = readSymbolFromStream(SymStream, PubSymOff); Sym) {
             if (Error Err = Visitor.visitSymbolRecord(*Sym, PubSymOff))
               return createStringError(errorToErrorCode(std::move(Err)),
                                        getFileName());
@@ -1040,8 +1040,8 @@ Error LVCodeViewReader::createScopes(PDBFile &Pdb) {
       Pipeline.addCallbackToPipeline(Deserializer);
       Pipeline.addCallbackToPipeline(Traverser);
       CVSymbolVisitor Visitor(Pipeline);
-      BinarySubstreamRef SS = ModS.getSymbolsSubstream();
-      if (Error Err =
+      
+      if (Error BinarySubstreamRef SS = ModS.getSymbolsSubstream(); Err =
               Visitor.visitSymbolStream(ModS.getSymbolArray(), SS.Offset))
         return createStringError(errorToErrorCode(std::move(Err)),
                                  getFileName());

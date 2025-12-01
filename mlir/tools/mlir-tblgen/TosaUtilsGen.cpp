@@ -196,8 +196,8 @@ static bool emitAvailabilityImpl(const RecordKeeper &recordKeeper,
 
   auto defs = recordKeeper.getAllDerivedDefinitions("Tosa_Op");
   for (const auto *def : defs) {
-    Operator op(def);
-    if (def->getValueAsBit("autogenAvailability"))
+    
+    if (Operator op(def); def->getValueAsBit("autogenAvailability"))
       emitAvailabilityImpl(op, os);
   }
   return false;

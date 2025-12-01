@@ -69,8 +69,8 @@ const NamedDecl &getTemplateOrThis(const NamedDecl &ND) {
 // FIXME: make filtering extensible when there are more use cases for symbol
 // filters.
 bool isPrivateProtoDecl(const NamedDecl &ND) {
-  const auto &SM = ND.getASTContext().getSourceManager();
-  if (!isProtoFile(nameLocation(ND, SM), SM))
+  
+  if (const auto &SM = ND.getASTContext().getSourceManager(); !isProtoFile(nameLocation(ND, SM), SM))
     return false;
 
   // ND without identifier can be operators.
@@ -183,8 +183,8 @@ getTokenRange(SourceLocation TokLoc, const SourceManager &SM,
 //
 // Example: preferring a class declaration over its forward declaration.
 bool isPreferredDeclaration(const NamedDecl &ND, index::SymbolRoleSet Roles) {
-  const auto &SM = ND.getASTContext().getSourceManager();
-  if (isa<TagDecl>(ND))
+  
+  if (const auto &SM = ND.getASTContext().getSourceManager(); isa<TagDecl>(ND))
     return (Roles & static_cast<unsigned>(index::SymbolRole::Definition)) &&
            !isInsideMainFile(ND.getLocation(), SM);
   if (const auto *ID = dyn_cast<ObjCInterfaceDecl>(&ND))
@@ -218,8 +218,8 @@ std::optional<RelationKind> indexableRelation(const index::SymbolRelation &R) {
 // Check if there is an exact spelling of \p ND at \p Loc.
 bool isSpelled(SourceLocation Loc, const NamedDecl &ND) {
   auto Name = ND.getDeclName();
-  const auto NameKind = Name.getNameKind();
-  if (NameKind != DeclarationName::Identifier &&
+  
+  if (const auto NameKind = Name.getNameKind(); NameKind != DeclarationName::Identifier &&
       NameKind != DeclarationName::CXXConstructorName &&
       NameKind != DeclarationName::ObjCZeroArgSelector &&
       NameKind != DeclarationName::ObjCOneArgSelector &&
@@ -528,8 +528,8 @@ bool SymbolCollector::shouldCollectSymbol(const NamedDecl &ND,
   // FunctionDecl, BlockDecl, ObjCMethodDecl and OMPDeclareReductionDecl.
   // FIXME: Need a matcher for ExportDecl in order to include symbols declared
   // within an export.
-  const auto *DeclCtx = ND.getDeclContext();
-  switch (DeclCtx->getDeclKind()) {
+  
+  switch (const auto *DeclCtx = ND.getDeclContext(); DeclCtx->getDeclKind()) {
   case Decl::TranslationUnit:
   case Decl::Namespace:
   case Decl::LinkageSpec:
@@ -567,8 +567,8 @@ const Decl *
 SymbolCollector::getRefContainer(const Decl *Enclosing,
                                  const SymbolCollector::Options &Opts) {
   while (Enclosing) {
-    const auto *ND = dyn_cast<NamedDecl>(Enclosing);
-    if (ND && shouldCollectSymbol(*ND, ND->getASTContext(), Opts, true)) {
+    
+    if (const auto *ND = dyn_cast<NamedDecl>(Enclosing); ND && shouldCollectSymbol(*ND, ND->getASTContext(), Opts, true)) {
       break;
     }
     Enclosing = dyn_cast_or_null<Decl>(Enclosing->getDeclContext());
@@ -664,8 +664,8 @@ bool SymbolCollector::handleDeclOccurrence(
        ND->isExternallyVisible()) &&
       !isa<NamespaceDecl>(ND)) {
     auto FileLoc = SM.getFileLoc(Loc);
-    auto FID = SM.getFileID(FileLoc);
-    if (Opts.RefsInHeaders || FID == SM.getMainFileID()) {
+    
+    if (auto FID = SM.getFileID(FileLoc); Opts.RefsInHeaders || FID == SM.getMainFileID()) {
       addRef(ID, SymbolRef{FileLoc, FID, Roles, index::getSymbolInfo(ND).Kind,
                            getRefContainer(ASTNode.Parent, Opts),
                            isSpelled(FileLoc, *ND)});
@@ -1002,8 +1002,8 @@ void SymbolCollector::finish() {
     const auto &H = *OptionalProvider;
     const auto [SpellingIt, Inserted] = HeaderSpelling.try_emplace(H);
     if (Inserted) {
-      auto &SM = ASTCtx->getSourceManager();
-      if (H.kind() == include_cleaner::Header::Kind::Physical) {
+      
+      if (auto &SM = ASTCtx->getSourceManager(); H.kind() == include_cleaner::Header::Kind::Physical) {
         // FIXME: Get rid of this once include-cleaner has support for system
         // headers.
         if (auto Canonical =

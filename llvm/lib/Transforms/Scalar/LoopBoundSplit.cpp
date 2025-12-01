@@ -55,9 +55,9 @@ static void analyzeICmp(ScalarEvolution &SE, ICmpInst *ICmp,
     const SCEV *AddRecSCEV = SE.getSCEV(Cond.AddRecValue);
     const SCEV *BoundSCEV = SE.getSCEV(Cond.BoundValue);
     const SCEVAddRecExpr *LHSAddRecSCEV = dyn_cast<SCEVAddRecExpr>(AddRecSCEV);
-    const SCEVAddRecExpr *RHSAddRecSCEV = dyn_cast<SCEVAddRecExpr>(BoundSCEV);
+    
     // Locate AddRec in LHSSCEV and Bound in RHSSCEV.
-    if (!LHSAddRecSCEV && RHSAddRecSCEV) {
+    if (const SCEVAddRecExpr *RHSAddRecSCEV = dyn_cast<SCEVAddRecExpr>(BoundSCEV); !LHSAddRecSCEV && RHSAddRecSCEV) {
       std::swap(Cond.AddRecValue, Cond.BoundValue);
       std::swap(AddRecSCEV, BoundSCEV);
       Cond.Pred = ICmpInst::getSwappedPredicate(Cond.Pred);
@@ -105,9 +105,9 @@ static bool calculateUpperBound(const Loop &L, ScalarEvolution &SE,
                     : APInt::getMaxValue(BitWidth);
     const SCEV *MaxSCEV = SE.getConstant(Max);
     // Check Bound < INT_MAX
-    ICmpInst::Predicate Pred =
-        ICmpInst::isSigned(Cond.Pred) ? ICmpInst::ICMP_SLT : ICmpInst::ICMP_ULT;
-    if (SE.isKnownPredicate(Pred, Cond.BoundSCEV, MaxSCEV)) {
+    
+    if (ICmpInst::Predicate Pred =
+        ICmpInst::isSigned(Cond.Pred) ? ICmpInst::ICMP_SLT : ICmpInst::ICMP_ULT; SE.isKnownPredicate(Pred, Cond.BoundSCEV, MaxSCEV)) {
       const SCEV *BoundPlusOneSCEV =
           SE.getAddExpr(Cond.BoundSCEV, SE.getOne(BoundSCEVIntType));
       Cond.BoundSCEV = BoundPlusOneSCEV;
@@ -229,8 +229,8 @@ static bool isProfitableToTransform(const Loop &L, const BranchInst *BI) {
   BasicBlock *Succ1 = BI->getSuccessor(1);
 
   BasicBlock *Succ0Succ = Succ0->getSingleSuccessor();
-  BasicBlock *Succ1Succ = Succ1->getSingleSuccessor();
-  if (!Succ0Succ || !Succ1Succ || Succ0Succ != Succ1Succ)
+  
+  if (BasicBlock *Succ1Succ = Succ1->getSingleSuccessor(); !Succ0Succ || !Succ1Succ || Succ0Succ != Succ1Succ)
     return false;
 
   // ToDo: Calculate each successor's instruction cost.
@@ -380,8 +380,8 @@ static bool splitLoopBound(Loop &L, DominatorTree &DT, LoopInfo &LI,
     if (!SE.isSCEVable(PN.getType()))
       continue;
 
-    const SCEVAddRecExpr *PhiSCEV = dyn_cast<SCEVAddRecExpr>(SE.getSCEV(&PN));
-    if (PhiSCEV && ExitingCond.NonPHIAddRecValue ==
+    
+    if (const SCEVAddRecExpr *PhiSCEV = dyn_cast<SCEVAddRecExpr>(SE.getSCEV(&PN)); PhiSCEV && ExitingCond.NonPHIAddRecValue ==
                        PN.getIncomingValueForBlock(L.getLoopLatch()))
       ExitingCondLCSSAPhi = LCSSAPhi;
   }

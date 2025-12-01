@@ -172,11 +172,11 @@ void WebAssemblyExceptionInfo::recalculate(
     // For each source EHPad -> unwind destination EHPad
     for (auto &P : UnwindWEVec) {
       auto *SrcWE = P.first;
-      auto *DstWE = P.second;
+      
       // If WE (the current EH pad's exception) is still contained in SrcWE but
       // reachable from DstWE that was taken out of SrcWE above, we have to take
       // out WE out of SrcWE too.
-      if (WE != SrcWE && SrcWE->contains(WE) && !DstWE->contains(WE) &&
+      if (auto *DstWE = P.second; WE != SrcWE && SrcWE->contains(WE) && !DstWE->contains(WE) &&
           isReachableAmongDominated(DstWE->getEHPad(), EHPad, SrcWE->getEHPad(),
                                     MDT)) {
         LLVM_DEBUG(dbgs() << "Remaining reachable ExceptionInfo fix:\n  "
@@ -294,8 +294,8 @@ void WebAssemblyExceptionInfo::discoverAndMapException(
 
     // Find its outermost discovered exception. If this is a discovered block,
     // check if it is already discovered to be a subexception of this exception.
-    WebAssemblyException *SubE = getOutermostException(MBB);
-    if (SubE) {
+    
+    if (WebAssemblyException *SubE = getOutermostException(MBB); SubE) {
       if (SubE != WE) {
         // Discover a subexception of this exception.
         SubE->setParentException(WE);

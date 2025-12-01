@@ -73,8 +73,8 @@ FileDistance::FileDistance(llvm::StringMap<SourceParams> Sources,
     for (unsigned I = 0; !Rest.empty(); ++I) {
       Rest = parent_path(Rest, llvm::sys::path::Style::posix);
       auto NextHash = llvm::hash_value(Rest);
-      auto &Down = DownEdges[NextHash];
-      if (!llvm::is_contained(Down, Hash))
+      
+      if (auto &Down = DownEdges[NextHash]; !llvm::is_contained(Down, Hash))
         Down.push_back(Hash);
       // We can't just break after MaxUpTraversals, must still set DownEdges.
       if (I > S.getValue().MaxUpTraversals) {
@@ -82,8 +82,8 @@ FileDistance::FileDistance(llvm::StringMap<SourceParams> Sources,
           break;
       } else {
         unsigned Cost = S.getValue().Cost + I * Opts.UpCost;
-        auto R = Cache.try_emplace(Hash, Cost);
-        if (!R.second) {
+        
+        if (auto R = Cache.try_emplace(Hash, Cost); !R.second) {
           if (Cost < R.first->second) {
             R.first->second = Cost;
           } else {

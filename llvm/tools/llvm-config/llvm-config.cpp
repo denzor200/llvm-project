@@ -124,8 +124,8 @@ static void visitComponent(const std::string &Name,
       for (const char *Lib : AvailableExtension.RequiredLibraries) {
         if (!Lib)
           break;
-        AvailableComponent *AC = ComponentMap.lookup(Lib);
-        if (!AC)
+        
+        if (AvailableComponent *AC = ComponentMap.lookup(Lib); !AC)
           RequiredLibs.push_back(Lib);
         else
           visitComponent(Lib, ComponentMap, VisitedComponents, RequiredLibs,
@@ -497,8 +497,8 @@ int main(int argc, char **argv) {
   };
   /// Get the full path for a possibly shared component library.
   auto GetComponentLibraryPath = [&](const StringRef &Name, const bool Shared) {
-    auto LibFileName = GetComponentLibraryFileName(Name, Shared);
-    if (Shared)
+    
+    if (auto LibFileName = GetComponentLibraryFileName(Name, Shared); Shared)
       return (SharedDir + DirSep + LibFileName).str();
     else
       return (StaticDir + DirSep + LibFileName).str();
@@ -532,9 +532,9 @@ int main(int argc, char **argv) {
   };
 
   for (int i = 1; i != argc; ++i) {
-    StringRef Arg = argv[i];
+    
 
-    if (Arg.starts_with("-")) {
+    if (StringRef Arg = argv[i]; Arg.starts_with("-")) {
       HasAnyOption = true;
       if (Arg == "--version") {
         OS << PACKAGE_VERSION << '\n';
@@ -735,8 +735,8 @@ int main(int argc, char **argv) {
             LibFileName = GetComponentLibraryPath(Lib, Shared);
           } else {
             LibFileName = "-l";
-            StringRef LibName;
-            if (GetComponentLibraryNameSlice(Lib, LibName)) {
+            
+            if (StringRef LibName; GetComponentLibraryNameSlice(Lib, LibName)) {
               // Extract library name (remove prefix and suffix).
               LibFileName += LibName;
             } else {

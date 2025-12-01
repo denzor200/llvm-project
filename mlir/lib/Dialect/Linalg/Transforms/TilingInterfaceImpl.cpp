@@ -172,8 +172,8 @@ struct LinalgOpTilingInterface
         auto it = mappedOffsets.find(position);
         if (it != mappedOffsets.end()) {
           OpFoldResult seenOffset = it->second;
-          OpFoldResult seenSize = mappedSizes.lookup(position);
-          if (seenOffset != offset || seenSize != size) {
+          
+          if (OpFoldResult seenSize = mappedSizes.lookup(position); seenOffset != offset || seenSize != size) {
             LLVM_DEBUG({
               llvm::dbgs() << "inconsistent iteration space mapping from "
                               "offsets/sizes of operands/results";
@@ -916,10 +916,10 @@ struct PackOpTiling
         // hard check to determine if a dimension is tiled or not.
         int64_t srcDimSize = packOp.getSourceType().getDimSize(dim);
         int64_t destDimSize = outerShapeWithoutTranspose[dim];
-        bool isTiled = failed(cstTileSize) ||
+        
+        if (bool isTiled = failed(cstTileSize) ||
                        ShapedType::isDynamic(srcDimSize) ||
-                       cstTileSize.value() < srcDimSize;
-        if (!isTiled) {
+                       cstTileSize.value() < srcDimSize; !isTiled) {
           outerDimOffsets.push_back(offsets[dim]);
           if (ShapedType::isStatic(destDimSize)) {
             outerDimSizes.push_back(b.getIndexAttr(destDimSize));

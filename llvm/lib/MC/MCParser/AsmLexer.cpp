@@ -548,9 +548,9 @@ AsmToken AsmLexer::LexDigit() {
     unsigned Radix = doHexLookAhead(CurPtr, 10, LexMasmIntegers);
 
     if (!LexHLASMIntegers) {
-      bool IsHex = Radix == 16;
+      
       // Check for floating point literals.
-      if (!IsHex && (*CurPtr == '.' || *CurPtr == 'e' || *CurPtr == 'E')) {
+      if (bool IsHex = Radix == 16; !IsHex && (*CurPtr == '.' || *CurPtr == 'e' || *CurPtr == 'E')) {
         if (*CurPtr == '.')
           ++CurPtr;
         return LexFloatLiteral();
@@ -690,8 +690,8 @@ AsmToken AsmLexer::LexSingleQuote() {
   long long Value;
 
   if (Res.starts_with("\'\\")) {
-    char theChar = Res[2];
-    switch (theChar) {
+    
+    switch (char theChar = Res[2]; theChar) {
       default: Value = theChar; break;
       case '\'': Value = '\''; break;
       case 't': Value = '\t'; break;
@@ -823,9 +823,9 @@ AsmToken AsmLexer::LexToken() {
     // hash directive and otherwise a line comment.
     AsmToken TokenBuf[2];
     MutableArrayRef<AsmToken> Buf(TokenBuf, 2);
-    size_t num = peekTokens(Buf, true);
+    
     // There cannot be a space preceding this
-    if (IsAtStartOfLine && num == 2 && TokenBuf[0].is(AsmToken::Integer) &&
+    if (size_t num = peekTokens(Buf, true); IsAtStartOfLine && num == 2 && TokenBuf[0].is(AsmToken::Integer) &&
         TokenBuf[1].is(AsmToken::String)) {
       CurPtr = TokStart; // reset curPtr;
       StringRef s = LexUntilEndOfLine();
@@ -839,11 +839,11 @@ AsmToken AsmLexer::LexToken() {
   }
 
   if (isAtStartOfComment(TokStart)) {
-    StringRef CommentString = MAI.getCommentString();
+    
     // For multi-char comment strings, advance CurPtr only if we matched the
     // full string. This stops us from accidentally eating the newline if the
     // current line ends in a single comment char.
-    if (CommentString.size() > 1 &&
+    if (StringRef CommentString = MAI.getCommentString(); CommentString.size() > 1 &&
         StringRef(TokStart, CommentString.size()) == CommentString) {
       CurPtr += CommentString.size() - 1;
     }

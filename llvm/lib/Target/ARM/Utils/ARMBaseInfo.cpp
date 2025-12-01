@@ -19,11 +19,11 @@ ARM::PredBlockMask expandPredBlockMask(ARM::PredBlockMask BlockMask,
   assert(Kind != ARMVCC::None && "Cannot expand a mask with None!");
   assert(llvm::countr_zero((unsigned)BlockMask) != 0 && "Mask is already full");
 
-  auto ChooseMask = [&](PredBlockMask AddedThen, PredBlockMask AddedElse) {
-    return Kind == ARMVCC::Then ? AddedThen : AddedElse;
-  };
+  
 
-  switch (BlockMask) {
+  switch (auto ChooseMask = [&](PredBlockMask AddedThen, PredBlockMask AddedElse) {
+    return Kind == ARMVCC::Then ? AddedThen : AddedElse;
+  }; BlockMask) {
   case PredBlockMask::T:
     return ChooseMask(PredBlockMask::TT, PredBlockMask::TE);
   case PredBlockMask::TT:

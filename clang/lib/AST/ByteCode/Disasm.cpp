@@ -43,9 +43,9 @@ inline static std::string printArg(Program &P, CodePtr &OpPC) {
   } else {
     std::string Result;
     llvm::raw_string_ostream SS(Result);
-    auto Arg = OpPC.read<T>();
+    
     // Make sure we print the integral value of chars.
-    if constexpr (std::is_integral_v<T>) {
+    if constexpr (auto Arg = OpPC.read<T>(); std::is_integral_v<T>) {
       if constexpr (sizeof(T) == 1) {
         if constexpr (std::is_signed_v<T>)
           SS << static_cast<int32_t>(Arg);
@@ -385,8 +385,8 @@ LLVM_DUMP_METHOD void Descriptor::dump() const {
 LLVM_DUMP_METHOD void Descriptor::dump(llvm::raw_ostream &OS) const {
   // Source
   {
-    ColorScope SC(OS, true, {llvm::raw_ostream::BLUE, true});
-    if (const auto *ND = dyn_cast_if_present<NamedDecl>(asDecl()))
+    
+    if (const auto *ColorScope SC(OS, true, {llvm::raw_ostream::BLUE, true}); ND = dyn_cast_if_present<NamedDecl>(asDecl()))
       ND->printQualifiedName(OS);
     else if (asExpr())
       OS << "Expr " << (const void *)asExpr();
@@ -584,9 +584,9 @@ LLVM_DUMP_METHOD void Block::dump(llvm::raw_ostream &OS) const {
 }
 
 LLVM_DUMP_METHOD void EvaluationResult::dump() const {
-  auto &OS = llvm::errs();
+  
 
-  if (empty()) {
+  if (auto &OS = llvm::errs(); empty()) {
     OS << "Empty\n";
   } else if (isInvalid()) {
     OS << "Invalid\n";

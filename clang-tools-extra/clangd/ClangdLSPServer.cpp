@@ -65,8 +65,8 @@ std::string encodeVersion(std::optional<int64_t> LSPVersion) {
   return LSPVersion ? llvm::to_string(*LSPVersion) : "";
 }
 std::optional<int64_t> decodeVersion(llvm::StringRef Encoded) {
-  int64_t Result;
-  if (llvm::to_integer(Encoded, Result, 10))
+  
+  if (int64_t Result; llvm::to_integer(Encoded, Result, 10))
     return Result;
   if (!Encoded.empty()) // Empty can be e.g. diagnostics on close.
     elog("unexpected non-numeric version {0}", Encoded);
@@ -435,8 +435,8 @@ private:
     // reuse.
     return Task.first.derive(llvm::make_scope_exit([this, StrID, Cookie] {
       std::lock_guard<std::mutex> Lock(RequestCancelersMutex);
-      auto It = RequestCancelers.find(StrID);
-      if (It != RequestCancelers.end() && It->second.second == Cookie)
+      
+      if (auto It = RequestCancelers.find(StrID); It != RequestCancelers.end() && It->second.second == Cookie)
         RequestCancelers.erase(It);
     }));
   }
@@ -1491,9 +1491,9 @@ void ClangdLSPServer::onReference(
                            std::vector<ReferenceLocation> Result;
                            Result.reserve(Refs->References.size());
                            for (auto &Ref : Refs->References) {
-                             bool IsDecl =
-                                 Ref.Attributes & ReferencesResult::Declaration;
-                             if (IncludeDecl || !IsDecl)
+                             
+                             if (bool IsDecl =
+                                 Ref.Attributes & ReferencesResult::Declaration; IncludeDecl || !IsDecl)
                                Result.push_back(std::move(Ref.Loc));
                            }
                            return Reply(std::move(Result));
@@ -1901,8 +1901,8 @@ void ClangdLSPServer::onBackgroundIndexProgress(
     CreateWorkDoneProgress(
         CreateRequest,
         [this, NotifyProgress](llvm::Expected<std::nullptr_t> E) {
-          std::lock_guard<std::mutex> Lock(BackgroundIndexProgressMutex);
-          if (E) {
+          
+          if (std::lock_guard<std::mutex> Lock(BackgroundIndexProgressMutex); E) {
             NotifyProgress(this->PendingBackgroundIndexProgress);
           } else {
             elog("Failed to create background index progress bar: {0}",

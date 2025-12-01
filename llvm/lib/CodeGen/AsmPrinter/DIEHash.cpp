@@ -182,8 +182,8 @@ void DIEHash::hashDIEEntry(dwarf::Attribute Attribute, dwarf::Tag Tag,
       // ptr_to_member_type, but it's what DWARF says, for some reason.
       Attribute == dwarf::DW_AT_type) {
     // ... has a DW_AT_name attribute,
-    StringRef Name = getDIEStringAttr(Entry, dwarf::DW_AT_name);
-    if (!Name.empty()) {
+    
+    if (StringRef Name = getDIEStringAttr(Entry, dwarf::DW_AT_name); !Name.empty()) {
       hashShallowTypeReference(Attribute, Entry, Name);
       return;
     }
@@ -246,7 +246,7 @@ void DIEHash::hashLocList(const DIELocList &LocList) {
 // Hash an individual attribute \param Attr based on the type of attribute and
 // the form.
 void DIEHash::hashAttribute(const DIEValue &Value, dwarf::Tag Tag) {
-  dwarf::Attribute Attribute = Value.getAttribute();
+  
 
   // Other attribute values use the letter 'A' as the marker, and the value
   // consists of the form code (encoded as an unsigned LEB128 value) followed by
@@ -255,7 +255,7 @@ void DIEHash::hashAttribute(const DIEValue &Value, dwarf::Tag Tag) {
   // computation is limited to the following: DW_FORM_sdata, DW_FORM_flag,
   // DW_FORM_string, and DW_FORM_block.
 
-  switch (Value.getType()) {
+  switch (dwarf::Attribute Attribute = Value.getAttribute(); Value.getType()) {
   case DIEValue::isNone:
     llvm_unreachable("Expected valid DIEValue");
 
@@ -378,9 +378,9 @@ void DIEHash::computeHash(const DIE &Die) {
     // 7.27 Step 7
     // If C is a nested type entry or a member function entry, ...
     if (isType(C.getTag()) || (C.getTag() == dwarf::DW_TAG_subprogram && isType(C.getParent()->getTag()))) {
-      StringRef Name = getDIEStringAttr(C, dwarf::DW_AT_name);
+      
       // ... and has a DW_AT_name attribute
-      if (!Name.empty()) {
+      if (StringRef Name = getDIEStringAttr(C, dwarf::DW_AT_name); !Name.empty()) {
         hashNestedType(C, Name);
         continue;
       }

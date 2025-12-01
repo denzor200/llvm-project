@@ -542,8 +542,8 @@ void Demangler::demangleType() {
 
   size_t Start = Position;
   char C = consume();
-  BasicType Type;
-  if (parseBasicType(C, Type))
+  
+  if (BasicType Type; parseBasicType(C, Type))
     return printBasicType(Type);
 
   switch (C) {
@@ -730,8 +730,8 @@ void Demangler::demangleConst() {
   ScopedOverride<size_t> SaveRecursionLevel(RecursionLevel, RecursionLevel + 1);
 
   char C = consume();
-  BasicType Type;
-  if (parseBasicType(C, Type)) {
+  
+  if (BasicType Type; parseBasicType(C, Type)) {
     switch (Type) {
     case BasicType::I8:
     case BasicType::I16:
@@ -773,8 +773,8 @@ void Demangler::demangleConstInt() {
     print('-');
 
   std::string_view HexDigits;
-  uint64_t Value = parseHexNumber(HexDigits);
-  if (HexDigits.size() <= 16) {
+  
+  if (uint64_t Value = parseHexNumber(HexDigits); HexDigits.size() <= 16) {
     printDecimalNumber(Value);
   } else {
     print("0x");
@@ -898,9 +898,9 @@ uint64_t Demangler::parseBase62Number() {
 
   while (true) {
     uint64_t Digit;
-    char C = consume();
+    
 
-    if (C == '_') {
+    if (char C = consume(); C == '_') {
       break;
     } else if (isDigit(C)) {
       Digit = C - '0';
@@ -950,8 +950,8 @@ uint64_t Demangler::parseDecimalNumber() {
       return 0;
     }
 
-    uint64_t D = consume() - '0';
-    if (!addAssign(Value, D))
+    
+    if (uint64_t D = consume() - '0'; !addAssign(Value, D))
       return 0;
   }
 

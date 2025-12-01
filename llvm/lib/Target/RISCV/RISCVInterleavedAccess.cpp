@@ -100,8 +100,8 @@ static bool isMultipleOfN(const Value *V, const DataLayout &DL, unsigned N) {
 
   using namespace PatternMatch;
   // Right now we're only recognizing the simplest pattern.
-  uint64_t C;
-  if (match(V, m_CombineOr(m_ConstantInt(C),
+  
+  if (uint64_t C; match(V, m_CombineOr(m_ConstantInt(C),
                            m_NUWMul(m_Value(), m_ConstantInt(C)))) &&
       C && C % N == 0)
     return true;
@@ -144,8 +144,8 @@ static bool getMemOperands(unsigned Factor, VectorType *VTy, Type *XLenTy,
     return true;
   }
 
-  auto *II = cast<IntrinsicInst>(I);
-  switch (II->getIntrinsicID()) {
+  
+  switch (auto *II = cast<IntrinsicInst>(I); II->getIntrinsicID()) {
   default:
     llvm_unreachable("Unsupported intrinsic type");
   case Intrinsic::vp_load:
@@ -249,8 +249,8 @@ bool RISCVTargetLowering::lowerInterleavedLoad(
   }
 
   for (unsigned i = 0; i < Shuffles.size(); i++) {
-    unsigned FactorIdx = Indices[i];
-    if (FactorIdx >= MaskFactor) {
+    
+    if (unsigned FactorIdx = Indices[i]; FactorIdx >= MaskFactor) {
       // Replace masked-off factors (that are still extracted) with poison.
       Shuffles[i]->replaceAllUsesWith(PoisonValue::get(VTy));
     } else {

@@ -199,8 +199,8 @@ const SCEV *MVETailPredication::IsSafeActiveMask(IntrinsicInst *ActiveLaneMask,
     EnableTailPredication == TailPredication::ForceEnabled;
 
   Value *ElemCount = ActiveLaneMask->getOperand(1);
-  bool Changed = false;
-  if (!L->makeLoopInvariant(ElemCount, Changed))
+  
+  if (bool Changed = false; !L->makeLoopInvariant(ElemCount, Changed))
     return nullptr;
 
   const SCEV *EC = SE->getSCEV(ElemCount);

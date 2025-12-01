@@ -170,9 +170,9 @@ bool DWARFExpression::Operation::extract(DataExtractor Data,
   OperandEndOffsets.resize(Desc.Op.size());
   for (unsigned Operand = 0; Operand < Desc.Op.size(); ++Operand) {
     unsigned Size = Desc.Op[Operand];
-    unsigned Signed = Size & Operation::SignBit;
+    
 
-    switch (Size & ~Operation::SignBit) {
+    switch (unsigned Signed = Size & Operation::SignBit; Size & ~Operation::SignBit) {
     case Operation::SizeSubOpLEB:
       assert(Operand == 0 && "SubOp operand must be the first operand");
       Operands[Operand] = Data.getULEB128(&Offset);

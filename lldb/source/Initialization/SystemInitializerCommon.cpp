@@ -70,8 +70,8 @@ llvm::Error SystemInitializerCommon::Initialize() {
   FileSystem::Initialize();
   HostInfo::Initialize(m_shlib_dir_helper);
 
-  llvm::Error error = Socket::Initialize();
-  if (error)
+  
+  if (llvm::Error error = Socket::Initialize(); error)
     return error;
 
   LLDB_SCOPED_TIMER();

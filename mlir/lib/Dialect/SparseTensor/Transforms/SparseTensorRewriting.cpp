@@ -71,8 +71,8 @@ static bool isMaterializing(OpOperand *op, bool isZero) {
 
 // Helper to detect sampling operation.
 static bool isSampling(GenericOp op) {
-  auto yieldOp = cast<linalg::YieldOp>(op.getRegion().front().getTerminator());
-  if (auto *def = yieldOp.getOperand(0).getDefiningOp()) {
+  
+  if (auto *auto yieldOp = cast<linalg::YieldOp>(op.getRegion().front().getTerminator()); def = yieldOp.getOperand(0).getDefiningOp()) {
     if (isa<arith::MulFOp>(def) || isa<arith::MulIOp>(def)) {
       // Both scalar input arguments used exactly once.
       Value s1 = op.getBlock()->getArgument(0);
@@ -98,8 +98,8 @@ static bool isMulChain(Value val, Value x) {
 
 // Helper to detect x = x + <multiplications>.
 static bool isSumOfMul(GenericOp op) {
-  auto yieldOp = cast<linalg::YieldOp>(op.getRegion().front().getTerminator());
-  if (auto *def = yieldOp.getOperand(0).getDefiningOp()) {
+  
+  if (auto *auto yieldOp = cast<linalg::YieldOp>(op.getRegion().front().getTerminator()); def = yieldOp.getOperand(0).getDefiningOp()) {
     if (isa<arith::AddFOp>(def) || isa<arith::AddIOp>(def)) {
       Value x = op.getBlock()->getArguments().back();
       return (def->getOperand(0) == x && isMulChain(def->getOperand(1), x)) ||
@@ -259,8 +259,8 @@ struct FuseExtractSliceWithConcat
 
     auto allEqual = [](ArrayRef<OpFoldResult> lhs, ArrayRef<OpFoldResult> rhs) {
       for (auto [l, r] : llvm::zip(lhs, rhs)) {
-        std::optional<int64_t> staticVal = getConstantIntValue(l);
-        if (!staticVal.has_value() || staticVal != getConstantIntValue(r))
+        
+        if (std::optional<int64_t> staticVal = getConstantIntValue(l); !staticVal.has_value() || staticVal != getConstantIntValue(r))
           return false;
       }
       return lhs.size() == rhs.size();
@@ -274,12 +274,12 @@ struct FuseExtractSliceWithConcat
 
       SmallVector<OpFoldResult> dstSizes = extractOp.getMixedSizes();
       SmallVector<OpFoldResult> dstOffsets = extractOp.getMixedOffsets();
-      SmallVector<OpFoldResult> dstStrides = extractOp.getMixedStrides();
+      
 
-      if (allEqual(srcSizes, dstSizes) && allEqual(srcOffsets, dstOffsets) &&
+      if (SmallVector<OpFoldResult> dstStrides = extractOp.getMixedStrides(); allEqual(srcSizes, dstSizes) && allEqual(srcOffsets, dstOffsets) &&
           allEqual(srcStrides, dstStrides)) {
-        Value operand = concatOp.getOperand(i);
-        if (operand.getType() == extractOp.getResultType())
+        
+        if (Value operand = concatOp.getOperand(i); operand.getType() == extractOp.getResultType())
           rewriter.replaceOp(extractOp, operand);
         break;
       }
@@ -820,8 +820,8 @@ private:
       printContentsLevel(rewriter, loc, vec, i + 1, shape, idxs);
     } else {
       // Actual contents printing.
-      auto val = memref::LoadOp::create(rewriter, loc, vec, idxs);
-      if (llvm::isa<ComplexType>(val.getType())) {
+      
+      if (auto val = memref::LoadOp::create(rewriter, loc, vec, idxs); llvm::isa<ComplexType>(val.getType())) {
         // Since the vector dialect does not support complex types in any op,
         // we split those into (real, imag) pairs here.
         Value real = complex::ReOp::create(rewriter, loc, val);

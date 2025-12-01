@@ -131,15 +131,15 @@ LIBC_INLINE static constexpr double atan2(double y, double x) {
     //   0: zero
     //   1: finite, non-zero
     //   2: infinity
-    constexpr DoubleDouble EXCEPTS[3][3][2] = {
+    
+
+    if (constexpr DoubleDouble EXCEPTS[3][3][2] = {
         {{ZERO, PI}, {ZERO, PI}, {ZERO, PI}},
         {{PI_OVER_2, PI_OVER_2}, {ZERO, ZERO}, {ZERO, PI}},
         {{PI_OVER_2, PI_OVER_2},
          {PI_OVER_2, PI_OVER_2},
          {PI_OVER_4, THREE_PI_OVER_4}},
-    };
-
-    if ((x_except != 1) || (y_except != 1)) {
+    }; (x_except != 1) || (y_except != 1)) {
       DoubleDouble r = EXCEPTS[y_except][x_except][x_sign];
       return fputil::multiply_add(IS_NEG[y_sign], r.hi, IS_NEG[y_sign] * r.lo);
     }

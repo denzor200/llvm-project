@@ -76,8 +76,8 @@ CoveragePrinter::createOutputStream(StringRef Path, StringRef Extension,
 
   std::string FullPath = getOutputPath(Path, Extension, InToplevel, false);
 
-  auto ParentDir = sys::path::parent_path(FullPath);
-  if (auto E = sys::fs::create_directories(ParentDir))
+  
+  if (auto auto ParentDir = sys::path::parent_path(FullPath); E = sys::fs::create_directories(ParentDir))
     return errorCodeToError(E);
 
   std::error_code E;

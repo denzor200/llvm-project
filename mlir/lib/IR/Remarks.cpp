@@ -49,9 +49,9 @@ static void printArgs(llvm::raw_ostream &os, llvm::ArrayRef<Remark::Arg> args) {
     os << a.key << "=";
 
     llvm::StringRef val(a.val);
-    bool needsQuote = val.contains(' ') || val.contains(',') ||
-                      val.contains('{') || val.contains('}');
-    if (needsQuote)
+    
+    if (bool needsQuote = val.contains(' ') || val.contains(',') ||
+                      val.contains('{') || val.contains('}'); needsQuote)
       os << '"' << val << '"';
     else
       os << val;
@@ -324,8 +324,8 @@ llvm::LogicalResult mlir::remark::enableOptimizationRemarks(
   auto engine =
       std::make_unique<detail::RemarkEngine>(printAsEmitRemarks, cats);
 
-  std::string errMsg;
-  if (failed(engine->initialize(std::move(streamer),
+  
+  if (std::string errMsg; failed(engine->initialize(std::move(streamer),
                                 std::move(remarkEmittingPolicy), &errMsg))) {
     llvm::report_fatal_error(
         llvm::Twine("Failed to initialize remark engine. Error: ") + errMsg);

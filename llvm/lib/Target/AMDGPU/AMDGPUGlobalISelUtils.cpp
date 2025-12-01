@@ -29,8 +29,8 @@ AMDGPU::getBaseWithConstantOffset(MachineRegisterInfo &MRI, Register Reg,
   MachineInstr *Def = getDefIgnoringCopies(Reg, MRI);
   if (Def->getOpcode() == TargetOpcode::G_CONSTANT) {
     unsigned Offset;
-    const MachineOperand &Op = Def->getOperand(1);
-    if (Op.isImm())
+    
+    if (const MachineOperand &Op = Def->getOperand(1); Op.isImm())
       Offset = Op.getImm();
     else
       Offset = Op.getCImm()->getZExtValue();
@@ -63,8 +63,8 @@ AMDGPU::getBaseWithConstantOffset(MachineRegisterInfo &MRI, Register Reg,
 
   // Handle G_PTRTOINT (G_PTR_ADD base, const) case
   if (Def->getOpcode() == TargetOpcode::G_PTRTOINT) {
-    MachineInstr *Base;
-    if (mi_match(Def->getOperand(1).getReg(), MRI,
+    
+    if (MachineInstr *Base; mi_match(Def->getOperand(1).getReg(), MRI,
                  m_GPtrAdd(m_MInstr(Base), m_ICst(Offset)))) {
       // If Base was int converted to pointer, simply return int and offset.
       if (Base->getOpcode() == TargetOpcode::G_INTTOPTR)
@@ -90,8 +90,8 @@ bool IntrinsicLaneMaskAnalyzer::isS32S64LaneMask(Register Reg) const {
 void IntrinsicLaneMaskAnalyzer::initLaneMaskIntrinsics(MachineFunction &MF) {
   for (auto &MBB : MF) {
     for (auto &MI : MBB) {
-      GIntrinsic *GI = dyn_cast<GIntrinsic>(&MI);
-      if (GI && GI->is(Intrinsic::amdgcn_if_break)) {
+      
+      if (GIntrinsic *GI = dyn_cast<GIntrinsic>(&MI); GI && GI->is(Intrinsic::amdgcn_if_break)) {
         S32S64LaneMask.insert(MI.getOperand(3).getReg());
         S32S64LaneMask.insert(MI.getOperand(0).getReg());
       }

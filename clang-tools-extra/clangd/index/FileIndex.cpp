@@ -306,8 +306,8 @@ FileSymbols::buildIndex(IndexType Type, DuplicateHandling DuplicateHandle,
       for (const auto &Sym : *Slab) {
         assert(Sym.References == 0 &&
                "Symbol with non-zero references sent to FileSymbols");
-        auto I = Merged.try_emplace(Sym.ID, Sym);
-        if (!I.second)
+        
+        if (auto I = Merged.try_emplace(Sym.ID, Sym); !I.second)
           I.first->second = mergeSymbol(I.first->second, Sym);
       }
     }

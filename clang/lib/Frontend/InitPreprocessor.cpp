@@ -42,8 +42,8 @@ static void DefineBuiltinMacro(MacroBuilder &Builder, StringRef Macro,
                                DiagnosticsEngine &Diags) {
   std::pair<StringRef, StringRef> MacroPair = Macro.split('=');
   StringRef MacroName = MacroPair.first;
-  StringRef MacroBody = MacroPair.second;
-  if (MacroName.size() != Macro.size()) {
+  
+  if (StringRef MacroBody = MacroPair.second; MacroName.size() != Macro.size()) {
     // Per GCC -D semantics, the macro ends at \n if it exists.
     StringRef::size_type End = MacroBody.find_first_of("\n\r");
     if (End != StringRef::npos)
@@ -940,11 +940,11 @@ static void InitializePredefinedMacros(const TargetInfo &TI,
       Builder.defineMacro("__NEXT_RUNTIME__");
 
     if (LangOpts.ObjCRuntime.getKind() == ObjCRuntime::GNUstep) {
-      auto version = LangOpts.ObjCRuntime.getVersion();
+      
       // Don't rely on the tuple argument, because we can be asked to target
       // later ABIs than we actually support, so clamp these values to those
       // currently supported
-      if (version >= VersionTuple(2, 0))
+      if (auto version = LangOpts.ObjCRuntime.getVersion(); version >= VersionTuple(2, 0))
         Builder.defineMacro("__OBJC_GNUSTEP_RUNTIME_ABI__", "20");
       else
         Builder.defineMacro(

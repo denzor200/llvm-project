@@ -165,8 +165,8 @@ bool ARM::parseBranchProtection(StringRef Spec, ParsedBranchProtection &PBP,
     if (Opt == "pac-ret") {
       PBP.Scope = "non-leaf";
       for (; I + 1 != E; ++I) {
-        StringRef PACOpt = Opts[I + 1].trim();
-        if (PACOpt == "leaf")
+        
+        if (StringRef PACOpt = Opts[I + 1].trim(); PACOpt == "leaf")
           PBP.Scope = "all";
         else if (PACOpt == "b-key")
           PBP.Key = "b_key";

@@ -470,8 +470,8 @@ bool llvm::getUniversalCRTSdkDir(vfs::FileSystem &VFS,
                                  std::string &Path, std::string &UCRTVersion) {
   // If /winsdkdir is passed, use it as location for the UCRT too.
   // FIXME: Should there be a dedicated /ucrtdir to override /winsdkdir?
-  int Major;
-  if (getWindowsSDKDirViaCommandLine(VFS, WinSdkDir, WinSdkVersion, WinSysRoot,
+  
+  if (int Major; getWindowsSDKDirViaCommandLine(VFS, WinSdkDir, WinSdkVersion, WinSysRoot,
                                      Path, Major, UCRTVersion))
     return true;
 
@@ -730,8 +730,8 @@ bool llvm::findVCToolChainViaSetupConfig(
 
 bool llvm::findVCToolChainViaRegistry(std::string &Path,
                                       ToolsetLayout &VSLayout) {
-  std::string VSInstallPath;
-  if (getSystemRegistryString(R"(SOFTWARE\Microsoft\VisualStudio\$VERSION)",
+  
+  if (std::string VSInstallPath; getSystemRegistryString(R"(SOFTWARE\Microsoft\VisualStudio\$VERSION)",
                               "InstallDir", VSInstallPath, nullptr) ||
       getSystemRegistryString(R"(SOFTWARE\Microsoft\VCExpress\$VERSION)",
                               "InstallDir", VSInstallPath, nullptr)) {

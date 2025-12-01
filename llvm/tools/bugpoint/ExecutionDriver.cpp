@@ -333,8 +333,8 @@ Expected<std::string> BugDriver::executeProgram(const Module &Program,
 
   if (*RetVal == -1) {
     errs() << "<timeout>";
-    static bool FirstTimeout = true;
-    if (FirstTimeout) {
+    
+    if (static bool FirstTimeout = true; FirstTimeout) {
       outs()
           << "\n"
              "*** Program execution timed out!  This mechanism is designed to "

@@ -85,19 +85,19 @@ FrozenRewritePatternSet::FrozenRewritePatternSet(
   for (std::unique_ptr<RewritePattern> &pat : patterns.getNativePatterns()) {
     // Don't add patterns that haven't been enabled by the user.
     if (!enabledPatterns.empty()) {
-      auto isEnabledFn = [&](StringRef label) {
+      
+      if (auto isEnabledFn = [&](StringRef label) {
         return enabledPatterns.count(label);
-      };
-      if (!isEnabledFn(pat->getDebugName()) &&
+      }; !isEnabledFn(pat->getDebugName()) &&
           llvm::none_of(pat->getDebugLabels(), isEnabledFn))
         continue;
     }
     // Don't add patterns that have been disabled by the user.
     if (!disabledPatterns.empty()) {
-      auto isDisabledFn = [&](StringRef label) {
+      
+      if (auto isDisabledFn = [&](StringRef label) {
         return disabledPatterns.count(label);
-      };
-      if (isDisabledFn(pat->getDebugName()) ||
+      }; isDisabledFn(pat->getDebugName()) ||
           llvm::any_of(pat->getDebugLabels(), isDisabledFn))
         continue;
     }

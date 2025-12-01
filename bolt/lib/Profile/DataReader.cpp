@@ -326,8 +326,8 @@ Error DataReader::readProfile(BinaryContext &BC) {
 
   uint64_t NumUnused = 0;
   for (const auto &KV : NamesToBranches) {
-    const FuncBranchData &FBD = KV.second;
-    if (!FBD.Used)
+    
+    if (const FuncBranchData &FBD = KV.second; !FBD.Used)
       ++NumUnused;
   }
   BC.setNumUnusedProfiledObjects(NumUnused);
@@ -382,8 +382,8 @@ void DataReader::readProfile(BinaryFunction &BF) {
   // instruction in a predecessor fall-through block is a call. This situation
   // should rarely happen because there are few multiple-entry functions.
   for (const BranchInfo &BI : FBD->EntryData) {
-    BinaryBasicBlock *BB = BF.getBasicBlockAtOffset(BI.To.Offset);
-    if (BB && (BB->isEntryPoint() || BB->isLandingPad())) {
+    
+    if (BinaryBasicBlock *BB = BF.getBasicBlockAtOffset(BI.To.Offset); BB && (BB->isEntryPoint() || BB->isLandingPad())) {
       uint64_t Count = BB->getExecutionCount();
       if (Count == BinaryBasicBlock::COUNT_NO_PROFILE)
         Count = 0;
@@ -492,9 +492,9 @@ bool DataReader::fetchProfileForOtherEntryPoints(BinaryFunction &BF) {
       continue;
     }
     if (BB->isEntryPoint()) {
-      uint64_t EntryAddress = BB->getOffset() + BF.getAddress();
+      
       // Look for branch data associated with this entry point
-      if (BinaryData *BD = BC.getBinaryDataAtAddress(EntryAddress)) {
+      if (BinaryData *uint64_t EntryAddress = BB->getOffset() + BF.getAddress(); BD = BC.getBinaryDataAtAddress(EntryAddress)) {
         if (FuncBranchData *Data = getBranchDataForSymbols(BD->getSymbols())) {
           FBD->appendFrom(*Data, BB->getOffset());
           Data->Used = true;
@@ -719,8 +719,8 @@ bool DataReader::recordBranch(BinaryFunction &BF, uint64_t From, uint64_t To,
     // While building the CFG we make sure these nops are attributed to the
     // previous basic block, thus we check if the destination belongs to the
     // gap past the last instruction.
-    const MCInst *LastInstr = ToBB->getLastNonPseudoInstr();
-    if (LastInstr) {
+    
+    if (const MCInst *LastInstr = ToBB->getLastNonPseudoInstr(); LastInstr) {
       const uint32_t LastInstrOffset =
           BC.MIB->getOffsetWithDefault(*LastInstr, 0);
 
@@ -785,8 +785,8 @@ bool DataReader::recordBranch(BinaryFunction &BF, uint64_t From, uint64_t To,
       return true;
 
     // Allow passthrough blocks.
-    BinaryBasicBlock *FTSuccessor = FromBB->getConditionalSuccessor(false);
-    if (FTSuccessor && FTSuccessor->succ_size() == 1 &&
+    
+    if (BinaryBasicBlock *FTSuccessor = FromBB->getConditionalSuccessor(false); FTSuccessor && FTSuccessor->succ_size() == 1 &&
         FTSuccessor->getSuccessor(ToBB->getLabel())) {
       BinaryBasicBlock::BinaryBranchInfo &FTBI =
           FTSuccessor->getBranchInfo(*ToBB);
@@ -1226,15 +1226,15 @@ std::error_code DataReader::parse() {
 void DataReader::buildLTONameMaps() {
   for (auto &FuncData : NamesToBranches) {
     const StringRef FuncName = FuncData.first;
-    const std::optional<StringRef> CommonName = getLTOCommonName(FuncName);
-    if (CommonName)
+    
+    if (const std::optional<StringRef> CommonName = getLTOCommonName(FuncName); CommonName)
       LTOCommonNameMap[*CommonName].push_back(&FuncData.second);
   }
 
   for (auto &FuncData : NamesToMemEvents) {
     const StringRef FuncName = FuncData.first;
-    const std::optional<StringRef> CommonName = getLTOCommonName(FuncName);
-    if (CommonName)
+    
+    if (const std::optional<StringRef> CommonName = getLTOCommonName(FuncName); CommonName)
       LTOCommonNameMemMap[*CommonName].push_back(&FuncData.second);
   }
 }
@@ -1245,8 +1245,8 @@ fetchMapEntry(MapTy &Map, const std::vector<MCSymbol *> &Symbols) {
   // Do a reverse order iteration since the name in profile has a higher chance
   // of matching a name at the end of the list.
   for (const MCSymbol *Symbol : llvm::reverse(Symbols)) {
-    auto I = Map.find(normalizeName(Symbol->getName()));
-    if (I != Map.end())
+    
+    if (auto I = Map.find(normalizeName(Symbol->getName())); I != Map.end())
       return &I->second;
   }
   return nullptr;
@@ -1258,8 +1258,8 @@ fetchMapEntry(MapTy &Map, const std::vector<StringRef> &FuncNames) {
   // Do a reverse order iteration since the name in profile has a higher chance
   // of matching a name at the end of the list.
   for (StringRef Name : llvm::reverse(FuncNames)) {
-    auto I = Map.find(normalizeName(Name));
-    if (I != Map.end())
+    
+    if (auto I = Map.find(normalizeName(Name)); I != Map.end())
       return &I->second;
   }
   return nullptr;
@@ -1276,17 +1276,17 @@ fetchMapEntriesRegex(MapTy &Map,
   // of matching a name at the end of the list.
   for (StringRef FuncName : llvm::reverse(FuncNames)) {
     std::string Name = normalizeName(FuncName);
-    const std::optional<StringRef> LTOCommonName = getLTOCommonName(Name);
-    if (LTOCommonName) {
-      auto I = LTOCommonNameMap.find(*LTOCommonName);
-      if (I != LTOCommonNameMap.end()) {
+    
+    if (const std::optional<StringRef> LTOCommonName = getLTOCommonName(Name); LTOCommonName) {
+      
+      if (auto I = LTOCommonNameMap.find(*LTOCommonName); I != LTOCommonNameMap.end()) {
         const std::vector<typename MapTy::mapped_type *> &CommonData =
             I->second;
         AllData.insert(AllData.end(), CommonData.begin(), CommonData.end());
       }
     } else {
-      auto I = Map.find(Name);
-      if (I != Map.end())
+      
+      if (auto I = Map.find(Name); I != Map.end())
         return {&I->second};
     }
   }
@@ -1351,8 +1351,8 @@ DataReader::getMemDataForNamesRegex(const std::vector<StringRef> &FuncNames) {
 
 bool DataReader::hasLocalsWithFileName() const {
   for (const auto &Func : NamesToBranches) {
-    const StringRef &FuncName = Func.first;
-    if (FuncName.count('/') == 2 && FuncName[0] != '/')
+    
+    if (const StringRef &FuncName = Func.first; FuncName.count('/') == 2 && FuncName[0] != '/')
       return true;
   }
   return false;

@@ -96,8 +96,8 @@ bool LLParser::parseStandaloneConstantValue(Constant *&C,
   restoreParsingState(Slots);
   Lex.Lex();
 
-  Type *Ty = nullptr;
-  if (parseType(Ty) || parseConstantValue(Ty, C))
+  
+  if (Type *Ty = nullptr; parseType(Ty) || parseConstantValue(Ty, C))
     return true;
   if (Lex.getKind() != lltok::Eof)
     return error(Lex.getLoc(), "expected end of string");
@@ -215,8 +215,8 @@ bool LLParser::validateEndOfModule(bool UpgradeDebugInfo) {
     AttrBuilder B(Context);
 
     for (const auto &Attr : Attrs) {
-      auto R = NumberedAttrBuilders.find(Attr);
-      if (R != NumberedAttrBuilders.end())
+      
+      if (auto R = NumberedAttrBuilders.find(Attr); R != NumberedAttrBuilders.end())
         B.merge(R->second);
     }
 
@@ -433,8 +433,8 @@ bool LLParser::validateEndOfModule(bool UpgradeDebugInfo) {
     if (!AllowIncompleteIR)
       assert(MD && "UpgradeInstWithTBAATag should have a TBAA tag");
     if (MD) {
-      auto *UpgradedMD = UpgradeTBAANode(*MD);
-      if (MD != UpgradedMD)
+      
+      if (auto *UpgradedMD = UpgradeTBAANode(*MD); MD != UpgradedMD)
         Inst->setMetadata(LLVMContext::MD_tbaa, UpgradedMD);
     }
   }
@@ -635,8 +635,8 @@ bool LLParser::parseModuleAsm() {
 bool LLParser::parseTargetDefinition(std::string &TentativeDLStr,
                                      LocTy &DLStrLoc) {
   assert(Lex.getKind() == lltok::kw_target);
-  std::string Str;
-  switch (Lex.Lex()) {
+  
+  switch (std::string Str; Lex.Lex()) {
   default:
     return tokError("unknown target property");
   case lltok::kw_triple:
@@ -974,8 +974,8 @@ bool LLParser::parseNamedMetadata() {
       parseToken(lltok::lbrace, "Expected '{' here"))
     return true;
 
-  NamedMDNode *NMD = M->getOrInsertNamedMetadata(Name);
-  if (Lex.getKind() != lltok::rbrace)
+  
+  if (NamedMDNode *NMD = M->getOrInsertNamedMetadata(Name); Lex.getKind() != lltok::rbrace)
     do {
       MDNode *N = nullptr;
       // parse DIExpressions inline as a special case. They are still MDNodes,
@@ -1232,16 +1232,16 @@ bool LLParser::parseAliasOrIFunc(const std::string &Name, unsigned NameID,
   // See if the alias was forward referenced, if so, prepare to replace the
   // forward reference.
   if (!Name.empty()) {
-    auto I = ForwardRefVals.find(Name);
-    if (I != ForwardRefVals.end()) {
+    
+    if (auto I = ForwardRefVals.find(Name); I != ForwardRefVals.end()) {
       GVal = I->second.first;
       ForwardRefVals.erase(Name);
     } else if (M->getNamedValue(Name)) {
       return error(NameLoc, "redefinition of global '@" + Name + "'");
     }
   } else {
-    auto I = ForwardRefValIDs.find(NameID);
-    if (I != ForwardRefValIDs.end()) {
+    
+    if (auto I = ForwardRefValIDs.find(NameID); I != ForwardRefValIDs.end()) {
       GVal = I->second.first;
       ForwardRefValIDs.erase(I);
     }
@@ -1405,8 +1405,8 @@ bool LLParser::parseGlobal(const std::string &Name, unsigned NameID,
 
   // See if the global was forward referenced, if so, use the global.
   if (!Name.empty()) {
-    auto I = ForwardRefVals.find(Name);
-    if (I != ForwardRefVals.end()) {
+    
+    if (auto I = ForwardRefVals.find(Name); I != ForwardRefVals.end()) {
       GVal = I->second.first;
       ForwardRefVals.erase(I);
     } else if (M->getNamedValue(Name)) {
@@ -1418,8 +1418,8 @@ bool LLParser::parseGlobal(const std::string &Name, unsigned NameID,
     if (NameID == (unsigned)-1)
       NameID = NumberedVals.getNext();
 
-    auto I = ForwardRefValIDs.find(NameID);
-    if (I != ForwardRefValIDs.end()) {
+    
+    if (auto I = ForwardRefValIDs.find(NameID); I != ForwardRefValIDs.end()) {
       GVal = I->second.first;
       ForwardRefValIDs.erase(I);
     }
@@ -1770,8 +1770,8 @@ static inline GlobalValue *createGlobalFwdRef(Module *M, PointerType *PTy) {
 
 Value *LLParser::checkValidVariableType(LocTy Loc, const Twine &Name, Type *Ty,
                                         Value *Val) {
-  Type *ValTy = Val->getType();
-  if (ValTy == Ty)
+  
+  if (Type *ValTy = Val->getType(); ValTy == Ty)
     return Val;
   if (Ty->isLabelTy())
     error(Loc, "'" + Name + "' is not a basic block");
@@ -1800,8 +1800,8 @@ GlobalValue *LLParser::getGlobalVal(const std::string &Name, Type *Ty,
   // If this is a forward reference for the value, see if we already created a
   // forward ref record.
   if (!Val) {
-    auto I = ForwardRefVals.find(Name);
-    if (I != ForwardRefVals.end())
+    
+    if (auto I = ForwardRefVals.find(Name); I != ForwardRefVals.end())
       Val = I->second.first;
   }
 
@@ -1828,8 +1828,8 @@ GlobalValue *LLParser::getGlobalVal(unsigned ID, Type *Ty, LocTy Loc) {
   // If this is a forward reference for the value, see if we already created a
   // forward ref record.
   if (!Val) {
-    auto I = ForwardRefValIDs.find(ID);
-    if (I != ForwardRefValIDs.end())
+    
+    if (auto I = ForwardRefValIDs.find(ID); I != ForwardRefValIDs.end())
       Val = I->second.first;
   }
 
@@ -2680,8 +2680,8 @@ unsigned LLParser::parseNoFPClassAttr() {
 
   do {
     uint64_t Value = 0;
-    unsigned TestMask = keywordToFPClassTest(Lex.getKind());
-    if (TestMask != 0) {
+    
+    if (unsigned TestMask = keywordToFPClassTest(Lex.getKind()); TestMask != 0) {
       Mask |= TestMask;
       // TODO: Disallow overlapping masks to avoid copy paste errors
     } else if (Mask == 0 && Lex.getKind() == lltok::APSInt &&
@@ -3737,8 +3737,8 @@ Value *LLParser::PerFunctionState::getVal(const std::string &Name, Type *Ty,
   // If this is a forward reference for the value, see if we already created a
   // forward ref record.
   if (!Val) {
-    auto I = ForwardRefVals.find(Name);
-    if (I != ForwardRefVals.end())
+    
+    if (auto I = ForwardRefVals.find(Name); I != ForwardRefVals.end())
       Val = I->second.first;
   }
 
@@ -3777,8 +3777,8 @@ Value *LLParser::PerFunctionState::getVal(unsigned ID, Type *Ty, LocTy Loc) {
   // If this is a forward reference for the value, see if we already created a
   // forward ref record.
   if (!Val) {
-    auto I = ForwardRefValIDs.find(ID);
-    if (I != ForwardRefValIDs.end())
+    
+    if (auto I = ForwardRefValIDs.find(ID); I != ForwardRefValIDs.end())
       Val = I->second.first;
   }
 
@@ -6542,8 +6542,8 @@ bool LLParser::convertValIDToValue(Type *Ty, ValID &ID, Value *&V,
     if (&ID.APFloatVal.getSemantics() == &APFloat::IEEEdouble()) {
       // Check for signaling before potentially converting and losing that info.
       bool IsSNAN = ID.APFloatVal.isSignaling();
-      bool Ignored;
-      if (Ty->isHalfTy())
+      
+      if (bool Ignored; Ty->isHalfTy())
         ID.APFloatVal.convert(APFloat::IEEEhalf(), APFloat::rmNearestTiesToEven,
                               &Ignored);
       else if (Ty->isBFloatTy())
@@ -6858,8 +6858,8 @@ bool LLParser::parseFunctionHeader(Function *&Fn, bool IsDefine,
   if (!FunctionName.empty()) {
     // If this was a definition of a forward reference, remove the definition
     // from the forward reference table and fill in the forward ref.
-    auto FRVI = ForwardRefVals.find(FunctionName);
-    if (FRVI != ForwardRefVals.end()) {
+    
+    if (auto FRVI = ForwardRefVals.find(FunctionName); FRVI != ForwardRefVals.end()) {
       FwdFn = FRVI->second.first;
       if (FwdFn->getType() != PFT)
         return error(FRVI->second.second,
@@ -6887,8 +6887,8 @@ bool LLParser::parseFunctionHeader(Function *&Fn, bool IsDefine,
 
     // If this is a definition of a forward referenced function, make sure the
     // types agree.
-    auto I = ForwardRefValIDs.find(FunctionNumber);
-    if (I != ForwardRefValIDs.end()) {
+    
+    if (auto I = ForwardRefValIDs.find(FunctionNumber); I != ForwardRefValIDs.end()) {
       FwdFn = I->second.first;
       if (FwdFn->getType() != PFT)
         return error(NameLoc, "type of definition and forward reference of '@" +
@@ -7305,8 +7305,8 @@ int LLParser::parseInstruction(Instruction *&Inst, BasicBlock *BB,
   // Unary Operators.
   case lltok::kw_fneg: {
     FastMathFlags FMF = EatFastMathFlagsIfPresent();
-    int Res = parseUnaryOp(Inst, PFS, KeywordVal, /*IsFP*/ true);
-    if (Res != 0)
+    
+    if (int Res = parseUnaryOp(Inst, PFS, KeywordVal, /*IsFP*/ true); Res != 0)
       return Res;
     if (FMF.any())
       Inst->setFastMathFlags(FMF);
@@ -7334,8 +7334,8 @@ int LLParser::parseInstruction(Instruction *&Inst, BasicBlock *BB,
   case lltok::kw_fdiv:
   case lltok::kw_frem: {
     FastMathFlags FMF = EatFastMathFlagsIfPresent();
-    int Res = parseArithmetic(Inst, PFS, KeywordVal, /*IsFP*/ true);
-    if (Res != 0)
+    
+    if (int Res = parseArithmetic(Inst, PFS, KeywordVal, /*IsFP*/ true); Res != 0)
       return Res;
     if (FMF.any())
       Inst->setFastMathFlags(FMF);
@@ -7379,8 +7379,8 @@ int LLParser::parseInstruction(Instruction *&Inst, BasicBlock *BB,
   }
   case lltok::kw_fcmp: {
     FastMathFlags FMF = EatFastMathFlagsIfPresent();
-    int Res = parseCompare(Inst, PFS, KeywordVal);
-    if (Res != 0)
+    
+    if (int Res = parseCompare(Inst, PFS, KeywordVal); Res != 0)
       return Res;
     if (FMF.any())
       Inst->setFastMathFlags(FMF);
@@ -7391,8 +7391,8 @@ int LLParser::parseInstruction(Instruction *&Inst, BasicBlock *BB,
   case lltok::kw_uitofp:
   case lltok::kw_zext: {
     bool NonNeg = EatIfPresent(lltok::kw_nneg);
-    bool Res = parseCast(Inst, PFS, KeywordVal);
-    if (Res != 0)
+    
+    if (bool Res = parseCast(Inst, PFS, KeywordVal); Res != 0)
       return Res;
     if (NonNeg)
       Inst->setNonNeg();
@@ -7434,8 +7434,8 @@ int LLParser::parseInstruction(Instruction *&Inst, BasicBlock *BB,
   // Other.
   case lltok::kw_select: {
     FastMathFlags FMF = EatFastMathFlagsIfPresent();
-    int Res = parseSelect(Inst, PFS);
-    if (Res != 0)
+    
+    if (int Res = parseSelect(Inst, PFS); Res != 0)
       return Res;
     if (FMF.any()) {
       if (!isa<FPMathOperator>(Inst))
@@ -7455,8 +7455,8 @@ int LLParser::parseInstruction(Instruction *&Inst, BasicBlock *BB,
     return parseShuffleVector(Inst, PFS);
   case lltok::kw_phi: {
     FastMathFlags FMF = EatFastMathFlagsIfPresent();
-    int Res = parsePHI(Inst, PFS);
-    if (Res != 0)
+    
+    if (int Res = parsePHI(Inst, PFS); Res != 0)
       return Res;
     if (FMF.any()) {
       if (!isa<FPMathOperator>(Inst))
@@ -10048,8 +10048,8 @@ bool LLParser::parseOptionalFFlags(FunctionSummary::FFlags &FFlags) {
     return true;
 
   do {
-    unsigned Val = 0;
-    switch (Lex.getKind()) {
+    
+    switch (unsigned Val = 0; Lex.getKind()) {
     case lltok::kw_readNone:
       Lex.Lex();
       if (parseToken(lltok::colon, "expected ':'") || parseFlag(Val))
@@ -10727,8 +10727,8 @@ bool LLParser::parseGVFlags(GlobalValueSummary::GVFlags &GVFlags) {
     return true;
 
   do {
-    unsigned Flag = 0;
-    switch (Lex.getKind()) {
+    
+    switch (unsigned Flag = 0; Lex.getKind()) {
     case lltok::kw_linkage:
       Lex.Lex();
       if (parseToken(lltok::colon, "expected ':'"))
@@ -10810,8 +10810,8 @@ bool LLParser::parseGVarFlags(GlobalVarSummary::GVarFlags &GVarFlags) {
   };
 
   do {
-    unsigned Flag = 0;
-    switch (Lex.getKind()) {
+    
+    switch (unsigned Flag = 0; Lex.getKind()) {
     case lltok::kw_readonly:
       if (ParseRest(Flag))
         return true;

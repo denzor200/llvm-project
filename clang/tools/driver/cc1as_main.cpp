@@ -251,8 +251,8 @@ bool AssemblerInvocation::CreateFromArgs(AssemblerInvocation &Opts,
   // Issue errors on unknown arguments.
   for (const Arg *A : Args.filtered(OPT_UNKNOWN)) {
     auto ArgString = A->getAsString(Args);
-    std::string Nearest;
-    if (OptTbl.findNearest(ArgString, Nearest, VisibilityMask) > 1)
+    
+    if (std::string Nearest; OptTbl.findNearest(ArgString, Nearest, VisibilityMask) > 1)
       Diags.Report(diag::err_drv_unknown_argument) << ArgString;
     else
       Diags.Report(diag::err_drv_unknown_argument_with_suggestion)
@@ -267,8 +267,8 @@ bool AssemblerInvocation::CreateFromArgs(AssemblerInvocation &Opts,
   if (Arg *A = Args.getLastArg(options::OPT_darwin_target_variant_triple))
     Opts.DarwinTargetVariantTriple = llvm::Triple(A->getValue());
   if (Arg *A = Args.getLastArg(OPT_darwin_target_variant_sdk_version_EQ)) {
-    VersionTuple Version;
-    if (Version.tryParse(A->getValue()))
+    
+    if (VersionTuple Version; Version.tryParse(A->getValue()))
       Diags.Report(diag::err_drv_invalid_value)
           << A->getAsString(Args) << A->getValue();
     else
@@ -516,8 +516,8 @@ static bool ExecuteAssemblerImpl(AssemblerInvocation &Opts,
     Ctx.setCompilationDir(Opts.DebugCompilationDir);
   else {
     // If no compilation dir is set, try to use the current directory.
-    SmallString<128> CWD;
-    if (!sys::fs::current_path(CWD))
+    
+    if (SmallString<128> CWD; !sys::fs::current_path(CWD))
       Ctx.setCompilationDir(CWD);
   }
   if (!Opts.DebugPrefixMap.empty())

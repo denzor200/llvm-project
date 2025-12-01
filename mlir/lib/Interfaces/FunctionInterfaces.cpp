@@ -202,8 +202,8 @@ void function_interface_impl::insertFunctionArguments(
   // - Block arguments of entry block, if not empty.
 
   // Update the argument attributes of the function.
-  ArrayAttr oldArgAttrs = op.getArgAttrsAttr();
-  if (oldArgAttrs || !argAttrs.empty()) {
+  
+  if (ArrayAttr oldArgAttrs = op.getArgAttrsAttr(); oldArgAttrs || !argAttrs.empty()) {
     SmallVector<DictionaryAttr, 4> newArgAttrs;
     newArgAttrs.reserve(originalNumArgs + argIndices.size());
     unsigned oldIdx = 0;
@@ -250,8 +250,8 @@ void function_interface_impl::insertFunctionResults(
   // - Result attrs.
 
   // Update the result attributes of the function.
-  ArrayAttr oldResultAttrs = op.getResAttrsAttr();
-  if (oldResultAttrs || !resultAttrs.empty()) {
+  
+  if (ArrayAttr oldResultAttrs = op.getResAttrsAttr(); oldResultAttrs || !resultAttrs.empty()) {
     SmallVector<DictionaryAttr, 4> newResultAttrs;
     newResultAttrs.reserve(originalNumResults + resultIndices.size());
     unsigned oldIdx = 0;

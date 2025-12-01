@@ -336,8 +336,8 @@ void Simplifier::Context::initialize(Instruction *Exp) {
   for (std::pair<Value*,Value*> P : M) {
     Instruction *U = cast<Instruction>(P.second);
     for (unsigned i = 0, n = U->getNumOperands(); i != n; ++i) {
-      auto F = M.find(U->getOperand(i));
-      if (F != M.end())
+      
+      if (auto F = M.find(U->getOperand(i)); F != M.end())
         U->setOperand(i, F->second);
     }
   }
@@ -393,8 +393,8 @@ Value *Simplifier::Context::subst(Value *Tree, Value *OldV, Value *NewV) {
     if (!U || U->getParent())
       continue;
     for (unsigned i = 0, n = U->getNumOperands(); i != n; ++i) {
-      Value *Op = U->getOperand(i);
-      if (Op == OldV) {
+      
+      if (Value *Op = U->getOperand(i); Op == OldV) {
         U->setOperand(i, NewV);
         unuse(OldV);
       } else {
@@ -441,14 +441,14 @@ void Simplifier::Context::replace(Value *OldV, Value *NewV) {
 
 void Simplifier::Context::cleanup() {
   for (Value *V : Clones) {
-    Instruction *U = cast<Instruction>(V);
-    if (!U->getParent())
+    
+    if (Instruction *U = cast<Instruction>(V); !U->getParent())
       U->dropAllReferences();
   }
 
   for (Value *V : Clones) {
-    Instruction *U = cast<Instruction>(V);
-    if (!U->getParent())
+    
+    if (Instruction *U = cast<Instruction>(V); !U->getParent())
       U->deleteValue();
   }
 }
@@ -632,8 +632,8 @@ Value *PolynomialMultiplyRecognize::getCountIV(BasicBlock *BB) {
 
   for (auto I = BB->begin(), E = BB->end(); I != E && isa<PHINode>(I); ++I) {
     auto *PN = cast<PHINode>(I);
-    Value *InitV = PN->getIncomingValueForBlock(PB);
-    if (!isa<ConstantInt>(InitV) || !cast<ConstantInt>(InitV)->isZero())
+    
+    if (Value *InitV = PN->getIncomingValueForBlock(PB); !isa<ConstantInt>(InitV) || !cast<ConstantInt>(InitV)->isZero())
       continue;
     Value *IterV = PN->getIncomingValueForBlock(BB);
     auto *BO = dyn_cast<BinaryOperator>(IterV);
@@ -1024,8 +1024,8 @@ void PolynomialMultiplyRecognize::promoteTo(Instruction *In,
       }
     }
   } else if (ZExtInst *Z = dyn_cast<ZExtInst>(In)) {
-    Value *Op = Z->getOperand(0);
-    if (Op->getType() == Z->getType())
+    
+    if (Value *Op = Z->getOperand(0); Op->getType() == Z->getType())
       Z->replaceAllUsesWith(Op);
     Z->eraseFromParent();
     return;
@@ -1064,8 +1064,8 @@ bool PolynomialMultiplyRecognize::promoteTypes(BasicBlock *LoopB,
     if (P.getNumIncomingValues() != 1)
       return false;
     assert(P.getIncomingBlock(0) == LoopB);
-    IntegerType *T = dyn_cast<IntegerType>(P.getType());
-    if (!T || T->getBitWidth() > DestBW)
+    
+    if (IntegerType *T = dyn_cast<IntegerType>(P.getType()); !T || T->getBitWidth() > DestBW)
       return false;
   }
 
@@ -1145,8 +1145,8 @@ void PolynomialMultiplyRecognize::classifyCycle(Instruction *DivI,
   bool IsE = true;
   unsigned I, N = Cycle.size();
   for (I = 0; I < N; ++I) {
-    Value *V = Cycle[I];
-    if (DivI == V)
+    
+    if (Value *V = Cycle[I]; DivI == V)
       IsE = false;
     else if (!isa<PHINode>(V))
       continue;
@@ -1178,8 +1178,8 @@ bool PolynomialMultiplyRecognize::classifyInst(Instruction *UseI,
   // classified in the same way as the true/false values. The true/false
   // values do have to be both early or both late.
   if (UseI->getOpcode() == Instruction::Select) {
-    Value *TV = UseI->getOperand(1), *FV = UseI->getOperand(2);
-    if (Early.count(TV) || Early.count(FV)) {
+    
+    if (Value *TV = UseI->getOperand(1), *FV = UseI->getOperand(2); Early.count(TV) || Early.count(FV)) {
       if (Late.count(TV) || Late.count(FV))
         return false;
       Early.insert(UseI);
@@ -1277,8 +1277,8 @@ bool PolynomialMultiplyRecognize::keepsHighBitsZero(Value *V,
 }
 
 bool PolynomialMultiplyRecognize::isOperandShifted(Instruction *I, Value *Op) {
-  unsigned Opc = I->getOpcode();
-  if (Opc == Instruction::Shl || Opc == Instruction::LShr)
+  
+  if (unsigned Opc = I->getOpcode(); Opc == Instruction::Shl || Opc == Instruction::LShr)
     return Op != I->getOperand(1);
   return true;
 }
@@ -1350,8 +1350,8 @@ bool PolynomialMultiplyRecognize::convertShiftsToLeft(BasicBlock *LoopB,
     if (!R)
       continue;
     for (Value *Op : R->operands()) {
-      auto *T = dyn_cast<Instruction>(Op);
-      if (T && T->getParent() != LoopB)
+      
+      if (auto *T = dyn_cast<Instruction>(Op); T && T->getParent() != LoopB)
         Inputs.insert(Op);
       else
         Internal.insert(Op);
@@ -1387,8 +1387,8 @@ bool PolynomialMultiplyRecognize::convertShiftsToLeft(BasicBlock *LoopB,
       continue;
 
     // Match lshr x, 1.
-    Value *V = nullptr;
-    if (match(&*I, m_LShr(m_Value(V), m_One()))) {
+    
+    if (Value *V = nullptr; match(&*I, m_LShr(m_Value(V), m_One()))) {
       replaceAllUsesOfWithIn(&*I, V, LoopB);
       continue;
     }
@@ -1442,8 +1442,8 @@ bool PolynomialMultiplyRecognize::convertShiftsToLeft(BasicBlock *LoopB,
     if (!isa<PHINode>(P))
       break;
     auto *PN = cast<PHINode>(P);
-    Value *U = PN->getIncomingValueForBlock(LoopB);
-    if (!Users.count(U))
+    
+    if (Value *U = PN->getIncomingValueForBlock(LoopB); !Users.count(U))
       continue;
     Value *S = IRB.CreateLShr(PN, ConstantInt::get(PN->getType(), IterCount));
     PN->replaceAllUsesWith(S);
@@ -2079,8 +2079,8 @@ CleanupAndExit:
   } else {
     // Don't generate memmove if this function will be inlined. This is
     // because the caller will undergo this transformation after inlining.
-    Function *Func = CurLoop->getHeader()->getParent();
-    if (Func->hasFnAttribute(Attribute::AlwaysInline))
+    
+    if (Function *Func = CurLoop->getHeader()->getParent(); Func->hasFnAttribute(Attribute::AlwaysInline))
       goto CleanupAndExit;
 
     // In case of a memmove, the call to memmove will be executed instead
@@ -2364,8 +2364,8 @@ bool HexagonLoopIdiomRecognize::runOnLoopBlock(Loop *CurLoop, BasicBlock *BB,
 }
 
 bool HexagonLoopIdiomRecognize::runOnCountableLoop(Loop *L) {
-  PolynomialMultiplyRecognize PMR(L, *DL, *DT, *TLI, *SE);
-  if (PMR.recognize())
+  
+  if (PolynomialMultiplyRecognize PMR(L, *DL, *DT, *TLI, *SE); PMR.recognize())
     return true;
 
   if (!HasMemcpy && !HasMemmove)
@@ -2393,8 +2393,8 @@ bool HexagonLoopIdiomRecognize::runOnCountableLoop(Loop *L) {
 }
 
 bool HexagonLoopIdiomRecognize::run(Loop *L) {
-  const Module &M = *L->getHeader()->getParent()->getParent();
-  if (M.getTargetTriple().getArch() != Triple::hexagon)
+  
+  if (const Module &M = *L->getHeader()->getParent()->getParent(); M.getTargetTriple().getArch() != Triple::hexagon)
     return false;
 
   // If the loop could not be converted to canonical form, it must have an

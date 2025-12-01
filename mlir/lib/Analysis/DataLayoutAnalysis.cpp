@@ -36,8 +36,8 @@ DataLayoutAnalysis::DataLayoutAnalysis(Operation *root)
 const DataLayout &DataLayoutAnalysis::getAbove(Operation *operation) const {
   for (Operation *ancestor = operation->getParentOp(); ancestor != nullptr;
        ancestor = ancestor->getParentOp()) {
-    auto it = layouts.find(ancestor);
-    if (it != layouts.end())
+    
+    if (auto it = layouts.find(ancestor); it != layouts.end())
       return *it->getSecond();
   }
 

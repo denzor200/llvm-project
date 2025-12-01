@@ -64,8 +64,8 @@ struct NotLengthExprForStringNode {
     if (const auto *ExprNode = Nodes.getNodeAs<Expr>(ID)) {
       if (const auto *MemberCallNode = Node.get<CXXMemberCallExpr>()) {
         const CXXMethodDecl *MethodDeclNode = MemberCallNode->getMethodDecl();
-        const StringRef Name = MethodDeclNode->getName();
-        if (!MethodDeclNode->isConst() || MethodDeclNode->getNumParams() != 0 ||
+        
+        if (const StringRef Name = MethodDeclNode->getName(); !MethodDeclNode->isConst() || MethodDeclNode->getNumParams() != 0 ||
             (Name != "size" && Name != "length")) {
           return true;
         }

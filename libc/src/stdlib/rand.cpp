@@ -15,12 +15,12 @@
 namespace LIBC_NAMESPACE_DECL {
 
 LLVM_LIBC_FUNCTION(int, rand, (void)) {
-  unsigned long orig = rand_next.load(cpp::MemoryOrder::RELAXED);
+  
 
   // An implementation of the xorshift64star pseudo random number generator.
   // This is a good general purpose generator for most non-cryptographics
   // applications.
-  if constexpr (sizeof(void *) == sizeof(uint64_t)) {
+  if constexpr (unsigned long orig = rand_next.load(cpp::MemoryOrder::RELAXED); sizeof(void *) == sizeof(uint64_t)) {
     for (;;) {
       unsigned long x = orig;
       x ^= x >> 12;

@@ -185,8 +185,8 @@ void ScriptParser::readDynamicList() {
   std::tie(locals, globals) = readSymbols();
   expect(";");
 
-  StringRef tok = peek();
-  if (tok.size()) {
+  
+  if (StringRef tok = peek(); tok.size()) {
     setError("EOF expected, but got " + tok);
     return;
   }
@@ -201,8 +201,8 @@ void ScriptParser::readDynamicList() {
 
 void ScriptParser::readVersionScript() {
   readVersionScriptCommand();
-  StringRef tok = peek();
-  if (tok.size())
+  
+  if (StringRef tok = peek(); tok.size())
     setError("EOF expected, but got " + tok);
 }
 
@@ -337,8 +337,8 @@ void ScriptParser::addFile(StringRef s) {
   } else {
     // Case 4: s is a relative path. Search in the directory of the script file.
     std::string filename = std::string(getCurrentMB().getBufferIdentifier());
-    StringRef directory = sys::path::parent_path(filename);
-    if (!directory.empty()) {
+    
+    if (StringRef directory = sys::path::parent_path(filename); !directory.empty()) {
       SmallString<0> path(directory);
       sys::path::append(path, s);
       if (sys::fs::exists(path)) {
@@ -371,8 +371,8 @@ void ScriptParser::readAsNeeded() {
 void ScriptParser::readEntry() {
   // -e <symbol> takes predecence over ENTRY(<symbol>).
   expect("(");
-  StringRef name = readName();
-  if (ctx.arg.entry.empty())
+  
+  if (StringRef name = readName(); ctx.arg.entry.empty())
     ctx.arg.entry = name;
   expect(")");
 }
@@ -421,8 +421,8 @@ void ScriptParser::readInput() {
 void ScriptParser::readOutput() {
   // -o <file> takes predecence over OUTPUT(<file>).
   expect("(");
-  StringRef name = readName();
-  if (ctx.arg.outputFile.empty())
+  
+  if (StringRef name = readName(); ctx.arg.outputFile.empty())
     ctx.arg.outputFile = name;
   expect(")");
 }
@@ -548,8 +548,8 @@ void ScriptParser::readRegionAlias() {
 
 void ScriptParser::readSearchDir() {
   expect("(");
-  StringRef name = readName();
-  if (!ctx.arg.nostdlib)
+  
+  if (StringRef name = readName(); !ctx.arg.nostdlib)
     ctx.arg.searchPaths.push_back(name);
   expect(")");
 }
@@ -930,8 +930,8 @@ bool ScriptParser::readSectionDirective(OutputSection *cmd, StringRef tok) {
   } else if (consume("TYPE")) {
     expect("=");
     StringRef value = peek();
-    auto it = llvm::find_if(typeMap, [=](auto e) { return e.first == value; });
-    if (it != std::end(typeMap)) {
+    
+    if (auto it = llvm::find_if(typeMap, [=](auto e) { return e.first == value; }); it != std::end(typeMap)) {
       // The value is a recognized literal SHT_*.
       cmd->type = it->second;
       skip();
@@ -975,8 +975,8 @@ void ScriptParser::readSectionAddressType(OutputSection *cmd) {
 
   if (consume("(")) {
     SaveAndRestore saved(lexState, State::Expr);
-    StringRef tok = peek();
-    if (!readSectionDirective(cmd, tok))
+    
+    if (StringRef tok = peek(); !readSectionDirective(cmd, tok))
       setError("unknown section directive: " + tok);
   }
 }
@@ -1431,8 +1431,8 @@ std::pair<uint64_t, uint64_t> ScriptParser::readInputSectionFlags() {
   expect("(");
   while (!errCount(ctx)) {
     StringRef tok = readName();
-    bool without = tok.consume_front("!");
-    if (std::optional<uint64_t> flag = parseFlag(tok)) {
+    
+    if (std::optional<uint64_t> bool without = tok.consume_front("!"); flag = parseFlag(tok)) {
       if (without)
         withoutFlags |= *flag;
       else

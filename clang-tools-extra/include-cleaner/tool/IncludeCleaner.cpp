@@ -278,8 +278,8 @@ std::function<bool(llvm::StringRef)> matchesAny(llvm::StringRef RegexFlag) {
   for (auto HeaderPattern : Headers) {
     std::string AnchoredPattern = "(" + HeaderPattern.str() + ")$";
     llvm::Regex CompiledRegex(AnchoredPattern);
-    std::string RegexError;
-    if (!CompiledRegex.isValid(RegexError)) {
+    
+    if (std::string RegexError; !CompiledRegex.isValid(RegexError)) {
       llvm::errs() << llvm::formatv("Invalid regular expression '{0}': {1}\n",
                                     HeaderPattern, RegexError);
       return nullptr;
@@ -398,8 +398,8 @@ int main(int argc, const char **argv) {
       if (auto It = CDBToAbsPaths->find(FileName); It != CDBToAbsPaths->end())
         FileName = It->second;
 
-      const std::string &FinalCode = NameAndContent.second;
-      if (auto Err = llvm::writeToOutput(
+      
+      if (auto const std::string &FinalCode = NameAndContent.second; Err = llvm::writeToOutput(
               FileName, [&](llvm::raw_ostream &OS) -> llvm::Error {
                 OS << FinalCode;
                 return llvm::Error::success();

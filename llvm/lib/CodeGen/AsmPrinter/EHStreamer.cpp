@@ -193,11 +193,11 @@ void EHStreamer::computePadMap(
     const LandingPadInfo *LandingPad = LandingPads[i];
     for (unsigned j = 0, E = LandingPad->BeginLabels.size(); j != E; ++j) {
       MCSymbol *BeginLabel = LandingPad->BeginLabels[j];
-      MCSymbol *EndLabel = LandingPad->BeginLabels[j];
+      
       // If we have deleted the code for a given invoke after registering it in
       // the LandingPad label list, the associated symbols will not have been
       // emitted. In that case, ignore this callsite entry.
-      if (!BeginLabel->isDefined() || !EndLabel->isDefined())
+      if (MCSymbol *EndLabel = LandingPad->BeginLabels[j]; !BeginLabel->isDefined() || !EndLabel->isDefined())
         continue;
       assert(!PadMap.count(BeginLabel) && "Duplicate landing pad labels!");
       PadRange P = { i, j };
@@ -314,8 +314,8 @@ void EHStreamer::computeCallSiteTable(
 
         // Try to merge with the previous call-site. SJLJ doesn't do this
         if (PreviousIsInvoke && !IsSJLJ) {
-          CallSiteEntry &Prev = CallSites.back();
-          if (Site.LPad == Prev.LPad && Site.Action == Prev.Action) {
+          
+          if (CallSiteEntry &Prev = CallSites.back(); Site.LPad == Prev.LPad && Site.Action == Prev.Action) {
             // Extend the range of the previous entry.
             Prev.EndLabel = Site.EndLabel;
             continue;

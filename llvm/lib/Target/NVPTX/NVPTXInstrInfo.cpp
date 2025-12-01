@@ -35,9 +35,9 @@ void NVPTXInstrInfo::copyPhysReg(MachineBasicBlock &MBB,
                                  bool RenamableDest, bool RenamableSrc) const {
   const MachineRegisterInfo &MRI = MBB.getParent()->getRegInfo();
   const TargetRegisterClass *DestRC = MRI.getRegClass(DestReg);
-  const TargetRegisterClass *SrcRC = MRI.getRegClass(SrcReg);
+  
 
-  if (DestRC != SrcRC)
+  if (const TargetRegisterClass *SrcRC = MRI.getRegClass(SrcReg); DestRC != SrcRC)
     report_fatal_error("Copy one register into another with a different width");
 
   unsigned Op;

@@ -31,15 +31,15 @@ ExceptionInfoRequestHandler::Run(const ExceptionInfoArguments &args) const {
 
   ExceptionInfoResponseBody response;
   response.breakMode = eExceptionBreakModeAlways;
-  const lldb::StopReason stop_reason = thread.GetStopReason();
-  switch (stop_reason) {
+  
+  switch (const lldb::StopReason stop_reason = thread.GetStopReason(); stop_reason) {
   case lldb::eStopReasonSignal:
     response.exceptionId = "signal";
     break;
   case lldb::eStopReasonBreakpoint: {
-    const ExceptionBreakpoint *exc_bp =
-        dap.GetExceptionBPFromStopReason(thread);
-    if (exc_bp) {
+    
+    if (const ExceptionBreakpoint *exc_bp =
+        dap.GetExceptionBPFromStopReason(thread); exc_bp) {
       response.exceptionId = exc_bp->GetFilter();
       response.description = exc_bp->GetLabel();
     } else {

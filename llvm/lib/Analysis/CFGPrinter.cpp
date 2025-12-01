@@ -212,9 +212,9 @@ bool DOTGraphTraits<DOTFuncInfo *>::isNodeHidden(const BasicBlock *Node,
   if (HideColdPaths.getNumOccurrences() > 0)
     if (auto *BFI = CFGInfo->getBFI()) {
       BlockFrequency NodeFreq = BFI->getBlockFreq(Node);
-      BlockFrequency EntryFreq = BFI->getEntryFreq();
+      
       // Hide blocks with relative frequency below HideColdPaths threshold.
-      if ((double)NodeFreq.getFrequency() / EntryFreq.getFrequency() <
+      if (BlockFrequency EntryFreq = BFI->getEntryFreq(); (double)NodeFreq.getFrequency() / EntryFreq.getFrequency() <
           HideColdPaths)
         return true;
     }

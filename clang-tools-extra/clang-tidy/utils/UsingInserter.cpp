@@ -76,8 +76,8 @@ std::optional<FixItHint> UsingInserter::createUsingDeclaration(
 StringRef UsingInserter::getShortName(ASTContext &Context,
                                       const Stmt &Statement,
                                       StringRef QualifiedName) {
-  const FunctionDecl *Function = getSurroundingFunction(Context, Statement);
-  if (AddedUsing.count(NameInFunction(Function, QualifiedName.str())) != 0)
+  
+  if (const FunctionDecl *Function = getSurroundingFunction(Context, Statement); AddedUsing.count(NameInFunction(Function, QualifiedName.str())) != 0)
     return getUnqualifiedName(QualifiedName);
   return QualifiedName;
 }

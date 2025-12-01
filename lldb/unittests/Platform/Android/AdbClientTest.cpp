@@ -99,8 +99,8 @@ TEST_F(AdbClientTest, AdbSyncService_OperationsFailWhenNotConnected) {
 
 static uint16_t FindUnusedPort() {
   auto temp_socket = std::make_unique<TCPSocket>(true);
-  Status error = temp_socket->Listen("localhost:0", 1);
-  if (error.Fail()) {
+  
+  if (Status error = temp_socket->Listen("localhost:0", 1); error.Fail()) {
     return 0; // fallback
   }
   uint16_t port = temp_socket->GetLocalPortNumber();

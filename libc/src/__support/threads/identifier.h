@@ -39,8 +39,8 @@ LIBC_INLINE pid_t gettid() {
 }
 
 LIBC_INLINE void force_set_tid(pid_t tid) {
-  pid_t *cache = get_tid_cache();
-  if (cache)
+  
+  if (pid_t *cache = get_tid_cache(); cache)
     *cache = tid;
 }
 

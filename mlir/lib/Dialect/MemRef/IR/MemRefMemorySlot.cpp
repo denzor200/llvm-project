@@ -289,8 +289,8 @@ struct MemRefDestructurableTypeExternalModel
   std::optional<DenseMap<Attribute, Type>>
   getSubelementIndexMap(Type type) const {
     auto memrefType = llvm::cast<MemRefType>(type);
-    constexpr int64_t maxMemrefSizeForDestructuring = 16;
-    if (!memrefType.hasStaticShape() ||
+    
+    if (constexpr int64_t maxMemrefSizeForDestructuring = 16; !memrefType.hasStaticShape() ||
         memrefType.getNumElements() > maxMemrefSizeForDestructuring ||
         memrefType.getNumElements() == 1)
       return {};
@@ -313,8 +313,8 @@ struct MemRefDestructurableTypeExternalModel
     Type indexType = IndexType::get(memrefType.getContext());
     for (const auto &[coordAttr, dimSize] :
          llvm::zip(coordArrAttr, memrefType.getShape())) {
-      auto coord = llvm::dyn_cast<IntegerAttr>(coordAttr);
-      if (!coord || coord.getType() != indexType || coord.getInt() < 0 ||
+      
+      if (auto coord = llvm::dyn_cast<IntegerAttr>(coordAttr); !coord || coord.getType() != indexType || coord.getInt() < 0 ||
           coord.getInt() >= dimSize)
         return {};
     }

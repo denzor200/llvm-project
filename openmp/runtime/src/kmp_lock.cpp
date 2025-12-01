@@ -135,8 +135,8 @@ static int __kmp_acquire_tas_lock_with_checks(kmp_tas_lock_t *lck,
 
 int __kmp_test_tas_lock(kmp_tas_lock_t *lck, kmp_int32 gtid) {
   kmp_int32 tas_free = KMP_LOCK_FREE(tas);
-  kmp_int32 tas_busy = KMP_LOCK_BUSY(gtid + 1, tas);
-  if (KMP_ATOMIC_LD_RLX(&lck->lk.poll) == tas_free &&
+  
+  if (kmp_int32 tas_busy = KMP_LOCK_BUSY(gtid + 1, tas); KMP_ATOMIC_LD_RLX(&lck->lk.poll) == tas_free &&
       __kmp_atomic_compare_store_acq(&lck->lk.poll, tas_free, tas_busy)) {
     KMP_FSYNC_ACQUIRED(lck);
     return TRUE;
@@ -146,8 +146,8 @@ int __kmp_test_tas_lock(kmp_tas_lock_t *lck, kmp_int32 gtid) {
 
 static int __kmp_test_tas_lock_with_checks(kmp_tas_lock_t *lck,
                                            kmp_int32 gtid) {
-  char const *const func = "omp_test_lock";
-  if ((sizeof(kmp_tas_lock_t) <= OMP_LOCK_T_SIZE) &&
+  
+  if (char const *const func = "omp_test_lock"; (sizeof(kmp_tas_lock_t) <= OMP_LOCK_T_SIZE) &&
       __kmp_is_tas_lock_nestable(lck)) {
     KMP_FATAL(LockNestableUsedAsSimple, func);
   }
@@ -218,8 +218,8 @@ int __kmp_acquire_nested_tas_lock(kmp_tas_lock_t *lck, kmp_int32 gtid) {
 
 static int __kmp_acquire_nested_tas_lock_with_checks(kmp_tas_lock_t *lck,
                                                      kmp_int32 gtid) {
-  char const *const func = "omp_set_nest_lock";
-  if (!__kmp_is_tas_lock_nestable(lck)) {
+  
+  if (char const *const func = "omp_set_nest_lock"; !__kmp_is_tas_lock_nestable(lck)) {
     KMP_FATAL(LockSimpleUsedAsNestable, func);
   }
   return __kmp_acquire_nested_tas_lock(lck, gtid);
@@ -243,8 +243,8 @@ int __kmp_test_nested_tas_lock(kmp_tas_lock_t *lck, kmp_int32 gtid) {
 
 static int __kmp_test_nested_tas_lock_with_checks(kmp_tas_lock_t *lck,
                                                   kmp_int32 gtid) {
-  char const *const func = "omp_test_nest_lock";
-  if (!__kmp_is_tas_lock_nestable(lck)) {
+  
+  if (char const *const func = "omp_test_nest_lock"; !__kmp_is_tas_lock_nestable(lck)) {
     KMP_FATAL(LockSimpleUsedAsNestable, func);
   }
   return __kmp_test_nested_tas_lock(lck, gtid);
@@ -374,8 +374,8 @@ __kmp_acquire_futex_lock_timed_template(kmp_futex_lock_t *lck, kmp_int32 gtid) {
         ("__kmp_acquire_futex_lock: lck:%p, T#%d before futex_wait(0x%x)\n",
          lck, gtid, poll_val));
 
-    long rc;
-    if ((rc = syscall(__NR_futex, &(lck->lk.poll), FUTEX_WAIT, poll_val, NULL,
+    
+    if (long rc; (rc = syscall(__NR_futex, &(lck->lk.poll), FUTEX_WAIT, poll_val, NULL,
                       NULL, 0)) != 0) {
       KA_TRACE(1000, ("__kmp_acquire_futex_lock: lck:%p, T#%d futex_wait(0x%x) "
                       "failed (rc=%ld errno=%d)\n",
@@ -427,8 +427,8 @@ int __kmp_test_futex_lock(kmp_futex_lock_t *lck, kmp_int32 gtid) {
 
 static int __kmp_test_futex_lock_with_checks(kmp_futex_lock_t *lck,
                                              kmp_int32 gtid) {
-  char const *const func = "omp_test_lock";
-  if ((sizeof(kmp_futex_lock_t) <= OMP_LOCK_T_SIZE) &&
+  
+  if (char const *const func = "omp_test_lock"; (sizeof(kmp_futex_lock_t) <= OMP_LOCK_T_SIZE) &&
       __kmp_is_futex_lock_nestable(lck)) {
     KMP_FATAL(LockNestableUsedAsSimple, func);
   }
@@ -519,8 +519,8 @@ int __kmp_acquire_nested_futex_lock(kmp_futex_lock_t *lck, kmp_int32 gtid) {
 
 static int __kmp_acquire_nested_futex_lock_with_checks(kmp_futex_lock_t *lck,
                                                        kmp_int32 gtid) {
-  char const *const func = "omp_set_nest_lock";
-  if (!__kmp_is_futex_lock_nestable(lck)) {
+  
+  if (char const *const func = "omp_set_nest_lock"; !__kmp_is_futex_lock_nestable(lck)) {
     KMP_FATAL(LockSimpleUsedAsNestable, func);
   }
   return __kmp_acquire_nested_futex_lock(lck, gtid);
@@ -544,8 +544,8 @@ int __kmp_test_nested_futex_lock(kmp_futex_lock_t *lck, kmp_int32 gtid) {
 
 static int __kmp_test_nested_futex_lock_with_checks(kmp_futex_lock_t *lck,
                                                     kmp_int32 gtid) {
-  char const *const func = "omp_test_nest_lock";
-  if (!__kmp_is_futex_lock_nestable(lck)) {
+  
+  if (char const *const func = "omp_test_nest_lock"; !__kmp_is_futex_lock_nestable(lck)) {
     KMP_FATAL(LockSimpleUsedAsNestable, func);
   }
   return __kmp_test_nested_futex_lock(lck, gtid);
@@ -672,13 +672,13 @@ static int __kmp_acquire_ticket_lock_with_checks(kmp_ticket_lock_t *lck,
 }
 
 int __kmp_test_ticket_lock(kmp_ticket_lock_t *lck, kmp_int32 gtid) {
-  kmp_uint32 my_ticket = std::atomic_load_explicit(&lck->lk.next_ticket,
-                                                   std::memory_order_relaxed);
+  
 
-  if (std::atomic_load_explicit(&lck->lk.now_serving,
+  if (kmp_uint32 my_ticket = std::atomic_load_explicit(&lck->lk.next_ticket,
+                                                   std::memory_order_relaxed); std::atomic_load_explicit(&lck->lk.now_serving,
                                 std::memory_order_relaxed) == my_ticket) {
-    kmp_uint32 next_ticket = my_ticket + 1;
-    if (std::atomic_compare_exchange_strong_explicit(
+    
+    if (kmp_uint32 next_ticket = my_ticket + 1; std::atomic_compare_exchange_strong_explicit(
             &lck->lk.next_ticket, &my_ticket, next_ticket,
             std::memory_order_acquire, std::memory_order_acquire)) {
       return TRUE;
@@ -1966,8 +1966,8 @@ __kmp_update_badness_after_success(kmp_adaptive_lock_t *lck) {
 
 // Create a bit mask with one more set bit.
 static __inline void __kmp_step_badness(kmp_adaptive_lock_t *lck) {
-  kmp_uint32 newBadness = (lck->lk.adaptive.badness << 1) | 1;
-  if (newBadness > lck->lk.adaptive.max_badness) {
+  
+  if (kmp_uint32 newBadness = (lck->lk.adaptive.badness << 1) | 1; newBadness > lck->lk.adaptive.max_badness) {
     return;
   } else {
     lck->lk.adaptive.badness = newBadness;
@@ -1996,12 +1996,12 @@ static int __kmp_test_adaptive_lock_only(kmp_adaptive_lock_t *lck,
   // total number of times we started speculation since all speculations must
   // end one of those ways.
   do {
-    kmp_uint32 status = _xbegin();
+    
     // Switch this in to disable actual speculation but exercise at least some
     // of the rest of the code. Useful for debugging...
     // kmp_uint32 status = _XABORT_NESTED;
 
-    if (status == _XBEGIN_STARTED) {
+    if (kmp_uint32 status = _xbegin(); status == _XBEGIN_STARTED) {
       /* We have successfully started speculation. Check that no-one acquired
          the lock for real between when we last looked and now. This also gets
          the lock cache line into our read-set, which we need so that we'll
@@ -2056,8 +2056,8 @@ static int __kmp_test_adaptive_lock(kmp_adaptive_lock_t *lck, kmp_int32 gtid) {
 
 static int __kmp_test_adaptive_lock_with_checks(kmp_adaptive_lock_t *lck,
                                                 kmp_int32 gtid) {
-  char const *const func = "omp_test_lock";
-  if (lck->lk.qlk.initialized != GET_QLK_PTR(lck)) {
+  
+  if (char const *const func = "omp_test_lock"; lck->lk.qlk.initialized != GET_QLK_PTR(lck)) {
     KMP_FATAL(LockIsUninitialized, func);
   }
 
@@ -2286,8 +2286,8 @@ __kmp_acquire_drdpa_lock_timed_template(kmp_drdpa_lock_t *lck, kmp_int32 gtid) {
       // We are in under/fully subscribed mode.  Check the number of
       // threads waiting on the lock.  The size of the polling area
       // should be at least the number of threads waiting.
-      kmp_uint64 num_waiting = TCR_8(lck->lk.next_ticket) - ticket - 1;
-      if (num_waiting > num_polls) {
+      
+      if (kmp_uint64 num_waiting = TCR_8(lck->lk.next_ticket) - ticket - 1; num_waiting > num_polls) {
         kmp_uint32 old_num_polls = num_polls;
         reconfigure = true;
         do {
@@ -2371,10 +2371,10 @@ int __kmp_test_drdpa_lock(kmp_drdpa_lock_t *lck, kmp_int32 gtid) {
   // The polls pointer must be read before the mask!!! (See above)
   kmp_uint64 ticket = lck->lk.next_ticket; // atomic load
   std::atomic<kmp_uint64> *polls = lck->lk.polls;
-  kmp_uint64 mask = lck->lk.mask; // atomic load
-  if (polls[ticket & mask] == ticket) {
-    kmp_uint64 next_ticket = ticket + 1;
-    if (__kmp_atomic_compare_store_acq(&lck->lk.next_ticket, ticket,
+  // atomic load
+  if (kmp_uint64 mask = lck->lk.mask; polls[ticket & mask] == ticket) {
+    
+    if (kmp_uint64 next_ticket = ticket + 1; __kmp_atomic_compare_store_acq(&lck->lk.next_ticket, ticket,
                                        next_ticket)) {
       KMP_FSYNC_ACQUIRED(lck);
       KA_TRACE(1000, ("__kmp_test_drdpa_lock: ticket #%lld acquired lock %p\n",
@@ -2660,9 +2660,9 @@ void __kmp_spin_backoff(kmp_backoff_t *boff) {
   // We could flatten this loop, but making it a nested loop gives better result
   kmp_uint32 i;
   for (i = boff->step; i > 0; i--) {
-    kmp_uint64 goal = __kmp_tsc() + boff->min_tick;
+    
 #if KMP_HAVE_UMWAIT
-    if (__kmp_umwait_enabled) {
+    if (kmp_uint64 goal = __kmp_tsc() + boff->min_tick; __kmp_umwait_enabled) {
       __kmp_tpause(0, boff->min_tick);
     } else {
 #endif
@@ -3441,8 +3441,8 @@ void __kmp_cleanup_indirect_user_locks() {
       if (!ptr->table[row])
         continue;
       for (kmp_uint32 col = 0; col < KMP_I_LOCK_CHUNK; ++col) {
-        kmp_indirect_lock_t *l = &ptr->table[row][col];
-        if (l->lock) {
+        
+        if (kmp_indirect_lock_t *l = &ptr->table[row][col]; l->lock) {
           // Locks not destroyed explicitly need to be destroyed here.
           KMP_I_LOCK_FUNC(l, destroy)(l->lock);
           KA_TRACE(20, ("__kmp_cleanup_indirect_user_locks: destroy/freeing %p "

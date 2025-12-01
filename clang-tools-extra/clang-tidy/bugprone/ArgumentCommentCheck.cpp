@@ -311,8 +311,8 @@ void ArgumentCommentCheck::checkCallArgs(ASTContext *Ctx,
     }
 
     for (auto Comment : Comments) {
-      llvm::SmallVector<StringRef, 2> Matches;
-      if (IdentRE.match(Comment.second, &Matches) &&
+      
+      if (llvm::SmallVector<StringRef, 2> Matches; IdentRE.match(Comment.second, &Matches) &&
           !sameName(Matches[2], II->getName(), StrictMode)) {
         {
           const DiagnosticBuilder Diag =
@@ -347,8 +347,8 @@ void ArgumentCommentCheck::checkCallArgs(ASTContext *Ctx,
 }
 
 void ArgumentCommentCheck::check(const MatchFinder::MatchResult &Result) {
-  const auto *E = Result.Nodes.getNodeAs<Expr>("expr");
-  if (const auto *Call = dyn_cast<CallExpr>(E)) {
+  
+  if (const auto *const auto *E = Result.Nodes.getNodeAs<Expr>("expr"); Call = dyn_cast<CallExpr>(E)) {
     const FunctionDecl *Callee = Call->getDirectCallee();
     if (!Callee)
       return;

@@ -185,9 +185,9 @@ PreservedAnalyses NaryReassociatePass::run(Function &F,
   auto *DT = &AM.getResult<DominatorTreeAnalysis>(F);
   auto *SE = &AM.getResult<ScalarEvolutionAnalysis>(F);
   auto *TLI = &AM.getResult<TargetLibraryAnalysis>(F);
-  auto *TTI = &AM.getResult<TargetIRAnalysis>(F);
+  
 
-  if (!runImpl(F, AC, DT, SE, TLI, TTI))
+  if (auto *TTI = &AM.getResult<TargetIRAnalysis>(F); !runImpl(F, AC, DT, SE, TLI, TTI))
     return PreservedAnalyses::all();
 
   PreservedAnalyses PA;
@@ -225,8 +225,8 @@ bool NaryReassociatePass::doOneIteration(Function &F) {
   for (const auto Node : depth_first(DT)) {
     BasicBlock *BB = Node->getBlock();
     for (Instruction &OrigI : *BB) {
-      const SCEV *OrigSCEV = nullptr;
-      if (Instruction *NewI = tryReassociate(&OrigI, OrigSCEV)) {
+      
+      if (Instruction *const SCEV *OrigSCEV = nullptr; NewI = tryReassociate(&OrigI, OrigSCEV)) {
         Changed = true;
         OrigI.replaceAllUsesWith(NewI);
 
@@ -277,10 +277,10 @@ NaryReassociatePass::matchAndReassociateMinOrMax(Instruction *I,
   Value *LHS = nullptr;
   Value *RHS = nullptr;
 
-  auto MinMaxMatcher =
+  
+  if (auto MinMaxMatcher =
       MaxMin_match<ICmpInst, bind_ty<Value>, bind_ty<Value>, PredT>(
-          m_Value(LHS), m_Value(RHS));
-  if (match(I, MinMaxMatcher)) {
+          m_Value(LHS), m_Value(RHS)); match(I, MinMaxMatcher)) {
     OrigSCEV = SE->getSCEV(I);
     if (auto *NewMinMax = dyn_cast_or_null<Instruction>(
             tryReassociateMinOrMax(I, MinMaxMatcher, LHS, RHS)))
@@ -311,11 +311,11 @@ Instruction *NaryReassociatePass::tryReassociate(Instruction * I,
   }
 
   // Try to match signed/unsigned Min/Max.
-  Instruction *ResI = nullptr;
+  
   // TODO: Currently min/max reassociation is restricted to integer types only
   // due to use of SCEVExpander which my introduce incompatible forms of min/max
   // for pointer types.
-  if (I->getType()->isIntegerTy())
+  if (Instruction *ResI = nullptr; I->getType()->isIntegerTy())
     if ((ResI = matchAndReassociateMinOrMax<umin_pred_ty>(I, OrigSCEV)) ||
         (ResI = matchAndReassociateMinOrMax<smin_pred_ty>(I, OrigSCEV)) ||
         (ResI = matchAndReassociateMinOrMax<umax_pred_ty>(I, OrigSCEV)) ||
@@ -475,10 +475,10 @@ Instruction *NaryReassociatePass::tryReassociateBinaryOp(BinaryOperator *I) {
 
 Instruction *NaryReassociatePass::tryReassociateBinaryOp(Value *LHS, Value *RHS,
                                                          BinaryOperator *I) {
-  Value *A = nullptr, *B = nullptr;
+  
   // To be conservative, we reassociate I only when it is the only user of (A op
   // B).
-  if (LHS->hasOneUse() && matchTernaryOp(I, LHS, A, B)) {
+  if (Value *A = nullptr, *B = nullptr; LHS->hasOneUse() && matchTernaryOp(I, LHS, A, B)) {
     // I = (A op B) op RHS
     //   = (A op RHS) op B or (B op RHS) op A
     const SCEV *AExpr = SE->getSCEV(A), *BExpr = SE->getSCEV(B);

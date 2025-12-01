@@ -65,8 +65,8 @@ static APFloat fmed3AMDGCN(const APFloat &Src0, const APFloat &Src1,
 // The value is expected to be either a float (IsFloat = true) or an unsigned
 // integer (IsFloat = false).
 static bool canSafelyConvertTo16Bit(Value &V, bool IsFloat) {
-  Type *VTy = V.getType();
-  if (VTy->isHalfTy() || VTy->isIntegerTy(16)) {
+  
+  if (Type *VTy = V.getType(); VTy->isHalfTy() || VTy->isIntegerTy(16)) {
     // The value is already 16-bit, so we don't want to convert to 16-bit again!
     return false;
   }
@@ -93,8 +93,8 @@ static bool canSafelyConvertTo16Bit(Value &V, bool IsFloat) {
   bool IsExt = IsFloat ? match(&V, m_FPExt(PatternMatch::m_Value(CastSrc)))
                        : match(&V, m_ZExt(PatternMatch::m_Value(CastSrc)));
   if (IsExt) {
-    Type *CastSrcTy = CastSrc->getType();
-    if (CastSrcTy->isHalfTy() || CastSrcTy->isIntegerTy(16))
+    
+    if (Type *CastSrcTy = CastSrc->getType(); CastSrcTy->isHalfTy() || CastSrcTy->isIntegerTy(16))
       return true;
   }
 
@@ -226,18 +226,18 @@ simplifyAMDGCNImageIntrinsic(const GCNSubtarget *ST,
   // Try to use D16
   if (ST->hasD16Images()) {
 
-    const AMDGPU::MIMGBaseOpcodeInfo *BaseOpcode =
-        AMDGPU::getMIMGBaseOpcodeInfo(ImageDimIntr->BaseOpcode);
+    
 
-    if (BaseOpcode->HasD16) {
+    if (const AMDGPU::MIMGBaseOpcodeInfo *BaseOpcode =
+        AMDGPU::getMIMGBaseOpcodeInfo(ImageDimIntr->BaseOpcode); BaseOpcode->HasD16) {
 
       // If the only use of image intrinsic is a fptrunc (with conversion to
       // half) then both fptrunc and image intrinsic will be replaced with image
       // intrinsic with D16 flag.
       if (II.hasOneUse()) {
-        Instruction *User = II.user_back();
+        
 
-        if (User->getOpcode() == Instruction::FPTrunc &&
+        if (Instruction *User = II.user_back(); User->getOpcode() == Instruction::FPTrunc &&
             User->getType()->getScalarType()->isHalfTy()) {
 
           return modifyIntrinsicCall(II, *User, ImageDimIntr->Intr, IC,
@@ -413,8 +413,8 @@ bool GCNTTIImpl::canSimplifyLegacyMulToMul(const Instruction &I,
 /// Match an fpext from half to float, or a constant we can convert.
 static Value *matchFPExtFromF16(Value *Arg) {
   Value *Src = nullptr;
-  ConstantFP *CFP = nullptr;
-  if (match(Arg, m_OneUse(m_FPExt(m_Value(Src))))) {
+  
+  if (ConstantFP *CFP = nullptr; match(Arg, m_OneUse(m_FPExt(m_Value(Src))))) {
     if (Src->getType()->isHalfTy())
       return Src;
   } else if (match(Arg, m_ConstantFP(CFP))) {
@@ -467,8 +467,8 @@ static APInt defaultComponentBroadcast(Value *V) {
 
   for (int I = VWidth - 1; I > 0; --I) {
     if (ShuffleMask.empty()) {
-      auto *Elt = findScalarElement(V, I);
-      if (!Elt || (Elt != FirstComponent && !isa<UndefValue>(Elt)))
+      
+      if (auto *Elt = findScalarElement(V, I); !Elt || (Elt != FirstComponent && !isa<UndefValue>(Elt)))
         break;
     } else {
       // Detect identical elements in the shufflevector result, even though
@@ -637,8 +637,8 @@ GCNTTIImpl::hoistLaneIntrinsicThroughOperand(InstCombiner &IC,
 
 std::optional<Instruction *>
 GCNTTIImpl::instCombineIntrinsic(InstCombiner &IC, IntrinsicInst &II) const {
-  Intrinsic::ID IID = II.getIntrinsicID();
-  switch (IID) {
+  
+  switch (Intrinsic::ID IID = II.getIntrinsicID(); IID) {
   case Intrinsic::amdgcn_rcp: {
     Value *Src = II.getArgOperand(0);
     if (isa<PoisonValue>(Src))
@@ -776,10 +776,10 @@ GCNTTIImpl::instCombineIntrinsic(InstCombiner &IC, IntrinsicInst &II) const {
     Value *Src = II.getArgOperand(0);
     if (const ConstantFP *C = dyn_cast<ConstantFP>(Src)) {
       int Exp;
-      APFloat Significand =
-          frexp(C->getValueAPF(), Exp, APFloat::rmNearestTiesToEven);
+      
 
-      if (IID == Intrinsic::amdgcn_frexp_mant) {
+      if (APFloat Significand =
+          frexp(C->getValueAPF(), Exp, APFloat::rmNearestTiesToEven); IID == Intrinsic::amdgcn_frexp_mant) {
         return IC.replaceInstUsesWith(
             II, ConstantFP::get(II.getContext(), Significand));
       }
@@ -803,8 +803,8 @@ GCNTTIImpl::instCombineIntrinsic(InstCombiner &IC, IntrinsicInst &II) const {
   case Intrinsic::amdgcn_class: {
     Value *Src0 = II.getArgOperand(0);
     Value *Src1 = II.getArgOperand(1);
-    const ConstantInt *CMask = dyn_cast<ConstantInt>(Src1);
-    if (CMask) {
+    
+    if (const ConstantInt *CMask = dyn_cast<ConstantInt>(Src1); CMask) {
       II.setCalledOperand(Intrinsic::getOrInsertDeclaration(
           II.getModule(), Intrinsic::is_fpclass, Src0->getType()));
 
@@ -983,8 +983,8 @@ GCNTTIImpl::instCombineIntrinsic(InstCombiner &IC, IntrinsicInst &II) const {
     for (int I = 0; I < (IsCompr ? 2 : 4); ++I) {
       if ((!IsCompr && (EnBits & (1 << I)) == 0) ||
           (IsCompr && ((EnBits & (0x3 << (2 * I))) == 0))) {
-        Value *Src = II.getArgOperand(I + 2);
-        if (!isa<PoisonValue>(Src)) {
+        
+        if (Value *Src = II.getArgOperand(I + 2); !isa<PoisonValue>(Src)) {
           IC.replaceOperand(II, I + 2, PoisonValue::get(Src->getType()));
           Changed = true;
         }
@@ -1046,13 +1046,13 @@ GCNTTIImpl::instCombineIntrinsic(InstCombiner &IC, IntrinsicInst &II) const {
     Value *V = nullptr;
     const APFloat *ConstSrc0 = nullptr;
     const APFloat *ConstSrc1 = nullptr;
-    const APFloat *ConstSrc2 = nullptr;
+    
 
-    if ((match(Src0, m_APFloat(ConstSrc0)) &&
+    if (const APFloat *ConstSrc2 = nullptr; (match(Src0, m_APFloat(ConstSrc0)) &&
          (ConstSrc0->isNaN() || ConstSrc0->isInfinity())) ||
         isa<UndefValue>(Src0)) {
-      const bool IsPosInfinity = ConstSrc0 && ConstSrc0->isPosInfinity();
-      switch (fpenvIEEEMode(II)) {
+      
+      switch (const bool IsPosInfinity = ConstSrc0 && ConstSrc0->isPosInfinity(); fpenvIEEEMode(II)) {
       case KnownIEEEMode::On:
         // TODO: If Src2 is snan, does it need quieting?
         if (ConstSrc0 && ConstSrc0->isNaN() && ConstSrc0->isSignaling())
@@ -1071,8 +1071,8 @@ GCNTTIImpl::instCombineIntrinsic(InstCombiner &IC, IntrinsicInst &II) const {
     } else if ((match(Src1, m_APFloat(ConstSrc1)) &&
                 (ConstSrc1->isNaN() || ConstSrc1->isInfinity())) ||
                isa<UndefValue>(Src1)) {
-      const bool IsPosInfinity = ConstSrc1 && ConstSrc1->isPosInfinity();
-      switch (fpenvIEEEMode(II)) {
+      
+      switch (const bool IsPosInfinity = ConstSrc1 && ConstSrc1->isPosInfinity(); fpenvIEEEMode(II)) {
       case KnownIEEEMode::On:
         // TODO: If Src2 is snan, does it need quieting?
         if (ConstSrc1 && ConstSrc1->isNaN() && ConstSrc1->isSignaling())
@@ -1179,8 +1179,8 @@ GCNTTIImpl::instCombineIntrinsic(InstCombiner &IC, IntrinsicInst &II) const {
     const ConstantInt *CC = cast<ConstantInt>(II.getArgOperand(2));
     // Guard against invalid arguments.
     int64_t CCVal = CC->getZExtValue();
-    bool IsInteger = IID == Intrinsic::amdgcn_icmp;
-    if ((IsInteger && (CCVal < CmpInst::FIRST_ICMP_PREDICATE ||
+    
+    if (bool IsInteger = IID == Intrinsic::amdgcn_icmp; (IsInteger && (CCVal < CmpInst::FIRST_ICMP_PREDICATE ||
                        CCVal > CmpInst::LAST_ICMP_PREDICATE)) ||
         (!IsInteger && (CCVal < CmpInst::FIRST_FCMP_PREDICATE ||
                         CCVal > CmpInst::LAST_FCMP_PREDICATE)))
@@ -1191,9 +1191,9 @@ GCNTTIImpl::instCombineIntrinsic(InstCombiner &IC, IntrinsicInst &II) const {
 
     if (auto *CSrc0 = dyn_cast<Constant>(Src0)) {
       if (auto *CSrc1 = dyn_cast<Constant>(Src1)) {
-        Constant *CCmp = ConstantFoldCompareInstOperands(
-            (ICmpInst::Predicate)CCVal, CSrc0, CSrc1, DL);
-        if (CCmp && CCmp->isNullValue()) {
+        
+        if (Constant *CCmp = ConstantFoldCompareInstOperands(
+            (ICmpInst::Predicate)CCVal, CSrc0, CSrc1, DL); CCmp && CCmp->isNullValue()) {
           return IC.replaceInstUsesWith(
               II, IC.Builder.CreateSExt(CCmp, II.getType()));
         }
@@ -1269,8 +1269,8 @@ GCNTTIImpl::instCombineIntrinsic(InstCombiner &IC, IntrinsicInst &II) const {
                                  ? Intrinsic::amdgcn_fcmp
                                  : Intrinsic::amdgcn_icmp;
 
-      Type *Ty = SrcLHS->getType();
-      if (auto *CmpType = dyn_cast<IntegerType>(Ty)) {
+      
+      if (auto *Type *Ty = SrcLHS->getType(); CmpType = dyn_cast<IntegerType>(Ty)) {
         // Promote to next legal integer type.
         unsigned Width = CmpType->getBitWidth();
         unsigned NewWidth = Width;
@@ -1289,8 +1289,8 @@ GCNTTIImpl::instCombineIntrinsic(InstCombiner &IC, IntrinsicInst &II) const {
           break; // Can't handle this.
 
         if (Width != NewWidth) {
-          IntegerType *CmpTy = IC.Builder.getIntNTy(NewWidth);
-          if (CmpInst::isSigned(SrcPred)) {
+          
+          if (IntegerType *CmpTy = IC.Builder.getIntNTy(NewWidth); CmpInst::isSigned(SrcPred)) {
             SrcLHS = IC.Builder.CreateSExt(SrcLHS, CmpTy);
             SrcRHS = IC.Builder.CreateSExt(SrcRHS, CmpTy);
           } else {
@@ -1357,8 +1357,8 @@ GCNTTIImpl::instCombineIntrinsic(InstCombiner &IC, IntrinsicInst &II) const {
     return IC.replaceInstUsesWith(II, II.getArgOperand(0));
   }
   case Intrinsic::amdgcn_kill: {
-    const ConstantInt *C = dyn_cast<ConstantInt>(II.getArgOperand(0));
-    if (!C || !C->getZExtValue())
+    
+    if (const ConstantInt *C = dyn_cast<ConstantInt>(II.getArgOperand(0)); !C || !C->getZExtValue())
       break;
 
     // amdgcn.kill(i1 1) is a no-op
@@ -1369,8 +1369,8 @@ GCNTTIImpl::instCombineIntrinsic(InstCombiner &IC, IntrinsicInst &II) const {
 
     auto *BC = cast<ConstantInt>(II.getArgOperand(5));
     auto *RM = cast<ConstantInt>(II.getArgOperand(3));
-    auto *BM = cast<ConstantInt>(II.getArgOperand(4));
-    if (BC->isZeroValue() || RM->getZExtValue() != 0xF ||
+    
+    if (auto *BM = cast<ConstantInt>(II.getArgOperand(4)); BC->isZeroValue() || RM->getZExtValue() != 0xF ||
         BM->getZExtValue() != 0xF || isa<PoisonValue>(Old))
       break;
 
@@ -1422,8 +1422,8 @@ GCNTTIImpl::instCombineIntrinsic(InstCombiner &IC, IntrinsicInst &II) const {
     // generates better code and can enable further optimizations because
     // readlane is AlwaysUniform.
     if (IID == Intrinsic::amdgcn_ds_bpermute) {
-      const Use &Lane = II.getArgOperandUse(0);
-      if (isTriviallyUniform(Lane)) {
+      
+      if (const Use &Lane = II.getArgOperandUse(0); isTriviallyUniform(Lane)) {
         Value *NewLane = IC.Builder.CreateLShr(Lane, 2);
         Function *NewDecl = Intrinsic::getOrInsertDeclaration(
             II.getModule(), Intrinsic::amdgcn_readlane, II.getType());
@@ -1589,8 +1589,8 @@ GCNTTIImpl::instCombineIntrinsic(InstCombiner &IC, IntrinsicInst &II) const {
     break;
   }
   case Intrinsic::amdgcn_make_buffer_rsrc: {
-    Value *Src = II.getArgOperand(0);
-    if (isa<PoisonValue>(Src))
+    
+    if (Value *Src = II.getArgOperand(0); isa<PoisonValue>(Src))
       return IC.replaceInstUsesWith(II, PoisonValue::get(II.getType()));
     return std::nullopt;
   }
@@ -1632,8 +1632,8 @@ GCNTTIImpl::instCombineIntrinsic(InstCombiner &IC, IntrinsicInst &II) const {
     break;
   }
   case Intrinsic::amdgcn_prng_b32: {
-    auto *Src = II.getArgOperand(0);
-    if (isa<UndefValue>(Src)) {
+    
+    if (auto *Src = II.getArgOperand(0); isa<UndefValue>(Src)) {
       return IC.replaceInstUsesWith(II, Src);
     }
     return std::nullopt;
@@ -1837,8 +1837,8 @@ static Value *simplifyAMDGCNMemoryIntrinsicDemanded(InstCombiner &IC,
     unsigned NewDMaskVal = 0;
     unsigned OrigLdStIdx = 0;
     for (unsigned SrcIdx = 0; SrcIdx < 4; ++SrcIdx) {
-      const unsigned Bit = 1 << SrcIdx;
-      if (!!(DMaskVal & Bit)) {
+      
+      if (const unsigned Bit = 1 << SrcIdx; !!(DMaskVal & Bit)) {
         if (!!DemandedElts[OrigLdStIdx])
           NewDMaskVal |= Bit;
         OrigLdStIdx++;

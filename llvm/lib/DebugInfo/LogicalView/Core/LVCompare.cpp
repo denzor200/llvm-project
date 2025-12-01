@@ -86,8 +86,8 @@ void updateExpected(LVElement *Element) {
 }
 
 void updateMissingOrAdded(LVElement *Element, LVComparePass Pass) {
-  LVCompareInfo::iterator Iter = getResultsEntry(Element);
-  if (Pass == LVComparePass::Missing) {
+  
+  if (LVCompareInfo::iterator Iter = getResultsEntry(Element); Pass == LVComparePass::Missing) {
     ++std::get<getMissing()>(IterTotal->second);
     ++std::get<getMissing()>(Iter->second);
   } else {
@@ -205,8 +205,8 @@ Error LVCompare::execute(LVReader *ReferenceReader, LVReader *TargetReader) {
             if (Pass == LVComparePass::Missing)
               updateExpected(Reference);
             Reference->setIsInCompare();
-            LVElement *CurrentTarget = nullptr;
-            if (llvm::any_of(Targets, [&](auto Target) -> bool {
+            
+            if (LVElement *CurrentTarget = nullptr; llvm::any_of(Targets, [&](auto Target) -> bool {
                   CurrentTarget = Target;
                   return Reference->equals(Target);
                 })) {
@@ -312,8 +312,8 @@ Error LVCompare::execute(LVReader *ReferenceReader, LVReader *TargetReader) {
 
       // We need to find an insertion point in the reference scopes tree.
       Parent = Element->getParentScope();
-      auto It = ScopeLinks.find(Parent);
-      if (It != ScopeLinks.end()) {
+      
+      if (auto It = ScopeLinks.find(Parent); It != ScopeLinks.end()) {
         LVScope *InsertionPoint = It->second;
         LLVM_DEBUG({
           dbgs() << "Inserted at: "

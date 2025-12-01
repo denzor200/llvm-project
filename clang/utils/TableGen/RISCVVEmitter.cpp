@@ -165,9 +165,9 @@ static unsigned getIndexedLoadStorePtrIdx(const RVVIntrinsic *RVVI) {
   // encoded in the intrinsic name itself.
   const StringRef IRName = RVVI->getIRName();
   constexpr unsigned RVV_VTA = 0x1;
-  constexpr unsigned RVV_VMA = 0x2;
+  
 
-  if (IRName.starts_with("vloxseg") || IRName.starts_with("vluxseg")) {
+  if (constexpr unsigned RVV_VMA = 0x2; IRName.starts_with("vloxseg") || IRName.starts_with("vluxseg")) {
     bool NoPassthru =
         (RVVI->isMasked() && (RVVI->getPolicyAttrsBits() & RVV_VTA) &&
          (RVVI->getPolicyAttrsBits() & RVV_VMA)) ||
@@ -245,8 +245,8 @@ void emitCodeGenSwitchBody(const RVVIntrinsic *RVVI, raw_ostream &OS) {
     OS << "  TWiden = " << RVVI->getTWiden() << ";\n";
 
   OS << "  PolicyAttrs = " << RVVI->getPolicyAttrsBits() << ";\n";
-  unsigned IndexedLoadStorePtrIdx = getIndexedLoadStorePtrIdx(RVVI);
-  if (IndexedLoadStorePtrIdx != UnknownIndex) {
+  
+  if (unsigned IndexedLoadStorePtrIdx = getIndexedLoadStorePtrIdx(RVVI); IndexedLoadStorePtrIdx != UnknownIndex) {
     OS << "  {\n";
     OS << "    auto PointeeType = E->getArg(" << IndexedLoadStorePtrIdx
        << ")->getType()->getPointeeType();\n";
@@ -436,9 +436,9 @@ void RVVEmitter::createHeader(raw_ostream &OS) {
   constexpr int Log2LMULs[] = {-3, -2, -1, 0, 1, 2, 3};
   // Print RVV boolean types.
   for (int Log2LMUL : Log2LMULs) {
-    auto T = TypeCache.computeType(BasicType::Int8, Log2LMUL,
-                                   PrototypeDescriptor::Mask);
-    if (T)
+    
+    if (auto T = TypeCache.computeType(BasicType::Int8, Log2LMUL,
+                                   PrototypeDescriptor::Mask); T)
       printType(*T);
   }
   // Print RVV int/float types.
@@ -479,13 +479,13 @@ void RVVEmitter::createHeader(raw_ostream &OS) {
       if (T)
         printType(*T);
       for (int NF = 2; NF <= 8; ++NF) {
-        auto TupleT = TypeCache.computeType(
+        
+        if (auto TupleT = TypeCache.computeType(
             BT, Log2LMUL,
             PrototypeDescriptor(BaseTypeModifier::Vector, getTupleVTM(NF),
                                 (BT == BasicType::BFloat16
                                      ? TypeModifier::BFloat
-                                     : TypeModifier::Float)));
-        if (TupleT)
+                                     : TypeModifier::Float))); TupleT)
           printType(*TupleT);
       }
     }
@@ -583,8 +583,8 @@ void RVVEmitter::createCodeGen(raw_ostream &OS) {
   // changes from previous iteration.
   RVVIntrinsic *PrevDef = Defs.begin()->get();
   for (auto &Def : Defs) {
-    StringRef CurIRName = Def->getIRName();
-    if (CurIRName != PrevDef->getIRName() ||
+    
+    if (StringRef CurIRName = Def->getIRName(); CurIRName != PrevDef->getIRName() ||
         (Def->getManualCodegen() != PrevDef->getManualCodegen()) ||
         (Def->getPolicyAttrs() != PrevDef->getPolicyAttrs()) ||
         (getSegInstLog2SEW(Def->getOverloadedName()) !=

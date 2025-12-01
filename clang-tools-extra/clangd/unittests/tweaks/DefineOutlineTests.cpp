@@ -957,8 +957,8 @@ inline void Foo::neighbor() {}
     llvm::Annotations Hdr(Case.HeaderBefore);
     Workspace.addSource("a.hpp", Hdr.code());
     Workspace.addMainFile("a.cpp", Case.SourceBefore);
-    auto Result = apply("a.hpp", {Hdr.point(), Hdr.point()});
-    if (Case.SourceAfter.empty()) {
+    
+    if (auto Result = apply("a.hpp", {Hdr.point(), Hdr.point()}); Case.SourceAfter.empty()) {
       EXPECT_THAT(Result,
                   AllOf(withStatus("success"),
                         editedFiles(UnorderedElementsAre(FileWithContents(

@@ -202,8 +202,8 @@ std::optional<uint64_t> DbgVariableIntrinsic::getFragmentSizeInBits() const {
 }
 
 Value *DbgAssignIntrinsic::getAddress() const {
-  auto *MD = getRawAddress();
-  if (auto *V = dyn_cast<ValueAsMetadata>(MD))
+  
+  if (auto *auto *MD = getRawAddress(); V = dyn_cast<ValueAsMetadata>(MD))
     return V->getValue();
 
   // When the value goes to null, it gets replaced by an empty MDNode.
@@ -276,8 +276,8 @@ void InstrProfCallsite::setCallee(Value *Callee) {
 std::optional<RoundingMode> ConstrainedFPIntrinsic::getRoundingMode() const {
   unsigned NumOperands = arg_size();
   Metadata *MD = nullptr;
-  auto *MAV = dyn_cast<MetadataAsValue>(getArgOperand(NumOperands - 2));
-  if (MAV)
+  
+  if (auto *MAV = dyn_cast<MetadataAsValue>(getArgOperand(NumOperands - 2)); MAV)
     MD = MAV->getMetadata();
   if (!MD || !isa<MDString>(MD))
     return std::nullopt;
@@ -288,8 +288,8 @@ std::optional<fp::ExceptionBehavior>
 ConstrainedFPIntrinsic::getExceptionBehavior() const {
   unsigned NumOperands = arg_size();
   Metadata *MD = nullptr;
-  auto *MAV = dyn_cast<MetadataAsValue>(getArgOperand(NumOperands - 1));
-  if (MAV)
+  
+  if (auto *MAV = dyn_cast<MetadataAsValue>(getArgOperand(NumOperands - 1)); MAV)
     MD = MAV->getMetadata();
   if (!MD || !isa<MDString>(MD))
     return std::nullopt;
@@ -612,8 +612,8 @@ bool VPIntrinsic::canIgnoreVectorLengthParam() const {
   // Check whether "W == vscale * EC.getKnownMinValue()"
   if (EC.isScalable()) {
     // Compare vscale patterns
-    uint64_t VScaleFactor;
-    if (match(VLParam, m_Mul(m_VScale(), m_ConstantInt(VScaleFactor))))
+    
+    if (uint64_t VScaleFactor; match(VLParam, m_Mul(m_VScale(), m_ConstantInt(VScaleFactor))))
       return VScaleFactor >= EC.getKnownMinValue();
     return (EC.getKnownMinValue() == 1) && match(VLParam, m_VScale());
   }

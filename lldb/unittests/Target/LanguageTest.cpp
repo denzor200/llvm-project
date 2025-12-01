@@ -24,10 +24,10 @@ TEST_F(LanguageTest, SourceLanguage_GetDescription) {
       continue;
 
     auto lang_type = static_cast<lldb::LanguageType>(i);
-    SourceLanguage lang(lang_type);
+    
 
     // eLanguageTypeHIP is not implemented as a DW_LNAME because of a conflict.
-    if (lang_type == lldb::eLanguageTypeHIP)
+    if (SourceLanguage lang(lang_type); lang_type == lldb::eLanguageTypeHIP)
       EXPECT_FALSE(lang);
     else
       EXPECT_TRUE(lang);
@@ -47,9 +47,9 @@ TEST_F(LanguageTest, SourceLanguage_GetDescription) {
   EXPECT_EQ(SourceLanguage(eLanguageTypeMipsAssembler).GetDescription(),
             "Assembly");
 
-  auto next_vendor_language =
-      static_cast<lldb::LanguageType>(eLanguageTypeMipsAssembler + 1);
-  if (next_vendor_language < eNumLanguageTypes)
+  
+  if (auto next_vendor_language =
+      static_cast<lldb::LanguageType>(eLanguageTypeMipsAssembler + 1); next_vendor_language < eNumLanguageTypes)
     EXPECT_NE(SourceLanguage(next_vendor_language).GetDescription(), "Unknown");
 
   EXPECT_EQ(SourceLanguage(eLanguageTypeUnknown).GetDescription(), "Unknown");

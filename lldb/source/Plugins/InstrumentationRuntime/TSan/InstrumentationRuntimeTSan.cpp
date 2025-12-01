@@ -675,8 +675,8 @@ InstrumentationRuntimeTSan::GenerateSummary(StructuredData::ObjectSP report) {
                  ->GetUnsignedIntegerValue();
 
     if (addr != 0) {
-      std::string global_name = GetSymbolNameFromAddress(process_sp, addr);
-      if (!global_name.empty()) {
+      
+      if (std::string global_name = GetSymbolNameFromAddress(process_sp, addr); !global_name.empty()) {
         summary = summary + " at " + global_name;
       } else {
         summary = summary + " at " + Sprintf("0x%llx", addr);
@@ -930,8 +930,8 @@ void InstrumentationRuntimeTSan::Activate() {
 
 void InstrumentationRuntimeTSan::Deactivate() {
   if (GetBreakpointID() != LLDB_INVALID_BREAK_ID) {
-    ProcessSP process_sp = GetProcessSP();
-    if (process_sp) {
+    
+    if (ProcessSP process_sp = GetProcessSP(); process_sp) {
       process_sp->GetTarget().RemoveBreakpointByID(GetBreakpointID());
       SetBreakpointID(LLDB_INVALID_BREAK_ID);
     }

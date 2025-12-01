@@ -380,8 +380,8 @@ void DWARFFormValue::Dump(Stream &s) const {
         break;
       }
 
-      const uint8_t *data_ptr = m_value.data;
-      if (data_ptr) {
+      
+      if (const uint8_t *data_ptr = m_value.data; data_ptr) {
         const uint8_t *end_data_ptr =
             data_ptr + uvalue; // uvalue contains size of block
         while (data_ptr < end_data_ptr) {
@@ -401,8 +401,8 @@ void DWARFFormValue::Dump(Stream &s) const {
     break;
   case DW_FORM_strp:
   case DW_FORM_line_strp: {
-    const char *dbg_str = AsCString();
-    if (dbg_str) {
+    
+    if (const char *dbg_str = AsCString(); dbg_str) {
       s.QuotedCString(dbg_str);
     } else {
       s.PutHex32(uvalue);
@@ -496,8 +496,8 @@ dw_addr_t DWARFFormValue::Address() const {
 
 std::pair<DWARFUnit *, uint64_t>
 DWARFFormValue::ReferencedUnitAndOffset() const {
-  uint64_t value = m_value.uval;
-  switch (m_form) {
+  
+  switch (uint64_t value = m_value.uval; m_form) {
   case DW_FORM_ref1:
   case DW_FORM_ref2:
   case DW_FORM_ref4:
@@ -544,8 +544,8 @@ DWARFDIE DWARFFormValue::Reference() const {
 }
 
 uint64_t DWARFFormValue::Reference(dw_offset_t base_offset) const {
-  uint64_t value = m_value.uval;
-  switch (m_form) {
+  
+  switch (uint64_t value = m_value.uval; m_form) {
   case DW_FORM_ref1:
   case DW_FORM_ref2:
   case DW_FORM_ref4:

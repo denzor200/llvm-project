@@ -411,10 +411,10 @@ public:
 
   void setThunkLinkage(llvm::Function *Thunk, bool ForVTable,
                        GlobalDecl GD, bool ReturnAdjustment) override {
-    GVALinkage Linkage =
-        getContext().GetGVALinkageForFunction(cast<FunctionDecl>(GD.getDecl()));
+    
 
-    if (Linkage == GVA_Internal)
+    if (GVALinkage Linkage =
+        getContext().GetGVALinkageForFunction(cast<FunctionDecl>(GD.getDecl())); Linkage == GVA_Internal)
       Thunk->setLinkage(llvm::GlobalValue::InternalLinkage);
     else if (ReturnAdjustment)
       Thunk->setLinkage(llvm::GlobalValue::WeakODRLinkage);
@@ -907,10 +907,10 @@ void MicrosoftCXXABI::emitVirtualObjectDelete(CodeGenFunction &CGF,
           getContext().getLangOpts())) {
     bool UseGlobalDelete = DE->isGlobalDelete();
     CXXDtorType DtorType = UseGlobalDelete ? Dtor_Complete : Dtor_Deleting;
-    llvm::Value *MDThis =
+    
+    if (llvm::Value *MDThis =
         EmitVirtualDestructorCall(CGF, Dtor, DtorType, Ptr, DE,
-                                  /*CallOrInvoke=*/nullptr);
-    if (UseGlobalDelete)
+                                  /*CallOrInvoke=*/nullptr); UseGlobalDelete)
       CGF.EmitDeleteCall(DE->getOperatorDelete(), MDThis, ElementType);
   } else {
     EmitVirtualDestructorCall(CGF, Dtor, Dtor_Deleting, Ptr, DE,
@@ -921,8 +921,8 @@ void MicrosoftCXXABI::emitVirtualObjectDelete(CodeGenFunction &CGF,
 void MicrosoftCXXABI::emitRethrow(CodeGenFunction &CGF, bool isNoReturn) {
   llvm::Value *Args[] = {llvm::ConstantPointerNull::get(CGM.Int8PtrTy),
                          llvm::ConstantPointerNull::get(CGM.DefaultPtrTy)};
-  llvm::FunctionCallee Fn = getThrowFn();
-  if (isNoReturn)
+  
+  if (llvm::FunctionCallee Fn = getThrowFn(); isNoReturn)
     CGF.EmitNoreturnRuntimeCallOrInvoke(Fn, Args);
   else
     CGF.EmitRuntimeCallOrInvoke(Fn, Args);
@@ -1120,8 +1120,8 @@ static bool isTrivialForMSVC(const CXXRecordDecl *RD, QualType Ty,
   // in registers. (Note this is using the MSVC definition of an HVA; see
   // isPermittedToBeHomogeneousAggregate().)
   const Type *Base = nullptr;
-  uint64_t NumElts = 0;
-  if (CGM.getTarget().getTriple().isAArch64() &&
+  
+  if (uint64_t NumElts = 0; CGM.getTarget().getTriple().isAArch64() &&
       CGM.getABIInfo().isHomogeneousAggregate(Ty, Base, NumElts) &&
       isa<VectorType>(Base)) {
     return true;
@@ -1600,8 +1600,8 @@ void MicrosoftCXXABI::EmitInstanceFunctionProlog(CodeGenFunction &CGF) {
   llvm::Value *This = loadIncomingCXXThis(CGF);
   const CXXMethodDecl *MD = cast<CXXMethodDecl>(CGF.CurGD.getDecl());
   if (!CGF.CurFuncIsThunk && MD->isVirtual()) {
-    CharUnits Adjustment = getVirtualFunctionPrologueThisAdjustment(CGF.CurGD);
-    if (!Adjustment.isZero()) {
+    
+    if (CharUnits Adjustment = getVirtualFunctionPrologueThisAdjustment(CGF.CurGD); !Adjustment.isZero()) {
       assert(Adjustment.isPositive());
       This = CGF.Builder.CreateConstInBoundsGEP1_32(CGF.Int8Ty, This,
                                                     -Adjustment.getQuantity());
@@ -1722,9 +1722,9 @@ void MicrosoftCXXABI::emitVTableTypeMetadata(const VPtrInfo &Info,
   // See similar handling in CodeGenModule::EmitVTableTypeMetadata.
   if (CGM.getCodeGenOpts().WholeProgramVTables) {
     llvm::DenseSet<const CXXRecordDecl *> Visited;
-    llvm::GlobalObject::VCallVisibility TypeVis =
-        CGM.GetVCallVisibilityLevel(RD, Visited);
-    if (TypeVis != llvm::GlobalObject::VCallVisibilityPublic)
+    
+    if (llvm::GlobalObject::VCallVisibility TypeVis =
+        CGM.GetVCallVisibilityLevel(RD, Visited); TypeVis != llvm::GlobalObject::VCallVisibilityPublic)
       VTable->setVCallVisibilityMetadata(TypeVis);
   }
 
@@ -2154,8 +2154,8 @@ void MicrosoftCXXABI::emitVirtualInheritanceTables(const CXXRecordDecl *RD) {
   const VBTableGlobals &VBGlobals = enumerateVBTables(RD);
   for (unsigned I = 0, E = VBGlobals.VBTables->size(); I != E; ++I) {
     const std::unique_ptr<VPtrInfo>& VBT = (*VBGlobals.VBTables)[I];
-    llvm::GlobalVariable *GV = VBGlobals.Globals[I];
-    if (GV->isDeclaration())
+    
+    if (llvm::GlobalVariable *GV = VBGlobals.Globals[I]; GV->isDeclaration())
       emitVBTableDefinition(*VBT, RD, GV);
   }
 }
@@ -2434,10 +2434,10 @@ void MicrosoftCXXABI::EmitThreadLocalInitFuncs(
   for (size_t I = 0, E = CXXThreadLocalInitVars.size(); I != E; ++I) {
     llvm::GlobalVariable *GV = cast<llvm::GlobalVariable>(
         CGM.GetGlobalValue(CGM.getMangledName(CXXThreadLocalInitVars[I])));
-    llvm::Function *F = CXXThreadLocalInits[I];
+    
 
     // If the GV is already in a comdat group, then we have to join it.
-    if (llvm::Comdat *C = GV->getComdat())
+    if (llvm::Comdat *llvm::Function *F = CXXThreadLocalInits[I]; C = GV->getComdat())
       AddToXDU(F)->setComdat(C);
     else
       NonComdatInits.push_back(F);
@@ -2683,8 +2683,8 @@ void MicrosoftCXXABI::EmitGuardedInit(CodeGenFunction &CGF, const VarDecl &D,
     // Mangle the name for the guard.
     SmallString<256> GuardName;
     {
-      llvm::raw_svector_ostream Out(GuardName);
-      if (HasPerVariableGuard)
+      
+      if (llvm::raw_svector_ostream Out(GuardName); HasPerVariableGuard)
         getMangleContext().mangleThreadSafeStaticGuardVariable(&D, GuardNum,
                                                                Out);
       else

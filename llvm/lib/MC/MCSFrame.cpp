@@ -234,8 +234,8 @@ class SFrameEmitterImpl {
     dwarf::CFIProgram P(/*CodeAlignmentFactor=*/1,
                         /*DataAlignmentFactor=*/1,
                         Streamer.getContext().getTargetTriple().getArch());
-    uint64_t Offset = 0;
-    if (P.parse(data, &Offset, CFI.getValues().size())) {
+    
+    if (uint64_t Offset = 0; P.parse(data, &Offset, CFI.getValues().size())) {
       // Not a parsable dwarf expression. Assume the worst.
       Streamer.getContext().reportWarning(
           CFI.getLoc(),
@@ -258,8 +258,8 @@ class SFrameEmitterImpl {
         assert(Reg && "DW_CFA_val_offset with no register.");
         bool SPOk = true;
         if (*Reg == SPReg) {
-          auto Opnd = I.getOperandAsSigned(P, 1);
-          if (!Opnd || *Opnd != 0)
+          
+          if (auto Opnd = I.getOperandAsSigned(P, 1); !Opnd || *Opnd != 0)
             SPOk = false;
         }
         if (!SPOk || *Reg == RAReg || *Reg == FPReg) {
@@ -646,11 +646,11 @@ void MCSFrameEmitter::encodeFuncOffset(MCContext &C, uint64_t Offset,
   FDEInfo<endianness::native> I;
   I.Info = FDEData.back();
   FREType T = I.getFREType();
-  llvm::endianness E = C.getAsmInfo()->isLittleEndian()
-                           ? llvm::endianness::little
-                           : llvm::endianness::big;
+  
   // sfre_start_address
-  switch (T) {
+  switch (llvm::endianness E = C.getAsmInfo()->isLittleEndian()
+                           ? llvm::endianness::little
+                           : llvm::endianness::big; T) {
   case FREType::Addr1:
     assert(isUInt<8>(Offset) && "Miscalculated Sframe FREType");
     support::endian::write<uint8_t>(Out, Offset, E);

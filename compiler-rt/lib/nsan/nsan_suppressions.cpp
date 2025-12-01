@@ -63,10 +63,10 @@ static Suppression *GetSuppressionForAddr(uptr addr, const char *suppr_type) {
 Suppression *__nsan::GetSuppressionForStack(const StackTrace *stack,
                                             CheckKind k) {
   for (uptr i = 0, e = stack->size; i < e; i++) {
-    Suppression *s = GetSuppressionForAddr(
+    
+    if (Suppression *s = GetSuppressionForAddr(
         StackTrace::GetPreviousInstructionPc(stack->trace[i]),
-        kSuppressionTypes[static_cast<int>(k)]);
-    if (s)
+        kSuppressionTypes[static_cast<int>(k)]); s)
       return s;
   }
   return nullptr;

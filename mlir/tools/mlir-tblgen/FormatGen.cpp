@@ -53,8 +53,8 @@ FormatToken FormatLexer::emitErrorAndNote(SMLoc loc, const Twine &msg,
 }
 
 int FormatLexer::getNextChar() {
-  char curChar = *curPtr++;
-  switch (curChar) {
+  
+  switch (char curChar = *curPtr++; curChar) {
   default:
     return (unsigned char)curChar;
   case 0: {
@@ -82,8 +82,8 @@ FormatToken FormatLexer::lexToken() {
   const char *tokStart = curPtr;
 
   // This always consumes at least one character.
-  int curChar = getNextChar();
-  switch (curChar) {
+  
+  switch (int curChar = getNextChar(); curChar) {
   default:
     // Handle identifiers: [a-zA-Z_]
     if (isalpha(curChar) || curChar == '_')
@@ -513,11 +513,11 @@ bool mlir::tblgen::isValidLiteral(StringRef value,
       emitError("literal can't be empty");
     return false;
   }
-  char front = value.front();
+  
 
   // If there is only one character, this must either be punctuation or a
   // single character bare identifier.
-  if (value.size() == 1) {
+  if (char front = value.front(); value.size() == 1) {
     StringRef bare = "_:,=<>()[]{}?+-*";
     if (isalpha(front) || bare.contains(front))
       return true;

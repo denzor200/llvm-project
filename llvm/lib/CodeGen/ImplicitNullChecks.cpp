@@ -287,9 +287,9 @@ bool ImplicitNullChecks::canReorder(const MachineInstr *A,
       if (!(MOB.isReg() && MOB.getReg()))
         continue;
 
-      Register RegB = MOB.getReg();
+      
 
-      if (TRI->regsOverlap(RegA, RegB) && (MOA.isDef() || MOB.isDef()))
+      if (Register RegB = MOB.getReg(); TRI->regsOverlap(RegA, RegB) && (MOA.isDef() || MOB.isDef()))
         return false;
     }
   }
@@ -404,8 +404,8 @@ ImplicitNullChecks::isSuitableMemoryOp(const MachineInstr &MI,
     MachineInstr *ModifyingMI = nullptr;
     for (auto It = std::next(MachineBasicBlock::const_reverse_iterator(&MI));
          It != MI.getParent()->rend(); It++) {
-      const MachineInstr *CurrMI = &*It;
-      if (CurrMI->modifiesRegister(RegUsedInAddr, TRI)) {
+      
+      if (const MachineInstr *CurrMI = &*It; CurrMI->modifiesRegister(RegUsedInAddr, TRI)) {
         ModifyingMI = const_cast<MachineInstr *>(CurrMI);
         break;
       }

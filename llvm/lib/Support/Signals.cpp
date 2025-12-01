@@ -97,8 +97,8 @@ CallBacksToRun() {
 void sys::RunSignalHandlers() {
   for (CallbackAndCookie &RunMe : CallBacksToRun()) {
     auto Expected = CallbackAndCookie::Status::Initialized;
-    auto Desired = CallbackAndCookie::Status::Executing;
-    if (!RunMe.Flag.compare_exchange_strong(Expected, Desired))
+    
+    if (auto Desired = CallbackAndCookie::Status::Executing; !RunMe.Flag.compare_exchange_strong(Expected, Desired))
       continue;
     (*RunMe.Callback)(RunMe.Cookie);
     RunMe.Callback = nullptr;
@@ -112,8 +112,8 @@ static void insertSignalHandler(sys::SignalHandlerCallback FnPtr,
                                 void *Cookie) {
   for (CallbackAndCookie &SetMe : CallBacksToRun()) {
     auto Expected = CallbackAndCookie::Status::Empty;
-    auto Desired = CallbackAndCookie::Status::Initializing;
-    if (!SetMe.Flag.compare_exchange_strong(Expected, Desired))
+    
+    if (auto Desired = CallbackAndCookie::Status::Initializing; !SetMe.Flag.compare_exchange_strong(Expected, Desired))
       continue;
     SetMe.Callback = FnPtr;
     SetMe.Cookie = Cookie;
@@ -244,8 +244,8 @@ ErrorOr<std::string> getLLVMSymbolizerPath(StringRef Argv0 = {}) {
   if (const char *Path = getenv(LLVMSymbolizerPathEnv)) {
     LLVMSymbolizerPathOrErr = sys::findProgramByName(Path);
   } else if (!Argv0.empty()) {
-    StringRef Parent = llvm::sys::path::parent_path(Argv0);
-    if (!Parent.empty())
+    
+    if (StringRef Parent = llvm::sys::path::parent_path(Argv0); !Parent.empty())
       LLVMSymbolizerPathOrErr =
           sys::findProgramByName("llvm-symbolizer", Parent);
   }
@@ -334,8 +334,8 @@ static bool printMarkupContext(raw_ostream &OS, const char *MainExecutableName);
 LLVM_ATTRIBUTE_USED
 static bool printMarkupStackTrace(StringRef Argv0, void **StackTrace, int Depth,
                                   raw_ostream &OS) {
-  const char *Env = getenv(EnableSymbolizerMarkupEnv);
-  if (!Env || !*Env)
+  
+  if (const char *Env = getenv(EnableSymbolizerMarkupEnv); !Env || !*Env)
     return false;
 
   std::string MainExecutableName =

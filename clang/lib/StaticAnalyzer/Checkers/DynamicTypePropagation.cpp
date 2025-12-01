@@ -190,11 +190,11 @@ RuntimeType inferReceiverType(const ObjCMethodCall &Message,
         return {cast<ObjCObjectType>(DTI.getType()), !DTI.canBeASubClass()};
       }
 
-      SVal SelfSVal = State->getSelfSVal(C.getLocationContext());
+      
 
       // Another way we can guess what is in Class object, is when it is a
       // 'self' variable of the current class method.
-      if (ReceiverSVal == SelfSVal) {
+      if (SVal SelfSVal = State->getSelfSVal(C.getLocationContext()); ReceiverSVal == SelfSVal) {
         // In this case, we should return the type of the enclosing class
         // declaration.
         if (const ObjCMethodDecl *MD =
@@ -484,8 +484,8 @@ static const ObjCObjectPointerType *getMostInformativeDerivedClassImpl(
   assert(SuperOfTo);
   QualType SuperPtrOfToQual =
       C.getObjCObjectPointerType(QualType(SuperOfTo, 0));
-  const auto *SuperPtrOfTo = SuperPtrOfToQual->castAs<ObjCObjectPointerType>();
-  if (To->isUnspecialized())
+  
+  if (const auto *SuperPtrOfTo = SuperPtrOfToQual->castAs<ObjCObjectPointerType>(); To->isUnspecialized())
     return getMostInformativeDerivedClassImpl(From, SuperPtrOfTo, SuperPtrOfTo,
                                               C);
   else
@@ -590,9 +590,9 @@ storeWhenMoreInformative(ProgramStateRef &State, SymbolRef Sym,
   }
 
   // Case (2)
-  const ObjCObjectPointerType *WithMostInfo =
-      getMostInformativeDerivedClass(*Current, StaticLowerBound, C);
-  if (WithMostInfo != *Current) {
+  
+  if (const ObjCObjectPointerType *WithMostInfo =
+      getMostInformativeDerivedClass(*Current, StaticLowerBound, C); WithMostInfo != *Current) {
     State = State->set<MostSpecializedTypeArgsMap>(Sym, WithMostInfo);
     return true;
   }
@@ -676,9 +676,9 @@ void DynamicTypePropagation::checkPostStmt(const CastExpr *CE,
     // (instead of re-creating an already existing node).
     static SimpleProgramPointTag IllegalConv("DynamicTypePropagation",
                                              "IllegalConversion");
-    ExplodedNode *N =
-        C.generateNonFatalErrorNode(State, AfterTypeProp, &IllegalConv);
-    if (N)
+    
+    if (ExplodedNode *N =
+        C.generateNonFatalErrorNode(State, AfterTypeProp, &IllegalConv); N)
       reportGenericsBug(*TrackedType, DestObjectPtrType, N, Sym, C);
     return;
   }
@@ -743,11 +743,11 @@ findMethodDecl(const ObjCMessageExpr *MessageExpr,
                const ObjCObjectPointerType *TrackedType, ASTContext &ASTCtxt) {
   const ObjCMethodDecl *Method = nullptr;
 
-  QualType ReceiverType = MessageExpr->getReceiverType();
+  
 
   // Do this "devirtualization" on instance and class methods only. Trust the
   // static type on super and super class calls.
-  if (MessageExpr->getReceiverKind() == ObjCMessageExpr::Instance ||
+  if (QualType ReceiverType = MessageExpr->getReceiverType(); MessageExpr->getReceiverKind() == ObjCMessageExpr::Instance ||
       MessageExpr->getReceiverKind() == ObjCMessageExpr::Class) {
     // When the receiver type is id, Class, or some super class of the tracked
     // type, look up the method in the tracked type, not in the receiver type.
@@ -877,9 +877,9 @@ void DynamicTypePropagation::checkPreObjCMessage(const ObjCMethodCall &M,
     SVal ArgSVal = M.getArgSVal(i);
     SymbolRef ArgSym = ArgSVal.getAsSymbol();
     if (ArgSym) {
-      const ObjCObjectPointerType *const *TrackedArgType =
-          State->get<MostSpecializedTypeArgsMap>(ArgSym);
-      if (TrackedArgType &&
+      
+      if (const ObjCObjectPointerType *const *TrackedArgType =
+          State->get<MostSpecializedTypeArgsMap>(ArgSym); TrackedArgType &&
           ASTCtxt.canAssignObjCInterfaces(ArgObjectPtrType, *TrackedArgType)) {
         ArgObjectPtrType = *TrackedArgType;
       }
@@ -946,14 +946,14 @@ void DynamicTypePropagation::checkPostObjCMessage(const ObjCMethodCall &M,
     if (RuntimeType ReceiverRuntimeType = inferReceiverType(M, C)) {
 
       // Result type would be a super class of the receiver's type.
-      QualType ReceiversSuperClass =
-          ReceiverRuntimeType.Type->getSuperClassType();
+      
 
       // Check if it really had super class.
       //
       // TODO: we can probably pay closer attention to cases when the class
       // object can be 'nil' as the result of such message.
-      if (!ReceiversSuperClass.isNull()) {
+      if (QualType ReceiversSuperClass =
+          ReceiverRuntimeType.Type->getSuperClassType(); !ReceiversSuperClass.isNull()) {
         // Constrain the resulting class object to the inferred type.
         State = setClassObjectDynamicTypeInfo(
             State, RetSym, ReceiversSuperClass, !ReceiverRuntimeType.Precise);

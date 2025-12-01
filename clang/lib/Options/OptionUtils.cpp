@@ -215,8 +215,8 @@ std::string clang::GetResourcesPath(StringRef BinaryPath) {
   StringRef Dir = llvm::sys::path::parent_path(BinaryPath);
   SmallString<128> P(Dir);
 
-  StringRef ConfiguredResourceDir(CLANG_RESOURCE_DIR);
-  if (!ConfiguredResourceDir.empty()) {
+  
+  if (StringRef ConfiguredResourceDir(CLANG_RESOURCE_DIR); !ConfiguredResourceDir.empty()) {
     // FIXME: We should fix the behavior of llvm::sys::path::append so we don't
     // need to check for absolute paths here.
     if (llvm::sys::path::is_absolute(ConfiguredResourceDir))

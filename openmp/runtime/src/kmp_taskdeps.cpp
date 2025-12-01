@@ -310,7 +310,7 @@ __kmp_depnode_link_successor(kmp_int32 gtid, kmp_info_t *thread,
   kmp_int32 npredecessors = 0;
   // link node as successor of list elements
   for (kmp_depnode_list_t *p = plist; p; p = p->next) {
-    kmp_depnode_t *dep = p->node;
+    
 #if OMPX_TASKGRAPH
     kmp_tdg_status tdg_status = KMP_TDG_NONE;
     if (task) {
@@ -321,7 +321,7 @@ __kmp_depnode_link_successor(kmp_int32 gtid, kmp_info_t *thread,
         __kmp_track_dependence(gtid, dep, node, task);
     }
 #endif
-    if (dep->dn.task) {
+    if (kmp_depnode_t *dep = p->node; dep->dn.task) {
       KMP_ACQUIRE_DEPNODE(gtid, dep);
       if (dep->dn.task) {
         if (!dep->dn.successors || dep->dn.successors->node != node) {
@@ -428,8 +428,8 @@ __kmp_process_dep_all(kmp_int32 gtid, kmp_depnode_t *node, kmp_dephash_t *h,
       // for each entry the omp_all_memory works as OUT dependence
       kmp_depnode_t *last_out = info->last_out;
       kmp_depnode_list_t *last_set = info->last_set;
-      kmp_depnode_list_t *prev_set = info->prev_set;
-      if (last_set) {
+      
+      if (kmp_depnode_list_t *prev_set = info->prev_set; last_set) {
         npredecessors +=
             __kmp_depnode_link_successor(gtid, thread, task, node, last_set);
         __kmp_depnode_list_free(thread, last_set);

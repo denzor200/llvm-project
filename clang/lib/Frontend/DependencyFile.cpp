@@ -379,8 +379,8 @@ void DependencyFileGenerator::outputDependencyFile(llvm::raw_ostream &OS) {
   unsigned Columns = 0;
 
   for (StringRef Target : Targets) {
-    unsigned N = Target.size();
-    if (Columns == 0) {
+    
+    if (unsigned N = Target.size(); Columns == 0) {
       Columns += N;
     } else if (Columns + N + 2 > MaxColumns) {
       Columns = N + 2;

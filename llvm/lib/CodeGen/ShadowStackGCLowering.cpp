@@ -108,8 +108,8 @@ public:
 
 PreservedAnalyses ShadowStackGCLoweringPass::run(Module &M,
                                                  ModuleAnalysisManager &MAM) {
-  auto &Map = MAM.getResult<CollectorMetadataAnalysis>(M);
-  if (!Map.contains("shadow-stack"))
+  
+  if (auto &Map = MAM.getResult<CollectorMetadataAnalysis>(M); !Map.contains("shadow-stack"))
     return PreservedAnalyses::all();
 
   ShadowStackGCLoweringImpl Impl;

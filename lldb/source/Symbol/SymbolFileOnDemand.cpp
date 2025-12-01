@@ -49,8 +49,8 @@ lldb::LanguageType SymbolFileOnDemand::ParseLanguage(CompileUnit &comp_unit) {
     Log *log = GetLog();
     LLDB_LOG(log, "[{0}] {1} is skipped", GetSymbolFileName(), __FUNCTION__);
     if (log) {
-      lldb::LanguageType langType = m_sym_file_impl->ParseLanguage(comp_unit);
-      if (langType != eLanguageTypeUnknown)
+      
+      if (lldb::LanguageType langType = m_sym_file_impl->ParseLanguage(comp_unit); langType != eLanguageTypeUnknown)
         LLDB_LOG(log, "Language {0} would return if hydrated.", langType);
     }
     return eLanguageTypeUnknown;
@@ -64,8 +64,8 @@ XcodeSDK SymbolFileOnDemand::ParseXcodeSDK(CompileUnit &comp_unit) {
     LLDB_LOG(log, "[{0}] {1} is skipped", GetSymbolFileName(), __FUNCTION__);
     XcodeSDK defaultValue{};
     if (log) {
-      XcodeSDK sdk = m_sym_file_impl->ParseXcodeSDK(comp_unit);
-      if (!(sdk == defaultValue))
+      
+      if (XcodeSDK sdk = m_sym_file_impl->ParseXcodeSDK(comp_unit); !(sdk == defaultValue))
         LLDB_LOG(log, "SDK {0} would return if hydrated.", sdk.GetString());
     }
     return defaultValue;
@@ -128,8 +128,8 @@ bool SymbolFileOnDemand::ParseIsOptimized(CompileUnit &comp_unit) {
     Log *log = GetLog();
     LLDB_LOG(log, "[{0}] {1} is skipped", GetSymbolFileName(), __FUNCTION__);
     if (log) {
-      bool optimized = m_sym_file_impl->ParseIsOptimized(comp_unit);
-      if (optimized) {
+      
+      if (bool optimized = m_sym_file_impl->ParseIsOptimized(comp_unit); optimized) {
         LLDB_LOG(log, "Would return optimized if hydrated.");
       }
     }
@@ -155,9 +155,9 @@ bool SymbolFileOnDemand::ParseImportedModules(
     LLDB_LOG(log, "[{0}] {1} is skipped", GetSymbolFileName(), __FUNCTION__);
     if (log) {
       std::vector<SourceModule> tmp_imported_modules;
-      bool succeed =
-          m_sym_file_impl->ParseImportedModules(sc, tmp_imported_modules);
-      if (succeed)
+      
+      if (bool succeed =
+          m_sym_file_impl->ParseImportedModules(sc, tmp_imported_modules); succeed)
         LLDB_LOG(log, "{0} imported modules would be parsed if hydrated.",
                  tmp_imported_modules.size());
     }
@@ -189,8 +189,8 @@ Type *SymbolFileOnDemand::ResolveTypeUID(lldb::user_id_t type_uid) {
     Log *log = GetLog();
     LLDB_LOG(log, "[{0}] {1} is skipped", GetSymbolFileName(), __FUNCTION__);
     if (log) {
-      Type *resolved_type = m_sym_file_impl->ResolveTypeUID(type_uid);
-      if (resolved_type)
+      
+      if (Type *resolved_type = m_sym_file_impl->ResolveTypeUID(type_uid); resolved_type)
         LLDB_LOG(log, "Type would be parsed for {0} if hydrated.", type_uid);
     }
     return nullptr;
@@ -223,8 +223,8 @@ CompilerDecl SymbolFileOnDemand::GetDeclForUID(lldb::user_id_t type_uid) {
     Log *log = GetLog();
     LLDB_LOG(log, "[{0}] {1} is skipped", GetSymbolFileName(), __FUNCTION__);
     if (log) {
-      CompilerDecl parsed_decl = m_sym_file_impl->GetDeclForUID(type_uid);
-      if (parsed_decl != CompilerDecl()) {
+      
+      if (CompilerDecl parsed_decl = m_sym_file_impl->GetDeclForUID(type_uid); parsed_decl != CompilerDecl()) {
         LLDB_LOG(log, "CompilerDecl {0} would be parsed for {1} if hydrated.",
                  parsed_decl.GetName(), type_uid);
       }
@@ -390,8 +390,8 @@ void SymbolFileOnDemand::FindFunctions(
     const CompilerDeclContext &parent_decl_ctx, bool include_inlines,
     SymbolContextList &sc_list) {
   ConstString name = lookup_info.GetLookupName();
-  FunctionNameType name_type_mask = lookup_info.GetNameTypeMask();
-  if (!m_debug_info_enabled) {
+  
+  if (FunctionNameType name_type_mask = lookup_info.GetNameTypeMask(); !m_debug_info_enabled) {
     Log *log = GetLog();
 
     Symtab *symtab = GetSymtab();
@@ -484,9 +484,9 @@ SymbolFileOnDemand::ParseCallEdgesInFunction(UserID func_id) {
     Log *log = GetLog();
     LLDB_LOG(log, "[{0}] {1} is skipped", GetSymbolFileName(), __FUNCTION__);
     if (log) {
-      std::vector<std::unique_ptr<lldb_private::CallEdge>> call_edges =
-          m_sym_file_impl->ParseCallEdgesInFunction(func_id);
-      if (call_edges.size() > 0) {
+      
+      if (std::vector<std::unique_ptr<lldb_private::CallEdge>> call_edges =
+          m_sym_file_impl->ParseCallEdgesInFunction(func_id); call_edges.size() > 0) {
         LLDB_LOG(log, "{0} call edges would be parsed for {1} if hydrated.",
                  call_edges.size(), func_id.GetID());
       }
@@ -513,9 +513,9 @@ SymbolFileOnDemand::GetParameterStackSize(Symbol &symbol) {
     Log *log = GetLog();
     LLDB_LOG(log, "[{0}] {1} is skipped", GetSymbolFileName(), __FUNCTION__);
     if (log) {
-      llvm::Expected<lldb::addr_t> stack_size =
-          m_sym_file_impl->GetParameterStackSize(symbol);
-      if (stack_size) {
+      
+      if (llvm::Expected<lldb::addr_t> stack_size =
+          m_sym_file_impl->GetParameterStackSize(symbol); stack_size) {
         LLDB_LOG(log, "{0} stack size would return for symbol {1} if hydrated.",
                  *stack_size, symbol.GetName());
       }

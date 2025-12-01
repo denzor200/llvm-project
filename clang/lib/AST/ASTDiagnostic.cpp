@@ -133,9 +133,9 @@ QualType clang::desugarForDiagnostic(ASTContext &Context, QualType QT,
     }
 
     if (const auto *AT = dyn_cast<ArrayType>(Ty)) {
-      QualType ElementTy =
-          desugarForDiagnostic(Context, AT->getElementType(), ShouldAKA);
-      if (const auto *CAT = dyn_cast<ConstantArrayType>(AT))
+      
+      if (const auto *QualType ElementTy =
+          desugarForDiagnostic(Context, AT->getElementType(), ShouldAKA); CAT = dyn_cast<ConstantArrayType>(AT))
         QT = Context.getConstantArrayType(
             ElementTy, CAT->getSize(), CAT->getSizeExpr(),
             CAT->getSizeModifier(), CAT->getIndexTypeCVRQualifiers());
@@ -301,9 +301,9 @@ ConvertTypeToDiagnosticString(ASTContext &Context, QualType Ty,
   for (const auto &PrevArg : PrevArgs) {
     // TODO: Handle ak_declcontext case.
     if (PrevArg.first == DiagnosticsEngine::ak_qualtype) {
-      QualType PrevTy(
-          QualType::getFromOpaquePtr(reinterpret_cast<void *>(PrevArg.second)));
-      if (PrevTy == Ty) {
+      
+      if (QualType PrevTy(
+          QualType::getFromOpaquePtr(reinterpret_cast<void *>(PrevArg.second))); PrevTy == Ty) {
         Repeated = true;
         break;
       }
@@ -314,13 +314,13 @@ ConvertTypeToDiagnosticString(ASTContext &Context, QualType Ty,
   // sugar gives us something "significantly different".
   if (!Repeated) {
     bool ShouldAKA = false;
-    QualType DesugaredTy = desugarForDiagnostic(Context, Ty, ShouldAKA);
-    if (ShouldAKA || ForceAKA) {
+    
+    if (QualType DesugaredTy = desugarForDiagnostic(Context, Ty, ShouldAKA); ShouldAKA || ForceAKA) {
       if (DesugaredTy == Ty) {
         DesugaredTy = Ty.getCanonicalType();
       }
-      std::string akaStr = DesugaredTy.getAsString(Context.getPrintingPolicy());
-      if (akaStr != S) {
+      
+      if (std::string akaStr = DesugaredTy.getAsString(Context.getPrintingPolicy()); akaStr != S) {
         S = "'" + S + "' (aka '" + akaStr + "')";
         return S;
       }
@@ -399,10 +399,10 @@ void clang::FormatASTNodeDiagnosticArgument(
       TemplateDiffTypes &TDT = *reinterpret_cast<TemplateDiffTypes*>(Val);
       QualType FromType =
           QualType::getFromOpaquePtr(reinterpret_cast<void*>(TDT.FromType));
-      QualType ToType =
-          QualType::getFromOpaquePtr(reinterpret_cast<void*>(TDT.ToType));
+      
 
-      if (FormatTemplateTypeDiff(Context, FromType, ToType, TDT.PrintTree,
+      if (QualType ToType =
+          QualType::getFromOpaquePtr(reinterpret_cast<void*>(TDT.ToType)); FormatTemplateTypeDiff(Context, FromType, ToType, TDT.PrintTree,
                                  TDT.PrintFromType, TDT.ElideType,
                                  TDT.ShowColors, OS)) {
         NeedQuotes = !TDT.PrintTree;
@@ -802,8 +802,8 @@ class TemplateDiff {
       assert(FlatTree[CurrentNode].Kind == Template &&
              "Only Template nodes can have children nodes.");
       FlatTree.push_back(DiffNode(CurrentNode));
-      DiffNode &Node = FlatTree[CurrentNode];
-      if (Node.ChildNode == 0) {
+      
+      if (DiffNode &Node = FlatTree[CurrentNode]; Node.ChildNode == 0) {
         // If a child node doesn't exist, add one.
         Node.ChildNode = NextFreeNode;
       } else {
@@ -1195,8 +1195,8 @@ class TemplateDiff {
     bool ToDefault = ToIter.isEnd() && !ToType.isNull();
 
     const TemplateSpecializationType *FromArgTST = nullptr;
-    const TemplateSpecializationType *ToArgTST = nullptr;
-    if (OnlyPerformTypeDiff(Context, FromType, ToType, FromArgTST, ToArgTST)) {
+    
+    if (const TemplateSpecializationType *ToArgTST = nullptr; OnlyPerformTypeDiff(Context, FromType, ToType, FromArgTST, ToArgTST)) {
       Tree.SetTypeDiff(FromType, ToType, FromDefault, ToDefault);
       Tree.SetSame(!FromType.isNull() && !ToType.isNull() &&
                    Context.hasSameType(FromType, ToType));
@@ -1249,8 +1249,8 @@ class TemplateDiff {
       case TemplateArgument::Declaration: {
         VD = Iter->getAsDecl();
         QualType ArgType = Iter->getParamTypeForDecl();
-        QualType VDType = VD->getType();
-        if (ArgType->isPointerType() &&
+        
+        if (QualType VDType = VD->getType(); ArgType->isPointerType() &&
             Context.hasSameType(ArgType->getPointeeType(), VDType))
           NeedAddressOf = true;
         return;
@@ -1276,8 +1276,8 @@ class TemplateDiff {
     if (!Iter.hasDesugaredTA())
       return;
 
-    const TemplateArgument &TA = Iter.getDesugaredTA();
-    switch (TA.getKind()) {
+    
+    switch (const TemplateArgument &TA = Iter.getDesugaredTA(); TA.getKind()) {
     case TemplateArgument::StructuralValue:
       // FIXME: Diffing of structural values is not implemented.
       //        Just fall back to the expression.
@@ -1290,8 +1290,8 @@ class TemplateDiff {
     case TemplateArgument::Declaration: {
       VD = TA.getAsDecl();
       QualType ArgType = TA.getParamTypeForDecl();
-      QualType VDType = VD->getType();
-      if (ArgType->isPointerType() &&
+      
+      if (QualType VDType = VD->getType(); ArgType->isPointerType() &&
           Context.hasSameType(ArgType->getPointeeType(), VDType))
         NeedAddressOf = true;
       return;
@@ -1851,10 +1851,10 @@ class TemplateDiff {
       return;
     }
 
-    bool PrintType = IsValidFromInt && IsValidToInt &&
-                     !Context.hasSameType(FromIntType, ToIntType);
+    
 
-    if (!PrintTree) {
+    if (bool PrintType = IsValidFromInt && IsValidToInt &&
+                     !Context.hasSameType(FromIntType, ToIntType); !PrintTree) {
       OS << (FromDefault ? "(default) " : "");
       PrintAPSInt(FromInt, FromExpr, IsValidFromInt, FromIntType, PrintType);
     } else {
@@ -2064,8 +2064,7 @@ class TemplateDiff {
     }
 
     // Find common qualifiers and strip them from FromQual and ToQual.
-    Qualifiers CommonQual = Qualifiers::removeCommonQualifiers(FromQual,
-                                                               ToQual);
+    
 
     // The qualifiers are printed before the template name.
     // Inline printing:
@@ -2077,7 +2076,8 @@ class TemplateDiff {
     // separated by "!=".  The printing order is:
     // common qualifiers, highlighted from qualifiers, "!=",
     // common qualifiers, highlighted to qualifiers
-    if (PrintTree) {
+    if (Qualifiers CommonQual = Qualifiers::removeCommonQualifiers(FromQual,
+                                                               ToQual); PrintTree) {
       OS << "[";
       if (CommonQual.empty() && FromQual.empty()) {
         Bold();

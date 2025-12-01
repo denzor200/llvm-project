@@ -248,9 +248,9 @@ void SemaMIPS::handleInterruptAttr(Decl *D, const ParsedAttr &AL) {
   }
 
   StringRef Str;
-  SourceLocation ArgLoc;
+  
 
-  if (AL.getNumArgs() == 0)
+  if (SourceLocation ArgLoc; AL.getNumArgs() == 0)
     Str = "";
   else if (!SemaRef.checkStringLiteralArgumentAttr(AL, 0, Str, &ArgLoc))
     return;

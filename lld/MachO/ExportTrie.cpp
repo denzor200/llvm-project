@@ -232,8 +232,8 @@ tailcall:
   size_t i = 0;
   size_t j = vec.size();
   for (size_t k = 0; k < j;) {
-    int c = charAt(vec[k], pos);
-    if (c < pivot)
+    
+    if (int c = charAt(vec[k], pos); c < pivot)
       std::swap(vec[i++], vec[k++]);
     else if (c > pivot)
       std::swap(vec[--j], vec[k]);
@@ -242,8 +242,8 @@ tailcall:
   }
 
   bool isTerminal = pivot == -1;
-  bool prefixesDiverge = i != 0 || j != vec.size();
-  if (lastPos != pos && (isTerminal || prefixesDiverge)) {
+  
+  if (bool prefixesDiverge = i != 0 || j != vec.size(); lastPos != pos && (isTerminal || prefixesDiverge)) {
     TrieNode *newNode = makeNode();
     node->edges.emplace_back(pivotSymbol->getName().slice(lastPos, pos),
                              newNode);

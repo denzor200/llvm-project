@@ -358,9 +358,9 @@ void SaturatingMultiplyTestHelper()
     for (int K = -1; K <= 1; ++K) {
       T X = (T(1) << A) - T(1);
       T Y = (T(1) << B) + K;
-      bool OverflowExpected = A > B && K == 1;
+      
 
-      if(OverflowExpected) {
+      if(bool OverflowExpected = A > B && K == 1; OverflowExpected) {
         EXPECT_EQ(Max, SaturatingMultiply(X, Y));
         EXPECT_EQ(Max, SaturatingMultiply(X, Y, &ResultOverflowed));
         EXPECT_TRUE(ResultOverflowed);

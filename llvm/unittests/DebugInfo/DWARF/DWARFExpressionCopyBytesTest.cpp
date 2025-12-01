@@ -178,9 +178,9 @@ void DWARFExpressionCopyBytesTest::readAndCheckObjFile(
     StringRef ObjFileData, ArrayRef<uint8_t> Expected) {
   std::unique_ptr<MemoryBuffer> MB =
       MemoryBuffer::getMemBuffer(ObjFileData, "", false);
-  std::unique_ptr<object::Binary> Bin =
-      cantFail(llvm::object::createBinary(MB->getMemBufferRef()));
-  if (auto *E = dyn_cast<llvm::object::ELFObjectFileBase>(&*Bin)) {
+  
+  if (auto *std::unique_ptr<object::Binary> Bin =
+      cantFail(llvm::object::createBinary(MB->getMemBufferRef())); E = dyn_cast<llvm::object::ELFObjectFileBase>(&*Bin)) {
     parseCFIsAndCheckExpression(*E, Expected);
   }
 }

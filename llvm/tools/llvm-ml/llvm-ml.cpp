@@ -176,8 +176,8 @@ static int AssembleInput(StringRef ProgName, const Target *TheTarget,
   auto Defines = InputArgs.getAllArgValues(OPT_define);
   for (StringRef Define : Defines) {
     const auto NameValue = Define.split('=');
-    StringRef Name = NameValue.first, Value = NameValue.second;
-    if (Parser->defineMacro(Name, Value)) {
+    
+    if (StringRef Name = NameValue.first, Value = NameValue.second; Parser->defineMacro(Name, Value)) {
       WithColor::error(errs(), ProgName)
           << "can't define macro '" << Name << "' = '" << Value << "'\n";
       return 1;
@@ -222,8 +222,8 @@ int llvm_ml_main(int Argc, char **Argv, const llvm::ToolContext &) {
       raw_string_ostream OS(Diag);
       OS << ArgString << ": " << IsFileEC.message();
 
-      std::string Nearest;
-      if (T.findNearest(ArgString, Nearest) < 2)
+      
+      if (std::string Nearest; T.findNearest(ArgString, Nearest) < 2)
         OS << ", did you mean '" << Nearest << "'?";
 
       WithColor::error(errs(), ProgName) << OS.str() << '\n';

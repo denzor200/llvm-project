@@ -2446,8 +2446,8 @@ void CGObjCCommonMac::BuildRCRecordLayout(const llvm::StructLayout *RecLayout,
     }
     CharUnits FieldSize = CGM.getContext().getTypeSizeInChars(Field->getType());
     if (IsUnion) {
-      CharUnits UnionIvarSize = FieldSize;
-      if (UnionIvarSize > MaxUnionSize) {
+      
+      if (CharUnits UnionIvarSize = FieldSize; UnionIvarSize > MaxUnionSize) {
         MaxUnionSize = UnionIvarSize;
         MaxField = Field;
         MaxFieldOffset = FieldOffset;
@@ -2520,8 +2520,8 @@ uint64_t CGObjCCommonMac::InlineLayoutInstruction(
     unsigned size = Layout.size();
     unsigned strong_word_count = 0, byref_word_count = 0, weak_word_count = 0;
     unsigned char inst;
-    enum BLOCK_LAYOUT_OPCODE opcode;
-    switch (size) {
+    
+    switch (enum BLOCK_LAYOUT_OPCODE opcode; size) {
     case 3:
       inst = Layout[0];
       opcode = (enum BLOCK_LAYOUT_OPCODE)(inst >> 4);
@@ -2592,10 +2592,10 @@ uint64_t CGObjCCommonMac::InlineLayoutInstruction(
         weak_word_count == 16)
       return 0;
 
-    unsigned count = (strong_word_count != 0) + (byref_word_count != 0) +
-                     (weak_word_count != 0);
+    
 
-    if (size == count) {
+    if (unsigned count = (strong_word_count != 0) + (byref_word_count != 0) +
+                     (weak_word_count != 0); size == count) {
       if (strong_word_count)
         Result = strong_word_count;
       Result <<= 4;
@@ -2610,8 +2610,8 @@ uint64_t CGObjCCommonMac::InlineLayoutInstruction(
 }
 
 llvm::Constant *CGObjCCommonMac::getBitmapBlockLayout(bool ComputeByrefLayout) {
-  llvm::Constant *nullPtr = llvm::Constant::getNullValue(CGM.Int8PtrTy);
-  if (RunSkipBlockVars.empty())
+  
+  if (llvm::Constant *nullPtr = llvm::Constant::getNullValue(CGM.Int8PtrTy); RunSkipBlockVars.empty())
     return nullPtr;
   unsigned WordSizeInBits = CGM.getTarget().getPointerWidth(LangAS::Default);
   unsigned ByteSizeInBits = CGM.getTarget().getCharWidth();
@@ -2673,8 +2673,8 @@ llvm::Constant *CGObjCCommonMac::getBitmapBlockLayout(bool ComputeByrefLayout) {
 
   while (!Layout.empty()) {
     unsigned char inst = Layout.back();
-    enum BLOCK_LAYOUT_OPCODE opcode = (enum BLOCK_LAYOUT_OPCODE)(inst >> 4);
-    if (opcode == BLOCK_LAYOUT_NON_OBJECT_BYTES ||
+    
+    if (enum BLOCK_LAYOUT_OPCODE opcode = (enum BLOCK_LAYOUT_OPCODE)(inst >> 4); opcode == BLOCK_LAYOUT_NON_OBJECT_BYTES ||
         opcode == BLOCK_LAYOUT_NON_OBJECT_WORDS)
       Layout.pop_back();
     else
@@ -2864,8 +2864,8 @@ llvm::Constant *CGObjCCommonMac::BuildByrefLayout(CodeGen::CodeGenModule &CGM,
   assert(!T->isArrayType() && "__block array variable should not be caught");
   CharUnits fieldOffset;
   RunSkipBlockVars.clear();
-  bool hasUnion = false;
-  if (const auto *record = T->getAsCanonical<RecordType>()) {
+  
+  if (const auto *bool hasUnion = false; record = T->getAsCanonical<RecordType>()) {
     BuildRCBlockVarRecordLayout(record, fieldOffset, hasUnion,
                                 true /*ByrefLayout */);
     llvm::Constant *Result = getBitmapBlockLayout(true);
@@ -3131,8 +3131,8 @@ llvm::Constant *CGObjCCommonMac::EmitPropertyList(
   if (IsClassProperty) {
     // Make this entry NULL for OS X with deployment target < 10.11, for iOS
     // with deployment target < 9.0.
-    const llvm::Triple &Triple = CGM.getTarget().getTriple();
-    if ((Triple.isMacOSX() && Triple.isMacOSXVersionLT(10, 11)) ||
+    
+    if (const llvm::Triple &Triple = CGM.getTarget().getTriple(); (Triple.isMacOSX() && Triple.isMacOSXVersionLT(10, 11)) ||
         (Triple.isiOS() && Triple.isOSVersionLT(9)))
       return llvm::Constant::getNullValue(ObjCTypes.PropertyListPtrTy);
   }
@@ -4818,8 +4818,8 @@ llvm::Value *CGObjCMac::EmitObjCWeakRead(CodeGen::CodeGenFunction &CGF,
 ///
 void CGObjCMac::EmitObjCWeakAssign(CodeGen::CodeGenFunction &CGF,
                                    llvm::Value *src, Address dst) {
-  llvm::Type *SrcTy = src->getType();
-  if (!isa<llvm::PointerType>(SrcTy)) {
+  
+  if (llvm::Type *SrcTy = src->getType(); !isa<llvm::PointerType>(SrcTy)) {
     unsigned Size = CGM.getDataLayout().getTypeAllocSize(SrcTy);
     assert(Size <= 8 && "does not support size > 8");
     src = (Size == 4) ? CGF.Builder.CreateBitCast(src, CGM.Int32Ty)
@@ -4840,8 +4840,8 @@ void CGObjCMac::EmitObjCWeakAssign(CodeGen::CodeGenFunction &CGF,
 void CGObjCMac::EmitObjCGlobalAssign(CodeGen::CodeGenFunction &CGF,
                                      llvm::Value *src, Address dst,
                                      bool threadlocal) {
-  llvm::Type *SrcTy = src->getType();
-  if (!isa<llvm::PointerType>(SrcTy)) {
+  
+  if (llvm::Type *SrcTy = src->getType(); !isa<llvm::PointerType>(SrcTy)) {
     unsigned Size = CGM.getDataLayout().getTypeAllocSize(SrcTy);
     assert(Size <= 8 && "does not support size > 8");
     src = (Size == 4) ? CGF.Builder.CreateBitCast(src, CGM.Int32Ty)
@@ -4867,8 +4867,8 @@ void CGObjCMac::EmitObjCIvarAssign(CodeGen::CodeGenFunction &CGF,
                                    llvm::Value *src, Address dst,
                                    llvm::Value *ivarOffset) {
   assert(ivarOffset && "EmitObjCIvarAssign - ivarOffset is NULL");
-  llvm::Type *SrcTy = src->getType();
-  if (!isa<llvm::PointerType>(SrcTy)) {
+  
+  if (llvm::Type *SrcTy = src->getType(); !isa<llvm::PointerType>(SrcTy)) {
     unsigned Size = CGM.getDataLayout().getTypeAllocSize(SrcTy);
     assert(Size <= 8 && "does not support size > 8");
     src = (Size == 4) ? CGF.Builder.CreateBitCast(src, CGM.Int32Ty)
@@ -4887,8 +4887,8 @@ void CGObjCMac::EmitObjCIvarAssign(CodeGen::CodeGenFunction &CGF,
 ///
 void CGObjCMac::EmitObjCStrongCastAssign(CodeGen::CodeGenFunction &CGF,
                                          llvm::Value *src, Address dst) {
-  llvm::Type *SrcTy = src->getType();
-  if (!isa<llvm::PointerType>(SrcTy)) {
+  
+  if (llvm::Type *SrcTy = src->getType(); !isa<llvm::PointerType>(SrcTy)) {
     unsigned Size = CGM.getDataLayout().getTypeAllocSize(SrcTy);
     assert(Size <= 8 && "does not support size > 8");
     src = (Size == 4) ? CGF.Builder.CreateBitCast(src, CGM.Int32Ty)
@@ -5252,8 +5252,8 @@ void IvarLayoutBuilder::visitField(const FieldDecl *field,
     visitRecord(recType, fieldOffset);
 
     // If we have an array, replicate the first entry's layout information.
-    auto numEltEntries = IvarsInfo.size() - oldEnd;
-    if (numElts != 1 && numEltEntries != 0) {
+    
+    if (auto numEltEntries = IvarsInfo.size() - oldEnd; numElts != 1 && numEltEntries != 0) {
       CharUnits eltSize = CGM.getContext().getTypeSizeInChars(recType);
       for (uint64_t eltIndex = 1; eltIndex != numElts; ++eltIndex) {
         // Copy the last numEltEntries onto the end of the array, adjusting
@@ -5314,8 +5314,8 @@ IvarLayoutBuilder::buildBitmap(CGObjCCommonMac &CGObjC,
     // Try to merge into the previous byte.  Since scans happen second, we
     // can't do this if it includes a scan.
     if (!buffer.empty() && !(buffer.back() & ScanMask)) {
-      unsigned lastSkip = buffer.back() >> SkipShift;
-      if (lastSkip < MaxNibble) {
+      
+      if (unsigned lastSkip = buffer.back() >> SkipShift; lastSkip < MaxNibble) {
         unsigned claimed = std::min(MaxNibble - lastSkip, numWords);
         numWords -= claimed;
         lastSkip += claimed;
@@ -5339,8 +5339,8 @@ IvarLayoutBuilder::buildBitmap(CGObjCCommonMac &CGObjC,
     // Try to merge into the previous byte.  Since scans happen second, we can
     // do this even if it includes a skip.
     if (!buffer.empty()) {
-      unsigned lastScan = (buffer.back() & ScanMask) >> ScanShift;
-      if (lastScan < MaxNibble) {
+      
+      if (unsigned lastScan = (buffer.back() & ScanMask) >> ScanShift; lastScan < MaxNibble) {
         unsigned claimed = std::min(MaxNibble - lastScan, numWords);
         numWords -= claimed;
         lastScan += claimed;
@@ -6374,8 +6374,8 @@ void CGObjCNonFragileABIMac::GenerateClass(const ObjCImplementationDecl *ID) {
           getStorage(CGM, "_objc_empty_cache"));
 
     // Only OS X with deployment version <10.9 use the empty vtable symbol
-    const llvm::Triple &Triple = CGM.getTarget().getTriple();
-    if (Triple.isMacOSX() && Triple.isMacOSXVersionLT(10, 9))
+    
+    if (const llvm::Triple &Triple = CGM.getTarget().getTriple(); Triple.isMacOSX() && Triple.isMacOSXVersionLT(10, 9))
       ObjCEmptyVtableVar = new llvm::GlobalVariable(
           CGM.getModule(), ObjCTypes.ImpnfABITy, false,
           llvm::GlobalValue::ExternalLinkage, nullptr, "_objc_empty_vtable");
@@ -6766,9 +6766,9 @@ CGObjCNonFragileABIMac::ObjCIvarOffsetVariable(const ObjCInterfaceDecl *ID,
           Ivar->getAccessControl() == ObjCIvarDecl::Private ||
           Ivar->getAccessControl() == ObjCIvarDecl::Package;
 
-      const ObjCInterfaceDecl *ContainingID = Ivar->getContainingInterface();
+      
 
-      if (ContainingID->hasAttr<DLLImportAttr>())
+      if (const ObjCInterfaceDecl *ContainingID = Ivar->getContainingInterface(); ContainingID->hasAttr<DLLImportAttr>())
         IvarOffsetGV->setDLLStorageClass(
             llvm::GlobalValue::DLLImportStorageClass);
       else if (ContainingID->hasAttr<DLLExportAttr>() && !IsPrivateOrPackage)
@@ -7511,8 +7511,8 @@ ConstantAddress CGObjCNonFragileABIMac::EmitSelectorAddr(Selector Sel) {
 void CGObjCNonFragileABIMac::EmitObjCIvarAssign(CodeGen::CodeGenFunction &CGF,
                                                 llvm::Value *src, Address dst,
                                                 llvm::Value *ivarOffset) {
-  llvm::Type *SrcTy = src->getType();
-  if (!isa<llvm::PointerType>(SrcTy)) {
+  
+  if (llvm::Type *SrcTy = src->getType(); !isa<llvm::PointerType>(SrcTy)) {
     unsigned Size = CGM.getDataLayout().getTypeAllocSize(SrcTy);
     assert(Size <= 8 && "does not support size > 8");
     src = (Size == 4 ? CGF.Builder.CreateBitCast(src, ObjCTypes.IntTy)
@@ -7531,8 +7531,8 @@ void CGObjCNonFragileABIMac::EmitObjCIvarAssign(CodeGen::CodeGenFunction &CGF,
 ///
 void CGObjCNonFragileABIMac::EmitObjCStrongCastAssign(
     CodeGen::CodeGenFunction &CGF, llvm::Value *src, Address dst) {
-  llvm::Type *SrcTy = src->getType();
-  if (!isa<llvm::PointerType>(SrcTy)) {
+  
+  if (llvm::Type *SrcTy = src->getType(); !isa<llvm::PointerType>(SrcTy)) {
     unsigned Size = CGM.getDataLayout().getTypeAllocSize(SrcTy);
     assert(Size <= 8 && "does not support size > 8");
     src = (Size == 4 ? CGF.Builder.CreateBitCast(src, ObjCTypes.IntTy)
@@ -7575,8 +7575,8 @@ CGObjCNonFragileABIMac::EmitObjCWeakRead(CodeGen::CodeGenFunction &CGF,
 ///
 void CGObjCNonFragileABIMac::EmitObjCWeakAssign(CodeGen::CodeGenFunction &CGF,
                                                 llvm::Value *src, Address dst) {
-  llvm::Type *SrcTy = src->getType();
-  if (!isa<llvm::PointerType>(SrcTy)) {
+  
+  if (llvm::Type *SrcTy = src->getType(); !isa<llvm::PointerType>(SrcTy)) {
     unsigned Size = CGM.getDataLayout().getTypeAllocSize(SrcTy);
     assert(Size <= 8 && "does not support size > 8");
     src = (Size == 4 ? CGF.Builder.CreateBitCast(src, ObjCTypes.IntTy)
@@ -7597,8 +7597,8 @@ void CGObjCNonFragileABIMac::EmitObjCWeakAssign(CodeGen::CodeGenFunction &CGF,
 void CGObjCNonFragileABIMac::EmitObjCGlobalAssign(CodeGen::CodeGenFunction &CGF,
                                                   llvm::Value *src, Address dst,
                                                   bool threadlocal) {
-  llvm::Type *SrcTy = src->getType();
-  if (!isa<llvm::PointerType>(SrcTy)) {
+  
+  if (llvm::Type *SrcTy = src->getType(); !isa<llvm::PointerType>(SrcTy)) {
     unsigned Size = CGM.getDataLayout().getTypeAllocSize(SrcTy);
     assert(Size <= 8 && "does not support size > 8");
     src = (Size == 4 ? CGF.Builder.CreateBitCast(src, ObjCTypes.IntTy)

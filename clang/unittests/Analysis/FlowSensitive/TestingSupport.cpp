@@ -105,9 +105,9 @@ test::buildStatementToAnnotationMapping(const FunctionDecl *Func,
   for (auto OffsetAndStmt = Stmts.rbegin(); OffsetAndStmt != Stmts.rend();
        OffsetAndStmt++) {
     unsigned Offset = OffsetAndStmt->first;
-    const Stmt *Stmt = OffsetAndStmt->second;
+    
 
-    if (I < Annotations.size() && Annotations[I].Begin >= Offset) {
+    if (const Stmt *Stmt = OffsetAndStmt->second; I < Annotations.size() && Annotations[I].Begin >= Offset) {
       auto Range = Annotations[I];
 
       if (!isAnnotationDirectlyAfterStatement(Stmt, Range.Begin, SourceManager,

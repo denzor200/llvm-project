@@ -82,9 +82,9 @@ void SPIRVRegularizer::runLowerConstExpr(Function &F) {
       // Do not replace use during iteration of use. Do it in another loop.
       for (auto U : CE->users()) {
         LLVM_DEBUG(dbgs() << "[lowerConstantExpressions] Use: " << *U << '\n');
-        auto InstUser = dyn_cast<Instruction>(U);
+        
         // Only replace users in scope of current function.
-        if (InstUser && InstUser->getParent()->getParent() == &F)
+        if (auto InstUser = dyn_cast<Instruction>(U); InstUser && InstUser->getParent()->getParent() == &F)
           Users.push_back(InstUser);
       }
       for (auto &User : Users) {
@@ -129,10 +129,10 @@ void SPIRVRegularizer::runLowerConstExpr(Function &F) {
       return nullptr;
     };
     for (unsigned OI = 0, OE = II->getNumOperands(); OI != OE; ++OI) {
-      auto *Op = II->getOperand(OI);
-      if (auto *Vec = dyn_cast<ConstantVector>(Op)) {
-        Value *ReplInst = LowerConstantVec(Vec, OI);
-        if (ReplInst)
+      
+      if (auto *auto *Op = II->getOperand(OI); Vec = dyn_cast<ConstantVector>(Op)) {
+        
+        if (Value *ReplInst = LowerConstantVec(Vec, OI); ReplInst)
           II->replaceUsesOfWith(Op, ReplInst);
       } else if (auto CE = dyn_cast<ConstantExpr>(Op)) {
         WorkList.push_front(cast<Instruction>(LowerOp(CE)));

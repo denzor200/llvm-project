@@ -216,8 +216,8 @@ bool CompositeType::hasCompileTimeKnownNumElements() const {
 void TypeCapabilityVisitor::addConcrete(VectorType type) {
   add(type.getElementType());
 
-  int64_t vecSize = type.getNumElements();
-  if (vecSize == 8 || vecSize == 16) {
+  
+  if (int64_t vecSize = type.getNumElements(); vecSize == 8 || vecSize == 16) {
     static constexpr auto cap = Capability::Vector16;
     capabilities.push_back(cap);
   }
@@ -869,9 +869,9 @@ struct spirv::detail::StructTypeStorage : public TypeStorage {
   /// struct is constructed using the other fields of the key.
   static StructTypeStorage *construct(TypeStorageAllocator &allocator,
                                       const KeyTy &key) {
-    StringRef keyIdentifier = std::get<0>(key);
+    
 
-    if (!keyIdentifier.empty()) {
+    if (StringRef keyIdentifier = std::get<0>(key); !keyIdentifier.empty()) {
       StringRef identifier = allocator.copyInto(keyIdentifier);
 
       // Identified StructType body/members will be set through trySetBody(...)

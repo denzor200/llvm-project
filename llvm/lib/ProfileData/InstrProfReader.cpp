@@ -254,8 +254,8 @@ Error TextInstrProfReader::readHeader() {
   Symtab.reset(new InstrProfSymtab());
 
   while (Line->starts_with(":")) {
-    StringRef Str = Line->substr(1);
-    if (Str.equals_insensitive("ir"))
+    
+    if (StringRef Str = Line->substr(1); Str.equals_insensitive("ir"))
       ProfileKind |= InstrProfKind::IRInstrumentation;
     else if (Str.equals_insensitive("fe"))
       ProfileKind |= InstrProfKind::FrontendInstrumentation;
@@ -539,8 +539,8 @@ Error RawInstrProfReader<IntPtrT>::readNextHeader(const char *CurrentPos) {
     return make_error<InstrProfError>(instrprof_error::malformed,
                                       "insufficient padding");
   // The magic should have the same byte order as in the previous header.
-  uint64_t Magic = *reinterpret_cast<const uint64_t *>(CurrentPos);
-  if (Magic != swap(RawInstrProf::getMagic<IntPtrT>()))
+  
+  if (uint64_t Magic = *reinterpret_cast<const uint64_t *>(CurrentPos); Magic != swap(RawInstrProf::getMagic<IntPtrT>()))
     return make_error<InstrProfError>(instrprof_error::bad_magic);
 
   // There's another profile to read, so we need to process the header.
@@ -595,8 +595,8 @@ Error RawInstrProfReader<IntPtrT>::readHeader(
   const uint8_t *BinaryIdStart =
       reinterpret_cast<const uint8_t *>(&Header) + sizeof(RawInstrProf::Header);
   const uint8_t *BinaryIdEnd = BinaryIdStart + BinaryIdSize;
-  const uint8_t *BufferEnd = (const uint8_t *)DataBuffer->getBufferEnd();
-  if (BinaryIdSize % sizeof(uint64_t) || BinaryIdEnd > BufferEnd)
+  
+  if (const uint8_t *BufferEnd = (const uint8_t *)DataBuffer->getBufferEnd(); BinaryIdSize % sizeof(uint64_t) || BinaryIdEnd > BufferEnd)
     return error(instrprof_error::bad_header);
   ArrayRef<uint8_t> BinaryIdsBuffer(BinaryIdStart, BinaryIdSize);
   if (!BinaryIdsBuffer.empty()) {
@@ -752,8 +752,8 @@ Error RawInstrProfReader<IntPtrT>::readRawCounts(
     const char *Ptr =
         CountersStart + CounterBaseOffset + I * getCounterTypeSize();
     if (I == 0 && hasTemporalProfile()) {
-      uint64_t TimestampValue = swap(*reinterpret_cast<const uint64_t *>(Ptr));
-      if (TimestampValue != 0 &&
+      
+      if (uint64_t TimestampValue = swap(*reinterpret_cast<const uint64_t *>(Ptr)); TimestampValue != 0 &&
           TimestampValue != std::numeric_limits<uint64_t>::max()) {
         TemporalProfTimestamps.emplace_back(TimestampValue,
                                             swap(Data->NameRef));
@@ -1105,8 +1105,8 @@ public:
     if (Error E = Remappings.read(*RemapBuffer))
       return E;
     for (StringRef Name : Underlying.HashTable->keys()) {
-      StringRef RealName = extractName(Name);
-      if (auto Key = Remappings.insert(RealName)) {
+      
+      if (auto StringRef RealName = extractName(Name); Key = Remappings.insert(RealName)) {
         // FIXME: We could theoretically map the same equivalence class to
         // multiple names in the profile data. If that happens, we should
         // return NamedInstrProfRecords from all of them.
@@ -1118,10 +1118,10 @@ public:
 
   Error getRecords(StringRef FuncName,
                    ArrayRef<NamedInstrProfRecord> &Data) override {
-    StringRef RealName = extractName(FuncName);
-    if (auto Key = Remappings.lookup(RealName)) {
-      StringRef Remapped = MappedNames.lookup(Key);
-      if (!Remapped.empty()) {
+    
+    if (auto StringRef RealName = extractName(FuncName); Key = Remappings.lookup(RealName)) {
+      
+      if (StringRef Remapped = MappedNames.lookup(Key); !Remapped.empty()) {
         if (RealName.begin() == FuncName.begin() &&
             RealName.end() == FuncName.end())
           FuncName = Remapped;
@@ -1374,8 +1374,8 @@ Expected<NamedInstrProfRecord> IndexedInstrProfReader::getInstrProfRecord(
     uint64_t *MismatchedFuncSum) {
   ArrayRef<NamedInstrProfRecord> Data;
   uint64_t FuncSum = 0;
-  auto Err = Remapper->getRecords(FuncName, Data);
-  if (Err) {
+  
+  if (auto Err = Remapper->getRecords(FuncName, Data); Err) {
     // If we don't find FuncName, try DeprecatedFuncName to handle profiles
     // built by older compilers.
     auto Err2 =
@@ -1469,8 +1469,8 @@ IndexedMemProfReader::getMemProfRecord(const uint64_t FuncNameHash) const {
         instrprof_error::unknown_function,
         "memprof record not found for function hash " + Twine(FuncNameHash));
 
-  const memprof::IndexedMemProfRecord &IndexedRecord = *Iter;
-  switch (Version) {
+  
+  switch (const memprof::IndexedMemProfRecord &IndexedRecord = *Iter; Version) {
   case memprof::Version2:
     assert(MemProfFrameTable && "MemProfFrameTable must be available");
     assert(MemProfCallStackTable && "MemProfCallStackTable must be available");
@@ -1610,8 +1610,8 @@ Error IndexedInstrProfReader::getFunctionBitmap(StringRef FuncName,
 Error IndexedInstrProfReader::readNextRecord(NamedInstrProfRecord &Record) {
   ArrayRef<NamedInstrProfRecord> Data;
 
-  Error E = Index->getRecords(Data);
-  if (E)
+  
+  if (Error E = Index->getRecords(Data); E)
     return error(std::move(E));
 
   Record = Data[RecordIndex++];
@@ -1640,8 +1640,8 @@ void InstrProfReader::accumulateCounts(CountSumOrPercent &Sum, bool IsCS) {
   uint64_t NumFuncs = 0;
   for (const auto &Func : *this) {
     if (isIRLevelProfile()) {
-      bool FuncIsCS = NamedInstrProfRecord::hasCSFlagInHash(Func.Hash);
-      if (FuncIsCS != IsCS)
+      
+      if (bool FuncIsCS = NamedInstrProfRecord::hasCSFlagInHash(Func.Hash); FuncIsCS != IsCS)
         continue;
     }
     Func.accumulateCounts(Sum);

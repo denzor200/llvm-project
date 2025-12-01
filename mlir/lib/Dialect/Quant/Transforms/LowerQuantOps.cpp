@@ -319,11 +319,11 @@ Value clampScalarOrTensor(OpBuilder &builder, Location loc, Value input,
       builder, loc, storageType, quantizedType.getStorageTypeMax());
   auto storageMin = getScalarOrTensorConstant(builder, loc, storageMinScalar,
                                               inputType, inputShape);
-  auto storageMax = getScalarOrTensorConstant(builder, loc, storageMaxScalar,
-                                              inputType, inputShape);
+  
 
   // Clamp
-  if (quantizedType.isSigned()) {
+  if (auto storageMax = getScalarOrTensorConstant(builder, loc, storageMaxScalar,
+                                              inputType, inputShape); quantizedType.isSigned()) {
     input = arith::MaxSIOp::create(builder, loc, input, storageMin);
     input = arith::MinSIOp::create(builder, loc, input, storageMax);
   } else {

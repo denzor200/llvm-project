@@ -142,8 +142,8 @@ protected:
           llvm::DenseMap<unsigned, std::string> AnnotationRangesInLines;
           for (const auto &[Line, AnnotationWithMaybeRange] : Annotations) {
             AnnotationLines.insert(Line);
-            auto it = AnnotationWithMaybeRange.find(':');
-            if (it != std::string::npos) {
+            
+            if (auto it = AnnotationWithMaybeRange.find(':'); it != std::string::npos) {
               AnnotationRangesInLines[Line] =
                   AnnotationWithMaybeRange.substr(it + 1);
             }
@@ -161,8 +161,8 @@ protected:
                                 DiagnosticsEngine::Error,
                                 "unexpected diagnostic", {Diag.Range}, {});
             } else {
-              auto it = AnnotationRangesInLines.find(Line);
-              if (it != AnnotationRangesInLines.end()) {
+              
+              if (auto it = AnnotationRangesInLines.find(Line); it != AnnotationRangesInLines.end()) {
                 EXPECT_EQ(Diag.Range.getAsRange().printToString(SrcMgr),
                           it->second);
               }

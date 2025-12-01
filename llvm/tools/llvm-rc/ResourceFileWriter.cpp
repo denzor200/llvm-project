@@ -110,13 +110,13 @@ static bool stripQuotes(StringRef &Str, bool &IsLongString) {
 }
 
 static UTF16 cp1252ToUnicode(unsigned char C) {
-  static const UTF16 Map80[] = {
+  
+  if (static const UTF16 Map80[] = {
       0x20ac, 0x0081, 0x201a, 0x0192, 0x201e, 0x2026, 0x2020, 0x2021,
       0x02c6, 0x2030, 0x0160, 0x2039, 0x0152, 0x008d, 0x017d, 0x008f,
       0x0090, 0x2018, 0x2019, 0x201c, 0x201d, 0x2022, 0x2013, 0x2014,
       0x02dc, 0x2122, 0x0161, 0x203a, 0x0153, 0x009d, 0x017e, 0x0178,
-  };
-  if (C >= 0x80 && C <= 0x9F)
+  }; C >= 0x80 && C <= 0x9F)
     return Map80[C - 0x80];
   return C;
 }
@@ -664,8 +664,8 @@ Error ResourceFileWriter::writeSingleAccelerator(
       return createAccError(
           "VIRTKEY accelerator events can't be preceded by '^'");
 
-    char Ch = Str[1];
-    if (Ch >= 'a' && Ch <= 'z')
+    
+    if (char Ch = Str[1]; Ch >= 'a' && Ch <= 'z')
       Entry.ANSICode = ulittle16_t(Ch - 'a' + 1);
     else if (Ch >= 'A' && Ch <= 'Z')
       Entry.ANSICode = ulittle16_t(Ch - 'A' + 1);
@@ -1244,8 +1244,8 @@ Error ResourceFileWriter::writeMenuDefinitionList(
   for (auto &Def : List.Definitions) {
     uint16_t Flags = Def->getResFlags();
     // Last element receives an additional 0x80 flag.
-    const uint16_t LastElementFlag = 0x0080;
-    if (&Def == &List.Definitions.back())
+    
+    if (const uint16_t LastElementFlag = 0x0080; &Def == &List.Definitions.back())
       Flags |= LastElementFlag;
 
     RETURN_IF_ERROR(writeMenuDefinition(Def, Flags));
@@ -1258,8 +1258,8 @@ Error ResourceFileWriter::writeMenuExDefinitionList(
   for (auto &Def : List.Definitions) {
     uint16_t Flags = Def->getResFlags();
     // Last element receives an additional 0x80 flag.
-    const uint16_t LastElementFlag = 0x0080;
-    if (&Def == &List.Definitions.back())
+    
+    if (const uint16_t LastElementFlag = 0x0080; &Def == &List.Definitions.back())
       Flags |= LastElementFlag;
 
     RETURN_IF_ERROR(writeMenuExDefinition(Def, Flags));
@@ -1495,8 +1495,8 @@ Error ResourceFileWriter::writeVersionInfoValue(const VersionInfoValue &Val) {
 template <typename Ty>
 static Ty getWithDefault(const StringMap<Ty> &Map, StringRef Key,
                          const Ty &Default) {
-  auto Iter = Map.find(Key);
-  if (Iter != Map.end())
+  
+  if (auto Iter = Map.find(Key); Iter != Map.end())
     return Iter->getValue();
   return Default;
 }

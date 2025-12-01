@@ -191,9 +191,9 @@ void ARMTargetAsmStreamer::switchVendor(StringRef Vendor) {}
 void ARMTargetAsmStreamer::emitAttribute(unsigned Attribute, unsigned Value) {
   OS << "\t.eabi_attribute\t" << Attribute << ", " << Twine(Value);
   if (IsVerboseAsm) {
-    StringRef Name = ELFAttrs::attrTypeAsString(
-        Attribute, ARMBuildAttrs::getARMAttributeTags());
-    if (!Name.empty())
+    
+    if (StringRef Name = ELFAttrs::attrTypeAsString(
+        Attribute, ARMBuildAttrs::getARMAttributeTags()); !Name.empty())
       OS << "\t@ " << Name;
   }
   OS << "\n";
@@ -213,9 +213,9 @@ void ARMTargetAsmStreamer::emitTextAttribute(unsigned Attribute,
       OS << String;
     OS << "\"";
     if (IsVerboseAsm) {
-      StringRef Name = ELFAttrs::attrTypeAsString(
-          Attribute, ARMBuildAttrs::getARMAttributeTags());
-      if (!Name.empty())
+      
+      if (StringRef Name = ELFAttrs::attrTypeAsString(
+          Attribute, ARMBuildAttrs::getARMAttributeTags()); !Name.empty())
         OS << "\t@ " << Name;
     }
     break;
@@ -531,9 +531,9 @@ public:
   void emitInst(uint32_t Inst, char Suffix) {
     unsigned Size;
     char Buffer[4];
-    const bool LittleEndian = getContext().getAsmInfo()->isLittleEndian();
+    
 
-    switch (Suffix) {
+    switch (const bool LittleEndian = getContext().getAsmInfo()->isLittleEndian(); Suffix) {
     case '\0':
       Size = 4;
 
@@ -931,9 +931,9 @@ void ARMTargetELFStreamer::emitArchDefaultAttributes() {
 void ARMTargetELFStreamer::emitFPU(ARM::FPUKind Value) { FPU = Value; }
 
 void ARMTargetELFStreamer::emitFPUDefaultAttributes() {
-  ARMELFStreamer &S = getStreamer();
+  
 
-  switch (FPU) {
+  switch (ARMELFStreamer &S = getStreamer(); FPU) {
   case ARM::FK_VFP:
   case ARM::FK_VFPV2:
     S.setAttributeItem(ARMBuildAttrs::FP_arch, ARMBuildAttrs::AllowFPv2,
@@ -1112,8 +1112,8 @@ void ARMTargetELFStreamer::emitThumbFunc(MCSymbol *Symbol) {
 
 void ARMTargetELFStreamer::emitThumbSet(MCSymbol *Symbol, const MCExpr *Value) {
   if (const MCSymbolRefExpr *SRE = dyn_cast<MCSymbolRefExpr>(Value)) {
-    const MCSymbol &Sym = SRE->getSymbol();
-    if (!Sym.isDefined()) {
+    
+    if (const MCSymbol &Sym = SRE->getSymbol(); !Sym.isDefined()) {
       getStreamer().emitAssignment(Symbol, Value);
       return;
     }
@@ -1139,8 +1139,8 @@ void ARMTargetELFStreamer::finish() {
   // mark it execute-only if it is empty and there is at least one
   // execute-only section in the object.
   MCContext &Ctx = getContext();
-  auto &Asm = getStreamer().getAssembler();
-  if (any_of(Asm, [](const MCSection &Sec) {
+  
+  if (auto &Asm = getStreamer().getAssembler(); any_of(Asm, [](const MCSection &Sec) {
         return static_cast<const MCSectionELF &>(Sec).getFlags() &
                ELF::SHF_ARM_PURECODE;
       })) {

@@ -74,8 +74,8 @@ static OpBuilder::InsertPoint computeInsertPoint(ArrayRef<Value> vals) {
   OpBuilder::InsertPoint pt = computeInsertPoint(vals.front());
   for (Value v : vals.drop_front()) {
     // Choose the "later" insertion point.
-    OpBuilder::InsertPoint nextPt = computeInsertPoint(v);
-    if (domInfo.dominates(pt.getBlock(), pt.getPoint(), nextPt.getBlock(),
+    
+    if (OpBuilder::InsertPoint nextPt = computeInsertPoint(v); domInfo.dominates(pt.getBlock(), pt.getPoint(), nextPt.getBlock(),
                           nextPt.getPoint())) {
       // pt is before nextPt => choose nextPt.
       pt = nextPt;
@@ -3195,8 +3195,8 @@ static void reconcileUnrealizedCastsImpl(
     SmallVector<Operation *> worklist;
     worklist.push_back(rootOp);
     while (!worklist.empty()) {
-      Operation *op = worklist.pop_back_val();
-      if (liveOps.insert(op).second) {
+      
+      if (Operation *op = worklist.pop_back_val(); liveOps.insert(op).second) {
         // Successfully inserted: process reachable input cast ops.
         for (Value v : op->getOperands())
           if (auto castOp = v.getDefiningOp<UnrealizedConversionCastOp>())
@@ -3315,10 +3315,10 @@ LogicalResult ConversionPatternRewriter::legalize(Operation *op) {
 
 LogicalResult OperationConverter::convert(Operation *op,
                                           bool isRecursiveLegalization) {
-  const ConversionConfig &config = rewriter.getConfig();
+  
 
   // Legalize the given operation.
-  if (failed(opLegalizer.legalize(op))) {
+  if (const ConversionConfig &config = rewriter.getConfig(); failed(opLegalizer.legalize(op))) {
     // Handle the case of a failed conversion for each of the different modes.
     // Full conversions expect all operations to be converted.
     if (mode == OpConversionMode::Full) {
@@ -3920,8 +3920,8 @@ auto ConversionTarget::isLegal(Operation *op) const
   auto isOpLegal = [&] {
     // Handle dynamic legality either with the provided legality function.
     if (info->action == LegalizationAction::Dynamic) {
-      std::optional<bool> result = info->legalityFn(op);
-      if (result)
+      
+      if (std::optional<bool> result = info->legalityFn(op); result)
         return *result;
     }
 
@@ -4019,8 +4019,8 @@ void ConversionTarget::setLegalityCallback(
 auto ConversionTarget::getOpInfo(OperationName op) const
     -> std::optional<LegalizationInfo> {
   // Check for info for this specific operation.
-  const auto *it = legalOperations.find(op);
-  if (it != legalOperations.end())
+  
+  if (const auto *it = legalOperations.find(op); it != legalOperations.end())
     return it->second;
   // Check for info for the parent dialect.
   auto dialectIt = legalDialects.find(op.getDialectNamespace());
@@ -4084,9 +4084,9 @@ void mlir::registerConversionPDLFunctions(RewritePatternSet &patterns) {
   patterns.getPDLPatterns().registerRewriteFunction(
       "convertType",
       [](PatternRewriter &rewriter, Type type) -> FailureOr<Type> {
-        auto &rewriterImpl =
-            static_cast<ConversionPatternRewriter &>(rewriter).getImpl();
-        if (const TypeConverter *converter =
+        
+        if (const TypeConverter *auto &rewriterImpl =
+            static_cast<ConversionPatternRewriter &>(rewriter).getImpl(); converter =
                 rewriterImpl.currentTypeConverter) {
           if (Type newType = converter->convertType(type))
             return newType;

@@ -205,9 +205,9 @@ static UTF8Decoded decodeUTF8(StringRef Range) {
   // Bit pattern: 110xxxxx 10xxxxxx
   if (Position + 1 < End && ((*Position & 0xE0) == 0xC0) &&
       ((*(Position + 1) & 0xC0) == 0x80)) {
-    uint32_t codepoint = ((*Position & 0x1F) << 6) |
-                          (*(Position + 1) & 0x3F);
-    if (codepoint >= 0x80)
+    
+    if (uint32_t codepoint = ((*Position & 0x1F) << 6) |
+                          (*(Position + 1) & 0x3F); codepoint >= 0x80)
       return {codepoint, 2};
   }
   // 3 bytes: [0x8000, 0xffff]
@@ -215,12 +215,12 @@ static UTF8Decoded decodeUTF8(StringRef Range) {
   if (Position + 2 < End && ((*Position & 0xF0) == 0xE0) &&
       ((*(Position + 1) & 0xC0) == 0x80) &&
       ((*(Position + 2) & 0xC0) == 0x80)) {
-    uint32_t codepoint = ((*Position & 0x0F) << 12) |
-                         ((*(Position + 1) & 0x3F) << 6) |
-                          (*(Position + 2) & 0x3F);
+    
     // Codepoints between 0xD800 and 0xDFFF are invalid, as
     // they are high / low surrogate halves used by UTF-16.
-    if (codepoint >= 0x800 &&
+    if (uint32_t codepoint = ((*Position & 0x0F) << 12) |
+                         ((*(Position + 1) & 0x3F) << 6) |
+                          (*(Position + 2) & 0x3F); codepoint >= 0x800 &&
         (codepoint < 0xD800 || codepoint > 0xDFFF))
       return {codepoint, 3};
   }
@@ -230,11 +230,11 @@ static UTF8Decoded decodeUTF8(StringRef Range) {
       ((*(Position + 1) & 0xC0) == 0x80) &&
       ((*(Position + 2) & 0xC0) == 0x80) &&
       ((*(Position + 3) & 0xC0) == 0x80)) {
-    uint32_t codepoint = ((*Position & 0x07) << 18) |
+    
+    if (uint32_t codepoint = ((*Position & 0x07) << 18) |
                          ((*(Position + 1) & 0x3F) << 12) |
                          ((*(Position + 2) & 0x3F) << 6) |
-                          (*(Position + 3) & 0x3F);
-    if (codepoint >= 0x10000 && codepoint <= 0x10FFFF)
+                          (*(Position + 3) & 0x3F); codepoint >= 0x10000 && codepoint <= 0x10FFFF)
       return {codepoint, 4};
   }
   return {0, 0};
@@ -692,8 +692,8 @@ bool yaml::scanTokens(StringRef Input) {
   SourceMgr SM;
   Scanner scanner(Input, SM);
   while (true) {
-    Token T = scanner.getNext();
-    if (T.Kind == Token::TK_StreamEnd)
+    
+    if (Token T = scanner.getNext(); T.Kind == Token::TK_StreamEnd)
       break;
     else if (T.Kind == Token::TK_Error)
       return false;
@@ -752,8 +752,8 @@ std::string yaml::escape(StringRef Input, bool EscapePrintable) {
                sys::unicode::isPrintable(UnicodeScalarValue.first))
         EscapedInput += StringRef(i, UnicodeScalarValue.second);
       else {
-        std::string HexStr = utohexstr(UnicodeScalarValue.first);
-        if (HexStr.size() <= 2)
+        
+        if (std::string HexStr = utohexstr(UnicodeScalarValue.first); HexStr.size() <= 2)
           EscapedInput += "\\x" + std::string(2 - HexStr.size(), '0') + HexStr;
         else if (HexStr.size() <= 4)
           EscapedInput += "\\u" + std::string(4 - HexStr.size(), '0') + HexStr;
@@ -934,8 +934,8 @@ StringRef::iterator Scanner::skip_nb_char(StringRef::iterator Position) {
 
   // Check for valid UTF-8.
   if (uint8_t(*Position) & 0x80) {
-    UTF8Decoded u8d = decodeUTF8(Position);
-    if (   u8d.second != 0
+    
+    if (   UTF8Decoded u8d = decodeUTF8(Position); u8d.second != 0
         && u8d.first != 0xFEFF
         && ( u8d.first == 0x85
           || ( u8d.first >= 0xA0
@@ -1230,8 +1230,8 @@ bool Scanner::scanDirective() {
   StringRef Name(NameStart, Current - NameStart);
   Current = skip_while(&Scanner::skip_s_white, Current);
 
-  Token T;
-  if (Name == "YAML") {
+  
+  if (Token T; Name == "YAML") {
     Current = skip_while(&Scanner::skip_ns_char, Current);
     T.Kind = Token::TK_VersionDirective;
     T.Range = StringRef(Start, Current - Start);
@@ -1417,8 +1417,8 @@ bool Scanner::scanFlowScalar(bool IsDoubleQuoted) {
         continue;
       } else if (*Current == '\'')
         break;
-      StringRef::iterator i = skip_nb_char(Current);
-      if (i == Current) {
+      
+      if (StringRef::iterator i = skip_nb_char(Current); i == Current) {
         i = skip_b_break(Current);
         if (i == Current)
           break;
@@ -1480,8 +1480,8 @@ bool Scanner::scanPlainScalar() {
     // Eat blanks.
     StringRef::iterator Tmp = Current;
     while (isBlankOrBreak(Tmp)) {
-      StringRef::iterator i = skip_s_white(Tmp);
-      if (i != Tmp) {
+      
+      if (StringRef::iterator i = skip_s_white(Tmp); i != Tmp) {
         if (LeadingBlanks && (Column < indent) && *Tmp == '\t') {
           setError("Found invalid tab character in indentation", Tmp);
           return false;
@@ -1901,8 +1901,8 @@ bool Scanner::fetchMoreTokens() {
     return scanFlowScalar(true);
 
   // Get a plain scalar.
-  StringRef FirstChar(Current, 1);
-  if ((!isBlankOrBreak(Current) &&
+  
+  if (StringRef FirstChar(Current, 1); (!isBlankOrBreak(Current) &&
        FirstChar.find_first_of("-?:,[]{}#&*!|>'\"%@`") == StringRef::npos) ||
       (FirstChar.find_first_of("?:-") != StringRef::npos &&
        isPlainSafeNonBlank(Current + 1)))
@@ -1961,10 +1961,10 @@ Node::Node(unsigned int Type, std::unique_ptr<Document> &D, StringRef A,
 }
 
 std::string Node::getVerbatimTag() const {
-  StringRef Raw = getRawTag();
-  if (!Raw.empty() && Raw != "!") {
-    std::string Ret;
-    if (Raw.find_last_of('!') == 0) {
+  
+  if (StringRef Raw = getRawTag(); !Raw.empty() && Raw != "!") {
+    
+    if (std::string Ret; Raw.find_last_of('!') == 0) {
       Ret = std::string(Doc->getTagMap().find("!")->second);
       Ret += Raw.substr(1);
       return Ret;
@@ -2271,8 +2271,8 @@ Node *KeyValueNode::getKey() {
   }
 
   // Handle explicit null keys.
-  Token &t = peekNext();
-  if (t.Kind == Token::TK_BlockEnd || t.Kind == Token::TK_Value) {
+  
+  if (Token &t = peekNext(); t.Kind == Token::TK_BlockEnd || t.Kind == Token::TK_Value) {
     return Key = new (getAllocator()) NullNode(Doc);
   }
 
@@ -2313,8 +2313,8 @@ Node *KeyValueNode::getValue() {
   }
 
   // Handle explicit null values.
-  Token &t = peekNext();
-  if (t.Kind == Token::TK_BlockEnd || t.Kind == Token::TK_Key) {
+  
+  if (Token &t = peekNext(); t.Kind == Token::TK_BlockEnd || t.Kind == Token::TK_Key) {
     return Value = new (getAllocator()) NullNode(Doc);
   }
 
@@ -2336,8 +2336,8 @@ void MappingNode::increment() {
       return;
     }
   }
-  Token T = peekNext();
-  if (T.Kind == Token::TK_Key || T.Kind == Token::TK_Scalar) {
+  
+  if (Token T = peekNext(); T.Kind == Token::TK_Key || T.Kind == Token::TK_Scalar) {
     // KeyValueNode eats the TK_Key. That way it can detect null keys.
     CurrentEntry = new (getAllocator()) KeyValueNode(Doc);
   } else if (Type == MT_Block) {
@@ -2386,8 +2386,8 @@ void SequenceNode::increment() {
   }
   if (CurrentEntry)
     CurrentEntry->skip();
-  Token T = peekNext();
-  if (SeqType == ST_Block) {
+  
+  if (Token T = peekNext(); SeqType == ST_Block) {
     switch (T.Kind) {
     case Token::TK_BlockEntry:
       getNext();
@@ -2473,8 +2473,8 @@ Document::Document(Stream &S) : stream(S), Root(nullptr) {
 
   if (parseDirectives())
     expectToken(Token::TK_DocumentStart);
-  Token &T = peekNext();
-  if (T.Kind == Token::TK_DocumentStart)
+  
+  if (Token &T = peekNext(); T.Kind == Token::TK_DocumentStart)
     getNext();
 }
 
@@ -2625,8 +2625,8 @@ parse_property:
 bool Document::parseDirectives() {
   bool isDirective = false;
   while (true) {
-    Token T = peekNext();
-    if (T.Kind == Token::TK_TagDirective) {
+    
+    if (Token T = peekNext(); T.Kind == Token::TK_TagDirective) {
       parseTAGDirective();
       isDirective = true;
     } else if (T.Kind == Token::TK_VersionDirective) {
@@ -2655,8 +2655,8 @@ void Document::parseTAGDirective() {
 }
 
 bool Document::expectToken(int TK) {
-  Token T = getNext();
-  if (T.Kind != TK) {
+  
+  if (Token T = getNext(); T.Kind != TK) {
     setError("Unexpected token", T);
     return false;
   }

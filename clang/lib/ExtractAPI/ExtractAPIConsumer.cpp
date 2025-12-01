@@ -106,8 +106,8 @@ std::optional<std::string> getRelativeIncludeName(const CompilerInstance &CI,
       // located in `iPhoneSimulator.sdk` (the real folder).
       if (NI->ends_with(".sdk") && DI->ends_with(".sdk")) {
         StringRef NBasename = path::stem(*NI);
-        StringRef DBasename = path::stem(*DI);
-        if (DBasename.starts_with(NBasename))
+        
+        if (StringRef DBasename = path::stem(*DI); DBasename.starts_with(NBasename))
           continue;
       }
 
@@ -130,8 +130,8 @@ std::optional<std::string> getRelativeIncludeName(const CompilerInstance &CI,
       if (auto HMap = HeaderMap::Create(*EntryFile, CI.getFileManager())) {
         // If this is a headermap entry, try to reverse lookup the full path
         // for a spelled name before mapping.
-        StringRef SpelledFilename = HMap->reverseLookupFilename(File);
-        if (!SpelledFilename.empty())
+        
+        if (StringRef SpelledFilename = HMap->reverseLookupFilename(File); !SpelledFilename.empty())
           return SpelledFilename.str();
 
         // No matching mapping in this headermap, try next search entry.
@@ -457,8 +457,8 @@ bool ExtractAPIAction::PrepareToExecuteAction(CompilerInstance &CI) {
     else
       HeaderContents += "#include";
 
-    StringRef FilePath = FIF.getFile();
-    if (auto RelativeName = getRelativeIncludeName(CI, FilePath, &IsQuoted)) {
+    
+    if (auto StringRef FilePath = FIF.getFile(); RelativeName = getRelativeIncludeName(CI, FilePath, &IsQuoted)) {
       if (IsQuoted)
         HeaderContents += " \"";
       else

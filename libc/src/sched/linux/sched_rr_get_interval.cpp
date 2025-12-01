@@ -26,8 +26,7 @@ namespace LIBC_NAMESPACE_DECL {
 LLVM_LIBC_FUNCTION(int, sched_rr_get_interval,
                    (pid_t tid, struct timespec *tp)) {
 #ifdef SYS_sched_rr_get_interval
-  int ret =
-      LIBC_NAMESPACE::syscall_impl<int>(SYS_sched_rr_get_interval, tid, tp);
+  
 #elif defined(SYS_sched_rr_get_interval_time64)
   // The difference between the  and SYS_sched_rr_get_interval
   // SYS_sched_rr_get_interval_time64 syscalls is the data type used for the
@@ -49,7 +48,8 @@ LLVM_LIBC_FUNCTION(int, sched_rr_get_interval,
 #error                                                                         \
     "sched_rr_get_interval and sched_rr_get_interval_time64 syscalls not available."
 #endif
-  if (ret < 0) {
+  if (int ret =
+      LIBC_NAMESPACE::syscall_impl<int>(SYS_sched_rr_get_interval, tid, tp); ret < 0) {
     libc_errno = -ret;
     return -1;
   }

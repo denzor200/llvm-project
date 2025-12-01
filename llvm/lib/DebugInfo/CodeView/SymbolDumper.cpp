@@ -395,8 +395,8 @@ Error CVSymbolDumperImpl::visitKnownRecord(CVSymbol &CVR,
 
 Error CVSymbolDumperImpl::visitKnownRecord(CVSymbol &CVR,
                                            FrameCookieSym &FrameCookie) {
-  StringRef LinkageName;
-  if (ObjDelegate) {
+  
+  if (StringRef LinkageName; ObjDelegate) {
     ObjDelegate->printRelocatedField("CodeOffset",
                                      FrameCookie.getRelocationOffset(),
                                      FrameCookie.CodeOffset, &LinkageName);

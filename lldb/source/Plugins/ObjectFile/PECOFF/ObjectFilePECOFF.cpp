@@ -139,11 +139,11 @@ static bool GetDebugLinkContents(const llvm::object::COFFObjectFile &coff_obj,
 
 static UUID GetCoffUUID(llvm::object::COFFObjectFile &coff_obj) {
   const llvm::codeview::DebugInfo *pdb_info = nullptr;
-  llvm::StringRef pdb_file;
+  
 
   // First, prefer to use the PDB build id. LLD generates this even for mingw
   // targets without PDB output, and it does not get stripped either.
-  if (!coff_obj.getDebugPDBInfo(pdb_info, pdb_file) && pdb_info) {
+  if (llvm::StringRef pdb_file; !coff_obj.getDebugPDBInfo(pdb_info, pdb_file) && pdb_info) {
     if (pdb_info->PDB70.CVSignature == llvm::OMF::Signature::PDB70) {
       UUID::CvRecordPdb70 info;
       memcpy(&info.Uuid, pdb_info->PDB70.Signature, sizeof(info.Uuid));
@@ -303,8 +303,8 @@ size_t ObjectFilePECOFF::GetModuleSpecifications(
     }
     if (!module_env_option) {
       // Step 3: Try with the file name with ".debug" suffix stripped.
-      auto name_stripped = name.GetStringRef();
-      if (name_stripped.consume_back_insensitive(".debug")) {
+      
+      if (auto name_stripped = name.GetStringRef(); name_stripped.consume_back_insensitive(".debug")) {
         module_env_option = map->GetValueForKey(name_stripped);
         if (!module_env_option) {
           // Step 4: Try with the file name in lowercase with ".debug" suffix
@@ -443,12 +443,12 @@ bool ObjectFilePECOFF::ParseHeader() {
     std::lock_guard<std::recursive_mutex> guard(module_sp->GetMutex());
     m_sect_headers.clear();
     m_data.SetByteOrder(eByteOrderLittle);
-    lldb::offset_t offset = 0;
+    
 
-    if (ParseDOSHeader(m_data, m_dos_header)) {
+    if (lldb::offset_t offset = 0; ParseDOSHeader(m_data, m_dos_header)) {
       offset = m_dos_header.e_lfanew;
-      uint32_t pe_signature = m_data.GetU32(&offset);
-      if (pe_signature != IMAGE_NT_SIGNATURE)
+      
+      if (uint32_t pe_signature = m_data.GetU32(&offset); pe_signature != IMAGE_NT_SIGNATURE)
         return false;
       if (ParseCOFFHeader(m_data, &offset, m_coff_header)) {
         if (m_coff_header.hdrsize > 0)
@@ -468,8 +468,8 @@ bool ObjectFilePECOFF::SetLoadAddress(Target &target, addr_t value,
   ModuleSP module_sp = GetModule();
   if (module_sp) {
     size_t num_loaded_sections = 0;
-    SectionList *section_list = GetSectionList();
-    if (section_list) {
+    
+    if (SectionList *section_list = GetSectionList(); section_list) {
       if (!value_is_offset) {
         value -= m_image_base;
       }
@@ -480,8 +480,8 @@ bool ObjectFilePECOFF::SetLoadAddress(Target &target, addr_t value,
       for (sect_idx = 0; sect_idx < num_sections; ++sect_idx) {
         // Iterate through the object file sections to find all of the sections
         // that have SHF_ALLOC in their flag bits.
-        SectionSP section_sp(section_list->GetSectionAtIndex(sect_idx));
-        if (section_sp && !section_sp->IsThreadSpecific()) {
+        
+        if (SectionSP section_sp(section_list->GetSectionAtIndex(sect_idx)); section_sp && !section_sp->IsThreadSpecific()) {
           if (target.SetSectionLoadAddress(
                   section_sp, section_sp->GetFileAddress() + value))
             ++num_loaded_sections;
@@ -611,9 +611,9 @@ bool ObjectFilePECOFF::ParseCOFFOptionalHeader(lldb::offset_t *offset_ptr) {
     m_coff_header_opt.entry = m_data.GetU32(offset_ptr);
     m_coff_header_opt.code_offset = m_data.GetU32(offset_ptr);
 
-    const uint32_t addr_byte_size = GetAddressByteSize();
+    
 
-    if (*offset_ptr < end_offset) {
+    if (const uint32_t addr_byte_size = GetAddressByteSize(); *offset_ptr < end_offset) {
       if (m_coff_header_opt.magic == OPT_HEADER_MAGIC_PE32) {
         // PE32 only
         m_coff_header_opt.data_offset = m_data.GetU32(offset_ptr);
@@ -692,10 +692,10 @@ DataExtractor ObjectFilePECOFF::ReadImageData(uint32_t offset, size_t size) {
   if (process_sp) {
     auto data_up = std::make_unique<DataBufferHeap>(size, 0);
     Status readmem_error;
-    size_t bytes_read =
+    
+    if (size_t bytes_read =
         process_sp->ReadMemory(m_image_base + offset, data_up->GetBytes(),
-                               data_up->GetByteSize(), readmem_error);
-    if (bytes_read == size) {
+                               data_up->GetByteSize(), readmem_error); bytes_read == size) {
       DataBufferSP buffer_sp(data_up.release());
       data.SetData(buffer_sp, 0, buffer_sp->GetByteSize());
     }
@@ -724,14 +724,14 @@ bool ObjectFilePECOFF::ParseSectionHeaders(
     DataExtractor section_header_data =
         ReadImageData(section_header_data_offset, section_header_byte_size);
 
-    lldb::offset_t offset = 0;
-    if (section_header_data.ValidOffsetForDataOfSize(
+    
+    if (lldb::offset_t offset = 0; section_header_data.ValidOffsetForDataOfSize(
             offset, section_header_byte_size)) {
       m_sect_headers.resize(nsects);
 
       for (uint32_t idx = 0; idx < nsects; ++idx) {
-        const void *name_data = section_header_data.GetData(&offset, 8);
-        if (name_data) {
+        
+        if (const void *name_data = section_header_data.GetData(&offset, 8); name_data) {
           memcpy(m_sect_headers[idx].name, name_data, 8);
           m_sect_headers[idx].vmsize = section_header_data.GetU32(&offset);
           m_sect_headers[idx].vmaddr = section_header_data.GetU32(&offset);
@@ -1021,8 +1021,8 @@ void ObjectFilePECOFF::CreateSections(SectionList &unified_section_list) {
   if (m_sections_up)
     return;
   m_sections_up = std::make_unique<SectionList>();
-  ModuleSP module_sp(GetModule());
-  if (module_sp) {
+  
+  if (ModuleSP module_sp(GetModule()); module_sp) {
     std::lock_guard<std::recursive_mutex> guard(module_sp->GetMutex());
 
     SectionSP header_sp = std::make_shared<Section>(
@@ -1087,8 +1087,8 @@ UUID ObjectFilePECOFF::GetUUID() {
 
 std::optional<FileSpec> ObjectFilePECOFF::GetDebugLink() {
   std::string gnu_debuglink_file;
-  uint32_t gnu_debuglink_crc;
-  if (GetDebugLinkContents(*m_binary, gnu_debuglink_file, gnu_debuglink_crc))
+  
+  if (uint32_t gnu_debuglink_crc; GetDebugLinkContents(*m_binary, gnu_debuglink_file, gnu_debuglink_crc))
     return FileSpec(gnu_debuglink_file);
   return std::nullopt;
 }
@@ -1159,9 +1159,9 @@ lldb_private::Address ObjectFilePECOFF::GetEntryPointAddress() {
     return m_entry_point_address;
 
   SectionList *section_list = GetSectionList();
-  addr_t file_addr = m_coff_header_opt.entry + m_coff_header_opt.image_base;
+  
 
-  if (!section_list)
+  if (addr_t file_addr = m_coff_header_opt.entry + m_coff_header_opt.image_base; !section_list)
     m_entry_point_address.SetOffset(file_addr);
   else
     m_entry_point_address.ResolveAddressUsingFileSections(file_addr,
@@ -1178,8 +1178,8 @@ Address ObjectFilePECOFF::GetBaseAddress() {
 // Dump the specifics of the runtime file container (such as any headers
 // segments, sections, etc).
 void ObjectFilePECOFF::Dump(Stream *s) {
-  ModuleSP module_sp(GetModule());
-  if (module_sp) {
+  
+  if (ModuleSP module_sp(GetModule()); module_sp) {
     std::lock_guard<std::recursive_mutex> guard(module_sp->GetMutex());
     s->Printf("%p: ", static_cast<void *>(this));
     s->Indent();
@@ -1190,8 +1190,8 @@ void ObjectFilePECOFF::Dump(Stream *s) {
     *s << ", file = '" << m_file
        << "', arch = " << header_arch.GetArchitectureName() << "\n";
 
-    SectionList *sections = GetSectionList();
-    if (sections)
+    
+    if (SectionList *sections = GetSectionList(); sections)
       sections->Dump(s->AsRawOstream(), s->GetIndentLevel(), nullptr, true,
                      UINT32_MAX);
 
@@ -1351,8 +1351,8 @@ void ObjectFilePECOFF::DumpSectionHeaders(Stream *s) {
 //
 // Dump all of the dependent modules to the specified output stream
 void ObjectFilePECOFF::DumpDependentModules(lldb_private::Stream *s) {
-  auto num_modules = ParseDependentModules();
-  if (num_modules > 0) {
+  
+  if (auto num_modules = ParseDependentModules(); num_modules > 0) {
     s->PutCString("Dependent Modules\n");
     for (unsigned i = 0; i < num_modules; ++i) {
       auto spec = m_deps_filespec->GetFileSpecAtIndex(i);
@@ -1377,8 +1377,8 @@ bool ObjectFilePECOFF::IsWindowsSubsystem() {
 }
 
 ArchSpec ObjectFilePECOFF::GetArchitecture() {
-  uint16_t machine = m_coff_header.machine;
-  switch (machine) {
+  
+  switch (uint16_t machine = m_coff_header.machine; machine) {
   default:
     break;
   case llvm::COFF::IMAGE_FILE_MACHINE_AMD64:

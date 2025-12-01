@@ -831,9 +831,9 @@ static bool
 testArchExtDependency(const char *ArchExt,
                       const std::initializer_list<const char *> &Expected) {
   std::vector<StringRef> Features;
-  ARM::FPUKind FPUKind;
+  
 
-  if (!ARM::appendArchExtFeatures("", ARM::ArchKind::ARMV8_1MMainline, ArchExt,
+  if (ARM::FPUKind FPUKind; !ARM::appendArchExtFeatures("", ARM::ArchKind::ARMV8_1MMainline, ArchExt,
                                   Features, FPUKind))
     return false;
 

@@ -84,8 +84,8 @@ public:
 
     } break;
     case 's': {
-      mode_t perms = ParsePermissionString(option_arg);
-      if (perms == (mode_t)-1)
+      
+      if (mode_t perms = ParsePermissionString(option_arg); perms == (mode_t)-1)
         error = Status::FromErrorStringWithFormat(
             "invalid value for permissions: %s", option_arg.str().c_str());
       else
@@ -170,8 +170,8 @@ public:
 protected:
   void DoExecute(Args &args, CommandReturnObject &result) override {
     if (args.GetArgumentCount() == 1) {
-      const char *platform_name = args.GetArgumentAtIndex(0);
-      if (platform_name && platform_name[0]) {
+      
+      if (const char *platform_name = args.GetArgumentAtIndex(0); platform_name && platform_name[0]) {
         const bool select = true;
         m_platform_options.SetPlatformName(platform_name);
         Status error;
@@ -284,11 +284,11 @@ protected:
   void DoExecute(Args &args, CommandReturnObject &result) override {
     Stream &ostrm = result.GetOutputStream();
 
-    PlatformSP platform_sp(
-        GetDebugger().GetPlatformList().GetSelectedPlatform());
-    if (platform_sp) {
-      Status error(platform_sp->ConnectRemote(args));
-      if (error.Success()) {
+    
+    if (PlatformSP platform_sp(
+        GetDebugger().GetPlatformList().GetSelectedPlatform()); platform_sp) {
+      
+      if (Status error(platform_sp->ConnectRemote(args)); error.Success()) {
         platform_sp->GetStatus(ostrm);
         result.SetStatus(eReturnStatusSuccessFinishResult);
 
@@ -329,13 +329,13 @@ public:
 
 protected:
   void DoExecute(Args &args, CommandReturnObject &result) override {
-    PlatformSP platform_sp(
-        GetDebugger().GetPlatformList().GetSelectedPlatform());
-    if (platform_sp) {
+    
+    if (PlatformSP platform_sp(
+        GetDebugger().GetPlatformList().GetSelectedPlatform()); platform_sp) {
       if (args.GetArgumentCount() == 0) {
-        Status error;
+        
 
-        if (platform_sp->IsConnected()) {
+        if (Status error; platform_sp->IsConnected()) {
           // Cache the instance name if there is one since we are about to
           // disconnect and the name might go with it.
           const char *hostname_cstr = platform_sp->GetHostname();
@@ -345,8 +345,8 @@ protected:
 
           error = platform_sp->DisconnectRemote();
           if (error.Success()) {
-            Stream &ostrm = result.GetOutputStream();
-            if (hostname.empty())
+            
+            if (Stream &ostrm = result.GetOutputStream(); hostname.empty())
               ostrm.Format("Disconnected from \"{0}\"\n",
                            platform_sp->GetPluginName());
             else
@@ -388,9 +388,9 @@ public:
 
 protected:
   void DoExecute(Args &args, CommandReturnObject &result) override {
-    PlatformSP platform_sp(
-        GetDebugger().GetPlatformList().GetSelectedPlatform());
-    if (platform_sp) {
+    
+    if (PlatformSP platform_sp(
+        GetDebugger().GetPlatformList().GetSelectedPlatform()); platform_sp) {
       if (m_option_working_dir.GetOptionValue().OptionWasSet())
         platform_sp->SetWorkingDirectory(
             m_option_working_dir.GetOptionValue().GetCurrentValue());
@@ -422,15 +422,15 @@ public:
   ~CommandObjectPlatformMkDir() override = default;
 
   void DoExecute(Args &args, CommandReturnObject &result) override {
-    PlatformSP platform_sp(
-        GetDebugger().GetPlatformList().GetSelectedPlatform());
-    if (platform_sp) {
+    
+    if (PlatformSP platform_sp(
+        GetDebugger().GetPlatformList().GetSelectedPlatform()); platform_sp) {
       std::string cmd_line;
       args.GetCommandString(cmd_line);
       uint32_t mode;
-      const OptionPermissions *options_permissions =
-          (const OptionPermissions *)m_options.GetGroupWithOption('r');
-      if (options_permissions)
+      
+      if (const OptionPermissions *options_permissions =
+          (const OptionPermissions *)m_options.GetGroupWithOption('r'); options_permissions)
         mode = options_permissions->m_permissions;
       else
         mode = lldb::eFilePermissionsUserRWX | lldb::eFilePermissionsGroupRWX |
@@ -470,16 +470,16 @@ public:
   ~CommandObjectPlatformFOpen() override = default;
 
   void DoExecute(Args &args, CommandReturnObject &result) override {
-    PlatformSP platform_sp(
-        GetDebugger().GetPlatformList().GetSelectedPlatform());
-    if (platform_sp) {
+    
+    if (PlatformSP platform_sp(
+        GetDebugger().GetPlatformList().GetSelectedPlatform()); platform_sp) {
       Status error;
       std::string cmd_line;
       args.GetCommandString(cmd_line);
       mode_t perms;
-      const OptionPermissions *options_permissions =
-          (const OptionPermissions *)m_options.GetGroupWithOption('r');
-      if (options_permissions)
+      
+      if (const OptionPermissions *options_permissions =
+          (const OptionPermissions *)m_options.GetGroupWithOption('r'); options_permissions)
         perms = options_permissions->m_permissions;
       else
         perms = lldb::eFilePermissionsUserRW | lldb::eFilePermissionsGroupRW |
@@ -523,9 +523,9 @@ public:
   ~CommandObjectPlatformFClose() override = default;
 
   void DoExecute(Args &args, CommandReturnObject &result) override {
-    PlatformSP platform_sp(
-        GetDebugger().GetPlatformList().GetSelectedPlatform());
-    if (platform_sp) {
+    
+    if (PlatformSP platform_sp(
+        GetDebugger().GetPlatformList().GetSelectedPlatform()); platform_sp) {
       std::string cmd_line;
       args.GetCommandString(cmd_line);
       lldb::user_id_t fd;
@@ -565,9 +565,9 @@ public:
   ~CommandObjectPlatformFRead() override = default;
 
   void DoExecute(Args &args, CommandReturnObject &result) override {
-    PlatformSP platform_sp(
-        GetDebugger().GetPlatformList().GetSelectedPlatform());
-    if (platform_sp) {
+    
+    if (PlatformSP platform_sp(
+        GetDebugger().GetPlatformList().GetSelectedPlatform()); platform_sp) {
       std::string cmd_line;
       args.GetCommandString(cmd_line);
       lldb::user_id_t fd;
@@ -604,9 +604,9 @@ protected:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      char short_option = (char)m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (char short_option = (char)m_getopt_table[option_idx].val; short_option) {
       case 'o':
         if (option_arg.getAsInteger(0, m_offset))
           error = Status::FromErrorStringWithFormat("invalid offset: '%s'",
@@ -659,9 +659,9 @@ public:
   ~CommandObjectPlatformFWrite() override = default;
 
   void DoExecute(Args &args, CommandReturnObject &result) override {
-    PlatformSP platform_sp(
-        GetDebugger().GetPlatformList().GetSelectedPlatform());
-    if (platform_sp) {
+    
+    if (PlatformSP platform_sp(
+        GetDebugger().GetPlatformList().GetSelectedPlatform()); platform_sp) {
       std::string cmd_line;
       args.GetCommandString(cmd_line);
       Status error;
@@ -697,9 +697,9 @@ protected:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      char short_option = (char)m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (char short_option = (char)m_getopt_table[option_idx].val; short_option) {
       case 'o':
         if (option_arg.getAsInteger(0, m_offset))
           error = Status::FromErrorStringWithFormat("invalid offset: '%s'",
@@ -820,9 +820,9 @@ public:
       return;
     }
 
-    PlatformSP platform_sp(
-        GetDebugger().GetPlatformList().GetSelectedPlatform());
-    if (platform_sp) {
+    
+    if (PlatformSP platform_sp(
+        GetDebugger().GetPlatformList().GetSelectedPlatform()); platform_sp) {
       const char *remote_file_path = args.GetArgumentAtIndex(0);
       const char *local_file_path = args.GetArgumentAtIndex(1);
       Status error = platform_sp->GetFile(FileSpec(remote_file_path),
@@ -869,9 +869,9 @@ public:
       return;
     }
 
-    PlatformSP platform_sp(
-        GetDebugger().GetPlatformList().GetSelectedPlatform());
-    if (platform_sp) {
+    
+    if (PlatformSP platform_sp(
+        GetDebugger().GetPlatformList().GetSelectedPlatform()); platform_sp) {
       std::string remote_file_path(args.GetArgumentAtIndex(0));
       user_id_t size = platform_sp->GetFileSize(FileSpec(remote_file_path));
       if (size != UINT64_MAX) {
@@ -917,9 +917,9 @@ public:
       return;
     }
 
-    PlatformSP platform_sp(
-        GetDebugger().GetPlatformList().GetSelectedPlatform());
-    if (platform_sp) {
+    
+    if (PlatformSP platform_sp(
+        GetDebugger().GetPlatformList().GetSelectedPlatform()); platform_sp) {
       std::string remote_file_path(args.GetArgumentAtIndex(0));
       uint32_t permissions;
       Status error = platform_sp->GetFilePermissions(FileSpec(remote_file_path),
@@ -964,9 +964,9 @@ public:
       return;
     }
 
-    PlatformSP platform_sp(
-        GetDebugger().GetPlatformList().GetSelectedPlatform());
-    if (platform_sp) {
+    
+    if (PlatformSP platform_sp(
+        GetDebugger().GetPlatformList().GetSelectedPlatform()); platform_sp) {
       std::string remote_file_path(args.GetArgumentAtIndex(0));
       bool exists = platform_sp->GetFileExists(FileSpec(remote_file_path));
       result.AppendMessageWithFormat(
@@ -1025,11 +1025,11 @@ public:
     FileSystem::Instance().Resolve(src_fs);
     FileSpec dst_fs(dst ? dst : src_fs.GetFilename().GetCString());
 
-    PlatformSP platform_sp(
-        GetDebugger().GetPlatformList().GetSelectedPlatform());
-    if (platform_sp) {
-      Status error(platform_sp->PutFile(src_fs, dst_fs));
-      if (error.Success()) {
+    
+    if (PlatformSP platform_sp(
+        GetDebugger().GetPlatformList().GetSelectedPlatform()); platform_sp) {
+      
+      if (Status error(platform_sp->PutFile(src_fs, dst_fs)); error.Success()) {
         result.SetStatus(eReturnStatusSuccessFinishNoResult);
       } else {
         result.AppendError(error.AsCString());
@@ -1085,8 +1085,8 @@ protected:
       Status error;
       const size_t argc = args.GetArgumentCount();
       Target *target = m_exe_ctx.GetTargetPtr();
-      Module *exe_module = target->GetExecutableModulePointer();
-      if (exe_module) {
+      
+      if (Module *exe_module = target->GetExecutableModulePointer(); exe_module) {
         m_options.launch_info.GetExecutableFile() = exe_module->GetFileSpec();
         llvm::SmallString<128> exe_path;
         m_options.launch_info.GetExecutableFile().GetPath(exe_path);
@@ -1233,10 +1233,10 @@ protected:
     if (platform_sp) {
       Stream &ostrm = result.GetOutputStream();
 
-      lldb::pid_t pid = m_options.match_info.GetProcessInfo().GetProcessID();
-      if (pid != LLDB_INVALID_PROCESS_ID) {
-        ProcessInstanceInfo proc_info;
-        if (platform_sp->GetProcessInfo(pid, proc_info)) {
+      
+      if (lldb::pid_t pid = m_options.match_info.GetProcessInfo().GetProcessID(); pid != LLDB_INVALID_PROCESS_ID) {
+        
+        if (ProcessInstanceInfo proc_info; platform_sp->GetProcessInfo(pid, proc_info)) {
           ProcessInstanceInfo::DumpTableHeader(ostrm, m_options.show_args,
                                                m_options.verbose);
           proc_info.DumpAsTableRow(ostrm, platform_sp->GetUserIDResolver(),
@@ -1476,21 +1476,21 @@ protected:
     }
 
     if (platform_sp) {
-      const size_t argc = args.GetArgumentCount();
-      if (argc > 0) {
-        Status error;
+      
+      if (const size_t argc = args.GetArgumentCount(); argc > 0) {
+        
 
-        if (platform_sp->IsConnected()) {
+        if (Status error; platform_sp->IsConnected()) {
           Stream &ostrm = result.GetOutputStream();
           for (auto &entry : args.entries()) {
-            lldb::pid_t pid;
-            if (entry.ref().getAsInteger(0, pid)) {
+            
+            if (lldb::pid_t pid; entry.ref().getAsInteger(0, pid)) {
               result.AppendErrorWithFormat("invalid process ID argument '%s'",
                                            entry.ref().str().c_str());
               break;
             } else {
-              ProcessInstanceInfo proc_info;
-              if (platform_sp->GetProcessInfo(pid, proc_info)) {
+              
+              if (ProcessInstanceInfo proc_info; platform_sp->GetProcessInfo(pid, proc_info)) {
                 ostrm.Printf("Process information for process %" PRIu64 ":\n",
                              pid);
                 proc_info.Dump(ostrm, platform_sp->GetUserIDResolver());
@@ -1536,9 +1536,9 @@ public:
   ~CommandObjectPlatformProcessAttach() override = default;
 
   void DoExecute(Args &command, CommandReturnObject &result) override {
-    PlatformSP platform_sp(
-        GetDebugger().GetPlatformList().GetSelectedPlatform());
-    if (platform_sp) {
+    
+    if (PlatformSP platform_sp(
+        GetDebugger().GetPlatformList().GetSelectedPlatform()); platform_sp) {
 
       if (!m_class_options.GetName().empty()) {
         m_options.attach_info.SetProcessPluginName("ScriptedProcess");
@@ -1548,9 +1548,9 @@ public:
       }
 
       Status err;
-      ProcessSP remote_process_sp = platform_sp->Attach(
-          m_options.attach_info, GetDebugger(), nullptr, err);
-      if (err.Fail()) {
+      
+      if (ProcessSP remote_process_sp = platform_sp->Attach(
+          m_options.attach_info, GetDebugger(), nullptr, err); err.Fail()) {
         result.AppendError(err.AsCString());
       } else if (!remote_process_sp) {
         result.AppendError("could not attach: unknown reason");
@@ -1715,8 +1715,8 @@ public:
         result.GetOutputStream().PutCString(output);
       if (status > 0) {
         if (signo > 0) {
-          const char *signo_cstr = Host::GetSignalAsCString(signo);
-          if (signo_cstr)
+          
+          if (const char *signo_cstr = Host::GetSignalAsCString(signo); signo_cstr)
             result.GetOutputStream().Printf(
                 "error: command returned with status %i and signal %s\n",
                 status, signo_cstr);

@@ -16,8 +16,8 @@
 
 namespace LIBC_NAMESPACE_DECL {
 LLVM_LIBC_FUNCTION(int, msync, (void *addr, size_t len, int flags)) {
-  long ret = syscall_impl(SYS_msync, cpp::bit_cast<long>(addr), len, flags);
-  if (ret < 0) {
+  
+  if (long ret = syscall_impl(SYS_msync, cpp::bit_cast<long>(addr), len, flags); ret < 0) {
     libc_errno = static_cast<int>(-ret);
     return -1;
   }

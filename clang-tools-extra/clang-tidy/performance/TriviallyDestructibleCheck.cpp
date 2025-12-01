@@ -24,8 +24,8 @@ AST_MATCHER(Decl, isFirstDecl) { return Node.isFirstDecl(); }
 
 AST_MATCHER_P(CXXRecordDecl, hasBase, Matcher<QualType>, InnerMatcher) {
   for (const CXXBaseSpecifier &BaseSpec : Node.bases()) {
-    const QualType BaseType = BaseSpec.getType();
-    if (InnerMatcher.matches(BaseType, Finder, Builder))
+    
+    if (const QualType BaseType = BaseSpec.getType(); InnerMatcher.matches(BaseType, Finder, Builder))
       return true;
   }
   return false;

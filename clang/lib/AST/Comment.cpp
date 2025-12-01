@@ -233,8 +233,8 @@ void DeclInfo::fill() {
     Kind = FunctionKind;
     ParamVars = FD->parameters();
     ReturnType = FD->getReturnType();
-    unsigned NumLists = FD->getNumTemplateParameterLists();
-    if (NumLists != 0) {
+    
+    if (unsigned NumLists = FD->getNumTemplateParameterLists(); NumLists != 0) {
       TemplateKind = TemplateSpecialization;
       TemplateParameters =
           FD->getTemplateParameterList(NumLists - 1);
@@ -357,8 +357,8 @@ void DeclInfo::fill() {
   // extract arguments and return type.
   if (TSI) {
     TypeLoc TL = TSI->getTypeLoc().getUnqualifiedLoc();
-    FunctionTypeLoc FTL;
-    if (getFunctionTypeLoc(TL, FTL)) {
+    
+    if (FunctionTypeLoc FTL; getFunctionTypeLoc(TL, FTL)) {
       ParamVars = FTL.getParams();
       ReturnType = FTL.getReturnLoc().getType();
       if (const auto *FPT = dyn_cast<FunctionProtoType>(FTL.getTypePtr()))
@@ -384,8 +384,8 @@ StringRef TParamCommandComment::getParamName(const FullComment *FC) const {
     assert(TPL && "Unknown TemplateParameterList");
     if (i == e - 1)
       return TPL->getParam(getIndex(i))->getName();
-    const NamedDecl *Param = TPL->getParam(getIndex(i));
-    if (auto *TTP = dyn_cast<TemplateTemplateParmDecl>(Param))
+    
+    if (auto *const NamedDecl *Param = TPL->getParam(getIndex(i)); TTP = dyn_cast<TemplateTemplateParmDecl>(Param))
       TPL = TTP->getTemplateParameters();
   }
   return "";

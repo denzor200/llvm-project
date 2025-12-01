@@ -104,13 +104,13 @@ static void saveTempBitcode(const Module &TheModule, StringRef TempDir,
 static const GlobalValueSummary *getFirstDefinitionForLinker(
     ArrayRef<std::unique_ptr<GlobalValueSummary>> GVSummaryList) {
   // If there is any strong definition anywhere, get it.
-  auto StrongDefForLinker = llvm::find_if(
+  
+  if (auto StrongDefForLinker = llvm::find_if(
       GVSummaryList, [](const std::unique_ptr<GlobalValueSummary> &Summary) {
         auto Linkage = Summary->linkage();
         return !GlobalValue::isAvailableExternallyLinkage(Linkage) &&
                !GlobalValue::isWeakForLinker(Linkage);
-      });
-  if (StrongDefForLinker != GVSummaryList.end())
+      }); StrongDefForLinker != GVSummaryList.end())
     return StrongDefForLinker->get();
   // Get the first *linker visible* definition for this global in the summary
   // list.
@@ -602,8 +602,8 @@ std::unique_ptr<ModuleSummaryIndex> ThinLTOCodeGenerator::linkCombinedIndex() {
   std::unique_ptr<ModuleSummaryIndex> CombinedIndex =
       std::make_unique<ModuleSummaryIndex>(/*HaveGVs=*/false);
   for (auto &Mod : Modules) {
-    auto &M = Mod->getSingleBitcodeModule();
-    if (Error Err = M.readSummary(*CombinedIndex, Mod->getName())) {
+    
+    if (Error auto &M = Mod->getSingleBitcodeModule(); Err = M.readSummary(*CombinedIndex, Mod->getName())) {
       // FIXME diagnose
       logAllUnhandledErrors(
           std::move(Err), errs(),
@@ -1191,8 +1191,8 @@ void ThinLTOCodeGenerator::run() {
             // The freed memory can be used for the next input file.
             // The final binary link will read from the VFS cache (hopefully!)
             // or from disk (if the memory pressure was too high).
-            auto ReloadedBufferOrErr = CacheEntry.tryLoadingBuffer();
-            if (auto EC = ReloadedBufferOrErr.getError()) {
+            
+            if (auto auto ReloadedBufferOrErr = CacheEntry.tryLoadingBuffer(); EC = ReloadedBufferOrErr.getError()) {
               // On error, keep the preexisting buffer and print a diagnostic.
               errs() << "remark: can't reload cached file '" << CacheEntryPath
                      << "': " << EC.message() << "\n";

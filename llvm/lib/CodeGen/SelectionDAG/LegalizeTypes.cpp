@@ -142,13 +142,13 @@ void DAGTypeLegalizer::PerformExpensiveChecks() {
         }
       } else {
         if (Mapped == 0) {
-          SDValue NodeById = IdToValueMap.lookup(ResId);
+          
           // It is possible the node has been remapped to another node and had
           // its Id updated in the Value to Id table. The node it remapped to
           // may not have been processed yet. Look up the Id in the Id to Value
           // table and re-check the Processed state. If the node hasn't been
           // remapped we'll get the same state as we got earlier.
-          if (NodeById->getNodeId() == Processed) {
+          if (SDValue NodeById = IdToValueMap.lookup(ResId); NodeById->getNodeId() == Processed) {
             dbgs() << "Processed value not in any map!";
             Failed = true;
           }
@@ -537,8 +537,8 @@ SDNode *DAGTypeLegalizer::AnalyzeNewNode(SDNode *N) {
 
   // Some operands changed - update the node.
   if (!NewOps.empty()) {
-    SDNode *M = DAG.UpdateNodeOperands(N, NewOps);
-    if (M != N) {
+    
+    if (SDNode *M = DAG.UpdateNodeOperands(N, NewOps); M != N) {
       // The node morphed into a different node.  Normally for this to happen
       // the original node would have to be marked NewNode.  However this can
       // in theory momentarily not be the case while ReplaceValueWith is doing
@@ -582,8 +582,8 @@ void DAGTypeLegalizer::RemapValue(SDValue &V) {
 }
 
 void DAGTypeLegalizer::RemapId(TableId &Id) {
-  auto I = ReplacedValues.find(Id);
-  if (I != ReplacedValues.end()) {
+  
+  if (auto I = ReplacedValues.find(Id); I != ReplacedValues.end()) {
     assert(Id != I->second && "Id is mapped to itself.");
     // Use path compression to speed up future lookups if values get multiply
     // replaced with other values.
@@ -660,9 +660,9 @@ void DAGTypeLegalizer::ReplaceValueWith(SDValue From, SDValue To) {
     // The old node may be present in a map like ExpandedIntegers or
     // PromotedIntegers. Inform maps about the replacement.
     auto FromId = getTableId(From);
-    auto ToId = getTableId(To);
+    
 
-    if (FromId != ToId)
+    if (auto ToId = getTableId(To); FromId != ToId)
       ReplacedValues[FromId] = ToId;
     DAG.ReplaceAllUsesOfValueWith(From, To);
 

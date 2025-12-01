@@ -17,8 +17,8 @@
 namespace LIBC_NAMESPACE_DECL {
 
 LLVM_LIBC_FUNCTION(int, mlockall, (int flags)) {
-  long ret = syscall_impl(SYS_mlockall, flags);
-  if (ret < 0) {
+  
+  if (long ret = syscall_impl(SYS_mlockall, flags); ret < 0) {
     libc_errno = static_cast<int>(-ret);
     return -1;
   }

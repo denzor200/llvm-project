@@ -322,9 +322,9 @@ bool AArch64SIMDInstrOpt::reuseDUP(MachineInstr &MI, unsigned DupOpcode,
   for (MachineBasicBlock::iterator MII = MI, MIE = MI.getParent()->begin();
        MII != MIE;) {
     MII--;
-    MachineInstr *CurrentMI = &*MII;
+    
 
-    if (CurrentMI->getOpcode() == DupOpcode &&
+    if (MachineInstr *CurrentMI = &*MII; CurrentMI->getOpcode() == DupOpcode &&
         CurrentMI->getNumOperands() == 3 &&
         CurrentMI->getOperand(1).getReg() == SrcReg &&
         CurrentMI->getOperand(2).getImm() == LaneNumber) {
@@ -434,17 +434,17 @@ bool AArch64SIMDInstrOpt::optimizeVectElement(MachineInstr &MI) {
   unsigned Src0IsKill = getKillRegState(MI.getOperand(1).isKill());
   Register SrcReg1 = MI.getOperand(2).getReg();
   unsigned Src1IsKill = getKillRegState(MI.getOperand(2).isKill());
-  unsigned DupDest;
+  
 
   // Instructions of interest have either 4 or 5 operands.
-  if (MI.getNumOperands() == 5) {
+  if (unsigned DupDest; MI.getNumOperands() == 5) {
     Register SrcReg2 = MI.getOperand(3).getReg();
     unsigned Src2IsKill = getKillRegState(MI.getOperand(3).isKill());
-    unsigned LaneNumber = MI.getOperand(4).getImm();
+    
     // Create a new DUP instruction. Note that if an equivalent DUP instruction
     // has already been created before, then use that one instead of creating
     // a new one.
-    if (!reuseDUP(MI, DupMCID->getOpcode(), SrcReg2, LaneNumber, &DupDest)) {
+    if (unsigned LaneNumber = MI.getOperand(4).getImm(); !reuseDUP(MI, DupMCID->getOpcode(), SrcReg2, LaneNumber, &DupDest)) {
       DupDest = MRI.createVirtualRegister(RC);
       BuildMI(MBB, MI, DL, *DupMCID, DupDest)
           .addReg(SrcReg2, Src2IsKill)
@@ -455,8 +455,8 @@ bool AArch64SIMDInstrOpt::optimizeVectElement(MachineInstr &MI) {
         .addReg(SrcReg1, Src1IsKill)
         .addReg(DupDest, Src2IsKill);
   } else if (MI.getNumOperands() == 4) {
-    unsigned LaneNumber = MI.getOperand(3).getImm();
-    if (!reuseDUP(MI, DupMCID->getOpcode(), SrcReg1, LaneNumber, &DupDest)) {
+    
+    if (unsigned LaneNumber = MI.getOperand(3).getImm(); !reuseDUP(MI, DupMCID->getOpcode(), SrcReg1, LaneNumber, &DupDest)) {
       DupDest = MRI.createVirtualRegister(RC);
       BuildMI(MBB, MI, DL, *DupMCID, DupDest)
           .addReg(SrcReg1, Src1IsKill)
@@ -520,8 +520,8 @@ bool AArch64SIMDInstrOpt::optimizeLdStInterleave(MachineInstr &MI) {
       SeqReg  = MI.getOperand(0).getReg();
       AddrReg = MI.getOperand(1).getReg();
       DefiningMI = MRI->getUniqueVRegDef(SeqReg);
-      unsigned NumReg = determineSrcReg(MI);
-      if (!processSeqRegInst(DefiningMI, StReg, StRegKill, NumReg))
+      
+      if (unsigned NumReg = determineSrcReg(MI); !processSeqRegInst(DefiningMI, StReg, StRegKill, NumReg))
         return false;
 
       for (auto &Repl : I.ReplOpc) {

@@ -217,8 +217,8 @@ void Lint::visitCallBase(CallBase &I) {
     Function::arg_iterator PI = F->arg_begin(), PE = F->arg_end();
     auto AI = I.arg_begin(), AE = I.arg_end();
     for (; AI != AE; ++AI) {
-      Value *Actual = *AI;
-      if (PI != PE) {
+      
+      if (Value *Actual = *AI; PI != PE) {
         Argument *Formal = &*PI++;
         Check(Formal->getType() == Actual->getType(),
               "Undefined behavior: Call argument type mismatches "
@@ -442,8 +442,8 @@ void Lint::visitMemoryReference(Instruction &I, const MemoryLocation &Loc,
   // Check for buffer overflows and misalignment.
   // Only handles memory references that read/write something simple like an
   // alloca instruction or a global variable.
-  int64_t Offset = 0;
-  if (Value *Base = GetPointerBaseWithConstantOffset(Ptr, Offset, *DL)) {
+  
+  if (Value *int64_t Offset = 0; Base = GetPointerBaseWithConstantOffset(Ptr, Offset, *DL)) {
     // OK, so the access is to a constant offset from Ptr.  Check that Ptr is
     // something we can handle and if so extract the size of this base object
     // along with its alignment.
@@ -451,8 +451,8 @@ void Lint::visitMemoryReference(Instruction &I, const MemoryLocation &Loc,
     MaybeAlign BaseAlign;
 
     if (AllocaInst *AI = dyn_cast<AllocaInst>(Base)) {
-      Type *ATy = AI->getAllocatedType();
-      if (!AI->isArrayAllocation() && ATy->isSized() && !ATy->isScalableTy())
+      
+      if (Type *ATy = AI->getAllocatedType(); !AI->isArrayAllocation() && ATy->isSized() && !ATy->isScalableTy())
         BaseSize = DL->getTypeAllocSize(ATy).getFixedValue();
       BaseAlign = AI->getAlign();
     } else if (GlobalVariable *GV = dyn_cast<GlobalVariable>(Base)) {
@@ -710,8 +710,8 @@ Value *Lint::findValueImpl(Value *V, bool OffsetOk,
     if (Value *W = simplifyInstruction(Inst, {*DL, TLI, DT, AC}))
       return findValueImpl(W, OffsetOk, Visited);
   } else if (auto *C = dyn_cast<Constant>(V)) {
-    Value *W = ConstantFoldConstant(C, *DL, TLI);
-    if (W != V)
+    
+    if (Value *W = ConstantFoldConstant(C, *DL, TLI); W != V)
       return findValueImpl(W, OffsetOk, Visited);
   }
 

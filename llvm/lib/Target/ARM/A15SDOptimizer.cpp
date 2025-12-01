@@ -133,9 +133,9 @@ bool A15SDOptimizer::usesRegClass(MachineOperand &MO,
                                   const TargetRegisterClass *TRC) {
   if (!MO.isReg())
     return false;
-  Register Reg = MO.getReg();
+  
 
-  if (Reg.isVirtual())
+  if (Register Reg = MO.getReg(); Reg.isVirtual())
     return MRI->getRegClass(Reg)->hasSuperClassEq(TRC);
   else
     return TRC->contains(Reg);
@@ -249,27 +249,27 @@ unsigned A15SDOptimizer::optimizeSDPattern(MachineInstr *MI) {
 
     if (DPRReg.isVirtual() && SPRReg.isVirtual()) {
       MachineInstr *DPRMI = MRI->getVRegDef(MI->getOperand(1).getReg());
-      MachineInstr *SPRMI = MRI->getVRegDef(MI->getOperand(2).getReg());
+      
 
-      if (DPRMI && SPRMI) {
+      if (MachineInstr *SPRMI = MRI->getVRegDef(MI->getOperand(2).getReg()); DPRMI && SPRMI) {
         // See if the first operand of this insert_subreg is IMPLICIT_DEF
-        MachineInstr *ECDef = elideCopies(DPRMI);
-        if (ECDef && ECDef->isImplicitDef()) {
+        
+        if (MachineInstr *ECDef = elideCopies(DPRMI); ECDef && ECDef->isImplicitDef()) {
           // Another corner case - if we're inserting something that is purely
           // a subreg copy of a DPR, just use that DPR.
 
-          MachineInstr *EC = elideCopies(SPRMI);
+          
           // Is it a subreg copy of ssub_0?
-          if (EC && EC->isCopy() &&
+          if (MachineInstr *EC = elideCopies(SPRMI); EC && EC->isCopy() &&
               EC->getOperand(1).getSubReg() == ARM::ssub_0) {
             LLVM_DEBUG(dbgs() << "Found a subreg copy: " << *SPRMI);
 
             // Find the thing we're subreg copying out of - is it of the same
             // regclass as DPRMI? (i.e. a DPR or QPR).
             Register FullReg = SPRMI->getOperand(1).getReg();
-            const TargetRegisterClass *TRC =
-              MRI->getRegClass(MI->getOperand(1).getReg());
-            if (TRC->hasSuperClassEq(MRI->getRegClass(FullReg))) {
+            
+            if (const TargetRegisterClass *TRC =
+              MRI->getRegClass(MI->getOperand(1).getReg()); TRC->hasSuperClassEq(MRI->getRegClass(FullReg))) {
               LLVM_DEBUG(dbgs() << "Subreg copy is compatible - returning ");
               LLVM_DEBUG(dbgs() << printReg(FullReg) << "\n");
               eraseInstrWithNoUses(MI);

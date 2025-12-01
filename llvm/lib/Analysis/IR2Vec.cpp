@@ -210,7 +210,7 @@ Embedding FlowAwareEmbedder::computeEmbeddings(const Instruction &I) const {
   for (const auto &Op : I.operands()) {
     // If the operand is defined elsewhere, we use its embedding
     if (const auto *DefInst = dyn_cast<Instruction>(Op)) {
-      auto DefIt = InstVecMap.find(DefInst);
+      
       // Fixme (#159171): Ideally we should never miss an instruction
       // embedding here.
       // But when we have cyclic dependencies (e.g., phi
@@ -222,7 +222,7 @@ Embedding FlowAwareEmbedder::computeEmbeddings(const Instruction &I) const {
       // the operand instruction is in a different basic block that has not
       // been processed yet. This can be fixed by processing the basic blocks
       // in a topological order.
-      if (DefIt != InstVecMap.end())
+      if (auto DefIt = InstVecMap.find(DefInst); DefIt != InstVecMap.end())
         ArgEmb += DefIt->second;
       else
         ArgEmb += Vocab[*Op];
@@ -385,9 +385,9 @@ unsigned Vocabulary::getPredicateLocalIndex(CmpInst::Predicate P) {
 }
 
 CmpInst::Predicate Vocabulary::getPredicateFromLocalIndex(unsigned LocalIndex) {
-  unsigned fcmpRange =
-      CmpInst::LAST_FCMP_PREDICATE - CmpInst::FIRST_FCMP_PREDICATE + 1;
-  if (LocalIndex < fcmpRange)
+  
+  if (unsigned fcmpRange =
+      CmpInst::LAST_FCMP_PREDICATE - CmpInst::FIRST_FCMP_PREDICATE + 1; LocalIndex < fcmpRange)
     return static_cast<CmpInst::Predicate>(CmpInst::FIRST_FCMP_PREDICATE +
                                            LocalIndex);
   else

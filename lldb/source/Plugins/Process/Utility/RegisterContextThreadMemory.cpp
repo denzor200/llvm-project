@@ -27,23 +27,23 @@ RegisterContextThreadMemory::~RegisterContextThreadMemory() = default;
 void RegisterContextThreadMemory::UpdateRegisterContext() {
   std::lock_guard<std::mutex> lock(m_update_register_ctx_lock);
 
-  ThreadSP thread_sp(m_thread_wp.lock());
-  if (thread_sp) {
-    ProcessSP process_sp(thread_sp->GetProcess());
+  
+  if (ThreadSP thread_sp(m_thread_wp.lock()); thread_sp) {
+    
 
-    if (process_sp) {
+    if (ProcessSP process_sp(thread_sp->GetProcess()); process_sp) {
       const uint32_t stop_id = process_sp->GetModID().GetStopID();
       if (m_stop_id != stop_id) {
         m_stop_id = stop_id;
         m_reg_ctx_sp.reset();
       }
       if (!m_reg_ctx_sp) {
-        ThreadSP backing_thread_sp(thread_sp->GetBackingThread());
-        if (backing_thread_sp) {
+        
+        if (ThreadSP backing_thread_sp(thread_sp->GetBackingThread()); backing_thread_sp) {
           m_reg_ctx_sp = backing_thread_sp->GetRegisterContext();
         } else {
-          OperatingSystem *os = process_sp->GetOperatingSystem();
-          if (os->IsOperatingSystemPluginThread(thread_sp))
+          
+          if (OperatingSystem *os = process_sp->GetOperatingSystem(); os->IsOperatingSystemPluginThread(thread_sp))
             m_reg_ctx_sp = os->CreateRegisterContextForThread(
                 thread_sp.get(), m_register_data_addr);
         }

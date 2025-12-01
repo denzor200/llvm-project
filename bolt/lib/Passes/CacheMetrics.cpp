@@ -78,9 +78,9 @@ calcTSPScore(const std::vector<BinaryFunction *> &BinaryFunctions,
 
           BBAddrIt = BBAddr.find(DstBB);
           assert(BBAddrIt != BBAddr.end());
-          uint64_t DstBBAddr = BBAddrIt->second;
+          
 
-          if (SrcBBAddr + SrcBBSize == DstBBAddr)
+          if (uint64_t DstBBAddr = BBAddrIt->second; SrcBBAddr + SrcBBSize == DstBBAddr)
             Score += BI->Count;
         }
         ++BI;
@@ -194,9 +194,9 @@ double expectedCacheHitRatio(
 
       BBAddrIt = BBAddr.find(SrcFunction->getLayout().block_front());
       assert(BBAddrIt != BBAddr.end());
-      const uint64_t SrcPage = BBAddrIt->second / ITLBPageSize;
+      
       // Is this a 'long' or a 'short' call?
-      if (Page != SrcPage) {
+      if (const uint64_t SrcPage = BBAddrIt->second / ITLBPageSize; Page != SrcPage) {
         // This is a miss
         Misses += MissProb * Pair.second;
       }

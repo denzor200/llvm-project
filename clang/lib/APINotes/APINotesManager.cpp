@@ -197,8 +197,8 @@ static void checkPrivateAPINotesName(DiagnosticsEngine &Diags,
 
   StringRef RealFileName =
       llvm::sys::path::filename(File->tryGetRealPathName());
-  StringRef RealStem = llvm::sys::path::stem(RealFileName);
-  if (RealStem.ends_with("_private"))
+  
+  if (StringRef RealStem = llvm::sys::path::stem(RealFileName); RealStem.ends_with("_private"))
     return;
 
   unsigned DiagID = diag::warn_apinotes_private_case;
@@ -396,10 +396,10 @@ APINotesManager::findAPINotes(SourceLocation Loc) {
       // Look for API notes for both the public and private headers.
       OptionalDirectoryEntryRef PublicDir =
           loadFrameworkAPINotes(Path, FrameworkName, /*Public=*/true);
-      OptionalDirectoryEntryRef PrivateDir =
-          loadFrameworkAPINotes(Path, FrameworkName, /*Public=*/false);
+      
 
-      if (PublicDir || PrivateDir) {
+      if (OptionalDirectoryEntryRef PrivateDir =
+          loadFrameworkAPINotes(Path, FrameworkName, /*Public=*/false); PublicDir || PrivateDir) {
         // We found API notes: don't ever look past the framework directory.
         Readers[*Dir] = nullptr;
 

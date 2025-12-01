@@ -641,8 +641,8 @@ namespace {
         AllocatedResults.ContainerUSR = clang_getCString(CursorUSR);
         clang_disposeString(CursorUSR);
 
-        const Type *type = baseType.getTypePtrOrNull();
-        if (type) {
+        
+        if (const Type *type = baseType.getTypePtrOrNull(); type) {
           AllocatedResults.ContainerIsIncomplete = type->isIncompleteType();
         }
         else {
@@ -876,9 +876,9 @@ CXCodeCompleteResults *clang_codeCompleteAt(CXTranslationUnit TU,
         llvm::ArrayRef(unsaved_files, num_unsaved_files), options);
   };
 
-  llvm::CrashRecoveryContext CRC;
+  
 
-  if (!RunSafely(CRC, CodeCompleteAtImpl)) {
+  if (llvm::CrashRecoveryContext CRC; !RunSafely(CRC, CodeCompleteAtImpl)) {
     fprintf(stderr, "libclang: crash detected in code completion\n");
     cxtu::getASTUnit(TU)->setUnsafeToFree(true);
     return nullptr;

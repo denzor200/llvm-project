@@ -110,8 +110,8 @@ struct PragmaSTDC_FENV_ACCESSHandler : public PragmaHandler {
 
   void HandlePragma(Preprocessor &PP, PragmaIntroducer Introducer,
                     Token &Tok) override {
-    Token PragmaName = Tok;
-    if (!PP.getTargetInfo().hasStrictFP() && !PP.getLangOpts().ExpStrictFP) {
+    
+    if (Token PragmaName = Tok; !PP.getTargetInfo().hasStrictFP() && !PP.getLangOpts().ExpStrictFP) {
       PP.Diag(Tok.getLocation(), diag::warn_pragma_fp_ignored)
           << PragmaName.getIdentifierInfo()->getName();
       return;
@@ -966,11 +966,11 @@ void Parser::HandlePragmaOpenCLExtension() {
   ConsumeAnnotationToken();
 
   auto &Opt = Actions.getOpenCLOptions();
-  auto Name = Ident->getName();
+  
   // OpenCL 1.1 9.1: "The all variant sets the behavior for all extensions,
   // overriding all previously issued extension directives, but only if the
   // behavior is set to disable."
-  if (Name == "all") {
+  if (auto Name = Ident->getName(); Name == "all") {
     if (State == Disable)
       Opt.disableAll();
     else
@@ -1143,8 +1143,8 @@ bool Parser::HandlePragmaMSSegment(StringRef PragmaName,
   Sema::PragmaMsStackAction Action = Sema::PSK_Reset;
   StringRef SlotLabel;
   if (Tok.isAnyIdentifier()) {
-    StringRef PushPop = Tok.getIdentifierInfo()->getName();
-    if (PushPop == "push")
+    
+    if (StringRef PushPop = Tok.getIdentifierInfo()->getName(); PushPop == "push")
       Action = Sema::PSK_Push;
     else if (PushPop == "pop")
       Action = Sema::PSK_Pop;
@@ -1285,8 +1285,8 @@ bool Parser::HandlePragmaMSStrictGuardStackCheck(
 
   Sema::PragmaMsStackAction Action = Sema::PSK_Set;
   if (Tok.is(tok::identifier)) {
-    StringRef PushPop = Tok.getIdentifierInfo()->getName();
-    if (PushPop == "push") {
+    
+    if (StringRef PushPop = Tok.getIdentifierInfo()->getName(); PushPop == "push") {
       PP.Lex(Tok);
       Action = Sema::PSK_Push;
       if (ExpectAndConsume(tok::comma, diag::warn_pragma_expected_punc,
@@ -1300,8 +1300,8 @@ bool Parser::HandlePragmaMSStrictGuardStackCheck(
 
   bool Value = false;
   if (Action & Sema::PSK_Push || Action & Sema::PSK_Set) {
-    const IdentifierInfo *II = Tok.getIdentifierInfo();
-    if (II && II->isStr("off")) {
+    
+    if (const IdentifierInfo *II = Tok.getIdentifierInfo(); II && II->isStr("off")) {
       PP.Lex(Tok);
       Value = false;
     } else if (II && II->isStr("on")) {
@@ -1502,10 +1502,10 @@ bool Parser::HandlePragmaLoopHint(LoopHint &Hint) {
 
     SourceLocation StateLoc = Toks[0].getLocation();
     IdentifierInfo *StateInfo = Toks[0].getIdentifierInfo();
-    StringRef IsScalableStr = StateInfo ? StateInfo->getName() : "";
+    
 
     // Look for vectorize_width(fixed|scalable)
-    if (IsScalableStr == "scalable" || IsScalableStr == "fixed") {
+    if (StringRef IsScalableStr = StateInfo ? StateInfo->getName() : ""; IsScalableStr == "scalable" || IsScalableStr == "fixed") {
       PP.Lex(Tok); // Identifier
 
       if (Toks.size() > 2) {
@@ -1924,9 +1924,9 @@ void Parser::HandlePragmaAttribute() {
         return;
       }
       IdentifierInfo *AttrName = Tok.getIdentifierInfo();
-      SourceLocation AttrNameLoc = ConsumeToken();
+      
 
-      if (Tok.isNot(tok::l_paren))
+      if (SourceLocation AttrNameLoc = ConsumeToken(); Tok.isNot(tok::l_paren))
         Attrs.addNew(AttrName, AttrNameLoc, AttributeScopeInfo(), nullptr, 0,
                      ParsedAttr::Form::GNU());
       else
@@ -2150,8 +2150,8 @@ void PragmaPackHandler::HandlePragma(Preprocessor &PP,
       Alignment.setLength(1);
     };
 
-    const IdentifierInfo *II = Tok.getIdentifierInfo();
-    if (II->isStr("show")) {
+    
+    if (const IdentifierInfo *II = Tok.getIdentifierInfo(); II->isStr("show")) {
       Action = Sema::PSK_Show;
       PP.Lex(Tok);
     } else if (II->isStr("packed") && PP.getLangOpts().ZOSExt) {
@@ -2264,8 +2264,8 @@ void PragmaMSStructHandler::HandlePragma(Preprocessor &PP,
     return;
   }
   SourceLocation EndLoc = Tok.getLocation();
-  const IdentifierInfo *II = Tok.getIdentifierInfo();
-  if (II->isStr("on")) {
+  
+  if (const IdentifierInfo *II = Tok.getIdentifierInfo(); II->isStr("on")) {
     Kind = PMSST_ON;
     PP.Lex(Tok);
   }
@@ -2309,8 +2309,8 @@ void PragmaClangSectionHandler::HandlePragma(Preprocessor &PP,
       return;
     }
 
-    const IdentifierInfo *SecType = Tok.getIdentifierInfo();
-    if (SecType->isStr("bss"))
+    
+    if (const IdentifierInfo *SecType = Tok.getIdentifierInfo(); SecType->isStr("bss"))
       SecKind = PragmaClangSectionKind::BSS;
     else if (SecType->isStr("data"))
       SecKind = PragmaClangSectionKind::Data;
@@ -2883,8 +2883,8 @@ void PragmaMSVtorDisp::HandlePragma(Preprocessor &PP,
   PP.Lex(Tok);
 
   Sema::PragmaMsStackAction Action = Sema::PSK_Set;
-  const IdentifierInfo *II = Tok.getIdentifierInfo();
-  if (II) {
+  
+  if (const IdentifierInfo *II = Tok.getIdentifierInfo(); II) {
     if (II->isStr("push")) {
       // #pragma vtordisp(push, mode)
       PP.Lex(Tok);
@@ -2911,8 +2911,8 @@ void PragmaMSVtorDisp::HandlePragma(Preprocessor &PP,
 
   uint64_t Value = 0;
   if (Action & Sema::PSK_Push || Action & Sema::PSK_Set) {
-    const IdentifierInfo *II = Tok.getIdentifierInfo();
-    if (II && II->isStr("off")) {
+    
+    if (const IdentifierInfo *II = Tok.getIdentifierInfo(); II && II->isStr("off")) {
       PP.Lex(Tok);
       Value = 0;
     } else if (II && II->isStr("on")) {
@@ -3003,8 +3003,8 @@ void PragmaFloatControlHandler::HandlePragma(Preprocessor &PP,
                                              Token &Tok) {
   Sema::PragmaMsStackAction Action = Sema::PSK_Set;
   SourceLocation FloatControlLoc = Tok.getLocation();
-  Token PragmaName = Tok;
-  if (!PP.getTargetInfo().hasStrictFP() && !PP.getLangOpts().ExpStrictFP) {
+  
+  if (Token PragmaName = Tok; !PP.getTargetInfo().hasStrictFP() && !PP.getLangOpts().ExpStrictFP) {
     PP.Diag(Tok.getLocation(), diag::warn_pragma_fp_ignored)
         << PragmaName.getIdentifierInfo()->getName();
     return;
@@ -3055,8 +3055,8 @@ void PragmaFloatControlHandler::HandlePragma(Preprocessor &PP,
         PP.Diag(Tok.getLocation(), diag::err_pragma_float_control_malformed);
         return;
       }
-      StringRef PushOnOff = Tok.getIdentifierInfo()->getName();
-      if (PushOnOff == "on")
+      
+      if (StringRef PushOnOff = Tok.getIdentifierInfo()->getName(); PushOnOff == "on")
         // Kind is set correctly
         ;
       else if (PushOnOff == "off") {
@@ -3077,8 +3077,8 @@ void PragmaFloatControlHandler::HandlePragma(Preprocessor &PP,
           PP.Diag(Tok.getLocation(), diag::err_pragma_float_control_malformed);
           return;
         }
-        StringRef ExpectedPush = Tok.getIdentifierInfo()->getName();
-        if (ExpectedPush == "push") {
+        
+        if (StringRef ExpectedPush = Tok.getIdentifierInfo()->getName(); ExpectedPush == "push") {
           Action = Sema::PSK_Push_Set;
         } else {
           PP.Diag(Tok.getLocation(), diag::err_pragma_float_control_malformed);
@@ -3770,8 +3770,8 @@ bool Parser::HandlePragmaMSFunction(StringRef PragmaName,
 
   llvm::SmallVector<StringRef> NoBuiltins;
   while (Tok.is(tok::identifier)) {
-    IdentifierInfo *II = Tok.getIdentifierInfo();
-    if (!II->getBuiltinID())
+    
+    if (IdentifierInfo *II = Tok.getIdentifierInfo(); !II->getBuiltinID())
       PP.Diag(Tok.getLocation(), diag::warn_pragma_intrinsic_builtin)
           << II << SuggestIntrinH;
     else
@@ -3964,8 +3964,8 @@ void PragmaAttributeHandler::HandlePragma(Preprocessor &PP,
 
   // Parse the optional namespace followed by a period.
   if (Tok.is(tok::identifier)) {
-    IdentifierInfo *II = Tok.getIdentifierInfo();
-    if (!II->isStr("push") && !II->isStr("pop")) {
+    
+    if (IdentifierInfo *II = Tok.getIdentifierInfo(); !II->isStr("push") && !II->isStr("pop")) {
       Info->Namespace = II;
       PP.Lex(Tok);
 
@@ -3995,8 +3995,8 @@ void PragmaAttributeHandler::HandlePragma(Preprocessor &PP,
     }
     Info->Action = PragmaAttributeInfo::Attribute;
   } else {
-    const IdentifierInfo *II = Tok.getIdentifierInfo();
-    if (II->isStr("push"))
+    
+    if (const IdentifierInfo *II = Tok.getIdentifierInfo(); II->isStr("push"))
       Info->Action = PragmaAttributeInfo::Push;
     else if (II->isStr("pop"))
       Info->Action = PragmaAttributeInfo::Pop;

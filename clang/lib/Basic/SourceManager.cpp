@@ -399,8 +399,8 @@ ContentCache &SourceManager::getOrCreateContentCache(FileEntryRef FileEnt,
   if (OverriddenFilesInfo) {
     // If the file contents are overridden with contents from another file,
     // pass that file to ContentCache.
-    auto overI = OverriddenFilesInfo->OverriddenFiles.find(FileEnt);
-    if (overI == OverriddenFilesInfo->OverriddenFiles.end())
+    
+    if (auto overI = OverriddenFilesInfo->OverriddenFiles.find(FileEnt); overI == OverriddenFilesInfo->OverriddenFiles.end())
       new (Entry) ContentCache(FileEnt);
     else
       new (Entry) ContentCache(OverridenFilesKeepOriginalName ? FileEnt
@@ -614,8 +614,8 @@ FileID SourceManager::createFileIDImpl(ContentCache &File, StringRef Filename,
     // conversion.
     if (std::optional<llvm::MemoryBufferRef> Buffer =
             File.getBufferOrNone(Diag, getFileManager())) {
-      unsigned BufSize = Buffer->getBufferSize();
-      if (BufSize > FileSize) {
+      
+      if (unsigned BufSize = Buffer->getBufferSize(); BufSize > FileSize) {
         if (File.ContentsEntry.has_value())
           File.ContentsEntry->updateFileEntryBufferSize(BufSize);
         FileSize = BufSize;
@@ -862,8 +862,8 @@ FileID SourceManager::getFileIDLocal(SourceLocation::UIntTy SLocOffset) const {
   while (LessIndex < GreaterIndex) {
     ++NumBinaryProbes;
 
-    unsigned MiddleIndex = LessIndex + (GreaterIndex - LessIndex) / 2;
-    if (LocalLocOffsetTable[MiddleIndex] <= SLocOffset)
+    
+    if (unsigned MiddleIndex = LessIndex + (GreaterIndex - LessIndex) / 2; LocalLocOffsetTable[MiddleIndex] <= SLocOffset)
       LessIndex = MiddleIndex + 1;
     else
       GreaterIndex = MiddleIndex;
@@ -917,8 +917,8 @@ SourceLocation SourceManager::getSpellingLocSlowCase(SourceLocation Loc) const {
 SourceLocation SourceManager::getFileLocSlowCase(SourceLocation Loc) const {
   do {
     const SLocEntry &Entry = getSLocEntry(getFileID(Loc));
-    const ExpansionInfo &ExpInfo = Entry.getExpansion();
-    if (ExpInfo.isMacroArgExpansion()) {
+    
+    if (const ExpansionInfo &ExpInfo = Entry.getExpansion(); ExpInfo.isMacroArgExpansion()) {
       Loc = ExpInfo.getSpellingLoc().getLocWithOffset(Loc.getOffset() -
                                                       Entry.getOffset());
     } else {
@@ -1021,8 +1021,8 @@ bool SourceManager::isAtStartOfImmediateMacroExpansion(SourceLocation Loc,
     // For macro argument expansions, check if the previous FileID is part of
     // the same argument expansion, in which case this Loc is not at the
     // beginning of the expansion.
-    FileID PrevFID = getPreviousFileID(DecompLoc.first);
-    if (!PrevFID.isInvalid()) {
+    
+    if (FileID PrevFID = getPreviousFileID(DecompLoc.first); !PrevFID.isInvalid()) {
       const SrcMgr::SLocEntry &PrevEntry = getSLocEntry(PrevFID, &Invalid);
       if (Invalid)
         return false;
@@ -1042,8 +1042,8 @@ bool SourceManager::isAtEndOfImmediateMacroExpansion(SourceLocation Loc,
   assert(Loc.isValid() && Loc.isMacroID() && "Expected a valid macro loc");
 
   FileID FID = getFileID(Loc);
-  SourceLocation NextLoc = Loc.getLocWithOffset(1);
-  if (isInFileID(NextLoc, FID))
+  
+  if (SourceLocation NextLoc = Loc.getLocWithOffset(1); isInFileID(NextLoc, FID))
     return false; // Does not point at the end of expansion range.
 
   bool Invalid = false;
@@ -1056,8 +1056,8 @@ bool SourceManager::isAtEndOfImmediateMacroExpansion(SourceLocation Loc,
     // For macro argument expansions, check if the next FileID is part of the
     // same argument expansion, in which case this Loc is not at the end of the
     // expansion.
-    FileID NextFID = getNextFileID(FID);
-    if (!NextFID.isInvalid()) {
+    
+    if (FileID NextFID = getNextFileID(FID); !NextFID.isInvalid()) {
       const SrcMgr::SLocEntry &NextEntry = getSLocEntry(NextFID, &Invalid);
       if (Invalid)
         return false;
@@ -1129,8 +1129,8 @@ unsigned SourceManager::getColumnNumber(FileID FID, unsigned FilePos,
     const unsigned *SourceLineCache =
         LastLineNoContentCache->SourceLineCache.begin();
     unsigned LineStart = SourceLineCache[LastLineNoResult - 1];
-    unsigned LineEnd = SourceLineCache[LastLineNoResult];
-    if (FilePos >= LineStart && FilePos < LineEnd) {
+    
+    if (unsigned LineEnd = SourceLineCache[LastLineNoResult]; FilePos >= LineStart && FilePos < LineEnd) {
       // LineEnd is the LineStart of the next line.
       // A line ends with separator LF or CR+LF on Windows.
       // FilePos might point to the last separator,
@@ -1201,11 +1201,11 @@ LineOffsetMapping LineOffsetMapping::get(llvm::MemoryBufferRef Buffer,
   const unsigned char *End = (const unsigned char *)Buffer.getBufferEnd();
   const unsigned char *Buf = Start;
 
-  uint64_t Word;
+  
 
   // scan sizeof(Word) bytes at a time for new lines.
   // This is much faster than scanning each byte independently.
-  if ((unsigned long)(End - Start) > sizeof(Word)) {
+  if (uint64_t Word; (unsigned long)(End - Start) > sizeof(Word)) {
     do {
       Word = llvm::support::endian::read64(Buf, llvm::endianness::little);
       // no new line => jump over sizeof(Word) bytes.
@@ -1222,8 +1222,8 @@ LineOffsetMapping LineOffsetMapping::get(llvm::MemoryBufferRef Buffer,
       unsigned N = llvm::countr_zero(Mask) - 7; // -7 because 0x80 is the marker
       Word >>= N;
       Buf += N / 8 + 1;
-      unsigned char Byte = Word;
-      switch (Byte) {
+      
+      switch (unsigned char Byte = Word; Byte) {
       case '\r':
         // If this is \r\n, skip both characters.
         if (*Buf == '\n') {
@@ -1589,16 +1589,16 @@ FileID SourceManager::translateFile(const FileEntry *SourceFile) const {
   // The location we're looking for isn't in the main file; look
   // through all of the local source locations.
   for (unsigned I = 0, N = local_sloc_entry_size(); I != N; ++I) {
-    const SLocEntry &SLoc = getLocalSLocEntry(I);
-    if (SLoc.isFile() &&
+    
+    if (const SLocEntry &SLoc = getLocalSLocEntry(I); SLoc.isFile() &&
         SLoc.getFile().getContentCache().OrigEntry == SourceFile)
       return FileID::get(I);
   }
 
   // If that still didn't help, try the modules.
   for (unsigned I = 0, N = loaded_sloc_entry_size(); I != N; ++I) {
-    const SLocEntry &SLoc = getLoadedSLocEntry(I);
-    if (SLoc.isFile() &&
+    
+    if (const SLocEntry &SLoc = getLoadedSLocEntry(I); SLoc.isFile() &&
         SLoc.getFile().getContentCache().OrigEntry == SourceFile)
       return FileID::get(-int(I) - 2);
   }
@@ -1759,8 +1759,8 @@ void SourceManager::associateFileChunkWithMacroArgExp(
       SourceLocation::UIntTy SpellFIDBeginOffs = Entry.getOffset();
       unsigned SpellFIDSize = getFileIDSize(SpellFID);
       SourceLocation::UIntTy SpellFIDEndOffs = SpellFIDBeginOffs + SpellFIDSize;
-      const ExpansionInfo &Info = Entry.getExpansion();
-      if (Info.isMacroArgExpansion()) {
+      
+      if (const ExpansionInfo &Info = Entry.getExpansion(); Info.isMacroArgExpansion()) {
         unsigned CurrSpellLength;
         if (SpellFIDEndOffs < SpellEndOffs)
           CurrSpellLength = SpellFIDSize - SpellRelativeOffs;
@@ -1915,15 +1915,15 @@ bool SourceManager::isInTheSameTranslationUnitImpl(
     return false;
 
   if (isLoadedFileID(LOffs.first) && isLoadedFileID(ROffs.first)) {
-    auto FindSLocEntryAlloc = [this](FileID FID) {
+    
+
+    // If both are loaded from different AST files.
+    if (auto FindSLocEntryAlloc = [this](FileID FID) {
       // Loaded FileIDs are negative, we store the lowest FileID from each
       // allocation, later allocations have lower FileIDs.
       return llvm::lower_bound(LoadedSLocEntryAllocBegin, FID,
                                std::greater<FileID>{});
-    };
-
-    // If both are loaded from different AST files.
-    if (FindSLocEntryAlloc(LOffs.first) != FindSLocEntryAlloc(ROffs.first))
+    }; FindSLocEntryAlloc(LOffs.first) != FindSLocEntryAlloc(ROffs.first))
       return false;
   }
 
@@ -2187,8 +2187,8 @@ LLVM_DUMP_METHOD void SourceManager::dump() const {
   // Dump loaded SLocEntries.
   std::optional<SourceLocation::UIntTy> NextStart;
   for (unsigned Index = 0; Index != LoadedSLocEntryTable.size(); ++Index) {
-    int ID = -(int)Index - 2;
-    if (SLocEntryLoaded[Index]) {
+    
+    if (int ID = -(int)Index - 2; SLocEntryLoaded[Index]) {
       DumpSLocEntry(ID, LoadedSLocEntryTable[Index], NextStart);
       NextStart = LoadedSLocEntryTable[Index].getOffset();
     } else {

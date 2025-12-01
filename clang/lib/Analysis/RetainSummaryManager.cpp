@@ -269,8 +269,8 @@ RetainSummaryManager::getSummaryForOSObject(const FunctionDecl *FD,
   }
 
   if (const auto *MD = dyn_cast<CXXMethodDecl>(FD)) {
-    const CXXRecordDecl *Parent = MD->getParent();
-    if (Parent && isOSObjectSubclass(Parent)) {
+    
+    if (const CXXRecordDecl *Parent = MD->getParent(); Parent && isOSObjectSubclass(Parent)) {
       if (FName == "release" || FName == "taggedRelease")
         return getOSSummaryReleaseRule(FD);
 
@@ -297,8 +297,8 @@ const RetainSummary *RetainSummaryManager::getSummaryForObjCOrCFObject(
 
   ArgEffects ScratchArgs(AF.getEmptyMap());
 
-  std::string RetTyName = RetTy.getAsString();
-  if (FName == "pthread_create" || FName == "pthread_setspecific") {
+  
+  if (std::string RetTyName = RetTy.getAsString(); FName == "pthread_create" || FName == "pthread_setspecific") {
     // It's not uncommon to pass a tracked object into the thread
     // as 'void *arg', and then release it inside the thread.
     // FIXME: We could build a much more precise model for these functions.
@@ -675,8 +675,8 @@ RetainSummaryManager::getSummary(AnyCall C,
     // FIXME: These calls are currently unsupported.
     return getPersistentStopSummary();
   case AnyCall::ObjCMethod: {
-    const auto *ME = cast_or_null<ObjCMessageExpr>(C.getExpr());
-    if (!ME) {
+    
+    if (const auto *ME = cast_or_null<ObjCMessageExpr>(C.getExpr()); !ME) {
       Summ = getMethodSummary(cast<ObjCMethodDecl>(C.getDecl()));
     } else if (ME->isInstanceMessage()) {
       Summ = getInstanceMethodSummary(ME, ReceiverType);
@@ -762,16 +762,16 @@ RetainSummaryManager::canEval(const CallExpr *CE, const FunctionDecl *FD,
       }
     }
 
-    const FunctionDecl* FDD = FD->getDefinition();
-    if (FDD && isTrustedReferenceCountImplementation(FDD)) {
+    
+    if (const FunctionDecl* FDD = FD->getDefinition(); FDD && isTrustedReferenceCountImplementation(FDD)) {
       hasTrustedImplementationAnnotation = true;
       return BehaviorSummary::Identity;
     }
   }
 
   if (const auto *MD = dyn_cast<CXXMethodDecl>(FD)) {
-    const CXXRecordDecl *Parent = MD->getParent();
-    if (TrackOSObjects && Parent && isOSObjectSubclass(Parent))
+    
+    if (const CXXRecordDecl *Parent = MD->getParent(); TrackOSObjects && Parent && isOSObjectSubclass(Parent))
       if (FName == "release" || FName == "retain")
         return BehaviorSummary::NoOp;
   }
@@ -788,8 +788,8 @@ RetainSummaryManager::getUnarySummary(const FunctionType* FT,
 
   // Verify that this is *really* a unary function.  This can
   // happen if people do weird things.
-  const FunctionProtoType* FTP = dyn_cast<FunctionProtoType>(FT);
-  if (!FTP || FTP->getNumParams() != 1)
+  
+  if (const FunctionProtoType* FTP = dyn_cast<FunctionProtoType>(FT); !FTP || FTP->getNumParams() != 1)
     return getPersistentStopSummary();
 
   ArgEffect Effect(AE, ObjKind::CF);
@@ -888,8 +888,8 @@ RetainSummaryManager::getRetEffectFromAnnotations(QualType RetTy,
 static bool hasTypedefNamed(QualType QT,
                             StringRef Name) {
   while (auto *T = QT->getAs<TypedefType>()) {
-    const auto &Context = T->getDecl()->getASTContext();
-    if (T->getDecl()->getIdentifier() == &Context.Idents.get(Name))
+    
+    if (const auto &Context = T->getDecl()->getASTContext(); T->getDecl()->getIdentifier() == &Context.Idents.get(Name))
       return true;
     QT = T->getDecl()->getUnderlyingType();
   }
@@ -909,8 +909,8 @@ static QualType getCallableReturnType(const NamedDecl *ND) {
 bool RetainSummaryManager::applyParamAnnotationEffect(
     const ParmVarDecl *pd, unsigned parm_idx, const NamedDecl *FD,
     RetainSummaryTemplate &Template) {
-  QualType QT = pd->getType();
-  if (auto K =
+  
+  if (auto QualType QT = pd->getType(); K =
           hasAnyEnabledAttrOf<NSConsumedAttr, CFConsumedAttr, OSConsumedAttr,
                               GeneralizedConsumedAttr>(pd, QT)) {
     Template->addArg(AF, parm_idx, ArgEffect(DecRef, *K));
@@ -1095,8 +1095,8 @@ RetainSummaryManager::getStandardMethodSummary(const ObjCMethodDecl *MD,
   // method.
   if (S.isKeywordSelector()) {
     for (unsigned i = 0, e = S.getNumArgs(); i != e; ++i) {
-      StringRef Slot = S.getNameForSlot(i);
-      if (Slot.ends_with_insensitive("delegate")) {
+      
+      if (StringRef Slot = S.getNameForSlot(i); Slot.ends_with_insensitive("delegate")) {
         if (ResultEff == ObjCInitRetE)
           ResultEff = RetEffect::MakeNoRetHard();
         else

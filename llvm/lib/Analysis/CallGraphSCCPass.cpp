@@ -123,9 +123,9 @@ bool CGPassManager::RunPassOnSCC(Pass *P, CallGraphSCC &CurSCC,
                                  bool &DevirtualizedCall) {
   bool Changed = false;
   PMDataManager *PM = P->getAsPMDataManager();
-  Module &M = CG.getModule();
+  
 
-  if (!PM) {
+  if (Module &M = CG.getModule(); !PM) {
     CallGraphSCCPass *CGSP = (CallGraphSCCPass *)P;
     if (!CallGraphUpToDate) {
       DevirtualizedCall |= RefreshCallGraph(CurSCC, CG, false);
@@ -285,9 +285,9 @@ bool CGPassManager::RefreshCallGraph(const CallGraphSCC &CurSCC, CallGraph &CG,
       assert(!Calls.count(Call) && "Call site occurs in node multiple times");
 
       if (Call) {
-        Function *Callee = Call->getCalledFunction();
+        
         // Ignore intrinsics because they're not really function calls.
-        if (!Callee || !(Callee->isIntrinsic()))
+        if (Function *Callee = Call->getCalledFunction(); !Callee || !(Callee->isIntrinsic()))
           Calls.insert(std::make_pair(Call, I->second));
       }
       ++I;

@@ -76,17 +76,17 @@ static void filterFuncAttributes(FunctionOpInterface func,
 static void propagateArgResAttrs(OpBuilder &builder, bool resultStructType,
                                  FunctionOpInterface funcOp,
                                  LLVM::LLVMFuncOp wrapperFuncOp) {
-  auto argAttrs = funcOp.getAllArgAttrs();
-  if (!resultStructType) {
+  
+  if (auto argAttrs = funcOp.getAllArgAttrs(); !resultStructType) {
     if (auto resAttrs = funcOp.getAllResultAttrs())
       wrapperFuncOp.setAllResultAttrs(resAttrs);
     if (argAttrs)
       wrapperFuncOp.setAllArgAttrs(argAttrs);
   } else {
-    SmallVector<Attribute> argAttributes;
+    
     // Only modify the argument and result attributes when the result is now
     // an argument.
-    if (argAttrs) {
+    if (SmallVector<Attribute> argAttributes; argAttrs) {
       argAttributes.push_back(builder.getDictionaryAttr({}));
       argAttributes.append(argAttrs.begin(), argAttrs.end());
       wrapperFuncOp.setAllArgAttrs(argAttributes);
@@ -144,9 +144,9 @@ static void wrapForExternalCallers(OpBuilder &rewriter, Location loc,
     args.push_back(arg);
   }
 
-  auto call = LLVM::CallOp::create(rewriter, loc, newFuncOp, args);
+  
 
-  if (resultStructType) {
+  if (auto call = LLVM::CallOp::create(rewriter, loc, newFuncOp, args); resultStructType) {
     LLVM::StoreOp::create(rewriter, loc, call.getResult(),
                           wrapperFuncOp.getArgument(0));
     LLVM::ReturnOp::create(rewriter, loc, ValueRange{});
@@ -215,8 +215,8 @@ static void wrapExternalFunction(OpBuilder &builder, Location loc,
     Value arg;
     int numToDrop = 1;
     auto memRefType = dyn_cast<MemRefType>(input);
-    auto unrankedMemRefType = dyn_cast<UnrankedMemRefType>(input);
-    if (memRefType || unrankedMemRefType) {
+    
+    if (auto unrankedMemRefType = dyn_cast<UnrankedMemRefType>(input); memRefType || unrankedMemRefType) {
       numToDrop = memRefType
                       ? MemRefDescriptor::getNumUnpackedValues(memRefType)
                       : UnrankedMemRefDescriptor::getNumUnpackedValues();
@@ -338,8 +338,8 @@ FailureOr<LLVM::LLVMFuncOp> mlir::convertFuncOpToLLVMFuncOp(
   // Check for invalid attributes.
   StringRef readnoneAttrName = LLVM::LLVMDialect::getReadnoneAttrName();
   if (funcOp->hasAttr(readnoneAttrName)) {
-    auto attr = funcOp->getAttrOfType<UnitAttr>(readnoneAttrName);
-    if (!attr) {
+    
+    if (auto attr = funcOp->getAttrOfType<UnitAttr>(readnoneAttrName); !attr) {
       funcOp->emitError() << "Contains " << readnoneAttrName
                           << " attribute not of type UnitAttr";
       return rewriter.notifyMatchFailure(
@@ -550,8 +550,8 @@ struct CallOpInterfaceLowering : public ConvertOpToLLVMPattern<CallOpType> {
 
     if (useBarePtrCallConv) {
       for (auto it : callOp->getOperands()) {
-        Type operandType = it.getType();
-        if (isa<UnrankedMemRefType>(operandType)) {
+        
+        if (Type operandType = it.getType(); isa<UnrankedMemRefType>(operandType)) {
           // Unranked memref is not supported in the bare pointer calling
           // convention.
           return failure();
@@ -725,8 +725,8 @@ struct ReturnOpLowering : public ConvertOpToLLVMPattern<func::ReturnOp> {
 
     for (auto [oldOperand, newOperands] :
          llvm::zip_equal(op->getOperands(), adaptor.getOperands())) {
-      Type oldTy = oldOperand.getType();
-      if (auto memRefType = dyn_cast<MemRefType>(oldTy)) {
+      
+      if (auto Type oldTy = oldOperand.getType(); memRefType = dyn_cast<MemRefType>(oldTy)) {
         assert(newOperands.size() == 1 && "expected one converted result");
         if (useBarePtrCallConv &&
             getTypeConverter()->canConvertToBarePtr(memRefType)) {

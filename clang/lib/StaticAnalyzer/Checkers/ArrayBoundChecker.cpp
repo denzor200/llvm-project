@@ -411,8 +411,8 @@ static bool tryDividePair(std::optional<int64_t> &Val1,
   if (!Divisor)
     return false;
   const bool Val1HasRemainder = Val1 && *Val1 % Divisor;
-  const bool Val2HasRemainder = Val2 && *Val2 % Divisor;
-  if (Val1HasRemainder || Val2HasRemainder)
+  
+  if (const bool Val2HasRemainder = Val2 && *Val2 % Divisor; Val1HasRemainder || Val2HasRemainder)
     return false;
   if (Val1)
     *Val1 /= Divisor;

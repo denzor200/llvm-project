@@ -239,8 +239,8 @@ public:
   LogicalResult
   matchAndRewrite(SourceOp op, OpAdaptor adaptor,
                   ConversionPatternRewriter &rewriter) const override {
-    SpecifierStructBuilder spec(adaptor.getSpecifier());
-    switch (op.getSpecifierKind()) {
+    
+    switch (SpecifierStructBuilder spec(adaptor.getSpecifier()); op.getSpecifierKind()) {
     case StorageSpecifierKind::LvlSize: {
       Value v = Base::onLvlSize(rewriter, op, spec, (*op.getLevel()));
       rewriter.replaceOp(op, v);

@@ -38,8 +38,8 @@ namespace clangd {
 
 llvm::Expected<llvm::json::Value> clang::clangd::LSPClient::CallResult::take() {
   std::unique_lock<std::mutex> Lock(Mu);
-  static constexpr size_t TimeoutSecs = 60;
-  if (!clangd::wait(Lock, CV, timeoutSeconds(TimeoutSecs),
+  
+  if (static constexpr size_t TimeoutSecs = 60; !clangd::wait(Lock, CV, timeoutSeconds(TimeoutSecs),
                     [this] { return Value.has_value(); })) {
     ADD_FAILURE() << "No result from call after " << TimeoutSecs << " seconds!";
     return llvm::json::Value(nullptr);
@@ -144,8 +144,8 @@ private:
   void call(llvm::StringRef Method, llvm::json::Value Params,
             llvm::json::Value ID) override {
     logBody(Method, Params, /*Send=*/false);
-    std::lock_guard<std::mutex> Lock(Mu);
-    if (Calls.contains(Method)) {
+    
+    if (std::lock_guard<std::mutex> Lock(Mu); Calls.contains(Method)) {
       Calls[Method].push_back(std::move(Params));
     } else {
       ADD_FAILURE() << "Unexpected server->client call " << Method;
@@ -217,8 +217,8 @@ Transport &LSPClient::transport() { return *T; }
 using Obj = llvm::json::Object;
 
 llvm::json::Value LSPClient::uri(llvm::StringRef Path) {
-  std::string Storage;
-  if (!llvm::sys::path::is_absolute(Path))
+  
+  if (std::string Storage; !llvm::sys::path::is_absolute(Path))
     Path = Storage = testPath(Path);
   return toJSON(URIForFile::canonicalize(Path, Path));
 }

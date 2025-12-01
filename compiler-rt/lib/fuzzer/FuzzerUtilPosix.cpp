@@ -104,10 +104,10 @@ bool ExecuteCommand(const Command &Cmd, std::string *CmdOutput) {
 }
 
 void SetTimer(int Seconds) {
-  struct itimerval T {
+  
+  if (struct itimerval T {
     {Seconds, 0}, { Seconds, 0 }
-  };
-  if (setitimer(ITIMER_REAL, &T, nullptr)) {
+  }; setitimer(ITIMER_REAL, &T, nullptr)) {
     Printf("libFuzzer: setitimer failed with %d\n", errno);
     exit(1);
   }

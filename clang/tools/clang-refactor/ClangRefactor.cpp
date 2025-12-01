@@ -197,8 +197,8 @@ public:
 
   void visit(const RefactoringOption &Opt,
              std::optional<std::string> &Value) override {
-    const cl::opt<std::string> &CLOpt = Options.getStringOption(Opt);
-    if (!CLOpt.getValue().empty()) {
+    
+    if (const cl::opt<std::string> &CLOpt = Options.getStringOption(Opt); !CLOpt.getValue().empty()) {
       Value = CLOpt.getValue();
       return;
     }

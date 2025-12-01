@@ -278,8 +278,8 @@ public:
     SubCommand &Sub = *SC;
     auto End = Sub.OptionsMap.end();
     for (auto Name : OptionNames) {
-      auto I = Sub.OptionsMap.find(Name);
-      if (I != End && I->getValue() == O)
+      
+      if (auto I = Sub.OptionsMap.find(Name); I != End && I->getValue() == O)
         Sub.OptionsMap.erase(I);
     }
 
@@ -369,8 +369,8 @@ public:
     assert(sub != &SubCommand::getAll() &&
            "SubCommand::getAll() should not be registered");
     for (auto &E : SubCommand::getAll().OptionsMap) {
-      Option *O = E.second;
-      if ((O->isPositional() || O->isSink() || O->isConsumeAfter()) ||
+      
+      if (Option *O = E.second; (O->isPositional() || O->isSink() || O->isConsumeAfter()) ||
           O->hasArgStr())
         addOption(O, sub);
       else
@@ -922,8 +922,8 @@ static size_t parseBackslash(StringRef Src, size_t I, SmallString<128> &Token) {
     ++BackslashCount;
   } while (I != E && Src[I] == '\\');
 
-  bool FollowedByDoubleQuote = (I != E && Src[I] == '"');
-  if (FollowedByDoubleQuote) {
+  
+  if (bool FollowedByDoubleQuote = (I != E && Src[I] == '"'); FollowedByDoubleQuote) {
     Token.append(BackslashCount / 2, '\\');
     if (BackslashCount % 2 == 0)
       return I - 1;
@@ -1146,8 +1146,8 @@ static void ExpandBasePaths(StringRef BasePath, StringSaver &Saver,
        TokenPos = ArgString.find(Token, StartPos)) {
     // Token may appear more than once per arg (e.g. comma-separated linker
     // args). Support by using path-append on any subsequent appearances.
-    const StringRef LHS = ArgString.substr(StartPos, TokenPos - StartPos);
-    if (ResponseFile.empty())
+    
+    if (const StringRef LHS = ArgString.substr(StartPos, TokenPos - StartPos); ResponseFile.empty())
       ResponseFile = LHS;
     else
       llvm::sys::path::append(ResponseFile, LHS);
@@ -1157,8 +1157,8 @@ static void ExpandBasePaths(StringRef BasePath, StringSaver &Saver,
 
   if (!ResponseFile.empty()) {
     // Path-append the remaining arg substring if at least one token appeared.
-    const StringRef Remaining = ArgString.substr(StartPos);
-    if (!Remaining.empty())
+    
+    if (const StringRef Remaining = ArgString.substr(StartPos); !Remaining.empty())
       llvm::sys::path::append(ResponseFile, Remaining);
     Arg = Saver.save(ResponseFile.str()).data();
   }
@@ -1392,8 +1392,8 @@ bool cl::expandResponseFiles(int Argc, const char *const *Argv,
 
 bool cl::ExpandResponseFiles(StringSaver &Saver, TokenizerCallback Tokenizer,
                              SmallVectorImpl<const char *> &Argv) {
-  ExpansionContext ECtx(Saver.getAllocator(), Tokenizer);
-  if (Error Err = ECtx.expandResponseFiles(Argv)) {
+  
+  if (Error ExpansionContext ECtx(Saver.getAllocator(), Tokenizer); Err = ECtx.expandResponseFiles(Argv)) {
     errs() << toString(std::move(Err)) << '\n';
     return false;
   }
@@ -1625,13 +1625,13 @@ bool CommandLineParser::ParseCommandLineOptions(
     std::string NearestHandlerString;
     StringRef Value;
     StringRef ArgName = "";
-    bool HaveDoubleDash = false;
+    
 
     // Check to see if this is a positional argument.  This argument is
     // considered to be positional if it doesn't start with '-', if it is "-"
     // itself, or if we have seen "--" already.
     //
-    if (argv[i][0] != '-' || argv[i][1] == 0 || DashDashFound) {
+    if (bool HaveDoubleDash = false; argv[i][0] != '-' || argv[i][1] == 0 || DashDashFound) {
       // Positional argument!
       if (ActivePositionalArg) {
         ProvidePositionalOption(ActivePositionalArg, StringRef(argv[i]), i);
@@ -1945,8 +1945,8 @@ void alias::printOptionInfo(size_t GlobalWidth) const {
 // Return the width of the option tag for printing...
 size_t basic_parser_impl::getOptionWidth(const Option &O) const {
   size_t Len = argPlusPrefixesSize(O.ArgStr);
-  auto ValName = getValueName();
-  if (!ValName.empty()) {
+  
+  if (auto ValName = getValueName(); !ValName.empty()) {
     size_t FormattingLen = 3;
     if (O.getMiscFlags() & PositionalEatsArgs)
       FormattingLen = 6;
@@ -1963,8 +1963,8 @@ void basic_parser_impl::printOptionInfo(const Option &O,
                                         size_t GlobalWidth) const {
   outs() << PrintArg(O.ArgStr);
 
-  auto ValName = getValueName();
-  if (!ValName.empty()) {
+  
+  if (auto ValName = getValueName(); !ValName.empty()) {
     if (O.getMiscFlags() & PositionalEatsArgs) {
       outs() << " <" << getValueStr(O, ValName) << ">...";
     } else if (O.getValueExpectedFlag() == ValueOptional)

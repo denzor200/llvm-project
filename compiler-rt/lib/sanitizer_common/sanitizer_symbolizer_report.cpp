@@ -106,9 +106,9 @@ void ReportErrorSummary(const char *error_type, const StackTrace *stack,
   // Find first non-internal stack frame.
   for (uptr i = 0; i < stack->size; ++i) {
     uptr pc = StackTrace::GetPreviousInstructionPc(stack->trace[i]);
-    SymbolizedStackHolder symbolized_stack(
-        Symbolizer::GetOrInit()->SymbolizePC(pc));
-    if (const SymbolizedStack *frame = symbolized_stack.get()) {
+    
+    if (const SymbolizedStack *SymbolizedStackHolder symbolized_stack(
+        Symbolizer::GetOrInit()->SymbolizePC(pc)); frame = symbolized_stack.get()) {
       if (const SymbolizedStack *summary_frame = SkipInternalFrames(frame)) {
         ReportErrorSummary(error_type, summary_frame->info, alt_tool_name);
         return;
@@ -119,9 +119,9 @@ void ReportErrorSummary(const char *error_type, const StackTrace *stack,
   // Fallback to the top one.
   if (stack->size) {
     uptr pc = StackTrace::GetPreviousInstructionPc(stack->trace[0]);
-    SymbolizedStackHolder symbolized_stack(
-        Symbolizer::GetOrInit()->SymbolizePC(pc));
-    if (const SymbolizedStack *frame = symbolized_stack.get()) {
+    
+    if (const SymbolizedStack *SymbolizedStackHolder symbolized_stack(
+        Symbolizer::GetOrInit()->SymbolizePC(pc)); frame = symbolized_stack.get()) {
       ReportErrorSummary(error_type, frame->info, alt_tool_name);
       return;
     }
@@ -134,8 +134,8 @@ void ReportErrorSummary(const char *error_type, const StackTrace *stack,
 
 void ReportMmapWriteExec(int prot, int flags) {
 #if SANITIZER_POSIX && (!SANITIZER_GO && !SANITIZER_ANDROID)
-  int pflags = (PROT_WRITE | PROT_EXEC);
-  if ((prot & pflags) != pflags)
+  
+  if (int pflags = (PROT_WRITE | PROT_EXEC); (prot & pflags) != pflags)
     return;
 
 #  if SANITIZER_APPLE && defined(MAP_JIT)

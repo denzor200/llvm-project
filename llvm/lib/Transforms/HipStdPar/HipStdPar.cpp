@@ -584,9 +584,9 @@ PreservedAnalyses HipStdParMathFixupPass::run(Module &M,
       continue;
 
     StringRef N = F.getName();
-    Intrinsic::ID ID = F.getIntrinsicID();
+    
 
-    switch (ID) {
+    switch (Intrinsic::ID ID = F.getIntrinsicID(); ID) {
     case Intrinsic::not_intrinsic: {
       auto It =
           find_if(MathLibToHipStdPar, [&](auto &&M) { return M.first == N; });

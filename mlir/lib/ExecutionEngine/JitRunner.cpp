@@ -167,8 +167,8 @@ static std::optional<unsigned> getCommandLineOptLevel(Options &options) {
 
   // Determine if there is an optimization flag present.
   for (unsigned j = 0; j < 4; ++j) {
-    auto &flag = optFlags[j].get();
-    if (flag) {
+    
+    if (auto &flag = optFlags[j].get(); flag) {
       optLevel = j;
       break;
     }

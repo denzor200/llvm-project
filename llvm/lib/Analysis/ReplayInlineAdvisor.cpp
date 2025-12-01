@@ -32,8 +32,8 @@ ReplayInlineAdvisor::ReplayInlineAdvisor(
       ReplaySettings(ReplaySettings), EmitRemarks(EmitRemarks) {
 
   auto BufferOrErr = MemoryBuffer::getFileOrSTDIN(ReplaySettings.ReplayFile);
-  std::error_code EC = BufferOrErr.getError();
-  if (EC) {
+  
+  if (std::error_code EC = BufferOrErr.getError(); EC) {
     Context.emitError("Could not open remarks file: " + EC.message());
     return;
   }

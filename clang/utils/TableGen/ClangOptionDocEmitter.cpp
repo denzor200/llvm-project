@@ -425,9 +425,9 @@ void emitGroup(int Depth, const DocumentedGroup &Group, const Record *DocInfo,
               getRSTStringWithTextFallback(Group.Group, "DocName", "Name"), OS);
 
   // Emit the description, if we have one.
-  std::string Description =
-      getRSTStringWithTextFallback(Group.Group, "DocBrief", "HelpText");
-  if (!Description.empty())
+  
+  if (std::string Description =
+      getRSTStringWithTextFallback(Group.Group, "DocBrief", "HelpText"); !Description.empty())
     OS << Description << "\n\n";
 
   // Emit contained options and groups.

@@ -388,7 +388,7 @@ bool IOHandlerEditline::GetLine(std::string &line, bool &interrupted) {
 
   if (!got_line && in) {
     while (!got_line) {
-      char *r = fgets(buffer, sizeof(buffer), in);
+      
 #ifdef _WIN32
       // ReadFile on Windows is supposed to set ERROR_OPERATION_ABORTED
       // according to the docs on MSDN. However, this has evidently been a
@@ -402,7 +402,7 @@ bool IOHandlerEditline::GetLine(std::string &line, bool &interrupted) {
       if (r == nullptr && GetLastError() == ERROR_OPERATION_ABORTED)
         continue;
 #endif
-      if (r == nullptr) {
+      if (char *r = fgets(buffer, sizeof(buffer), in); r == nullptr) {
         if (ferror(in) && errno == EINTR)
           continue;
         if (feof(in))
@@ -581,10 +581,10 @@ bool IOHandlerEditline::GetLines(StringList &lines, bool &interrupted) {
 void IOHandlerEditline::Run() {
   std::string line;
   while (IsActive()) {
-    bool interrupted = false;
-    if (m_multi_line) {
-      StringList lines;
-      if (GetLines(lines, interrupted)) {
+    
+    if (bool interrupted = false; m_multi_line) {
+      
+      if (StringList lines; GetLines(lines, interrupted)) {
         if (interrupted) {
           m_done = m_interrupt_exits;
           m_delegate.IOHandlerInputInterrupted(*this, line);

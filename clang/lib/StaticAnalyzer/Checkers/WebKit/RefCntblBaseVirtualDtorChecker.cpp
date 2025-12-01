@@ -64,15 +64,15 @@ public:
   }
 
   bool VisitCallExpr(const CallExpr *CE) {
-    const Decl *D = CE->getCalleeDecl();
-    if (D && D->hasBody())
+    
+    if (const Decl *D = CE->getCalleeDecl(); D && D->hasBody())
       return VisitBody(D->getBody());
     else {
-      auto name = safeGetName(D);
-      if (name == "ensureOnMainThread" || name == "ensureOnMainRunLoop") {
+      
+      if (auto name = safeGetName(D); name == "ensureOnMainThread" || name == "ensureOnMainRunLoop") {
         for (unsigned i = 0; i < CE->getNumArgs(); ++i) {
-          auto *Arg = CE->getArg(i);
-          if (VisitLambdaArgument(Arg))
+          
+          if (auto *Arg = CE->getArg(i); VisitLambdaArgument(Arg))
             return true;
         }
       }
@@ -110,14 +110,14 @@ public:
         Arg = Paren->getSubExpr();
       else if (auto *Cast = dyn_cast<CastExpr>(Arg)) {
         Arg = Cast->getSubExpr();
-        auto CastType = Cast->getType();
-        if (auto *PtrType = dyn_cast<PointerType>(CastType)) {
-          auto PointeeType = PtrType->getPointeeType();
-          if (auto *ParmType = dyn_cast<TemplateTypeParmType>(PointeeType)) {
+        
+        if (auto *auto CastType = Cast->getType(); PtrType = dyn_cast<PointerType>(CastType)) {
+          
+          if (auto *auto PointeeType = PtrType->getPointeeType(); ParmType = dyn_cast<TemplateTypeParmType>(PointeeType)) {
             if (ArgList) {
               auto ParmIndex = ParmType->getIndex();
-              auto Type = ArgList->get(ParmIndex).getAsType();
-              if (Type->getAsCXXRecordDecl() == ClassDecl)
+              
+              if (auto Type = ArgList->get(ParmIndex).getAsType(); Type->getAsCXXRecordDecl() == ClassDecl)
                 return true;
             }
           } else if (auto *RD = dyn_cast<RecordType>(PointeeType)) {
@@ -125,8 +125,8 @@ public:
               return true;
           } else if (auto *ST =
                          dyn_cast<SubstTemplateTypeParmType>(PointeeType)) {
-            auto Type = ST->getReplacementType();
-            if (auto *RD = dyn_cast<RecordType>(Type)) {
+            
+            if (auto *auto Type = ST->getReplacementType(); RD = dyn_cast<RecordType>(Type)) {
               if (declaresSameEntity(RD->getDecl(), ClassDecl))
                 return true;
             }
@@ -185,8 +185,8 @@ public:
         Decls.insert(RD);
 
         for (auto &Base : RD->bases()) {
-          const auto AccSpec = Base.getAccessSpecifier();
-          if (AccSpec == AS_protected || AccSpec == AS_private ||
+          
+          if (const auto AccSpec = Base.getAccessSpecifier(); AccSpec == AS_protected || AccSpec == AS_private ||
               (AccSpec == AS_none && RD->isClass()))
             continue;
 
@@ -243,8 +243,8 @@ public:
       return;
 
     for (auto &Base : RD->bases()) {
-      const auto AccSpec = Base.getAccessSpecifier();
-      if (AccSpec == AS_protected || AccSpec == AS_private ||
+      
+      if (const auto AccSpec = Base.getAccessSpecifier(); AccSpec == AS_protected || AccSpec == AS_private ||
           (AccSpec == AS_none && RD->isClass()))
         continue;
 
@@ -370,8 +370,8 @@ public:
         if (safeGetName(MethodDecl) == "deref") {
           DerefFuncDeleteExprVisitor Visitor(ClsTmplSpDecl->getTemplateArgs(),
                                              DerivedClass);
-          auto Result = Visitor.HasSpecializedDelete(MethodDecl);
-          if (!Result || *Result)
+          
+          if (auto Result = Visitor.HasSpecializedDelete(MethodDecl); !Result || *Result)
             return Result;
         }
       }
@@ -380,8 +380,8 @@ public:
     for (auto *MethodDecl : C->methods()) {
       if (safeGetName(MethodDecl) == "deref") {
         DerefFuncDeleteExprVisitor Visitor(DerivedClass);
-        auto Result = Visitor.HasSpecializedDelete(MethodDecl);
-        if (!Result || *Result)
+        
+        if (auto Result = Visitor.HasSpecializedDelete(MethodDecl); !Result || *Result)
           return Result;
       }
     }

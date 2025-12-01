@@ -92,8 +92,8 @@ ResourcePriorityQueue::numberRCValPredInSU(SUnit *SU, unsigned RCId) {
       continue;
 
     for (unsigned i = 0, e = ScegN->getNumValues(); i != e; ++i) {
-      MVT VT = ScegN->getSimpleValueType(i);
-      if (TLI->isTypeLegal(VT)
+      
+      if (MVT VT = ScegN->getSimpleValueType(i); TLI->isTypeLegal(VT)
           && (TLI->getRegClassFor(VT)->getID() == RCId)) {
         NumberDeps++;
         break;
@@ -130,8 +130,8 @@ unsigned ResourcePriorityQueue::numberRCValSuccInSU(SUnit *SU,
 
     for (unsigned i = 0, e = ScegN->getNumOperands(); i != e; ++i) {
       const SDValue &Op = ScegN->getOperand(i);
-      MVT VT = Op.getNode()->getSimpleValueType(Op.getResNo());
-      if (TLI->isTypeLegal(VT)
+      
+      if (MVT VT = Op.getNode()->getSimpleValueType(Op.getResNo()); TLI->isTypeLegal(VT)
           && (TLI->getRegClassFor(VT)->getID() == RCId)) {
         NumberDeps++;
         break;
@@ -211,8 +211,8 @@ bool resource_sort::operator()(const SUnit *LHS, const SUnit *RHS) const {
 SUnit *ResourcePriorityQueue::getSingleUnscheduledPred(SUnit *SU) {
   SUnit *OnlyAvailablePred = nullptr;
   for (const SDep &Pred : SU->Preds) {
-    SUnit &PredSU = *Pred.getSUnit();
-    if (!PredSU.isScheduled) {
+    
+    if (SUnit &PredSU = *Pred.getSUnit(); !PredSU.isScheduled) {
       // We found an available, but not scheduled, predecessor.  If it's the
       // only one we have found, keep track of it... otherwise give up.
       if (OnlyAvailablePred && OnlyAvailablePred != &PredSU)
@@ -325,8 +325,8 @@ int ResourcePriorityQueue::rawRegPressureDelta(SUnit *SU, unsigned RCId) {
 
   // Gen estimate.
   for (unsigned i = 0, e = SU->getNode()->getNumValues(); i != e; ++i) {
-      MVT VT = SU->getNode()->getSimpleValueType(i);
-      if (TLI->isTypeLegal(VT)
+      
+      if (MVT VT = SU->getNode()->getSimpleValueType(i); TLI->isTypeLegal(VT)
           && TLI->getRegClassFor(VT)
           && TLI->getRegClassFor(VT)->getID() == RCId)
         RegBalance += numberRCValSuccInSU(SU, RCId);
@@ -434,8 +434,8 @@ int ResourcePriorityQueue::SUSchedulingCost(SUnit *SU) {
   // and accessed from here via a hook.
   for (SDNode *N = SU->getNode(); N; N = N->getGluedNode()) {
     if (N->isMachineOpcode()) {
-      const MCInstrDesc &TID = TII->get(N->getMachineOpcode());
-      if (TID.isCall())
+      
+      if (const MCInstrDesc &TID = TII->get(N->getMachineOpcode()); TID.isCall())
         ResCount += (PriorityTwo + (ScaleThree*N->getNumValues()));
     }
     else
@@ -467,28 +467,28 @@ void ResourcePriorityQueue::scheduledNode(SUnit *SU) {
     return;
   }
 
-  const SDNode *ScegN = SU->getNode();
+  
   // Update reg pressure tracking.
   // First update current node.
-  if (ScegN->isMachineOpcode()) {
+  if (const SDNode *ScegN = SU->getNode(); ScegN->isMachineOpcode()) {
     // Estimate generated regs.
     for (unsigned i = 0, e = ScegN->getNumValues(); i != e; ++i) {
-      MVT VT = ScegN->getSimpleValueType(i);
+      
 
-      if (TLI->isTypeLegal(VT)) {
-        const TargetRegisterClass *RC = TLI->getRegClassFor(VT);
-        if (RC)
+      if (MVT VT = ScegN->getSimpleValueType(i); TLI->isTypeLegal(VT)) {
+        
+        if (const TargetRegisterClass *RC = TLI->getRegClassFor(VT); RC)
           RegPressure[RC->getID()] += numberRCValSuccInSU(SU, RC->getID());
       }
     }
     // Estimate killed regs.
     for (unsigned i = 0, e = ScegN->getNumOperands(); i != e; ++i) {
       const SDValue &Op = ScegN->getOperand(i);
-      MVT VT = Op.getNode()->getSimpleValueType(Op.getResNo());
+      
 
-      if (TLI->isTypeLegal(VT)) {
-        const TargetRegisterClass *RC = TLI->getRegClassFor(VT);
-        if (RC) {
+      if (MVT VT = Op.getNode()->getSimpleValueType(Op.getResNo()); TLI->isTypeLegal(VT)) {
+        
+        if (const TargetRegisterClass *RC = TLI->getRegClassFor(VT); RC) {
           if (RegPressure[RC->getID()] >
             (numberRCValPredInSU(SU, RC->getID())))
             RegPressure[RC->getID()] -= numberRCValPredInSU(SU, RC->getID());

@@ -198,8 +198,8 @@ RISCVTargetMachine::getSubtargetImpl(const Function &F) const {
   if (VScaleRangeAttr.isValid()) {
     if (!RVVVectorBitsMinOpt.getNumOccurrences())
       RVVBitsMin = VScaleRangeAttr.getVScaleRangeMin() * RISCV::RVVBitsPerBlock;
-    std::optional<unsigned> VScaleMax = VScaleRangeAttr.getVScaleRangeMax();
-    if (VScaleMax.has_value() && !RVVVectorBitsMaxOpt.getNumOccurrences())
+    
+    if (std::optional<unsigned> VScaleMax = VScaleRangeAttr.getVScaleRangeMax(); VScaleMax.has_value() && !RVVVectorBitsMaxOpt.getNumOccurrences())
       RVVBitsMax = *VScaleMax * RISCV::RVVBitsPerBlock;
   }
 
@@ -242,8 +242,8 @@ RISCVTargetMachine::getSubtargetImpl(const Function &F) const {
     auto ABIName = Options.MCOptions.getABIName();
     if (const MDString *ModuleTargetABI = dyn_cast_or_null<MDString>(
             F.getParent()->getModuleFlag("target-abi"))) {
-      auto TargetABI = RISCVABI::getTargetABI(ABIName);
-      if (TargetABI != RISCVABI::ABI_Unknown &&
+      
+      if (auto TargetABI = RISCVABI::getTargetABI(ABIName); TargetABI != RISCVABI::ABI_Unknown &&
           ModuleTargetABI->getString() != ABIName) {
         report_fatal_error("-target-abi option != target-abi module flag");
       }
@@ -340,9 +340,9 @@ static cl::opt<RVVRegisterRegAlloc::FunctionPassCtor, false,
                 cl::desc("Register allocator to use for RVV register."));
 
 static void initializeDefaultRVVRegisterAllocatorOnce() {
-  RegisterRegAlloc::FunctionPassCtor Ctor = RVVRegisterRegAlloc::getDefault();
+  
 
-  if (!Ctor) {
+  if (RegisterRegAlloc::FunctionPassCtor Ctor = RVVRegisterRegAlloc::getDefault(); !Ctor) {
     Ctor = RVVRegAlloc;
     RVVRegisterRegAlloc::setDefault(RVVRegAlloc);
   }
@@ -423,8 +423,8 @@ FunctionPass *RISCVPassConfig::createRVVRegAllocPass(bool Optimized) {
   llvm::call_once(InitializeDefaultRVVRegisterAllocatorFlag,
                   initializeDefaultRVVRegisterAllocatorOnce);
 
-  RegisterRegAlloc::FunctionPassCtor Ctor = RVVRegisterRegAlloc::getDefault();
-  if (Ctor != useDefaultRegisterAllocator)
+  
+  if (RegisterRegAlloc::FunctionPassCtor Ctor = RVVRegisterRegAlloc::getDefault(); Ctor != useDefaultRegisterAllocator)
     return Ctor();
 
   if (Optimized)

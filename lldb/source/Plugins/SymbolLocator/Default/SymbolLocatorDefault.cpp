@@ -81,8 +81,8 @@ std::optional<ModuleSpec> SymbolLocatorDefault::LocateExecutableObjectFile(
       arch ? arch->GetArchitectureName() : "<NULL>", (const void *)uuid);
 
   ModuleSpecList module_specs;
-  ModuleSpec matched_module_spec;
-  if (exec_fspec &&
+  
+  if (ModuleSpec matched_module_spec; exec_fspec &&
       ObjectFile::GetModuleSpecifications(exec_fspec, 0, 0, module_specs) &&
       module_specs.FindMatchingModuleSpec(module_spec, matched_module_spec)) {
     ModuleSpec result;
@@ -222,8 +222,8 @@ std::optional<FileSpec> SymbolLocatorDefault::LocateExecutableSymbolFile(
         bool valid_mspec = false;
         if (num_specs == 2) {
           // Special case to handle both i386 and i686 from ObjectFilePECOFF
-          ModuleSpec mspec2;
-          if (specs.GetModuleSpecAtIndex(0, mspec) &&
+          
+          if (ModuleSpec mspec2; specs.GetModuleSpecAtIndex(0, mspec) &&
               specs.GetModuleSpecAtIndex(1, mspec2) &&
               mspec.GetArchitecture().GetTriple().isCompatibleWith(
                   mspec2.GetArchitecture().GetTriple())) {

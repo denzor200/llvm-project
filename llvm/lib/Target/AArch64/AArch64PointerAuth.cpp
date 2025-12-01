@@ -179,9 +179,9 @@ void AArch64PointerAuth::authenticateLR(
   // DW_CFA_AARCH64_negate_ra_state can't be emitted.
   bool TerminatorIsCombinable =
       TI != MBB.end() && TI->getOpcode() == AArch64::RET;
-  MCSymbol *PACSym = MFnI->getSigningInstrLabel();
+  
 
-  if (Subtarget->hasPAuth() && TerminatorIsCombinable && !NeedsWinCFI &&
+  if (MCSymbol *PACSym = MFnI->getSigningInstrLabel(); Subtarget->hasPAuth() && TerminatorIsCombinable && !NeedsWinCFI &&
       !MF.getFunction().hasFnAttribute(Attribute::ShadowCallStack)) {
     if (MFnI->branchProtectionPAuthLR() && Subtarget->hasPAuthLR()) {
       assert(PACSym && "No PAC instruction to refer to");

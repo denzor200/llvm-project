@@ -36,8 +36,8 @@
  */
 void __kmpc_begin(ident_t *loc, kmp_int32 flags) {
   // By default __kmpc_begin() is no-op.
-  char *env;
-  if ((env = getenv("KMP_INITIAL_THREAD_BIND")) != NULL &&
+  
+  if (char *env; (env = getenv("KMP_INITIAL_THREAD_BIND")) != NULL &&
       __kmp_str_match_true(env)) {
     __kmp_middle_initialize();
     __kmp_assign_root_init_mask();
@@ -387,8 +387,8 @@ Perform a fork only if the condition is true.
 */
 void __kmpc_fork_call_if(ident_t *loc, kmp_int32 argc, kmpc_micro microtask,
                          kmp_int32 cond, void *args) {
-  int gtid = __kmp_entry_gtid();
-  if (cond) {
+  
+  if (int gtid = __kmp_entry_gtid(); cond) {
     if (args)
       __kmpc_fork_call(loc, argc, microtask, args);
     else
@@ -397,10 +397,10 @@ void __kmpc_fork_call_if(ident_t *loc, kmp_int32 argc, kmpc_micro microtask,
     __kmpc_serialized_parallel(loc, gtid);
 
 #if OMPT_SUPPORT
-    void *exit_frame_ptr;
+    
 #endif
 
-    if (args)
+    if (void *exit_frame_ptr; args)
       __kmp_invoke_microtask(VOLATILE_CAST(microtask_t) microtask, gtid,
                              /*npr=*/0,
                              /*argc=*/1, &args
@@ -457,8 +457,8 @@ This call is there to support `thread_limit` clause on the `target` construct
 void __kmpc_set_thread_limit(ident_t *loc, kmp_int32 global_tid,
                              kmp_int32 thread_limit) {
   __kmp_assert_valid_gtid(global_tid);
-  kmp_info_t *thread = __kmp_threads[global_tid];
-  if (thread_limit > 0)
+  
+  if (kmp_info_t *thread = __kmp_threads[global_tid]; thread_limit > 0)
     thread->th.th_current_task->td_icvs.task_thread_limit = thread_limit;
 }
 
@@ -523,8 +523,8 @@ void __kmpc_fork_teams(ident_t *loc, kmp_int32 argc, kmpc_micro microtask,
 
 #if OMPT_SUPPORT
   kmp_team_t *parent_team = this_thr->th.th_team;
-  int tid = __kmp_tid_from_gtid(gtid);
-  if (ompt_enabled.enabled) {
+  
+  if (int tid = __kmp_tid_from_gtid(gtid); ompt_enabled.enabled) {
     parent_team->t.t_implicit_task_taskdata[tid]
         .ompt_task_info.frame.enter_frame.ptr = OMPT_GET_FRAME_ADDRESS(0);
   }
@@ -641,9 +641,9 @@ void __kmpc_end_serialized_parallel(ident_t *loc, kmp_int32 global_tid) {
   this_thr = __kmp_threads[global_tid];
   serial_team = this_thr->th.th_serial_team;
 
-  kmp_task_team_t *task_team = this_thr->th.th_task_team;
+  
   // we need to wait for the proxy tasks before finishing the thread
-  if (task_team != NULL && (task_team->tt.tt_found_proxy_tasks ||
+  if (kmp_task_team_t *task_team = this_thr->th.th_task_team; task_team != NULL && (task_team->tt.tt_found_proxy_tasks ||
                             task_team->tt.tt_hidden_helper_task_encountered))
     __kmp_task_team_wait(this_thr, serial_team USE_ITT_BUILD_ARG(NULL));
 
@@ -923,8 +923,8 @@ void __kmpc_end_master(ident_t *loc, kmp_int32 global_tid) {
 
 #if OMPT_SUPPORT && OMPT_OPTIONAL
   kmp_info_t *this_thr = __kmp_threads[global_tid];
-  kmp_team_t *team = this_thr->th.th_team;
-  if (ompt_enabled.ompt_callback_masked) {
+  
+  if (kmp_team_t *team = this_thr->th.th_team; ompt_enabled.ompt_callback_masked) {
     int tid = __kmp_tid_from_gtid(global_tid);
     ompt_callbacks.ompt_callback(ompt_callback_masked)(
         ompt_scope_end, &(team->t.ompt_team_info.parallel_data),
@@ -1010,8 +1010,8 @@ void __kmpc_end_masked(ident_t *loc, kmp_int32 global_tid) {
 
 #if OMPT_SUPPORT && OMPT_OPTIONAL
   kmp_info_t *this_thr = __kmp_threads[global_tid];
-  kmp_team_t *team = this_thr->th.th_team;
-  if (ompt_enabled.ompt_callback_masked) {
+  
+  if (kmp_team_t *team = this_thr->th.th_team; ompt_enabled.ompt_callback_masked) {
     int tid = __kmp_tid_from_gtid(global_tid);
     ompt_callbacks.ompt_callback(ompt_callback_masked)(
         ompt_scope_end, &(team->t.ompt_team_info.parallel_data),
@@ -1155,8 +1155,8 @@ __kmp_init_indirect_csptr(kmp_critical_name *crit, ident_t const *loc,
 #if USE_ITT_BUILD
   __kmp_itt_critical_creating(ilk->lock, loc);
 #endif
-  int status = KMP_COMPARE_AND_STORE_PTR(lck, nullptr, ilk);
-  if (status == 0) {
+  
+  if (int status = KMP_COMPARE_AND_STORE_PTR(lck, nullptr, ilk); status == 0) {
 #if USE_ITT_BUILD
     __kmp_itt_critical_destroyed(ilk->lock);
 #endif
@@ -1707,8 +1707,8 @@ void __kmpc_end_critical(ident_t *loc, kmp_int32 global_tid,
   KC_TRACE(10, ("__kmpc_end_critical: called T#%d\n", global_tid));
 
 #if KMP_USE_DYNAMIC_LOCK
-  int locktag = KMP_EXTRACT_D_TAG(crit);
-  if (locktag) {
+  
+  if (int locktag = KMP_EXTRACT_D_TAG(crit); locktag) {
     lck = (kmp_user_lock_p)crit;
     KMP_ASSERT(lck != NULL);
     if (__kmp_env_consistency_check) {
@@ -1981,9 +1981,9 @@ void __kmpc_end_single(ident_t *loc, kmp_int32 global_tid) {
 #if OMPT_SUPPORT && OMPT_OPTIONAL
   kmp_info_t *this_thr = __kmp_threads[global_tid];
   kmp_team_t *team = this_thr->th.th_team;
-  int tid = __kmp_tid_from_gtid(global_tid);
+  
 
-  if (ompt_enabled.ompt_callback_work) {
+  if (int tid = __kmp_tid_from_gtid(global_tid); ompt_enabled.ompt_callback_work) {
     ompt_callbacks.ompt_callback(ompt_callback_work)(
         ompt_work_single_executor, ompt_scope_end,
         &(team->t.ompt_team_info.parallel_data),
@@ -2366,8 +2366,8 @@ void *__kmpc_copyprivate_light(ident_t *loc, kmp_int32 gtid, void *cpy_data) {
     *data_ptr = cpy_data;
 
 #if OMPT_SUPPORT
-  ompt_frame_t *ompt_frame;
-  if (ompt_enabled.enabled) {
+  
+  if (ompt_frame_t *ompt_frame; ompt_enabled.enabled) {
     __ompt_get_task_info_internal(0, NULL, NULL, &ompt_frame, NULL, NULL);
     if (ompt_frame->enter_frame.ptr == NULL)
       ompt_frame->enter_frame.ptr = OMPT_GET_FRAME_ADDRESS(0);
@@ -3538,11 +3538,11 @@ static __forceinline void
 __kmp_end_critical_section_reduce_block(ident_t *loc, kmp_int32 global_tid,
                                         kmp_critical_name *crit) {
 
-  kmp_user_lock_p lck;
+  
 
 #if KMP_USE_DYNAMIC_LOCK
 
-  if (KMP_IS_D_LOCK(__kmp_user_lock_seq)) {
+  if (kmp_user_lock_p lck; KMP_IS_D_LOCK(__kmp_user_lock_seq)) {
     lck = (kmp_user_lock_p)crit;
     if (__kmp_env_consistency_check)
       __kmp_pop_sync(global_tid, ct_critical, loc);
@@ -3578,10 +3578,10 @@ __kmp_end_critical_section_reduce_block(ident_t *loc, kmp_int32 global_tid,
 static __forceinline int
 __kmp_swap_teams_for_teams_reduction(kmp_info_t *th, kmp_team_t **team_p,
                                      int *task_state) {
-  kmp_team_t *team;
+  
 
   // Check if we are inside the teams construct?
-  if (th->th.th_teams_microtask) {
+  if (kmp_team_t *team; th->th.th_teams_microtask) {
     *team_p = team = th->th.th_team;
     if (team->t.t_level == th->th.th_teams_level) {
       // This is reduction at teams construct.

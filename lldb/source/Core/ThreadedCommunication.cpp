@@ -331,9 +331,9 @@ lldb::thread_result_t ThreadedCommunication::ReadThread() {
 
   {
     // Wait for the synchronization thread to finish...
-    std::lock_guard<std::mutex> guard(m_synchronize_mutex);
+    
     // ... and disconnect.
-    if (disconnect)
+    if (std::lock_guard<std::mutex> guard(m_synchronize_mutex); disconnect)
       Disconnect();
   }
 

@@ -450,9 +450,9 @@ static bool emitEnumDecls(const RecordKeeper &records, raw_ostream &os) {
 
 static void emitEnumDef(const Record &enumDef, raw_ostream &os) {
   EnumInfo enumInfo(enumDef);
-  llvm::NamespaceEmitter ns(os, enumInfo.getCppNamespace());
+  
 
-  if (enumInfo.isBitEnum())
+  if (llvm::NamespaceEmitter ns(os, enumInfo.getCppNamespace()); enumInfo.isBitEnum())
     emitAvailabilityQueryForBitEnum(enumDef, os);
   else
     emitAvailabilityQueryForIntEnum(enumDef, os);
@@ -909,8 +909,8 @@ static void emitOperandDeserialization(const Operator &op, ArrayRef<SMLoc> loc,
                                        StringRef attributes, raw_ostream &os) {
   // Process operands/attributes
   for (unsigned i = 0, e = op.getNumArgs(); i < e; ++i) {
-    auto argument = op.getArg(i);
-    if (auto *valueArg =
+    
+    if (auto *auto argument = op.getArg(i); valueArg =
             llvm::dyn_cast_if_present<NamedTypeConstraint *>(argument)) {
       if (valueArg->isVariableLength()) {
         if (i != e - 1) {
@@ -1383,8 +1383,8 @@ static bool emitAvailabilityImpl(const RecordKeeper &records, raw_ostream &os) {
 
   auto defs = records.getAllDerivedDefinitions("SPIRV_Op");
   for (const auto *def : defs) {
-    Operator op(def);
-    if (def->getValueAsBit("autogenAvailability"))
+    
+    if (Operator op(def); def->getValueAsBit("autogenAvailability"))
       emitAvailabilityImpl(op, os);
   }
   return false;

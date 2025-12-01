@@ -89,7 +89,8 @@ std::optional<std::string> BuildIDFetcher::fetch(BuildIDRef BuildID) const {
     return Path;
   };
   if (DebugFileDirectories.empty()) {
-    SmallString<128> Path = GetDebugPath(
+    
+    if (SmallString<128> Path = GetDebugPath(
 #if defined(__NetBSD__)
         // Try /usr/libdata/debug/.build-id/../...
         "/usr/libdata/debug"
@@ -97,14 +98,13 @@ std::optional<std::string> BuildIDFetcher::fetch(BuildIDRef BuildID) const {
         // Try /usr/lib/debug/.build-id/../...
         "/usr/lib/debug"
 #endif
-    );
-    if (llvm::sys::fs::exists(Path))
+    ); llvm::sys::fs::exists(Path))
       return std::string(Path);
   } else {
     for (const auto &Directory : DebugFileDirectories) {
       // Try <debug-file-directory>/.build-id/../...
-      SmallString<128> Path = GetDebugPath(Directory);
-      if (llvm::sys::fs::exists(Path))
+      
+      if (SmallString<128> Path = GetDebugPath(Directory); llvm::sys::fs::exists(Path))
         return std::string(Path);
     }
   }

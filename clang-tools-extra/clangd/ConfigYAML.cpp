@@ -446,8 +446,8 @@ private:
 
   std::optional<Located<uint32_t>> uint32Value(Node &N, llvm::StringRef Desc) {
     if (auto Scalar = scalarValue(N, Desc)) {
-      unsigned long long Num;
-      if (!llvm::getAsUnsignedInteger(**Scalar, 0, Num)) {
+      
+      if (unsigned long long Num; !llvm::getAsUnsignedInteger(**Scalar, 0, Num)) {
         return Located<uint32_t>(Num, Scalar->Range);
       }
     }

@@ -1086,8 +1086,8 @@ class RewriteScalarWrite : public OpRewritePattern<vector::TransferWriteOp> {
   LogicalResult matchAndRewrite(vector::TransferWriteOp xferOp,
                                 PatternRewriter &rewriter) const override {
     // Must be a scalar write.
-    auto vecType = xferOp.getVectorType();
-    if (!llvm::all_of(vecType.getShape(), [](int64_t sz) { return sz == 1; }))
+    
+    if (auto vecType = xferOp.getVectorType(); !llvm::all_of(vecType.getShape(), [](int64_t sz) { return sz == 1; }))
       return failure();
     // Mask not supported.
     if (xferOp.getMask())

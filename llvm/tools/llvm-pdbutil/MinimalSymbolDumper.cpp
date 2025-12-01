@@ -409,8 +409,8 @@ std::string MinimalSymbolDumper::typeOrIdIndex(codeview::TypeIndex TI,
   if (TI.isSimple() || TI.isDecoratedItemId())
     return formatv("{0}", TI).str();
   auto &Container = IsType ? Types : Ids;
-  StringRef Name = Container.getTypeName(TI);
-  if (Name.size() > 32) {
+  
+  if (StringRef Name = Container.getTypeName(TI); Name.size() > 32) {
     Name = Name.take_front(32);
     return std::string(formatv("{0} ({1}...)", TI, Name));
   } else

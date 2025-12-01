@@ -117,11 +117,11 @@ bool SendEventCommand::DoExecute(lldb::SBDebugger debugger, char **command,
 
   llvm::StringRef name{command[0]};
   // Events that are stateful and should be handled by lldb-dap internally.
-  const std::array internal_events{"breakpoint", "capabilities", "continued",
+  
+  if (const std::array internal_events{"breakpoint", "capabilities", "continued",
                                    "exited",     "initialize",   "loadedSource",
                                    "module",     "process",      "stopped",
-                                   "terminated", "thread"};
-  if (llvm::is_contained(internal_events, name)) {
+                                   "terminated", "thread"}; llvm::is_contained(internal_events, name)) {
     std::string msg =
         llvm::formatv("Invalid use of lldb-dap send-event, event \"{0}\" "
                       "should be handled by lldb-dap internally.",

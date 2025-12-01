@@ -181,8 +181,8 @@ void FunctionSizeCheck::check(const MatchFinder::MatchResult &Result) {
 
   // Count the lines including whitespace and comments. Really simple.
   if (const Stmt *Body = Func->getBody()) {
-    const SourceManager *SM = Result.SourceManager;
-    if (SM->isWrittenInSameFile(Body->getBeginLoc(), Body->getEndLoc())) {
+    
+    if (const SourceManager *SM = Result.SourceManager; SM->isWrittenInSameFile(Body->getBeginLoc(), Body->getEndLoc())) {
       FI.Lines = SM->getSpellingLineNumber(Body->getEndLoc()) -
                  SM->getSpellingLineNumber(Body->getBeginLoc());
     }

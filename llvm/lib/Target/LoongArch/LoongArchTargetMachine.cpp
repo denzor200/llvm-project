@@ -127,8 +127,8 @@ LoongArchTargetMachine::getSubtargetImpl(const Function &F) const {
     auto ABIName = Options.MCOptions.getABIName();
     if (const MDString *ModuleTargetABI = dyn_cast_or_null<MDString>(
             F.getParent()->getModuleFlag("target-abi"))) {
-      auto TargetABI = LoongArchABI::getTargetABI(ABIName);
-      if (TargetABI != LoongArchABI::ABI_Unknown &&
+      
+      if (auto TargetABI = LoongArchABI::getTargetABI(ABIName); TargetABI != LoongArchABI::ABI_Unknown &&
           ModuleTargetABI->getString() != ABIName) {
         report_fatal_error("-target-abi option != target-abi module flag");
       }

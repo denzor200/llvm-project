@@ -179,8 +179,8 @@ unsigned MSP430MCCodeEmitter::getCGImmOpValue(const MCInst &MI, unsigned Op,
   const MCOperand &MO = MI.getOperand(Op);
   assert(MO.isImm() && "Expr operand expected");
 
-  int64_t Imm = MO.getImm();
-  switch (Imm) {
+  
+  switch (int64_t Imm = MO.getImm(); Imm) {
   default:
     llvm_unreachable("Invalid immediate value");
   case 4:  return 0x22;

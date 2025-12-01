@@ -404,8 +404,8 @@ insertWaveSizeFeature(StringRef GPU, const Triple &T,
 /// default target features with entries overridden by \p Features.
 static void fillAMDGCNFeatureMap(StringRef GPU, const Triple &T,
                                  StringMap<bool> &Features) {
-  AMDGPU::GPUKind Kind = parseArchAMDGCN(GPU);
-  switch (Kind) {
+  
+  switch (AMDGPU::GPUKind Kind = parseArchAMDGCN(GPU); Kind) {
   case GK_GFX1251:
   case GK_GFX1250:
     Features["ci-insts"] = true;

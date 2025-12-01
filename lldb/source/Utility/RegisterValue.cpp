@@ -91,9 +91,9 @@ uint32_t RegisterValue::SetFromMemoryData(const RegisterInfo &reg_info,
   //   |AABB| Address contents
   //   |AABB0000| Register contents [on little-endian hardware]
   //   |0000AABB| Register contents [on big-endian hardware]
-  const uint32_t dst_len = reg_info.byte_size;
+  
 
-  if (src_len > dst_len) {
+  if (const uint32_t dst_len = reg_info.byte_size; src_len > dst_len) {
     error = Status::FromErrorStringWithFormat(
         "%u bytes is too big to store in register %s (%u bytes)", src_len,
         reg_info.name, dst_len);
@@ -117,9 +117,9 @@ bool RegisterValue::GetScalarValue(Scalar &scalar) const {
   case eTypeInvalid:
     break;
   case eTypeBytes: {
-    DataExtractor data(buffer.bytes.data(), buffer.bytes.size(),
-                       buffer.byte_order, 1);
-    if (scalar.SetValueFromData(data, lldb::eEncodingUint, buffer.bytes.size())
+    
+    if (DataExtractor data(buffer.bytes.data(), buffer.bytes.size(),
+                       buffer.byte_order, 1); scalar.SetValueFromData(data, lldb::eEncodingUint, buffer.bytes.size())
             .Success())
       return true;
   } break;
@@ -142,8 +142,8 @@ void RegisterValue::Clear() { m_type = eTypeInvalid; }
 RegisterValue::Type RegisterValue::SetType(const RegisterInfo &reg_info) {
   // To change the type, we simply copy the data in again, using the new format
   RegisterValue copy;
-  DataExtractor copy_data;
-  if (copy.CopyValue(*this) && copy.GetData(copy_data)) {
+  
+  if (DataExtractor copy_data; copy.CopyValue(*this) && copy.GetData(copy_data)) {
     Status error = SetValueFromData(reg_info, copy_data, 0, true);
     assert(error.Success() && "Expected SetValueFromData to succeed.");
     UNUSED_IF_ASSERT_DISABLED(error);
@@ -323,8 +323,8 @@ Status RegisterValue::SetValueFromString(const RegisterInfo *reg_info,
   int64_t ival64;
   float flt_val;
   double dbl_val;
-  long double ldbl_val;
-  switch (reg_info->encoding) {
+  
+  switch (long double ldbl_val; reg_info->encoding) {
   case eEncodingInvalid:
     error = Status::FromErrorString("Invalid encoding.");
     break;

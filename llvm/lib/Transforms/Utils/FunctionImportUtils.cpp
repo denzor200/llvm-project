@@ -115,8 +115,8 @@ bool FunctionImportGlobalProcessing::shouldPromoteLocalToGlobal(
   auto Summary = ImportIndex.findSummaryInModule(
       VI, SGV->getParent()->getModuleIdentifier());
   assert(Summary && "Missing summary for global value when exporting");
-  auto Linkage = Summary->linkage();
-  if (!GlobalValue::isLocalLinkage(Linkage)) {
+  
+  if (auto Linkage = Summary->linkage(); !GlobalValue::isLocalLinkage(Linkage)) {
     assert(!isNonRenamableLocal(*SGV) &&
            "Attempting to promote non-renamable local");
     return true;
@@ -288,9 +288,9 @@ void FunctionImportGlobalProcessing::processGlobalForThinLTO(GlobalValue &GV) {
       // contains summaries from the source modules if they are being imported.
       // We might have a non-null VI and get here even in that case if the name
       // matches one in this module (e.g. weak or appending linkage).
-      auto *GVS = dyn_cast_or_null<GlobalVarSummary>(
-          ImportIndex.findSummaryInModule(VI, M.getModuleIdentifier()));
-      if (GVS &&
+      
+      if (auto *GVS = dyn_cast_or_null<GlobalVarSummary>(
+          ImportIndex.findSummaryInModule(VI, M.getModuleIdentifier())); GVS &&
           (ImportIndex.isReadOnly(GVS) || ImportIndex.isWriteOnly(GVS))) {
         V->addAttribute("thinlto-internalize");
         // Objects referenced by writeonly GV initializer should not be
@@ -365,8 +365,8 @@ void FunctionImportGlobalProcessing::processGlobalsForThinLTO() {
   if (!RenamedComdats.empty())
     for (auto &GO : M.global_objects())
       if (auto *C = GO.getComdat()) {
-        auto Replacement = RenamedComdats.find(C);
-        if (Replacement != RenamedComdats.end())
+        
+        if (auto Replacement = RenamedComdats.find(C); Replacement != RenamedComdats.end())
           GO.setComdat(Replacement->second);
       }
 }

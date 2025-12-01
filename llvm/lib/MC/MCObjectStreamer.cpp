@@ -212,8 +212,8 @@ void MCObjectStreamer::emitValueImpl(const MCExpr *Value, unsigned Size,
   MCDwarfLineEntry::make(this, getCurrentSectionOnly());
 
   // Avoid fixups when possible.
-  int64_t AbsValue;
-  if (Value->evaluateAsAbsolute(AbsValue, getAssemblerPtr())) {
+  
+  if (int64_t AbsValue; Value->evaluateAsAbsolute(AbsValue, getAssemblerPtr())) {
     if (!isUIntN(8 * Size, AbsValue) && !isIntN(8 * Size, AbsValue)) {
       getContext().reportError(
           Loc, "value evaluated as " + Twine(AbsValue) + " is out of range.");
@@ -264,8 +264,8 @@ void MCObjectStreamer::emitLabel(MCSymbol *Symbol, SMLoc Loc) {
 }
 
 void MCObjectStreamer::emitPendingAssignments(MCSymbol *Symbol) {
-  auto Assignments = pendingAssignments.find(Symbol);
-  if (Assignments != pendingAssignments.end()) {
+  
+  if (auto Assignments = pendingAssignments.find(Symbol); Assignments != pendingAssignments.end()) {
     for (const PendingAssignment &A : Assignments->second)
       emitAssignment(A.Symbol, A.Value);
 
@@ -285,8 +285,8 @@ void MCObjectStreamer::emitLabelAtPos(MCSymbol *Symbol, SMLoc Loc,
 }
 
 void MCObjectStreamer::emitULEB128Value(const MCExpr *Value) {
-  int64_t IntValue;
-  if (Value->evaluateAsAbsolute(IntValue, getAssembler())) {
+  
+  if (int64_t IntValue; Value->evaluateAsAbsolute(IntValue, getAssembler())) {
     emitULEB128IntValue(IntValue);
     return;
   }
@@ -296,8 +296,8 @@ void MCObjectStreamer::emitULEB128Value(const MCExpr *Value) {
 }
 
 void MCObjectStreamer::emitSLEB128Value(const MCExpr *Value) {
-  int64_t IntValue;
-  if (Value->evaluateAsAbsolute(IntValue, getAssembler())) {
+  
+  if (int64_t IntValue; Value->evaluateAsAbsolute(IntValue, getAssembler())) {
     emitSLEB128IntValue(IntValue);
     return;
   }
@@ -374,11 +374,11 @@ void MCObjectStreamer::emitAssignment(MCSymbol *Symbol, const MCExpr *Value) {
 
 void MCObjectStreamer::emitConditionalAssignment(MCSymbol *Symbol,
                                                  const MCExpr *Value) {
-  const MCSymbol *Target = &cast<MCSymbolRefExpr>(*Value).getSymbol();
+  
 
   // If the symbol already exists, emit the assignment. Otherwise, emit it
   // later only if the symbol is also emitted.
-  if (Target->isRegistered())
+  if (const MCSymbol *Target = &cast<MCSymbolRefExpr>(*Value).getSymbol(); Target->isRegistered())
     emitAssignment(Symbol, Value);
   else
     pendingAssignments[Target].push_back({Symbol, Value});
@@ -447,8 +447,8 @@ void MCObjectStreamer::emitInstToData(const MCInst &Inst,
     MarkedLinkerRelaxable = true;
     // Set the fragment's order within the subsection for use by
     // MCAssembler::relaxAlign.
-    auto *Sec = F->getParent();
-    if (!Sec->isLinkerRelaxable())
+    
+    if (auto *Sec = F->getParent(); !Sec->isLinkerRelaxable())
       Sec->setFirstLinkerRelaxable(F->getLayoutOrder());
     // Do not add data after a linker-relaxable instruction. The difference
     // between a new label and a label at or before the linker-relaxable
@@ -477,8 +477,8 @@ void MCObjectStreamer::emitInstToFragment(const MCInst &Inst,
     if (!Fixup.isLinkerRelaxable() || MarkedLinkerRelaxable)
       continue;
     MarkedLinkerRelaxable = true;
-    auto *Sec = F->getParent();
-    if (!Sec->isLinkerRelaxable())
+    
+    if (auto *Sec = F->getParent(); !Sec->isLinkerRelaxable())
       Sec->setFirstLinkerRelaxable(F->getLayoutOrder());
     F->setLinkerRelaxable();
   }
@@ -718,9 +718,9 @@ void MCObjectStreamer::emitFill(const MCExpr &NumBytes, uint64_t FillValue,
 
 void MCObjectStreamer::emitFill(const MCExpr &NumValues, int64_t Size,
                                 int64_t Expr, SMLoc Loc) {
-  int64_t IntNumValues;
+  
   // Do additional checking now if we can resolve the value.
-  if (NumValues.evaluateAsAbsolute(IntNumValues, getAssembler())) {
+  if (int64_t IntNumValues; NumValues.evaluateAsAbsolute(IntNumValues, getAssembler())) {
     if (IntNumValues < 0) {
       getContext().getSourceManager()->PrintMessage(
           Loc, SourceMgr::DK_Warning,

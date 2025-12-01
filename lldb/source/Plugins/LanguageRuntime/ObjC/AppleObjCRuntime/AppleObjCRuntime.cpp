@@ -71,10 +71,10 @@ void AppleObjCRuntime::Terminate() {
 llvm::Error AppleObjCRuntime::GetObjectDescription(Stream &str,
                                                    ValueObject &valobj) {
   CompilerType compiler_type(valobj.GetCompilerType());
-  bool is_signed;
+  
   // ObjC objects can only be pointers (or numbers that actually represents
   // pointers but haven't been typecast, because reasons..)
-  if (!compiler_type.IsIntegerType(is_signed) && !compiler_type.IsPointerType())
+  if (bool is_signed; !compiler_type.IsIntegerType(is_signed) && !compiler_type.IsPointerType())
     return llvm::createStringError("not a pointer type");
 
   // Make the argument list: we pass one arg, the address of our pointer, to
@@ -313,9 +313,9 @@ AppleObjCRuntime::FixUpDynamicType(const TypeAndOrName &type_and_or_name,
 bool AppleObjCRuntime::AppleIsModuleObjCLibrary(const ModuleSP &module_sp) {
   if (module_sp) {
     const FileSpec &module_file_spec = module_sp->GetFileSpec();
-    static ConstString ObjCName("libobjc.A.dylib");
+    
 
-    if (module_file_spec) {
+    if (static ConstString ObjCName("libobjc.A.dylib"); module_file_spec) {
       if (module_file_spec.GetFilename() == ObjCName)
         return true;
     }
@@ -395,8 +395,8 @@ AppleObjCRuntime::GetObjCVersion(Process *process, ModuleSP &objc_module_sp) {
     if (AppleIsModuleObjCLibrary(module_sp) &&
         module_sp->IsLoadedInTarget(&target)) {
       objc_module_sp = module_sp;
-      ObjectFile *ofile = module_sp->GetObjectFile();
-      if (!ofile)
+      
+      if (ObjectFile *ofile = module_sp->GetObjectFile(); !ofile)
         return ObjCRuntimeVersions::eObjC_VersionUnknown;
 
       SectionList *sections = module_sp->GetSectionList();
@@ -417,9 +417,9 @@ AppleObjCRuntime::GetObjCVersion(Process *process, ModuleSP &objc_module_sp) {
 void AppleObjCRuntime::SetExceptionBreakpoints() {
   const bool catch_bp = false;
   const bool throw_bp = true;
-  const bool is_internal = true;
+  
 
-  if (!m_objc_exception_bp_sp) {
+  if (const bool is_internal = true; !m_objc_exception_bp_sp) {
     m_objc_exception_bp_sp = LanguageRuntime::CreateExceptionBreakpoint(
         m_process->GetTarget(), GetLanguageType(), catch_bp, throw_bp,
         is_internal);
@@ -497,8 +497,8 @@ ValueObjectSP AppleObjCRuntime::GetExceptionObjectForThread(
   if (!descriptor || !descriptor->IsValid()) return ValueObjectSP();
 
   while (descriptor) {
-    ConstString class_name(descriptor->GetClassName());
-    if (class_name == "NSException")
+    
+    if (ConstString class_name(descriptor->GetClassName()); class_name == "NSException")
       return cpp_exception;
     descriptor = descriptor->GetSuperclass();
   }
@@ -560,8 +560,8 @@ ThreadSP AppleObjCRuntime::GetBacktraceThreadFromException(
     auto dict_entry_value = data.GetAddress(&data_offset);
 
     auto key_nsstring = objc_object_from_address(dict_entry_key, "key");
-    StreamString key_summary;
-    if (lldb_private::formatters::NSStringSummaryProvider(
+    
+    if (StreamString key_summary; lldb_private::formatters::NSStringSummaryProvider(
             *key_nsstring, key_summary, TypeSummaryOptions()) &&
         !key_summary.Empty()) {
       if (key_summary.GetString() == "\"callStackReturnAddresses\"") {
@@ -616,8 +616,8 @@ void AppleObjCRuntime::ReadObjCLibraryIfNeeded(const ModuleList &module_list) {
 
     size_t num_modules = module_list.GetSize();
     for (size_t i = 0; i < num_modules; i++) {
-      auto mod = module_list.GetModuleAtIndex(i);
-      if (IsModuleObjCLibrary(mod)) {
+      
+      if (auto mod = module_list.GetModuleAtIndex(i); IsModuleObjCLibrary(mod)) {
         ReadObjCLibrary(mod);
         break;
       }

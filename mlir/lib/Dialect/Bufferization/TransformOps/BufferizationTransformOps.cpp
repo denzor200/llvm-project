@@ -88,8 +88,8 @@ transform::OneShotBufferizeOp::apply(transform::TransformRewriter &rewriter,
   for (Operation *target : payloadOps) {
     if (!isa<ModuleOp, FunctionOpInterface>(target))
       return emitSilenceableError() << "expected module or function target";
-    auto moduleOp = dyn_cast<ModuleOp>(target);
-    if (options.bufferizeFunctionBoundaries) {
+    
+    if (auto moduleOp = dyn_cast<ModuleOp>(target); options.bufferizeFunctionBoundaries) {
       if (!moduleOp)
         return emitSilenceableError() << "expected module target";
       if (failed(bufferization::runOneShotModuleBufferize(moduleOp, options,

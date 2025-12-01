@@ -567,8 +567,8 @@ static Triple::ArchType parseARMArch(StringRef ArchName) {
 
   // Thumb only for v6m
   ARM::ProfileKind Profile = ARM::parseArchProfile(ArchName);
-  unsigned Version = ARM::parseArchVersion(ArchName);
-  if (Profile == ARM::ProfileKind::M && Version == 6) {
+  
+  if (unsigned Version = ARM::parseArchVersion(ArchName); Profile == ARM::ProfileKind::M && Version == 6) {
     if (ENDIAN == ARM::EndianKind::BIG)
       return Triple::thumbeb;
     else
@@ -1127,8 +1127,8 @@ static StringRef getDXILArchNameFromShaderModel(StringRef ShaderModelStr) {
       parseVersionFromName(ShaderModelStr.drop_front(strlen("shadermodel")));
   // Default DXIL minor version when Shader Model version is anything other
   // than 6.[0...9] or 6.x (which translates to latest current SM version)
-  const unsigned SMMajor = 6;
-  if (!Ver.empty()) {
+  
+  if (const unsigned SMMajor = 6; !Ver.empty()) {
     if (Ver.getMajor() == SMMajor) {
       if (std::optional<unsigned> SMMinor = Ver.getMinor()) {
         switch (*SMMinor) {
@@ -1224,8 +1224,8 @@ std::string Triple::normalize(StringRef Str, CanonicalForm Form) {
 
       // Does this component parse as valid for the target position?
       bool Valid = false;
-      StringRef Comp = Components[Idx];
-      switch (Pos) {
+      
+      switch (StringRef Comp = Components[Idx]; Pos) {
       default: llvm_unreachable("unexpected component type!");
       case 0:
         Arch = parseArch(Comp);
@@ -1323,8 +1323,8 @@ std::string Triple::normalize(StringRef Str, CanonicalForm Form) {
   std::string NormalizedEnvironment;
   if (Environment == Triple::Android &&
       Components[3].starts_with("androideabi")) {
-    StringRef AndroidVersion = Components[3].drop_front(strlen("androideabi"));
-    if (AndroidVersion.empty()) {
+    
+    if (StringRef AndroidVersion = Components[3].drop_front(strlen("androideabi")); AndroidVersion.empty()) {
       Components[3] = "android";
     } else {
       NormalizedEnvironment = Twine("android", AndroidVersion).str();
@@ -1455,8 +1455,8 @@ StringRef Triple::getEnvironmentVersionString() const {
 VersionTuple Triple::getOSVersion() const {
   StringRef OSName = getOSName();
   // Assume that the OS portion of the triple starts with the canonical name.
-  StringRef OSTypeName = getOSTypeName(getOS());
-  if (OSName.starts_with(OSTypeName))
+  
+  if (StringRef OSTypeName = getOSTypeName(getOS()); OSName.starts_with(OSTypeName))
     OSName = OSName.substr(OSTypeName.size());
   else if (getOS() == MacOSX)
     OSName.consume_front("macos");
@@ -2235,8 +2235,8 @@ VersionTuple Triple::getCanonicalVersionForOS(OSType OSKind,
   const unsigned MacOSRangeBump = 10;
   const unsigned IOSRangeBump = 7;
   const unsigned XROSRangeBump = 23;
-  const unsigned WatchOSRangeBump = 14;
-  switch (OSKind) {
+  
+  switch (const unsigned WatchOSRangeBump = 14; OSKind) {
   case MacOSX: {
     // macOS 10.16 is canonicalized to macOS 11.
     if (Version == VersionTuple(10, 16))

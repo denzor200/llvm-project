@@ -55,8 +55,8 @@ LogicalResult shape::getShapeVec(Value input,
     llvm::append_range(shapeValues, type.getShape());
     return success();
   }
-  DenseIntElementsAttr attr;
-  if (matchPattern(input, m_Constant(&attr))) {
+  
+  if (DenseIntElementsAttr attr; matchPattern(input, m_Constant(&attr))) {
     llvm::append_range(shapeValues, attr.getValues<int64_t>());
     return success();
   }
@@ -733,8 +733,8 @@ struct BroadcastForwardSingleOperandPattern
 
     // Insert cast if needed.
     if (replacement.getType() != op.getType()) {
-      auto loc = op.getLoc();
-      if (llvm::isa<ShapeType>(op.getType())) {
+      
+      if (auto loc = op.getLoc(); llvm::isa<ShapeType>(op.getType())) {
         replacement = FromExtentTensorOp::create(rewriter, loc, replacement);
       } else {
         assert(!llvm::isa<ShapeType>(op.getType()) &&
@@ -760,8 +760,8 @@ struct BroadcastFoldConstantOperandsPattern
     SmallVector<Value, 8> newShapeOperands;
     for (Value shape : op.getShapes()) {
       if (auto constShape = shape.getDefiningOp<ConstShapeOp>()) {
-        SmallVector<int64_t, 8> newFoldedConstantShape;
-        if (OpTrait::util::getBroadcastedShape(
+        
+        if (SmallVector<int64_t, 8> newFoldedConstantShape; OpTrait::util::getBroadcastedShape(
                 foldedConstantShape,
                 llvm::to_vector<8>(constShape.getShape().getValues<int64_t>()),
                 newFoldedConstantShape)) {
@@ -901,8 +901,8 @@ ParseResult ConstShapeOp::parse(OpAsmParser &parser, OperationState &result) {
   // shape as an ArrayAttr.
   // TODO: Implement custom parser and maybe make syntax a bit more concise.
   Attribute extentsRaw;
-  NamedAttrList dummy;
-  if (parser.parseAttribute(extentsRaw, "dummy", dummy))
+  
+  if (NamedAttrList dummy; parser.parseAttribute(extentsRaw, "dummy", dummy))
     return failure();
   auto extentsArray = llvm::dyn_cast<ArrayAttr>(extentsRaw);
   if (!extentsArray)
@@ -1229,8 +1229,8 @@ FuncOp FunctionLibraryOp::getShapeFunction(Operation *op) {
 ParseResult FunctionLibraryOp::parse(OpAsmParser &parser,
                                      OperationState &result) {
   // Parse the op name.
-  StringAttr nameAttr;
-  if (parser.parseSymbolName(nameAttr, ::mlir::SymbolTable::getSymbolAttrName(),
+  
+  if (StringAttr nameAttr; parser.parseSymbolName(nameAttr, ::mlir::SymbolTable::getSymbolAttrName(),
                              result.attributes))
     return failure();
 
@@ -1351,8 +1351,8 @@ OpFoldResult GetExtentOp::fold(FoldAdaptor adaptor) {
 void GetExtentOp::build(OpBuilder &builder, OperationState &result, Value shape,
                         int64_t dim) {
   auto loc = result.location;
-  auto dimAttr = builder.getIndexAttr(dim);
-  if (llvm::isa<ShapeType>(shape.getType())) {
+  
+  if (auto dimAttr = builder.getIndexAttr(dim); llvm::isa<ShapeType>(shape.getType())) {
     Value dim = ConstSizeOp::create(builder, loc, dimAttr);
     build(builder, result, builder.getType<SizeType>(), shape, dim);
   } else {
@@ -1900,8 +1900,8 @@ LogicalResult SplitAtOp::fold(FoldAdaptor adaptor,
   auto splitPoint = llvm::cast<IntegerAttr>(adaptor.getIndex()).getInt();
   // Verify that the split point is in the correct range.
   // TODO: Constant fold to an "error".
-  int64_t rank = shape.size();
-  if (-rank > splitPoint || splitPoint > rank)
+  
+  if (int64_t rank = shape.size(); -rank > splitPoint || splitPoint > rank)
     return failure();
   if (splitPoint < 0)
     splitPoint += shape.size();

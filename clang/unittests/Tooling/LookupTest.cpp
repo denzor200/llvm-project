@@ -214,8 +214,8 @@ TEST(LookupTest, replaceNestedClassName) {
     // Filter Types by name since there are other `RecordTypeLoc` in the test
     // file.
     // `a::b::Foo` in using shadow decl is not `TypeLoc`.
-    auto *TD = Type.getDecl()->getTargetDecl();
-    if (TD->getQualifiedNameAsString() == "a::b::Foo") {
+    
+    if (auto *TD = Type.getDecl()->getTargetDecl(); TD->getQualifiedNameAsString() == "a::b::Foo") {
       EXPECT_EQ("Bar", replaceTypeLoc(TD, Type.getBeginLoc(), "::a::x::Bar"));
     }
   };

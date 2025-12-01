@@ -579,8 +579,8 @@ bool HexagonMCInstrInfo::isOrderedDuplexPair(MCInstrInfo const &MCII,
     return false;
   // Only A2_addi and A2_tfrsi can be extended in duplex form PRM 10.5
   if (ExtendedB) {
-    unsigned Opcode = MIb.getOpcode();
-    if ((Opcode != Hexagon::A2_addi) && (Opcode != Hexagon::A2_tfrsi))
+    
+    if (unsigned Opcode = MIb.getOpcode(); (Opcode != Hexagon::A2_addi) && (Opcode != Hexagon::A2_tfrsi))
       return false;
   }
   unsigned MIaG = HexagonMCInstrInfo::getDuplexCandidateGroup(MIa),
@@ -697,8 +697,8 @@ MCInst HexagonMCInstrInfo::deriveSubInst(MCInst const &Inst) {
   MCInst Result;
   Result.setLoc(Inst.getLoc());
   bool Absolute;
-  int64_t Value;
-  switch (Inst.getOpcode()) {
+  
+  switch (int64_t Value; Inst.getOpcode()) {
   default:
     // dbgs() << "opcode: "<< Inst->getOpcode() << "\n";
     llvm_unreachable("Unimplemented subinstruction \n");

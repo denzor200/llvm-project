@@ -379,8 +379,8 @@ PostRASchedulerPass::run(MachineFunction &MF,
                   .getManager();
   AliasAnalysis *AA = &FAM.getResult<AAManager>(MF.getFunction());
   PostRAScheduler Impl(MF, MLI, AA, TM);
-  bool Changed = Impl.run(MF);
-  if (!Changed)
+  
+  if (bool Changed = Impl.run(MF); !Changed)
     return PreservedAnalyses::all();
 
   PreservedAnalyses PA = getMachineFunctionPassPreservedAnalyses();
@@ -410,11 +410,11 @@ void SchedulePostRATDList::schedule() {
   buildSchedGraph(AA);
 
   if (AntiDepBreak) {
-    unsigned Broken =
-      AntiDepBreak->BreakAntiDependencies(SUnits, RegionBegin, RegionEnd,
-                                          EndIndex, DbgValues);
+    
 
-    if (Broken != 0) {
+    if (unsigned Broken =
+      AntiDepBreak->BreakAntiDependencies(SUnits, RegionBegin, RegionEnd,
+                                          EndIndex, DbgValues); Broken != 0) {
       // We made changes. Update the dependency graph.
       // Theoretically we could update the graph in place:
       // When a live range is changed to use a different register, remove

@@ -158,9 +158,9 @@ public:
       LocIdentifier LocId = std::make_pair(
           BE->getBlock()->getBlockID(),
           N->getLocationContext()->getStackFrame());
-      auto InsertInfo = Reachable.insert(LocId);
+      
 
-      if (InsertInfo.second) {
+      if (auto InsertInfo = Reachable.insert(LocId); InsertInfo.second) {
         StackUnexplored.push_back(U);
       } else {
         StackOthers.push_back(U);

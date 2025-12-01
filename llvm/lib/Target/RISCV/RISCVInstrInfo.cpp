@@ -865,9 +865,9 @@ std::optional<unsigned> getFoldedOpcode(MachineFunction &MF, MachineInstr &MI,
     }
   }
   case RISCV::VFMV_F_S: {
-    unsigned Log2SEW =
-        MI.getOperand(RISCVII::getSEWOpNum(MI.getDesc())).getImm();
-    switch (Log2SEW) {
+    
+    switch (unsigned Log2SEW =
+        MI.getOperand(RISCVII::getSEWOpNum(MI.getDesc())).getImm(); Log2SEW) {
     case 4:
       return RISCV::FLH;
     case 5:
@@ -924,9 +924,9 @@ void RISCVInstrInfo::movImm(MachineBasicBlock &MBB,
     bool LastItem = ++Num == Seq.size();
     unsigned DstRegState = getDeadRegState(DstIsDead && LastItem) |
                            getRenamableRegState(DstRenamable);
-    unsigned SrcRegState = getKillRegState(SrcReg != RISCV::X0) |
-                           getRenamableRegState(SrcRenamable);
-    switch (Inst.getOpndKind()) {
+    
+    switch (unsigned SrcRegState = getKillRegState(SrcReg != RISCV::X0) |
+                           getRenamableRegState(SrcRenamable); Inst.getOpndKind()) {
     case RISCVMatInt::Imm:
       BuildMI(MBB, MBBI, DL, get(Inst.getOpcode()))
           .addReg(DstReg, RegState::Define | DstRegState)
@@ -1654,11 +1654,11 @@ RISCVInstrInfo::getBranchDestBlock(const MachineInstr &MI) const {
 
 bool RISCVInstrInfo::isBranchOffsetInRange(unsigned BranchOp,
                                            int64_t BrOffset) const {
-  unsigned XLen = STI.getXLen();
+  
   // Ideally we could determine the supported branch offset from the
   // RISCVII::FormMask, but this can't be used for Pseudo instructions like
   // PseudoBR.
-  switch (BranchOp) {
+  switch (unsigned XLen = STI.getXLen(); BranchOp) {
   default:
     llvm_unreachable("Unexpected opcode!");
   case RISCV::NDS_BBC:
@@ -1905,8 +1905,8 @@ unsigned RISCVInstrInfo::getInstSizeInBytes(const MachineInstr &MI) const {
   }
 
   if (!MI.memoperands_empty()) {
-    MachineMemOperand *MMO = *(MI.memoperands_begin());
-    if (STI.hasStdExtZihintntl() && MMO->isNonTemporal()) {
+    
+    if (MachineMemOperand *MMO = *(MI.memoperands_begin()); STI.hasStdExtZihintntl() && MMO->isNonTemporal()) {
       if (STI.hasStdExtZca()) {
         if (isCompressibleInst(MI, STI))
           return 4; // c.ntl.all + c.load/c.store
@@ -1945,8 +1945,8 @@ unsigned RISCVInstrInfo::getInstSizeInBytes(const MachineInstr &MI) const {
   case TargetOpcode::PATCHABLE_FUNCTION_EXIT:
   case TargetOpcode::PATCHABLE_TAIL_CALL: {
     const MachineFunction &MF = *MI.getParent()->getParent();
-    const Function &F = MF.getFunction();
-    if (Opcode == TargetOpcode::PATCHABLE_FUNCTION_ENTER &&
+    
+    if (const Function &F = MF.getFunction(); Opcode == TargetOpcode::PATCHABLE_FUNCTION_ENTER &&
         F.hasFnAttribute("patchable-function-entry")) {
       unsigned Num;
       if (F.getFnAttribute("patchable-function-entry")
@@ -1978,8 +1978,8 @@ unsigned RISCVInstrInfo::getInstBundleLength(const MachineInstr &MI) const {
 }
 
 bool RISCVInstrInfo::isAsCheapAsAMove(const MachineInstr &MI) const {
-  const unsigned Opcode = MI.getOpcode();
-  switch (Opcode) {
+  
+  switch (const unsigned Opcode = MI.getOpcode(); Opcode) {
   default:
     break;
   case RISCV::FSGNJ_D:
@@ -2818,8 +2818,8 @@ void RISCVInstrInfo::genAlternativeCodeSequence(
     SmallVectorImpl<MachineInstr *> &InsInstrs,
     SmallVectorImpl<MachineInstr *> &DelInstrs,
     DenseMap<Register, unsigned> &InstrIdxForVirtReg) const {
-  MachineRegisterInfo &MRI = Root.getMF()->getRegInfo();
-  switch (Pattern) {
+  
+  switch (MachineRegisterInfo &MRI = Root.getMF()->getRegInfo(); Pattern) {
   default:
     TargetInstrInfo::genAlternativeCodeSequence(Root, Pattern, InsInstrs,
                                                 DelInstrs, InstrIdxForVirtReg);
@@ -2850,8 +2850,8 @@ bool RISCVInstrInfo::verifyInstruction(const MachineInstr &MI,
   MCInstrDesc const &Desc = MI.getDesc();
 
   for (const auto &[Index, Operand] : enumerate(Desc.operands())) {
-    unsigned OpType = Operand.OperandType;
-    if (OpType >= RISCVOp::OPERAND_FIRST_RISCV_IMM &&
+    
+    if (unsigned OpType = Operand.OperandType; OpType >= RISCVOp::OPERAND_FIRST_RISCV_IMM &&
         OpType <= RISCVOp::OPERAND_LAST_RISCV_IMM) {
       const MachineOperand &MO = MI.getOperand(Index);
       if (MO.isReg()) {
@@ -3062,8 +3062,8 @@ bool RISCVInstrInfo::verifyInstruction(const MachineInstr &MI,
     }
     if (Op.isReg() && Op.getReg().isValid()) {
       const MachineRegisterInfo &MRI = MI.getParent()->getParent()->getRegInfo();
-      auto *RC = MRI.getRegClass(Op.getReg());
-      if (!RISCV::GPRRegClass.hasSubClassEq(RC)) {
+      
+      if (auto *RC = MRI.getRegClass(Op.getReg()); !RISCV::GPRRegClass.hasSubClassEq(RC)) {
         ErrInfo = "Invalid register class for VL operand";
         return false;
       }
@@ -3322,8 +3322,8 @@ bool RISCVInstrInfo::shouldClusterMemOps(
   // should not be clustered
   if (!BaseOps1.empty() && !BaseOps2.empty()) {
     const MachineInstr &FirstLdSt = *BaseOps1.front()->getParent();
-    const MachineInstr &SecondLdSt = *BaseOps2.front()->getParent();
-    if (!memOpsHaveSameBasePtr(FirstLdSt, BaseOps1, SecondLdSt, BaseOps2))
+    
+    if (const MachineInstr &SecondLdSt = *BaseOps2.front()->getParent(); !memOpsHaveSameBasePtr(FirstLdSt, BaseOps1, SecondLdSt, BaseOps2))
       return false;
   } else if (!BaseOps1.empty() || !BaseOps2.empty()) {
     // If only one base op is empty, they do not have the same base ptr
@@ -3395,8 +3395,8 @@ bool RISCVInstrInfo::areMemAccessesTriviallyDisjoint(
     if (BaseOpA->isIdenticalTo(*BaseOpB)) {
       int LowOffset = std::min(OffsetA, OffsetB);
       int HighOffset = std::max(OffsetA, OffsetB);
-      LocationSize LowWidth = (LowOffset == OffsetA) ? WidthA : WidthB;
-      if (LowWidth.hasValue() &&
+      
+      if (LocationSize LowWidth = (LowOffset == OffsetA) ? WidthA : WidthB; LowWidth.hasValue() &&
           LowOffset + (int)LowWidth.getValue() <= HighOffset)
         return true;
     }
@@ -3559,10 +3559,10 @@ RISCVInstrInfo::getOutliningCandidateInfo(
   // outlined body and the remaining code. To preserve correct unwind info, we
   // only outline when all CFIs in the function can be outlined together.
   for (outliner::Candidate &C : RepeatedSequenceLocs) {
-    std::vector<MCCFIInstruction> CFIInstructions =
-        C.getMF()->getFrameInstructions();
+    
 
-    if (CFICount > 0 && CFICount != CFIInstructions.size())
+    if (std::vector<MCCFIInstruction> CFIInstructions =
+        C.getMF()->getFrameInstructions(); CFICount > 0 && CFICount != CFIInstructions.size())
       return std::nullopt;
   }
 
@@ -3673,8 +3673,8 @@ std::optional<RegImmPair> RISCVInstrInfo::isAddImmediate(const MachineInstr &MI,
                                                          Register Reg) const {
   // TODO: Handle cases where Reg is a super- or sub-register of the
   // destination register.
-  const MachineOperand &Op0 = MI.getOperand(0);
-  if (!Op0.isReg() || Reg != Op0.getReg())
+  
+  if (const MachineOperand &Op0 = MI.getOperand(0); !Op0.isReg() || Reg != Op0.getReg())
     return std::nullopt;
 
   // Don't consider ADDIW as a candidate because the caller may not be aware
@@ -3691,9 +3691,9 @@ std::string RISCVInstrInfo::createMIROperandComment(
     const MachineInstr &MI, const MachineOperand &Op, unsigned OpIdx,
     const TargetRegisterInfo *TRI) const {
   // Print a generic comment for this operand if there is one.
-  std::string GenericComment =
-      TargetInstrInfo::createMIROperandComment(MI, Op, OpIdx, TRI);
-  if (!GenericComment.empty())
+  
+  if (std::string GenericComment =
+      TargetInstrInfo::createMIROperandComment(MI, Op, OpIdx, TRI); !GenericComment.empty())
     return GenericComment;
 
   // If not, we must have an immediate operand.
@@ -3834,8 +3834,8 @@ std::string RISCVInstrInfo::createMIROperandComment(
 bool RISCVInstrInfo::findCommutedOpIndices(const MachineInstr &MI,
                                            unsigned &SrcOpIdx1,
                                            unsigned &SrcOpIdx2) const {
-  const MCInstrDesc &Desc = MI.getDesc();
-  if (!Desc.isCommutable())
+  
+  if (const MCInstrDesc &Desc = MI.getDesc(); !Desc.isCommutable())
     return false;
 
   switch (MI.getOpcode()) {
@@ -3932,8 +3932,8 @@ bool RISCVInstrInfo::findCommutedOpIndices(const MachineInstr &MI,
     // For these instructions we can only swap operand 1 and operand 3 by
     // changing the opcode.
     unsigned CommutableOpIdx1 = 1;
-    unsigned CommutableOpIdx2 = 3;
-    if (!fixCommutedOpIndices(SrcOpIdx1, SrcOpIdx2, CommutableOpIdx1,
+    
+    if (unsigned CommutableOpIdx2 = 3; !fixCommutedOpIndices(SrcOpIdx1, SrcOpIdx2, CommutableOpIdx1,
                               CommutableOpIdx2))
       return false;
     return true;
@@ -3988,12 +3988,12 @@ bool RISCVInstrInfo::findCommutedOpIndices(const MachineInstr &MI,
         // If we haven't already used the tied source, we must use it now.
         CommutableOpIdx2 = 1;
       } else {
-        Register Op1Reg = MI.getOperand(CommutableOpIdx1).getReg();
+        
 
         // The commuted operands should have different registers.
         // Otherwise, the commute transformation does not change anything and
         // is useless. We use this as a hint to make our decision.
-        if (Op1Reg != MI.getOperand(2).getReg())
+        if (Register Op1Reg = MI.getOperand(CommutableOpIdx1).getReg(); Op1Reg != MI.getOperand(2).getReg())
           CommutableOpIdx2 = 2;
         else
           CommutableOpIdx2 = 3;
@@ -4616,22 +4616,22 @@ MachineInstr *RISCVInstrInfo::convertToThreeAddress(MachineInstr &MI,
   if (LV) {
     unsigned NumOps = MI.getNumOperands();
     for (unsigned I = 1; I < NumOps; ++I) {
-      MachineOperand &Op = MI.getOperand(I);
-      if (Op.isReg() && Op.isKill())
+      
+      if (MachineOperand &Op = MI.getOperand(I); Op.isReg() && Op.isKill())
         LV->replaceKillInstruction(Op.getReg(), MI, *MIB);
     }
   }
 
   if (LIS) {
-    SlotIndex Idx = LIS->ReplaceMachineInstrInMaps(MI, *MIB);
+    
 
-    if (MI.getOperand(0).isEarlyClobber()) {
+    if (SlotIndex Idx = LIS->ReplaceMachineInstrInMaps(MI, *MIB); MI.getOperand(0).isEarlyClobber()) {
       // Use operand 1 was tied to early-clobber def operand 0, so its live
       // interval could have ended at an early-clobber slot. Now they are not
       // tied we need to update it to the normal register slot.
       LiveInterval &LI = LIS->getInterval(MI.getOperand(1).getReg());
-      LiveRange::Segment *S = LI.getSegmentContaining(Idx);
-      if (S->end == Idx.getRegSlot(true))
+      
+      if (LiveRange::Segment *S = LI.getSegmentContaining(Idx); S->end == Idx.getRegSlot(true))
         S->end = Idx.getRegSlot();
     }
   }
@@ -4652,8 +4652,8 @@ void RISCVInstrInfo::mulImm(MachineFunction &MF, MachineBasicBlock &MBB,
                             MachineBasicBlock::iterator II, const DebugLoc &DL,
                             Register DestReg, uint32_t Amount,
                             MachineInstr::MIFlag Flag) const {
-  MachineRegisterInfo &MRI = MF.getRegInfo();
-  if (llvm::has_single_bit<uint32_t>(Amount)) {
+  
+  if (MachineRegisterInfo &MRI = MF.getRegInfo(); llvm::has_single_bit<uint32_t>(Amount)) {
     uint32_t ShiftAmount = Log2_32(Amount);
     if (ShiftAmount == 0)
       return;
@@ -4769,8 +4769,8 @@ unsigned RISCVInstrInfo::getTailDuplicateSize(CodeGenOptLevel OptLevel) const {
 bool RISCV::isRVVSpill(const MachineInstr &MI) {
   // RVV lacks any support for immediate addressing for stack addresses, so be
   // conservative.
-  unsigned Opcode = MI.getOpcode();
-  if (!RISCVVPseudosTable::getPseudoInfo(Opcode) &&
+  
+  if (unsigned Opcode = MI.getOpcode(); !RISCVVPseudosTable::getPseudoInfo(Opcode) &&
       !getLMULForRVVWholeLoadStore(Opcode) && !isRVVSpillForZvlsseg(Opcode))
     return false;
   return true;
@@ -4973,8 +4973,8 @@ static std::optional<int64_t> getEffectiveImm(const MachineOperand &MO) {
     return MO.getImm();
   const MachineInstr *Def =
       MO.getParent()->getMF()->getRegInfo().getVRegDef(MO.getReg());
-  int64_t Imm;
-  if (isLoadImm(Def, Imm))
+  
+  if (int64_t Imm; isLoadImm(Def, Imm))
     return Imm;
   return std::nullopt;
 }

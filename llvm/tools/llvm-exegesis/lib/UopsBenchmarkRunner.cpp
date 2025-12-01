@@ -21,8 +21,8 @@ UopsBenchmarkRunner::runMeasurements(const FunctionExecutor &Executor) const {
   const PfmCountersInfo &PCI = State.getPfmCounters();
 
   SmallVector<const char *> ValCountersToRun;
-  Error ValCounterErr = getValidationCountersToRun(ValCountersToRun);
-  if (ValCounterErr)
+  
+  if (Error ValCounterErr = getValidationCountersToRun(ValCountersToRun); ValCounterErr)
     return std::move(ValCounterErr);
 
   // Uops per port.

@@ -62,8 +62,8 @@ class LocIncDecChecker : public Checker<check::Location> {
 public:
   void checkLocation(SVal Loc, bool IsLoad, const Stmt *S,
                      CheckerContext &C) const {
-    const auto *UnaryOp = dyn_cast<UnaryOperator>(S);
-    if (UnaryOp && !IsLoad) {
+    
+    if (const auto *UnaryOp = dyn_cast<UnaryOperator>(S); UnaryOp && !IsLoad) {
       EXPECT_FALSE(UnaryOp->isIncrementOp());
     }
   }

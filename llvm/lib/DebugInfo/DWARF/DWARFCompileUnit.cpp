@@ -38,8 +38,8 @@ void DWARFCompileUnit::dump(raw_ostream &OS, DIDumpOptions DumpOpts) {
   if (DWARFDie CUDie = getUnitDIE(false)) {
     CUDie.dump(OS, 0, DumpOpts);
     if (DumpOpts.DumpNonSkeleton) {
-      DWARFDie NonSkeletonCUDie = getNonSkeletonUnitDIE(false);
-      if (NonSkeletonCUDie && CUDie != NonSkeletonCUDie)
+      
+      if (DWARFDie NonSkeletonCUDie = getNonSkeletonUnitDIE(false); NonSkeletonCUDie && CUDie != NonSkeletonCUDie)
         NonSkeletonCUDie.dump(OS, 0, DumpOpts);
     }
   } else {

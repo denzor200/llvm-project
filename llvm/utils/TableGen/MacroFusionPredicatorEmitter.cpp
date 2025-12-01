@@ -126,8 +126,8 @@ void MacroFusionPredicatorEmitter::emitPredicates(
     ArrayRef<const Record *> Predicates, bool IsCommutable,
     PredicateExpander &PE, raw_ostream &OS) {
   for (const Record *Predicate : Predicates) {
-    const Record *Target = Predicate->getValueAsDef("Target");
-    if (Target->getName() == "first_fusion_target")
+    
+    if (const Record *Target = Predicate->getValueAsDef("Target"); Target->getName() == "first_fusion_target")
       emitFirstPredicate(Predicate, IsCommutable, PE, OS);
     else if (Target->getName() == "second_fusion_target")
       emitSecondPredicate(Predicate, IsCommutable, PE, OS);

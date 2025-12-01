@@ -359,8 +359,8 @@ LatSetId Merger::disjSetWithZero(ExprId e, LatSetId s0, LatSetId s1) {
   const LatSetId sNew = conjSet(e, s0, s1, nullptr);
 
   ExprId e0 = exp(e).children.e0;
-  ExprId e1 = exp(e).children.e1;
-  if (exp(e0).kind == TensorExp::Kind::kSynZero ||
+  
+  if (ExprId e1 = exp(e).children.e1; exp(e0).kind == TensorExp::Kind::kSynZero ||
       exp(e1).kind == TensorExp::Kind::kSynZero) {
     // lhs and rhs can't be synthetic zero at the same time.
     assert(exp(e0).kind != exp(e1).kind);
@@ -489,8 +489,8 @@ BitVector Merger::simplifyCond(LatSetId s0, LatPointId p0) {
        b = b == 0 ? be - 1 : b - 1, i++) {
     // Slice on dense level has `locate` property as well, and can be optimized.
     if (simple[b] && !isSparseLvlWithNonTrivialIdxExp(b)) {
-      const auto lt = getLvlType(b);
-      if (!lt.hasSparseSemantic()) {
+      
+      if (const auto lt = getLvlType(b); !lt.hasSparseSemantic()) {
         if (reset)
           simple.reset(b);
         reset = true;
@@ -542,8 +542,8 @@ bool Merger::expContainsTensor(ExprId e, TensorId t) const {
 }
 
 bool Merger::hasNegateOnOut(ExprId e) const {
-  const auto &expr = exp(e);
-  switch (expr.kind) {
+  
+  switch (const auto &expr = exp(e); expr.kind) {
   case TensorExp::Kind::kNegF:
   case TensorExp::Kind::kNegC:
   case TensorExp::Kind::kNegI:
@@ -576,8 +576,8 @@ bool Merger::hasNegateOnOut(ExprId e) const {
 
 bool Merger::isSingleCondition(TensorId t, ExprId e) const {
   assert(isValidTensorId(t));
-  const auto &expr = exp(e);
-  switch (expr.kind) {
+  
+  switch (const auto &expr = exp(e); expr.kind) {
   // Leaf.
   case TensorExp::Kind::kTensor:
     return expr.tensor == t;
@@ -670,8 +670,8 @@ bool Merger::isSingleCondition(TensorId t, ExprId e) const {
 
 bool Merger::hasAnySparse(const BitVector &bits) const {
   for (TensorLoopId b : bits.set_bits()) {
-    const auto lt = getLvlType(b);
-    if (lt.hasSparseSemantic())
+    
+    if (const auto lt = getLvlType(b); lt.hasSparseSemantic())
       return true;
   }
   return hasSparseIdxReduction(bits);
@@ -943,8 +943,8 @@ LatSetId Merger::buildLattices(ExprId e, LoopId i) {
   // code below must make sure to copy fields of `expr` into local variables
   // before making any recursive calls.
   const auto &expr = exp(e);
-  const TensorExp::Kind kind = expr.kind;
-  switch (kind) {
+  
+  switch (const TensorExp::Kind kind = expr.kind; kind) {
   // Leaf.
   case TensorExp::Kind::kTensor:
   case TensorExp::Kind::kInvariant:
@@ -1213,8 +1213,8 @@ static bool isCertainZero(Value val) {
 
 /// Only returns false if we are certain this is a nonzero.
 bool Merger::maybeZero(ExprId e) const {
-  const auto &expr = exp(e);
-  if (expr.kind == TensorExp::Kind::kInvariant) {
+  
+  if (const auto &expr = exp(e); expr.kind == TensorExp::Kind::kInvariant) {
     // Note that this is different from isCertainZero() in a subtle
     // way by always returning true for non-constants.
     if (auto c = expr.val.getDefiningOp<complex::ConstantOp>()) {
@@ -1289,11 +1289,11 @@ std::pair<std::optional<ExprId>, bool>
 Merger::buildTensorExp(linalg::GenericOp op, Value v) {
   // Recursion leaves.
   if (auto arg = dyn_cast<BlockArgument>(v)) {
-    const TensorId tid = makeTensorId(arg.getArgNumber());
+    
     // Any argument of the generic op that is not marked as a scalar
     // argument is considered a tensor, indexed by the implicit loop
     // bounds. This includes rank-0 tensor arguments.
-    if (arg.getOwner()->getParentOp() == op) {
+    if (const TensorId tid = makeTensorId(arg.getArgNumber()); arg.getOwner()->getParentOp() == op) {
       OpOperand &t = op->getOpOperand(tid);
       bool hasSpDep = getSparseTensorEncoding(t.get().getType()) != nullptr;
       if (!op.isScalar(&t))
@@ -1317,8 +1317,8 @@ Merger::buildTensorExp(linalg::GenericOp op, Value v) {
 
   // Construct unary operations if subexpression can be built.
   if (def->getNumOperands() == 1) {
-    const auto [x, hasSpDep] = buildTensorExp(op, def->getOperand(0));
-    if (x.has_value()) {
+    
+    if (const auto [x, hasSpDep] = buildTensorExp(op, def->getOperand(0)); x.has_value()) {
       const ExprId e = *x;
       if (isa<math::AbsFOp>(def))
         return {addExp(TensorExp::Kind::kAbsF, e), hasSpDep};
@@ -1402,8 +1402,8 @@ Merger::buildTensorExp(linalg::GenericOp op, Value v) {
     // is sparse. For a disjunctive operation, it yields a "sparse" result if
     // all operands are sparse.
     bool conjSpVals = xSpVals || ySpVals;
-    bool disjSpVals = xSpVals && ySpVals;
-    if (x.has_value() && y.has_value()) {
+    
+    if (bool disjSpVals = xSpVals && ySpVals; x.has_value() && y.has_value()) {
       const ExprId e0 = *x;
       const ExprId e1 = *y;
       if (isa<arith::MulFOp>(def))
@@ -1493,11 +1493,11 @@ Merger::buildTensorExp(linalg::GenericOp op, Value v) {
     const auto [x, xDepSp] = buildTensorExp(op, def->getOperand(0));
     const auto [y, yDepSp] = buildTensorExp(op, def->getOperand(1));
     const auto [z, zDepSp] = buildTensorExp(op, def->getOperand(2));
-    bool hasSpDep = xDepSp || yDepSp || zDepSp;
-    if (x.has_value() && y.has_value() && z.has_value()) {
+    
+    if (bool hasSpDep = xDepSp || yDepSp || zDepSp; x.has_value() && y.has_value() && z.has_value()) {
       const ExprId e0 = *x;
-      const ExprId e1 = *y;
-      if (auto redop = dyn_cast<sparse_tensor::ReduceOp>(def)) {
+      
+      if (auto const ExprId e1 = *y; redop = dyn_cast<sparse_tensor::ReduceOp>(def)) {
         if (isAdmissibleBranch(redop, redop.getRegion()))
           return {addExp(TensorExp::Kind::kReduce, e0, e1, def), hasSpDep};
       }
@@ -1505,14 +1505,14 @@ Merger::buildTensorExp(linalg::GenericOp op, Value v) {
         // Recognize an integral or floating-point ReLu(x) = Max(x, 0)
         // operation inside a very specific ternary select operation.
         // TODO: capture MIN/MAX/ABS/RELU structure in a more generic way
-        const auto &cnd = exp(*x);
-        if (isGreater(cnd.kind, cnd.attr) &&
+        
+        if (const auto &cnd = exp(*x); isGreater(cnd.kind, cnd.attr) &&
             exp(*y).kind == TensorExp::Kind::kTensor &&
             exp(*z).kind == TensorExp::Kind::kInvariant &&
             isCertainZero(exp(*z).val)) {
           const auto &a = exp(cnd.children.e0);
-          const auto &b = exp(cnd.children.e1);
-          if (a.kind == TensorExp::Kind::kTensor &&
+          
+          if (const auto &b = exp(cnd.children.e1); a.kind == TensorExp::Kind::kTensor &&
               a.tensor == exp(*y).tensor &&
               b.kind == TensorExp::Kind::kInvariant && isCertainZero(b.val)) {
             return {addExp(TensorExp::Kind::kRelu, *y, detail::kInvalidId,
@@ -1617,8 +1617,8 @@ static Value buildRelu(RewriterBase &rewriter, Location loc, Value v0,
 
 Value Merger::buildExp(RewriterBase &rewriter, Location loc, ExprId e, Value v0,
                        Value v1) const {
-  const auto &expr = exp(e);
-  switch (expr.kind) {
+  
+  switch (const auto &expr = exp(e); expr.kind) {
   // Leaf.
   case TensorExp::Kind::kTensor:
   case TensorExp::Kind::kInvariant:

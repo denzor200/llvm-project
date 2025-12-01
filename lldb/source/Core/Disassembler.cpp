@@ -68,9 +68,9 @@ DisassemblerSP Disassembler::FindPlugin(const ArchSpec &arch,
   LLDB_SCOPED_TIMERF("Disassembler::FindPlugin (arch = %s, plugin_name = %s)",
                      arch.GetArchitectureName(), plugin_name);
 
-  DisassemblerCreateInstance create_callback = nullptr;
+  
 
-  if (plugin_name) {
+  if (DisassemblerCreateInstance create_callback = nullptr; plugin_name) {
     create_callback =
         PluginManager::GetDisassemblerCreateCallbackForPluginName(plugin_name);
     if (create_callback) {
@@ -113,14 +113,14 @@ static Address ResolveAddress(Target &target, const Address &addr) {
     Address resolved_addr;
     // If we weren't passed in a section offset address range, try and resolve
     // it to something
-    bool is_resolved =
+    
+
+    // We weren't able to resolve the address, just treat it as a raw address
+    if (bool is_resolved =
         target.HasLoadedSections()
             ? target.ResolveLoadAddress(addr.GetOffset(), resolved_addr)
             : target.GetImages().ResolveFileAddress(addr.GetOffset(),
-                                                    resolved_addr);
-
-    // We weren't able to resolve the address, just treat it as a raw address
-    if (is_resolved && resolved_addr.IsValid())
+                                                    resolved_addr); is_resolved && resolved_addr.IsValid())
       return resolved_addr;
   }
   return addr;
@@ -233,8 +233,8 @@ void Disassembler::AddLineToSourceLineTables(
     SourceLine &line,
     std::map<FileSpec, std::set<uint32_t>> &source_lines_seen) {
   if (line.IsValid()) {
-    auto source_lines_seen_pos = source_lines_seen.find(line.file);
-    if (source_lines_seen_pos == source_lines_seen.end()) {
+    
+    if (auto source_lines_seen_pos = source_lines_seen.find(line.file); source_lines_seen_pos == source_lines_seen.end()) {
       std::set<uint32_t> lines;
       lines.insert(line.line);
       source_lines_seen.emplace(line.file, lines);
@@ -260,14 +260,14 @@ bool Disassembler::ElideMixedSourceAndDisassemblyLine(
   if (thread_sp) {
     avoid_regex = thread_sp->GetSymbolsToAvoidRegexp();
   } else {
-    TargetSP target_sp = exe_ctx.GetTargetSP();
-    if (target_sp) {
+    
+    if (TargetSP target_sp = exe_ctx.GetTargetSP(); target_sp) {
       Status error;
-      OptionValueSP value_sp = target_sp->GetDebugger().GetPropertyValue(
-          &exe_ctx, "target.process.thread.step-avoid-regexp", error);
-      if (value_sp && value_sp->GetType() == OptionValue::eTypeRegex) {
-        OptionValueRegex *re = value_sp->GetAsRegex();
-        if (re) {
+      
+      if (OptionValueSP value_sp = target_sp->GetDebugger().GetPropertyValue(
+          &exe_ctx, "target.process.thread.step-avoid-regexp", error); value_sp && value_sp->GetType() == OptionValue::eTypeRegex) {
+        
+        if (OptionValueRegex *re = value_sp->GetAsRegex(); re) {
           avoid_regex = re->GetCurrentValue();
         }
       }
@@ -384,8 +384,8 @@ std::vector<std::string> VariableAnnotator::Annotate(Instruction &inst) {
 
   // 1) Starts/changes: iterate current_vars and compare with m_live_vars.
   for (const auto &KV : current_vars) {
-    auto it = m_live_vars.find(KV.first);
-    if (it == m_live_vars.end()) {
+    
+    if (auto it = m_live_vars.find(KV.first); it == m_live_vars.end()) {
       // Newly live.
       events.emplace_back(
           llvm::formatv("{0} = {1}", KV.second.name, KV.second.last_loc).str());
@@ -460,19 +460,19 @@ void Disassembler::PrintInstructions(Debugger &debugger, const ArchSpec &arch,
     Instruction *inst = GetInstructionList().GetInstructionAtIndex(i).get();
     if (inst) {
       const Address &addr = inst->GetAddress();
-      ModuleSP module_sp(addr.GetModule());
-      if (module_sp) {
+      
+      if (ModuleSP module_sp(addr.GetModule()); module_sp) {
         const SymbolContextItem resolve_mask = eSymbolContextFunction |
                                                eSymbolContextSymbol |
                                                eSymbolContextLineEntry;
-        uint32_t resolved_mask =
-            module_sp->ResolveSymbolContextForAddress(addr, resolve_mask, sc);
-        if (resolved_mask) {
+        
+        if (uint32_t resolved_mask =
+            module_sp->ResolveSymbolContextForAddress(addr, resolve_mask, sc); resolved_mask) {
           StreamString strmstr;
           Debugger::FormatDisassemblerAddress(disassembly_format, &sc, nullptr,
                                               &exe_ctx, &addr, strmstr);
-          size_t cur_line = strmstr.GetSizeOfLastLine();
-          if (cur_line > address_text_size)
+          
+          if (size_t cur_line = strmstr.GetSizeOfLastLine(); cur_line > address_text_size)
             address_text_size = cur_line;
 
           // Add entries to our "source_lines_seen" map+set which list which
@@ -484,8 +484,8 @@ void Disassembler::PrintInstructions(Debugger &debugger, const ArchSpec &arch,
 
           if (mixed_source_and_assembly && sc.line_entry.IsValid()) {
             if (sc.symbol != previous_symbol) {
-              SourceLine decl_line = GetFunctionDeclLineEntry(sc);
-              if (!ElideMixedSourceAndDisassemblyLine(exe_ctx, sc, decl_line))
+              
+              if (SourceLine decl_line = GetFunctionDeclLineEntry(sc); !ElideMixedSourceAndDisassemblyLine(exe_ctx, sc, decl_line))
                 AddLineToSourceLineTables(decl_line, source_lines_seen);
             }
             if (sc.line_entry.IsValid()) {
@@ -518,9 +518,9 @@ void Disassembler::PrintInstructions(Debugger &debugger, const ArchSpec &arch,
 
       ModuleSP module_sp(addr.GetModule());
       if (module_sp) {
-        uint32_t resolved_mask = module_sp->ResolveSymbolContextForAddress(
-            addr, eSymbolContextEverything, sc);
-        if (resolved_mask) {
+        
+        if (uint32_t resolved_mask = module_sp->ResolveSymbolContextForAddress(
+            addr, eSymbolContextEverything, sc); resolved_mask) {
           if (mixed_source_and_assembly) {
 
             // If we've started a new function (non-inlined), print all of the
@@ -536,8 +536,8 @@ void Disassembler::PrintInstructions(Debugger &debugger, const ArchSpec &arch,
 
               previous_symbol = sc.symbol;
               if (sc.function && sc.line_entry.IsValid()) {
-                LineEntry prologue_end_line = sc.line_entry;
-                if (!ElideMixedSourceAndDisassemblyLine(exe_ctx, sc,
+                
+                if (LineEntry prologue_end_line = sc.line_entry; !ElideMixedSourceAndDisassemblyLine(exe_ctx, sc,
                                                         prologue_end_line)) {
                   SupportFileNSP func_decl_file_sp =
                       std::make_shared<SupportFile>();
@@ -600,8 +600,8 @@ void Disassembler::PrintInstructions(Debugger &debugger, const ArchSpec &arch,
                          i++) {
                       uint32_t line =
                           this_line.line - num_mixed_context_lines + i;
-                      auto pos = source_lines_seen.find(this_line.file);
-                      if (pos != source_lines_seen.end()) {
+                      
+                      if (auto pos = source_lines_seen.find(this_line.file); pos != source_lines_seen.end()) {
                         if (pos->second.count(line) == 1) {
                           previous_lines.clear();
                         } else {
@@ -677,8 +677,8 @@ void Disassembler::PrintInstructions(Debugger &debugger, const ArchSpec &arch,
                  address_text_size);
 
       if ((options & eOptionVariableAnnotations) && target_sp) {
-        auto annotations = annot.Annotate(*inst);
-        if (!annotations.empty()) {
+        
+        if (auto annotations = annot.Annotate(*inst); !annotations.empty()) {
           const size_t annotation_column = 100;
           inst_line.FillLastLineToColumn(annotation_column, ' ');
           inst_line.PutCString("; ");
@@ -894,8 +894,8 @@ OptionValueSP Instruction::ReadArray(FILE *in_file, Stream &out_stream,
 
     std::string line(buffer);
 
-    size_t len = line.size();
-    if (line[len - 1] == '\n') {
+    
+    if (size_t len = line.size(); line[len - 1] == '\n') {
       line[len - 1] = '\0';
       line.resize(len - 1);
     }
@@ -955,8 +955,8 @@ OptionValueSP Instruction::ReadDictionary(FILE *in_file, Stream &out_stream) {
     // Check to see if the line contains the end-of-dictionary marker ("}")
     std::string line(buffer);
 
-    size_t len = line.size();
-    if (line[len - 1] == '\n') {
+    
+    if (size_t len = line.size(); line[len - 1] == '\n') {
       line[len - 1] = '\0';
       line.resize(len - 1);
     }
@@ -1016,8 +1016,8 @@ OptionValueSP Instruction::ReadDictionary(FILE *in_file, Stream &out_stream) {
         value_sp = std::make_shared<OptionValueUInt64>(0, 0);
         value_sp->SetValueFromString(value);
       } else {
-        size_t len = value.size();
-        if ((value[0] == '"') && (value[len - 1] == '"'))
+        
+        if (size_t len = value.size(); (value[0] == '"') && (value[len - 1] == '"'))
           value = value.substr(1, len - 2);
         value_sp = std::make_shared<OptionValueString>(value.c_str(), "");
       }
@@ -1152,8 +1152,8 @@ uint32_t InstructionList::GetMaxOpcocdeByteSize() const {
   collection::const_iterator pos, end;
   for (pos = m_instructions.begin(), end = m_instructions.end(); pos != end;
        ++pos) {
-    uint32_t inst_size = (*pos)->GetOpcode().GetByteSize();
-    if (max_inst_size < inst_size)
+    
+    if (uint32_t inst_size = (*pos)->GetOpcode().GetByteSize(); max_inst_size < inst_size)
       max_inst_size = inst_size;
   }
   return max_inst_size;
@@ -1177,8 +1177,8 @@ InstructionSP InstructionList::GetInstructionAtIndex(size_t idx) const {
 }
 
 InstructionSP InstructionList::GetInstructionAtAddress(const Address &address) {
-  uint32_t index = GetIndexOfInstructionAtAddress(address);
-  if (index != UINT32_MAX)
+  
+  if (uint32_t index = GetIndexOfInstructionAtAddress(address); index != UINT32_MAX)
     return GetInstructionAtIndex(index);
   return nullptr;
 }
@@ -1190,8 +1190,8 @@ void InstructionList::Dump(Stream *s, bool show_address, bool show_bytes,
   collection::const_iterator pos, begin, end;
 
   const FormatEntity::Entry *disassembly_format = nullptr;
-  FormatEntity::Entry format;
-  if (exe_ctx && exe_ctx->HasTargetScope()) {
+  
+  if (FormatEntity::Entry format; exe_ctx && exe_ctx->HasTargetScope()) {
     format = exe_ctx->GetTargetRef().GetDebugger().GetDisassemblyFormat();
     disassembly_format = &format;
   } else {

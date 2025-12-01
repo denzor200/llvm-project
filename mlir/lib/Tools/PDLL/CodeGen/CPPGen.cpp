@@ -219,8 +219,8 @@ void CodeGen::generateConstraintOrRewrite(const ast::CallableDecl *decl,
     // Otherwise, generate a type based on the results of the callable.
     // If the callable has explicit results, use those to build the result.
     // Otherwise, use the type of the callable.
-    ArrayRef<ast::VariableDecl *> results = decl->getResults();
-    if (results.empty()) {
+    
+    if (ArrayRef<ast::VariableDecl *> results = decl->getResults(); results.empty()) {
       os << "void";
     } else if (results.size() == 1) {
       os << getNativeTypeName(results[0]);

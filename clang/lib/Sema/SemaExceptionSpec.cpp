@@ -62,8 +62,8 @@ bool Sema::isLibstdcxxEagerExceptionSpecHack(const Declarator &D) {
   if (!IsInStd) {
     // This isn't a direct member of namespace std, but it might still be
     // libstdc++'s std::__debug::array or std::__profile::array.
-    IdentifierInfo *II = ND->getIdentifier();
-    if (!II || !(II->isStr("__debug") || II->isStr("__profile")) ||
+    
+    if (IdentifierInfo *II = ND->getIdentifier(); !II || !(II->isStr("__debug") || II->isStr("__profile")) ||
         !ND->isInStdNamespace())
       return false;
   }
@@ -623,10 +623,10 @@ static bool CheckEquivalentExceptionSpecImpl(
     if (WithExceptions && WithExceptions->getNumExceptions() == 1) {
       // One has no spec, the other throw(something). If that something is
       // std::bad_alloc, all conditions are met.
-      QualType Exception = *WithExceptions->exception_begin();
-      if (CXXRecordDecl *ExRecord = Exception->getAsCXXRecordDecl()) {
-        IdentifierInfo* Name = ExRecord->getIdentifier();
-        if (Name && Name->getName() == "bad_alloc") {
+      
+      if (CXXRecordDecl *QualType Exception = *WithExceptions->exception_begin(); ExRecord = Exception->getAsCXXRecordDecl()) {
+        
+        if (IdentifierInfo* Name = ExRecord->getIdentifier(); Name && Name->getName() == "bad_alloc") {
           // It's called bad_alloc, but is it in std?
           if (ExRecord->isInStdNamespace()) {
             return false;
@@ -702,10 +702,10 @@ bool Sema::handlerCanCatch(QualType HandlerType, QualType ExceptionType) {
     //    that can be converted to T by one or more of
     //    -- a qualification conversion
     //    -- a function pointer conversion
-    bool LifetimeConv;
+    
     // FIXME: Should we treat the exception as catchable if a lifetime
     // conversion is required?
-    if (IsQualificationConversion(ExceptionType, HandlerType, false,
+    if (bool LifetimeConv; IsQualificationConversion(ExceptionType, HandlerType, false,
                                   LifetimeConv) ||
         IsFunctionConversion(ExceptionType, HandlerType))
       return true;
@@ -1203,8 +1203,8 @@ CanThrowResult Sema::canThrow(const Stmt *S) {
   case Expr::CXXDeleteExprClass: {
     auto *DE = cast<CXXDeleteExpr>(S);
     CanThrowResult CT = CT_Cannot;
-    QualType DTy = DE->getDestroyedType();
-    if (DTy.isNull() || DTy->isDependentType()) {
+    
+    if (QualType DTy = DE->getDestroyedType(); DTy.isNull() || DTy->isDependentType()) {
       CT = CT_Dependent;
     } else {
       // C++20 [expr.delete]p6: If the value of the operand of the delete-
@@ -1586,8 +1586,8 @@ CanThrowResult Sema::canThrow(const Stmt *S) {
     auto *TS = cast<CXXTryStmt>(S);
     // try /*...*/ catch (...) { H } can throw only if H can throw.
     // Any other try-catch can throw if any substatement can throw.
-    const CXXCatchStmt *FinalHandler = TS->getHandler(TS->getNumHandlers() - 1);
-    if (!FinalHandler->getExceptionDecl())
+    
+    if (const CXXCatchStmt *FinalHandler = TS->getHandler(TS->getNumHandlers() - 1); !FinalHandler->getExceptionDecl())
       return canThrow(FinalHandler->getHandlerBlock());
     return canSubStmtsThrow(*this, S);
   }

@@ -82,8 +82,8 @@ const char *DWARFBaseDIE::GetName() const {
 }
 
 lldb::ModuleSP DWARFBaseDIE::GetModule() const {
-  SymbolFileDWARF *dwarf = GetDWARF();
-  if (dwarf)
+  
+  if (SymbolFileDWARF *dwarf = GetDWARF(); dwarf)
     return dwarf->GetObjectFile()->GetModule();
   else
     return lldb::ModuleSP();

@@ -135,9 +135,9 @@ public:
                                       size_t total_digits) {
     // If and only if the conversion is left justified, there may be trailing
     // spaces.
-    int padding_amount =
-        static_cast<int>(min_width - total_digits - (sign_char > 0 ? 1 : 0));
-    if (left_justified && padding_amount > 0) {
+    
+    if (int padding_amount =
+        static_cast<int>(min_width - total_digits - (sign_char > 0 ? 1 : 0)); left_justified && padding_amount > 0) {
       RET_IF_RESULT_NEGATIVE(writer->write(' ', padding_amount));
     }
     return 0;
@@ -523,8 +523,8 @@ LIBC_INLINE int convert_float_decimal_typed(Writer<write_mode> *writer,
   // zero blocks before the first nonzero digit or the decimal point are
   // ignored (no leading zeroes, at least at this stage).
   for (int32_t i = static_cast<int32_t>(positive_blocks) - 1; i >= 0; --i) {
-    BlockInt digits = float_converter.get_positive_block(i);
-    if (nonzero) {
+    
+    if (BlockInt digits = float_converter.get_positive_block(i); nonzero) {
       RET_IF_RESULT_NEGATIVE(float_writer.write_middle_block(digits));
     } else if (digits != 0) {
       size_t blocks_before_decimal = i;
@@ -563,8 +563,8 @@ LIBC_INLINE int convert_float_decimal_typed(Writer<write_mode> *writer,
         RET_IF_RESULT_NEGATIVE(float_writer.write_zeroes(fill));
         break;
       }
-      BlockInt digits = float_converter.get_negative_block(i);
-      if (i < blocks - 1) {
+      
+      if (BlockInt digits = float_converter.get_negative_block(i); i < blocks - 1) {
         RET_IF_RESULT_NEGATIVE(float_writer.write_middle_block(digits));
       } else {
 
@@ -730,8 +730,8 @@ LIBC_INLINE int convert_float_dec_exp_typed(Writer<write_mode> *writer,
       // Check every block until the decimal point for non-zero digits.
       for (int cur_extra_block = cur_block - 1; cur_extra_block >= 0;
            --cur_extra_block) {
-        BlockInt extra_block = float_converter.get_block(cur_extra_block);
-        if (extra_block > 0) {
+        
+        if (BlockInt extra_block = float_converter.get_block(cur_extra_block); extra_block > 0) {
           truncated = true;
           break;
         }
@@ -978,8 +978,8 @@ LIBC_INLINE int convert_float_dec_auto_typed(Writer<write_mode> *writer,
       // Check every block until the decimal point for non-zero digits.
       for (int cur_extra_block = cur_block - 1; cur_extra_block >= 0;
            --cur_extra_block) {
-        BlockInt extra_block = float_converter.get_block(cur_extra_block);
-        if (extra_block > 0) {
+        
+        if (BlockInt extra_block = float_converter.get_block(cur_extra_block); extra_block > 0) {
           truncated = true;
           break;
         }
@@ -1063,9 +1063,9 @@ LIBC_INLINE int convert_float_dec_auto_typed(Writer<write_mode> *writer,
   //  P - (X + 1).
   if (static_cast<int>(init_precision) > base_10_exp && base_10_exp >= -4) {
     FormatSection new_conv = to_conv;
-    const int conv_precision = init_precision - (base_10_exp + 1);
+    
 
-    if ((to_conv.flags & FormatFlags::ALTERNATE_FORM) != 0) {
+    if (const int conv_precision = init_precision - (base_10_exp + 1); (to_conv.flags & FormatFlags::ALTERNATE_FORM) != 0) {
       new_conv.precision = conv_precision;
     } else {
       // If alt form isn't set, then we need to determine the number of trailing
@@ -1129,16 +1129,16 @@ LIBC_INLINE int convert_float_decimal(Writer<write_mode> *writer,
                                       const FormatSection &to_conv) {
   if (to_conv.length_modifier == LengthModifier::L) {
     fputil::FPBits<long double>::StorageType float_raw = to_conv.conv_val_raw;
-    fputil::FPBits<long double> float_bits(float_raw);
-    if (!float_bits.is_inf_or_nan()) {
+    
+    if (fputil::FPBits<long double> float_bits(float_raw); !float_bits.is_inf_or_nan()) {
       return convert_float_decimal_typed<long double>(writer, to_conv,
                                                       float_bits);
     }
   } else {
     fputil::FPBits<double>::StorageType float_raw =
         static_cast<fputil::FPBits<double>::StorageType>(to_conv.conv_val_raw);
-    fputil::FPBits<double> float_bits(float_raw);
-    if (!float_bits.is_inf_or_nan()) {
+    
+    if (fputil::FPBits<double> float_bits(float_raw); !float_bits.is_inf_or_nan()) {
       return convert_float_decimal_typed<double>(writer, to_conv, float_bits);
     }
   }
@@ -1151,16 +1151,16 @@ LIBC_INLINE int convert_float_dec_exp(Writer<write_mode> *writer,
                                       const FormatSection &to_conv) {
   if (to_conv.length_modifier == LengthModifier::L) {
     fputil::FPBits<long double>::StorageType float_raw = to_conv.conv_val_raw;
-    fputil::FPBits<long double> float_bits(float_raw);
-    if (!float_bits.is_inf_or_nan()) {
+    
+    if (fputil::FPBits<long double> float_bits(float_raw); !float_bits.is_inf_or_nan()) {
       return convert_float_dec_exp_typed<long double>(writer, to_conv,
                                                       float_bits);
     }
   } else {
     fputil::FPBits<double>::StorageType float_raw =
         static_cast<fputil::FPBits<double>::StorageType>(to_conv.conv_val_raw);
-    fputil::FPBits<double> float_bits(float_raw);
-    if (!float_bits.is_inf_or_nan()) {
+    
+    if (fputil::FPBits<double> float_bits(float_raw); !float_bits.is_inf_or_nan()) {
       return convert_float_dec_exp_typed<double>(writer, to_conv, float_bits);
     }
   }
@@ -1173,16 +1173,16 @@ LIBC_INLINE int convert_float_dec_auto(Writer<write_mode> *writer,
                                        const FormatSection &to_conv) {
   if (to_conv.length_modifier == LengthModifier::L) {
     fputil::FPBits<long double>::StorageType float_raw = to_conv.conv_val_raw;
-    fputil::FPBits<long double> float_bits(float_raw);
-    if (!float_bits.is_inf_or_nan()) {
+    
+    if (fputil::FPBits<long double> float_bits(float_raw); !float_bits.is_inf_or_nan()) {
       return convert_float_dec_auto_typed<long double>(writer, to_conv,
                                                        float_bits);
     }
   } else {
     fputil::FPBits<double>::StorageType float_raw =
         static_cast<fputil::FPBits<double>::StorageType>(to_conv.conv_val_raw);
-    fputil::FPBits<double> float_bits(float_raw);
-    if (!float_bits.is_inf_or_nan()) {
+    
+    if (fputil::FPBits<double> float_bits(float_raw); !float_bits.is_inf_or_nan()) {
       return convert_float_dec_auto_typed<double>(writer, to_conv, float_bits);
     }
   }

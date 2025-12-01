@@ -288,8 +288,8 @@ void LinkerDriver::addFile(StringRef path, bool withLOption) {
     // references for --warn-backrefs.
     SaveAndRestore saved(isInGroup, true);
     for (const std::pair<MemoryBufferRef, uint64_t> &p : members) {
-      auto magic = identify_magic(p.first.getBuffer());
-      if (magic == file_magic::elf_relocatable) {
+      
+      if (auto magic = identify_magic(p.first.getBuffer()); magic == file_magic::elf_relocatable) {
         if (!tryAddFatLTOFile(p.first, path, p.second, true))
           files.push_back(createObjFile(ctx, p.first, path, true));
       } else if (magic == file_magic::bitcode)
@@ -501,8 +501,8 @@ static bool hasZOption(opt::InputArgList &args, StringRef key) {
 static bool getZFlag(opt::InputArgList &args, StringRef k1, StringRef k2,
                      bool defaultValue) {
   for (auto *arg : args.filtered(OPT_z)) {
-    StringRef v = arg->getValue();
-    if (k1 == v)
+    
+    if (StringRef v = arg->getValue(); k1 == v)
       defaultValue = true;
     else if (k2 == v)
       defaultValue = false;
@@ -516,8 +516,8 @@ static bool getZFlag(opt::InputArgList &args, StringRef k1, StringRef k2,
 static SeparateSegmentKind getZSeparate(opt::InputArgList &args) {
   auto ret = SeparateSegmentKind::None;
   for (auto *arg : args.filtered(OPT_z)) {
-    StringRef v = arg->getValue();
-    if (v == "noseparate-code")
+    
+    if (StringRef v = arg->getValue(); v == "noseparate-code")
       ret = SeparateSegmentKind::None;
     else if (v == "separate-code")
       ret = SeparateSegmentKind::Code;
@@ -533,8 +533,8 @@ static SeparateSegmentKind getZSeparate(opt::InputArgList &args) {
 static GnuStackKind getZGnuStack(opt::InputArgList &args) {
   auto ret = GnuStackKind::NoExec;
   for (auto *arg : args.filtered(OPT_z)) {
-    StringRef v = arg->getValue();
-    if (v == "execstack")
+    
+    if (StringRef v = arg->getValue(); v == "execstack")
       ret = GnuStackKind::Exec;
     else if (v == "noexecstack")
       ret = GnuStackKind::NoExec;
@@ -684,14 +684,14 @@ void LinkerDriver::linkerMain(ArrayRef<const char *> argsArr) {
   if (const char *path = getReproduceOption(args)) {
     // Note that --reproduce is a debug option so you can ignore it
     // if you are trying to understand the whole picture of the code.
-    Expected<std::unique_ptr<TarWriter>> errOrWriter =
-        TarWriter::create(path, path::stem(path));
-    if (errOrWriter) {
+    
+    if (Expected<std::unique_ptr<TarWriter>> errOrWriter =
+        TarWriter::create(path, path::stem(path)); errOrWriter) {
       ctx.tar = std::move(*errOrWriter);
       ctx.tar->append("response.txt", createResponseFile(args));
       ctx.tar->append("version.txt", getLLDVersion() + "\n");
-      StringRef ltoSampleProfile = args.getLastArgValue(OPT_lto_sample_profile);
-      if (!ltoSampleProfile.empty())
+      
+      if (StringRef ltoSampleProfile = args.getLastArgValue(OPT_lto_sample_profile); !ltoSampleProfile.empty())
         readFile(ctx, ltoSampleProfile);
     } else {
       ErrAlways(ctx) << "--reproduce: " << errOrWriter.takeError();
@@ -756,8 +756,8 @@ static void setUnresolvedSymbolPolicy(Ctx &ctx, opt::InputArgList &args) {
   for (const opt::Arg *arg : args) {
     switch (arg->getOption().getID()) {
     case OPT_unresolved_symbols: {
-      StringRef s = arg->getValue();
-      if (s == "ignore-all") {
+      
+      if (StringRef s = arg->getValue(); s == "ignore-all") {
         diagRegular = false;
         diagShlib = false;
       } else if (s == "ignore-in-object-files") {
@@ -1059,8 +1059,8 @@ processCallGraphRelocations(Ctx &ctx, SmallVector<uint32_t, 32> &symbolIndices,
           objSections[inputObj->cgProfileSectionIndex]));
 
   for (size_t i = 0, e = objSections.size(); i < e; ++i) {
-    const Elf_Shdr_Impl<ELFT> &sec = objSections[i];
-    if (sec.sh_info == inputObj->cgProfileSectionIndex) {
+    
+    if (const Elf_Shdr_Impl<ELFT> &sec = objSections[i]; sec.sh_info == inputObj->cgProfileSectionIndex) {
       if (sec.sh_type == SHT_CREL) {
         auto crels =
             CHECK(obj.crels(sec), "could not retrieve cg profile rela section");
@@ -1305,8 +1305,8 @@ static bool getIsRela(Ctx &ctx, opt::InputArgList &args) {
                            ctx.arg.emachine);
   // If -z rel or -z rela is specified, use the last option.
   for (auto *arg : args.filtered(OPT_z)) {
-    StringRef s(arg->getValue());
-    if (s == "rel")
+    
+    if (StringRef s(arg->getValue()); s == "rel")
       rela = false;
     else if (s == "rela")
       rela = true;
@@ -1321,8 +1321,8 @@ static void parseClangOption(Ctx &ctx, StringRef opt, const Twine &msg) {
   std::string err;
   raw_string_ostream os(err);
 
-  const char *argv[] = {ctx.arg.progName.data(), opt.data()};
-  if (cl::ParseCommandLineOptions(2, argv, "", &os))
+  
+  if (const char *argv[] = {ctx.arg.progName.data(), opt.data()}; cl::ParseCommandLineOptions(2, argv, "", &os))
     return;
   ErrAlways(ctx) << msg << ": " << StringRef(err).trim();
 }
@@ -1460,9 +1460,9 @@ static void readConfigs(Ctx &ctx, opt::InputArgList &args) {
   ctx.arg.ltoo = args::getInteger(args, OPT_lto_O, 2);
   if (ctx.arg.ltoo > 3)
     ErrAlways(ctx) << "invalid optimization level for LTO: " << ctx.arg.ltoo;
-  unsigned ltoCgo =
-      args::getInteger(args, OPT_lto_CGO, args::getCGOptLevel(ctx.arg.ltoo));
-  if (auto level = CodeGenOpt::getLevel(ltoCgo))
+  
+  if (auto unsigned ltoCgo =
+      args::getInteger(args, OPT_lto_CGO, args::getCGOptLevel(ctx.arg.ltoo)); level = CodeGenOpt::getLevel(ltoCgo))
     ctx.arg.ltoCgo = *level;
   else
     ErrAlways(ctx) << "invalid codegen optimization level for LTO: " << ltoCgo;
@@ -1493,8 +1493,8 @@ static void readConfigs(Ctx &ctx, opt::InputArgList &args) {
 
   // Parse remarks hotness threshold. Valid value is either integer or 'auto'.
   if (auto *arg = args.getLastArg(OPT_opt_remarks_hotness_threshold)) {
-    auto resultOrErr = remarks::parseHotnessThresholdOption(arg->getValue());
-    if (!resultOrErr)
+    
+    if (auto resultOrErr = remarks::parseHotnessThresholdOption(arg->getValue()); !resultOrErr)
       ErrAlways(ctx) << arg->getSpelling() << ": invalid argument '"
                      << arg->getValue()
                      << "', only integer or 'auto' is supported";
@@ -1537,8 +1537,8 @@ static void readConfigs(Ctx &ctx, opt::InputArgList &args) {
     ctx.arg.saveTempsArgs.insert_range(saveTempsValues);
   } else {
     for (auto *arg : args.filtered(OPT_save_temps_eq)) {
-      StringRef s = arg->getValue();
-      if (llvm::is_contained(saveTempsValues, s))
+      
+      if (StringRef s = arg->getValue(); llvm::is_contained(saveTempsValues, s))
         ctx.arg.saveTempsArgs.insert(s);
       else
         ErrAlways(ctx) << "unknown --save-temps value: " << s;
@@ -1613,8 +1613,8 @@ static void readConfigs(Ctx &ctx, opt::InputArgList &args) {
       args.hasFlag(OPT_warn_symbol_ordering, OPT_no_warn_symbol_ordering, true);
   ctx.arg.whyExtract = args.getLastArgValue(OPT_why_extract);
   for (opt::Arg *arg : args.filtered(OPT_why_live)) {
-    StringRef value(arg->getValue());
-    if (Expected<GlobPattern> pat = GlobPattern::create(arg->getValue())) {
+    
+    if (Expected<GlobPattern> StringRef value(arg->getValue()); pat = GlobPattern::create(arg->getValue())) {
       ctx.arg.whyLive.emplace_back(std::move(*pat));
     } else {
       ErrAlways(ctx) << arg->getSpelling() << ": " << pat.takeError();
@@ -1809,8 +1809,8 @@ static void readConfigs(Ctx &ctx, opt::InputArgList &args) {
   // "lto-wrapper.exe" for GCC cross-compiled for Windows), consider it an
   // unsupported LLVMgold.so option and error.
   for (opt::Arg *arg : args.filtered(OPT_plugin_opt_eq)) {
-    StringRef v(arg->getValue());
-    if (!v.ends_with("lto-wrapper") && !v.ends_with("lto-wrapper.exe"))
+    
+    if (StringRef v(arg->getValue()); !v.ends_with("lto-wrapper") && !v.ends_with("lto-wrapper.exe"))
       ErrAlways(ctx) << arg->getSpelling() << ": unknown plugin option '"
                      << arg->getValue() << "'";
   }
@@ -1825,8 +1825,8 @@ static void readConfigs(Ctx &ctx, opt::InputArgList &args) {
 
   ctx.arg.ltoKind = LtoKind::Default;
   if (auto *arg = args.getLastArg(OPT_lto)) {
-    StringRef s = arg->getValue();
-    if (s == "thin")
+    
+    if (StringRef s = arg->getValue(); s == "thin")
       ctx.arg.ltoKind = LtoKind::UnifiedThin;
     else if (s == "full")
       ctx.arg.ltoKind = LtoKind::UnifiedRegular;
@@ -1887,8 +1887,8 @@ static void readConfigs(Ctx &ctx, opt::InputArgList &args) {
 
   // Parse --hash-style={sysv,gnu,both}.
   if (auto *arg = args.getLastArg(OPT_hash_style)) {
-    StringRef s = arg->getValue();
-    if (s == "sysv")
+    
+    if (StringRef s = arg->getValue(); s == "sysv")
       ctx.arg.sysvHash = true;
     else if (s == "gnu")
       ctx.arg.gnuHash = true;
@@ -1943,8 +1943,8 @@ static void readConfigs(Ctx &ctx, opt::InputArgList &args) {
   }
 
   for (opt::Arg *arg : args.filtered(OPT_warn_backrefs_exclude)) {
-    StringRef pattern(arg->getValue());
-    if (Expected<GlobPattern> pat = GlobPattern::create(pattern))
+    
+    if (Expected<GlobPattern> StringRef pattern(arg->getValue()); pat = GlobPattern::create(pattern))
       ctx.arg.warnBackrefsExclude.push_back(std::move(*pat));
     else
       ErrAlways(ctx) << arg->getSpelling() << ": " << pat.takeError() << ": "
@@ -2374,8 +2374,8 @@ static void handleUndefinedGlob(Ctx &ctx, StringRef arg) {
 }
 
 static void handleLibcall(Ctx &ctx, StringRef name) {
-  Symbol *sym = ctx.symtab->find(name);
-  if (sym && sym->isLazy() && isa<BitcodeFile>(sym->file)) {
+  
+  if (Symbol *sym = ctx.symtab->find(name); sym && sym->isLazy() && isa<BitcodeFile>(sym->file)) {
     if (!ctx.arg.whyExtract.empty())
       ctx.whyExtractRecords.emplace_back("<libcall>", sym->file, *sym);
     sym->extract(ctx);
@@ -2586,8 +2586,8 @@ static void findKeepUniqueSections(Ctx &ctx, opt::InputArgList &args) {
   // referenced symbol as address-significant.
   for (InputFile *f : ctx.objectFiles) {
     auto *obj = cast<ObjFile<ELFT>>(f);
-    ArrayRef<Symbol *> syms = obj->getSymbols();
-    if (obj->addrsigSec) {
+    
+    if (ArrayRef<Symbol *> syms = obj->getSymbols(); obj->addrsigSec) {
       ArrayRef<uint8_t> contents =
           check(obj->getObj().getSectionContents(*obj->addrsigSec));
       const uint8_t *cur = contents.begin();
@@ -2619,12 +2619,12 @@ static void readSymbolPartitionSection(Ctx &ctx, InputSectionBase *s) {
   // Read the relocation that refers to the partition's entry point symbol.
   Symbol *sym;
   const RelsOrRelas<ELFT> rels = s->template relsOrRelas<ELFT>();
-  auto readEntry = [](InputFile *file, const auto &rels) -> Symbol * {
+  
+  if (auto readEntry = [](InputFile *file, const auto &rels) -> Symbol * {
     for (const auto &rel : rels)
       return &file->getRelocTargetSym(rel);
     return nullptr;
-  };
-  if (rels.areRelocsCrel())
+  }; rels.areRelocsCrel())
     sym = readEntry(s->file, rels.crels);
   else if (rels.areRelocsRel())
     sym = readEntry(s->file, rels.rels);
@@ -2719,8 +2719,8 @@ void LinkerDriver::compileBitcodeFiles(bool skipLinkedOutput) {
     // TODO: check if PAuth is actually used.
     if (ctx.arg.emachine == EM_AARCH64) {
       for (typename ELFT::Sym elfSym : obj->template getGlobalELFSyms<ELFT>()) {
-        StringRef elfSymName = check(elfSym.getName(obj->getStringTable()));
-        if (Symbol *sym = ctx.symtab->find(elfSymName))
+        
+        if (Symbol *StringRef elfSymName = check(elfSym.getName(obj->getStringTable())); sym = ctx.symtab->find(elfSymName))
           if (sym->type == STT_NOTYPE)
             sym->type = elfSym.getType();
       }
@@ -2920,10 +2920,10 @@ static void readSecurityNotes(Ctx &ctx) {
 
   StringRef referenceFileName;
   if (ctx.arg.emachine == EM_AARCH64) {
-    auto it = llvm::find_if(ctx.objectFiles, [](const ELFFileBase *f) {
+    
+    if (auto it = llvm::find_if(ctx.objectFiles, [](const ELFFileBase *f) {
       return f->aarch64PauthAbiCoreInfo.has_value();
-    });
-    if (it != ctx.objectFiles.end()) {
+    }); it != ctx.objectFiles.end()) {
       ctx.aarch64PauthAbiCoreInfo = (*it)->aarch64PauthAbiCoreInfo;
       referenceFileName = (*it)->getName();
     }

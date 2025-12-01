@@ -113,8 +113,8 @@ static void appendCodeTemplates(const LLVMState &State,
   case ExecutionMode::SERIAL_VIA_MEMORY_INSTR: {
     // Select back-to-back memory instruction.
 
-    auto &I = Variant.getInstr();
-    if (I.Description.mayLoad()) {
+    
+    if (auto &I = Variant.getInstr(); I.Description.mayLoad()) {
       // If instruction is load, we can self-alias it in case when instruction
       // overrides whole address register. For that we use provided scratch
       // memory.

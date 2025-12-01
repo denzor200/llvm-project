@@ -169,8 +169,8 @@ void WhitespaceManager::calculateLineBreakInformation() {
     // For this reason, if the text between consecutive changes spans multiple
     // newlines, the token length must be adjusted to the end of the original
     // line of the token.
-    auto NewlinePos = Text.find_first_of('\n');
-    if (NewlinePos == StringRef::npos) {
+    
+    if (auto NewlinePos = Text.find_first_of('\n'); NewlinePos == StringRef::npos) {
       PrevTokLength = OriginalWhitespaceStartOffset -
                       PreviousOriginalWhitespaceEndOffset +
                       C.PreviousLinePostfix.size() + P.CurrentLinePrefix.size();
@@ -532,10 +532,10 @@ static unsigned AlignTokens(const FormatStyle &Style, F &&Matches,
 
       // Whether to break the alignment sequence because of a line without a
       // match.
-      bool NoMatchBreak =
-          !FoundMatchOnLine && !(LineIsComment && ACS.AcrossComments);
+      
 
-      if (EmptyLineBreak || NoMatchBreak)
+      if (bool NoMatchBreak =
+          !FoundMatchOnLine && !(LineIsComment && ACS.AcrossComments); EmptyLineBreak || NoMatchBreak)
         AlignCurrentSequence();
 
       // A new line starts, re-initialize line status tracking bools.
@@ -596,9 +596,9 @@ static unsigned AlignTokens(const FormatStyle &Style, F &&Matches,
                     MatchingParenToEncounter || Changes[J].IsAligned);
          ++J) {
       const auto &Change = Changes[J];
-      const auto *Tok = Change.Tok;
+      
 
-      if (Tok->MatchingParen) {
+      if (const auto *Tok = Change.Tok; Tok->MatchingParen) {
         if (Tok->isOneOf(tok::l_paren, tok::l_brace, tok::l_square,
                          TT_TemplateOpener) &&
             !MatchingParenToEncounter) {
@@ -768,8 +768,8 @@ void WhitespaceManager::alignConsecutiveAssignments() {
           return false;
 
         // Do not align operator= overloads.
-        FormatToken *Previous = C.Tok->getPreviousNonComment();
-        if (Previous && Previous->is(tok::kw_operator))
+        
+        if (FormatToken *Previous = C.Tok->getPreviousNonComment(); Previous && Previous->is(tok::kw_operator))
           return false;
 
         return Style.AlignConsecutiveAssignments.AlignCompound
@@ -860,13 +860,13 @@ void WhitespaceManager::alignConsecutiveShortCaseStatements(bool IsExpr) {
 
       // Whether to break the alignment sequence because of a line without a
       // match.
-      bool NoMatchBreak =
+      
+
+      if (bool NoMatchBreak =
           !FoundMatchOnLine &&
           !(LineIsComment &&
             Style.AlignConsecutiveShortCaseStatements.AcrossComments) &&
-          !LineIsEmptyCase;
-
-      if (EmptyLineBreak || NoMatchBreak) {
+          !LineIsEmptyCase; EmptyLineBreak || NoMatchBreak) {
         AlignMatchingTokenSequence(StartOfSequence, EndOfSequence, MinColumn,
                                    Matches, Changes);
         MinEmptyCaseColumn = 0;
@@ -1052,11 +1052,11 @@ void WhitespaceManager::alignTrailingComments() {
           C.OriginalWhitespaceRange.getBegin().getRawEncoding() -
           C.Tok->LastNewlineOffset;
       assert(OriginalSpaces >= 0);
-      const auto RestoredLineLength =
-          C.StartOfTokenColumn + C.TokenLength + OriginalSpaces;
+      
       // If leaving comments makes the line exceed the column limit, give up to
       // leave the comments.
-      if (RestoredLineLength >= Style.ColumnLimit && Style.ColumnLimit > 0)
+      if (const auto RestoredLineLength =
+          C.StartOfTokenColumn + C.TokenLength + OriginalSpaces; RestoredLineLength >= Style.ColumnLimit && Style.ColumnLimit > 0)
         break;
       C.Spaces = C.NewlinesBefore > 0 ? C.Tok->OriginalColumn : OriginalSpaces;
       continue;
@@ -1218,8 +1218,8 @@ void WhitespaceManager::alignEscapedNewlines() {
 void WhitespaceManager::alignEscapedNewlines(unsigned Start, unsigned End,
                                              unsigned Column) {
   for (unsigned i = Start; i < End; ++i) {
-    Change &C = Changes[i];
-    if (C.NewlinesBefore > 0) {
+    
+    if (Change &C = Changes[i]; C.NewlinesBefore > 0) {
       assert(C.ContinuesPPDirective);
       if (C.PreviousEndOfTokenColumn + 1 > Column)
         C.EscapedNewlineColumn = 0;
@@ -1235,8 +1235,8 @@ void WhitespaceManager::alignArrayInitializers() {
 
   for (unsigned ChangeIndex = 1U, ChangeEnd = Changes.size();
        ChangeIndex < ChangeEnd; ++ChangeIndex) {
-    auto &C = Changes[ChangeIndex];
-    if (C.Tok->IsArrayInitializer) {
+    
+    if (auto &C = Changes[ChangeIndex]; C.Tok->IsArrayInitializer) {
       bool FoundComplete = false;
       for (unsigned InsideIndex = ChangeIndex + 1; InsideIndex < ChangeEnd;
            ++InsideIndex) {
@@ -1286,8 +1286,8 @@ void WhitespaceManager::alignArrayInitializersRightJustified(
       // the spaces in front of the brace are enough.
       const auto *Next = CellIter;
       do {
-        const FormatToken *Previous = Changes[Next->Index].Tok->Previous;
-        if (Previous && Previous->isNot(TT_LineComment)) {
+        
+        if (const FormatToken *Previous = Changes[Next->Index].Tok->Previous; Previous && Previous->isNot(TT_LineComment)) {
           Changes[Next->Index].Spaces = BracePadding;
           Changes[Next->Index].NewlinesBefore = 0;
         }
@@ -1378,8 +1378,8 @@ void WhitespaceManager::alignArrayInitializersLeftJustified(
         break;
       auto *Start = (Cells.begin() + RowCount * CellDescs.CellCounts[0]);
       auto *End = Start + Offset;
-      auto ThisNetWidth = getNetWidth(Start, End, CellDescs.InitialSpaces);
-      if (Changes[Next->Index].NewlinesBefore == 0) {
+      
+      if (auto ThisNetWidth = getNetWidth(Start, End, CellDescs.InitialSpaces); Changes[Next->Index].NewlinesBefore == 0) {
         Changes[Next->Index].Spaces =
             MaxNetWidth - ThisNetWidth +
             (Changes[Next->Index].Tok->isNot(tok::r_brace) ? 1 : BracePadding);
@@ -1496,12 +1496,12 @@ WhitespaceManager::CellDescriptions WhitespaceManager::getCells(unsigned Start,
         // Well if it doesn't lead to that it's indicative that the line
         // breaking should be revisited. Unfortunately alot of other options
         // interact with this
-        auto j = i - 1;
-        if ((j - 1) > Start && Changes[j].Tok->is(tok::comma) &&
+        
+        if (auto j = i - 1; (j - 1) > Start && Changes[j].Tok->is(tok::comma) &&
             Changes[j - 1].NewlinesBefore > 0) {
           --j;
-          auto LineLimit = Changes[j].Spaces + Changes[j].TokenLength;
-          if (LineLimit < Style.ColumnLimit) {
+          
+          if (auto LineLimit = Changes[j].Spaces + Changes[j].TokenLength; LineLimit < Style.ColumnLimit) {
             Changes[i].NewlinesBefore = 0;
             Changes[i].Spaces = 1;
           }
@@ -1564,7 +1564,7 @@ void WhitespaceManager::generateChanges() {
     const Change &C = Changes[i];
     if (i > 0) {
       auto Last = Changes[i - 1].OriginalWhitespaceRange;
-      auto New = Changes[i].OriginalWhitespaceRange;
+      
       // Do not generate two replacements for the same location.  As a special
       // case, it is allowed if there is a replacement for the empty range
       // between 2 tokens and another non-empty range at the start of the second
@@ -1606,7 +1606,7 @@ void WhitespaceManager::generateChanges() {
       // will be replaced by a newline and 4 spaces.  So we will still have to
       // deal with a replacement for an empty source range followed by a
       // replacement for a non-empty source range.
-      if (Last.getBegin() == New.getBegin() &&
+      if (auto New = Changes[i].OriginalWhitespaceRange; Last.getBegin() == New.getBegin() &&
           (Last.getEnd() != Last.getBegin() ||
            New.getEnd() == New.getBegin())) {
         continue;
@@ -1634,10 +1634,10 @@ void WhitespaceManager::generateChanges() {
 }
 
 void WhitespaceManager::storeReplacement(SourceRange Range, StringRef Text) {
-  unsigned WhitespaceLength = SourceMgr.getFileOffset(Range.getEnd()) -
-                              SourceMgr.getFileOffset(Range.getBegin());
+  
   // Don't create a replacement, if it does not change anything.
-  if (StringRef(SourceMgr.getCharacterData(Range.getBegin()),
+  if (unsigned WhitespaceLength = SourceMgr.getFileOffset(Range.getEnd()) -
+                              SourceMgr.getFileOffset(Range.getBegin()); StringRef(SourceMgr.getCharacterData(Range.getBegin()),
                 WhitespaceLength) == Text) {
     return;
   }

@@ -38,8 +38,8 @@ template <>
 std::optional<APFloat> MachineFloatingPointPredicateUtils::matchConstantFloat(
     const MachineFunction &MF, Register Val) {
   const MachineRegisterInfo &MRI = MF.getRegInfo();
-  const ConstantFP *ConstVal;
-  if (mi_match(Val, MRI, m_GFCst(ConstVal)))
+  
+  if (const ConstantFP *ConstVal; mi_match(Val, MRI, m_GFCst(ConstVal)))
     return ConstVal->getValueAPF();
 
   return std::nullopt;

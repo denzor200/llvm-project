@@ -197,17 +197,17 @@ public:
         *M, "atexit", FunctionType::get(IntTy, {AtExitCallbackPtrTy}, false),
         GlobalValue::HiddenVisibility, "__lljit.atexit_helper",
         {PlatformInstanceDecl, DSOHandle});
-    Attribute::AttrKind AtExitExtAttr =
-        TargetLibraryInfo::getExtAttrForI32Return(J.getTargetTriple());
-    if (AtExitExtAttr != Attribute::None)
+    
+    if (Attribute::AttrKind AtExitExtAttr =
+        TargetLibraryInfo::getExtAttrForI32Return(J.getTargetTriple()); AtExitExtAttr != Attribute::None)
       AtExit->addRetAttr(AtExitExtAttr);
 
     return J.addIRModule(JD, ThreadSafeModule(std::move(M), std::move(Ctx)));
   }
 
   Error notifyAdding(ResourceTracker &RT, const MaterializationUnit &MU) {
-    auto &JD = RT.getJITDylib();
-    if (auto &InitSym = MU.getInitializerSymbol())
+    
+    if (auto &auto &JD = RT.getJITDylib(); InitSym = MU.getInitializerSymbol())
       InitSymbols[&JD].add(InitSym, SymbolLookupFlags::WeaklyReferencedSymbol);
     else {
       // If there's no identified init symbol attached, but there is a symbol
@@ -294,8 +294,8 @@ private:
             return DFSLinkOrderOrErr.takeError();
 
           for (auto &NextJD : DFSLinkOrder) {
-            auto IFItr = InitFunctions.find(NextJD.get());
-            if (IFItr != InitFunctions.end()) {
+            
+            if (auto IFItr = InitFunctions.find(NextJD.get()); IFItr != InitFunctions.end()) {
               LookupSymbols[NextJD.get()] = std::move(IFItr->second);
               InitFunctions.erase(IFItr);
             }
@@ -408,8 +408,8 @@ private:
             return DFSLinkOrderOrErr.takeError();
 
           for (auto &NextJD : DFSLinkOrder) {
-            auto ISItr = InitSymbols.find(NextJD.get());
-            if (ISItr != InitSymbols.end()) {
+            
+            if (auto ISItr = InitSymbols.find(NextJD.get()); ISItr != InitSymbols.end()) {
               RequiredInitSymbols[NextJD.get()] = std::move(ISItr->second);
               InitSymbols.erase(ISItr);
             }
@@ -475,9 +475,9 @@ private:
                           false),
         GlobalValue::DefaultVisibility, "__lljit.cxa_atexit_helper",
         {PlatformInstanceDecl});
-    Attribute::AttrKind CxaAtExitExtAttr =
-        TargetLibraryInfo::getExtAttrForI32Return(J.getTargetTriple());
-    if (CxaAtExitExtAttr != Attribute::None)
+    
+    if (Attribute::AttrKind CxaAtExitExtAttr =
+        TargetLibraryInfo::getExtAttrForI32Return(J.getTargetTriple()); CxaAtExitExtAttr != Attribute::None)
       CxaAtExit->addRetAttr(CxaAtExitExtAttr);
 
     return ThreadSafeModule(std::move(M), std::move(Ctx));
@@ -706,10 +706,10 @@ Error LLJITBuilderState::prepareForConstruction() {
 #endif // !LLVM_ENABLE_THREADS
 
   // Only used in debug builds.
-  [[maybe_unused]] bool ConcurrentCompilationSettingDefaulted =
-      !SupportConcurrentCompilation;
+  
 
-  if (!SupportConcurrentCompilation) {
+  if ([[maybe_unused]] bool ConcurrentCompilationSettingDefaulted =
+      !SupportConcurrentCompilation; !SupportConcurrentCompilation) {
 #if LLVM_ENABLE_THREADS
     SupportConcurrentCompilation = NumCompileThreads || ES || EPC;
 #else
@@ -1250,8 +1250,8 @@ Expected<JITDylibSP> setUpGenericLLVMIRPlatform(LLJIT &J) {
 
     // Otherwise fall back to standard unwind registration.
     if (UseEHFrames) {
-      auto &ES = J.getExecutionSession();
-      if (auto EHFP = EHFrameRegistrationPlugin::Create(ES)) {
+      
+      if (auto auto &ES = J.getExecutionSession(); EHFP = EHFrameRegistrationPlugin::Create(ES)) {
         OLL->addPlugin(std::move(*EHFP));
         LLVM_DEBUG(dbgs() << "Enabled eh-frame support.\n");
       } else

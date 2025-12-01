@@ -35,9 +35,9 @@ BreakpointResolverName::BreakpointResolverName(
   if (m_match_type == Breakpoint::Regexp) {
     m_regex = RegularExpression(name_cstr);
     if (!m_regex.IsValid()) {
-      Log *log = GetLog(LLDBLog::Breakpoints);
+      
 
-      if (log)
+      if (Log *log = GetLog(LLDBLog::Breakpoints); log)
         log->Warning("function name regexp: \"%s\" did not compile.",
                      name_cstr);
     }
@@ -280,9 +280,9 @@ BreakpointResolverName::SearchCallback(SearchFilter &filter,
         context.module_sp->FindFunctions(lookup, CompilerDeclContext(),
                                          function_options, func_list);
 
-        const size_t end_func_idx = func_list.GetSize();
+        
 
-        if (start_func_idx < end_func_idx)
+        if (const size_t end_func_idx = func_list.GetSize(); start_func_idx < end_func_idx)
           lookup.Prune(func_list, start_func_idx);
       }
     }
@@ -313,8 +313,8 @@ BreakpointResolverName::SearchCallback(SearchFilter &filter,
       }
 
       if (filter_by_language) {
-        LanguageType sym_language = sc.GetLanguage();
-        if ((Language::GetPrimaryLanguage(sym_language) !=
+        
+        if (LanguageType sym_language = sc.GetLanguage(); (Language::GetPrimaryLanguage(sym_language) !=
              Language::GetPrimaryLanguage(m_language)) &&
             (sym_language != eLanguageTypeUnknown)) {
           remove_it = true;
@@ -343,15 +343,15 @@ BreakpointResolverName::SearchCallback(SearchFilter &filter,
     } else if (sc.function) {
       break_addr = sc.function->GetAddress();
       if (m_skip_prologue && break_addr.IsValid()) {
-        const uint32_t prologue_byte_size = sc.function->GetPrologueByteSize();
-        if (prologue_byte_size)
+        
+        if (const uint32_t prologue_byte_size = sc.function->GetPrologueByteSize(); prologue_byte_size)
           break_addr.SetOffset(break_addr.GetOffset() + prologue_byte_size);
       }
     } else if (sc.symbol) {
       if (sc.symbol->GetType() == eSymbolTypeReExported) {
-        const Symbol *actual_symbol =
-            sc.symbol->ResolveReExportedSymbol(breakpoint.GetTarget());
-        if (actual_symbol) {
+        
+        if (const Symbol *actual_symbol =
+            sc.symbol->ResolveReExportedSymbol(breakpoint.GetTarget()); actual_symbol) {
           is_reexported = true;
           break_addr = actual_symbol->GetAddress();
         }
@@ -360,13 +360,13 @@ BreakpointResolverName::SearchCallback(SearchFilter &filter,
       }
 
       if (m_skip_prologue && break_addr.IsValid()) {
-        const uint32_t prologue_byte_size = sc.symbol->GetPrologueByteSize();
-        if (prologue_byte_size)
+        
+        if (const uint32_t prologue_byte_size = sc.symbol->GetPrologueByteSize(); prologue_byte_size)
           break_addr.SetOffset(break_addr.GetOffset() + prologue_byte_size);
         else {
-          const Architecture *arch =
-              breakpoint.GetTarget().GetArchitecturePlugin();
-          if (arch)
+          
+          if (const Architecture *arch =
+              breakpoint.GetTarget().GetArchitecturePlugin(); arch)
             arch->AdjustBreakpointAddress(*sc.symbol, break_addr);
         }
       }
@@ -401,8 +401,8 @@ void BreakpointResolverName::GetDescription(Stream *s) {
   if (m_match_type == Breakpoint::Regexp)
     s->Printf("regex = '%s'", m_regex.GetText().str().c_str());
   else {
-    size_t num_names = m_lookups.size();
-    if (num_names == 1)
+    
+    if (size_t num_names = m_lookups.size(); num_names == 1)
       s->Printf("name = '%s'", m_lookups[0].GetName().GetCString());
     else {
       s->Printf("names = {");

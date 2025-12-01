@@ -88,10 +88,10 @@ protected:
         Result.SourceManager->getSpellingColumnNumber(LParenLoc);
     unsigned RParenLine =
         Result.SourceManager->getSpellingLineNumber(RParenLoc);
-    unsigned RParenColumn =
-        Result.SourceManager->getSpellingColumnNumber(RParenLoc);
+    
 
-    if (LParenLine != ExpectLParenLine || LParenColumn != ExpectLParenColumn ||
+    if (unsigned RParenColumn =
+        Result.SourceManager->getSpellingColumnNumber(RParenLoc); LParenLine != ExpectLParenLine || LParenColumn != ExpectLParenColumn ||
         RParenLine != ExpectRParenLine || RParenColumn != ExpectRParenColumn) {
       std::string MsgStr;
       llvm::raw_string_ostream Msg(MsgStr);
@@ -933,8 +933,8 @@ class ParmVarExceptionSpecRangeVerifier : public RangeVerifier<ParmVarDecl> {
 protected:
   SourceRange getRange(const ParmVarDecl &Node) override {
     if (const TypeSourceInfo *TSI = Node.getTypeSourceInfo()) {
-      TypeLoc TL = TSI->getTypeLoc();
-      if (TL.getType()->isPointerType()) {
+      
+      if (TypeLoc TL = TSI->getTypeLoc(); TL.getType()->isPointerType()) {
         TL = TL.getNextTypeLoc().IgnoreParens();
         if (auto FPTL = TL.getAs<FunctionProtoTypeLoc>()) {
           return FPTL.getExceptionSpecRange();

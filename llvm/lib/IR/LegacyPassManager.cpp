@@ -578,9 +578,9 @@ PMTopLevelManager::setLastUser(ArrayRef<Pass*> AnalysisPasses, Pass *P) {
       assert(AnalysisPass && "Expected analysis pass to exist.");
       AnalysisResolver *AR = AnalysisPass->getResolver();
       assert(AR && "Expected analysis resolver to exist.");
-      unsigned APDepth = AR->getPMDataManager().getDepth();
+      
 
-      if (PDepth == APDepth)
+      if (unsigned APDepth = AR->getPMDataManager().getDepth(); PDepth == APDepth)
         LastUses.push_back(AnalysisPass);
       else if (PDepth > APDepth)
         LastPMUses.push_back(AnalysisPass);
@@ -632,8 +632,8 @@ AnalysisUsage *PMTopLevelManager::findAnalysisUsage(Pass *P) {
     AUFoldingSetNode* Node = nullptr;
     FoldingSetNodeID ID;
     AUFoldingSetNode::Profile(ID, AU);
-    void *IP = nullptr;
-    if (auto *N = UniqueAnalysisUsages.FindNodeOrInsertPos(ID, IP))
+    
+    if (auto *void *IP = nullptr; N = UniqueAnalysisUsages.FindNodeOrInsertPos(ID, IP))
       Node = N;
     else {
       Node = new (AUFoldingSetNodeAllocator.Allocate()) AUFoldingSetNode(AU);
@@ -678,8 +678,8 @@ void PMTopLevelManager::schedulePass(Pass *P) {
     const AnalysisUsage::VectorType &RequiredSet = AnUsage->getRequiredSet();
     for (const AnalysisID ID : RequiredSet) {
 
-      Pass *AnalysisPass = findAnalysisPass(ID);
-      if (!AnalysisPass) {
+      
+      if (Pass *AnalysisPass = findAnalysisPass(ID); !AnalysisPass) {
         const PassInfo *PI = findAnalysisPassInfo(ID);
 
         if (!PI) {
@@ -690,8 +690,8 @@ void PMTopLevelManager::schedulePass(Pass *P) {
           for (const AnalysisID ID2 : RequiredSet) {
             if (ID == ID2)
               break;
-            Pass *AnalysisPass2 = findAnalysisPass(ID2);
-            if (AnalysisPass2) {
+            
+            if (Pass *AnalysisPass2 = findAnalysisPass(ID2); AnalysisPass2) {
               dbgs() << "\t" << AnalysisPass2->getPassName() << "\n";
             } else {
               dbgs() << "\t"   << "Error: Required pass not found! Possible causes:"  << "\n";
@@ -905,8 +905,8 @@ void PMDataManager::removeNotPreservedAnalysis(Pass *P) {
   const AnalysisUsage::VectorType &PreservedSet = AnUsage->getPreservedSet();
   for (DenseMap<AnalysisID, Pass*>::iterator I = AvailableAnalysis.begin(),
          E = AvailableAnalysis.end(); I != E; ) {
-    DenseMap<AnalysisID, Pass*>::iterator Info = I++;
-    if (Info->second->getAsImmutablePass() == nullptr &&
+    
+    if (DenseMap<AnalysisID, Pass*>::iterator Info = I++; Info->second->getAsImmutablePass() == nullptr &&
         !is_contained(PreservedSet, Info->first)) {
       // Remove this analysis
       if (PassDebugging >= Details) {
@@ -927,8 +927,8 @@ void PMDataManager::removeNotPreservedAnalysis(Pass *P) {
     for (DenseMap<AnalysisID, Pass *>::iterator I = IA->begin(),
                                                 E = IA->end();
          I != E;) {
-      DenseMap<AnalysisID, Pass *>::iterator Info = I++;
-      if (Info->second->getAsImmutablePass() == nullptr &&
+      
+      if (DenseMap<AnalysisID, Pass *>::iterator Info = I++; Info->second->getAsImmutablePass() == nullptr &&
           !is_contained(PreservedSet, Info->first)) {
         // Remove this analysis
         if (PassDebugging >= Details) {
@@ -1406,11 +1406,11 @@ bool FPPassManager::runOnFunction(Function &F) {
 #endif
 
       if (EmitICRemark) {
-        unsigned NewSize = F.getInstructionCount();
+        
 
         // Update the size of the function, emit a remark, and update the size
         // of the module.
-        if (NewSize != FunctionSize) {
+        if (unsigned NewSize = F.getInstructionCount(); NewSize != FunctionSize) {
           int64_t Delta = static_cast<int64_t>(NewSize) -
                           static_cast<int64_t>(FunctionSize);
           emitInstrCountChangedRemark(FP, M, Delta, InstrCount,
@@ -1519,8 +1519,8 @@ MPPassManager::runOnModule(Module &M) {
 
       if (EmitICRemark) {
         // Update the size of the module.
-        unsigned ModuleCount = M.getInstructionCount();
-        if (ModuleCount != InstrCount) {
+        
+        if (unsigned ModuleCount = M.getInstructionCount(); ModuleCount != InstrCount) {
           int64_t Delta = static_cast<int64_t>(ModuleCount) -
                           static_cast<int64_t>(InstrCount);
           emitInstrCountChangedRemark(MP, M, Delta, InstrCount,

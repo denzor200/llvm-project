@@ -149,9 +149,9 @@ static void PtraceDisplayBytes(int &req, void *data, size_t data_size) {
   Log *log = GetLog(POSIXLog::Ptrace);
   if (!log)
     return;
-  StreamString buf;
+  
 
-  switch (req) {
+  switch (StreamString buf; req) {
   case PTRACE_POKETEXT: {
     DisplayBytes(buf, &data, 8);
     LLDB_LOGV(log, "PTRACE_POKETEXT {0}", buf.GetData());
@@ -640,8 +640,8 @@ void NativeProcessLinux::MonitorSIGTRAP(const siginfo_t &info,
     // can also cause PTRACE_EVENT_FORK and PTRACE_EVENT_VFORK if one
     // of these flags are passed.
 
-    unsigned long event_message = 0;
-    if (GetEventMessage(thread.GetID(), &event_message).Fail()) {
+    
+    if (unsigned long event_message = 0; GetEventMessage(thread.GetID(), &event_message).Fail()) {
       LLDB_LOG(log,
                "pid {0} received clone() event but GetEventMessage failed "
                "so we don't know the new pid/tid",
@@ -891,8 +891,8 @@ void NativeProcessLinux::MonitorSignal(const siginfo_t &info,
     // we received another stop.  It is more likely that we are missing the
     // marking of a run state somewhere if we find that the thread was marked
     // as stopped.
-    const StateType thread_state = thread.GetState();
-    if (!StateIsStoppedState(thread_state, false)) {
+    
+    if (const StateType thread_state = thread.GetState(); !StateIsStoppedState(thread_state, false)) {
       // An inferior thread has stopped because of a SIGSTOP we have sent it.
       // Generally, these are not important stops and we don't want to report
       // them as they are just used to stop other threads when one thread (the
@@ -911,8 +911,8 @@ void NativeProcessLinux::MonitorSignal(const siginfo_t &info,
       } else {
         // We can end up here if stop was initiated by LLGS but by this time a
         // thread stop has occurred - maybe initiated by another event.
-        Status error = ResumeThread(thread, thread.GetState(), 0);
-        if (error.Fail())
+        
+        if (Status error = ResumeThread(thread, thread.GetState(), 0); error.Fail())
           LLDB_LOG(log, "failed to resume thread {0}: {1}", thread.GetID(),
                    error);
       }
@@ -957,8 +957,8 @@ bool NativeProcessLinux::MonitorClone(NativeThreadLinux &parent,
     // Try to grab the new process' PGID to figure out which one it is.
     // If PGID is the same as the PID, then it's a new process.  Otherwise,
     // it's a thread.
-    auto tgid_ret = getPIDForTID(child_pid);
-    if (tgid_ret != child_pid) {
+    
+    if (auto tgid_ret = getPIDForTID(child_pid); tgid_ret != child_pid) {
       // A new thread should have PGID matching our process' PID.
       assert(!tgid_ret || *tgid_ret == GetID());
 
@@ -1012,9 +1012,9 @@ Status NativeProcessLinux::Resume(const ResumeActionList &resume_actions) {
 
   NotifyTracersProcessWillResume();
 
-  bool software_single_step = !SupportHardwareSingleStepping();
+  
 
-  if (software_single_step) {
+  if (bool software_single_step = !SupportHardwareSingleStepping(); software_single_step) {
     for (const auto &thread : m_threads) {
       assert(thread && "thread list should not contain NULL threads");
 
@@ -1024,9 +1024,9 @@ Status NativeProcessLinux::Resume(const ResumeActionList &resume_actions) {
         continue;
 
       if (action->state == eStateStepping) {
-        Status error = SetupSoftwareSingleStepping(
-            static_cast<NativeThreadLinux &>(*thread));
-        if (error.Fail())
+        
+        if (Status error = SetupSoftwareSingleStepping(
+            static_cast<NativeThreadLinux &>(*thread)); error.Fail())
           return error;
       }
     }
@@ -1052,9 +1052,9 @@ Status NativeProcessLinux::Resume(const ResumeActionList &resume_actions) {
     case eStateStepping: {
       // Run the thread, possibly feeding it the signal.
       const int signo = action->signal;
-      Status error = ResumeThread(static_cast<NativeThreadLinux &>(*thread),
-                                  action->state, signo);
-      if (error.Fail())
+      
+      if (Status error = ResumeThread(static_cast<NativeThreadLinux &>(*thread),
+                                  action->state, signo); error.Fail())
         return Status::FromErrorStringWithFormat(
             "NativeProcessLinux::%s: failed to resume thread "
             "for pid %" PRIu64 ", tid %" PRIu64 ", error = %s",
@@ -1100,9 +1100,9 @@ Status NativeProcessLinux::Detach() {
   kill(GetID(), SIGCONT);
 
   for (const auto &thread : m_threads) {
-    Status e = Detach(thread->GetID());
+    
      // Save the error, but still attempt to detach from other threads.
-    if (e.Fail())
+    if (Status e = Detach(thread->GetID()); e.Fail())
       error = e.Clone();
   }
 
@@ -1136,8 +1136,8 @@ Status NativeProcessLinux::Interrupt() {
   for (const auto &thread : m_threads) {
     // If we have a running or stepping thread, we'll call that the target of
     // the interrupt.
-    const auto thread_state = thread->GetState();
-    if (thread_state == eStateRunning || thread_state == eStateStepping) {
+    
+    if (const auto thread_state = thread->GetState(); thread_state == eStateRunning || thread_state == eStateStepping) {
       running_thread = thread.get();
       break;
     } else if (!stopped_thread && StateIsStoppedState(thread_state, true)) {
@@ -1507,12 +1507,12 @@ Status NativeProcessLinux::ReadMemoryTags(int32_t type, lldb::addr_t addr,
     tags_iovec.iov_base = dest;
     tags_iovec.iov_len = num_tags;
 
-    Status error = NativeProcessLinux::PtraceWrapper(
+    
+
+    if (Status error = NativeProcessLinux::PtraceWrapper(
         details->ptrace_read_req, GetCurrentThreadID(),
         reinterpret_cast<void *>(read_addr), static_cast<void *>(&tags_iovec),
-        0, nullptr);
-
-    if (error.Fail()) {
+        0, nullptr); error.Fail()) {
       // Discard partial reads
       tags.resize(0);
       return error;
@@ -1577,12 +1577,12 @@ Status NativeProcessLinux::WriteMemoryTags(int32_t type, lldb::addr_t addr,
     tags_vec.iov_base = src;
     tags_vec.iov_len = num_tags;
 
-    Status error = NativeProcessLinux::PtraceWrapper(
+    
+
+    if (Status error = NativeProcessLinux::PtraceWrapper(
         details->ptrace_write_req, GetCurrentThreadID(),
         reinterpret_cast<void *>(write_addr), static_cast<void *>(&tags_vec), 0,
-        nullptr);
-
-    if (error.Fail()) {
+        nullptr); error.Fail()) {
       // Don't attempt to restore the original values in the case of a partial
       // write
       return error;
@@ -1626,9 +1626,9 @@ NativeProcessLinux::GetSoftwareBreakpointTrapOpcode(size_t size_hint) {
   // The ARM reference recommends the use of 0xe7fddefe and 0xdefe but the
   // linux kernel does otherwise.
   static const uint8_t g_arm_opcode[] = {0xf0, 0x01, 0xf0, 0xe7};
-  static const uint8_t g_thumb_opcode[] = {0x01, 0xde};
+  
 
-  switch (GetArchitecture().GetMachine()) {
+  switch (static const uint8_t g_thumb_opcode[] = {0x01, 0xde}; GetArchitecture().GetMachine()) {
   case llvm::Triple::arm:
     switch (size_hint) {
     case 2:
@@ -1680,10 +1680,10 @@ Status NativeProcessLinux::ReadMemory(lldb::addr_t addr, void *buf, size_t size,
   long data;
 
   for (; bytes_read < size; bytes_read += remainder) {
-    Status error = NativeProcessLinux::PtraceWrapper(
+    
+    if (Status error = NativeProcessLinux::PtraceWrapper(
         PTRACE_PEEKDATA, GetCurrentThreadID(),
-        reinterpret_cast<void *>(addr + bytes_read), nullptr, 0, &data);
-    if (error.Fail())
+        reinterpret_cast<void *>(addr + bytes_read), nullptr, 0, &data); error.Fail())
       return error;
 
     remainder = size - bytes_read;
@@ -1828,8 +1828,8 @@ NativeThreadLinux &NativeProcessLinux::AddThread(lldb::tid_t thread_id,
   NativeThreadLinux &thread =
       static_cast<NativeThreadLinux &>(*m_threads.back());
 
-  Status tracing_error = NotifyTracersOfNewThread(thread.GetID());
-  if (tracing_error.Fail()) {
+  
+  if (Status tracing_error = NotifyTracersOfNewThread(thread.GetID()); tracing_error.Fail()) {
     thread.SetStoppedByProcessorTrace(tracing_error.AsCString());
     StopRunningThreads(thread.GetID());
   } else if (resume)
@@ -1842,8 +1842,8 @@ NativeThreadLinux &NativeProcessLinux::AddThread(lldb::tid_t thread_id,
 
 Status NativeProcessLinux::GetLoadedModuleFileSpec(const char *module_path,
                                                    FileSpec &file_spec) {
-  Status error = PopulateMemoryRegionCache();
-  if (error.Fail())
+  
+  if (Status error = PopulateMemoryRegionCache(); error.Fail())
     return error;
 
   FileSpec module_file_spec(module_path);
@@ -1864,8 +1864,8 @@ Status NativeProcessLinux::GetLoadedModuleFileSpec(const char *module_path,
 Status NativeProcessLinux::GetFileLoadAddress(const llvm::StringRef &file_name,
                                               lldb::addr_t &load_addr) {
   load_addr = LLDB_INVALID_ADDRESS;
-  Status error = PopulateMemoryRegionCache();
-  if (error.Fail())
+  
+  if (Status error = PopulateMemoryRegionCache(); error.Fail())
     return error;
 
   FileSpec file(file_name);
@@ -1963,8 +1963,8 @@ void NativeProcessLinux::SignalIfAllThreadsStopped() {
   // stepping.
   for (const auto &thread_info : m_threads_stepping_with_breakpoint) {
     for (auto &&bp_addr : thread_info.second) {
-      Status error = RemoveBreakpoint(bp_addr);
-      if (error.Fail())
+      
+      if (Status error = RemoveBreakpoint(bp_addr); error.Fail())
         LLDB_LOG(log, "pid = {0} remove stepping breakpoint: {1}",
                  thread_info.first, error);
     }

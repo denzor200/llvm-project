@@ -315,8 +315,8 @@ static const Defined *
 getChangedSymbolAssignment(const SymbolAssignmentMap &oldValues) {
   const Defined *changed = nullptr;
   for (auto &it : oldValues) {
-    const Defined *sym = it.first;
-    if (std::make_pair(sym->section, sym->value) != it.second &&
+    
+    if (const Defined *sym = it.first; std::make_pair(sym->section, sym->value) != it.second &&
         (!changed || sym->getName() < changed->getName()))
       changed = sym;
   }
@@ -345,12 +345,12 @@ void LinkerScript::processInsertCommands() {
       sectionCommands.erase(from);
     }
 
-    auto insertPos =
+    
+    if (auto insertPos =
         llvm::find_if(sectionCommands, [&cmd](SectionCommand *subCmd) {
           auto *to = dyn_cast<OutputDesc>(subCmd);
           return to != nullptr && to->osec.name == cmd.where;
-        });
-    if (insertPos == sectionCommands.end()) {
+        }); insertPos == sectionCommands.end()) {
       ErrAlways(ctx) << "unable to insert " << cmd.names[0]
                      << (cmd.isAfter ? " after " : " before ") << cmd.where;
     } else {
@@ -475,11 +475,11 @@ static void sortSections(MutableArrayRef<InputSectionBase *> vec,
   auto nameComparator = [](InputSectionBase *a, InputSectionBase *b) {
     return a->name < b->name;
   };
-  auto priorityComparator = [](InputSectionBase *a, InputSectionBase *b) {
-    return getPriority(a->name) < getPriority(b->name);
-  };
+  
 
-  switch (k) {
+  switch (auto priorityComparator = [](InputSectionBase *a, InputSectionBase *b) {
+    return getPriority(a->name) < getPriority(b->name);
+  }; k) {
   case SortSectionPolicy::Default:
   case SortSectionPolicy::None:
     return;
@@ -768,15 +768,15 @@ void LinkerScript::processSectionCommands() {
   DenseMap<CachedHashStringRef, OutputDesc *> map;
   size_t i = 0;
   for (OutputDesc *osd : overwriteSections) {
-    OutputSection *osec = &osd->osec;
-    if (process(osec) &&
+    
+    if (OutputSection *osec = &osd->osec; process(osec) &&
         !map.try_emplace(CachedHashStringRef(osec->name), osd).second)
       Warn(ctx) << "OVERWRITE_SECTIONS specifies duplicate " << osec->name;
   }
   for (SectionCommand *&base : sectionCommands) {
     if (auto *osd = dyn_cast<OutputDesc>(base)) {
-      OutputSection *osec = &osd->osec;
-      if (OutputDesc *overwrite = map.lookup(CachedHashStringRef(osec->name))) {
+      
+      if (OutputDesc *OutputSection *osec = &osd->osec; overwrite = map.lookup(CachedHashStringRef(osec->name))) {
         Log(ctx) << overwrite->osec.location << " overwrites " << osec->name;
         overwrite->osec.sectionIndex = i++;
         base = overwrite;
@@ -981,11 +981,11 @@ static OutputDesc *addInputSec(Ctx &ctx,
       // because everything in the map was created by the orphan placement code.
       auto *firstIsec = cast<InputSectionBase>(
           cast<InputSectionDescription>(sec->commands[0])->sectionBases[0]);
-      OutputSection *firstIsecOut =
+      
+      if (OutputSection *firstIsecOut =
           (firstIsec->flags & SHF_LINK_ORDER)
               ? firstIsec->getLinkOrderDep()->getOutputSection()
-              : nullptr;
-      if (firstIsecOut != isec->getLinkOrderDep()->getOutputSection())
+              : nullptr; firstIsecOut != isec->getLinkOrderDep()->getOutputSection())
         continue;
     }
 
@@ -1007,8 +1007,8 @@ void LinkerScript::addOrphanSections() {
     if (s->isLive() && !s->parent) {
       orphanSections.push_back(s);
 
-      StringRef name = getOutputSectionName(s);
-      if (ctx.arg.unique) {
+      
+      if (StringRef name = getOutputSectionName(s); ctx.arg.unique) {
         v.push_back(createSection(ctx, s, name));
       } else if (OutputSection *sec = findByName(sectionCommands, name)) {
         sec->recordSection(s);
@@ -1080,8 +1080,8 @@ void LinkerScript::diagnoseOrphanHandling() const {
         cast<InputSection>(sec)->getRelocatedSection())
       continue;
 
-    StringRef name = getOutputSectionName(sec);
-    if (ctx.arg.orphanHandling == OrphanHandlingPolicy::Error)
+    
+    if (StringRef name = getOutputSectionName(sec); ctx.arg.orphanHandling == OrphanHandlingPolicy::Error)
       ErrAlways(ctx) << sec << " is being placed in '" << name << "'";
     else
       Warn(ctx) << sec << " is being placed in '" << name << "'";
@@ -1092,8 +1092,8 @@ void LinkerScript::diagnoseMissingSGSectionAddress() const {
   if (!ctx.arg.cmseImplib || !ctx.in.armCmseSGSection->isNeeded())
     return;
 
-  OutputSection *sec = findByName(sectionCommands, ".gnu.sgstubs");
-  if (sec && !sec->addrExpr && !ctx.arg.sectionStartMap.count(".gnu.sgstubs"))
+  
+  if (OutputSection *sec = findByName(sectionCommands, ".gnu.sgstubs"); sec && !sec->addrExpr && !ctx.arg.sectionStartMap.count(".gnu.sgstubs"))
     ErrAlways(ctx) << "no address assigned to the veneers output section "
                    << sec->name;
 }
@@ -1107,12 +1107,12 @@ std::pair<MemoryRegion *, MemoryRegion *>
 LinkerScript::findMemoryRegion(OutputSection *sec, MemoryRegion *hint) {
   // Non-allocatable sections are not part of the process image.
   if (!(sec->flags & SHF_ALLOC)) {
-    bool hasInputOrByteCommand =
+    
+    if (bool hasInputOrByteCommand =
         sec->hasInputSections ||
         llvm::any_of(sec->commands, [](SectionCommand *comm) {
           return ByteCommand::classof(comm);
-        });
-    if (!sec->memoryRegionName.empty() && hasInputOrByteCommand)
+        }); !sec->memoryRegionName.empty() && hasInputOrByteCommand)
       Warn(ctx)
           << "ignoring memory region assignment for non-allocatable section '"
           << sec->name << "'";
@@ -1141,8 +1141,8 @@ LinkerScript::findMemoryRegion(OutputSection *sec, MemoryRegion *hint) {
 
   // See if a region can be found by matching section flags.
   for (auto &pair : memoryRegions) {
-    MemoryRegion *m = pair.second;
-    if (m->compatibleWith(sec->flags))
+    
+    if (MemoryRegion *m = pair.second; m->compatibleWith(sec->flags))
       return {m, nullptr};
   }
 
@@ -1458,10 +1458,10 @@ void LinkerScript::adjustSectionsAfterSorting() {
   // PHDRS { seg PT_LOAD; }
   // SECTIONS { .aaa : { *(.aaa) } }
   SmallVector<StringRef, 0> defPhdrs;
-  auto firstPtLoad = llvm::find_if(phdrsCommands, [](const PhdrsCommand &cmd) {
+  
+  if (auto firstPtLoad = llvm::find_if(phdrsCommands, [](const PhdrsCommand &cmd) {
     return cmd.type == PT_LOAD;
-  });
-  if (firstPtLoad != phdrsCommands.end())
+  }); firstPtLoad != phdrsCommands.end())
     defPhdrs.push_back(firstPtLoad->name);
 
   // Walk the commands and propagate the program headers to commands that don't
@@ -1823,8 +1823,8 @@ void LinkerScript::printMemoryUsage(raw_ostream& os) {
     uint64_t usedLength = m->curPos - m->getOrigin();
     os << right_justify(m->name, 16) << ": ";
     printSize(usedLength);
-    uint64_t length = m->getLength();
-    if (length != 0) {
+    
+    if (uint64_t length = m->getLength(); length != 0) {
       printSize(length);
       double percent = usedLength * 100.0 / length;
       os << "    " << format("%6.2f%%", percent);
@@ -1841,8 +1841,8 @@ void LinkerScript::recordError(const Twine &msg) {
 static void checkMemoryRegion(Ctx &ctx, const MemoryRegion *region,
                               const OutputSection *osec, uint64_t addr) {
   uint64_t osecEnd = addr + osec->size;
-  uint64_t regionEnd = region->getOrigin() + region->getLength();
-  if (osecEnd > regionEnd) {
+  
+  if (uint64_t regionEnd = region->getOrigin() + region->getLength(); osecEnd > regionEnd) {
     ErrAlways(ctx) << "section '" << osec->name << "' will not fit in region '"
                    << region->name << "': overflowed by "
                    << (osecEnd - regionEnd) << " bytes";
@@ -1883,8 +1883,8 @@ void LinkerScript::addScriptReferencedSymbolsToSymTable() {
       reference(name);
       // Prevent the symbol from being discarded by --gc-sections.
       referencedSymbols.push_back(name);
-      auto it = provideMap.find(name);
-      if (it != provideMap.end() && shouldAddProvideSym(name) &&
+      
+      if (auto it = provideMap.find(name); it != provideMap.end() && shouldAddProvideSym(name) &&
           added.insert(name).second) {
         symRefsVec.push_back(&it->second);
       }

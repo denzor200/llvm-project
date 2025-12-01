@@ -216,8 +216,8 @@ ModRefInfo AAResults::getModRefInfo(const Instruction *I, const CallBase *Call2,
   // is that if the call references what this instruction
   // defines, it must be clobbered by this location.
   const MemoryLocation DefLoc = MemoryLocation::get(I);
-  ModRefInfo MR = getModRefInfo(Call2, DefLoc, AAQI);
-  if (isModOrRefSet(MR))
+  
+  if (ModRefInfo MR = getModRefInfo(Call2, DefLoc, AAQI); isModOrRefSet(MR))
     return ModRefInfo::ModRef;
   return ModRefInfo::NoModRef;
 }
@@ -287,8 +287,8 @@ ModRefInfo AAResults::getModRefInfo(const CallBase *Call1,
       return ModRefInfo::NoModRef;
     ModRefInfo R = ModRefInfo::NoModRef;
     for (auto I = Call2->arg_begin(), E = Call2->arg_end(); I != E; ++I) {
-      const Value *Arg = *I;
-      if (!Arg->getType()->isPointerTy())
+      
+      if (const Value *Arg = *I; !Arg->getType()->isPointerTy())
         continue;
       unsigned Call2ArgIdx = std::distance(Call2->arg_begin(), I);
       auto Call2ArgLoc =
@@ -325,8 +325,8 @@ ModRefInfo AAResults::getModRefInfo(const CallBase *Call1,
       return ModRefInfo::NoModRef;
     ModRefInfo R = ModRefInfo::NoModRef;
     for (auto I = Call1->arg_begin(), E = Call1->arg_end(); I != E; ++I) {
-      const Value *Arg = *I;
-      if (!Arg->getType()->isPointerTy())
+      
+      if (const Value *Arg = *I; !Arg->getType()->isPointerTy())
         continue;
       unsigned Call1ArgIdx = std::distance(Call1->arg_begin(), I);
       auto Call1ArgLoc =

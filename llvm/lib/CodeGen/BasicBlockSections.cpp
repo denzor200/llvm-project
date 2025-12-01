@@ -208,10 +208,10 @@ assignSections(MachineFunction &MF,
       if (I != FuncClusterInfo.end()) {
         MBB.setSectionID(I->second.ClusterID);
       } else {
-        const TargetInstrInfo &TII =
-            *MBB.getParent()->getSubtarget().getInstrInfo();
+        
 
-        if (TII.isMBBSafeToSplitToCold(MBB)) {
+        if (const TargetInstrInfo &TII =
+            *MBB.getParent()->getSubtarget().getInstrInfo(); TII.isMBBSafeToSplitToCold(MBB)) {
           // BB goes into the special cold section if it is not specified in the
           // cluster info map.
           MBB.setSectionID(MBBSectionID::ColdSectionID);
@@ -278,8 +278,8 @@ bool llvm::hasInstrProfHashMismatch(MachineFunction &MF) {
     return false;
 
   const char MetadataName[] = "instr_prof_hash_mismatch";
-  auto *Existing = MF.getFunction().getMetadata(LLVMContext::MD_annotation);
-  if (Existing) {
+  
+  if (auto *Existing = MF.getFunction().getMetadata(LLVMContext::MD_annotation); Existing) {
     MDTuple *Tuple = cast<MDTuple>(Existing);
     for (const auto &N : Tuple->operands())
       if (N.equalsStr(MetadataName))

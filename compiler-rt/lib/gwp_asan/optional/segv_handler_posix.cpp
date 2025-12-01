@@ -51,8 +51,8 @@ void printHeader(Error E, uintptr_t AccessPtr,
   bool AccessWasInBounds = false;
   if (E != Error::UNKNOWN && Metadata != nullptr) {
     uintptr_t Address = __gwp_asan_get_allocation_address(Metadata);
-    size_t Size = __gwp_asan_get_allocation_size(Metadata);
-    if (AccessPtr < Address) {
+    
+    if (size_t Size = __gwp_asan_get_allocation_size(Metadata); AccessPtr < Address) {
       snprintf(DescriptionBuffer, kDescriptionBufferLen,
                "(%zu byte%s to the left of a %zu-byte allocation at 0x%zx) ",
                Address - AccessPtr, (Address - AccessPtr == 1) ? "" : "s", Size,
@@ -115,9 +115,9 @@ void dumpReport(uintptr_t ErrorPtr, const gwp_asan::AllocatorState *State,
   assert(__gwp_asan_error_is_mine(State, ErrorPtr) &&
          "dumpReport() called on a non-GWP-ASan error.");
 
-  uintptr_t InternalErrorPtr =
-      __gwp_asan_get_internal_crash_address(State, ErrorPtr);
-  if (InternalErrorPtr)
+  
+  if (uintptr_t InternalErrorPtr =
+      __gwp_asan_get_internal_crash_address(State, ErrorPtr); InternalErrorPtr)
     ErrorPtr = InternalErrorPtr;
 
   const gwp_asan::AllocationMetadata *AllocMeta =
@@ -164,8 +164,8 @@ void dumpReport(uintptr_t ErrorPtr, const gwp_asan::AllocatorState *State,
 
   // Maybe print the deallocation trace.
   if (__gwp_asan_is_deallocated(AllocMeta)) {
-    uint64_t ThreadID = __gwp_asan_get_deallocation_thread_id(AllocMeta);
-    if (ThreadID == gwp_asan::kInvalidThreadID)
+    
+    if (uint64_t ThreadID = __gwp_asan_get_deallocation_thread_id(AllocMeta); ThreadID == gwp_asan::kInvalidThreadID)
       Printf("0x%zx was deallocated by thread <unknown> here:\n", ErrorPtr);
     else
       Printf("0x%zx was deallocated by thread %zu here:\n", ErrorPtr, ThreadID);
@@ -197,9 +197,9 @@ static void sigSegvHandler(int sig, siginfo_t *info, void *ucontext) {
   const gwp_asan::AllocatorState *State =
       GPAForSignalHandler->getAllocatorState();
   void *FaultAddr = info->si_addr;
-  uintptr_t FaultAddrUPtr = reinterpret_cast<uintptr_t>(FaultAddr);
+  
 
-  if (__gwp_asan_error_is_mine(State, FaultAddrUPtr)) {
+  if (uintptr_t FaultAddrUPtr = reinterpret_cast<uintptr_t>(FaultAddr); __gwp_asan_error_is_mine(State, FaultAddrUPtr)) {
     GPAForSignalHandler->preCrashReport(FaultAddr);
 
     dumpReport(FaultAddrUPtr, State, GPAForSignalHandler->getMetadataRegion(),

@@ -244,8 +244,8 @@ void BranchProbabilityInfo::SccInfo::getSccEnterBlocks(
     int SccNum, SmallVectorImpl<BasicBlock *> &Enters) const {
 
   for (auto MapIt : SccBlocks[SccNum]) {
-    const auto *BB = MapIt.first;
-    if (isSCCHeader(BB, SccNum))
+    
+    if (const auto *BB = MapIt.first; isSCCHeader(BB, SccNum))
       for (const auto *Pred : predecessors(BB))
         if (getSCCNum(Pred) != SccNum)
           Enters.push_back(const_cast<BasicBlock *>(BB));
@@ -255,8 +255,8 @@ void BranchProbabilityInfo::SccInfo::getSccEnterBlocks(
 void BranchProbabilityInfo::SccInfo::getSccExitBlocks(
     int SccNum, SmallVectorImpl<BasicBlock *> &Exits) const {
   for (auto MapIt : SccBlocks[SccNum]) {
-    const auto *BB = MapIt.first;
-    if (isSCCExitingBlock(BB, SccNum))
+    
+    if (const auto *BB = MapIt.first; isSCCExitingBlock(BB, SccNum))
       for (const auto *Succ : successors(BB))
         if (getSCCNum(Succ) != SccNum)
           Exits.push_back(const_cast<BasicBlock *>(Succ));
@@ -701,9 +701,9 @@ bool BranchProbabilityInfo::updateEstimatedBlockWeight(
     return false;
 
   for (BasicBlock *PredBlock : predecessors(BB)) {
-    LoopBlock PredLoop = getLoopBlock(PredBlock);
+    
     // Add affected block/loop to a working list.
-    if (isLoopExitingEdge({PredLoop, LoopBB})) {
+    if (LoopBlock PredLoop = getLoopBlock(PredBlock); isLoopExitingEdge({PredLoop, LoopBB})) {
       if (!EstimatedLoopWeight.count(PredLoop.getLoopData()))
         LoopWorkList.push_back(PredLoop);
     } else if (!EstimatedBlockWeight.count(PredBlock))
@@ -901,8 +901,8 @@ bool BranchProbabilityInfo::calcEstimatedHeuristics(const BasicBlock *BB) {
           Weight.value_or(static_cast<uint32_t>(BlockExecWeight::DEFAULT)) /
               TC);
     }
-    bool IsUnlikelyEdge = LoopBB.getLoop() && UnlikelyBlocks.contains(SuccBB);
-    if (IsUnlikelyEdge &&
+    
+    if (bool IsUnlikelyEdge = LoopBB.getLoop() && UnlikelyBlocks.contains(SuccBB); IsUnlikelyEdge &&
         // Avoid adjustment of ZERO weight since it should remain unchanged.
         Weight != static_cast<uint32_t>(BlockExecWeight::ZERO)) {
       // 'Unlikely' blocks have twice lower weight.

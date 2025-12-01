@@ -39,8 +39,8 @@ VPValue *vputils::getOrCreateVPValueForSCEVExpr(VPlan &Plan, const SCEV *Expr) {
   // value. Otherwise the value may be defined in a loop and using it directly
   // will break LCSSA form. The SCEV expansion takes care of preserving LCSSA
   // form.
-  auto *U = dyn_cast<SCEVUnknown>(Expr);
-  if (U && !isa<Instruction>(U->getValue()))
+  
+  if (auto *U = dyn_cast<SCEVUnknown>(Expr); U && !isa<Instruction>(U->getValue()))
     return Plan.getOrAddLiveIn(U->getValue());
   auto *Expanded = new VPExpandSCEVRecipe(Expr);
   Plan.getEntry()->appendRecipe(Expanded);
@@ -175,11 +175,11 @@ bool vputils::isSingleScalar(const VPValue *VPV) {
     return true;
 
   if (auto *Rep = dyn_cast<VPReplicateRecipe>(VPV)) {
-    const VPRegionBlock *RegionOfR = Rep->getRegion();
+    
     // Don't consider recipes in replicate regions as uniform yet; their first
     // lane cannot be accessed when executing the replicate region for other
     // lanes.
-    if (RegionOfR && RegionOfR->isReplicator())
+    if (const VPRegionBlock *RegionOfR = Rep->getRegion(); RegionOfR && RegionOfR->isReplicator())
       return false;
     return Rep->isSingleScalar() || (preservesUniformity(Rep->getOpcode()) &&
                                      all_of(Rep->operands(), isSingleScalar));

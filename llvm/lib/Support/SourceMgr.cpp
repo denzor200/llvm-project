@@ -140,8 +140,8 @@ unsigned SourceMgr::SrcBuffer::getLineNumberSpecialized(const char *Ptr) const {
 /// Look up a given \p Ptr in the buffer, determining which line it came
 /// from.
 unsigned SourceMgr::SrcBuffer::getLineNumber(const char *Ptr) const {
-  size_t Sz = Buffer->getBufferSize();
-  if (Sz <= std::numeric_limits<uint8_t>::max())
+  
+  if (size_t Sz = Buffer->getBufferSize(); Sz <= std::numeric_limits<uint8_t>::max())
     return getLineNumberSpecialized<uint8_t>(Ptr);
   else if (Sz <= std::numeric_limits<uint16_t>::max())
     return getLineNumberSpecialized<uint16_t>(Ptr);
@@ -176,8 +176,8 @@ const char *SourceMgr::SrcBuffer::getPointerForLineNumberSpecialized(
 /// null if the line number is invalid.
 const char *
 SourceMgr::SrcBuffer::getPointerForLineNumber(unsigned LineNo) const {
-  size_t Sz = Buffer->getBufferSize();
-  if (Sz <= std::numeric_limits<uint8_t>::max())
+  
+  if (size_t Sz = Buffer->getBufferSize(); Sz <= std::numeric_limits<uint8_t>::max())
     return getPointerForLineNumberSpecialized<uint8_t>(LineNo);
   else if (Sz <= std::numeric_limits<uint16_t>::max())
     return getPointerForLineNumberSpecialized<uint16_t>(LineNo);
@@ -195,8 +195,8 @@ SourceMgr::SrcBuffer::SrcBuffer(SourceMgr::SrcBuffer &&Other)
 
 SourceMgr::SrcBuffer::~SrcBuffer() {
   if (OffsetCache) {
-    size_t Sz = Buffer->getBufferSize();
-    if (Sz <= std::numeric_limits<uint8_t>::max())
+    
+    if (size_t Sz = Buffer->getBufferSize(); Sz <= std::numeric_limits<uint8_t>::max())
       delete static_cast<std::vector<uint8_t> *>(OffsetCache);
     else if (Sz <= std::numeric_limits<uint16_t>::max())
       delete static_cast<std::vector<uint16_t> *>(OffsetCache);
@@ -237,9 +237,9 @@ std::string SourceMgr::getFormattedLocationNoOffset(SMLoc Loc,
                                                     bool IncludePath) const {
   auto BufferID = FindBufferContainingLoc(Loc);
   assert(BufferID && "Invalid location!");
-  auto FileSpec = getBufferInfo(BufferID).Buffer->getBufferIdentifier();
+  
 
-  if (IncludePath) {
+  if (auto FileSpec = getBufferInfo(BufferID).Buffer->getBufferIdentifier(); IncludePath) {
     return FileSpec.str() + ":" + std::to_string(FindLineNumber(Loc, BufferID));
   } else {
     auto I = FileSpec.find_last_of("/\\");

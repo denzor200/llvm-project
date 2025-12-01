@@ -183,8 +183,8 @@ static bool mergeConstants(Module &M) {
       // If this is the first constant we find or if the old one is local,
       // replace with the current one. If the current is externally visible
       // it cannot be replace, but can be the canonical constant we merge with.
-      bool FirstConstantFound = !Slot;
-      if (FirstConstantFound || IsBetterCanonical(GV, *Slot)) {
+      
+      if (bool FirstConstantFound = !Slot; FirstConstantFound || IsBetterCanonical(GV, *Slot)) {
         Slot = &GV;
         LLVM_DEBUG(dbgs() << "Cmap[" << *Init << "] = " << GV.getName()
                           << (FirstConstantFound ? "\n" : " (updated)\n"));

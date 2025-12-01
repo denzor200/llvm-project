@@ -499,8 +499,8 @@ X86LowerAMXIntrinsics::lowerTileDP(Instruction *TileDP) {
   // Delete TileDP intrinsic and do some clean-up.
   for (Use &U : llvm::make_early_inc_range(TileDP->uses())) {
     Instruction *I = cast<Instruction>(U.getUser());
-    Value *Vec;
-    if (match(I, m_BitCast(m_Value(Vec)))) {
+    
+    if (Value *Vec; match(I, m_BitCast(m_Value(Vec)))) {
       I->replaceAllUsesWith(ResVec);
       I->eraseFromParent();
     }
@@ -543,8 +543,8 @@ bool X86LowerAMXIntrinsics::lowerTileLoadStore(Instruction *TileLoadStore) {
     // Delete tileloadd6 intrinsic and do some clean-up
     for (Use &U : llvm::make_early_inc_range(TileLoadStore->uses())) {
       Instruction *I = cast<Instruction>(U.getUser());
-      Value *Vec;
-      if (match(I, m_BitCast(m_Value(Vec)))) {
+      
+      if (Value *Vec; match(I, m_BitCast(m_Value(Vec)))) {
         I->replaceAllUsesWith(ResVec);
         I->eraseFromParent();
       }
@@ -561,8 +561,8 @@ bool X86LowerAMXIntrinsics::lowerTileZero(Instruction *TileZero) {
   Value *VecZero = Constant::getNullValue(V256I32Ty);
   for (Use &U : llvm::make_early_inc_range(TileZero->uses())) {
     Instruction *I = cast<Instruction>(U.getUser());
-    Value *Vec;
-    if (match(I, m_BitCast(m_Value(Vec)))) {
+    
+    if (Value *Vec; match(I, m_BitCast(m_Value(Vec)))) {
       I->replaceAllUsesWith(VecZero);
       I->eraseFromParent();
     }
@@ -650,8 +650,8 @@ PreservedAnalyses X86LowerAMXIntrinsicsPass::run(Function &F,
 
   DominatorTree &DT = FAM.getResult<DominatorTreeAnalysis>(F);
   LoopInfo &LI = FAM.getResult<LoopAnalysis>(F);
-  bool Changed = runLowerAMXIntrinsics(F, &DT, &LI);
-  if (!Changed)
+  
+  if (bool Changed = runLowerAMXIntrinsics(F, &DT, &LI); !Changed)
     return PreservedAnalyses::all();
 
   PreservedAnalyses PA = PreservedAnalyses::none();
@@ -668,8 +668,8 @@ public:
   X86LowerAMXIntrinsicsLegacyPass() : FunctionPass(ID) {}
 
   bool runOnFunction(Function &F) override {
-    TargetMachine *TM = &getAnalysis<TargetPassConfig>().getTM<TargetMachine>();
-    if (!shouldRunLowerAMXIntrinsics(F, TM))
+    
+    if (TargetMachine *TM = &getAnalysis<TargetPassConfig>().getTM<TargetMachine>(); !shouldRunLowerAMXIntrinsics(F, TM))
       return false;
 
     auto *DTWP = getAnalysisIfAvailable<DominatorTreeWrapperPass>();

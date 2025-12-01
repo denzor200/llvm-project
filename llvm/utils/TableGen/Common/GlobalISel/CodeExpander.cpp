@@ -52,8 +52,8 @@ void CodeExpander::emit(raw_ostream &OS) const {
       std::tie(Var, Current) = Current.split("}");
 
       // Warn if we split because no terminator was found.
-      StringRef EndVar = StartVar.drop_front(2 /* ${ */ + Var.size());
-      if (EndVar.empty()) {
+      
+      if (StringRef EndVar = StartVar.drop_front(2 /* ${ */ + Var.size()); EndVar.empty()) {
         PrintWarning(Loc, "Unterminated expansion '${" + Var + "'");
         PrintNote("Code: [{" + Code + "}]");
       }

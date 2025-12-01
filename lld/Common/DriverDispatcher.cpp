@@ -61,8 +61,8 @@ static std::optional<bool> isPETarget(llvm::ArrayRef<const char *> args) {
                                               args.data() + args.size());
   BumpPtrAllocator a;
   StringSaver saver(a);
-  cl::ExpansionContext ectx(saver.getAllocator(), getDefaultQuotingStyle());
-  if (Error e = ectx.expandResponseFiles(expandedArgs)) {
+  
+  if (Error cl::ExpansionContext ectx(saver.getAllocator(), getDefaultQuotingStyle()); e = ectx.expandResponseFiles(expandedArgs)) {
     err(toString(std::move(e)));
     return std::nullopt;
   }
@@ -183,8 +183,8 @@ Result lld::lldMain(llvm::ArrayRef<const char *> args,
     // The crash recovery is here only to be able to recover from arbitrary
     // control flow when fatal() is called (through setjmp/longjmp or
     // __try/__except).
-    llvm::CrashRecoveryContext crc;
-    if (!crc.RunSafely([&]() {
+    
+    if (llvm::CrashRecoveryContext crc; !crc.RunSafely([&]() {
           r = unsafeLldMain(args, stdoutOS, stderrOS, drivers,
                             /*exitEarly=*/false);
         }))

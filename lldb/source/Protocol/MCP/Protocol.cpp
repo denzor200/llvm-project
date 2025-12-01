@@ -152,8 +152,8 @@ llvm::json::Value toJSON(const Notification &N) {
 }
 
 bool fromJSON(const llvm::json::Value &V, Notification &N, llvm::json::Path P) {
-  llvm::json::ObjectMapper O(V, P);
-  if (!O || !O.map("method", N.method))
+  
+  if (llvm::json::ObjectMapper O(V, P); !O || !O.map("method", N.method))
     return false;
   auto *Obj = V.getAsObject();
   if (!Obj)
@@ -228,8 +228,8 @@ llvm::json::Value toJSON(const ToolDefinition &TD) {
 bool fromJSON(const llvm::json::Value &V, ToolDefinition &TD,
               llvm::json::Path P) {
 
-  llvm::json::ObjectMapper O(V, P);
-  if (!O || !O.map("name", TD.name) ||
+  
+  if (llvm::json::ObjectMapper O(V, P); !O || !O.map("name", TD.name) ||
       !O.mapOptional("description", TD.description))
     return false;
   return mapRaw(V, "inputSchema", TD.inputSchema, P);

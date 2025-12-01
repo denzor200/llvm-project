@@ -39,8 +39,8 @@ static FixItHint generateFixItHint(const ObjCPropertyDecl *Decl,
   auto NewName = Decl->getName().str();
   size_t Index = 0;
   if (Style == CategoryProperty) {
-    const size_t UnderScorePos = Name.find_first_of('_');
-    if (UnderScorePos != llvm::StringRef::npos) {
+    
+    if (const size_t UnderScorePos = Name.find_first_of('_'); UnderScorePos != llvm::StringRef::npos) {
       Index = UnderScorePos + 1;
       NewName.replace(0, Index - 1, Name.substr(0, Index - 1).lower());
     }
@@ -87,8 +87,8 @@ static bool hasCategoryPropertyPrefix(llvm::StringRef PropertyName) {
 static bool prefixedPropertyNameValid(llvm::StringRef PropertyName) {
   const size_t Start = PropertyName.find_first_of('_');
   assert(Start != llvm::StringRef::npos && Start + 1 < PropertyName.size());
-  auto Prefix = PropertyName.substr(0, Start);
-  if (Prefix.lower() != Prefix) {
+  
+  if (auto Prefix = PropertyName.substr(0, Start); Prefix.lower() != Prefix) {
     return false;
   }
   auto RegexExp = llvm::Regex(llvm::StringRef(validPropertyNameRegex(false)));
@@ -109,9 +109,9 @@ void PropertyDeclarationCheck::check(const MatchFinder::MatchResult &Result) {
       Result.Nodes.getNodeAs<ObjCPropertyDecl>("property");
   assert(!MatchedDecl->getName().empty());
   auto *DeclContext = MatchedDecl->getDeclContext();
-  auto *CategoryDecl = llvm::dyn_cast<ObjCCategoryDecl>(DeclContext);
+  
 
-  if (CategoryDecl != nullptr &&
+  if (auto *CategoryDecl = llvm::dyn_cast<ObjCCategoryDecl>(DeclContext); CategoryDecl != nullptr &&
       hasCategoryPropertyPrefix(MatchedDecl->getName())) {
     if (!prefixedPropertyNameValid(MatchedDecl->getName()) ||
         CategoryDecl->IsClassExtension()) {

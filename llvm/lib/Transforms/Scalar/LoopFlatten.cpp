@@ -579,8 +579,8 @@ checkOuterLoopInsts(FlattenInfo &FI,
         continue;
       // The unconditional branch to the inner loop's header will turn into
       // a fall-through, so adds no cost.
-      BranchInst *Br = dyn_cast<BranchInst>(&I);
-      if (Br && Br->isUnconditional() &&
+      
+      if (BranchInst *Br = dyn_cast<BranchInst>(&I); Br && Br->isUnconditional() &&
           Br->getSuccessor(0) == FI.InnerLoop->getHeader())
         continue;
       // Multiplies of the outer iteration variable and inner iteration
@@ -868,10 +868,10 @@ static bool CanWidenIV(FlattenInfo &FI, DominatorTree *DT, LoopInfo *LI,
   unsigned Widened = 0;
 
   auto CreateWideIV = [&](WideIVInfo WideIV, bool &Deleted) -> bool {
-    PHINode *WidePhi =
+    
+    if (PHINode *WidePhi =
         createWideIV(WideIV, LI, SE, Rewriter, DT, DeadInsts, ElimExt, Widened,
-                     true /* HasGuards */, true /* UsePostIncrementRanges */);
-    if (!WidePhi)
+                     true /* HasGuards */, true /* UsePostIncrementRanges */); !WidePhi)
       return false;
     LLVM_DEBUG(dbgs() << "Created wide phi: "; WidePhi->dump());
     LLVM_DEBUG(dbgs() << "Deleting old phi: "; WideIV.NarrowIV->dump());
@@ -947,8 +947,8 @@ static bool FlattenLoopPair(FlattenInfo &FI, DominatorTree *DT, LoopInfo *LI,
     return false;
   } else if (OR == OverflowResult::MayOverflow) {
     Module *M = FI.OuterLoop->getHeader()->getParent()->getParent();
-    const DataLayout &DL = M->getDataLayout();
-    if (!VersionLoops) {
+    
+    if (const DataLayout &DL = M->getDataLayout(); !VersionLoops) {
       LLVM_DEBUG(dbgs() << "Multiply might overflow, not flattening\n");
       return false;
     } else if (!DL.isLegalInteger(

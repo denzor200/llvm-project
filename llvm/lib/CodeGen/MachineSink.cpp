@@ -360,8 +360,8 @@ static bool blockPrologueInterferes(const MachineBasicBlock *BB,
         if (PI->readsRegister(Reg, TRI))
           return true;
         // Check for interference with non-dead defs
-        auto *DefOp = PI->findRegisterDefOperand(Reg, TRI, false, true);
-        if (DefOp && !DefOp->isDead())
+        
+        if (auto *DefOp = PI->findRegisterDefOperand(Reg, TRI, false, true); DefOp && !DefOp->isDead())
           return true;
       }
     }
@@ -413,8 +413,8 @@ bool MachineSinking::PerformSinkAndFold(MachineInstr &MI,
     return false;
 
   // Check if it's safe to move the instruction.
-  bool SawStore = true;
-  if (!MI.isSafeToMove(SawStore))
+  
+  if (bool SawStore = true; !MI.isSafeToMove(SawStore))
     return false;
 
   // Convergent operations may not be made control-dependent on additional
@@ -516,8 +516,8 @@ bool MachineSinking::PerformSinkAndFold(MachineInstr &MI,
         // If the register class of the register we are replacing is a superset
         // of any of the register classes of the operands of the materialized
         // instruction don't consider that live range extended.
-        const TargetRegisterClass *RCS = MRI->getRegClass(Reg);
-        if (RCA && RCA->hasSuperClassEq(RCS))
+        
+        if (const TargetRegisterClass *RCS = MRI->getRegClass(Reg); RCA && RCA->hasSuperClassEq(RCS))
           RCA = nullptr;
         else if (RCB && RCB->hasSuperClassEq(RCS))
           RCB = nullptr;
@@ -619,8 +619,8 @@ bool MachineSinking::PerformSinkAndFold(MachineInstr &MI,
 
   // Delete the dead COPYs and clear operands in debug instructions
   for (MachineOperand *MO : Cleanup) {
-    MachineInstr *I = MO->getParent();
-    if (I->isCopy()) {
+    
+    if (MachineInstr *I = MO->getParent(); I->isCopy()) {
       I->eraseFromParent();
     } else {
       MO->setReg(0);
@@ -730,8 +730,8 @@ void MachineSinking::FindCycleSinkCandidates(
       LLVM_DEBUG(dbgs() << "CycleSink: Instruction is not cycle invariant\n");
       continue;
     }
-    bool DontMoveAcrossStore = true;
-    if (!MI.isSafeToMove(DontMoveAcrossStore)) {
+    
+    if (bool DontMoveAcrossStore = true; !MI.isSafeToMove(DontMoveAcrossStore)) {
       LLVM_DEBUG(dbgs() << "CycleSink: Instruction not safe to move.\n");
       continue;
     }
@@ -775,8 +775,8 @@ MachineSinkingPass::run(MachineFunction &MF,
   auto *MLI = MFAM.getCachedResult<MachineLoopAnalysis>(MF);
   MachineSinking Impl(EnableSinkAndFold, DT, PDT, LV, MLI, SI, LIS, CI, PSI,
                       MBFI, MBPI, AA);
-  bool Changed = Impl.run(MF);
-  if (!Changed)
+  
+  if (bool Changed = Impl.run(MF); !Changed)
     return PreservedAnalyses::all();
   auto PA = getMachineFunctionPassPreservedAnalyses();
   PA.preserve<MachineCycleAnalysis>();
@@ -1088,8 +1088,8 @@ bool MachineSinking::isWorthBreakingCriticalEdge(
       // claim it's likely we can sink these together.
       // If definition resides elsewhere, we aren't
       // blocking it from being sunk so don't break the edge.
-      MachineInstr *DefMI = MRI->getVRegDef(Reg);
-      if (DefMI->getParent() == MI.getParent())
+      
+      if (MachineInstr *DefMI = MRI->getVRegDef(Reg); DefMI->getParent() == MI.getParent())
         return true;
     }
   }
@@ -1108,10 +1108,10 @@ bool MachineSinking::isLegalToBreakCriticalEdge(MachineInstr &MI,
     return false;
 
   MachineCycle *FromCycle = CI->getCycle(FromBB);
-  MachineCycle *ToCycle = CI->getCycle(ToBB);
+  
 
   // Check for backedges of more "complex" cycles.
-  if (FromCycle == ToCycle && FromCycle &&
+  if (MachineCycle *ToCycle = CI->getCycle(ToBB); FromCycle == ToCycle && FromCycle &&
       (!FromCycle->isReducible() || FromCycle->getHeader() == ToBB))
     return false;
 
@@ -1168,8 +1168,8 @@ bool MachineSinking::PostponeSplitCriticalEdge(MachineInstr &MI,
                                                MachineBasicBlock *ToBB,
                                                bool BreakPHIEdge) {
   bool Status = false;
-  MachineBasicBlock *DeferredFromBB = nullptr;
-  if (isWorthBreakingCriticalEdge(MI, FromBB, ToBB, DeferredFromBB)) {
+  
+  if (MachineBasicBlock *DeferredFromBB = nullptr; isWorthBreakingCriticalEdge(MI, FromBB, ToBB, DeferredFromBB)) {
     // If there is a DeferredFromBB, we consider FromBB only if _both_
     // of them are legal to split.
     if ((!DeferredFromBB ||
@@ -1280,8 +1280,8 @@ bool MachineSinking::isProfitableToSinkTo(Register Reg, MachineInstr &MI,
   // Check if only use in post dominated block is PHI instruction.
   bool NonPHIUse = false;
   for (MachineInstr &UseInst : MRI->use_nodbg_instructions(Reg)) {
-    MachineBasicBlock *UseBlock = UseInst.getParent();
-    if (UseBlock == SuccToSinkTo && !UseInst.isPHI())
+    
+    if (MachineBasicBlock *UseBlock = UseInst.getParent(); UseBlock == SuccToSinkTo && !UseInst.isPHI())
       NonPHIUse = true;
   }
   if (!NonPHIUse)
@@ -1323,8 +1323,8 @@ bool MachineSinking::isProfitableToSinkTo(Register Reg, MachineInstr &MI,
     // Users for the defs are all dominated by SuccToSinkTo.
     if (MO.isDef()) {
       // This def register's live range is shortened after sinking.
-      bool LocalUse = false;
-      if (!AllUsesDominatedByBlock(Reg, SuccToSinkTo, MBB, BreakPHIEdge,
+      
+      if (bool LocalUse = false; !AllUsesDominatedByBlock(Reg, SuccToSinkTo, MBB, BreakPHIEdge,
                                    LocalUse))
         return false;
     } else {
@@ -1445,8 +1445,8 @@ MachineSinking::FindSuccToSinkTo(MachineInstr &MI, MachineBasicBlock *MBB,
       if (SuccToSinkTo) {
         // If a previous operand picked a block to sink to, then this operand
         // must be sinkable to the same block.
-        bool LocalUse = false;
-        if (!AllUsesDominatedByBlock(Reg, SuccToSinkTo, MBB, BreakPHIEdge,
+        
+        if (bool LocalUse = false; !AllUsesDominatedByBlock(Reg, SuccToSinkTo, MBB, BreakPHIEdge,
                                      LocalUse))
           return nullptr;
 
@@ -1888,9 +1888,9 @@ bool MachineSinking::SinkInstruction(MachineInstr &MI, bool &SawStore,
     // We cannot sink a load across a critical edge - there may be stores in
     // other code paths.
     bool TryBreak = false;
-    bool Store =
-        MI.mayLoad() ? hasStoreBetween(ParentBlock, SuccToSinkTo, MI) : true;
-    if (!MI.isSafeToMove(Store)) {
+    
+    if (bool Store =
+        MI.mayLoad() ? hasStoreBetween(ParentBlock, SuccToSinkTo, MI) : true; !MI.isSafeToMove(Store)) {
       LLVM_DEBUG(dbgs() << " *** NOTE: Won't sink load along critical edge.\n");
       TryBreak = true;
     }
@@ -1917,9 +1917,9 @@ bool MachineSinking::SinkInstruction(MachineInstr &MI, bool &SawStore,
       // Mark this edge as to be split.
       // If the edge can actually be split, the next iteration of the main loop
       // will sink MI in the newly created block.
-      bool Status = PostponeSplitCriticalEdge(MI, ParentBlock, SuccToSinkTo,
-                                              BreakPHIEdge);
-      if (!Status)
+      
+      if (bool Status = PostponeSplitCriticalEdge(MI, ParentBlock, SuccToSinkTo,
+                                              BreakPHIEdge); !Status)
         LLVM_DEBUG(dbgs() << " *** PUNTING: Not legal or profitable to "
                              "break critical edge\n");
       // The instruction will not be sunk this time.
@@ -1931,9 +1931,9 @@ bool MachineSinking::SinkInstruction(MachineInstr &MI, bool &SawStore,
     // BreakPHIEdge is true if all the uses are in the successor MBB being
     // sunken into and they are all PHI nodes. In this case, machine-sink must
     // break the critical edge first.
-    bool Status =
-        PostponeSplitCriticalEdge(MI, ParentBlock, SuccToSinkTo, BreakPHIEdge);
-    if (!Status)
+    
+    if (bool Status =
+        PostponeSplitCriticalEdge(MI, ParentBlock, SuccToSinkTo, BreakPHIEdge); !Status)
       LLVM_DEBUG(dbgs() << " *** PUNTING: Not legal or profitable to "
                            "break critical edge\n");
     // The instruction will not be sunk this time.
@@ -1960,8 +1960,8 @@ bool MachineSinking::SinkInstruction(MachineInstr &MI, bool &SawStore,
     // Sink any users that don't pass any other DBG_VALUEs for this variable.
     auto &Users = It->second;
     for (auto &User : Users) {
-      MachineInstr *DbgMI = User.getPointer();
-      if (User.getInt()) {
+      
+      if (MachineInstr *DbgMI = User.getPointer(); User.getInt()) {
         // This DBG_VALUE would re-order assignments. If we can't copy-propagate
         // it, it can't be recovered. Set it undef.
         if (!attemptDebugCopyProp(MI, *DbgMI, MO.getReg()))
@@ -2170,8 +2170,8 @@ static void clearKillFlags(MachineInstr *MI, MachineBasicBlock &CurBB,
                            const TargetRegisterInfo *TRI) {
   for (auto U : UsedOpsInCopy) {
     MachineOperand &MO = MI->getOperand(U);
-    Register SrcReg = MO.getReg();
-    if (!UsedRegUnits.available(SrcReg)) {
+    
+    if (Register SrcReg = MO.getReg(); !UsedRegUnits.available(SrcReg)) {
       MachineBasicBlock::iterator NI = std::next(MI->getIterator());
       for (MachineInstr &UI : make_range(NI, CurBB.end())) {
         if (UI.killsRegister(SrcReg, TRI)) {

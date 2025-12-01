@@ -277,9 +277,9 @@ ConversionResult ConvertUTF16toUTF8 (
         if (ch >= UNI_SUR_HIGH_START && ch <= UNI_SUR_HIGH_END) {
             /* If the 16 bits following the high surrogate are in the source buffer... */
             if (source < sourceEnd) {
-                UTF32 ch2 = *source;
+                
                 /* If it's a low surrogate, convert to UTF32. */
-                if (ch2 >= UNI_SUR_LOW_START && ch2 <= UNI_SUR_LOW_END) {
+                if (UTF32 ch2 = *source; ch2 >= UNI_SUR_LOW_START && ch2 <= UNI_SUR_LOW_END) {
                     ch = ((ch - UNI_SUR_HIGH_START) << halfShift)
                         + (ch2 - UNI_SUR_LOW_START) + halfBase;
                     ++source;
@@ -396,8 +396,8 @@ ConversionResult ConvertUTF32toUTF8 (
 
 static Boolean isLegalUTF8(const UTF8 *source, int length) {
     UTF8 a;
-    const UTF8 *srcptr = source+length;
-    switch (length) {
+    
+    switch (const UTF8 *srcptr = source+length; length) {
     default: return false;
         /* Everything else falls through when "true"... */
     case 4: if ((a = (*--srcptr)) < 0x80 || a > 0xBF) return false;

@@ -48,8 +48,8 @@ PlatformSP PlatformOpenBSD::CreateInstance(bool force, const ArchSpec *arch) {
 
   bool create = force;
   if (!create && arch && arch->IsValid()) {
-    const llvm::Triple &triple = arch->GetTriple();
-    switch (triple.getOS()) {
+    
+    switch (const llvm::Triple &triple = arch->GetTriple(); triple.getOS()) {
     case llvm::Triple::OpenBSD:
       create = true;
       break;

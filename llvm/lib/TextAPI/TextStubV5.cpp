@@ -100,9 +100,9 @@ public:
 
 private:
   EntryT &get(std::string &Key) {
-    auto *It = find_if(Container,
-                       [&Key](EntryT &Input) { return Input.first == Key; });
-    if (It != Container.end())
+    
+    if (auto *It = find_if(Container,
+                       [&Key](EntryT &Input) { return Input.first == Key; }); It != Container.end())
       return *It;
     Container.push_back(EntryT(Key, {}));
     return Container.back();
@@ -268,8 +268,8 @@ Expected<FileType> getVersion(const Object *File) {
   auto VersionOrErr = getRequiredValue<int64_t, FileType>(
       TBDKey::TBDVersion, File, &Object::getInteger,
       [](int64_t Val) -> std::optional<FileType> {
-        unsigned Result = Val;
-        if (Result != 5)
+        
+        if (unsigned Result = Val; Result != 5)
           return std::nullopt;
         return FileType::TBD_V5;
       });
@@ -448,15 +448,15 @@ Expected<TargetsToSymbols> getSymbolSection(const Object *File, TBDKey Key,
       return make_error<JSONStubError>(getParseErrorMsg(Key));
 
     if (DataSection) {
-      auto Err = collectSymbolsFromSegment(DataSection, Result,
-                                           SectionFlag | SymbolFlags::Data);
-      if (Err)
+      
+      if (auto Err = collectSymbolsFromSegment(DataSection, Result,
+                                           SectionFlag | SymbolFlags::Data); Err)
         return std::move(Err);
     }
     if (TextSection) {
-      auto Err = collectSymbolsFromSegment(TextSection, Result,
-                                           SectionFlag | SymbolFlags::Text);
-      if (Err)
+      
+      if (auto Err = collectSymbolsFromSegment(TextSection, Result,
+                                           SectionFlag | SymbolFlags::Text); Err)
         return std::move(Err);
     }
   }
@@ -927,8 +927,8 @@ Array serializeSymbols(InterfaceFile::const_filtered_symbol_range Symbols,
   for (const auto *Sym : Symbols) {
     std::set<MachO::Target> Targets{Sym->targets().begin(),
                                     Sym->targets().end()};
-    auto JSONTargets = serializeTargets(Targets, ActiveTargets);
-    if (Sym->isData())
+    
+    if (auto JSONTargets = serializeTargets(Targets, ActiveTargets); Sym->isData())
       AssignForSymbolType(Entries[std::move(JSONTargets)].Data, Sym);
     else if (Sym->isText())
       AssignForSymbolType(Entries[std::move(JSONTargets)].Text, Sym);

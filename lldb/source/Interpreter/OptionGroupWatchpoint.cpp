@@ -62,8 +62,8 @@ OptionGroupWatchpoint::SetOptionValue(uint32_t option_idx,
                                       llvm::StringRef option_arg,
                                       ExecutionContext *execution_context) {
   Status error;
-  const int short_option = g_option_table[option_idx].short_option;
-  switch (short_option) {
+  
+  switch (const int short_option = g_option_table[option_idx].short_option; short_option) {
   case 'l': {
     language_type = Language::GetLanguageTypeFromString(option_arg);
     if (language_type == eLanguageTypeUnknown) {

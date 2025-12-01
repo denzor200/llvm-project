@@ -60,8 +60,8 @@ UUID MinidumpParser::GetModuleUUID(const minidump::Module *module) {
 
   // Read the CV record signature
   const llvm::support::ulittle32_t *signature = nullptr;
-  Status error = consumeObject(cv_record, signature);
-  if (error.Fail())
+  
+  if (Status error = consumeObject(cv_record, signature); error.Fail())
     return UUID();
 
   const CvSignature cv_signature =
@@ -69,8 +69,8 @@ UUID MinidumpParser::GetModuleUUID(const minidump::Module *module) {
 
   if (cv_signature == CvSignature::Pdb70) {
     const UUID::CvRecordPdb70 *pdb70_uuid = nullptr;
-    Status error = consumeObject(cv_record, pdb70_uuid);
-    if (error.Fail())
+    
+    if (Status error = consumeObject(cv_record, pdb70_uuid); error.Fail())
       return UUID();
     if (GetArchitecture().GetTriple().isOSBinFormatELF()) {
       if (pdb70_uuid->Age != 0)
@@ -251,8 +251,8 @@ std::optional<LinuxProcStatus> MinidumpParser::GetLinuxProcStatus() {
 }
 
 std::optional<lldb::pid_t> MinidumpParser::GetPid() {
-  const MinidumpMiscInfo *misc_info = GetMiscInfo();
-  if (misc_info != nullptr) {
+  
+  if (const MinidumpMiscInfo *misc_info = GetMiscInfo(); misc_info != nullptr) {
     return misc_info->GetPid();
   }
 
@@ -419,10 +419,10 @@ std::vector<const minidump::Module *> MinidumpParser::GetFilteredModuleList() {
       ConstString name(*ExpectedName);
       bool is_executable =
           CheckForLinuxExecutable(name, linux_regions, module.BaseOfImage);
-      bool dup_is_executable =
-          CheckForLinuxExecutable(name, linux_regions, dup_module->BaseOfImage);
+      
 
-      if (is_executable != dup_is_executable) {
+      if (bool dup_is_executable =
+          CheckForLinuxExecutable(name, linux_regions, dup_module->BaseOfImage); is_executable != dup_is_executable) {
         if (is_executable)
           filtered_modules[iter->second] = &module;
         continue;

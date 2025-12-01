@@ -70,8 +70,8 @@ void systemz::getSystemZTargetFeatures(const Driver &D, const ArgList &Args,
       Features.push_back("-vector");
   }
 
-  systemz::FloatABI FloatABI = systemz::getSystemZFloatABI(D, Args);
-  if (FloatABI == systemz::FloatABI::Soft)
+  
+  if (systemz::FloatABI FloatABI = systemz::getSystemZFloatABI(D, Args); FloatABI == systemz::FloatABI::Soft)
     Features.push_back("+soft-float");
 
   if (const Arg *A = Args.getLastArg(options::OPT_munaligned_symbols,

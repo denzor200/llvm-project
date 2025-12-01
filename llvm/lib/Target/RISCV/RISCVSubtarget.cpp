@@ -245,8 +245,8 @@ void RISCVSubtarget::overrideSchedPolicy(MachineSchedPolicy &Policy,
 
 void RISCVSubtarget::overridePostRASchedPolicy(
     MachineSchedPolicy &Policy, const SchedRegion &Region) const {
-  MISched::Direction PostRASchedDirection = getPostRASchedDirection();
-  if (PostRASchedDirection == MISched::TopDown) {
+  
+  if (MISched::Direction PostRASchedDirection = getPostRASchedDirection(); PostRASchedDirection == MISched::TopDown) {
     Policy.OnlyTopDown = true;
     Policy.OnlyBottomUp = false;
   } else if (PostRASchedDirection == MISched::BottomUp) {

@@ -144,8 +144,8 @@ static LogicalResult collapseBranch(Block *&successor,
 
   // Otherwise, we need to remap any argument operands.
   for (Value operand : operands) {
-    BlockArgument argOperand = llvm::dyn_cast<BlockArgument>(operand);
-    if (argOperand && argOperand.getOwner() == successor)
+    
+    if (BlockArgument argOperand = llvm::dyn_cast<BlockArgument>(operand); argOperand && argOperand.getOwner() == successor)
       argStorage.push_back(successorOperands[argOperand.getArgNumber()]);
     else
       argStorage.push_back(operand);

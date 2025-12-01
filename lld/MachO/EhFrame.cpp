@@ -88,8 +88,8 @@ StringRef EhReader::readString(size_t *off) const {
 void EhReader::skipLeb128(size_t *off) const {
   const size_t errOff = *off;
   while (*off < data.size()) {
-    uint8_t val = data[(*off)++];
-    if ((val & 0x80) == 0)
+    
+    if (uint8_t val = data[(*off)++]; (val & 0x80) == 0)
       return;
   }
   failOn(errOff, "corrupted CIE (failed to read LEB128)");

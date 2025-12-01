@@ -71,8 +71,8 @@ std::string SarifDocumentWriter::fileNameToURI(StringRef Filename) {
   SmallString<32> Ret = StringRef("file://");
 
   // Get the root name to see if it has a URI authority.
-  StringRef Root = sys::path::root_name(Filename);
-  if (Root.starts_with("//")) {
+  
+  if (StringRef Root = sys::path::root_name(Filename); Root.starts_with("//")) {
     // There is an authority, so add it to the URI.
     Ret += Root.drop_front(2).str();
   } else if (!Root.empty()) {
@@ -226,10 +226,10 @@ SarifDocumentWriter::createPhysicalLocation(const CharSourceRange &R) {
                                         .setRoles({"resultFile"})
                                         .setLength(FE->getSize())
                                         .setMimeType("text/plain");
-    auto StatusIter = CurrentArtifacts.insert({FileURI, Artifact});
+    
     // If inserted, ensure the original iterator points to the newly inserted
     // element, so it can be used downstream.
-    if (StatusIter.second)
+    if (auto StatusIter = CurrentArtifacts.insert({FileURI, Artifact}); StatusIter.second)
       I = StatusIter.first;
   }
   assert(I != CurrentArtifacts.end() && "Failed to insert new artifact");

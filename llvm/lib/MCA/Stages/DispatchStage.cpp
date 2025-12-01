@@ -47,9 +47,9 @@ bool DispatchStage::checkPRF(const InstRef &IR) const {
   for (const WriteState &RegDef : IR.getInstruction()->getDefs())
     RegDefs.emplace_back(RegDef.getRegisterID());
 
-  const unsigned RegisterMask = PRF.isAvailable(RegDefs);
+  
   // A mask with all zeroes means: register files are available.
-  if (RegisterMask) {
+  if (const unsigned RegisterMask = PRF.isAvailable(RegDefs); RegisterMask) {
     notifyEvent<HWStallEvent>(
         HWStallEvent(HWStallEvent::RegisterFileStall, IR));
     return false;
@@ -59,8 +59,8 @@ bool DispatchStage::checkPRF(const InstRef &IR) const {
 }
 
 bool DispatchStage::checkRCU(const InstRef &IR) const {
-  const unsigned NumMicroOps = IR.getInstruction()->getNumMicroOps();
-  if (RCU.isAvailable(NumMicroOps))
+  
+  if (const unsigned NumMicroOps = IR.getInstruction()->getNumMicroOps(); RCU.isAvailable(NumMicroOps))
     return true;
   notifyEvent<HWStallEvent>(
       HWStallEvent(HWStallEvent::RetireControlUnitStall, IR));
@@ -157,8 +157,8 @@ bool DispatchStage::isAvailable(const InstRef &IR) const {
 
   const Instruction &Inst = *IR.getInstruction();
   unsigned NumMicroOps = Inst.getNumMicroOps();
-  unsigned Required = std::min(NumMicroOps, DispatchWidth);
-  if (Required > AvailableEntries)
+  
+  if (unsigned Required = std::min(NumMicroOps, DispatchWidth); Required > AvailableEntries)
     return false;
 
   if (Inst.getBeginGroup() && AvailableEntries != DispatchWidth)

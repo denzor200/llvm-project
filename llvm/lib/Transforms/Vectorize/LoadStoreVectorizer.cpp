@@ -776,9 +776,9 @@ std::vector<Chain> Vectorizer::splitChainByAlignment(Chain &C) {
       unsigned VF = 8 * VecRegBytes / VecElemBits;
 
       // Check that TTI is happy with this vectorization factor.
-      unsigned TargetVF = GetVectorFactor(VF, VecElemBits,
-                                          VecElemBits * NumVecElems / 8, VecTy);
-      if (TargetVF != VF && TargetVF < NumVecElems) {
+      
+      if (unsigned TargetVF = GetVectorFactor(VF, VecElemBits,
+                                          VecElemBits * NumVecElems / 8, VecTy); TargetVF != VF && TargetVF < NumVecElems) {
         LLVM_DEBUG(
             dbgs() << "LSV: splitChainByAlignment discarding candidate chain "
                       "because TargetVF="
@@ -796,9 +796,9 @@ std::vector<Chain> Vectorizer::splitChainByAlignment(Chain &C) {
         if (Alignment.value() % SizeBytes == 0)
           return true;
         unsigned VectorizedSpeed = 0;
-        bool AllowsMisaligned = TTI.allowsMisalignedMemoryAccesses(
-            F.getContext(), SizeBytes * 8, AS, Alignment, &VectorizedSpeed);
-        if (!AllowsMisaligned) {
+        
+        if (bool AllowsMisaligned = TTI.allowsMisalignedMemoryAccesses(
+            F.getContext(), SizeBytes * 8, AS, Alignment, &VectorizedSpeed); !AllowsMisaligned) {
           LLVM_DEBUG(dbgs()
                      << "LSV: Access of " << SizeBytes << "B in addrspace "
                      << AS << " with alignment " << Alignment.value()
@@ -838,9 +838,9 @@ std::vector<Chain> Vectorizer::splitChainByAlignment(Chain &C) {
       Align PrefAlign = Align(StackAdjustedAlignment);
       if (IsAllocaAccess && Alignment.value() % SizeBytes != 0 &&
           IsAllowedAndFast(PrefAlign)) {
-        Align NewAlign = getOrEnforceKnownAlignment(
-            PtrOperand, PrefAlign, DL, C[CBegin].Inst, nullptr, &DT);
-        if (NewAlign >= Alignment) {
+        
+        if (Align NewAlign = getOrEnforceKnownAlignment(
+            PtrOperand, PrefAlign, DL, C[CBegin].Inst, nullptr, &DT); NewAlign >= Alignment) {
           LLVM_DEBUG(dbgs()
                      << "LSV: splitByChain upgrading alloca alignment from "
                      << Alignment.value() << " to " << NewAlign.value()
@@ -1176,9 +1176,9 @@ static bool checkIfSafeAddSequence(const APInt &IdxDiff, Instruction *AddOpA,
     if (OtherInstrB && OtherInstrB->getOpcode() == Instruction::Add &&
         checkNoWrapFlags(OtherInstrB, Signed) &&
         isa<ConstantInt>(OtherInstrB->getOperand(1))) {
-      int64_t CstVal =
-          cast<ConstantInt>(OtherInstrB->getOperand(1))->getSExtValue();
-      if (OtherInstrB->getOperand(0) == OtherOperandA &&
+      
+      if (int64_t CstVal =
+          cast<ConstantInt>(OtherInstrB->getOperand(1))->getSExtValue(); OtherInstrB->getOperand(0) == OtherOperandA &&
           IdxDiff.getSExtValue() == CstVal)
         return true;
     }
@@ -1186,9 +1186,9 @@ static bool checkIfSafeAddSequence(const APInt &IdxDiff, Instruction *AddOpA,
     if (OtherInstrA && OtherInstrA->getOpcode() == Instruction::Add &&
         checkNoWrapFlags(OtherInstrA, Signed) &&
         isa<ConstantInt>(OtherInstrA->getOperand(1))) {
-      int64_t CstVal =
-          cast<ConstantInt>(OtherInstrA->getOperand(1))->getSExtValue();
-      if (OtherInstrA->getOperand(0) == OtherOperandB &&
+      
+      if (int64_t CstVal =
+          cast<ConstantInt>(OtherInstrA->getOperand(1))->getSExtValue(); OtherInstrA->getOperand(0) == OtherOperandB &&
           IdxDiff.getSExtValue() == -CstVal)
         return true;
     }
@@ -1203,9 +1203,9 @@ static bool checkIfSafeAddSequence(const APInt &IdxDiff, Instruction *AddOpA,
         isa<ConstantInt>(OtherInstrB->getOperand(1))) {
       int64_t CstValA =
           cast<ConstantInt>(OtherInstrA->getOperand(1))->getSExtValue();
-      int64_t CstValB =
-          cast<ConstantInt>(OtherInstrB->getOperand(1))->getSExtValue();
-      if (OtherInstrA->getOperand(0) == OtherInstrB->getOperand(0) &&
+      
+      if (int64_t CstValB =
+          cast<ConstantInt>(OtherInstrB->getOperand(1))->getSExtValue(); OtherInstrA->getOperand(0) == OtherInstrB->getOperand(0) &&
           IdxDiff.getSExtValue() == (CstValB - CstValA))
         return true;
     }
@@ -1411,8 +1411,8 @@ void Vectorizer::mergeEquivalenceClasses(EquivalenceClassMap &EQClasses) const {
     UObjectToUObjectMap IndirectionMap;
     for (const auto *UObject : UObjects) {
       const unsigned MaxLookupDepth = 1; // look for 1-level indirections only
-      const auto *UltimateTarget = getUnderlyingObject(UObject, MaxLookupDepth);
-      if (UltimateTarget != UObject)
+      
+      if (const auto *UltimateTarget = getUnderlyingObject(UObject, MaxLookupDepth); UltimateTarget != UObject)
         IndirectionMap[UObject] = UltimateTarget;
     }
     UObjectToUObjectMap UltimateTargetsMap;
@@ -1662,8 +1662,8 @@ std::optional<APInt> Vectorizer::getConstantOffset(Value *PtrA, Value *PtrB,
   const SCEV *DistScev = SE.getMinusSCEV(SE.getSCEV(PtrB), SE.getSCEV(PtrA));
   if (DistScev != SE.getCouldNotCompute()) {
     LLVM_DEBUG(dbgs() << "LSV: SCEV PtrB - PtrA =" << *DistScev << "\n");
-    ConstantRange DistRange = SE.getSignedRange(DistScev);
-    if (DistRange.isSingleElement()) {
+    
+    if (ConstantRange DistRange = SE.getSignedRange(DistScev); DistRange.isSingleElement()) {
       // Handle index width (the width of Dist) != pointer width (the width of
       // the Offset*s at this point).
       APInt Dist = DistRange.getSingleElement()->sextOrTrunc(NewPtrBitWidth);

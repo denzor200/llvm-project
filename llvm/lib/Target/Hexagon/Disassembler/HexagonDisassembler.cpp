@@ -232,9 +232,9 @@ bool HexagonDisassembler::makeBundle(ArrayRef<uint8_t> Bytes, uint64_t Address,
 
   const auto ArchSTI = Hexagon_MC::getArchSubtarget(&STI);
   const auto STI_ = (ArchSTI != nullptr) ? *ArchSTI : STI;
-  HexagonMCChecker Checker(getContext(), *MCII, STI_, *CurrentBundle,
-                           *getContext().getRegisterInfo(), false);
-  if (!Checker.check())
+  
+  if (HexagonMCChecker Checker(getContext(), *MCII, STI_, *CurrentBundle,
+                           *getContext().getRegisterInfo(), false); !Checker.check())
     return false;
   remapInstruction(*CurrentBundle);
   return true;
@@ -247,9 +247,9 @@ DecodeStatus HexagonDisassembler::getInstruction(MCInst &MI, uint64_t &Size,
   CommentStream = &CS;
 
   Size = 0;
-  uint64_t BytesToSkip = 0;
+  
 
-  if (!CurrentBundle) {
+  if (uint64_t BytesToSkip = 0; !CurrentBundle) {
     if (!makeBundle(Bytes, Address, BytesToSkip, CS)) {
       Size = BytesToSkip;
       resetBundle();
@@ -290,8 +290,8 @@ DecodeStatus HexagonDisassembler::getInstructionBundle(MCInst &MI,
 
 void HexagonDisassembler::remapInstruction(MCInst &Instr) const {
   for (auto I: HexagonMCInstrInfo::bundleInstructions(Instr)) {
-    auto &MI = const_cast<MCInst &>(*I.getInst());
-    switch (MI.getOpcode()) {
+    
+    switch (auto &MI = const_cast<MCInst &>(*I.getInst()); MI.getOpcode()) {
     case Hexagon::S2_allocframe:
       if (MI.getOperand(0).getReg() == Hexagon::R29) {
         MI.setOpcode(Hexagon::S6_allocframe_to_raw);
@@ -376,8 +376,8 @@ DecodeStatus HexagonDisassembler::getSingleInstruction(MCInst &MI, MCInst &MCB,
 
   uint32_t Instruction = support::endian::read32le(Bytes.data());
 
-  auto BundleSize = HexagonMCInstrInfo::bundleSize(MCB);
-  if ((Instruction & HexagonII::INST_PARSE_MASK) ==
+  
+  if (auto BundleSize = HexagonMCInstrInfo::bundleSize(MCB); (Instruction & HexagonII::INST_PARSE_MASK) ==
       HexagonII::INST_PARSE_LOOP_END) {
     if (BundleSize == 0)
       HexagonMCInstrInfo::setInnerLoop(MCB);
@@ -561,10 +561,10 @@ DecodeStatus HexagonDisassembler::getSingleInstruction(MCInst &MI, MCInst &MCB,
   }
 
   if (CurrentExtender != nullptr) {
-    MCInst const &Inst = HexagonMCInstrInfo::isDuplex(*MCII, MI)
+    
+    if (MCInst const &Inst = HexagonMCInstrInfo::isDuplex(*MCII, MI)
                              ? *MI.getOperand(1).getInst()
-                             : MI;
-    if (!HexagonMCInstrInfo::isExtendable(*MCII, Inst) &&
+                             : MI; !HexagonMCInstrInfo::isExtendable(*MCII, Inst) &&
         !HexagonMCInstrInfo::isExtended(*MCII, Inst))
       return MCDisassembler::Fail;
   }

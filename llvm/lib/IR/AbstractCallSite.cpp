@@ -44,9 +44,9 @@ void AbstractCallSite::getCallbackUses(
   for (const MDOperand &Op : CallbackMD->operands()) {
     MDNode *OpMD = cast<MDNode>(Op.get());
     auto *CBCalleeIdxAsCM = cast<ConstantAsMetadata>(OpMD->getOperand(0));
-    uint64_t CBCalleeIdx =
-        cast<ConstantInt>(CBCalleeIdxAsCM->getValue())->getZExtValue();
-    if (CBCalleeIdx < CB.arg_size())
+    
+    if (uint64_t CBCalleeIdx =
+        cast<ConstantInt>(CBCalleeIdxAsCM->getValue())->getZExtValue(); CBCalleeIdx < CB.arg_size())
       CallbackUses.push_back(CB.arg_begin() + CBCalleeIdx);
   }
 }
@@ -102,9 +102,9 @@ AbstractCallSite::AbstractCallSite(const Use *U)
   for (const MDOperand &Op : CallbackMD->operands()) {
     MDNode *OpMD = cast<MDNode>(Op.get());
     auto *CBCalleeIdxAsCM = cast<ConstantAsMetadata>(OpMD->getOperand(0));
-    uint64_t CBCalleeIdx =
-        cast<ConstantInt>(CBCalleeIdxAsCM->getValue())->getZExtValue();
-    if (CBCalleeIdx != UseIdx)
+    
+    if (uint64_t CBCalleeIdx =
+        cast<ConstantInt>(CBCalleeIdxAsCM->getValue())->getZExtValue(); CBCalleeIdx != UseIdx)
       continue;
     CallbackEncMD = OpMD;
     break;

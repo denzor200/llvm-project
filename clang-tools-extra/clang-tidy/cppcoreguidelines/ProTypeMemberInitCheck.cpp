@@ -66,8 +66,8 @@ static void forEachFieldWithFilter(const RecordDecl &Record, const T &Fields,
 static void
 removeFieldInitialized(const FieldDecl *M,
                        SmallPtrSetImpl<const FieldDecl *> &FieldDecls) {
-  const RecordDecl *R = M->getParent();
-  if (R && R->isUnion()) {
+  
+  if (const RecordDecl *R = M->getParent(); R && R->isUnion()) {
     // Erase all members in a union if any member of it is initialized.
     for (const auto *F : R->fields())
       FieldDecls.erase(F);
@@ -173,9 +173,9 @@ struct InitializerInsertion {
     assert(!Initializers.empty() && "No initializers to insert");
     std::string Code;
     llvm::raw_string_ostream Stream(Code);
-    const std::string Joined =
-        llvm::join(Initializers.begin(), Initializers.end(), "(), ");
-    switch (Placement) {
+    
+    switch (const std::string Joined =
+        llvm::join(Initializers.begin(), Initializers.end(), "(), "); Placement) {
     case InitializerPlacement::New:
       Stream << " : " << Joined << "()";
       break;

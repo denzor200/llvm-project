@@ -101,8 +101,8 @@ constexpr llvm::StringLiteral kIdentifierNameToDIE("N2DI");
 bool NameToDIE::Decode(const DataExtractor &data, lldb::offset_t *offset_ptr,
                        const StringTableReader &strtab) {
   m_map.Clear();
-  llvm::StringRef identifier((const char *)data.GetData(offset_ptr, 4), 4);
-  if (identifier != kIdentifierNameToDIE)
+  
+  if (llvm::StringRef identifier((const char *)data.GetData(offset_ptr, 4), 4); identifier != kIdentifierNameToDIE)
     return false;
   const uint32_t count = data.GetU32(offset_ptr);
   m_map.Reserve(count);

@@ -68,9 +68,9 @@ public:
       assert(NameRanges.size() == 1 &&
              "Multiple name pieces are not supported yet!");
       SourceLocation Loc = NameRanges[0].getBegin();
-      const SourceManager &SM = Context.getSourceManager();
+      
       // TODO: Deal with macro occurrences correctly.
-      if (Loc.isMacroID())
+      if (const SourceManager &SM = Context.getSourceManager(); Loc.isMacroID())
         Loc = SM.getSpellingLoc(Loc);
       checkAndAddLocation(Loc);
     }
@@ -229,8 +229,8 @@ public:
         Decl = TAT->getTemplatedDecl();
 
       auto StartLoc = Decl->getLocation();
-      auto EndLoc = StartLoc;
-      if (IsValidEditLoc(Context.getSourceManager(), StartLoc)) {
+      
+      if (auto EndLoc = StartLoc; IsValidEditLoc(Context.getSourceManager(), StartLoc)) {
         RenameInfo Info = {StartLoc,
                            EndLoc,
                            /*FromDecl=*/nullptr,
@@ -246,8 +246,8 @@ public:
   bool VisitMemberExpr(const MemberExpr *Expr) {
     const NamedDecl *Decl = Expr->getFoundDecl();
     auto StartLoc = Expr->getMemberLoc();
-    auto EndLoc = Expr->getMemberLoc();
-    if (isInUSRSet(Decl)) {
+    
+    if (auto EndLoc = Expr->getMemberLoc(); isInUSRSet(Decl)) {
       RenameInfos.push_back({StartLoc, EndLoc,
                              /*FromDecl=*/nullptr,
                              /*Context=*/nullptr,
@@ -436,8 +436,8 @@ public:
           return true;
 
         auto StartLoc = StartLocationForType(Loc);
-        auto EndLoc = EndLocationForType(Loc);
-        if (IsValidEditLoc(Context.getSourceManager(), StartLoc)) {
+        
+        if (auto EndLoc = EndLocationForType(Loc); IsValidEditLoc(Context.getSourceManager(), StartLoc)) {
           RenameInfo Info = {StartLoc,
                              EndLoc,
                              TargetDecl,
@@ -455,8 +455,8 @@ public:
             dyn_cast<TemplateSpecializationType>(Loc.getType())) {
       if (isInUSRSet(TemplateSpecType->getTemplateName().getAsTemplateDecl())) {
         auto StartLoc = StartLocationForType(Loc);
-        auto EndLoc = EndLocationForType(Loc);
-        if (IsValidEditLoc(Context.getSourceManager(), StartLoc)) {
+        
+        if (auto EndLoc = EndLocationForType(Loc); IsValidEditLoc(Context.getSourceManager(), StartLoc)) {
           RenameInfo Info = {
               StartLoc,
               EndLoc,
@@ -562,8 +562,8 @@ createRenameAtomicChanges(llvm::ArrayRef<std::string> USRs,
     std::string ReplacedName = NewName.str();
     if (RenameInfo.IgnorePrefixQualifiers) {
       // Get the name without prefix qualifiers from NewName.
-      size_t LastColonPos = NewName.find_last_of(':');
-      if (LastColonPos != std::string::npos)
+      
+      if (size_t LastColonPos = NewName.find_last_of(':'); LastColonPos != std::string::npos)
         ReplacedName = std::string(NewName.substr(LastColonPos + 1));
     } else {
       if (RenameInfo.FromDecl && RenameInfo.Context) {
@@ -582,13 +582,13 @@ createRenameAtomicChanges(llvm::ArrayRef<std::string> USRs,
           // the translation unit and ignore the possible existence of
           // using-decls (in the global scope) that can shorten the replaced
           // name.
-          llvm::StringRef ActualName = Lexer::getSourceText(
-              CharSourceRange::getTokenRange(
-                  SourceRange(RenameInfo.Begin, RenameInfo.End)),
-              SM, TranslationUnitDecl->getASTContext().getLangOpts());
+          
           // Add the leading "::" back if the name written in the code contains
           // it.
-          if (ActualName.starts_with("::") && !NewName.starts_with("::")) {
+          if (llvm::StringRef ActualName = Lexer::getSourceText(
+              CharSourceRange::getTokenRange(
+                  SourceRange(RenameInfo.Begin, RenameInfo.End)),
+              SM, TranslationUnitDecl->getASTContext().getLangOpts()); ActualName.starts_with("::") && !NewName.starts_with("::")) {
             ReplacedName = "::" + NewName.str();
           }
         }

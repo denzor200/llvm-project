@@ -787,8 +787,8 @@ TEST_F(FileSystemTest, ExpandTilde) {
   SmallString<64> HomeDir;
 
   // This can fail if $HOME is not set and getpwuid fails.
-  bool Result = llvm::sys::path::home_directory(HomeDir);
-  if (Result) {
+  
+  if (bool Result = llvm::sys::path::home_directory(HomeDir); Result) {
     fs::expand_tilde(HomeDir, Expected);
 
     fs::expand_tilde("~", Actual);
@@ -1961,8 +1961,8 @@ TEST_F(FileSystemTest, AppendSetsCorrectFileOffset) {
 static void verifyRead(int FD, StringRef Data, bool ShouldSucceed) {
   std::vector<char> Buffer;
   Buffer.resize(Data.size());
-  int Result = ::read(FD, Buffer.data(), Buffer.size());
-  if (ShouldSucceed) {
+  
+  if (int Result = ::read(FD, Buffer.data(), Buffer.size()); ShouldSucceed) {
     ASSERT_EQ((size_t)Result, Data.size());
     ASSERT_EQ(Data, StringRef(Buffer.data(), Buffer.size()));
   } else {
@@ -1972,8 +1972,8 @@ static void verifyRead(int FD, StringRef Data, bool ShouldSucceed) {
 }
 
 static void verifyWrite(int FD, StringRef Data, bool ShouldSucceed) {
-  int Result = ::write(FD, Data.data(), Data.size());
-  if (ShouldSucceed)
+  
+  if (int Result = ::write(FD, Data.data(), Data.size()); ShouldSucceed)
     ASSERT_EQ((size_t)Result, Data.size());
   else {
     ASSERT_EQ(-1, Result);

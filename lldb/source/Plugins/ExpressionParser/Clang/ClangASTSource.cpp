@@ -110,10 +110,10 @@ bool ClangASTSource::FindExternalVisibleDeclsByName(
   switch (clang_decl_name.getNameKind()) {
   // Normal identifiers.
   case DeclarationName::Identifier: {
-    clang::IdentifierInfo *identifier_info =
-        clang_decl_name.getAsIdentifierInfo();
+    
 
-    if (!identifier_info || identifier_info->getBuiltinID() != 0) {
+    if (clang::IdentifierInfo *identifier_info =
+        clang_decl_name.getAsIdentifierInfo(); !identifier_info || identifier_info->getBuiltinID() != 0) {
       SetNoExternalVisibleDeclsForName(decl_ctx, clang_decl_name);
       return false;
     }
@@ -183,9 +183,9 @@ bool ClangASTSource::FindExternalVisibleDeclsByName(
 }
 
 TagDecl *ClangASTSource::FindCompleteType(const TagDecl *decl) {
-  Log *log = GetLog(LLDBLog::Expressions);
+  
 
-  if (const NamespaceDecl *namespace_context =
+  if (const NamespaceDecl *Log *log = GetLog(LLDBLog::Expressions); namespace_context =
           dyn_cast<NamespaceDecl>(decl->getDeclContext())) {
     ClangASTImporter::NamespaceMapSP namespace_map =
         m_ast_importer_sp->GetNamespaceMap(namespace_context);
@@ -304,10 +304,10 @@ void ClangASTSource::CompleteType(clang::ObjCInterfaceDecl *interface_decl) {
   if (original.Valid()) {
     if (ObjCInterfaceDecl *original_iface_decl =
             dyn_cast<ObjCInterfaceDecl>(original.decl)) {
-      ObjCInterfaceDecl *complete_iface_decl =
-          GetCompleteObjCInterface(original_iface_decl);
+      
 
-      if (complete_iface_decl && (complete_iface_decl != original_iface_decl)) {
+      if (ObjCInterfaceDecl *complete_iface_decl =
+          GetCompleteObjCInterface(original_iface_decl); complete_iface_decl && (complete_iface_decl != original_iface_decl)) {
         m_ast_importer_sp->SetDeclOrigin(interface_decl, complete_iface_decl);
       }
     }
@@ -417,10 +417,10 @@ void ClangASTSource::FindExternalLexicalDecls(
 
   if (ObjCInterfaceDecl *original_iface_decl =
           dyn_cast<ObjCInterfaceDecl>(original.decl)) {
-    ObjCInterfaceDecl *complete_iface_decl =
-        GetCompleteObjCInterface(original_iface_decl);
+    
 
-    if (complete_iface_decl && (complete_iface_decl != original_iface_decl)) {
+    if (ObjCInterfaceDecl *complete_iface_decl =
+        GetCompleteObjCInterface(original_iface_decl); complete_iface_decl && (complete_iface_decl != original_iface_decl)) {
       original.decl = complete_iface_decl;
       original.ctx = &complete_iface_decl->getASTContext();
 
@@ -429,9 +429,9 @@ void ClangASTSource::FindExternalLexicalDecls(
   }
 
   if (TagDecl *original_tag_decl = dyn_cast<TagDecl>(original.decl)) {
-    ExternalASTSource *external_source = original.ctx->getExternalSource();
+    
 
-    if (external_source)
+    if (ExternalASTSource *external_source = original.ctx->getExternalSource(); external_source)
       external_source->CompleteType(original_tag_decl);
   }
 
@@ -449,8 +449,8 @@ void ClangASTSource::FindExternalLexicalDecls(
     // See clang::ExternalASTSource::FindExternalLexicalDecls()
     if (predicate(decl->getKind())) {
       if (log) {
-        std::string ast_dump = ClangUtil::DumpDecl(decl);
-        if (const NamedDecl *context_named_decl =
+        
+        if (const NamedDecl *std::string ast_dump = ClangUtil::DumpDecl(decl); context_named_decl =
                 dyn_cast<NamedDecl>(context_decl))
           LLDB_LOG(log, "  FELD Adding [to {0}Decl {1}] lexical {2}Decl {3}",
                    context_named_decl->getDeclKindName(),
@@ -545,10 +545,10 @@ void ClangASTSource::FindExternalVisibleDecls(NameSearchContext &context) {
       LLDB_LOG(log, "  CAS::FEVD Registering namespace map {0:x} ({1} entries)",
                context.m_namespace_map.get(), context.m_namespace_map->size());
 
-    NamespaceDecl *clang_namespace_decl =
-        AddNamespace(context, context.m_namespace_map);
+    
 
-    if (clang_namespace_decl)
+    if (NamespaceDecl *clang_namespace_decl =
+        AddNamespace(context, context.m_namespace_map); clang_namespace_decl)
       clang_namespace_decl->setHasExternalVisibleStorage();
   }
 }
@@ -560,9 +560,9 @@ clang::Sema *ClangASTSource::getSema() {
 bool ClangASTSource::IgnoreName(const ConstString name,
                                 bool ignore_all_dollar_names) {
   static const ConstString id_name("id");
-  static const ConstString Class_name("Class");
+  
 
-  if (m_ast_context->getLangOpts().ObjC)
+  if (static const ConstString Class_name("Class"); m_ast_context->getLangOpts().ObjC)
     if (name == id_name || name == Class_name)
       return true;
 
@@ -620,9 +620,9 @@ void ClangASTSource::FindExternalVisibleDecls(
 
     CompilerType full_type = type_sp->GetFullCompilerType();
 
-    CompilerType copied_clang_type(GuardedCopyType(full_type));
+    
 
-    if (!copied_clang_type) {
+    if (CompilerType copied_clang_type(GuardedCopyType(full_type)); !copied_clang_type) {
       LLDB_LOG(log, "  CAS::FEVD - Couldn't export a type");
     } else {
 
@@ -652,9 +652,9 @@ void ClangASTSource::FillNamespaceMap(
   Log *log = GetLog(LLDBLog::Expressions);
 
   if (module_sp && namespace_decl) {
-    CompilerDeclContext found_namespace_decl;
+    
 
-    if (SymbolFile *symbol_file = module_sp->GetSymbolFile()) {
+    if (SymbolFile *CompilerDeclContext found_namespace_decl; symbol_file = module_sp->GetSymbolFile()) {
       found_namespace_decl = symbol_file->FindNamespace(name, namespace_decl);
 
       if (found_namespace_decl) {
@@ -1159,9 +1159,9 @@ bool ClangASTSource::FindObjCPropertyAndIvarDeclsWithOrigin(
   bool found = false;
 
   if (origin_property_decl.IsValid()) {
-    DeclFromParser<ObjCPropertyDecl> parser_property_decl(
-        origin_property_decl.Import(m_ast_context, *m_ast_importer_sp));
-    if (parser_property_decl.IsValid()) {
+    
+    if (DeclFromParser<ObjCPropertyDecl> parser_property_decl(
+        origin_property_decl.Import(m_ast_context, *m_ast_importer_sp)); parser_property_decl.IsValid()) {
       LLDB_LOG(log, "  CAS::FOPD found\n{0}",
                ClangUtil::DumpDecl(parser_property_decl.decl));
 
@@ -1174,9 +1174,9 @@ bool ClangASTSource::FindObjCPropertyAndIvarDeclsWithOrigin(
       origin_iface_decl->getIvarDecl(&name_identifier));
 
   if (origin_ivar_decl.IsValid()) {
-    DeclFromParser<ObjCIvarDecl> parser_ivar_decl(
-        origin_ivar_decl.Import(m_ast_context, *m_ast_importer_sp));
-    if (parser_ivar_decl.IsValid()) {
+    
+    if (DeclFromParser<ObjCIvarDecl> parser_ivar_decl(
+        origin_ivar_decl.Import(m_ast_context, *m_ast_importer_sp)); parser_ivar_decl.IsValid()) {
       LLDB_LOG(log, "  CAS::FOPD found\n{0}",
                ClangUtil::DumpDecl(parser_ivar_decl.decl));
 
@@ -1440,9 +1440,9 @@ NamespaceDecl *ClangASTSource::AddNamespace(
 
   const CompilerDeclContext &namespace_decl = namespace_decls->begin()->second;
 
-  clang::ASTContext *src_ast =
-      TypeSystemClang::DeclContextGetTypeSystemClang(namespace_decl);
-  if (!src_ast)
+  
+  if (clang::ASTContext *src_ast =
+      TypeSystemClang::DeclContextGetTypeSystemClang(namespace_decl); !src_ast)
     return nullptr;
   clang::NamespaceDecl *src_namespace_decl =
       TypeSystemClang::DeclContextGetAsNamespaceDecl(namespace_decl);

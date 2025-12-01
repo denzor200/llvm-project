@@ -76,8 +76,8 @@ LibcxxStdRangesRefViewSyntheticFrontEndCreator(CXXSyntheticChildren *,
                                                lldb::ValueObjectSP valobj_sp) {
   if (!valobj_sp)
     return nullptr;
-  CompilerType type = valobj_sp->GetCompilerType();
-  if (!type.IsValid())
+  
+  if (CompilerType type = valobj_sp->GetCompilerType(); !type.IsValid())
     return nullptr;
   return new LibcxxStdRangesRefViewSyntheticFrontEnd(valobj_sp);
 }

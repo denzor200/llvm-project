@@ -262,9 +262,9 @@ static llvm::StringRef stripExecutableExtension(llvm::StringRef Name) {
 static bool unwrapCommand(std::vector<std::string> &Args) {
   if (Args.size() < 2)
     return false;
-  StringRef Wrapper =
-      stripExecutableExtension(llvm::sys::path::filename(Args.front()));
-  if (Wrapper == "distcc" || Wrapper == "ccache" || Wrapper == "sccache") {
+  
+  if (StringRef Wrapper =
+      stripExecutableExtension(llvm::sys::path::filename(Args.front())); Wrapper == "distcc" || Wrapper == "ccache" || Wrapper == "sccache") {
     // Most of these wrappers support being invoked 3 ways:
     // `distcc g++ file.c` This is the mode we're trying to match.
     //                     We need to drop `distcc`.

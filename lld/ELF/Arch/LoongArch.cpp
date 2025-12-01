@@ -797,10 +797,10 @@ bool LoongArch::synthesizeAlignForInput(uint64_t &dot, InputSection *sec,
   } else if (sec->addralign > 4) {
     // If the alignment is > 4 and the section does not start with an ALIGN
     // relocation, synthesize one.
-    bool hasAlignRel = llvm::any_of(rels, [](const RelTy &rel) {
+    
+    if (bool hasAlignRel = llvm::any_of(rels, [](const RelTy &rel) {
       return rel.r_offset == 0 && rel.getType(false) == R_LARCH_ALIGN;
-    });
-    if (!hasAlignRel) {
+    }); !hasAlignRel) {
       synthesizedAligns.emplace_back(dot - baseSec->getVA(),
                                      sec->addralign - 4);
       dot += sec->addralign - 4;
@@ -1008,9 +1008,9 @@ static void relaxCall36(Ctx &ctx, const InputSection &sec, size_t i,
       (r.expr == R_PLT_PC ? r.sym->getPltVA(ctx) : r.sym->getVA(ctx)) +
       r.addend;
 
-  const int64_t displace = dest - loc;
+  
   // Check if the displace aligns 4 bytes or exceeds the range of b[l].
-  if ((displace & 0x3) != 0 || !isInt<28>(displace))
+  if (const int64_t displace = dest - loc; (displace & 0x3) != 0 || !isInt<28>(displace))
     return;
 
   const uint32_t nextInsn = read32le(sec.content().data() + r.offset + 4);
@@ -1036,9 +1036,9 @@ static void relaxCall36(Ctx &ctx, const InputSection &sec, size_t i,
 //   addi/ld/st.w/d $rd, $tp, %le_lo12_r(sym)
 static void relaxTlsLe(Ctx &ctx, const InputSection &sec, size_t i,
                        uint64_t loc, Relocation &r, uint32_t &remove) {
-  uint64_t val = r.sym->getVA(ctx, r.addend);
+  
   // Check if the val exceeds the range of addi/ld/st.
-  if (!isInt<12>(val))
+  if (uint64_t val = r.sym->getVA(ctx, r.addend); !isInt<12>(val))
     return;
   uint32_t currInsn = read32le(sec.content().data() + r.offset);
   switch (r.type) {
@@ -1075,10 +1075,10 @@ static bool relax(Ctx &ctx, InputSection &sec) {
       const uint64_t align = 1ULL << (addend & 0xff);
       const uint64_t maxBytes = addend >> 8;
       const uint64_t off = loc & (align - 1);
-      const uint64_t curBytes = off == 0 ? 0 : align - off;
+      
       // All bytes beyond the alignment boundary should be removed.
       // If emit bytes more than max bytes to emit, remove all.
-      if (maxBytes != 0 && curBytes > maxBytes)
+      if (const uint64_t curBytes = off == 0 ? 0 : align - off; maxBytes != 0 && curBytes > maxBytes)
         remove = allBytes;
       else
         remove = allBytes - curBytes;
@@ -1181,8 +1181,8 @@ static void tlsIeToLe(uint8_t *loc, const Relocation &rel, uint64_t val) {
          "val exceeds the range of medium code model in tlsIeToLe");
 
   bool isUInt12 = isUInt<12>(val);
-  const uint32_t currInsn = read32le(loc);
-  switch (rel.type) {
+  
+  switch (const uint32_t currInsn = read32le(loc); rel.type) {
   case R_LARCH_TLS_IE_PC_HI20:
     if (isUInt12)
       write32le(loc, insn(ANDI, R_ZERO, R_ZERO, 0)); // nop
@@ -1256,8 +1256,8 @@ void LoongArch::tlsdescToLe(uint8_t *loc, const Relocation &rel,
   assert(isInt<32>(val) &&
          "val exceeds the range of medium code model in tlsdescToLe");
 
-  bool isUInt12 = isUInt<12>(val);
-  switch (rel.type) {
+  
+  switch (bool isUInt12 = isUInt<12>(val); rel.type) {
   case R_LARCH_TLS_DESC_PC_HI20:
   case R_LARCH_TLS_DESC_PC_LO12:
   case R_LARCH_TLS_DESC_PCREL20_S2:
@@ -1317,10 +1317,10 @@ bool LoongArch::tryGotToPCRel(uint8_t *loc, const Relocation &rHi20,
 
   const uint32_t currInsn = read32le(loc);
   const uint32_t nextInsn = read32le(loc + 4);
-  const uint32_t ldOpcode = ctx.arg.is64 ? LD_D : LD_W;
+  
   // Check if the first instruction is PCALAU12I and the second instruction is
   // LD.
-  if ((currInsn & 0xfe000000) != PCALAU12I ||
+  if (const uint32_t ldOpcode = ctx.arg.is64 ? LD_D : LD_W; (currInsn & 0xfe000000) != PCALAU12I ||
       (nextInsn & 0xffc00000) != ldOpcode)
     return false;
 
@@ -1492,8 +1492,8 @@ void LoongArch::relocateAlloc(InputSection &sec, uint8_t *buf) const {
       // it will not reach here.
       if (isPairForGotRels && rel.type == R_LARCH_GOT_PC_HI20) {
         bool isRelax = relaxable(relocs, i);
-        const Relocation lo12Rel = isRelax ? relocs[i + 2] : relocs[i + 1];
-        if (lo12Rel.type == R_LARCH_GOT_PC_LO12 &&
+        
+        if (const Relocation lo12Rel = isRelax ? relocs[i + 2] : relocs[i + 1]; lo12Rel.type == R_LARCH_GOT_PC_LO12 &&
             tryGotToPCRel(loc, rel, lo12Rel, secAddr)) {
           // isRelax: skip relocations R_LARCH_RELAX, R_LARCH_GOT_PC_LO12
           // !isRelax: skip relocation R_LARCH_GOT_PC_LO12

@@ -78,8 +78,8 @@ Value *BottomUpVec::createVectorInstr(ArrayRef<Value *> Bndl,
     BasicBlock::iterator WhereIt = getInsertPointAfterInstrs(
         Bndl, cast<Instruction>(Bndl[0])->getParent());
 
-    auto Opcode = cast<Instruction>(Bndl[0])->getOpcode();
-    switch (Opcode) {
+    
+    switch (auto Opcode = cast<Instruction>(Bndl[0])->getOpcode(); Opcode) {
     case Instruction::Opcode::ZExt:
     case Instruction::Opcode::SExt:
     case Instruction::Opcode::FPToUI:
@@ -256,8 +256,8 @@ void BottomUpVec::collectPotentiallyDeadInstrs(ArrayRef<Value *> Bndl) {
   for (Value *V : Bndl)
     DeadInstrCandidates.insert(cast<Instruction>(V));
   // Also collect the GEPs of vectorized loads and stores.
-  auto Opcode = cast<Instruction>(Bndl[0])->getOpcode();
-  switch (Opcode) {
+  
+  switch (auto Opcode = cast<Instruction>(Bndl[0])->getOpcode(); Opcode) {
   case Instruction::Opcode::Load: {
     for (Value *V : drop_begin(Bndl))
       if (auto *Ptr =
@@ -292,8 +292,8 @@ Action *BottomUpVec::vectorizeRec(ArrayRef<Value *> Bndl,
   SmallVector<Action *> Operands;
   switch (LegalityRes.getSubclassID()) {
   case LegalityResultID::Widen: {
-    auto *I = cast<Instruction>(Bndl[0]);
-    switch (I->getOpcode()) {
+    
+    switch (auto *I = cast<Instruction>(Bndl[0]); I->getOpcode()) {
     case Instruction::Opcode::Load:
       break;
     case Instruction::Opcode::Store: {
@@ -346,11 +346,11 @@ Value *BottomUpVec::emitVectors() {
     ArrayRef<Value *> UserBndl = ActionPtr->UserBndl;
     const LegalityResult &LegalityRes = *ActionPtr->LegalityRes;
     unsigned Depth = ActionPtr->Depth;
-    auto *UserBB = !UserBndl.empty()
-                       ? cast<Instruction>(UserBndl.front())->getParent()
-                       : cast<Instruction>(Bndl[0])->getParent();
+    
 
-    switch (LegalityRes.getSubclassID()) {
+    switch (auto *UserBB = !UserBndl.empty()
+                       ? cast<Instruction>(UserBndl.front())->getParent()
+                       : cast<Instruction>(Bndl[0])->getParent(); LegalityRes.getSubclassID()) {
     case LegalityResultID::Widen: {
       auto *I = cast<Instruction>(Bndl[0]);
       SmallVector<Value *, 2> VecOperands;
@@ -399,9 +399,9 @@ Value *BottomUpVec::emitVectors() {
       // TODO: Try to get WhereIt without creating a vector.
       SmallVector<Value *, 4> DescrInstrs;
       for (const auto &ElmDescr : Descr.getDescrs()) {
-        auto *V = ElmDescr.needsExtract() ? ElmDescr.getValue()->Vec
-                                          : ElmDescr.getScalar();
-        if (auto *I = dyn_cast<Instruction>(V))
+        
+        if (auto *auto *V = ElmDescr.needsExtract() ? ElmDescr.getValue()->Vec
+                                          : ElmDescr.getScalar(); I = dyn_cast<Instruction>(V))
           DescrInstrs.push_back(I);
       }
       BasicBlock::iterator WhereIt =

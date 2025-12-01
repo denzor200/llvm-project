@@ -136,8 +136,8 @@ void DemandedBits::determineLiveOperandBits(
         break;
       case Intrinsic::fshl:
       case Intrinsic::fshr: {
-        const APInt *SA;
-        if (OperandNo == 2) {
+        
+        if (const APInt *SA; OperandNo == 2) {
           // Shift amount is modulo the bitwidth. For powers of two we have
           // SA % BW == SA & (BW - 1).
           if (isPowerOf2_32(BitWidth))
@@ -191,15 +191,15 @@ void DemandedBits::determineLiveOperandBits(
     break;
   case Instruction::Shl:
     if (OperandNo == 0) {
-      const APInt *ShiftAmtC;
-      if (match(UserI->getOperand(1), m_APInt(ShiftAmtC))) {
+      
+      if (const APInt *ShiftAmtC; match(UserI->getOperand(1), m_APInt(ShiftAmtC))) {
         uint64_t ShiftAmt = ShiftAmtC->getLimitedValue(BitWidth - 1);
         AB = AOut.lshr(ShiftAmt);
 
         // If the shift is nuw/nsw, then the high bits are not dead
         // (because we've promised that they *must* be zero).
-        const auto *S = cast<ShlOperator>(UserI);
-        if (S->hasNoSignedWrap())
+        
+        if (const auto *S = cast<ShlOperator>(UserI); S->hasNoSignedWrap())
           AB |= APInt::getHighBitsSet(BitWidth, ShiftAmt+1);
         else if (S->hasNoUnsignedWrap())
           AB |= APInt::getHighBitsSet(BitWidth, ShiftAmt);
@@ -209,8 +209,8 @@ void DemandedBits::determineLiveOperandBits(
         uint64_t Max = Known.getMaxValue().getLimitedValue(BitWidth - 1);
         // similar to Lshr case
         GetShiftedRange(Min, Max, /*ShiftLeft=*/false);
-        const auto *S = cast<ShlOperator>(UserI);
-        if (S->hasNoSignedWrap())
+        
+        if (const auto *S = cast<ShlOperator>(UserI); S->hasNoSignedWrap())
           AB |= APInt::getHighBitsSet(BitWidth, Max + 1);
         else if (S->hasNoUnsignedWrap())
           AB |= APInt::getHighBitsSet(BitWidth, Max);
@@ -219,8 +219,8 @@ void DemandedBits::determineLiveOperandBits(
     break;
   case Instruction::LShr:
     if (OperandNo == 0) {
-      const APInt *ShiftAmtC;
-      if (match(UserI->getOperand(1), m_APInt(ShiftAmtC))) {
+      
+      if (const APInt *ShiftAmtC; match(UserI->getOperand(1), m_APInt(ShiftAmtC))) {
         uint64_t ShiftAmt = ShiftAmtC->getLimitedValue(BitWidth - 1);
         AB = AOut.shl(ShiftAmt);
 
@@ -251,8 +251,8 @@ void DemandedBits::determineLiveOperandBits(
     break;
   case Instruction::AShr:
     if (OperandNo == 0) {
-      const APInt *ShiftAmtC;
-      if (match(UserI->getOperand(1), m_APInt(ShiftAmtC))) {
+      
+      if (const APInt *ShiftAmtC; match(UserI->getOperand(1), m_APInt(ShiftAmtC))) {
         uint64_t ShiftAmt = ShiftAmtC->getLimitedValue(BitWidth - 1);
         AB = AOut.shl(ShiftAmt);
         // Because the high input bit is replicated into the
@@ -373,8 +373,8 @@ void DemandedBits::performAnalysis() {
     // bits and add the instruction to the work list. For other instructions
     // add their operands to the work list (for integer values operands, mark
     // all bits as live).
-    Type *T = I.getType();
-    if (T->isIntOrIntVectorTy()) {
+    
+    if (Type *T = I.getType(); T->isIntOrIntVectorTy()) {
       if (AliveBits.try_emplace(&I, T->getScalarSizeInBits(), 0).second)
         Worklist.insert(&I);
 
@@ -384,8 +384,8 @@ void DemandedBits::performAnalysis() {
     // Non-integer-typed instructions...
     for (Use &OI : I.operands()) {
       if (auto *J = dyn_cast<Instruction>(OI)) {
-        Type *T = J->getType();
-        if (T->isIntOrIntVectorTy())
+        
+        if (Type *T = J->getType(); T->isIntOrIntVectorTy())
           AliveBits[J] = APInt::getAllOnes(T->getScalarSizeInBits());
         else
           Visited.insert(J);
@@ -451,8 +451,8 @@ void DemandedBits::performAnalysis() {
           // If we've added to the set of alive bits (or the operand has not
           // been previously visited), then re-queue the operand to be visited
           // again.
-          auto Res = AliveBits.try_emplace(I);
-          if (Res.second || (AB |= Res.first->second) != Res.first->second) {
+          
+          if (auto Res = AliveBits.try_emplace(I); Res.second || (AB |= Res.first->second) != Res.first->second) {
             Res.first->second = std::move(AB);
             Worklist.insert(I);
           }
@@ -525,8 +525,8 @@ bool DemandedBits::isUseDead(Use *U) {
   // If no output bits are demanded, no input bits are demanded and the use
   // is dead. These uses might not be explicitly present in the DeadUses map.
   if (UserI->getType()->isIntOrIntVectorTy()) {
-    auto Found = AliveBits.find(UserI);
-    if (Found != AliveBits.end() && Found->second.isZero())
+    
+    if (auto Found = AliveBits.find(UserI); Found != AliveBits.end() && Found->second.isZero())
       return true;
   }
 

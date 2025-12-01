@@ -320,10 +320,10 @@ private:
     for (isl::map Map : MustKnown.get_map_list()) {
       // Get the array this is accessing.
       isl::id ArrayId = Map.get_tuple_id(isl::dim::out);
-      ScopArrayInfo *SAI = static_cast<ScopArrayInfo *>(ArrayId.get_user());
+      
 
       // No support for generation of indirect array accesses.
-      if (SAI->getBasePtrOriginSAI())
+      if (ScopArrayInfo *SAI = static_cast<ScopArrayInfo *>(ArrayId.get_user()); SAI->getBasePtrOriginSAI())
         continue;
 
       // Determine whether this map contains all wanted values.
@@ -470,9 +470,9 @@ public:
     if (!LI)
       return ForwardingAction::notApplicable();
 
-    ForwardingDecision OpDecision =
-        forwardTree(TargetStmt, LI->getPointerOperand(), DefStmt, DefLoop);
-    switch (OpDecision) {
+    
+    switch (ForwardingDecision OpDecision =
+        forwardTree(TargetStmt, LI->getPointerOperand(), DefStmt, DefLoop); OpDecision) {
     case FD_CanForwardProfitably:
     case FD_CanForwardLeaf:
       break;
@@ -692,9 +692,9 @@ public:
     SmallVector<ForwardingAction::KeyTy, 4> Depends;
     Depends.reserve(UseInst->getNumOperands());
     for (Value *OpVal : UseInst->operand_values()) {
-      ForwardingDecision OpDecision =
-          forwardTree(TargetStmt, OpVal, DefStmt, DefLoop);
-      switch (OpDecision) {
+      
+      switch (ForwardingDecision OpDecision =
+          forwardTree(TargetStmt, OpVal, DefStmt, DefLoop); OpDecision) {
       case FD_CannotForward:
         return ForwardingAction::cannotForward();
 
@@ -955,8 +955,8 @@ public:
     ScopStmt *Stmt = RA->getStatement();
     Loop *InLoop = Stmt->getSurroundingLoop();
 
-    isl::map TargetToUse;
-    if (!Known.is_null()) {
+    
+    if (isl::map TargetToUse; !Known.is_null()) {
       isl::space DomSpace = Stmt->getDomainSpace();
       TargetToUse =
           isl::map::identity(DomSpace.map_from_domain_and_range(DomSpace));

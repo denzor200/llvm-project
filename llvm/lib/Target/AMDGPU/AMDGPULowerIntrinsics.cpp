@@ -142,8 +142,8 @@ bool AMDGPULowerIntrinsicsImpl::visitBarrier(IntrinsicInst &I) {
   if (I.getIntrinsicID() == Intrinsic::amdgcn_s_barrier_wait ||
       I.getIntrinsicID() == Intrinsic::amdgcn_s_barrier_signal ||
       I.getIntrinsicID() == Intrinsic::amdgcn_s_barrier_signal_isfirst) {
-    int BarrierID = cast<ConstantInt>(I.getArgOperand(0))->getSExtValue();
-    if (BarrierID == AMDGPU::Barrier::TRAP ||
+    
+    if (int BarrierID = cast<ConstantInt>(I.getArgOperand(0))->getSExtValue(); BarrierID == AMDGPU::Barrier::TRAP ||
         BarrierID == AMDGPU::Barrier::WORKGROUP ||
         (BarrierID >= AMDGPU::Barrier::NAMED_BARRIER_FIRST &&
          BarrierID <= AMDGPU::Barrier::NAMED_BARRIER_LAST))
@@ -185,8 +185,8 @@ bool AMDGPULowerIntrinsicsImpl::visitBarrier(IntrinsicInst &I) {
 
 PreservedAnalyses AMDGPULowerIntrinsicsPass::run(Module &M,
                                                  ModuleAnalysisManager &MAM) {
-  AMDGPULowerIntrinsicsImpl Impl(M, TM);
-  if (!Impl.run())
+  
+  if (AMDGPULowerIntrinsicsImpl Impl(M, TM); !Impl.run())
     return PreservedAnalyses::all();
   return PreservedAnalyses::none();
 }

@@ -313,8 +313,8 @@ static std::unique_ptr<ToolOutputFile> GetOutputStream(Triple::OSType OS) {
       OutputFilename = "-";
     else {
       // If InputFilename ends in .bc or .ll, remove it.
-      StringRef IFN = InputFilename;
-      if (IFN.ends_with(".bc") || IFN.ends_with(".ll"))
+      
+      if (StringRef IFN = InputFilename; IFN.ends_with(".bc") || IFN.ends_with(".ll"))
         OutputFilename = std::string(IFN.drop_back(3));
       else if (IFN.ends_with(".mir"))
         OutputFilename = std::string(IFN.drop_back(4));
@@ -517,8 +517,8 @@ static int compileModule(char **argv, LLVMContext &Context,
   // use that to indicate the MC default.
   if (!BinutilsVersion.empty() && BinutilsVersion != "none") {
     StringRef V = BinutilsVersion.getValue();
-    unsigned Num;
-    if (V.consumeInteger(10, Num) || Num == 0 ||
+    
+    if (unsigned Num; V.consumeInteger(10, Num) || Num == 0 ||
         !(V.empty() ||
           (V.consume_front(".") && !V.consumeInteger(10, Num) && V.empty()))) {
       WithColor::error(errs(), argv[0])

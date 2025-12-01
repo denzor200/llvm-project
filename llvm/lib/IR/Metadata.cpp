@@ -172,8 +172,8 @@ void DebugValueUser::handleChangedValue(void *Old, Metadata *New) {
 
 void DebugValueUser::trackDebugValue(size_t Idx) {
   assert(Idx < 3 && "Invalid debug value index.");
-  Metadata *&MD = DebugValues[Idx];
-  if (MD)
+  
+  if (Metadata *&MD = DebugValues[Idx]; MD)
     MetadataTracking::track(&MD, *MD, *this);
 }
 
@@ -185,8 +185,8 @@ void DebugValueUser::trackDebugValues() {
 
 void DebugValueUser::untrackDebugValue(size_t Idx) {
   assert(Idx < 3 && "Invalid debug value index.");
-  Metadata *&MD = DebugValues[Idx];
-  if (MD)
+  
+  if (Metadata *&MD = DebugValues[Idx]; MD)
     MetadataTracking::untrack(MD);
 }
 
@@ -405,8 +405,8 @@ void ReplaceableMetadataImpl::replaceAllUsesWith(Metadata *MD) {
     }
 
     // There's a Metadata owner -- dispatch.
-    Metadata *OwnerMD = cast<Metadata *>(Owner);
-    switch (OwnerMD->getMetadataID()) {
+    
+    switch (Metadata *OwnerMD = cast<Metadata *>(Owner); OwnerMD->getMetadataID()) {
 #define HANDLE_METADATA_LEAF(CLASS)                                            \
   case Metadata::CLASS##Kind:                                                  \
     cast<CLASS>(OwnerMD)->handleChangedOperand(Pair.first, MD);                \
@@ -1170,8 +1170,8 @@ MDNode *MDNode::getMostGenericFPMath(MDNode *A, MDNode *B) {
     return nullptr;
 
   APFloat AVal = mdconst::extract<ConstantFP>(A->getOperand(0))->getValueAPF();
-  APFloat BVal = mdconst::extract<ConstantFP>(B->getOperand(0))->getValueAPF();
-  if (AVal < BVal)
+  
+  if (APFloat BVal = mdconst::extract<ConstantFP>(B->getOperand(0))->getValueAPF(); AVal < BVal)
     return A;
   return B;
 }
@@ -1195,8 +1195,8 @@ MDNode *MDNode::mergeDirectCallProfMetadata(MDNode *A, MDNode *B,
   assert(AMDS != nullptr && BMDS != nullptr &&
          "first operand should be a non-null MDString");
   StringRef AProfName = AMDS->getString();
-  StringRef BProfName = BMDS->getString();
-  if (AProfName == MDProfLabels::BranchWeights &&
+  
+  if (StringRef BProfName = BMDS->getString(); AProfName == MDProfLabels::BranchWeights &&
       BProfName == MDProfLabels::BranchWeights) {
     ConstantInt *AInstrWeight = mdconst::dyn_extract<ConstantInt>(
         A->getOperand(getBranchWeightOffset(A)));
@@ -1274,8 +1274,8 @@ static bool tryMergeRange(SmallVectorImpl<ConstantInt *> &EndPoints,
   unsigned Size = EndPoints.size();
   const APInt &LB = EndPoints[Size - 2]->getValue();
   const APInt &LE = EndPoints[Size - 1]->getValue();
-  ConstantRange LastRange(LB, LE);
-  if (canBeMerged(NewRange, LastRange)) {
+  
+  if (ConstantRange LastRange(LB, LE); canBeMerged(NewRange, LastRange)) {
     ConstantRange Union = LastRange.unionWith(NewRange);
     Type *Ty = High->getType();
     EndPoints[Size - 2] =
@@ -1335,9 +1335,9 @@ MDNode *MDNode::getMostGenericRange(MDNode *A, MDNode *B) {
   unsigned BN = B->getNumOperands() / 2;
   while (AI < AN && BI < BN) {
     ConstantInt *ALow = mdconst::extract<ConstantInt>(A->getOperand(2 * AI));
-    ConstantInt *BLow = mdconst::extract<ConstantInt>(B->getOperand(2 * BI));
+    
 
-    if (ALow->getValue().slt(BLow->getValue())) {
+    if (ConstantInt *BLow = mdconst::extract<ConstantInt>(B->getOperand(2 * BI)); ALow->getValue().slt(BLow->getValue())) {
       addRange(EndPoints, ALow,
                mdconst::extract<ConstantInt>(A->getOperand(2 * AI + 1)));
       ++AI;
@@ -1361,11 +1361,11 @@ MDNode *MDNode::getMostGenericRange(MDNode *A, MDNode *B) {
   // We haven't handled wrap in the previous merge,
   // if we have at least 2 ranges (4 endpoints) we have to try to merge
   // the last and first ones.
-  unsigned Size = EndPoints.size();
-  if (Size > 2) {
+  
+  if (unsigned Size = EndPoints.size(); Size > 2) {
     ConstantInt *FB = EndPoints[0];
-    ConstantInt *FE = EndPoints[1];
-    if (tryMergeRange(EndPoints, FB, FE)) {
+    
+    if (ConstantInt *FE = EndPoints[1]; tryMergeRange(EndPoints, FB, FE)) {
       for (unsigned i = 0; i < Size - 2; ++i) {
         EndPoints[i] = EndPoints[i + 2];
       }
@@ -1376,8 +1376,8 @@ MDNode *MDNode::getMostGenericRange(MDNode *A, MDNode *B) {
   // If in the end we have a single range, it is possible that it is now the
   // full range. Just drop the metadata in that case.
   if (EndPoints.size() == 2) {
-    ConstantRange Range(EndPoints[0]->getValue(), EndPoints[1]->getValue());
-    if (Range.isFullSet())
+    
+    if (ConstantRange Range(EndPoints[0]->getValue(), EndPoints[1]->getValue()); Range.isFullSet())
       return nullptr;
   }
 
@@ -1430,8 +1430,8 @@ MDNode *MDNode::getMostGenericAlignmentOrDereferenceable(MDNode *A, MDNode *B) {
     return nullptr;
 
   ConstantInt *AVal = mdconst::extract<ConstantInt>(A->getOperand(0));
-  ConstantInt *BVal = mdconst::extract<ConstantInt>(B->getOperand(0));
-  if (AVal->getZExtValue() < BVal->getZExtValue())
+  
+  if (ConstantInt *BVal = mdconst::extract<ConstantInt>(B->getOperand(0)); AVal->getZExtValue() < BVal->getZExtValue())
     return A;
   return B;
 }
@@ -1777,8 +1777,8 @@ void Instruction::addAnnotationMetadata(SmallVector<StringRef> Annotations) {
         Names.push_back(N);
         continue;
       }
-      auto *MDAnnotationTuple = cast<MDTuple>(N);
-      if (any_of(MDAnnotationTuple->operands(), [&AnnotationsSet](auto &Op) {
+      
+      if (auto *MDAnnotationTuple = cast<MDTuple>(N); any_of(MDAnnotationTuple->operands(), [&AnnotationsSet](auto &Op) {
             return AnnotationsSet.contains(cast<MDString>(Op)->getString());
           }))
         return;

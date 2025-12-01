@@ -499,8 +499,8 @@ void RenamerClangTidyCheck::addUsage(const NamedDecl *Decl,
   const IdentifierTable &Idents = FailureDecl->getASTContext().Idents;
   auto CheckNewIdentifier = Idents.find(Failure.Info.Fixup);
   if (CheckNewIdentifier != Idents.end()) {
-    const IdentifierInfo *Ident = CheckNewIdentifier->second;
-    if (Ident->isKeyword(getLangOpts()))
+    
+    if (const IdentifierInfo *Ident = CheckNewIdentifier->second; Ident->isKeyword(getLangOpts()))
       Failure.FixStatus = ShouldFixStatus::ConflictsWithKeyword;
     else if (Ident->hasMacroDefinition())
       Failure.FixStatus = ShouldFixStatus::ConflictsWithMacroDefinition;

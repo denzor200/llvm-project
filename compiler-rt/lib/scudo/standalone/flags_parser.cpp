@@ -132,8 +132,8 @@ void FlagParser::parseStringPair(const char *Name, const char *Value) {
 bool FlagParser::runHandler(const char *Name, const char *Value,
                             const char Sep) {
   for (u32 I = 0; I < NumberOfFlags; ++I) {
-    const uptr Len = strlen(Flags[I].Name);
-    if (strncmp(Name, Flags[I].Name, Len) != 0 || Name[Len] != Sep)
+    
+    if (const uptr Len = strlen(Flags[I].Name); strncmp(Name, Flags[I].Name, Len) != 0 || Name[Len] != Sep)
       continue;
     bool Ok = false;
     switch (Flags[I].Type) {

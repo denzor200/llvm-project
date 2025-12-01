@@ -868,8 +868,8 @@ bool TypeSanitizer::instrumentMemInst(Value *V, Instruction *ShadowBase,
     Size =
         ConstantInt::get(IntptrTy, DL.getTypeAllocSize(A->getParamByValType()));
   } else {
-    auto *I = cast<Instruction>(V);
-    if (auto *MI = dyn_cast<MemIntrinsic>(I)) {
+    
+    if (auto *auto *I = cast<Instruction>(V); MI = dyn_cast<MemIntrinsic>(I)) {
       if (MI->getDestAddressSpace() != 0)
         return false;
 

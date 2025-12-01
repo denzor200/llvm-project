@@ -125,9 +125,9 @@ Attribute BitVectorAttr::parse(AsmParser &odsParser, Type odsType) {
   } else if (width < val.getBitWidth()) {
     // The parser can return an unnecessarily wide result.
     // This isn't a problem, but truncating off bits is bad.
-    unsigned neededBits =
-        val.isNegative() ? val.getSignificantBits() : val.getActiveBits();
-    if (width < neededBits) {
+    
+    if (unsigned neededBits =
+        val.isNegative() ? val.getSignificantBits() : val.getActiveBits(); width < neededBits) {
       odsParser.emitError(loc)
           << "integer value out of range for given bit-vector type " << odsType;
       return {};

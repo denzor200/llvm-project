@@ -75,9 +75,9 @@ public:
         break;
       --It;
     }
-    const Stmt *Parent = *It;
+    
 
-    if (auto BO = dyn_cast<BinaryOperator>(Parent)) {
+    if (auto const Stmt *Parent = *It; BO = dyn_cast<BinaryOperator>(Parent)) {
       if (BO->getOpcode() == BO_Assign) {
         if (BO->getLHS()->IgnoreParenCasts() == E)
           Roles |= (unsigned)SymbolRole::Write;
@@ -102,8 +102,8 @@ public:
           if (auto *CXXMD = dyn_cast_or_null<CXXMethodDecl>(ME->getMemberDecl()))
             if (CXXMD->isVirtual() && !ME->hasQualifier()) {
               Roles |= (unsigned)SymbolRole::Dynamic;
-              auto BaseTy = ME->getBase()->IgnoreImpCasts()->getType();
-              if (!BaseTy.isNull())
+              
+              if (auto BaseTy = ME->getBase()->IgnoreImpCasts()->getType(); !BaseTy.isNull())
                 if (auto *CXXRD = BaseTy->getPointeeCXXRecordDecl())
                   Relations.emplace_back((unsigned)SymbolRole::RelationReceivedBy,
                                          CXXRD);
@@ -111,8 +111,8 @@ public:
         }
       } else if (auto CXXOp = dyn_cast<CXXOperatorCallExpr>(CE)) {
         if (CXXOp->getNumArgs() > 0 && CXXOp->getArg(0)->IgnoreParenCasts() == E) {
-          OverloadedOperatorKind Op = CXXOp->getOperator();
-          if (Op == OO_Equal) {
+          
+          if (OverloadedOperatorKind Op = CXXOp->getOperator(); Op == OO_Equal) {
             Roles |= (unsigned)SymbolRole::Write;
           } else if ((Op >= OO_PlusEqual && Op <= OO_PipeEqual) ||
                      Op == OO_LessLessEqual || Op == OO_GreaterGreaterEqual ||
@@ -266,9 +266,9 @@ public:
         }
         return true;
       };
-      bool IsPropCall = isa_and_nonnull<PseudoObjectExpr>(Containing);
+      
       // Implicit property message sends are not 'implicit'.
-      if ((E->isImplicit() || IsPropCall) &&
+      if (bool IsPropCall = isa_and_nonnull<PseudoObjectExpr>(Containing); (E->isImplicit() || IsPropCall) &&
           !(IsPropCall &&
             IsImplicitProperty(cast<PseudoObjectExpr>(Containing))))
         Roles |= (unsigned)SymbolRole::Implicit;
@@ -288,8 +288,8 @@ public:
                                    protD);
           }
         };
-        QualType recT = E->getReceiverType();
-        if (const auto *Ptr = recT->getAs<ObjCObjectPointerType>())
+        
+        if (const auto *QualType recT = E->getReceiverType(); Ptr = recT->getAs<ObjCObjectPointerType>())
           addReceivers(Ptr->getObjectType());
         else
           addReceivers(recT->getAs<ObjCObjectType>());
@@ -471,8 +471,8 @@ public:
 
   bool VisitOffsetOfExpr(OffsetOfExpr *S) {
     for (unsigned I = 0, E = S->getNumComponents(); I != E; ++I) {
-      const OffsetOfNode &Component = S->getComponent(I);
-      if (Component.getKind() == OffsetOfNode::Field)
+      
+      if (const OffsetOfNode &Component = S->getComponent(I); Component.getKind() == OffsetOfNode::Field)
         IndexCtx.handleReference(Component.getField(), Component.getEndLoc(),
                                  Parent, ParentDC, SymbolRoleSet(), {});
       // FIXME: Try to resolve dependent field references.
@@ -483,8 +483,8 @@ public:
   bool VisitParmVarDecl(ParmVarDecl* D) {
     // Index the parameters of lambda expression and requires expression.
     if (IndexCtx.shouldIndexFunctionLocalSymbols()) {
-      const auto *DC = D->getDeclContext();
-      if (DC && (isLambdaCallOperator(DC) || isa<RequiresExprBodyDecl>(DC)))
+      
+      if (const auto *DC = D->getDeclContext(); DC && (isLambdaCallOperator(DC) || isa<RequiresExprBodyDecl>(DC)))
         IndexCtx.handleDecl(D);
     }
     return true;

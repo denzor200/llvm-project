@@ -85,8 +85,8 @@ public:
     // try and grab the setting from the current thread if there is one. Else
     // we just use the one from this instance.
     if (exe_ctx) {
-      Thread *thread = exe_ctx->GetThreadPtr();
-      if (thread) {
+      
+      if (Thread *thread = exe_ctx->GetThreadPtr(); thread) {
         ThreadOptionValueProperties *instance_properties =
             static_cast<ThreadOptionValueProperties *>(
                 thread->GetValueProperties().get());
@@ -171,8 +171,8 @@ void Thread::ThreadEventData::Dump(Stream *s) const {}
 const Thread::ThreadEventData *
 Thread::ThreadEventData::GetEventDataFromEvent(const Event *event_ptr) {
   if (event_ptr) {
-    const EventData *event_data = event_ptr->GetData();
-    if (event_data &&
+    
+    if (const EventData *event_data = event_ptr->GetData(); event_data &&
         event_data->GetFlavor() == ThreadEventData::GetFlavorString())
       return static_cast<const ThreadEventData *>(event_ptr->GetData());
   }
@@ -181,16 +181,16 @@ Thread::ThreadEventData::GetEventDataFromEvent(const Event *event_ptr) {
 
 ThreadSP Thread::ThreadEventData::GetThreadFromEvent(const Event *event_ptr) {
   ThreadSP thread_sp;
-  const ThreadEventData *event_data = GetEventDataFromEvent(event_ptr);
-  if (event_data)
+  
+  if (const ThreadEventData *event_data = GetEventDataFromEvent(event_ptr); event_data)
     thread_sp = event_data->GetThread();
   return thread_sp;
 }
 
 StackID Thread::ThreadEventData::GetStackIDFromEvent(const Event *event_ptr) {
   StackID stack_id;
-  const ThreadEventData *event_data = GetEventDataFromEvent(event_ptr);
-  if (event_data)
+  
+  if (const ThreadEventData *event_data = GetEventDataFromEvent(event_ptr); event_data)
     stack_id = event_data->GetStackID();
   return stack_id;
 }
@@ -200,8 +200,8 @@ Thread::ThreadEventData::GetStackFrameFromEvent(const Event *event_ptr) {
   const ThreadEventData *event_data = GetEventDataFromEvent(event_ptr);
   StackFrameSP frame_sp;
   if (event_data) {
-    ThreadSP thread_sp = event_data->GetThread();
-    if (thread_sp) {
+    
+    if (ThreadSP thread_sp = event_data->GetThread(); thread_sp) {
       frame_sp = thread_sp->GetStackFrameList()->GetFrameWithStackID(
           event_data->GetStackID());
     }
@@ -301,8 +301,8 @@ bool Thread::SetSelectedFrameByIndex(uint32_t frame_idx, bool broadcast) {
 bool Thread::SetSelectedFrameByIndexNoisily(uint32_t frame_idx,
                                             Stream &output_stream) {
   const bool broadcast = true;
-  bool success = SetSelectedFrameByIndex(frame_idx, broadcast);
-  if (success) {
+  
+  if (bool success = SetSelectedFrameByIndex(frame_idx, broadcast); success) {
     StackFrameSP frame_sp = GetSelectedFrame(DoNoSelectMostRelevantFrame);
     if (frame_sp) {
       bool already_shown = false;
@@ -363,11 +363,11 @@ lldb::StopInfoSP Thread::GetStopInfo() {
       m_stop_info_stop_id == stop_id;
   bool have_valid_completed_plan = completed_plan_sp && completed_plan_sp->PlanSucceeded();
   bool plan_failed = completed_plan_sp && !completed_plan_sp->PlanSucceeded();
-  bool plan_overrides_trace =
-    have_valid_stop_info && have_valid_completed_plan
-    && (m_stop_info_sp->GetStopReason() == eStopReasonTrace);
+  
 
-  if (have_valid_stop_info && !plan_overrides_trace && !plan_failed) {
+  if (bool plan_overrides_trace =
+    have_valid_stop_info && have_valid_completed_plan
+    && (m_stop_info_sp->GetStopReason() == eStopReasonTrace); have_valid_stop_info && !plan_overrides_trace && !plan_failed) {
     return m_stop_info_sp;
   } else if (completed_plan_sp) {
     return StopInfo::CreateStopReasonWithPlan(
@@ -447,8 +447,8 @@ lldb::StopReason Thread::GetStopReason() {
 }
 
 bool Thread::StopInfoIsUpToDate() const {
-  ProcessSP process_sp(GetProcess());
-  if (process_sp)
+  
+  if (ProcessSP process_sp(GetProcess()); process_sp)
     return m_stop_info_stop_id == process_sp->GetStopID();
   else
     return true; // Process is no longer around so stop info is always up to
@@ -508,11 +508,11 @@ bool Thread::CheckpointThreadState(ThreadStateCheckpoint &saved_state) {
   saved_state.register_backup_sp.reset();
   lldb::StackFrameSP frame_sp(GetStackFrameAtIndex(0));
   if (frame_sp) {
-    lldb::RegisterCheckpointSP reg_checkpoint_sp(
-        new RegisterCheckpoint(RegisterCheckpoint::Reason::eExpression));
-    if (reg_checkpoint_sp) {
-      lldb::RegisterContextSP reg_ctx_sp(frame_sp->GetRegisterContext());
-      if (reg_ctx_sp && reg_ctx_sp->ReadAllRegisterValues(*reg_checkpoint_sp))
+    
+    if (lldb::RegisterCheckpointSP reg_checkpoint_sp(
+        new RegisterCheckpoint(RegisterCheckpoint::Reason::eExpression)); reg_checkpoint_sp) {
+      
+      if (lldb::RegisterContextSP reg_ctx_sp(frame_sp->GetRegisterContext()); reg_ctx_sp && reg_ctx_sp->ReadAllRegisterValues(*reg_checkpoint_sp))
         saved_state.register_backup_sp = reg_checkpoint_sp;
     }
   }
@@ -534,10 +534,10 @@ bool Thread::CheckpointThreadState(ThreadStateCheckpoint &saved_state) {
 bool Thread::RestoreRegisterStateFromCheckpoint(
     ThreadStateCheckpoint &saved_state) {
   if (saved_state.register_backup_sp) {
-    lldb::StackFrameSP frame_sp(GetStackFrameAtIndex(0));
-    if (frame_sp) {
-      lldb::RegisterContextSP reg_ctx_sp(frame_sp->GetRegisterContext());
-      if (reg_ctx_sp) {
+    
+    if (lldb::StackFrameSP frame_sp(GetStackFrameAtIndex(0)); frame_sp) {
+      
+      if (lldb::RegisterContextSP reg_ctx_sp(frame_sp->GetRegisterContext()); reg_ctx_sp) {
         bool ret =
             reg_ctx_sp->WriteAllRegisterValues(*saved_state.register_backup_sp);
 
@@ -635,11 +635,10 @@ bool Thread::SetupToStepOverBreakpointIfNeeded(RunDirection direction) {
     // what the current plan is.
 
     lldb::RegisterContextSP reg_ctx_sp(GetRegisterContext());
-    ProcessSP process_sp(GetProcess());
-    if (reg_ctx_sp && process_sp && direction == eRunForward) {
+    
+    if (ProcessSP process_sp(GetProcess()); reg_ctx_sp && process_sp && direction == eRunForward) {
       const addr_t thread_pc = reg_ctx_sp->GetPC();
-      BreakpointSiteSP bp_site_sp =
-          process_sp->GetBreakpointSiteList().FindByAddress(thread_pc);
+      
       // If we're at a BreakpointSite which we have either
       //   1. already triggered/hit, or
       //   2. the Breakpoint was added while stopped, or the pc was moved
@@ -648,7 +647,8 @@ bool Thread::SetupToStepOverBreakpointIfNeeded(RunDirection direction) {
       // If we stopped at a breakpoint instruction/BreakpointSite location
       // without hitting it, and we're still at that same address on
       // resuming, then we want to hit the BreakpointSite when we resume.
-      if (bp_site_sp && m_stopped_at_unexecuted_bp != thread_pc) {
+      if (BreakpointSiteSP bp_site_sp =
+          process_sp->GetBreakpointSiteList().FindByAddress(thread_pc); bp_site_sp && m_stopped_at_unexecuted_bp != thread_pc) {
         // Note, don't assume there's a ThreadPlanStepOverBreakpoint, the
         // target may not require anything special to step over a breakpoint.
 
@@ -656,16 +656,16 @@ bool Thread::SetupToStepOverBreakpointIfNeeded(RunDirection direction) {
 
         bool push_step_over_bp_plan = false;
         if (cur_plan->GetKind() == ThreadPlan::eKindStepOverBreakpoint) {
-          ThreadPlanStepOverBreakpoint *bp_plan =
-              (ThreadPlanStepOverBreakpoint *)cur_plan;
-          if (bp_plan->GetBreakpointLoadAddress() != thread_pc)
+          
+          if (ThreadPlanStepOverBreakpoint *bp_plan =
+              (ThreadPlanStepOverBreakpoint *)cur_plan; bp_plan->GetBreakpointLoadAddress() != thread_pc)
             push_step_over_bp_plan = true;
         } else
           push_step_over_bp_plan = true;
 
         if (push_step_over_bp_plan) {
-          ThreadPlanSP step_bp_plan_sp(new ThreadPlanStepOverBreakpoint(*this));
-          if (step_bp_plan_sp) {
+          
+          if (ThreadPlanSP step_bp_plan_sp(new ThreadPlanStepOverBreakpoint(*this)); step_bp_plan_sp) {
             step_bp_plan_sp->SetPrivate(true);
 
             if (GetCurrentPlan()->RunState() != eStateStepping) {
@@ -881,8 +881,8 @@ bool Thread::ShouldStop(Event *event_ptr) {
             done_processing_current_plan =
                 (plan_ptr->IsControllingPlan() && !plan_ptr->OkayToDiscard());
           } else {
-            bool should_force_run = plan_ptr->ShouldRunBeforePublicStop();
-            if (should_force_run) {
+            
+            if (bool should_force_run = plan_ptr->ShouldRunBeforePublicStop(); should_force_run) {
               SetShouldRunBeforePublicStop(true);
               should_stop = false;
             }
@@ -1055,9 +1055,9 @@ Vote Thread::ShouldReportStop(Event *event_ptr) {
 }
 
 Vote Thread::ShouldReportRun(Event *event_ptr) {
-  StateType thread_state = GetResumeState();
+  
 
-  if (thread_state == eStateSuspended || thread_state == eStateInvalid) {
+  if (StateType thread_state = GetResumeState(); thread_state == eStateSuspended || thread_state == eStateInvalid) {
     return eVoteNoOpinion;
   }
 
@@ -1108,8 +1108,8 @@ ThreadPlanStack &Thread::GetPlans() const {
 void Thread::PushPlan(ThreadPlanSP thread_plan_sp) {
   assert(thread_plan_sp && "Don't push an empty thread plan.");
 
-  Log *log = GetLog(LLDBLog::Step);
-  if (log) {
+  
+  if (Log *log = GetLog(LLDBLog::Step); log) {
     StreamString s;
     thread_plan_sp->GetDescription(&s, lldb::eDescriptionLevelFull);
     LLDB_LOGF(log, "Thread::PushPlan(0x%p): \"%s\", tid = 0x%4.4" PRIx64 ".",
@@ -1122,8 +1122,8 @@ void Thread::PushPlan(ThreadPlanSP thread_plan_sp) {
 
 void Thread::PopPlan() {
   Log *log = GetLog(LLDBLog::Step);
-  ThreadPlanSP popped_plan_sp = GetPlans().PopPlan();
-  if (log) {
+  
+  if (ThreadPlanSP popped_plan_sp = GetPlans().PopPlan(); log) {
     LLDB_LOGF(log, "Popping plan: \"%s\", tid = 0x%4.4" PRIx64 ".",
               popped_plan_sp->GetName(), popped_plan_sp->GetThread().GetID());
   }
@@ -1240,8 +1240,8 @@ void Thread::DiscardThreadPlansUpToPlan(ThreadPlan *up_to_plan_ptr) {
 }
 
 void Thread::DiscardThreadPlans(bool force) {
-  Log *log = GetLog(LLDBLog::Step);
-  if (log) {
+  
+  if (Log *log = GetLog(LLDBLog::Step); log) {
     LLDB_LOGF(log,
               "Discarding thread plans for thread (tid = 0x%4.4" PRIx64
               ", force %d)",
@@ -1478,9 +1478,9 @@ Status Thread::ReturnFromFrameWithIndex(uint32_t frame_idx,
                                         lldb::ValueObjectSP return_value_sp,
                                         bool broadcast) {
   StackFrameSP frame_sp = GetStackFrameAtIndex(frame_idx);
-  Status return_error;
+  
 
-  if (!frame_sp) {
+  if (Status return_error; !frame_sp) {
     return_error = Status::FromErrorStringWithFormat(
         "Could not find frame with index %d in thread 0x%" PRIx64 ".",
         frame_idx, GetID());
@@ -1520,15 +1520,15 @@ Status Thread::ReturnFromFrame(lldb::StackFrameSP frame_sp,
     // for scalars.
     // Turn that back on when that works.
     if (/* DISABLES CODE */ (false) && sc.function != nullptr) {
-      Type *function_type = sc.function->GetType();
-      if (function_type) {
+      
+      if (Type *function_type = sc.function->GetType(); function_type) {
         CompilerType return_type =
             sc.function->GetCompilerType().GetFunctionReturnType();
         if (return_type) {
           StreamString s;
           return_type.DumpTypeDescription(&s);
-          ValueObjectSP cast_value_sp = return_value_sp->Cast(return_type);
-          if (cast_value_sp) {
+          
+          if (ValueObjectSP cast_value_sp = return_value_sp->Cast(return_type); cast_value_sp) {
             cast_value_sp->SetFormat(eFormatHex);
             return_value_sp = cast_value_sp;
           }
@@ -1547,11 +1547,11 @@ Status Thread::ReturnFromFrame(lldb::StackFrameSP frame_sp,
 
   StackFrameSP youngest_frame_sp = thread->GetStackFrameAtIndex(0);
   if (youngest_frame_sp) {
-    lldb::RegisterContextSP reg_ctx_sp(youngest_frame_sp->GetRegisterContext());
-    if (reg_ctx_sp) {
-      bool copy_success = reg_ctx_sp->CopyFromRegisterContext(
-          older_frame_sp->GetRegisterContext());
-      if (copy_success) {
+    
+    if (lldb::RegisterContextSP reg_ctx_sp(youngest_frame_sp->GetRegisterContext()); reg_ctx_sp) {
+      
+      if (bool copy_success = reg_ctx_sp->CopyFromRegisterContext(
+          older_frame_sp->GetRegisterContext()); copy_success) {
         thread->DiscardThreadPlans(true);
         thread->ClearStackFrames();
         if (broadcast && EventTypeHasListeners(eBroadcastBitStackChanged)) {
@@ -1644,8 +1644,8 @@ Status Thread::JumpToLine(const FileSpec &file, uint32_t line,
 bool Thread::DumpUsingFormat(Stream &strm, uint32_t frame_idx,
                              const FormatEntity::Entry *format) {
   ExecutionContext exe_ctx(shared_from_this());
-  Process *process = exe_ctx.GetProcessPtr();
-  if (!process || !format)
+  
+  if (Process *process = exe_ctx.GetProcessPtr(); !process || !format)
     return false;
 
   StackFrameSP frame_sp;
@@ -1667,8 +1667,8 @@ void Thread::DumpUsingSettingsFormat(Stream &strm, uint32_t frame_idx,
   ExecutionContext exe_ctx(shared_from_this());
 
   const FormatEntity::Entry *thread_format;
-  FormatEntity::Entry format_entry;
-  if (stop_format) {
+  
+  if (FormatEntity::Entry format_entry; stop_format) {
     format_entry = exe_ctx.GetTargetRef().GetDebugger().GetThreadStopFormat();
     thread_format = &format_entry;
   } else {
@@ -1793,11 +1793,11 @@ size_t Thread::GetStatus(Stream &strm, uint32_t start_frame,
     }
     strm.Printf("%c ", is_selected ? '*' : ' ');
     if (target && target->GetDebugger().GetUseExternalEditor()) {
-      StackFrameSP frame_sp = GetStackFrameAtIndex(start_frame);
-      if (frame_sp) {
-        SymbolContext frame_sc(
-            frame_sp->GetSymbolContext(eSymbolContextLineEntry));
-        if (frame_sc.line_entry.line != 0 && frame_sc.line_entry.GetFile()) {
+      
+      if (StackFrameSP frame_sp = GetStackFrameAtIndex(start_frame); frame_sp) {
+        
+        if (SymbolContext frame_sc(
+            frame_sp->GetSymbolContext(eSymbolContextLineEntry)); frame_sc.line_entry.line != 0 && frame_sc.line_entry.GetFile()) {
           if (llvm::Error e = Host::OpenFileInExternalEditor(
                   target->GetDebugger().GetExternalEditor(),
                   frame_sc.line_entry.GetFile(), frame_sc.line_entry.line)) {
@@ -1849,8 +1849,8 @@ bool Thread::GetDescription(Stream &strm, lldb::DescriptionLevel level,
     }
 
     if (print_json_stopinfo && m_stop_info_sp) {
-      StructuredData::ObjectSP stop_info = m_stop_info_sp->GetExtendedInfo();
-      if (stop_info) {
+      
+      if (StructuredData::ObjectSP stop_info = m_stop_info_sp->GetExtendedInfo(); stop_info) {
         stop_info->Dump(strm);
         strm.Printf("\n");
       }
@@ -1899,17 +1899,17 @@ bool Thread::GetDescription(Stream &strm, lldb::DescriptionLevel level,
       if (printed_breadcrumb)
         strm.Printf("\n");
       StructuredData::Array *messages_array = messages->GetAsArray();
-      const size_t msg_count = messages_array->GetSize();
-      if (msg_count > 0) {
+      
+      if (const size_t msg_count = messages_array->GetSize(); msg_count > 0) {
         strm.Printf("  %zu trace messages:\n", msg_count);
         for (size_t i = 0; i < msg_count; i++) {
-          StructuredData::ObjectSP message = messages_array->GetItemAtIndex(i);
-          if (message && message->GetType() == eStructuredDataTypeDictionary) {
+          
+          if (StructuredData::ObjectSP message = messages_array->GetItemAtIndex(i); message && message->GetType() == eStructuredDataTypeDictionary) {
             StructuredData::Dictionary *message_dict =
                 message->GetAsDictionary();
-            StructuredData::ObjectSP message_text =
-                message_dict->GetValueForKey("message");
-            if (message_text &&
+            
+            if (StructuredData::ObjectSP message_text =
+                message_dict->GetValueForKey("message"); message_text &&
                 message_text->GetType() == eStructuredDataTypeString) {
               strm.Format("    {0}\n", message_text->GetAsString()->GetValue());
             }
@@ -1948,11 +1948,11 @@ bool Thread::IsStillAtLastBreakpointHit() {
   // and don't reset it. This allows threads to maintain their breakpoint
   // stopinfo, such as when thread-stepping in multithreaded programs.
   if (m_stop_info_sp) {
-    StopReason stop_reason = m_stop_info_sp->GetStopReason();
-    if (stop_reason == lldb::eStopReasonBreakpoint) {
+    
+    if (StopReason stop_reason = m_stop_info_sp->GetStopReason(); stop_reason == lldb::eStopReasonBreakpoint) {
       uint64_t value = m_stop_info_sp->GetValue();
-      lldb::RegisterContextSP reg_ctx_sp(GetRegisterContext());
-      if (reg_ctx_sp) {
+      
+      if (lldb::RegisterContextSP reg_ctx_sp(GetRegisterContext()); reg_ctx_sp) {
         lldb::addr_t pc = reg_ctx_sp->GetPC();
         BreakpointSiteSP bp_site_sp =
             GetProcess()->GetBreakpointSiteList().FindByAddress(pc);
@@ -1975,9 +1975,9 @@ Status Thread::StepIn(bool source_step,
     StackFrameSP frame_sp = GetStackFrameAtIndex(0);
     ThreadPlanSP new_plan_sp;
     const lldb::RunMode run_mode = eOnlyThisThread;
-    const bool abort_other_plans = false;
+    
 
-    if (source_step && frame_sp && frame_sp->HasDebugInformation()) {
+    if (const bool abort_other_plans = false; source_step && frame_sp && frame_sp->HasDebugInformation()) {
       SymbolContext sc(frame_sp->GetSymbolContext(eSymbolContextEverything));
       new_plan_sp = QueueThreadPlanForStepInRange(
           abort_other_plans, sc.line_entry, sc, nullptr, run_mode, error,
@@ -2009,9 +2009,9 @@ Status Thread::StepOver(bool source_step,
     ThreadPlanSP new_plan_sp;
 
     const lldb::RunMode run_mode = eOnlyThisThread;
-    const bool abort_other_plans = false;
+    
 
-    if (source_step && frame_sp && frame_sp->HasDebugInformation()) {
+    if (const bool abort_other_plans = false; source_step && frame_sp && frame_sp->HasDebugInformation()) {
       SymbolContext sc(frame_sp->GetSymbolContext(eSymbolContextEverything));
       new_plan_sp = QueueThreadPlanForStepOverRange(
           abort_other_plans, sc.line_entry, sc, run_mode, error,

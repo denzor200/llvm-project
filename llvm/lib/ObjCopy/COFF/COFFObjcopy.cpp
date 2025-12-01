@@ -157,8 +157,8 @@ static Error dumpSection(Object &O, StringRef SectionName, StringRef FileName) {
 static Error handleArgs(const CommonConfig &Config,
                         const COFFConfig &COFFConfig, Object &Obj) {
   for (StringRef Op : Config.DumpSection) {
-    auto [Section, File] = Op.split('=');
-    if (Error E = dumpSection(Obj, Section, File))
+    
+    if (Error auto [Section, File] = Op.split('='); E = dumpSection(Obj, Section, File))
       return E;
   }
 
@@ -212,8 +212,8 @@ static Error handleArgs(const CommonConfig &Config,
       return E;
 
   for (Symbol &Sym : Obj.getMutableSymbols()) {
-    auto I = Config.SymbolsToRename.find(Sym.Name);
-    if (I != Config.SymbolsToRename.end())
+    
+    if (auto I = Config.SymbolsToRename.find(Sym.Name); I != Config.SymbolsToRename.end())
       Sym.Name = I->getValue();
   }
 
@@ -262,8 +262,8 @@ static Error handleArgs(const CommonConfig &Config,
 
   if (!Config.SetSectionFlags.empty())
     for (Section &Sec : Obj.getMutableSections()) {
-      const auto It = Config.SetSectionFlags.find(Sec.Name);
-      if (It != Config.SetSectionFlags.end())
+      
+      if (const auto It = Config.SetSectionFlags.find(Sec.Name); It != Config.SetSectionFlags.end())
         Sec.Header.Characteristics = flagsToCharacteristics(
             It->second.NewFlags, Sec.Header.Characteristics);
     }

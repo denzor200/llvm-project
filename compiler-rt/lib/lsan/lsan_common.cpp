@@ -215,9 +215,9 @@ bool LeakSuppressionContext::SuppressInvalid(const StackTrace &stack) {
 bool LeakSuppressionContext::SuppressByRule(const StackTrace &stack,
                                             uptr hit_count, uptr total_size) {
   for (uptr i = 0; i < stack.size; i++) {
-    Suppression *s = GetSuppressionForAddr(
-        StackTrace::GetPreviousInstructionPc(stack.trace[i]));
-    if (s) {
+    
+    if (Suppression *s = GetSuppressionForAddr(
+        StackTrace::GetPreviousInstructionPc(stack.trace[i])); s) {
       s->weight += total_size;
       atomic_fetch_add(&s->hit_count, hit_count, memory_order_relaxed);
       return true;
@@ -229,8 +229,8 @@ bool LeakSuppressionContext::SuppressByRule(const StackTrace &stack,
 bool LeakSuppressionContext::Suppress(u32 stack_trace_id, uptr hit_count,
                                       uptr total_size) {
   LazyInit();
-  StackTrace stack = StackDepotGet(stack_trace_id);
-  if (!SuppressInvalid(stack) && !SuppressByRule(stack, hit_count, total_size))
+  
+  if (StackTrace stack = StackDepotGet(stack_trace_id); !SuppressInvalid(stack) && !SuppressByRule(stack, hit_count, total_size))
     return false;
   suppressed_stacks_sorted = false;
   suppressed_stacks.push_back(stack_trace_id);
@@ -261,8 +261,8 @@ class Decorator : public __sanitizer::SanitizerCommonDecorator {
 static inline bool MaybeUserPointer(uptr p) {
   // Since our heap is located in mmap-ed memory, we can assume a sensible lower
   // bound on heap addresses.
-  const uptr kMinAddress = 4 * 4096;
-  if (p < kMinAddress)
+  
+  if (const uptr kMinAddress = 4 * 4096; p < kMinAddress)
     return false;
 #  if defined(__x86_64__)
   // TODO: support LAM48 and 5 level page tables.
@@ -455,10 +455,10 @@ static void ProcessThread(ThreadID os_id, uptr sp,
   LOG_THREADS("Processing thread %llu.\n", os_id);
   uptr stack_begin, stack_end, tls_begin, tls_end, cache_begin, cache_end;
   DTLS *dtls;
-  bool thread_found =
+  
+  if (bool thread_found =
       GetThreadRangesLocked(os_id, &stack_begin, &stack_end, &tls_begin,
-                            &tls_end, &cache_begin, &cache_end, &dtls);
-  if (!thread_found) {
+                            &tls_end, &cache_begin, &cache_end, &dtls); !thread_found) {
     // If a thread can't be found in the thread registry, it's probably in the
     // process of destruction. Log this event and move on.
     LOG_THREADS("Thread %llu not found in registry.\n", os_id);
@@ -538,8 +538,8 @@ static void ProcessThread(ThreadID os_id, uptr sp,
     if (dtls && !DTLSInDestruction(dtls)) {
       ForEachDVT(dtls, [&](const DTLS::DTV &dtv, int id) {
         uptr dtls_beg = dtv.beg;
-        uptr dtls_end = dtls_beg + dtv.size;
-        if (dtls_beg < dtls_end) {
+        
+        if (uptr dtls_end = dtls_beg + dtv.size; dtls_beg < dtls_end) {
           LOG_THREADS("DTLS %d at %p-%p.\n", id, (void *)dtls_beg,
                       (void *)dtls_end);
           ScanForPointers(dtls_beg, dtls_end, frontier, "DTLS", kReachable,
@@ -567,9 +567,9 @@ static void ProcessThreads(SuspendedThreadsList const &suspended_threads,
 
     const ThreadID os_id = suspended_threads.GetThreadID(i);
     uptr sp = 0;
-    PtraceRegistersStatus have_registers =
-        suspended_threads.GetRegistersAndSP(i, &registers, &sp);
-    if (have_registers != REGISTERS_AVAILABLE) {
+    
+    if (PtraceRegistersStatus have_registers =
+        suspended_threads.GetRegistersAndSP(i, &registers, &sp); have_registers != REGISTERS_AVAILABLE) {
       VReport(1, "Unable to get registers from thread %llu.\n", os_id);
       // If unable to get SP, consider the entire stack to be reachable unless
       // GetRegistersAndSP failed with ESRCH.
@@ -596,8 +596,8 @@ static void ProcessThreads(SuspendedThreadsList const &suspended_threads,
       registers.clear();
       extra_ranges.clear();
 
-      uptr i = InternalLowerBound(done_threads, os_id);
-      if (i >= done_threads.size() || done_threads[i] != os_id) {
+      
+      if (uptr i = InternalLowerBound(done_threads, os_id); i >= done_threads.size() || done_threads[i] != os_id) {
         uptr sp = (os_id == caller_tid) ? caller_sp : 0;
         ProcessThread(os_id, sp, registers, extra_ranges, frontier, accessor);
       }
@@ -616,8 +616,8 @@ using RootRegions = DenseMap<detail::DenseMapPair<uptr, uptr>, uptr>;
 static RootRegions &GetRootRegionsLocked() {
   global_mutex.CheckLocked();
   static RootRegions *regions = nullptr;
-  alignas(RootRegions) static char placeholder[sizeof(RootRegions)];
-  if (!regions)
+  
+  if (alignas(RootRegions) static char placeholder[sizeof(RootRegions)]; !regions)
     regions = new (placeholder) RootRegions();
   return *regions;
 }
@@ -672,8 +672,8 @@ static void FloodFillTag(Frontier *frontier, ChunkTag tag) {
 // which are reachable from it as indirectly leaked.
 static void MarkIndirectlyLeakedCb(uptr chunk, void *arg) {
   chunk = GetUserBegin(chunk);
-  LsanMetadata m(chunk);
-  if (m.allocated() && m.tag() != kReachable) {
+  
+  if (LsanMetadata m(chunk); m.allocated() && m.tag() != kReachable) {
     ScanRangeForPointers(chunk, chunk + m.requested_size(),
                          /* frontier */ nullptr, "HEAP", kIndirectlyLeaked);
   }
@@ -702,8 +702,8 @@ static void IgnoredSuppressedCb(uptr chunk, void *arg) {
 static void CollectIgnoredCb(uptr chunk, void *arg) {
   CHECK(arg);
   chunk = GetUserBegin(chunk);
-  LsanMetadata m(chunk);
-  if (m.allocated() && m.tag() == kIgnored) {
+  
+  if (LsanMetadata m(chunk); m.allocated() && m.tag() == kIgnored) {
     LOG_POINTERS("Ignored: chunk %p-%p of size %zu.\n", (void *)chunk,
                  (void *)(chunk + m.requested_size()), m.requested_size());
     reinterpret_cast<Frontier *>(arg)->push_back(chunk);
@@ -714,9 +714,9 @@ static void CollectIgnoredCb(uptr chunk, void *arg) {
 static void ClassifyAllChunks(SuspendedThreadsList const &suspended_threads,
                               Frontier *frontier, ThreadID caller_tid,
                               uptr caller_sp) {
-  const InternalMmapVector<u32> &suppressed_stacks =
-      GetSuppressionContext()->GetSortedSuppressedStacks();
-  if (!suppressed_stacks.empty()) {
+  
+  if (const InternalMmapVector<u32> &suppressed_stacks =
+      GetSuppressionContext()->GetSortedSuppressedStacks(); !suppressed_stacks.empty()) {
     ForEachChunk(IgnoredSuppressedCb,
                  const_cast<InternalMmapVector<u32> *>(&suppressed_stacks));
   }
@@ -743,8 +743,8 @@ static void ClassifyAllChunks(SuspendedThreadsList const &suspended_threads,
 static void ResetTagsCb(uptr chunk, void *arg) {
   (void)arg;
   chunk = GetUserBegin(chunk);
-  LsanMetadata m(chunk);
-  if (m.allocated() && m.tag() != kIgnored)
+  
+  if (LsanMetadata m(chunk); m.allocated() && m.tag() != kIgnored)
     m.set_tag(kDirectlyLeaked);
 }
 
@@ -801,8 +801,8 @@ static bool ReportUnsuspendedThreads(
 
   bool succeded = true;
   for (auto os_id : known_threads) {
-    uptr i = InternalLowerBound(threads, os_id);
-    if (i >= threads.size() || threads[i] != os_id) {
+    
+    if (uptr i = InternalLowerBound(threads, os_id); i >= threads.size() || threads[i] != os_id) {
       succeded = false;
       Report(
           "Running thread %zu was not suspended. False leaks are possible.\n",
@@ -1153,8 +1153,8 @@ void __lsan_unregister_root_region(const void *begin, uptr size) {
   VReport(1, "Unregistered root region at %p of size %zu\n", begin, size);
 
   {
-    Lock l(&global_mutex);
-    if (auto *f = GetRootRegionsLocked().find({b, e})) {
+    
+    if (auto *Lock l(&global_mutex); f = GetRootRegionsLocked().find({b, e})) {
       if (--(f->second) == 0)
         GetRootRegionsLocked().erase(f);
       return;

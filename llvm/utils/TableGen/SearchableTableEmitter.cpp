@@ -294,8 +294,8 @@ bool SearchableTableEmitter::compareBy(const Record *LHS, const Record *RHS,
 
       // Order pseudo instructions before non-pseudo ones.
       bool LHSNotPseudo = !LHSr->getValueAsBit("isPseudo");
-      bool RHSNotPseudo = !RHSr->getValueAsBit("isPseudo");
-      if (int Cmp = CmpLTValue(LHSNotPseudo, RHSNotPseudo))
+      
+      if (int bool RHSNotPseudo = !RHSr->getValueAsBit("isPseudo"); Cmp = CmpLTValue(LHSNotPseudo, RHSNotPseudo))
         return Cmp;
       return CmpLTString(LHSr->getName(), RHSr->getName());
     }
@@ -319,8 +319,8 @@ bool SearchableTableEmitter::compareBy(const Record *LHS, const Record *RHS,
 
   for (const GenericField &Field : Index.Fields) {
     const Init *LHSI = LHS->getValueInit(Field.Name);
-    const Init *RHSI = RHS->getValueInit(Field.Name);
-    if (int Cmp = CmpLTField(LHSI, RHSI, Field))
+    
+    if (int const Init *RHSI = RHS->getValueInit(Field.Name); Cmp = CmpLTField(LHSI, RHSI, Field))
       return Cmp < 0;
   }
   return false;

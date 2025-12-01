@@ -67,8 +67,8 @@ unsigned WebAssemblyWasmObjectWriter::getRelocType(
     const MCValue &Target, const MCFixup &Fixup,
     const MCSectionWasm &FixupSection, bool IsLocRel) const {
   auto &SymA = static_cast<const MCSymbolWasm &>(*Target.getAddSym());
-  auto Spec = WebAssembly::Specifier(Target.getSpecifier());
-  switch (Spec) {
+  
+  switch (auto Spec = WebAssembly::Specifier(Target.getSpecifier()); Spec) {
   case WebAssembly::S_GOT:
     SymA.setUsedInGOT();
     return wasm::R_WASM_GLOBAL_INDEX_LEB;

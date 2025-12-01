@@ -65,14 +65,14 @@ void tools::MinGW::Linker::AddLibGCC(const ArgList &Args,
   CmdArgs.push_back("-lmingw32");
 
   // Make use of compiler-rt if --rtlib option is used
-  ToolChain::RuntimeLibType RLT = getToolChain().GetRuntimeLibType(Args);
-  if (RLT == ToolChain::RLT_Libgcc) {
+  
+  if (ToolChain::RuntimeLibType RLT = getToolChain().GetRuntimeLibType(Args); RLT == ToolChain::RLT_Libgcc) {
     bool Static = Args.hasArg(options::OPT_static_libgcc) ||
                   Args.hasArg(options::OPT_static);
     bool Shared = Args.hasArg(options::OPT_shared);
-    bool CXX = getToolChain().getDriver().CCCIsCXX();
+    
 
-    if (Static || (!CXX && !Shared)) {
+    if (bool CXX = getToolChain().getDriver().CCCIsCXX(); Static || (!CXX && !Shared)) {
       CmdArgs.push_back("-lgcc");
       CmdArgs.push_back("-lgcc_eh");
     } else {
@@ -153,9 +153,9 @@ void tools::MinGW::Linker::ConstructJob(Compilation &C, const JobAction &JA,
     D.Diag(diag::err_target_unknown_triple) << TC.getEffectiveTriple().str();
   }
 
-  Arg *SubsysArg =
-      Args.getLastArg(options::OPT_mwindows, options::OPT_mconsole);
-  if (SubsysArg && SubsysArg->getOption().matches(options::OPT_mwindows)) {
+  
+  if (Arg *SubsysArg =
+      Args.getLastArg(options::OPT_mwindows, options::OPT_mconsole); SubsysArg && SubsysArg->getOption().matches(options::OPT_mwindows)) {
     CmdArgs.push_back("--subsystem");
     CmdArgs.push_back("windows");
   } else if (SubsysArg &&
@@ -189,8 +189,8 @@ void tools::MinGW::Linker::ConstructJob(Compilation &C, const JobAction &JA,
     CmdArgs.push_back("--disable-auto-import");
 
   if (Arg *A = Args.getLastArg(options::OPT_mguard_EQ)) {
-    StringRef GuardArgs = A->getValue();
-    if (GuardArgs == "none")
+    
+    if (StringRef GuardArgs = A->getValue(); GuardArgs == "none")
       CmdArgs.push_back("--no-guard-cf");
     else if (GuardArgs == "cf" || GuardArgs == "cf-nochecks")
       CmdArgs.push_back("--guard-cf");
@@ -588,10 +588,10 @@ bool toolchains::MinGW::HasNativeLLVMSupport() const {
 
 ToolChain::UnwindTableLevel
 toolchains::MinGW::getDefaultUnwindTableLevel(const ArgList &Args) const {
-  Arg *ExceptionArg = Args.getLastArg(options::OPT_fsjlj_exceptions,
+  
+  if (Arg *ExceptionArg = Args.getLastArg(options::OPT_fsjlj_exceptions,
                                       options::OPT_fseh_exceptions,
-                                      options::OPT_fdwarf_exceptions);
-  if (ExceptionArg &&
+                                      options::OPT_fdwarf_exceptions); ExceptionArg &&
       ExceptionArg->getOption().matches(options::OPT_fseh_exceptions))
     return UnwindTableLevel::Asynchronous;
 
@@ -725,8 +725,8 @@ void toolchains::MinGW::addClangTargetOptions(
     const llvm::opt::ArgList &DriverArgs, llvm::opt::ArgStringList &CC1Args,
     Action::OffloadKind DeviceOffloadKind) const {
   if (Arg *A = DriverArgs.getLastArg(options::OPT_mguard_EQ)) {
-    StringRef GuardArgs = A->getValue();
-    if (GuardArgs == "none") {
+    
+    if (StringRef GuardArgs = A->getValue(); GuardArgs == "none") {
       // Do nothing.
     } else if (GuardArgs == "cf") {
       // Emit CFG instrumentation and the table of address-taken functions.
@@ -779,9 +779,9 @@ void toolchains::MinGW::AddClangCXXStdlibIncludeArgs(
                         options::OPT_nostdincxx))
     return;
 
-  StringRef Slash = llvm::sys::path::get_separator();
+  
 
-  switch (GetCXXStdlibType(DriverArgs)) {
+  switch (StringRef Slash = llvm::sys::path::get_separator(); GetCXXStdlibType(DriverArgs)) {
   case ToolChain::CST_Libcxx: {
     std::string TargetDir = (Base + "include" + Slash + getTripleString() +
                              Slash + "c++" + Slash + "v1")

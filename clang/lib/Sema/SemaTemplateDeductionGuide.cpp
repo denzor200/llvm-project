@@ -140,7 +140,7 @@ public:
     const TypedefType *T = TL.getTypePtr();
     // Transform the underlying type of the typedef and clone the Decl only if
     // the typedef has a dependent context.
-    bool InDependentContext = OrigDecl->getDeclContext()->isDependentContext();
+    
 
     // A typedef/alias Decl within the NestedPattern may reference the outer
     // template parameters. They're substituted with corresponding instantiation
@@ -154,7 +154,7 @@ public:
     //       Inner(Alias);
     //     };
     //   };
-    if (OuterInstantiationArgs && InDependentContext &&
+    if (bool InDependentContext = OrigDecl->getDeclContext()->isDependentContext(); OuterInstantiationArgs && InDependentContext &&
         T->isInstantiationDependentType()) {
       Decl = cast_if_present<TypedefNameDecl>(
           TypedefNameInstantiator->InstantiateTypedefNameDecl(
@@ -166,8 +166,8 @@ public:
       TypeLocBuilder InnerTLB;
       QualType Transformed =
           TransformType(InnerTLB, OrigDecl->getTypeSourceInfo()->getTypeLoc());
-      TypeSourceInfo *TSI = InnerTLB.getTypeSourceInfo(Context, Transformed);
-      if (isa<TypeAliasDecl>(OrigDecl))
+      
+      if (TypeSourceInfo *TSI = InnerTLB.getTypeSourceInfo(Context, Transformed); isa<TypeAliasDecl>(OrigDecl))
         Decl = TypeAliasDecl::Create(
             Context, Context.getTranslationUnitDecl(), OrigDecl->getBeginLoc(),
             OrigDecl->getLocation(), OrigDecl->getIdentifier(), TSI);
@@ -264,8 +264,8 @@ TemplateTypeParmDecl *transformTemplateTypeParam(
     SemaRef.SubstTypeConstraint(NewTTP, TC, Args,
                                 /*EvaluateConstraint=*/EvaluateConstraint);
   if (TTP->hasDefaultArgument()) {
-    TemplateArgumentLoc InstantiatedDefaultArg;
-    if (!SemaRef.SubstTemplateArgument(
+    
+    if (TemplateArgumentLoc InstantiatedDefaultArg; !SemaRef.SubstTemplateArgument(
             TTP->getDefaultArgument(), Args, InstantiatedDefaultArg,
             TTP->getDefaultArgumentLoc(), TTP->getDeclName()))
       NewTTP->setDefaultArgument(SemaRef.Context, InstantiatedDefaultArg);
@@ -712,8 +712,8 @@ SmallVector<unsigned> TemplateParamsReferencedInTemplateArgumentList(
   for (unsigned Index = 0; Index < TemplateParamsList->size(); ++Index) {
     if (!ReferencedTemplateParams[Index])
       continue;
-    auto *Param = TemplateParamsList->getParam(Index);
-    if (auto *TTPD = dyn_cast<TemplateTypeParmDecl>(Param))
+    
+    if (auto *auto *Param = TemplateParamsList->getParam(Index); TTPD = dyn_cast<TemplateTypeParmDecl>(Param))
       MarkDefaultArgs(TTPD);
     else if (auto *NTTPD = dyn_cast<NonTypeTemplateParmDecl>(Param))
       MarkDefaultArgs(NTTPD);
@@ -1103,8 +1103,8 @@ BuildDeductionGuideForTypeAlias(Sema &SemaRef,
   // !!NOTE: DeduceResults respects the sequence of template parameters of
   // the deduction guide f.
   for (unsigned Index = 0; Index < DeduceResults.size(); ++Index) {
-    const auto &D = DeduceResults[Index];
-    if (!IsNonDeducedArgument(D))
+    
+    if (const auto &D = DeduceResults[Index]; !IsNonDeducedArgument(D))
       DeducedArgs.push_back(D);
     else
       NonDeducedTemplateParamsInFIndex.push_back(Index);
@@ -1321,11 +1321,11 @@ void DeclareImplicitDeductionGuidesForTypeAlias(
       AssociatedConstraint Constraint(buildIsDeducibleConstraint(
           SemaRef, AliasTemplate, Transformed->getReturnType(), {}));
       if (const AssociatedConstraint &RC = DG->getTrailingRequiresClause()) {
-        auto Conjunction = SemaRef.BuildBinOp(
+        
+        if (auto Conjunction = SemaRef.BuildBinOp(
             SemaRef.getCurScope(), SourceLocation{},
             BinaryOperatorKind::BO_LAnd, const_cast<Expr *>(RC.ConstraintExpr),
-            const_cast<Expr *>(Constraint.ConstraintExpr));
-        if (!Conjunction.isInvalid()) {
+            const_cast<Expr *>(Constraint.ConstraintExpr)); !Conjunction.isInvalid()) {
           Constraint.ConstraintExpr = Conjunction.getAs<Expr>();
           Constraint.ArgPackSubstIndex = RC.ArgPackSubstIndex;
         }

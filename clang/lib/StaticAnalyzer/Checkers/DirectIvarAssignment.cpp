@@ -174,9 +174,9 @@ void DirectIvarAssignment::MethodCrawler::VisitBinaryOperator(
     return;
 
   if (const ObjCIvarDecl *D = IvarRef->getDecl()) {
-    IvarToPropertyMapTy::const_iterator I = IvarToPropMap.find(D);
+    
 
-    if (I != IvarToPropMap.end()) {
+    if (IvarToPropertyMapTy::const_iterator I = IvarToPropMap.find(D); I != IvarToPropMap.end()) {
       const ObjCPropertyDecl *PD = I->second;
       // Skip warnings on Ivars, annotated with
       // objc_allow_direct_instance_variable_assignment. This annotation serves
@@ -219,8 +219,8 @@ static bool AttrFilter(const ObjCMethodDecl *M) {
 // Register the checker that checks for direct accesses in all functions,
 // except for the initialization and copy routines.
 void ento::registerDirectIvarAssignment(CheckerManager &mgr) {
-  auto Chk = mgr.registerChecker<DirectIvarAssignment>();
-  if (mgr.getAnalyzerOptions().getCheckerBooleanOption(Chk,
+  
+  if (auto Chk = mgr.registerChecker<DirectIvarAssignment>(); mgr.getAnalyzerOptions().getCheckerBooleanOption(Chk,
                                                        "AnnotatedFunctions"))
     Chk->ShouldSkipMethod = &AttrFilter;
 }

@@ -33,8 +33,8 @@ inline bool CC_PPC64_ELF_Shadow_GPR_Regs(unsigned &ValNo, MVT &ValVT,
                                            PPC::X7, PPC::X8, PPC::X9, PPC::X10};
   const unsigned ELF64NumArgGPRs = std::size(ELF64ArgGPRs);
 
-  unsigned FirstUnallocGPR = State.getFirstUnallocated(ELF64ArgGPRs);
-  if (FirstUnallocGPR == ELF64NumArgGPRs)
+  
+  if (unsigned FirstUnallocGPR = State.getFirstUnallocated(ELF64ArgGPRs); FirstUnallocGPR == ELF64NumArgGPRs)
     return false;
 
   // As described in 2.2.4.1 under the "float" section, shadow a single GPR
@@ -73,13 +73,13 @@ static bool CC_PPC32_SVR4_Custom_AlignArgRegs(unsigned &ValNo, MVT &ValVT,
   };
   const unsigned NumArgRegs = std::size(ArgRegs);
 
-  unsigned RegNum = State.getFirstUnallocated(ArgRegs);
+  
 
   // Skip one register if the first unallocated register has an even register
   // number and there are still argument registers available which have not been
   // allocated yet. RegNum is actually an index into ArgRegs, which means we
   // need to skip a register if RegNum is odd.
-  if (RegNum != NumArgRegs && RegNum % 2 == 1) {
+  if (unsigned RegNum = State.getFirstUnallocated(ArgRegs); RegNum != NumArgRegs && RegNum % 2 == 1) {
     State.AllocateReg(ArgRegs[RegNum]);
   }
 
@@ -99,11 +99,11 @@ static bool CC_PPC32_SVR4_Custom_SkipLastArgRegsPPCF128(
   const unsigned NumArgRegs = std::size(ArgRegs);
 
   unsigned RegNum = State.getFirstUnallocated(ArgRegs);
-  int RegsLeft = NumArgRegs - RegNum;
+  
 
   // Skip if there is not enough registers left for long double type (4 gpr regs
   // in soft float mode) and put long double argument on the stack.
-  if (RegNum != NumArgRegs && RegsLeft < 4) {
+  if (int RegsLeft = NumArgRegs - RegNum; RegNum != NumArgRegs && RegsLeft < 4) {
     for (int i = 0; i < RegsLeft; i++) {
       State.AllocateReg(ArgRegs[RegNum + i]);
     }
@@ -124,11 +124,11 @@ static bool CC_PPC32_SVR4_Custom_AlignFPArgRegs(unsigned &ValNo, MVT &ValVT,
 
   const unsigned NumArgRegs = std::size(ArgRegs);
 
-  unsigned RegNum = State.getFirstUnallocated(ArgRegs);
+  
 
   // If there is only one Floating-point register left we need to put both f64
   // values of a split ppc_fp128 value on the stack.
-  if (RegNum != NumArgRegs && ArgRegs[RegNum] == PPC::F8) {
+  if (unsigned RegNum = State.getFirstUnallocated(ArgRegs); RegNum != NumArgRegs && ArgRegs[RegNum] == PPC::F8) {
     State.AllocateReg(ArgRegs[RegNum]);
   }
 

@@ -44,9 +44,9 @@ void VariableDumper::start(const PDBSymbolData &Var, uint32_t Offset) {
 
   auto VarType = Var.getType();
 
-  uint64_t Length = VarType->getRawSymbol().getLength();
+  
 
-  switch (auto LocType = Var.getLocationType()) {
+  switch (auto uint64_t Length = VarType->getRawSymbol().getLength(); LocType = Var.getLocationType()) {
   case PDB_LocType::Static:
     Printer.NewLine();
     Printer << "data [";
@@ -143,11 +143,11 @@ void VariableDumper::dump(const PDBSymbolTypeFunctionSig &Symbol) {
   Printer << " ";
 
   uint32_t ClassParentId = Symbol.getClassParentId();
-  auto ClassParent =
-      Symbol.getSession().getConcreteSymbolById<PDBSymbolTypeUDT>(
-          ClassParentId);
+  
 
-  if (ClassParent) {
+  if (auto ClassParent =
+      Symbol.getSession().getConcreteSymbolById<PDBSymbolTypeUDT>(
+          ClassParentId); ClassParent) {
     WithColor(Printer, PDB_ColorItem::Identifier).get()
       << ClassParent->getName();
     Printer << "::";

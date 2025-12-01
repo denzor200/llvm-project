@@ -511,9 +511,9 @@ MacroCallReconstructor::createUnwrappedLine(const ReconstructedLine &Line,
   for (const auto &N : Line.Tokens) {
     Result.Tokens.push_back(N->Tok);
     UnwrappedLineNode &Current = Result.Tokens.back();
-    auto NumChildren = llvm::count_if(
-        N->Children, [](const auto &Child) { return !Child->Tokens.empty(); });
-    if (NumChildren == 1 && Current.Tok->isOneOf(tok::l_paren, tok::comma)) {
+    
+    if (auto NumChildren = llvm::count_if(
+        N->Children, [](const auto &Child) { return !Child->Tokens.empty(); }); NumChildren == 1 && Current.Tok->isOneOf(tok::l_paren, tok::comma)) {
       // If we only have one child, and the child is due to a macro expansion
       // (either attached to a left parenthesis or comma), merge the child into
       // the current line to prevent forced breaks for macro arguments.

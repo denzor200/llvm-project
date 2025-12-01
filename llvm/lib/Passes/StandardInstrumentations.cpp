@@ -174,8 +174,8 @@ const Module *unwrapModule(Any IR, bool Force = false) {
 
   if (const auto *C = unwrapIR<LazyCallGraph::SCC>(IR)) {
     for (const LazyCallGraph::Node &N : *C) {
-      const Function &F = N.getFunction();
-      if (Force || (!F.isDeclaration() && isFunctionInPrintList(F.getName()))) {
+      
+      if (const Function &F = N.getFunction(); Force || (!F.isDeclaration() && isFunctionInPrintList(F.getName()))) {
         return F.getParent();
       }
     }
@@ -217,16 +217,16 @@ void printIR(raw_ostream &OS, const Module *M) {
 
 void printIR(raw_ostream &OS, const LazyCallGraph::SCC *C) {
   for (const LazyCallGraph::Node &N : *C) {
-    const Function &F = N.getFunction();
-    if (!F.isDeclaration() && isFunctionInPrintList(F.getName())) {
+    
+    if (const Function &F = N.getFunction(); !F.isDeclaration() && isFunctionInPrintList(F.getName())) {
       F.print(OS);
     }
   }
 }
 
 void printIR(raw_ostream &OS, const Loop *L) {
-  const Function *F = L->getHeader()->getParent();
-  if (!isFunctionInPrintList(F->getName()))
+  
+  if (const Function *F = L->getHeader()->getParent(); !isFunctionInPrintList(F->getName()))
     return;
   printLoop(const_cast<Loop &>(*L), OS);
 }
@@ -412,9 +412,9 @@ void ChangeReporter<T>::handleIRAfterPass(Any IR, StringRef PassID,
                                           StringRef PassName) {
   assert(!BeforeStack.empty() && "Unexpected empty stack encountered.");
 
-  std::string Name = getIRName(IR);
+  
 
-  if (isIgnored(PassID)) {
+  if (std::string Name = getIRName(IR); isIgnored(PassID)) {
     if (VerboseMode)
       handleIgnored(PassID, Name);
   } else if (!isInteresting(IR, PassID, PassName)) {
@@ -830,8 +830,8 @@ PrintIRInstrumentation::popPassRunDescriptor(StringRef PassID) {
 // Callers are responsible for closing the returned file descriptor
 static int prepareDumpIRFileDescriptor(const StringRef DumpIRFilename) {
   std::error_code EC;
-  auto ParentPath = llvm::sys::path::parent_path(DumpIRFilename);
-  if (!ParentPath.empty()) {
+  
+  if (auto ParentPath = llvm::sys::path::parent_path(DumpIRFilename); !ParentPath.empty()) {
     std::error_code EC = llvm::sys::fs::create_directories(ParentPath);
     if (EC)
       report_fatal_error(Twine("Failed to create directory ") + ParentPath +
@@ -1074,8 +1074,8 @@ bool OptPassGateInstrumentation::shouldRun(StringRef PassName, Any IR) {
 
 void OptPassGateInstrumentation::registerCallbacks(
     PassInstrumentationCallbacks &PIC) {
-  const OptPassGate &PassGate = Context.getOptPassGate();
-  if (!PassGate.isEnabled())
+  
+  if (const OptPassGate &PassGate = Context.getOptPassGate(); !PassGate.isEnabled())
     return;
 
   PIC.registerShouldRunOptionalPassCallback(
@@ -1226,8 +1226,8 @@ void PreservedCFGCheckerInstrumentation::CFG::printDiff(raw_ostream &out,
         << Before.Graph.size() << ", after=" << After.Graph.size() << "\n";
 
   for (auto &BB : Before.Graph) {
-    auto BA = After.Graph.find(BB.first);
-    if (BA == After.Graph.end()) {
+    
+    if (auto BA = After.Graph.find(BB.first); BA == After.Graph.end()) {
       out << "Non-leaf block ";
       printBBName(out, BB.first);
       out << " is removed (" << BB.second.size() << " successors)\n";
@@ -1440,8 +1440,8 @@ void PreservedCFGCheckerInstrumentation::registerCallbacks(
                  CFG(F, /* TrackBBLifetime */ false));
     }
     if (const auto *MPtr = unwrapIR<Module>(IR)) {
-      auto &M = *const_cast<Module *>(MPtr);
-      if (auto *HashBefore =
+      
+      if (auto *auto &M = *const_cast<Module *>(MPtr); HashBefore =
               MAM.getCachedResult<PreservedModuleHashAnalysis>(M)) {
         if (HashBefore->Hash != StructuralHash(M)) {
           report_fatal_error(formatv(
@@ -2012,8 +2012,8 @@ DotCfgDiff::DotCfgDiff(StringRef Title, const FuncDataT<DCData> &Before,
          Sink != E; ++Sink) {
       std::string Key = (Label + " " + Sink->getKey().str()).str() + " " +
                         BD.getData().getSuccessorLabel(Sink->getKey()).str();
-      auto [It, Inserted] = EdgesMap.try_emplace(Key, AfterColour);
-      if (!Inserted)
+      
+      if (auto [It, Inserted] = EdgesMap.try_emplace(Key, AfterColour); !Inserted)
         It->second = CommonColour;
     }
   }
@@ -2191,8 +2191,8 @@ namespace llvm {
 
 DCData::DCData(const BasicBlock &B) {
   // Build up transition labels.
-  const Instruction *Term = B.getTerminator();
-  if (const BranchInst *Br = dyn_cast<const BranchInst>(Term))
+  
+  if (const BranchInst *const Instruction *Term = B.getTerminator(); Br = dyn_cast<const BranchInst>(Term))
     if (Br->isUnconditional())
       addSuccessorLabel(Br->getSuccessor(0)->getName().str(), "");
     else {

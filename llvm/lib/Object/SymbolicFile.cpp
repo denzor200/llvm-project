@@ -36,8 +36,8 @@ SymbolicFile::~SymbolicFile() = default;
 Expected<std::unique_ptr<SymbolicFile>>
 SymbolicFile::createSymbolicFile(MemoryBufferRef Object, file_magic Type,
                                  LLVMContext *Context, bool InitContent) {
-  StringRef Data = Object.getBuffer();
-  if (Type == file_magic::unknown)
+  
+  if (StringRef Data = Object.getBuffer(); Type == file_magic::unknown)
     Type = identify_magic(Data);
 
   if (!isSymbolicFile(Type, Context))

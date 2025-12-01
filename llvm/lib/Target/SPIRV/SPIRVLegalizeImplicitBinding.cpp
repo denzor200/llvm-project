@@ -145,11 +145,11 @@ void SPIRVLegalizeImplicitBinding::verifyUniqueOrderIdPerResource(
   // Check that the order Id is unique per resource.
   for (uint32_t i = 1; i < Calls.size(); ++i) {
     const uint32_t OrderA = getOrderId(Calls[i - 1]);
-    const uint32_t OrderB = getOrderId(Calls[i]);
-    if (OrderA == OrderB) {
+    
+    if (const uint32_t OrderB = getOrderId(Calls[i]); OrderA == OrderB) {
       const uint32_t DescSetA = getDescSet(Calls[i - 1]);
-      const uint32_t DescSetB = getDescSet(Calls[i]);
-      if (DescSetA != DescSetB) {
+      
+      if (const uint32_t DescSetB = getDescSet(Calls[i]); DescSetA != DescSetB) {
         report_fatal_error("Implicit binding calls with the same order ID must "
                            "have the same descriptor set");
       }

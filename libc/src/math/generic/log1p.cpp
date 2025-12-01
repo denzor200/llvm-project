@@ -891,9 +891,9 @@ LLVM_LIBC_FUNCTION(double, log1p, (double x)) {
 
   fputil::DoubleDouble x_dd{0.0, 0.0};
 
-  uint16_t x_exp = xbits.get_biased_exponent();
+  
 
-  if (x_exp >= EXP_BIAS) {
+  if (uint16_t x_exp = xbits.get_biased_exponent(); x_exp >= EXP_BIAS) {
     // |x| >= 1
     if (LIBC_UNLIKELY(x_u >= 0x4650'0000'0000'0000ULL)) {
       // x >= 2^102 or x is negative, inf, or NaN

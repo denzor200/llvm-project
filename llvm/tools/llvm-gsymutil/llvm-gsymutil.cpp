@@ -152,8 +152,8 @@ static void parseArgs(int argc, char **argv) {
   Verify = Args.hasArg(OPT_verify);
 
   if (const llvm::opt::Arg *A = Args.getLastArg(OPT_num_threads_EQ)) {
-    StringRef S{A->getValue()};
-    if (!llvm::to_integer(S, NumThreads, 0)) {
+    
+    if (StringRef S{A->getValue()}; !llvm::to_integer(S, NumThreads, 0)) {
       llvm::errs() << ToolName << ": for the --num-threads option: '" << S
                    << "' value invalid for uint argument!\n";
       std::exit(1);
@@ -161,8 +161,8 @@ static void parseArgs(int argc, char **argv) {
   }
 
   if (const llvm::opt::Arg *A = Args.getLastArg(OPT_segment_size_EQ)) {
-    StringRef S{A->getValue()};
-    if (!llvm::to_integer(S, SegmentSize, 0)) {
+    
+    if (StringRef S{A->getValue()}; !llvm::to_integer(S, SegmentSize, 0)) {
       llvm::errs() << ToolName << ": for the --segment-size option: '" << S
                    << "' value invalid for uint argument!\n";
       std::exit(1);
@@ -172,8 +172,8 @@ static void parseArgs(int argc, char **argv) {
   Quiet = Args.hasArg(OPT_quiet);
 
   for (const llvm::opt::Arg *A : Args.filtered(OPT_address_EQ)) {
-    StringRef S{A->getValue()};
-    if (!llvm::to_integer(S, LookupAddresses.emplace_back(), 0)) {
+    
+    if (StringRef S{A->getValue()}; !llvm::to_integer(S, LookupAddresses.emplace_back(), 0)) {
       llvm::errs() << ToolName << ": for the --address option: '" << S
                    << "' value invalid for uint argument!\n";
       std::exit(1);
@@ -260,8 +260,8 @@ static bool filterArch(MachOObjectFile &Obj) {
       return true;
 
     // Match architecture number.
-    unsigned Value;
-    if (!Arch.getAsInteger(0, Value))
+    
+    if (unsigned Value; !Arch.getAsInteger(0, Value))
       if (Value == getCPUType(Obj))
         return true;
   }
@@ -304,13 +304,13 @@ getImageBaseAddress(const object::MachOObjectFile *MachO) {
   for (const auto &Command : MachO->load_commands()) {
     if (Command.C.cmd == MachO::LC_SEGMENT) {
       MachO::segment_command SLC = MachO->getSegmentLoadCommand(Command);
-      StringRef SegName = SLC.segname;
-      if (SegName == "__TEXT")
+      
+      if (StringRef SegName = SLC.segname; SegName == "__TEXT")
         return SLC.vmaddr;
     } else if (Command.C.cmd == MachO::LC_SEGMENT_64) {
       MachO::segment_command_64 SLC = MachO->getSegment64LoadCommand(Command);
-      StringRef SegName = SLC.segname;
-      if (SegName == "__TEXT")
+      
+      if (StringRef SegName = SLC.segname; SegName == "__TEXT")
         return SLC.vmaddr;
     }
   }
@@ -458,8 +458,8 @@ static llvm::Error handleBuffer(StringRef Filename, MemoryBufferRef Buffer,
     std::vector<std::unique_ptr<MachOObjectFile>> FilterObjs;
     for (auto &ObjForArch : Fat->objects()) {
       if (auto MachOOrErr = ObjForArch.getAsObjectFile()) {
-        auto &Obj = **MachOOrErr;
-        if (filterArch(Obj))
+        
+        if (auto &Obj = **MachOOrErr; filterArch(Obj))
           FilterObjs.emplace_back(MachOOrErr->release());
       } else {
         error(Filename, MachOOrErr.takeError());
@@ -537,8 +537,8 @@ static void doLookup(GsymReader &Gsym, uint64_t Addr, raw_ostream &OS) {
         for (const auto &Result : *Results) {
           bool Matches = false;
           for (const auto &Filter : MergedFunctionsFilters) {
-            Regex Pattern(Filter);
-            if (Pattern.match(Result.FuncName)) {
+            
+            if (Regex Pattern(Filter); Pattern.match(Result.FuncName)) {
               Matches = true;
               break;
             }
@@ -557,8 +557,8 @@ static void doLookup(GsymReader &Gsym, uint64_t Addr, raw_ostream &OS) {
         if (!MergedFunctionsFilters.empty()) {
           bool Matches = false;
           for (const auto &Filter : MergedFunctionsFilters) {
-            Regex Pattern(Filter);
-            if (Pattern.match(Results->at(i).FuncName)) {
+            
+            if (Regex Pattern(Filter); Pattern.match(Results->at(i).FuncName)) {
               Matches = true;
               break;
             }
@@ -609,8 +609,8 @@ int llvm_gsymutil_main(int argc, char **argv, const llvm::ToolContext &) {
 
   raw_ostream &OS = outs();
 
-  OutputAggregator Aggregation(&OS);
-  if (!ConvertFilename.empty()) {
+  
+  if (OutputAggregator Aggregation(&OS); !ConvertFilename.empty()) {
     // Convert DWARF to GSYM
     if (!InputFilenames.empty()) {
       OS << "error: no input files can be specified when using the --convert "

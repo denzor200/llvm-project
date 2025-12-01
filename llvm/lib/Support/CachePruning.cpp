@@ -187,8 +187,8 @@ bool llvm::pruneCache(StringRef Path, CachePruningPolicy Policy,
       // Check whether the time stamp is older than our pruning interval.
       // If not, do nothing.
       const auto TimeStampModTime = FileStatus.getLastModificationTime();
-      auto TimeStampAge = CurrentTime - TimeStampModTime;
-      if (TimeStampAge <= *Policy.Interval) {
+      
+      if (auto TimeStampAge = CurrentTime - TimeStampModTime; TimeStampAge <= *Policy.Interval) {
         LLVM_DEBUG(dbgs() << "Timestamp file too recent ("
                           << duration_cast<seconds>(TimeStampAge).count()
                           << "s old), do not prune.\n");
@@ -217,8 +217,8 @@ bool llvm::pruneCache(StringRef Path, CachePruningPolicy Policy,
     // includes the timestamp file as well as any files created by the user.
     // This acts as a safeguard against data loss if the user specifies the
     // wrong directory as their cache directory.
-    StringRef filename = sys::path::filename(File->path());
-    if (!filename.starts_with("llvmcache-") && !filename.starts_with("Thin-"))
+    
+    if (StringRef filename = sys::path::filename(File->path()); !filename.starts_with("llvmcache-") && !filename.starts_with("Thin-"))
       continue;
 
     // Look at this file. If we can't stat it, there's nothing interesting

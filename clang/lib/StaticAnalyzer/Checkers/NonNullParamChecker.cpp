@@ -147,8 +147,8 @@ void NonNullParamChecker::checkPreCall(const CallEvent &Call,
         continue;
 
       QualType T = ArgE->getType();
-      const RecordType *UT = T->getAsUnionType();
-      if (!UT ||
+      
+      if (const RecordType *UT = T->getAsUnionType(); !UT ||
           !UT->getDecl()->getMostRecentDecl()->hasAttr<TransparentUnionAttr>())
         continue;
 

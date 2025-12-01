@@ -134,11 +134,11 @@ void MacroExpander::parseDefinition(const std::string &Macro) {
   FileID FID = SourceMgr.createFileID(Buffers.back()->getMemBufferRef());
   FormatTokenLexer Lex(SourceMgr, FID, 0, Style, encoding::Encoding_UTF8,
                        Allocator, IdentTable);
-  const auto Tokens = Lex.lex();
-  if (!Tokens.empty()) {
+  
+  if (const auto Tokens = Lex.lex(); !Tokens.empty()) {
     DefinitionParser Parser(Tokens);
-    auto Definition = Parser.parse();
-    if (Definition.ObjectLike) {
+    
+    if (auto Definition = Parser.parse(); Definition.ObjectLike) {
       ObjectLike[Definition.Name] = std::move(Definition);
     } else {
       FunctionLike[Definition.Name][Definition.Params.size()] =

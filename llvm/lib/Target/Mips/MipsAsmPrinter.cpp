@@ -155,8 +155,8 @@ static void emitDirectiveRelocJalr(const MachineInstr &MI,
   for (const MachineOperand &MO :
        llvm::drop_begin(MI.operands(), MI.getDesc().getNumOperands())) {
     if (MO.isMCSymbol() && (MO.getTargetFlags() & MipsII::MO_JALR)) {
-      MCSymbol *Callee = MO.getMCSymbol();
-      if (Callee && !Callee->getName().empty()) {
+      
+      if (MCSymbol *Callee = MO.getMCSymbol(); Callee && !Callee->getName().empty()) {
         MCSymbol *OffsetLabel = OutContext.createTempSymbol();
         const MCExpr *OffsetExpr =
             MCSymbolRefExpr::create(OffsetLabel, OutContext);
@@ -337,11 +337,11 @@ void MipsAsmPrinter::printSavedRegsBitmask() {
 
   for (const auto &I : CSI) {
     Register Reg = I.getReg();
-    unsigned RegNum = TRI->getEncodingValue(Reg);
+    
 
     // If it's a floating point register, set the FPU Bitmask.
     // If it's a general purpose register, set the CPU Bitmask.
-    if (Mips::FGR32RegClass.contains(Reg)) {
+    if (unsigned RegNum = TRI->getEncodingValue(Reg); Mips::FGR32RegClass.contains(Reg)) {
       FPUBitmask |= (1 << RegNum);
       CSFPRegsSize += FGR32RegSize;
     } else if (Mips::AFGR64RegClass.contains(Reg)) {
@@ -456,8 +456,8 @@ void MipsAsmPrinter::emitFunctionBodyEnd() {
 
 void MipsAsmPrinter::emitBasicBlockEnd(const MachineBasicBlock &MBB) {
   AsmPrinter::emitBasicBlockEnd(MBB);
-  MipsTargetStreamer &TS = getTargetStreamer();
-  if (MBB.empty())
+  
+  if (MipsTargetStreamer &TS = getTargetStreamer(); MBB.empty())
     TS.emitDirectiveInsn();
 }
 
@@ -468,8 +468,8 @@ bool MipsAsmPrinter::PrintAsmOperand(const MachineInstr *MI, unsigned OpNum,
   if (ExtraCode && ExtraCode[0]) {
     if (ExtraCode[1] != 0) return true; // Unknown modifier.
 
-    const MachineOperand &MO = MI->getOperand(OpNum);
-    switch (ExtraCode[0]) {
+    
+    switch (const MachineOperand &MO = MI->getOperand(OpNum); ExtraCode[0]) {
     default:
       // See if this is a generic print operand
       return AsmPrinter::PrintAsmOperand(MI, OpNum, ExtraCode, O);
@@ -720,9 +720,9 @@ printRegisterList(const MachineInstr *MI, int opNum, raw_ostream &O) {
 }
 
 void MipsAsmPrinter::emitStartOfAsmFile(Module &M) {
-  const Triple &TT = TM.getTargetTriple();
+  
 
-  if (TT.isOSBinFormatELF()) {
+  if (const Triple &TT = TM.getTargetTriple(); TT.isOSBinFormatELF()) {
     MipsTargetStreamer &TS = getTargetStreamer();
 
     // MipsTargetStreamer has an initialization order problem when emitting an
@@ -818,8 +818,8 @@ void MipsAsmPrinter::emitInlineAsmEnd(const MCSubtargetInfo &StartInfo,
 void MipsAsmPrinter::emitJumpTableEntry(const MachineJumpTableInfo &MJTI,
                                         const MachineBasicBlock *MBB,
                                         unsigned uid) const {
-  MCSymbol *MBBSym = MBB->getSymbol();
-  switch (MJTI.getEntryKind()) {
+  
+  switch (MCSymbol *MBBSym = MBB->getSymbol(); MJTI.getEntryKind()) {
   case MachineJumpTableInfo::EK_BlockAddress:
     OutStreamer->emitValue(MCSymbolRefExpr::create(MBBSym, OutContext),
                            getDataLayout().getPointerSize());
@@ -903,8 +903,8 @@ void MipsAsmPrinter::EmitSwapFPIntParams(const MCSubtargetInfo &STI,
                                          bool LE, bool ToFP) {
   using namespace Mips16HardFloatInfo;
 
-  unsigned MovOpc = ToFP ? Mips::MTC1 : Mips::MFC1;
-  switch (PV) {
+  
+  switch (unsigned MovOpc = ToFP ? Mips::MTC1 : Mips::MFC1; PV) {
   case FSig:
     EmitInstrRegReg(STI, MovOpc, Mips::A0, Mips::F12);
     break;
@@ -936,8 +936,8 @@ void MipsAsmPrinter::EmitSwapFPIntRetval(
     bool LE) {
   using namespace Mips16HardFloatInfo;
 
-  unsigned MovOpc = Mips::MFC1;
-  switch (RV) {
+  
+  switch (unsigned MovOpc = Mips::MFC1; RV) {
   case FRet:
     EmitInstrRegReg(STI, MovOpc, Mips::V0, Mips::F0);
     break;

@@ -15,16 +15,16 @@ using namespace clang::ast_matchers;
 namespace clang::tidy::cppcoreguidelines {
 
 static bool hasConstQualifier(QualType Type) {
-  const QualType PtrType = Type->getPointeeType();
-  if (!PtrType.isNull())
+  
+  if (const QualType PtrType = Type->getPointeeType(); !PtrType.isNull())
     return hasConstQualifier(PtrType);
 
   return Type.isConstQualified();
 }
 
 static bool hasVolatileQualifier(QualType Type) {
-  const QualType PtrType = Type->getPointeeType();
-  if (!PtrType.isNull())
+  
+  if (const QualType PtrType = Type->getPointeeType(); !PtrType.isNull())
     return hasVolatileQualifier(PtrType);
   return Type.isVolatileQualified();
 }

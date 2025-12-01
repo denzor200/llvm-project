@@ -338,9 +338,9 @@ bool CoroIdElider::lifetimeEligibleForElide() const {
   // Consider the final coro.suspend as the real terminator when the current
   // function is a coroutine.
   for (BasicBlock &B : *FEI.ContainingFunction) {
-    auto *TI = B.getTerminator();
+    
 
-    if (TI->getNumSuccessors() != 0 || isa<UnreachableInst>(TI))
+    if (auto *TI = B.getTerminator(); TI->getNumSuccessors() != 0 || isa<UnreachableInst>(TI))
       continue;
 
     Terminators.insert(&B);
@@ -406,9 +406,9 @@ bool CoroIdElider::attemptElide() {
   auto FrameSizeAndAlign = getFrameLayout(cast<Function>(ResumeAddrConstant));
 
   auto CallerFunctionName = FEI.ContainingFunction->getName();
-  auto CalleeCoroutineName = CoroId->getCoroutine()->getName();
+  
 
-  if (EligibleForElide && FrameSizeAndAlign) {
+  if (auto CalleeCoroutineName = CoroId->getCoroutine()->getName(); EligibleForElide && FrameSizeAndAlign) {
     elideHeapAllocations(FrameSizeAndAlign->first, FrameSizeAndAlign->second);
     coro::replaceCoroFree(CoroId, /*Elide=*/true);
     NumOfCoroElided++;
@@ -449,8 +449,8 @@ bool CoroIdElider::attemptElide() {
 }
 
 PreservedAnalyses CoroElidePass::run(Function &F, FunctionAnalysisManager &AM) {
-  auto &M = *F.getParent();
-  if (!coro::declaresIntrinsics(M, Intrinsic::coro_id))
+  
+  if (auto &M = *F.getParent(); !coro::declaresIntrinsics(M, Intrinsic::coro_id))
     return PreservedAnalyses::all();
 
   FunctionElideInfo FEI{&F};

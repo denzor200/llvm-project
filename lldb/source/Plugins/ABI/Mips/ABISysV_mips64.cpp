@@ -688,18 +688,18 @@ Status ABISysV_mips64::SetReturnValueObject(lldb::StackFrameSP &frame_sp,
 
   if (type_flags & eTypeIsScalar || type_flags & eTypeIsPointer) {
     if (type_flags & eTypeIsInteger || type_flags & eTypeIsPointer) {
-      lldb::offset_t offset = 0;
+      
 
-      if (num_bytes <= 16) {
-        const RegisterInfo *r2_info = reg_ctx->GetRegisterInfoByName("r2", 0);
-        if (num_bytes <= 8) {
-          uint64_t raw_value = data.GetMaxU64(&offset, num_bytes);
+      if (lldb::offset_t offset = 0; num_bytes <= 16) {
+        
+        if (const RegisterInfo *r2_info = reg_ctx->GetRegisterInfoByName("r2", 0); num_bytes <= 8) {
+          
 
-          if (!reg_ctx->WriteRegisterFromUnsigned(r2_info, raw_value))
+          if (uint64_t raw_value = data.GetMaxU64(&offset, num_bytes); !reg_ctx->WriteRegisterFromUnsigned(r2_info, raw_value))
             error = Status::FromErrorString("failed to write register r2");
         } else {
-          uint64_t raw_value = data.GetMaxU64(&offset, 8);
-          if (reg_ctx->WriteRegisterFromUnsigned(r2_info, raw_value)) {
+          
+          if (uint64_t raw_value = data.GetMaxU64(&offset, 8); reg_ctx->WriteRegisterFromUnsigned(r2_info, raw_value)) {
             const RegisterInfo *r3_info =
                 reg_ctx->GetRegisterInfoByName("r3", 0);
             raw_value = data.GetMaxU64(&offset, num_bytes - offset);
@@ -772,8 +772,8 @@ ValueObjectSP ABISysV_mips64::GetReturnValueObjectImpl(
 
       uint64_t raw_value = reg_ctx->ReadRegisterAsUnsigned(r2_info, 0);
 
-      const bool is_signed = (type_flags & eTypeIsSigned) != 0;
-      switch (*byte_size) {
+      
+      switch (const bool is_signed = (type_flags & eTypeIsSigned) != 0; *byte_size) {
       default:
         break;
 
@@ -813,8 +813,8 @@ ValueObjectSP ABISysV_mips64::GetReturnValueObjectImpl(
       if (type_flags & eTypeIsComplex) {
         // Don't handle complex yet.
       } else if (IsSoftFloat(fp_flag)) {
-        uint64_t raw_value = reg_ctx->ReadRegisterAsUnsigned(r2_info, 0);
-        switch (*byte_size) {
+        
+        switch (uint64_t raw_value = reg_ctx->ReadRegisterAsUnsigned(r2_info, 0); *byte_size) {
         case 4:
           value.GetScalar() = *((float *)(&raw_value));
           success = true;
@@ -849,8 +849,8 @@ ValueObjectSP ABISysV_mips64::GetReturnValueObjectImpl(
 
           f0_value.GetData(f0_data);
 
-          lldb::offset_t offset = 0;
-          if (*byte_size == sizeof(float)) {
+          
+          if (lldb::offset_t offset = 0; *byte_size == sizeof(float)) {
             value.GetScalar() = (float)f0_data.GetFloat(&offset);
             success = true;
           } else if (*byte_size == sizeof(double)) {
@@ -932,11 +932,11 @@ ValueObjectSP ABISysV_mips64::GetReturnValueObjectImpl(
 
         // Check if this structure contains only floating point fields
         for (uint32_t idx = 0; idx < num_children; idx++) {
-          CompilerType field_compiler_type =
-              return_compiler_type.GetFieldAtIndex(idx, name, &field_bit_offset,
-                                                   nullptr, nullptr);
+          
 
-          if (field_compiler_type.IsFloatingPointType(is_complex))
+          if (CompilerType field_compiler_type =
+              return_compiler_type.GetFieldAtIndex(idx, name, &field_bit_offset,
+                                                   nullptr, nullptr); field_compiler_type.IsFloatingPointType(is_complex))
             use_fp_regs = true;
           else
             found_non_fp_field = true;
@@ -1089,20 +1089,20 @@ ValueObjectSP ABISysV_mips64::GetReturnValueObjectImpl(
       if (use_r2) {
         reg_ctx->ReadRegister(r2_info, r2_value);
 
-        const size_t bytes_copied = r2_value.GetAsMemoryData(
+        
+        if (const size_t bytes_copied = r2_value.GetAsMemoryData(
             *r2_info, data_sp->GetBytes(), r2_info->byte_size,
-            target_byte_order, error);
-        if (bytes_copied != r2_info->byte_size)
+            target_byte_order, error); bytes_copied != r2_info->byte_size)
           return return_valobj_sp;
         sucess = true;
       }
       if (use_r3) {
         reg_ctx->ReadRegister(r3_info, r3_value);
-        const size_t bytes_copied = r3_value.GetAsMemoryData(
-            *r3_info, data_sp->GetBytes() + r2_info->byte_size,
-            r3_info->byte_size, target_byte_order, error);
+        
 
-        if (bytes_copied != r3_info->byte_size)
+        if (const size_t bytes_copied = r3_value.GetAsMemoryData(
+            *r3_info, data_sp->GetBytes() + r2_info->byte_size,
+            r3_info->byte_size, target_byte_order, error); bytes_copied != r3_info->byte_size)
           return return_valobj_sp;
         sucess = true;
       }

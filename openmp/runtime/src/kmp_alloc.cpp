@@ -226,8 +226,8 @@ static int bget_get_bin(bufsize size) {
   KMP_DEBUG_ASSERT(size > 0);
 
   while ((hi - lo) > 1) {
-    int mid = (lo + hi) >> 1;
-    if (size < bget_bin_size[mid])
+    
+    if (int mid = (lo + hi) >> 1; size < bget_bin_size[mid])
       hi = mid - 1;
     else
       lo = mid;
@@ -276,9 +276,9 @@ static thr_data_t *get_thr_data(kmp_info_t *th) {
 
 /* Walk the free list and release the enqueued buffers */
 static void __kmp_bget_dequeue(kmp_info_t *th) {
-  void *p = TCR_SYNC_PTR(th->th.th_local.bget_list);
+  
 
-  if (p != 0) {
+  if (void *p = TCR_SYNC_PTR(th->th.th_local.bget_list); p != 0) {
 #if USE_CMP_XCHG_FOR_BGET
     {
       volatile void *old_value = TCR_SYNC_PTR(th->th.th_local.bget_list);
@@ -1068,9 +1068,9 @@ size_t kmpc_get_poolsize(void) {
 }
 
 void kmpc_set_poolmode(int mode) {
-  thr_data_t *p;
+  
 
-  if (mode == bget_mode_fifo || mode == bget_mode_lifo ||
+  if (thr_data_t *p; mode == bget_mode_fifo || mode == bget_mode_lifo ||
       mode == bget_mode_best) {
     p = get_thr_data(__kmp_get_thread());
     p->mode = (bget_mode_t)mode;
@@ -1950,9 +1950,9 @@ void *__kmp_alloc(int gtid, size_t algn, size_t size,
     // Use size input directly as the memory may not be accessible on host.
     // Use default device for now.
     if (__kmp_target_mem_available) {
-      kmp_int32 device =
-          __kmp_threads[gtid]->th.th_current_task->td_icvs.default_device;
-      if (allocator == llvm_omp_target_host_mem_alloc)
+      
+      if (kmp_int32 device =
+          __kmp_threads[gtid]->th.th_current_task->td_icvs.default_device; allocator == llvm_omp_target_host_mem_alloc)
         ptr = kmp_target_alloc_host(size, device);
       else if (allocator == llvm_omp_target_shared_mem_alloc)
         ptr = kmp_target_alloc_shared(size, device);
@@ -1966,9 +1966,9 @@ void *__kmp_alloc(int gtid, size_t algn, size_t size,
 
   if (allocator >= kmp_max_mem_alloc && KMP_IS_TARGET_MEM_SPACE(al->memspace)) {
     if (__kmp_target_mem_available) {
-      kmp_int32 device =
-          __kmp_threads[gtid]->th.th_current_task->td_icvs.default_device;
-      if (al->memspace == llvm_omp_target_host_mem_space)
+      
+      if (kmp_int32 device =
+          __kmp_threads[gtid]->th.th_current_task->td_icvs.default_device; al->memspace == llvm_omp_target_host_mem_space)
         ptr = kmp_target_alloc_host(size, device);
       else if (al->memspace == llvm_omp_target_shared_mem_space)
         ptr = kmp_target_alloc_shared(size, device);
@@ -2087,9 +2087,9 @@ void *__kmp_alloc(int gtid, size_t algn, size_t size,
         }
       } else if (al->pool_size > 0) {
         // custom allocator with pool size requested
-        kmp_uint64 used =
-            KMP_TEST_THEN_ADD64((kmp_int64 *)&al->pool_used, desc.size_a);
-        if (used + desc.size_a > al->pool_size) {
+        
+        if (kmp_uint64 used =
+            KMP_TEST_THEN_ADD64((kmp_int64 *)&al->pool_used, desc.size_a); used + desc.size_a > al->pool_size) {
           // not enough space, need to go fallback path
           KMP_TEST_THEN_ADD64((kmp_int64 *)&al->pool_used, -desc.size_a);
           if (al->fb == omp_atv_default_mem_fb) {
@@ -2168,9 +2168,9 @@ void *__kmp_alloc(int gtid, size_t algn, size_t size,
       }
     } else if (al->pool_size > 0) {
       // custom allocator with pool size requested
-      kmp_uint64 used =
-          KMP_TEST_THEN_ADD64((kmp_int64 *)&al->pool_used, desc.size_a);
-      if (used + desc.size_a > al->pool_size) {
+      
+      if (kmp_uint64 used =
+          KMP_TEST_THEN_ADD64((kmp_int64 *)&al->pool_used, desc.size_a); used + desc.size_a > al->pool_size) {
         // not enough space, need to go fallback path
         KMP_TEST_THEN_ADD64((kmp_int64 *)&al->pool_used, -desc.size_a);
         if (al->fb == omp_atv_default_mem_fb) {
@@ -2309,9 +2309,9 @@ void ___kmpc_free(int gtid, void *ptr, omp_allocator_handle_t allocator) {
   if (__kmp_target_mem_available && (KMP_IS_TARGET_MEM_ALLOC(allocator) ||
                                      (allocator > kmp_max_mem_alloc &&
                                       KMP_IS_TARGET_MEM_SPACE(al->memspace)))) {
-    kmp_int32 device =
-        __kmp_threads[gtid]->th.th_current_task->td_icvs.default_device;
-    if (allocator == llvm_omp_target_host_mem_alloc) {
+    
+    if (kmp_int32 device =
+        __kmp_threads[gtid]->th.th_current_task->td_icvs.default_device; allocator == llvm_omp_target_host_mem_alloc) {
       kmp_target_free_host(ptr, device);
     } else if (allocator == llvm_omp_target_shared_mem_alloc) {
       kmp_target_free_shared(ptr, device);
@@ -2689,8 +2689,8 @@ void ___kmp_fast_free(kmp_info_t *this_thr, void *ptr KMP_SRC_LOC_DECL) {
     *((void **)ptr) = this_thr->th.th_free_lists[index].th_free_list_self;
     this_thr->th.th_free_lists[index].th_free_list_self = ptr;
   } else {
-    void *head = this_thr->th.th_free_lists[index].th_free_list_other;
-    if (head == NULL) {
+    
+    if (void *head = this_thr->th.th_free_lists[index].th_free_list_other; head == NULL) {
       // Create new free list
       this_thr->th.th_free_lists[index].th_free_list_other = ptr;
       *((void **)ptr) = NULL; // mark the tail of the list
@@ -2701,9 +2701,9 @@ void ___kmp_fast_free(kmp_info_t *this_thr, void *ptr KMP_SRC_LOC_DECL) {
           (kmp_mem_descr_t *)((char *)head - sizeof(kmp_mem_descr_t));
       // allocating thread, same for all queue nodes
       kmp_info_t *q_th = (kmp_info_t *)(dsc->ptr_aligned);
-      size_t q_sz =
-          dsc->size_allocated + 1; // new size in case we add current task
-      if (q_th == alloc_thr && q_sz <= KMP_FREE_LIST_LIMIT) {
+      // new size in case we add current task
+      if (size_t q_sz =
+          dsc->size_allocated + 1; q_th == alloc_thr && q_sz <= KMP_FREE_LIST_LIMIT) {
         // we can add current task to "other" list, no sync needed
         *((void **)ptr) = head;
         descr->size_allocated = q_sz;

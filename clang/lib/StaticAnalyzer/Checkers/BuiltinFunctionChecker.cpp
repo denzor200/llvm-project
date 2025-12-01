@@ -53,9 +53,9 @@ QualType getOverflowBuiltinResultType(const CallEvent &Call, CheckerContext &C,
   // Calling a builtin with an incorrect argument count produces compiler error.
   assert(Call.getNumArgs() == 3);
 
-  ASTContext &ACtx = C.getASTContext();
+  
 
-  switch (BI) {
+  switch (ASTContext &ACtx = C.getASTContext(); BI) {
   case Builtin::BI__builtin_smul_overflow:
   case Builtin::BI__builtin_ssub_overflow:
   case Builtin::BI__builtin_sadd_overflow:
@@ -262,9 +262,9 @@ bool BuiltinFunctionChecker::evalCall(const CallEvent &Call,
     return true;
   }
 
-  unsigned BI = FD->getBuiltinID();
+  
 
-  switch (BI) {
+  switch (unsigned BI = FD->getBuiltinID(); BI) {
   default:
     return false;
   case Builtin::BI__builtin_mul_overflow:

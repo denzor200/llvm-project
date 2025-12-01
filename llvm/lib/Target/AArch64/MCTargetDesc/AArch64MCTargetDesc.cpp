@@ -402,8 +402,8 @@ public:
     const auto &Desc = Info->get(Inst.getOpcode());
     for (unsigned i = 0, e = Inst.getNumOperands(); i != e; i++) {
       if (Desc.operands()[i].OperandType == MCOI::OPERAND_PCREL) {
-        int64_t Imm = Inst.getOperand(i).getImm();
-        if (Inst.getOpcode() == AArch64::ADR)
+        
+        if (int64_t Imm = Inst.getOperand(i).getImm(); Inst.getOpcode() == AArch64::ADR)
           Target = Addr + Imm;
         else if (Inst.getOpcode() == AArch64::ADRP)
           Target = (Addr & -4096) + Imm * 4096;
@@ -450,8 +450,8 @@ public:
 
     Mask.clearAllBits();
     for (unsigned I = 0, E = NumDefs; I < E; ++I) {
-      const MCOperand &Op = Inst.getOperand(I);
-      if (ClearsSuperReg(Op.getReg()))
+      
+      if (const MCOperand &Op = Inst.getOperand(I); ClearsSuperReg(Op.getReg()))
         Mask.setBit(I);
     }
 

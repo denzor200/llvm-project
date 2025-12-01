@@ -253,11 +253,11 @@ const_iterator &const_iterator::operator++() {
 
   // Both POSIX and Windows treat paths that begin with exactly two separators
   // specially.
-  bool was_net = Component.size() > 2 && is_separator(Component[0], S) &&
-                 Component[1] == Component[0] && !is_separator(Component[2], S);
+  
 
   // Handle separators.
-  if (is_separator(Path[Position], S)) {
+  if (bool was_net = Component.size() > 2 && is_separator(Component[0], S) &&
+                 Component[1] == Component[0] && !is_separator(Component[2], S); is_separator(Path[Position], S)) {
     // Root dir.
     if (was_net ||
         // c:/
@@ -429,9 +429,9 @@ void append(SmallVectorImpl<char> &path, Style style, const Twine &a,
   if (!d.isTriviallyEmpty()) components.push_back(d.toStringRef(d_storage));
 
   for (auto &component : components) {
-    bool path_has_sep =
-        !path.empty() && is_separator(path[path.size() - 1], style);
-    if (path_has_sep) {
+    
+    if (bool path_has_sep =
+        !path.empty() && is_separator(path[path.size() - 1], style); path_has_sep) {
       // Strip separators from beginning of component.
       size_t loc = component.find_first_not_of(separators(style));
       StringRef c = component.substr(loc);
@@ -472,8 +472,8 @@ StringRef parent_path(StringRef path, Style style) {
 }
 
 void remove_filename(SmallVectorImpl<char> &path, Style style) {
-  size_t end_pos = parent_path_end(StringRef(path.begin(), path.size()), style);
-  if (end_pos != StringRef::npos)
+  
+  if (size_t end_pos = parent_path_end(StringRef(path.begin(), path.size()), style); end_pos != StringRef::npos)
     path.truncate(end_pos);
 }
 
@@ -484,8 +484,8 @@ void replace_extension(SmallVectorImpl<char> &path, const Twine &extension,
   StringRef ext = extension.toStringRef(ext_storage);
 
   // Erase existing extension.
-  size_t pos = p.find_last_of('.');
-  if (pos != StringRef::npos && pos >= filename_pos(p, style))
+  
+  if (size_t pos = p.find_last_of('.'); pos != StringRef::npos && pos >= filename_pos(p, style))
     path.truncate(pos);
 
   // Append '.' if needed.
@@ -504,8 +504,8 @@ static bool starts_with(StringRef Path, StringRef Prefix,
       return false;
     for (size_t I = 0, E = Prefix.size(); I != E; ++I) {
       bool SepPath = is_separator(Path[I], style);
-      bool SepPrefix = is_separator(Prefix[I], style);
-      if (SepPath != SepPrefix)
+      
+      if (bool SepPrefix = is_separator(Prefix[I], style); SepPath != SepPrefix)
         return false;
       if (!SepPath && toLower(Path[I]) != toLower(Prefix[I]))
         return false;
@@ -835,8 +835,8 @@ namespace fs {
 
 std::error_code getUniqueID(const Twine Path, UniqueID &Result) {
   file_status Status;
-  std::error_code EC = status(Path, Status);
-  if (EC)
+  
+  if (std::error_code EC = status(Path, Status); EC)
     return EC;
   Result = Status.getUniqueID();
   return std::error_code();

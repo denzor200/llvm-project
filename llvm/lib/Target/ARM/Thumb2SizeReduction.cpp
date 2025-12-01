@@ -243,8 +243,8 @@ Thumb2SizeReduce::Thumb2SizeReduce(std::function<bool(const Function &)> Ftor)
     : MachineFunctionPass(ID), PredicateFtor(std::move(Ftor)) {
   OptimizeSize = MinimizeSize = false;
   for (unsigned i = 0, e = std::size(ReduceTable); i != e; ++i) {
-    unsigned FromOpc = ReduceTable[i].WideOpc;
-    if (!ReduceOpcodeMap.insert(std::make_pair(FromOpc, i)).second)
+    
+    if (unsigned FromOpc = ReduceTable[i].WideOpc; !ReduceOpcodeMap.insert(std::make_pair(FromOpc, i)).second)
       llvm_unreachable("Duplicated entries?");
   }
 }
@@ -304,8 +304,8 @@ Thumb2SizeReduce::canAddPseudoFlagDep(MachineInstr *Use, bool FirstInSelfLoop) {
   for (const MachineOperand &MO : Use->operands()) {
     if (!MO.isReg() || MO.isUndef() || MO.isDef())
       continue;
-    Register Reg = MO.getReg();
-    if (Defs.count(Reg))
+    
+    if (Register Reg = MO.getReg(); Defs.count(Reg))
       return false;
   }
 
@@ -575,9 +575,9 @@ Thumb2SizeReduce::ReduceLoadStore(MachineBasicBlock &MBB, MachineInstr *MI,
   unsigned OffsetImm = 0;
   if (HasImmOffset) {
     OffsetImm = MI->getOperand(2).getImm();
-    unsigned MaxOffset = ((1 << ImmLimit) - 1) * Scale;
+    
 
-    if ((OffsetImm & (Scale - 1)) || OffsetImm > MaxOffset)
+    if (unsigned MaxOffset = ((1 << ImmLimit) - 1) * Scale; (OffsetImm & (Scale - 1)) || OffsetImm > MaxOffset)
       // Make sure the immediate field fits.
       return false;
   }
@@ -766,8 +766,8 @@ Thumb2SizeReduce::ReduceTo2Addr(MachineBasicBlock &MBB, MachineInstr *MI,
       if (Reg1 != Reg0)
         return false;
       // Try to commute the operands to make it a 2-address instruction.
-      MachineInstr *CommutedMI = TII->commuteInstruction(*MI);
-      if (!CommutedMI)
+      
+      if (MachineInstr *CommutedMI = TII->commuteInstruction(*MI); !CommutedMI)
         return false;
     }
   } else if (Reg0 != Reg1) {
@@ -786,12 +786,12 @@ Thumb2SizeReduce::ReduceTo2Addr(MachineBasicBlock &MBB, MachineInstr *MI,
     return false;
   if (Entry.Imm2Limit) {
     unsigned Imm = MI->getOperand(2).getImm();
-    unsigned Limit = (1 << Entry.Imm2Limit) - 1;
-    if (Imm > Limit)
+    
+    if (unsigned Limit = (1 << Entry.Imm2Limit) - 1; Imm > Limit)
       return false;
   } else {
-    Register Reg2 = MI->getOperand(2).getReg();
-    if (Entry.LowRegs2 && !isARMLowRegister(Reg2))
+    
+    if (Register Reg2 = MI->getOperand(2).getReg(); Entry.LowRegs2 && !isARMLowRegister(Reg2))
       return false;
   }
 
@@ -874,8 +874,8 @@ Thumb2SizeReduce::ReduceToNarrow(MachineBasicBlock &MBB, MachineInstr *MI,
   for (unsigned i = 0, e = MCID.getNumOperands(); i != e; ++i) {
     if (MCID.operands()[i].isPredicate())
       continue;
-    const MachineOperand &MO = MI->getOperand(i);
-    if (MO.isReg()) {
+    
+    if (const MachineOperand &MO = MI->getOperand(i); MO.isReg()) {
       Register Reg = MO.getReg();
       if (!Reg || Reg == ARM::CPSR)
         continue;

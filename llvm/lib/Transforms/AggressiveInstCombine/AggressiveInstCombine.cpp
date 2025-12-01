@@ -210,8 +210,8 @@ struct MaskOps {
 ///   and (and (X >> 1), 1), (X >> 4)
 /// returns { X, 0x12 }
 static bool matchAndOrChain(Value *V, MaskOps &MOps) {
-  Value *Op0, *Op1;
-  if (MOps.MatchAndChain) {
+  
+  if (Value *Op0, *Op1; MOps.MatchAndChain) {
     // Recurse through a chain of 'and' operands. This requires an extra check
     // vs. the 'or' matcher: we must find an "and X, 1" instruction somewhere
     // in the chain to know that all of the high bits are cleared.
@@ -324,21 +324,21 @@ static bool tryToRecognizePopCount(Instruction &I) {
   // Matching "(i * 0x01010101...) >> 24".
   if ((match(Op0, m_Mul(m_Value(MulOp0), m_SpecificInt(Mask01)))) &&
       match(Op1, m_SpecificInt(MaskShift))) {
-    Value *ShiftOp0;
+    
     // Matching "((i + (i >> 4)) & 0x0F0F0F0F...)".
-    if (match(MulOp0, m_And(m_c_Add(m_LShr(m_Value(ShiftOp0), m_SpecificInt(4)),
+    if (Value *ShiftOp0; match(MulOp0, m_And(m_c_Add(m_LShr(m_Value(ShiftOp0), m_SpecificInt(4)),
                                     m_Deferred(ShiftOp0)),
                             m_SpecificInt(Mask0F)))) {
-      Value *AndOp0;
+      
       // Matching "(i & 0x33333333...) + ((i >> 2) & 0x33333333...)".
-      if (match(ShiftOp0,
+      if (Value *AndOp0; match(ShiftOp0,
                 m_c_Add(m_And(m_Value(AndOp0), m_SpecificInt(Mask33)),
                         m_And(m_LShr(m_Deferred(AndOp0), m_SpecificInt(2)),
                               m_SpecificInt(Mask33))))) {
         Value *Root, *SubOp1;
         // Matching "i - ((i >> 1) & 0x55555555...)".
-        const APInt *AndMask;
-        if (match(AndOp0, m_Sub(m_Value(Root), m_Value(SubOp1))) &&
+        
+        if (const APInt *AndMask; match(AndOp0, m_Sub(m_Value(Root), m_Value(SubOp1))) &&
             match(SubOp1, m_And(m_LShr(m_Specific(Root), m_SpecificInt(1)),
                                 m_APInt(AndMask)))) {
           auto CheckAndMask = [&]() {
@@ -445,8 +445,8 @@ static bool foldSqrt(CallInst *Call, LibFunc Func, TargetTransformInfo &TTI,
   // (1) errno won't be set.
   // (2) it is safe to convert this to an intrinsic call.
   Type *Ty = Call->getType();
-  Value *Arg = Call->getArgOperand(0);
-  if (TTI.haveFastSqrt(Ty) &&
+  
+  if (Value *Arg = Call->getArgOperand(0); TTI.haveFastSqrt(Ty) &&
       (Call->hasNoNaNs() ||
        cannotBeOrderedLessThanZero(
            Arg, SimplifyQuery(Call->getDataLayout(), &TLI, &DT, &AC, Call)))) {
@@ -890,8 +890,8 @@ static bool mergeConsecutivePartStores(ArrayRef<PartStore> Parts,
   const PartStore &First = Parts.front();
   LLVMContext &Ctx = First.Store->getContext();
   Type *NewTy = Type::getIntNTy(Ctx, Width);
-  unsigned Fast = 0;
-  if (!TTI.isTypeLegal(NewTy) ||
+  
+  if (unsigned Fast = 0; !TTI.isTypeLegal(NewTy) ||
       !TTI.allowsMisalignedMemoryAccesses(Ctx, Width,
                                           First.Store->getPointerAddressSpace(),
                                           First.Store->getAlign(), &Fast) ||
@@ -1317,8 +1317,8 @@ void StrNCmpInliner::inlineCompare(Value *LHS, StringRef RHS, uint64_t N,
 
       Function *F = CI->getFunction();
       assert(F && "Instruction does not belong to a function!");
-      std::optional<Function::ProfileCount> EC = F->getEntryCount();
-      if (EC && EC->getCount() > 0)
+      
+      if (std::optional<Function::ProfileCount> EC = F->getEntryCount(); EC && EC->getCount() > 0)
         setExplicitlyUnknownBranchWeights(*CondBrInst, DEBUG_TYPE);
     } else {
       B.CreateBr(BBNE);
@@ -1441,9 +1441,9 @@ static bool foldLibCalls(Instruction &I, TargetTransformInfo &TTI,
       !isLibFuncEmittable(CI->getModule(), &TLI, LF))
     return false;
 
-  DomTreeUpdater DTU(&DT, DomTreeUpdater::UpdateStrategy::Lazy);
+  
 
-  switch (LF) {
+  switch (DomTreeUpdater DTU(&DT, DomTreeUpdater::UpdateStrategy::Lazy); LF) {
   case LibFunc_sqrt:
   case LibFunc_sqrtf:
   case LibFunc_sqrtl:

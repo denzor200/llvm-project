@@ -108,8 +108,8 @@ Expected<std::string> getDefaultDebuginfodCacheDirectory() {
 
 std::chrono::milliseconds getDefaultDebuginfodTimeout() {
   long Timeout;
-  const char *DebuginfodTimeoutEnv = std::getenv("DEBUGINFOD_TIMEOUT");
-  if (DebuginfodTimeoutEnv &&
+  
+  if (const char *DebuginfodTimeoutEnv = std::getenv("DEBUGINFOD_TIMEOUT"); DebuginfodTimeoutEnv &&
       to_integer(StringRef(DebuginfodTimeoutEnv).trim(), Timeout, 10))
     return std::chrono::milliseconds(Timeout * 1000);
 
@@ -202,8 +202,8 @@ public:
 
 Error StreamedHTTPResponseHandler::handleBodyChunk(StringRef BodyChunk) {
   if (!FileStream) {
-    unsigned Code = Client.responseCode();
-    if (Code && Code != 200)
+    
+    if (unsigned Code = Client.responseCode(); Code && Code != 200)
       return Error::success();
     Expected<std::unique_ptr<CachedFileStream>> FileStreamOrError =
         CreateStream();

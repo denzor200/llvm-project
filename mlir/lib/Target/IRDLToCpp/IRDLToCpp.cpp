@@ -739,9 +739,9 @@ irdl::translateIRDLDialectToCpp(llvm::ArrayRef<irdl::DialectOp> dialects,
   for (auto dialect : dialects) {
 
     auto &dialectStrings = dialectStringTable[dialect];
-    auto &dialectName = dialectStrings.dialectName;
+    
 
-    if (failed(generateInclude(dialect, output, dialectStrings)))
+    if (auto &dialectName = dialectStrings.dialectName; failed(generateInclude(dialect, output, dialectStrings)))
       return dialect->emitError("Error in Dialect " + dialectName +
                                 " while generating headers");
   }
@@ -750,9 +750,9 @@ irdl::translateIRDLDialectToCpp(llvm::ArrayRef<irdl::DialectOp> dialects,
   output << llvm::formatv("#ifdef {0}\n#undef {0}\n ", definitionMacroFlag);
   for (auto &dialect : dialects) {
     auto &dialectStrings = dialectStringTable[dialect];
-    auto &dialectName = dialectStrings.dialectName;
+    
 
-    if (failed(generateLib(dialect, output, dialectStrings)))
+    if (auto &dialectName = dialectStrings.dialectName; failed(generateLib(dialect, output, dialectStrings)))
       return dialect->emitError("Error in Dialect " + dialectName +
                                 " while generating library");
   }

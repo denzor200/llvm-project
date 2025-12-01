@@ -181,9 +181,9 @@ GlobalModuleIndex::GlobalModuleIndex(
         Cursor.readRecord(Entry.ID, Record, &Blob);
     if (!MaybeIndexRecord)
       Fail(MaybeIndexRecord.takeError());
-    IndexRecordTypes IndexRecord =
-        static_cast<IndexRecordTypes>(MaybeIndexRecord.get());
-    switch (IndexRecord) {
+    
+    switch (IndexRecordTypes IndexRecord =
+        static_cast<IndexRecordTypes>(MaybeIndexRecord.get()); IndexRecord) {
     case INDEX_METADATA:
       // Make sure that the version matches.
       if (Record.size() < 1 || Record[0] != CurrentVersion)
@@ -682,8 +682,8 @@ llvm::Error GlobalModuleIndexBuilder::loadModuleFile(FileEntryRef File) {
       for (InterestingIdentifierTable::data_iterator D = Table->data_begin(),
                                                      DEnd = Table->data_end();
            D != DEnd; ++D) {
-        std::pair<StringRef, bool> Ident = *D;
-        if (Ident.second)
+        
+        if (std::pair<StringRef, bool> Ident = *D; Ident.second)
           InterestingIdentifiers[Ident.first].push_back(ID);
         else
           (void)InterestingIdentifiers[Ident.first];
@@ -749,8 +749,8 @@ public:
 bool GlobalModuleIndexBuilder::writeIndex(llvm::BitstreamWriter &Stream) {
   for (auto MapEntry : ImportedModuleFiles) {
     auto File = MapEntry.first;
-    ImportedModuleFileInfo &Info = MapEntry.second;
-    if (getModuleFileInfo(File).Signature) {
+    
+    if (ImportedModuleFileInfo &Info = MapEntry.second; getModuleFileInfo(File).Signature) {
       if (getModuleFileInfo(File).Signature != Info.StoredSignature)
         // Verify Signature.
         return true;
@@ -897,8 +897,8 @@ GlobalModuleIndex::writeIndex(FileManager &FileMgr,
   // The output buffer, into which the global index will be written.
   SmallString<16> OutputBuffer;
   {
-    llvm::BitstreamWriter OutputStream(OutputBuffer);
-    if (Builder.writeIndex(OutputStream))
+    
+    if (llvm::BitstreamWriter OutputStream(OutputBuffer); Builder.writeIndex(OutputStream))
       return llvm::createStringError(std::errc::io_error,
                                      "failed writing index");
   }

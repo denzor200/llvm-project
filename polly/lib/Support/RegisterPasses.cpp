@@ -396,10 +396,10 @@ static llvm::Expected<PollyPassOptions> parsePollyOptions(StringRef Params,
 
   for (PassPhase P : llvm::enum_seq_inclusive(PassPhase::PassPhaseFirst,
                                               PassPhase::PassPhaseLast)) {
-    std::optional<bool> Enabled = PassEnabled[static_cast<size_t>(P)];
+    
 
     // Apply only if set explicitly.
-    if (Enabled.has_value())
+    if (std::optional<bool> Enabled = PassEnabled[static_cast<size_t>(P)]; Enabled.has_value())
       Opts.setPhaseEnabled(P, *Enabled);
   }
 

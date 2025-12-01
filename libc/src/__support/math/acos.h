@@ -71,9 +71,9 @@ LIBC_INLINE static constexpr double acos(double x) {
     // Ziv's accuracy test.
 
     double r_upper = r_hi + (r_lo + err);
-    double r_lower = r_hi + (r_lo - err);
+    
 
-    if (LIBC_LIKELY(r_upper == r_lower))
+    if (double r_lower = r_hi + (r_lo - err); LIBC_LIKELY(r_upper == r_lower))
       return r_upper;
 
     // Ziv's accuracy test failed, perform 128-bit calculation.

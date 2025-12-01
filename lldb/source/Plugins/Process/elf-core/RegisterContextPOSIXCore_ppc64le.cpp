@@ -63,9 +63,9 @@ size_t RegisterContextCorePOSIX_ppc64le::GetVSXSize() const {
 
 bool RegisterContextCorePOSIX_ppc64le::ReadRegister(
     const RegisterInfo *reg_info, RegisterValue &value) {
-  lldb::offset_t offset = reg_info->byte_offset;
+  
 
-  if (IsFPR(reg_info->kinds[lldb::eRegisterKindLLDB])) {
+  if (lldb::offset_t offset = reg_info->byte_offset; IsFPR(reg_info->kinds[lldb::eRegisterKindLLDB])) {
     uint64_t v;
     offset -= GetGPRSize();
     offset = m_fpr.CopyData(offset, reg_info->byte_size, &v);
@@ -113,9 +113,9 @@ bool RegisterContextCorePOSIX_ppc64le::ReadRegister(
       }
     }
   } else {
-    uint64_t v = m_gpr.GetMaxU64(&offset, reg_info->byte_size);
+    
 
-    if (offset == reg_info->byte_offset + reg_info->byte_size) {
+    if (uint64_t v = m_gpr.GetMaxU64(&offset, reg_info->byte_size); offset == reg_info->byte_offset + reg_info->byte_size) {
       if (reg_info->byte_size < sizeof(v))
         value = (uint32_t)v;
       else

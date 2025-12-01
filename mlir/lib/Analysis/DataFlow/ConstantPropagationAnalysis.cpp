@@ -97,8 +97,8 @@ LogicalResult SparseConstantPropagation::visitOperation(
     Lattice<ConstantValue> *lattice = std::get<0>(it);
 
     // Merge in the result of the fold, either a constant or a value.
-    OpFoldResult foldResult = std::get<1>(it);
-    if (Attribute attr = llvm::dyn_cast_if_present<Attribute>(foldResult)) {
+    
+    if (Attribute OpFoldResult foldResult = std::get<1>(it); attr = llvm::dyn_cast_if_present<Attribute>(foldResult)) {
       LDBG() << "Folded to constant: " << attr;
       propagateIfChanged(lattice,
                          lattice->join(ConstantValue(attr, op->getDialect())));

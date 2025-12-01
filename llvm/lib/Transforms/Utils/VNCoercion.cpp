@@ -205,8 +205,8 @@ static int analyzeLoadFromClobberingWrite(Type *LoadTy, Value *LoadPtr,
   int64_t StoreOffset = 0, LoadOffset = 0;
   Value *StoreBase =
       GetPointerBaseWithConstantOffset(WritePtr, StoreOffset, DL);
-  Value *LoadBase = GetPointerBaseWithConstantOffset(LoadPtr, LoadOffset, DL);
-  if (StoreBase != LoadBase)
+  
+  if (Value *LoadBase = GetPointerBaseWithConstantOffset(LoadPtr, LoadOffset, DL); StoreBase != LoadBase)
     return -1;
 
   uint64_t LoadSize = DL.getTypeSizeInBits(LoadTy).getFixedValue();
@@ -278,8 +278,8 @@ int analyzeLoadFromClobberingMemInst(Type *LoadTy, Value *LoadPtr,
   // of the memset..
   if (const auto *memset_inst = dyn_cast<MemSetInst>(MI)) {
     if (DL.isNonIntegralPointerType(LoadTy->getScalarType())) {
-      auto *CI = dyn_cast<ConstantInt>(memset_inst->getValue());
-      if (!CI || !CI->isZero())
+      
+      if (auto *CI = dyn_cast<ConstantInt>(memset_inst->getValue()); !CI || !CI->isZero())
         return -1;
     }
     return analyzeLoadFromClobberingWrite(LoadTy, LoadPtr, MI->getDest(),

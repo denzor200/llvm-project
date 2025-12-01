@@ -81,8 +81,8 @@ LogicalResult Serializer::processSpecConstantOp(spirv::SpecConstantOp op) {
                                             /*isSpec=*/true)) {
     // Emit the OpDecorate instruction for SpecId.
     if (auto specID = op->getAttrOfType<IntegerAttr>("spec_id")) {
-      auto val = static_cast<uint32_t>(specID.getInt());
-      if (failed(emitDecoration(resultID, spirv::Decoration::SpecId, {val})))
+      
+      if (auto val = static_cast<uint32_t>(specID.getInt()); failed(emitDecoration(resultID, spirv::Decoration::SpecId, {val})))
         return failure();
     }
 
@@ -480,8 +480,8 @@ Serializer::processGraphOutputsARMOp(spirv::GraphOutputsARMOp op) {
     SmallVector<uint32_t, 2> outputOperands;
 
     Type resType = value.getType();
-    uint32_t resTypeID = 0;
-    if (failed(processType(op.getLoc(), resType, resTypeID))) {
+    
+    if (uint32_t resTypeID = 0; failed(processType(op.getLoc(), resType, resTypeID))) {
       return failure();
     }
 
@@ -570,11 +570,11 @@ Serializer::processGlobalVariableOp(spirv::GlobalVariableOp varOp) {
   if (std::optional<StringRef> initSymbolName = varOp.getInitializer()) {
     uint32_t initializerID = 0;
     auto initRef = varOp->getAttrOfType<FlatSymbolRefAttr>(initAttrName);
-    Operation *initOp = SymbolTable::lookupNearestSymbolFrom(
-        varOp->getParentOp(), initRef.getAttr());
+    
 
     // Check if initializer is GlobalVariable or SpecConstant* cases.
-    if (isa<spirv::GlobalVariableOp>(initOp))
+    if (Operation *initOp = SymbolTable::lookupNearestSymbolFrom(
+        varOp->getParentOp(), initRef.getAttr()); isa<spirv::GlobalVariableOp>(initOp))
       initializerID = getVariableID(*initSymbolName);
     else
       initializerID = getSpecConstID(*initSymbolName);

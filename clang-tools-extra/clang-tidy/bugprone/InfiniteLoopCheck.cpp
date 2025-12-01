@@ -176,8 +176,8 @@ static bool isKnownToHaveValue(const Expr &Cond, const ASTContext &Ctx,
       return isKnownToHaveValue(*ImplCast->getSubExpr(), Ctx, ExpectedValue);
     return false;
   }
-  bool Result = false;
-  if (Cond.EvaluateAsBooleanCondition(Result, Ctx))
+  
+  if (bool Result = false; Cond.EvaluateAsBooleanCondition(Result, Ctx))
     return Result == ExpectedValue;
   return false;
 }

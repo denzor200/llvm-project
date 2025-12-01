@@ -64,14 +64,14 @@ HyperrectangularSlice::HyperrectangularSlice(OffsetSizeAndStrideOpInterface op)
 static std::optional<int64_t> getConstantIntValue(OpFoldResult ofr) {
   // Case 1: Check for Constant integer.
   if (auto val = llvm::dyn_cast_if_present<Value>(ofr)) {
-    APSInt intVal;
-    if (matchPattern(val, m_ConstantInt(&intVal)))
+    
+    if (APSInt intVal; matchPattern(val, m_ConstantInt(&intVal)))
       return intVal.getSExtValue();
     return std::nullopt;
   }
   // Case 2: Check for IntegerAttr.
-  Attribute attr = llvm::dyn_cast_if_present<Attribute>(ofr);
-  if (auto intAttr = dyn_cast_or_null<IntegerAttr>(attr))
+  
+  if (auto Attribute attr = llvm::dyn_cast_if_present<Attribute>(ofr); intAttr = dyn_cast_or_null<IntegerAttr>(attr))
     return intAttr.getValue().getSExtValue();
   return std::nullopt;
 }
@@ -129,8 +129,8 @@ ValueBoundsConstraintSet::Variable::Variable(AffineMap map,
     assert(var.map.getNumDims() == 0 && "expected only symbols");
     SmallVector<AffineExpr> symReplacements;
     for (auto valueDim : var.mapOperands) {
-      auto *it = llvm::find(this->mapOperands, valueDim);
-      if (it != this->mapOperands.end()) {
+      
+      if (auto *it = llvm::find(this->mapOperands, valueDim); it != this->mapOperands.end()) {
         // There is already a symbol for this operand.
         symReplacements.push_back(b.getAffineSymbolExpr(
             std::distance(this->mapOperands.begin(), it)));
@@ -184,13 +184,13 @@ void ValueBoundsConstraintSet::addBound(BoundType type, int64_t pos,
   // could become empty. This is because the conservative bounds add assumptions
   // (e.g. for `mod` it assumes `rhs > 0`). If these constraints are later found
   // not to hold, then the bound is invalid.
-  LogicalResult status = cstr.addBound(
+  
+  if (LogicalResult status = cstr.addBound(
       type, pos,
       AffineMap::get(cstr.getNumDimVars(), cstr.getNumSymbolVars(), expr),
       addConservativeSemiAffineBounds
           ? FlatLinearConstraints::AddConservativeSemiAffineBounds::Yes
-          : FlatLinearConstraints::AddConservativeSemiAffineBounds::No);
-  if (failed(status)) {
+          : FlatLinearConstraints::AddConservativeSemiAffineBounds::No); failed(status)) {
     // Not all semi-affine expressions are not yet supported by
     // FlatLinearConstraints. However, we can just ignore such failures here.
     // Even without this bound, there may be enough information in the
@@ -643,8 +643,8 @@ FailureOr<int64_t> ValueBoundsConstraintSet::computeConstantBound(
   assert(pos == 0 && "expected `map` is the first column");
 
   // Compute constant bound for `valueDim`.
-  int64_t ubAdjustment = closedUB ? 0 : 1;
-  if (auto bound = cstr.cstr.getConstantBound64(type, pos))
+  
+  if (auto int64_t ubAdjustment = closedUB ? 0 : 1; bound = cstr.cstr.getConstantBound64(type, pos))
     return type == BoundType::UB ? *bound + ubAdjustment : *bound;
   return failure();
 }

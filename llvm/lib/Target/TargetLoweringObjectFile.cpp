@@ -79,10 +79,10 @@ static bool isNullOrUndef(const Constant *C) {
 }
 
 static bool isSuitableForBSS(const GlobalVariable *GV) {
-  const Constant *C = GV->getInitializer();
+  
 
   // Must have zero initializer.
-  if (!isNullOrUndef(C))
+  if (const Constant *C = GV->getInitializer(); !isNullOrUndef(C))
     return false;
 
   // Leave constant zeros in readonly constant sections, so they can be shared.
@@ -154,8 +154,8 @@ void TargetLoweringObjectFile::emitCGProfileMetadata(MCStreamer &Streamer,
   MDNode *CGProfile = nullptr;
 
   for (const auto &MFE : ModuleFlags) {
-    StringRef Key = MFE.Key->getString();
-    if (Key == "CG Profile") {
+    
+    if (StringRef Key = MFE.Key->getString(); Key == "CG Profile") {
       CGProfile = cast<MDNode>(MFE.Val);
       break;
     }
@@ -286,8 +286,8 @@ SectionKind TargetLoweringObjectFile::getKindForGlobal(const GlobalObject *GO,
     // If the initializer for the global contains something that requires a
     // relocation, then we may have to drop this into a writable data section
     // even though it is marked const.
-    const Constant *C = GVar->getInitializer();
-    if (!C->needsRelocation()) {
+    
+    if (const Constant *C = GVar->getInitializer(); !C->needsRelocation()) {
       // If the global is required to have a unique address, it can't be put
       // into a mergable section: just drop it into the general read-only
       // section instead.
@@ -332,8 +332,8 @@ SectionKind TargetLoweringObjectFile::getKindForGlobal(const GlobalObject *GO,
       // the time the app starts up.  However, we can't put this into a
       // mergable section, because the linker doesn't take relocations into
       // consideration when it tries to merge entries in the section.
-      Reloc::Model ReloModel = TM.getRelocationModel();
-      if (ReloModel == Reloc::Static || ReloModel == Reloc::ROPI ||
+      
+      if (Reloc::Model ReloModel = TM.getRelocationModel(); ReloModel == Reloc::Static || ReloModel == Reloc::ROPI ||
           ReloModel == Reloc::RWPI || ReloModel == Reloc::ROPI_RWPI ||
           !C->needsDynamicRelocation())
         return SectionKind::getReadOnly();
@@ -358,8 +358,8 @@ MCSection *TargetLoweringObjectFile::SectionForGlobal(
     return getExplicitSectionGlobal(GO, Kind, TM);
 
   if (auto *GVar = dyn_cast<GlobalVariable>(GO)) {
-    auto Attrs = GVar->getAttributes();
-    if ((Attrs.hasAttribute("bss-section") && Kind.isBSS()) ||
+    
+    if (auto Attrs = GVar->getAttributes(); (Attrs.hasAttribute("bss-section") && Kind.isBSS()) ||
         (Attrs.hasAttribute("data-section") && Kind.isData()) ||
         (Attrs.hasAttribute("relro-section") && Kind.isReadOnlyWithRel()) ||
         (Attrs.hasAttribute("rodata-section") && Kind.isReadOnly()))  {

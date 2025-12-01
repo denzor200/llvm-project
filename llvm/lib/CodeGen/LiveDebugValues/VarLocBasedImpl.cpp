@@ -430,8 +430,8 @@ private:
              "malformed DBG_VALUE");
       for (const MachineOperand &Op : MI.debug_operands()) {
         MachineLoc ML = GetLocForOp(Op);
-        auto It = find(Locs, ML);
-        if (It == Locs.end()) {
+        
+        if (auto It = find(Locs, ML); It == Locs.end()) {
           Locs.push_back(ML);
           OrigLocMap.push_back(MI.getDebugOperandIndex(&Op));
         } else {
@@ -560,8 +560,8 @@ private:
       for (unsigned I = 0, E = Locs.size(); I < E; ++I) {
         MachineLocKind LocKind = Locs[I].Kind;
         MachineLocValue Loc = Locs[I].Value;
-        const MachineOperand &Orig = MI.getDebugOperand(OrigLocMap[I]);
-        switch (LocKind) {
+        
+        switch (const MachineOperand &Orig = MI.getDebugOperand(OrigLocMap[I]); LocKind) {
         case MachineLocKind::RegisterKind:
           // An entry value is a register location -- but with an updated
           // expression. The register location of such DBG_VALUE is always the
@@ -580,8 +580,8 @@ private:
           // on top of. FIXME: spill locations created before this pass runs
           // are not recognized, and not handled here.
           unsigned Base = Loc.SpillLocation.SpillBase;
-          auto *TRI = MF.getSubtarget().getRegisterInfo();
-          if (MI.isNonListDebugValue()) {
+          
+          if (auto *TRI = MF.getSubtarget().getRegisterInfo(); MI.isNonListDebugValue()) {
             auto Deref = Indirect ? DIExpression::DerefAfter : 0;
             DIExpr = TRI->prependOffsetExpression(
                 DIExpr, DIExpression::ApplyOffset | Deref,
@@ -1121,8 +1121,8 @@ void VarLocBasedLDV::OpenRangesSet::erase(const VarLoc &VL) {
   // Erasure helper.
   auto DoErase = [&VL, this](DebugVariable VarToErase) {
     auto *EraseFrom = VL.isEntryBackupLoc() ? &EntryValuesBackupVars : &Vars;
-    auto It = EraseFrom->find(VarToErase);
-    if (It != EraseFrom->end()) {
+    
+    if (auto It = EraseFrom->find(VarToErase); It != EraseFrom->end()) {
       LocIndices IDs = It->second;
       for (LocIndex ID : IDs)
         VarLocs.reset(ID.getAsRawInteger());
@@ -1326,8 +1326,8 @@ void VarLocBasedLDV::cleanupEntryValueTransfers(
 
   auto TransRange = EntryValTransfers.equal_range(TRInst);
   for (auto &TDPair : llvm::make_range(TransRange)) {
-    const VarLoc &EmittedEV = VarLocIDs[TDPair.second];
-    if (std::tie(EntryVL.Var, EntryVL.Locs[0].Value.RegNo, EntryVL.Expr) ==
+    
+    if (const VarLoc &EmittedEV = VarLocIDs[TDPair.second]; std::tie(EntryVL.Var, EntryVL.Locs[0].Value.RegNo, EntryVL.Expr) ==
         std::tie(EmittedEV.Var, EmittedEV.Locs[0].Value.RegNo,
                  EmittedEV.Expr)) {
       OpenRanges.erase(EmittedEV);
@@ -1376,15 +1376,15 @@ void VarLocBasedLDV::removeEntryValue(const MachineInstr &MI,
     // TODO: Try to keep tracking of an entry value if we encounter a propagated
     // DBG_VALUE describing the copy of the entry value. (Propagated entry value
     // does not indicate the parameter modification.)
-    auto DestSrc = TII->isCopyLikeInstr(*TransferInst);
-    if (DestSrc) {
+    
+    if (auto DestSrc = TII->isCopyLikeInstr(*TransferInst); DestSrc) {
       const MachineOperand *SrcRegOp, *DestRegOp;
       SrcRegOp = DestSrc->Source;
       DestRegOp = DestSrc->Destination;
       if (Reg == DestRegOp->getReg()) {
         for (uint64_t ID : OpenRanges.getEntryValueBackupVarLocs()) {
-          const VarLoc &VL = VarLocIDs[LocIndex::fromRawInteger(ID)];
-          if (VL.isEntryValueCopyBackupReg(Reg) &&
+          
+          if (const VarLoc &VL = VarLocIDs[LocIndex::fromRawInteger(ID)]; VL.isEntryValueCopyBackupReg(Reg) &&
               // Entry Values should not be variadic.
               VL.MI.getDebugOperand(0).getReg() == SrcRegOp->getReg())
             return;
@@ -1883,8 +1883,8 @@ void VarLocBasedLDV::transferRegisterCopy(MachineInstr &MI,
   if (isRegOtherThanSPAndFP(*DestRegOp, MI, TRI)) {
     for (uint64_t ID : OpenRanges.getEntryValueBackupVarLocs()) {
       LocIndex Idx = LocIndex::fromRawInteger(ID);
-      const VarLoc &VL = VarLocIDs[Idx];
-      if (VL.isEntryValueBackupReg(SrcReg)) {
+      
+      if (const VarLoc &VL = VarLocIDs[Idx]; VL.isEntryValueBackupReg(SrcReg)) {
         LLVM_DEBUG(dbgs() << "Copy of the entry value: "; MI.dump(););
         VarLoc EntryValLocCopyBackup =
             VarLoc::CreateEntryCopyBackupLoc(VL.MI, VL.Expr, DestReg);
@@ -2070,11 +2070,11 @@ bool VarLocBasedLDV::join(
 
   // Filter out DBG_VALUES that are out of scope.
   VarLocSet KillSet(Alloc);
-  bool IsArtificial = ArtificialBlocks.count(&MBB);
-  if (!IsArtificial) {
+  
+  if (bool IsArtificial = ArtificialBlocks.count(&MBB); !IsArtificial) {
     for (uint64_t ID : InLocsT) {
-      LocIndex Idx = LocIndex::fromRawInteger(ID);
-      if (!VarLocIDs[Idx].dominates(LS, MBB)) {
+      
+      if (LocIndex Idx = LocIndex::fromRawInteger(ID); !VarLocIDs[Idx].dominates(LS, MBB)) {
         KillSet.set(ID);
         LLVM_DEBUG({
           auto Name = VarLocIDs[Idx].Var.getVariable()->getName();
@@ -2135,8 +2135,8 @@ bool VarLocBasedLDV::isEntryValueCandidate(
   // parameters entry values.
   // TODO: Add support for modified arguments that can be expressed
   // by using its entry value.
-  auto *DIVar = MI.getDebugVariable();
-  if (!DIVar->isParameter())
+  
+  if (auto *DIVar = MI.getDebugVariable(); !DIVar->isParameter())
     return false;
 
   // Do not consider parameters that belong to an inlined function.

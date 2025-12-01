@@ -453,8 +453,8 @@ static Error applyLibraryLinkModifiers(Session &S, LinkGraph &G) {
   // If there are hidden archives and this graph is an archive
   // member then apply hidden modifier.
   if (!S.HiddenArchives.empty()) {
-    StringRef ObjName(G.getName());
-    if (ObjName.ends_with(')')) {
+    
+    if (StringRef ObjName(G.getName()); ObjName.ends_with(')')) {
       auto LibName = ObjName.split('[').first;
       if (S.HiddenArchives.count(LibName)) {
         for (auto *Sym : G.defined_symbols())
@@ -872,8 +872,8 @@ static Error loadDylibs(Session &S) {
   LLVM_DEBUG(dbgs() << "Loading dylibs...\n");
   for (const auto &Dylib : Dylibs) {
     LLVM_DEBUG(dbgs() << "  " << Dylib << "\n");
-    auto DL = S.getOrLoadDynamicLibrary(Dylib);
-    if (!DL)
+    
+    if (auto DL = S.getOrLoadDynamicLibrary(Dylib); !DL)
       return DL.takeError();
   }
 
@@ -933,8 +933,8 @@ static Expected<std::unique_ptr<ExecutorProcessControl>> launchExecutor() {
     }
 
     char *const Args[] = {ExecutorPath.get(), FDSpecifier.get(), nullptr};
-    int RC = execvp(ExecutorPath.get(), Args);
-    if (RC != 0) {
+    
+    if (int RC = execvp(ExecutorPath.get(), Args); RC != 0) {
       errs() << "unable to launch out-of-process executor \""
              << ExecutorPath.get() << "\"\n";
       exit(1);
@@ -1026,8 +1026,8 @@ static Expected<std::unique_ptr<ExecutorProcessControl>> connectToExecutor() {
     return createTCPSocketError("Port number in -" +
                                 OutOfProcessExecutorConnect.ArgStr +
                                 " can not be empty");
-  int Port = 0;
-  if (PortStr.getAsInteger(10, Port))
+  
+  if (int Port = 0; PortStr.getAsInteger(10, Port))
     return createTCPSocketError("Port number '" + PortStr +
                                 "' is not a valid integer");
 
@@ -1573,8 +1573,8 @@ static StringRef detectStubKind(const Session::MemoryRegionInfo &Stub) {
   auto Thumbv7MovWTle = byte_swap<uint32_t>(0x0c00f240, endianness::little);
   auto Thumbv7BxR12le = byte_swap<uint16_t>(0x4760, endianness::little);
 
-  MemoryMatcher M(Stub.getContent());
-  if (M.matchMask(Thumbv7MovWTle)) {
+  
+  if (MemoryMatcher M(Stub.getContent()); M.matchMask(Thumbv7MovWTle)) {
     if (M.matchMask(Thumbv7MovWTle))
       if (M.matchEqual(Thumbv7BxR12le))
         if (M.done())
@@ -1678,8 +1678,8 @@ static std::pair<Triple, SubtargetFeatures> getFirstFileTripleAndFeatures() {
 
     for (auto InputFile : InputFiles) {
       auto ObjBuffer = ExitOnErr(getFile(InputFile));
-      file_magic Magic = identify_magic(ObjBuffer->getBuffer());
-      switch (Magic) {
+      
+      switch (file_magic Magic = identify_magic(ObjBuffer->getBuffer()); Magic) {
       case file_magic::coff_object:
       case file_magic::elf_relocatable:
       case file_magic::macho_object: {
@@ -2026,8 +2026,8 @@ static Error addAliases(Session &S,
   }
 
   for (auto &[JDs, AliasMap] : Reexports) {
-    auto [DstJD, SrcJD] = JDs;
-    if (auto Err = DstJD->define(reexports(*SrcJD, std::move(AliasMap))))
+    
+    if (auto auto [DstJD, SrcJD] = JDs; Err = DstJD->define(reexports(*SrcJD, std::move(AliasMap))))
       return Err;
   }
 
@@ -2192,8 +2192,8 @@ static Error addLibraries(Session &S,
         LibrarySearchPaths.getPosition(LSPItr - LibrarySearchPaths.begin());
     auto &JD = *std::prev(IdxToJD.lower_bound(LibrarySearchPathIdx))->second;
 
-    StringRef LibrarySearchPath = *LSPItr;
-    if (sys::fs::get_file_type(LibrarySearchPath) !=
+    
+    if (StringRef LibrarySearchPath = *LSPItr; sys::fs::get_file_type(LibrarySearchPath) !=
         sys::fs::file_type::directory_file)
       return make_error<StringError>("While linking " + JD.getName() + ", -L" +
                                          LibrarySearchPath +
@@ -2886,8 +2886,8 @@ int main(int argc, char *argv[]) {
   int Result = 0;
   if (!NoExec) {
     LLVM_DEBUG(dbgs() << "Running \"" << EntryPointName << "\"...\n");
-    TimeRegion TR(Timers ? &Timers->RunTimer : nullptr);
-    if (!OrcRuntime.empty())
+    
+    if (TimeRegion TR(Timers ? &Timers->RunTimer : nullptr); !OrcRuntime.empty())
       Result =
           ExitOnErr(runWithRuntime(*S, ExecutorAddr(EntryPoint->getAddress())));
     else

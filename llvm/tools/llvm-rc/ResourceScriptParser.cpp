@@ -775,8 +775,8 @@ Expected<MenuDefinitionList> RCParser::parseMenuExItemsList() {
             MenuType = *IntType;
           }
           if (consumeOptionalType(Kind::Comma)) {
-            auto IntState = readInt();
-            if (IntState) {
+            
+            if (auto IntState = readInt(); IntState) {
               MenuState = *IntState;
             }
           }
@@ -810,8 +810,8 @@ Expected<MenuDefinitionList> RCParser::parseMenuExItemsList() {
             PopupState = *IntState;
           }
           if (consumeOptionalType(Kind::Comma)) {
-            auto IntHelpID = readInt();
-            if (IntHelpID) {
+            
+            if (auto IntHelpID = readInt(); IntHelpID) {
               PopupHelpID = *IntHelpID;
             }
           }

@@ -203,8 +203,8 @@ bool BottomUpPtrState::InitBottomUp(ARCMDKindCache &Cache, Instruction *I) {
 bool BottomUpPtrState::MatchWithRetain() {
   SetKnownPositiveRefCount();
 
-  Sequence OldSeq = GetSeq();
-  switch (OldSeq) {
+  
+  switch (Sequence OldSeq = GetSeq(); OldSeq) {
   case S_Stop:
   case S_MovableRelease:
   case S_Use:
@@ -352,10 +352,10 @@ bool TopDownPtrState::MatchWithRelease(ARCMDKindCache &Cache,
 
   Sequence OldSeq = GetSeq();
 
-  MDNode *ReleaseMetadata =
-      Release->getMetadata(Cache.get(ARCMDKindID::ImpreciseRelease));
+  
 
-  switch (OldSeq) {
+  switch (MDNode *ReleaseMetadata =
+      Release->getMetadata(Cache.get(ARCMDKindID::ImpreciseRelease)); OldSeq) {
   case S_Retain:
   case S_CanRelease:
     if (OldSeq == S_Retain || ReleaseMetadata != nullptr)

@@ -451,8 +451,8 @@ void DeltaTree::AddDelta(unsigned FileIndex, int Delta) {
   assert(Delta && "Adding a noop?");
   DeltaTreeNode *MyRoot = getRoot(Root);
 
-  DeltaTreeNode::InsertResult InsertRes;
-  if (MyRoot->DoInsertion(FileIndex, Delta, &InsertRes)) {
+  
+  if (DeltaTreeNode::InsertResult InsertRes; MyRoot->DoInsertion(FileIndex, Delta, &InsertRes)) {
     Root = new DeltaTreeInteriorNode(InsertRes);
 #ifdef VERIFY_TREE
     MyRoot = Root;

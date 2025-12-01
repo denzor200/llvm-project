@@ -127,9 +127,9 @@ void ReportExpectedUMRNotFound(StackTrace *stack) {
 }
 
 void ReportStats() {
-  ScopedErrorReportLock l;
+  
 
-  if (__msan_get_track_origins() > 0) {
+  if (ScopedErrorReportLock l; __msan_get_track_origins() > 0) {
     StackDepotStats stack_depot_stats = StackDepotGetStats();
     // FIXME: we want this at normal exit, too!
     // FIXME: but only with verbosity=1 or something
@@ -145,9 +145,9 @@ void ReportStats() {
 }
 
 void ReportAtExitStatistics() {
-  ScopedErrorReportLock l;
+  
 
-  if (msan_report_count > 0) {
+  if (ScopedErrorReportLock l; msan_report_count > 0) {
     Decorator d;
     Printf("%s", d.Warning());
     Printf("MemorySanitizer: %d warnings reported.\n", msan_report_count);

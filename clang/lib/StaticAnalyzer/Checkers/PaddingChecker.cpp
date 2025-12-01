@@ -172,8 +172,8 @@ public:
         return true;
 
       // Variable length arrays are tricky too.
-      QualType Ty = FD->getType();
-      if (Ty->isIncompleteArrayType())
+      
+      if (QualType Ty = FD->getType(); Ty->isIncompleteArrayType())
         return true;
       return false;
     };
@@ -281,8 +281,8 @@ public:
       // of the vector. We won't find a middle element unless
       // we started on a poorly aligned address or have an overly
       // aligned field.
-      auto Iter = llvm::upper_bound(Fields, InsertPoint);
-      if (Iter != Fields.begin()) {
+      
+      if (auto Iter = llvm::upper_bound(Fields, InsertPoint); Iter != Fields.begin()) {
         // We found a field that we can layout with the current alignment.
         --Iter;
         NewOffset += Iter->Size;
@@ -317,8 +317,8 @@ public:
       // TODO: make this show up better in the console output and in
       // the HTML. Maybe just make it show up in HTML like the path
       // diagnostics show.
-      SourceLocation ILoc = TSD->getPointOfInstantiation();
-      if (ILoc.isValid())
+      
+      if (SourceLocation ILoc = TSD->getPointOfInstantiation(); ILoc.isValid())
         Os << " instantiated here: "
            << ILoc.printToString(BR->getSourceManager());
     }

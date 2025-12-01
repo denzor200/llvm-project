@@ -204,10 +204,10 @@ const char *__tsan_locate_address(uptr addr, char *name, uptr name_size,
   } else {
     bool is_stack = false;
     MBlock *b = 0;
-    Allocator *a = allocator();
-    if (a->PointerIsMine((void *)addr)) {
-      void *block_begin = a->GetBlockBegin((void *)addr);
-      if (block_begin) b = ctx->metamap.GetBlock((uptr)block_begin);
+    
+    if (Allocator *a = allocator(); a->PointerIsMine((void *)addr)) {
+      
+      if (void *block_begin = a->GetBlockBegin((void *)addr); block_begin) b = ctx->metamap.GetBlock((uptr)block_begin);
     }
 
     if (b != 0) {
@@ -224,8 +224,8 @@ const char *__tsan_locate_address(uptr addr, char *name, uptr name_size,
         region_kind = is_stack ? "stack" : "tls";
       } else {
         region_kind = "global";
-        DataInfo info;
-        if (Symbolizer::GetOrInit()->SymbolizeData(addr, &info)) {
+        
+        if (DataInfo info; Symbolizer::GetOrInit()->SymbolizeData(addr, &info)) {
           internal_strncpy(name, info.name, name_size);
           region_address = info.start;
           region_size = info.size;
@@ -244,10 +244,10 @@ SANITIZER_INTERFACE_ATTRIBUTE
 int __tsan_get_alloc_stack(uptr addr, uptr *trace, uptr size, int *thread_id,
                            ThreadID *os_id) {
   MBlock *b = 0;
-  Allocator *a = allocator();
-  if (a->PointerIsMine((void *)addr)) {
-    void *block_begin = a->GetBlockBegin((void *)addr);
-    if (block_begin) b = ctx->metamap.GetBlock((uptr)block_begin);
+  
+  if (Allocator *a = allocator(); a->PointerIsMine((void *)addr)) {
+    
+    if (void *block_begin = a->GetBlockBegin((void *)addr); block_begin) b = ctx->metamap.GetBlock((uptr)block_begin);
   }
   if (b == 0) return 0;
 

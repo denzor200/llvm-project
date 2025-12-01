@@ -32,8 +32,8 @@ struct DuplicateFuncOpEquivalenceInfo
     func::FuncOp func = const_cast<func::FuncOp &>(cFunc);
     StringAttr symNameAttrName = func.getSymNameAttrName();
     for (NamedAttribute namedAttr : cFunc->getAttrs()) {
-      StringAttr attrName = namedAttr.getName();
-      if (attrName == symNameAttrName)
+      
+      if (StringAttr attrName = namedAttr.getName(); attrName == symNameAttrName)
         continue;
       hash = llvm::hash_combine(hash, namedAttr);
     }

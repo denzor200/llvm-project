@@ -42,8 +42,8 @@ struct InlineScalarOperands : public OpRewritePattern<GenericOp> {
     SmallVector<AffineMap> newIndexingMaps;
     SmallVector<Value> newOperands;
     for (OpOperand *opOperand : genericOp.getDpsInputOperands()) {
-      AffineMap map = genericOp.getMatchingIndexingMap(opOperand);
-      if (genericOp.isDpsInput(opOperand) && map.isConstant()) {
+      
+      if (AffineMap map = genericOp.getMatchingIndexingMap(opOperand); genericOp.isDpsInput(opOperand) && map.isConstant()) {
         scalarOperands.emplace_back(opOperand->getOperandNumber());
       } else {
         newIndexingMaps.emplace_back(map);

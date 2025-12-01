@@ -436,8 +436,8 @@ PreservedAnalyses AtomicExpandPass::run(Function &F,
                                         FunctionAnalysisManager &AM) {
   AtomicExpandImpl AE;
 
-  bool Changed = AE.run(F, TM);
-  if (!Changed)
+  
+  if (bool Changed = AE.run(F, TM); !Changed)
     return PreservedAnalyses::all();
 
   return PreservedAnalyses::none();
@@ -680,14 +680,14 @@ static void createCmpXchgInstFun(IRBuilderBase &Builder, Value *Addr,
 
 bool AtomicExpandImpl::tryExpandAtomicRMW(AtomicRMWInst *AI) {
   LLVMContext &Ctx = AI->getModule()->getContext();
-  TargetLowering::AtomicExpansionKind Kind = TLI->shouldExpandAtomicRMWInIR(AI);
-  switch (Kind) {
+  
+  switch (TargetLowering::AtomicExpansionKind Kind = TLI->shouldExpandAtomicRMWInIR(AI); Kind) {
   case TargetLoweringBase::AtomicExpansionKind::None:
     return false;
   case TargetLoweringBase::AtomicExpansionKind::LLSC: {
     unsigned MinCASSize = TLI->getMinCmpXchgSizeInBits() / 8;
-    unsigned ValueSize = getAtomicOpSize(AI);
-    if (ValueSize < MinCASSize) {
+    
+    if (unsigned ValueSize = getAtomicOpSize(AI); ValueSize < MinCASSize) {
       expandPartwordAtomicRMW(AI,
                               TargetLoweringBase::AtomicExpansionKind::LLSC);
     } else {
@@ -702,8 +702,8 @@ bool AtomicExpandImpl::tryExpandAtomicRMW(AtomicRMWInst *AI) {
   }
   case TargetLoweringBase::AtomicExpansionKind::CmpXChg: {
     unsigned MinCASSize = TLI->getMinCmpXchgSizeInBits() / 8;
-    unsigned ValueSize = getAtomicOpSize(AI);
-    if (ValueSize < MinCASSize) {
+    
+    if (unsigned ValueSize = getAtomicOpSize(AI); ValueSize < MinCASSize) {
       expandPartwordAtomicRMW(AI,
                               TargetLoweringBase::AtomicExpansionKind::CmpXChg);
     } else {
@@ -725,11 +725,11 @@ bool AtomicExpandImpl::tryExpandAtomicRMW(AtomicRMWInst *AI) {
   }
   case TargetLoweringBase::AtomicExpansionKind::MaskedIntrinsic: {
     unsigned MinCASSize = TLI->getMinCmpXchgSizeInBits() / 8;
-    unsigned ValueSize = getAtomicOpSize(AI);
-    if (ValueSize < MinCASSize) {
-      AtomicRMWInst::BinOp Op = AI->getOperation();
+    
+    if (unsigned ValueSize = getAtomicOpSize(AI); ValueSize < MinCASSize) {
+      
       // Widen And/Or/Xor and give the target another chance at expanding it.
-      if (Op == AtomicRMWInst::Or || Op == AtomicRMWInst::Xor ||
+      if (AtomicRMWInst::BinOp Op = AI->getOperation(); Op == AtomicRMWInst::Or || Op == AtomicRMWInst::Xor ||
           Op == AtomicRMWInst::And) {
         tryExpandAtomicRMW(widenPartwordAtomicRMW(AI));
         return true;
@@ -1209,8 +1209,8 @@ void AtomicExpandImpl::expandAtomicRMWToMaskedIntrinsic(AtomicRMWInst *AI) {
   // target's signed comparison instructions can be used. Otherwise, just
   // zero-ext.
   Instruction::CastOps CastOp = Instruction::ZExt;
-  AtomicRMWInst::BinOp RMWOp = AI->getOperation();
-  if (RMWOp == AtomicRMWInst::Max || RMWOp == AtomicRMWInst::Min)
+  
+  if (AtomicRMWInst::BinOp RMWOp = AI->getOperation(); RMWOp == AtomicRMWInst::Max || RMWOp == AtomicRMWInst::Min)
     CastOp = Instruction::SExt;
 
   Value *ValOperand_Shifted = Builder.CreateShl(
@@ -1699,9 +1699,9 @@ Value *AtomicExpandImpl::insertRMWCmpXchgLoop(
 
 bool AtomicExpandImpl::tryExpandAtomicCmpXchg(AtomicCmpXchgInst *CI) {
   unsigned MinCASSize = TLI->getMinCmpXchgSizeInBits() / 8;
-  unsigned ValueSize = getAtomicOpSize(CI);
+  
 
-  switch (TLI->shouldExpandAtomicCmpXchgInIR(CI)) {
+  switch (unsigned ValueSize = getAtomicOpSize(CI); TLI->shouldExpandAtomicCmpXchgInIR(CI)) {
   default:
     llvm_unreachable("Unhandled case in tryExpandAtomicCmpXchg");
   case TargetLoweringBase::AtomicExpansionKind::None:
@@ -1772,10 +1772,10 @@ void AtomicExpandImpl::expandAtomicLoadToLibcall(LoadInst *I) {
       RTLIB::ATOMIC_LOAD_4, RTLIB::ATOMIC_LOAD_8, RTLIB::ATOMIC_LOAD_16};
   unsigned Size = getAtomicOpSize(I);
 
-  bool expanded = expandAtomicOpToLibcall(
+  
+  if (bool expanded = expandAtomicOpToLibcall(
       I, Size, I->getAlign(), I->getPointerOperand(), nullptr, nullptr,
-      I->getOrdering(), AtomicOrdering::NotAtomic, Libcalls);
-  if (!expanded)
+      I->getOrdering(), AtomicOrdering::NotAtomic, Libcalls); !expanded)
     handleFailure(*I, "unsupported atomic load");
 }
 
@@ -1785,10 +1785,10 @@ void AtomicExpandImpl::expandAtomicStoreToLibcall(StoreInst *I) {
       RTLIB::ATOMIC_STORE_4, RTLIB::ATOMIC_STORE_8, RTLIB::ATOMIC_STORE_16};
   unsigned Size = getAtomicOpSize(I);
 
-  bool expanded = expandAtomicOpToLibcall(
+  
+  if (bool expanded = expandAtomicOpToLibcall(
       I, Size, I->getAlign(), I->getPointerOperand(), I->getValueOperand(),
-      nullptr, I->getOrdering(), AtomicOrdering::NotAtomic, Libcalls);
-  if (!expanded)
+      nullptr, I->getOrdering(), AtomicOrdering::NotAtomic, Libcalls); !expanded)
     handleFailure(*I, "unsupported atomic store");
 }
 
@@ -1799,11 +1799,11 @@ void AtomicExpandImpl::expandAtomicCASToLibcall(AtomicCmpXchgInst *I) {
       RTLIB::ATOMIC_COMPARE_EXCHANGE_8, RTLIB::ATOMIC_COMPARE_EXCHANGE_16};
   unsigned Size = getAtomicOpSize(I);
 
-  bool expanded = expandAtomicOpToLibcall(
+  
+  if (bool expanded = expandAtomicOpToLibcall(
       I, Size, I->getAlign(), I->getPointerOperand(), I->getNewValOperand(),
       I->getCompareOperand(), I->getSuccessOrdering(), I->getFailureOrdering(),
-      Libcalls);
-  if (!expanded)
+      Libcalls); !expanded)
     handleFailure(*I, "unsupported cmpxchg");
 }
 
@@ -1832,12 +1832,12 @@ static ArrayRef<RTLIB::Libcall> GetRMWLibcall(AtomicRMWInst::BinOp Op) {
       RTLIB::UNKNOWN_LIBCALL,    RTLIB::ATOMIC_FETCH_XOR_1,
       RTLIB::ATOMIC_FETCH_XOR_2, RTLIB::ATOMIC_FETCH_XOR_4,
       RTLIB::ATOMIC_FETCH_XOR_8, RTLIB::ATOMIC_FETCH_XOR_16};
-  static const RTLIB::Libcall LibcallsNand[6] = {
+  
+
+  switch (static const RTLIB::Libcall LibcallsNand[6] = {
       RTLIB::UNKNOWN_LIBCALL,     RTLIB::ATOMIC_FETCH_NAND_1,
       RTLIB::ATOMIC_FETCH_NAND_2, RTLIB::ATOMIC_FETCH_NAND_4,
-      RTLIB::ATOMIC_FETCH_NAND_8, RTLIB::ATOMIC_FETCH_NAND_16};
-
-  switch (Op) {
+      RTLIB::ATOMIC_FETCH_NAND_8, RTLIB::ATOMIC_FETCH_NAND_16}; Op) {
   case AtomicRMWInst::BAD_BINOP:
     llvm_unreachable("Should not have BAD_BINOP.");
   case AtomicRMWInst::Xchg:

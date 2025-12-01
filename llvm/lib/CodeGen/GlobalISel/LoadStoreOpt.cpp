@@ -156,10 +156,10 @@ bool GISelAddressing::aliasIsKnownForLoadStore(const MachineInstr &MI1,
     return false;
 
   if (Base0Def->getOpcode() == TargetOpcode::G_FRAME_INDEX) {
-    MachineFrameInfo &MFI = Base0Def->getMF()->getFrameInfo();
+    
     // If the bases have the same frame index but we couldn't find a
     // constant offset, (indices are different) be conservative.
-    if (Base0Def != Base1Def &&
+    if (MachineFrameInfo &MFI = Base0Def->getMF()->getFrameInfo(); Base0Def != Base1Def &&
         (!MFI.isFixedObjectIndex(Base0Def->getOperand(1).getIndex()) ||
          !MFI.isFixedObjectIndex(Base1Def->getOperand(1).getIndex()))) {
       IsAlias = false;
@@ -171,8 +171,8 @@ bool GISelAddressing::aliasIsKnownForLoadStore(const MachineInstr &MI1,
   // FIXME: what about constant pools?
   if (Base0Def->getOpcode() == TargetOpcode::G_GLOBAL_VALUE) {
     auto GV0 = Base0Def->getOperand(1).getGlobal();
-    auto GV1 = Base1Def->getOperand(1).getGlobal();
-    if (GV0 != GV1) {
+    
+    if (auto GV1 = Base1Def->getOperand(1).getGlobal(); GV0 != GV1) {
       IsAlias = false;
       return true;
     }
@@ -280,10 +280,10 @@ bool GISelAddressing::instMayAlias(const MachineInstr &MI,
         Size1.getValue().getKnownMinValue() + SrcValOffset1 - MinOffset;
     LocationSize Loc0 =
         Size0.isScalable() ? Size0 : LocationSize::precise(Overlap0);
-    LocationSize Loc1 =
-        Size1.isScalable() ? Size1 : LocationSize::precise(Overlap1);
+    
 
-    if (AA->isNoAlias(
+    if (LocationSize Loc1 =
+        Size1.isScalable() ? Size1 : LocationSize::precise(Overlap1); AA->isNoAlias(
             MemoryLocation(MUC0.MMO->getValue(), Loc0, MUC0.MMO->getAAInfo()),
             MemoryLocation(MUC1.MMO->getValue(), Loc1, MUC1.MMO->getAAInfo())))
       return false;
@@ -323,9 +323,9 @@ bool LoadStoreOpt::mergeStores(SmallVectorImpl<GStore *> &StoresToMerge) {
     unsigned MergeSizeBits;
     for (MergeSizeBits = MaxSizeBits; MergeSizeBits > 1; MergeSizeBits /= 2) {
       LLT StoreTy = LLT::scalar(MergeSizeBits);
-      EVT StoreEVT =
-          getApproximateEVTForLLT(StoreTy, MF->getFunction().getContext());
-      if (LegalSizes.size() > MergeSizeBits && LegalSizes[MergeSizeBits] &&
+      
+      if (EVT StoreEVT =
+          getApproximateEVTForLLT(StoreTy, MF->getFunction().getContext()); LegalSizes.size() > MergeSizeBits && LegalSizes[MergeSizeBits] &&
           TLI->canMergeStoresTo(AS, StoreEVT, *MF) &&
           (TLI->isTypeLegal(StoreEVT)))
         break; // We can generate a MergeSize bits store.
@@ -457,8 +457,8 @@ bool LoadStoreOpt::processMergeCandidate(StoreMergeCandidate &C) {
   auto DoesStoreAliasWithPotential = [&](unsigned Idx, GStore &CheckStore) {
     for (auto AliasInfo : reverse(C.PotentialAliases)) {
       MachineInstr *PotentialAliasOp = AliasInfo.first;
-      unsigned PreCheckedIdx = AliasInfo.second;
-      if (Idx < PreCheckedIdx) {
+      
+      if (unsigned PreCheckedIdx = AliasInfo.second; Idx < PreCheckedIdx) {
         // Once our store index is lower than the index associated with the
         // potential alias, we know that we've already checked for this alias
         // and all of the earlier potential aliases too.
@@ -962,8 +962,8 @@ void LoadStoreOpt::initializeStoreMergeTargetInfo(unsigned AddrSpace) {
           AtomicOrdering::NotAtomic}});
     SmallVector<LLT> StoreTys({Ty, PtrTy});
     LegalityQuery Q(TargetOpcode::G_STORE, StoreTys, MemDescrs);
-    LegalizeActionStep ActionStep = LI.getAction(Q);
-    if (ActionStep.Action == LegalizeActions::Legal)
+    
+    if (LegalizeActionStep ActionStep = LI.getAction(Q); ActionStep.Action == LegalizeActions::Legal)
       LegalSizes.set(Size);
   }
   assert(LegalSizes.any() && "Expected some store sizes to be legal!");

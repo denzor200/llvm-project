@@ -124,8 +124,8 @@ public:
         }
         auto *E = MemberCallExpr->getImplicitObjectArgument();
         QualType ArgType = MemberCallExpr->getObjectType().getCanonicalType();
-        std::optional<bool> IsUnsafe = isUnsafeType(ArgType);
-        if (IsUnsafe && *IsUnsafe && !isPtrOriginSafe(E))
+        
+        if (std::optional<bool> IsUnsafe = isUnsafeType(ArgType); IsUnsafe && *IsUnsafe && !isPtrOriginSafe(E))
           reportBugOnThis(E, D);
       }
 
@@ -179,11 +179,11 @@ public:
 
     auto Selector = E->getSelector();
     if (auto *Receiver = E->getInstanceReceiver()) {
-      std::optional<bool> IsUnsafe = isUnsafePtr(E->getReceiverType());
-      if (IsUnsafe && *IsUnsafe && !isPtrOriginSafe(Receiver)) {
+      
+      if (std::optional<bool> IsUnsafe = isUnsafePtr(E->getReceiverType()); IsUnsafe && *IsUnsafe && !isPtrOriginSafe(Receiver)) {
         if (auto *InnerMsg = dyn_cast<ObjCMessageExpr>(Receiver)) {
-          auto InnerSelector = InnerMsg->getSelector();
-          if (InnerSelector.getNameForSlot(0) == "alloc" &&
+          
+          if (auto InnerSelector = InnerMsg->getSelector(); InnerSelector.getNameForSlot(0) == "alloc" &&
               Selector.getNameForSlot(0).starts_with("init"))
             return;
         }
@@ -261,8 +261,8 @@ public:
       // Note: assignemnt to built-in type isn't derived from CallExpr.
       if (MemberOp->getOperator() ==
           OO_Equal) { // Ignore assignment to Ref/RefPtr.
-        auto *callee = MemberOp->getDirectCallee();
-        if (auto *calleeDecl = dyn_cast<CXXMethodDecl>(callee)) {
+        
+        if (auto *auto *callee = MemberOp->getDirectCallee(); calleeDecl = dyn_cast<CXXMethodDecl>(callee)) {
           if (const CXXRecordDecl *classDecl = calleeDecl->getParent()) {
             if (isSafePtr(classDecl))
               return true;

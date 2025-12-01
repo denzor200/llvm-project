@@ -55,8 +55,8 @@ std::string elf::toStr(Ctx &ctx, const InputFile *f) {
     return "<internal>";
 
   {
-    std::lock_guard<std::mutex> lock(mu);
-    if (f->toStringCache.empty()) {
+    
+    if (std::lock_guard<std::mutex> lock(mu); f->toStringCache.empty()) {
       if (f->archiveName.empty())
         f->toStringCache = f->getName();
       else
@@ -77,8 +77,8 @@ static ELFKind getELFKind(Ctx &ctx, MemoryBufferRef mb, StringRef archiveName) {
   std::tie(size, endian) = getElfArchType(mb.getBuffer());
 
   auto report = [&](StringRef msg) {
-    StringRef filename = mb.getBufferIdentifier();
-    if (archiveName.empty())
+    
+    if (StringRef filename = mb.getBufferIdentifier(); archiveName.empty())
       Fatal(ctx) << filename << ": " << msg;
     else
       Fatal(ctx) << archiveName << "(" << filename << "): " << msg;
@@ -280,9 +280,9 @@ static bool isCompatible(Ctx &ctx, InputFile *file) {
       return true;
   }
 
-  StringRef target =
-      !ctx.arg.bfdname.empty() ? ctx.arg.bfdname : ctx.arg.emulation;
-  if (!target.empty()) {
+  
+  if (StringRef target =
+      !ctx.arg.bfdname.empty() ? ctx.arg.bfdname : ctx.arg.emulation; !target.empty()) {
     Err(ctx) << file << " is incompatible with " << target;
     return false;
   }
@@ -834,9 +834,9 @@ void ObjFile<ELFT>::initializeSections(bool ignoreComdats,
         sections[i] = &InputSection::discarded;
       StringRef signature =
           cantFail(this->getELFSyms<ELFT>()[sec.sh_info].getName(stringTable));
-      ArrayRef<Elf_Word> entries =
-          cantFail(obj.template getSectionContentsAsArray<Elf_Word>(sec));
-      if ((entries[0] & GRP_COMDAT) == 0 || ignoreComdats ||
+      
+      if (ArrayRef<Elf_Word> entries =
+          cantFail(obj.template getSectionContentsAsArray<Elf_Word>(sec)); (entries[0] & GRP_COMDAT) == 0 || ignoreComdats ||
           ctx.symtab->comdatGroups.find(CachedHashStringRef(signature))
                   ->second == this)
         selectedGroups.push_back(entries);
@@ -1209,8 +1209,8 @@ void ObjFile<ELFT>::initializeSymbols(const object::ELFFile<ELFT> &obj) {
   SmallVector<unsigned, 32> undefineds;
   for (size_t i = firstGlobal, end = eSyms.size(); i != end; ++i) {
     const Elf_Sym &eSym = eSyms[i];
-    uint32_t secIdx = eSym.st_shndx;
-    if (secIdx == SHN_UNDEF) {
+    
+    if (uint32_t secIdx = eSym.st_shndx; secIdx == SHN_UNDEF) {
       undefineds.push_back(i);
       continue;
     }
@@ -1413,8 +1413,8 @@ static bool isNonCommonDef(Ctx &ctx, ELFKind ekind, MemoryBufferRef mb,
   StringRef stringtable = obj->getStringTable();
 
   for (auto sym : obj->template getGlobalELFSyms<ELFT>()) {
-    Expected<StringRef> name = sym.getName(stringtable);
-    if (name && name.get() == symName)
+    
+    if (Expected<StringRef> name = sym.getName(stringtable); name && name.get() == symName)
       return sym.isDefined() && sym.getBinding() == STB_GLOBAL &&
              !sym.isCommon();
   }

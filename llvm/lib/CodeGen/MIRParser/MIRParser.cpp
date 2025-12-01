@@ -351,8 +351,8 @@ bool MIRParserImpl::parseMachineFunction(Module &M, MachineModuleInfo &MMI,
                    "'");
 
     // Create the MachineFunction.
-    MachineFunction &MF = MMI.getOrCreateMachineFunction(*F);
-    if (initializeMachineFunction(YamlMF, MF))
+    
+    if (MachineFunction &MF = MMI.getOrCreateMachineFunction(*F); initializeMachineFunction(YamlMF, MF))
       return true;
   } else {
     auto &FAM =
@@ -647,8 +647,8 @@ MIRParserImpl::initializeMachineFunction(const yaml::MachineFunction &YamlMF,
     // MachineFunctionInfo based on the MachineFunction, which may depend on the
     // IR.
 
-    SMRange SrcRange;
-    if (TM.parseMachineFunctionInfo(*YamlMF.MachineFuncInfo, PFS, Error,
+    
+    if (SMRange SrcRange; TM.parseMachineFunctionInfo(*YamlMF.MachineFuncInfo, PFS, Error,
                                     SrcRange)) {
       return error(Error, SrcRange);
     }
@@ -701,8 +701,8 @@ bool MIRParserImpl::parseRegisterInfo(PerFunctionMIParsingState &PFS,
       Info.Kind = VRegInfo::GENERIC;
       Info.D.RegBank = nullptr;
     } else {
-      const auto *RC = Target->getRegClass(VReg.Class.Value);
-      if (RC) {
+      
+      if (const auto *RC = Target->getRegClass(VReg.Class.Value); RC) {
         Info.Kind = VRegInfo::NORMAL;
         Info.D.RC = RC;
       } else {
@@ -780,8 +780,8 @@ bool MIRParserImpl::setupRegisterInfo(const PerFunctionMIParsingState &PFS,
 
   // Create VRegs
   auto populateVRegInfo = [&](const VRegInfo &Info, const Twine &Name) {
-    Register Reg = Info.VReg;
-    switch (Info.Kind) {
+    
+    switch (Register Reg = Info.VReg; Info.Kind) {
     case VRegInfo::UNKNOWN:
       Errors.push_back(
           (Twine("Cannot determine class/bank of virtual register ") + Name +
@@ -931,8 +931,8 @@ bool MIRParserImpl::initializeFrameInfo(PerFunctionMIParsingState &PFS,
   for (const auto &Object : YamlMF.StackObjects) {
     int ObjectIdx;
     const AllocaInst *Alloca = nullptr;
-    const yaml::StringValue &Name = Object.Name;
-    if (!Name.Value.empty()) {
+    
+    if (const yaml::StringValue &Name = Object.Name; !Name.Value.empty()) {
       Alloca = dyn_cast_or_null<AllocaInst>(
           F.getValueSymbolTable()->lookup(Name.Value));
       if (!Alloca)
@@ -998,8 +998,8 @@ bool MIRParserImpl::parseCalleeSavedRegister(PerFunctionMIParsingState &PFS,
   if (RegisterSource.Value.empty())
     return false;
   Register Reg;
-  SMDiagnostic Error;
-  if (parseNamedRegisterReference(PFS, Reg, RegisterSource.Value, Error))
+  
+  if (SMDiagnostic Error; parseNamedRegisterReference(PFS, Reg, RegisterSource.Value, Error))
     return error(Error, RegisterSource.SourceRange);
   CalleeSavedInfo CSI(Reg, FrameIdx);
   CSI.setRestored(IsRestored);
@@ -1060,8 +1060,8 @@ bool MIRParserImpl::parseMDNode(PerFunctionMIParsingState &PFS,
     MDNode *&Node, const yaml::StringValue &Source) {
   if (Source.Value.empty())
     return false;
-  SMDiagnostic Error;
-  if (llvm::parseMDNode(PFS, Node, Source.Value, Error))
+  
+  if (SMDiagnostic Error; llvm::parseMDNode(PFS, Node, Source.Value, Error))
     return error(Error, Source.SourceRange);
   return false;
 }
@@ -1128,8 +1128,8 @@ bool MIRParserImpl::initializeJumpTableInfo(PerFunctionMIParsingState &PFS,
         return true;
       Blocks.push_back(MBB);
     }
-    unsigned Index = JTI->createJumpTableIndex(Blocks);
-    if (!PFS.JumpTableSlots.insert(std::make_pair(Entry.ID.Value, Index))
+    
+    if (unsigned Index = JTI->createJumpTableIndex(Blocks); !PFS.JumpTableSlots.insert(std::make_pair(Entry.ID.Value, Index))
              .second)
       return error(Entry.ID.SourceRange.Start,
                    Twine("redefinition of jump table entry '%jump-table.") +
@@ -1141,16 +1141,16 @@ bool MIRParserImpl::initializeJumpTableInfo(PerFunctionMIParsingState &PFS,
 bool MIRParserImpl::parseMBBReference(PerFunctionMIParsingState &PFS,
                                       MachineBasicBlock *&MBB,
                                       const yaml::StringValue &Source) {
-  SMDiagnostic Error;
-  if (llvm::parseMBBReference(PFS, MBB, Source.Value, Error))
+  
+  if (SMDiagnostic Error; llvm::parseMBBReference(PFS, MBB, Source.Value, Error))
     return error(Error, Source.SourceRange);
   return false;
 }
 
 bool MIRParserImpl::parseMachineMetadata(PerFunctionMIParsingState &PFS,
                                          const yaml::StringValue &Source) {
-  SMDiagnostic Error;
-  if (llvm::parseMachineMetadata(PFS, Source.Value, Source.SourceRange, Error))
+  
+  if (SMDiagnostic Error; llvm::parseMachineMetadata(PFS, Source.Value, Source.SourceRange, Error))
     return error(Error, Source.SourceRange);
   return false;
 }
@@ -1236,8 +1236,8 @@ SMDiagnostic MIRParserImpl::diagFromBlockStringDiag(const SMDiagnostic &Error,
     if (L.line_number() == Line) {
       LineStr = *L;
       Loc = SMLoc::getFromPointer(LineStr.data());
-      auto Indent = LineStr.find(Error.getLineContents());
-      if (Indent != StringRef::npos)
+      
+      if (auto Indent = LineStr.find(Error.getLineContents()); Indent != StringRef::npos)
         Column += Indent;
       break;
     }

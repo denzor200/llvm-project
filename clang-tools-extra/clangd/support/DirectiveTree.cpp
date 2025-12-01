@@ -77,8 +77,8 @@ private:
       // We have some kind of directive.
       DirectiveTree::Directive Directive;
       parseDirective(&Directive);
-      Cond Kind = classifyDirective(Directive.Kind);
-      if (Kind == Cond::If) {
+      
+      if (Cond Kind = classifyDirective(Directive.Kind); Kind == Cond::If) {
         // #if or similar, starting a nested conditional block.
         DirectiveTree::Conditional Conditional;
         Conditional.Branches.emplace_back();

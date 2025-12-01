@@ -168,9 +168,9 @@ void StringConstructorCheck::check(const MatchFinder::MatchResult &Result) {
   const ASTContext &Ctx = *Result.Context;
   const auto *E = Result.Nodes.getNodeAs<CXXConstructExpr>("constructor");
   assert(E && "missing constructor expression");
-  const SourceLocation Loc = E->getBeginLoc();
+  
 
-  if (Result.Nodes.getNodeAs<Expr>("swapped-parameter")) {
+  if (const SourceLocation Loc = E->getBeginLoc(); Result.Nodes.getNodeAs<Expr>("swapped-parameter")) {
     const Expr *P0 = E->getArg(0);
     const Expr *P1 = E->getArg(1);
     diag(Loc, "string constructor parameters are probably swapped;"
@@ -204,8 +204,8 @@ void StringConstructorCheck::check(const MatchFinder::MatchResult &Result) {
       }
     }
   } else if (const auto *Ptr = Result.Nodes.getNodeAs<Expr>("from-ptr")) {
-    Expr::EvalResult ConstPtr;
-    if (!Ptr->isInstantiationDependent() &&
+    
+    if (Expr::EvalResult ConstPtr; !Ptr->isInstantiationDependent() &&
         Ptr->EvaluateAsRValue(ConstPtr, Ctx) &&
         ((ConstPtr.Val.isInt() && ConstPtr.Val.getInt().isZero()) ||
          (ConstPtr.Val.isLValue() && ConstPtr.Val.isNullPointer()))) {

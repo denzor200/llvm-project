@@ -166,8 +166,8 @@ bool AddressRange::Dump(Stream *s, Target *target, Address::DumpStyle style,
     s->PutChar('[');
     m_base_addr.Dump(s, target, style, fallback_style);
     s->PutChar('-');
-    addr_t end = m_base_addr.GetOffset() + GetByteSize();
-    if (m_base_addr.GetSection())
+    
+    if (addr_t end = m_base_addr.GetOffset() + GetByteSize(); m_base_addr.GetSection())
       s->Format("{0}", end);
     else
       DumpAddress(s->AsRawOstream(), end, addr_size);
@@ -189,8 +189,8 @@ bool AddressRange::Dump(Stream *s, Target *target, Address::DumpStyle style,
 
   if (vmaddr != LLDB_INVALID_ADDRESS) {
     if (show_module) {
-      ModuleSP module_sp(GetBaseAddress().GetModule());
-      if (module_sp)
+      
+      if (ModuleSP module_sp(GetBaseAddress().GetModule()); module_sp)
         s->Printf("%s", module_sp->GetFileSpec().GetFilename().AsCString(
                             "<Unknown>"));
     }

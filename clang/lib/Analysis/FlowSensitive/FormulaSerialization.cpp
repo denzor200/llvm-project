@@ -114,9 +114,9 @@ parsePrefix(llvm::StringRef &Str, Arena &A,
       return RightOrErr.takeError();
 
     const Formula &LHS = **LeftOrErr;
-    const Formula &RHS = **RightOrErr;
+    
 
-    switch (Prefix) {
+    switch (const Formula &RHS = **RightOrErr; Prefix) {
     case '&':
       return &A.makeAnd(LHS, RHS);
     case '|':

@@ -25,8 +25,8 @@ void SectionLoadHistory::Clear() {
 }
 
 uint32_t SectionLoadHistory::GetLastStopID() const {
-  std::lock_guard<std::recursive_mutex> guard(m_mutex);
-  if (m_stop_id_to_section_load_list.empty())
+  
+  if (std::lock_guard<std::recursive_mutex> guard(m_mutex); m_stop_id_to_section_load_list.empty())
     return 0;
   else
     return m_stop_id_to_section_load_list.rbegin()->first;
@@ -48,9 +48,9 @@ SectionLoadHistory::GetSectionLoadListForStopID(uint32_t stop_id,
             m_stop_id_to_section_load_list.rbegin();
         return rpos->second.get();
       } else {
-        StopIDToSectionLoadList::iterator pos =
-            m_stop_id_to_section_load_list.lower_bound(stop_id);
-        if (pos != m_stop_id_to_section_load_list.end() &&
+        
+        if (StopIDToSectionLoadList::iterator pos =
+            m_stop_id_to_section_load_list.lower_bound(stop_id); pos != m_stop_id_to_section_load_list.end() &&
             pos->first == stop_id)
           return pos->second.get();
         else if (pos != m_stop_id_to_section_load_list.begin()) {

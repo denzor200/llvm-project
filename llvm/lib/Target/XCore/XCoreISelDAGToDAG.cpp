@@ -102,8 +102,8 @@ bool XCoreDAGToDAGISel::SelectADDRspii(SDValue Addr, SDValue &Base,
     return true;
   }
   if (Addr.getOpcode() == ISD::ADD) {
-    ConstantSDNode *CN = nullptr;
-    if ((FIN = dyn_cast<FrameIndexSDNode>(Addr.getOperand(0)))
+    
+    if (ConstantSDNode *CN = nullptr; (FIN = dyn_cast<FrameIndexSDNode>(Addr.getOperand(0)))
       && (CN = dyn_cast<ConstantSDNode>(Addr.getOperand(1)))
       && (CN->getSExtValue() % 4 == 0 && CN->getSExtValue() >= 0)) {
       // Constant positive word offset from frame index
@@ -143,8 +143,8 @@ void XCoreDAGToDAGISel::Select(SDNode *N) {
   switch (N->getOpcode()) {
   default: break;
   case ISD::Constant: {
-    uint64_t Val = N->getAsZExtVal();
-    if (immMskBitp(N)) {
+    
+    if (uint64_t Val = N->getAsZExtVal(); immMskBitp(N)) {
       // Transformation function: get the size of a mask
       // Look for the first non-zero bit
       SDValue MskSize = getI32Imm(llvm::bit_width((uint32_t)Val), dl);

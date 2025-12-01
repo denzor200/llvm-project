@@ -74,14 +74,14 @@ LLVM_LIBC_FUNCTION(float, hypotf, (float x, float y)) {
     // Perform rounding correction.
 #ifdef LIBC_TARGET_CPU_HAS_FMA_DOUBLE
     double sum_sq_lo = fputil::multiply_add(bd, bd, a_sq - sum_sq);
-    double err = sum_sq_lo - fputil::multiply_add(r_d, r_d, -sum_sq);
+    
 #else
     fputil::DoubleDouble r_sq = fputil::exact_mult(r_d, r_d);
     double sum_sq_lo = b_sq - (sum_sq - a_sq);
-    double err = (sum_sq - r_sq.hi) + (sum_sq_lo - r_sq.lo);
+    
 #endif
 
-    if (err > 0) {
+    if (double err = (sum_sq - r_sq.hi) + (sum_sq_lo - r_sq.lo); double err = sum_sq_lo - fputil::multiply_add(r_d, r_d, -sum_sq); err > 0) {
       r_u |= 1;
     } else if ((err < 0) && (r_u & 1) == 0) {
       r_u -= 1;

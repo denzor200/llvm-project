@@ -499,9 +499,9 @@ struct ConvertMaxMin final : OpConversionPattern<SourceOp> {
     Location loc = op->getLoc();
 
     Type oldTy = op.getType();
-    auto newTy = dyn_cast_or_null<VectorType>(
-        this->getTypeConverter()->convertType(oldTy));
-    if (!newTy)
+    
+    if (auto newTy = dyn_cast_or_null<VectorType>(
+        this->getTypeConverter()->convertType(oldTy)); !newTy)
       return rewriter.notifyMatchFailure(
           loc, llvm::formatv("unsupported type: {0}", op.getType()));
 
@@ -564,8 +564,8 @@ struct ConvertIndexCastIndexToInt final : OpConversionPattern<CastOp> {
   LogicalResult
   matchAndRewrite(CastOp op, typename CastOp::Adaptor adaptor,
                   ConversionPatternRewriter &rewriter) const override {
-    Type inType = op.getIn().getType();
-    if (!isIndexOrIndexVector(inType))
+    
+    if (Type inType = op.getIn().getType(); !isIndexOrIndexVector(inType))
       return failure();
 
     Location loc = op.getLoc();
@@ -921,8 +921,8 @@ struct ConvertSIToFP final : OpConversionPattern<arith::SIToFPOp> {
 
     Value in = op.getIn();
     Type oldTy = in.getType();
-    auto newTy = getTypeConverter()->convertType<VectorType>(oldTy);
-    if (!newTy)
+    
+    if (auto newTy = getTypeConverter()->convertType<VectorType>(oldTy); !newTy)
       return rewriter.notifyMatchFailure(
           loc, llvm::formatv("unsupported type: {0}", oldTy));
 
@@ -1027,8 +1027,8 @@ struct ConvertFPToSI final : OpConversionPattern<arith::FPToSIOp> {
 
     Type intTy = op.getType();
 
-    auto newTy = getTypeConverter()->convertType<VectorType>(intTy);
-    if (!newTy)
+    
+    if (auto newTy = getTypeConverter()->convertType<VectorType>(intTy); !newTy)
       return rewriter.notifyMatchFailure(
           loc, llvm::formatv("unsupported type: {}", intTy));
 

@@ -58,13 +58,13 @@ public:
       Chained->HandleDiagnostic(DiagLevel, Info);
     if (Info.getID() - 1 == diag::err_using_directive_member_suggest) {
       const IdentifierInfo *Ident = Info.getArgIdentifier(0);
-      const std::string &CorrectedQuotedStr = Info.getArgStdStr(1);
-      if (Ident->getName() == FromName && CorrectedQuotedStr == ToName)
+      
+      if (const std::string &CorrectedQuotedStr = Info.getArgStdStr(1); Ident->getName() == FromName && CorrectedQuotedStr == ToName)
         ++SeenCount;
     } else if (Info.getID() == diag::err_no_member_suggest) {
       auto Ident = DeclarationName::getFromOpaqueInteger(Info.getRawArg(0));
-      const std::string &CorrectedQuotedStr = Info.getArgStdStr(3);
-      if (Ident.getAsString() == FromName && CorrectedQuotedStr == ToName)
+      
+      if (const std::string &CorrectedQuotedStr = Info.getArgStdStr(3); Ident.getAsString() == FromName && CorrectedQuotedStr == ToName)
         ++SeenCount;
     }
   }

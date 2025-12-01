@@ -342,8 +342,8 @@ void HeaderIncludesJSONCallback::EndOfMainFile() {
   OS << "\n";
 
   if (OutputFile->get_kind() == raw_ostream::OStreamKind::OK_FDStream) {
-    llvm::raw_fd_ostream *FDS = static_cast<llvm::raw_fd_ostream *>(OutputFile);
-    if (auto L = FDS->lock())
+    
+    if (auto llvm::raw_fd_ostream *FDS = static_cast<llvm::raw_fd_ostream *>(OutputFile); L = FDS->lock())
       *OutputFile << Str;
   } else
     *OutputFile << Str;
@@ -439,8 +439,8 @@ void HeaderIncludesDirectPerFileCallback::EndOfMainFile() {
   OS << "\n";
 
   if (OutputFile->get_kind() == raw_ostream::OStreamKind::OK_FDStream) {
-    llvm::raw_fd_ostream *FDS = static_cast<llvm::raw_fd_ostream *>(OutputFile);
-    if (auto L = FDS->lock())
+    
+    if (auto llvm::raw_fd_ostream *FDS = static_cast<llvm::raw_fd_ostream *>(OutputFile); L = FDS->lock())
       *OutputFile << Str;
   } else
     *OutputFile << Str;
@@ -463,9 +463,9 @@ void HeaderIncludesDirectPerFileCallback::InclusionDirective(
 
   FileEntryRef HeaderOrModuleMapFile = *File;
   if (ModuleImported && SuggestedModule) {
-    OptionalFileEntryRef ModuleMapFile =
-        HSI.getModuleMap().getModuleMapFileForUniquing(SuggestedModule);
-    if (ModuleMapFile) {
+    
+    if (OptionalFileEntryRef ModuleMapFile =
+        HSI.getModuleMap().getModuleMapFileForUniquing(SuggestedModule); ModuleMapFile) {
       HeaderOrModuleMapFile = *ModuleMapFile;
     }
   }

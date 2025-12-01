@@ -846,8 +846,8 @@ TEST(StringRefTest, consumeIntegerUnsigned) {
 
   for (size_t i = 0; i < std::size(ConsumeUnsigned); ++i) {
     StringRef Str = ConsumeUnsigned[i].Str;
-    bool U8Success = Str.consumeInteger(0, U8);
-    if (static_cast<uint8_t>(ConsumeUnsigned[i].Expected) ==
+    
+    if (bool U8Success = Str.consumeInteger(0, U8); static_cast<uint8_t>(ConsumeUnsigned[i].Expected) ==
         ConsumeUnsigned[i].Expected) {
       ASSERT_FALSE(U8Success);
       EXPECT_EQ(U8, ConsumeUnsigned[i].Expected);
@@ -900,8 +900,8 @@ TEST(StringRefTest, consumeIntegerSigned) {
 
   for (size_t i = 0; i < std::size(ConsumeSigned); ++i) {
     StringRef Str = ConsumeSigned[i].Str;
-    bool S8Success = Str.consumeInteger(0, S8);
-    if (static_cast<int8_t>(ConsumeSigned[i].Expected) ==
+    
+    if (bool S8Success = Str.consumeInteger(0, S8); static_cast<int8_t>(ConsumeSigned[i].Expected) ==
         ConsumeSigned[i].Expected) {
       ASSERT_FALSE(S8Success);
       EXPECT_EQ(S8, ConsumeSigned[i].Expected);

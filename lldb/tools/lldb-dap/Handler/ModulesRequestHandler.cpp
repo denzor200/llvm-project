@@ -31,8 +31,8 @@ ModulesRequestHandler::Run(const std::optional<ModulesArguments> &args) const {
   for (uint32_t i = 0; i < total_modules; i++) {
     lldb::SBModule module = dap.target.GetModuleAtIndex(i);
 
-    std::optional<Module> result = CreateModule(dap.target, module);
-    if (result && !result->id.empty()) {
+    
+    if (std::optional<Module> result = CreateModule(dap.target, module); result && !result->id.empty()) {
       dap.modules.insert(result->id);
       modules.emplace_back(std::move(result).value());
     }

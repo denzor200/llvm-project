@@ -242,8 +242,8 @@ SBType SBType::GetVectorElementType() {
 
   SBType type_sb;
   if (IsValid()) {
-    CompilerType vector_element_type;
-    if (m_opaque_sp->GetCompilerType(true).IsVectorType(&vector_element_type,
+    
+    if (CompilerType vector_element_type; m_opaque_sp->GetCompilerType(true).IsVectorType(&vector_element_type,
                                                         nullptr))
       type_sb.SetSP(std::make_shared<TypeImpl>(vector_element_type));
   }
@@ -487,9 +487,9 @@ bool SBType::GetDescription(SBStream &description,
                             lldb::DescriptionLevel description_level) {
   LLDB_INSTRUMENT_VA(this, description, description_level);
 
-  Stream &strm = description.ref();
+  
 
-  if (m_opaque_sp) {
+  if (Stream &strm = description.ref(); m_opaque_sp) {
     m_opaque_sp->GetDescription(strm, description_level);
   } else
     strm.PutCString("No value");
@@ -544,8 +544,8 @@ SBTypeEnumMemberList SBType::GetEnumMembers() {
 
   SBTypeEnumMemberList sb_enum_member_list;
   if (IsValid()) {
-    CompilerType this_type(m_opaque_sp->GetCompilerType(true));
-    if (this_type.IsValid()) {
+    
+    if (CompilerType this_type(m_opaque_sp->GetCompilerType(true)); this_type.IsValid()) {
       this_type.ForEachEnumerator(
           [&sb_enum_member_list](const CompilerType &integer_type,
                                  ConstString name,
@@ -565,15 +565,15 @@ SBTypeMember SBType::GetFieldAtIndex(uint32_t idx) {
 
   SBTypeMember sb_type_member;
   if (IsValid()) {
-    CompilerType this_type(m_opaque_sp->GetCompilerType(false));
-    if (this_type.IsValid()) {
+    
+    if (CompilerType this_type(m_opaque_sp->GetCompilerType(false)); this_type.IsValid()) {
       uint64_t bit_offset = 0;
       uint32_t bitfield_bit_size = 0;
       bool is_bitfield = false;
       std::string name_sstr;
-      CompilerType field_type(this_type.GetFieldAtIndex(
-          idx, name_sstr, &bit_offset, &bitfield_bit_size, &is_bitfield));
-      if (field_type.IsValid()) {
+      
+      if (CompilerType field_type(this_type.GetFieldAtIndex(
+          idx, name_sstr, &bit_offset, &bitfield_bit_size, &is_bitfield)); field_type.IsValid()) {
         ConstString name;
         if (!name_sstr.empty())
           name.SetCString(name_sstr.c_str());
@@ -591,10 +591,10 @@ bool SBType::IsTypeComplete() {
 
   if (!IsValid())
     return false;
-  CompilerType compiler_type = m_opaque_sp->GetCompilerType(false);
+  
   // Only return true if we have a complete type and it wasn't forcefully
   // completed.
-  if (compiler_type.IsCompleteType())
+  if (CompilerType compiler_type = m_opaque_sp->GetCompilerType(false); compiler_type.IsCompleteType())
     return !compiler_type.IsForcefullyCompleted();
   return false;
 }
@@ -658,8 +658,8 @@ lldb::SBType SBType::GetTemplateArgumentType(uint32_t idx) {
     return SBType();
 
   CompilerType type;
-  const bool expand_pack = true;
-  switch(GetTemplateArgumentKind(idx)) {
+  
+  switch(const bool expand_pack = true; GetTemplateArgumentKind(idx)) {
     case eTemplateArgumentKindType:
       type = m_opaque_sp->GetCompilerType(false).GetTypeTemplateArgument(
           idx, expand_pack);
@@ -694,8 +694,8 @@ lldb::SBValue SBType::GetTemplateArgumentValue(lldb::SBTarget target,
     return {};
 
   std::optional<CompilerType::IntegralTemplateArgument> arg;
-  const bool expand_pack = true;
-  switch (GetTemplateArgumentKind(idx)) {
+  
+  switch (const bool expand_pack = true; GetTemplateArgumentKind(idx)) {
   case eTemplateArgumentKindStructuralValue:
   case eTemplateArgumentKindIntegral:
     arg = m_opaque_sp->GetCompilerType(false).GetIntegralTemplateArgument(
@@ -875,9 +875,9 @@ bool SBTypeMember::GetDescription(lldb::SBStream &description,
                                   lldb::DescriptionLevel description_level) {
   LLDB_INSTRUMENT_VA(this, description, description_level);
 
-  Stream &strm = description.ref();
+  
 
-  if (m_opaque_up) {
+  if (Stream &strm = description.ref(); m_opaque_up) {
     const uint32_t bit_offset = m_opaque_up->GetBitOffset();
     const uint32_t byte_offset = bit_offset / 8u;
     const uint32_t byte_bit_offset = bit_offset % 8u;
@@ -1023,9 +1023,9 @@ bool SBTypeMemberFunction::GetDescription(
     lldb::SBStream &description, lldb::DescriptionLevel description_level) {
   LLDB_INSTRUMENT_VA(this, description, description_level);
 
-  Stream &strm = description.ref();
+  
 
-  if (m_opaque_sp)
+  if (Stream &strm = description.ref(); m_opaque_sp)
     return m_opaque_sp->GetDescription(strm);
 
   return false;

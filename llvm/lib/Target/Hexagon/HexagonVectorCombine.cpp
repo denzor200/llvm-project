@@ -642,8 +642,8 @@ auto AlignVectors::getAddrInfo(Instruction &In) const
     return AddrInfo(HVC, S, S->getPointerOperand(),
                     S->getValueOperand()->getType(), S->getAlign());
   if (auto *II = isCandidate<IntrinsicInst>(&In)) {
-    Intrinsic::ID ID = II->getIntrinsicID();
-    switch (ID) {
+    
+    switch (Intrinsic::ID ID = II->getIntrinsicID(); ID) {
     case Intrinsic::masked_load:
       return AddrInfo(HVC, II, II->getArgOperand(0), II->getType(),
                       II->getParamAlign(0).valueOrOne());
@@ -681,8 +681,8 @@ auto AlignVectors::getMask(Value *Val) const -> Value * {
     }
   }
 
-  Type *ValTy = getPayload(Val)->getType();
-  if (auto *VecTy = dyn_cast<VectorType>(ValTy))
+  
+  if (auto *Type *ValTy = getPayload(Val)->getType(); VecTy = dyn_cast<VectorType>(ValTy))
     return HVC.getFullValue(HVC.getBoolTy(HVC.length(VecTy)));
   return HVC.getFullValue(HVC.getBoolTy());
 }
@@ -728,9 +728,9 @@ auto AlignVectors::createLoad(IRBuilderBase &Builder, Type *ValTy, Value *Ptr,
                               Value *Predicate, int Alignment, Value *Mask,
                               Value *PassThru,
                               ArrayRef<Value *> MDSources) const -> Value * {
-  bool HvxHasPredLoad = HVC.HST.useHVXV62Ops();
+  
   // Predicate is nullptr if not creating predicated load
-  if (Predicate) {
+  if (bool HvxHasPredLoad = HVC.HST.useHVXV62Ops(); Predicate) {
     assert(!Predicate->getType()->isVectorTy() &&
            "Expectning scalar predicate");
     if (HVC.isFalse(Predicate))
@@ -1058,9 +1058,9 @@ auto AlignVectors::createStoreGroups(const AddrList &Group) const -> MoveList {
 auto AlignVectors::moveTogether(MoveGroup &Move) const -> bool {
   // Move all instructions to be adjacent.
   assert(!Move.Main.empty() && "Move group should have non-empty Main");
-  Instruction *Where = Move.Main.front();
+  
 
-  if (Move.IsLoad) {
+  if (Instruction *Where = Move.Main.front(); Move.IsLoad) {
     // Move all the loads (and dependencies) to where the first load is.
     // Clone all deps to before Where, keeping order.
     Move.Clones = cloneBefore(Where->getIterator(), Move.Deps);
@@ -1606,8 +1606,8 @@ auto AlignVectors::run() -> bool {
     LoadGroups.resize(CountLimit);
     StoreGroups.clear();
   } else {
-    unsigned StoreLimit = CountLimit - LoadGroups.size();
-    if (StoreGroups.size() > StoreLimit)
+    
+    if (unsigned StoreLimit = CountLimit - LoadGroups.size(); StoreGroups.size() > StoreLimit)
       StoreGroups.resize(StoreLimit);
   }
 
@@ -1975,8 +1975,8 @@ static Value *locateAddressFromIntrinsic(Instruction *In) {
     IndexLoad = dyn_cast<LoadInst>(IndexZEx->getOperand(0));
     if (IndexLoad)
       return IndexLoad;
-    IntrinsicInst *II = dyn_cast<IntrinsicInst>(IndexZEx->getOperand(0));
-    if (II && II->getIntrinsicID() == Intrinsic::masked_gather)
+    
+    if (IntrinsicInst *II = dyn_cast<IntrinsicInst>(IndexZEx->getOperand(0)); II && II->getIntrinsicID() == Intrinsic::masked_gather)
       return locateAddressFromIntrinsic(II);
   }
   auto *BaseShuffle = dyn_cast<ShuffleVectorInst>(BaseAddress);
@@ -1984,14 +1984,14 @@ static Value *locateAddressFromIntrinsic(Instruction *In) {
     IndexLoad = dyn_cast<LoadInst>(BaseShuffle->getOperand(0));
     if (IndexLoad)
       return IndexLoad;
-    auto *IE = dyn_cast<InsertElementInst>(BaseShuffle->getOperand(0));
-    if (IE) {
+    
+    if (auto *IE = dyn_cast<InsertElementInst>(BaseShuffle->getOperand(0)); IE) {
       auto *Src = IE->getOperand(1);
       IndexLoad = dyn_cast<LoadInst>(Src);
       if (IndexLoad)
         return IndexLoad;
-      auto *Alloca = dyn_cast<AllocaInst>(Src);
-      if (Alloca)
+      
+      if (auto *Alloca = dyn_cast<AllocaInst>(Src); Alloca)
         return Alloca;
       if (isa<Argument>(Src)) {
         return Src;
@@ -2536,8 +2536,8 @@ Value *HvxIdioms::processVGather(Instruction &In) const {
     // V6_vgathermh_pseudo (ins IntRegs:$_dst_, s4_0Imm:$Ii, IntRegs:$Rt,
     // ModRegs:$Mu, HvxVR:$Vv)
     if (isa<AllocaInst>(IndexLoad)) {
-      auto *cstDataVector = dyn_cast<ConstantDataVector>(Indexes);
-      if (cstDataVector) {
+      
+      if (auto *cstDataVector = dyn_cast<ConstantDataVector>(Indexes); cstDataVector) {
         // Our indexes are represented as a constant. We need THEM in a reg.
         // This most likely will not work properly since alloca gives us DDR
         // stack location. This will be fixed once we teach compiler about VTCM.
@@ -2618,8 +2618,8 @@ Value *HvxIdioms::processVGather(Instruction &In) const {
     // Gather feeds to another gather but already replaced with
     // hexagon_V6_vgathermh_128B
     if (isa<AllocaInst>(IndexLoad)) {
-      auto *cstDataVector = dyn_cast<ConstantDataVector>(Indexes);
-      if (cstDataVector) {
+      
+      if (auto *cstDataVector = dyn_cast<ConstantDataVector>(Indexes); cstDataVector) {
         // Our indexes are represented as a constant. We need it in a reg.
         AllocaInst *IndexesAlloca = Builder.CreateAlloca(NT);
 
@@ -2738,8 +2738,8 @@ auto HvxIdioms::processFxpMulChopped(IRBuilderBase &Builder, Instruction &In,
 
   for (int Dst = 0, End = WordP.size() - SkipWords; Dst != End; ++Dst) {
     int Src = Dst + SkipWords;
-    Value *Lo = WordP[Src];
-    if (Src + 1 < End) {
+    
+    if (Value *Lo = WordP[Src]; Src + 1 < End) {
       Value *Hi = WordP[Src + 1];
       WordP[Dst] = Builder.CreateIntrinsic(HvxWordTy, Intrinsic::fshr,
                                            {Hi, Lo, ShiftAmt},
@@ -2860,9 +2860,9 @@ auto HvxIdioms::createMul16(IRBuilderBase &Builder, SValue X, SValue Y) const
 
 auto HvxIdioms::createMulH16(IRBuilderBase &Builder, SValue X, SValue Y) const
     -> Value * {
-  Type *HvxI16Ty = HVC.getHvxTy(HVC.getIntTy(16), /*Pair=*/false);
+  
 
-  if (HVC.HST.useHVXV69Ops()) {
+  if (Type *HvxI16Ty = HVC.getHvxTy(HVC.getIntTy(16), /*Pair=*/false); HVC.HST.useHVXV69Ops()) {
     if (X.Sgn != Signed && Y.Sgn != Signed) {
       auto V6_vmpyuhvs = HVC.HST.getIntrinsicId(Hexagon::V6_vmpyuhvs);
       return HVC.createHvxIntrinsic(Builder, V6_vmpyuhvs, HvxI16Ty,
@@ -3119,8 +3119,8 @@ auto HexagonVectorCombine::getSizeOf(const Value *Val, SizeKind Kind) const
 
 auto HexagonVectorCombine::getSizeOf(const Type *Ty, SizeKind Kind) const
     -> int {
-  auto *NcTy = const_cast<Type *>(Ty);
-  switch (Kind) {
+  
+  switch (auto *NcTy = const_cast<Type *>(Ty); Kind) {
   case Store:
     return DL.getTypeStoreSize(NcTy).getFixedValue();
   case Alloc:
@@ -3367,8 +3367,8 @@ auto HexagonVectorCombine::rescale(IRBuilderBase &Builder, Value *Mask,
 // Bitcast to bytes, and return least significant bits.
 auto HexagonVectorCombine::vlsb(IRBuilderBase &Builder, Value *Val) const
     -> Value * {
-  Type *ScalarTy = Val->getType()->getScalarType();
-  if (ScalarTy == getBoolTy())
+  
+  if (Type *ScalarTy = Val->getType()->getScalarType(); ScalarTy == getBoolTy())
     return Val;
 
   Value *Bytes = vbytes(Builder, Val);
@@ -3476,8 +3476,8 @@ auto HexagonVectorCombine::createHvxIntrinsic(IRBuilderBase &Builder,
   SmallVector<Value *, 4> IntrArgs;
   for (int i = 0, e = Args.size(); i != e; ++i) {
     Value *A = Args[i];
-    Type *T = IntrTy->getParamType(i);
-    if (A->getType() != T) {
+    
+    if (Type *T = IntrTy->getParamType(i); A->getType() != T) {
       IntrArgs.push_back(getCast(Builder, A, T));
     } else {
       IntrArgs.push_back(A);
@@ -3575,8 +3575,8 @@ auto HexagonVectorCombine::joinVectorElements(IRBuilderBase &Builder,
   assert(isPowerOf2_32(Width) && isPowerOf2_32(ToWidth));
   unsigned Length = length(Inputs.front()->getType());
 
-  unsigned NeedInputs = ToWidth / Width;
-  if (Inputs.size() != NeedInputs) {
+  
+  if (unsigned NeedInputs = ToWidth / Width; Inputs.size() != NeedInputs) {
     // Having too many inputs is ok: drop the high bits (usual wrap-around).
     // If there are too few, fill them with the sign bit.
     Value *Last = Inputs.back();
@@ -3605,10 +3605,10 @@ auto HexagonVectorCombine::calculatePointerDifference(Value *Ptr0,
   // Try SCEV first.
   const SCEV *Scev0 = SE.getSCEV(Ptr0);
   const SCEV *Scev1 = SE.getSCEV(Ptr1);
-  const SCEV *ScevDiff = SE.getMinusSCEV(Scev0, Scev1);
-  if (auto *Const = dyn_cast<SCEVConstant>(ScevDiff)) {
-    APInt V = Const->getAPInt();
-    if (V.isSignedIntN(8 * sizeof(int)))
+  
+  if (auto *const SCEV *ScevDiff = SE.getMinusSCEV(Scev0, Scev1); Const = dyn_cast<SCEVConstant>(ScevDiff)) {
+    
+    if (APInt V = Const->getAPInt(); V.isSignedIntN(8 * sizeof(int)))
       return static_cast<int>(V.getSExtValue());
   }
 
@@ -3778,8 +3778,8 @@ auto HexagonVectorCombine::isSafeToMoveBeforeInBB(const Instruction &In,
         return false;
     }
     if (I.mayReadOrWriteMemory()) {
-      auto MaybeLocI = getLocOrNone(I);
-      if (MayWrite || I.mayWriteToMemory()) {
+      
+      if (auto MaybeLocI = getLocOrNone(I); MayWrite || I.mayWriteToMemory()) {
         if (!MaybeLoc || !MaybeLocI)
           return false;
         if (!AA.isNoAlias(*MaybeLoc, *MaybeLocI))

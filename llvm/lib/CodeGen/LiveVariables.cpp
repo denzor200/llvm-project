@@ -205,9 +205,9 @@ void LiveVariables::HandleVirtRegUse(Register Reg, MachineBasicBlock *MBB,
 }
 
 void LiveVariables::HandleVirtRegDef(Register Reg, MachineInstr &MI) {
-  VarInfo &VRInfo = getVarInfo(Reg);
+  
 
-  if (VRInfo.AliveBlocks.empty())
+  if (VarInfo &VRInfo = getVarInfo(Reg); VRInfo.AliveBlocks.empty())
     // If vr is not alive in any block, then defaults to dead.
     VRInfo.Kills.push_back(&MI);
 }
@@ -237,9 +237,9 @@ MachineInstr *LiveVariables::FindLastPartialDef(Register Reg) {
 /// implicit defs to a machine instruction if there was an earlier def of its
 /// super-register.
 void LiveVariables::HandlePhysRegUse(Register Reg, MachineInstr &MI) {
-  MachineInstr *LastDef = PhysRegDef[Reg.id()];
+  
   // If there was a previous use or a "full" def all is well.
-  if (!LastDef && !PhysRegUse[Reg.id()]) {
+  if (MachineInstr *LastDef = PhysRegDef[Reg.id()]; !LastDef && !PhysRegUse[Reg.id()]) {
     // Otherwise, the last sub-register def implicitly defines this register.
     // e.g.
     // AH =
@@ -248,9 +248,9 @@ void LiveVariables::HandlePhysRegUse(Register Reg, MachineInstr &MI) {
     // ...
     //    = EAX
     // All of the sub-registers must have been defined before the use of Reg!
-    MachineInstr *LastPartialDef = FindLastPartialDef(Reg);
+    
     // If LastPartialDef is NULL, it must be using a livein register.
-    if (LastPartialDef) {
+    if (MachineInstr *LastPartialDef = FindLastPartialDef(Reg); LastPartialDef) {
       LastPartialDef->addOperand(
           MachineOperand::CreateReg(Reg, /*IsDef=*/true, /*IsImp=*/true));
     }
@@ -277,16 +277,16 @@ MachineInstr *LiveVariables::FindLastRefOrPartRef(Register Reg) {
   unsigned LastRefOrPartRefDist = DistanceMap[LastRefOrPartRef];
   unsigned LastPartDefDist = 0;
   for (MCPhysReg SubReg : TRI->subregs(Reg)) {
-    MachineInstr *Def = PhysRegDef[SubReg];
-    if (Def && Def != LastDef) {
+    
+    if (MachineInstr *Def = PhysRegDef[SubReg]; Def && Def != LastDef) {
       // There was a def of this sub-register in between. This is a partial
       // def, keep track of the last one.
-      unsigned Dist = DistanceMap[Def];
-      if (Dist > LastPartDefDist)
+      
+      if (unsigned Dist = DistanceMap[Def]; Dist > LastPartDefDist)
         LastPartDefDist = Dist;
     } else if (MachineInstr *Use = PhysRegUse[SubReg]) {
-      unsigned Dist = DistanceMap[Use];
-      if (Dist > LastRefOrPartRefDist) {
+      
+      if (unsigned Dist = DistanceMap[Use]; Dist > LastRefOrPartRefDist) {
         LastRefOrPartRefDist = Dist;
         LastRefOrPartRef = Use;
       }
@@ -325,12 +325,12 @@ bool LiveVariables::HandlePhysRegKill(Register Reg, MachineInstr *MI) {
   unsigned LastPartDefDist = 0;
   SmallSet<unsigned, 8> PartUses;
   for (MCPhysReg SubReg : TRI->subregs(Reg)) {
-    MachineInstr *Def = PhysRegDef[SubReg];
-    if (Def && Def != LastDef) {
+    
+    if (MachineInstr *Def = PhysRegDef[SubReg]; Def && Def != LastDef) {
       // There was a def of this sub-register in between. This is a partial
       // def, keep track of the last one.
-      unsigned Dist = DistanceMap[Def];
-      if (Dist > LastPartDefDist) {
+      
+      if (unsigned Dist = DistanceMap[Def]; Dist > LastPartDefDist) {
         LastPartDefDist = Dist;
         LastPartDef = Def;
       }
@@ -338,8 +338,8 @@ bool LiveVariables::HandlePhysRegKill(Register Reg, MachineInstr *MI) {
     }
     if (MachineInstr *Use = PhysRegUse[SubReg]) {
       PartUses.insert_range(TRI->subregs_inclusive(SubReg));
-      unsigned Dist = DistanceMap[Use];
-      if (Dist > LastRefOrPartRefDist) {
+      
+      if (unsigned Dist = DistanceMap[Use]; Dist > LastRefOrPartRefDist) {
         LastRefOrPartRefDist = Dist;
         LastRefOrPartRef = Use;
       }
@@ -357,9 +357,9 @@ bool LiveVariables::HandlePhysRegKill(Register Reg, MachineInstr *MI) {
         continue;
       bool NeedDef = true;
       if (PhysRegDef[Reg.id()] == PhysRegDef[SubReg]) {
-        MachineOperand *MO = PhysRegDef[Reg.id()]->findRegisterDefOperand(
-            SubReg, /*TRI=*/nullptr);
-        if (MO) {
+        
+        if (MachineOperand *MO = PhysRegDef[Reg.id()]->findRegisterDefOperand(
+            SubReg, /*TRI=*/nullptr); MO) {
           NeedDef = false;
           assert(!MO->isDead());
         }
@@ -743,8 +743,8 @@ void LiveVariables::removeVirtualRegistersKilled(MachineInstr &MI) {
   for (MachineOperand &MO : MI.operands()) {
     if (MO.isReg() && MO.isKill()) {
       MO.setIsKill(false);
-      Register Reg = MO.getReg();
-      if (Reg.isVirtual()) {
+      
+      if (Register Reg = MO.getReg(); Reg.isVirtual()) {
         bool removed = getVarInfo(Reg).removeKill(MI);
         assert(removed && "kill not in register's VarInfo?");
         (void)removed;
@@ -771,10 +771,10 @@ void LiveVariables::analyzePHINodes(const MachineFunction& Fn) {
 
 bool LiveVariables::VarInfo::isLiveIn(const MachineBasicBlock &MBB,
                                       Register Reg, MachineRegisterInfo &MRI) {
-  unsigned Num = MBB.getNumber();
+  
 
   // Reg is live-through.
-  if (AliveBlocks.test(Num))
+  if (unsigned Num = MBB.getNumber(); AliveBlocks.test(Num))
     return true;
 
   // Registers defined in MBB cannot be live in.
@@ -797,8 +797,8 @@ bool LiveVariables::isLiveOut(Register Reg, const MachineBasicBlock &MBB) {
   // the value is either live in the block, or if it is killed in the block.
   for (const MachineBasicBlock *SuccMBB : MBB.successors()) {
     // Is it alive in this successor?
-    unsigned SuccIdx = SuccMBB->getNumber();
-    if (VI.AliveBlocks.test(SuccIdx))
+    
+    if (unsigned SuccIdx = SuccMBB->getNumber(); VI.AliveBlocks.test(SuccIdx))
       return true;
     // Or is it live because there is a use in a successor that kills it?
     if (Kills.count(SuccMBB))

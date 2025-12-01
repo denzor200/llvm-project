@@ -132,9 +132,9 @@ std::vector<bool> HeaderSearch::computeUserEntryUsage() const {
   for (unsigned I = 0, E = SearchDirsUsage.size(); I < E; ++I) {
     // Check whether this DirectoryLookup has been successfully used.
     if (SearchDirsUsage[I]) {
-      auto UserEntryIdxIt = SearchDirToHSEntry.find(I);
+      
       // Check whether this DirectoryLookup maps to a HeaderSearch::UserEntry.
-      if (UserEntryIdxIt != SearchDirToHSEntry.end())
+      if (auto UserEntryIdxIt = SearchDirToHSEntry.find(I); UserEntryIdxIt != SearchDirToHSEntry.end())
         UserEntryUsage[UserEntryIdxIt->second] = true;
     }
   }
@@ -248,9 +248,9 @@ std::string HeaderSearch::getPrebuiltImplicitModuleFileName(Module *Module) {
     SmallString<256> CachePath(Dir);
     FileMgr.makeAbsolutePath(CachePath);
     llvm::sys::path::append(CachePath, ModuleCacheHash);
-    std::string FileName =
-        getCachedModuleFileNameImpl(ModuleName, ModuleMapPath, CachePath);
-    if (!FileName.empty() && getFileMgr().getOptionalFileRef(FileName))
+    
+    if (std::string FileName =
+        getCachedModuleFileNameImpl(ModuleName, ModuleMapPath, CachePath); !FileName.empty() && getFileMgr().getOptionalFileRef(FileName))
       return FileName;
   }
   return {};
@@ -452,8 +452,8 @@ OptionalFileEntryRef HeaderSearch::getFileAndSuggestModule(
   if (!File) {
     // For rare, surprising errors (e.g. "out of file handles"), diag the EC
     // message.
-    std::error_code EC = llvm::errorToErrorCode(File.takeError());
-    if (EC != llvm::errc::no_such_file_or_directory &&
+    
+    if (std::error_code EC = llvm::errorToErrorCode(File.takeError()); EC != llvm::errc::no_such_file_or_directory &&
         EC != llvm::errc::invalid_argument &&
         EC != llvm::errc::is_a_directory && EC != llvm::errc::not_a_directory) {
       Diags.Report(IncludeLoc, diag::err_cannot_open_file)
@@ -738,8 +738,8 @@ OptionalFileEntryRef DirectoryLookup::DoFrameworkLookup(
         break;
     } while (true);
 
-    bool IsSystem = getDirCharacteristic() != SrcMgr::C_User;
-    if (FoundFramework) {
+    
+    if (bool IsSystem = getDirCharacteristic() != SrcMgr::C_User; FoundFramework) {
       if (!HS.findUsableModuleForFrameworkHeader(*File, FrameworkPath,
                                                  RequestingModule,
                                                  SuggestedModule, IsSystem))
@@ -765,8 +765,8 @@ void HeaderSearch::cacheLookupSuccess(LookupFileCacheInfo &CacheLookup,
 void HeaderSearch::noteLookupUsage(unsigned HitIdx, SourceLocation Loc) {
   SearchDirsUsage[HitIdx] = true;
 
-  auto UserEntryIdxIt = SearchDirToHSEntry.find(HitIdx);
-  if (UserEntryIdxIt != SearchDirToHSEntry.end())
+  
+  if (auto UserEntryIdxIt = SearchDirToHSEntry.find(HitIdx); UserEntryIdxIt != SearchDirToHSEntry.end())
     Diags.Report(Loc, diag::remark_pp_search_path_usage)
         << HSOpts.UserEntries[UserEntryIdxIt->second].Path;
 }
@@ -1314,8 +1314,8 @@ HeaderFileInfo &HeaderSearch::getFileInfo(FileEntryRef FE) {
   HeaderFileInfo *HFI = &FileInfo[FE.getUID()];
   // FIXME: Use a generation count to check whether this is really up to date.
   if (ExternalSource && !HFI->Resolved) {
-    auto ExternalHFI = ExternalSource->GetHeaderFileInfo(FE);
-    if (ExternalHFI.IsValid) {
+    
+    if (auto ExternalHFI = ExternalSource->GetHeaderFileInfo(FE); ExternalHFI.IsValid) {
       HFI->Resolved = true;
       if (ExternalHFI.External)
         mergeHeaderFileInfo(*HFI, ExternalHFI);
@@ -1338,8 +1338,8 @@ const HeaderFileInfo *HeaderSearch::getExistingFileInfo(FileEntryRef FE) const {
     HFI = &FileInfo[FE.getUID()];
     // FIXME: Use a generation count to check whether this is really up to date.
     if (!HFI->Resolved) {
-      auto ExternalHFI = ExternalSource->GetHeaderFileInfo(FE);
-      if (ExternalHFI.IsValid) {
+      
+      if (auto ExternalHFI = ExternalSource->GetHeaderFileInfo(FE); ExternalHFI.IsValid) {
         HFI->Resolved = true;
         if (ExternalHFI.External)
           mergeHeaderFileInfo(*HFI, ExternalHFI);
@@ -1382,8 +1382,8 @@ void HeaderSearch::MarkFileModuleHeader(FileEntryRef FE,
   if (!isCompilingModuleHeader) {
     if ((Role & ModuleMap::ExcludedHeader))
       return;
-    auto *HFI = getExistingFileInfo(FE);
-    if (HFI && !moduleMembershipNeedsMerge(HFI, Role))
+    
+    if (auto *HFI = getExistingFileInfo(FE); HFI && !moduleMembershipNeedsMerge(HFI, Role))
       return;
   }
 
@@ -1749,8 +1749,8 @@ bool HeaderSearch::parseAndLoadModuleMapFile(FileEntryRef File, bool IsSystem,
     }
 
     assert(Dir && "parent must exist");
-    StringRef DirName(Dir->getName());
-    if (llvm::sys::path::filename(DirName) == "Modules") {
+    
+    if (StringRef DirName(Dir->getName()); llvm::sys::path::filename(DirName) == "Modules") {
       DirName = llvm::sys::path::parent_path(DirName);
       if (DirName.ends_with(".framework"))
         if (auto MaybeDir = FileMgr.getOptionalDirectoryRef(DirName))
@@ -2054,8 +2054,8 @@ void HeaderSearch::loadSubdirectoryModuleMaps(DirectoryLookup &SearchDir) {
        Dir != DirEnd && !EC; Dir.increment(EC)) {
     if (Dir->type() == llvm::sys::fs::file_type::regular_file)
       continue;
-    bool IsFramework = llvm::sys::path::extension(Dir->path()) == ".framework";
-    if (IsFramework == SearchDir.isFramework())
+    
+    if (bool IsFramework = llvm::sys::path::extension(Dir->path()) == ".framework"; IsFramework == SearchDir.isFramework())
       parseAndLoadModuleMapFile(Dir->path(),
                                 SearchDir.isSystemHeaderDirectory(),
                                 SearchDir.isFramework());
@@ -2116,8 +2116,8 @@ std::string HeaderSearch::suggestPathToFileForDiagnostics(
       // located in `iPhoneSimulator.sdk` (the real folder).
       if (NI->ends_with(".sdk") && DI->ends_with(".sdk")) {
         StringRef NBasename = path::stem(*NI);
-        StringRef DBasename = path::stem(*DI);
-        if (DBasename.starts_with(NBasename))
+        
+        if (StringRef DBasename = path::stem(*DI); DBasename.starts_with(NBasename))
           continue;
       }
 
@@ -2162,9 +2162,9 @@ std::string HeaderSearch::suggestPathToFileForDiagnostics(
     if (!DL.isHeaderMap())
       continue;
 
-    StringRef SpelledFilename =
-        DL.getHeaderMap()->reverseLookupFilename(Filename);
-    if (!SpelledFilename.empty()) {
+    
+    if (StringRef SpelledFilename =
+        DL.getHeaderMap()->reverseLookupFilename(Filename); !SpelledFilename.empty()) {
       Filename = SpelledFilename;
       BestPrefixIsFramework = false;
       break;

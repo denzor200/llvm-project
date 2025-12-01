@@ -29,8 +29,8 @@ TEST(FuzzySymbolIndexTest, Tokenize) {
 
 MATCHER_P(MatchesSymbol, Identifier, "") {
   llvm::Regex Pattern("^" + arg);
-  std::string err;
-  if (!Pattern.isValid(err)) {
+  
+  if (std::string err; !Pattern.isValid(err)) {
     *result_listener << "invalid regex: " << err;
     return false;
   }

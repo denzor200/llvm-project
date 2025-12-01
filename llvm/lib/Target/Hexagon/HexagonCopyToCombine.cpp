@@ -428,8 +428,8 @@ HexagonCopyToCombine::findPotentialNewifiableTFRs(MachineBasicBlock &BB) {
       if (Op.isReg()) {
         if (!Op.isDef() || !Op.getReg())
           continue;
-        Register Reg = Op.getReg();
-        if (Hexagon::DoubleRegsRegClass.contains(Reg)) {
+        
+        if (Register Reg = Op.getReg(); Hexagon::DoubleRegsRegClass.contains(Reg)) {
           for (MCPhysReg SubReg : TRI->subregs(Reg))
             LastDef[SubReg] = &MI;
         } else if (Hexagon::IntRegsRegClass.contains(Reg))
@@ -539,8 +539,8 @@ MachineInstr *HexagonCopyToCombine::findPairable(MachineInstr &I1,
     // is even.
     bool IsI1LowReg = (I2DestReg - I1DestReg) == 1;
     bool IsI2LowReg = (I1DestReg - I2DestReg) == 1;
-    unsigned FirstRegIndex = IsI1LowReg ? I1DestReg : I2DestReg;
-    if ((!IsI1LowReg && !IsI2LowReg) || !isEvenReg(FirstRegIndex))
+    
+    if (unsigned FirstRegIndex = IsI1LowReg ? I1DestReg : I2DestReg; (!IsI1LowReg && !IsI2LowReg) || !isEvenReg(FirstRegIndex))
       continue;
 
     // Check that the two instructions are combinable.

@@ -25,8 +25,8 @@ extern const char *SanitizerToolName;
 const char *DladdrSelfFName(void) {
 #if SANITIZER_GLIBC
   Dl_info info;
-  int ret = dladdr((void *)&SanitizerToolName, &info);
-  if (ret) {
+  
+  if (int ret = dladdr((void *)&SanitizerToolName, &info); ret) {
     return info.dli_fname;
   }
 #endif

@@ -667,11 +667,11 @@ const LandingPadInst *BasicBlock::getLandingPadInst() const {
 }
 
 std::optional<uint64_t> BasicBlock::getIrrLoopHeaderWeight() const {
-  const Instruction *TI = getTerminator();
-  if (MDNode *MDIrrLoopHeader =
+  
+  if (MDNode *const Instruction *TI = getTerminator(); MDIrrLoopHeader =
       TI->getMetadata(LLVMContext::MD_irr_loop)) {
-    MDString *MDName = cast<MDString>(MDIrrLoopHeader->getOperand(0));
-    if (MDName->getString() == "loop_header_weight") {
+    
+    if (MDString *MDName = cast<MDString>(MDIrrLoopHeader->getOperand(0)); MDName->getString() == "loop_header_weight") {
       auto *CI = mdconst::extract<ConstantInt>(MDIrrLoopHeader->getOperand(1));
       return std::optional<uint64_t>(CI->getValue().getZExtValue());
     }
@@ -751,8 +751,8 @@ void BasicBlock::spliceDebugInfoEmptyBlock(BasicBlock::iterator Dest,
   // occur when a block is optimised away and the terminator has been moved
   // somewhere else.
   if (Src->empty()) {
-    DbgMarker *SrcTrailingDbgRecords = Src->getTrailingDbgRecords();
-    if (!SrcTrailingDbgRecords)
+    
+    if (DbgMarker *SrcTrailingDbgRecords = Src->getTrailingDbgRecords(); !SrcTrailingDbgRecords)
       return;
 
     Dest->adoptDbgRecords(Src, Src->end(), InsertAtHead);
@@ -812,8 +812,8 @@ void BasicBlock::spliceDebugInfo(BasicBlock::iterator Dest, BasicBlock *Src,
   // move the DbgRecords onto "First". They'll then be moved naturally in the
   // splice process.
   DbgMarker *MoreDanglingDbgRecords = nullptr;
-  DbgMarker *OurTrailingDbgRecords = getTrailingDbgRecords();
-  if (Dest == end() && !Dest.getHeadBit() && OurTrailingDbgRecords) {
+  
+  if (DbgMarker *OurTrailingDbgRecords = getTrailingDbgRecords(); Dest == end() && !Dest.getHeadBit() && OurTrailingDbgRecords) {
     // Are the "+" DbgRecords not supposed to move? If so, detach them
     // temporarily.
     if (!First.getHeadBit() && First->hasDbgRecords()) {
@@ -945,8 +945,8 @@ void BasicBlock::spliceDebugInfoImpl(BasicBlock::iterator Dest, BasicBlock *Src,
   // If we're moving the tail range of DbgRecords (":::"), absorb them into the
   // front of the DbgRecords at Dest.
   if (ReadFromTail && Src->getMarker(Last)) {
-    DbgMarker *FromLast = Src->getMarker(Last);
-    if (LastIsEnd) {
+    
+    if (DbgMarker *FromLast = Src->getMarker(Last); LastIsEnd) {
       if (Dest == end()) {
         // Abosrb the trailing markers from Src.
         assert(FromLast == Src->getTrailingDbgRecords());

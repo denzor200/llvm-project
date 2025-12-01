@@ -862,8 +862,8 @@ private:
     Var->setUnnamedAddr(GlobalValue::UnnamedAddr::Global);
 
     SmallVector<char, 32> NameBuf;
-    StringRef SectionName = Section.toStringRef(NameBuf);
-    if (!SectionName.empty())
+    
+    if (StringRef SectionName = Section.toStringRef(NameBuf); !SectionName.empty())
       Var->setSection(SectionName);
     return Var;
   }

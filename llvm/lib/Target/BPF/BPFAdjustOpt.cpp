@@ -305,8 +305,8 @@ bool BPFAdjustOptImpl::avoidSpeculation(Instruction &I) {
     // May cover a little bit more than the
     // above pattern.
     if (auto *Icmp1 = dyn_cast<ICmpInst>(Inst)) {
-      Value *Icmp1Op1 = Icmp1->getOperand(1);
-      if (!isa<Constant>(Icmp1Op1))
+      
+      if (Value *Icmp1Op1 = Icmp1->getOperand(1); !isa<Constant>(Icmp1Op1))
         return false;
       isCandidate = true;
       continue;
@@ -338,8 +338,8 @@ bool BPFAdjustOptImpl::avoidSpeculation(Instruction &I) {
       // traverse GEP inst to find Use operand index
       unsigned i, e;
       for (i = 1, e = GI->getNumOperands(); i != e; ++i) {
-        Value *V = GI->getOperand(i);
-        if (V == &I)
+        
+        if (Value *V = GI->getOperand(i); V == &I)
           break;
       }
       if (i == e)

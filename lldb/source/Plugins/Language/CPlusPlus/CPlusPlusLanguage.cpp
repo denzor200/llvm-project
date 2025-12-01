@@ -124,8 +124,8 @@ ConstString CPlusPlusLanguage::GetDemangledFunctionNameWithoutArguments(
                                         // eventually handle eSymbolTypeData,
                                         // we will want this back)
     {
-      CxxMethodName cxx_method(demangled_name);
-      if (!cxx_method.GetBasename().empty()) {
+      
+      if (CxxMethodName cxx_method(demangled_name); !cxx_method.GetBasename().empty()) {
         std::string shortname;
         if (!cxx_method.GetContext().empty())
           shortname = cxx_method.GetContext().str() + "::";
@@ -475,8 +475,8 @@ bool CPlusPlusLanguage::CxxMethodName::TrySimplifiedParse() {
   // A::B::C::fun(std::vector<T> &) const
   size_t arg_start, arg_end;
   llvm::StringRef full(m_full.GetCString());
-  llvm::StringRef parens("()", 2);
-  if (ReverseFindMatchingChars(full, parens, arg_start, arg_end)) {
+  
+  if (llvm::StringRef parens("()", 2); ReverseFindMatchingChars(full, parens, arg_start, arg_end)) {
     m_arguments = full.substr(arg_start, arg_end - arg_start + 1);
     if (arg_end + 1 < full.size())
       m_qualifiers = full.substr(arg_end + 1).ltrim();
@@ -485,8 +485,8 @@ bool CPlusPlusLanguage::CxxMethodName::TrySimplifiedParse() {
       return false;
     size_t basename_end = arg_start;
     size_t context_start = 0;
-    size_t context_end = full.rfind(':', basename_end);
-    if (context_end == llvm::StringRef::npos)
+    
+    if (size_t context_end = full.rfind(':', basename_end); context_end == llvm::StringRef::npos)
       m_basename = full.substr(0, basename_end);
     else {
       if (context_start < context_end)
@@ -515,8 +515,8 @@ void CPlusPlusLanguage::CxxMethodName::Parse() {
     if (TrySimplifiedParse()) {
       m_parse_error = false;
     } else {
-      CPlusPlusNameParser parser(m_full.GetStringRef());
-      if (auto function = parser.ParseAsFunctionDefinition()) {
+      
+      if (auto CPlusPlusNameParser parser(m_full.GetStringRef()); function = parser.ParseAsFunctionDefinition()) {
         m_basename = function->name.basename;
         m_context = function->name.context;
         m_arguments = function->arguments;
@@ -542,8 +542,8 @@ llvm::StringRef
 CPlusPlusLanguage::CxxMethodName::GetBasenameNoTemplateParameters() {
   llvm::StringRef basename = GetBasename();
   size_t arg_start, arg_end;
-  llvm::StringRef parens("<>", 2);
-  if (ReverseFindMatchingChars(basename, parens, arg_start, arg_end))
+  
+  if (llvm::StringRef parens("<>", 2); ReverseFindMatchingChars(basename, parens, arg_start, arg_end))
     return basename.substr(0, arg_start);
 
   return basename;
@@ -559,9 +559,9 @@ bool CPlusPlusLanguage::CxxMethodName::ContainsPath(llvm::StringRef path) {
 
   llvm::StringRef identifier;
   llvm::StringRef context;
-  const bool success =
-      CPlusPlusLanguage::ExtractContextAndIdentifier(path, context, identifier);
-  if (!success)
+  
+  if (const bool success =
+      CPlusPlusLanguage::ExtractContextAndIdentifier(path, context, identifier); !success)
     return m_full.GetStringRef().contains(path);
 
   // Basename may include template arguments.
@@ -1985,8 +1985,8 @@ std::unique_ptr<Language::TypeScavenger> CPlusPlusLanguage::GetTypeScavenger() {
   class CPlusPlusTypeScavenger : public Language::ImageListTypeScavenger {
   public:
     CompilerType AdjustForInclusion(CompilerType &candidate) override {
-      LanguageType lang_type(candidate.GetMinimumLanguage());
-      if (!Language::LanguageIsC(lang_type) &&
+      
+      if (LanguageType lang_type(candidate.GetMinimumLanguage()); !Language::LanguageIsC(lang_type) &&
           !Language::LanguageIsCPlusPlus(lang_type))
         return CompilerType();
       if (candidate.IsTypedefType())

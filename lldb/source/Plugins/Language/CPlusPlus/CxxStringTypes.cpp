@@ -234,8 +234,8 @@ bool lldb_private::formatters::StringBufferSummaryProvider(
 
   {
     DataExtractor extractor;
-    const size_t bytes_read = location_sp->GetPointeeData(extractor, 0, size);
-    if (bytes_read < size)
+    
+    if (const size_t bytes_read = location_sp->GetPointeeData(extractor, 0, size); bytes_read < size)
       return false;
 
     options.SetData(std::move(extractor));

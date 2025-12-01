@@ -217,9 +217,9 @@ llvm::Function *CodeGenModule::codegenCXXStructor(GlobalDecl GD) {
 llvm::FunctionCallee CodeGenModule::getAddrAndTypeOfCXXStructor(
     GlobalDecl GD, const CGFunctionInfo *FnInfo, llvm::FunctionType *FnType,
     bool DontDefer, ForDefinition_t IsForDefinition) {
-  auto *MD = cast<CXXMethodDecl>(GD.getDecl());
+  
 
-  if (isa<CXXDestructorDecl>(MD)) {
+  if (auto *MD = cast<CXXMethodDecl>(GD.getDecl()); isa<CXXDestructorDecl>(MD)) {
     // Always alias equivalent complete destructors to base destructors in the
     // MS ABI.
     if (getTarget().getCXXABI().isMicrosoft() &&

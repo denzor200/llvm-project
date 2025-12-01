@@ -122,11 +122,11 @@ protected:
 
       const tooling::Replacement Replacement(Loc.getManager(), Range,
                                              FixIt.CodeToInsert);
-      llvm::Error Err =
-          DiagWithFix->Fix[Replacement.getFilePath()].add(Replacement);
+      
       // FIXME: better error handling (at least, don't let other replacements be
       // applied).
-      if (Err) {
+      if (llvm::Error Err =
+          DiagWithFix->Fix[Replacement.getFilePath()].add(Replacement); Err) {
         llvm::errs() << "Fix conflicts with existing fix! "
                      << llvm::toString(std::move(Err)) << "\n";
         assert(false && "Fix conflicts with existing fix!");
@@ -317,8 +317,8 @@ ClangTidyDiagnosticConsumer::ClangTidyDiagnosticConsumer(
 
 void ClangTidyDiagnosticConsumer::finalizeLastError() {
   if (!Errors.empty()) {
-    const ClangTidyError &Error = Errors.back();
-    if (Error.DiagnosticName == "clang-tidy-config") {
+    
+    if (const ClangTidyError &Error = Errors.back(); Error.DiagnosticName == "clang-tidy-config") {
       // Never ignore these.
     } else if (!Context.isCheckEnabled(Error.DiagnosticName) &&
                Error.DiagLevel != ClangTidyError::Error) {
@@ -503,8 +503,8 @@ void ClangTidyDiagnosticConsumer::forwardDiagnostic(const Diagnostic &Info) {
   for (auto Range : Info.getRanges())
     Builder << Range;
   for (unsigned Index = 0; Index < Info.getNumArgs(); ++Index) {
-    const DiagnosticsEngine::ArgumentKind Kind = Info.getArgKind(Index);
-    switch (Kind) {
+    
+    switch (const DiagnosticsEngine::ArgumentKind Kind = Info.getArgKind(Index); Kind) {
     case clang::DiagnosticsEngine::ak_std_string:
       Builder << Info.getArgStdStr(Index);
       break;
@@ -711,8 +711,8 @@ void ClangTidyDiagnosticConsumer::removeIncompatibleErrors() {
       for (const auto &Replace : FileAndReplace.second) {
         const unsigned Begin = Replace.getOffset();
         const unsigned End = Begin + Replace.getLength();
-        auto &Events = FileEvents[Replace.getFilePath()];
-        if (Begin == End) {
+        
+        if (auto &Events = FileEvents[Replace.getFilePath()]; Begin == End) {
           Events.emplace_back(Begin, End, Event::ET_Insert, I, Sizes[I]);
         } else {
           Events.emplace_back(Begin, End, Event::ET_Begin, I, Sizes[I]);
@@ -815,10 +815,10 @@ void ClangTidyDiagnosticConsumer::removeDuplicatedDiagnosticsOfAliasCheckers() {
       ClangTidyError &ExistingError = **Inserted.first;
       const llvm::StringMap<tooling::Replacements> &CandidateFix =
           Error.Message.Fix;
-      const llvm::StringMap<tooling::Replacements> &ExistingFix =
-          (*Inserted.first)->Message.Fix;
+      
 
-      if (CandidateFix != ExistingFix) {
+      if (const llvm::StringMap<tooling::Replacements> &ExistingFix =
+          (*Inserted.first)->Message.Fix; CandidateFix != ExistingFix) {
         // In case of a conflict, don't suggest any fix-it.
         ExistingError.Message.Fix.clear();
         ExistingError.Notes.emplace_back(

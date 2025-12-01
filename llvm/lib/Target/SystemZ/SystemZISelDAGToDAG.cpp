@@ -362,8 +362,8 @@ public:
       : SelectionDAGISel(TM, OptLevel) {}
 
   bool runOnMachineFunction(MachineFunction &MF) override {
-    const Function &F = MF.getFunction();
-    if (F.getFnAttribute("fentry-call").getValueAsString() != "true") {
+    
+    if (const Function &F = MF.getFunction(); F.getFnAttribute("fentry-call").getValueAsString() != "true") {
       if (F.hasFnAttribute("mnop-mcount"))
         report_fatal_error("mnop-mcount only supported with fentry-call");
       if (F.hasFnAttribute("mrecord-mcount"))
@@ -464,8 +464,8 @@ static bool expandIndex(SystemZAddressingMode &AM, SDValue Base,
 static bool expandDisp(SystemZAddressingMode &AM, bool IsBase,
                        SDValue Op0, uint64_t Op1) {
   // First try adjusting the displacement.
-  int64_t TestDisp = AM.Disp + Op1;
-  if (selectDisp(AM.DR, TestDisp)) {
+  
+  if (int64_t TestDisp = AM.Disp + Op1; selectDisp(AM.DR, TestDisp)) {
     changeComponent(AM, IsBase, Op0);
     AM.Disp = TestDisp;
     return true;
@@ -577,8 +577,8 @@ static bool shouldUseLA(SDNode *Base, int64_t Disp, SDNode *Index) {
 
     // Prefer addition if the second operation is sign-extended, in the
     // hope of using AGF.
-    unsigned IndexOpcode = Index->getOpcode();
-    if (IndexOpcode == ISD::SIGN_EXTEND ||
+    
+    if (unsigned IndexOpcode = Index->getOpcode(); IndexOpcode == ISD::SIGN_EXTEND ||
         IndexOpcode == ISD::SIGN_EXTEND_INREG)
       return false;
   }
@@ -765,8 +765,8 @@ bool SystemZDAGToDAGISel::detectOrAndInsertion(SDValue &Op,
   // The inner check covers all cases but is more expensive.
   uint64_t Used = allOnes(Op.getValueSizeInBits());
   if (Used != (AndMask | InsertMask)) {
-    KnownBits Known = CurDAG->computeKnownBits(Op.getOperand(0));
-    if (Used != (AndMask | InsertMask | Known.Zero.getZExtValue()))
+    
+    if (KnownBits Known = CurDAG->computeKnownBits(Op.getOperand(0)); Used != (AndMask | InsertMask | Known.Zero.getZExtValue()))
       return false;
   }
 
@@ -797,16 +797,16 @@ static bool maskMatters(RxSBGOperands &RxSBG, uint64_t Mask) {
 
 bool SystemZDAGToDAGISel::expandRxSBG(RxSBGOperands &RxSBG) const {
   SDValue N = RxSBG.Input;
-  unsigned Opcode = N.getOpcode();
-  switch (Opcode) {
+  
+  switch (unsigned Opcode = N.getOpcode(); Opcode) {
   case ISD::TRUNCATE: {
     if (RxSBG.Opcode == SystemZ::RNSBG)
       return false;
     if (N.getOperand(0).getValueSizeInBits() > 64)
       return false;
     uint64_t BitSize = N.getValueSizeInBits();
-    uint64_t Mask = allOnes(BitSize);
-    if (!refineRxSBGMask(RxSBG, Mask))
+    
+    if (uint64_t Mask = allOnes(BitSize); !refineRxSBGMask(RxSBG, Mask))
       return false;
     RxSBG.Input = N.getOperand(0);
     return true;
@@ -1565,8 +1565,8 @@ bool SystemZDAGToDAGISel::storeLoadIsAligned(SDNode *N) const {
 
       // The alignment of the symbol itself must be at least the store size.
       const GlobalValue *GV = GA->getGlobal();
-      const DataLayout &DL = GV->getDataLayout();
-      if (GV->getPointerAlignment(DL).value() < StoreSize)
+      
+      if (const DataLayout &DL = GV->getDataLayout(); GV->getPointerAlignment(DL).value() < StoreSize)
         return false;
     }
 
@@ -1592,8 +1592,8 @@ void SystemZDAGToDAGISel::Select(SDNode *Node) {
     return;
   }
 
-  unsigned Opcode = Node->getOpcode();
-  switch (Opcode) {
+  
+  switch (unsigned Opcode = Node->getOpcode(); Opcode) {
   case ISD::OR:
     if (Node->getOperand(1).getOpcode() != ISD::Constant)
       if (tryRxSBG(Node, SystemZ::ROSBG))
@@ -1625,8 +1625,8 @@ void SystemZDAGToDAGISel::Select(SDNode *Node) {
           // Check whether this expression matches OR-with-complement
           // (or matches an alternate pattern for NXOR).
           if (ChildOpcode == ISD::XOR) {
-            auto Op0 = Node->getOperand(0);
-            if (auto *Op0Op1 = dyn_cast<ConstantSDNode>(Op0->getOperand(1)))
+            
+            if (auto *auto Op0 = Node->getOperand(0); Op0Op1 = dyn_cast<ConstantSDNode>(Op0->getOperand(1)))
               if (Op0Op1->getZExtValue() == (uint64_t)-1)
                 break;
           }
@@ -1680,8 +1680,8 @@ void SystemZDAGToDAGISel::Select(SDNode *Node) {
     // If this is a 64-bit constant that is out of the range of LLILF,
     // LLIHF and LGFI, split it into two 32-bit pieces.
     if (Node->getValueType(0) == MVT::i64) {
-      uint64_t Val = Node->getAsZExtVal();
-      if (!SystemZ::isImmLF(Val) && !SystemZ::isImmHF(Val) && !isInt<32>(Val)) {
+      
+      if (uint64_t Val = Node->getAsZExtVal(); !SystemZ::isImmLF(Val) && !SystemZ::isImmHF(Val) && !isInt<32>(Val)) {
         splitLargeImmediate(ISD::OR, Node, SDValue(), Val - uint32_t(Val),
                             uint32_t(Val));
         return;
@@ -1722,9 +1722,9 @@ void SystemZDAGToDAGISel::Select(SDNode *Node) {
       CCMask = CurDAG->getTargetConstant(ConstCCValid ^ ConstCCMask,
                                          SDLoc(Node), CCMask.getValueType());
       SDValue Op4 = Node->getOperand(4);
-      SDNode *UpdatedNode =
-        CurDAG->UpdateNodeOperands(Node, Op1, Op0, CCValid, CCMask, Op4);
-      if (UpdatedNode != Node) {
+      
+      if (SDNode *UpdatedNode =
+        CurDAG->UpdateNodeOperands(Node, Op1, Op0, CCValid, CCMask, Op4); UpdatedNode != Node) {
         // In case this node already exists then replace Node with it.
         ReplaceNode(Node, UpdatedNode);
         Node = UpdatedNode;
@@ -1735,8 +1735,8 @@ void SystemZDAGToDAGISel::Select(SDNode *Node) {
 
   case ISD::INSERT_VECTOR_ELT: {
     EVT VT = Node->getValueType(0);
-    unsigned ElemBitSize = VT.getScalarSizeInBits();
-    if (ElemBitSize == 32) {
+    
+    if (unsigned ElemBitSize = VT.getScalarSizeInBits(); ElemBitSize == 32) {
       if (tryGather(Node, SystemZ::VGEF))
         return;
     } else if (ElemBitSize == 64) {

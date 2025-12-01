@@ -429,9 +429,9 @@ Block *SymbolFileNativePDB::CreateBlock(PdbCompilandSymId block_id) {
   auto ts = *ts_or_err;
   if (!ts)
     return nullptr;
-  PdbAstBuilder* ast_builder = ts->GetNativePDBParser();
+  
 
-  switch (sym.kind()) {
+  switch (PdbAstBuilder* ast_builder = ts->GetNativePDBParser(); sym.kind()) {
   case S_GPROC32:
   case S_LPROC32:
     // This is a function.  It must be global.  Creating the Function entry
@@ -858,9 +858,9 @@ TypeSP SymbolFileNativePDB::CreateAndCacheType(PdbTypeSymId type_id) {
   // decl and just map the forward ref uid to the full decl record.
   std::optional<PdbTypeSymId> full_decl_uid;
   if (IsForwardRefUdt(type_id, m_index->tpi())) {
-    auto expected_full_ti =
-        m_index->tpi().findFullDeclForForwardRef(type_id.index);
-    if (!expected_full_ti)
+    
+    if (auto expected_full_ti =
+        m_index->tpi().findFullDeclForForwardRef(type_id.index); !expected_full_ti)
       llvm::consumeError(expected_full_ti.takeError());
     else if (*expected_full_ti != type_id.index) {
       full_decl_uid = PdbTypeSymId(*expected_full_ti, false);
@@ -1161,8 +1161,8 @@ void SymbolFileNativePDB::AddSymbols(Symtab &symtab) {
   for (auto pid : m_index->publics().getAddressMap()) {
     PdbGlobalSymId global{pid, true};
     CVSymbol sym = m_index->ReadSymbolRecord(global);
-    auto kind = sym.kind();
-    if (kind != S_PUB32)
+    
+    if (auto kind = sym.kind(); kind != S_PUB32)
       continue;
     PublicSym32 pub =
         llvm::cantFail(SymbolDeserializer::deserializeAs<PublicSym32>(sym));
@@ -1691,17 +1691,17 @@ void SymbolFileNativePDB::ParseInlineSite(PdbCompilandSymId id,
   std::unique_ptr<Declaration> callsite_up;
   if (!inline_site_sp->ranges.IsEmpty()) {
     auto *entry = inline_site_sp->ranges.GetEntryAtIndex(0);
-    addr_t base_offset = entry->GetRangeBase();
-    if (cii->m_debug_stream.readSymbolAtOffset(parent_id.offset).kind() ==
+    
+    if (addr_t base_offset = entry->GetRangeBase(); cii->m_debug_stream.readSymbolAtOffset(parent_id.offset).kind() ==
         S_INLINESITE) {
       // Its parent is another inline site, lookup parent site's range vector
       // for callsite line.
       ParseInlineSite(parent_id, func_base);
       std::shared_ptr<InlineSite> parent_site =
           m_inline_sites[toOpaqueUid(parent_id)];
-      FileSpec &parent_decl_file =
-          parent_site->inline_function_info->GetDeclaration().GetFile();
-      if (auto *parent_entry =
+      
+      if (auto *FileSpec &parent_decl_file =
+          parent_site->inline_function_info->GetDeclaration().GetFile(); parent_entry =
               parent_site->ranges.FindEntryThatContains(base_offset)) {
         callsite_up =
             std::make_unique<Declaration>(parent_decl_file, parent_entry->data);
@@ -1781,8 +1781,8 @@ size_t SymbolFileNativePDB::ParseSymbolArrayInScope(
 
   size_t count = 1;
   for (auto iter = syms.begin(); iter != syms.end(); ++iter) {
-    PdbCompilandSymId child_id(parent_id.modi, iter.offset());
-    if (fn(iter->kind(), child_id))
+    
+    if (PdbCompilandSymId child_id(parent_id.modi, iter.offset()); fn(iter->kind(), child_id))
       ++count;
   }
 
@@ -1904,8 +1904,8 @@ void SymbolFileNativePDB::CacheGlobalBaseNames() {
   for (auto pid : m_index->publics().getPublicsTable()) {
     PdbGlobalSymId global{pid, true};
     CVSymbol sym = m_index->ReadSymbolRecord(global);
-    auto kind = sym.kind();
-    if (kind != S_PUB32)
+    
+    if (auto kind = sym.kind(); kind != S_PUB32)
       continue;
     PublicSym32 pub =
         llvm::cantFail(SymbolDeserializer::deserializeAs<PublicSym32>(sym));
@@ -2089,8 +2089,8 @@ size_t SymbolFileNativePDB::ParseTypes(CompileUnit &comp_unit) {
 
   // First process the entire TPI stream.
   for (auto ti = types.getFirst(); ti; ti = types.getNext(*ti)) {
-    TypeSP type = GetOrCreateType(*ti);
-    if (type)
+    
+    if (TypeSP type = GetOrCreateType(*ti); type)
       (void)type->GetFullCompilerType();
   }
 
@@ -2128,12 +2128,12 @@ SymbolFileNativePDB::ParseVariablesForCompileUnit(CompileUnit &comp_unit,
   lldbassert(sym_uid.kind() == PdbSymUidKind::Compiland);
   for (const uint32_t gid : m_index->globals().getGlobalsTable()) {
     PdbGlobalSymId global{gid, false};
-    CVSymbol sym = m_index->ReadSymbolRecord(global);
+    
     // TODO: S_CONSTANT is not handled here to prevent a possible crash in
     // lldb_private::npdb::MakeConstantLocationExpression when it's a record
     // type (e.g. std::strong_ordering::equal). That function needs to be
     // updated to handle this case when we add S_CONSTANT case here.
-    switch (sym.kind()) {
+    switch (CVSymbol sym = m_index->ReadSymbolRecord(global); sym.kind()) {
     case SymbolKind::S_GDATA32:
     case SymbolKind::S_LDATA32:
     case SymbolKind::S_GTHREAD32:
@@ -2334,8 +2334,8 @@ size_t SymbolFileNativePDB::ParseVariablesForBlock(PdbCompilandSymId block_id) {
     }
 
     bool is_param = params_remaining > 0;
-    VariableSP variable;
-    switch (variable_cvs.kind()) {
+    
+    switch (VariableSP variable; variable_cvs.kind()) {
     case S_REGREL32:
     case S_REGISTER:
     case S_LOCAL:
@@ -2590,8 +2590,8 @@ void SymbolFileNativePDB::BuildParentMap() {
 
       llvm::Error visitKnownMember(CVMemberRecord &CVR,
                                    NestedTypeRecord &Record) override {
-        std::string unnamed_type_name;
-        if (Record.Name.empty()) {
+        
+        if (std::string unnamed_type_name; Record.Name.empty()) {
           unnamed_type_name =
               llvm::formatv("<unnamed-type-$S{0}>", unnamed_type_index).str();
           Record.Name = unnamed_type_name;
@@ -2688,8 +2688,8 @@ SymbolFileNativePDB::FindSymbolScope(PdbCompilandSymId id) {
     if (symbolOpensScope(begin->kind())) {
       // We can use the end offset of the scope to determine whether or not
       // we can just outright skip this entire scope.
-      uint32_t scope_end = getScopeEndOffset(*begin);
-      if (scope_end < id.offset) {
+      
+      if (uint32_t scope_end = getScopeEndOffset(*begin); scope_end < id.offset) {
         begin = syms.at(scope_end);
       } else {
         // The symbol we're looking for is somewhere in this scope.

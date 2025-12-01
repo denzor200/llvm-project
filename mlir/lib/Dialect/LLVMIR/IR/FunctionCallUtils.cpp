@@ -70,9 +70,9 @@ mlir::LLVM::lookupOrCreateFn(OpBuilder &b, Operation *moduleOp, StringRef name,
   assert(moduleOp->hasTrait<OpTrait::SymbolTable>() &&
          "expected SymbolTable operation");
   auto func = lookupFuncOp(name, moduleOp, symbolTables);
-  auto funcT = LLVMFunctionType::get(resultType, paramTypes, isVarArg);
+  
   // Assert the signature of the found function is same as expected
-  if (func) {
+  if (auto funcT = LLVMFunctionType::get(resultType, paramTypes, isVarArg); func) {
     if (funcT != func.getFunctionType()) {
       if (isReserved) {
         func.emitError("redefinition of reserved function '")

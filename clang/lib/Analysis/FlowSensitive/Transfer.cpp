@@ -182,9 +182,9 @@ public:
     case BO_LAnd:
     case BO_LOr: {
       BoolValue &LHSVal = getLogicOperatorSubExprValue(*LHS);
-      BoolValue &RHSVal = getLogicOperatorSubExprValue(*RHS);
+      
 
-      if (S->getOpcode() == BO_LAnd)
+      if (BoolValue &RHSVal = getLogicOperatorSubExprValue(*RHS); S->getOpcode() == BO_LAnd)
         Env.setValue(*S, Env.makeAnd(LHSVal, RHSVal));
       else
         Env.setValue(*S, Env.makeOr(LHSVal, RHSVal));
@@ -356,8 +356,8 @@ public:
       for (const FieldDecl *Field :
            Env.getDataflowAnalysisContext().getModeledFields(Derived)) {
         assert(Field != nullptr);
-        QualType FieldType = Field->getType();
-        if (FieldType->isReferenceType()) {
+        
+        if (QualType FieldType = Field->getType(); FieldType->isReferenceType()) {
           Loc->addChild(*Field, nullptr);
         } else {
           Loc->addChild(*Field, &Env.createStorageLocation(FieldType));
@@ -767,9 +767,9 @@ public:
 
     if (S->isGLValue()) {
       StorageLocation *TrueLoc = TrueEnv->getStorageLocation(*S->getTrueExpr());
-      StorageLocation *FalseLoc =
-          FalseEnv->getStorageLocation(*S->getFalseExpr());
-      if (TrueLoc == FalseLoc && TrueLoc != nullptr) {
+      
+      if (StorageLocation *FalseLoc =
+          FalseEnv->getStorageLocation(*S->getFalseExpr()); TrueLoc == FalseLoc && TrueLoc != nullptr) {
         Env.setStorageLocation(*S, *TrueLoc);
       } else if (!S->getType()->isRecordType()) {
         // Ideally, we would have something like an "alias set" to say that the
@@ -816,9 +816,9 @@ public:
   }
 
   void VisitInitListExpr(const InitListExpr *S) {
-    QualType Type = S->getType();
+    
 
-    if (!Type->isRecordType()) {
+    if (QualType Type = S->getType(); !Type->isRecordType()) {
       // Until array initialization is implemented, we skip arrays and don't
       // need to care about cases where `getNumInits() > 1`.
       if (!Type->isArrayType() && S->getNumInits() == 1)
@@ -865,8 +865,8 @@ public:
     }
 
     for (const auto &[FieldName, FieldLoc] : Loc.synthetic_fields()) {
-      QualType FieldType = FieldLoc->getType();
-      if (FieldType->isRecordType()) {
+      
+      if (QualType FieldType = FieldLoc->getType(); FieldType->isRecordType()) {
         Env.initializeFieldsWithValues(*cast<RecordStorageLocation>(FieldLoc));
       } else {
         if (Value *Val = Env.createValue(FieldType))

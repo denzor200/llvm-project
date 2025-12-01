@@ -672,9 +672,9 @@ void Preprocessor::HandlePragmaPopMacro(Token &PopMacroTok) {
     }
 
     // Get the MacroInfo we want to reinstall.
-    MacroInfo *MacroToReInstall = iter->second.back();
+    
 
-    if (MacroToReInstall)
+    if (MacroInfo *MacroToReInstall = iter->second.back(); MacroToReInstall)
       // Reinstall the previously pushed macro.
       appendDefMacroDirective(IdentInfo, MacroToReInstall, MessageLoc);
 
@@ -886,8 +886,8 @@ void Preprocessor::HandlePragmaHdrstop(Token &Tok) {
   if (Tok.is(tok::l_paren)) {
     Diag(Tok.getLocation(), diag::warn_pp_hdrstop_filename_ignored);
 
-    std::string FileName;
-    if (!LexStringLiteral(Tok, FileName, "pragma hdrstop", false))
+    
+    if (std::string FileName; !LexStringLiteral(Tok, FileName, "pragma hdrstop", false))
       return;
 
     if (Tok.isNot(tok::r_paren)) {
@@ -976,8 +976,8 @@ bool Preprocessor::LexOnOffSwitch(tok::OnOffSwitch &Result) {
     Diag(Tok, diag::ext_on_off_switch_syntax);
     return true;
   }
-  IdentifierInfo *II = Tok.getIdentifierInfo();
-  if (II->isStr("ON"))
+  
+  if (IdentifierInfo *II = Tok.getIdentifierInfo(); II->isStr("ON"))
     Result = tok::OOS_ON;
   else if (II->isStr("OFF"))
     Result = tok::OOS_OFF;
@@ -1068,8 +1068,8 @@ struct PragmaDebugHandler : public PragmaHandler {
         llvm_unreachable("This is an assertion!");
     } else if (II->isStr("crash")) {
       llvm::Timer T("crash", "pragma crash");
-      llvm::TimeRegion R(&T);
-      if (!PP.getPreprocessorOpts().DisablePragmaDebugCrash)
+      
+      if (llvm::TimeRegion R(&T); !PP.getPreprocessorOpts().DisablePragmaDebugCrash)
         LLVM_BUILTIN_TRAP;
     } else if (II->isStr("parser_crash")) {
       if (!PP.getPreprocessorOpts().DisablePragmaDebugCrash) {
@@ -1109,8 +1109,8 @@ struct PragmaDebugHandler : public PragmaHandler {
     } else if (II->isStr("macro")) {
       Token MacroName;
       PP.LexUnexpandedToken(MacroName);
-      auto *MacroII = MacroName.getIdentifierInfo();
-      if (MacroII)
+      
+      if (auto *MacroII = MacroName.getIdentifierInfo(); MacroII)
         PP.dumpMacroInfo(MacroII);
       else
         PP.Diag(MacroName, diag::warn_pragma_debug_missing_argument)
@@ -1179,8 +1179,8 @@ struct PragmaDebugHandler : public PragmaHandler {
 
       Token Kind;
       PP.LexUnexpandedToken(Kind);
-      auto *DumpII = Kind.getIdentifierInfo();
-      if (!DumpII) {
+      
+      if (auto *DumpII = Kind.getIdentifierInfo(); !DumpII) {
         PP.Diag(Kind, diag::warn_pragma_debug_missing_argument)
             << II->getName();
       } else if (DumpII->isStr("all")) {
@@ -1209,8 +1209,8 @@ struct PragmaDebugHandler : public PragmaHandler {
       std::optional<unsigned> MaxNotes;
       Token ArgToken;
       PP.Lex(ArgToken);
-      uint64_t Value;
-      if (ArgToken.is(tok::numeric_constant) &&
+      
+      if (uint64_t Value; ArgToken.is(tok::numeric_constant) &&
           PP.parseSimpleIntegerLiteral(ArgToken, Value)) {
         MaxNotes = Value;
       } else if (ArgToken.isNot(tok::eod)) {
@@ -1277,9 +1277,9 @@ struct PragmaUnsafeBufferUsageHandler : public PragmaHandler {
     }
 
     IdentifierInfo *II = Tok.getIdentifierInfo();
-    SourceLocation Loc = Tok.getLocation();
+    
 
-    if (II->isStr("begin")) {
+    if (SourceLocation Loc = Tok.getLocation(); II->isStr("begin")) {
       if (PP.enterOrExitSafeBufferOptOutRegion(true, Loc))
         PP.Diag(Loc, diag::err_pp_double_begin_pragma_unsafe_buffer_usage);
     } else if (II->isStr("end")) {
@@ -1415,16 +1415,16 @@ struct PragmaWarningHandler : public PragmaHandler {
     }
 
     PP.Lex(Tok);
-    IdentifierInfo *II = Tok.getIdentifierInfo();
+    
 
-    if (II && II->isStr("push")) {
+    if (IdentifierInfo *II = Tok.getIdentifierInfo(); II && II->isStr("push")) {
       // #pragma warning( push[ ,n ] )
       int Level = -1;
       PP.Lex(Tok);
       if (Tok.is(tok::comma)) {
         PP.Lex(Tok);
-        uint64_t Value;
-        if (Tok.is(tok::numeric_constant) &&
+        
+        if (uint64_t Value; Tok.is(tok::numeric_constant) &&
             PP.parseSimpleIntegerLiteral(Tok, Value))
           Level = int(Value);
         if (Level < 0 || Level > 4) {
@@ -1474,8 +1474,8 @@ struct PragmaWarningHandler : public PragmaHandler {
             PP.Lex(Tok);
         } else {
           // Token is a numeric constant. It should be either 1, 2, 3 or 4.
-          uint64_t Value;
-          if (PP.parseSimpleIntegerLiteral(Tok, Value)) {
+          
+          if (uint64_t Value; PP.parseSimpleIntegerLiteral(Tok, Value)) {
             if ((SpecifierValid = (Value >= 1) && (Value <= 4)))
               Specifier = static_cast<PPCallbacks::PragmaWarningSpecifier>(
                   PPCallbacks::PWS_Level1 + Value - 1);
@@ -1563,9 +1563,9 @@ struct PragmaExecCharsetHandler : public PragmaHandler {
     }
 
     PP.Lex(Tok);
-    IdentifierInfo *II = Tok.getIdentifierInfo();
+    
 
-    if (II && II->isStr("push")) {
+    if (IdentifierInfo *II = Tok.getIdentifierInfo(); II && II->isStr("push")) {
       // #pragma execution_character_set( push[ , string ] )
       PP.Lex(Tok);
       if (Tok.is(tok::comma)) {
@@ -1816,8 +1816,8 @@ struct PragmaModuleEndHandler : public PragmaHandler {
     if (Tok.isNot(tok::eod))
       PP.Diag(Tok, diag::ext_pp_extra_tokens_at_eol) << "pragma";
 
-    Module *M = PP.LeaveSubmodule(/*ForPragma*/true);
-    if (M)
+    
+    if (Module *M = PP.LeaveSubmodule(/*ForPragma*/true); M)
       PP.EnterAnnotationToken(SourceRange(Loc), tok::annot_module_end, M);
     else
       PP.Diag(Loc, diag::err_pp_module_end_without_module_begin);
@@ -1892,8 +1892,8 @@ struct PragmaARCCFCodeAuditedHandler : public PragmaHandler {
 
     // Lex the 'begin' or 'end'.
     PP.LexUnexpandedToken(Tok);
-    const IdentifierInfo *BeginEnd = Tok.getIdentifierInfo();
-    if (BeginEnd && BeginEnd->isStr("begin")) {
+    
+    if (const IdentifierInfo *BeginEnd = Tok.getIdentifierInfo(); BeginEnd && BeginEnd->isStr("begin")) {
       IsBegin = true;
     } else if (BeginEnd && BeginEnd->isStr("end")) {
       IsBegin = false;
@@ -1947,8 +1947,8 @@ struct PragmaAssumeNonNullHandler : public PragmaHandler {
 
     // Lex the 'begin' or 'end'.
     PP.LexUnexpandedToken(Tok);
-    const IdentifierInfo *BeginEnd = Tok.getIdentifierInfo();
-    if (BeginEnd && BeginEnd->isStr("begin")) {
+    
+    if (const IdentifierInfo *BeginEnd = Tok.getIdentifierInfo(); BeginEnd && BeginEnd->isStr("begin")) {
       IsBegin = true;
     } else if (BeginEnd && BeginEnd->isStr("end")) {
       IsBegin = false;
@@ -2073,9 +2073,9 @@ struct PragmaDeprecatedHandler : public PragmaHandler {
 
   void HandlePragma(Preprocessor &PP, PragmaIntroducer Introducer,
                     Token &Tok) override {
-    std::string MessageString;
+    
 
-    if (IdentifierInfo *II = HandleMacroAnnotationPragma(
+    if (IdentifierInfo *std::string MessageString; II = HandleMacroAnnotationPragma(
             PP, Tok, "#pragma clang deprecated", MessageString)) {
       II->setIsDeprecatedMacro(true);
       PP.addMacroDeprecationMsg(II, std::move(MessageString),
@@ -2095,9 +2095,9 @@ struct PragmaRestrictExpansionHandler : public PragmaHandler {
 
   void HandlePragma(Preprocessor &PP, PragmaIntroducer Introducer,
                     Token &Tok) override {
-    std::string MessageString;
+    
 
-    if (IdentifierInfo *II = HandleMacroAnnotationPragma(
+    if (IdentifierInfo *std::string MessageString; II = HandleMacroAnnotationPragma(
             PP, Tok, "#pragma clang restrict_expansion", MessageString)) {
       II->setIsRestrictExpansion(true);
       PP.addRestrictExpansionMsg(II, std::move(MessageString),

@@ -346,8 +346,8 @@ FailureOr<LinalgOp> mlir::linalg::specializeGenericOp(RewriterBase &rewriter,
 
   // Elementwise Unary
   if (isaElemwiseSingleUnaryOpInterface(genericOp)) {
-    Operation *op = &genericOp.getBody()->front();
-    if (isa<math::ExpOp>(op)) {
+    
+    if (Operation *op = &genericOp.getBody()->front(); isa<math::ExpOp>(op)) {
       LinalgOp namedOp = REPLACE_UNARY_OP(ExpOp);
       return namedOp;
     }

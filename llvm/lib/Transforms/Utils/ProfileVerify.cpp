@@ -71,8 +71,8 @@ bool isAsmOnly(const Function &F) {
     return false;
   for (const auto &BB : F)
     for (const auto &I : drop_end(BB.instructionsWithoutDebug())) {
-      const auto *CB = dyn_cast<CallBase>(&I);
-      if (!CB || !CB->isInlineAsm())
+      
+      if (const auto *CB = dyn_cast<CallBase>(&I); !CB || !CB->isInlineAsm())
         return false;
     }
   return true;
@@ -182,8 +182,8 @@ bool ProfileInjector::inject() {
 
 PreservedAnalyses ProfileInjectorPass::run(Function &F,
                                            FunctionAnalysisManager &FAM) {
-  ProfileInjector PI(F, FAM);
-  if (!PI.inject())
+  
+  if (ProfileInjector PI(F, FAM); !PI.inject())
     return PreservedAnalyses::all();
 
   return PreservedAnalyses::none();
@@ -197,8 +197,8 @@ PreservedAnalyses ProfileVerifierPass::run(Function &F,
 
   const auto EntryCount = F.getEntryCount(/*AllowSynthetic=*/true);
   if (!EntryCount) {
-    auto *MD = F.getMetadata(LLVMContext::MD_prof);
-    if (!MD || !isExplicitlyUnknownProfileMetadata(*MD)) {
+    
+    if (auto *MD = F.getMetadata(LLVMContext::MD_prof); !MD || !isExplicitlyUnknownProfileMetadata(*MD)) {
       F.getContext().emitError("Profile verification failed: function entry "
                                "count missing (set to 0 if cold)");
       return PreservedAnalyses::all();

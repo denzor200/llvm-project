@@ -226,9 +226,9 @@ struct TestVectorUnrollingPatterns
       if (!unrollOrder.empty()) {
         opts.setUnrollTraversalOrderFn(
             [this](Operation *op) -> std::optional<SmallVector<int64_t>> {
-              vector::ContractionOp contractOp =
-                  cast<vector::ContractionOp>(op);
-              if (contractOp.getIteratorTypes().size() == unrollOrder.size())
+              
+              if (vector::ContractionOp contractOp =
+                  cast<vector::ContractionOp>(op); contractOp.getIteratorTypes().size() == unrollOrder.size())
                 return SmallVector<int64_t>(unrollOrder.begin(),
                                             unrollOrder.end());
               return std::nullopt;
@@ -633,8 +633,8 @@ struct TestVectorDistribution
       // Create an identity dim map of the same rank as the vector.
       VectorType vecType = dyn_cast<VectorType>(val.getType());
       int64_t vecRank = vecType ? vecType.getRank() : 0;
-      OpBuilder builder(val.getContext());
-      if (vecRank == 0)
+      
+      if (OpBuilder builder(val.getContext()); vecRank == 0)
         return AffineMap::get(val.getContext());
       return AffineMap::getMultiDimIdentityMap(vecRank, val.getContext());
     };

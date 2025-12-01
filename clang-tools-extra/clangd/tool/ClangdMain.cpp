@@ -606,9 +606,9 @@ const char TestScheme::TestDir[] = "/clangd-test";
 std::unique_ptr<SymbolIndex>
 loadExternalIndex(const Config::ExternalIndexSpec &External,
                   AsyncTaskRunner *Tasks, bool SupportContainedRefs) {
-  static const trace::Metric RemoteIndexUsed("used_remote_index",
-                                             trace::Metric::Value, "address");
-  switch (External.Kind) {
+  
+  switch (static const trace::Metric RemoteIndexUsed("used_remote_index",
+                                             trace::Metric::Value, "address"); External.Kind) {
   case Config::ExternalIndexSpec::None:
     break;
   case Config::ExternalIndexSpec::Server:
@@ -678,8 +678,8 @@ public:
         // --compile-commands-dir argument, but we assume the path is absolute
         // in the rest of clangd so we make sure the path is absolute before
         // continuing.
-        llvm::SmallString<128> Path(CompileCommandsDir);
-        if (std::error_code EC = llvm::sys::fs::make_absolute(Path)) {
+        
+        if (std::error_code llvm::SmallString<128> Path(CompileCommandsDir); EC = llvm::sys::fs::make_absolute(Path)) {
           elog("Error while converting the relative path specified by "
                "--compile-commands-dir to an absolute path: {0}. The argument "
                "will be ignored.",
@@ -882,8 +882,8 @@ clangd accepts flags on the commandline, and in the CLANGD_FLAGS environment var
   log("Features: {0}", featureString());
   log("PID: {0}", llvm::sys::Process::getProcessId());
   {
-    SmallString<128> CWD;
-    if (auto Err = llvm::sys::fs::current_path(CWD))
+    
+    if (auto SmallString<128> CWD; Err = llvm::sys::fs::current_path(CWD))
       log("Working directory unknown: {0}", Err.message());
     else
       log("Working directory: {0}", CWD);
@@ -960,8 +960,8 @@ clangd accepts flags on the commandline, and in the CLANGD_FLAGS environment var
   if (EnableConfig) {
     ProviderStack.push_back(
         config::Provider::fromAncestorRelativeYAMLFiles(".clangd", TFS));
-    llvm::SmallString<256> UserConfig;
-    if (llvm::sys::path::user_config_directory(UserConfig)) {
+    
+    if (llvm::SmallString<256> UserConfig; llvm::sys::path::user_config_directory(UserConfig)) {
       llvm::sys::path::append(UserConfig, "clangd", "config.yaml");
       vlog("User config file is {0}", UserConfig);
       ProviderStack.push_back(config::Provider::fromYAMLFile(

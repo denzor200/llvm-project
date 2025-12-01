@@ -66,9 +66,9 @@ static bool getFullyQualifiedTemplateName(const ASTContext &Ctx,
   if (QTName &&
       !QTName->hasTemplateKeyword() &&
       (NNS = QTName->getQualifier())) {
-    NestedNameSpecifier QNNS =
-        getFullyQualifiedNestedNameSpecifier(Ctx, NNS, WithGlobalNsPrefix);
-    if (QNNS != NNS) {
+    
+    if (NestedNameSpecifier QNNS =
+        getFullyQualifiedNestedNameSpecifier(Ctx, NNS, WithGlobalNsPrefix); QNNS != NNS) {
       Changed = true;
       NNS = QNNS;
     } else {
@@ -107,8 +107,8 @@ static bool getFullyQualifiedTemplateArgument(const ASTContext &Ctx,
   } else if (Arg.getKind() == TemplateArgument::Type) {
     QualType SubTy = Arg.getAsType();
     // Check if the type needs more desugaring and recurse.
-    QualType QTFQ = getFullyQualifiedType(SubTy, Ctx, WithGlobalNsPrefix);
-    if (QTFQ != SubTy) {
+    
+    if (QualType QTFQ = getFullyQualifiedType(SubTy, Ctx, WithGlobalNsPrefix); QTFQ != SubTy) {
       Arg = TemplateArgument(QTFQ);
       Changed = true;
     }

@@ -37,8 +37,8 @@ ThreadPlanStepUntil::ThreadPlanStepUntil(Thread &thread,
   // Stash away our "until" addresses:
   TargetSP target_sp(thread.CalculateTarget());
 
-  StackFrameSP frame_sp(thread.GetStackFrameAtIndex(frame_idx));
-  if (frame_sp) {
+  
+  if (StackFrameSP frame_sp(thread.GetStackFrameAtIndex(frame_idx)); frame_sp) {
     m_step_from_insn = frame_sp->GetStackID().GetPC();
 
     // Find the return address and set a breakpoint there:
@@ -150,9 +150,9 @@ void ThreadPlanStepUntil::AnalyzeStop() {
   m_explains_stop = false;
 
   if (stop_info_sp) {
-    StopReason reason = stop_info_sp->GetStopReason();
+    
 
-    if (reason == eStopReasonBreakpoint) {
+    if (StopReason reason = stop_info_sp->GetStopReason(); reason == eStopReasonBreakpoint) {
       // If this is OUR breakpoint, we're fine, otherwise we don't know why
       // this happened...
       BreakpointSiteSP this_site =
@@ -203,11 +203,11 @@ void ThreadPlanStepUntil::AnalyzeStop() {
             else if (frame_zero_id < m_stack_id)
               done = false;
             else {
-              StackFrameSP older_frame_sp = thread.GetStackFrameAtIndex(1);
+              
 
               // But if we can't even unwind one frame we should just get out
               // of here & stop...
-              if (older_frame_sp) {
+              if (StackFrameSP older_frame_sp = thread.GetStackFrameAtIndex(1); older_frame_sp) {
                 const SymbolContext &older_context =
                     older_frame_sp->GetSymbolContext(eSymbolContextEverything);
                 SymbolContext stack_context;

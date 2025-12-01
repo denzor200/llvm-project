@@ -63,8 +63,8 @@ bool MultipleInheritanceCheck::isInterface(const CXXRecordDecl *Node) {
     return false;
 
   // Short circuit the lookup if we have analyzed this record before.
-  bool PreviousIsInterfaceResult = false;
-  if (getInterfaceStatus(Node, PreviousIsInterfaceResult))
+  
+  if (bool PreviousIsInterfaceResult = false; getInterfaceStatus(Node, PreviousIsInterfaceResult))
     return PreviousIsInterfaceResult;
 
   // To be an interface, all base classes must be interfaces as well.

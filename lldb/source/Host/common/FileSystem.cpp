@@ -208,8 +208,8 @@ std::error_code FileSystem::MakeAbsolute(FileSpec &file_spec) const {
   SmallString<128> path;
   file_spec.GetPath(path, false);
 
-  auto EC = MakeAbsolute(path);
-  if (EC)
+  
+  if (auto EC = MakeAbsolute(path); EC)
     return EC;
 
   FileSpec new_file_spec(path, file_spec.GetPathStyle());
@@ -317,8 +317,8 @@ FileSystem::CreateDataBuffer(const FileSpec &file_spec, uint64_t size,
 
 bool FileSystem::ResolveExecutableLocation(FileSpec &file_spec) {
   // If the directory is set there's nothing to do.
-  ConstString directory = file_spec.GetDirectory();
-  if (directory)
+  
+  if (ConstString directory = file_spec.GetDirectory(); directory)
     return false;
 
   // We cannot look for a file if there's no file name.
@@ -371,10 +371,10 @@ static int OpenWithFS(const FileSystem &fs, const char *path, int flags,
 
 static int GetOpenFlags(File::OpenOptions options) {
   int open_flags = 0;
-  File::OpenOptions rw =
+  
+  if (File::OpenOptions rw =
       options & (File::eOpenOptionReadOnly | File::eOpenOptionWriteOnly |
-                 File::eOpenOptionReadWrite);
-  if (rw == File::eOpenOptionWriteOnly || rw == File::eOpenOptionReadWrite) {
+                 File::eOpenOptionReadWrite); rw == File::eOpenOptionWriteOnly || rw == File::eOpenOptionReadWrite) {
     if (rw == File::eOpenOptionReadWrite)
       open_flags |= O_RDWR;
     else

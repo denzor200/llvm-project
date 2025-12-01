@@ -867,8 +867,8 @@ void Interpreter::popStackAndReturnValueToCaller(Type *RetTy,
   } else {
     // If we have a previous stack frame, and we have a previous call,
     // fill in the return value...
-    ExecutionContext &CallingSF = ECStack.back();
-    if (CallingSF.Caller) {
+    
+    if (ExecutionContext &CallingSF = ECStack.back(); CallingSF.Caller) {
       // Save result...
       if (!CallingSF.Caller->getType()->isVoidTy())
         SetValue(CallingSF.Caller, Result, CallingSF);
@@ -903,8 +903,8 @@ void Interpreter::visitBranchInst(BranchInst &I) {
 
   Dest = I.getSuccessor(0);          // Uncond branches have a fixed dest...
   if (!I.isUnconditional()) {
-    Value *Cond = I.getCondition();
-    if (getOperandValue(Cond, SF).IntVal == 0) // If false cond...
+    
+    if (Value *Cond = I.getCondition(); getOperandValue(Cond, SF).IntVal == 0) // If false cond...
       Dest = I.getSuccessor(1);
   }
   SwitchToNewBasicBlock(Dest, SF);
@@ -919,8 +919,8 @@ void Interpreter::visitSwitchInst(SwitchInst &I) {
   // Check to see if any of the cases match...
   BasicBlock *Dest = nullptr;
   for (auto Case : I.cases()) {
-    GenericValue CaseVal = getOperandValue(Case.getCaseValue(), SF);
-    if (executeICMP_EQ(CondVal, CaseVal, ElTy).IntVal != 0) {
+    
+    if (GenericValue CaseVal = getOperandValue(Case.getCaseValue(), SF); executeICMP_EQ(CondVal, CaseVal, ElTy).IntVal != 0) {
       Dest = cast<BasicBlock>(Case.getCaseSuccessor());
       break;
     }
@@ -1030,9 +1030,9 @@ GenericValue Interpreter::executeGEPOperation(Value *Ptr, gep_type_iterator I,
       GenericValue IdxGV = getOperandValue(I.getOperand(), SF);
 
       int64_t Idx;
-      unsigned BitWidth =
-        cast<IntegerType>(I.getOperand()->getType())->getBitWidth();
-      if (BitWidth == 32)
+      
+      if (unsigned BitWidth =
+        cast<IntegerType>(I.getOperand()->getType())->getBitWidth(); BitWidth == 32)
         Idx = (int64_t)(int32_t)IdxGV.IntVal.getZExtValue();
       else {
         assert(BitWidth == 64 && "Invalid index type for getelementptr");
@@ -1152,9 +1152,9 @@ void Interpreter::visitShl(BinaryOperator &I) {
   GenericValue Src1 = getOperandValue(I.getOperand(0), SF);
   GenericValue Src2 = getOperandValue(I.getOperand(1), SF);
   GenericValue Dest;
-  Type *Ty = I.getType();
+  
 
-  if (Ty->isVectorTy()) {
+  if (Type *Ty = I.getType(); Ty->isVectorTy()) {
     uint32_t src1Size = uint32_t(Src1.AggregateVal.size());
     assert(src1Size == Src2.AggregateVal.size());
     for (unsigned i = 0; i < src1Size; i++) {
@@ -1179,9 +1179,9 @@ void Interpreter::visitLShr(BinaryOperator &I) {
   GenericValue Src1 = getOperandValue(I.getOperand(0), SF);
   GenericValue Src2 = getOperandValue(I.getOperand(1), SF);
   GenericValue Dest;
-  Type *Ty = I.getType();
+  
 
-  if (Ty->isVectorTy()) {
+  if (Type *Ty = I.getType(); Ty->isVectorTy()) {
     uint32_t src1Size = uint32_t(Src1.AggregateVal.size());
     assert(src1Size == Src2.AggregateVal.size());
     for (unsigned i = 0; i < src1Size; i++) {
@@ -1206,9 +1206,9 @@ void Interpreter::visitAShr(BinaryOperator &I) {
   GenericValue Src1 = getOperandValue(I.getOperand(0), SF);
   GenericValue Src2 = getOperandValue(I.getOperand(1), SF);
   GenericValue Dest;
-  Type *Ty = I.getType();
+  
 
-  if (Ty->isVectorTy()) {
+  if (Type *Ty = I.getType(); Ty->isVectorTy()) {
     size_t src1Size = Src1.AggregateVal.size();
     assert(src1Size == Src2.AggregateVal.size());
     for (unsigned i = 0; i < src1Size; i++) {
@@ -1231,8 +1231,8 @@ void Interpreter::visitAShr(BinaryOperator &I) {
 GenericValue Interpreter::executeTruncInst(Value *SrcVal, Type *DstTy,
                                            ExecutionContext &SF) {
   GenericValue Dest, Src = getOperandValue(SrcVal, SF);
-  Type *SrcTy = SrcVal->getType();
-  if (SrcTy->isVectorTy()) {
+  
+  if (Type *SrcTy = SrcVal->getType(); SrcTy->isVectorTy()) {
     Type *DstVecTy = DstTy->getScalarType();
     unsigned DBitWidth = cast<IntegerType>(DstVecTy)->getBitWidth();
     unsigned NumElts = Src.AggregateVal.size();
@@ -1490,8 +1490,8 @@ GenericValue Interpreter::executeIntToPtrInst(Value *SrcVal, Type *DstTy,
   GenericValue Dest, Src = getOperandValue(SrcVal, SF);
   assert(DstTy->isPointerTy() && "Invalid PtrToInt instruction");
 
-  uint32_t PtrSize = getDataLayout().getPointerSizeInBits();
-  if (PtrSize != Src.IntVal.getBitWidth())
+  
+  if (uint32_t PtrSize = getDataLayout().getPointerSizeInBits(); PtrSize != Src.IntVal.getBitWidth())
     Src.IntVal = Src.IntVal.zextOrTrunc(PtrSize);
 
   Dest.PointerVal = PointerTy(intptr_t(Src.IntVal.getZExtValue()));
@@ -1735,8 +1735,8 @@ void Interpreter::visitVAArgInst(VAArgInst &I) {
   GenericValue Dest;
   GenericValue Src = ECStack[VAList.UIntPairVal.first]
                       .VarArgs[VAList.UIntPairVal.second];
-  Type *Ty = I.getType();
-  switch (Ty->getTypeID()) {
+  
+  switch (Type *Ty = I.getType(); Ty->getTypeID()) {
   case Type::IntegerTyID:
     Dest.IntVal = Src.IntVal;
     break;
@@ -1762,9 +1762,9 @@ void Interpreter::visitExtractElementInst(ExtractElementInst &I) {
   GenericValue Dest;
 
   Type *Ty = I.getType();
-  const unsigned indx = unsigned(Src2.IntVal.getZExtValue());
+  
 
-  if(Src1.AggregateVal.size() > indx) {
+  if(const unsigned indx = unsigned(Src2.IntVal.getZExtValue()); Src1.AggregateVal.size() > indx) {
     switch (Ty->getTypeID()) {
     default:
       dbgs() << "Unhandled destination type for extractelement instruction: "
@@ -1902,8 +1902,8 @@ void Interpreter::visitExtractValueInst(ExtractValueInst &I) {
     ++IdxBegin;
   }
 
-  Type *IndexedType = ExtractValueInst::getIndexedType(Agg->getType(), I.getIndices());
-  switch (IndexedType->getTypeID()) {
+  
+  switch (Type *IndexedType = ExtractValueInst::getIndexedType(Agg->getType(), I.getIndices()); IndexedType->getTypeID()) {
     default:
       llvm_unreachable("Unhandled dest type for extractelement instruction");
     break;
@@ -1949,9 +1949,9 @@ void Interpreter::visitInsertValueInst(InsertValueInst &I) {
   }
   // pDest points to the target value in the Dest now
 
-  Type *IndexedType = ExtractValueInst::getIndexedType(Agg->getType(), I.getIndices());
+  
 
-  switch (IndexedType->getTypeID()) {
+  switch (Type *IndexedType = ExtractValueInst::getIndexedType(Agg->getType(), I.getIndices()); IndexedType->getTypeID()) {
     default:
       llvm_unreachable("Unhandled dest type for insertelement instruction");
     break;

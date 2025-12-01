@@ -54,10 +54,10 @@ loadObj(StringRef Filename, object::OwningBinary<object::ObjectFile> &ObjFile,
         InstrumentationMap::SledContainer &Sleds,
         InstrumentationMap::FunctionAddressMap &FunctionAddresses,
         InstrumentationMap::FunctionAddressReverseMap &FunctionIds) {
-  InstrumentationMap Map;
+  
 
   // Find the section named "xray_instr_map".
-  if ((!ObjFile.getBinary()->isELF() && !ObjFile.getBinary()->isMachO()) ||
+  if (InstrumentationMap Map; (!ObjFile.getBinary()->isELF() && !ObjFile.getBinary()->isMachO()) ||
       !(ObjFile.getBinary()->getArch() == Triple::x86_64 ||
         ObjFile.getBinary()->getArch() == Triple::loongarch64 ||
         ObjFile.getBinary()->getArch() == Triple::ppc64le ||
@@ -173,8 +173,8 @@ loadObj(StringRef Filename, object::OwningBinary<object::ObjectFile> &ObjFile,
     Sleds.push_back({});
     auto &Entry = Sleds.back();
     uint64_t OffsetPtr = 0;
-    uint64_t AddrOff = OffsetPtr;
-    if (Is32Bit)
+    
+    if (uint64_t AddrOff = OffsetPtr; Is32Bit)
       Entry.Address = RelocateOrElse(AddrOff, Extractor.getU32(&OffsetPtr));
     else
       Entry.Address = RelocateOrElse(AddrOff, Extractor.getU64(&OffsetPtr));

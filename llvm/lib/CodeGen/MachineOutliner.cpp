@@ -963,8 +963,8 @@ MachineFunction *MachineOutliner::createOutlinedFunction(
       continue;
 
     // Don't keep debug information for outlined instructions.
-    auto DL = DebugLoc();
-    if (MI.isCFIInstruction()) {
+    
+    if (auto DL = DebugLoc(); MI.isCFIInstruction()) {
       unsigned CFIIndex = MI.getOperand(0).getCFIIndex();
       MCCFIInstruction CFI = Instrs[CFIIndex];
       BuildMI(MBB, MBB.end(), DL, TII.get(TargetOpcode::CFI_INSTRUCTION))
@@ -1230,8 +1230,8 @@ static bool allowPGOOutlining(RunOutliner RunOutlinerMode,
       return *Count <= PSI->getOrCompColdCountThreshold();
 
   if (RunOutlinerMode == RunOutliner::OptimisticPGO) {
-    auto *TII = MF->getSubtarget().getInstrInfo();
-    if (TII->shouldOutlineFromFunctionByDefault(*MF)) {
+    
+    if (auto *TII = MF->getSubtarget().getInstrInfo(); TII->shouldOutlineFromFunctionByDefault(*MF)) {
       // Profile data is unavailable, but we optimistically allow outlining
       ++NumPGOOptimisticOutlined;
       return true;
@@ -1403,10 +1403,10 @@ void MachineOutliner::initializeOutlinerMode(const Module &M) {
 
   if (auto *IndexWrapperPass =
           getAnalysisIfAvailable<ImmutableModuleSummaryIndexWrapperPass>()) {
-    auto *TheIndex = IndexWrapperPass->getIndex();
+    
     // (Full)LTO module does not have functions added to the index.
     // In this case, we run the outliner without using codegen data as usual.
-    if (TheIndex && !TheIndex->hasExportedFunctions(M))
+    if (auto *TheIndex = IndexWrapperPass->getIndex(); TheIndex && !TheIndex->hasExportedFunctions(M))
       return;
   }
 

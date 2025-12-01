@@ -492,14 +492,14 @@ class KMPNativeAffinity : public KMPAffinity {
       KMP_ASSERT2(KMP_AFFINITY_CAPABLE(),
                   "Illegal get affinity operation when not capable");
 #if KMP_OS_LINUX
-      long retval =
-          syscall(__NR_sched_getaffinity, 0, __kmp_affin_mask_size, mask);
+      
 #elif KMP_OS_FREEBSD || KMP_OS_NETBSD || KMP_OS_DRAGONFLY
       int r = pthread_getaffinity_np(pthread_self(), __kmp_affin_mask_size,
                                      reinterpret_cast<cpuset_t *>(mask));
       int retval = (r == 0 ? 0 : -1);
 #endif
-      if (retval >= 0) {
+      if (long retval =
+          syscall(__NR_sched_getaffinity, 0, __kmp_affin_mask_size, mask); retval >= 0) {
         return 0;
       }
       int error = errno;
@@ -513,14 +513,14 @@ class KMPNativeAffinity : public KMPAffinity {
       KMP_ASSERT2(KMP_AFFINITY_CAPABLE(),
                   "Illegal set affinity operation when not capable");
 #if KMP_OS_LINUX
-      long retval =
-          syscall(__NR_sched_setaffinity, 0, __kmp_affin_mask_size, mask);
+      
 #elif KMP_OS_FREEBSD || KMP_OS_NETBSD || KMP_OS_DRAGONFLY
       int r = pthread_setaffinity_np(pthread_self(), __kmp_affin_mask_size,
                                      reinterpret_cast<cpuset_t *>(mask));
       int retval = (r == 0 ? 0 : -1);
 #endif
-      if (retval >= 0) {
+      if (long retval =
+          syscall(__NR_sched_setaffinity, 0, __kmp_affin_mask_size, mask); retval >= 0) {
         return 0;
       }
       int error = errno;
@@ -1316,9 +1316,9 @@ public:
   }
 
   void init(int num_addrs) {
-    kmp_int8 bool_result = KMP_COMPARE_AND_STORE_ACQ8(
-        &uninitialized, not_initialized, initializing);
-    if (bool_result == 0) { // Wait for initialization
+    
+    if (kmp_int8 bool_result = KMP_COMPARE_AND_STORE_ACQ8(
+        &uninitialized, not_initialized, initializing); bool_result == 0) { // Wait for initialization
       while (TCR_1(uninitialized) != initialized)
         KMP_CPU_PAUSE();
       return;

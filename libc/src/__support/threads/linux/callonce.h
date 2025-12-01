@@ -33,14 +33,14 @@ template <class CallOnceCallback>
 
   auto *futex_word = reinterpret_cast<Futex *>(flag);
 
-  FutexWordType not_called = NOT_CALLED;
+  
 
   // The call_once call can return only after the called function |func|
   // returns. So, we use futexes to synchronize calls with the same flag value.
-  if (futex_word->compare_exchange_strong(not_called, START)) {
+  if (FutexWordType not_called = NOT_CALLED; futex_word->compare_exchange_strong(not_called, START)) {
     callback();
-    auto status = futex_word->exchange(FINISH);
-    if (status == WAITING)
+    
+    if (auto status = futex_word->exchange(FINISH); status == WAITING)
       futex_word->notify_all();
     return 0;
   }

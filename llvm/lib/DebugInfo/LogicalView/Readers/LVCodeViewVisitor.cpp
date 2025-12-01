@@ -91,8 +91,8 @@ static StringRef getRecordName(LazyRandomTypeCollection &Types, TypeIndex TI) {
       RecordName = Record.getName();
   };
 
-  TypeRecordKind RK = static_cast<TypeRecordKind>(CVReference.kind());
-  if (RK == TypeRecordKind::Class || RK == TypeRecordKind::Struct)
+  
+  if (TypeRecordKind RK = static_cast<TypeRecordKind>(CVReference.kind()); RK == TypeRecordKind::Class || RK == TypeRecordKind::Struct)
     GetName(ClassRecord(RK));
   else if (RK == TypeRecordKind::Union)
     GetName(UnionRecord(RK));
@@ -248,8 +248,8 @@ public:
     for (LVStringRefs::size_type Index = 0; Index < Components.size();
          ++Index) {
       FirstNonNamespace = Index;
-      LookupSet::iterator Iter = IdentifiedNamespaces.find(Components[Index]);
-      if (Iter == IdentifiedNamespaces.end())
+      
+      if (LookupSet::iterator Iter = IdentifiedNamespaces.find(Components[Index]); Iter == IdentifiedNamespaces.end())
         // The component is not a namespace name.
         break;
     }
@@ -268,8 +268,8 @@ public:
 
   void add(TypeIndex TI, StringRef String) {
     static uint32_t Index = 0;
-    auto [It, Inserted] = Strings.try_emplace(TI);
-    if (Inserted)
+    
+    if (auto [It, Inserted] = Strings.try_emplace(TI); Inserted)
       It->second = std::make_tuple(++Index, std::string(String), nullptr);
   }
 
@@ -395,8 +395,8 @@ void LVNamespaceDeduction::init() {
   for (const StringRef &Unresolved : UnresolvedScopes) {
     Components = getAllLexicalComponents(Unresolved);
     for (const StringRef &Component : Components) {
-      LookupSet::iterator Iter = DeducedScopes.find(Component);
-      if (Iter == DeducedScopes.end())
+      
+      if (LookupSet::iterator Iter = DeducedScopes.find(Component); Iter == DeducedScopes.end())
         IdentifiedNamespaces.insert(Component);
     }
   }
@@ -837,7 +837,7 @@ Error LVSymbolVisitor::visitKnownRecord(CVSymbol &Record,
     LVElement *Element = LogicalVisitor->getElement(StreamTPI, Local.Type);
     if (Element && Element->getIsScoped()) {
       // We have a local type. Find its parent function.
-      LVScope *Parent = Symbol->getFunctionParent();
+      
       // The element representing the type has been already finalized. If
       // the type is an aggregate type, its members have been already added.
       // As the type is local, its level will be changed.
@@ -845,7 +845,7 @@ Error LVSymbolVisitor::visitKnownRecord(CVSymbol &Record,
       // FIXME: Currently the algorithm used to scope lambda functions is
       // incorrect. Before we allocate the type at this scope, check if is
       // already allocated in other scope.
-      if (!Element->getParentScope()) {
+      if (LVScope *Parent = Symbol->getFunctionParent(); !Element->getParentScope()) {
         Parent->addElement(Element);
         Element->updateLevel(Parent);
       }
@@ -887,7 +887,7 @@ Error LVSymbolVisitor::visitKnownRecord(CVSymbol &Record,
     LVElement *Element = LogicalVisitor->getElement(StreamTPI, Local.Type);
     if (Element && Element->getIsScoped()) {
       // We have a local type. Find its parent function.
-      LVScope *Parent = Symbol->getFunctionParent();
+      
       // The element representing the type has been already finalized. If
       // the type is an aggregate type, its members have been already added.
       // As the type is local, its level will be changed.
@@ -895,7 +895,7 @@ Error LVSymbolVisitor::visitKnownRecord(CVSymbol &Record,
       // FIXME: Currently the algorithm used to scope lambda functions is
       // incorrect. Before we allocate the type at this scope, check if is
       // already allocated in other scope.
-      if (!Element->getParentScope()) {
+      if (LVScope *Parent = Symbol->getFunctionParent(); !Element->getParentScope()) {
         Parent->addElement(Element);
         Element->updateLevel(Parent);
       }
@@ -1661,8 +1661,8 @@ Error LVSymbolVisitor::visitKnownRecord(CVSymbol &Record, UDTSym &UDT) {
     if (getReader().isSystemEntry(Type))
       Type->resetIncludeInPrint();
     else {
-      StringRef RecordName = getRecordName(Types, UDT.Type);
-      if (UDT.Name == RecordName)
+      
+      if (StringRef RecordName = getRecordName(Types, UDT.Type); UDT.Name == RecordName)
         Type->resetIncludeInPrint();
       Type->setType(LogicalVisitor->getElement(StreamTPI, UDT.Type));
     }
@@ -1882,11 +1882,11 @@ Error LVLogicalVisitor::visitKnownRecord(CVType &Record, ArrayRecord &AT,
     // get the type being modified.
     // If TypeIndex is not a simple type, check if we have a qualified type.
     if (!TIElementType.isSimple()) {
-      CVType CVElementType = Types.getType(TIElementType);
-      if (CVElementType.kind() == LF_MODIFIER) {
-        LVElement *QualifiedType =
-            Shared->TypeRecords.find(StreamTPI, TIElementType);
-        if (Error Err =
+      
+      if (CVType CVElementType = Types.getType(TIElementType); CVElementType.kind() == LF_MODIFIER) {
+        
+        if (Error LVElement *QualifiedType =
+            Shared->TypeRecords.find(StreamTPI, TIElementType); Err =
                 finishVisitation(CVElementType, TIElementType, QualifiedType))
           return Err;
         // Get the TypeIndex of the type that the LF_MODIFIER modifies.
@@ -2015,8 +2015,8 @@ Error LVLogicalVisitor::visitKnownRecord(CVType &Record, ClassRecord &Class,
   LazyRandomTypeCollection &Types = types();
   TypeIndex TIFieldList = Class.getFieldList();
   if (TIFieldList.isNoneType()) {
-    TypeIndex ForwardType = Shared->ForwardReferences.find(Class.getName());
-    if (!ForwardType.isNoneType()) {
+    
+    if (TypeIndex ForwardType = Shared->ForwardReferences.find(Class.getName()); !ForwardType.isNoneType()) {
       CVType CVReference = Types.getType(ForwardType);
       TypeRecordKind RK = static_cast<TypeRecordKind>(CVReference.kind());
       ClassRecord ReferenceRecord(RK);
@@ -2029,8 +2029,8 @@ Error LVLogicalVisitor::visitKnownRecord(CVType &Record, ClassRecord &Class,
 
   if (!TIFieldList.isNoneType()) {
     // Pass down the TypeIndex 'TI' for the aggregate containing the field list.
-    CVType CVFieldList = Types.getType(TIFieldList);
-    if (Error Err = finishVisitation(CVFieldList, TI, Scope))
+    
+    if (Error CVType CVFieldList = Types.getType(TIFieldList); Err = finishVisitation(CVFieldList, TI, Scope))
       return Err;
   }
 
@@ -2086,8 +2086,8 @@ Error LVLogicalVisitor::visitKnownRecord(CVType &Record, EnumRecord &Enum,
   TypeIndex TIFieldList = Enum.getFieldList();
   if (!TIFieldList.isNoneType()) {
     LazyRandomTypeCollection &Types = types();
-    CVType CVFieldList = Types.getType(TIFieldList);
-    if (Error Err = finishVisitation(CVFieldList, TIFieldList, Scope))
+    
+    if (Error CVType CVFieldList = Types.getType(TIFieldList); Err = finishVisitation(CVFieldList, TIFieldList, Scope))
       return Err;
   }
 
@@ -2137,8 +2137,8 @@ Error LVLogicalVisitor::visitKnownRecord(CVType &Record, FuncIdRecord &Func,
     }
 
     if (!TIParent.isNoneType()) {
-      CVType CVParentScope = ids().getType(TIParent);
-      if (Error Err = finishVisitation(CVParentScope, TIParent, FunctionDcl))
+      
+      if (Error CVType CVParentScope = ids().getType(TIParent); Err = finishVisitation(CVParentScope, TIParent, FunctionDcl))
         return Err;
     }
 
@@ -2176,8 +2176,8 @@ Error LVLogicalVisitor::visitKnownRecord(CVType &Record, MemberFuncIdRecord &Id,
     printTypeEnd(Record);
   });
 
-  LVScope *FunctionDcl = static_cast<LVScope *>(Element);
-  if (FunctionDcl->getIsInlinedAbstract()) {
+  
+  if (LVScope *FunctionDcl = static_cast<LVScope *>(Element); FunctionDcl->getIsInlinedAbstract()) {
     // For inlined functions, the inlined instance has been already processed
     // (all its information is contained in the Symbols section).
     // 'Element' points to the created 'abstract' (out-of-line) function.
@@ -2232,8 +2232,8 @@ Error LVLogicalVisitor::visitKnownRecord(CVType &Record,
 
       // Create formal parameters.
       LazyRandomTypeCollection &Types = types();
-      CVType CVArguments = Types.getType(MF.getArgumentList());
-      if (Error Err = finishVisitation(CVArguments, MF.getArgumentList(),
+      
+      if (Error CVType CVArguments = Types.getType(MF.getArgumentList()); Err = finishVisitation(CVArguments, MF.getArgumentList(),
                                        MemberFunction))
         return Err;
     }
@@ -2427,8 +2427,8 @@ Error LVLogicalVisitor::visitKnownRecord(CVType &Record, ProcedureRecord &Proc,
       ProcessArgumentList = false;
       // Create formal parameters.
       LazyRandomTypeCollection &Types = types();
-      CVType CVArguments = Types.getType(Proc.getArgumentList());
-      if (Error Err = finishVisitation(CVArguments, Proc.getArgumentList(),
+      
+      if (Error CVType CVArguments = Types.getType(Proc.getArgumentList()); Err = finishVisitation(CVArguments, Proc.getArgumentList(),
                                        FunctionDcl))
         return Err;
     }
@@ -2477,8 +2477,8 @@ Error LVLogicalVisitor::visitKnownRecord(CVType &Record, UnionRecord &Union,
   if (!Union.getFieldList().isNoneType()) {
     LazyRandomTypeCollection &Types = types();
     // Pass down the TypeIndex 'TI' for the aggregate containing the field list.
-    CVType CVFieldList = Types.getType(Union.getFieldList());
-    if (Error Err = finishVisitation(CVFieldList, TI, Scope))
+    
+    if (Error CVType CVFieldList = Types.getType(Union.getFieldList()); Err = finishVisitation(CVFieldList, TI, Scope))
       return Err;
   }
 
@@ -2728,8 +2728,8 @@ Error LVLogicalVisitor::visitKnownMember(CVMemberRecord &Record,
       // definition. Used their scoped names, to decide on their relationship.
       StringRef RecordName = getRecordName(types(), TI);
 
-      StringRef NestedTypeName = NestedType->getName();
-      if (NestedTypeName.size() && RecordName.size()) {
+      
+      if (StringRef NestedTypeName = NestedType->getName(); NestedTypeName.size() && RecordName.size()) {
         StringRef OuterComponent;
         std::tie(OuterComponent, std::ignore) =
             getInnerComponent(NestedTypeName);
@@ -3173,8 +3173,8 @@ void LVLogicalVisitor::createDataMember(CVMemberRecord &Record, LVScope *Parent,
       Symbol->setType(getElement(StreamTPI, TI));
     else {
       LazyRandomTypeCollection &Types = types();
-      CVType CVMemberType = Types.getType(TI);
-      if (CVMemberType.kind() == LF_BITFIELD) {
+      
+      if (CVType CVMemberType = Types.getType(TI); CVMemberType.kind() == LF_BITFIELD) {
         if (Error Err = finishVisitation(CVMemberType, TI, Symbol)) {
           consumeError(std::move(Err));
           return;
@@ -3231,8 +3231,8 @@ LVType *LVLogicalVisitor::createPointerType(TypeIndex TI, StringRef TypeName) {
   if (LVElement *Element = Shared->TypeRecords.find(StreamTPI, TI))
     return static_cast<LVType *>(Element);
 
-  LVType *Pointee = createBaseType(TI, TypeName.drop_back(1));
-  if (createElement(TI, TypeLeafKind::LF_POINTER)) {
+  
+  if (LVType *Pointee = createBaseType(TI, TypeName.drop_back(1)); createElement(TI, TypeLeafKind::LF_POINTER)) {
     CurrentType->setIsFinalized();
     CurrentType->setType(Pointee);
     Reader->getCompileUnit()->addElement(CurrentType);
@@ -3358,8 +3358,8 @@ void LVLogicalVisitor::processLines() {
   // information to the logical elements.
   for (const TypeIndex &Entry : Shared->LineRecords) {
     CVType CVRecord = ids().getType(Entry);
-    UdtSourceLineRecord Line;
-    if (Error Err = TypeDeserializer::deserializeAs(
+    
+    if (Error UdtSourceLineRecord Line; Err = TypeDeserializer::deserializeAs(
             const_cast<CVType &>(CVRecord), Line))
       consumeError(std::move(Err));
     else {
@@ -3425,8 +3425,8 @@ Error LVLogicalVisitor::inlineSiteAnnotation(LVScope *AbstractFunction,
   // Get the parent scope to update the address ranges of the nested
   // scope representing the inlined function.
   LVAddress ParentLowPC = 0;
-  LVScope *Parent = InlinedFunction->getParentScope();
-  if (const LVLocations *Locations = Parent->getRanges()) {
+  
+  if (const LVLocations *LVScope *Parent = InlinedFunction->getParentScope(); Locations = Parent->getRanges()) {
     if (!Locations->empty())
       ParentLowPC = (*Locations->begin())->getLowerAddress();
   }

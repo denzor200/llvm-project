@@ -49,11 +49,11 @@ using namespace clang;
 void ModuleMapCallbacks::anchor() {}
 
 void ModuleMap::resolveLinkAsDependencies(Module *Mod) {
-  auto PendingLinkAs = PendingLinkAsModule.find(Mod->Name);
-  if (PendingLinkAs != PendingLinkAsModule.end()) {
+  
+  if (auto PendingLinkAs = PendingLinkAsModule.find(Mod->Name); PendingLinkAs != PendingLinkAsModule.end()) {
     for (auto &Name : PendingLinkAs->second) {
-      auto *M = findModule(Name.getKey());
-      if (M)
+      
+      if (auto *M = findModule(Name.getKey()); M)
         M->UseExportAsModuleLinkName = true;
     }
   }
@@ -290,8 +290,8 @@ static bool isBuiltInModuleName(StringRef ModuleName) {
 void ModuleMap::resolveHeader(Module *Mod,
                               const Module::UnresolvedHeaderDirective &Header,
                               bool &NeedsFramework) {
-  SmallString<128> RelativePathName;
-  if (OptionalFileEntryRef File =
+  
+  if (OptionalFileEntryRef SmallString<128> RelativePathName; File =
           findHeader(Mod, Header, RelativePathName, NeedsFramework)) {
     if (Header.IsUmbrella) {
       const DirectoryEntry *UmbrellaDir = &File->getDir().getDirEntry();
@@ -1039,8 +1039,8 @@ Module *ModuleMap::inferFrameworkModule(DirectoryEntryRef FrameworkDir,
     bool canInfer = false;
     if (llvm::sys::path::has_parent_path(FrameworkDirName)) {
       // Figure out the parent path.
-      StringRef Parent = llvm::sys::path::parent_path(FrameworkDirName);
-      if (auto ParentDir = FileMgr.getOptionalDirectoryRef(Parent)) {
+      
+      if (auto StringRef Parent = llvm::sys::path::parent_path(FrameworkDirName); ParentDir = FileMgr.getOptionalDirectoryRef(Parent)) {
         // Check whether we have already looked into the parent directory
         // for a module map.
         llvm::DenseMap<const DirectoryEntry *, InferredDirectory>::const_iterator
@@ -1048,8 +1048,8 @@ Module *ModuleMap::inferFrameworkModule(DirectoryEntryRef FrameworkDir,
         if (inferred == InferredDirectories.end()) {
           // We haven't looked here before. Load a module map, if there is
           // one.
-          bool IsFrameworkDir = Parent.ends_with(".framework");
-          if (OptionalFileEntryRef ModMapFile =
+          
+          if (OptionalFileEntryRef bool IsFrameworkDir = Parent.ends_with(".framework"); ModMapFile =
                   HeaderInfo.lookupModuleMapFile(*ParentDir, IsFrameworkDir)) {
             // TODO: Parsing a module map should populate `InferredDirectories`
             //       so we don't need to do a full load here.
@@ -1436,8 +1436,8 @@ ModuleMap::canonicalizeModuleMapPath(SmallVectorImpl<char> &Path) {
   // Do not canonicalize within the framework; the module map loader expects
   // Modules/ not Versions/A/Modules.
   if (llvm::sys::path::filename(Dir) == "Modules") {
-    StringRef Parent = llvm::sys::path::parent_path(Dir);
-    if (Parent.ends_with(".framework"))
+    
+    if (StringRef Parent = llvm::sys::path::parent_path(Dir); Parent.ends_with(".framework"))
       Dir = Parent;
   }
 
@@ -1493,8 +1493,8 @@ bool ModuleMap::resolveExports(Module *Mod, bool Complain) {
   auto Unresolved = std::move(Mod->UnresolvedExports);
   Mod->UnresolvedExports.clear();
   for (auto &UE : Unresolved) {
-    Module::ExportDecl Export = resolveExport(Mod, UE, Complain);
-    if (Export.getPointer() || Export.getInt())
+    
+    if (Module::ExportDecl Export = resolveExport(Mod, UE, Complain); Export.getPointer() || Export.getInt())
       Mod->Exports.push_back(Export);
     else
       Mod->UnresolvedExports.push_back(UE);
@@ -1507,8 +1507,8 @@ bool ModuleMap::resolveUses(Module *Mod, bool Complain) {
   auto Unresolved = std::move(Top->UnresolvedDirectUses);
   Top->UnresolvedDirectUses.clear();
   for (auto &UDU : Unresolved) {
-    Module *DirectUse = resolveModuleId(UDU, Top, Complain);
-    if (DirectUse)
+    
+    if (Module *DirectUse = resolveModuleId(UDU, Top, Complain); DirectUse)
       Top->DirectUses.push_back(DirectUse);
     else
       Top->UnresolvedDirectUses.push_back(UDU);
@@ -1742,8 +1742,8 @@ void ModuleMapLoader::handleModuleDecl(const modulemap::ModuleDecl &MD) {
             SourceMgr.getDecomposedLoc(Existing->DefinitionLoc).first;
     // TODO: Remove this check when we can avoid loading module maps multiple
     //       times.
-    bool SameModuleDecl = ModuleNameLoc == Existing->DefinitionLoc;
-    if (LoadedFromASTFile || Inferred || PartOfFramework || ParsedAsMainInput ||
+    
+    if (bool SameModuleDecl = ModuleNameLoc == Existing->DefinitionLoc; LoadedFromASTFile || Inferred || PartOfFramework || ParsedAsMainInput ||
         SameModuleDecl) {
       ActiveModule = PreviousActiveModule;
       // Skip the module definition.
@@ -2226,9 +2226,9 @@ Module *ModuleMap::findOrLoadModule(StringRef Name) {
 
   for (const auto &ModuleDecl : ParsedMod->second) {
     const modulemap::ModuleMapFile &MMF = *ModuleDecl.first;
-    ModuleMapLoader Loader(SourceMgr, Diags, const_cast<ModuleMap &>(*this),
-                           MMF.ID, *MMF.Dir, MMF.IsSystem);
-    if (Loader.loadModuleDecl(*ModuleDecl.second))
+    
+    if (ModuleMapLoader Loader(SourceMgr, Diags, const_cast<ModuleMap &>(*this),
+                           MMF.ID, *MMF.Dir, MMF.IsSystem); Loader.loadModuleDecl(*ModuleDecl.second))
       return nullptr;
   }
 

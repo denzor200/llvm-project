@@ -87,9 +87,9 @@ static FlatSymbolRefAttr getMangledSortHelperFunc(
   ModuleOp module = insertPoint->getParentOfType<ModuleOp>();
   MLIRContext *context = module.getContext();
   auto result = SymbolRefAttr::get(context, nameOstream.str());
-  auto func = module.lookupSymbol<func::FuncOp>(result.getAttr());
+  
 
-  if (!func) {
+  if (auto func = module.lookupSymbol<func::FuncOp>(result.getAttr()); !func) {
     // Create the function.
     OpBuilder::InsertionGuard insertionGuard(builder);
     builder.setInsertionPoint(insertPoint);
@@ -185,9 +185,9 @@ static Value createInlinedCompareImplementation(
   auto bodyBuilder = [&](uint64_t k, Value i, Value j, Value buffer) {
     bool isFirstDim = (k == 0);
     bool isLastDim = (k == xPerm.getNumResults() - 1);
-    Value val =
-        compareBuilder(builder, loc, i, j, buffer, isFirstDim, isLastDim);
-    if (isFirstDim) {
+    
+    if (Value val =
+        compareBuilder(builder, loc, i, j, buffer, isFirstDim, isLastDim); isFirstDim) {
       result = val;
     } else if (!isLastDim) {
       OpBuilder::InsertionGuard insertionGuard(builder);
@@ -1227,8 +1227,8 @@ static LogicalResult matchAndRewriteSortOp(OpTy op, ValueRange xys,
 
   // Convert `values` to have dynamic shape and append them to `operands`.
   for (Value v : xys) {
-    auto mtp = getMemRefType(v);
-    if (!mtp.isDynamicDim(0)) {
+    
+    if (auto mtp = getMemRefType(v); !mtp.isDynamicDim(0)) {
       auto newMtp =
           MemRefType::get({ShapedType::kDynamic}, mtp.getElementType());
       v = memref::CastOp::create(rewriter, loc, newMtp, v);

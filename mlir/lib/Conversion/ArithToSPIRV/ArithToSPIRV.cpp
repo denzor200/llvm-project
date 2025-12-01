@@ -87,9 +87,9 @@ static FloatAttr convertFloatAttr(FloatAttr srcAttr, FloatType dstType,
   // Try to convert the source floating-point number to single precision.
   APFloat dstVal = srcAttr.getValue();
   bool losesInfo = false;
-  APFloat::opStatus status =
-      dstVal.convert(APFloat::IEEEsingle(), APFloat::rmTowardZero, &losesInfo);
-  if (status != APFloat::opOK || losesInfo) {
+  
+  if (APFloat::opStatus status =
+      dstVal.convert(APFloat::IEEEsingle(), APFloat::rmTowardZero, &losesInfo); status != APFloat::opOK || losesInfo) {
     LLVM_DEBUG(llvm::dbgs()
                << srcAttr << " illegal: cannot fit into converted type '"
                << dstType << "'\n");
@@ -309,8 +309,8 @@ struct ConstantCompositeOpPattern final
         for (FloatAttr srcAttr : dstElementsAttr.getValues<FloatAttr>()) {
           Attribute dstAttr = nullptr;
           // Handle 8-bit float conversion to 8-bit integer.
-          auto *typeConverter = getTypeConverter<SPIRVTypeConverter>();
-          if (typeConverter->getOptions().emulateUnsupportedFloatTypes &&
+          
+          if (auto *typeConverter = getTypeConverter<SPIRVTypeConverter>(); typeConverter->getOptions().emulateUnsupportedFloatTypes &&
               srcElemType.getIntOrFloatBitWidth() == 8 &&
               isa<IntegerType>(dstElemType)) {
             dstAttr =
@@ -386,8 +386,8 @@ struct ConstantScalarOpPattern final
 
       // Floating-point types not supported in the target environment are all
       // converted to float type.
-      auto *typeConverter = getTypeConverter<SPIRVTypeConverter>();
-      if (typeConverter->getOptions().emulateUnsupportedFloatTypes &&
+      
+      if (auto *typeConverter = getTypeConverter<SPIRVTypeConverter>(); typeConverter->getOptions().emulateUnsupportedFloatTypes &&
           srcType.getIntOrFloatBitWidth() == 8 && isa<IntegerType>(dstType) &&
           dstType.getIntOrFloatBitWidth() == 8) {
         // If the source is an 8-bit float, convert it to a 8-bit integer.

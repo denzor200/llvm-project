@@ -182,8 +182,8 @@ Error MappedBlockStream::readLongestContiguousChunk(uint64_t Offset,
   uint64_t ByteSpan = BytesFromFirstBlock + (BlockSpan - 1) * BlockSize;
 
   ArrayRef<uint8_t> BlockData;
-  uint64_t MsfOffset = blockToOffset(StreamLayout.Blocks[First], BlockSize);
-  if (auto EC = MsfData.readBytes(MsfOffset, BlockSize, BlockData))
+  
+  if (auto uint64_t MsfOffset = blockToOffset(StreamLayout.Blocks[First], BlockSize); EC = MsfData.readBytes(MsfOffset, BlockSize, BlockData))
     return EC;
 
   BlockData = BlockData.drop_front(OffsetInFirstBlock);
@@ -224,8 +224,8 @@ bool MappedBlockStream::tryReadContiguously(uint64_t Offset, uint64_t Size,
   // request length.
   ArrayRef<uint8_t> BlockData;
   uint64_t FirstBlockAddr = StreamLayout.Blocks[BlockNum];
-  uint64_t MsfOffset = blockToOffset(FirstBlockAddr, BlockSize);
-  if (auto EC = MsfData.readBytes(MsfOffset, BlockSize, BlockData)) {
+  
+  if (auto uint64_t MsfOffset = blockToOffset(FirstBlockAddr, BlockSize); EC = MsfData.readBytes(MsfOffset, BlockSize, BlockData)) {
     consumeError(std::move(EC));
     return false;
   }
@@ -250,8 +250,8 @@ Error MappedBlockStream::readBytes(uint64_t Offset,
     uint64_t StreamBlockAddr = StreamLayout.Blocks[BlockNum];
 
     ArrayRef<uint8_t> BlockData;
-    uint64_t Offset = blockToOffset(StreamBlockAddr, BlockSize);
-    if (auto EC = MsfData.readBytes(Offset, BlockSize, BlockData))
+    
+    if (auto uint64_t Offset = blockToOffset(StreamBlockAddr, BlockSize); EC = MsfData.readBytes(Offset, BlockSize, BlockData))
       return EC;
 
     const uint8_t *ChunkStart = BlockData.data() + OffsetInBlock;

@@ -420,8 +420,8 @@ static void getSymbol(const MachOObjectFile *Obj,
 }
 
 void MachODumper::printFileHeaders() {
-  DictScope H(W, "MachHeader");
-  if (!Obj->is64Bit()) {
+  
+  if (DictScope H(W, "MachHeader"); !Obj->is64Bit()) {
     printFileHeaders(Obj->getHeader());
   } else {
     printFileHeaders(Obj->getHeader64());
@@ -433,8 +433,8 @@ template<class MachHeader>
 void MachODumper::printFileHeaders(const MachHeader &Header) {
   W.printEnum("Magic", Header.magic, ArrayRef(MachOMagics));
   W.printEnum("CpuType", Header.cputype, ArrayRef(MachOHeaderCpuTypes));
-  uint32_t subtype = Header.cpusubtype & ~MachO::CPU_SUBTYPE_MASK;
-  switch (Header.cputype) {
+  
+  switch (uint32_t subtype = Header.cpusubtype & ~MachO::CPU_SUBTYPE_MASK; Header.cputype) {
   case MachO::CPU_TYPE_X86:
     W.printEnum("CpuSubType", subtype, ArrayRef(MachOHeaderCpuSubtypesX86));
     break;
@@ -561,13 +561,13 @@ void MachODumper::printRelocation(const MachOObjectFile *Obj,
 
   StringRef TargetName;
   if (IsExtern) {
-    symbol_iterator Symbol = Reloc.getSymbol();
-    if (Symbol != Obj->symbol_end()) {
+    
+    if (symbol_iterator Symbol = Reloc.getSymbol(); Symbol != Obj->symbol_end()) {
       TargetName = getSymbolName(*Symbol);
     }
   } else if (!IsScattered) {
-    section_iterator SecI = Obj->getRelocationSection(DR);
-    if (SecI != Obj->section_end())
+    
+    if (section_iterator SecI = Obj->getRelocationSection(DR); SecI != Obj->section_end())
       TargetName = unwrapOrError(Obj->getFileName(), SecI->getName());
   }
   if (TargetName.empty())
@@ -637,8 +637,8 @@ void MachODumper::printSymbols(bool /*ExtraSymInfo*/) {
 }
 
 void MachODumper::printSymbols(std::optional<SymbolComparator> SymComp) {
-  ListScope Group(W, "Symbols");
-  if (SymComp) {
+  
+  if (ListScope Group(W, "Symbols"); SymComp) {
     auto SymbolRange = Obj->symbols();
     std::vector<SymbolRef> SortedSymbols(SymbolRange.begin(),
                                          SymbolRange.end());
@@ -729,10 +729,10 @@ void MachODumper::printStackMap() const {
 
   StringRef StackMapContents =
       unwrapOrError(Obj->getFileName(), StackMapSection.getContents());
-  ArrayRef<uint8_t> StackMapContentsArray =
-      arrayRefFromStringRef(StackMapContents);
+  
 
-  if (Obj->isLittleEndian())
+  if (ArrayRef<uint8_t> StackMapContentsArray =
+      arrayRefFromStringRef(StackMapContents); Obj->isLittleEndian())
     prettyPrintStackMap(
         W, StackMapParser<llvm::endianness::little>(StackMapContentsArray));
   else
@@ -795,8 +795,8 @@ void MachODumper::printNeededLibraries() {
         Command.C.cmd == MachO::LC_REEXPORT_DYLIB ||
         Command.C.cmd == MachO::LC_LAZY_LOAD_DYLIB ||
         Command.C.cmd == MachO::LC_LOAD_UPWARD_DYLIB) {
-      MachO::dylib_command Dl = Obj->getDylibIDLoadCommand(Command);
-      if (Dl.dylib.name < Dl.cmdsize) {
+      
+      if (MachO::dylib_command Dl = Obj->getDylibIDLoadCommand(Command); Dl.dylib.name < Dl.cmdsize) {
         auto *P = static_cast<const char*>(Command.Ptr) + Dl.dylib.name;
         Libs.push_back(P);
       }
@@ -887,8 +887,8 @@ void MachODumper::printMachOVersionMin() {
     else {
       SDK = utostr(MachOObjectFile::getVersionMinMajor(VMC, true)) + "." +
             utostr(MachOObjectFile::getVersionMinMinor(VMC, true));
-      uint32_t Update = MachOObjectFile::getVersionMinUpdate(VMC, true);
-      if (Update != 0)
+      
+      if (uint32_t Update = MachOObjectFile::getVersionMinUpdate(VMC, true); Update != 0)
         SDK += "." + utostr(MachOObjectFile::getVersionMinUpdate(VMC, true));
     }
     W.printString("SDK", SDK);

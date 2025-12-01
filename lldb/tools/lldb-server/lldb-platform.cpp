@@ -176,9 +176,9 @@ static Status parse_listen_host_port(Socket::SocketProtocol &protocol,
       address = listen_host_port.substr(uri->scheme.size() + strlen("://"));
   } else {
     // Try to match socket name as $host:port - e.g., localhost:5555
-    llvm::Expected<Socket::HostAndPort> host_port =
-        Socket::DecodeHostAndPort(listen_host_port);
-    if (!llvm::errorToBool(host_port.takeError())) {
+    
+    if (llvm::Expected<Socket::HostAndPort> host_port =
+        Socket::DecodeHostAndPort(listen_host_port); !llvm::errorToBool(host_port.takeError())) {
       protocol = Socket::ProtocolTcp;
       hostname = host_port->hostname;
       platform_port = host_port->port;
@@ -231,8 +231,8 @@ static Status ListenGdbConnectionsIfNeeded(
     return Status();
 
   gdb_sock = std::make_unique<TCPSocket>(/*should_close=*/true);
-  Status error = gdb_sock->Listen(gdb_address, backlog);
-  if (error.Fail())
+  
+  if (Status error = gdb_sock->Listen(gdb_address, backlog); error.Fail())
     return error;
 
   if (gdbserver_port == 0)
@@ -285,9 +285,9 @@ static void client_handle(GDBRemoteCommunicationServerPlatform &platform,
   if (args.GetArgumentCount() > 0) {
     lldb::pid_t pid = LLDB_INVALID_PROCESS_ID;
     std::string socket_name;
-    Status error = platform.LaunchGDBServer(args, pid, socket_name,
-                                            SharedSocket::kInvalidFD);
-    if (error.Success())
+    
+    if (Status error = platform.LaunchGDBServer(args, pid, socket_name,
+                                            SharedSocket::kInvalidFD); error.Success())
       platform.SetPendingGdbServer(socket_name);
     else
       fprintf(stderr, "failed to start gdbserver: %s\n", error.AsCString());
@@ -398,8 +398,8 @@ static Status spawn_process(const char *progname, const FileSpec &prog,
 
 static FileSpec GetDebugserverPath() {
   if (const char *p = getenv("LLDB_DEBUGSERVER_PATH")) {
-    FileSpec candidate(p);
-    if (FileSystem::Instance().Exists(candidate))
+    
+    if (FileSpec candidate(p); FileSystem::Instance().Exists(candidate))
       return candidate;
   }
 #if defined(__APPLE__)
@@ -536,14 +536,14 @@ int main_platform(int argc, char *argv[]) {
       return socket_error;
     }
 
-    std::unique_ptr<Socket> socket;
-    if (gdbserver_port) {
+    
+    if (std::unique_ptr<Socket> socket; gdbserver_port) {
       socket = std::make_unique<TCPSocket>(sockfd, /*should_close=*/true);
     } else {
 #if LLDB_ENABLE_POSIX
-      llvm::Expected<std::unique_ptr<DomainSocket>> domain_socket =
-          DomainSocket::FromBoundNativeSocket(sockfd, /*should_close=*/true);
-      if (!domain_socket) {
+      
+      if (llvm::Expected<std::unique_ptr<DomainSocket>> domain_socket =
+          DomainSocket::FromBoundNativeSocket(sockfd, /*should_close=*/true); !domain_socket) {
         LLDB_LOG_ERROR(log, domain_socket.takeError(),
                        "Failed to create socket: {0}");
         return socket_error;
@@ -627,11 +627,11 @@ int main_platform(int argc, char *argv[]) {
                         log_channels, &main_loop, multi_client,
                         &platform_handles](std::unique_ptr<Socket> sock_up) {
               printf("Connection established.\n");
-              Status error = spawn_process(
+              
+              if (Status error = spawn_process(
                   progname, HostInfo::GetProgramFileSpec(), sock_up.get(),
                   gdbserver_port, inferior_arguments, log_file, log_channels,
-                  main_loop, multi_client);
-              if (error.Fail()) {
+                  main_loop, multi_client); error.Fail()) {
                 Log *log = GetLog(LLDBLog::Platform);
                 LLDB_LOGF(log, "spawn_process failed: %s", error.AsCString());
                 WithColor::error()

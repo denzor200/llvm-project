@@ -76,8 +76,8 @@ getPackingInfoFromOperand(OpOperand *opOperand, linalg::GenericOp genericOp,
   for (auto [index, innerDimPos, tileSize] :
        llvm::zip_equal(llvm::seq<unsigned>(0, innerDimsPos.size()),
                        innerDimsPos, packOrUnPackOp.getMixedTiles())) {
-    auto expr = exprs[innerDimPos];
-    if (!isa<AffineDimExpr>(expr))
+    
+    if (auto expr = exprs[innerDimPos]; !isa<AffineDimExpr>(expr))
       return failure();
     int64_t domainDimPos =
         cast<AffineDimExpr>(exprs[innerDimPos]).getPosition();
@@ -126,8 +126,8 @@ getPackingInfoFromOperand(OpOperand *opOperand, linalg::GenericOp genericOp,
   // permutation.
   SmallVector<int64_t> permutedOuterDims;
   for (auto [index, dim] : llvm::enumerate(packOrUnPackOp.getOuterDimsPerm())) {
-    auto permutedExpr = indexingMap.getResult(dim);
-    if (auto dimExpr = dyn_cast<AffineDimExpr>(permutedExpr)) {
+    
+    if (auto auto permutedExpr = indexingMap.getResult(dim); dimExpr = dyn_cast<AffineDimExpr>(permutedExpr)) {
       permutedOuterDims.push_back(dimExpr.getPosition());
       continue;
     }
@@ -379,8 +379,8 @@ packGenericOp(RewriterBase &rewriter, GenericOp genericOp, Value dest,
     auto [packedOperand, packedIndexingMap] = getOrCreatePackedViewOfOperand(
         rewriter, loc, inputOperand, packedOperandMap);
     auto unpackOp = inputOperand->get().getDefiningOp<linalg::UnPackOp>();
-    auto packOp = packedOperand.getDefiningOp<linalg::PackOp>();
-    if (packOp && unpackOp && hasEquivalentTiles(packOp, unpackOp)) {
+    
+    if (auto packOp = packedOperand.getDefiningOp<linalg::PackOp>(); packOp && unpackOp && hasEquivalentTiles(packOp, unpackOp)) {
       inputOperandsFromUnpackedSource.push_back(unpackOp.getSource());
     } else {
       inputOperandsFromUnpackedSource.push_back(packedOperand);
@@ -526,8 +526,8 @@ bubbleUpPackOpThroughGenericOp(RewriterBase &rewriter, linalg::PackOp packOp,
                                          emptyOp.getMixedSizes(),
                                          emptyOp.getType().getElementType());
   } else {
-    DominanceInfo dom(genericOp);
-    if (!dom.properlyDominates(packOpDest, genericOp))
+    
+    if (DominanceInfo dom(genericOp); !dom.properlyDominates(packOpDest, genericOp))
       return failure();
   }
 
@@ -696,8 +696,8 @@ projectToInnerMostNonUnitDimsPos(ArrayRef<int64_t> dimsPos,
     // In the case all dims are unit, this will return the inner-most one.
     int64_t projectedPos = reassocIndices[pos].back();
     for (auto i : llvm::reverse(reassocIndices[pos])) {
-      int64_t dim = targetShape[i];
-      if (dim > 1 || ShapedType::isDynamic(dim)) {
+      
+      if (int64_t dim = targetShape[i]; dim > 1 || ShapedType::isDynamic(dim)) {
         projectedPos = i;
         break;
       }
@@ -712,8 +712,8 @@ static bool isDimsDivisibleByTileSizes(ArrayRef<int64_t> dimsPos,
                                        ArrayRef<int64_t> shape,
                                        ArrayRef<int64_t> tileSizes) {
   for (auto [pos, tileSize] : llvm::zip_equal(dimsPos, tileSizes)) {
-    int64_t dim = shape[pos];
-    if (ShapedType::isDynamic(dim) || (dim % tileSize) != 0)
+    
+    if (int64_t dim = shape[pos]; ShapedType::isDynamic(dim) || (dim % tileSize) != 0)
       return false;
   }
   return true;
@@ -1386,8 +1386,8 @@ getPartialSliceDimInfo(GenericOp genericOp, OpOperand *sliceOperand) {
     if (operand == *sliceOperand) {
       continue;
     }
-    AffineMap IndexingMap = genericOp.getMatchingIndexingMap(&operand);
-    if (llvm::any_of(IndexingMap.getResults(), [&](AffineExpr expr) {
+    
+    if (AffineMap IndexingMap = genericOp.getMatchingIndexingMap(&operand); llvm::any_of(IndexingMap.getResults(), [&](AffineExpr expr) {
           if (isa<AffineDimExpr>(expr)) {
             return false;
           }

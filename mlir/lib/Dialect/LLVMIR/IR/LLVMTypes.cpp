@@ -102,8 +102,8 @@ parseExtTypeParams(AsmParser &p, SmallVectorImpl<Type> &typeParams,
       return success();
     }
     if (parseType) {
-      Type t;
-      if (!parsePrettyLLVMType(p, t)) {
+      
+      if (Type t; !parsePrettyLLVMType(p, t)) {
         // Successfully parsed a type.
         typeParams.push_back(t);
         return success();

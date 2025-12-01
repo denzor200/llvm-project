@@ -48,8 +48,8 @@ SanitizerMaskCutoffs::getAllScaled(unsigned ScalingFactor) const {
 
   bool AnyCutoff = false;
   for (unsigned int i = 0; i < SanitizerKind::SO_Count; ++i) {
-    auto C = (*this)[i];
-    if (C.has_value()) {
+    
+    if (auto C = (*this)[i]; C.has_value()) {
       ScaledCutoffs.push_back(lround(std::clamp(*C, 0.0, 1.0) * ScalingFactor));
       AnyCutoff = true;
     } else {

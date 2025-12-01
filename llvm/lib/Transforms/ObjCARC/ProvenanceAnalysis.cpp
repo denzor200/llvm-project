@@ -124,10 +124,10 @@ bool ProvenanceAnalysis::relatedCheck(const Value *A, const Value *B) {
   }
 
   bool AIsIdentified = IsObjCIdentifiedObject(A);
-  bool BIsIdentified = IsObjCIdentifiedObject(B);
+  
 
   // An ObjC-Identified object can't alias a load if it is never locally stored.
-  if (AIsIdentified) {
+  if (bool BIsIdentified = IsObjCIdentifiedObject(B); AIsIdentified) {
     // Check for an obvious escape.
     if (isa<LoadInst>(B))
       return IsStoredObjCPointer(A);

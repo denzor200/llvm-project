@@ -57,8 +57,8 @@ static bool ScanForGNUstepObjCLibraryCandidate(const ModuleList &modules,
   std::lock_guard<std::recursive_mutex> guard(modules.GetMutex());
   size_t num_modules = modules.GetSize();
   for (size_t i = 0; i < num_modules; i++) {
-    auto mod = modules.GetModuleAtIndex(i);
-    if (CanModuleBeGNUstepObjCLibrary(mod, TT))
+    
+    if (auto mod = modules.GetModuleAtIndex(i); CanModuleBeGNUstepObjCLibrary(mod, TT))
       return true;
   }
   return false;

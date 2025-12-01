@@ -157,9 +157,9 @@ void ClangExpressionDeclMap::DidParse() {
   if (m_parser_vars && m_parser_vars->m_persistent_vars) {
     for (size_t entity_index = 0, num_entities = m_found_entities.GetSize();
          entity_index < num_entities; ++entity_index) {
-      ExpressionVariableSP var_sp(
-          m_found_entities.GetVariableAtIndex(entity_index));
-      if (var_sp)
+      
+      if (ExpressionVariableSP var_sp(
+          m_found_entities.GetVariableAtIndex(entity_index)); var_sp)
         llvm::cast<ClangExpressionVariable>(var_sp.get())
             ->DisableParserVars(GetParserID());
     }
@@ -167,9 +167,9 @@ void ClangExpressionDeclMap::DidParse() {
     for (size_t pvar_index = 0,
                 num_pvars = m_parser_vars->m_persistent_vars->GetSize();
          pvar_index < num_pvars; ++pvar_index) {
-      ExpressionVariableSP pvar_sp(
-          m_parser_vars->m_persistent_vars->GetVariableAtIndex(pvar_index));
-      if (ClangExpressionVariable *clang_var =
+      
+      if (ClangExpressionVariable *ExpressionVariableSP pvar_sp(
+          m_parser_vars->m_persistent_vars->GetVariableAtIndex(pvar_index)); clang_var =
               llvm::dyn_cast<ClangExpressionVariable>(pvar_sp.get()))
         clang_var->DisableParserVars(GetParserID());
     }
@@ -187,13 +187,13 @@ ClangExpressionDeclMap::TargetInfo ClangExpressionDeclMap::GetTargetInfo() {
 
   ExecutionContext &exe_ctx = m_parser_vars->m_exe_ctx;
 
-  Process *process = exe_ctx.GetProcessPtr();
-  if (process) {
+  
+  if (Process *process = exe_ctx.GetProcessPtr(); process) {
     ret.byte_order = process->GetByteOrder();
     ret.address_byte_size = process->GetAddressByteSize();
   } else {
-    Target *target = exe_ctx.GetTargetPtr();
-    if (target) {
+    
+    if (Target *target = exe_ctx.GetTargetPtr(); target) {
       ret.byte_order = target->GetArchitecture().GetByteOrder();
       ret.address_byte_size = target->GetArchitecture().GetAddressByteSize();
     }
@@ -552,8 +552,8 @@ addr_t ClangExpressionDeclMap::GetSymbolAddress(Target &target,
       break;
 
     case eSymbolTypeReExported: {
-      ConstString reexport_name = sym_ctx.symbol->GetReExportedSymbolName();
-      if (reexport_name) {
+      
+      if (ConstString reexport_name = sym_ctx.symbol->GetReExportedSymbolName(); reexport_name) {
         ModuleSP reexport_module_sp;
         ModuleSpec reexport_module_spec;
         reexport_module_spec.GetPlatformFileSpec() =
@@ -604,9 +604,9 @@ addr_t ClangExpressionDeclMap::GetSymbolAddress(Target &target,
   }
 
   if (symbol_load_addr == LLDB_INVALID_ADDRESS && process) {
-    ObjCLanguageRuntime *runtime = ObjCLanguageRuntime::Get(*process);
+    
 
-    if (runtime) {
+    if (ObjCLanguageRuntime *runtime = ObjCLanguageRuntime::Get(*process); runtime) {
       symbol_load_addr = runtime->LookupRuntimeSymbol(name);
     }
   }
@@ -1081,8 +1081,8 @@ bool ClangExpressionDeclMap::LookupLocalVariable(
   bool variable_found = false;
   for (CompilerDecl decl : found_decls) {
     for (size_t vi = 0, ve = vars->GetSize(); vi != ve; ++vi) {
-      VariableSP candidate_var = vars->GetVariableAtIndex(vi);
-      if (candidate_var->GetDecl() == decl) {
+      
+      if (VariableSP candidate_var = vars->GetVariableAtIndex(vi); candidate_var->GetDecl() == decl) {
         var = candidate_var;
         break;
       }
@@ -1101,7 +1101,9 @@ bool ClangExpressionDeclMap::LookupLocalVariable(
   // a lambda, we count the lambda captures as local variables. Thus,
   // see if we captured any variables with the requested 'name'.
   if (!variable_found) {
-    auto find_capture = [](ConstString varname,
+    
+
+    if (auto auto find_capture = [](ConstString varname,
                            StackFrame *frame) -> ValueObjectSP {
       if (auto lambda = ClangExpressionUtil::GetLambdaValueObject(frame)) {
         if (auto capture = lambda->GetChildMemberWithName(varname)) {
@@ -1110,9 +1112,7 @@ bool ClangExpressionDeclMap::LookupLocalVariable(
       }
 
       return nullptr;
-    };
-
-    if (auto capture = find_capture(name, frame)) {
+    }; capture = find_capture(name, frame)) {
       variable_found = true;
       context.m_found_variable = true;
       AddOneVariable(context, std::move(capture), std::move(find_capture));
@@ -1316,11 +1316,11 @@ bool ClangExpressionDeclMap::LookupFunction(
 
     if (!found_function_with_type_info) {
       for (const CompilerDecl &compiler_decl : decls_from_modules) {
-        clang::Decl *decl = ClangUtil::GetDecl(compiler_decl);
-        if (llvm::isa<clang::FunctionDecl>(decl)) {
-          clang::NamedDecl *copied_decl =
-              llvm::cast_or_null<FunctionDecl>(CopyDecl(decl));
-          if (copied_decl) {
+        
+        if (clang::Decl *decl = ClangUtil::GetDecl(compiler_decl); llvm::isa<clang::FunctionDecl>(decl)) {
+          
+          if (clang::NamedDecl *copied_decl =
+              llvm::cast_or_null<FunctionDecl>(CopyDecl(decl)); copied_decl) {
             context.AddNamedDecl(copied_decl);
             found_function_with_type_info = true;
           }
@@ -1404,11 +1404,11 @@ void ClangExpressionDeclMap::FindExternalVisibleDecls(
     llvm::StringRef reg_name = name.GetStringRef().substr(1);
 
     if (m_parser_vars->m_exe_ctx.GetRegisterContext()) {
-      const RegisterInfo *reg_info(
-          m_parser_vars->m_exe_ctx.GetRegisterContext()->GetRegisterInfoByName(
-              reg_name));
+      
 
-      if (reg_info) {
+      if (const RegisterInfo *reg_info(
+          m_parser_vars->m_exe_ctx.GetRegisterContext()->GetRegisterInfoByName(
+              reg_name)); reg_info) {
         LLDB_LOG(log, "  CEDM::FEVD Found register {0}", reg_info->name);
 
         AddOneRegister(context, reg_info);
@@ -1501,8 +1501,8 @@ bool ClangExpressionDeclMap::GetVariableValue(VariableSP &var,
   Status err;
 
   if (var->GetLocationIsConstantValueData()) {
-    DataExtractor const_value_extractor;
-    if (var_location_list.GetExpressionData(const_value_extractor)) {
+    
+    if (DataExtractor const_value_extractor; var_location_list.GetExpressionData(const_value_extractor)) {
       var_location = Value(const_value_extractor.GetDataStart(),
                            const_value_extractor.GetByteSize());
       var_location.SetValueType(Value::ValueType::HostAddress);
@@ -1537,9 +1537,9 @@ bool ClangExpressionDeclMap::GetVariableValue(VariableSP &var,
     Address so_addr(var_location.GetScalar().ULongLong(),
                     var_sc.module_sp->GetSectionList());
 
-    lldb::addr_t load_addr = so_addr.GetLoadAddress(target);
+    
 
-    if (load_addr != LLDB_INVALID_ADDRESS) {
+    if (lldb::addr_t load_addr = so_addr.GetLoadAddress(target); load_addr != LLDB_INVALID_ADDRESS) {
       var_location.GetScalar() = load_addr;
       var_location.SetValueType(Value::ValueType::LoadAddress);
     }
@@ -1821,16 +1821,16 @@ void ClangExpressionDeclMap::AddOneFunction(NameSearchContext &context,
         clang::DeclContext *src_decl_context =
             (clang::DeclContext *)function->GetDeclContext()
                 .GetOpaqueDeclContext();
-        clang::FunctionDecl *src_function_decl =
-            llvm::dyn_cast_or_null<clang::FunctionDecl>(src_decl_context);
-        if (src_function_decl &&
+        
+        if (clang::FunctionDecl *src_function_decl =
+            llvm::dyn_cast_or_null<clang::FunctionDecl>(src_decl_context); src_function_decl &&
             src_function_decl->getTemplateSpecializationInfo()) {
           clang::FunctionTemplateDecl *function_template =
               src_function_decl->getTemplateSpecializationInfo()->getTemplate();
-          clang::FunctionTemplateDecl *copied_function_template =
+          
+          if (clang::FunctionTemplateDecl *copied_function_template =
               llvm::dyn_cast_or_null<clang::FunctionTemplateDecl>(
-                  CopyDecl(function_template));
-          if (copied_function_template) {
+                  CopyDecl(function_template)); copied_function_template) {
             if (log) {
               StreamString ss;
 

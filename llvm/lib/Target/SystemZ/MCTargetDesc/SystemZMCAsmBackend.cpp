@@ -29,8 +29,8 @@ static uint64_t extractBitsForFixup(MCFixupKind Kind, uint64_t Value,
     return Value;
 
   auto checkFixupInRange = [&](int64_t Min, int64_t Max) -> bool {
-    int64_t SVal = int64_t(Value);
-    if (SVal < Min || SVal > Max) {
+    
+    if (int64_t SVal = int64_t(Value); SVal < Min || SVal > Max) {
       Ctx.reportError(Fixup.getLoc(), "operand out of range (" + Twine(SVal) +
                                           " not between " + Twine(Min) +
                                           " and " + Twine(Max) + ")");

@@ -121,9 +121,9 @@ mlir::getControlFlowPredecessors(Value value) {
   }
 
   auto blockArg = cast<BlockArgument>(value);
-  Block *block = blockArg.getOwner();
+  
   // Search the region predecessor operands for structured control flow.
-  if (block->isEntryBlock()) {
+  if (Block *block = blockArg.getOwner(); block->isEntryBlock()) {
     if (auto regionBranchOp =
             dyn_cast<RegionBranchOpInterface>(block->getParentOp())) {
       RegionSuccessor region(blockArg.getParentRegion());

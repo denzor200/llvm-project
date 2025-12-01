@@ -107,8 +107,8 @@ ExegesisTarget::createBenchmarkRunner(
     BenchmarkRunner::ExecutionModeE ExecutionMode,
     unsigned BenchmarkRepeatCount, ArrayRef<ValidationEvent> ValidationCounters,
     Benchmark::ResultAggregationModeE ResultAggMode) const {
-  PfmCountersInfo PfmCounters = State.getPfmCounters();
-  switch (Mode) {
+  
+  switch (PfmCountersInfo PfmCounters = State.getPfmCounters(); Mode) {
   case Benchmark::Unknown:
     return nullptr;
   case Benchmark::Latency:

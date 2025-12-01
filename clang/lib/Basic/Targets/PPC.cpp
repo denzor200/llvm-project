@@ -781,8 +781,8 @@ PPCTargetInfo::getTargetBuiltins() const {
 }
 
 bool PPCTargetInfo::validateCpuSupports(StringRef FeatureStr) const {
-  llvm::Triple Triple = getTriple();
-  if (Triple.isOSAIX()) {
+  
+  if (llvm::Triple Triple = getTriple(); Triple.isOSAIX()) {
 #define PPC_AIX_FEATURE(NAME, DESC, SUPPORT_METHOD, INDEX, MASK, COMP_OP,      \
                         VALUE)                                                 \
   .Case(NAME, true)

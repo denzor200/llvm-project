@@ -134,8 +134,8 @@ struct InstRegexOp : public SetTheory::Operator {
 
       // The generic opcodes are unsorted, handle them manually.
       for (auto *Inst : Generics) {
-        StringRef InstName = Inst->getName();
-        if (InstName.starts_with(Prefix) &&
+        
+        if (StringRef InstName = Inst->getName(); InstName.starts_with(Prefix) &&
             (!Regexpr || Regexpr->match(InstName.substr(Prefix.size())))) {
           Elts.insert(Inst->TheDef);
           NumMatches++;
@@ -161,8 +161,8 @@ struct InstRegexOp : public SetTheory::Operator {
       // For these ranges we know that instruction names start with the prefix.
       // Check if there's a regex that needs to be checked.
       const auto HandleNonGeneric = [&](const CodeGenInstruction *Inst) {
-        StringRef InstName = Inst->getName();
-        if (!Regexpr || Regexpr->match(InstName.substr(Prefix.size()))) {
+        
+        if (StringRef InstName = Inst->getName(); !Regexpr || Regexpr->match(InstName.substr(Prefix.size()))) {
           Elts.insert(Inst->TheDef);
           NumMatches++;
         }
@@ -307,8 +307,8 @@ static void processSTIPredicate(STIPredicateFunction &Fn,
   for (const Record *Def : Fn.getDefinitions()) {
     ConstRecVec Classes = Def->getValueAsListOfDefs("Classes");
     for (const Record *EC : Classes) {
-      const Record *Pred = EC->getValueAsDef("Predicate");
-      if (Predicate2Index.try_emplace(Pred, NumUniquePredicates).second)
+      
+      if (const Record *Pred = EC->getValueAsDef("Predicate"); Predicate2Index.try_emplace(Pred, NumUniquePredicates).second)
         ++NumUniquePredicates;
 
       ConstRecVec Opcodes = EC->getValueAsListOfDefs("Opcodes");
@@ -632,8 +632,8 @@ void CodeGenSchedModels::collectSchedRW() {
       Records.getAllDerivedDefinitions("SchedAlias");
   for (const Record *ADef : AliasDefs) {
     const Record *MatchDef = ADef->getValueAsDef("MatchRW");
-    const Record *AliasDef = ADef->getValueAsDef("AliasRW");
-    if (MatchDef->isSubClassOf("SchedWrite")) {
+    
+    if (const Record *AliasDef = ADef->getValueAsDef("AliasRW"); MatchDef->isSubClassOf("SchedWrite")) {
       if (!AliasDef->isSubClassOf("SchedWrite"))
         PrintFatalError(ADef->getLoc(), "SchedWrite Alias must be SchedWrite");
       scanSchedRW(AliasDef, SWDefs, RWSet);
@@ -772,8 +772,8 @@ void CodeGenSchedModels::expandRWSeqForProc(
   for (const Record *Rec : SchedWrite.Aliases) {
     const CodeGenSchedRW &AliasRW = getSchedRW(Rec->getValueAsDef("AliasRW"));
     if (Rec->getValueInit("SchedModel")->isComplete()) {
-      const Record *ModelDef = Rec->getValueAsDef("SchedModel");
-      if (&getProcModel(ModelDef) != &ProcModel)
+      
+      if (const Record *ModelDef = Rec->getValueAsDef("SchedModel"); &getProcModel(ModelDef) != &ProcModel)
         continue;
     }
     if (AliasDef)
@@ -1023,14 +1023,14 @@ void CodeGenSchedModels::createInstRWClass(const Record *InstRWDef) {
     // If the all instrs in the current class are accounted for, then leave
     // them mapped to their old class.
     if (OldSCIdx) {
-      const ConstRecVec &RWDefs = SchedClasses[OldSCIdx].InstRWs;
-      if (!RWDefs.empty()) {
+      
+      if (const ConstRecVec &RWDefs = SchedClasses[OldSCIdx].InstRWs; !RWDefs.empty()) {
         const ConstRecVec *OrigInstDefs = Sets.expand(RWDefs[0]);
-        unsigned OrigNumInstrs =
+        
+        if (unsigned OrigNumInstrs =
             count_if(*OrigInstDefs, [&](const Record *OIDef) {
               return InstrClassMap[OIDef] == OldSCIdx;
-            });
-        if (OrigNumInstrs == InstDefs.size()) {
+            }); OrigNumInstrs == InstDefs.size()) {
           assert(SchedClasses[OldSCIdx].ProcIndices[0] == 0 &&
                  "expected a generic SchedClass");
           const Record *RWModelDef = InstRWDef->getValueAsDef("SchedModel");
@@ -1326,8 +1326,8 @@ bool PredTransitions::mutuallyExclusive(const Record *PredDef,
 
     const CodeGenSchedRW &SchedRW = SchedModels.getSchedRW(PC.RWIdx, PC.IsRead);
     assert(SchedRW.HasVariants && "PredCheck must refer to a SchedVariant");
-    ConstRecVec Variants = SchedRW.TheDef->getValueAsListOfDefs("Variants");
-    if (any_of(Variants, [PredDef](const Record *R) {
+    
+    if (ConstRecVec Variants = SchedRW.TheDef->getValueAsListOfDefs("Variants"); any_of(Variants, [PredDef](const Record *R) {
           return R->getValueAsDef("Predicate") == PredDef;
         })) {
       // To check if PredDef is mutually exclusive with PC we also need to
@@ -1437,8 +1437,8 @@ void PredTransitions::getIntersectingVariants(
     // Don't expand variants if the processor models don't intersect.
     // A zero processor index means any processor.
     if (Variant.VarOrSeqDef->isSubClassOf("SchedVar")) {
-      const Record *PredDef = Variant.VarOrSeqDef->getValueAsDef("Predicate");
-      if (mutuallyExclusive(PredDef, AllPreds, TransVec[TransIdx].PredTerm))
+      
+      if (const Record *PredDef = Variant.VarOrSeqDef->getValueAsDef("Predicate"); mutuallyExclusive(PredDef, AllPreds, TransVec[TransIdx].PredTerm))
         continue;
     }
 
@@ -1759,9 +1759,9 @@ void CodeGenSchedModels::verifyProcResourceGroups(const CodeGenProcModel &PM) {
     for (unsigned j = i + 1; j < e; ++j) {
       if (!PM.ProcResourceDefs[j]->isSubClassOf("ProcResGroup"))
         continue;
-      ConstRecVec OtherUnits =
-          PM.ProcResourceDefs[j]->getValueAsListOfDefs("Resources");
-      if (std::find_first_of(CheckUnits.begin(), CheckUnits.end(),
+      
+      if (ConstRecVec OtherUnits =
+          PM.ProcResourceDefs[j]->getValueAsListOfDefs("Resources"); std::find_first_of(CheckUnits.begin(), CheckUnits.end(),
                              OtherUnits.begin(),
                              OtherUnits.end()) != CheckUnits.end()) {
         // CheckUnits and OtherUnits overlap
@@ -1868,8 +1868,8 @@ void CodeGenSchedModels::collectProcResources() {
   for (const Record *PRG : Records.getAllDerivedDefinitions("ProcResGroup")) {
     if (!PRG->getValueInit("SchedModel")->isComplete())
       continue;
-    CodeGenProcModel &PM = getProcModel(PRG->getValueAsDef("SchedModel"));
-    if (!is_contained(PM.ProcResourceDefs, PRG))
+    
+    if (CodeGenProcModel &PM = getProcModel(PRG->getValueAsDef("SchedModel")); !is_contained(PM.ProcResourceDefs, PRG))
       PM.ProcResourceDefs.push_back(PRG);
   }
   // Add ProcResourceUnits unconditionally.
@@ -1877,8 +1877,8 @@ void CodeGenSchedModels::collectProcResources() {
        Records.getAllDerivedDefinitions("ProcResourceUnits")) {
     if (!PRU->getValueInit("SchedModel")->isComplete())
       continue;
-    CodeGenProcModel &PM = getProcModel(PRU->getValueAsDef("SchedModel"));
-    if (!is_contained(PM.ProcResourceDefs, PRU))
+    
+    if (CodeGenProcModel &PM = getProcModel(PRU->getValueAsDef("SchedModel")); !is_contained(PM.ProcResourceDefs, PRU))
       PM.ProcResourceDefs.push_back(PRU);
   }
   // Finalize each ProcModel by sorting the record arrays.
@@ -2110,8 +2110,8 @@ void CodeGenSchedModels::addWriteRes(const Record *ProcWriteResDef,
 
   if (ProcWriteResDef->isSubClassOf("WriteRes")) {
     auto &WRMap = PM.WriteResMap;
-    const Record *WRDef = ProcWriteResDef->getValueAsDef("WriteType");
-    if (!WRMap.try_emplace(WRDef, ProcWriteResDef).second)
+    
+    if (const Record *WRDef = ProcWriteResDef->getValueAsDef("WriteType"); !WRMap.try_emplace(WRDef, ProcWriteResDef).second)
       PrintFatalError(ProcWriteResDef->getLoc(),
                       "WriteType of " + WRDef->getName() +
                           " already used in another WriteRes");
@@ -2145,8 +2145,8 @@ void CodeGenSchedModels::addReadAdvance(const Record *ProcReadAdvanceDef,
 
   if (ProcReadAdvanceDef->isSubClassOf("ReadAdvance")) {
     auto &RAMap = PM.ReadAdvanceMap;
-    const Record *RADef = ProcReadAdvanceDef->getValueAsDef("ReadType");
-    if (!RAMap.try_emplace(RADef, ProcReadAdvanceDef).second)
+    
+    if (const Record *RADef = ProcReadAdvanceDef->getValueAsDef("ReadType"); !RAMap.try_emplace(RADef, ProcReadAdvanceDef).second)
       PrintFatalError(ProcReadAdvanceDef->getLoc(),
                       "ReadType of " + RADef->getName() +
                           " already used in another ReadAdvance");

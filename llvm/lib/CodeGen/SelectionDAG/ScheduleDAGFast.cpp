@@ -208,15 +208,15 @@ SUnit *ScheduleDAGFast::CopyAndMoveSuccessors(SUnit *SU) {
   SUnit *NewSU;
   bool TryUnfold = false;
   for (unsigned i = 0, e = N->getNumValues(); i != e; ++i) {
-    MVT VT = N->getSimpleValueType(i);
-    if (VT == MVT::Glue)
+    
+    if (MVT VT = N->getSimpleValueType(i); VT == MVT::Glue)
       return nullptr;
     else if (VT == MVT::Other)
       TryUnfold = true;
   }
   for (const SDValue &Op : N->op_values()) {
-    MVT VT = Op.getNode()->getSimpleValueType(Op.getResNo());
-    if (VT == MVT::Glue)
+    
+    if (MVT VT = Op.getNode()->getSimpleValueType(Op.getResNo()); VT == MVT::Glue)
       return nullptr;
   }
 
@@ -345,8 +345,8 @@ SUnit *ScheduleDAGFast::CopyAndMoveSuccessors(SUnit *SU) {
   for (SDep &Succ : SU->Succs) {
     if (Succ.isArtificial())
       continue;
-    SUnit *SuccSU = Succ.getSUnit();
-    if (SuccSU->isScheduled) {
+    
+    if (SUnit *SuccSU = Succ.getSUnit(); SuccSU->isScheduled) {
       SDep D = Succ;
       D.setSUnit(NewSU);
       AddPred(SuccSU, D);
@@ -381,8 +381,8 @@ void ScheduleDAGFast::InsertCopiesAndMoveSuccs(SUnit *SU, unsigned Reg,
   for (SDep &Succ : SU->Succs) {
     if (Succ.isArtificial())
       continue;
-    SUnit *SuccSU = Succ.getSUnit();
-    if (SuccSU->isScheduled) {
+    
+    if (SUnit *SuccSU = Succ.getSUnit(); SuccSU->isScheduled) {
       SDep D = Succ;
       D.setSUnit(CopyToSU);
       AddPred(SuccSU, D);
@@ -494,8 +494,8 @@ bool ScheduleDAGFast::DelayForLiveRegsBottomUp(SUnit *SU,
             F.isClobberKind()) {
           // Check for def of register or earlyclobber register.
           for (; NumVals; --NumVals, ++i) {
-            Register Reg = cast<RegisterSDNode>(Node->getOperand(i))->getReg();
-            if (Reg.isPhysical())
+            
+            if (Register Reg = cast<RegisterSDNode>(Node->getOperand(i))->getReg(); Reg.isPhysical())
               CheckForLiveRegDef(SU, Reg, LiveRegDefs, RegAdded, LRegs, TRI);
           }
         } else
@@ -505,8 +505,8 @@ bool ScheduleDAGFast::DelayForLiveRegsBottomUp(SUnit *SU,
     }
 
     if (Node->getOpcode() == ISD::CopyToReg) {
-      Register Reg = cast<RegisterSDNode>(Node->getOperand(1))->getReg();
-      if (Reg.isPhysical()) {
+      
+      if (Register Reg = cast<RegisterSDNode>(Node->getOperand(1))->getReg(); Reg.isPhysical()) {
         SDNode *SrcNode = Node->getOperand(2).getNode();
         CheckForLiveRegDef(SU, Reg, LiveRegDefs, RegAdded, LRegs, TRI, SrcNode);
       }
@@ -673,8 +673,8 @@ void ScheduleDAGLinearize::ScheduleNode(SDNode *N) {
   LLVM_DEBUG(N->dump(DAG));
   Sequence.push_back(N);
 
-  unsigned NumOps = N->getNumOperands();
-  if (unsigned NumLeft = NumOps) {
+  
+  if (unsigned unsigned NumOps = N->getNumOperands(); NumLeft = NumOps) {
     SDNode *GluedOpN = nullptr;
     do {
       const SDValue &Op = N->getOperand(NumLeft-1);
@@ -726,11 +726,11 @@ void ScheduleDAGLinearize::Schedule() {
     // Use node id to record degree.
     unsigned Degree = N->use_size();
     N->setNodeId(Degree);
-    unsigned NumVals = N->getNumValues();
-    if (NumVals && N->getValueType(NumVals-1) == MVT::Glue &&
+    
+    if (unsigned NumVals = N->getNumValues(); NumVals && N->getValueType(NumVals-1) == MVT::Glue &&
         N->hasAnyUseOfValue(NumVals-1)) {
-      SDNode *User = findGluedUser(N);
-      if (User) {
+      
+      if (SDNode *User = findGluedUser(N); User) {
         Glues.push_back(N);
         GluedMap.insert(std::make_pair(N, User));
       }

@@ -26,8 +26,8 @@ ErrorOr<int> clock_gettime(clockid_t clockid, timespec *ts) {
   using namespace vdso;
   int ret;
 #if defined(SYS_clock_gettime)
-  TypedSymbol<VDSOSym::ClockGetTime> clock_gettime;
-  if (LIBC_LIKELY(clock_gettime != nullptr))
+  
+  if (TypedSymbol<VDSOSym::ClockGetTime> clock_gettime; LIBC_LIKELY(clock_gettime != nullptr))
     ret = clock_gettime(clockid, ts);
   else
     ret = LIBC_NAMESPACE::syscall_impl<int>(SYS_clock_gettime,

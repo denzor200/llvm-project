@@ -72,8 +72,8 @@ QualType APValue::LValueBase::getType() const {
     // For now, we take the most complete type we can find.
     for (auto *Redecl = cast<ValueDecl>(D->getMostRecentDecl()); Redecl;
          Redecl = cast_or_null<ValueDecl>(Redecl->getPreviousDecl())) {
-      QualType T = Redecl->getType();
-      if (!T->isIncompleteArrayType())
+      
+      if (QualType T = Redecl->getType(); !T->isIncompleteArrayType())
         return T;
     }
     return D->getType();
@@ -94,11 +94,11 @@ QualType APValue::LValueBase::getType() const {
     SmallVector<const Expr *, 2> CommaLHSs;
     SmallVector<SubobjectAdjustment, 2> Adjustments;
     const Expr *Temp = MTE->getSubExpr();
-    const Expr *Inner = Temp->skipRValueSubobjectAdjustments(CommaLHSs,
-                                                             Adjustments);
+    
     // Keep any cv-qualifiers from the reference if we generated a temporary
     // for it directly. Otherwise use the type after adjustment.
-    if (!Adjustments.empty())
+    if (const Expr *Inner = Temp->skipRValueSubobjectAdjustments(CommaLHSs,
+                                                             Adjustments); !Adjustments.empty())
       return Inner->getType();
   }
 
@@ -883,8 +883,8 @@ void APValue::printPretty(raw_ostream &Out, const PrintingPolicy &Policy,
       return;
     QualType ElemTy = AT->getElementType();
     Out << '{';
-    unsigned I = 0;
-    switch (N) {
+    
+    switch (unsigned I = 0; N) {
     case 0:
       for (; I != N; ++I) {
         Out << ", ";
@@ -1048,9 +1048,9 @@ APValue::setLValueUninit(LValueBase B, const CharUnits &O, unsigned Size,
 void APValue::setLValue(LValueBase B, const CharUnits &O,
                         ArrayRef<LValuePathEntry> Path, bool IsOnePastTheEnd,
                         bool IsNullPtr) {
-  MutableArrayRef<APValue::LValuePathEntry> InternalPath =
-      setLValueUninit(B, O, Path.size(), IsOnePastTheEnd, IsNullPtr);
-  if (Path.size()) {
+  
+  if (MutableArrayRef<APValue::LValuePathEntry> InternalPath =
+      setLValueUninit(B, O, Path.size(), IsOnePastTheEnd, IsNullPtr); Path.size()) {
     memcpy(InternalPath.data(), Path.data(),
            Path.size() * sizeof(LValuePathEntry));
   }

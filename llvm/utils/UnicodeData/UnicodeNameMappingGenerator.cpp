@@ -61,8 +61,8 @@ loadDataFiles(const std::string &NamesFile, const std::string &AliasesFile) {
 
       // Some aliases are ignored for compatibility with C++
       if (IsAliasFile) {
-        std::string Kind = Line.substr(SecondSemiPos + 1);
-        if (Kind != "control" && Kind != "correction" && Kind != "alternate")
+        
+        if (std::string Kind = Line.substr(SecondSemiPos + 1); Kind != "control" && Kind != "correction" && Kind != "alternate")
           continue;
       }
 
@@ -219,9 +219,9 @@ public:
       assert(!N->Name.empty());
       Offsets[N] = Offset;
 
-      uint8_t FirstByte = (!!N->Value) ? 0x80 : 0;
+      
       // Single letter node are indexed in 6 bits
-      if (N->Name.size() == 1) {
+      if (uint8_t FirstByte = (!!N->Value) ? 0x80 : 0; N->Name.size() == 1) {
         FirstByte |= letter(N->Name[0]);
         Bytes.push_back(FirstByte);
       } else {

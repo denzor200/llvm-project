@@ -164,8 +164,8 @@ void UnwindPlan::Row::AbstractRegisterLocation::Dump(
 
 static void DumpRegisterName(Stream &s, const UnwindPlan *unwind_plan,
                              Thread *thread, uint32_t reg_num) {
-  const RegisterInfo *reg_info = unwind_plan->GetRegisterInfo(thread, reg_num);
-  if (reg_info)
+  
+  if (const RegisterInfo *reg_info = unwind_plan->GetRegisterInfo(thread, reg_num); reg_info)
     s.PutCString(reg_info->name);
   else
     s.Printf("reg(%u)", reg_num);
@@ -456,10 +456,10 @@ const UnwindPlan::Row *UnwindPlan::GetLastRow() const {
 bool UnwindPlan::PlanValidAtAddress(Address addr) const {
   // If this UnwindPlan has no rows, it is an invalid UnwindPlan.
   if (GetRowCount() == 0) {
-    Log *log = GetLog(LLDBLog::Unwind);
-    if (log) {
-      StreamString s;
-      if (addr.Dump(&s, nullptr, Address::DumpStyleSectionNameOffset)) {
+    
+    if (Log *log = GetLog(LLDBLog::Unwind); log) {
+      
+      if (StreamString s; addr.Dump(&s, nullptr, Address::DumpStyleSectionNameOffset)) {
         LLDB_LOGF(log,
                   "UnwindPlan is invalid -- no unwind rows for UnwindPlan "
                   "'%s' at address %s",
@@ -476,13 +476,13 @@ bool UnwindPlan::PlanValidAtAddress(Address addr) const {
   // If the 0th Row of unwind instructions is missing, or if it doesn't provide
   // a register to use to find the Canonical Frame Address, this is not a valid
   // UnwindPlan.
-  const Row *row0 = GetRowAtIndex(0);
-  if (!row0 ||
+  
+  if (const Row *row0 = GetRowAtIndex(0); !row0 ||
       row0->GetCFAValue().GetValueType() == Row::FAValue::unspecified) {
-    Log *log = GetLog(LLDBLog::Unwind);
-    if (log) {
-      StreamString s;
-      if (addr.Dump(&s, nullptr, Address::DumpStyleSectionNameOffset)) {
+    
+    if (Log *log = GetLog(LLDBLog::Unwind); log) {
+      
+      if (StreamString s; addr.Dump(&s, nullptr, Address::DumpStyleSectionNameOffset)) {
         LLDB_LOGF(log,
                   "UnwindPlan is invalid -- no CFA register defined in row 0 "
                   "for UnwindPlan '%s' at address %s",

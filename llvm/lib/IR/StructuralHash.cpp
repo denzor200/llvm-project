@@ -83,19 +83,19 @@ public:
 
     // Hash the contents of a string.
     if (GVar.getName().starts_with(".str")) {
-      auto *C = GVar.getInitializer();
-      if (const auto *Seq = dyn_cast<ConstantDataSequential>(C))
+      
+      if (const auto *auto *C = GVar.getInitializer(); Seq = dyn_cast<ConstantDataSequential>(C))
         if (Seq->isString())
           return stable_hash_name(Seq->getAsString());
     }
 
     // Hash structural contents of Objective-C metadata in specific sections.
     // This can be extended to other metadata if needed.
-    static constexpr const char *SectionNames[] = {
+    
+    if (static constexpr const char *SectionNames[] = {
         "__cfstring",      "__cstring",      "__objc_classrefs",
         "__objc_methname", "__objc_selrefs",
-    };
-    if (GVar.hasSection()) {
+    }; GVar.hasSection()) {
       StringRef SectionName = GVar.getSection();
       for (const char *Name : SectionNames)
         if (SectionName.contains(Name))
@@ -184,8 +184,8 @@ public:
 
   stable_hash hashValue(Value *V) {
     // Check constant and return its hash.
-    Constant *C = dyn_cast<Constant>(V);
-    if (C)
+    
+    if (Constant *C = dyn_cast<Constant>(V); C)
       return hashConstant(C);
 
     // Hash argument number.
@@ -228,8 +228,8 @@ public:
     }
 
     for (const auto [OpndIdx, Op] : enumerate(Inst.operands())) {
-      auto OpndHash = hashOperand(Op);
-      if (IgnoreOp && IgnoreOp(&Inst, OpndIdx)) {
+      
+      if (auto OpndHash = hashOperand(Op); IgnoreOp && IgnoreOp(&Inst, OpndIdx)) {
         assert(IndexOperandHashMap);
         IndexOperandHashMap->try_emplace({InstIdx, OpndIdx}, OpndHash);
       } else

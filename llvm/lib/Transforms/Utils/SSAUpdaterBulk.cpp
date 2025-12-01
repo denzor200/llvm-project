@@ -27,9 +27,9 @@ using namespace llvm;
 /// user. For PHI-nodes this block is the corresponding predecessor, for other
 /// instructions it's their parent block.
 static BasicBlock *getUserBB(Use *U) {
-  auto *User = cast<Instruction>(U->getUser());
+  
 
-  if (auto *UserPN = dyn_cast<PHINode>(User))
+  if (auto *auto *User = cast<Instruction>(U->getUser()); UserPN = dyn_cast<PHINode>(User))
     return UserPN->getIncomingBlock(*U);
   else
     return User->getParent();

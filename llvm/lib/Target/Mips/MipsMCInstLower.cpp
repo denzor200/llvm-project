@@ -184,9 +184,9 @@ MCOperand MipsMCInstLower::LowerSymbolOperand(const MachineOperand &MO,
 
 MCOperand MipsMCInstLower::LowerOperand(const MachineOperand &MO,
                                         int64_t offset) const {
-  MachineOperandType MOTy = MO.getType();
+  
 
-  switch (MOTy) {
+  switch (MachineOperandType MOTy = MO.getType(); MOTy) {
   default: llvm_unreachable("unknown operand type");
   case MachineOperand::MO_Register:
     // Ignore all implicit register operands.
@@ -227,8 +227,8 @@ lowerLongBranchLUi(const MachineInstr *MI, MCInst &OutMI) const {
   OutMI.addOperand(LowerOperand(MI->getOperand(0)));
 
   Mips::Specifier Spec;
-  unsigned TargetFlags = MI->getOperand(1).getTargetFlags();
-  switch (TargetFlags) {
+  
+  switch (unsigned TargetFlags = MI->getOperand(1).getTargetFlags(); TargetFlags) {
   case MipsII::MO_HIGHEST:
     Spec = Mips::S_HIGHEST;
     break;
@@ -262,8 +262,8 @@ void MipsMCInstLower::lowerLongBranchADDiu(const MachineInstr *MI,
   OutMI.setOpcode(Opcode);
 
   Mips::Specifier Spec;
-  unsigned TargetFlags = MI->getOperand(2).getTargetFlags();
-  switch (TargetFlags) {
+  
+  switch (unsigned TargetFlags = MI->getOperand(2).getTargetFlags(); TargetFlags) {
   case MipsII::MO_HIGHEST:
     Spec = Mips::S_HIGHEST;
     break;
@@ -327,9 +327,9 @@ void MipsMCInstLower::Lower(const MachineInstr *MI, MCInst &OutMI) const {
   OutMI.setOpcode(MI->getOpcode());
 
   for (const MachineOperand &MO : MI->operands()) {
-    MCOperand MCOp = LowerOperand(MO);
+    
 
-    if (MCOp.isValid())
+    if (MCOperand MCOp = LowerOperand(MO); MCOp.isValid())
       OutMI.addOperand(MCOp);
   }
 }

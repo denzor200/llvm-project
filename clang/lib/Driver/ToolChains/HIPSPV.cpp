@@ -25,8 +25,8 @@ using namespace llvm::opt;
 // Locates HIP pass plugin.
 static std::string findPassPlugin(const Driver &D,
                                   const llvm::opt::ArgList &Args) {
-  StringRef Path = Args.getLastArgValue(options::OPT_hipspv_pass_plugin_EQ);
-  if (!Path.empty()) {
+  
+  if (StringRef Path = Args.getLastArgValue(options::OPT_hipspv_pass_plugin_EQ); !Path.empty()) {
     if (llvm::sys::fs::exists(Path))
       return Path.str();
     D.Diag(diag::err_drv_no_such_file) << Path;

@@ -143,10 +143,10 @@ static bool SetBackdoorDriverOutputsFromEnvVars(Driver &TheDriver) {
     TheDriver.CCPrintHeadersFormat = HIFMT_Textual;
     TheDriver.CCPrintHeadersFiltering = HIFIL_None;
   } else {
-    std::string EnvVar = checkEnvVar<std::string>(
+    
+    if (std::string EnvVar = checkEnvVar<std::string>(
         "CC_PRINT_HEADERS_FORMAT", "CC_PRINT_HEADERS_FILE",
-        TheDriver.CCPrintHeadersFilename);
-    if (!EnvVar.empty()) {
+        TheDriver.CCPrintHeadersFilename); !EnvVar.empty()) {
       TheDriver.CCPrintHeadersFormat =
           stringToHeaderIncludeFormatKind(EnvVar.c_str());
       if (!TheDriver.CCPrintHeadersFormat) {
@@ -213,9 +213,9 @@ static int ExecuteCC1Tool(SmallVectorImpl<const char *> &ArgV,
   llvm::cl::ResetAllOptionOccurrences();
 
   llvm::BumpPtrAllocator A;
-  llvm::cl::ExpansionContext ECtx(A, llvm::cl::TokenizeGNUCommandLine,
-                                  VFS.get());
-  if (llvm::Error Err = ECtx.expandResponseFiles(ArgV)) {
+  
+  if (llvm::Error llvm::cl::ExpansionContext ECtx(A, llvm::cl::TokenizeGNUCommandLine,
+                                  VFS.get()); Err = ECtx.expandResponseFiles(ArgV)) {
     llvm::errs() << toString(std::move(Err)) << '\n';
     return 1;
   }

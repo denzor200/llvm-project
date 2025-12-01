@@ -82,12 +82,12 @@ JITCompileCallbackManager::executeCompileCallback(ExecutorAddr TrampolineAddr) {
 
   {
     std::unique_lock<std::mutex> Lock(CCMgrMutex);
-    auto I = AddrToSymbol.find(TrampolineAddr);
+    
 
     // If this address is not associated with a compile callback then report an
     // error to the execution session and return ErrorHandlerAddress to the
     // callee.
-    if (I == AddrToSymbol.end()) {
+    if (auto I = AddrToSymbol.find(TrampolineAddr); I == AddrToSymbol.end()) {
       Lock.unlock();
       ES.reportError(
           make_error<StringError>("No compile callback for trampoline at " +
@@ -411,9 +411,9 @@ Error addFunctionPointerRelocationsToCurrentSymbol(jitlink::Symbol &Sym,
     MCInst Instr;
     uint64_t InstrSize = 0;
     uint64_t InstrStart = SymAddress.getValue() + I;
-    auto DecodeStatus = Disassembler.getInstruction(
-        Instr, InstrSize, Content.drop_front(I), InstrStart, CommentStream);
-    if (DecodeStatus != MCDisassembler::Success) {
+    
+    if (auto DecodeStatus = Disassembler.getInstruction(
+        Instr, InstrSize, Content.drop_front(I), InstrStart, CommentStream); DecodeStatus != MCDisassembler::Success) {
       LLVM_DEBUG(dbgs() << "Aborting due to disassembly failure at address "
                         << InstrStart);
       return make_error<StringError>(

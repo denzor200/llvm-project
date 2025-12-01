@@ -65,8 +65,8 @@ TEST_F(GlobPatternTest, Escape) {
 
   for (size_t I = 0; I != 4; ++I) {
     std::string S(I, '\\');
-    Expected<GlobPattern> Pat = GlobPattern::create(S);
-    if (I % 2) {
+    
+    if (Expected<GlobPattern> Pat = GlobPattern::create(S); I % 2) {
       EXPECT_FALSE((bool)Pat);
       handleAllErrors(Pat.takeError(), [&](ErrorInfoBase &) {});
     } else {

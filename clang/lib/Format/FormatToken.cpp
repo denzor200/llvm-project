@@ -21,13 +21,13 @@ namespace clang {
 namespace format {
 
 const char *getTokenTypeName(TokenType Type) {
-  static const char *const TokNames[] = {
+  
+
+  if (static const char *const TokNames[] = {
 #define TYPE(X) #X,
       LIST_TOKEN_TYPES
 #undef TYPE
-      nullptr};
-
-  if (Type < NUM_TOKEN_TYPES)
+      nullptr}; Type < NUM_TOKEN_TYPES)
     return TokNames[Type];
   llvm_unreachable("unknown TokenType");
   return nullptr;

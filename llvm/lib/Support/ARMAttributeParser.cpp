@@ -72,9 +72,9 @@ const ARMAttributeParser::DisplayHandler ARMAttributeParser::displayRoutines[] =
 Error ARMAttributeParser::stringAttribute(AttrType tag) {
   StringRef tagName =
       ELFAttrs::attrTypeAsString(tag, tagToStringMap, /*hasTagPrefix=*/false);
-  StringRef desc = de.getCStrRef(cursor);
+  
 
-  if (sw) {
+  if (StringRef desc = de.getCStrRef(cursor); sw) {
     DictScope scope(*sw, "Attribute");
     sw->printNumber("Tag", tag);
     if (!tagName.empty())
@@ -309,9 +309,9 @@ Error ARMAttributeParser::ABI_FP_optimization_goals(AttrType tag) {
 
 Error ARMAttributeParser::compatibility(AttrType tag) {
   uint64_t integer = de.getULEB128(cursor);
-  StringRef string = de.getCStrRef(cursor);
+  
 
-  if (sw) {
+  if (StringRef string = de.getCStrRef(cursor); sw) {
     DictScope scope(*sw, "Attribute");
     sw->printNumber("Tag", tag);
     sw->startLine() << "Value: " << integer << ", " << string << '\n';
@@ -418,12 +418,12 @@ Error ARMAttributeParser::also_compatible_with(AttrType tag) {
   cursor.seek(InitialOffset);
   uint64_t InnerTag = de.getULEB128(cursor);
 
-  bool ValidInnerTag =
+  
+
+  if (bool ValidInnerTag =
       any_of(tagToStringMap, [InnerTag](const TagNameItem &Item) {
         return Item.attr == InnerTag;
-      });
-
-  if (!ValidInnerTag) {
+      }); !ValidInnerTag) {
     returnValue =
         createStringError(errc::argument_out_of_domain,
                           Twine(InnerTag) + " is not a valid tag number");

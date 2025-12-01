@@ -142,8 +142,8 @@ static bool getARMLoadDeprecationInfo(MCInst &MI, const MCSubtargetInfo &STI,
 std::string ARM_MC::ParseARMTriple(const Triple &TT, StringRef CPU) {
   std::string ARMArchFeature;
 
-  ARM::ArchKind ArchID = ARM::parseArch(TT.getArchName());
-  if (ArchID != ARM::ArchKind::INVALID &&  (CPU.empty() || CPU == "generic"))
+  
+  if (ARM::ArchKind ArchID = ARM::parseArch(TT.getArchName()); ArchID != ARM::ArchKind::INVALID &&  (CPU.empty() || CPU == "generic"))
     ARMArchFeature = (ARMArchFeature + "+" + ARM::getArchName(ArchID)).str();
 
   if (TT.isThumb()) {
@@ -170,8 +170,8 @@ bool ARM_MC::isPredicated(const MCInst &MI, const MCInstrInfo *MCII) {
 bool ARM_MC::isCPSRDefined(const MCInst &MI, const MCInstrInfo *MCII) {
   const MCInstrDesc &Desc = MCII->get(MI.getOpcode());
   for (unsigned I = 0; I < MI.getNumOperands(); ++I) {
-    const MCOperand &MO = MI.getOperand(I);
-    if (MO.isReg() && MO.getReg() == ARM::CPSR &&
+    
+    if (const MCOperand &MO = MI.getOperand(I); MO.isReg() && MO.getReg() == ARM::CPSR &&
         Desc.operands()[I].isOptionalDef())
       return true;
   }
@@ -599,8 +599,8 @@ std::optional<uint64_t> ARMMCInstrAnalysis::evaluateMemoryOperandAddress(
   }
 
   // Eveluate the address depending on the addressing mode
-  unsigned AddrMode = (TSFlags & ARMII::AddrModeMask);
-  switch (AddrMode) {
+  
+  switch (unsigned AddrMode = (TSFlags & ARMII::AddrModeMask); AddrMode) {
   default:
     return std::nullopt;
   case ARMII::AddrMode_i12:
@@ -624,8 +624,8 @@ template <typename T, size_t N>
 static bool instructionsMatch(const T (&Insns)[N], const uint8_t *Buf,
                               llvm::endianness E) {
   for (size_t I = 0; I < N; ++I) {
-    T Val = support::endian::read<T>(Buf + I * sizeof(T), E);
-    if (Val != Insns[I])
+    
+    if (T Val = support::endian::read<T>(Buf + I * sizeof(T), E); Val != Insns[I])
       return false;
   }
   return true;

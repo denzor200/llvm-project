@@ -27,8 +27,8 @@ bool llvm::isEqual(const GCNRPTracker::LiveRegSet &S1,
     return false;
 
   for (const auto &P : S1) {
-    auto I = S2.find(P.first);
-    if (I == S2.end() || I->second != P.second)
+    
+    if (auto I = S2.find(P.first); I == S2.end() || I->second != P.second)
       return false;
   }
   return true;
@@ -116,10 +116,10 @@ bool GCNRegPressure::less(const MachineFunction &MF, const GCNRegPressure &O,
                                            DynamicVGPRBlockSize));
 
   const auto Occ = std::min(SGPROcc, VGPROcc);
-  const auto OtherOcc = std::min(OtherSGPROcc, OtherVGPROcc);
+  
 
   // Give first precedence to the better occupancy.
-  if (Occ != OtherOcc)
+  if (const auto OtherOcc = std::min(OtherSGPROcc, OtherVGPROcc); Occ != OtherOcc)
     return Occ > OtherOcc;
 
   unsigned MaxVGPRs = ST.getMaxNumVGPRs(MF);
@@ -218,13 +218,13 @@ bool GCNRegPressure::less(const MachineFunction &MF, const GCNRegPressure &O,
   for (int I = 2; I > 0; --I, SGPRFirst = !SGPRFirst) {
     if (SGPRFirst) {
       auto SW = getSGPRTuplesWeight();
-      auto OtherSW = O.getSGPRTuplesWeight();
-      if (SW != OtherSW)
+      
+      if (auto OtherSW = O.getSGPRTuplesWeight(); SW != OtherSW)
         return SW < OtherSW;
     } else {
       auto VW = getVGPRTuplesWeight();
-      auto OtherVW = O.getVGPRTuplesWeight();
-      if (VW != OtherVW)
+      
+      if (auto OtherVW = O.getVGPRTuplesWeight(); VW != OtherVW)
         return VW < OtherVW;
     }
   }
@@ -346,9 +346,9 @@ static LaneBitmask findUseBetween(unsigned Reg, LaneBitmask LastUseMask,
       continue;
     const MachineInstr *MI = MO.getParent();
     SlotIndex InstSlot = LIS->getInstructionIndex(*MI).getRegSlot();
-    bool InRange = Upward ? (InstSlot > PriorUseIdx && InstSlot <= NextUseIdx)
-                          : (InstSlot >= PriorUseIdx && InstSlot < NextUseIdx);
-    if (!InRange)
+    
+    if (bool InRange = Upward ? (InstSlot > PriorUseIdx && InstSlot <= NextUseIdx)
+                          : (InstSlot >= PriorUseIdx && InstSlot < NextUseIdx); !InRange)
       continue;
 
     unsigned SubRegIdx = MO.getSubReg();
@@ -617,8 +617,8 @@ bool GCNDownwardRPTracker::advanceBeforeNext(MachineInstr *MI,
       continue;
     if (!SeenRegs.insert(MO.getReg()).second)
       continue;
-    const LiveInterval &LI = LIS.getInterval(MO.getReg());
-    if (LI.hasSubRanges()) {
+    
+    if (const LiveInterval &LI = LIS.getInterval(MO.getReg()); LI.hasSubRanges()) {
       auto It = LiveRegs.end();
       for (const auto &S : LI.subranges()) {
         if (!S.liveAt(SI)) {
@@ -706,8 +706,8 @@ Printable llvm::reportMismatch(const GCNRPTracker::LiveRegSet &LISLR,
                                const TargetRegisterInfo *TRI, StringRef Pfx) {
   return Printable([&LISLR, &TrackedLR, TRI, Pfx](raw_ostream &OS) {
     for (auto const &P : TrackedLR) {
-      auto I = LISLR.find(P.first);
-      if (I == LISLR.end()) {
+      
+      if (auto I = LISLR.find(P.first); I == LISLR.end()) {
         OS << Pfx << printReg(P.first, TRI) << ":L" << PrintLaneMask(P.second)
            << " isn't found in LIS reported set\n";
       } else if (I->second != P.second) {
@@ -717,8 +717,8 @@ Printable llvm::reportMismatch(const GCNRPTracker::LiveRegSet &LISLR,
       }
     }
     for (auto const &P : LISLR) {
-      auto I = TrackedLR.find(P.first);
-      if (I == TrackedLR.end()) {
+      
+      if (auto I = TrackedLR.find(P.first); I == TrackedLR.end()) {
         OS << Pfx << printReg(P.first, TRI) << ":L" << PrintLaneMask(P.second)
            << " isn't found in tracked set\n";
       }
@@ -790,9 +790,9 @@ GCNDownwardRPTracker::bumpDownwardPressure(const MachineInstr *MI,
 bool GCNUpwardRPTracker::isValid() const {
   const auto &SI = LIS.getInstructionIndex(*LastTrackedMI).getBaseIndex();
   const auto LISLR = llvm::getLiveRegs(SI, LIS, *MRI);
-  const auto &TrackedLR = LiveRegs;
+  
 
-  if (!isEqual(LISLR, TrackedLR)) {
+  if (const auto &TrackedLR = LiveRegs; !isEqual(LISLR, TrackedLR)) {
     dbgs() << "\nGCNUpwardRPTracker error: Tracked and"
               " LIS reported livesets mismatch:\n"
            << print(LISLR, *MRI);
@@ -848,15 +848,15 @@ getRegLiveThroughMask(const MachineRegisterInfo &MRI, const LiveIntervals &LIS,
   };
 
   LaneBitmask LiveThroughMask;
-  const LiveInterval &LI = LIS.getInterval(Reg);
-  if (LI.hasSubRanges()) {
+  
+  if (const LiveInterval &LI = LIS.getInterval(Reg); LI.hasSubRanges()) {
     for (auto &SR : LI.subranges()) {
       if ((SR.LaneMask & Mask) == SR.LaneMask && IsInOneSegment(SR))
         LiveThroughMask |= SR.LaneMask;
     }
   } else {
-    LaneBitmask RegMask = MRI.getMaxLaneMaskForVReg(Reg);
-    if ((RegMask & Mask) == RegMask && IsInOneSegment(LI))
+    
+    if (LaneBitmask RegMask = MRI.getMaxLaneMaskForVReg(Reg); (RegMask & Mask) == RegMask && IsInOneSegment(LI))
       LiveThroughMask = RegMask;
   }
 
@@ -967,11 +967,11 @@ bool GCNRegPressurePrinter::runOnMachineFunction(MachineFunction &MF) {
 
     GCNRPTracker::LiveRegSet LiveThrough;
     for (auto [Reg, Mask] : LiveIn) {
-      LaneBitmask MaskIntersection = Mask & LiveOut.lookup(Reg);
-      if (MaskIntersection.any()) {
-        LaneBitmask LTMask = getRegLiveThroughMask(
-            MRI, LIS, Reg, MBBStartSlot, MBBLastSlot, MaskIntersection);
-        if (LTMask.any())
+      
+      if (LaneBitmask MaskIntersection = Mask & LiveOut.lookup(Reg); MaskIntersection.any()) {
+        
+        if (LaneBitmask LTMask = getRegLiveThroughMask(
+            MRI, LIS, Reg, MBBStartSlot, MBBLastSlot, MaskIntersection); LTMask.any())
           LiveThrough[Reg] = LTMask;
       }
     }

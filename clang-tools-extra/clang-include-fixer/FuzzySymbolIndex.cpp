@@ -77,8 +77,8 @@ std::vector<std::string> FuzzySymbolIndex::tokenize(StringRef Text) {
     Start = End;
   };
   for (size_t I = 0; I < Text.size(); ++I) {
-    CharType Type = classify(Text[I]);
-    if (Type == MISC)
+    
+    if (CharType Type = classify(Text[I]); Type == MISC)
       Flush(I);
     else if (Type == LOWER)
       switch (State) {

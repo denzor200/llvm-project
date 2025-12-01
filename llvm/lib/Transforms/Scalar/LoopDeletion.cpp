@@ -197,9 +197,9 @@ getValueOnFirstIteration(Value *V, DenseMap<Value *, Value *> &FirstIterValue,
         getValueOnFirstIteration(Cmp->getOperand(1), FirstIterValue, SQ);
     FirstIterV = simplifyICmpInst(Cmp->getPredicate(), LHS, RHS, SQ);
   } else if (auto *Select = dyn_cast<SelectInst>(V)) {
-    Value *Cond =
-        getValueOnFirstIteration(Select->getCondition(), FirstIterValue, SQ);
-    if (auto *C = dyn_cast<ConstantInt>(Cond)) {
+    
+    if (auto *Value *Cond =
+        getValueOnFirstIteration(Select->getCondition(), FirstIterValue, SQ); C = dyn_cast<ConstantInt>(Cond)) {
       auto *Selected = C->isAllOnesValue() ? Select->getTrueValue()
                                            : Select->getFalseValue();
       FirstIterV = getValueOnFirstIteration(Selected, FirstIterValue, SQ);
@@ -318,8 +318,8 @@ static bool canProveExitOnFirstIteration(Loop *L, DominatorTree &DT,
     for (auto &PN : BB->phis()) {
       if (!PN.getType()->isIntegerTy())
         continue;
-      auto *Incoming = GetSoleInputOnFirstIteration(PN);
-      if (Incoming && DT.dominates(Incoming, BB->getTerminator())) {
+      
+      if (auto *Incoming = GetSoleInputOnFirstIteration(PN); Incoming && DT.dominates(Incoming, BB->getTerminator())) {
         Value *FirstIterV =
             getValueOnFirstIteration(Incoming, FirstIterValue, SQ);
         FirstIterValue[&PN] = FirstIterV;
@@ -329,8 +329,8 @@ static bool canProveExitOnFirstIteration(Loop *L, DominatorTree &DT,
     using namespace PatternMatch;
     Value *Cond;
     BasicBlock *IfTrue, *IfFalse;
-    auto *Term = BB->getTerminator();
-    if (match(Term, m_Br(m_Value(Cond),
+    
+    if (auto *Term = BB->getTerminator(); match(Term, m_Br(m_Value(Cond),
                          m_BasicBlock(IfTrue), m_BasicBlock(IfFalse)))) {
       auto *ICmp = dyn_cast<ICmpInst>(Cond);
       if (!ICmp || !ICmp->getType()->isIntegerTy()) {
@@ -404,10 +404,10 @@ breakBackedgeIfNotTaken(Loop *L, DominatorTree &DT, ScalarEvolution &SE,
   if (!L->getLoopLatch())
     return LoopDeletionResult::Unmodified;
 
-  const SCEV *BTCMax = SE.getConstantMaxBackedgeTakenCount(L);
-  if (!BTCMax->isZero()) {
-    const SCEV *BTC = SE.getBackedgeTakenCount(L);
-    if (!BTC->isZero()) {
+  
+  if (const SCEV *BTCMax = SE.getConstantMaxBackedgeTakenCount(L); !BTCMax->isZero()) {
+    
+    if (const SCEV *BTC = SE.getBackedgeTakenCount(L); !BTC->isZero()) {
       if (!isa<SCEVCouldNotCompute>(BTC) && SE.isKnownNonZero(BTC))
         return LoopDeletionResult::Unmodified;
       if (!canProveExitOnFirstIteration(L, DT, LI))

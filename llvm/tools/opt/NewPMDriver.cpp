@@ -244,8 +244,8 @@ bool tryParsePipelineText(PassBuilder &PB,
     return false;
 
   // Verify the pipeline is parseable:
-  PassManagerT PM;
-  if (auto Err = PB.parsePassPipeline(PM, PipelineOpt)) {
+  
+  if (auto PassManagerT PM; Err = PB.parsePassPipeline(PM, PipelineOpt)) {
     errs() << "Could not parse -" << PipelineOpt.ArgStr
            << " pipeline: " << toString(std::move(Err))
            << "... I'm going to ignore it.\n";
@@ -548,8 +548,8 @@ bool llvm::runPassPipeline(
     if (!DisablePipelineVerification) {
       // Check that we can parse the returned pipeline string as an actual
       // pipeline.
-      ModulePassManager TempPM;
-      if (auto Err = PB.parsePassPipeline(TempPM, Pipeline)) {
+      
+      if (auto ModulePassManager TempPM; Err = PB.parsePassPipeline(TempPM, Pipeline)) {
         errs() << "Could not parse dumped pass pipeline: "
                << toString(std::move(Err)) << "\n";
         return false;

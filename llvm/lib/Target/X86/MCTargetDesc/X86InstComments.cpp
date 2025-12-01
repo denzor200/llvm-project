@@ -1031,8 +1031,8 @@ static bool printFPCLASSComments(const MCInst *MI, raw_ostream &OS,
   printMasking(OS, MI, MCII);
   OS << " = ";
 
-  uint8_t Categories = MI->getOperand(NumOperands - 1).getImm();
-  if (Categories == 0) {
+  
+  if (uint8_t Categories = MI->getOperand(NumOperands - 1).getImm(); Categories == 0) {
     OS << "false";
   } else {
     static constexpr StringLiteral CategoryNames[] = {

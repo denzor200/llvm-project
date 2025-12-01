@@ -463,11 +463,11 @@ bool ScopBuilder::buildConditionSets(
     auto Opcode = BinOp->getOpcode();
     assert(Opcode == Instruction::And || Opcode == Instruction::Or);
 
-    bool Valid = buildConditionSets(BB, BinOp->getOperand(0), TI, L, Domain,
+    
+    if (bool Valid = buildConditionSets(BB, BinOp->getOperand(0), TI, L, Domain,
                                     InvalidDomainMap, ConditionSets) &&
                  buildConditionSets(BB, BinOp->getOperand(1), TI, L, Domain,
-                                    InvalidDomainMap, ConditionSets);
-    if (!Valid) {
+                                    InvalidDomainMap, ConditionSets); !Valid) {
       while (!ConditionSets.empty())
         isl_set_free(ConditionSets.pop_back_val());
       return false;
@@ -602,8 +602,8 @@ bool ScopBuilder::propagateDomainConstraints(
     // Recurse for affine subregions but go on for basic blocks and non-affine
     // subregions.
     if (RN->isSubRegion()) {
-      Region *SubRegion = RN->getNodeAs<Region>();
-      if (!scop->isNonAffineSubRegion(SubRegion)) {
+      
+      if (Region *SubRegion = RN->getNodeAs<Region>(); !scop->isNonAffineSubRegion(SubRegion)) {
         if (!propagateDomainConstraints(SubRegion, InvalidDomainMap))
           return false;
         continue;
@@ -619,8 +619,8 @@ bool ScopBuilder::propagateDomainConstraints(
     Domain = Domain.intersect(PredDom).coalesce();
     Domain = Domain.align_params(scop->getParamSpace());
 
-    Loop *BBLoop = getRegionNodeLoop(RN, LI);
-    if (BBLoop && BBLoop->getHeader() == BB && scop->contains(BBLoop))
+    
+    if (Loop *BBLoop = getRegionNodeLoop(RN, LI); BBLoop && BBLoop->getHeader() == BB && scop->contains(BBLoop))
       if (!addLoopBoundsToHeaderDomain(BBLoop, InvalidDomainMap))
         return false;
   }
@@ -888,8 +888,8 @@ bool ScopBuilder::buildDomainsWithBranchConstraints(
     // Recurse for affine subregions but go on for basic blocks and non-affine
     // subregions.
     if (RN->isSubRegion()) {
-      Region *SubRegion = RN->getNodeAs<Region>();
-      if (!scop->isNonAffineSubRegion(SubRegion)) {
+      
+      if (Region *SubRegion = RN->getNodeAs<Region>(); !scop->isNonAffineSubRegion(SubRegion)) {
         if (!buildDomainsWithBranchConstraints(SubRegion, InvalidDomainMap))
           return false;
         continue;
@@ -1005,8 +1005,8 @@ bool ScopBuilder::propagateInvalidStmtDomains(
     // Recurse for affine subregions but go on for basic blocks and non-affine
     // subregions.
     if (RN->isSubRegion()) {
-      Region *SubRegion = RN->getNodeAs<Region>();
-      if (!scop->isNonAffineSubRegion(SubRegion)) {
+      
+      if (Region *SubRegion = RN->getNodeAs<Region>(); !scop->isNonAffineSubRegion(SubRegion)) {
         propagateInvalidStmtDomains(SubRegion, InvalidDomainMap);
         continue;
       }
@@ -1090,8 +1090,8 @@ void ScopBuilder::buildPHIAccesses(ScopStmt *PHIStmt, PHINode *PHI,
   // If we can synthesize a PHI we can skip it, however only if it is in
   // the region. If it is not it can only be in the exit block of the region.
   // In this case we model the operands but not the PHI itself.
-  auto *Scope = LI.getLoopFor(PHI->getParent());
-  if (!IsExitBlock && canSynthesize(PHI, *scop, &SE, Scope))
+  
+  if (auto *Scope = LI.getLoopFor(PHI->getParent()); !IsExitBlock && canSynthesize(PHI, *scop, &SE, Scope))
     return;
 
   // PHI nodes are modeled as if they had been demoted prior to the SCoP
@@ -1106,8 +1106,8 @@ void ScopBuilder::buildPHIAccesses(ScopStmt *PHIStmt, PHINode *PHI,
     // Do not build PHI dependences inside a non-affine subregion, but make
     // sure that the necessary scalar values are still made available.
     if (NonAffineSubRegion && NonAffineSubRegion->contains(OpBB)) {
-      auto *OpInst = dyn_cast<Instruction>(Op);
-      if (!OpInst || !NonAffineSubRegion->contains(OpInst))
+      
+      if (auto *OpInst = dyn_cast<Instruction>(Op); !OpInst || !NonAffineSubRegion->contains(OpInst))
         ensureValueRead(Op, OpStmt);
       continue;
     }
@@ -1254,8 +1254,8 @@ void ScopBuilder::buildSchedule(Region *R, LoopStackTy &LoopStack) {
 
 void ScopBuilder::buildSchedule(RegionNode *RN, LoopStackTy &LoopStack) {
   if (RN->isSubRegion()) {
-    auto *LocalRegion = RN->getNodeAs<Region>();
-    if (!scop->isNonAffineSubRegion(LocalRegion)) {
+    
+    if (auto *LocalRegion = RN->getNodeAs<Region>(); !scop->isNonAffineSubRegion(LocalRegion)) {
       buildSchedule(LocalRegion, LoopStack);
       return;
     }
@@ -1307,8 +1307,8 @@ void ScopBuilder::buildSchedule(RegionNode *RN, LoopStackTy &LoopStack) {
       }
 
       // It is easier to insert the marks here that do it retroactively.
-      isl::id IslLoopId = createIslLoopAttr(scop->getIslCtx(), L);
-      if (!IslLoopId.is_null())
+      
+      if (isl::id IslLoopId = createIslLoopAttr(scop->getIslCtx(), L); !IslLoopId.is_null())
         Schedule =
             Schedule.get_root().child(0).insert_mark(IslLoopId).get_schedule();
 
@@ -1883,8 +1883,8 @@ joinOrderedInstructions(EquivalenceClasses<Instruction *> &UnionFind,
     // SeenLeaders are not leaders anymore. However, The new leader of
     // previously merged instructions must be one of the former leaders of
     // these merged instructions.
-    bool Inserted = SeenLeaders.insert(Leader);
-    if (Inserted)
+    
+    if (bool Inserted = SeenLeaders.insert(Leader); Inserted)
       continue;
 
     // Merge statements to close holes. Say, we have already seen statements A
@@ -2044,8 +2044,8 @@ void ScopBuilder::buildStmts(Region &SR) {
     if (I->isSubRegion())
       buildStmts(*I->getNodeAs<Region>());
     else {
-      BasicBlock *BB = I->getNodeAs<BasicBlock>();
-      switch (StmtGranularity) {
+      
+      switch (BasicBlock *BB = I->getNodeAs<BasicBlock>(); StmtGranularity) {
       case GranularityChoice::BasicBlocks:
         buildSequentialBlockStmts(BB);
         break;
@@ -2091,8 +2091,8 @@ void ScopBuilder::buildAccessFunctions(ScopStmt *Stmt, BasicBlock &BB,
   };
 
   const InvariantLoadsSetTy &RIL = scop->getRequiredInvariantLoads();
-  bool IsEntryBlock = (Stmt->getEntryBlock() == &BB);
-  if (IsEntryBlock) {
+  
+  if (bool IsEntryBlock = (Stmt->getEntryBlock() == &BB); IsEntryBlock) {
     for (Instruction *Inst : Stmt->getInstructions())
       BuildAccessesForInst(Inst);
     if (Stmt->isRegionStmt())
@@ -2227,8 +2227,8 @@ void ScopBuilder::foldSizeConstantsToRight() {
 
         int ValInt = 1;
         if (Val.is_int()) {
-          auto ValAPInt = APIntFromVal(Val);
-          if (ValAPInt.isSignedIntN(32))
+          
+          if (auto ValAPInt = APIntFromVal(Val); ValAPInt.isSignedIntN(32))
             ValInt = ValAPInt.getSExtValue();
         } else {
         }
@@ -2377,8 +2377,8 @@ void ScopBuilder::ensureValueRead(Value *V, ScopStmt *UserStmt) {
   // ScopStmt::ensureValueRead(Value*) does.
 
   auto *Scope = UserStmt->getSurroundingLoop();
-  auto VUse = VirtualUse::create(scop.get(), UserStmt, Scope, V, false);
-  switch (VUse.getKind()) {
+  
+  switch (auto VUse = VirtualUse::create(scop.get(), UserStmt, Scope, V, false); VUse.getKind()) {
   case VirtualUse::Constant:
   case VirtualUse::Block:
   case VirtualUse::Synthesizable:
@@ -2613,8 +2613,8 @@ void ScopBuilder::checkForReductions(ScopStmt &Stmt) {
   //   o are used outside the current scop statement
   SmallPtrSet<const Instruction *, 8> InvalidLoads;
   SmallVector<BasicBlock *, 8> ScopBlocks;
-  BasicBlock *BB = Stmt.getBasicBlock();
-  if (BB)
+  
+  if (BasicBlock *BB = Stmt.getBasicBlock(); BB)
     ScopBlocks.push_back(BB);
   else
     for (BasicBlock *Block : Stmt.getRegion()->blocks())
@@ -2725,8 +2725,8 @@ void ScopBuilder::checkForReductions(ScopStmt &Stmt) {
   for (MemoryAccess *WriteMA : Stmt.MemAccs) {
     if (WriteMA->isRead())
       continue;
-    StoreInst *St = dyn_cast<StoreInst>(WriteMA->getAccessInstruction());
-    if (!St)
+    
+    if (StoreInst *St = dyn_cast<StoreInst>(WriteMA->getAccessInstruction()); !St)
       continue;
     assert(!St->isVolatile());
 
@@ -2766,8 +2766,8 @@ void ScopBuilder::checkForReductions(ScopStmt &Stmt) {
   // In the last step mark the memory accesses of candidate pairs as reduction
   // like if the load wasn't marked invalid in the previous step.
   for (auto &CandidatePair : ValidCandidates) {
-    MemoryAccess *LoadMA = CandidatePair.first.first;
-    if (InvalidLoads.count(LoadMA->getAccessInstruction()))
+    
+    if (MemoryAccess *LoadMA = CandidatePair.first.first; InvalidLoads.count(LoadMA->getAccessInstruction()))
       continue;
     POLLY_DEBUG(
         dbgs() << " Load :: "
@@ -2804,8 +2804,8 @@ void ScopBuilder::hoistInvariantLoads() {
     InvariantAccessesTy InvariantAccesses;
 
     for (MemoryAccess *Access : Stmt) {
-      isl::set NHCtx = getNonHoistableCtx(Access, Writes);
-      if (!NHCtx.is_null())
+      
+      if (isl::set NHCtx = getNonHoistableCtx(Access, Writes); !NHCtx.is_null())
         InvariantAccesses.push_back({Access, NHCtx});
     }
 
@@ -2848,8 +2848,8 @@ bool ScopBuilder::hasNonHoistableBasePtrInScop(MemoryAccess *MA,
     return getNonHoistableCtx(BasePtrMA, Writes).is_null();
   }
 
-  Value *BaseAddr = MA->getOriginalBaseAddr();
-  if (auto *BasePtrInst = dyn_cast<Instruction>(BaseAddr))
+  
+  if (auto *Value *BaseAddr = MA->getOriginalBaseAddr(); BasePtrInst = dyn_cast<Instruction>(BaseAddr))
     if (!isa<LoadInst>(BasePtrInst))
       return scop->contains(BasePtrInst);
 
@@ -2876,9 +2876,9 @@ void ScopBuilder::addUserContext() {
   for (auto i : rangeIslSize(0, SpaceParams)) {
     std::string NameContext =
         scop->getContext().get_dim_name(isl::dim::param, i);
-    std::string NameUserContext = UserContext.get_dim_name(isl::dim::param, i);
+    
 
-    if (NameContext != NameUserContext) {
+    if (std::string NameUserContext = UserContext.get_dim_name(isl::dim::param, i); NameContext != NameUserContext) {
       std::string SpaceStr = stringFromIslObj(Space, "null");
       errs() << "Error: the name of dimension " << i
              << " provided in -polly-context "
@@ -3037,8 +3037,8 @@ void ScopBuilder::addInvariantLoads(ScopStmt &Stmt,
   // domain but also upper bounds.
   for (auto &InvMA : InvMAs) {
     auto *MA = InvMA.MA;
-    Instruction *AccInst = MA->getAccessInstruction();
-    if (SE.isSCEVable(AccInst->getType())) {
+    
+    if (Instruction *AccInst = MA->getAccessInstruction(); SE.isSCEVable(AccInst->getType())) {
       SetVector<Value *> Values;
       for (const SCEV *Parameter : scop->parameters()) {
         Values.clear();
@@ -3046,10 +3046,10 @@ void ScopBuilder::addInvariantLoads(ScopStmt &Stmt,
         if (!Values.count(AccInst))
           continue;
 
-        isl::id ParamId = scop->getIdForParam(Parameter);
-        if (!ParamId.is_null()) {
-          int Dim = DomainCtx.find_dim_by_id(isl::dim::param, ParamId);
-          if (Dim >= 0)
+        
+        if (isl::id ParamId = scop->getIdForParam(Parameter); !ParamId.is_null()) {
+          
+          if (int Dim = DomainCtx.find_dim_by_id(isl::dim::param, ParamId); Dim >= 0)
             DomainCtx = DomainCtx.eliminate(isl::dim::param, Dim, 1);
         }
       }
@@ -3138,9 +3138,9 @@ void ScopBuilder::addInvariantLoads(ScopStmt &Stmt,
 static const ScopArrayInfo *findCanonicalArray(Scop &S,
                                                MemoryAccessList &Accesses) {
   for (MemoryAccess *Access : Accesses) {
-    const ScopArrayInfo *CanonicalArray = S.getScopArrayInfoOrNull(
-        Access->getAccessInstruction(), MemoryKind::Array);
-    if (CanonicalArray)
+    
+    if (const ScopArrayInfo *CanonicalArray = S.getScopArrayInfoOrNull(
+        Access->getAccessInstruction(), MemoryKind::Array); CanonicalArray)
       return CanonicalArray;
   }
   return nullptr;
@@ -3431,8 +3431,8 @@ bool ScopBuilder::buildAliasGroups() {
 
     {
       IslMaxOperationsGuard MaxOpGuard(scop->getIslCtx().get(), OptComputeOut);
-      bool Valid = buildAliasGroup(AG, HasWriteAccess);
-      if (!Valid)
+      
+      if (bool Valid = buildAliasGroup(AG, HasWriteAccess); !Valid)
         return false;
     }
     if (isl_ctx_last_error(scop->getIslCtx().get()) == isl_error_quota) {
@@ -3458,8 +3458,8 @@ bool ScopBuilder::buildAliasGroup(
     ORE.emit(OptimizationRemarkAnalysis(DEBUG_TYPE, "PossibleAlias",
                                         Access->getAccessInstruction())
              << "Possibly aliasing pointer, use restrict keyword.");
-    const ScopArrayInfo *Array = Access->getScopArrayInfo();
-    if (HasWriteAccess.count(Array)) {
+    
+    if (const ScopArrayInfo *Array = Access->getScopArrayInfo(); HasWriteAccess.count(Array)) {
       ReadWriteArrays.insert(Array);
       ReadWriteAccesses.push_back(Access);
     } else {
@@ -3531,8 +3531,8 @@ void ScopBuilder::splitAliasGroupsByDomain(AliasGroupVectorTy &AliasGroups) {
     isl::set AGDomain = getAccessDomain(*AGI);
     while (AGI != AG.end()) {
       MemoryAccess *MA = *AGI;
-      isl::set MADomain = getAccessDomain(MA);
-      if (AGDomain.is_disjoint(MADomain)) {
+      
+      if (isl::set MADomain = getAccessDomain(MA); AGDomain.is_disjoint(MADomain)) {
         NewAG.push_back(MA);
         AGI = AG.erase(AGI);
       } else {

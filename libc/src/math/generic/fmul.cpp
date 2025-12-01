@@ -37,8 +37,8 @@ LLVM_LIBC_FUNCTION(float, fmul, (double x, double y)) {
   DoubleBits hi_bits(prod.hi), lo_bits(prod.lo);
   // Check for cases where we need to propagate the sticky bits:
   constexpr uint64_t STICKY_MASK = 0xFFF'FFF; // Lower (52 - 23 - 1 = 28 bits)
-  uint64_t sticky_bits = (hi_bits.uintval() & STICKY_MASK);
-  if (LIBC_UNLIKELY(sticky_bits == 0)) {
+  
+  if (uint64_t sticky_bits = (hi_bits.uintval() & STICKY_MASK); LIBC_UNLIKELY(sticky_bits == 0)) {
     // Might need to propagate sticky bits:
     if (!(lo_bits.is_inf_or_nan() || lo_bits.is_zero())) {
       // Now prod.lo is nonzero and finite, we need to propagate sticky bits.

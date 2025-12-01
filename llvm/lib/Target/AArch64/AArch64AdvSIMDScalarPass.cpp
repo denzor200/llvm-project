@@ -240,8 +240,8 @@ bool AArch64AdvSIMDScalar::isProfitableToTransform(
            Use = MRI->use_instr_nodbg_begin(Dst),
            E = MRI->use_instr_nodbg_end();
        Use != E; ++Use) {
-    unsigned SubReg;
-    if (getSrcFromCopy(&*Use, MRI, SubReg) || isTransformable(*Use))
+    
+    if (unsigned SubReg; getSrcFromCopy(&*Use, MRI, SubReg) || isTransformable(*Use))
       ++NumRemovableCopies;
     // If the use is an INSERT_SUBREG, that's still something that can
     // directly use the FPR64, so we don't invalidate AllUsesAreCopies. It's
@@ -300,10 +300,10 @@ void AArch64AdvSIMDScalar::transformInstruction(MachineInstr &MI) {
     MachineRegisterInfo::def_instr_iterator Def =
         MRI->def_instr_begin(OrigSrc0);
     assert(std::next(Def) == MRI->def_instr_end() && "Multiple def in SSA!");
-    MachineOperand *MOSrc0 = getSrcFromCopy(&*Def, MRI, SubReg0);
+    
     // If there are no other users of the original source, we can delete
     // that instruction.
-    if (MOSrc0) {
+    if (MachineOperand *MOSrc0 = getSrcFromCopy(&*Def, MRI, SubReg0); MOSrc0) {
       Src0 = MOSrc0->getReg();
       KillSrc0 = MOSrc0->isKill();
       // Src0 is going to be reused, thus, it cannot be killed anymore.
@@ -319,10 +319,10 @@ void AArch64AdvSIMDScalar::transformInstruction(MachineInstr &MI) {
     MachineRegisterInfo::def_instr_iterator Def =
         MRI->def_instr_begin(OrigSrc1);
     assert(std::next(Def) == MRI->def_instr_end() && "Multiple def in SSA!");
-    MachineOperand *MOSrc1 = getSrcFromCopy(&*Def, MRI, SubReg1);
+    
     // If there are no other users of the original source, we can delete
     // that instruction.
-    if (MOSrc1) {
+    if (MachineOperand *MOSrc1 = getSrcFromCopy(&*Def, MRI, SubReg1); MOSrc1) {
       Src1 = MOSrc1->getReg();
       KillSrc1 = MOSrc1->isKill();
       // Src0 is going to be reused, thus, it cannot be killed anymore.

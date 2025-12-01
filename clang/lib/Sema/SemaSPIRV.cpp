@@ -56,8 +56,8 @@ static bool CheckAllArgTypesAreCorrect(
          "Wrong number of checks for Number of args.");
   // Apply each check to the corresponding argument
   for (unsigned I = 0; I < NumArgs; ++I) {
-    Expr *Arg = TheCall->getArg(I);
-    if (Checks[I](S, Arg->getBeginLoc(), I + 1, Arg->getType()))
+    
+    if (Expr *Arg = TheCall->getArg(I); Checks[I](S, Arg->getBeginLoc(), I + 1, Arg->getType()))
       return true;
   }
   return false;
@@ -66,11 +66,11 @@ static bool CheckAllArgTypesAreCorrect(
 static bool CheckFloatOrHalfRepresentation(Sema *S, SourceLocation Loc,
                                            int ArgOrdinal,
                                            clang::QualType PassedType) {
-  clang::QualType BaseType =
+  
+  if (clang::QualType BaseType =
       PassedType->isVectorType()
           ? PassedType->castAs<clang::VectorType>()->getElementType()
-          : PassedType;
-  if (!BaseType->isHalfType() && !BaseType->isFloat16Type() &&
+          : PassedType; !BaseType->isHalfType() && !BaseType->isFloat16Type() &&
       !BaseType->isFloat32Type())
     return S->Diag(Loc, diag::err_builtin_invalid_arg_type)
            << ArgOrdinal << /* scalar or vector of */ 5 << /* no int */ 0
@@ -252,8 +252,8 @@ bool SemaSPIRV::CheckSPIRVBuiltinFunctionCall(const TargetInfo &TI,
 
     ExprResult A = TheCall->getArg(0);
     QualType ArgTyA = A.get()->getType();
-    auto *VTyA = ArgTyA->getAs<VectorType>();
-    if (VTyA == nullptr) {
+    
+    if (auto *VTyA = ArgTyA->getAs<VectorType>(); VTyA == nullptr) {
       SemaRef.Diag(A.get()->getBeginLoc(),
                    diag::err_typecheck_convert_incompatible)
           << ArgTyA

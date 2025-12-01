@@ -76,8 +76,8 @@ TEST_F(RefactoringActionRulesTest, MyFirstRefactoringRule) {
       SourceLocation Loc =
           Selection.first.getBegin().getLocWithOffset(Selection.second);
       AtomicChange Change(SM, Loc);
-      llvm::Error E = Change.replace(SM, Loc, 1, "b");
-      if (E)
+      
+      if (llvm::Error E = Change.replace(SM, Loc, 1, "b"); E)
         return std::move(E);
       return AtomicChanges{Change};
     }

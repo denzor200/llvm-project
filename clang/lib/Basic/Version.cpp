@@ -85,8 +85,8 @@ std::string getClangFullRepositoryVersion() {
   std::string LLVMRev = getLLVMRevision();
   if (!LLVMRev.empty() && LLVMRev != Revision) {
     OS << " (";
-    std::string LLVMRepo = getLLVMRepositoryPath();
-    if (!LLVMRepo.empty())
+    
+    if (std::string LLVMRepo = getLLVMRepositoryPath(); !LLVMRepo.empty())
       OS << LLVMRepo << ' ';
     OS << LLVMRev << ')';
   }
@@ -102,8 +102,8 @@ std::string getClangToolFullVersion(StringRef ToolName) {
   llvm::raw_string_ostream OS(buf);
   OS << getClangVendor() << ToolName << " version " CLANG_VERSION_STRING;
 
-  std::string repo = getClangFullRepositoryVersion();
-  if (!repo.empty()) {
+  
+  if (std::string repo = getClangFullRepositoryVersion(); !repo.empty()) {
     OS << " " << repo;
   }
 
@@ -117,8 +117,8 @@ std::string getClangFullCPPVersion() {
   llvm::raw_string_ostream OS(buf);
   OS << getClangVendor() << "Clang " CLANG_VERSION_STRING;
 
-  std::string repo = getClangFullRepositoryVersion();
-  if (!repo.empty()) {
+  
+  if (std::string repo = getClangFullRepositoryVersion(); !repo.empty()) {
     OS << " " << repo;
   }
 

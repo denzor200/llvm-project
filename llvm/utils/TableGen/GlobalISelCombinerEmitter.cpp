@@ -486,8 +486,8 @@ std::vector<std::string> CombineRuleOperandTypeChecker::getMCOIOperandTypes(
 
   // Handle all remaining use operands, including variadic ones.
   for (unsigned K = CGP.getNumInstDefs(); K < CGP.getNumInstOperands(); ++K) {
-    unsigned CGIOpIdx = K + CGIOpOffset;
-    if (CGIOpIdx >= CGI.Operands.size()) {
+    
+    if (unsigned CGIOpIdx = K + CGIOpOffset; CGIOpIdx >= CGI.Operands.size()) {
       assert(CGP.isVariadic());
       OpTypes.push_back(VarArgsTyName);
     } else {
@@ -889,8 +889,8 @@ void CombineRuleBuilder::print(raw_ostream &OS) const {
     OS << "  )\n";
   }
 
-  const auto &SeenPFs = Parser.getSeenPatFrags();
-  if (!SeenPFs.empty()) {
+  
+  if (const auto &SeenPFs = Parser.getSeenPatFrags(); !SeenPFs.empty()) {
     OS << "  (PatFrags\n";
     for (const auto *PF : Parser.getSeenPatFrags()) {
       PF->print(OS, /*Indent=*/"    ");
@@ -1321,11 +1321,11 @@ bool CombineRuleBuilder::checkSemantics() {
     const auto *BIP = dyn_cast<BuiltinPattern>(IP);
     if (!BIP)
       continue;
-    StringRef Name = BIP->getInstName();
+    
 
     // (GIEraseInst) has to be the only apply pattern, or it can not be used at
     // all. The root cannot have any defs either.
-    switch (BIP->getBuiltinKind()) {
+    switch (StringRef Name = BIP->getInstName(); BIP->getBuiltinKind()) {
     case BI_EraseRoot: {
       if (ApplyPats.size() > 1) {
         PrintError(Name + " must be the only 'apply' pattern");
@@ -1352,8 +1352,8 @@ bool CombineRuleBuilder::checkSemantics() {
       // (GIReplaceReg can only be used on the root instruction)
       // TODO: When we allow rewriting non-root instructions, also allow this.
       StringRef OldRegName = BIP->getOperand(0).getOperandName();
-      auto *Def = MatchOpTable.getDef(OldRegName);
-      if (!Def) {
+      
+      if (auto *Def = MatchOpTable.getDef(OldRegName); !Def) {
         PrintError(Name + " cannot find a matched pattern that defines '" +
                    OldRegName + "'");
         return false;
@@ -1526,14 +1526,14 @@ bool CombineRuleBuilder::buildRuleOperandsTable() {
   };
 
   for (auto &Pat : values(MatchPats)) {
-    auto *IP = dyn_cast<InstructionPattern>(Pat.get());
-    if (IP && !MatchOpTable.addPattern(IP, DiagnoseRedefMatch))
+    
+    if (auto *IP = dyn_cast<InstructionPattern>(Pat.get()); IP && !MatchOpTable.addPattern(IP, DiagnoseRedefMatch))
       return false;
   }
 
   for (auto &Pat : values(ApplyPats)) {
-    auto *IP = dyn_cast<InstructionPattern>(Pat.get());
-    if (IP && !ApplyOpTable.addPattern(IP, DiagnoseRedefApply))
+    
+    if (auto *IP = dyn_cast<InstructionPattern>(Pat.get()); IP && !ApplyOpTable.addPattern(IP, DiagnoseRedefApply))
       return false;
   }
 
@@ -1711,10 +1711,10 @@ bool CombineRuleBuilder::emitMatchPattern(CodeExpansions &CE,
       }
     }
 
-    const bool Res = IsUsingCustomCXXAction
+    
+    if (const bool Res = IsUsingCustomCXXAction
                          ? emitCXXMatchApply(CE, M, CXXMatchers)
-                         : emitApplyPatterns(CE, M);
-    if (!Res)
+                         : emitApplyPatterns(CE, M); !Res)
       return false;
   }
 
@@ -1957,8 +1957,8 @@ bool CombineRuleBuilder::emitInstructionApplyPattern(
     if (Op.isDef())
       continue;
 
-    StringRef OpName = Op.getOperandName();
-    if (const auto *DefPat = ApplyOpTable.getDef(OpName)) {
+    
+    if (const auto *StringRef OpName = Op.getOperandName(); DefPat = ApplyOpTable.getDef(OpName)) {
       if (!emitInstructionApplyPattern(CE, M, *DefPat, SeenPats,
                                        OperandToTempRegID))
         return false;
@@ -2722,8 +2722,8 @@ void GICombinerEmitter::gatherRules(std::vector<RuleMatcher> &ActiveRules,
       continue;
     }
 
-    StringRef RuleName = Rec->getName();
-    if (!RulesSeen.insert(RuleName).second) {
+    
+    if (StringRef RuleName = Rec->getName(); !RulesSeen.insert(RuleName).second) {
       PrintWarning(Rec->getLoc(),
                    "skipping rule '" + Rec->getName() +
                        "' because it has already been processed");

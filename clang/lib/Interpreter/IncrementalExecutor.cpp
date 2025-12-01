@@ -73,9 +73,9 @@ IncrementalExecutor::IncrementalExecutor(llvm::orc::ThreadSafeContext &TSC,
                                          llvm::Error &Err)
     : TSCtx(TSC), OutOfProcessChildPid(Config.ExecutorPID) {
   using namespace llvm::orc;
-  llvm::ErrorAsOutParameter EAO(&Err);
+  
 
-  if (auto JitOrErr = JITBuilder.create())
+  if (auto llvm::ErrorAsOutParameter EAO(&Err); JitOrErr = JITBuilder.create())
     Jit = std::move(*JitOrErr);
   else {
     Err = JitOrErr.takeError();
@@ -231,8 +231,8 @@ IncrementalExecutor::launchExecutor(llvm::StringRef ExecutablePath,
     }
 
     char *const Args[] = {ExecutorPath.get(), FDSpecifier.get(), nullptr};
-    int RC = execvp(ExecutorPath.get(), Args);
-    if (RC != 0) {
+    
+    if (int RC = execvp(ExecutorPath.get(), Args); RC != 0) {
       llvm::errs() << "unable to launch out-of-process executor \""
                    << ExecutorPath.get() << "\"\n";
       exit(1);
@@ -334,8 +334,8 @@ IncrementalExecutor::connectTCPSocket(llvm::StringRef NetworkAddress,
     return CreateErr("Host name for -" + NetworkAddress + " can not be empty");
   if (PortStr.empty())
     return CreateErr("Port number in -" + NetworkAddress + " can not be empty");
-  int Port = 0;
-  if (PortStr.getAsInteger(10, Port))
+  
+  if (int Port = 0; PortStr.getAsInteger(10, Port))
     return CreateErr("Port number '" + PortStr + "' is not a valid integer");
 
   Expected<int> SockFD = connectTCPSocketImpl(Host.str(), PortStr.str());

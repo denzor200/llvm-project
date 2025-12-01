@@ -60,8 +60,8 @@ uptr GetThreadSelf() {
 void ReleaseMemoryPagesToOS(uptr beg, uptr end) {
   uptr page_size = GetPageSizeCached();
   uptr beg_aligned = RoundUpTo(beg, page_size);
-  uptr end_aligned = RoundDownTo(end, page_size);
-  if (beg_aligned < end_aligned)
+  
+  if (uptr end_aligned = RoundDownTo(end, page_size); beg_aligned < end_aligned)
     internal_madvise(beg_aligned, end_aligned - beg_aligned,
                      SANITIZER_MADVISE_DONTNEED);
 }
@@ -404,8 +404,8 @@ static bool MmapFixed(uptr fixed_addr, uptr size, int additional_flags,
   uptr p =
       MmapNamed((void *)fixed_addr, size, PROT_READ | PROT_WRITE,
                 MAP_PRIVATE | MAP_FIXED | additional_flags | MAP_ANON, name);
-  int reserrno;
-  if (internal_iserror(p, &reserrno)) {
+  
+  if (int reserrno; internal_iserror(p, &reserrno)) {
     Report(
         "ERROR: %s failed to "
         "allocate 0x%zx (%zd) bytes at address %p (errno: %d)\n",
@@ -502,8 +502,8 @@ void AdjustStackSize(void *attr_) {
   // stacksize is set, but stackaddr is not.
   bool stack_set = (stackaddr != 0) && (stackaddr + stacksize != 0);
   // We place a lot of tool data into TLS, account for that.
-  const uptr minstacksize = GetTlsSize() + 128*1024;
-  if (stacksize < minstacksize) {
+  
+  if (const uptr minstacksize = GetTlsSize() + 128*1024; stacksize < minstacksize) {
     if (!stack_set) {
       if (stacksize != 0) {
         VPrintf(1, "Sanitizer: increasing stacksize %zu->%zu\n", stacksize,
@@ -537,8 +537,8 @@ pid_t StartSubprocess(const char *program, const char *const argv[],
   int pid = internal_fork();
 
   if (pid < 0) {
-    int rverrno;
-    if (internal_iserror(pid, &rverrno)) {
+    
+    if (int rverrno; internal_iserror(pid, &rverrno)) {
       Report("WARNING: failed to fork (errno %d)\n", rverrno);
     }
     return pid;
@@ -579,8 +579,8 @@ pid_t StartSubprocess(const char *program, const char *const argv[],
 bool IsProcessRunning(pid_t pid) {
   int process_status;
   uptr waitpid_status = internal_waitpid(pid, &process_status, WNOHANG);
-  int local_errno;
-  if (internal_iserror(waitpid_status, &local_errno)) {
+  
+  if (int local_errno; internal_iserror(waitpid_status, &local_errno)) {
     VReport(1, "Waiting on the process failed (errno %d).\n", local_errno);
     return false;
   }
@@ -590,8 +590,8 @@ bool IsProcessRunning(pid_t pid) {
 int WaitForProcess(pid_t pid) {
   int process_status;
   uptr waitpid_status = internal_waitpid(pid, &process_status, 0);
-  int local_errno;
-  if (internal_iserror(waitpid_status, &local_errno)) {
+  
+  if (int local_errno; internal_iserror(waitpid_status, &local_errno)) {
     VReport(1, "Waiting on the process failed (errno %d).\n", local_errno);
     return -1;
   }

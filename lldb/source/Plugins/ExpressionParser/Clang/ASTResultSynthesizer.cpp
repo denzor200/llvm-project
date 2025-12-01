@@ -54,9 +54,9 @@ void ASTResultSynthesizer::Initialize(ASTContext &Context) {
 }
 
 void ASTResultSynthesizer::TransformTopLevelDecl(Decl *D) {
-  Log *log = GetLog(LLDBLog::Expressions);
+  
 
-  if (NamedDecl *named_decl = dyn_cast<NamedDecl>(D)) {
+  if (NamedDecl *Log *log = GetLog(LLDBLog::Expressions); named_decl = dyn_cast<NamedDecl>(D)) {
     if (log && log->GetVerbose()) {
       if (named_decl->getIdentifier())
         LLDB_LOGF(log, "TransformTopLevelDecl(%s)",
@@ -196,7 +196,7 @@ static bool CanTakeAddressOfLValue(const Expr *lvalue_expr) {
   assert(lvalue_expr->getValueKind() == VK_LValue &&
          "lvalue_expr not a lvalue");
 
-  QualType qt = lvalue_expr->getType();
+  
   // If the lvalue has const-qualified non-volatile integral or enum type, then
   // the underlying value might come from a const static data member as
   // described in C++11 [class.static.data]p3. If that's the case, then the
@@ -204,7 +204,7 @@ static bool CanTakeAddressOfLValue(const Expr *lvalue_expr) {
   // in a namespace scope. Taking the address would cause that LLDB later fails
   // to link the expression, so those lvalues should be stored in a result
   // variable.
-  if (qt->isIntegralOrEnumerationType() && qt.isConstQualified() &&
+  if (QualType qt = lvalue_expr->getType(); qt->isIntegralOrEnumerationType() && qt.isConstQualified() &&
       !qt.isVolatileQualified())
     return false;
   return true;
@@ -462,9 +462,9 @@ void ASTResultSynthesizer::CommitPersistentDecls() {
         &scratch_ts_sp->getASTContext(), decl);
 
     if (!D_scratch) {
-      Log *log = GetLog(LLDBLog::Expressions);
+      
 
-      if (log) {
+      if (Log *log = GetLog(LLDBLog::Expressions); log) {
         std::string s;
         llvm::raw_string_ostream ss(s);
         decl->dump(ss);

@@ -203,8 +203,8 @@ void AsmPrinter::emitCallSiteValue(uint64_t Value, unsigned Encoding) const {
 //===----------------------------------------------------------------------===//
 
 void AsmPrinter::emitCFIInstruction(const MCCFIInstruction &Inst) const {
-  SMLoc Loc = Inst.getLoc();
-  switch (Inst.getOperation()) {
+  
+  switch (SMLoc Loc = Inst.getLoc(); Inst.getOperation()) {
   default:
     llvm_unreachable("Unexpected instruction");
   case MCCFIInstruction::OpDefCfaOffset:

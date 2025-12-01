@@ -143,8 +143,8 @@ jptr __tsan_java_find(jptr *from_ptr, jptr to) {
   DCHECK_GE(*from_ptr, jctx->heap_begin);
   DCHECK_LE(to, jctx->heap_begin + jctx->heap_size);
   for (uptr from = *from_ptr; from < to; from += kHeapAlignment) {
-    MBlock *b = ctx->metamap.GetBlock(from);
-    if (b) {
+    
+    if (MBlock *b = ctx->metamap.GetBlock(from); b) {
       *from_ptr = from;
       return b->siz;
     }

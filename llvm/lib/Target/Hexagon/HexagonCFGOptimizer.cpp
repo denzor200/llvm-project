@@ -109,11 +109,11 @@ bool HexagonCFGOptimizer::runOnMachineFunction(MachineFunction &Fn) {
   // Loop over all of the basic blocks.
   for (MachineBasicBlock &MBB : Fn) {
     // Traverse the basic block.
-    MachineBasicBlock::iterator MII = MBB.getFirstTerminator();
-    if (MII != MBB.end()) {
+    
+    if (MachineBasicBlock::iterator MII = MBB.getFirstTerminator(); MII != MBB.end()) {
       MachineInstr &MI = *MII;
-      int Opc = MI.getOpcode();
-      if (IsConditionalBranch(Opc)) {
+      
+      if (int Opc = MI.getOpcode(); IsConditionalBranch(Opc)) {
         // (Case 1) Transform the code if the following condition occurs:
         //   BB1: if (p0) jump BB3
         //   ...falls-through to BB2 ...
@@ -179,13 +179,13 @@ bool HexagonCFGOptimizer::runOnMachineFunction(MachineFunction &Fn) {
               LayoutSucc->front().getOperand(0).getMBB();
             // Check if the layout successor of BB2 is BB3.
             bool case1 = LayoutSucc->isLayoutSuccessor(JumpAroundTarget);
-            bool case2 = JumpAroundTarget->isSuccessor(UncondTarget) &&
+            
+
+            if (bool case2 = JumpAroundTarget->isSuccessor(UncondTarget) &&
               !JumpAroundTarget->empty() &&
               IsUnconditionalJump(JumpAroundTarget->back().getOpcode()) &&
               JumpAroundTarget->pred_size() == 1 &&
-              JumpAroundTarget->succ_size() == 1;
-
-            if (case1 || case2) {
+              JumpAroundTarget->succ_size() == 1; case1 || case2) {
               InvertAndChangeJumpTarget(MI, UncondTarget);
               MBB.replaceSuccessor(JumpAroundTarget, UncondTarget);
 

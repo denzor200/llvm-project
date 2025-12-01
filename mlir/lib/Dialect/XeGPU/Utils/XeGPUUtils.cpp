@@ -140,8 +140,8 @@ xegpu::DistributeLayoutAttr xegpu::getDistributeLayoutAttr(const Value value) {
     // for StoreMatrixOp, the layout is attached to the property of the op
     if (auto storeOp = dyn_cast<xegpu::StoreMatrixOp>(defOp))
       return storeOp.getLayoutAttr();
-    std::string layoutName = getLayoutName(result);
-    if (defOp->hasAttr(layoutName))
+    
+    if (std::string layoutName = getLayoutName(result); defOp->hasAttr(layoutName))
       return defOp->getAttrOfType<xegpu::DistributeLayoutAttr>(layoutName);
 
     // check for "permament" layout only after "temporary" layout name lookup
@@ -151,10 +151,10 @@ xegpu::DistributeLayoutAttr xegpu::getDistributeLayoutAttr(const Value value) {
   }
 
   if (auto arg = dyn_cast<BlockArgument>(value)) {
-    auto *parentOp = arg.getOwner()->getParentOp();
-    if (auto loop = dyn_cast<LoopLikeOpInterface>(parentOp)) {
-      OpOperand *tiedInit = loop.getTiedLoopInit(arg);
-      if (tiedInit)
+    
+    if (auto auto *parentOp = arg.getOwner()->getParentOp(); loop = dyn_cast<LoopLikeOpInterface>(parentOp)) {
+      
+      if (OpOperand *tiedInit = loop.getTiedLoopInit(arg); tiedInit)
         return getDistributeLayoutAttr(tiedInit->get());
     }
   }
@@ -207,9 +207,9 @@ maybePickPermanentLayout(xegpu::DistributeLayoutAttr layout,
                          const OpOperand &operand, mlir::Operation *owner,
                          const std::string &name) {
   xegpu::DistributeLayoutAttr candidate = layout;
-  unsigned idx = const_cast<OpOperand &>(operand).getOperandNumber();
+  
 
-  if (auto storeOp = dyn_cast<xegpu::StoreScatterOp>(owner)) {
+  if (auto unsigned idx = const_cast<OpOperand &>(operand).getOperandNumber(); storeOp = dyn_cast<xegpu::StoreScatterOp>(owner)) {
     if (idx == 0) {
       if (auto perm = storeOp.getLayoutAttr())
         candidate = perm;
@@ -267,8 +267,8 @@ void xegpu::setDistributeLayoutAttrs(
 template <typename T, typename>
 void xegpu::removeLayoutAttr(const T &operandOrResult) {
   Operation *owner = operandOrResult.getOwner();
-  std::string name = xegpu::getLayoutName(operandOrResult);
-  if (owner->hasAttrOfType<DistributeLayoutAttr>(name))
+  
+  if (std::string name = xegpu::getLayoutName(operandOrResult); owner->hasAttrOfType<DistributeLayoutAttr>(name))
     owner->removeAttr(name);
 }
 
@@ -508,8 +508,8 @@ std::optional<std::string> xegpu::getChipStr(Operation *op) {
   auto targetAttrs = gpuModuleOp.getTargets();
   if (targetAttrs) {
     for (auto &attr : *targetAttrs) {
-      auto xevmAttr = llvm::dyn_cast<xevm::XeVMTargetAttr>(attr);
-      if (xevmAttr)
+      
+      if (auto xevmAttr = llvm::dyn_cast<xevm::XeVMTargetAttr>(attr); xevmAttr)
         return xevmAttr.getChip().str();
     }
   }
@@ -566,8 +566,8 @@ int xegpu::getLargestDivisor(T dim, ArrayRef<T> candidates,
         SmallVector<T>(candidateMultiples.begin(), candidateMultiples.end());
   for (T candidate : candidates) {
     for (T multiple : multiples) {
-      int value = static_cast<int>(candidate * multiple);
-      if (value != 0 && dim % value == 0 && value > largest)
+      
+      if (int value = static_cast<int>(candidate * multiple); value != 0 && dim % value == 0 && value > largest)
         largest = value;
     }
   }

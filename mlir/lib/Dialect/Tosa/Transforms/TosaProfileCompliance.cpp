@@ -405,8 +405,8 @@ LogicalResult TosaProfileCompliance::checkProfileOrExtension(
   // have the same data type.
   if constexpr (std::is_same_v<T, Extension>) {
     for (const auto &mode : opRequiredMode) {
-      SmallVector<Profile> coProfs = getCooperativeProfiles(mode);
-      if (!targetEnv.allowsAnyOf(coProfs)) {
+      
+      if (SmallVector<Profile> coProfs = getCooperativeProfiles(mode); !targetEnv.allowsAnyOf(coProfs)) {
         op->emitOpError() << "illegal: requires ["
                           << llvm::join(stringifyProfile<Profile>(coProfs),
                                         ", ")
@@ -502,12 +502,12 @@ LogicalResult TosaProfileCompliance::checkInvalid(Operation *op) {
         for (const auto &versionedTypeInfos :
              complianceInfos.operandTypeInfoSet) {
           const SmallVector<TypeInfo> typeInfos = versionedTypeInfos.first;
-          const int matches = llvm::count_if(
+          
+          if (const int matches = llvm::count_if(
               llvm::zip_equal(current, typeInfos), [&](const auto zipType) {
                 return isSameTypeInfo(std::get<0>(zipType),
                                       std::get<1>(zipType));
-              });
-          if (matches > maxMatches) {
+              }); matches > maxMatches) {
             maxMatches = matches;
             bestTypeInfo = typeInfos;
           }

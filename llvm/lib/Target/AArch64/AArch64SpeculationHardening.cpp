@@ -239,9 +239,9 @@ bool AArch64SpeculationHardening::instrumentControlFlow(
   bool Modified = false;
   MachineBasicBlock *TBB = nullptr;
   MachineBasicBlock *FBB = nullptr;
-  AArch64CC::CondCode CondCode;
+  
 
-  if (!endsWithCondControlFlow(MBB, TBB, FBB, CondCode)) {
+  if (AArch64CC::CondCode CondCode; !endsWithCondControlFlow(MBB, TBB, FBB, CondCode)) {
     LLVM_DEBUG(dbgs() << "... doesn't end with CondControlFlow\n");
   } else {
     // Now insert:
@@ -546,9 +546,9 @@ bool AArch64SpeculationHardening::expandSpeculationSafeValue(
     bool UsesFullSpeculationBarrier) {
   MachineInstr &MI = *MBBI;
   unsigned Opcode = MI.getOpcode();
-  bool Is64Bit = true;
+  
 
-  switch (Opcode) {
+  switch (bool Is64Bit = true; Opcode) {
   default:
     break;
   case AArch64::SpeculationSafeValueW:

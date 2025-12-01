@@ -21,12 +21,12 @@ static void replaceMoveWithForward(const UnresolvedLookupExpr *Callee,
   const SourceManager &SM = Context.getSourceManager();
   const LangOptions &LangOpts = Context.getLangOpts();
 
-  const CharSourceRange CallRange =
+  
+
+  if (const CharSourceRange CallRange =
       Lexer::makeFileCharRange(CharSourceRange::getTokenRange(
                                    Callee->getBeginLoc(), Callee->getEndLoc()),
-                               SM, LangOpts);
-
-  if (CallRange.isValid()) {
+                               SM, LangOpts); CallRange.isValid()) {
     const std::string TypeName =
         (TypeParmDecl->getIdentifier() && !TypeParmDecl->isImplicit())
             ? TypeParmDecl->getName().str()
@@ -39,8 +39,8 @@ static void replaceMoveWithForward(const UnresolvedLookupExpr *Callee,
     // std::move(). This will hopefully prevent erroneous replacements if the
     // code does unusual things (e.g. create an alias for std::move() in
     // another namespace).
-    const NestedNameSpecifier NNS = Callee->getQualifier();
-    switch (NNS.getKind()) {
+    
+    switch (const NestedNameSpecifier NNS = Callee->getQualifier(); NNS.getKind()) {
     case NestedNameSpecifier::Kind::Null:
       // Called as "move" (i.e. presumably the code had a "using std::move;").
       // We still conservatively put a "std::" in front of the forward because
@@ -48,8 +48,8 @@ static void replaceMoveWithForward(const UnresolvedLookupExpr *Callee,
       Diag << FixItHint::CreateReplacement(CallRange, "std::" + ForwardName);
       break;
     case NestedNameSpecifier::Kind::Namespace: {
-      auto [Namespace, Prefix] = NNS.getAsNamespaceAndPrefix();
-      if (Namespace->getName() == "std") {
+      
+      if (auto [Namespace, Prefix] = NNS.getAsNamespaceAndPrefix(); Namespace->getName() == "std") {
         if (!Prefix) {
           // Called as "std::move".
           Diag << FixItHint::CreateReplacement(CallRange,

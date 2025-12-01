@@ -1098,9 +1098,9 @@ public:
                   ConversionPatternRewriter &rewriter) const override {
     auto loc = extractOp->getLoc();
     auto resultType = extractOp.getResult().getType();
-    auto llvmResultType = typeConverter->convertType(resultType);
+    
     // Bail if result type cannot be lowered.
-    if (!llvmResultType)
+    if (auto llvmResultType = typeConverter->convertType(resultType); !llvmResultType)
       return failure();
 
     SmallVector<OpFoldResult> positionVec = getMixedValues(
@@ -1181,8 +1181,8 @@ public:
   LogicalResult
   matchAndRewrite(vector::FMAOp fmaOp, OpAdaptor adaptor,
                   ConversionPatternRewriter &rewriter) const override {
-    VectorType vType = fmaOp.getVectorType();
-    if (vType.getRank() > 1)
+    
+    if (VectorType vType = fmaOp.getVectorType(); vType.getRank() > 1)
       return failure();
 
     rewriter.replaceOpWithNewOp<LLVM::FMulAddOp>(
@@ -1560,11 +1560,11 @@ public:
 
     auto punct = printOp.getPunctuation();
     if (auto stringLiteral = printOp.getStringLiteral()) {
-      auto createResult =
+      
+      if (auto createResult =
           LLVM::createPrintStrCall(rewriter, loc, parent, "vector_print_str",
                                    *stringLiteral, *getTypeConverter(),
-                                   /*addNewline=*/false);
-      if (createResult.failed())
+                                   /*addNewline=*/false); createResult.failed())
         return failure();
 
     } else if (punct != PrintPunctuation::NoPunctuation) {
@@ -1630,8 +1630,8 @@ private:
       // Integers need a zero or sign extension on the operand
       // (depending on the source type) as well as a signed or
       // unsigned print method. Up to 64-bit is supported.
-      unsigned width = intTy.getWidth();
-      if (intTy.isUnsigned()) {
+      
+      if (unsigned width = intTy.getWidth(); intTy.isUnsigned()) {
         if (width <= 64) {
           if (width < 64)
             conversion = PrintConversion::ZeroExt64;

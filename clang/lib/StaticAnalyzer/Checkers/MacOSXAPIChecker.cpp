@@ -82,8 +82,8 @@ void MacOSXAPIChecker::CheckDispatchOnce(CheckerContext &C, const CallExpr *CE,
   // _dispatch_once is then a function which then calls the real dispatch_once.
   // Users do not care; they just want the warning at the top-level call.
   if (CE->getBeginLoc().isMacroID()) {
-    StringRef TrimmedFName = FName.ltrim('_');
-    if (TrimmedFName != FName)
+    
+    if (StringRef TrimmedFName = FName.ltrim('_'); TrimmedFName != FName)
       FName = TrimmedFName;
   }
 

@@ -39,8 +39,8 @@ void MSP430InstPrinter::printInst(const MCInst *MI, uint64_t Address,
 
 void MSP430InstPrinter::printPCRelImmOperand(const MCInst *MI, unsigned OpNo,
                                              raw_ostream &O) {
-  const MCOperand &Op = MI->getOperand(OpNo);
-  if (Op.isImm()) {
+  
+  if (const MCOperand &Op = MI->getOperand(OpNo); Op.isImm()) {
     int64_t Imm = Op.getImm() * 2 + 2;
     O << "$";
     if (Imm >= 0)
@@ -54,8 +54,8 @@ void MSP430InstPrinter::printPCRelImmOperand(const MCInst *MI, unsigned OpNo,
 
 void MSP430InstPrinter::printOperand(const MCInst *MI, unsigned OpNo,
                                      raw_ostream &O) {
-  const MCOperand &Op = MI->getOperand(OpNo);
-  if (Op.isReg()) {
+  
+  if (const MCOperand &Op = MI->getOperand(OpNo); Op.isReg()) {
     O << getRegisterName(Op.getReg());
   } else if (Op.isImm()) {
     O << '#' << Op.getImm();
@@ -109,9 +109,9 @@ void MSP430InstPrinter::printPostIndRegOperand(const MCInst *MI, unsigned OpNo,
 
 void MSP430InstPrinter::printCCOperand(const MCInst *MI, unsigned OpNo,
                                        raw_ostream &O) {
-  unsigned CC = MI->getOperand(OpNo).getImm();
+  
 
-  switch (CC) {
+  switch (unsigned CC = MI->getOperand(OpNo).getImm(); CC) {
   default:
    llvm_unreachable("Unsupported CC code");
   case MSP430CC::COND_E:

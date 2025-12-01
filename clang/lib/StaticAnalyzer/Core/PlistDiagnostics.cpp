@@ -779,12 +779,12 @@ void PlistDiagnostics::FlushDiagnosticsImpl(
     // Output the diagnostic to the sub-diagnostic client, if any.
     if (!filesMade->empty()) {
       StringRef lastName;
-      PDFileEntry::ConsumerFiles *files = filesMade->getFiles(*D);
-      if (files) {
+      
+      if (PDFileEntry::ConsumerFiles *files = filesMade->getFiles(*D); files) {
         for (PDFileEntry::ConsumerFiles::const_iterator CI = files->begin(),
                 CE = files->end(); CI != CE; ++CI) {
-          StringRef newName = CI->first;
-          if (newName != lastName) {
+          
+          if (StringRef newName = CI->first; newName != lastName) {
             if (!lastName.empty()) {
               o << "  </array>\n";
             }

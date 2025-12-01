@@ -35,8 +35,8 @@ AnnotationKind getAnnotationKind(const GlobalVariable &GV) {
     return AnnotationKind::DeclForLinker;
   // Skip 'llvm.'-prefixed global variables conservatively because they are
   // often handled specially,
-  StringRef Name = GV.getName();
-  if (Name.starts_with("llvm."))
+  
+  if (StringRef Name = GV.getName(); Name.starts_with("llvm."))
     return AnnotationKind::ReservedName;
   // Respect user-specified custom data sections.
   if (hasExplicitSectionName(GV))

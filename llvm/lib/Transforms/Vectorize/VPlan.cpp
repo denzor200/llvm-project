@@ -322,19 +322,19 @@ Value *VPTransformState::get(const VPValue *Def, bool NeedsScalar) {
 }
 
 void VPTransformState::setDebugLocFrom(DebugLoc DL) {
-  const DILocation *DIL = DL;
+  
   // When a FSDiscriminator is enabled, we don't need to add the multiply
   // factors to the discriminators.
-  if (DIL &&
+  if (const DILocation *DIL = DL; DIL &&
       Builder.GetInsertBlock()
           ->getParent()
           ->shouldEmitDebugInfoForProfiling() &&
       !EnableFSDiscriminator) {
     // FIXME: For scalable vectors, assume vscale=1.
     unsigned UF = Plan->getUF();
-    auto NewDIL =
-        DIL->cloneByMultiplyingDuplicationFactor(UF * VF.getKnownMinValue());
-    if (NewDIL)
+    
+    if (auto NewDIL =
+        DIL->cloneByMultiplyingDuplicationFactor(UF * VF.getKnownMinValue()); NewDIL)
       Builder.SetCurrentDebugLocation(*NewDIL);
     else
       LLVM_DEBUG(dbgs() << "Failed to create new discriminator: "
@@ -347,8 +347,8 @@ Value *VPTransformState::packScalarIntoVectorizedValue(const VPValue *Def,
                                                        Value *WideValue,
                                                        const VPLane &Lane) {
   Value *ScalarInst = get(Def, Lane);
-  Value *LaneExpr = Lane.getAsRuntimeExpr(Builder, VF);
-  if (auto *StructTy = dyn_cast<StructType>(WideValue->getType())) {
+  
+  if (auto *Value *LaneExpr = Lane.getAsRuntimeExpr(Builder, VF); StructTy = dyn_cast<StructType>(WideValue->getType())) {
     // We must handle each element of a vectorized struct type.
     for (unsigned I = 0, E = StructTy->getNumElements(); I != E; I++) {
       Value *ScalarValue = Builder.CreateExtractValue(ScalarInst, I);
@@ -413,8 +413,8 @@ void VPBasicBlock::connectToPredecessors(VPTransformState &State) {
     auto *PredBBTerminator = PredBB->getTerminator();
     LLVM_DEBUG(dbgs() << "LV: draw edge from " << PredBB->getName() << '\n');
 
-    auto *TermBr = dyn_cast<BranchInst>(PredBBTerminator);
-    if (isa<UnreachableInst>(PredBBTerminator)) {
+    
+    if (auto *TermBr = dyn_cast<BranchInst>(PredBBTerminator); isa<UnreachableInst>(PredBBTerminator)) {
       assert(PredVPSuccessors.size() == 1 &&
              "Predecessor ending w/o branch must have single successor.");
       DebugLoc DL = PredBBTerminator->getDebugLoc();
@@ -1497,9 +1497,9 @@ std::string VPSlotTracker::getName(const Value *V) {
   if (!MST) {
     // Lazily create the ModuleSlotTracker when we first hit an unnamed
     // instruction.
-    auto *I = cast<Instruction>(V);
+    
     // This check is required to support unit tests with incomplete IR.
-    if (I->getParent()) {
+    if (auto *I = cast<Instruction>(V); I->getParent()) {
       MST = std::make_unique<ModuleSlotTracker>(I->getModule());
       MST->incorporateFunction(*I->getFunction());
     } else {
@@ -1511,8 +1511,8 @@ std::string VPSlotTracker::getName(const Value *V) {
 }
 
 std::string VPSlotTracker::getOrCreateName(const VPValue *V) const {
-  std::string Name = VPValue2Name.lookup(V);
-  if (!Name.empty())
+  
+  if (std::string Name = VPValue2Name.lookup(V); !Name.empty())
     return Name;
 
   // If no name was assigned, no VPlan was provided when creating the slot
@@ -1591,12 +1591,12 @@ static void addRuntimeUnrollDisableMetaData(Loop *L) {
   // Reserve first location for self reference to the LoopID metadata node.
   MDs.push_back(nullptr);
   bool IsUnrollMetadata = false;
-  MDNode *LoopID = L->getLoopID();
-  if (LoopID) {
+  
+  if (MDNode *LoopID = L->getLoopID(); LoopID) {
     // First find existing loop unrolling disable metadata.
     for (unsigned I = 1, IE = LoopID->getNumOperands(); I < IE; ++I) {
-      auto *MD = dyn_cast<MDNode>(LoopID->getOperand(I));
-      if (MD) {
+      
+      if (auto *MD = dyn_cast<MDNode>(LoopID->getOperand(I)); MD) {
         const auto *S = dyn_cast<MDString>(MD->getOperand(0));
         if (!S)
           continue;

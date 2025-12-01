@@ -605,8 +605,8 @@ static FailureOr<StructuredLoopProperties> createSingleExitingLatch(
   }
 
   {
-    auto builder = OpBuilder::atBlockBegin(exitBlock);
-    if (!exitEdges.empty()) {
+    
+    if (auto builder = OpBuilder::atBlockBegin(exitBlock); !exitEdges.empty()) {
       // Create the switch dispatching to what were originally the multiple exit
       // blocks. The loop header has to explicitly be excluded in the below
       // switch as we would otherwise be creating a new loop again. All back
@@ -1164,10 +1164,10 @@ static FailureOr<SmallVector<Block *>> transformToStructuredCFBranches(
 
   for (auto &&[block, valueRange] : createdEmptyBlocks) {
     auto builder = OpBuilder::atBlockEnd(block);
-    LogicalResult result = interface.createStructuredBranchRegionTerminatorOp(
+    
+    if (LogicalResult result = interface.createStructuredBranchRegionTerminatorOp(
         structuredCondOp->getLoc(), builder, structuredCondOp, nullptr,
-        valueRange);
-    if (failed(result))
+        valueRange); failed(result))
       return failure();
   }
 

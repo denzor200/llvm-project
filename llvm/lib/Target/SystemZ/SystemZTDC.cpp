@@ -98,8 +98,8 @@ private:
     auto &M = *I->getFunction()->getParent();
     auto &Ctx = M.getContext();
     for (auto *U : I->users()) {
-      auto *LI = dyn_cast<BinaryOperator>(U);
-      if (LI && LI->getType() == Type::getInt1Ty(Ctx) &&
+      
+      if (auto *LI = dyn_cast<BinaryOperator>(U); LI && LI->getType() == Type::getInt1Ty(Ctx) &&
           (LI->getOpcode() == Instruction::And ||
            LI->getOpcode() == Instruction::Or ||
            LI->getOpcode() == Instruction::Xor)) {
@@ -214,8 +214,8 @@ void SystemZTDCPass::convertFCmp(CmpInst &I) {
   // worthy if combined with fabs.
   bool Worthy = false;
   if (CallInst *CI = dyn_cast<CallInst>(Op0)) {
-    Function *F = CI->getCalledFunction();
-    if (F && F->getIntrinsicID() == Intrinsic::fabs) {
+    
+    if (Function *F = CI->getCalledFunction(); F && F->getIntrinsicID() == Intrinsic::fabs) {
       // Fold with fabs - adjust the mask appropriately.
       Mask &= SystemZ::TDCMASK_PLUS;
       Mask |= Mask >> 1;
@@ -258,8 +258,8 @@ void SystemZTDCPass::convertICmp(CmpInst &I) {
     converted(&I, V, Mask, true);
   } else if (auto *CI = dyn_cast<CallInst>(Op0)) {
     // Check if this is a pre-existing call of our tdc intrinsic.
-    Function *F = CI->getCalledFunction();
-    if (!F || F->getIntrinsicID() != Intrinsic::s390_tdc)
+    
+    if (Function *F = CI->getCalledFunction(); !F || F->getIntrinsicID() != Intrinsic::s390_tdc)
       return;
     if (!Const->isZero())
       return;
@@ -310,8 +310,8 @@ void SystemZTDCPass::convertLogicOp(BinaryOperator &I) {
 }
 
 bool SystemZTDCPass::runOnFunction(Function &F) {
-  auto &TPC = getAnalysis<TargetPassConfig>();
-  if (TPC.getTM<TargetMachine>()
+  
+  if (auto &TPC = getAnalysis<TargetPassConfig>(); TPC.getTM<TargetMachine>()
           .getSubtarget<SystemZSubtarget>(F)
           .hasSoftFloat())
     return false;

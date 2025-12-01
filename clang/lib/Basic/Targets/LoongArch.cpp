@@ -425,9 +425,9 @@ LoongArchTargetInfo::parseTargetAttr(StringRef Features) const {
   Features.split(AttrFeatures, ",");
 
   for (auto &Feature : AttrFeatures) {
-    auto [Kind, Value] = getAttrFeatureTypeAndValue(Feature.trim());
+    
 
-    switch (Kind) {
+    switch (auto [Kind, Value] = getAttrFeatureTypeAndValue(Feature.trim()); Kind) {
     case AttrFeatureKind::Arch: {
       if (llvm::LoongArch::isValidArchName(Value) || Value == "la64v1.0" ||
           Value == "la64v1.1") {

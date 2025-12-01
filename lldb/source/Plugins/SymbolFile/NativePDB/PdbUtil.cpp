@@ -496,8 +496,8 @@ lldb_private::npdb::GetSegmentOffsetAndLength(const CVSymbol &sym) {
 bool lldb_private::npdb::IsForwardRefUdt(CVType cvt) {
   ClassRecord cr;
   UnionRecord ur;
-  EnumRecord er;
-  switch (cvt.kind()) {
+  
+  switch (EnumRecord er; cvt.kind()) {
   case LF_CLASS:
   case LF_STRUCTURE:
   case LF_INTERFACE:
@@ -758,8 +758,8 @@ VariableInfo lldb_private::npdb::GetVariableLocationInfo(
   }
 
   if (sym.kind() == S_LOCAL) {
-    LocalSym local(SymbolRecordKind::LocalSym);
-    if (llvm::Error error =
+    
+    if (llvm::Error LocalSym local(SymbolRecordKind::LocalSym); error =
             SymbolDeserializer::deserializeAs<LocalSym>(sym, local)) {
       llvm::consumeError(std::move(error));
       return result;
@@ -811,8 +811,8 @@ VariableInfo lldb_private::npdb::GetVariableLocationInfo(
         }
         DWARFExpression expr;
         if (base_reg == RegisterId::VFRAME) {
-          llvm::StringRef program;
-          if (GetFrameDataProgram(index, raw_ranges, program))
+          
+          if (llvm::StringRef program; GetFrameDataProgram(index, raw_ranges, program))
             expr = MakeVFrameRelLocationExpression(program, loc.Hdr.Offset,
                                                    module);
           else {
@@ -852,8 +852,8 @@ VariableInfo lldb_private::npdb::GetVariableLocationInfo(
         RegisterId reg_id = (RegisterId)(uint16_t)loc.Hdr.Register;
         DWARFExpression expr;
         if (reg_id == RegisterId::VFRAME) {
-          llvm::StringRef program;
-          if (GetFrameDataProgram(index, raw_ranges, program))
+          
+          if (llvm::StringRef program; GetFrameDataProgram(index, raw_ranges, program))
             expr = MakeVFrameRelLocationExpression(
                 program, loc.Hdr.BasePointerOffset, module);
           else {

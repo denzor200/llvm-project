@@ -40,9 +40,9 @@ LIBC_INLINE cpp::optional<LinuxStatFs> linux_statfs(const char *path) {
 #ifdef SYS_statfs64
   int ret = syscall_impl<int>(SYS_statfs64, path, sizeof(result), &result);
 #else
-  int ret = syscall_impl<int>(SYS_statfs, path, &result);
+  
 #endif
-  if (ret < 0) {
+  if (int ret = syscall_impl<int>(SYS_statfs, path, &result); ret < 0) {
     libc_errno = -ret;
     return cpp::nullopt;
   }
@@ -61,9 +61,9 @@ LIBC_INLINE cpp::optional<LinuxStatFs> linux_fstatfs(int fd) {
 #ifdef SYS_fstatfs64
   int ret = syscall_impl<int>(SYS_fstatfs64, fd, sizeof(result), &result);
 #else
-  int ret = syscall_impl<int>(SYS_fstatfs, fd, &result);
+  
 #endif
-  if (ret < 0) {
+  if (int ret = syscall_impl<int>(SYS_fstatfs, fd, &result); ret < 0) {
     libc_errno = -ret;
     return cpp::nullopt;
   }

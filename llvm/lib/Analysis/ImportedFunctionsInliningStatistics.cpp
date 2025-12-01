@@ -178,8 +178,8 @@ void ImportedFunctionsInliningStatistics::calculateRealInlines() {
                            NonImportedCallers.end());
 
   for (const auto &Name : NonImportedCallers) {
-    auto &Node = *NodesMap[Name];
-    if (!Node.Visited)
+    
+    if (auto &Node = *NodesMap[Name]; !Node.Visited)
       dfs(Node);
   }
 }

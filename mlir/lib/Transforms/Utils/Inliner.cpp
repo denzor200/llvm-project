@@ -135,8 +135,8 @@ CGUseList::CGUseList(Operation *op, CallGraph &cg,
       // If this is a callgraph operation, check to see if it is discardable.
       if (auto callable = dyn_cast<CallableOpInterface>(&op)) {
         if (auto *node = cg.lookupNode(callable.getCallableRegion())) {
-          SymbolOpInterface symbol = dyn_cast<SymbolOpInterface>(&op);
-          if (symbol && (allUsesVisible || symbol.isPrivate()) &&
+          
+          if (SymbolOpInterface symbol = dyn_cast<SymbolOpInterface>(&op); symbol && (allUsesVisible || symbol.isPrivate()) &&
               symbol.canDiscardOnUseEmpty()) {
             discardableSymNodeUses.try_emplace(node, 0);
           }
@@ -190,8 +190,8 @@ void CGUseList::eraseNode(CallGraphNode *node) {
 
 bool CGUseList::isDead(CallGraphNode *node) const {
   // If the parent operation isn't a symbol, simply check normal SSA deadness.
-  Operation *nodeOp = node->getCallableRegion()->getParentOp();
-  if (!isa<SymbolOpInterface>(nodeOp))
+  
+  if (Operation *nodeOp = node->getCallableRegion()->getParentOp(); !isa<SymbolOpInterface>(nodeOp))
     return isMemoryEffectFree(nodeOp) && nodeOp->use_empty();
 
   // Otherwise, check the number of symbol uses.
@@ -201,8 +201,8 @@ bool CGUseList::isDead(CallGraphNode *node) const {
 
 bool CGUseList::hasOneUseAndDiscardable(CallGraphNode *node) const {
   // If this isn't a symbol node, check for side-effects and SSA use count.
-  Operation *nodeOp = node->getCallableRegion()->getParentOp();
-  if (!isa<SymbolOpInterface>(nodeOp))
+  
+  if (Operation *nodeOp = node->getCallableRegion()->getParentOp(); !isa<SymbolOpInterface>(nodeOp))
     return isMemoryEffectFree(nodeOp) && nodeOp->hasOneUse();
 
   // Otherwise, check the number of symbol uses.
@@ -266,8 +266,8 @@ public:
 
   /// Remove the given node from this SCC.
   void remove(CallGraphNode *node) {
-    auto it = llvm::find(nodes, node);
-    if (it != nodes.end()) {
+    
+    if (auto it = llvm::find(nodes, node); it != nodes.end()) {
       nodes.erase(it);
       parentIterator.ReplaceNode(node, nullptr);
     }
@@ -320,8 +320,8 @@ static void collectCallOps(iterator_range<Region::iterator> blocks,
     for (Operation &op : *block) {
       if (auto call = dyn_cast<CallOpInterface>(op)) {
         // TODO: Support inlining nested call references.
-        CallInterfaceCallable callable = call.getCallableForCallee();
-        if (SymbolRefAttr symRef = dyn_cast<SymbolRefAttr>(callable)) {
+        
+        if (SymbolRefAttr CallInterfaceCallable callable = call.getCallableForCallee(); symRef = dyn_cast<SymbolRefAttr>(callable)) {
           if (!isa<FlatSymbolRefAttr>(symRef))
             continue;
         }
@@ -336,8 +336,8 @@ static void collectCallOps(iterator_range<Region::iterator> blocks,
       // `traverseNestedCGNodes` is false, then don't traverse nested call graph
       // regions.
       for (auto &nestedRegion : op.getRegions()) {
-        CallGraphNode *nestedNode = cg.lookupNode(&nestedRegion);
-        if (traverseNestedCGNodes || !nestedNode)
+        
+        if (CallGraphNode *nestedNode = cg.lookupNode(&nestedRegion); traverseNestedCGNodes || !nestedNode)
           addToWorklist(nestedNode ? nestedNode : sourceNode, nestedRegion);
       }
     }
@@ -497,8 +497,8 @@ LogicalResult Inliner::Impl::optimizeSCC(CallGraph &cg, CGUseList &useList,
 
     // We also won't apply simplifications to nodes that can't have passes
     // scheduled on them.
-    auto *region = node->getCallableRegion();
-    if (!region->getParentOp()->hasTrait<OpTrait::IsIsolatedFromAbove>())
+    
+    if (auto *region = node->getCallableRegion(); !region->getParentOp()->hasTrait<OpTrait::IsIsolatedFromAbove>())
       continue;
     nodesToVisit.push_back(node);
   }
@@ -524,8 +524,8 @@ Inliner::Impl::optimizeSCCAsync(MutableArrayRef<CallGraphNode *> nodesToVisit,
   // to prevent issues with pass instrumentations that rely on having the same
   // pass manager for the main thread.
   size_t numThreads = ctx->getNumThreads();
-  const auto &opPipelines = inliner.config.getOpPipelines();
-  if (pipelines.size() < numThreads) {
+  
+  if (const auto &opPipelines = inliner.config.getOpPipelines(); pipelines.size() < numThreads) {
     pipelines.reserve(numThreads);
     pipelines.resize(numThreads, opPipelines);
   }
@@ -563,8 +563,8 @@ Inliner::Impl::optimizeCallable(CallGraphNode *node,
   Operation *callable = node->getCallableRegion()->getParentOp();
   StringRef opName = callable->getName().getStringRef();
   auto pipelineIt = pipelines.find(opName);
-  const auto &defaultPipeline = inliner.config.getDefaultPipeline();
-  if (pipelineIt == pipelines.end()) {
+  
+  if (const auto &defaultPipeline = inliner.config.getDefaultPipeline(); pipelineIt == pipelines.end()) {
     // If a pipeline didn't exist, use the generic pipeline if possible.
     if (!defaultPipeline)
       return success();

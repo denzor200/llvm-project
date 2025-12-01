@@ -316,8 +316,8 @@ Type *BufferFatPtrTypeLoweringBase::remapTypeImpl(Type *Ty) {
     }
   }
   if (auto *VT = dyn_cast<VectorType>(Ty)) {
-    auto *PT = dyn_cast<PointerType>(VT->getElementType());
-    if (PT && PT->getAddressSpace() == AMDGPUAS::BUFFER_FAT_POINTER) {
+    
+    if (auto *PT = dyn_cast<PointerType>(VT->getElementType()); PT && PT->getAddressSpace() == AMDGPUAS::BUFFER_FAT_POINTER) {
       return *Entry = remapVector(VT);
     }
     return *Entry = Ty;
@@ -970,8 +970,8 @@ bool LegalizeBufferContentTypesVisitor::visitLoadImpl(
     return Changed;
   }
   if (auto *AT = dyn_cast<ArrayType>(PartType)) {
-    Type *ElemTy = AT->getElementType();
-    if (!ElemTy->isSingleValueType() || !DL.typeSizeEqualsStoreSize(ElemTy) ||
+    
+    if (Type *ElemTy = AT->getElementType(); !ElemTy->isSingleValueType() || !DL.typeSizeEqualsStoreSize(ElemTy) ||
         ElemTy->isVectorTy()) {
       TypeSize ElemStoreSize = DL.getTypeStoreSize(ElemTy);
       bool Changed = false;
@@ -1090,8 +1090,8 @@ std::pair<bool, bool> LegalizeBufferContentTypesVisitor::visitStoreImpl(
     return std::make_pair(Changed, /*ModifiedInPlace=*/false);
   }
   if (auto *AT = dyn_cast<ArrayType>(PartType)) {
-    Type *ElemTy = AT->getElementType();
-    if (!ElemTy->isSingleValueType() || !DL.typeSizeEqualsStoreSize(ElemTy) ||
+    
+    if (Type *ElemTy = AT->getElementType(); !ElemTy->isSingleValueType() || !DL.typeSizeEqualsStoreSize(ElemTy) ||
         ElemTy->isVectorTy()) {
       TypeSize ElemStoreSize = DL.getTypeStoreSize(ElemTy);
       bool Changed = false;
@@ -1501,8 +1501,8 @@ void SplitPtrStructs::processConditionals() {
       Seen.erase(I);
 
       if (set_is_subset(Seen, Roots)) {
-        auto Diff = set_difference(Roots, Seen);
-        if (Diff.size() == 1) {
+        
+        if (auto Diff = set_difference(Roots, Seen); Diff.size() == 1) {
           Value *RootVal = *Diff.begin();
           // Handle the case where previous loops already looked through
           // an addrspacecast.
@@ -2218,8 +2218,8 @@ static bool isRemovablePointerIntrinsic(Intrinsic::ID IID) {
 }
 
 PtrParts SplitPtrStructs::visitIntrinsicInst(IntrinsicInst &I) {
-  Intrinsic::ID IID = I.getIntrinsicID();
-  switch (IID) {
+  
+  switch (Intrinsic::ID IID = I.getIntrinsicID(); IID) {
   default:
     break;
   case Intrinsic::amdgcn_make_buffer_rsrc: {
@@ -2475,8 +2475,8 @@ bool AMDGPULowerBufferFatPointers::run(Module &M, const TargetMachine &TM) {
       continue;
     }
 
-    Type *VT = GV.getValueType();
-    if (VT != StructTM.remapType(VT)) {
+    
+    if (Type *VT = GV.getValueType(); VT != StructTM.remapType(VT)) {
       // FIXME: Use DiagnosticInfo unsupported but it requires a Function
       Ctx.emitError("global variables that contain buffer fat pointers "
                     "(address space 7 pointers) are unsupported. Use "
@@ -2570,8 +2570,8 @@ bool AMDGPULowerBufferFatPointers::run(Module &M, const TargetMachine &TM) {
     if (F->use_empty() || isRemovablePointerIntrinsic(F->getIntrinsicID())) {
       F->eraseFromParent();
     } else {
-      std::optional<Function *> NewF = Intrinsic::remangleIntrinsicFunction(F);
-      if (NewF)
+      
+      if (std::optional<Function *> NewF = Intrinsic::remangleIntrinsicFunction(F); NewF)
         F->replaceAllUsesWith(*NewF);
     }
   }

@@ -372,9 +372,9 @@ bool LoongArchPreRAExpandPseudo::expandLoadAddressTLSLE(
       MF->getRegInfo().createVirtualRegister(&LoongArch::GPRRegClass);
   Register Part1 =
       MF->getRegInfo().createVirtualRegister(&LoongArch::GPRRegClass);
-  MachineOperand &Symbol = MI.getOperand(1);
+  
 
-  if (!Large) {
+  if (MachineOperand &Symbol = MI.getOperand(1); !Large) {
     BuildMI(MBB, MBBI, DL, TII->get(LoongArch::LU12I_W), Part1)
         .addDisp(Symbol, 0, LoongArchII::MO_LE_HI_R);
 
@@ -565,9 +565,9 @@ bool LoongArchPreRAExpandPseudo::expandFunctionCALL(
   DebugLoc DL = MI.getDebugLoc();
   const MachineOperand &Func = MI.getOperand(0);
   MachineInstrBuilder CALL;
-  unsigned Opcode;
+  
 
-  switch (MF->getTarget().getCodeModel()) {
+  switch (unsigned Opcode; MF->getTarget().getCodeModel()) {
   default:
     report_fatal_error("Unexpected code model");
     break;
@@ -632,8 +632,8 @@ void LoongArchPreRAExpandPseudo::annotateTableJump(
       if (!DefMI)
         continue;
       for (unsigned Idx = 0; Idx < DefMI->getNumOperands(); ++Idx) {
-        MachineOperand &MO = DefMI->getOperand(Idx);
-        if (MO.isJTI()) {
+        
+        if (MachineOperand &MO = DefMI->getOperand(Idx); MO.isJTI()) {
           MBBI->setPreInstrSymbol(
               *MF, MF->getContext().createNamedTempSymbol("jrtb_"));
           MF->getInfo<LoongArchMachineFunctionInfo>()->setJumpInfo(
@@ -777,9 +777,9 @@ bool LoongArchExpandPseudo::expandFunctionCALL(
   DebugLoc DL = MI.getDebugLoc();
   const MachineOperand &Func = MI.getOperand(0);
   MachineInstrBuilder CALL;
-  unsigned Opcode;
+  
 
-  switch (MF->getTarget().getCodeModel()) {
+  switch (unsigned Opcode; MF->getTarget().getCodeModel()) {
   default:
     report_fatal_error("Unexpected code model");
     break;

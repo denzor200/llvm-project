@@ -109,12 +109,12 @@ public:
       if (ferror(In))
         return llvm::errorCodeToError(llvm::errnoAsErrorCode());
       if (readRawMessage(JSON)) {
-        ThreadCrashReporter ScopedReporter([&JSON]() {
+        
+        if (auto ThreadCrashReporter ScopedReporter([&JSON]() {
           auto &OS = llvm::errs();
           OS << "Signalled while processing message:\n";
           OS << JSON << "\n";
-        });
-        if (auto Doc = llvm::json::parse(JSON)) {
+        }); Doc = llvm::json::parse(JSON)) {
           vlog(Pretty ? "<<< {0:2}\n" : "<<< {0}\n", *Doc);
           if (!handleMessage(std::move(*Doc), Handler))
             return llvm::Error::success(); // we saw the "exit" notification.

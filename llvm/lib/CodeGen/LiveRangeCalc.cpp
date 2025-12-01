@@ -144,8 +144,8 @@ bool LiveRangeCalc::isDefOnEntry(LiveRange &LR, ArrayRef<SlotIndex> Undefs,
     unsigned N = WorkList[i];
     MachineBasicBlock &B = *MF->getBlockNumbered(N);
     if (Seen[N]) {
-      const LiveOutPair &LOB = Map[&B];
-      if (LOB.first != nullptr && LOB.first != &UndefVNI)
+      
+      if (const LiveOutPair &LOB = Map[&B]; LOB.first != nullptr && LOB.first != &UndefVNI)
         return MarkDefined(B);
     }
     SlotIndex Begin, End;
@@ -156,8 +156,8 @@ bool LiveRangeCalc::isDefOnEntry(LiveRange &LR, ArrayRef<SlotIndex> Undefs,
     // S should be treated as the first segment that does not overlap B.
     LiveRange::iterator UB = upper_bound(LR, End.getPrevSlot());
     if (UB != LR.begin()) {
-      LiveRange::Segment &Seg = *std::prev(UB);
-      if (Seg.end > Begin) {
+      
+      if (LiveRange::Segment &Seg = *std::prev(UB); Seg.end > Begin) {
         // There is a segment that overlaps B. If the range is not explicitly
         // undefined between the end of the segment and the end of the block,
         // treat the block as defined on exit. If it is, go to the next block

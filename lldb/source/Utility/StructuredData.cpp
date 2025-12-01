@@ -87,8 +87,8 @@ static StructuredData::ObjectSP ParseJSONObject(json::Object *object) {
   auto dict_up = std::make_unique<StructuredData::Dictionary>();
   for (auto &KV : *object) {
     StringRef key = KV.first;
-    json::Value value = KV.second;
-    if (StructuredData::ObjectSP value_sp = ParseJSONValue(value))
+    
+    if (StructuredData::ObjectSP json::Value value = KV.second; value_sp = ParseJSONValue(value))
       dict_up->AddItem(key, value_sp);
   }
   return std::move(dict_up);

@@ -67,8 +67,8 @@ UniqueDWARFASTType *UniqueDWARFASTTypeList::Find(
       bool done = false;
       while (!done && match && parent_arg_die && parent_pos_die) {
         const dw_tag_t parent_arg_tag = parent_arg_die.Tag();
-        const dw_tag_t parent_pos_tag = parent_pos_die.Tag();
-        if (parent_arg_tag == parent_pos_tag ||
+        
+        if (const dw_tag_t parent_pos_tag = parent_pos_die.Tag(); parent_arg_tag == parent_pos_tag ||
             (IsStructOrClassTag(parent_arg_tag) &&
              IsStructOrClassTag(parent_pos_tag))) {
           switch (parent_arg_tag) {
@@ -76,13 +76,13 @@ UniqueDWARFASTType *UniqueDWARFASTTypeList::Find(
           case DW_TAG_structure_type:
           case DW_TAG_union_type:
           case DW_TAG_namespace: {
-            const char *parent_arg_die_name = parent_arg_die.GetName();
-            if (parent_arg_die_name == nullptr) {
+            
+            if (const char *parent_arg_die_name = parent_arg_die.GetName(); parent_arg_die_name == nullptr) {
               // Anonymous (i.e. no-name) struct
               match = false;
             } else {
-              const char *parent_pos_die_name = parent_pos_die.GetName();
-              if (parent_pos_die_name == nullptr ||
+              
+              if (const char *parent_pos_die_name = parent_pos_die.GetName(); parent_pos_die_name == nullptr ||
                   ((parent_arg_die_name != parent_pos_die_name) &&
                    strcmp(parent_arg_die_name, parent_pos_die_name)))
                 match = false;

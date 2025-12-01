@@ -29,8 +29,8 @@ static raw_ostream &printFlags(raw_ostream &OS, const T Value,
       if (FlagSet)
         OS << " | ";
 
-      StringRef MaybeFlag = enumToStringRef(T(Bit), Flags);
-      if (!MaybeFlag.empty())
+      
+      if (StringRef MaybeFlag = enumToStringRef(T(Bit), Flags); !MaybeFlag.empty())
         OS << MaybeFlag;
       else
         OS << "invalid: " << Bit;

@@ -188,17 +188,17 @@ std::optional<uint64_t> readStartAddress(const MachOObjectFile &O) {
     }
     case MachO::LC_SEGMENT: {
       MachO::segment_command LCSeg = O.getSegmentLoadCommand(LC);
-      StringRef SegmentName(LCSeg.segname,
-                            strnlen(LCSeg.segname, sizeof(LCSeg.segname)));
-      if (SegmentName == "__TEXT")
+      
+      if (StringRef SegmentName(LCSeg.segname,
+                            strnlen(LCSeg.segname, sizeof(LCSeg.segname))); SegmentName == "__TEXT")
         TextVMAddr = LCSeg.vmaddr;
       break;
     }
     case MachO::LC_SEGMENT_64: {
       MachO::segment_command_64 LCSeg = O.getSegment64LoadCommand(LC);
-      StringRef SegmentName(LCSeg.segname,
-                            strnlen(LCSeg.segname, sizeof(LCSeg.segname)));
-      if (SegmentName == "__TEXT")
+      
+      if (StringRef SegmentName(LCSeg.segname,
+                            strnlen(LCSeg.segname, sizeof(LCSeg.segname))); SegmentName == "__TEXT")
         TextVMAddr = LCSeg.vmaddr;
       break;
     }
@@ -216,8 +216,8 @@ std::optional<uint64_t> readStartAddress(const MachOObjectFile &O) {
 void MachORewriteInstance::discoverFileObjects() {
   std::vector<SymbolRef> FunctionSymbols;
   for (const SymbolRef &S : InputFile->symbols()) {
-    SymbolRef::Type Type = cantFail(S.getType(), "cannot get symbol type");
-    if (Type == SymbolRef::ST_Function)
+    
+    if (SymbolRef::Type Type = cantFail(S.getType(), "cannot get symbol type"); Type == SymbolRef::ST_Function)
       FunctionSymbols.push_back(S);
   }
   if (FunctionSymbols.empty())
@@ -259,9 +259,9 @@ void MachORewriteInstance::discoverFileObjects() {
     const uint64_t SymbolSize = EndAddress - Address;
     const auto It = BC->getBinaryFunctions().find(Address);
     if (It == BC->getBinaryFunctions().end()) {
-      BinaryFunction *Function = BC->createBinaryFunction(
-          std::move(SymbolName), *Section, Address, SymbolSize);
-      if (!opts::Instrument)
+      
+      if (BinaryFunction *Function = BC->createBinaryFunction(
+          std::move(SymbolName), *Section, Address, SymbolSize); !opts::Instrument)
         Function->setOutputAddress(Function->getAddress());
 
     } else {

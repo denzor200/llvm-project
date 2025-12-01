@@ -171,8 +171,8 @@ ParseResult FuncOp::parse(OpAsmParser &parser, OperationState &result) {
     argTypesWithoutLocal.reserve(argTypes.size());
     llvm::for_each(argTypes, [&parser, &argTypesWithoutLocal](Type argType) {
       auto refType = dyn_cast<LocalRefType>(argType);
-      auto loc = parser.getEncodedSourceLoc(parser.getCurrentLocation());
-      if (!refType) {
+      
+      if (auto loc = parser.getEncodedSourceLoc(parser.getCurrentLocation()); !refType) {
         mlir::emitError(loc, "invalid type for wasm.func argument. Expecting "
                              "!wasm<local T>, got ")
             << argType;
@@ -284,8 +284,8 @@ void GlobalOp::print(OpAsmPrinter &printer) {
   if (getIsMutable())
     printer << " mutable";
   printer << " :";
-  Region &body = getRegion();
-  if (!body.empty()) {
+  
+  if (Region &body = getRegion(); !body.empty()) {
     printer << ' ';
     printer.printRegion(body, /*printEntryBlockArgs=*/false,
                         /*printBlockTerminators=*/true);

@@ -927,8 +927,8 @@ void DumpModuleInfoAction::ExecuteAction() {
     std::map<std::string, SubModInfo> SubModMap;
     auto PrintSubMapEntry = [&](std::string Name, Module::ModuleKind Kind) {
       Out << "    " << ModuleKindName(Kind) << " '" << Name << "'";
-      auto I = SubModMap.find(Name);
-      if (I == SubModMap.end())
+      
+      if (auto I = SubModMap.find(Name); I == SubModMap.end())
         Out << " was not found in the sub modules!\n";
       else {
         I->second.Seen = true;
@@ -1071,8 +1071,8 @@ void PrintPreprocessedAction::ExecuteAction() {
   bool BinaryMode = false;
   if (llvm::Triple(LLVM_HOST_TRIPLE).isOSWindows()) {
     BinaryMode = true;
-    const SourceManager &SM = CI.getSourceManager();
-    if (std::optional<llvm::MemoryBufferRef> Buffer =
+    
+    if (std::optional<llvm::MemoryBufferRef> const SourceManager &SM = CI.getSourceManager(); Buffer =
             SM.getBufferOrNone(SM.getMainFileID())) {
       const char *cur = Buffer->getBufferStart();
       const char *end = Buffer->getBufferEnd();
@@ -1146,8 +1146,8 @@ void PrintPreambleAction::ExecuteAction() {
     return;
 
   CompilerInstance &CI = getCompilerInstance();
-  auto Buffer = CI.getFileManager().getBufferForFile(getCurrentFile());
-  if (Buffer) {
+  
+  if (auto Buffer = CI.getFileManager().getBufferForFile(getCurrentFile()); Buffer) {
     unsigned Preamble =
         Lexer::ComputePreamble((*Buffer)->getBuffer(), CI.getLangOpts()).Size;
     llvm::outs().write((*Buffer)->getBufferStart(), Preamble);

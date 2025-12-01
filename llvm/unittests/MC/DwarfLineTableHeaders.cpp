@@ -143,8 +143,8 @@ public:
     for (const llvm::object::SectionRef &Section : E.sections()) {
       Expected<StringRef> SectionNameOrErr = Section.getName();
       ASSERT_TRUE(static_cast<bool>(SectionNameOrErr));
-      StringRef SectionName = *SectionNameOrErr;
-      if (SectionName.empty() || SectionName != ".debug_line")
+      
+      if (StringRef SectionName = *SectionNameOrErr; SectionName.empty() || SectionName != ".debug_line")
         continue;
       Expected<StringRef> ContentsOrErr = Section.getContents();
       ASSERT_TRUE(static_cast<bool>(ContentsOrErr));
@@ -163,8 +163,8 @@ public:
     for (const llvm::object::SectionRef &Section : E.sections()) {
       Expected<StringRef> SectionNameOrErr = Section.getName();
       ASSERT_TRUE(static_cast<bool>(SectionNameOrErr));
-      StringRef SectionName = *SectionNameOrErr;
-      if (SectionName.empty() || SectionName != ".debug_line_str")
+      
+      if (StringRef SectionName = *SectionNameOrErr; SectionName.empty() || SectionName != ".debug_line_str")
         continue;
       Expected<StringRef> ContentsOrErr = Section.getContents();
       ASSERT_TRUE(static_cast<bool>(ContentsOrErr));

@@ -90,8 +90,8 @@ private:
 
   RValue EmitVAArg(CodeGenFunction &CGF, Address VAListAddr, QualType Ty,
                    AggValueSlot Slot) const override {
-    llvm::Type *BaseTy = CGF.ConvertType(Ty);
-    if (isa<llvm::ScalableVectorType>(BaseTy))
+    
+    if (llvm::Type *BaseTy = CGF.ConvertType(Ty); isa<llvm::ScalableVectorType>(BaseTy))
       llvm::report_fatal_error("Passing SVE types to variadic functions is "
                                "currently not supported");
 
@@ -152,9 +152,9 @@ public:
 
     if (FD && FD->hasAttr<TargetAttr>()) {
       const auto *TA = FD->getAttr<TargetAttr>();
-      ParsedTargetAttr Attr =
-          CGM.getTarget().parseTargetAttr(TA->getFeaturesStr());
-      if (!Attr.BranchProtection.empty()) {
+      
+      if (ParsedTargetAttr Attr =
+          CGM.getTarget().parseTargetAttr(TA->getFeaturesStr()); !Attr.BranchProtection.empty()) {
         StringRef Error;
         (void)CGM.getTarget().validateBranchProtection(
             Attr.BranchProtection, Attr.CPU, BPI, CGM.getLangOpts(), Error);
@@ -168,10 +168,10 @@ public:
   bool isScalarizableAsmOperand(CodeGen::CodeGenFunction &CGF,
                                 llvm::Type *Ty) const override {
     if (CGF.getTarget().hasFeature("ls64")) {
-      auto *ST = dyn_cast<llvm::StructType>(Ty);
-      if (ST && ST->getNumElements() == 1) {
-        auto *AT = dyn_cast<llvm::ArrayType>(ST->getElementType(0));
-        if (AT && AT->getNumElements() == 8 &&
+      
+      if (auto *ST = dyn_cast<llvm::StructType>(Ty); ST && ST->getNumElements() == 1) {
+        
+        if (auto *AT = dyn_cast<llvm::ArrayType>(ST->getElementType(0)); AT && AT->getNumElements() == 8 &&
             AT->getElementType()->isIntegerTy(64))
           return true;
       }
@@ -442,8 +442,8 @@ ABIArgInfo AArch64ABIInfo::classifyArgumentType(QualType Ty, bool IsVariadicFn,
   // apply, just fall through to the standard argument-handling path.
   // Darwin overrides the psABI here to ignore all empty records in all modes.
   uint64_t Size = getContext().getTypeSize(Ty);
-  bool IsEmpty = isEmptyRecord(getContext(), Ty, true);
-  if (!Ty->isSVESizelessBuiltinType() && (IsEmpty || Size == 0)) {
+  
+  if (bool IsEmpty = isEmptyRecord(getContext(), Ty, true); !Ty->isSVESizelessBuiltinType() && (IsEmpty || Size == 0)) {
     // Empty records are ignored in C mode, and in C++ on Darwin.
     if (!getContext().getLangOpts().CPlusPlus || isDarwinPCS())
       return ABIArgInfo::getIgnore();
@@ -483,8 +483,8 @@ ABIArgInfo AArch64ABIInfo::classifyArgumentType(QualType Ty, bool IsVariadicFn,
   // registers, or indirectly if there are not enough registers.
   if (Kind == AArch64ABIKind::AAPCS) {
     unsigned NVec = 0, NPred = 0;
-    SmallVector<llvm::Type *> UnpaddedCoerceToSeq;
-    if (passAsPureScalableType(Ty, NVec, NPred, UnpaddedCoerceToSeq) &&
+    
+    if (SmallVector<llvm::Type *> UnpaddedCoerceToSeq; passAsPureScalableType(Ty, NVec, NPred, UnpaddedCoerceToSeq) &&
         (NVec + NPred) > 0)
       return coerceAndExpandPureScalableAggregate(
           Ty, IsNamedArg, NVec, NPred, UnpaddedCoerceToSeq, NSRN, NPRN);
@@ -594,8 +594,8 @@ ABIArgInfo AArch64ABIInfo::classifyReturnType(QualType RetTy,
   if (Kind == AArch64ABIKind::AAPCS) {
     unsigned NSRN = 0, NPRN = 0;
     unsigned NVec = 0, NPred = 0;
-    SmallVector<llvm::Type *> UnpaddedCoerceToSeq;
-    if (passAsPureScalableType(RetTy, NVec, NPred, UnpaddedCoerceToSeq) &&
+    
+    if (SmallVector<llvm::Type *> UnpaddedCoerceToSeq; passAsPureScalableType(RetTy, NVec, NPred, UnpaddedCoerceToSeq) &&
         (NVec + NPred) > 0)
       return coerceAndExpandPureScalableAggregate(
           RetTy, /* IsNamedArg */ true, NVec, NPred, UnpaddedCoerceToSeq, NSRN,
@@ -689,8 +689,8 @@ bool AArch64ABIInfo::isHomogeneousAggregateBaseType(QualType Ty) const {
         Kind == VectorKind::SveFixedLengthPredicate)
       return false;
 
-    unsigned VecSize = getContext().getTypeSize(VT);
-    if (VecSize == 64 || VecSize == 128)
+    
+    if (unsigned VecSize = getContext().getTypeSize(VT); VecSize == 64 || VecSize == 128)
       return true;
   }
   return false;
@@ -1053,8 +1053,8 @@ RValue AArch64ABIInfo::EmitAAPCSVAArg(Address VAListAddr, QualType Ty,
     // Otherwise the object is contiguous in memory.
 
     // It might be right-aligned in its slot.
-    CharUnits SlotSize = BaseAddr.getAlignment();
-    if (CGF.CGM.getDataLayout().isBigEndian() && !IsIndirect &&
+    
+    if (CharUnits SlotSize = BaseAddr.getAlignment(); CGF.CGM.getDataLayout().isBigEndian() && !IsIndirect &&
         (IsHFA || !isAggregateTypeForABI(Ty)) &&
         TySize < SlotSize) {
       CharUnits Offset = SlotSize - TySize;
@@ -1198,8 +1198,8 @@ static void diagnoseIfNeedsFPReg(DiagnosticsEngine &Diags,
                                  const QualType &Ty, const NamedDecl *D,
                                  SourceLocation loc) {
   const Type *HABase = nullptr;
-  uint64_t HAMembers = 0;
-  if (Ty->isFloatingType() || Ty->isVectorType() ||
+  
+  if (uint64_t HAMembers = 0; Ty->isFloatingType() || Ty->isVectorType() ||
       ABIInfo.isHomogeneousAggregate(Ty, HABase, HAMembers)) {
     Diags.Report(loc, diag::err_target_unsupported_type_for_abi)
         << D->getDeclName() << Ty << ABIName;
@@ -1212,9 +1212,9 @@ static void diagnoseIfNeedsFPReg(DiagnosticsEngine &Diags,
 void AArch64TargetCodeGenInfo::checkFunctionABI(
     CodeGenModule &CGM, const FunctionDecl *FuncDecl) const {
   const AArch64ABIInfo &ABIInfo = getABIInfo<AArch64ABIInfo>();
-  const TargetInfo &TI = ABIInfo.getContext().getTargetInfo();
+  
 
-  if (!TI.hasFeature("fp") && !ABIInfo.isSoftFloat()) {
+  if (const TargetInfo &TI = ABIInfo.getContext().getTargetInfo(); !TI.hasFeature("fp") && !ABIInfo.isSoftFloat()) {
     diagnoseIfNeedsFPReg(CGM.getDiags(), TI.getABI(), ABIInfo,
                          FuncDecl->getReturnType(), FuncDecl,
                          FuncDecl->getLocation());

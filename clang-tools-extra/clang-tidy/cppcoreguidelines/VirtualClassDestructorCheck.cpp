@@ -79,8 +79,8 @@ getPublicASDecl(const CXXRecordDecl &StructOrClass) {
            AS{StructOrClass.decls_begin()},
        ASEnd{StructOrClass.decls_end()};
        AS != ASEnd; ++AS) {
-    const AccessSpecDecl *ASDecl = *AS;
-    if (ASDecl->getAccess() == AccessSpecifier::AS_public)
+    
+    if (const AccessSpecDecl *ASDecl = *AS; ASDecl->getAccess() == AccessSpecifier::AS_public)
       return ASDecl;
   }
 
@@ -94,9 +94,9 @@ generateUserDeclaredDestructor(const CXXRecordDecl &StructOrClass,
   SourceLocation Loc;
   bool AppendLineBreak = false;
 
-  const AccessSpecDecl *AccessSpecDecl = getPublicASDecl(StructOrClass);
+  
 
-  if (!AccessSpecDecl) {
+  if (const AccessSpecDecl *AccessSpecDecl = getPublicASDecl(StructOrClass); !AccessSpecDecl) {
     if (StructOrClass.isClass()) {
       Loc = StructOrClass.getEndLoc();
       DestructorString = "public:";
@@ -125,8 +125,8 @@ static std::string getSourceText(const CXXDestructorDecl &Destructor) {
 
 static std::string eraseKeyword(std::string &DestructorString,
                                 const std::string &Keyword) {
-  const size_t KeywordIndex = DestructorString.find(Keyword);
-  if (KeywordIndex != std::string::npos)
+  
+  if (const size_t KeywordIndex = DestructorString.find(Keyword); KeywordIndex != std::string::npos)
     DestructorString.erase(KeywordIndex, Keyword.length());
   return DestructorString;
 }

@@ -199,8 +199,8 @@ static llvm::LogicalResult verifyConstantForType(mlir::Type type,
                                                  mlir::Operation *op) {
   if (llvm::isa<mlir::TensorType>(type)) {
     // Check that the value is an elements attribute.
-    auto attrValue = llvm::dyn_cast<mlir::DenseFPElementsAttr>(opaqueValue);
-    if (!attrValue)
+    
+    if (auto attrValue = llvm::dyn_cast<mlir::DenseFPElementsAttr>(opaqueValue); !attrValue)
       return op->emitError("constant of TensorType must be initialized by "
                            "a DenseFPElementsAttr, got ")
              << opaqueValue;
@@ -235,8 +235,8 @@ static llvm::LogicalResult verifyConstantForType(mlir::Type type,
   llvm::ArrayRef<mlir::Type> resultElementTypes = resultType.getElementTypes();
 
   // Verify that the initializer is an Array.
-  auto attrValue = llvm::dyn_cast<ArrayAttr>(opaqueValue);
-  if (!attrValue || attrValue.getValue().size() != resultElementTypes.size())
+  
+  if (auto attrValue = llvm::dyn_cast<ArrayAttr>(opaqueValue); !attrValue || attrValue.getValue().size() != resultElementTypes.size())
     return op->emitError("constant of StructType must be initialized by an "
                          "ArrayAttr with the same number of elements, got ")
            << opaqueValue;

@@ -47,8 +47,8 @@ static bool isPossibleIndirectCallTarget(const Function *F) {
   while (!Users.empty()) {
     const Value *FnOrCast = Users.pop_back_val();
     for (const Use &U : FnOrCast->uses()) {
-      const User *FnUser = U.getUser();
-      if (const auto *Call = dyn_cast<CallBase>(FnUser)) {
+      
+      if (const auto *const User *FnUser = U.getUser(); Call = dyn_cast<CallBase>(FnUser)) {
         if ((!Call->isCallee(&U) || U.get() != F) &&
             !Call->getFunction()->getName().ends_with("$exit_thunk")) {
           // Passing a function pointer to a call may lead to an indirect

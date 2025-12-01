@@ -92,9 +92,9 @@ bool IsAllocDeallocMismatchSuppressed(const StackTrace *stack) {
   }
   Symbolizer *symbolizer = Symbolizer::GetOrInit();
   for (uptr i = 0; i < stack->size && stack->trace[i]; i++) {
-    uptr addr = stack->trace[i];
+    
     // Match "alloc_dealloc_mismatch" suppressions.
-    if (IsAddrSuppressed(kAllocDeallocMismatch, symbolizer, addr)) {
+    if (uptr addr = stack->trace[i]; IsAddrSuppressed(kAllocDeallocMismatch, symbolizer, addr)) {
       return true;
     }
   }

@@ -38,8 +38,8 @@ struct ConvertNativeFuncPattern final : public OpConversionPattern<Op> {
     if (!isSPIRVCompatibleFloatOrVec(op.getType()))
       return failure();
 
-    arith::FastMathFlags fastFlags = op.getFastmath();
-    if (!arith::bitEnumContainsAll(fastFlags, arith::FastMathFlags::afn))
+    
+    if (arith::FastMathFlags fastFlags = op.getFastmath(); !arith::bitEnumContainsAll(fastFlags, arith::FastMathFlags::afn))
       return rewriter.notifyMatchFailure(op, "not a fastmath `afn` operation");
 
     SmallVector<Type, 1> operandTypes;

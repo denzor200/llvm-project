@@ -57,8 +57,8 @@ void EditedSource::finishedCommit() {
     SourceLocation ExpLoc;
     MacroArgUse ArgUse;
     std::tie(ExpLoc, ArgUse) = ExpArg;
-    auto &ArgUses = ExpansionToArgMap[ExpLoc];
-    if (!llvm::is_contained(ArgUses, ArgUse))
+    
+    if (auto &ArgUses = ExpansionToArgMap[ExpLoc]; !llvm::is_contained(ArgUses, ArgUse))
       ArgUses.push_back(ArgUse);
   }
   CurrCommitMacroArgExps.clear();
@@ -80,8 +80,8 @@ bool EditedSource::canInsertInOffset(SourceLocation OrigLoc, FileOffset Offs) {
     SourceLocation ExpLoc;
     MacroArgUse ArgUse;
     deconstructMacroArgLoc(OrigLoc, ExpLoc, ArgUse);
-    auto I = ExpansionToArgMap.find(ExpLoc);
-    if (I != ExpansionToArgMap.end() &&
+    
+    if (auto I = ExpansionToArgMap.find(ExpLoc); I != ExpansionToArgMap.end() &&
         llvm::any_of(I->second, [&](const MacroArgUse &U) {
           return ArgUse.Identifier == U.Identifier &&
                  std::tie(ArgUse.ImmediateExpansionLoc, ArgUse.UseLoc) !=
@@ -207,9 +207,9 @@ void EditedSource::commitRemove(SourceLocation OrigLoc,
   for (; I != FileEdits.end(); ++I) {
     FileEdit &FA = I->second;
     FileOffset B = I->first;
-    FileOffset E = B.getWithOffset(FA.RemoveLen);
+    
 
-    if (BeginOffs < E)
+    if (FileOffset E = B.getWithOffset(FA.RemoveLen); BeginOffs < E)
       break;
   }
 
@@ -289,8 +289,8 @@ bool EditedSource::commit(const Commit &commit) {
 
   for (edit::Commit::edit_iterator
          I = commit.edit_begin(), E = commit.edit_end(); I != E; ++I) {
-    const edit::Commit::Edit &edit = *I;
-    switch (edit.Kind) {
+    
+    switch (const edit::Commit::Edit &edit = *I; edit.Kind) {
     case edit::Commit::Act_Insert:
       commitInsert(edit.OrigLoc, edit.Offset, edit.Text, edit.BeforePrev);
       break;
@@ -336,8 +336,8 @@ static void adjustRemoval(const SourceManager &SM, const LangOptions &LangOpts,
                           SourceLocation Loc, FileOffset offs,
                           unsigned &len, StringRef &text) {
   assert(len && text.empty());
-  SourceLocation BeginTokLoc = Lexer::GetBeginningOfToken(Loc, SM, LangOpts);
-  if (BeginTokLoc != Loc)
+  
+  if (SourceLocation BeginTokLoc = Lexer::GetBeginningOfToken(Loc, SM, LangOpts); BeginTokLoc != Loc)
     return; // the range is not at the beginning of a token, keep the range.
 
   bool Invalid = false;

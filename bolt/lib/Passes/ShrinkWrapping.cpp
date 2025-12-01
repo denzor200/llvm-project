@@ -209,8 +209,8 @@ bool StackLayoutModifier::blacklistAllInConflictWith(int64_t Offset,
                                                      int64_t Size) {
   bool HasConflict = false;
   for (auto Iter = AvailableRegions.begin(); Iter != AvailableRegions.end();) {
-    std::pair<const int64_t, int64_t> &Elem = *Iter;
-    if (Offset + Size > Elem.first && Offset < Elem.first + Elem.second &&
+    
+    if (std::pair<const int64_t, int64_t> &Elem = *Iter; Offset + Size > Elem.first && Offset < Elem.first + Elem.second &&
         (Offset != Elem.first || Size != Elem.second)) {
       Iter = AvailableRegions.erase(Iter);
       HasConflict = true;
@@ -371,8 +371,8 @@ void StackLayoutModifier::classifyCFIs() {
     for (MCInst &Inst : *BB) {
       if (!BC.MIB->isCFI(Inst))
         continue;
-      const MCCFIInstruction *CFI = BF.getCFIFor(Inst);
-      switch (CFI->getOperation()) {
+      
+      switch (const MCCFIInstruction *CFI = BF.getCFIFor(Inst); CFI->getOperation()) {
       case MCCFIInstruction::OpDefCfa:
         CfaOffset = -CFI->getOffset();
         recordAccess(&Inst, CfaOffset);
@@ -1073,10 +1073,10 @@ bool ShrinkWrapping::validatePushPopsMode(unsigned CSR, MCInst *BestPosSave,
     }
   }
 
-  StackPointerTracking &SPT = Info.getStackPointerTracking();
+  
   // Abort if we are inserting a push into an entry BB (offset -8) and this
   // func sets up a frame pointer.
-  if (!SLM.canInsertRegion(BestPosSave) || SaveOffset == SPT.SUPERPOSITION ||
+  if (StackPointerTracking &SPT = Info.getStackPointerTracking(); !SLM.canInsertRegion(BestPosSave) || SaveOffset == SPT.SUPERPOSITION ||
       SaveOffset == SPT.EMPTY || (SaveOffset == -8 && SPT.HasFramePointer)) {
     LLVM_DEBUG({
       dbgs() << "Reg " << CSR
@@ -1226,14 +1226,14 @@ void ShrinkWrapping::scheduleSaveRestoreInsertions(
       else
         dbgs() << PP.getBB()->getName() << "\n";
     });
-    MCInst *Term =
-        FrontierBB->getTerminatorBefore(PP.isInst() ? PP.getInst() : nullptr);
-    if (Term)
+    
+    if (MCInst *Term =
+        FrontierBB->getTerminatorBefore(PP.isInst() ? PP.getInst() : nullptr); Term)
       PP = Term;
     bool PrecededByPrefix = false;
     if (PP.isInst()) {
-      auto Iter = FrontierBB->findInstruction(PP.getInst());
-      if (Iter != FrontierBB->end() && Iter != FrontierBB->begin()) {
+      
+      if (auto Iter = FrontierBB->findInstruction(PP.getInst()); Iter != FrontierBB->end() && Iter != FrontierBB->begin()) {
         --Iter;
         PrecededByPrefix = BC.MIB->isPrefix(*Iter);
       }
@@ -1308,9 +1308,9 @@ void ShrinkWrapping::moveSaveRestores() {
     bool UsePushPops = validatePushPopsMode(I, BestPosSave, SaveOffset);
 
     if (UsePushPops) {
-      SmallVector<ProgramPoint, 4> FixedRestorePoints =
-          fixPopsPlacements(RestorePoints, SaveOffset, I);
-      if (FixedRestorePoints.empty())
+      
+      if (SmallVector<ProgramPoint, 4> FixedRestorePoints =
+          fixPopsPlacements(RestorePoints, SaveOffset, I); FixedRestorePoints.empty())
         UsePushPops = false;
       else
         RestorePoints = FixedRestorePoints;
@@ -1534,8 +1534,8 @@ void ShrinkWrapping::insertUpdatedCFI(unsigned CSR, int SPValPush,
       bool IsStore = false;
       bool IsSimple = false;
       bool IsStoreFromReg = false;
-      uint8_t Size = 0;
-      if (!BC.MIB->isStackAccess(Inst, IsLoad, IsStore, IsStoreFromReg, Reg,
+      
+      if (uint8_t Size = 0; !BC.MIB->isStackAccess(Inst, IsLoad, IsStore, IsStoreFromReg, Reg,
                                  SrcImm, StackPtrReg, StackOffset, Size,
                                  IsSimple, IsIndexed))
         continue;
@@ -1563,8 +1563,8 @@ void ShrinkWrapping::insertUpdatedCFI(unsigned CSR, int SPValPush,
         (*DA.getStateBefore(*BB->begin()))[DA.ExprToIdx[SavePoint]];
     bool InAffectedZone = InAffectedZoneAtBegin;
     for (auto InstIter = BB->begin(); InstIter != BB->end(); ++InstIter) {
-      const bool CurZone = DA.count(*InstIter, *SavePoint);
-      if (InAffectedZone != CurZone) {
+      
+      if (const bool CurZone = DA.count(*InstIter, *SavePoint); InAffectedZone != CurZone) {
         auto InsertionIter = InstIter;
         ++InsertionIter;
         InAffectedZone = CurZone;
@@ -1597,8 +1597,8 @@ void ShrinkWrapping::rebuildCFIForSP() {
     for (MCInst &Inst : BB) {
       if (!BC.MIB->isCFI(Inst))
         continue;
-      const MCCFIInstruction *CFI = BF.getCFIFor(Inst);
-      if (CFI->getOperation() == MCCFIInstruction::OpDefCfaOffset)
+      
+      if (const MCCFIInstruction *CFI = BF.getCFIFor(Inst); CFI->getOperation() == MCCFIInstruction::OpDefCfaOffset)
         BC.MIB->addAnnotation(Inst, "DeleteMe", 0U, AllocatorId);
     }
   }
@@ -1782,12 +1782,12 @@ Expected<BBIterTy> ShrinkWrapping::processInsertion(BBIterTy InsertionPoint,
 Expected<BBIterTy> ShrinkWrapping::processInsertionsList(
     BBIterTy InsertionPoint, BinaryBasicBlock *CurBB,
     std::vector<WorklistItem> &TodoList, int64_t SPVal, int64_t FPVal) {
-  bool HasInsertions = llvm::any_of(TodoList, [&](WorklistItem &Item) {
+  
+
+  if (bool HasInsertions = llvm::any_of(TodoList, [&](WorklistItem &Item) {
     return Item.Action == WorklistItem::InsertLoadOrStore ||
            Item.Action == WorklistItem::InsertPushOrPop;
-  });
-
-  if (!HasInsertions)
+  }); !HasInsertions)
     return InsertionPoint;
 
   assert(((SPVal != StackPointerTracking::SUPERPOSITION &&
@@ -1873,8 +1873,8 @@ Expected<bool> ShrinkWrapping::processInsertions() {
       I = *IterOrErr;
     }
     // Process insertions at the end of bb
-    auto WRI = Todo.find(&BB);
-    if (WRI != Todo.end()) {
+    
+    if (auto WRI = Todo.find(&BB); WRI != Todo.end()) {
       std::pair<int, int> SPTState = *PSPT.getStateAt(*BB.rbegin());
       if (auto E = processInsertionsList(BB.end(), &BB, WRI->second,
                                          SPTState.first, SPTState.second)

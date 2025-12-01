@@ -473,8 +473,8 @@ static bool supportsRISCV(uint64_t Type) {
 static uint64_t resolveRISCV(uint64_t Type, uint64_t Offset, uint64_t S,
                              uint64_t LocData, int64_t Addend) {
   int64_t RA = Addend;
-  uint64_t A = LocData;
-  switch (Type) {
+  
+  switch (uint64_t A = LocData; Type) {
   case ELF::R_RISCV_NONE:
     return LocData;
   case ELF::R_RISCV_32:
@@ -881,7 +881,9 @@ uint64_t resolveRelocation(RelocationResolver Resolver, const RelocationRef &R,
   if (const ObjectFile *Obj = R.getObject()) {
     int64_t Addend = 0;
     if (Obj->isELF()) {
-      auto GetRelSectionType = [&]() -> unsigned {
+      
+
+      if (auto GetRelSectionType = [&]() -> unsigned {
         if (auto *Elf32LEObj = dyn_cast<ELF32LEObjectFile>(Obj))
           return Elf32LEObj->getRelSection(R.getRawDataRefImpl())->sh_type;
         if (auto *Elf64LEObj = dyn_cast<ELF64LEObjectFile>(Obj))
@@ -890,9 +892,7 @@ uint64_t resolveRelocation(RelocationResolver Resolver, const RelocationRef &R,
           return Elf32BEObj->getRelSection(R.getRawDataRefImpl())->sh_type;
         auto *Elf64BEObj = cast<ELF64BEObjectFile>(Obj);
         return Elf64BEObj->getRelSection(R.getRawDataRefImpl())->sh_type;
-      };
-
-      if (GetRelSectionType() == ELF::SHT_RELA ||
+      }; GetRelSectionType() == ELF::SHT_RELA ||
           GetRelSectionType() == ELF::SHT_CREL) {
         Addend = getELFAddend(R);
         // LoongArch and RISCV relocations use both LocData and Addend.

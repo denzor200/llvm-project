@@ -83,9 +83,9 @@ LIBC_INLINE char *asctime(const tm *timeptr, char *buffer,
 }
 
 LIBC_INLINE tm *gmtime_internal(const time_t *timer, tm *result) {
-  time_t seconds = *timer;
+  
   // Update the tm structure's year, month, day, etc. from seconds.
-  if (update_from_seconds(seconds, result) < 0) {
+  if (time_t seconds = *timer; update_from_seconds(seconds, result) < 0) {
     out_of_range();
     return nullptr;
   }
@@ -94,9 +94,9 @@ LIBC_INLINE tm *gmtime_internal(const time_t *timer, tm *result) {
 }
 
 LIBC_INLINE tm *localtime_internal(const time_t *timer, tm *result) {
-  time_t seconds = *timer;
+  
   // Update the tm structure's year, month, day, etc. from seconds.
-  if (update_from_seconds(seconds, result) < 0) {
+  if (time_t seconds = *timer; update_from_seconds(seconds, result) < 0) {
     out_of_range();
     return nullptr;
   }

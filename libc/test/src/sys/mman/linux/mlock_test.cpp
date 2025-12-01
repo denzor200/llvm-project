@@ -131,8 +131,8 @@ TEST_F(LlvmLibcMlockTest, MLockAll) {
     EXPECT_THAT(
         LIBC_NAMESPACE::madvise(holder.addr, holder.size, MADV_DONTNEED),
         Succeeds());
-    auto retval = LIBC_NAMESPACE::mlockall(MCL_CURRENT);
-    if (retval == -1) {
+    
+    if (auto retval = LIBC_NAMESPACE::mlockall(MCL_CURRENT); retval == -1) {
       EXPECT_TRUE(libc_errno == ENOMEM || libc_errno == EPERM);
       libc_errno = 0;
       return;
@@ -144,8 +144,8 @@ TEST_F(LlvmLibcMlockTest, MLockAll) {
     EXPECT_THAT(LIBC_NAMESPACE::munlockall(), Succeeds());
   }
   {
-    auto retval = LIBC_NAMESPACE::mlockall(MCL_FUTURE);
-    if (retval == -1) {
+    
+    if (auto retval = LIBC_NAMESPACE::mlockall(MCL_FUTURE); retval == -1) {
       EXPECT_TRUE(libc_errno == ENOMEM || libc_errno == EPERM);
       libc_errno = 0;
       return;
@@ -160,8 +160,8 @@ TEST_F(LlvmLibcMlockTest, MLockAll) {
   }
 #ifdef MCL_ONFAULT
   {
-    auto retval = LIBC_NAMESPACE::mlockall(MCL_FUTURE | MCL_ONFAULT);
-    if (retval == -1) {
+    
+    if (auto retval = LIBC_NAMESPACE::mlockall(MCL_FUTURE | MCL_ONFAULT); retval == -1) {
       EXPECT_TRUE(libc_errno == ENOMEM || libc_errno == EPERM);
       libc_errno = 0;
       return;

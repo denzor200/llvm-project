@@ -104,8 +104,8 @@ static FailureOr<MemRefType> getFatRawBufferTypeLike(MemRefType source,
   MemRefType::Builder mb(source);
   mb.setMemorySpace(
       amdgpu::AddressSpaceAttr::get(ctx, amdgpu::AddressSpace::FatRawBuffer));
-  MemRefLayoutAttrInterface layout = source.getLayout();
-  if (resetOffset && !layout.isIdentity()) {
+  
+  if (MemRefLayoutAttrInterface layout = source.getLayout(); resetOffset && !layout.isIdentity()) {
     auto stridedLayout = dyn_cast<StridedLayoutAttr>(layout);
     if (!stridedLayout)
       return failure();
@@ -194,9 +194,9 @@ static bool hasFatRawBufferMemorySpace(Attribute memorySpace) {
 template <typename T>
 static LogicalResult verifyRawBufferOp(T &op) {
   MemRefType bufferType = llvm::cast<MemRefType>(op.getMemref().getType());
-  bool isGlobal = hasGlobalMemorySpace(bufferType.getMemorySpace());
+  
 
-  if (!isGlobal)
+  if (bool isGlobal = hasGlobalMemorySpace(bufferType.getMemorySpace()); !isGlobal)
     return op.emitOpError(
         "Buffer ops must operate on a memref in global memory");
   if (!bufferType.hasRank())
@@ -359,9 +359,9 @@ LogicalResult ScaledExtPacked816Op::verify() {
   assert(llvm::is_contained(llvm::ArrayRef<unsigned>{4, 6, 8}, bitWidth));
 
   const bool is_fp8 = bitWidth == 8;
-  const bool is_block_16 = blockSize == 16;
+  
 
-  if (!is_fp8) {
+  if (const bool is_block_16 = blockSize == 16; !is_fp8) {
     if (is_block_16) {
       if (!llvm::is_contained({0, 1}, firstScaleByte)) {
         return emitOpError("blockSize of 16 can only have firstScaleByte be 0 "
@@ -375,9 +375,9 @@ LogicalResult ScaledExtPacked816Op::verify() {
     }
   } else {
     if (is_block_16) {
-      bool is_valid = ((firstScaleLane == 0) && (firstScaleByte == 0)) ||
-                      ((firstScaleLane == 1) && (firstScaleByte == 2));
-      if (!is_valid) {
+      
+      if (bool is_valid = ((firstScaleLane == 0) && (firstScaleByte == 0)) ||
+                      ((firstScaleLane == 1) && (firstScaleByte == 2)); !is_valid) {
         return emitOpError("blockSize of 16 can only have (firstScaleLane, "
                            "firstScaleByte) be (0, 0) or (1, 2) for f8.");
       }
@@ -543,8 +543,8 @@ LogicalResult DPPOp::verify() {
       return emitOpError("quad_perm attribute must have exactly 4 elements");
     }
     for (auto elem : quadPermAttr.getAsRange<IntegerAttr>()) {
-      int32_t num = elem.getInt();
-      if (num < 0 || num > 3) {
+      
+      if (int32_t num = elem.getInt(); num < 0 || num > 3) {
         return emitOpError(
             "Each element of quad_perm must be in the range [0, 3]");
       }
@@ -559,8 +559,8 @@ LogicalResult DPPOp::verify() {
                          "' value not specified");
     }
     if (auto intAttr = dyn_cast<IntegerAttr>(permArgument)) {
-      uint32_t attrValue = intAttr.getInt();
-      if (attrValue < 1 || attrValue > 15) {
+      
+      if (uint32_t attrValue = intAttr.getInt(); attrValue < 1 || attrValue > 15) {
         return emitOpError("Attribute value must be between 1 and 15");
       }
     }
@@ -588,9 +588,9 @@ LogicalResult DPPOp::verify() {
 // PermlaneSwapOp
 //===----------------------------------------------------------------------===//
 LogicalResult PermlaneSwapOp::verify() {
-  unsigned rowLength = getRowLength();
+  
 
-  if (rowLength != 16 && rowLength != 32)
+  if (unsigned rowLength = getRowLength(); rowLength != 16 && rowLength != 32)
     return emitOpError("row_length attribute must either be 16 or 32.");
 
   return success();

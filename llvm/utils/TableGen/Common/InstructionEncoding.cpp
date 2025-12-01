@@ -19,9 +19,9 @@ InstructionEncoding::findOperandDecoderMethod(const Record *Record) {
   std::string Decoder;
 
   const RecordVal *DecoderString = Record->getValue("DecoderMethod");
-  const StringInit *String =
-      DecoderString ? dyn_cast<StringInit>(DecoderString->getValue()) : nullptr;
-  if (String) {
+  
+  if (const StringInit *String =
+      DecoderString ? dyn_cast<StringInit>(DecoderString->getValue()) : nullptr; String) {
     Decoder = String->getValue().str();
     if (!Decoder.empty())
       return {Decoder, false};
@@ -95,12 +95,12 @@ void InstructionEncoding::parseFixedLenEncoding(
   // Returns true if all bits in `Bits` are zero or unset.
   auto CheckAllZeroOrUnset = [&](ArrayRef<const Init *> Bits,
                                  const RecordVal *Field) {
-    bool AllZeroOrUnset = llvm::all_of(Bits, [](const Init *Bit) {
+    
+    if (bool AllZeroOrUnset = llvm::all_of(Bits, [](const Init *Bit) {
       if (const auto *BI = dyn_cast<BitInit>(Bit))
         return !BI->getValue();
       return isa<UnsetInit>(Bit);
-    });
-    if (AllZeroOrUnset)
+    }); AllZeroOrUnset)
       return;
     PrintNote([Field](raw_ostream &OS) { Field->print(OS); });
     PrintFatalError(EncodingDef, Twine(Name) + ": Size is " + Twine(BitWidth) +
@@ -209,8 +209,8 @@ void InstructionEncoding::parseVarLenOperands(const VarLenInst &VLI) {
       if (!EncodingSegment.CustomDecoder.empty())
         Operands[OpIdx].Decoder = EncodingSegment.CustomDecoder.str();
 
-      int TiedReg = TiedTo[OpSubOpPair.first];
-      if (TiedReg != -1) {
+      
+      if (int TiedReg = TiedTo[OpSubOpPair.first]; TiedReg != -1) {
         unsigned OpIdx = Inst->Operands.getFlattenedOperandNumber(
             {TiedReg, OpSubOpPair.second});
         Operands[OpIdx].addField(CurrBitPos, EncodingSegment.BitWidth, Offset);
@@ -294,8 +294,8 @@ static void addOneOperandFields(const Record *EncodingDef,
     const VarInit *Var;
     unsigned Offset = 0;
     for (; J != InstBits.getNumBits(); ++J) {
-      const Init *BitJ = InstBits.getBit(J);
-      if (const auto *VBI = dyn_cast<VarBitInit>(BitJ)) {
+      
+      if (const auto *const Init *BitJ = InstBits.getBit(J); VBI = dyn_cast<VarBitInit>(BitJ)) {
         Var = dyn_cast<VarInit>(VBI->getBitVar());
         if (I == J)
           Offset = VBI->getBitNum();

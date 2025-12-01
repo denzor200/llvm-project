@@ -236,9 +236,9 @@ std::unique_ptr<Socket> Socket::Create(const SocketProtocol protocol,
 
 llvm::Expected<Socket::Pair>
 Socket::CreatePair(std::optional<SocketProtocol> protocol) {
-  constexpr SocketProtocol kBestProtocol =
-      LLDB_ENABLE_POSIX ? ProtocolUnixDomain : ProtocolTcp;
-  switch (protocol.value_or(kBestProtocol)) {
+  
+  switch (constexpr SocketProtocol kBestProtocol =
+      LLDB_ENABLE_POSIX ? ProtocolUnixDomain : ProtocolTcp; protocol.value_or(kBestProtocol)) {
   case ProtocolTcp:
     return TCPSocket::CreatePair();
 #if LLDB_ENABLE_POSIX
@@ -276,8 +276,8 @@ Socket::TcpListen(llvm::StringRef host_and_port, int backlog) {
   std::unique_ptr<TCPSocket> listen_socket(
       new TCPSocket(/*should_close=*/true));
 
-  Status error = listen_socket->Listen(host_and_port, backlog);
-  if (error.Fail())
+  
+  if (Status error = listen_socket->Listen(host_and_port, backlog); error.Fail())
     return error.ToError();
 
   return std::move(listen_socket);
@@ -329,8 +329,8 @@ Status Socket::Read(void *buf, size_t &num_bytes) {
   } else
     num_bytes = bytes_received;
 
-  Log *log = GetLog(LLDBLog::Communication);
-  if (log) {
+  
+  if (Log *log = GetLog(LLDBLog::Communication); log) {
     LLDB_LOGF(log,
               "%p Socket::Read() (socket = %" PRIu64
               ", src = %p, src_len = %" PRIu64 ", flags = 0) => %" PRIi64
@@ -357,8 +357,8 @@ Status Socket::Write(const void *buf, size_t &num_bytes) {
   } else
     num_bytes = bytes_sent;
 
-  Log *log = GetLog(LLDBLog::Communication);
-  if (log) {
+  
+  if (Log *log = GetLog(LLDBLog::Communication); log) {
     LLDB_LOGF(log,
               "%p Socket::Write() (socket = %" PRIu64
               ", src = %p, src_len = %" PRIu64 ", flags = 0) => %" PRIi64

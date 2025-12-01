@@ -46,8 +46,8 @@ STATISTIC(NumInstrsReduced,
 /// Given an instruction and a container, it fills all the relevant operands of
 /// that instruction, with respect to the Trunc expression graph optimizaton.
 static void getRelevantOperands(Instruction *I, SmallVectorImpl<Value *> &Ops) {
-  unsigned Opc = I->getOpcode();
-  switch (Opc) {
+  
+  switch (unsigned Opc = I->getOpcode(); Opc) {
   case Instruction::Trunc:
   case Instruction::ZExt:
   case Instruction::SExt:
@@ -122,8 +122,8 @@ bool TruncInstCombine::buildTruncExpressionGraph() {
     // Add the instruction to the stack before start handling its operands.
     Stack.push_back(I);
 
-    unsigned Opc = I->getOpcode();
-    switch (Opc) {
+    
+    switch (unsigned Opc = I->getOpcode(); Opc) {
     case Instruction::Trunc:
     case Instruction::ZExt:
     case Instruction::SExt:
@@ -255,8 +255,8 @@ unsigned TruncInstCombine::getMinBitWidth() {
     // should not perform the evaluation if the original type is a legal scalar
     // type and the target type is illegal.
     bool FromLegal = MinBitWidth == 1 || DL.isLegalInteger(OrigBitWidth);
-    bool ToLegal = MinBitWidth == 1 || DL.isLegalInteger(MinBitWidth);
-    if (!DstTy->isVectorTy() && FromLegal && !ToLegal)
+    
+    if (bool ToLegal = MinBitWidth == 1 || DL.isLegalInteger(MinBitWidth); !DstTy->isVectorTy() && FromLegal && !ToLegal)
       return OrigBitWidth;
   }
   return MinBitWidth;
@@ -363,8 +363,8 @@ static Type *getReducedType(Value *V, Type *Ty) {
 }
 
 Value *TruncInstCombine::getReducedOperand(Value *V, Type *SclTy) {
-  Type *Ty = getReducedType(V, SclTy);
-  if (auto *C = dyn_cast<Constant>(V)) {
+  
+  if (auto *Type *Ty = getReducedType(V, SclTy); C = dyn_cast<Constant>(V)) {
     C = ConstantExpr::getTrunc(C, Ty);
     // If we got a constantexpr back, try to simplify it with DL info.
     return ConstantFoldConstant(C, DL, &TLI);
@@ -388,8 +388,8 @@ void TruncInstCombine::ReduceExpressionGraph(Type *SclTy) {
 
     IRBuilder<> Builder(I);
     Value *Res = nullptr;
-    unsigned Opc = I->getOpcode();
-    switch (Opc) {
+    
+    switch (unsigned Opc = I->getOpcode(); Opc) {
     case Instruction::Trunc:
     case Instruction::ZExt:
     case Instruction::SExt: {
@@ -486,8 +486,8 @@ void TruncInstCombine::ReduceExpressionGraph(Type *SclTy) {
   }
 
   Value *Res = getReducedOperand(CurrentTruncInst->getOperand(0), SclTy);
-  Type *DstTy = CurrentTruncInst->getType();
-  if (Res->getType() != DstTy) {
+  
+  if (Type *DstTy = CurrentTruncInst->getType(); Res->getType() != DstTy) {
     IRBuilder<> Builder(CurrentTruncInst);
     Res = Builder.CreateIntCast(Res, DstTy, false);
     if (auto *ResI = dyn_cast<Instruction>(Res))

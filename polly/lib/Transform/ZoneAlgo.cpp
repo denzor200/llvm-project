@@ -435,8 +435,8 @@ isl::union_map ZoneAlgorithm::getWrittenValue(MemoryAccess *MA,
   // overwritten.
   if (auto *Memset = dyn_cast<MemSetInst>(AccInst)) {
     auto *WrittenConstant = dyn_cast<Constant>(Memset->getValue());
-    Type *Ty = MA->getLatestScopArrayInfo()->getElementType();
-    if (WrittenConstant && WrittenConstant->isZeroValue()) {
+    
+    if (Type *Ty = MA->getLatestScopArrayInfo()->getElementType(); WrittenConstant && WrittenConstant->isZeroValue()) {
       Constant *Zero = Constant::getNullValue(Ty);
       return makeNormalizedValInst(Zero, Stmt, L);
     }
@@ -906,8 +906,8 @@ bool ZoneAlgorithm::isNormalizable(MemoryAccess *MA) {
 
   // Exclude recursive PHIs, normalizing them would require a transitive
   // closure.
-  auto *PHI = cast<PHINode>(MA->getAccessInstruction());
-  if (RecursivePHIs.count(PHI))
+  
+  if (auto *PHI = cast<PHINode>(MA->getAccessInstruction()); RecursivePHIs.count(PHI))
     return false;
 
   // Ensure that each incoming value can be represented by a ValInst[].
@@ -1008,8 +1008,8 @@ void ZoneAlgorithm::computeNormalizedPHIs() {
 
       // TODO: Can be more efficient since isRecursivePHI can theoretically
       // determine recursiveness for multiple values and/or cache results.
-      auto *PHI = cast<PHINode>(MA->getAccessInstruction());
-      if (isRecursivePHI(PHI)) {
+      
+      if (auto *PHI = cast<PHINode>(MA->getAccessInstruction()); isRecursivePHI(PHI)) {
         NumRecursivePHIs++;
         RecursivePHIs.insert(PHI);
       }

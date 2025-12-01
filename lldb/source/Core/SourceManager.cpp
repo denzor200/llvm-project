@@ -256,9 +256,9 @@ size_t SourceManager::DisplaySourceLinesWithLineNumbersUsingLastFile(
 
       std::string prefix;
       if (bp_locs) {
-        uint32_t bp_count = bp_locs->NumLineEntriesWithLine(line);
+        
 
-        if (bp_count > 0)
+        if (uint32_t bp_count = bp_locs->NumLineEntriesWithLine(line); bp_count > 0)
           prefix = llvm::formatv("[{0}]", bp_count);
         else
           prefix = "    ";
@@ -310,8 +310,8 @@ size_t SourceManager::DisplaySourceLinesWithLineNumbersUsingLastFile(
 
     Checksum line_table_checksum =
         last_file_sp->GetSupportFile()->GetChecksum();
-    Checksum on_disk_checksum = last_file_sp->GetChecksum();
-    if (line_table_checksum && line_table_checksum != on_disk_checksum)
+    
+    if (Checksum on_disk_checksum = last_file_sp->GetChecksum(); line_table_checksum && line_table_checksum != on_disk_checksum)
       Debugger::ReportWarning(
           llvm::formatv(
               "{0}: source file checksum mismatch between line table "
@@ -409,15 +409,15 @@ SourceManager::GetDefaultFileAndLine() {
     return SupportFileAndLine(m_last_support_file_nsp, m_last_line);
 
   if (!m_default_set) {
-    TargetSP target_sp(m_target_wp.lock());
+    
 
-    if (target_sp) {
+    if (TargetSP target_sp(m_target_wp.lock()); target_sp) {
       // If nobody has set the default file and line then try here.  If there's
       // no executable, then we will try again later when there is one.
       // Otherwise, if we can't find it we won't look again, somebody will have
       // to set it (for instance when we stop somewhere...)
-      Module *executable_ptr = target_sp->GetExecutableModulePointer();
-      if (executable_ptr) {
+      
+      if (Module *executable_ptr = target_sp->GetExecutableModulePointer(); executable_ptr) {
         SymbolContextList sc_list;
         ConstString main_name("main");
 
@@ -430,8 +430,8 @@ SourceManager::GetDefaultFileAndLine() {
                                       function_options, sc_list);
         for (const SymbolContext &sc : sc_list) {
           if (sc.function) {
-            lldb_private::LineEntry line_entry;
-            if (sc.function->GetAddress().CalculateSymbolContextLineEntry(
+            
+            if (lldb_private::LineEntry line_entry; sc.function->GetAddress().CalculateSymbolContextLineEntry(
                     line_entry)) {
               SetDefaultFileAndLine(line_entry.file_sp, line_entry.line);
               return SupportFileAndLine(line_entry.file_sp, m_last_line);
@@ -510,8 +510,8 @@ void SourceManager::File::CommonInitializerImpl(SupportFileNSP support_file_nsp,
     if (target_sp) {
       // If this is just a file name, try finding it in the target.
       {
-        FileSpec file_spec = support_file_nsp->GetSpecOnly();
-        if (!file_spec.GetDirectory() && file_spec.GetFilename()) {
+        
+        if (FileSpec file_spec = support_file_nsp->GetSpecOnly(); !file_spec.GetDirectory() && file_spec.GetFilename()) {
           bool check_inlines = false;
           SymbolContextList sc_list;
           size_t num_matches =
@@ -520,8 +520,8 @@ void SourceManager::File::CommonInitializerImpl(SupportFileNSP support_file_nsp,
                   SymbolContextItem(eSymbolContextModule |
                                     eSymbolContextCompUnit),
                   sc_list);
-          bool got_multiple = false;
-          if (num_matches != 0) {
+          
+          if (bool got_multiple = false; num_matches != 0) {
             if (num_matches > 1) {
               CompileUnit *test_cu = nullptr;
               for (const SymbolContext &sc : sc_list) {
@@ -547,15 +547,15 @@ void SourceManager::File::CommonInitializerImpl(SupportFileNSP support_file_nsp,
 
       // Try remapping the file if it doesn't exist.
       {
-        FileSpec file_spec = support_file_nsp->GetSpecOnly();
-        if (!FileSystem::Instance().Exists(file_spec)) {
+        
+        if (FileSpec file_spec = support_file_nsp->GetSpecOnly(); !FileSystem::Instance().Exists(file_spec)) {
           // Check target specific source remappings (i.e., the
           // target.source-map setting), then fall back to the module
           // specific remapping (i.e., the .dSYM remapping dictionary).
           auto remapped = target_sp->GetSourcePathMap().FindFile(file_spec);
           if (!remapped) {
-            FileSpec new_spec;
-            if (target_sp->GetImages().FindSourceFile(file_spec, new_spec))
+            
+            if (FileSpec new_spec; target_sp->GetImages().FindSourceFile(file_spec, new_spec))
               remapped = new_spec;
           }
           if (remapped)
@@ -605,8 +605,8 @@ const char *SourceManager::File::PeekLineData(uint32_t line) {
   if (!LineIsValid(line))
     return nullptr;
 
-  size_t line_offset = GetLineOffset(line);
-  if (line_offset < m_data_sp->GetByteSize())
+  
+  if (size_t line_offset = GetLineOffset(line); line_offset < m_data_sp->GetByteSize())
     return (const char *)m_data_sp->GetBytes() + line_offset;
   return nullptr;
 }
@@ -627,8 +627,8 @@ uint32_t SourceManager::File::GetLineLength(uint32_t line,
       const char *line_start =
           (const char *)m_data_sp->GetBytes() + start_offset;
       while (length > 0) {
-        const char last_char = line_start[length - 1];
-        if ((last_char == '\r') || (last_char == '\n'))
+        
+        if (const char last_char = line_start[length - 1]; (last_char == '\r') || (last_char == '\n'))
           --length;
         else
           break;
@@ -767,8 +767,8 @@ bool SourceManager::File::CalculateLineOffsets(uint32_t line) {
       if (m_data_sp.get() == nullptr)
         return false;
 
-      const char *start = (const char *)m_data_sp->GetBytes();
-      if (start) {
+      
+      if (const char *start = (const char *)m_data_sp->GetBytes(); start) {
         const char *end = start + m_data_sp->GetByteSize();
 
         // Calculate all line offsets from scratch
@@ -778,11 +778,11 @@ bool SourceManager::File::CalculateLineOffsets(uint32_t line) {
         m_offsets.push_back(UINT32_MAX);
         const char *s;
         for (s = start; s < end; ++s) {
-          char curr_ch = *s;
-          if (is_newline_char(curr_ch)) {
+          
+          if (char curr_ch = *s; is_newline_char(curr_ch)) {
             if (s + 1 < end) {
-              char next_ch = s[1];
-              if (is_newline_char(next_ch)) {
+              
+              if (char next_ch = s[1]; is_newline_char(next_ch)) {
                 if (curr_ch != next_ch)
                   ++s;
               }
@@ -853,8 +853,8 @@ void SourceManager::SourceFileCache::RemoveSourceFile(const FileSP &file_sp) {
 
 void SourceManager::SourceFileCache::AddSourceFileImpl(
     const FileSpec &file_spec, FileSP file_sp) {
-  FileCache::iterator pos = m_file_cache.find(file_spec);
-  if (pos == m_file_cache.end()) {
+  
+  if (FileCache::iterator pos = m_file_cache.find(file_spec); pos == m_file_cache.end()) {
     m_file_cache[file_spec] = file_sp;
   } else {
     if (file_sp != pos->second)

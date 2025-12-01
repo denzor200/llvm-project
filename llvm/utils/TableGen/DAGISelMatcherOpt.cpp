@@ -419,8 +419,8 @@ static void FactorScope(std::unique_ptr<Matcher> &MatcherPtr) {
       // sequence.  If so, and if we can move it up, it might be contradictory
       // or the same as what we're looking for.  If so, reorder it.
       if (Optn->isSimplePredicateOrRecordNode()) {
-        Matcher *M2 = FindNodeWithKind(ScanMatcher, Optn->getKind());
-        if (M2 && M2 != ScanMatcher && M2->canMoveBefore(ScanMatcher) &&
+        
+        if (Matcher *M2 = FindNodeWithKind(ScanMatcher, Optn->getKind()); M2 && M2 != ScanMatcher && M2->canMoveBefore(ScanMatcher) &&
             (M2->isEqual(Optn) || M2->isContradictory(Optn))) {
           Matcher *MatcherWithoutM2 = ScanMatcher->unlinkNode(M2);
           M2->setNext(MatcherWithoutM2);
@@ -516,9 +516,9 @@ static void FactorScope(std::unique_ptr<Matcher> &MatcherPtr) {
 
     // Check to see if this breaks a series of CheckTypeMatcher's.
     if (AllTypeChecks) {
-      CheckTypeMatcher *CTM = cast_or_null<CheckTypeMatcher>(
-          FindNodeWithKind(Optn, Matcher::CheckType));
-      if (!CTM ||
+      
+      if (CheckTypeMatcher *CTM = cast_or_null<CheckTypeMatcher>(
+          FindNodeWithKind(Optn, Matcher::CheckType)); !CTM ||
           // iPTR/cPTR checks could alias any other case without us knowing,
           // don't bother with them.
           CTM->getType() == MVT::iPTR || CTM->getType() == MVT::cPTR ||

@@ -171,9 +171,9 @@ SymbolRef SymExpr::symbol_iterator::operator*() {
 }
 
 void SymExpr::symbol_iterator::expand() {
-  const SymExpr *SE = itr.pop_back_val();
+  
 
-  switch (SE->getKind()) {
+  switch (const SymExpr *SE = itr.pop_back_val(); SE->getKind()) {
     case SymExpr::SymbolRegionValueKind:
     case SymExpr::SymbolConjuredKind:
     case SymExpr::SymbolDerivedKind:

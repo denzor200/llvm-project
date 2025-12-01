@@ -306,8 +306,8 @@ void ScheduleDAGSDNodes::getCustomGraphFeatures(GraphWriter<ScheduleDAG*> &GW) c
   if (DAG) {
     // Draw a special "GraphRoot" node to indicate the root of the graph.
     GW.emitSimpleNode(nullptr, "plaintext=circle", "GraphRoot");
-    const SDNode *N = DAG->getRoot().getNode();
-    if (N && N->getNodeId() != -1)
+    
+    if (const SDNode *N = DAG->getRoot().getNode(); N && N->getNodeId() != -1)
       GW.emitEdge(nullptr, -1, &SUnits[N->getNodeId()], -1,
                   "color=blue,style=dashed");
   }

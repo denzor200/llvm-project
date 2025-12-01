@@ -538,9 +538,9 @@ void X86AvoidSFBPass::findPotentiallylBlockedCopies(MachineFunction &MF) {
         continue;
       for (MachineOperand &StoreMO :
            llvm::make_early_inc_range(MRI->use_nodbg_operands(DefVR))) {
-        MachineInstr &StoreMI = *StoreMO.getParent();
+        
         // Skip cases where the memcpy may overlap.
-        if (StoreMI.getParent() == MI.getParent() &&
+        if (MachineInstr &StoreMI = *StoreMO.getParent(); StoreMI.getParent() == MI.getParent() &&
             isPotentialBlockedMemCpyPair(MI.getOpcode(), StoreMI.getOpcode()) &&
             isRelevantAddressingMode(&MI) &&
             isRelevantAddressingMode(&StoreMI) &&
@@ -624,9 +624,9 @@ static bool isBlockingStore(int64_t LoadDispImm, unsigned LoadSize,
 static void
 updateBlockingStoresDispSizeMap(DisplacementSizeMap &BlockingStoresDispSizeMap,
                                 int64_t DispImm, unsigned Size) {
-  auto [It, Inserted] = BlockingStoresDispSizeMap.try_emplace(DispImm, Size);
+  
   // Choose the smallest blocking store starting at this displacement.
-  if (!Inserted && It->second > Size)
+  if (auto [It, Inserted] = BlockingStoresDispSizeMap.try_emplace(DispImm, Size); !Inserted && It->second > Size)
     It->second = Size;
 }
 
@@ -642,8 +642,8 @@ removeRedundantBlockingStores(DisplacementSizeMap &BlockingStoresDispSizeMap) {
     unsigned CurrSize = DispSizePair.second;
     while (DispSizeStack.size()) {
       int64_t PrevDisp = DispSizeStack.back().first;
-      unsigned PrevSize = DispSizeStack.back().second;
-      if (CurrDisp + CurrSize > PrevDisp + PrevSize)
+      
+      if (unsigned PrevSize = DispSizeStack.back().second; CurrDisp + CurrSize > PrevDisp + PrevSize)
         break;
       DispSizeStack.pop_back();
     }

@@ -884,8 +884,8 @@ void LLVMOrcDisposeDumpObjects(LLVMOrcDumpObjectsRef DumpObjects) {
 
 LLVMErrorRef LLVMOrcDumpObjects_CallOperator(LLVMOrcDumpObjectsRef DumpObjects,
                                              LLVMMemoryBufferRef *ObjBuffer) {
-  std::unique_ptr<MemoryBuffer> OB(unwrap(*ObjBuffer));
-  if (auto Result = (*unwrap(DumpObjects))(std::move(OB))) {
+  
+  if (auto std::unique_ptr<MemoryBuffer> OB(unwrap(*ObjBuffer)); Result = (*unwrap(DumpObjects))(std::move(OB))) {
     *ObjBuffer = wrap(Result->release());
     return LLVMErrorSuccess;
   } else {

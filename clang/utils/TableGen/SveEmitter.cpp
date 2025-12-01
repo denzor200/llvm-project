@@ -1071,8 +1071,8 @@ std::string Intrinsic::replaceTemplatedArgs(std::string Name, TypeSpec TS,
     assert(NumChars == 3 && "Unexpected template argument");
 
     SVEType T;
-    char C = Ret[Pos+1];
-    switch(C) {
+    
+    switch(char C = Ret[Pos+1]; C) {
     default:
       llvm_unreachable("Unknown predication specifier");
     case 'd':
@@ -1692,8 +1692,8 @@ void SVEEmitter::createCodeGenMap(raw_ostream &OS) {
     auto FlagString = std::to_string(Flags);
 
     std::string LLVMName = Def->getMangledLLVMName();
-    std::string Builtin = Def->getMangledName();
-    if (!LLVMName.empty())
+    
+    if (std::string Builtin = Def->getMangledName(); !LLVMName.empty())
       OS << "SVEMAP1(" << Builtin << ", " << LLVMName << ", " << FlagString
          << "),\n";
     else
@@ -1903,8 +1903,8 @@ void SVEEmitter::createSMECodeGenMap(raw_ostream &OS) {
     auto FlagString = std::to_string(Flags);
 
     std::string LLVMName = Def->getLLVMName();
-    std::string Builtin = Def->getMangledName();
-    if (!LLVMName.empty())
+    
+    if (std::string Builtin = Def->getMangledName(); !LLVMName.empty())
       OS << "SMEMAP1(" << Builtin << ", " << LLVMName << ", " << FlagString
          << "),\n";
     else

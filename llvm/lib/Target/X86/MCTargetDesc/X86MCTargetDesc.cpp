@@ -89,9 +89,9 @@ static bool isMemOperand(const MCInst &MI, unsigned Op, unsigned RegClassID) {
 bool X86_MC::is16BitMemOperand(const MCInst &MI, unsigned Op,
                                const MCSubtargetInfo &STI) {
   const MCOperand &Base = MI.getOperand(Op + X86::AddrBaseReg);
-  const MCOperand &Index = MI.getOperand(Op + X86::AddrIndexReg);
+  
 
-  if (STI.hasFeature(X86::Is16Bit) && Base.isReg() && !Base.getReg() &&
+  if (const MCOperand &Index = MI.getOperand(Op + X86::AddrIndexReg); STI.hasFeature(X86::Is16Bit) && Base.isReg() && !Base.getReg() &&
       Index.isReg() && !Index.getReg())
     return true;
   return isMemOperand(MI, Op, X86::GR16RegClassID);
@@ -121,13 +121,13 @@ bool X86_MC::needsAddressSizeOverride(const MCInst &MI,
   uint64_t AdSize = TSFlags & X86II::AdSizeMask;
   bool Is16BitMode = STI.hasFeature(X86::Is16Bit);
   bool Is32BitMode = STI.hasFeature(X86::Is32Bit);
-  bool Is64BitMode = STI.hasFeature(X86::Is64Bit);
-  if ((Is16BitMode && AdSize == X86II::AdSize32) ||
+  
+  if (bool Is64BitMode = STI.hasFeature(X86::Is64Bit); (Is16BitMode && AdSize == X86II::AdSize32) ||
       (Is32BitMode && AdSize == X86II::AdSize16) ||
       (Is64BitMode && AdSize == X86II::AdSize32))
     return true;
-  uint64_t Form = TSFlags & X86II::FormMask;
-  switch (Form) {
+  
+  switch (uint64_t Form = TSFlags & X86II::FormMask; Form) {
   default:
     break;
   case X86II::RawFrmDstSrc: {
@@ -556,8 +556,8 @@ bool X86MCInstrAnalysis::clearsSuperRegisters(const MCRegisterInfo &MRI,
 
   Mask.clearAllBits();
   for (unsigned I = 0, E = NumDefs; I < E; ++I) {
-    const MCOperand &Op = Inst.getOperand(I);
-    if (ClearsSuperReg(Op.getReg()))
+    
+    if (const MCOperand &Op = Inst.getOperand(I); ClearsSuperReg(Op.getReg()))
       Mask.setBit(I);
   }
 
@@ -620,8 +620,8 @@ std::vector<std::pair<uint64_t, uint64_t>>
 X86MCInstrAnalysis::findPltEntries(uint64_t PltSectionVA,
                                    ArrayRef<uint8_t> PltContents,
                                    const MCSubtargetInfo &STI) const {
-  const Triple &TargetTriple = STI.getTargetTriple();
-  switch (TargetTriple.getArch()) {
+  
+  switch (const Triple &TargetTriple = STI.getTargetTriple(); TargetTriple.getArch()) {
   case Triple::x86:
     return findX86PltEntries(PltSectionVA, PltContents);
   case Triple::x86_64:

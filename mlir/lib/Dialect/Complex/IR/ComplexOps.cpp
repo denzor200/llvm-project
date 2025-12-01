@@ -265,8 +265,8 @@ OpFoldResult AddOp::fold(FoldAdaptor adaptor) {
 
   // complex.add(a, complex.constant<0.0, 0.0>) -> a
   if (auto constantOp = getRhs().getDefiningOp<ConstantOp>()) {
-    auto arrayAttr = constantOp.getValue();
-    if (llvm::cast<FloatAttr>(arrayAttr[0]).getValue().isZero() &&
+    
+    if (auto arrayAttr = constantOp.getValue(); llvm::cast<FloatAttr>(arrayAttr[0]).getValue().isZero() &&
         llvm::cast<FloatAttr>(arrayAttr[1]).getValue().isZero()) {
       return getLhs();
     }
@@ -287,8 +287,8 @@ OpFoldResult SubOp::fold(FoldAdaptor adaptor) {
 
   // complex.sub(a, complex.constant<0.0, 0.0>) -> a
   if (auto constantOp = getRhs().getDefiningOp<ConstantOp>()) {
-    auto arrayAttr = constantOp.getValue();
-    if (llvm::cast<FloatAttr>(arrayAttr[0]).getValue().isZero() &&
+    
+    if (auto arrayAttr = constantOp.getValue(); llvm::cast<FloatAttr>(arrayAttr[0]).getValue().isZero() &&
         llvm::cast<FloatAttr>(arrayAttr[1]).getValue().isZero()) {
       return getLhs();
     }

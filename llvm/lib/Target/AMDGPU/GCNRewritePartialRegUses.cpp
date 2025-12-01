@@ -194,8 +194,8 @@ GCNRewritePartialRegUsesImpl::getAllocatableAndAlignedRegClassMask(
     BitVector &BV = I->second;
     BV.resize(TRI->getNumRegClasses());
     for (unsigned ClassID = 0; ClassID < TRI->getNumRegClasses(); ++ClassID) {
-      auto *RC = TRI->getRegClass(ClassID);
-      if (RC->isAllocatable() && TRI->isRegClassAligned(RC, AlignNumBits))
+      
+      if (auto *RC = TRI->getRegClass(ClassID); RC->isAllocatable() && TRI->isRegClassAligned(RC, AlignNumBits))
         BV.set(ClassID);
     }
   }
@@ -454,8 +454,8 @@ bool GCNRewritePartialRegUsesLegacy::runOnMachineFunction(MachineFunction &MF) {
 PreservedAnalyses
 GCNRewritePartialRegUsesPass::run(MachineFunction &MF,
                                   MachineFunctionAnalysisManager &MFAM) {
-  auto *LIS = MFAM.getCachedResult<LiveIntervalsAnalysis>(MF);
-  if (!GCNRewritePartialRegUsesImpl(LIS).run(MF))
+  
+  if (auto *LIS = MFAM.getCachedResult<LiveIntervalsAnalysis>(MF); !GCNRewritePartialRegUsesImpl(LIS).run(MF))
     return PreservedAnalyses::all();
 
   auto PA = getMachineFunctionPassPreservedAnalyses();

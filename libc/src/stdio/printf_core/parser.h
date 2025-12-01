@@ -428,8 +428,8 @@ private:
   // the arg list must be read in order and with the correct types.
   template <class T> LIBC_INLINE cpp::optional<T> get_arg_value(size_t index) {
     if (!(index == 0 || index == args_index)) {
-      bool success = args_to_index(index);
-      if (!success) {
+      
+      if (bool success = args_to_index(index); !success) {
         // If we can't get to this index, then the value of the arg can't be
         // found.
         return cpp::optional<T>();
@@ -556,13 +556,13 @@ private:
           }
         }
 
-        auto [lm, bw] = parse_length_modifier(&local_pos);
+        
 
         // if we don't have an index for this conversion, then its position is
         // unknown and all this information is irrelevant. The rest of this
         // logic has been for skipping past this conversion properly to avoid
         // weirdness with %%.
-        if (conv_index == 0) {
+        if (auto [lm, bw] = parse_length_modifier(&local_pos); conv_index == 0) {
           if (str[local_pos] != '\0')
             ++local_pos;
           continue;

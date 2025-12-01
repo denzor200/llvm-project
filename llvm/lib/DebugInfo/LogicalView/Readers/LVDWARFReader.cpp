@@ -203,8 +203,8 @@ void LVDWARFReader::processOneAttribute(const DWARFDie &Die,
       if (std::optional<uint64_t> Value = FormValue.getAsAddress()) {
         CurrentLowPC = *Value;
       } else {
-        uint64_t UValue = FormValue.getRawUValue();
-        if (U->getAddrOffsetSectionItem(UValue)) {
+        
+        if (uint64_t UValue = FormValue.getRawUValue(); U->getAddrOffsetSectionItem(UValue)) {
           CurrentLowPC = *FormValue.getAsAddress();
         } else {
           FoundLowPC = false;
@@ -391,8 +391,8 @@ LVScope *LVDWARFReader::processOneDie(const DWARFDie &InputDIE, LVScope *Parent,
     auto ProcessAttributes = [&](const DWARFDie &TheDIE,
                                  DWARFDataExtractor &DebugData) {
       CurrentEndOffset = Offset;
-      uint32_t abbrCode = DebugData.getULEB128(&CurrentEndOffset);
-      if (abbrCode) {
+      
+      if (uint32_t abbrCode = DebugData.getULEB128(&CurrentEndOffset); abbrCode) {
         if (const DWARFAbbreviationDeclaration *AbbrevDecl =
                 TheDIE.getAbbreviationDeclarationPtr())
           if (AbbrevDecl)
@@ -409,8 +409,8 @@ LVScope *LVDWARFReader::processOneDie(const DWARFDie &InputDIE, LVScope *Parent,
     if (SkeletonDie.isValid()) {
       DWARFDataExtractor DebugInfoData =
           InputDIE.getDwarfUnit()->getDebugInfoExtractor();
-      LVOffset Offset = InputDIE.getOffset();
-      if (DebugInfoData.isValidOffset(Offset))
+      
+      if (LVOffset Offset = InputDIE.getOffset(); DebugInfoData.isValidOffset(Offset))
         ProcessAttributes(InputDIE, DebugInfoData);
     }
   }
@@ -443,8 +443,8 @@ LVScope *LVDWARFReader::processOneDie(const DWARFDie &InputDIE, LVScope *Parent,
         std::optional<DWARFFormValue> LinkageDIE =
             DIE.findRecursively(dwarf::DW_AT_linkage_name);
         if (LinkageDIE.has_value()) {
-          StringRef Name(dwarf::toStringRef(LinkageDIE));
-          if (!Name.empty())
+          
+          if (StringRef Name(dwarf::toStringRef(LinkageDIE)); !Name.empty())
             CurrentScope->setLinkageName(Name);
         }
       }
@@ -495,8 +495,8 @@ LVScope *LVDWARFReader::processOneDie(const DWARFDie &InputDIE, LVScope *Parent,
 void LVDWARFReader::traverseDieAndChildren(DWARFDie &DIE, LVScope *Parent,
                                            DWARFDie &SkeletonDie) {
   // Process the current DIE.
-  LVScope *Scope = processOneDie(DIE, Parent, SkeletonDie);
-  if (Scope) {
+  
+  if (LVScope *Scope = processOneDie(DIE, Parent, SkeletonDie); Scope) {
     LVOffset Lower = DIE.getOffset();
     LVOffset Upper = CurrentEndOffset;
     DWARFDie DummyDie;
@@ -540,10 +540,10 @@ void LVDWARFReader::createLineAndFileRecords(
     }
 
   // In DWARF5 the file indexes start at 0;
-  bool IncrementIndex = Lines->Prologue.getVersion() >= 5;
+  
 
   // Get the source lines if requested by command line option.
-  if (options().getPrintLines() && Lines->Rows.size())
+  if (bool IncrementIndex = Lines->Prologue.getVersion() >= 5; options().getPrintLines() && Lines->Rows.size())
     for (const DWARFDebugLine::Row &Row : Lines->Rows) {
       // Here we collect logical debug lines in CULines. Later on,
       // the 'processLines()' function will move each created logical line
@@ -702,10 +702,10 @@ Error LVDWARFReader::createScopes() {
         if (LT->hasFileAtIndex(0) && LT->hasFileAtIndex(1)) {
           const DWARFDebugLine::FileNameEntry &EntryZero =
               LT->Prologue.getFileNameEntry(0);
-          const DWARFDebugLine::FileNameEntry &EntryOne =
-              LT->Prologue.getFileNameEntry(1);
+          
           // Check directory indexes.
-          if (EntryZero.DirIdx != EntryOne.DirIdx)
+          if (const DWARFDebugLine::FileNameEntry &EntryOne =
+              LT->Prologue.getFileNameEntry(1); EntryZero.DirIdx != EntryOne.DirIdx)
             // DWARF-5 -> Increment index.
             return true;
           // Check filename.

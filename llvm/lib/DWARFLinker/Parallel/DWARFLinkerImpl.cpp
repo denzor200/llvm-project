@@ -141,13 +141,13 @@ Error DWARFLinkerImpl::link() {
     // twice. And then following handling might be removed.
     for (const std::unique_ptr<DWARFUnit> &OrigCU :
          Context->InputDWARFFile.Dwarf->compile_units()) {
-      DWARFDie UnitDie = OrigCU->getUnitDIE();
+      
 
-      if (!Language) {
+      if (DWARFDie UnitDie = OrigCU->getUnitDIE(); !Language) {
         if (std::optional<DWARFFormValue> Val =
                 UnitDie.find(dwarf::DW_AT_language)) {
-          uint16_t LangVal = dwarf::toUnsigned(Val, 0);
-          if (isODRLanguage(LangVal))
+          
+          if (uint16_t LangVal = dwarf::toUnsigned(Val, 0); isODRLanguage(LangVal))
             Language = LangVal;
         }
       }
@@ -226,8 +226,8 @@ void DWARFLinkerImpl::verifyInput(const DWARFFile &File) {
 
   std::string Buffer;
   raw_string_ostream OS(Buffer);
-  DIDumpOptions DumpOpts;
-  if (!File.Dwarf->verify(OS, DumpOpts.noImplicitRecursion())) {
+  
+  if (DIDumpOptions DumpOpts; !File.Dwarf->verify(OS, DumpOpts.noImplicitRecursion())) {
     if (GlobalData.getOptions().InputVerificationHandler)
       GlobalData.getOptions().InputVerificationHandler(File, OS.str());
   }
@@ -411,8 +411,8 @@ Error DWARFLinkerImpl::LinkContext::loadClangModule(
       // FIXME: Until PR27449 (https://llvm.org/bugs/show_bug.cgi?id=27449) is
       // fixed in clang, only warn about DWO_id mismatches in verbose mode.
       // ASTFileSignatures will change randomly when a module is rebuilt.
-      uint64_t PCMDwoId = getDwoId(ChildCUDie);
-      if (PCMDwoId != DwoId) {
+      
+      if (uint64_t PCMDwoId = getDwoId(ChildCUDie); PCMDwoId != DwoId) {
         if (GlobalData.getOptions().Verbose)
           GlobalData.warn(
               Twine("hash mismatch: this object file was built against a "
@@ -473,12 +473,12 @@ Error DWARFLinkerImpl::LinkContext::link(TypeUnit *ArtificialTypeUnit) {
   for (const auto &OrigCU : InputDWARFFile.Dwarf->compile_units()) {
     // Load only unit DIE at this stage.
     auto CUDie = OrigCU->getUnitDIE();
-    std::string PCMFile =
-        getPCMFile(CUDie, GlobalData.getOptions().ObjectPrefixMap);
+    
 
     // The !isClangModuleRef condition effectively skips over fully resolved
     // skeleton units.
-    if (!CUDie || GlobalData.getOptions().UpdateIndexTablesOnly ||
+    if (std::string PCMFile =
+        getPCMFile(CUDie, GlobalData.getOptions().ObjectPrefixMap); !CUDie || GlobalData.getOptions().UpdateIndexTablesOnly ||
         !isClangModuleRef(CUDie, PCMFile, 0, true).first) {
       CompileUnits.emplace_back(std::make_unique<CompileUnit>(
           GlobalData, *OrigCU, UniqueUnitID.fetch_add(1), "", InputDWARFFile,
@@ -1213,8 +1213,8 @@ void DWARFLinkerImpl::emitAppleAcceleratorSections(const Triple &TargetTriple) {
 
   forEachCompileAndTypeUnit([&](DwarfUnit *CU) {
     CU->forEachAcceleratorRecord([&](const DwarfUnit::AccelInfo &Info) {
-      uint64_t OutOffset = Info.OutOffset;
-      switch (Info.Type) {
+      
+      switch (uint64_t OutOffset = Info.OutOffset; Info.Type) {
       case DwarfUnit::AccelType::None: {
         llvm_unreachable("Unknown accelerator record");
       } break;

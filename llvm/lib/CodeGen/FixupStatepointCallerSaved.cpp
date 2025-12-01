@@ -117,8 +117,8 @@ static Register performCopyPropagation(Register Reg,
                                        bool &IsKill, const TargetInstrInfo &TII,
                                        const TargetRegisterInfo &TRI) {
   // First check if statepoint itself uses Reg in non-meta operands.
-  int Idx = RI->findRegisterUseOperandIdx(Reg, &TRI, false);
-  if (Idx >= 0 && (unsigned)Idx < StatepointOpers(&*RI).getNumDeoptArgsIdx()) {
+  
+  if (int Idx = RI->findRegisterUseOperandIdx(Reg, &TRI, false); Idx >= 0 && (unsigned)Idx < StatepointOpers(&*RI).getNumDeoptArgsIdx()) {
     IsKill = false;
     return Reg;
   }
@@ -251,9 +251,9 @@ public:
     auto It = GlobalIndices.find(EHPad);
     if (It != GlobalIndices.end()) {
       auto &Vec = It->second;
-      auto Idx = llvm::find_if(
-          Vec, [Reg](RegSlotPair &RSP) { return Reg == RSP.first; });
-      if (Idx != Vec.end()) {
+      
+      if (auto Idx = llvm::find_if(
+          Vec, [Reg](RegSlotPair &RSP) { return Reg == RSP.first; }); Idx != Vec.end()) {
         int FI = Idx->second;
         LLVM_DEBUG(dbgs() << "Found global FI " << FI << " for register "
                           << printReg(Reg, &TRI) << " at "
@@ -512,8 +512,8 @@ public:
     unsigned CurOpIdx = 0;
 
     for (unsigned I = NumDefs; I < MI.getNumOperands(); ++I) {
-      MachineOperand &MO = MI.getOperand(I);
-      if (I == OpsToSpill[CurOpIdx]) {
+      
+      if (MachineOperand &MO = MI.getOperand(I); I == OpsToSpill[CurOpIdx]) {
         int FI = RegToSlotIdx[MO.getReg()];
         MIB.addImm(StackMaps::IndirectMemRefOp);
         MIB.addImm(getRegisterSize(TRI, MO.getReg()));
@@ -524,8 +524,8 @@ public:
         ++CurOpIdx;
       } else {
         MIB.add(MO);
-        unsigned OldDef;
-        if (AllowGCPtrInCSR && MI.isRegTiedToDefOperand(I, &OldDef)) {
+        
+        if (unsigned OldDef; AllowGCPtrInCSR && MI.isRegTiedToDefOperand(I, &OldDef)) {
           assert(OldDef < NumDefs);
           assert(NewIndices[OldDef] < NumOps);
           MIB->tieOperands(NewIndices[OldDef], MIB->getNumOperands() - 1);
@@ -571,9 +571,9 @@ public:
 
   bool process(MachineInstr &MI, bool AllowGCPtrInCSR) {
     StatepointOpers SO(&MI);
-    uint64_t Flags = SO.getFlags();
+    
     // Do nothing for LiveIn, it supports all registers.
-    if (Flags & (uint64_t)StatepointFlags::DeoptLiveIn)
+    if (uint64_t Flags = SO.getFlags(); Flags & (uint64_t)StatepointFlags::DeoptLiveIn)
       return false;
     LLVM_DEBUG(dbgs() << "\nMBB " << MI.getParent()->getNumber() << " "
                       << MI.getParent()->getName() << " : process statepoint "
@@ -595,8 +595,8 @@ public:
 } // namespace
 
 bool FixupStatepointCallerSavedImpl::run(MachineFunction &MF) {
-  const Function &F = MF.getFunction();
-  if (!F.hasGC())
+  
+  if (const Function &F = MF.getFunction(); !F.hasGC())
     return false;
 
   SmallVector<MachineInstr *, 16> Statepoints;

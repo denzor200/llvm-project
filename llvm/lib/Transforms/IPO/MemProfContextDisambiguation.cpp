@@ -1007,8 +1007,8 @@ struct IndexCall : public PointerUnion<CallsiteInfo *, AllocInfo *> {
   IndexCall *operator->() { return this; }
 
   void print(raw_ostream &OS) const {
-    PointerUnion<CallsiteInfo *, AllocInfo *> Base = *this;
-    if (auto *AI = llvm::dyn_cast_if_present<AllocInfo *>(Base)) {
+    
+    if (auto *PointerUnion<CallsiteInfo *, AllocInfo *> Base = *this; AI = llvm::dyn_cast_if_present<AllocInfo *>(Base)) {
       OS << *AI;
     } else {
       auto *CI = llvm::dyn_cast_if_present<CallsiteInfo *>(Base);
@@ -1199,8 +1199,8 @@ template <typename DerivedCCG, typename FuncTy, typename CallTy>
 typename CallsiteContextGraph<DerivedCCG, FuncTy, CallTy>::ContextNode *
 CallsiteContextGraph<DerivedCCG, FuncTy, CallTy>::getNodeForInst(
     const CallInfo &C) {
-  ContextNode *Node = getNodeForAlloc(C);
-  if (Node)
+  
+  if (ContextNode *Node = getNodeForAlloc(C); Node)
     return Node;
 
   return NonAllocationCallToContextNodeMap.lookup(C);
@@ -1217,8 +1217,8 @@ template <typename DerivedCCG, typename FuncTy, typename CallTy>
 typename CallsiteContextGraph<DerivedCCG, FuncTy, CallTy>::ContextNode *
 CallsiteContextGraph<DerivedCCG, FuncTy, CallTy>::getNodeForStackId(
     uint64_t StackId) {
-  auto StackEntryNode = StackEntryIdToContextNodeMap.find(StackId);
-  if (StackEntryNode != StackEntryIdToContextNodeMap.end())
+  
+  if (auto StackEntryNode = StackEntryIdToContextNodeMap.find(StackId); StackEntryNode != StackEntryIdToContextNodeMap.end())
     return StackEntryNode->second;
   return nullptr;
 }
@@ -1279,8 +1279,8 @@ template <typename DerivedCCG, typename FuncTy, typename CallTy>
 void CallsiteContextGraph<
     DerivedCCG, FuncTy, CallTy>::removeNoneTypeCalleeEdges(ContextNode *Node) {
   for (auto EI = Node->CalleeEdges.begin(); EI != Node->CalleeEdges.end();) {
-    auto Edge = *EI;
-    if (Edge->AllocTypes == (uint8_t)AllocationType::None) {
+    
+    if (auto Edge = *EI; Edge->AllocTypes == (uint8_t)AllocationType::None) {
       assert(Edge->ContextIds.empty());
       removeEdgeFromGraph(Edge.get(), &EI, /*CalleeIter=*/true);
     } else
@@ -1292,8 +1292,8 @@ template <typename DerivedCCG, typename FuncTy, typename CallTy>
 void CallsiteContextGraph<
     DerivedCCG, FuncTy, CallTy>::removeNoneTypeCallerEdges(ContextNode *Node) {
   for (auto EI = Node->CallerEdges.begin(); EI != Node->CallerEdges.end();) {
-    auto Edge = *EI;
-    if (Edge->AllocTypes == (uint8_t)AllocationType::None) {
+    
+    if (auto Edge = *EI; Edge->AllocTypes == (uint8_t)AllocationType::None) {
       assert(Edge->ContextIds.empty());
       Edge->Caller->eraseCalleeEdge(Edge.get());
       EI = Node->CallerEdges.erase(EI);
@@ -1485,8 +1485,8 @@ void CallsiteContextGraph<DerivedCCG, FuncTy, CallTy>::addStackNodesForMIB(
     // Marking a node recursive will prevent its cloning completely, even for
     // non-recursive contexts flowing through it.
     if (!AllowRecursiveCallsites) {
-      auto Ins = StackIdSet.insert(StackId);
-      if (!Ins.second)
+      
+      if (auto Ins = StackIdSet.insert(StackId); !Ins.second)
         StackNode->Recursive = true;
     }
     StackNode->AllocTypes |= (uint8_t)AllocType;
@@ -1532,8 +1532,8 @@ void CallsiteContextGraph<DerivedCCG, FuncTy, CallTy>::
                            DenseSet<const ContextEdge *> &Visited,
                            auto &&UpdateCallers) -> void {
     for (const auto &Edge : Node->CallerEdges) {
-      auto Inserted = Visited.insert(Edge.get());
-      if (!Inserted.second)
+      
+      if (auto Inserted = Visited.insert(Edge.get()); !Inserted.second)
         continue;
       ContextNode *NextNode = Edge->Caller;
       DenseSet<uint32_t> NewIdsToAdd = GetNewIds(Edge->getContextIds());
@@ -1701,8 +1701,8 @@ void CallsiteContextGraph<DerivedCCG, FuncTy, CallTy>::
                                   &StackIdToMatchingCalls,
                               DenseMap<CallInfo, CallInfo> &CallToMatchingCall,
                               const DenseSet<uint32_t> &ImportantContextIds) {
-  auto Inserted = Visited.insert(Node);
-  if (!Inserted.second)
+  
+  if (auto Inserted = Visited.insert(Node); !Inserted.second)
     return;
   // Post order traversal. Iterate over a copy since we may add nodes and
   // therefore new callers during the recursive call, invalidating any
@@ -1770,10 +1770,10 @@ void CallsiteContextGraph<DerivedCCG, FuncTy, CallTy>::
   for (unsigned I = 0; I < Calls.size();
        I++, PrevIterCreatedNode = CreatedNode) {
     CreatedNode = false;
-    auto &[Call, Ids, Func, SavedContextIds] = Calls[I];
+    
     // Skip any for which we didn't assign any ids, these don't get a node in
     // the graph.
-    if (SavedContextIds.empty()) {
+    if (auto &[Call, Ids, Func, SavedContextIds] = Calls[I]; SavedContextIds.empty()) {
       // If this call has a matching call (located in the same function and
       // having the same stack ids), simply add it to the context node created
       // for its matching call earlier. These can be treated the same through
@@ -1950,8 +1950,8 @@ void CallsiteContextGraph<DerivedCCG, FuncTy,
       // We will do this greedily, trying up to MaxLength stack ids in a row, to
       // see if we recorded a context node for that sequence.
       auto Len = Info.MaxLength;
-      auto LenToEnd = AllStackIds.size() - I;
-      if (Len > LenToEnd)
+      
+      if (auto LenToEnd = AllStackIds.size() - I; Len > LenToEnd)
         Len = LenToEnd;
       CurNode = nullptr;
       // Try to find a recorded context node starting with the longest length
@@ -2057,8 +2057,8 @@ void CallsiteContextGraph<DerivedCCG, FuncTy, CallTy>::updateStackNodes() {
     auto &Calls = It.getSecond();
     // Skip single calls with a single stack id. These don't need a new node.
     if (Calls.size() == 1) {
-      auto &Ids = Calls[0].StackIds;
-      if (Ids.size() == 1)
+      
+      if (auto &Ids = Calls[0].StackIds; Ids.size() == 1)
         continue;
     }
     // In order to do the best and maximal matching of inlined calls to context
@@ -2206,8 +2206,8 @@ void CallsiteContextGraph<DerivedCCG, FuncTy, CallTy>::updateStackNodes() {
       bool DuplicateContextIds = false;
       for (unsigned J = I + 1; J < Calls.size(); J++) {
         auto &CallCtxInfo = Calls[J];
-        auto &NextIds = CallCtxInfo.StackIds;
-        if (NextIds != Ids)
+        
+        if (auto &NextIds = CallCtxInfo.StackIds; NextIds != Ids)
           break;
         auto *NextFunc = CallCtxInfo.Func;
         if (NextFunc != Func) {
@@ -2326,8 +2326,8 @@ std::string IndexCallsiteContextGraph::getLabel(const FunctionSummary *Func,
                                                 unsigned CloneNo) const {
   auto VI = FSToVIMap.find(Func);
   assert(VI != FSToVIMap.end());
-  std::string CallerName = getMemProfFuncName(VI->second.name(), CloneNo);
-  if (isa<AllocInfo *>(Call))
+  
+  if (std::string CallerName = getMemProfFuncName(VI->second.name(), CloneNo); isa<AllocInfo *>(Call))
     return CallerName + " -> alloc";
   else {
     auto *Callsite = dyn_cast_if_present<CallsiteInfo *>(Call);
@@ -2364,8 +2364,8 @@ CallsiteContextGraph<DerivedCCG, FuncTy, CallTy>::getStackIdsWithContextNodes(
   std::vector<uint64_t> StackIds;
   for (auto IdOrIndex : CallsiteContext) {
     auto StackId = getStackId(IdOrIndex);
-    ContextNode *Node = getNodeForStackId(StackId);
-    if (!Node)
+    
+    if (ContextNode *Node = getNodeForStackId(StackId); !Node)
       break;
     StackIds.push_back(StackId);
   }
@@ -2620,8 +2620,8 @@ void CallsiteContextGraph<DerivedCCG, FuncTy,
       bool Match = true;
       for (auto EI = Node->CalleeEdges.begin(); EI != Node->CalleeEdges.end();
            ++EI) {
-        auto Edge = *EI;
-        if (!Edge->Callee->hasCall())
+        
+        if (auto Edge = *EI; !Edge->Callee->hasCall())
           continue;
         assert(NodeToCallingFunc.count(Edge->Callee));
         // Check if the called function matches that of the callee node.
@@ -2702,8 +2702,8 @@ bool CallsiteContextGraph<DerivedCCG, FuncTy, CallTy>::partitionCallsByCallee(
   // to the list of matching calls.
   DenseMap<const FuncTy *, CallsWithSameCallee> CalleeFuncToCallInfo;
   for (auto ThisCall : AllCalls) {
-    auto *F = getCalleeFunc(ThisCall.call());
-    if (F)
+    
+    if (auto *F = getCalleeFunc(ThisCall.call()); F)
       CalleeFuncToCallInfo[F].Calls.push_back(ThisCall);
   }
 
@@ -2716,8 +2716,8 @@ bool CallsiteContextGraph<DerivedCCG, FuncTy, CallTy>::partitionCallsByCallee(
   for (const auto &Edge : Node->CalleeEdges) {
     if (!Edge->Callee->hasCall())
       continue;
-    const FuncTy *ProfiledCalleeFunc = NodeToCallingFunc[Edge->Callee];
-    if (CalleeFuncToCallInfo.contains(ProfiledCalleeFunc))
+    
+    if (const FuncTy *ProfiledCalleeFunc = NodeToCallingFunc[Edge->Callee]; CalleeFuncToCallInfo.contains(ProfiledCalleeFunc))
       CalleeNodeToCallInfo[Edge->Callee] =
           &CalleeFuncToCallInfo[ProfiledCalleeFunc];
   }
@@ -2838,10 +2838,10 @@ bool CallsiteContextGraph<DerivedCCG, FuncTy, CallTy>::calleesMatch(
     return true;
 
   auto AddEdge = [Edge, &EI](ContextNode *Caller, ContextNode *Callee) {
-    auto *CurEdge = Callee->findEdgeFromCaller(Caller);
+    
     // If there is already an edge between these nodes, simply update it and
     // return.
-    if (CurEdge) {
+    if (auto *CurEdge = Callee->findEdgeFromCaller(Caller); CurEdge) {
       CurEdge->ContextIds.insert_range(Edge->ContextIds);
       CurEdge->AllocTypes |= Edge->AllocTypes;
       return;
@@ -3302,8 +3302,8 @@ void CallsiteContextGraph<DerivedCCG, FuncTy, CallTy>::printTotalSizes(
     for (auto Id : SortedIds) {
       auto TypeI = ContextIdToAllocationType.find(Id);
       assert(TypeI != ContextIdToAllocationType.end());
-      auto CSI = ContextIdToContextSizeInfos.find(Id);
-      if (CSI != ContextIdToContextSizeInfos.end()) {
+      
+      if (auto CSI = ContextIdToContextSizeInfos.find(Id); CSI != ContextIdToContextSizeInfos.end()) {
         for (auto &Info : CSI->second) {
           OS << "MemProf hinting: "
              << getAllocTypeString((uint8_t)TypeI->second)
@@ -3810,8 +3810,8 @@ template <typename DerivedCCG, typename FuncTy, typename CallTy>
 void CallsiteContextGraph<DerivedCCG, FuncTy, CallTy>::
     recursivelyRemoveNoneTypeCalleeEdges(
         ContextNode *Node, DenseSet<const ContextNode *> &Visited) {
-  auto Inserted = Visited.insert(Node);
-  if (!Inserted.second)
+  
+  if (auto Inserted = Visited.insert(Node); !Inserted.second)
     return;
 
   removeNoneTypeCalleeEdges(Node);
@@ -4260,8 +4260,8 @@ void ModuleCallsiteContextGraph::updateCall(CallInfo &CallerCall,
     // clone (i.e. not the original function which is clone 0), ensure that we
     // aren't trying to now update it to call a different clone, which is
     // indicative of a bug in the graph or function assignment.
-    auto CurCalleeCloneNo = getMemProfCloneNum(*CurF);
-    if (CurCalleeCloneNo != NewCalleeCloneNo) {
+    
+    if (auto CurCalleeCloneNo = getMemProfCloneNum(*CurF); CurCalleeCloneNo != NewCalleeCloneNo) {
       LLVM_DEBUG(dbgs() << "Mismatch in call clone assignment: was "
                         << CurCalleeCloneNo << " now " << NewCalleeCloneNo
                         << "\n");
@@ -4445,8 +4445,8 @@ template <typename DerivedCCG, typename FuncTy, typename CallTy>
 void CallsiteContextGraph<DerivedCCG, FuncTy, CallTy>::mergeClones(
     ContextNode *Node, DenseSet<const ContextNode *> &Visited,
     DenseMap<uint32_t, ContextNode *> &ContextIdToAllocationNode) {
-  auto Inserted = Visited.insert(Node);
-  if (!Inserted.second)
+  
+  if (auto Inserted = Visited.insert(Node); !Inserted.second)
     return;
 
   // Iteratively perform merging on this node to handle new caller nodes created
@@ -4525,9 +4525,9 @@ void CallsiteContextGraph<DerivedCCG, FuncTy, CallTy>::mergeNodeCalleeClones(
     // CalleeEdges is the set of edges from Node reaching callees that are
     // mutual clones of each other.
     auto &CalleeEdges = Entry.second;
-    auto NumCalleeClones = CalleeEdges.size();
+    
     // A single edge means there is no merging needed.
-    if (NumCalleeClones == 1)
+    if (auto NumCalleeClones = CalleeEdges.size(); NumCalleeClones == 1)
       continue;
     // Sort the CalleeEdges calling this group of clones in ascending order of
     // their caller edge counts, putting the original non-clone node first in
@@ -5333,8 +5333,8 @@ bool CallsiteContextGraph<DerivedCCG, FuncTy, CallTy>::assignFunctions() {
   auto UpdateCalls = [&](ContextNode *Node,
                          DenseSet<const ContextNode *> &Visited,
                          auto &&UpdateCalls) {
-    auto Inserted = Visited.insert(Node);
-    if (!Inserted.second)
+    
+    if (auto Inserted = Visited.insert(Node); !Inserted.second)
       return;
 
     for (auto *Clone : Node->Clones)
@@ -5361,8 +5361,8 @@ bool CallsiteContextGraph<DerivedCCG, FuncTy, CallTy>::assignFunctions() {
         for (auto Id : Node->getContextIds()) {
           auto TypeI = ContextIdToAllocationType.find(Id);
           assert(TypeI != ContextIdToAllocationType.end());
-          auto CSI = ContextIdToContextSizeInfos.find(Id);
-          if (CSI != ContextIdToContextSizeInfos.end()) {
+          
+          if (auto CSI = ContextIdToContextSizeInfos.find(Id); CSI != ContextIdToContextSizeInfos.end()) {
             for (auto &Info : CSI->second) {
               Total += Info.TotalSize;
               if (TypeI->second == AllocationType::Cold)
@@ -5703,8 +5703,8 @@ bool MemProfContextDisambiguation::applyImport(Module &M) {
   std::map<const Function *, SmallPtrSet<const GlobalAlias *, 1>>
       FuncToAliasMap;
   for (auto &A : M.aliases()) {
-    auto *Aliasee = A.getAliaseeObject();
-    if (auto *F = dyn_cast<Function>(Aliasee))
+    
+    if (auto *auto *Aliasee = A.getAliaseeObject(); F = dyn_cast<Function>(Aliasee))
       FuncToAliasMap[F].insert(&A);
   }
 
@@ -5756,8 +5756,8 @@ bool MemProfContextDisambiguation::applyImport(Module &M) {
       // summary generation), however, with opaque pointers in theory this
       // should not be an issue. Note we still clone the current function
       // (containing this call) above, as that could be needed for its callers.
-      auto *GA = dyn_cast_or_null<GlobalAlias>(CB->getCalledOperand());
-      if (CalledFunction != CB->getCalledOperand() &&
+      
+      if (auto *GA = dyn_cast_or_null<GlobalAlias>(CB->getCalledOperand()); CalledFunction != CB->getCalledOperand() &&
           (!GA || CalledFunction != GA->getAliaseeObject())) {
         SkippedCallsCloning++;
         return;
@@ -5992,13 +5992,13 @@ bool MemProfContextDisambiguation::applyImport(Module &M) {
             // whether any clones were recorded for the profiled targets (that
             // we synthesized CallsiteInfo summary records for when building the
             // index).
-            auto NumClones =
-                recordICPInfo(CB, FS->callsites(), SI, ICallAnalysisInfo);
+            
 
             // Perform cloning if not yet done. This is done here in case
             // we don't need to do ICP, but might need to clone this
             // function as it is the target of other cloned calls.
-            if (NumClones)
+            if (auto NumClones =
+                recordICPInfo(CB, FS->callsites(), SI, ICallAnalysisInfo); NumClones)
               CloneFuncIfNeeded(NumClones, FS);
           }
 
@@ -6024,9 +6024,9 @@ bool MemProfContextDisambiguation::applyImport(Module &M) {
         } else if (CB->isTailCall() && CalledFunction) {
           // Locate the synthesized callsite info for the callee VI, if any was
           // created, and use that for cloning.
-          ValueInfo CalleeVI =
-              findValueInfoForFunc(*CalledFunction, M, ImportSummary, &F);
-          if (CalleeVI && MapTailCallCalleeVIToCallsite.count(CalleeVI)) {
+          
+          if (ValueInfo CalleeVI =
+              findValueInfoForFunc(*CalledFunction, M, ImportSummary, &F); CalleeVI && MapTailCallCalleeVIToCallsite.count(CalleeVI)) {
             auto Callsite = MapTailCallCalleeVIToCallsite.find(CalleeVI);
             assert(Callsite != MapTailCallCalleeVIToCallsite.end());
             CloneCallsite(Callsite->second, CB, CalledFunction, FS);

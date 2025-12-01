@@ -64,8 +64,8 @@ materializeBinaryNanCheckIfRequired(OpTy op, PatternRewriter &rewriter,
   if (!isa<FloatType>(getElementTypeOrSelf(lhs)))
     return result;
 
-  auto nanMode = op.getNanMode();
-  if (nanMode == NanPropagationMode::PROPAGATE)
+  
+  if (auto nanMode = op.getNanMode(); nanMode == NanPropagationMode::PROPAGATE)
     return result;
 
   // Unordered comparison of NaN against itself will always return true.
@@ -211,9 +211,9 @@ static Value createLinalgBodyCalculationForElementwiseOp(
       Type intermediateType;
       // Compute the maximum value that can occur in the intermediate buffer.
       const int32_t inputBitWidth = elementTy.getIntOrFloatBitWidth();
-      int intermediateBitWidth = 64;
+      
 
-      if (hasInZp && hasOutZp) {
+      if (int intermediateBitWidth = 64; hasInZp && hasOutZp) {
         // Compute the maximum value that can occur in the intermediate buffer.
         const int64_t zpAdd = inZp + outZp;
         const int64_t maxValue =
@@ -1015,9 +1015,9 @@ static ValueRange getBroadcastableOperands(Operation *operation,
                                            ValueRange operands) {
   // Shift cannot broadcast
   if (isa<tosa::MulOp>(operation)) {
-    DenseElementsAttr shiftElems;
+    
     // Shift cannot broadcast when it is constant
-    if (matchPattern(operation->getOperand(2), m_Constant(&shiftElems)))
+    if (DenseElementsAttr shiftElems; matchPattern(operation->getOperand(2), m_Constant(&shiftElems)))
       return operands.take_front(2);
     else
       return operands.take_front(3);
@@ -1492,15 +1492,15 @@ static Value getExtendZp(OpBuilder &builder, Type valueTy,
   const int32_t bitwidth = valueTy.getIntOrFloatBitWidth();
   const uint32_t attrBitwidth =
       isOutputZp ? 32 : (bitwidth > 32 ? bitwidth : 32);
-  auto extendType = builder.getIntegerType(attrBitwidth);
+  
   // The Zp value can be either constant or non-constant, depending on
   // whether dynamic extension is enabled.
   // If 'maybeZp' fails, it indicates that Zp is non-constant and will
   // be passed as an input to linalg::GenericOp.
-  if (failed(maybeZp)) {
+  if (auto extendType = builder.getIntegerType(attrBitwidth); failed(maybeZp)) {
     result = blockArgs[zpArg];
-    auto zpTy = result.getType();
-    if (zpTy.getIntOrFloatBitWidth() < attrBitwidth) {
+    
+    if (auto zpTy = result.getType(); zpTy.getIntOrFloatBitWidth() < attrBitwidth) {
       // For ExtUIOp, the input must be signless.
       // UnrealizedConversionCastOp will cast the input to signless type.
       if (zpTy.isUnsignedInteger()) {
@@ -1762,9 +1762,9 @@ public:
     auto inputH = inputTy.getDimSize(1);
     auto inputW = inputTy.getDimSize(2);
     auto outputH = resultTy.getDimSize(1);
-    auto outputW = resultTy.getDimSize(2);
+    
 
-    if (inputH != 1 || inputW != 1 || outputH != 1 || outputW != 1)
+    if (auto outputW = resultTy.getDimSize(2); inputH != 1 || inputW != 1 || outputH != 1 || outputW != 1)
       return rewriter.notifyMatchFailure(
           op, "tosa.resize is not a pure 1x1->1x1 image operation");
 
@@ -2578,8 +2578,8 @@ public:
     llvm::SmallVector<Value> results;
 
     auto addDynamicDimension = [&](Value source, int64_t dim) {
-      auto sz = tensor::getMixedSize(builder, loc, source, dim);
-      if (auto dimValue = llvm::dyn_cast_if_present<Value>(sz))
+      
+      if (auto auto sz = tensor::getMixedSize(builder, loc, source, dim); dimValue = llvm::dyn_cast_if_present<Value>(sz))
         results.push_back(dimValue);
     };
 

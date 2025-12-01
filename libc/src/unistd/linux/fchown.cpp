@@ -20,8 +20,8 @@
 namespace LIBC_NAMESPACE_DECL {
 
 LLVM_LIBC_FUNCTION(int, fchown, (int fildes, uid_t owner, gid_t group)) {
-  int ret = LIBC_NAMESPACE::syscall_impl<int>(SYS_fchown, fildes, owner, group);
-  if (ret < 0) {
+  
+  if (int ret = LIBC_NAMESPACE::syscall_impl<int>(SYS_fchown, fildes, owner, group); ret < 0) {
     libc_errno = -ret;
     return -1;
   }

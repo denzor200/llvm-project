@@ -94,8 +94,8 @@ Expected<std::vector<ServerInfo>> ServerInfo::Load() {
   for (; it != end && !EC; it.increment(EC)) {
     auto &entry = *it;
     auto path = entry.path();
-    auto name = path::filename(path);
-    if (!name.starts_with("lldb-mcp-") || !name.ends_with(".json"))
+    
+    if (auto name = path::filename(path); !name.starts_with("lldb-mcp-") || !name.ends_with(".json"))
       continue;
 
     auto buffer = fs.CreateDataBuffer(path);

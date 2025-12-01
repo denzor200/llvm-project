@@ -57,19 +57,19 @@ RegisterContext::GetRegisterInfoByName(llvm::StringRef reg_name,
   // Generic register names take precedence over specific register names.
   // For example, on x86 we want "sp" to refer to the complete RSP/ESP register
   // rather than the 16-bit SP pseudo-register.
-  uint32_t generic_reg = Args::StringToGenericRegister(reg_name);
-  if (generic_reg != LLDB_INVALID_REGNUM) {
-    const RegisterInfo *reg_info =
-        GetRegisterInfo(eRegisterKindGeneric, generic_reg);
-    if (reg_info)
+  
+  if (uint32_t generic_reg = Args::StringToGenericRegister(reg_name); generic_reg != LLDB_INVALID_REGNUM) {
+    
+    if (const RegisterInfo *reg_info =
+        GetRegisterInfo(eRegisterKindGeneric, generic_reg); reg_info)
       return reg_info;
   }
 
   const uint32_t num_registers = GetRegisterCount();
   for (uint32_t reg = start_idx; reg < num_registers; ++reg) {
-    const RegisterInfo *reg_info = GetRegisterInfoAtIndex(reg);
+    
 
-    if (reg_name.equals_insensitive(reg_info->name) ||
+    if (const RegisterInfo *reg_info = GetRegisterInfoAtIndex(reg); reg_name.equals_insensitive(reg_info->name) ||
         reg_name.equals_insensitive(reg_info->alt_name))
       return reg_info;
   }
@@ -86,8 +86,8 @@ const RegisterInfo *RegisterContext::GetRegisterInfo(lldb::RegisterKind kind,
 }
 
 const char *RegisterContext::GetRegisterName(uint32_t reg) {
-  const RegisterInfo *reg_info = GetRegisterInfoAtIndex(reg);
-  if (reg_info)
+  
+  if (const RegisterInfo *reg_info = GetRegisterInfoAtIndex(reg); reg_info)
     return reg_info->name;
   return nullptr;
 }
@@ -98,10 +98,10 @@ uint64_t RegisterContext::GetPC(uint64_t fail_value) {
   uint64_t pc = ReadRegisterAsUnsigned(reg, fail_value);
 
   if (pc != fail_value) {
-    TargetSP target_sp = m_thread.CalculateTarget();
-    if (target_sp) {
-      Target *target = target_sp.get();
-      if (target)
+    
+    if (TargetSP target_sp = m_thread.CalculateTarget(); target_sp) {
+      
+      if (Target *target = target_sp.get(); target)
         pc = target->GetOpcodeLoadAddress(pc, AddressClass::eCode);
     }
   }
@@ -120,9 +120,9 @@ bool RegisterContext::SetPC(uint64_t pc) {
                                                      LLDB_REGNUM_GENERIC_PC);
   bool success = WriteRegisterFromUnsigned(reg, pc);
   if (success) {
-    StackFrameSP frame_sp(
-        m_thread.GetFrameWithConcreteFrameIndex(m_concrete_frame_idx));
-    if (frame_sp)
+    
+    if (StackFrameSP frame_sp(
+        m_thread.GetFrameWithConcreteFrameIndex(m_concrete_frame_idx)); frame_sp)
       frame_sp->ChangePC(pc);
     else
       m_thread.ClearStackFrames();
@@ -201,8 +201,8 @@ uint64_t RegisterContext::ReadRegisterAsUnsigned(uint32_t reg,
 uint64_t RegisterContext::ReadRegisterAsUnsigned(const RegisterInfo *reg_info,
                                                  uint64_t fail_value) {
   if (reg_info) {
-    RegisterValue value;
-    if (ReadRegister(reg_info, value))
+    
+    if (RegisterValue value; ReadRegister(reg_info, value))
       return value.GetAsUInt64();
   }
   return fail_value;
@@ -217,8 +217,8 @@ bool RegisterContext::WriteRegisterFromUnsigned(uint32_t reg, uint64_t uval) {
 bool RegisterContext::WriteRegisterFromUnsigned(const RegisterInfo *reg_info,
                                                 uint64_t uval) {
   if (reg_info) {
-    RegisterValue value;
-    if (value.SetUInt(uval, reg_info->byte_size))
+    
+    if (RegisterValue value; value.SetUInt(uval, reg_info->byte_size))
       return WriteRegister(reg_info, value);
   }
   return false;
@@ -277,9 +277,9 @@ RegisterContext::ConvertRegisterKindToRegisterNumber(lldb::RegisterKind kind,
 
   assert(kind < kNumRegisterKinds);
   for (uint32_t reg_idx = 0; reg_idx < num_regs; ++reg_idx) {
-    const RegisterInfo *reg_info = GetRegisterInfoAtIndex(reg_idx);
+    
 
-    if (reg_info->kinds[kind] == num)
+    if (const RegisterInfo *reg_info = GetRegisterInfoAtIndex(reg_idx); reg_info->kinds[kind] == num)
       return reg_idx;
   }
 
@@ -338,11 +338,11 @@ Status RegisterContext::ReadRegisterValueFromMemory(
     RegisterValue::BytesContainer src(src_len);
 
     // Read the memory
-    const uint32_t bytes_read =
-        process_sp->ReadMemory(src_addr, src.data(), src_len, error);
+    
 
     // Make sure the memory read succeeded...
-    if (bytes_read != src_len) {
+    if (const uint32_t bytes_read =
+        process_sp->ReadMemory(src_addr, src.data(), src_len, error); bytes_read != src_len) {
       if (error.Success()) {
         // This might happen if we read _some_ bytes but not all
         return Status::FromErrorStringWithFormat("read %u of %u bytes",
@@ -391,9 +391,9 @@ Status RegisterContext::WriteRegisterValueToMemory(
     if (bytes_copied == 0) {
       return Status::FromErrorString("byte copy failed.");
     } else {
-      const uint32_t bytes_written =
-          process_sp->WriteMemory(dst_addr, dst.data(), bytes_copied, error);
-      if (bytes_written != bytes_copied) {
+      
+      if (const uint32_t bytes_written =
+          process_sp->WriteMemory(dst_addr, dst.data(), bytes_copied, error); bytes_written != bytes_copied) {
         if (error.Success()) {
           // This might happen if we read _some_ bytes but not all
           return Status::FromErrorStringWithFormat("only wrote %u of %u bytes",
@@ -456,9 +456,9 @@ bool RegisterContext::ConvertBetweenRegisterKinds(lldb::RegisterKind source_rk,
                                                   uint32_t &target_regnum) {
   const uint32_t num_registers = GetRegisterCount();
   for (uint32_t reg = 0; reg < num_registers; ++reg) {
-    const RegisterInfo *reg_info = GetRegisterInfoAtIndex(reg);
+    
 
-    if (reg_info->kinds[source_rk] == source_regnum) {
+    if (const RegisterInfo *reg_info = GetRegisterInfoAtIndex(reg); reg_info->kinds[source_rk] == source_regnum) {
       target_regnum = reg_info->kinds[target_rk];
       return (target_regnum != LLDB_INVALID_REGNUM);
     }

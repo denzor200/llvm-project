@@ -149,8 +149,8 @@ static void formatErrorString(StringRef FormatString,
     const char Next = Pieces.second.front();
     FormatString = Pieces.second.drop_front();
     if (Next >= '0' && Next <= '9') {
-      const unsigned Index = Next - '0';
-      if (Index < Args.size()) {
+      
+      if (const unsigned Index = Next - '0'; Index < Args.size()) {
         OS << Args[Index];
       } else {
         OS << "<Argument_Not_Provided>";

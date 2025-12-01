@@ -735,10 +735,10 @@ SDValue AVRTargetLowering::getAVRCmp(SDValue LHS, SDValue RHS, ISD::CondCode CC,
                                 DAG.getIntPtrConstant(1, DL));
     SDValue RHSlo = DAG.getNode(ISD::EXTRACT_ELEMENT, DL, MVT::i16, RHS,
                                 DAG.getIntPtrConstant(0, DL));
-    SDValue RHShi = DAG.getNode(ISD::EXTRACT_ELEMENT, DL, MVT::i16, RHS,
-                                DAG.getIntPtrConstant(1, DL));
+    
 
-    if (UseTest) {
+    if (SDValue RHShi = DAG.getNode(ISD::EXTRACT_ELEMENT, DL, MVT::i16, RHS,
+                                DAG.getIntPtrConstant(1, DL)); UseTest) {
       // When using tst we only care about the highest part.
       SDValue Top = DAG.getNode(ISD::EXTRACT_ELEMENT, DL, MVT::i8, LHShi,
                                 DAG.getIntPtrConstant(1, DL));
@@ -773,10 +773,10 @@ SDValue AVRTargetLowering::getAVRCmp(SDValue LHS, SDValue RHS, ISD::CondCode CC,
                                DAG.getIntPtrConstant(1, DL));
     SDValue RHS2 = DAG.getNode(ISD::EXTRACT_ELEMENT, DL, MVT::i16, RHS_1,
                                DAG.getIntPtrConstant(0, DL));
-    SDValue RHS3 = DAG.getNode(ISD::EXTRACT_ELEMENT, DL, MVT::i16, RHS_1,
-                               DAG.getIntPtrConstant(1, DL));
+    
 
-    if (UseTest) {
+    if (SDValue RHS3 = DAG.getNode(ISD::EXTRACT_ELEMENT, DL, MVT::i16, RHS_1,
+                               DAG.getIntPtrConstant(1, DL)); UseTest) {
       // When using tst we only care about the highest part.
       SDValue Top = DAG.getNode(ISD::EXTRACT_ELEMENT, DL, MVT::i8, LHS3,
                                 DAG.getIntPtrConstant(1, DL));
@@ -893,8 +893,8 @@ SDValue AVRTargetLowering::LowerINLINEASM(SDValue Op, SelectionDAG &DAG) const {
   SDNode *N = Op.getNode();
   SDValue Glue;
   for (unsigned I = 0; I < N->getNumOperands(); I++) {
-    SDValue Operand = N->getOperand(I);
-    if (Operand.getValueType() == MVT::Glue) {
+    
+    if (SDValue Operand = N->getOperand(I); Operand.getValueType() == MVT::Glue) {
       // The glue operand always needs to be at the end, so we need to treat it
       // specially.
       Glue = Operand;
@@ -955,9 +955,9 @@ SDValue AVRTargetLowering::LowerOperation(SDValue Op, SelectionDAG &DAG) const {
 void AVRTargetLowering::ReplaceNodeResults(SDNode *N,
                                            SmallVectorImpl<SDValue> &Results,
                                            SelectionDAG &DAG) const {
-  SDLoc DL(N);
+  
 
-  switch (N->getOpcode()) {
+  switch (SDLoc DL(N); N->getOpcode()) {
   case ISD::ADD: {
     // Convert add (x, imm) into sub (x, -imm).
     if (const ConstantSDNode *C = dyn_cast<ConstantSDNode>(N->getOperand(1))) {
@@ -1222,9 +1222,9 @@ static void analyzeArguments(TargetLowering::CallLoweringInfo *CLI,
       UseStack = true;
     }
     for (; i != j; ++i) {
-      MVT VT = Args[i].VT;
+      
 
-      if (UseStack) {
+      if (MVT VT = Args[i].VT; UseStack) {
         auto evt = EVT(VT).getTypeForEVT(CCInfo.getContext());
         unsigned Offset = CCInfo.AllocateStack(TD->getTypeAllocSize(evt),
                                                TD->getABITypeAlign(evt));
@@ -1601,11 +1601,11 @@ SDValue AVRTargetLowering::LowerCallResult(
 
   // Assign locations to each value returned by this call.
   SmallVector<CCValAssign, 16> RVLocs;
-  CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(), RVLocs,
-                 *DAG.getContext());
+  
 
   // Handle runtime calling convs.
-  if (CallConv == CallingConv::AVR_BUILTIN) {
+  if (CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(), RVLocs,
+                 *DAG.getContext()); CallConv == CallingConv::AVR_BUILTIN) {
     CCInfo.AnalyzeCallResult(Ins, RetCC_AVR_BUILTIN);
   } else {
     analyzeReturnValues(Ins, CCInfo, Subtarget.hasTinyEncoding());
@@ -1902,8 +1902,8 @@ static void insertMultibyteShift(MachineInstr &MI, MachineBasicBlock *BB,
 
     // Move all registers to the left, zeroing the bottom registers as needed.
     for (size_t I = 0; I < Regs.size(); I++) {
-      int ShiftRegsIdx = I + 1;
-      if (ShiftRegsIdx < (int)ShiftRegs.size()) {
+      
+      if (int ShiftRegsIdx = I + 1; ShiftRegsIdx < (int)ShiftRegs.size()) {
         Regs[I] = ShiftRegs[ShiftRegsIdx];
       } else if (ShiftRegsIdx == (int)ShiftRegs.size()) {
         Regs[I] = std::pair(LowByte, 0);
@@ -1962,8 +1962,8 @@ static void insertMultibyteShift(MachineInstr &MI, MachineBasicBlock *BB,
 
     // Move all to the right, while sign or zero extending.
     for (int I = Regs.size() - 1; I >= 0; I--) {
-      int ShiftRegsIdx = I - (Regs.size() - ShiftRegs.size()) - 1;
-      if (ShiftRegsIdx >= 0) {
+      
+      if (int ShiftRegsIdx = I - (Regs.size() - ShiftRegs.size()) - 1; ShiftRegsIdx >= 0) {
         Regs[I] = ShiftRegs[ShiftRegsIdx];
       } else if (ShiftRegsIdx == -1) {
         Regs[I] = std::pair(HighByte, 0);
@@ -2292,11 +2292,11 @@ MachineBasicBlock *
 AVRTargetLowering::EmitInstrWithCustomInserter(MachineInstr &MI,
                                                MachineBasicBlock *MBB) const {
   int Opc = MI.getOpcode();
-  const AVRSubtarget &STI = MBB->getParent()->getSubtarget<AVRSubtarget>();
+  
 
   // Pseudo shift instructions with a non constant shift amount are expanded
   // into a loop.
-  switch (Opc) {
+  switch (const AVRSubtarget &STI = MBB->getParent()->getSubtarget<AVRSubtarget>(); Opc) {
   case AVR::Lsl8:
   case AVR::Lsl16:
   case AVR::Lsr8:
@@ -2356,12 +2356,12 @@ AVRTargetLowering::EmitInstrWithCustomInserter(MachineInstr &MI,
 
   MachineFunction *MF = MBB->getParent();
   const BasicBlock *LLVM_BB = MBB->getBasicBlock();
-  MachineBasicBlock *FallThrough = MBB->getFallThrough();
+  
 
   // If the current basic block falls through to another basic block,
   // we must insert an unconditional branch to the fallthrough destination
   // if we are to insert basic blocks at the prior fallthrough point.
-  if (FallThrough != nullptr) {
+  if (MachineBasicBlock *FallThrough = MBB->getFallThrough(); FallThrough != nullptr) {
     BuildMI(MBB, dl, TII.get(AVR::RJMPk)).addMBB(FallThrough);
   }
 
@@ -2670,8 +2670,8 @@ void AVRTargetLowering::LowerAsmOperandForConstraint(SDValue Op,
     return;
   }
 
-  char ConstraintLetter = Constraint[0];
-  switch (ConstraintLetter) {
+  
+  switch (char ConstraintLetter = Constraint[0]; ConstraintLetter) {
   default:
     break;
   // Deal with integers first:
@@ -2690,8 +2690,8 @@ void AVRTargetLowering::LowerAsmOperandForConstraint(SDValue Op,
     }
 
     int64_t CVal64 = C->getSExtValue();
-    uint64_t CUVal64 = C->getZExtValue();
-    switch (ConstraintLetter) {
+    
+    switch (uint64_t CUVal64 = C->getZExtValue(); ConstraintLetter) {
     case 'I': // 0..63
       if (!isUInt<6>(CUVal64))
         return;

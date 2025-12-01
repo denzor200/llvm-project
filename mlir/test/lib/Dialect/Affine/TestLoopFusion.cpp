@@ -65,8 +65,8 @@ static bool testDependenceCheck(AffineForOp srcForOp, AffineForOp dstForOp,
                                 unsigned maxLoopDepth) {
   ComputationSliceState sliceUnion;
   for (unsigned d = loopDepth + 1; d <= maxLoopDepth; ++d) {
-    FusionResult result = canFuseLoops(srcForOp, dstForOp, d, &sliceUnion);
-    if (result.value == FusionResult::FailBlockDependence) {
+    
+    if (FusionResult result = canFuseLoops(srcForOp, dstForOp, d, &sliceUnion); result.value == FusionResult::FailBlockDependence) {
       srcForOp->emitRemark("block-level dependence preventing"
                            " fusion of loop nest ")
           << i << " into loop nest " << j << " at depth " << loopDepth;
@@ -117,8 +117,8 @@ static bool testSliceComputation(AffineForOp forOpA, AffineForOp forOpB,
                                  unsigned maxLoopDepth) {
   for (unsigned d = loopDepth + 1; d <= maxLoopDepth; ++d) {
     ComputationSliceState sliceUnion;
-    FusionResult result = canFuseLoops(forOpA, forOpB, d, &sliceUnion);
-    if (result.value == FusionResult::Success) {
+    
+    if (FusionResult result = canFuseLoops(forOpA, forOpB, d, &sliceUnion); result.value == FusionResult::Success) {
       forOpB->emitRemark("slice (")
           << " src loop: " << i << ", dst loop: " << j << ", depth: " << d
           << " : " << getSliceStr(sliceUnion) << ")";

@@ -200,8 +200,8 @@ LogicalResult mlir::scf::peelForLoopAndSimplifyBounds(RewriterBase &rewriter,
                                                       ForOp forOp,
                                                       ForOp &partialIteration) {
   Value previousUb = forOp.getUpperBound();
-  Value splitBound;
-  if (failed(peelForLoop(rewriter, forOp, partialIteration, splitBound)))
+  
+  if (Value splitBound; failed(peelForLoop(rewriter, forOp, partialIteration, splitBound)))
     return failure();
 
   // Rewrite affine.min and affine.max ops.

@@ -71,9 +71,9 @@ void StringCompareCheck::check(const MatchFinder::MatchResult &Result) {
   }
 
   if (const auto *Matched = Result.Nodes.getNodeAs<Stmt>("match2")) {
-    const ASTContext &Ctx = *Result.Context;
+    
 
-    if (const auto *Zero = Result.Nodes.getNodeAs<Stmt>("zero")) {
+    if (const auto *const ASTContext &Ctx = *Result.Context; Zero = Result.Nodes.getNodeAs<Stmt>("zero")) {
       const auto *Str1 = Result.Nodes.getNodeAs<MemberExpr>("str1");
       const auto *Str2 = Result.Nodes.getNodeAs<Stmt>("str2");
       const auto *Compare = Result.Nodes.getNodeAs<Stmt>("compare");

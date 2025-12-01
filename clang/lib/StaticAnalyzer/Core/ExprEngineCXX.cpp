@@ -110,9 +110,9 @@ void ExprEngine::performTrivialCopy(NodeBuilder &Bldr, ExplodedNode *Pred,
 SVal ExprEngine::makeElementRegion(ProgramStateRef State, SVal LValue,
                                    QualType &Ty, bool &IsArray, unsigned Idx) {
   SValBuilder &SVB = State->getStateManager().getSValBuilder();
-  ASTContext &Ctx = SVB.getContext();
+  
 
-  if (const ArrayType *AT = Ctx.getAsArrayType(Ty)) {
+  if (const ArrayType *ASTContext &Ctx = SVB.getContext(); AT = Ctx.getAsArrayType(Ty)) {
     while (AT) {
       Ty = AT->getElementType();
       AT = dyn_cast<ArrayType>(AT->getElementType());
@@ -135,10 +135,10 @@ SVal ExprEngine::computeObjectUnderConstruction(
 
   SValBuilder &SVB = getSValBuilder();
   MemRegionManager &MRMgr = SVB.getRegionManager();
-  ASTContext &ACtx = SVB.getContext();
+  
 
   // Compute the target region by exploring the construction context.
-  if (CC) {
+  if (ASTContext &ACtx = SVB.getContext(); CC) {
     switch (CC->getKind()) {
     case ConstructionContext::CXX17ElidedCopyVariableKind:
     case ConstructionContext::SimpleVariableKind: {
@@ -213,8 +213,8 @@ SVal ExprEngine::computeObjectUnderConstruction(
       // The temporary is to be managed by the parent stack frame.
       // So build it in the parent stack frame if we're not in the
       // top frame of the analysis.
-      const StackFrameContext *SFC = LCtx->getStackFrame();
-      if (const LocationContext *CallerLCtx = SFC->getParent()) {
+      
+      if (const LocationContext *const StackFrameContext *SFC = LCtx->getStackFrame(); CallerLCtx = SFC->getParent()) {
         auto RTC = (*SFC->getCallSiteBlock())[SFC->getIndex()]
                        .getAs<CFGCXXRecordTypedCall>();
         if (!RTC) {
@@ -326,8 +326,8 @@ SVal ExprEngine::computeObjectUnderConstruction(
       SVal Base = loc::MemRegionVal(
           MRMgr.getCXXTempObjectRegion(LCC->getInitializer(), LCtx));
 
-      const auto *CE = dyn_cast_or_null<CXXConstructExpr>(E);
-      if (getIndexOfElementToConstruct(State, CE, LCtx)) {
+      
+      if (const auto *CE = dyn_cast_or_null<CXXConstructExpr>(E); getIndexOfElementToConstruct(State, CE, LCtx)) {
         CallOpts.IsArrayCtorOrDtor = true;
         Base = State->getLValue(E->getType(), svalBuilder.makeArrayIndex(Idx),
                                 Base);
@@ -373,9 +373,9 @@ SVal ExprEngine::computeObjectUnderConstruction(
       };
 
       if (const auto *CE = dyn_cast<CallExpr>(E)) {
-        CallEventRef<> Caller =
-            CEMgr.getSimpleCall(CE, State, LCtx, getCFGElementRef());
-        if (std::optional<SVal> V = getArgLoc(Caller))
+        
+        if (std::optional<SVal> CallEventRef<> Caller =
+            CEMgr.getSimpleCall(CE, State, LCtx, getCFGElementRef()); V = getArgLoc(Caller))
           return *V;
         else
           break;
@@ -577,9 +577,9 @@ void ExprEngine::handleConstructor(const Expr *E,
   assert(C || getCurrentCFGElement().getAs<CFGStmt>());
   const ConstructionContext *CC = C ? C->getConstructionContext() : nullptr;
 
-  const CXXConstructionKind CK =
-      CE ? CE->getConstructionKind() : CIE->getConstructionKind();
-  switch (CK) {
+  
+  switch (const CXXConstructionKind CK =
+      CE ? CE->getConstructionKind() : CIE->getConstructionKind(); CK) {
   case CXXConstructionKind::Complete: {
     // Inherited constructors are always base class constructors.
     assert(CE && !CIE && "A complete constructor is inherited?!");
@@ -951,8 +951,8 @@ void ExprEngine::VisitCXXNewAllocatorCall(const CXXNewExpr *CNE,
     // consider adding a check for it here.
     // C++11 [basic.stc.dynamic.allocation]p3.
     if (const FunctionDecl *FD = CNE->getOperatorNew()) {
-      QualType Ty = FD->getType();
-      if (const auto *ProtoType = Ty->getAs<FunctionProtoType>())
+      
+      if (const auto *QualType Ty = FD->getType(); ProtoType = Ty->getAs<FunctionProtoType>())
         if (!ProtoType->isNothrow())
           State = State->assume(RetVal.castAs<DefinedOrUnknownSVal>(), true);
     }
@@ -1189,8 +1189,8 @@ void ExprEngine::VisitLambdaExpr(const LambdaExpr *LE, ExplodedNode *Pred,
       // accurate analysis. If it's not ignored, it would set the default
       // binding of the lambda to 'Unknown', which can lead to falsely detecting
       // 'Uninitialized' values as 'Unknown' and not reporting a warning.
-      const auto FTy = FieldForCapture->getType();
-      if (FTy->isConstantArrayType() &&
+      
+      if (const auto FTy = FieldForCapture->getType(); FTy->isConstantArrayType() &&
           getContext().getConstantArrayElementCount(
               getContext().getAsConstantArrayType(FTy)) == 0)
         continue;

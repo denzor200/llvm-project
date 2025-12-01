@@ -41,9 +41,9 @@ size_t ABIMacOSX_arm64::GetRedZoneSize() const { return 128; }
 ABISP
 ABIMacOSX_arm64::CreateInstance(ProcessSP process_sp, const ArchSpec &arch) {
   const llvm::Triple::ArchType arch_type = arch.GetTriple().getArch();
-  const llvm::Triple::VendorType vendor_type = arch.GetTriple().getVendor();
+  
 
-  if (vendor_type == llvm::Triple::Apple) {
+  if (const llvm::Triple::VendorType vendor_type = arch.GetTriple().getVendor(); vendor_type == llvm::Triple::Apple) {
     if (arch_type == llvm::Triple::aarch64 ||
         arch_type == llvm::Triple::aarch64_32) {
       return ABISP(
@@ -160,9 +160,9 @@ bool ABIMacOSX_arm64::GetArgumentValues(Thread &thread,
         // Arguments 1-6 are in x0-x5...
         const RegisterInfo *reg_info = nullptr;
         // Search by generic ID first, then fall back to by name
-        uint32_t arg_reg_num = reg_ctx->ConvertRegisterKindToRegisterNumber(
-            eRegisterKindGeneric, LLDB_REGNUM_GENERIC_ARG1 + value_idx);
-        if (arg_reg_num != LLDB_INVALID_REGNUM) {
+        
+        if (uint32_t arg_reg_num = reg_ctx->ConvertRegisterKindToRegisterNumber(
+            eRegisterKindGeneric, LLDB_REGNUM_GENERIC_ARG1 + value_idx); arg_reg_num != LLDB_INVALID_REGNUM) {
           reg_info = reg_ctx->GetRegisterInfoAtIndex(arg_reg_num);
         } else {
           switch (value_idx) {
@@ -194,9 +194,9 @@ bool ABIMacOSX_arm64::GetArgumentValues(Thread &thread,
         }
 
         if (reg_info) {
-          RegisterValue reg_value;
+          
 
-          if (reg_ctx->ReadRegister(reg_info, reg_value)) {
+          if (RegisterValue reg_value; reg_ctx->ReadRegister(reg_info, reg_value)) {
             if (is_signed)
               reg_value.SignExtend(bit_width);
             if (!reg_value.GetScalarValue(value->GetScalar()))
@@ -215,8 +215,8 @@ bool ABIMacOSX_arm64::GetArgumentValues(Thread &thread,
 
         // Arguments 5 on up are on the stack
         const uint32_t arg_byte_size = (bit_width + (8 - 1)) / 8;
-        Status error;
-        if (!exe_ctx.GetProcessRef().ReadScalarIntegerFromMemory(
+        
+        if (Status error; !exe_ctx.GetProcessRef().ReadScalarIntegerFromMemory(
                 sp, arg_byte_size, is_signed, value->GetScalar(), error))
           return false;
 
@@ -267,18 +267,18 @@ ABIMacOSX_arm64::SetReturnValueObject(lldb::StackFrameSP &frame_sp,
     if (type_flags & eTypeIsScalar || type_flags & eTypeIsPointer) {
       if (type_flags & eTypeIsInteger || type_flags & eTypeIsPointer) {
         // Extract the register context so we can read arguments from registers
-        lldb::offset_t offset = 0;
-        if (byte_size <= 16) {
-          const RegisterInfo *x0_info = reg_ctx->GetRegisterInfoByName("x0", 0);
-          if (byte_size <= 8) {
-            uint64_t raw_value = data.GetMaxU64(&offset, byte_size);
+        
+        if (lldb::offset_t offset = 0; byte_size <= 16) {
+          
+          if (const RegisterInfo *x0_info = reg_ctx->GetRegisterInfoByName("x0", 0); byte_size <= 8) {
+            
 
-            if (!reg_ctx->WriteRegisterFromUnsigned(x0_info, raw_value))
+            if (uint64_t raw_value = data.GetMaxU64(&offset, byte_size); !reg_ctx->WriteRegisterFromUnsigned(x0_info, raw_value))
               error = Status::FromErrorString("failed to write register x0");
           } else {
-            uint64_t raw_value = data.GetMaxU64(&offset, 8);
+            
 
-            if (reg_ctx->WriteRegisterFromUnsigned(x0_info, raw_value)) {
+            if (uint64_t raw_value = data.GetMaxU64(&offset, 8); reg_ctx->WriteRegisterFromUnsigned(x0_info, raw_value)) {
               const RegisterInfo *x1_info =
                   reg_ctx->GetRegisterInfoByName("x1", 0);
               raw_value = data.GetMaxU64(&offset, byte_size - offset);
@@ -298,9 +298,9 @@ ABIMacOSX_arm64::SetReturnValueObject(lldb::StackFrameSP &frame_sp,
           error = Status::FromErrorString(
               "returning complex float values are not supported");
         } else {
-          const RegisterInfo *v0_info = reg_ctx->GetRegisterInfoByName("v0", 0);
+          
 
-          if (v0_info) {
+          if (const RegisterInfo *v0_info = reg_ctx->GetRegisterInfoByName("v0", 0); v0_info) {
             if (byte_size <= 16) {
               RegisterValue reg_value;
               error = reg_value.SetValueFromData(*v0_info, data, 0, true);
@@ -320,9 +320,9 @@ ABIMacOSX_arm64::SetReturnValueObject(lldb::StackFrameSP &frame_sp,
       }
     } else if (type_flags & eTypeIsVector) {
       if (byte_size > 0) {
-        const RegisterInfo *v0_info = reg_ctx->GetRegisterInfoByName("v0", 0);
+        
 
-        if (v0_info) {
+        if (const RegisterInfo *v0_info = reg_ctx->GetRegisterInfoByName("v0", 0); v0_info) {
           if (byte_size <= v0_info->byte_size) {
             RegisterValue reg_value;
             error = reg_value.SetValueFromData(*v0_info, data, 0, true);
@@ -603,23 +603,23 @@ ValueObjectSP ABIMacOSX_arm64::GetReturnValueObjectImpl(
     if (type_flags & eTypeIsInteger || type_flags & eTypeIsPointer) {
       // Extract the register context so we can read arguments from registers
       if (*byte_size <= 8) {
-        const RegisterInfo *x0_reg_info =
-            reg_ctx->GetRegisterInfoByName("x0", 0);
-        if (x0_reg_info) {
+        
+        if (const RegisterInfo *x0_reg_info =
+            reg_ctx->GetRegisterInfoByName("x0", 0); x0_reg_info) {
           uint64_t raw_value =
               thread.GetRegisterContext()->ReadRegisterAsUnsigned(x0_reg_info,
                                                                   0);
-          const bool is_signed = (type_flags & eTypeIsSigned) != 0;
-          switch (*byte_size) {
+          
+          switch (const bool is_signed = (type_flags & eTypeIsSigned) != 0; *byte_size) {
           default:
             break;
           case 16: // uint128_t
             // In register x0 and x1
             {
-              const RegisterInfo *x1_reg_info =
-                  reg_ctx->GetRegisterInfoByName("x1", 0);
+              
 
-              if (x1_reg_info) {
+              if (const RegisterInfo *x1_reg_info =
+                  reg_ctx->GetRegisterInfoByName("x1", 0); x1_reg_info) {
                 if (*byte_size <=
                     x0_reg_info->byte_size + x1_reg_info->byte_size) {
                   std::unique_ptr<DataBufferHeap> heap_data_up(
@@ -627,11 +627,11 @@ ValueObjectSP ABIMacOSX_arm64::GetReturnValueObjectImpl(
                   const ByteOrder byte_order =
                       exe_ctx.GetProcessRef().GetByteOrder();
                   RegisterValue x0_reg_value;
-                  RegisterValue x1_reg_value;
-                  if (reg_ctx->ReadRegister(x0_reg_info, x0_reg_value) &&
+                  
+                  if (RegisterValue x1_reg_value; reg_ctx->ReadRegister(x0_reg_info, x0_reg_value) &&
                       reg_ctx->ReadRegister(x1_reg_info, x1_reg_value)) {
-                    Status error;
-                    if (x0_reg_value.GetAsMemoryData(
+                    
+                    if (Status error; x0_reg_value.GetAsMemoryData(
                             *x0_reg_info, heap_data_up->GetBytes() + 0, 8,
                             byte_order, error) &&
                         x1_reg_value.GetAsMemoryData(
@@ -691,12 +691,12 @@ ValueObjectSP ABIMacOSX_arm64::GetReturnValueObjectImpl(
         if (*byte_size <= sizeof(long double)) {
           const RegisterInfo *v0_reg_info =
               reg_ctx->GetRegisterInfoByName("v0", 0);
-          RegisterValue v0_value;
-          if (reg_ctx->ReadRegister(v0_reg_info, v0_value)) {
-            DataExtractor data;
-            if (v0_value.GetData(data)) {
-              lldb::offset_t offset = 0;
-              if (*byte_size == sizeof(float)) {
+          
+          if (RegisterValue v0_value; reg_ctx->ReadRegister(v0_reg_info, v0_value)) {
+            
+            if (DataExtractor data; v0_value.GetData(data)) {
+              
+              if (lldb::offset_t offset = 0; *byte_size == sizeof(float)) {
                 value.GetScalar() = data.GetFloat(&offset);
                 success = true;
               } else if (*byte_size == sizeof(double)) {
@@ -718,17 +718,17 @@ ValueObjectSP ABIMacOSX_arm64::GetReturnValueObjectImpl(
   } else if (type_flags & eTypeIsVector) {
     if (*byte_size > 0) {
 
-      const RegisterInfo *v0_info = reg_ctx->GetRegisterInfoByName("v0", 0);
+      
 
-      if (v0_info) {
+      if (const RegisterInfo *v0_info = reg_ctx->GetRegisterInfoByName("v0", 0); v0_info) {
         if (*byte_size <= v0_info->byte_size) {
           std::unique_ptr<DataBufferHeap> heap_data_up(
               new DataBufferHeap(*byte_size, 0));
           const ByteOrder byte_order = exe_ctx.GetProcessRef().GetByteOrder();
-          RegisterValue reg_value;
-          if (reg_ctx->ReadRegister(v0_info, reg_value)) {
-            Status error;
-            if (reg_value.GetAsMemoryData(*v0_info, heap_data_up->GetBytes(),
+          
+          if (RegisterValue reg_value; reg_ctx->ReadRegister(v0_info, reg_value)) {
+            
+            if (Status error; reg_value.GetAsMemoryData(*v0_info, heap_data_up->GetBytes(),
                                           heap_data_up->GetByteSize(),
                                           byte_order, error)) {
               DataExtractor data(DataBufferSP(heap_data_up.release()),
@@ -746,8 +746,8 @@ ValueObjectSP ABIMacOSX_arm64::GetReturnValueObjectImpl(
 
     uint32_t NGRN = 0; // Search ABI docs for NGRN
     uint32_t NSRN = 0; // Search ABI docs for NSRN
-    const bool is_return_value = true;
-    if (LoadValueFromConsecutiveGPRRegisters(
+    
+    if (const bool is_return_value = true; LoadValueFromConsecutiveGPRRegisters(
             exe_ctx, reg_ctx, return_compiler_type, is_return_value, NGRN, NSRN,
             data)) {
       return_valobj_sp = ValueObjectConstResult::Create(
@@ -772,9 +772,9 @@ static addr_t DoFixAddr(addr_t addr, bool is_code, ProcessSP process_sp) {
     mask = tbi_mask;
 
   if (addr & pac_sign_extension) {
-    addr_t highmem_mask = is_code ? process_sp->GetHighmemCodeAddressMask()
-                                  : process_sp->GetHighmemCodeAddressMask();
-    if (highmem_mask != LLDB_INVALID_ADDRESS_MASK)
+    
+    if (addr_t highmem_mask = is_code ? process_sp->GetHighmemCodeAddressMask()
+                                  : process_sp->GetHighmemCodeAddressMask(); highmem_mask != LLDB_INVALID_ADDRESS_MASK)
       return addr | highmem_mask;
     return addr | mask;
   }

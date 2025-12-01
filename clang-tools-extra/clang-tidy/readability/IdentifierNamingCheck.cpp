@@ -349,8 +349,8 @@ std::string IdentifierNamingCheck::HungarianNotation::getDeclTypeName(
     TypeName = Type.erase(0, Type.find_first_not_of(' '));
 
     // Remove template parameters
-    const size_t Pos = Type.find('<');
-    if (Pos != std::string::npos) {
+    
+    if (const size_t Pos = Type.find('<'); Pos != std::string::npos) {
       TypeName = Type.erase(Pos, Type.size() - Pos);
     }
 
@@ -377,8 +377,8 @@ std::string IdentifierNamingCheck::HungarianNotation::getDeclTypeName(
         " int", " char", " double", " long", " short"};
     bool RedundantRemoved = false;
     for (auto Kw : TailsOfMultiWordType) {
-      const size_t Pos = Type.rfind(Kw);
-      if (Pos != std::string::npos) {
+      
+      if (const size_t Pos = Type.rfind(Kw); Pos != std::string::npos) {
         const size_t PtrCount = getAsteriskCount(Type, ND);
         Type = Type.substr(0, Pos + Kw.size() + PtrCount);
         RedundantRemoved = true;
@@ -388,8 +388,8 @@ std::string IdentifierNamingCheck::HungarianNotation::getDeclTypeName(
 
     TypeName = Type.erase(0, Type.find_first_not_of(' '));
     if (!RedundantRemoved) {
-      const std::size_t FoundSpace = Type.find(' ');
-      if (FoundSpace != std::string::npos)
+      
+      if (const std::size_t FoundSpace = Type.find(' '); FoundSpace != std::string::npos)
         Type = Type.substr(0, FoundSpace);
     }
 
@@ -457,8 +457,8 @@ void IdentifierNamingCheck::HungarianNotation::loadFileConfig(
   for (const auto &Opt : HNOpts) {
     Buffer.truncate(DefSize);
     Buffer.append(Opt);
-    const StringRef Val = Options.get(Buffer, "");
-    if (!Val.empty())
+    
+    if (const StringRef Val = Options.get(Buffer, ""); !Val.empty())
       HNOption.General[Opt] = Val.str();
   }
 
@@ -467,8 +467,8 @@ void IdentifierNamingCheck::HungarianNotation::loadFileConfig(
   for (const auto &Type : HNDerivedTypes) {
     Buffer.truncate(DefSize);
     Buffer.append(Type);
-    const StringRef Val = Options.get(Buffer, "");
-    if (!Val.empty())
+    
+    if (const StringRef Val = Options.get(Buffer, ""); !Val.empty())
       HNOption.DerivedType[Type] = Val.str();
   }
 
@@ -483,8 +483,8 @@ void IdentifierNamingCheck::HungarianNotation::loadFileConfig(
   for (const auto &CStr : HNCStrings) {
     Buffer.truncate(DefSize);
     Buffer.append(CStr.first);
-    const StringRef Val = Options.get(Buffer, "");
-    if (!Val.empty())
+    
+    if (const StringRef Val = Options.get(Buffer, ""); !Val.empty())
       HNOption.CString[CStr.second] = Val.str();
   }
 
@@ -493,8 +493,8 @@ void IdentifierNamingCheck::HungarianNotation::loadFileConfig(
   for (const auto &PrimType : HungarianNotationPrimitiveTypes) {
     Buffer.truncate(DefSize);
     Buffer.append(PrimType);
-    const StringRef Val = Options.get(Buffer, "");
-    if (!Val.empty()) {
+    
+    if (const StringRef Val = Options.get(Buffer, ""); !Val.empty()) {
       std::string Type = PrimType.str();
       llvm::replace(Type, '-', ' ');
       HNOption.PrimitiveType[Type] = Val.str();
@@ -506,8 +506,8 @@ void IdentifierNamingCheck::HungarianNotation::loadFileConfig(
   for (const auto &Type : HungarianNotationUserDefinedTypes) {
     Buffer.truncate(DefSize);
     Buffer.append(Type);
-    const StringRef Val = Options.get(Buffer, "");
-    if (!Val.empty())
+    
+    if (const StringRef Val = Options.get(Buffer, ""); !Val.empty())
       HNOption.UserDefinedType[Type] = Val.str();
   }
 }
@@ -527,8 +527,8 @@ std::string IdentifierNamingCheck::HungarianNotation::getPrefix(
   } else if (const auto *CRD = dyn_cast<CXXRecordDecl>(ND)) {
     Prefix = getClassPrefix(CRD, HNOption);
   } else if (isa<VarDecl, FieldDecl, RecordDecl>(ND)) {
-    const std::string TypeName = getDeclTypeName(ND);
-    if (!TypeName.empty())
+    
+    if (const std::string TypeName = getDeclTypeName(ND); !TypeName.empty())
       Prefix = getDataTypePrefix(TypeName, ND, HNOption);
   }
 
@@ -569,8 +569,8 @@ std::string IdentifierNamingCheck::HungarianNotation::getDataTypePrefix(
   // Derived types
   std::string PrefixStr;
   if (const auto *TD = dyn_cast<ValueDecl>(ND)) {
-    const QualType QT = TD->getType();
-    if (QT->isFunctionPointerType()) {
+    
+    if (const QualType QT = TD->getType(); QT->isFunctionPointerType()) {
       PrefixStr = HNOption.DerivedType.lookup("FunctionPointer");
     } else if (QT->isPointerType()) {
       for (const auto &CStr : HNOption.CString) {
@@ -593,8 +593,8 @@ std::string IdentifierNamingCheck::HungarianNotation::getDataTypePrefix(
       if (PrefixStr.empty())
         PrefixStr = HNOption.DerivedType.lookup("Array");
     } else if (QT->isReferenceType()) {
-      const size_t Pos = ModifiedTypeName.find_last_of('&');
-      if (Pos != std::string::npos)
+      
+      if (const size_t Pos = ModifiedTypeName.find_last_of('&'); Pos != std::string::npos)
         ModifiedTypeName = ModifiedTypeName.substr(0, Pos);
     }
   }
@@ -711,8 +711,8 @@ size_t IdentifierNamingCheck::HungarianNotation::getAsteriskCount(
     const std::string &TypeName, const NamedDecl *ND) const {
   size_t PtrCount = 0;
   if (const auto *TD = dyn_cast<ValueDecl>(ND)) {
-    const QualType QT = TD->getType();
-    if (QT->isPointerType())
+    
+    if (const QualType QT = TD->getType(); QT->isPointerType())
       PtrCount = getAsteriskCount(TypeName);
   }
   return PtrCount;
@@ -885,8 +885,8 @@ bool IdentifierNamingCheck::matchesStyle(
   if (!Name.consume_back(Style.Suffix))
     return false;
   if (IdentifierNamingCheck::HungarianPrefixType::HPT_Off != Style.HPType) {
-    const std::string HNPrefix = HungarianNotation.getPrefix(Decl, HNOption);
-    if (!HNPrefix.empty()) {
+    
+    if (const std::string HNPrefix = HungarianNotation.getPrefix(Decl, HNOption); !HNPrefix.empty()) {
       if (!Name.consume_front(HNPrefix))
         return false;
       if (Style.HPType ==
@@ -1199,8 +1199,8 @@ StyleKind IdentifierNamingCheck::findStyleKind(
 
   if (const auto *Decl = dyn_cast<FieldDecl>(D)) {
     if (CheckAnonFieldInParentScope) {
-      const RecordDecl *Record = Decl->getParent();
-      if (Record->isAnonymousStructOrUnion()) {
+      
+      if (const RecordDecl *Record = Decl->getParent(); Record->isAnonymousStructOrUnion()) {
         return findStyleKindForAnonField(Decl, NamingStyles);
       }
     }

@@ -88,9 +88,9 @@ Error BinaryStreamReader::readCString(StringRef &Dest) {
   assert(FoundOffset >= OriginalOffset);
 
   setOffset(OriginalOffset);
-  size_t Length = FoundOffset - OriginalOffset;
+  
 
-  if (auto EC = readFixedString(Dest, Length))
+  if (auto size_t Length = FoundOffset - OriginalOffset; EC = readFixedString(Dest, Length))
     return EC;
 
   // Now set the offset back to after the null terminator.

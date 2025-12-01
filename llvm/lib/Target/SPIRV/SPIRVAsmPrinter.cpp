@@ -129,8 +129,8 @@ void SPIRVAsmPrinter::emitEndOfAsmFile(Module &M) {
   uint32_t Minor = SPIRVVersion.getMinor().value_or(0);
   // Bound is an approximation that accounts for the maximum used register
   // number and number of generated OpLabels
-  unsigned Bound = 2 * (ST->getBound() + 1) + NLabels;
-  if (MCAssembler *Asm = OutStreamer->getAssemblerPtr())
+  
+  if (MCAssembler *unsigned Bound = 2 * (ST->getBound() + 1) + NLabels; Asm = OutStreamer->getAssemblerPtr())
     static_cast<SPIRVObjectWriter &>(Asm->getWriter())
         .setBuildVersion(Major, Minor, Bound);
 
@@ -211,9 +211,9 @@ void SPIRVAsmPrinter::emitBasicBlockStart(const MachineBasicBlock &MBB) {
 
 void SPIRVAsmPrinter::printOperand(const MachineInstr *MI, int OpNum,
                                    raw_ostream &O) {
-  const MachineOperand &MO = MI->getOperand(OpNum);
+  
 
-  switch (MO.getType()) {
+  switch (const MachineOperand &MO = MI->getOperand(OpNum); MO.getType()) {
   case MachineOperand::MO_Register:
     O << SPIRVInstPrinter::getRegisterName(MO.getReg());
     break;
@@ -285,8 +285,8 @@ void SPIRVAsmPrinter::emitInstruction(const MachineInstr *MI) {
     outputInstruction(MI);
 
   // Output OpLabel after OpFunction and OpFunctionParameter in the first MBB.
-  const MachineInstr *NextMI = MI->getNextNode();
-  if (!LabeledMBB.contains(MI->getParent()) && isFuncOrHeaderInstr(MI, TII) &&
+  
+  if (const MachineInstr *NextMI = MI->getNextNode(); !LabeledMBB.contains(MI->getParent()) && isFuncOrHeaderInstr(MI, TII) &&
       (!NextMI || !isFuncOrHeaderInstr(NextMI, TII))) {
     assert(MI->getParent()->getNumber() == MF->front().getNumber() &&
            "OpFunction is not in the front MBB of MF");
@@ -349,13 +349,13 @@ void SPIRVAsmPrinter::outputEntryPoints() {
   DenseSet<MCRegister> InterfaceIDs;
   for (const MachineInstr *MI : MAI->GlobalVarList) {
     assert(MI->getOpcode() == SPIRV::OpVariable);
-    auto SC = static_cast<SPIRV::StorageClass::StorageClass>(
-        MI->getOperand(2).getImm());
+    
     // Before version 1.4, the interface's storage classes are limited to
     // the Input and Output storage classes. Starting with version 1.4,
     // the interface's storage classes are all storage classes used in
     // declaring all global variables referenced by the entry point call tree.
-    if (ST->isAtLeastSPIRVVer(VersionTuple(1, 4)) ||
+    if (auto SC = static_cast<SPIRV::StorageClass::StorageClass>(
+        MI->getOperand(2).getImm()); ST->isAtLeastSPIRVVer(VersionTuple(1, 4)) ||
         SC == SPIRV::StorageClass::Input || SC == SPIRV::StorageClass::Output) {
       const MachineFunction *MF = MI->getMF();
       MCRegister Reg = MAI->getRegisterAlias(MF, MI->getOperand(0).getReg());
@@ -445,8 +445,8 @@ static void addOpsFromMDNode(MDNode *MDN, MCInst &Inst,
                              SPIRV::ModuleAnalysisInfo *MAI) {
   for (const MDOperand &MDOp : MDN->operands()) {
     if (auto *CMeta = dyn_cast<ConstantAsMetadata>(MDOp)) {
-      Constant *C = CMeta->getValue();
-      if (ConstantInt *Const = dyn_cast<ConstantInt>(C)) {
+      
+      if (ConstantInt *Constant *C = CMeta->getValue(); Const = dyn_cast<ConstantInt>(C)) {
         Inst.addOperand(MCOperand::createImm(Const->getZExtValue()));
       } else if (auto *CE = dyn_cast<Function>(C)) {
         MCRegister FuncReg = MAI->getFuncReg(CE);
@@ -467,8 +467,8 @@ void SPIRVAsmPrinter::outputExecutionModeFromMDNode(
   addOpsFromMDNode(Node, Inst, MAI);
   // reqd_work_group_size and work_group_size_hint require 3 operands,
   // if metadata contains less operands, just add a default value
-  unsigned NodeSz = Node->getNumOperands();
-  if (ExpectMDOps > 0 && NodeSz < ExpectMDOps)
+  
+  if (unsigned NodeSz = Node->getNumOperands(); ExpectMDOps > 0 && NodeSz < ExpectMDOps)
     for (unsigned i = NodeSz; i < ExpectMDOps; ++i)
       Inst.addOperand(MCOperand::createImm(DefVal));
   outputMCInst(Inst);
@@ -512,19 +512,19 @@ void SPIRVAsmPrinter::outputExecutionModeFromEnableMaximalReconvergenceAttr(
 }
 
 void SPIRVAsmPrinter::outputExecutionMode(const Module &M) {
-  NamedMDNode *Node = M.getNamedMetadata("spirv.ExecutionMode");
-  if (Node) {
+  
+  if (NamedMDNode *Node = M.getNamedMetadata("spirv.ExecutionMode"); Node) {
     for (unsigned i = 0; i < Node->getNumOperands(); i++) {
       // If SPV_KHR_float_controls2 is enabled and we find any of
       // FPFastMathDefault, ContractionOff or SignedZeroInfNanPreserve execution
       // modes, skip it, it'll be done somewhere else.
       if (ST->canUseExtension(SPIRV::Extension::SPV_KHR_float_controls2)) {
-        const auto EM =
+        
+        if (const auto EM =
             cast<ConstantInt>(
                 cast<ConstantAsMetadata>((Node->getOperand(i))->getOperand(1))
                     ->getValue())
-                ->getZExtValue();
-        if (EM == SPIRV::ExecutionMode::FPFastMathDefault ||
+                ->getZExtValue(); EM == SPIRV::ExecutionMode::FPFastMathDefault ||
             EM == SPIRV::ExecutionMode::ContractionOff ||
             EM == SPIRV::ExecutionMode::SignedZeroInfNanPreserve)
           continue;
@@ -620,8 +620,8 @@ void SPIRVAsmPrinter::outputExecutionMode(const Module &M) {
           // Collect the SPIRV type if it's a float.
           if (OpCode == SPIRV::OpTypeFloat) {
             // Skip if the target type is not fp16, fp32, fp64.
-            const unsigned OpTypeFloatSize = MI->getOperand(1).getImm();
-            if (OpTypeFloatSize != 16 && OpTypeFloatSize != 32 &&
+            
+            if (const unsigned OpTypeFloatSize = MI->getOperand(1).getImm(); OpTypeFloatSize != 16 && OpTypeFloatSize != 32 &&
                 OpTypeFloatSize != 64) {
               continue;
             }
@@ -633,10 +633,10 @@ void SPIRVAsmPrinter::outputExecutionMode(const Module &M) {
             // Check if the constant is int32, if not skip it.
             const MachineRegisterInfo &MRI = MI->getMF()->getRegInfo();
             MachineInstr *TypeMI = MRI.getVRegDef(MI->getOperand(1).getReg());
-            bool IsInt32Ty = TypeMI &&
+            
+            if (bool IsInt32Ty = TypeMI &&
                              TypeMI->getOpcode() == SPIRV::OpTypeInt &&
-                             TypeMI->getOperand(1).getImm() == 32;
-            if (IsInt32Ty)
+                             TypeMI->getOperand(1).getImm() == 32; IsInt32Ty)
               ConstZeroInt32 = MI;
           }
         }
@@ -740,8 +740,8 @@ void SPIRVAsmPrinter::outputFPFastMathDefaultInfo() {
     } else {
       // Check if the constant is int32, if not skip it.
       const MachineRegisterInfo &MRI = MI->getMF()->getRegInfo();
-      MachineInstr *TypeMI = MRI.getVRegDef(MI->getOperand(1).getReg());
-      if (!TypeMI || TypeMI->getOpcode() != SPIRV::OpTypeInt ||
+      
+      if (MachineInstr *TypeMI = MRI.getVRegDef(MI->getOperand(1).getReg()); !TypeMI || TypeMI->getOpcode() != SPIRV::OpTypeInt ||
           TypeMI->getOperand(1).getImm() != 32)
         continue;
 

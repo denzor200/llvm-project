@@ -384,8 +384,8 @@ static void fillInBoundsForUnknownDimensions(Operation *dataClauseOp,
   // For types that have unknown dimensions, attempt to generate bounds by
   // relying on MappableType being able to extract it from the IR.
   auto var = acc::getVar(dataClauseOp);
-  auto type = var.getType();
-  if (auto mappableTy = dyn_cast<acc::MappableType>(type)) {
+  
+  if (auto auto type = var.getType(); mappableTy = dyn_cast<acc::MappableType>(type)) {
     if (mappableTy.hasUnknownDimensions()) {
       TypeSwitch<Operation *>(dataClauseOp)
           .Case<ACC_DATA_ENTRY_OPS, ACC_DATA_EXIT_OPS>([&](auto dataClauseOp) {
@@ -393,8 +393,8 @@ static void fillInBoundsForUnknownDimensions(Operation *dataClauseOp,
               return;
             OpBuilder::InsertionGuard guard(builder);
             builder.setInsertionPoint(dataClauseOp);
-            auto bounds = mappableTy.generateAccBounds(var, builder);
-            if (!bounds.empty())
+            
+            if (auto bounds = mappableTy.generateAccBounds(var, builder); !bounds.empty())
               dataClauseOp.getBoundsMutable().assign(bounds);
           });
     }
@@ -410,8 +410,8 @@ ACCImplicitData::generatePrivateRecipe(ModuleOp &module, Value var,
       accSupport.getRecipeName(acc::RecipeKind::private_recipe, type, var);
 
   // Check if recipe already exists
-  auto existingRecipe = module.lookupSymbol<acc::PrivateRecipeOp>(recipeName);
-  if (existingRecipe)
+  
+  if (auto existingRecipe = module.lookupSymbol<acc::PrivateRecipeOp>(recipeName); existingRecipe)
     return existingRecipe;
 
   // Set insertion point to module body in a scoped way
@@ -434,9 +434,9 @@ ACCImplicitData::generateFirstprivateRecipe(ModuleOp &module, Value var,
       accSupport.getRecipeName(acc::RecipeKind::firstprivate_recipe, type, var);
 
   // Check if recipe already exists
-  auto existingRecipe =
-      module.lookupSymbol<acc::FirstprivateRecipeOp>(recipeName);
-  if (existingRecipe)
+  
+  if (auto existingRecipe =
+      module.lookupSymbol<acc::FirstprivateRecipeOp>(recipeName); existingRecipe)
     return existingRecipe;
 
   // Set insertion point to module body in a scoped way
@@ -455,18 +455,18 @@ void ACCImplicitData::generateRecipes(ModuleOp &module, OpBuilder &builder,
                                       const SmallVector<Value> &newOperands) {
   auto &accSupport = this->getAnalysis<acc::OpenACCSupport>();
   for (auto var : newOperands) {
-    auto loc{var.getLoc()};
-    if (auto privateOp = dyn_cast<acc::PrivateOp>(var.getDefiningOp())) {
-      auto recipe = generatePrivateRecipe(
-          module, acc::getVar(var.getDefiningOp()), loc, builder, accSupport);
-      if (recipe)
+    
+    if (auto auto loc{var.getLoc()}; privateOp = dyn_cast<acc::PrivateOp>(var.getDefiningOp())) {
+      
+      if (auto recipe = generatePrivateRecipe(
+          module, acc::getVar(var.getDefiningOp()), loc, builder, accSupport); recipe)
         privateOp.setRecipeAttr(
             SymbolRefAttr::get(module->getContext(), recipe.getSymName()));
     } else if (auto firstprivateOp =
                    dyn_cast<acc::FirstprivateOp>(var.getDefiningOp())) {
-      auto recipe = generateFirstprivateRecipe(
-          module, acc::getVar(var.getDefiningOp()), loc, builder, accSupport);
-      if (recipe)
+      
+      if (auto recipe = generateFirstprivateRecipe(
+          module, acc::getVar(var.getDefiningOp()), loc, builder, accSupport); recipe)
         firstprivateOp.setRecipeAttr(SymbolRefAttr::get(
             module->getContext(), recipe.getSymName().str()));
     } else {
@@ -663,8 +663,8 @@ generateDataExitOperations(OpBuilder &builder, Operation *accOp,
     if (lastDataClause)
       if (auto *dataExitOp = findDataExitOp(lastDataClause.getDefiningOp()))
         builder.setInsertionPointAfter(dataExitOp);
-    Operation *dataEntryOp = dataEntry.getDefiningOp();
-    if (isa<acc::CopyinOp>(dataEntryOp)) {
+    
+    if (Operation *dataEntryOp = dataEntry.getDefiningOp(); isa<acc::CopyinOp>(dataEntryOp)) {
       auto copyoutOp = acc::CopyoutOp::create(
           builder, dataEntryOp->getLoc(), dataEntry, acc::getVar(dataEntryOp),
           /*structured=*/true, /*implicit=*/true,

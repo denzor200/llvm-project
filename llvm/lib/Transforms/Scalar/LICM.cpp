@@ -347,10 +347,10 @@ PreservedAnalyses LNICMPass::run(LoopNest &LN, LoopAnalysisManager &AM,
                                Opts.AllowSpeculation);
 
   Loop &OutermostLoop = LN.getOutermostLoop();
-  bool Changed = LICM.runOnLoop(&OutermostLoop, &AR.AA, &AR.LI, &AR.DT, &AR.AC,
-                                &AR.TLI, &AR.TTI, &AR.SE, AR.MSSA, &ORE, true);
+  
 
-  if (!Changed)
+  if (bool Changed = LICM.runOnLoop(&OutermostLoop, &AR.AA, &AR.LI, &AR.DT, &AR.AC,
+                                &AR.TLI, &AR.TTI, &AR.SE, AR.MSSA, &ORE, true); !Changed)
     return PreservedAnalyses::all();
 
   auto PA = getLoopPassPreservedAnalyses();
@@ -1021,14 +1021,14 @@ bool llvm::hoistRegion(DomTreeNode *N, AAResults *AA, LoopInfo *LI,
   // which ensures that when we rehoist an instruction we rehoist its operands,
   // and also keep track of where in the block we are rehoisting to make sure
   // that we rehoist instructions before the instructions that use them.
-  Instruction *HoistPoint = nullptr;
-  if (ControlFlowHoisting) {
+  
+  if (Instruction *HoistPoint = nullptr; ControlFlowHoisting) {
     for (Instruction *I : reverse(HoistedInstructions)) {
       if (!llvm::all_of(I->uses(),
                         [&](Use &U) { return DT->dominates(I, U); })) {
-        BasicBlock *Dominator =
-            DT->getNode(I->getParent())->getIDom()->getBlock();
-        if (!HoistPoint || !DT->dominates(HoistPoint->getParent(), Dominator)) {
+        
+        if (BasicBlock *Dominator =
+            DT->getNode(I->getParent())->getIDom()->getBlock(); !HoistPoint || !DT->dominates(HoistPoint->getParent(), Dominator)) {
           if (HoistPoint)
             assert(DT->dominates(Dominator, HoistPoint->getParent()) &&
                    "New hoist point expected to dominate old hoist point");
@@ -1141,8 +1141,8 @@ static bool isOnlyMemoryAccess(const Instruction *I, const Loop *L,
       for (const auto &Acc : *Accs) {
         if (isa<MemoryPhi>(&Acc))
           continue;
-        const auto *MUD = cast<MemoryUseOrDef>(&Acc);
-        if (MUD->getMemoryInst() != I || NotAPhi++ == 1)
+        
+        if (const auto *MUD = cast<MemoryUseOrDef>(&Acc); MUD->getMemoryInst() != I || NotAPhi++ == 1)
           return false;
       }
     }
@@ -1172,9 +1172,9 @@ bool llvm::canSinkOrHoistInst(Instruction &I, AAResults *AA, DominatorTree *DT,
   if (!isHoistableAndSinkableInst(I))
     return false;
 
-  MemorySSA *MSSA = MSSAU.getMemorySSA();
+  
   // Loads have extra constraints we have to verify before we can hoist them.
-  if (LoadInst *LI = dyn_cast<LoadInst>(&I)) {
+  if (LoadInst *MemorySSA *MSSA = MSSAU.getMemorySSA(); LI = dyn_cast<LoadInst>(&I)) {
     if (!LI->isUnordered())
       return false; // Don't sink/hoist volatile or ordered atomic loads!
 
@@ -1301,17 +1301,17 @@ static bool isTriviallyReplaceablePHI(const PHINode &PN, const Instruction &I) {
 static bool isFoldableInLoop(const Instruction &I, const Loop *CurLoop,
                          const TargetTransformInfo *TTI) {
   if (auto *GEP = dyn_cast<GetElementPtrInst>(&I)) {
-    InstructionCost CostI =
-        TTI->getInstructionCost(&I, TargetTransformInfo::TCK_SizeAndLatency);
-    if (CostI != TargetTransformInfo::TCC_Free)
+    
+    if (InstructionCost CostI =
+        TTI->getInstructionCost(&I, TargetTransformInfo::TCK_SizeAndLatency); CostI != TargetTransformInfo::TCC_Free)
       return false;
     // For a GEP, we cannot simply use getInstructionCost because currently
     // it optimistically assumes that a GEP will fold into addressing mode
     // regardless of its users.
     const BasicBlock *BB = GEP->getParent();
     for (const User *U : GEP->users()) {
-      const Instruction *UI = cast<Instruction>(U);
-      if (CurLoop->contains(UI) &&
+      
+      if (const Instruction *UI = cast<Instruction>(U); CurLoop->contains(UI) &&
           (BB != UI->getParent() ||
            (!isa<StoreInst>(UI) && !isa<LoadInst>(UI))))
         return false;
@@ -1394,8 +1394,8 @@ static Instruction *cloneInstructionInExitBlock(
       const ColorVector &CV = BlockColors.find(&ExitBlock)->second;
       assert(CV.size() == 1 && "non-unique color for exit block!");
       BasicBlock *BBColor = CV.front();
-      BasicBlock::iterator EHPad = BBColor->getFirstNonPHIIt();
-      if (EHPad->isEHPad())
+      
+      if (BasicBlock::iterator EHPad = BBColor->getFirstNonPHIIt(); EHPad->isEHPad())
         OpBundles.emplace_back("funclet", &*EHPad);
     }
 
@@ -1413,10 +1413,10 @@ static Instruction *cloneInstructionInExitBlock(
     // Create a new MemoryAccess and let MemorySSA set its defining access.
     // After running some passes, MemorySSA might be outdated, and the
     // instruction `I` may have become a non-memory touching instruction.
-    MemoryAccess *NewMemAcc = MSSAU.createMemoryAccessInBB(
+    
+    if (MemoryAccess *NewMemAcc = MSSAU.createMemoryAccessInBB(
         New, nullptr, New->getParent(), MemorySSA::Beginning,
-        /*CreationMustSucceed=*/false);
-    if (NewMemAcc) {
+        /*CreationMustSucceed=*/false); NewMemAcc) {
       if (auto *MemDef = dyn_cast<MemoryDef>(NewMemAcc))
         MSSAU.insertDef(MemDef, /*RenameUses=*/true);
       else {
@@ -1554,12 +1554,12 @@ static void splitPredecessorsOfLoopExit(PHINode *PN, DominatorTree *DT,
     assert(CurLoop->contains(PredBB) &&
            "Expect all predecessors are in the loop");
     if (PN->getBasicBlockIndex(PredBB) >= 0) {
-      BasicBlock *NewPred = SplitBlockPredecessors(
-          ExitBB, PredBB, ".split.loop.exit", &DTU, LI, MSSAU, true);
+      
       // Since we do not allow splitting EH-block with BlockColors in
       // canSplitPredecessors(), we can simply assign predecessor's color to
       // the new block.
-      if (!BlockColors.empty())
+      if (BasicBlock *NewPred = SplitBlockPredecessors(
+          ExitBB, PredBB, ".split.loop.exit", &DTU, LI, MSSAU, true); !BlockColors.empty())
         // Grab a reference to the ColorVector to be inserted before getting the
         // reference to the vector we are copying because inserting the new
         // element in BlockColors might cause the map to be reallocated.
@@ -1603,8 +1603,8 @@ static bool sink(Instruction &I, LoopInfo *LI, DominatorTree *DT,
     // Surprisingly, instructions can be used outside of loops without any
     // exits.  This can only happen in PHI nodes if the incoming block is
     // unreachable.
-    BasicBlock *BB = PN->getIncomingBlock(U);
-    if (!DT->isReachableFromEntry(BB)) {
+    
+    if (BasicBlock *BB = PN->getIncomingBlock(U); !DT->isReachableFromEntry(BB)) {
       U = PoisonValue::get(I.getType());
       Changed = true;
       continue;
@@ -1740,8 +1740,8 @@ static bool isSafeToExecuteUnconditionally(
       SafetyInfo->isGuaranteedToExecute(Inst, DT, CurLoop);
 
   if (!GuaranteedToExecute) {
-    auto *LI = dyn_cast<LoadInst>(&Inst);
-    if (LI && CurLoop->isLoopInvariant(LI->getPointerOperand()))
+    
+    if (auto *LI = dyn_cast<LoadInst>(&Inst); LI && CurLoop->isLoopInvariant(LI->getPointerOperand()))
       ORE->emit([&]() {
         return OptimizationRemarkMissed(
                    DEBUG_TYPE, "LoadWithLoopInvariantAddressCondExecuted", LI)
@@ -2006,8 +2006,8 @@ bool llvm::promoteLoopAccessesToScalars(
     // we have to prove that the store is dead along the unwind edge.  We do
     // this by proving that the caller can't have a reference to the object
     // after return and thus can't possibly load from the object.
-    Value *Object = getUnderlyingObject(SomePtr);
-    if (!isNotVisibleOnUnwindInLoop(Object, CurLoop, DT))
+    
+    if (Value *Object = getUnderlyingObject(SomePtr); !isNotVisibleOnUnwindInLoop(Object, CurLoop, DT))
       StoreSafety = StoreUnsafe;
   }
 
@@ -2140,8 +2140,8 @@ bool llvm::promoteLoopAccessesToScalars(
   // violating the memory model.
   if (StoreSafety == StoreSafetyUnknown) {
     Value *Object = getUnderlyingObject(SomePtr);
-    bool ExplicitlyDereferenceableOnly;
-    if (isWritableObject(Object, ExplicitlyDereferenceableOnly) &&
+    
+    if (bool ExplicitlyDereferenceableOnly; isWritableObject(Object, ExplicitlyDereferenceableOnly) &&
         (!ExplicitlyDereferenceableOnly ||
          isDereferenceablePointer(SomePtr, AccessTy, MDL)) &&
         isThreadLocalObject(Object, CurLoop, DT, TTI))
@@ -2316,9 +2316,9 @@ static bool noConflictingReadWrites(Instruction *I, MemorySSA *MSSA,
 
   auto *IMD = MSSA->getMemoryAccess(I);
   BatchAAResults BAA(*AA);
-  auto *Source = getClobberingMemoryAccess(*MSSA, BAA, Flags, IMD);
+  
   // Make sure there are no clobbers inside the loop.
-  if (!MSSA->isLiveOnEntryDef(Source) && CurLoop->contains(Source->getBlock()))
+  if (auto *Source = getClobberingMemoryAccess(*MSSA, BAA, Flags, IMD); !MSSA->isLiveOnEntryDef(Source) && CurLoop->contains(Source->getBlock()))
     return false;
 
   // If there are interfering Uses (i.e. their defining access is in the
@@ -2332,9 +2332,9 @@ static bool noConflictingReadWrites(Instruction *I, MemorySSA *MSSA,
       continue;
     for (const auto &MA : *Accesses)
       if (const auto *MU = dyn_cast<MemoryUse>(&MA)) {
-        auto *MD = getClobberingMemoryAccess(*MSSA, BAA, Flags,
-                                             const_cast<MemoryUse *>(MU));
-        if (!MSSA->isLiveOnEntryDef(MD) && CurLoop->contains(MD->getBlock()))
+        
+        if (auto *MD = getClobberingMemoryAccess(*MSSA, BAA, Flags,
+                                             const_cast<MemoryUse *>(MU)); !MSSA->isLiveOnEntryDef(MD) && CurLoop->contains(MD->getBlock()))
           return false;
         // Disable hoisting past potentially interfering loads. Optimized
         // Uses may point to an access outside the loop, as getClobbering
@@ -2954,8 +2954,8 @@ static bool hoistArithmetics(Instruction &I, Loop &L,
     return true;
   }
 
-  bool IsInt = I.getType()->isIntOrIntVectorTy();
-  if (hoistMulAddAssociation(I, L, SafetyInfo, MSSAU, AC, DT)) {
+  
+  if (bool IsInt = I.getType()->isIntOrIntVectorTy(); hoistMulAddAssociation(I, L, SafetyInfo, MSSAU, AC, DT)) {
     ++NumHoisted;
     if (IsInt)
       ++NumIntAssociationsHoisted;

@@ -64,8 +64,8 @@ ExprDependence clang::computeDependence(UnaryOperator *E,
         Result.Val.isLValue()) {
       auto *VD = Result.Val.getLValueBase().dyn_cast<const ValueDecl *>();
       if (VD && VD->isTemplated()) {
-        auto *VarD = dyn_cast<VarDecl>(VD);
-        if (!VarD || !VarD->hasLocalStorage())
+        
+        if (auto *VarD = dyn_cast<VarDecl>(VD); !VarD || !VarD->hasLocalStorage())
           Dep |= ExprDependence::Value;
       }
     }
@@ -587,8 +587,8 @@ ExprDependence clang::computeDependence(DeclRefExpr *E, const ASTContext &Ctx) {
         Var->getDeclContext()->isDependentContext() &&
         !Var->getFirstDecl()->hasInit()) {
       const VarDecl *First = Var->getFirstDecl();
-      TypeSourceInfo *TInfo = First->getTypeSourceInfo();
-      if (TInfo->getType()->isIncompleteArrayType()) {
+      
+      if (TypeSourceInfo *TInfo = First->getTypeSourceInfo(); TInfo->getType()->isIncompleteArrayType()) {
         Deps |= ExprDependence::TypeValueInstantiation;
       } else if (!First->hasInit()) {
         Deps |= ExprDependence::ValueInstantiation;
@@ -678,13 +678,13 @@ ExprDependence clang::computeDependence(MemberExpr *E) {
   for (const auto &A : E->template_arguments())
     D |= toExprDependence(A.getArgument().getDependence());
 
-  auto *MemberDecl = E->getMemberDecl();
-  if (FieldDecl *FD = dyn_cast<FieldDecl>(MemberDecl)) {
+  
+  if (FieldDecl *auto *MemberDecl = E->getMemberDecl(); FD = dyn_cast<FieldDecl>(MemberDecl)) {
     DeclContext *DC = MemberDecl->getDeclContext();
     // dyn_cast_or_null is used to handle objC variables which do not
     // have a declaration context.
-    CXXRecordDecl *RD = dyn_cast_or_null<CXXRecordDecl>(DC);
-    if (RD && RD->isDependentContext() && RD->isCurrentInstantiation(DC)) {
+    
+    if (CXXRecordDecl *RD = dyn_cast_or_null<CXXRecordDecl>(DC); RD && RD->isDependentContext() && RD->isCurrentInstantiation(DC)) {
       if (!E->getType()->isDependentType())
         D &= ~ExprDependence::Type;
     }

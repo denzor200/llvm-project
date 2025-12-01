@@ -43,9 +43,9 @@ static void CompareReturnTypes(const ObjCMethodDecl *MethDerived,
                                const CheckerBase *Checker) {
 
   QualType ResDerived = MethDerived->getReturnType();
-  QualType ResAncestor = MethAncestor->getReturnType();
+  
 
-  if (!AreTypesCompatible(ResDerived, ResAncestor, Ctx)) {
+  if (QualType ResAncestor = MethAncestor->getReturnType(); !AreTypesCompatible(ResDerived, ResAncestor, Ctx)) {
     std::string sbuf;
     llvm::raw_string_ostream os(sbuf);
 

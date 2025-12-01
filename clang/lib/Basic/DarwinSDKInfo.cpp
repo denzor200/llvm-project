@@ -117,9 +117,9 @@ DarwinSDKInfo::parseDarwinSDKSettingsJSON(const llvm::json::Object *Obj) {
       if (Pair.first.compare_insensitive("ios") == 0) {
         llvm::Triple TT(llvm::Twine("--") + Pair.second.lower());
         if (TT.getOS() != llvm::Triple::UnknownOS) {
-          auto Mapping = RelatedTargetVersionMapping::parseJSON(
-              *KV.getSecond().getAsObject(), *MaximumDeploymentVersion);
-          if (Mapping)
+          
+          if (auto Mapping = RelatedTargetVersionMapping::parseJSON(
+              *KV.getSecond().getAsObject(), *MaximumDeploymentVersion); Mapping)
             VersionMappings[OSEnvPair(llvm::Triple::IOS,
                                       llvm::Triple::UnknownEnvironment,
                                       TT.getOS(),

@@ -105,8 +105,8 @@ Error OffloadBundleFatBin::readEntries(StringRef Buffer,
   BinaryStreamReader Reader(Buffer, llvm::endianness::little);
 
   // Read the Magic String first.
-  StringRef Magic;
-  if (auto EC = Reader.readFixedString(Magic, 24))
+  
+  if (auto StringRef Magic; EC = Reader.readFixedString(Magic, 24))
     return errorCodeToError(object_error::parse_failed);
 
   // Read the number of Code Objects (Entries) in the current Bundle.
@@ -159,9 +159,9 @@ OffloadBundleFatBin::create(MemoryBufferRef Buf, uint64_t SectionOffset,
       new OffloadBundleFatBin(Buf, FileName));
 
   // Read the Bundle Entries.
-  Error Err =
-      TheBundle->readEntries(Buf.getBuffer(), Decompress ? 0 : SectionOffset);
-  if (Err)
+  
+  if (Error Err =
+      TheBundle->readEntries(Buf.getBuffer(), Decompress ? 0 : SectionOffset); Err)
     return Err;
 
   return std::move(TheBundle);
@@ -467,9 +467,9 @@ CompressedOffloadBundle::CompressedBundleHeader::tryParse(StringRef Blob) {
   CompressedBundleHeader Normalized;
   Normalized.Version = Header.Common.Version;
 
-  size_t RequiredSize = getHeaderSize(Normalized.Version);
+  
 
-  if (Blob.size() < RequiredSize)
+  if (size_t RequiredSize = getHeaderSize(Normalized.Version); Blob.size() < RequiredSize)
     return createStringError("compressed bundle header size too small");
 
   switch (Normalized.Version) {

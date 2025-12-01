@@ -66,9 +66,9 @@ AliasResult AMDGPUAAResult::alias(const MemoryLocation &LocA,
   }
   if (asA == AMDGPUAS::FLAT_ADDRESS &&
       (asB == AMDGPUAS::LOCAL_ADDRESS || asB == AMDGPUAS::PRIVATE_ADDRESS)) {
-    const auto *ObjA =
-        getUnderlyingObject(A.Ptr->stripPointerCastsForAliasAnalysis());
-    if (const LoadInst *LI = dyn_cast<LoadInst>(ObjA)) {
+    
+    if (const LoadInst *const auto *ObjA =
+        getUnderlyingObject(A.Ptr->stripPointerCastsForAliasAnalysis()); LI = dyn_cast<LoadInst>(ObjA)) {
       // If a generic pointer is loaded from the constant address space, it
       // could only be a GLOBAL or CONSTANT one as that address space is solely
       // prepared on the host side, where only GLOBAL or CONSTANT variables are
@@ -76,8 +76,8 @@ AliasResult AMDGPUAAResult::alias(const MemoryLocation &LocA,
       if (LI->getPointerAddressSpace() == AMDGPUAS::CONSTANT_ADDRESS)
         return AliasResult::NoAlias;
     } else if (const Argument *Arg = dyn_cast<Argument>(ObjA)) {
-      const Function *F = Arg->getParent();
-      switch (F->getCallingConv()) {
+      
+      switch (const Function *F = Arg->getParent(); F->getCallingConv()) {
       case CallingConv::AMDGPU_KERNEL: {
         // In the kernel function, kernel arguments won't alias to (local)
         // variables in shared or private address space.

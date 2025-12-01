@@ -1074,8 +1074,8 @@ namespace yaml {
       out << llvm::format("%d by %d", value.length, value.width);
     }
     static StringRef input(StringRef scalar, void* ctxt, MyCustomType &value) {
-      size_t byStart = scalar.find("by");
-      if ( byStart != StringRef::npos ) {
+      
+      if ( size_t byStart = scalar.find("by"); byStart != StringRef::npos ) {
         StringRef lenStr = scalar.slice(0, byStart);
         lenStr = lenStr.rtrim();
         if ( lenStr.getAsInteger(0, value.length) ) {

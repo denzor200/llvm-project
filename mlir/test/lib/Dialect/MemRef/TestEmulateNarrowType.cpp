@@ -57,8 +57,8 @@ struct TestEmulateNarrowTypePass
 
     // Convert scalar type.
     typeConverter.addConversion([this](IntegerType ty) -> std::optional<Type> {
-      unsigned width = ty.getWidth();
-      if (width >= arithComputeBitwidth)
+      
+      if (unsigned width = ty.getWidth(); width >= arithComputeBitwidth)
         return ty;
 
       return IntegerType::get(ty.getContext(), arithComputeBitwidth);

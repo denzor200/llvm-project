@@ -197,8 +197,8 @@ SBData SBInstruction::GetData(SBTarget target) {
   lldb::SBData sb_data;
   lldb::InstructionSP inst_sp(GetOpaque());
   if (inst_sp) {
-    DataExtractorSP data_extractor_sp(new DataExtractor());
-    if (inst_sp->GetData(*data_extractor_sp)) {
+    
+    if (DataExtractorSP data_extractor_sp(new DataExtractor()); inst_sp->GetData(*data_extractor_sp)) {
       sb_data.SetOpaque(data_extractor_sp);
     }
   }
@@ -284,8 +284,8 @@ void SBInstruction::Print(FileSP out_sp) {
   if (!out_sp || !out_sp->IsValid())
     return;
 
-  lldb::InstructionSP inst_sp(GetOpaque());
-  if (inst_sp) {
+  
+  if (lldb::InstructionSP inst_sp(GetOpaque()); inst_sp) {
     SymbolContext sc;
     const Address &addr = inst_sp->GetAddress();
     ModuleSP module_sp(addr.GetModule());
@@ -306,9 +306,9 @@ bool SBInstruction::EmulateWithFrame(lldb::SBFrame &frame,
 
   lldb::InstructionSP inst_sp(GetOpaque());
   if (inst_sp) {
-    lldb::StackFrameSP frame_sp(frame.GetFrameSP());
+    
 
-    if (frame_sp) {
+    if (lldb::StackFrameSP frame_sp(frame.GetFrameSP()); frame_sp) {
       lldb_private::ExecutionContext exe_ctx;
       frame_sp->CalculateExecutionContext(exe_ctx);
       lldb_private::Target *target = exe_ctx.GetTargetPtr();

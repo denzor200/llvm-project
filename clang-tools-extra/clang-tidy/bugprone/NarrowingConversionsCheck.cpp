@@ -322,8 +322,8 @@ bool NarrowingConversionsCheck::isWarningInhibitedByEquivalentSize(
   // in bits. eg. uint32 <-> int32.
   if (!WarnOnEquivalentBitWidth) {
     const uint64_t FromTypeSize = Context.getTypeSize(&FromType);
-    const uint64_t ToTypeSize = Context.getTypeSize(&ToType);
-    if (FromTypeSize == ToTypeSize) {
+    
+    if (const uint64_t ToTypeSize = Context.getTypeSize(&ToType); FromTypeSize == ToTypeSize) {
       return true;
     }
   }
@@ -379,8 +379,8 @@ void NarrowingConversionsCheck::diagConstantCast(SourceLocation SourceLoc,
 void NarrowingConversionsCheck::diagNarrowTypeOrConstant(
     const ASTContext &Context, SourceLocation SourceLoc, const Expr &Lhs,
     const Expr &Rhs) {
-  APValue Constant = getConstantExprValue(Context, Rhs);
-  if (Constant.isInt())
+  
+  if (APValue Constant = getConstantExprValue(Context, Rhs); Constant.isInt())
     diagNarrowIntegerConstant(SourceLoc, Lhs, Rhs, Constant.getInt());
   else if (Constant.isFloat())
     diagNarrowConstant(SourceLoc, Lhs, Rhs);
@@ -407,8 +407,8 @@ void NarrowingConversionsCheck::handleIntegralCast(const ASTContext &Context,
     // in bits. eg. uint32 <-> int32.
     if (!WarnOnEquivalentBitWidth) {
       const uint64_t FromTypeSize = Context.getTypeSize(FromType);
-      const uint64_t ToTypeSize = Context.getTypeSize(ToType);
-      if (FromTypeSize == ToTypeSize)
+      
+      if (const uint64_t ToTypeSize = Context.getTypeSize(ToType); FromTypeSize == ToTypeSize)
         return;
     }
 
@@ -440,8 +440,8 @@ void NarrowingConversionsCheck::handleIntegralToFloating(
     const Expr &Rhs) {
   if (WarnOnIntegerToFloatingPointNarrowingConversion) {
     const BuiltinType *ToType = getBuiltinType(Lhs);
-    llvm::APSInt IntegerConstant;
-    if (getIntegerConstantExprValue(Context, Rhs, IntegerConstant)) {
+    
+    if (llvm::APSInt IntegerConstant; getIntegerConstantExprValue(Context, Rhs, IntegerConstant)) {
       if (!isWideEnoughToHold(Context, IntegerConstant, *ToType))
         diagNarrowIntegerConstant(SourceLoc, Lhs, Rhs, IntegerConstant);
       return;
@@ -458,8 +458,8 @@ void NarrowingConversionsCheck::handleIntegralToFloating(
 void NarrowingConversionsCheck::handleFloatingToIntegral(
     const ASTContext &Context, SourceLocation SourceLoc, const Expr &Lhs,
     const Expr &Rhs) {
-  llvm::APFloat FloatConstant(0.0);
-  if (getFloatingConstantExprValue(Context, Rhs, FloatConstant)) {
+  
+  if (llvm::APFloat FloatConstant(0.0); getFloatingConstantExprValue(Context, Rhs, FloatConstant)) {
     if (!isFloatExactlyRepresentable(Context, FloatConstant, Lhs.getType()))
       diagNarrowConstant(SourceLoc, Lhs, Rhs);
 
@@ -583,8 +583,8 @@ void NarrowingConversionsCheck::handleImplicitCast(
     return;
   if (handleConditionalOperator(Context, Lhs, Rhs))
     return;
-  const SourceLocation SourceLoc = Lhs.getExprLoc();
-  switch (Cast.getCastKind()) {
+  
+  switch (const SourceLocation SourceLoc = Lhs.getExprLoc(); Cast.getCastKind()) {
   case CK_BooleanToSignedIntegral:
     handleBooleanToSignedIntegral(Context, SourceLoc, Lhs, Rhs);
     return;

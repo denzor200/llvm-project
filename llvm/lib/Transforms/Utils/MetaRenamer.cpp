@@ -176,8 +176,8 @@ void MetaRename(Module &M,
 
   // Rename all aliases
   for (GlobalAlias &GA : M.aliases()) {
-    StringRef Name = GA.getName();
-    if (Name.starts_with("llvm.") || (!Name.empty() && Name[0] == 1) ||
+    
+    if (StringRef Name = GA.getName(); Name.starts_with("llvm.") || (!Name.empty() && Name[0] == 1) ||
         IsNameExcluded(Name, ExcludedAliasesPrefixes))
       continue;
 
@@ -186,8 +186,8 @@ void MetaRename(Module &M,
 
   // Rename all global variables
   for (GlobalVariable &GV : M.globals()) {
-    StringRef Name = GV.getName();
-    if (Name.starts_with("llvm.") || (!Name.empty() && Name[0] == 1) ||
+    
+    if (StringRef Name = GV.getName(); Name.starts_with("llvm.") || (!Name.empty() && Name[0] == 1) ||
         IsNameExcluded(Name, ExcludedGlobalsPrefixes))
       continue;
 
@@ -198,8 +198,8 @@ void MetaRename(Module &M,
   TypeFinder StructTypes;
   StructTypes.run(M, true);
   for (StructType *STy : StructTypes) {
-    StringRef Name = STy->getName();
-    if (STy->isLiteral() || Name.empty() ||
+    
+    if (StringRef Name = STy->getName(); STy->isLiteral() || Name.empty() ||
         IsNameExcluded(Name, ExcludedStructsPrefixes))
       continue;
 

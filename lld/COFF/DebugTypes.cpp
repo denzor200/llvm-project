@@ -228,8 +228,8 @@ void TpiSource::remapRecord(MutableArrayRef<uint8_t> rec,
                             ArrayRef<TiReference> typeRefs) {
   MutableArrayRef<uint8_t> contents = rec.drop_front(sizeof(RecordPrefix));
   for (const TiReference &ref : typeRefs) {
-    unsigned byteSize = ref.Count * sizeof(TypeIndex);
-    if (contents.size() < ref.Offset + byteSize)
+    
+    if (unsigned byteSize = ref.Count * sizeof(TypeIndex); contents.size() < ref.Offset + byteSize)
       Fatal(ctx) << "symbol record too short";
 
     MutableArrayRef<TypeIndex> indices(
@@ -475,11 +475,11 @@ static bool equalsPath(StringRef path1, StringRef path2) {
 // Find by name an OBJ provided on the command line
 PrecompSource *UsePrecompSource::findObjByName(StringRef fileNameOnly) {
   for (auto kv : ctx.precompSourceMappings) {
-    StringRef currentFileName = sys::path::filename(kv.second->file->getName(),
-                                                    sys::path::Style::windows);
+    
 
     // Compare based solely on the file name (link.exe behavior)
-    if (equalsPath(currentFileName, fileNameOnly))
+    if (StringRef currentFileName = sys::path::filename(kv.second->file->getName(),
+                                                    sys::path::Style::windows); equalsPath(currentFileName, fileNameOnly))
       return (PrecompSource *)kv.second;
   }
   return nullptr;
@@ -1231,8 +1231,8 @@ void TypeMerger::clearGHashes() {
 // ghash to lookup its final type index in the PDB, and store that in the map.
 void TpiSource::fillMapFromGHashes(GHashState *g) {
   for (size_t i = 0, e = ghashes.size(); i < e; ++i) {
-    TypeIndex fakeCellIndex = indexMapStorage[i];
-    if (fakeCellIndex.isSimple())
+    
+    if (TypeIndex fakeCellIndex = indexMapStorage[i]; fakeCellIndex.isSimple())
       indexMapStorage[i] = fakeCellIndex;
     else
       indexMapStorage[i] =

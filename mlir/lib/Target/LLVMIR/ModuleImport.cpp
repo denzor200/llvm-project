@@ -419,8 +419,8 @@ LogicalResult ModuleImport::processTBAAMetadata(const llvm::MDNode *node) {
 
 LogicalResult
 ModuleImport::processAccessGroupMetadata(const llvm::MDNode *node) {
-  Location loc = mlirModule.getLoc();
-  if (failed(loopAnnotationImporter->translateAccessGroup(node, loc)))
+  
+  if (Location loc = mlirModule.getLoc(); failed(loopAnnotationImporter->translateAccessGroup(node, loc)))
     return emitError(loc) << "unsupported access group node: "
                           << diagMD(node, llvmModule.get());
   return success();
@@ -1471,9 +1471,9 @@ convertLLVMAttributesToMLIR(Location loc, MLIRContext *context,
 /// to `globalOp` as target-specific attributes.
 static void processTargetSpecificAttrs(llvm::GlobalVariable *globalVar,
                                        GlobalOp globalOp) {
-  ArrayAttr targetSpecificAttrs = convertLLVMAttributesToMLIR(
-      globalOp.getLoc(), globalOp.getContext(), globalVar->getAttributes());
-  if (!targetSpecificAttrs.empty())
+  
+  if (ArrayAttr targetSpecificAttrs = convertLLVMAttributesToMLIR(
+      globalOp.getLoc(), globalOp.getContext(), globalVar->getAttributes()); !targetSpecificAttrs.empty())
     globalOp.setTargetSpecificAttrsAttr(targetSpecificAttrs);
 }
 
@@ -1553,9 +1553,9 @@ ModuleImport::convertGlobalCtorsAndDtors(llvm::GlobalVariable *globalVar) {
     return failure();
   llvm::Constant *initializer = globalVar->getInitializer();
 
-  bool knownInit = isa<llvm::ConstantArray>(initializer) ||
-                   isa<llvm::ConstantAggregateZero>(initializer);
-  if (!knownInit)
+  
+  if (bool knownInit = isa<llvm::ConstantArray>(initializer) ||
+                   isa<llvm::ConstantAggregateZero>(initializer); !knownInit)
     return failure();
 
   // ConstantAggregateZero does not engage with the operand initialization
@@ -2183,8 +2183,8 @@ ModuleImport::convertFunctionType(llvm::CallBase *callInst,
 }
 
 FlatSymbolRefAttr ModuleImport::convertCalleeName(llvm::CallBase *callInst) {
-  llvm::Value *calledOperand = callInst->getCalledOperand();
-  if (isa<llvm::Function, llvm::GlobalIFunc>(calledOperand))
+  
+  if (llvm::Value *calledOperand = callInst->getCalledOperand(); isa<llvm::Function, llvm::GlobalIFunc>(calledOperand))
     return SymbolRefAttr::get(context, calledOperand->getName());
   return {};
 }
@@ -2633,11 +2633,11 @@ static void processMemoryEffects(llvm::Function *func, LLVMFuncOp funcOp) {
       memEffects.getModRef(llvm::MemoryEffects::Location::TargetMem0));
   auto targetMem1 = convertModRefInfoFromLLVM(
       memEffects.getModRef(llvm::MemoryEffects::Location::TargetMem1));
-  auto memAttr =
-      MemoryEffectsAttr::get(funcOp.getContext(), othermem, argMem,
-                             inaccessibleMem, errnoMem, targetMem0, targetMem1);
+  
   // Only set the attr when it does not match the default value.
-  if (memAttr.isReadWrite())
+  if (auto memAttr =
+      MemoryEffectsAttr::get(funcOp.getContext(), othermem, argMem,
+                             inaccessibleMem, errnoMem, targetMem0, targetMem1); memAttr.isReadWrite())
     return;
   funcOp.setMemoryEffectsAttr(memAttr);
 }
@@ -2682,10 +2682,10 @@ static constexpr std::array kExplicitLLVMFuncOpAttributes{
 static void processPassthroughAttrs(llvm::Function *func, LLVMFuncOp funcOp) {
   llvm::AttributeSet funcAttrs = func->getAttributes().getAttributes(
       llvm::AttributeList::AttrIndex::FunctionIndex);
-  ArrayAttr passthroughAttr =
+  
+  if (ArrayAttr passthroughAttr =
       convertLLVMAttributesToMLIR(funcOp.getLoc(), funcOp.getContext(),
-                                  funcAttrs, kExplicitLLVMFuncOpAttributes);
-  if (!passthroughAttr.empty())
+                                  funcAttrs, kExplicitLLVMFuncOpAttributes); !passthroughAttr.empty())
     funcOp.setPassthroughAttr(passthroughAttr);
 }
 
@@ -2946,11 +2946,11 @@ LogicalResult ModuleImport::convertCallAttributes(llvm::CallInst *inst,
       memEffects.getModRef(llvm::MemoryEffects::Location::TargetMem0));
   ModRefInfo targetMem1 = convertModRefInfoFromLLVM(
       memEffects.getModRef(llvm::MemoryEffects::Location::TargetMem1));
-  auto memAttr =
-      MemoryEffectsAttr::get(op.getContext(), othermem, argMem, inaccessibleMem,
-                             errnoMem, targetMem0, targetMem1);
+  
   // Only set the attribute when it does not match the default value.
-  if (!memAttr.isReadWrite())
+  if (auto memAttr =
+      MemoryEffectsAttr::get(op.getContext(), othermem, argMem, inaccessibleMem,
+                             errnoMem, targetMem0, targetMem1); !memAttr.isReadWrite())
     op.setMemoryEffectsAttr(memAttr);
 
   return convertCallBaseAttributes(inst, op);
@@ -3114,8 +3114,8 @@ static LogicalResult setDebugIntrinsicBuilderInsertionPoint(
       // which means the insertion point is set to the start of the block. If
       // this block is a target destination of an invoke, the insertion point
       // must happen after the landing pad operation.
-      Block *insertionBlock = argOperand.getParentBlock();
-      if (!insertionBlock->empty() &&
+      
+      if (Block *insertionBlock = argOperand.getParentBlock(); !insertionBlock->empty() &&
           isa<LandingpadOp>(insertionBlock->front()))
         insertPt = cast<LandingpadOp>(insertionBlock->front()).getRes();
     }
@@ -3271,8 +3271,8 @@ ModuleImport::processDebugRecord(llvm::DbgVariableRecord &dbgRecord,
 LogicalResult ModuleImport::processDebugIntrinsics() {
   DominanceInfo domInfo;
   for (llvm::Instruction *inst : debugIntrinsics) {
-    auto *intrCall = cast<llvm::DbgVariableIntrinsic>(inst);
-    if (failed(processDebugIntrinsic(intrCall, domInfo)))
+    
+    if (auto *intrCall = cast<llvm::DbgVariableIntrinsic>(inst); failed(processDebugIntrinsic(intrCall, domInfo)))
       return failure();
   }
   return success();

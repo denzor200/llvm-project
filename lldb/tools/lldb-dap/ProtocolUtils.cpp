@@ -52,8 +52,8 @@ static bool ShouldDisplayAssemblySource(
 
 static uint64_t GetDebugInfoSizeInSection(lldb::SBSection section) {
   uint64_t debug_info_size = 0;
-  const llvm::StringRef section_name(section.GetName());
-  if (section_name.starts_with(".debug") ||
+  
+  if (const llvm::StringRef section_name(section.GetName()); section_name.starts_with(".debug") ||
       section_name.starts_with("__debug") ||
       section_name.starts_with(".apple") || section_name.starts_with("__apple"))
     debug_info_size += section.GetFileByteSize();
@@ -185,14 +185,14 @@ std::string GetLoadAddressString(const lldb::addr_t addr) {
 
 protocol::Thread CreateThread(lldb::SBThread &thread, lldb::SBFormat &format) {
   std::string name;
-  lldb::SBStream stream;
-  if (format && thread.GetDescriptionWithFormat(format, stream).Success()) {
+  
+  if (lldb::SBStream stream; format && thread.GetDescriptionWithFormat(format, stream).Success()) {
     name = stream.GetData();
   } else {
     llvm::StringRef thread_name(thread.GetName());
-    llvm::StringRef queue_name(thread.GetQueueName());
+    
 
-    if (!thread_name.empty()) {
+    if (llvm::StringRef queue_name(thread.GetQueueName()); !thread_name.empty()) {
       name = thread_name.str();
     } else if (!queue_name.empty()) {
       auto kind = thread.GetQueue().GetKind();
@@ -276,8 +276,8 @@ Variable CreateVariable(lldb::SBValue v, int64_t var_ref, bool format_hex,
     // GetNumChildren() only if the child name matches to avoid a potentially
     // expensive operation.
     if (lldb::SBValue first_child = v.GetChildAtIndex(0)) {
-      llvm::StringRef first_child_name = first_child.GetName();
-      if (first_child_name == "[0]") {
+      
+      if (llvm::StringRef first_child_name = first_child.GetName(); first_child_name == "[0]") {
         size_t num_children = v.GetNumChildren();
         // If we are creating a "[raw]" fake child for each synthetic type, we
         // have to account for it when returning indexed variables.

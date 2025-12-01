@@ -1014,9 +1014,9 @@ static std::optional<uint64_t> getControlTransferAddend(InputSection &is,
 
 static std::pair<Relocation *, uint64_t>
 getBranchInfoAtTarget(InputSection &is, uint64_t offset) {
-  auto *i = llvm::partition_point(
-      is.relocations, [&](Relocation &r) { return r.offset < offset; });
-  if (i != is.relocations.end() && i->offset == offset &&
+  
+  if (auto *i = llvm::partition_point(
+      is.relocations, [&](Relocation &r) { return r.offset < offset; }); i != is.relocations.end() && i->offset == offset &&
       i->type == R_AARCH64_JUMP26) {
     return {i, i->addend};
   }

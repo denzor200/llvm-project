@@ -64,10 +64,10 @@ ThreadMinidump::CreateRegisterContextForFrame(StackFrame *frame) {
     ProcessMinidump *process =
         static_cast<ProcessMinidump *>(GetProcess().get());
     ArchSpec arch = process->GetArchitecture();
-    RegisterInfoInterface *reg_interface = nullptr;
+    
 
     // TODO write other register contexts and add them here
-    switch (arch.GetMachine()) {
+    switch (RegisterInfoInterface *reg_interface = nullptr; arch.GetMachine()) {
     case llvm::Triple::x86: {
       reg_interface = new RegisterContextLinux_i386(arch);
       lldb::DataBufferSP buf =

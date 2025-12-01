@@ -304,9 +304,9 @@ Error ifs::validateIFSTarget(IFSStub &Stub, bool ParseTriple) {
 IFSTarget ifs::parseTriple(StringRef TripleStr) {
   Triple IFSTriple(TripleStr);
   IFSTarget RetTarget;
-  IFSArch TripleArch =
-      ELF::convertTripleArchTypeToEMachine(IFSTriple.getArch());
-  if (TripleArch != ELF::EM_NONE) {
+  
+  if (IFSArch TripleArch =
+      ELF::convertTripleArchTypeToEMachine(IFSTriple.getArch()); TripleArch != ELF::EM_NONE) {
     RetTarget.Arch = TripleArch;
   }
   RetTarget.Endianness = IFSTriple.isLittleEndian() ? IFSEndiannessType::Little

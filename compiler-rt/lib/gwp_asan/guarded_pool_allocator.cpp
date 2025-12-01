@@ -134,8 +134,8 @@ void GuardedPoolAllocator::iterate(void *Base, size_t Size, iterate_callback Cb,
                                    void *Arg) {
   uintptr_t Start = reinterpret_cast<uintptr_t>(Base);
   for (size_t i = 0; i < State.MaxSimultaneousAllocations; ++i) {
-    const AllocationMetadata &Meta = Metadata[i];
-    if (Meta.Addr && !Meta.IsDeallocated && Meta.Addr >= Start &&
+    
+    if (const AllocationMetadata &Meta = Metadata[i]; Meta.Addr && !Meta.IsDeallocated && Meta.Addr >= Start &&
         Meta.Addr < Start + Size)
       Cb(Meta.Addr, Meta.RequestedSize, Arg);
   }
@@ -220,8 +220,8 @@ void *GuardedPoolAllocator::allocate(size_t Size, size_t Alignment) {
       Size > State.maximumAllocationSize())
     return nullptr;
 
-  size_t BackingSize = getRequiredBackingSize(Size, Alignment, State.PageSize);
-  if (BackingSize > State.maximumAllocationSize())
+  
+  if (size_t BackingSize = getRequiredBackingSize(Size, Alignment, State.PageSize); BackingSize > State.maximumAllocationSize())
     return nullptr;
 
   // Protect against recursivity.
@@ -378,9 +378,9 @@ static bool PreviousRecursiveGuard;
 
 void GuardedPoolAllocator::preCrashReport(void *Ptr) {
   assert(pointerIsMine(Ptr) && "Pointer is not mine!");
-  uintptr_t InternalCrashAddr = __gwp_asan_get_internal_crash_address(
-      &State, reinterpret_cast<uintptr_t>(Ptr));
-  if (!InternalCrashAddr)
+  
+  if (uintptr_t InternalCrashAddr = __gwp_asan_get_internal_crash_address(
+      &State, reinterpret_cast<uintptr_t>(Ptr)); !InternalCrashAddr)
     disable();
 
   // If something in the signal handler calls malloc() while dumping the

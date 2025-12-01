@@ -80,9 +80,9 @@ void freebsd::Assembler::ConstructJob(Compilation &C, const JobAction &JA,
   case llvm::Triple::armeb:
   case llvm::Triple::thumb:
   case llvm::Triple::thumbeb: {
-    arm::FloatABI ABI = arm::getARMFloatABI(ToolChain, Args);
+    
 
-    if (ABI == arm::FloatABI::Hard)
+    if (arm::FloatABI ABI = arm::getARMFloatABI(ToolChain, Args); ABI == arm::FloatABI::Hard)
       CmdArgs.push_back("-mfpu=vfp");
     else
       CmdArgs.push_back("-mfpu=softvfp");
@@ -100,8 +100,8 @@ void freebsd::Assembler::ConstructJob(Compilation &C, const JobAction &JA,
 
   for (const Arg *A : Args.filtered(options::OPT_ffile_prefix_map_EQ,
                                     options::OPT_fdebug_prefix_map_EQ)) {
-    StringRef Map = A->getValue();
-    if (!Map.contains('='))
+    
+    if (StringRef Map = A->getValue(); !Map.contains('='))
       D.Diag(diag::err_drv_invalid_argument_to_option)
           << Map << A->getOption().getName();
     else {
@@ -282,8 +282,8 @@ void freebsd::Linker::ConstructJob(Compilation &C, const JobAction &JA,
   AddLinkerInputs(ToolChain, Inputs, Args, CmdArgs, JA);
 
   unsigned Major = ToolChain.getTriple().getOSMajorVersion();
-  bool Profiling = Args.hasArg(options::OPT_pg) && Major != 0 && Major < 14;
-  if (!Args.hasArg(options::OPT_nostdlib, options::OPT_nodefaultlibs,
+  
+  if (bool Profiling = Args.hasArg(options::OPT_pg) && Major != 0 && Major < 14; !Args.hasArg(options::OPT_nostdlib, options::OPT_nodefaultlibs,
                    options::OPT_r)) {
     // Use the static OpenMP runtime with -static-openmp
     bool StaticOpenMP = Args.hasArg(options::OPT_static_openmp) &&
@@ -443,8 +443,8 @@ void FreeBSD::AddCXXStdlibLibArgs(const ArgList &Args,
                                   ArgStringList &CmdArgs) const {
   Generic_ELF::AddCXXStdlibLibArgs(Args, CmdArgs);
   unsigned Major = getTriple().getOSMajorVersion();
-  bool SuffixedLib = Args.hasArg(options::OPT_pg) && Major != 0 && Major < 14;
-  if (SuffixedLib && GetCXXStdlibType(Args) == CST_Libcxx)
+  
+  if (bool SuffixedLib = Args.hasArg(options::OPT_pg) && Major != 0 && Major < 14; SuffixedLib && GetCXXStdlibType(Args) == CST_Libcxx)
     std::replace_if(
         CmdArgs.begin(), CmdArgs.end(),
         [](const char *S) { return StringRef(S) == "-lc++"; }, "-lc++_p");

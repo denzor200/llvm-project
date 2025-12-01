@@ -79,8 +79,8 @@ FailureOr<Value> tensor::getOrCreateDestination(OpBuilder &b, Location loc,
 
   // If the op has a destination, it implements DestinationStyleOpInterface and
   // we can query the destination operand from that interface.
-  auto destOp = opResult.getDefiningOp<DestinationStyleOpInterface>();
-  if (destOp)
+  
+  if (auto destOp = opResult.getDefiningOp<DestinationStyleOpInterface>(); destOp)
     return destOp.getTiedOpOperand(opResult)->get();
 
   // Otherwise, create a new destination tensor with the same shape.
@@ -188,8 +188,8 @@ foldDynamicToStaticDimSizes(RankedTensorType type, ValueRange dynamicSizes,
   for (int64_t i = 0, e = type.getRank(); i < e; ++i) {
     if (type.isDynamicDim(i)) {
       Value dynamicSize = dynamicSizes[ctr++];
-      std::optional<int64_t> cst = getConstantIntValue(dynamicSize);
-      if (cst.has_value()) {
+      
+      if (std::optional<int64_t> cst = getConstantIntValue(dynamicSize); cst.has_value()) {
         // Dynamic size must be non-negative.
         if (cst.value() < 0) {
           foldedDynamicSizes.push_back(dynamicSize);
@@ -632,9 +632,9 @@ LogicalResult ConcatOp::verify() {
 
   for (auto [inferredSize, actualSize] :
        llvm::zip_equal(inferredResultType.getShape(), resultType.getShape())) {
-    bool hasDynamic = ShapedType::isDynamic(inferredSize) ||
-                      ShapedType::isDynamic(actualSize);
-    if (!hasDynamic && inferredSize != actualSize)
+    
+    if (bool hasDynamic = ShapedType::isDynamic(inferredSize) ||
+                      ShapedType::isDynamic(actualSize); !hasDynamic && inferredSize != actualSize)
       return emitOpError("result type ")
              << resultType << "does not match inferred shape "
              << inferredResultType << " static sizes";
@@ -749,8 +749,8 @@ void ConcatOp::getAsmResultNames(
 }
 
 OpFoldResult ConcatOp::fold(FoldAdaptor) {
-  ValueRange inputs = getInputs();
-  if (inputs.size() == 1 && inputs[0].getType() == getResultType())
+  
+  if (ValueRange inputs = getInputs(); inputs.size() == 1 && inputs[0].getType() == getResultType())
     return inputs[0];
   return {};
 }
@@ -808,11 +808,11 @@ struct InferConcatOperandTypes : public OpRewritePattern<ConcatOp> {
       // Compute inferred type for operand.
       inferredOperandShape[dim] =
           cast<RankedTensorType>(operandType).getDimSize(dim);
-      auto inferredOperandType = RankedTensorType::get(
-          inferredOperandShape, inferredResultType.getElementType());
+      
 
       // Check if inferred type is more static.
-      if (!preservesStaticInformation(inferredOperandType, operandType)) {
+      if (auto inferredOperandType = RankedTensorType::get(
+          inferredOperandShape, inferredResultType.getElementType()); !preservesStaticInformation(inferredOperandType, operandType)) {
         matched = success();
 
         // Use refined operand type and create cast from original operand.
@@ -1312,9 +1312,9 @@ struct ExtractFromCollapseShape : public OpRewritePattern<tensor::ExtractOp> {
     for (auto [index, group] :
          llvm::zip(indices, collapseOp.getReassociationIndices())) {
       assert(!group.empty() && "association indices groups cannot be empty");
-      auto groupSize = group.size();
+      
 
-      if (groupSize == 1) {
+      if (auto groupSize = group.size(); groupSize == 1) {
         sourceIndices.push_back(index);
         continue;
       }
@@ -1418,8 +1418,8 @@ OpFoldResult ExtractOp::fold(FoldAdaptor adaptor) {
 
   // If this is an elements attribute, query the value at the given indices.
   if (Attribute tensor = adaptor.getTensor()) {
-    auto elementsAttr = llvm::dyn_cast<ElementsAttr>(tensor);
-    if (elementsAttr && elementsAttr.isValidIndex(indices))
+    
+    if (auto elementsAttr = llvm::dyn_cast<ElementsAttr>(tensor); elementsAttr && elementsAttr.isValidIndex(indices))
       return elementsAttr.getValues<Attribute>()[indices];
   }
 
@@ -1630,8 +1630,8 @@ LogicalResult InsertOp::verify() {
 
 OpFoldResult InsertOp::fold(FoldAdaptor adaptor) {
   Attribute scalar = adaptor.getScalar();
-  Attribute dest = adaptor.getDest();
-  if (scalar && dest)
+  
+  if (Attribute dest = adaptor.getDest(); scalar && dest)
     if (auto splatDest = llvm::dyn_cast<SplatElementsAttr>(dest))
       if (scalar == splatDest.getSplatValue<Attribute>())
         return dest;
@@ -1792,8 +1792,8 @@ void RankOp::getAsmResultNames(function_ref<void(Value, StringRef)> setNameFn) {
 OpFoldResult RankOp::fold(FoldAdaptor adaptor) {
   // Constant fold rank when the rank of the operand is known.
   auto type = getOperand().getType();
-  auto shapedType = llvm::dyn_cast<ShapedType>(type);
-  if (shapedType && shapedType.hasRank())
+  
+  if (auto shapedType = llvm::dyn_cast<ShapedType>(type); shapedType && shapedType.hasRank())
     return IntegerAttr::get(IndexType::get(getContext()), shapedType.getRank());
   return IntegerAttr();
 }
@@ -2042,9 +2042,9 @@ static LogicalResult verifyTensorReshapeOp(TensorReshapeOp op,
     return failure();
 
   auto maps = op.getReassociationMaps();
-  RankedTensorType expectedType =
-      CollapseShapeOp::inferCollapsedType(expandedType, maps);
-  if (!isSameTypeWithoutEncoding(collapsedType, expectedType))
+  
+  if (RankedTensorType expectedType =
+      CollapseShapeOp::inferCollapsedType(expandedType, maps); !isSameTypeWithoutEncoding(collapsedType, expectedType))
     return op.emitOpError("expected collapsed type to be ")
            << expectedType << ", but got " << collapsedType;
   return success();
@@ -2203,8 +2203,8 @@ struct ConvertToStaticExpandShape : public OpRewritePattern<ExpandShapeOp> {
           continue;
         }
 
-        APInt cst;
-        if (matchPattern(val, m_ConstantInt(&cst))) {
+        
+        if (APInt cst; matchPattern(val, m_ConstantInt(&cst))) {
           newOutputShape[outDim] = cst.getSExtValue();
         } else {
           dynamicOutputShape.push_back(val);
@@ -2332,8 +2332,8 @@ RankedTensorType ExtractSliceOp::inferCanonicalRankReducedResultType(
   // Type inferred in the absence of rank-reducing behavior.
   auto inferredType = llvm::cast<RankedTensorType>(
       inferResultType(sourceRankedTensorType, sizes));
-  int rankDiff = inferredType.getRank() - desiredResultRank;
-  if (rankDiff > 0) {
+  
+  if (int rankDiff = inferredType.getRank() - desiredResultRank; rankDiff > 0) {
     auto shape = inferredType.getShape();
     llvm::SmallBitVector dimsToProject =
         getPositionsOfShapeOne(rankDiff, shape);
@@ -2856,10 +2856,10 @@ static SliceVerificationResult verifyInsertSliceOp(
 LogicalResult InsertSliceOp::verify() {
   // Verify result type against inferred type.
   RankedTensorType expectedType;
-  SliceVerificationResult result =
+  
+  if (SliceVerificationResult result =
       verifyInsertSliceOp(getSourceType(), getType(), getStaticOffsets(),
-                          getStaticSizes(), getStaticStrides(), &expectedType);
-  if (result != SliceVerificationResult::Success)
+                          getStaticSizes(), getStaticStrides(), &expectedType); result != SliceVerificationResult::Success)
     return produceSliceErrorMsg(result, *this, expectedType);
 
   // Verify that offsets, sizes, strides do not run out-of-bounds with respect
@@ -3852,8 +3852,8 @@ OpResult ParallelInsertSliceOp::getTiedOpResult() {
   InParallelOpInterface parallelCombiningParent = getParallelCombiningParent();
   for (const auto &it :
        llvm::enumerate(parallelCombiningParent.getYieldingOps())) {
-    Operation &nextOp = it.value();
-    if (&nextOp == getOperation())
+    
+    if (Operation &nextOp = it.value(); &nextOp == getOperation())
       return parallelCombiningParent.getParentResult(it.index());
   }
   llvm_unreachable("ParallelInsertSliceOp no tied OpResult found");
@@ -3921,10 +3921,10 @@ LogicalResult ParallelInsertSliceOp::verify() {
 
   // Verify result type against inferred type.
   RankedTensorType expectedType;
-  SliceVerificationResult result =
+  
+  if (SliceVerificationResult result =
       verifyInsertSliceOp(getSourceType(), getDestType(), getStaticOffsets(),
-                          getStaticSizes(), getStaticStrides(), &expectedType);
-  if (result != SliceVerificationResult::Success)
+                          getStaticSizes(), getStaticStrides(), &expectedType); result != SliceVerificationResult::Success)
     return produceSliceErrorMsg(result, *this, expectedType);
 
   // Verify that offsets, sizes, strides do not run out-of-bounds with respect

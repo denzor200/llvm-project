@@ -192,9 +192,9 @@ void lldb_private::ParseLinuxSMapRegions(llvm::StringRef linux_smap,
       }
 
       // Try to start a new region
-      llvm::Expected<MemoryRegionInfo> new_region =
-          ParseMemoryRegionInfoFromProcMapsLine(line, MapsKind::SMaps);
-      if (new_region) {
+      
+      if (llvm::Expected<MemoryRegionInfo> new_region =
+          ParseMemoryRegionInfoFromProcMapsLine(line, MapsKind::SMaps); new_region) {
         region = *new_region;
       } else {
         // Stop at first invalid region header

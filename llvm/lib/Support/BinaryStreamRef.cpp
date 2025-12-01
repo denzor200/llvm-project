@@ -88,8 +88,8 @@ Error BinaryStreamRef::readLongestContiguousChunk(
   // This StreamRef might refer to a smaller window over a larger stream.  In
   // that case we will have read out more bytes than we should return, because
   // we should not read past the end of the current view.
-  uint64_t MaxLength = getLength() - Offset;
-  if (Buffer.size() > MaxLength)
+  
+  if (uint64_t MaxLength = getLength() - Offset; Buffer.size() > MaxLength)
     Buffer = Buffer.slice(0, MaxLength);
   return Error::success();
 }

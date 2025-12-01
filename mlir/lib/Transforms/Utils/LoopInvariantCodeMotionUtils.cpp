@@ -142,9 +142,9 @@ public:
   auto getHoistableSubsetOps() {
     return llvm::make_filter_range(
         llvm::zip(extractions, insertions), [&](auto pair) {
-          auto [extractionOp, insertionOp] = pair;
+          
           // Hoist only if the extracted and inserted values have the same type.
-          if (extractionOp && insertionOp &&
+          if (auto [extractionOp, insertionOp] = pair; extractionOp && insertionOp &&
               extractionOp->getResult(0).getType() !=
                   insertionOp.getSourceOperand().get().getType())
             return false;
@@ -193,8 +193,8 @@ private:
     for (auto it : llvm::enumerate(insertions)) {
       if (!it.value())
         continue;
-      auto other = cast<SubsetOpInterface>(it.value().getOperation());
-      if (other.operatesOnEquivalentSubset(extractionOp, isEquivalent)) {
+      
+      if (auto other = cast<SubsetOpInterface>(it.value().getOperation()); other.operatesOnEquivalentSubset(extractionOp, isEquivalent)) {
         extractions[it.index()] = extractionOp;
         return;
       }
@@ -211,8 +211,8 @@ private:
     for (auto it : llvm::enumerate(extractions)) {
       if (!it.value())
         continue;
-      auto other = cast<SubsetOpInterface>(it.value().getOperation());
-      if (other.operatesOnEquivalentSubset(insertionOp, isEquivalent)) {
+      
+      if (auto other = cast<SubsetOpInterface>(it.value().getOperation()); other.operatesOnEquivalentSubset(insertionOp, isEquivalent)) {
         insertions[it.index()] = insertionOp;
         return;
       }
@@ -285,8 +285,8 @@ MatchingSubsets::populateSubsetOpsAtIterArg(LoopLikeOpInterface loopLike,
         // Current implementation expects that the insertionOp implement
         // the DestinationStyleOpInterface and with pure tensor semantics
         // as well. Abort if that is not the case.
-        auto dstOp = dyn_cast<DestinationStyleOpInterface>(use.getOwner());
-        if (!dstOp || !dstOp.hasPureTensorSemantics())
+        
+        if (auto dstOp = dyn_cast<DestinationStyleOpInterface>(use.getOwner()); !dstOp || !dstOp.hasPureTensorSemantics())
           return failure();
 
         // The value must be used as a destination. (In case of a source, the

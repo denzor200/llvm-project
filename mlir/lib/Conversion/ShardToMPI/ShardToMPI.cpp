@@ -442,10 +442,10 @@ struct ConvertShardShapeOp : public OpConversionPattern<ShardShapeOp> {
     // local shard-size.
     Value shardedDimsOffs;
     {
-      SmallVector<Value> tmp = getMixedAsValues(
+      
+      if (SmallVector<Value> tmp = getMixedAsValues(
           rewriter, loc, sharding.getStaticShardedDimsOffsets(),
-          sharding.getDynamicShardedDimsOffsets(), index);
-      if (!tmp.empty())
+          sharding.getDynamicShardedDimsOffsets(), index); !tmp.empty())
         shardedDimsOffs = tensor::FromElementsOp::create(
             rewriter, loc, RankedTensorType::get({(int64_t)tmp.size()}, index),
             tmp);
@@ -521,11 +521,11 @@ struct ConvertShardShapeOp : public OpConversionPattern<ShardShapeOp> {
 
 static mpi::MPI_ReductionOpEnumAttr getMPIReductionOp(ReductionKindAttr kind) {
   auto *ctx = kind.getContext();
-  auto getReductionOp = [ctx](mpi::MPI_ReductionOpEnum redOp) {
-    return mpi::MPI_ReductionOpEnumAttr::get(ctx, redOp);
-  };
+  
 
-  switch (kind.getValue()) {
+  switch (auto getReductionOp = [ctx](mpi::MPI_ReductionOpEnum redOp) {
+    return mpi::MPI_ReductionOpEnumAttr::get(ctx, redOp);
+  }; kind.getValue()) {
   case ReductionKind::Sum:
     return getReductionOp(mpi::MPI_ReductionOpEnum::MPI_SUM);
   case ReductionKind::Product:
@@ -575,8 +575,8 @@ struct ConvertAllReduceOp : public OpConversionPattern<AllReduceOp> {
     // Get the actual shape to allocate the buffer.
     SmallVector<OpFoldResult> shape(inType.getRank());
     for (auto i = 0; i < inType.getRank(); ++i) {
-      auto s = inputShape[i];
-      if (ShapedType::isDynamic(s))
+      
+      if (auto s = inputShape[i]; ShapedType::isDynamic(s))
         shape[i] = memref::DimOp::create(iBuilder, input, s).getResult();
       else
         shape[i] = iBuilder.getIndexAttr(s);
@@ -711,8 +711,8 @@ struct ConvertUpdateHaloOp : public OpConversionPattern<UpdateHaloOp> {
     auto currHaloDim = -1; // halo sizes are provided for split dimensions only
     // we need the actual shape to compute offsets and sizes
     for (auto i = 0; i < rank; ++i) {
-      auto s = dstShape[i];
-      if (ShapedType::isDynamic(s))
+      
+      if (auto s = dstShape[i]; ShapedType::isDynamic(s))
         shape[i] = memref::DimOp::create(rewriter, loc, array, s).getResult();
       else
         shape[i] = rewriter.getIndexAttr(s);

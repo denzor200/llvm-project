@@ -391,8 +391,8 @@ static LogicalResult convertDataOp(acc::DataOp &op,
 
   SetVector<Block *> blocks = getBlocksSortedByDominance(op.getRegion());
   for (Block *bb : blocks) {
-    llvm::BasicBlock *llvmBB = moduleTranslation.lookupBlock(bb);
-    if (bb->isEntryBlock()) {
+    
+    if (llvm::BasicBlock *llvmBB = moduleTranslation.lookupBlock(bb); bb->isEntryBlock()) {
       assert(sourceTerminator->getNumSuccessors() == 1 &&
              "provided entry block has multiple successors");
       sourceTerminator->setSuccessor(0, llvmBB);

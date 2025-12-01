@@ -311,8 +311,8 @@ XRayLogFlushStatus fdrLoggingFlush() XRAY_NEVER_INSTRUMENT {
   });
 
   auto CleanupBuffers = at_scope_exit([] {
-    auto &TLD = getThreadLocalData();
-    if (TLD.Controller != nullptr)
+    
+    if (auto &TLD = getThreadLocalData(); TLD.Controller != nullptr)
       TLD.Controller->flush();
   });
 
@@ -381,8 +381,8 @@ XRayLogFlushStatus fdrLoggingFlush() XRAY_NEVER_INSTRUMENT {
 }
 
 XRayLogInitStatus fdrLoggingFinalize() XRAY_NEVER_INSTRUMENT {
-  s32 CurrentStatus = XRayLogInitStatus::XRAY_LOG_INITIALIZED;
-  if (!atomic_compare_exchange_strong(&LoggingStatus, &CurrentStatus,
+  
+  if (s32 CurrentStatus = XRayLogInitStatus::XRAY_LOG_INITIALIZED; !atomic_compare_exchange_strong(&LoggingStatus, &CurrentStatus,
                                       XRayLogInitStatus::XRAY_LOG_FINALIZING,
                                       memory_order_release)) {
     if (Verbosity())
@@ -426,8 +426,8 @@ static TSCAndCPU getTimestamp() XRAY_NEVER_INSTRUMENT {
   } else {
     // FIXME: This code needs refactoring as it appears in multiple locations
     timespec TS;
-    int result = clock_gettime(CLOCK_REALTIME, &TS);
-    if (result != 0) {
+    
+    if (int result = clock_gettime(CLOCK_REALTIME, &TS); result != 0) {
       Report("clock_gettime(2) return %d, errno=%d", result, int(errno));
       TS = {0, 0};
     }
@@ -442,8 +442,8 @@ thread_local atomic_uint8_t Running{0};
 static bool setupTLD(ThreadLocalData &TLD) XRAY_NEVER_INSTRUMENT {
   // Check if we're finalizing, before proceeding.
   {
-    auto Status = atomic_load(&LoggingStatus, memory_order_acquire);
-    if (Status == XRayLogInitStatus::XRAY_LOG_FINALIZING ||
+    
+    if (auto Status = atomic_load(&LoggingStatus, memory_order_acquire); Status == XRayLogInitStatus::XRAY_LOG_FINALIZING ||
         Status == XRayLogInitStatus::XRAY_LOG_FINALIZED) {
       if (TLD.Controller != nullptr) {
         TLD.Controller->flush();
@@ -613,8 +613,8 @@ XRayLogInitStatus fdrLoggingInit(size_t, size_t, void *Options,
   if (Options == nullptr)
     return XRayLogInitStatus::XRAY_LOG_UNINITIALIZED;
 
-  s32 CurrentStatus = XRayLogInitStatus::XRAY_LOG_UNINITIALIZED;
-  if (!atomic_compare_exchange_strong(&LoggingStatus, &CurrentStatus,
+  
+  if (s32 CurrentStatus = XRayLogInitStatus::XRAY_LOG_UNINITIALIZED; !atomic_compare_exchange_strong(&LoggingStatus, &CurrentStatus,
                                       XRayLogInitStatus::XRAY_LOG_INITIALIZING,
                                       memory_order_release)) {
     if (Verbosity())
@@ -728,8 +728,8 @@ bool fdrLogDynamicInitializer() XRAY_NEVER_INSTRUMENT {
       fdrLoggingHandleArg0,
       fdrLoggingFlush,
   };
-  auto RegistrationResult = __xray_log_register_mode("xray-fdr", Impl);
-  if (RegistrationResult != XRayLogRegisterStatus::XRAY_REGISTRATION_OK &&
+  
+  if (auto RegistrationResult = __xray_log_register_mode("xray-fdr", Impl); RegistrationResult != XRayLogRegisterStatus::XRAY_REGISTRATION_OK &&
       Verbosity()) {
     Report("Cannot register XRay FDR mode to 'xray-fdr'; error = %d\n",
            RegistrationResult);
@@ -738,8 +738,8 @@ bool fdrLogDynamicInitializer() XRAY_NEVER_INSTRUMENT {
 
   if (flags()->xray_fdr_log ||
       !internal_strcmp(flags()->xray_mode, "xray-fdr")) {
-    auto SelectResult = __xray_log_select_mode("xray-fdr");
-    if (SelectResult != XRayLogRegisterStatus::XRAY_REGISTRATION_OK &&
+    
+    if (auto SelectResult = __xray_log_select_mode("xray-fdr"); SelectResult != XRayLogRegisterStatus::XRAY_REGISTRATION_OK &&
         Verbosity()) {
       Report("Cannot select XRay FDR mode as 'xray-fdr'; error = %d\n",
              SelectResult);

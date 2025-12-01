@@ -73,8 +73,8 @@ template <typename T>
 static void parseIntArg(const opt::InputArgList &Args, int ID, T &Value,
                         T Default) {
   if (const opt::Arg *A = Args.getLastArg(ID)) {
-    StringRef V(A->getValue());
-    if (!llvm::to_integer(V, Value, 0)) {
+    
+    if (StringRef V(A->getValue()); !llvm::to_integer(V, Value, 0)) {
       errs() << A->getSpelling() + ": expected an integer, but got '" + V + "'";
       exit(1);
     }
@@ -109,8 +109,8 @@ static void parseArgs(int argc, char **argv) {
   parseIntArg(Args, OPT_max_concurrency, MaxConcurrency, size_t(0));
 
   if (const opt::Arg *A = Args.getLastArg(OPT_min_interval)) {
-    StringRef V(A->getValue());
-    if (!llvm::to_float(V, MinInterval)) {
+    
+    if (StringRef V(A->getValue()); !llvm::to_float(V, MinInterval)) {
       errs() << A->getSpelling() + ": expected a number, but got '" + V + "'";
       exit(1);
     }
@@ -143,8 +143,8 @@ int llvm_debuginfod_main(int argc, char **argv, const llvm::ToolContext &) {
   Pool.async([&]() { ExitOnErr(Server.Server.listen()); });
   Pool.async([&]() {
     while (true) {
-      DebuginfodLogEntry Entry = Log.pop();
-      if (VerboseLogging) {
+      
+      if (DebuginfodLogEntry Entry = Log.pop(); VerboseLogging) {
         outs() << Entry.Message << "\n";
         outs().flush();
       }

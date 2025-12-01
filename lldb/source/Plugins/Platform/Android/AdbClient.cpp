@@ -103,8 +103,8 @@ static Status GetResponseError(Connection &conn, const char *response_id) {
         "Got unexpected response id from adb: \"%s\"", response_id);
 
   std::vector<char> error_message;
-  auto error = ReadAdbMessage(conn, error_message);
-  if (!error.Success())
+  
+  if (auto error = ReadAdbMessage(conn, error_message); !error.Success())
     return error;
 
   std::string error_str(&error_message[0], error_message.size());
@@ -161,8 +161,8 @@ static Status ConnectToAdb(Connection &conn) {
 }
 
 static Status EnterSyncMode(Connection &conn) {
-  auto error = SendAdbMessage(conn, "sync:");
-  if (error.Fail())
+  
+  if (auto error = SendAdbMessage(conn, "sync:"); error.Fail())
     return error;
 
   return ReadResponseStatus(conn);
@@ -223,8 +223,8 @@ Expected<std::string> AdbClient::ResolveDeviceID(StringRef device_id) {
       return error;
     };
 
-    Status error = GetDevices(connected_devices);
-    if (error.Fail())
+    
+    if (Status error = GetDevices(connected_devices); error.Fail())
       return error.ToError();
 
     if (connected_devices.size() != 1)
@@ -289,8 +289,8 @@ Status AdbClient::SetPortForwarding(const uint16_t local_port,
   snprintf(message, sizeof(message), "forward:tcp:%d;tcp:%d", local_port,
            remote_port);
 
-  Status error = SendDeviceMessage(message);
-  if (error.Fail())
+  
+  if (Status error = SendDeviceMessage(message); error.Fail())
     return error;
 
   return ReadResponseStatus(*m_conn);
@@ -308,8 +308,8 @@ AdbClient::SetPortForwarding(const uint16_t local_port,
   snprintf(message, sizeof(message), "forward:tcp:%d;%s:%s", local_port,
            sock_namespace_str, remote_socket_name.str().c_str());
 
-  Status error = SendDeviceMessage(message);
-  if (error.Fail())
+  
+  if (Status error = SendDeviceMessage(message); error.Fail())
     return error;
 
   return ReadResponseStatus(*m_conn);
@@ -319,8 +319,8 @@ Status AdbClient::DeletePortForwarding(const uint16_t local_port) {
   char message[32];
   snprintf(message, sizeof(message), "killforward:tcp:%d", local_port);
 
-  Status error = SendDeviceMessage(message);
-  if (error.Fail())
+  
+  if (Status error = SendDeviceMessage(message); error.Fail())
     return error;
 
   return ReadResponseStatus(*m_conn);
@@ -409,8 +409,8 @@ Status AdbClient::Shell(const char *command, milliseconds timeout,
 Status AdbClient::ShellToFile(const char *command, milliseconds timeout,
                               const FileSpec &output_file_spec) {
   std::vector<char> output_buffer;
-  auto error = internalShell(command, timeout, output_buffer);
-  if (error.Fail())
+  
+  if (auto error = internalShell(command, timeout, output_buffer); error.Fail())
     return error;
 
   const auto output_filename = output_file_spec.GetPath();

@@ -107,8 +107,8 @@ struct FragmentCompiler {
                llvm::Regex::RegexFlags Flags = llvm::Regex::NoFlags) {
     std::string Anchored = "^(" + *Text + ")$";
     llvm::Regex Result(Anchored, Flags);
-    std::string RegexError;
-    if (!Result.isValid(RegexError)) {
+    
+    if (std::string RegexError; !Result.isValid(RegexError)) {
       diag(Error, "Invalid regex " + Anchored + ": " + RegexError, Text.Range);
       return std::nullopt;
     }
@@ -317,8 +317,8 @@ struct FragmentCompiler {
                              llvm::sys::path::Style::native)) {
           // Drop trailing slash to put the path in canonical form.
           // Should makeAbsolute do this?
-          llvm::StringRef Rel = llvm::sys::path::relative_path(*Path);
-          if (!Rel.empty() && llvm::sys::path::is_separator(Rel.back()))
+          
+          if (llvm::StringRef Rel = llvm::sys::path::relative_path(*Path); !Rel.empty() && llvm::sys::path::is_separator(Rel.back()))
             Path->pop_back();
 
           Spec.emplace();
@@ -371,9 +371,9 @@ struct FragmentCompiler {
     }
 #endif
     // Make sure exactly one of the Sources is set.
-    unsigned SourceCount = External.File.has_value() +
-                           External.Server.has_value() + *External.IsNone;
-    if (SourceCount != 1) {
+    
+    if (unsigned SourceCount = External.File.has_value() +
+                           External.Server.has_value() + *External.IsNone; SourceCount != 1) {
       diag(Error, "Exactly one of File, Server or None must be set.",
            BlockRange);
       return;
@@ -523,8 +523,8 @@ struct FragmentCompiler {
       // Anchor on the right.
       std::string AnchoredPattern = "(" + *HeaderPattern + ")$";
       llvm::Regex CompiledRegex(AnchoredPattern, Flags);
-      std::string RegexError;
-      if (!CompiledRegex.isValid(RegexError)) {
+      
+      if (std::string RegexError; !CompiledRegex.isValid(RegexError)) {
         diag(Warning,
              llvm::formatv("Invalid regular expression '{0}': {1}",
                            *HeaderPattern, RegexError)
@@ -561,8 +561,8 @@ struct FragmentCompiler {
              Arg.Range);
         return;
       }
-      auto Fast = isFastTidyCheck(Str);
-      if (!Fast.has_value()) {
+      
+      if (auto Fast = isFastTidyCheck(Str); !Fast.has_value()) {
         diag(Warning,
              llvm::formatv(
                  "Latency of clang-tidy check '{0}' is not known. "
@@ -639,8 +639,8 @@ struct FragmentCompiler {
         // Anchor on the right.
         std::string AnchoredPattern = "(" + *HeaderPattern + ")$";
         llvm::Regex CompiledRegex(AnchoredPattern, Flags);
-        std::string RegexError;
-        if (!CompiledRegex.isValid(RegexError)) {
+        
+        if (std::string RegexError; !CompiledRegex.isValid(RegexError)) {
           diag(Warning,
                llvm::formatv("Invalid regular expression '{0}': {1}",
                              *HeaderPattern, RegexError)
@@ -778,8 +778,8 @@ struct FragmentCompiler {
       Out.Apply.push_back(
           [DisabledKinds(std::move(DisabledKinds))](const Params &, Config &C) {
             for (auto &Kind : DisabledKinds) {
-              auto It = llvm::find(C.SemanticTokens.DisabledKinds, Kind);
-              if (It == C.SemanticTokens.DisabledKinds.end())
+              
+              if (auto It = llvm::find(C.SemanticTokens.DisabledKinds, Kind); It == C.SemanticTokens.DisabledKinds.end())
                 C.SemanticTokens.DisabledKinds.push_back(std::move(Kind));
             }
           });
@@ -792,8 +792,8 @@ struct FragmentCompiler {
       Out.Apply.push_back([DisabledModifiers(std::move(DisabledModifiers))](
                               const Params &, Config &C) {
         for (auto &Kind : DisabledModifiers) {
-          auto It = llvm::find(C.SemanticTokens.DisabledModifiers, Kind);
-          if (It == C.SemanticTokens.DisabledModifiers.end())
+          
+          if (auto It = llvm::find(C.SemanticTokens.DisabledModifiers, Kind); It == C.SemanticTokens.DisabledModifiers.end())
             C.SemanticTokens.DisabledModifiers.push_back(std::move(Kind));
         }
       });

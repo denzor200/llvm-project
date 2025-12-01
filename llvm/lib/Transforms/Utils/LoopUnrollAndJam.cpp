@@ -152,8 +152,8 @@ static bool processHeaderPhiOperands(BasicBlock *Header, BasicBlock *Latch,
   };
 
   for (auto &Phi : Header->phis()) {
-    Value *V = Phi.getIncomingValueForBlock(Latch);
-    if (Instruction *I = dyn_cast<Instruction>(V))
+    
+    if (Instruction *Value *V = Phi.getIncomingValueForBlock(Latch); I = dyn_cast<Instruction>(V))
       if (!ProcessInstr(I))
         return false;
   }
@@ -348,8 +348,8 @@ llvm::UnrollAndJamLoop(Loop *L, unsigned Count, unsigned TripCount,
       for (Instruction &I : *BB)
         if (!I.isDebugOrPseudoInst())
           if (const DILocation *DIL = I.getDebugLoc()) {
-            auto NewDIL = DIL->cloneByMultiplyingDuplicationFactor(Count);
-            if (NewDIL)
+            
+            if (auto NewDIL = DIL->cloneByMultiplyingDuplicationFactor(Count); NewDIL)
               I.setDebugLoc(*NewDIL);
             else
               LLVM_DEBUG(dbgs()
@@ -464,8 +464,8 @@ llvm::UnrollAndJamLoop(Loop *L, unsigned Count, unsigned TripCount,
     for (PHINode &Phi : BB->phis()) {
       for (unsigned b = 0; b < Phi.getNumIncomingValues(); ++b) {
         if (Phi.getIncomingBlock(b) == OldBB) {
-          Value *OldValue = Phi.getIncomingValue(b);
-          if (Value *LastValue = LastValueMap[OldValue])
+          
+          if (Value *Value *OldValue = Phi.getIncomingValue(b); LastValue = LastValueMap[OldValue])
             Phi.setIncomingValue(b, LastValue);
           Phi.setIncomingBlock(b, NewBB);
           break;

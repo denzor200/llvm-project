@@ -34,8 +34,8 @@ void VarBypassDetector::Init(CodeGenModule &CGM, const Stmt *Body) {
 /// which vars are being bypassed.
 bool VarBypassDetector::BuildScopeInformation(CodeGenModule &CGM, const Decl *D,
                                               unsigned &ParentScope) {
-  const VarDecl *VD = dyn_cast<VarDecl>(D);
-  if (VD && VD->hasLocalStorage()) {
+  
+  if (const VarDecl *VD = dyn_cast<VarDecl>(D); VD && VD->hasLocalStorage()) {
     Scopes.push_back({ParentScope, VD});
     ParentScope = Scopes.size() - 1;
   }
@@ -141,8 +141,8 @@ bool VarBypassDetector::BuildScopeInformation(CodeGenModule &CGM, const Stmt *S,
 void VarBypassDetector::Detect() {
   for (const auto &S : FromScopes) {
     const Stmt *St = S.first;
-    unsigned from = S.second;
-    if (const GotoStmt *GS = dyn_cast<GotoStmt>(St)) {
+    
+    if (const GotoStmt *unsigned from = S.second; GS = dyn_cast<GotoStmt>(St)) {
       if (const LabelStmt *LS = GS->getLabel()->getStmt())
         Detect(from, ToScopes[LS]);
     } else if (const SwitchStmt *SS = dyn_cast<SwitchStmt>(St)) {

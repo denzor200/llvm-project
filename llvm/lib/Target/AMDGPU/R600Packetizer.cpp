@@ -285,9 +285,9 @@ public:
     const DenseMap<unsigned, unsigned> &PV =
         getPreviousVector(FirstInBundle);
     std::vector<R600InstrInfo::BankSwizzle> BS;
-    bool isTransSlot;
+    
 
-    if (isBundlableWithCurrentPMI(MI, PV, BS, isTransSlot)) {
+    if (bool isTransSlot; isBundlableWithCurrentPMI(MI, PV, BS, isTransSlot)) {
       for (unsigned i = 0, e = CurrentPacketMIs.size(); i < e; i++) {
         MachineInstr *MI = CurrentPacketMIs[i];
         unsigned Op = TII->getOperandIdx(MI->getOpcode(),
@@ -319,9 +319,9 @@ bool R600Packetizer::runOnMachineFunction(MachineFunction &Fn) {
 
   MachineLoopInfo &MLI = getAnalysis<MachineLoopInfoWrapperPass>().getLI();
 
-  const InstrItineraryData *II = ST.getInstrItineraryData();
+  
   // If there is no itineraries information, abandon.
-  if (II->Itineraries == nullptr)
+  if (const InstrItineraryData *II = ST.getInstrItineraryData(); II->Itineraries == nullptr)
     return false;
 
   // Instantiate the packetizer.

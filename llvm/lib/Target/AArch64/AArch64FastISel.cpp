@@ -390,9 +390,9 @@ Register AArch64FastISel::materializeFP(const ConstantFP *CFP, MVT VT) {
   bool Is64Bit = (VT == MVT::f64);
   // This checks to see if we can use FMOV instructions to materialize
   // a constant, otherwise we have to materialize via the constant pool.
-  int Imm =
-      Is64Bit ? AArch64_AM::getFP64Imm(Val) : AArch64_AM::getFP32Imm(Val);
-  if (Imm != -1) {
+  
+  if (int Imm =
+      Is64Bit ? AArch64_AM::getFP64Imm(Val) : AArch64_AM::getFP32Imm(Val); Imm != -1) {
     unsigned Opc = Is64Bit ? AArch64::FMOVDi : AArch64::FMOVSi;
     return fastEmitInst_i(Opc, TLI.getRegClassFor(VT), Imm);
   }
@@ -632,8 +632,8 @@ bool AArch64FastISel::computeAddress(const Value *Obj, Address &Addr, Type *Ty)
     // we can.
     for (gep_type_iterator GTI = gep_type_begin(U), E = gep_type_end(U);
          GTI != E; ++GTI) {
-      const Value *Op = GTI.getOperand();
-      if (StructType *STy = GTI.getStructTypeOrNull()) {
+      
+      if (StructType *const Value *Op = GTI.getOperand(); STy = GTI.getStructTypeOrNull()) {
         const StructLayout *SL = DL.getStructLayout(STy);
         unsigned Idx = cast<ConstantInt>(Op)->getZExtValue();
         TmpOffset += SL->getElementOffset(Idx);
@@ -705,9 +705,9 @@ bool AArch64FastISel::computeAddress(const Value *Obj, Address &Addr, Type *Ty)
   case Instruction::Sub: {
     // Subs of constants are common and easy enough.
     const Value *LHS = U->getOperand(0);
-    const Value *RHS = U->getOperand(1);
+    
 
-    if (const ConstantInt *CI = dyn_cast<ConstantInt>(RHS)) {
+    if (const ConstantInt *const Value *RHS = U->getOperand(1); CI = dyn_cast<ConstantInt>(RHS)) {
       Addr.setOffset(Addr.getOffset() - CI->getSExtValue());
       return computeAddress(LHS, Addr, Ty);
     }
@@ -1119,9 +1119,9 @@ void AArch64FastISel::addLoadStoreOperands(Address &Addr,
                                            MachineMemOperand::Flags Flags,
                                            unsigned ScaleFactor,
                                            MachineMemOperand *MMO) {
-  int64_t Offset = Addr.getOffset() / ScaleFactor;
+  
   // Frame base works a bit differently. Handle it separately.
-  if (Addr.isFIBase()) {
+  if (int64_t Offset = Addr.getOffset() / ScaleFactor; Addr.isFIBase()) {
     int FI = Addr.getFI();
     // FIXME: We shouldn't be using getObjectSize/getObjectAlignment.  The size
     // and alignment should be based on the VT.
@@ -1207,8 +1207,8 @@ Register AArch64FastISel::emitAddSub(bool UseAdd, MVT RetVT, const Value *LHS,
 
   Register ResultReg;
   if (const auto *C = dyn_cast<ConstantInt>(RHS)) {
-    uint64_t Imm = IsZExt ? C->getZExtValue() : C->getSExtValue();
-    if (C->isNegative())
+    
+    if (uint64_t Imm = IsZExt ? C->getZExtValue() : C->getSExtValue(); C->isNegative())
       ResultReg = emitAddSub_ri(!UseAdd, RetVT, LHSReg, -Imm, SetFlags,
                                 WantResult);
     else
@@ -1264,8 +1264,8 @@ Register AArch64FastISel::emitAddSub(bool UseAdd, MVT RetVT, const Value *LHS,
         case Instruction::LShr: ShiftType = AArch64_AM::LSR; break;
         case Instruction::AShr: ShiftType = AArch64_AM::ASR; break;
         }
-        uint64_t ShiftVal = C->getZExtValue();
-        if (ShiftType != AArch64_AM::InvalidShiftExtend) {
+        
+        if (uint64_t ShiftVal = C->getZExtValue(); ShiftType != AArch64_AM::InvalidShiftExtend) {
           Register RHSReg = getRegForValue(SI->getOperand(0));
           if (!RHSReg)
             return Register();
@@ -1461,9 +1461,9 @@ bool AArch64FastISel::emitCmp(const Value *LHS, const Value *RHS, bool IsZExt) {
   EVT EVT = TLI.getValueType(DL, Ty, true);
   if (!EVT.isSimple())
     return false;
-  MVT VT = EVT.getSimpleVT();
+  
 
-  switch (VT.SimpleTy) {
+  switch (MVT VT = EVT.getSimpleVT(); VT.SimpleTy) {
   default:
     return false;
   case MVT::i1:
@@ -2182,9 +2182,9 @@ bool AArch64FastISel::selectStore(const Instruction *I) {
 
   // Try to emit a STLR for seq_cst/release.
   if (SI->isAtomic()) {
-    AtomicOrdering Ord = SI->getOrdering();
+    
     // The non-atomic instructions are sufficient for relaxed stores.
-    if (isReleaseOrStronger(Ord)) {
+    if (AtomicOrdering Ord = SI->getOrdering(); isReleaseOrStronger(Ord)) {
       // The STLR addressing mode only supports a base reg; pass that directly.
       Register AddrReg = getRegForValue(PtrV);
       if (!AddrReg)
@@ -2464,8 +2464,8 @@ bool AArch64FastISel::selectBranch(const Instruction *I) {
       FuncInfo.MBB->addSuccessorWithoutProb(Target);
     return true;
   } else {
-    AArch64CC::CondCode CC = AArch64CC::NE;
-    if (foldXALUIntrinsic(CC, I, BI->getCondition())) {
+    
+    if (AArch64CC::CondCode CC = AArch64CC::NE; foldXALUIntrinsic(CC, I, BI->getCondition())) {
       // Fake request the condition, otherwise the intrinsic might be completely
       // optimized away.
       Register CondReg = getRegForValue(BI->getCondition());
@@ -2708,8 +2708,8 @@ bool AArch64FastISel::selectSelect(const Instruction *I) {
   // Try to pickup the flags, so we don't have to emit another compare.
   if (foldXALUIntrinsic(CC, I, Cond)) {
     // Fake request the condition to force emission of the XALU intrinsic.
-    Register CondReg = getRegForValue(Cond);
-    if (!CondReg)
+    
+    if (Register CondReg = getRegForValue(Cond); !CondReg)
       return false;
   } else if (isa<CmpInst>(Cond) && cast<CmpInst>(Cond)->hasOneUse() &&
              isValueAvailable(Cond)) {
@@ -3427,8 +3427,8 @@ bool AArch64FastISel::foldXALUIntrinsic(AArch64CC::CondCode &CC,
       return false;
 
     // Check that the extractvalue operand comes from the intrinsic.
-    const auto *EVI = cast<ExtractValueInst>(Itr);
-    if (EVI->getAggregateOperand() != II)
+    
+    if (const auto *EVI = cast<ExtractValueInst>(Itr); EVI->getAggregateOperand() != II)
       return false;
   }
 
@@ -4673,8 +4673,8 @@ bool AArch64FastISel::selectMul(const Instruction *I) {
       bool IsZExt = true;
       if (const auto *ZExt = dyn_cast<ZExtInst>(Src0)) {
         if (!isIntExtFree(ZExt)) {
-          MVT VT;
-          if (isValueAvailable(ZExt) && isTypeSupported(ZExt->getSrcTy(), VT)) {
+          
+          if (MVT VT; isValueAvailable(ZExt) && isTypeSupported(ZExt->getSrcTy(), VT)) {
             SrcVT = VT;
             IsZExt = true;
             Src0 = ZExt->getOperand(0);
@@ -4682,8 +4682,8 @@ bool AArch64FastISel::selectMul(const Instruction *I) {
         }
       } else if (const auto *SExt = dyn_cast<SExtInst>(Src0)) {
         if (!isIntExtFree(SExt)) {
-          MVT VT;
-          if (isValueAvailable(SExt) && isTypeSupported(SExt->getSrcTy(), VT)) {
+          
+          if (MVT VT; isValueAvailable(SExt) && isTypeSupported(SExt->getSrcTy(), VT)) {
             SrcVT = VT;
             IsZExt = false;
             Src0 = SExt->getOperand(0);
@@ -4736,8 +4736,8 @@ bool AArch64FastISel::selectShift(const Instruction *I) {
     const Value *Op0 = I->getOperand(0);
     if (const auto *ZExt = dyn_cast<ZExtInst>(Op0)) {
       if (!isIntExtFree(ZExt)) {
-        MVT TmpVT;
-        if (isValueAvailable(ZExt) && isTypeSupported(ZExt->getSrcTy(), TmpVT)) {
+        
+        if (MVT TmpVT; isValueAvailable(ZExt) && isTypeSupported(ZExt->getSrcTy(), TmpVT)) {
           SrcVT = TmpVT;
           IsZExt = true;
           Op0 = ZExt->getOperand(0);
@@ -4745,8 +4745,8 @@ bool AArch64FastISel::selectShift(const Instruction *I) {
       }
     } else if (const auto *SExt = dyn_cast<SExtInst>(Op0)) {
       if (!isIntExtFree(SExt)) {
-        MVT TmpVT;
-        if (isValueAvailable(SExt) && isTypeSupported(SExt->getSrcTy(), TmpVT)) {
+        
+        if (MVT TmpVT; isValueAvailable(SExt) && isTypeSupported(SExt->getSrcTy(), TmpVT)) {
           SrcVT = TmpVT;
           IsZExt = false;
           Op0 = SExt->getOperand(0);
@@ -4983,11 +4983,11 @@ bool AArch64FastISel::selectGetElementPtr(const Instruction *I) {
   MVT VT = TLI.getPointerTy(DL);
   for (gep_type_iterator GTI = gep_type_begin(I), E = gep_type_end(I);
        GTI != E; ++GTI) {
-    const Value *Idx = GTI.getOperand();
-    if (auto *StTy = GTI.getStructTypeOrNull()) {
-      unsigned Field = cast<ConstantInt>(Idx)->getZExtValue();
+    
+    if (auto *const Value *Idx = GTI.getOperand(); StTy = GTI.getStructTypeOrNull()) {
+      
       // N = N + Offset
-      if (Field)
+      if (unsigned Field = cast<ConstantInt>(Idx)->getZExtValue(); Field)
         TotalOffs += DL.getStructLayout(StTy)->getElementOffset(Field);
     } else {
       // If this is a constant subscript, handle it quickly.

@@ -111,8 +111,8 @@ transform::AnyParamType::checkPayload(Location loc,
 LogicalResult
 transform::ParamType::verify(function_ref<InFlightDiagnostic()> emitError,
                              Type type) {
-  IntegerType intType = llvm::dyn_cast<IntegerType>(type);
-  if (!intType || intType.getWidth() > 64)
+  
+  if (IntegerType intType = llvm::dyn_cast<IntegerType>(type); !intType || intType.getWidth() > 64)
     return emitError() << "only supports integer types with width <=64";
   return success();
 }

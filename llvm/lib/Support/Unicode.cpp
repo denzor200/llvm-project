@@ -425,9 +425,9 @@ static inline int charWidth(int UCS) {
       {0x1E4EC, 0x1E4EF}, {0x1E8D0, 0x1E8D6}, {0x1E944, 0x1E94A},
       {0xE0100, 0xE01EF},
   };
-  static const UnicodeCharSet CombiningCharacters(CombiningCharacterRanges);
+  
 
-  if (CombiningCharacters.contains(UCS))
+  if (static const UnicodeCharSet CombiningCharacters(CombiningCharacterRanges); CombiningCharacters.contains(UCS))
     return 0;
 
   // We consider double width codepoints any codepoint with
@@ -496,8 +496,8 @@ int columnWidthUTF8(StringRef Text) {
       return ErrorInvalidUTF8;
     UTF32 buf[1];
     const UTF8 *Start = reinterpret_cast<const UTF8 *>(Text.data() + i);
-    UTF32 *Target = &buf[0];
-    if (conversionOK != ConvertUTF8toUTF32(&Start, Start + Length, &Target,
+    
+    if (UTF32 *Target = &buf[0]; conversionOK != ConvertUTF8toUTF32(&Start, Start + Length, &Target,
                                            Target + 1, strictConversion))
       return ErrorInvalidUTF8;
     int Width = charWidth(buf[0]);

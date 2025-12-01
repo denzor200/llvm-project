@@ -367,22 +367,22 @@ extern "C" bool mlirAsyncRuntimeIsGroupError(AsyncGroup *group) {
 }
 
 extern "C" void mlirAsyncRuntimeAwaitToken(AsyncToken *token) {
-  std::unique_lock<std::mutex> lock(token->mu);
-  if (!State(token->state).isAvailableOrError())
+  
+  if (std::unique_lock<std::mutex> lock(token->mu); !State(token->state).isAvailableOrError())
     token->cv.wait(
         lock, [token] { return State(token->state).isAvailableOrError(); });
 }
 
 extern "C" void mlirAsyncRuntimeAwaitValue(AsyncValue *value) {
-  std::unique_lock<std::mutex> lock(value->mu);
-  if (!State(value->state).isAvailableOrError())
+  
+  if (std::unique_lock<std::mutex> lock(value->mu); !State(value->state).isAvailableOrError())
     value->cv.wait(
         lock, [value] { return State(value->state).isAvailableOrError(); });
 }
 
 extern "C" void mlirAsyncRuntimeAwaitAllInGroup(AsyncGroup *group) {
-  std::unique_lock<std::mutex> lock(group->mu);
-  if (group->pendingTokens != 0)
+  
+  if (std::unique_lock<std::mutex> lock(group->mu); group->pendingTokens != 0)
     group->cv.wait(lock, [group] { return group->pendingTokens == 0; });
 }
 
@@ -401,8 +401,8 @@ extern "C" void mlirAsyncRuntimeAwaitTokenAndExecute(AsyncToken *token,
                                                      CoroHandle handle,
                                                      CoroResume resume) {
   auto execute = [handle, resume]() { (*resume)(handle); };
-  std::unique_lock<std::mutex> lock(token->mu);
-  if (State(token->state).isAvailableOrError()) {
+  
+  if (std::unique_lock<std::mutex> lock(token->mu); State(token->state).isAvailableOrError()) {
     lock.unlock();
     execute();
   } else {
@@ -414,8 +414,8 @@ extern "C" void mlirAsyncRuntimeAwaitValueAndExecute(AsyncValue *value,
                                                      CoroHandle handle,
                                                      CoroResume resume) {
   auto execute = [handle, resume]() { (*resume)(handle); };
-  std::unique_lock<std::mutex> lock(value->mu);
-  if (State(value->state).isAvailableOrError()) {
+  
+  if (std::unique_lock<std::mutex> lock(value->mu); State(value->state).isAvailableOrError()) {
     lock.unlock();
     execute();
   } else {
@@ -427,8 +427,8 @@ extern "C" void mlirAsyncRuntimeAwaitAllInGroupAndExecute(AsyncGroup *group,
                                                           CoroHandle handle,
                                                           CoroResume resume) {
   auto execute = [handle, resume]() { (*resume)(handle); };
-  std::unique_lock<std::mutex> lock(group->mu);
-  if (group->pendingTokens == 0) {
+  
+  if (std::unique_lock<std::mutex> lock(group->mu); group->pendingTokens == 0) {
     lock.unlock();
     execute();
   } else {

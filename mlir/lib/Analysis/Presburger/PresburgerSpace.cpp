@@ -140,8 +140,8 @@ void PresburgerSpace::removeVarRange(VarKind kind, unsigned varStart,
   if (varStart >= varLimit)
     return;
 
-  unsigned numVarsEliminated = varLimit - varStart;
-  if (kind == VarKind::Domain)
+  
+  if (unsigned numVarsEliminated = varLimit - varStart; kind == VarKind::Domain)
     numDomain -= numVarsEliminated;
   else if (kind == VarKind::Range)
     numRange -= numVarsEliminated;
@@ -168,8 +168,8 @@ void PresburgerSpace::convertVarKind(VarKind srcKind, unsigned srcPos,
 
   // Move identifiers if `usingIds` and variables moved are not locals.
   unsigned srcOffset = getVarKindOffset(srcKind) + srcPos;
-  unsigned dstOffset = getVarKindOffset(dstKind) + dstPos;
-  if (isUsingIds() && srcKind != VarKind::Local && dstKind != VarKind::Local) {
+  
+  if (unsigned dstOffset = getVarKindOffset(dstKind) + dstPos; isUsingIds() && srcKind != VarKind::Local && dstKind != VarKind::Local) {
     identifiers.insert(identifiers.begin() + dstOffset, num, Identifier());
     // Update srcOffset if insertion of new elements invalidates it.
     if (dstOffset < srcOffset)
@@ -309,8 +309,8 @@ void PresburgerSpace::mergeAndAlignSymbols(PresburgerSpace &other) {
     // `i` since the left of `i` is aligned.
     auto *findBegin = other.getIds(VarKind::Symbol).begin() + i;
     auto *findEnd = other.getIds(VarKind::Symbol).end();
-    auto *itr = std::find(findBegin, findEnd, identifier);
-    if (itr != findEnd) {
+    
+    if (auto *itr = std::find(findBegin, findEnd, identifier); itr != findEnd) {
       std::swap(findBegin, itr);
     } else {
       other.insertVar(VarKind::Symbol, i);

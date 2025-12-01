@@ -178,13 +178,13 @@ RangeSet::ContainerType RangeSet::Factory::unite(const ContainerType &LHS,
   iterator Second = RHS.begin();
   iterator SecondEnd = RHS.end();
   APSIntType Ty = APSIntType(First->From());
-  const APSInt Min = Ty.getMinValue();
+  
 
   // Handle a corner case first when both range sets start from MIN.
   // This helps to avoid complicated conditions below. Specifically, this
   // particular check for `MIN` is not needed in the loop below every time
   // when we do `Second->From() - One` operation.
-  if (Min == First->From() && Min == Second->From()) {
+  if (const APSInt Min = Ty.getMinValue(); Min == First->From() && Min == Second->From()) {
     if (First->To() > Second->To()) {
       //    [ First    ]--->
       //    [ Second ]----->
@@ -398,9 +398,9 @@ bool RangeSet::pin(llvm::APSInt &Lower, llvm::APSInt &Upper) const {
   // the range of values for the associated symbol.
   APSIntType Type(getMinValue());
   APSIntType::RangeTestResultKind LowerTest = Type.testInRange(Lower, true);
-  APSIntType::RangeTestResultKind UpperTest = Type.testInRange(Upper, true);
+  
 
-  switch (LowerTest) {
+  switch (APSIntType::RangeTestResultKind UpperTest = Type.testInRange(Upper, true); LowerTest) {
   case APSIntType::RTR_Below:
     switch (UpperTest) {
     case APSIntType::RTR_Below:
@@ -624,19 +624,19 @@ RangeSet RangeSet::Factory::negate(RangeSet What) {
   const_iterator End = What.end();
 
   const llvm::APSInt &From = It->From();
-  const llvm::APSInt &To = It->To();
+  
 
-  if (From == MIN) {
+  if (const llvm::APSInt &To = It->To(); From == MIN) {
     // If the range [From, To] is [MIN, MAX], then result is also [MIN, MAX].
     if (To == MAX) {
       return What;
     }
 
-    const_iterator Last = std::prev(End);
+    
 
     // Try to find and unite the following ranges:
     // [MIN, MIN] & [MIN + 1, N] => [MIN, N].
-    if (Last->To() == MAX) {
+    if (const_iterator Last = std::prev(End); Last->To() == MAX) {
       // It means that in the original range we have ranges
       //   [MIN, A], ... , [B, MAX]
       // And the result should be [MIN, -B], ..., [-A, MAX]
@@ -1275,9 +1275,9 @@ private:
 
   /// Infer range information from symbol in the context of the given type.
   RangeSet inferAs(SymbolRef Sym, QualType DestType) {
-    QualType ActualType = Sym->getType();
+    
     // Check that we can reason about the symbol at all.
-    if (ActualType->isIntegralOrEnumerationType() ||
+    if (QualType ActualType = Sym->getType(); ActualType->isIntegralOrEnumerationType() ||
         Loc::isLocType(ActualType)) {
       return infer(Sym);
     }
@@ -1671,9 +1671,9 @@ RangeSet SymbolicRangeInferrer::VisitBinaryOperator<BO_NE>(RangeSet LHS,
                            LHS.isUnsigned() || RHS.isUnsigned());
 
     RangeSet CastedLHS = RangeFactory.castTo(LHS, CastingType);
-    RangeSet CastedRHS = RangeFactory.castTo(RHS, CastingType);
+    
 
-    if (intersect(RangeFactory, CastedLHS, CastedRHS).isEmpty())
+    if (RangeSet CastedRHS = RangeFactory.castTo(RHS, CastingType); intersect(RangeFactory, CastedLHS, CastedRHS).isEmpty())
       return getTrueRange(T);
   }
 
@@ -1749,10 +1749,10 @@ RangeSet SymbolicRangeInferrer::VisitBinaryOperator<BO_And>(Range LHS,
   bool IsRHSPositiveOrZero = RHS.From() >= Zero;
 
   bool IsLHSNegative = LHS.To() < Zero;
-  bool IsRHSNegative = RHS.To() < Zero;
+  
 
   // Check if both ranges have the same sign.
-  if ((IsLHSPositiveOrZero && IsRHSPositiveOrZero) ||
+  if (bool IsRHSNegative = RHS.To() < Zero; (IsLHSPositiveOrZero && IsRHSPositiveOrZero) ||
       (IsLHSNegative && IsRHSNegative)) {
     // The result is definitely less or equal than any of the operands.
     const llvm::APSInt &Max = std::min(LHS.To(), RHS.To());
@@ -2094,8 +2094,8 @@ public:
       return true;
     // a % b != 0 implies that a != 0.
     if (!Constraint.containsZero()) {
-      SVal SymSVal = Builder.makeSymbolVal(Sym->getLHS());
-      if (auto NonLocSymSVal = SymSVal.getAs<nonloc::SymbolVal>()) {
+      
+      if (auto SVal SymSVal = Builder.makeSymbolVal(Sym->getLHS()); NonLocSymSVal = SymSVal.getAs<nonloc::SymbolVal>()) {
         State = State->assume(*NonLocSymSVal, true);
         if (!State)
           return false;
@@ -2352,12 +2352,12 @@ inline ProgramStateRef EquivalenceClass::merge(RangeSet::Factory &F,
     return State;
 
   SymbolSet Members = getClassMembers(State);
-  SymbolSet OtherMembers = Other.getClassMembers(State);
+  
 
   // We estimate the size of the class by the height of tree containing
   // its members.  Merging is not a trivial operation, so it's easier to
   // merge the smaller class into the bigger one.
-  if (Members.getHeight() >= OtherMembers.getHeight()) {
+  if (SymbolSet OtherMembers = Other.getClassMembers(State); Members.getHeight() >= OtherMembers.getHeight()) {
     return mergeImpl(F, State, Members, Other, OtherMembers);
   } else {
     return Other.mergeImpl(F, State, OtherMembers, *this, Members);
@@ -2380,14 +2380,14 @@ EquivalenceClass::mergeImpl(RangeSet::Factory &RangeFactory,
   // compress paths every time we do merges.  It also means that we lose
   // the main amortized complexity benefit from the original data structure.
   ConstraintRangeTy Constraints = State->get<ConstraintRange>();
-  ConstraintRangeTy::Factory &CRF = State->get_context<ConstraintRange>();
+  
 
   // 1. If the merged classes have any constraints associated with them, we
   //    need to transfer them to the class we have left.
   //
   // Intersection here makes perfect sense because both of these constraints
   // must hold for the whole new class.
-  if (std::optional<RangeSet> NewClassConstraint =
+  if (std::optional<RangeSet> ConstraintRangeTy::Factory &CRF = State->get_context<ConstraintRange>(); NewClassConstraint =
           intersect(RangeFactory, getConstraint(State, *this),
                     getConstraint(State, Other))) {
     // NOTE: Essentially, NewClassConstraint should NEVER be infeasible because
@@ -2681,9 +2681,9 @@ EquivalenceClass::simplify(SValBuilder &SVB, RangeSet::Factory &F,
     // still feasible.
     if (const auto CI = SimplifiedMemberVal.getAs<nonloc::ConcreteInt>()) {
       const llvm::APSInt &SV = CI->getValue();
-      const RangeSet *ClassConstraint = getConstraint(State, Class);
+      
       // We have found a contradiction.
-      if (ClassConstraint && !ClassConstraint->contains(SV))
+      if (const RangeSet *ClassConstraint = getConstraint(State, Class); ClassConstraint && !ClassConstraint->contains(SV))
         return nullptr;
     }
 
@@ -2791,11 +2791,11 @@ bool EquivalenceClass::isClassDataConsistent(ProgramStateRef State) {
     // Disequality is symmetrical, i.e. for every Class A and B that A != B,
     // B != A should also be true.
     for (EquivalenceClass DisequalClass : DisequalClasses) {
-      const ClassSet *DisequalToDisequalClasses =
-          Disequalities.lookup(DisequalClass);
+      
 
       // It should be a set of at least one element: Class
-      if (!DisequalToDisequalClasses ||
+      if (const ClassSet *DisequalToDisequalClasses =
+          Disequalities.lookup(DisequalClass); !DisequalToDisequalClasses ||
           !DisequalToDisequalClasses->contains(Class))
         return false;
     }
@@ -2935,19 +2935,19 @@ RangeConstraintManager::removeDeadBindings(ProgramStateRef State,
 
     // Update disequality information to not hold any information on the
     // removed class.
-    ClassSet DisequalClasses =
-        Class.getDisequalClasses(Disequalities, ClassSetFactory);
-    if (!DisequalClasses.isEmpty()) {
+    
+    if (ClassSet DisequalClasses =
+        Class.getDisequalClasses(Disequalities, ClassSetFactory); !DisequalClasses.isEmpty()) {
       for (EquivalenceClass DisequalClass : DisequalClasses) {
         ClassSet DisequalToDisequalSet =
             DisequalClass.getDisequalClasses(Disequalities, ClassSetFactory);
         // DisequalToDisequalSet is guaranteed to be non-empty for consistent
         // disequality info.
         assert(!DisequalToDisequalSet.isEmpty());
-        ClassSet NewSet = ClassSetFactory.remove(DisequalToDisequalSet, Class);
+        
 
         // No need in keeping an empty set.
-        if (NewSet.isEmpty()) {
+        if (ClassSet NewSet = ClassSetFactory.remove(DisequalToDisequalSet, Class); NewSet.isEmpty()) {
           Disequalities =
               DisequalityFactory.remove(Disequalities, DisequalClass);
         } else {
@@ -2964,8 +2964,8 @@ RangeConstraintManager::removeDeadBindings(ProgramStateRef State,
   // 1. Let's see if dead symbols are trivial and have associated constraints.
   for (std::pair<EquivalenceClass, RangeSet> ClassConstraintPair :
        Constraints) {
-    EquivalenceClass Class = ClassConstraintPair.first;
-    if (Class.isTriviallyDead(State, SymReaper)) {
+    
+    if (EquivalenceClass Class = ClassConstraintPair.first; Class.isTriviallyDead(State, SymReaper)) {
       // If this class is trivial, we can remove its constraints right away.
       removeDeadClass(Class);
     }
@@ -2973,9 +2973,9 @@ RangeConstraintManager::removeDeadBindings(ProgramStateRef State,
 
   // 2. We don't need to track classes for dead symbols.
   for (std::pair<SymbolRef, EquivalenceClass> SymbolClassPair : Map) {
-    SymbolRef Sym = SymbolClassPair.first;
+    
 
-    if (SymReaper.isDead(Sym)) {
+    if (SymbolRef Sym = SymbolClassPair.first; SymReaper.isDead(Sym)) {
       ClassMapChanged = true;
       NewMap = ClassFactory.remove(NewMap, Sym);
     }
@@ -3182,8 +3182,8 @@ RangeConstraintManager::getSymGERange(ProgramStateRef St, SymbolRef Sym,
 
   // Special case for Int == Min. This is always feasible.
   llvm::APSInt ComparisonVal = AdjustmentType.convert(Int);
-  llvm::APSInt Min = AdjustmentType.getMinValue();
-  if (ComparisonVal == Min)
+  
+  if (llvm::APSInt Min = AdjustmentType.getMinValue(); ComparisonVal == Min)
     return getRange(St, Sym);
 
   llvm::APSInt Max = AdjustmentType.getMaxValue();
@@ -3219,8 +3219,8 @@ RangeConstraintManager::getSymLERange(llvm::function_ref<RangeSet()> RS,
 
   // Special case for Int == Max. This is always feasible.
   llvm::APSInt ComparisonVal = AdjustmentType.convert(Int);
-  llvm::APSInt Max = AdjustmentType.getMaxValue();
-  if (ComparisonVal == Max)
+  
+  if (llvm::APSInt Max = AdjustmentType.getMaxValue(); ComparisonVal == Max)
     return RS();
 
   llvm::APSInt Min = AdjustmentType.getMinValue();

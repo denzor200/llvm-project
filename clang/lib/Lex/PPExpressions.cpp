@@ -184,11 +184,7 @@ static bool EvaluateDefined(PPValue &Result, Token &PeekTok, DefinedTracker &DT,
   // clang and gcc will pick the #if branch while Visual Studio will take the
   // #else branch.  Emit a warning about this undefined behavior.
   if (beginLoc.isMacroID()) {
-    bool IsFunctionTypeMacro =
-        PP.getSourceManager()
-            .getSLocEntry(PP.getSourceManager().getFileID(beginLoc))
-            .getExpansion()
-            .isFunctionMacroExpansion();
+    
     // For object-type macros, it's easy to replace
     //   #define FOO defined(BAR)
     // with
@@ -204,7 +200,11 @@ static bool EvaluateDefined(PPValue &Result, Token &PeekTok, DefinedTracker &DT,
     // in a different way, and compilers seem to agree on how to behave here.
     // So warn by default on object-type macros, but only warn in -pedantic
     // mode on function-type macros.
-    if (IsFunctionTypeMacro)
+    if (bool IsFunctionTypeMacro =
+        PP.getSourceManager()
+            .getSLocEntry(PP.getSourceManager().getFileID(beginLoc))
+            .getExpansion()
+            .isFunctionMacroExpansion(); IsFunctionTypeMacro)
       PP.Diag(beginLoc, diag::warn_defined_in_function_type_macro);
     else
       PP.Diag(beginLoc, diag::warn_defined_in_object_type_macro);
@@ -263,13 +263,13 @@ static bool EvaluateValue(PPValue &Result, Token &PeekTok, DefinedTracker &DT,
                                 : diag::warn_pp_undef_identifier;
           PP.Diag(PeekTok, DiagID) << II;
 
-          const DiagnosticsEngine &DiagEngine = PP.getDiagnostics();
+          
           // If 'Wundef' is enabled, do not emit 'undef-prefix' diagnostics.
-          if (DiagEngine.isIgnored(DiagID, PeekTok.getLocation())) {
+          if (const DiagnosticsEngine &DiagEngine = PP.getDiagnostics(); DiagEngine.isIgnored(DiagID, PeekTok.getLocation())) {
             const std::vector<std::string> UndefPrefixes =
                 DiagEngine.getDiagnosticOptions().UndefPrefixes;
-            const StringRef IdentifierName = II->getName();
-            if (llvm::any_of(UndefPrefixes,
+            
+            if (const StringRef IdentifierName = II->getName(); llvm::any_of(UndefPrefixes,
                              [&IdentifierName](const std::string &Prefix) {
                                return IdentifierName.starts_with(Prefix);
                              }))
@@ -487,10 +487,10 @@ static bool EvaluateValue(PPValue &Result, Token &PeekTok, DefinedTracker &DT,
     Result.Val = -Result.Val;
 
     // -MININT is the only thing that overflows.  Unsigned never overflows.
-    bool Overflow = !Result.isUnsigned() && Result.Val.isMinSignedValue();
+    
 
     // If this operator is live and overflowed, report the issue.
-    if (Overflow && ValueLive)
+    if (bool Overflow = !Result.isUnsigned() && Result.Val.isMinSignedValue(); Overflow && ValueLive)
       PP.Diag(Loc, diag::warn_pp_expr_overflow) << Result.getRange();
 
     DT.State = DefinedTracker::Unknown;
@@ -833,8 +833,8 @@ static bool EvaluateDirectiveSubExpr(PPValue &LHS, unsigned MinPrec,
       // Evaluate the value after the :.
       bool AfterColonLive = ValueLive && LHS.Val == 0;
       PPValue AfterColonVal(LHS.getBitWidth());
-      DefinedTracker DT;
-      if (EvaluateValue(AfterColonVal, PeekTok, DT, AfterColonLive, PP))
+      
+      if (DefinedTracker DT; EvaluateValue(AfterColonVal, PeekTok, DT, AfterColonLive, PP))
         return true;
 
       // Parse anything after the : with the same precedence as ?.  We allow
@@ -994,9 +994,9 @@ getCXXStandardLibraryVersion(Preprocessor &PP, StringRef MacroName,
   llvm::StringRef RevisionDate =
       PP.getSpelling(RevisionDateTok, Buffer, &Invalid);
   if (!Invalid) {
-    std::uint64_t Value;
+    
     // We don't use NumericParser to avoid diagnostics
-    if (!RevisionDate.consumeInteger(10, Value))
+    if (std::uint64_t Value; !RevisionDate.consumeInteger(10, Value))
       return CXXStandardLibraryVersionInfo{Lib, Value};
   }
   return CXXStandardLibraryVersionInfo{CXXStandardLibraryVersionInfo::Unknown,

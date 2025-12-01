@@ -79,8 +79,8 @@ PlatformSP PlatformRemoteAppleWatch::CreateInstance(bool force,
     case llvm::Triple::aarch64_32:
     case llvm::Triple::thumb: {
       const llvm::Triple &triple = arch->GetTriple();
-      llvm::Triple::VendorType vendor = triple.getVendor();
-      switch (vendor) {
+      
+      switch (llvm::Triple::VendorType vendor = triple.getVendor(); vendor) {
       case llvm::Triple::Apple:
         create = true;
         break;
@@ -148,8 +148,8 @@ std::vector<ArchSpec>
 PlatformRemoteAppleWatch::GetSupportedArchitectures(const ArchSpec &host_info) {
   ArchSpec system_arch(GetSystemArchitecture());
 
-  const ArchSpec::Core system_core = system_arch.GetCore();
-  switch (system_core) {
+  
+  switch (const ArchSpec::Core system_core = system_arch.GetCore(); system_core) {
   default:
   case ArchSpec::eCore_arm_arm64:
     return {

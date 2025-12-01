@@ -95,8 +95,8 @@ void PredicateExpander::expandCheckRegOperand(raw_ostream &OS, int OpIndex,
   if (!FunctionMapper.empty())
     OS << ")";
   OS << (shouldNegate() ? " != " : " == ");
-  const StringRef Str = Reg->getValueAsString("Namespace");
-  if (!Str.empty())
+  
+  if (const StringRef Str = Reg->getValueAsString("Namespace"); !Str.empty())
     OS << Str << "::";
   OS << Reg->getName();
 }
@@ -542,8 +542,8 @@ void STIPredicateExpander::expandEpilogue(raw_ostream &OS,
 
 void STIPredicateExpander::expandSTIPredicate(raw_ostream &OS,
                                               const STIPredicateFunction &Fn) {
-  const Record *Rec = Fn.getDeclaration();
-  if (shouldExpandForMC() && !Rec->getValueAsBit("ExpandForMC"))
+  
+  if (const Record *Rec = Fn.getDeclaration(); shouldExpandForMC() && !Rec->getValueAsBit("ExpandForMC"))
     return;
 
   expandHeader(OS, Fn);

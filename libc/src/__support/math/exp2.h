@@ -253,8 +253,8 @@ LIBC_INLINE static constexpr double set_exceptional(double x) {
   // x >= 1024 or +inf/nan
   // x is finite
   if (x_u < 0x7ff0'0000'0000'0000ULL) {
-    int rounding = fputil::quick_get_round();
-    if (rounding == FE_DOWNWARD || rounding == FE_TOWARDZERO)
+    
+    if (int rounding = fputil::quick_get_round(); rounding == FE_DOWNWARD || rounding == FE_TOWARDZERO)
       return FPBits::max_normal().get_val();
 
     fputil::set_errno_if_required(ERANGE);
@@ -271,10 +271,10 @@ LIBC_INLINE static constexpr double exp2(double x) {
   using FPBits = typename fputil::FPBits<double>;
   FPBits xbits(x);
 
-  uint64_t x_u = xbits.uintval();
+  
 
   // x < -1022 or x >= 1024 or log2(1 - 2^-54) < x < log2(1 + 2^-53).
-  if (LIBC_UNLIKELY(x_u > 0xc08ff00000000000 ||
+  if (uint64_t x_u = xbits.uintval(); LIBC_UNLIKELY(x_u > 0xc08ff00000000000 ||
                     (x_u <= 0xbc971547652b82fe && x_u >= 0x4090000000000000) ||
                     x_u <= 0x3ca71547652b82fd)) {
     return set_exceptional(x);

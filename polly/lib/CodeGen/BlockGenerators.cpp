@@ -262,9 +262,9 @@ Value *BlockGenerator::generateLocationAccessed(
     ScopStmt &Stmt, Loop *L, Value *Pointer, ValueMapT &BBMap,
     LoopToScevMapT &LTS, isl_id_to_ast_expr *NewAccesses, __isl_take isl_id *Id,
     Type *ExpectedType) {
-  isl_ast_expr *AccessExpr = isl_id_to_ast_expr_get(NewAccesses, Id);
+  
 
-  if (AccessExpr) {
+  if (isl_ast_expr *AccessExpr = isl_id_to_ast_expr_get(NewAccesses, Id); AccessExpr) {
     AccessExpr = isl_ast_expr_address_of(AccessExpr);
     return ExprBuilder->create(AccessExpr);
   }
@@ -997,9 +997,9 @@ BasicBlock *RegionGenerator::repairDominance(BasicBlock *BB,
                                              BasicBlock *BBCopy) {
 
   BasicBlock *BBIDom = DT.getNode(BB)->getIDom()->getBlock();
-  BasicBlock *BBCopyIDom = EndBlockMap.lookup(BBIDom);
+  
 
-  if (BBCopyIDom)
+  if (BasicBlock *BBCopyIDom = EndBlockMap.lookup(BBIDom); BBCopyIDom)
     GenDT->changeImmediateDominator(BBCopy, BBCopyIDom);
 
   return StartBlockMap.lookup(BBIDom);
@@ -1227,8 +1227,8 @@ PHINode *RegionGenerator::buildExitPHI(MemoryAccess *MA, LoopToScevMapT &LTS,
   // This can happen if the subregion is simplified after the ScopStmts
   // have been created; simplification happens as part of CodeGeneration.
   if (OrigPHI->getParent() != SubR->getExit()) {
-    BasicBlock *FormerExit = SubR->getExitingBlock();
-    if (FormerExit)
+    
+    if (BasicBlock *FormerExit = SubR->getExitingBlock(); FormerExit)
       NewSubregionExit = StartBlockMap.lookup(FormerExit);
   }
 

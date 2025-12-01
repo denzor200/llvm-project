@@ -56,8 +56,8 @@ bool Declaration::DumpStopContext(Stream *s, bool show_fullpaths) const {
 size_t Declaration::MemorySize() const { return sizeof(Declaration); }
 
 int Declaration::Compare(const Declaration &a, const Declaration &b) {
-  int result = FileSpec::Compare(a.m_file, b.m_file, true);
-  if (result)
+  
+  if (int result = FileSpec::Compare(a.m_file, b.m_file, true); result)
     return result;
   if (a.m_line < b.m_line)
     return -1;

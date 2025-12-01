@@ -345,8 +345,8 @@ static bool isMultiLevelPointerToTypeLocClasses(
     TypeLoc Loc,
     const std::initializer_list<TypeLoc::TypeLocClass> &LocClasses) {
   ignoreTypeLocClasses(Loc, {TypeLoc::Paren, TypeLoc::Qualified});
-  const TypeLoc::TypeLocClass TLC = Loc.getTypeLocClass();
-  if (TLC != TypeLoc::Pointer && TLC != TypeLoc::MemberPointer)
+  
+  if (const TypeLoc::TypeLocClass TLC = Loc.getTypeLocClass(); TLC != TypeLoc::Pointer && TLC != TypeLoc::MemberPointer)
     return false;
   ignoreTypeLocClasses(Loc, {TypeLoc::Paren, TypeLoc::Qualified,
                              TypeLoc::Pointer, TypeLoc::MemberPointer});

@@ -141,9 +141,9 @@ struct ExpressionVisitor
       llvm::raw_string_ostream sstream(str);
       mlir::raw_indented_ostream indentedStream(sstream);
 
-      VisitorInfo newInfo(indentedStream, info.valueMap, info.indentLevel,
-                          info.openParens);
-      if (failed(Base::dispatchSMTOpVisitor(op, newInfo)))
+      
+      if (VisitorInfo newInfo(indentedStream, info.valueMap, info.indentLevel,
+                          info.openParens); failed(Base::dispatchSMTOpVisitor(op, newInfo)))
         return failure();
 
       info.valueMap.insert(res, str);

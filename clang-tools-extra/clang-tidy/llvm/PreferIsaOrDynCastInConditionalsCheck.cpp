@@ -99,9 +99,9 @@ void PreferIsaOrDynCastInConditionalsCheck::check(
     };
 
     const StringRef LHSString = GetText(LHS->getSourceRange());
-    const StringRef ArgString = GetText(Arg->getSourceRange());
+    
 
-    if (ArgString != LHSString)
+    if (const StringRef ArgString = GetText(Arg->getSourceRange()); ArgString != LHSString)
       return;
 
     // It is not clear which is preferred between `isa_and_nonnull` and

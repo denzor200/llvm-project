@@ -186,8 +186,8 @@ HoverInfo::PrintedType printType(QualType QT, ASTContext &ASTCtx,
   const Config &Cfg = Config::current();
   if (!QT.isNull() && Cfg.Hover.ShowAKA) {
     bool ShouldAKA = false;
-    QualType DesugaredTy = clang::desugarForDiagnostic(ASTCtx, QT, ShouldAKA);
-    if (ShouldAKA)
+    
+    if (QualType DesugaredTy = clang::desugarForDiagnostic(ASTCtx, QT, ShouldAKA); ShouldAKA)
       Result.AKA = DesugaredTy.getAsString(PP);
   }
   return Result;
@@ -288,8 +288,8 @@ fetchTemplateParameters(const TemplateParameterList *Params,
 const FunctionDecl *getUnderlyingFunction(const Decl *D) {
   // Extract lambda from variables.
   if (const VarDecl *VD = llvm::dyn_cast<VarDecl>(D)) {
-    auto QT = VD->getType();
-    if (!QT.isNull()) {
+    
+    if (auto QT = VD->getType(); !QT.isNull()) {
       while (!QT->getPointeeType().isNull())
         QT = QT->getPointeeType();
 
@@ -583,8 +583,8 @@ std::optional<StringRef> setterVariableName(const CXXMethodDecl *CMD) {
   if (auto *CE = llvm::dyn_cast<CallExpr>(RHS->IgnoreCasts())) {
     if (CE->getNumArgs() != 1)
       return std::nullopt;
-    auto *ND = llvm::dyn_cast_or_null<NamedDecl>(CE->getCalleeDecl());
-    if (!ND || !ND->getIdentifier() || ND->getName() != "move" ||
+    
+    if (auto *ND = llvm::dyn_cast_or_null<NamedDecl>(CE->getCalleeDecl()); !ND || !ND->getIdentifier() || ND->getName() != "move" ||
         !ND->isInStdNamespace())
       return std::nullopt;
     RHS = CE->getArg(0);
@@ -775,11 +775,11 @@ HoverInfo getHoverContents(const DefinedMacro &Macro, const syntax::Token &Tok,
   if (SM.getPresumedLoc(EndLoc, /*UseLineDirectives=*/false).isValid()) {
     EndLoc = Lexer::getLocForEndOfToken(EndLoc, 0, SM, AST.getLangOpts());
     bool Invalid;
-    StringRef Buffer = SM.getBufferData(SM.getFileID(StartLoc), &Invalid);
-    if (!Invalid) {
+    
+    if (StringRef Buffer = SM.getBufferData(SM.getFileID(StartLoc), &Invalid); !Invalid) {
       unsigned StartOffset = SM.getFileOffset(StartLoc);
-      unsigned EndOffset = SM.getFileOffset(EndLoc);
-      if (EndOffset <= Buffer.size() && StartOffset < EndOffset)
+      
+      if (unsigned EndOffset = SM.getFileOffset(EndLoc); EndOffset <= Buffer.size() && StartOffset < EndOffset)
         HI.Definition =
             ("#define " + Buffer.substr(StartOffset, EndOffset - StartOffset))
                 .str();
@@ -795,8 +795,8 @@ HoverInfo getHoverContents(const DefinedMacro &Macro, const syntax::Token &Tok,
       ExpansionText += ExpandedTok.text(SM);
       ExpansionText += " ";
       const Config &Cfg = Config::current();
-      const size_t Limit = static_cast<size_t>(Cfg.Hover.MacroContentsLimit);
-      if (Limit && ExpansionText.size() > Limit) {
+      
+      if (const size_t Limit = static_cast<size_t>(Cfg.Hover.MacroContentsLimit); Limit && ExpansionText.size() > Limit) {
         ExpansionText.clear();
         break;
       }
@@ -995,14 +995,14 @@ void addLayoutInfo(const NamedDecl &ND, HoverInfo &HI) {
       else if (auto Size = Ctx.getTypeSizeInCharsIfKnown(FD->getType()))
         HI.Size = FD->isZeroSize(Ctx) ? 0 : Size->getQuantity() * 8;
       if (HI.Size) {
-        unsigned EndOfField = *HI.Offset + *HI.Size;
+        
 
         // Calculate padding following the field.
-        if (!Record->isUnion() &&
+        if (unsigned EndOfField = *HI.Offset + *HI.Size; !Record->isUnion() &&
             FD->getFieldIndex() + 1 < Layout.getFieldCount()) {
           // Measure padding up to the next class field.
-          unsigned NextOffset = Layout.getFieldOffset(FD->getFieldIndex() + 1);
-          if (NextOffset >= EndOfField) // next field could be a bitfield!
+          
+          if (unsigned NextOffset = Layout.getFieldOffset(FD->getFieldIndex() + 1); NextOffset >= EndOfField) // next field could be a bitfield!
             HI.Padding = NextOffset - EndOfField;
         } else {
           // Measure padding up to the end of the object.
@@ -1182,8 +1182,8 @@ void maybeAddSymbolProviders(ParsedAST &AST, HoverInfo &HI,
       break;
 
     // Pick the best-ranked #include'd provider
-    auto Matches = ConvertedIncludes.match(P);
-    if (!Matches.empty()) {
+    
+    if (auto Matches = ConvertedIncludes.match(P); !Matches.empty()) {
       Result = Matches[0]->quote();
       break;
     }
@@ -1330,13 +1330,13 @@ std::optional<HoverInfo> getHover(ParsedAST &AST, Position Pos,
     auto Offset = SM.getFileOffset(*CurLoc);
     // Editors send the position on the left of the hovered character.
     // So our selection tree should be biased right. (Tested with VSCode).
-    SelectionTree ST =
-        SelectionTree::createRight(AST.getASTContext(), TB, Offset, Offset);
-    if (const SelectionTree::Node *N = ST.commonAncestor()) {
+    
+    if (const SelectionTree::Node *SelectionTree ST =
+        SelectionTree::createRight(AST.getASTContext(), TB, Offset, Offset); N = ST.commonAncestor()) {
       // FIXME: Fill in HighlightRange with range coming from N->ASTNode.
-      auto Decls = explicitReferenceTargets(N->ASTNode, DeclRelation::Alias,
-                                            AST.getHeuristicResolver());
-      if (const auto *DeclToUse = pickDeclToUse(Decls)) {
+      
+      if (const auto *auto Decls = explicitReferenceTargets(N->ASTNode, DeclRelation::Alias,
+                                            AST.getHeuristicResolver()); DeclToUse = pickDeclToUse(Decls)) {
         HoverCountMetric.record(1, "decl");
         HI = getHoverContents(DeclToUse, PP, Index, TB);
         // Layout info only shown when hovering on the field/class itself.

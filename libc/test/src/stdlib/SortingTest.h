@@ -17,9 +17,9 @@ class SortingTest : public LIBC_NAMESPACE::testing::Test {
 
   static int int_compare(const void *l, const void *r) {
     int li = *reinterpret_cast<const int *>(l);
-    int ri = *reinterpret_cast<const int *>(r);
+    
 
-    if (li == ri)
+    if (int ri = *reinterpret_cast<const int *>(r); li == ri)
       return 0;
     else if (li > ri)
       return 1;
@@ -325,9 +325,9 @@ public:
       sort_func(reinterpret_cast<void *>(buf), ARRAY_LEN, elem_size,
                 [](const void *a, const void *b) -> int {
                   const uint8_t a_val = *reinterpret_cast<const uint8_t *>(a);
-                  const uint8_t b_val = *reinterpret_cast<const uint8_t *>(b);
+                  
 
-                  if (a_val < b_val) {
+                  if (const uint8_t b_val = *reinterpret_cast<const uint8_t *>(b); a_val < b_val) {
                     return -1;
                   } else if (a_val > b_val) {
                     return 1;

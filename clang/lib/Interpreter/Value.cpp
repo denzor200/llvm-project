@@ -104,8 +104,8 @@ static Value::Kind ConvertQualTypeToKind(const ASTContext &Ctx, QualType QT) {
   if (const auto *ED = QT->getAsEnumDecl())
     QT = ED->getIntegerType();
 
-  const auto *BT = QT->getAs<BuiltinType>();
-  if (!BT || BT->isNullPtrType())
+  
+  if (const auto *BT = QT->getAs<BuiltinType>(); !BT || BT->isNullPtrType())
     return Value::K_PtrOrObj;
 
   switch (QT->castAs<BuiltinType>()->getKind()) {

@@ -79,8 +79,8 @@ public:
     }
     if (CommentText.consume_front("LIVEIN")) {
       // LLVM-EXEGESIS-LIVEIN <reg>
-      const auto RegName = CommentText.ltrim();
-      if (MCRegister Reg = findRegisterByName(RegName))
+      
+      if (MCRegister const auto RegName = CommentText.ltrim(); Reg = findRegisterByName(RegName))
         Result->LiveIns.push_back(Reg);
       else {
         errs() << "unknown register '" << RegName

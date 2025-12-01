@@ -299,8 +299,8 @@ FailureOr<PadTilingInterfaceResult> linalg::rewriteAsPaddedOp(
     LLVM_DEBUG(DBGS() << "--start padding operand: " << operand << "\n");
 
     // 2.a. Skip scalar-like operands.
-    Type operandType = operand.getType();
-    if (!isa<RankedTensorType>(operandType)) {
+    
+    if (Type operandType = operand.getType(); !isa<RankedTensorType>(operandType)) {
       assert((!isa<ShapedType>(operandType) || isa<VectorType>(operandType)) &&
              "Unexpected non-vector ShapedType");
       newOperands.push_back(operand);

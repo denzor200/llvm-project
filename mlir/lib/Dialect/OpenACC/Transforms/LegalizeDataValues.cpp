@@ -42,8 +42,8 @@ static void collectVars(mlir::ValueRange operands,
                         bool hostToDevice) {
   for (auto operand : operands) {
     Value var = acc::getVar(operand.getDefiningOp());
-    Value accVar = acc::getAccVar(operand.getDefiningOp());
-    if (var && accVar) {
+    
+    if (Value accVar = acc::getAccVar(operand.getDefiningOp()); var && accVar) {
       if (hostToDevice)
         values.push_back({var, accVar});
       else

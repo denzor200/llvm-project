@@ -67,8 +67,8 @@ static LogicalResult readOptionalArrayRef(DialectBytecodeReader &reader,
     return success();
 
   auto readEntry = [&]() -> FailureOr<EntryTy> {
-    EntryTy temp;
-    if constexpr (std::is_base_of_v<Attribute, EntryTy>) {
+    
+    if constexpr (EntryTy temp; std::is_base_of_v<Attribute, EntryTy>) {
       if (succeeded(reader.readOptionalAttribute(temp)))
         return temp;
     } else if constexpr (std::is_integral_v<EntryTy>) {

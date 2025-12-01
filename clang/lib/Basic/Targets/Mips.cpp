@@ -101,9 +101,9 @@ void MipsTargetInfo::getTargetDefines(const LangOptions &Opts,
     Builder.defineMacro("_MIPS_ISA", "_MIPS_ISA_MIPS64");
   }
 
-  const std::string ISARev = std::to_string(getISARev());
+  
 
-  if (!ISARev.empty())
+  if (const std::string ISARev = std::to_string(getISARev()); !ISARev.empty())
     Builder.defineMacro("__mips_isa_rev", ISARev);
 
   if (ABI == "o32") {

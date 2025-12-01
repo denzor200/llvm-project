@@ -478,13 +478,13 @@ bool XCoreFrameLowering::restoreCalleeSavedRegisters(
 MachineBasicBlock::iterator XCoreFrameLowering::eliminateCallFramePseudoInstr(
     MachineFunction &MF, MachineBasicBlock &MBB,
     MachineBasicBlock::iterator I) const {
-  const XCoreInstrInfo &TII = *MF.getSubtarget<XCoreSubtarget>().getInstrInfo();
-  if (!hasReservedCallFrame(MF)) {
+  
+  if (const XCoreInstrInfo &TII = *MF.getSubtarget<XCoreSubtarget>().getInstrInfo(); !hasReservedCallFrame(MF)) {
     // Turn the adjcallstackdown instruction into 'extsp <amt>' and the
     // adjcallstackup instruction into 'ldaw sp, sp[<amt>]'
     MachineInstr &Old = *I;
-    uint64_t Amount = Old.getOperand(0).getImm();
-    if (Amount != 0) {
+    
+    if (uint64_t Amount = Old.getOperand(0).getImm(); Amount != 0) {
       // We need to keep the stack aligned properly.  To do this, we round the
       // amount of space needed for the outgoing arguments up to the next
       // alignment boundary.

@@ -90,9 +90,9 @@ public:
 void IntrinsicEmitter::run(raw_ostream &OS, bool Enums) {
   emitSourceFileHeader("Intrinsic Function Source Fragment", OS);
 
-  CodeGenIntrinsicTable Ints(Records);
+  
 
-  if (Enums) {
+  if (CodeGenIntrinsicTable Ints(Records); Enums) {
     // Emit the enum information.
     EmitEnumInfo(Ints, OS);
 
@@ -556,8 +556,8 @@ static AttributeSet getIntrinsicArgAttributeSet(LLVMContext &C, unsigned ID,
                 "CaptureInfo::none()),\n";
           continue;
         }
-        StringRef AttrName = getArgAttrEnumName(Attr.Kind);
-        if (Attr.Kind == CodeGenIntrinsic::Alignment ||
+        
+        if (StringRef AttrName = getArgAttrEnumName(Attr.Kind); Attr.Kind == CodeGenIntrinsic::Alignment ||
             Attr.Kind == CodeGenIntrinsic::Dereferenceable)
           OS << formatv("      Attribute::get(C, Attribute::{}, {}),\n",
                         AttrName, Attr.Value);

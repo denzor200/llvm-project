@@ -67,8 +67,8 @@ RegisterContextUnifiedCore::RegisterContextUnifiedCore(
   // Add metadata register sizes to the total buffer size.
   uint32_t combined_buffer_end = core_buffer_end;
   if (metadata_registers_dict) {
-    StructuredData::Array *registers = nullptr;
-    if (metadata_registers_dict->GetValueForKeyAsArray("registers", registers))
+    
+    if (StructuredData::Array *registers = nullptr; metadata_registers_dict->GetValueForKeyAsArray("registers", registers))
       registers->ForEach(
           [&combined_buffer_end](StructuredData::Object *ent) -> bool {
             uint32_t bitsize;
@@ -87,8 +87,8 @@ RegisterContextUnifiedCore::RegisterContextUnifiedCore(
   for (size_t idx = 0; idx < core_thread_regctx_sp->GetRegisterCount(); idx++) {
     const RegisterInfo *reginfo =
         core_thread_regctx_sp->GetRegisterInfoAtIndex(idx);
-    RegisterValue val;
-    if (!reginfo->value_regs &&
+    
+    if (RegisterValue val; !reginfo->value_regs &&
         core_thread_regctx_sp->ReadRegister(reginfo, val))
       memcpy(m_register_data.data() + reginfo->byte_offset, val.GetBytes(),
              val.GetByteSize());
@@ -101,8 +101,8 @@ RegisterContextUnifiedCore::RegisterContextUnifiedCore(
   if (metadata_registers_dict) {
     size_t offset = core_buffer_end;
     ByteOrder byte_order = core_thread_regctx_sp->GetByteOrder();
-    StructuredData::Array *registers;
-    if (metadata_registers_dict->GetValueForKeyAsArray("registers", registers))
+    
+    if (StructuredData::Array *registers; metadata_registers_dict->GetValueForKeyAsArray("registers", registers))
       registers->ForEach([this, &offset,
                           byte_order](StructuredData::Object *ent) -> bool {
         uint64_t bitsize;
@@ -117,8 +117,8 @@ RegisterContextUnifiedCore::RegisterContextUnifiedCore(
         }
         ent->GetAsDictionary()->AddIntegerItem("offset", offset);
         Status error;
-        const int bytesize = bitsize / 8;
-        switch (bytesize) {
+        
+        switch (const int bytesize = bitsize / 8; bytesize) {
         case 2: {
           Scalar value_scalar((uint16_t)value);
           value_scalar.GetAsMemoryData(m_register_data.data() + offset,
@@ -214,8 +214,8 @@ RegisterContextUnifiedCore::RegisterContextUnifiedCore(
         uint32_t reg_idx = regset->registers[j];
         const RegisterInfo *reginfo =
             core_thread_regctx_sp->GetRegisterInfoAtIndex(reg_idx);
-        RegisterValue val;
-        if (!reginfo->value_regs &&
+        
+        if (RegisterValue val; !reginfo->value_regs &&
             core_thread_regctx_sp->ReadRegister(reginfo, val)) {
           m_regset_regnum_collection[combined_regset_idx].push_back(
               m_register_infos.size());
@@ -286,8 +286,8 @@ bool RegisterContextUnifiedCore::ReadRegister(
     DataExtractor regdata(m_register_data.data(), m_register_data.size(),
                           process_sp->GetByteOrder(),
                           process_sp->GetAddressByteSize());
-    offset_t offset = reg_info->byte_offset;
-    switch (reg_info->byte_size) {
+    
+    switch (offset_t offset = reg_info->byte_offset; reg_info->byte_size) {
     case 2:
       value.SetUInt16(regdata.GetU16(&offset));
       break;

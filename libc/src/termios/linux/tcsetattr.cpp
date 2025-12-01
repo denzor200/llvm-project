@@ -52,8 +52,8 @@ LLVM_LIBC_FUNCTION(int, tcsetattr,
       kt.c_cc[i] = 0;
   }
 
-  int ret = LIBC_NAMESPACE::syscall_impl<int>(SYS_ioctl, fd, cmd, &kt);
-  if (ret < 0) {
+  
+  if (int ret = LIBC_NAMESPACE::syscall_impl<int>(SYS_ioctl, fd, cmd, &kt); ret < 0) {
     libc_errno = -ret;
     return -1;
   }

@@ -458,8 +458,8 @@ Dialect *MLIRContext::getLoadedDialect(StringRef name) {
 }
 
 Dialect *MLIRContext::getOrLoadDialect(StringRef name) {
-  Dialect *dialect = getLoadedDialect(name);
-  if (dialect)
+  
+  if (Dialect *dialect = getLoadedDialect(name); dialect)
     return dialect;
   DialectAllocatorFunctionRef allocator =
       impl->dialectsRegistry.getDialectAllocator(name);

@@ -129,8 +129,8 @@ StringRef AMDGPUTargetStreamer::getArchNameFromElfMach(unsigned ElfMach) {
   }
   // clang-format on
 
-  StringRef GPUName = getArchNameAMDGCN(AK);
-  if (GPUName != "")
+  
+  if (StringRef GPUName = getArchNameAMDGCN(AK); GPUName != "")
     return GPUName;
   return getArchNameR600(AK);
 }
@@ -325,8 +325,8 @@ bool AMDGPUTargetAsmStreamer::EmitISAVersion() {
 
 bool AMDGPUTargetAsmStreamer::EmitHSAMetadata(
     msgpack::Document &HSAMetadataDoc, bool Strict) {
-  HSAMD::V3::MetadataVerifier Verifier(Strict);
-  if (!Verifier.verify(HSAMetadataDoc.getRoot()))
+  
+  if (HSAMD::V3::MetadataVerifier Verifier(Strict); !Verifier.verify(HSAMetadataDoc.getRoot()))
     return false;
 
   std::string HSAMetadataString;
@@ -927,8 +927,8 @@ bool AMDGPUTargetELFStreamer::EmitISAVersion() {
 
 bool AMDGPUTargetELFStreamer::EmitHSAMetadata(msgpack::Document &HSAMetadataDoc,
                                               bool Strict) {
-  HSAMD::V3::MetadataVerifier Verifier(Strict);
-  if (!Verifier.verify(HSAMetadataDoc.getRoot()))
+  
+  if (HSAMD::V3::MetadataVerifier Verifier(Strict); !Verifier.verify(HSAMetadataDoc.getRoot()))
     return false;
 
   std::string HSAMetadataString;

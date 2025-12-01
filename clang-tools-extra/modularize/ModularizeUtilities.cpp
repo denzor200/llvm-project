@@ -117,8 +117,8 @@ std::error_code ModularizeUtilities::doCoverageCheck(
     auto Checker = CoverageChecker::createCoverageChecker(
         InputFilePaths[ModuleMapIndex], IncludePaths, CommandLine,
         ModMap.get());
-    std::error_code LocalEC = Checker->doChecks();
-    if (LocalEC.value() > 0)
+    
+    if (std::error_code LocalEC = Checker->doChecks(); LocalEC.value() > 0)
       EC = LocalEC;
   }
   return EC;
@@ -441,8 +441,8 @@ static std::string replaceDotDot(StringRef Path) {
 std::string ModularizeUtilities::getCanonicalPath(StringRef FilePath) {
   std::string Tmp(replaceDotDot(FilePath));
   llvm::replace(Tmp, '\\', '/');
-  StringRef Tmp2(Tmp);
-  if (Tmp2.starts_with("./"))
+  
+  if (StringRef Tmp2(Tmp); Tmp2.starts_with("./"))
     Tmp = std::string(Tmp2.substr(2));
   return Tmp;
 }

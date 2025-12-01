@@ -61,9 +61,9 @@ void Context::isPotentialConstantExprUnevaluated(State &Parent, const Expr *E,
   assert(Stk.empty());
   ++EvalID;
   size_t StackSizeBefore = Stk.size();
-  Compiler<EvalEmitter> C(*this, *P, Parent, Stk);
+  
 
-  if (!C.interpretCall(FD, E)) {
+  if (Compiler<EvalEmitter> C(*this, *P, Parent, Stk); !C.interpretCall(FD, E)) {
     C.cleanup();
     Stk.clearTo(StackSizeBefore);
   }
@@ -307,8 +307,8 @@ bool Context::evaluateStrlen(State &Parent, const Expr *E, uint64_t &Result) {
     Result = 0;
     for (unsigned I = Ptr.getIndex(); I != N; ++I) {
       INT_TYPE_SWITCH(ElemT, {
-        auto Elem = Ptr.elem<T>(I);
-        if (Elem.isZero())
+        
+        if (auto Elem = Ptr.elem<T>(I); Elem.isZero())
           return true;
         ++Result;
       });
@@ -449,8 +449,8 @@ const llvm::fltSemantics &Context::getFloatSemantics(QualType T) const {
 }
 
 bool Context::Run(State &Parent, const Function *Func) {
-  InterpState State(Parent, *P, Stk, *this, Func);
-  if (Interpret(State)) {
+  
+  if (InterpState State(Parent, *P, Stk, *this, Func); Interpret(State)) {
     assert(Stk.empty());
     return true;
   }
@@ -470,9 +470,9 @@ Context::getOverridingFunction(const CXXRecordDecl *DynamicDecl,
   const CXXRecordDecl *CurRecord = DynamicDecl;
   const CXXMethodDecl *FoundFunction = InitialFunction;
   for (;;) {
-    const CXXMethodDecl *Overrider =
-        FoundFunction->getCorrespondingMethodDeclaredInClass(CurRecord, false);
-    if (Overrider)
+    
+    if (const CXXMethodDecl *Overrider =
+        FoundFunction->getCorrespondingMethodDeclaredInClass(CurRecord, false); Overrider)
       return Overrider;
 
     // Common case of only one base class.
@@ -653,9 +653,9 @@ unsigned Context::collectBaseOffset(const RecordDecl *BaseDecl,
     assert(CurRecord->getNumBases() > 0);
     // One level up
     for (const Record::Base &B : CurRecord->bases()) {
-      const auto *BaseDecl = cast<CXXRecordDecl>(B.Decl);
+      
 
-      if (BaseDecl == FinalDecl || BaseDecl->isDerivedFrom(FinalDecl)) {
+      if (const auto *BaseDecl = cast<CXXRecordDecl>(B.Decl); BaseDecl == FinalDecl || BaseDecl->isDerivedFrom(FinalDecl)) {
         OffsetSum += B.Offset;
         CurRecord = B.R;
         CurDecl = BaseDecl;

@@ -226,8 +226,8 @@ bool WasmEHPrepareImpl::prepareEHPads(Function &F) {
   for (BasicBlock &BB : F) {
     if (!BB.isEHPad())
       continue;
-    BasicBlock::iterator Pad = BB.getFirstNonPHIIt();
-    if (isa<CatchPadInst>(Pad))
+    
+    if (BasicBlock::iterator Pad = BB.getFirstNonPHIIt(); isa<CatchPadInst>(Pad))
       CatchPads.push_back(&BB);
     else if (isa<CleanupPadInst>(Pad))
       CleanupPads.push_back(&BB);

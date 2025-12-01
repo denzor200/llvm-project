@@ -176,9 +176,9 @@ void MCMachOStreamer::emitLabel(MCSymbol *Symbol, SMLoc Loc) {
 }
 
 void MCMachOStreamer::emitAssignment(MCSymbol *Symbol, const MCExpr *Value) {
-  MCValue Res;
+  
 
-  if (Value->evaluateAsRelocatable(Res, nullptr)) {
+  if (MCValue Res; Value->evaluateAsRelocatable(Res, nullptr)) {
     if (const auto *SymA = Res.getAddSym()) {
       if (!Res.getSubSym() &&
           (SymA->getName().empty() || Res.getConstant() != 0))
@@ -431,8 +431,8 @@ void MCMachOStreamer::finishImpl() {
   // defining symbols.
   DenseMap<const MCFragment *, const MCSymbol *> DefiningSymbolMap;
   for (const MCSymbol &Symbol : getAssembler().symbols()) {
-    auto &Sym = static_cast<const MCSymbolMachO &>(Symbol);
-    if (Sym.isSymbolLinkerVisible() && Sym.isInSection() && !Sym.isVariable() &&
+    
+    if (auto &Sym = static_cast<const MCSymbolMachO &>(Symbol); Sym.isSymbolLinkerVisible() && Sym.isInSection() && !Sym.isVariable() &&
         !Sym.isAltEntry()) {
       // An atom defining symbol should never be internal to a fragment.
       assert(Symbol.getOffset() == 0 &&
@@ -461,9 +461,9 @@ void MCMachOStreamer::finishImpl() {
 }
 
 void MCMachOStreamer::finalizeCGProfileEntry(const MCSymbolRefExpr *&SRE) {
-  auto *S =
-      static_cast<MCSymbolMachO *>(const_cast<MCSymbol *>(&SRE->getSymbol()));
-  if (getAssembler().registerSymbol(*S))
+  
+  if (auto *S =
+      static_cast<MCSymbolMachO *>(const_cast<MCSymbol *>(&SRE->getSymbol())); getAssembler().registerSymbol(*S))
     S->setExternal(true);
 }
 
@@ -508,8 +508,8 @@ MCStreamer *llvm::createMachOStreamer(MCContext &Context,
 // Symbol relocations OTOH will have their indices updated by e.g. llvm-strip.
 void MCMachOStreamer::createAddrSigSection() {
   MCAssembler &Asm = getAssembler();
-  MCObjectWriter &writer = Asm.getWriter();
-  if (!writer.getEmitAddrsigSection())
+  
+  if (MCObjectWriter &writer = Asm.getWriter(); !writer.getEmitAddrsigSection())
     return;
   // Create the AddrSig section and first data fragment here as its layout needs
   // to be computed immediately after in order for it to be exported correctly.

@@ -100,8 +100,8 @@ void BackgroundIndexLoader::load(PathRef MainFile) {
 
     auto ShardAndEdges = loadShard(SourceFile, MainFile);
     for (PathRef Edge : ShardAndEdges.second) {
-      auto It = InQueue.insert(Edge);
-      if (It.second)
+      
+      if (auto It = InQueue.insert(Edge); It.second)
         ToVisit.push(It.first->getKey());
     }
   }

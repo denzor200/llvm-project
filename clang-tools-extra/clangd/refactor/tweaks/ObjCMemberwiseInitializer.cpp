@@ -108,13 +108,13 @@ getAllParams(const ObjCInterfaceDecl *ID) {
   // all_declared_ivar_begin).
   llvm::DenseSet<llvm::StringRef> Names;
   for (const auto *Ivar : ID->ivars()) {
-    MethodParameter P(*Ivar);
-    if (Names.insert(P.Name).second)
+    
+    if (MethodParameter P(*Ivar); Names.insert(P.Name).second)
       Params.push_back(P);
   }
   for (const auto *Prop : ID->properties()) {
-    MethodParameter P(*Prop);
-    if (Names.insert(P.Name).second)
+    
+    if (MethodParameter P(*Prop); Names.insert(P.Name).second)
       Params.push_back(P);
   }
   return Params;
@@ -220,8 +220,8 @@ bool ObjCMemberwiseInitializer::prepare(const Selection &Inputs) {
     Interface = ID->getClassInterface();
     Impl = ID;
   } else if (isa<ObjCPropertyDecl, ObjCIvarDecl>(D)) {
-    const auto *DC = D->getDeclContext();
-    if (const auto *ID = dyn_cast<ObjCInterfaceDecl>(DC)) {
+    
+    if (const auto *const auto *DC = D->getDeclContext(); ID = dyn_cast<ObjCInterfaceDecl>(DC)) {
       Interface = ID;
     } else if (const auto *ID = dyn_cast<ObjCImplementationDecl>(DC)) {
       Interface = ID->getClassInterface();

@@ -94,9 +94,9 @@ insert-before or insert-after.");
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'f':
         m_force = true;
         break;
@@ -195,9 +195,9 @@ protected:
     // A missing value corresponds to clearing the setting when "force" is
     // specified.
     if (argc == 1 && m_options.m_force) {
-      Status error(GetDebugger().SetPropertyValue(
-          &m_exe_ctx, eVarSetOperationClear, var_name, llvm::StringRef()));
-      if (error.Fail()) {
+      
+      if (Status error(GetDebugger().SetPropertyValue(
+          &m_exe_ctx, eVarSetOperationClear, var_name, llvm::StringRef())); error.Fail()) {
         result.AppendError(error.AsCString());
       }
       return;
@@ -259,8 +259,8 @@ public:
 
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
-      const int short_option = m_getopt_table[option_idx].val;
-      switch (short_option) {
+      
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'd':
         m_include_defaults = true;
         break;
@@ -291,9 +291,9 @@ protected:
 
     if (!args.empty()) {
       for (const auto &arg : args) {
-        Status error(GetDebugger().DumpPropertyValue(
-            &m_exe_ctx, result.GetOutputStream(), arg.ref(), dump_mask));
-        if (error.Success()) {
+        
+        if (Status error(GetDebugger().DumpPropertyValue(
+            &m_exe_ctx, result.GetOutputStream(), arg.ref(), dump_mask)); error.Success()) {
           result.GetOutputStream().EOL();
         } else {
           result.AppendError(error.AsCString());
@@ -338,9 +338,9 @@ public:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'f':
         m_filename.assign(std::string(option_arg));
         break;
@@ -397,9 +397,9 @@ protected:
     }
 
     for (const auto &arg : args) {
-      Status error(GetDebugger().DumpPropertyValue(
-          &clean_ctx, out_file, arg.ref(), OptionValue::eDumpGroupExport));
-      if (!error.Success()) {
+      
+      if (Status error(GetDebugger().DumpPropertyValue(
+          &clean_ctx, out_file, arg.ref(), OptionValue::eDumpGroupExport)); !error.Success()) {
         result.AppendError(error.AsCString());
       }
     }
@@ -434,9 +434,9 @@ public:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'f':
         m_filename.assign(std::string(option_arg));
         break;
@@ -518,8 +518,8 @@ protected:
   void DoExecute(Args &args, CommandReturnObject &result) override {
     result.SetStatus(eReturnStatusSuccessFinishResult);
 
-    const size_t argc = args.GetArgumentCount();
-    if (argc > 0) {
+    
+    if (const size_t argc = args.GetArgumentCount(); argc > 0) {
       const bool dump_qualified_name = true;
 
       for (const Args::ArgEntry &arg : args) {
@@ -796,9 +796,9 @@ protected:
     result.SetStatus(eReturnStatusSuccessFinishNoResult);
 
     Args cmd_args(command);
-    const size_t argc = cmd_args.GetArgumentCount();
+    
 
-    if (argc < 3) {
+    if (const size_t argc = cmd_args.GetArgumentCount(); argc < 3) {
       result.AppendError("'settings insert-before' takes more arguments");
       return;
     }
@@ -889,9 +889,9 @@ protected:
     result.SetStatus(eReturnStatusSuccessFinishNoResult);
 
     Args cmd_args(command);
-    const size_t argc = cmd_args.GetArgumentCount();
+    
 
-    if (argc < 3) {
+    if (const size_t argc = cmd_args.GetArgumentCount(); argc < 3) {
       result.AppendError("'settings insert-after' takes more arguments");
       return;
     }
@@ -970,9 +970,9 @@ protected:
                  CommandReturnObject &result) override {
     result.SetStatus(eReturnStatusSuccessFinishNoResult);
     Args cmd_args(command);
-    const size_t argc = cmd_args.GetArgumentCount();
+    
 
-    if (argc < 2) {
+    if (const size_t argc = cmd_args.GetArgumentCount(); argc < 2) {
       result.AppendError("'settings append' takes more arguments");
       return;
     }
@@ -1035,8 +1035,8 @@ public:
 
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
-      const int short_option = m_getopt_table[option_idx].val;
-      switch (short_option) {
+      
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'a':
         m_clear_all = true;
         break;

@@ -491,8 +491,8 @@ LogicalResult GPUDialect::verifyOperationAttribute(Operation *op,
 static ParseResult parseAsyncDependencies(
     OpAsmParser &parser, Type &asyncTokenType,
     SmallVectorImpl<OpAsmParser::UnresolvedOperand> &asyncDependencies) {
-  auto loc = parser.getCurrentLocation();
-  if (succeeded(parser.parseOptionalKeyword("async"))) {
+  
+  if (auto loc = parser.getCurrentLocation(); succeeded(parser.parseOptionalKeyword("async"))) {
     if (parser.getNumResults() == 0)
       return parser.emitError(loc, "needs to be named when marked 'async'");
     asyncTokenType = parser.getBuilder().getType<AsyncTokenType>();
@@ -662,8 +662,8 @@ OpFoldResult gpu::AllReduceOp::fold(FoldAdaptor /*adaptor*/) {
 // TODO: Support optional custom attributes (without dialect prefix).
 static ParseResult parseAllReduceOperation(AsmParser &parser,
                                            AllReduceOperationAttr &attr) {
-  StringRef enumStr;
-  if (!parser.parseOptionalKeyword(&enumStr)) {
+  
+  if (StringRef enumStr; !parser.parseOptionalKeyword(&enumStr)) {
     std::optional<AllReduceOperation> op =
         gpu::symbolizeAllReduceOperation(enumStr);
     if (!op)
@@ -701,8 +701,8 @@ LogicalResult gpu::SubgroupReduceOp::verify() {
 
   auto clusterSize = getClusterSize();
   if (clusterSize) {
-    uint32_t size = *clusterSize;
-    if (!llvm::isPowerOf2_32(size)) {
+    
+    if (uint32_t size = *clusterSize; !llvm::isPowerOf2_32(size)) {
       return emitOpError() << "cluster size " << size
                            << " is not a power of two";
     }
@@ -1098,8 +1098,8 @@ ParseResult LaunchOp::parse(OpAsmParser &parser, OperationState &result) {
   // Parse optional module attribute.
   StringRef moduleAttrName = getModuleAttrName(result.name);
   if (succeeded(parser.parseOptionalKeyword(moduleAttrName))) {
-    FlatSymbolRefAttr moduleSymbol;
-    if (parser.parseLParen() ||
+    
+    if (FlatSymbolRefAttr moduleSymbol; parser.parseLParen() ||
         parser.parseAttribute(moduleSymbol, Type(), moduleAttrName,
                               result.attributes) ||
         parser.parseRParen())
@@ -1108,8 +1108,8 @@ ParseResult LaunchOp::parse(OpAsmParser &parser, OperationState &result) {
   // Parse optional function attribute.
   StringRef functionAttrName = getFunctionAttrName(result.name);
   if (succeeded(parser.parseOptionalKeyword(functionAttrName))) {
-    FlatSymbolRefAttr funcSymbol;
-    if (parser.parseLParen() ||
+    
+    if (FlatSymbolRefAttr funcSymbol; parser.parseLParen() ||
         parser.parseAttribute(funcSymbol, Type(), functionAttrName,
                               result.attributes) ||
         parser.parseRParen())
@@ -1453,9 +1453,9 @@ void ShuffleOp::build(OpBuilder &builder, OperationState &result, Value value,
 
 LogicalResult RotateOp::verify() {
   uint32_t offset = getOffset();
-  uint32_t width = getWidth();
+  
 
-  if (offset >= width) {
+  if (uint32_t width = getWidth(); offset >= width) {
     return emitOpError() << "offset must be in the range [0, " << width << ")";
   }
 
@@ -1589,8 +1589,8 @@ ParseResult GPUFuncOp::parse(OpAsmParser &parser, OperationState &result) {
   bool isVariadic;
 
   // Parse the function name.
-  StringAttr nameAttr;
-  if (parser.parseSymbolName(nameAttr, ::mlir::SymbolTable::getSymbolAttrName(),
+  
+  if (StringAttr nameAttr; parser.parseSymbolName(nameAttr, ::mlir::SymbolTable::getSymbolAttrName(),
                              result.attributes))
     return failure();
 
@@ -1755,8 +1755,8 @@ static void setAttributionAttr(GPUFuncOp op, unsigned index, StringAttr name,
                                Attribute value, StringAttr attrsName) {
   MLIRContext *ctx = op.getContext();
   SmallVector<NamedAttribute> elems;
-  DictionaryAttr oldDict = getAttributionAttrs(op, index, attrsName);
-  if (oldDict)
+  
+  if (DictionaryAttr oldDict = getAttributionAttrs(op, index, attrsName); oldDict)
     elems.append(oldDict.getValue().begin(), oldDict.getValue().end());
 
   bool found = false;
@@ -1815,8 +1815,8 @@ LogicalResult GPUFuncOp::verifyBody() {
     return emitOpError() << "expected body with at least one block";
   unsigned numFuncArguments = getNumArguments();
   unsigned numWorkgroupAttributions = getNumWorkgroupAttributions();
-  unsigned numBlockArguments = front().getNumArguments();
-  if (numBlockArguments < numFuncArguments + numWorkgroupAttributions)
+  
+  if (unsigned numBlockArguments = front().getNumArguments(); numBlockArguments < numFuncArguments + numWorkgroupAttributions)
     return emitOpError() << "expected at least "
                          << numFuncArguments + numWorkgroupAttributions
                          << " arguments to body region";
@@ -1846,9 +1846,9 @@ LogicalResult GPUFuncOp::verifyBody() {
 LogicalResult gpu::ReturnOp::verify() {
   GPUFuncOp function = (*this)->getParentOfType<GPUFuncOp>();
 
-  FunctionType funType = function.getFunctionType();
+  
 
-  if (funType.getNumResults() != getOperands().size())
+  if (FunctionType funType = function.getFunctionType(); funType.getNumResults() != getOperands().size())
     return emitOpError()
         .append("expected ", funType.getNumResults(), " result operands")
         .attachNote(function.getLoc())
@@ -1856,8 +1856,8 @@ LogicalResult gpu::ReturnOp::verify() {
 
   for (const auto &pair : llvm::enumerate(
            llvm::zip(function.getFunctionType().getResults(), getOperands()))) {
-    auto [type, operand] = pair.value();
-    if (type != operand.getType())
+    
+    if (auto [type, operand] = pair.value(); type != operand.getType())
       return emitOpError() << "unexpected type `" << operand.getType()
                            << "' for operand #" << pair.index();
   }
@@ -1982,10 +1982,10 @@ struct EraseTrivialCopyOp : public OpRewritePattern<MemcpyOp> {
   LogicalResult matchAndRewrite(MemcpyOp op,
                                 PatternRewriter &rewriter) const override {
     Value dest = op.getDst();
-    Operation *destDefOp = dest.getDefiningOp();
+    
     // `dest` must be defined by an op having Allocate memory effect in order to
     // perform the folding.
-    if (!destDefOp ||
+    if (Operation *destDefOp = dest.getDefiningOp(); !destDefOp ||
         !hasSingleEffect<MemoryEffects::Allocate>(destDefOp, dest))
       return failure();
     // We can erase `op` iff `dest` has no other use apart from its
@@ -2023,9 +2023,9 @@ LogicalResult SubgroupMmaLoadMatrixOp::verify() {
   auto resType = getRes().getType();
   auto resMatrixType = llvm::cast<gpu::MMAMatrixType>(resType);
   auto operand = resMatrixType.getOperand();
-  auto srcMemrefType = llvm::cast<MemRefType>(srcType);
+  
 
-  if (!srcMemrefType.isLastDimUnitStride())
+  if (auto srcMemrefType = llvm::cast<MemRefType>(srcType); !srcMemrefType.isLastDimUnitStride())
     return emitError(
         "expected source memref most minor dim must have unit stride");
 
@@ -2043,9 +2043,9 @@ LogicalResult SubgroupMmaStoreMatrixOp::verify() {
   auto srcType = getSrc().getType();
   auto dstType = getDstMemref().getType();
   auto srcMatrixType = llvm::cast<gpu::MMAMatrixType>(srcType);
-  auto dstMemrefType = llvm::cast<MemRefType>(dstType);
+  
 
-  if (!dstMemrefType.isLastDimUnitStride())
+  if (auto dstMemrefType = llvm::cast<MemRefType>(dstType); !dstMemrefType.isLastDimUnitStride())
     return emitError(
         "expected destination memref most minor dim must have unit stride");
 

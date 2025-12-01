@@ -126,8 +126,8 @@ DependencyScanningFilesystemSharedCache::getOutOfDateEntries(
           // way to do it now), which may lead to missing file build errors.
           InvalidDiagInfo.emplace_back(Path.data());
         } else {
-          llvm::vfs::Status CachedStatus = Entry->getStatus();
-          if (Status->getType() == llvm::sys::fs::file_type::regular_file &&
+          
+          if (llvm::vfs::Status CachedStatus = Entry->getStatus(); Status->getType() == llvm::sys::fs::file_type::regular_file &&
               Status->getType() == CachedStatus.getType()) {
             // We only check regular files. Directory files sizes could change
             // due to content changes, and reporting directory size changes can
@@ -137,8 +137,8 @@ DependencyScanningFilesystemSharedCache::getOutOfDateEntries(
             // symlink size changes. We can also expand this to detect file
             // type changes.
             uint64_t CachedSize = CachedStatus.getSize();
-            uint64_t ActualSize = Status->getSize();
-            if (CachedSize != ActualSize) {
+            
+            if (uint64_t ActualSize = Status->getSize(); CachedSize != ActualSize) {
               // This is the case where the cached file has a different size
               // from the actual file that comes from the underlying FS.
               InvalidDiagInfo.emplace_back(Path.data(), CachedSize, ActualSize);
@@ -272,8 +272,8 @@ DependencyScanningWorkerFilesystem::findEntryByFilenameWithWriteThrough(
     StringRef Filename) {
   if (const auto *Entry = LocalCache.findEntryByFilename(Filename))
     return Entry;
-  auto &Shard = SharedCache.getShardForFilename(Filename);
-  if (const auto *Entry = Shard.findEntryByFilename(Filename))
+  
+  if (const auto *auto &Shard = SharedCache.getShardForFilename(Filename); Entry = Shard.findEntryByFilename(Filename))
     return &LocalCache.insertEntryForFilename(Filename, *Entry);
   return nullptr;
 }

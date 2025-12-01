@@ -136,16 +136,16 @@ VarLenInst::VarLenInst(const DagInit *DI, const RecordVal *TheDef)
 void VarLenInst::buildRec(const DagInit *DI) {
   assert(TheDef && "The def record is nullptr ?");
 
-  std::string Op = DI->getOperator()->getAsString();
+  
 
-  if (Op == "ascend" || Op == "descend") {
+  if (std::string Op = DI->getOperator()->getAsString(); Op == "ascend" || Op == "descend") {
     bool Reverse = Op == "descend";
     int i = Reverse ? DI->getNumArgs() - 1 : 0;
     int e = Reverse ? -1 : DI->getNumArgs();
     int s = Reverse ? -1 : 1;
     for (; i != e; i += s) {
-      const Init *Arg = DI->getArg(i);
-      if (const auto *BI = dyn_cast<BitsInit>(Arg)) {
+      
+      if (const auto *const Init *Arg = DI->getArg(i); BI = dyn_cast<BitsInit>(Arg)) {
         if (!BI->isComplete())
           PrintFatalError(TheDef->getLoc(),
                           "Expecting complete bits init in `" + Op + "`");
@@ -456,10 +456,10 @@ std::string VarLenCodeEmitterGen::getInstructionCaseForEncoding(
   unsigned HighScratchAccess = 0U;
   for (const auto &ES : VLI) {
     unsigned NumBits = ES.BitWidth;
-    const Init *Val = ES.Value;
+    
     // If it's a StringInit or DagInit, it's a reference to an operand
     // or part of an operand.
-    if (isa<StringInit>(Val) || isa<DagInit>(Val)) {
+    if (const Init *Val = ES.Value; isa<StringInit>(Val) || isa<DagInit>(Val)) {
       StringRef OperandName;
       unsigned LoBit = 0U;
       if (const auto *SV = dyn_cast<StringInit>(Val)) {
@@ -499,8 +499,8 @@ std::string VarLenCodeEmitterGen::getInstructionCaseForEncoding(
     Offset += NumBits;
   }
 
-  StringRef PostEmitter = R->getValueAsString("PostEncoderMethod");
-  if (!PostEmitter.empty())
+  
+  if (StringRef PostEmitter = R->getValueAsString("PostEncoderMethod"); !PostEmitter.empty())
     SS.indent(Indent) << "Inst = " << PostEmitter << "(MI, Inst, STI);\n";
 
   // Resize the scratch buffer if it's to small.

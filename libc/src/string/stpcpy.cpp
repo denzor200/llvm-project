@@ -19,9 +19,9 @@ LLVM_LIBC_FUNCTION(char *, stpcpy,
                    (char *__restrict dest, const char *__restrict src)) {
   size_t size = internal::string_length(src) + 1;
   inline_memcpy(dest, src, size);
-  char *result = dest + size;
+  
 
-  if (result != nullptr)
+  if (char *result = dest + size; result != nullptr)
     return result - 1;
   return nullptr;
 }

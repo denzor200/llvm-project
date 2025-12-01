@@ -151,8 +151,8 @@ CGIOperandList::CGIOperandList(const Record *R) : TheDef(R) {
       }
 
       unsigned NumSubArgs = SubArgDag->getNumArgs();
-      unsigned NumSubOps = MIOpInfo->getNumArgs();
-      if (NumSubArgs != NumSubOps) {
+      
+      if (unsigned NumSubOps = MIOpInfo->getNumArgs(); NumSubArgs != NumSubOps) {
         PrintFatalError(R->getLoc(),
                         "In instruction '" + R->getName() + "', operand #" +
                             Twine(i) + " has " + Twine(NumSubArgs) +
@@ -242,8 +242,8 @@ CGIOperandList::parseOperandName(StringRef Op, bool AllowWholeOp) const {
   StringRef SubOpName;
 
   // Check to see if this is $foo.bar.
-  StringRef::size_type DotIdx = OpName.find_first_of('.');
-  if (DotIdx != StringRef::npos) {
+  
+  if (StringRef::size_type DotIdx = OpName.find_first_of('.'); DotIdx != StringRef::npos) {
     SubOpName = OpName.substr(DotIdx + 1);
     if (SubOpName.empty())
       PrintFatalError(TheDef->getLoc(),
@@ -304,8 +304,8 @@ static void ParseConstraint(StringRef CStr, CGIOperandList &Ops,
   // EARLY_CLOBBER: @early $reg
   StringRef::size_type wpos = CStr.find_first_of(" \t");
   StringRef::size_type start = CStr.find_first_not_of(" \t");
-  StringRef Tok = CStr.substr(start, wpos - start);
-  if (Tok == "@earlyclobber") {
+  
+  if (StringRef Tok = CStr.substr(start, wpos - start); Tok == "@earlyclobber") {
     StringRef Name = CStr.substr(wpos + 1);
     wpos = Name.find_first_not_of(" \t");
     if (wpos == StringRef::npos)

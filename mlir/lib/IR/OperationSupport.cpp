@@ -857,8 +857,8 @@ OperationEquivalence::isRegionEquivalentTo(Region *lhs, Region *rhs,
   if (checkCommutativeEquivalent &&
       lhs->hasTrait<mlir::OpTrait::IsCommutative>()) {
     auto lhsRange = lhs->getOperands();
-    auto rhsRange = rhs->getOperands();
-    if (failed(checkCommutativeEquivalent(lhsRange, rhsRange)))
+    
+    if (auto rhsRange = rhs->getOperands(); failed(checkCommutativeEquivalent(lhsRange, rhsRange)))
       return false;
   } else {
     // Check pair wise for equivalence.

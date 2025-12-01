@@ -67,8 +67,8 @@ bool FunctionAnalysisManagerModuleProxy::Result::invalidate(
       for (const auto &OuterInvalidationPair :
            OuterProxy->getOuterInvalidations()) {
         AnalysisKey *OuterAnalysisID = OuterInvalidationPair.first;
-        const auto &InnerAnalysisIDs = OuterInvalidationPair.second;
-        if (Inv.invalidate(OuterAnalysisID, M, PA)) {
+        
+        if (const auto &InnerAnalysisIDs = OuterInvalidationPair.second; Inv.invalidate(OuterAnalysisID, M, PA)) {
           if (!FunctionPA)
             FunctionPA = PA;
           for (AnalysisKey *InnerAnalysisID : InnerAnalysisIDs)

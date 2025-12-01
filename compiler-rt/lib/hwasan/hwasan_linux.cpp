@@ -110,8 +110,8 @@ static void InitializeShadowBaseAddress(uptr shadow_size_bytes) {
   if (!SANITIZER_ANDROID && flags()->fixed_shadow_base != (uptr)-1) {
     __hwasan_shadow_memory_dynamic_address = flags()->fixed_shadow_base;
     uptr beg = __hwasan_shadow_memory_dynamic_address;
-    uptr end = beg + shadow_size_bytes;
-    if (!MemoryRangeIsAvailable(beg, end)) {
+    
+    if (uptr end = beg + shadow_size_bytes; !MemoryRangeIsAvailable(beg, end)) {
       Report(
           "FATAL: HWAddressSanitizer: Shadow range %p-%p is not available.\n",
           (void *)beg, (void *)end);
@@ -199,9 +199,9 @@ static bool EnableTaggingAbi() {
 
 void InitializeOsSupport() {
   // Check we're running on a kernel that can use the tagged address ABI.
-  bool has_abi = CanUseTaggingAbi();
+  
 
-  if (!has_abi) {
+  if (bool has_abi = CanUseTaggingAbi(); !has_abi) {
 #  if SANITIZER_ANDROID || defined(HWASAN_ALIASING_MODE)
     // Some older Android kernels have the tagged pointer ABI on
     // unconditionally, and hence don't have the tagged-addr prctl while still
@@ -319,8 +319,8 @@ void HwasanTSDThreadInit() {
 }
 
 void HwasanTSDDtor(void *tsd) {
-  uptr iterations = (uptr)tsd;
-  if (iterations > 1) {
+  
+  if (uptr iterations = (uptr)tsd; iterations > 1) {
     CHECK_EQ(0, pthread_setspecific(tsd_key, (void *)(iterations - 1)));
     return;
   }
@@ -512,8 +512,8 @@ uptr TagMemoryAligned(uptr p, uptr size, tag_t tag) {
   uptr page_size = GetPageSizeCached();
   uptr page_start = RoundUpTo(shadow_start, page_size);
   uptr page_end = RoundDownTo(shadow_start + shadow_size, page_size);
-  uptr threshold = common_flags()->clear_shadow_mmap_threshold;
-  if (SANITIZER_LINUX &&
+  
+  if (uptr threshold = common_flags()->clear_shadow_mmap_threshold; SANITIZER_LINUX &&
       UNLIKELY(page_end >= page_start + threshold && tag == 0)) {
     internal_memset((void *)shadow_start, tag, page_start - shadow_start);
     internal_memset((void *)page_end, tag,

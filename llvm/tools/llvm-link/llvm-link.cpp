@@ -272,8 +272,8 @@ Module &ModuleLazyLoaderCache::operator()(const char *argv0,
 namespace {
 struct LLVMLinkDiagnosticHandler : public DiagnosticHandler {
   bool handleDiagnostics(const DiagnosticInfo &DI) override {
-    unsigned Severity = DI.getSeverity();
-    switch (Severity) {
+    
+    switch (unsigned Severity = DI.getSeverity(); Severity) {
     case DS_Error:
       WithColor::error();
       break;

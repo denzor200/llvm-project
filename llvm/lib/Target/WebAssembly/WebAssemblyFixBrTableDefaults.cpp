@@ -171,8 +171,8 @@ bool WebAssemblyFixBrTableDefaults::runOnMachineFunction(MachineFunction &MF) {
     for (auto &MI : *MBB) {
       if (WebAssembly::isBrTable(MI.getOpcode())) {
         fixBrTableIndex(MI, MBB, MF);
-        auto *Fixed = fixBrTableDefault(MI, MBB, MF);
-        if (Fixed != nullptr) {
+        
+        if (auto *Fixed = fixBrTableDefault(MI, MBB, MF); Fixed != nullptr) {
           MBBSet.remove(Fixed);
           Changed = true;
         }

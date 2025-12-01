@@ -251,8 +251,8 @@ bool CXXBasePaths::lookupInBases(ASTContext &Context,
         if (!TST) {
           BaseRecord = BaseSpec.getType()->getAsCXXRecordDecl();
         } else {
-          TemplateName TN = TST->getTemplateName();
-          if (auto *TD =
+          
+          if (auto *TemplateName TN = TST->getTemplateName(); TD =
                   dyn_cast_or_null<ClassTemplateDecl>(TN.getAsTemplateDecl()))
             BaseRecord = TD->getTemplatedDecl();
         }
@@ -386,8 +386,8 @@ static bool findOrdinaryMember(const CXXRecordDecl *RD, CXXBasePath &Path,
 }
 
 bool CXXRecordDecl::hasMemberName(DeclarationName Name) const {
-  CXXBasePath P;
-  if (findOrdinaryMember(this, P, Name))
+  
+  if (CXXBasePath P; findOrdinaryMember(this, P, Name))
     return true;
 
   CXXBasePaths Paths(false, false, false);
@@ -401,9 +401,9 @@ bool CXXRecordDecl::hasMemberName(DeclarationName Name) const {
 
 void OverridingMethods::add(unsigned OverriddenSubobject,
                             UniqueVirtualMethod Overriding) {
-  SmallVectorImpl<UniqueVirtualMethod> &SubobjectOverrides
-    = Overrides[OverriddenSubobject];
-  if (!llvm::is_contained(SubobjectOverrides, Overriding))
+  
+  if (SmallVectorImpl<UniqueVirtualMethod> &SubobjectOverrides
+    = Overrides[OverriddenSubobject]; !llvm::is_contained(SubobjectOverrides, Overriding))
     SubobjectOverrides.push_back(Overriding);
 }
 
@@ -617,8 +617,8 @@ static void
 AddIndirectPrimaryBases(const CXXRecordDecl *RD, ASTContext &Context,
                         CXXIndirectPrimaryBaseSet& Bases) {
   // If the record has a virtual primary base class, add it to our set.
-  const ASTRecordLayout &Layout = Context.getASTRecordLayout(RD);
-  if (Layout.isPrimaryBaseVirtual())
+  
+  if (const ASTRecordLayout &Layout = Context.getASTRecordLayout(RD); Layout.isPrimaryBaseVirtual())
     Bases.insert(Layout.getPrimaryBase());
 
   for (const auto &I : RD->bases()) {

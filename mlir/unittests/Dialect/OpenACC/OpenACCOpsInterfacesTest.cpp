@@ -51,7 +51,7 @@ TEST_F(OpenACCOpsInterfacesTest, GlobalVariableOpInterfaceNonConstant) {
       /*alignment=*/IntegerAttr());
 
   auto globalVarIface =
-      dyn_cast<GlobalVariableOpInterface>(globalOp->getOperation());
+      dyn_cast<CallableOpInterface>(globalOp->getOperation());
   ASSERT_TRUE(globalVarIface != nullptr);
   EXPECT_FALSE(globalVarIface.isConstant());
 }
@@ -70,7 +70,7 @@ TEST_F(OpenACCOpsInterfacesTest, GlobalVariableOpInterfaceConstant) {
       /*alignment=*/IntegerAttr());
 
   auto globalVarIface =
-      dyn_cast<GlobalVariableOpInterface>(constantGlobalOp->getOperation());
+      dyn_cast<CallableOpInterface>(constantGlobalOp->getOperation());
   ASSERT_TRUE(globalVarIface != nullptr);
   EXPECT_TRUE(globalVarIface.isConstant());
 }
@@ -90,7 +90,7 @@ TEST_F(OpenACCOpsInterfacesTest, GlobalVariableOpInterfaceInitRegion) {
       /*alignment=*/IntegerAttr());
 
   auto globalVarIface =
-      dyn_cast<GlobalVariableOpInterface>(globalOp->getOperation());
+      dyn_cast<CallableOpInterface>(globalOp->getOperation());
   ASSERT_TRUE(globalVarIface != nullptr);
 
   // memref::GlobalOp doesn't have regions for initialization

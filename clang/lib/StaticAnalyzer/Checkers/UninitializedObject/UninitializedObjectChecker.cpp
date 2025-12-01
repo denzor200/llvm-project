@@ -579,9 +579,9 @@ std::string clang::ento::getVariableName(const FieldDecl *Field) {
   // If Field is a captured lambda variable, Field->getName() will return with
   // an empty string. We can however acquire it's name from the lambda's
   // captures.
-  const auto *CXXParent = dyn_cast<CXXRecordDecl>(Field->getParent());
+  
 
-  if (CXXParent && CXXParent->isLambda()) {
+  if (const auto *CXXParent = dyn_cast<CXXRecordDecl>(Field->getParent()); CXXParent && CXXParent->isLambda()) {
     assert(CXXParent->captures_begin());
     auto It = CXXParent->captures_begin() + Field->getFieldIndex();
 
@@ -615,8 +615,8 @@ void ento::registerUninitializedObjectChecker(CheckerManager &Mgr) {
   ChOpts.IgnoreGuardedFields =
       AnOpts.getCheckerBooleanOption(Chk, "IgnoreGuardedFields");
 
-  std::string ErrorMsg;
-  if (!llvm::Regex(ChOpts.IgnoredRecordsWithFieldPattern).isValid(ErrorMsg))
+  
+  if (std::string ErrorMsg; !llvm::Regex(ChOpts.IgnoredRecordsWithFieldPattern).isValid(ErrorMsg))
     Mgr.reportInvalidCheckerOptionValue(Chk, "IgnoreRecordsWithField",
         "a valid regex, building failed with error message "
         "\"" + ErrorMsg + "\"");

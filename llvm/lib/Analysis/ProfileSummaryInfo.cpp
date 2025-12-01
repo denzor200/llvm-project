@@ -84,8 +84,8 @@ std::optional<uint64_t> ProfileSummaryInfo::getProfileCount(
     // instruction. If it is present, determine hotness solely based on that,
     // since the sampled entry count may not be accurate. If there is no
     // annotated on the instruction, return std::nullopt.
-    uint64_t TotalCount;
-    if (Call.extractProfTotalWeight(TotalCount))
+    
+    if (uint64_t TotalCount; Call.extractProfTotalWeight(TotalCount))
       return TotalCount;
     return std::nullopt;
   }
@@ -190,8 +190,8 @@ bool ProfileSummaryInfo::isColdCount(uint64_t C) const {
 template <bool isHot>
 bool ProfileSummaryInfo::isHotOrColdCountNthPercentile(int PercentileCutoff,
                                                        uint64_t C) const {
-  auto CountThreshold = computeThreshold(PercentileCutoff);
-  if (isHot)
+  
+  if (auto CountThreshold = computeThreshold(PercentileCutoff); isHot)
     return CountThreshold && C >= *CountThreshold;
   else
     return CountThreshold && C <= *CountThreshold;

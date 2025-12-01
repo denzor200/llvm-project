@@ -51,8 +51,8 @@ dumpDXContainer(MemoryBufferRef Source) {
     Obj->Parts.push_back(
         DXContainerYAML::Part(P.Part.getName().str(), P.Part.Size));
     DXContainerYAML::Part &NewPart = Obj->Parts.back();
-    dxbc::PartType PT = dxbc::parsePartType(P.Part.getName());
-    switch (PT) {
+    
+    switch (dxbc::PartType PT = dxbc::parsePartType(P.Part.getName()); PT) {
     case dxbc::PartType::DXIL: {
       std::optional<DXContainer::DXILData> DXIL = Container.getDXIL();
       assert(DXIL && "Since we are iterating and found a DXIL part, "

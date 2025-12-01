@@ -143,8 +143,8 @@ void handleAPINotedAttribute(
     llvm::function_ref<A *()> CreateAttr,
     llvm::function_ref<Decl::attr_iterator(const Decl *)> GetExistingAttr) {
   if (Metadata.IsActive) {
-    auto Existing = GetExistingAttr(D);
-    if (Existing != D->attr_end()) {
+    
+    if (auto Existing = GetExistingAttr(D); Existing != D->attr_end()) {
       // Remove the existing attribute, and treat it as a superseded
       // non-versioned attribute.
       auto *Versioned = SwiftVersionedAdditionAttr::CreateImplicit(
@@ -322,11 +322,11 @@ static void ProcessAPINotes(Sema &S, Decl *D,
           AttributeFactory AF{};
           AttributePool AP{AF};
           auto &C = S.getASTContext();
-          ParsedAttr *SNA = AP.create(
-              &C.Idents.get("swift_name"), SourceRange(), AttributeScopeInfo(),
-              nullptr, nullptr, nullptr, ParsedAttr::Form::GNU());
+          
 
-          if (!S.Swift().DiagnoseName(D, Info.SwiftName, D->getLocation(), *SNA,
+          if (ParsedAttr *SNA = AP.create(
+              &C.Idents.get("swift_name"), SourceRange(), AttributeScopeInfo(),
+              nullptr, nullptr, nullptr, ParsedAttr::Form::GNU()); !S.Swift().DiagnoseName(D, Info.SwiftName, D->getLocation(), *SNA,
                                       /*IsAsync=*/false))
             return nullptr;
 
@@ -386,12 +386,12 @@ static bool checkAPINotesReplacementType(Sema &S, SourceLocation Loc,
 
 void Sema::ApplyAPINotesType(Decl *D, StringRef TypeString) {
   if (!TypeString.empty() && ParseTypeFromStringCallback) {
-    auto ParsedType = ParseTypeFromStringCallback(TypeString, "<API Notes>",
-                                                  D->getLocation());
-    if (ParsedType.isUsable()) {
+    
+    if (auto ParsedType = ParseTypeFromStringCallback(TypeString, "<API Notes>",
+                                                  D->getLocation()); ParsedType.isUsable()) {
       QualType Type = Sema::GetTypeFromParser(ParsedType.get());
-      auto TypeInfo = Context.getTrivialTypeSourceInfo(Type, D->getLocation());
-      if (auto Var = dyn_cast<VarDecl>(D)) {
+      
+      if (auto auto TypeInfo = Context.getTrivialTypeSourceInfo(Type, D->getLocation()); Var = dyn_cast<VarDecl>(D)) {
         // Make adjustments to parameter types.
         if (isa<ParmVarDecl>(Var)) {
           Type = ObjC().AdjustParameterTypeForObjCAutoRefCount(
@@ -417,7 +417,9 @@ void Sema::ApplyAPINotesType(Decl *D, StringRef TypeString) {
 }
 
 void Sema::ApplyNullability(Decl *D, NullabilityKind Nullability) {
-  auto GetModified =
+  
+
+  if (auto auto GetModified =
       [&](class Decl *D, QualType QT,
           NullabilityKind Nullability) -> std::optional<QualType> {
     QualType Original = QT;
@@ -426,9 +428,7 @@ void Sema::ApplyNullability(Decl *D, NullabilityKind Nullability) {
                                           /*OverrideExisting=*/true);
     return (QT.getTypePtr() != Original.getTypePtr()) ? std::optional(QT)
                                                       : std::nullopt;
-  };
-
-  if (auto Function = dyn_cast<FunctionDecl>(D)) {
+  }; Function = dyn_cast<FunctionDecl>(D)) {
     if (auto Modified =
             GetModified(D, Function->getReturnType(), Nullability)) {
       const FunctionType *FnType = Function->getType()->castAs<FunctionType>();
@@ -599,12 +599,12 @@ static void ProcessAPINotes(Sema &S, FunctionOrMethod AnyFunc,
   QualType OverriddenResultType;
   if (Metadata.IsActive && !Info.ResultType.empty() &&
       S.ParseTypeFromStringCallback) {
-    auto ParsedType = S.ParseTypeFromStringCallback(
-        Info.ResultType, "<API Notes>", D->getLocation());
-    if (ParsedType.isUsable()) {
-      QualType ResultType = Sema::GetTypeFromParser(ParsedType.get());
+    
+    if (auto ParsedType = S.ParseTypeFromStringCallback(
+        Info.ResultType, "<API Notes>", D->getLocation()); ParsedType.isUsable()) {
+      
 
-      if (MD) {
+      if (QualType ResultType = Sema::GetTypeFromParser(ParsedType.get()); MD) {
         if (!checkAPINotesReplacementType(S, D->getLocation(),
                                           MD->getReturnType(), ResultType)) {
           auto ResultTypeInfo =

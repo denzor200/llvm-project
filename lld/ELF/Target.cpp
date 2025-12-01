@@ -164,9 +164,9 @@ static void relocateImpl(const TargetInfo &target, InputSectionBase &sec,
   const unsigned bits = ctx.arg.is64 ? 64 : 32;
   for (const Relocation &rel : sec.relocs()) {
     uint8_t *loc = buf + rel.offset;
-    const uint64_t val = SignExtend64(
-        sec.getRelocTargetVA(ctx, rel, secAddr + rel.offset), bits);
-    if (rel.expr != R_RELAX_HINT)
+    
+    if (const uint64_t val = SignExtend64(
+        sec.getRelocTargetVA(ctx, rel, secAddr + rel.offset), bits); rel.expr != R_RELAX_HINT)
       target.relocate(loc, rel, val);
   }
 }

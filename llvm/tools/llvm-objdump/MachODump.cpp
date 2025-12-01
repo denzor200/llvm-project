@@ -287,8 +287,8 @@ static void getSectionsAndSymbols(MachOObjectFile *MachOObj,
                                   uint64_t &BaseSegmentAddress) {
   const StringRef FileName = MachOObj->getFileName();
   for (const SymbolRef &Symbol : MachOObj->symbols()) {
-    StringRef SymName = unwrapOrError(Symbol.getName(), FileName);
-    if (!SymName.starts_with("ltmp"))
+    
+    if (StringRef SymName = unwrapOrError(Symbol.getName(), FileName); !SymName.starts_with("ltmp"))
       Symbols.push_back(Symbol);
   }
 
@@ -305,15 +305,15 @@ static void getSectionsAndSymbols(MachOObjectFile *MachOObj,
       MachOObj->ReadULEB128s(LLC.dataoff, FoundFns);
     } else if (Command.C.cmd == MachO::LC_SEGMENT) {
       MachO::segment_command SLC = MachOObj->getSegmentLoadCommand(Command);
-      StringRef SegName = SLC.segname;
-      if (!BaseSegmentAddressSet && SegName != "__PAGEZERO") {
+      
+      if (StringRef SegName = SLC.segname; !BaseSegmentAddressSet && SegName != "__PAGEZERO") {
         BaseSegmentAddressSet = true;
         BaseSegmentAddress = SLC.vmaddr;
       }
     } else if (Command.C.cmd == MachO::LC_SEGMENT_64) {
       MachO::segment_command_64 SLC = MachOObj->getSegment64LoadCommand(Command);
-      StringRef SegName = SLC.segname;
-      if (!BaseSegmentAddressSet && SegName != "__PAGEZERO") {
+      
+      if (StringRef SegName = SLC.segname; !BaseSegmentAddressSet && SegName != "__PAGEZERO") {
         BaseSegmentAddressSet = true;
         BaseSegmentAddress = SLC.vmaddr;
       }
@@ -356,8 +356,8 @@ static void printRelocationTargetName(const MachOObjectFile *O,
     uint32_t Val = O->getPlainRelocationSymbolNum(RE);
 
     for (const SymbolRef &Symbol : O->symbols()) {
-      uint64_t Addr = unwrapOrError(Symbol.getAddress(), FileName);
-      if (Addr != Val)
+      
+      if (uint64_t Addr = unwrapOrError(Symbol.getAddress(), FileName); Addr != Val)
         continue;
       Fmt << unwrapOrError(Symbol.getName(), FileName);
       return;
@@ -366,8 +366,8 @@ static void printRelocationTargetName(const MachOObjectFile *O,
     // If we couldn't find a symbol that this relocation refers to, try
     // to find a section beginning instead.
     for (const SectionRef &Section : ToolSectionFilter(*O)) {
-      uint64_t Addr = Section.getAddress();
-      if (Addr != Val)
+      
+      if (uint64_t Addr = Section.getAddress(); Addr != Val)
         continue;
       StringRef NameOrErr = unwrapOrError(Section.getName(), O->getFileName());
       Fmt << NameOrErr;
@@ -428,13 +428,13 @@ Error objdump::getMachORelocationValueString(const MachOObjectFile *Obj,
   std::string FmtBuf;
   raw_string_ostream Fmt(FmtBuf);
   unsigned Type = Obj->getAnyRelocationType(RE);
-  bool IsPCRel = Obj->getAnyRelocationPCRel(RE);
+  
 
   // Determine any addends that should be displayed with the relocation.
   // These require decoding the relocation type, which is triple-specific.
 
   // X86_64 has entirely custom relocation types.
-  if (Arch == Triple::x86_64) {
+  if (bool IsPCRel = Obj->getAnyRelocationPCRel(RE); Arch == Triple::x86_64) {
     switch (Type) {
     case MachO::X86_64_RELOC_GOT_LOAD:
     case MachO::X86_64_RELOC_GOT: {
@@ -452,8 +452,8 @@ Error objdump::getMachORelocationValueString(const MachOObjectFile *Obj,
       // X86_64_RELOC_SUBTRACTOR must be followed by a relocation of type
       // X86_64_RELOC_UNSIGNED.
       // NOTE: Scattered relocations don't exist on x86_64.
-      unsigned RType = Obj->getAnyRelocationType(RENext);
-      if (RType != MachO::X86_64_RELOC_UNSIGNED)
+      
+      if (unsigned RType = Obj->getAnyRelocationType(RENext); RType != MachO::X86_64_RELOC_UNSIGNED)
         reportError(Obj->getFileName(), "Expected X86_64_RELOC_UNSIGNED after "
                                         "X86_64_RELOC_SUBTRACTOR.");
 
@@ -500,9 +500,9 @@ Error objdump::getMachORelocationValueString(const MachOObjectFile *Obj,
 
       // X86 sect diff's must be followed by a relocation of type
       // GENERIC_RELOC_PAIR.
-      unsigned RType = Obj->getAnyRelocationType(RENext);
+      
 
-      if (RType != MachO::GENERIC_RELOC_PAIR)
+      if (unsigned RType = Obj->getAnyRelocationType(RENext); RType != MachO::GENERIC_RELOC_PAIR)
         reportError(Obj->getFileName(), "Expected GENERIC_RELOC_PAIR after "
                                         "GENERIC_RELOC_SECTDIFF.");
 
@@ -522,8 +522,8 @@ Error objdump::getMachORelocationValueString(const MachOObjectFile *Obj,
 
         // X86 sect diff's must be followed by a relocation of type
         // GENERIC_RELOC_PAIR.
-        unsigned RType = Obj->getAnyRelocationType(RENext);
-        if (RType != MachO::GENERIC_RELOC_PAIR)
+        
+        if (unsigned RType = Obj->getAnyRelocationType(RENext); RType != MachO::GENERIC_RELOC_PAIR)
           reportError(Obj->getFileName(), "Expected GENERIC_RELOC_PAIR after "
                                           "GENERIC_RELOC_LOCAL_SECTDIFF.");
 
@@ -548,9 +548,9 @@ Error objdump::getMachORelocationValueString(const MachOObjectFile *Obj,
       case MachO::ARM_RELOC_HALF_SECTDIFF: {
         // Half relocations steal a bit from the length field to encode
         // whether this is an upper16 or a lower16 relocation.
-        bool isUpper = (Obj->getAnyRelocationLength(RE) & 0x1) == 1;
+        
 
-        if (isUpper)
+        if (bool isUpper = (Obj->getAnyRelocationLength(RE) & 0x1) == 1; isUpper)
           Fmt << ":upper16:(";
         else
           Fmt << ":lower16:(";
@@ -638,8 +638,8 @@ static void PrintIndirectSymbolTable(MachOObjectFile *O, bool verbose,
     }
     outs() << format("%5u ", indirect_symbol);
     if (verbose) {
-      MachO::symtab_command Symtab = O->getSymtabLoadCommand();
-      if (indirect_symbol < Symtab.nsyms) {
+      
+      if (MachO::symtab_command Symtab = O->getSymtabLoadCommand(); indirect_symbol < Symtab.nsyms) {
         symbol_iterator Sym = O->getSymbolByIndex(indirect_symbol);
         SymbolRef Symbol = *Sym;
         outs() << unwrapOrError(Symbol.getName(), O->getFileName());
@@ -657,8 +657,8 @@ static void PrintIndirectSymbols(MachOObjectFile *O, bool verbose) {
       MachO::segment_command_64 Seg = O->getSegment64LoadCommand(Load);
       for (unsigned J = 0; J < Seg.nsects; ++J) {
         MachO::section_64 Sec = O->getSection64(Load, J);
-        uint32_t section_type = Sec.flags & MachO::SECTION_TYPE;
-        if (section_type == MachO::S_NON_LAZY_SYMBOL_POINTERS ||
+        
+        if (uint32_t section_type = Sec.flags & MachO::SECTION_TYPE; section_type == MachO::S_NON_LAZY_SYMBOL_POINTERS ||
             section_type == MachO::S_LAZY_SYMBOL_POINTERS ||
             section_type == MachO::S_LAZY_DYLIB_SYMBOL_POINTERS ||
             section_type == MachO::S_THREAD_LOCAL_VARIABLE_POINTERS ||
@@ -685,8 +685,8 @@ static void PrintIndirectSymbols(MachOObjectFile *O, bool verbose) {
       MachO::segment_command Seg = O->getSegmentLoadCommand(Load);
       for (unsigned J = 0; J < Seg.nsects; ++J) {
         MachO::section Sec = O->getSection(Load, J);
-        uint32_t section_type = Sec.flags & MachO::SECTION_TYPE;
-        if (section_type == MachO::S_NON_LAZY_SYMBOL_POINTERS ||
+        
+        if (uint32_t section_type = Sec.flags & MachO::SECTION_TYPE; section_type == MachO::S_NON_LAZY_SYMBOL_POINTERS ||
             section_type == MachO::S_LAZY_SYMBOL_POINTERS ||
             section_type == MachO::S_LAZY_DYLIB_SYMBOL_POINTERS ||
             section_type == MachO::S_THREAD_LOCAL_VARIABLE_POINTERS ||
@@ -816,10 +816,10 @@ static void PrintRelocationEntries(const MachOObjectFile *O,
                            O->getPlainRelocationExternal(RE));
     const uint32_t r_value = (r_scattered ?
                               O->getScatteredRelocationValue(RE) : 0);
-    const unsigned r_symbolnum = (r_scattered ? 0 :
-                                  O->getPlainRelocationSymbolNum(RE));
+    
 
-    if (r_scattered && cputype != MachO::CPU_TYPE_X86_64) {
+    if (const unsigned r_symbolnum = (r_scattered ? 0 :
+                                  O->getPlainRelocationSymbolNum(RE)); r_scattered && cputype != MachO::CPU_TYPE_X86_64) {
       if (verbose) {
         // scattered: address
         if ((cputype == MachO::CPU_TYPE_I386 &&
@@ -940,8 +940,8 @@ static void PrintRelocationEntries(const MachOObjectFile *O,
               if (r_symbolnum > 0 && r_symbolnum <= nsects) {
                 object::DataRefImpl DRI;
                 DRI.d.a = r_symbolnum-1;
-                StringRef SegName = O->getSectionFinalSegmentName(DRI);
-                if (Expected<StringRef> NameOrErr = O->getSectionName(DRI))
+                
+                if (Expected<StringRef> StringRef SegName = O->getSectionFinalSegmentName(DRI); NameOrErr = O->getSectionName(DRI))
                   outs() << "(" << SegName << "," << *NameOrErr << ")\n";
                 else
                   outs() << "(?,?)\n";
@@ -992,12 +992,12 @@ static void PrintRelocations(const MachOObjectFile *O, const bool verbose) {
     if (Load.C.cmd == MachO::LC_SEGMENT_64) {
       const MachO::segment_command_64 Seg = O->getSegment64LoadCommand(Load);
       for (unsigned J = 0; J < Seg.nsects; ++J) {
-        const MachO::section_64 Sec = O->getSection64(Load, J);
-        if (Sec.nreloc != 0) {
+        
+        if (const MachO::section_64 Sec = O->getSection64(Load, J); Sec.nreloc != 0) {
           DataRefImpl DRI;
           DRI.d.a = J;
-          const StringRef SegName = O->getSectionFinalSegmentName(DRI);
-          if (Expected<StringRef> NameOrErr = O->getSectionName(DRI))
+          
+          if (Expected<StringRef> const StringRef SegName = O->getSectionFinalSegmentName(DRI); NameOrErr = O->getSectionName(DRI))
             outs() << "Relocation information (" << SegName << "," << *NameOrErr
                    << format(") %u entries", Sec.nreloc);
           else
@@ -1012,12 +1012,12 @@ static void PrintRelocations(const MachOObjectFile *O, const bool verbose) {
     } else if (Load.C.cmd == MachO::LC_SEGMENT) {
       const MachO::segment_command Seg = O->getSegmentLoadCommand(Load);
       for (unsigned J = 0; J < Seg.nsects; ++J) {
-        const MachO::section Sec = O->getSection(Load, J);
-        if (Sec.nreloc != 0) {
+        
+        if (const MachO::section Sec = O->getSection(Load, J); Sec.nreloc != 0) {
           DataRefImpl DRI;
           DRI.d.a = J;
-          const StringRef SegName = O->getSectionFinalSegmentName(DRI);
-          if (Expected<StringRef> NameOrErr = O->getSectionName(DRI))
+          
+          if (Expected<StringRef> const StringRef SegName = O->getSectionFinalSegmentName(DRI); NameOrErr = O->getSectionName(DRI))
             outs() << "Relocation information (" << SegName << "," << *NameOrErr
                    << format(") %u entries", Sec.nreloc);
           else
@@ -1037,14 +1037,14 @@ static void PrintFunctionStarts(MachOObjectFile *O) {
   uint64_t BaseSegmentAddress = 0;
   for (const MachOObjectFile::LoadCommandInfo &Command : O->load_commands()) {
     if (Command.C.cmd == MachO::LC_SEGMENT) {
-      MachO::segment_command SLC = O->getSegmentLoadCommand(Command);
-      if (StringRef(SLC.segname) == "__TEXT") {
+      
+      if (MachO::segment_command SLC = O->getSegmentLoadCommand(Command); StringRef(SLC.segname) == "__TEXT") {
         BaseSegmentAddress = SLC.vmaddr;
         break;
       }
     } else if (Command.C.cmd == MachO::LC_SEGMENT_64) {
-      MachO::segment_command_64 SLC = O->getSegment64LoadCommand(Command);
-      if (StringRef(SLC.segname) == "__TEXT") {
+      
+      if (MachO::segment_command_64 SLC = O->getSegment64LoadCommand(Command); StringRef(SLC.segname) == "__TEXT") {
         BaseSegmentAddress = SLC.vmaddr;
         break;
       }
@@ -1074,10 +1074,10 @@ static void PrintFunctionStarts(MachOObjectFile *O) {
   }
 
   for (uint64_t S : FunctionStarts) {
-    uint64_t Addr = BaseSegmentAddress + S;
-    if (FunctionStartsType == FunctionStartsMode::Names) {
-      auto It = SymbolNames.find(Addr);
-      if (It != SymbolNames.end())
+    
+    if (uint64_t Addr = BaseSegmentAddress + S; FunctionStartsType == FunctionStartsMode::Names) {
+      
+      if (auto It = SymbolNames.find(Addr); It != SymbolNames.end())
         outs() << It->second << "\n";
     } else {
       if (O->is64Bit())
@@ -1086,8 +1086,8 @@ static void PrintFunctionStarts(MachOObjectFile *O) {
         outs() << format("%08" PRIx32, static_cast<uint32_t>(Addr));
 
       if (FunctionStartsType == FunctionStartsMode::Both) {
-        auto It = SymbolNames.find(Addr);
-        if (It != SymbolNames.end())
+        
+        if (auto It = SymbolNames.find(Addr); It != SymbolNames.end())
           outs() << " " << It->second;
         else
           outs() << " ?";
@@ -1411,10 +1411,10 @@ static void PrintDylibs(MachOObjectFile *O, bool JustId) {
                      Load.C.cmd == MachO::LC_REEXPORT_DYLIB ||
                      Load.C.cmd == MachO::LC_LAZY_LOAD_DYLIB ||
                      Load.C.cmd == MachO::LC_LOAD_UPWARD_DYLIB))) {
-      MachO::dylib_command dl = O->getDylibIDLoadCommand(Load);
-      if (dl.dylib.name < dl.cmdsize) {
-        const char *p = (const char *)(Load.Ptr) + dl.dylib.name;
-        if (JustId)
+      
+      if (MachO::dylib_command dl = O->getDylibIDLoadCommand(Load); dl.dylib.name < dl.cmdsize) {
+        
+        if (const char *p = (const char *)(Load.Ptr) + dl.dylib.name; JustId)
           outs() << p << "\n";
         else {
           outs() << "\t" << p;
@@ -1475,12 +1475,12 @@ static void CreateSymbolAddressMap(MachOObjectFile *O,
   // Create a map of symbol addresses to symbol names.
   const StringRef FileName = O->getFileName();
   for (const SymbolRef &Symbol : O->symbols()) {
-    SymbolRef::Type ST = unwrapOrError(Symbol.getType(), FileName);
-    if (ST == SymbolRef::ST_Function || ST == SymbolRef::ST_Data ||
+    
+    if (SymbolRef::Type ST = unwrapOrError(Symbol.getType(), FileName); ST == SymbolRef::ST_Function || ST == SymbolRef::ST_Data ||
         ST == SymbolRef::ST_Other) {
       uint64_t Address = cantFail(Symbol.getValue());
-      StringRef SymName = unwrapOrError(Symbol.getName(), FileName);
-      if (!SymName.starts_with(".objc"))
+      
+      if (StringRef SymName = unwrapOrError(Symbol.getName(), FileName); !SymName.starts_with(".objc"))
         (*AddrMap)[Address] = SymName;
     }
   }
@@ -1493,8 +1493,8 @@ static const char *GuessSymbolName(uint64_t value, SymbolAddressMap *AddrMap) {
   const char *SymbolName = nullptr;
   // A DenseMap can't lookup up some values.
   if (value != 0xffffffffffffffffULL && value != 0xfffffffffffffffeULL) {
-    StringRef name = AddrMap->lookup(value);
-    if (!name.empty())
+    
+    if (StringRef name = AddrMap->lookup(value); !name.empty())
       SymbolName = name.data();
   }
   return SymbolName;
@@ -1751,9 +1751,9 @@ static void DumpLiteralPointerSection(MachOObjectFile *O,
 
     StringRef BytesStr = unwrapOrError(Sect->getContents(), O->getFileName());
 
-    const char *Contents = BytesStr.data();
+    
 
-    switch (section_type) {
+    switch (const char *Contents = BytesStr.data(); section_type) {
     case MachO::S_CSTRING_LITERALS:
       for (uint64_t i = lp - SectAddress; i < SectSize && Contents[i] != '\0';
            i++) {
@@ -1857,10 +1857,10 @@ static void DumpInitTermPointerSection(MachOObjectFile *O,
     }
     if (verbose) {
       // First look for an external relocation entry for this pointer.
-      auto Reloc = find_if(Relocs, [&](const std::pair<uint64_t, SymbolRef> &P) {
+      
+      if (auto Reloc = find_if(Relocs, [&](const std::pair<uint64_t, SymbolRef> &P) {
         return P.first == i;
-      });
-      if (Reloc != Relocs.end()) {
+      }); Reloc != Relocs.end()) {
         symbol_iterator RelocSym = Reloc->second;
         outs() << " " << unwrapOrError(RelocSym->getName(), O->getFileName());
       } else {
@@ -1875,8 +1875,8 @@ static void DumpInitTermPointerSection(MachOObjectFile *O,
 
 static void DumpRawSectionContents(MachOObjectFile *O, const char *sect,
                                    uint32_t size, uint64_t addr) {
-  uint32_t cputype = O->getHeader().cputype;
-  if (cputype == MachO::CPU_TYPE_I386 || cputype == MachO::CPU_TYPE_X86_64) {
+  
+  if (uint32_t cputype = O->getHeader().cputype; cputype == MachO::CPU_TYPE_I386 || cputype == MachO::CPU_TYPE_X86_64) {
     uint32_t j;
     for (uint32_t i = 0; i < size; i += j, addr += j) {
       if (O->is64Bit())
@@ -2375,8 +2375,8 @@ static void printMachOUniversalHeaders(const object::MachOUniversalBinary *UB,
     for (uint32_t j = 0; i != 0 && j <= i - 1; j++) {
       MachOUniversalBinary::ObjectForArch other_OFA(UB, j);
       uint32_t other_cputype = other_OFA.getCPUType();
-      uint32_t other_cpusubtype = other_OFA.getCPUSubType();
-      if (cputype != 0 && cpusubtype != 0 && cputype == other_cputype &&
+      
+      if (uint32_t other_cpusubtype = other_OFA.getCPUSubType(); cputype != 0 && cpusubtype != 0 && cputype == other_cputype &&
           (cpusubtype & ~MachO::CPU_SUBTYPE_MASK) ==
               (other_cpusubtype & ~MachO::CPU_SUBTYPE_MASK)) {
         outs() << "(illegal duplicate architecture) ";
@@ -2460,8 +2460,8 @@ static void printArchiveChild(StringRef Filename, const Archive::Child &C,
 
   StringRef RawLastModified = C.getRawLastModified();
   if (verbose) {
-    unsigned Seconds;
-    if (RawLastModified.getAsInteger(10, Seconds))
+    
+    if (unsigned Seconds; RawLastModified.getAsInteger(10, Seconds))
       outs() << "(date: \"" << RawLastModified
              << "\" contains non-decimal chars) ";
     else {
@@ -2476,8 +2476,8 @@ static void printArchiveChild(StringRef Filename, const Archive::Child &C,
   }
 
   if (verbose) {
-    Expected<StringRef> NameOrErr = C.getName();
-    if (!NameOrErr) {
+    
+    if (Expected<StringRef> NameOrErr = C.getName(); !NameOrErr) {
       consumeError(NameOrErr.takeError());
       outs() << unwrapOrError(C.getRawName(),
                               getFileNameForError(C, ChildIndex), Filename,
@@ -2612,8 +2612,8 @@ void objdump::parseInputMachO(MachOUniversalBinary *UB) {
           if (ArchFlags.size() > 1)
             ArchitectureName = I->getArchFlagName();
           if (ObjOrErr) {
-            ObjectFile &O = *ObjOrErr.get();
-            if (MachOObjectFile *MachOOF = dyn_cast<MachOObjectFile>(&O))
+            
+            if (MachOObjectFile *ObjectFile &O = *ObjOrErr.get(); MachOOF = dyn_cast<MachOObjectFile>(&O))
               ProcessMachO(Filename, MachOOF, "", ArchitectureName);
           } else if (Error E = isNotObjectErrorInvalidFileType(
                          ObjOrErr.takeError())) {
@@ -2677,8 +2677,8 @@ void objdump::parseInputMachO(MachOUniversalBinary *UB) {
         std::string ArchiveName;
         ArchiveName.clear();
         if (ObjOrErr) {
-          ObjectFile &O = *ObjOrErr.get();
-          if (MachOObjectFile *MachOOF = dyn_cast<MachOObjectFile>(&O))
+          
+          if (MachOObjectFile *ObjectFile &O = *ObjOrErr.get(); MachOOF = dyn_cast<MachOObjectFile>(&O))
             ProcessMachO(Filename, MachOOF);
         } else if (Error E =
                        isNotObjectErrorInvalidFileType(ObjOrErr.takeError())) {
@@ -2728,8 +2728,8 @@ void objdump::parseInputMachO(MachOUniversalBinary *UB) {
     if (moreThanOneArch)
       ArchitectureName = I->getArchFlagName();
     if (ObjOrErr) {
-      ObjectFile &Obj = *ObjOrErr.get();
-      if (MachOObjectFile *MachOOF = dyn_cast<MachOObjectFile>(&Obj))
+      
+      if (MachOObjectFile *ObjectFile &Obj = *ObjOrErr.get(); MachOOF = dyn_cast<MachOObjectFile>(&Obj))
         ProcessMachO(Filename, MachOOF, "", ArchitectureName);
     } else if (Error E =
                    isNotObjectErrorInvalidFileType(ObjOrErr.takeError())) {
@@ -2849,8 +2849,8 @@ static int SymbolizerGetOpInfo(void *DisInfo, uint64_t Pc, uint64_t Offset,
     bool r_scattered = false;
     uint32_t r_value, pair_r_value, r_type;
     for (const RelocationRef &Reloc : info->S.relocations()) {
-      uint64_t RelocOffset = Reloc.getOffset();
-      if (RelocOffset == sect_offset) {
+      
+      if (uint64_t RelocOffset = Reloc.getOffset(); RelocOffset == sect_offset) {
         Rel = Reloc.getRawDataRefImpl();
         RE = info->O->getRelocation(Rel);
         r_type = info->O->getAnyRelocationType(RE);
@@ -2921,8 +2921,8 @@ static int SymbolizerGetOpInfo(void *DisInfo, uint64_t Pc, uint64_t Offset,
       bool isExtern = false;
       SymbolRef Symbol;
       for (const RelocationRef &Reloc : info->O->external_relocations()) {
-        uint64_t RelocOffset = Reloc.getOffset();
-        if (RelocOffset == seg_offset) {
+        
+        if (uint64_t RelocOffset = Reloc.getOffset(); RelocOffset == seg_offset) {
           Rel = Reloc.getRawDataRefImpl();
           RE = info->O->getRelocation(Rel);
           // external relocation entries should always be external.
@@ -2959,8 +2959,8 @@ static int SymbolizerGetOpInfo(void *DisInfo, uint64_t Pc, uint64_t Offset,
     bool isExtern = false;
     SymbolRef Symbol;
     for (const RelocationRef &Reloc : info->S.relocations()) {
-      uint64_t RelocOffset = Reloc.getOffset();
-      if (RelocOffset == sect_offset) {
+      
+      if (uint64_t RelocOffset = Reloc.getOffset(); RelocOffset == sect_offset) {
         Rel = Reloc.getRawDataRefImpl();
         RE = info->O->getRelocation(Rel);
         // NOTE: Scattered relocations don't exist on x86_64.
@@ -2981,15 +2981,15 @@ static int SymbolizerGetOpInfo(void *DisInfo, uint64_t Pc, uint64_t Offset,
         op_info->Value -= Pc + InstSize;
       const char *name =
           unwrapOrError(Symbol.getName(), info->O->getFileName()).data();
-      unsigned Type = info->O->getAnyRelocationType(RE);
-      if (Type == MachO::X86_64_RELOC_SUBTRACTOR) {
+      
+      if (unsigned Type = info->O->getAnyRelocationType(RE); Type == MachO::X86_64_RELOC_SUBTRACTOR) {
         DataRefImpl RelNext = Rel;
         info->O->moveRelocationNext(RelNext);
         MachO::any_relocation_info RENext = info->O->getRelocation(RelNext);
         unsigned TypeNext = info->O->getAnyRelocationType(RENext);
         bool isExternNext = info->O->getPlainRelocationExternal(RENext);
-        unsigned SymbolNum = info->O->getPlainRelocationSymbolNum(RENext);
-        if (TypeNext == MachO::X86_64_RELOC_UNSIGNED && isExternNext) {
+        
+        if (unsigned SymbolNum = info->O->getPlainRelocationSymbolNum(RENext); TypeNext == MachO::X86_64_RELOC_UNSIGNED && isExternNext) {
           op_info->SubtractSymbol.Present = 1;
           op_info->SubtractSymbol.Name = name;
           symbol_iterator RelocSymNext = info->O->getSymbolByIndex(SymbolNum);
@@ -3171,8 +3171,8 @@ static int SymbolizerGetOpInfo(void *DisInfo, uint64_t Pc, uint64_t Offset,
     if (r_type == MachO::ARM64_RELOC_ADDEND) {
       DataRefImpl RelNext = Rel;
       info->O->moveRelocationNext(RelNext);
-      MachO::any_relocation_info RENext = info->O->getRelocation(RelNext);
-      if (value == 0) {
+      
+      if (MachO::any_relocation_info RENext = info->O->getRelocation(RelNext); value == 0) {
         value = info->O->getPlainRelocationSymbolNum(RENext);
         op_info->Value = value;
       }
@@ -3231,16 +3231,16 @@ static const char *GuessCstringPointer(uint64_t ReferenceValue,
       MachO::segment_command_64 Seg = info->O->getSegment64LoadCommand(Load);
       for (unsigned J = 0; J < Seg.nsects; ++J) {
         MachO::section_64 Sec = info->O->getSection64(Load, J);
-        uint32_t section_type = Sec.flags & MachO::SECTION_TYPE;
-        if (section_type == MachO::S_CSTRING_LITERALS &&
+        
+        if (uint32_t section_type = Sec.flags & MachO::SECTION_TYPE; section_type == MachO::S_CSTRING_LITERALS &&
             ReferenceValue >= Sec.addr &&
             ReferenceValue < Sec.addr + Sec.size) {
           uint64_t sect_offset = ReferenceValue - Sec.addr;
           uint64_t object_offset = Sec.offset + sect_offset;
           StringRef MachOContents = info->O->getData();
           uint64_t object_size = MachOContents.size();
-          const char *object_addr = MachOContents.data();
-          if (object_offset < object_size) {
+          
+          if (const char *object_addr = MachOContents.data(); object_offset < object_size) {
             const char *name = object_addr + object_offset;
             return name;
           } else {
@@ -3252,16 +3252,16 @@ static const char *GuessCstringPointer(uint64_t ReferenceValue,
       MachO::segment_command Seg = info->O->getSegmentLoadCommand(Load);
       for (unsigned J = 0; J < Seg.nsects; ++J) {
         MachO::section Sec = info->O->getSection(Load, J);
-        uint32_t section_type = Sec.flags & MachO::SECTION_TYPE;
-        if (section_type == MachO::S_CSTRING_LITERALS &&
+        
+        if (uint32_t section_type = Sec.flags & MachO::SECTION_TYPE; section_type == MachO::S_CSTRING_LITERALS &&
             ReferenceValue >= Sec.addr &&
             ReferenceValue < Sec.addr + Sec.size) {
           uint64_t sect_offset = ReferenceValue - Sec.addr;
           uint64_t object_offset = Sec.offset + sect_offset;
           StringRef MachOContents = info->O->getData();
           uint64_t object_size = MachOContents.size();
-          const char *object_addr = MachOContents.data();
-          if (object_offset < object_size) {
+          
+          if (const char *object_addr = MachOContents.data(); object_offset < object_size) {
             const char *name = object_addr + object_offset;
             return name;
           } else {
@@ -3287,8 +3287,8 @@ static const char *GuessIndirectSymbol(uint64_t ReferenceValue,
       MachO::segment_command_64 Seg = info->O->getSegment64LoadCommand(Load);
       for (unsigned J = 0; J < Seg.nsects; ++J) {
         MachO::section_64 Sec = info->O->getSection64(Load, J);
-        uint32_t section_type = Sec.flags & MachO::SECTION_TYPE;
-        if ((section_type == MachO::S_NON_LAZY_SYMBOL_POINTERS ||
+        
+        if (uint32_t section_type = Sec.flags & MachO::SECTION_TYPE; (section_type == MachO::S_NON_LAZY_SYMBOL_POINTERS ||
              section_type == MachO::S_LAZY_SYMBOL_POINTERS ||
              section_type == MachO::S_LAZY_DYLIB_SYMBOL_POINTERS ||
              section_type == MachO::S_THREAD_LOCAL_VARIABLE_POINTERS ||
@@ -3304,9 +3304,9 @@ static const char *GuessIndirectSymbol(uint64_t ReferenceValue,
             return nullptr;
           uint32_t index = Sec.reserved1 + (ReferenceValue - Sec.addr) / stride;
           if (index < Dysymtab.nindirectsyms) {
-            uint32_t indirect_symbol =
-                info->O->getIndirectSymbolTableEntry(Dysymtab, index);
-            if (indirect_symbol < Symtab.nsyms) {
+            
+            if (uint32_t indirect_symbol =
+                info->O->getIndirectSymbolTableEntry(Dysymtab, index); indirect_symbol < Symtab.nsyms) {
               symbol_iterator Sym = info->O->getSymbolByIndex(indirect_symbol);
               return unwrapOrError(Sym->getName(), info->O->getFileName())
                   .data();
@@ -3318,8 +3318,8 @@ static const char *GuessIndirectSymbol(uint64_t ReferenceValue,
       MachO::segment_command Seg = info->O->getSegmentLoadCommand(Load);
       for (unsigned J = 0; J < Seg.nsects; ++J) {
         MachO::section Sec = info->O->getSection(Load, J);
-        uint32_t section_type = Sec.flags & MachO::SECTION_TYPE;
-        if ((section_type == MachO::S_NON_LAZY_SYMBOL_POINTERS ||
+        
+        if (uint32_t section_type = Sec.flags & MachO::SECTION_TYPE; (section_type == MachO::S_NON_LAZY_SYMBOL_POINTERS ||
              section_type == MachO::S_LAZY_SYMBOL_POINTERS ||
              section_type == MachO::S_LAZY_DYLIB_SYMBOL_POINTERS ||
              section_type == MachO::S_THREAD_LOCAL_VARIABLE_POINTERS ||
@@ -3335,9 +3335,9 @@ static const char *GuessIndirectSymbol(uint64_t ReferenceValue,
             return nullptr;
           uint32_t index = Sec.reserved1 + (ReferenceValue - Sec.addr) / stride;
           if (index < Dysymtab.nindirectsyms) {
-            uint32_t indirect_symbol =
-                info->O->getIndirectSymbolTableEntry(Dysymtab, index);
-            if (indirect_symbol < Symtab.nsyms) {
+            
+            if (uint32_t indirect_symbol =
+                info->O->getIndirectSymbolTableEntry(Dysymtab, index); indirect_symbol < Symtab.nsyms) {
               symbol_iterator Sym = info->O->getSymbolByIndex(indirect_symbol);
               return unwrapOrError(Sym->getName(), info->O->getFileName())
                   .data();
@@ -3362,15 +3362,15 @@ static const char *GuessIndirectSymbol(uint64_t ReferenceValue,
 static void method_reference(struct DisassembleInfo *info,
                              uint64_t *ReferenceType,
                              const char **ReferenceName) {
-  unsigned int Arch = info->O->getArch();
-  if (*ReferenceName != nullptr) {
+  
+  if (unsigned int Arch = info->O->getArch(); *ReferenceName != nullptr) {
     if (strcmp(*ReferenceName, "_objc_msgSend") == 0) {
       if (info->selector_name != nullptr) {
         if (info->class_name != nullptr) {
           info->method = std::make_unique<char[]>(
               5 + strlen(info->class_name) + strlen(info->selector_name));
-          char *method = info->method.get();
-          if (method != nullptr) {
+          
+          if (char *method = info->method.get(); method != nullptr) {
             strcpy(method, "+[");
             strcat(method, info->class_name);
             strcat(method, " ");
@@ -3382,8 +3382,8 @@ static void method_reference(struct DisassembleInfo *info,
         } else {
           info->method =
               std::make_unique<char[]>(9 + strlen(info->selector_name));
-          char *method = info->method.get();
-          if (method != nullptr) {
+          
+          if (char *method = info->method.get(); method != nullptr) {
             if (Arch == Triple::x86_64)
               strcpy(method, "-[%rdi ");
             else if (Arch == Triple::aarch64)
@@ -3402,8 +3402,8 @@ static void method_reference(struct DisassembleInfo *info,
       if (info->selector_name != nullptr) {
         info->method =
             std::make_unique<char[]>(17 + strlen(info->selector_name));
-        char *method = info->method.get();
-        if (method != nullptr) {
+        
+        if (char *method = info->method.get(); method != nullptr) {
           if (Arch == Triple::x86_64)
             strcpy(method, "-[[%rdi super] ");
           else if (Arch == Triple::aarch64)
@@ -3437,8 +3437,8 @@ static uint64_t GuessPointerPointer(uint64_t ReferenceValue,
     if (Load.C.cmd == MachO::LC_SEGMENT_64) {
       MachO::segment_command_64 Seg = info->O->getSegment64LoadCommand(Load);
       for (unsigned J = 0; J < Seg.nsects; ++J) {
-        MachO::section_64 Sec = info->O->getSection64(Load, J);
-        if ((strncmp(Sec.sectname, "__objc_selrefs", 16) == 0 ||
+        
+        if (MachO::section_64 Sec = info->O->getSection64(Load, J); (strncmp(Sec.sectname, "__objc_selrefs", 16) == 0 ||
              strncmp(Sec.sectname, "__objc_classrefs", 16) == 0 ||
              strncmp(Sec.sectname, "__objc_superrefs", 16) == 0 ||
              strncmp(Sec.sectname, "__objc_msgrefs", 16) == 0 ||
@@ -3449,8 +3449,8 @@ static uint64_t GuessPointerPointer(uint64_t ReferenceValue,
           uint64_t object_offset = Sec.offset + sect_offset;
           StringRef MachOContents = info->O->getData();
           uint64_t object_size = MachOContents.size();
-          const char *object_addr = MachOContents.data();
-          if (object_offset < object_size) {
+          
+          if (const char *object_addr = MachOContents.data(); object_offset < object_size) {
             uint64_t pointer_value;
             memcpy(&pointer_value, object_addr + object_offset,
                    sizeof(uint64_t));
@@ -3551,8 +3551,8 @@ static const char *get_symbol_64(uint32_t sect_offset, SectionRef S,
   bool isExtern = false;
   SymbolRef Symbol;
   for (const RelocationRef &Reloc : S.relocations()) {
-    uint64_t RelocOffset = Reloc.getOffset();
-    if (RelocOffset == sect_offset) {
+    
+    if (uint64_t RelocOffset = Reloc.getOffset(); RelocOffset == sect_offset) {
       Rel = Reloc.getRawDataRefImpl();
       RE = info->O->getRelocation(Rel);
       if (info->O->isRelocationScattered(RE))
@@ -4282,9 +4282,9 @@ static const char *get_objc2_64bit_cfstring_name(uint64_t ReferenceValue,
     swapStruct(cfs);
   if (cfs.characters == 0) {
     uint64_t n_value;
-    const char *symbol_name = get_symbol_64(
-        offset + offsetof(struct cfstring64_t, characters), S, info, n_value);
-    if (symbol_name == nullptr)
+    
+    if (const char *symbol_name = get_symbol_64(
+        offset + offsetof(struct cfstring64_t, characters), S, info, n_value); symbol_name == nullptr)
       return nullptr;
     cfs_characters = n_value;
   } else
@@ -4305,8 +4305,8 @@ static uint64_t get_objc2_64bit_selref(uint64_t ReferenceValue,
   uint32_t offset, left;
   SectionRef S;
 
-  const char *r = get_pointer_64(ReferenceValue, offset, left, S, info);
-  if (r == nullptr || left < sizeof(uint64_t))
+  
+  if (const char *r = get_pointer_64(ReferenceValue, offset, left, S, info); r == nullptr || left < sizeof(uint64_t))
     return 0;
   uint64_t n_value;
   const char *symbol_name = get_symbol_64(offset, S, info, n_value);
@@ -4418,8 +4418,8 @@ walk_pointer_list_32(const char *listname, const SectionRef S,
       sys::swapByteOrder(p);
     outs() << format("0x%" PRIx32, p);
 
-    const char *name = get_symbol_32(i, S, info, p);
-    if (name != nullptr)
+    
+    if (const char *name = get_symbol_32(i, S, info, p); name != nullptr)
       outs() << " " << name;
     outs() << "\n";
 
@@ -4497,11 +4497,11 @@ static void print_relative_method_list(uint32_t structSizeAndFlags,
 
     // since this is a relative list, absNameRefVA is the address of the
     // __objc_selrefs entry, so a pointer, not the actual name
-    const char *nameRefPtr =
-        get_pointer_64(absNameRefVA, xoffset, left, xS, info);
-    if (nameRefPtr) {
-      uint32_t pointerSize = pointerBits / CHAR_BIT;
-      if (left < pointerSize)
+    
+    if (const char *nameRefPtr =
+        get_pointer_64(absNameRefVA, xoffset, left, xS, info); nameRefPtr) {
+      
+      if (uint32_t pointerSize = pointerBits / CHAR_BIT; left < pointerSize)
         outs() << indent << " (nameRefPtr extends past the end of the section)";
       else {
         if (pointerSize == 64) {
@@ -6849,8 +6849,8 @@ static const char *GuessLiteralPointer(uint64_t ReferenceValue,
     bool isExtern = false;
     SymbolRef Symbol;
     for (const RelocationRef &Reloc : info->S.relocations()) {
-      uint64_t RelocOffset = Reloc.getOffset();
-      if (RelocOffset == sect_offset) {
+      
+      if (uint64_t RelocOffset = Reloc.getOffset(); RelocOffset == sect_offset) {
         Rel = Reloc.getRawDataRefImpl();
         RE = info->O->getRelocation(Rel);
         if (info->O->isRelocationScattered(RE))
@@ -6868,8 +6868,8 @@ static const char *GuessLiteralPointer(uint64_t ReferenceValue,
     // then used that symbol's value for the value of the reference.
     if (reloc_found && isExtern) {
       if (info->O->getAnyRelocationPCRel(RE)) {
-        unsigned Type = info->O->getAnyRelocationType(RE);
-        if (Type == MachO::X86_64_RELOC_SIGNED) {
+        
+        if (unsigned Type = info->O->getAnyRelocationType(RE); Type == MachO::X86_64_RELOC_SIGNED) {
           ReferenceValue = cantFail(Symbol.getValue());
         }
       }
@@ -6885,11 +6885,11 @@ static const char *GuessLiteralPointer(uint64_t ReferenceValue,
     // Note the ReferenceValue is a pointer into the __objc_classrefs section.
     // And the pointer_value in that section is typically zero as it will be
     // set by dyld as part of the "bind information".
-    const char *name = get_dyld_bind_info_symbolname(ReferenceValue, info);
-    if (name != nullptr) {
+    
+    if (const char *name = get_dyld_bind_info_symbolname(ReferenceValue, info); name != nullptr) {
       *ReferenceType = LLVMDisassembler_ReferenceType_Out_Objc_Class_Ref;
-      const char *class_name = strrchr(name, '$');
-      if (class_name != nullptr && class_name[1] == '_' &&
+      
+      if (const char *class_name = strrchr(name, '$'); class_name != nullptr && class_name[1] == '_' &&
           class_name[2] != '\0') {
         info->class_name = class_name + 2;
         return name;
@@ -7144,8 +7144,8 @@ objdump::getMachODSymObject(const MachOObjectFile *MachOOF, StringRef Filename,
   // Auto-detect w/o --dsym.
   if (DSYMFile.empty()) {
     sys::fs::file_status DSYMStatus;
-    Twine FilenameDSYM = Filename + ".dSYM";
-    if (!status(FilenameDSYM, DSYMStatus)) {
+    
+    if (Twine FilenameDSYM = Filename + ".dSYM"; !status(FilenameDSYM, DSYMStatus)) {
       if (sys::fs::is_directory(DSYMStatus)) {
         SmallString<1024> Path;
         FilenameDSYM.toVector(Path);
@@ -7653,8 +7653,8 @@ static void DisassembleMachO(StringRef Filename, MachOObjectFile *MachOOF,
             dumpBytes(ArrayRef(Bytes.data() + Index, Size), outs());
           }
           formatted_raw_ostream FormattedOS(outs());
-          StringRef AnnotationsStr = Annotations.str();
-          if (UseThumbTarget)
+          
+          if (StringRef AnnotationsStr = Annotations.str(); UseThumbTarget)
             ThumbIP->printInst(&Inst, PC, AnnotationsStr, *ThumbSTI,
                                FormattedOS);
           else
@@ -7932,9 +7932,9 @@ printMachOCompactUnwindSection(const MachOObjectFile *Obj,
 
     uint32_t EntryIdx = RelocAddress / EntrySize;
     uint32_t OffsetInEntry = RelocAddress - EntryIdx * EntrySize;
-    CompactUnwindEntry &Entry = CompactUnwinds[EntryIdx];
+    
 
-    if (OffsetInEntry == 0)
+    if (CompactUnwindEntry &Entry = CompactUnwinds[EntryIdx]; OffsetInEntry == 0)
       Entry.FunctionReloc = Reloc;
     else if (OffsetInEntry == PointerSize + 2 * sizeof(uint32_t))
       Entry.PersonalityReloc = Reloc;
@@ -8220,9 +8220,9 @@ static void printMachOUnwindInfoSection(const MachOObjectFile *Obj,
       continue;
     }
 
-    uint32_t Kind =
-        *reinterpret_cast<const support::ulittle32_t *>(Contents.data() + Pos);
-    if (Kind == 2)
+    
+    if (uint32_t Kind =
+        *reinterpret_cast<const support::ulittle32_t *>(Contents.data() + Pos); Kind == 2)
       printRegularSecondLevelUnwindPage(Contents.substr(Pos, 4096));
     else if (Kind == 3)
       printCompressedSecondLevelUnwindPage(Contents.substr(Pos, 4096),
@@ -9685,8 +9685,8 @@ static void PrintThreadCommand(MachO::thread_command t, const char *Ptr,
 
   const char *begin = Ptr + sizeof(struct MachO::thread_command);
   const char *end = Ptr + t.cmdsize;
-  uint32_t flavor, count, left;
-  if (cputype == MachO::CPU_TYPE_I386) {
+  
+  if (uint32_t flavor, count, left; cputype == MachO::CPU_TYPE_I386) {
     while (begin < end) {
       if (end - begin > (ptrdiff_t)sizeof(uint32_t)) {
         memcpy((char *)&flavor, begin, sizeof(uint32_t));
@@ -10322,14 +10322,14 @@ static void printMachOExportsTrie(const object::MachOObjectFile *Obj) {
   uint64_t BaseSegmentAddress = 0;
   for (const auto &Command : Obj->load_commands()) {
     if (Command.C.cmd == MachO::LC_SEGMENT) {
-      MachO::segment_command Seg = Obj->getSegmentLoadCommand(Command);
-      if (Seg.fileoff == 0 && Seg.filesize != 0) {
+      
+      if (MachO::segment_command Seg = Obj->getSegmentLoadCommand(Command); Seg.fileoff == 0 && Seg.filesize != 0) {
         BaseSegmentAddress = Seg.vmaddr;
         break;
       }
     } else if (Command.C.cmd == MachO::LC_SEGMENT_64) {
-      MachO::segment_command_64 Seg = Obj->getSegment64LoadCommand(Command);
-      if (Seg.fileoff == 0 && Seg.filesize != 0) {
+      
+      if (MachO::segment_command_64 Seg = Obj->getSegment64LoadCommand(Command); Seg.fileoff == 0 && Seg.filesize != 0) {
         BaseSegmentAddress = Seg.vmaddr;
         break;
       }
@@ -10401,8 +10401,8 @@ static void printMachORebaseTable(object::MachOObjectFile *Obj) {
 }
 
 static StringRef ordinalName(const object::MachOObjectFile *Obj, int Ordinal) {
-  StringRef DylibName;
-  switch (Ordinal) {
+  
+  switch (StringRef DylibName; Ordinal) {
   case MachO::BIND_SPECIAL_DYLIB_SELF:
     return "this-image";
   case MachO::BIND_SPECIAL_DYLIB_MAIN_EXECUTABLE:
@@ -10413,9 +10413,9 @@ static StringRef ordinalName(const object::MachOObjectFile *Obj, int Ordinal) {
     return "weak";
   default:
     if (Ordinal > 0) {
-      std::error_code EC =
-          Obj->getLibraryShortNameByIndex(Ordinal - 1, DylibName);
-      if (EC)
+      
+      if (std::error_code EC =
+          Obj->getLibraryShortNameByIndex(Ordinal - 1, DylibName); EC)
         return "<<bad library ordinal>>";
       return DylibName;
     }
@@ -10522,8 +10522,8 @@ static const char *get_dyld_bind_info_symbolname(uint64_t ReferenceValue,
     Error Err = Error::success();
     for (const object::MachOBindEntry &Entry : info->O->bindTable(Err)) {
       uint64_t Address = Entry.address();
-      StringRef name = Entry.symbolName();
-      if (!name.empty())
+      
+      if (StringRef name = Entry.symbolName(); !name.empty())
         (*info->bindtable)[Address] = name;
     }
     if (Err)

@@ -50,8 +50,8 @@ ErrorOr<size_t> platform_fetch_dirents(int fd, cpp::span<uint8_t> buffer) {
 }
 
 int platform_closedir(int fd) {
-  int ret = LIBC_NAMESPACE::syscall_impl<int>(SYS_close, fd);
-  if (ret < 0) {
+  
+  if (int ret = LIBC_NAMESPACE::syscall_impl<int>(SYS_close, fd); ret < 0) {
     return static_cast<int>(-ret);
   }
   return 0;

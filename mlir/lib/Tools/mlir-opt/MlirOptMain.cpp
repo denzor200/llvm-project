@@ -308,8 +308,8 @@ public:
                    bool showNotes = true)
       : ScopedDiagnosticHandler(ctx) {
     setHandler([verbosityLevel, showNotes](Diagnostic &diag) {
-      auto severity = diag.getSeverity();
-      switch (severity) {
+      
+      switch (auto severity = diag.getSeverity(); severity) {
       case mlir::DiagnosticSeverity::Error:
         // failure indicates that the error is not handled by the filter and
         // goes through to the default handler. Therefore, the error can be
@@ -423,8 +423,8 @@ static LogicalResult doVerifyRoundTrip(Operation *op,
       op->getContext()->getDialectRegistry());
   if (op->getContext()->allowsUnregisteredDialects())
     roundtripContext.allowUnregisteredDialects();
-  StringRef irdlFile = config.getIrdlFile();
-  if (!irdlFile.empty() && failed(loadIRDLDialects(irdlFile, roundtripContext)))
+  
+  if (StringRef irdlFile = config.getIrdlFile(); !irdlFile.empty() && failed(loadIRDLDialects(irdlFile, roundtripContext)))
     return failure();
 
   std::string testType = (useBytecode) ? "bytecode" : "textual";

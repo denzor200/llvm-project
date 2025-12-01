@@ -63,8 +63,8 @@ void RedundantVoidArgCheck::registerMatchers(MatchFinder *Finder) {
 }
 
 void RedundantVoidArgCheck::check(const MatchFinder::MatchResult &Result) {
-  const BoundNodes &Nodes = Result.Nodes;
-  if (const auto *Function = Nodes.getNodeAs<FunctionDecl>(FunctionId))
+  
+  if (const auto *const BoundNodes &Nodes = Result.Nodes; Function = Nodes.getNodeAs<FunctionDecl>(FunctionId))
     processFunctionDecl(Result, Function);
   else if (const auto *TypedefName =
                Nodes.getNodeAs<TypedefNameDecl>(TypedefId))
@@ -92,8 +92,8 @@ void RedundantVoidArgCheck::processFunctionDecl(
   const SourceLocation Start = Method && Method->getParent()->isLambda()
                                    ? Method->getBeginLoc()
                                    : Function->getLocation();
-  SourceLocation End = Function->getEndLoc();
-  if (Function->isThisDeclarationADefinition()) {
+  
+  if (SourceLocation End = Function->getEndLoc(); Function->isThisDeclarationADefinition()) {
     if (const Stmt *Body = Function->getBody()) {
       End = Body->getBeginLoc();
       if (End.isMacroID() &&
@@ -240,8 +240,8 @@ void RedundantVoidArgCheck::processFieldDecl(
 void RedundantVoidArgCheck::processVarDecl(
     const MatchFinder::MatchResult &Result, const VarDecl *Var) {
   if (protoTypeHasNoParms(Var->getType())) {
-    const SourceLocation Begin = Var->getBeginLoc();
-    if (Var->hasInit()) {
+    
+    if (const SourceLocation Begin = Var->getBeginLoc(); Var->hasInit()) {
       const SourceLocation InitStart =
           Result.SourceManager->getExpansionLoc(Var->getInit()->getBeginLoc())
               .getLocWithOffset(-1);

@@ -23,7 +23,7 @@ template <WriteMode write_mode>
 LIBC_INLINE int convert_strerror(Writer<write_mode> *writer,
                                  const FormatSection &to_conv) {
   FormatSection new_conv = to_conv;
-  const int error_num = static_cast<int>(to_conv.conv_val_raw);
+  
 
   // The %m conversion takes no arguments passes the result of strerror(errno)
   // to a string conversion (including all options). If the alternate form flag
@@ -34,7 +34,7 @@ LIBC_INLINE int convert_strerror(Writer<write_mode> *writer,
   // It's assumed that errno is passed in to_conv.conv_val_raw.
 
   // normal form
-  if ((to_conv.flags & FormatFlags::ALTERNATE_FORM) == 0) {
+  if (const int error_num = static_cast<int>(to_conv.conv_val_raw); (to_conv.flags & FormatFlags::ALTERNATE_FORM) == 0) {
     char strerror_buff[64];
     auto strerror_result = get_error_string(error_num, strerror_buff);
     new_conv.conv_val_ptr =
@@ -55,9 +55,9 @@ LIBC_INLINE int convert_strerror(Writer<write_mode> *writer,
     // (0 maps to "0"), which also happens to match what other libc
     // implementations have done.
 
-    auto errno_name = try_get_errno_name(error_num);
+    
     // if there's a name available, use it.
-    if (errno_name) {
+    if (auto errno_name = try_get_errno_name(error_num); errno_name) {
       new_conv.conv_val_ptr =
           reinterpret_cast<void *>(const_cast<char *>(errno_name->data()));
       new_conv.conv_name = 's';

@@ -32,8 +32,8 @@ static LogicalResult verifySwitchOp(OpT op) {
   // Verify that the number of case destinations matches the number of case
   // values.
   size_t numDests = op.getCases().size();
-  size_t numValues = op.getCaseValues().size();
-  if (numDests != numValues) {
+  
+  if (size_t numValues = op.getCaseValues().size(); numDests != numValues) {
     return op.emitOpError(
                "expected number of cases to match the number of case "
                "values, got ")
@@ -53,8 +53,8 @@ LogicalResult CreateOperationOp::verify() {
     return emitOpError("with inferred results cannot also have "
                        "explicit result types");
   }
-  OperationName opName(getName(), getContext());
-  if (!opName.hasInterface<InferTypeOpInterface>()) {
+  
+  if (OperationName opName(getName(), getContext()); !opName.hasInterface<InferTypeOpInterface>()) {
     return emitOpError()
            << "has inferred results, but the created operation '" << opName
            << "' does not support result type inference (or is not "
@@ -266,8 +266,8 @@ static void printRangeType(OpAsmPrinter &p, CreateRangeOp op,
 LogicalResult CreateRangeOp::verify() {
   Type elementType = getType().getElementType();
   for (Type operandType : getOperandTypes()) {
-    Type operandElementType = pdl::getRangeElementTypeOrSelf(operandType);
-    if (operandElementType != elementType) {
+    
+    if (Type operandElementType = pdl::getRangeElementTypeOrSelf(operandType); operandElementType != elementType) {
       return emitOpError("expected operand to have element type ")
              << elementType << ", but got " << operandElementType;
     }

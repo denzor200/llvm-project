@@ -413,11 +413,11 @@ static ValueObjectSP GetValObjFromIntRegs(Thread &thread,
     std::unique_ptr<DataBufferHeap> heap_data_up(
         new DataBufferHeap(byte_size, 0));
     const ByteOrder byte_order = thread.GetProcess()->GetByteOrder();
-    RegisterValue reg_value_a0, reg_value_a1;
-    if (reg_ctx->ReadRegister(reg_info_a0, reg_value_a0) &&
+    
+    if (RegisterValue reg_value_a0, reg_value_a1; reg_ctx->ReadRegister(reg_info_a0, reg_value_a0) &&
         reg_ctx->ReadRegister(reg_info_a1, reg_value_a1)) {
-      Status error;
-      if (reg_value_a0.GetAsMemoryData(*reg_info_a0,
+      
+      if (Status error; reg_value_a0.GetAsMemoryData(*reg_info_a0,
                                        heap_data_up->GetBytes() + 0, 8,
                                        byte_order, error) &&
           reg_value_a1.GetAsMemoryData(*reg_info_a1,
@@ -510,9 +510,9 @@ ValueObjectSP ABISysV_loongarch::GetReturnValueObjectSimple(
                                           value, ConstString(""));
   }
   if (type_flags & eTypeIsFloat) {
-    bool is_complex = false;
+    
 
-    if (compiler_type.IsFloatingPointType(is_complex) &&
+    if (bool is_complex = false; compiler_type.IsFloatingPointType(is_complex) &&
         !(type_flags & eTypeIsVector) && !is_complex) {
       return_valobj_sp =
           GetValObjFromFPRegs(thread, reg_ctx, machine, type_flags, byte_size);
@@ -654,8 +654,8 @@ void ABISysV_loongarch::AugmentRegisterInfo(
     llvm::StringRef reg_name = it.value().name.GetStringRef();
 
     // Set alt name for certain registers for convenience
-    llvm::StringRef alias_name = isa_to_abi_alias_map.lookup(reg_name);
-    if (!alias_name.empty())
+    
+    if (llvm::StringRef alias_name = isa_to_abi_alias_map.lookup(reg_name); !alias_name.empty())
       it.value().alt_name.SetString(alias_name);
 
     // Set generic regnum so lldb knows what the PC, etc is

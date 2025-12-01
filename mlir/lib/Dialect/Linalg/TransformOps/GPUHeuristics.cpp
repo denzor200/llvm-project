@@ -151,8 +151,8 @@ static SmallVector<int64_t> maximizeNumThreads(ArrayRef<int64_t> sizes,
   for (auto factor : factors) {
     auto nestedThreadsPerDim =
         maximizeNumThreads(sizes, currentIndex + 1, maxNumThreads / factor);
-    int64_t localBest = factor * product(nestedThreadsPerDim);
-    if (localBest > best && localBest <= maxNumThreads) {
+    
+    if (int64_t localBest = factor * product(nestedThreadsPerDim); localBest > best && localBest <= maxNumThreads) {
       LDBG() << indent << "new localBest: " << localBest;
       LDBG() << indent << "nestedThreadsPerDim: "
              << llvm::interleaved(nestedThreadsPerDim);
@@ -184,9 +184,9 @@ transform::gpu::CopyMappingInfo::inferNumThreads(int64_t totalNumThreads,
       //   higher-level.
       //   3. if the status is RequiresPredication, we try again with a smaller
       //   vector size.
-      Status status =
-          inferNumThreadsImpl(totalNumThreads, sizes, localVectorSize);
-      if (status == Status::Success || status == Status::Invalid)
+      
+      if (Status status =
+          inferNumThreadsImpl(totalNumThreads, sizes, localVectorSize); status == Status::Success || status == Status::Invalid)
         return status;
 
       LDBG() << "requires predication, try reducing vector size to "

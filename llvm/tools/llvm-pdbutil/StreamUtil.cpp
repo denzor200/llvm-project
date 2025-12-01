@@ -81,8 +81,8 @@ void llvm::pdb::discoverStreamPurposes(PDBFile &File,
       IndexedModuleDescriptor IMD;
       IMD.Modi = I;
       IMD.Descriptor = Modules.getModuleDescriptor(I);
-      uint16_t SN = IMD.Descriptor.getModuleStreamIndex();
-      if (SN != kInvalidStreamIndex)
+      
+      if (uint16_t SN = IMD.Descriptor.getModuleStreamIndex(); SN != kInvalidStreamIndex)
         ModStreams[SN] = IMD;
     }
   }

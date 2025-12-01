@@ -54,9 +54,9 @@ PPCRegisterBankInfo::getInstrMapping(const MachineInstr &MI) const {
   // Try the default logic for non-generic instructions that are either copies
   // or already have some operands assigned to banks.
   if (!isPreISelGenericOpcode(Opc) || Opc == TargetOpcode::G_PHI) {
-    const RegisterBankInfo::InstructionMapping &Mapping =
-        getInstrMappingImpl(MI);
-    if (Mapping.isValid())
+    
+    if (const RegisterBankInfo::InstructionMapping &Mapping =
+        getInstrMappingImpl(MI); Mapping.isValid())
       return Mapping;
   }
 

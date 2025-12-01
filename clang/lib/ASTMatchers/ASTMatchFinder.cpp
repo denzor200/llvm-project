@@ -164,8 +164,8 @@ public:
   Stmt *getStmtToTraverse(Stmt *StmtNode) {
     Stmt *StmtToTraverse = StmtNode;
     if (auto *ExprNode = dyn_cast_or_null<Expr>(StmtNode)) {
-      auto *LambdaNode = dyn_cast_or_null<LambdaExpr>(StmtNode);
-      if (LambdaNode && Finder->isTraversalIgnoringImplicitNodes())
+      
+      if (auto *LambdaNode = dyn_cast_or_null<LambdaExpr>(StmtNode); LambdaNode && Finder->isTraversalIgnoringImplicitNodes())
         StmtToTraverse = LambdaNode;
       else
         StmtToTraverse =
@@ -374,16 +374,16 @@ private:
       return true;
     }
     if (Bind != ASTMatchFinder::BK_All) {
-      BoundNodesTreeBuilder RecursiveBuilder(*Builder);
-      if (Matcher->matches(DynTypedNode::create(Node), Finder,
+      
+      if (BoundNodesTreeBuilder RecursiveBuilder(*Builder); Matcher->matches(DynTypedNode::create(Node), Finder,
                            &RecursiveBuilder)) {
         Matches = true;
         ResultBindings.addMatch(RecursiveBuilder);
         return false; // Abort as soon as a match is found.
       }
     } else {
-      BoundNodesTreeBuilder RecursiveBuilder(*Builder);
-      if (Matcher->matches(DynTypedNode::create(Node), Finder,
+      
+      if (BoundNodesTreeBuilder RecursiveBuilder(*Builder); Matcher->matches(DynTypedNode::create(Node), Finder,
                            &RecursiveBuilder)) {
         // After the first match the matcher succeeds.
         Matches = true;
@@ -1028,8 +1028,8 @@ private:
       if (EnableCheckProfiling)
         Timer.setBucket(&TimeByBucket[MP.second->getID()]);
       BoundNodesTreeBuilder Builder;
-      CurMatchRAII RAII(*this, MP.second, Node);
-      if (MP.first.matches(Node, this, &Builder)) {
+      
+      if (CurMatchRAII RAII(*this, MP.second, Node); MP.first.matches(Node, this, &Builder)) {
         MatchVisitor Visitor(*this, ActiveASTContext, MP.second);
         Builder.visitMatches(&Visitor);
       }
@@ -1055,8 +1055,8 @@ private:
       BoundNodesTreeBuilder Builder;
 
       {
-        TraversalKindScope RAII(getASTContext(), MP.first.getTraversalKind());
-        if (getASTContext().getParentMapContext().traverseIgnored(DynNode) !=
+        
+        if (TraversalKindScope RAII(getASTContext(), MP.first.getTraversalKind()); getASTContext().getParentMapContext().traverseIgnored(DynNode) !=
             DynNode)
           continue;
       }
@@ -1122,8 +1122,8 @@ private:
   bool matchesParentOf(const DynTypedNode &Node, const DynTypedMatcher &Matcher,
                        BoundNodesTreeBuilder *Builder) {
     for (const auto &Parent : ActiveASTContext->getParents(Node)) {
-      BoundNodesTreeBuilder BuilderCopy = *Builder;
-      if (Matcher.matches(Parent, this, &BuilderCopy)) {
+      
+      if (BoundNodesTreeBuilder BuilderCopy = *Builder; Matcher.matches(Parent, this, &BuilderCopy)) {
         *Builder = std::move(BuilderCopy);
         return true;
       }
@@ -1178,8 +1178,8 @@ private:
         Keys.back().Type = MatchType::Ancestors;
 
         // Check the cache.
-        MemoizationMap::iterator I = ResultCache.find(Keys.back());
-        if (I != ResultCache.end()) {
+        
+        if (MemoizationMap::iterator I = ResultCache.find(Keys.back()); I != ResultCache.end()) {
           Keys.pop_back(); // Don't populate the cache for the matching node!
           *Builder = I->second.Nodes;
           return Finish(I->second.ResultOfMatch);
@@ -1194,8 +1194,8 @@ private:
 
       // Check the next parent.
       Node = *Parents.begin();
-      BoundNodesTreeBuilder BuilderCopy = *Builder;
-      if (Matcher.matches(Node, this, &BuilderCopy)) {
+      
+      if (BoundNodesTreeBuilder BuilderCopy = *Builder; Matcher.matches(Node, this, &BuilderCopy)) {
         *Builder = std::move(BuilderCopy);
         return Finish(true);
       }
@@ -1312,8 +1312,8 @@ private:
       }
 
       for (const TypedefNameDecl *Alias : NonExactMatches) {
-        BoundNodesTreeBuilder Result(*Builder);
-        if (Matcher.matches(*Alias, this, &Result)) {
+        
+        if (BoundNodesTreeBuilder Result(*Builder); Matcher.matches(*Alias, this, &Result)) {
           *Builder = std::move(Result);
           return true;
         }
@@ -1335,8 +1335,8 @@ private:
     if (Aliases == CompatibleAliases.end())
       return false;
     for (const ObjCCompatibleAliasDecl *Alias : Aliases->second) {
-      BoundNodesTreeBuilder Result(*Builder);
-      if (Matcher.matches(*Alias, this, &Result)) {
+      
+      if (BoundNodesTreeBuilder Result(*Builder); Matcher.matches(*Alias, this, &Result)) {
         *Builder = std::move(Result);
         return true;
       }
@@ -1492,8 +1492,8 @@ bool MatchASTVisitor::objcClassIsDerivedFrom(
       return true;
 
     // Check if there are any matching type aliases.
-    const Type *TypeNode = ClassDecl->getTypeForDecl();
-    if (typeHasMatchingAlias(TypeNode, Base, Builder))
+    
+    if (const Type *TypeNode = ClassDecl->getTypeForDecl(); typeHasMatchingAlias(TypeNode, Base, Builder))
       return true;
 
     if (Base.matches(*ClassDecl, this, Builder))
@@ -1516,8 +1516,8 @@ bool MatchASTVisitor::TraverseDecl(Decl *DeclNode) {
   bool ScopedChildren = TraversingASTChildrenNotSpelledInSource;
 
   if (const auto *CTSD = dyn_cast<ClassTemplateSpecializationDecl>(DeclNode)) {
-    auto SK = CTSD->getSpecializationKind();
-    if (SK == TSK_ExplicitInstantiationDeclaration ||
+    
+    if (auto SK = CTSD->getSpecializationKind(); SK == TSK_ExplicitInstantiationDeclaration ||
         SK == TSK_ExplicitInstantiationDefinition)
       ScopedChildren = true;
   } else if (const auto *FD = dyn_cast<FunctionDecl>(DeclNode)) {

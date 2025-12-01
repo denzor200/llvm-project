@@ -83,10 +83,10 @@ static void checkDependences(ArrayRef<Operation *> loadsAndStores) {
           getNumCommonSurroundingLoops(*srcOpInst, *dstOpInst);
       for (unsigned d = 1; d <= numCommonLoops + 1; ++d) {
         SmallVector<DependenceComponent, 2> dependenceComponents;
-        DependenceResult result = checkMemrefAccessDependence(
+        
+        if (DependenceResult result = checkMemrefAccessDependence(
             srcAccess, dstAccess, d, /*dependenceConstraints=*/nullptr,
-            &dependenceComponents);
-        if (result.value == DependenceResult::Failure) {
+            &dependenceComponents); result.value == DependenceResult::Failure) {
           srcOpInst->emitError("dependence check failed");
         } else {
           bool ret = hasDependence(result);

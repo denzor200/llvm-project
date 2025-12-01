@@ -41,8 +41,8 @@ using namespace ROCDL;
 ParseResult RawBufferLoadOp::parse(OpAsmParser &parser,
                                    OperationState &result) {
   SmallVector<OpAsmParser::UnresolvedOperand, 4> ops;
-  Type type;
-  if (parser.parseOperandList(ops, 4) || parser.parseColonType(type) ||
+  
+  if (Type type; parser.parseOperandList(ops, 4) || parser.parseColonType(type) ||
       parser.addTypeToList(type, result.types))
     return failure();
 

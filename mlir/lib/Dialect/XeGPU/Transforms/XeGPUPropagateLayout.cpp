@@ -176,11 +176,11 @@ LayoutInfo LayoutInfo::transpose(ArrayRef<int64_t> permutation) const {
   // Check if the permutation is valid.
   llvm::SmallSet<int64_t, 4> seen(permutation.begin(), permutation.end());
   bool hasDuplicates = seen.size() != permutation.size();
-  bool withinRange = llvm::all_of(permutation, [&](int64_t idx) {
-    return idx >= 0 && idx < static_cast<int64_t>(permutation.size());
-  });
+  
 
-  if (!withinRange || hasDuplicates) {
+  if (bool withinRange = llvm::all_of(permutation, [&](int64_t idx) {
+    return idx >= 0 && idx < static_cast<int64_t>(permutation.size());
+  }); !withinRange || hasDuplicates) {
     assert(false && "Invalid permutation for transpose.");
     return {};
   }
@@ -496,8 +496,8 @@ void LayoutInfoPropagation::visitPrefetchNdOp(
     ArrayRef<const LayoutInfoLattice *> results) {
 
   LayoutInfo prefetchLayout;
-  xegpu::DistributeLayoutAttr anchorLayout = prefetch.getLayoutAttr();
-  if (hasParamsOfLayoutKind(anchorLayout)) {
+  
+  if (xegpu::DistributeLayoutAttr anchorLayout = prefetch.getLayoutAttr(); hasParamsOfLayoutKind(anchorLayout)) {
     prefetchLayout = LayoutInfo(anchorLayout);
   } else {
     // Here we assign the default layout to the tensor descriptor operand of
@@ -647,8 +647,8 @@ void LayoutInfoPropagation::visitDpasOp(
   LayoutInfo dpasBLayout;
   LayoutInfo dpasCDLayout;
 
-  xegpu::DistributeLayoutAttr anchorLayoutCD = dpas.getLayoutCdAttr();
-  if (hasParamsOfLayoutKind(anchorLayoutCD)) {
+  
+  if (xegpu::DistributeLayoutAttr anchorLayoutCD = dpas.getLayoutCdAttr(); hasParamsOfLayoutKind(anchorLayoutCD)) {
     xegpu::DistributeLayoutAttr anchorLayoutA = dpas.getLayoutAAttr();
     xegpu::DistributeLayoutAttr anchorLayoutB = dpas.getLayoutBAttr();
     assert(hasParamsOfLayoutKind(anchorLayoutA) &&
@@ -703,8 +703,8 @@ void LayoutInfoPropagation::visitDpasOp(
     }
 
     if (operands.size() > 2) {
-      VectorType cTy = dpas.getAccType();
-      if (layoutKind == LayoutKind::InstData) {
+      
+      if (VectorType cTy = dpas.getAccType(); layoutKind == LayoutKind::InstData) {
         const unsigned dataCLen = bTy.getShape().back();
         auto supportedCLen =
             uArchInstruction->getSupportedN(bTy.getElementType());
@@ -742,8 +742,8 @@ void LayoutInfoPropagation::visitStoreNdOp(
     ArrayRef<const LayoutInfoLattice *> results) {
 
   LayoutInfo storeLayout;
-  xegpu::DistributeLayoutAttr anchorLayout = store.getLayoutAttr();
-  if (hasParamsOfLayoutKind(anchorLayout)) {
+  
+  if (xegpu::DistributeLayoutAttr anchorLayout = store.getLayoutAttr(); hasParamsOfLayoutKind(anchorLayout)) {
     storeLayout = LayoutInfo(anchorLayout);
   } else {
     auto uArch = getUArch(getChipStr(store).value_or(""));
@@ -798,8 +798,8 @@ void LayoutInfoPropagation::visitLoadNdOp(
     ArrayRef<const LayoutInfoLattice *> results) {
 
   LayoutInfo loadLayout;
-  xegpu::DistributeLayoutAttr anchorLayout = load.getLayoutAttr();
-  if (hasParamsOfLayoutKind(anchorLayout)) {
+  
+  if (xegpu::DistributeLayoutAttr anchorLayout = load.getLayoutAttr(); hasParamsOfLayoutKind(anchorLayout)) {
     loadLayout = LayoutInfo(anchorLayout);
   } else {
 
@@ -912,8 +912,8 @@ void LayoutInfoPropagation::visitLoadGatherOp(
 
   LayoutInfo loadLayout;
   LayoutInfo maskLayout;
-  xegpu::DistributeLayoutAttr anchorLayout = load.getLayoutAttr();
-  if (hasParamsOfLayoutKind(anchorLayout)) {
+  
+  if (xegpu::DistributeLayoutAttr anchorLayout = load.getLayoutAttr(); hasParamsOfLayoutKind(anchorLayout)) {
     loadLayout = LayoutInfo(anchorLayout);
     maskLayout = loadLayout;
   } else {
@@ -981,8 +981,8 @@ void LayoutInfoPropagation::visitStoreScatterOp(
 
   LayoutInfo payloadLayout;
   LayoutInfo maskLayout;
-  xegpu::DistributeLayoutAttr anchorLayout = storeScatter.getLayoutAttr();
-  if (hasParamsOfLayoutKind(anchorLayout)) {
+  
+  if (xegpu::DistributeLayoutAttr anchorLayout = storeScatter.getLayoutAttr(); hasParamsOfLayoutKind(anchorLayout)) {
     payloadLayout = LayoutInfo(anchorLayout);
     maskLayout = payloadLayout;
   } else {

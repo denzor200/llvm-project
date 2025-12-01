@@ -23,8 +23,8 @@ template <typename T> LIBC_INLINE constexpr T conjugate(T c) {
 
 template <typename T> LIBC_INLINE constexpr T project(T c) {
   using real_t = make_real_t<T>;
-  Complex<real_t> c_c = cpp::bit_cast<Complex<real_t>>(c);
-  if (fputil::FPBits<real_t>(c_c.real).is_inf() ||
+  
+  if (Complex<real_t> c_c = cpp::bit_cast<Complex<real_t>>(c); fputil::FPBits<real_t>(c_c.real).is_inf() ||
       fputil::FPBits<real_t>(c_c.imag).is_inf())
     return cpp::bit_cast<T>(
         Complex<real_t>{(fputil::FPBits<real_t>::inf(Sign::POS).get_val()),

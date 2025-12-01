@@ -236,8 +236,8 @@ generateDXContainer(StringRef Yaml, SmallVectorImpl<char> &BinaryData) {
     return createStringError(YIn.error(), GenerateDiag.getMessage());
 
   raw_svector_ostream OS(BinaryData);
-  std::string ErrorMsg;
-  if (!yaml::yaml2dxcontainer(
+  
+  if (std::string ErrorMsg; !yaml::yaml2dxcontainer(
           Obj, OS, [&ErrorMsg](const Twine &Msg) { ErrorMsg = Msg.str(); }))
     return createStringError(YIn.error(), ErrorMsg);
 

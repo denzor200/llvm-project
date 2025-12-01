@@ -22,8 +22,8 @@ namespace clang::tidy::modernize {
 namespace {
 
 AST_MATCHER(Type, sugaredNullptrType) {
-  const Type *DesugaredType = Node.getUnqualifiedDesugaredType();
-  if (const auto *BT = dyn_cast<BuiltinType>(DesugaredType))
+  
+  if (const auto *const Type *DesugaredType = Node.getUnqualifiedDesugaredType(); BT = dyn_cast<BuiltinType>(DesugaredType))
     return BT->getKind() == BuiltinType::NullPtr;
   return false;
 }
@@ -166,8 +166,8 @@ public:
       return true;
     Visited = true;
 
-    const ImplicitCastExpr *Cast = dyn_cast<ImplicitCastExpr>(S);
-    if (Cast && (Cast->getCastKind() == CK_NullToPointer ||
+    
+    if (const ImplicitCastExpr *Cast = dyn_cast<ImplicitCastExpr>(S); Cast && (Cast->getCastKind() == CK_NullToPointer ||
                  Cast->getCastKind() == CK_NullToMemberPointer))
       CastFound = true;
 
@@ -261,9 +261,9 @@ public:
     if (SM.isMacroArgExpansion(StartLoc) && SM.isMacroArgExpansion(EndLoc)) {
       const SourceLocation FileLocStart = SM.getFileLoc(StartLoc),
                            FileLocEnd = SM.getFileLoc(EndLoc);
-      SourceLocation ImmediateMacroArgLoc, MacroLoc;
+      
       // Skip NULL macros used in macro.
-      if (!getMacroAndArgLocations(StartLoc, ImmediateMacroArgLoc, MacroLoc) ||
+      if (SourceLocation ImmediateMacroArgLoc, MacroLoc; !getMacroAndArgLocations(StartLoc, ImmediateMacroArgLoc, MacroLoc) ||
           ImmediateMacroArgLoc != FileLocStart)
         return skipSubTree();
 
@@ -275,11 +275,11 @@ public:
     }
 
     if (SM.isMacroBodyExpansion(StartLoc) && SM.isMacroBodyExpansion(EndLoc)) {
-      const StringRef OutermostMacroName =
-          getOutermostMacroName(StartLoc, SM, Context.getLangOpts());
+      
 
       // Check to see if the user wants to replace the macro being expanded.
-      if (!llvm::is_contained(NullMacros, OutermostMacroName))
+      if (const StringRef OutermostMacroName =
+          getOutermostMacroName(StartLoc, SM, Context.getLangOpts()); !llvm::is_contained(NullMacros, OutermostMacroName))
         return skipSubTree();
 
       StartLoc = SM.getFileLoc(StartLoc);
@@ -372,8 +372,8 @@ private:
 
       // If spelling location resides in the same FileID as macro expansion
       // location, it means there is no inner macro.
-      const FileID MacroFID = SM.getFileID(MacroLoc);
-      if (SM.isInFileID(ArgLoc, MacroFID)) {
+      
+      if (const FileID MacroFID = SM.getFileID(MacroLoc); SM.isInFileID(ArgLoc, MacroFID)) {
         // Don't transform this case. If the characters that caused the
         // null-conversion come from within a macro, they can't be changed.
         return false;

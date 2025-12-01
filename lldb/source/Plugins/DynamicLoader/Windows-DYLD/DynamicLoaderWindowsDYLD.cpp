@@ -47,9 +47,9 @@ DynamicLoader *DynamicLoaderWindowsDYLD::CreateInstance(Process *process,
                                                         bool force) {
   bool should_create = force;
   if (!should_create) {
-    const llvm::Triple &triple_ref =
-        process->GetTarget().GetArchitecture().GetTriple();
-    if (triple_ref.getOS() == llvm::Triple::Win32)
+    
+    if (const llvm::Triple &triple_ref =
+        process->GetTarget().GetArchitecture().GetTriple(); triple_ref.getOS() == llvm::Triple::Win32)
       should_create = true;
   }
 

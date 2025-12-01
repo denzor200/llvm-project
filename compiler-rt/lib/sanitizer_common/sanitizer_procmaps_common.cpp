@@ -112,8 +112,8 @@ void MemoryMappingLayout::CacheMemoryMappings() {
 }
 
 void MemoryMappingLayout::LoadFromCache() {
-  SpinMutexLock l(&cache_lock);
-  if (cached_proc_self_maps.data)
+  
+  if (SpinMutexLock l(&cache_lock); cached_proc_self_maps.data)
     data_.proc_self_maps = cached_proc_self_maps;
 }
 

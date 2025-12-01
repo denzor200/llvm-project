@@ -480,9 +480,9 @@ TEST_P(ManglingSubstitutorTestFixture, Type) {
 
   const auto &[mangled, from, to, expected, expect_error] = GetParam();
 
-  auto subst_or_err =
-      CPlusPlusLanguage::SubstituteType_ItaniumMangle(mangled, from, to);
-  if (expect_error) {
+  
+  if (auto subst_or_err =
+      CPlusPlusLanguage::SubstituteType_ItaniumMangle(mangled, from, to); expect_error) {
     EXPECT_THAT_EXPECTED(subst_or_err, llvm::Failed());
   } else {
     EXPECT_THAT_EXPECTED(subst_or_err, llvm::Succeeded());
@@ -531,9 +531,9 @@ TEST_P(ManglingSubstitutorStructorTestFixture, Structors) {
 
   const auto &[mangled, from, to, expected, expect_error] = GetParam();
 
-  auto subst_or_err =
-      CPlusPlusLanguage::SubstituteStructor_ItaniumMangle(mangled, from, to);
-  if (expect_error) {
+  
+  if (auto subst_or_err =
+      CPlusPlusLanguage::SubstituteStructor_ItaniumMangle(mangled, from, to); expect_error) {
     EXPECT_THAT_EXPECTED(subst_or_err, llvm::Failed());
   } else {
     EXPECT_THAT_EXPECTED(subst_or_err, llvm::Succeeded());

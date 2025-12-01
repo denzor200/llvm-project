@@ -138,9 +138,9 @@ struct BufferizationToMemRefPass
 
       // Build dealloc helper function if there are deallocs.
       getOperation()->walk([&](bufferization::DeallocOp deallocOp) {
-        Operation *symtableOp =
-            deallocOp->getParentWithTrait<OpTrait::SymbolTable>();
-        if (deallocOp.getMemrefs().size() > 1 &&
+        
+        if (Operation *symtableOp =
+            deallocOp->getParentWithTrait<OpTrait::SymbolTable>(); deallocOp.getMemrefs().size() > 1 &&
             !deallocHelperFuncMap.contains(symtableOp)) {
           SymbolTable symbolTable(symtableOp);
           func::FuncOp helperFuncOp =

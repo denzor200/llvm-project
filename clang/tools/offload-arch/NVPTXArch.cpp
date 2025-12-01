@@ -70,8 +70,8 @@ llvm::Error loadCUDA() {
 
 static int handleError(CUresult Err) {
   const char *ErrStr = nullptr;
-  CUresult Result = cuGetErrorString(Err, &ErrStr);
-  if (Result != CUDA_SUCCESS)
+  
+  if (CUresult Result = cuGetErrorString(Err, &ErrStr); Result != CUDA_SUCCESS)
     return 1;
   fprintf(stderr, "CUDA error: %s\n", ErrStr);
   return 1;

@@ -61,8 +61,8 @@ MemoryTagManagerAArch64MTE::ExpandToGranule(TagRange range) const {
   // Account for the distance we moved the start above
   size_t new_len = range.GetByteSize() + align_down_amount;
   // Then align up to the end of the granule
-  size_t align_up_amount = granule - (new_len % granule);
-  if (align_up_amount != granule)
+  
+  if (size_t align_up_amount = granule - (new_len % granule); align_up_amount != granule)
     new_len += align_up_amount;
 
   return TagRange(new_start, new_len);
@@ -219,8 +219,8 @@ MemoryTagManagerAArch64MTE::UnpackTagsData(const std::vector<uint8_t> &tags,
                                            size_t granules /*=0*/) const {
   // 0 means don't check the number of tags before unpacking
   if (granules) {
-    size_t num_tags = tags.size() / GetTagSizeInBytes();
-    if (num_tags != granules) {
+    
+    if (size_t num_tags = tags.size() / GetTagSizeInBytes(); num_tags != granules) {
       return llvm::createStringError(
           llvm::inconvertibleErrorCode(),
           "Packed tag data size does not match expected number of tags. "

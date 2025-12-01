@@ -525,8 +525,8 @@ MlirAttribute mlirDenseElementsAttrRawBufferGet(MlirType shapedType,
   auto shapedTypeCpp = llvm::cast<ShapedType>(unwrap(shapedType));
   ArrayRef<char> rawBufferCpp(static_cast<const char *>(rawBuffer),
                               rawBufferSize);
-  bool isSplat = false;
-  if (!DenseElementsAttr::isValidRawBuffer(shapedTypeCpp, rawBufferCpp,
+  
+  if (bool isSplat = false; !DenseElementsAttr::isValidRawBuffer(shapedTypeCpp, rawBufferCpp,
                                            isSplat))
     return mlirAttributeGetNull();
   return wrap(DenseElementsAttr::getFromRawBuffer(shapedTypeCpp, rawBufferCpp));

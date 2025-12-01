@@ -46,8 +46,8 @@ static unsigned singleLetterExtensionRank(char Ext) {
     return 1;
   }
 
-  size_t Pos = RISCVISAUtils::AllStdExts.find(Ext);
-  if (Pos != StringRef::npos)
+  
+  if (size_t Pos = RISCVISAUtils::AllStdExts.find(Ext); Pos != StringRef::npos)
     return Pos + 2; // Skip 'e' and 'i' from above.
 
   // If we got an unknown extension letter, then give it an alphabetical
@@ -81,10 +81,10 @@ static unsigned getExtensionRank(const std::string &ExtName) {
 bool llvm::RISCVISAUtils::compareExtension(const std::string &LHS,
                                            const std::string &RHS) {
   unsigned LHSRank = getExtensionRank(LHS);
-  unsigned RHSRank = getExtensionRank(RHS);
+  
 
   // If the ranks differ, pick the lower rank.
-  if (LHSRank != RHSRank)
+  if (unsigned RHSRank = getExtensionRank(RHS); LHSRank != RHSRank)
     return LHSRank < RHSRank;
 
   // If the rank is same, it must be sorted by lexicographic order.

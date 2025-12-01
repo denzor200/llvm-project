@@ -374,10 +374,10 @@ uint32_t ObjectFileXCOFF::GetDependentModules(FileSpecList &files) { return 0; }
 
 ObjectFile::Type ObjectFileXCOFF::CalculateType() {
 
-  const auto flags = m_binary->is64Bit() ? m_binary->fileHeader64()->Flags
-                                         : m_binary->fileHeader32()->Flags;
+  
 
-  if (flags & XCOFF::F_EXEC)
+  if (const auto flags = m_binary->is64Bit() ? m_binary->fileHeader64()->Flags
+                                         : m_binary->fileHeader32()->Flags; flags & XCOFF::F_EXEC)
     return eTypeExecutable;
   else if (flags & XCOFF::F_SHROBJ)
     return eTypeSharedLibrary;

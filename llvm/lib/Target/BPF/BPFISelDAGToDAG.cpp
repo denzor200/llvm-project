@@ -117,8 +117,8 @@ bool BPFDAGToDAGISel::SelectAddr(SDValue Addr, SDValue &Base, SDValue &Offset) {
 
   // Addresses of the form Addr+const or Addr|const
   if (CurDAG->isBaseWithConstantOffset(Addr)) {
-    auto *CN = cast<ConstantSDNode>(Addr.getOperand(1));
-    if (isInt<16>(CN->getSExtValue())) {
+    
+    if (auto *CN = cast<ConstantSDNode>(Addr.getOperand(1)); isInt<16>(CN->getSExtValue())) {
       // If the first operand is a FI, get the TargetFI Node
       if (auto *FIN = dyn_cast<FrameIndexSDNode>(Addr.getOperand(0)))
         Base = CurDAG->getTargetFrameIndex(FIN->getIndex(), MVT::i64);
@@ -253,8 +253,8 @@ void BPFDAGToDAGISel::PreprocessLoad(SDNode *Node,
              LDAddrNode->getNumOperands() > 0) {
     LLVM_DEBUG(dbgs() << "Check candidate load: "; LD->dump(); dbgs() << '\n');
 
-    SDValue OP1 = LDAddrNode->getOperand(0);
-    if (const GlobalAddressSDNode *GADN =
+    
+    if (const GlobalAddressSDNode *SDValue OP1 = LDAddrNode->getOperand(0); GADN =
             dyn_cast<GlobalAddressSDNode>(OP1.getNode()))
       to_replace = getConstantFieldValue(GADN, 0, size, new_val.c);
   }
@@ -301,8 +301,8 @@ void BPFDAGToDAGISel::PreprocessISelDAG() {
                                        E = CurDAG->allnodes_end();
        I != E;) {
     SDNode *Node = &*I++;
-    unsigned Opcode = Node->getOpcode();
-    if (Opcode == ISD::LOAD)
+    
+    if (unsigned Opcode = Node->getOpcode(); Opcode == ISD::LOAD)
       PreprocessLoad(Node, I);
     else if (Opcode == ISD::AND)
       PreprocessTrunc(Node, I);

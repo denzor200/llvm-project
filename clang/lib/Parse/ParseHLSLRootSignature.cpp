@@ -1039,12 +1039,12 @@ RootSignatureParser::parseShaderVisibility(TokenKind Context) {
   assert(CurToken.TokKind == TokenKind::pu_equal &&
          "Expects to only be invoked starting at given keyword");
 
-  TokenKind Expected[] = {
+  
+
+  if (TokenKind Expected[] = {
 #define SHADER_VISIBILITY_ENUM(NAME, LIT) TokenKind::en_##NAME,
 #include "clang/Lex/HLSLRootSignatureTokenKinds.def"
-  };
-
-  if (!tryConsumeExpectedToken(Expected)) {
+  }; !tryConsumeExpectedToken(Expected)) {
     consumeNextToken(); // consume token to point at invalid token
     reportDiag(diag::err_hlsl_invalid_token)
         << /*value=*/1 << /*value of*/ Context;
@@ -1069,12 +1069,12 @@ RootSignatureParser::parseSamplerFilter(TokenKind Context) {
   assert(CurToken.TokKind == TokenKind::pu_equal &&
          "Expects to only be invoked starting at given keyword");
 
-  TokenKind Expected[] = {
+  
+
+  if (TokenKind Expected[] = {
 #define FILTER_ENUM(NAME, LIT) TokenKind::en_##NAME,
 #include "clang/Lex/HLSLRootSignatureTokenKinds.def"
-  };
-
-  if (!tryConsumeExpectedToken(Expected)) {
+  }; !tryConsumeExpectedToken(Expected)) {
     consumeNextToken(); // consume token to point at invalid token
     reportDiag(diag::err_hlsl_invalid_token)
         << /*value=*/1 << /*value of*/ Context;
@@ -1099,12 +1099,12 @@ RootSignatureParser::parseTextureAddressMode(TokenKind Context) {
   assert(CurToken.TokKind == TokenKind::pu_equal &&
          "Expects to only be invoked starting at given keyword");
 
-  TokenKind Expected[] = {
+  
+
+  if (TokenKind Expected[] = {
 #define TEXTURE_ADDRESS_MODE_ENUM(NAME, LIT) TokenKind::en_##NAME,
 #include "clang/Lex/HLSLRootSignatureTokenKinds.def"
-  };
-
-  if (!tryConsumeExpectedToken(Expected)) {
+  }; !tryConsumeExpectedToken(Expected)) {
     consumeNextToken(); // consume token to point at invalid token
     reportDiag(diag::err_hlsl_invalid_token)
         << /*value=*/1 << /*value of*/ Context;
@@ -1129,12 +1129,12 @@ RootSignatureParser::parseComparisonFunc(TokenKind Context) {
   assert(CurToken.TokKind == TokenKind::pu_equal &&
          "Expects to only be invoked starting at given keyword");
 
-  TokenKind Expected[] = {
+  
+
+  if (TokenKind Expected[] = {
 #define COMPARISON_FUNC_ENUM(NAME, LIT) TokenKind::en_##NAME,
 #include "clang/Lex/HLSLRootSignatureTokenKinds.def"
-  };
-
-  if (!tryConsumeExpectedToken(Expected)) {
+  }; !tryConsumeExpectedToken(Expected)) {
     consumeNextToken(); // consume token to point at invalid token
     reportDiag(diag::err_hlsl_invalid_token)
         << /*value=*/1 << /*value of*/ Context;
@@ -1159,12 +1159,12 @@ RootSignatureParser::parseStaticBorderColor(TokenKind Context) {
   assert(CurToken.TokKind == TokenKind::pu_equal &&
          "Expects to only be invoked starting at given keyword");
 
-  TokenKind Expected[] = {
+  
+
+  if (TokenKind Expected[] = {
 #define STATIC_BORDER_COLOR_ENUM(NAME, LIT) TokenKind::en_##NAME,
 #include "clang/Lex/HLSLRootSignatureTokenKinds.def"
-  };
-
-  if (!tryConsumeExpectedToken(Expected)) {
+  }; !tryConsumeExpectedToken(Expected)) {
     consumeNextToken(); // consume token to point at invalid token
     reportDiag(diag::err_hlsl_invalid_token)
         << /*value=*/1 << /*value of*/ Context;
@@ -1452,8 +1452,8 @@ bool RootSignatureParser::consumeExpectedToken(TokenKind Expected,
     return false;
 
   // Report unexpected token kind error
-  DiagnosticBuilder DB = reportDiag(DiagID);
-  switch (DiagID) {
+  
+  switch (DiagnosticBuilder DB = reportDiag(DiagID); DiagID) {
   case diag::err_expected:
     DB << Expected;
     break;
@@ -1554,8 +1554,8 @@ void HandleRootSignatureTarget(Sema &S, StringRef EntryRootSig) {
   std::unique_ptr<Parser> P(new Parser(S.getPreprocessor(), S, true));
   S.getPreprocessor().EnterMainSourceFile();
 
-  bool HaveLexer = S.getPreprocessor().getCurrentLexer();
-  if (HaveLexer) {
+  
+  if (bool HaveLexer = S.getPreprocessor().getCurrentLexer(); HaveLexer) {
     P->Initialize();
     S.ActOnStartOfTranslationUnit();
 
@@ -1563,11 +1563,11 @@ void HandleRootSignatureTarget(Sema &S, StringRef EntryRootSig) {
     while (P->getCurToken().getKind() != tok::eof)
       P->ConsumeAnyToken();
 
-    HLSLRootSignatureDecl *SignatureDecl =
-        S.HLSL().lookupRootSignatureOverrideDecl(
-            S.getASTContext().getTranslationUnitDecl());
+    
 
-    if (SignatureDecl)
+    if (HLSLRootSignatureDecl *SignatureDecl =
+        S.HLSL().lookupRootSignatureOverrideDecl(
+            S.getASTContext().getTranslationUnitDecl()); SignatureDecl)
       Consumer->HandleTopLevelDecl(DeclGroupRef(SignatureDecl));
     else
       S.getDiagnostics().Report(diag::err_hlsl_rootsignature_entry)

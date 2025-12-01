@@ -266,8 +266,8 @@ bool LVScope::removeElement(LVElement *Element) {
     return Item == Element;
   };
   auto RemoveElement = [Element, Predicate](auto &Container) -> bool {
-    auto Iter = llvm::remove_if(*Container, Predicate);
-    if (Iter != Container->end()) {
+    
+    if (auto Iter = llvm::remove_if(*Container, Predicate); Iter != Container->end()) {
       Container->erase(Iter, Container->end());
       Element->resetParent();
       return true;
@@ -485,8 +485,8 @@ void LVScope::resolveTemplate() {
 
   // Check if we need to encode the template arguments.
   if (options().getAttributeEncoded()) {
-    LVTypes Params;
-    if (getTemplateParameterTypes(Params)) {
+    
+    if (LVTypes Params; getTemplateParameterTypes(Params)) {
       std::string EncodedArgs;
       // Encode the arguments as part of the template name and update the
       // template name, to reflect the encoded parameters.
@@ -562,8 +562,8 @@ bool LVScope::resolvePrinting() const {
   }
 
   bool Globals = options().getAttributeGlobal();
-  bool Locals = options().getAttributeLocal();
-  if ((Globals && Locals) || (!Globals && !Locals)) {
+  
+  if (bool Locals = options().getAttributeLocal(); (Globals && Locals) || (!Globals && !Locals)) {
     // Print both Global and Local.
   } else {
     // Check for Global or Local Objects.
@@ -677,8 +677,8 @@ Error LVScope::doPrint(bool Split, bool Match, bool Print, raw_ostream &OS,
 
 void LVScope::sort() {
   // Preserve the lines order as they are associated with user code.
-  LVSortFunction SortFunction = getSortFunction();
-  if (SortFunction) {
+  
+  if (LVSortFunction SortFunction = getSortFunction(); SortFunction) {
     std::function<void(LVScope * Parent, LVSortFunction SortFunction)> Sort =
         [&](LVScope *Parent, LVSortFunction SortFunction) {
           auto Traverse = [&](auto &Set, LVSortFunction SortFunction) {
@@ -808,8 +808,8 @@ void LVScope::getRanges(LVRange &RangeList) {
 LVScope *LVScope::outermostParent(LVAddress Address) {
   LVScope *Parent = this;
   while (Parent) {
-    const LVLocations *ParentRanges = Parent->getRanges();
-    if (ParentRanges)
+    
+    if (const LVLocations *ParentRanges = Parent->getRanges(); ParentRanges)
       for (const LVLocation *Location : *ParentRanges)
         if (Location->getLowerAddress() <= Address)
           return Parent;
@@ -922,8 +922,8 @@ void LVScope::markMissingParents(const LVScopes *References,
              << "Offset = " << hexSquareString(Reference->getOffset()) << " "
              << "Name = " << formattedName(Reference->getName()) << "\n";
     });
-    LVScope *Target = Reference->findIn(Targets);
-    if (Target) {
+    
+    if (LVScope *Target = Reference->findIn(Targets); Target) {
       LLVM_DEBUG({
         dbgs() << "\nFound Target: "
                << "Offset = " << hexSquareString(Target->getOffset()) << " "
@@ -1063,8 +1063,8 @@ void LVScopeAggregate::printExtra(raw_ostream &OS, bool Full) const {
   if (Full) {
     if (getIsTemplateResolved())
       printEncodedArgs(OS, Full);
-    LVScope *Reference = getReference();
-    if (Reference)
+    
+    if (LVScope *Reference = getReference(); Reference)
       Reference->printReference(OS, Full, const_cast<LVScopeAggregate *>(this));
   }
 }
@@ -1360,8 +1360,8 @@ void LVScopeCompileUnit::addInvalidOffset(LVOffset Offset, LVElement *Element) {
 
 // Record symbols with invalid coverage values.
 void LVScopeCompileUnit::addInvalidCoverage(LVSymbol *Symbol) {
-  LVOffset Offset = Symbol->getOffset();
-  if (InvalidCoverages.find(Offset) == InvalidCoverages.end())
+  
+  if (LVOffset Offset = Symbol->getOffset(); InvalidCoverages.find(Offset) == InvalidCoverages.end())
     InvalidCoverages.emplace(Offset, Symbol);
 }
 
@@ -1402,8 +1402,8 @@ void LVScopeCompileUnit::printLocalNames(raw_ostream &OS, bool Full) const {
       // In the case of missing directory name in the .debug_line table,
       // the returned string has a leading '/'.
       StringRef Name = getStringPool().getString(Index);
-      size_t Pos = Name.rfind('/');
-      if (Pos != std::string::npos)
+      
+      if (size_t Pos = Name.rfind('/'); Pos != std::string::npos)
         Name = (Action == Option::File) ? Name.substr(Pos + 1)
                                         : Name.substr(0, Pos);
       // Collect only unique names.
@@ -1631,8 +1631,8 @@ void LVScopeCompileUnit::printSummary(raw_ostream &OS, const LVCounter &Counter,
 
 void LVScopeCompileUnit::printMatchedElements(raw_ostream &OS,
                                               bool UseMatchedElements) {
-  LVSortFunction SortFunction = getSortFunction();
-  if (SortFunction)
+  
+  if (LVSortFunction SortFunction = getSortFunction(); SortFunction)
     llvm::stable_sort(MatchedElements, SortFunction);
 
   // Check the type of elements required to be printed. 'MatchedElements'
@@ -1797,8 +1797,8 @@ void LVScopeFunction::resolveReferences() {
   // If there is a reference linking the declaration and definition, mark
   // the definition as extern, to facilitate the logical view comparison.
   if (getHasReferenceSpecification()) {
-    LVScope *Reference = getReference();
-    if (Reference && Reference->getIsExternal()) {
+    
+    if (LVScope *Reference = getReference(); Reference && Reference->getIsExternal()) {
       Reference->resetIsExternal();
       setIsExternal();
     }
@@ -2083,9 +2083,9 @@ Error LVScopeRoot::doPrintMatches(bool Split, raw_ostream &OS,
                                   bool UseMatchedElements) const {
   // During a view output splitting, use the output stream created by the
   // split context, then switch to the reader output stream.
-  static raw_ostream *StreamSplit = &OS;
+  
 
-  if (Scopes) {
+  if (static raw_ostream *StreamSplit = &OS; Scopes) {
     if (UseMatchedElements)
       options().resetPrintFormatting();
     print(OS);

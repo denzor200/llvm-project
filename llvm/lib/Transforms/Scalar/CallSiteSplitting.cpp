@@ -165,8 +165,8 @@ static void recordConditions(CallBase &CB, BasicBlock *Pred,
 static void addConditions(CallBase &CB, const ConditionsTy &Conditions) {
   for (const auto &Cond : Conditions) {
     Value *Arg = Cond.first->getOperand(0);
-    Constant *ConstVal = cast<Constant>(Cond.first->getOperand(1));
-    if (Cond.second == ICmpInst::ICMP_EQ)
+    
+    if (Constant *ConstVal = cast<Constant>(Cond.first->getOperand(1)); Cond.second == ICmpInst::ICMP_EQ)
       setConstantInArgument(CB, Arg, ConstVal);
     else if (ConstVal->getType()->isPointerTy() && ConstVal->isNullValue()) {
       assert(Cond.second == ICmpInst::ICMP_NE);
@@ -540,9 +540,9 @@ PreservedAnalyses CallSiteSplittingPass::run(Function &F,
                                              FunctionAnalysisManager &AM) {
   auto &TLI = AM.getResult<TargetLibraryAnalysis>(F);
   auto &TTI = AM.getResult<TargetIRAnalysis>(F);
-  auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
+  
 
-  if (!doCallSiteSplitting(F, TLI, TTI, DT))
+  if (auto &DT = AM.getResult<DominatorTreeAnalysis>(F); !doCallSiteSplitting(F, TLI, TTI, DT))
     return PreservedAnalyses::all();
   PreservedAnalyses PA;
   PA.preserve<DominatorTreeAnalysis>();

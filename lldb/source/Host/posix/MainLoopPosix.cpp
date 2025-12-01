@@ -186,9 +186,9 @@ Status MainLoopPosix::RunImpl::Poll() {
     pfd.revents = 0;
     read_fds.push_back(pfd);
   }
-  int ready = StartPoll(read_fds, loop.GetNextWakeupTime());
+  
 
-  if (ready == -1 && errno != EINTR)
+  if (int ready = StartPoll(read_fds, loop.GetNextWakeupTime()); ready == -1 && errno != EINTR)
     return Status(errno, eErrorTypePOSIX);
 
   return Status();
@@ -355,8 +355,8 @@ Status MainLoopPosix::Run() {
 }
 
 void MainLoopPosix::ProcessReadObject(IOObject::WaitableHandle handle) {
-  auto it = m_read_fds.find(handle);
-  if (it != m_read_fds.end())
+  
+  if (auto it = m_read_fds.find(handle); it != m_read_fds.end())
     it->second(*this); // Do the work
 }
 
@@ -376,8 +376,8 @@ void MainLoopPosix::ProcessSignals() {
 }
 
 void MainLoopPosix::ProcessSignal(int signo) {
-  auto it = m_signals.find(signo);
-  if (it != m_signals.end()) {
+  
+  if (auto it = m_signals.find(signo); it != m_signals.end()) {
     // The callback may actually register/unregister signal handlers,
     // so we need to create a copy first.
     llvm::SmallVector<Callback, 4> callbacks_to_run{

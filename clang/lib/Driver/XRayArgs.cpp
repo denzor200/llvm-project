@@ -206,8 +206,8 @@ void XRayArgs::addArgs(const ToolChain &TC, const ArgList &Args,
   if (const Arg *A =
           Args.getLastArg(options::OPT_fxray_instruction_threshold_EQ)) {
     int Value;
-    StringRef S = A->getValue();
-    if (S.getAsInteger(0, Value) || Value < 0)
+    
+    if (StringRef S = A->getValue(); S.getAsInteger(0, Value) || Value < 0)
       D.Diag(clang::diag::err_drv_invalid_value) << A->getAsString(Args) << S;
     else
       A->render(Args, CmdArgs);
@@ -216,16 +216,16 @@ void XRayArgs::addArgs(const ToolChain &TC, const ArgList &Args,
   int XRayFunctionGroups = 1;
   int XRaySelectedFunctionGroup = 0;
   if (const Arg *A = Args.getLastArg(options::OPT_fxray_function_groups)) {
-    StringRef S = A->getValue();
-    if (S.getAsInteger(0, XRayFunctionGroups) || XRayFunctionGroups < 1)
+    
+    if (StringRef S = A->getValue(); S.getAsInteger(0, XRayFunctionGroups) || XRayFunctionGroups < 1)
       D.Diag(clang::diag::err_drv_invalid_value) << A->getAsString(Args) << S;
     if (XRayFunctionGroups > 1)
       A->render(Args, CmdArgs);
   }
   if (const Arg *A =
           Args.getLastArg(options::OPT_fxray_selected_function_group)) {
-    StringRef S = A->getValue();
-    if (S.getAsInteger(0, XRaySelectedFunctionGroup) ||
+    
+    if (StringRef S = A->getValue(); S.getAsInteger(0, XRaySelectedFunctionGroup) ||
         XRaySelectedFunctionGroup < 0 ||
         XRaySelectedFunctionGroup >= XRayFunctionGroups)
       D.Diag(clang::diag::err_drv_invalid_value) << A->getAsString(Args) << S;

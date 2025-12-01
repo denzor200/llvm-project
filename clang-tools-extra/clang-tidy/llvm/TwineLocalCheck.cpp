@@ -25,11 +25,11 @@ void TwineLocalCheck::registerMatchers(MatchFinder *Finder) {
 
 void TwineLocalCheck::check(const MatchFinder::MatchResult &Result) {
   const auto *VD = Result.Nodes.getNodeAs<VarDecl>("variable");
-  auto Diag = diag(VD->getLocation(),
-                   "twine variables are prone to use-after-free bugs");
+  
 
   // If this VarDecl has an initializer try to fix it.
-  if (VD->hasInit()) {
+  if (auto Diag = diag(VD->getLocation(),
+                   "twine variables are prone to use-after-free bugs"); VD->hasInit()) {
     // Peel away implicit constructors and casts so we can see the actual type
     // of the initializer.
     const Expr *C = VD->getInit()->IgnoreImplicit();

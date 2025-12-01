@@ -33,8 +33,8 @@ namespace scanf_core {
 // reader.
 template <typename T>
 int convert(Reader<T> *reader, const FormatSection &to_conv) {
-  int ret_val = 0;
-  switch (to_conv.conv_name) {
+  
+  switch (int ret_val = 0; to_conv.conv_name) {
   case '%':
     return raw_match(reader, "%");
   case 's':

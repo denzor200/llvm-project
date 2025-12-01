@@ -93,8 +93,8 @@ TypeAndOrName ItaniumABILanguageRuntime::GetTypeInfo(
                           TypeQueryOptions::e_find_one);
       if (module_sp) {
         module_sp->FindTypes(query, results);
-        TypeSP type_sp = results.GetFirstType();
-        if (type_sp)
+        
+        if (TypeSP type_sp = results.GetFirstType(); type_sp)
           class_types.Insert(type_sp);
       }
 
@@ -183,8 +183,8 @@ llvm::Error ItaniumABILanguageRuntime::TypeHasVTable(CompilerType type) {
   // Check to make sure the class has a vtable.
   CompilerType original_type = type;
   if (type.IsPointerOrReferenceType()) {
-    CompilerType pointee_type = type.GetPointeeType();
-    if (pointee_type)
+    
+    if (CompilerType pointee_type = type.GetPointeeType(); pointee_type)
       type = pointee_type;
   }
 
@@ -258,8 +258,8 @@ llvm::Expected<LanguageRuntime::VTableInfo>
   // Check our cache first to see if we already have this info
   {
     std::lock_guard<std::mutex> locker(m_mutex);
-    auto pos = m_vtable_info_map.find(vtable_addr);
-    if (pos != m_vtable_info_map.end())
+    
+    if (auto pos = m_vtable_info_map.find(vtable_addr); pos != m_vtable_info_map.end())
       return pos->second;
   }
 
@@ -560,12 +560,12 @@ void ItaniumABILanguageRuntime::SetExceptionBreakpoints() {
   const bool catch_bp = false;
   const bool throw_bp = true;
   const bool is_internal = true;
-  const bool for_expressions = true;
+  
 
   // For the exception breakpoints set by the Expression parser, we'll be a
   // little more aggressive and stop at exception allocation as well.
 
-  if (m_cxx_exception_bp_sp) {
+  if (const bool for_expressions = true; m_cxx_exception_bp_sp) {
     m_cxx_exception_bp_sp->SetEnabled(true);
   } else {
     m_cxx_exception_bp_sp = CreateExceptionBreakpoint(

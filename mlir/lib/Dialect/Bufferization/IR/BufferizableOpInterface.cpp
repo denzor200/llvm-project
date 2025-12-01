@@ -40,8 +40,8 @@ using namespace bufferization;
 
 static bool isRepetitiveRegion(Region *region,
                                const BufferizationOptions &options) {
-  Operation *op = region->getParentOp();
-  if (auto bufferizableOp = options.dynCastBufferizableOp(op))
+  
+  if (auto Operation *op = region->getParentOp(); bufferizableOp = options.dynCastBufferizableOp(op))
     if (bufferizableOp.isRepetitiveRegion(region->getRegionNumber()))
       return true;
   return false;
@@ -138,8 +138,8 @@ Region *bufferization::getNextEnclosingRepetitiveRegion(
 Region *bufferization::getParallelRegion(Region *region,
                                          const BufferizationOptions &options) {
   while (region) {
-    auto bufferizableOp = options.dynCastBufferizableOp(region->getParentOp());
-    if (bufferizableOp &&
+    
+    if (auto bufferizableOp = options.dynCastBufferizableOp(region->getParentOp()); bufferizableOp &&
         bufferizableOp.isParallelRegion(region->getRegionNumber())) {
       assert(isRepetitiveRegion(region, options) &&
              "expected that all parallel regions are also repetitive regions");
@@ -185,8 +185,8 @@ FailureOr<Value> bufferization::allocateTensorForShapedValue(
     bool reifiedShapes = false;
     if (llvm::isa<RankedTensorType>(shapedValue.getType()) &&
         llvm::isa<OpResult>(shapedValue)) {
-      ReifiedRankedShapedTypeDims resultDims;
-      if (succeeded(
+      
+      if (ReifiedRankedShapedTypeDims resultDims; succeeded(
               reifyResultShapes(b, shapedValue.getDefiningOp(), resultDims))) {
         reifiedShapes = true;
         auto &shape =
@@ -316,8 +316,8 @@ bool OpFilter::isOpAllowed(Operation *op) const {
   // All other ops: Allow/disallow according to filter.
   bool isAllowed = !hasAllowRule();
   for (const Entry &entry : entries) {
-    bool filterResult = entry.fn(op);
-    switch (entry.type) {
+    
+    switch (bool filterResult = entry.fn(op); entry.type) {
     case Entry::ALLOW:
       isAllowed |= filterResult;
       break;
@@ -725,8 +725,8 @@ bufferization::getBufferType(Value value, const BufferizationOptions &options,
 
   // Try querying BufferizableOpInterface.
   Operation *op = getOwnerOfValue(value);
-  auto bufferizableOp = options.dynCastBufferizableOp(op);
-  if (bufferizableOp)
+  
+  if (auto bufferizableOp = options.dynCastBufferizableOp(op); bufferizableOp)
     return bufferizableOp.getBufferType(value, options, state, invocationStack);
 
   // Op is not bufferizable.
@@ -816,8 +816,8 @@ BaseMemRefType bufferization::getMemRefType(TensorType tensorType,
   }
 
   // Case 2: Ranked memref type with specified layout.
-  auto rankedTensorType = llvm::cast<RankedTensorType>(tensorType);
-  if (layout) {
+  
+  if (auto rankedTensorType = llvm::cast<RankedTensorType>(tensorType); layout) {
     return MemRefType::get(rankedTensorType.getShape(),
                            rankedTensorType.getElementType(), layout,
                            memorySpace);
@@ -920,8 +920,8 @@ bool bufferization::detail::defaultResultBufferizesToMemoryWrite(
   // * conflictingWrite = %1
   //
   auto isMemoryWriteInsideOp = [&](Value v) {
-    Operation *op = getOwnerOfValue(v);
-    if (!opResult.getDefiningOp()->isAncestor(op))
+    
+    if (Operation *op = getOwnerOfValue(v); !opResult.getDefiningOp()->isAncestor(op))
       return false;
     return state.bufferizesToMemoryWrite(v);
   };

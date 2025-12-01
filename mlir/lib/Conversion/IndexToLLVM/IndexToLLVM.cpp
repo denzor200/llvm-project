@@ -161,8 +161,8 @@ struct ConvertIndexCast : public mlir::ConvertOpToLLVMPattern<CastOp> {
   matchAndRewrite(CastOp op, typename CastOp::Adaptor adaptor,
                   ConversionPatternRewriter &rewriter) const override {
     Type in = adaptor.getInput().getType();
-    Type out = this->getTypeConverter()->convertType(op.getType());
-    if (in == out)
+    
+    if (Type out = this->getTypeConverter()->convertType(op.getType()); in == out)
       rewriter.replaceOp(op, adaptor.getInput());
     else if (in.getIntOrFloatBitWidth() > out.getIntOrFloatBitWidth())
       rewriter.replaceOpWithNewOp<LLVM::TruncOp>(op, out, adaptor.getInput());

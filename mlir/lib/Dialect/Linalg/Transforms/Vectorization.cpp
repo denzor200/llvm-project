@@ -431,8 +431,8 @@ Value VectorizationState::getOrCreateMaskFor(
          "Ill-formed masking map.");
 
   // No mask is needed if the operation is not maskable.
-  auto maskableOp = dyn_cast<vector::MaskableOpInterface>(opToMask);
-  if (!maskableOp)
+  
+  if (auto maskableOp = dyn_cast<vector::MaskableOpInterface>(opToMask); !maskableOp)
     return Value();
 
   assert(!maskableOp.isMasked() &&
@@ -811,10 +811,10 @@ vectorizeLinalgYield(RewriterBase &rewriter, Operation *op,
     // TODO: Scan for an opportunity for reuse.
     // TODO: use a map.
     Value vectorValue = bvm.lookup(output.value());
-    Value newResult =
+    
+    if (Value newResult =
         buildVectorWrite(rewriter, vectorValue,
-                         linalgOp.getDpsInitOperand(output.index()), state);
-    if (newResult)
+                         linalgOp.getDpsInitOperand(output.index()), state); newResult)
       newResults.push_back(newResult);
   }
 
@@ -1376,10 +1376,10 @@ vectorizeOneOp(RewriterBase &rewriter, VectorizationState &state,
   }
   if (!reductionOperands.empty()) {
     assert(reductionOperands.size() == 1);
-    Operation *reduceOp =
+    
+    if (Operation *reduceOp =
         reduceIfNeeded(rewriter, linalgOp, op, reductionOperands[0].first,
-                       reductionOperands[0].second, bvm);
-    if (reduceOp)
+                       reductionOperands[0].second, bvm); reduceOp)
       return VectorizationHookResult{VectorizationHookStatus::NewOp, reduceOp};
   }
 
@@ -1633,8 +1633,8 @@ static bool isMaskTriviallyFoldable(SmallVector<OpFoldResult> &maskSizes,
   // Collect all constant write indices.
   SmallVector<int64_t, 4> cstWriteIdxs;
   for (auto [i, idx] : llvm::enumerate(writeIdxs)) {
-    APSInt intVal;
-    if (matchPattern(idx, m_ConstantInt(&intVal))) {
+    
+    if (APSInt intVal; matchPattern(idx, m_ConstantInt(&intVal))) {
       cstWriteIdxs.push_back(intVal.getSExtValue());
     }
   }
@@ -2048,8 +2048,8 @@ static LogicalResult reductionPreconditions(LinalgOp op) {
     return failure();
   }
   for (OpOperand &opOperand : op.getDpsInitsMutable()) {
-    AffineMap indexingMap = op.getMatchingIndexingMap(&opOperand);
-    if (indexingMap.isPermutation())
+    
+    if (AffineMap indexingMap = op.getMatchingIndexingMap(&opOperand); indexingMap.isPermutation())
       continue;
 
     Operation *reduceOp = matchLinalgReduction(&opOperand);
@@ -2344,11 +2344,11 @@ static LogicalResult vectorizeConvOpPrecondition(linalg::LinalgOp convOp) {
   };
   ShapedType lhsShapedType = getOperandType(convOp.getDpsInputOperand(0));
   ShapedType rhsShapedType = getOperandType(convOp.getDpsInputOperand(1));
-  ShapedType resShapedType = getOperandType(convOp.getDpsInitOperand(0));
+  
   // (LHS has dimension NCW/NWC and RES has dimension NFW/NCW/NWF/NWC) OR
   // (non-channeled convolution -> LHS and RHS both have single dimensions).
   // Note that this also ensures 2D and 3D convolutions are rejected.
-  if ((lhsShapedType.getRank() != 3 || resShapedType.getRank() != 3) &&
+  if (ShapedType resShapedType = getOperandType(convOp.getDpsInitOperand(0)); (lhsShapedType.getRank() != 3 || resShapedType.getRank() != 3) &&
       (lhsShapedType.getRank() != 1 || resShapedType.getRank() != 1))
     return failure();
 
@@ -2455,9 +2455,9 @@ static LogicalResult
 vectorizePackOpPrecondition(linalg::PackOp packOp,
                             ArrayRef<int64_t> inputVectorSizes) {
   auto padValue = packOp.getPaddingValue();
-  Attribute cstAttr;
+  
   // TODO: Relax this condiiton
-  if (padValue && !matchPattern(padValue, m_Constant(&cstAttr))) {
+  if (Attribute cstAttr; padValue && !matchPattern(padValue, m_Constant(&cstAttr))) {
     LDBG() << "pad value is not constant: " << packOp;
     return failure();
   }
@@ -2489,8 +2489,8 @@ vectorizePackOpPrecondition(linalg::PackOp packOp,
 static LogicalResult
 vectorizePadOpPrecondition(tensor::PadOp padOp,
                            ArrayRef<int64_t> inputVectorSizes) {
-  auto padValue = padOp.getConstantPaddingValue();
-  if (!padValue) {
+  
+  if (auto padValue = padOp.getConstantPaddingValue(); !padValue) {
     LDBG() << "pad value is not constant: " << padOp;
     return failure();
   }
@@ -2950,8 +2950,8 @@ struct PadOpVectorizationWithTransferWritePattern
     if (!padOp.hasZeroLowPad())
       return failure();
     // Pad value must be a constant.
-    auto padValue = padOp.getConstantPaddingValue();
-    if (!padValue)
+    
+    if (auto padValue = padOp.getConstantPaddingValue(); !padValue)
       return failure();
     // TransferWriteOp result must be directly consumed by an ExtractSliceOp.
     if (!xferOp->hasOneUse())
@@ -3691,10 +3691,10 @@ struct Conv1DGenerator
       static constexpr std::array<int64_t, 3> permLhs = {0, 2, 1};
       lhs = vector::TransposeOp::create(rewriter, loc, lhs, permLhs);
       // fcw -> wcf
-      static constexpr std::array<int64_t, 3> permRhs = {2, 1, 0};
+      
 
       // This is needed only for Conv.
-      if (oper == ConvOperationKind::Conv)
+      if (static constexpr std::array<int64_t, 3> permRhs = {2, 1, 0}; oper == ConvOperationKind::Conv)
         rhs = vector::TransposeOp::create(rewriter, loc, rhs, permRhs);
       // nfw -> nwf
       static constexpr std::array<int64_t, 3> permRes = {0, 2, 1};

@@ -184,8 +184,8 @@ getTypeNumBytes(const SPIRVConversionOptions &options, Type type) {
 
   // Handle 8-bit floats.
   if (options.emulateUnsupportedFloatTypes && isa<FloatType>(type)) {
-    auto bitWidth = type.getIntOrFloatBitWidth();
-    if (bitWidth == 8)
+    
+    if (auto bitWidth = type.getIntOrFloatBitWidth(); bitWidth == 8)
       return bitWidth / 8;
     return std::nullopt;
   }
@@ -626,13 +626,13 @@ static spirv::ImageFormat getImageFormat(Type elementType) {
       .Case<Float16Type>([](Float16Type) { return spirv::ImageFormat::R16f; })
       .Case<Float32Type>([](Float32Type) { return spirv::ImageFormat::R32f; })
       .Case<IntegerType>([](IntegerType intType) {
-        auto const isSigned = intType.isSigned() || intType.isSignless();
+        
 #define BIT_WIDTH_CASE(BIT_WIDTH)                                              \
   case BIT_WIDTH:                                                              \
     return isSigned ? spirv::ImageFormat::R##BIT_WIDTH##i                      \
                     : spirv::ImageFormat::R##BIT_WIDTH##ui
 
-        switch (intType.getWidth()) {
+        switch (auto const isSigned = intType.isSigned() || intType.isSignless(); intType.getWidth()) {
           BIT_WIDTH_CASE(16);
           BIT_WIDTH_CASE(32);
         default:
@@ -860,8 +860,8 @@ static spirv::GlobalVariableOp getBuiltinVariable(Block &body,
     if (auto builtinAttr = varOp->getAttrOfType<StringAttr>(
             spirv::SPIRVDialect::getAttributeName(
                 spirv::Decoration::BuiltIn))) {
-      auto varBuiltIn = spirv::symbolizeBuiltIn(builtinAttr.getValue());
-      if (varBuiltIn == builtin) {
+      
+      if (auto varBuiltIn = spirv::symbolizeBuiltIn(builtinAttr.getValue()); varBuiltIn == builtin) {
         return varOp;
       }
     }
@@ -1636,8 +1636,8 @@ bool SPIRVConversionTarget::isLegalOp(Operation *op) {
   // QueryMinVersionInterface/QueryMaxVersionInterface are available to all
   // SPIR-V versions.
   if (auto minVersionIfx = dyn_cast<spirv::QueryMinVersionInterface>(op)) {
-    std::optional<spirv::Version> minVersion = minVersionIfx.getMinVersion();
-    if (minVersion && *minVersion > this->targetEnv.getVersion()) {
+    
+    if (std::optional<spirv::Version> minVersion = minVersionIfx.getMinVersion(); minVersion && *minVersion > this->targetEnv.getVersion()) {
       LLVM_DEBUG(llvm::dbgs()
                  << op->getName() << " illegal: requiring min version "
                  << spirv::stringifyVersion(*minVersion) << "\n");
@@ -1645,8 +1645,8 @@ bool SPIRVConversionTarget::isLegalOp(Operation *op) {
     }
   }
   if (auto maxVersionIfx = dyn_cast<spirv::QueryMaxVersionInterface>(op)) {
-    std::optional<spirv::Version> maxVersion = maxVersionIfx.getMaxVersion();
-    if (maxVersion && *maxVersion < this->targetEnv.getVersion()) {
+    
+    if (std::optional<spirv::Version> maxVersion = maxVersionIfx.getMaxVersion(); maxVersion && *maxVersion < this->targetEnv.getVersion()) {
       LLVM_DEBUG(llvm::dbgs()
                  << op->getName() << " illegal: requiring max version "
                  << spirv::stringifyVersion(*maxVersion) << "\n");

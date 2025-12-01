@@ -124,8 +124,8 @@ struct TransferWriteToArmSMELowering
 
   LogicalResult matchAndRewrite(vector::TransferWriteOp writeOp,
                                 PatternRewriter &rewriter) const final {
-    auto vType = writeOp.getVectorType();
-    if (!arm_sme::isValidSMETileVectorType(vType))
+    
+    if (auto vType = writeOp.getVectorType(); !arm_sme::isValidSMETileVectorType(vType))
       return failure();
 
     if (!llvm::isa<MemRefType>(writeOp.getBase().getType()))
@@ -388,8 +388,8 @@ struct VectorOuterProductToArmSMELowering
       return rewriter.notifyMatchFailure(
           outerProductOp, "outer product does not fit into SME tile");
 
-    auto kind = outerProductOp.getKind();
-    if (kind != vector::CombiningKind::ADD)
+    
+    if (auto kind = outerProductOp.getKind(); kind != vector::CombiningKind::ADD)
       return rewriter.notifyMatchFailure(
           outerProductOp,
           "unsupported kind (lowering to SME only supports ADD at the moment)");
@@ -455,8 +455,8 @@ struct VectorExtractToArmSMELowering
 
   LogicalResult matchAndRewrite(vector::ExtractOp extractOp,
                                 PatternRewriter &rewriter) const override {
-    VectorType sourceType = extractOp.getSourceVectorType();
-    if (!arm_sme::isValidSMETileVectorType(sourceType))
+    
+    if (VectorType sourceType = extractOp.getSourceVectorType(); !arm_sme::isValidSMETileVectorType(sourceType))
       return failure();
 
     auto loc = extractOp.getLoc();
@@ -687,8 +687,8 @@ struct ExtractFromCreateMaskToPselLowering
       return rewriter.notifyMatchFailure(extractOp, "not single extract index");
 
     auto resultType = extractOp.getResult().getType();
-    auto resultVectorType = dyn_cast<VectorType>(resultType);
-    if (!resultVectorType)
+    
+    if (auto resultVectorType = dyn_cast<VectorType>(resultType); !resultVectorType)
       return rewriter.notifyMatchFailure(extractOp, "result not VectorType");
 
     auto createMaskOp =

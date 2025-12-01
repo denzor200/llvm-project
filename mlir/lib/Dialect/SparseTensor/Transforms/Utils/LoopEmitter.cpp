@@ -92,13 +92,13 @@ static Value tryFoldTensors(Value t) {
   // TODO: this should be done through a folding pass after switching to
   // `sparse_tensor.iterate`-based sparsification.
   auto stt = tryGetSparseTensorType(t);
-  auto padOp = t.getDefiningOp<tensor::PadOp>();
-  if (padOp && stt.has_value() && stt->hasEncoding() &&
+  
+  if (auto padOp = t.getDefiningOp<tensor::PadOp>(); padOp && stt.has_value() && stt->hasEncoding() &&
       padOp.getSourceType().getEncoding() == stt->getEncoding() &&
       stt->getEncoding().isIdentity()) {
     // Try fusing padOp with zeros.
-    Attribute padCst;
-    if (matchPattern(padOp.getBody()->getTerminator(),
+    
+    if (Attribute padCst; matchPattern(padOp.getBody()->getTerminator(),
                      m_Op<tensor::YieldOp>(m_Constant(&padCst))) &&
         isIntOrFPZero(padCst)) {
       return padOp.getSource();
@@ -203,8 +203,8 @@ LoopEmitter::makeLevelIterator(OpBuilder &builder, Location loc, TensorId t,
   auto stt = getSparseTensorType(tensor);
   auto it = makeSimpleIterator(*lvls[t][l], emitStrategy);
 
-  Value folded = tryFoldTensors(tensor);
-  if (folded != tensor) {
+  
+  if (Value folded = tryFoldTensors(tensor); folded != tensor) {
     auto padOp = tensor.getDefiningOp<tensor::PadOp>();
     assert(padOp);
     if (padOp.getPaddedDims().test(l)) {
@@ -395,8 +395,8 @@ void LoopEmitter::categorizeIterators(
   // Finds out the tensor level that we should use to generate loops. Amongs all
   // the tensor levels, there is at most one sparse tensor level.
   for (auto [t, l] : unpackTensorLevelRange(tidLvls)) {
-    SparseIterator *it = &getCurIterator(t, l);
-    if (it->randomAccessible())
+    
+    if (SparseIterator *it = &getCurIterator(t, l); it->randomAccessible())
       raIters.push_back(it);
     else
       spIters.push_back(it);
@@ -814,8 +814,8 @@ void LoopEmitter::exitWhileLoop(OpBuilder &builder, Location loc,
   ValueRange whileRes = whileOp.getResults();
 
   for (auto [tid, lvl] : unpackTensorLevelRange(loopInfo.tidLvls)) {
-    SparseIterator &it = getCurIterator(tid, lvl);
-    if (!it.randomAccessible()) {
+    
+    if (SparseIterator &it = getCurIterator(tid, lvl); !it.randomAccessible()) {
       // Forward the sparse iterator.
       Value cmp = CMPI(eq, it.getCrd(), iv);
       it.forwardIf(builder, loc, cmp);

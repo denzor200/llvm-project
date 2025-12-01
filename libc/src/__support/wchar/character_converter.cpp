@@ -142,8 +142,8 @@ ErrorOr<char8_t> CharacterConverter::pop_utf8() {
   char32_t output;
 
   // Shift to get the next 6 bits from the utf32 encoding
-  const size_t shift_amount = (state->bytes_stored - 1) * ENCODED_BITS_PER_UTF8;
-  if (isFull()) {
+  
+  if (const size_t shift_amount = (state->bytes_stored - 1) * ENCODED_BITS_PER_UTF8; isFull()) {
     /*
       Choose the correct set of most significant bits to encode the length
       of the utf8 sequence. The remaining bits contain the most significant

@@ -61,8 +61,8 @@ bool X86SelectionDAGInfo::isBaseRegConflictPossible(
   // alignment requirements.  Fall back to generic code if there are any
   // dynamic stack adjustments (hopefully rare) and the base pointer would
   // conflict if we had to use it.
-  MachineFrameInfo &MFI = DAG.getMachineFunction().getFrameInfo();
-  if (!MFI.hasVarSizedObjects() && !MFI.hasOpaqueSPAdjustment())
+  
+  if (MachineFrameInfo &MFI = DAG.getMachineFunction().getFrameInfo(); !MFI.hasVarSizedObjects() && !MFI.hasOpaqueSPAdjustment())
     return false;
 
   const X86RegisterInfo *TRI = static_cast<const X86RegisterInfo *>(
@@ -214,9 +214,9 @@ SDValue X86SelectionDAGInfo::EmitTargetCodeForMemset(
     return SDValue();
 
   // If the base register might conflict with our physical registers, bail out.
-  const MCPhysReg ClobberSet[] = {X86::RCX, X86::RAX, X86::RDI,
-                                  X86::ECX, X86::EAX, X86::EDI};
-  if (isBaseRegConflictPossible(DAG, ClobberSet))
+  
+  if (const MCPhysReg ClobberSet[] = {X86::RCX, X86::RAX, X86::RDI,
+                                  X86::ECX, X86::EAX, X86::EDI}; isBaseRegConflictPossible(DAG, ClobberSet))
     return SDValue();
 
   ConstantSDNode *ConstantSize = dyn_cast<ConstantSDNode>(Size);
@@ -329,9 +329,9 @@ SDValue X86SelectionDAGInfo::EmitTargetCodeForMemcpy(
 
   // If the base registers conflict with our physical registers, use the default
   // lowering.
-  const MCPhysReg ClobberSet[] = {X86::RCX, X86::RSI, X86::RDI,
-                                  X86::ECX, X86::ESI, X86::EDI};
-  if (isBaseRegConflictPossible(DAG, ClobberSet))
+  
+  if (const MCPhysReg ClobberSet[] = {X86::RCX, X86::RSI, X86::RDI,
+                                  X86::ECX, X86::ESI, X86::EDI}; isBaseRegConflictPossible(DAG, ClobberSet))
     return SDValue();
 
   const X86Subtarget &Subtarget =

@@ -74,8 +74,8 @@ bool MachineSSAContext::isConstantOrUndefValuePhi(const MachineInstr &Phi) {
   Register This = Phi.getOperand(0).getReg();
   Register ConstantValue;
   for (unsigned i = 1, e = Phi.getNumOperands(); i < e; i += 2) {
-    Register Incoming = Phi.getOperand(i).getReg();
-    if (Incoming != This && !isUndef(*MRI.getVRegDef(Incoming))) {
+    
+    if (Register Incoming = Phi.getOperand(i).getReg(); Incoming != This && !isUndef(*MRI.getVRegDef(Incoming))) {
       if (ConstantValue && ConstantValue != Incoming)
         return false;
       ConstantValue = Incoming;

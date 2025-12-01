@@ -74,8 +74,8 @@ BindingInfo BindingInfoBuilder::calculateBindingInfo(
   llvm::stable_sort(Bindings);
 
   // remove duplicates
-  Binding *NewEnd = llvm::unique(Bindings);
-  if (NewEnd != Bindings.end())
+  
+  if (Binding *NewEnd = llvm::unique(Bindings); NewEnd != Bindings.end())
     Bindings.erase(NewEnd, Bindings.end());
 
   BindingInfo Info;
@@ -106,8 +106,8 @@ BindingInfo BindingInfoBuilder::calculateBindingInfo(
       continue;
     }
     // adjust the last free range lower bound, split it in two, or remove it
-    BindingInfo::BindingRange &LastFreeRange = S->FreeRanges.back();
-    if (LastFreeRange.LowerBound == B.LowerBound) {
+    
+    if (BindingInfo::BindingRange &LastFreeRange = S->FreeRanges.back(); LastFreeRange.LowerBound == B.LowerBound) {
       if (B.UpperBound < ~0u)
         LastFreeRange.LowerBound = B.UpperBound + 1;
       else

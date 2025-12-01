@@ -306,11 +306,11 @@ VLIWResourceModel *ConvergingVLIWScheduler::createVLIWResourceModel(
 void ConvergingVLIWScheduler::releaseTopNode(SUnit *SU) {
   for (const SDep &PI : SU->Preds) {
     unsigned PredReadyCycle = PI.getSUnit()->TopReadyCycle;
-    unsigned MinLatency = PI.getLatency();
+    
 #ifndef NDEBUG
     Top.MaxMinLatency = std::max(MinLatency, Top.MaxMinLatency);
 #endif
-    if (SU->TopReadyCycle < PredReadyCycle + MinLatency)
+    if (unsigned MinLatency = PI.getLatency(); SU->TopReadyCycle < PredReadyCycle + MinLatency)
       SU->TopReadyCycle = PredReadyCycle + MinLatency;
   }
 
@@ -324,11 +324,11 @@ void ConvergingVLIWScheduler::releaseBottomNode(SUnit *SU) {
   for (SUnit::succ_iterator I = SU->Succs.begin(), E = SU->Succs.end(); I != E;
        ++I) {
     unsigned SuccReadyCycle = I->getSUnit()->BotReadyCycle;
-    unsigned MinLatency = I->getLatency();
+    
 #ifndef NDEBUG
     Bot.MaxMinLatency = std::max(MinLatency, Bot.MaxMinLatency);
 #endif
-    if (SU->BotReadyCycle < SuccReadyCycle + MinLatency)
+    if (unsigned MinLatency = I->getLatency(); SU->BotReadyCycle < SuccReadyCycle + MinLatency)
       SU->BotReadyCycle = SuccReadyCycle + MinLatency;
   }
 
@@ -358,8 +358,8 @@ bool ConvergingVLIWScheduler::VLIWSchedBoundary::checkHazard(SUnit *SU) {
   if (HazardRec->isEnabled())
     return HazardRec->getHazardType(SU) != ScheduleHazardRecognizer::NoHazard;
 
-  unsigned uops = SchedModel->getNumMicroOps(SU->getInstr());
-  if (IssueCount + uops > SchedModel->getIssueWidth())
+  
+  if (unsigned uops = SchedModel->getNumMicroOps(SU->getInstr()); IssueCount + uops > SchedModel->getIssueWidth())
     return true;
 
   return false;

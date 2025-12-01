@@ -160,8 +160,8 @@ void DefinitionBlockSeparator::separateBlocks(
         // used as return type as that kind of macros, which is a bit hard to
         // distinguish one from another purely from token patterns. Here, we
         // try not to add new lines below those identifiers.
-        AnnotatedLine *NextLine = Lines[OperateIndex + 1];
-        if (NextLine->MightBeFunctionDecl &&
+        
+        if (AnnotatedLine *NextLine = Lines[OperateIndex + 1]; NextLine->MightBeFunctionDecl &&
             NextLine->mightBeFunctionDefinition() &&
             NextLine->First->NewlinesBefore == 1 &&
             OperateLine->First->is(TT_FunctionLikeOrFreestandingMacro)) {

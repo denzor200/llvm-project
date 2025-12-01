@@ -109,8 +109,8 @@ void ExecutionEngine::dumpToObjectFile(StringRef filename) {
   // force compilation manually.
   if (cache->isEmpty()) {
     for (std::string &functionName : functionNames) {
-      auto result = lookupPacked(functionName);
-      if (!result) {
+      
+      if (auto result = lookupPacked(functionName); !result) {
         llvm::errs() << "Could not compile " << functionName << ":\n  "
                      << result.takeError() << "\n";
         return;

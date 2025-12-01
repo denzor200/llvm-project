@@ -28,16 +28,16 @@ Status CommandObjectThreadTraceExportCTF::CommandOptions::SetOptionValue(
     uint32_t option_idx, llvm::StringRef option_arg,
     ExecutionContext *execution_context) {
   Status error;
-  const int short_option = m_getopt_table[option_idx].val;
+  
 
-  switch (short_option) {
+  switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
   case 'f': {
     m_file.assign(std::string(option_arg));
     break;
   }
   case 't': {
-    int64_t thread_index;
-    if (option_arg.empty() || option_arg.getAsInteger(0, thread_index) ||
+    
+    if (int64_t thread_index; option_arg.empty() || option_arg.getAsInteger(0, thread_index) ||
         thread_index < 0)
       error = Status::FromErrorStringWithFormatv(
           "invalid integer value for option '{0}'", option_arg);
@@ -79,16 +79,16 @@ void CommandObjectThreadTraceExportCTF::DoExecute(Args &command,
         "Thread index {0} is out of range (valid values are 1 - {1}).\n", tid,
         num_threads);
   } else {
-    auto do_work = [&]() -> Error {
+    
+
+    if (llvm::Error auto do_work = [&]() -> Error {
       Expected<TraceCursorSP> cursor = trace_sp->CreateNewCursor(*thread);
       if (!cursor)
         return cursor.takeError();
       TraceHTR htr(*thread, **cursor);
       htr.ExecutePasses();
       return htr.Export(m_options.m_file);
-    };
-
-    if (llvm::Error err = do_work()) {
+    }; err = do_work()) {
       result.AppendErrorWithFormat("%s\n", toString(std::move(err)).c_str());
     }
   }

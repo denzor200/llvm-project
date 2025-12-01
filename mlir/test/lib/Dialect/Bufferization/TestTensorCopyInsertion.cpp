@@ -49,9 +49,9 @@ struct TestTensorCopyInsertionPass
           [](TensorType t) -> std::optional<Attribute> { return std::nullopt; };
     }
 
-    bufferization::BufferizationState bufferizationState;
+    
 
-    if (failed(bufferization::insertTensorCopies(getOperation(), options,
+    if (bufferization::BufferizationState bufferizationState; failed(bufferization::insertTensorCopies(getOperation(), options,
                                                  bufferizationState)))
       signalPassFailure();
   }

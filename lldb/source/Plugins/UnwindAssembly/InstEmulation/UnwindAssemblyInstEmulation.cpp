@@ -39,8 +39,8 @@ bool UnwindAssemblyInstEmulation::GetNonCallSiteUnwindPlanFromAssembly(
   ProcessSP process_sp(thread.GetProcess());
   if (process_sp) {
     Status error;
-    const bool force_live_memory = true;
-    if (process_sp->GetTarget().ReadMemory(
+    
+    if (const bool force_live_memory = true; process_sp->GetTarget().ReadMemory(
             range.GetBaseAddress(), function_text.data(), range.GetByteSize(),
             error, force_live_memory) != range.GetByteSize()) {
       return false;
@@ -212,9 +212,9 @@ bool UnwindAssemblyInstEmulation::GetNonCallSiteUnwindPlanFromAssembly(
     if (m_curr_row_modified) {
       // Save the modified row if we don't already have a CFI row in the
       // current address
-      const lldb::addr_t next_inst_offset =
-          current_offset + inst->GetOpcode().GetByteSize();
-      if (saved_unwind_states.count(next_inst_offset) == 0) {
+      
+      if (const lldb::addr_t next_inst_offset =
+          current_offset + inst->GetOpcode().GetByteSize(); saved_unwind_states.count(next_inst_offset) == 0) {
         m_state.row.SetOffset(next_inst_offset);
         saved_unwind_states.emplace(next_inst_offset, m_state);
       }
@@ -273,8 +273,8 @@ llvm::StringRef UnwindAssemblyInstEmulation::GetPluginDescriptionStatic() {
 uint64_t UnwindAssemblyInstEmulation::MakeRegisterKindValuePair(
     const RegisterInfo &reg_info) {
   lldb::RegisterKind reg_kind;
-  uint32_t reg_num;
-  if (EmulateInstruction::GetBestRegisterKindAndNumber(&reg_info, reg_kind,
+  
+  if (uint32_t reg_num; EmulateInstruction::GetBestRegisterKindAndNumber(&reg_info, reg_kind,
                                                        reg_num))
     return (uint64_t)reg_kind << 24 | reg_num;
   return 0ull;
@@ -303,9 +303,9 @@ size_t UnwindAssemblyInstEmulation::ReadMemory(
     EmulateInstruction *instruction, void *baton,
     const EmulateInstruction::Context &context, lldb::addr_t addr, void *dst,
     size_t dst_len) {
-  Log *log = GetLog(LLDBLog::Unwind);
+  
 
-  if (log && log->GetVerbose()) {
+  if (Log *log = GetLog(LLDBLog::Unwind); log && log->GetVerbose()) {
     StreamString strm;
     strm.Printf(
         "UnwindAssemblyInstEmulation::ReadMemory    (addr = 0x%16.16" PRIx64
@@ -335,9 +335,9 @@ size_t UnwindAssemblyInstEmulation::WriteMemory(
                      instruction->GetArchitecture().GetByteOrder(),
                      instruction->GetArchitecture().GetAddressByteSize());
 
-  Log *log = GetLog(LLDBLog::Unwind);
+  
 
-  if (log && log->GetVerbose()) {
+  if (Log *log = GetLog(LLDBLog::Unwind); log && log->GetVerbose()) {
     StreamString strm;
 
     strm.PutCString("UnwindAssemblyInstEmulation::WriteMemory   (");
@@ -413,9 +413,9 @@ bool UnwindAssemblyInstEmulation::ReadRegister(EmulateInstruction *instruction,
                                                RegisterValue &reg_value) {
   bool synthetic = GetRegisterValue(*reg_info, reg_value);
 
-  Log *log = GetLog(LLDBLog::Unwind);
+  
 
-  if (log && log->GetVerbose()) {
+  if (Log *log = GetLog(LLDBLog::Unwind); log && log->GetVerbose()) {
 
     StreamString strm;
     strm.Printf("UnwindAssemblyInstEmulation::ReadRegister  (name = \"%s\") => "
@@ -439,9 +439,9 @@ bool UnwindAssemblyInstEmulation::WriteRegister(
 bool UnwindAssemblyInstEmulation::WriteRegister(
     EmulateInstruction *instruction, const EmulateInstruction::Context &context,
     const RegisterInfo *reg_info, const RegisterValue &reg_value) {
-  Log *log = GetLog(LLDBLog::Unwind);
+  
 
-  if (log && log->GetVerbose()) {
+  if (Log *log = GetLog(LLDBLog::Unwind); log && log->GetVerbose()) {
 
     StreamString strm;
     strm.Printf(
@@ -490,8 +490,8 @@ bool UnwindAssemblyInstEmulation::WriteRegister(
     // If we adjusted the current frame pointer by a constant then adjust the
     // CFA offset
     // with the same amount.
-    lldb::RegisterKind kind = m_unwind_plan_ptr->GetRegisterKind();
-    if (m_state.fp_is_cfa &&
+    
+    if (lldb::RegisterKind kind = m_unwind_plan_ptr->GetRegisterKind(); m_state.fp_is_cfa &&
         reg_info->kinds[kind] == m_state.cfa_reg_info.kinds[kind] &&
         context.GetInfoType() ==
             EmulateInstruction::eInfoTypeRegisterPlusOffset &&
@@ -527,8 +527,8 @@ bool UnwindAssemblyInstEmulation::WriteRegister(
   case EmulateInstruction::eContextPopRegisterOffStack: {
     const uint32_t reg_num =
         reg_info->kinds[m_unwind_plan_ptr->GetRegisterKind()];
-    const uint32_t generic_regnum = reg_info->kinds[eRegisterKindGeneric];
-    if (reg_num != LLDB_INVALID_REGNUM &&
+    
+    if (const uint32_t generic_regnum = reg_info->kinds[eRegisterKindGeneric]; reg_num != LLDB_INVALID_REGNUM &&
         generic_regnum != LLDB_REGNUM_GENERIC_SP) {
       switch (context.GetInfoType()) {
       case EmulateInstruction::eInfoTypeAddress:
@@ -546,8 +546,8 @@ bool UnwindAssemblyInstEmulation::WriteRegister(
             uint32_t sp_reg_num = LLDB_REGNUM_GENERIC_SP;
             RegisterInfo sp_reg_info =
                 *m_inst_emulator_up->GetRegisterInfo(sp_reg_kind, sp_reg_num);
-            RegisterValue sp_reg_val;
-            if (GetRegisterValue(sp_reg_info, sp_reg_val)) {
+            
+            if (RegisterValue sp_reg_val; GetRegisterValue(sp_reg_info, sp_reg_val)) {
               m_state.cfa_reg_info = sp_reg_info;
               const uint32_t cfa_reg_num =
                   sp_reg_info.kinds[m_unwind_plan_ptr->GetRegisterKind()];

@@ -114,9 +114,9 @@ StringRef AArch64::resolveCPUAlias(StringRef Name) {
 
 StringRef AArch64::getArchExtFeature(StringRef ArchExt) {
   bool IsNegated = ArchExt.starts_with("no");
-  StringRef ArchExtBase = IsNegated ? ArchExt.drop_front(2) : ArchExt;
+  
 
-  if (auto AE = parseArchExtension(ArchExtBase)) {
+  if (auto StringRef ArchExtBase = IsNegated ? ArchExt.drop_front(2) : ArchExt; AE = parseArchExtension(ArchExtBase)) {
     assert(!(AE.has_value() && AE->NegTargetFeature.empty()));
     return IsNegated ? AE->NegTargetFeature : AE->PosTargetFeature;
   }
@@ -380,8 +380,8 @@ void AArch64::ExtensionSet::reconstructFromParsedFeatures(
     std::vector<std::string> &NonExtensions) {
   assert(Touched.none() && "Bitset already initialized");
   for (auto &F : Features) {
-    bool IsNegated = F[0] == '-';
-    if (auto AE = targetFeatureToExtension(F)) {
+    
+    if (auto bool IsNegated = F[0] == '-'; AE = targetFeatureToExtension(F)) {
       Touched.set(AE->ID);
       if (IsNegated)
         Enabled.reset(AE->ID);

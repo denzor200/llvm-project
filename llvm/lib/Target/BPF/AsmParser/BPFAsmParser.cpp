@@ -294,8 +294,8 @@ bool BPFAsmParser::PreMatchCheck(OperandVector &Operands) {
     BPFOperand &Op0 = (BPFOperand &)*Operands[0];
     BPFOperand &Op1 = (BPFOperand &)*Operands[1];
     BPFOperand &Op2 = (BPFOperand &)*Operands[2];
-    BPFOperand &Op3 = (BPFOperand &)*Operands[3];
-    if (Op0.isReg() && Op1.isToken() && Op2.isToken() && Op3.isReg()
+    
+    if (BPFOperand &Op3 = (BPFOperand &)*Operands[3]; Op0.isReg() && Op1.isToken() && Op2.isToken() && Op3.isReg()
         && Op1.getToken() == "="
         && (Op2.getToken() == "-" || Op2.getToken() == "be16"
             || Op2.getToken() == "be32" || Op2.getToken() == "be64"
@@ -370,9 +370,9 @@ ParseStatus BPFAsmParser::tryParseRegister(MCRegister &Reg, SMLoc &StartLoc,
   StartLoc = Tok.getLoc();
   EndLoc = Tok.getEndLoc();
   Reg = BPF::NoRegister;
-  StringRef Name = getLexer().getTok().getIdentifier();
+  
 
-  if (!MatchRegisterName(Name)) {
+  if (StringRef Name = getLexer().getTok().getIdentifier(); !MatchRegisterName(Name)) {
     getParser().Lex(); // Eat identifier token.
     return ParseStatus::Success;
   }
@@ -384,9 +384,9 @@ ParseStatus BPFAsmParser::parseOperandAsOperator(OperandVector &Operands) {
   SMLoc S = getLoc();
 
   if (getLexer().getKind() == AsmToken::Identifier) {
-    StringRef Name = getLexer().getTok().getIdentifier();
+    
 
-    if (BPFOperand::isValidIdInMiddle(Name)) {
+    if (StringRef Name = getLexer().getTok().getIdentifier(); BPFOperand::isValidIdInMiddle(Name)) {
       getLexer().Lex();
       Operands.push_back(BPFOperand::createToken(Name, S));
       return ParseStatus::Success;

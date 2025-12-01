@@ -74,15 +74,15 @@ bool NativeSymbolEnumerator::isVolatileType() const { return false; }
 bool NativeSymbolEnumerator::isUnalignedType() const { return false; }
 
 Variant NativeSymbolEnumerator::getValue() const {
-  const NativeTypeBuiltin &BT = Parent.getUnderlyingBuiltinType();
+  
 
-  switch (BT.getBuiltinType()) {
+  switch (const NativeTypeBuiltin &BT = Parent.getUnderlyingBuiltinType(); BT.getBuiltinType()) {
   case PDB_BuiltinType::Int:
   case PDB_BuiltinType::Long:
   case PDB_BuiltinType::Char: {
     assert(Record.Value.isSignedIntN(BT.getLength() * 8));
-    int64_t N = Record.Value.getSExtValue();
-    switch (BT.getLength()) {
+    
+    switch (int64_t N = Record.Value.getSExtValue(); BT.getLength()) {
     case 1:
       return Variant{static_cast<int8_t>(N)};
     case 2:
@@ -97,8 +97,8 @@ Variant NativeSymbolEnumerator::getValue() const {
   case PDB_BuiltinType::UInt:
   case PDB_BuiltinType::ULong: {
     assert(Record.Value.isIntN(BT.getLength() * 8));
-    uint64_t U = Record.Value.getZExtValue();
-    switch (BT.getLength()) {
+    
+    switch (uint64_t U = Record.Value.getZExtValue(); BT.getLength()) {
     case 1:
       return Variant{static_cast<uint8_t>(U)};
     case 2:

@@ -675,9 +675,9 @@ static void prepareSymbolRelocation(Symbol *sym, const InputSection *isec,
     assert(false && "referenced symbol must be live");
   }
 
-  const RelocAttrs &relocAttrs = target->getRelocAttrs(r.type);
+  
 
-  if (relocAttrs.hasAttr(RelocAttrBits::BRANCH)) {
+  if (const RelocAttrs &relocAttrs = target->getRelocAttrs(r.type); relocAttrs.hasAttr(RelocAttrBits::BRANCH)) {
     if (needsBinding(sym))
       in.stubs->addEntry(sym);
   } else if (relocAttrs.hasAttr(RelocAttrBits::GOT)) {

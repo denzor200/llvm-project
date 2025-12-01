@@ -87,8 +87,8 @@ void mlir::affine::getSupportedReductions(
     return;
   supportedReductions.reserve(numIterArgs);
   for (unsigned i = 0; i < numIterArgs; ++i) {
-    arith::AtomicRMWKind kind;
-    if (Value value = getSupportedReduction(forOp, i, kind))
+    
+    if (Value arith::AtomicRMWKind kind; value = getSupportedReduction(forOp, i, kind))
       supportedReductions.emplace_back(LoopReduction{kind, i, value});
   }
 }
@@ -173,9 +173,9 @@ bool mlir::affine::isLoopMemoryParallel(AffineForOp forOp) {
     MemRefAccess srcAccess(srcOp);
     for (auto *dstOp : loadAndStoreOps) {
       MemRefAccess dstAccess(dstOp);
-      DependenceResult result =
-          checkMemrefAccessDependence(srcAccess, dstAccess, depth);
-      if (result.value != DependenceResult::NoDependence)
+      
+      if (DependenceResult result =
+          checkMemrefAccessDependence(srcAccess, dstAccess, depth); result.value != DependenceResult::NoDependence)
         return false;
     }
   }
@@ -475,8 +475,8 @@ LogicalResult MemRefAccess::getAccessRelation(IntegerRelation &rel) const {
     const Identifier domainIdi = Identifier(domain.getValue(i));
     const Identifier *findBegin = rel.getIds(VarKind::SetDim).begin() + i;
     const Identifier *findEnd = rel.getIds(VarKind::SetDim).end();
-    const Identifier *itr = std::find(findBegin, findEnd, domainIdi);
-    if (itr != findEnd) {
+    
+    if (const Identifier *itr = std::find(findBegin, findEnd, domainIdi); itr != findEnd) {
       rel.swapVar(i, i + std::distance(findBegin, itr));
     } else {
       ++inserts;
@@ -716,10 +716,10 @@ void mlir::affine::getDependenceComponents(
         SmallVector<DependenceComponent, 2> depComps;
         // TODO: Explore whether it would be profitable to pre-compute and store
         // deps instead of repeatedly checking.
-        DependenceResult result = checkMemrefAccessDependence(
+        
+        if (DependenceResult result = checkMemrefAccessDependence(
             srcAccess, dstAccess, d, /*dependenceConstraints=*/nullptr,
-            &depComps);
-        if (hasDependence(result))
+            &depComps); hasDependence(result))
           depCompsVec->push_back(depComps);
       }
     }

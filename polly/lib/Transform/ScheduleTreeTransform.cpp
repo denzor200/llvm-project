@@ -478,8 +478,8 @@ static isl::schedule_node moveToBandMark(isl::schedule_node BandOrMark) {
   }
   assert(isBandWithSingleLoop(BandOrMark));
 
-  isl::schedule_node Mark = BandOrMark.parent();
-  if (isBandMark(Mark))
+  
+  if (isl::schedule_node Mark = BandOrMark.parent(); isBandMark(Mark))
     return Mark;
 
   // Band has no loop marker.
@@ -927,10 +927,10 @@ public:
     isl::schedule Result;
     for (auto &P : Bands) {
       isl::schedule_node MaybeFused = P.first;
-      isl::schedule_node DirectChild = P.second;
+      
 
       // If not modified, use the direct child.
-      if (!DirectChild.is_null() &&
+      if (isl::schedule_node DirectChild = P.second; !DirectChild.is_null() &&
           !ChangedDirectChildren.count(DirectChild.get())) {
         if (AlreadyAdded.count(DirectChild.get()))
           continue;

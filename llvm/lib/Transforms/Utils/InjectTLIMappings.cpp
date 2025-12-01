@@ -92,10 +92,10 @@ static void addMappingsFromTLI(const TargetLibraryInfo &TLI, CallInst &CI) {
   const SetVector<StringRef> OriginalSetOfMappings(llvm::from_range, Mappings);
 
   auto AddVariantDecl = [&](const ElementCount &VF, bool Predicate) {
-    const VecDesc *VD = TLI.getVectorMappingInfo(ScalarName, VF, Predicate);
-    if (VD && !VD->getVectorFnName().empty()) {
-      std::string MangledName = VD->getVectorFunctionABIVariantString();
-      if (!OriginalSetOfMappings.count(MangledName)) {
+    
+    if (const VecDesc *VD = TLI.getVectorMappingInfo(ScalarName, VF, Predicate); VD && !VD->getVectorFnName().empty()) {
+      
+      if (std::string MangledName = VD->getVectorFunctionABIVariantString(); !OriginalSetOfMappings.count(MangledName)) {
         Mappings.push_back(MangledName);
         ++NumCallInjected;
       }

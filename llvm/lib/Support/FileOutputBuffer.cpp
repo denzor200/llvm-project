@@ -97,8 +97,8 @@ public:
 
     using namespace sys::fs;
     int FD;
-    std::error_code EC;
-    if (auto EC =
+    
+    if (auto std::error_code EC; EC =
             openFileForWrite(FinalPath, FD, CD_CreateAlways, OF_Delete, Mode))
       return errorCodeToError(EC);
     raw_fd_ostream OS(FD, /*shouldClose=*/true, /*unbuffered=*/true);

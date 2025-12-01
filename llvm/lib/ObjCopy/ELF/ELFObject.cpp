@@ -982,8 +982,8 @@ static void writeRel(const RelRange &Relocations, T *Buf, bool IsMips64EL) {
 
 template <class ELFT>
 Error ELFSectionWriter<ELFT>::visit(const RelocationSection &Sec) {
-  uint8_t *Buf = reinterpret_cast<uint8_t *>(Out.getBufferStart()) + Sec.Offset;
-  if (Sec.Type == SHT_CREL) {
+  
+  if (uint8_t *Buf = reinterpret_cast<uint8_t *>(Out.getBufferStart()) + Sec.Offset; Sec.Type == SHT_CREL) {
     auto Content = encodeCrel<ELFT::Is64Bits>(Sec.Relocations);
     memcpy(Buf, Content.data(), Content.size());
   } else if (Sec.Type == SHT_REL) {
@@ -1229,8 +1229,8 @@ static bool sectionWithinSegment(const SectionBase &Sec, const Segment &Seg) {
       return false;
 
     bool SectionIsTLS = Sec.Flags & SHF_TLS;
-    bool SegmentIsTLS = Seg.Type == PT_TLS;
-    if (SectionIsTLS != SegmentIsTLS)
+    
+    if (bool SegmentIsTLS = Seg.Type == PT_TLS; SectionIsTLS != SegmentIsTLS)
       return false;
 
     return Seg.VAddr <= Sec.Addr &&
@@ -1355,8 +1355,8 @@ void IHexELFBuilder::addDataSections() {
   uint32_t SecNo = 1;
 
   for (const IHexRecord &R : Records) {
-    uint64_t RecAddr;
-    switch (R.Type) {
+    
+    switch (uint64_t RecAddr; R.Type) {
     case IHexRecord::Data:
       // Ignore empty data records
       if (R.HexData.empty())
@@ -1996,23 +1996,23 @@ IHexReader::create(bool /*EnsureSymtab*/) const {
 Expected<std::unique_ptr<Object>> ELFReader::create(bool EnsureSymtab) const {
   auto Obj = std::make_unique<Object>();
   if (auto *O = dyn_cast<ELFObjectFile<ELF32LE>>(Bin)) {
-    ELFBuilder<ELF32LE> Builder(*O, *Obj, ExtractPartition);
-    if (Error Err = Builder.build(EnsureSymtab))
+    
+    if (Error ELFBuilder<ELF32LE> Builder(*O, *Obj, ExtractPartition); Err = Builder.build(EnsureSymtab))
       return std::move(Err);
     return std::move(Obj);
   } else if (auto *O = dyn_cast<ELFObjectFile<ELF64LE>>(Bin)) {
-    ELFBuilder<ELF64LE> Builder(*O, *Obj, ExtractPartition);
-    if (Error Err = Builder.build(EnsureSymtab))
+    
+    if (Error ELFBuilder<ELF64LE> Builder(*O, *Obj, ExtractPartition); Err = Builder.build(EnsureSymtab))
       return std::move(Err);
     return std::move(Obj);
   } else if (auto *O = dyn_cast<ELFObjectFile<ELF32BE>>(Bin)) {
-    ELFBuilder<ELF32BE> Builder(*O, *Obj, ExtractPartition);
-    if (Error Err = Builder.build(EnsureSymtab))
+    
+    if (Error ELFBuilder<ELF32BE> Builder(*O, *Obj, ExtractPartition); Err = Builder.build(EnsureSymtab))
       return std::move(Err);
     return std::move(Obj);
   } else if (auto *O = dyn_cast<ELFObjectFile<ELF64BE>>(Bin)) {
-    ELFBuilder<ELF64BE> Builder(*O, *Obj, ExtractPartition);
-    if (Error Err = Builder.build(EnsureSymtab))
+    
+    if (Error ELFBuilder<ELF64BE> Builder(*O, *Obj, ExtractPartition); Err = Builder.build(EnsureSymtab))
       return std::move(Err);
     return std::move(Obj);
   }
@@ -2053,8 +2053,8 @@ template <class ELFT> void ELFWriter<ELFT>::writeEhdr() {
     // number of section header table entries is contained in the sh_size field
     // of the section header at index 0.
     // """
-    auto Shnum = Obj.sections().size() + 1;
-    if (Shnum >= SHN_LORESERVE)
+    
+    if (auto Shnum = Obj.sections().size() + 1; Shnum >= SHN_LORESERVE)
       Ehdr.e_shnum = 0;
     else
       Ehdr.e_shnum = Shnum;
@@ -2092,8 +2092,8 @@ template <class ELFT> void ELFWriter<ELFT>::writeShdrs() {
   Shdr.sh_addr = 0;
   Shdr.sh_offset = 0;
   // See writeEhdr for why we do this.
-  uint64_t Shnum = Obj.sections().size() + 1;
-  if (Shnum >= SHN_LORESERVE)
+  
+  if (uint64_t Shnum = Obj.sections().size() + 1; Shnum >= SHN_LORESERVE)
     Shdr.sh_size = Shnum;
   else
     Shdr.sh_size = 0;
@@ -2466,8 +2466,8 @@ static uint64_t layoutSegmentsForOnlyKeepDebug(std::vector<Segment *> &Segments,
                  : (Seg->ParentSegment ? Seg->ParentSegment->Offset : 0);
     uint64_t FileSize = 0;
     for (const SectionBase *Sec : Seg->Sections) {
-      uint64_t Size = Sec->Type == SHT_NOBITS ? 0 : Sec->Size;
-      if (Sec->Offset + Size > Offset)
+      
+      if (uint64_t Size = Sec->Type == SHT_NOBITS ? 0 : Sec->Size; Sec->Offset + Size > Offset)
         FileSize = std::max(FileSize, Sec->Offset + Size - Offset);
     }
 

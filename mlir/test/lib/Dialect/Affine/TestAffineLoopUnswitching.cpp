@@ -50,11 +50,11 @@ void TestAffineLoopUnswitching::runOnOperation() {
   Operation *op = getOperation();
   unsigned i = 0;
   do {
-    auto walkFn = [](AffineIfOp op) {
+    
+    if (auto walkFn = [](AffineIfOp op) {
       return succeeded(hoistAffineIfOp(op)) ? WalkResult::interrupt()
                                             : WalkResult::advance();
-    };
-    if (op->walk(walkFn).wasInterrupted())
+    }; op->walk(walkFn).wasInterrupted())
       break;
   } while (++i < kMaxIterations);
 }

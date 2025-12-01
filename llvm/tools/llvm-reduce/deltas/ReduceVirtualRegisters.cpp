@@ -22,9 +22,9 @@ static void dropRegisterHintsFromFunction(Oracle &O, MachineFunction &MF) {
   for (unsigned I = 0, E = MRI.getNumVirtRegs(); I != E; ++I) {
     Register Reg = Register::index2VirtReg(I);
 
-    const std::pair<unsigned, SmallVector<Register, 4>> *Hints =
-        MRI.getRegAllocationHints(Reg);
-    if (!Hints || Hints->second.empty())
+    
+    if (const std::pair<unsigned, SmallVector<Register, 4>> *Hints =
+        MRI.getRegAllocationHints(Reg); !Hints || Hints->second.empty())
       continue;
 
     if (!O.shouldKeep())

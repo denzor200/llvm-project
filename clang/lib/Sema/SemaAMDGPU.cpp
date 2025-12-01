@@ -33,10 +33,10 @@ bool SemaAMDGPU::CheckAMDGCNBuiltinFunctionCall(unsigned BuiltinID,
   assert(FD && "AMDGPU builtins should not be used outside of a function");
   llvm::StringMap<bool> CallerFeatureMap;
   getASTContext().getFunctionFeatureMap(CallerFeatureMap, FD);
-  bool HasGFX950Insts =
-      Builtin::evaluateRequiredTargetFeatures("gfx950-insts", CallerFeatureMap);
+  
 
-  switch (BuiltinID) {
+  switch (bool HasGFX950Insts =
+      Builtin::evaluateRequiredTargetFeatures("gfx950-insts", CallerFeatureMap); BuiltinID) {
   case AMDGPU::BI__builtin_amdgcn_raw_ptr_buffer_load_lds:
   case AMDGPU::BI__builtin_amdgcn_struct_ptr_buffer_load_lds:
   case AMDGPU::BI__builtin_amdgcn_load_to_lds:
@@ -195,9 +195,9 @@ bool SemaAMDGPU::CheckAMDGCNBuiltinFunctionCall(unsigned BuiltinID,
   case AMDGPU::BI__builtin_amdgcn_image_sample_d_3d_v4f32_f32:
   case AMDGPU::BI__builtin_amdgcn_image_sample_d_3d_v4f16_f32:
   case AMDGPU::BI__builtin_amdgcn_image_gather4_lz_2d_v4f32_f32: {
-    StringRef FeatureList(
-        getASTContext().BuiltinInfo.getRequiredFeatures(BuiltinID));
-    if (!Builtin::evaluateRequiredTargetFeatures(FeatureList,
+    
+    if (StringRef FeatureList(
+        getASTContext().BuiltinInfo.getRequiredFeatures(BuiltinID)); !Builtin::evaluateRequiredTargetFeatures(FeatureList,
                                                  CallerFeatureMap)) {
       Diag(TheCall->getBeginLoc(), diag::err_builtin_needs_feature)
           << FD->getDeclName() << FeatureList;
@@ -239,9 +239,9 @@ bool SemaAMDGPU::CheckAMDGCNBuiltinFunctionCall(unsigned BuiltinID,
   case AMDGPU::BI__builtin_amdgcn_image_store_mip_3d_v4f16_i32:
   case AMDGPU::BI__builtin_amdgcn_image_store_mip_cube_v4f32_i32:
   case AMDGPU::BI__builtin_amdgcn_image_store_mip_cube_v4f16_i32: {
-    StringRef FeatureList(
-        getASTContext().BuiltinInfo.getRequiredFeatures(BuiltinID));
-    if (!Builtin::evaluateRequiredTargetFeatures(FeatureList,
+    
+    if (StringRef FeatureList(
+        getASTContext().BuiltinInfo.getRequiredFeatures(BuiltinID)); !Builtin::evaluateRequiredTargetFeatures(FeatureList,
                                                  CallerFeatureMap)) {
       Diag(TheCall->getBeginLoc(), diag::err_builtin_needs_feature)
           << FD->getDeclName() << FeatureList;
@@ -306,8 +306,8 @@ bool SemaAMDGPU::checkCoopAtomicFunctionCall(CallExpr *TheCall, bool IsStore) {
   // First argument is a global or generic pointer.
   Expr *PtrArg = TheCall->getArg(0);
   QualType PtrTy = PtrArg->getType()->getPointeeType();
-  unsigned AS = getASTContext().getTargetAddressSpace(PtrTy.getAddressSpace());
-  if (AS != llvm::AMDGPUAS::FLAT_ADDRESS &&
+  
+  if (unsigned AS = getASTContext().getTargetAddressSpace(PtrTy.getAddressSpace()); AS != llvm::AMDGPUAS::FLAT_ADDRESS &&
       AS != llvm::AMDGPUAS::GLOBAL_ADDRESS) {
     Fail = true;
     Diag(TheCall->getBeginLoc(), diag::err_amdgcn_coop_atomic_invalid_as)
@@ -416,9 +416,9 @@ AMDGPUFlatWorkGroupSizeAttr *
 SemaAMDGPU::CreateAMDGPUFlatWorkGroupSizeAttr(const AttributeCommonInfo &CI,
                                               Expr *MinExpr, Expr *MaxExpr) {
   ASTContext &Context = getASTContext();
-  AMDGPUFlatWorkGroupSizeAttr TmpAttr(Context, CI, MinExpr, MaxExpr);
+  
 
-  if (checkAMDGPUFlatWorkGroupSizeArguments(SemaRef, MinExpr, MaxExpr, TmpAttr))
+  if (AMDGPUFlatWorkGroupSizeAttr TmpAttr(Context, CI, MinExpr, MaxExpr); checkAMDGPUFlatWorkGroupSizeArguments(SemaRef, MinExpr, MaxExpr, TmpAttr))
     return nullptr;
   return ::new (Context)
       AMDGPUFlatWorkGroupSizeAttr(Context, CI, MinExpr, MaxExpr);
@@ -477,9 +477,9 @@ AMDGPUWavesPerEUAttr *
 SemaAMDGPU::CreateAMDGPUWavesPerEUAttr(const AttributeCommonInfo &CI,
                                        Expr *MinExpr, Expr *MaxExpr) {
   ASTContext &Context = getASTContext();
-  AMDGPUWavesPerEUAttr TmpAttr(Context, CI, MinExpr, MaxExpr);
+  
 
-  if (checkAMDGPUWavesPerEUArguments(SemaRef, MinExpr, MaxExpr, TmpAttr))
+  if (AMDGPUWavesPerEUAttr TmpAttr(Context, CI, MinExpr, MaxExpr); checkAMDGPUWavesPerEUArguments(SemaRef, MinExpr, MaxExpr, TmpAttr))
     return nullptr;
 
   return ::new (Context) AMDGPUWavesPerEUAttr(Context, CI, MinExpr, MaxExpr);
@@ -503,8 +503,8 @@ void SemaAMDGPU::handleAMDGPUWavesPerEUAttr(Decl *D, const ParsedAttr &AL) {
 
 void SemaAMDGPU::handleAMDGPUNumSGPRAttr(Decl *D, const ParsedAttr &AL) {
   uint32_t NumSGPR = 0;
-  Expr *NumSGPRExpr = AL.getArgAsExpr(0);
-  if (!SemaRef.checkUInt32Argument(AL, NumSGPRExpr, NumSGPR))
+  
+  if (Expr *NumSGPRExpr = AL.getArgAsExpr(0); !SemaRef.checkUInt32Argument(AL, NumSGPRExpr, NumSGPR))
     return;
 
   D->addAttr(::new (getASTContext())
@@ -513,8 +513,8 @@ void SemaAMDGPU::handleAMDGPUNumSGPRAttr(Decl *D, const ParsedAttr &AL) {
 
 void SemaAMDGPU::handleAMDGPUNumVGPRAttr(Decl *D, const ParsedAttr &AL) {
   uint32_t NumVGPR = 0;
-  Expr *NumVGPRExpr = AL.getArgAsExpr(0);
-  if (!SemaRef.checkUInt32Argument(AL, NumVGPRExpr, NumVGPR))
+  
+  if (Expr *NumVGPRExpr = AL.getArgAsExpr(0); !SemaRef.checkUInt32Argument(AL, NumVGPRExpr, NumVGPR))
     return;
 
   D->addAttr(::new (getASTContext())

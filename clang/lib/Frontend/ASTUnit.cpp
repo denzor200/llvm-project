@@ -171,8 +171,8 @@ getBufferForFileHandlingRemapping(const CompilerInvocation &Invocation,
       std::string MPath(RF.first);
       auto MPathStatus = VFS->status(MPath);
       if (MPathStatus) {
-        llvm::sys::fs::UniqueID MID = MPathStatus->getUniqueID();
-        if (MainFileID == MID) {
+        
+        if (llvm::sys::fs::UniqueID MID = MPathStatus->getUniqueID(); MainFileID == MID) {
           // We found a remapping. Try to load the resulting, remapped source.
           BufferOwner = valueOrNull(VFS->getBufferForFile(RF.second, -1, true, isVolatile));
           if (!BufferOwner)
@@ -187,8 +187,8 @@ getBufferForFileHandlingRemapping(const CompilerInvocation &Invocation,
       std::string MPath(RB.first);
       auto MPathStatus = VFS->status(MPath);
       if (MPathStatus) {
-        llvm::sys::fs::UniqueID MID = MPathStatus->getUniqueID();
-        if (MainFileID == MID) {
+        
+        if (llvm::sys::fs::UniqueID MID = MPathStatus->getUniqueID(); MainFileID == MID) {
           // We found a remapping.
           BufferOwner.reset();
           Buffer = const_cast<llvm::MemoryBuffer *>(RB.second);
@@ -388,8 +388,8 @@ void ASTUnit::CacheCodeCompletionResults() {
 
       // Keep track of the type of this completion in an ASTContext-agnostic
       // way.
-      QualType UsageType = getDeclUsageType(*Ctx, R.Qualifier, R.Declaration);
-      if (UsageType.isNull()) {
+      
+      if (QualType UsageType = getDeclUsageType(*Ctx, R.Qualifier, R.Declaration); UsageType.isNull()) {
         CachedResult.TypeClass = STC_Void;
         CachedResult.Type = 0;
       } else {
@@ -1440,8 +1440,8 @@ void ASTUnit::transferASTDataFromCompilerInstance(CompilerInstance &CI) {
 
 StringRef ASTUnit::getMainFileName() const {
   if (Invocation && !Invocation->getFrontendOpts().Inputs.empty()) {
-    const FrontendInputFile &Input = Invocation->getFrontendOpts().Inputs[0];
-    if (Input.isFile())
+    
+    if (const FrontendInputFile &Input = Invocation->getFrontendOpts().Inputs[0]; Input.isFile())
       return Input.getFile();
     else
       return Input.getBuffer().getBufferIdentifier();
@@ -1979,8 +1979,8 @@ void AugmentedCodeCompleteConsumer::ProcessCodeCompleteResults(Sema &S,
         CanQualType Expected
           = S.Context.getCanonicalType(
                                Context.getPreferredType().getUnqualifiedType());
-        SimplifiedTypeClass ExpectedSTC = getSimplifiedTypeClass(Expected);
-        if (ExpectedSTC == C->TypeClass) {
+        
+        if (SimplifiedTypeClass ExpectedSTC = getSimplifiedTypeClass(Expected); ExpectedSTC == C->TypeClass) {
           // We know this type is similar; check for an exact match.
           llvm::StringMap<unsigned> &CachedCompletionTypes
             = AST.getCachedCompletionTypes();

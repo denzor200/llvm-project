@@ -127,8 +127,8 @@ struct llvm::DOTGraphTraits<MachineBlockFrequencyInfo *>
     int layout_order = -1;
     // Attach additional ordering information if 'isSimple' is false.
     if (!isSimple()) {
-      const MachineFunction *F = Node->getParent();
-      if (!CurFunc || F != CurFunc) {
+      
+      if (const MachineFunction *F = Node->getParent(); !CurFunc || F != CurFunc) {
         if (CurFunc)
           LayoutOrderMap.clear();
 

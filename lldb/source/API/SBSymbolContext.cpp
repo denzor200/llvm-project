@@ -179,9 +179,9 @@ lldb_private::SymbolContext *SBSymbolContext::get() const {
 bool SBSymbolContext::GetDescription(SBStream &description) {
   LLDB_INSTRUMENT_VA(this, description);
 
-  Stream &strm = description.ref();
+  
 
-  if (m_opaque_up) {
+  if (Stream &strm = description.ref(); m_opaque_up) {
     m_opaque_up->GetDescription(&strm, lldb::eDescriptionLevelFull, nullptr);
   } else
     strm.PutCString("No value");
@@ -194,8 +194,8 @@ SBSymbolContext::GetParentOfInlinedScope(const SBAddress &curr_frame_pc,
                                          SBAddress &parent_frame_addr) const {
   LLDB_INSTRUMENT_VA(this, curr_frame_pc, parent_frame_addr);
 
-  SBSymbolContext sb_sc;
-  if (m_opaque_up.get() && curr_frame_pc.IsValid()) {
+  
+  if (SBSymbolContext sb_sc; m_opaque_up.get() && curr_frame_pc.IsValid()) {
     if (m_opaque_up->GetParentOfInlinedScope(curr_frame_pc.ref(), sb_sc.ref(),
                                              parent_frame_addr.ref()))
       return sb_sc;

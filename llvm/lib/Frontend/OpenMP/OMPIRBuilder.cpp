@@ -161,8 +161,8 @@ static void restoreIPandDebugLoc(llvm::IRBuilderBase &Builder,
                                  llvm::IRBuilderBase::InsertPoint IP) {
   Builder.restoreIP(IP);
   llvm::BasicBlock *BB = Builder.GetInsertBlock();
-  llvm::BasicBlock::iterator I = Builder.GetInsertPoint();
-  if (!BB->empty() && I == BB->end())
+  
+  if (llvm::BasicBlock::iterator I = Builder.GetInsertPoint(); !BB->empty() && I == BB->end())
     Builder.SetCurrentDebugLocation(BB->back().getStableDebugLoc());
 }
 
@@ -255,9 +255,9 @@ getOpenMPMonotonicityScheduleType(OMPScheduleType ScheduleType,
     // effect is as if the monotonic modifier is specified. Otherwise, unless
     // the monotonic modifier is specified, the effect is as if the
     // nonmonotonic modifier is specified.
-    OMPScheduleType BaseScheduleType =
-        ScheduleType & ~OMPScheduleType::ModifierMask;
-    if ((BaseScheduleType == OMPScheduleType::BaseStatic) ||
+    
+    if (OMPScheduleType BaseScheduleType =
+        ScheduleType & ~OMPScheduleType::ModifierMask; (BaseScheduleType == OMPScheduleType::BaseStatic) ||
         (BaseScheduleType == OMPScheduleType::BaseStaticChunked) ||
         HasOrderedClause) {
       // The monotonic is used by default in openmp runtime library, so no need
@@ -590,8 +590,8 @@ void OpenMPIRBuilder::addAttributes(omp::RuntimeFunction FnID, Function &Fn) {
   auto addAttrSet = [&](AttributeSet &FnAS, const AttributeSet &AS,
                         bool Param = true) -> void {
     bool HasSignExt = AS.hasAttribute(Attribute::SExt);
-    bool HasZeroExt = AS.hasAttribute(Attribute::ZExt);
-    if (HasSignExt || HasZeroExt) {
+    
+    if (bool HasZeroExt = AS.hasAttribute(Attribute::ZExt); HasSignExt || HasZeroExt) {
       assert(AS.getNumAttributes() == 1 &&
              "Currently not handling extension attr combined with others.");
       if (Param) {
@@ -938,8 +938,8 @@ Constant *OpenMPIRBuilder::getOrCreateIdent(Constant *SrcLocStr,
                              ConstantInt::get(Int32, Reserve2Flags),
                              ConstantInt::get(Int32, SrcLocStrSize), SrcLocStr};
 
-    size_t SrcLocStrArgIdx = 4;
-    if (OpenMPIRBuilder::Ident->getElementType(SrcLocStrArgIdx)
+    
+    if (size_t SrcLocStrArgIdx = 4; OpenMPIRBuilder::Ident->getElementType(SrcLocStrArgIdx)
             ->getPointerAddressSpace() !=
         IdentData[SrcLocStrArgIdx]->getType()->getPointerAddressSpace())
       IdentData[SrcLocStrArgIdx] = ConstantExpr::getAddrSpaceCast(
@@ -1084,13 +1084,13 @@ OpenMPIRBuilder::createBarrier(const LocationDescription &Loc, Directive Kind,
   bool UseCancelBarrier =
       !ForceSimpleCall && isLastFinalizationInfoCancellable(OMPD_parallel);
 
-  Value *Result = createRuntimeFunctionCall(
+  
+
+  if (Value *Result = createRuntimeFunctionCall(
       getOrCreateRuntimeFunctionPtr(UseCancelBarrier
                                         ? OMPRTL___kmpc_cancel_barrier
                                         : OMPRTL___kmpc_barrier),
-      Args);
-
-  if (UseCancelBarrier && CheckCancelFlag)
+      Args); UseCancelBarrier && CheckCancelFlag)
     if (Error Err = emitCancelationCheckImpl(Result, OMPD_parallel))
       return Err;
 
@@ -2305,8 +2305,8 @@ OpenMPIRBuilder::InsertPointOrErrorTy OpenMPIRBuilder::createSections(
           M.getContext(), "omp_section_loop.body.case", CurFn, Continue);
       SwitchStmt->addCase(Builder.getInt32(CaseNumber), CaseBB);
       Builder.SetInsertPoint(CaseBB);
-      BranchInst *CaseEndBr = Builder.CreateBr(Continue);
-      if (Error Err = SectionCB(InsertPointTy(), {CaseEndBr->getParent(),
+      
+      if (Error BranchInst *CaseEndBr = Builder.CreateBr(Continue); Err = SectionCB(InsertPointTy(), {CaseEndBr->getParent(),
                                                   CaseEndBr->getIterator()}))
         return Err;
       CaseNumber++;
@@ -2500,8 +2500,8 @@ void OpenMPIRBuilder::shuffleAndStore(InsertPointTy AllocaIP, Value *SrcAddr,
     ElemPtr = Builder.CreatePointerBitCastOrAddrSpaceCast(
         ElemPtr, Builder.getPtrTy(0), ElemPtr->getName() + ".ascast");
 
-    Function *CurFunc = Builder.GetInsertBlock()->getParent();
-    if ((Size / IntSize) > 1) {
+    
+    if (Function *CurFunc = Builder.GetInsertBlock()->getParent(); (Size / IntSize) > 1) {
       Value *PtrEnd = Builder.CreatePointerBitCastOrAddrSpaceCast(
           SrcAddrGEP, Builder.getPtrTy());
       BasicBlock *PreCondBB =
@@ -3765,8 +3765,8 @@ OpenMPIRBuilder::InsertPointOrErrorTy OpenMPIRBuilder::createReductionsGPU(
         {ConstantInt::get(IndexTy, 0), ConstantInt::get(IndexTy, En.index())});
 
     Value *PrivateVar = RI.PrivateVariable;
-    bool IsByRefElem = !IsByRef.empty() && IsByRef[En.index()];
-    if (IsByRefElem)
+    
+    if (bool IsByRefElem = !IsByRef.empty() && IsByRef[En.index()]; IsByRefElem)
       PrivateVar = Builder.CreateLoad(RI.ElementType, PrivateVar);
 
     Value *CastElem =
@@ -4129,9 +4129,9 @@ OpenMPIRBuilder::InsertPointOrErrorTy OpenMPIRBuilder::createReductions(
   // Populate the outlined reduction function using the elementwise reduction
   // function. Partial values are extracted from the type-erased array of
   // pointers to private variables.
-  Error Err = populateReductionFunction(ReductionFunc, ReductionInfos, Builder,
-                                        IsByRef, /*isGPU=*/false);
-  if (Err)
+  
+  if (Error Err = populateReductionFunction(ReductionFunc, ReductionInfos, Builder,
+                                        IsByRef, /*isGPU=*/false); Err)
     return Err;
 
   if (!Builder.GetInsertBlock())
@@ -4213,9 +4213,9 @@ OpenMPIRBuilder::InsertPointOrErrorTy OpenMPIRBuilder::createScan(
     ArrayRef<llvm::Value *> ScanVars, ArrayRef<llvm::Type *> ScanVarsType,
     bool IsInclusive, ScanInfo *ScanRedInfo) {
   if (ScanRedInfo->OMPFirstScanLoop) {
-    llvm::Error Err = emitScanBasedDirectiveDeclsIR(AllocaIP, ScanVars,
-                                                    ScanVarsType, ScanRedInfo);
-    if (Err)
+    
+    if (llvm::Error Err = emitScanBasedDirectiveDeclsIR(AllocaIP, ScanVars,
+                                                    ScanVarsType, ScanRedInfo); Err)
       return Err;
   }
   if (!updateToLocation(Loc))
@@ -4495,8 +4495,8 @@ Error OpenMPIRBuilder::emitScanBasedDirectiveIR(
     //   buffer[i] = red;
     // }
     ScanRedInfo->OMPFirstScanLoop = true;
-    Error Err = InputLoopGen();
-    if (Err)
+    
+    if (Error Err = InputLoopGen(); Err)
       return Err;
   }
   {
@@ -4599,10 +4599,10 @@ OpenMPIRBuilder::createCanonicalLoop(const LocationDescription &Loc,
 
   CanonicalLoopInfo *CL = createLoopSkeleton(Loc.DL, TripCount, BB->getParent(),
                                              NextBB, NextBB, Name);
-  BasicBlock *After = CL->getAfter();
+  
 
   // If location is not set, don't connect the loop.
-  if (updateToLocation(Loc)) {
+  if (BasicBlock *After = CL->getAfter(); updateToLocation(Loc)) {
     // Split the loop at the insertion point: Branch to the preheader and move
     // every following instruction to after the loop (the After BB). Also, the
     // new successor is the loop's after block.
@@ -4685,8 +4685,8 @@ OpenMPIRBuilder::createCanonicalScanLoops(
     ScanRedInfo->OMPScanFinish = Builder.GetInsertBlock();
     return Error::success();
   };
-  Error Err = emitScanBasedDirectiveIR(InputLoopGen, ScanLoopGen, ScanRedInfo);
-  if (Err)
+  
+  if (Error Err = emitScanBasedDirectiveIR(InputLoopGen, ScanLoopGen, ScanRedInfo); Err)
     return Err;
   return Result;
 }
@@ -5157,8 +5157,8 @@ static FunctionCallee
 getKmpcForStaticLoopForType(Type *Ty, OpenMPIRBuilder *OMPBuilder,
                             WorksharingLoopType LoopType) {
   unsigned Bitwidth = Ty->getIntegerBitWidth();
-  Module &M = OMPBuilder->M;
-  switch (LoopType) {
+  
+  switch (Module &M = OMPBuilder->M; LoopType) {
   case WorksharingLoopType::ForStaticLoop:
     if (Bitwidth == 32)
       return OMPBuilder->getOrCreateRuntimeFunction(
@@ -5995,8 +5995,8 @@ static void addBasicBlockMetadata(BasicBlock *BB,
   NewProperties.push_back(nullptr);
 
   // If the basic block already has metadata, prepend it to the new metadata.
-  MDNode *Existing = BB->getTerminator()->getMetadata(LLVMContext::MD_loop);
-  if (Existing)
+  
+  if (MDNode *Existing = BB->getTerminator()->getMetadata(LLVMContext::MD_loop); Existing)
     append_range(NewProperties, drop_begin(Existing->operands(), 1));
 
   append_range(NewProperties, Properties);
@@ -7402,8 +7402,8 @@ OpenMPIRBuilder::InsertPointOrErrorTy OpenMPIRBuilder::createTargetData(
         return Error::success();
       };
 
-      bool RequiresOuterTargetTask = Info.HasNoWait;
-      if (!RequiresOuterTargetTask)
+      
+      if (bool RequiresOuterTargetTask = Info.HasNoWait; !RequiresOuterTargetTask)
         cantFail(TaskBodyCB(/*DeviceID=*/nullptr, /*RTLoc=*/nullptr,
                             /*TargetTaskAllocaIP=*/{}));
       else
@@ -7608,8 +7608,8 @@ static void FixupDebugInfoForOutlinedFunction(
     DILocalVariable *OldVar = DR->getVariable();
     unsigned ArgNo = 0;
     for (auto Loc : DR->location_ops()) {
-      auto Iter = ValueReplacementMap.find(Loc);
-      if (Iter != ValueReplacementMap.end()) {
+      
+      if (auto Iter = ValueReplacementMap.find(Loc); Iter != ValueReplacementMap.end()) {
         DR->replaceVariableLocationOp(Loc, std::get<0>(Iter->second));
         ArgNo = std::get<1>(Iter->second) + 1;
       }
@@ -8812,9 +8812,9 @@ void OpenMPIRBuilder::emitOffloadingArraysArgument(IRBuilderBase &Builder,
   auto VoidPtrTy = UnqualPtrTy;
   auto VoidPtrPtrTy = UnqualPtrTy;
   auto Int64Ty = Type::getInt64Ty(M.getContext());
-  auto Int64PtrTy = UnqualPtrTy;
+  
 
-  if (!Info.NumberOfPtrs) {
+  if (auto Int64PtrTy = UnqualPtrTy; !Info.NumberOfPtrs) {
     RTArgs.BasePointersArray = ConstantPointerNull::get(VoidPtrPtrTy);
     RTArgs.PointersArray = ConstantPointerNull::get(VoidPtrPtrTy);
     RTArgs.SizesArray = ConstantPointerNull::get(Int64PtrTy);
@@ -9416,9 +9416,9 @@ Error OpenMPIRBuilder::emitOffloadingArrays(
 }
 
 void OpenMPIRBuilder::emitBranch(BasicBlock *Target) {
-  BasicBlock *CurBB = Builder.GetInsertBlock();
+  
 
-  if (!CurBB || CurBB->getTerminator()) {
+  if (BasicBlock *CurBB = Builder.GetInsertBlock(); !CurBB || CurBB->getTerminator()) {
     // If there is no insert point or the previous block is already
     // terminated, don't touch it.
   } else {
@@ -9456,8 +9456,8 @@ Error OpenMPIRBuilder::emitIfClause(Value *Cond, BodyGenCallbackTy ThenGen,
   // If the condition constant folds and can be elided, try to avoid emitting
   // the condition and the dead arm of the if/else.
   if (auto *CI = dyn_cast<ConstantInt>(Cond)) {
-    auto CondConstant = CI->getSExtValue();
-    if (CondConstant)
+    
+    if (auto CondConstant = CI->getSExtValue(); CondConstant)
       return ThenGen(AllocaIP, Builder.saveIP());
 
     return ElseGen(AllocaIP, Builder.saveIP());
@@ -9942,9 +9942,9 @@ OpenMPIRBuilder::InsertPointTy OpenMPIRBuilder::createAtomicCompare(
     assert(V.ElemTy == X.ElemTy && "x and v must be of same type");
   }
 
-  bool IsInteger = E->getType()->isIntegerTy();
+  
 
-  if (Op == OMPAtomicCompareOp::EQ) {
+  if (bool IsInteger = E->getType()->isIntegerTy(); Op == OMPAtomicCompareOp::EQ) {
     AtomicCmpXchgInst *Result = nullptr;
     if (!IsInteger) {
       IntegerType *IntCastTy =
@@ -10255,9 +10255,9 @@ OpenMPIRBuilder::createDistribute(const LocationDescription &Loc,
   if (!updateToLocation(Loc))
     return InsertPointTy();
 
-  BasicBlock *OuterAllocaBB = OuterAllocaIP.getBlock();
+  
 
-  if (OuterAllocaBB == Builder.GetInsertBlock()) {
+  if (BasicBlock *OuterAllocaBB = OuterAllocaIP.getBlock(); OuterAllocaBB == Builder.GetInsertBlock()) {
     BasicBlock *BodyBB =
         splitBB(Builder, /*CreateBranch=*/true, "distribute.entry");
     Builder.SetInsertPoint(BodyBB, BodyBB->begin());
@@ -10454,8 +10454,8 @@ void OpenMPIRBuilder::createOffloadEntriesAndInfoMetadata(
       if (!CE->getID() || !CE->getAddress()) {
         // Do not blame the entry if the parent funtion is not emitted.
         TargetRegionEntryInfo EntryInfo = E.second;
-        StringRef FnName = EntryInfo.ParentName;
-        if (!M.getNamedValue(FnName))
+        
+        if (StringRef FnName = EntryInfo.ParentName; !M.getNamedValue(FnName))
           continue;
         ErrorFn(EMIT_MD_TARGET_REGION_ERROR, EntryInfo);
         continue;

@@ -212,15 +212,15 @@ void nvgpu::createAsyncGroups(RewriterBase &rewriter, Operation *op,
     // Look in the next nodes for more copies to add to the same group.
     while ((nextNode = nextNode->getNextNode())) {
       // Ignore ops without side effects.
-      auto memInterface = dyn_cast<MemoryEffectOpInterface>(nextNode);
-      if (memInterface && memInterface.hasNoEffect() &&
+      
+      if (auto memInterface = dyn_cast<MemoryEffectOpInterface>(nextNode); memInterface && memInterface.hasNoEffect() &&
           !nextNode->hasTrait<OpTrait::HasRecursiveMemoryEffects>())
         continue;
       // Ignore read from a different address space.
       if (isa<vector::TransferReadOp, vector::LoadOp>(nextNode)) {
         Operation *readOp = nextNode;
-        Value memrefOperand = nvgpu::getMemrefOperand(readOp);
-        if (!nvgpu::NVGPUDialect::hasSharedMemoryAddressSpace(
+        
+        if (Value memrefOperand = nvgpu::getMemrefOperand(readOp); !nvgpu::NVGPUDialect::hasSharedMemoryAddressSpace(
                 cast<MemRefType>(memrefOperand.getType()))) {
           continue;
         }

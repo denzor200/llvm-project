@@ -162,9 +162,9 @@ MemoryBuffer::getFileOrSTDIN(const Twine &Filename, bool IsText,
                              bool RequiresNullTerminator,
                              std::optional<Align> Alignment) {
   SmallString<256> NameBuf;
-  StringRef NameRef = Filename.toStringRef(NameBuf);
+  
 
-  if (NameRef == "-")
+  if (StringRef NameRef = Filename.toStringRef(NameBuf); NameRef == "-")
     return getSTDIN();
   return getFile(Filename, IsText, RequiresNullTerminator,
                  /*IsVolatile=*/false, Alignment);
@@ -427,8 +427,8 @@ getReadWriteFile(const Twine &Filename, uint64_t FileSize, uint64_t MapSize,
     // file descriptor is cheaper than stat on a random path.
     if (FileSize == uint64_t(-1)) {
       sys::fs::file_status Status;
-      std::error_code EC = sys::fs::status(FD, Status);
-      if (EC)
+      
+      if (std::error_code EC = sys::fs::status(FD, Status); EC)
         return EC;
 
       // If this not a file or a block device (e.g. it's a named pipe
@@ -478,8 +478,8 @@ getOpenFileImpl(sys::fs::file_t FD, const Twine &Filename, uint64_t FileSize,
     // file descriptor is cheaper than stat on a random path.
     if (FileSize == uint64_t(-1)) {
       sys::fs::file_status Status;
-      std::error_code EC = sys::fs::status(FD, Status);
-      if (EC)
+      
+      if (std::error_code EC = sys::fs::status(FD, Status); EC)
         return EC;
 
       // If this not a file or a block device (e.g. it's a named pipe
@@ -498,10 +498,10 @@ getOpenFileImpl(sys::fs::file_t FD, const Twine &Filename, uint64_t FileSize,
   if (shouldUseMmap(FD, FileSize, MapSize, Offset, RequiresNullTerminator,
                     PageSize, IsVolatile)) {
     std::error_code EC;
-    std::unique_ptr<MB> Result(
+    
+    if (std::unique_ptr<MB> Result(
         new (NamedBufferAlloc(Filename)) MemoryBufferMMapFile<MB>(
-            RequiresNullTerminator, FD, MapSize, Offset, EC));
-    if (!EC) {
+            RequiresNullTerminator, FD, MapSize, Offset, EC)); !EC) {
       // On at least Linux, and possibly on other systems, mmap may return pages
       // from the page cache that are not properly filled with trailing zeroes,
       // if some prior user of the page wrote non-zero bytes. Detect this and

@@ -157,8 +157,8 @@ Status NativeThreadLinux::SetWatchpoint(lldb::addr_t addr, size_t size,
     return Status::FromErrorString("not implemented");
   if (m_state == eStateLaunching)
     return Status();
-  Status error = RemoveWatchpoint(addr);
-  if (error.Fail())
+  
+  if (Status error = RemoveWatchpoint(addr); error.Fail())
     return error;
   uint32_t wp_index =
       m_reg_context_up->SetHardwareWatchpoint(addr, size, watch_flags);
@@ -184,8 +184,8 @@ Status NativeThreadLinux::SetHardwareBreakpoint(lldb::addr_t addr,
   if (m_state == eStateLaunching)
     return Status();
 
-  Status error = RemoveHardwareBreakpoint(addr);
-  if (error.Fail())
+  
+  if (Status error = RemoveHardwareBreakpoint(addr); error.Fail())
     return error;
 
   uint32_t bp_index = m_reg_context_up->SetHardwareBreakpoint(addr, size);
@@ -347,9 +347,9 @@ void NativeThreadLinux::AnnotateSyncTagCheckFault(lldb::addr_t fault_addr) {
                                               1, allocation_tag_data);
 
   if (status.Success()) {
-    llvm::Expected<std::vector<lldb::addr_t>> allocation_tag =
-        manager->UnpackTagsData(allocation_tag_data, 1);
-    if (allocation_tag) {
+    
+    if (llvm::Expected<std::vector<lldb::addr_t>> allocation_tag =
+        manager->UnpackTagsData(allocation_tag_data, 1); allocation_tag) {
       ss << " allocation tag=0x" << std::hex << allocation_tag->front() << ")";
     } else {
       llvm::consumeError(allocation_tag.takeError());
@@ -548,9 +548,9 @@ llvm::Expected<std::unique_ptr<llvm::MemoryBuffer>>
 NativeThreadLinux::GetSiginfo() const {
   auto siginfo_buf =
       llvm::WritableMemoryBuffer::getNewUninitMemBuffer(sizeof(siginfo_t));
-  Status error =
-      GetProcess().GetSignalInfo(GetID(), siginfo_buf->getBufferStart());
-  if (!error.Success())
+  
+  if (Status error =
+      GetProcess().GetSignalInfo(GetID(), siginfo_buf->getBufferStart()); !error.Success())
     return error.ToError();
   return std::move(siginfo_buf);
 }

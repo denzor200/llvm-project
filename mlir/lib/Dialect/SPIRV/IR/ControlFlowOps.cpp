@@ -31,8 +31,8 @@ static ParseResult
 parseControlAttribute(OpAsmParser &parser, OperationState &state,
                       StringRef attrName = spirv::attributeName<EnumClass>()) {
   if (succeeded(parser.parseOptionalKeyword(kControl))) {
-    EnumClass control;
-    if (parser.parseLParen() ||
+    
+    if (EnumClass control; parser.parseLParen() ||
         spirv::parseEnumKeywordAttr<EnumAttrClass>(control, parser, state) ||
         parser.parseRParen())
       return failure();
@@ -82,8 +82,8 @@ ParseResult BranchConditionalOp::parse(OpAsmParser &parser,
     IntegerAttr trueWeight, falseWeight;
     NamedAttrList weights;
 
-    auto i32Type = builder.getIntegerType(32);
-    if (parser.parseAttribute(trueWeight, i32Type, "weight", weights) ||
+    
+    if (auto i32Type = builder.getIntegerType(32); parser.parseAttribute(trueWeight, i32Type, "weight", weights) ||
         parser.parseComma() ||
         parser.parseAttribute(falseWeight, i32Type, "weight", weights) ||
         parser.parseRSquare())
@@ -325,8 +325,8 @@ ParseResult LoopOp::parse(OpAsmParser &parser, OperationState &result) {
 }
 
 void LoopOp::print(OpAsmPrinter &printer) {
-  auto control = getLoopControl();
-  if (control != spirv::LoopControl::None)
+  
+  if (auto control = getLoopControl(); control != spirv::LoopControl::None)
     printer << " control(" << spirv::stringifyLoopControl(control) << ")";
   if (getNumResults() > 0) {
     printer << " -> ";
@@ -556,8 +556,8 @@ ParseResult SelectionOp::parse(OpAsmParser &parser, OperationState &result) {
 }
 
 void SelectionOp::print(OpAsmPrinter &printer) {
-  auto control = getSelectionControl();
-  if (control != spirv::SelectionControl::None)
+  
+  if (auto control = getSelectionControl(); control != spirv::SelectionControl::None)
     printer << " control(" << spirv::stringifySelectionControl(control) << ")";
   if (getNumResults() > 0) {
     printer << " -> ";

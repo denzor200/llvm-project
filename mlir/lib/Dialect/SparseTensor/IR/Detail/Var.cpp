@@ -210,8 +210,8 @@ VarEnv::lookupOrCreate(Policy creationPolicy, StringRef name, llvm::SMLoc loc,
     return create(name, loc, vk, /*verifyUsage=*/true);
   case Policy::Must: {
     const auto res = create(name, loc, vk, /*verifyUsage=*/false);
-    const auto didCreate = res->second;
-    if (!didCreate)
+    
+    if (const auto didCreate = res->second; !didCreate)
       return std::nullopt;  // Already exists, but must create.
     return res;
   }

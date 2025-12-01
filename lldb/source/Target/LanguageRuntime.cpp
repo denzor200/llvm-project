@@ -54,16 +54,16 @@ void ExceptionSearchFilter::GetDescription(Stream *s) {
 }
 
 void ExceptionSearchFilter::UpdateModuleListIfNeeded() {
-  ProcessSP process_sp(m_target_sp->GetProcessSP());
-  if (process_sp) {
+  
+  if (ProcessSP process_sp(m_target_sp->GetProcessSP()); process_sp) {
     bool refreash_filter = !m_filter_sp;
     if (m_language_runtime == nullptr) {
       m_language_runtime = process_sp->GetLanguageRuntime(m_language);
       refreash_filter = true;
     } else {
-      LanguageRuntime *language_runtime =
-          process_sp->GetLanguageRuntime(m_language);
-      if (m_language_runtime != language_runtime) {
+      
+      if (LanguageRuntime *language_runtime =
+          process_sp->GetLanguageRuntime(m_language); m_language_runtime != language_runtime) {
         m_language_runtime = language_runtime;
         refreash_filter = true;
       }
@@ -126,8 +126,8 @@ public:
   }
 
   void GetDescription(Stream *s) override {
-    Language *language_plugin = Language::FindPlugin(m_language);
-    if (language_plugin)
+    
+    if (Language *language_plugin = Language::FindPlugin(m_language); language_plugin)
       language_plugin->GetExceptionResolverDescription(m_catch_bp, m_throw_bp,
                                                        *s);
     else
@@ -162,16 +162,16 @@ protected:
   bool SetActualResolver() {
     BreakpointSP breakpoint_sp = GetBreakpoint();
     if (breakpoint_sp) {
-      ProcessSP process_sp = breakpoint_sp->GetTarget().GetProcessSP();
-      if (process_sp) {
+      
+      if (ProcessSP process_sp = breakpoint_sp->GetTarget().GetProcessSP(); process_sp) {
         bool refreash_resolver = !m_actual_resolver_sp;
         if (m_language_runtime == nullptr) {
           m_language_runtime = process_sp->GetLanguageRuntime(m_language);
           refreash_resolver = true;
         } else {
-          LanguageRuntime *language_runtime =
-              process_sp->GetLanguageRuntime(m_language);
-          if (m_language_runtime != language_runtime) {
+          
+          if (LanguageRuntime *language_runtime =
+              process_sp->GetLanguageRuntime(m_language); m_language_runtime != language_runtime) {
             m_language_runtime = language_runtime;
             refreash_resolver = true;
           }
@@ -268,9 +268,9 @@ LanguageRuntime::GetRuntimeUnwindPlan(Thread &thread, RegisterContext *regctx,
     return UnwindPlanSP();
   for (const lldb::LanguageType lang_type : Language::GetSupportedLanguages()) {
     if (LanguageRuntime *runtime = process_sp->GetLanguageRuntime(lang_type)) {
-      UnwindPlanSP plan_sp = runtime->GetRuntimeUnwindPlan(
-          process_sp, regctx, behaves_like_zeroth_frame);
-      if (plan_sp.get())
+      
+      if (UnwindPlanSP plan_sp = runtime->GetRuntimeUnwindPlan(
+          process_sp, regctx, behaves_like_zeroth_frame); plan_sp.get())
         return plan_sp;
     }
   }
@@ -298,9 +298,9 @@ void LanguageRuntime::InitializeCommands(CommandObject *parent) {
        ++idx) {
     if (LanguageRuntimeGetCommandObject command_callback =
             PluginManager::GetLanguageRuntimeGetCommandObjectAtIndex(idx)) {
-      CommandObjectSP command =
-          command_callback(parent->GetCommandInterpreter());
-      if (command) {
+      
+      if (CommandObjectSP command =
+          command_callback(parent->GetCommandInterpreter()); command) {
         // the CommandObject vended by a Language plugin cannot be created once
         // and cached because we may create multiple debuggers and need one
         // instance of the command each - the implementing function is meant to

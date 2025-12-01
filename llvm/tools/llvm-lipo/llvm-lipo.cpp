@@ -362,9 +362,9 @@ verifyArch(ArrayRef<OwningBinary<Binary>> InputBinaries,
   if (auto UO =
           dyn_cast<MachOUniversalBinary>(InputBinaries.front().getBinary())) {
     for (StringRef Arch : VerifyArchList) {
-      Expected<MachOUniversalBinary::ObjectForArch> Obj =
-          UO->getObjectForArch(Arch);
-      if (!Obj)
+      
+      if (Expected<MachOUniversalBinary::ObjectForArch> Obj =
+          UO->getObjectForArch(Arch); !Obj)
         exit(EXIT_FAILURE);
     }
   } else if (auto O =
@@ -450,16 +450,16 @@ printArchs(LLVMContext &LLVMCtx, ArrayRef<OwningBinary<Binary>> InputBinaries) {
 printInfo(LLVMContext &LLVMCtx, ArrayRef<OwningBinary<Binary>> InputBinaries) {
   // Group universal and thin files together for compatibility with cctools lipo
   for (auto &IB : InputBinaries) {
-    const Binary *Binary = IB.getBinary();
-    if (Binary->isMachOUniversalBinary()) {
+    
+    if (const Binary *Binary = IB.getBinary(); Binary->isMachOUniversalBinary()) {
       outs() << "Architectures in the fat file: " << Binary->getFileName()
              << " are: ";
       printBinaryArchs(LLVMCtx, Binary, outs());
     }
   }
   for (auto &IB : InputBinaries) {
-    const Binary *Binary = IB.getBinary();
-    if (!Binary->isMachOUniversalBinary()) {
+    
+    if (const Binary *Binary = IB.getBinary(); !Binary->isMachOUniversalBinary()) {
       assert((Binary->isMachO() || Binary->isArchive()) &&
              "expected MachO binary");
       outs() << "Non-fat file: " << Binary->getFileName()
@@ -537,8 +537,8 @@ template <typename Range>
 static void updateAlignments(Range &Slices,
                              const StringMap<const uint32_t> &Alignments) {
   for (auto &Slice : Slices) {
-    auto Alignment = Alignments.find(Slice.getArchString());
-    if (Alignment != Alignments.end())
+    
+    if (auto Alignment = Alignments.find(Slice.getArchString()); Alignment != Alignments.end())
       Slice.setP2Alignment(Alignment->second);
   }
 }
@@ -564,8 +564,8 @@ buildSlices(LLVMContext &LLVMCtx, ArrayRef<OwningBinary<Binary>> InputBinaries,
             SmallVectorImpl<std::unique_ptr<SymbolicFile>> &ExtractedObjects) {
   SmallVector<Slice, 2> Slices;
   for (auto &IB : InputBinaries) {
-    const Binary *InputBinary = IB.getBinary();
-    if (auto UO = dyn_cast<MachOUniversalBinary>(InputBinary)) {
+    
+    if (auto const Binary *InputBinary = IB.getBinary(); UO = dyn_cast<MachOUniversalBinary>(InputBinary)) {
       for (const auto &O : UO->objects()) {
         // Order here is important, because both MachOObjectFile and
         // IRObjectFile can be created with a binary that has embedded bitcode.

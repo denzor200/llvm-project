@@ -212,8 +212,8 @@ Expected<size_t> COFFWriter::finalizeStringTable() {
       memcpy(S.Header.Name, S.Name.data(), S.Name.size());
     } else {
       // Offset of the section name in the string table.
-      size_t Offset = StrTabBuilder.getOffset(S.Name);
-      if (!COFF::encodeSectionName(S.Header.Name, Offset))
+      
+      if (size_t Offset = StrTabBuilder.getOffset(S.Name); !COFF::encodeSectionName(S.Header.Name, Offset))
         return createStringError(object_error::invalid_section_index,
                                  "COFF string table is greater than 64GB, "
                                  "unable to encode section name offset");
@@ -514,8 +514,8 @@ Error COFFWriter::patchDebugDirectory() {
                      S.Header.PointerToRawData + Offset;
       uint8_t *End = Ptr + Dir->Size;
       while (Ptr < End) {
-        debug_directory *Debug = reinterpret_cast<debug_directory *>(Ptr);
-        if (Debug->PointerToRawData) {
+        
+        if (debug_directory *Debug = reinterpret_cast<debug_directory *>(Ptr); Debug->PointerToRawData) {
           if (Expected<uint32_t> FilePosOrErr =
                   virtualAddressToFileAddress(Debug->AddressOfRawData))
             Debug->PointerToRawData = *FilePosOrErr;

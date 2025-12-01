@@ -35,9 +35,9 @@ bool isLegalShaderModel(Triple &T) {
   if (Version.getSubminor())
     return false;
 
-  auto Kind = T.getEnvironment();
+  
 
-  switch (Kind) {
+  switch (auto Kind = T.getEnvironment(); Kind) {
   default:
     return false;
   case Triple::EnvironmentType::Vertex:
@@ -50,8 +50,8 @@ bool isLegalShaderModel(Triple &T) {
     return MinVer <= Version;
   } break;
   case Triple::EnvironmentType::Library: {
-    VersionTuple SM6x(6, OfflineLibMinor);
-    if (Version == SM6x)
+    
+    if (VersionTuple SM6x(6, OfflineLibMinor); Version == SM6x)
       return true;
 
     VersionTuple MinVer(6, 3);
@@ -157,8 +157,8 @@ std::optional<llvm::Triple> tryParseTriple(StringRef Profile) {
 }
 
 std::optional<std::string> tryParseProfile(StringRef Profile) {
-  std::optional<llvm::Triple> MaybeT = tryParseTriple(Profile);
-  if (MaybeT && isLegalShaderModel(*MaybeT))
+  
+  if (std::optional<llvm::Triple> MaybeT = tryParseTriple(Profile); MaybeT && isLegalShaderModel(*MaybeT))
     return MaybeT->getTriple();
   else
     return std::nullopt;
@@ -414,8 +414,8 @@ HLSLToolChain::TranslateArgs(const DerivedArgList &Args, StringRef BoundArch,
 
   for (Arg *A : Args) {
     if (A->getOption().getID() == options::OPT_dxil_validator_version) {
-      StringRef ValVerStr = A->getValue();
-      if (!isLegalValidatorVersion(ValVerStr, getDriver()))
+      
+      if (StringRef ValVerStr = A->getValue(); !isLegalValidatorVersion(ValVerStr, getDriver()))
         continue;
     }
     if (A->getOption().getID() == options::OPT_dxc_entrypoint) {
@@ -439,8 +439,8 @@ HLSLToolChain::TranslateArgs(const DerivedArgList &Args, StringRef BoundArch,
       continue;
     }
     if (A->getOption().getID() == options::OPT__SLASH_O) {
-      StringRef OStr = A->getValue();
-      if (OStr == "d") {
+      
+      if (StringRef OStr = A->getValue(); OStr == "d") {
         DAL->AddFlagArg(nullptr, Opts.getOption(options::OPT_O0));
         A->claim();
         continue;
@@ -461,8 +461,8 @@ HLSLToolChain::TranslateArgs(const DerivedArgList &Args, StringRef BoundArch,
     if (A->getOption().getID() == options::OPT_dxc_hlsl_version) {
       // Translate -HV into -std for llvm
       // depending on the value given
-      LangStandard::Kind LangStd = LangStandard::getHLSLLangKind(A->getValue());
-      if (LangStd != LangStandard::lang_unspecified) {
+      
+      if (LangStandard::Kind LangStd = LangStandard::getHLSLLangKind(A->getValue()); LangStd != LangStandard::lang_unspecified) {
         LangStandard l = LangStandard::getLangStandardForKind(LangStd);
         DAL->AddSeparateArg(nullptr, Opts.getOption(options::OPT_std_EQ),
                             l.getName());
@@ -535,8 +535,8 @@ bool HLSLToolChain::requiresValidation(DerivedArgList &Args) const {
   if (Args.getLastArg(options::OPT_dxc_disable_validation))
     return false;
 
-  std::string DxvPath = GetProgramPath("dxv");
-  if (DxvPath != "dxv")
+  
+  if (std::string DxvPath = GetProgramPath("dxv"); DxvPath != "dxv")
     return true;
 
   getDriver().Diag(diag::warn_drv_dxc_missing_dxv);

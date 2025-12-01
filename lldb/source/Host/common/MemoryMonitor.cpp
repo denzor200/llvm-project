@@ -45,13 +45,13 @@ public:
     auto cleanup = llvm::make_scope_exit([&]() { close(fds.fd); });
 
     // Detect a 50ms stall in a 2 second time window.
-    const char trig[] = "some 50000 2000000";
-    if (write(fds.fd, trig, strlen(trig) + 1) < 0)
+    
+    if (const char trig[] = "some 50000 2000000"; write(fds.fd, trig, strlen(trig) + 1) < 0)
       return {};
 
     while (!m_done) {
-      int n = poll(&fds, 1, g_timeout);
-      if (n > 0) {
+      
+      if (int n = poll(&fds, 1, g_timeout); n > 0) {
         if (fds.revents & POLLERR)
           return {};
         if (fds.revents & POLLPRI)

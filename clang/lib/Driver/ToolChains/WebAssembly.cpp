@@ -37,8 +37,8 @@ std::string WebAssembly::getMultiarchTriple(const Driver &D,
 std::string wasm::Linker::getLinkerPath(const ArgList &Args) const {
   const ToolChain &ToolChain = getToolChain();
   if (const Arg* A = Args.getLastArg(options::OPT_fuse_ld_EQ)) {
-    StringRef UseLinker = A->getValue();
-    if (!UseLinker.empty()) {
+    
+    if (StringRef UseLinker = A->getValue(); !UseLinker.empty()) {
       if (llvm::sys::path::is_absolute(UseLinker) &&
           llvm::sys::fs::can_execute(UseLinker))
         return std::string(UseLinker);
@@ -122,8 +122,8 @@ void wasm::Linker::ConstructJob(Compilation &C, const JobAction &JA,
     IsCommand = false;
 
   if (const Arg *A = Args.getLastArg(options::OPT_mexec_model_EQ)) {
-    StringRef CM = A->getValue();
-    if (CM == "command") {
+    
+    if (StringRef CM = A->getValue(); CM == "command") {
       IsCommand = true;
     } else if (CM == "reactor") {
       IsCommand = false;
@@ -246,8 +246,8 @@ WebAssembly::WebAssembly(const Driver &D, const llvm::Triple &Triple,
 
   getProgramPaths().push_back(getDriver().Dir);
 
-  auto SysRoot = getDriver().SysRoot;
-  if (getTriple().getOS() == llvm::Triple::UnknownOS) {
+  
+  if (auto SysRoot = getDriver().SysRoot; getTriple().getOS() == llvm::Triple::UnknownOS) {
     // Theoretically an "unknown" OS should mean no standard libraries, however
     // it could also mean that a custom set of libraries is in use, so just add
     // /lib to the search path. Disable multiarch in this case, to discourage
@@ -458,8 +458,8 @@ ToolChain::RuntimeLibType WebAssembly::GetDefaultRuntimeLibType() const {
 ToolChain::CXXStdlibType
 WebAssembly::GetCXXStdlibType(const ArgList &Args) const {
   if (Arg *A = Args.getLastArg(options::OPT_stdlib_EQ)) {
-    StringRef Value = A->getValue();
-    if (Value == "libc++")
+    
+    if (StringRef Value = A->getValue(); Value == "libc++")
       return ToolChain::CST_Libcxx;
     else if (Value == "libstdc++")
       return ToolChain::CST_Libstdcxx;
@@ -608,10 +608,10 @@ void WebAssembly::addLibStdCXXIncludePaths(
     llvm::sys::path::append(Path, "c++");
     for (llvm::vfs::directory_iterator LI = getVFS().dir_begin(Path, EC), LE;
          !EC && LI != LE; LI = LI.increment(EC)) {
-      StringRef VersionText = llvm::sys::path::filename(LI->path());
-      if (VersionText[0] != 'v') {
-        auto Version = Generic_GCC::GCCVersion::Parse(VersionText);
-        if (Version > MaxVersion)
+      
+      if (StringRef VersionText = llvm::sys::path::filename(LI->path()); VersionText[0] != 'v') {
+        
+        if (auto Version = Generic_GCC::GCCVersion::Parse(VersionText); Version > MaxVersion)
           MaxVersion = Version;
       }
     }

@@ -387,9 +387,9 @@ void NodeAllocator::clear() {
 
 // Insert node NA after "this" in the circular chain.
 void NodeBase::append(Node NA) {
-  NodeId Nx = Next;
+  
   // If NA is already "next", do nothing.
-  if (Next != NA.Id) {
+  if (NodeId Nx = Next; Next != NA.Id) {
     Next = NA.Id;
     NA.Addr->Next = Nx;
   }
@@ -1270,8 +1270,8 @@ void DataFlowGraph::buildStmt(Block BA, MachineInstr &In) {
     for (const MachineOperand &Op : In.all_uses()) {
       if (Op.getReg() == 0 || Op.isUndef())
         continue;
-      RegisterRef UR = makeRegRef(Op);
-      if (getPRI().alias(DR, UR))
+      
+      if (RegisterRef UR = makeRegRef(Op); getPRI().alias(DR, UR))
         return false;
     }
     return true;
@@ -1417,8 +1417,8 @@ void DataFlowGraph::recordDefsForDF(BlockRefsMap &PhiM,
   const MachineDominanceFrontier::DomSetType &DF = DFLoc->second;
   SetVector<MachineBasicBlock *> IDF(llvm::from_range, DF);
   for (unsigned i = 0; i < IDF.size(); ++i) {
-    auto F = MDF.find(IDF[i]);
-    if (F != MDF.end())
+    
+    if (auto F = MDF.find(IDF[i]); F != MDF.end())
       IDF.insert_range(F->second);
   }
 
@@ -1506,8 +1506,8 @@ void DataFlowGraph::removeUnusedPhis() {
     for (Node M : Ms) {
       if (M.Addr->getKind() != NodeAttrs::Def)
         continue;
-      Def DA = M;
-      if (DA.Addr->getReachedDef() != 0 || DA.Addr->getReachedUse() != 0)
+      
+      if (Def DA = M; DA.Addr->getReachedDef() != 0 || DA.Addr->getReachedUse() != 0)
         return true;
     }
     return false;
@@ -1557,8 +1557,8 @@ void DataFlowGraph::linkRefUp(Instr IA, NodeAddr<T> TA, DefStack &DS) {
 
     // Skip all defs that we have already seen.
     // If this completes a cover of RR, stop the stack traversal.
-    bool Seen = Defs.hasCoverOf(QR);
-    if (Seen)
+    
+    if (bool Seen = Defs.hasCoverOf(QR); Seen)
       continue;
 
     bool Cover = Defs.insert(QR).hasCoverOf(RR);

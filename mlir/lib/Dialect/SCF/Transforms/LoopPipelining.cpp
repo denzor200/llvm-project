@@ -410,8 +410,8 @@ scf::ForOp LoopPipelinerInternal::createKernelLoop(
     Operation *def = retVal.value().getDefiningOp();
     assert(def && "Only support loop carried dependencies of distance of 1 or "
                   "outside the loop");
-    auto defStage = stages.find(def);
-    if (defStage != stages.end()) {
+    
+    if (auto defStage = stages.find(def); defStage != stages.end()) {
       Value valueVersion =
           valueMapping[forOp.getRegionIterArgs()[retVal.index()]]
                       [maxStage - defStage->second];
@@ -591,8 +591,8 @@ LogicalResult LoopPipelinerInternal::createKernel(
         !forOp.getResult(yieldOperand.getOperandNumber()).use_empty()) {
       Operation *def = getDefiningOpAndDistance(yieldOperand.get()).first;
       if (def) {
-        auto defStage = stages.find(def);
-        if (defStage != stages.end() && defStage->second < maxStage) {
+        
+        if (auto defStage = stages.find(def); defStage != stages.end() && defStage->second < maxStage) {
           Value pred = predicates[defStage->second];
           source = arith::SelectOp::create(
               rewriter, pred.getLoc(), pred, source,
@@ -627,8 +627,8 @@ LogicalResult LoopPipelinerInternal::createKernel(
     Operation *def = retVal.value().getDefiningOp();
     assert(def && "Only support loop carried dependencies of distance of 1 or "
                   "defined outside the loop");
-    auto defStage = stages.find(def);
-    if (defStage == stages.end()) {
+    
+    if (auto defStage = stages.find(def); defStage == stages.end()) {
       for (unsigned int stage = 1; stage <= maxStage; stage++)
         setValueMapping(forOp.getRegionIterArgs()[retVal.index()],
                         retVal.value(), stage);
@@ -755,8 +755,8 @@ LoopPipelinerInternal::emitEpilogue(RewriterBase &rewriter,
       // value.
       for (auto pair : llvm::enumerate(returnValues)) {
         unsigned ri = pair.index();
-        auto [mapVal, currentVersion] = returnMap[ri];
-        if (mapVal) {
+        
+        if (auto [mapVal, currentVersion] = returnMap[ri]; mapVal) {
           unsigned nextVersion = currentVersion + 1;
           Value pred = predicates[currentVersion];
           Value prevValue = valueMapping[mapVal][currentVersion];

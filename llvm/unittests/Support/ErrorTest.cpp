@@ -1187,8 +1187,8 @@ TEST(Error, ForwardToExpected) {
                 : Error::success();
   };
   auto ExpectedReturningFct = [&](bool Fail) -> Expected<int> {
-    auto Err = ErrorReturningFct(Fail);
-    if (Err)
+    
+    if (auto Err = ErrorReturningFct(Fail); Err)
       return Err;
     return 42;
   };

@@ -404,8 +404,8 @@ SmallVector<Value> mlir::LLVM::decomposeValue(OpBuilder &builder, Location loc,
   }
 
   if (dstBitWidth > srcBitWidth) {
-    auto smallerInt = builder.getIntegerType(srcBitWidth);
-    if (srcType != smallerInt)
+    
+    if (auto smallerInt = builder.getIntegerType(srcBitWidth); srcType != smallerInt)
       src = LLVM::BitcastOp::create(builder, loc, smallerInt, src);
 
     auto largerInt = builder.getIntegerType(dstBitWidth);
@@ -440,8 +440,8 @@ Value mlir::LLVM::composeValue(OpBuilder &builder, Location loc, ValueRange src,
     unsigned srcBitWidth = getBitWidth(res.getType());
     unsigned dstBitWidth = getBitWidth(dstType);
     if (dstBitWidth < srcBitWidth) {
-      auto largerInt = builder.getIntegerType(srcBitWidth);
-      if (res.getType() != largerInt)
+      
+      if (auto largerInt = builder.getIntegerType(srcBitWidth); res.getType() != largerInt)
         res = LLVM::BitcastOp::create(builder, loc, largerInt, res);
 
       auto smallerInt = builder.getIntegerType(dstBitWidth);

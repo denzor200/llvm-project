@@ -250,10 +250,10 @@ void ThreadFinish(ThreadState *thr) {
 #endif
   if (!thr->ignore_sync) {
     SlotLocker locker(thr);
-    ThreadRegistryLock lock(&ctx->thread_registry);
+    
     // Note: detached is protected by the thread registry mutex,
     // the thread may be detaching concurrently in another thread.
-    if (!thr->tctx->detached) {
+    if (ThreadRegistryLock lock(&ctx->thread_registry); !thr->tctx->detached) {
       thr->clock.ReleaseStore(&thr->tctx->sync);
       thr->tctx->sync_epoch = ctx->global_epoch;
       IncrementEpoch(thr);
@@ -320,8 +320,8 @@ void ThreadJoin(ThreadState *thr, uptr pc, Tid tid) {
   JoinArg arg = {};
   ctx->thread_registry.JoinThread(tid, &arg);
   if (!thr->ignore_sync) {
-    SlotLocker locker(thr);
-    if (arg.sync_epoch == ctx->global_epoch)
+    
+    if (SlotLocker locker(thr); arg.sync_epoch == ctx->global_epoch)
       thr->clock.Acquire(arg.sync);
   }
   Free(arg.sync);

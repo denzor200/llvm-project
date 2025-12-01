@@ -80,8 +80,8 @@ void visualstudio::Linker::ConstructJob(Compilation &C, const JobAction &JA,
     CmdArgs.push_back("-machine:arm64ec");
 
   if (const Arg *A = Args.getLastArg(options::OPT_fveclib)) {
-    StringRef V = A->getValue();
-    if (V == "ArmPL")
+    
+    if (StringRef V = A->getValue(); V == "ArmPL")
       CmdArgs.push_back(Args.MakeArgString("--dependent-lib=amath"));
   }
 
@@ -126,13 +126,13 @@ void visualstudio::Linker::ConstructJob(Compilation &C, const JobAction &JA,
                   options::OPT__SLASH_winsdkversion,
                   options::OPT__SLASH_winsysroot)) {
     if (TC.useUniversalCRT()) {
-      std::string UniversalCRTLibPath;
-      if (TC.getUniversalCRTLibraryPath(Args, UniversalCRTLibPath))
+      
+      if (std::string UniversalCRTLibPath; TC.getUniversalCRTLibraryPath(Args, UniversalCRTLibPath))
         CmdArgs.push_back(
             Args.MakeArgString(Twine("-libpath:") + UniversalCRTLibPath));
     }
-    std::string WindowsSdkLibPath;
-    if (TC.getWindowsSDKLibraryPath(Args, WindowsSdkLibPath))
+    
+    if (std::string WindowsSdkLibPath; TC.getWindowsSDKLibraryPath(Args, WindowsSdkLibPath))
       CmdArgs.push_back(
           Args.MakeArgString(std::string("-libpath:") + WindowsSdkLibPath));
   }
@@ -206,8 +206,8 @@ void visualstudio::Linker::ConstructJob(Compilation &C, const JobAction &JA,
     CmdArgs.push_back(Args.MakeArgString("-debug"));
     CmdArgs.push_back(Args.MakeArgString("-incremental:no"));
     CmdArgs.push_back(TC.getCompilerRTArgString(Args, "asan_dynamic"));
-    auto defines = Args.getAllArgValues(options::OPT_D);
-    if (Args.hasArg(options::OPT__SLASH_MD, options::OPT__SLASH_MDd) ||
+    
+    if (auto defines = Args.getAllArgValues(options::OPT_D); Args.hasArg(options::OPT__SLASH_MD, options::OPT__SLASH_MDd) ||
         llvm::is_contained(defines, "_DLL")) {
       // Make sure the dynamic runtime thunk is not optimized out at link time
       // to ensure proper SEH handling.
@@ -238,8 +238,8 @@ void visualstudio::Linker::ConstructJob(Compilation &C, const JobAction &JA,
 
   // Control Flow Guard checks
   for (const Arg *A : Args.filtered(options::OPT__SLASH_guard)) {
-    StringRef GuardArgs = A->getValue();
-    if (GuardArgs.equals_insensitive("cf") ||
+    
+    if (StringRef GuardArgs = A->getValue(); GuardArgs.equals_insensitive("cf") ||
         GuardArgs.equals_insensitive("cf,nochecks")) {
       // MSVC doesn't yet support the "nochecks" modifier.
       CmdArgs.push_back("-guard:cf");
@@ -719,8 +719,8 @@ void MSVCToolChain::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
 
     if (useUniversalCRT()) {
       std::string UniversalCRTSdkPath;
-      std::string UCRTVersion;
-      if (llvm::getUniversalCRTSdkDir(getVFS(), WinSdkDir, WinSdkVersion,
+      
+      if (std::string UCRTVersion; llvm::getUniversalCRTSdkDir(getVFS(), WinSdkDir, WinSdkVersion,
                                       WinSysRoot, UniversalCRTSdkPath,
                                       UCRTVersion)) {
         if (!(WinSdkDir.has_value() || WinSysRoot.has_value()) &&
@@ -734,8 +734,8 @@ void MSVCToolChain::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
     std::string WindowsSDKDir;
     int major = 0;
     std::string windowsSDKIncludeVersion;
-    std::string windowsSDKLibVersion;
-    if (llvm::getWindowsSDKDir(getVFS(), WinSdkDir, WinSdkVersion, WinSysRoot,
+    
+    if (std::string windowsSDKLibVersion; llvm::getWindowsSDKDir(getVFS(), WinSdkDir, WinSdkVersion, WinSysRoot,
                                WindowsSDKDir, major, windowsSDKIncludeVersion,
                                windowsSDKLibVersion)) {
       if (major >= 10)
@@ -755,8 +755,8 @@ void MSVCToolChain::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
                                       "Include", windowsSDKIncludeVersion,
                                       "winrt");
         if (major >= 10) {
-          llvm::VersionTuple Tuple;
-          if (!Tuple.tryParse(windowsSDKIncludeVersion) &&
+          
+          if (llvm::VersionTuple Tuple; !Tuple.tryParse(windowsSDKIncludeVersion) &&
               Tuple.getSubminor().value_or(0) >= 17134) {
             AddSystemIncludeWithSubfolder(DriverArgs, CC1Args, WindowsSDKDir,
                                           "Include", windowsSDKIncludeVersion,
@@ -853,8 +853,8 @@ static void TranslateOptArg(Arg *A, llvm::opt::DerivedArgList &DAL,
 
   StringRef OptStr = A->getValue();
   for (size_t I = 0, E = OptStr.size(); I != E; ++I) {
-    const char &OptChar = *(OptStr.data() + I);
-    switch (OptChar) {
+    
+    switch (const char &OptChar = *(OptStr.data() + I); OptChar) {
     default:
       break;
     case '1':
@@ -995,8 +995,8 @@ MSVCToolChain::TranslateArgs(const llvm::opt::DerivedArgList &Args,
     StringRef OptStr = A->getValue();
     for (size_t I = 0, E = OptStr.size(); I != E; ++I) {
       char OptChar = OptStr[I];
-      char PrevChar = I > 0 ? OptStr[I - 1] : '0';
-      if (PrevChar == 'b') {
+      
+      if (char PrevChar = I > 0 ? OptStr[I - 1] : '0'; PrevChar == 'b') {
         // OptChar does not expand; it's an argument to the previous char.
         continue;
       }

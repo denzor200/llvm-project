@@ -306,8 +306,8 @@ void Dex::lookup(const LookupRequest &Req,
                  llvm::function_ref<void(const Symbol &)> Callback) const {
   trace::Span Tracer("Dex lookup");
   for (const auto &ID : Req.IDs) {
-    auto I = LookupTable.find(ID);
-    if (I != LookupTable.end())
+    
+    if (auto I = LookupTable.find(ID); I != LookupTable.end())
       Callback(*I->second);
   }
 }

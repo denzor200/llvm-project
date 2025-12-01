@@ -455,12 +455,12 @@ bool SIMachineFunctionInfo::allocatePhysicalVGPRForSGPRSpills(
 bool SIMachineFunctionInfo::allocateSGPRSpillToVGPRLane(
     MachineFunction &MF, int FI, bool SpillToPhysVGPRLane,
     bool IsPrologEpilog) {
-  std::vector<SIRegisterInfo::SpilledReg> &SpillLanes =
-      SpillToPhysVGPRLane ? SGPRSpillsToPhysicalVGPRLanes[FI]
-                          : SGPRSpillsToVirtualVGPRLanes[FI];
+  
 
   // This has already been allocated.
-  if (!SpillLanes.empty())
+  if (std::vector<SIRegisterInfo::SpilledReg> &SpillLanes =
+      SpillToPhysVGPRLane ? SGPRSpillsToPhysicalVGPRLanes[FI]
+                          : SGPRSpillsToVirtualVGPRLanes[FI]; !SpillLanes.empty())
     return true;
 
   const GCNSubtarget &ST = MF.getSubtarget<GCNSubtarget>();
@@ -483,11 +483,11 @@ bool SIMachineFunctionInfo::allocateSGPRSpillToVGPRLane(
   for (unsigned I = 0; I < NumLanes; ++I, ++NumSpillLanes) {
     unsigned LaneIndex = (NumSpillLanes % WaveSize);
 
-    bool Allocated = SpillToPhysVGPRLane
+    
+    if (bool Allocated = SpillToPhysVGPRLane
                          ? allocatePhysicalVGPRForSGPRSpills(MF, FI, LaneIndex,
                                                              IsPrologEpilog)
-                         : allocateVirtualVGPRForSGPRSpills(MF, FI, LaneIndex);
-    if (!Allocated) {
+                         : allocateVirtualVGPRForSGPRSpills(MF, FI, LaneIndex); !Allocated) {
       NumSpillLanes -= I;
       return false;
     }
@@ -780,8 +780,8 @@ yaml::SIMachineFunctionInfo::SIMachineFunctionInfo(
   if (MFI.getSGPRForEXECCopy())
     SGPRForEXECCopy = regToString(MFI.getSGPRForEXECCopy(), TRI);
 
-  auto SFI = MFI.getOptionalScavengeFI();
-  if (SFI)
+  
+  if (auto SFI = MFI.getOptionalScavengeFI(); SFI)
     ScavengeFI = yaml::FrameIndex(*SFI, MF.getFrameInfo());
 }
 

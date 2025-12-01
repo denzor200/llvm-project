@@ -66,9 +66,9 @@ void MSP430FrameLowering::emitCalleeSavedFrameMoves(
   for (const CalleeSavedInfo &I : CSI) {
     int64_t Offset = MFI.getObjectOffset(I.getFrameIdx());
     MCRegister Reg = I.getReg();
-    unsigned DwarfReg = MRI->getDwarfRegNum(Reg, true);
+    
 
-    if (IsPrologue) {
+    if (unsigned DwarfReg = MRI->getDwarfRegNum(Reg, true); IsPrologue) {
       BuildCFI(MBB, MBBI, DL,
                MCCFIInstruction::createOffset(nullptr, DwarfReg, Offset));
     } else {
@@ -240,8 +240,8 @@ void MSP430FrameLowering::emitEpilogue(MachineFunction &MF,
   MachineBasicBlock::iterator FirstCSPop = MBBI;
   while (MBBI != MBB.begin()) {
     MachineBasicBlock::iterator PI = std::prev(MBBI);
-    unsigned Opc = PI->getOpcode();
-    if ((Opc != MSP430::POP16r || !PI->getFlag(MachineInstr::FrameDestroy)) &&
+    
+    if (unsigned Opc = PI->getOpcode(); (Opc != MSP430::POP16r || !PI->getFlag(MachineInstr::FrameDestroy)) &&
         !PI->isTerminator())
       break;
     FirstCSPop = PI;
@@ -357,16 +357,16 @@ bool MSP430FrameLowering::restoreCalleeSavedRegisters(
 MachineBasicBlock::iterator MSP430FrameLowering::eliminateCallFramePseudoInstr(
     MachineFunction &MF, MachineBasicBlock &MBB,
     MachineBasicBlock::iterator I) const {
-  const MSP430InstrInfo &TII =
-      *static_cast<const MSP430InstrInfo *>(MF.getSubtarget().getInstrInfo());
-  if (!hasReservedCallFrame(MF)) {
+  
+  if (const MSP430InstrInfo &TII =
+      *static_cast<const MSP430InstrInfo *>(MF.getSubtarget().getInstrInfo()); !hasReservedCallFrame(MF)) {
     // If the stack pointer can be changed after prologue, turn the
     // adjcallstackup instruction into a 'sub SP, <amt>' and the
     // adjcallstackdown instruction into 'add SP, <amt>'
     // TODO: consider using push / pop instead of sub + store / add
     MachineInstr &Old = *I;
-    uint64_t Amount = TII.getFrameSize(Old);
-    if (Amount != 0) {
+    
+    if (uint64_t Amount = TII.getFrameSize(Old); Amount != 0) {
       // We need to keep the stack aligned properly.  To do this, we round the
       // amount of space needed for the outgoing arguments up to the next
       // alignment boundary.

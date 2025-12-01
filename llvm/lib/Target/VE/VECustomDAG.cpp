@@ -101,8 +101,8 @@ bool maySafelyIgnoreMask(SDValue Op) {
 
 bool supportsPackedMode(unsigned Opcode, EVT IdiomVT) {
   bool IsPackedOp = isPackedVectorType(IdiomVT);
-  bool IsMaskOp = isMaskType(IdiomVT);
-  switch (Opcode) {
+  
+  switch (bool IsMaskOp = isMaskType(IdiomVT); Opcode) {
   default:
     return false;
 

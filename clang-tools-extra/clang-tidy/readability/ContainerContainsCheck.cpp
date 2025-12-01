@@ -120,8 +120,8 @@ void ContainerContainsCheck::check(const MatchFinder::MatchResult &Result) {
               << ContainsFunName;
 
   // Don't fix it if it's in a macro invocation. Leave fixing it to the user.
-  const SourceLocation FuncCallLoc = Comparison->getEndLoc();
-  if (!FuncCallLoc.isValid() || FuncCallLoc.isMacroID())
+  
+  if (const SourceLocation FuncCallLoc = Comparison->getEndLoc(); !FuncCallLoc.isValid() || FuncCallLoc.isMacroID())
     return;
 
   const StringRef SearchExprText = Lexer::getSourceText(

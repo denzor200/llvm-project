@@ -133,8 +133,8 @@ void StdThreadPool::processTasks(ThreadPoolTaskGroup *WaitingForGroup) {
       std::lock_guard<std::mutex> LockGuard(QueueLock);
       --ActiveThreads;
       if (GroupOfTask != nullptr) {
-        auto A = ActiveGroups.find(GroupOfTask);
-        if (--(A->second) == 0)
+        
+        if (auto A = ActiveGroups.find(GroupOfTask); --(A->second) == 0)
           ActiveGroups.erase(A);
       }
       Notify = workCompletedUnlocked(GroupOfTask);
@@ -169,8 +169,8 @@ void StdThreadPool::processTasksWithJobserver() {
     do {
       // Return if the thread pool is shutting down.
       {
-        std::unique_lock<std::mutex> LockGuard(QueueLock);
-        if (!EnableFlag)
+        
+        if (std::unique_lock<std::mutex> LockGuard(QueueLock); !EnableFlag)
           return;
       }
 
@@ -231,8 +231,8 @@ void StdThreadPool::processTasksWithJobserver() {
         std::lock_guard<std::mutex> LockGuard(QueueLock);
         --ActiveThreads;
         if (GroupOfTask != nullptr) {
-          auto A = ActiveGroups.find(GroupOfTask);
-          if (--(A->second) == 0)
+          
+          if (auto A = ActiveGroups.find(GroupOfTask); --(A->second) == 0)
             ActiveGroups.erase(A);
         }
         // If all tasks are complete, notify any waiting threads.
@@ -299,8 +299,8 @@ StdThreadPool::~StdThreadPool() {
 
 // No threads are launched, issue a warning if ThreadCount is not 0
 SingleThreadExecutor::SingleThreadExecutor(ThreadPoolStrategy S) {
-  int ThreadCount = S.compute_thread_count();
-  if (ThreadCount != 1) {
+  
+  if (int ThreadCount = S.compute_thread_count(); ThreadCount != 1) {
     errs() << "Warning: request a ThreadPool with " << ThreadCount
            << " threads, but LLVM_ENABLE_THREADS has been turned off\n";
   }

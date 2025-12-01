@@ -313,32 +313,32 @@ struct ArithToAPFloatConversionPass final
     : impl::ArithToAPFloatConversionPassBase<ArithToAPFloatConversionPass> {
   using Base::Base;
 
-  void runOnOperation() override;
+  void runOnOperation() ;
 };
 
 void ArithToAPFloatConversionPass::runOnOperation() {
   MLIRContext *context = &getContext();
   RewritePatternSet patterns(context);
   patterns.add<BinaryArithOpToAPFloatConversion<arith::AddFOp>>(context, "add",
-                                                                getOperation());
+                                                                Operation());
   patterns.add<BinaryArithOpToAPFloatConversion<arith::SubFOp>>(
-      context, "subtract", getOperation());
+      context, "subtract", Operation());
   patterns.add<BinaryArithOpToAPFloatConversion<arith::MulFOp>>(
-      context, "multiply", getOperation());
+      context, "multiply", Operation());
   patterns.add<BinaryArithOpToAPFloatConversion<arith::DivFOp>>(
-      context, "divide", getOperation());
+      context, "divide", Operation());
   patterns.add<BinaryArithOpToAPFloatConversion<arith::RemFOp>>(
-      context, "remainder", getOperation());
+      context, "remainder", Operation());
   patterns
       .add<FpToFpConversion<arith::ExtFOp>, FpToFpConversion<arith::TruncFOp>>(
-          context, getOperation());
-  patterns.add<FpToIntConversion<arith::FPToSIOp>>(context, getOperation(),
+          context, Operation());
+  patterns.add<FpToIntConversion<arith::FPToSIOp>>(context, Operation(),
                                                    /*isUnsigned=*/false);
-  patterns.add<FpToIntConversion<arith::FPToUIOp>>(context, getOperation(),
+  patterns.add<FpToIntConversion<arith::FPToUIOp>>(context, Operation(),
                                                    /*isUnsigned=*/true);
-  patterns.add<IntToFpConversion<arith::SIToFPOp>>(context, getOperation(),
+  patterns.add<IntToFpConversion<arith::SIToFPOp>>(context, Operation(),
                                                    /*isUnsigned=*/false);
-  patterns.add<IntToFpConversion<arith::UIToFPOp>>(context, getOperation(),
+  patterns.add<IntToFpConversion<arith::UIToFPOp>>(context, Operation(),
                                                    /*isUnsigned=*/true);
   LogicalResult result = success();
   ScopedDiagnosticHandler scopedHandler(context, [&result](Diagnostic &diag) {
@@ -349,7 +349,7 @@ void ArithToAPFloatConversionPass::runOnOperation() {
     // mlir/lib/IR/Diagnostics.cpp:DiagnosticEngineImpl::emit).
     return failure();
   });
-  walkAndApplyPatterns(getOperation(), std::move(patterns));
+  walkAndApplyPatterns(Operation(), std::move(patterns));
   if (failed(result))
     return signalPassFailure();
 }

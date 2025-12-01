@@ -128,8 +128,8 @@ std::string computeName(const FormatToken *NamespaceTok) {
     }
     FirstNSTok = Tok;
     Tok = Tok->getNextNonComment();
-    const FormatToken *TokAfterAttr = skipAttribute(Tok);
-    if (TokAfterAttr != Tok)
+    
+    if (const FormatToken *TokAfterAttr = skipAttribute(Tok); TokAfterAttr != Tok)
       FirstNSTok = Tok = TokAfterAttr;
   }
   if (!NameFinished && FirstNSTok && FirstNSTok->isNot(tok::l_brace))
@@ -180,9 +180,9 @@ bool validEndComment(const FormatToken *RBraceTok, StringRef NamespaceName,
   SmallVector<StringRef, 8> Groups;
   if (NamespaceTok->is(TT_NamespaceMacro) &&
       NamespaceMacroCommentPattern.match(Comment->TokenText, &Groups)) {
-    StringRef NamespaceTokenText = Groups.size() > 4 ? Groups[4] : "";
+    
     // The name of the macro must be used.
-    if (NamespaceTokenText != NamespaceTok->TokenText)
+    if (StringRef NamespaceTokenText = Groups.size() > 4 ? Groups[4] : ""; NamespaceTokenText != NamespaceTok->TokenText)
       return false;
   } else if (NamespaceTok->isNot(tok::kw_namespace) ||
              !NamespaceCommentPattern.match(Comment->TokenText, &Groups)) {

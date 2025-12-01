@@ -133,10 +133,10 @@ void DeclarationName::print(raw_ostream &OS,
   switch (getNameKind()) {
   case DeclarationName::Identifier:
     if (const IdentifierInfo *II = getAsIdentifierInfo()) {
-      StringRef Name = II->getName();
+      
       // If this is a mangled OpenMP variant name we strip off the mangling for
       // printing. It should not be visible to the user at all.
-      if (II->isMangledOpenMPVariantName()) {
+      if (StringRef Name = II->getName(); II->isMangledOpenMPVariantName()) {
         std::pair<StringRef, StringRef> NameContextPair =
             Name.split(getOpenMPVariantManglingSeparatorStr());
         OS << NameContextPair.first << "["
@@ -213,8 +213,8 @@ raw_ostream &operator<<(raw_ostream &OS, DeclarationName N) {
 } // namespace clang
 
 bool DeclarationName::isDependentName() const {
-  QualType T = getCXXNameType();
-  if (!T.isNull() && T->isDependentType())
+  
+  if (QualType T = getCXXNameType(); !T.isNull() && T->isDependentType())
     return true;
 
   // A class-scope deduction guide in a dependent context has a dependent name.

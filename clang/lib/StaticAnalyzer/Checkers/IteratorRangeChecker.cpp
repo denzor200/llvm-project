@@ -126,8 +126,8 @@ void IteratorRangeChecker::checkPreCall(const CallEvent &Call,
       }
     }
   } else {
-    const AdvanceFn *Verifier = AdvanceFunctions.lookup(Call);
-    if (Verifier) {
+    
+    if (const AdvanceFn *Verifier = AdvanceFunctions.lookup(Call); Verifier) {
       if (Call.getNumArgs() > 1) {
         (this->**Verifier)(C, Call.getArgSVal(0), Call.getArgSVal(1));
       } else {
@@ -147,9 +147,9 @@ void IteratorRangeChecker::checkPreStmt(const UnaryOperator *UO,
 
   ProgramStateRef State = C.getState();
   UnaryOperatorKind OK = UO->getOpcode();
-  SVal SubVal = State->getSVal(UO->getSubExpr(), C.getLocationContext());
+  
 
-  if (isDereferenceOperator(OK)) {
+  if (SVal SubVal = State->getSVal(UO->getSubExpr(), C.getLocationContext()); isDereferenceOperator(OK)) {
     verifyDereference(C, SubVal);
   } else if (isIncrementOperator(OK)) {
     verifyIncrement(C, SubVal);
@@ -162,9 +162,9 @@ void IteratorRangeChecker::checkPreStmt(const BinaryOperator *BO,
                                         CheckerContext &C) const {
   ProgramStateRef State = C.getState();
   BinaryOperatorKind OK = BO->getOpcode();
-  SVal LVal = State->getSVal(BO->getLHS(), C.getLocationContext());
+  
 
-  if (isDereferenceOperator(OK)) {
+  if (SVal LVal = State->getSVal(BO->getLHS(), C.getLocationContext()); isDereferenceOperator(OK)) {
     verifyDereference(C, LVal);
   } else if (isRandomIncrOrDecrOperator(OK)) {
     SVal RVal = State->getSVal(BO->getRHS(), C.getLocationContext());
@@ -195,8 +195,8 @@ void IteratorRangeChecker::checkPreStmt(const MemberExpr *ME,
 void IteratorRangeChecker::verifyDereference(CheckerContext &C,
                                              SVal Val) const {
   auto State = C.getState();
-  const auto *Pos = getIteratorPosition(State, Val);
-  if (Pos && isPastTheEnd(State, *Pos)) {
+  
+  if (const auto *Pos = getIteratorPosition(State, Val); Pos && isPastTheEnd(State, *Pos)) {
     auto *N = C.generateErrorNode(State);
     if (!N)
       return;

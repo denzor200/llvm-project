@@ -122,9 +122,9 @@ void x86::getX86TargetFeatures(const Driver &D, const llvm::Triple &Triple,
   // Claim and report unsupported -mabi=. Note: we don't support "sysv_abi" or
   // "ms_abi" as default function attributes.
   if (const Arg *A = Args.getLastArg(options::OPT_mabi_EQ)) {
-    StringRef DefaultAbi =
-        (Triple.isOSWindows() || Triple.isUEFI()) ? "ms" : "sysv";
-    if (A->getValue() != DefaultAbi)
+    
+    if (StringRef DefaultAbi =
+        (Triple.isOSWindows() || Triple.isUEFI()) ? "ms" : "sysv"; A->getValue() != DefaultAbi)
       D.Diag(diag::err_drv_unsupported_opt_for_target)
           << A->getSpelling() << Triple.getTriple();
   }
@@ -279,8 +279,8 @@ void x86::getX86TargetFeatures(const Driver &D, const llvm::Triple &Triple,
 
   // Enable/disable straight line speculation hardening.
   if (Arg *A = Args.getLastArg(options::OPT_mharden_sls_EQ)) {
-    StringRef Scope = A->getValue();
-    if (Scope == "all") {
+    
+    if (StringRef Scope = A->getValue(); Scope == "all") {
       Features.push_back("+harden-sls-ijmp");
       Features.push_back("+harden-sls-ret");
     } else if (Scope == "return") {

@@ -54,8 +54,8 @@ ErrorOr<struct ::dirent *> Dir::read() {
 int Dir::close() {
   {
     cpp::lock_guard lock(mutex);
-    int retval = platform_closedir(fd);
-    if (retval != 0)
+    
+    if (int retval = platform_closedir(fd); retval != 0)
       return retval;
   }
   delete this;

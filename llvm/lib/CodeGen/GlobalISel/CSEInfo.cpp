@@ -367,8 +367,8 @@ const GISelInstProfileBuilder &GISelInstProfileBuilder::addNodeIDRegType(
     MachineRegisterInfo::VRegAttrs Attrs) const {
   addNodeIDRegType(Attrs.Ty);
 
-  const RegClassOrRegBank &RCOrRB = Attrs.RCOrRB;
-  if (RCOrRB) {
+  
+  if (const RegClassOrRegBank &RCOrRB = Attrs.RCOrRB; RCOrRB) {
     if (const auto *RB = dyn_cast_if_present<const RegisterBank *>(RCOrRB))
       addNodeIDRegType(RB);
     else

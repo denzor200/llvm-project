@@ -65,8 +65,8 @@ void clang::maybePruneImpl(StringRef Path, time_t PruneInterval,
     for (llvm::sys::fs::directory_iterator File(Dir->path(), EC), FileEnd;
          File != FileEnd && !EC; File.increment(EC)) {
       // We only care about module and global module index files.
-      StringRef Extension = llvm::sys::path::extension(File->path());
-      if (Extension != ".pcm" && Extension != ".timestamp" &&
+      
+      if (StringRef Extension = llvm::sys::path::extension(File->path()); Extension != ".pcm" && Extension != ".timestamp" &&
           llvm::sys::path::filename(File->path()) != "modules.idx")
         continue;
 

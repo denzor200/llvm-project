@@ -171,8 +171,8 @@ bool RegBankSelect::repairReg(
     // sequence.
     assert(ValMapping.partsAllUniform() && "irregular breakdowns not supported");
 
-    LLT RegTy = MRI->getType(MO.getReg());
-    if (MO.isDef()) {
+    
+    if (LLT RegTy = MRI->getType(MO.getReg()); MO.isDef()) {
       unsigned MergeOp;
       if (RegTy.isVector()) {
         if (ValMapping.NumBreakDowns == RegTy.getNumElements())
@@ -297,9 +297,9 @@ const RegisterBankInfo::InstructionMapping &RegBankSelect::findBestMapping(
   SmallVector<RepairingPlacement, 4> LocalRepairPts;
   for (const RegisterBankInfo::InstructionMapping *CurMapping :
        PossibleMappings) {
-    MappingCost CurCost =
-        computeMapping(MI, *CurMapping, LocalRepairPts, &Cost);
-    if (CurCost < Cost) {
+    
+    if (MappingCost CurCost =
+        computeMapping(MI, *CurMapping, LocalRepairPts, &Cost); CurCost < Cost) {
       LLVM_DEBUG(dbgs() << "New best: " << CurCost << '\n');
       Cost = CurCost;
       BestMapping = CurMapping;
@@ -398,8 +398,8 @@ void RegBankSelect::tryAvoidingSplit(
   //   repairing.
 
   // Check if this is a physical or virtual register.
-  Register Reg = MO.getReg();
-  if (Reg.isPhysical()) {
+  
+  if (Register Reg = MO.getReg(); Reg.isPhysical()) {
     // We are going to split every outgoing edges.
     // Check that this is possible.
     // FIXME: The machine representation is currently broken
@@ -560,9 +560,9 @@ RegBankSelect::MappingCost RegBankSelect::computeMapping(
         assert(CostForInsertPt + Bias > CostForInsertPt &&
                "Repairing + split bias overflows");
         CostForInsertPt += Bias;
-        uint64_t PtCost = InsertPt->frequency(*this) * CostForInsertPt;
+        
         // Check if we just overflowed.
-        if ((Saturated = PtCost < CostForInsertPt))
+        if (uint64_t PtCost = InsertPt->frequency(*this) * CostForInsertPt; (Saturated = PtCost < CostForInsertPt))
           Cost.saturate();
         else
           Saturated = Cost.addNonLocalCost(PtCost);
@@ -602,9 +602,9 @@ bool RegBankSelect::applyMapping(
     MachineOperand &MO = MI.getOperand(OpIdx);
     const RegisterBankInfo::ValueMapping &ValMapping =
         InstrMapping.getOperandMapping(OpIdx);
-    Register Reg = MO.getReg();
+    
 
-    switch (RepairPt.getKind()) {
+    switch (Register Reg = MO.getReg(); RepairPt.getKind()) {
     case RepairingPlacement::Reassign:
       assert(ValMapping.NumBreakDowns == 1 &&
              "Reassignment should only be for simple mapping");
@@ -633,8 +633,8 @@ bool RegBankSelect::applyMapping(
 bool RegBankSelect::assignInstr(MachineInstr &MI) {
   LLVM_DEBUG(dbgs() << "Assign: " << MI);
 
-  unsigned Opc = MI.getOpcode();
-  if (isPreISelGenericOptimizationHint(Opc)) {
+  
+  if (unsigned Opc = MI.getOpcode(); isPreISelGenericOptimizationHint(Opc)) {
     assert((Opc == TargetOpcode::G_ASSERT_ZEXT ||
             Opc == TargetOpcode::G_ASSERT_SEXT ||
             Opc == TargetOpcode::G_ASSERT_ALIGN) &&

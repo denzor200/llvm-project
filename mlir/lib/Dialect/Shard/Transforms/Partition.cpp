@@ -562,8 +562,8 @@ partitionOperation(Operation &op, ArrayRef<Value> partitionedOperands,
                    ArrayRef<Sharding> resultShardings, IRMapping &partitionMap,
                    SymbolTableCollection &symbolTableCollection,
                    OpBuilder &builder) {
-  ShardingInterface shardingInterface = llvm::dyn_cast<ShardingInterface>(op);
-  if (!shardingInterface) {
+  
+  if (ShardingInterface shardingInterface = llvm::dyn_cast<ShardingInterface>(op); !shardingInterface) {
     // If there is no sharding interface we are conservative and assume that
     // the op should be fully replicated no all devices.
     partitionFullyReplicatedOperation(op, partitionedOperands, operandShardings,
@@ -680,8 +680,8 @@ partitionOperation(Operation &op, IRMapping &partitionMap,
     return success();
   }
 
-  ShardOp shardOp = llvm::dyn_cast<ShardOp>(op);
-  if (shardOp) {
+  
+  if (ShardOp shardOp = llvm::dyn_cast<ShardOp>(op); shardOp) {
     return partitionOperation(shardOp, partitionMap, symbolTableCollection,
                               builder);
   }
@@ -778,8 +778,8 @@ namespace {
 struct Partition : public impl::PartitionBase<Partition> {
   void runOnOperation() override {
     IRMapping partitionMap;
-    SymbolTableCollection symbolTableCollection;
-    if (failed(partitionFuncOp(getOperation(), partitionMap,
+    
+    if (SymbolTableCollection symbolTableCollection; failed(partitionFuncOp(getOperation(), partitionMap,
                                symbolTableCollection))) {
       return signalPassFailure();
     }

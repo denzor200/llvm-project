@@ -23,8 +23,8 @@ UnwindInfoRegistrationPlugin::Create(ExecutionSession &ES) {
 
   ExecutorAddr Register, Deregister;
 
-  auto &EPC = ES.getExecutorProcessControl();
-  if (auto Err = EPC.getBootstrapSymbols(
+  
+  if (auto auto &EPC = ES.getExecutorProcessControl(); Err = EPC.getBootstrapSymbols(
           {{Register, rt_alt::UnwindInfoManagerRegisterActionName},
            {Deregister, rt_alt::UnwindInfoManagerDeregisterActionName}}))
     return std::move(Err);
@@ -60,8 +60,8 @@ Error UnwindInfoRegistrationPlugin::addUnwindInfoRegistrationActions(
         if (E.getKind() != Edge::KeepAlive || !E.getTarget().isDefined())
           continue;
         auto &TargetBlock = E.getTarget().getBlock();
-        auto &TargetSection = TargetBlock.getSection();
-        if ((TargetSection.getMemProt() & MemProt::Exec) == MemProt::Exec)
+        
+        if (auto &TargetSection = TargetBlock.getSection(); (TargetSection.getMemProt() & MemProt::Exec) == MemProt::Exec)
           CodeBlocks.push_back(&TargetBlock);
       }
     }

@@ -90,8 +90,8 @@ void MarkLive::enqueue(InputChunk *chunk) {
 void MarkLive::enqueueInitFunctions(const ObjFile *obj) {
   const WasmLinkingData &l = obj->getWasmObj()->linkingData();
   for (const WasmInitFunc &f : l.InitFunctions) {
-    auto *initSym = obj->getFunctionSymbol(f.Symbol);
-    if (!initSym->isDiscarded())
+    
+    if (auto *initSym = obj->getFunctionSymbol(f.Symbol); !initSym->isDiscarded())
       enqueue(initSym);
   }
 }
@@ -155,8 +155,8 @@ void MarkLive::mark() {
           reloc.Type == R_WASM_TABLE_INDEX_SLEB64 ||
           reloc.Type == R_WASM_TABLE_INDEX_I32 ||
           reloc.Type == R_WASM_TABLE_INDEX_I64) {
-        auto *funcSym = cast<FunctionSymbol>(sym);
-        if (funcSym->isStub)
+        
+        if (auto *funcSym = cast<FunctionSymbol>(sym); funcSym->isStub)
           continue;
       }
 
@@ -220,8 +220,8 @@ bool MarkLive::isCallCtorsLive() {
   for (const ObjFile *file : ctx.objectFiles) {
     const WasmLinkingData &l = file->getWasmObj()->linkingData();
     for (const WasmInitFunc &f : l.InitFunctions) {
-      auto *sym = file->getFunctionSymbol(f.Symbol);
-      if (!sym->isDiscarded() && sym->isLive())
+      
+      if (auto *sym = file->getFunctionSymbol(f.Symbol); !sym->isDiscarded() && sym->isLive())
         return true;
     }
   }

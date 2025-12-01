@@ -75,10 +75,10 @@ struct TestXeGPUUnrollingPatterns
           tdescTy = prefetchOp.getTensorDescType();
         } else if (auto loadOp = dyn_cast<xegpu::LoadGatherOp>(op)) {
           if (loadOp.getOffsets()) {
-            auto layout = xegpu::getDistributeLayoutAttr(loadOp.getResult());
-            if (layout && layout.isForSubgroup()) {
-              auto inst_data = layout.getEffectiveInstDataAsInt();
-              if (!inst_data.empty())
+            
+            if (auto layout = xegpu::getDistributeLayoutAttr(loadOp.getResult()); layout && layout.isForSubgroup()) {
+              
+              if (auto inst_data = layout.getEffectiveInstDataAsInt(); !inst_data.empty())
                 return SmallVector<int64_t>(inst_data.begin(), inst_data.end());
             }
             return std::nullopt;
@@ -89,8 +89,8 @@ struct TestXeGPUUnrollingPatterns
             auto layout = llvm::dyn_cast_or_null<xegpu::LayoutAttr>(
                 op->getAttr("layout"));
             if (layout && layout.isForSubgroup()) {
-              auto inst_data = layout.getEffectiveInstDataAsInt();
-              if (!inst_data.empty())
+              
+              if (auto inst_data = layout.getEffectiveInstDataAsInt(); !inst_data.empty())
                 return SmallVector<int64_t>(inst_data.begin(), inst_data.end());
             }
             return std::nullopt;
@@ -99,8 +99,8 @@ struct TestXeGPUUnrollingPatterns
         }
 
         if (auto layout = tdescTy.getLayoutAttr()) {
-          auto inst_data = layout.getInstData();
-          if (inst_data && layout.isForSubgroup())
+          
+          if (auto inst_data = layout.getInstData(); inst_data && layout.isForSubgroup())
             return SmallVector<int64_t>(inst_data.asArrayRef().begin(),
                                         inst_data.asArrayRef().end());
         }
@@ -127,9 +127,9 @@ struct TestXeGPUUnrollingPatterns
             // If the encoding is a ScatterTensorDescAttr, we need to
             // potentially adjust the chunk size based on the inst_data.
             if (tdescTy.isScattered()) {
-              int64_t chunkSize = tdescTy.getChunkSizeAsInt();
+              
 
-              if (chunkSize > 1) {
+              if (int64_t chunkSize = tdescTy.getChunkSizeAsInt(); chunkSize > 1) {
                 int64_t blockedChunkSize = chunkSize;
                 auto instData = layout.getInstData();
                 if (!instData.empty())

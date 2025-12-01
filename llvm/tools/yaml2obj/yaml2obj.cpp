@@ -79,8 +79,8 @@ static std::optional<std::string> preprocess(StringRef Buf,
   std::string Preprocessed;
   while (!Buf.empty()) {
     if (Buf.starts_with("[[")) {
-      size_t I = Buf.find_first_of("[]", 2);
-      if (Buf.substr(I).starts_with("]]")) {
+      
+      if (size_t I = Buf.find_first_of("[]", 2); Buf.substr(I).starts_with("]]")) {
         StringRef MacroExpr = Buf.substr(2, I - 2);
         StringRef Macro;
         StringRef Default;
@@ -145,9 +145,9 @@ int main(int argc, char **argv) {
   if (PreprocessOnly) {
     Out->os() << Buffer;
   } else {
-    yaml::Input YIn(*Buffer);
+    
 
-    if (!convertYAML(YIn, Out->os(), ErrHandler, DocNum,
+    if (yaml::Input YIn(*Buffer); !convertYAML(YIn, Out->os(), ErrHandler, DocNum,
                      MaxSize == 0 ? UINT64_MAX : MaxSize))
       return 1;
   }

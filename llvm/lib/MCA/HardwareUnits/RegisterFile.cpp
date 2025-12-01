@@ -133,8 +133,8 @@ void RegisterFile::onInstructionExecuted(Instruction *IS) {
       WR.notifyExecuted(CurrentCycle);
 
     for (MCPhysReg I : MRI.subregs(RegID)) {
-      WriteRef &OtherWR = RegisterMappings[I].first;
-      if (OtherWR.getWriteState() == &WS)
+      
+      if (WriteRef &OtherWR = RegisterMappings[I].first; OtherWR.getWriteState() == &WS)
         OtherWR.notifyExecuted(CurrentCycle);
     }
 
@@ -142,8 +142,8 @@ void RegisterFile::onInstructionExecuted(Instruction *IS) {
       continue;
 
     for (MCPhysReg I : MRI.superregs(RegID)) {
-      WriteRef &OtherWR = RegisterMappings[I].first;
-      if (OtherWR.getWriteState() == &WS)
+      
+      if (WriteRef &OtherWR = RegisterMappings[I].first; OtherWR.getWriteState() == &WS)
         OtherWR.notifyExecuted(CurrentCycle);
     }
   }
@@ -188,8 +188,8 @@ void RegisterFile::addRegisterFile(const MCRegisterFileDesc &RF,
 
       // Assume the same cost for each sub-register.
       for (MCPhysReg I : MRI.subregs(Reg)) {
-        RegisterRenamingInfo &OtherEntry = RegisterMappings[I].second;
-        if (!OtherEntry.IndexPlusCost.first &&
+        
+        if (RegisterRenamingInfo &OtherEntry = RegisterMappings[I].second; !OtherEntry.IndexPlusCost.first &&
             (!OtherEntry.RenameAs ||
              MRI.isSuperRegister(I, OtherEntry.RenameAs))) {
           OtherEntry.IndexPlusCost = IPC;
@@ -266,16 +266,16 @@ void RegisterFile::addRegisterWrite(WriteRef Write,
 
   if (RRI.RenameAs && RRI.RenameAs != RegID) {
     RegID = RRI.RenameAs;
-    WriteRef &OtherWrite = RegisterMappings[RegID].first;
+    
 
-    if (!WS.clearsSuperRegisters()) {
+    if (WriteRef &OtherWrite = RegisterMappings[RegID].first; !WS.clearsSuperRegisters()) {
       // The processor keeps the definition of `RegID` together with register
       // `RenameAs`. Since this partial write is not renamed, no physical
       // register is allocated.
       ShouldAllocatePhysRegs = false;
 
-      WriteState *OtherWS = OtherWrite.getWriteState();
-      if (OtherWS && (OtherWrite.getSourceIndex() != Write.getSourceIndex())) {
+      
+      if (WriteState *OtherWS = OtherWrite.getWriteState(); OtherWS && (OtherWrite.getSourceIndex() != Write.getSourceIndex())) {
         // This partial write has a false dependency on RenameAs.
         assert(!IsEliminated && "Unexpected partial update!");
         OtherWS->addUser(OtherWrite.getSourceIndex(), &WS);
@@ -297,8 +297,8 @@ void RegisterFile::addRegisterWrite(WriteRef Write,
     // Check if this is one of multiple writes performed by this
     // instruction to register RegID.
     const WriteRef &OtherWrite = RegisterMappings[RegID].first;
-    const WriteState *OtherWS = OtherWrite.getWriteState();
-    if (OtherWS && OtherWrite.getSourceIndex() == Write.getSourceIndex()) {
+    
+    if (const WriteState *OtherWS = OtherWrite.getWriteState(); OtherWS && OtherWrite.getSourceIndex() == Write.getSourceIndex()) {
       if (OtherWS->getLatency() > WS.getLatency()) {
         // Conservatively keep the slowest write on RegID.
         if (ShouldAllocatePhysRegs)
@@ -373,8 +373,8 @@ void RegisterFile::removeRegisterWrite(
     WR.commit();
 
   for (MCPhysReg I : MRI.subregs(RegID)) {
-    WriteRef &OtherWR = RegisterMappings[I].first;
-    if (OtherWR.getWriteState() == &WS)
+    
+    if (WriteRef &OtherWR = RegisterMappings[I].first; OtherWR.getWriteState() == &WS)
       OtherWR.commit();
   }
 
@@ -382,8 +382,8 @@ void RegisterFile::removeRegisterWrite(
     return;
 
   for (MCPhysReg I : MRI.superregs(RegID)) {
-    WriteRef &OtherWR = RegisterMappings[I].first;
-    if (OtherWR.getWriteState() == &WS)
+    
+    if (WriteRef &OtherWR = RegisterMappings[I].first; OtherWR.getWriteState() == &WS)
       OtherWR.commit();
   }
 }
@@ -395,8 +395,8 @@ bool RegisterFile::canEliminateMove(const WriteState &WS, const ReadState &RS,
   const RegisterMappingTracker &RMT = RegisterFiles[RegisterFileIndex];
 
   // From and To must be owned by the PRF at index `RegisterFileIndex`.
-  const RegisterRenamingInfo &RRIFrom = RMFrom.second;
-  if (RRIFrom.IndexPlusCost.first != RegisterFileIndex)
+  
+  if (const RegisterRenamingInfo &RRIFrom = RMFrom.second; RRIFrom.IndexPlusCost.first != RegisterFileIndex)
     return false;
 
   const RegisterRenamingInfo &RRITo = RMTo.second;
@@ -455,8 +455,8 @@ bool RegisterFile::tryEliminateMoveOrSwap(MutableArrayRef<WriteState> Writes,
 
   for (size_t I = 0, E = Writes.size(); I < E; ++I) {
     const ReadState &RS = Reads[I];
-    const WriteState &WS = Writes[E - (I + 1)];
-    if (!canEliminateMove(WS, RS, RegisterFileIndex))
+    
+    if (const WriteState &WS = Writes[E - (I + 1)]; !canEliminateMove(WS, RS, RegisterFileIndex))
       return false;
   }
 
@@ -474,8 +474,8 @@ bool RegisterFile::tryEliminateMoveOrSwap(MutableArrayRef<WriteState> Writes,
         RRIFrom.RenameAs ? RRIFrom.RenameAs : RS.getRegisterID();
     MCPhysReg AliasReg = RRITo.RenameAs ? RRITo.RenameAs : WS.getRegisterID();
 
-    const RegisterRenamingInfo &RMAlias = RegisterMappings[AliasedReg].second;
-    if (RMAlias.AliasRegID)
+    
+    if (const RegisterRenamingInfo &RMAlias = RegisterMappings[AliasedReg].second; RMAlias.AliasRegID)
       AliasedReg = RMAlias.AliasRegID;
 
     RegisterMappings[AliasReg].second.AliasRegID = AliasedReg;
@@ -520,8 +520,8 @@ void RegisterFile::collectWrites(
                     << MRI.getName(RegID) << '\n');
 
   // Check if this is an alias.
-  const RegisterRenamingInfo &RRI = RegisterMappings[RegID].second;
-  if (RRI.AliasRegID)
+  
+  if (const RegisterRenamingInfo &RRI = RegisterMappings[RegID].second; RRI.AliasRegID)
     RegID = RRI.AliasRegID;
 
   const WriteRef &WR = RegisterMappings[RegID].first;
@@ -529,25 +529,25 @@ void RegisterFile::collectWrites(
     Writes.push_back(WR);
   } else if (WR.hasKnownWriteBackCycle()) {
     unsigned WriteResID = WR.getWriteResourceID();
-    int ReadAdvance = STI.getReadAdvanceCycles(SC, RD.UseIndex, WriteResID);
-    if (ReadAdvance < 0) {
-      unsigned Elapsed = getElapsedCyclesFromWriteBack(WR);
-      if (Elapsed < static_cast<unsigned>(-ReadAdvance))
+    
+    if (int ReadAdvance = STI.getReadAdvanceCycles(SC, RD.UseIndex, WriteResID); ReadAdvance < 0) {
+      
+      if (unsigned Elapsed = getElapsedCyclesFromWriteBack(WR); Elapsed < static_cast<unsigned>(-ReadAdvance))
         CommittedWrites.push_back(WR);
     }
   }
 
   // Handle potential partial register updates.
   for (MCPhysReg I : MRI.subregs(RegID)) {
-    const WriteRef &WR = RegisterMappings[I].first;
-    if (WR.getWriteState()) {
+    
+    if (const WriteRef &WR = RegisterMappings[I].first; WR.getWriteState()) {
       Writes.push_back(WR);
     } else if (WR.hasKnownWriteBackCycle()) {
       unsigned WriteResID = WR.getWriteResourceID();
-      int ReadAdvance = STI.getReadAdvanceCycles(SC, RD.UseIndex, WriteResID);
-      if (ReadAdvance < 0) {
-        unsigned Elapsed = getElapsedCyclesFromWriteBack(WR);
-        if (Elapsed < static_cast<unsigned>(-ReadAdvance))
+      
+      if (int ReadAdvance = STI.getReadAdvanceCycles(SC, RD.UseIndex, WriteResID); ReadAdvance < 0) {
+        
+        if (unsigned Elapsed = getElapsedCyclesFromWriteBack(WR); Elapsed < static_cast<unsigned>(-ReadAdvance))
           CommittedWrites.push_back(WR);
       }
     }

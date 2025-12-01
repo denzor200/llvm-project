@@ -188,8 +188,8 @@ void AvoidCStyleCastsCheck::check(const MatchFinder::MatchResult &Result) {
       diag(CastExpr->getBeginLoc(), "C-style casts are discouraged; use %0");
 
   auto ReplaceWithCast = [&](std::string CastText) {
-    const Expr *SubExpr = CastExpr->getSubExprAsWritten()->IgnoreImpCasts();
-    if (!isa<ParenExpr>(SubExpr) && !isa<CXXFunctionalCastExpr>(CastExpr)) {
+    
+    if (const Expr *SubExpr = CastExpr->getSubExprAsWritten()->IgnoreImpCasts(); !isa<ParenExpr>(SubExpr) && !isa<CXXFunctionalCastExpr>(CastExpr)) {
       CastText.push_back('(');
       Diag << FixItHint::CreateInsertion(
           Lexer::getLocForEndOfToken(SubExpr->getEndLoc(), 0, SM,
@@ -240,8 +240,8 @@ void AvoidCStyleCastsCheck::check(const MatchFinder::MatchResult &Result) {
     }
     if (DestType->isReferenceType()) {
       const QualType Dest = DestType.getNonReferenceType();
-      const QualType Source = SourceType.getNonReferenceType();
-      if (Source == Dest.withConst() ||
+      
+      if (const QualType Source = SourceType.getNonReferenceType(); Source == Dest.withConst() ||
           SourceType.getNonReferenceType() == DestType.getNonReferenceType()) {
         ReplaceWithNamedCast("const_cast");
         return;

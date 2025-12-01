@@ -118,8 +118,8 @@ static nvgpu::LdMatrixOp rebuildLdMatrixOp(RewriterBase &rewriter,
 template <typename TransferLikeOp>
 static FailureOr<Value>
 getTransferLikeOpSrcMemRef(TransferLikeOp transferLikeOp) {
-  Value src = transferLikeOp.getBase();
-  if (isa<MemRefType>(src.getType()))
+  
+  if (Value src = transferLikeOp.getBase(); isa<MemRefType>(src.getType()))
     return src;
   return failure();
 }

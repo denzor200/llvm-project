@@ -85,9 +85,9 @@ void SDTRewriter::readSection() {
     if (NameSz == 0)
       errs() << "BOLT-WARNING: SDT note has empty name\n";
 
-    StringRef Name = DE.getCStr(&Offset);
+    
 
-    if (Name != "stapsdt")
+    if (StringRef Name = DE.getCStr(&Offset); Name != "stapsdt")
       errs() << "BOLT-WARNING: SDT note name \"" << Name
              << "\" is not expected\n";
 

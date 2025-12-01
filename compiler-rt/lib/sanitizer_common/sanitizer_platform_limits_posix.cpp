@@ -240,9 +240,9 @@ namespace __sanitizer {
     const auto *fpregs = static_cast<ucontext_t *>(ctx)->uc_mcontext.fpregs;
     // The member names differ across header versions, but the actual layout
     // is always the same.  So avoid using members, just use arithmetic.
-    const uint32_t *after_xmm =
-        reinterpret_cast<const uint32_t *>(fpregs + 1) - 24;
-    if (after_xmm[12] == FP_XSTATE_MAGIC1)
+    
+    if (const uint32_t *after_xmm =
+        reinterpret_cast<const uint32_t *>(fpregs + 1) - 24; after_xmm[12] == FP_XSTATE_MAGIC1)
       return reinterpret_cast<const char *>(fpregs) + after_xmm[13] -
              static_cast<const char *>(ctx);
 #    endif

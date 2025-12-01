@@ -18,8 +18,8 @@ RegisterContextCorePOSIX_riscv64::Create(Thread &thread, const ArchSpec &arch,
                                          llvm::ArrayRef<CoreNote> notes) {
   Flags opt_regsets = RegisterInfoPOSIX_riscv64::eRegsetMaskDefault;
 
-  DataExtractor fpregset = getRegset(notes, arch.GetTriple(), FPR_Desc);
-  if (fpregset.GetByteSize() >= sizeof(uint64_t)) {
+  
+  if (DataExtractor fpregset = getRegset(notes, arch.GetTriple(), FPR_Desc); fpregset.GetByteSize() >= sizeof(uint64_t)) {
     opt_regsets.Set(RegisterInfoPOSIX_riscv64::eRegsetMaskFP);
   }
 

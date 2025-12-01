@@ -21,9 +21,9 @@ public:
     // Making sure we don't overflow buffer.
     ASSERT_GE(dst.size(), count);
     // Making sure memccpy returns dst.
-    void *result = LIBC_NAMESPACE::memccpy(dst.data(), src.data(), end, count);
+    
 
-    if (shouldReturnNull) {
+    if (void *result = LIBC_NAMESPACE::memccpy(dst.data(), src.data(), end, count); shouldReturnNull) {
       ASSERT_EQ(result, static_cast<void *>(nullptr));
     } else {
       ASSERT_EQ(result, static_cast<void *>(dst.data() + expectedCopied));

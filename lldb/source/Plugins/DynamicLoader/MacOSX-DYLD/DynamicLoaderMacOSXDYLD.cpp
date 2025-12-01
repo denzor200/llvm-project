@@ -58,18 +58,18 @@ DynamicLoader *DynamicLoaderMacOSXDYLD::CreateInstance(Process *process,
   bool create = force;
   if (!create) {
     create = true;
-    Module *exe_module = process->GetTarget().GetExecutableModulePointer();
-    if (exe_module) {
-      ObjectFile *object_file = exe_module->GetObjectFile();
-      if (object_file) {
+    
+    if (Module *exe_module = process->GetTarget().GetExecutableModulePointer(); exe_module) {
+      
+      if (ObjectFile *object_file = exe_module->GetObjectFile(); object_file) {
         create = (object_file->GetStrata() == ObjectFile::eStrataUser);
       }
     }
 
     if (create) {
-      const llvm::Triple &triple_ref =
-          process->GetTarget().GetArchitecture().GetTriple();
-      switch (triple_ref.getOS()) {
+      
+      switch (const llvm::Triple &triple_ref =
+          process->GetTarget().GetArchitecture().GetTriple(); triple_ref.getOS()) {
       case llvm::Triple::Darwin:
       case llvm::Triple::MacOSX:
       case llvm::Triple::IOS:
@@ -119,8 +119,8 @@ bool DynamicLoaderMacOSXDYLD::ProcessDidExec() {
       // We know if a process has exec'ed if our "m_dyld_all_image_infos_addr"
       // value differs from the Process' image info address. When a process
       // execs itself it might cause a change if ASLR is enabled.
-      const addr_t shlib_addr = m_process->GetImageInfoAddress();
-      if (m_process_image_addr_is_all_images_infos &&
+      
+      if (const addr_t shlib_addr = m_process->GetImageInfoAddress(); m_process_image_addr_is_all_images_infos &&
           shlib_addr != m_dyld_all_image_infos_addr) {
         // The image info address from the process is the
         // 'dyld_all_image_infos' address and it has changed.
@@ -134,13 +134,13 @@ bool DynamicLoaderMacOSXDYLD::ProcessDidExec() {
         // ASLR might be disabled and dyld could have ended up in the same
         // location. We should try and detect if we are stopped at
         // '_dyld_start'
-        ThreadSP thread_sp(m_process->GetThreadList().GetThreadAtIndex(0));
-        if (thread_sp) {
-          lldb::StackFrameSP frame_sp(thread_sp->GetStackFrameAtIndex(0));
-          if (frame_sp) {
-            const Symbol *symbol =
-                frame_sp->GetSymbolContext(eSymbolContextSymbol).symbol;
-            if (symbol) {
+        
+        if (ThreadSP thread_sp(m_process->GetThreadList().GetThreadAtIndex(0)); thread_sp) {
+          
+          if (lldb::StackFrameSP frame_sp(thread_sp->GetStackFrameAtIndex(0)); frame_sp) {
+            
+            if (const Symbol *symbol =
+                frame_sp->GetSymbolContext(eSymbolContextSymbol).symbol; symbol) {
               if (symbol->GetName() == "_dyld_start")
                 did_exec = true;
             }
@@ -188,17 +188,17 @@ void DynamicLoaderMacOSXDYLD::DoInitialImageFetch() {
   if (m_dyld_all_image_infos_addr == LLDB_INVALID_ADDRESS) {
     // Check the image info addr as it might point to the mach header for dyld,
     // or it might point to the dyld_all_image_infos struct
-    const addr_t shlib_addr = m_process->GetImageInfoAddress();
-    if (shlib_addr != LLDB_INVALID_ADDRESS) {
+    
+    if (const addr_t shlib_addr = m_process->GetImageInfoAddress(); shlib_addr != LLDB_INVALID_ADDRESS) {
       ByteOrder byte_order =
           m_process->GetTarget().GetArchitecture().GetByteOrder();
       uint8_t buf[4];
       DataExtractor data(buf, sizeof(buf), byte_order, 4);
-      Status error;
-      if (m_process->ReadMemory(shlib_addr, buf, 4, error) == 4) {
+      
+      if (Status error; m_process->ReadMemory(shlib_addr, buf, 4, error) == 4) {
         lldb::offset_t offset = 0;
-        uint32_t magic = data.GetU32(&offset);
-        switch (magic) {
+        
+        switch (uint32_t magic = data.GetU32(&offset); magic) {
         case llvm::MachO::MH_MAGIC:
         case llvm::MachO::MH_MAGIC_64:
         case llvm::MachO::MH_CIGAM:
@@ -230,11 +230,11 @@ void DynamicLoaderMacOSXDYLD::DoInitialImageFetch() {
   }
 
   // Check some default values
-  Module *executable = m_process->GetTarget().GetExecutableModulePointer();
+  
 
-  if (executable) {
-    const ArchSpec &exe_arch = executable->GetArchitecture();
-    if (exe_arch.GetAddressByteSize() == 8) {
+  if (Module *executable = m_process->GetTarget().GetExecutableModulePointer(); executable) {
+    
+    if (const ArchSpec &exe_arch = executable->GetArchitecture(); exe_arch.GetAddressByteSize() == 8) {
       ReadDYLDInfoFromMemoryAndSetNotificationCallback(0x7fff5fc00000ull);
     } else if (exe_arch.GetMachine() == llvm::Triple::arm ||
                exe_arch.GetMachine() == llvm::Triple::thumb ||
@@ -253,8 +253,8 @@ bool DynamicLoaderMacOSXDYLD::ReadDYLDInfoFromMemoryAndSetNotificationCallback(
   std::lock_guard<std::recursive_mutex> baseclass_guard(GetMutex());
   DataExtractor data; // Load command data
   static ConstString g_dyld_all_image_infos("dyld_all_image_infos");
-  static ConstString g_new_dyld_all_image_infos("dyld4::dyld_all_image_infos");
-  if (ReadMachHeader(addr, &m_dyld.header, &data)) {
+  
+  if (static ConstString g_new_dyld_all_image_infos("dyld4::dyld_all_image_infos"); ReadMachHeader(addr, &m_dyld.header, &data)) {
     if (m_dyld.header.filetype == llvm::MachO::MH_DYLINKER) {
       m_dyld.address = addr;
       ModuleSP dyld_module_sp;
@@ -284,9 +284,9 @@ bool DynamicLoaderMacOSXDYLD::ReadDYLDInfoFromMemoryAndSetNotificationCallback(
 
       if (m_dyld_all_image_infos_addr == LLDB_INVALID_ADDRESS) {
         ConstString g_sect_name("__all_image_info");
-        SectionSP dyld_aii_section_sp =
-            dyld_module_sp->GetSectionList()->FindSectionByName(g_sect_name);
-        if (dyld_aii_section_sp) {
+        
+        if (SectionSP dyld_aii_section_sp =
+            dyld_module_sp->GetSectionList()->FindSectionByName(g_sect_name); dyld_aii_section_sp) {
           Address dyld_aii_addr(dyld_aii_section_sp, 0);
           m_dyld_all_image_infos_addr = dyld_aii_addr.GetLoadAddress(&target);
         }
@@ -387,22 +387,22 @@ bool DynamicLoaderMacOSXDYLD::NotifyBreakpointHit(
     argument_values.PushValue(input_value);
 
     if (abi->GetArgumentValues(exe_ctx.GetThreadRef(), argument_values)) {
-      uint32_t dyld_mode =
-          argument_values.GetValueAtIndex(0)->GetScalar().UInt(-1);
-      if (dyld_mode != static_cast<uint32_t>(-1)) {
+      
+      if (uint32_t dyld_mode =
+          argument_values.GetValueAtIndex(0)->GetScalar().UInt(-1); dyld_mode != static_cast<uint32_t>(-1)) {
         // Okay the mode was right, now get the number of elements, and the
         // array of new elements...
-        uint32_t image_infos_count =
-            argument_values.GetValueAtIndex(1)->GetScalar().UInt(-1);
-        if (image_infos_count != static_cast<uint32_t>(-1)) {
+        
+        if (uint32_t image_infos_count =
+            argument_values.GetValueAtIndex(1)->GetScalar().UInt(-1); image_infos_count != static_cast<uint32_t>(-1)) {
           // Got the number added, now go through the array of added elements,
           // putting out the mach header address, and adding the image. Note,
           // I'm not putting in logging here, since the AddModules &
           // RemoveModules functions do all the logging internally.
 
-          lldb::addr_t image_infos_addr =
-              argument_values.GetValueAtIndex(2)->GetScalar().ULongLong();
-          if (dyld_mode == 0) {
+          
+          if (lldb::addr_t image_infos_addr =
+              argument_values.GetValueAtIndex(2)->GetScalar().ULongLong(); dyld_mode == 0) {
             // This is add:
             dyld_instance->AddModulesUsingImageInfosAddress(image_infos_addr,
                                                             image_infos_count);
@@ -513,7 +513,7 @@ bool DynamicLoaderMacOSXDYLD::ReadAllImageInfosStructure() {
       m_dyld_all_image_infos.dyldImageLoadAddress = data.GetAddress(&offset);
       if (m_dyld_all_image_infos.version >= 11) {
         offset += addr_size * 8;
-        uint64_t dyld_all_image_infos_addr = data.GetAddress(&offset);
+        
 
         // When we started, we were given the actual address of the
         // all_image_infos struct (probably via TASK_DYLD_INFO) in memory -
@@ -528,7 +528,7 @@ bool DynamicLoaderMacOSXDYLD::ReadAllImageInfosStructure() {
         // addresses, and need to be adjusted.  Most importantly the address of
         // dyld and the notification address need to be adjusted.
 
-        if (dyld_all_image_infos_addr != m_dyld_all_image_infos_addr) {
+        if (uint64_t dyld_all_image_infos_addr = data.GetAddress(&offset); dyld_all_image_infos_addr != m_dyld_all_image_infos_addr) {
           uint64_t image_infos_offset =
               dyld_all_image_infos_addr -
               m_dyld_all_image_infos.dyldImageLoadAddress;
@@ -688,9 +688,9 @@ bool DynamicLoaderMacOSXDYLD::ReadImageInfos(
   const size_t count = image_infos.size() * 3 * addr_size;
   DataBufferHeap info_data(count, 0);
   Status error;
-  const size_t bytes_read = m_process->ReadMemory(
-      image_infos_addr, info_data.GetBytes(), info_data.GetByteSize(), error);
-  if (bytes_read == count) {
+  
+  if (const size_t bytes_read = m_process->ReadMemory(
+      image_infos_addr, info_data.GetBytes(), info_data.GetByteSize(), error); bytes_read == count) {
     lldb::offset_t info_data_offset = 0;
     DataExtractor info_data_ref(info_data.GetBytes(), info_data.GetByteSize(),
                                 endian, addr_size);
@@ -784,9 +784,9 @@ bool DynamicLoaderMacOSXDYLD::ReadMachHeader(lldb::addr_t addr,
                                              DataExtractor *load_command_data) {
   DataBufferHeap header_bytes(sizeof(llvm::MachO::mach_header), 0);
   Status error;
-  size_t bytes_read = m_process->ReadMemory(addr, header_bytes.GetBytes(),
-                                            header_bytes.GetByteSize(), error);
-  if (bytes_read == sizeof(llvm::MachO::mach_header)) {
+  
+  if (size_t bytes_read = m_process->ReadMemory(addr, header_bytes.GetBytes(),
+                                            header_bytes.GetByteSize(), error); bytes_read == sizeof(llvm::MachO::mach_header)) {
     lldb::offset_t offset = 0;
     ::memset(header, 0, sizeof(llvm::MachO::mach_header));
 
@@ -826,11 +826,11 @@ bool DynamicLoaderMacOSXDYLD::ReadMachHeader(lldb::addr_t addr,
       WritableDataBufferSP load_cmd_data_sp(
           new DataBufferHeap(header->sizeofcmds, 0));
 
-      size_t load_cmd_bytes_read =
-          m_process->ReadMemory(load_cmd_addr, load_cmd_data_sp->GetBytes(),
-                                load_cmd_data_sp->GetByteSize(), error);
+      
 
-      if (load_cmd_bytes_read == header->sizeofcmds) {
+      if (size_t load_cmd_bytes_read =
+          m_process->ReadMemory(load_cmd_addr, load_cmd_data_sp->GetBytes(),
+                                load_cmd_data_sp->GetByteSize(), error); load_cmd_bytes_read == header->sizeofcmds) {
         // Set the load command data and also set the correct endian swap
         // settings and the correct address size
         load_command_data->SetData(load_cmd_data_sp, 0, header->sizeofcmds);
@@ -955,14 +955,14 @@ void DynamicLoaderMacOSXDYLD::UpdateImageInfosHeaderAndLoadCommands(
     }
   }
 
-  Target &target = m_process->GetTarget();
+  
 
-  if (exe_idx < image_infos.size()) {
+  if (Target &target = m_process->GetTarget(); exe_idx < image_infos.size()) {
     const bool can_create = true;
-    ModuleSP exe_module_sp(FindTargetModuleForImageInfo(image_infos[exe_idx],
-                                                        can_create, nullptr));
+    
 
-    if (exe_module_sp) {
+    if (ModuleSP exe_module_sp(FindTargetModuleForImageInfo(image_infos[exe_idx],
+                                                        can_create, nullptr)); exe_module_sp) {
       UpdateImageLoadAddress(exe_module_sp.get(), image_infos[exe_idx]);
 
       if (exe_module_sp.get() != target.GetExecutableModulePointer()) {
@@ -1008,8 +1008,8 @@ void DynamicLoaderMacOSXDYLD::PutToLog(Log *log) const {
             (uint64_t)m_dyld_all_image_infos.dylib_info_addr,
             (uint64_t)m_dyld_all_image_infos.notification);
   size_t i;
-  const size_t count = m_dyld_image_infos.size();
-  if (count > 0) {
+  
+  if (const size_t count = m_dyld_image_infos.size(); count > 0) {
     log->PutCString("Loaded:");
     for (i = 0; i < count; i++)
       m_dyld_image_infos[i].PutToLog(log);
@@ -1028,8 +1028,8 @@ bool DynamicLoaderMacOSXDYLD::SetNotificationBreakpoint() {
       bool resolved = m_process->GetTarget().ResolveLoadAddress(
           m_dyld_all_image_infos.notification, so_addr);
       if (!resolved) {
-        ModuleSP dyld_module_sp = GetDYLDModule();
-        if (dyld_module_sp) {
+        
+        if (ModuleSP dyld_module_sp = GetDYLDModule(); dyld_module_sp) {
           std::lock_guard<std::recursive_mutex> baseclass_guard(GetMutex());
 
           UpdateImageLoadAddress(dyld_module_sp.get(), m_dyld);
@@ -1087,9 +1087,9 @@ bool DynamicLoaderMacOSXDYLD::GetSharedCacheInformation(
     // of dyld_all_image_infos is required to get the sharedCacheUUID field.
 
     Status err;
-    uint32_t version_or_magic =
-        m_process->ReadUnsignedIntegerFromMemory(all_image_infos, 4, -1, err);
-    if (version_or_magic != static_cast<uint32_t>(-1) &&
+    
+    if (uint32_t version_or_magic =
+        m_process->ReadUnsignedIntegerFromMemory(all_image_infos, 4, -1, err); version_or_magic != static_cast<uint32_t>(-1) &&
         version_or_magic != llvm::MachO::MH_MAGIC &&
         version_or_magic != llvm::MachO::MH_CIGAM &&
         version_or_magic != llvm::MachO::MH_MAGIC_64 &&
@@ -1106,8 +1106,8 @@ bool DynamicLoaderMacOSXDYLD::GetSharedCacheInformation(
             all_image_infos + 84; // sharedCacheUUID <mach-o/dyld_images.h>
       }
       if (sharedCacheUUID_address != LLDB_INVALID_ADDRESS) {
-        uuid_t shared_cache_uuid;
-        if (m_process->ReadMemory(sharedCacheUUID_address, shared_cache_uuid,
+        
+        if (uuid_t shared_cache_uuid; m_process->ReadMemory(sharedCacheUUID_address, shared_cache_uuid,
                                   sizeof(uuid_t), err) == sizeof(uuid_t)) {
           uuid = UUID(shared_cache_uuid, 16);
           if (uuid.IsValid()) {

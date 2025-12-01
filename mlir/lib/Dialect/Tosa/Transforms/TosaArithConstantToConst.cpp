@@ -90,20 +90,20 @@ public:
 };
 
 struct TosaArithConstantToTosaConstPass
-    : public tosa::impl::TosaArithConstantToTosaConstPassBase<
+    : public impl::TosaArithConstantToTosaConstPassBase<
           TosaArithConstantToTosaConstPass> {
-  using Base::Base;
+  using ArithConstantToTosaConst::Base::Base;
 
-  void getDependentDialects(DialectRegistry &registry) const override {
+  void getDependentDialects(DialectRegistry &registry) const {
     registry.insert<arith::ArithDialect, tosa::TosaDialect>();
   }
 
-  void runOnOperation() override {
+  void runOnOperation() {
     auto *ctx = &getContext();
     RewritePatternSet patterns(ctx);
     patterns.add<ArithConstantToTosaConst>(ctx);
 
-    if (failed(applyPatternsGreedily(getOperation(), std::move(patterns))))
+    if (failed(applyPatternsGreedily(Operation(), std::move(patterns))))
       signalPassFailure();
   }
 };

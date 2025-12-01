@@ -616,9 +616,9 @@ SymbolFileCTF::ParseType(lldb::offset_t &offset, lldb::user_id_t uid) {
   const uint32_t kind = GetKind(ctf_stype.info);
   const uint32_t variable_length = GetVLen(ctf_stype.info);
   const uint32_t type = ctf_stype.GetType();
-  const uint32_t size = ctf_stype.GetSize();
+  
 
-  switch (kind) {
+  switch (const uint32_t size = ctf_stype.GetSize(); kind) {
   case TypeKind::eInteger: {
     const uint32_t vdata = m_data.GetU32(&offset);
     const uint32_t bits = GetBits(vdata);
@@ -743,10 +743,10 @@ size_t SymbolFileCTF::ParseTypes(CompileUnit &cu) {
 
     // Remove the CTF type because we don't need it anymore, except for record
     // types which we may need to complete later.
-    auto ctf_type_it = m_ctf_types.find(uid);
-    if (ctf_type_it != m_ctf_types.end()) {
-      CTFType *ctf_type = ctf_type_it->second.get();
-      if (!llvm::isa<CTFRecord>(ctf_type))
+    
+    if (auto ctf_type_it = m_ctf_types.find(uid); ctf_type_it != m_ctf_types.end()) {
+      
+      if (CTFType *ctf_type = ctf_type_it->second.get(); !llvm::isa<CTFRecord>(ctf_type))
         m_ctf_types.erase(uid);
     }
   }
@@ -905,9 +905,9 @@ size_t SymbolFileCTF::ParseObjects(CompileUnit &comp_unit) {
   uint32_t symbol_idx = 0;
   Declaration decl;
   while (object_offset < object_offset_end) {
-    const uint32_t type_uid = m_data.GetU32(&object_offset);
+    
 
-    if (Symbol *symbol =
+    if (Symbol *const uint32_t type_uid = m_data.GetU32(&object_offset); symbol =
             symtab->FindSymbolWithType(eSymbolTypeData, Symtab::eDebugYes,
                                        Symtab::eVisibilityAny, symbol_idx)) {
       Variable::RangeList ranges;

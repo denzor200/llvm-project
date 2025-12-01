@@ -90,8 +90,8 @@ void unmap(void *Addr, uptr Size, UNUSED uptr Flags,
 // TODO: Will be deprecated. Use the interfaces in MemMapLinux instead.
 void setMemoryPermission(uptr Addr, uptr Size, uptr Flags,
                          UNUSED MapPlatformData *Data) {
-  int Prot = (Flags & MAP_NOACCESS) ? PROT_NONE : (PROT_READ | PROT_WRITE);
-  if (mprotect(reinterpret_cast<void *>(Addr), Size, Prot) != 0)
+  
+  if (int Prot = (Flags & MAP_NOACCESS) ? PROT_NONE : (PROT_READ | PROT_WRITE); mprotect(reinterpret_cast<void *>(Addr), Size, Prot) != 0)
     reportProtectError(Addr, Size, Prot);
 }
 

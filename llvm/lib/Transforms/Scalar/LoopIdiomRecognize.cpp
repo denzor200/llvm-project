@@ -333,8 +333,8 @@ bool LoopIdiomRecognize::runOnLoop(Loop *L) {
     return false;
 
   // Disable loop idiom recognition if the function's name is a common idiom.
-  StringRef Name = L->getHeader()->getParent()->getName();
-  if (Name == "memset" || Name == "memcpy" || Name == "strlen" ||
+  
+  if (StringRef Name = L->getHeader()->getParent()->getName(); Name == "memset" || Name == "memcpy" || Name == "strlen" ||
       Name == "wcslen")
     return false;
 
@@ -526,8 +526,8 @@ LoopIdiomRecognize::isLegalStore(StoreInst *SI) {
     // Check to see if the stride matches the size of the store.  If so, then we
     // know that every byte is touched in the loop.
     unsigned StoreSize = DL->getTypeStoreSize(SI->getValueOperand()->getType());
-    APInt StrideAP = Stride->getAPInt();
-    if (StoreSize != StrideAP && StoreSize != -StrideAP)
+    
+    if (APInt StrideAP = Stride->getAPInt(); StoreSize != StrideAP && StoreSize != -StrideAP)
       return LegalStoreKind::None;
 
     // The store must be feeding a non-volatile load.
@@ -685,9 +685,9 @@ bool LoopIdiomRecognize::processLoopStores(SmallVectorImpl<StoreInst *> &SL,
       Value *SecondStorePtr = SL[k]->getPointerOperand();
       const SCEVAddRecExpr *SecondStoreEv =
           cast<SCEVAddRecExpr>(SE->getSCEV(SecondStorePtr));
-      APInt SecondStride = getStoreStride(SecondStoreEv);
+      
 
-      if (FirstStride != SecondStride)
+      if (APInt SecondStride = getStoreStride(SecondStoreEv); FirstStride != SecondStride)
         continue;
 
       Value *SecondStoredVal = SL[k]->getValueOperand();
@@ -983,13 +983,13 @@ mayLoopAccessLocation(Value *Ptr, ModRefInfo Access, Loop *L,
 
   // If the loop iterates a fixed number of times, we can refine the access size
   // to be exactly the size of the memset, which is (BECount+1)*StoreSize
-  const APInt *BECst, *ConstSize;
-  if (match(BECount, m_scev_APInt(BECst)) &&
+  
+  if (const APInt *BECst, *ConstSize; match(BECount, m_scev_APInt(BECst)) &&
       match(StoreSizeSCEV, m_scev_APInt(ConstSize))) {
     std::optional<uint64_t> BEInt = BECst->tryZExtValue();
-    std::optional<uint64_t> SizeInt = ConstSize->tryZExtValue();
+    
     // FIXME: Should this check for overflow?
-    if (BEInt && SizeInt)
+    if (std::optional<uint64_t> SizeInt = ConstSize->tryZExtValue(); BEInt && SizeInt)
       AccessSize = LocationSize::precise((*BEInt + 1) * *SizeInt);
   }
 
@@ -1545,8 +1545,8 @@ bool LoopIdiomRecognize::optimizeCRCLoop(const PolynomialInfo &Info) {
   // target-specific instructions for Hexagon, subsuming HexagonLoopIdiom,
   // disable the optimization for Hexagon.
   Module &M = *CurLoop->getHeader()->getModule();
-  Triple TT(M.getTargetTriple());
-  if (TT.getArch() == Triple::hexagon)
+  
+  if (Triple TT(M.getTargetTriple()); TT.getArch() == Triple::hexagon)
     return false;
 
   // First, create a new GlobalVariable corresponding to the
@@ -2040,8 +2040,8 @@ static Value *matchShiftULTCondition(BranchInst *BI, BasicBlock *LoopEntry,
 // the idiom. Returns the value coerced to a PHINode if so.
 static PHINode *getRecurrenceVar(Value *VarX, Instruction *DefX,
                                  BasicBlock *LoopEntry) {
-  auto *PhiX = dyn_cast<PHINode>(VarX);
-  if (PhiX && PhiX->getParent() == LoopEntry &&
+  
+  if (auto *PhiX = dyn_cast<PHINode>(VarX); PhiX && PhiX->getParent() == LoopEntry &&
       (PhiX->getOperand(0) == DefX || PhiX->getOperand(1) == DefX))
     return PhiX;
   return nullptr;
@@ -2130,8 +2130,8 @@ static bool detectShiftUntilLessThanIdiom(Loop *CurLoop, const DataLayout &DL,
     if (Inst.getOpcode() != Instruction::Add)
       continue;
 
-    ConstantInt *Inc = dyn_cast<ConstantInt>(Inst.getOperand(1));
-    if (!Inc || (!Inc->isOne() && !Inc->isMinusOne()))
+    
+    if (ConstantInt *Inc = dyn_cast<ConstantInt>(Inst.getOperand(1)); !Inc || (!Inc->isOne() && !Inc->isMinusOne()))
       continue;
 
     PHINode *Phi = getRecurrenceVar(Inst.getOperand(0), &Inst, LoopEntry);
@@ -2234,8 +2234,8 @@ static bool detectPopcountIdiom(Loop *CurLoop, BasicBlock *PreCondBB,
       if (Inst.getOpcode() != Instruction::Add)
         continue;
 
-      ConstantInt *Inc = dyn_cast<ConstantInt>(Inst.getOperand(1));
-      if (!Inc || !Inc->isOne())
+      
+      if (ConstantInt *Inc = dyn_cast<ConstantInt>(Inst.getOperand(1)); !Inc || !Inc->isOne())
         continue;
 
       PHINode *Phi = getRecurrenceVar(Inst.getOperand(0), &Inst, LoopEntry);
@@ -2329,8 +2329,8 @@ static bool detectShiftUntilZeroIdiom(Loop *CurLoop, const DataLayout &DL,
     return false;
   IntrinID = DefX->getOpcode() == Instruction::Shl ? Intrinsic::cttz :
                                                      Intrinsic::ctlz;
-  ConstantInt *Shft = dyn_cast<ConstantInt>(DefX->getOperand(1));
-  if (!Shft || !Shft->isOne())
+  
+  if (ConstantInt *Shft = dyn_cast<ConstantInt>(DefX->getOperand(1)); !Shft || !Shft->isOne())
     return false;
   VarX = DefX->getOperand(0);
 
@@ -2358,8 +2358,8 @@ static bool detectShiftUntilZeroIdiom(Loop *CurLoop, const DataLayout &DL,
     if (Inst.getOpcode() != Instruction::Add)
       continue;
 
-    ConstantInt *Inc = dyn_cast<ConstantInt>(Inst.getOperand(1));
-    if (!Inc || (!Inc->isOne() && !Inc->isMinusOne()))
+    
+    if (ConstantInt *Inc = dyn_cast<ConstantInt>(Inst.getOperand(1)); !Inc || (!Inc->isOne() && !Inc->isMinusOne()))
       continue;
 
     PHINode *Phi = getRecurrenceVar(Inst.getOperand(0), &Inst, LoopEntry);
@@ -2390,9 +2390,9 @@ bool LoopIdiomRecognize::isProfitableToInsertFFS(Intrinsic::ID IntrinID,
       std::distance(InstWithoutDebugIt.begin(), InstWithoutDebugIt.end());
 
   IntrinsicCostAttributes Attrs(IntrinID, InitX->getType(), Args);
-  InstructionCost Cost = TTI->getIntrinsicInstrCost(
-      Attrs, TargetTransformInfo::TCK_SizeAndLatency);
-  if (HeaderSize != CanonicalSize && Cost > TargetTransformInfo::TCC_Basic)
+  
+  if (InstructionCost Cost = TTI->getIntrinsicInstrCost(
+      Attrs, TargetTransformInfo::TCK_SizeAndLatency); HeaderSize != CanonicalSize && Cost > TargetTransformInfo::TCC_Basic)
     return false;
 
   return true;
@@ -2567,8 +2567,8 @@ bool LoopIdiomRecognize::recognizePopcount() {
   if (CurLoop->getNumBackEdges() != 1 || CurLoop->getNumBlocks() != 1)
     return false;
 
-  BasicBlock *LoopBody = *(CurLoop->block_begin());
-  if (LoopBody->size() >= 20) {
+  
+  if (BasicBlock *LoopBody = *(CurLoop->block_begin()); LoopBody->size() >= 20) {
     // The loop is too big, bail out.
     return false;
   }
@@ -2699,8 +2699,8 @@ void LoopIdiomRecognize::transformLoopToCountable(
   if (cast<ConstantInt>(CntInst->getOperand(1))->isOne()) {
     // If the counter was being incremented in the loop, add NewCount to the
     // counter's initial value, but only if the initial value is not zero.
-    ConstantInt *InitConst = dyn_cast<ConstantInt>(CntInitVal);
-    if (!InitConst || !InitConst->isZero())
+    
+    if (ConstantInt *InitConst = dyn_cast<ConstantInt>(CntInitVal); !InitConst || !InitConst->isZero())
       NewCount = Builder.CreateAdd(NewCount, CntInitVal);
   } else {
     // If the count was being decremented in the loop, subtract NewCount from
@@ -2775,8 +2775,8 @@ void LoopIdiomRecognize::transformLoopToPopcount(BasicBlock *PreCondBB,
 
     // If the population counter's initial value is not zero, insert Add Inst.
     Value *CntInitVal = CntPhi->getIncomingValueForBlock(PreHead);
-    ConstantInt *InitConst = dyn_cast<ConstantInt>(CntInitVal);
-    if (!InitConst || !InitConst->isZero()) {
+    
+    if (ConstantInt *InitConst = dyn_cast<ConstantInt>(CntInitVal); !InitConst || !InitConst->isZero()) {
       NewCount = Builder.CreateAdd(NewCount, CntInitVal);
       (cast<Instruction>(NewCount))->setDebugLoc(DL);
     }

@@ -177,9 +177,9 @@ const PointerToMemberData *BasicValueFactory::getPointerToMemberData(
     llvm::ImmutableList<const CXXBaseSpecifier *> BaseSpecList) {
   llvm::SmallPtrSet<QualType, 16> BaseSpecSeen;
   for (const CXXBaseSpecifier *BaseSpec : BaseSpecList) {
-    QualType BaseType = BaseSpec->getType();
+    
     // Check whether inserted
-    if (!BaseSpecSeen.insert(BaseType).second)
+    if (QualType BaseType = BaseSpec->getType(); !BaseSpecSeen.insert(BaseType).second)
       return false;
   }
   return true;

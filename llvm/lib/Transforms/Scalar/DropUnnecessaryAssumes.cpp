@@ -100,8 +100,8 @@ DropUnnecessaryAssumesPass::run(Function &F, FunctionAnalysisManager &FAM) {
           return affectedValuesAreEphemeral(Affected);
         };
 
-        OperandBundleUse Bundle = Assume->getOperandBundleAt(I);
-        if (IsDead(Bundle))
+        
+        if (OperandBundleUse Bundle = Assume->getOperandBundleAt(I); IsDead(Bundle))
           append_range(DeadBundleArgs, Bundle.Inputs);
         else
           KeptBundles.emplace_back(Bundle);

@@ -103,8 +103,8 @@ bool NVPTXLowerAlloca::runOnFunction(Function &F) {
           // addrspacecast to NVPTXInferAddressSpaces. For other types
           // of instructions this is unnecessary and may introduce redundant
           // address cast.
-          auto LI = dyn_cast<LoadInst>(AllocaUse.getUser());
-          if (LI && LI->getPointerOperand() == allocaInst &&
+          
+          if (auto LI = dyn_cast<LoadInst>(AllocaUse.getUser()); LI && LI->getPointerOperand() == allocaInst &&
               !LI->isVolatile()) {
             LI->setOperand(LI->getPointerOperandIndex(), AllocaInGenericAS);
             continue;

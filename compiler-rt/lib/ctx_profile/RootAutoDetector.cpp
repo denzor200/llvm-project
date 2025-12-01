@@ -92,8 +92,8 @@ void RootAutoDetector::sample() {
   // allocator because of pthread_attr_getstack. See the notes also on
   // UnwindImpl above.
   static thread_local bool Entered = false;
-  static thread_local uint64_t Entries = 0;
-  if (Entered || (++Entries % SampleRate))
+  
+  if (static thread_local uint64_t Entries = 0; Entered || (++Entries % SampleRate))
     return;
   Entered = true;
   collectStack();
@@ -122,8 +122,8 @@ void RootAutoDetector::collectStack() {
 
 uptr PerThreadCallsiteTrie::getFctStartAddr(uptr CallsiteAddress) const {
   // this requires --linkopt=-Wl,--export-dynamic
-  Dl_info Info;
-  if (dladdr(reinterpret_cast<const void *>(CallsiteAddress), &Info) != 0)
+  
+  if (Dl_info Info; dladdr(reinterpret_cast<const void *>(CallsiteAddress), &Info) != 0)
     return reinterpret_cast<uptr>(Info.dli_saddr);
   return 0;
 }

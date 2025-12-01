@@ -168,8 +168,8 @@ void propagateShapesToTosaIf(Operation &op, TypeModificationState &state) {
 }
 
 void propagateShapesToTosaWhile(Operation &op, TypeModificationState &state) {
-  WhileOp whileOp = dyn_cast<WhileOp>(op);
-  if (!whileOp)
+  
+  if (WhileOp whileOp = dyn_cast<WhileOp>(op); !whileOp)
     return;
 
   // Determine what the expected argument types are to the cond/body blocks.
@@ -317,8 +317,8 @@ void validateSameOperandsAndResultRankTrait(Region &region) {
         }
       }
       WhileOp whileOp = dyn_cast<WhileOp>(op);
-      IfOp ifOp = dyn_cast<IfOp>(op);
-      if (whileOp || ifOp) {
+      
+      if (IfOp ifOp = dyn_cast<IfOp>(op); whileOp || ifOp) {
         // recurse into whileOp's regions
         for (auto &next : op.getRegions()) {
           validateSameOperandsAndResultRankTrait(next);

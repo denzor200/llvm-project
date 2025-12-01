@@ -1712,9 +1712,9 @@ TEST_P(APFloatConvertFromAPIntParamTest, HalfwayRounding) {
 
 TEST_P(APFloatConvertFromAPIntParamTest, MaxMagnitude) {
   const fltSemantics &Sem = *GetParam();
-  const unsigned Precision = APFloat::semanticsPrecision(Sem);
+  
 
-  if (Precision == 0)
+  if (const unsigned Precision = APFloat::semanticsPrecision(Sem); Precision == 0)
     GTEST_SKIP() << "Skipping test for semantics with no significand.";
 
   const APFloat Largest = APFloat::getLargest(Sem, /*Negative=*/false);
@@ -1746,8 +1746,8 @@ INSTANTIATE_TEST_SUITE_P(IEEESemantics, APFloatConvertFromAPIntParamTest,
 
 static APInt nanbitsFromAPInt(const fltSemantics &Sem, bool SNaN, bool Negative,
                               uint64_t payload) {
-  APInt appayload(64, payload);
-  if (SNaN)
+  
+  if (APInt appayload(64, payload); SNaN)
     return APFloat::getSNaN(Sem, Negative, &appayload).bitcastToAPInt();
   else
     return APFloat::getQNaN(Sem, Negative, &appayload).bitcastToAPInt();
@@ -2896,9 +2896,9 @@ TEST(APFloatTest, isInfinity) {
   EXPECT_FALSE(APFloat(APFloat::IEEEsingle(), "0x1p-149").isInfinity());
 
   for (unsigned I = 0; I != APFloat::S_MaxSemantics + 1; ++I) {
-    const fltSemantics &Semantics =
-        APFloat::EnumToSemantics(static_cast<APFloat::Semantics>(I));
-    if (APFloat::semanticsHasInf(Semantics)) {
+    
+    if (const fltSemantics &Semantics =
+        APFloat::EnumToSemantics(static_cast<APFloat::Semantics>(I)); APFloat::semanticsHasInf(Semantics)) {
       EXPECT_TRUE(APFloat::getInf(Semantics).isInfinity());
     }
   }
@@ -2914,9 +2914,9 @@ TEST(APFloatTest, isNaN) {
   EXPECT_FALSE(APFloat(APFloat::IEEEsingle(), "0x1p-149").isNaN());
 
   for (unsigned I = 0; I != APFloat::S_MaxSemantics + 1; ++I) {
-    const fltSemantics &Semantics =
-        APFloat::EnumToSemantics(static_cast<APFloat::Semantics>(I));
-    if (APFloat::semanticsHasNaN(Semantics)) {
+    
+    if (const fltSemantics &Semantics =
+        APFloat::EnumToSemantics(static_cast<APFloat::Semantics>(I)); APFloat::semanticsHasNaN(Semantics)) {
       EXPECT_TRUE(APFloat::getNaN(Semantics).isNaN());
     }
   }
@@ -6850,8 +6850,8 @@ TEST_P(PPCDoubleDoubleFrexpValueTest, PPCDoubleDoubleFrexp) {
     const APFloat ExpectedFraction = makeDoubleAPFloat(Expected.Fraction);
 
     int ActualExponent;
-    const APFloat ActualFraction = frexp(Input, ActualExponent, RM);
-    if (ExpectedFraction.isNaN())
+    
+    if (const APFloat ActualFraction = frexp(Input, ActualExponent, RM); ExpectedFraction.isNaN())
       EXPECT_TRUE(ActualFraction.isNaN());
     else
       EXPECT_EQ(ActualFraction.compare(ExpectedFraction), APFloat::cmpEqual)
@@ -7231,9 +7231,9 @@ TEST(APFloatTest, PPCDoubleDoubleConvertFromAPIntEnormous) {
         APFloat::rmTowardPositive, APFloat::rmTowardZero,
         APFloat::rmNearestTiesToEven}) {
     APFloat F{APFloat::PPCDoubleDouble()};
-    const APFloat::opStatus ConvertFromStatus =
-        F.convertFromAPInt(HugeInt, /*IsSigned=*/false, RM);
-    if (RM == APFloat::rmTowardPositive) {
+    
+    if (const APFloat::opStatus ConvertFromStatus =
+        F.convertFromAPInt(HugeInt, /*IsSigned=*/false, RM); RM == APFloat::rmTowardPositive) {
       EXPECT_TRUE(F.isPosInfinity()) << F;
       EXPECT_EQ(ConvertFromStatus, APFloat::opInexact | APFloat::opOverflow);
     } else {
@@ -7252,10 +7252,10 @@ TEST(APFloatTest, PPCDoubleDoubleConvertFromAPIntEnormous) {
     APFloat F{APFloat::PPCDoubleDouble()};
     const APFloat::opStatus ConvertFromStatus =
         F.convertFromAPInt(HugeInt, /*IsSigned=*/false, RM);
-    const bool Overflow =
+    
+    if (const bool Overflow =
         RM == APFloat::rmTowardPositive || RM == APFloat::rmNearestTiesToAway ||
-        (RM == APFloat::rmNearestTiesToEven && HugeInt[UlpOfLargest]);
-    if (Overflow) {
+        (RM == APFloat::rmNearestTiesToEven && HugeInt[UlpOfLargest]); Overflow) {
       EXPECT_TRUE(F.isPosInfinity()) << F;
       EXPECT_EQ(ConvertFromStatus, APFloat::opInexact | APFloat::opOverflow);
     } else {
@@ -7273,10 +7273,10 @@ TEST(APFloatTest, PPCDoubleDoubleConvertFromAPIntEnormous) {
     APFloat F{APFloat::PPCDoubleDouble()};
     const APFloat::opStatus ConvertFromStatus =
         F.convertFromAPInt(HugeInt, /*IsSigned=*/false, RM);
-    const bool Overflow = RM == APFloat::rmTowardPositive ||
+    
+    if (const bool Overflow = RM == APFloat::rmTowardPositive ||
                           RM == APFloat::rmNearestTiesToAway ||
-                          RM == APFloat::rmNearestTiesToEven;
-    if (Overflow) {
+                          RM == APFloat::rmNearestTiesToEven; Overflow) {
       EXPECT_TRUE(F.isPosInfinity()) << F;
       EXPECT_EQ(ConvertFromStatus, APFloat::opInexact | APFloat::opOverflow);
     } else {
@@ -7293,10 +7293,10 @@ TEST(APFloatTest, PPCDoubleDoubleConvertFromAPIntEnormous) {
     APFloat F{APFloat::PPCDoubleDouble()};
     const APFloat::opStatus ConvertFromStatus =
         F.convertFromAPInt(HugeInt, /*IsSigned=*/false, RM);
-    const bool Overflow = RM == APFloat::rmTowardPositive ||
+    
+    if (const bool Overflow = RM == APFloat::rmTowardPositive ||
                           RM == APFloat::rmNearestTiesToAway ||
-                          RM == APFloat::rmNearestTiesToEven;
-    if (Overflow) {
+                          RM == APFloat::rmNearestTiesToEven; Overflow) {
       EXPECT_TRUE(F.isPosInfinity()) << F;
       EXPECT_EQ(ConvertFromStatus, APFloat::opInexact | APFloat::opOverflow);
     } else {
@@ -8627,8 +8627,8 @@ TEST(APFloatTest, F8ToBitsToF8) {
       for (int i = 0; i < 128; i++, test.next(/*nextDown=*/negative)) {
         SCOPED_TRACE("i=" + std::to_string(i));
         APInt bits = test.bitcastToAPInt();
-        APFloat test2 = APFloat(Sem, bits);
-        if (test.isNaN()) {
+        
+        if (APFloat test2 = APFloat(Sem, bits); test.isNaN()) {
           EXPECT_TRUE(test2.isNaN());
         } else {
           EXPECT_TRUE(test.bitwiseIsEqual(test2));

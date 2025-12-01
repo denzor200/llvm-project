@@ -314,8 +314,8 @@ bool InstCombinerImpl::foldIntegerTypedPHI(PHINode &PN) {
       if (auto *IncomingI = dyn_cast<Instruction>(IncomingVal)) {
         BasicBlock::iterator InsertPos(IncomingI);
         InsertPos++;
-        BasicBlock *BB = IncomingI->getParent();
-        if (isa<PHINode>(IncomingI))
+        
+        if (BasicBlock *BB = IncomingI->getParent(); isa<PHINode>(IncomingI))
           InsertPos = BB->getFirstInsertionPt();
         assert(InsertPos != BB->end() && "should have checked above");
         InsertNewInstBefore(CI, InsertPos);
@@ -367,8 +367,8 @@ InstCombinerImpl::foldPHIArgInsertValueInstructionIntoPHI(PHINode &PN) {
   // Scan to see if all operands are `insertvalue`'s with the same indices,
   // and all have a single use.
   for (Value *V : drop_begin(PN.incoming_values())) {
-    auto *I = dyn_cast<InsertValueInst>(V);
-    if (!I || !I->hasOneUser() || I->getIndices() != FirstIVI->getIndices())
+    
+    if (auto *I = dyn_cast<InsertValueInst>(V); !I || !I->hasOneUser() || I->getIndices() != FirstIVI->getIndices())
       return nullptr;
   }
 
@@ -407,8 +407,8 @@ InstCombinerImpl::foldPHIArgExtractValueInstructionIntoPHI(PHINode &PN) {
   // Scan to see if all operands are `extractvalue`'s with the same indices,
   // and all have a single use.
   for (Value *V : drop_begin(PN.incoming_values())) {
-    auto *I = dyn_cast<ExtractValueInst>(V);
-    if (!I || !I->hasOneUser() || I->getIndices() != FirstEVI->getIndices() ||
+    
+    if (auto *I = dyn_cast<ExtractValueInst>(V); !I || !I->hasOneUser() || I->getIndices() != FirstEVI->getIndices() ||
         I->getAggregateOperand()->getType() !=
             FirstEVI->getAggregateOperand()->getType())
       return nullptr;
@@ -1445,8 +1445,8 @@ Instruction *InstCombinerImpl::visitPHINode(PHINode &PN) {
   // If all PHI operands are the same operation, pull them through the PHI,
   // reducing code size.
   auto *Inst0 = dyn_cast<Instruction>(PN.getIncomingValue(0));
-  auto *Inst1 = dyn_cast<Instruction>(PN.getIncomingValue(1));
-  if (Inst0 && Inst1 && Inst0->getOpcode() == Inst1->getOpcode() &&
+  
+  if (auto *Inst1 = dyn_cast<Instruction>(PN.getIncomingValue(1)); Inst0 && Inst1 && Inst0->getOpcode() == Inst1->getOpcode() &&
       Inst0->hasOneUser())
     if (Instruction *Result = foldPHIArgOpIntoPHI(PN))
       return Result;
@@ -1484,8 +1484,8 @@ Instruction *InstCombinerImpl::visitPHINode(PHINode &PN) {
     // common case here is good because the only other things that catch this
     // are induction variable analysis (sometimes) and ADCE, which is only run
     // late.
-    Instruction *PHIUser = cast<Instruction>(PN.user_back());
-    if (PHIUser->hasOneUse() &&
+    
+    if (Instruction *PHIUser = cast<Instruction>(PN.user_back()); PHIUser->hasOneUse() &&
         (isa<BinaryOperator>(PHIUser) || isa<UnaryOperator>(PHIUser) ||
          isa<GetElementPtrInst>(PHIUser)) &&
         PHIUser->user_back() == &PN) {
@@ -1529,8 +1529,8 @@ Instruction *InstCombinerImpl::visitPHINode(PHINode &PN) {
       bool MadeChange = false;
       for (unsigned I = 0, E = PN.getNumIncomingValues(); I != E; ++I) {
         Instruction *CtxI = PN.getIncomingBlock(I)->getTerminator();
-        Value *VA = PN.getIncomingValue(I);
-        if (isKnownNonZero(VA, getSimplifyQuery().getWithInstruction(CtxI))) {
+        
+        if (Value *VA = PN.getIncomingValue(I); isKnownNonZero(VA, getSimplifyQuery().getWithInstruction(CtxI))) {
           if (!NonZeroConst)
             NonZeroConst = getAnyNonZeroConstInt(PN);
           if (NonZeroConst != VA) {
@@ -1569,8 +1569,8 @@ Instruction *InstCombinerImpl::visitPHINode(PHINode &PN) {
     // there is no need to recursively scan other phis.
     if (NonPhiInVal)
       for (++InValNo; InValNo != NumIncomingVals; ++InValNo) {
-        Value *OpVal = PN.getIncomingValue(InValNo);
-        if (OpVal != NonPhiInVal && !isa<PHINode>(OpVal))
+        
+        if (Value *OpVal = PN.getIncomingValue(InValNo); OpVal != NonPhiInVal && !isa<PHINode>(OpVal))
           break;
       }
 
@@ -1578,8 +1578,8 @@ Instruction *InstCombinerImpl::visitPHINode(PHINode &PN) {
     // phi values.  Scan PHI nodes to see if they all merge in each other or
     // the value.
     if (InValNo == NumIncomingVals) {
-      SmallPtrSet<PHINode *, 16> ValueEqualPHIs;
-      if (PHIsEqualValue(&PN, NonPhiInVal, ValueEqualPHIs))
+      
+      if (SmallPtrSet<PHINode *, 16> ValueEqualPHIs; PHIsEqualValue(&PN, NonPhiInVal, ValueEqualPHIs))
         return replaceInstUsesWith(PN, NonPhiInVal);
     }
   }
@@ -1593,8 +1593,8 @@ Instruction *InstCombinerImpl::visitPHINode(PHINode &PN) {
     const auto &Preds = Res.first->second;
     for (unsigned I = 0, E = PN.getNumIncomingValues(); I != E; ++I) {
       BasicBlock *BBA = PN.getIncomingBlock(I);
-      BasicBlock *BBB = Preds[I];
-      if (BBA != BBB) {
+      
+      if (BasicBlock *BBB = Preds[I]; BBA != BBB) {
         Value *VA = PN.getIncomingValue(I);
         unsigned J = PN.getBasicBlockIndex(BBB);
         Value *VB = PN.getIncomingValue(J);

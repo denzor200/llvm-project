@@ -159,8 +159,8 @@ public:
     fill_count--;
     if (fill_count || current == &first)
       return;
-    auto [last, prev] = get_last_blocks();
-    if (REVERSE_ORDER) {
+    
+    if (auto [last, prev] = get_last_blocks(); REVERSE_ORDER) {
       LIBC_ASSERT(last == current);
       current = current->next;
     } else {
@@ -193,8 +193,8 @@ public:
   // fill the hole. It's assumed that pos is a valid iterator to somewhere in
   // this block_store.
   LIBC_INLINE void erase(Iterator pos) {
-    const Iterator last_item = Iterator(current, fill_count);
-    if (pos == last_item) {
+    
+    if (const Iterator last_item = Iterator(current, fill_count); pos == last_item) {
       pop_back();
       return;
     }

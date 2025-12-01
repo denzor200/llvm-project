@@ -89,9 +89,9 @@ struct QueryParser::LexOrCompleteWord {
 
 QueryRef QueryParser::endQuery(QueryRef queryRef) {
   llvm::StringRef extra = line;
-  llvm::StringRef extraTrimmed = extra.ltrim(" \t\v\f\r");
+  
 
-  if (extraTrimmed.starts_with('\n') || extraTrimmed.starts_with("\r\n"))
+  if (llvm::StringRef extraTrimmed = extra.ltrim(" \t\v\f\r"); extraTrimmed.starts_with('\n') || extraTrimmed.starts_with("\r\n"))
     queryRef->remainingContent = extra;
   else {
     llvm::StringRef trailingWord = lexWord();

@@ -101,8 +101,8 @@ mlir::mlirQueryMain(int argc, char **argv, MLIRContext &context,
                                matcherRegistry);
   if (!commands.empty()) {
     for (auto &command : commands) {
-      mlir::query::QueryRef queryRef = mlir::query::parse(command, qs);
-      if (mlir::failed(queryRef->run(llvm::outs(), qs)))
+      
+      if (mlir::query::QueryRef queryRef = mlir::query::parse(command, qs); mlir::failed(queryRef->run(llvm::outs(), qs)))
         return mlir::failure();
     }
   } else {

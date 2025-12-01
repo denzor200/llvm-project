@@ -62,8 +62,8 @@ bool CommandObjectQuit::ShouldAskForConfirmation(bool &is_a_detach) {
 }
 
 void CommandObjectQuit::DoExecute(Args &command, CommandReturnObject &result) {
-  bool is_a_detach = true;
-  if (ShouldAskForConfirmation(is_a_detach)) {
+  
+  if (bool is_a_detach = true; ShouldAskForConfirmation(is_a_detach)) {
     StreamString message;
     message.Printf("Quitting LLDB will %s one or more processes. Do you really "
                    "want to proceed",

@@ -360,8 +360,8 @@ tryInsertCastToCommonAddrSpace(IRBuilderBase &B, Value *Addr1, Value *Addr2,
   Value *ResAddr2 = Addr2;
 
   unsigned AS1 = cast<PointerType>(Addr1->getType())->getAddressSpace();
-  unsigned AS2 = cast<PointerType>(Addr2->getType())->getAddressSpace();
-  if (AS1 != AS2) {
+  
+  if (unsigned AS2 = cast<PointerType>(Addr2->getType())->getAddressSpace(); AS1 != AS2) {
     if (TTI.isValidAddrSpaceCast(AS2, AS1))
       ResAddr2 = B.CreateAddrSpaceCast(Addr2, Addr1->getType());
     else if (TTI.isValidAddrSpaceCast(AS1, AS2))
@@ -870,8 +870,8 @@ template <typename T>
 static bool canOverlap(MemTransferBase<T> *Memcpy, ScalarEvolution *SE) {
   if (SE) {
     const SCEV *SrcSCEV = SE->getSCEV(Memcpy->getRawSource());
-    const SCEV *DestSCEV = SE->getSCEV(Memcpy->getRawDest());
-    if (SE->isKnownPredicateAt(CmpInst::ICMP_NE, SrcSCEV, DestSCEV, Memcpy))
+    
+    if (const SCEV *DestSCEV = SE->getSCEV(Memcpy->getRawDest()); SE->isKnownPredicateAt(CmpInst::ICMP_NE, SrcSCEV, DestSCEV, Memcpy))
       return false;
   }
   return true;
@@ -880,8 +880,8 @@ static bool canOverlap(MemTransferBase<T> *Memcpy, ScalarEvolution *SE) {
 void llvm::expandMemCpyAsLoop(MemCpyInst *Memcpy,
                               const TargetTransformInfo &TTI,
                               ScalarEvolution *SE) {
-  bool CanOverlap = canOverlap(Memcpy, SE);
-  if (ConstantInt *CI = dyn_cast<ConstantInt>(Memcpy->getLength())) {
+  
+  if (ConstantInt *bool CanOverlap = canOverlap(Memcpy, SE); CI = dyn_cast<ConstantInt>(Memcpy->getLength())) {
     createMemCpyLoopKnownSize(
         /* InsertBefore */ Memcpy,
         /* SrcAddr */ Memcpy->getRawSource(),
@@ -920,8 +920,8 @@ bool llvm::expandMemMoveAsLoop(MemMoveInst *Memmove,
   IRBuilder<> CastBuilder(Memmove);
 
   unsigned SrcAS = SrcAddr->getType()->getPointerAddressSpace();
-  unsigned DstAS = DstAddr->getType()->getPointerAddressSpace();
-  if (SrcAS != DstAS) {
+  
+  if (unsigned DstAS = DstAddr->getType()->getPointerAddressSpace(); SrcAS != DstAS) {
     if (!TTI.addrspacesMayAlias(SrcAS, DstAS)) {
       // We may not be able to emit a pointer comparison, but we don't have
       // to. Expand as memcpy.

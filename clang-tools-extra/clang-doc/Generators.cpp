@@ -69,14 +69,14 @@ Error MustacheGenerator::generateDocumentation(
     StringRef RootDir, StringMap<std::unique_ptr<doc::Info>> Infos,
     const clang::doc::ClangDocContext &CDCtx, std::string DirName) {
   {
-    llvm::TimeTraceScope TS("Setup Templates");
-    if (auto Err = setupTemplateFiles(CDCtx))
+    
+    if (auto llvm::TimeTraceScope TS("Setup Templates"); Err = setupTemplateFiles(CDCtx))
       return Err;
   }
 
   {
-    llvm::TimeTraceScope TS("Generate JSON for Mustache");
-    if (auto JSONGenerator = findGeneratorByName("json")) {
+    
+    if (auto llvm::TimeTraceScope TS("Generate JSON for Mustache"); JSONGenerator = findGeneratorByName("json")) {
       if (Error Err = JSONGenerator.get()->generateDocumentation(
               RootDir, std::move(Infos), CDCtx))
         return Err;
@@ -201,8 +201,8 @@ void Generator::addInfoToIndex(Index &Idx, const doc::Info *Info) {
   for (const auto &R : llvm::reverse(Info->Namespace)) {
     // Look for the current namespace in the children of the index I is
     // pointing.
-    auto It = llvm::find(I->Children, R.USR);
-    if (It != I->Children.end()) {
+    
+    if (auto It = llvm::find(I->Children, R.USR); It != I->Children.end()) {
       // If it is found, just change I to point the namespace reference found.
       I = &*It;
     } else {
@@ -215,8 +215,8 @@ void Generator::addInfoToIndex(Index &Idx, const doc::Info *Info) {
   // Look for Info in the vector where it is supposed to be; it could already
   // exist if it is a parent namespace of an Info already passed to this
   // function.
-  auto It = llvm::find(I->Children, Info->USR);
-  if (It == I->Children.end()) {
+  
+  if (auto It = llvm::find(I->Children, Info->USR); It == I->Children.end()) {
     // If it is not in the vector it is inserted
     I->Children.emplace_back(Info->USR, Info->extractName(), Info->IT,
                              Info->Path);

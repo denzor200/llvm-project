@@ -27,8 +27,8 @@ llvm::Expected<WriteMemoryResponseBody>
 WriteMemoryRequestHandler::Run(const WriteMemoryArguments &args) const {
   const lldb::addr_t address = args.memoryReference + args.offset;
 
-  lldb::SBProcess process = dap.target.GetProcess();
-  if (!lldb::SBDebugger::StateIsStoppedState(process.GetState()))
+  
+  if (lldb::SBProcess process = dap.target.GetProcess(); !lldb::SBDebugger::StateIsStoppedState(process.GetState()))
     return llvm::make_error<NotStoppedError>();
 
   if (args.data.empty()) {
@@ -67,11 +67,11 @@ WriteMemoryRequestHandler::Run(const WriteMemoryArguments &args) const {
         // This provides the region's base, end, and permissions
         // (read/write/executable).
         lldb::SBMemoryRegionInfo region_info;
-        lldb::SBError error =
-            process.GetMemoryRegionInfo(start_address, region_info);
+        
         // Fail if the region info retrieval fails, is not writable, or the
         // range exceeds the region.
-        if (!error.Success() || !region_info.IsWritable()) {
+        if (lldb::SBError error =
+            process.GetMemoryRegionInfo(start_address, region_info); !error.Success() || !region_info.IsWritable()) {
           return llvm::make_error<DAPError>(
               "Memory 0x" + llvm::utohexstr(args.memoryReference) +
               " region is not writable");

@@ -82,9 +82,9 @@ void Thread::InitStackRingBuffer(uptr stack_buffer_start,
   CHECK_EQ(GetCurrentThread(), this);
 
   // ScopedTaggingDisable needs GetCurrentThread to be set up.
-  ScopedTaggingDisabler disabler;
+  
 
-  if (stack_bottom_) {
+  if (ScopedTaggingDisabler disabler; stack_bottom_) {
     int local;
     CHECK(AddrIsInStack((uptr)&local));
     CHECK(MemIsApp(stack_bottom_));
@@ -154,11 +154,11 @@ inline Thread::StackBounds Thread::GetStackBounds() const {
       return {0, 0};
     return {stack_bottom_, stack_top_};
   }
-  const uptr cur_stack = (uptr)__builtin_frame_address(0);
+  
   // Note: need to check next stack first, because FinishSwitchFiber
   // may be in process of overwriting stack_top_/bottom_. But in such case
   // we are already on the next stack.
-  if (cur_stack >= next_stack_bottom_ && cur_stack < next_stack_top_)
+  if (const uptr cur_stack = (uptr)__builtin_frame_address(0); cur_stack >= next_stack_bottom_ && cur_stack < next_stack_top_)
     return {next_stack_bottom_, next_stack_top_};
   return {stack_bottom_, stack_top_};
 }
@@ -212,8 +212,8 @@ tag_t Thread::GenerateRandomTag(uptr num_bits) {
 }
 
 void EnsureMainThreadIDIsCorrect() {
-  auto *t = __hwasan::GetCurrentThread();
-  if (t && (t->IsMainThread()))
+  
+  if (auto *t = __hwasan::GetCurrentThread(); t && (t->IsMainThread()))
     t->set_os_id(GetTid());
 }
 

@@ -457,8 +457,8 @@ getCollapsedSize(memref::CollapseShapeOp collapseShape, OpBuilder &builder,
 
   MemRefType collapseShapeType = collapseShape.getResultType();
 
-  uint64_t size = collapseShapeType.getDimSize(groupId);
-  if (ShapedType::isStatic(size)) {
+  
+  if (uint64_t size = collapseShapeType.getDimSize(groupId); ShapedType::isStatic(size)) {
     collapsedSize.push_back(builder.getIndexAttr(size));
     return collapsedSize;
   }

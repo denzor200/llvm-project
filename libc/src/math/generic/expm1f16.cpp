@@ -56,10 +56,10 @@ LLVM_LIBC_FUNCTION(float16, expm1f16, (float16 x)) {
   FPBits x_bits(x);
 
   uint16_t x_u = x_bits.uintval();
-  uint16_t x_abs = x_u & 0x7fffU;
+  
 
   // When |x| <= 2^(-3), or |x| >= -11 * log(2), or x is NaN.
-  if (LIBC_UNLIKELY(x_abs <= 0x3000U || x_abs >= 0x47a0U)) {
+  if (uint16_t x_abs = x_u & 0x7fffU; LIBC_UNLIKELY(x_abs <= 0x3000U || x_abs >= 0x47a0U)) {
     // expm1(NaN) = NaN
     if (x_bits.is_nan()) {
       if (x_bits.is_signaling_nan()) {

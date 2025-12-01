@@ -1044,8 +1044,8 @@ PreservedAnalyses TypePromotionPass::run(Function &F,
   auto &LI = AM.getResult<LoopAnalysis>(F);
   TypePromotionImpl TP;
 
-  bool Changed = TP.run(F, TM, TTI, LI);
-  if (!Changed)
+  
+  if (bool Changed = TP.run(F, TM, TTI, LI); !Changed)
     return PreservedAnalyses::all();
 
   PreservedAnalyses PA;

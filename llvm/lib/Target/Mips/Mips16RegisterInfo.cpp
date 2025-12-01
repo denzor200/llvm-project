@@ -91,8 +91,8 @@ void Mips16RegisterInfo::eliminateFI(MachineBasicBlock::iterator II,
   if (FrameIndex >= MinCSFI && FrameIndex <= MaxCSFI)
     FrameReg = Mips::SP;
   else {
-    const TargetFrameLowering *TFI = MF.getSubtarget().getFrameLowering();
-    if (TFI->hasFP(MF)) {
+    
+    if (const TargetFrameLowering *TFI = MF.getSubtarget().getFrameLowering(); TFI->hasFP(MF)) {
       FrameReg = Mips::S0;
     }
     else {

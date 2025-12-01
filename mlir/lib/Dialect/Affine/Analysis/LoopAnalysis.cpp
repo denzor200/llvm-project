@@ -111,9 +111,9 @@ private:
     unsigned time = 0;
     for (DGNode &node : nodes) {
       if (node.vn == 0) {
-        bool ret = dfsNode(node, cycleCheck, time);
+        
         // Check if a cycle was already found.
-        if (cycleCheck && ret)
+        if (bool ret = dfsNode(node, cycleCheck, time); cycleCheck && ret)
           return true;
       } else if (cycleCheck && node.fn == -1) {
         // We have encountered a node whose visit has started but it's not
@@ -133,8 +133,8 @@ private:
 
     for (auto &neighbour : nodeEdges->second) {
       if (neighbour->vn == 0) {
-        bool ret = dfsNode(*neighbour, cycleCheck, time);
-        if (cycleCheck && ret)
+        
+        if (bool ret = dfsNode(*neighbour, cycleCheck, time); cycleCheck && ret)
           return true;
       } else if (cycleCheck && neighbour->fn == -1) {
         // We have encountered a node whose visit has started but it's not
@@ -168,8 +168,8 @@ void mlir::affine::getTripCountMapAndOperands(
     SmallVectorImpl<Value> *tripCountOperands) {
   MLIRContext *context = forOp.getContext();
   int64_t step = forOp.getStepAsInt();
-  int64_t loopSpan;
-  if (forOp.hasConstantBounds()) {
+  
+  if (int64_t loopSpan; forOp.hasConstantBounds()) {
     int64_t lb = forOp.getConstantLowerBound();
     int64_t ub = forOp.getConstantUpperBound();
     loopSpan = ub - lb;
@@ -255,9 +255,9 @@ uint64_t mlir::affine::getLargestDivisorOfTripCount(AffineForOp forOp) {
   for (auto resultExpr : map.getResults()) {
     uint64_t thisGcd;
     if (auto constExpr = dyn_cast<AffineConstantExpr>(resultExpr)) {
-      uint64_t tripCount = constExpr.getValue();
+      
       // 0 iteration loops (greatest divisor is 2^64 - 1).
-      if (tripCount == 0)
+      if (uint64_t tripCount = constExpr.getValue(); tripCount == 0)
         thisGcd = std::numeric_limits<uint64_t>::max();
       else
         // The greatest divisor is the trip count.
@@ -433,8 +433,8 @@ isVectorizableLoopBodyWithOpCond(AffineForOp loop,
     // Only scalar types are considered vectorizable, all load/store must be
     // vectorizable for a loop to qualify as vectorizable.
     // TODO: ponder whether we want to be more general here.
-    bool vector = load ? isVectorElement(load) : isVectorElement(store);
-    if (vector) {
+    
+    if (bool vector = load ? isVectorElement(load) : isVectorElement(store); vector) {
       return false;
     }
     if (isVectorizableOp && !isVectorizableOp(loop, *op)) {

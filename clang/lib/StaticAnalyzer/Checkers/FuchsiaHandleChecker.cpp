@@ -242,8 +242,8 @@ static const ExplodedNode *getAcquireSite(const ExplodedNode *N, SymbolRef Sym,
   while (N) {
     State = N->getState();
     if (!State->get<HStateMap>(Sym)) {
-      const HandleState *HState = Pred->getState()->get<HStateMap>(Sym);
-      if (HState && (HState->isAllocated() || HState->maybeAllocated()))
+      
+      if (const HandleState *HState = Pred->getState()->get<HStateMap>(Sym); HState && (HState->isAllocated() || HState->maybeAllocated()))
         return N;
     }
     Pred = N;
@@ -293,8 +293,8 @@ getFuchsiaHandleSymbols(QualType QT, SVal Arg, ProgramStateRef State) {
       return {};
 
     if (PtrToHandleLevel == 0) {
-      SymbolRef Sym = Arg.getAsSymbol();
-      if (Sym) {
+      
+      if (SymbolRef Sym = Arg.getAsSymbol(); Sym) {
         return {Sym};
       } else {
         return {};
@@ -380,8 +380,8 @@ void FuchsiaHandleChecker::checkPostCall(const CallEvent &Call,
   if (hasFuchsiaAttr<AcquireHandleAttr>(FuncDecl)) {
     SymbolRef RetSym = Call.getReturnValue().getAsSymbol();
     Notes.push_back([RetSym, FuncDecl](BugReport &BR) -> std::string {
-      auto *PathBR = static_cast<PathSensitiveBugReport *>(&BR);
-      if (PathBR->getInterestingnessKind(RetSym)) {
+      
+      if (auto *PathBR = static_cast<PathSensitiveBugReport *>(&BR); PathBR->getInterestingnessKind(RetSym)) {
         std::string SBuf;
         llvm::raw_string_ostream OS(SBuf);
         OS << "Function '" << FuncDecl->getDeclName()
@@ -396,8 +396,8 @@ void FuchsiaHandleChecker::checkPostCall(const CallEvent &Call,
     // Function returns an unowned handle
     SymbolRef RetSym = Call.getReturnValue().getAsSymbol();
     Notes.push_back([RetSym, FuncDecl](BugReport &BR) -> std::string {
-      auto *PathBR = static_cast<PathSensitiveBugReport *>(&BR);
-      if (PathBR->getInterestingnessKind(RetSym)) {
+      
+      if (auto *PathBR = static_cast<PathSensitiveBugReport *>(&BR); PathBR->getInterestingnessKind(RetSym)) {
         std::string SBuf;
         llvm::raw_string_ostream OS(SBuf);
         OS << "Function '" << FuncDecl->getDeclName()
@@ -430,8 +430,8 @@ void FuchsiaHandleChecker::checkPostCall(const CallEvent &Call,
           return;
         } else {
           Notes.push_back([Handle, ParamDiagIdx](BugReport &BR) -> std::string {
-            auto *PathBR = static_cast<PathSensitiveBugReport *>(&BR);
-            if (PathBR->getInterestingnessKind(Handle)) {
+            
+            if (auto *PathBR = static_cast<PathSensitiveBugReport *>(&BR); PathBR->getInterestingnessKind(Handle)) {
               std::string SBuf;
               llvm::raw_string_ostream OS(SBuf);
               OS << "Handle released through " << ParamDiagIdx
@@ -444,8 +444,8 @@ void FuchsiaHandleChecker::checkPostCall(const CallEvent &Call,
         }
       } else if (hasFuchsiaAttr<AcquireHandleAttr>(PVD)) {
         Notes.push_back([Handle, ParamDiagIdx](BugReport &BR) -> std::string {
-          auto *PathBR = static_cast<PathSensitiveBugReport *>(&BR);
-          if (PathBR->getInterestingnessKind(Handle)) {
+          
+          if (auto *PathBR = static_cast<PathSensitiveBugReport *>(&BR); PathBR->getInterestingnessKind(Handle)) {
             std::string SBuf;
             llvm::raw_string_ostream OS(SBuf);
             OS << "Handle allocated through " << ParamDiagIdx
@@ -458,8 +458,8 @@ void FuchsiaHandleChecker::checkPostCall(const CallEvent &Call,
             Handle, HandleState::getMaybeAllocated(ResultSymbol));
       } else if (hasFuchsiaUnownedAttr<AcquireHandleAttr>(PVD)) {
         Notes.push_back([Handle, ParamDiagIdx](BugReport &BR) -> std::string {
-          auto *PathBR = static_cast<PathSensitiveBugReport *>(&BR);
-          if (PathBR->getInterestingnessKind(Handle)) {
+          
+          if (auto *PathBR = static_cast<PathSensitiveBugReport *>(&BR); PathBR->getInterestingnessKind(Handle)) {
             std::string SBuf;
             llvm::raw_string_ostream OS(SBuf);
             OS << "Unowned handle allocated through " << ParamDiagIdx
@@ -490,8 +490,8 @@ void FuchsiaHandleChecker::checkPostCall(const CallEvent &Call,
           &BR.getBugType() != &ReleaseUnownedBugType)
         return "";
       for (auto &Note : Notes) {
-        std::string Text = Note(BR);
-        if (!Text.empty())
+        
+        if (std::string Text = Note(BR); !Text.empty())
           return Text;
       }
       return "";
@@ -506,12 +506,12 @@ void FuchsiaHandleChecker::checkDeadSymbols(SymbolReaper &SymReaper,
   SmallVector<SymbolRef, 2> LeakedSyms;
   HStateMapTy TrackedHandles = State->get<HStateMap>();
   for (auto &CurItem : TrackedHandles) {
-    SymbolRef ErrorSym = CurItem.second.getErrorSym();
+    
     // Keeping zombie handle symbols. In case the error symbol is dying later
     // than the handle symbol we might produce spurious leak warnings (in case
     // we find out later from the status code that the handle allocation failed
     // in the first place).
-    if (!SymReaper.isDead(CurItem.first) ||
+    if (SymbolRef ErrorSym = CurItem.second.getErrorSym(); !SymReaper.isDead(CurItem.first) ||
         (ErrorSym && !SymReaper.isDead(ErrorSym)))
       continue;
     if (CurItem.second.isAllocated() || CurItem.second.maybeAllocated())
@@ -543,8 +543,8 @@ ProgramStateRef FuchsiaHandleChecker::evalAssume(ProgramStateRef State,
   ConstraintManager &Cmr = State->getConstraintManager();
   HStateMapTy TrackedHandles = State->get<HStateMap>();
   for (auto &CurItem : TrackedHandles) {
-    ConditionTruthVal HandleVal = Cmr.isNull(State, CurItem.first);
-    if (HandleVal.isConstrainedTrue()) {
+    
+    if (ConditionTruthVal HandleVal = Cmr.isNull(State, CurItem.first); HandleVal.isConstrainedTrue()) {
       // The handle is invalid. We can no longer follow the symbol on this path.
       State = State->remove<HStateMap>(CurItem.first);
     }
@@ -598,8 +598,8 @@ ProgramStateRef FuchsiaHandleChecker::checkPointerEscape(
     if (Escaped.count(I.first) && !UnEscaped.count(I.first))
       State = State->set<HStateMap>(I.first, HandleState::getEscaped());
     if (const auto *SD = dyn_cast<SymbolDerived>(I.first)) {
-      auto ParentSym = SD->getParentSymbol();
-      if (Escaped.count(ParentSym))
+      
+      if (auto ParentSym = SD->getParentSymbol(); Escaped.count(ParentSym))
         State = State->set<HStateMap>(I.first, HandleState::getEscaped());
     }
   }
@@ -651,8 +651,8 @@ void FuchsiaHandleChecker::reportBug(SymbolRef Sym, ExplodedNode *ErrorNode,
 
   std::unique_ptr<PathSensitiveBugReport> R;
   if (Type.isSuppressOnSink()) {
-    const ExplodedNode *AcquireNode = getAcquireSite(ErrorNode, Sym, C);
-    if (AcquireNode) {
+    
+    if (const ExplodedNode *AcquireNode = getAcquireSite(ErrorNode, Sym, C); AcquireNode) {
       const Stmt *S = AcquireNode->getStmtForDiagnostics();
       assert(S && "Statement cannot be null.");
       PathDiagnosticLocation LocUsedForUniqueing =
@@ -683,9 +683,9 @@ bool ento::shouldRegisterFuchsiaHandleChecker(const CheckerManager &mgr) {
 void FuchsiaHandleChecker::printState(raw_ostream &Out, ProgramStateRef State,
                                       const char *NL, const char *Sep) const {
 
-  HStateMapTy StateMap = State->get<HStateMap>();
+  
 
-  if (!StateMap.isEmpty()) {
+  if (HStateMapTy StateMap = State->get<HStateMap>(); !StateMap.isEmpty()) {
     Out << Sep << "FuchsiaHandleChecker :" << NL;
     for (const auto &[Sym, HandleState] : StateMap) {
       Sym->dumpToStream(Out);

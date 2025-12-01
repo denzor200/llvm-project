@@ -219,8 +219,8 @@ Error GraphRenderer::accountRecord(const XRayRecord &Record) {
     return make_error<StringError>("Records not in order",
                                    make_error_code(errc::invalid_argument));
 
-  auto &ThreadStack = PerThreadFunctionStack[Record.TId];
-  switch (Record.Type) {
+  
+  switch (auto &ThreadStack = PerThreadFunctionStack[Record.TId]; Record.Type) {
   case RecordTypes::ENTER:
   case RecordTypes::ENTER_ARG: {
     if (Record.FuncId != 0 && G.count(Record.FuncId) == 0)
@@ -355,10 +355,10 @@ std::string
 GraphRenderer::TimeStat::getString(GraphRenderer::StatType T) const {
   std::string St;
   raw_string_ostream S{St};
-  double TimeStat::*DoubleStatPtrs[] = {&TimeStat::Min,   &TimeStat::Median,
+  
+  switch (double TimeStat::*DoubleStatPtrs[] = {&TimeStat::Min,   &TimeStat::Median,
                                         &TimeStat::Pct90, &TimeStat::Pct99,
-                                        &TimeStat::Max,   &TimeStat::Sum};
-  switch (T) {
+                                        &TimeStat::Max,   &TimeStat::Sum}; T) {
   case GraphRenderer::StatType::NONE:
     break;
   case GraphRenderer::StatType::COUNT:
@@ -377,10 +377,10 @@ GraphRenderer::TimeStat::getString(GraphRenderer::StatType T) const {
 // a double
 double GraphRenderer::TimeStat::getDouble(StatType T) const {
   double retval = 0;
-  double TimeStat::*DoubleStatPtrs[] = {&TimeStat::Min,   &TimeStat::Median,
+  
+  switch (double TimeStat::*DoubleStatPtrs[] = {&TimeStat::Min,   &TimeStat::Median,
                                         &TimeStat::Pct90, &TimeStat::Pct99,
-                                        &TimeStat::Max,   &TimeStat::Sum};
-  switch (T) {
+                                        &TimeStat::Max,   &TimeStat::Sum}; T) {
   case GraphRenderer::StatType::NONE:
     retval = 0.0;
     break;

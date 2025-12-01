@@ -262,9 +262,9 @@ LogicalResult MemorySlotPromotionAnalyzer::computeBlockingUses(
   // a graph region, the slot may only be used in a graph region and should
   // therefore be ignored.
   Region *slotPtrRegion = slot.ptr.getParentRegion();
-  auto slotPtrRegionOp =
-      dyn_cast<RegionKindInterface>(slotPtrRegion->getParentOp());
-  if (slotPtrRegionOp &&
+  
+  if (auto slotPtrRegionOp =
+      dyn_cast<RegionKindInterface>(slotPtrRegion->getParentOp()); slotPtrRegionOp &&
       slotPtrRegionOp.getRegionKind(slotPtrRegion->getRegionNumber()) ==
           RegionKind::Graph)
     return failure();
@@ -665,8 +665,8 @@ LogicalResult mlir::tryToPromoteMemorySlots(
           continue;
 
         MemorySlotPromotionAnalyzer analyzer(slot, dominance, dataLayout);
-        std::optional<MemorySlotPromotionInfo> info = analyzer.computeInfo();
-        if (info) {
+        
+        if (std::optional<MemorySlotPromotionInfo> info = analyzer.computeInfo(); info) {
           std::optional<PromotableAllocationOpInterface> newAllocator =
               MemorySlotPromoter(slot, allocator, builder, dominance,
                                  dataLayout, std::move(*info), statistics,

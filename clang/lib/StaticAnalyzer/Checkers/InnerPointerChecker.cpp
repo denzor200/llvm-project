@@ -118,8 +118,8 @@ public:
 bool InnerPointerChecker::isInvalidatingMemberFunction(
         const CallEvent &Call) const {
   if (const auto *MemOpCall = dyn_cast<CXXMemberOperatorCall>(&Call)) {
-    OverloadedOperatorKind Opc = MemOpCall->getOriginExpr()->getOperator();
-    if (Opc == OO_Equal || Opc == OO_PlusEqual)
+    
+    if (OverloadedOperatorKind Opc = MemOpCall->getOriginExpr()->getOperator(); Opc == OO_Equal || Opc == OO_PlusEqual)
       return true;
     return false;
   }
@@ -153,8 +153,8 @@ void InnerPointerChecker::checkFunctionArguments(const CallEvent &Call,
       return;
 
     for (unsigned I = 0, E = FD->getNumParams(); I != E; ++I) {
-      QualType ParamTy = FD->getParamDecl(I)->getType();
-      if (!ParamTy->isReferenceType() ||
+      
+      if (QualType ParamTy = FD->getParamDecl(I)->getType(); !ParamTy->isReferenceType() ||
           ParamTy->getPointeeType().isConstQualified())
         continue;
 

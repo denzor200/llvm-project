@@ -702,16 +702,16 @@ void Dependence::dump(raw_ostream &OS) const {
     else if (isInput())
       OS << "input";
     dumpImp(OS);
-    unsigned SameSDLevels = getSameSDLevels();
-    if (SameSDLevels > 0) {
+    
+    if (unsigned SameSDLevels = getSameSDLevels(); SameSDLevels > 0) {
       OS << " / assuming " << SameSDLevels << " loop level(s) fused: ";
       dumpImp(OS, true);
     }
   }
   OS << "!\n";
 
-  SCEVUnionPredicate Assumptions = getRuntimeAssumptions();
-  if (!Assumptions.isAlwaysTrue()) {
+  
+  if (SCEVUnionPredicate Assumptions = getRuntimeAssumptions(); !Assumptions.isAlwaysTrue()) {
     OS << "  Runtime Assumptions:\n";
     Assumptions.print(OS, 2);
   }
@@ -732,14 +732,14 @@ void Dependence::dumpImp(raw_ostream &OS, bool IsSameSD) const {
       OnSameSD = true;
     if (isPeelFirst(II, OnSameSD))
       OS << 'p';
-    const SCEV *Distance = getDistance(II, OnSameSD);
-    if (Distance)
+    
+    if (const SCEV *Distance = getDistance(II, OnSameSD); Distance)
       OS << *Distance;
     else if (isScalar(II, OnSameSD))
       OS << "S";
     else {
-      unsigned Direction = getDirection(II, OnSameSD);
-      if (Direction == DVEntry::ALL)
+      
+      if (unsigned Direction = getDirection(II, OnSameSD); Direction == DVEntry::ALL)
         OS << "*";
       else {
         if (Direction & DVEntry::LT)
@@ -946,8 +946,8 @@ unsigned DependenceInfo::mapSrcLoop(const Loop *SrcLoop) const {
 // Given one of the loops containing the destination,
 // return its level index in our numbering scheme.
 unsigned DependenceInfo::mapDstLoop(const Loop *DstLoop) const {
-  unsigned D = DstLoop->getLoopDepth();
-  if (D > CommonLevels)
+  
+  if (unsigned D = DstLoop->getLoopDepth(); D > CommonLevels)
     // This tries to make sure that we assign unique numbers to src and dst when
     // the memory accesses reside in different loops that have the same depth.
     return D - CommonLevels + SrcLevels;
@@ -976,8 +976,8 @@ void DependenceInfo::collectCommonLoops(const SCEV *Expression,
                                         const Loop *LoopNest,
                                         SmallBitVector &Loops) const {
   while (LoopNest) {
-    unsigned Level = LoopNest->getLoopDepth();
-    if (Level <= CommonLevels && !SE->isLoopInvariant(Expression, LoopNest))
+    
+    if (unsigned Level = LoopNest->getLoopDepth(); Level <= CommonLevels && !SE->isLoopInvariant(Expression, LoopNest))
       Loops.set(Level);
     LoopNest = LoopNest->getParentLoop();
   }
@@ -1041,14 +1041,14 @@ void DependenceInfo::unifySubscriptType(ArrayRef<Subscript *> Pairs) {
 // the actual analysis.
 void DependenceInfo::removeMatchingExtensions(Subscript *Pair) {
   const SCEV *Src = Pair->Src;
-  const SCEV *Dst = Pair->Dst;
-  if ((isa<SCEVZeroExtendExpr>(Src) && isa<SCEVZeroExtendExpr>(Dst)) ||
+  
+  if (const SCEV *Dst = Pair->Dst; (isa<SCEVZeroExtendExpr>(Src) && isa<SCEVZeroExtendExpr>(Dst)) ||
       (isa<SCEVSignExtendExpr>(Src) && isa<SCEVSignExtendExpr>(Dst))) {
     const SCEVIntegralCastExpr *SrcCast = cast<SCEVIntegralCastExpr>(Src);
     const SCEVIntegralCastExpr *DstCast = cast<SCEVIntegralCastExpr>(Dst);
     const SCEV *SrcCastOp = SrcCast->getOperand();
-    const SCEV *DstCastOp = DstCast->getOperand();
-    if (SrcCastOp->getType() == DstCastOp->getType()) {
+    
+    if (const SCEV *DstCastOp = DstCast->getOperand(); SrcCastOp->getType() == DstCastOp->getType()) {
       Pair->Src = SrcCastOp;
       Pair->Dst = DstCastOp;
     }
@@ -1143,8 +1143,8 @@ bool DependenceInfo::isKnownPredicate(ICmpInst::Predicate Pred, const SCEV *X,
       const SCEVIntegralCastExpr *CX = cast<SCEVIntegralCastExpr>(X);
       const SCEVIntegralCastExpr *CY = cast<SCEVIntegralCastExpr>(Y);
       const SCEV *Xop = CX->getOperand();
-      const SCEV *Yop = CY->getOperand();
-      if (Xop->getType() == Yop->getType()) {
+      
+      if (const SCEV *Yop = CY->getOperand(); Xop->getType() == Yop->getType()) {
         X = Xop;
         Y = Yop;
       }
@@ -1157,8 +1157,8 @@ bool DependenceInfo::isKnownPredicate(ICmpInst::Predicate Pred, const SCEV *X,
   // and testing the difference.
   // By testing with SE->isKnownPredicate first, we avoid
   // the possibility of overflow when the arguments are constants.
-  const SCEV *Delta = SE->getMinusSCEV(X, Y);
-  switch (Pred) {
+  
+  switch (const SCEV *Delta = SE->getMinusSCEV(X, Y); Pred) {
   case CmpInst::ICMP_EQ:
     return Delta->isZero();
   case CmpInst::ICMP_NE:
@@ -2418,8 +2418,8 @@ bool DependenceInfo::testRDIV(const SCEV *Src, const SCEV *Dst,
   LLVM_DEBUG(dbgs() << "    src = " << *Src << "\n");
   LLVM_DEBUG(dbgs() << "    dst = " << *Dst << "\n");
   const SCEVAddRecExpr *SrcAddRec = dyn_cast<SCEVAddRecExpr>(Src);
-  const SCEVAddRecExpr *DstAddRec = dyn_cast<SCEVAddRecExpr>(Dst);
-  if (SrcAddRec && DstAddRec) {
+  
+  if (const SCEVAddRecExpr *DstAddRec = dyn_cast<SCEVAddRecExpr>(Dst); SrcAddRec && DstAddRec) {
     SrcConst = SrcAddRec->getStart();
     SrcCoeff = SrcAddRec->getStepRecurrence(*SE);
     SrcLoop = SrcAddRec->getLoop();
@@ -2751,9 +2751,9 @@ bool DependenceInfo::banerjeeMIVtest(const SCEV *Src, const SCEV *Dst,
   if (testBounds(Dependence::DVEntry::ALL, 0, Bound, Delta)) {
     // Explore the direction vector hierarchy.
     unsigned DepthExpanded = 0;
-    unsigned NewDeps =
-        exploreDirections(1, A, B, Bound, Loops, DepthExpanded, Delta);
-    if (NewDeps > 0) {
+    
+    if (unsigned NewDeps =
+        exploreDirections(1, A, B, Bound, Loops, DepthExpanded, Delta); NewDeps > 0) {
       bool Improved = false;
       for (unsigned K = 1; K <= CommonLevels; ++K) {
         if (Loops[K]) {
@@ -2987,8 +2987,8 @@ void DependenceInfo::findBoundsEQ(CoefficientInfo *A, CoefficientInfo *B,
     // If the positive/negative part of the difference is 0,
     // we won't need to know the number of iterations.
     const SCEV *Delta = SE->getMinusSCEV(A[K].Coeff, B[K].Coeff);
-    const SCEV *NegativePart = getNegativePart(Delta);
-    if (NegativePart->isZero())
+    
+    if (const SCEV *NegativePart = getNegativePart(Delta); NegativePart->isZero())
       Bound[K].Lower[Dependence::DVEntry::EQ] = NegativePart; // Zero
     const SCEV *PositivePart = getPositivePart(Delta);
     if (PositivePart->isZero())
@@ -3029,9 +3029,9 @@ void DependenceInfo::findBoundsLT(CoefficientInfo *A, CoefficientInfo *B,
   } else {
     // If the positive/negative part of the difference is 0,
     // we won't need to know the number of iterations.
-    const SCEV *NegPart =
-        getNegativePart(SE->getMinusSCEV(A[K].NegPart, B[K].Coeff));
-    if (NegPart->isZero())
+    
+    if (const SCEV *NegPart =
+        getNegativePart(SE->getMinusSCEV(A[K].NegPart, B[K].Coeff)); NegPart->isZero())
       Bound[K].Lower[Dependence::DVEntry::LT] = SE->getNegativeSCEV(B[K].Coeff);
     const SCEV *PosPart =
         getPositivePart(SE->getMinusSCEV(A[K].PosPart, B[K].Coeff));
@@ -3073,9 +3073,9 @@ void DependenceInfo::findBoundsGT(CoefficientInfo *A, CoefficientInfo *B,
   } else {
     // If the positive/negative part of the difference is 0,
     // we won't need to know the number of iterations.
-    const SCEV *NegPart =
-        getNegativePart(SE->getMinusSCEV(A[K].Coeff, B[K].PosPart));
-    if (NegPart->isZero())
+    
+    if (const SCEV *NegPart =
+        getNegativePart(SE->getMinusSCEV(A[K].Coeff, B[K].PosPart)); NegPart->isZero())
       Bound[K].Lower[Dependence::DVEntry::GT] = A[K].Coeff;
     const SCEV *PosPart =
         getPositivePart(SE->getMinusSCEV(A[K].Coeff, B[K].NegPart));
@@ -3184,10 +3184,10 @@ bool DependenceInfo::tryDelinearize(Instruction *Src, Instruction *Dst,
   const SCEV *DstAccessFn = SE->getSCEVAtScope(DstPtr, DstLoop);
   const SCEVUnknown *SrcBase =
       dyn_cast<SCEVUnknown>(SE->getPointerBase(SrcAccessFn));
-  const SCEVUnknown *DstBase =
-      dyn_cast<SCEVUnknown>(SE->getPointerBase(DstAccessFn));
+  
 
-  if (!SrcBase || !DstBase || SrcBase != DstBase)
+  if (const SCEVUnknown *DstBase =
+      dyn_cast<SCEVUnknown>(SE->getPointerBase(DstAccessFn)); !SrcBase || !DstBase || SrcBase != DstBase)
     return false;
 
   SmallVector<const SCEV *, 4> SrcSubscripts, DstSubscripts;
@@ -3539,11 +3539,11 @@ DependenceInfo::depends(Instruction *Src, Instruction *Dst,
     // Revoke if there are any tests other than ZIV, SIV or RDIV
     for (unsigned P = 0; P < Pairs; ++P) {
       SmallBitVector Loops;
-      Subscript::ClassificationKind TestClass =
-          classifyPair(Pair[P].Src, LI->getLoopFor(Src->getParent()),
-                       Pair[P].Dst, LI->getLoopFor(Dst->getParent()), Loops);
+      
 
-      if (TestClass != Subscript::ZIV && TestClass != Subscript::SIV &&
+      if (Subscript::ClassificationKind TestClass =
+          classifyPair(Pair[P].Src, LI->getLoopFor(Src->getParent()),
+                       Pair[P].Dst, LI->getLoopFor(Dst->getParent()), Loops); TestClass != Subscript::ZIV && TestClass != Subscript::SIV &&
           TestClass != Subscript::RDIV) {
         // Revert the levels to not consider the SameSD levels
         CommonLevels -= SameSDLevels;
@@ -3601,8 +3601,8 @@ DependenceInfo::depends(Instruction *Src, Instruction *Dst,
       break;
     case Subscript::SIV: {
       LLVM_DEBUG(dbgs() << ", SIV\n");
-      unsigned Level;
-      if (testSIV(Pair[SI].Src, Pair[SI].Dst, Level, Result))
+      
+      if (unsigned Level; testSIV(Pair[SI].Src, Pair[SI].Dst, Level, Result))
         return nullptr;
       break;
     }

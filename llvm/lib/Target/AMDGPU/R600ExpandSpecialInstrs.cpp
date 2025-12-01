@@ -63,8 +63,8 @@ FunctionPass *llvm::createR600ExpandSpecialInstrsPass() {
 void R600ExpandSpecialInstrsPass::SetFlagInNewMI(MachineInstr *NewMI,
                                                  const MachineInstr *OldMI,
                                                  R600::OpName Op) {
-  int OpIdx = TII->getOperandIdx(*OldMI, Op);
-  if (OpIdx > -1) {
+  
+  if (int OpIdx = TII->getOperandIdx(*OldMI, Op); OpIdx > -1) {
     uint64_t Val = OldMI->getOperand(OpIdx).getImm();
     TII->setImmOperand(*NewMI, Op, Val);
   }
@@ -202,8 +202,8 @@ bool R600ExpandSpecialInstrsPass::runOnMachineFunction(MachineFunction &MF) {
 
         // Determine the correct source registers
         if (!IsCube) {
-          int Src1Idx = TII->getOperandIdx(MI, R600::OpName::src1);
-          if (Src1Idx != -1) {
+          
+          if (int Src1Idx = TII->getOperandIdx(MI, R600::OpName::src1); Src1Idx != -1) {
             Src1 = MI.getOperand(Src1Idx).getReg();
           }
         }

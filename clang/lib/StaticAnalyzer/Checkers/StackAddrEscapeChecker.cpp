@@ -140,8 +140,8 @@ StackAddrEscapeChecker::getCapturedStackRegions(const BlockDataRegion &B,
       Regions;
   ProgramStateRef State = C.getState();
   for (auto Var : B.referenced_vars()) {
-    SVal Val = State->getSVal(Var.getCapturedRegion());
-    if (const MemRegion *Region = Val.getAsRegion()) {
+    
+    if (const MemRegion *SVal Val = State->getSVal(Var.getCapturedRegion()); Region = Val.getAsRegion()) {
       if (const auto *Space =
               Region->getMemorySpaceAs<StackSpaceRegion>(State)) {
         Regions.emplace_back(Region, Space);
@@ -287,8 +287,8 @@ private:
   bool VisitBlockDataRegionCaptures(const BlockDataRegion *BDR) {
     for (auto Var : BDR->referenced_vars()) {
       SVal Val = Ctxt.getState()->getSVal(Var.getCapturedRegion());
-      const MemRegion *Region = Val.getAsRegion();
-      if (Region) {
+      
+      if (const MemRegion *Region = Val.getAsRegion(); Region) {
         SaveIfEscapes(Region);
         VisitMemRegion(Region);
       }

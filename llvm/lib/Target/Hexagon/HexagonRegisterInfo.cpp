@@ -80,11 +80,11 @@ HexagonRegisterInfo::getCallerSavedRegs(const MachineFunction *MF,
   static const MCPhysReg VecDbl[] = {
     W0, W1, W2, W3, W4, W5, W6, W7, W8, W9, W10, W11, W12, W13, W14, W15, 0
   };
-  static const MCPhysReg VecPred[] = {
-    Q0, Q1, Q2, Q3, 0
-  };
+  
 
-  switch (RC->getID()) {
+  switch (static const MCPhysReg VecPred[] = {
+    Q0, Q1, Q2, Q3, 0
+  }; RC->getID()) {
     case IntRegsRegClassID:
       return Int32;
     case DoubleRegsRegClassID:
@@ -247,8 +247,8 @@ bool HexagonRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
     // a much smaller offset range: [-8, 7), or #s4. In those cases it
     // makes sense to "standardize" the immediate in the "addi" instruction
     // so that multiple loads/stores could be based on it.
-    bool IsPair = false;
-    switch (MI.getOpcode()) {
+    
+    switch (bool IsPair = false; MI.getOpcode()) {
       // All of these instructions have the same format: base+#s4.
       case Hexagon::PS_vloadrw_ai:
       case Hexagon::PS_vloadrw_nt_ai:
@@ -262,8 +262,8 @@ bool HexagonRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
       case Hexagon::PS_vstorerv_nt_ai:
       case Hexagon::V6_vL32b_ai:
       case Hexagon::V6_vS32b_ai: {
-        unsigned HwLen = HST.getVectorLength();
-        if (RealOffset % HwLen == 0) {
+        
+        if (unsigned HwLen = HST.getVectorLength(); RealOffset % HwLen == 0) {
           int VecOffset = RealOffset / HwLen;
           // Rewrite the offset as "base + [-8, 7)".
           VecOffset += 8;
@@ -305,8 +305,8 @@ bool HexagonRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
           continue;
         if (BI.getOperand(1).getReg() != BP)
           continue;
-        const auto &Op2 = BI.getOperand(2);
-        if (!Op2.isImm() || Op2.getImm() != RealOffset)
+        
+        if (const auto &Op2 = BI.getOperand(2); !Op2.isImm() || Op2.getImm() != RealOffset)
           continue;
 
         Register R = BI.getOperand(0).getReg();
@@ -354,8 +354,8 @@ bool HexagonRegisterInfo::shouldCoalesce(MachineInstr *MI,
   // calls into the interval, since it could result in a spilling of a pair
   // instead of a single vector.
   MachineFunction &MF = *MI->getParent()->getParent();
-  const HexagonSubtarget &HST = MF.getSubtarget<HexagonSubtarget>();
-  if (!HST.useHVXOps() || NewRC->getID() != Hexagon::HvxWRRegClass.getID())
+  
+  if (const HexagonSubtarget &HST = MF.getSubtarget<HexagonSubtarget>(); !HST.useHVXOps() || NewRC->getID() != Hexagon::HvxWRRegClass.getID())
     return true;
   bool SmallSrc = SrcRC->getID() == Hexagon::HvxVRRegClass.getID();
   bool SmallDst = DstRC->getID() == Hexagon::HvxVRRegClass.getID();
@@ -396,8 +396,8 @@ bool HexagonRegisterInfo::shouldCoalesce(MachineInstr *MI,
 
 Register HexagonRegisterInfo::getFrameRegister(const MachineFunction
                                                &MF) const {
-  const HexagonFrameLowering *TFI = getFrameLowering(MF);
-  if (TFI->hasFP(MF))
+  
+  if (const HexagonFrameLowering *TFI = getFrameLowering(MF); TFI->hasFP(MF))
     return getFrameRegister();
   return getStackRegister();
 }
@@ -419,9 +419,9 @@ unsigned HexagonRegisterInfo::getHexagonSubRegIndex(
 
   static const unsigned ISub[] = { Hexagon::isub_lo, Hexagon::isub_hi };
   static const unsigned VSub[] = { Hexagon::vsub_lo, Hexagon::vsub_hi };
-  static const unsigned WSub[] = { Hexagon::wsub_lo, Hexagon::wsub_hi };
+  
 
-  switch (RC.getID()) {
+  switch (static const unsigned WSub[] = { Hexagon::wsub_lo, Hexagon::wsub_hi }; RC.getID()) {
     case Hexagon::CtrRegs64RegClassID:
     case Hexagon::DoubleRegsRegClassID:
       return ISub[GenIdx];

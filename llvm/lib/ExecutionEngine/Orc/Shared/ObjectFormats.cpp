@@ -40,8 +40,8 @@ bool isMachOInitializerSection(StringRef QualifiedName) {
 
 bool isELFInitializerSection(StringRef SecName) {
   for (StringRef InitSection : ELFInitSectionNames) {
-    StringRef Name = SecName;
-    if (Name.consume_front(InitSection) && (Name.empty() || Name[0] == '.'))
+    
+    if (StringRef Name = SecName; Name.consume_front(InitSection) && (Name.empty() || Name[0] == '.'))
       return true;
   }
   return false;

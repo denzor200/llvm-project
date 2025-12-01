@@ -744,8 +744,8 @@ ASTPropsEmitter::emitBasicReaderWriterTemplate(const ReaderWriterInfo &info) {
     };
 
     // Handled cased types.
-    auto casedIter = CasedTypeInfos.find(type);
-    if (casedIter != CasedTypeInfos.end()) {
+    
+    if (auto casedIter = CasedTypeInfos.find(type); casedIter != CasedTypeInfos.end()) {
       enterMethod("node");
       emitCasedReaderWriterMethodBody(type, casedIter->second, info);
       exitMethod();

@@ -23,8 +23,8 @@ LogicalResult mlir::IndexingMapOpInterface::verifyImpl() {
            << ") to be equal to the number of input/output operands ("
            << getOperation()->getNumOperands() << ")";
 
-  AffineMap invertedMap = getShapesToLoopsMap();
-  if (!invertedMap) {
+  
+  if (AffineMap invertedMap = getShapesToLoopsMap(); !invertedMap) {
     std::string str;
     llvm::raw_string_ostream os(str);
     getLoopsToShapesMap().print(os);

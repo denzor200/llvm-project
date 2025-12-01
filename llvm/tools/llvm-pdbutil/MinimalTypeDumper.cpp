@@ -41,9 +41,9 @@ static std::string formatClassOptions(uint32_t IndentLevel,
       !opts::dump::DontResolveForwardRefs &&
       ((Options & ClassOptions::ForwardReference) != ClassOptions::None)) {
     // If we're able to resolve forward references, do that.
-    Expected<TypeIndex> ETI =
-        Stream->findFullDeclForForwardRef(CurrentTypeIndex);
-    if (!ETI) {
+    
+    if (Expected<TypeIndex> ETI =
+        Stream->findFullDeclForForwardRef(CurrentTypeIndex); !ETI) {
       consumeError(ETI.takeError());
       PUSH_FLAG(ClassOptions, ForwardReference, Options, "forward ref (??\?)");
     } else {

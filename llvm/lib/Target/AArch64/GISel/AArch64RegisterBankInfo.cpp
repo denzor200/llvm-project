@@ -256,9 +256,9 @@ AArch64RegisterBankInfo::getInstrAlternativeMappings(
   const MachineFunction &MF = *MI.getParent()->getParent();
   const TargetSubtargetInfo &STI = MF.getSubtarget();
   const TargetRegisterInfo &TRI = *STI.getRegisterInfo();
-  const MachineRegisterInfo &MRI = MF.getRegInfo();
+  
 
-  switch (MI.getOpcode()) {
+  switch (const MachineRegisterInfo &MRI = MF.getRegInfo(); MI.getOpcode()) {
   case TargetOpcode::G_OR: {
     // 32 and 64-bit or can be mapped on either FPR or
     // GPR for the same cost.
@@ -361,9 +361,9 @@ AArch64RegisterBankInfo::getInstrAlternativeMappings(
 void AArch64RegisterBankInfo::applyMappingImpl(
     MachineIRBuilder &Builder, const OperandsMapper &OpdMapper) const {
   MachineInstr &MI = OpdMapper.getMI();
-  MachineRegisterInfo &MRI = OpdMapper.getMRI();
+  
 
-  switch (MI.getOpcode()) {
+  switch (MachineRegisterInfo &MRI = OpdMapper.getMRI(); MI.getOpcode()) {
   case TargetOpcode::G_OR:
   case TargetOpcode::G_BITCAST:
   case TargetOpcode::G_LOAD:
@@ -387,8 +387,8 @@ void AArch64RegisterBankInfo::applyMappingImpl(
     Builder.setInsertPt(*MI.getParent(), MI.getIterator());
 
     Register ConstReg;
-    auto ConstMI = MRI.getVRegDef(MI.getOperand(1).getReg());
-    if (ConstMI->getOpcode() == TargetOpcode::G_CONSTANT) {
+    
+    if (auto ConstMI = MRI.getVRegDef(MI.getOperand(1).getReg()); ConstMI->getOpcode() == TargetOpcode::G_CONSTANT) {
       auto CstVal = ConstMI->getOperand(1).getCImm()->getValue();
       ConstReg =
           Builder.buildConstant(LLT::scalar(32), CstVal.sext(32)).getReg(0);
@@ -683,9 +683,9 @@ AArch64RegisterBankInfo::getInstrMapping(const MachineInstr &MI) const {
   // or already have some operands assigned to banks.
   if ((Opc != TargetOpcode::COPY && !isPreISelGenericOpcode(Opc)) ||
       Opc == TargetOpcode::G_PHI) {
-    const RegisterBankInfo::InstructionMapping &Mapping =
-        getInstrMappingImpl(MI);
-    if (Mapping.isValid())
+    
+    if (const RegisterBankInfo::InstructionMapping &Mapping =
+        getInstrMappingImpl(MI); Mapping.isValid())
       return Mapping;
   }
 
@@ -816,9 +816,9 @@ AArch64RegisterBankInfo::getInstrMapping(const MachineInstr &MI) const {
   case AArch64::G_DUP: {
     Register ScalarReg = MI.getOperand(1).getReg();
     LLT ScalarTy = MRI.getType(ScalarReg);
-    auto ScalarDef = MRI.getVRegDef(ScalarReg);
+    
     // We want to select dup(load) into LD1R.
-    if (ScalarDef->getOpcode() == TargetOpcode::G_LOAD)
+    if (auto ScalarDef = MRI.getVRegDef(ScalarReg); ScalarDef->getOpcode() == TargetOpcode::G_LOAD)
       OpRegBankIdx = {PMI_FirstFPR, PMI_FirstFPR};
     // s8 is an exception for G_DUP, which we always want on gpr.
     else if (ScalarTy.getSizeInBits() != 8 &&
@@ -1026,8 +1026,8 @@ AArch64RegisterBankInfo::getInstrMapping(const MachineInstr &MI) const {
     // This isn't passed explicitly in a register to fcsel/csel.
     for (unsigned Idx = 2; Idx < 4; ++Idx) {
       Register VReg = MI.getOperand(Idx).getReg();
-      MachineInstr *DefMI = MRI.getVRegDef(VReg);
-      if (getRegBank(VReg, MRI, TRI) == &AArch64::FPRRegBank ||
+      
+      if (MachineInstr *DefMI = MRI.getVRegDef(VReg); getRegBank(VReg, MRI, TRI) == &AArch64::FPRRegBank ||
           onlyDefinesFP(*DefMI, MRI, TRI))
         ++NumFP;
     }

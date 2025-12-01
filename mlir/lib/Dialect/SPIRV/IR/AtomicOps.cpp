@@ -36,8 +36,8 @@ StringRef stringifyTypeName<FloatType>() {
 template <typename AtomicOpTy, typename ExpectedElementType>
 static LogicalResult verifyAtomicUpdateOp(Operation *op) {
   auto ptrType = llvm::cast<spirv::PointerType>(op->getOperand(0).getType());
-  auto elementType = ptrType.getPointeeType();
-  if (!llvm::isa<ExpectedElementType>(elementType))
+  
+  if (auto elementType = ptrType.getPointeeType(); !llvm::isa<ExpectedElementType>(elementType))
     return op->emitOpError() << "pointer operand must point to an "
                              << stringifyTypeName<ExpectedElementType>()
                              << " value, found " << elementType;

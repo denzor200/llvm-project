@@ -1057,8 +1057,8 @@ static Value memsetGetStored(MemsetIntr op, const MemorySlot &slot,
 
     // If we know the pattern at compile time, we can compute and assign a
     // constant directly.
-    IntegerAttr constantPattern;
-    if (matchPattern(op.getVal(), m_Constant(&constantPattern))) {
+    
+    if (IntegerAttr constantPattern; matchPattern(op.getVal(), m_Constant(&constantPattern))) {
       assert(constantPattern.getValue().getBitWidth() == 8);
       APInt memsetVal(/*numBits=*/width, /*val=*/0);
       for (unsigned loBit = 0; loBit < width; loBit += 8)
@@ -1106,13 +1106,13 @@ memsetCanUsesBeRemoved(MemsetIntr op, const MemorySlot &slot,
                        const SmallPtrSetImpl<OpOperand *> &blockingUses,
                        SmallVectorImpl<OpOperand *> &newBlockingUses,
                        const DataLayout &dataLayout) {
-  bool canConvertType =
+  
+  if (bool canConvertType =
       TypeSwitch<Type, bool>(slot.elemType)
           .Case<IntegerType, FloatType>([](auto type) {
             return type.getWidth() % 8 == 0 && type.getWidth() > 0;
           })
-          .Default(false);
-  if (!canConvertType)
+          .Default(false); !canConvertType)
     return false;
 
   if (op.getIsVolatile())
@@ -1605,8 +1605,8 @@ Type LLVM::LLVMStructType::getTypeAtIndex(Attribute index) const {
 
 std::optional<DenseMap<Attribute, Type>>
 LLVM::LLVMArrayType::getSubelementIndexMap() const {
-  constexpr size_t maxArraySizeForDestructuring = 16;
-  if (getNumElements() > maxArraySizeForDestructuring)
+  
+  if (constexpr size_t maxArraySizeForDestructuring = 16; getNumElements() > maxArraySizeForDestructuring)
     return {};
   int32_t numElements = getNumElements();
 

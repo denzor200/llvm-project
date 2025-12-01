@@ -91,8 +91,8 @@ static bool GetByteOrderAndAddressSize(ExecutionContextScope *exe_scope,
   }
 
   if (byte_order == eByteOrderInvalid || addr_size == 0) {
-    ModuleSP module_sp(address.GetModule());
-    if (module_sp) {
+    
+    if (ModuleSP module_sp(address.GetModule()); module_sp) {
       byte_order = module_sp->GetArchitecture().GetByteOrder();
       addr_size = module_sp->GetArchitecture().GetAddressByteSize();
     }
@@ -113,8 +113,8 @@ static uint64_t ReadUIntMax64(ExecutionContextScope *exe_scope,
   success = ReadBytes(exe_scope, address, &buf, byte_size) == byte_size;
   if (success) {
     ByteOrder byte_order = eByteOrderInvalid;
-    uint32_t addr_size = 0;
-    if (GetByteOrderAndAddressSize(exe_scope, address, byte_order, addr_size)) {
+    
+    if (uint32_t addr_size = 0; GetByteOrderAndAddressSize(exe_scope, address, byte_order, addr_size)) {
       DataExtractor data(&buf, sizeof(buf), byte_order, addr_size);
       lldb::offset_t offset = 0;
       uval64 = data.GetU64(&offset);
@@ -131,14 +131,14 @@ static bool ReadAddress(ExecutionContextScope *exe_scope,
     return false;
 
   bool success = false;
-  addr_t deref_addr = ReadUIntMax64(exe_scope, address, pointer_size, success);
-  if (success) {
+  
+  if (addr_t deref_addr = ReadUIntMax64(exe_scope, address, pointer_size, success); success) {
     ExecutionContext exe_ctx;
     exe_scope->CalculateExecutionContext(exe_ctx);
     // If we have any sections that are loaded, try and resolve using the
     // section load list
-    Target *target = exe_ctx.GetTargetPtr();
-    if (target && target->HasLoadedSections()) {
+    
+    if (Target *target = exe_ctx.GetTargetPtr(); target && target->HasLoadedSections()) {
       if (target->ResolveLoadAddress(deref_addr, deref_so_addr))
         return true;
     } else {
@@ -168,8 +168,8 @@ static bool DumpUInt(ExecutionContextScope *exe_scope, const Address &address,
 
   if (ReadBytes(exe_scope, address, &buf[0], buf.size()) == buf.size()) {
     ByteOrder byte_order = eByteOrderInvalid;
-    uint32_t addr_size = 0;
-    if (GetByteOrderAndAddressSize(exe_scope, address, byte_order, addr_size)) {
+    
+    if (uint32_t addr_size = 0; GetByteOrderAndAddressSize(exe_scope, address, byte_order, addr_size)) {
       DataExtractor data(&buf.front(), buf.size(), byte_order, addr_size);
 
       DumpDataExtractor(data, strm,
@@ -302,9 +302,9 @@ addr_t Address::GetLoadAddress(Target *target) const {
   SectionSP section_sp(GetSection());
   if (section_sp) {
     if (target) {
-      addr_t sect_load_addr = section_sp->GetLoadBaseAddress(target);
+      
 
-      if (sect_load_addr != LLDB_INVALID_ADDRESS) {
+      if (addr_t sect_load_addr = section_sp->GetLoadBaseAddress(target); sect_load_addr != LLDB_INVALID_ADDRESS) {
         // We have a valid file range, so we can return the file based address
         // by adding the file base address to our offset
         return sect_load_addr + m_offset;
@@ -328,8 +328,8 @@ addr_t Address::GetCallableLoadAddress(Target *target, bool is_indirect) const {
 
   if (is_indirect && target) {
     ProcessSP processSP = target->GetProcessSP();
-    Status error;
-    if (processSP) {
+    
+    if (Status error; processSP) {
       code_addr = processSP->ResolveIndirectFunction(this, error);
       if (!error.Success())
         code_addr = LLDB_INVALID_ADDRESS;
@@ -384,8 +384,8 @@ bool Address::GetDescription(Stream &s, Target &target,
                              DescriptionLevel level) const {
   assert(level == eDescriptionLevelBrief &&
          "Non-brief descriptions not implemented");
-  LineEntry line_entry;
-  if (CalculateSymbolContextLineEntry(line_entry)) {
+  
+  if (LineEntry line_entry; CalculateSymbolContextLineEntry(line_entry)) {
     s.Printf(" (%s:%u:%u)", line_entry.GetFile().GetFilename().GetCString(),
              line_entry.line, line_entry.column);
     return true;
@@ -414,8 +414,8 @@ bool Address::Dump(Stream *s, ExecutionContextScope *exe_scope, DumpStyle style,
       addr_size = sizeof(addr_t);
   }
 
-  Address so_addr;
-  switch (style) {
+  
+  switch (Address so_addr; style) {
   case DumpStyleInvalid:
     return false;
 
@@ -435,8 +435,8 @@ bool Address::Dump(Stream *s, ExecutionContextScope *exe_scope, DumpStyle style,
 
   case DumpStyleModuleWithFileAddress:
     if (section_sp) {
-      ModuleSP module_sp = section_sp->GetModule();
-      if (module_sp)
+      
+      if (ModuleSP module_sp = section_sp->GetModule(); module_sp)
         s->Printf("%s[", module_sp->GetFileSpec().GetFilename().AsCString(
                              "<Unknown>"));
       else
@@ -464,9 +464,9 @@ bool Address::Dump(Stream *s, ExecutionContextScope *exe_scope, DumpStyle style,
      * if the address belongs to AddressClass::eCodeAlternateISA.
     */
     if (target) {
-      const llvm::Triple::ArchType llvm_arch =
-          target->GetArchitecture().GetMachine();
-      if (llvm_arch == llvm::Triple::mips ||
+      
+      if (const llvm::Triple::ArchType llvm_arch =
+          target->GetArchitecture().GetMachine(); llvm_arch == llvm::Triple::mips ||
           llvm_arch == llvm::Triple::mipsel ||
           llvm_arch == llvm::Triple::mips64 ||
           llvm_arch == llvm::Triple::mips64el)
@@ -494,21 +494,21 @@ bool Address::Dump(Stream *s, ExecutionContextScope *exe_scope, DumpStyle style,
         pointer_size = module_sp->GetArchitecture().GetAddressByteSize();
       bool showed_info = false;
       if (section_sp) {
-        SectionType sect_type = section_sp->GetType();
-        switch (sect_type) {
+        
+        switch (SectionType sect_type = section_sp->GetType(); sect_type) {
         case eSectionTypeData:
           if (module_sp) {
             if (Symtab *symtab = module_sp->GetSymtab()) {
               const addr_t file_Addr = GetFileAddress();
-              Symbol *symbol =
-                  symtab->FindSymbolContainingFileAddress(file_Addr);
-              if (symbol) {
+              
+              if (Symbol *symbol =
+                  symtab->FindSymbolContainingFileAddress(file_Addr); symbol) {
                 const char *symbol_name = symbol->GetName().AsCString();
                 if (symbol_name) {
                   s->PutCStringColorHighlighted(symbol_name, settings);
-                  addr_t delta =
-                      file_Addr - symbol->GetAddressRef().GetFileAddress();
-                  if (delta)
+                  
+                  if (addr_t delta =
+                      file_Addr - symbol->GetAddressRef().GetFileAddress(); delta)
                     s->Printf(" + %" PRIu64, delta);
                   showed_info = true;
                 }
@@ -625,8 +625,8 @@ bool Address::Dump(Stream *s, ExecutionContextScope *exe_scope, DumpStyle style,
 
             showed_info = true;
             if (so_addr.IsSectionOffset()) {
-              SymbolContext pointer_sc;
-              if (target) {
+              
+              if (SymbolContext pointer_sc; target) {
                 target->GetImages().ResolveSymbolContextForAddress(
                     so_addr, eSymbolContextEverything, pointer_sc);
                 if (pointer_sc.function != nullptr ||
@@ -695,8 +695,8 @@ bool Address::Dump(Stream *s, ExecutionContextScope *exe_scope, DumpStyle style,
 
   case DumpStyleDetailedSymbolContext:
     if (IsSectionOffset()) {
-      ModuleSP module_sp(GetModule());
-      if (module_sp) {
+      
+      if (ModuleSP module_sp(GetModule()); module_sp) {
         SymbolContext sc;
         module_sp->ResolveSymbolContextForAddress(
             *this, eSymbolContextEverything | eSymbolContextVariable, sc);
@@ -730,8 +730,8 @@ bool Address::Dump(Stream *s, ExecutionContextScope *exe_scope, DumpStyle style,
             s->Indent();
             s->Printf("   Variable: id = {0x%8.8" PRIx64 "}, name = \"%s\"",
                       var_sp->GetID(), var_sp->GetName().GetCString());
-            Type *type = var_sp->GetType();
-            if (type)
+            
+            if (Type *type = var_sp->GetType(); type)
               s->Printf(", type = \"%s\"", type->GetName().GetCString());
             else
               s->PutCString(", type = <unknown>");
@@ -764,19 +764,19 @@ bool Address::Dump(Stream *s, ExecutionContextScope *exe_scope, DumpStyle style,
     break;
 
   case DumpStyleResolvedPointerDescription: {
-    Process *process = exe_ctx.GetProcessPtr();
-    if (process) {
-      addr_t load_addr = GetLoadAddress(target);
-      if (load_addr != LLDB_INVALID_ADDRESS) {
+    
+    if (Process *process = exe_ctx.GetProcessPtr(); process) {
+      
+      if (addr_t load_addr = GetLoadAddress(target); load_addr != LLDB_INVALID_ADDRESS) {
         Status memory_error;
-        addr_t dereferenced_load_addr =
-            process->ReadPointerFromMemory(load_addr, memory_error);
-        if (dereferenced_load_addr != LLDB_INVALID_ADDRESS) {
-          Address dereferenced_addr;
-          if (dereferenced_addr.SetLoadAddress(dereferenced_load_addr,
+        
+        if (addr_t dereferenced_load_addr =
+            process->ReadPointerFromMemory(load_addr, memory_error); dereferenced_load_addr != LLDB_INVALID_ADDRESS) {
+          
+          if (Address dereferenced_addr; dereferenced_addr.SetLoadAddress(dereferenced_load_addr,
                                                target)) {
-            StreamString strm;
-            if (dereferenced_addr.Dump(&strm, exe_scope,
+            
+            if (StreamString strm; dereferenced_addr.Dump(&strm, exe_scope,
                                        DumpStyleResolvedDescription,
                                        DumpStyleInvalid, addr_size)) {
               DumpAddress(s->AsRawOstream(), dereferenced_load_addr, addr_size,
@@ -825,8 +825,8 @@ Address::CalculateSymbolContext(SymbolContext *sc,
 
   SectionSP section_sp(GetSection());
   if (section_sp) {
-    ModuleSP module_sp(section_sp->GetModule());
-    if (module_sp) {
+    
+    if (ModuleSP module_sp(section_sp->GetModule()); module_sp) {
       sc->module_sp = module_sp;
       if (sc->module_sp)
         return sc->module_sp->ResolveSymbolContextForAddress(
@@ -981,8 +981,8 @@ bool lldb_private::operator<(const Address &lhs, const Address &rhs) {
   ModuleSP lhs_module_sp(lhs.GetModule());
   ModuleSP rhs_module_sp(rhs.GetModule());
   Module *lhs_module = lhs_module_sp.get();
-  Module *rhs_module = rhs_module_sp.get();
-  if (lhs_module == rhs_module) {
+  
+  if (Module *rhs_module = rhs_module_sp.get(); lhs_module == rhs_module) {
     // Addresses are in the same module, just compare the file addresses
     return lhs.GetFileAddress() < rhs.GetFileAddress();
   } else {
@@ -996,8 +996,8 @@ bool lldb_private::operator>(const Address &lhs, const Address &rhs) {
   ModuleSP lhs_module_sp(lhs.GetModule());
   ModuleSP rhs_module_sp(rhs.GetModule());
   Module *lhs_module = lhs_module_sp.get();
-  Module *rhs_module = rhs_module_sp.get();
-  if (lhs_module == rhs_module) {
+  
+  if (Module *rhs_module = rhs_module_sp.get(); lhs_module == rhs_module) {
     // Addresses are in the same module, just compare the file addresses
     return lhs.GetFileAddress() > rhs.GetFileAddress();
   } else {
@@ -1021,8 +1021,8 @@ bool lldb_private::operator!=(const Address &a, const Address &rhs) {
 AddressClass Address::GetAddressClass() const {
   ModuleSP module_sp(GetModule());
   if (module_sp) {
-    ObjectFile *obj_file = module_sp->GetObjectFile();
-    if (obj_file) {
+    
+    if (ObjectFile *obj_file = module_sp->GetObjectFile(); obj_file) {
       // Give the symbol file a chance to add to the unified section list
       // and to the symtab.
       module_sp->GetSymtab();

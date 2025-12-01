@@ -335,8 +335,8 @@ void DependentTemplateStorage::print(raw_ostream &OS,
   if (hasTemplateKeyword())
     OS << "template ";
 
-  IdentifierOrOverloadedOperator Name = getName();
-  if (const IdentifierInfo *II = Name.getIdentifier())
+  
+  if (const IdentifierInfo *IdentifierOrOverloadedOperator Name = getName(); II = Name.getIdentifier())
     OS << II->getName();
   else
     OS << "operator " << getOperatorSpelling(Name.getOperator());

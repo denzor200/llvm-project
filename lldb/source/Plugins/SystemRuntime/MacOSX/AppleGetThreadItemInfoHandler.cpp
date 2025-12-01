@@ -147,11 +147,11 @@ lldb::addr_t AppleGetThreadItemInfoHandler::SetupGetThreadItemInfoFunction(
 
   // Scope for mutex locker:
   {
-    std::lock_guard<std::mutex> guard(m_get_thread_item_info_function_mutex);
+    
 
     // First stage is to make the ClangUtility to hold our injected function:
 
-    if (!m_get_thread_item_info_impl_code) {
+    if (std::lock_guard<std::mutex> guard(m_get_thread_item_info_function_mutex); !m_get_thread_item_info_impl_code) {
       Status error;
       if (g_get_thread_item_info_function_code != nullptr) {
         auto utility_fn_or_error = exe_ctx.GetTargetRef().CreateUtilityFunction(

@@ -462,8 +462,8 @@ void TableGenTextFile::initialize(
   // Set the diagnostic handler for the tablegen source manager.
   sourceMgr.setDiagHandler(
       [](const llvm::SMDiagnostic &diag, void *rawHandlerContext) {
-        auto *ctx = reinterpret_cast<DiagHandlerContext *>(rawHandlerContext);
-        if (auto lspDiag = getLspDiagnoticFromDiag(diag, ctx->uri))
+        
+        if (auto auto *ctx = reinterpret_cast<DiagHandlerContext *>(rawHandlerContext); lspDiag = getLspDiagnoticFromDiag(diag, ctx->uri))
           ctx->diagnostics.push_back(*lspDiag);
       },
       &handlerContext);
@@ -637,8 +637,8 @@ llvm::lsp::Hover TableGenTextFile::buildHoverForField(
 
     // Check to see if there is a base value that we can use for
     // documentation.
-    auto [baseRecord, baseValue] = getBaseValue(record, value);
-    if (baseValue) {
+    
+    if (auto [baseRecord, baseValue] = getBaseValue(record, value); baseValue) {
       if (std::optional<std::string> doc =
               lsp::extractSourceDocComment(sourceMgr, baseValue->getLoc())) {
         hoverOS << "\n *From `" << baseRecord->getName() << "`*:\n\n"
@@ -716,23 +716,23 @@ lsp::TableGenServer::removeDocument(const URIForFile &uri) {
 void lsp::TableGenServer::getLocationsOf(const URIForFile &uri,
                                          const Position &defPos,
                                          std::vector<Location> &locations) {
-  auto fileIt = impl->files.find(uri.file());
-  if (fileIt != impl->files.end())
+  
+  if (auto fileIt = impl->files.find(uri.file()); fileIt != impl->files.end())
     fileIt->second->getLocationsOf(uri, defPos, locations);
 }
 
 void lsp::TableGenServer::findReferencesOf(const URIForFile &uri,
                                            const Position &pos,
                                            std::vector<Location> &references) {
-  auto fileIt = impl->files.find(uri.file());
-  if (fileIt != impl->files.end())
+  
+  if (auto fileIt = impl->files.find(uri.file()); fileIt != impl->files.end())
     fileIt->second->findReferencesOf(uri, pos, references);
 }
 
 void lsp::TableGenServer::getDocumentLinks(
     const URIForFile &uri, std::vector<DocumentLink> &documentLinks) {
-  auto fileIt = impl->files.find(uri.file());
-  if (fileIt != impl->files.end())
+  
+  if (auto fileIt = impl->files.find(uri.file()); fileIt != impl->files.end())
     return fileIt->second->getDocumentLinks(uri, documentLinks);
 }
 

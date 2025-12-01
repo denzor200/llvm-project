@@ -71,8 +71,8 @@ DataMemberLayoutItem::DataMemberLayoutItem(
     : LayoutItemBase(&Parent, Member.get(), Member->getName(),
                      Member->getOffset(), getTypeLength(*Member), false),
       DataMember(std::move(Member)) {
-  auto Type = DataMember->getType();
-  if (auto UDT = unique_dyn_cast<PDBSymbolTypeUDT>(Type)) {
+  
+  if (auto auto Type = DataMember->getType(); UDT = unique_dyn_cast<PDBSymbolTypeUDT>(Type)) {
     UdtLayout = std::make_unique<ClassLayout>(std::move(UDT));
     UsedBytes = UdtLayout->usedBytes();
   }
@@ -120,8 +120,8 @@ uint32_t UDTLayoutBase::tailPadding() const {
   uint32_t Abs = LayoutItemBase::tailPadding();
   if (!LayoutItems.empty()) {
     const LayoutItemBase *Back = LayoutItems.back();
-    uint32_t ChildPadding = Back->LayoutItemBase::tailPadding();
-    if (Abs < ChildPadding)
+    
+    if (uint32_t ChildPadding = Back->LayoutItemBase::tailPadding(); Abs < ChildPadding)
       Abs = 0;
     else
       Abs -= ChildPadding;
@@ -235,8 +235,8 @@ void UDTLayoutBase::initializeChildren(const PDBSymbol &Sym) {
   // overrides of virtual functions declared in a virtual base, so the VTables
   // and virtual intros need to be correctly initialized.
   for (auto &VB : VirtualBaseSyms) {
-    int VBPO = VB->getVirtualBasePointerOffset();
-    if (!hasVBPtrAtOffset(VBPO)) {
+    
+    if (int VBPO = VB->getVirtualBasePointerOffset(); !hasVBPtrAtOffset(VBPO)) {
       if (auto VBP = VB->getRawSymbol().getVirtualBaseTableType()) {
         auto VBPL = std::make_unique<VBPtrLayoutItem>(*this, std::move(VBP),
                                                        VBPO, VBP->getLength());
@@ -277,9 +277,9 @@ bool UDTLayoutBase::hasVBPtrAtOffset(uint32_t Off) const {
 }
 
 void UDTLayoutBase::addChildToLayout(std::unique_ptr<LayoutItemBase> Child) {
-  uint32_t Begin = Child->getOffsetInParent();
+  
 
-  if (!Child->isElided()) {
+  if (uint32_t Begin = Child->getOffsetInParent(); !Child->isElided()) {
     BitVector ChildBytes = Child->usedBytes();
 
     // Suppose the child occupies 4 bytes starting at offset 12 in a 32 byte

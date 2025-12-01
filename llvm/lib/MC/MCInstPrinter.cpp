@@ -146,8 +146,8 @@ const char *MCInstPrinter::matchAliasPatterns(const MCInst *MI,
     ArrayRef<AliasPatternCond> Conds =
         M.PatternConds.slice(P.AliasCondStart, P.NumConds);
     unsigned OpIdx = 0;
-    bool OrPredicateResult = false;
-    if (llvm::all_of(Conds, [&](const AliasPatternCond &C) {
+    
+    if (bool OrPredicateResult = false; llvm::all_of(Conds, [&](const AliasPatternCond &C) {
           return matchAliasCondition(*MI, STI, MRI, OpIdx, M, C,
                                      OrPredicateResult);
         })) {
@@ -175,8 +175,8 @@ static bool needsLeadingZero(uint64_t Value)
 {
   while (Value)
   {
-    uint64_t digit = (Value >> 60) & 0xf;
-    if (digit != 0)
+    
+    if (uint64_t digit = (Value >> 60) & 0xf; digit != 0)
       return (digit >= 0xa);
     Value <<= 4;
   }

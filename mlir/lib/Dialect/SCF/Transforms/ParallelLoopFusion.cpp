@@ -72,8 +72,8 @@ static bool haveNoReadsAfterWriteExceptSameIndex(
     Value loadMem = load.getMemRef();
     // Stop if the memref is defined in secondPloop body. Careful alias analysis
     // is needed.
-    auto *memrefDef = loadMem.getDefiningOp();
-    if (memrefDef && memrefDef->getBlock() == load->getBlock())
+    
+    if (auto *memrefDef = loadMem.getDefiningOp(); memrefDef && memrefDef->getBlock() == load->getBlock())
       return WalkResult::interrupt();
 
     for (Value store : bufferStoresVec)
@@ -203,8 +203,8 @@ static void fuseIfLegal(ParallelOp firstPloop, ParallelOp &secondPloop,
   b.inlineBlockBefore(block1, newBlock, newBlock->begin(),
                       newBlock->getArguments());
 
-  ValueRange results = newSecondPloop.getResults();
-  if (!results.empty()) {
+  
+  if (ValueRange results = newSecondPloop.getResults(); !results.empty()) {
     b.setInsertionPointToEnd(newBlock);
 
     ValueRange reduceArgs1 = term1.getOperands();

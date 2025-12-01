@@ -353,9 +353,9 @@ const MachineBasicBlock*
 MinInstrCountEnsemble::pickTracePred(const MachineBasicBlock *MBB) {
   if (MBB->pred_empty())
     return nullptr;
-  const MachineLoop *CurLoop = getLoopFor(MBB);
+  
   // Don't leave loops, and never follow back-edges.
-  if (CurLoop && MBB == CurLoop->getHeader())
+  if (const MachineLoop *CurLoop = getLoopFor(MBB); CurLoop && MBB == CurLoop->getHeader())
     return nullptr;
   unsigned CurCount = MTM.getResources(MBB)->InstrCount;
   const MachineBasicBlock *Best = nullptr;
@@ -495,8 +495,8 @@ public:
   bool insertEdge(std::optional<const MachineBasicBlock *> From,
                   const MachineBasicBlock *To) {
     // Skip already visited To blocks.
-    MachineTraceMetrics::TraceBlockInfo &TBI = LB.Blocks[To->getNumber()];
-    if (LB.Downward ? TBI.hasValidHeight() : TBI.hasValidDepth())
+    
+    if (MachineTraceMetrics::TraceBlockInfo &TBI = LB.Blocks[To->getNumber()]; LB.Downward ? TBI.hasValidHeight() : TBI.hasValidDepth())
       return false;
     // From is null once when To is the trace center block.
     if (From) {
@@ -805,8 +805,8 @@ computeCrossBlockCriticalPath(const TraceBlockInfo &TBI) {
     const MachineInstr *DefMI =
         MTM.MRI->getVRegDef(LIR.VRegOrUnit.asVirtualReg());
     // Ignore dependencies outside the current trace.
-    const TraceBlockInfo &DefTBI = BlockInfo[DefMI->getParent()->getNumber()];
-    if (!DefTBI.isUsefulDominator(TBI))
+    
+    if (const TraceBlockInfo &DefTBI = BlockInfo[DefMI->getParent()->getNumber()]; !DefTBI.isUsefulDominator(TBI))
       continue;
     unsigned Len = LIR.Height + Cycles[DefMI].Depth;
     MaxLen = std::max(MaxLen, Len);
@@ -827,10 +827,10 @@ void MachineTraceMetrics::Ensemble::updateDepth(TraceBlockInfo &TBI,
   // Filter and process dependencies, computing the earliest issue cycle.
   unsigned Cycle = 0;
   for (const DataDep &Dep : Deps) {
-    const TraceBlockInfo&DepTBI =
-      BlockInfo[Dep.DefMI->getParent()->getNumber()];
+    
     // Ignore dependencies from outside the current trace.
-    if (!DepTBI.isUsefulDominator(TBI))
+    if (const TraceBlockInfo&DepTBI =
+      BlockInfo[Dep.DefMI->getParent()->getNumber()]; !DepTBI.isUsefulDominator(TBI))
       continue;
     assert(DepTBI.HasValidInstrDepths && "Inconsistent dependency");
     unsigned DepCycle = Cycles.lookup(Dep.DefMI).Depth;
@@ -964,9 +964,9 @@ static unsigned updatePhysDepsUpwards(const MachineInstr &MI, unsigned Height,
   for (unsigned Op : ReadOps) {
     MCRegister Reg = MI.getOperand(Op).getReg().asMCReg();
     for (MCRegUnit Unit : TRI->regunits(Reg)) {
-      LiveRegUnit &LRU = RegUnits[Unit];
+      
       // Set the height to the highest reader of the unit.
-      if (LRU.Cycle <= Height && LRU.MI != &MI) {
+      if (LiveRegUnit &LRU = RegUnits[Unit]; LRU.Cycle <= Height && LRU.MI != &MI) {
         LRU.Cycle = Height;
         LRU.MI = &MI;
         LRU.Op = Op;

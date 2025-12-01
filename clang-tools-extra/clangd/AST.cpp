@@ -287,8 +287,8 @@ std::string printName(const ASTContext &Ctx, const NamedDecl &ND) {
 std::string printTemplateSpecializationArgs(const NamedDecl &ND) {
   std::string TemplateArgs;
   llvm::raw_string_ostream OS(TemplateArgs);
-  PrintingPolicy Policy(ND.getASTContext().getLangOpts());
-  if (std::optional<llvm::ArrayRef<TemplateArgumentLoc>> Args =
+  
+  if (std::optional<llvm::ArrayRef<TemplateArgumentLoc>> PrintingPolicy Policy(ND.getASTContext().getLangOpts()); Args =
           getTemplateSpecializationArgLocs(ND)) {
     printTemplateArgumentList(OS, *Args, Policy);
   } else if (auto *Cls = llvm::dyn_cast<ClassTemplateSpecializationDecl>(&ND)) {
@@ -765,9 +765,9 @@ const TemplateTypeParmType *getFunctionPackType(const FunctionDecl *Callee) {
   if (const auto *TemplateDecl = Callee->getPrimaryTemplate()) {
     auto TemplateParams = TemplateDecl->getTemplateParameters()->asArray();
     // find the template parameter pack from the back
-    const auto It = std::find_if(TemplateParams.rbegin(), TemplateParams.rend(),
-                                 isTemplateTypeParameterPack);
-    if (It != TemplateParams.rend()) {
+    
+    if (const auto It = std::find_if(TemplateParams.rbegin(), TemplateParams.rend(),
+                                 isTemplateTypeParameterPack); It != TemplateParams.rend()) {
       const auto *TTPD = dyn_cast<TemplateTypeParmDecl>(*It);
       return TTPD->getTypeForDecl()->castAs<TemplateTypeParmType>();
     }
@@ -783,8 +783,8 @@ const TemplateTypeParmType *getUnderlyingPackType(const ParmVarDecl *Param) {
   if (auto *RT = dyn_cast<ReferenceType>(PlainType))
     PlainType = RT->getPointeeTypeAsWritten().getTypePtr();
   if (const auto *SubstType = dyn_cast<SubstTemplateTypeParmType>(PlainType)) {
-    const auto *ReplacedParameter = SubstType->getReplacedParameter();
-    if (ReplacedParameter->isParameterPack()) {
+    
+    if (const auto *ReplacedParameter = SubstType->getReplacedParameter(); ReplacedParameter->isParameterPack()) {
       return ReplacedParameter->getTypeForDecl()
           ->castAs<TemplateTypeParmType>();
     }
@@ -818,16 +818,16 @@ public:
         PackType{getUnderlyingPackType(Parameters.front())} {}
 
   bool VisitCallExpr(CallExpr *E) {
-    auto *Callee = getCalleeDeclOrUniqueOverload(E);
-    if (Callee) {
+    
+    if (auto *Callee = getCalleeDeclOrUniqueOverload(E); Callee) {
       handleCall(Callee, E->arguments());
     }
     return !Info.has_value();
   }
 
   bool VisitCXXConstructExpr(CXXConstructExpr *E) {
-    auto *Callee = E->getConstructor();
-    if (Callee) {
+    
+    if (auto *Callee = E->getConstructor(); Callee) {
       handleCall(Callee, E->arguments());
     }
     return !Info.has_value();
@@ -966,8 +966,8 @@ private:
       if (Const->getConstructor()->isCopyOrMoveConstructor())
         E = Const->getArg(0)->IgnoreImplicitAsWritten();
     if (const auto *Call = dyn_cast<CallExpr>(E)) {
-      const auto Callee = Call->getBuiltinCallee();
-      if (Callee == Builtin::BIforward) {
+      
+      if (const auto Callee = Call->getBuiltinCallee(); Callee == Builtin::BIforward) {
         return dyn_cast<DeclRefExpr>(
             Call->getArg(0)->IgnoreImplicitAsWritten());
       }

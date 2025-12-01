@@ -1094,8 +1094,8 @@ RewriteCopyAsTmaOp::apply(TransformRewriter &rewriter,
                           TransformResults &results, TransformState &state) {
   auto payloadOps = state.getPayloadOps(getTarget());
   gpu::LaunchOp commonLaunchOp;
-  Operation *firstOp, *failingOp;
-  if (llvm::any_of(payloadOps, [&](Operation *op) {
+  
+  if (Operation *firstOp, *failingOp; llvm::any_of(payloadOps, [&](Operation *op) {
         if (!commonLaunchOp) {
           commonLaunchOp = op->getParentOfType<gpu::LaunchOp>();
           firstOp = op;

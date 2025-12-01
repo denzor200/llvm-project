@@ -263,9 +263,9 @@ QuotRemWithBB FastDivInsertionTask::createSlowBB(BasicBlock *SuccessorBB) {
   Builder.SetCurrentDebugLocation(SlowDivOrRem->getDebugLoc());
 
   Value *Dividend = SlowDivOrRem->getOperand(0);
-  Value *Divisor = SlowDivOrRem->getOperand(1);
+  
 
-  if (isSignedOp()) {
+  if (Value *Divisor = SlowDivOrRem->getOperand(1); isSignedOp()) {
     DivRemPair.Quotient = Builder.CreateSDiv(Dividend, Divisor);
     DivRemPair.Remainder = Builder.CreateSRem(Dividend, Divisor);
   } else {
@@ -460,8 +460,8 @@ bool llvm::bypassSlowDivision(BasicBlock *BB,
     if (I->use_empty())
       continue;
 
-    FastDivInsertionTask Task(I, BypassWidths);
-    if (Value *Replacement = Task.getReplacement(PerBBDivCache)) {
+    
+    if (Value *FastDivInsertionTask Task(I, BypassWidths); Replacement = Task.getReplacement(PerBBDivCache)) {
       I->replaceAllUsesWith(Replacement);
       I->eraseFromParent();
       MadeChange = true;

@@ -757,8 +757,8 @@ std::optional<SIMemOpInfo> SIMemOpAccess::constructFromMIWithMMO(
     IsCooperative |= MMO->getFlags() & MOCooperative;
     InstrAddrSpace |=
       toSIAtomicAddrSpace(MMO->getPointerInfo().getAddrSpace());
-    AtomicOrdering OpOrdering = MMO->getSuccessOrdering();
-    if (OpOrdering != AtomicOrdering::NotAtomic) {
+    
+    if (AtomicOrdering OpOrdering = MMO->getSuccessOrdering(); OpOrdering != AtomicOrdering::NotAtomic) {
       const auto &IsSyncScopeInclusion =
           MMI->isSyncScopeInclusion(SSID, MMO->getSyncScopeID());
       if (!IsSyncScopeInclusion) {
@@ -2122,8 +2122,8 @@ bool SIGfx12CacheControl::handleCooperativeAtomic(MachineInstr &MI) const {
   // Cooperative atomics need to be SCOPE_DEV or higher.
   MachineOperand *CPol = TII->getNamedOperand(MI, OpName::cpol);
   assert(CPol && "No CPol operand?");
-  const unsigned Scope = CPol->getImm() & CPol::SCOPE;
-  if (Scope < CPol::SCOPE_DEV)
+  
+  if (const unsigned Scope = CPol->getImm() & CPol::SCOPE; Scope < CPol::SCOPE_DEV)
     return setScope(MI, CPol::SCOPE_DEV);
   return false;
 }
@@ -2283,9 +2283,9 @@ bool SIMemoryLegalizer::expandAtomicFence(const SIMemOpInfo &MOI,
   AtomicPseudoMIs.push_back(MI);
   bool Changed = false;
 
-  const SIAtomicAddrSpace OrderingAddrSpace = MOI.getOrderingAddrSpace();
+  
 
-  if (MOI.isAtomic()) {
+  if (const SIAtomicAddrSpace OrderingAddrSpace = MOI.getOrderingAddrSpace(); MOI.isAtomic()) {
     const AtomicOrdering Order = MOI.getOrdering();
     if (Order == AtomicOrdering::Acquire) {
       // Acquire fences only need to wait on the previous atomic they pair with.
@@ -2331,9 +2331,9 @@ bool SIMemoryLegalizer::expandAtomicCmpxchgOrRmw(const SIMemOpInfo &MOI,
   assert(MI->mayLoad() && MI->mayStore());
 
   bool Changed = false;
-  MachineInstr &RMWMI = *MI;
+  
 
-  if (MOI.isAtomic()) {
+  if (MachineInstr &RMWMI = *MI; MOI.isAtomic()) {
     const AtomicOrdering Order = MOI.getOrdering();
     if (Order == AtomicOrdering::Monotonic ||
         Order == AtomicOrdering::Acquire || Order == AtomicOrdering::Release ||

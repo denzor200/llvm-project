@@ -19,8 +19,8 @@ using namespace clang;
 using namespace diagtool;
 
 static StringRef getNameFromID(StringRef Name) {
-  int DiagID;
-  if(!Name.getAsInteger(0, DiagID)) {
+  
+  if(int DiagID; !Name.getAsInteger(0, DiagID)) {
     const DiagnosticRecord &Diag = getDiagnosticForID(DiagID);
     return Diag.getName();
   }
@@ -30,8 +30,8 @@ static StringRef getNameFromID(StringRef Name) {
 static std::optional<DiagnosticRecord>
 findDiagnostic(ArrayRef<DiagnosticRecord> Diagnostics, StringRef Name) {
   for (const auto &Diag : Diagnostics) {
-    StringRef DiagName = Diag.getName();
-    if (DiagName == Name)
+    
+    if (StringRef DiagName = Diag.getName(); DiagName == Name)
       return Diag;
   }
   return std::nullopt;
@@ -60,8 +60,8 @@ int FindDiagnosticID::run(unsigned int argc, char **argv,
       findDiagnostic(AllDiagnostics, DiagnosticName);
   if (!Diag) {
     // Name to id failed, so try id to name.
-    auto Name = getNameFromID(DiagnosticName);
-    if (!Name.empty()) {
+    
+    if (auto Name = getNameFromID(DiagnosticName); !Name.empty()) {
       OS << Name << '\n';
       return 0;
     }

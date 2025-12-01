@@ -118,12 +118,12 @@ static ArrayRef<TileMask> getMasks(ArmSMETileType type) {
   static constexpr std::array ZA_D_MASKS = {
       TileMask::kZA0D, TileMask::kZA1D, TileMask::kZA2D, TileMask::kZA3D,
       TileMask::kZA4D, TileMask::kZA5D, TileMask::kZA6D, TileMask::kZA7D};
-  static constexpr std::array ZA_Q_MASKS = {
+  
+  switch (static constexpr std::array ZA_Q_MASKS = {
       TileMask::kZA0Q,  TileMask::kZA1Q,  TileMask::kZA2Q,  TileMask::kZA3Q,
       TileMask::kZA4Q,  TileMask::kZA5Q,  TileMask::kZA6Q,  TileMask::kZA7Q,
       TileMask::kZA8Q,  TileMask::kZA9Q,  TileMask::kZA10Q, TileMask::kZA11Q,
-      TileMask::kZA12Q, TileMask::kZA13Q, TileMask::kZA14Q, TileMask::kZA15Q};
-  switch (type) {
+      TileMask::kZA12Q, TileMask::kZA13Q, TileMask::kZA14Q, TileMask::kZA15Q}; type) {
   case ArmSMETileType::ZAB:
     return ZA_B_MASKS;
   case ArmSMETileType::ZAH:
@@ -449,8 +449,8 @@ coalesceTileLiveRanges(DenseMap<Value, LiveRange> &initialLiveRanges) {
   // live range (which will contain multiple values).
   auto mergeValuesIfNonOverlapping = [&](Value a, Value b) {
     LiveRange *aLiveRange = liveRanges.at(a);
-    LiveRange *bLiveRange = liveRanges.at(b);
-    if (aLiveRange != bLiveRange && !aLiveRange->overlaps(*bLiveRange)) {
+    
+    if (LiveRange *bLiveRange = liveRanges.at(b); aLiveRange != bLiveRange && !aLiveRange->overlaps(*bLiveRange)) {
       aLiveRange->unionWith(*bLiveRange);
       for (Value value : bLiveRange->values)
         liveRanges[value] = aLiveRange;

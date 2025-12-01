@@ -96,8 +96,8 @@ void CallGraph::populateCallGraphNode(CallGraphNode *Node) {
   for (BasicBlock &BB : *F)
     for (Instruction &I : BB) {
       if (auto *Call = dyn_cast<CallBase>(&I)) {
-        const Function *Callee = Call->getCalledFunction();
-        if (!Callee)
+        
+        if (const Function *Callee = Call->getCalledFunction(); !Callee)
           Node->addCalledFunction(Call, CallsExternalNode.get());
         else
           Node->addCalledFunction(Call, getOrInsertFunction(Callee));
@@ -196,8 +196,8 @@ LLVM_DUMP_METHOD void CallGraphNode::dump() const { print(dbgs()); }
 void CallGraphNode::removeOneAbstractEdgeTo(CallGraphNode *Callee) {
   for (CalledFunctionsVector::iterator I = CalledFunctions.begin(); ; ++I) {
     assert(I != CalledFunctions.end() && "Cannot find callee to remove!");
-    CallRecord &CR = *I;
-    if (CR.second == Callee && !CR.first) {
+    
+    if (CallRecord &CR = *I; CR.second == Callee && !CR.first) {
       Callee->DropRef();
       *I = CalledFunctions.back();
       CalledFunctions.pop_back();

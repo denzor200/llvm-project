@@ -70,8 +70,8 @@ struct MathSincosFusionPass final
     RewritePatternSet patterns(&getContext());
     patterns.add<SincosFusionPattern>(&getContext());
 
-    GreedyRewriteConfig config;
-    if (failed(
+    
+    if (GreedyRewriteConfig config; failed(
             applyPatternsGreedily(getOperation(), std::move(patterns), config)))
       return signalPassFailure();
   }

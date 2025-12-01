@@ -389,8 +389,8 @@ struct TransposeIsReshape : public OpRewritePattern<tosa::TransposeOp> {
     SmallVector<int64_t> nonZeroPerms;
     nonZeroPerms.reserve(permValues.size());
     for (auto idx : permValues) {
-      auto sz = inputTy.getDimSize(idx);
-      if (sz != 1)
+      
+      if (auto sz = inputTy.getDimSize(idx); sz != 1)
         nonZeroPerms.push_back(idx);
     }
 
@@ -432,9 +432,9 @@ struct ClampIsNoOp : public OpRewritePattern<tosa::ClampOp> {
       const auto maxClamp =
           llvm::cast<mlir::FloatAttr>(op.getMaxValAttr()).getValue();
       const bool isMin = minClamp.isNegInfinity();
-      const bool isMax = maxClamp.isInfinity();
+      
 
-      if (isMin && isMax) {
+      if (const bool isMax = maxClamp.isInfinity(); isMin && isMax) {
         rewriter.replaceOp(op, input);
         return success();
       }
@@ -571,18 +571,18 @@ struct ClampClampOptimization : public OpRewritePattern<tosa::ClampOp> {
       auto intMaxValAttr = cast<mlir::IntegerAttr>(maxValAttr);
       auto intMinValAttr = cast<mlir::IntegerAttr>(minValAttr);
       auto clampOpIntMaxValAttr = cast<mlir::IntegerAttr>(clampOpMaxValAttr);
-      auto clampOpIntMinValAttr = cast<mlir::IntegerAttr>(clampOpMinValAttr);
+      
 
-      if (inputEType.isUnsignedInteger()) {
+      if (auto clampOpIntMinValAttr = cast<mlir::IntegerAttr>(clampOpMinValAttr); inputEType.isUnsignedInteger()) {
         // Check we have intersecting ranges.
         const auto opMinInt = intMinValAttr.getUInt();
         const auto opMaxInt = intMaxValAttr.getUInt();
         const auto clampOpMinInt = clampOpIntMinValAttr.getUInt();
         const auto clampOpMaxInt = clampOpIntMaxValAttr.getUInt();
         ClampRange<std::uint64_t> opRangeIntRange(opMinInt, opMaxInt);
-        ClampRange<std::uint64_t> clampRangeIntRange(clampOpMinInt,
-                                                     clampOpMaxInt);
-        if (!opRangeIntRange.intersects(clampRangeIntRange))
+        
+        if (ClampRange<std::uint64_t> clampRangeIntRange(clampOpMinInt,
+                                                     clampOpMaxInt); !opRangeIntRange.intersects(clampRangeIntRange))
           return failure();
 
         // Run the transformation.
@@ -597,9 +597,9 @@ struct ClampClampOptimization : public OpRewritePattern<tosa::ClampOp> {
         const auto clampOpMinInt = clampOpIntMinValAttr.getInt();
         const auto clampOpMaxInt = clampOpIntMaxValAttr.getInt();
         ClampRange<std::int64_t> opRangeIntRange(opMinInt, opMaxInt);
-        ClampRange<std::int64_t> clampRangeIntRange(clampOpMinInt,
-                                                    clampOpMaxInt);
-        if (!opRangeIntRange.intersects(clampRangeIntRange))
+        
+        if (ClampRange<std::int64_t> clampRangeIntRange(clampOpMinInt,
+                                                    clampOpMaxInt); !opRangeIntRange.intersects(clampRangeIntRange))
           return failure();
 
         // Run the transformation.
@@ -1014,8 +1014,8 @@ OpFoldResult IntDivOp::fold(FoldAdaptor adaptor) {
   if (rhsAttr && lhsAttr && rhsAttr.isSplat() && lhsAttr.isSplat() &&
       llvm::isa<IntegerType>(resultETy)) {
     APInt l = lhsAttr.getSplatValue<APInt>();
-    APInt r = rhsAttr.getSplatValue<APInt>();
-    if (!r.isZero()) {
+    
+    if (APInt r = rhsAttr.getSplatValue<APInt>(); !r.isZero()) {
       APInt result = l.sdiv(r);
       return DenseElementsAttr::get(resultTy, result);
     }
@@ -1095,8 +1095,8 @@ OpFoldResult MulOp::fold(FoldAdaptor adaptor) {
   // a zero shift for other data type.
   int32_t shift = 0;
   if (resultETy.isInteger(32)) {
-    ElementsAttr shift_elem;
-    if (getShift().getImpl()) {
+    
+    if (ElementsAttr shift_elem; getShift().getImpl()) {
       if (!matchPattern(getShift(), m_Constant(&shift_elem)))
         // cannot be folded when the shift value is unknown.
         return {};
@@ -1279,10 +1279,10 @@ OpFoldResult CastOp::fold(FoldAdaptor adaptor) {
       bool trunc =
           inETy.getIntOrFloatBitWidth() > outETy.getIntOrFloatBitWidth();
       auto intVal = operand.getSplatValue<APInt>();
-      auto bitwidth = outETy.getIntOrFloatBitWidth();
+      
 
       // i1 types are boolean in TOSA
-      if (outETy.isInteger(1)) {
+      if (auto bitwidth = outETy.getIntOrFloatBitWidth(); outETy.isInteger(1)) {
         intVal = APInt(bitwidth, intVal.isZero() ? 0 : 1);
       } else if (trunc) {
         intVal = intVal.trunc(bitwidth);

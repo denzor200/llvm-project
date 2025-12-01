@@ -77,8 +77,8 @@ class SampleProfErrorCategoryType : public std::error_category {
   const char *name() const noexcept override { return "llvm.sampleprof"; }
 
   std::string message(int IE) const override {
-    sampleprof_error E = static_cast<sampleprof_error>(IE);
-    switch (E) {
+    
+    switch (sampleprof_error E = static_cast<sampleprof_error>(IE); E) {
     case sampleprof_error::success:
       return "Success";
     case sampleprof_error::bad_magic:
@@ -249,8 +249,8 @@ void FunctionSamples::print(raw_ostream &OS, unsigned Indent) const {
         OS << Loc << ": inlined callee: " << FuncSample.getFunction() << ": ";
         FuncSample.print(OS, Indent + 4);
       }
-      auto TypeSamplesIter = VirtualCallsiteTypeCounts.find(Loc);
-      if (TypeSamplesIter != VirtualCallsiteTypeCounts.end()) {
+      
+      if (auto TypeSamplesIter = VirtualCallsiteTypeCounts.find(Loc); TypeSamplesIter != VirtualCallsiteTypeCounts.end()) {
         OS.indent(Indent + 2);
         printTypeCountMap(OS, Loc, TypeSamplesIter->second);
       }
@@ -433,8 +433,8 @@ void SampleContextTrimmer::trimAndMergeColdContextProfiles(
   std::vector<std::pair<hash_code, const FunctionSamples *>> ColdProfiles;
   for (const auto &I : ProfileMap) {
     const SampleContext &Context = I.second.getContext();
-    const FunctionSamples &FunctionProfile = I.second;
-    if (FunctionProfile.getTotalSamples() < ColdCountThreshold &&
+    
+    if (const FunctionSamples &FunctionProfile = I.second; FunctionProfile.getTotalSamples() < ColdCountThreshold &&
         (!TrimBaseProfileOnly || Context.isBaseContext()))
       ColdProfiles.emplace_back(I.first, &I.second);
   }

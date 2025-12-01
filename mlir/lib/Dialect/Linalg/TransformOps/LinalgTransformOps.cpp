@@ -537,8 +537,8 @@ DiagnosedSilenceableFailure transform::DecomposeInterfaceOp::applyToOne(
 
   rewriter.replaceOp(decomposableOp, *maybeNewResults);
   for (Value val : *maybeNewResults) {
-    Operation *definition = val.getDefiningOp();
-    if (definition)
+    
+    if (Operation *definition = val.getDefiningOp(); definition)
       results.push_back(definition);
   }
   return DiagnosedSilenceableFailure::success();
@@ -1007,10 +1007,10 @@ tileAndFuseFirstExtractUse(RewriterBase &rewriter, Diagnostic &diag,
         for (BlockArgument containerIterArg :
              containerLoop.getRegionIterArgs()) {
           OpOperand *bbArg = containerLoop.getTiedLoopInit(containerIterArg);
-          Value consumerOperand =
-              containerLoop->getOperand(bbArg->getOperandNumber());
+          
           // The producer has the same init as the loop bbArg, use it.
-          if (sameOrEquivalentIterArg(producerOperand, consumerOperand)) {
+          if (Value consumerOperand =
+              containerLoop->getOperand(bbArg->getOperandNumber()); sameOrEquivalentIterArg(producerOperand, consumerOperand)) {
             initOperandPtr.set(containerIterArg);
           }
         }
@@ -1634,9 +1634,9 @@ transform::MatchOp::apply(transform::TransformRewriter &rewriter,
 
     if (getFilterOperandTypes().has_value()) {
       mlir::ArrayAttr types = getFilterOperandTypes().value();
-      auto operandTypes = op->getOperandTypes();
+      
 
-      if (types.size() == 1) {
+      if (auto operandTypes = op->getOperandTypes(); types.size() == 1) {
         // All the operands must must be equal to the specified type
         auto typeattr =
             dyn_cast<mlir::TypeAttr>(getFilterOperandTypes().value()[0]);
@@ -1871,8 +1871,8 @@ LogicalResult transform::PackGreedilyOp::verify() {
     for (auto [s, nmo] :
          llvm::zip_equal(getMixedMatmulPackedSizes(),
                          getMatmulPaddedSizesNextMultipleOf())) {
-      std::optional<int64_t> maybeStaticPackedSize = getConstantIntValue(s);
-      if (nmo != 0 &&
+      
+      if (std::optional<int64_t> maybeStaticPackedSize = getConstantIntValue(s); nmo != 0 &&
           (!maybeStaticPackedSize.has_value() || *maybeStaticPackedSize != 0)) {
         return emitOpError() << "at most one of the packed_size and the "
                                 "padded_sizes_next_multiple_of can be nonzero "
@@ -1969,8 +1969,8 @@ static bool isValidPackingPermutation(
       "applies to only pack or unpack operations");
   if (!op || permutation.empty())
     return true;
-  size_t innerRank = op.getInnerDimsPos().size();
-  if (outerOrInnerPerm == OuterOrInnerPerm::Inner)
+  
+  if (size_t innerRank = op.getInnerDimsPos().size(); outerOrInnerPerm == OuterOrInnerPerm::Inner)
     return permutation.size() == innerRank && isPermutationVector(permutation);
   // op.getOuterDimsPerm() may be empty, in which case it is identity.
   // Don't rely on it.
@@ -2046,10 +2046,10 @@ transform::PackTransposeOp::apply(transform::TransformRewriter &rewriter,
   for (auto permType : {OuterOrInnerPerm::Outer, OuterOrInnerPerm::Inner}) {
     ArrayRef<int64_t> perm =
         (permType == OuterOrInnerPerm::Outer) ? getOuterPerm() : getInnerPerm();
-    auto errorMsg = (permType == OuterOrInnerPerm::Outer)
+    
+    if (auto errorMsg = (permType == OuterOrInnerPerm::Outer)
                         ? StringLiteral{"invalid outer_perm"}
-                        : StringLiteral{"invalid inner_perm"};
-    if (!isValidPackingPermutation(packOp, perm, permType) ||
+                        : StringLiteral{"invalid inner_perm"}; !isValidPackingPermutation(packOp, perm, permType) ||
         !isValidPackingPermutation(unPackOp, perm, permType)) {
       Operation *packOrUnpackOp =
           unPackOp ? unPackOp.getOperation() : packOp.getOperation();
@@ -2287,8 +2287,8 @@ transform::PadOp::apply(transform::TransformRewriter &rewriter,
     padOps.append(newPadOps.begin(), newPadOps.end());
     if (options.copyBackOp != LinalgPaddingOptions::CopyBackOp::None) {
       for (Value v : replacements) {
-        Operation *copyBackOp = v.getDefiningOp();
-        if (!llvm::is_contained(copyBackOps, copyBackOp))
+        
+        if (Operation *copyBackOp = v.getDefiningOp(); !llvm::is_contained(copyBackOps, copyBackOp))
           copyBackOps.push_back(copyBackOp);
       }
     }
@@ -3029,8 +3029,8 @@ ParseResult SplitOp::parse(OpAsmParser &parser, OperationState &result) {
     return failure();
   }
   if (dynamicPointParseResult.has_value()) {
-    Type chunkSizesType;
-    if (failed(*dynamicPointParseResult) || parser.parseComma() ||
+    
+    if (Type chunkSizesType; failed(*dynamicPointParseResult) || parser.parseComma() ||
         parser.parseType(chunkSizesType) ||
         parser.resolveOperand(dynamicChunkSizes, chunkSizesType,
                               result.operands)) {

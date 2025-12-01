@@ -254,8 +254,8 @@ LegacyLegalizerInfo::findAction(const SizeAndActionsVec &Vec, const uint32_t Siz
   assert(It != Vec.begin() && "Does Vec not start with size 1?");
   int VecIdx = It - Vec.begin() - 1;
 
-  LegacyLegalizeAction Action = Vec[VecIdx].second;
-  switch (Action) {
+  
+  switch (LegacyLegalizeAction Action = Vec[VecIdx].second; Action) {
   case Legal:
   case Bitcast:
   case Lower:

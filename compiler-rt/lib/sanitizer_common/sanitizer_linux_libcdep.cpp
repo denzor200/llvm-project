@@ -362,9 +362,9 @@ void InitTlsSize() {
           defined(__powerpc64__) || defined(__loongarch__)
   auto *get_tls_static_info = (void (*)(size_t *, size_t *))dlsym(
       RTLD_DEFAULT, "_dl_get_tls_static_info");
-  size_t tls_align;
+  
   // Can be null if static link.
-  if (get_tls_static_info)
+  if (size_t tls_align; get_tls_static_info)
     get_tls_static_info(&g_tls_size, &tls_align);
 #      endif
 
@@ -721,8 +721,8 @@ static int AddModuleSegments(const char *module_name, dl_phdr_info *info,
   LoadedModule cur_module;
   cur_module.set(module_name, info->dlpi_addr);
   for (int i = 0; i < (int)info->dlpi_phnum; i++) {
-    const Elf_Phdr *phdr = &info->dlpi_phdr[i];
-    if (phdr->p_type == PT_LOAD) {
+    
+    if (const Elf_Phdr *phdr = &info->dlpi_phdr[i]; phdr->p_type == PT_LOAD) {
       uptr cur_beg = info->dlpi_addr + phdr->p_vaddr;
       uptr cur_end = cur_beg + phdr->p_memsz;
 #  if SANITIZER_HAIKU
@@ -748,9 +748,9 @@ static int AddModuleSegments(const char *module_name, dl_phdr_info *info,
             // arbitrary memory.
             break;
           }
-          const char *name =
-              reinterpret_cast<const char *>(nhdr) + sizeof(*nhdr);
-          if (internal_memcmp(name, "GNU", 3) == 0) {
+          
+          if (const char *name =
+              reinterpret_cast<const char *>(nhdr) + sizeof(*nhdr); internal_memcmp(name, "GNU", 3) == 0) {
             const char *value = reinterpret_cast<const char *>(nhdr) +
                                 sizeof(*nhdr) + kGnuNamesz;
             cur_module.setUuid(value, nhdr->n_descsz);
@@ -994,8 +994,8 @@ void UnmapFromTo(uptr from, uptr to) {
   if (to == from)
     return;
   CHECK(to >= from);
-  uptr res = internal_munmap(reinterpret_cast<void *>(from), to - from);
-  if (UNLIKELY(internal_iserror(res))) {
+  
+  if (uptr res = internal_munmap(reinterpret_cast<void *>(from), to - from); UNLIKELY(internal_iserror(res))) {
     Report("ERROR: %s failed to unmap 0x%zx (%zd) bytes at address %p\n",
            SanitizerToolName, to - from, to - from, (void *)from);
     CHECK("unable to unmap" && 0);

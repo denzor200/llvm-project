@@ -67,8 +67,8 @@ struct IdentityBitcastLowering final
   matchAndRewrite(arith::BitcastOp op, OpAdaptor adaptor,
                   ConversionPatternRewriter &rewriter) const final {
     Value src = adaptor.getIn();
-    Type resultType = getTypeConverter()->convertType(op.getType());
-    if (src.getType() != resultType)
+    
+    if (Type resultType = getTypeConverter()->convertType(op.getType()); src.getType() != resultType)
       return rewriter.notifyMatchFailure(op, "Types are different");
 
     rewriter.replaceOp(op, src);
@@ -309,8 +309,8 @@ LogicalResult IndexCastOpLowering<OpTy, ExtCastTy>::matchAndRewrite(
   // Handle the scalar and 1D vector cases.
   Type operandType = adaptor.getIn().getType();
   if (!isa<LLVM::LLVMArrayType>(operandType)) {
-    Type targetType = this->typeConverter->convertType(resultType);
-    if (targetBits < sourceBits)
+    
+    if (Type targetType = this->typeConverter->convertType(resultType); targetBits < sourceBits)
       rewriter.replaceOpWithNewOp<LLVM::TruncOp>(op, targetType,
                                                  adaptor.getIn());
     else

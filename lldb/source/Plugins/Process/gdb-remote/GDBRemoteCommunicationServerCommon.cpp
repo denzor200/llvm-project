@@ -187,8 +187,8 @@ GDBRemoteCommunicationServerCommon::Handle_qHostInfo(
   response.PutStringAsRawHex8(host_triple.getTriple());
   response.Printf(";ptrsize:%u;", host_arch.GetAddressByteSize());
 
-  llvm::StringRef distribution_id = HostInfo::GetDistributionId();
-  if (!distribution_id.empty()) {
+  
+  if (llvm::StringRef distribution_id = HostInfo::GetDistributionId(); !distribution_id.empty()) {
     response.PutCString("distribution_id:");
     response.PutStringAsRawHex8(distribution_id);
     response.PutCString(";");
@@ -318,10 +318,10 @@ GDBRemoteCommunicationServerCommon::Handle_qProcessInfoPID(
     StringExtractorGDBRemote &packet) {
   // Packet format: "qProcessInfoPID:%i" where %i is the pid
   packet.SetFilePos(::strlen("qProcessInfoPID:"));
-  lldb::pid_t pid = packet.GetU32(LLDB_INVALID_PROCESS_ID);
-  if (pid != LLDB_INVALID_PROCESS_ID) {
-    ProcessInstanceInfo proc_info;
-    if (Host::GetProcessInfo(pid, proc_info)) {
+  
+  if (lldb::pid_t pid = packet.GetU32(LLDB_INVALID_PROCESS_ID); pid != LLDB_INVALID_PROCESS_ID) {
+    
+    if (ProcessInstanceInfo proc_info; Host::GetProcessInfo(pid, proc_info)) {
       StreamString response;
       CreateProcessInfoResponse(proc_info, response);
       return SendPacketNoLock(response.GetString());
@@ -434,8 +434,8 @@ GDBRemoteCommunicationServerCommon::Handle_qUserName(
 
   // Packet format: "qUserName:%i" where %i is the uid
   packet.SetFilePos(::strlen("qUserName:"));
-  uint32_t uid = packet.GetU32(UINT32_MAX);
-  if (uid != UINT32_MAX) {
+  
+  if (uint32_t uid = packet.GetU32(UINT32_MAX); uid != UINT32_MAX) {
     if (std::optional<llvm::StringRef> name =
             HostInfo::GetUserIDResolver().GetUserName(uid)) {
       StreamString response;
@@ -454,8 +454,8 @@ GDBRemoteCommunicationServerCommon::Handle_qGroupName(
 #if LLDB_ENABLE_POSIX
   // Packet format: "qGroupName:%i" where %i is the gid
   packet.SetFilePos(::strlen("qGroupName:"));
-  uint32_t gid = packet.GetU32(UINT32_MAX);
-  if (gid != UINT32_MAX) {
+  
+  if (uint32_t gid = packet.GetU32(UINT32_MAX); gid != UINT32_MAX) {
     if (std::optional<llvm::StringRef> name =
             HostInfo::GetUserIDResolver().GetGroupName(gid)) {
       StreamString response;
@@ -474,10 +474,10 @@ GDBRemoteCommunicationServerCommon::Handle_qSpeedTest(
 
   llvm::StringRef key;
   llvm::StringRef value;
-  bool success = packet.GetNameColonValue(key, value);
-  if (success && key == "response_size") {
-    uint32_t response_size = 0;
-    if (!value.getAsInteger(0, response_size)) {
+  
+  if (bool success = packet.GetNameColonValue(key, value); success && key == "response_size") {
+    
+    if (uint32_t response_size = 0; !value.getAsInteger(0, response_size)) {
       if (response_size == 0)
         return SendOKResponse();
       StreamString response;
@@ -518,8 +518,8 @@ GDBRemoteCommunicationServerCommon::Handle_vFile_Open(
   packet.GetHexByteStringTerminatedBy(path, ',');
   if (!path.empty()) {
     if (packet.GetChar() == ',') {
-      auto flags = File::OpenOptions(packet.GetHexMaxU32(false, 0));
-      if (packet.GetChar() == ',') {
+      
+      if (auto flags = File::OpenOptions(packet.GetHexMaxU32(false, 0)); packet.GetChar() == ',') {
         mode_t mode = packet.GetHexMaxU32(false, 0600);
         FileSpec path_spec(path);
         FileSystem::Instance().Resolve(path_spec);
@@ -529,8 +529,8 @@ GDBRemoteCommunicationServerCommon::Handle_vFile_Open(
         StreamString response;
         response.PutChar('F');
 
-        int descriptor = File::kInvalidDescriptor;
-        if (file) {
+        
+        if (int descriptor = File::kInvalidDescriptor; file) {
           descriptor = file.get()->GetDescriptor();
           response.Printf("%x", descriptor);
         } else {
@@ -574,10 +574,10 @@ GDBRemoteCommunicationServerCommon::Handle_vFile_pRead(
     StringExtractorGDBRemote &packet) {
   StreamGDBRemote response;
   packet.SetFilePos(::strlen("vFile:pread:"));
-  int fd = packet.GetS32(-1, 16);
-  if (packet.GetChar() == ',') {
-    size_t count = packet.GetHexMaxU64(false, SIZE_MAX);
-    if (packet.GetChar() == ',') {
+  
+  if (int fd = packet.GetS32(-1, 16); packet.GetChar() == ',') {
+    
+    if (size_t count = packet.GetHexMaxU64(false, SIZE_MAX); packet.GetChar() == ',') {
       off_t offset = packet.GetHexMaxU32(false, UINT32_MAX);
       if (count == SIZE_MAX) {
         response.Printf("F-1:%x", EINVAL);
@@ -612,18 +612,18 @@ GDBRemoteCommunicationServerCommon::Handle_vFile_pWrite(
   StreamGDBRemote response;
   response.PutChar('F');
 
-  int fd = packet.GetS32(-1, 16);
-  if (packet.GetChar() == ',') {
-    off_t offset = packet.GetHexMaxU32(false, UINT32_MAX);
-    if (packet.GetChar() == ',') {
-      std::string buffer;
-      if (packet.GetEscapedBinaryData(buffer)) {
+  
+  if (int fd = packet.GetS32(-1, 16); packet.GetChar() == ',') {
+    
+    if (off_t offset = packet.GetHexMaxU32(false, UINT32_MAX); packet.GetChar() == ',') {
+      
+      if (std::string buffer; packet.GetEscapedBinaryData(buffer)) {
         NativeFile file(fd, File::eOpenOptionWriteOnly, false);
         size_t count = buffer.size();
         Status error =
             file.Write(static_cast<const void *>(&buffer[0]), count, offset);
-        const int save_errno = error.GetError();
-        if (error.Success())
+        
+        if (const int save_errno = error.GetError(); error.Success())
           response.Printf("%zx", count);
         else {
           response.PutCString("-1");
@@ -852,8 +852,8 @@ GDBRemoteCommunication::PacketResult
 GDBRemoteCommunicationServerCommon::Handle_qPlatform_mkdir(
     StringExtractorGDBRemote &packet) {
   packet.SetFilePos(::strlen("qPlatform_mkdir:"));
-  mode_t mode = packet.GetHexMaxU32(false, UINT32_MAX);
-  if (packet.GetChar() == ',') {
+  
+  if (mode_t mode = packet.GetHexMaxU32(false, UINT32_MAX); packet.GetChar() == ',') {
     std::string path;
     packet.GetHexByteString(path);
     Status error(llvm::sys::fs::create_directory(path, mode));
@@ -871,9 +871,9 @@ GDBRemoteCommunicationServerCommon::Handle_qPlatform_chmod(
     StringExtractorGDBRemote &packet) {
   packet.SetFilePos(::strlen("qPlatform_chmod:"));
 
-  auto perms =
-      static_cast<llvm::sys::fs::perms>(packet.GetHexMaxU32(false, UINT32_MAX));
-  if (packet.GetChar() == ',') {
+  
+  if (auto perms =
+      static_cast<llvm::sys::fs::perms>(packet.GetHexMaxU32(false, UINT32_MAX)); packet.GetChar() == ',') {
     std::string path;
     packet.GetHexByteString(path);
     Status error(llvm::sys::fs::setPermissions(path, perms));
@@ -923,8 +923,8 @@ GDBRemoteCommunicationServerCommon::Handle_QSetSTDIN(
   std::string path;
   packet.GetHexByteString(path);
   const bool read = true;
-  const bool write = false;
-  if (file_action.Open(STDIN_FILENO, FileSpec(path), read, write)) {
+  
+  if (const bool write = false; file_action.Open(STDIN_FILENO, FileSpec(path), read, write)) {
     m_process_launch_info.AppendFileAction(file_action);
     return SendOKResponse();
   }
@@ -939,8 +939,8 @@ GDBRemoteCommunicationServerCommon::Handle_QSetSTDOUT(
   std::string path;
   packet.GetHexByteString(path);
   const bool read = false;
-  const bool write = true;
-  if (file_action.Open(STDOUT_FILENO, FileSpec(path), read, write)) {
+  
+  if (const bool write = true; file_action.Open(STDOUT_FILENO, FileSpec(path), read, write)) {
     m_process_launch_info.AppendFileAction(file_action);
     return SendOKResponse();
   }
@@ -955,8 +955,8 @@ GDBRemoteCommunicationServerCommon::Handle_QSetSTDERR(
   std::string path;
   packet.GetHexByteString(path);
   const bool read = false;
-  const bool write = true;
-  if (file_action.Open(STDERR_FILENO, FileSpec(path), read, write)) {
+  
+  if (const bool write = true; file_action.Open(STDERR_FILENO, FileSpec(path), read, write)) {
     m_process_launch_info.AppendFileAction(file_action);
     return SendOKResponse();
   }
@@ -978,8 +978,8 @@ GDBRemoteCommunication::PacketResult
 GDBRemoteCommunicationServerCommon::Handle_QEnvironment(
     StringExtractorGDBRemote &packet) {
   packet.SetFilePos(::strlen("QEnvironment:"));
-  const uint32_t bytes_left = packet.GetBytesLeft();
-  if (bytes_left > 0) {
+  
+  if (const uint32_t bytes_left = packet.GetBytesLeft(); bytes_left > 0) {
     m_process_launch_info.GetEnvironment().insert(packet.Peek());
     return SendOKResponse();
   }
@@ -990,8 +990,8 @@ GDBRemoteCommunication::PacketResult
 GDBRemoteCommunicationServerCommon::Handle_QEnvironmentHexEncoded(
     StringExtractorGDBRemote &packet) {
   packet.SetFilePos(::strlen("QEnvironmentHexEncoded:"));
-  const uint32_t bytes_left = packet.GetBytesLeft();
-  if (bytes_left > 0) {
+  
+  if (const uint32_t bytes_left = packet.GetBytesLeft(); bytes_left > 0) {
     std::string str;
     packet.GetHexByteString(str);
     m_process_launch_info.GetEnvironment().insert(str);
@@ -1004,8 +1004,8 @@ GDBRemoteCommunication::PacketResult
 GDBRemoteCommunicationServerCommon::Handle_QLaunchArch(
     StringExtractorGDBRemote &packet) {
   packet.SetFilePos(::strlen("QLaunchArch:"));
-  const uint32_t bytes_left = packet.GetBytesLeft();
-  if (bytes_left > 0) {
+  
+  if (const uint32_t bytes_left = packet.GetBytesLeft(); bytes_left > 0) {
     const char *arch_triple = packet.Peek();
     m_process_launch_info.SetArchitecture(
         HostInfo::GetAugmentedArchSpec(arch_triple));
@@ -1030,8 +1030,8 @@ GDBRemoteCommunicationServerCommon::Handle_A(StringExtractorGDBRemote &packet) {
   while (success && packet.GetBytesLeft() > 0) {
     // Decode the decimal argument string length. This length is the number of
     // hex nibbles in the argument string value.
-    const uint32_t arg_len = packet.GetU32(UINT32_MAX);
-    if (arg_len == UINT32_MAX)
+    
+    if (const uint32_t arg_len = packet.GetU32(UINT32_MAX); arg_len == UINT32_MAX)
       success = false;
     else {
       // Make sure the argument hex string length is followed by a comma
@@ -1040,8 +1040,8 @@ GDBRemoteCommunicationServerCommon::Handle_A(StringExtractorGDBRemote &packet) {
       else {
         // Decode the argument index. We ignore this really because who would
         // really send down the arguments in a random order???
-        const uint32_t arg_idx = packet.GetU32(UINT32_MAX);
-        if (arg_idx == UINT32_MAX)
+        
+        if (const uint32_t arg_idx = packet.GetU32(UINT32_MAX); arg_idx == UINT32_MAX)
           success = false;
         else {
           // Make sure the argument index is followed by a comma
@@ -1051,8 +1051,8 @@ GDBRemoteCommunicationServerCommon::Handle_A(StringExtractorGDBRemote &packet) {
             // Decode the argument string value from hex bytes back into a UTF8
             // string and make sure the length matches the one supplied in the
             // packet
-            std::string arg;
-            if (packet.GetHexByteStringFixedLength(arg, arg_len) !=
+            
+            if (std::string arg; packet.GetHexByteStringFixedLength(arg, arg_len) !=
                 (arg_len / 2))
               success = false;
             else {
@@ -1226,8 +1226,8 @@ void GDBRemoteCommunicationServerCommon::CreateProcessInfoResponse(
   }
 
   response.PutChar(';');
-  const ArchSpec &proc_arch = proc_info.GetArchitecture();
-  if (proc_arch.IsValid()) {
+  
+  if (const ArchSpec &proc_arch = proc_info.GetArchitecture(); proc_arch.IsValid()) {
     const llvm::Triple &proc_triple = proc_arch.GetTriple();
     response.PutCString("triple:");
     response.PutStringAsRawHex8(proc_triple.getTriple());
@@ -1245,8 +1245,8 @@ void GDBRemoteCommunicationServerCommon::
                   proc_info.GetEffectiveUserID(),
                   proc_info.GetEffectiveGroupID());
 
-  const ArchSpec &proc_arch = proc_info.GetArchitecture();
-  if (proc_arch.IsValid()) {
+  
+  if (const ArchSpec &proc_arch = proc_info.GetArchitecture(); proc_arch.IsValid()) {
     const llvm::Triple &proc_triple = proc_arch.GetTriple();
 #if defined(__APPLE__)
     // We'll send cputype/cpusubtype.

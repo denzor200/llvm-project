@@ -158,8 +158,8 @@ static bool simplifyCommonValuePhi(PHINode *P, LazyValueInfo *LVI,
   SmallVector<std::pair<Constant *, unsigned>, 4> IncomingConstants;
   Value *CommonValue = nullptr;
   for (unsigned i = 0, e = P->getNumIncomingValues(); i != e; ++i) {
-    Value *Incoming = P->getIncomingValue(i);
-    if (auto *IncomingConstant = dyn_cast<Constant>(Incoming)) {
+    
+    if (auto *Value *Incoming = P->getIncomingValue(i); IncomingConstant = dyn_cast<Constant>(Incoming)) {
       IncomingConstants.push_back(std::make_pair(IncomingConstant, i));
     } else if (!CommonValue) {
       // The potential common value is initialized to the first non-constant.
@@ -184,8 +184,8 @@ static bool simplifyCommonValuePhi(PHINode *P, LazyValueInfo *LVI,
   // the same incoming variable value.
   for (auto &IncomingConstant : IncomingConstants) {
     Constant *C = IncomingConstant.first;
-    BasicBlock *IncomingBB = P->getIncomingBlock(IncomingConstant.second);
-    if (C != LVI->getConstantOnEdge(CommonValue, IncomingBB, ToBB, P))
+    
+    if (BasicBlock *IncomingBB = P->getIncomingBlock(IncomingConstant.second); C != LVI->getConstantOnEdge(CommonValue, IncomingBB, ToBB, P))
       return false;
   }
 
@@ -384,10 +384,10 @@ static bool processSwitch(SwitchInst *I, LazyValueInfo *LVI,
         Predicate = true;
       if (!Predicate) {
         // Handle missing cases, e.g., the range has a hole.
-        auto *Res = dyn_cast_or_null<ConstantInt>(
+        
+        if (auto *Res = dyn_cast_or_null<ConstantInt>(
             LVI->getPredicateAt(CmpInst::ICMP_EQ, Cond, Case, I,
-                                /* UseBlockValue=*/true));
-        if (Res && Res->isZero())
+                                /* UseBlockValue=*/true)); Res && Res->isZero())
           Predicate = false;
         else if (Res && Res->isOne())
           Predicate = true;
@@ -724,11 +724,11 @@ static bool processCallSite(CallBase &CB, LazyValueInfo *LVI) {
   unsigned ArgNo = 0;
 
   for (Value *V : CB.args()) {
-    PointerType *Type = dyn_cast<PointerType>(V->getType());
+    
     // Try to mark pointer typed parameters as non-null.  We skip the
     // relatively expensive analysis for constants which are obviously either
     // null or non-null to start with.
-    if (Type && !CB.paramHasAttr(ArgNo, Attribute::NonNull) &&
+    if (PointerType *Type = dyn_cast<PointerType>(V->getType()); Type && !CB.paramHasAttr(ArgNo, Attribute::NonNull) &&
         !isa<Constant>(V))
       if (auto *Res = dyn_cast_or_null<ConstantInt>(LVI->getPredicateAt(
               ICmpInst::ICMP_EQ, V, ConstantPointerNull::get(Type), &CB,
@@ -1007,8 +1007,8 @@ static bool processSDiv(BinaryOperator *SDI, const ConstantRange &LCR,
   assert(SDI->getOpcode() == Instruction::SDiv);
 
   // Check whether the division folds to a constant.
-  ConstantRange DivCR = LCR.sdiv(RCR);
-  if (const APInt *Elem = DivCR.getSingleElement()) {
+  
+  if (const APInt *ConstantRange DivCR = LCR.sdiv(RCR); Elem = DivCR.getSingleElement()) {
     SDI->replaceAllUsesWith(ConstantInt::get(SDI->getType(), *Elem));
     SDI->eraseFromParent();
     return true;
@@ -1083,9 +1083,9 @@ static bool processAShr(BinaryOperator *SDI, LazyValueInfo *LVI) {
   ConstantRange LRange =
       LVI->getConstantRangeAtUse(SDI->getOperandUse(0), /*UndefAllowed*/ false);
   unsigned OrigWidth = SDI->getType()->getScalarSizeInBits();
-  ConstantRange NegOneOrZero =
-      ConstantRange(APInt(OrigWidth, (uint64_t)-1, true), APInt(OrigWidth, 1));
-  if (NegOneOrZero.contains(LRange)) {
+  
+  if (ConstantRange NegOneOrZero =
+      ConstantRange(APInt(OrigWidth, (uint64_t)-1, true), APInt(OrigWidth, 1)); NegOneOrZero.contains(LRange)) {
     // ashr of -1 or 0 never changes the value, so drop the whole instruction
     ++NumAShrsRemoved;
     SDI->replaceAllUsesWith(SDI->getOperand(0));
@@ -1130,8 +1130,8 @@ static bool processPossibleNonNeg(PossiblyNonNegInst *I, LazyValueInfo *LVI) {
   if (I->hasNonNeg())
     return false;
 
-  const Use &Base = I->getOperandUse(0);
-  if (!LVI->getConstantRangeAtUse(Base, /*UndefAllowed*/ false)
+  
+  if (const Use &Base = I->getOperandUse(0); !LVI->getConstantRangeAtUse(Base, /*UndefAllowed*/ false)
            .isAllNonNegative())
     return false;
 
@@ -1321,8 +1321,8 @@ static bool runImpl(Function &F, LazyValueInfo *LVI, DominatorTree *DT,
       }
     }
 
-    Instruction *Term = BB->getTerminator();
-    switch (Term->getOpcode()) {
+    
+    switch (Instruction *Term = BB->getTerminator(); Term->getOpcode()) {
     case Instruction::Switch:
       BBChanged |= processSwitch(cast<SwitchInst>(Term), LVI, DT);
       break;

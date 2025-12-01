@@ -33,8 +33,8 @@ public:
 
   bool HandleTopLevelDecl(DeclGroupRef DG) override {
     for (DeclGroupRef::iterator i = DG.begin(), e = DG.end(); i != e; ++i) {
-      const Decl *D = *i;
-      if (const NamedDecl *ND = dyn_cast<NamedDecl>(D))
+      
+      if (const NamedDecl *const Decl *D = *i; ND = dyn_cast<NamedDecl>(D))
         llvm::errs() << "top-level-decl: \"" << ND->getNameAsString() << "\"\n";
     }
 
@@ -90,8 +90,8 @@ protected:
       llvm::errs() << "PrintFunctionNames arg = " << args[i] << "\n";
 
       // Example error handling.
-      DiagnosticsEngine &D = CI.getDiagnostics();
-      if (args[i] == "-an-error") {
+      
+      if (DiagnosticsEngine &D = CI.getDiagnostics(); args[i] == "-an-error") {
         unsigned DiagID = D.getCustomDiagID(DiagnosticsEngine::Error,
                                             "invalid argument '%0'");
         D.Report(DiagID) << args[i];

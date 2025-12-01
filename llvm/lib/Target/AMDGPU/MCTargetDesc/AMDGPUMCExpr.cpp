@@ -326,8 +326,8 @@ const AMDGPUMCExpr *AMDGPUMCExpr::createLit(LitModifier Lit, int64_t Value,
 static KnownBits fromOptionalToKnownBits(std::optional<bool> CompareResult) {
   static constexpr unsigned BitWidth = 64;
   const APInt True(BitWidth, 1);
-  const APInt False(BitWidth, 0);
-  if (CompareResult) {
+  
+  if (const APInt False(BitWidth, 0); CompareResult) {
     return *CompareResult ? KnownBits::makeConstant(True)
                           : KnownBits::makeConstant(False);
   }
@@ -350,9 +350,9 @@ static void binaryOpKnownBitsMapHelper(const MCExpr *Expr, KnownBitsMap &KBM,
   knownBitsMapHelper(LHS, KBM, Depth + 1);
   knownBitsMapHelper(RHS, KBM, Depth + 1);
   KnownBits LHSKnown = KBM[LHS];
-  KnownBits RHSKnown = KBM[RHS];
+  
 
-  switch (BExpr->getOpcode()) {
+  switch (KnownBits RHSKnown = KBM[RHS]; BExpr->getOpcode()) {
   default:
     KBM[Expr] = KnownBits(BitWidth);
     return;
@@ -475,9 +475,9 @@ static void unaryOpKnownBitsMapHelper(const MCExpr *Expr, KnownBitsMap &KBM,
 static void targetOpKnownBitsMapHelper(const MCExpr *Expr, KnownBitsMap &KBM,
                                        unsigned Depth) {
   static constexpr unsigned BitWidth = 64;
-  const AMDGPUMCExpr *AGVK = cast<AMDGPUMCExpr>(Expr);
+  
 
-  switch (AGVK->getKind()) {
+  switch (const AMDGPUMCExpr *AGVK = cast<AMDGPUMCExpr>(Expr); AGVK->getKind()) {
   default:
     KBM[Expr] = KnownBits(BitWidth);
     return;
@@ -507,8 +507,8 @@ static void targetOpKnownBitsMapHelper(const MCExpr *Expr, KnownBitsMap &KBM,
   case AMDGPUMCExpr::VariantKind::AGVK_Occupancy:
   case AMDGPUMCExpr::VariantKind::AGVK_Lit:
   case AMDGPUMCExpr::VariantKind::AGVK_Lit64: {
-    int64_t Val;
-    if (AGVK->evaluateAsAbsolute(Val)) {
+    
+    if (int64_t Val; AGVK->evaluateAsAbsolute(Val)) {
       APInt APValue(BitWidth, Val);
       KBM[Expr] = KnownBits::makeConstant(APValue);
       return;
@@ -523,8 +523,8 @@ static void knownBitsMapHelper(const MCExpr *Expr, KnownBitsMap &KBM,
                                unsigned Depth) {
   static constexpr unsigned BitWidth = 64;
 
-  int64_t Val;
-  if (Expr->evaluateAsAbsolute(Val)) {
+  
+  if (int64_t Val; Expr->evaluateAsAbsolute(Val)) {
     APInt APValue(BitWidth, Val, /*isSigned=*/true);
     KBM[Expr] = KnownBits::makeConstant(APValue);
     return;
@@ -601,8 +601,8 @@ static const MCExpr *tryFoldHelper(const MCExpr *Expr, KnownBitsMap &KBM,
       return MCConstantExpr::create(ConstVal.getSExtValue(), Ctx);
     }
 
-    int64_t EvalValue;
-    if (Expr->evaluateAsAbsolute(EvalValue))
+    
+    if (int64_t EvalValue; Expr->evaluateAsAbsolute(EvalValue))
       return MCConstantExpr::create(EvalValue, Ctx);
   }
 
@@ -653,8 +653,8 @@ static const MCExpr *tryFoldHelper(const MCExpr *Expr, KnownBitsMap &KBM,
     }
     }
     const MCExpr *NewLHS = tryFoldHelper(LHS, KBM, Ctx);
-    const MCExpr *NewRHS = tryFoldHelper(RHS, KBM, Ctx);
-    if (NewLHS != LHS || NewRHS != RHS)
+    
+    if (const MCExpr *NewRHS = tryFoldHelper(RHS, KBM, Ctx); NewLHS != LHS || NewRHS != RHS)
       return MCBinaryExpr::create(BExpr->getOpcode(), NewLHS, NewRHS, Ctx,
                                   BExpr->getLoc());
     return Expr;
@@ -662,8 +662,8 @@ static const MCExpr *tryFoldHelper(const MCExpr *Expr, KnownBitsMap &KBM,
   case MCExpr::ExprKind::Unary: {
     const MCUnaryExpr *UExpr = cast<MCUnaryExpr>(Expr);
     const MCExpr *SubExpr = UExpr->getSubExpr();
-    const MCExpr *NewSubExpr = tryFoldHelper(SubExpr, KBM, Ctx);
-    if (SubExpr != NewSubExpr)
+    
+    if (const MCExpr *NewSubExpr = tryFoldHelper(SubExpr, KBM, Ctx); SubExpr != NewSubExpr)
       return MCUnaryExpr::create(UExpr->getOpcode(), NewSubExpr, Ctx,
                                  UExpr->getLoc());
     return Expr;
@@ -694,8 +694,8 @@ const MCExpr *llvm::AMDGPU::foldAMDGPUMCExpr(const MCExpr *Expr,
 
 void llvm::AMDGPU::printAMDGPUMCExpr(const MCExpr *Expr, raw_ostream &OS,
                                      const MCAsmInfo *MAI) {
-  int64_t Val;
-  if (Expr->evaluateAsAbsolute(Val)) {
+  
+  if (int64_t Val; Expr->evaluateAsAbsolute(Val)) {
     OS << Val;
     return;
   }

@@ -116,8 +116,8 @@ static uint64_t
 getIntegerTypeABIAlignment(IntegerType intType,
                            ArrayRef<DataLayoutEntryInterface> params) {
   constexpr uint64_t kDefaultSmallIntAlignment = 4u;
-  constexpr unsigned kSmallIntSize = 64;
-  if (params.empty()) {
+  
+  if (constexpr unsigned kSmallIntSize = 64; params.empty()) {
     return intType.getWidth() < kSmallIntSize
                ? llvm::PowerOf2Ceil(
                      llvm::divideCeil(intType.getWidth(), kDefaultBitsInByte))
@@ -546,8 +546,8 @@ void mlir::DataLayout::checkValid() const {
 template <typename T>
 static T cachedLookup(Type t, DenseMap<Type, T> &cache,
                       function_ref<T(Type)> compute) {
-  auto it = cache.find(t);
-  if (it != cache.end())
+  
+  if (auto it = cache.find(t); it != cache.end())
     return it->second;
 
   auto result = cache.try_emplace(t, compute(t));

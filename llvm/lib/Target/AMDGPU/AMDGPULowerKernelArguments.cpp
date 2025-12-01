@@ -47,11 +47,11 @@ public:
 static BasicBlock::iterator getInsertPt(BasicBlock &BB) {
   BasicBlock::iterator InsPt = BB.getFirstInsertionPt();
   for (BasicBlock::iterator E = BB.end(); InsPt != E; ++InsPt) {
-    AllocaInst *AI = dyn_cast<AllocaInst>(&*InsPt);
+    
 
     // If this is a dynamic alloca, the value may depend on the loaded kernargs,
     // so loads will need to be inserted before it.
-    if (!AI || !AI->isStaticAlloca())
+    if (AllocaInst *AI = dyn_cast<AllocaInst>(&*InsPt); !AI || !AI->isStaticAlloca())
       break;
   }
 
@@ -59,8 +59,8 @@ static BasicBlock::iterator getInsertPt(BasicBlock &BB) {
 }
 
 static bool lowerKernelArguments(Function &F, const TargetMachine &TM) {
-  CallingConv::ID CC = F.getCallingConv();
-  if (CC != CallingConv::AMDGPU_KERNEL || F.arg_empty())
+  
+  if (CallingConv::ID CC = F.getCallingConv(); CC != CallingConv::AMDGPU_KERNEL || F.arg_empty())
     return false;
 
   const GCNSubtarget &ST = TM.getSubtarget<GCNSubtarget>(F);
@@ -189,8 +189,8 @@ static bool lowerKernelArguments(Function &F, const TargetMachine &TM) {
       if (Arg.hasNonNullAttr())
         Load->setMetadata(LLVMContext::MD_nonnull, MDNode::get(Ctx, {}));
 
-      uint64_t DerefBytes = Arg.getDereferenceableBytes();
-      if (DerefBytes != 0) {
+      
+      if (uint64_t DerefBytes = Arg.getDereferenceableBytes(); DerefBytes != 0) {
         Load->setMetadata(
           LLVMContext::MD_dereferenceable,
           MDNode::get(Ctx,
@@ -261,8 +261,8 @@ FunctionPass *llvm::createAMDGPULowerKernelArgumentsPass() {
 
 PreservedAnalyses
 AMDGPULowerKernelArgumentsPass::run(Function &F, FunctionAnalysisManager &AM) {
-  bool Changed = lowerKernelArguments(F, TM);
-  if (Changed) {
+  
+  if (bool Changed = lowerKernelArguments(F, TM); Changed) {
     // TODO: Preserves a lot more.
     PreservedAnalyses PA;
     PA.preserveSet<CFGAnalyses>();

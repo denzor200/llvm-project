@@ -271,8 +271,8 @@ bool lldb_private::formatters::NSIndexSetSummaryProvider(
 
       // First check whether this is a tagged pointer.  The bitmask will be in
       // the payload of the tagged pointer.
-      uint64_t payload;
-      if (runtime->GetFoundationVersion() >= 2000 &&
+      
+      if (uint64_t payload; runtime->GetFoundationVersion() >= 2000 &&
           descriptor->GetTaggedPointerInfo(nullptr, nullptr, &payload)) {
         count = llvm::popcount(payload);
         break;
@@ -537,8 +537,8 @@ bool lldb_private::formatters::NSNumberSummaryProvider(
 
   if (class_name == "NSNumber" || class_name == "__NSCFNumber") {
     int64_t value = 0;
-    uint64_t i_bits = 0;
-    if (descriptor->GetTaggedPointerInfoSigned(&i_bits, &value)) {
+    
+    if (uint64_t i_bits = 0; descriptor->GetTaggedPointerInfoSigned(&i_bits, &value)) {
       // Check for "preserved" numbers.  We still don't support them yet.
       if (i_bits & 0x8) {
         if (log)
@@ -978,9 +978,9 @@ bool lldb_private::formatters::NSDateSummaryProvider(
 
   // Accomodate for the __NSTaggedDate format introduced in Foundation 1600.
   if (class_name == g_NSTaggedDate) {
-    auto *runtime = llvm::dyn_cast_or_null<AppleObjCRuntime>(
-        ObjCLanguageRuntime::Get(*process_sp));
-    if (runtime && runtime->GetFoundationVersion() >= 1600)
+    
+    if (auto *runtime = llvm::dyn_cast_or_null<AppleObjCRuntime>(
+        ObjCLanguageRuntime::Get(*process_sp)); runtime && runtime->GetFoundationVersion() >= 1600)
       date_value = decodeTaggedTimeInterval(value_bits << 4);
   }
 
@@ -1141,8 +1141,8 @@ bool lldb_private::formatters::ObjCBOOLSummaryProvider(
     if (!real_guy_sp)
       return false;
   }
-  int8_t value = (real_guy_sp->GetValueAsSigned(0) & 0xFF);
-  switch (value) {
+  
+  switch (int8_t value = (real_guy_sp->GetValueAsSigned(0) & 0xFF); value) {
   case 0:
     stream.Printf("NO");
     break;

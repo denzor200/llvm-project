@@ -72,7 +72,7 @@ namespace {
 using namespace mlir;
 
 class ACCImplicitRoutine
-    : public acc::impl::ACCImplicitRoutineBase<ACCImplicitRoutine> {
+    : public impl::ACCImplicitRoutineBase<ACCImplicitRoutine> {
 private:
   unsigned routineCounter = 0;
   static constexpr llvm::StringRef accRoutinePrefix = "acc_routine_";
@@ -208,8 +208,8 @@ private:
 public:
   using ACCImplicitRoutineBase<ACCImplicitRoutine>::ACCImplicitRoutineBase;
 
-  void runOnOperation() override {
-    auto module = getOperation();
+  void runOnOperation() {
+    auto module = Operation();
     mlir::OpBuilder builder(module.getContext());
     SymbolTable symTab(module);
     initRoutineCounter(module);

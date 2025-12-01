@@ -356,13 +356,13 @@ bool SBTypeCategory::AddTypeSummary(SBTypeNameSpecifier type_name,
     uint32_t num_debuggers = lldb_private::Debugger::GetNumDebuggers();
     bool need_set = true;
     for (uint32_t j = 0; j < num_debuggers; j++) {
-      DebuggerSP debugger_sp = lldb_private::Debugger::GetDebuggerAtIndex(j);
-      if (debugger_sp) {
-        ScriptInterpreter *interpreter_ptr =
-            debugger_sp->GetScriptInterpreter();
-        if (interpreter_ptr) {
-          std::string output;
-          if (interpreter_ptr->GenerateTypeScriptFunction(input, output,
+      
+      if (DebuggerSP debugger_sp = lldb_private::Debugger::GetDebuggerAtIndex(j); debugger_sp) {
+        
+        if (ScriptInterpreter *interpreter_ptr =
+            debugger_sp->GetScriptInterpreter(); interpreter_ptr) {
+          
+          if (std::string output; interpreter_ptr->GenerateTypeScriptFunction(input, output,
                                                           name_token) &&
               !output.empty()) {
             if (need_set) {
@@ -448,13 +448,13 @@ bool SBTypeCategory::AddTypeSynthetic(SBTypeNameSpecifier type_name,
     uint32_t num_debuggers = lldb_private::Debugger::GetNumDebuggers();
     bool need_set = true;
     for (uint32_t j = 0; j < num_debuggers; j++) {
-      DebuggerSP debugger_sp = lldb_private::Debugger::GetDebuggerAtIndex(j);
-      if (debugger_sp) {
-        ScriptInterpreter *interpreter_ptr =
-            debugger_sp->GetScriptInterpreter();
-        if (interpreter_ptr) {
-          std::string output;
-          if (interpreter_ptr->GenerateTypeSynthClass(input, output,
+      
+      if (DebuggerSP debugger_sp = lldb_private::Debugger::GetDebuggerAtIndex(j); debugger_sp) {
+        
+        if (ScriptInterpreter *interpreter_ptr =
+            debugger_sp->GetScriptInterpreter(); interpreter_ptr) {
+          
+          if (std::string output; interpreter_ptr->GenerateTypeSynthClass(input, output,
                                                       name_token) &&
               !output.empty()) {
             if (need_set) {

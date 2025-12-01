@@ -300,8 +300,8 @@ void AArch64MachObjectWriter::recordRelocation(
                         "'. Must have non-local symbol earlier in section.");
         return;
       }
-      const MCSection &Sec = Symbol->getSection();
-      if (!MCAsmInfoDarwin::isSectionAtomizableBySymbols(Sec))
+      
+      if (const MCSection &Sec = Symbol->getSection(); !MCAsmInfoDarwin::isSectionAtomizableBySymbols(Sec))
         Symbol->setUsedInReloc();
     }
 

@@ -75,8 +75,8 @@ void UnwindTable::Initialize() {
 
   sect = sl->FindSectionByType(eSectionTypeARMexidx, true);
   if (!m_arm_unwind_up && sect) {
-    SectionSP sect_extab = sl->FindSectionByType(eSectionTypeARMextab, true);
-    if (sect_extab.get()) {
+    
+    if (SectionSP sect_extab = sl->FindSectionByType(eSectionTypeARMextab, true); sect_extab.get()) {
       m_arm_unwind_up =
           std::make_unique<ArmUnwindInfo>(*object_file, sect, sect_extab);
     }
@@ -140,8 +140,8 @@ UnwindTable::GetFuncUnwindersContainingAddress(const Address &addr,
   addr_t file_addr = addr.GetFileAddress();
   iterator insert_pos = m_unwinds.upper_bound(file_addr);
   if (insert_pos != m_unwinds.begin()) {
-    auto pos = std::prev(insert_pos);
-    if (pos->second->ContainsAddress(addr))
+    
+    if (auto pos = std::prev(insert_pos); pos->second->ContainsAddress(addr))
       return pos->second;
   }
 

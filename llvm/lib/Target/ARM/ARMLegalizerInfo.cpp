@@ -343,9 +343,9 @@ bool ARMLegalizerInfo::legalizeCustom(LegalizerHelper &Helper, MachineInstr &MI,
 
   MachineIRBuilder &MIRBuilder = Helper.MIRBuilder;
   MachineRegisterInfo &MRI = *MIRBuilder.getMRI();
-  LLVMContext &Ctx = MIRBuilder.getMF().getFunction().getContext();
+  
 
-  switch (MI.getOpcode()) {
+  switch (LLVMContext &Ctx = MIRBuilder.getMF().getFunction().getContext(); MI.getOpcode()) {
   default:
     return false;
   case G_SREM:
@@ -440,8 +440,8 @@ bool ARMLegalizerInfo::legalizeCustom(LegalizerHelper &Helper, MachineInstr &MI,
   }
   case G_CONSTANT: {
     const ConstantInt *ConstVal = MI.getOperand(1).getCImm();
-    uint64_t ImmVal = ConstVal->getZExtValue();
-    if (ConstantMaterializationCost(ImmVal, &ST) > 2 && !ST.genExecuteOnly())
+    
+    if (uint64_t ImmVal = ConstVal->getZExtValue(); ConstantMaterializationCost(ImmVal, &ST) > 2 && !ST.genExecuteOnly())
       return Helper.lowerConstant(MI) == LegalizerHelper::Legalized;
     return true;
   }

@@ -126,8 +126,8 @@ void Input::beginMapping() {
   if (EC)
     return;
   // CurrentNode can be null if the document is empty.
-  MapHNode *MN = dyn_cast_or_null<MapHNode>(CurrentNode);
-  if (MN) {
+  
+  if (MapHNode *MN = dyn_cast_or_null<MapHNode>(CurrentNode); MN) {
     MN->ValidKeys.clear();
   }
 }
@@ -195,8 +195,8 @@ void Input::endMapping() {
     return;
   for (const auto &NN : MN->Mapping) {
     if (!is_contained(MN->ValidKeys, NN.first())) {
-      const SMRange &ReportLoc = NN.second.second;
-      if (!AllowUnknownKeys) {
+      
+      if (const SMRange &ReportLoc = NN.second.second; !AllowUnknownKeys) {
         setError(ReportLoc, Twine("unknown key '") + NN.first() + "'");
         break;
       } else
@@ -398,8 +398,8 @@ void Input::releaseHNodeBuffers() {
 }
 
 Input::HNode *Input::createHNodes(Node *N) {
-  SmallString<128> StringStorage;
-  switch (N->getType()) {
+  
+  switch (SmallString<128> StringStorage; N->getType()) {
   case Node::NK_Scalar: {
     ScalarNode *SN = dyn_cast<ScalarNode>(N);
     StringRef KeyStr = SN->getValue(StringStorage);
@@ -546,8 +546,8 @@ bool Output::preflightKey(StringRef Key, bool Required, bool SameAsDefault,
   UseDefault = false;
   SaveInfo = nullptr;
   if (Required || !SameAsDefault || WriteDefaultValues) {
-    auto State = StateStack.back();
-    if (State == inFlowMapFirstKey || State == inFlowMapOtherKey) {
+    
+    if (auto State = StateStack.back(); State == inFlowMapFirstKey || State == inFlowMapOtherKey) {
       flowKey(Key);
     } else {
       newLineCheck();
@@ -878,8 +878,8 @@ void Output::newLineCheck(bool EmptySequence) {
 void Output::paddedKey(StringRef key) {
   output(key, needsQuotes(key, false));
   output(":");
-  const char *spaces = "                ";
-  if (key.size() < strlen(spaces))
+  
+  if (const char *spaces = "                "; key.size() < strlen(spaces))
     Padding = &spaces[key.size()];
   else
     Padding = " ";

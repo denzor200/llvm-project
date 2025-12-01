@@ -424,8 +424,8 @@ struct ParallelOpLowering : public OpRewritePattern<scf::ParallelOp> {
       mapper.map(redRegion.getArgument(0), pvtRedVal);
       mapper.map(redRegion.getArgument(1), y);
       for (auto &op : redRegion.getOps()) {
-        Operation *cloneOp = builder.clone(op, mapper);
-        if (auto yieldOp = dyn_cast<omp::YieldOp>(*cloneOp)) {
+        
+        if (auto Operation *cloneOp = builder.clone(op, mapper); yieldOp = dyn_cast<omp::YieldOp>(*cloneOp)) {
           assert(yieldOp && yieldOp.getResults().size() == 1 &&
                  "expect YieldOp in reduction region to return one result");
           Value redVal = yieldOp.getResults()[0];

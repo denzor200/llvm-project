@@ -25,8 +25,8 @@ void StackAllocationAnalysis::preflight() {
 
   for (BinaryBasicBlock &BB : this->Func) {
     for (MCInst &Inst : BB) {
-      MCPhysReg From, To;
-      if (!BC.MIB->isPush(Inst) &&
+      
+      if (MCPhysReg From, To; !BC.MIB->isPush(Inst) &&
           (!BC.MIB->isRegToRegMove(Inst, From, To) ||
            To != BC.MIB->getStackPointer() ||
            From != BC.MIB->getFramePointer()) &&
@@ -86,8 +86,8 @@ void StackAllocationAnalysis::doConfluenceWithLP(BitVector &StateOut,
                                                  const BitVector &StateIn,
                                                  const MCInst &Invoke) {
   BitVector NewIn = StateIn;
-  const int64_t GnuArgsSize = BC.MIB->getGnuArgsSize(Invoke);
-  if (GnuArgsSize >= 0)
+  
+  if (const int64_t GnuArgsSize = BC.MIB->getGnuArgsSize(Invoke); GnuArgsSize >= 0)
     NewIn = doKill(Invoke, NewIn, GnuArgsSize);
   StateOut |= NewIn;
 }

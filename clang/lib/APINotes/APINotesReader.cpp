@@ -122,9 +122,9 @@ void ReadCommonEntityInfo(const uint8_t *&Data, CommonEntityInfo &Info) {
 void ReadCommonTypeInfo(const uint8_t *&Data, CommonTypeInfo &Info) {
   ReadCommonEntityInfo(Data, Info);
 
-  unsigned SwiftBridgeLength =
-      endian::readNext<uint16_t, llvm::endianness::little>(Data);
-  if (SwiftBridgeLength > 0) {
+  
+  if (unsigned SwiftBridgeLength =
+      endian::readNext<uint16_t, llvm::endianness::little>(Data); SwiftBridgeLength > 0) {
     Info.setSwiftBridge(std::string(reinterpret_cast<const char *>(Data),
                                     SwiftBridgeLength - 1));
     Data += SwiftBridgeLength - 1;
@@ -301,8 +301,8 @@ public:
                                           const uint8_t *&Data) {
     ObjCPropertyInfo Info;
     ReadVariableInfo(Data, Info);
-    uint8_t Flags = *Data++;
-    if (Flags & (1 << 0))
+    
+    if (uint8_t Flags = *Data++; Flags & (1 << 0))
       Info.setSwiftImportAsAccessors(Flags & (1 << 1));
     return Info;
   }
@@ -672,8 +672,8 @@ public:
                                      const uint8_t *&Data) {
     TypedefInfo Info;
 
-    uint8_t Payload = *Data++;
-    if (Payload > 0)
+    
+    if (uint8_t Payload = *Data++; Payload > 0)
       Info.SwiftWrapper = static_cast<SwiftNewTypeKind>((Payload & 0x3) - 1);
 
     ReadCommonTypeInfo(Data, Info);
@@ -892,9 +892,9 @@ bool APINotesReader::Implementation::readControlBlock(
       consumeError(MaybeKind.takeError());
       return false;
     }
-    unsigned Kind = MaybeKind.get();
+    
 
-    switch (Kind) {
+    switch (unsigned Kind = MaybeKind.get(); Kind) {
     case control_block::METADATA:
       // Already saw metadata.
       if (SawMetadata)
@@ -977,8 +977,8 @@ bool APINotesReader::Implementation::readIdentifierBlock(
       consumeError(MaybeKind.takeError());
       return false;
     }
-    unsigned Kind = MaybeKind.get();
-    switch (Kind) {
+    
+    switch (unsigned Kind = MaybeKind.get(); Kind) {
     case identifier_block::IDENTIFIER_DATA: {
       // Already saw identifier table.
       if (IdentifierTable)
@@ -1053,8 +1053,8 @@ bool APINotesReader::Implementation::readContextBlock(
       consumeError(MaybeKind.takeError());
       return false;
     }
-    unsigned Kind = MaybeKind.get();
-    switch (Kind) {
+    
+    switch (unsigned Kind = MaybeKind.get(); Kind) {
     case context_block::CONTEXT_ID_DATA: {
       // Already saw Objective-C / C++ context ID table.
       if (ContextIDTable)
@@ -1143,8 +1143,8 @@ bool APINotesReader::Implementation::readObjCPropertyBlock(
       consumeError(MaybeKind.takeError());
       return false;
     }
-    unsigned Kind = MaybeKind.get();
-    switch (Kind) {
+    
+    switch (unsigned Kind = MaybeKind.get(); Kind) {
     case objc_property_block::OBJC_PROPERTY_DATA: {
       // Already saw Objective-C property table.
       if (ObjCPropertyTable)
@@ -1219,8 +1219,8 @@ bool APINotesReader::Implementation::readObjCMethodBlock(
       consumeError(MaybeKind.takeError());
       return false;
     }
-    unsigned Kind = MaybeKind.get();
-    switch (Kind) {
+    
+    switch (unsigned Kind = MaybeKind.get(); Kind) {
     case objc_method_block::OBJC_METHOD_DATA: {
       // Already saw Objective-C method table.
       if (ObjCMethodTable)
@@ -1294,8 +1294,8 @@ bool APINotesReader::Implementation::readCXXMethodBlock(
       consumeError(MaybeKind.takeError());
       return false;
     }
-    unsigned Kind = MaybeKind.get();
-    switch (Kind) {
+    
+    switch (unsigned Kind = MaybeKind.get(); Kind) {
     case cxx_method_block::CXX_METHOD_DATA: {
       // Already saw C++ method table.
       if (CXXMethodTable)
@@ -1369,8 +1369,8 @@ bool APINotesReader::Implementation::readFieldBlock(
       consumeError(MaybeKind.takeError());
       return false;
     }
-    unsigned Kind = MaybeKind.get();
-    switch (Kind) {
+    
+    switch (unsigned Kind = MaybeKind.get(); Kind) {
     case field_block::FIELD_DATA: {
       // Already saw field table.
       if (FieldTable)
@@ -1444,8 +1444,8 @@ bool APINotesReader::Implementation::readObjCSelectorBlock(
       consumeError(MaybeKind.takeError());
       return false;
     }
-    unsigned Kind = MaybeKind.get();
-    switch (Kind) {
+    
+    switch (unsigned Kind = MaybeKind.get(); Kind) {
     case objc_selector_block::OBJC_SELECTOR_DATA: {
       // Already saw Objective-C selector table.
       if (ObjCSelectorTable)
@@ -1520,8 +1520,8 @@ bool APINotesReader::Implementation::readGlobalVariableBlock(
       consumeError(MaybeKind.takeError());
       return false;
     }
-    unsigned Kind = MaybeKind.get();
-    switch (Kind) {
+    
+    switch (unsigned Kind = MaybeKind.get(); Kind) {
     case global_variable_block::GLOBAL_VARIABLE_DATA: {
       // Already saw global variable table.
       if (GlobalVariableTable)
@@ -1596,8 +1596,8 @@ bool APINotesReader::Implementation::readGlobalFunctionBlock(
       consumeError(MaybeKind.takeError());
       return false;
     }
-    unsigned Kind = MaybeKind.get();
-    switch (Kind) {
+    
+    switch (unsigned Kind = MaybeKind.get(); Kind) {
     case global_function_block::GLOBAL_FUNCTION_DATA: {
       // Already saw global function table.
       if (GlobalFunctionTable)
@@ -1672,8 +1672,8 @@ bool APINotesReader::Implementation::readEnumConstantBlock(
       consumeError(MaybeKind.takeError());
       return false;
     }
-    unsigned Kind = MaybeKind.get();
-    switch (Kind) {
+    
+    switch (unsigned Kind = MaybeKind.get(); Kind) {
     case enum_constant_block::ENUM_CONSTANT_DATA: {
       // Already saw enumerator table.
       if (EnumConstantTable)
@@ -1748,8 +1748,8 @@ bool APINotesReader::Implementation::readTagBlock(
       consumeError(MaybeKind.takeError());
       return false;
     }
-    unsigned Kind = MaybeKind.get();
-    switch (Kind) {
+    
+    switch (unsigned Kind = MaybeKind.get(); Kind) {
     case tag_block::TAG_DATA: {
       // Already saw tag table.
       if (TagTable)
@@ -1823,8 +1823,8 @@ bool APINotesReader::Implementation::readTypedefBlock(
       consumeError(MaybeKind.takeError());
       return false;
     }
-    unsigned Kind = MaybeKind.get();
-    switch (Kind) {
+    
+    switch (unsigned Kind = MaybeKind.get(); Kind) {
     case typedef_block::TYPEDEF_DATA: {
       // Already saw typedef table.
       if (TypedefTable)

@@ -104,8 +104,8 @@ Options *CommandObject::GetOptions() {
 
 bool CommandObject::ParseOptions(Args &args, CommandReturnObject &result) {
   // See if the subclass has options?
-  Options *options = GetOptions();
-  if (options != nullptr) {
+  
+  if (Options *options = GetOptions(); options != nullptr) {
     Status error;
 
     auto exe_ctx = GetCommandInterpreter().GetExecutionContext();
@@ -157,8 +157,8 @@ bool CommandObject::CheckRequirements(CommandReturnObject &result) {
   // away during the execution
   m_exe_ctx = m_interpreter.GetExecutionContext();
 
-  const uint32_t flags = GetFlags().Get();
-  if (flags & (eCommandRequiresTarget | eCommandRequiresProcess |
+  
+  if (const uint32_t flags = GetFlags().Get(); flags & (eCommandRequiresTarget | eCommandRequiresProcess |
                eCommandRequiresThread | eCommandRequiresFrame |
                eCommandTryTargetAPILock)) {
 
@@ -204,8 +204,8 @@ bool CommandObject::CheckRequirements(CommandReturnObject &result) {
     }
 
     if (flags & eCommandTryTargetAPILock) {
-      Target *target = m_exe_ctx.GetTargetPtr();
-      if (target)
+      
+      if (Target *target = m_exe_ctx.GetTargetPtr(); target)
         m_api_locker =
             std::unique_lock<std::recursive_mutex>(target->GetAPIMutex());
     }
@@ -221,8 +221,8 @@ bool CommandObject::CheckRequirements(CommandReturnObject &result) {
         return false;
       }
     } else {
-      StateType state = process->GetState();
-      switch (state) {
+      
+      switch (StateType state = process->GetState(); state) {
       case eStateInvalid:
       case eStateSuspended:
       case eStateCrashed:
@@ -253,8 +253,8 @@ bool CommandObject::CheckRequirements(CommandReturnObject &result) {
   }
 
   if (GetFlags().Test(eCommandProcessMustBeTraced)) {
-    Target *target = m_exe_ctx.GetTargetPtr();
-    if (target && !target->GetTrace()) {
+    
+    if (Target *target = m_exe_ctx.GetTargetPtr(); target && !target->GetTrace()) {
       result.AppendError("process is not being traced");
       return false;
     }
@@ -290,9 +290,9 @@ void CommandObject::HandleCompletion(CompletionRequest &request) {
       opt_element_vector = cur_options->ParseForCompletion(
           request.GetParsedLine(), request.GetCursorIndex());
 
-      bool handled_by_options = cur_options->HandleOptionCompletion(
-          request, opt_element_vector, GetCommandInterpreter());
-      if (handled_by_options)
+      
+      if (bool handled_by_options = cur_options->HandleOptionCompletion(
+          request, opt_element_vector, GetCommandInterpreter()); handled_by_options)
         return;
     }
 
@@ -303,8 +303,8 @@ void CommandObject::HandleCompletion(CompletionRequest &request) {
 
 void CommandObject::HandleArgumentCompletion(
     CompletionRequest &request, OptionElementVector &opt_element_vector) {
-  size_t num_arg_entries = GetNumArgumentEntries();
-  if (num_arg_entries != 1)
+  
+  if (size_t num_arg_entries = GetNumArgumentEntries(); num_arg_entries != 1)
     return;
 
   CommandArgumentEntry *entry_ptr = GetArgumentEntryAtIndex(0);
@@ -346,9 +346,9 @@ bool CommandObject::HelpTextContainsWord(llvm::StringRef search_word,
 
   llvm::StringRef short_help = GetHelp();
   llvm::StringRef long_help = GetHelpLong();
-  llvm::StringRef syntax_help = GetSyntax();
+  
 
-  if (search_short_help && short_help.contains_insensitive(search_word))
+  if (llvm::StringRef syntax_help = GetSyntax(); search_short_help && short_help.contains_insensitive(search_word))
     found_word = true;
   else if (search_long_help && long_help.contains_insensitive(search_word))
     found_word = true;
@@ -362,8 +362,8 @@ bool CommandObject::HelpTextContainsWord(llvm::StringRef search_word,
         GetCommandInterpreter().GetDebugger().GetTerminalWidth(),
         GetCommandInterpreter().GetDebugger().GetUseColor());
     if (!usage_help.Empty()) {
-      llvm::StringRef usage_text = usage_help.GetString();
-      if (usage_text.contains_insensitive(search_word))
+      
+      if (llvm::StringRef usage_text = usage_help.GetString(); usage_text.contains_insensitive(search_word))
         found_word = true;
     }
   }
@@ -378,8 +378,8 @@ bool CommandObject::ParseOptionsAndNotify(Args &args,
   if (!ParseOptions(args, result))
     return false;
 
-  Status error(group_options.NotifyOptionParsingFinished(&exe_ctx));
-  if (error.Fail()) {
+  
+  if (Status error(group_options.NotifyOptionParsingFinished(&exe_ctx)); error.Fail()) {
     result.AppendError(error.AsCString());
     return false;
   }
@@ -440,8 +440,8 @@ void CommandObject::GetArgumentHelp(Stream &str, CommandArgumentType arg_type,
   name_str.Printf("<%s>", entry->arg_name);
 
   if (entry->help_function) {
-    llvm::StringRef help_text = entry->help_function();
-    if (!entry->help_function.self_formatting) {
+    
+    if (llvm::StringRef help_text = entry->help_function(); !entry->help_function.self_formatting) {
       interpreter.OutputFormattedHelpText(str, name_str.GetString(), "--",
                                           help_text, name_str.GetSize());
     } else {
@@ -453,8 +453,8 @@ void CommandObject::GetArgumentHelp(Stream &str, CommandArgumentType arg_type,
                                         entry->help_text, name_str.GetSize());
 
     // Print enum values and their description if any.
-    OptionEnumValues enum_values = g_argument_table[arg_type].enum_values;
-    if (!enum_values.empty()) {
+    
+    if (OptionEnumValues enum_values = g_argument_table[arg_type].enum_values; !enum_values.empty()) {
       str.EOL();
       size_t longest = 0;
       for (const OptionEnumValueElement &element : enum_values)
@@ -544,8 +544,8 @@ void CommandObject::GetFormattedCommandArguments(Stream &str,
 
     if ((num_alternatives == 2) && IsPairType(arg_entry[0].arg_repetition)) {
       const char *first_name = GetArgumentName(arg_entry[0].arg_type);
-      const char *second_name = GetArgumentName(arg_entry[1].arg_type);
-      switch (arg_entry[0].arg_repetition) {
+      
+      switch (const char *second_name = GetArgumentName(arg_entry[1].arg_type); arg_entry[0].arg_repetition) {
       case eArgRepeatPairPlain:
         str.Printf("<%s> <%s>", first_name, second_name);
         break;
@@ -773,8 +773,8 @@ Target &CommandObject::GetTarget() {
 }
 
 Thread *CommandObject::GetDefaultThread() {
-  Thread *thread_to_use = m_exe_ctx.GetThreadPtr();
-  if (thread_to_use)
+  
+  if (Thread *thread_to_use = m_exe_ctx.GetThreadPtr(); thread_to_use)
     return thread_to_use;
 
   Process *process = m_exe_ctx.GetProcessPtr();
@@ -805,8 +805,8 @@ void CommandObjectParsed::Execute(const char *args_string,
   }
   if (!handled) {
     for (auto entry : llvm::enumerate(cmd_args.entries())) {
-      const Args::ArgEntry &value = entry.value();
-      if (!value.ref().empty() && value.GetQuoteChar() == '`') {
+      
+      if (const Args::ArgEntry &value = entry.value(); !value.ref().empty() && value.GetQuoteChar() == '`') {
         // We have to put the backtick back in place for PreprocessCommand.
         std::string opt_string = value.c_str();
         Status error;

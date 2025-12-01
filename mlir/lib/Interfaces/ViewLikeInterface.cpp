@@ -26,9 +26,9 @@ LogicalResult mlir::verifyListOfOperandsOrIntegers(Operation *op,
   if (staticVals.size() != numElements)
     return op->emitError("expected ") << numElements << " " << name
                                       << " values, got " << staticVals.size();
-  unsigned expectedNumDynamicEntries =
-      llvm::count_if(staticVals, ShapedType::isDynamic);
-  if (values.size() != expectedNumDynamicEntries)
+  
+  if (unsigned expectedNumDynamicEntries =
+      llvm::count_if(staticVals, ShapedType::isDynamic); values.size() != expectedNumDynamicEntries)
     return op->emitError("expected ")
            << expectedNumDynamicEntries << " dynamic " << name << " values";
   return success();
@@ -58,9 +58,9 @@ SliceBoundsVerificationResult mlir::verifyInBoundsSlice(
     if (ShapedType::isDynamic(staticSizes[i]) ||
         ShapedType::isDynamic(staticStrides[i]))
       continue;
-    int64_t lastPos =
-        staticOffsets[i] + (staticSizes[i] - 1) * staticStrides[i];
-    if (lastPos >= shape[i]) {
+    
+    if (int64_t lastPos =
+        staticOffsets[i] + (staticSizes[i] - 1) * staticStrides[i]; lastPos >= shape[i]) {
       result.errorMessage = std::string("slice along dimension ") +
                             std::to_string(i) +
                             " runs out-of-bounds: " + std::to_string(lastPos) +

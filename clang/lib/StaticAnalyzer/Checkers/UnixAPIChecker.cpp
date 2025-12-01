@@ -220,10 +220,10 @@ void UnixAPIMisuseChecker::CheckOpenVariant(CheckerContext &C,
   };
 
   // All calls should at least provide arguments up to the 'flags' parameter.
-  unsigned int MinArgCount = FlagsArgIndex + 1;
+  
 
   // The frontend should issue a warning for this case. Just return.
-  if (Call.getNumArgs() < MinArgCount)
+  if (unsigned int MinArgCount = FlagsArgIndex + 1; Call.getNumArgs() < MinArgCount)
     return;
 
   // If the flags has O_CREAT set then open/openat() require an additional
@@ -236,8 +236,8 @@ void UnixAPIMisuseChecker::CheckOpenVariant(CheckerContext &C,
   ProgramStateRef state = C.getState();
   if (Call.getNumArgs() == MaxArgCount) {
     const Expr *Arg = Call.getArgExpr(CreateModeArgIndex);
-    QualType QT = Arg->getType();
-    if (!QT->isIntegerType()) {
+    
+    if (QualType QT = Arg->getType(); !QT->isIntegerType()) {
       SmallString<256> SBuf;
       llvm::raw_svector_ostream OS(SBuf);
       OS << "The " << CreateModeArgIndex + 1

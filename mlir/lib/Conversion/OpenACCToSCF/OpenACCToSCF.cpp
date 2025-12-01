@@ -37,8 +37,8 @@ class ExpandIfCondition : public OpRewritePattern<OpTy> {
     if (!op.getIfCond())
       return failure();
 
-    IntegerAttr constAttr;
-    if (!matchPattern(op.getIfCond(), m_Constant(&constAttr))) {
+    
+    if (IntegerAttr constAttr; !matchPattern(op.getIfCond(), m_Constant(&constAttr))) {
       auto ifOp = scf::IfOp::create(rewriter, op.getLoc(), TypeRange(),
                                     op.getIfCond(), false);
       rewriter.modifyOpInPlace(op, [&]() { op.getIfCondMutable().erase(0); });

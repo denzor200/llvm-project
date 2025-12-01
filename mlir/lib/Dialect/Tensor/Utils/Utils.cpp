@@ -39,11 +39,11 @@ PadOp mlir::tensor::createPadHighOp(RankedTensorType resType, Value source,
 
   for (const auto [idx, val] : enumerate(resType.getShape())) {
     bool isDimDynamic = ShapedType::isDynamic(val);
-    bool updatePadHigh = !isDimDynamic || !dynOutDims.empty();
+    
 
     // Keep the default padding width (i.e. "0") when the output dim is dynamic
     // and no actual output sizes have been provided.
-    if (!updatePadHigh)
+    if (bool updatePadHigh = !isDimDynamic || !dynOutDims.empty(); !updatePadHigh)
       continue;
 
     // Compute the padding width: resDim - sourceDim.

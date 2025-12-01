@@ -178,8 +178,8 @@ static Operation *findParent(Operation *op, bool shouldUseLocalScope) {
 MlirAsmState mlirAsmStateCreateForValue(MlirValue value,
                                         MlirOpPrintingFlags flags) {
   Operation *op;
-  mlir::Value val = unwrap(value);
-  if (auto result = llvm::dyn_cast<OpResult>(val)) {
+  
+  if (auto mlir::Value val = unwrap(value); result = llvm::dyn_cast<OpResult>(val)) {
     op = result.getOwner();
   } else {
     op = llvm::cast<BlockArgument>(val).getOwner()->getParentOp();
@@ -696,8 +696,8 @@ MlirRegion mlirOperationGetFirstRegion(MlirOperation op) {
 MlirRegion mlirRegionGetNextInOperation(MlirRegion region) {
   Region *cppRegion = unwrap(region);
   Operation *parent = cppRegion->getParentOp();
-  intptr_t next = cppRegion->getRegionNumber() + 1;
-  if (parent->getNumRegions() > next)
+  
+  if (intptr_t next = cppRegion->getRegionNumber() + 1; parent->getNumRegions() > next)
     return wrap(&parent->getRegion(next));
   return wrap(static_cast<Region *>(nullptr));
 }

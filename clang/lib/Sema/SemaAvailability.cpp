@@ -63,8 +63,8 @@ static const AvailabilityAttr *getAttrForPlatform(ASTContext &Context,
       StringRef ActualPlatform = Avail->getPlatform()->getName();
       StringRef RealizedPlatform = ActualPlatform;
       if (Context.getLangOpts().AppExt) {
-        size_t suffix = RealizedPlatform.rfind("_app_extension");
-        if (suffix != StringRef::npos)
+        
+        if (size_t suffix = RealizedPlatform.rfind("_app_extension"); suffix != StringRef::npos)
           RealizedPlatform = RealizedPlatform.slice(0, suffix);
       }
 
@@ -137,8 +137,8 @@ done:
 
   if (const auto *ECD = dyn_cast<EnumConstantDecl>(D))
     if (Result == AR_Available) {
-      const DeclContext *DC = ECD->getDeclContext();
-      if (const auto *TheEnumDecl = dyn_cast<EnumDecl>(DC)) {
+      
+      if (const auto *const DeclContext *DC = ECD->getDeclContext(); TheEnumDecl = dyn_cast<EnumDecl>(DC)) {
         Result = TheEnumDecl->getAvailability(Message);
         D = TheEnumDecl;
       }
@@ -147,9 +147,9 @@ done:
   // For +new, infer availability from -init.
   if (const auto *MD = dyn_cast<ObjCMethodDecl>(D)) {
     if (ObjC().NSAPIObj && ClassReceiver) {
-      ObjCMethodDecl *Init = ClassReceiver->lookupInstanceMethod(
-          ObjC().NSAPIObj->getInitSelector());
-      if (Init && Result == AR_Available && MD->isClassMethod() &&
+      
+      if (ObjCMethodDecl *Init = ClassReceiver->lookupInstanceMethod(
+          ObjC().NSAPIObj->getInitSelector()); Init && Result == AR_Available && MD->isClassMethod() &&
           MD->getSelector() == ObjC().NSAPIObj->getNewSelector() &&
           MD->definedInNSObject(getASTContext())) {
         Result = Init->getAvailability(Message);
@@ -170,12 +170,12 @@ static bool ShouldDiagnoseAvailabilityInContext(
   assert(K != AR_Available && "Expected an unavailable declaration here!");
 
   // If this was defined using CF_OPTIONS, etc. then ignore the diagnostic.
-  auto DeclLoc = Ctx->getBeginLoc();
+  
   // This is only a problem in Foundation's C++ implementation for CF_OPTIONS.
-  if (DeclLoc.isMacroID() && S.getLangOpts().CPlusPlus &&
+  if (auto DeclLoc = Ctx->getBeginLoc(); DeclLoc.isMacroID() && S.getLangOpts().CPlusPlus &&
       isa<TypedefDecl>(OffendingDecl)) {
-    StringRef MacroName = S.getPreprocessor().getImmediateMacroName(DeclLoc);
-    if (MacroName == "CF_OPTIONS" || MacroName == "OBJC_OPTIONS" ||
+    
+    if (StringRef MacroName = S.getPreprocessor().getImmediateMacroName(DeclLoc); MacroName == "CF_OPTIONS" || MacroName == "OBJC_OPTIONS" ||
         MacroName == "SWIFT_OPTIONS" || MacroName == "NS_OPTIONS") {
       return false;
     }
@@ -444,9 +444,9 @@ static void DoEmitAvailabilityWarning(Sema &S, AvailabilityResult K,
   if (AA && AA->isInherited()) {
     for (const Decl *Redecl = OffendingDecl->getMostRecentDecl(); Redecl;
          Redecl = Redecl->getPreviousDecl()) {
-      const AvailabilityAttr *AForRedecl =
-          getAttrForPlatform(S.Context, Redecl);
-      if (AForRedecl && !AForRedecl->isInherited()) {
+      
+      if (const AvailabilityAttr *AForRedecl =
+          getAttrForPlatform(S.Context, Redecl); AForRedecl && !AForRedecl->isInherited()) {
         // If D is a declaration with inherited attributes, the note should
         // point to the declaration with actual attributes.
         NoteLocation = Redecl->getLocation();
@@ -582,14 +582,14 @@ static void DoEmitAvailabilityWarning(Sema &S, AvailabilityResult K,
       if (AL->isImplicit() && AL->getImplicitReason()) {
         // Most of these failures are due to extra restrictions in ARC;
         // reflect that in the primary diagnostic when applicable.
-        auto flagARCError = [&] {
+        
+
+        switch (auto flagARCError = [&] {
           if (S.getLangOpts().ObjCAutoRefCount &&
               S.getSourceManager().isInSystemHeader(
                   OffendingDecl->getLocation()))
             diag = diag::err_unavailable_in_arc;
-        };
-
-        switch (AL->getImplicitReason()) {
+        }; AL->getImplicitReason()) {
         case UnavailableAttr::IR_None: break;
 
         case UnavailableAttr::IR_ARCForbiddenType:
@@ -643,9 +643,9 @@ static void DoEmitAvailabilityWarning(Sema &S, AvailabilityResult K,
       if (const auto *MethodDecl = dyn_cast<ObjCMethodDecl>(ReferringDecl)) {
         Selector Sel = MethodDecl->getSelector();
         SmallVector<StringRef, 12> SelectorSlotNames;
-        std::optional<unsigned> NumParams = tryParseObjCMethodName(
-            Replacement, SelectorSlotNames, S.getLangOpts());
-        if (NumParams && *NumParams == Sel.getNumArgs()) {
+        
+        if (std::optional<unsigned> NumParams = tryParseObjCMethodName(
+            Replacement, SelectorSlotNames, S.getLangOpts()); NumParams && *NumParams == Sel.getNumArgs()) {
           assert(SelectorSlotNames.size() == Locs.size());
           for (unsigned I = 0; I < Locs.size(); ++I) {
             if (!Sel.getNameForSlot(I).empty()) {
@@ -851,8 +851,8 @@ public:
   bool VisitObjCMessageExpr(ObjCMessageExpr *Msg) override {
     if (ObjCMethodDecl *D = Msg->getMethodDecl()) {
       ObjCInterfaceDecl *ID = nullptr;
-      QualType ReceiverTy = Msg->getClassReceiver();
-      if (!ReceiverTy.isNull() && ReceiverTy->getAsObjCInterfaceType())
+      
+      if (QualType ReceiverTy = Msg->getClassReceiver(); !ReceiverTy.isNull() && ReceiverTy->getAsObjCInterfaceType())
         ID = ReceiverTy->getAsObjCInterfaceType()->getInterface();
 
       DiagnoseDeclAvailability(
@@ -1149,8 +1149,8 @@ void Sema::DiagnoseAvailabilityOfDecl(NamedDecl *D,
   const ObjCPropertyDecl *ObjCPDecl = nullptr;
   if (const auto *MD = dyn_cast<ObjCMethodDecl>(D)) {
     if (const ObjCPropertyDecl *PD = MD->findPropertyDecl()) {
-      AvailabilityResult PDeclResult = PD->getAvailability(nullptr);
-      if (PDeclResult == Result)
+      
+      if (AvailabilityResult PDeclResult = PD->getAvailability(nullptr); PDeclResult == Result)
         ObjCPDecl = PD;
     }
   }

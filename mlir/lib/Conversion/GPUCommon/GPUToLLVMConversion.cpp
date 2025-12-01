@@ -71,8 +71,8 @@ public:
 protected:
   Value getNumElements(ConversionPatternRewriter &rewriter, Location loc,
                        MemRefType type, MemRefDescriptor desc) const {
-    Type indexType = ConvertToLLVMPattern::getIndexType();
-    if (type.hasStaticShape())
+    
+    if (Type indexType = ConvertToLLVMPattern::getIndexType(); type.hasStaticShape())
       return ConvertToLLVMPattern::createIndexAttrConstant(
           rewriter, loc, indexType, type.getNumElements());
     // Compute the number of elements by multiplying all the dim sizes.
@@ -918,8 +918,8 @@ LogicalResult ConvertWaitAsyncOpToGpuRuntimeCallPattern::matchAndRewrite(
   SmallVector<Value, 1> events;
   for (auto pair :
        llvm::zip(waitOp.getAsyncDependencies(), adaptor.getOperands())) {
-    auto operand = std::get<1>(pair);
-    if (isDefinedByCallTo(operand, streamCreateCallBuilder.functionName)) {
+    
+    if (auto operand = std::get<1>(pair); isDefinedByCallTo(operand, streamCreateCallBuilder.functionName)) {
       // The converted operand's definition created a stream. Insert an event
       // into the stream just after the last use of the original token operand.
       auto *defOp = std::get<0>(pair).getDefiningOp();
@@ -1438,8 +1438,8 @@ LogicalResult ConvertSpMMBufferSizeOpToGpuRuntimeCallPattern::matchAndRewrite(
   auto modeA = genConstInt32From(rewriter, loc, adaptor.getModeA());
   auto modeB = genConstInt32From(rewriter, loc, adaptor.getModeB());
   auto stream = adaptor.getAsyncDependencies().front();
-  Value bufferSize;
-  if (is2To4Sparsity(op.getSpmatA())) {
+  
+  if (Value bufferSize; is2To4Sparsity(op.getSpmatA())) {
     auto pruneFlag =
         genConstInt32From(rewriter, loc, get2To4PruneFlag(op.getSpmatA()));
     auto computeType = genConstInt32From(

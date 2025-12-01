@@ -188,12 +188,12 @@ are no syntax errors may indicate that a function was declared but never called.
 
     // The WatchpointOptions object is owned by the watchpoint or watchpoint
     // location
-    WatchpointOptions *wp_options =
-        (WatchpointOptions *)io_handler.GetUserData();
-    if (wp_options) {
-      std::unique_ptr<WatchpointOptions::CommandData> data_up(
-          new WatchpointOptions::CommandData());
-      if (data_up) {
+    
+    if (WatchpointOptions *wp_options =
+        (WatchpointOptions *)io_handler.GetUserData(); wp_options) {
+      
+      if (std::unique_ptr<WatchpointOptions::CommandData> data_up(
+          new WatchpointOptions::CommandData()); data_up) {
         data_up->user_source.SplitIntoLines(line);
         auto baton_sp = std::make_shared<WatchpointOptions::CommandBaton>(
             std::move(data_up));
@@ -244,8 +244,8 @@ are no syntax errors may indicate that a function was declared but never called.
 
     if (commands.GetSize() > 0) {
       ExecutionContext exe_ctx(context->exe_ctx_ref);
-      Target *target = exe_ctx.GetTargetPtr();
-      if (target) {
+      
+      if (Target *target = exe_ctx.GetTargetPtr(); target) {
         Debugger &debugger = target->GetDebugger();
         CommandReturnObject result(debugger.GetUseColor());
 
@@ -281,9 +281,9 @@ are no syntax errors may indicate that a function was declared but never called.
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'o':
         m_use_one_liner = true;
         m_one_liner = std::string(option_arg);
@@ -359,9 +359,9 @@ protected:
     Target &target = GetTarget();
 
     const WatchpointList &watchpoints = target.GetWatchpointList();
-    size_t num_watchpoints = watchpoints.GetSize();
+    
 
-    if (num_watchpoints == 0) {
+    if (size_t num_watchpoints = watchpoints.GetSize(); num_watchpoints == 0) {
       result.AppendError("No watchpoints exist to have commands added");
       return;
     }
@@ -383,8 +383,8 @@ protected:
     result.SetStatus(eReturnStatusSuccessFinishNoResult);
     const size_t count = valid_wp_ids.size();
     for (size_t i = 0; i < count; ++i) {
-      uint32_t cur_wp_id = valid_wp_ids.at(i);
-      if (cur_wp_id != LLDB_INVALID_WATCH_ID) {
+      
+      if (uint32_t cur_wp_id = valid_wp_ids.at(i); cur_wp_id != LLDB_INVALID_WATCH_ID) {
         Watchpoint *wp = target.GetWatchpointList().FindByID(cur_wp_id).get();
         // Sanity check wp first.
         if (wp == nullptr)
@@ -399,10 +399,10 @@ protected:
         // to set or collect command callback.  Otherwise, call the methods
         // associated with this object.
         if (m_options.m_use_script_language) {
-          ScriptInterpreter *script_interp = GetDebugger().GetScriptInterpreter(
-              /*can_create=*/true, m_options.m_script_language);
+          
           // Special handling for one-liner specified inline.
-          if (m_options.m_use_one_liner) {
+          if (ScriptInterpreter *script_interp = GetDebugger().GetScriptInterpreter(
+              /*can_create=*/true, m_options.m_script_language); m_options.m_use_one_liner) {
             script_interp->SetWatchpointCommandCallback(
                 wp_options, m_options.m_one_liner.c_str(),
                 /*is_callback=*/false);
@@ -454,9 +454,9 @@ protected:
     Target &target = GetTarget();
 
     const WatchpointList &watchpoints = target.GetWatchpointList();
-    size_t num_watchpoints = watchpoints.GetSize();
+    
 
-    if (num_watchpoints == 0) {
+    if (size_t num_watchpoints = watchpoints.GetSize(); num_watchpoints == 0) {
       result.AppendError("No watchpoints exist to have commands deleted");
       return;
     }
@@ -477,8 +477,8 @@ protected:
     result.SetStatus(eReturnStatusSuccessFinishNoResult);
     const size_t count = valid_wp_ids.size();
     for (size_t i = 0; i < count; ++i) {
-      uint32_t cur_wp_id = valid_wp_ids.at(i);
-      if (cur_wp_id != LLDB_INVALID_WATCH_ID) {
+      
+      if (uint32_t cur_wp_id = valid_wp_ids.at(i); cur_wp_id != LLDB_INVALID_WATCH_ID) {
         Watchpoint *wp = target.GetWatchpointList().FindByID(cur_wp_id).get();
         if (wp)
           wp->ClearCallback();
@@ -509,9 +509,9 @@ protected:
     Target &target = GetTarget();
 
     const WatchpointList &watchpoints = target.GetWatchpointList();
-    size_t num_watchpoints = watchpoints.GetSize();
+    
 
-    if (num_watchpoints == 0) {
+    if (size_t num_watchpoints = watchpoints.GetSize(); num_watchpoints == 0) {
       result.AppendError("No watchpoints exist for which to list commands");
       return;
     }
@@ -532,16 +532,16 @@ protected:
     result.SetStatus(eReturnStatusSuccessFinishNoResult);
     const size_t count = valid_wp_ids.size();
     for (size_t i = 0; i < count; ++i) {
-      uint32_t cur_wp_id = valid_wp_ids.at(i);
-      if (cur_wp_id != LLDB_INVALID_WATCH_ID) {
+      
+      if (uint32_t cur_wp_id = valid_wp_ids.at(i); cur_wp_id != LLDB_INVALID_WATCH_ID) {
         Watchpoint *wp = target.GetWatchpointList().FindByID(cur_wp_id).get();
 
         if (wp) {
-          const WatchpointOptions *wp_options = wp->GetOptions();
-          if (wp_options) {
+          
+          if (const WatchpointOptions *wp_options = wp->GetOptions(); wp_options) {
             // Get the callback baton associated with the current watchpoint.
-            const Baton *baton = wp_options->GetBaton();
-            if (baton) {
+            
+            if (const Baton *baton = wp_options->GetBaton(); baton) {
               result.GetOutputStream().Printf("Watchpoint %u:\n", cur_wp_id);
               baton->GetDescription(result.GetOutputStream().AsRawOstream(),
                                     eDescriptionLevelFull,

@@ -18,9 +18,9 @@ uint32_t NativeRegisterContextDBReg::NumSupportedHardwareBreakpoints() {
   Log *log = GetLog(LLDBLog::Breakpoints);
 
   // Read hardware breakpoint and watchpoint information.
-  llvm::Error error = ReadHardwareDebugInfo();
+  
 
-  if (error) {
+  if (llvm::Error error = ReadHardwareDebugInfo(); error) {
     LLDB_LOG_ERROR(log, std::move(error),
                    "failed to read debug registers: {0}");
     return 0;
@@ -187,8 +187,8 @@ bool NativeRegisterContextDBReg::BreakpointIsEnabled(uint32_t bp_index) {
 
 uint32_t NativeRegisterContextDBReg::NumSupportedHardwareWatchpoints() {
   Log *log = GetLog(LLDBLog::Watchpoints);
-  llvm::Error error = ReadHardwareDebugInfo();
-  if (error) {
+  
+  if (llvm::Error error = ReadHardwareDebugInfo(); error) {
     LLDB_LOG_ERROR(log, std::move(error),
                    "failed to read debug registers: {0}");
     return 0;
@@ -352,8 +352,8 @@ NativeRegisterContextDBReg::GetWatchpointHitIndex(uint32_t &wp_index,
   LLDB_LOG(log, "wp_index: {0}, trap_addr: {1:x}", wp_index, trap_addr);
 
   // Read hardware breakpoint and watchpoint information.
-  llvm::Error error = ReadHardwareDebugInfo();
-  if (error)
+  
+  if (llvm::Error error = ReadHardwareDebugInfo(); error)
     return Status::FromError(std::move(error));
 
   // AArch64 need mask off ignored bits from watchpoint trap address.

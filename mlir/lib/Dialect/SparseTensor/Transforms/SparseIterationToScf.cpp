@@ -107,10 +107,10 @@ genCoIterateBranchNest(PatternRewriter &rewriter, Location loc, CoIterateOp op,
 
   // Generates remaining case recursively.
   rewriter.setInsertionPointToStart(&ifOp.getElseRegion().front());
-  ValueRange res = genCoIterateBranchNest(rewriter, loc, op, loopCrd, iters,
+  
+  if (ValueRange res = genCoIterateBranchNest(rewriter, loc, op, loopCrd, iters,
                                           newBlocks.drop_front(),
-                                          oldBlocks.drop_front(), userReduc);
-  if (!res.empty())
+                                          oldBlocks.drop_front(), userReduc); !res.empty())
     scf::YieldOp::create(rewriter, loc, res);
 
   rewriter.setInsertionPointAfter(ifOp);
@@ -358,9 +358,9 @@ class SparseCoIterateOpConverter : public OpConversionPattern<CoIterateOp> {
       assert(caseBits.count() > 0 && "Complement space not implemented");
 
       // Retrives a vector of pointers to the iterators used in the case.
-      SmallVector<SparseIterator *> validIters = getFilteredIters(caseBits);
+      
 
-      if (validIters.size() > 1) {
+      if (SmallVector<SparseIterator *> validIters = getFilteredIters(caseBits); validIters.size() > 1) {
         auto [loop, loopCrd] =
             genCoIteration(rewriter, loc, validIters, userReduc,
                            /*uniIdx=*/nullptr, /*userReducFirst=*/true);

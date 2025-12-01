@@ -401,8 +401,8 @@ Error RecordInitializer::visit(FunctionRecord &R) {
   // To get the function record type, we shift the buffer one to the right
   // (truncating the function record indicator) then take the three bits
   // (0b0111) to get the record type as an unsigned value.
-  unsigned FunctionType = (Buffer >> 1) & 0x07u;
-  switch (FunctionType) {
+  
+  switch (unsigned FunctionType = (Buffer >> 1) & 0x07u; FunctionType) {
   case static_cast<unsigned>(RecordTypes::ENTER):
   case static_cast<unsigned>(RecordTypes::ENTER_ARG):
   case static_cast<unsigned>(RecordTypes::EXIT):

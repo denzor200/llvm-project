@@ -150,8 +150,8 @@ public:
     }
 
     while (!Stack.empty()) {
-      MachineBasicBlock *MBB = Stack.pop_back_val();
-      if (ReachableMap.try_emplace(MBB, false).second)
+      
+      if (MachineBasicBlock *MBB = Stack.pop_back_val(); ReachableMap.try_emplace(MBB, false).second)
         append_range(Stack, MBB->successors());
     }
 
@@ -551,8 +551,8 @@ bool PhiLoweringHelper::lowerPhis() {
             MBB, insertUndefLaneMask(MBB, MRI, LaneMaskRegAttrs));
 
       for (auto &Incoming : Incomings) {
-        MachineBasicBlock &IMBB = *Incoming.Block;
-        if (PIA.isSource(IMBB)) {
+        
+        if (MachineBasicBlock &IMBB = *Incoming.Block; PIA.isSource(IMBB)) {
           constrainAsLaneMask(Incoming);
           SSAUpdater.AddAvailableValue(&IMBB, Incoming.Reg);
         } else {
@@ -760,9 +760,9 @@ void Vreg1LoweringHelper::collectIncomingValuesFromPhi(
     assert(i + 1 < MI->getNumOperands());
     Register IncomingReg = MI->getOperand(i).getReg();
     MachineBasicBlock *IncomingMBB = MI->getOperand(i + 1).getMBB();
-    MachineInstr *IncomingDef = MRI->getUniqueVRegDef(IncomingReg);
+    
 
-    if (IncomingDef->getOpcode() == AMDGPU::COPY) {
+    if (MachineInstr *IncomingDef = MRI->getUniqueVRegDef(IncomingReg); IncomingDef->getOpcode() == AMDGPU::COPY) {
       IncomingReg = IncomingDef->getOperand(1).getReg();
       assert(isLaneMaskReg(IncomingReg) || isVreg1(IncomingReg));
       assert(!IncomingDef->getOperand(1).getSubReg());
@@ -876,8 +876,8 @@ SILowerI1CopiesPass::run(MachineFunction &MF,
   MachineDominatorTree &MDT = MFAM.getResult<MachineDominatorTreeAnalysis>(MF);
   MachinePostDominatorTree &MPDT =
       MFAM.getResult<MachinePostDominatorTreeAnalysis>(MF);
-  bool Changed = runFixI1Copies(MF, MDT, MPDT);
-  if (!Changed)
+  
+  if (bool Changed = runFixI1Copies(MF, MDT, MPDT); !Changed)
     return PreservedAnalyses::all();
 
   // TODO: Probably preserves most.

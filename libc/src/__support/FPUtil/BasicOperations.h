@@ -35,12 +35,12 @@ namespace internal {
 template <typename T>
 LIBC_INLINE cpp::enable_if_t<cpp::is_floating_point_v<T>, T> max(T x, T y) {
   FPBits<T> x_bits(x);
-  FPBits<T> y_bits(y);
+  
 
   // To make sure that fmax(+0, -0) == +0 == fmax(-0, +0), whenever x and y
   // have different signs and both are not NaNs, we return the number with
   // positive sign.
-  if (x_bits.sign() != y_bits.sign())
+  if (FPBits<T> y_bits(y); x_bits.sign() != y_bits.sign())
     return x_bits.is_pos() ? x : y;
   return x > y ? x : y;
 }
@@ -75,12 +75,12 @@ template <> LIBC_INLINE double max(double x, double y) {
 template <typename T>
 LIBC_INLINE cpp::enable_if_t<cpp::is_floating_point_v<T>, T> min(T x, T y) {
   FPBits<T> x_bits(x);
-  FPBits<T> y_bits(y);
+  
 
   // To make sure that fmin(+0, -0) == -0 == fmin(-0, +0), whenever x and y have
   // different signs and both are not NaNs, we return the number with negative
   // sign.
-  if (x_bits.sign() != y_bits.sign())
+  if (FPBits<T> y_bits(y); x_bits.sign() != y_bits.sign())
     return x_bits.is_neg() ? x : y;
   return x < y ? x : y;
 }
@@ -190,9 +190,9 @@ LIBC_INLINE T fminimum_num(T x, T y) {
 
 template <typename T, cpp::enable_if_t<cpp::is_floating_point_v<T>, int> = 0>
 LIBC_INLINE T fmaximum_mag(T x, T y) {
-  FPBits<T> bitx(x), bity(y);
+  
 
-  if (abs(x) > abs(y))
+  if (FPBits<T> bitx(x), bity(y); abs(x) > abs(y))
     return x;
   if (abs(y) > abs(x))
     return y;
@@ -201,9 +201,9 @@ LIBC_INLINE T fmaximum_mag(T x, T y) {
 
 template <typename T, cpp::enable_if_t<cpp::is_floating_point_v<T>, int> = 0>
 LIBC_INLINE T fminimum_mag(T x, T y) {
-  FPBits<T> bitx(x), bity(y);
+  
 
-  if (abs(x) < abs(y))
+  if (FPBits<T> bitx(x), bity(y); abs(x) < abs(y))
     return x;
   if (abs(y) < abs(x))
     return y;
@@ -212,9 +212,9 @@ LIBC_INLINE T fminimum_mag(T x, T y) {
 
 template <typename T, cpp::enable_if_t<cpp::is_floating_point_v<T>, int> = 0>
 LIBC_INLINE T fmaximum_mag_num(T x, T y) {
-  FPBits<T> bitx(x), bity(y);
+  
 
-  if (abs(x) > abs(y))
+  if (FPBits<T> bitx(x), bity(y); abs(x) > abs(y))
     return x;
   if (abs(y) > abs(x))
     return y;
@@ -223,9 +223,9 @@ LIBC_INLINE T fmaximum_mag_num(T x, T y) {
 
 template <typename T, cpp::enable_if_t<cpp::is_floating_point_v<T>, int> = 0>
 LIBC_INLINE T fminimum_mag_num(T x, T y) {
-  FPBits<T> bitx(x), bity(y);
+  
 
-  if (abs(x) < abs(y))
+  if (FPBits<T> bitx(x), bity(y); abs(x) < abs(y))
     return x;
   if (abs(y) < abs(x))
     return y;
@@ -256,8 +256,8 @@ LIBC_INLINE int issignaling_impl(const T &x) {
 
 template <typename T, cpp::enable_if_t<cpp::is_floating_point_v<T>, int> = 0>
 LIBC_INLINE int canonicalize(T &cx, const T &x) {
-  FPBits<T> sx(x);
-  if constexpr (get_fp_type<T>() == FPType::X86_Binary80) {
+  
+  if constexpr (FPBits<T> sx(x); get_fp_type<T>() == FPType::X86_Binary80) {
     // All the pseudo and unnormal numbers are not canonical.
     // More precisely :
     // Exponent   |       Significand      | Meaning
@@ -273,8 +273,8 @@ LIBC_INLINE int canonicalize(T &cx, const T &x) {
     bool bit63 = sx.get_implicit_bit();
     UInt128 mantissa = sx.get_explicit_mantissa();
     bool bit62 = static_cast<bool>((mantissa & (1ULL << 62)) >> 62);
-    int exponent = sx.get_biased_exponent();
-    if (exponent == 0x7FFF) {
+    
+    if (int exponent = sx.get_biased_exponent(); exponent == 0x7FFF) {
       if (!bit63 && !bit62) {
         if (mantissa == 0) {
           cx = FPBits<T>::quiet_nan(sx.sign(), mantissa).get_val();

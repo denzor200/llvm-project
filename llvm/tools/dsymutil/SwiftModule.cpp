@@ -89,8 +89,8 @@ readOptionsBlock(llvm::BitstreamCursor &cursor,
         cursor.readRecord(entry.ID, scratch, &blobData);
     if (!maybeKind)
       return maybeKind.takeError();
-    unsigned kind = maybeKind.get();
-    switch (kind) {
+    
+    switch (unsigned kind = maybeKind.get(); kind) {
     case IS_BUILT_FROM_INTERFACE:
       is_built_from_interface = true;
       continue;
@@ -147,8 +147,8 @@ parseControlBlock(llvm::BitstreamCursor &cursor,
       if (versionSeen)
         return llvm::createStringError("multiple metadata blocks");
 
-      uint16_t versionMajor = scratch[0];
-      if (versionMajor != expectedMajorVersion)
+      
+      if (uint16_t versionMajor = scratch[0]; versionMajor != expectedMajorVersion)
         return llvm::createStringError("unsupported module version");
 
       versionSeen = true;

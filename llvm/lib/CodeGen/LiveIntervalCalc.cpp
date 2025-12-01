@@ -54,8 +54,8 @@ void LiveIntervalCalc::calculate(LiveInterval &LI, bool TrackSubRegs) {
     if (!MO.isDef() && !MO.readsReg())
       continue;
 
-    unsigned SubReg = MO.getSubReg();
-    if (LI.hasSubRanges() || (SubReg != 0 && TrackSubRegs)) {
+    
+    if (unsigned SubReg = MO.getSubReg(); LI.hasSubRanges() || (SubReg != 0 && TrackSubRegs)) {
       LaneBitmask SubMask = SubReg != 0 ? TRI.getSubRegIndexLaneMask(SubReg)
                                         : MRI->getMaxLaneMaskForVReg(Reg);
       // If this is the first time we see a subregister def, initialize
@@ -85,10 +85,10 @@ void LiveIntervalCalc::calculate(LiveInterval &LI, bool TrackSubRegs) {
   LI.removeEmptySubRanges();
 
   const MachineFunction *MF = getMachineFunction();
-  MachineDominatorTree *DomTree = getDomTree();
+  
   // Step 2: Extend live segments to all uses, constructing SSA form as
   // necessary.
-  if (LI.hasSubRanges()) {
+  if (MachineDominatorTree *DomTree = getDomTree(); LI.hasSubRanges()) {
     for (LiveInterval::SubRange &S : LI.subranges()) {
       LiveIntervalCalc SubLIC;
       SubLIC.reset(MF, Indexes, DomTree, Alloc);
@@ -154,8 +154,8 @@ void LiveIntervalCalc::extendToUses(LiveRange &LR, Register Reg,
     if (!MO.readsReg() || (IsSubRange && MO.isDef()))
       continue;
 
-    unsigned SubReg = MO.getSubReg();
-    if (SubReg != 0) {
+    
+    if (unsigned SubReg = MO.getSubReg(); SubReg != 0) {
       LaneBitmask SLM = TRI.getSubRegIndexLaneMask(SubReg);
       if (MO.isDef())
         SLM = ~SLM;
@@ -176,8 +176,8 @@ void LiveIntervalCalc::extendToUses(LiveRange &LR, Register Reg,
     } else {
       // Check for early-clobber redefs.
       bool isEarlyClobber = false;
-      unsigned DefIdx;
-      if (MO.isDef())
+      
+      if (unsigned DefIdx; MO.isDef())
         isEarlyClobber = MO.isEarlyClobber();
       else if (MI->isRegTiedToDefOperand(OpNo, &DefIdx)) {
         // FIXME: This would be a lot easier if tied early-clobber uses also

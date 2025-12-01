@@ -186,9 +186,9 @@ struct BubbleUpExpandThroughParallelCollapse
             llvm::count_if(collapsedStaticShapes, ShapedType::isDynamic);
         ArrayRef<int64_t> expandedStaticShapes = staticResultSize.slice(
             expandReassociation.front(), expandReassociation.size());
-        int64_t numExpandedDynamic =
-            llvm::count_if(expandedStaticShapes, ShapedType::isDynamic);
-        if (numCollapsedDynamic > 1 || numExpandedDynamic > 1 ||
+        
+        if (int64_t numExpandedDynamic =
+            llvm::count_if(expandedStaticShapes, ShapedType::isDynamic); numCollapsedDynamic > 1 || numExpandedDynamic > 1 ||
             collapsedStaticShapes != expandedStaticShapes) {
           return failure();
         }
@@ -512,8 +512,8 @@ LogicalResult mlir::tensor::getCollapsedExtractSliceInfo(
     // Verify that all subsequent dimensions extract the full size of the
     // source tensor.
     for (; i < e; ++i) {
-      int64_t expandedDim = indices[i];
-      if (!isZeroOffsetAndFullSize(offsets[expandedDim], sizes[expandedDim],
+      
+      if (int64_t expandedDim = indices[i]; !isZeroOffsetAndFullSize(offsets[expandedDim], sizes[expandedDim],
                                    expandedDim)) {
         return failure();
       }

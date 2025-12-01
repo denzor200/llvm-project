@@ -209,8 +209,8 @@ Error MachOLinkGraphBuilder::createNormalizedSections() {
 
   for (unsigned I = 0, E = Sections.size() - 1; I != E; ++I) {
     auto &Cur = *Sections[I];
-    auto &Next = *Sections[I + 1];
-    if (Next.Address < Cur.Address + Cur.Size)
+    
+    if (auto &Next = *Sections[I + 1]; Next.Address < Cur.Address + Cur.Size)
       return make_error<JITLinkError>(
           "Address range for section " +
           formatv("\"{0}/{1}\" [ {2:x16} -- {3:x16} ] ", Cur.SegName,
@@ -343,9 +343,9 @@ Error MachOLinkGraphBuilder::graphifyRegularSymbols() {
   // Create commons, externs, and absolutes, and partition all other symbols by
   // section.
   for (auto &KV : IndexToSymbol) {
-    auto &NSym = *KV.second;
+    
 
-    switch (NSym.Type & MachO::N_TYPE) {
+    switch (auto &NSym = *KV.second; NSym.Type & MachO::N_TYPE) {
     case MachO::N_UNDF:
       if (NSym.Value) {
         if (!NSym.Name)
@@ -610,8 +610,8 @@ Error MachOLinkGraphBuilder::graphifySectionsWithCustomParsers() {
 
     auto HI = CustomSectionParserFunctions.find(NSec.GraphSection->getName());
     if (HI != CustomSectionParserFunctions.end()) {
-      auto &Parse = HI->second;
-      if (auto Err = Parse(NSec))
+      
+      if (auto auto &Parse = HI->second; Err = Parse(NSec))
         return Err;
     }
   }

@@ -122,12 +122,12 @@ bool ForRangeCopyCheck::handleCopyIsOnlyConstReferenced(
   // Since this case is very rare, it is safe to ignore it.
   if (!ExprMutationAnalyzer(*ForRange.getBody(), Context).isMutated(&LoopVar) &&
       isReferenced(LoopVar, *ForRange.getBody(), Context)) {
-    auto Diag = diag(
+    
+
+    if (std::optional<FixItHint> auto Diag = diag(
         LoopVar.getLocation(),
         "loop variable is copied but only used as const reference; consider "
-        "making it a const reference");
-
-    if (std::optional<FixItHint> Fix = utils::fixit::addQualifierToVarDecl(
+        "making it a const reference"); Fix = utils::fixit::addQualifierToVarDecl(
             LoopVar, Context, Qualifiers::Const))
       Diag << *Fix << utils::fixit::changeVarDeclToReference(LoopVar, Context);
 

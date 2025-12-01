@@ -36,8 +36,8 @@ std::string FuncIdConversionHelper::SymbolOrNumber(int32_t FuncId) const {
   // object::SectionedAddress::UndefSection works for only absolute addresses.
   ModuleAddress.SectionIndex = object::SectionedAddress::UndefSection;
   if (auto ResOrErr = Symbolizer.symbolizeCode(BinaryInstrMap, ModuleAddress)) {
-    auto &DI = *ResOrErr;
-    if (DI.FunctionName == DILineInfo::BadString)
+    
+    if (auto &DI = *ResOrErr; DI.FunctionName == DILineInfo::BadString)
       F << "@(" << std::hex << It->second << ")";
     else
       F << DI.FunctionName;

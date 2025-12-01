@@ -98,8 +98,8 @@ struct PriorityVal {
 
 static int compare_priority_val(const PriorityVal *l, const PriorityVal *r) {
   // Subtracting the priorities is unsafe, but it's fine for this test.
-  int priority_diff = l->priority - r->priority;
-  if (priority_diff != 0) {
+  
+  if (int priority_diff = l->priority - r->priority; priority_diff != 0) {
     return priority_diff;
   }
   if (l->size == r->size) {

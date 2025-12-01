@@ -120,8 +120,8 @@ private:
   int getIndentOffset(const AnnotatedLine &Line) {
     if (Style.isJava() || Style.isJavaScript() || Style.isCSharp())
       return 0;
-    const auto &RootToken = *Line.First;
-    if (Line.Type == LT_AccessModifier ||
+    
+    if (const auto &RootToken = *Line.First; Line.Type == LT_AccessModifier ||
         RootToken.isAccessSpecifier(/*ColonRequired=*/false) ||
         RootToken.isObjCAccessSpecifier() ||
         (RootToken.isOneOf(Keywords.kw_signals, Keywords.kw_qsignals) &&
@@ -258,8 +258,8 @@ private:
 
     if (TheLine->Last->is(TT_FunctionLBrace) &&
         TheLine->First == TheLine->Last) {
-      const bool EmptyFunctionBody = NextLine.First->is(tok::r_brace);
-      if ((EmptyFunctionBody && !Style.BraceWrapping.SplitEmptyFunction) ||
+      
+      if (const bool EmptyFunctionBody = NextLine.First->is(tok::r_brace); (EmptyFunctionBody && !Style.BraceWrapping.SplitEmptyFunction) ||
           (!EmptyFunctionBody &&
            Style.AllowShortBlocksOnASingleLine == FormatStyle::SBS_Always)) {
         return tryMergeSimpleBlock(I, E, Limit);
@@ -361,8 +361,8 @@ private:
 
     if (Style.AllowShortNamespacesOnASingleLine &&
         TheLine->First->is(tok::kw_namespace)) {
-      const auto result = tryMergeNamespace(I, E, Limit);
-      if (result > 0)
+      
+      if (const auto result = tryMergeNamespace(I, E, Limit); result > 0)
         return result;
     }
 
@@ -467,17 +467,17 @@ private:
     // is defined.
     if (PreviousLine && Style.BraceWrapping.SplitEmptyRecord &&
         TheLine->Last->is(tok::l_brace) && PreviousLine->Last) {
-      const FormatToken *Previous = PreviousLine->Last;
-      if (Previous) {
+      
+      if (const FormatToken *Previous = PreviousLine->Last; Previous) {
         if (Previous->is(tok::comment))
           Previous = Previous->getPreviousNonComment();
         if (Previous) {
           if (Previous->is(tok::greater) && !PreviousLine->InPPDirective)
             return 0;
           if (Previous->is(tok::identifier)) {
-            const FormatToken *PreviousPrevious =
-                Previous->getPreviousNonComment();
-            if (PreviousPrevious &&
+            
+            if (const FormatToken *PreviousPrevious =
+                Previous->getPreviousNonComment(); PreviousPrevious &&
                 PreviousPrevious->isOneOf(tok::kw_class, tok::kw_struct)) {
               return 0;
             }
@@ -790,8 +790,8 @@ private:
     }
     // default: in switch statement
     if (Line.First->is(tok::kw_default)) {
-      const FormatToken *Tok = Line.First->getNextNonComment();
-      if (Tok && Tok->is(tok::colon))
+      
+      if (const FormatToken *Tok = Line.First->getNextNonComment(); Tok && Tok->is(tok::colon))
         return 0;
     }
 
@@ -865,14 +865,14 @@ private:
         return 0;
       }
       FormatToken *Tok = I[1]->First;
-      auto ShouldMerge = [Tok]() {
+      
+
+      if (auto ShouldMerge = [Tok]() {
         if (Tok->isNot(tok::r_brace) || Tok->MustBreakBefore)
           return false;
         const FormatToken *Next = Tok->getNextNonComment();
         return !Next || Next->is(tok::semi);
-      };
-
-      if (ShouldMerge()) {
+      }; ShouldMerge()) {
         // We merge empty blocks even if the line exceeds the column limit.
         Tok->SpacesRequiredBefore =
             Style.SpaceInEmptyBraces != FormatStyle::SIEB_Never ||
@@ -1463,14 +1463,14 @@ unsigned UnwrappedLineFormatter::format(
 
       NextLine = Joiner.getNextMergedLine(DryRun, IndentTracker);
       unsigned ColumnLimit = getColumnLimit(TheLine.InPPDirective, NextLine);
-      bool FitsIntoOneLine =
+      // don't split #regions in C#
+      if (bool FitsIntoOneLine =
           !TheLine.ContainsMacroCall &&
           (TheLine.Last->TotalLength + Indent <= ColumnLimit ||
            (TheLine.Type == LT_ImportStatement &&
             (!Style.isJavaScript() || !Style.JavaScriptWrapImports)) ||
            (Style.isCSharp() &&
-            TheLine.InPPDirective)); // don't split #regions in C#
-      if (Style.ColumnLimit == 0) {
+            TheLine.InPPDirective)); Style.ColumnLimit == 0) {
         NoColumnLimitLineFormatter(Indenter, Whitespaces, Style, this)
             .formatLine(TheLine, NextStartColumn + Indent,
                         FirstLine ? FirstStartColumn : 0, DryRun);
@@ -1500,11 +1500,11 @@ unsigned UnwrappedLineFormatter::format(
       if (StartsNewLine)
         IndentTracker.adjustToUnmodifiedLine(TheLine);
       if (!DryRun) {
-        bool ReformatLeadingWhitespace =
-            StartsNewLine && ((PreviousLine && PreviousLine->Affected) ||
-                              TheLine.LeadingEmptyLinesAffected);
+        
         // Format the first token.
-        if (ReformatLeadingWhitespace) {
+        if (bool ReformatLeadingWhitespace =
+            StartsNewLine && ((PreviousLine && PreviousLine->Affected) ||
+                              TheLine.LeadingEmptyLinesAffected); ReformatLeadingWhitespace) {
           formatFirstToken(TheLine, PreviousLine, PrevPrevLine, Lines,
                            TheLine.First->OriginalColumn,
                            TheLine.First->OriginalColumn);

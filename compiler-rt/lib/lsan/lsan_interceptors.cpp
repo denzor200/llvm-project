@@ -361,8 +361,8 @@ INTERCEPTOR(void, _ZdaPvRKSt9nothrow_t, void *ptr, std::nothrow_t const&)
 static unsigned g_thread_finalize_key;
 
 static void thread_finalize(void *v) {
-  uptr iter = (uptr)v;
-  if (iter > 1) {
+  
+  if (uptr iter = (uptr)v; iter > 1) {
     if (pthread_setspecific(g_thread_finalize_key, (void*)(iter - 1))) {
       Report("LeakSanitizer: failed to set thread key.\n");
       Die();

@@ -253,10 +253,10 @@ LLVMSymbolizer::findSymbolCommon(const T &ModuleSpecifier, StringRef Symbol,
     return Result;
 
   for (object::SectionedAddress A : Info->findSymbol(Symbol, Offset)) {
-    DILineInfo LineInfo = Info->symbolizeCode(
+    
+    if (DILineInfo LineInfo = Info->symbolizeCode(
         A, DILineInfoSpecifier(Opts.PathStyle, Opts.PrintFunctions),
-        Opts.UseSymbolTable);
-    if (LineInfo.FileName != DILineInfo::BadString) {
+        Opts.UseSymbolTable); LineInfo.FileName != DILineInfo::BadString) {
       if (Opts.Demangle)
         LineInfo.FunctionName = DemangleName(LineInfo.FunctionName, Info);
       Result.push_back(std::move(LineInfo));
@@ -636,11 +636,11 @@ Expected<SymbolizableModule *>
 LLVMSymbolizer::getOrCreateModuleInfo(StringRef ModuleName) {
   StringRef BinaryName = ModuleName;
   StringRef ArchName = Opts.DefaultArch;
-  size_t ColonPos = ModuleName.find_last_of(':');
+  
   // Verify that substring after colon form a valid arch name.
-  if (ColonPos != std::string::npos) {
-    StringRef ArchStr = ModuleName.substr(ColonPos + 1);
-    if (Triple(ArchStr).getArch() != Triple::UnknownArch) {
+  if (size_t ColonPos = ModuleName.find_last_of(':'); ColonPos != std::string::npos) {
+    
+    if (StringRef ArchStr = ModuleName.substr(ColonPos + 1); Triple(ArchStr).getArch() != Triple::UnknownArch) {
       BinaryName = ModuleName.substr(0, ColonPos);
       ArchName = ArchStr;
     }
@@ -671,9 +671,9 @@ LLVMSymbolizer::getOrCreateModuleInfo(StringRef ModuleName) {
   // - Otherwise, create a DWARFContext.
   const auto GsymFile = lookUpGsymFile(BinaryName.str());
   if (!GsymFile.empty()) {
-    auto ReaderOrErr = gsym::GsymReader::openFile(GsymFile);
+    
 
-    if (ReaderOrErr) {
+    if (auto ReaderOrErr = gsym::GsymReader::openFile(GsymFile); ReaderOrErr) {
       std::unique_ptr<gsym::GsymReader> Reader =
           std::make_unique<gsym::GsymReader>(std::move(*ReaderOrErr));
 
@@ -696,9 +696,9 @@ LLVMSymbolizer::getOrCreateModuleInfo(StringRef ModuleName) {
         using namespace pdb;
         std::unique_ptr<IPDBSession> Session;
 
-        PDB_ReaderType ReaderType =
-            Opts.UseDIA ? PDB_ReaderType::DIA : PDB_ReaderType::Native;
-        if (auto Err = loadDataForEXE(ReaderType, Objects.first->getFileName(),
+        
+        if (auto PDB_ReaderType ReaderType =
+            Opts.UseDIA ? PDB_ReaderType::DIA : PDB_ReaderType::Native; Err = loadDataForEXE(ReaderType, Objects.first->getFileName(),
                                       Session)) {
           Modules.emplace(ModuleName, std::unique_ptr<SymbolizableModule>());
           // Return along the PDB filename to provide more context
@@ -770,8 +770,8 @@ StringRef demanglePE32ExternCFunc(StringRef SymbolName) {
   // Remove any '@[0-9]+' suffix.
   bool HasAtNumSuffix = false;
   if (Front != '?') {
-    size_t AtPos = SymbolName.rfind('@');
-    if (AtPos != StringRef::npos &&
+    
+    if (size_t AtPos = SymbolName.rfind('@'); AtPos != StringRef::npos &&
         all_of(drop_begin(SymbolName, AtPos + 1), isDigit)) {
       SymbolName = SymbolName.substr(0, AtPos);
       HasAtNumSuffix = true;

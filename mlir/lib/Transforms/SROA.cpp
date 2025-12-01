@@ -84,9 +84,9 @@ computeDestructuringInfo(DestructurableMemorySlot &slot,
     for (OpOperand &subslotUse : mustBeUsedSafely.ptr.getUses()) {
       if (!visited.insert(&subslotUse).second)
         continue;
-      Operation *subslotUser = subslotUse.getOwner();
+      
 
-      if (auto memOp = dyn_cast<SafeMemorySlotAccessOpInterface>(subslotUser))
+      if (auto Operation *subslotUser = subslotUse.getOwner(); memOp = dyn_cast<SafeMemorySlotAccessOpInterface>(subslotUser))
         if (succeeded(memOp.ensureOnlySafeAccesses(
                 mustBeUsedSafely, usedSafelyWorklist, dataLayout)))
           continue;
@@ -169,8 +169,8 @@ static void destructureSlot(
       continue;
     }
 
-    auto promotable = cast<PromotableOpInterface>(toRewire);
-    if (promotable.removeBlockingUses(info.userToBlockingUses[promotable],
+    
+    if (auto promotable = cast<PromotableOpInterface>(toRewire); promotable.removeBlockingUses(info.userToBlockingUses[promotable],
                                       builder) == DeletionKind::Delete)
       toErase.push_back(promotable);
   }

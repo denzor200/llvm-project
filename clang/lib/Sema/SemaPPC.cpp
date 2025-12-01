@@ -43,9 +43,9 @@ void SemaPPC::checkAIXMemberAlignment(SourceLocation Loc, const Expr *Arg) {
   QualType ArgType = Arg->getType();
   for (const FieldDecl *FD : ArgType->castAsRecordDecl()->fields()) {
     if (const auto *AA = FD->getAttr<AlignedAttr>()) {
-      CharUnits Alignment = getASTContext().toCharUnitsFromBits(
-          AA->getAlignment(getASTContext()));
-      if (Alignment.getQuantity() == 16) {
+      
+      if (CharUnits Alignment = getASTContext().toCharUnitsFromBits(
+          AA->getAlignment(getASTContext())); Alignment.getQuantity() == 16) {
         Diag(FD->getLocation(), diag::warn_not_xl_compatible) << FD;
         Diag(Loc, diag::note_misaligned_member_used_here) << PD;
       }
@@ -96,9 +96,9 @@ bool SemaPPC::CheckPPCBuiltinFunctionCall(const TargetInfo &TI,
                                           unsigned BuiltinID,
                                           CallExpr *TheCall) {
   ASTContext &Context = getASTContext();
-  bool IsTarget64Bit = TI.getTypeWidth(TI.getIntPtrType()) == 64;
+  
 
-  if (isPPC_64Builtin(BuiltinID) && !IsTarget64Bit)
+  if (bool IsTarget64Bit = TI.getTypeWidth(TI.getIntPtrType()) == 64; isPPC_64Builtin(BuiltinID) && !IsTarget64Bit)
     return Diag(TheCall->getBeginLoc(), diag::err_64_bit_builtin_32_bit_tgt)
            << TheCall->getSourceRange();
 
@@ -214,8 +214,8 @@ bool SemaPPC::CheckPPCBuiltinFunctionCall(const TargetInfo &TI,
   case PPC::BI__builtin_ppc_test_data_class: {
     // Check if the first argument of the __builtin_ppc_test_data_class call is
     // valid. The argument must be 'float' or 'double' or '__float128'.
-    QualType ArgType = TheCall->getArg(0)->getType();
-    if (ArgType != QualType(Context.FloatTy) &&
+    
+    if (QualType ArgType = TheCall->getArg(0)->getType(); ArgType != QualType(Context.FloatTy) &&
         ArgType != QualType(Context.DoubleTy) &&
         ArgType != QualType(Context.Float128Ty))
       return Diag(TheCall->getBeginLoc(),
@@ -284,8 +284,8 @@ bool SemaPPC::CheckPPCMMAType(QualType Type, SourceLocation TypeLoc) {
 static QualType DecodePPCMMATypeFromStr(ASTContext &Context, const char *&Str,
                                         unsigned &Mask) {
   bool RequireICE = false;
-  ASTContext::GetBuiltinTypeError Error = ASTContext::GE_None;
-  switch (*Str++) {
+  
+  switch (ASTContext::GetBuiltinTypeError Error = ASTContext::GE_None; *Str++) {
   case 'V':
     return Context.getVectorType(Context.UnsignedCharTy, 16,
                                  VectorKind::AltiVecVector);
@@ -401,8 +401,8 @@ bool SemaPPC::BuiltinPPCMMACall(CallExpr *TheCall, unsigned BuiltinID,
 }
 
 bool SemaPPC::BuiltinVSX(CallExpr *TheCall) {
-  unsigned ExpectedNumArgs = 3;
-  if (SemaRef.checkArgCount(TheCall, ExpectedNumArgs))
+  
+  if (unsigned ExpectedNumArgs = 3; SemaRef.checkArgCount(TheCall, ExpectedNumArgs))
     return true;
 
   // Check the third argument is a compile time constant

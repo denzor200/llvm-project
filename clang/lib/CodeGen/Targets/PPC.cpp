@@ -256,8 +256,8 @@ RValue AIXABIInfo::EmitVAArg(CodeGenFunction &CGF, Address VAListAddr,
   // to the va_list pointer, and store them to a temporary structure. We do the
   // same as the PPC64ABI here.
   if (const ComplexType *CTy = Ty->getAs<ComplexType>()) {
-    CharUnits EltSize = TypeInfo.Width / 2;
-    if (EltSize < SlotSize)
+    
+    if (CharUnits EltSize = TypeInfo.Width / 2; EltSize < SlotSize)
       return complexTempStructure(CGF, VAListAddr, Ty, SlotSize, EltSize, CTy);
   }
 
@@ -279,11 +279,11 @@ void AIXTargetCodeGenInfo::setTargetAttributes(
   auto GVId = GV->getName();
 
   // Is this a global variable specified by the user as toc-data?
-  bool UserSpecifiedTOC =
-      llvm::binary_search(M.getCodeGenOpts().TocDataVarsUserSpecified, GVId);
+  
   // Assumes the same variable cannot be in both TocVarsUserSpecified and
   // NoTocVars.
-  if (UserSpecifiedTOC ||
+  if (bool UserSpecifiedTOC =
+      llvm::binary_search(M.getCodeGenOpts().TocDataVarsUserSpecified, GVId); UserSpecifiedTOC ||
       ((M.getCodeGenOpts().AllTocData) &&
        !llvm::binary_search(M.getCodeGenOpts().NoTocDataVars, GVId))) {
     const unsigned long PointerSize =
@@ -385,8 +385,8 @@ CharUnits PPC32_SVR4_ABIInfo::getParamTypeAlignment(QualType Ty) const {
   // to have the same alignment requirements as its single element.
   const Type *AlignTy = nullptr;
   if (const Type *EltType = isSingleElementStruct(Ty, getContext())) {
-    const BuiltinType *BT = EltType->getAs<BuiltinType>();
-    if ((EltType->isVectorType() && getContext().getTypeSize(EltType) == 128) ||
+    
+    if (const BuiltinType *BT = EltType->getAs<BuiltinType>(); (EltType->isVectorType() && getContext().getTypeSize(EltType) == 128) ||
         (BT && BT->isFloatingPoint()))
       AlignTy = EltType;
   }
@@ -397,10 +397,10 @@ CharUnits PPC32_SVR4_ABIInfo::getParamTypeAlignment(QualType Ty) const {
 }
 
 ABIArgInfo PPC32_SVR4_ABIInfo::classifyReturnType(QualType RetTy) const {
-  uint64_t Size;
+  
 
   // -msvr4-struct-return puts small aggregates in GPR3 and GPR4.
-  if (isAggregateTypeForABI(RetTy) && IsRetSmallStructInRegABI &&
+  if (uint64_t Size; isAggregateTypeForABI(RetTy) && IsRetSmallStructInRegABI &&
       (Size = getContext().getTypeSize(RetTy)) <= 64) {
     // System V ABI (1995), page 3-22, specified:
     // > A structure or union whose size is less than or equal to 8 bytes
@@ -644,10 +644,10 @@ public:
       // We rely on the default argument classification for the most part.
       // One exception:  An aggregate containing a single floating-point
       // or vector item must be passed in a register if one is available.
-      const Type *T = isSingleElementStruct(I.type, getContext());
-      if (T) {
-        const BuiltinType *BT = T->getAs<BuiltinType>();
-        if ((T->isVectorType() && getContext().getTypeSize(T) == 128) ||
+      
+      if (const Type *T = isSingleElementStruct(I.type, getContext()); T) {
+        
+        if (const BuiltinType *BT = T->getAs<BuiltinType>(); (T->isVectorType() && getContext().getTypeSize(T) == 128) ||
             (BT && BT->isFloatingPoint())) {
           QualType QT(T, 0);
           I.info = ABIArgInfo::getDirectInReg(CGT.ConvertType(QT));
@@ -758,8 +758,8 @@ CharUnits PPC64_SVR4_ABIInfo::getParamTypeAlignment(QualType Ty) const {
   const Type *AlignAsType = nullptr;
   const Type *EltType = isSingleElementStruct(Ty, getContext());
   if (EltType) {
-    const BuiltinType *BT = EltType->getAs<BuiltinType>();
-    if ((EltType->isVectorType() && getContext().getTypeSize(EltType) == 128) ||
+    
+    if (const BuiltinType *BT = EltType->getAs<BuiltinType>(); (EltType->isVectorType() && getContext().getTypeSize(EltType) == 128) ||
         (BT && BT->isFloatingPoint()))
       AlignAsType = EltType;
   }
@@ -833,8 +833,8 @@ PPC64_SVR4_ABIInfo::classifyArgumentType(QualType Ty) const {
   // Non-Altivec vector types are passed in GPRs (smaller than 16 bytes)
   // or via reference (larger than 16 bytes).
   if (Ty->isVectorType()) {
-    uint64_t Size = getContext().getTypeSize(Ty);
-    if (Size > 128)
+    
+    if (uint64_t Size = getContext().getTypeSize(Ty); Size > 128)
       return getNaturalAlignIndirect(Ty, getDataLayout().getAllocaAddrSpace(),
                                      /*ByVal=*/false);
     else if (Size < 128) {
@@ -858,8 +858,8 @@ PPC64_SVR4_ABIInfo::classifyArgumentType(QualType Ty) const {
 
     // ELFv2 homogeneous aggregates are passed as array types.
     const Type *Base = nullptr;
-    uint64_t Members = 0;
-    if (Kind == PPC64_SVR4_ABIKind::ELFv2 &&
+    
+    if (uint64_t Members = 0; Kind == PPC64_SVR4_ABIKind::ELFv2 &&
         isHomogeneousAggregate(Ty, Base, Members)) {
       llvm::Type *BaseTy = CGT.ConvertType(QualType(Base, 0));
       llvm::Type *CoerceTy = llvm::ArrayType::get(BaseTy, Members);
@@ -914,8 +914,8 @@ PPC64_SVR4_ABIInfo::classifyReturnType(QualType RetTy) const {
   // Non-Altivec vector types are returned in GPRs (smaller than 16 bytes)
   // or via reference (larger than 16 bytes).
   if (RetTy->isVectorType()) {
-    uint64_t Size = getContext().getTypeSize(RetTy);
-    if (Size > 128)
+    
+    if (uint64_t Size = getContext().getTypeSize(RetTy); Size > 128)
       return getNaturalAlignIndirect(RetTy,
                                      getDataLayout().getAllocaAddrSpace());
     else if (Size < 128) {
@@ -932,8 +932,8 @@ PPC64_SVR4_ABIInfo::classifyReturnType(QualType RetTy) const {
   if (isAggregateTypeForABI(RetTy)) {
     // ELFv2 homogeneous aggregates are returned as array types.
     const Type *Base = nullptr;
-    uint64_t Members = 0;
-    if (Kind == PPC64_SVR4_ABIKind::ELFv2 &&
+    
+    if (uint64_t Members = 0; Kind == PPC64_SVR4_ABIKind::ELFv2 &&
         isHomogeneousAggregate(RetTy, Base, Members)) {
       llvm::Type *BaseTy = CGT.ConvertType(QualType(Base, 0));
       llvm::Type *CoerceTy = llvm::ArrayType::get(BaseTy, Members);
@@ -979,8 +979,8 @@ RValue PPC64_SVR4_ABIInfo::EmitVAArg(CodeGenFunction &CGF, Address VAListAddr,
   // loads of the real and imaginary parts relative to the va_list pointer,
   // and store them to a temporary structure.
   if (const ComplexType *CTy = Ty->getAs<ComplexType>()) {
-    CharUnits EltSize = TypeInfo.Width / 2;
-    if (EltSize < SlotSize)
+    
+    if (CharUnits EltSize = TypeInfo.Width / 2; EltSize < SlotSize)
       return complexTempStructure(CGF, VAListAddr, Ty, SlotSize, EltSize, CTy);
   }
 
@@ -1015,8 +1015,8 @@ void PPC64_SVR4_TargetCodeGenInfo::emitTargetMetadata(
     const llvm::MapVector<GlobalDecl, StringRef> &MangledDeclNames) const {
   if (CGM.getTypes().isLongDoubleReferenced()) {
     llvm::LLVMContext &Ctx = CGM.getLLVMContext();
-    const auto *flt = &CGM.getTarget().getLongDoubleFormat();
-    if (flt == &llvm::APFloat::PPCDoubleDouble())
+    
+    if (const auto *flt = &CGM.getTarget().getLongDoubleFormat(); flt == &llvm::APFloat::PPCDoubleDouble())
       CGM.getModule().addModuleFlag(llvm::Module::Error, "float-abi",
                                     llvm::MDString::get(Ctx, "doubledouble"));
     else if (flt == &llvm::APFloat::IEEEquad())

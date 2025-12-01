@@ -86,8 +86,8 @@ static std::string QualTypeToString(ASTContext &Ctx, QualType QT) {
     // std::vector<Type>::iterator is a TemplateSpecializationType
     // std::vector<Type>::value_type is a SubstTemplateTypeParmType
     //
-    QualType SSDesugar = TDTy->getLocallyUnqualifiedSingleStepDesugaredType();
-    if (llvm::isa<SubstTemplateTypeParmType>(SSDesugar))
+    
+    if (QualType SSDesugar = TDTy->getLocallyUnqualifiedSingleStepDesugaredType(); llvm::isa<SubstTemplateTypeParmType>(SSDesugar))
       return GetFullTypeName(Ctx, Canon);
     else if (llvm::isa<TemplateSpecializationType>(SSDesugar))
       return GetFullTypeName(Ctx, NonRefTy);
@@ -135,8 +135,8 @@ static std::string FunctionToString(const Value &V, const void *Ptr) {
 
   // Get __clang_Interpreter_SetValueNoAlloc(void *This, void *OutVal, void
   // *OpaqueType, void *Val);
-  const FunctionDecl *FD = nullptr;
-  if (auto *InterfaceCall = llvm::dyn_cast<CallExpr>(TLSD->getStmt())) {
+  
+  if (auto *const FunctionDecl *FD = nullptr; InterfaceCall = llvm::dyn_cast<CallExpr>(TLSD->getStmt())) {
     const auto *Arg = InterfaceCall->getArg(/*Val*/ 3);
     // Get rid of cast nodes.
     while (const CastExpr *CastE = llvm::dyn_cast<CastExpr>(Arg))
@@ -146,8 +146,8 @@ static std::string FunctionToString(const Value &V, const void *Ptr) {
 
     if (FD) {
       SS << '\n';
-      const clang::FunctionDecl *FDef;
-      if (FD->hasBody(FDef))
+      
+      if (const clang::FunctionDecl *FDef; FD->hasBody(FDef))
         FDef->print(SS);
     }
   }
@@ -194,8 +194,8 @@ std::string Interpreter::ValueDataToString(const Value &V) const {
 
     // Treat null terminated char arrays as strings basically.
     if (ElemTy->isCharType()) {
-      char last = *(char *)(((uintptr_t)V.getPtr()) + ElemCount * ElemSize - 1);
-      if (last == '\0')
+      
+      if (char last = *(char *)(((uintptr_t)V.getPtr()) + ElemCount * ElemSize - 1); last == '\0')
         return CharPtrToString((char *)V.getPtr());
     }
 
@@ -257,8 +257,8 @@ std::string Interpreter::ValueDataToString(const Value &V) const {
     };
 
     std::string Str;
-    llvm::raw_string_ostream SS(Str);
-    switch (BT->getKind()) {
+    
+    switch (llvm::raw_string_ostream SS(Str); BT->getKind()) {
     default:
       return "{ error: unknown builtin type '" + std::to_string(BT->getKind()) +
              " '}";
@@ -553,8 +553,8 @@ llvm::Expected<Expr *> Interpreter::convertExprToValue(Expr *E) {
   InterfaceKindVisitor V(S, E, AdjustedArgs);
   Scope *Scope = nullptr;
   ExprResult SetValueE;
-  InterfaceKind Kind = V.computeInterfaceKind(DesugaredTy);
-  switch (Kind) {
+  
+  switch (InterfaceKind Kind = V.computeInterfaceKind(DesugaredTy); Kind) {
   case InterfaceKind::WithAlloc:
     [[fallthrough]];
   case InterfaceKind::CopyArray: {
@@ -658,8 +658,8 @@ __clang_Interpreter_SetValueNoAlloc(void *This, void *OutVal, void *OpaqueType,
   va_list args;
   va_start(args, /*last named param*/ OpaqueType);
 
-  QualType QT = VRef.getType();
-  if (VRef.getKind() == Value::K_PtrOrObj) {
+  
+  if (QualType QT = VRef.getType(); VRef.getKind() == Value::K_PtrOrObj) {
     VRef.setPtr(va_arg(args, void *));
   } else {
     if (const auto *ED = QT->getAsEnumDecl())

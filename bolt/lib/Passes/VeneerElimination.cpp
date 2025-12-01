@@ -48,8 +48,8 @@ Error VeneerElimination::runOnFunctions(BinaryContext &BC) {
 
     MCInst &FirstInstruction = *(BF.begin()->begin());
     const MCSymbol *VeneerTargetSymbol = 0;
-    uint64_t TargetAddress;
-    if (BC.MIB->isTailCall(FirstInstruction)) {
+    
+    if (uint64_t TargetAddress; BC.MIB->isTailCall(FirstInstruction)) {
       VeneerTargetSymbol = BC.MIB->getTargetSymbol(FirstInstruction);
     } else if (BC.MIB->matchAbsLongVeneer(BF, TargetAddress)) {
       if (BinaryFunction *TargetBF =

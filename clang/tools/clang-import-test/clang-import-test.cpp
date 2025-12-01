@@ -151,8 +151,8 @@ private:
 
       for (const CharSourceRange &Range : Info.getRanges()) {
         bool Invalid = true;
-        StringRef Ref = Lexer::getSourceText(Range, SM, *LangOpts, &Invalid);
-        if (!Invalid) {
+        
+        if (StringRef Ref = Lexer::getSourceText(Range, SM, *LangOpts, &Invalid); !Invalid) {
           llvm::errs() << Ref << '\n';
         }
       }

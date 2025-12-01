@@ -229,8 +229,8 @@ LogicalResult OpaqueType::verify(function_ref<InFlightDiagnostic()> emitError,
     return emitError() << "invalid dialect namespace '" << dialect << "'";
 
   // Check that the dialect is actually registered.
-  MLIRContext *context = dialect.getContext();
-  if (!context->allowsUnregisteredDialects() &&
+  
+  if (MLIRContext *context = dialect.getContext(); !context->allowsUnregisteredDialects() &&
       !context->getLoadedDialect(dialect.strref())) {
     return emitError()
            << "`!" << dialect << "<\"" << typeData << "\">"
@@ -500,9 +500,9 @@ mlir::isRankReducedType(ShapedType originalType,
   ArrayRef<int64_t> originalShape = originalShapedType.getShape();
   ArrayRef<int64_t> candidateReducedShape =
       candidateReducedShapedType.getShape();
-  unsigned originalRank = originalShape.size(),
-           candidateReducedRank = candidateReducedShape.size();
-  if (candidateReducedRank > originalRank)
+  
+  if (unsigned originalRank = originalShape.size(),
+           candidateReducedRank = candidateReducedShape.size(); candidateReducedRank > originalRank)
     return SliceVerificationResult::RankTooLarge;
 
   auto optionalUnusedDimsMask =
@@ -544,8 +544,8 @@ Attribute mlir::detail::wrapIntegerMemorySpace(unsigned memorySpace,
 }
 
 Attribute mlir::detail::skipDefaultMemorySpace(Attribute memorySpace) {
-  IntegerAttr intMemorySpace = llvm::dyn_cast_or_null<IntegerAttr>(memorySpace);
-  if (intMemorySpace && intMemorySpace.getValue() == 0)
+  
+  if (IntegerAttr intMemorySpace = llvm::dyn_cast_or_null<IntegerAttr>(memorySpace); intMemorySpace && intMemorySpace.getValue() == 0)
     return nullptr;
 
   return memorySpace;

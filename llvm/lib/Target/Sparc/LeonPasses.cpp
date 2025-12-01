@@ -352,8 +352,8 @@ bool InsertNOPLoad::runOnMachineFunction(MachineFunction &MF) {
   for (MachineBasicBlock &MBB : MF) {
     for (auto MBBI = MBB.begin(), E = MBB.end(); MBBI != E; ++MBBI) {
       MachineInstr &MI = *MBBI;
-      unsigned Opcode = MI.getOpcode();
-      if (Opcode >= SP::LDDArr && Opcode <= SP::LDrr) {
+      
+      if (unsigned Opcode = MI.getOpcode(); Opcode >= SP::LDDArr && Opcode <= SP::LDrr) {
         MachineBasicBlock::iterator NMBBI = std::next(MBBI);
         BuildMI(MBB, NMBBI, DL, TII.get(SP::NOP));
         Modified = true;
@@ -387,13 +387,13 @@ bool DetectRoundChange::runOnMachineFunction(MachineFunction &MF) {
   bool Modified = false;
   for (MachineBasicBlock &MBB : MF) {
     for (MachineInstr &MI : MBB) {
-      unsigned Opcode = MI.getOpcode();
-      if (Opcode == SP::CALL && MI.getNumOperands() > 0) {
-        MachineOperand &MO = MI.getOperand(0);
+      
+      if (unsigned Opcode = MI.getOpcode(); Opcode == SP::CALL && MI.getNumOperands() > 0) {
+        
 
-        if (MO.isGlobal()) {
-          StringRef FuncName = MO.getGlobal()->getName();
-          if (FuncName.compare_insensitive("fesetround") == 0) {
+        if (MachineOperand &MO = MI.getOperand(0); MO.isGlobal()) {
+          
+          if (StringRef FuncName = MO.getGlobal()->getName(); FuncName.compare_insensitive("fesetround") == 0) {
             errs() << "Error: You are using the detectroundchange "
                       "option to detect rounding changes that will "
                       "cause LEON errata. The only way to fix this "
@@ -441,13 +441,13 @@ bool FixAllFDIVSQRT::runOnMachineFunction(MachineFunction &MF) {
   for (MachineBasicBlock &MBB : MF) {
     for (auto MBBI = MBB.begin(), E = MBB.end(); MBBI != E; ++MBBI) {
       MachineInstr &MI = *MBBI;
-      unsigned Opcode = MI.getOpcode();
+      
 
       // Note: FDIVS and FSQRTS cannot be generated when this erratum fix is
       // switched on so we don't need to check for them here. They will
       // already have been converted to FSQRTD or FDIVD earlier in the
       // pipeline.
-      if (Opcode == SP::FSQRTD || Opcode == SP::FDIVD) {
+      if (unsigned Opcode = MI.getOpcode(); Opcode == SP::FSQRTD || Opcode == SP::FDIVD) {
         for (int InsertedCount = 0; InsertedCount < 5; InsertedCount++)
           BuildMI(MBB, MBBI, DL, TII.get(SP::NOP));
 

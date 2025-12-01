@@ -270,8 +270,8 @@ static void NOINLINE SharedPrintfCodeNoBuffer(bool append_pid,
     // process, thread, and timestamp, so never prepend such information.
     if (!SANITIZER_FUCHSIA && append_pid) {
       int pid = internal_getpid();
-      const char *exe_name = GetProcessName();
-      if (common_flags()->log_exe_name && exe_name) {
+      
+      if (const char *exe_name = GetProcessName(); common_flags()->log_exe_name && exe_name) {
         needed_length += internal_snprintf(buffer, buffer_size,
                                            "==%s", exe_name);
         if (needed_length >= buffer_size)

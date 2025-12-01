@@ -177,9 +177,9 @@ class AArch64TargetAsmStreamer : public AArch64TargetStreamer {
       return;
     }
 
-    unsigned VendorID = AArch64BuildAttributes::getVendorID(VendorName);
+    
 
-    switch (VendorID) {
+    switch (unsigned VendorID = AArch64BuildAttributes::getVendorID(VendorName); VendorID) {
     case AArch64BuildAttributes::VENDOR_UNKNOWN:
       if (unsigned(-1) != Value) {
         OS << "\t.aeabi_attribute" << "\t" << Tag << ", " << Value;
@@ -492,8 +492,8 @@ void AArch64TargetELFStreamer::finish() {
       for (auto [I, Sym] : llvm::enumerate(Syms)) {
         if (!Sym->isInSection())
           continue;
-        auto It = EndMapSym.find(&Sym->getSection());
-        if (It != EndMapSym.end())
+        
+        if (auto It = EndMapSym.find(&Sym->getSection()); It != EndMapSym.end())
           It->second.first = I;
       }
       SmallVector<size_t, 0> Idx;
@@ -501,10 +501,10 @@ void AArch64TargetELFStreamer::finish() {
         NewSyms.push_back(Sym);
         if (!Sym->isInSection())
           continue;
-        auto It = EndMapSym.find(&Sym->getSection());
+        
         // If `Sym` is the last symbol relative to the section, add the ending
         // mapping symbol after `Sym`.
-        if (It != EndMapSym.end() && I == It->second.first) {
+        if (auto It = EndMapSym.find(&Sym->getSection()); It != EndMapSym.end() && I == It->second.first) {
           NewSyms.push_back(It->second.second);
           Idx.push_back(I);
         }
@@ -541,8 +541,8 @@ void AArch64TargetELFStreamer::finish() {
 
   MCSectionELF *MemtagSec = nullptr;
   for (const MCSymbol &Symbol : Asm.symbols()) {
-    auto &Sym = static_cast<const MCSymbolELF &>(Symbol);
-    if (Sym.isMemtag()) {
+    
+    if (auto &Sym = static_cast<const MCSymbolELF &>(Symbol); Sym.isMemtag()) {
       MemtagSec = Ctx.getELFSection(".memtag.globals.static",
                                     ELF::SHT_AARCH64_MEMTAG_GLOBALS_STATIC, 0);
       break;

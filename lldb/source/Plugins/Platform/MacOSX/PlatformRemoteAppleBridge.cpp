@@ -78,8 +78,8 @@ PlatformSP PlatformRemoteAppleBridge::CreateInstance(bool force,
     switch (arch->GetMachine()) {
     case llvm::Triple::aarch64: {
       const llvm::Triple &triple = arch->GetTriple();
-      llvm::Triple::VendorType vendor = triple.getVendor();
-      switch (vendor) {
+      
+      switch (llvm::Triple::VendorType vendor = triple.getVendor(); vendor) {
       case llvm::Triple::Apple:
         create = true;
         break;

@@ -113,8 +113,8 @@ bool DeclFinderASTVisitor::VisitForStmt(ForStmt *TheLoop) {
 /// If any named declaration within the AST subtree has the same name,
 /// then consider Name already taken.
 bool DeclFinderASTVisitor::VisitNamedDecl(NamedDecl *D) {
-  const IdentifierInfo *Ident = D->getIdentifier();
-  if (Ident && Ident->getName() == Name) {
+  
+  if (const IdentifierInfo *Ident = D->getIdentifier(); Ident && Ident->getName() == Name) {
     Found = true;
     return false;
   }
@@ -401,8 +401,8 @@ static bool isAliasDecl(ASTContext *Context, const Decl *TheDecl,
     const auto *MemCall = cast<CXXMemberCallExpr>(Init);
     // This check is needed because getMethodDecl can return nullptr if the
     // callee is a member function pointer.
-    const auto *MDecl = MemCall->getMethodDecl();
-    if (MDecl && !isa<CXXConversionDecl>(MDecl) &&
+    
+    if (const auto *MDecl = MemCall->getMethodDecl(); MDecl && !isa<CXXConversionDecl>(MDecl) &&
         MDecl->getNameAsString() == "at" && MemCall->getNumArgs() == 1) {
       return isIndexInSubscriptExpr(MemCall->getArg(0), IndexVar);
     }
@@ -572,12 +572,12 @@ bool ForLoopIndexUseVisitor::TraverseMemberExpr(MemberExpr *Member) {
 
     // FIXME: This works around not having the location of the arrow operator.
     // Consider adding OperatorLoc to MemberExpr?
-    const SourceLocation ArrowLoc = Lexer::getLocForEndOfToken(
-        Base->getExprLoc(), 0, Context->getSourceManager(),
-        Context->getLangOpts());
+    
     // If something complicated is happening (i.e. the next token isn't an
     // arrow), give up on making this work.
-    if (ArrowLoc.isValid()) {
+    if (const SourceLocation ArrowLoc = Lexer::getLocForEndOfToken(
+        Base->getExprLoc(), 0, Context->getSourceManager(),
+        Context->getLangOpts()); ArrowLoc.isValid()) {
       addUsage(Usage(ResultExpr, Usage::UK_MemberThroughArrow,
                      SourceRange(Base->getExprLoc(), ArrowLoc)));
       return true;
@@ -739,8 +739,8 @@ bool ForLoopIndexUseVisitor::TraverseArraySubscriptExpr(ArraySubscriptExpr *E) {
 ///      obj.foo(10); // using `obj` is considered risky
 /// \endcode
 bool ForLoopIndexUseVisitor::VisitDeclRefExpr(DeclRefExpr *E) {
-  const ValueDecl *TheDecl = E->getDecl();
-  if (areSameVariable(IndexVar, TheDecl) ||
+  
+  if (const ValueDecl *TheDecl = E->getDecl(); areSameVariable(IndexVar, TheDecl) ||
       exprReferencesVariable(IndexVar, E) || areSameVariable(EndVar, TheDecl) ||
       exprReferencesVariable(EndVar, E))
     OnlyUsedAsIndex = false;

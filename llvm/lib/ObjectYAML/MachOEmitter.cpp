@@ -249,8 +249,8 @@ void Fill(raw_ostream &OS, size_t Size, uint32_t Data) {
 }
 
 void MachOWriter::ZeroToOffset(raw_ostream &OS, size_t Offset) {
-  auto currOffset = OS.tell() - fileStart;
-  if (currOffset < Offset)
+  
+  if (auto currOffset = OS.tell() - fileStart; currOffset < Offset)
     ZeroFillBytes(OS, Offset - currOffset);
 }
 
@@ -300,8 +300,8 @@ void MachOWriter::writeLoadCommands(raw_ostream &OS) {
     // Prevent integer underflow if BytesWritten exceeds cmdsize.
     if (BytesWritten > LC.Data.load_command_data.cmdsize) {
       std::string Name;
-      const char *NameCStr = getLoadCommandName(LC.Data.load_command_data.cmd);
-      if (NameCStr)
+      
+      if (const char *NameCStr = getLoadCommandName(LC.Data.load_command_data.cmd); NameCStr)
         Name = NameCStr;
       else
         Name = ("(0x" + Twine::utohexstr(LC.Data.load_command_data.cmd) + ")")
@@ -313,10 +313,10 @@ void MachOWriter::writeLoadCommands(raw_ostream &OS) {
                            << " bytes) for actual size (" << BytesWritten
                            << " bytes)\n";
     }
-    auto BytesRemaining = (BytesWritten < LC.Data.load_command_data.cmdsize)
+    
+    if (auto BytesRemaining = (BytesWritten < LC.Data.load_command_data.cmdsize)
                               ? LC.Data.load_command_data.cmdsize - BytesWritten
-                              : 0;
-    if (BytesRemaining > 0) {
+                              : 0; BytesRemaining > 0) {
       ZeroFillBytes(OS, BytesRemaining);
     }
   }
@@ -352,11 +352,11 @@ Error MachOWriter::writeSectionData(raw_ostream &OS) {
                   Sec.sectname, Sec.segname, OS.tell(), fileStart,
                   Sec.offset.value));
 
-        StringRef SectName(Sec.sectname,
-                           strnlen(Sec.sectname, sizeof(Sec.sectname)));
+        
         // If the section's content is specified in the 'DWARF' entry, we will
         // emit it regardless of the section's segname.
-        if (Obj.DWARF.getNonEmptySectionNames().count(SectName.substr(2))) {
+        if (StringRef SectName(Sec.sectname,
+                           strnlen(Sec.sectname, sizeof(Sec.sectname))); Obj.DWARF.getNonEmptySectionNames().count(SectName.substr(2))) {
           if (Sec.content)
             return createStringError(errc::invalid_argument,
                                      "cannot specify section '" + SectName +
@@ -696,8 +696,8 @@ Error UniversalWriter::writeMachO(raw_ostream &OS) {
 
   for (size_t i = 0; i < FatFile.Slices.size(); i++) {
     ZeroToOffset(OS, FatFile.FatArchs[i].offset);
-    MachOWriter Writer(FatFile.Slices[i]);
-    if (Error Err = Writer.writeMachO(OS))
+    
+    if (Error MachOWriter Writer(FatFile.Slices[i]); Err = Writer.writeMachO(OS))
       return Err;
 
     auto SliceEnd = FatFile.FatArchs[i].offset + FatFile.FatArchs[i].size;
@@ -762,8 +762,8 @@ void UniversalWriter::writeFatArchs(raw_ostream &OS) {
 }
 
 void UniversalWriter::ZeroToOffset(raw_ostream &OS, size_t Offset) {
-  auto currOffset = OS.tell() - fileStart;
-  if (currOffset < Offset)
+  
+  if (auto currOffset = OS.tell() - fileStart; currOffset < Offset)
     ZeroFillBytes(OS, Offset - currOffset);
 }
 
@@ -773,8 +773,8 @@ namespace llvm {
 namespace yaml {
 
 bool yaml2macho(YamlObjectFile &Doc, raw_ostream &Out, ErrorHandler EH) {
-  UniversalWriter Writer(Doc);
-  if (Error Err = Writer.writeMachO(Out)) {
+  
+  if (Error UniversalWriter Writer(Doc); Err = Writer.writeMachO(Out)) {
     handleAllErrors(std::move(Err),
                     [&](const ErrorInfoBase &Err) { EH(Err.message()); });
     return false;

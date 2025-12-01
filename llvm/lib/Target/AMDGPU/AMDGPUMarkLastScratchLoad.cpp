@@ -132,9 +132,9 @@ bool AMDGPUMarkLastScratchLoad::run(MachineFunction &MF) {
         End = MISegmentStart->getReverseIterator();
 
       for (auto MI = MISegmentEnd->getReverseIterator(); MI != End; ++MI) {
-        int LoadFI = 0;
+        
 
-        if (SII->isLoadFromStackSlot(*MI, LoadFI) && LoadFI == FrameIndex) {
+        if (int LoadFI = 0; SII->isLoadFromStackSlot(*MI, LoadFI) && LoadFI == FrameIndex) {
           LastLoad = &*MI;
           break;
         }

@@ -84,8 +84,8 @@ static bool BPFPreserveDITypeImpl(Function &F) {
     }
     DIType *Ty = cast<DIType>(MD);
     while (auto *DTy = dyn_cast<DIDerivedType>(Ty)) {
-      unsigned Tag = DTy->getTag();
-      if (Tag != dwarf::DW_TAG_const_type && Tag != dwarf::DW_TAG_volatile_type)
+      
+      if (unsigned Tag = DTy->getTag(); Tag != dwarf::DW_TAG_const_type && Tag != dwarf::DW_TAG_volatile_type)
         break;
       Ty = DTy->getBaseType();
     }

@@ -62,10 +62,10 @@ LIBC_INLINE static constexpr float16 exp10f16(float16 x) {
   FPBits x_bits(x);
 
   uint16_t x_u = x_bits.uintval();
-  uint16_t x_abs = x_u & 0x7fffU;
+  
 
   // When |x| >= 5, or x is NaN.
-  if (LIBC_UNLIKELY(x_abs >= 0x4500U)) {
+  if (uint16_t x_abs = x_u & 0x7fffU; LIBC_UNLIKELY(x_abs >= 0x4500U)) {
     // exp10(NaN) = NaN
     if (x_bits.is_nan()) {
       if (x_bits.is_signaling_nan()) {

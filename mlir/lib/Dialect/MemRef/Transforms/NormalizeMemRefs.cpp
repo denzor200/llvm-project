@@ -183,8 +183,8 @@ bool NormalizeMemRefs::areMemRefsNormalizable(func::FuncOp funcOp) {
           .walk([&](func::CallOp callOp) -> WalkResult {
             for (unsigned resIndex :
                  llvm::seq<unsigned>(0, callOp.getNumResults())) {
-              Value oldMemRef = callOp.getResult(resIndex);
-              if (auto oldMemRefType =
+              
+              if (auto Value oldMemRef = callOp.getResult(resIndex); oldMemRefType =
                       dyn_cast<MemRefType>(oldMemRef.getType()))
                 if (!oldMemRefType.getLayout().isIdentity() &&
                     !isMemRefNormalizable(oldMemRef.getUsers()))
@@ -196,8 +196,8 @@ bool NormalizeMemRefs::areMemRefsNormalizable(func::FuncOp funcOp) {
     return false;
 
   for (unsigned argIndex : llvm::seq<unsigned>(0, funcOp.getNumArguments())) {
-    BlockArgument oldMemRef = funcOp.getArgument(argIndex);
-    if (auto oldMemRefType = dyn_cast<MemRefType>(oldMemRef.getType()))
+    
+    if (auto BlockArgument oldMemRef = funcOp.getArgument(argIndex); oldMemRefType = dyn_cast<MemRefType>(oldMemRef.getType()))
       if (!oldMemRefType.getLayout().isIdentity() &&
           !isMemRefNormalizable(oldMemRef.getUsers()))
         return false;
@@ -428,11 +428,11 @@ void NormalizeMemRefs::normalizeFuncOpMemRefs(func::FuncOp funcOp,
         op->getNumResults() > 0 && !isa<func::CallOp>(op) &&
         !funcOp.isExternal()) {
       // Create newOp containing normalized memref in the operation result.
-      Operation *newOp = createOpResultsNormalized(funcOp, op);
+      
       // When all of the operation results have no memrefs or memrefs without
       // affine map, `newOp` is the same with `op` and following process is
       // skipped.
-      if (op != newOp) {
+      if (Operation *newOp = createOpResultsNormalized(funcOp, op); op != newOp) {
         bool replacingMemRefUsesFailed = false;
         for (unsigned resIndex : llvm::seq<unsigned>(0, op->getNumResults())) {
           // Replace all uses of the old memrefs.

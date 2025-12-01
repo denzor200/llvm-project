@@ -62,8 +62,8 @@ static bool isZeroOrOneFP(Value *Op) {
 }
 
 static bool shouldReduceOperand(Use &Op) {
-  Type *Ty = Op->getType();
-  if (Ty->isLabelTy() || Ty->isMetadataTy())
+  
+  if (Type *Ty = Op->getType(); Ty->isLabelTy() || Ty->isMetadataTy())
     return false;
   // TODO: be more precise about which GEP operands we can reduce (e.g. array
   // indexes)
@@ -177,8 +177,8 @@ void llvm::reduceOperandsNaNDeltaPass(Oracle &O, ReducerWorkItem &WorkItem) {
 
 void llvm::reduceOperandsPoisonDeltaPass(Oracle &O, ReducerWorkItem &WorkItem) {
   auto ReduceValue = [](Use &Op) -> Value * {
-    Type *Ty = Op->getType();
-    if (auto *TET = dyn_cast<TargetExtType>(Ty)) {
+    
+    if (auto *Type *Ty = Op->getType(); TET = dyn_cast<TargetExtType>(Ty)) {
       if (isa<ConstantTargetNone, PoisonValue>(Op))
         return nullptr;
       return PoisonValue::get(TET);

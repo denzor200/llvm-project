@@ -31,8 +31,8 @@ void DylibSymbolResolver::resolveAsync(
       ++DemangledSymName;
 #endif
 
-      void *Addr = DL.getAddressOfSymbol(DemangledSymName);
-      if (!Addr && E.Required)
+      
+      if (void *Addr = DL.getAddressOfSymbol(DemangledSymName); !Addr && E.Required)
         Result.emplace_back();
       else
         // FIXME: determine accurate JITSymbolFlags.

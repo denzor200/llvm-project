@@ -31,10 +31,10 @@ LIBC_INLINE static constexpr float exp2f(float x) {
   FPBits xbits(x);
 
   uint32_t x_u = xbits.uintval();
-  uint32_t x_abs = x_u & 0x7fff'ffffU;
+  
 
   // When |x| >= 128, or x is nan, or |x| <= 2^-5
-  if (LIBC_UNLIKELY(x_abs >= 0x4300'0000U || x_abs <= 0x3d00'0000U)) {
+  if (uint32_t x_abs = x_u & 0x7fff'ffffU; LIBC_UNLIKELY(x_abs >= 0x4300'0000U || x_abs <= 0x3d00'0000U)) {
     // |x| <= 2^-5
     if (x_abs <= 0x3d00'0000) {
       // |x| < 2^-25
@@ -45,10 +45,10 @@ LIBC_INLINE static constexpr float exp2f(float x) {
 #ifndef LIBC_MATH_HAS_SKIP_ACCURATE_PASS
       constexpr uint32_t EXVAL1 = 0x3b42'9d37U;
       constexpr uint32_t EXVAL2 = 0xbcf3'a937U;
-      constexpr uint32_t EXVAL_MASK = EXVAL1 & EXVAL2;
+      
 
       // Check exceptional values.
-      if (LIBC_UNLIKELY((x_u & EXVAL_MASK) == EXVAL_MASK)) {
+      if (constexpr uint32_t EXVAL_MASK = EXVAL1 & EXVAL2; LIBC_UNLIKELY((x_u & EXVAL_MASK) == EXVAL_MASK)) {
         if (LIBC_UNLIKELY(x_u == EXVAL1)) { // x = 0x1.853a6ep-9f
           return fputil::round_result_slightly_down(0x1.00870ap+0f);
         } else if (LIBC_UNLIKELY(x_u == EXVAL2)) { // x = -0x1.e7526ep-6f
@@ -76,8 +76,8 @@ LIBC_INLINE static constexpr float exp2f(float x) {
     if (xbits.is_pos()) {
       // x is finite
       if (x_u < 0x7f80'0000U) {
-        int rounding = fputil::quick_get_round();
-        if (rounding == FE_DOWNWARD || rounding == FE_TOWARDZERO)
+        
+        if (int rounding = fputil::quick_get_round(); rounding == FE_DOWNWARD || rounding == FE_TOWARDZERO)
           return FPBits::max_normal().get_val();
 
         fputil::set_errno_if_required(ERANGE);

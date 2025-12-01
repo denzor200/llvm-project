@@ -101,8 +101,8 @@ ChangeResult PredecessorState::join(Operation *predecessor) {
 ChangeResult PredecessorState::join(Operation *predecessor, ValueRange inputs) {
   ChangeResult result = join(predecessor);
   if (!inputs.empty()) {
-    ValueRange &curInputs = successorInputs[predecessor];
-    if (curInputs != inputs) {
+    
+    if (ValueRange &curInputs = successorInputs[predecessor]; curInputs != inputs) {
       curInputs = inputs;
       result |= ChangeResult::Change;
     }
@@ -172,8 +172,8 @@ void DeadCodeAnalysis::initializeSymbolCallables(Operation *top) {
       LDBG() << "[init] Found CallableOpInterface: "
              << OpWithFlags(callable.getOperation(),
                             OpPrintingFlags().skipRegions());
-      Region *callableRegion = callable.getCallableRegion();
-      if (!callableRegion)
+      
+      if (Region *callableRegion = callable.getCallableRegion(); !callableRegion)
         continue;
       auto symbol = dyn_cast<SymbolOpInterface>(callable.getOperation());
       if (!symbol)
@@ -347,12 +347,12 @@ LogicalResult DeadCodeAnalysis::visit(ProgramPoint *point) {
     } else if (auto callable = dyn_cast<CallableOpInterface>(op)) {
       LDBG() << "Visiting callable operation: "
              << OpWithFlags(op, OpPrintingFlags().skipRegions());
-      const auto *callsites = getOrCreateFor<PredecessorState>(
-          getProgramPointAfter(op), getProgramPointAfter(callable));
+      
 
       // If the callsites could not be resolved or are known to be non-empty,
       // mark the callable as executable.
-      if (!callsites->allPredecessorsKnown() ||
+      if (const auto *callsites = getOrCreateFor<PredecessorState>(
+          getProgramPointAfter(op), getProgramPointAfter(callable)); !callsites->allPredecessorsKnown() ||
           !callsites->getKnownPredecessors().empty())
         markEntryBlocksLive(callable);
 
@@ -541,9 +541,9 @@ void DeadCodeAnalysis::visitCallableTerminator(Operation *op,
   bool canResolve = op->hasTrait<OpTrait::ReturnLike>();
   for (Operation *predecessor : callsites->getKnownPredecessors()) {
     assert(isa<CallOpInterface>(predecessor));
-    auto *predecessors =
-        getOrCreate<PredecessorState>(getProgramPointAfter(predecessor));
-    if (canResolve) {
+    
+    if (auto *predecessors =
+        getOrCreate<PredecessorState>(getProgramPointAfter(predecessor)); canResolve) {
       propagateIfChanged(predecessors, predecessors->join(op));
       LDBG() << "Added callable terminator as predecessor for callsite: "
              << OpWithFlags(predecessor, OpPrintingFlags().skipRegions());

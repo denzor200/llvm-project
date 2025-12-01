@@ -501,8 +501,8 @@ HexagonMCCodeEmitter::getFixupNoBits(MCInstrInfo const &MCII, const MCInst &MI,
           continue;
         assert(I+1 != N && "Extender cannot be last in packet");
         const MCInst &NextI = *(I+1)->getInst();
-        const MCInstrDesc &NextD = HexagonMCInstrInfo::getDesc(MCII, NextI);
-        if (NextD.isBranch() || NextD.isCall() ||
+        
+        if (const MCInstrDesc &NextD = HexagonMCInstrInfo::getDesc(MCII, NextI); NextD.isBranch() || NextD.isCall() ||
             HexagonMCInstrInfo::getType(MCII, NextI) == HexagonII::TypeCR)
           return fixup_Hexagon_B32_PCREL_X;
         return fixup_Hexagon_32_6_X;
@@ -607,15 +607,15 @@ unsigned HexagonMCCodeEmitter::getExprOpValue(const MCInst &MI,
       const MCSubtargetInfo &STI) const {
   if (isa<HexagonMCExpr>(ME))
     ME = &HexagonMCInstrInfo::getExpr(*ME);
-  int64_t Value;
-  if (ME->evaluateAsAbsolute(Value)) {
+  
+  if (int64_t Value; ME->evaluateAsAbsolute(Value)) {
     bool InstExtendable = HexagonMCInstrInfo::isExtendable(MCII, MI) ||
                           HexagonMCInstrInfo::isExtended(MCII, MI);
     // Only sub-instruction #1 can be extended in a duplex. If MI is a
     // sub-instruction #0, it is not extended even if Extended is true
     // (it can be true for the duplex as a whole).
-    bool IsSub0 = HexagonMCInstrInfo::isSubInstruction(MI) && !State.SubInst1;
-    if (State.Extended && InstExtendable && !IsSub0) {
+    
+    if (bool IsSub0 = HexagonMCInstrInfo::isSubInstruction(MI) && !State.SubInst1; State.Extended && InstExtendable && !IsSub0) {
       unsigned OpIdx = ~0u;
       for (unsigned I = 0, E = MI.getNumOperands(); I != E; ++I) {
         if (&MO != &MI.getOperand(I))
@@ -686,8 +686,8 @@ unsigned HexagonMCCodeEmitter::getExprOpValue(const MCInst &MI,
         FixupKind = Hexagon::fixup_Hexagon_GOTREL_HI16;
     }
   } else {
-    bool BranchOrCR = MCID.isBranch() || IType == HexagonII::TypeCR;
-    switch (FixupWidth) {
+    
+    switch (bool BranchOrCR = MCID.isBranch() || IType == HexagonII::TypeCR; FixupWidth) {
       case 9:
         if (BranchOrCR)
           FixupKind = State.Extended ? Hexagon::fixup_Hexagon_B9_PCREL_X

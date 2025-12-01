@@ -76,8 +76,8 @@ bool Filter::parseLine(StringRef Line) {
   Line =
       Line.ltrim(); // There could be multiple spaces after the #line directive
 
-  size_t N;
-  if (Line.consumeInteger(10, N)) // Returns true to signify an error
+  
+  if (size_t N; Line.consumeInteger(10, N)) // Returns true to signify an error
     return false;
 
   Line = Line.ltrim();

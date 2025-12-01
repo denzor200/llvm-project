@@ -266,8 +266,8 @@ void ConstCorrectnessCheck::check(const MatchFinder::MatchResult &Result) {
 
 void ConstCorrectnessCheck::registerScope(const Stmt *LocalScope,
                                           ASTContext *Context) {
-  auto &Analyzer = ScopesCache[LocalScope];
-  if (!Analyzer)
+  
+  if (auto &Analyzer = ScopesCache[LocalScope]; !Analyzer)
     Analyzer = std::make_unique<ExprMutationAnalyzer>(*LocalScope, *Context);
 }
 

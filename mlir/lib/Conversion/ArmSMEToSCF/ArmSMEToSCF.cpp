@@ -186,8 +186,8 @@ struct TileLoadOpConversion : public OpRewritePattern<arm_sme::TileLoadOp> {
       auto padOp = tileLoadOp.getPadding();
       assert(padOp && "expected padding when masking!");
 
-      auto constPadOp = padOp.getDefiningOp<arith::ConstantOp>();
-      if (!constPadOp || constPadOp.getValue() !=
+      
+      if (auto constPadOp = padOp.getDefiningOp<arith::ConstantOp>(); !constPadOp || constPadOp.getValue() !=
                              rewriter.getZeroAttr(tileType.getElementType()))
         return rewriter.notifyMatchFailure(
             tileLoadOp, "op has non-zero pad, needs non-zero pad pattern");

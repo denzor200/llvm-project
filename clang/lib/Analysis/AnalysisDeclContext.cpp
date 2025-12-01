@@ -95,8 +95,8 @@ Stmt *AnalysisDeclContext::getBody(bool &IsAutosynthesized) const {
     if (auto *CoroBody = dyn_cast_or_null<CoroutineBodyStmt>(Body))
       Body = CoroBody->getBody();
     if (ADCMgr && ADCMgr->synthesizeBodies()) {
-      Stmt *SynthesizedBody = ADCMgr->getBodyFarm().getBody(FD);
-      if (SynthesizedBody) {
+      
+      if (Stmt *SynthesizedBody = ADCMgr->getBodyFarm().getBody(FD); SynthesizedBody) {
         Body = SynthesizedBody;
         IsAutosynthesized = true;
       }
@@ -106,8 +106,8 @@ Stmt *AnalysisDeclContext::getBody(bool &IsAutosynthesized) const {
   else if (const auto *MD = dyn_cast<ObjCMethodDecl>(D)) {
     Stmt *Body = MD->getBody();
     if (ADCMgr && ADCMgr->synthesizeBodies()) {
-      Stmt *SynthesizedBody = ADCMgr->getBodyFarm().getBody(MD);
-      if (SynthesizedBody) {
+      
+      if (Stmt *SynthesizedBody = ADCMgr->getBodyFarm().getBody(MD); SynthesizedBody) {
         Body = SynthesizedBody;
         IsAutosynthesized = true;
       }
@@ -154,8 +154,8 @@ const ImplicitParamDecl *AnalysisDeclContext::getSelfDecl() const {
   if (const auto *BD = dyn_cast<BlockDecl>(D)) {
     // See if 'self' was captured by the block.
     for (const auto &I : BD->captures()) {
-      const VarDecl *VD = I.getVariable();
-      if (isSelfDecl(VD))
+      
+      if (const VarDecl *VD = I.getVariable(); isSelfDecl(VD))
         return dyn_cast<ImplicitParamDecl>(VD);
     }
   }
@@ -172,8 +172,8 @@ const ImplicitParamDecl *AnalysisDeclContext::getSelfDecl() const {
     if (!LC.capturesVariable())
       continue;
 
-    ValueDecl *VD = LC.getCapturedVar();
-    if (isSelfDecl(dyn_cast<VarDecl>(VD)))
+    
+    if (ValueDecl *VD = LC.getCapturedVar(); isSelfDecl(dyn_cast<VarDecl>(VD)))
       return dyn_cast<ImplicitParamDecl>(VD);
   }
 
@@ -342,9 +342,9 @@ bool AnalysisDeclContext::isInStdNamespace(const Decl *D) {
 std::string AnalysisDeclContext::getFunctionName(const Decl *D) {
   std::string Str;
   llvm::raw_string_ostream OS(Str);
-  const ASTContext &Ctx = D->getASTContext();
+  
 
-  if (const FunctionDecl *FD = dyn_cast<FunctionDecl>(D)) {
+  if (const FunctionDecl *const ASTContext &Ctx = D->getASTContext(); FD = dyn_cast<FunctionDecl>(D)) {
     OS << FD->getQualifiedNameAsString();
 
     // In C++, there are overloads.
@@ -360,9 +360,9 @@ std::string AnalysisDeclContext::getFunctionName(const Decl *D) {
     }
 
   } else if (isa<BlockDecl>(D)) {
-    PresumedLoc Loc = Ctx.getSourceManager().getPresumedLoc(D->getLocation());
+    
 
-    if (Loc.isValid()) {
+    if (PresumedLoc Loc = Ctx.getSourceManager().getPresumedLoc(D->getLocation()); Loc.isValid()) {
       OS << "block (line: " << Loc.getLine() << ", col: " << Loc.getColumn()
          << ')';
     }
@@ -371,8 +371,8 @@ std::string AnalysisDeclContext::getFunctionName(const Decl *D) {
 
     // FIXME: copy-pasted from CGDebugInfo.cpp.
     OS << (OMD->isInstanceMethod() ? '-' : '+') << '[';
-    const DeclContext *DC = OMD->getDeclContext();
-    if (const auto *OID = dyn_cast<ObjCImplementationDecl>(DC)) {
+    
+    if (const auto *const DeclContext *DC = OMD->getDeclContext(); OID = dyn_cast<ObjCImplementationDecl>(DC)) {
       OS << OID->getName();
     } else if (const auto *OID = dyn_cast<ObjCInterfaceDecl>(DC)) {
       OS << OID->getName();
@@ -478,8 +478,8 @@ bool LocationContext::inTopFrame() const {
 
 bool LocationContext::isParentOf(const LocationContext *LC) const {
   do {
-    const LocationContext *Parent = LC->getParent();
-    if (Parent == this)
+    
+    if (const LocationContext *Parent = LC->getParent(); Parent == this)
       return true;
     else
       LC = Parent;

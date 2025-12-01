@@ -618,10 +618,10 @@ void TailDuplication::runOnFunction(BinaryFunction &Function) {
 
     if (opts::TailDuplicationConstCopyPropagation) {
       constantAndCopyPropagate(*BB, DuplicatedBlocks);
-      BinaryBasicBlock *FirstBB = BlocksToDuplicate[0];
-      if (FirstBB->pred_size() == 1) {
-        BinaryBasicBlock *PredBB = *FirstBB->pred_begin();
-        if (PredBB->succ_size() == 1)
+      
+      if (BinaryBasicBlock *FirstBB = BlocksToDuplicate[0]; FirstBB->pred_size() == 1) {
+        
+        if (BinaryBasicBlock *PredBB = *FirstBB->pred_begin(); PredBB->succ_size() == 1)
           constantAndCopyPropagate(*PredBB, BlocksToDuplicate);
       }
     }

@@ -105,8 +105,8 @@ TEST_F(HostTest, GetProcessInfoSetsPriority) {
   ASSERT_TRUE(Host::GetProcessInfo(getpid(), Info));
   ASSERT_EQ(Info.GetPriorityValue(), prio);
   // If we can't raise our nice level then this test can't be performed.
-  int max_incr = PRIO_MAX - rlim.rlim_cur;
-  if (max_incr < prio) {
+  
+  if (int max_incr = PRIO_MAX - rlim.rlim_cur; max_incr < prio) {
     EXPECT_EQ(setpriority(PRIO_PROCESS, PRIO_PROCESS, prio - 1), 0);
     ASSERT_TRUE(Host::GetProcessInfo(getpid(), Info));
     ASSERT_TRUE(Info.GetPriorityValue().has_value());

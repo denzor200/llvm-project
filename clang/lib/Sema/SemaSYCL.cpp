@@ -178,8 +178,8 @@ void SemaSYCL::handleKernelAttr(Decl *D, const ParsedAttr &AL) {
 
   // Template parameters must be typenames.
   for (unsigned I = 0; I < 2; ++I) {
-    const NamedDecl *TParam = TL->getParam(I);
-    if (isa<NonTypeTemplateParmDecl>(TParam)) {
+    
+    if (const NamedDecl *TParam = TL->getParam(I); isa<NonTypeTemplateParmDecl>(TParam)) {
       Diag(FT->getLocation(),
            diag::warn_sycl_kernel_invalid_template_param_type);
       return;
@@ -219,8 +219,8 @@ void SemaSYCL::handleKernelEntryPointAttr(Decl *D, const ParsedAttr &AL) {
 // "entity declared here" diagnostic note.
 static SourceLocation SourceLocationForUserDeclaredType(QualType QT) {
   SourceLocation Loc;
-  const Type *T = QT->getUnqualifiedDesugaredType();
-  if (const TagType *TT = dyn_cast<TagType>(T))
+  
+  if (const TagType *const Type *T = QT->getUnqualifiedDesugaredType(); TT = dyn_cast<TagType>(T))
     Loc = TT->getDecl()->getLocation();
   else if (const auto *ObjCIT = dyn_cast<ObjCInterfaceType>(T))
     Loc = ObjCIT->getDecl()->getLocation();
@@ -241,8 +241,8 @@ static bool CheckSYCLKernelName(Sema &S, SourceLocation Loc,
     // clarification from the SYCL WG.
     //   https://github.com/KhronosGroup/SYCL-Docs/issues/568
     S.Diag(Loc, diag::warn_sycl_kernel_name_not_a_class_type) << KernelName;
-    SourceLocation DeclTypeLoc = SourceLocationForUserDeclaredType(KernelName);
-    if (DeclTypeLoc.isValid())
+    
+    if (SourceLocation DeclTypeLoc = SourceLocationForUserDeclaredType(KernelName); DeclTypeLoc.isValid())
       S.Diag(DeclTypeLoc, diag::note_entity_declared_at) << KernelName;
     return true;
   }
@@ -299,10 +299,10 @@ void SemaSYCL::CheckSYCLEntryPointFunctionDecl(FunctionDecl *FD) {
 
   // Ensure that an attribute present on the previous declaration
   // matches the one on this declaration.
-  FunctionDecl *PrevFD = FD->getPreviousDecl();
-  if (PrevFD && !PrevFD->isInvalidDecl()) {
-    const auto *PrevSKEPAttr = PrevFD->getAttr<SYCLKernelEntryPointAttr>();
-    if (PrevSKEPAttr && !PrevSKEPAttr->isInvalidAttr()) {
+  
+  if (FunctionDecl *PrevFD = FD->getPreviousDecl(); PrevFD && !PrevFD->isInvalidDecl()) {
+    
+    if (const auto *PrevSKEPAttr = PrevFD->getAttr<SYCLKernelEntryPointAttr>(); PrevSKEPAttr && !PrevSKEPAttr->isInvalidAttr()) {
       if (!getASTContext().hasSameType(SKEPAttr->getKernelName(),
                                        PrevSKEPAttr->getKernelName())) {
         Diag(SKEPAttr->getLocation(),
@@ -369,9 +369,9 @@ void SemaSYCL::CheckSYCLEntryPointFunctionDecl(FunctionDecl *FD) {
 
   if (!FD->isInvalidDecl() && !FD->isTemplated() &&
       !SKEPAttr->isInvalidAttr()) {
-    const SYCLKernelInfo *SKI =
-        getASTContext().findSYCLKernelInfo(SKEPAttr->getKernelName());
-    if (SKI) {
+    
+    if (const SYCLKernelInfo *SKI =
+        getASTContext().findSYCLKernelInfo(SKEPAttr->getKernelName()); SKI) {
       if (!declaresSameEntity(FD, SKI->getKernelEntryPointDecl())) {
         // FIXME: This diagnostic should include the origin of the kernel
         // FIXME: names; not just the locations of the conflicting declarations.
@@ -408,10 +408,10 @@ public:
 
   // Transform ParmVarDecl references to the supplied replacement variables.
   ExprResult TransformDeclRefExpr(DeclRefExpr *DRE) {
-    const ParmVarDecl *PVD = dyn_cast<ParmVarDecl>(DRE->getDecl());
-    if (PVD) {
-      ParmDeclMap::iterator I = MapRef.find(PVD);
-      if (I != MapRef.end()) {
+    
+    if (const ParmVarDecl *PVD = dyn_cast<ParmVarDecl>(DRE->getDecl()); PVD) {
+      
+      if (ParmDeclMap::iterator I = MapRef.find(PVD); I != MapRef.end()) {
         VarDecl *VD = I->second;
         assert(SemaRef.getASTContext().hasSameUnqualifiedType(PVD->getType(),
                                                               VD->getType()));

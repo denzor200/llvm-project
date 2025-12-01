@@ -133,16 +133,16 @@ bool HexagonVectorPrint::runOnMachineFunction(MachineFunction &Fn) {
         for (++MII; MII != MBB.instr_end() && MII->isInsideBundle(); ++MII) {
           if (MII->getNumOperands() < 1)
             continue;
-          unsigned Reg = 0;
-          if (getInstrVecReg(*MII, Reg)) {
+          
+          if (unsigned Reg = 0; getInstrVecReg(*MII, Reg)) {
             VecPrintList.push_back((&*MII));
             LLVM_DEBUG(dbgs() << "Found vector reg inside bundle \n";
                        MII->dump());
           }
         }
       } else {
-        unsigned Reg = 0;
-        if (getInstrVecReg(MI, Reg)) {
+        
+        if (unsigned Reg = 0; getInstrVecReg(MI, Reg)) {
           VecPrintList.push_back(&MI);
           LLVM_DEBUG(dbgs() << "Found vector reg \n"; MI.dump());
         }

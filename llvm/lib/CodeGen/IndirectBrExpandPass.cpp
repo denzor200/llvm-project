@@ -199,9 +199,9 @@ bool runImpl(Function &F, const TargetLowering *TLI, DomTreeUpdater *DTU) {
   // Compute a common integer type across all the indirectbr instructions.
   IntegerType *CommonITy = nullptr;
   for (auto *IBr : IndirectBrs) {
-    auto *ITy =
-        cast<IntegerType>(DL.getIntPtrType(IBr->getAddress()->getType()));
-    if (!CommonITy || ITy->getBitWidth() > CommonITy->getBitWidth())
+    
+    if (auto *ITy =
+        cast<IntegerType>(DL.getIntPtrType(IBr->getAddress()->getType())); !CommonITy || ITy->getBitWidth() > CommonITy->getBitWidth())
       CommonITy = ITy;
   }
 

@@ -122,9 +122,9 @@ static bool isEndChunk(uint64_t Chunk) {
 
 /// Clear or set all bits in the chunk at the given index.
 static uint64_t updateImm(uint64_t Imm, unsigned Idx, bool Clear) {
-  const uint64_t Mask = 0xFFFF;
+  
 
-  if (Clear)
+  if (const uint64_t Mask = 0xFFFF; Clear)
     // Clear chunk in the immediate.
     Imm &= ~(Mask << (Idx * 16));
   else
@@ -190,11 +190,11 @@ static bool trySequenceOfOnes(uint64_t UImm,
   // Find out which chunks we need to patch up to obtain a contiguous sequence
   // of ones.
   for (int Idx = 0; Idx < 4; ++Idx) {
-    const uint64_t Chunk = getChunk(UImm, Idx);
+    
 
     // Check whether we are looking at a chunk which is not part of the
     // contiguous sequence of ones.
-    if ((Idx < StartIdx || EndIdx < Idx) && Chunk != Outside) {
+    if (const uint64_t Chunk = getChunk(UImm, Idx); (Idx < StartIdx || EndIdx < Idx) && Chunk != Outside) {
       OrrImm = updateImm(OrrImm, Idx, Outside == 0);
 
       // Remember the index we need to patch.
@@ -378,9 +378,9 @@ static bool tryEorOfLogicalImmediates(uint64_t Imm,
 
   do {
     BigSize /= 2;
-    uint64_t Mask = (1ULL << BigSize) - 1;
+    
 
-    if ((Imm & Mask) != ((Imm >> BigSize) & Mask)) {
+    if (uint64_t Mask = (1ULL << BigSize) - 1; (Imm & Mask) != ((Imm >> BigSize) & Mask)) {
       BigSize *= 2;
       break;
     }
@@ -445,8 +445,8 @@ static bool tryEorOfLogicalImmediates(uint64_t Imm,
     uint64_t BigImm = Imm ^ SmallImm;
 
     uint64_t BigEncoding = 0;
-    uint64_t SmallEncoding = 0;
-    if (AArch64_AM::processLogicalImmediate(BigImm, 64, BigEncoding) &&
+    
+    if (uint64_t SmallEncoding = 0; AArch64_AM::processLogicalImmediate(BigImm, 64, BigEncoding) &&
         AArch64_AM::processLogicalImmediate(SmallImm, 64, SmallEncoding)) {
       Insn.push_back({AArch64::ORRXri, 0, SmallEncoding});
       Insn.push_back({AArch64::EORXri, 1, BigEncoding});
@@ -539,8 +539,8 @@ void AArch64_IMM::expandMOVImm(uint64_t Imm, unsigned BitSize,
   unsigned OneChunks = 0;
   unsigned ZeroChunks = 0;
   for (unsigned Shift = 0; Shift < BitSize; Shift += 16) {
-    const unsigned Chunk = (Imm >> Shift) & Mask;
-    if (Chunk == Mask)
+    
+    if (const unsigned Chunk = (Imm >> Shift) & Mask; Chunk == Mask)
       OneChunks++;
     else if (Chunk == 0)
       ZeroChunks++;
@@ -588,8 +588,8 @@ void AArch64_IMM::expandMOVImm(uint64_t Imm, unsigned BitSize,
     uint64_t ZeroChunk = UImm & ~ShiftedMask;
     uint64_t OneChunk = UImm | ShiftedMask;
     uint64_t RotatedImm = llvm::rotl(UImm, 32);
-    uint64_t ReplicateChunk = ZeroChunk | (RotatedImm & ShiftedMask);
-    if (AArch64_AM::processLogicalImmediate(ZeroChunk, BitSize, Encoding) ||
+    
+    if (uint64_t ReplicateChunk = ZeroChunk | (RotatedImm & ShiftedMask); AArch64_AM::processLogicalImmediate(ZeroChunk, BitSize, Encoding) ||
         AArch64_AM::processLogicalImmediate(OneChunk, BitSize, Encoding) ||
         AArch64_AM::processLogicalImmediate(ReplicateChunk, BitSize,
                                             Encoding)) {

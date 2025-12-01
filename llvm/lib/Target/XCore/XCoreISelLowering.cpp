@@ -247,8 +247,8 @@ LowerGlobalAddress(SDValue Op, SelectionDAG &DAG) const
   const GlobalAddressSDNode *GN = cast<GlobalAddressSDNode>(Op);
   const GlobalValue *GV = GN->getGlobal();
   SDLoc DL(GN);
-  int64_t Offset = GN->getOffset();
-  if (IsSmallObject(GV, *this)) {
+  
+  if (int64_t Offset = GN->getOffset(); IsSmallObject(GV, *this)) {
     // We can only fold positive offsets that are a multiple of the word size.
     int64_t FoldedOffset = std::max(Offset & ~3, (int64_t)0);
     SDValue GA = DAG.getTargetGlobalAddress(GV, DL, MVT::i32, FoldedOffset);
@@ -318,8 +318,8 @@ LowerBR_JT(SDValue Op, SelectionDAG &DAG) const
   const MachineJumpTableInfo *MJTI = MF.getJumpTableInfo();
   SDValue TargetJT = DAG.getTargetJumpTable(JT->getIndex(), MVT::i32);
 
-  unsigned NumEntries = MJTI->getJumpTables()[JTI].MBBs.size();
-  if (NumEntries <= 32) {
+  
+  if (unsigned NumEntries = MJTI->getJumpTables()[JTI].MBBs.size(); NumEntries <= 32) {
     return DAG.getNode(XCoreISD::BR_JT, dl, MVT::Other, Chain, TargetJT, Index);
   }
   assert((NumEntries >> 31) == 0);
@@ -868,8 +868,8 @@ LowerINIT_TRAMPOLINE(SDValue Op, SelectionDAG &DAG) const {
 SDValue XCoreTargetLowering::
 LowerINTRINSIC_WO_CHAIN(SDValue Op, SelectionDAG &DAG) const {
   SDLoc DL(Op);
-  unsigned IntNo = Op.getConstantOperandVal(0);
-  switch (IntNo) {
+  
+  switch (unsigned IntNo = Op.getConstantOperandVal(0); IntNo) {
     case Intrinsic::xcore_crc8:
       EVT VT = Op.getValueType();
       SDValue Data =
@@ -1166,8 +1166,8 @@ SDValue XCoreTargetLowering::LowerCCCArguments(
 
     if (VA.isRegLoc()) {
       // Arguments passed in registers
-      EVT RegVT = VA.getLocVT();
-      switch (RegVT.getSimpleVT().SimpleTy) {
+      
+      switch (EVT RegVT = VA.getLocVT(); RegVT.getSimpleVT().SimpleTy) {
       default:
         {
 #ifndef NDEBUG
@@ -1213,8 +1213,8 @@ SDValue XCoreTargetLowering::LowerCCCArguments(
       XCore::R0, XCore::R1, XCore::R2, XCore::R3
     };
     XCoreFunctionInfo *XFI = MF.getInfo<XCoreFunctionInfo>();
-    unsigned FirstVAReg = CCInfo.getFirstUnallocated(ArgRegs);
-    if (FirstVAReg < std::size(ArgRegs)) {
+    
+    if (unsigned FirstVAReg = CCInfo.getFirstUnallocated(ArgRegs); FirstVAReg < std::size(ArgRegs)) {
       int offset = 0;
       // Save remaining registers, storing higher register numbers at a higher
       // address
@@ -1469,8 +1469,8 @@ SDValue XCoreTargetLowering::PerformDAGCombine(SDNode *N,
         KnownBits Known;
         TargetLowering::TargetLoweringOpt TLO(DAG, !DCI.isBeforeLegalize(),
                                               !DCI.isBeforeLegalizeOps());
-        const TargetLowering &TLI = DAG.getTargetLoweringInfo();
-        if (TLI.ShrinkDemandedConstant(OutVal, DemandedMask, TLO) ||
+        
+        if (const TargetLowering &TLI = DAG.getTargetLoweringInfo(); TLI.ShrinkDemandedConstant(OutVal, DemandedMask, TLO) ||
             TLI.SimplifyDemandedBits(OutVal, DemandedMask, Known, TLO))
           DCI.CommitTargetLoweringOpt(TLO);
       }
@@ -1485,8 +1485,8 @@ SDValue XCoreTargetLowering::PerformDAGCombine(SDNode *N,
         KnownBits Known;
         TargetLowering::TargetLoweringOpt TLO(DAG, !DCI.isBeforeLegalize(),
                                               !DCI.isBeforeLegalizeOps());
-        const TargetLowering &TLI = DAG.getTargetLoweringInfo();
-        if (TLI.ShrinkDemandedConstant(Time, DemandedMask, TLO) ||
+        
+        if (const TargetLowering &TLI = DAG.getTargetLoweringInfo(); TLI.ShrinkDemandedConstant(Time, DemandedMask, TLO) ||
             TLI.SimplifyDemandedBits(Time, DemandedMask, Known, TLO))
           DCI.CommitTargetLoweringOpt(TLO);
       }
@@ -1520,8 +1520,8 @@ SDValue XCoreTargetLowering::PerformDAGCombine(SDNode *N,
     if (N1C && N1C->isZero() && N->hasNUsesOfValue(0, 1)) {
       APInt Mask = APInt::getHighBitsSet(VT.getSizeInBits(),
                                          VT.getSizeInBits() - 1);
-      KnownBits Known = DAG.computeKnownBits(N2);
-      if ((Known.Zero & Mask) == Mask) {
+      
+      if (KnownBits Known = DAG.computeKnownBits(N2); (Known.Zero & Mask) == Mask) {
         SDValue Carry = DAG.getConstant(0, dl, VT);
         SDValue Result = DAG.getNode(ISD::ADD, dl, VT, N0, N2);
         SDValue Ops[] = { Result, Carry };
@@ -1542,8 +1542,8 @@ SDValue XCoreTargetLowering::PerformDAGCombine(SDNode *N,
     if (N0C && N0C->isZero() && N1C && N1C->isZero()) {
       APInt Mask = APInt::getHighBitsSet(VT.getSizeInBits(),
                                          VT.getSizeInBits() - 1);
-      KnownBits Known = DAG.computeKnownBits(N2);
-      if ((Known.Zero & Mask) == Mask) {
+      
+      if (KnownBits Known = DAG.computeKnownBits(N2); (Known.Zero & Mask) == Mask) {
         SDValue Borrow = N2;
         SDValue Result = DAG.getNode(ISD::SUB, dl, VT,
                                      DAG.getConstant(0, dl, VT), N2);
@@ -1557,8 +1557,8 @@ SDValue XCoreTargetLowering::PerformDAGCombine(SDNode *N,
     if (N1C && N1C->isZero() && N->hasNUsesOfValue(0, 1)) {
       APInt Mask = APInt::getHighBitsSet(VT.getSizeInBits(),
                                          VT.getSizeInBits() - 1);
-      KnownBits Known = DAG.computeKnownBits(N2);
-      if ((Known.Zero & Mask) == Mask) {
+      
+      if (KnownBits Known = DAG.computeKnownBits(N2); (Known.Zero & Mask) == Mask) {
         SDValue Borrow = DAG.getConstant(0, dl, VT);
         SDValue Result = DAG.getNode(ISD::SUB, dl, VT, N0, N2);
         SDValue Ops[] = { Result, Borrow };
@@ -1693,8 +1693,8 @@ void XCoreTargetLowering::computeKnownBitsForTargetNode(const SDValue Op,
     break;
   case ISD::INTRINSIC_W_CHAIN:
     {
-    unsigned IntNo = Op.getConstantOperandVal(1);
-    switch (IntNo) {
+    
+    switch (unsigned IntNo = Op.getConstantOperandVal(1); IntNo) {
     case Intrinsic::xcore_getts:
       // High bits are known to be zero.
       Known.Zero =

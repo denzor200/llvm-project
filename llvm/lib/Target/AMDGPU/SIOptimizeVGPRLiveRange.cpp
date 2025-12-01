@@ -250,16 +250,16 @@ void SIOptimizeVGPRLiveRange::collectCandidateRegisters(
 
         if (MO.readsReg()) {
           LiveVariables::VarInfo &VI = LV->getVarInfo(MOReg);
-          const MachineBasicBlock *DefMBB = MRI->getVRegDef(MOReg)->getParent();
+          
           // Make sure two conditions are met:
           // a.) the value is defined before/in the IF block
           // b.) should be defined in the same loop-level.
-          if ((VI.AliveBlocks.test(If->getNumber()) || DefMBB == If) &&
+          if (const MachineBasicBlock *DefMBB = MRI->getVRegDef(MOReg)->getParent(); (VI.AliveBlocks.test(If->getNumber()) || DefMBB == If) &&
               Loops->getLoopFor(DefMBB) == Loops->getLoopFor(If)) {
             // Check if the register is live into the endif block. If not,
             // consider it killed in the else region.
-            LiveVariables::VarInfo &VI = LV->getVarInfo(MOReg);
-            if (!VI.isLiveIn(*Endif, MOReg, *MRI)) {
+            
+            if (LiveVariables::VarInfo &VI = LV->getVarInfo(MOReg); !VI.isLiveIn(*Endif, MOReg, *MRI)) {
               KillsInElse.insert(MOReg);
             } else {
               LLVM_DEBUG(dbgs() << "Excluding " << printReg(MOReg, TRI)
@@ -276,8 +276,8 @@ void SIOptimizeVGPRLiveRange::collectCandidateRegisters(
   for (auto &MI : Endif->phis()) {
     for (unsigned Idx = 1; Idx < MI.getNumOperands(); Idx += 2) {
       auto &MO = MI.getOperand(Idx);
-      auto *Pred = MI.getOperand(Idx + 1).getMBB();
-      if (Pred == Flow)
+      
+      if (auto *Pred = MI.getOperand(Idx + 1).getMBB(); Pred == Flow)
         continue;
       assert(ElseBlocks.contains(Pred) && "Should be from Else region\n");
 
@@ -311,15 +311,15 @@ void SIOptimizeVGPRLiveRange::collectCandidateRegisters(
       if (!I->readsReg())
         continue;
       auto *UseMI = I->getParent();
-      auto *UseMBB = UseMI->getParent();
-      if (UseMBB == Flow || UseMBB == Endif) {
+      
+      if (auto *UseMBB = UseMI->getParent(); UseMBB == Flow || UseMBB == Endif) {
         if (!UseMI->isPHI())
           return true;
 
-        auto *IncomingMBB = UseMI->getOperand(I.getOperandNo() + 1).getMBB();
+        
         // The register is live through the path If->Flow or Flow->Endif.
         // we should not optimize for such cases.
-        if ((UseMBB == Flow && IncomingMBB != If) ||
+        if (auto *IncomingMBB = UseMI->getOperand(I.getOperandNo() + 1).getMBB(); (UseMBB == Flow && IncomingMBB != If) ||
             (UseMBB == Endif && IncomingMBB == Flow))
           return true;
       }
@@ -375,9 +375,9 @@ void SIOptimizeVGPRLiveRange::collectWaterfallCandidateRegisters(
         continue;
 
       if (MO.readsReg()) {
-        MachineBasicBlock *DefMBB = MRI->getVRegDef(MOReg)->getParent();
+        
         // Make sure the value is defined before the LOOP block
-        if (!Blocks.contains(DefMBB) && !CandidateRegs.contains(MOReg)) {
+        if (MachineBasicBlock *DefMBB = MRI->getVRegDef(MOReg)->getParent(); !Blocks.contains(DefMBB) && !CandidateRegs.contains(MOReg)) {
           // If the variable is used after the loop, the register coalescer will
           // merge the newly created register and remove the phi node again.
           // Just do nothing in that case.
@@ -433,8 +433,8 @@ void SIOptimizeVGPRLiveRange::updateLiveRangeInThenRegion(
   // Get the blocks the Reg should be alive through
   for (auto I = MRI->use_nodbg_begin(Reg), E = MRI->use_nodbg_end(); I != E;
        ++I) {
-    auto *UseMI = I->getParent();
-    if (UseMI->isPHI() && I->readsReg()) {
+    
+    if (auto *UseMI = I->getParent(); UseMI->isPHI() && I->readsReg()) {
       if (Blocks.contains(UseMI->getParent()))
         PHIIncoming.insert(UseMI->getOperand(I.getOperandNo() + 1).getMBB());
     }
@@ -481,8 +481,8 @@ void SIOptimizeVGPRLiveRange::updateLiveRangeInElseRegion(
 
   // Transfer aliveBlocks from Reg to NewReg
   for (auto *MBB : ElseBlocks) {
-    unsigned BBNum = MBB->getNumber();
-    if (OldVarInfo.AliveBlocks.test(BBNum)) {
+    
+    if (unsigned BBNum = MBB->getNumber(); OldVarInfo.AliveBlocks.test(BBNum)) {
       NewVarInfo.AliveBlocks.set(BBNum);
       LLVM_DEBUG(dbgs() << "Removing AliveBlock " << printMBBReference(*MBB)
                         << '\n');
@@ -569,9 +569,9 @@ void SIOptimizeVGPRLiveRange::optimizeWaterfallLiveRange(
   // Use early increment range because setReg() will update the linked list.
   for (auto &O : make_early_inc_range(MRI->use_operands(Reg))) {
     auto *UseMI = O.getParent();
-    auto *UseBlock = UseMI->getParent();
+    
     // Replace uses in Loop blocks
-    if (Blocks.contains(UseBlock))
+    if (auto *UseBlock = UseMI->getParent(); Blocks.contains(UseBlock))
       O.setReg(NewReg);
   }
 

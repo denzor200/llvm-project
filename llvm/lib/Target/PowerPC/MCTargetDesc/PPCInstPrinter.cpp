@@ -84,17 +84,17 @@ void PPCInstPrinter::printInst(const MCInst *MI, uint64_t Address,
   // Check if the last operand is an expression with the variant kind
   // VK_PCREL_OPT. If this is the case then this is a linker optimization
   // relocation and the .reloc directive needs to be added.
-  unsigned LastOp = MI->getNumOperands() - 1;
-  if (MI->getNumOperands() > 1) {
-    const MCOperand &Operand = MI->getOperand(LastOp);
-    if (Operand.isExpr()) {
+  
+  if (unsigned LastOp = MI->getNumOperands() - 1; MI->getNumOperands() > 1) {
+    
+    if (const MCOperand &Operand = MI->getOperand(LastOp); Operand.isExpr()) {
       const MCExpr *Expr = Operand.getExpr();
-      const MCSymbolRefExpr *SymExpr =
-          static_cast<const MCSymbolRefExpr *>(Expr);
+      
 
-      if (SymExpr && getSpecifier(SymExpr) == PPC::S_PCREL_OPT) {
-        const MCSymbol &Symbol = SymExpr->getSymbol();
-        if (MI->getOpcode() == PPC::PLDpc) {
+      if (const MCSymbolRefExpr *SymExpr =
+          static_cast<const MCSymbolRefExpr *>(Expr); SymExpr && getSpecifier(SymExpr) == PPC::S_PCREL_OPT) {
+        
+        if (const MCSymbol &Symbol = SymExpr->getSymbol(); MI->getOpcode() == PPC::PLDpc) {
           printInstruction(MI, Address, STI, O);
           O << "\n";
           Symbol.print(O, &MAI);
@@ -138,9 +138,9 @@ void PPCInstPrinter::printInst(const MCInst *MI, uint64_t Address,
   if (MI->getOpcode() == PPC::RLDICR ||
       MI->getOpcode() == PPC::RLDICR_32) {
     unsigned char SH = MI->getOperand(2).getImm();
-    unsigned char ME = MI->getOperand(3).getImm();
+    
     // rldicr RA, RS, SH, 63-SH == sldi RA, RS, SH
-    if (63-SH == ME) {
+    if (unsigned char ME = MI->getOperand(3).getImm(); 63-SH == ME) {
       O << "\tsldi ";
       printOperand(MI, 0, STI, O);
       O << ", ";
@@ -187,8 +187,8 @@ void PPCInstPrinter::printInst(const MCInst *MI, uint64_t Address,
   }
 
   if (MI->getOpcode() == PPC::DCBF) {
-    unsigned char L = MI->getOperand(0).getImm();
-    if (!L || L == 1 || L == 3 || L == 4 || L == 6) {
+    
+    if (unsigned char L = MI->getOperand(0).getImm(); !L || L == 1 || L == 3 || L == 4 || L == 6) {
       O << "\tdcb";
       if (L != 6)
         O << "f";
@@ -316,8 +316,8 @@ void PPCInstPrinter::printPredicateOperand(const MCInst *MI, unsigned OpNo,
 void PPCInstPrinter::printATBitsAsHint(const MCInst *MI, unsigned OpNo,
                                        const MCSubtargetInfo &STI,
                                        raw_ostream &O) {
-  unsigned Code = MI->getOperand(OpNo).getImm();
-  if (Code == 2)
+  
+  if (unsigned Code = MI->getOperand(OpNo).getImm(); Code == 2)
     O << "-";
   else if (Code == 3)
     O << "+";
@@ -468,8 +468,8 @@ void PPCInstPrinter::printBranchOperand(const MCInst *MI, uint64_t Address,
                                         raw_ostream &O) {
   if (!MI->getOperand(OpNo).isImm())
     return printOperand(MI, OpNo, STI, O);
-  int32_t Imm = SignExtend32<32>((unsigned)MI->getOperand(OpNo).getImm() << 2);
-  if (PrintBranchImmAsAddress) {
+  
+  if (int32_t Imm = SignExtend32<32>((unsigned)MI->getOperand(OpNo).getImm() << 2); PrintBranchImmAsAddress) {
     uint64_t Target = Address + Imm;
     if (!TT.isPPC64())
       Target &= 0xffffffff;

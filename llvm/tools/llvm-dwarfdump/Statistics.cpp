@@ -246,8 +246,8 @@ static std::string constructDieID(DWARFDie Die,
   auto DeclFile = Die.findRecursively(dwarf::DW_AT_decl_file);
   std::string File;
   if (DeclFile) {
-    DWARFUnit *U = Die.getDwarfUnit();
-    if (const auto *LT = U->getContext().getLineTableForUnit(U))
+    
+    if (const auto *DWARFUnit *U = Die.getDwarfUnit(); LT = U->getContext().getLineTableForUnit(U))
       if (LT->getFileNameByIndex(
               dwarf::toUnsigned(DeclFile, 0), U->getCompilationDir(),
               DILineInfoSpecifier::FileLineInfoKind::AbsoluteFilePath, File))
@@ -360,16 +360,16 @@ static void collectStatsForDie(DWARFDie Die, const std::string &FnPrefix,
     TotalBytesCovered = BytesInScope;
   } else {
     // Handle variables and function arguments.
-    Expected<std::vector<DWARFLocationExpression>> Loc =
-        Die.getLocations(dwarf::DW_AT_location);
-    if (!Loc) {
+    
+    if (Expected<std::vector<DWARFLocationExpression>> Loc =
+        Die.getLocations(dwarf::DW_AT_location); !Loc) {
       consumeError(Loc.takeError());
     } else {
       HasLoc = true;
       // Get PC coverage.
-      auto Default = find_if(
-          *Loc, [](const DWARFLocationExpression &L) { return !L.Range; });
-      if (Default != Loc->end()) {
+      
+      if (auto Default = find_if(
+          *Loc, [](const DWARFLocationExpression &L) { return !L.Range; }); Default != Loc->end()) {
         // Assume the entire range is covered by a single location.
         ScopeBytesCovered = BytesInScope;
         TotalBytesCovered = BytesInScope;
@@ -479,8 +479,8 @@ static void collectAbstractOriginFnInfo(
     AbstractOriginVarsTyMap &LocalAbstractOriginFnInfo) {
   DWARFDie Child = Die.getFirstChild();
   while (Child) {
-    const dwarf::Tag ChildTag = Child.getTag();
-    if (ChildTag == dwarf::DW_TAG_formal_parameter ||
+    
+    if (const dwarf::Tag ChildTag = Child.getTag(); ChildTag == dwarf::DW_TAG_formal_parameter ||
         ChildTag == dwarf::DW_TAG_variable) {
       GlobalAbstractOriginFnInfo[SPOffset].push_back(Child.getOffset());
       LocalAbstractOriginFnInfo[SPOffset].push_back(Child.getOffset());
@@ -526,8 +526,8 @@ static void collectStatsRecursive(
   // Get the vars of the inlined fn, so the locstats
   // reports the missing vars (with coverage 0%).
   if (IsCandidateForZeroLocCovTracking) {
-    auto OffsetFn = Die.find(dwarf::DW_AT_abstract_origin);
-    if (OffsetFn) {
+    
+    if (auto OffsetFn = Die.find(dwarf::DW_AT_abstract_origin); OffsetFn) {
       uint64_t OffsetOfInlineFnCopy = (*OffsetFn).getRawUValue();
       if (auto It = LocalAbstractOriginFnInfo.find(OffsetOfInlineFnCopy);
           It != LocalAbstractOriginFnInfo.end()) {
@@ -748,13 +748,13 @@ static void updateVarsWithAbstractOriginLocCovInfo(
     AbstractOriginVarsTy &AbstractOriginVars) {
   DWARFDie Child = FnDieWithAbstractOrigin.getFirstChild();
   while (Child) {
-    const dwarf::Tag ChildTag = Child.getTag();
-    if ((ChildTag == dwarf::DW_TAG_formal_parameter ||
+    
+    if (const dwarf::Tag ChildTag = Child.getTag(); (ChildTag == dwarf::DW_TAG_formal_parameter ||
          ChildTag == dwarf::DW_TAG_variable) &&
         (Child.find(dwarf::DW_AT_location) ||
          Child.find(dwarf::DW_AT_const_value))) {
-      auto OffsetVar = Child.find(dwarf::DW_AT_abstract_origin);
-      if (OffsetVar)
+      
+      if (auto OffsetVar = Child.find(dwarf::DW_AT_abstract_origin); OffsetVar)
         llvm::erase(AbstractOriginVars, (*OffsetVar).getRawUValue());
     } else if (ChildTag == dwarf::DW_TAG_lexical_block)
       updateVarsWithAbstractOriginLocCovInfo(Child, AbstractOriginVars);
@@ -914,13 +914,13 @@ bool dwarfdump::collectStatsForObjectFile(ObjectFile &Obj, DWARFContext &DICtx,
       // file index, which we store here.
       DenseMap<uint64_t, uint16_t> CUFileMapping;
       for (uint64_t FileIdx = 0; FileIdx <= *LastFileIdxOpt; ++FileIdx) {
-        std::string File;
-        if (LineTable->getFileNameByIndex(
+        
+        if (std::string File; LineTable->getFileNameByIndex(
                 FileIdx, CU->getCompilationDir(),
                 DILineInfoSpecifier::FileLineInfoKind::AbsoluteFilePath,
                 File)) {
-          auto ExistingFile = llvm::find(Files, File);
-          if (ExistingFile != Files.end()) {
+          
+          if (auto ExistingFile = llvm::find(Files, File); ExistingFile != Files.end()) {
             CUFileMapping[FileIdx] = std::distance(Files.begin(), ExistingFile);
           } else {
             CUFileMapping[FileIdx] = Files.size();

@@ -294,8 +294,8 @@ static bool ReadIntegerArgument(Scalar &scalar, unsigned int bit_width,
       scalar.SignExtend(bit_width);
   } else {
     uint32_t byte_size = (bit_width + (8 - 1)) / 8;
-    Status error;
-    if (thread.GetProcess()->ReadScalarIntegerFromMemory(
+    
+    if (Status error; thread.GetProcess()->ReadScalarIntegerFromMemory(
             current_stack_argument + 8 - byte_size, byte_size, is_signed,
             scalar, error)) {
       current_stack_argument += 8;
@@ -413,9 +413,9 @@ Status ABISysV_s390x::SetReturnValueObject(lldb::StackFrameSP &frame_sp,
     }
     lldb::offset_t offset = 0;
     if (num_bytes <= 8) {
-      uint64_t raw_value = data.GetMaxU64(&offset, num_bytes);
+      
 
-      if (reg_ctx->WriteRegisterFromUnsigned(reg_info, raw_value))
+      if (uint64_t raw_value = data.GetMaxU64(&offset, num_bytes); reg_ctx->WriteRegisterFromUnsigned(reg_info, raw_value))
         set_it_simple = true;
     } else {
       error = Status::FromErrorString(
@@ -501,8 +501,8 @@ ValueObjectSP ABISysV_s390x::GetReturnValueObjectSimple(
         return return_valobj_sp;
       uint64_t raw_value = thread.GetRegisterContext()->ReadRegisterAsUnsigned(
           reg_ctx->GetRegisterInfoByName("r2", 0), 0);
-      const bool is_signed = (type_flags & eTypeIsSigned) != 0;
-      switch (*byte_size) {
+      
+      switch (const bool is_signed = (type_flags & eTypeIsSigned) != 0; *byte_size) {
       default:
         break;
 
@@ -546,12 +546,12 @@ ValueObjectSP ABISysV_s390x::GetReturnValueObjectSimple(
             llvm::expectedToOptional(return_compiler_type.GetByteSize(&thread));
         if (byte_size && *byte_size <= sizeof(long double)) {
           const RegisterInfo *f0_info = reg_ctx->GetRegisterInfoByName("f0", 0);
-          RegisterValue f0_value;
-          if (reg_ctx->ReadRegister(f0_info, f0_value)) {
-            DataExtractor data;
-            if (f0_value.GetData(data)) {
-              lldb::offset_t offset = 0;
-              if (*byte_size == sizeof(float)) {
+          
+          if (RegisterValue f0_value; reg_ctx->ReadRegister(f0_info, f0_value)) {
+            
+            if (DataExtractor data; f0_value.GetData(data)) {
+              
+              if (lldb::offset_t offset = 0; *byte_size == sizeof(float)) {
                 value.GetScalar() = (float)data.GetFloat(&offset);
                 success = true;
               } else if (*byte_size == sizeof(double)) {

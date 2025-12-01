@@ -58,8 +58,8 @@ unsigned LoongArchTTIImpl::getRegisterClassForType(bool Vector,
   if (!Ty)
     return LoongArchRegisterClass::GPRRC;
 
-  Type *ScalarTy = Ty->getScalarType();
-  if ((ScalarTy->isFloatTy() && ST->hasBasicF()) ||
+  
+  if (Type *ScalarTy = Ty->getScalarType(); (ScalarTy->isFloatTy() && ST->hasBasicF()) ||
       (ScalarTy->isDoubleTy() && ST->hasBasicD())) {
     return LoongArchRegisterClass::FPRRC;
   }

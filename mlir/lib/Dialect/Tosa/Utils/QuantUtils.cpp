@@ -345,8 +345,8 @@ Type mlir::tosa::buildQTypeFromMinMax(OpBuilder builder, Type inputDType,
     for (auto i : maxElems)
       max.push_back(FloatAttr::getValueAsDouble(i));
   } else { // Just a single FP value.
-    auto minVal = dyn_cast<FloatAttr>(minAttr);
-    if (minVal)
+    
+    if (auto minVal = dyn_cast<FloatAttr>(minAttr); minVal)
       min.push_back(minVal.getValueAsDouble());
     else
       return {};

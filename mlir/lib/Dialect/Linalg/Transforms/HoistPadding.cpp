@@ -323,8 +323,8 @@ void HoistPaddingAnalysis::finalizeHoistPaddingAnalysis() {
   // Check the region of `padOp` depends on a constant only. Adding hoisting
   // support for arbitrary padding regions would require cloning all
   // dependencies captured by the padding region.
-  Value paddingValue = opToHoist.getConstantPaddingValue();
-  if (!paddingValue ||
+  
+  if (Value paddingValue = opToHoist.getConstantPaddingValue(); !paddingValue ||
       !isa_and_nonnull<arith::ConstantOp>(paddingValue.getDefiningOp())) {
     LLVM_DEBUG(DBGS() << "Cannot find constant padding value -> Skip\n");
     valid = false;
@@ -440,8 +440,8 @@ LogicalResult HoistPaddingAnalysis::dropNonIndexDependencies() {
       }
       // Check the remaining operations do not have regions or memory effects.
       auto effectInterface = dyn_cast<MemoryEffectOpInterface>(op);
-      bool hasMemoryEffect = effectInterface && !effectInterface.hasNoEffect();
-      if (hasMemoryEffect || op->getNumRegions() != 0) {
+      
+      if (bool hasMemoryEffect = effectInterface && !effectInterface.hasNoEffect(); hasMemoryEffect || op->getNumRegions() != 0) {
         LLVM_DEBUG(DBGS() << "Unsupported op with region or memory effect: "
                           << op << " -> Skip\n");
         return failure();

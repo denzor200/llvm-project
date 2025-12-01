@@ -225,8 +225,8 @@ bool DataFlowTrace::Init(const std::string &DirPath, std::string *FocusFunction,
     std::ifstream IF(SF.File);
     while (std::getline(IF, L, '\n')) {
       size_t FunctionNum = 0;
-      std::string DFTString;
-      if (ParseDFTLine(L, &FunctionNum, &DFTString) &&
+      
+      if (std::string DFTString; ParseDFTLine(L, &FunctionNum, &DFTString) &&
           FunctionNum == FocusFuncIdx) {
         NumTracesWithFocusFunction++;
 

@@ -72,9 +72,9 @@ ABISP
 ABISysV_x86_64::CreateInstance(lldb::ProcessSP process_sp, const ArchSpec &arch) {
   const llvm::Triple::ArchType arch_type = arch.GetTriple().getArch();
   const llvm::Triple::OSType os_type = arch.GetTriple().getOS();
-  const llvm::Triple::EnvironmentType os_env =
-      arch.GetTriple().getEnvironment();
-  if (arch_type == llvm::Triple::x86_64) {
+  
+  if (const llvm::Triple::EnvironmentType os_env =
+      arch.GetTriple().getEnvironment(); arch_type == llvm::Triple::x86_64) {
     switch(os_type) {
     case llvm::Triple::OSType::IOS:
     case llvm::Triple::OSType::TvOS:
@@ -205,8 +205,8 @@ static bool ReadIntegerArgument(Scalar &scalar, unsigned int bit_width,
       scalar.SignExtend(bit_width);
   } else {
     uint32_t byte_size = (bit_width + (8 - 1)) / 8;
-    Status error;
-    if (thread.GetProcess()->ReadScalarIntegerFromMemory(
+    
+    if (Status error; thread.GetProcess()->ReadScalarIntegerFromMemory(
             current_stack_argument, byte_size, is_signed, scalar, error)) {
       current_stack_argument += byte_size;
       return true;
@@ -327,9 +327,9 @@ Status ABISysV_x86_64::SetReturnValueObject(lldb::StackFrameSP &frame_sp,
     }
     lldb::offset_t offset = 0;
     if (num_bytes <= 8) {
-      uint64_t raw_value = data.GetMaxU64(&offset, num_bytes);
+      
 
-      if (reg_ctx->WriteRegisterFromUnsigned(reg_info, raw_value))
+      if (uint64_t raw_value = data.GetMaxU64(&offset, num_bytes); reg_ctx->WriteRegisterFromUnsigned(reg_info, raw_value))
         set_it_simple = true;
     } else {
       error = Status::FromErrorString(
@@ -417,8 +417,8 @@ ValueObjectSP ABISysV_x86_64::GetReturnValueObjectSimple(
         return return_valobj_sp;
       uint64_t raw_value = thread.GetRegisterContext()->ReadRegisterAsUnsigned(
           reg_ctx->GetRegisterInfoByName("rax", 0), 0);
-      const bool is_signed = (type_flags & eTypeIsSigned) != 0;
-      switch (*byte_size) {
+      
+      switch (const bool is_signed = (type_flags & eTypeIsSigned) != 0; *byte_size) {
       default:
         break;
 
@@ -463,12 +463,12 @@ ValueObjectSP ABISysV_x86_64::GetReturnValueObjectSimple(
         if (byte_size && *byte_size <= sizeof(long double)) {
           const RegisterInfo *xmm0_info =
               reg_ctx->GetRegisterInfoByName("xmm0", 0);
-          RegisterValue xmm0_value;
-          if (reg_ctx->ReadRegister(xmm0_info, xmm0_value)) {
-            DataExtractor data;
-            if (xmm0_value.GetData(data)) {
-              lldb::offset_t offset = 0;
-              if (*byte_size == sizeof(float)) {
+          
+          if (RegisterValue xmm0_value; reg_ctx->ReadRegister(xmm0_info, xmm0_value)) {
+            
+            if (DataExtractor data; xmm0_value.GetData(data)) {
+              
+              if (lldb::offset_t offset = 0; *byte_size == sizeof(float)) {
                 value.GetScalar() = (float)data.GetFloat(&offset);
                 success = true;
               } else if (*byte_size == sizeof(double)) {
@@ -507,15 +507,15 @@ ValueObjectSP ABISysV_x86_64::GetReturnValueObjectSimple(
 
       if (altivec_reg) {
         if (*byte_size <= altivec_reg->byte_size) {
-          ProcessSP process_sp(thread.GetProcess());
-          if (process_sp) {
+          
+          if (ProcessSP process_sp(thread.GetProcess()); process_sp) {
             std::unique_ptr<DataBufferHeap> heap_data_up(
                 new DataBufferHeap(*byte_size, 0));
             const ByteOrder byte_order = process_sp->GetByteOrder();
-            RegisterValue reg_value;
-            if (reg_ctx->ReadRegister(altivec_reg, reg_value)) {
-              Status error;
-              if (reg_value.GetAsMemoryData(
+            
+            if (RegisterValue reg_value; reg_ctx->ReadRegister(altivec_reg, reg_value)) {
+              
+              if (Status error; reg_value.GetAsMemoryData(
                       *altivec_reg, heap_data_up->GetBytes(),
                       heap_data_up->GetByteSize(), byte_order, error)) {
                 DataExtractor data(DataBufferSP(heap_data_up.release()),
@@ -529,21 +529,21 @@ ValueObjectSP ABISysV_x86_64::GetReturnValueObjectSimple(
             }
           }
         } else if (*byte_size <= altivec_reg->byte_size * 2) {
-          const RegisterInfo *altivec_reg2 =
-              reg_ctx->GetRegisterInfoByName("xmm1", 0);
-          if (altivec_reg2) {
-            ProcessSP process_sp(thread.GetProcess());
-            if (process_sp) {
+          
+          if (const RegisterInfo *altivec_reg2 =
+              reg_ctx->GetRegisterInfoByName("xmm1", 0); altivec_reg2) {
+            
+            if (ProcessSP process_sp(thread.GetProcess()); process_sp) {
               std::unique_ptr<DataBufferHeap> heap_data_up(
                   new DataBufferHeap(*byte_size, 0));
               const ByteOrder byte_order = process_sp->GetByteOrder();
               RegisterValue reg_value;
-              RegisterValue reg_value2;
-              if (reg_ctx->ReadRegister(altivec_reg, reg_value) &&
+              
+              if (RegisterValue reg_value2; reg_ctx->ReadRegister(altivec_reg, reg_value) &&
                   reg_ctx->ReadRegister(altivec_reg2, reg_value2)) {
 
-                Status error;
-                if (reg_value.GetAsMemoryData(
+                
+                if (Status error; reg_value.GetAsMemoryData(
                         *altivec_reg, heap_data_up->GetBytes(),
                         altivec_reg->byte_size, byte_order, error) &&
                     reg_value2.GetAsMemoryData(
@@ -759,9 +759,9 @@ ValueObjectSP ABISysV_x86_64::GetReturnValueObjectImpl(
               if (idx == num_children - 1) {
                 in_gpr = false;
               } else {
-                CompilerType next_field_compiler_type =
-                    aggregate_compiler_types[idx + 1];
-                if (next_field_compiler_type.IsIntegerOrEnumerationType(
+                
+                if (CompilerType next_field_compiler_type =
+                    aggregate_compiler_types[idx + 1]; next_field_compiler_type.IsIntegerOrEnumerationType(
                         is_signed)) {
                   in_gpr = true;
                 } else {
@@ -776,9 +776,9 @@ ValueObjectSP ABISysV_x86_64::GetReturnValueObjectImpl(
               if (idx == 0) {
                 in_gpr = false;
               } else {
-                CompilerType prev_field_compiler_type =
-                    aggregate_compiler_types[idx - 1];
-                if (prev_field_compiler_type.IsIntegerOrEnumerationType(
+                
+                if (CompilerType prev_field_compiler_type =
+                    aggregate_compiler_types[idx - 1]; prev_field_compiler_type.IsIntegerOrEnumerationType(
                         is_signed)) {
                   in_gpr = true;
                 } else {

@@ -77,8 +77,8 @@ bool PPCCallLowering::lowerReturn(MachineIRBuilder &MIRBuilder,
   MachineFunction &MF = MIRBuilder.getMF();
   const Function &F = MF.getFunction();
   MachineRegisterInfo &MRI = MF.getRegInfo();
-  auto &DL = F.getDataLayout();
-  if (!VRegs.empty()) {
+  
+  if (auto &DL = F.getDataLayout(); !VRegs.empty()) {
     // Setup the information about the return value.
     ArgInfo OrigArg{VRegs, Val->getType(), 0};
     setArgFlags(OrigArg, AttributeList::ReturnIndex, DL, F);

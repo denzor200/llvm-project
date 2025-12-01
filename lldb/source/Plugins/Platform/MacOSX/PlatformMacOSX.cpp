@@ -189,18 +189,18 @@ lldb_private::Status PlatformMacOSX::GetSharedModule(
   if (module_sp) {
     if (module_spec.GetArchitecture().GetCore() ==
         ArchSpec::eCore_x86_64_x86_64h) {
-      ObjectFile *objfile = module_sp->GetObjectFile();
-      if (objfile == nullptr) {
+      
+      if (ObjectFile *objfile = module_sp->GetObjectFile(); objfile == nullptr) {
         // We didn't find an x86_64h slice, fall back to a x86_64 slice
         ModuleSpec module_spec_x86_64(module_spec);
         module_spec_x86_64.GetArchitecture() = ArchSpec("x86_64-apple-macosx");
         lldb::ModuleSP x86_64_module_sp;
         llvm::SmallVector<lldb::ModuleSP, 1> old_x86_64_modules;
         bool did_create = false;
-        Status x86_64_error =
+        
+        if (Status x86_64_error =
             GetSharedModuleWithLocalCache(module_spec_x86_64, x86_64_module_sp,
-                                          &old_x86_64_modules, &did_create);
-        if (x86_64_module_sp && x86_64_module_sp->GetObjectFile()) {
+                                          &old_x86_64_modules, &did_create); x86_64_module_sp && x86_64_module_sp->GetObjectFile()) {
           module_sp = x86_64_module_sp;
           if (old_modules)
             old_modules->append(old_x86_64_modules.begin(),

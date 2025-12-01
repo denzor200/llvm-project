@@ -148,8 +148,8 @@ bool AMDGPUPerfHint::isIndirectAccess(const Instruction *Inst) const {
     LLVM_DEBUG(dbgs() << "  check: " << *V << '\n');
 
     if (const auto *LD = dyn_cast<LoadInst>(V)) {
-      const auto *M = LD->getPointerOperand();
-      if (isGlobalAddr(M)) {
+      
+      if (const auto *M = LD->getPointerOperand(); isGlobalAddr(M)) {
         LLVM_DEBUG(dbgs() << "    is IA\n");
         return true;
       }
@@ -267,8 +267,8 @@ AMDGPUPerfHintAnalysis::FuncInfo *AMDGPUPerfHint::visit(const Function &F) {
     }
 
     if (!FI.HasDenseGlobalMemAcc) {
-      unsigned GlobalMemAccPercentage = UsedGlobalLoadsInBB * 100 / B.size();
-      if (GlobalMemAccPercentage > 50) {
+      
+      if (unsigned GlobalMemAccPercentage = UsedGlobalLoadsInBB * 100 / B.size(); GlobalMemAccPercentage > 50) {
         LLVM_DEBUG(dbgs() << "[HasDenseGlobalMemAcc] Set to true since "
                           << B.getName() << " has " << GlobalMemAccPercentage
                           << "% global memory access\n");
@@ -482,8 +482,8 @@ PreservedAnalyses AMDGPUPerfHintAnalysisPass::run(Module &M,
                                                   ModuleAnalysisManager &AM) {
   auto &CG = AM.getResult<LazyCallGraphAnalysis>(M);
 
-  bool Changed = Impl->run(TM, CG);
-  if (!Changed)
+  
+  if (bool Changed = Impl->run(TM, CG); !Changed)
     return PreservedAnalyses::all();
 
   PreservedAnalyses PA;

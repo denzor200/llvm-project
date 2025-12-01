@@ -111,8 +111,8 @@ ConstantRange ConstantRange::makeAllowedICmpRegion(CmpInst::Predicate Pred,
   if (CR.isEmptySet())
     return CR;
 
-  uint32_t W = CR.getBitWidth();
-  switch (Pred) {
+  
+  switch (uint32_t W = CR.getBitWidth(); Pred) {
   default:
     llvm_unreachable("Invalid ICmp predicate to makeAllowedICmpRegion()");
   case CmpInst::ICMP_EQ:
@@ -334,9 +334,9 @@ ConstantRange::makeGuaranteedNoWrapRegion(Instruction::BinaryOps BinOp,
          "NoWrapKind invalid!");
 
   bool Unsigned = NoWrapKind == OBO::NoUnsignedWrap;
-  unsigned BitWidth = Other.getBitWidth();
+  
 
-  switch (BinOp) {
+  switch (unsigned BitWidth = Other.getBitWidth(); BinOp) {
   default:
     llvm_unreachable("Unsupported binary op");
 
@@ -770,8 +770,8 @@ ConstantRange ConstantRange::unionWith(const ConstantRange &CR,
 std::optional<ConstantRange>
 ConstantRange::exactIntersectWith(const ConstantRange &CR) const {
   // TODO: This can be implemented more efficiently.
-  ConstantRange Result = intersectWith(CR);
-  if (Result == inverse().unionWith(CR.inverse()).inverse())
+  
+  if (ConstantRange Result = intersectWith(CR); Result == inverse().unionWith(CR.inverse()).inverse())
     return Result;
   return std::nullopt;
 }
@@ -779,8 +779,8 @@ ConstantRange::exactIntersectWith(const ConstantRange &CR) const {
 std::optional<ConstantRange>
 ConstantRange::exactUnionWith(const ConstantRange &CR) const {
   // TODO: This can be implemented more efficiently.
-  ConstantRange Result = unionWith(CR);
-  if (Result == inverse().intersectWith(CR.inverse()).inverse())
+  
+  if (ConstantRange Result = unionWith(CR); Result == inverse().intersectWith(CR.inverse()).inverse())
     return Result;
   return std::nullopt;
 }
@@ -2010,8 +2010,8 @@ ConstantRange ConstantRange::ctlz(bool ZeroIsPoison) const {
   if (isEmptySet())
     return getEmpty();
 
-  APInt Zero = APInt::getZero(getBitWidth());
-  if (ZeroIsPoison && contains(Zero)) {
+  
+  if (APInt Zero = APInt::getZero(getBitWidth()); ZeroIsPoison && contains(Zero)) {
     // ZeroIsPoison is set, and zero is contained. We discern three cases, in
     // which a zero can appear:
     // 1) Lower is zero, handling cases of kind [0, 1), [0, 2), etc.

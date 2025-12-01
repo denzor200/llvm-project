@@ -215,10 +215,10 @@ void CodeGenIntrinsicTable::CheckOverloadSuffixConflicts() const {
       }
 
       StringRef Name = Int.Name;
-      StringRef OverloadName = Overloaded->Name;
+      
       // If we have an overloaded intrinsic to check again, check if its name is
       // a proper prefix of this intrinsic.
-      if (Name.starts_with(OverloadName) && Name[OverloadName.size()] == '.') {
+      if (StringRef OverloadName = Overloaded->Name; Name.starts_with(OverloadName) && Name[OverloadName.size()] == '.') {
         // If yes, verify suffixes and flag an error.
         StringRef Suffixes = Name.drop_front(OverloadName.size() + 1);
 
@@ -473,9 +473,9 @@ void CodeGenIntrinsic::setProperty(const Record *R) {
 
     for (const Init *PropInit : Properties->getElements()) {
       if (const auto *PropDef = dyn_cast<DefInit>(PropInit)) {
-        const Record *PropRec = PropDef->getDef();
+        
 
-        if (PropRec->isSubClassOf("ArgName"))
+        if (const Record *PropRec = PropDef->getDef(); PropRec->isSubClassOf("ArgName"))
           ArgName = PropRec->getValueAsString("Name");
         else if (PropRec->isSubClassOf("ImmArgPrinter"))
           FuncName = PropRec->getValueAsString("FuncName");
@@ -532,10 +532,10 @@ void CodeGenIntrinsic::addArgAttribute(unsigned Idx, ArgAttrKind AK, uint64_t V,
 void CodeGenIntrinsic::addPrettyPrintFunction(unsigned ArgIdx,
                                               StringRef ArgName,
                                               StringRef FuncName) {
-  auto It = llvm::find_if(PrettyPrintFunctions, [ArgIdx](const auto &Info) {
+  
+  if (auto It = llvm::find_if(PrettyPrintFunctions, [ArgIdx](const auto &Info) {
     return Info.ArgIdx == ArgIdx;
-  });
-  if (It != PrettyPrintFunctions.end())
+  }); It != PrettyPrintFunctions.end())
     PrintFatalError(TheDef->getLoc(), "ArgInfo for argument " + Twine(ArgIdx) +
                                           " is already defined as '" +
                                           It->FuncName + "'");

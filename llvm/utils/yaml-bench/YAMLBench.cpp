@@ -77,8 +77,8 @@ static void dumpNode( yaml::Node *n
     return;
   if (!SuppressFirstIndent)
     outs() << indent(Indent);
-  StringRef Anchor = n->getAnchor();
-  if (!Anchor.empty())
+  
+  if (StringRef Anchor = n->getAnchor(); !Anchor.empty())
     outs() << "&" << Anchor << " ";
   if (yaml::ScalarNode *sn = dyn_cast<yaml::ScalarNode>(n)) {
     SmallString<32> Storage;
@@ -122,8 +122,8 @@ static void dumpStream(yaml::Stream &stream) {
        ++di) {
     outs() << "%YAML 1.2\n"
            << "---\n";
-    yaml::Node *n = di->getRoot();
-    if (n)
+    
+    if (yaml::Node *n = di->getRoot(); n)
       dumpNode(n);
     else
       break;
@@ -182,10 +182,10 @@ static std::string createJSONText(size_t MemoryMB, unsigned ValueSize) {
 
 int main(int argc, char **argv) {
   llvm::cl::ParseCommandLineOptions(argc, argv);
-  bool ShowColors = UseColor == cl::BOU_UNSET
+  
+  if (bool ShowColors = UseColor == cl::BOU_UNSET
                         ? sys::Process::StandardOutHasColors()
-                        : UseColor == cl::BOU_TRUE;
-  if (Input.getNumOccurrences()) {
+                        : UseColor == cl::BOU_TRUE; Input.getNumOccurrences()) {
     ErrorOr<std::unique_ptr<MemoryBuffer>> BufOrErr =
         MemoryBuffer::getFileOrSTDIN(Input);
     if (!BufOrErr)

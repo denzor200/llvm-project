@@ -153,7 +153,7 @@ struct ScatterOpInterface
     auto scatterOp = cast<vector::ScatterOp>(op);
     if (&opOperand != &scatterOp.getBaseMutable())
       return {};
-    return {{scatterOp.getResult(), BufferRelation::Equivalent}};
+    return {{scatterOp->getResult(), BufferRelation::Equivalent}};
   }
 
   LogicalResult bufferize(Operation *op, RewriterBase &rewriter,
@@ -239,8 +239,8 @@ struct MaskOpInterface
   resolveConflicts(Operation *op, RewriterBase &rewriter,
                    const AnalysisState &analysisState,
                    const BufferizationState &bufferizationState) const {
-    auto bufferizableOp = cast<BufferizableOpInterface>(op);
-    if (failed(bufferizableOp.resolveTensorOpOperandConflicts(
+    
+    if (auto bufferizableOp = cast<BufferizableOpInterface>(op); failed(bufferizableOp.resolveTensorOpOperandConflicts(
             rewriter, analysisState, bufferizationState)))
       return failure();
 

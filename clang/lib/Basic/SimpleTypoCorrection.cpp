@@ -22,10 +22,10 @@ void SimpleTypoCorrection::add(const StringRef Candidate) {
   if (Candidate.empty())
     return;
 
-  unsigned MinPossibleEditDistance =
-      abs(static_cast<int>(Candidate.size()) - static_cast<int>(Typo.size()));
+  
 
-  if (MinPossibleEditDistance > 0 && Typo.size() / MinPossibleEditDistance < 3)
+  if (unsigned MinPossibleEditDistance =
+      abs(static_cast<int>(Candidate.size()) - static_cast<int>(Typo.size())); MinPossibleEditDistance > 0 && Typo.size() / MinPossibleEditDistance < 3)
     return;
 
   unsigned EditDistance = Typo.edit_distance(

@@ -96,14 +96,14 @@ static std::optional<uint64_t> getKnownLaunchDim(Op op, LaunchDims type) {
       break;
     }
     Value maybeBound = valueByDim(bounds, dim);
-    APInt value;
-    if (matchPattern(maybeBound, m_ConstantInt(&value)))
+    
+    if (APInt value; matchPattern(maybeBound, m_ConstantInt(&value)))
       return value.getZExtValue();
   }
 
   if (auto gpuFunc = op->template getParentOfType<GPUFuncOp>()) {
-    auto inherentAttr = getKnownLaunchAttr(gpuFunc, type, dim);
-    if (inherentAttr)
+    
+    if (auto inherentAttr = getKnownLaunchAttr(gpuFunc, type, dim); inherentAttr)
       return inherentAttr;
   }
   if (auto func = op->template getParentOfType<FunctionOpInterface>()) {
@@ -116,8 +116,8 @@ static std::optional<uint64_t> getKnownLaunchDim(Op op, LaunchDims type) {
       attrName = GPUDialect::KnownGridSizeAttrHelper::getNameStr();
       break;
     }
-    auto discardableAttr = getKnownLaunchAttr(func, attrName, dim);
-    if (discardableAttr)
+    
+    if (auto discardableAttr = getKnownLaunchAttr(func, attrName, dim); discardableAttr)
       return discardableAttr;
   }
   return std::nullopt;

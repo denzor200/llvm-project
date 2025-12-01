@@ -24,8 +24,8 @@ using namespace llvm::codeview;
 template <typename T>
 static Error visitKnownRecord(CVType &Record, TypeVisitorCallbacks &Callbacks) {
   TypeRecordKind RK = static_cast<TypeRecordKind>(Record.kind());
-  T KnownRecord(RK);
-  if (auto EC = Callbacks.visitKnownRecord(Record, KnownRecord))
+  
+  if (auto T KnownRecord(RK); EC = Callbacks.visitKnownRecord(Record, KnownRecord))
     return EC;
   return Error::success();
 }
@@ -34,8 +34,8 @@ template <typename T>
 static Error visitKnownMember(CVMemberRecord &Record,
                               TypeVisitorCallbacks &Callbacks) {
   TypeRecordKind RK = static_cast<TypeRecordKind>(Record.Kind);
-  T KnownRecord(RK);
-  if (auto EC = Callbacks.visitKnownMember(Record, KnownRecord))
+  
+  if (auto T KnownRecord(RK); EC = Callbacks.visitKnownMember(Record, KnownRecord))
     return EC;
   return Error::success();
 }

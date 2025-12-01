@@ -124,9 +124,9 @@ void __kmp_vprintf(enum kmp_io out_stream, char const *format, va_list ap) {
     return;
   }
 #endif /* KMP_OS_WINDOWS */
-  auto stream = ((out_stream == kmp_out) ? __kmp_stdout : __kmp_stderr);
+  
 
-  if (__kmp_debug_buf && __kmp_debug_buffer != NULL) {
+  if (auto stream = ((out_stream == kmp_out) ? __kmp_stdout : __kmp_stderr); __kmp_debug_buf && __kmp_debug_buffer != NULL) {
 
     int dc = __kmp_debug_count++ % __kmp_debug_buf_lines;
     char *db = &__kmp_debug_buffer[dc * __kmp_debug_buf_chars];

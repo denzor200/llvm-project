@@ -69,9 +69,9 @@ void DWARFDebugMacroEntry::ReadMacroEntries(
     lldb::offset_t new_offset = 0, str_offset = 0;
     uint32_t line = 0;
     const char *macro_str = nullptr;
-    uint32_t debug_line_file_idx = 0;
+    
 
-    switch (type) {
+    switch (uint32_t debug_line_file_idx = 0; type) {
     case DW_MACRO_define:
     case DW_MACRO_undef:
       line = debug_macro_data.GetULEB128(offset);

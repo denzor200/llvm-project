@@ -179,8 +179,8 @@ static DecodeStatus decodeLoadStore(MCInst &Inst, unsigned Insn,
   // Decode LDD/STD with offset less than 8.
   if ((Insn & 0xf000) == 0x8000) {
     unsigned RegBase = (Insn & 0x8) ? AVR::R29R28 : AVR::R31R30;
-    unsigned Offset = Insn & 7; // We need not consider offset > 7.
-    if ((Insn & 0x200) == 0) {  // Decode LDD.
+    // We need not consider offset > 7.
+    if (unsigned Offset = Insn & 7; (Insn & 0x200) == 0) {  // Decode LDD.
       Inst.setOpcode(AVR::LDDRdPtrQ);
       Inst.addOperand(MCOperand::createReg(RegVal));
       Inst.addOperand(MCOperand::createReg(RegBase));

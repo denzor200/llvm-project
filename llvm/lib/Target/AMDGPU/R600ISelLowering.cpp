@@ -221,9 +221,9 @@ R600TargetLowering::EmitInstrWithCustomInserter(MachineInstr &MI,
   MachineFunction *MF = BB->getParent();
   MachineRegisterInfo &MRI = MF->getRegInfo();
   MachineBasicBlock::iterator I = MI;
-  const R600InstrInfo *TII = Subtarget->getInstrInfo();
+  
 
-  switch (MI.getOpcode()) {
+  switch (const R600InstrInfo *TII = Subtarget->getInstrInfo(); MI.getOpcode()) {
   default:
     // Replace LDS_*_RET instruction that don't have any uses with the
     // equivalent LDS_*_NORET instruction.
@@ -363,9 +363,9 @@ R600TargetLowering::EmitInstrWithCustomInserter(MachineInstr &MI,
          NextExportInst = std::next(NextExportInst)) {
       if (NextExportInst->getOpcode() == R600::EG_ExportSwz ||
           NextExportInst->getOpcode() == R600::R600_ExportSwz) {
-        unsigned CurrentInstExportType = NextExportInst->getOperand(1)
-            .getImm();
-        if (CurrentInstExportType == InstExportType) {
+        
+        if (unsigned CurrentInstExportType = NextExportInst->getOperand(1)
+            .getImm(); CurrentInstExportType == InstExportType) {
           isLastInstructionOfItsType = false;
           break;
         }
@@ -402,8 +402,8 @@ R600TargetLowering::EmitInstrWithCustomInserter(MachineInstr &MI,
 
 SDValue R600TargetLowering::LowerOperation(SDValue Op, SelectionDAG &DAG) const {
   MachineFunction &MF = DAG.getMachineFunction();
-  R600MachineFunctionInfo *MFI = MF.getInfo<R600MachineFunctionInfo>();
-  switch (Op.getOpcode()) {
+  
+  switch (R600MachineFunctionInfo *MFI = MF.getInfo<R600MachineFunctionInfo>(); Op.getOpcode()) {
   default: return AMDGPUTargetLowering::LowerOperation(Op, DAG);
   case ISD::EXTRACT_VECTOR_ELT: return LowerEXTRACT_VECTOR_ELT(Op, DAG);
   case ISD::INSERT_VECTOR_ELT: return LowerINSERT_VECTOR_ELT(Op, DAG);
@@ -431,8 +431,8 @@ SDValue R600TargetLowering::LowerOperation(SDValue Op, SelectionDAG &DAG) const 
     return lowerADDRSPACECAST(Op, DAG);
   case ISD::INTRINSIC_VOID: {
     SDValue Chain = Op.getOperand(0);
-    unsigned IntrinsicID = Op.getConstantOperandVal(1);
-    switch (IntrinsicID) {
+    
+    switch (unsigned IntrinsicID = Op.getConstantOperandVal(1); IntrinsicID) {
     case Intrinsic::r600_store_swizzle: {
       SDLoc DL(Op);
       const SDValue Args[8] = {
@@ -816,8 +816,8 @@ SDValue R600TargetLowering::LowerSELECT_CC(SDValue Op, SelectionDAG &DAG) const 
 
   if (VT == MVT::f32) {
     DAGCombinerInfo DCI(DAG, AfterLegalizeVectorOps, true, nullptr);
-    SDValue MinMax = combineFMinMaxLegacy(DL, VT, LHS, RHS, True, False, CC, DCI);
-    if (MinMax)
+    
+    if (SDValue MinMax = combineFMinMaxLegacy(DL, VT, LHS, RHS, True, False, CC, DCI); MinMax)
       return MinMax;
   }
 
@@ -838,13 +838,13 @@ SDValue R600TargetLowering::LowerSELECT_CC(SDValue Op, SelectionDAG &DAG) const 
   // Move hardware True/False values to the correct operand.
   if (isHWTrueValue(False) && isHWFalseValue(True)) {
     ISD::CondCode CCOpcode = cast<CondCodeSDNode>(CC)->get();
-    ISD::CondCode InverseCC = ISD::getSetCCInverse(CCOpcode, CompareVT);
-    if (isCondCodeLegal(InverseCC, CompareVT.getSimpleVT())) {
+    
+    if (ISD::CondCode InverseCC = ISD::getSetCCInverse(CCOpcode, CompareVT); isCondCodeLegal(InverseCC, CompareVT.getSimpleVT())) {
       std::swap(False, True);
       CC = DAG.getCondCode(InverseCC);
     } else {
-      ISD::CondCode SwapInvCC = ISD::getSetCCSwappedOperands(InverseCC);
-      if (isCondCodeLegal(SwapInvCC, CompareVT.getSimpleVT())) {
+      
+      if (ISD::CondCode SwapInvCC = ISD::getSetCCSwappedOperands(InverseCC); isCondCodeLegal(SwapInvCC, CompareVT.getSimpleVT())) {
         std::swap(False, True);
         std::swap(LHS, RHS);
         CC = DAG.getCondCode(SwapInvCC);
@@ -872,8 +872,8 @@ SDValue R600TargetLowering::LowerSELECT_CC(SDValue Op, SelectionDAG &DAG) const 
   if (isZero(LHS)) {
     ISD::CondCode CCOpcode = cast<CondCodeSDNode>(CC)->get();
     // Try swapping the operands
-    ISD::CondCode CCSwapped = ISD::getSetCCSwappedOperands(CCOpcode);
-    if (isCondCodeLegal(CCSwapped, CompareVT.getSimpleVT())) {
+    
+    if (ISD::CondCode CCSwapped = ISD::getSetCCSwappedOperands(CCOpcode); isCondCodeLegal(CCSwapped, CompareVT.getSimpleVT())) {
       std::swap(LHS, RHS);
       CC = DAG.getCondCode(CCSwapped);
     } else {
@@ -954,9 +954,9 @@ SDValue R600TargetLowering::lowerADDRSPACECAST(SDValue Op,
 
   const AddrSpaceCastSDNode *ASC = cast<AddrSpaceCastSDNode>(Op);
   unsigned SrcAS = ASC->getSrcAddressSpace();
-  unsigned DestAS = ASC->getDestAddressSpace();
+  
 
-  if (isNullConstant(Op.getOperand(0)) && SrcAS == AMDGPUAS::FLAT_ADDRESS)
+  if (unsigned DestAS = ASC->getDestAddressSpace(); isNullConstant(Op.getOperand(0)) && SrcAS == AMDGPUAS::FLAT_ADDRESS)
     return DAG.getSignedConstant(TM.getNullPointerValue(DestAS), SL, VT);
 
   return Op;
@@ -1322,9 +1322,9 @@ SDValue R600TargetLowering::LowerLOAD(SDValue Op, SelectionDAG &DAG) const {
   LoadSDNode *LoadNode = cast<LoadSDNode>(Op);
   unsigned AS = LoadNode->getAddressSpace();
   EVT MemVT = LoadNode->getMemoryVT();
-  ISD::LoadExtType ExtType = LoadNode->getExtensionType();
+  
 
-  if (AS == AMDGPUAS::PRIVATE_ADDRESS &&
+  if (ISD::LoadExtType ExtType = LoadNode->getExtensionType(); AS == AMDGPUAS::PRIVATE_ADDRESS &&
       ExtType != ISD::NON_EXTLOAD && MemVT.bitsLT(MVT::i32)) {
     return lowerPrivateExtLoad(Op, DAG);
   }
@@ -1620,8 +1620,8 @@ static SDValue ReorganizeVector(SelectionDAG &DAG, SDValue VectorEntry,
   for (unsigned i = 0; i < 4; i++) {
     RemapSwizzle[i] = i;
     if (NewBldVec[i].getOpcode() == ISD::EXTRACT_VECTOR_ELT) {
-      unsigned Idx = NewBldVec[i].getConstantOperandVal(1);
-      if (i == Idx)
+      
+      if (unsigned Idx = NewBldVec[i].getConstantOperandVal(1); i == Idx)
         isUnmovable[Idx] = true;
     }
   }
@@ -1651,8 +1651,8 @@ SDValue R600TargetLowering::OptimizeSwizzle(SDValue BuildVector, SDValue Swz[],
   BuildVector = CompactSwizzlableVector(DAG, BuildVector, SwizzleRemap);
   for (unsigned i = 0; i < 4; i++) {
     unsigned Idx = Swz[i]->getAsZExtVal();
-    auto It = SwizzleRemap.find(Idx);
-    if (It != SwizzleRemap.end())
+    
+    if (auto It = SwizzleRemap.find(Idx); It != SwizzleRemap.end())
       Swz[i] = DAG.getConstant(It->second, DL, MVT::i32);
   }
 
@@ -1660,8 +1660,8 @@ SDValue R600TargetLowering::OptimizeSwizzle(SDValue BuildVector, SDValue Swz[],
   BuildVector = ReorganizeVector(DAG, BuildVector, SwizzleRemap);
   for (unsigned i = 0; i < 4; i++) {
     unsigned Idx = Swz[i]->getAsZExtVal();
-    auto It = SwizzleRemap.find(Idx);
-    if (It != SwizzleRemap.end())
+    
+    if (auto It = SwizzleRemap.find(Idx); It != SwizzleRemap.end())
       Swz[i] = DAG.getConstant(It->second, DL, MVT::i32);
   }
 
@@ -2032,8 +2032,8 @@ bool R600TargetLowering::FoldOperand(SDNode *ParentNode, unsigned SrcIdx,
 
     if (Src.getMachineOpcode() == R600::MOV_IMM_F32) {
       ConstantFPSDNode *FPC = cast<ConstantFPSDNode>(Src.getOperand(0));
-      float FloatValue = FPC->getValueAPF().convertToFloat();
-      if (FloatValue == 0.0) {
+      
+      if (float FloatValue = FPC->getValueAPF().convertToFloat(); FloatValue == 0.0) {
         ImmReg = R600::ZERO;
       } else if (FloatValue == 0.5) {
         ImmReg = R600::HALF;
@@ -2043,8 +2043,8 @@ bool R600TargetLowering::FoldOperand(SDNode *ParentNode, unsigned SrcIdx,
         ImmValue = FPC->getValueAPF().bitcastToAPInt().getZExtValue();
       }
     } else {
-      uint64_t Value = Src.getConstantOperandVal(0);
-      if (Value == 0) {
+      
+      if (uint64_t Value = Src.getConstantOperandVal(0); Value == 0) {
         ImmReg = R600::ZERO;
       } else if (Value == 1) {
         ImmReg = R600::ONE_INT;
@@ -2059,8 +2059,8 @@ bool R600TargetLowering::FoldOperand(SDNode *ParentNode, unsigned SrcIdx,
     if (ImmReg == R600::ALU_LITERAL_X) {
       if (!Imm.getNode())
         return false;
-      ConstantSDNode *C = cast<ConstantSDNode>(Imm);
-      if (C->getZExtValue())
+      
+      if (ConstantSDNode *C = cast<ConstantSDNode>(Imm); C->getZExtValue())
         return false;
       Imm = DAG.getTargetConstant(ImmValue, SDLoc(ParentNode), MVT::i32);
     }
@@ -2131,8 +2131,8 @@ SDNode *R600TargetLowering::PostISelFolding(MachineSDNode *Node,
     }
   } else if (Opcode == R600::REG_SEQUENCE) {
     for (unsigned i = 1, e = Node->getNumOperands(); i < e; i += 2) {
-      SDValue &Src = Ops[i];
-      if (FoldOperand(Node, i, Src, FakeOp, FakeOp, FakeOp, FakeOp, DAG))
+      
+      if (SDValue &Src = Ops[i]; FoldOperand(Node, i, Src, FakeOp, FakeOp, FakeOp, FakeOp, DAG))
         return DAG.getMachineNode(Opcode, SDLoc(Node), Node->getVTList(), Ops);
     }
   } else {
@@ -2200,8 +2200,8 @@ R600TargetLowering::shouldExpandAtomicRMWInIR(AtomicRMWInst *RMW) const {
   }
   default:
     if (auto *IntTy = dyn_cast<IntegerType>(RMW->getType())) {
-      unsigned Size = IntTy->getBitWidth();
-      if (Size == 32 || Size == 64)
+      
+      if (unsigned Size = IntTy->getBitWidth(); Size == 32 || Size == 64)
         return AtomicExpansionKind::None;
     }
 

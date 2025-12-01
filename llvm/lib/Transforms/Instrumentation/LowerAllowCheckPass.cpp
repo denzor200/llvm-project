@@ -89,8 +89,8 @@ static bool lowerAllowChecks(Function &F, const BlockFrequencyInfo &BFI,
     if (HotPercentileCutoff.getNumOccurrences())
       return HotPercentileCutoff;
     else if (II->getIntrinsicID() == Intrinsic::allow_ubsan_check) {
-      auto *Kind = cast<ConstantInt>(II->getArgOperand(0));
-      if (Kind->getZExtValue() < Opts.cutoffs.size())
+      
+      if (auto *Kind = cast<ConstantInt>(II->getArgOperand(0)); Kind->getZExtValue() < Opts.cutoffs.size())
         return Opts.cutoffs[Kind->getZExtValue()];
     } else if (II->getIntrinsicID() == Intrinsic::allow_runtime_check) {
       return Opts.runtime_check;
@@ -119,8 +119,8 @@ static bool lowerAllowChecks(Function &F, const BlockFrequencyInfo &BFI,
     IntrinsicInst *II = dyn_cast<IntrinsicInst>(&I);
     if (!II)
       continue;
-    auto ID = II->getIntrinsicID();
-    switch (ID) {
+    
+    switch (auto ID = II->getIntrinsicID(); ID) {
     case Intrinsic::allow_ubsan_check:
     case Intrinsic::allow_runtime_check: {
       ++NumChecksTotal;

@@ -409,8 +409,8 @@ void RocmInstallationDetector::detectDeviceLibrary() {
 
   // Check device library exists at the given path.
   auto CheckDeviceLib = [&](StringRef Path, bool StrictChecking) {
-    bool CheckLibDevice = (!NoBuiltinLibs || StrictChecking);
-    if (CheckLibDevice && !FS.exists(Path))
+    
+    if (bool CheckLibDevice = (!NoBuiltinLibs || StrictChecking); CheckLibDevice && !FS.exists(Path))
       return false;
 
     scanLibDevicePath(Path);
@@ -679,8 +679,8 @@ void amdgpu::getAMDGPUTargetFeatures(const Driver &D,
     TargetID = Args.getLastArgValue(options::OPT_march_EQ);
   if (!TargetID.empty()) {
     llvm::StringMap<bool> FeatureMap;
-    auto OptionalGpuArch = parseTargetID(Triple, TargetID, &FeatureMap);
-    if (OptionalGpuArch) {
+    
+    if (auto OptionalGpuArch = parseTargetID(Triple, TargetID, &FeatureMap); OptionalGpuArch) {
       StringRef GpuArch = *OptionalGpuArch;
       // Iterate through all possible target ID features for the given GPU.
       // If it is mapped to true, add +feature.
@@ -744,8 +744,8 @@ AMDGPUToolChain::TranslateArgs(const DerivedArgList &Args, StringRef BoundArch,
   Arg *LastMCPUArg = DAL->getLastArg(options::OPT_mcpu_EQ);
   if (LastMCPUArg && StringRef(LastMCPUArg->getValue()) == "native") {
     DAL->eraseArg(options::OPT_mcpu_EQ);
-    auto GPUsOrErr = getSystemGPUArchs(Args);
-    if (!GPUsOrErr) {
+    
+    if (auto GPUsOrErr = getSystemGPUArchs(Args); !GPUsOrErr) {
       getDriver().Diag(diag::err_drv_undetermined_gpu_arch)
           << llvm::Triple::getArchTypeName(getArch())
           << llvm::toString(GPUsOrErr.takeError()) << "-mcpu";
@@ -810,8 +810,8 @@ llvm::DenormalMode AMDGPUToolChain::getDefaultDenormalModeForType(
   if (JA.getOffloadingDeviceKind() == Action::OFK_HIP ||
       JA.getOffloadingDeviceKind() == Action::OFK_Cuda) {
     auto Arch = getProcessorFromTargetID(getTriple(), JA.getOffloadingArch());
-    auto Kind = llvm::AMDGPU::parseArchAMDGCN(Arch);
-    if (FPType && FPType == &llvm::APFloat::IEEEsingle() &&
+    
+    if (auto Kind = llvm::AMDGPU::parseArchAMDGCN(Arch); FPType && FPType == &llvm::APFloat::IEEEsingle() &&
         DriverArgs.hasFlag(options::OPT_fgpu_flush_denormals_to_zero,
                            options::OPT_fno_gpu_flush_denormals_to_zero,
                            getDefaultDenormsAreZeroForTarget(Kind)))
@@ -919,8 +919,8 @@ AMDGPUToolChain::getParsedTargetID(const llvm::opt::ArgList &DriverArgs) const {
 
 void AMDGPUToolChain::checkTargetID(
     const llvm::opt::ArgList &DriverArgs) const {
-  auto PTID = getParsedTargetID(DriverArgs);
-  if (PTID.OptionalTargetID && !PTID.OptionalGPUArch) {
+  
+  if (auto PTID = getParsedTargetID(DriverArgs); PTID.OptionalTargetID && !PTID.OptionalGPUArch) {
     getDriver().Diag(clang::diag::err_drv_bad_target_id)
         << *PTID.OptionalTargetID;
   }
@@ -1052,8 +1052,8 @@ RocmInstallationDetector::getCommonBitcodeLibs(
   AddBCLib(getCorrectlyRoundedSqrtPath(Pref.CorrectSqrt));
   AddBCLib(getWavefrontSize64Path(Pref.Wave64));
   AddBCLib(LibDeviceFile);
-  auto ABIVerPath = getABIVersionPath(Pref.ABIVer);
-  if (!ABIVerPath.empty())
+  
+  if (auto ABIVerPath = getABIVersionPath(Pref.ABIVer); !ABIVerPath.empty())
     AddBCLib(ABIVerPath);
 
   return BCLibs;
@@ -1091,10 +1091,10 @@ bool AMDGPUToolChain::shouldSkipSanitizeOption(
   auto ProcKind = TC.getTriple().isAMDGCN()
                       ? llvm::AMDGPU::parseArchAMDGCN(Processor)
                       : llvm::AMDGPU::parseArchR600(Processor);
-  auto Features = TC.getTriple().isAMDGCN()
+  
+  if (auto Features = TC.getTriple().isAMDGCN()
                       ? llvm::AMDGPU::getArchAttrAMDGCN(ProcKind)
-                      : llvm::AMDGPU::getArchAttrR600(ProcKind);
-  if (Features & llvm::AMDGPU::FEATURE_XNACK_ALWAYS)
+                      : llvm::AMDGPU::getArchAttrR600(ProcKind); Features & llvm::AMDGPU::FEATURE_XNACK_ALWAYS)
     return false;
 
   // Look for the xnack feature in TargetID

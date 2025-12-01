@@ -75,8 +75,8 @@ LookupSameContext(Source<TranslationUnitDecl *> SourceTU, const DeclContext *DC,
   // explicitly recorded, so we trigger that recording by returning
   // nothing (rather than a possibly-inaccurate guess) here.
   if (SearchResult.isSingleResult()) {
-    NamedDecl *SearchResultDecl = SearchResult.front();
-    if (isa<DeclContext>(SearchResultDecl) &&
+    
+    if (NamedDecl *SearchResultDecl = SearchResult.front(); isa<DeclContext>(SearchResultDecl) &&
         SearchResultDecl->getKind() == DC->getDeclKind())
       return cast<DeclContext>(SearchResultDecl)->getPrimaryContext();
     return nullptr; // This type of lookup is unsupported
@@ -283,9 +283,9 @@ void ExternalASTMerger::ForEachMatchingDC(const DeclContext *DC,
     for (const std::unique_ptr<ASTImporter> &Importer : Importers) {
       Source<TranslationUnitDecl *> SourceTU =
           Importer->getFromContext().getTranslationUnitDecl();
-      ASTImporter &Reverse =
-          static_cast<LazyASTImporter *>(Importer.get())->GetReverse();
-      if (auto SourceDC = LookupSameContext(SourceTU, DC, Reverse)) {
+      
+      if (auto ASTImporter &Reverse =
+          static_cast<LazyASTImporter *>(Importer.get())->GetReverse(); SourceDC = LookupSameContext(SourceTU, DC, Reverse)) {
         DidCallback = true;
         if (Callback(*Importer, Reverse, SourceDC))
           break;
@@ -448,8 +448,8 @@ void ExternalASTMerger::RemoveSources(ArrayRef<ImporterSource> Sources) {
 template <typename DeclTy>
 static bool importSpecializations(DeclTy *D, ASTImporter *Importer) {
   for (auto *Spec : D->specializations()) {
-    auto ImportedSpecOrError = Importer->Import(Spec);
-    if (!ImportedSpecOrError) {
+    
+    if (auto ImportedSpecOrError = Importer->Import(Spec); !ImportedSpecOrError) {
       llvm::consumeError(ImportedSpecOrError.takeError());
       return true;
     }
@@ -527,8 +527,8 @@ void ExternalASTMerger::FindExternalLexicalDecls(
                             Source<const DeclContext *> SourceDC) -> bool {
     for (const Decl *SourceDecl : SourceDC.get()->decls()) {
       if (IsKindWeWant(SourceDecl->getKind())) {
-        auto ImportedDeclOrErr = Forward.Import(SourceDecl);
-        if (ImportedDeclOrErr)
+        
+        if (auto ImportedDeclOrErr = Forward.Import(SourceDecl); ImportedDeclOrErr)
           assert(!(*ImportedDeclOrErr) ||
                  IsSameDC((*ImportedDeclOrErr)->getDeclContext(), DC));
         else

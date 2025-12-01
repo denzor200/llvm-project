@@ -382,8 +382,8 @@ static std::optional<llvm::Value *> tryGenerateSpecializedMessageSend(
   if (!CGM.getCodeGenOpts().ObjCConvertMessagesToRuntimeCalls)
     return std::nullopt;
 
-  auto &Runtime = CGM.getLangOpts().ObjCRuntime;
-  switch (Sel.getMethodFamily()) {
+  
+  switch (auto &Runtime = CGM.getLangOpts().ObjCRuntime; Sel.getMethodFamily()) {
   case OMF_alloc:
     if (isClassMessage &&
         Runtime.shouldUseRuntimeFunctionsForAlloc() &&
@@ -470,8 +470,8 @@ CGObjCRuntime::GetRuntimeProtocolList(ObjCProtocolDecl::protocol_iterator begin,
 
   for (; begin != end; ++begin) {
     const auto *It = *begin;
-    const auto *Can = It->getCanonicalDecl();
-    if (Can->isNonRuntimeProtocol())
+    
+    if (const auto *Can = It->getCanonicalDecl(); Can->isNonRuntimeProtocol())
       NonRuntimePDs.insert(Can);
     else
       RuntimePds.push_back(Can);
@@ -523,8 +523,8 @@ CGObjCRuntime::GetRuntimeProtocolList(ObjCProtocolDecl::protocol_iterator begin,
 /// caller side, as well as the optimized objc_alloc.
 static std::optional<llvm::Value *>
 tryEmitSpecializedAllocInit(CodeGenFunction &CGF, const ObjCMessageExpr *OME) {
-  auto &Runtime = CGF.getLangOpts().ObjCRuntime;
-  if (!Runtime.shouldUseRuntimeFunctionForCombinedAllocInit())
+  
+  if (auto &Runtime = CGF.getLangOpts().ObjCRuntime; !Runtime.shouldUseRuntimeFunctionForCombinedAllocInit())
     return std::nullopt;
 
   // Match the exact pattern '[[MyClass alloc] init]'.
@@ -1174,8 +1174,8 @@ CodeGenFunction::generateObjCGetterBody(const ObjCImplementationDecl *classImpl,
   ObjCMethodDecl *getterMethod = propImpl->getGetterMethodDecl();
 
   // Pick an implementation strategy.
-  PropertyImplStrategy strategy(CGM, propImpl);
-  switch (strategy.getKind()) {
+  
+  switch (PropertyImplStrategy strategy(CGM, propImpl); strategy.getKind()) {
   case PropertyImplStrategy::Native: {
     // We don't need to do anything for a zero-size struct.
     if (strategy.getIvarSize().isZero())
@@ -1502,8 +1502,8 @@ CodeGenFunction::generateObjCSetterBody(const ObjCImplementationDecl *classImpl,
     return;
   }
 
-  PropertyImplStrategy strategy(CGM, propImpl);
-  switch (strategy.getKind()) {
+  
+  switch (PropertyImplStrategy strategy(CGM, propImpl); strategy.getKind()) {
   case PropertyImplStrategy::Native: {
     // We don't need to do anything for a zero-size struct.
     if (strategy.getIvarSize().isZero())
@@ -2009,9 +2009,9 @@ void CodeGenFunction::EmitObjCForCollectionStmt(const ObjCForCollectionStmt &S){
     //   if (![item isKindOfClass:expectedCls]) { /* emit diagnostic */ }
     const ObjCObjectPointerType *ObjPtrTy =
         elementType->getAsObjCInterfacePointerType();
-    const ObjCInterfaceType *InterfaceTy =
-        ObjPtrTy ? ObjPtrTy->getInterfaceType() : nullptr;
-    if (InterfaceTy) {
+    
+    if (const ObjCInterfaceType *InterfaceTy =
+        ObjPtrTy ? ObjPtrTy->getInterfaceType() : nullptr; InterfaceTy) {
       auto CheckOrdinal = SanitizerKind::SO_ObjCCast;
       auto CheckHandler = SanitizerHandler::InvalidObjCCast;
       SanitizerDebugLocation SanScope(this, {CheckOrdinal}, CheckHandler);
@@ -2376,12 +2376,12 @@ static void emitAutoreleasedReturnValueMarker(CodeGenFunction &CGF) {
   llvm::InlineAsm *&marker
     = CGF.CGM.getObjCEntrypoints().retainAutoreleasedReturnValueMarker;
   if (!marker) {
-    StringRef assembly
-      = CGF.CGM.getTargetCodeGenInfo()
-           .getARCRetainAutoreleasedReturnValueMarker();
+    
 
     // If we have an empty assembly string, there's nothing to do.
-    if (assembly.empty()) {
+    if (StringRef assembly
+      = CGF.CGM.getTargetCodeGenInfo()
+           .getARCRetainAutoreleasedReturnValueMarker(); assembly.empty()) {
 
     // Otherwise, at -O0, build an inline asm that we're going to call
     // in a moment.
@@ -2395,8 +2395,8 @@ static void emitAutoreleasedReturnValueMarker(CodeGenFunction &CGF) {
     // with this marker yet, so leave a breadcrumb for the ARC
     // optimizer to pick up.
     } else {
-      const char *retainRVMarkerKey = llvm::objcarc::getRVMarkerModuleFlagStr();
-      if (!CGF.CGM.getModule().getModuleFlag(retainRVMarkerKey)) {
+      
+      if (const char *retainRVMarkerKey = llvm::objcarc::getRVMarkerModuleFlagStr(); !CGF.CGM.getModule().getModuleFlag(retainRVMarkerKey)) {
         auto *str = llvm::MDString::get(CGF.getLLVMContext(), assembly);
         CGF.CGM.getModule().addModuleFlag(llvm::Module::Error,
                                           retainRVMarkerKey, str);
@@ -2427,11 +2427,11 @@ static llvm::Value *emitOptimizedARCReturnCall(llvm::Value *value,
                  : llvm::Intrinsic::objc_unsafeClaimAutoreleasedReturnValue;
   EP = getARCIntrinsic(IID, CGF.CGM);
 
-  llvm::Triple::ArchType Arch = CGF.CGM.getTriple().getArch();
+  
 
   // FIXME: Do this on all targets and at -O0 too. This can be enabled only if
   // the target backend knows how to handle the operand bundle.
-  if (CGF.CGM.getCodeGenOpts().OptimizationLevel > 0 &&
+  if (llvm::Triple::ArchType Arch = CGF.CGM.getTriple().getArch(); CGF.CGM.getCodeGenOpts().OptimizationLevel > 0 &&
       (Arch == llvm::Triple::aarch64 || Arch == llvm::Triple::aarch64_32 ||
        Arch == llvm::Triple::x86_64)) {
     llvm::Value *bundleArgs[] = {EP};
@@ -2546,11 +2546,11 @@ llvm::Value *CodeGenFunction::EmitARCStoreStrong(LValue dst,
                                                  llvm::Value *newValue,
                                                  bool ignored) {
   QualType type = dst.getType();
-  bool isBlock = type->isBlockPointerType();
+  
 
   // Use a store barrier at -O0 unless this is a block type or the
   // lvalue is inadequately aligned.
-  if (shouldUseFusedARCCalls() &&
+  if (bool isBlock = type->isBlockPointerType(); shouldUseFusedARCCalls() &&
       !isBlock &&
       (dst.getAlignment().isZero() ||
        dst.getAlignment() >= CharUnits::fromQuantity(PointerAlignInBytes))) {
@@ -2987,8 +2987,8 @@ static TryEmitResult tryEmitARCRetainLoadOfScalar(CodeGenFunction &CGF,
   // loading it because we are not guaranteed to have an l-value. One of such
   // cases is DeclRefExpr referencing non-odr-used constant-evaluated variable.
   if (const auto *decl_expr = dyn_cast<DeclRefExpr>(e)) {
-    auto *DRE = const_cast<DeclRefExpr *>(decl_expr);
-    if (CodeGenFunction::ConstantEmission constant = CGF.tryEmitAsConstant(DRE))
+    
+    if (CodeGenFunction::ConstantEmission auto *DRE = const_cast<DeclRefExpr *>(decl_expr); constant = CGF.tryEmitAsConstant(DRE))
       return TryEmitResult(CGF.emitScalarConstant(constant, DRE),
                            !shouldRetainObjCLifetime(type.getObjCLifetime()));
   }
@@ -3009,9 +3009,9 @@ static llvm::Value *emitARCOperationAfterCall(CodeGenFunction &CGF,
                                               ValueTransform doAfterCall,
                                               ValueTransform doFallback) {
   CGBuilderTy::InsertPoint ip = CGF.Builder.saveIP();
-  auto *callBase = dyn_cast<llvm::CallBase>(value);
+  
 
-  if (callBase && llvm::objcarc::hasAttachedCallOpBundle(callBase)) {
+  if (auto *callBase = dyn_cast<llvm::CallBase>(value); callBase && llvm::objcarc::hasAttachedCallOpBundle(callBase)) {
     // Fall back if the call base has operand bundle "clang.arc.attachedcall".
     value = doFallback(CGF, value);
   } else if (llvm::CallInst *call = dyn_cast<llvm::CallInst>(value)) {
@@ -3036,8 +3036,8 @@ static llvm::Value *emitARCOperationAfterCall(CodeGenFunction &CGF,
     bitcast->setOperand(0, operand);
     value = bitcast;
   } else {
-    auto *phi = dyn_cast<llvm::PHINode>(value);
-    if (phi && phi->getNumIncomingValues() == 2 &&
+    
+    if (auto *phi = dyn_cast<llvm::PHINode>(value); phi && phi->getNumIncomingValues() == 2 &&
         isa<llvm::ConstantPointerNull>(phi->getIncomingValue(1)) &&
         isa<llvm::CallBase>(phi->getIncomingValue(0))) {
       // Handle phi instructions that are generated when it's necessary to check
@@ -3183,11 +3183,11 @@ ARCExprEmitter<Impl,Result>::visitPseudoObjectExpr(const PseudoObjectExpr *E) {
 
   for (PseudoObjectExpr::const_semantics_iterator
          i = E->semantics_begin(), e = E->semantics_end(); i != e; ++i) {
-    const Expr *semantic = *i;
+    
 
     // If this semantic expression is an opaque value, bind it
     // to the result of its source expression.
-    if (const OpaqueValueExpr *ov = dyn_cast<OpaqueValueExpr>(semantic)) {
+    if (const OpaqueValueExpr *const Expr *semantic = *i; ov = dyn_cast<OpaqueValueExpr>(semantic)) {
       typedef CodeGenFunction::OpaqueValueMappingData OVMA;
       OVMA opaqueData;
 
@@ -3732,8 +3732,8 @@ void CodeGenFunction::EmitExtendGCLifetime(llvm::Value *object) {
 llvm::Constant *
 CodeGenFunction::GenerateObjCAtomicSetterCopyHelperFunction(
                                         const ObjCPropertyImplDecl *PID) {
-  const ObjCPropertyDecl *PD = PID->getPropertyDecl();
-  if ((!(PD->getPropertyAttributes() & ObjCPropertyAttribute::kind_atomic)))
+  
+  if (const ObjCPropertyDecl *PD = PID->getPropertyDecl(); (!(PD->getPropertyAttributes() & ObjCPropertyAttribute::kind_atomic)))
     return nullptr;
 
   QualType Ty = PID->getPropertyIvarDecl()->getType();
@@ -4112,9 +4112,9 @@ void CodeGenModule::emitAtAvailableLinkGuard() {
   llvm::FunctionCallee CFLinkCheckFuncRef = CreateRuntimeFunction(
       CheckFTy, "__clang_at_available_requires_core_foundation_framework",
       llvm::AttributeList(), /*Local=*/true);
-  llvm::Function *CFLinkCheckFunc =
-      cast<llvm::Function>(CFLinkCheckFuncRef.getCallee()->stripPointerCasts());
-  if (CFLinkCheckFunc->empty()) {
+  
+  if (llvm::Function *CFLinkCheckFunc =
+      cast<llvm::Function>(CFLinkCheckFuncRef.getCallee()->stripPointerCasts()); CFLinkCheckFunc->empty()) {
     CFLinkCheckFunc->setLinkage(llvm::GlobalValue::LinkOnceAnyLinkage);
     CFLinkCheckFunc->setVisibility(llvm::GlobalValue::HiddenVisibility);
     CodeGenFunction CGF(*this);

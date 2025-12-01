@@ -157,8 +157,8 @@ declRanges(const DeclStmt *DS, const SourceManager &SM,
     if (Start.isInvalid() || Start.isMacroID())
       break;
 
-    const Token T = getPreviousToken(Start, SM, LangOpts);
-    if (T.is(tok::l_paren)) {
+    
+    if (const Token T = getPreviousToken(Start, SM, LangOpts); T.is(tok::l_paren)) {
       Start = findPreviousTokenStart(Start, SM, LangOpts);
       continue;
     }

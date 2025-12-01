@@ -54,8 +54,8 @@ public:
   llvm::Error SetUpFromYaml(llvm::StringRef yaml) {
     std::string data;
     llvm::raw_string_ostream os(data);
-    llvm::yaml::Input YIn(yaml);
-    if (!llvm::yaml::convertYAML(YIn, os, [](const llvm::Twine &Msg) {}))
+    
+    if (llvm::yaml::Input YIn(yaml); !llvm::yaml::convertYAML(YIn, os, [](const llvm::Twine &Msg) {}))
       return llvm::createStringError(llvm::inconvertibleErrorCode(),
                                      "convertYAML() failed");
 

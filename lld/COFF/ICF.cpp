@@ -75,8 +75,8 @@ private:
 // of the Visual C++ linker.
 bool ICF::isEligible(SectionChunk *c) {
   // Non-comdat chunks, dead chunks, and writable chunks are not eligible.
-  bool writable = c->getOutputCharacteristics() & llvm::COFF::IMAGE_SCN_MEM_WRITE;
-  if (!c->isCOMDAT() || !c->live || writable)
+  
+  if (bool writable = c->getOutputCharacteristics() & llvm::COFF::IMAGE_SCN_MEM_WRITE; !c->isCOMDAT() || !c->live || writable)
     return false;
 
   // Under regular (not safe) ICF, all code sections are eligible.
@@ -195,8 +195,8 @@ bool ICF::equalsVariable(const SectionChunk *a, const SectionChunk *b) {
   };
 
   Symbol *e1 = a->getEntryThunk();
-  Symbol *e2 = b->getEntryThunk();
-  if ((e1 || e2) && (!e1 || !e2 || !eqSym(e1, e2)))
+  
+  if (Symbol *e2 = b->getEntryThunk(); (e1 || e2) && (!e1 || !e2 || !eqSym(e1, e2)))
     return false;
 
   return std::equal(a->getRelocs().begin(), a->getRelocs().end(),

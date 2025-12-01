@@ -53,8 +53,8 @@ static llvm::Value *emitPPCLoadReserveIntrinsic(CodeGenFunction &CGF,
   AsmOS << "$0, ${1:y}";
 
   std::string Constraints = "=r,*Z,~{memory}";
-  std::string_view MachineClobbers = CGF.getTarget().getClobbers();
-  if (!MachineClobbers.empty()) {
+  
+  if (std::string_view MachineClobbers = CGF.getTarget().getClobbers(); !MachineClobbers.empty()) {
     Constraints += ',';
     Constraints += MachineClobbers;
   }
@@ -497,8 +497,8 @@ Value *CodeGenFunction::EmitPPCBuiltinExpr(unsigned BuiltinID,
   case PPC::BI__builtin_vsx_xvsqrtsp:
   case PPC::BI__builtin_vsx_xvsqrtdp: {
     llvm::Type *ResultType = ConvertType(E->getType());
-    Value *X = EmitScalarExpr(E->getArg(0));
-    if (Builder.getIsFPConstrained()) {
+    
+    if (Value *X = EmitScalarExpr(E->getArg(0)); Builder.getIsFPConstrained()) {
       llvm::Function *F = CGM.getIntrinsic(
           Intrinsic::experimental_constrained_sqrt, ResultType);
       return Builder.CreateConstrainedFPCall(F, X);

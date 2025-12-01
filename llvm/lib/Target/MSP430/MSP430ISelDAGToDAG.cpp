@@ -226,9 +226,9 @@ bool MSP430DAGToDAGISel::MatchAddress(SDValue N, MSP430ISelAddressMode &AM) {
     // Handle "X | C" as "X + C" iff X is known to have C bits clear.
     if (ConstantSDNode *CN = dyn_cast<ConstantSDNode>(N.getOperand(1))) {
       MSP430ISelAddressMode Backup = AM;
-      uint64_t Offset = CN->getSExtValue();
+      
       // Start with the LHS as an addr mode.
-      if (!MatchAddress(N.getOperand(0), AM) &&
+      if (uint64_t Offset = CN->getSExtValue(); !MatchAddress(N.getOperand(0), AM) &&
           // Address could not have picked a GV address for the displacement.
           AM.GV == nullptr &&
           // Check to see if the LHS & C is zero.
@@ -302,8 +302,8 @@ bool MSP430DAGToDAGISel::SelectInlineAsmMemoryOperand(
 }
 
 static bool isValidIndexedLoad(const LoadSDNode *LD) {
-  ISD::MemIndexedMode AM = LD->getAddressingMode();
-  if (AM != ISD::POST_INC || LD->getExtensionType() != ISD::NON_EXTLOAD)
+  
+  if (ISD::MemIndexedMode AM = LD->getAddressingMode(); AM != ISD::POST_INC || LD->getExtensionType() != ISD::NON_EXTLOAD)
     return false;
 
   EVT VT = LD->getMemoryVT();

@@ -126,8 +126,8 @@ bool OpenCLOptions::diagnoseUnsupportedFeatureDependencies(
   bool IsValid = true;
   for (auto &FeaturePair : DependentFeaturesList) {
     auto Feature = FeaturePair.first;
-    auto Dep = FeaturePair.second;
-    if (TI.hasFeatureEnabled(OpenCLFeaturesMap, Feature) &&
+    
+    if (auto Dep = FeaturePair.second; TI.hasFeatureEnabled(OpenCLFeaturesMap, Feature) &&
         !TI.hasFeatureEnabled(OpenCLFeaturesMap, Dep)) {
       IsValid = false;
       Diags.Report(diag::err_opencl_feature_requires) << Feature << Dep;

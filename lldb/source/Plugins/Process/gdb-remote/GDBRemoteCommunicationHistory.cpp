@@ -28,8 +28,8 @@ GDBRemoteCommunicationHistory::~GDBRemoteCommunicationHistory() = default;
 void GDBRemoteCommunicationHistory::AddPacket(char packet_char,
                                               GDBRemotePacket::Type type,
                                               uint32_t bytes_transmitted) {
-  const size_t size = m_packets.size();
-  if (size == 0)
+  
+  if (const size_t size = m_packets.size(); size == 0)
     return;
 
   const uint32_t idx = GetNextIndex();
@@ -44,8 +44,8 @@ void GDBRemoteCommunicationHistory::AddPacket(const std::string &src,
                                               uint32_t src_len,
                                               GDBRemotePacket::Type type,
                                               uint32_t bytes_transmitted) {
-  const size_t size = m_packets.size();
-  if (size == 0)
+  
+  if (const size_t size = m_packets.size(); size == 0)
     return;
 
   const uint32_t idx = GetNextIndex();

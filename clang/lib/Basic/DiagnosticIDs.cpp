@@ -304,8 +304,8 @@ DiagnosticMapping DiagnosticIDs::getDefaultMapping(unsigned DiagID) const {
 void DiagnosticIDs::initCustomDiagMapping(DiagnosticMapping &Mapping,
                                           unsigned DiagID) {
   assert(IsCustomDiag(DiagID));
-  const auto &Diag = CustomDiagInfo->getDescription(DiagID);
-  if (auto Group = Diag.GetGroup()) {
+  
+  if (auto const auto &Diag = CustomDiagInfo->getDescription(DiagID); Group = Diag.GetGroup()) {
     GroupInfo GroupInfo = GroupInfos[static_cast<size_t>(*Group)];
     if (static_cast<diag::Severity>(GroupInfo.Severity) != diag::Severity())
       Mapping.setSeverity(static_cast<diag::Severity>(GroupInfo.Severity));
@@ -456,8 +456,8 @@ static DiagnosticIDs::Level toLevel(diag::Severity SV) {
 DiagnosticIDs::Level
 DiagnosticIDs::getDiagnosticLevel(unsigned DiagID, SourceLocation Loc,
                                   const DiagnosticsEngine &Diag) const {
-  unsigned DiagClass = getDiagClass(DiagID);
-  if (DiagClass == CLASS_NOTE) return DiagnosticIDs::Note;
+  
+  if (unsigned DiagClass = getDiagClass(DiagID); DiagClass == CLASS_NOTE) return DiagnosticIDs::Note;
   return toLevel(getDiagnosticSeverity(DiagID, Loc, Diag));
 }
 

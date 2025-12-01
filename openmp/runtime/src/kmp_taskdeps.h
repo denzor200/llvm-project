@@ -155,11 +155,11 @@ static inline void __kmp_release_deps(kmp_int32 gtid, kmp_taskdata_t *task) {
 #if USE_ITT_BUILD && USE_ITT_NOTIFY
     __itt_sync_releasing(successor);
 #endif
-    kmp_int32 npredecessors = KMP_ATOMIC_DEC(&successor->dn.npredecessors) - 1;
+    
 
     // successor task can be NULL for wait_depends or because deps are still
     // being processed
-    if (npredecessors == 0) {
+    if (kmp_int32 npredecessors = KMP_ATOMIC_DEC(&successor->dn.npredecessors) - 1; npredecessors == 0) {
 #if USE_ITT_BUILD && USE_ITT_NOTIFY
       __itt_sync_acquired(successor);
 #endif

@@ -110,8 +110,8 @@ static MCInstPrinter *createRISCVMCInstPrinter(const Triple &T,
 
 static MCTargetStreamer *
 createRISCVObjectTargetStreamer(MCStreamer &S, const MCSubtargetInfo &STI) {
-  const Triple &TT = STI.getTargetTriple();
-  if (TT.isOSBinFormatELF())
+  
+  if (const Triple &TT = STI.getTargetTriple(); TT.isOSBinFormatELF())
     return new RISCVTargetELFStreamer(S, STI);
   return nullptr;
 }
@@ -145,9 +145,9 @@ class RISCVMCInstrAnalysis : public MCInstrAnalysis {
     if (Reg == RISCV::X0)
       return;
 
-    auto Index = getRegIndex(Reg);
+    
 
-    if (Value) {
+    if (auto Index = getRegIndex(Reg); Value) {
       GPRState[Index] = *Value;
       GPRValidMask.set(Index);
     } else {
@@ -159,9 +159,9 @@ class RISCVMCInstrAnalysis : public MCInstrAnalysis {
     if (Reg == RISCV::X0)
       return 0;
 
-    auto Index = getRegIndex(Reg);
+    
 
-    if (GPRValidMask.test(Index))
+    if (auto Index = getRegIndex(Reg); GPRValidMask.test(Index))
       return GPRState[Index];
     return std::nullopt;
   }
@@ -189,8 +189,8 @@ public:
       // explicitly support.
       auto NumDefs = Info->get(Inst.getOpcode()).getNumDefs();
       for (unsigned I = 0; I < NumDefs; ++I) {
-        auto DefReg = Inst.getOperand(I).getReg();
-        if (isGPR(DefReg))
+        
+        if (auto DefReg = Inst.getOperand(I).getReg(); isGPR(DefReg))
           setGPRState(DefReg, std::nullopt);
       }
       break;
@@ -328,8 +328,8 @@ public:
          EntryStart <= EntryStartEnd; EntryStart += EntrySize) {
       const uint32_t AuipcInsn =
           support::endian::read32le(PltContents.data() + EntryStart);
-      const bool IsAuipc = (AuipcInsn & 0x7F) == 0x17;
-      if (!IsAuipc)
+      
+      if (const bool IsAuipc = (AuipcInsn & 0x7F) == 0x17; !IsAuipc)
         continue;
 
       const uint32_t LoadInsn =

@@ -73,8 +73,8 @@ SBType SBTypeNameSpecifier::GetType() {
 
   if (!IsValid())
     return SBType();
-  lldb_private::CompilerType c_type = m_opaque_sp->GetCompilerType();
-  if (c_type.IsValid())
+  
+  if (lldb_private::CompilerType c_type = m_opaque_sp->GetCompilerType(); c_type.IsValid())
     return SBType(c_type);
   return SBType();
 }

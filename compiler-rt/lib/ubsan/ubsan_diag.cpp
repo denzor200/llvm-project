@@ -82,8 +82,8 @@ static void MaybeReportErrorSummary(Location Loc, ErrorType Type) {
     Type = ErrorType::GenericUB;
   const char *ErrorKind = ConvertTypeToString(Type);
   if (Loc.isSourceLocation()) {
-    SourceLocation SLoc = Loc.getSourceLocation();
-    if (!SLoc.isInvalid()) {
+    
+    if (SourceLocation SLoc = Loc.getSourceLocation(); !SLoc.isInvalid()) {
       AddressInfo AI;
       AI.file = internal_strdup(SLoc.getFilename());
       AI.line = SLoc.getLine();
@@ -159,8 +159,8 @@ static void RenderLocation(InternalScopedString *Buffer, Location Loc) {
     Buffer->AppendF("%p", reinterpret_cast<void *>(Loc.getMemoryLocation()));
     return;
   case Location::LK_Symbolized: {
-    const AddressInfo &Info = Loc.getSymbolizedStack()->info;
-    if (Info.file)
+    
+    if (const AddressInfo &Info = Loc.getSymbolizedStack()->info; Info.file)
       StackTracePrinter::GetOrInit()->RenderSourceLocation(
           Buffer, Info.file, Info.line, Info.column,
           common_flags()->symbolize_vs_style,
@@ -186,8 +186,8 @@ static void RenderText(InternalScopedString *Buffer, const char *Message,
       Buffer->AppendF("%c", *Msg);
       continue;
     }
-    const Diag::Arg &A = Args[*++Msg - '0'];
-    switch (A.Kind) {
+    
+    switch (const Diag::Arg &A = Args[*++Msg - '0']; A.Kind) {
     case Diag::AK_String:
       Buffer->AppendF("%s", A.String);
       break;

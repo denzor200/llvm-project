@@ -24,8 +24,8 @@ bool DWARFExpressionList::IsAlwaysValidSingleExpr() const {
 const DWARFExpression *DWARFExpressionList::GetAlwaysValidExpr() const {
   if (m_exprs.GetSize() != 1)
     return nullptr;
-  const auto *expr = m_exprs.GetEntryAtIndex(0);
-  if (expr->base == 0 && expr->size == LLDB_INVALID_ADDRESS)
+  
+  if (const auto *expr = m_exprs.GetEntryAtIndex(0); expr->base == 0 && expr->size == LLDB_INVALID_ADDRESS)
     return &expr->data;
   return nullptr;
 }
@@ -70,8 +70,8 @@ DWARFExpressionList::GetExpressionEntryAtAddress(lldb::addr_t func_load_addr,
     return std::nullopt;
 
   // Guard against overflow.
-  lldb::addr_t delta = load_addr - func_load_addr;
-  if (delta > std::numeric_limits<lldb::addr_t>::max() - m_func_file_addr)
+  
+  if (lldb::addr_t delta = load_addr - func_load_addr; delta > std::numeric_limits<lldb::addr_t>::max() - m_func_file_addr)
     return std::nullopt;
 
   lldb::addr_t file_pc = (load_addr - func_load_addr) + m_func_file_addr;
@@ -135,11 +135,11 @@ bool DWARFExpressionList::LinkThreadLocalStorage(
   if (!IsAlwaysValidSingleExpr())
     return false;
 
-  DWARFExpression &expr = m_exprs.GetEntryRef(0).data;
+  
   // If we linked the TLS address correctly, update the module so that when the
   // expression is evaluated it can resolve the file address to a load address
   // and read the TLS data
-  if (expr.LinkThreadLocalStorage(m_dwarf_cu, link_address_callback))
+  if (DWARFExpression &expr = m_exprs.GetEntryRef(0).data; expr.LinkThreadLocalStorage(m_dwarf_cu, link_address_callback))
     m_module_wp = new_module_sp;
   return true;
 }
@@ -241,8 +241,8 @@ llvm::Expected<Value> DWARFExpressionList::Evaluate(
     expr = m_exprs.Back()->data;
   } else {
     Address pc;
-    StackFrame *frame = nullptr;
-    if (!reg_ctx || !reg_ctx->GetPCForSymbolication(pc)) {
+    
+    if (StackFrame *frame = nullptr; !reg_ctx || !reg_ctx->GetPCForSymbolication(pc)) {
       if (exe_ctx)
         frame = exe_ctx->GetFramePtr();
       if (!frame)

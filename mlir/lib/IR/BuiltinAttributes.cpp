@@ -435,8 +435,8 @@ LogicalResult OpaqueAttr::verify(function_ref<InFlightDiagnostic()> emitError,
     return emitError() << "invalid dialect namespace '" << dialect << "'";
 
   // Check that the dialect is actually registered.
-  MLIRContext *context = dialect.getContext();
-  if (!context->allowsUnregisteredDialects() &&
+  
+  if (MLIRContext *context = dialect.getContext(); !context->allowsUnregisteredDialects() &&
       !context->getLoadedDialect(dialect.strref())) {
     return emitError()
            << "#" << dialect << "<\"" << attrData << "\"> : " << type
@@ -715,9 +715,9 @@ DenseArrayAttr::verify(function_ref<InFlightDiagnostic()> emitError,
   if (!elementType.isIntOrIndexOrFloat())
     return emitError() << "expected integer or floating point element type";
   int64_t dataSize = rawData.size();
-  int64_t elementSize =
-      llvm::divideCeil(elementType.getIntOrFloatBitWidth(), CHAR_BIT);
-  if (size * elementSize != dataSize) {
+  
+  if (int64_t elementSize =
+      llvm::divideCeil(elementType.getIntOrFloatBitWidth(), CHAR_BIT); size * elementSize != dataSize) {
     return emitError() << "expected data size (" << size << " elements, "
                        << elementSize
                        << " bytes each) does not match: " << dataSize
@@ -1089,8 +1089,8 @@ bool DenseElementsAttr::isValidRawBuffer(ShapedType type,
     // Check for a splat, or a buffer equal to the number of elements which
     // consists of either all 0's or all 1's.
     if (rawBuffer.size() == 1) {
-      auto rawByte = static_cast<uint8_t>(rawBuffer[0]);
-      if (rawByte == 0 || rawByte == 0xff) {
+      
+      if (auto rawByte = static_cast<uint8_t>(rawBuffer[0]); rawByte == 0 || rawByte == 0xff) {
         detectedSplat = true;
         return true;
       }
@@ -1118,8 +1118,8 @@ static bool isValidIntOrFloat(Type type, int64_t dataEltSize, bool isInt,
                               bool isSigned) {
   // Make sure that the data element size is the same as the type element width.
   auto denseEltBitWidth = getDenseElementBitWidth(type);
-  auto dataSize = static_cast<size_t>(dataEltSize * CHAR_BIT);
-  if (denseEltBitWidth != dataSize) {
+  
+  if (auto dataSize = static_cast<size_t>(dataEltSize * CHAR_BIT); denseEltBitWidth != dataSize) {
     LDBG() << "expected dense element bit width " << denseEltBitWidth
            << " to match data size " << dataSize << " for type " << type;
     return false;
@@ -1237,8 +1237,8 @@ ArrayRef<StringRef> DenseElementsAttr::getRawStringData() const {
 /// attribute, but has been reshaped to 'newType'. The new type must have the
 /// same total number of elements as well as element type.
 DenseElementsAttr DenseElementsAttr::reshape(ShapedType newType) {
-  ShapedType curType = getType();
-  if (curType == newType)
+  
+  if (ShapedType curType = getType(); curType == newType)
     return *this;
 
   assert(newType.getElementType() == curType.getElementType() &&
@@ -1251,8 +1251,8 @@ DenseElementsAttr DenseElementsAttr::reshape(ShapedType newType) {
 DenseElementsAttr DenseElementsAttr::resizeSplat(ShapedType newType) {
   assert(isSplat() && "expected a splat type");
 
-  ShapedType curType = getType();
-  if (curType == newType)
+  
+  if (ShapedType curType = getType(); curType == newType)
     return *this;
 
   assert(newType.getElementType() == curType.getElementType() &&
@@ -1266,8 +1266,8 @@ DenseElementsAttr DenseElementsAttr::resizeSplat(ShapedType newType) {
 /// current type.
 DenseElementsAttr DenseElementsAttr::bitcast(Type newElType) {
   ShapedType curType = getType();
-  Type curElType = curType.getElementType();
-  if (curElType == newElType)
+  
+  if (Type curElType = curType.getElementType(); curElType == newElType)
     return *this;
 
   assert(getDenseElementBitWidth(newElType) ==

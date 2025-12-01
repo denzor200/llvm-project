@@ -103,8 +103,8 @@ static std::optional<PasswdEntry> GetPassword(id_t uid) {
   struct passwd user_info;
   struct passwd *user_info_ptr = &user_info;
   char user_buffer[PATH_MAX];
-  size_t user_buffer_size = sizeof(user_buffer);
-  if (::getpwuid_r(uid, &user_info, user_buffer, user_buffer_size,
+  
+  if (size_t user_buffer_size = sizeof(user_buffer); ::getpwuid_r(uid, &user_info, user_buffer, user_buffer_size,
                    &user_info_ptr) == 0 &&
       user_info_ptr) {
     return PasswdEntry{user_info_ptr->pw_name, user_info_ptr->pw_shell};
@@ -123,9 +123,9 @@ std::optional<std::string> PosixUserIDResolver::DoGetGroupName(id_t gid) {
   char group_buffer[PATH_MAX];
   size_t group_buffer_size = sizeof(group_buffer);
   struct group group_info;
-  struct group *group_info_ptr = &group_info;
+  
   // Try the threadsafe version first
-  if (::getgrgid_r(gid, &group_info, group_buffer, group_buffer_size,
+  if (struct group *group_info_ptr = &group_info; ::getgrgid_r(gid, &group_info, group_buffer, group_buffer_size,
                    &group_info_ptr) == 0) {
     if (group_info_ptr)
       return std::string(group_info_ptr->gr_name);
@@ -187,8 +187,8 @@ bool HostInfoPosix::ComputeUserPluginsDirectory(FileSpec &file_spec) {
   // XDG Base Directory Specification
   // http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html If
   // XDG_DATA_HOME exists, use that, otherwise use ~/.local/share/lldb.
-  const char *xdg_data_home = getenv("XDG_DATA_HOME");
-  if (xdg_data_home && xdg_data_home[0]) {
+  
+  if (const char *xdg_data_home = getenv("XDG_DATA_HOME"); xdg_data_home && xdg_data_home[0]) {
     std::string user_plugin_dir(xdg_data_home);
     user_plugin_dir += "/lldb";
     file_spec.SetDirectory(user_plugin_dir.c_str());

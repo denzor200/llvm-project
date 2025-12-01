@@ -312,17 +312,17 @@ bool ClassDescriptorV2::method_t::Read(DataExtractor &extractor,
                                        lldb::addr_t relative_string_base_addr,
                                        bool is_small, bool has_direct_sel,
                                        bool has_relative_types) {
-  lldb::offset_t cursor = 0;
+  
 
-  if (is_small) {
+  if (lldb::offset_t cursor = 0; is_small) {
     uint32_t nameref_offset = extractor.GetU32_unchecked(&cursor);
     uint32_t types_offset = extractor.GetU32_unchecked(&cursor);
     uint32_t imp_offset = extractor.GetU32_unchecked(&cursor);
 
     m_name_ptr = addr + nameref_offset;
 
-    Status error;
-    if (!has_direct_sel) {
+    
+    if (Status error; !has_direct_sel) {
       // The SEL offset points to a SELRef. We need to dereference twice.
       m_name_ptr = process->ReadPointerFromMemory(m_name_ptr, error);
       if (error.Fail())
@@ -586,21 +586,21 @@ bool ClassDescriptorV2::Describe(
                                       class_ro->m_baseMethods_ptr ^ 1))
         return false;
     } else {
-      std::optional<method_list_t> base_method_list =
-          GetMethodList(process, class_ro->m_baseMethods_ptr);
-      if (base_method_list &&
+      
+      if (std::optional<method_list_t> base_method_list =
+          GetMethodList(process, class_ro->m_baseMethods_ptr); base_method_list &&
           !ProcessMethodList(instance_method_func, *base_method_list))
         return false;
     }
   }
 
   if (class_method_func) {
-    AppleObjCRuntime::ClassDescriptorSP metaclass(GetMetaclass());
+    
 
     // We don't care about the metaclass's superclass, or its class methods.
     // Its instance methods are our class methods.
 
-    if (metaclass) {
+    if (AppleObjCRuntime::ClassDescriptorSP metaclass(GetMetaclass()); metaclass) {
       metaclass->Describe(
           std::function<void(ObjCLanguageRuntime::ObjCISA)>(nullptr),
           class_method_func,
@@ -636,9 +636,9 @@ bool ClassDescriptorV2::Describe(
 
 ConstString ClassDescriptorV2::GetClassName() {
   if (!m_name) {
-    lldb_private::Process *process = m_runtime.GetProcess();
+    
 
-    if (process) {
+    if (lldb_private::Process *process = m_runtime.GetProcess(); process) {
       std::unique_ptr<objc_class_t> objc_class;
       std::unique_ptr<class_ro_t> class_ro;
       std::unique_ptr<class_rw_t> class_rw;
@@ -687,9 +687,9 @@ ObjCLanguageRuntime::ClassDescriptorSP ClassDescriptorV2::GetMetaclass() const {
 }
 
 uint64_t ClassDescriptorV2::GetInstanceSize() {
-  lldb_private::Process *process = m_runtime.GetProcess();
+  
 
-  if (process) {
+  if (lldb_private::Process *process = m_runtime.GetProcess(); process) {
     std::unique_ptr<objc_class_t> objc_class;
     std::unique_ptr<class_ro_t> class_ro;
     std::unique_ptr<class_rw_t> class_rw;
@@ -750,9 +750,9 @@ void ClassDescriptorV2::iVarsStorage::fill(AppleObjCRuntimeV2 &runtime,
     const bool stop_loop = false;
     LLDB_LOGV(log, "name = {0}, encoding = {1}, offset_ptr = {2:x}, size = {3}",
               name, type, offset_ptr, size);
-    CompilerType ivar_type =
-        encoding_to_type_sp->RealizeType(type, for_expression);
-    if (ivar_type) {
+    
+    if (CompilerType ivar_type =
+        encoding_to_type_sp->RealizeType(type, for_expression); ivar_type) {
       LLDB_LOGV(log,
                 "name = {0}, encoding = {1}, offset_ptr = {2:x}, size = "
                 "{3}, type_size = {4}",
@@ -762,9 +762,9 @@ void ClassDescriptorV2::iVarsStorage::fill(AppleObjCRuntimeV2 &runtime,
       Status error;
       const int offset_ptr_size = 4;
       const bool is_signed = false;
-      size_t read = process->ReadScalarIntegerFromMemory(
-          offset_ptr, offset_ptr_size, is_signed, offset_scalar, error);
-      if (error.Success() && 4 == read) {
+      
+      if (size_t read = process->ReadScalarIntegerFromMemory(
+          offset_ptr, offset_ptr_size, is_signed, offset_scalar, error); error.Success() && 4 == read) {
         LLDB_LOGV(log, "offset_ptr = {0:x} --> {1}", offset_ptr,
                   offset_scalar.SInt());
         m_ivars.push_back(

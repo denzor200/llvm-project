@@ -36,8 +36,8 @@ static unsigned CpCount = 0;
 #endif
 
 bool CopyPropagation::interpretAsCopy(const MachineInstr *MI, EqualityMap &EM) {
-  unsigned Opc = MI->getOpcode();
-  switch (Opc) {
+  
+  switch (unsigned Opc = MI->getOpcode(); Opc) {
     case TargetOpcode::COPY: {
       const MachineOperand &Dst = MI->getOperand(0);
       const MachineOperand &Src = MI->getOperand(1);
@@ -45,8 +45,8 @@ bool CopyPropagation::interpretAsCopy(const MachineInstr *MI, EqualityMap &EM) {
       RegisterRef SrcR = DFG.makeRegRef(Src.getReg(), Src.getSubReg());
       assert(DstR.asMCReg().isPhysical());
       assert(SrcR.asMCReg().isPhysical());
-      const TargetRegisterInfo &TRI = DFG.getTRI();
-      if (TRI.getMinimalPhysRegClass(DstR.asMCReg()) !=
+      
+      if (const TargetRegisterInfo &TRI = DFG.getTRI(); TRI.getMinimalPhysRegClass(DstR.asMCReg()) !=
           TRI.getMinimalPhysRegClass(SrcR.asMCReg()))
         return false;
       if (!DFG.isTracked(SrcR) || !DFG.isTracked(DstR))
@@ -156,8 +156,8 @@ bool CopyPropagation::run() {
 
   auto MinPhysReg = [this](RegisterRef RR) -> MCRegister {
     const TargetRegisterInfo &TRI = DFG.getTRI();
-    const TargetRegisterClass &RC = *TRI.getMinimalPhysRegClass(RR.asMCReg());
-    if ((RC.LaneMask & RR.Mask) == RC.LaneMask)
+    
+    if (const TargetRegisterClass &RC = *TRI.getMinimalPhysRegClass(RR.asMCReg()); (RC.LaneMask & RR.Mask) == RC.LaneMask)
       return RR.asMCReg();
     for (MCSubRegIndexIterator S(RR.asMCReg(), &TRI); S.isValid(); ++S)
       if (RR.Mask == TRI.getSubRegIndexLaneMask(S.getSubRegIndex()))
@@ -194,8 +194,8 @@ bool CopyPropagation::run() {
       for (NodeId N = DA.Addr->getReachedUse(), NextN; N; N = NextN) {
         auto UA = DFG.addr<UseNode*>(N);
         NextN = UA.Addr->getSibling();
-        uint16_t F = UA.Addr->getFlags();
-        if ((F & NodeAttrs::PhiRef) || (F & NodeAttrs::Fixed))
+        
+        if (uint16_t F = UA.Addr->getFlags(); (F & NodeAttrs::PhiRef) || (F & NodeAttrs::Fixed))
           continue;
         if (!PRI.equal_to(UA.Addr->getRegRef(DFG), DR))
           continue;

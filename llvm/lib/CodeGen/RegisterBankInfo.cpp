@@ -404,8 +404,8 @@ RegisterBankInfo::getInstructionMappingImpl(
 
 const RegisterBankInfo::InstructionMapping &
 RegisterBankInfo::getInstrMapping(const MachineInstr &MI) const {
-  const RegisterBankInfo::InstructionMapping &Mapping = getInstrMappingImpl(MI);
-  if (Mapping.isValid())
+  
+  if (const RegisterBankInfo::InstructionMapping &Mapping = getInstrMappingImpl(MI); Mapping.isValid())
     return Mapping;
   llvm_unreachable("The target must implement this");
 }
@@ -413,8 +413,8 @@ RegisterBankInfo::getInstrMapping(const MachineInstr &MI) const {
 RegisterBankInfo::InstructionMappings
 RegisterBankInfo::getInstrPossibleMappings(const MachineInstr &MI) const {
   InstructionMappings PossibleMappings;
-  const auto &Mapping = getInstrMapping(MI);
-  if (Mapping.isValid()) {
+  
+  if (const auto &Mapping = getInstrMapping(MI); Mapping.isValid()) {
     // Put the default mapping first.
     PossibleMappings.push_back(&Mapping);
   }

@@ -41,8 +41,8 @@ void ReOptimizeLayer::emit(std::unique_ptr<MaterializationResponsibility> R,
 
   bool HasNonCallable = false;
   for (auto &KV : R->getSymbols()) {
-    auto &Flags = KV.second;
-    if (!Flags.isCallable())
+    
+    if (auto &Flags = KV.second; !Flags.isCallable())
       HasNonCallable = true;
   }
 
@@ -199,8 +199,8 @@ Expected<Constant *> ReOptimizeLayer::createReoptimizeArgBuffer(
     Module &M, ReOptMaterializationUnitID MUID, uint32_t CurVersion) {
   size_t ArgBufferSize = SPSReoptimizeArgList::size(MUID, CurVersion);
   std::vector<char> ArgBuffer(ArgBufferSize);
-  shared::SPSOutputBuffer OB(ArgBuffer.data(), ArgBuffer.size());
-  if (!SPSReoptimizeArgList::serialize(OB, MUID, CurVersion))
+  
+  if (shared::SPSOutputBuffer OB(ArgBuffer.data(), ArgBuffer.size()); !SPSReoptimizeArgList::serialize(OB, MUID, CurVersion))
     return make_error<StringError>("Could not serealize args list",
                                    inconvertibleErrorCode());
   return ConstantDataArray::get(M.getContext(), ArrayRef(ArgBuffer));

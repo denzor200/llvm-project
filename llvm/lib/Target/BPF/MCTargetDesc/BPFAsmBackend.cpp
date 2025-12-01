@@ -94,8 +94,8 @@ void BPFAsmBackend::applyFixup(const MCFragment &F, const MCFixup &Fixup,
   } else {
     assert(Fixup.getKind() == FK_Data_2 && Fixup.isPCRel());
 
-    int64_t ByteOff = (int64_t)Value - 8;
-    if (ByteOff > INT16_MAX * 8 || ByteOff < INT16_MIN * 8)
+    
+    if (int64_t ByteOff = (int64_t)Value - 8; ByteOff > INT16_MAX * 8 || ByteOff < INT16_MIN * 8)
       report_fatal_error("Branch target out of insn range");
 
     Value = (uint16_t)((Value - 8) / 8);

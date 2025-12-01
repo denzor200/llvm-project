@@ -218,8 +218,8 @@ public:
         os << "Value stored to '" << *V
            << "' during its initialization is never read";
 
-        ASTContext &ACtx = V->getASTContext();
-        if (Checker->ShowFixIts) {
+        
+        if (ASTContext &ACtx = V->getASTContext(); Checker->ShowFixIts) {
           if (V->getInit()->HasSideEffects(ACtx,
                                            /*IncludePossibleEffects=*/true)) {
             break;
@@ -358,8 +358,8 @@ public:
       if (!U->isIncrementOp() || U->isPrefix())
         return;
 
-      const Stmt *parent = Parents.getParentIgnoreParenCasts(U);
-      if (!parent || !isa<ReturnStmt>(parent))
+      
+      if (const Stmt *parent = Parents.getParentIgnoreParenCasts(U); !parent || !isa<ReturnStmt>(parent))
         return;
 
       const Expr *Ex = U->getSubExpr()->IgnoreParenCasts();

@@ -114,8 +114,8 @@ static void emitDiagnostics(BoundNodes &Match, const Decl *D, BugReporter &BR,
   AnalysisDeclContext *ADC = AM.getAnalysisDeclContext(D);
 
   const auto *PVD = Match.getNodeAs<ParmVarDecl>(ParamBind);
-  QualType Ty = PVD->getType();
-  if (Ty->getPointeeType().getObjCLifetime() != Qualifiers::OCL_Autoreleasing)
+  
+  if (QualType Ty = PVD->getType(); Ty->getPointeeType().getObjCLifetime() != Qualifiers::OCL_Autoreleasing)
     return;
   const char *ActionMsg = "Write to";
   const auto *MarkedStmt = Match.getNodeAs<Expr>(ProblematicWriteBind);

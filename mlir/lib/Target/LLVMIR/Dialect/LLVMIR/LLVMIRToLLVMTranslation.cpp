@@ -59,11 +59,11 @@ static ArrayRef<unsigned> getSupportedIntrinsicsImpl() {
 static LogicalResult convertIntrinsicImpl(OpBuilder &odsBuilder,
                                           llvm::CallInst *inst,
                                           LLVM::ModuleImport &moduleImport) {
-  llvm::Intrinsic::ID intrinsicID = inst->getIntrinsicID();
+  
 
   // Check if the intrinsic is convertible to an MLIR dialect counterpart and
   // copy the arguments to an an LLVM operands array reference for conversion.
-  if (isConvertibleIntrinsic(intrinsicID)) {
+  if (llvm::Intrinsic::ID intrinsicID = inst->getIntrinsicID(); isConvertibleIntrinsic(intrinsicID)) {
     SmallVector<llvm::Value *> args(inst->args());
     ArrayRef<llvm::Value *> llvmOperands(args);
 

@@ -137,8 +137,8 @@ const unsigned SystemZMC::CR64Regs[16] = {
 
 unsigned SystemZMC::getFirstReg(unsigned Reg) {
   static unsigned Map[SystemZ::NUM_TARGET_REGS];
-  static bool Initialized = false;
-  if (!Initialized) {
+  
+  if (static bool Initialized = false; !Initialized) {
     for (unsigned I = 0; I < 16; ++I) {
       Map[GR32Regs[I]] = I;
       Map[GRH32Regs[I]] = I;
@@ -214,8 +214,8 @@ static MCStreamer *createSystemZAsmStreamer(
     std::unique_ptr<MCInstPrinter> IP, std::unique_ptr<MCCodeEmitter> CE,
     std::unique_ptr<MCAsmBackend> TAB) {
 
-  auto TT = Ctx.getTargetTriple();
-  if (TT.isOSzOS() && !GNUAsOnzOSCL)
+  
+  if (auto TT = Ctx.getTargetTriple(); TT.isOSzOS() && !GNUAsOnzOSCL)
     return new SystemZHLASMAsmStreamer(Ctx, std::move(OS), std::move(IP),
                                        std::move(CE), std::move(TAB));
 

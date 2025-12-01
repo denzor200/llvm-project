@@ -157,17 +157,17 @@ private:
       for (size_t i : masks) {
         size_t index = (pos + i) & entries_mask;
         ENTRY &entry = this->entry(index);
-        auto comp = [](char l, char r) -> int { return l - r; };
-        if (LIBC_LIKELY(entry.key != nullptr &&
+        
+        if (auto comp = [](char l, char r) -> int { return l - r; }; LIBC_LIKELY(entry.key != nullptr &&
                         inline_strcmp(entry.key, key, comp) == 0))
           return index;
       }
-      BitMask available = ctrls.mask_available();
+      
       // Since there is no deletion, the first time we find an available slot
       // it is also ready to be used as an insertion point. Therefore, we also
       // return the first available slot we find. If such entry is empty, the
       // key will be nullptr.
-      if (LIBC_LIKELY(available.any_bit_set())) {
+      if (BitMask available = ctrls.mask_available(); LIBC_LIKELY(available.any_bit_set())) {
         size_t index =
             (pos + available.lowest_set_bit_nonzero()) & entries_mask;
         return index;
@@ -192,8 +192,8 @@ private:
     while (true) {
       size_t pos = sequence.next();
       Group ctrls = Group::load(&control(pos));
-      BitMask available = ctrls.mask_available();
-      if (available.any_bit_set()) {
+      
+      if (BitMask available = ctrls.mask_available(); available.any_bit_set()) {
         size_t index =
             (pos + available.lowest_set_bit_nonzero()) & entries_mask;
         set_ctrl(index, secondary);

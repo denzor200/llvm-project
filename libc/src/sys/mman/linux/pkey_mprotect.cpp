@@ -33,9 +33,9 @@ LIBC_INLINE ErrorOr<int> pkey_mprotect_impl(void *addr, size_t len, int prot,
 #if !defined(SYS_pkey_mprotect)
   return Error(ENOSYS);
 #else
-  int ret = LIBC_NAMESPACE::syscall_impl<int>(SYS_pkey_mprotect, addr, len,
-                                              prot, pkey);
-  if (ret < 0) {
+  
+  if (int ret = LIBC_NAMESPACE::syscall_impl<int>(SYS_pkey_mprotect, addr, len,
+                                              prot, pkey); ret < 0) {
     return Error(-ret);
   }
   return 0;

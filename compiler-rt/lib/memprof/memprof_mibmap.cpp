@@ -19,9 +19,9 @@ namespace __memprof {
 using ::llvm::memprof::MemInfoBlock;
 
 void InsertOrMerge(const uptr Id, const MemInfoBlock &Block, MIBMapTy &Map) {
-  MIBMapTy::Handle h(&Map, static_cast<uptr>(Id), /*remove=*/false,
-                     /*create=*/true);
-  if (h.created()) {
+  
+  if (MIBMapTy::Handle h(&Map, static_cast<uptr>(Id), /*remove=*/false,
+                     /*create=*/true); h.created()) {
     LockedMemInfoBlock *lmib =
         (LockedMemInfoBlock *)InternalAlloc(sizeof(LockedMemInfoBlock));
     lmib->mutex.Init();

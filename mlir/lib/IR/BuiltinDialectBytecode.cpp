@@ -76,8 +76,8 @@ readPotentiallySplatString(DialectBytecodeReader &reader, ShapedType type,
 
 static void writePotentiallySplatString(DialectBytecodeWriter &writer,
                                         DenseStringElementsAttr attr) {
-  bool isSplat = attr.isSplat();
-  if (isSplat)
+  
+  if (bool isSplat = attr.isSplat(); isSplat)
     return writer.writeOwnedString(attr.getRawStringData().front());
 
   for (StringRef str : attr.getRawStringData())

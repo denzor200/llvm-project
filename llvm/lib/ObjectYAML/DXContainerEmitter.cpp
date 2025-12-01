@@ -275,9 +275,9 @@ Error DXContainerWriter::writeParts(raw_ostream &OS) {
            P.RootSignature->Parameters.Locations) {
 
         const dxbc::RootParameterType Type = L.Header.Type;
-        const dxbc::ShaderVisibility Visibility = L.Header.Visibility;
+        
 
-        switch (Type) {
+        switch (const dxbc::ShaderVisibility Visibility = L.Header.Visibility; Type) {
         case dxbc::RootParameterType::Constants32Bit: {
           const DXContainerYAML::RootConstantsYaml &ConstantYaml =
               P.RootSignature->Parameters.getOrInsertConstants(L);
@@ -395,8 +395,8 @@ namespace yaml {
 
 bool yaml2dxcontainer(DXContainerYAML::Object &Doc, raw_ostream &Out,
                       ErrorHandler EH) {
-  DXContainerWriter Writer(Doc);
-  if (Error Err = Writer.write(Out)) {
+  
+  if (Error DXContainerWriter Writer(Doc); Err = Writer.write(Out)) {
     handleAllErrors(std::move(Err),
                     [&](const ErrorInfoBase &Err) { EH(Err.message()); });
     return false;

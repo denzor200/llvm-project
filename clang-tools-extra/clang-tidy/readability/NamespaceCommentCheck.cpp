@@ -150,13 +150,13 @@ void NamespaceCommentCheck::check(const MatchFinder::MatchResult &Result) {
   // Try to find existing namespace closing comment on the same line.
   if (Tok.is(tok::comment) && NextTokenIsOnSameLine) {
     const StringRef Comment(Sources.getCharacterData(Loc), Tok.getLength());
-    SmallVector<StringRef, 7> Groups;
-    if (NamespaceCommentPattern.match(Comment, &Groups)) {
+    
+    if (SmallVector<StringRef, 7> Groups; NamespaceCommentPattern.match(Comment, &Groups)) {
       const StringRef NamespaceNameInComment =
           Groups.size() > 5 ? Groups[5] : "";
-      const StringRef Anonymous = Groups.size() > 3 ? Groups[3] : "";
+      
 
-      if ((ND->isAnonymousNamespace() && NamespaceNameInComment.empty()) ||
+      if (const StringRef Anonymous = Groups.size() > 3 ? Groups[3] : ""; (ND->isAnonymousNamespace() && NamespaceNameInComment.empty()) ||
           (*NamespaceNameAsWritten == NamespaceNameInComment &&
            Anonymous.empty())) {
         // Check if the namespace in the comment is the same.

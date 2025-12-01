@@ -247,16 +247,16 @@ static Function *getFunction(Constant *C) {
 Function *
 Evaluator::getCalleeWithFormalArgs(CallBase &CB,
                                    SmallVectorImpl<Constant *> &Formals) {
-  auto *V = CB.getCalledOperand()->stripPointerCasts();
-  if (auto *Fn = getFunction(getVal(V)))
+  
+  if (auto *auto *V = CB.getCalledOperand()->stripPointerCasts(); Fn = getFunction(getVal(V)))
     return getFormalParams(CB, Fn, Formals) ? Fn : nullptr;
   return nullptr;
 }
 
 bool Evaluator::getFormalParams(CallBase &CB, Function *F,
                                 SmallVectorImpl<Constant *> &Formals) {
-  auto *FTy = F->getFunctionType();
-  if (FTy != CB.getFunctionType()) {
+  
+  if (auto *FTy = F->getFunctionType(); FTy != CB.getFunctionType()) {
     LLVM_DEBUG(dbgs() << "Signature mismatch.\n");
     return false;
   }
@@ -284,8 +284,8 @@ bool Evaluator::EvaluateBlock(BasicBlock::iterator CurInst, BasicBlock *&NextBB,
         return false;  // no volatile accesses.
       }
       Constant *Ptr = getVal(SI->getOperand(1));
-      Constant *FoldedPtr = ConstantFoldConstant(Ptr, DL, TLI);
-      if (Ptr != FoldedPtr) {
+      
+      if (Constant *FoldedPtr = ConstantFoldConstant(Ptr, DL, TLI); Ptr != FoldedPtr) {
         LLVM_DEBUG(dbgs() << "Folding constant ptr expression: " << *Ptr);
         Ptr = FoldedPtr;
         LLVM_DEBUG(dbgs() << "; To: " << *Ptr << "\n");
@@ -322,8 +322,8 @@ bool Evaluator::EvaluateBlock(BasicBlock::iterator CurInst, BasicBlock *&NextBB,
       }
 
       Constant *Ptr = getVal(LI->getOperand(0));
-      Constant *FoldedPtr = ConstantFoldConstant(Ptr, DL, TLI);
-      if (Ptr != FoldedPtr) {
+      
+      if (Constant *FoldedPtr = ConstantFoldConstant(Ptr, DL, TLI); Ptr != FoldedPtr) {
         Ptr = FoldedPtr;
         LLVM_DEBUG(dbgs() << "Found a constant pointer expression, constant "
                              "folding: "
@@ -397,8 +397,8 @@ bool Evaluator::EvaluateBlock(BasicBlock::iterator CurInst, BasicBlock *&NextBB,
             }
 
             while (Len != 0) {
-              Constant *DestVal = ComputeLoadResult(GV, Val->getType(), Offset);
-              if (DestVal != Val) {
+              
+              if (Constant *DestVal = ComputeLoadResult(GV, Val->getType(), Offset); DestVal != Val) {
                 LLVM_DEBUG(dbgs() << "Memset is not a no-op at offset "
                                   << Offset << " of " << *GV << ".\n");
                 return false;
@@ -429,10 +429,10 @@ bool Evaluator::EvaluateBlock(BasicBlock::iterator CurInst, BasicBlock *&NextBB,
           }
           ConstantInt *Size = cast<ConstantInt>(II->getArgOperand(0));
           Value *PtrArg = getVal(II->getArgOperand(1));
-          Value *Ptr = PtrArg->stripPointerCasts();
-          if (GlobalVariable *GV = dyn_cast<GlobalVariable>(Ptr)) {
-            Type *ElemTy = GV->getValueType();
-            if (!Size->isMinusOne() &&
+          
+          if (GlobalVariable *Value *Ptr = PtrArg->stripPointerCasts(); GV = dyn_cast<GlobalVariable>(Ptr)) {
+            
+            if (Type *ElemTy = GV->getValueType(); !Size->isMinusOne() &&
                 Size->getValue().getLimitedValue() >=
                     DL.getTypeStoreSize(ElemTy)) {
               Invariants.insert(GV);
@@ -460,11 +460,11 @@ bool Evaluator::EvaluateBlock(BasicBlock::iterator CurInst, BasicBlock *&NextBB,
           ++CurInst;
           continue;
         } else {
-          Value *Stripped = CurInst->stripPointerCastsForAliasAnalysis();
+          
           // Only attempt to getVal() if we've actually managed to strip
           // anything away, or else we'll call getVal() on the current
           // instruction.
-          if (Stripped != &*CurInst) {
+          if (Value *Stripped = CurInst->stripPointerCastsForAliasAnalysis(); Stripped != &*CurInst) {
             InstResult = getVal(Stripped);
           }
           if (InstResult) {
@@ -543,8 +543,8 @@ bool Evaluator::EvaluateBlock(BasicBlock::iterator CurInst, BasicBlock *&NextBB,
         if (!Val) return false;  // Cannot determine.
         NextBB = SI->findCaseValue(Val)->getCaseSuccessor();
       } else if (IndirectBrInst *IBI = dyn_cast<IndirectBrInst>(CurInst)) {
-        Value *Val = getVal(IBI->getAddress())->stripPointerCasts();
-        if (BlockAddress *BA = dyn_cast<BlockAddress>(Val))
+        
+        if (BlockAddress *Value *Val = getVal(IBI->getAddress())->stripPointerCasts(); BA = dyn_cast<BlockAddress>(Val))
           NextBB = BA->getBasicBlock();
         else
           return false;  // Cannot determine.
@@ -629,8 +629,8 @@ bool Evaluator::EvaluateFunction(Function *F, Constant *&RetVal,
     if (!NextBB) {
       // Successfully running until there's no next block means that we found
       // the return.  Fill it the return value and pop the call stack.
-      ReturnInst *RI = cast<ReturnInst>(CurBB->getTerminator());
-      if (RI->getNumOperands()) {
+      
+      if (ReturnInst *RI = cast<ReturnInst>(CurBB->getTerminator()); RI->getNumOperands()) {
         // The Evaluator can look through pointer casts as long as alias
         // analysis holds because it's just a simple interpreter and doesn't
         // skip memory accesses due to invariant group metadata, but we can't

@@ -341,8 +341,8 @@ static LLVM_ATTRIBUTE_NOINLINE Value *emitRVVUnitStridedSegLoadTupleBuiltin(
   bool NoPassthru =
       (IsMasked && (PolicyAttrs & RVV_VTA) && (PolicyAttrs & RVV_VMA)) |
       (!IsMasked && (PolicyAttrs & RVV_VTA));
-  unsigned Offset = IsMasked ? NoPassthru ? 1 : 2 : NoPassthru ? 0 : 1;
-  if (IsMasked)
+  
+  if (unsigned Offset = IsMasked ? NoPassthru ? 1 : 2 : NoPassthru ? 0 : 1; IsMasked)
     IntrinsicTypes = {ResultType, Ops[Offset]->getType(), Ops[0]->getType(),
                       Ops.back()->getType()};
   else
@@ -439,8 +439,8 @@ static LLVM_ATTRIBUTE_NOINLINE Value *emitRVVStridedSegLoadTupleBuiltin(
   bool NoPassthru =
       (IsMasked && (PolicyAttrs & RVV_VTA) && (PolicyAttrs & RVV_VMA)) |
       (!IsMasked && (PolicyAttrs & RVV_VTA));
-  unsigned Offset = IsMasked ? NoPassthru ? 1 : 2 : NoPassthru ? 0 : 1;
-  if (IsMasked)
+  
+  if (unsigned Offset = IsMasked ? NoPassthru ? 1 : 2 : NoPassthru ? 0 : 1; IsMasked)
     IntrinsicTypes = {ResultType, Ops[Offset]->getType(), Ops.back()->getType(),
                       Ops[0]->getType()};
   else
@@ -560,11 +560,11 @@ static LLVM_ATTRIBUTE_NOINLINE Value *emitRVVFloatingPointBuiltin(
   bool HasMaskedOff =
       !((IsMasked && (PolicyAttrs & RVV_VTA) && (PolicyAttrs & RVV_VMA)) ||
         (!IsMasked && PolicyAttrs & RVV_VTA));
-  bool HasRoundModeOp =
-      IsMasked ? (HasMaskedOff ? Ops.size() == 6 : Ops.size() == 5)
-               : (HasMaskedOff ? Ops.size() == 5 : Ops.size() == 4);
+  
 
-  if (!HasRoundModeOp)
+  if (bool HasRoundModeOp =
+      IsMasked ? (HasMaskedOff ? Ops.size() == 6 : Ops.size() == 5)
+               : (HasMaskedOff ? Ops.size() == 5 : Ops.size() == 4); !HasRoundModeOp)
     Ops.insert(Ops.end() - 1,
                ConstantInt::get(Ops.back()->getType(), 7)); // frm
 
@@ -595,11 +595,11 @@ static LLVM_ATTRIBUTE_NOINLINE Value *emitRVVWideningFloatingPointBuiltin(
   bool HasMaskedOff =
       !((IsMasked && (PolicyAttrs & RVV_VTA) && (PolicyAttrs & RVV_VMA)) ||
         (!IsMasked && PolicyAttrs & RVV_VTA));
-  bool HasRoundModeOp =
-      IsMasked ? (HasMaskedOff ? Ops.size() == 6 : Ops.size() == 5)
-               : (HasMaskedOff ? Ops.size() == 5 : Ops.size() == 4);
+  
 
-  if (!HasRoundModeOp)
+  if (bool HasRoundModeOp =
+      IsMasked ? (HasMaskedOff ? Ops.size() == 6 : Ops.size() == 5)
+               : (HasMaskedOff ? Ops.size() == 5 : Ops.size() == 4); !HasRoundModeOp)
     Ops.insert(Ops.end() - 1,
                ConstantInt::get(Ops.back()->getType(), 7)); // frm
 
@@ -697,9 +697,9 @@ emitRVVFMABuiltin(CodeGenFunction *CGF, const CallExpr *E,
   // Masked:   (vector_in, vector_in/scalar_in, vector_in, mask, frm,
   //            vl, policy)
 
-  bool HasRoundModeOp = IsMasked ? Ops.size() == 6 : Ops.size() == 5;
+  
 
-  if (!HasRoundModeOp)
+  if (bool HasRoundModeOp = IsMasked ? Ops.size() == 6 : Ops.size() == 5; !HasRoundModeOp)
     Ops.insert(Ops.end() - 1,
                ConstantInt::get(Ops.back()->getType(), 7)); // frm
 
@@ -725,9 +725,9 @@ emitRVVWideningFMABuiltin(CodeGenFunction *CGF, const CallExpr *E,
   // policy) Masked:   (vector_in, vector_in/scalar_in, vector_in, mask, frm,
   // vl, policy)
 
-  bool HasRoundModeOp = IsMasked ? Ops.size() == 6 : Ops.size() == 5;
+  
 
-  if (!HasRoundModeOp)
+  if (bool HasRoundModeOp = IsMasked ? Ops.size() == 6 : Ops.size() == 5; !HasRoundModeOp)
     Ops.insert(Ops.end() - 1,
                ConstantInt::get(Ops.back()->getType(), 7)); // frm
 
@@ -756,11 +756,11 @@ static LLVM_ATTRIBUTE_NOINLINE Value *emitRVVFloatingUnaryBuiltin(
   bool HasMaskedOff =
       !((IsMasked && (PolicyAttrs & RVV_VTA) && (PolicyAttrs & RVV_VMA)) ||
         (!IsMasked && PolicyAttrs & RVV_VTA));
-  bool HasRoundModeOp =
-      IsMasked ? (HasMaskedOff ? Ops.size() == 5 : Ops.size() == 4)
-               : (HasMaskedOff ? Ops.size() == 4 : Ops.size() == 3);
+  
 
-  if (!HasRoundModeOp)
+  if (bool HasRoundModeOp =
+      IsMasked ? (HasMaskedOff ? Ops.size() == 5 : Ops.size() == 4)
+               : (HasMaskedOff ? Ops.size() == 4 : Ops.size() == 3); !HasRoundModeOp)
     Ops.insert(Ops.end() - 1,
                ConstantInt::get(Ops.back()->getType(), 7)); // frm
 
@@ -790,11 +790,11 @@ static LLVM_ATTRIBUTE_NOINLINE Value *emitRVVFloatingConvBuiltin(
   bool HasMaskedOff =
       !((IsMasked && (PolicyAttrs & RVV_VTA) && (PolicyAttrs & RVV_VMA)) ||
         (!IsMasked && PolicyAttrs & RVV_VTA));
-  bool HasRoundModeOp =
-      IsMasked ? (HasMaskedOff ? Ops.size() == 5 : Ops.size() == 4)
-               : (HasMaskedOff ? Ops.size() == 4 : Ops.size() == 3);
+  
 
-  if (!HasRoundModeOp)
+  if (bool HasRoundModeOp =
+      IsMasked ? (HasMaskedOff ? Ops.size() == 5 : Ops.size() == 4)
+               : (HasMaskedOff ? Ops.size() == 4 : Ops.size() == 3); !HasRoundModeOp)
     Ops.insert(Ops.end() - 1,
                ConstantInt::get(Ops.back()->getType(), 7)); // frm
 
@@ -825,11 +825,11 @@ static LLVM_ATTRIBUTE_NOINLINE Value *emitRVVFloatingReductionBuiltin(
   bool HasMaskedOff =
       !((IsMasked && (PolicyAttrs & RVV_VTA) && (PolicyAttrs & RVV_VMA)) ||
         (!IsMasked && PolicyAttrs & RVV_VTA));
-  bool HasRoundModeOp =
-      IsMasked ? (HasMaskedOff ? Ops.size() == 6 : Ops.size() == 5)
-               : (HasMaskedOff ? Ops.size() == 5 : Ops.size() == 4);
+  
 
-  if (!HasRoundModeOp)
+  if (bool HasRoundModeOp =
+      IsMasked ? (HasMaskedOff ? Ops.size() == 6 : Ops.size() == 5)
+               : (HasMaskedOff ? Ops.size() == 5 : Ops.size() == 4); !HasRoundModeOp)
     Ops.insert(Ops.end() - 1,
                ConstantInt::get(Ops.back()->getType(), 7)); // frm
 
@@ -850,18 +850,18 @@ emitRVVReinterpretBuiltin(CodeGenFunction *CGF, const CallExpr *E,
                           Intrinsic::ID ID, SmallVectorImpl<Value *> &Ops,
                           int PolicyAttrs, bool IsMasked, unsigned SegInstSEW) {
   auto &Builder = CGF->Builder;
-  auto &CGM = CGF->CGM;
+  
 
-  if (ResultType->isIntOrIntVectorTy(1) ||
+  if (auto &CGM = CGF->CGM; ResultType->isIntOrIntVectorTy(1) ||
       Ops[0]->getType()->isIntOrIntVectorTy(1)) {
     assert(isa<ScalableVectorType>(ResultType) &&
            isa<ScalableVectorType>(Ops[0]->getType()));
 
     LLVMContext &Context = CGM.getLLVMContext();
-    ScalableVectorType *Boolean64Ty =
-        ScalableVectorType::get(llvm::Type::getInt1Ty(Context), 64);
+    
 
-    if (ResultType->isIntOrIntVectorTy(1)) {
+    if (ScalableVectorType *Boolean64Ty =
+        ScalableVectorType::get(llvm::Type::getInt1Ty(Context), 64); ResultType->isIntOrIntVectorTy(1)) {
       // Casting from m1 vector integer -> vector boolean
       // Ex: <vscale x 8 x i8>
       //     --(bitcast)--------> <vscale x 64 x i1>
@@ -889,8 +889,8 @@ emitRVVGetBuiltin(CodeGenFunction *CGF, const CallExpr *E,
                   Intrinsic::ID ID, SmallVectorImpl<Value *> &Ops,
                   int PolicyAttrs, bool IsMasked, unsigned SegInstSEW) {
   auto &Builder = CGF->Builder;
-  auto *VecTy = cast<ScalableVectorType>(ResultType);
-  if (auto *OpVecTy = dyn_cast<ScalableVectorType>(Ops[0]->getType())) {
+  
+  if (auto *auto *VecTy = cast<ScalableVectorType>(ResultType); OpVecTy = dyn_cast<ScalableVectorType>(Ops[0]->getType())) {
     unsigned MaxIndex =
         OpVecTy->getMinNumElements() / VecTy->getMinNumElements();
     assert(isPowerOf2_32(MaxIndex));

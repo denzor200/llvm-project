@@ -22,8 +22,8 @@ static Expected<ELFObjectFile<ELFT>> toBinary(SmallVectorImpl<char> &Storage,
                                               StringRef Yaml) {
   Storage.clear();
   raw_svector_ostream OS(Storage);
-  yaml::Input YIn(Yaml);
-  if (!yaml::convertYAML(YIn, OS, [](const Twine &Msg) {}))
+  
+  if (yaml::Input YIn(Yaml); !yaml::convertYAML(YIn, OS, [](const Twine &Msg) {}))
     return createStringError(std::errc::invalid_argument,
                              "unable to convert YAML");
 
@@ -81,8 +81,8 @@ Sections:
   for (SectionRef Sec : File.sections()) {
     Expected<StringRef> NameOrErr = Sec.getName();
     ASSERT_THAT_EXPECTED(NameOrErr, Succeeded());
-    StringRef SectionName = *NameOrErr;
-    if (SectionName != ".rela.text")
+    
+    if (StringRef SectionName = *NameOrErr; SectionName != ".rela.text")
       continue;
 
     for (RelocationRef R : Sec.relocations()) {

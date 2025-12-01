@@ -106,8 +106,8 @@ static bool isValidRegDefOf(const MachineOperand &MO, Register Reg,
 static bool isFIDef(const MachineInstr &MI, int FrameIndex,
                     const TargetInstrInfo *TII) {
   int DefFrameIndex = 0;
-  int SrcFrameIndex = 0;
-  if (TII->isStoreToStackSlot(MI, DefFrameIndex) ||
+  
+  if (int SrcFrameIndex = 0; TII->isStoreToStackSlot(MI, DefFrameIndex) ||
       TII->isStackSlotCopy(MI, DefFrameIndex, SrcFrameIndex))
     return DefFrameIndex == FrameIndex;
   return false;
@@ -428,8 +428,8 @@ MachineInstr *ReachingDefInfo::getReachingLocalMIDef(MachineInstr *MI,
 bool ReachingDefInfo::hasSameReachingDef(MachineInstr *A, MachineInstr *B,
                                          Register Reg) const {
   MachineBasicBlock *ParentA = A->getParent();
-  MachineBasicBlock *ParentB = B->getParent();
-  if (ParentA != ParentB)
+  
+  if (MachineBasicBlock *ParentB = B->getParent(); ParentA != ParentB)
     return false;
 
   return getReachingDef(A, Reg) == getReachingDef(B, Reg);
@@ -447,8 +447,8 @@ MachineInstr *ReachingDefInfo::getInstFromId(MachineBasicBlock *MBB,
     return nullptr;
 
   for (auto &MI : *MBB) {
-    auto F = InstIds.find(&MI);
-    if (F != InstIds.end() && F->second == InstId)
+    
+    if (auto F = InstIds.find(&MI); F != InstIds.end() && F->second == InstId)
       return &MI;
   }
 
@@ -569,8 +569,8 @@ void ReachingDefInfo::getLiveOuts(MachineBasicBlock *MBB, Register Reg,
 MachineInstr *ReachingDefInfo::getUniqueReachingMIDef(MachineInstr *MI,
                                                       Register Reg) const {
   // If there's a local def before MI, return it.
-  MachineInstr *LocalDef = getReachingLocalMIDef(MI, Reg);
-  if (LocalDef && InstIds.lookup(LocalDef) < InstIds.lookup(MI))
+  
+  if (MachineInstr *LocalDef = getReachingLocalMIDef(MI, Reg); LocalDef && InstIds.lookup(LocalDef) < InstIds.lookup(MI))
     return LocalDef;
 
   SmallPtrSet<MachineInstr*, 2> Incoming;
@@ -640,8 +640,8 @@ bool ReachingDefInfo::isReachingDefLiveOut(MachineInstr *MI,
     return false;
 
   auto Last = MBB->getLastNonDebugInstr();
-  int Def = getReachingDef(MI, Reg);
-  if (Last != MBB->end() && getReachingDef(&*Last, Reg) != Def)
+  
+  if (int Def = getReachingDef(MI, Reg); Last != MBB->end() && getReachingDef(&*Last, Reg) != Def)
     return false;
 
   // Finally check that the last instruction doesn't redefine the register.
@@ -664,8 +664,8 @@ MachineInstr *ReachingDefInfo::getLocalLiveOutMIDef(MachineBasicBlock *MBB,
     return nullptr;
 
   if (Reg.isStack()) {
-    int FrameIndex = Reg.stackSlotIndex();
-    if (isFIDef(*Last, FrameIndex, TII))
+    
+    if (int FrameIndex = Reg.stackSlotIndex(); isFIDef(*Last, FrameIndex, TII))
       return &*Last;
   }
 
@@ -828,9 +828,9 @@ bool ReachingDefInfo::isSafeToDefRegAt(MachineInstr *MI, Register Reg,
       return false;
   }
 
-  MachineBasicBlock *MBB = MI->getParent();
+  
   // Check for any defs after MI.
-  if (isRegDefinedAfter(MI, Reg)) {
+  if (MachineBasicBlock *MBB = MI->getParent(); isRegDefinedAfter(MI, Reg)) {
     auto I = MachineBasicBlock::iterator(MI);
     for (auto E = MBB->end(); I != E; ++I) {
       if (Ignore.count(&*I))

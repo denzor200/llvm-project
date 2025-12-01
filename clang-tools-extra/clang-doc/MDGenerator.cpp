@@ -263,8 +263,8 @@ static void genMarkdown(const ClangDocContext &CDCtx, const RecordInfo &I,
   }
 
   std::string Parents = genReferenceList(I.Parents);
-  std::string VParents = genReferenceList(I.VirtualParents);
-  if (!Parents.empty() || !VParents.empty()) {
+  
+  if (std::string VParents = genReferenceList(I.VirtualParents); !Parents.empty() || !VParents.empty()) {
     if (Parents.empty())
       writeLine("Inherits from " + VParents, OS);
     else if (VParents.empty())

@@ -88,8 +88,8 @@ void WasmDumper::printRelocation(const SectionRef &Section,
   const wasm::WasmRelocation &WasmReloc = Obj->getWasmRelocation(Reloc);
 
   StringRef SymName;
-  symbol_iterator SI = Reloc.getSymbol();
-  if (SI != Obj->symbol_end())
+  
+  if (symbol_iterator SI = Reloc.getSymbol(); SI != Obj->symbol_end())
     SymName = unwrapOrError(Obj->getFileName(), SI->getName());
 
   bool HasAddend = wasm::relocTypeHasAddend(static_cast<uint32_t>(RelocType));
@@ -163,8 +163,8 @@ void WasmDumper::printSectionHeaders() {
     case wasm::WASM_SEC_CUSTOM:
       W.printString("Name", WasmSec.Name);
       if (WasmSec.Name == "linking") {
-        const wasm::WasmLinkingData &LinkingData = Obj->linkingData();
-        if (!LinkingData.InitFunctions.empty()) {
+        
+        if (const wasm::WasmLinkingData &LinkingData = Obj->linkingData(); !LinkingData.InitFunctions.empty()) {
           ListScope Group(W, "InitFunctions");
           for (const wasm::WasmInitFunc &F : LinkingData.InitFunctions)
             W.startLine() << F.Symbol << " (priority=" << F.Priority << ")\n";

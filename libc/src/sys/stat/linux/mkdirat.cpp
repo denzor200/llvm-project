@@ -20,12 +20,12 @@ namespace LIBC_NAMESPACE_DECL {
 
 LLVM_LIBC_FUNCTION(int, mkdirat, (int dfd, const char *path, mode_t mode)) {
 #ifdef SYS_mkdirat
-  int ret = LIBC_NAMESPACE::syscall_impl<int>(SYS_mkdirat, dfd, path, mode);
+  
 #else
 #error "mkdirat syscall not available."
 #endif
 
-  if (ret < 0) {
+  if (int ret = LIBC_NAMESPACE::syscall_impl<int>(SYS_mkdirat, dfd, path, mode); ret < 0) {
     libc_errno = -ret;
     return -1;
   }

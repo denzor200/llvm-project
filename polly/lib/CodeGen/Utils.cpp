@@ -52,8 +52,8 @@ static BasicBlock *splitEdge(BasicBlock *Prev, BasicBlock *Succ,
 
   if (RI) {
     Region *PrevRegion = RI->getRegionFor(Prev);
-    Region *SuccRegion = RI->getRegionFor(Succ);
-    if (PrevRegion->contains(MiddleBlock)) {
+    
+    if (Region *SuccRegion = RI->getRegionFor(Succ); PrevRegion->contains(MiddleBlock)) {
       RI->setRegionFor(MiddleBlock, PrevRegion);
     } else {
       RI->setRegionFor(MiddleBlock, SuccRegion);

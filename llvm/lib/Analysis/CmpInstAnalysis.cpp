@@ -153,8 +153,8 @@ llvm::decomposeBitTestICmp(Value *LHS, Value *RHS, CmpInst::Predicate Pred,
   case ICmpInst::ICMP_NE: {
     assert(DecomposeAnd);
     const APInt *AndC;
-    Value *AndVal;
-    if (match(LHS, m_And(m_Value(AndVal), m_APIntAllowPoison(AndC)))) {
+    
+    if (Value *AndVal; match(LHS, m_And(m_Value(AndVal), m_APIntAllowPoison(AndC)))) {
       LHS = AndVal;
       Result.Mask = *AndC;
       Result.C = C;
@@ -197,8 +197,8 @@ std::optional<DecomposedBitTest> llvm::decomposeBitTest(Value *Cond,
                                 ICmp->getPredicate(), LookThruTrunc,
                                 AllowNonZeroC, DecomposeAnd);
   }
-  Value *X;
-  if (Cond->getType()->isIntOrIntVectorTy(1) &&
+  
+  if (Value *X; Cond->getType()->isIntOrIntVectorTy(1) &&
       (match(Cond, m_Trunc(m_Value(X))) ||
        match(Cond, m_Not(m_Trunc(m_Value(X)))))) {
     DecomposedBitTest Result;

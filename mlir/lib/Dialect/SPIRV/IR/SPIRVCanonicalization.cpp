@@ -291,10 +291,10 @@ struct UMulExtendedOpXOne final : OpRewritePattern<spirv::UMulExtendedOp> {
     Location loc = op.getLoc();
     Value lhs = op.getOperand1();
     Value rhs = op.getOperand2();
-    Type constituentType = lhs.getType();
+    
 
     // umulextended (x, 1) = <x, 0>
-    if (matchPattern(rhs, m_One())) {
+    if (Type constituentType = lhs.getType(); matchPattern(rhs, m_One())) {
       Value zero = spirv::ConstantOp::getZero(constituentType, loc, rewriter);
       Value constituents[2] = {lhs, zero};
       rewriter.replaceOpWithNewOp<spirv::CompositeConstructOp>(op, op.getType(),
@@ -654,8 +654,8 @@ OpFoldResult spirv::UModOp::fold(FoldAdaptor adaptor) {
 
 OpFoldResult spirv::SNegateOp::fold(FoldAdaptor adaptor) {
   // -(-x) = 0 - (0 - x) = x
-  auto op = getOperand();
-  if (auto negateOp = op.getDefiningOp<spirv::SNegateOp>())
+  
+  if (auto auto op = getOperand(); negateOp = op.getDefiningOp<spirv::SNegateOp>())
     return negateOp->getOperand(0);
 
   // According to the SPIR-V spec:
@@ -674,8 +674,8 @@ OpFoldResult spirv::SNegateOp::fold(FoldAdaptor adaptor) {
 
 OpFoldResult spirv::NotOp::fold(spirv::NotOp::FoldAdaptor adaptor) {
   // !(!x) = x
-  auto op = getOperand();
-  if (auto notOp = op.getDefiningOp<spirv::NotOp>())
+  
+  if (auto auto op = getOperand(); notOp = op.getDefiningOp<spirv::NotOp>())
     return notOp->getOperand(0);
 
   // According to the SPIR-V spec:
@@ -760,8 +760,8 @@ OpFoldResult spirv::LogicalNotEqualOp::fold(FoldAdaptor adaptor) {
 
 OpFoldResult spirv::LogicalNotOp::fold(FoldAdaptor adaptor) {
   // !(!x) = x
-  auto op = getOperand();
-  if (auto notOp = op.getDefiningOp<spirv::LogicalNotOp>())
+  
+  if (auto auto op = getOperand(); notOp = op.getDefiningOp<spirv::LogicalNotOp>())
     return notOp->getOperand(0);
 
   // According to the SPIR-V spec:
@@ -1155,8 +1155,8 @@ spirv::BitwiseAndOp::fold(spirv::BitwiseAndOp::FoldAdaptor adaptor) {
     return getOperand1();
   }
 
-  APInt rhsMask;
-  if (matchPattern(adaptor.getOperand2(), m_ConstantInt(&rhsMask))) {
+  
+  if (APInt rhsMask; matchPattern(adaptor.getOperand2(), m_ConstantInt(&rhsMask))) {
     // x & 0 -> 0
     if (rhsMask.isZero())
       return getOperand2();
@@ -1194,8 +1194,8 @@ OpFoldResult spirv::BitwiseOrOp::fold(spirv::BitwiseOrOp::FoldAdaptor adaptor) {
     return getOperand1();
   }
 
-  APInt rhsMask;
-  if (matchPattern(adaptor.getOperand2(), m_ConstantInt(&rhsMask))) {
+  
+  if (APInt rhsMask; matchPattern(adaptor.getOperand2(), m_ConstantInt(&rhsMask))) {
     // x | 0 -> x
     if (rhsMask.isZero())
       return getOperand1();

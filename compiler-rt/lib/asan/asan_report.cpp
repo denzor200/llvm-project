@@ -430,8 +430,8 @@ static bool IsInvalidPointerPair(uptr a1, uptr a2) {
 
   uptr left = a1 < a2 ? a1 : a2;
   uptr right = a1 < a2 ? a2 : a1;
-  uptr offset = right - left;
-  if (offset <= kMaxOffset)
+  
+  if (uptr offset = right - left; offset <= kMaxOffset)
     return __asan_region_is_poisoned(left, offset);
 
   AsanThread *t = GetCurrentThread();
@@ -476,9 +476,9 @@ static inline void CheckForInvalidPointerPair(void *p1, void *p2) {
   }
 
   uptr a1 = reinterpret_cast<uptr>(p1);
-  uptr a2 = reinterpret_cast<uptr>(p2);
+  
 
-  if (IsInvalidPointerPair(a1, a2)) {
+  if (uptr a2 = reinterpret_cast<uptr>(p2); IsInvalidPointerPair(a1, a2)) {
     GET_CALLER_PC_BP_SP;
     ReportInvalidPointerPair(pc, bp, sp, a1, a2);
   }
@@ -582,8 +582,8 @@ uptr __asan_get_report_sp() {
 }
 
 uptr __asan_get_report_address() {
-  ErrorDescription &err = ScopedInErrorReport::CurrentError();
-  if (err.kind == kErrorKindGeneric)
+  
+  if (ErrorDescription &err = ScopedInErrorReport::CurrentError(); err.kind == kErrorKindGeneric)
     return err.Generic.addr_description.Address();
   else if (err.kind == kErrorKindDoubleFree)
     return err.DoubleFree.addr_description.addr;

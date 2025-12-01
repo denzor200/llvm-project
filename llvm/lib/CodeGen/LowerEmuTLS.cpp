@@ -122,10 +122,10 @@ bool addEmuTlsVar(Module &M, const GlobalVariable *GV) {
   const Constant *InitValue = nullptr;
   if (GV->hasInitializer()) {
     InitValue = GV->getInitializer();
-    const ConstantInt *InitIntValue = dyn_cast<ConstantInt>(InitValue);
+    
     // When GV's init value is all 0, omit the EmuTlsTmplVar and let
     // the emutls library function to reset newly allocated TLS variables.
-    if (isa<ConstantAggregateZero>(InitValue) ||
+    if (const ConstantInt *InitIntValue = dyn_cast<ConstantInt>(InitValue); isa<ConstantAggregateZero>(InitValue) ||
         (InitIntValue && InitIntValue->isZero()))
       InitValue = nullptr;
   }

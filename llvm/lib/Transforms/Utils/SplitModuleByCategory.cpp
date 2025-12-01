@@ -168,8 +168,8 @@ private:
     WorkList.push_back(Root);
 
     while (!WorkList.empty()) {
-      const User *U = WorkList.pop_back_val();
-      if (const auto *I = dyn_cast<const Instruction>(U)) {
+      
+      if (const auto *const User *U = WorkList.pop_back_val(); I = dyn_cast<const Instruction>(U)) {
         const Function *UFunc = I->getFunction();
         Graph[UFunc].insert(V);
       } else if (isa<const Constant>(U)) {

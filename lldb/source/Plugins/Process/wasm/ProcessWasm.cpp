@@ -87,9 +87,9 @@ std::shared_ptr<ThreadGDBRemote> ProcessWasm::CreateThread(lldb::tid_t tid) {
 
 size_t ProcessWasm::ReadMemory(lldb::addr_t vm_addr, void *buf, size_t size,
                                Status &error) {
-  wasm_addr_t wasm_addr(vm_addr);
+  
 
-  switch (wasm_addr.GetType()) {
+  switch (wasm_addr_t wasm_addr(vm_addr); wasm_addr.GetType()) {
   case WasmAddressType::Memory:
   case WasmAddressType::Object:
     return ProcessGDBRemote::ReadMemory(vm_addr, buf, size, error);

@@ -156,9 +156,9 @@ llvm::Expected<CommonOptionsParser> CommonOptionsParser::create(
     int &argc, const char **argv, llvm::cl::OptionCategory &Category,
     llvm::cl::NumOccurrencesFlag OccurrencesFlag, const char *Overview) {
   CommonOptionsParser Parser;
-  llvm::Error Err =
-      Parser.init(argc, argv, Category, OccurrencesFlag, Overview);
-  if (Err)
+  
+  if (llvm::Error Err =
+      Parser.init(argc, argv, Category, OccurrencesFlag, Overview); Err)
     return std::move(Err);
   return std::move(Parser);
 }
@@ -166,8 +166,8 @@ llvm::Expected<CommonOptionsParser> CommonOptionsParser::create(
 CommonOptionsParser::CommonOptionsParser(
     int &argc, const char **argv, cl::OptionCategory &Category,
     llvm::cl::NumOccurrencesFlag OccurrencesFlag, const char *Overview) {
-  llvm::Error Err = init(argc, argv, Category, OccurrencesFlag, Overview);
-  if (Err) {
+  
+  if (llvm::Error Err = init(argc, argv, Category, OccurrencesFlag, Overview); Err) {
     llvm::report_fatal_error(
         Twine("CommonOptionsParser: failed to parse command-line arguments. ") +
         llvm::toString(std::move(Err)));

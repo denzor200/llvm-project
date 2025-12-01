@@ -688,8 +688,8 @@ bool SemaRISCV::CheckBuiltinFunctionCall(const TargetInfo &TI,
     llvm::APSInt Result;
 
     // We can't check the value of a dependent argument.
-    Expr *Arg = TheCall->getArg(0);
-    if (Arg->isTypeDependent() || Arg->isValueDependent())
+    
+    if (Expr *Arg = TheCall->getArg(0); Arg->isTypeDependent() || Arg->isValueDependent())
       return false;
 
     // Check constant-ness first.
@@ -1515,9 +1515,9 @@ void SemaRISCV::checkRVVTypeSupport(QualType Ty, SourceLocation Loc, Decl *D,
   ASTContext::BuiltinVectorTypeInfo Info =
       SemaRef.Context.getBuiltinVectorTypeInfo(Ty->castAs<BuiltinType>());
   unsigned EltSize = SemaRef.Context.getTypeSize(Info.ElementType);
-  unsigned MinElts = Info.EC.getKnownMinValue();
+  
 
-  if (Info.ElementType->isSpecificBuiltinType(BuiltinType::Double) &&
+  if (unsigned MinElts = Info.EC.getKnownMinValue(); Info.ElementType->isSpecificBuiltinType(BuiltinType::Double) &&
       !FeatureMap.lookup("zve64d"))
     Diag(Loc, diag::err_riscv_type_requires_extension) << Ty << "zve64d";
   // (ELEN, LMUL) pairs of (8, mf8), (16, mf4), (32, mf2), (64, m1) requires at
@@ -1755,10 +1755,10 @@ bool SemaRISCV::checkTargetVersionAttr(const StringRef Param,
     if (AttrStr.starts_with("arch=+")) {
       DuplicateAttr = HasArch;
       HasArch = true;
-      ParsedTargetAttr TargetAttr =
-          getASTContext().getTargetInfo().parseTargetAttr(AttrStr);
+      
 
-      if (TargetAttr.Features.empty() ||
+      if (ParsedTargetAttr TargetAttr =
+          getASTContext().getTargetInfo().parseTargetAttr(AttrStr); TargetAttr.Features.empty() ||
           llvm::any_of(TargetAttr.Features, [&](const StringRef Ext) {
             return !isValidFMVExtension(Ext);
           }))
@@ -1770,8 +1770,8 @@ bool SemaRISCV::checkTargetVersionAttr(const StringRef Param,
     } else if (AttrStr.consume_front("priority=")) {
       DuplicateAttr = HasPriority;
       HasPriority = true;
-      unsigned Digit;
-      if (AttrStr.getAsInteger(0, Digit))
+      
+      if (unsigned Digit; AttrStr.getAsInteger(0, Digit))
         return Diag(Loc, diag::warn_unsupported_target_attribute)
                << Unsupported << None << AttrStr << TargetVersion;
     } else {
@@ -1810,10 +1810,10 @@ bool SemaRISCV::checkTargetClonesAttr(
       AttrStr = AttrStr.trim();
       // Only support arch=+ext,... syntax.
       if (AttrStr.starts_with("arch=+")) {
-        ParsedTargetAttr TargetAttr =
-            getASTContext().getTargetInfo().parseTargetAttr(AttrStr);
+        
 
-        if (TargetAttr.Features.empty() ||
+        if (ParsedTargetAttr TargetAttr =
+            getASTContext().getTargetInfo().parseTargetAttr(AttrStr); TargetAttr.Features.empty() ||
             llvm::any_of(TargetAttr.Features, [&](const StringRef Ext) {
               return !isValidFMVExtension(Ext);
             }))
@@ -1824,8 +1824,8 @@ bool SemaRISCV::checkTargetClonesAttr(
         HasDefault = true;
       } else if (AttrStr.consume_front("priority=")) {
         IsPriority = true;
-        unsigned Digit;
-        if (AttrStr.getAsInteger(0, Digit))
+        
+        if (unsigned Digit; AttrStr.getAsInteger(0, Digit))
           return Diag(Loc, diag::warn_unsupported_target_attribute)
                  << Unsupported << None << Param << TargetClones;
       } else {

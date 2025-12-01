@@ -2018,8 +2018,8 @@ void XeGPUSubgroupDistributePass::runOnOperation() {
     // This occurs inside scf.for body to resolve the block argument type to
     // SIMT type.
     if (inputDescType.getLayout()) {
-      auto argument = mlir::dyn_cast<mlir::BlockArgument>(input);
-      if (argument) {
+      
+      if (auto argument = mlir::dyn_cast<mlir::BlockArgument>(input); argument) {
         argument.setType(output.getType());
         output.replaceAllUsesWith(argument);
         if (auto loopOp = mlir::dyn_cast<mlir::LoopLikeOpInterface>(

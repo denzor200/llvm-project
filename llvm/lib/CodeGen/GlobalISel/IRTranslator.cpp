@@ -236,8 +236,8 @@ ArrayRef<Register> IRTranslator::getOrCreateVRegs(const Value &Val) {
   } else {
     assert(SplitTys.size() == 1 && "unexpectedly split LLT");
     VRegs->push_back(MRI->createGenericVirtualRegister(SplitTys[0]));
-    bool Success = translate(cast<Constant>(Val), VRegs->front());
-    if (!Success) {
+    
+    if (bool Success = translate(cast<Constant>(Val), VRegs->front()); !Success) {
       OptimizationRemarkMissed R("gisel-irtranslator", "GISelFailure",
                                  MF->getFunction().getSubprogram(),
                                  &MF->getFunction().getEntryBlock());
@@ -360,8 +360,8 @@ bool IRTranslator::translateCompare(const User &U,
   Register Op1 = getOrCreateVReg(*U.getOperand(1));
   Register Res = getOrCreateVReg(U);
   CmpInst::Predicate Pred = CI->getPredicate();
-  uint32_t Flags = MachineInstr::copyFlagsFromInstruction(*CI);
-  if (CmpInst::isIntPredicate(Pred))
+  
+  if (uint32_t Flags = MachineInstr::copyFlagsFromInstruction(*CI); CmpInst::isIntPredicate(Pred))
     MIRBuilder.buildICmp(Pred, Res, Op0, Op1, Flags);
   else if (Pred == CmpInst::FCMP_FALSE)
     MIRBuilder.buildCopy(
@@ -443,8 +443,8 @@ void IRTranslator::findMergedConditions(
          "Expected Opc to be AND/OR");
   // Skip over not part of the tree and remember to invert op and operands at
   // next level.
-  Value *NotCond;
-  if (match(Cond, m_OneUse(m_Not(m_Value(NotCond)))) &&
+  
+  if (Value *NotCond; match(Cond, m_OneUse(m_Not(m_Value(NotCond)))) &&
       isValInBlock(NotCond, CurBB->getBasicBlock())) {
     findMergedConditions(NotCond, TBB, FBB, CurBB, SwitchBB, Opc, TProb, FProb,
                          !InvertCond);
@@ -770,9 +770,9 @@ bool IRTranslator::translateSwitch(const User &U, MachineIRBuilder &MIB) {
   while (!WorkList.empty()) {
     SwitchWorkListItem W = WorkList.pop_back_val();
 
-    unsigned NumClusters = W.LastCluster - W.FirstCluster + 1;
+    
     // For optimized builds, lower large range as a balanced binary tree.
-    if (NumClusters > 3 &&
+    if (unsigned NumClusters = W.LastCluster - W.FirstCluster + 1; NumClusters > 3 &&
         MF->getTarget().getOptLevel() != CodeGenOptLevel::None &&
         !DefaultMBB->getParent()->getFunction().hasMinSize()) {
       splitWorkItem(WorkList, W, SI.getCondition(), SwitchMBB, MIB);
@@ -935,16 +935,16 @@ void IRTranslator::emitSwitchCase(SwitchCG::CaseBlock &CB,
   const LLT i1Ty = LLT::scalar(1);
   // Build the compare.
   if (!CB.CmpMHS) {
-    const auto *CI = dyn_cast<ConstantInt>(CB.CmpRHS);
+    
     // For conditional branch lowering, we might try to do something silly like
     // emit an G_ICMP to compare an existing G_ICMP i1 result with true. If so,
     // just re-use the existing condition vreg.
-    if (MRI->getType(CondLHS).getSizeInBits() == 1 && CI && CI->isOne() &&
+    if (const auto *CI = dyn_cast<ConstantInt>(CB.CmpRHS); MRI->getType(CondLHS).getSizeInBits() == 1 && CI && CI->isOne() &&
         CB.PredInfo.Pred == CmpInst::ICMP_EQ) {
       Cond = CondLHS;
     } else {
-      Register CondRHS = getOrCreateVReg(*CB.CmpRHS);
-      if (CmpInst::isFPPredicate(CB.PredInfo.Pred))
+      
+      if (Register CondRHS = getOrCreateVReg(*CB.CmpRHS); CmpInst::isFPPredicate(CB.PredInfo.Pred))
         Cond =
             MIB.buildFCmp(CB.PredInfo.Pred, i1Ty, CondLHS, CondRHS).getReg(0);
       else
@@ -958,8 +958,8 @@ void IRTranslator::emitSwitchCase(SwitchCG::CaseBlock &CB,
     const APInt& Low = cast<ConstantInt>(CB.CmpLHS)->getValue();
     const APInt& High = cast<ConstantInt>(CB.CmpRHS)->getValue();
 
-    Register CmpOpReg = getOrCreateVReg(*CB.CmpMHS);
-    if (cast<ConstantInt>(CB.CmpLHS)->isMinValue(true)) {
+    
+    if (Register CmpOpReg = getOrCreateVReg(*CB.CmpMHS); cast<ConstantInt>(CB.CmpLHS)->isMinValue(true)) {
       Register CondRHS = getOrCreateVReg(*CB.CmpRHS);
       Cond =
           MIB.buildICmp(CmpInst::ICMP_SLE, i1Ty, CmpOpReg, CondRHS).getReg(0);
@@ -1164,8 +1164,8 @@ void IRTranslator::emitBitTestCase(SwitchCG::BitTestBlock &BB,
 
   LLT SwitchTy = getLLTForMVT(BB.RegVT);
   Register Cmp;
-  unsigned PopCount = llvm::popcount(B.Mask);
-  if (PopCount == 1) {
+  
+  if (unsigned PopCount = llvm::popcount(B.Mask); PopCount == 1) {
     // Testing for a single bit; just compare the shift count with what it
     // would need to be to shift a 1 bit in that position.
     auto MaskTrailingZeros =
@@ -1543,8 +1543,8 @@ bool IRTranslator::translateSelect(const User &U,
 bool IRTranslator::translateCopy(const User &U, const Value &V,
                                  MachineIRBuilder &MIRBuilder) {
   Register Src = getOrCreateVReg(V);
-  auto &Regs = *VMap.getVRegs(U);
-  if (Regs.empty()) {
+  
+  if (auto &Regs = *VMap.getVRegs(U); Regs.empty()) {
     Regs.push_back(Src);
     VMap.getOffsets(U)->push_back(0);
   } else {
@@ -1638,8 +1638,8 @@ bool IRTranslator::translateGetElementPtr(const User &U,
   int64_t Offset = 0;
   for (gep_type_iterator GTI = gep_type_begin(&U), E = gep_type_end(&U);
        GTI != E; ++GTI) {
-    const Value *Idx = GTI.getOperand();
-    if (StructType *StTy = GTI.getStructTypeOrNull()) {
+    
+    if (StructType *const Value *Idx = GTI.getOperand(); StTy = GTI.getStructTypeOrNull()) {
       unsigned Field = cast<Constant>(Idx)->getUniqueInteger().getZExtValue();
       Offset += DL->getStructLayout(StTy)->getElementOffset(Field);
       continue;
@@ -2756,8 +2756,8 @@ bool IRTranslator::translateCallBase(const CallBase &CB,
     // Look through ptrauth constants to try to eliminate the matching bundle
     // and turn this into a direct call with no ptrauth.
     // CallLowering will use the raw pointer if it doesn't find the PAI.
-    const auto *CalleeCPA = dyn_cast<ConstantPtrAuth>(CB.getCalledOperand());
-    if (!CalleeCPA || !isa<Function>(CalleeCPA->getPointer()) ||
+    
+    if (const auto *CalleeCPA = dyn_cast<ConstantPtrAuth>(CB.getCalledOperand()); !CalleeCPA || !isa<Function>(CalleeCPA->getPointer()) ||
         !CalleeCPA->isKnownCompatibleWith(Key, Discriminator, *DL)) {
       // If we can't make it direct, package the bundle into PAI.
       Register DiscReg = getOrCreateVReg(*Discriminator);
@@ -3204,8 +3204,8 @@ bool IRTranslator::translateVAArg(const User &U, MachineIRBuilder &MIRBuilder) {
 
 bool IRTranslator::translateUnreachable(const User &U,
                                         MachineIRBuilder &MIRBuilder) {
-  auto &UI = cast<UnreachableInst>(U);
-  if (!UI.shouldLowerToTrap(MF->getTarget().Options.TrapUnreachable,
+  
+  if (auto &UI = cast<UnreachableInst>(U); !UI.shouldLowerToTrap(MF->getTarget().Options.TrapUnreachable,
                             MF->getTarget().Options.NoTrapAfterNoreturn))
     return true;
 
@@ -3399,14 +3399,14 @@ bool IRTranslator::translateShuffleVector(const User &U,
   unsigned SrcElts =
       cast<FixedVectorType>(U.getOperand(0)->getType())->getNumElements();
   if (DstElts == 1) {
-    unsigned M = Mask[0];
-    if (SrcElts == 1) {
+    
+    if (unsigned M = Mask[0]; SrcElts == 1) {
       if (M == 0 || M == 1)
         return translateCopy(U, *U.getOperand(M), MIRBuilder);
       MIRBuilder.buildUndef(getOrCreateVReg(U));
     } else {
-      Register Dst = getOrCreateVReg(U);
-      if (M < SrcElts) {
+      
+      if (Register Dst = getOrCreateVReg(U); M < SrcElts) {
         MIRBuilder.buildExtractVectorElementConstant(
             Dst, getOrCreateVReg(*U.getOperand(0)), M);
       } else if (M < SrcElts * 2) {
@@ -3424,8 +3424,8 @@ bool IRTranslator::translateShuffleVector(const User &U,
     SmallVector<Register> Ops;
     Register Undef;
     for (int M : Mask) {
-      LLT SrcTy = getLLTForType(*U.getOperand(0)->getType(), *DL);
-      if (M == 0 || M == 1) {
+      
+      if (LLT SrcTy = getLLTForType(*U.getOperand(0)->getType(), *DL); M == 0 || M == 1) {
         Ops.push_back(getOrCreateVReg(*U.getOperand(M)));
       } else {
         if (!Undef.isValid()) {
@@ -3689,8 +3689,8 @@ void IRTranslator::translateDbgDeclareRecord(Value *Address, bool HasArgList,
 
   assert(Variable->isValidLocationForIntrinsic(DL) &&
          "Expected inlined-at fields to agree");
-  auto AI = dyn_cast<AllocaInst>(Address);
-  if (AI && AI->isStaticAlloca()) {
+  
+  if (auto AI = dyn_cast<AllocaInst>(Address); AI && AI->isStaticAlloca()) {
     // Static allocas are tracked at the MF level, no need for DBG_VALUE
     // instructions (in fact, they get ignored if they *do* exist).
     MF->setVariableDbgInfo(Variable, Expression,
@@ -3725,8 +3725,8 @@ void IRTranslator::translateDbgInfo(const Instruction &Inst,
     DbgVariableRecord &DVR = cast<DbgVariableRecord>(DR);
     const DILocalVariable *Variable = DVR.getVariable();
     const DIExpression *Expression = DVR.getExpression();
-    Value *V = DVR.getVariableLocationOp(0);
-    if (DVR.isDbgDeclare())
+    
+    if (Value *V = DVR.getVariableLocationOp(0); DVR.isDbgDeclare())
       translateDbgDeclareRecord(V, DVR.hasArgList(), Variable, Expression,
                                 DVR.getDebugLoc(), MIRBuilder);
     else
@@ -3898,8 +3898,8 @@ bool IRTranslator::finalizeBasicBlock(const BasicBlock &BB,
   SL->SwitchCases.clear();
 
   // Check if we need to generate stack-protector guard checks.
-  StackProtector &SP = getAnalysis<StackProtector>();
-  if (SP.shouldEmitSDCheck(BB)) {
+  
+  if (StackProtector &SP = getAnalysis<StackProtector>(); SP.shouldEmitSDCheck(BB)) {
     bool FunctionBasedInstrumentation =
         TLI->getSSPStackGuardCheck(*MF->getFunction().getParent());
     SPDescriptor.initialize(&BB, &MBB, FunctionBasedInstrumentation);
@@ -3930,8 +3930,8 @@ bool IRTranslator::finalizeBasicBlock(const BasicBlock &BB,
       return false;
 
     // CodeGen Failure MBB if we have not codegened it yet.
-    MachineBasicBlock *FailureMBB = SPDescriptor.getFailureMBB();
-    if (FailureMBB->empty()) {
+    
+    if (MachineBasicBlock *FailureMBB = SPDescriptor.getFailureMBB(); FailureMBB->empty()) {
       if (!emitSPDescriptorFailure(SPDescriptor, FailureMBB))
         return false;
     }
@@ -4052,8 +4052,8 @@ bool IRTranslator::emitSPDescriptorFailure(StackProtectorDescriptor &SPD,
   }
 
   // Emit a trap instruction if we are required to do so.
-  const TargetOptions &TargetOpts = TLI->getTargetMachine().Options;
-  if (TargetOpts.TrapUnreachable && !TargetOpts.NoTrapAfterNoreturn)
+  
+  if (const TargetOptions &TargetOpts = TLI->getTargetMachine().Options; TargetOpts.TrapUnreachable && !TargetOpts.NoTrapAfterNoreturn)
     CurBuilder->buildInstr(TargetOpcode::G_TRAP);
 
   return true;

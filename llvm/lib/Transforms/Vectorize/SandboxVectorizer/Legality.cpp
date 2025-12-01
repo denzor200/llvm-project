@@ -52,8 +52,8 @@ LegalityAnalysis::notVectorizableBasedOnOpcodesAndTypes(
   // change them to the least common one.
   // For now pack if differnt FastMathFlags.
   if (isa<FPMathOperator>(I0)) {
-    FastMathFlags FMF0 = cast<Instruction>(Bndl[0])->getFastMathFlags();
-    if (any_of(drop_begin(Bndl), [FMF0](auto *V) {
+    
+    if (FastMathFlags FMF0 = cast<Instruction>(Bndl[0])->getFastMathFlags(); any_of(drop_begin(Bndl), [FMF0](auto *V) {
           return cast<Instruction>(V)->getFastMathFlags() != FMF0;
         }))
       return ResultReason::DiffMathFlags;
@@ -65,8 +65,8 @@ LegalityAnalysis::notVectorizableBasedOnOpcodesAndTypes(
       isa<OverflowingBinaryOperator>(I0) || isa<TruncInst>(I0);
   if (CanHaveWrapFlags) {
     bool NUW0 = I0->hasNoUnsignedWrap();
-    bool NSW0 = I0->hasNoSignedWrap();
-    if (any_of(drop_begin(Bndl), [NUW0, NSW0](auto *V) {
+    
+    if (bool NSW0 = I0->hasNoSignedWrap(); any_of(drop_begin(Bndl), [NUW0, NSW0](auto *V) {
           return cast<Instruction>(V)->hasNoUnsignedWrap() != NUW0 ||
                  cast<Instruction>(V)->hasNoSignedWrap() != NSW0;
         })) {
@@ -96,8 +96,8 @@ LegalityAnalysis::notVectorizableBasedOnOpcodesAndTypes(
                   }) &&
            "Different opcodes, should have early returned!");
     // But for these opcodes we should also check the operand type.
-    Type *FromTy0 = Utils::getExpectedType(I0->getOperand(0));
-    if (any_of(drop_begin(Bndl), [FromTy0](Value *V) {
+    
+    if (Type *FromTy0 = Utils::getExpectedType(I0->getOperand(0)); any_of(drop_begin(Bndl), [FromTy0](Value *V) {
           return Utils::getExpectedType(cast<User>(V)->getOperand(0)) !=
                  FromTy0;
         }))
@@ -108,17 +108,17 @@ LegalityAnalysis::notVectorizableBasedOnOpcodesAndTypes(
   case Instruction::Opcode::ICmp: {
     // We need the same predicate..
     auto Pred0 = cast<CmpInst>(I0)->getPredicate();
-    bool Same = all_of(Bndl, [Pred0](Value *V) {
+    
+    if (bool Same = all_of(Bndl, [Pred0](Value *V) {
       return cast<CmpInst>(V)->getPredicate() == Pred0;
-    });
-    if (Same)
+    }); Same)
       return std::nullopt;
     return ResultReason::DiffOpcodes;
   }
   case Instruction::Opcode::Select: {
     auto *Sel0 = cast<SelectInst>(Bndl[0]);
-    auto *Cond0 = Sel0->getCondition();
-    if (VecUtils::getNumLanes(Cond0) != VecUtils::getNumLanes(Sel0))
+    
+    if (auto *Cond0 = Sel0->getCondition(); VecUtils::getNumLanes(Cond0) != VecUtils::getNumLanes(Sel0))
       // TODO: For now we don't vectorize if the lanes in the condition don't
       // match those of the select instruction.
       return ResultReason::Unimplemented;
@@ -215,8 +215,8 @@ const LegalityResult &LegalityAnalysis::canVectorize(ArrayRef<Value *> Bndl,
   if (any_of(Bndl, [](auto *V) { return !isa<Instruction>(V); }))
     return createLegalityResult<Pack>(ResultReason::NotInstructions);
   // Pack if not in the same BB.
-  auto *BB = cast<Instruction>(Bndl[0])->getParent();
-  if (any_of(drop_begin(Bndl),
+  
+  if (auto *BB = cast<Instruction>(Bndl[0])->getParent(); any_of(drop_begin(Bndl),
              [BB](auto *V) { return cast<Instruction>(V)->getParent() != BB; }))
     return createLegalityResult<Pack>(ResultReason::DiffBBs);
   // Pack if instructions repeat, i.e., require some sort of broadcast.

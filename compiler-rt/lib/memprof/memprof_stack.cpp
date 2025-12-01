@@ -37,8 +37,8 @@ void __sanitizer::BufferedStackTrace::UnwindImpl(uptr pc, uptr bp,
   if (UNLIKELY(!memprof_inited))
     return;
   request_fast = StackTrace::WillUseFastUnwind(request_fast);
-  MemprofThread *t = GetCurrentThread();
-  if (request_fast) {
+  
+  if (MemprofThread *t = GetCurrentThread(); request_fast) {
     if (t) {
       Unwind(max_depth, pc, bp, nullptr, t->stack_top(), t->stack_bottom(),
              true);

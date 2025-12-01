@@ -131,8 +131,8 @@ void AAEvaluator::runInternal(Function &F, AAResults &AA) {
     for (auto I2 = Pointers.begin(); I2 != I1; ++I2) {
       LocationSize Size2 =
           LocationSize::precise(DL.getTypeStoreSize(I2->second));
-      AliasResult AR = AA.alias(I1->first, Size1, I2->first, Size2);
-      switch (AR) {
+      
+      switch (AliasResult AR = AA.alias(I1->first, Size1, I2->first, Size2); AR) {
       case AliasResult::NoAlias:
         PrintResults(AR, PrintNoAlias, *I1, *I2, F.getParent());
         ++NoAliasCount;
@@ -211,9 +211,9 @@ void AAEvaluator::runInternal(Function &F, AAResults &AA) {
   // Mod/ref alias analysis: compare all pairs of calls and values
   for (CallBase *Call : Calls) {
     for (const auto &Pointer : Pointers) {
-      LocationSize Size =
-          LocationSize::precise(DL.getTypeStoreSize(Pointer.second));
-      switch (AA.getModRefInfo(Call, Pointer.first, Size)) {
+      
+      switch (LocationSize Size =
+          LocationSize::precise(DL.getTypeStoreSize(Pointer.second)); AA.getModRefInfo(Call, Pointer.first, Size)) {
       case ModRefInfo::NoModRef:
         PrintModRefResults("NoModRef", PrintNoModRef, Call, Pointer,
                            F.getParent());
@@ -297,8 +297,8 @@ AAEvaluator::~AAEvaluator() {
   }
 
   // Display the summary for mod/ref analysis
-  int64_t ModRefSum = NoModRefCount + RefCount + ModCount + ModRefCount;
-  if (ModRefSum == 0) {
+  
+  if (int64_t ModRefSum = NoModRefCount + RefCount + ModCount + ModRefCount; ModRefSum == 0) {
     errs() << "  Alias Analysis Mod/Ref Evaluator Summary: no "
               "mod/ref!\n";
   } else {

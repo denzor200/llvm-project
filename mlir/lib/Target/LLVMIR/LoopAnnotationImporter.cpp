@@ -273,8 +273,8 @@ static bool isEmptyOrNull(const SmallVectorImpl<T> &vec) {
 /// conversion were successfull and at least one of them holds a non-null value.
 template <typename T, typename... P>
 static T createIfNonNull(MLIRContext *ctx, const P &...args) {
-  bool anyFailed = (failed(args) || ...);
-  if (anyFailed)
+  
+  if (bool anyFailed = (failed(args) || ...); anyFailed)
     return {};
 
   bool allEmpty = (isEmptyOrNull(*args) && ...);
@@ -490,8 +490,8 @@ LoopAnnotationImporter::translateAccessGroup(const llvm::MDNode *node,
   if (!node->getNumOperands())
     accessGroups.push_back(node);
   for (const llvm::MDOperand &operand : node->operands()) {
-    auto *childNode = dyn_cast<llvm::MDNode>(operand);
-    if (!childNode)
+    
+    if (auto *childNode = dyn_cast<llvm::MDNode>(operand); !childNode)
       return failure();
     accessGroups.push_back(cast<llvm::MDNode>(operand.get()));
   }

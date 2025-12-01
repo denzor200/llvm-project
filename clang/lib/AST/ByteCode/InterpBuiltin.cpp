@@ -142,8 +142,8 @@ static void diagnoseNonConstexprBuiltin(InterpState &S, CodePtr OpPC,
   if (!S.diagnosing())
     return;
 
-  auto Loc = S.Current->getSource(OpPC);
-  if (S.getLangOpts().CPlusPlus11)
+  
+  if (auto Loc = S.Current->getSource(OpPC); S.getLangOpts().CPlusPlus11)
     S.CCEDiag(Loc, diag::note_constexpr_invalid_function)
         << /*isConstexpr=*/0 << /*isConstructor=*/0
         << S.getASTContext().BuiltinInfo.getQuotedName(ID);
@@ -175,10 +175,10 @@ static bool interp__builtin_is_constant_evaluated(InterpState &S, CodePtr OpPC,
     return F && F->isInStdNamespace() && F->getIdentifier() &&
            F->getIdentifier()->isStr("is_constant_evaluated");
   };
-  const InterpFrame *Caller = Frame->Caller;
+  
   // The current frame is the one for __builtin_is_constant_evaluated.
   // The one above that, potentially the one for std::is_constant_evaluated().
-  if (S.inConstantContext() && !S.checkingPotentialConstantExpression() &&
+  if (const InterpFrame *Caller = Frame->Caller; S.inConstantContext() && !S.checkingPotentialConstantExpression() &&
       S.getEvalStatus().Diag &&
       (Depth == 0 || (Depth == 1 && isStdCall(Frame->getCallee())))) {
     if (Caller && isStdCall(Frame->getCallee())) {
@@ -494,9 +494,9 @@ static bool interp__builtin_isinf(InterpState &S, CodePtr OpPC,
                                   const CallExpr *Call) {
   const Floating &Arg = S.Stk.pop<Floating>();
   APFloat F = Arg.getAPFloat();
-  bool IsInf = F.isInfinity();
+  
 
-  if (CheckSign)
+  if (bool IsInf = F.isInfinity(); CheckSign)
     pushInteger(S, IsInf ? (F.isNegative() ? -1 : 1) : 0, Call->getType());
   else
     pushInteger(S, IsInf, Call->getType());
@@ -1003,12 +1003,12 @@ static bool interp__builtin_atomic_lock_free(InterpState &S, CodePtr OpPC,
   // x86-64 processors.
 
   // Check power-of-two.
-  CharUnits Size = CharUnits::fromQuantity(SizeVal.getZExtValue());
-  if (Size.isPowerOfTwo()) {
+  
+  if (CharUnits Size = CharUnits::fromQuantity(SizeVal.getZExtValue()); Size.isPowerOfTwo()) {
     // Check against inlining width.
-    unsigned InlineWidthBits =
-        S.getASTContext().getTargetInfo().getMaxAtomicInlineWidth();
-    if (Size <= S.getASTContext().toCharUnitsFromBits(InlineWidthBits)) {
+    
+    if (unsigned InlineWidthBits =
+        S.getASTContext().getTargetInfo().getMaxAtomicInlineWidth(); Size <= S.getASTContext().toCharUnitsFromBits(InlineWidthBits)) {
 
       // OK, we will inline appropriately-aligned operations of this size,
       // and _Atomic(T) is appropriately-aligned.
@@ -1021,8 +1021,8 @@ static bool interp__builtin_atomic_lock_free(InterpState &S, CodePtr OpPC,
         return returnBool(true);
 
       if (Ptr.isIntegralPointer()) {
-        uint64_t IntVal = Ptr.getIntegerRepresentation();
-        if (APSInt(APInt(64, IntVal, false), true).isAligned(Size.getAsAlign()))
+        
+        if (uint64_t IntVal = Ptr.getIntegerRepresentation(); APSInt(APInt(64, IntVal, false), true).isAligned(Size.getAsAlign()))
           return returnBool(true);
       }
 
@@ -1036,8 +1036,8 @@ static bool interp__builtin_atomic_lock_free(InterpState &S, CodePtr OpPC,
       }
 
       if (const auto *PtrTy = PtrArg->getType()->getAs<PointerType>()) {
-        QualType PointeeType = PtrTy->getPointeeType();
-        if (!PointeeType->isIncompleteType() &&
+        
+        if (QualType PointeeType = PtrTy->getPointeeType(); !PointeeType->isIncompleteType() &&
             S.getASTContext().getTypeAlignInChars(PointeeType) >= Size) {
           // OK, we will inline operations on this object.
           return returnBool(true);
@@ -1059,12 +1059,12 @@ static bool interp__builtin_c11_atomic_is_lock_free(InterpState &S,
                                                     const CallExpr *Call) {
   const APSInt &SizeVal = popToAPSInt(S, Call->getArg(0));
 
-  CharUnits Size = CharUnits::fromQuantity(SizeVal.getZExtValue());
-  if (Size.isPowerOfTwo()) {
+  
+  if (CharUnits Size = CharUnits::fromQuantity(SizeVal.getZExtValue()); Size.isPowerOfTwo()) {
     // Check against inlining width.
-    unsigned InlineWidthBits =
-        S.getASTContext().getTargetInfo().getMaxAtomicInlineWidth();
-    if (Size <= S.getASTContext().toCharUnitsFromBits(InlineWidthBits)) {
+    
+    if (unsigned InlineWidthBits =
+        S.getASTContext().getTargetInfo().getMaxAtomicInlineWidth(); Size <= S.getASTContext().toCharUnitsFromBits(InlineWidthBits)) {
       S.Stk.push<Boolean>(true);
       return true;
     }
@@ -1536,9 +1536,9 @@ static bool interp__builtin_vector_reduce(InterpState &S, CodePtr OpPC,
     unsigned BitWidth = Result.bitWidth();
     for (unsigned I = 1; I != NumElems; ++I) {
       T Elem = Arg.elem<T>(I);
-      T PrevResult = Result;
+      
 
-      if (ID == Builtin::BI__builtin_reduce_add) {
+      if (T PrevResult = Result; ID == Builtin::BI__builtin_reduce_add) {
         if (T::add(Result, Elem, BitWidth, &Result)) {
           unsigned OverflowBits = BitWidth + 1;
           (void)handleOverflow(S, OpPC,
@@ -1633,9 +1633,9 @@ static bool interp__builtin_elementwise_popcount(InterpState &S, CodePtr OpPC,
                                                  unsigned BuiltinID) {
   assert(Call->getNumArgs() == 1);
   if (Call->getArg(0)->getType()->isIntegerType()) {
-    APSInt Val = popToAPSInt(S, Call->getArg(0));
+    
 
-    if (BuiltinID == Builtin::BI__builtin_elementwise_popcount) {
+    if (APSInt Val = popToAPSInt(S, Call->getArg(0)); BuiltinID == Builtin::BI__builtin_elementwise_popcount) {
       pushInteger(S, Val.popcount(), Call->getType());
     } else {
       pushInteger(S, Val.reverseBits(), Call->getType());
@@ -1902,9 +1902,9 @@ static bool interp__builtin_memcpy(InterpState &S, CodePtr OpPC,
 
     unsigned SrcIndex = SrcP.expand().getIndex() * SrcP.elemSize();
     unsigned DstIndex = DestP.expand().getIndex() * DestP.elemSize();
-    unsigned N = Size.getZExtValue();
+    
 
-    if ((SrcIndex <= DstIndex && (SrcIndex + N) > DstIndex) ||
+    if (unsigned N = Size.getZExtValue(); (SrcIndex <= DstIndex && (SrcIndex + N) > DstIndex) ||
         (DstIndex <= SrcIndex && (DstIndex + N) > SrcIndex)) {
       S.FFDiag(S.Current->getSource(OpPC), diag::note_constexpr_memcpy_overlap)
           << /*IsWChar=*/false;
@@ -2176,9 +2176,9 @@ static unsigned computePointerOffset(const ASTContext &ASTCtx,
   Pointer P = Ptr;
   while (P.isField() || P.isArrayElement()) {
     P = P.expand();
-    const Descriptor *D = P.getFieldDesc();
+    
 
-    if (P.isArrayElement()) {
+    if (const Descriptor *D = P.getFieldDesc(); P.isArrayElement()) {
       unsigned ElemSize =
           ASTCtx.getTypeSizeInChars(D->getElemQualType()).getQuantity();
       if (P.isOnePastEnd())
@@ -2192,9 +2192,9 @@ static unsigned computePointerOffset(const ASTContext &ASTCtx,
       P = P.getBase();
       const Record *BaseRecord = P.getRecord();
 
-      const ASTRecordLayout &Layout =
-          ASTCtx.getASTRecordLayout(cast<CXXRecordDecl>(BaseRecord->getDecl()));
-      if (IsVirtual)
+      
+      if (const ASTRecordLayout &Layout =
+          ASTCtx.getASTRecordLayout(cast<CXXRecordDecl>(BaseRecord->getDecl())); IsVirtual)
         Result += Layout.getVBaseClassOffset(RD).getQuantity();
       else
         Result += Layout.getBaseClassOffset(RD).getQuantity();
@@ -2361,8 +2361,8 @@ static bool interp__builtin_is_within_lifetime(InterpState &S, CodePtr OpPC,
 
   auto Error = [&](int Diag) {
     bool CalledFromStd = false;
-    const auto *Callee = S.Current->getCallee();
-    if (Callee && Callee->isInStdNamespace()) {
+    
+    if (const auto *Callee = S.Current->getCallee(); Callee && Callee->isInStdNamespace()) {
       const IdentifierInfo *Identifier = Callee->getIdentifier();
       CalledFromStd = Identifier && Identifier->isStr("is_within_lifetime");
     }
@@ -2731,8 +2731,8 @@ static bool interp__builtin_ia32_addsub(InterpState &S, CodePtr OpPC,
   using T = PrimConv<PT_Float>::T;
   for (unsigned I = 0; I != NumElems; ++I) {
     APFloat LElem = LHS.elem<T>(I).getAPFloat();
-    APFloat RElem = RHS.elem<T>(I).getAPFloat();
-    if (I % 2 == 0) {
+    
+    if (APFloat RElem = RHS.elem<T>(I).getAPFloat(); I % 2 == 0) {
       // Even indices: subtract
       LElem.subtract(RElem, RM);
     } else {
@@ -2756,10 +2756,10 @@ static bool interp__builtin_elementwise_triop_fp(
   llvm::RoundingMode RM = getRoundingMode(FPO);
   QualType Arg1Type = Call->getArg(0)->getType();
   QualType Arg2Type = Call->getArg(1)->getType();
-  QualType Arg3Type = Call->getArg(2)->getType();
+  
 
   // Non-vector floating point types.
-  if (!Arg1Type->isVectorType()) {
+  if (QualType Arg3Type = Call->getArg(2)->getType(); !Arg1Type->isVectorType()) {
     assert(!Arg2Type->isVectorType());
     assert(!Arg3Type->isVectorType());
     (void)Arg2Type;
@@ -2877,8 +2877,8 @@ static bool interp__builtin_blend(InterpState &S, CodePtr OpPC,
   PrimType DstElemT = Dst.getFieldDesc()->getPrimType();
 
   for (unsigned I = 0; I != NumElems; ++I) {
-    bool MaskBit = Mask[I % 8];
-    if (ElemT == PT_Float) {
+    
+    if (bool MaskBit = Mask[I % 8]; ElemT == PT_Float) {
       assert(DstElemT == PT_Float);
       Dst.elem<Floating>(I) =
           MaskBit ? TrueVec.elem<Floating>(I) : FalseVec.elem<Floating>(I);
@@ -3166,8 +3166,8 @@ static bool interp__builtin_ia32_phminposuw(InterpState &S, CodePtr OpPC,
     APSInt MinVal = Source.elem<T>(0).toAPSInt();
 
     for (unsigned I = 1; I != SourceLen; ++I) {
-      APSInt Val = Source.elem<T>(I).toAPSInt();
-      if (MinVal.ugt(Val)) {
+      
+      if (APSInt Val = Source.elem<T>(I).toAPSInt(); MinVal.ugt(Val)) {
         MinVal = Val;
         MinIndex = I;
       }
@@ -3205,8 +3205,8 @@ static bool interp__builtin_ia32_pternlog(InterpState &S, CodePtr OpPC,
       APInt ALane = A.elem<T>(I).toAPSInt();
       APInt BLane = B.elem<T>(I).toAPSInt();
       APInt CLane = C.elem<T>(I).toAPSInt();
-      APInt RLane(LaneWidth, 0);
-      if (U[I]) { // If lane not masked, compute ternary logic.
+      
+      if (APInt RLane(LaneWidth, 0); U[I]) { // If lane not masked, compute ternary logic.
         for (unsigned Bit = 0; Bit != LaneWidth; ++Bit) {
           unsigned ABit = ALane[Bit];
           unsigned BBit = BLane[Bit];
@@ -3394,11 +3394,11 @@ static bool interp__builtin_ia32_shuffle_generic(
   unsigned ShuffleMask = 0;
   Pointer A, MaskVector, B;
   bool IsVectorMask = false;
-  bool IsSingleOperand = (Call->getNumArgs() == 2);
+  
 
-  if (IsSingleOperand) {
-    QualType MaskType = Call->getArg(1)->getType();
-    if (MaskType->isVectorType()) {
+  if (bool IsSingleOperand = (Call->getNumArgs() == 2); IsSingleOperand) {
+    
+    if (QualType MaskType = Call->getArg(1)->getType(); MaskType->isVectorType()) {
       IsVectorMask = true;
       MaskVector = S.Stk.pop<Pointer>();
       A = S.Stk.pop<Pointer>();
@@ -3411,8 +3411,8 @@ static bool interp__builtin_ia32_shuffle_generic(
       return false;
     }
   } else {
-    QualType Arg2Type = Call->getArg(2)->getType();
-    if (Arg2Type->isVectorType()) {
+    
+    if (QualType Arg2Type = Call->getArg(2)->getType(); Arg2Type->isVectorType()) {
       IsVectorMask = true;
       B = S.Stk.pop<Pointer>();
       MaskVector = S.Stk.pop<Pointer>();
@@ -3448,9 +3448,9 @@ static bool interp__builtin_ia32_shuffle_generic(
       });
     }
 
-    auto [SrcVecIdx, SrcIdx] = GetSourceIndex(DstIdx, ShuffleMask);
+    
 
-    if (SrcIdx < 0) {
+    if (auto [SrcVecIdx, SrcIdx] = GetSourceIndex(DstIdx, ShuffleMask); SrcIdx < 0) {
       // Zero out this element
       if (ElemT == PT_Float) {
         Dst.elem<Floating>(DstIdx) = Floating(
@@ -3538,8 +3538,8 @@ static bool interp__builtin_ia32_shufbitqmb_mask(InterpState &S, CodePtr OpPC,
 
   QualType SourceType = Call->getArg(0)->getType();
   QualType ShuffleMaskType = Call->getArg(1)->getType();
-  QualType ZeroMaskType = Call->getArg(2)->getType();
-  if (!SourceType->isVectorType() || !ShuffleMaskType->isVectorType() ||
+  
+  if (QualType ZeroMaskType = Call->getArg(2)->getType(); !SourceType->isVectorType() || !ShuffleMaskType->isVectorType() ||
       !ZeroMaskType->isIntegerType()) {
     return false;
   }
@@ -3653,9 +3653,9 @@ static bool interp__builtin_ia32_vcvtps2ph(InterpState &S, CodePtr OpPC,
     APFloat DstVal = SrcVal.getAPFloat();
 
     bool LostInfo;
-    APFloat::opStatus St = DstVal.convert(HalfSem, RM, &LostInfo);
+    
 
-    if (UseMXCSR && IsFPConstrained && St != APFloat::opOK) {
+    if (APFloat::opStatus St = DstVal.convert(HalfSem, RM, &LostInfo); UseMXCSR && IsFPConstrained && St != APFloat::opOK) {
       S.FFDiag(S.Current->getSource(OpPC),
                diag::note_constexpr_dynamic_rounding);
       return false;
@@ -3686,8 +3686,8 @@ static bool interp__builtin_ia32_multishiftqb(InterpState &S, CodePtr OpPC,
   assert(Call->getNumArgs() == 2);
 
   QualType ATy = Call->getArg(0)->getType();
-  QualType BTy = Call->getArg(1)->getType();
-  if (!ATy->isVectorType() || !BTy->isVectorType()) {
+  
+  if (QualType BTy = Call->getArg(1)->getType(); !ATy->isVectorType() || !BTy->isVectorType()) {
     return false;
   }
 
@@ -3740,8 +3740,8 @@ bool InterpretBuiltin(InterpState &S, CodePtr OpPC, const CallExpr *Call,
   if (!S.getASTContext().BuiltinInfo.isConstantEvaluated(BuiltinID))
     return Invalid(S, OpPC);
 
-  const InterpFrame *Frame = S.Current;
-  switch (BuiltinID) {
+  
+  switch (const InterpFrame *Frame = S.Current; BuiltinID) {
   case Builtin::BI__builtin_is_constant_evaluated:
     return interp__builtin_is_constant_evaluated(S, OpPC, Frame, Call);
 
@@ -4759,8 +4759,8 @@ bool InterpretBuiltin(InterpState &S, CodePtr OpPC, const CallExpr *Call,
           // Bits [7:6]: select element from source vector Y (0-3)
           // Bits [5:4]: select destination position (0-3)
           unsigned SrcElem = (Mask >> 6) & 0x3;
-          unsigned DstElem = (Mask >> 4) & 0x3;
-          if (DstIdx == DstElem) {
+          
+          if (unsigned DstElem = (Mask >> 4) & 0x3; DstIdx == DstElem) {
             // Insert element from source vector (B) at this position
             return std::pair<unsigned, int>{1, static_cast<int>(SrcElem)};
           } else {
@@ -4882,8 +4882,8 @@ bool InterpretBuiltin(InterpState &S, CodePtr OpPC, const CallExpr *Call,
     return interp__builtin_ia32_shuffle_generic(
         S, OpPC, Call, [](unsigned DstIdx, unsigned ShuffleMask) {
           unsigned LaneBase = (DstIdx / 8) * 8;
-          unsigned LaneIdx = DstIdx % 8;
-          if (LaneIdx < 4) {
+          
+          if (unsigned LaneIdx = DstIdx % 8; LaneIdx < 4) {
             unsigned Sel = (ShuffleMask >> (2 * LaneIdx)) & 0x3;
             return std::make_pair(0, static_cast<int>(LaneBase + Sel));
           }
@@ -4897,8 +4897,8 @@ bool InterpretBuiltin(InterpState &S, CodePtr OpPC, const CallExpr *Call,
     return interp__builtin_ia32_shuffle_generic(
         S, OpPC, Call, [](unsigned DstIdx, unsigned ShuffleMask) {
           unsigned LaneBase = (DstIdx / 8) * 8;
-          unsigned LaneIdx = DstIdx % 8;
-          if (LaneIdx >= 4) {
+          
+          if (unsigned LaneIdx = DstIdx % 8; LaneIdx >= 4) {
             unsigned Sel = (ShuffleMask >> (2 * (LaneIdx - 4))) & 0x3;
             return std::make_pair(0, static_cast<int>(LaneBase + 4 + Sel));
           }
@@ -5254,8 +5254,8 @@ bool InterpretBuiltin(InterpState &S, CodePtr OpPC, const CallExpr *Call,
         S, OpPC, Call,
         [](unsigned DstIdx, unsigned Shift) -> std::pair<unsigned, int> {
           unsigned LaneBase = (DstIdx / 16) * 16;
-          unsigned LaneIdx = DstIdx % 16;
-          if (LaneIdx + Shift < 16)
+          
+          if (unsigned LaneIdx = DstIdx % 16; LaneIdx + Shift < 16)
             return std::make_pair(0,
                                   static_cast<int>(LaneBase + LaneIdx + Shift));
 
@@ -5275,8 +5275,8 @@ bool InterpretBuiltin(InterpState &S, CodePtr OpPC, const CallExpr *Call,
           int Offset = DstIdx % 16;
 
           // Elements come from VecB first, then VecA after the shift boundary
-          unsigned ShiftedIdx = Offset + (Shift & 0xFF);
-          if (ShiftedIdx < 16) { // from VecB
+          
+          if (unsigned ShiftedIdx = Offset + (Shift & 0xFF); ShiftedIdx < 16) { // from VecB
             ElemIdx = ShiftedIdx + (Lane * 16);
           } else if (ShiftedIdx < 32) { // from VecA
             VecIdx = 0;
@@ -5324,8 +5324,8 @@ bool InterpretOffsetOf(InterpState &S, CodePtr OpPC, const OffsetOfExpr *E,
   unsigned ArrayIndex = 0;
   QualType CurrentType = E->getTypeSourceInfo()->getType();
   for (unsigned I = 0; I != N; ++I) {
-    const OffsetOfNode &Node = E->getComponent(I);
-    switch (Node.getKind()) {
+    
+    switch (const OffsetOfNode &Node = E->getComponent(I); Node.getKind()) {
     case OffsetOfNode::Field: {
       const FieldDecl *MemberDecl = Node.getField();
       const auto *RD = CurrentType->getAsRecordDecl();
@@ -5485,8 +5485,8 @@ static bool copyRecord(InterpState &S, CodePtr OpPC, const Pointer &Src,
   }
 
   for (const Record::Base &B : R->bases()) {
-    Pointer DestBase = Dest.atField(B.Offset);
-    if (!copyRecord(S, OpPC, Src.atField(B.Offset), DestBase, Activate))
+    
+    if (Pointer DestBase = Dest.atField(B.Offset); !copyRecord(S, OpPC, Src.atField(B.Offset), DestBase, Activate))
       return false;
   }
 

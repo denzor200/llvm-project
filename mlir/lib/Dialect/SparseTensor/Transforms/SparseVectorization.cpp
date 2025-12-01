@@ -72,8 +72,8 @@ static Value genVectorMask(PatternRewriter &rewriter, Location loc, VL vl,
   // example, "for i = 0, 128, 16"). A constant all-true mask is generated
   // so that all subsequent masked memory operations are immediately folded
   // into unconditional memory operations.
-  IntegerAttr loInt, hiInt, stepInt;
-  if (matchPattern(lo, m_Constant(&loInt)) &&
+  
+  if (IntegerAttr loInt, hiInt, stepInt; matchPattern(lo, m_Constant(&loInt)) &&
       matchPattern(hi, m_Constant(&hiInt)) &&
       matchPattern(step, m_Constant(&stepInt))) {
     if (((hiInt.getInt() - loInt.getInt()) % stepInt.getInt()) == 0) {
@@ -425,8 +425,8 @@ static bool vectorizeExpr(PatternRewriter &rewriter, scf::ForOp forOp, VL vl,
   // TODO: avoid visiting CSEs multiple times
   //
   if (def->getNumOperands() == 1) {
-    Value vx;
-    if (vectorizeExpr(rewriter, forOp, vl, def->getOperand(0), codegen, vmask,
+    
+    if (Value vx; vectorizeExpr(rewriter, forOp, vl, def->getOperand(0), codegen, vmask,
                       vx)) {
       UNAOP(math::AbsFOp)
       UNAOP(math::AbsIOp)
@@ -452,8 +452,8 @@ static bool vectorizeExpr(PatternRewriter &rewriter, scf::ForOp forOp, VL vl,
       // TODO: complex?
     }
   } else if (def->getNumOperands() == 2) {
-    Value vx, vy;
-    if (vectorizeExpr(rewriter, forOp, vl, def->getOperand(0), codegen, vmask,
+    
+    if (Value vx, vy; vectorizeExpr(rewriter, forOp, vl, def->getOperand(0), codegen, vmask,
                       vx) &&
         vectorizeExpr(rewriter, forOp, vl, def->getOperand(1), codegen, vmask,
                       vy)) {
@@ -463,8 +463,8 @@ static bool vectorizeExpr(PatternRewriter &rewriter, scf::ForOp forOp, VL vl,
       // so that we do not have to special case the code generation.
       if (isa<arith::ShLIOp>(def) || isa<arith::ShRUIOp>(def) ||
           isa<arith::ShRSIOp>(def)) {
-        Value shiftFactor = def->getOperand(1);
-        if (!isInvariantValue(shiftFactor, block))
+        
+        if (Value shiftFactor = def->getOperand(1); !isInvariantValue(shiftFactor, block))
           return false;
       }
       // Generate code.
@@ -558,8 +558,8 @@ static bool vectorizeStmt(PatternRewriter &rewriter, scf::ForOp forOp, VL vl,
     Value red = yield->getOperand(0);
     Value iter = forOp.getRegionIterArg(0);
     vector::CombiningKind kind;
-    Value vrhs;
-    if (isVectorizableReduction(red, iter, kind) &&
+    
+    if (Value vrhs; isVectorizableReduction(red, iter, kind) &&
         vectorizeExpr(rewriter, forOp, vl, red, codegen, vmask, vrhs)) {
       if (codegen) {
         Value partial = forOpNew.getResult(0);
@@ -585,8 +585,8 @@ static bool vectorizeStmt(PatternRewriter &rewriter, scf::ForOp forOp, VL vl,
     auto subs = store.getIndices();
     SmallVector<Value> idxs;
     Value rhs = store.getValue();
-    Value vrhs;
-    if (vectorizeSubscripts(rewriter, forOp, vl, subs, codegen, vmask, idxs) &&
+    
+    if (Value vrhs; vectorizeSubscripts(rewriter, forOp, vl, subs, codegen, vmask, idxs) &&
         vectorizeExpr(rewriter, forOp, vl, rhs, codegen, vmask, vrhs)) {
       if (codegen) {
         genVectorStore(rewriter, loc, store.getMemRef(), idxs, vmask, vrhs);

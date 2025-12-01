@@ -39,9 +39,9 @@ CSEMIRBuilder::getDominatingInstrForID(FoldingSetNodeID &ID,
   GISelCSEInfo *CSEInfo = getCSEInfo();
   assert(CSEInfo && "Can't get here without setting CSEInfo");
   MachineBasicBlock *CurMBB = &getMBB();
-  MachineInstr *MI =
-      CSEInfo->getMachineInstrIfExists(ID, CurMBB, NodeInsertPos);
-  if (MI) {
+  
+  if (MachineInstr *MI =
+      CSEInfo->getMachineInstrIfExists(ID, CurMBB, NodeInsertPos); MI) {
     CSEInfo->countOpcodeHit(MI->getOpcode());
     auto CurrPos = getInsertPt();
     auto MII = MachineBasicBlock::iterator(MI);
@@ -62,8 +62,8 @@ CSEMIRBuilder::getDominatingInstrForID(FoldingSetNodeID &ID,
 }
 
 bool CSEMIRBuilder::canPerformCSEForOpc(unsigned Opc) const {
-  const GISelCSEInfo *CSEInfo = getCSEInfo();
-  if (!CSEInfo || !CSEInfo->shouldCSE(Opc))
+  
+  if (const GISelCSEInfo *CSEInfo = getCSEInfo(); !CSEInfo || !CSEInfo->shouldCSE(Opc))
     return false;
   return true;
 }
@@ -154,8 +154,8 @@ CSEMIRBuilder::generateCopiesIfRequired(ArrayRef<DstOp> DstOps,
   assert(checkCopyToDefsPossible(DstOps) &&
          "Impossible return a single MIB with copies to multiple defs");
   if (DstOps.size() == 1) {
-    const DstOp &Op = DstOps[0];
-    if (Op.getDstOpKind() == DstOp::DstType::Ty_Reg)
+    
+    if (const DstOp &Op = DstOps[0]; Op.getDstOpKind() == DstOp::DstType::Ty_Reg)
       return buildCopy(Op.getReg(), MIB.getReg(0));
   }
 
@@ -188,9 +188,9 @@ MachineInstrBuilder CSEMIRBuilder::buildInstr(unsigned Opc,
     assert(DstOps.size() == 1 && "Invalid dsts");
     LLT SrcTy = SrcOps[1].getLLTTy(*getMRI());
     LLT DstTy = DstOps[0].getLLTTy(*getMRI());
-    auto BoolExtOp = getBoolExtOp(SrcTy.isVector(), false);
+    
 
-    if (std::optional<SmallVector<APInt>> Cst = ConstantFoldICmp(
+    if (std::optional<SmallVector<APInt>> auto BoolExtOp = getBoolExtOp(SrcTy.isVector(), false); Cst = ConstantFoldICmp(
             SrcOps[0].getPredicate(), SrcOps[1].getReg(), SrcOps[2].getReg(),
             DstTy.getScalarSizeInBits(), BoolExtOp, *getMRI())) {
       if (SrcTy.isVector())
@@ -265,8 +265,8 @@ MachineInstrBuilder CSEMIRBuilder::buildInstr(unsigned Opc,
     assert(SrcOps.size() == 2 && "Invalid src ops");
     const DstOp &Dst = DstOps[0];
     const SrcOp &Src0 = SrcOps[0];
-    const SrcOp &Src1 = SrcOps[1];
-    if (auto MaybeCst =
+    
+    if (auto const SrcOp &Src1 = SrcOps[1]; MaybeCst =
             ConstantFoldExtOp(Opc, Src0.getReg(), Src1.getImm(), *getMRI()))
       return buildConstant(Dst, *MaybeCst);
     break;

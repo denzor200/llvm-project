@@ -241,8 +241,8 @@ static void diagnoseInstanceReference(Sema &SemaRef,
 
   std::string Replacement;
   if (InExplicitObjectMethod) {
-    DeclarationName N = Method->getParamDecl(0)->getDeclName();
-    if (!N.isEmpty()) {
+    
+    if (DeclarationName N = Method->getParamDecl(0)->getDeclName(); !N.isEmpty()) {
       Replacement.append(N.getAsString());
       Replacement.append(".");
     }
@@ -394,11 +394,11 @@ CheckExtVectorComponent(Sema &S, QualType baseType, ExprValueKind &VK,
   bool HasRepeated = false;
   bool HasIndex[16] = {};
 
-  int Idx;
+  
 
   // Check that we've found one of the special components, or that the component
   // names must come from the same set.
-  if (!strcmp(compStr, "hi") || !strcmp(compStr, "lo") ||
+  if (int Idx; !strcmp(compStr, "hi") || !strcmp(compStr, "lo") ||
       !strcmp(compStr, "even") || !strcmp(compStr, "odd")) {
     HalvingSwizzle = true;
   } else if (!HexSwizzle &&
@@ -572,8 +572,8 @@ Sema::ActOnDependentMemberExpr(Expr *BaseExpr, QualType BaseType,
   // accessing the 'f' property if T is an Obj-C interface. The extra check
   // allows this, while still reporting an error if T is a struct pointer.
   if (!IsArrow) {
-    const PointerType *PT = BaseType->getAs<PointerType>();
-    if (PT && (!getLangOpts().ObjC ||
+    
+    if (const PointerType *PT = BaseType->getAs<PointerType>(); PT && (!getLangOpts().ObjC ||
                PT->getPointeeType()->isRecordType())) {
       assert(BaseExpr && "cannot happen with implicit member accesses");
       Diag(OpLoc, diag::err_typecheck_member_reference_struct_union)
@@ -1730,7 +1730,7 @@ void Sema::CheckMemberAccessOfNoDeref(const MemberExpr *E) {
   if (isUnevaluatedContext())
     return;
 
-  QualType ResultTy = E->getType();
+  
 
   // Member accesses have four cases:
   // 1: non-array member via "->": dereferences
@@ -1738,7 +1738,7 @@ void Sema::CheckMemberAccessOfNoDeref(const MemberExpr *E) {
   // 3: array member access via "->": nothing interesting happens
   //    (this returns an array lvalue and does not actually dereference memory)
   // 4: array member access via ".": *adds* a layer of indirection
-  if (ResultTy->isArrayType()) {
+  if (QualType ResultTy = E->getType(); ResultTy->isArrayType()) {
     if (!E->isArrow()) {
       // This might be something like:
       //     (*structPtr).arrayMember
@@ -1864,8 +1864,8 @@ Sema::BuildImplicitMemberExpr(const CXXScopeSpec &SS,
 
   Expr *baseExpr = nullptr; // null signifies implicit access
   if (IsKnownInstance) {
-    SourceLocation Loc = R.getNameLoc();
-    if (SS.getRange().isValid())
+    
+    if (SourceLocation Loc = R.getNameLoc(); SS.getRange().isValid())
       Loc = SS.getRange().getBegin();
     baseExpr = BuildCXXThisExpr(loc, ThisTy, /*IsImplicit=*/true);
   }

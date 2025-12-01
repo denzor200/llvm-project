@@ -186,10 +186,10 @@ static bool isTestingFunction(const FunctionDecl *FunDecl) {
 static ConsumedState mapConsumableAttrState(const QualType QT) {
   assert(isConsumableType(QT));
 
-  const ConsumableAttr *CAttr =
-      QT->getAsCXXRecordDecl()->getAttr<ConsumableAttr>();
+  
 
-  switch (CAttr->getDefaultState()) {
+  switch (const ConsumableAttr *CAttr =
+      QT->getAsCXXRecordDecl()->getAttr<ConsumableAttr>(); CAttr->getDefaultState()) {
   case ConsumableAttr::Unknown:
     return CS_Unknown;
   case ConsumableAttr::Unconsumed:
@@ -510,9 +510,9 @@ public:
       : Analyzer(Analyzer), StateMap(StateMap) {}
 
   PropagationInfo getInfo(const Expr *StmtNode) const {
-    ConstInfoEntry Entry = findInfo(StmtNode);
+    
 
-    if (Entry != PropagationMap.end())
+    if (ConstInfoEntry Entry = findInfo(StmtNode); Entry != PropagationMap.end())
       return Entry->second;
     else
       return {};
@@ -527,8 +527,8 @@ public:
 } // namespace clang
 
 void ConsumedStmtVisitor::forwardInfo(const Expr *From, const Expr *To) {
-  InfoEntry Entry = findInfo(From);
-  if (Entry != PropagationMap.end())
+  
+  if (InfoEntry Entry = findInfo(From); Entry != PropagationMap.end())
     insertInfo(To, Entry->second);
 }
 
@@ -536,11 +536,11 @@ void ConsumedStmtVisitor::forwardInfo(const Expr *From, const Expr *To) {
 // If NS is not CS_None, sets the state of From to NS.
 void ConsumedStmtVisitor::copyInfo(const Expr *From, const Expr *To,
                                    ConsumedState NS) {
-  InfoEntry Entry = findInfo(From);
-  if (Entry != PropagationMap.end()) {
+  
+  if (InfoEntry Entry = findInfo(From); Entry != PropagationMap.end()) {
     PropagationInfo& PInfo = Entry->second;
-    ConsumedState CS = PInfo.getAsState(StateMap);
-    if (CS != CS_None)
+    
+    if (ConsumedState CS = PInfo.getAsState(StateMap); CS != CS_None)
       insertInfo(To, PropagationInfo(CS));
     if (NS != CS_None && PInfo.isPointerToValue())
       setStateForVarOrTmp(StateMap, PInfo, NS);
@@ -559,10 +559,10 @@ ConsumedState ConsumedStmtVisitor::getInfo(const Expr *From) {
 
 // If we already have info for To then update it, otherwise create a new entry.
 void ConsumedStmtVisitor::setInfo(const Expr *To, ConsumedState NS) {
-  InfoEntry Entry = findInfo(To);
-  if (Entry != PropagationMap.end()) {
-    PropagationInfo& PInfo = Entry->second;
-    if (PInfo.isPointerToValue())
+  
+  if (InfoEntry Entry = findInfo(To); Entry != PropagationMap.end()) {
+    
+    if (PropagationInfo& PInfo = Entry->second; PInfo.isPointerToValue())
       setStateForVarOrTmp(StateMap, PInfo, NS);
   } else if (NS != CS_None) {
      insertInfo(To, PropagationInfo(NS));
@@ -625,9 +625,9 @@ bool ConsumedStmtVisitor::handleCall(const CallExpr *Call, const Expr *ObjArg,
     // Check that the parameter is in the correct state.
     if (ParamTypestateAttr *PTA = Param->getAttr<ParamTypestateAttr>()) {
       ConsumedState ParamState = PInfo.getAsState(StateMap);
-      ConsumedState ExpectedState = mapParamTypestateAttrState(PTA);
+      
 
-      if (ParamState != ExpectedState)
+      if (ConsumedState ExpectedState = mapParamTypestateAttrState(PTA); ParamState != ExpectedState)
         Analyzer.WarningsHandler.warnParamTypestateMismatch(
           Call->getArg(Index)->getExprLoc(),
           stateToString(ExpectedState), stateToString(ParamState));
@@ -753,9 +753,9 @@ void ConsumedStmtVisitor::VisitCastExpr(const CastExpr *Cast) {
 void ConsumedStmtVisitor::VisitCXXBindTemporaryExpr(
   const CXXBindTemporaryExpr *Temp) {
 
-  InfoEntry Entry = findInfo(Temp->getSubExpr());
+  
 
-  if (Entry != PropagationMap.end() && !Entry->second.isTest()) {
+  if (InfoEntry Entry = findInfo(Temp->getSubExpr()); Entry != PropagationMap.end() && !Entry->second.isTest()) {
     StateMap->setState(Temp, Entry->second.getAsState(StateMap));
     PropagationMap.insert(PairType(Temp, PropagationInfo(Temp)));
   }
@@ -808,8 +808,8 @@ void ConsumedStmtVisitor::VisitCXXOperatorCallExpr(
   if (!FunDecl) return;
 
   if (Call->getOperator() == OO_Equal) {
-    ConsumedState CS = getInfo(Call->getArg(1));
-    if (!handleCall(Call, Call->getArg(0), FunDecl))
+    
+    if (ConsumedState CS = getInfo(Call->getArg(1)); !handleCall(Call, Call->getArg(0), FunDecl))
       setInfo(Call->getArg(0), CS);
     return;
   }
@@ -867,15 +867,15 @@ void ConsumedStmtVisitor::VisitParmVarDecl(const ParmVarDecl *Param) {
 }
 
 void ConsumedStmtVisitor::VisitReturnStmt(const ReturnStmt *Ret) {
-  ConsumedState ExpectedState = Analyzer.getExpectedReturnState();
+  
 
-  if (ExpectedState != CS_None) {
-    InfoEntry Entry = findInfo(Ret->getRetValue());
+  if (ConsumedState ExpectedState = Analyzer.getExpectedReturnState(); ExpectedState != CS_None) {
+    
 
-    if (Entry != PropagationMap.end()) {
-      ConsumedState RetState = Entry->second.getAsState(StateMap);
+    if (InfoEntry Entry = findInfo(Ret->getRetValue()); Entry != PropagationMap.end()) {
+      
 
-      if (RetState != ExpectedState)
+      if (ConsumedState RetState = Entry->second.getAsState(StateMap); RetState != ExpectedState)
         Analyzer.WarningsHandler.warnReturnTypestateMismatch(
           Ret->getReturnLoc(), stateToString(ExpectedState),
           stateToString(RetState));
@@ -909,12 +909,12 @@ void ConsumedStmtVisitor::VisitUnaryOperator(const UnaryOperator *UOp) {
 void ConsumedStmtVisitor::VisitVarDecl(const VarDecl *Var) {
   if (isConsumableType(Var->getType())) {
     if (Var->hasInit()) {
-      MapType::iterator VIT = findInfo(Var->getInit()->IgnoreImplicit());
-      if (VIT != PropagationMap.end()) {
+      
+      if (MapType::iterator VIT = findInfo(Var->getInit()->IgnoreImplicit()); VIT != PropagationMap.end()) {
         PropagationInfo PInfo = VIT->second;
-        ConsumedState St = PInfo.getAsState(StateMap);
+        
 
-        if (St != consumed::CS_None) {
+        if (ConsumedState St = PInfo.getAsState(StateMap); St != consumed::CS_None) {
           StateMap->setState(Var, St);
           return;
         }
@@ -928,9 +928,9 @@ void ConsumedStmtVisitor::VisitVarDecl(const VarDecl *Var) {
 static void splitVarStateForIf(const IfStmt *IfNode, const VarTestResult &Test,
                                ConsumedStateMap *ThenStates,
                                ConsumedStateMap *ElseStates) {
-  ConsumedState VarState = ThenStates->getState(Test.Var);
+  
 
-  if (VarState == CS_Unknown) {
+  if (ConsumedState VarState = ThenStates->getState(Test.Var); VarState == CS_Unknown) {
     ThenStates->setState(Test.Var, Test.TestsFor);
     ElseStates->setState(Test.Var, invertConsumedUnconsumed(Test.TestsFor));
   } else if (VarState == invertConsumedUnconsumed(Test.TestsFor)) {
@@ -1012,9 +1012,9 @@ void ConsumedBlockInfo::addInfo(
     std::unique_ptr<ConsumedStateMap> &OwnedStateMap) {
   assert(Block && "Block pointer must not be NULL");
 
-  auto &Entry = StateMapsArray[Block->getBlockID()];
+  
 
-  if (Entry) {
+  if (auto &Entry = StateMapsArray[Block->getBlockID()]; Entry) {
     Entry->intersect(*StateMap);
   } else if (OwnedStateMap)
     Entry = std::move(OwnedStateMap);
@@ -1026,9 +1026,9 @@ void ConsumedBlockInfo::addInfo(const CFGBlock *Block,
                                 std::unique_ptr<ConsumedStateMap> StateMap) {
   assert(Block && "Block pointer must not be NULL");
 
-  auto &Entry = StateMapsArray[Block->getBlockID()];
+  
 
-  if (Entry) {
+  if (auto &Entry = StateMapsArray[Block->getBlockID()]; Entry) {
     Entry->intersect(*StateMap);
   } else {
     Entry = std::move(StateMap);
@@ -1197,8 +1197,8 @@ void ConsumedAnalyzer::determineExpectedReturnState(AnalysisDeclContext &AC,
     ReturnType = D->getCallResultType();
 
   if (const ReturnTypestateAttr *RTSAttr = D->getAttr<ReturnTypestateAttr>()) {
-    const CXXRecordDecl *RD = ReturnType->getAsCXXRecordDecl();
-    if (!RD || !RD->hasAttr<ConsumableAttr>()) {
+    
+    if (const CXXRecordDecl *RD = ReturnType->getAsCXXRecordDecl(); !RD || !RD->hasAttr<ConsumableAttr>()) {
       // FIXME: This should be removed when template instantiation propagates
       //        attributes at template specialization definition, not
       //        declaration. When it is removed the test needs to be enabled
@@ -1265,9 +1265,9 @@ bool ConsumedAnalyzer::splitState(const CFGBlock *CurrBlock,
     FalseStates->setSource(BinOp);
 
     const VarTestResult &Test = PInfo.getVarTest();
-    ConsumedState VarState = CurrStates->getState(Test.Var);
+    
 
-    if (BinOp->getOpcode() == BO_LAnd) {
+    if (ConsumedState VarState = CurrStates->getState(Test.Var); BinOp->getOpcode() == BO_LAnd) {
       if (VarState == CS_Unknown)
         CurrStates->setState(Test.Var, Test.TestsFor);
       else if (VarState == invertConsumedUnconsumed(Test.TestsFor))

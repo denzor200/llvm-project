@@ -311,8 +311,8 @@ class LoadStorePrefetchNdToXeVMPattern : public OpConversionPattern<OpType> {
       // Get tile height from the tensor descriptor type.
       auto tileH = tdescTy.getDimSize(0);
       // Get vblocks from the tensor descriptor type.
-      int32_t vblocks = tdescTy.getArrayLength();
-      if constexpr (std::is_same_v<OpType, xegpu::StoreNdOp>) {
+      
+      if constexpr (int32_t vblocks = tdescTy.getArrayLength(); std::is_same_v<OpType, xegpu::StoreNdOp>) {
         Value src = adaptor.getValue();
         // If store value is a scalar, get value from op instead of adaptor.
         // Adaptor might have optimized away single element vector
@@ -336,9 +336,9 @@ class LoadStorePrefetchNdToXeVMPattern : public OpConversionPattern<OpType> {
             xevm::StoreCacheControlAttr::get(ctxt, storeCacheControl));
         rewriter.eraseOp(op);
       } else {
-        auto loadCacheControl =
-            translateLoadXeGPUCacheHint(op.getL1Hint(), op.getL3Hint());
-        if constexpr (std::is_same_v<OpType, xegpu::PrefetchNdOp>) {
+        
+        if constexpr (auto loadCacheControl =
+            translateLoadXeGPUCacheHint(op.getL1Hint(), op.getL3Hint()); std::is_same_v<OpType, xegpu::PrefetchNdOp>) {
           xevm::BlockPrefetch2dOp::create(
               rewriter, loc, basePtrLLVM, surfaceW, baseShapeH, surfaceW,
               offsetW, offsetH, elemBitSize, tileW, tileH, vblocks,
@@ -387,9 +387,9 @@ class LoadStorePrefetchNdToXeVMPattern : public OpConversionPattern<OpType> {
           getValueOrCreateCastToIndexLike(rewriter, loc, rewriter.getI64Type(),
                                           byteOffset));
       // Convert base pointer (i64) to LLVM pointer type.
-      Value finalPtrLLVM =
-          LLVM::IntToPtrOp::create(rewriter, loc, ptrTypeLLVM, finalAddrI64);
-      if constexpr (std::is_same_v<OpType, xegpu::StoreNdOp>) {
+      
+      if constexpr (Value finalPtrLLVM =
+          LLVM::IntToPtrOp::create(rewriter, loc, ptrTypeLLVM, finalAddrI64); std::is_same_v<OpType, xegpu::StoreNdOp>) {
         Value src = adaptor.getValue();
         // If store value is a scalar, get value from op instead of adaptor.
         // Adaptor might have optimized away single element vector
@@ -488,15 +488,15 @@ class LoadStoreToXeVMPattern : public OpConversionPattern<OpType> {
     if constexpr (std::is_same_v<OpType, xegpu::LoadGatherOp>) {
       basePtrI64 = adaptor.getSource();
       if (auto memRefTy = dyn_cast<MemRefType>(op.getSource().getType())) {
-        auto addrSpace = memRefTy.getMemorySpaceAsInt();
-        if (addrSpace != 0)
+        
+        if (auto addrSpace = memRefTy.getMemorySpaceAsInt(); addrSpace != 0)
           ptrTypeLLVM = LLVM::LLVMPointerType::get(ctxt, addrSpace);
       }
     } else {
       basePtrI64 = adaptor.getDest();
       if (auto memRefTy = dyn_cast<MemRefType>(op.getDest().getType())) {
-        auto addrSpace = memRefTy.getMemorySpaceAsInt();
-        if (addrSpace != 0)
+        
+        if (auto addrSpace = memRefTy.getMemorySpaceAsInt(); addrSpace != 0)
           ptrTypeLLVM = LLVM::LLVMPointerType::get(ctxt, addrSpace);
       }
     }
@@ -649,10 +649,10 @@ class LoadStoreMatrixToXeVMPattern : public OpConversionPattern<OpType> {
       // xevm.blockload
 
       Type intElemTy = rewriter.getIntegerType(elemBitWidth);
-      VectorType intVecTy =
-          VectorType::get(valOrResVecTy.getShape(), intElemTy);
+      
 
-      if constexpr (std::is_same_v<OpType, xegpu::LoadMatrixOp>) {
+      if constexpr (VectorType intVecTy =
+          VectorType::get(valOrResVecTy.getShape(), intElemTy); std::is_same_v<OpType, xegpu::LoadMatrixOp>) {
         Value loadOp =
             xevm::BlockLoadOp::create(rewriter, loc, intVecTy, basePtrLLVM);
         if (intVecTy != valOrResVecTy) {
@@ -674,8 +674,8 @@ class LoadStoreMatrixToXeVMPattern : public OpConversionPattern<OpType> {
     }
 
     if (valOrResVecTy.getNumElements() >= 1) {
-      auto chipOpt = xegpu::getChipStr(op);
-      if (!chipOpt || (*chipOpt != "pvc" && *chipOpt != "bmg")) {
+      
+      if (auto chipOpt = xegpu::getChipStr(op); !chipOpt || (*chipOpt != "pvc" && *chipOpt != "bmg")) {
         // the lowering for chunk load only works for pvc and bmg
         return rewriter.notifyMatchFailure(
             op, "The lowering is specific to pvc or bmg.");
@@ -757,8 +757,8 @@ class PrefetchToXeVMPattern : public OpConversionPattern<xegpu::PrefetchOp> {
           ctxt, getNumericXeVMAddrSpace(tdescTy.getMemorySpace()));
     // If source is a memref, we use its memory space.
     if (auto memRefTy = dyn_cast<MemRefType>(op.getSource().getType())) {
-      auto addrSpace = memRefTy.getMemorySpaceAsInt();
-      if (addrSpace != 0)
+      
+      if (auto addrSpace = memRefTy.getMemorySpaceAsInt(); addrSpace != 0)
         ptrTypeLLVM = LLVM::LLVMPointerType::get(ctxt, addrSpace);
     }
     // Convert base pointer (i64) to LLVM pointer type.
@@ -1005,8 +1005,8 @@ struct ConvertXeGPUToXeVMPass
                                         Location loc) -> Value {
       if (inputs.size() != 1)
         return {};
-      auto input = inputs.front();
-      if (auto memrefTy = dyn_cast<MemRefType>(input.getType())) {
+      
+      if (auto auto input = inputs.front(); memrefTy = dyn_cast<MemRefType>(input.getType())) {
 
         Value addr =
             memref::ExtractAlignedPointerAsIndexOp::create(builder, loc, input);
@@ -1022,8 +1022,8 @@ struct ConvertXeGPUToXeVMPass
                                       Location loc) -> Value {
       if (inputs.size() != 1)
         return {};
-      auto input = inputs.front();
-      if (input.getType() == builder.getIntegerType(64, false)) {
+      
+      if (auto input = inputs.front(); input.getType() == builder.getIntegerType(64, false)) {
         Value cast =
             index::CastUOp::create(builder, loc, builder.getIndexType(), input)
                 .getResult();
@@ -1039,8 +1039,8 @@ struct ConvertXeGPUToXeVMPass
                                       Location loc) -> Value {
       if (inputs.size() != 1)
         return {};
-      auto input = inputs.front();
-      if (input.getType() == builder.getIntegerType(32, false)) {
+      
+      if (auto input = inputs.front(); input.getType() == builder.getIntegerType(32, false)) {
         Value cast =
             index::CastUOp::create(builder, loc, builder.getIndexType(), input)
                 .getResult();
@@ -1059,8 +1059,8 @@ struct ConvertXeGPUToXeVMPass
                                         Location loc) -> Value {
       if (inputs.size() != 1)
         return {};
-      auto input = inputs.front();
-      if (auto vecTy = dyn_cast<VectorType>(input.getType())) {
+      
+      if (auto auto input = inputs.front(); vecTy = dyn_cast<VectorType>(input.getType())) {
         if (vecTy.getNumElements() == 1) {
           // If the vector has a single element, return the element type.
           Value cast =
@@ -1094,8 +1094,8 @@ struct ConvertXeGPUToXeVMPass
            Location loc) -> Value {
       if (inputs.size() != 1)
         return {};
-      auto input = inputs.front();
-      if (input.getType().isIntOrIndexOrFloat()) {
+      
+      if (auto input = inputs.front(); input.getType().isIntOrIndexOrFloat()) {
         // If the input is a scalar, and the target type is a vector of single
         // element, create a single element vector by broadcasting.
         if (auto vecTy = dyn_cast<VectorType>(type)) {

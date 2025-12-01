@@ -575,8 +575,8 @@ float MLEvictAdvisor::getInitialQueueSize(const MachineFunction &MF) {
   auto &MRI = MF.getRegInfo();
   unsigned NumUsedRegs = 0;
   for (unsigned I = 0, E = MRI.getNumVirtRegs(); I != E; ++I) {
-    Register Reg = Register::index2VirtReg(I);
-    if (!MRI.reg_nodbg_empty(Reg))
+    
+    if (Register Reg = Register::index2VirtReg(I); !MRI.reg_nodbg_empty(Reg))
       ++NumUsedRegs;
   }
   return static_cast<float>(NumUsedRegs);
@@ -836,9 +836,9 @@ MLEvictAdvisor::getLIFeatureComponents(const LiveInterval &LI) const {
 
     auto *MBB = MI->getParent();
     auto *Loop = Loops.getLoopFor(MBB);
-    bool IsExiting = Loop ? Loop->isLoopExiting(MBB) : false;
+    
 
-    if (Writes && IsExiting && LIS->isLiveOutOfMBB(LI, MBB))
+    if (bool IsExiting = Loop ? Loop->isLoopExiting(MBB) : false; Writes && IsExiting && LIS->isLiveOutOfMBB(LI, MBB))
       Ret.IndVarUpdates += Freq;
 
     if (MI->isCopy() && VirtRegAuxInfo::copyHint(MI, LI.reg(), TRI, *MRI))

@@ -228,9 +228,9 @@ bool DependencyTracker::markCollectedLiveRootsAsKept(
 
   // Mark roots as kept.
   while (!RootEntriesWorkList.empty()) {
-    LiveRootWorklistItemTy Root = RootEntriesWorkList.pop_back_val();
+    
 
-    if (markDIEEntryAsKeptRec(Root.getAction(), Root.getRootEntry(),
+    if (LiveRootWorklistItemTy Root = RootEntriesWorkList.pop_back_val(); markDIEEntryAsKeptRec(Root.getAction(), Root.getRootEntry(),
                               Root.getRootEntry(), InterCUProcessingStarted,
                               HasNewInterconnectedCUs)) {
       if (Root.hasReferencedByOtherEntry())
@@ -253,10 +253,10 @@ bool DependencyTracker::updateDependenciesCompleteness() {
         RootEntry.CU->getDIEInfo(RootEntry.DieEntry);
 
     UnitEntryPairTy ReferencedByEntry = Root.getReferencedByEntry();
-    CompileUnit::DIEInfo &ReferencedByInfo =
-        ReferencedByEntry.CU->getDIEInfo(ReferencedByEntry.DieEntry);
+    
 
-    if (!RootInfo.needToPlaceInTypeTable() &&
+    if (CompileUnit::DIEInfo &ReferencedByInfo =
+        ReferencedByEntry.CU->getDIEInfo(ReferencedByEntry.DieEntry); !RootInfo.needToPlaceInTypeTable() &&
         ReferencedByInfo.needToPlaceInTypeTable()) {
       HasNewDependency = true;
       setPlainDwarfPlacementRec(ReferencedByEntry);
@@ -728,9 +728,9 @@ bool DependencyTracker::isLiveVariableEntry(const UnitEntryPairTy &Entry,
   CompileUnit::DIEInfo &Info = Entry.CU->getDIEInfo(DIE);
 
   if (Info.getTrackLiveness()) {
-    const auto *Abbrev = DIE.getAbbreviationDeclarationPtr();
+    
 
-    if (!Info.getIsInFunctionScope() &&
+    if (const auto *Abbrev = DIE.getAbbreviationDeclarationPtr(); !Info.getIsInFunctionScope() &&
         Abbrev->findAttributeIndex(dwarf::DW_AT_const_value)) {
       // Global variables with constant value can always be kept.
     } else {

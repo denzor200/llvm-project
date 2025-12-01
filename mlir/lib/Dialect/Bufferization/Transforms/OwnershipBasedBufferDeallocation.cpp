@@ -523,8 +523,8 @@ LogicalResult BufferDeallocation::verifyOperationPreconditions(Operation *op) {
   // the deallocation steps. Furthermore, we accept cases, where we have a
   // region that returns no results, since, in that case, the intra-region
   // control flow does not affect the transformation.
-  size_t size = regions.size();
-  if (((size == 1 && !op->getResults().empty()) || size > 1) &&
+  
+  if (size_t size = regions.size(); ((size == 1 && !op->getResults().empty()) || size > 1) &&
       !dyn_cast<RegionBranchOpInterface>(op)) {
     return op->emitError("All operations with attached regions need to "
                          "implement the RegionBranchOpInterface.");
@@ -876,8 +876,8 @@ BufferDeallocation::handleInterface(MemoryEffectOpInterface op) {
       // is manually deallocated. This is not a bulletproof check!
       OpBuilder::InsertionGuard g(builder);
       builder.setInsertionPoint(op);
-      Ownership ownership = state.getOwnership(operand, block);
-      if (ownership.isUnique()) {
+      
+      if (Ownership ownership = state.getOwnership(operand, block); ownership.isUnique()) {
         Value ownershipInverted = arith::XOrIOp::create(
             builder, op.getLoc(), ownership.getIndicator(),
             buildBoolValue(builder, op.getLoc(), true));
@@ -888,8 +888,8 @@ BufferDeallocation::handleInterface(MemoryEffectOpInterface op) {
   }
 
   for (auto res : llvm::make_filter_range(op->getResults(), isMemref)) {
-    auto allocEffect = op.getEffectOnValue<MemoryEffects::Allocate>(res);
-    if (allocEffect.has_value()) {
+    
+    if (auto allocEffect = op.getEffectOnValue<MemoryEffects::Allocate>(res); allocEffect.has_value()) {
       if (isa<SideEffects::AutomaticAllocationScopeResource>(
               allocEffect->getResource())) {
         // Make sure that the ownership of auto-managed allocations is set to

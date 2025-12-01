@@ -194,9 +194,9 @@ void GDBJITRegistrationListener::notifyObjectLoaded(
 
 void GDBJITRegistrationListener::notifyFreeingObject(ObjectKey K) {
   std::lock_guard<llvm::sys::Mutex> locked(JITDebugLock);
-  RegisteredObjectBufferMap::iterator I = ObjectBufferMap.find(K);
+  
 
-  if (I != ObjectBufferMap.end()) {
+  if (RegisteredObjectBufferMap::iterator I = ObjectBufferMap.find(K); I != ObjectBufferMap.end()) {
     deregisterObjectInternal(I);
     ObjectBufferMap.erase(I);
   }

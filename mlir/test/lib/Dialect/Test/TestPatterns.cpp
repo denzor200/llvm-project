@@ -72,8 +72,8 @@ static Attribute opMTest(PatternRewriter &rewriter, Value val) {
 }
 
 static bool assertBinOpEqualArgsAndReturnTrue(Value v) {
-  Operation *operation = v.getDefiningOp();
-  if (operation->getOperand(0) != operation->getOperand(1)) {
+  
+  if (Operation *operation = v.getDefiningOp(); operation->getOperand(0) != operation->getOperand(1)) {
     // Name binding equality check must happen before user-defined constraints,
     // thus this must not be triggered.
     llvm::report_fatal_error("Arguments are not equal");
@@ -743,8 +743,8 @@ static void invokeCreateWithInferredReturnType(Operation *op) {
   for (int i = 0, e = fop.getNumArguments(); i < e; ++i) {
     for (int j = 0; j < e; ++j) {
       std::array<Value, 2> values = {{fop.getArgument(i), fop.getArgument(j)}};
-      SmallVector<Type, 2> inferredReturnTypes;
-      if (succeeded(OpTy::inferReturnTypes(
+      
+      if (SmallVector<Type, 2> inferredReturnTypes; succeeded(OpTy::inferReturnTypes(
               context, std::nullopt, values, op->getDiscardableAttrDictionary(),
               op->getPropertiesStorage(), op->getRegions(),
               inferredReturnTypes))) {
@@ -976,8 +976,8 @@ struct TestValueReplace : public ConversionPattern {
                   ConversionPatternRewriter &rewriter) const final {
     // Replace the first operand with 2x the second operand.
     Value from = op->getOperand(0);
-    Value repl = op->getOperand(1);
-    if (op->hasAttr("conditional")) {
+    
+    if (Value repl = op->getOperand(1); op->hasAttr("conditional")) {
       rewriter.replaceUsesWithIf(from, {repl, repl}, [=](OpOperand &use) {
         return use.getOwner()->hasAttr("replace_uses");
       });
@@ -1933,10 +1933,10 @@ struct TestTypeConversionProducer
   matchAndRewrite(TestTypeProducerOp op, OpAdaptor adaptor,
                   ConversionPatternRewriter &rewriter) const final {
     Type resultType = op.getType();
-    Type convertedType = getTypeConverter()
+    
+    if (Type convertedType = getTypeConverter()
                              ? getTypeConverter()->convertType(resultType)
-                             : resultType;
-    if (isa<FloatType>(resultType))
+                             : resultType; isa<FloatType>(resultType))
       resultType = rewriter.getF64Type();
     else if (resultType.isInteger(16))
       resultType = rewriter.getIntegerType(64);
@@ -2329,9 +2329,9 @@ struct TestMergeSingleBlockOps
   LogicalResult
   matchAndRewrite(SingleBlockImplicitTerminatorOp op, OpAdaptor adaptor,
                   ConversionPatternRewriter &rewriter) const final {
-    SingleBlockImplicitTerminatorOp parentOp =
-        op->getParentOfType<SingleBlockImplicitTerminatorOp>();
-    if (!parentOp)
+    
+    if (SingleBlockImplicitTerminatorOp parentOp =
+        op->getParentOfType<SingleBlockImplicitTerminatorOp>(); !parentOp)
       return failure();
     Block &innerBlock = op.getRegion().front();
     TerminatorOp innerTerminator =

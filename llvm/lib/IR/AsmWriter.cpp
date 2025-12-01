@@ -1073,8 +1073,8 @@ void SlotTracker::processModule() {
     if (!Var.hasName())
       CreateModuleSlot(&Var);
     processGlobalObjectMetadata(Var);
-    auto Attrs = Var.getAttributes();
-    if (Attrs.hasAttributes())
+    
+    if (auto Attrs = Var.getAttributes(); Attrs.hasAttributes())
       CreateAttributeSetSlot(Attrs);
   }
 
@@ -1400,8 +1400,8 @@ void SlotTracker::CreateMetadataSlot(const MDNode *N) {
   if (isa<DIExpression>(N))
     return;
 
-  unsigned DestSlot = mdnNext;
-  if (!mdnMap.insert(std::make_pair(N, DestSlot)).second)
+  
+  if (unsigned DestSlot = mdnNext; !mdnMap.insert(std::make_pair(N, DestSlot)).second)
     return;
   ++mdnNext;
 
@@ -1524,9 +1524,9 @@ static void writeAPFloatInternal(raw_ostream &Out, const APFloat &APF) {
     bool ignored;
     bool isDouble = &APF.getSemantics() == &APFloat::IEEEdouble();
     bool isInf = APF.isInfinity();
-    bool isNaN = APF.isNaN();
+    
 
-    if (!isInf && !isNaN) {
+    if (bool isNaN = APF.isNaN(); !isInf && !isNaN) {
       double Val = APF.convertToDouble();
       SmallString<128> StrVal;
       APF.toString(StrVal, 6, 0, false);
@@ -1575,8 +1575,8 @@ static void writeAPFloatInternal(raw_ostream &Out, const APFloat &APF) {
   // These appear as a magic letter identifying the type, then a
   // fixed number of hex digits.
   Out << "0x";
-  APInt API = APF.bitcastToAPInt();
-  if (&APF.getSemantics() == &APFloat::x87DoubleExtended()) {
+  
+  if (APInt API = APF.bitcastToAPInt(); &APF.getSemantics() == &APFloat::x87DoubleExtended()) {
     Out << 'K';
     Out << format_hex_no_prefix(API.getHiBits(16).getZExtValue(), 4,
                                 /*Upper=*/true);
@@ -1901,8 +1901,8 @@ struct MDFieldPrinter {
 
 void MDFieldPrinter::printTag(const DINode *N) {
   Out << FS << "tag: ";
-  auto Tag = dwarf::TagString(N->getTag());
-  if (!Tag.empty())
+  
+  if (auto Tag = dwarf::TagString(N->getTag()); !Tag.empty())
     Out << Tag;
   else
     Out << N->getTag();
@@ -1910,8 +1910,8 @@ void MDFieldPrinter::printTag(const DINode *N) {
 
 void MDFieldPrinter::printMacinfoType(const DIMacroNode *N) {
   Out << FS << "type: ";
-  auto Type = dwarf::MacinfoString(N->getMacinfoType());
-  if (!Type.empty())
+  
+  if (auto Type = dwarf::MacinfoString(N->getMacinfoType()); !Type.empty())
     Out << Type;
   else
     Out << N->getMacinfoType();
@@ -1958,8 +1958,8 @@ void MDFieldPrinter::printMetadataOrInt(StringRef Name, const Metadata *MD,
     return;
 
   if (auto *CI = dyn_cast<ConstantAsMetadata>(MD)) {
-    auto *CV = cast<ConstantInt>(CI->getValue());
-    if (IsUnsigned)
+    
+    if (auto *CV = cast<ConstantInt>(CI->getValue()); IsUnsigned)
       printInt(Name, CV->getZExtValue(), ShouldSkipZero);
     else
       printInt(Name, CV->getSExtValue(), ShouldSkipZero);
@@ -2058,8 +2058,8 @@ void MDFieldPrinter::printDwarfEnum(StringRef Name, IntTy Value,
     return;
 
   Out << FS << Name << ": ";
-  auto S = toString(Value);
-  if (!S.empty())
+  
+  if (auto S = toString(Value); !S.empty())
     Out << S;
   else
     Out << Value;
@@ -2146,8 +2146,8 @@ static void writeDIGenericSubrange(raw_ostream &Out, const DIGenericSubrange *N,
     return std::nullopt;
   };
 
-  auto *Count = N->getRawCountNode();
-  if (auto ConstantCount = GetConstant(Count))
+  
+  if (auto auto *Count = N->getRawCountNode(); ConstantCount = GetConstant(Count))
     Printer.printInt("count", *ConstantCount,
                      /* ShouldSkipZero */ false);
   else
@@ -2711,8 +2711,8 @@ static void writeAsOperandInternal(raw_ostream &Out, const Value *V,
     return;
   }
 
-  const auto *CV = dyn_cast<Constant>(V);
-  if (CV && !isa<GlobalValue>(CV)) {
+  
+  if (const auto *CV = dyn_cast<Constant>(V); CV && !isa<GlobalValue>(CV)) {
     assert(WriterCtx.TypePrinter && "Constants require TypePrinting!");
     writeConstantInternal(Out, CV, WriterCtx);
     return;
@@ -3084,8 +3084,8 @@ void AssemblyWriter::printModule(const Module *M) {
     Out << "\"\n";
   }
 
-  const std::string &DL = M->getDataLayoutStr();
-  if (!DL.empty())
+  
+  if (const std::string &DL = M->getDataLayoutStr(); !DL.empty())
     Out << "target datalayout = \"" << DL << "\"\n";
   if (!M->getTargetTriple().empty())
     Out << "target triple = \"" << M->getTargetTriple().str() << "\"\n";
@@ -3765,15 +3765,15 @@ static void printMetadataIdentifier(StringRef Name,
   if (Name.empty()) {
     Out << "<empty name> ";
   } else {
-    unsigned char FirstC = static_cast<unsigned char>(Name[0]);
-    if (isalpha(FirstC) || FirstC == '-' || FirstC == '$' || FirstC == '.' ||
+    
+    if (unsigned char FirstC = static_cast<unsigned char>(Name[0]); isalpha(FirstC) || FirstC == '-' || FirstC == '$' || FirstC == '.' ||
         FirstC == '_')
       Out << FirstC;
     else
       Out << '\\' << hexdigit(FirstC >> 4) << hexdigit(FirstC & 0x0F);
     for (unsigned i = 1, e = Name.size(); i != e; ++i) {
-      unsigned char C = Name[i];
-      if (isalnum(C) || C == '-' || C == '$' || C == '.' || C == '_')
+      
+      if (unsigned char C = Name[i]; isalnum(C) || C == '-' || C == '$' || C == '.' || C == '_')
         Out << C;
       else
         Out << '\\' << hexdigit(C >> 4) << hexdigit(C & 0x0F);
@@ -3795,8 +3795,8 @@ void AssemblyWriter::printNamedMDNode(const NamedMDNode *NMD) {
       continue;
     }
 
-    int Slot = Machine.getMetadataSlot(Op);
-    if (Slot == -1)
+    
+    if (int Slot = Machine.getMetadataSlot(Op); Slot == -1)
       Out << "<badref>";
     else
       Out << '!' << Slot;
@@ -3894,8 +3894,8 @@ void AssemblyWriter::printGlobal(const GlobalVariable *GV) {
   printVisibility(GV->getVisibility(), Out);
   printDLLStorageClass(GV->getDLLStorageClass(), Out);
   printThreadLocalModel(GV->getThreadLocalMode(), Out);
-  StringRef UA = getUnnamedAddrEncoding(GV->getUnnamedAddr());
-  if (!UA.empty())
+  
+  if (StringRef UA = getUnnamedAddrEncoding(GV->getUnnamedAddr()); !UA.empty())
       Out << UA << ' ';
 
   if (unsigned AddressSpace = GV->getType()->getAddressSpace())
@@ -3982,8 +3982,8 @@ void AssemblyWriter::printAlias(const GlobalAlias *GA) {
   printVisibility(GA->getVisibility(), Out);
   printDLLStorageClass(GA->getDLLStorageClass(), Out);
   printThreadLocalModel(GA->getThreadLocalMode(), Out);
-  StringRef UA = getUnnamedAddrEncoding(GA->getUnnamedAddr());
-  if (!UA.empty())
+  
+  if (StringRef UA = getUnnamedAddrEncoding(GA->getUnnamedAddr()); !UA.empty())
       Out << UA << ' ';
 
   Out << "alias ";
@@ -4146,8 +4146,8 @@ void AssemblyWriter::printFunction(const Function *F) {
       // Output type.
       TypePrinter.print(FT->getParamType(I), Out);
 
-      AttributeSet ArgAttrs = Attrs.getParamAttrs(I);
-      if (ArgAttrs.hasAttributes()) {
+      
+      if (AttributeSet ArgAttrs = Attrs.getParamAttrs(I); ArgAttrs.hasAttributes()) {
         Out << ' ';
         writeAttributeSet(ArgAttrs);
       }
@@ -4267,8 +4267,8 @@ void AssemblyWriter::printBasicBlock(const BasicBlock *BB) {
     Out << ':';
   } else if (!IsEntryBlock) {
     Out << "\n";
-    int Slot = Machine.getLocalSlot(BB);
-    if (Slot != -1)
+    
+    if (int Slot = Machine.getLocalSlot(BB); Slot != -1)
       Out << Slot << ":";
     else
       Out << "<badref>:";
@@ -4360,11 +4360,11 @@ static void maybePrintCallAddrSpace(const Value *Operand, const Instruction *I,
   unsigned CallAddrSpace = Operand->getType()->getPointerAddressSpace();
   bool PrintAddrSpace = CallAddrSpace != 0;
   if (!PrintAddrSpace) {
-    const Module *Mod = getModuleFromVal(I);
+    
     // We also print it if it is zero but not equal to the program address space
     // or if we can't find a valid Module* to make it possible to parse
     // the resulting file even without a datalayout string.
-    if (!Mod || Mod->getDataLayout().getProgramAddressSpace() != 0)
+    if (const Module *Mod = getModuleFromVal(I); !Mod || Mod->getDataLayout().getProgramAddressSpace() != 0)
       PrintAddrSpace = true;
   }
   if (PrintAddrSpace)
@@ -4384,8 +4384,8 @@ void AssemblyWriter::printInstruction(const Instruction &I) {
     Out << " = ";
   } else if (!I.getType()->isVoidTy()) {
     // Print out the def slot taken.
-    int SlotNum = Machine.getLocalSlot(&I);
-    if (SlotNum == -1)
+    
+    if (int SlotNum = Machine.getLocalSlot(&I); SlotNum == -1)
       Out << "<badref> = ";
     else
       Out << '%' << SlotNum << " = ";
@@ -4430,10 +4430,10 @@ void AssemblyWriter::printInstruction(const Instruction &I) {
     Out << ' ' << AtomicRMWInst::getOperationName(RMWI->getOperation());
 
   // Print out the type of the operands...
-  const Value *Operand = I.getNumOperands() ? I.getOperand(0) : nullptr;
+  
 
   // Special case conditional branches to swizzle the condition out to the front
-  if (isa<BranchInst>(I) && cast<BranchInst>(I).isConditional()) {
+  if (const Value *Operand = I.getNumOperands() ? I.getOperand(0) : nullptr; isa<BranchInst>(I) && cast<BranchInst>(I).isConditional()) {
     const BranchInst &BI(cast<BranchInst>(I));
     Out << ' ';
     writeOperand(BI.getCondition(), true);
@@ -4735,8 +4735,8 @@ void AssemblyWriter::printInstruction(const Instruction &I) {
       Out << ", align " << A->value();
     }
 
-    unsigned AddrSpace = AI->getAddressSpace();
-    if (AddrSpace != 0)
+    
+    if (unsigned AddrSpace = AI->getAddressSpace(); AddrSpace != 0)
       Out << ", addrspace(" << AddrSpace << ')';
   } else if (isa<CastInst>(I)) {
     if (Operand) {
@@ -5157,8 +5157,8 @@ void DbgMarker::print(raw_ostream &ROS, ModuleSlotTracker &MST,
   SlotTracker EmptySlotTable(static_cast<const Module *>(nullptr));
   SlotTracker &SlotTable =
       MST.getMachine() ? *MST.getMachine() : EmptySlotTable;
-  const Function *F = getParent() ? getParent()->getParent() : nullptr;
-  if (F)
+  
+  if (const Function *F = getParent() ? getParent()->getParent() : nullptr; F)
     MST.incorporateFunction(*F);
   AssemblyWriter W(OS, SlotTable, getModuleFromDPI(this), nullptr, IsForDebug);
   W.printDbgMarker(*this);
@@ -5176,10 +5176,10 @@ void DbgVariableRecord::print(raw_ostream &ROS, ModuleSlotTracker &MST,
   SlotTracker EmptySlotTable(static_cast<const Module *>(nullptr));
   SlotTracker &SlotTable =
       MST.getMachine() ? *MST.getMachine() : EmptySlotTable;
-  const Function *F = Marker && Marker->getParent()
+  
+  if (const Function *F = Marker && Marker->getParent()
                           ? Marker->getParent()->getParent()
-                          : nullptr;
-  if (F)
+                          : nullptr; F)
     MST.incorporateFunction(*F);
   AssemblyWriter W(OS, SlotTable, getModuleFromDPI(this), nullptr, IsForDebug);
   W.printDbgVariableRecord(*this);
@@ -5191,9 +5191,9 @@ void DbgLabelRecord::print(raw_ostream &ROS, ModuleSlotTracker &MST,
   SlotTracker EmptySlotTable(static_cast<const Module *>(nullptr));
   SlotTracker &SlotTable =
       MST.getMachine() ? *MST.getMachine() : EmptySlotTable;
-  const Function *F =
-      Marker->getParent() ? Marker->getParent()->getParent() : nullptr;
-  if (F)
+  
+  if (const Function *F =
+      Marker->getParent() ? Marker->getParent()->getParent() : nullptr; F)
     MST.incorporateFunction(*F);
 
   AssemblyWriter W(OS, SlotTable, getModuleFromDPI(this), nullptr, IsForDebug);
@@ -5217,12 +5217,12 @@ void Value::print(raw_ostream &ROS, ModuleSlotTracker &MST,
   SlotTracker EmptySlotTable(static_cast<const Module *>(nullptr));
   SlotTracker &SlotTable =
       MST.getMachine() ? *MST.getMachine() : EmptySlotTable;
-  auto IncorporateFunction = [&](const Function *F) {
+  
+
+  if (const auto *auto IncorporateFunction = [&](const Function *F) {
     if (F)
       MST.incorporateFunction(*F);
-  };
-
-  if (const auto *I = dyn_cast<Instruction>(this)) {
+  }; I = dyn_cast<Instruction>(this)) {
     IncorporateFunction(I->getParent() ? I->getParent()->getParent() : nullptr);
     AssemblyWriter W(OS, SlotTable, getModuleFromVal(I), nullptr, IsForDebug);
     W.printInstruction(*I);
@@ -5231,8 +5231,8 @@ void Value::print(raw_ostream &ROS, ModuleSlotTracker &MST,
     AssemblyWriter W(OS, SlotTable, getModuleFromVal(BB), nullptr, IsForDebug);
     W.printBasicBlock(BB);
   } else if (const auto *GV = dyn_cast<GlobalValue>(this)) {
-    AssemblyWriter W(OS, SlotTable, GV->getParent(), nullptr, IsForDebug);
-    if (const auto *V = dyn_cast<GlobalVariable>(GV))
+    
+    if (const auto *AssemblyWriter W(OS, SlotTable, GV->getParent(), nullptr, IsForDebug); V = dyn_cast<GlobalVariable>(GV))
       W.printGlobal(V);
     else if (const auto *F = dyn_cast<Function>(GV))
       W.printFunction(F);

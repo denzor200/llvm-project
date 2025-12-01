@@ -37,8 +37,8 @@ bool cocoa::isRefType(QualType RetTy, StringRef Prefix,
     return false;
 
   // Is the type void*?
-  const PointerType* PT = RetTy->castAs<PointerType>();
-  if (!PT || !PT->getPointeeType().getUnqualifiedType()->isVoidType())
+  
+  if (const PointerType* PT = RetTy->castAs<PointerType>(); !PT || !PT->getPointeeType().getUnqualifiedType()->isVoidType())
     return false;
 
   // Does the name start with the prefix?
@@ -108,8 +108,8 @@ bool coreFoundation::followsCreateRule(const FunctionDecl *fn) {
     // Scan for the start of 'create' or 'copy'.
     for ( ; it != endI ; ++it) {
       // Search for the first character.  It can either be 'C' or 'c'.
-      char ch = *it;
-      if (ch == 'C' || ch == 'c') {
+      
+      if (char ch = *it; ch == 'C' || ch == 'c') {
         // Make sure this isn't something like 'recreate' or 'Scopy'.
         if (ch == 'c' && it != start && isLetter(*(it - 1)))
           continue;
@@ -125,8 +125,8 @@ bool coreFoundation::followsCreateRule(const FunctionDecl *fn) {
 
     // Scan for *lowercase* 'reate' or 'opy', followed by no lowercase
     // character.
-    StringRef suffix = functionName.substr(it - start);
-    if (suffix.starts_with("reate")) {
+    
+    if (StringRef suffix = functionName.substr(it - start); suffix.starts_with("reate")) {
       it += 5;
     } else if (suffix.starts_with("opy")) {
       it += 3;

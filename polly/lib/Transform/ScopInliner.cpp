@@ -84,8 +84,8 @@ template <typename SCC_t> bool runScopInlinerImpl(Function *F, SCC_t &SCC) {
     MPM.addPass(AlwaysInlinerPass());
     Module *M = F->getParent();
     assert(M && "Function has illegal module");
-    PreservedAnalyses PA = MPM.run(*M, MAM);
-    if (!PA.areAllPreserved())
+    
+    if (PreservedAnalyses PA = MPM.run(*M, MAM); !PA.areAllPreserved())
       Changed = true;
   } else {
     POLLY_DEBUG(dbgs() << F->getName()

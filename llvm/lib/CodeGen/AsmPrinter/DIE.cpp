@@ -201,8 +201,8 @@ const DIE *DIE::getUnitDie() const {
 }
 
 DIEUnit *DIE::getUnit() const {
-  const DIE *UnitDie = getUnitDie();
-  if (UnitDie)
+  
+  if (const DIE *UnitDie = getUnitDie(); UnitDie)
     return dyn_cast_if_present<DIEUnit *>(UnitDie->Owner);
   return nullptr;
 }

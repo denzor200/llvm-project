@@ -131,11 +131,11 @@ bool AMDGPUPreLegalizerCombinerImpl::matchClampI64ToI16(
   auto IsApplicableForCombine = [&MatchInfo]() -> bool {
     const auto Cmp1 = MatchInfo.Cmp1;
     const auto Cmp2 = MatchInfo.Cmp2;
-    const auto Diff = std::abs(Cmp2 - Cmp1);
+    
 
     // If the difference between both comparison values is 0 or 1, there is no
     // need to clamp.
-    if (Diff == 0 || Diff == 1)
+    if (const auto Diff = std::abs(Cmp2 - Cmp1); Diff == 0 || Diff == 1)
       return false;
 
     const int64_t Min = std::numeric_limits<int16_t>::min();

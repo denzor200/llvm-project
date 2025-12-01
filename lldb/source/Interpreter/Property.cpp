@@ -260,8 +260,8 @@ void Property::Dump(const ExecutionContext *exe_ctx, Stream &strm,
       }
     }
     if (dump_desc) {
-      llvm::StringRef desc = GetDescription();
-      if (!desc.empty())
+      
+      if (llvm::StringRef desc = GetDescription(); !desc.empty())
         strm << "-- " << desc;
 
       if (transparent && (dump_mask == (OptionValue::eDumpOptionName |

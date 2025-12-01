@@ -138,8 +138,8 @@ LLVM_DUMP_METHOD void HexagonSplitDoubleRegs::dump_partition(raw_ostream &os,
 
 bool HexagonSplitDoubleRegs::isInduction(unsigned Reg, LoopRegMap &IRM) const {
   for (auto I : IRM) {
-    const USet &Rs = I.second;
-    if (Rs.find(Reg) != Rs.end())
+    
+    if (const USet &Rs = I.second; Rs.find(Reg) != Rs.end())
       return true;
   }
   return false;
@@ -159,8 +159,8 @@ bool HexagonSplitDoubleRegs::isFixedInstr(const MachineInstr *MI) const {
   if (MI->isDebugInstr())
     return false;
 
-  unsigned Opc = MI->getOpcode();
-  switch (Opc) {
+  
+  switch (unsigned Opc = MI->getOpcode(); Opc) {
     default:
       return true;
 
@@ -204,8 +204,8 @@ bool HexagonSplitDoubleRegs::isFixedInstr(const MachineInstr *MI) const {
   for (auto &Op : MI->operands()) {
     if (!Op.isReg())
       continue;
-    Register R = Op.getReg();
-    if (!R.isVirtual())
+    
+    if (Register R = Op.getReg(); !R.isVirtual())
       return true;
   }
   return false;
@@ -218,19 +218,19 @@ void HexagonSplitDoubleRegs::partitionRegisters(UUSetMap &P2Rs) {
   unsigned NumRegs = MRI->getNumVirtRegs();
   BitVector DoubleRegs(NumRegs);
   for (unsigned i = 0; i < NumRegs; ++i) {
-    Register R = Register::index2VirtReg(i);
-    if (MRI->getRegClass(R) == DoubleRC)
+    
+    if (Register R = Register::index2VirtReg(i); MRI->getRegClass(R) == DoubleRC)
       DoubleRegs.set(i);
   }
 
   BitVector FixedRegs(NumRegs);
   for (int x = DoubleRegs.find_first(); x >= 0; x = DoubleRegs.find_next(x)) {
     Register R = Register::index2VirtReg(x);
-    MachineInstr *DefI = MRI->getVRegDef(R);
+    
     // In some cases a register may exist, but never be defined or used.
     // It should never appear anywhere, but mark it as "fixed", just to be
     // safe.
-    if (!DefI || isFixedInstr(DefI))
+    if (MachineInstr *DefI = MRI->getVRegDef(R); !DefI || isFixedInstr(DefI))
       FixedRegs.set(x);
   }
 
@@ -306,8 +306,8 @@ static inline int32_t profitImm(unsigned Imm) {
 
 int32_t HexagonSplitDoubleRegs::profit(const MachineInstr *MI) const {
   unsigned ImmX = 0;
-  unsigned Opc = MI->getOpcode();
-  switch (Opc) {
+  
+  switch (unsigned Opc = MI->getOpcode(); Opc) {
     case TargetOpcode::PHI:
       for (const auto &Op : MI->operands())
         if (!Op.getSubReg())
@@ -346,10 +346,10 @@ int32_t HexagonSplitDoubleRegs::profit(const MachineInstr *MI) const {
       [[fallthrough]];
     case Hexagon::A4_combineir: {
       ImmX++;
-      const MachineOperand &OpX = MI->getOperand(ImmX);
-      if (OpX.isImm()) {
-        int64_t V = OpX.getImm();
-        if (V == 0 || V == -1)
+      
+      if (const MachineOperand &OpX = MI->getOperand(ImmX); OpX.isImm()) {
+        
+        if (int64_t V = OpX.getImm(); V == 0 || V == -1)
           return 10;
       }
       // Fall through into A2_combinew.
@@ -370,8 +370,8 @@ int32_t HexagonSplitDoubleRegs::profit(const MachineInstr *MI) const {
     }
 
     case Hexagon::S2_asl_i_p_or: {
-      unsigned S = MI->getOperand(3).getImm();
-      if (S == 0 || S == 32)
+      
+      if (unsigned S = MI->getOperand(3).getImm(); S == 0 || S == 32)
         return 10;
       return -1;
     }
@@ -394,8 +394,8 @@ int32_t HexagonSplitDoubleRegs::profit(const MachineInstr *MI) const {
 int32_t HexagonSplitDoubleRegs::profit(Register Reg) const {
   assert(Reg.isVirtual());
 
-  const MachineInstr *DefI = MRI->getVRegDef(Reg);
-  switch (DefI->getOpcode()) {
+  
+  switch (const MachineInstr *DefI = MRI->getVRegDef(Reg); DefI->getOpcode()) {
     case Hexagon::A2_tfrpi:
     case Hexagon::CONST64:
     case Hexagon::A2_combineii:
@@ -444,8 +444,8 @@ bool HexagonSplitDoubleRegs::isProfitable(const USet &Part, LoopRegMap &IRM)
       // confuse the modulo scheduler.
       if (UseI->isPHI()) {
         const MachineBasicBlock *PB = UseI->getParent();
-        const MachineLoop *L = MLI->getLoopFor(PB);
-        if (L && L->getHeader() == PB)
+        
+        if (const MachineLoop *L = MLI->getLoopFor(PB); L && L->getHeader() == PB)
           LoopPhiNum++;
       }
       // Splittable instruction.
@@ -527,8 +527,8 @@ void HexagonSplitDoubleRegs::collectIndRegsForLoop(const MachineLoop *L,
     if (!MI.isPHI())
       break;
     const MachineOperand &MD = MI.getOperand(0);
-    Register R = MD.getReg();
-    if (MRI->getRegClass(R) == DoubleRC)
+    
+    if (Register R = MD.getReg(); MRI->getRegClass(R) == DoubleRC)
       DP.push_back(R);
   }
   if (DP.empty())
@@ -792,9 +792,9 @@ void HexagonSplitDoubleRegs::splitShift(MachineInstr *MI,
   unsigned ShiftOpc = Left ? S2_asl_i_r
                            : (Signed ? S2_asr_i_r : S2_lsr_i_r);
   unsigned LoSR = isub_lo;
-  unsigned HiSR = isub_hi;
+  
 
-  if (S == 0) {
+  if (unsigned HiSR = isub_hi; S == 0) {
     // No shift, subregister copy.
     BuildMI(B, MI, DL, TII->get(TargetOpcode::COPY), LoR)
       .addReg(Op1.getReg(), RS & ~RegState::Kill, LoSR);
@@ -913,7 +913,7 @@ void HexagonSplitDoubleRegs::splitAslOr(MachineInstr *MI,
   const TargetRegisterClass *IntRC = &IntRegsRegClass;
 
   unsigned LoSR = isub_lo;
-  unsigned HiSR = isub_hi;
+  
 
   // Op0 = S2_asl_i_p_or Op1, Op2, Op3
   // means:  Op0 = or (Op1, asl(Op2, Op3))
@@ -926,7 +926,7 @@ void HexagonSplitDoubleRegs::splitAslOr(MachineInstr *MI,
   //   Tmp2 = or R1.hi, Tmp1
   //   HiR  = or (Tmp2, asl(R2.hi, #s))
 
-  if (S == 0) {
+  if (unsigned HiSR = isub_hi; S == 0) {
     // DR  = or (R1, asl(R2, #0))
     //    -> or (R1, R2)
     // i.e. LoR = or R1.lo, R2.lo
@@ -986,9 +986,9 @@ bool HexagonSplitDoubleRegs::splitInstr(MachineInstr *MI,
 
   LLVM_DEBUG(dbgs() << "Splitting: " << *MI);
   bool Split = false;
-  unsigned Opc = MI->getOpcode();
+  
 
-  switch (Opc) {
+  switch (unsigned Opc = MI->getOpcode(); Opc) {
     case TargetOpcode::PHI:
     case TargetOpcode::COPY: {
       Register DstR = MI->getOperand(0).getReg();
@@ -1072,8 +1072,8 @@ void HexagonSplitDoubleRegs::replaceSubregUses(MachineInstr *MI,
     UUPairMap::const_iterator F = PairMap.find(R);
     if (F == PairMap.end())
       continue;
-    const UUPair &P = F->second;
-    switch (Op.getSubReg()) {
+    
+    switch (const UUPair &P = F->second; Op.getSubReg()) {
       case Hexagon::isub_lo:
         Op.setReg(P.first);
         break;

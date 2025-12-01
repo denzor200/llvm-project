@@ -268,10 +268,10 @@ public:
       if (Error E = AddMember(*this, FileName)())
         return std::move(E);
 
-    std::string Arch = ArchType.value_or("");
-    if (!Arch.empty()) {
-      uint64_t ArchCPUID = getCPUID(C.ArchCPUType, C.ArchCPUSubtype);
-      if (Data.MembersPerArchitecture.find(ArchCPUID) ==
+    
+    if (std::string Arch = ArchType.value_or(""); !Arch.empty()) {
+      
+      if (uint64_t ArchCPUID = getCPUID(C.ArchCPUType, C.ArchCPUSubtype); Data.MembersPerArchitecture.find(ArchCPUID) ==
           Data.MembersPerArchitecture.end())
         return createStringError(std::errc::invalid_argument,
                                  "no library created (no object files in input "

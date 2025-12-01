@@ -63,15 +63,15 @@ NativeRegisterContextLinux::WriteRegisterRaw(uint32_t reg_index,
     RegisterValue::BytesContainer dst(full_reg_info->byte_size);
 
     // Get the bytes for the full register.
-    const uint32_t dest_size = full_value.GetAsMemoryData(
-        *full_reg_info, dst.data(), dst.size(), byte_order, error);
-    if (error.Success() && dest_size) {
+    
+    if (const uint32_t dest_size = full_value.GetAsMemoryData(
+        *full_reg_info, dst.data(), dst.size(), byte_order, error); error.Success() && dest_size) {
       RegisterValue::BytesContainer src(reg_info->byte_size);
 
       // Get the bytes for the source data.
-      const uint32_t src_size = reg_value.GetAsMemoryData(
-          *reg_info, src.data(), src.size(), byte_order, error);
-      if (error.Success() && src_size && (src_size < dest_size)) {
+      
+      if (const uint32_t src_size = reg_value.GetAsMemoryData(
+          *reg_info, src.data(), src.size(), byte_order, error); error.Success() && src_size && (src_size < dest_size)) {
         // Copy the src bytes to the destination.
         memcpy(dst.data() + (reg_info->byte_offset & 0x1), src.data(),
                src_size);
@@ -172,9 +172,9 @@ NativeRegisterContextLinux::DetermineArchitectureViaGPR(lldb::tid_t tid,
   iov.iov_base = data.get();
   iov.iov_len = gpr64_size;
   unsigned int regset = llvm::ELF::NT_PRSTATUS;
-  Status ST = NativeProcessLinux::PtraceWrapper(PTRACE_GETREGSET, tid, &regset,
-                                                &iov, sizeof(iov));
-  if (ST.Fail())
+  
+  if (Status ST = NativeProcessLinux::PtraceWrapper(PTRACE_GETREGSET, tid, &regset,
+                                                &iov, sizeof(iov)); ST.Fail())
     return ST.ToError();
   return HostInfo::GetArchitecture(
       iov.iov_len < gpr64_size ? HostInfo::eArchKind32 : HostInfo::eArchKind64);

@@ -46,8 +46,8 @@ struct TestMemRefToLLVMWithTransforms
     RewritePatternSet patterns(ctx);
     memref::populateExpandStridedMetadataPatterns(patterns);
     populateFuncToLLVMConversionPatterns(typeConverter, patterns);
-    LLVMConversionTarget target(getContext());
-    if (failed(applyPartialConversion(getOperation(), target,
+    
+    if (LLVMConversionTarget target(getContext()); failed(applyPartialConversion(getOperation(), target,
                                       std::move(patterns))))
       signalPassFailure();
   }

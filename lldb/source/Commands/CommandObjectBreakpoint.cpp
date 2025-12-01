@@ -65,10 +65,10 @@ public:
     Status error;
     const int short_option =
         g_breakpoint_modify_options[option_idx].short_option;
-    const char *long_option =
-        g_breakpoint_modify_options[option_idx].long_option;
+    
 
-    switch (short_option) {
+    switch (const char *long_option =
+        g_breakpoint_modify_options[option_idx].long_option; short_option) {
     case 'c':
       // Normally an empty breakpoint condition marks is as unset. But we need
       // to say it was passed in.
@@ -95,8 +95,8 @@ public:
                                      g_bool_parsing_error_message));
     } break;
     case 'i': {
-      uint32_t ignore_count;
-      if (option_arg.getAsInteger(0, ignore_count))
+      
+      if (uint32_t ignore_count; option_arg.getAsInteger(0, ignore_count))
         error = Status::FromError(
             CreateOptionParsingError(option_arg, short_option, long_option,
                                      g_int_parsing_error_message));
@@ -121,8 +121,8 @@ public:
               option_arg, short_option, long_option,
               "No context to determine current thread"));
         } else {
-          ThreadSP ctx_thread_sp = execution_context->GetThreadSP();
-          if (!ctx_thread_sp || !ctx_thread_sp->IsValid()) {
+          
+          if (ThreadSP ctx_thread_sp = execution_context->GetThreadSP(); !ctx_thread_sp || !ctx_thread_sp->IsValid()) {
             error = Status::FromError(
                 CreateOptionParsingError(option_arg, short_option, long_option,
                                          "No currently selected thread"));
@@ -145,8 +145,8 @@ public:
       m_bp_opts.GetThreadSpec()->SetQueueName(option_arg.str().c_str());
       break;
     case 'x': {
-      uint32_t thread_index = UINT32_MAX;
-      if (option_arg.getAsInteger(0, thread_index)) {
+      
+      if (uint32_t thread_index = UINT32_MAX; option_arg.getAsInteger(0, thread_index)) {
         error = Status::FromError(
             CreateOptionParsingError(option_arg, short_option, long_option,
                                      g_int_parsing_error_message));
@@ -157,9 +157,9 @@ public:
     case 'Y': {
       LanguageType language = Language::GetLanguageTypeFromString(option_arg);
 
-      LanguageSet languages_for_expressions =
-          Language::GetLanguagesSupportingTypeSystemsForExpressions();
-      if (language == eLanguageTypeUnknown)
+      
+      if (LanguageSet languages_for_expressions =
+          Language::GetLanguagesSupportingTypeSystemsForExpressions(); language == eLanguageTypeUnknown)
         error = Status::FromError(CreateOptionParsingError(
             option_arg, short_option, long_option, "invalid language"));
       else if (!languages_for_expressions[language])
@@ -216,10 +216,10 @@ public:
   Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                         ExecutionContext *execution_context) override {
     Status error;
-    const int short_option =
-        g_breakpoint_dummy_options[option_idx].short_option;
+    
 
-    switch (short_option) {
+    switch (const int short_option =
+        g_breakpoint_dummy_options[option_idx].short_option; short_option) {
     case 'D':
       m_use_dummy = true;
       break;
@@ -287,10 +287,10 @@ public:
       Status error;
       const int short_option =
           g_breakpoint_set_options[option_idx].short_option;
-      const char *long_option =
-          g_breakpoint_set_options[option_idx].long_option;
+      
 
-      switch (short_option) {
+      switch (const char *long_option =
+          g_breakpoint_set_options[option_idx].long_option; short_option) {
       case 'a': {
         m_load_addr = OptionArgParser::ToAddress(execution_context, option_arg,
                                                  LLDB_INVALID_ADDRESS, &error);
@@ -485,8 +485,8 @@ public:
       case 'y':
       {
         OptionValueFileColonLine value;
-        Status fcl_err = value.SetValueFromString(option_arg);
-        if (!fcl_err.Success()) {
+        
+        if (Status fcl_err = value.SetValueFromString(option_arg); !fcl_err.Success()) {
           error = Status::FromError(CreateOptionParsingError(
               option_arg, short_option, long_option, fcl_err.AsCString()));
         } else {
@@ -606,8 +606,8 @@ protected:
     case eSetTypeFileAndLine: // Breakpoint by source position
     {
       FileSpec file;
-      const size_t num_files = m_options.m_filenames.GetSize();
-      if (num_files == 0) {
+      
+      if (const size_t num_files = m_options.m_filenames.GetSize(); num_files == 0) {
         if (!GetDefaultFile(target, file, result)) {
           result.AppendError("no file supplied and no default file available");
           return;
@@ -634,8 +634,8 @@ protected:
       // If a shared library has been specified, make an lldb_private::Address
       // with the library, and use that.  That way the address breakpoint
       //  will track the load location of the library.
-      size_t num_modules_specified = m_options.m_modules.GetSize();
-      if (num_modules_specified == 1) {
+      
+      if (size_t num_modules_specified = m_options.m_modules.GetSize(); num_modules_specified == 1) {
         const FileSpec &file_spec =
             m_options.m_modules.GetFileSpecAtIndex(0);
         bp_sp = target.CreateAddressInModuleBreakpoint(
@@ -690,11 +690,11 @@ protected:
     } break;
     case eSetTypeSourceRegexp: // Breakpoint by regexp on source text.
     {
-      const size_t num_files = m_options.m_filenames.GetSize();
+      
 
-      if (num_files == 0 && !m_options.m_all_files) {
-        FileSpec file;
-        if (!GetDefaultFile(target, file, result)) {
+      if (const size_t num_files = m_options.m_filenames.GetSize(); num_files == 0 && !m_options.m_all_files) {
+        
+        if (FileSpec file; !GetDefaultFile(target, file, result)) {
           result.AppendError(
               "No files provided and could not find default file.");
           return;
@@ -880,9 +880,9 @@ protected:
     if (result.Succeeded()) {
       const size_t count = valid_bp_ids.GetSize();
       for (size_t i = 0; i < count; ++i) {
-        BreakpointID cur_bp_id = valid_bp_ids.GetBreakpointIDAtIndex(i);
+        
 
-        if (cur_bp_id.GetBreakpointID() != LLDB_INVALID_BREAK_ID) {
+        if (BreakpointID cur_bp_id = valid_bp_ids.GetBreakpointIDAtIndex(i); cur_bp_id.GetBreakpointID() != LLDB_INVALID_BREAK_ID) {
           Breakpoint *bp =
               target.GetBreakpointByID(cur_bp_id.GetBreakpointID()).get();
           if (cur_bp_id.GetLocationID() != LLDB_INVALID_BREAK_ID) {
@@ -963,9 +963,9 @@ protected:
         int loc_count = 0;
         const size_t count = valid_bp_ids.GetSize();
         for (size_t i = 0; i < count; ++i) {
-          BreakpointID cur_bp_id = valid_bp_ids.GetBreakpointIDAtIndex(i);
+          
 
-          if (cur_bp_id.GetBreakpointID() != LLDB_INVALID_BREAK_ID) {
+          if (BreakpointID cur_bp_id = valid_bp_ids.GetBreakpointIDAtIndex(i); cur_bp_id.GetBreakpointID() != LLDB_INVALID_BREAK_ID) {
             Breakpoint *breakpoint =
                 target.GetBreakpointByID(cur_bp_id.GetBreakpointID()).get();
             if (cur_bp_id.GetLocationID() != LLDB_INVALID_BREAK_ID) {
@@ -1072,9 +1072,9 @@ protected:
         int loc_count = 0;
         const size_t count = valid_bp_ids.GetSize();
         for (size_t i = 0; i < count; ++i) {
-          BreakpointID cur_bp_id = valid_bp_ids.GetBreakpointIDAtIndex(i);
+          
 
-          if (cur_bp_id.GetBreakpointID() != LLDB_INVALID_BREAK_ID) {
+          if (BreakpointID cur_bp_id = valid_bp_ids.GetBreakpointIDAtIndex(i); cur_bp_id.GetBreakpointID() != LLDB_INVALID_BREAK_ID) {
             Breakpoint *breakpoint =
                 target.GetBreakpointByID(cur_bp_id.GetBreakpointID()).get();
             if (cur_bp_id.GetLocationID() != LLDB_INVALID_BREAK_ID) {
@@ -1133,9 +1133,9 @@ public:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'b':
         m_level = lldb::eDescriptionLevelBrief;
         break;
@@ -1262,9 +1262,9 @@ public:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'f':
         m_filename.assign(std::string(option_arg));
         break;
@@ -1406,9 +1406,9 @@ public:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'f':
         m_force = true;
         break;
@@ -1496,8 +1496,8 @@ protected:
 
       for (auto breakpoint_sp : breakpoints.Breakpoints()) {
         if (!breakpoint_sp->IsEnabled() && breakpoint_sp->AllowDelete()) {
-          BreakpointID bp_id(breakpoint_sp->GetID());
-          if (!excluded_bp_ids.Contains(bp_id))
+          
+          if (BreakpointID bp_id(breakpoint_sp->GetID()); !excluded_bp_ids.Contains(bp_id))
             valid_bp_ids.AddBreakpointID(bp_id);
         }
       }
@@ -1517,9 +1517,9 @@ protected:
     int disable_count = 0;
     const size_t count = valid_bp_ids.GetSize();
     for (size_t i = 0; i < count; ++i) {
-      BreakpointID cur_bp_id = valid_bp_ids.GetBreakpointIDAtIndex(i);
+      
 
-      if (cur_bp_id.GetBreakpointID() != LLDB_INVALID_BREAK_ID) {
+      if (BreakpointID cur_bp_id = valid_bp_ids.GetBreakpointIDAtIndex(i); cur_bp_id.GetBreakpointID() != LLDB_INVALID_BREAK_ID) {
         if (cur_bp_id.GetLocationID() != LLDB_INVALID_BREAK_ID) {
           Breakpoint *breakpoint =
               target.GetBreakpointByID(cur_bp_id.GetBreakpointID()).get();
@@ -1569,9 +1569,9 @@ public:
                         ExecutionContext *execution_context) override {
     Status error;
     const int short_option = g_breakpoint_name_options[option_idx].short_option;
-    const char *long_option = g_breakpoint_name_options[option_idx].long_option;
+    
 
-    switch (short_option) {
+    switch (const char *long_option = g_breakpoint_name_options[option_idx].long_option; short_option) {
     case 'N':
       if (BreakpointID::StringIsBreakpointName(option_arg, error) &&
           error.Success())
@@ -1630,10 +1630,10 @@ public:
     Status error;
     const int short_option =
         g_breakpoint_access_options[option_idx].short_option;
-    const char *long_option =
-        g_breakpoint_access_options[option_idx].long_option;
+    
 
-    switch (short_option) {
+    switch (const char *long_option =
+        g_breakpoint_access_options[option_idx].long_option; short_option) {
     case 'L': {
       bool value, success;
       value = OptionArgParser::ToBoolean(option_arg, false, &success);
@@ -1708,8 +1708,8 @@ public:
 protected:
   void DoExecute(Args &command, CommandReturnObject &result) override {
 
-    const size_t argc = command.GetArgumentCount();
-    if (argc == 0) {
+    
+    if (const size_t argc = command.GetArgumentCount(); argc == 0) {
       result.AppendError("no names provided");
       return;
     }
@@ -1721,8 +1721,8 @@ protected:
 
     // Make a pass through first to see that all the names are legal.
     for (auto &entry : command.entries()) {
-      Status error;
-      if (!BreakpointID::StringIsBreakpointName(entry.ref(), error)) {
+      
+      if (Status error; !BreakpointID::StringIsBreakpointName(entry.ref(), error)) {
         result.AppendErrorWithFormat("Invalid breakpoint name: %s - %s",
                                      entry.c_str(), error.AsCString());
         return;
@@ -1809,8 +1809,8 @@ protected:
 
     const BreakpointList &breakpoints = target.GetBreakpointList();
 
-    size_t num_breakpoints = breakpoints.GetSize();
-    if (num_breakpoints == 0) {
+    
+    if (size_t num_breakpoints = breakpoints.GetSize(); num_breakpoints == 0) {
       result.AppendError("no breakpoints, cannot add names");
       return;
     }
@@ -1883,8 +1883,8 @@ protected:
 
     const BreakpointList &breakpoints = target.GetBreakpointList();
 
-    size_t num_breakpoints = breakpoints.GetSize();
-    if (num_breakpoints == 0) {
+    
+    if (size_t num_breakpoints = breakpoints.GetSize(); num_breakpoints == 0) {
       result.AppendError("no breakpoints, cannot delete names");
       return;
     }
@@ -1953,9 +1953,9 @@ protected:
         const char *name = name_str.c_str();
         // First print out the options for the name:
         Status error;
-        BreakpointName *bp_name =
-            target.FindBreakpointName(ConstString(name), false, error);
-        if (bp_name) {
+        
+        if (BreakpointName *bp_name =
+            target.FindBreakpointName(ConstString(name), false, error); bp_name) {
           StreamString s;
           result.AppendMessageWithFormat("Name: %s\n", name);
           if (bp_name->GetDescription(&s, eDescriptionLevelFull)) {
@@ -2135,16 +2135,16 @@ public:
                           ExecutionContext *execution_context) override {
       Status error;
       const int short_option = m_getopt_table[option_idx].val;
-      const char *long_option =
-          m_getopt_table[option_idx].definition->long_option;
+      
 
-      switch (short_option) {
+      switch (const char *long_option =
+          m_getopt_table[option_idx].definition->long_option; short_option) {
       case 'f':
         m_filename.assign(std::string(option_arg));
         break;
       case 'N': {
-        Status name_error;
-        if (!BreakpointID::StringIsBreakpointName(llvm::StringRef(option_arg),
+        
+        if (Status name_error; !BreakpointID::StringIsBreakpointName(llvm::StringRef(option_arg),
                                                   name_error)) {
           error = Status::FromError(CreateOptionParsingError(
               option_arg, short_option, long_option, name_error.AsCString()));
@@ -2172,9 +2172,9 @@ public:
         CompletionRequest &request, OptionElementVector &opt_element_vector,
         int opt_element_index, CommandInterpreter &interpreter) override {
       int opt_arg_pos = opt_element_vector[opt_element_index].opt_arg_pos;
-      int opt_defs_index = opt_element_vector[opt_element_index].opt_defs_index;
+      
 
-      switch (GetDefinitions()[opt_defs_index].short_option) {
+      switch (int opt_defs_index = opt_element_vector[opt_element_index].opt_defs_index; GetDefinitions()[opt_defs_index].short_option) {
       case 'f':
         lldb_private::CommandCompletions::InvokeCommonCompletionCallbacks(
             interpreter, lldb::eDiskFileCompletion, request, nullptr);
@@ -2255,10 +2255,10 @@ protected:
     FileSpec input_spec(m_options.m_filename);
     FileSystem::Instance().Resolve(input_spec);
     BreakpointIDList new_bps;
-    Status error = target.CreateBreakpointsFromFile(input_spec,
-                                                    m_options.m_names, new_bps);
+    
 
-    if (!error.Success()) {
+    if (Status error = target.CreateBreakpointsFromFile(input_spec,
+                                                    m_options.m_names, new_bps); !error.Success()) {
       result.AppendError(error.AsCString());
       return;
     }
@@ -2324,9 +2324,9 @@ public:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'f':
         m_filename.assign(std::string(option_arg));
         break;
@@ -2508,9 +2508,9 @@ void CommandObjectMultiwordBreakpoint::VerifyIDs(
     Breakpoint *breakpoint =
         target.GetBreakpointByID(cur_bp_id.GetBreakpointID()).get();
     if (breakpoint != nullptr) {
-      lldb::break_id_t cur_loc_id = cur_bp_id.GetLocationID();
+      
       // GetLocationID returns 0 when the location isn't specified.
-      if (cur_loc_id != 0 && !breakpoint->FindLocationByID(cur_loc_id)) {
+      if (lldb::break_id_t cur_loc_id = cur_bp_id.GetLocationID(); cur_loc_id != 0 && !breakpoint->FindLocationByID(cur_loc_id)) {
         StreamString id_str;
         BreakpointID::GetCanonicalReference(
             &id_str, cur_bp_id.GetBreakpointID(), cur_bp_id.GetLocationID());

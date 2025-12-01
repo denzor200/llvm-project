@@ -286,8 +286,8 @@ LIBC_INLINE UInt<MID_INT_SIZE> get_table_negative(int exponent, size_t i) {
   size_t ten_blocks = i;
   size_t five_blocks = 0;
   if (shift_amount < 0) {
-    int block_shifts = (-shift_amount) / static_cast<int>(BLOCK_SIZE);
-    if (block_shifts < static_cast<int>(ten_blocks)) {
+    
+    if (int block_shifts = (-shift_amount) / static_cast<int>(BLOCK_SIZE); block_shifts < static_cast<int>(ten_blocks)) {
       ten_blocks = ten_blocks - block_shifts;
       five_blocks = block_shifts;
       shift_amount = shift_amount + (block_shifts * BLOCK_SIZE);
@@ -347,10 +347,10 @@ LIBC_INLINE UInt<MID_INT_SIZE> get_table_negative_df(int exponent, size_t i) {
 
   constexpr UInt<INT_SIZE> TEN_EXP_NINE_MANT(EXP10_9);
 
-  static const fputil::DyadicFloat<INT_SIZE> TEN_EXP_NINE(Sign::POS, 0,
-                                                          TEN_EXP_NINE_MANT);
+  
 
-  if (i > 0) {
+  if (static const fputil::DyadicFloat<INT_SIZE> TEN_EXP_NINE(Sign::POS, 0,
+                                                          TEN_EXP_NINE_MANT); i > 0) {
     fputil::DyadicFloat<INT_SIZE> tens =
         fputil::pow_n(TEN_EXP_NINE, static_cast<uint32_t>(i));
     num = tens;

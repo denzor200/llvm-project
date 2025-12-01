@@ -276,8 +276,8 @@ protected:
         },
         timeout);
     EXPECT_TRUE(addition_succeeded);
-    auto handle = transport->RegisterMessageHandler(loop, message_handler);
-    if (!handle)
+    
+    if (auto handle = transport->RegisterMessageHandler(loop, message_handler); !handle)
       return handle.takeError();
 
     return loop.Run().takeError();

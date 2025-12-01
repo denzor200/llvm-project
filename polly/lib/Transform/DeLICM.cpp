@@ -382,12 +382,12 @@ public:
     auto ExistingValues = Existing.Known.unite(ExistingUnusedAnyVal);
 
     auto MatchingVals = ExistingValues.intersect(ProposedValues);
-    auto Matches = MatchingVals.domain();
+    
 
     // Any Proposed.Occupied must either have a match between the known values
     // of Existing and Occupied, or be in Existing.Unused. In the latter case,
     // the previously added "AnyVal" will match each other.
-    if (!Proposed.Occupied.is_subset(Matches)) {
+    if (auto Matches = MatchingVals.domain(); !Proposed.Occupied.is_subset(Matches)) {
       if (OS) {
         auto Conflicting = Proposed.Occupied.subtract(Matches);
         auto ExistingConflictingKnown =
@@ -576,9 +576,9 @@ private:
       for (auto User : Inst->users()) {
         if (!isa<Instruction>(User))
           return false;
-        auto UserInst = cast<Instruction>(User);
+        
 
-        if (!S->contains(UserInst)) {
+        if (auto UserInst = cast<Instruction>(User); !S->contains(UserInst)) {
           POLLY_DEBUG(dbgs() << "    Reject because value is escaping\n");
           return false;
         }
@@ -864,8 +864,8 @@ private:
     POLLY_DEBUG(dbgs() << "    Mapping: " << PHITarget << '\n');
 
     auto OrigDomain = getDomainFor(PHIRead);
-    auto MappedDomain = PHITarget.domain();
-    if (!OrigDomain.is_subset(MappedDomain)) {
+    
+    if (auto MappedDomain = PHITarget.domain(); !OrigDomain.is_subset(MappedDomain)) {
       POLLY_DEBUG(
           dbgs()
           << "    Reject because mapping does not encompass all instances\n");
@@ -1052,8 +1052,8 @@ private:
       }
     };
 
-    auto *WrittenVal = TargetStoreMA->getAccessInstruction()->getOperand(0);
-    if (auto *WrittenValInputMA = TargetStmt->lookupInputAccessOf(WrittenVal))
+    
+    if (auto *auto *WrittenVal = TargetStoreMA->getAccessInstruction()->getOperand(0); WrittenValInputMA = TargetStmt->lookupInputAccessOf(WrittenVal))
       Worklist.push_back(WrittenValInputMA);
     else
       ProcessAllIncoming(TargetStmt);

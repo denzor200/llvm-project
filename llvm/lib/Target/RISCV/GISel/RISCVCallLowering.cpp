@@ -191,9 +191,9 @@ public:
                  CCValAssign::LocInfo LocInfo,
                  const CallLowering::ArgInfo &Info, ISD::ArgFlagsTy Flags,
                  CCState &State) override {
-    MachineFunction &MF = State.getMachineFunction();
+    
 
-    if (LocVT.isScalableVector())
+    if (MachineFunction &MF = State.getMachineFunction(); LocVT.isScalableVector())
       MF.getInfo<RISCVMachineFunctionInfo>()->setIsVectorCall();
 
     if (RISCVAssignFn(ValNo, ValVT, LocVT, LocInfo, Flags, State, IsRet,
@@ -401,9 +401,9 @@ bool RISCVCallLowering::lowerReturn(MachineIRBuilder &MIRBuilder,
   if (!FLI.CanLowerReturn) {
     insertSRetStores(MIRBuilder, Val->getType(), VRegs, FLI.DemoteRegister);
   } else if (!VRegs.empty()) {
-    const RISCVSubtarget &Subtarget =
-        MIRBuilder.getMF().getSubtarget<RISCVSubtarget>();
-    if (!isSupportedReturnType(Val->getType(), Subtarget,
+    
+    if (const RISCVSubtarget &Subtarget =
+        MIRBuilder.getMF().getSubtarget<RISCVSubtarget>(); !isSupportedReturnType(Val->getType(), Subtarget,
                                /*IsLowerRetVal=*/true))
       return false;
 
@@ -440,8 +440,8 @@ bool RISCVCallLowering::canLowerReturn(MachineFunction &MF,
                  MF.getFunction().getContext());
 
   for (unsigned I = 0, E = Outs.size(); I < E; ++I) {
-    MVT VT = MVT::getVT(Outs[I].Ty);
-    if (CC_RISCV(I, VT, VT, CCValAssign::Full, Outs[I].Flags[0], CCInfo,
+    
+    if (MVT VT = MVT::getVT(Outs[I].Ty); CC_RISCV(I, VT, VT, CCValAssign::Full, Outs[I].Flags[0], CCInfo,
                  /*isRet=*/true, nullptr))
       return false;
   }
@@ -647,8 +647,8 @@ bool RISCVCallLowering::lowerCall(MachineIRBuilder &MIRBuilder,
     RISCVIncomingValueAssigner RetAssigner(
         CC == CallingConv::Fast ? CC_RISCV_FastCC : CC_RISCV,
         /*IsRet=*/true);
-    RISCVCallReturnHandler RetHandler(MIRBuilder, MF.getRegInfo(), Call);
-    if (!determineAndHandleAssignments(RetHandler, RetAssigner, SplitRetInfos,
+    
+    if (RISCVCallReturnHandler RetHandler(MIRBuilder, MF.getRegInfo(), Call); !determineAndHandleAssignments(RetHandler, RetAssigner, SplitRetInfos,
                                        MIRBuilder, CC, Info.IsVarArg))
       return false;
   }

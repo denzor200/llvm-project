@@ -45,13 +45,13 @@ static void printModuleDebugInfo(raw_ostream &O, const Module *M,
     O << "Compile unit: ";
 
     DISourceLanguageName Lang = CU->getSourceLanguage();
-    auto LangStr =
+    
+
+    if (auto LangStr =
         Lang.hasVersionedName()
             ? dwarf::SourceLanguageNameString(
                   static_cast<llvm::dwarf::SourceLanguageName>(Lang.getName()))
-            : dwarf::LanguageString(Lang.getName());
-
-    if (!LangStr.empty())
+            : dwarf::LanguageString(Lang.getName()); !LangStr.empty())
       O << LangStr;
     else
       O << "unknown-language(" << CU->getSourceLanguage().getName() << ")";
@@ -84,15 +84,15 @@ static void printModuleDebugInfo(raw_ostream &O, const Module *M,
     printFile(O, T->getFilename(), T->getDirectory(), T->getLine());
     if (auto *BT = dyn_cast<DIBasicType>(T)) {
       O << " ";
-      auto Encoding = dwarf::AttributeEncodingString(BT->getEncoding());
-      if (!Encoding.empty())
+      
+      if (auto Encoding = dwarf::AttributeEncodingString(BT->getEncoding()); !Encoding.empty())
         O << Encoding;
       else
         O << "unknown-encoding(" << BT->getEncoding() << ')';
     } else {
       O << ' ';
-      auto Tag = dwarf::TagString(T->getTag());
-      if (!Tag.empty())
+      
+      if (auto Tag = dwarf::TagString(T->getTag()); !Tag.empty())
         O << Tag;
       else
         O << "unknown-tag(" << T->getTag() << ")";

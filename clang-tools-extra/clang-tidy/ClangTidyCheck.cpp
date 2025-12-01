@@ -66,8 +66,8 @@ static ClangTidyOptions::OptionMap::const_iterator
 findPriorityOption(const ClangTidyOptions::OptionMap &Options,
                    StringRef NamePrefix, StringRef LocalName,
                    ClangTidyContext *Context) {
-  llvm::StringSet<> *Collector = Context->getOptionsCollector();
-  if (Collector) {
+  
+  if (llvm::StringSet<> *Collector = Context->getOptionsCollector(); Collector) {
     Collector->insert((NamePrefix + LocalName).str());
     Collector->insert(LocalName);
   }
@@ -95,8 +95,8 @@ static std::optional<bool> getAsBool(StringRef Value) {
     return Parsed;
   // To maintain backwards compatibility, we support parsing numbers as
   // booleans, even though its not supported in YAML.
-  long long Number = 0;
-  if (!Value.getAsInteger(10, Number))
+  
+  if (long long Number = 0; !Value.getAsInteger(10, Number))
     return Number != 0;
   return std::nullopt;
 }
@@ -173,9 +173,9 @@ ClangTidyCheck::OptionsView::getEnumInt(StringRef LocalName,
       EditDistance = 0;
       continue;
     }
-    const unsigned Distance =
-        Value.edit_distance(NameAndEnum.second, true, EditDistance);
-    if (Distance < EditDistance) {
+    
+    if (const unsigned Distance =
+        Value.edit_distance(NameAndEnum.second, true, EditDistance); Distance < EditDistance) {
       EditDistance = Distance;
       Closest = NameAndEnum.second;
     }

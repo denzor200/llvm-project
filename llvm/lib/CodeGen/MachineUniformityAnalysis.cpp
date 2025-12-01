@@ -82,8 +82,8 @@ void llvm::GenericUniformityAnalysisImpl<MachineSSAContext>::pushUsers(
   if (Instr.isTerminator())
     return;
   for (const MachineOperand &op : Instr.all_defs()) {
-    auto Reg = op.getReg();
-    if (isDivergent(Reg))
+    
+    if (auto Reg = op.getReg(); isDivergent(Reg))
       pushUsers(Reg);
   }
 }

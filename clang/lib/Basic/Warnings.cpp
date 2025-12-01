@@ -204,13 +204,13 @@ void clang::ProcessWarningOptions(DiagnosticsEngine &Diags,
       // negative form of the option.
       bool IsPositive = !Opt.consume_front("no-");
 
-      auto Severity = IsPositive ? diag::Severity::Remark
-                                 : diag::Severity::Ignored;
+      
 
       // -Reverything sets the state of all remarks. Note that all remarks are
       // in remark groups, so we don't need a separate 'all remarks enabled'
       // flag.
-      if (Opt == "everything") {
+      if (auto Severity = IsPositive ? diag::Severity::Remark
+                                 : diag::Severity::Ignored; Opt == "everything") {
         if (SetDiagnostic)
           Diags.setSeverityForAll(Flavor, Severity);
         continue;

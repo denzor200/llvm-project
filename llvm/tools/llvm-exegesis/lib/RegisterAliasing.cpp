@@ -73,8 +73,8 @@ RegisterAliasingTrackerCache::getRegister(MCRegister PhysReg) const {
 const RegisterAliasingTracker &
 RegisterAliasingTrackerCache::getRegisterClass(unsigned RegClassIndex) const {
   auto &Found = RegisterClasses[RegClassIndex];
-  const auto &RegClass = RegInfo.getRegClass(RegClassIndex);
-  if (!Found)
+  
+  if (const auto &RegClass = RegInfo.getRegClass(RegClassIndex); !Found)
     Found.reset(new RegisterAliasingTracker(RegInfo, ReservedReg, RegClass));
   return *Found;
 }

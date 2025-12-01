@@ -64,11 +64,11 @@ bool X86IntelInstPrinter::printVecCompareInstr(const MCInst *MI, raw_ostream &OS
 
   int64_t Imm = MI->getOperand(MI->getNumOperands() - 1).getImm();
 
-  const MCInstrDesc &Desc = MII.get(MI->getOpcode());
+  
 
   // Custom print the vector compare instructions to get the immediate
   // translated into the mnemonic.
-  switch (MI->getOpcode()) {
+  switch (const MCInstrDesc &Desc = MII.get(MI->getOpcode()); MI->getOpcode()) {
   case X86::CMPPDrmi:     case X86::CMPPDrri:
   case X86::CMPPSrmi:     case X86::CMPPSrri:
   case X86::CMPSDrmi:     case X86::CMPSDrri:
@@ -365,8 +365,8 @@ bool X86IntelInstPrinter::printVecCompareInstr(const MCInst *MI, raw_ostream &OS
 
 void X86IntelInstPrinter::printOperand(const MCInst *MI, unsigned OpNo,
                                        raw_ostream &O) {
-  const MCOperand &Op = MI->getOperand(OpNo);
-  if (Op.isReg()) {
+  
+  if (const MCOperand &Op = MI->getOperand(OpNo); Op.isReg()) {
     printRegName(O, Op.getReg());
   } else if (Op.isImm()) {
     markup(O, Markup::Immediate) << formatImm(Op.getImm());
@@ -382,8 +382,8 @@ void X86IntelInstPrinter::printMemReference(const MCInst *MI, unsigned Op,
   // Do not print the exact form of the memory operand if it references a known
   // binary object.
   if (SymbolizeOperands && MIA) {
-    uint64_t Target;
-    if (MIA->evaluateBranch(*MI, 0, 0, Target))
+    
+    if (uint64_t Target; MIA->evaluateBranch(*MI, 0, 0, Target))
       return;
     if (MIA->evaluateMemoryOperandAddress(*MI, /*STI=*/nullptr, 0, 0))
       return;
@@ -418,8 +418,8 @@ void X86IntelInstPrinter::printMemReference(const MCInst *MI, unsigned Op,
     assert(DispSpec.isExpr() && "non-immediate displacement for LEA?");
     MAI.printExpr(O, *DispSpec.getExpr());
   } else {
-    int64_t DispVal = DispSpec.getImm();
-    if (DispVal || (!IndexReg.getReg() && !BaseReg.getReg())) {
+    
+    if (int64_t DispVal = DispSpec.getImm(); DispVal || (!IndexReg.getReg() && !BaseReg.getReg())) {
       if (NeedPlus) {
         if (DispVal > 0)
           O << " + ";
@@ -487,9 +487,9 @@ void X86IntelInstPrinter::printU8Imm(const MCInst *MI, unsigned Op,
 
 void X86IntelInstPrinter::printSTiRegOperand(const MCInst *MI, unsigned OpNo,
                                             raw_ostream &OS) {
-  MCRegister Reg = MI->getOperand(OpNo).getReg();
+  
   // Override the default printing to print st(0) instead st.
-  if (Reg == X86::ST0)
+  if (MCRegister Reg = MI->getOperand(OpNo).getReg(); Reg == X86::ST0)
     OS << "st(0)";
   else
     printRegName(OS, Reg);

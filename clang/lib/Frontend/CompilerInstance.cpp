@@ -134,8 +134,8 @@ bool CompilerInstance::createTarget() {
       getDiagnostics().Report(diag::warn_fe_backend_unsupported_fp_rounding);
       getLangOpts().RoundingMath = false;
     }
-    auto FPExc = getLangOpts().getFPExceptionMode();
-    if (FPExc != LangOptions::FPE_Default && FPExc != LangOptions::FPE_Ignore) {
+    
+    if (auto FPExc = getLangOpts().getFPExceptionMode(); FPExc != LangOptions::FPE_Default && FPExc != LangOptions::FPE_Ignore) {
       getDiagnostics().Report(diag::warn_fe_backend_unsupported_fp_exceptions);
       getLangOpts().setFPExceptionMode(LangOptions::FPE_Ignore);
     }
@@ -327,10 +327,10 @@ static void SetUpDiagnosticLog(DiagnosticOptions &DiagOpts,
 static void SetupSerializedDiagnostics(DiagnosticOptions &DiagOpts,
                                        DiagnosticsEngine &Diags,
                                        StringRef OutputFile) {
-  auto SerializedConsumer =
-      clang::serialized_diags::create(OutputFile, DiagOpts);
+  
 
-  if (Diags.ownsClient()) {
+  if (auto SerializedConsumer =
+      clang::serialized_diags::create(OutputFile, DiagOpts); Diags.ownsClient()) {
     Diags.setClient(new ChainedDiagnosticConsumer(
         Diags.takeClient(), std::move(SerializedConsumer)));
   } else {
@@ -403,14 +403,14 @@ static void InitializeFileRemapping(DiagnosticsEngine &Diags,
   // Remap files in the source manager (with buffers).
   for (const auto &RB : InitOpts.RemappedFileBuffers) {
     // Create the file entry for the file that we're mapping from.
-    FileEntryRef FromFile =
-        FileMgr.getVirtualFileRef(RB.first, RB.second->getBufferSize(), 0);
+    
 
     // Override the contents of the "from" file with the contents of the
     // "to" file. If the caller owns the buffers, then pass a MemoryBufferRef;
     // otherwise, pass as a std::unique_ptr<MemoryBuffer> to transfer ownership
     // to the SourceManager.
-    if (InitOpts.RetainRemappedFileBuffers)
+    if (FileEntryRef FromFile =
+        FileMgr.getVirtualFileRef(RB.first, RB.second->getBufferSize(), 0); InitOpts.RetainRemappedFileBuffers)
       SourceMgr.overrideFileContents(FromFile, RB.second->getMemBufferRef());
     else
       SourceMgr.overrideFileContents(
@@ -718,8 +718,8 @@ static bool EnableCodeCompletion(Preprocessor &PP,
 }
 
 void CompilerInstance::createCodeCompletionConsumer() {
-  const ParsedSourceLocation &Loc = getFrontendOpts().CodeCompletionAt;
-  if (!CompletionConsumer) {
+  
+  if (const ParsedSourceLocation &Loc = getFrontendOpts().CodeCompletionAt; !CompletionConsumer) {
     setCodeCompletionConsumer(createCodeCompletionConsumer(
         getPreprocessor(), Loc.FileName, Loc.Line, Loc.Column,
         getFrontendOpts().CodeCompleteOpts, llvm::outs()));
@@ -934,8 +934,8 @@ bool CompilerInstance::InitializeSourceManager(const FrontendInputFile &Input,
                        ? FileMgr.getSTDIN()
                        : FileMgr.getFileRef(InputFile, /*OpenFile=*/true);
   if (!FileOrErr) {
-    auto EC = llvm::errorToErrorCode(FileOrErr.takeError());
-    if (InputFile != "-")
+    
+    if (auto EC = llvm::errorToErrorCode(FileOrErr.takeError()); InputFile != "-")
       Diags.Report(diag::err_fe_error_reading) << InputFile << EC.message();
     else
       Diags.Report(diag::err_fe_error_reading_stdin) << EC.message();
@@ -1070,8 +1070,8 @@ void CompilerInstance::printDiagnosticStats() {
 void CompilerInstance::LoadRequestedPlugins() {
   // Load any requested plugins.
   for (const std::string &Path : getFrontendOpts().Plugins) {
-    std::string Error;
-    if (llvm::sys::DynamicLibrary::LoadLibraryPermanently(Path.c_str(), &Error))
+    
+    if (std::string Error; llvm::sys::DynamicLibrary::LoadLibraryPermanently(Path.c_str(), &Error))
       getDiagnostics().Report(diag::err_fe_unable_to_load_plugin)
           << Path << Error;
   }
@@ -1079,8 +1079,8 @@ void CompilerInstance::LoadRequestedPlugins() {
   // Check if any of the loaded plugins replaces the main AST action
   for (const FrontendPluginRegistry::entry &Plugin :
        FrontendPluginRegistry::entries()) {
-    std::unique_ptr<PluginASTAction> P(Plugin.instantiate());
-    if (P->getActionType() == PluginASTAction::ReplaceAction) {
+    
+    if (std::unique_ptr<PluginASTAction> P(Plugin.instantiate()); P->getActionType() == PluginASTAction::ReplaceAction) {
       getFrontendOpts().ProgramAction = clang::frontend::PluginAction;
       getFrontendOpts().ActionName = Plugin.getName().str();
       break;
@@ -1414,10 +1414,10 @@ static bool compileModuleAndReadASTImpl(CompilerInstance &ImportingInstance,
                                         Module *Module,
                                         StringRef ModuleFileName) {
   {
-    auto Instance = ImportingInstance.cloneForModuleCompile(
-        ModuleNameLoc, Module, ModuleFileName);
+    
 
-    if (!ImportingInstance.compileModule(ModuleNameLoc,
+    if (auto Instance = ImportingInstance.cloneForModuleCompile(
+        ModuleNameLoc, Module, ModuleFileName); !ImportingInstance.compileModule(ModuleNameLoc,
                                          Module->getTopLevelModuleName(),
                                          ModuleFileName, *Instance)) {
       ImportingInstance.getDiagnostics().Report(ModuleNameLoc,
@@ -1669,11 +1669,11 @@ bool CompilerInstance::loadModuleFile(
 
   auto Listener = std::make_unique<ReadModuleNames>(*PP);
   auto &ListenerRef = *Listener;
-  ASTReader::ListenerScope ReadModuleNamesListener(*TheASTReader,
-                                                   std::move(Listener));
+  
 
   // Try to load the module file.
-  switch (TheASTReader->ReadAST(
+  switch (ASTReader::ListenerScope ReadModuleNamesListener(*TheASTReader,
+                                                   std::move(Listener)); TheASTReader->ReadAST(
       FileName, serialization::MK_ExplicitModule, SourceLocation(),
       ConfigMismatchIsRecoverable ? ASTReader::ARR_ConfigurationMismatch : 0,
       &LoadedModuleFile)) {
@@ -1793,13 +1793,13 @@ ModuleLoadResult CompilerInstance::findOrCompileModuleAndReadAST(
 
   // Try to load the module file. If we are not trying to load from the
   // module cache, we don't know how to rebuild modules.
-  unsigned ARRFlags = Source == MS_ModuleCache
+  
+  switch (unsigned ARRFlags = Source == MS_ModuleCache
                           ? ASTReader::ARR_OutOfDate | ASTReader::ARR_Missing |
                                 ASTReader::ARR_TreatModuleWithErrorsAsOutOfDate
                           : Source == MS_PrebuiltModulePath
                                 ? 0
-                                : ASTReader::ARR_ConfigurationMismatch;
-  switch (getASTReader()->ReadAST(ModuleFilename,
+                                : ASTReader::ARR_ConfigurationMismatch; getASTReader()->ReadAST(ModuleFilename,
                                   Source == MS_PrebuiltModulePath
                                       ? serialization::MK_PrebuiltModule
                                       : Source == MS_ModuleBuildPragma
@@ -1985,9 +1985,9 @@ CompilerInstance::loadModule(SourceLocation ImportLoc,
           PrivateModule, PP->getIdentifierInfo(Module->Name)->getTokenID());
       PrivPath.emplace_back(Path[0].getLoc(), &II);
 
-      std::string FileName;
+      
       // If there is a modulemap module or prebuilt module, load it.
-      if (PP->getHeaderSearchInfo().lookupModule(PrivateModule, ImportLoc, true,
+      if (std::string FileName; PP->getHeaderSearchInfo().lookupModule(PrivateModule, ImportLoc, true,
                                                  !IsInclusionDirective) ||
           selectModuleSource(nullptr, PrivateModule, FileName, BuiltModules,
                              PP->getHeaderSearchInfo()) != MS_ModuleNotFound)
@@ -2016,10 +2016,10 @@ CompilerInstance::loadModule(SourceLocation ImportLoc,
       unsigned BestEditDistance = (std::numeric_limits<unsigned>::max)();
 
       for (class Module *SubModule : Module->submodules()) {
-        unsigned ED =
+        
+        if (unsigned ED =
             Name.edit_distance(SubModule->Name,
-                               /*AllowReplacements=*/true, BestEditDistance);
-        if (ED <= BestEditDistance) {
+                               /*AllowReplacements=*/true, BestEditDistance); ED <= BestEditDistance) {
           if (ED < BestEditDistance) {
             Best.clear();
             BestEditDistance = ED;
@@ -2198,8 +2198,8 @@ GlobalModuleIndex *CompilerInstance::loadGlobalModuleIndex(
     for (ModuleMap::module_iterator I = MMap.module_begin(),
         E = MMap.module_end(); I != E; ++I) {
       Module *TheModule = I->second;
-      OptionalFileEntryRef Entry = TheModule->getASTFile();
-      if (!Entry) {
+      
+      if (OptionalFileEntryRef Entry = TheModule->getASTFile(); !Entry) {
         SmallVector<IdentifierLoc, 2> Path;
         Path.emplace_back(TriggerLoc,
                           getPreprocessor().getIdentifierInfo(TheModule->Name));
@@ -2234,17 +2234,17 @@ CompilerInstance::lookupMissingImports(StringRef Name,
   // actually occurred.
   if (!buildingModule()) {
     // Load global module index, or retrieve a previously loaded one.
-    GlobalModuleIndex *GlobalIndex = loadGlobalModuleIndex(
-      TriggerLoc);
+    
 
     // Only if we have a global index.
-    if (GlobalIndex) {
-      GlobalModuleIndex::HitSet FoundModules;
+    if (GlobalModuleIndex *GlobalIndex = loadGlobalModuleIndex(
+      TriggerLoc); GlobalIndex) {
+      
 
       // Find the modules that reference the identifier.
       // Note that this only finds top-level modules.
       // We'll let diagnoseTypo find the actual declaration module.
-      if (GlobalIndex->lookupIdentifier(Name, FoundModules))
+      if (GlobalModuleIndex::HitSet FoundModules; GlobalIndex->lookupIdentifier(Name, FoundModules))
         return true;
     }
   }

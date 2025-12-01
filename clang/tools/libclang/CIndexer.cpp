@@ -113,9 +113,9 @@ const std::string &CIndexer::getClangResourcesPath() {
 #else
   bool PathFound = false;
 #if defined(CLANG_HAVE_DLFCN_H) && defined(CLANG_HAVE_DLADDR)
-  Dl_info info;
+  
   // This silly cast below avoids a C++ warning.
-  if (dladdr((void *)(uintptr_t)clang_createTranslationUnit, &info) != 0) {
+  if (Dl_info info; dladdr((void *)(uintptr_t)clang_createTranslationUnit, &info) != 0) {
     // We now have the CIndex directory, locate clang relative to it.
     LibClangPath += info.dli_fname;
     PathFound = true;

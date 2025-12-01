@@ -77,8 +77,8 @@ bool WebAssemblyAddMissingPrototypes::runOnModule(Module &M) {
       report_fatal_error(
           "Functions with 'no-prototype' attribute must take varargs: " +
           F.getName());
-    unsigned NumParams = F.getFunctionType()->getNumParams();
-    if (NumParams != 0) {
+    
+    if (unsigned NumParams = F.getFunctionType()->getNumParams(); NumParams != 0) {
       if (!(NumParams == 1 && F.arg_begin()->hasStructRetAttr()))
         report_fatal_error("Functions with 'no-prototype' attribute should "
                            "not have params: " +
@@ -105,8 +105,8 @@ bool WebAssemblyAddMissingPrototypes::runOnModule(Module &M) {
     for (CallBase *CB : Calls) {
       LLVM_DEBUG(dbgs() << "prototype-less call of " << F.getName() << ":\n");
       LLVM_DEBUG(dbgs() << *CB << "\n");
-      FunctionType *DestType = CB->getFunctionType();
-      if (!NewType) {
+      
+      if (FunctionType *DestType = CB->getFunctionType(); !NewType) {
         // Create a new function with the correct type
         NewType = DestType;
         LLVM_DEBUG(dbgs() << "found function type: " << *NewType << "\n");

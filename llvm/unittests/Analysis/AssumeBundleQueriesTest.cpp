@@ -53,8 +53,8 @@ bool hasMatchesExactlyAttributes(AssumeInst *Assume, Value *WasOn,
 #define ATTRIBUTE_ALL(ENUM_NAME, DISPLAY_NAME) StringRef(#DISPLAY_NAME),
 #include "llvm/IR/Attributes.inc"
        }) {
-    bool ShouldHaveAttr = Reg.match(Attr, &Matches) && Matches[0] == Attr;
-    if (ShouldHaveAttr != hasAttributeInAssume(*Assume, WasOn, Attr))
+    
+    if (bool ShouldHaveAttr = Reg.match(Attr, &Matches) && Matches[0] == Attr; ShouldHaveAttr != hasAttributeInAssume(*Assume, WasOn, Attr))
       return false;
   }
   return true;
@@ -231,9 +231,9 @@ static bool FindExactlyAttributes(RetainedKnowledgeMap &Map, Value *WasOn,
 #define ATTRIBUTE_ENUM(ENUM_NAME, DISPLAY_NAME) StringRef(#DISPLAY_NAME),
 #include "llvm/IR/Attributes.inc"
        }) {
-    bool ShouldHaveAttr = Reg.match(Attr, &Matches) && Matches[0] == Attr;
+    
 
-    if (ShouldHaveAttr != (Map.contains(RetainedKnowledgeKey{
+    if (bool ShouldHaveAttr = Reg.match(Attr, &Matches) && Matches[0] == Attr; ShouldHaveAttr != (Map.contains(RetainedKnowledgeKey{
                               WasOn, Attribute::getAttrKindFromName(Attr)})))
       return false;
   }

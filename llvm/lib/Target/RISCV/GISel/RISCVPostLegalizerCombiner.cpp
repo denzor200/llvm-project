@@ -81,8 +81,8 @@ void applyFoldFPZeroStore(MachineInstr &MI, MachineRegisterInfo &MRI,
   auto Zero = B.buildConstant(LLT::scalar(XLen), 0);
   MI.getOperand(0).setReg(Zero.getReg(0));
 
-  MachineInstr *Def = MRI.getVRegDef(MatchInfo);
-  if (Def && MRI.use_nodbg_empty(MatchInfo))
+  
+  if (MachineInstr *Def = MRI.getVRegDef(MatchInfo); Def && MRI.use_nodbg_empty(MatchInfo))
     Def->eraseFromParent();
 
 #ifndef NDEBUG

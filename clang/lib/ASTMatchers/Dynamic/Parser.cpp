@@ -224,8 +224,8 @@ private:
 
     // Try to recognize a floating point literal.
     while (Length < Code.size()) {
-      char c = Code[Length];
-      if (c == '-' || c == '+' || c == '.' || isHexDigit(c)) {
+      
+      if (char c = Code[Length]; c == '-' || c == '+' || c == '.' || isHexDigit(c)) {
         isFloatingLiteral = true;
         Length++;
       } else {
@@ -240,15 +240,15 @@ private:
       char *end;
       errno = 0;
       std::string Text = Result->Text.str();
-      double doubleValue = strtod(Text.c_str(), &end);
-      if (*end == 0 && errno == 0) {
+      
+      if (double doubleValue = strtod(Text.c_str(), &end); *end == 0 && errno == 0) {
         Result->Kind = TokenInfo::TK_Literal;
         Result->Value = doubleValue;
         return;
       }
     } else {
-      unsigned Value;
-      if (!Result->Text.getAsInteger(0, Value)) {
+      
+      if (unsigned Value; !Result->Text.getAsInteger(0, Value)) {
         Result->Kind = TokenInfo::TK_Literal;
         Result->Value = Value;
         return;
@@ -395,8 +395,8 @@ bool Parser::parseIdentifierPrefixImpl(VariantValue *Value) {
       std::optional<DynTypedMatcher> Result =
           NamedValue.getMatcher().getSingleMatcher();
       if (Result) {
-        std::optional<DynTypedMatcher> Bound = Result->tryBind(BindID);
-        if (Bound) {
+        
+        if (std::optional<DynTypedMatcher> Bound = Result->tryBind(BindID); Bound) {
           *Value = VariantMatcher::SingleMatcher(*Bound);
           return true;
         }
@@ -484,8 +484,8 @@ bool Parser::parseMatcherBuilder(MatcherCtor Ctor, const TokenInfo &NameToken,
       }
       if (!Args.empty()) {
         // We must find a , token to continue.
-        TokenInfo CommaToken = Tokenizer->consumeNextToken();
-        if (CommaToken.Kind != TokenInfo::TK_Comma) {
+        
+        if (TokenInfo CommaToken = Tokenizer->consumeNextToken(); CommaToken.Kind != TokenInfo::TK_Comma) {
           Error->addError(CommaToken.Range, Error->ET_ParserNoComma)
               << CommaToken.Text;
           return false;
@@ -657,8 +657,8 @@ bool Parser::parseMatcherExpressionImpl(const TokenInfo &NameToken,
       }
       if (!Args.empty()) {
         // We must find a , token to continue.
-        const TokenInfo CommaToken = Tokenizer->consumeNextToken();
-        if (CommaToken.Kind != TokenInfo::TK_Comma) {
+        
+        if (const TokenInfo CommaToken = Tokenizer->consumeNextToken(); CommaToken.Kind != TokenInfo::TK_Comma) {
           Error->addError(CommaToken.Range, Error->ET_ParserNoComma)
               << CommaToken.Text;
           return false;
@@ -756,8 +756,8 @@ std::vector<MatcherCompletion> Parser::getNamedValueCompletions(
   if (!NamedValues) return std::vector<MatcherCompletion>();
   std::vector<MatcherCompletion> Result;
   for (const auto &Entry : *NamedValues) {
-    unsigned Specificity;
-    if (Entry.getValue().isConvertibleTo(AcceptedTypes, &Specificity)) {
+    
+    if (unsigned Specificity; Entry.getValue().isConvertibleTo(AcceptedTypes, &Specificity)) {
       std::string Decl =
           (Entry.getValue().getTypeAsString() + " " + Entry.getKey()).str();
       Result.emplace_back(Entry.getKey(), Decl, Specificity);

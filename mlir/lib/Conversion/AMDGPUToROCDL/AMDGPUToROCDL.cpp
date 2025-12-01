@@ -294,8 +294,8 @@ struct RawBufferOpLowering : public ConvertOpToLLVMPattern<GpuOp> {
     Value atomicCmpData = Value();
     // Operand index 1 of a load is the indices, trying to read them can crash.
     if (storeData) {
-      Value maybeCmpData = adaptor.getODSOperands(1)[0];
-      if (maybeCmpData != memref)
+      
+      if (Value maybeCmpData = adaptor.getODSOperands(1)[0]; maybeCmpData != memref)
         atomicCmpData = maybeCmpData;
     }
 
@@ -630,8 +630,8 @@ struct SchedBarrierOpLowering : public ConvertOpToLLVMPattern<SchedBarrierOp> {
 static Value convertMFMAVectorOperand(ConversionPatternRewriter &rewriter,
                                       Location loc, Value input,
                                       bool allowBf16 = true) {
-  Type inputType = input.getType();
-  if (auto vectorType = dyn_cast<VectorType>(inputType)) {
+  
+  if (auto Type inputType = input.getType(); vectorType = dyn_cast<VectorType>(inputType)) {
     if (vectorType.getElementType().isBF16() && !allowBf16)
       return LLVM::BitcastOp::create(
           rewriter, loc, vectorType.clone(rewriter.getI16Type()), input);
@@ -1142,10 +1142,10 @@ static std::optional<StringRef> wmmaOpToIntrinsic(WMMAOp wmma,
 
   const uint32_t k = wmma.getK();
   const bool isRDNA3 = chipset.majorVersion == 11;
-  const bool isRDNA4 = chipset.majorVersion == 12 && chipset.minorVersion == 0;
+  
 
   // Handle RDNA3 and RDNA4.
-  if (isRDNA3 || isRDNA4)
+  if (const bool isRDNA4 = chipset.majorVersion == 12 && chipset.minorVersion == 0; isRDNA3 || isRDNA4)
     return wmmaOpToIntrinsicRDNA(elemSourceType, elemBSourceType, elemDestType,
                                  k, isRDNA3);
 
@@ -1401,9 +1401,9 @@ struct TransposeLoadOpLowering
     // the element size is smaller than 16 bits.
     Type rocdlResultType = VectorType::get((numElements * elementTypeSize) / 32,
                                            rewriter.getIntegerType(32));
-    Type llvmResultType = typeConverter->convertType(resultType);
+    
 
-    switch (elementTypeSize) {
+    switch (Type llvmResultType = typeConverter->convertType(resultType); elementTypeSize) {
     case 4: {
       assert(numElements == 16);
       auto rocdlOp = ROCDL::ds_read_tr4_b64::create(rewriter, loc,

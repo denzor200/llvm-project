@@ -331,8 +331,8 @@ getHostCPUNameForARMFromComponents(StringRef Implementer, StringRef Hardware,
     unsigned PartAsInt;
     Part.getAsInteger(0, PartAsInt);
 
-    unsigned Exynos = (Variant << 12) | PartAsInt;
-    switch (Exynos) {
+    
+    switch (unsigned Exynos = (Variant << 12) | PartAsInt; Exynos) {
     default:
       // Default by falling through to Exynos M3.
       [[fallthrough]];
@@ -514,8 +514,8 @@ StringRef sys::detail::getHostCPUNameForS390x(StringRef ProcCpuinfoContent) {
   SmallVector<StringRef, 32> CPUFeatures;
   for (StringRef Line : Lines)
     if (Line.starts_with("features")) {
-      size_t Pos = Line.find(':');
-      if (Pos != StringRef::npos) {
+      
+      if (size_t Pos = Line.find(':'); Pos != StringRef::npos) {
         Line.drop_front(Pos + 1).split(CPUFeatures, ' ');
         break;
       }
@@ -529,11 +529,11 @@ StringRef sys::detail::getHostCPUNameForS390x(StringRef ProcCpuinfoContent) {
   // Now check the processor machine type.
   for (StringRef Line : Lines) {
     if (Line.starts_with("processor ")) {
-      size_t Pos = Line.find("machine = ");
-      if (Pos != StringRef::npos) {
+      
+      if (size_t Pos = Line.find("machine = "); Pos != StringRef::npos) {
         Pos += sizeof("machine = ") - 1;
-        unsigned int Id;
-        if (!Line.drop_front(Pos).getAsInteger(10, Id))
+        
+        if (unsigned int Id; !Line.drop_front(Pos).getAsInteger(10, Id))
           return getCPUNameFromS390Model(Id, HaveVectorSupport);
       }
       break;

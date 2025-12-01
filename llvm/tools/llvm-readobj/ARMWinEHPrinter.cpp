@@ -225,9 +225,9 @@ ErrorOr<object::SectionRef>
 Decoder::getSectionContaining(const COFFObjectFile &COFF, uint64_t VA) {
   for (const auto &Section : COFF.sections()) {
     uint64_t Address = Section.getAddress();
-    uint64_t Size = Section.getSize();
+    
 
-    if (VA >= Address && (VA - Address) <= Size)
+    if (uint64_t Size = Section.getSize(); VA >= Address && (VA - Address) <= Size)
       return Section;
   }
   return inconvertibleErrorCode();
@@ -255,8 +255,8 @@ ErrorOr<SymbolRef> Decoder::getRelocatedSymbol(const COFFObjectFile &,
                                                const SectionRef &Section,
                                                uint64_t Offset) {
   for (const auto &Relocation : Section.relocations()) {
-    uint64_t RelocationOffset = Relocation.getOffset();
-    if (RelocationOffset == Offset)
+    
+    if (uint64_t RelocationOffset = Relocation.getOffset(); RelocationOffset == Offset)
       return *Relocation.getSymbol();
   }
   return inconvertibleErrorCode();
@@ -271,13 +271,13 @@ SymbolRef Decoder::getPreferredSymbol(const COFFObjectFile &COFF, SymbolRef Sym,
       CoffSym.getSectionDefinition() == nullptr)
     return Sym;
   for (const auto &S : COFF.symbols()) {
-    COFFSymbolRef CS = COFF.getCOFFSymbol(S);
-    if (CS.getSectionNumber() == CoffSym.getSectionNumber() &&
+    
+    if (COFFSymbolRef CS = COFF.getCOFFSymbol(S); CS.getSectionNumber() == CoffSym.getSectionNumber() &&
         CS.getValue() <= CoffSym.getValue() + SymbolOffset &&
         CS.getStorageClass() != COFF::IMAGE_SYM_CLASS_LABEL &&
         CS.getSectionDefinition() == nullptr) {
-      uint32_t Offset = CoffSym.getValue() + SymbolOffset - CS.getValue();
-      if (Offset <= SymbolOffset) {
+      
+      if (uint32_t Offset = CoffSym.getValue() + SymbolOffset - CS.getValue(); Offset <= SymbolOffset) {
         SymbolOffset = Offset;
         Sym = S;
         CoffSym = CS;
@@ -610,8 +610,8 @@ bool Decoder::opcode_alloc_s(const uint8_t *OC, unsigned &Offset,
 
 bool Decoder::opcode_save_r19r20_x(const uint8_t *OC, unsigned &Offset,
                                    unsigned Length, bool Prologue) {
-  uint32_t Off = (OC[Offset] & 0x1F) << 3;
-  if (Prologue)
+  
+  if (uint32_t Off = (OC[Offset] & 0x1F) << 3; Prologue)
     SW.startLine() << format(
         "0x%02x                ; stp x19, x20, [sp, #-%u]!\n", OC[Offset], Off);
   else
@@ -633,8 +633,8 @@ bool Decoder::opcode_save_fplr(const uint8_t *OC, unsigned &Offset,
 
 bool Decoder::opcode_save_fplr_x(const uint8_t *OC, unsigned &Offset,
                                  unsigned Length, bool Prologue) {
-  uint32_t Off = ((OC[Offset] & 0x3F) + 1) << 3;
-  if (Prologue)
+  
+  if (uint32_t Off = ((OC[Offset] & 0x3F) + 1) << 3; Prologue)
     SW.startLine() << format(
         "0x%02x                ; stp x29, x30, [sp, #-%u]!\n", OC[Offset], Off);
   else
@@ -678,8 +678,8 @@ bool Decoder::opcode_save_regp_x(const uint8_t *OC, unsigned &Offset,
   Reg |= (OC[Offset + 1] & 0xC0);
   Reg >>= 6;
   Reg += 19;
-  uint32_t Off = ((OC[Offset + 1] & 0x3F) + 1) << 3;
-  if (Prologue)
+  
+  if (uint32_t Off = ((OC[Offset + 1] & 0x3F) + 1) << 3; Prologue)
     SW.startLine() << format(
         "0x%02x%02x              ; stp x%u, x%u, [sp, #-%u]!\n",
         OC[Offset], OC[Offset + 1], Reg,
@@ -714,8 +714,8 @@ bool Decoder::opcode_save_reg_x(const uint8_t *OC, unsigned &Offset,
   Reg |= (OC[Offset + 1] & 0xE0);
   Reg >>= 5;
   Reg += 19;
-  uint32_t Off = ((OC[Offset + 1] & 0x1F) + 1) << 3;
-  if (Prologue)
+  
+  if (uint32_t Off = ((OC[Offset + 1] & 0x1F) + 1) << 3; Prologue)
     SW.startLine() << format("0x%02x%02x              ; str x%u, [sp, #-%u]!\n",
                              OC[Offset], OC[Offset + 1], Reg, Off);
   else
@@ -762,8 +762,8 @@ bool Decoder::opcode_save_fregp_x(const uint8_t *OC, unsigned &Offset,
   Reg |= (OC[Offset + 1] & 0xC0);
   Reg >>= 6;
   Reg += 8;
-  uint32_t Off = ((OC[Offset + 1] & 0x3F) + 1) << 3;
-  if (Prologue)
+  
+  if (uint32_t Off = ((OC[Offset + 1] & 0x3F) + 1) << 3; Prologue)
     SW.startLine() << format(
         "0x%02x%02x              ; stp d%u, d%u, [sp, #-%u]!\n", OC[Offset],
         OC[Offset + 1], Reg, Reg + 1, Off);
@@ -793,8 +793,8 @@ bool Decoder::opcode_save_freg(const uint8_t *OC, unsigned &Offset,
 bool Decoder::opcode_save_freg_x(const uint8_t *OC, unsigned &Offset,
                                  unsigned Length, bool Prologue) {
   uint32_t Reg = ((OC[Offset + 1] & 0xE0) >> 5) + 8;
-  uint32_t Off = ((OC[Offset + 1] & 0x1F) + 1) << 3;
-  if (Prologue)
+  
+  if (uint32_t Off = ((OC[Offset + 1] & 0x1F) + 1) << 3; Prologue)
     SW.startLine() << format(
         "0x%02x%02x              ; str d%u, [sp, #-%u]!\n", OC[Offset],
         OC[Offset + 1], Reg, Off);
@@ -1143,8 +1143,8 @@ bool Decoder::dumpXDataRecord(const COFFObjectFile &COFF,
       SW.printNumber("EpilogueStartIndex",
                      isAArch64 ? ES.EpilogueStartIndexAArch64()
                                : ES.EpilogueStartIndexARM());
-      unsigned ReservedMask = isAArch64 ? 0xF : 0x3;
-      if ((ES.ES >> 18) & ReservedMask)
+      
+      if (unsigned ReservedMask = isAArch64 ? 0xF : 0x3; (ES.ES >> 18) & ReservedMask)
         SW.printNumber("ReservedBits", (ES.ES >> 18) & ReservedMask);
 
       ListScope Opcodes(SW, "Opcodes");
@@ -1309,8 +1309,8 @@ bool Decoder::dumpPackedEntry(const object::COFFObjectFile &COFF,
     }
     if (RF.C()) {
       // Count the number of registers pushed below R11
-      int FpOffset = 4 * llvm::popcount(GPRMask & ((1U << 11) - 1));
-      if (FpOffset)
+      
+      if (int FpOffset = 4 * llvm::popcount(GPRMask & ((1U << 11) - 1)); FpOffset)
         SW.startLine() << "add.w r11, sp, #" << FpOffset << "\n";
       else
         SW.startLine() << "mov r11, sp\n";

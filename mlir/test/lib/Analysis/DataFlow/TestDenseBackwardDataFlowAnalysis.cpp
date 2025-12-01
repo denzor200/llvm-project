@@ -223,9 +223,9 @@ void NextAccessAnalysis::visitCallControlFlowTransfer(
            << (result == ChangeResult::Change ? "changed" : "no change");
     return propagateIfChanged(before, result);
   }
-  auto testCallAndStore =
-      dyn_cast<::test::TestCallAndStoreOp>(call.getOperation());
-  if (testCallAndStore && ((action == CallControlFlowAction::EnterCallee &&
+  
+  if (auto testCallAndStore =
+      dyn_cast<::test::TestCallAndStoreOp>(call.getOperation()); testCallAndStore && ((action == CallControlFlowAction::EnterCallee &&
                             testCallAndStore.getStoreBeforeCall()) ||
                            (action == CallControlFlowAction::ExitCallee &&
                             !testCallAndStore.getStoreBeforeCall()))) {
@@ -246,10 +246,10 @@ void NextAccessAnalysis::visitRegionBranchControlFlowTransfer(
   LDBG() << "  regionFrom: " << (regionFrom.isParent() ? "parent" : "region");
   LDBG() << "  regionTo: " << (regionTo.isParent() ? "parent" : "region");
 
-  auto testStoreWithARegion =
-      dyn_cast<::test::TestStoreWithARegion>(branch.getOperation());
+  
 
-  if (testStoreWithARegion &&
+  if (auto testStoreWithARegion =
+      dyn_cast<::test::TestStoreWithARegion>(branch.getOperation()); testStoreWithARegion &&
       ((regionTo.isParent() && !testStoreWithARegion.getStoreBeforeRegion()) ||
        (regionFrom.isParent() &&
         testStoreWithARegion.getStoreBeforeRegion()))) {
@@ -354,8 +354,8 @@ struct TestNextAccessPass
     LDBG() << "  Dataflow solver completed successfully";
     LDBG() << "  Walking operations to set next access attributes";
     op->walk([&](Operation *op) {
-      auto tag = op->getAttrOfType<StringAttr>(kTagAttrName);
-      if (!tag)
+      
+      if (auto tag = op->getAttrOfType<StringAttr>(kTagAttrName); !tag)
         return;
 
       LDBG() << "  Processing tagged operation: "

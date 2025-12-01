@@ -258,8 +258,8 @@ LIBC_INLINE constexpr cpp::array<word, N> shift(cpp::array<word, N> array,
   static_assert(direction == LEFT || direction == RIGHT);
   constexpr size_t WORD_BITS = cpp::numeric_limits<word>::digits;
 #ifdef LIBC_TYPES_HAS_INT128
-  constexpr size_t TOTAL_BITS = N * WORD_BITS;
-  if constexpr (TOTAL_BITS == 128) {
+  
+  if constexpr (constexpr size_t TOTAL_BITS = N * WORD_BITS; TOTAL_BITS == 128) {
     using type = cpp::conditional_t<is_signed, __int128_t, __uint128_t>;
     auto tmp = cpp::bit_cast<type>(array);
     if constexpr (direction == LEFT)
@@ -296,8 +296,8 @@ LIBC_INLINE constexpr cpp::array<word, N> shift(cpp::array<word, N> array,
   for (size_t index = 0; index < N; ++index) {
     const word part1 = safe_get_at(index + index_offset);
     const word part2 = safe_get_at(index + index_offset + 1);
-    word &dst = out[static_cast<unsigned>(at(index))];
-    if (bit_offset == 0)
+    
+    if (word &dst = out[static_cast<unsigned>(at(index))]; bit_offset == 0)
       dst = part1; // no crosstalk between parts.
     else if constexpr (direction == LEFT)
       dst = static_cast<word>((part1 << bit_offset) |
@@ -404,10 +404,10 @@ public:
         }
         // Pretend there are extra words of the correct sign extension as needed
 
-        const WordType extension_bits =
+        
+        if (const WordType extension_bits =
             should_sign_extend ? cpp::numeric_limits<WordType>::max()
-                               : cpp::numeric_limits<WordType>::min();
-        if ((i % WORD_SIZE_RATIO) != 0) {
+                               : cpp::numeric_limits<WordType>::min(); (i % WORD_SIZE_RATIO) != 0) {
           cur_word |= static_cast<WordType>(extension_bits)
                       << (BigIntOther::WORD_SIZE * (i % WORD_SIZE_RATIO));
         }
@@ -527,8 +527,8 @@ public:
       lo += static_cast<T>(static_cast<T>(val[i]) << (WORD_SIZE * i));
     if constexpr (Signed && (T_SIZE > Bits)) {
       // Extend sign for negative numbers.
-      constexpr T MASK = (~T(0) << Bits);
-      if (is_neg())
+      
+      if (constexpr T MASK = (~T(0) << Bits); is_neg())
         lo |= MASK;
     }
     return lo;
@@ -955,8 +955,8 @@ private:
     };
     if constexpr (Signed) {
       const bool lhs_is_neg = lhs.is_neg();
-      const bool rhs_is_neg = rhs.is_neg();
-      if (lhs_is_neg != rhs_is_neg)
+      
+      if (const bool rhs_is_neg = rhs.is_neg(); lhs_is_neg != rhs_is_neg)
         return rhs_is_neg ? 1 : -1;
     }
     for (size_t i = WORD_COUNT; i-- > 0;)

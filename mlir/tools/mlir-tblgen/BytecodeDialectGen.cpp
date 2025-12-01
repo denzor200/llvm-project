@@ -178,8 +178,8 @@ static void printParseConditional(mlir::raw_indented_ostream &ios,
           parser = *optParser;
         } else if (attr->isSubClassOf("Array")) {
           const Record *def = attr->getValueAsDef("elemT");
-          bool composite = def->isSubClassOf("CompositeBytecode");
-          if (!composite && def->isSubClassOf("AttributeKind"))
+          
+          if (bool composite = def->isSubClassOf("CompositeBytecode"); !composite && def->isSubClassOf("AttributeKind"))
             parser = "succeeded($_reader.readAttributes($_var))";
           else if (!composite && def->isSubClassOf("TypeKind"))
             parser = "succeeded($_reader.readTypes($_var))";
@@ -309,12 +309,12 @@ void Generator::emitPrint(StringRef kind, StringRef type,
 
   // Check that predicates specified if multiple bytecode instances.
   for (const Record *rec : make_second_range(vec)) {
-    StringRef pred = rec->getValueAsString("printerPredicate");
-    if (vec.size() > 1 && pred.empty()) {
+    
+    if (StringRef pred = rec->getValueAsString("printerPredicate"); vec.size() > 1 && pred.empty()) {
       for (auto [index, rec] : vec) {
         (void)index;
-        StringRef pred = rec->getValueAsString("printerPredicate");
-        if (vec.size() > 1 && pred.empty())
+        
+        if (StringRef pred = rec->getValueAsString("printerPredicate"); vec.size() > 1 && pred.empty())
           PrintError(rec->getLoc(),
                      "Requires parsing predicate given common cType");
       }

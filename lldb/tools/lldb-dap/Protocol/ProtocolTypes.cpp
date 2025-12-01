@@ -676,8 +676,8 @@ bool fromJSON(const llvm::json::Value &Params, Capabilities &C,
   }
   // Check for the presence of supported features.
   for (unsigned i = eAdapterFeatureFirst; i <= eAdapterFeatureLast; ++i) {
-    AdapterFeature feature = static_cast<AdapterFeature>(i);
-    if (Object->getBoolean(ToString(feature)))
+    
+    if (AdapterFeature feature = static_cast<AdapterFeature>(i); Object->getBoolean(ToString(feature)))
       C.supportedFeatures.insert(feature);
   }
   llvm::json::ObjectMapper O(Params, P);

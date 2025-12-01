@@ -105,8 +105,8 @@ DereferenceChecker::AddDerefSource(raw_ostream &os,
     default:
       break;
     case Stmt::DeclRefExprClass: {
-      const DeclRefExpr *DR = cast<DeclRefExpr>(Ex);
-      if (const VarDecl *VD = dyn_cast<VarDecl>(DR->getDecl())) {
+      
+      if (const VarDecl *const DeclRefExpr *DR = cast<DeclRefExpr>(Ex); VD = dyn_cast<VarDecl>(DR->getDecl())) {
         os << " (" << (loadedFrom ? "loaded from" : "from")
            << " variable '" <<  VD->getName() << "')";
         Ranges.push_back(DR->getSourceRange());
@@ -161,8 +161,8 @@ bool DereferenceChecker::suppressReport(CheckerContext &C,
   // See https://clang.llvm.org/docs/LanguageExtensions.html, the section
   // "X86/X86-64 Language Extensions"
 
-  QualType Ty = E->getType();
-  if (!Ty.hasAddressSpace())
+  
+  if (QualType Ty = E->getType(); !Ty.hasAddressSpace())
     return false;
   if (C.getAnalysisManager()
           .getAnalyzerOptions()
@@ -239,8 +239,8 @@ void DereferenceChecker::reportDerefBug(const DerefBugType &BT,
     break;
   }
   case Stmt::MemberExprClass: {
-    const MemberExpr *M = cast<MemberExpr>(S);
-    if (M->isArrow() || isDeclRefExprToReference(M->getBase())) {
+    
+    if (const MemberExpr *M = cast<MemberExpr>(S); M->isArrow() || isDeclRefExprToReference(M->getBase())) {
       Out << "Access to field '" << M->getMemberNameInfo() << "' results in "
           << BT.getFieldMsg();
       AddDerefSource(Out, Ranges, M->getBase()->IgnoreParenCasts(), State.get(),
@@ -275,8 +275,8 @@ void DereferenceChecker::checkLocation(SVal l, bool isLoad, const Stmt* S,
                                        CheckerContext &C) const {
   // Check for dereference of an undefined value.
   if (l.isUndef()) {
-    const Expr *DerefExpr = getDereferenceExpr(S);
-    if (!suppressReport(C, DerefExpr))
+    
+    if (const Expr *DerefExpr = getDereferenceExpr(S); !suppressReport(C, DerefExpr))
       reportDerefBug(UndefBug, C.getState(), DerefExpr, C);
     return;
   }
@@ -296,8 +296,8 @@ void DereferenceChecker::checkLocation(SVal l, bool isLoad, const Stmt* S,
     if (!notNullState) {
       // We know that 'location' can only be null.  This is what
       // we call an "explicit" null dereference.
-      const Expr *expr = getDereferenceExpr(S);
-      if (!suppressReport(C, expr)) {
+      
+      if (const Expr *expr = getDereferenceExpr(S); !suppressReport(C, expr)) {
         reportDerefBug(NullBug, nullState, expr, C);
         return;
       }
@@ -314,8 +314,8 @@ void DereferenceChecker::checkLocation(SVal l, bool isLoad, const Stmt* S,
   }
 
   if (location.isConstant()) {
-    const Expr *DerefExpr = getDereferenceExpr(S, isLoad);
-    if (!suppressReport(C, DerefExpr))
+    
+    if (const Expr *DerefExpr = getDereferenceExpr(S, isLoad); !suppressReport(C, DerefExpr))
       reportDerefBug(FixedAddressBug, notNullState, DerefExpr, C);
     return;
   }
@@ -351,8 +351,8 @@ void DereferenceChecker::checkBind(SVal L, SVal V, const Stmt *S,
 
   if (StNull) {
     if (!StNonNull) {
-      const Expr *expr = getDereferenceExpr(S, /*IsBind=*/true);
-      if (!suppressReport(C, expr)) {
+      
+      if (const Expr *expr = getDereferenceExpr(S, /*IsBind=*/true); !suppressReport(C, expr)) {
         reportDerefBug(NullBug, StNull, expr, C);
         return;
       }
@@ -369,8 +369,8 @@ void DereferenceChecker::checkBind(SVal L, SVal V, const Stmt *S,
   }
 
   if (V.isConstant()) {
-    const Expr *DerefExpr = getDereferenceExpr(S, true);
-    if (!suppressReport(C, DerefExpr))
+    
+    if (const Expr *DerefExpr = getDereferenceExpr(S, true); !suppressReport(C, DerefExpr))
       reportDerefBug(FixedAddressBug, State, DerefExpr, C);
     return;
   }

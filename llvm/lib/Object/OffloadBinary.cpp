@@ -117,8 +117,8 @@ Error extractFromBitcode(MemoryBufferRef Buffer,
     if (Op->getNumOperands() < 2)
       continue;
 
-    MDString *SectionID = dyn_cast<MDString>(Op->getOperand(1));
-    if (!SectionID || SectionID->getString() != ".llvm.offloading")
+    
+    if (MDString *SectionID = dyn_cast<MDString>(Op->getOperand(1)); !SectionID || SectionID->getString() != ".llvm.offloading")
       continue;
 
     GlobalVariable *GV =
@@ -268,8 +268,8 @@ SmallString<0> OffloadBinary::write(const OffloadingImage &OffloadingData) {
 
 Error object::extractOffloadBinaries(MemoryBufferRef Buffer,
                                      SmallVectorImpl<OffloadFile> &Binaries) {
-  file_magic Type = identify_magic(Buffer.getBuffer());
-  switch (Type) {
+  
+  switch (file_magic Type = identify_magic(Buffer.getBuffer()); Type) {
   case file_magic::bitcode:
     return extractFromBitcode(Buffer, Binaries);
   case file_magic::elf_relocatable:

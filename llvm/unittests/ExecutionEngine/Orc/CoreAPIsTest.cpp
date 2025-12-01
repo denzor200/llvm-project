@@ -1137,8 +1137,8 @@ TEST_F(CoreAPIsStandardTest, GeneratorTest) {
       SymbolMap NewDefs;
 
       for (const auto &KV : Names) {
-        const auto &Name = KV.first;
-        if (Symbols.count(Name))
+        
+        if (const auto &Name = KV.first; Symbols.count(Name))
           NewDefs[Name] = Symbols[Name];
       }
 

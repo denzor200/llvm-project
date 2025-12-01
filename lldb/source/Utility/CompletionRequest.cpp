@@ -61,10 +61,10 @@ std::string CompletionResult::Completion::GetUniqueKey() const {
 void CompletionResult::AddResult(llvm::StringRef completion,
                                  llvm::StringRef description,
                                  CompletionMode mode) {
-  Completion r(completion, description, mode);
+  
 
   // Add the completion if we haven't seen the same value before.
-  if (m_added_values.insert(r.GetUniqueKey()).second)
+  if (Completion r(completion, description, mode); m_added_values.insert(r.GetUniqueKey()).second)
     m_results.push_back(r);
 }
 

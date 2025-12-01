@@ -425,14 +425,14 @@ void DefFormat::genVariableParser(ParameterElement *el, FmtContext &ctx,
   // we force load the dialect now before trying to parse it.
   std::string dialectLoading;
   if (auto *defInit = dyn_cast<llvm::DefInit>(param.getDef())) {
-    auto *dialectValue = defInit->getDef()->getValue("dialect");
-    if (dialectValue) {
+    
+    if (auto *dialectValue = defInit->getDef()->getValue("dialect"); dialectValue) {
       if (auto *dialectInit =
               dyn_cast<llvm::DefInit>(dialectValue->getValue())) {
         Dialect dialect(dialectInit->getDef());
         auto cppNamespace = dialect.getCppNamespace();
-        std::string name = dialect.getCppClassName();
-        if (name != "BuiltinDialect" || cppNamespace != "::mlir") {
+        
+        if (std::string name = dialect.getCppClassName(); name != "BuiltinDialect" || cppNamespace != "::mlir") {
           dialectLoading = ("\nodsParser.getContext()->getOrLoadDialect<" +
                             cppNamespace + "::" + name + ">();")
                                .str();
@@ -928,8 +928,8 @@ void DefFormat::genCustomPrinter(CustomDirective *el, FmtContext &ctx,
 
 void DefFormat::genOptionalGroupPrinter(OptionalElement *el, FmtContext &ctx,
                                         MethodBody &os) {
-  FormatElement *anchor = el->getAnchor();
-  if (auto *param = dyn_cast<ParameterElement>(anchor)) {
+  
+  if (auto *FormatElement *anchor = el->getAnchor(); param = dyn_cast<ParameterElement>(anchor)) {
     guardOnAny(ctx, os, llvm::ArrayRef(param), el->isInverted());
   } else if (auto *params = dyn_cast<ParamsDirective>(anchor)) {
     guardOnAny(ctx, os, params->getElements(), el->isInverted());

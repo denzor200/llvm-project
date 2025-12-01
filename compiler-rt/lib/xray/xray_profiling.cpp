@@ -149,8 +149,8 @@ static ProfilingData *getThreadLocalData() XRAY_NEVER_INSTRUMENT {
 }
 
 static void cleanupTLD() XRAY_NEVER_INSTRUMENT {
-  auto FCT = atomic_exchange(&TLD.FCT, 0, memory_order_acq_rel);
-  if (FCT == reinterpret_cast<uptr>(reinterpret_cast<FunctionCallTrie *>(
+  
+  if (auto FCT = atomic_exchange(&TLD.FCT, 0, memory_order_acq_rel); FCT == reinterpret_cast<uptr>(reinterpret_cast<FunctionCallTrie *>(
                  &FunctionCallTrieStorage)))
     reinterpret_cast<FunctionCallTrie *>(FCT)->~FunctionCallTrie();
 
@@ -233,13 +233,13 @@ XRayLogFlushStatus profilingFlush() XRAY_NEVER_INSTRUMENT {
   if (!profilingFlags()->no_flush) {
     // First check whether we have data in the profile collector service
     // before we try and write anything down.
-    XRayBuffer B = profileCollectorService::nextBuffer({nullptr, 0});
-    if (B.Data == nullptr) {
+    
+    if (XRayBuffer B = profileCollectorService::nextBuffer({nullptr, 0}); B.Data == nullptr) {
       if (Verbosity())
         Report("profiling: No data to flush.\n");
     } else {
-      LogWriter *LW = LogWriter::Open();
-      if (LW == nullptr) {
+      
+      if (LogWriter *LW = LogWriter::Open(); LW == nullptr) {
         if (Verbosity())
           Report("profiling: Failed to flush to file, dropping data.\n");
       } else {
@@ -288,8 +288,8 @@ void profilingHandleArg0(int32_t FuncId,
   if (T == nullptr)
     return;
 
-  auto FCT = reinterpret_cast<FunctionCallTrie *>(atomic_load_relaxed(&T->FCT));
-  switch (Entry) {
+  
+  switch (auto FCT = reinterpret_cast<FunctionCallTrie *>(atomic_load_relaxed(&T->FCT)); Entry) {
   case XRayEntryType::ENTRY:
   case XRayEntryType::LOG_ARGS_ENTRY:
     FCT->enterFunction(FuncId, TSC, CPU);
@@ -403,10 +403,10 @@ profilingLoggingInit(size_t, size_t, void *Options,
     BQ = reinterpret_cast<BufferQueue *>(&BufferQueueStorage);
   } else {
     BQ->finalize();
-    auto InitStatus = BQ->init(profilingFlags()->per_thread_allocator_max,
-                               profilingFlags()->buffers_max);
+    
 
-    if (InitStatus != BufferQueue::ErrorCode::Ok) {
+    if (auto InitStatus = BQ->init(profilingFlags()->per_thread_allocator_max,
+                               profilingFlags()->buffers_max); InitStatus != BufferQueue::ErrorCode::Ok) {
       if (Verbosity())
         Report("Failed to initialize preallocated memory buffers; error: %s",
                BufferQueue::getErrorString(InitStatus));
@@ -497,8 +497,8 @@ bool profilingDynamicInitializer() XRAY_NEVER_INSTRUMENT {
       profilingHandleArg0,
       profilingFlush,
   };
-  auto RegistrationResult = __xray_log_register_mode("xray-profiling", Impl);
-  if (RegistrationResult != XRayLogRegisterStatus::XRAY_REGISTRATION_OK) {
+  
+  if (auto RegistrationResult = __xray_log_register_mode("xray-profiling", Impl); RegistrationResult != XRayLogRegisterStatus::XRAY_REGISTRATION_OK) {
     if (Verbosity())
       Report("Cannot register XRay Profiling mode to 'xray-profiling'; error = "
              "%d\n",

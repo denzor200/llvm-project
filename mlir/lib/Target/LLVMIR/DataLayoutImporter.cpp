@@ -380,8 +380,8 @@ DataLayoutSpecInterface DataLayoutImporter::dataLayoutSpecFromDataLayoutStr() {
     // Parse function pointer alignment specifications.
     // Note that prefix here is "Fn" or "Fi", not a single character.
     if (prefix->starts_with("F")) {
-      StringRef nextPrefix = prefix->drop_front(1);
-      if (failed(tryToEmplaceFunctionPointerAlignmentEntry(nextPrefix, token)))
+      
+      if (StringRef nextPrefix = prefix->drop_front(1); failed(tryToEmplaceFunctionPointerAlignmentEntry(nextPrefix, token)))
         return {};
       continue;
     }

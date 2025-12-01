@@ -29,8 +29,8 @@ public:
     using utils::fixit::addQualifierToVarDecl;
     std::optional<FixItHint> Fix =
         addQualifierToVarDecl(*D, *Result.Context, Qualifiers::Const, CT, CP);
-    auto Diag = diag(D->getBeginLoc(), "doing const transformation");
-    if (Fix)
+    
+    if (auto Diag = diag(D->getBeginLoc(), "doing const transformation"); Fix)
       Diag << *Fix;
   }
 };

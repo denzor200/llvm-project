@@ -230,8 +230,8 @@ LogicalResult Serializer::processExtension() {
   llvm::SmallVector<uint32_t, 16> extName;
   llvm::SmallSet<Extension, 4> deducedExts(
       llvm::from_range, module.getVceTriple()->getExtensions());
-  auto nonSemanticInfoExt = spirv::Extension::SPV_KHR_non_semantic_info;
-  if (options.emitDebugInfo && !deducedExts.contains(nonSemanticInfoExt)) {
+  
+  if (auto nonSemanticInfoExt = spirv::Extension::SPV_KHR_non_semantic_info; options.emitDebugInfo && !deducedExts.contains(nonSemanticInfoExt)) {
     TargetEnvAttr targetEnvAttr = lookupTargetEnvOrDefault(module);
     if (!is_contained(targetEnvAttr.getExtensions(), nonSemanticInfoExt))
       return module.emitError(
@@ -523,9 +523,9 @@ Serializer::processTypeImpl(Location loc, Type type, uint32_t &typeID,
 
   operands.push_back(typeID);
   auto typeEnum = spirv::Opcode::OpTypeVoid;
-  bool deferSerialization = false;
+  
 
-  if ((isa<FunctionType>(type) &&
+  if (bool deferSerialization = false; (isa<FunctionType>(type) &&
        succeeded(prepareFunctionType(loc, cast<FunctionType>(type), typeEnum,
                                      operands))) ||
       (isa<GraphType>(type) &&
@@ -838,8 +838,8 @@ LogicalResult Serializer::prepareBasicType(
         return failure();
       }
 
-      bool shaped = llvm::all_of(dims, [](const auto &dim) { return dim > 0; });
-      if (rank > 0 && shaped) {
+      
+      if (bool shaped = llvm::all_of(dims, [](const auto &dim) { return dim > 0; }); rank > 0 && shaped) {
         auto I32Type = IntegerType::get(type.getContext(), 32);
         auto shapeType = ArrayType::get(I32Type, rank);
         if (rank == 1) {
@@ -941,8 +941,8 @@ uint32_t Serializer::prepareConstant(Location loc, Type constType,
     return id;
   }
 
-  uint32_t typeID = 0;
-  if (failed(processType(loc, constType, typeID))) {
+  
+  if (uint32_t typeID = 0; failed(processType(loc, constType, typeID))) {
     return 0;
   }
 
@@ -1132,10 +1132,10 @@ uint32_t Serializer::prepareConstantInt(Location loc, IntegerAttr intAttr,
   APInt value = intAttr.getValue();
   unsigned bitwidth = value.getBitWidth();
   bool isSigned = intAttr.getType().isSignedInteger();
-  auto opcode =
-      isSpec ? spirv::Opcode::OpSpecConstant : spirv::Opcode::OpConstant;
+  
 
-  switch (bitwidth) {
+  switch (auto opcode =
+      isSpec ? spirv::Opcode::OpSpecConstant : spirv::Opcode::OpConstant; bitwidth) {
     // According to SPIR-V spec, "When the type's bit width is less than
     // 32-bits, the literal's value appears in the low-order bits of the word,
     // and the high-order bits must be 0 for a floating-point type, or 0 for an

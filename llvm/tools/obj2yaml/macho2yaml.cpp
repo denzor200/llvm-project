@@ -378,9 +378,9 @@ void MachODumper::dumpRebaseOpcodes(std::unique_ptr<MachOYAML::Object> &Y) {
     RebaseOp.Imm = *OpCode & MachO::REBASE_IMMEDIATE_MASK;
 
     unsigned Count;
-    uint64_t ULEB = 0;
+    
 
-    switch (RebaseOp.Opcode) {
+    switch (uint64_t ULEB = 0; RebaseOp.Opcode) {
     case MachO::REBASE_OPCODE_DO_REBASE_ULEB_TIMES_SKIPPING_ULEB:
 
       ULEB = decodeULEB128(OpCode + 1, &Count);
@@ -427,9 +427,9 @@ void MachODumper::dumpBindOpcodes(
 
     unsigned Count;
     uint64_t ULEB = 0;
-    int64_t SLEB = 0;
+    
 
-    switch (BindOp.Opcode) {
+    switch (int64_t SLEB = 0; BindOp.Opcode) {
     case MachO::BIND_OPCODE_DO_BIND_ULEB_TIMES_SKIPPING_ULEB:
       ULEB = decodeULEB128(OpCode + 1, &Count);
       BindOp.ULEBExtraData.push_back(ULEB);
@@ -629,9 +629,9 @@ void MachODumper::dumpChainedFixups(std::unique_ptr<MachOYAML::Object> &Y) {
 
   for (const auto &LC : Y->LoadCommands) {
     if (LC.Data.load_command_data.cmd == llvm::MachO::LC_DYLD_CHAINED_FIXUPS) {
-      const MachO::linkedit_data_command &DC =
-          LC.Data.linkedit_data_command_data;
-      if (DC.dataoff) {
+      
+      if (const MachO::linkedit_data_command &DC =
+          LC.Data.linkedit_data_command_data; DC.dataoff) {
         assert(DC.dataoff < Obj.getData().size());
         assert(DC.dataoff + DC.datasize <= Obj.getData().size());
         const char *Bytes = Obj.getData().data() + DC.dataoff;

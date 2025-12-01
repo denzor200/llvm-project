@@ -20,7 +20,7 @@ namespace LIBC_NAMESPACE_DECL {
 
 LLVM_LIBC_FUNCTION(int, rmdir, (const char *path)) {
 #ifdef SYS_rmdir
-  int ret = LIBC_NAMESPACE::syscall_impl<int>(SYS_rmdir, path);
+  
 #elif defined(SYS_unlinkat)
   int ret = LIBC_NAMESPACE::syscall_impl<int>(SYS_unlinkat, AT_FDCWD, path,
                                               AT_REMOVEDIR);
@@ -28,7 +28,7 @@ LLVM_LIBC_FUNCTION(int, rmdir, (const char *path)) {
 #error "rmdir and unlinkat syscalls not available."
 #endif
 
-  if (ret < 0) {
+  if (int ret = LIBC_NAMESPACE::syscall_impl<int>(SYS_rmdir, path); ret < 0) {
     libc_errno = -ret;
     return -1;
   }

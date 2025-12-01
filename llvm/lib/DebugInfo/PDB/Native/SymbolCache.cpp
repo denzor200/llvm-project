@@ -137,9 +137,9 @@ SymbolCache::createSymbolForModifiedType(codeview::TypeIndex ModifierTI,
 
   // Make sure we create and cache a record for the unmodified type.
   SymIndexId UnmodifiedId = findSymbolByTypeIndex(Record.ModifiedType);
-  NativeRawSymbol &UnmodifiedNRS = *Cache[UnmodifiedId];
+  
 
-  switch (UnmodifiedNRS.getSymTag()) {
+  switch (NativeRawSymbol &UnmodifiedNRS = *Cache[UnmodifiedId]; UnmodifiedNRS.getSymTag()) {
   case PDB_SymType::Enum:
     return createSymbol<NativeTypeEnum>(
         static_cast<NativeTypeEnum &>(UnmodifiedNRS), std::move(Record));
@@ -179,9 +179,9 @@ SymIndexId SymbolCache::findSymbolByTypeIndex(codeview::TypeIndex Index) const {
   codeview::CVType CVT = Types.getType(Index);
 
   if (isUdtForwardRef(CVT)) {
-    Expected<TypeIndex> EFD = Tpi->findFullDeclForForwardRef(Index);
+    
 
-    if (!EFD)
+    if (Expected<TypeIndex> EFD = Tpi->findFullDeclForForwardRef(Index); !EFD)
       consumeError(EFD.takeError());
     else if (*EFD != Index) {
       assert(!isUdtForwardRef(Types.getType(*EFD)));

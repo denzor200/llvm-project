@@ -378,9 +378,9 @@ DecodeStatus PPCDisassembler::getInstruction(MCInst &MI, uint64_t &Size,
     uint32_t Prefix = ReadFunc(Bytes.data());
     uint32_t BaseInst = ReadFunc(Bytes.data() + 4);
     uint64_t Inst = BaseInst | (uint64_t)Prefix << 32;
-    DecodeStatus result = decodeInstruction(DecoderTable64, MI, Inst, Address,
-                                            this, STI);
-    if (result != MCDisassembler::Fail) {
+    
+    if (DecodeStatus result = decodeInstruction(DecoderTable64, MI, Inst, Address,
+                                            this, STI); result != MCDisassembler::Fail) {
       Size = 8;
       return result;
     }
@@ -397,9 +397,9 @@ DecodeStatus PPCDisassembler::getInstruction(MCInst &MI, uint64_t &Size,
   uint64_t Inst = ReadFunc(Bytes.data());
 
   if (STI.hasFeature(PPC::FeatureSPE)) {
-    DecodeStatus result =
-        decodeInstruction(DecoderTableSPE32, MI, Inst, Address, this, STI);
-    if (result != MCDisassembler::Fail)
+    
+    if (DecodeStatus result =
+        decodeInstruction(DecoderTableSPE32, MI, Inst, Address, this, STI); result != MCDisassembler::Fail)
       return result;
   }
 

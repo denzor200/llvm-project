@@ -60,9 +60,9 @@ public:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'c':
         if (option_arg.getAsInteger(0, m_count)) {
           m_count = UINT32_MAX;
@@ -158,8 +158,8 @@ public:
     size_t start_val = 0;
 
     for (size_t idx = 0; idx < num_entries; idx++) {
-      llvm::StringRef arg_string = copy_args[idx].ref();
-      if (arg_string == "-c" || count_opt.starts_with(arg_string)) {
+      
+      if (llvm::StringRef arg_string = copy_args[idx].ref(); arg_string == "-c" || count_opt.starts_with(arg_string)) {
         idx++;
         if (idx == num_entries)
           return std::nullopt;
@@ -199,9 +199,9 @@ protected:
       const std::vector<ConstString> &types =
           runtime->GetExtendedBacktraceTypes();
       for (auto type : types) {
-        ThreadSP ext_thread_sp = runtime->GetExtendedBacktraceThread(
-            thread->shared_from_this(), type);
-        if (ext_thread_sp && ext_thread_sp->IsValid()) {
+        
+        if (ThreadSP ext_thread_sp = runtime->GetExtendedBacktraceThread(
+            thread->shared_from_this(), type); ext_thread_sp && ext_thread_sp->IsValid()) {
           const uint32_t num_frames_with_source = 0;
           const bool stop_format = false;
           strm.PutChar('\n');
@@ -277,15 +277,15 @@ public:
   Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                         ExecutionContext *execution_context) override {
     Status error;
-    const int short_option =
-        g_thread_step_scope_options[option_idx].short_option;
+    
 
-    switch (short_option) {
+    switch (const int short_option =
+        g_thread_step_scope_options[option_idx].short_option; short_option) {
     case 'a': {
       bool success;
-      bool avoid_no_debug =
-          OptionArgParser::ToBoolean(option_arg, true, &success);
-      if (!success)
+      
+      if (bool avoid_no_debug =
+          OptionArgParser::ToBoolean(option_arg, true, &success); !success)
         error = Status::FromErrorStringWithFormat(
             "invalid boolean value for option '%c': %s", short_option,
             option_arg.data());
@@ -296,9 +296,9 @@ public:
 
     case 'A': {
       bool success;
-      bool avoid_no_debug =
-          OptionArgParser::ToBoolean(option_arg, true, &success);
-      if (!success)
+      
+      if (bool avoid_no_debug =
+          OptionArgParser::ToBoolean(option_arg, true, &success); !success)
         error = Status::FromErrorStringWithFormat(
             "invalid boolean value for option '%c': %s", short_option,
             option_arg.data());
@@ -487,11 +487,11 @@ protected:
 
       if (frame->HasDebugInformation()) {
         AddressRange range;
-        SymbolContext sc = frame->GetSymbolContext(eSymbolContextEverything);
-        if (m_options.m_end_line != LLDB_INVALID_LINE_NUMBER) {
-          llvm::Error err =
-              sc.GetAddressRangeFromHereToEndLine(m_options.m_end_line, range);
-          if (err) {
+        
+        if (SymbolContext sc = frame->GetSymbolContext(eSymbolContextEverything); m_options.m_end_line != LLDB_INVALID_LINE_NUMBER) {
+          
+          if (llvm::Error err =
+              sc.GetAddressRangeFromHereToEndLine(m_options.m_end_line, range); err) {
             result.AppendErrorWithFormatv("invalid end-line option: {0}.",
                                           llvm::toString(std::move(err)));
             return;
@@ -662,8 +662,8 @@ public:
     StateType state = process->GetState();
     if ((state == eStateCrashed) || (state == eStateStopped) ||
         (state == eStateSuspended)) {
-      const size_t argc = command.GetArgumentCount();
-      if (argc > 0) {
+      
+      if (const size_t argc = command.GetArgumentCount(); argc > 0) {
         // These two lines appear at the beginning of both blocks in this
         // if..else, but that is because we need to release the lock before
         // calling process->Resume below.
@@ -702,10 +702,10 @@ public:
           for (uint32_t idx = 0; idx < num_threads; ++idx) {
             Thread *thread =
                 process->GetThreadList().GetThreadAtIndex(idx).get();
-            std::vector<Thread *>::iterator this_thread_pos =
-                find(resume_threads.begin(), resume_threads.end(), thread);
+            
 
-            if (this_thread_pos != resume_threads.end()) {
+            if (std::vector<Thread *>::iterator this_thread_pos =
+                find(resume_threads.begin(), resume_threads.end(), thread); this_thread_pos != resume_threads.end()) {
               resume_threads.erase(this_thread_pos);
               if (!resume_threads.empty())
                 result.AppendMessageWithFormat("%u, ", thread->GetIndexID());
@@ -805,13 +805,13 @@ public:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'a': {
-        lldb::addr_t tmp_addr = OptionArgParser::ToAddress(
-            execution_context, option_arg, LLDB_INVALID_ADDRESS, &error);
-        if (error.Success())
+        
+        if (lldb::addr_t tmp_addr = OptionArgParser::ToAddress(
+            execution_context, option_arg, LLDB_INVALID_ADDRESS, &error); error.Success())
           m_until_addrs.push_back(tmp_addr);
       } break;
       case 't':
@@ -830,10 +830,10 @@ public:
         break;
       case 'm': {
         auto enum_values = GetDefinitions()[option_idx].enum_values;
-        lldb::RunMode run_mode = (lldb::RunMode)OptionArgParser::ToOptionEnum(
-            option_arg, enum_values, eOnlyDuringStepping, error);
+        
 
-        if (error.Success()) {
+        if (lldb::RunMode run_mode = (lldb::RunMode)OptionArgParser::ToOptionEnum(
+            option_arg, enum_values, eOnlyDuringStepping, error); error.Success()) {
           if (run_mode == eAllThreads)
             m_stop_others = false;
           else
@@ -889,8 +889,8 @@ protected:
 
     Target *target = &GetTarget();
 
-    Process *process = m_exe_ctx.GetProcessPtr();
-    if (process == nullptr) {
+    
+    if (Process *process = m_exe_ctx.GetProcessPtr(); process == nullptr) {
       result.AppendError("need a valid process to step");
     } else {
       Thread *thread = nullptr;
@@ -899,8 +899,8 @@ protected:
       if (command.GetArgumentCount() >= 1) {
         size_t num_args = command.GetArgumentCount();
         for (size_t i = 0; i < num_args; i++) {
-          uint32_t line_number;
-          if (!llvm::to_integer(command.GetArgumentAtIndex(i), line_number)) {
+          
+          if (uint32_t line_number; !llvm::to_integer(command.GetArgumentAtIndex(i), line_number)) {
             result.AppendErrorWithFormat("invalid line number: '%s'.\n",
                                          command.GetArgumentAtIndex(i));
             return;
@@ -998,9 +998,9 @@ protected:
               exact, &line_entry);
           while (idx < end_func_idx) {
             if (line_idx_ranges.FindEntryIndexThatContains(idx) != UINT32_MAX) {
-              addr_t address =
-                  line_entry.range.GetBaseAddress().GetLoadAddress(target);
-              if (address != LLDB_INVALID_ADDRESS)
+              
+              if (addr_t address =
+                  line_entry.range.GetBaseAddress().GetLoadAddress(target); address != LLDB_INVALID_ADDRESS)
                 address_list.push_back(address);
             }
             idx = sc.comp_unit->FindLineEntry(idx + 1, line_number, nullptr,
@@ -1009,8 +1009,8 @@ protected:
         }
 
         for (lldb::addr_t address : m_options.m_until_addrs) {
-          AddressRange unused;
-          if (sc.function->GetRangeContainingLoadAddress(address, *target,
+          
+          if (AddressRange unused; sc.function->GetRangeContainingLoadAddress(address, *target,
                                                          unused))
             address_list.push_back(address);
         }
@@ -1105,8 +1105,8 @@ public:
 
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
-      const int short_option = g_thread_select_options[option_idx].short_option;
-      switch (short_option) {
+      
+      switch (const int short_option = g_thread_select_options[option_idx].short_option; short_option) {
       case 't': {
         if (option_arg.getAsInteger(0, m_thread_id)) {
           m_thread_id = LLDB_INVALID_THREAD_ID;
@@ -1480,14 +1480,14 @@ public:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'x': {
         bool success;
-        bool tmp_value =
-            OptionArgParser::ToBoolean(option_arg, false, &success);
-        if (success)
+        
+        if (bool tmp_value =
+            OptionArgParser::ToBoolean(option_arg, false, &success); success)
           m_from_expression = tmp_value;
         else {
           error = Status::FromErrorStringWithFormat(
@@ -1550,9 +1550,9 @@ protected:
         result.AppendErrorWithFormat("Unwinding expression failed - %s.",
                                      error.AsCString());
       } else {
-        bool success =
-            thread->SetSelectedFrameByIndexNoisily(0, result.GetOutputStream());
-        if (success) {
+        
+        if (bool success =
+            thread->SetSelectedFrameByIndexNoisily(0, result.GetOutputStream()); success) {
           m_exe_ctx.SetFrameSP(
               thread->GetSelectedFrame(DoNoSelectMostRelevantFrame));
           result.SetStatus(eReturnStatusSuccessFinishResult);
@@ -1698,10 +1698,10 @@ protected:
     StackFrame *frame = m_exe_ctx.GetFramePtr();
     Thread *thread = m_exe_ctx.GetThreadPtr();
     Target *target = m_exe_ctx.GetTargetPtr();
-    const SymbolContext &sym_ctx =
-        frame->GetSymbolContext(eSymbolContextLineEntry);
+    
 
-    if (m_options.m_load_addr != LLDB_INVALID_ADDRESS) {
+    if (const SymbolContext &sym_ctx =
+        frame->GetSymbolContext(eSymbolContextLineEntry); m_options.m_load_addr != LLDB_INVALID_ADDRESS) {
       // Use this address directly.
       Address dest = Address(m_options.m_load_addr);
 
@@ -1771,9 +1771,9 @@ public:
 
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'i':
         m_internal = true;
         break;
@@ -1848,11 +1848,11 @@ public:
         Process *process = m_exe_ctx.GetProcessPtr();
         StreamString tmp_strm;
         for (lldb::tid_t tid : m_options.m_tids) {
-          bool success = process->DumpThreadPlansForTID(
-              tmp_strm, tid, eDescriptionLevelFull, m_options.m_internal,
-              true /* condense_trivial */, m_options.m_unreported);
+          
           // If we didn't find a TID, stop here and return an error.
-          if (!success) {
+          if (bool success = process->DumpThreadPlansForTID(
+              tmp_strm, tid, eDescriptionLevelFull, m_options.m_internal,
+              true /* condense_trivial */, m_options.m_unreported); !success) {
             result.AppendError("Error dumping plans:");
             result.AppendError(tmp_strm.GetString());
             return;
@@ -2130,9 +2130,9 @@ public:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'j': {
         m_dumper_options.json = true;
         break;
@@ -2235,12 +2235,12 @@ public:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'c': {
-        int32_t count;
-        if (option_arg.empty() || option_arg.getAsInteger(0, count) ||
+        
+        if (int32_t count; option_arg.empty() || option_arg.getAsInteger(0, count) ||
             count < 0)
           error = Status::FromErrorStringWithFormat(
               "invalid integer value for option '%s'",
@@ -2254,8 +2254,8 @@ public:
         break;
       }
       case 's': {
-        int32_t skip;
-        if (option_arg.empty() || option_arg.getAsInteger(0, skip) || skip < 0)
+        
+        if (int32_t skip; option_arg.empty() || option_arg.getAsInteger(0, skip) || skip < 0)
           error = Status::FromErrorStringWithFormat(
               "invalid integer value for option '%s'",
               option_arg.str().c_str());
@@ -2264,8 +2264,8 @@ public:
         break;
       }
       case 'i': {
-        uint64_t id;
-        if (option_arg.empty() || option_arg.getAsInteger(0, id))
+        
+        if (uint64_t id; option_arg.empty() || option_arg.getAsInteger(0, id))
           error = Status::FromErrorStringWithFormat(
               "invalid integer value for option '%s'",
               option_arg.str().c_str());
@@ -2438,9 +2438,9 @@ public:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'v': {
         m_verbose = true;
         break;

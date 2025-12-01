@@ -133,8 +133,8 @@ static const ParmVarDecl *getOriginParam(SVal V, CheckerContext &C,
   // determines if the value was loaded from the transitive closure of MIG
   // routine arguments in the heap.
   while (const MemRegion *MR = Sym->getOriginRegion()) {
-    const auto *VR = dyn_cast<VarRegion>(MR);
-    if (VR && VR->hasMemorySpace<StackArgumentsSpaceRegion>(C.getState()) &&
+    
+    if (const auto *VR = dyn_cast<VarRegion>(MR); VR && VR->hasMemorySpace<StackArgumentsSpaceRegion>(C.getState()) &&
         VR->getStackFrame()->inTopFrame())
       return cast<ParmVarDecl>(VR->getDecl());
 

@@ -145,8 +145,8 @@ LLVM_LIBC_FUNCTION(double, tan, (double x)) {
         return fputil::multiply_add(x, 0x1.0p-54, x);
 #else
         if (LIBC_UNLIKELY(x_e < 4)) {
-          int rounding_mode = fputil::quick_get_round();
-          if ((xbits.sign() == Sign::POS && rounding_mode == FE_UPWARD) ||
+          
+          if (int rounding_mode = fputil::quick_get_round(); (xbits.sign() == Sign::POS && rounding_mode == FE_UPWARD) ||
               (xbits.sign() == Sign::NEG && rounding_mode == FE_DOWNWARD))
             return FPBits(xbits.uintval() + 1).get_val();
         }

@@ -314,9 +314,9 @@ static void convertToParamAS(Use *OldUse, Value *Param, bool HasCvtaParam,
 
   while (!ItemsToConvert.empty()) {
     IP I = ItemsToConvert.pop_back_val();
-    Value *NewInst = CloneInstInParamAS(I);
+    
 
-    if (NewInst && NewInst != I.OldInstruction) {
+    if (Value *NewInst = CloneInstInParamAS(I); NewInst && NewInst != I.OldInstruction) {
       // We've created a new instruction. Queue users of the old instruction to
       // be converted and the instruction itself to be deleted. We can't delete
       // the old instruction yet, because it's still in use by a load somewhere.
@@ -657,8 +657,8 @@ static bool runOnKernelFunction(const NVPTXTargetMachine &TM, Function &F) {
       for (auto &I : B) {
         if (LoadInst *LI = dyn_cast<LoadInst>(&I)) {
           if (LI->getType()->isPointerTy() || LI->getType()->isIntegerTy()) {
-            Value *UO = getUnderlyingObject(LI->getPointerOperand());
-            if (Argument *Arg = dyn_cast<Argument>(UO)) {
+            
+            if (Argument *Value *UO = getUnderlyingObject(LI->getPointerOperand()); Arg = dyn_cast<Argument>(UO)) {
               if (Arg->hasByValAttr()) {
                 // LI is a load from a pointer within a byval kernel parameter.
                 if (LI->getType()->isPointerTy())

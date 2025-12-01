@@ -53,8 +53,8 @@ std::string replaceThinLTOSuffix(StringRef path) {
 }
 
 void InputFile::checkArch(Triple::ArchType arch) const {
-  bool is64 = arch == Triple::wasm64;
-  if (is64 && !ctx.arg.is64) {
+  
+  if (bool is64 = arch == Triple::wasm64; is64 && !ctx.arg.is64) {
     fatal(toString(this) +
           ": must specify -mwasm64 to process wasm64 object files");
   } else if (ctx.arg.is64.value_or(false) != is64) {
@@ -542,8 +542,8 @@ void ObjFile::parse(bool ignoreComdats) {
       dataSection = &section;
     } else if (section.Type == WASM_SEC_CUSTOM) {
       InputChunk *customSec;
-      uint32_t alignment = getCustomSectionAlignment(section);
-      if (shouldMerge(section))
+      
+      if (uint32_t alignment = getCustomSectionAlignment(section); shouldMerge(section))
         customSec = make<MergeInputChunk>(section, this, alignment);
       else
         customSec = make<InputSection>(section, this, alignment);
@@ -660,9 +660,9 @@ DataSymbol *ObjFile::getDataSymbol(uint32_t index) const {
 
 Symbol *ObjFile::createDefined(const WasmSymbol &sym) {
   StringRef name = sym.Info.Name;
-  uint32_t flags = sym.Info.Flags;
+  
 
-  switch (sym.Info.Kind) {
+  switch (uint32_t flags = sym.Info.Flags; sym.Info.Kind) {
   case WASM_SYMBOL_TYPE_FUNCTION: {
     InputFunction *func =
         functions[sym.Info.ElementIndex - wasmObj->getNumImportedFunctions()];
@@ -722,9 +722,9 @@ Symbol *ObjFile::createDefined(const WasmSymbol &sym) {
 
 Symbol *ObjFile::createUndefined(const WasmSymbol &sym, bool isCalledDirectly) {
   StringRef name = sym.Info.Name;
-  uint32_t flags = sym.Info.Flags | WASM_SYMBOL_UNDEFINED;
+  
 
-  switch (sym.Info.Kind) {
+  switch (uint32_t flags = sym.Info.Flags | WASM_SYMBOL_UNDEFINED; sym.Info.Kind) {
   case WASM_SYMBOL_TYPE_FUNCTION:
     if (sym.isBindingLocal())
       return make<UndefinedFunction>(name, sym.Info.ImportName,
@@ -824,9 +824,9 @@ static Symbol *createBitcodeSymbol(const std::vector<bool> &keptComdats,
   flags |= mapVisibility(objSym.getVisibility());
 
   int c = objSym.getComdatIndex();
-  bool excludedByComdat = c != -1 && !keptComdats[c];
+  
 
-  if (objSym.isUndefined() || excludedByComdat) {
+  if (bool excludedByComdat = c != -1 && !keptComdats[c]; objSym.isUndefined() || excludedByComdat) {
     flags |= WASM_SYMBOL_UNDEFINED;
     if (objSym.isExecutable())
       return symtab->addUndefinedFunction(name, std::nullopt, std::nullopt,

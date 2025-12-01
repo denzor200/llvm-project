@@ -200,8 +200,8 @@ void FormatManager::GetPossibleMatches(
     entries.push_back({type_name, script_interpreter, TypeImpl(compiler_type),
                        current_flags, ptr_stripped_depth});
 
-    ConstString display_type_name(compiler_type.GetTypeName());
-    if (display_type_name != type_name)
+    
+    if (ConstString display_type_name(compiler_type.GetTypeName()); display_type_name != type_name)
       entries.push_back({display_type_name, script_interpreter,
                          TypeImpl(compiler_type), current_flags,
                          ptr_stripped_depth});
@@ -245,9 +245,9 @@ void FormatManager::GetPossibleMatches(
   uint64_t array_size;
   if (compiler_type.IsArrayType(nullptr, &array_size, nullptr)) {
     ExecutionContext exe_ctx(valobj.GetExecutionContextRef());
-    CompilerType element_type = compiler_type.GetArrayElementType(
-        exe_ctx.GetBestExecutionContextScope());
-    if (element_type.IsTypedefType()) {
+    
+    if (CompilerType element_type = compiler_type.GetArrayElementType(
+        exe_ctx.GetBestExecutionContextScope()); element_type.IsTypedefType()) {
       // Get the stripped element type and compute the stripped array type
       // from it.
       CompilerType deffed_array_type =
@@ -295,8 +295,8 @@ void FormatManager::GetPossibleMatches(
 
     // if all else fails, go to static type
     if (valobj.IsDynamic()) {
-      lldb::ValueObjectSP static_value_sp(valobj.GetStaticValue());
-      if (static_value_sp)
+      
+      if (lldb::ValueObjectSP static_value_sp(valobj.GetStaticValue()); static_value_sp)
         GetPossibleMatches(*static_value_sp.get(),
                            static_value_sp->GetCompilerType(), use_dynamic,
                            entries, current_flags, true, ptr_stripped_depth);
@@ -316,9 +316,9 @@ FormatManager::GetFormatForType(lldb::TypeNameSpecifierImplSP type_sp) {
     category_sp = GetCategoryAtIndex(category_id);
     if (!category_sp->IsEnabled())
       continue;
-    lldb::TypeFormatImplSP format_current_sp =
-        category_sp->GetFormatForType(type_sp);
-    if (format_current_sp &&
+    
+    if (lldb::TypeFormatImplSP format_current_sp =
+        category_sp->GetFormatForType(type_sp); format_current_sp &&
         (format_chosen_sp.get() == nullptr ||
          (prio_category > category_sp->GetEnabledPosition()))) {
       prio_category = category_sp->GetEnabledPosition();
@@ -340,9 +340,9 @@ FormatManager::GetSummaryForType(lldb::TypeNameSpecifierImplSP type_sp) {
     category_sp = GetCategoryAtIndex(category_id);
     if (!category_sp->IsEnabled())
       continue;
-    lldb::TypeSummaryImplSP summary_current_sp =
-        category_sp->GetSummaryForType(type_sp);
-    if (summary_current_sp &&
+    
+    if (lldb::TypeSummaryImplSP summary_current_sp =
+        category_sp->GetSummaryForType(type_sp); summary_current_sp &&
         (summary_chosen_sp.get() == nullptr ||
          (prio_category > category_sp->GetEnabledPosition()))) {
       prio_category = category_sp->GetEnabledPosition();
@@ -637,8 +637,8 @@ ImplSP FormatManager::Get(ValueObject &valobj,
   LLDB_LOGF(log, FORMAT_LOG("Search failed. Giving language a chance."));
   for (lldb::LanguageType lang_type : match_data.GetCandidateLanguages()) {
     if (LanguageCategory *lang_category = GetCategoryForLanguage(lang_type)) {
-      ImplSP retval_sp;
-      if (lang_category->Get(match_data, retval_sp))
+      
+      if (ImplSP retval_sp; lang_category->Get(match_data, retval_sp))
         if (retval_sp) {
           LLDB_LOGF(log, FORMAT_LOG("Language search success. Returning."));
           return retval_sp;

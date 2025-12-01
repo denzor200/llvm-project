@@ -80,8 +80,8 @@ static Value permuteVectorOffset(OpBuilder &b, Location loc,
   // Use the src bits to permute the target bits b[N:M] containing the
   // vector offset.
   if (permuteEveryN > 1) {
-    int64_t shlBits = n - llvm::Log2_64(permuteEveryN);
-    if (shlBits > 0) {
+    
+    if (int64_t shlBits = n - llvm::Log2_64(permuteEveryN); shlBits > 0) {
       Value finalShiftVal = arith::ConstantIndexOp::create(b, loc, shlBits);
       srcBits = b.createOrFold<arith::ShLIOp>(loc, srcBits, finalShiftVal);
     } else if (shlBits < 0) {

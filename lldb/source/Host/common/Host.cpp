@@ -346,8 +346,8 @@ bool Host::ResolveExecutableInBundle(FileSpec &file) { return false; }
 
 FileSpec Host::GetModuleFileSpecForHostAddress(const void *host_addr) {
   FileSpec module_filespec;
-  Dl_info info;
-  if (::dladdr(host_addr, &info)) {
+  
+  if (Dl_info info; ::dladdr(host_addr, &info)) {
     if (info.dli_fname) {
       module_filespec.SetFile(info.dli_fname, FileSpec::Style::native);
       FileSystem::Instance().Resolve(module_filespec);
@@ -507,17 +507,17 @@ Status Host::RunShellCommand(llvm::StringRef shell_path, const Args &args,
 
       if (command_output_ptr) {
         command_output_ptr->clear();
-        uint64_t file_size =
-            FileSystem::Instance().GetByteSize(output_file_spec);
-        if (file_size > 0) {
+        
+        if (uint64_t file_size =
+            FileSystem::Instance().GetByteSize(output_file_spec); file_size > 0) {
           if (file_size > command_output_ptr->max_size()) {
             error = Status::FromErrorStringWithFormat(
                 "shell command output is too large to fit into a std::string");
           } else {
-            WritableDataBufferSP Buffer =
+            
+            if (WritableDataBufferSP Buffer =
                 FileSystem::Instance().CreateWritableDataBuffer(
-                    output_file_spec);
-            if (error.Success())
+                    output_file_spec); error.Success())
               command_output_ptr->assign(
                   reinterpret_cast<char *>(Buffer->GetBytes()),
                   Buffer->GetByteSize());

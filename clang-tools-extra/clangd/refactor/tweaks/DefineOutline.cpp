@@ -731,8 +731,8 @@ public:
       for (const auto &T : Tokens) {
         tok::TokenKind StartKind = SkippedParams ? tok::l_brace : tok::l_paren;
         tok::TokenKind EndKind = SkippedParams ? tok::r_brace : tok::r_paren;
-        int &Count = SkippedParams ? OpenBraces : OpenParens;
-        if (T.kind() == StartKind) {
+        
+        if (int &Count = SkippedParams ? OpenBraces : OpenParens; T.kind() == StartKind) {
           ++Count;
         } else if (T.kind() == EndKind) {
           if (--Count == 0) {

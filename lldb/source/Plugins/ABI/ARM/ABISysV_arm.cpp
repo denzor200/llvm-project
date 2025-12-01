@@ -1303,9 +1303,9 @@ size_t ABISysV_arm::GetRedZoneSize() const { return 0; }
 ABISP
 ABISysV_arm::CreateInstance(lldb::ProcessSP process_sp, const ArchSpec &arch) {
   const llvm::Triple::ArchType arch_type = arch.GetTriple().getArch();
-  const llvm::Triple::VendorType vendor_type = arch.GetTriple().getVendor();
+  
 
-  if (vendor_type != llvm::Triple::Apple) {
+  if (const llvm::Triple::VendorType vendor_type = arch.GetTriple().getVendor(); vendor_type != llvm::Triple::Apple) {
     if ((arch_type == llvm::Triple::arm) ||
         (arch_type == llvm::Triple::thumb)) {
       return ABISP(
@@ -1467,9 +1467,9 @@ bool ABISysV_arm::GetArgumentValues(Thread &thread, ValueList &values) const {
           arg_reg_info = reg_ctx->GetRegisterInfo(
               eRegisterKindGeneric, LLDB_REGNUM_GENERIC_ARG1 + value_idx);
           if (arg_reg_info) {
-            RegisterValue reg_value;
+            
 
-            if (reg_ctx->ReadRegister(arg_reg_info, reg_value)) {
+            if (RegisterValue reg_value; reg_ctx->ReadRegister(arg_reg_info, reg_value)) {
               if (is_signed)
                 reg_value.SignExtend(bit_width);
               if (!reg_value.GetScalarValue(value->GetScalar()))
@@ -1488,8 +1488,8 @@ bool ABISysV_arm::GetArgumentValues(Thread &thread, ValueList &values) const {
 
           // Arguments 5 on up are on the stack
           const uint32_t arg_byte_size = (bit_width + (8 - 1)) / 8;
-          Status error;
-          if (!exe_ctx.GetProcessRef().ReadScalarIntegerFromMemory(
+          
+          if (Status error; !exe_ctx.GetProcessRef().ReadScalarIntegerFromMemory(
                   sp, arg_byte_size, is_signed, value->GetScalar(), error))
             return false;
 
@@ -1695,10 +1695,10 @@ ValueObjectSP ABISysV_arm::GetReturnValueObjectImpl(
   } else if (compiler_type.IsAggregateType()) {
     if (IsArmHardFloat(thread)) {
       CompilerType base_type;
-      const uint32_t homogeneous_count =
-          compiler_type.IsHomogeneousAggregate(&base_type);
+      
 
-      if (homogeneous_count > 0 && homogeneous_count <= 4) {
+      if (const uint32_t homogeneous_count =
+          compiler_type.IsHomogeneousAggregate(&base_type); homogeneous_count > 0 && homogeneous_count <= 4) {
         std::optional<uint64_t> base_byte_size =
             llvm::expectedToOptional(base_type.GetByteSize(&thread));
         if (base_type.IsVectorType()) {
@@ -1719,9 +1719,9 @@ ValueObjectSP ABISysV_arm::GetReturnValueObjectImpl(
           }
         }
       } else if (homogeneous_count == 0) {
-        const uint32_t num_children = compiler_type.GetNumFields();
+        
 
-        if (num_children > 0 && num_children <= 2) {
+        if (const uint32_t num_children = compiler_type.GetNumFields(); num_children > 0 && num_children <= 2) {
           uint32_t index = 0;
           for (index = 0; index < num_children; index++) {
             std::string name;
@@ -1860,22 +1860,22 @@ Status ABISysV_arm::SetReturnValueObject(lldb::StackFrameSP &frame_sp,
     }
     lldb::offset_t offset = 0;
     if (num_bytes <= 8) {
-      const RegisterInfo *r0_info = reg_ctx->GetRegisterInfo(
-          eRegisterKindGeneric, LLDB_REGNUM_GENERIC_ARG1);
-      if (num_bytes <= 4) {
-        uint32_t raw_value = data.GetMaxU32(&offset, num_bytes);
+      
+      if (const RegisterInfo *r0_info = reg_ctx->GetRegisterInfo(
+          eRegisterKindGeneric, LLDB_REGNUM_GENERIC_ARG1); num_bytes <= 4) {
+        
 
-        if (reg_ctx->WriteRegisterFromUnsigned(r0_info, raw_value))
+        if (uint32_t raw_value = data.GetMaxU32(&offset, num_bytes); reg_ctx->WriteRegisterFromUnsigned(r0_info, raw_value))
           set_it_simple = true;
       } else {
-        uint32_t raw_value = data.GetMaxU32(&offset, 4);
+        
 
-        if (reg_ctx->WriteRegisterFromUnsigned(r0_info, raw_value)) {
+        if (uint32_t raw_value = data.GetMaxU32(&offset, 4); reg_ctx->WriteRegisterFromUnsigned(r0_info, raw_value)) {
           const RegisterInfo *r1_info = reg_ctx->GetRegisterInfo(
               eRegisterKindGeneric, LLDB_REGNUM_GENERIC_ARG2);
-          uint32_t raw_value = data.GetMaxU32(&offset, num_bytes - offset);
+          
 
-          if (reg_ctx->WriteRegisterFromUnsigned(r1_info, raw_value))
+          if (uint32_t raw_value = data.GetMaxU32(&offset, num_bytes - offset); reg_ctx->WriteRegisterFromUnsigned(r1_info, raw_value))
             set_it_simple = true;
         }
       }
@@ -1968,8 +1968,8 @@ UnwindPlanSP ABISysV_arm::CreateDefaultUnwindPlan() {
 bool ABISysV_arm::RegisterIsVolatile(const RegisterInfo *reg_info) {
   if (reg_info) {
     // Volatile registers are: r0, r1, r2, r3, r9, r12, r13 (aka sp)
-    const char *name = reg_info->name;
-    if (name[0] == 'r') {
+    
+    if (const char *name = reg_info->name; name[0] == 'r') {
       switch (name[1]) {
       case '0':
         return name[2] == '\0'; // r0

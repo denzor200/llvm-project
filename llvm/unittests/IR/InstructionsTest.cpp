@@ -1392,9 +1392,9 @@ TEST(InstructionsTest, ShuffleMaskIsReplicationMask_Exhaustive_Correctness) {
 
     G.generate([&](ArrayRef<int> Mask) -> bool {
       int GuessedReplicationFactor = -1, GuessedVF = -1;
-      bool Match = ShuffleVectorInst::isReplicationMask(
-          Mask, GuessedReplicationFactor, GuessedVF);
-      if (!Match)
+      
+      if (bool Match = ShuffleVectorInst::isReplicationMask(
+          Mask, GuessedReplicationFactor, GuessedVF); !Match)
         return /*Abort=*/false;
 
       const auto ActualMask =
@@ -1402,9 +1402,9 @@ TEST(InstructionsTest, ShuffleMaskIsReplicationMask_Exhaustive_Correctness) {
       EXPECT_EQ(Mask.size(), ActualMask.size());
       for (auto I : zip(Mask, ActualMask)) {
         int Elt = std::get<0>(I);
-        int ActualElt = std::get<0>(I);
+        
 
-        if (Elt != -1) {
+        if (int ActualElt = std::get<0>(I); Elt != -1) {
           EXPECT_EQ(Elt, ActualElt);
         }
       }

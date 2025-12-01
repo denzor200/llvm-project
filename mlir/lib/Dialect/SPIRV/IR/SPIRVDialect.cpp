@@ -1013,9 +1013,9 @@ Operation *SPIRVDialect::materializeConstant(OpBuilder &builder,
 LogicalResult SPIRVDialect::verifyOperationAttribute(Operation *op,
                                                      NamedAttribute attribute) {
   StringRef symbol = attribute.getName().strref();
-  Attribute attr = attribute.getValue();
+  
 
-  if (symbol == spirv::getEntryPointABIAttrName()) {
+  if (Attribute attr = attribute.getValue(); symbol == spirv::getEntryPointABIAttrName()) {
     if (!llvm::isa<spirv::EntryPointABIAttr>(attr)) {
       return op->emitError("'")
              << symbol << "' attribute must be an entry point ABI attribute";

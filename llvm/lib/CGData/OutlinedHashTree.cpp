@@ -73,8 +73,8 @@ void OutlinedHashTree::insert(const HashSequencePair &SequencePair) {
   HashNode *Current = getRoot();
 
   for (stable_hash StableHash : Sequence) {
-    auto I = Current->Successors.find(StableHash);
-    if (I == Current->Successors.end()) {
+    
+    if (auto I = Current->Successors.find(StableHash); I == Current->Successors.end()) {
       std::unique_ptr<HashNode> Next = std::make_unique<HashNode>();
       HashNode *NextPtr = Next.get();
       NextPtr->Hash = StableHash;

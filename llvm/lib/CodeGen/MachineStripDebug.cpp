@@ -32,8 +32,8 @@ cl::opt<bool>
 struct StripDebugMachineModule : public ModulePass {
   bool runOnModule(Module &M) override {
     if (OnlyDebugified) {
-      NamedMDNode *DebugifyMD = M.getNamedMetadata("llvm.debugify");
-      if (!DebugifyMD) {
+      
+      if (NamedMDNode *DebugifyMD = M.getNamedMetadata("llvm.debugify"); !DebugifyMD) {
         LLVM_DEBUG(dbgs() << "Not stripping debug info"
                              " (debugify metadata not found)?\n");
         return false;

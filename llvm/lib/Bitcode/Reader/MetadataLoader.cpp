@@ -491,8 +491,8 @@ class MetadataLoader::MetadataLoaderImpl {
     // Upgrade list of variables attached to the CUs.
     if (NamedMDNode *CUNodes = TheModule.getNamedMetadata("llvm.dbg.cu"))
       for (unsigned I = 0, E = CUNodes->getNumOperands(); I != E; ++I) {
-        auto *CU = cast<DICompileUnit>(CUNodes->getOperand(I));
-        if (auto *GVs = dyn_cast_or_null<MDTuple>(CU->getRawGlobalVariables()))
+        
+        if (auto *auto *CU = cast<DICompileUnit>(CUNodes->getOperand(I)); GVs = dyn_cast_or_null<MDTuple>(CU->getRawGlobalVariables()))
           for (unsigned I = 0; I < GVs->getNumOperands(); I++)
             if (auto *GV =
                     dyn_cast_or_null<DIGlobalVariable>(GVs->getOperand(I))) {
@@ -549,8 +549,8 @@ class MetadataLoader::MetadataLoaderImpl {
           // Collect a set of imported entities to be moved.
           SetVector<Metadata *> EntitiesToRemove;
           for (Metadata *Op : CU->getImportedEntities()->operands()) {
-            auto *IE = cast<DIImportedEntity>(Op);
-            if (isa_and_nonnull<DILocalScope>(IE->getScope())) {
+            
+            if (auto *IE = cast<DIImportedEntity>(Op); isa_and_nonnull<DILocalScope>(IE->getScope())) {
               EntitiesToRemove.insert(IE);
             }
           }
@@ -567,8 +567,8 @@ class MetadataLoader::MetadataLoaderImpl {
             // Find DISubprogram corresponding to each entity.
             std::map<DISubprogram *, SmallVector<Metadata *>> SPToEntities;
             for (auto *I : EntitiesToRemove) {
-              auto *Entity = cast<DIImportedEntity>(I);
-              if (auto *SP = findEnclosingSubprogram(
+              
+              if (auto *auto *Entity = cast<DIImportedEntity>(I); SP = findEnclosingSubprogram(
                       cast<DILocalScope>(Entity->getScope()))) {
                 SPToEntities[SP].push_back(Entity);
               }
@@ -625,8 +625,8 @@ class MetadataLoader::MetadataLoaderImpl {
   Error upgradeDIExpression(uint64_t FromVersion,
                             MutableArrayRef<uint64_t> &Expr,
                             SmallVectorImpl<uint64_t> &Buffer) {
-    auto N = Expr.size();
-    switch (FromVersion) {
+    
+    switch (auto N = Expr.size(); FromVersion) {
     default:
       return error("Invalid record");
     case 0:
@@ -1152,10 +1152,10 @@ void MetadataLoader::MetadataLoaderImpl::lazyLoadOneMetadata(
   assert(ID >= MDStringRef.size() && "Unexpected lazy-loading of MDString");
   // Lookup first if the metadata hasn't already been loaded.
   if (auto *MD = MetadataList.lookup(ID)) {
-    auto *N = dyn_cast<MDNode>(MD);
+    
     // If the node is not an MDNode, or if it is not temporary, then
     // we're done.
-    if (!N || !N->isTemporary())
+    if (auto *N = dyn_cast<MDNode>(MD); !N || !N->isTemporary())
       return;
   }
   SmallVector<uint64_t, 64> Record;
@@ -1217,9 +1217,9 @@ void MetadataLoader::MetadataLoaderImpl::resolveForwardRefsAndPlaceholders(
 
 static Value *getValueFwdRef(BitcodeReaderValueList &ValueList, unsigned Idx,
                              Type *Ty, unsigned TyID) {
-  Value *V = ValueList.getValueFwdRef(Idx, Ty, TyID,
-                                      /*ConstExprInsertBB*/ nullptr);
-  if (V)
+  
+  if (Value *V = ValueList.getValueFwdRef(Idx, Ty, TyID,
+                                      /*ConstExprInsertBB*/ nullptr); V)
     return V;
 
   // This is a reference to a no longer supported constant expression.
@@ -1447,9 +1447,9 @@ Error MetadataLoader::MetadataLoaderImpl::parseOneMetadata(
 
     IsDistinct = Record[0];
     unsigned Tag = Record[1];
-    unsigned Version = Record[2];
+    
 
-    if (Tag >= 1u << 16 || Version != 0)
+    if (unsigned Version = Record[2]; Tag >= 1u << 16 || Version != 0)
       return error("Invalid record");
 
     auto *Header = getMDString(Record[3]);
@@ -1735,8 +1735,8 @@ Error MetadataLoader::MetadataLoaderImpl::parseOneMetadata(
       // template names - it should probably be replaced with a
       // DICompositeType flag specifying whether template parameters are
       // required on declarations of this type.
-      StringRef NameStr = Name->getString();
-      if (!NameStr.contains('<') || NameStr.starts_with("_STN|"))
+      
+      if (StringRef NameStr = Name->getString(); !NameStr.contains('<') || NameStr.starts_with("_STN|"))
         TemplateParams = getMDOrNull(Record[14]);
     } else {
       BaseType = getDITypeRefOrNull(Record[6]);
@@ -2133,9 +2133,9 @@ Error MetadataLoader::MetadataLoaderImpl::parseOneMetadata(
       return error("Invalid record");
 
     IsDistinct = Record[0] & 1;
-    unsigned Version = Record[0] >> 1;
+    
 
-    if (Version == 2) {
+    if (unsigned Version = Record[0] >> 1; Version == 2) {
       Metadata *Annotations = nullptr;
       if (Record.size() > 12)
         Annotations = getMDOrNull(Record[12]);
@@ -2265,8 +2265,8 @@ Error MetadataLoader::MetadataLoaderImpl::parseOneMetadata(
     bool IsArtificial = Record[0] & 2;
     std::optional<unsigned> CoroSuspendIdx;
     if (Record.size() > 6) {
-      uint64_t RawSuspendIdx = Record[6];
-      if (RawSuspendIdx != std::numeric_limits<uint64_t>::max()) {
+      
+      if (uint64_t RawSuspendIdx = Record[6]; RawSuspendIdx != std::numeric_limits<uint64_t>::max()) {
         if (RawSuspendIdx > (uint64_t)std::numeric_limits<unsigned>::max())
           return error("CoroSuspendIdx value is too large");
         CoroSuspendIdx = RawSuspendIdx;
@@ -2561,8 +2561,8 @@ Error MetadataLoader::MetadataLoaderImpl::parseMetadataKindRecord(
   unsigned Kind = Record[0];
   SmallString<8> Name(Record.begin() + 1, Record.end());
 
-  unsigned NewKind = TheModule.getMDKindID(Name.str());
-  if (!MDKindMap.insert(std::make_pair(Kind, NewKind)).second)
+  
+  if (unsigned NewKind = TheModule.getMDKindID(Name.str()); !MDKindMap.insert(std::make_pair(Kind, NewKind)).second)
     return error("Conflicting METADATA_KIND records");
   return Error::success();
 }

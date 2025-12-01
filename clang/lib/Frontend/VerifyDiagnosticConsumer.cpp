@@ -226,8 +226,8 @@ public:
     unsigned Depth = 1;
     P = C;
     while (P < End) {
-      StringRef S(P, End - P);
-      if (S.starts_with(OpenBrace)) {
+      
+      if (StringRef S(P, End - P); S.starts_with(OpenBrace)) {
         ++Depth;
         P += OpenBrace.size();
       } else if (S.starts_with(CloseBrace)) {
@@ -304,8 +304,8 @@ void attachDirective(DiagnosticsEngine &Diags, const UnattachedDirective &UD,
       UD.RegexKind, UD.DirectivePos, ExpectedLoc, UD.Spelling,
       MatchAnyFileAndLine, MatchAnyLine, UD.Text, UD.Min, UD.Max);
 
-  std::string Error;
-  if (!D->isValid(Error)) {
+  
+  if (std::string Error; !D->isValid(Error)) {
     Diags.Report(UD.ContentBegin, diag::err_verify_invalid_content)
       << (UD.RegexKind ? "regex" : "string") << Error;
   }
@@ -347,14 +347,14 @@ public:
     auto InsertResult = Markers.insert(
         {MarkerName, Marker{Pos, SourceLocation(), SourceLocation()}});
 
-    Marker &M = InsertResult.first->second;
-    if (!InsertResult.second) {
+    
+    if (Marker &M = InsertResult.first->second; !InsertResult.second) {
       // Marker was redefined.
       M.RedefLoc = Pos;
     } else {
       // First definition: build any deferred directives.
-      auto Deferred = DeferredDirectives.find(MarkerName);
-      if (Deferred != DeferredDirectives.end()) {
+      
+      if (auto Deferred = DeferredDirectives.find(MarkerName); Deferred != DeferredDirectives.end()) {
         for (auto &UD : Deferred->second) {
           if (M.UseLoc.isInvalid())
             M.UseLoc = UD.DirectivePos;
@@ -382,8 +382,8 @@ public:
   void finalize() {
     for (auto &MarkerInfo : Markers) {
       StringRef Name = MarkerInfo.first();
-      Marker &M = MarkerInfo.second;
-      if (M.RedefLoc.isValid() && M.UseLoc.isValid()) {
+      
+      if (Marker &M = MarkerInfo.second; M.RedefLoc.isValid() && M.UseLoc.isValid()) {
         Diags.Report(M.UseLoc, diag::err_verify_ambiguous_marker) << Name;
         Diags.Report(M.DefLoc, diag::note_verify_ambiguous_marker) << Name;
         Diags.Report(M.RedefLoc, diag::note_verify_ambiguous_marker) << Name;
@@ -519,13 +519,13 @@ static bool ParseDirective(StringRef S, ExpectedData *ED, SourceManager &SM,
     } else {
       PH.Advance();
       unsigned Line = 0;
-      bool FoundPlus = PH.Next("+");
-      if (FoundPlus || PH.Next("-")) {
+      
+      if (bool FoundPlus = PH.Next("+"); FoundPlus || PH.Next("-")) {
         // Relative to current line.
         PH.Advance();
         bool Invalid = false;
-        unsigned ExpectedLine = SM.getSpellingLineNumber(Pos, &Invalid);
-        if (!Invalid && PH.Next(Line) && (FoundPlus || Line < ExpectedLine)) {
+        
+        if (unsigned ExpectedLine = SM.getSpellingLineNumber(Pos, &Invalid); !Invalid && PH.Next(Line) && (FoundPlus || Line < ExpectedLine)) {
           if (FoundPlus) ExpectedLine += Line;
           else ExpectedLine -= Line;
           ExpectedLoc = SM.translateLineCol(SM.getFileID(Pos), ExpectedLine, 1);
@@ -975,8 +975,8 @@ static unsigned CheckLists(DiagnosticsEngine &Diags, SourceManager &SourceMgr,
       DiagList::iterator II, IE;
       for (II = Right.begin(), IE = Right.end(); II != IE; ++II) {
         if (!D.MatchAnyLine) {
-          unsigned LineNo2 = SourceMgr.getPresumedLineNumber(II->first);
-          if (LineNo1 != LineNo2)
+          
+          if (unsigned LineNo2 = SourceMgr.getPresumedLineNumber(II->first); LineNo1 != LineNo2)
             continue;
         }
 
@@ -984,8 +984,8 @@ static unsigned CheckLists(DiagnosticsEngine &Diags, SourceManager &SourceMgr,
             !IsFromSameFile(SourceMgr, D.DiagnosticLoc, II->first))
           continue;
 
-        const std::string &RightText = II->second;
-        if (D.match(RightText))
+        
+        if (const std::string &RightText = II->second; D.match(RightText))
           break;
       }
       if (II == IE) {

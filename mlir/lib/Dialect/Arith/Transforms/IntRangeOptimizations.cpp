@@ -311,8 +311,8 @@ static Value doCast(OpBuilder &builder, Location loc, Value src, Type dstType,
   }
 
   auto srcInt = cast<IntegerType>(srcElemType);
-  auto dstInt = cast<IntegerType>(dstElemType);
-  if (dstInt.getWidth() < srcInt.getWidth())
+  
+  if (auto dstInt = cast<IntegerType>(dstElemType); dstInt.getWidth() < srcInt.getWidth())
     return arith::TruncIOp::create(builder, loc, dstType, src);
 
   if (castKind == CastKind::Signed)
@@ -416,9 +416,9 @@ struct NarrowCmpI final : OpRewritePattern<arith::CmpIOp> {
     for (unsigned targetBitwidth : targetBitwidths) {
       CastKind lhsCastKind = checkTruncatability(lhsRange, targetBitwidth);
       CastKind rhsCastKind = checkTruncatability(rhsRange, targetBitwidth);
-      CastKind castKind = mergeCastKinds(lhsCastKind, rhsCastKind);
+      
       // Note: this includes target width > src width.
-      if (castKind == CastKind::None)
+      if (CastKind castKind = mergeCastKinds(lhsCastKind, rhsCastKind); castKind == CastKind::None)
         continue;
 
       Type targetType = getTargetType(srcType, targetBitwidth);

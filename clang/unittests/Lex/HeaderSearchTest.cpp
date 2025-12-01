@@ -53,9 +53,9 @@ protected:
         /*Group=*/std::nullopt, llvm::sys::fs::file_type::directory_file);
     auto DE = FileMgr.getOptionalDirectoryRef(Dir);
     assert(DE);
-    auto DL = DirectoryLookup(*DE, IsSystem ? SrcMgr::C_System : SrcMgr::C_User,
-                              /*isFramework=*/true);
-    if (IsSystem)
+    
+    if (auto DL = DirectoryLookup(*DE, IsSystem ? SrcMgr::C_System : SrcMgr::C_User,
+                              /*isFramework=*/true); IsSystem)
       Search.AddSystemSearchPath(DL);
     else
       Search.AddSearchPath(DL, /*isAngled=*/true);
@@ -333,8 +333,8 @@ TEST_F(HeaderSearchTest, HeaderFileInfoMerge) {
   class MockExternalHeaderFileInfoSource : public ExternalHeaderFileInfoSource {
     HeaderFileInfo GetHeaderFileInfo(FileEntryRef FE) {
       HeaderFileInfo HFI;
-      auto FileName = FE.getName();
-      if (FileName == ModularPath)
+      
+      if (auto FileName = FE.getName(); FileName == ModularPath)
         HFI.mergeModuleMembership(ModuleMap::NormalHeader);
       else if (FileName == TextualPath)
         HFI.mergeModuleMembership(ModuleMap::TextualHeader);

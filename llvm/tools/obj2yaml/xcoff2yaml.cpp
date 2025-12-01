@@ -250,12 +250,12 @@ Error XCOFFDumper::dumpAuxSyms(XCOFFYAML::Symbol &Sym,
       return Error::success();
     }
 
-    uintptr_t AuxAddress = XCOFFObjectFile::getAdvancedSymbolEntryAddress(
-        SymbolEntRef.getEntryAddress(), I);
+    
 
-    if (Obj.is64Bit()) {
-      XCOFF::SymbolAuxType Type = *Obj.getSymbolAuxType(AuxAddress);
-      if (Type == XCOFF::SymbolAuxType::AUX_CSECT)
+    if (uintptr_t AuxAddress = XCOFFObjectFile::getAdvancedSymbolEntryAddress(
+        SymbolEntRef.getEntryAddress(), I); Obj.is64Bit()) {
+      
+      if (XCOFF::SymbolAuxType Type = *Obj.getSymbolAuxType(AuxAddress); Type == XCOFF::SymbolAuxType::AUX_CSECT)
         dumpCsectAuxSym(Sym, CsectAuxRef);
       else if (Type == XCOFF::SymbolAuxType::AUX_FCN)
         dumpFuncAuxSym(Sym, AuxAddress);

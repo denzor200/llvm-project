@@ -191,8 +191,8 @@ mlir::TypedAttr mlir::sparse_tensor::getOneAttr(Builder &builder, Type tp) {
   if (auto intTp = dyn_cast<IntegerType>(tp))
     return builder.getIntegerAttr(tp, APInt(intTp.getWidth(), 1));
   if (isa<RankedTensorType, VectorType>(tp)) {
-    auto shapedTp = cast<ShapedType>(tp);
-    if (auto one = getOneAttr(builder, shapedTp.getElementType()))
+    
+    if (auto auto shapedTp = cast<ShapedType>(tp); one = getOneAttr(builder, shapedTp.getElementType()))
       return DenseElementsAttr::get(shapedTp, one);
   }
   llvm_unreachable("Unsupported attribute type");
@@ -324,8 +324,8 @@ FlatSymbolRefAttr mlir::sparse_tensor::getFunc(ModuleOp module, StringRef name,
                                                EmitCInterface emitCInterface) {
   MLIRContext *context = module.getContext();
   auto result = SymbolRefAttr::get(context, name);
-  auto func = module.lookupSymbol<func::FuncOp>(result.getAttr());
-  if (!func) {
+  
+  if (auto func = module.lookupSymbol<func::FuncOp>(result.getAttr()); !func) {
     OpBuilder moduleBuilder(module.getBodyRegion());
     func = func::FuncOp::create(
         moduleBuilder, module.getLoc(), name,

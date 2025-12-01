@@ -141,8 +141,8 @@ void RegisterInfoEmitter::runEnums(raw_ostream &OS, raw_ostream &MainOS,
   if (!Namespace.empty())
     OS << "} // end namespace " << Namespace << "\n";
 
-  const auto &RegisterClasses = RegBank.getRegClasses();
-  if (!RegisterClasses.empty()) {
+  
+  if (const auto &RegisterClasses = RegBank.getRegClasses(); !RegisterClasses.empty()) {
 
     // RegisterClass enums are stored as uint16_t in the tables.
     assert(RegisterClasses.size() <= 0xffff &&
@@ -674,8 +674,8 @@ static bool combine(const CodeGenSubRegIndex *Idx,
                     SmallVectorImpl<const CodeGenSubRegIndex *> &Vec) {
   const CodeGenSubRegIndex::CompMap &Map = Idx->getComposites();
   for (const auto &I : Map) {
-    const CodeGenSubRegIndex *&Entry = Vec[I.first->EnumValue - 1];
-    if (Entry && Entry != I.second)
+    
+    if (const CodeGenSubRegIndex *&Entry = Vec[I.first->EnumValue - 1]; Entry && Entry != I.second)
       return false;
   }
 
@@ -778,8 +778,8 @@ void RegisterInfoEmitter::emitComposeSubRegIndices(raw_ostream &OS,
 
       for (unsigned i = 0, e = SubRegIndicesSize; i != e; ++i) {
         const CodeGenSubRegIndex *This = &SubRegIndices[i];
-        const CodeGenSubRegIndex *Composed = Row[i];
-        if (Composed == &IdxB) {
+        
+        if (const CodeGenSubRegIndex *Composed = Row[i]; Composed == &IdxB) {
           if (FoundReverse && FoundReverse != This) // Not unique
             break;
           FoundReverse = This;
@@ -1250,9 +1250,9 @@ void RegisterInfoEmitter::runTargetDesc(raw_ostream &OS, raw_ostream &MainOS,
 
   // Collect allocatable registers.
   for (const auto &RC : RegisterClasses) {
-    ArrayRef<const Record *> Order = RC.getOrder();
+    
 
-    if (RC.Allocatable)
+    if (ArrayRef<const Record *> Order = RC.getOrder(); RC.Allocatable)
       AllocatableRegs.insert(Order.begin(), Order.end());
   }
 
@@ -1412,8 +1412,8 @@ void RegisterInfoEmitter::runTargetDesc(raw_ostream &OS, raw_ostream &MainOS,
            << "static ArrayRef<MCPhysReg> " << RC.getName()
            << "GetRawAllocationOrder(const MachineFunction &MF, bool Rev) {\n";
         for (unsigned oi = 1, oe = RC.getNumOrders(); oi != oe; ++oi) {
-          ArrayRef<const Record *> Elems = RC.getOrder(oi);
-          if (!Elems.empty()) {
+          
+          if (ArrayRef<const Record *> Elems = RC.getOrder(oi); !Elems.empty()) {
             OS << "  static const MCPhysReg AltOrder" << oi << "[] = {";
             for (unsigned elem = 0; elem != Elems.size(); ++elem)
               OS << (elem ? ", " : " ") << getQualifiedName(Elems[elem]);

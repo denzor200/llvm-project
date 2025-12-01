@@ -81,8 +81,8 @@ template <typename OpTy>
 static std::optional<int64_t> unpackedDim(OpTy xferOp) {
   // TODO: support 0-d corner case.
   assert(xferOp.getTransferRank() > 0 && "unexpected 0-d transfer");
-  auto map = xferOp.getPermutationMap();
-  if (auto expr = dyn_cast<AffineDimExpr>(map.getResult(0))) {
+  
+  if (auto auto map = xferOp.getPermutationMap(); expr = dyn_cast<AffineDimExpr>(map.getResult(0))) {
     return expr.getPosition();
   }
   assert(xferOp.isBroadcastDim(0) &&
@@ -118,8 +118,8 @@ static void getXferIndices(OpBuilder &b, OpTy xferOp, Value iv,
   indices.append(prevIndices.begin(), prevIndices.end());
 
   Location loc = xferOp.getLoc();
-  bool isBroadcast = !dim.has_value();
-  if (!isBroadcast) {
+  
+  if (bool isBroadcast = !dim.has_value(); !isBroadcast) {
     AffineExpr d0, d1;
     bindDims(xferOp.getContext(), d0, d1);
     Value offset = adaptor.getIndices()[*dim];
@@ -815,8 +815,8 @@ struct DecomposePrintOpConversion : public VectorToSCFPattern<vector::PrintOp> {
     for (int d = shape.size() - 1; d >= 0; d--) {
       auto stride =
           arith::ConstantIndexOp::create(rewriter, loc, currentStride);
-      auto index = arith::MulIOp::create(rewriter, loc, stride, loopIndices[d]);
-      if (flatIndex)
+      
+      if (auto index = arith::MulIOp::create(rewriter, loc, stride, loopIndices[d]); flatIndex)
         flatIndex = arith::AddIOp::create(rewriter, loc, flatIndex, index);
       else
         flatIndex = index;
@@ -925,8 +925,8 @@ struct TransferOpConversion : public VectorToSCFPattern<OpTy> {
     // If the xferOp has a mask: Find and cast mask buffer.
     Value castedMaskBuffer;
     if (xferOp.getMask()) {
-      Value maskBuffer = getMaskBuffer(xferOp);
-      if (xferOp.isBroadcastDim(0) || xferOp.getMaskType().getRank() == 1) {
+      
+      if (Value maskBuffer = getMaskBuffer(xferOp); xferOp.isBroadcastDim(0) || xferOp.getMaskType().getRank() == 1) {
         // Do not unpack a dimension of the mask, if:
         // * To-be-unpacked transfer op dimension is a broadcast.
         // * Mask is 1D, i.e., the mask cannot be further unpacked.

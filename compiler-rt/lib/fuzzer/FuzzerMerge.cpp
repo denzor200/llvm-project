@@ -445,8 +445,8 @@ void CrashResistantMerge(const std::vector<std::string> &Args,
     VPrintf(V, "MERGE-OUTER: non-empty control file provided: '%s'\n",
            CFPath.c_str());
     Merger M;
-    std::ifstream IF(CFPath);
-    if (M.Parse(IF, /*ParseCoverage=*/true)) {
+    
+    if (std::ifstream IF(CFPath); M.Parse(IF, /*ParseCoverage=*/true)) {
       VPrintf(V, "MERGE-OUTER: control file ok, %zd files total,"
              " first not processed file %zd\n",
              M.Files.size(), M.FirstNotProcessedFile);
@@ -507,8 +507,8 @@ void CrashResistantMerge(const std::vector<std::string> &Args,
       Cmd.setOutputFile(getDevNull());
       Cmd.combineOutAndErr();
     }
-    auto ExitCode = ExecuteCommand(Cmd);
-    if (!ExitCode) {
+    
+    if (auto ExitCode = ExecuteCommand(Cmd); !ExitCode) {
       VPrintf(V, "MERGE-OUTER: successful in %zd attempt(s)\n", Attempt);
       break;
     }

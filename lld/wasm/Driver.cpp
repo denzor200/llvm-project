@@ -199,8 +199,8 @@ static void handleColorDiagnostics(opt::InputArgList &args) {
   } else if (arg->getOption().getID() == OPT_no_color_diagnostics) {
     errs.enable_colors(false);
   } else {
-    StringRef s = arg->getValue();
-    if (s == "always")
+    
+    if (StringRef s = arg->getValue(); s == "always")
       errs.enable_colors(true);
     else if (s == "never")
       errs.enable_colors(false);
@@ -303,9 +303,9 @@ void LinkerDriver::addFile(StringRef path) {
   std::optional<MemoryBufferRef> buffer = readFile(path);
   if (!buffer)
     return;
-  MemoryBufferRef mbref = *buffer;
+  
 
-  switch (identify_magic(mbref.getBuffer())) {
+  switch (MemoryBufferRef mbref = *buffer; identify_magic(mbref.getBuffer())) {
   case file_magic::archive: {
     SmallString<128> importFile = path;
     path::replace_extension(importFile, ".imports");
@@ -328,8 +328,8 @@ void LinkerDriver::addFile(StringRef path) {
         CHECK(Archive::create(mbref), path + ": failed to parse archive");
 
     for (const auto &[m, offset] : members) {
-      auto magic = identify_magic(m.getBuffer());
-      if (magic == file_magic::wasm_object || magic == file_magic::bitcode)
+      
+      if (auto magic = identify_magic(m.getBuffer()); magic == file_magic::wasm_object || magic == file_magic::bitcode)
         files.push_back(createObjectFile(m, path, offset, true));
       else
         warn(path + ": archive member '" + m.getBufferIdentifier() +
@@ -543,8 +543,8 @@ static void readConfigs(opt::InputArgList &args) {
   ctx.arg.noinhibitExec = args.hasArg(OPT_noinhibit_exec);
 
   if (args.hasArg(OPT_import_memory_with_name)) {
-    auto argValue = args.getLastArgValue(OPT_import_memory_with_name);
-    if (argValue.contains(','))
+    
+    if (auto argValue = args.getLastArgValue(OPT_import_memory_with_name); argValue.contains(','))
       ctx.arg.memoryImport = argValue.split(",");
     else
       ctx.arg.memoryImport = {defaultModule, argValue};
@@ -565,9 +565,9 @@ static void readConfigs(opt::InputArgList &args) {
   ctx.arg.ltoo = args::getInteger(args, OPT_lto_O, 2);
   if (ctx.arg.ltoo > 3)
     error("invalid optimization level for LTO: " + Twine(ctx.arg.ltoo));
-  unsigned ltoCgo =
-      args::getInteger(args, OPT_lto_CGO, args::getCGOptLevel(ctx.arg.ltoo));
-  if (auto level = CodeGenOpt::getLevel(ltoCgo))
+  
+  if (auto unsigned ltoCgo =
+      args::getInteger(args, OPT_lto_CGO, args::getCGOptLevel(ctx.arg.ltoo)); level = CodeGenOpt::getLevel(ltoCgo))
     ctx.arg.ltoCgo = *level;
   else
     error("invalid codegen optimization level for LTO: " + Twine(ltoCgo));
@@ -658,8 +658,8 @@ static void readConfigs(opt::InputArgList &args) {
 
   // Parse wasm32/64.
   if (auto *arg = args.getLastArg(OPT_m)) {
-    StringRef s = arg->getValue();
-    if (s == "wasm32")
+    
+    if (StringRef s = arg->getValue(); s == "wasm32")
       ctx.arg.is64 = false;
     else if (s == "wasm64")
       ctx.arg.is64 = true;
@@ -855,8 +855,8 @@ static Symbol *handleUndefined(StringRef name, const char *option) {
 }
 
 static void handleLibcall(StringRef name) {
-  Symbol *sym = symtab->find(name);
-  if (sym && sym->isLazy() && isa<BitcodeFile>(sym->getFile())) {
+  
+  if (Symbol *sym = symtab->find(name); sym && sym->isLazy() && isa<BitcodeFile>(sym->getFile())) {
     if (!ctx.arg.whyExtract.empty())
       ctx.whyExtractRecords.emplace_back("<libcall>", sym->getFile(), *sym);
     cast<LazySymbol>(sym)->extract();
@@ -1024,14 +1024,14 @@ static void processStubLibrariesPreLTO() {
     LLVM_DEBUG(llvm::dbgs()
                << "processing stub file: " << stub_file->getName() << "\n");
     for (auto [name, deps]: stub_file->symbolDependencies) {
-      auto* sym = symtab->find(name);
+      
       // If the symbol is not present at all (yet), or if it is present but
       // undefined, then mark the dependent symbols as used by a regular
       // object so they will be preserved and exported by the LTO process.
-      if (!sym || sym->isUndefined()) {
+      if (auto* sym = symtab->find(name); !sym || sym->isUndefined()) {
         for (const auto dep : deps) {
-          auto* needed = symtab->find(dep);
-          if (needed ) {
+          
+          if (auto* needed = symtab->find(dep); needed ) {
             needed->isUsedInRegularObj = true;
             // Like with handleLibcall we have to extract any LTO archive
             // members that might need to be exported due to stub library
@@ -1065,8 +1065,8 @@ static bool addStubSymbolDeps(const StubFile *stub_file, Symbol *sym,
                             << sym->getName() << "\n");
   bool depsAdded = false;
   for (const auto dep : deps) {
-    auto *needed = symtab->find(dep);
-    if (!needed) {
+    
+    if (auto *needed = symtab->find(dep); !needed) {
       error(toString(stub_file) + ": undefined symbol: " + dep +
             ". Required by " + toString(*sym));
     } else if (needed->isUndefined()) {
@@ -1104,8 +1104,8 @@ static void processStubLibraries() {
       // First look for any imported symbols that directly match
       // the names of the stub imports
       for (auto [name, deps]: stub_file->symbolDependencies) {
-        auto* sym = symtab->find(name);
-        if (sym && sym->isUndefined()) {
+        
+        if (auto* sym = symtab->find(name); sym && sym->isUndefined()) {
           depsAdded |= addStubSymbolDeps(stub_file, sym, deps);
         } else {
           if (sym && sym->traced)
@@ -1119,8 +1119,8 @@ static void processStubLibraries() {
       // Secondly looks for any symbols with an `importName` that matches
       for (Symbol *sym : symtab->symbols()) {
         if (sym->isUndefined() && sym->importName.has_value()) {
-          auto it = stub_file->symbolDependencies.find(sym->importName.value());
-          if (it != stub_file->symbolDependencies.end()) {
+          
+          if (auto it = stub_file->symbolDependencies.find(sym->importName.value()); it != stub_file->symbolDependencies.end()) {
             depsAdded |= addStubSymbolDeps(stub_file, sym, it->second);
           }
         }
@@ -1296,9 +1296,9 @@ void LinkerDriver::linkerMain(ArrayRef<const char *> argsArr) {
 
   // Handle --reproduce
   if (const char *path = getReproduceOption(args)) {
-    Expected<std::unique_ptr<TarWriter>> errOrWriter =
-        TarWriter::create(path, path::stem(path));
-    if (errOrWriter) {
+    
+    if (Expected<std::unique_ptr<TarWriter>> errOrWriter =
+        TarWriter::create(path, path::stem(path)); errOrWriter) {
       tar = std::move(*errOrWriter);
       tar->append("response.txt", createResponseFile(args));
       tar->append("version.txt", getLLDVersion() + "\n");
@@ -1468,8 +1468,8 @@ void LinkerDriver::linkerMain(ArrayRef<const char *> argsArr) {
     wrapSymbols(wrapped);
 
   for (auto &iter : ctx.arg.exportedSymbols) {
-    Symbol *sym = symtab->find(iter.first());
-    if (sym && sym->isDefined())
+    
+    if (Symbol *sym = symtab->find(iter.first()); sym && sym->isDefined())
       sym->forceExport = true;
   }
 

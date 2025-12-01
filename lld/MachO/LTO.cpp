@@ -233,9 +233,9 @@ std::vector<ObjFile *> BitcodeCompiler::compile() {
 
     if (!fs::is_directory(config->ltoObjPath)) {
       objPathIsDir = false;
-      unsigned objCount =
-          count_if(buf, [](const SmallString<0> &b) { return !b.empty(); });
-      if (objCount > 1)
+      
+      if (unsigned objCount =
+          count_if(buf, [](const SmallString<0> &b) { return !b.empty(); }); objCount > 1)
         fatal("-object_path_lto must specify a directory when using ThinLTO");
     }
   }

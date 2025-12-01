@@ -79,11 +79,11 @@ Log::MaskType Log::GetFlags(llvm::raw_ostream &stream,
       flags |= entry.second.m_channel.default_flags;
       continue;
     }
-    auto cat = llvm::find_if(entry.second.m_channel.categories,
+    
+    if (auto cat = llvm::find_if(entry.second.m_channel.categories,
                              [&](const Log::Category &c) {
                                return c.name.equals_insensitive(category);
-                             });
-    if (cat != entry.second.m_channel.categories.end()) {
+                             }); cat != entry.second.m_channel.categories.end()) {
       flags |= cat->flag;
       continue;
     }
@@ -330,9 +330,9 @@ bool Log::GetVerbose() const {
 void Log::WriteHeader(llvm::raw_ostream &OS, llvm::StringRef file,
                       llvm::StringRef function) {
   Flags options = GetOptions();
-  static uint32_t g_sequence_id = 0;
+  
   // Add a sequence ID if requested
-  if (options.Test(LLDB_LOG_OPTION_PREPEND_SEQUENCE))
+  if (static uint32_t g_sequence_id = 0; options.Test(LLDB_LOG_OPTION_PREPEND_SEQUENCE))
     OS << ++g_sequence_id << " ";
 
   // Timestamp if requested

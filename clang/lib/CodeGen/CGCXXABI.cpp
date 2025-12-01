@@ -137,8 +137,8 @@ void CGCXXABI::buildThisParam(CodeGenFunction &CGF, FunctionArgList &params) {
 
   // Compute the presumed alignment of 'this', which basically comes
   // down to whether we know it's a complete object or not.
-  auto &Layout = CGF.getContext().getASTRecordLayout(MD->getParent());
-  if (MD->getParent()->getNumVBases() == 0 || // avoid vcall in common case
+  
+  if (auto &Layout = CGF.getContext().getASTRecordLayout(MD->getParent()); MD->getParent()->getNumVBases() == 0 || // avoid vcall in common case
       MD->getParent()->isEffectivelyFinal() ||
       isThisCompleteObject(CGF.CurGD)) {
     CGF.CXXABIThisAlignment = Layout.getAlignment();

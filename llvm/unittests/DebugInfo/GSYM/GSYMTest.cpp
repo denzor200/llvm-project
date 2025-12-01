@@ -2503,8 +2503,8 @@ static void AddFunctionInfo(GsymCreator &GC, const char *FuncName,
 // GsymReader that was successfully decoded.
 static Expected<GsymReader> FinalizeEncodeAndDecode(GsymCreator &GC) {
   OutputAggregator Null(nullptr);
-  Error FinalizeErr = GC.finalize(Null);
-  if (FinalizeErr)
+  
+  if (Error FinalizeErr = GC.finalize(Null); FinalizeErr)
     return std::move(FinalizeErr);
   SmallString<1024> Str;
   raw_svector_ostream OutStrm(Str);

@@ -29,8 +29,8 @@ LIBC_INLINE static size_t wcsspn(const wchar_t *s1, const wchar_t *s2,
                                  bool not_match_set) {
   size_t i = 0;
   for (; s1[i]; ++i) {
-    bool in_set = internal::wcschr(s2, s1[i]);
-    if (in_set == not_match_set)
+    
+    if (bool in_set = internal::wcschr(s2, s1[i]); in_set == not_match_set)
       return i;
   }
   return i;

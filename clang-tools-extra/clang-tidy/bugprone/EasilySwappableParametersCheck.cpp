@@ -417,9 +417,9 @@ struct MixData {
   void sanitize() {
     assert(Flags != MixFlags::Invalid && "sanitize() called on invalid bitvec");
 
-    const MixFlags CanonicalAndWorkaround =
-        MixFlags::Canonical | MixFlags::WorkaroundDisableCanonicalEquivalence;
-    if ((Flags & CanonicalAndWorkaround) == CanonicalAndWorkaround) {
+    
+    if (const MixFlags CanonicalAndWorkaround =
+        MixFlags::Canonical | MixFlags::WorkaroundDisableCanonicalEquivalence; (Flags & CanonicalAndWorkaround) == CanonicalAndWorkaround) {
       // A workaround for too eagerly equivalent canonical types was requested,
       // and a canonical equivalence was proven. Fulfill the request and throw
       // this result away.
@@ -1027,8 +1027,8 @@ approximateStandardConversionSequence(const TheCheck &Check, QualType From,
     }
 
     const auto *FromRecordPtr = FromPtr->getPointeeCXXRecordDecl();
-    const auto *ToRecordPtr = ToPtr->getPointeeCXXRecordDecl();
-    if (isDerivedToBase(FromRecordPtr, ToRecordPtr)) {
+    
+    if (const auto *ToRecordPtr = ToPtr->getPointeeCXXRecordDecl(); isDerivedToBase(FromRecordPtr, ToRecordPtr)) {
       LLVM_DEBUG(llvm::dbgs() << "--- approximateStdConv. Derived* to Base*\n");
       WorkType = QualType{ToPtr, FastQualifiersToApply};
     }
@@ -1345,9 +1345,9 @@ approximateImplicitConversion(const TheCheck &Check, QualType LType,
     bool FoundConversionOperator = false, FoundConvertingCtor = false;
 
     if (const auto *LRD = WorkType->getAsCXXRecordDecl()) {
-      std::optional<ConversionSequence> ConversionOperatorResult =
-          tryConversionOperators(Check, LRD, RType);
-      if (ConversionOperatorResult) {
+      
+      if (std::optional<ConversionSequence> ConversionOperatorResult =
+          tryConversionOperators(Check, LRD, RType); ConversionOperatorResult) {
         LLVM_DEBUG(llvm::dbgs() << "--- approximateImplicitConversion. Found "
                                    "conversion operator.\n");
         ImplicitSeq.update(*ConversionOperatorResult);
@@ -1360,9 +1360,9 @@ approximateImplicitConversion(const TheCheck &Check, QualType LType,
       // Use the original "LType" here, and not WorkType, because the
       // conversion to the converting constructors' parameters will be
       // modelled in the recursive call.
-      std::optional<ConversionSequence> ConvCtorResult =
-          tryConvertingConstructors(Check, LType, RRD);
-      if (ConvCtorResult) {
+      
+      if (std::optional<ConversionSequence> ConvCtorResult =
+          tryConvertingConstructors(Check, LType, RRD); ConvCtorResult) {
         LLVM_DEBUG(llvm::dbgs() << "--- approximateImplicitConversion. Found "
                                    "converting constructor.\n");
         ImplicitSeq.update(*ConvCtorResult);
@@ -1432,8 +1432,8 @@ static MixableParameterRange modelMixingRange(
       break;
     }
 
-    const StringRef PrevParamName = FD->getParamDecl(I - 1)->getName();
-    if (!ParamName.empty() && !PrevParamName.empty() &&
+    
+    if (const StringRef PrevParamName = FD->getParamDecl(I - 1)->getName(); !ParamName.empty() && !PrevParamName.empty() &&
         filter::prefixSuffixCoverUnderThreshold(
             Check.NamePrefixSuffixSilenceDissimilarityThreshold, PrevParamName,
             ParamName)) {
@@ -1518,8 +1518,8 @@ static bool isIgnoredParameter(const TheCheck &Check, const ParmVarDecl *Node) {
   if (!Node->getIdentifier())
     return llvm::is_contained(Check.IgnoredParameterNames, "\"\"");
 
-  const StringRef NodeName = Node->getName();
-  if (llvm::is_contained(Check.IgnoredParameterNames, NodeName)) {
+  
+  if (const StringRef NodeName = Node->getName(); llvm::is_contained(Check.IgnoredParameterNames, NodeName)) {
     LLVM_DEBUG(llvm::dbgs() << "\tName ignored.\n");
     return true;
   }
@@ -2249,9 +2249,9 @@ void EasilySwappableParametersCheck::check(
       const QualType CommonType = M.commonUnderlyingType();
       const std::string LTypeStr = LType.getAsString(PP);
       const std::string RTypeStr = RType.getAsString(PP);
-      const std::string CommonTypeStr = CommonType.getAsString(PP);
+      
 
-      if (hasFlag(M.flags(), MixFlags::TypeAlias) &&
+      if (const std::string CommonTypeStr = CommonType.getAsString(PP); hasFlag(M.flags(), MixFlags::TypeAlias) &&
           UniqueTypeAlias(LType, RType, CommonType)) {
         StringRef DiagText;
         bool ExplicitlyPrintCommonType = false;

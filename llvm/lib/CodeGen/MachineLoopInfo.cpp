@@ -174,8 +174,8 @@ MachineLoopInfo::findLoopPreheader(MachineLoop *L, bool SpeculativePreheader,
     for (MachineBasicBlock *S : Preheader->successors()) {
       if (S == HB)
         continue;
-      MachineLoop *T = getLoopFor(S);
-      if (T && T->getHeader() == S)
+      
+      if (MachineLoop *T = getLoopFor(S); T && T->getHeader() == S)
         return nullptr;
     }
   }

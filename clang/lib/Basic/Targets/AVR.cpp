@@ -482,9 +482,9 @@ void AVRTargetInfo::fillValidCPUList(SmallVectorImpl<StringRef> &Values) const {
 
 bool AVRTargetInfo::setCPU(const std::string &Name) {
   // Set the ABI field based on the device or family name.
-  auto It = llvm::find_if(
-      AVRMcus, [&](const MCUInfo &Info) { return Info.Name == Name; });
-  if (It != std::end(AVRMcus)) {
+  
+  if (auto It = llvm::find_if(
+      AVRMcus, [&](const MCUInfo &Info) { return Info.Name == Name; }); It != std::end(AVRMcus)) {
     CPU = Name;
     ABI = (It->Arch == "100") ? "avrtiny" : "avr";
     DefineName = It->DefineName;

@@ -54,8 +54,8 @@ llvm::Type *DirectXTargetCodeGenInfo::getHLSLType(
     return nullptr;
 
   llvm::LLVMContext &Ctx = CGM.getLLVMContext();
-  const HLSLAttributedResourceType::Attributes &ResAttrs = ResType->getAttrs();
-  switch (ResAttrs.ResourceClass) {
+  
+  switch (const HLSLAttributedResourceType::Attributes &ResAttrs = ResType->getAttrs(); ResAttrs.ResourceClass) {
   case llvm::dxil::ResourceClass::UAV:
   case llvm::dxil::ResourceClass::SRV: {
     // TypedBuffer and RawBuffer both need element type

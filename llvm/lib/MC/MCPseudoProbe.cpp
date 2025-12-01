@@ -76,8 +76,8 @@ void MCPseudoProbe::emit(MCObjectStreamer *MCOS,
     // Emit the delta between the address label and LastProbe.
     const MCExpr *AddrDelta =
         buildSymbolDiff(MCOS, Label, LastProbe->getLabel());
-    int64_t Delta;
-    if (AddrDelta->evaluateAsAbsolute(Delta, MCOS->getAssemblerPtr())) {
+    
+    if (int64_t Delta; AddrDelta->evaluateAsAbsolute(Delta, MCOS->getAssemblerPtr())) {
       MCOS->emitSLEB128IntValue(Delta);
     } else {
       auto *F = MCOS->getCurrentFragment();
@@ -220,8 +220,8 @@ void MCPseudoProbeSections::emit(MCObjectStreamer *MCOS) {
            B.first->getSection().getOrdinal();
   });
   for (auto [FuncSym, RootPtr] : Vec) {
-    const auto &Root = *RootPtr;
-    if (auto *S = Ctx.getObjectFileInfo()->getPseudoProbeSection(
+    
+    if (auto *const auto &Root = *RootPtr; S = Ctx.getObjectFileInfo()->getPseudoProbeSection(
             FuncSym->getSection())) {
       // Switch to the .pseudoprobe section or a comdat group.
       MCOS->switchSection(S);
@@ -327,8 +327,8 @@ void MCDecodedPseudoProbe::print(raw_ostream &OS,
   if (Discriminator)
     OS << "Discriminator: " << Discriminator << "  ";
   OS << "Type: " << PseudoProbeTypeStr[static_cast<uint8_t>(Type)] << "  ";
-  std::string InlineContextStr = getInlineContextStr(GUID2FuncMAP);
-  if (InlineContextStr.size()) {
+  
+  if (std::string InlineContextStr = getInlineContextStr(GUID2FuncMAP); InlineContextStr.size()) {
     OS << "Inlined: @ ";
     OS << InlineContextStr;
   }
@@ -677,8 +677,8 @@ void MCPseudoProbeDecoder::printProbeForAddress(raw_ostream &OS,
 void MCPseudoProbeDecoder::printProbesForAllAddresses(raw_ostream &OS) {
   uint64_t PrevAddress = INT64_MAX;
   for (MCDecodedPseudoProbe &Probe : Address2ProbesMap) {
-    uint64_t Address = Probe.getAddress();
-    if (Address != PrevAddress) {
+    
+    if (uint64_t Address = Probe.getAddress(); Address != PrevAddress) {
       PrevAddress = Address;
       OS << "Address:\t" << Address << '\n';
     }

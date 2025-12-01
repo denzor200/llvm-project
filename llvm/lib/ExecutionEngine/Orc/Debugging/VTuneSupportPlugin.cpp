@@ -28,8 +28,8 @@ static VTuneMethodBatch getMethodBatch(LinkGraph &G, bool EmitDebugInfo) {
   std::unique_ptr<DWARFContext> DC;
   StringMap<std::unique_ptr<MemoryBuffer>> DCBacking;
   if (EmitDebugInfo) {
-    auto EDC = createDWARFContext(G);
-    if (!EDC) {
+    
+    if (auto EDC = createDWARFContext(G); !EDC) {
       EmitDebugInfo = false;
     } else {
       DC = std::move(EDC->first);

@@ -280,10 +280,10 @@ static void ReExecIfNeeded(bool ignore_heap) {
     // this as a last resort (when the memory mapping is incompatible and TSan
     // would fail anyway).
     int old_personality = personality(0xffffffff);
-    bool aslr_on =
-        (old_personality != -1) && ((old_personality & ADDR_NO_RANDOMIZE) == 0);
+    
 
-    if (aslr_on) {
+    if (bool aslr_on =
+        (old_personality != -1) && ((old_personality & ADDR_NO_RANDOMIZE) == 0); aslr_on) {
       // Disable ASLR if the memory layout was incompatible.
       // Alternatively, we could just keep re-execing until we get lucky
       // with a compatible randomized layout, but the risk is that if it's

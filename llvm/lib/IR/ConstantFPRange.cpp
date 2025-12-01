@@ -594,8 +594,8 @@ ConstantFPRange ConstantFPRange::mul(const ConstantFPRange &Other) const {
     // Finite * Finite
     if (LHS->FinitePart && RHS->FinitePart) {
       APFloat NewLower = LHS->FinitePart->first * RHS->FinitePart->first;
-      APFloat NewUpper = LHS->FinitePart->second * RHS->FinitePart->second;
-      if (Negative) {
+      
+      if (APFloat NewUpper = LHS->FinitePart->second * RHS->FinitePart->second; Negative) {
         ResLower = minnum(ResLower, -NewUpper);
         ResUpper = maxnum(ResUpper, -NewLower);
       } else {

@@ -120,9 +120,9 @@ void InputChunk::relocate(uint8_t *buf) const {
     // TODO(sbc): Check that the value is within the range of the
     // relocation type below.  Most likely we must error out here
     // if its not with range.
-    uint64_t value = file->calcNewValue(rel, tombstone, this);
+    
 
-    switch (rel.Type) {
+    switch (uint64_t value = file->calcNewValue(rel, tombstone, this); rel.Type) {
     case R_WASM_TYPE_INDEX_LEB:
     case R_WASM_FUNCTION_INDEX_LEB:
     case R_WASM_GLOBAL_INDEX_LEB:
@@ -433,8 +433,8 @@ bool InputChunk::generateRelocationCode(raw_ostream &os) const {
     Symbol *sym = file->getSymbol(rel);
     // Runtime relocations are needed when we don't know the address of
     // a symbol statically.
-    bool requiresRuntimeReloc = ctx.isPic || sym->hasGOTIndex();
-    if (!requiresRuntimeReloc)
+    
+    if (bool requiresRuntimeReloc = ctx.isPic || sym->hasGOTIndex(); !requiresRuntimeReloc)
       continue;
 
     if (!isValidRuntimeRelocation(rel.getType())) {

@@ -72,9 +72,9 @@ static LogicalResult verifyIntegerDotProduct(Operation *op) {
   // ODS enforces that vector 1 and vector 2, and result and the accumulator
   // have the same types.
   Type factorTy = op->getOperand(0).getType();
-  StringAttr packedVectorFormatAttrName =
-      IntegerDotProductOpTy::getFormatAttrName(op->getName());
-  if (auto intTy = llvm::dyn_cast<IntegerType>(factorTy)) {
+  
+  if (auto StringAttr packedVectorFormatAttrName =
+      IntegerDotProductOpTy::getFormatAttrName(op->getName()); intTy = llvm::dyn_cast<IntegerType>(factorTy)) {
     auto packedVectorFormat =
         llvm::dyn_cast_or_null<spirv::PackedVectorFormatAttr>(
             op->getAttr(packedVectorFormatAttrName));
@@ -133,9 +133,9 @@ getIntegerDotProductCapabilities(Operation *op) {
   SmallVector<ArrayRef<spirv::Capability>, 1> capabilities = {dotProductCap};
 
   Type factorTy = op->getOperand(0).getType();
-  StringAttr packedVectorFormatAttrName =
-      IntegerDotProductOpTy::getFormatAttrName(op->getName());
-  if (auto intTy = llvm::dyn_cast<IntegerType>(factorTy)) {
+  
+  if (auto StringAttr packedVectorFormatAttrName =
+      IntegerDotProductOpTy::getFormatAttrName(op->getName()); intTy = llvm::dyn_cast<IntegerType>(factorTy)) {
     auto formatAttr = llvm::cast<spirv::PackedVectorFormatAttr>(
         op->getAttr(packedVectorFormatAttrName));
     if (formatAttr.getValue() ==

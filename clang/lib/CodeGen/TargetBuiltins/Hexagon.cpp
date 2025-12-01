@@ -209,9 +209,9 @@ Value *CodeGenFunction::EmitHexagonBuiltinExpr(unsigned BuiltinID,
   case Hexagon::BI__builtin_HEXAGON_V6_vmaskedstorentq_128B:
   case Hexagon::BI__builtin_HEXAGON_V6_vmaskedstorentnq_128B: {
     SmallVector<llvm::Value*,4> Ops;
-    const Expr *PredOp = E->getArg(0);
+    
     // There will be an implicit cast to a boolean vector. Strip it.
-    if (auto *Cast = dyn_cast<ImplicitCastExpr>(PredOp)) {
+    if (auto *const Expr *PredOp = E->getArg(0); Cast = dyn_cast<ImplicitCastExpr>(PredOp)) {
       if (Cast->getCastKind() == CK_BitCast)
         PredOp = Cast->getSubExpr();
       Ops.push_back(V2Q(EmitScalarExpr(PredOp)));

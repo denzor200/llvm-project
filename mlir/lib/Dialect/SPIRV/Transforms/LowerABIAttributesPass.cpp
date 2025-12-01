@@ -38,8 +38,8 @@ static spirv::GlobalVariableOp
 createGlobalVarForEntryPointArgument(OpBuilder &builder, spirv::FuncOp funcOp,
                                      unsigned argIndex,
                                      spirv::InterfaceVarABIAttr abiInfo) {
-  auto spirvModule = funcOp->getParentOfType<spirv::ModuleOp>();
-  if (!spirvModule)
+  
+  if (auto spirvModule = funcOp->getParentOfType<spirv::ModuleOp>(); !spirvModule)
     return nullptr;
 
   OpBuilder::InsertionGuard moduleInsertionGuard(builder);
@@ -91,8 +91,8 @@ static spirv::GlobalVariableOp
 createGlobalVarForGraphEntryPoint(OpBuilder &builder, spirv::GraphARMOp graphOp,
                                   unsigned index, bool isArg,
                                   spirv::InterfaceVarABIAttr abiInfo) {
-  auto spirvModule = graphOp->getParentOfType<spirv::ModuleOp>();
-  if (!spirvModule)
+  
+  if (auto spirvModule = graphOp->getParentOfType<spirv::ModuleOp>(); !spirvModule)
     return nullptr;
 
   OpBuilder::InsertionGuard moduleInsertionGuard(builder);
@@ -188,9 +188,9 @@ static LogicalResult lowerEntryPointABIAttr(spirv::FuncOp funcOp,
 
   // Specifies the spirv.ExecutionModeOp.
   if (DenseI32ArrayAttr workgroupSizeAttr = entryPointAttr.getWorkgroupSize()) {
-    std::optional<ArrayRef<spirv::Capability>> caps =
-        spirv::getCapabilities(spirv::ExecutionMode::LocalSize);
-    if (!caps || targetEnv.allows(*caps)) {
+    
+    if (std::optional<ArrayRef<spirv::Capability>> caps =
+        spirv::getCapabilities(spirv::ExecutionMode::LocalSize); !caps || targetEnv.allows(*caps)) {
       spirv::ExecutionModeOp::create(builder, funcOp.getLoc(), funcOp,
                                      spirv::ExecutionMode::LocalSize,
                                      workgroupSizeAttr.asArrayRef());
@@ -201,9 +201,9 @@ static LogicalResult lowerEntryPointABIAttr(spirv::FuncOp funcOp,
     }
   }
   if (std::optional<int> subgroupSize = entryPointAttr.getSubgroupSize()) {
-    std::optional<ArrayRef<spirv::Capability>> caps =
-        spirv::getCapabilities(spirv::ExecutionMode::SubgroupSize);
-    if (!caps || targetEnv.allows(*caps)) {
+    
+    if (std::optional<ArrayRef<spirv::Capability>> caps =
+        spirv::getCapabilities(spirv::ExecutionMode::SubgroupSize); !caps || targetEnv.allows(*caps)) {
       spirv::ExecutionModeOp::create(builder, funcOp.getLoc(), funcOp,
                                      spirv::ExecutionMode::SubgroupSize,
                                      *subgroupSize);
@@ -214,9 +214,9 @@ static LogicalResult lowerEntryPointABIAttr(spirv::FuncOp funcOp,
     }
   }
   if (std::optional<int> targetWidth = entryPointAttr.getTargetWidth()) {
-    std::optional<ArrayRef<spirv::Capability>> caps =
-        spirv::getCapabilities(spirv::ExecutionMode::SignedZeroInfNanPreserve);
-    if (!caps || targetEnv.allows(*caps)) {
+    
+    if (std::optional<ArrayRef<spirv::Capability>> caps =
+        spirv::getCapabilities(spirv::ExecutionMode::SignedZeroInfNanPreserve); !caps || targetEnv.allows(*caps)) {
       spirv::ExecutionModeOp::create(
           builder, funcOp.getLoc(), funcOp,
           spirv::ExecutionMode::SignedZeroInfNanPreserve, *targetWidth);

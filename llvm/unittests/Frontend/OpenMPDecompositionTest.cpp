@@ -246,8 +246,8 @@ struct StringifyClause {
   to_str(U &&Item) {
     // For a wrapper, stringify the wrappee, and only add parentheses if
     // there aren't any already.
-    std::string Str = to_str(Item.v);
-    if (!Str.empty()) {
+    
+    if (std::string Str = to_str(Item.v); !Str.empty()) {
       if (Str.front() == '(' && Str.back() == ')')
         return Str;
     }

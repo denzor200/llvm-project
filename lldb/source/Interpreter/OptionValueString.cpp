@@ -142,8 +142,8 @@ Status OptionValueString::AppendToCurrentValue(const char *value) {
     if (m_validator) {
       std::string new_value(m_current_value);
       new_value.append(value);
-      Status error(m_validator(value, m_validator_baton));
-      if (error.Fail())
+      
+      if (Status error(m_validator(value, m_validator_baton)); error.Fail())
         return error;
       m_current_value.assign(new_value);
     } else

@@ -141,8 +141,8 @@ void Driver::OptionData::AddInitialCommand(std::string command,
   }
 
   if (is_file) {
-    SBFileSpec file(command.c_str());
-    if (file.Exists())
+    
+    if (SBFileSpec file(command.c_str()); file.Exists())
       command_set->push_back(InitialCmdEntry(command, is_file));
     else if (file.ResolveExecutableLocation()) {
       char final_path[PATH_MAX];
@@ -172,8 +172,8 @@ void Driver::WriteCommandsForSourcing(CommandPlacement placement,
   }
 
   for (const auto &command_entry : *command_set) {
-    const char *command = command_entry.contents.c_str();
-    if (command_entry.is_file) {
+    
+    if (const char *command = command_entry.contents.c_str(); command_entry.is_file) {
       bool source_quietly =
           m_option_data.m_source_quietly || command_entry.source_quietly;
       strm.Printf("command source -s %i '%s'\n",
@@ -222,8 +222,8 @@ SBError Driver::ProcessArgs(const opt::InputArgList &args, bool &exiting) {
 
   if (auto *arg = args.getLastArg(OPT_core)) {
     auto *arg_value = arg->getValue();
-    SBFileSpec file(arg_value);
-    if (!file.Exists()) {
+    
+    if (SBFileSpec file(arg_value); !file.Exists()) {
       error.SetErrorStringWithFormat(
           "file specified in --core (-c) option doesn't exist: '%s'",
           arg_value);
@@ -248,8 +248,8 @@ SBError Driver::ProcessArgs(const opt::InputArgList &args, bool &exiting) {
 
   if (auto *arg = args.getLastArg(OPT_file)) {
     auto *arg_value = arg->getValue();
-    SBFileSpec file(arg_value);
-    if (file.Exists()) {
+    
+    if (SBFileSpec file(arg_value); file.Exists()) {
       m_option_data.m_args.emplace_back(arg_value);
     } else if (file.ResolveExecutableLocation()) {
       char path[PATH_MAX];
@@ -264,8 +264,8 @@ SBError Driver::ProcessArgs(const opt::InputArgList &args, bool &exiting) {
   }
 
   if (auto *arg = args.getLastArg(OPT_arch)) {
-    auto *arg_value = arg->getValue();
-    if (!lldb::SBDebugger::SetDefaultArchitecture(arg_value)) {
+    
+    if (auto *arg_value = arg->getValue(); !lldb::SBDebugger::SetDefaultArchitecture(arg_value)) {
       error.SetErrorStringWithFormat(
           "invalid architecture in the -a or --arch option: '%s'", arg_value);
       return error;
@@ -400,11 +400,11 @@ SBError Driver::ProcessArgs(const opt::InputArgList &args, bool &exiting) {
   }
 
   if (m_option_data.m_print_python_path) {
-    SBFileSpec python_file_spec = SBHostOS::GetLLDBPythonPath();
-    if (python_file_spec.IsValid()) {
+    
+    if (SBFileSpec python_file_spec = SBHostOS::GetLLDBPythonPath(); python_file_spec.IsValid()) {
       char python_path[PATH_MAX];
-      size_t num_chars = python_file_spec.GetPath(python_path, PATH_MAX);
-      if (num_chars < PATH_MAX) {
+      
+      if (size_t num_chars = python_file_spec.GetPath(python_path, PATH_MAX); num_chars < PATH_MAX) {
         llvm::outs() << python_path << '\n';
       } else
         llvm::outs() << "<PATH TOO LONG>\n";
@@ -415,9 +415,9 @@ SBError Driver::ProcessArgs(const opt::InputArgList &args, bool &exiting) {
   }
 
   if (m_option_data.m_print_script_interpreter_info) {
-    SBStructuredData info =
-        m_debugger.GetScriptInterpreterInfo(m_debugger.GetScriptLanguage());
-    if (!info) {
+    
+    if (SBStructuredData info =
+        m_debugger.GetScriptInterpreterInfo(m_debugger.GetScriptLanguage()); !info) {
       error.SetErrorString("no script interpreter.");
     } else {
       SBStream stream;
@@ -579,10 +579,10 @@ int Driver::MainLoop() {
   // If we're not in --repl mode, add the commands to process the file
   // arguments, and the commands specified to run afterwards.
   if (!m_option_data.m_repl) {
-    const size_t num_args = m_option_data.m_args.size();
-    if (num_args > 0) {
-      char arch_name[64];
-      if (lldb::SBDebugger::GetDefaultArchitecture(arch_name,
+    
+    if (const size_t num_args = m_option_data.m_args.size(); num_args > 0) {
+      
+      if (char arch_name[64]; lldb::SBDebugger::GetDefaultArchitecture(arch_name,
                                                    sizeof(arch_name)))
         commands_stream.Printf("target create --arch=%s %s", arch_name,
                                EscapeString(m_option_data.m_args[0]).c_str());
@@ -637,8 +637,8 @@ int Driver::MainLoop() {
   bool go_interactive = true;
   if ((commands_stream.GetData() != nullptr) &&
       (commands_stream.GetSize() != 0u)) {
-    SBError error = m_debugger.SetInputString(commands_stream.GetData());
-    if (error.Fail()) {
+    
+    if (SBError error = m_debugger.SetInputString(commands_stream.GetData()); error.Fail()) {
       WithColor::error() << error.GetCString() << '\n';
       return 1;
     }
@@ -675,9 +675,9 @@ int Driver::MainLoop() {
       SBStream crash_commands_stream;
       WriteCommandsForSourcing(eCommandPlacementAfterCrash,
                                crash_commands_stream);
-      SBError error =
-          m_debugger.SetInputString(crash_commands_stream.GetData());
-      if (error.Success()) {
+      
+      if (SBError error =
+          m_debugger.SetInputString(crash_commands_stream.GetData()); error.Success()) {
         SBCommandInterpreterRunResult local_results =
             m_debugger.RunCommandInterpreter(options);
         if (local_results.GetResult() ==
@@ -708,8 +708,8 @@ int Driver::MainLoop() {
       SBError error(
           m_debugger.RunREPL(m_option_data.m_repl_lang, repl_options));
       if (error.Fail()) {
-        const char *error_cstr = error.GetCString();
-        if ((error_cstr != nullptr) && (error_cstr[0] != 0))
+        
+        if (const char *error_cstr = error.GetCString(); (error_cstr != nullptr) && (error_cstr[0] != 0))
           WithColor::error() << error_cstr << '\n';
         else
           WithColor::error() << error.GetError() << '\n';
@@ -726,8 +726,8 @@ int Driver::MainLoop() {
 }
 
 void Driver::UpdateWindowSize() {
-  struct winsize window_size;
-  if ((isatty(STDIN_FILENO) != 0) &&
+  
+  if (struct winsize window_size; (isatty(STDIN_FILENO) != 0) &&
       ::ioctl(STDIN_FILENO, TIOCGWINSZ, &window_size) == 0) {
     if (window_size.ws_col > 0)
       m_debugger.SetTerminalWidth(window_size.ws_col);
@@ -921,8 +921,8 @@ int main(int argc, char const *argv[]) {
     Driver driver;
 
     bool exiting = false;
-    SBError error(driver.ProcessArgs(input_args, exiting));
-    if (error.Fail()) {
+    
+    if (SBError error(driver.ProcessArgs(input_args, exiting)); error.Fail()) {
       exit_code = 1;
       if (const char *error_cstr = error.GetCString())
         WithColor::error() << error_cstr << '\n';

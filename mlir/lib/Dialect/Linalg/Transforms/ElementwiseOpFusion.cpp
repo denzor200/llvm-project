@@ -193,8 +193,8 @@ bool mlir::linalg::areElementwiseOpsFusable(OpOperand *fusedOperand) {
 
     for (auto pair :
          llvm::zip(consumer->getOperands(), consumer.getIndexingMapsArray())) {
-      Value operand = std::get<0>(pair);
-      if (operand == fusedOperand->get())
+      
+      if (Value operand = std::get<0>(pair); operand == fusedOperand->get())
         continue;
       AffineMap operandMap = std::get<1>(pair);
       addToCoveredDims(operandMap);
@@ -978,8 +978,8 @@ fuseWithReshapeByExpansion(LinalgOp linalgOp, Operation *reshapeOp,
   // reshape folded into its consumer.
   SmallVector<Value> resultVals;
   for (OpResult opResult : linalgOp->getOpResults()) {
-    int64_t resultNumber = opResult.getResultNumber();
-    if (resultTypes[resultNumber] != opResult.getType()) {
+    
+    if (int64_t resultNumber = opResult.getResultNumber(); resultTypes[resultNumber] != opResult.getType()) {
       SmallVector<ReassociationIndices> reassociation =
           getReassociationForExpansion(
               linalgOp.getMatchingIndexingMap(
@@ -2060,8 +2060,8 @@ public:
       TypedAttr constantAttr;
       auto isScalarOrSplatConstantOp = [&constantAttr](Operation *def) -> bool {
         {
-          DenseElementsAttr splatAttr;
-          if (matchPattern(def, m_Constant<DenseElementsAttr>(&splatAttr)) &&
+          
+          if (DenseElementsAttr splatAttr; matchPattern(def, m_Constant<DenseElementsAttr>(&splatAttr)) &&
               splatAttr.isSplat() &&
               splatAttr.getType().getElementType().isIntOrFloat()) {
             constantAttr = splatAttr.getSplatValue<TypedAttr>();
@@ -2069,15 +2069,15 @@ public:
           }
         }
         {
-          IntegerAttr intAttr;
-          if (matchPattern(def, m_Constant<IntegerAttr>(&intAttr))) {
+          
+          if (IntegerAttr intAttr; matchPattern(def, m_Constant<IntegerAttr>(&intAttr))) {
             constantAttr = intAttr;
             return true;
           }
         }
         {
-          FloatAttr floatAttr;
-          if (matchPattern(def, m_Constant<FloatAttr>(&floatAttr))) {
+          
+          if (FloatAttr floatAttr; matchPattern(def, m_Constant<FloatAttr>(&floatAttr))) {
             constantAttr = floatAttr;
             return true;
           }

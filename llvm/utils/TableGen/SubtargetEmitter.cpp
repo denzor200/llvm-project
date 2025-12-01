@@ -647,8 +647,8 @@ void SubtargetEmitter::emitItineraries(
 void SubtargetEmitter::emitProcessorProp(raw_ostream &OS, const Record *R,
                                          StringRef Name, char Separator) {
   OS << "  ";
-  int V = R ? R->getValueAsInt(Name) : -1;
-  if (V >= 0)
+  
+  if (int V = R ? R->getValueAsInt(Name) : -1; V >= 0)
     OS << V << Separator << " // " << Name;
   else
     OS << "MCSchedModel::Default" << Name << Separator;
@@ -872,8 +872,8 @@ SubtargetEmitter::findWriteResources(const CodeGenSchedRW &SchedWrite,
     const CodeGenSchedRW &AliasRW =
         SchedModels.getSchedRW(A->getValueAsDef("AliasRW"));
     if (AliasRW.TheDef->getValueInit("SchedModel")->isComplete()) {
-      const Record *ModelDef = AliasRW.TheDef->getValueAsDef("SchedModel");
-      if (&SchedModels.getProcModel(ModelDef) != &ProcModel)
+      
+      if (const Record *ModelDef = AliasRW.TheDef->getValueAsDef("SchedModel"); &SchedModels.getProcModel(ModelDef) != &ProcModel)
         continue;
     }
     if (AliasDef)
@@ -931,8 +931,8 @@ SubtargetEmitter::findReadAdvance(const CodeGenSchedRW &SchedRead,
     const CodeGenSchedRW &AliasRW =
         SchedModels.getSchedRW(A->getValueAsDef("AliasRW"));
     if (AliasRW.TheDef->getValueInit("SchedModel")->isComplete()) {
-      const Record *ModelDef = AliasRW.TheDef->getValueAsDef("SchedModel");
-      if (&SchedModels.getProcModel(ModelDef) != &ProcModel)
+      
+      if (const Record *ModelDef = AliasRW.TheDef->getValueAsDef("SchedModel"); &SchedModels.getProcModel(ModelDef) != &ProcModel)
         continue;
     }
     if (AliasDef)
@@ -1009,11 +1009,11 @@ void SubtargetEmitter::expandProcResources(
       if (PR == PRDef || !PR->isSubClassOf("ProcResGroup"))
         continue;
       ConstRecVec SuperResources = PR->getValueAsListOfDefs("Resources");
-      bool AllContained =
+      
+      if (bool AllContained =
           all_of(SubResources, [SuperResources](const Record *SubResource) {
             return is_contained(SuperResources, SubResource);
-          });
-      if (AllContained) {
+          }); AllContained) {
         PRVec.push_back(PR);
         ReleaseAtCycles.push_back(ReleaseAtCycles[I]);
         AcquireAtCycles.push_back(AcquireAtCycles[I]);
@@ -1073,8 +1073,8 @@ void SubtargetEmitter::genSchedClassTables(const CodeGenProcModel &ProcModel,
       // InstRW definitions.
       const Record *RWDef = nullptr;
       for (const Record *RW : SC.InstRWs) {
-        const Record *RWModelDef = RW->getValueAsDef("SchedModel");
-        if (&ProcModel == &SchedModels.getProcModel(RWModelDef)) {
+        
+        if (const Record *RWModelDef = RW->getValueAsDef("SchedModel"); &ProcModel == &SchedModels.getProcModel(RWModelDef)) {
           RWDef = RW;
           break;
         }
@@ -1089,8 +1089,8 @@ void SubtargetEmitter::genSchedClassTables(const CodeGenProcModel &ProcModel,
     if (Writes.empty()) {
       // Check this processor's itinerary class resources.
       for (const Record *I : ProcModel.ItinRWDefs) {
-        ConstRecVec Matched = I->getValueAsListOfDefs("MatchedItinClasses");
-        if (is_contained(Matched, SC.ItinClassDef)) {
+        
+        if (ConstRecVec Matched = I->getValueAsListOfDefs("MatchedItinClasses"); is_contained(Matched, SC.ItinClassDef)) {
           SchedModels.findRWs(I->getValueAsListOfDefs("OperandReadWrites"),
                               Writes, Reads);
           break;
@@ -1927,9 +1927,9 @@ void SubtargetEmitter::parseFeaturesFunction(raw_ostream &OS) {
     // Next record
     StringRef Instance = R->getName();
     StringRef Value = R->getValueAsString("Value");
-    StringRef FieldName = R->getValueAsString("FieldName");
+    
 
-    if (Value == "true" || Value == "false")
+    if (StringRef FieldName = R->getValueAsString("FieldName"); Value == "true" || Value == "false")
       OS << "  if (Bits[" << Target << "::" << Instance << "]) " << FieldName
          << " = " << Value << ";\n";
     else
@@ -2100,8 +2100,8 @@ void SubtargetEmitter::emitHeader(raw_ostream &OS) {
      << "  DFAPacketizer *createDFAPacketizer(const InstrItineraryData *IID)"
      << " const;\n";
 
-  const CodeGenHwModes &CGH = TGT.getHwModes();
-  if (CGH.getNumModeIds() > 1) {
+  
+  if (const CodeGenHwModes &CGH = TGT.getHwModes(); CGH.getNumModeIds() > 1) {
     OS << "  enum class " << Target << "HwModeBits : unsigned {\n";
     for (unsigned M = 0, NumModes = CGH.getNumModeIds(); M != NumModes; ++M) {
       StringRef ModeName = CGH.getModeName(M, /*IncludeDefault=*/true);

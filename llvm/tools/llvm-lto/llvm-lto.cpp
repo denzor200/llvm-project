@@ -400,8 +400,8 @@ static void printIndexStats() {
 /// Print the lto symbol attributes.
 static void printLTOSymbolAttributes(lto_symbol_attributes Attrs) {
   outs() << "{ ";
-  unsigned Permission = Attrs & LTO_SYMBOL_PERMISSIONS_MASK;
-  switch (Permission) {
+  
+  switch (unsigned Permission = Attrs & LTO_SYMBOL_PERMISSIONS_MASK; Permission) {
   case LTO_SYMBOL_PERMISSIONS_CODE:
     outs() << "function ";
     break;
@@ -582,8 +582,8 @@ static std::string getThinLTOOutputFile(StringRef Path, StringRef OldPrefix,
     return std::string(Path);
   SmallString<128> NewPath(Path);
   llvm::sys::path::replace_path_prefix(NewPath, OldPrefix, NewPrefix);
-  StringRef ParentPath = llvm::sys::path::parent_path(NewPath.str());
-  if (!ParentPath.empty()) {
+  
+  if (StringRef ParentPath = llvm::sys::path::parent_path(NewPath.str()); !ParentPath.empty()) {
     // Make sure the new directory exists, creating it if necessary.
     if (std::error_code EC = llvm::sys::fs::create_directories(ParentPath))
       error(EC, "error creating the directory '" + ParentPath + "'");

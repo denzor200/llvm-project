@@ -465,8 +465,8 @@ lldb_private::formatters::LibCxxMapIteratorSyntheticFrontEnd::Update() {
   // previously __cc).
   key_value_sp = key_value_sp->Clone(ConstString("pair"));
   if (key_value_sp->GetNumChildrenIgnoringErrors() == 1) {
-    auto child0_sp = key_value_sp->GetChildAtIndex(0);
-    if (child0_sp &&
+    
+    if (auto child0_sp = key_value_sp->GetChildAtIndex(0); child0_sp &&
         (child0_sp->GetName() == "__cc_" || child0_sp->GetName() == "__cc"))
       key_value_sp = child0_sp->Clone(ConstString("pair"));
   }

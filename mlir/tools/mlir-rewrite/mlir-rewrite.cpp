@@ -109,8 +109,8 @@ public:
     llvm::line_iterator lineIterator(*curMB);
     SmallVector<SMRange> ret;
     for (; !lineIterator.is_at_end(); ++lineIterator) {
-      StringRef trimmed = lineIterator->ltrim();
-      if (trimmed.starts_with("//")) {
+      
+      if (StringRef trimmed = lineIterator->ltrim(); trimmed.starts_with("//")) {
         ret.emplace_back(
             SMLoc::getFromPointer(trimmed.data()),
             SMLoc::getFromPointer(trimmed.data() + trimmed.size()));
@@ -324,9 +324,9 @@ static LogicalResult markRanges(RewritePad &rewriteState, raw_ostream &os) {
     rewriteState.insertText(startOp, "<");
     rewriteState.insertText(endOp, ">");
 
-    auto nameRange = getOpNameRange(it);
+    
 
-    if (isGeneric(it)) {
+    if (auto nameRange = getOpNameRange(it); isGeneric(it)) {
       rewriteState.insertText(nameRange.Start, "[");
       rewriteState.insertText(nameRange.End, "]");
     } else {

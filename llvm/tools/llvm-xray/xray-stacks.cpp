@@ -360,8 +360,8 @@ public:
 
   AccountRecordStatus accountRecord(const XRayRecord &R,
                                     AccountRecordState *state) {
-    auto &TS = ThreadStackMap[R.TId];
-    switch (R.Type) {
+    
+    switch (auto &TS = ThreadStackMap[R.TId]; R.Type) {
     case RecordTypes::CUSTOM_EVENT:
     case RecordTypes::TYPED_EVENT:
       return AccountRecordStatus::OK;
@@ -380,9 +380,9 @@ public:
       }
 
       auto &Top = TS.back();
-      auto I = find_if(Top.first->Callees,
-                       [&](StackTrieNode *N) { return N->FuncId == R.FuncId; });
-      if (I == Top.first->Callees.end()) {
+      
+      if (auto I = find_if(Top.first->Callees,
+                       [&](StackTrieNode *N) { return N->FuncId == R.FuncId; }); I == Top.first->Callees.end()) {
         // We didn't find the callee in the stack trie, so we're going to
         // add to the stack then set up the pointers properly.
         auto N = createTrieNode(R.TId, R.FuncId, Top.first);
@@ -510,11 +510,11 @@ public:
     for (const auto &MapIter : Roots) {
       const auto &RootNodeVector = MapIter.second;
       for (auto *Node : RootNodeVector) {
-        auto MaybeFoundIter =
+        
+        if (auto MaybeFoundIter =
             find_if(MergedByThreadRoots, [Node](StackTrieNode *elem) {
               return Node->FuncId == elem->FuncId;
-            });
-        if (MaybeFoundIter == MergedByThreadRoots.end()) {
+            }); MaybeFoundIter == MergedByThreadRoots.end()) {
           MergedByThreadRoots.push_back(Node);
         } else {
           MergedByThreadRoots.push_back(mergeTrieNodes(
@@ -721,8 +721,8 @@ static CommandRegistration Unused(&Stack, []() -> Error {
     StackTrie::AccountRecordState AccountRecordState =
         StackTrie::AccountRecordState::CreateInitialState();
     for (const auto &Record : T) {
-      auto error = ST.accountRecord(Record, &AccountRecordState);
-      if (error != StackTrie::AccountRecordStatus::OK) {
+      
+      if (auto error = ST.accountRecord(Record, &AccountRecordState); error != StackTrie::AccountRecordStatus::OK) {
         if (!StackKeepGoing)
           return make_error<StringError>(
               CreateErrorMessage(error, Record, FuncIdHelper),

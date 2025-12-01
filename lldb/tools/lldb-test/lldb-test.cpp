@@ -349,10 +349,10 @@ static Error make_string_error(const char *Format, Args &&... args) {
 
 TargetSP opts::createTarget(Debugger &Dbg, const std::string &Filename) {
   TargetSP Target;
-  Status ST = Dbg.GetTargetList().CreateTarget(
+  
+  if (Status ST = Dbg.GetTargetList().CreateTarget(
       Dbg, Filename, /*triple*/ "", eLoadDependentsNo,
-      /*platform_options*/ nullptr, Target);
-  if (ST.Fail()) {
+      /*platform_options*/ nullptr, Target); ST.Fail()) {
     errs() << formatv("Failed to create target '{0}: {1}\n", Filename, ST);
     exit(1);
   }
@@ -442,8 +442,8 @@ int opts::breakpoint::evaluateBreakpoints(Debugger &Dbg) {
 
     std::string Command = substitute(Line);
     P.formatLine("Command: {0}", Command);
-    CommandReturnObject Result(/*colors*/ false);
-    if (!Dbg.GetCommandInterpreter().HandleCommand(
+    
+    if (CommandReturnObject Result(/*colors*/ false); !Dbg.GetCommandInterpreter().HandleCommand(
             Command.c_str(), /*add_to_history*/ eLazyBoolNo, Result)) {
       P.formatLine("Failed: {0}", Result.GetErrorString());
       HadErrors = 1;
@@ -952,8 +952,8 @@ int opts::symtab::handleSymtabCommand(Debugger &Dbg) {
         RegularExpression(FindSymbolsByRegex), lldb::eSymbolTypeAny,
         Symtab::eDebugAny, Symtab::eVisibilityAny, Indexes, NamePreference);
     for (auto i : Indexes) {
-      auto *symbol = Symtab->SymbolAtIndex(i);
-      if (symbol) {
+      
+      if (auto *symbol = Symtab->SymbolAtIndex(i); symbol) {
         StreamString stream;
         symbol->Dump(&stream, nullptr, i, NamePreference);
         outs() << stream.GetString();
@@ -1094,8 +1094,8 @@ bool opts::irmemorymap::evalMalloc(StringRef Line,
   Line = Line.trim();
   size_t Size;
   uint8_t Alignment;
-  int Matches = sscanf(Line.data(), "malloc %zu %hhu", &Size, &Alignment);
-  if (Matches != 2)
+  
+  if (int Matches = sscanf(Line.data(), "malloc %zu %hhu", &Size, &Alignment); Matches != 2)
     return false;
 
   outs() << formatv("Command: {0} = malloc(size={1}, alignment={2})\n", Label,

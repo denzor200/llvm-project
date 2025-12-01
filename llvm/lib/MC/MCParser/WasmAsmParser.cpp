@@ -245,12 +245,12 @@ public:
     if (!(isNext(AsmToken::Comma) && isNext(AsmToken::At) &&
           Lexer->is(AsmToken::Identifier)))
       return error("Expected label,@type declaration, got: ", Lexer->getTok());
-    auto TypeName = Lexer->getTok().getString();
-    if (TypeName == "function") {
+    
+    if (auto TypeName = Lexer->getTok().getString(); TypeName == "function") {
       WasmSym->setType(wasm::WASM_SYMBOL_TYPE_FUNCTION);
-      auto *Current =
-          static_cast<MCSectionWasm *>(getStreamer().getCurrentSectionOnly());
-      if (Current->getGroup())
+      
+      if (auto *Current =
+          static_cast<MCSectionWasm *>(getStreamer().getCurrentSectionOnly()); Current->getGroup())
         WasmSym->setComdat(true);
     } else if (TypeName == "global")
       WasmSym->setType(wasm::WASM_SYMBOL_TYPE_GLOBAL);

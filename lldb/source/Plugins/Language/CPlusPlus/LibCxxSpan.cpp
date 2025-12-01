@@ -146,8 +146,8 @@ LibcxxStdSpanSyntheticFrontEndCreator(CXXSyntheticChildren *,
                                       lldb::ValueObjectSP valobj_sp) {
   if (!valobj_sp)
     return nullptr;
-  CompilerType type = valobj_sp->GetCompilerType();
-  if (!type.IsValid() || type.GetNumTemplateArguments() != 2)
+  
+  if (CompilerType type = valobj_sp->GetCompilerType(); !type.IsValid() || type.GetNumTemplateArguments() != 2)
     return nullptr;
   return new LibcxxStdSpanSyntheticFrontEnd(valobj_sp);
 }

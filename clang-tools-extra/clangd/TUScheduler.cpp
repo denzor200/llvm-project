@@ -323,8 +323,8 @@ public:
   // will be eligible for association with other files that get update()d.
   void remove(PathRef MainFile) {
     std::lock_guard<std::mutex> Lock(Mu);
-    Association *&First = MainToFirst[MainFile];
-    if (First) {
+    
+    if (Association *&First = MainToFirst[MainFile]; First) {
       invalidate(First);
       First = nullptr;
     }
@@ -873,10 +873,10 @@ void ASTWorker::update(ParseInputs Inputs, WantDiagnostics WantDiags,
     // If we don't have a reliable command for this file, it may be a header.
     // Try to find a file that includes it, to borrow its command.
     if (!Cmd || !isReliable(*Cmd)) {
-      std::string ProxyFile = HeaderIncluders.get(FileName);
-      if (!ProxyFile.empty()) {
-        auto ProxyCmd = CDB.getCompileCommand(ProxyFile);
-        if (!ProxyCmd || !isReliable(*ProxyCmd)) {
+      
+      if (std::string ProxyFile = HeaderIncluders.get(FileName); !ProxyFile.empty()) {
+        
+        if (auto ProxyCmd = CDB.getCompileCommand(ProxyFile); !ProxyCmd || !isReliable(*ProxyCmd)) {
           // This command is supposed to be reliable! It's probably gone.
           HeaderIncluders.remove(ProxyFile);
         } else {
@@ -931,8 +931,8 @@ void ASTWorker::update(ParseInputs Inputs, WantDiagnostics WantDiags,
                               // Ensure we only publish results from the worker
                               // if the file was not removed, making sure there
                               // are not race conditions.
-                              std::lock_guard<std::mutex> Lock(PublishMu);
-                              if (CanPublishResults)
+                              
+                              if (std::lock_guard<std::mutex> Lock(PublishMu); CanPublishResults)
                                 Publish();
                             });
       // Note that this might throw away a stale preamble that might still be
@@ -1119,10 +1119,10 @@ void ASTWorker::updatePreamble(std::unique_ptr<CompilerInvocation> CI,
       // Cached AST is no longer valid.
       IdleASTs.take(this);
       RanASTCallback = false;
-      std::lock_guard<std::mutex> Lock(Mutex);
+      
       // LatestPreamble might be the last reference to old preamble, do not
       // trigger destructor while holding the lock.
-      if (LatestPreamble)
+      if (std::lock_guard<std::mutex> Lock(Mutex); LatestPreamble)
         std::swap(*LatestPreamble, Preamble);
       else
         LatestPreamble = std::move(Preamble);
@@ -1182,8 +1182,8 @@ void ASTWorker::generateDiagnostics(
   assert(LatestPreamble);
   // No need to rebuild the AST if we won't send the diagnostics.
   {
-    std::lock_guard<std::mutex> Lock(PublishMu);
-    if (!CanPublishResults)
+    
+    if (std::lock_guard<std::mutex> Lock(PublishMu); !CanPublishResults)
       return;
   }
   // Used to check whether we can update AST cache.
@@ -1243,8 +1243,8 @@ void ASTWorker::generateDiagnostics(
   auto RunPublish = [&](llvm::function_ref<void()> Publish) {
     // Ensure we only publish results from the worker if the file was not
     // removed, making sure there are not race conditions.
-    std::lock_guard<std::mutex> Lock(PublishMu);
-    if (CanPublishResults)
+    
+    if (std::lock_guard<std::mutex> Lock(PublishMu); CanPublishResults)
       Publish();
   };
   if (*AST) {
@@ -1697,8 +1697,8 @@ bool TUScheduler::update(PathRef File, ParseInputs Inputs,
 }
 
 void TUScheduler::remove(PathRef File) {
-  bool Removed = Files.erase(File);
-  if (!Removed)
+  
+  if (bool Removed = Files.erase(File); !Removed)
     elog("Trying to remove file from TUScheduler that is not tracked: {0}",
          File);
   // We don't call HeaderIncluders.remove(File) here.

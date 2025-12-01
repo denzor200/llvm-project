@@ -1003,12 +1003,12 @@ bool EmulateInstructionMIPS::SetInstruction(const Opcode &insn_opcode,
       uint64_t next_inst_addr = (m_addr & (~1ull)) + current_inst_size;
       Address next_addr(next_inst_addr);
 
-      const size_t bytes_read = target->ReadMemory(
+      
+
+      if (const size_t bytes_read = target->ReadMemory(
           next_addr,                           /* Address of next instruction */
           buf, sizeof(uint32_t), error, false, /* force_live_memory */
-          &load_addr);
-
-      if (bytes_read == 0)
+          &load_addr); bytes_read == 0)
         return true;
 
       DataExtractor data(buf, sizeof(uint32_t), GetByteOrder(),
@@ -1049,11 +1049,11 @@ bool EmulateInstructionMIPS::EvaluateInstruction(uint32_t evaluate_options) {
   bool success = false;
   llvm::MCInst mc_insn;
   uint64_t insn_size;
-  DataExtractor data;
+  
 
   /* Keep the complexity of the decode logic with the llvm::MCDisassembler
    * class. */
-  if (m_opcode.GetData(data)) {
+  if (DataExtractor data; m_opcode.GetData(data)) {
     llvm::MCDisassembler::DecodeStatus decode_status;
     llvm::ArrayRef<uint8_t> raw_insn(data.GetDataStart(), data.GetByteSize());
     if (m_use_alt_disaasm)
@@ -1110,8 +1110,8 @@ bool EmulateInstructionMIPS::EvaluateInstruction(uint32_t evaluate_options) {
     /* If we haven't changed the PC, change it here */
     if (old_pc == new_pc) {
       new_pc += 4;
-      Context context;
-      if (!WriteRegisterUnsigned(context, eRegisterKindDWARF, dwarf_pc_mips,
+      
+      if (Context context; !WriteRegisterUnsigned(context, eRegisterKindDWARF, dwarf_pc_mips,
                                  new_pc))
         return false;
     }

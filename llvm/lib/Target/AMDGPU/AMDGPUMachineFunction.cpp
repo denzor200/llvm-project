@@ -30,8 +30,8 @@ getKernelDynLDSGlobalFromFunction(const Function &F) {
 
 static bool hasLDSKernelArgument(const Function &F) {
   for (const Argument &Arg : F.args()) {
-    Type *ArgTy = Arg.getType();
-    if (auto *PtrTy = dyn_cast<PointerType>(ArgTy)) {
+    
+    if (auto *Type *ArgTy = Arg.getType(); PtrTy = dyn_cast<PointerType>(ArgTy)) {
       if (PtrTy->getAddressSpace() == AMDGPUAS::LOCAL_ADDRESS)
         return true;
     }
@@ -174,12 +174,12 @@ unsigned AMDGPUMachineFunction::allocateLDSGlobal(const DataLayout &DL,
 std::optional<uint32_t>
 AMDGPUMachineFunction::getLDSKernelIdMetadata(const Function &F) {
   // TODO: Would be more consistent with the abs symbols to use a range
-  MDNode *MD = F.getMetadata("llvm.amdgcn.lds.kernel.id");
-  if (MD && MD->getNumOperands() == 1) {
+  
+  if (MDNode *MD = F.getMetadata("llvm.amdgcn.lds.kernel.id"); MD && MD->getNumOperands() == 1) {
     if (ConstantInt *KnownSize =
             mdconst::extract<ConstantInt>(MD->getOperand(0))) {
-      uint64_t ZExt = KnownSize->getZExtValue();
-      if (ZExt <= UINT32_MAX) {
+      
+      if (uint64_t ZExt = KnownSize->getZExtValue(); ZExt <= UINT32_MAX) {
         return ZExt;
       }
     }
@@ -197,8 +197,8 @@ AMDGPUMachineFunction::getLDSAbsoluteAddress(const GlobalValue &GV) {
     return {};
 
   if (const APInt *V = AbsSymRange->getSingleElement()) {
-    std::optional<uint64_t> ZExt = V->tryZExtValue();
-    if (ZExt && (*ZExt <= UINT32_MAX)) {
+    
+    if (std::optional<uint64_t> ZExt = V->tryZExtValue(); ZExt && (*ZExt <= UINT32_MAX)) {
       return *ZExt;
     }
   }
@@ -227,8 +227,8 @@ void AMDGPUMachineFunction::setDynLDSAlign(const Function &F,
   const GlobalVariable *Dyn = getKernelDynLDSGlobalFromFunction(F);
   if (Dyn) {
     unsigned Offset = LDSSize; // return this?
-    std::optional<uint32_t> Expect = getLDSAbsoluteAddress(*Dyn);
-    if (!Expect || (Offset != *Expect)) {
+    
+    if (std::optional<uint32_t> Expect = getLDSAbsoluteAddress(*Dyn); !Expect || (Offset != *Expect)) {
       report_fatal_error("Inconsistent metadata on dynamic LDS variable");
     }
   }

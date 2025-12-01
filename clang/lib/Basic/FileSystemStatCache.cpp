@@ -68,8 +68,8 @@ std::error_code FileSystemStatCache::get(StringRef Path,
       // Otherwise, the open succeeded.  Do an fstat to get the information
       // about the file.  We'll end up returning the open file descriptor to the
       // client to do what they please with it.
-      llvm::ErrorOr<llvm::vfs::Status> StatusOrErr = (*OwnedFile)->status();
-      if (StatusOrErr) {
+      
+      if (llvm::ErrorOr<llvm::vfs::Status> StatusOrErr = (*OwnedFile)->status(); StatusOrErr) {
         Status = *StatusOrErr;
         *F = std::move(*OwnedFile);
       } else {
@@ -104,8 +104,8 @@ MemorizeStatCalls::getStat(StringRef Path, llvm::vfs::Status &Status,
                            bool isFile,
                            std::unique_ptr<llvm::vfs::File> *F,
                            llvm::vfs::FileSystem &FS) {
-  auto err = get(Path, Status, isFile, F, nullptr, FS);
-  if (err) {
+  
+  if (auto err = get(Path, Status, isFile, F, nullptr, FS); err) {
     // Do not cache failed stats, it is easy to construct common inconsistent
     // situations if we do, and they are not important for PCH performance
     // (which currently only needs the stats to construct the initial

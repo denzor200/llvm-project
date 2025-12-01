@@ -145,8 +145,8 @@ void LanaiInstPrinter::printInst(const MCInst *MI, uint64_t Address,
 
 void LanaiInstPrinter::printOperand(const MCInst *MI, unsigned OpNo,
                                     raw_ostream &OS) {
-  const MCOperand &Op = MI->getOperand(OpNo);
-  if (Op.isReg())
+  
+  if (const MCOperand &Op = MI->getOperand(OpNo); Op.isReg())
     OS << "%" << getRegisterName(Op.getReg());
   else if (Op.isImm())
     OS << formatHex(Op.getImm());
@@ -158,8 +158,8 @@ void LanaiInstPrinter::printOperand(const MCInst *MI, unsigned OpNo,
 
 void LanaiInstPrinter::printMemImmOperand(const MCInst *MI, unsigned OpNo,
                                           raw_ostream &OS) {
-  const MCOperand &Op = MI->getOperand(OpNo);
-  if (Op.isImm()) {
+  
+  if (const MCOperand &Op = MI->getOperand(OpNo); Op.isImm()) {
     OS << '[' << formatHex(Op.getImm()) << ']';
   } else {
     // Symbolic operand will be lowered to immediate value by linker
@@ -172,8 +172,8 @@ void LanaiInstPrinter::printMemImmOperand(const MCInst *MI, unsigned OpNo,
 
 void LanaiInstPrinter::printHi16ImmOperand(const MCInst *MI, unsigned OpNo,
                                            raw_ostream &OS) {
-  const MCOperand &Op = MI->getOperand(OpNo);
-  if (Op.isImm()) {
+  
+  if (const MCOperand &Op = MI->getOperand(OpNo); Op.isImm()) {
     OS << formatHex(Op.getImm() << 16);
   } else {
     // Symbolic operand will be lowered to immediate value by linker
@@ -184,8 +184,8 @@ void LanaiInstPrinter::printHi16ImmOperand(const MCInst *MI, unsigned OpNo,
 
 void LanaiInstPrinter::printHi16AndImmOperand(const MCInst *MI, unsigned OpNo,
                                               raw_ostream &OS) {
-  const MCOperand &Op = MI->getOperand(OpNo);
-  if (Op.isImm()) {
+  
+  if (const MCOperand &Op = MI->getOperand(OpNo); Op.isImm()) {
     OS << formatHex((Op.getImm() << 16) | 0xffff);
   } else {
     // Symbolic operand will be lowered to immediate value by linker
@@ -196,8 +196,8 @@ void LanaiInstPrinter::printHi16AndImmOperand(const MCInst *MI, unsigned OpNo,
 
 void LanaiInstPrinter::printLo16AndImmOperand(const MCInst *MI, unsigned OpNo,
                                               raw_ostream &OS) {
-  const MCOperand &Op = MI->getOperand(OpNo);
-  if (Op.isImm()) {
+  
+  if (const MCOperand &Op = MI->getOperand(OpNo); Op.isImm()) {
     OS << formatHex(0xffff0000 | Op.getImm());
   } else {
     // Symbolic operand will be lowered to immediate value by linker
@@ -280,10 +280,10 @@ void LanaiInstPrinter::printMemSplsOperand(const MCInst *MI, int OpNo,
 
 void LanaiInstPrinter::printCCOperand(const MCInst *MI, int OpNo,
                                       raw_ostream &OS) {
-  LPCC::CondCode CC =
-      static_cast<LPCC::CondCode>(MI->getOperand(OpNo).getImm());
+  
   // Handle the undefined value here for printing so we don't abort().
-  if (CC >= LPCC::UNKNOWN)
+  if (LPCC::CondCode CC =
+      static_cast<LPCC::CondCode>(MI->getOperand(OpNo).getImm()); CC >= LPCC::UNKNOWN)
     OS << "<und>";
   else
     OS << lanaiCondCodeToString(CC);
@@ -291,10 +291,10 @@ void LanaiInstPrinter::printCCOperand(const MCInst *MI, int OpNo,
 
 void LanaiInstPrinter::printPredicateOperand(const MCInst *MI, unsigned OpNo,
                                              raw_ostream &OS) {
-  LPCC::CondCode CC =
-      static_cast<LPCC::CondCode>(MI->getOperand(OpNo).getImm());
+  
   // Handle the undefined value here for printing so we don't abort().
-  if (CC >= LPCC::UNKNOWN)
+  if (LPCC::CondCode CC =
+      static_cast<LPCC::CondCode>(MI->getOperand(OpNo).getImm()); CC >= LPCC::UNKNOWN)
     OS << "<und>";
   else if (CC != LPCC::ICC_T)
     OS << "." << lanaiCondCodeToString(CC);

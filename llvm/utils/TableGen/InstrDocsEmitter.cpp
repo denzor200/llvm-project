@@ -159,9 +159,9 @@ static void EmitInstrDocs(const RecordKeeper &RK, raw_ostream &OS) {
     // Operands.
     for (unsigned i = 0; i < II->Operands.size(); ++i) {
       bool IsDef = i < II->Operands.NumDefs;
-      const auto &Op = II->Operands[i];
+      
 
-      if (Op.MINumOperands > 1) {
+      if (const auto &Op = II->Operands[i]; Op.MINumOperands > 1) {
         // This operand corresponds to multiple operands on the
         // MachineInstruction, so print all of them, showing the types and
         // names of both the compound operand and the basic operands it

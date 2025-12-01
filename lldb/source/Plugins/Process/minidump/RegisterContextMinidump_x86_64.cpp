@@ -18,9 +18,9 @@ using namespace minidump;
 
 static llvm::MutableArrayRef<uint8_t> getDestRegister(uint8_t *context,
                                                       const RegisterInfo &reg) {
-  auto bytes = reg.mutable_data(context);
+  
 
-  switch (reg.kinds[lldb::eRegisterKindLLDB]) {
+  switch (auto bytes = reg.mutable_data(context); reg.kinds[lldb::eRegisterKindLLDB]) {
   case lldb_cs_x86_64:
   case lldb_ds_x86_64:
   case lldb_es_x86_64:

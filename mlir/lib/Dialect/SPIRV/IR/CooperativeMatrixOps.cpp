@@ -25,8 +25,8 @@ verifyCoopMatrixAccess(Operation *op, Type pointer, Type coopMatrix,
                        spirv::MemoryAccessAttr memoryOperand,
                        IntegerAttr alignment) {
   auto pointerType = cast<PointerType>(pointer);
-  Type pointeeType = pointerType.getPointeeType();
-  if (!isa<ScalarType, VectorType>(pointeeType)) {
+  
+  if (Type pointeeType = pointerType.getPointeeType(); !isa<ScalarType, VectorType>(pointeeType)) {
     return op->emitOpError(
                "Pointer must point to a scalar or vector type but provided ")
            << pointeeType;
@@ -130,9 +130,9 @@ LogicalResult KHRCooperativeMatrixMulAddOp::verify() {
   // Check that if Cooperative Matrix Operands are provided, the element type
   // is integer.
   if (getMatrixOperands()) {
-    Type elementTypes[] = {typeA.getElementType(), typeB.getElementType(),
-                           typeC.getElementType()};
-    if (!llvm::all_of(elementTypes, llvm::IsaPred<IntegerType>)) {
+    
+    if (Type elementTypes[] = {typeA.getElementType(), typeB.getElementType(),
+                           typeC.getElementType()}; !llvm::all_of(elementTypes, llvm::IsaPred<IntegerType>)) {
       return emitOpError("Matrix Operands require all matrix element types to "
                          "be Integer Types");
     }

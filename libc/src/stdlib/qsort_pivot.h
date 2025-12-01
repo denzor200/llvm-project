@@ -69,8 +69,8 @@ LIBC_INLINE size_t median3(const A &array, size_t a, size_t b, size_t c,
   const void *c_ptr = array.get(c);
 
   const bool x = is_less(a_ptr, b_ptr);
-  const bool y = is_less(a_ptr, c_ptr);
-  if (x == y) {
+  
+  if (const bool y = is_less(a_ptr, c_ptr); x == y) {
     // If x=y=0 then b, c <= a. In this case we want to return max(b, c).
     // If x=y=1 then a < b, c. In this case we want to return min(b, c).
     // By toggling the outcome of b < c using XOR x we get this behavior.

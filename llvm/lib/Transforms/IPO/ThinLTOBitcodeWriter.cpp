@@ -93,8 +93,8 @@ void promoteInternals(Module &ExportM, Module &ImportM, StringRef ModuleId,
   if (!RenamedComdats.empty())
     for (auto &GO : ExportM.global_objects())
       if (auto *C = GO.getComdat()) {
-        auto Replacement = RenamedComdats.find(C);
-        if (Replacement != RenamedComdats.end())
+        
+        if (auto Replacement = RenamedComdats.find(C); Replacement != RenamedComdats.end())
           GO.setComdat(Replacement->second);
       }
 }
@@ -107,10 +107,10 @@ void promoteInternals(Module &ExportM, Module &ImportM, StringRef ModuleId,
 void promoteTypeIds(Module &M, StringRef ModuleId) {
   DenseMap<Metadata *, Metadata *> LocalToGlobal;
   auto ExternalizeTypeId = [&](CallInst *CI, unsigned ArgNo) {
-    Metadata *MD =
-        cast<MetadataAsValue>(CI->getArgOperand(ArgNo))->getMetadata();
+    
 
-    if (isa<MDNode>(MD) && cast<MDNode>(MD)->isDistinct()) {
+    if (Metadata *MD =
+        cast<MetadataAsValue>(CI->getArgOperand(ArgNo))->getMetadata(); isa<MDNode>(MD) && cast<MDNode>(MD)->isDistinct()) {
       Metadata *&GlobalMD = LocalToGlobal[MD];
       if (!GlobalMD) {
         std::string NewName = (Twine(LocalToGlobal.size()) + ModuleId).str();
@@ -248,8 +248,8 @@ static void cloneUsedGlobalVariables(const Module &SrcM, Module &DestM,
   collectUsedGlobalVariables(SrcM, Used, CompilerUsed);
   // Next build a set of the equivalent values defined in DestM.
   for (auto *V : Used) {
-    auto *GV = DestM.getNamedValue(V->getName());
-    if (GV && !GV->isDeclaration())
+    
+    if (auto *GV = DestM.getNamedValue(V->getName()); GV && !GV->isDeclaration())
       NewUsed.push_back(GV);
   }
   // Finally, add them to a llvm[.compiler].used variable in DestM.
@@ -340,13 +340,13 @@ void splitAndWriteThinLTOBitcode(
       if (const auto *C = GV.getComdat())
         MergedMComdats.insert(C);
       forEachVirtualFunction(GV.getInitializer(), [&](Function *F) {
-        auto *RT = dyn_cast<IntegerType>(F->getReturnType());
-        if (!RT || RT->getBitWidth() > 64 || F->arg_empty() ||
+        
+        if (auto *RT = dyn_cast<IntegerType>(F->getReturnType()); !RT || RT->getBitWidth() > 64 || F->arg_empty() ||
             !F->arg_begin()->use_empty())
           return;
         for (auto &Arg : drop_begin(F->args())) {
-          auto *ArgT = dyn_cast<IntegerType>(Arg.getType());
-          if (!ArgT || ArgT->getBitWidth() > 64)
+          
+          if (auto *ArgT = dyn_cast<IntegerType>(Arg.getType()); !ArgT || ArgT->getBitWidth() > 64)
             return;
         }
         if (!F->isDeclaration() &&
@@ -464,8 +464,8 @@ void splitAndWriteThinLTOBitcode(
 
   SmallVector<MDNode *, 8> Symvers;
   ModuleSymbolTable::CollectAsmSymvers(M, [&](StringRef Name, StringRef Alias) {
-    Function *F = M.getFunction(Name);
-    if (!F || F->use_empty())
+    
+    if (Function *F = M.getFunction(Name); !F || F->use_empty())
       return;
 
     Symvers.push_back(MDTuple::get(
@@ -554,8 +554,8 @@ bool writeThinLTOBitcode(raw_ostream &OS, raw_ostream *ThinLinkOS,
       return true;
     }
     // Promote type ids as needed for index-based WPD.
-    std::string ModuleId = getUniqueModuleId(&M);
-    if (!ModuleId.empty()) {
+    
+    if (std::string ModuleId = getUniqueModuleId(&M); !ModuleId.empty()) {
       promoteTypeIds(M, ModuleId);
       // Need to rebuild the index so that it contains type metadata
       // for the newly promoted type ids.

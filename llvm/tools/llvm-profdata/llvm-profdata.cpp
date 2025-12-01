@@ -849,8 +849,8 @@ loadInput(const WeightedFile &Input, SymbolRemapper *Remapper,
   }
 
   if (Reader->hasTemporalProfile()) {
-    auto &Traces = Reader->getTemporalProfTraces(Input.Weight);
-    if (!Traces.empty())
+    
+    if (auto &Traces = Reader->getTemporalProfTraces(Input.Weight); !Traces.empty())
       WC->Writer.addTemporalProfileTraces(
           Traces, Reader->getTemporalProfTraceStreamSize());
   }
@@ -934,9 +934,9 @@ static void filterFunctions(T &ProfileMap) {
 
   for (auto I = ProfileMap.begin(); I != ProfileMap.end();) {
     auto Tmp = I++;
-    const auto &FuncName = getFuncName(*Tmp);
+    
     // Negative filter has higher precedence than positive filter.
-    if ((hasNegativeFilter &&
+    if (const auto &FuncName = getFuncName(*Tmp); (hasNegativeFilter &&
          (NegativePattern.match(FuncName) ||
           (FunctionSamples::UseMD5 && NegativeMD5Name == FuncName))) ||
         (hasFilter && !(Pattern.match(FuncName) ||
@@ -1202,8 +1202,8 @@ adjustInstrProfile(std::unique_ptr<WriterContext> &WC,
 
   auto checkSampleProfileHasFUnique = [&Reader]() {
     for (const auto &PD : Reader->getProfiles()) {
-      auto &FContext = PD.second.getContext();
-      if (FContext.toString().find(FunctionSamples::UniqSuffix) !=
+      
+      if (auto &FContext = PD.second.getContext(); FContext.toString().find(FunctionSamples::UniqSuffix) !=
           std::string::npos) {
         return true;
       }
@@ -1258,8 +1258,8 @@ adjustInstrProfile(std::unique_ptr<WriterContext> &WC,
       }
     }
 
-    auto [It, Inserted] = StaticFuncMap.try_emplace(NewName, Name);
-    if (!Inserted)
+    
+    if (auto [It, Inserted] = StaticFuncMap.try_emplace(NewName, Name); !Inserted)
       It->second = DuplicateNameStr;
   };
 
@@ -1333,8 +1333,8 @@ adjustInstrProfile(std::unique_ptr<WriterContext> &WC,
       if (It != InstrProfileMap.end()) {
         NewRootName = &Name;
       } else {
-        auto NewName = StaticFuncMap.find(Name);
-        if (NewName != StaticFuncMap.end()) {
+        
+        if (auto NewName = StaticFuncMap.find(Name); NewName != StaticFuncMap.end()) {
           It = InstrProfileMap.find(NewName->second);
           if (NewName->second != DuplicateNameStr) {
             NewRootName = &NewName->second;
@@ -1418,8 +1418,8 @@ adjustInstrProfile(std::unique_ptr<WriterContext> &WC,
     StringRef Name = E.first();
     auto It = InstrProfileMap.find(Name);
     if (It == InstrProfileMap.end()) {
-      auto NewName = StaticFuncMap.find(Name);
-      if (NewName != StaticFuncMap.end()) {
+      
+      if (auto NewName = StaticFuncMap.find(Name); NewName != StaticFuncMap.end()) {
         It = InstrProfileMap.find(NewName->second);
         if (NewName->second == DuplicateNameStr) {
           WithColor::warning()
@@ -1653,9 +1653,9 @@ static void mergeSampleProfile(const WeightedFileVector &Inputs,
     }
 
     if (!DropProfileSymbolList) {
-      std::unique_ptr<sampleprof::ProfileSymbolList> ReaderList =
-          Reader->getProfileSymbolList();
-      if (ReaderList)
+      
+      if (std::unique_ptr<sampleprof::ProfileSymbolList> ReaderList =
+          Reader->getProfileSymbolList(); ReaderList)
         WriterList.merge(*ReaderList);
     }
   }
@@ -1761,9 +1761,9 @@ static void parseInputFilenamesFile(MemoryBuffer *Buffer,
   StringRef Data = Buffer->getBuffer();
   Data.split(Entries, '\n', /*MaxSplit=*/-1, /*KeepEmpty=*/false);
   for (const StringRef &FileWeightEntry : Entries) {
-    StringRef SanitizedEntry = FileWeightEntry.trim(" \t\v\f\r");
+    
     // Skip comments.
-    if (SanitizedEntry.starts_with("#"))
+    if (StringRef SanitizedEntry = FileWeightEntry.trim(" \t\v\f\r"); SanitizedEntry.starts_with("#"))
       continue;
     // If there's no comma, it's an unweighted profile.
     else if (!SanitizedEntry.contains(','))
@@ -1828,8 +1828,8 @@ static void overlapInstrProfile(const std::string &BaseFilename,
   WriterContext Context(false, ErrorLock, WriterErrorCodes);
   WeightedFile WeightedInput{BaseFilename, 1};
   OverlapStats Overlap;
-  Error E = Overlap.accumulateCounts(BaseFilename, TestFilename, IsCS);
-  if (E)
+  
+  if (Error E = Overlap.accumulateCounts(BaseFilename, TestFilename, IsCS); E)
     exitWithError(std::move(E), "error in getting profile count sums");
   if (Overlap.Base.CountSum < 1.0f) {
     OS << "Sum of edge counts for profile " << BaseFilename << " is 0.\n";
@@ -2258,8 +2258,8 @@ void SampleOverlapAggregator::updateForUnmatchedCallee(
     double &Difference, MatchStatus Status) {
   assert((Status == MS_FirstUnique || Status == MS_SecondUnique) &&
          "Status must be either of the two unmatched cases");
-  FuncSampleStats FuncStats;
-  if (Status == MS_FirstUnique) {
+  
+  if (FuncSampleStats FuncStats; Status == MS_FirstUnique) {
     getFuncSampleStats(Func, FuncStats, BaseHotThreshold);
     updateOverlapStatsForFunction(FuncStats.SampleSum, 0,
                                   FuncStats.HotBlockCount, FuncOverlap,
@@ -2338,8 +2338,8 @@ double SampleOverlapAggregator::computeSampleFunctionInternalOverlap(
           CallsiteIterStep.getSecondIter()->second.cend());
       CalleeIterStep.updateOneStep();
       while (!CalleeIterStep.areBothFinished()) {
-        MatchStatus CalleeStepStatus = CalleeIterStep.getMatchStatus();
-        if (CalleeStepStatus != MS_Match) {
+        
+        if (MatchStatus CalleeStepStatus = CalleeIterStep.getMatchStatus(); CalleeStepStatus != MS_Match) {
           auto Callee = (CalleeStepStatus == MS_FirstUnique)
                             ? CalleeIterStep.getFirstIter()
                             : CalleeIterStep.getSecondIter();
@@ -2882,16 +2882,16 @@ static int showInstrProfile(ShowFormat SFormat, raw_fd_ostream &OS) {
 
   for (const auto &Func : *Reader) {
     if (Reader->isIRLevelProfile()) {
-      bool FuncIsCS = NamedInstrProfRecord::hasCSFlagInHash(Func.Hash);
-      if (FuncIsCS != ShowCS)
+      
+      if (bool FuncIsCS = NamedInstrProfRecord::hasCSFlagInHash(Func.Hash); FuncIsCS != ShowCS)
         continue;
     }
     bool Show = ShowAllFunctions ||
                 (!FuncNameFilter.empty() && Func.Name.contains(FuncNameFilter));
 
-    bool doTextFormatDump = (Show && TextFormat);
+    
 
-    if (doTextFormatDump) {
+    if (bool doTextFormatDump = (Show && TextFormat); doTextFormatDump) {
       InstrProfSymtab &Symtab = Reader->getSymtab();
       InstrProfWriter::writeRecordInText(Func.Name, Func.Hash, Func, Symtab,
                                          OS);

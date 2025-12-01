@@ -158,8 +158,8 @@ int main(int Argc, const char **Argv) {
 
   uint32_t DateTimeStamp;
   if (llvm::opt::Arg *Arg = InputArgs.getLastArg(OPT_TIMESTAMP)) {
-    StringRef Value(Arg->getValue());
-    if (Value.getAsInteger(0, DateTimeStamp))
+    
+    if (StringRef Value(Arg->getValue()); Value.getAsInteger(0, DateTimeStamp))
       reportError(Twine("invalid timestamp: ") + Value +
             ".  Expected 32-bit integer\n");
   } else {

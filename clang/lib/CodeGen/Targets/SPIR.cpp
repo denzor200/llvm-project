@@ -160,8 +160,8 @@ ABIArgInfo SPIRVABIInfo::classifyKernelArgumentType(QualType Ty) const {
     llvm::Type *LTy = CGT.ConvertType(Ty);
     auto DefaultAS = getContext().getTargetAddressSpace(LangAS::Default);
     auto GlobalAS = getContext().getTargetAddressSpace(LangAS::opencl_global);
-    auto *PtrTy = llvm::dyn_cast<llvm::PointerType>(LTy);
-    if (PtrTy && PtrTy->getAddressSpace() == DefaultAS) {
+    
+    if (auto *PtrTy = llvm::dyn_cast<llvm::PointerType>(LTy); PtrTy && PtrTy->getAddressSpace() == DefaultAS) {
       LTy = llvm::PointerType::get(PtrTy->getContext(), GlobalAS);
       return ABIArgInfo::getDirect(LTy, 0, nullptr, false);
     }
@@ -279,9 +279,9 @@ CommonSPIRTargetCodeGenInfo::getNullPointer(const CodeGen::CodeGenModule &CGM,
   unsigned CodeSectionINTELAS = FirstTargetASAsInt + 9;
   // As per SPV_INTEL_function_pointers, it is illegal to addrspacecast
   // function pointers to/from the generic AS.
-  bool IsFunctionPtrAS =
-      CGM.getTriple().isSPIRV() && ASAsInt == CodeSectionINTELAS;
-  if (AS == LangAS::Default || AS == LangAS::opencl_generic ||
+  
+  if (bool IsFunctionPtrAS =
+      CGM.getTriple().isSPIRV() && ASAsInt == CodeSectionINTELAS; AS == LangAS::Default || AS == LangAS::opencl_generic ||
       AS == LangAS::opencl_constant || IsFunctionPtrAS)
     return llvm::ConstantPointerNull::get(PT);
 
@@ -504,10 +504,10 @@ static llvm::Type *getInlineSpirvType(CodeGenModule &CGM,
         assert(RD->isCompleteDefinition() &&
                "Type completion should have been required in Sema");
 
-        const FieldDecl *HandleField = RD->findFirstNamedDataMember();
-        if (HandleField) {
-          QualType ResourceType = HandleField->getType();
-          if (ResourceType->getAs<HLSLAttributedResourceType>()) {
+        
+        if (const FieldDecl *HandleField = RD->findFirstNamedDataMember(); HandleField) {
+          
+          if (QualType ResourceType = HandleField->getType(); ResourceType->getAs<HLSLAttributedResourceType>()) {
             TypeOperand = ResourceType;
           }
         }
@@ -541,8 +541,8 @@ llvm::Type *CommonSPIRTargetCodeGenInfo::getHLSLType(
   if (!ResType)
     return nullptr;
 
-  const HLSLAttributedResourceType::Attributes &ResAttrs = ResType->getAttrs();
-  switch (ResAttrs.ResourceClass) {
+  
+  switch (const HLSLAttributedResourceType::Attributes &ResAttrs = ResType->getAttrs(); ResAttrs.ResourceClass) {
   case llvm::dxil::ResourceClass::UAV:
   case llvm::dxil::ResourceClass::SRV: {
     // TypedBuffer and RawBuffer both need element type

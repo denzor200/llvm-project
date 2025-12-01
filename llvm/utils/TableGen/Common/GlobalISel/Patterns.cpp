@@ -257,9 +257,9 @@ void InstructionPattern::reportUnreachable(ArrayRef<SMLoc> Locs) const {
 }
 
 bool InstructionPattern::checkSemantics(ArrayRef<SMLoc> Loc) {
-  unsigned NumExpectedOperands = getNumInstOperands();
+  
 
-  if (isVariadic()) {
+  if (unsigned NumExpectedOperands = getNumInstOperands(); isVariadic()) {
     if (Operands.size() < NumExpectedOperands) {
       PrintError(Loc, +"'" + getInstName() + "' expected at least " +
                           Twine(NumExpectedOperands) + " operands, got " +
@@ -681,8 +681,8 @@ bool PatFrag::handleUnboundInParam(StringRef ParamName, StringRef ArgName,
   //    if $y is unbound when this fragment is emitted, C++ code expansion will
   //    fail.
   for (const auto &Alt : Alts) {
-    auto &OT = Alt.OpTable;
-    if (!OT.lookup(ParamName).Found) {
+    
+    if (auto &OT = Alt.OpTable; !OT.lookup(ParamName).Found) {
       llvm::PrintError(DiagLoc, "operand '" + ArgName + "' (for parameter '" +
                                     ParamName + "' of '" + getName() +
                                     "') cannot be unbound");

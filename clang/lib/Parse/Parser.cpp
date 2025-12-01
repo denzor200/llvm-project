@@ -634,8 +634,8 @@ bool Parser::ParseTopLevelDecl(DeclGroupPtrTy &Result,
     // Recognize context-sensitive C++20 'export module' and 'export import'
     // declarations.
     case tok::identifier: {
-      IdentifierInfo *II = NextToken().getIdentifierInfo();
-      if ((II == Ident_module || II == Ident_import) &&
+      
+      if (IdentifierInfo *II = NextToken().getIdentifierInfo(); (II == Ident_module || II == Ident_import) &&
           GetLookAheadToken(2).isNot(tok::coloncolon)) {
         if (II == Ident_module)
           goto module_decl;
@@ -664,10 +664,10 @@ bool Parser::ParseTopLevelDecl(DeclGroupPtrTy &Result,
 
   case tok::annot_module_include: {
     auto Loc = Tok.getLocation();
-    Module *Mod = reinterpret_cast<Module *>(Tok.getAnnotationValue());
+    
     // FIXME: We need a better way to disambiguate C++ clang modules and
     // standard C++ modules.
-    if (!getLangOpts().CPlusPlusModules || !Mod->isHeaderUnit())
+    if (Module *Mod = reinterpret_cast<Module *>(Tok.getAnnotationValue()); !getLangOpts().CPlusPlusModules || !Mod->isHeaderUnit())
       Actions.ActOnAnnotModuleInclude(Loc, Mod);
     else {
       DeclResult Import =
@@ -701,8 +701,8 @@ bool Parser::ParseTopLevelDecl(DeclGroupPtrTy &Result,
     if (PP.getMaxTokens() != 0 && PP.getTokenCount() > PP.getMaxTokens()) {
       PP.Diag(Tok.getLocation(), diag::warn_max_tokens_total)
           << PP.getTokenCount() << PP.getMaxTokens();
-      SourceLocation OverrideLoc = PP.getMaxTokensOverrideLoc();
-      if (OverrideLoc.isValid()) {
+      
+      if (SourceLocation OverrideLoc = PP.getMaxTokensOverrideLoc(); OverrideLoc.isValid()) {
         PP.Diag(OverrideLoc, diag::note_max_tokens_total_override);
       }
     }
@@ -765,9 +765,9 @@ Parser::ParseExternalDeclaration(ParsedAttributes &Attrs,
                                  ParsedAttributes &DeclSpecAttrs,
                                  ParsingDeclSpec *DS) {
   DestroyTemplateIdAnnotationsRAIIObj CleanupRAII(*this);
-  ParenBraceBracketBalancer BalancerRAIIObj(*this);
+  
 
-  if (PP.isCodeCompletionReached()) {
+  if (ParenBraceBracketBalancer BalancerRAIIObj(*this); PP.isCodeCompletionReached()) {
     cutOffParsing();
     return nullptr;
   }
@@ -873,8 +873,8 @@ Parser::ParseExternalDeclaration(ParsedAttributes &Attrs,
     // Empty asm string is allowed because it will not introduce
     // any assembly code.
     if (!(getLangOpts().GNUAsm || Result.isInvalid())) {
-      const auto *SL = cast<StringLiteral>(Result.get());
-      if (!SL->getString().trim().empty())
+      
+      if (const auto *SL = cast<StringLiteral>(Result.get()); !SL->getString().trim().empty())
         Diag(StartLoc, diag::err_gnu_inline_asm_disabled);
     }
 
@@ -1040,8 +1040,8 @@ Parser::ParseExternalDeclaration(ParsedAttributes &Attrs,
 bool Parser::isDeclarationAfterDeclarator() {
   // Check for '= delete' or '= default'
   if (getLangOpts().CPlusPlus && Tok.is(tok::equal)) {
-    const Token &KW = NextToken();
-    if (KW.is(tok::kw_default) || KW.is(tok::kw_delete))
+    
+    if (const Token &KW = NextToken(); KW.is(tok::kw_default) || KW.is(tok::kw_delete))
       return false;
   }
 
@@ -1523,10 +1523,10 @@ void Parser::ParseKNRParamDeclarations(Declarator &D) {
       MaybeParseGNUAttributes(ParmDeclarator);
 
       // Ask the actions module to compute the type for this declarator.
-      Decl *Param =
-        Actions.ActOnParamDeclarator(getCurScope(), ParmDeclarator);
+      
 
-      if (Param &&
+      if (Decl *Param =
+        Actions.ActOnParamDeclarator(getCurScope(), ParmDeclarator); Param &&
           // A missing identifier has already been diagnosed.
           ParmDeclarator.getIdentifier()) {
 
@@ -1591,8 +1591,8 @@ ExprResult Parser::ParseAsmStringLiteral(bool ForAsmLabel) {
     if (AsmString.isInvalid())
       return AsmString;
 
-    const auto *SL = cast<StringLiteral>(AsmString.get());
-    if (!SL->isOrdinary()) {
+    
+    if (const auto *SL = cast<StringLiteral>(AsmString.get()); !SL->isOrdinary()) {
       Diag(Tok, diag::err_asm_operand_wide_string_literal)
           << SL->isWide() << SL->getSourceRange();
       return ExprError();
@@ -1623,9 +1623,9 @@ ExprResult Parser::ParseAsmStringLiteral(bool ForAsmLabel) {
 
 ExprResult Parser::ParseSimpleAsm(bool ForAsmLabel, SourceLocation *EndLoc) {
   assert(Tok.is(tok::kw_asm) && "Not an asm!");
-  SourceLocation Loc = ConsumeToken();
+  
 
-  if (isGNUAsmQualifier(Tok)) {
+  if (SourceLocation Loc = ConsumeToken(); isGNUAsmQualifier(Tok)) {
     // Remove from the end of 'asm' to the end of the asm qualifier.
     SourceRange RemovalRange(PP.getLocForEndOfToken(Loc),
                              PP.getLocForEndOfToken(Tok.getLocation()));
@@ -1779,11 +1779,11 @@ Parser::TryAnnotateName(CorrectionCandidateCallback *CCC,
       // Consume the name.
       SourceLocation IdentifierLoc = ConsumeToken();
       SourceLocation NewEndLoc;
-      TypeResult NewType
+      
+      if (TypeResult NewType
           = parseObjCTypeArgsAndProtocolQualifiers(IdentifierLoc, Ty,
                                                    /*consumeLastToken=*/false,
-                                                   NewEndLoc);
-      if (NewType.isUsable())
+                                                   NewEndLoc); NewType.isUsable())
         Ty = NewType.get();
       else if (Tok.is(tok::eof)) // Nothing to do here, bail out...
         return AnnotatedNameKind::Error;
@@ -2040,11 +2040,11 @@ bool Parser::TryAnnotateTypeOrScopeTokenAfterScopeSpec(
         // Consume the name.
         SourceLocation IdentifierLoc = ConsumeToken();
         SourceLocation NewEndLoc;
-        TypeResult NewType
+        
+        if (TypeResult NewType
           = parseObjCTypeArgsAndProtocolQualifiers(IdentifierLoc, Ty,
                                                    /*consumeLastToken=*/false,
-                                                   NewEndLoc);
-        if (NewType.isUsable())
+                                                   NewEndLoc); NewType.isUsable())
           Ty = NewType.get();
         else if (Tok.is(tok::eof)) // Nothing to do here, bail out...
           return false;
@@ -2077,8 +2077,8 @@ bool Parser::TryAnnotateTypeOrScopeTokenAfterScopeSpec(
       TemplateTy Template;
       UnqualifiedId TemplateName;
       TemplateName.setIdentifier(Tok.getIdentifierInfo(), Tok.getLocation());
-      bool MemberOfUnknownSpecialization;
-      if (TemplateNameKind TNK = Actions.isTemplateName(
+      
+      if (TemplateNameKind bool MemberOfUnknownSpecialization; TNK = Actions.isTemplateName(
               getCurScope(), SS,
               /*hasTemplateKeyword=*/false, TemplateName,
               /*ObjectType=*/nullptr, /*EnteringContext*/false, Template,
@@ -2107,8 +2107,8 @@ bool Parser::TryAnnotateTypeOrScopeTokenAfterScopeSpec(
   }
 
   if (Tok.is(tok::annot_template_id)) {
-    TemplateIdAnnotation *TemplateId = takeTemplateIdAnnotation(Tok);
-    if (TemplateId->Kind == TNK_Type_template) {
+    
+    if (TemplateIdAnnotation *TemplateId = takeTemplateIdAnnotation(Tok); TemplateId->Kind == TNK_Type_template) {
       // A template-id that refers to a type was parsed into a
       // template-id annotation in a context where we weren't allowed
       // to produce a type annotation token. Update the template-id
@@ -2151,8 +2151,8 @@ bool Parser::TryAnnotateCXXScopeToken(bool EnteringContext) {
 }
 
 bool Parser::isTokenEqualOrEqualTypo() {
-  tok::TokenKind Kind = Tok.getKind();
-  switch (Kind) {
+  
+  switch (tok::TokenKind Kind = Tok.getKind(); Kind) {
   default:
     return false;
   case tok::ampequal:            // &=
@@ -2333,8 +2333,8 @@ void Parser::ParseMicrosoftIfExistsExternalDeclaration() {
     ParsedAttributes Attrs(AttrFactory);
     MaybeParseCXX11Attributes(Attrs);
     ParsedAttributes EmptyDeclSpecAttrs(AttrFactory);
-    DeclGroupPtrTy Result = ParseExternalDeclaration(Attrs, EmptyDeclSpecAttrs);
-    if (Result && !getCurScope()->getParent())
+    
+    if (DeclGroupPtrTy Result = ParseExternalDeclaration(Attrs, EmptyDeclSpecAttrs); Result && !getCurScope()->getParent())
       Actions.getASTConsumer().HandleTopLevelDecl(Result.get());
   }
   Braces.consumeClose();
@@ -2361,8 +2361,8 @@ Parser::ParseModuleDecl(Sema::ModuleImportState &ImportState) {
 
   // Parse a global-module-fragment, if present.
   if (getLangOpts().CPlusPlusModules && Tok.is(tok::semi)) {
-    SourceLocation SemiLoc = ConsumeToken();
-    if (ImportState != Sema::ModuleImportState::FirstDecl ||
+    
+    if (SourceLocation SemiLoc = ConsumeToken(); ImportState != Sema::ModuleImportState::FirstDecl ||
         Introducer.hasSeenNoTrivialPPDirective()) {
       Diag(StartLoc, diag::err_global_module_introducer_not_at_start)
           << SourceRange(StartLoc, SemiLoc);
@@ -2400,8 +2400,8 @@ Parser::ParseModuleDecl(Sema::ModuleImportState &ImportState) {
   // Parse the optional module-partition.
   SmallVector<IdentifierLoc, 2> Partition;
   if (Tok.is(tok::colon)) {
-    SourceLocation ColonLoc = ConsumeToken();
-    if (!getLangOpts().CPlusPlusModules)
+    
+    if (SourceLocation ColonLoc = ConsumeToken(); !getLangOpts().CPlusPlusModules)
       Diag(ColonLoc, diag::err_unsupported_module_partition)
           << SourceRange(ColonLoc, Partition.back().getLoc());
     // Recover by ignoring the partition name.
@@ -2451,8 +2451,8 @@ Decl *Parser::ParseModuleImport(SourceLocation AtLoc,
     HeaderUnit = reinterpret_cast<Module *>(Tok.getAnnotationValue());
     ConsumeAnnotationToken();
   } else if (Tok.is(tok::colon)) {
-    SourceLocation ColonLoc = ConsumeToken();
-    if (!getLangOpts().CPlusPlusModules)
+    
+    if (SourceLocation ColonLoc = ConsumeToken(); !getLangOpts().CPlusPlusModules)
       Diag(ColonLoc, diag::err_unsupported_module_partition)
           << SourceRange(ColonLoc, Path.back().getLoc());
     // Recover by leaving partition empty.
@@ -2541,8 +2541,8 @@ Decl *Parser::ParseModuleImport(SourceLocation AtLoc,
   // the header is parseable. Emit a warning to make the user aware.
   if (IsObjCAtImport && AtLoc.isValid()) {
     auto &SrcMgr = PP.getSourceManager();
-    auto FE = SrcMgr.getFileEntryRefForID(SrcMgr.getFileID(AtLoc));
-    if (FE && llvm::sys::path::parent_path(FE->getDir().getName())
+    
+    if (auto FE = SrcMgr.getFileEntryRefForID(SrcMgr.getFileID(AtLoc)); FE && llvm::sys::path::parent_path(FE->getDir().getName())
                   .ends_with(".framework"))
       Diags.Report(AtLoc, diag::warn_atimport_in_framework_header);
   }

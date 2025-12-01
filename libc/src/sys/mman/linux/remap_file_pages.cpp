@@ -20,16 +20,16 @@ LLVM_LIBC_FUNCTION(int, remap_file_pages,
                    (void *addr, size_t size, int prot, size_t pgoff,
                     int flags)) {
 #ifdef SYS_remap_file_pages
-  int ret = LIBC_NAMESPACE::syscall_impl<int>(SYS_remap_file_pages,
-                                              reinterpret_cast<long>(addr),
-                                              size, prot, pgoff, flags);
+  
 #else
 #error "remap_file_pages syscall is not available."
 #endif
 
   // A negative return value indicates an error with the magnitude of the
   // value being the error code.
-  if (ret < 0) {
+  if (int ret = LIBC_NAMESPACE::syscall_impl<int>(SYS_remap_file_pages,
+                                              reinterpret_cast<long>(addr),
+                                              size, prot, pgoff, flags); ret < 0) {
     libc_errno = -ret;
     return -1;
   }

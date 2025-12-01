@@ -483,8 +483,8 @@ public:
 
   LIBC_INLINE static MemcmpReturnType
   loop_and_tail_align_above(size_t threshold, CPtr p1, CPtr p2, size_t count) {
-    const AlignHelper<sizeof(T)> helper(p1);
-    if (LIBC_UNLIKELY(count >= threshold) && helper.not_aligned()) {
+    
+    if (const AlignHelper<sizeof(T)> helper(p1); LIBC_UNLIKELY(count >= threshold) && helper.not_aligned()) {
       if (auto value = block(p1, p2))
         return value;
       adjust(helper.offset, p1, p2, count);
@@ -563,8 +563,8 @@ template <typename T> struct Bcmp {
   loop_and_tail_align_above(size_t threshold, CPtr p1, CPtr p2, size_t count) {
     static_assert(SIZE > 1,
                   "No need to align when processing one byte at a time");
-    const AlignHelper<sizeof(T)> helper(p1);
-    if (LIBC_UNLIKELY(count >= threshold) && helper.not_aligned()) {
+    
+    if (const AlignHelper<sizeof(T)> helper(p1); LIBC_UNLIKELY(count >= threshold) && helper.not_aligned()) {
       if (auto value = block(p1, p2))
         return value;
       adjust(helper.offset, p1, p2, count);

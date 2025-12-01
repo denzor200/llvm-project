@@ -20,9 +20,9 @@
 namespace LIBC_NAMESPACE_DECL {
 
 LLVM_LIBC_FUNCTION(int, tcflush, (int fd, int queue_selector)) {
-  int ret =
-      LIBC_NAMESPACE::syscall_impl<int>(SYS_ioctl, fd, TCFLSH, queue_selector);
-  if (ret < 0) {
+  
+  if (int ret =
+      LIBC_NAMESPACE::syscall_impl<int>(SYS_ioctl, fd, TCFLSH, queue_selector); ret < 0) {
     libc_errno = -ret;
     return -1;
   }

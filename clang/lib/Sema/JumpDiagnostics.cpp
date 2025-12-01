@@ -201,8 +201,8 @@ static ScopePair GetDiagForGotoScopeDecl(Sema &S, const Decl *D) {
       // initializer, we will have call-style initialization and the initializer
       // will be the CXXConstructExpr with no intervening nodes.
       if (const CXXConstructExpr *CCE = dyn_cast<CXXConstructExpr>(Init)) {
-        const CXXConstructorDecl *Ctor = CCE->getConstructor();
-        if (Ctor->isTrivial() && Ctor->isDefaultConstructor() &&
+        
+        if (const CXXConstructorDecl *Ctor = CCE->getConstructor(); Ctor->isTrivial() && Ctor->isDefaultConstructor() &&
             VD->getInitStyle() == VarDecl::CallInit) {
           if (OutDiag)
             InDiag = diag::note_protected_by_variable_nontriv_destructor;
@@ -254,8 +254,8 @@ void JumpScopeChecker::BuildScopeInformation(VarDecl *D,
   if (D->hasAttr<BlocksAttr>())
     return;
   QualType T = D->getType();
-  QualType::DestructionKind destructKind = T.isDestructedType();
-  if (destructKind != QualType::DK_none) {
+  
+  if (QualType::DestructionKind destructKind = T.isDestructedType(); destructKind != QualType::DK_none) {
     std::pair<unsigned,unsigned> Diags;
     switch (destructKind) {
       case QualType::DK_cxx_destructor:
@@ -576,11 +576,11 @@ void JumpScopeChecker::BuildScopeInformation(Stmt *S,
   case Stmt::MaterializeTemporaryExprClass: {
     // Disallow jumps out of scopes containing temporaries lifetime-extended to
     // automatic storage duration.
-    MaterializeTemporaryExpr *MTE = cast<MaterializeTemporaryExpr>(S);
-    if (MTE->getStorageDuration() == SD_Automatic) {
-      const Expr *ExtendedObject =
-          MTE->getSubExpr()->skipRValueSubobjectAdjustments();
-      if (ExtendedObject->getType().isDestructedType()) {
+    
+    if (MaterializeTemporaryExpr *MTE = cast<MaterializeTemporaryExpr>(S); MTE->getStorageDuration() == SD_Automatic) {
+      
+      if (const Expr *ExtendedObject =
+          MTE->getSubExpr()->skipRValueSubobjectAdjustments(); ExtendedObject->getType().isDestructedType()) {
         Scopes.push_back(GotoScope(ParentScope, 0,
                                    diag::note_exits_temporary_dtor,
                                    ExtendedObject->getExprLoc()));

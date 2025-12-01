@@ -122,9 +122,9 @@ void UpgradeDurationConversionsCheck::check(
   const auto *ArgExpr = Result.Nodes.getNodeAs<Expr>("arg");
   const SourceLocation Loc = ArgExpr->getBeginLoc();
 
-  const auto *OuterExpr = Result.Nodes.getNodeAs<Expr>("OuterExpr");
+  
 
-  if (!match(isInTemplateInstantiation(), *OuterExpr, *Result.Context)
+  if (const auto *OuterExpr = Result.Nodes.getNodeAs<Expr>("OuterExpr"); !match(isInTemplateInstantiation(), *OuterExpr, *Result.Context)
            .empty()) {
     if (!MatchedTemplateLocations.contains(Loc)) {
       // For each location matched in a template instantiation, we check if the

@@ -147,8 +147,8 @@ void TelemetryManager::DispatchClientTelemetry(
 
   auto *dict = entry.GetObjectSP()->GetAsDictionary();
 
-  llvm::StringRef client_name;
-  if (dict->GetValueForKeyAsString("client_name", client_name))
+  
+  if (llvm::StringRef client_name; dict->GetValueForKeyAsString("client_name", client_name))
     client_info.client_name = client_name.str();
   else
     LLDB_LOG(GetLog(LLDBLog::Object),

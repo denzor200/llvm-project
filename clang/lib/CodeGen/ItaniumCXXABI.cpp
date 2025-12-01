@@ -453,9 +453,9 @@ public:
 
        const CXXMethodDecl *Method = VtableComponent.getFunctionDecl();
        const FunctionDecl *FD = Method->getDefinition();
-       const bool IsInlined =
-           Method->getCanonicalDecl()->isInlined() || (FD && FD->isInlined());
-       if (!IsInlined)
+       
+       if (const bool IsInlined =
+           Method->getCanonicalDecl()->isInlined() || (FD && FD->isInlined()); !IsInlined)
          continue;
 
        StringRef Name = CGM.getMangledName(VtableComponent.getGlobalDecl());
@@ -477,12 +477,12 @@ public:
 
     for (const auto &VtableComponent : VtableLayout.vtable_components()) {
       if (VtableComponent.isRTTIKind()) {
-        const CXXRecordDecl *RTTIDecl = VtableComponent.getRTTIDecl();
-        if (RTTIDecl->getVisibility() == Visibility::HiddenVisibility)
+        
+        if (const CXXRecordDecl *RTTIDecl = VtableComponent.getRTTIDecl(); RTTIDecl->getVisibility() == Visibility::HiddenVisibility)
           return true;
       } else if (VtableComponent.isUsedFunctionPointerKind()) {
-        const CXXMethodDecl *Method = VtableComponent.getFunctionDecl();
-        if (Method->getVisibility() == Visibility::HiddenVisibility &&
+        
+        if (const CXXMethodDecl *Method = VtableComponent.getFunctionDecl(); Method->getVisibility() == Visibility::HiddenVisibility &&
             !Method->isDefined())
           return true;
       }
@@ -788,13 +788,13 @@ CGCallee ItaniumCXXABI::EmitLoadOfMemberFunctionPointer(
       // If doing CFI, emit the check.
       CheckSourceLocation = CGF.EmitCheckSourceLocation(E->getBeginLoc());
       CheckTypeDesc = CGF.EmitCheckTypeDescriptor(QualType(MPT, 0));
-      llvm::Constant *StaticData[] = {
+      
+
+      if (llvm::Constant *StaticData[] = {
           llvm::ConstantInt::get(CGF.Int8Ty, CodeGenFunction::CFITCK_VMFCall),
           CheckSourceLocation,
           CheckTypeDesc,
-      };
-
-      if (CGM.getCodeGenOpts().SanitizeTrap.has(SanitizerKind::CFIMFCall)) {
+      }; CGM.getCodeGenOpts().SanitizeTrap.has(SanitizerKind::CFIMFCall)) {
         CGF.EmitTrapCheck(CheckResult, CheckHandler);
       } else {
         llvm::Value *AllVtables = llvm::MetadataAsValue::get(
@@ -820,8 +820,8 @@ CGCallee ItaniumCXXABI::EmitLoadOfMemberFunctionPointer(
 
   // Check the function pointer if CFI on member function pointers is enabled.
   if (ShouldEmitCFICheck) {
-    CXXRecordDecl *RD = MPT->getMostRecentCXXRecordDecl();
-    if (RD->hasDefinition()) {
+    
+    if (CXXRecordDecl *RD = MPT->getMostRecentCXXRecordDecl(); RD->hasDefinition()) {
       auto CheckOrdinal = SanitizerKind::SO_CFIMFCall;
       auto CheckHandler = SanitizerHandler::CFICheckFail;
       SanitizerDebugLocation SanScope(&CGF, {CheckOrdinal}, CheckHandler);
@@ -953,9 +953,9 @@ ItaniumCXXABI::EmitMemberPointerConversion(CodeGenFunction &CGF,
          E->getCastKind() == CK_ReinterpretMemberPointer);
 
   CGBuilderTy &Builder = CGF.Builder;
-  QualType DstType = E->getType();
+  
 
-  if (DstType->isMemberFunctionPointerType()) {
+  if (QualType DstType = E->getType(); DstType->isMemberFunctionPointerType()) {
     if (const auto &NewAuthInfo =
             CGM.getMemberFunctionPointerAuthInfo(DstType)) {
       QualType SrcType = E->getSubExpr()->getType();
@@ -1073,9 +1073,9 @@ ItaniumCXXABI::EmitMemberPointerConversion(const CastExpr *E,
          E->getCastKind() == CK_BaseToDerivedMemberPointer ||
          E->getCastKind() == CK_ReinterpretMemberPointer);
 
-  QualType DstType = E->getType();
+  
 
-  if (DstType->isMemberFunctionPointerType())
+  if (QualType DstType = E->getType(); DstType->isMemberFunctionPointerType())
     src = pointerAuthResignMemberFunctionPointer(
         src, DstType, E->getSubExpr()->getType(), CGM);
 
@@ -1438,9 +1438,9 @@ void ItaniumCXXABI::emitRethrow(CodeGenFunction &CGF, bool isNoReturn) {
   llvm::FunctionType *FTy =
     llvm::FunctionType::get(CGM.VoidTy, /*isVarArg=*/false);
 
-  llvm::FunctionCallee Fn = CGM.CreateRuntimeFunction(FTy, "__cxa_rethrow");
+  
 
-  if (isNoReturn)
+  if (llvm::FunctionCallee Fn = CGM.CreateRuntimeFunction(FTy, "__cxa_rethrow"); isNoReturn)
     CGF.EmitNoreturnRuntimeCallOrInvoke(Fn, {});
   else
     CGF.EmitRuntimeCallOrInvoke(Fn);
@@ -1907,13 +1907,13 @@ void ItaniumCXXABI::EmitCXXConstructors(const CXXConstructorDecl *D) {
 CGCXXABI::AddedStructorArgCounts
 ItaniumCXXABI::buildStructorSignature(GlobalDecl GD,
                                       SmallVectorImpl<CanQualType> &ArgTys) {
-  ASTContext &Context = getContext();
+  
 
   // All parameters are already in place except VTT, which goes after 'this'.
   // These are Clang types, so we don't need to worry about sret yet.
 
   // Check if we need to add a VTT parameter (which has type global void **).
-  if ((isa<CXXConstructorDecl>(GD.getDecl()) ? GD.getCtorType() == Ctor_Base
+  if (ASTContext &Context = getContext(); (isa<CXXConstructorDecl>(GD.getDecl()) ? GD.getCtorType() == Ctor_Base
                                              : GD.getDtorType() == Dtor_Base) &&
       cast<CXXMethodDecl>(GD.getDecl())->getParent()->getNumVBases() != 0) {
     LangAS AS = CGM.GetGlobalVarAddressSpace(nullptr);
@@ -2532,8 +2532,8 @@ Address ItaniumCXXABI::InitializeArrayCookie(CodeGenFunction &CGF,
 
   // Compute an offset to the cookie.
   Address CookiePtr = NewPtr;
-  CharUnits CookieOffset = CookieSize - SizeSize;
-  if (!CookieOffset.isZero())
+  
+  if (CharUnits CookieOffset = CookieSize - SizeSize; !CookieOffset.isZero())
     CookiePtr = CGF.Builder.CreateConstInBoundsByteGEP(CookiePtr, CookieOffset);
 
   // Write the number of elements into the appropriate slot.
@@ -2760,8 +2760,8 @@ void ItaniumCXXABI::EmitGuardedInit(CodeGenFunction &CGF,
     // The ABI says: "It is suggested that it be emitted in the same COMDAT
     // group as the associated data object." In practice, this doesn't work for
     // non-ELF and non-Wasm object formats, so only do it for ELF and Wasm.
-    llvm::Comdat *C = var->getComdat();
-    if (!D.isLocalVarDecl() && C &&
+    
+    if (llvm::Comdat *C = var->getComdat(); !D.isLocalVarDecl() && C &&
         (CGM.getTarget().getTriple().isOSBinFormatELF() ||
          CGM.getTarget().getTriple().isOSBinFormatWasm())) {
       guard->setComdat(C);
@@ -3808,11 +3808,11 @@ static bool IsStandardLibraryRTTIDescriptor(QualType Ty) {
 /// standard-library type.
 static bool ShouldUseExternalRTTIDescriptor(CodeGenModule &CGM,
                                             QualType Ty) {
-  ASTContext &Context = CGM.getContext();
+  
 
   // If RTTI is disabled, assume it might be disabled in the
   // translation unit that defines any potential key function, too.
-  if (!Context.getLangOpts().RTTI) return false;
+  if (ASTContext &Context = CGM.getContext(); !Context.getLangOpts().RTTI) return false;
 
   if (const RecordType *RecordTy = dyn_cast<RecordType>(Ty)) {
     const CXXRecordDecl *RD =
@@ -3983,10 +3983,10 @@ void ItaniumRTTIBuilder::BuildVTablePointer(const Type *Ty,
     break;
 
   case Type::Record: {
-    const auto *RD = cast<CXXRecordDecl>(cast<RecordType>(Ty)->getDecl())
-                         ->getDefinitionOrSelf();
+    
 
-    if (!RD->hasDefinition() || !RD->getNumBases()) {
+    if (const auto *RD = cast<CXXRecordDecl>(cast<RecordType>(Ty)->getDecl())
+                         ->getDefinitionOrSelf(); !RD->hasDefinition() || !RD->getNumBases()) {
       VTableName = ClassTypeInfo;
     } else if (CanUseSingleInheritance(RD)) {
       VTableName = SIClassTypeInfo;
@@ -4135,8 +4135,8 @@ llvm::Constant *ItaniumRTTIBuilder::BuildTypeInfo(QualType Ty) {
   llvm::raw_svector_ostream Out(Name);
   CGM.getCXXABI().getMangleContext().mangleCXXRTTI(Ty, Out);
 
-  llvm::GlobalVariable *OldGV = CGM.getModule().getNamedGlobal(Name);
-  if (OldGV && !OldGV->isDeclaration()) {
+  
+  if (llvm::GlobalVariable *OldGV = CGM.getModule().getNamedGlobal(Name); OldGV && !OldGV->isDeclaration()) {
     assert(!OldGV->hasAvailableExternallyLinkage() &&
            "available_externally typeinfos not yet implemented");
 
@@ -4200,9 +4200,9 @@ llvm::Constant *ItaniumRTTIBuilder::BuildTypeInfo(
 
   // If we're supposed to demote the visibility, be sure to set a flag
   // to use a string comparison for type_info comparisons.
-  ItaniumCXXABI::RTTIUniquenessKind RTTIUniqueness =
-      CXXABI.classifyRTTIUniqueness(Ty, Linkage);
-  if (RTTIUniqueness != ItaniumCXXABI::RUK_Unique) {
+  
+  if (ItaniumCXXABI::RTTIUniquenessKind RTTIUniqueness =
+      CXXABI.classifyRTTIUniqueness(Ty, Linkage); RTTIUniqueness != ItaniumCXXABI::RUK_Unique) {
     // The flag is the sign bit, which on ARM64 is defined to be clear
     // for global pointers.  This is very ARM64-specific.
     TypeNameField = llvm::ConstantExpr::getPtrToInt(TypeName, CGM.Int64Ty);
@@ -4318,9 +4318,9 @@ llvm::Constant *ItaniumRTTIBuilder::BuildTypeInfo(
   if (CGM.getTarget().hasPS4DLLImportExport() &&
       GVDLLStorageClass != llvm::GlobalVariable::DLLExportStorageClass) {
     if (const RecordType *RecordTy = dyn_cast<RecordType>(Ty)) {
-      const auto *RD =
-          cast<CXXRecordDecl>(RecordTy->getDecl())->getDefinitionOrSelf();
-      if (RD->hasAttr<DLLExportAttr>() ||
+      
+      if (const auto *RD =
+          cast<CXXRecordDecl>(RecordTy->getDecl())->getDefinitionOrSelf(); RD->hasAttr<DLLExportAttr>() ||
           CXXRecordNonInlineHasAttr<DLLExportAttr>(RD))
         GVDLLStorageClass = llvm::GlobalVariable::DLLExportStorageClass;
     }
@@ -4510,8 +4510,8 @@ void ItaniumRTTIBuilder::BuildVMIClassTypeInfo(const CXXRecordDecl *RD) {
   // FIXME: Consider updating libc++abi to match, and extend this logic to all
   // LLP64 platforms.
   QualType OffsetFlagsTy = CGM.getContext().LongTy;
-  const TargetInfo &TI = CGM.getContext().getTargetInfo();
-  if (TI.getTriple().isOSCygMing() &&
+  
+  if (const TargetInfo &TI = CGM.getContext().getTargetInfo(); TI.getTriple().isOSCygMing() &&
       TI.getPointerWidth(LangAS::Default) > TI.getLongWidth())
     OffsetFlagsTy = CGM.getContext().LongLongTy;
   llvm::Type *OffsetFlagsLTy =
@@ -4934,11 +4934,11 @@ static void InitCatchParam(CodeGenFunction &CGF,
     // catching by reference, so if we're catching a pointer,
     // __cxa_begin_catch will actually return that pointer by value.
     if (const PointerType *PT = dyn_cast<PointerType>(CaughtType)) {
-      QualType PointeeType = PT->getPointeeType();
+      
 
       // When catching by reference, generally we should just ignore
       // this by-value pointer and use the exception object instead.
-      if (!PointeeType->isRecordType()) {
+      if (QualType PointeeType = PT->getPointeeType(); !PointeeType->isRecordType()) {
 
         // Exn points to the struct _Unwind_Exception header, which
         // we have to skip past in order to reach the exception data.
@@ -5140,9 +5140,9 @@ static llvm::FunctionCallee getClangCallTerminateFn(CodeGenModule &CGM) {
   llvm::FunctionType *fnTy = CGM.getTypes().GetFunctionType(FI);
   llvm::FunctionCallee fnRef = CGM.CreateRuntimeFunction(
       fnTy, "__clang_call_terminate", llvm::AttributeList(), /*Local=*/true);
-  llvm::Function *fn =
-      cast<llvm::Function>(fnRef.getCallee()->stripPointerCasts());
-  if (fn->empty()) {
+  
+  if (llvm::Function *fn =
+      cast<llvm::Function>(fnRef.getCallee()->stripPointerCasts()); fn->empty()) {
     CGM.SetLLVMFunctionAttributes(GlobalDecl(), FI, fn, /*IsThunk=*/false);
     CGM.SetLLVMFunctionAttributesForDefinition(nullptr, fn);
     fn->setDoesNotThrow();

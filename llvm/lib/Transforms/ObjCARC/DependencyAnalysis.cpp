@@ -109,8 +109,8 @@ bool llvm::objcarc::CanUse(const Instruction *Inst, const Value *Ptr,
 
   // Check each operand for a match.
   for (const Use &U : Inst->operands()) {
-    const Value *Op = U;
-    if (IsPotentialRetainableObjPtr(Op, *PA.getAA()) && PA.related(Ptr, Op))
+    
+    if (const Value *Op = U; IsPotentialRetainableObjPtr(Op, *PA.getAA()) && PA.related(Ptr, Op))
       return true;
   }
   return false;
@@ -127,8 +127,8 @@ llvm::objcarc::Depends(DependenceKind Flavor, Instruction *Inst,
 
   switch (Flavor) {
   case NeedsPositiveRetainCount: {
-    ARCInstKind Class = GetARCInstKind(Inst);
-    switch (Class) {
+    
+    switch (ARCInstKind Class = GetARCInstKind(Inst); Class) {
     case ARCInstKind::AutoreleasepoolPop:
     case ARCInstKind::AutoreleasepoolPush:
     case ARCInstKind::None:
@@ -139,8 +139,8 @@ llvm::objcarc::Depends(DependenceKind Flavor, Instruction *Inst,
   }
 
   case AutoreleasePoolBoundary: {
-    ARCInstKind Class = GetARCInstKind(Inst);
-    switch (Class) {
+    
+    switch (ARCInstKind Class = GetARCInstKind(Inst); Class) {
     case ARCInstKind::AutoreleasepoolPop:
     case ARCInstKind::AutoreleasepoolPush:
       // These mark the end and begin of an autorelease pool scope.
@@ -152,8 +152,8 @@ llvm::objcarc::Depends(DependenceKind Flavor, Instruction *Inst,
   }
 
   case CanChangeRetainCount: {
-    ARCInstKind Class = GetARCInstKind(Inst);
-    switch (Class) {
+    
+    switch (ARCInstKind Class = GetARCInstKind(Inst); Class) {
     case ARCInstKind::AutoreleasepoolPop:
       // Conservatively assume this can decrement any count.
       return true;
@@ -182,8 +182,8 @@ llvm::objcarc::Depends(DependenceKind Flavor, Instruction *Inst,
     }
 
   case RetainAutoreleaseRVDep: {
-    ARCInstKind Class = GetBasicARCInstKind(Inst);
-    switch (Class) {
+    
+    switch (ARCInstKind Class = GetBasicARCInstKind(Inst); Class) {
     case ARCInstKind::Retain:
     case ARCInstKind::RetainRV:
       // Check for a retain of the same pointer for merging.
@@ -230,8 +230,8 @@ static bool findDependencies(DependenceKind Flavor, const Value *Arg,
         break;
       }
 
-      Instruction *Inst = &*--LocalStartPos;
-      if (Depends(Flavor, Inst, Arg, PA)) {
+      
+      if (Instruction *Inst = &*--LocalStartPos; Depends(Flavor, Inst, Arg, PA)) {
         DependingInsts.insert(Inst);
         break;
       }

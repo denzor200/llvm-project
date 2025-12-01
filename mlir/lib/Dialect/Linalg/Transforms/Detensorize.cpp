@@ -110,9 +110,9 @@ struct FunctionNonEntryBlockConversion
           /*numOrigInputs=*/block.getNumArguments());
 
       for (BlockArgument blockArgument : block.getArguments()) {
-        int idx = blockArgument.getArgNumber();
+        
 
-        if (blockArgsToDetensor.count(blockArgument))
+        if (int idx = blockArgument.getArgNumber(); blockArgsToDetensor.count(blockArgument))
           conversion.addInputs(idx, {getTypeConverter()->convertType(
                                         block.getArgumentTypes()[idx])});
         else
@@ -276,13 +276,13 @@ struct LinalgDetensorize
 
             for (auto operandIdx :
                  llvm::seq<unsigned>(0, terminator->getOperands().size())) {
-              Value operand = terminator->getOperand(operandIdx);
+              
 
-              if (operand == value) {
-                auto succBlockArg =
-                    terminator.getSuccessorBlockArgument(operandIdx);
+              if (Value operand = terminator->getOperand(operandIdx); operand == value) {
+                
 
-                if (succBlockArg && !blockArgsToDetensor.count(*succBlockArg))
+                if (auto succBlockArg =
+                    terminator.getSuccessorBlockArgument(operandIdx); succBlockArg && !blockArgsToDetensor.count(*succBlockArg))
                   workList.push_back(*succBlockArg);
               }
             }

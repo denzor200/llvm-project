@@ -163,9 +163,9 @@ public:
 
       llvm::errs() << "CFGElement: ";
       CFGStmtMap *Map = C.getCurrentAnalysisDeclContext()->getCFGStmtMap();
-      CFGElement LastElement = Map->getBlock(S)->back();
+      
 
-      if (LastElement.getAs<CFGStmt>())
+      if (CFGElement LastElement = Map->getBlock(S)->back(); LastElement.getAs<CFGStmt>())
         llvm::errs() << "CFGStmt\n";
       else if (LastElement.getAs<CFGAutomaticObjDtor>())
         llvm::errs() << "CFGAutomaticObjDtor\n";

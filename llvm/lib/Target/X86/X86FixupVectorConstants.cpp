@@ -124,11 +124,11 @@ static std::optional<APInt> extractConstantBits(const Constant *C) {
 
   if (auto *CDS = dyn_cast<ConstantDataSequential>(C)) {
     bool IsInteger = CDS->getElementType()->isIntegerTy();
-    bool IsFloat = CDS->getElementType()->isHalfTy() ||
+    
+    if (bool IsFloat = CDS->getElementType()->isHalfTy() ||
                    CDS->getElementType()->isBFloatTy() ||
                    CDS->getElementType()->isFloatTy() ||
-                   CDS->getElementType()->isDoubleTy();
-    if (IsInteger || IsFloat) {
+                   CDS->getElementType()->isDoubleTy(); IsInteger || IsFloat) {
       APInt Bits = APInt::getZero(NumBits);
       unsigned EltBits = CDS->getElementType()->getPrimitiveSizeInBits();
       for (unsigned I = 0, E = CDS->getNumElements(); I != E; ++I) {
@@ -169,8 +169,8 @@ static std::optional<APInt> getSplatableConstant(const Constant *C,
   if (auto *CV = dyn_cast<ConstantVector>(C)) {
     unsigned NumOps = CV->getNumOperands();
     unsigned NumEltsBits = Ty->getScalarSizeInBits();
-    unsigned NumScaleOps = SplatBitWidth / NumEltsBits;
-    if ((SplatBitWidth % NumEltsBits) == 0) {
+    
+    if (unsigned NumScaleOps = SplatBitWidth / NumEltsBits; (SplatBitWidth % NumEltsBits) == 0) {
       // Collect the elements and ensure that within the repeated splat sequence
       // they either match or are undef.
       SmallVector<Constant *, 16> Sequence(NumScaleOps, nullptr);
@@ -178,8 +178,8 @@ static std::optional<APInt> getSplatableConstant(const Constant *C,
         if (Constant *Elt = CV->getAggregateElement(Idx)) {
           if (isa<UndefValue>(Elt))
             continue;
-          unsigned SplatIdx = Idx % NumScaleOps;
-          if (!Sequence[SplatIdx] || Sequence[SplatIdx] == Elt) {
+          
+          if (unsigned SplatIdx = Idx % NumScaleOps; !Sequence[SplatIdx] || Sequence[SplatIdx] == Elt) {
             Sequence[SplatIdx] = Elt;
             continue;
           }
@@ -275,9 +275,9 @@ static Constant *rebuildZeroUpperCst(const Constant *C, unsigned NumBits,
                                      unsigned ScalarBitWidth) {
   Type *SclTy = C->getType()->getScalarType();
   unsigned NumSclBits = SclTy->getPrimitiveSizeInBits();
-  LLVMContext &Ctx = C->getContext();
+  
 
-  if (NumBits > ScalarBitWidth) {
+  if (LLVMContext &Ctx = C->getContext(); NumBits > ScalarBitWidth) {
     // Determine if the upper bits are all zero.
     if (std::optional<APInt> Bits = extractConstantBits(C, NumBits)) {
       if (Bits->countLeadingZeros() >= (NumBits - ScalarBitWidth)) {
@@ -370,8 +370,8 @@ bool X86FixupVectorConstantsPass::processInstruction(MachineFunction &MF,
       // (this is a very simple cost:benefit estimate - there will probably be
       // better ways to calculate this).
       double OldTput = MCSchedModel::getReciprocalThroughput(*ST, *OldDesc);
-      double NewTput = MCSchedModel::getReciprocalThroughput(*ST, *NewDesc);
-      if (OldTput != NewTput)
+      
+      if (double NewTput = MCSchedModel::getReciprocalThroughput(*ST, *NewDesc); OldTput != NewTput)
         return NewTput < OldTput;
 
       int LatTol = (BitsSaved + 127) / 128;

@@ -150,8 +150,8 @@ computePerfectHashParameters(ArrayRef<uint64_t> Hashes) {
 
       bool NeedResize = false;
       for (uint64_t H : Hashes) {
-        uint64_t Idx = H % static_cast<uint64_t>(N);
-        if (++Table[Idx] > MaxCollisions) {
+        
+        if (uint64_t Idx = H % static_cast<uint64_t>(N); ++Table[Idx] > MaxCollisions) {
           // Need to resize the final table if we increased the collision count.
           NeedResize = true;
           break;
@@ -177,8 +177,8 @@ constructPerfectHashTable(ArrayRef<RuntimeLibcallImpl> Keywords,
 
     bool Found = false;
     for (int J = 0; J < Collisions; ++J) {
-      unsigned &Entry = Lookup[Idx + J];
-      if (Entry == 0) {
+      
+      if (unsigned &Entry = Lookup[Idx + J]; Entry == 0) {
         Entry = TableValue;
         Found = true;
         break;
@@ -205,8 +205,8 @@ void RuntimeLibcallEmitter::emitNameMatchHashTable(
   size_t Index = 0;
 
   for (const RuntimeLibcallImpl &LibCallImpl : RuntimeLibcallImplDefList) {
-    StringRef ImplName = LibCallImpl.getLibcallFuncName();
-    if (SeenFuncNames.insert(ImplName).second) {
+    
+    if (StringRef ImplName = LibCallImpl.getLibcallFuncName(); SeenFuncNames.insert(ImplName).second) {
       MaxFuncNameSize = std::max(MaxFuncNameSize, ImplName.size());
       TableValues[Index] = LibCallImpl.getEnumVal();
       Hashes[Index++] = hash(ImplName);
@@ -422,8 +422,8 @@ void RuntimeLibcallEmitter::emitSystemRuntimeLibrarySetCalls(
 
       for (const Record *Pred : It->second.first) {
         const Record *CC = It->second.second;
-        AvailabilityPredicate SubsetPredicate(Pred);
-        if (SubsetPredicate.isAlwaysAvailable())
+        
+        if (AvailabilityPredicate SubsetPredicate(Pred); SubsetPredicate.isAlwaysAvailable())
           BitsetValues[BitsetIdx] |= BitmaskVal;
 
         PredicateWithCC Key(Pred, CC);

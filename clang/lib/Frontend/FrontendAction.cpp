@@ -452,8 +452,8 @@ FrontendAction::CreateWrappedASTConsumer(CompilerInstance &CI,
         P->ParseArgs(
             CI,
             CI.getFrontendOpts().PluginArgs[std::string(Plugin.getName())])) {
-      std::unique_ptr<ASTConsumer> PluginConsumer = P->CreateASTConsumer(CI, InFile);
-      if (ActionType == PluginASTAction::AddBeforeMainAction) {
+      
+      if (std::unique_ptr<ASTConsumer> PluginConsumer = P->CreateASTConsumer(CI, InFile); ActionType == PluginASTAction::AddBeforeMainAction) {
         Consumers.push_back(std::move(PluginConsumer));
       } else {
         AfterConsumers.push_back(std::move(PluginConsumer));
@@ -515,8 +515,8 @@ static SourceLocation ReadOriginalFileName(CompilerInstance &CI,
   unsigned LineNo;
   SourceLocation LineNoLoc = T.getLocation();
   if (IsModuleMap) {
-    llvm::SmallString<16> Buffer;
-    if (Lexer::getSpelling(LineNoLoc, Buffer, SourceMgr, CI.getLangOpts())
+    
+    if (llvm::SmallString<16> Buffer; Lexer::getSpelling(LineNoLoc, Buffer, SourceMgr, CI.getLangOpts())
             .getAsInteger(10, LineNo))
       return SourceLocation();
   }
@@ -699,9 +699,9 @@ static bool loadModuleMapForModuleBuild(CompilerInstance &CI, bool IsSystem,
   // line directives are not part of the module map syntax in general.
   Offset = 0;
   if (IsPreprocessed) {
-    SourceLocation EndOfLineMarker =
-        ReadOriginalFileName(CI, PresumedModuleMapFile, /*IsModuleMap*/ true);
-    if (EndOfLineMarker.isValid())
+    
+    if (SourceLocation EndOfLineMarker =
+        ReadOriginalFileName(CI, PresumedModuleMapFile, /*IsModuleMap*/ true); EndOfLineMarker.isValid())
       Offset = CI.getSourceManager().getDecomposedLoc(EndOfLineMarker).second;
   }
 
@@ -910,8 +910,8 @@ bool FrontendAction::BeginSourceFile(CompilerInstance &CI,
       Input = FrontendInputFile(ASTModule->PresumedModuleMapFile, Kind);
     } else {
       auto &OldSM = AST->getSourceManager();
-      FileID ID = OldSM.getMainFileID();
-      if (auto File = OldSM.getFileEntryRefForID(ID))
+      
+      if (auto FileID ID = OldSM.getMainFileID(); File = OldSM.getFileEntryRefForID(ID))
         Input = FrontendInputFile(File->getName(), Kind);
       else
         Input = FrontendInputFile(OldSM.getBufferOrFake(ID), Kind);
@@ -1024,8 +1024,8 @@ bool FrontendAction::BeginSourceFile(CompilerInstance &CI,
     FileManager &FileMgr = CI.getFileManager();
     PreprocessorOptions &PPOpts = CI.getPreprocessorOpts();
     StringRef PCHInclude = PPOpts.ImplicitPCHInclude;
-    std::string SpecificModuleCachePath = CI.getSpecificModuleCachePath();
-    if (auto PCHDir = FileMgr.getOptionalDirectoryRef(PCHInclude)) {
+    
+    if (auto std::string SpecificModuleCachePath = CI.getSpecificModuleCachePath(); PCHDir = FileMgr.getOptionalDirectoryRef(PCHInclude)) {
       std::error_code EC;
       SmallString<128> DirNative;
       llvm::sys::path::native(PCHDir->getName(), DirNative);
@@ -1071,8 +1071,8 @@ bool FrontendAction::BeginSourceFile(CompilerInstance &CI,
   if (CI.getLangOpts().CPlusPlusModules && Input.getKind().isHeaderUnit() &&
       !Input.getKind().isPreprocessed()) {
     StringRef FileName = Input.getFile();
-    InputKind Kind = Input.getKind();
-    if (Kind.getHeaderUnitKind() != InputKind::HeaderUnit_Abs) {
+    
+    if (InputKind Kind = Input.getKind(); Kind.getHeaderUnitKind() != InputKind::HeaderUnit_Abs) {
       assert(CI.hasPreprocessor() &&
              "trying to build a header unit without a Pre-processor?");
       HeaderSearch &HS = CI.getPreprocessor().getHeaderSearchInfo();
@@ -1293,8 +1293,8 @@ bool FrontendAction::BeginSourceFile(CompilerInstance &CI,
 
   // Setup HLSL External Sema Source
   if (CI.getLangOpts().HLSL && CI.hasASTContext()) {
-    auto HLSLSema = llvm::makeIntrusiveRefCnt<HLSLExternalSemaSource>();
-    if (auto SemaSource = dyn_cast_if_present<ExternalSemaSource>(
+    
+    if (auto auto HLSLSema = llvm::makeIntrusiveRefCnt<HLSLExternalSemaSource>(); SemaSource = dyn_cast_if_present<ExternalSemaSource>(
             CI.getASTContext().getExternalSourcePtr())) {
       auto MultiSema = llvm::makeIntrusiveRefCnt<MultiplexExternalSemaSource>(
           std::move(SemaSource), std::move(HLSLSema));
@@ -1315,9 +1315,9 @@ llvm::Error FrontendAction::Execute() {
   // there were any module-build failures.
   if (CI.shouldBuildGlobalModuleIndex() && CI.hasFileManager() &&
       CI.hasPreprocessor()) {
-    StringRef Cache =
-        CI.getPreprocessor().getHeaderSearchInfo().getModuleCachePath();
-    if (!Cache.empty()) {
+    
+    if (StringRef Cache =
+        CI.getPreprocessor().getHeaderSearchInfo().getModuleCachePath(); !Cache.empty()) {
       if (llvm::Error Err = GlobalModuleIndex::writeIndex(
               CI.getFileManager(), CI.getPCHContainerReader(), Cache)) {
         // FIXME this drops the error on the floor, but

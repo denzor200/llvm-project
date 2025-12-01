@@ -46,10 +46,10 @@ void StaticDefinitionInAnonymousNamespaceCheck::check(
          !Lexer::getRawToken(Loc, Tok, *Result.SourceManager, getLangOpts(),
                              true)) {
     const SourceRange TokenRange(Tok.getLocation(), Tok.getEndLoc());
-    const StringRef SourceText =
+    
+    if (const StringRef SourceText =
         Lexer::getSourceText(CharSourceRange::getTokenRange(TokenRange),
-                             *Result.SourceManager, getLangOpts());
-    if (SourceText == "static") {
+                             *Result.SourceManager, getLangOpts()); SourceText == "static") {
       Diag << FixItHint::CreateRemoval(TokenRange);
       break;
     }

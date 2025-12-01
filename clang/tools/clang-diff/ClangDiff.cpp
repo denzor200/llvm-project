@@ -349,8 +349,8 @@ static void printNodeAttributes(raw_ostream &OS, diff::SyntaxTree &Tree,
   auto Offsets = Tree.getSourceRangeOffsets(N);
   OS << R"(,"begin":)" << Offsets.first;
   OS << R"(,"end":)" << Offsets.second;
-  std::string Value = Tree.getNodeValue(N);
-  if (!Value.empty()) {
+  
+  if (std::string Value = Tree.getNodeValue(N); !Value.empty()) {
     OS << R"(,"value":")";
     printJsonString(OS, Value);
     OS << '"';
@@ -392,8 +392,8 @@ static void printNode(raw_ostream &OS, diff::SyntaxTree &Tree,
     return;
   }
   OS << Tree.getNode(Id).getTypeLabel();
-  std::string Value = Tree.getNodeValue(Id);
-  if (!Value.empty())
+  
+  if (std::string Value = Tree.getNodeValue(Id); !Value.empty())
     OS << ": " << Value;
   OS << "(" << Id << ")";
 }
@@ -411,8 +411,8 @@ static void printDstChange(raw_ostream &OS, diff::ASTDiff &Diff,
                            diff::SyntaxTree &SrcTree, diff::SyntaxTree &DstTree,
                            diff::NodeId Dst) {
   const diff::Node &DstNode = DstTree.getNode(Dst);
-  diff::NodeId Src = Diff.getMapped(DstTree, Dst);
-  switch (DstNode.Change) {
+  
+  switch (diff::NodeId Src = Diff.getMapped(DstTree, Dst); DstNode.Change) {
   case diff::None:
     break;
   case diff::Delete:

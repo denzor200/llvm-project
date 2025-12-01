@@ -45,8 +45,8 @@ static bool matchText(const char *Text, bool AllowComma) {
 
 static modernize::LiteralSize sizeText(const char *Text) {
   std::vector<Token> Tokens{tokenify(Text)};
-  modernize::IntegralLiteralExpressionMatcher Matcher(Tokens, true);
-  if (Matcher.match())
+  
+  if (modernize::IntegralLiteralExpressionMatcher Matcher(Tokens, true); Matcher.match())
     return Matcher.largestLiteralSize();
   return modernize::LiteralSize::Unknown;
 }

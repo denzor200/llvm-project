@@ -41,9 +41,9 @@ ParseResult parseMemoryAccessAttributes(OpAsmParser &parser,
   }
 
   spirv::MemoryAccess memoryAccessAttr;
-  StringAttr memoryAccessAttrName =
-      MemoryOpTy::getMemoryAccessAttrName(state.name);
-  if (spirv::parseEnumStrAttr<spirv::MemoryAccessAttr>(
+  
+  if (StringAttr memoryAccessAttrName =
+      MemoryOpTy::getMemoryAccessAttrName(state.name); spirv::parseEnumStrAttr<spirv::MemoryAccessAttr>(
           memoryAccessAttr, parser, state, memoryAccessAttrName))
     return failure();
 
@@ -76,9 +76,9 @@ static ParseResult parseSourceMemoryAccessAttributes(OpAsmParser &parser,
   }
 
   spirv::MemoryAccess memoryAccessAttr;
-  StringRef memoryAccessAttrName =
-      MemoryOpTy::getSourceMemoryAccessAttrName(state.name);
-  if (spirv::parseEnumStrAttr<spirv::MemoryAccessAttr>(
+  
+  if (StringRef memoryAccessAttrName =
+      MemoryOpTy::getSourceMemoryAccessAttrName(state.name); spirv::parseEnumStrAttr<spirv::MemoryAccessAttr>(
           memoryAccessAttr, parser, state, memoryAccessAttrName))
     return failure();
 

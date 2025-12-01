@@ -158,8 +158,8 @@ private:
 
   void consumeNumberLiteral(TokenInfo *result) {
     StringRef original = code;
-    unsigned value = 0;
-    if (!code.consumeInteger(0, value)) {
+    
+    if (unsigned value = 0; !code.consumeInteger(0, value)) {
       size_t numConsumed = original.size() - code.size();
       result->text = original.take_front(numConsumed);
       result->kind = TokenKind::Literal;
@@ -390,8 +390,8 @@ bool Parser::parseMatcherArgs(std::vector<ParserValue> &args, MatcherCtor ctor,
 
     if (!args.empty()) {
       // We must find a , token to continue.
-      TokenInfo commaToken = tokenizer->consumeNextToken();
-      if (commaToken.kind != TokenKind::Comma) {
+      
+      if (TokenInfo commaToken = tokenizer->consumeNextToken(); commaToken.kind != TokenKind::Comma) {
         error->addError(commaToken.range, ErrorType::ParserNoComma)
             << commaToken.text;
         return false;

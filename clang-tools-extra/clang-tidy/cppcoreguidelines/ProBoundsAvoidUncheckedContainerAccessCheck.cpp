@@ -55,9 +55,9 @@ findAlternativeAt(const CXXMethodDecl *MatchedOperator) {
     if (MatchedOperator->isConst() != Method->isConst())
       continue;
 
-    const QualType AtThisObjType =
-        Method->getFunctionObjectParameterReferenceType();
-    if (SubscriptThisObjType != AtThisObjType)
+    
+    if (const QualType AtThisObjType =
+        Method->getFunctionObjectParameterReferenceType(); SubscriptThisObjType != AtThisObjType)
       continue;
 
     if (!Method->getNameInfo().getName().isIdentifier() ||
@@ -116,10 +116,10 @@ void ProBoundsAvoidUncheckedContainerAccessCheck::check(
     // Case: a[i]
     const auto LeftBracket = SourceRange(OCE->getCallee()->getBeginLoc(),
                                          OCE->getCallee()->getBeginLoc());
-    const auto RightBracket =
-        SourceRange(OCE->getOperatorLoc(), OCE->getOperatorLoc());
+    
 
-    if (FixMode == At) {
+    if (const auto RightBracket =
+        SourceRange(OCE->getOperatorLoc(), OCE->getOperatorLoc()); FixMode == At) {
       // Case: a[i] => a.at(i)
       const auto *MatchedOperator =
           Result.Nodes.getNodeAs<CXXMethodDecl>("operator");
@@ -149,10 +149,10 @@ void ProBoundsAvoidUncheckedContainerAccessCheck::check(
       //
       // Since C++23, the subscript operator may also be called without an
       // argument, which makes the following distinction necessary
-      const bool EmptySubscript =
-          MatchedExpr->getDirectCallee()->getNumParams() == 0;
+      
 
-      if (EmptySubscript) {
+      if (const bool EmptySubscript =
+          MatchedExpr->getDirectCallee()->getNumParams() == 0; EmptySubscript) {
         auto D = diag(MatchedExpr->getCallee()->getBeginLoc(),
                       "possibly unsafe 'operator[]'%select{, use safe "
                       "function '%1() instead|}0")
@@ -176,9 +176,9 @@ void ProBoundsAvoidUncheckedContainerAccessCheck::check(
     }
   } else if (const auto *MCE = dyn_cast<CXXMemberCallExpr>(MatchedExpr)) {
     // Case: a.operator[](i) or a->operator[](i)
-    const auto *Callee = dyn_cast<MemberExpr>(MCE->getCallee());
+    
 
-    if (FixMode == At) {
+    if (const auto *Callee = dyn_cast<MemberExpr>(MCE->getCallee()); FixMode == At) {
       // Cases: a.operator[](i) => a.at(i) and a->operator[](i) => a->at(i)
 
       const auto *MatchedOperator =

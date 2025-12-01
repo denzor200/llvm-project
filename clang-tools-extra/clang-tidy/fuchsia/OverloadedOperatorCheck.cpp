@@ -34,8 +34,8 @@ void OverloadedOperatorCheck::check(const MatchFinder::MatchResult &Result) {
   const auto *D = Result.Nodes.getNodeAs<FunctionDecl>("decl");
   assert(D && "No FunctionDecl captured!");
 
-  const SourceLocation Loc = D->getBeginLoc();
-  if (Loc.isValid())
+  
+  if (const SourceLocation Loc = D->getBeginLoc(); Loc.isValid())
     diag(Loc, "overloading %0 is disallowed") << D;
 }
 

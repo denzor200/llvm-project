@@ -106,8 +106,8 @@ void DivergenceLoweringHelper::getCandidatesForLowering(
   // Add divergent i1 phis to the list
   for (MachineBasicBlock &MBB : *MF) {
     for (MachineInstr &MI : MBB.phis()) {
-      Register Dst = MI.getOperand(0).getReg();
-      if (MRI->getType(Dst) == S1 && MUI->isDivergent(Dst))
+      
+      if (Register Dst = MI.getOperand(0).getReg(); MRI->getType(Dst) == S1 && MUI->isDivergent(Dst))
         Vreg1Phis.push_back(&MI);
     }
   }
@@ -240,8 +240,8 @@ bool DivergenceLoweringHelper::lowerTemporalDivergenceI1() {
 
     auto [LRCCacheIter, RegNotCached] = LRCCache.try_emplace(Reg);
     auto &CycleMergedMask = LRCCacheIter->getSecond();
-    const MachineCycle *&CachedLRC = CycleMergedMask.first;
-    if (RegNotCached || LRC->contains(CachedLRC)) {
+    
+    if (const MachineCycle *&CachedLRC = CycleMergedMask.first; RegNotCached || LRC->contains(CachedLRC)) {
       CachedLRC = LRC;
     }
   }

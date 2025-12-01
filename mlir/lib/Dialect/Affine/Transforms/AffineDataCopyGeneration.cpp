@@ -132,9 +132,9 @@ void AffineDataCopyGeneration::runOnBlock(Block *block,
   // Create [begin, end) ranges.
   auto it = curBegin;
   while (it != block->end()) {
-    AffineForOp forOp;
+    
     // If you hit a non-copy for loop, we will split there.
-    if ((forOp = dyn_cast<AffineForOp>(&*it)) && copyNests.count(forOp) == 0) {
+    if (AffineForOp forOp; (forOp = dyn_cast<AffineForOp>(&*it)) && copyNests.count(forOp) == 0) {
       // Perform the copying up unti this 'for' op first.
       (void)affineDataCopyGenerate(/*begin=*/curBegin, /*end=*/it, copyOptions,
                                    /*filterMemRef=*/std::nullopt, copyNests);

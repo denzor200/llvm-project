@@ -172,8 +172,8 @@ BasicBlock::iterator ConstantHoistingPass::findMatInsertPt(Instruction *Inst,
   // If the operand is a cast instruction, then we have to materialize the
   // constant before the cast instruction.
   if (Idx != ~0U) {
-    Value *Opnd = Inst->getOperand(Idx);
-    if (auto CastInst = dyn_cast<Instruction>(Opnd))
+    
+    if (auto Value *Opnd = Inst->getOperand(Idx); CastInst = dyn_cast<Instruction>(Opnd))
       if (CastInst->isCast())
         return CastInst->getIterator();
   }
@@ -610,10 +610,10 @@ void ConstantHoistingPass::findAndMakeBaseConstant(
     ConstCandVecType::iterator S, ConstCandVecType::iterator E,
     SmallVectorImpl<consthoist::ConstantInfo> &ConstInfoVec) {
   auto MaxCostItr = S;
-  unsigned NumUses = maximizeConstantsInRange(S, E, MaxCostItr);
+  
 
   // Don't hoist constants that have only one use.
-  if (NumUses <= 1)
+  if (unsigned NumUses = maximizeConstantsInRange(S, E, MaxCostItr); NumUses <= 1)
     return;
 
   ConstantInt *ConstInt = MaxCostItr->ConstInt;
@@ -661,8 +661,8 @@ void ConstantHoistingPass::findBaseConstants(GlobalVariable *BaseGV) {
     if (MinValItr->ConstInt->getType() == CC->ConstInt->getType()) {
       Type *MemUseValTy = nullptr;
       for (auto &U : CC->Uses) {
-        auto *UI = U.Inst;
-        if (LoadInst *LI = dyn_cast<LoadInst>(UI)) {
+        
+        if (LoadInst *auto *UI = U.Inst; LI = dyn_cast<LoadInst>(UI)) {
           MemUseValTy = LI->getType();
           break;
         } else if (StoreInst *SI = dyn_cast<StoreInst>(UI)) {
@@ -675,8 +675,8 @@ void ConstantHoistingPass::findBaseConstants(GlobalVariable *BaseGV) {
       }
 
       // Check if the constant is in range of an add with immediate.
-      APInt Diff = CC->ConstInt->getValue() - MinValItr->ConstInt->getValue();
-      if ((Diff.getBitWidth() <= 64) &&
+      
+      if (APInt Diff = CC->ConstInt->getValue() - MinValItr->ConstInt->getValue(); (Diff.getBitWidth() <= 64) &&
           TTI->isLegalAddImmediate(Diff.getSExtValue()) &&
           // Check if Diff can be used as offset in addressing mode of the user
           // memory instruction.
@@ -843,10 +843,10 @@ bool ConstantHoistingPass::emitBaseConstants(GlobalVariable *BaseGV) {
         UsesNum += RCI.Uses.size();
         for (auto const &U : RCI.Uses) {
           const BasicBlock::iterator &MatInsertPt = MatInsertPts[MatCtr++];
-          BasicBlock *OrigMatInsertBB = MatInsertPt->getParent();
+          
           // If Base constant is to be inserted in multiple places,
           // generate rebase for U using the Base dominating U.
-          if (IPSet.size() == 1 ||
+          if (BasicBlock *OrigMatInsertBB = MatInsertPt->getParent(); IPSet.size() == 1 ||
               DT->dominates(IP->getParent(), OrigMatInsertBB))
             ToBeRebased.emplace_back(RCI.Offset, RCI.Ty, MatInsertPt, U);
         }
@@ -966,8 +966,8 @@ PreservedAnalyses ConstantHoistingPass::run(Function &F,
                  ? &AM.getResult<BlockFrequencyAnalysis>(F)
                  : nullptr;
   auto &MAMProxy = AM.getResult<ModuleAnalysisManagerFunctionProxy>(F);
-  auto *PSI = MAMProxy.getCachedResult<ProfileSummaryAnalysis>(*F.getParent());
-  if (!runImpl(F, TTI, DT, BFI, F.getEntryBlock(), PSI))
+  
+  if (auto *PSI = MAMProxy.getCachedResult<ProfileSummaryAnalysis>(*F.getParent()); !runImpl(F, TTI, DT, BFI, F.getEntryBlock(), PSI))
     return PreservedAnalyses::all();
 
   PreservedAnalyses PA;

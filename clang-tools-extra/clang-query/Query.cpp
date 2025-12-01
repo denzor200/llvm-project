@@ -125,8 +125,8 @@ bool MatchQuery::run(llvm::raw_ostream &OS, QuerySession &QS) const {
     std::vector<BoundNodes> Matches;
     DynTypedMatcher MaybeBoundMatcher = Matcher;
     if (QS.BindRoot) {
-      std::optional<DynTypedMatcher> M = Matcher.tryBind("root");
-      if (M)
+      
+      if (std::optional<DynTypedMatcher> M = Matcher.tryBind("root"); M)
         MaybeBoundMatcher = *M;
     }
     StringRef OrigSrcName = AST->getOriginalSourceFileName();
@@ -169,8 +169,8 @@ bool MatchQuery::run(llvm::raw_ostream &OS, QuerySession &QS) const {
       for (auto BI = MI->getMap().begin(), BE = MI->getMap().end(); BI != BE;
            ++BI) {
         if (QS.DiagOutput) {
-          clang::SourceRange R = BI->second.getSourceRange();
-          if (R.isValid()) {
+          
+          if (clang::SourceRange R = BI->second.getSourceRange(); R.isValid()) {
             TextDiagnostic TD(OS, AST->getASTContext().getLangOpts(),
                               AST->getDiagnostics().getDiagnosticOptions());
             TD.emitDiagnostic(

@@ -35,8 +35,8 @@ NameOrPattern::create(StringRef Pattern, MatchStyle MS,
   }
   case MatchStyle::Regex: {
     Regex RegEx(Pattern);
-    std::string Err;
-    if (!RegEx.isValid(Err))
+    
+    if (std::string Err; !RegEx.isValid(Err))
       return createStringError(errc::invalid_argument,
                                "cannot compile regular expression \'" +
                                    Pattern + "\': " + Err);

@@ -72,8 +72,8 @@ struct ConstantShardingInterface
                           IRMapping &partitionMap,
                           SymbolTableCollection &symbolTable,
                           OpBuilder &builder) const {
-    auto cOp = cast<ConstantOp>(op);
-    if (auto value = dyn_cast<DenseIntOrFPElementsAttr>(cOp.getValue())) {
+    
+    if (auto auto cOp = cast<ConstantOp>(op); value = dyn_cast<DenseIntOrFPElementsAttr>(cOp.getValue())) {
       if (!value.isSplat() || !resultShardings[0]) {
         // Currently non-splat constants are not supported.
         return failure();

@@ -79,8 +79,8 @@ SVal PlacementNewChecker::getExtentSizeOfNewTarget(const CXXNewExpr *NE,
   if (NE->isArray()) {
     IsArray = true;
     const Expr *SizeExpr = *NE->getArraySize();
-    SVal ElementCount = C.getSVal(SizeExpr);
-    if (auto ElementCountNL = ElementCount.getAs<NonLoc>()) {
+    
+    if (auto SVal ElementCount = C.getSVal(SizeExpr); ElementCountNL = ElementCount.getAs<NonLoc>()) {
       // size in Bytes = ElementCountNL * TypeSize
       return SvalBuilder.evalBinOp(
           State, BO_Mul, *ElementCountNL,
@@ -132,8 +132,8 @@ bool PlacementNewChecker::checkPlaceCapacityIsSufficient(
 void PlacementNewChecker::emitBadAlignReport(const Expr *P, CheckerContext &C,
                                              unsigned AllocatedTAlign,
                                              unsigned StorageTAlign) const {
-  ProgramStateRef State = C.getState();
-  if (ExplodedNode *N = C.generateErrorNode(State)) {
+  
+  if (ExplodedNode *ProgramStateRef State = C.getState(); N = C.generateErrorNode(State)) {
     std::string Msg(llvm::formatv("Storage type is aligned to {0} bytes but "
                                   "allocated type is aligned to {1} bytes",
                                   StorageTAlign, AllocatedTAlign));
@@ -193,7 +193,9 @@ void PlacementNewChecker::checkElementRegionAlign(
     return true;
   };
 
-  auto CheckElementRegionOffset = [this, R, &C, P, AllocatedTAlign]() -> void {
+  
+
+  if (auto CheckElementRegionOffset = [this, R, &C, P, AllocatedTAlign]() -> void {
     RegionOffset TheOffsetRegion = R->getAsOffset();
     if (TheOffsetRegion.hasSymbolicOffset())
       return;
@@ -205,9 +207,7 @@ void PlacementNewChecker::checkElementRegionAlign(
       emitBadAlignReport(P, C, AllocatedTAlign, AddressAlign);
       return;
     }
-  };
-
-  if (IsBaseRegionAlignedProperly()) {
+  }; IsBaseRegionAlignedProperly()) {
     CheckElementRegionOffset();
   }
 }
@@ -241,8 +241,8 @@ bool PlacementNewChecker::isVarRegionAlignedProperly(
     const VarRegion *R, CheckerContext &C, const Expr *P,
     unsigned AllocatedTAlign) const {
   const VarDecl *TheVarDecl = R->getDecl();
-  unsigned StorageTAlign = getStorageAlign(C, TheVarDecl);
-  if (AllocatedTAlign > StorageTAlign) {
+  
+  if (unsigned StorageTAlign = getStorageAlign(C, TheVarDecl); AllocatedTAlign > StorageTAlign) {
     emitBadAlignReport(P, C, AllocatedTAlign, StorageTAlign);
 
     return false;

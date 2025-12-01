@@ -151,9 +151,9 @@ static bool applyAbbreviationHeuristic(
 static bool applyPrefixHeuristic(StringRef Arg, StringRef Param,
                                  int8_t Threshold) {
   const StringRef Shorter = Arg.size() < Param.size() ? Arg : Param;
-  const StringRef Longer = Arg.size() >= Param.size() ? Arg : Param;
+  
 
-  if (Longer.starts_with_insensitive(Shorter))
+  if (const StringRef Longer = Arg.size() >= Param.size() ? Arg : Param; Longer.starts_with_insensitive(Shorter))
     return percentage(Shorter.size(), Longer.size()) > Threshold;
 
   return false;
@@ -163,9 +163,9 @@ static bool applyPrefixHeuristic(StringRef Arg, StringRef Param,
 static bool applySuffixHeuristic(StringRef Arg, StringRef Param,
                                  int8_t Threshold) {
   const StringRef Shorter = Arg.size() < Param.size() ? Arg : Param;
-  const StringRef Longer = Arg.size() >= Param.size() ? Arg : Param;
+  
 
-  if (Longer.ends_with_insensitive(Shorter))
+  if (const StringRef Longer = Arg.size() >= Param.size() ? Arg : Param; Longer.ends_with_insensitive(Shorter))
     return percentage(Shorter.size(), Longer.size()) > Threshold;
 
   return false;
@@ -767,11 +767,11 @@ bool SuspiciousCallArgumentCheck::areArgsSwapped(std::size_t Position1,
     const bool A1ToP1Dissimilar =
         !areNamesSimilar(ArgNames[Position1], ParamNames[Position1], H,
                          BoundKind::DissimilarBelow);
-    const bool A2ToP2Dissimilar =
-        !areNamesSimilar(ArgNames[Position2], ParamNames[Position2], H,
-                         BoundKind::DissimilarBelow);
+    
 
-    if ((A1ToP2Similar || A2ToP1Similar) && A1ToP1Dissimilar &&
+    if (const bool A2ToP2Dissimilar =
+        !areNamesSimilar(ArgNames[Position2], ParamNames[Position2], H,
+                         BoundKind::DissimilarBelow); (A1ToP2Similar || A2ToP1Similar) && A1ToP1Dissimilar &&
         A2ToP2Dissimilar)
       return true;
   }

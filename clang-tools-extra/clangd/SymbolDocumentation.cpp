@@ -81,9 +81,9 @@ public:
   void visitInlineCommandComment(const comments::InlineCommandComment *C) {
 
     if (C->getNumArgs() > 0) {
-      std::string ArgText = getArgText(C);
+      
 
-      switch (C->getRenderKind()) {
+      switch (std::string ArgText = getArgText(C); C->getRenderKind()) {
       case comments::InlineCommandRenderKind::Monospaced:
         Out.appendCode(ArgText);
         break;
@@ -164,8 +164,8 @@ public:
   void visitInlineCommandComment(const comments::InlineCommandComment *C) {
     Out << commandMarkerAsString(C->getCommandMarker());
     Out << C->getCommandName(Traits);
-    std::string ArgText = getArgText(C);
-    if (!ArgText.empty())
+    
+    if (std::string ArgText = getArgText(C); !ArgText.empty())
       Out << " " << ArgText;
     Out << " ";
   }
@@ -271,9 +271,9 @@ public:
     if (VB->getNumLines() > 0) {
       if (const auto *Line =
               cast<comments::VerbatimBlockLineComment>(*FirstLine)) {
-        llvm::StringRef Text = Line->getText();
+        
         // Language is a single word enclosed in {}.
-        if (llvm::none_of(Text, llvm::isSpace) && Text.consume_front("{") &&
+        if (llvm::StringRef Text = Line->getText(); llvm::none_of(Text, llvm::isSpace) && Text.consume_front("{") &&
             Text.consume_back("}")) {
           // drop a potential . since this is not supported in Markdown
           // fenced code blocks.
@@ -378,8 +378,8 @@ void SymbolDocCommentVisitor::preprocessDocumentation(StringRef Doc) {
 
     // Detect code fence (``` or ~~~)
     if (State == Normal) {
-      llvm::StringRef Trimmed = Line.ltrim();
-      if (Trimmed.starts_with("```") || Trimmed.starts_with("~~~")) {
+      
+      if (llvm::StringRef Trimmed = Line.ltrim(); Trimmed.starts_with("```") || Trimmed.starts_with("~~~")) {
         // https://www.doxygen.nl/manual/markdown.html#md_fenced
         CodeFence =
             Trimmed.take_while([](char C) { return C == '`' || C == '~'; })

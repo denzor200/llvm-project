@@ -226,8 +226,8 @@ static void printDiffsCategorizedByFilesPresent(
 static Expected<int64_t> getIntValFromKey(const remarks::Remark &Remark,
                                           unsigned ArgIdx,
                                           StringRef ExpectedKeyName) {
-  auto KeyName = Remark.Args[ArgIdx].Key;
-  if (KeyName != ExpectedKeyName)
+  
+  if (auto KeyName = Remark.Args[ArgIdx].Key; KeyName != ExpectedKeyName)
     return createStringError(
         inconvertibleErrorCode(),
         Twine("Unexpected key at argument index " + std::to_string(ArgIdx) +
@@ -252,9 +252,9 @@ static Error processRemark(const remarks::Remark &Remark,
                            StringMap<InstCountAndStackSize> &FuncNameToSizeInfo,
                            unsigned &NumInstCountRemarksParsed) {
   const auto &RemarkName = Remark.RemarkName;
-  const auto &PassName = Remark.PassName;
+  
   // Collect remarks which contain the number of instructions in a function.
-  if (PassName == "asm-printer" && RemarkName == "InstructionCount") {
+  if (const auto &PassName = Remark.PassName; PassName == "asm-printer" && RemarkName == "InstructionCount") {
     // Expecting the 0-th argument to have the key "NumInstructions" and an
     // integer value.
     auto MaybeInstCount =

@@ -410,15 +410,15 @@ void AArch64AsmPrinter::emitStartOfAsmFile(Module &M) {
 
 void AArch64AsmPrinter::emitFunctionHeaderComment() {
   const AArch64FunctionInfo *FI = MF->getInfo<AArch64FunctionInfo>();
-  std::optional<std::string> OutlinerString = FI->getOutliningStyle();
-  if (OutlinerString != std::nullopt)
+  
+  if (std::optional<std::string> OutlinerString = FI->getOutliningStyle(); OutlinerString != std::nullopt)
     OutStreamer->getCommentOS() << ' ' << OutlinerString;
 }
 
 void AArch64AsmPrinter::LowerPATCHABLE_FUNCTION_ENTER(const MachineInstr &MI)
 {
-  const Function &F = MF->getFunction();
-  if (F.hasFnAttribute("patchable-function-entry")) {
+  
+  if (const Function &F = MF->getFunction(); F.hasFnAttribute("patchable-function-entry")) {
     unsigned Num;
     if (F.getFnAttribute("patchable-function-entry")
             .getValueAsString()
@@ -506,10 +506,10 @@ void AArch64AsmPrinter::emitAttributes(unsigned Flags,
       (Flags & AArch64BuildAttributes::Feature_BTI_Flag) ? 1 : 0;
   unsigned PACValue =
       (Flags & AArch64BuildAttributes::Feature_PAC_Flag) ? 1 : 0;
-  unsigned GCSValue =
-      (Flags & AArch64BuildAttributes::Feature_GCS_Flag) ? 1 : 0;
+  
 
-  if (BTIValue || PACValue || GCSValue) {
+  if (unsigned GCSValue =
+      (Flags & AArch64BuildAttributes::Feature_GCS_Flag) ? 1 : 0; BTIValue || PACValue || GCSValue) {
     TS->emitAttributesSubsection(
         AArch64BuildAttributes::getVendorName(
             AArch64BuildAttributes::AEABI_FEATURE_AND_BITS),
@@ -1090,8 +1090,8 @@ MCSymbol *AArch64AsmPrinter::GetCPISymbol(unsigned CPID) const {
 
 void AArch64AsmPrinter::printOperand(const MachineInstr *MI, unsigned OpNum,
                                      raw_ostream &O) {
-  const MachineOperand &MO = MI->getOperand(OpNum);
-  switch (MO.getType()) {
+  
+  switch (const MachineOperand &MO = MI->getOperand(OpNum); MO.getType()) {
   default:
     llvm_unreachable("<unknown operand type>");
   case MachineOperand::MO_Register: {
@@ -1555,8 +1555,8 @@ void AArch64AsmPrinter::LowerHardenedBRJumpTable(const MachineInstr &MI) {
 
   // cmp only supports a 12-bit immediate.  If we need more, materialize the
   // immediate, using x17 as a scratch register.
-  uint64_t MaxTableEntry = NumTableEntries - 1;
-  if (isUInt<12>(MaxTableEntry)) {
+  
+  if (uint64_t MaxTableEntry = NumTableEntries - 1; isUInt<12>(MaxTableEntry)) {
     EmitToStreamer(*OutStreamer, MCInstBuilder(AArch64::SUBSXri)
                                      .addReg(AArch64::XZR)
                                      .addReg(AArch64::X16)
@@ -1736,8 +1736,8 @@ void AArch64AsmPrinter::LowerPATCHPOINT(MCStreamer &OutStreamer, StackMaps &SM,
 
 void AArch64AsmPrinter::LowerSTATEPOINT(MCStreamer &OutStreamer, StackMaps &SM,
                                         const MachineInstr &MI) {
-  StatepointOpers SOpers(&MI);
-  if (unsigned PatchBytes = SOpers.getNumPatchBytes()) {
+  
+  if (unsigned StatepointOpers SOpers(&MI); PatchBytes = SOpers.getNumPatchBytes()) {
     assert(PatchBytes % 4 == 0 && "Invalid number of NOP bytes requested!");
     for (unsigned i = 0; i < PatchBytes; i += 4)
       EmitToStreamer(OutStreamer, MCInstBuilder(AArch64::HINT).addImm(0));
@@ -1838,12 +1838,12 @@ void AArch64AsmPrinter::emitMOVK(Register Dest, uint64_t Imm, unsigned Shift) {
 }
 
 void AArch64AsmPrinter::emitFMov0(const MachineInstr &MI) {
-  Register DestReg = MI.getOperand(0).getReg();
-  if (!STI->hasZeroCycleZeroingFPWorkaround() && STI->isNeonAvailable()) {
+  
+  if (Register DestReg = MI.getOperand(0).getReg(); !STI->hasZeroCycleZeroingFPWorkaround() && STI->isNeonAvailable()) {
     if (STI->hasZeroCycleZeroingFPR64()) {
       // Convert H/S register to corresponding D register
-      const AArch64RegisterInfo *TRI = STI->getRegisterInfo();
-      if (AArch64::FPR16RegClass.contains(DestReg))
+      
+      if (const AArch64RegisterInfo *TRI = STI->getRegisterInfo(); AArch64::FPR16RegClass.contains(DestReg))
         DestReg = TRI->getMatchingSuperReg(DestReg, AArch64::hsub,
                                            &AArch64::FPR64RegClass);
       else if (AArch64::FPR32RegClass.contains(DestReg))
@@ -1859,8 +1859,8 @@ void AArch64AsmPrinter::emitFMov0(const MachineInstr &MI) {
       EmitToStreamer(*OutStreamer, MOVI);
     } else if (STI->hasZeroCycleZeroingFPR128()) {
       // Convert H/S/D register to corresponding Q register
-      const AArch64RegisterInfo *TRI = STI->getRegisterInfo();
-      if (AArch64::FPR16RegClass.contains(DestReg)) {
+      
+      if (const AArch64RegisterInfo *TRI = STI->getRegisterInfo(); AArch64::FPR16RegClass.contains(DestReg)) {
         DestReg = TRI->getMatchingSuperReg(DestReg, AArch64::hsub,
                                            &AArch64::FPR128RegClass);
       } else if (AArch64::FPR32RegClass.contains(DestReg)) {
@@ -1937,9 +1937,9 @@ Register AArch64AsmPrinter::emitPtrauthDiscriminator(uint16_t Disc,
 
   // Check if we can save one MOV instruction.
   assert(MayUseAddrAsScratch || ScratchReg != AddrDisc);
-  bool AddrDiscIsSafe = AddrDisc == AArch64::X16 || AddrDisc == AArch64::X17 ||
-                        !STI->isX16X17Safer();
-  if (MayUseAddrAsScratch && AddrDiscIsSafe)
+  
+  if (bool AddrDiscIsSafe = AddrDisc == AArch64::X16 || AddrDisc == AArch64::X17 ||
+                        !STI->isX16X17Safer(); MayUseAddrAsScratch && AddrDiscIsSafe)
     ScratchReg = AddrDisc;
   else
     emitMovXReg(ScratchReg, AddrDisc);
@@ -2792,8 +2792,8 @@ void AArch64AsmPrinter::LowerMOVaddrPAC(const MachineInstr &MI) {
 
   if (Offset != 0) {
     const uint64_t AbsOffset = (Offset > 0 ? Offset : -((uint64_t)Offset));
-    const bool IsNeg = Offset < 0;
-    if (isUInt<24>(AbsOffset)) {
+    
+    if (const bool IsNeg = Offset < 0; isUInt<24>(AbsOffset)) {
       for (int BitPos = 0; BitPos != 24 && (AbsOffset >> BitPos);
            BitPos += 12) {
         EmitToStreamer(
@@ -2916,9 +2916,9 @@ void AArch64AsmPrinter::LowerLOADgotAUTH(const MachineInstr &MI) {
 const MCExpr *
 AArch64AsmPrinter::lowerBlockAddressConstant(const BlockAddress &BA) {
   const MCExpr *BAE = AsmPrinter::lowerBlockAddressConstant(BA);
-  const Function &Fn = *BA.getFunction();
+  
 
-  if (std::optional<uint16_t> BADisc =
+  if (std::optional<uint16_t> const Function &Fn = *BA.getFunction(); BADisc =
           STI->getPtrAuthBlockAddressDiscriminatorIfEnabled(Fn))
     return AArch64AuthMCExpr::create(BAE, *BADisc, AArch64PACKey::IA,
                                      /*HasAddressDiversity=*/false, OutContext);
@@ -3097,10 +3097,10 @@ void AArch64AsmPrinter::emitInstruction(const MachineInstr *MI) {
     OutStreamer->emitLabel(LOHLabel);
   }
 
-  AArch64TargetStreamer *TS =
-    static_cast<AArch64TargetStreamer *>(OutStreamer->getTargetStreamer());
+  
   // Do any manual lowerings.
-  switch (MI->getOpcode()) {
+  switch (AArch64TargetStreamer *TS =
+    static_cast<AArch64TargetStreamer *>(OutStreamer->getTargetStreamer()); MI->getOpcode()) {
   default:
     assert(!AArch64InstrInfo::isTailCallReturnInst(*MI) &&
            "Unhandled tail call instruction");
@@ -3113,8 +3113,8 @@ void AArch64AsmPrinter::emitInstruction(const MachineInstr *MI) {
     if (CurrentPatchableFunctionEntrySym &&
         CurrentPatchableFunctionEntrySym == CurrentFnBegin &&
         MI == &MF->front().front()) {
-      int64_t Imm = MI->getOperand(0).getImm();
-      if ((Imm & 32) && (Imm & 6)) {
+      
+      if (int64_t Imm = MI->getOperand(0).getImm(); (Imm & 32) && (Imm & 6)) {
         MCInst Inst;
         MCInstLowering.Lower(MI, Inst);
         EmitToStreamer(*OutStreamer, Inst);
@@ -3183,8 +3183,8 @@ void AArch64AsmPrinter::emitInstruction(const MachineInstr *MI) {
     return;
 
   case AArch64::EMITBKEY: {
-      ExceptionHandling ExceptionHandlingType = MAI->getExceptionHandlingType();
-      if (ExceptionHandlingType != ExceptionHandling::DwarfCFI &&
+      
+      if (ExceptionHandling ExceptionHandlingType = MAI->getExceptionHandlingType(); ExceptionHandlingType != ExceptionHandling::DwarfCFI &&
           ExceptionHandlingType != ExceptionHandling::ARM)
         return;
 
@@ -3196,8 +3196,8 @@ void AArch64AsmPrinter::emitInstruction(const MachineInstr *MI) {
   }
 
   case AArch64::EMITMTETAGGED: {
-    ExceptionHandling ExceptionHandlingType = MAI->getExceptionHandlingType();
-    if (ExceptionHandlingType != ExceptionHandling::DwarfCFI &&
+    
+    if (ExceptionHandling ExceptionHandlingType = MAI->getExceptionHandlingType(); ExceptionHandlingType != ExceptionHandling::DwarfCFI &&
         ExceptionHandlingType != ExceptionHandling::ARM)
       return;
 
@@ -3722,8 +3722,8 @@ void AArch64AsmPrinter::recordIfImportCall(
   if (!EnableImportCallOptimization)
     return;
 
-  auto [GV, OpFlags] = BranchInst->getMF()->tryGetCalledGlobal(BranchInst);
-  if (GV && GV->hasDLLImportStorageClass()) {
+  
+  if (auto [GV, OpFlags] = BranchInst->getMF()->tryGetCalledGlobal(BranchInst); GV && GV->hasDLLImportStorageClass()) {
     auto *CallSiteSymbol = MMI->getContext().createNamedTempSymbol("impcall");
     OutStreamer->emitLabel(CallSiteSymbol);
 

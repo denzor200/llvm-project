@@ -240,8 +240,8 @@ unsigned AVRMCCodeEmitter::getExprOpValue(const MCExpr *Expr,
 
   if (Kind == MCExpr::Specifier) {
     AVRMCExpr const *AVRExpr = cast<AVRMCExpr>(Expr);
-    int64_t Result;
-    if (AVRExpr->evaluateAsConstant(Result)) {
+    
+    if (int64_t Result; AVRExpr->evaluateAsConstant(Result)) {
       return Result;
     }
 

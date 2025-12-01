@@ -98,9 +98,9 @@ Sections:
 
   if (error.Success() && created_module) {
     // Get the UUID of the created module
-    UUID module_uuid = created_module->GetUUID();
+    
 
-    if (module_uuid.IsValid()) {
+    if (UUID module_uuid = created_module->GetUUID(); module_uuid.IsValid()) {
       // Now try to find the module by UUID
       ModuleSP found_module = ModuleList::FindSharedModule(module_uuid);
 
@@ -143,9 +143,9 @@ Sections:
                                   nullptr, &first_did_create, false);
 
   if (first_error.Success() && first_module) {
-    UUID module_uuid = first_module->GetUUID();
+    
 
-    if (module_uuid.IsValid()) {
+    if (UUID module_uuid = first_module->GetUUID(); module_uuid.IsValid()) {
       // Now try to get a module with the same UUID but different path
       ModuleSpec second_spec;
       second_spec.GetFileSpec() = FileSpec("/different/path/to/module.so");
@@ -154,10 +154,10 @@ Sections:
 
       ModuleSP second_module;
       bool second_did_create = false;
-      Status second_error = ModuleList::GetSharedModule(
-          second_spec, second_module, nullptr, &second_did_create, false);
+      
 
-      if (second_error.Success() && second_module) {
+      if (Status second_error = ModuleList::GetSharedModule(
+          second_spec, second_module, nullptr, &second_did_create, false); second_error.Success() && second_module) {
         // If we got a module back, check if it's the same one
         bool is_same_module = (second_module.get() == first_module.get());
 

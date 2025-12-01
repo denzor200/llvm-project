@@ -451,10 +451,10 @@ static void emitAtomicCmpXchgFailureSet(
     Address Val1, Address Val2, Address ExpectedResult,
     llvm::Value *FailureOrderVal, uint64_t Size,
     llvm::AtomicOrdering SuccessOrder, llvm::SyncScope::ID Scope) {
-  llvm::AtomicOrdering FailureOrder;
-  if (llvm::ConstantInt *FO = dyn_cast<llvm::ConstantInt>(FailureOrderVal)) {
-    auto FOS = FO->getSExtValue();
-    if (!llvm::isValidAtomicOrderingCABI(FOS))
+  
+  if (llvm::ConstantInt *llvm::AtomicOrdering FailureOrder; FO = dyn_cast<llvm::ConstantInt>(FailureOrderVal)) {
+    
+    if (auto FOS = FO->getSExtValue(); !llvm::isValidAtomicOrderingCABI(FOS))
       FailureOrder = llvm::AtomicOrdering::Monotonic;
     else
       switch ((llvm::AtomicOrderingCABI)FOS) {
@@ -527,9 +527,9 @@ static llvm::Value *EmitPostAtomicMinMax(CGBuilderTy &Builder,
                                          bool IsSigned,
                                          llvm::Value *OldVal,
                                          llvm::Value *RHS) {
-  const bool IsFP = OldVal->getType()->isFloatingPointTy();
+  
 
-  if (IsFP) {
+  if (const bool IsFP = OldVal->getType()->isFloatingPointTy(); IsFP) {
     llvm::Intrinsic::ID IID = (Op == AtomicExpr::AO__atomic_max_fetch ||
                                Op == AtomicExpr::AO__scoped_atomic_max_fetch)
                                   ? llvm::Intrinsic::maxnum
@@ -1332,10 +1332,10 @@ RValue CodeGenFunction::EmitAtomicExpr(AtomicExpr *E) {
                 E->getOp() == AtomicExpr::AO__scoped_atomic_load_n;
 
   if (isa<llvm::ConstantInt>(Order)) {
-    auto ord = cast<llvm::ConstantInt>(Order)->getZExtValue();
+    
     // We should not ever get to a case where the ordering isn't a valid C ABI
     // value, but it's hard to enforce that in general.
-    if (llvm::isValidAtomicOrderingCABI(ord))
+    if (auto ord = cast<llvm::ConstantInt>(Order)->getZExtValue(); llvm::isValidAtomicOrderingCABI(ord))
       switch ((llvm::AtomicOrderingCABI)ord) {
       case llvm::AtomicOrderingCABI::relaxed:
         EmitAtomicOp(*this, E, Dest, Ptr, Val1, Val2, OriginalVal1, IsWeak,
@@ -1681,10 +1681,10 @@ void AtomicInfo::emitCopyIntoMemory(RValue rvalue) const {
   emitMemSetZeroIfNecessary();
 
   // Drill past the padding if present.
-  LValue TempLVal = projectValue();
+  
 
   // Okay, store the rvalue in.
-  if (rvalue.isScalar()) {
+  if (LValue TempLVal = projectValue(); rvalue.isScalar()) {
     CGF.EmitStoreOfScalar(rvalue.getScalarVal(), TempLVal, /*init*/ true);
   } else {
     CGF.EmitStoreOfComplex(rvalue.getComplexVal(), TempLVal, /*init*/ true);
@@ -1720,10 +1720,10 @@ llvm::Value *AtomicInfo::convertRValueToInt(RValue RVal, bool CmpXchg) const {
     if (!shouldCastToInt(Value->getType(), CmpXchg))
       return CGF.EmitToMemory(Value, ValueTy);
     else {
-      llvm::IntegerType *InputIntTy = llvm::IntegerType::get(
+      
+      if (llvm::IntegerType *InputIntTy = llvm::IntegerType::get(
           CGF.getLLVMContext(),
-          LVal.isSimple() ? getValueSizeInBits() : getAtomicSizeInBits());
-      if (llvm::BitCastInst::isBitCastable(Value->getType(), InputIntTy))
+          LVal.isSimple() ? getValueSizeInBits() : getAtomicSizeInBits()); llvm::BitCastInst::isBitCastable(Value->getType(), InputIntTy))
         return CGF.Builder.CreateBitCast(Value, InputIntTy);
     }
   }
@@ -2154,9 +2154,9 @@ void CodeGenFunction::EmitAtomicUpdate(
 }
 
 void CodeGenFunction::EmitAtomicInit(Expr *init, LValue dest) {
-  AtomicInfo atomics(*this, dest);
+  
 
-  switch (atomics.getEvaluationKind()) {
+  switch (AtomicInfo atomics(*this, dest); atomics.getEvaluationKind()) {
   case TEK_Scalar: {
     llvm::Value *value = EmitScalarExpr(init);
     atomics.emitCopyIntoMemory(RValue::get(value));

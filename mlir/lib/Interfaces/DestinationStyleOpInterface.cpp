@@ -49,8 +49,8 @@ LogicalResult detail::verifyDestinationStyleOpInterface(Operation *op) {
            << outputTensorOperands.size() << ")";
 
   for (OpOperand *opOperand : outputTensorOperands) {
-    OpResult result = dstStyleOp.getTiedOpResult(opOperand);
-    if (result.getType() != opOperand->get().getType())
+    
+    if (OpResult result = dstStyleOp.getTiedOpResult(opOperand); result.getType() != opOperand->get().getType())
       return op->emitOpError("expected type of operand #")
              << opOperand->getOperandNumber() << " ("
              << opOperand->get().getType() << ")"

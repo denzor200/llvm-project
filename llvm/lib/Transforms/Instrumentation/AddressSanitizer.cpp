@@ -650,8 +650,8 @@ void llvm::removeASanIncompatibleFnAttributes(Function &F, bool ReadsArgMem) {
   bool Changed = false;
   if (!F.doesNotAccessMemory()) {
     bool WritesMemory = !F.onlyReadsMemory();
-    bool ReadsMemory = !F.onlyWritesMemory();
-    if ((WritesMemory && !ReadsMemory) || F.onlyAccessesArgMemory()) {
+    
+    if (bool ReadsMemory = !F.onlyWritesMemory(); (WritesMemory && !ReadsMemory) || F.onlyAccessesArgMemory()) {
       F.removeFnAttr(Attribute::Memory);
       Changed = true;
     }
@@ -714,8 +714,8 @@ class RuntimeCallInserter {
 public:
   RuntimeCallInserter(Function &Fn) : OwnerFn(&Fn) {
     if (Fn.hasPersonalityFn()) {
-      auto Personality = classifyEHPersonality(Fn.getPersonalityFn());
-      if (isScopedEHPersonality(Personality))
+      
+      if (auto Personality = classifyEHPersonality(Fn.getPersonalityFn()); isScopedEHPersonality(Personality))
         TrackInsertedCalls = true;
     }
   }
@@ -1197,8 +1197,8 @@ struct FunctionStackPoisoner : public InstVisitor<FunctionStackPoisoner> {
   void visitAllocaInst(AllocaInst &AI) {
     // FIXME: Handle scalable vectors instead of ignoring them.
     const Type *AllocaType = AI.getAllocatedType();
-    const auto *STy = dyn_cast<StructType>(AllocaType);
-    if (!ASan.isInterestingAlloca(AI) || isa<ScalableVectorType>(AllocaType) ||
+    
+    if (const auto *STy = dyn_cast<StructType>(AllocaType); !ASan.isInterestingAlloca(AI) || isa<ScalableVectorType>(AllocaType) ||
         (STy && STy->containsHomogeneousScalableVectorTypes())) {
       if (AI.isStaticAlloca()) {
         // Skip over allocas that are present *before* the first instrumented
@@ -1372,9 +1372,9 @@ static bool GlobalWasGeneratedByCompiler(GlobalVariable *G) {
 
 static bool isUnsupportedAMDGPUAddrspace(Value *Addr) {
   Type *PtrTy = cast<PointerType>(Addr->getType()->getScalarType());
-  unsigned int AddrSpace = PtrTy->getPointerAddressSpace();
+  
   // Globals in address space 1 and 4 are supported for AMDGPU.
-  if (AddrSpace == 3 || AddrSpace == 5)
+  if (unsigned int AddrSpace = PtrTy->getPointerAddressSpace(); AddrSpace == 3 || AddrSpace == 5)
     return true;
   return false;
 }
@@ -1681,8 +1681,8 @@ static void doInstrumentAddress(AddressSanitizer *Pass, Instruction *I,
   // Instrument a 1-, 2-, 4-, 8-, or 16- byte access with one check
   // if the data is properly aligned.
   if (!TypeStoreSize.isScalable()) {
-    const auto FixedSize = TypeStoreSize.getFixedValue();
-    switch (FixedSize) {
+    
+    switch (const auto FixedSize = TypeStoreSize.getFixedValue(); FixedSize) {
     case 8:
     case 16:
     case 32:
@@ -1787,8 +1787,8 @@ void AddressSanitizer::instrumentMop(ObjectSizeOffsetVisitor &ObjSizeVis,
   if (ClOpt && ClOptGlobals) {
     // If initialization order checking is disabled, a simple access to a
     // dynamically initialized global is always valid.
-    GlobalVariable *G = dyn_cast<GlobalVariable>(getUnderlyingObject(Addr));
-    if (G && (!ClInitializers || GlobalIsLinkerInitialized(G)) &&
+    
+    if (GlobalVariable *G = dyn_cast<GlobalVariable>(getUnderlyingObject(Addr)); G && (!ClInitializers || GlobalIsLinkerInitialized(G)) &&
         isSafeAccess(ObjSizeVis, Addr, O.TypeStoreSize)) {
       NumOptimizedAccessesToGlobalVar++;
       return;
@@ -1815,10 +1815,10 @@ void AddressSanitizer::instrumentMop(ObjectSizeOffsetVisitor &ObjSizeVis,
 
     Value *OffsetOp = O.MaybeByteOffset;
     if (TargetTriple.isRISCV()) {
-      Type *OffsetTy = OffsetOp->getType();
+      
       // RVV indexed loads/stores zero-extend offset operands which are narrower
       // than XLEN to XLEN.
-      if (OffsetTy->getScalarType()->getIntegerBitWidth() <
+      if (Type *OffsetTy = OffsetOp->getType(); OffsetTy->getScalarType()->getIntegerBitWidth() <
           static_cast<unsigned>(LongSize)) {
         VectorType *OrigType = cast<VectorType>(OffsetTy);
         Type *ExtendTy = VectorType::get(IntptrTy, OrigType);
@@ -1894,9 +1894,9 @@ Instruction *AddressSanitizer::instrumentAMDGPUAddress(
   // Do not instrument unsupported addrspaces.
   if (isUnsupportedAMDGPUAddrspace(Addr))
     return nullptr;
-  Type *PtrTy = cast<PointerType>(Addr->getType()->getScalarType());
+  
   // Follow host instrumentation for global and constant addresses.
-  if (PtrTy->getPointerAddressSpace() != 0)
+  if (Type *PtrTy = cast<PointerType>(Addr->getType()->getScalarType()); PtrTy->getPointerAddressSpace() != 0)
     return InsertBefore;
   // Instrument generic addresses in supported addressspaces.
   IRBuilder<> IRB(InsertBefore);
@@ -2000,8 +2000,8 @@ void AddressSanitizer::instrumentAddress(Instruction *OrigIns,
     assert(cast<BranchInst>(CheckTerm)->isUnconditional());
     BasicBlock *NextBB = CheckTerm->getSuccessor(0);
     IRB.SetInsertPoint(CheckTerm);
-    Value *Cmp2 = createSlowPathCmp(IRB, AddrLong, ShadowValue, TypeStoreSize);
-    if (Recover) {
+    
+    if (Value *Cmp2 = createSlowPathCmp(IRB, AddrLong, ShadowValue, TypeStoreSize); Recover) {
       CrashTerm = SplitBlockAndInsertIfThen(Cmp2, CheckTerm, false);
     } else {
       BasicBlock *CrashBlock =
@@ -2080,14 +2080,14 @@ void ModuleAddressSanitizer::createInitializerPoisonCalls() {
 
   for (Use &OP : CA->operands()) {
     if (isa<ConstantAggregateZero>(OP)) continue;
-    ConstantStruct *CS = cast<ConstantStruct>(OP);
+    
 
     // Must have a function or null ptr.
-    if (Function *F = dyn_cast<Function>(CS->getOperand(1))) {
+    if (Function *ConstantStruct *CS = cast<ConstantStruct>(OP); F = dyn_cast<Function>(CS->getOperand(1))) {
       if (F->getName() == kAsanModuleCtorName) continue;
-      auto *Priority = cast<ConstantInt>(CS->getOperand(0));
+      
       // Don't instrument CTORs that will run before asan.module_ctor.
-      if (Priority->getLimitedValue() <= GetCtorAndDtorPriority(TargetTriple))
+      if (auto *Priority = cast<ConstantInt>(CS->getOperand(0)); Priority->getLimitedValue() <= GetCtorAndDtorPriority(TargetTriple))
         continue;
       poisonOneInitializer(*F);
     }
@@ -2102,11 +2102,11 @@ ModuleAddressSanitizer::getExcludedAliasedGlobal(const GlobalAlias &GA) const {
   // should also apply to user space.
   assert(CompileKernel && "Only expecting to be called when compiling kernel");
 
-  const Constant *C = GA.getAliasee();
+  
 
   // When compiling the kernel, globals that are aliased by symbols prefixed
   // by "__" are special and cannot be padded with a redzone.
-  if (GA.getName().starts_with("__"))
+  if (const Constant *C = GA.getAliasee(); GA.getName().starts_with("__"))
     return dyn_cast<GlobalVariable>(C->stripPointerCastsAndAliases());
 
   return nullptr;
@@ -2326,8 +2326,8 @@ void ModuleAddressSanitizer::initializeCallbacks() {
 void ModuleAddressSanitizer::SetComdatForGlobalMetadata(
     GlobalVariable *G, GlobalVariable *Metadata, StringRef InternalSuffix) {
   Module &M = *G->getParent();
-  Comdat *C = G->getComdat();
-  if (!C) {
+  
+  if (Comdat *C = G->getComdat(); !C) {
     if (!G->hasName()) {
       // If G is unnamed, it must be internal. Give it an artificial name
       // so we can put it in a comdat.
@@ -2664,8 +2664,8 @@ void ModuleAddressSanitizer::instrumentGlobals(IRBuilder<> &IRB,
     // Move null-terminated C strings to "__asan_cstring" section on Darwin.
     if (TargetTriple.isOSBinFormatMachO() && !G->hasSection() &&
         G->isConstant()) {
-      auto Seq = dyn_cast<ConstantDataSequential>(G->getInitializer());
-      if (Seq && Seq->isCString())
+      
+      if (auto Seq = dyn_cast<ConstantDataSequential>(G->getInitializer()); Seq && Seq->isCString())
         NewGlobal->setSection("__TEXT,__asan_cstring,regular");
     }
 
@@ -3011,8 +3011,8 @@ void AddressSanitizer::markEscapedLocalAllocas(Function &F) {
   // Look for a call to llvm.localescape call in the entry block. It can't be in
   // any other block.
   for (Instruction &I : F.getEntryBlock()) {
-    IntrinsicInst *II = dyn_cast<IntrinsicInst>(&I);
-    if (II && II->getIntrinsicID() == Intrinsic::localescape) {
+    
+    if (IntrinsicInst *II = dyn_cast<IntrinsicInst>(&I); II && II->getIntrinsicID() == Intrinsic::localescape) {
       // We found a call. Mark all the allocas passed in as uninteresting.
       for (Value *Arg : II->args()) {
         AllocaInst *AI = dyn_cast<AllocaInst>(Arg->stripPointerCasts());
@@ -3112,11 +3112,11 @@ bool AddressSanitizer::instrumentFunction(Function &F,
       if (!InterestingOperands.empty()) {
         for (auto &Operand : InterestingOperands) {
           if (ClOpt && ClOptSameTemp) {
-            Value *Ptr = Operand.getPtr();
+            
             // If we have a mask, skip instrumentation if we've already
             // instrumented the full object. But don't add to TempsToInstrument
             // because we might get another load/store with a different mask.
-            if (Operand.MaybeMask) {
+            if (Value *Ptr = Operand.getPtr(); Operand.MaybeMask) {
               if (TempsToInstrument.count(Ptr))
                 continue; // We've seen this (whole) temp in the current BB.
             } else {
@@ -3465,8 +3465,8 @@ static void findStoresToUninstrumentedArgAllocas(
       // The store destination must be an alloca that isn't interesting for
       // ASan to instrument. These are moved up before InsBefore, and they're
       // not interesting because allocas for arguments can be mem2reg'd.
-      auto *Alloca = dyn_cast<AllocaInst>(Store->getPointerOperand());
-      if (!Alloca || ASan.isInterestingAlloca(*Alloca))
+      
+      if (auto *Alloca = dyn_cast<AllocaInst>(Store->getPointerOperand()); !Alloca || ASan.isInterestingAlloca(*Alloca))
         continue;
 
       Value *Val = Store->getValueOperand();
@@ -3506,9 +3506,9 @@ static StringRef getAllocaName(AllocaInst *AI) {
       for (unsigned Index = 0; Index < AnnotationTuple->getNumOperands();
            Index++) {
         // All annotations are strings
-        auto MetadataString =
-            cast<MDString>(AnnotationTuple->getOperand(Index));
-        if (MetadataString->getString() == "alloca_name_altered")
+        
+        if (auto MetadataString =
+            cast<MDString>(AnnotationTuple->getOperand(Index)); MetadataString->getString() == "alloca_name_altered")
           return cast<MDString>(AnnotationTuple->getOperand(Index + 1))
               ->getString();
       }
@@ -3740,8 +3740,8 @@ void FunctionStackPoisoner::processStaticAllocas() {
   // Remove lifetime markers now that these are no longer allocas.
   for (Value *NewAllocaPtr : NewAllocaPtrs) {
     for (User *U : make_early_inc_range(NewAllocaPtr->users())) {
-      auto *I = cast<Instruction>(U);
-      if (I->isLifetimeStartOrEnd())
+      
+      if (auto *I = cast<Instruction>(U); I->isLifetimeStartOrEnd())
         I->eraseFromParent();
     }
   }
@@ -3882,8 +3882,8 @@ void FunctionStackPoisoner::handleDynamicAllocaCall(AllocaInst *AI) {
 
   // Remove lifetime markers now that this is no longer an alloca.
   for (User *U : make_early_inc_range(AI->users())) {
-    auto *I = cast<Instruction>(U);
-    if (I->isLifetimeStartOrEnd())
+    
+    if (auto *I = cast<Instruction>(U); I->isLifetimeStartOrEnd())
       I->eraseFromParent();
   }
 

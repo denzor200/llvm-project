@@ -94,9 +94,9 @@ private:
     for (auto &Ref : RefList) {
       uint32_t Offset = Ref.Offset;
       ArrayRef<uint8_t> Loc = RecordData.drop_front(Offset);
-      ArrayRef<TypeIndex> Indices(
-          reinterpret_cast<const TypeIndex *>(Loc.data()), Ref.Count);
-      if (llvm::is_contained(Indices, TI))
+      
+      if (ArrayRef<TypeIndex> Indices(
+          reinterpret_cast<const TypeIndex *>(Loc.data()), Ref.Count); llvm::is_contained(Indices, TI))
         return true;
     }
     return false;

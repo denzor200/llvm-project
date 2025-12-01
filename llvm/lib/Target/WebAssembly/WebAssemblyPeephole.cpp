@@ -92,8 +92,8 @@ static bool maybeRewriteToFallthrough(MachineInstr &MI, MachineBasicBlock &MBB,
   for (auto &MO : MI.explicit_operands()) {
     // If the operand isn't stackified, insert a COPY to read the operands and
     // stackify them.
-    Register Reg = MO.getReg();
-    if (!MFI.isVRegStackified(Reg)) {
+    
+    if (Register Reg = MO.getReg(); !MFI.isVRegStackified(Reg)) {
       unsigned CopyLocalOpc;
       const TargetRegisterClass *RegClass = MRI.getRegClass(Reg);
       CopyLocalOpc = WebAssembly::getCopyOpcodeForRegClass(RegClass);
@@ -130,14 +130,14 @@ bool WebAssemblyPeephole::runOnMachineFunction(MachineFunction &MF) {
       default:
         break;
       case WebAssembly::CALL: {
-        MachineOperand &Op1 = MI.getOperand(1);
-        if (Op1.isSymbol()) {
-          StringRef Name(Op1.getSymbolName());
-          if (Name == TLI.getLibcallName(RTLIB::MEMCPY) ||
+        
+        if (MachineOperand &Op1 = MI.getOperand(1); Op1.isSymbol()) {
+          
+          if (StringRef Name(Op1.getSymbolName()); Name == TLI.getLibcallName(RTLIB::MEMCPY) ||
               Name == TLI.getLibcallName(RTLIB::MEMMOVE) ||
               Name == TLI.getLibcallName(RTLIB::MEMSET)) {
-            LibFunc Func;
-            if (LibInfo.getLibFunc(Name, Func)) {
+            
+            if (LibFunc Func; LibInfo.getLibFunc(Name, Func)) {
               const auto &Op2 = MI.getOperand(2);
               if (!Op2.isReg())
                 report_fatal_error("Peephole: call to builtin function with "

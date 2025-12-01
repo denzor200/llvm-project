@@ -181,9 +181,9 @@ compareNode(uint32_t Offset, StringRef Name, bool Strict,
             const Node *Parent = nullptr) {
   Node N = readNode(Offset, Parent);
   std::size_t Consummed = 0;
-  bool DoesStartWith = N.IsRoot || startsWith(Name, N.Name, Strict, Consummed,
-                                              PreviousCharInName);
-  if (!DoesStartWith)
+  
+  if (bool DoesStartWith = N.IsRoot || startsWith(Name, N.Name, Strict, Consummed,
+                                              PreviousCharInName); !DoesStartWith)
     return std::make_tuple(N, false, 0);
 
   if (Name.size() - Consummed == 0 && N.Value != 0xFFFFFFFF)
@@ -288,9 +288,9 @@ nameToHangulCodePoint(StringRef Name, bool Strict, BufferType &Buffer) {
   // Hangul Syllable Decomposition
   std::size_t Consummed = 0;
   char NameStart = 0;
-  bool DoesStartWith =
-      startsWith(Name, "HANGUL SYLLABLE ", Strict, Consummed, NameStart);
-  if (!DoesStartWith)
+  
+  if (bool DoesStartWith =
+      startsWith(Name, "HANGUL SYLLABLE ", Strict, Consummed, NameStart); !DoesStartWith)
     return std::nullopt;
   Name = Name.substr(Consummed);
   int L = -1, V = -1, T = -1;
@@ -347,9 +347,9 @@ nameToGeneratedCodePoint(StringRef Name, bool Strict, BufferType &Buffer) {
     Buffer.clear();
     std::size_t Consummed = 0;
     char NameStart = 0;
-    bool DoesStartWith = startsWith(Name, Item.Prefix, Strict, Consummed,
-                                    NameStart, /*IsPrefix=*/true);
-    if (!DoesStartWith)
+    
+    if (bool DoesStartWith = startsWith(Name, Item.Prefix, Strict, Consummed,
+                                    NameStart, /*IsPrefix=*/true); !DoesStartWith)
       continue;
     auto Number = Name.substr(Consummed);
     unsigned long long V = 0;
@@ -517,8 +517,8 @@ nearestMatchesForCodepointName(StringRef Pattern, std::size_t MaxMatchesCount) {
       Row++;
     }
 
-    unsigned Cost = Get(Columns - 1, Row - 1);
-    if (N.Value != 0xFFFFFFFF) {
+    
+    if (unsigned Cost = Get(Columns - 1, Row - 1); N.Value != 0xFFFFFFFF) {
       Insert(N, Cost, N.Value);
     }
 

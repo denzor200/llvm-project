@@ -158,8 +158,8 @@ DirectoryScanner::scanMultipleFrameworks(StringRef Directory,
     if (isFramework(Curr)) {
       if (!FM.getOptionalDirectoryRef(Curr))
         continue;
-      Library &Framework = getOrCreateLibrary(Curr, Libs);
-      if (Error Err = scanFrameworkDirectory(Curr, Framework))
+      
+      if (Error Library &Framework = getOrCreateLibrary(Curr, Libs); Err = scanFrameworkDirectory(Curr, Framework))
         return Err;
     }
   }
@@ -281,8 +281,8 @@ llvm::Error DirectoryScanner::scanForFrameworks(StringRef Directory) {
 
   // Check if the directory is already a framework.
   if (isFramework(Directory)) {
-    Library &Framework = getOrCreateLibrary(Directory, Libraries);
-    if (Error Err = scanFrameworkDirectory(Directory, Framework))
+    
+    if (Error Library &Framework = getOrCreateLibrary(Directory, Libraries); Err = scanFrameworkDirectory(Directory, Framework))
       return Err;
     return Error::success();
   }

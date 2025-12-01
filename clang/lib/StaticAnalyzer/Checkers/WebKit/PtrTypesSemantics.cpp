@@ -26,8 +26,8 @@ bool hasPublicMethodInBaseClass(const CXXRecordDecl *R, StringRef NameToMatch) {
   assert(R->hasDefinition());
 
   for (const CXXMethodDecl *MD : R->methods()) {
-    const auto MethodName = safeGetName(MD);
-    if (MethodName == NameToMatch && MD->getAccess() == AS_public)
+    
+    if (const auto MethodName = safeGetName(MD); MethodName == NameToMatch && MD->getAccess() == AS_public)
       return true;
   }
   return false;
@@ -49,8 +49,8 @@ hasPublicMethodInBase(const CXXBaseSpecifier *Base, StringRef NameToMatch) {
   if (!R) {
     auto CT = Base->getType().getCanonicalType();
     if (auto *TST = dyn_cast<TemplateSpecializationType>(CT)) {
-      auto TmplName = TST->getTemplateName();
-      if (!TmplName.isNull()) {
+      
+      if (auto TmplName = TST->getTemplateName(); !TmplName.isNull()) {
         if (auto *TD = TmplName.getAsTemplateDecl())
           R = dyn_cast_or_null<CXXRecordDecl>(TD->getTemplatedDecl());
       }
@@ -513,8 +513,8 @@ class TrivialFunctionAnalysisVisitor
 
   template <typename StmtOrDecl, typename CheckFunction>
   bool WithCachedResult(const StmtOrDecl *S, CheckFunction Function) {
-    auto CacheIt = Cache.find(S);
-    if (CacheIt != Cache.end())
+    
+    if (auto CacheIt = Cache.find(S); CacheIt != Cache.end())
       return CacheIt->second;
 
     // Treat a recursive statement to be trivial until proven otherwise.
@@ -703,8 +703,8 @@ public:
     if (!checkArguments(MCE))
       return false;
 
-    bool TrivialThis = Visit(MCE->getImplicitObjectArgument());
-    if (!TrivialThis)
+    
+    if (bool TrivialThis = Visit(MCE->getImplicitObjectArgument()); !TrivialThis)
       return false;
 
     auto *Callee = MCE->getMethodDecl();

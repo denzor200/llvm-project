@@ -402,8 +402,8 @@ void SIRegisterInfo::reserveRegisterTuples(BitVector &Reserved,
 // Forced to be here by one .inc
 const MCPhysReg *SIRegisterInfo::getCalleeSavedRegs(
   const MachineFunction *MF) const {
-  CallingConv::ID CC = MF->getFunction().getCallingConv();
-  switch (CC) {
+  
+  switch (CallingConv::ID CC = MF->getFunction().getCallingConv(); CC) {
   case CallingConv::C:
   case CallingConv::Fast:
   case CallingConv::Cold:
@@ -640,8 +640,8 @@ BitVector SIRegisterInfo::getReservedRegs(const MachineFunction &MF) const {
     if (RC->isBaseClass() && isSGPRClass(RC)) {
       unsigned NumRegs = divideCeil(getRegSizeInBits(*RC), 32);
       for (MCPhysReg Reg : *RC) {
-        unsigned Index = getHWRegIndex(Reg);
-        if (Index + NumRegs > MaxNumSGPRs && Index < TotalNumSGPRs)
+        
+        if (unsigned Index = getHWRegIndex(Reg); Index + NumRegs > MaxNumSGPRs && Index < TotalNumSGPRs)
           Reserved.set(Reg);
       }
     }
@@ -694,8 +694,8 @@ BitVector SIRegisterInfo::getReservedRegs(const MachineFunction &MF) const {
     if (RC->isBaseClass() && isVGPRClass(RC)) {
       unsigned NumRegs = divideCeil(getRegSizeInBits(*RC), 32);
       for (MCPhysReg Reg : *RC) {
-        unsigned Index = getHWRegIndex(Reg);
-        if (Index + NumRegs > MaxNumVGPRs)
+        
+        if (unsigned Index = getHWRegIndex(Reg); Index + NumRegs > MaxNumVGPRs)
           Reserved.set(Reg);
       }
     }
@@ -708,8 +708,8 @@ BitVector SIRegisterInfo::getReservedRegs(const MachineFunction &MF) const {
     if (RC->isBaseClass() && isAGPRClass(RC)) {
       unsigned NumRegs = divideCeil(getRegSizeInBits(*RC), 32);
       for (MCPhysReg Reg : *RC) {
-        unsigned Index = getHWRegIndex(Reg);
-        if (Index + NumRegs > MaxNumAGPRs)
+        
+        if (unsigned Index = getHWRegIndex(Reg); Index + NumRegs > MaxNumAGPRs)
           Reserved.set(Reg);
       }
     }
@@ -752,21 +752,21 @@ bool SIRegisterInfo::isAsmClobberable(const MachineFunction &MF,
 }
 
 bool SIRegisterInfo::shouldRealignStack(const MachineFunction &MF) const {
-  const SIMachineFunctionInfo *Info = MF.getInfo<SIMachineFunctionInfo>();
+  
   // On entry or in chain functions, the base address is 0, so it can't possibly
   // need any more alignment.
 
   // FIXME: Should be able to specify the entry frame alignment per calling
   // convention instead.
-  if (Info->isBottomOfStack())
+  if (const SIMachineFunctionInfo *Info = MF.getInfo<SIMachineFunctionInfo>(); Info->isBottomOfStack())
     return false;
 
   return TargetRegisterInfo::shouldRealignStack(MF);
 }
 
 bool SIRegisterInfo::requiresRegisterScavenging(const MachineFunction &Fn) const {
-  const SIMachineFunctionInfo *Info = Fn.getInfo<SIMachineFunctionInfo>();
-  if (Info->isEntryFunction()) {
+  
+  if (const SIMachineFunctionInfo *Info = Fn.getInfo<SIMachineFunctionInfo>(); Info->isEntryFunction()) {
     const MachineFrameInfo &MFI = Fn.getFrameInfo();
     return MFI.hasStackObjects() || MFI.hasCalls();
   }
@@ -1127,8 +1127,8 @@ SIRegisterInfo::getCrossCopyRegClass(const TargetRegisterClass *RC) const {
 static unsigned getNumSubRegsForSpillOp(const MachineInstr &MI,
                                         const SIInstrInfo *TII) {
 
-  unsigned Op = MI.getOpcode();
-  switch (Op) {
+  
+  switch (unsigned Op = MI.getOpcode(); Op) {
   case AMDGPU::SI_BLOCK_SPILL_V1024_SAVE:
   case AMDGPU::SI_BLOCK_SPILL_V1024_RESTORE:
     // FIXME: This assumes the mask is statically known and not computed at
@@ -2893,8 +2893,8 @@ bool SIRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator MI,
 
         MachineOperand *OffsetOp =
             TII->getNamedOperand(*MI, AMDGPU::OpName::offset);
-        int64_t NewOffset = Offset + OffsetOp->getImm();
-        if (TII->isLegalFLATOffset(NewOffset, AMDGPUAS::PRIVATE_ADDRESS,
+        
+        if (int64_t NewOffset = Offset + OffsetOp->getImm(); TII->isLegalFLATOffset(NewOffset, AMDGPUAS::PRIVATE_ADDRESS,
                                    SIInstrFlags::FlatScratch)) {
           OffsetOp->setImm(NewOffset);
           if (FrameReg)
@@ -3061,8 +3061,8 @@ bool SIRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator MI,
           IsCopy ? MI->getOperand(0).getReg()
                  : RS->scavengeRegisterBackwards(*RC, MI, false, 0);
 
-      int64_t Offset = FrameInfo.getObjectOffset(Index);
-      if (Offset == 0) {
+      
+      if (int64_t Offset = FrameInfo.getObjectOffset(Index); Offset == 0) {
         unsigned OpCode =
             IsSALU && !LiveSCC ? AMDGPU::S_LSHR_B32 : AMDGPU::V_LSHRREV_B32_e64;
         Register TmpResultReg = ResultReg;
@@ -3106,10 +3106,10 @@ bool SIRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator MI,
                 .addImm(ST.getWavefrontSizeLog2())
                 .addReg(FrameReg);
 
-            const bool IsVOP2 = MIB->getOpcode() == AMDGPU::V_ADD_U32_e32;
+            
 
             // TODO: Fold if use instruction is another add of a constant.
-            if (IsVOP2 ||
+            if (const bool IsVOP2 = MIB->getOpcode() == AMDGPU::V_ADD_U32_e32; IsVOP2 ||
                 AMDGPU::isInlinableLiteral32(Offset, ST.hasInv2PiInlineImm())) {
               // FIXME: This can fail
               MIB.addImm(Offset);
@@ -3266,9 +3266,9 @@ bool SIRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator MI,
       int64_t Offset = FrameInfo.getObjectOffset(Index);
       int64_t OldImm =
           TII->getNamedOperand(*MI, AMDGPU::OpName::offset)->getImm();
-      int64_t NewOffset = OldImm + Offset;
+      
 
-      if (TII->isLegalMUBUFImmOffset(NewOffset) &&
+      if (int64_t NewOffset = OldImm + Offset; TII->isLegalMUBUFImmOffset(NewOffset) &&
           buildMUBUFOffsetLoadStore(ST, FrameInfo, MI, Index, NewOffset)) {
         MI->eraseFromParent();
         return true;
@@ -3789,9 +3789,9 @@ unsigned SIRegisterInfo::getRegPressureSetLimit(const MachineFunction &MF,
 }
 
 const int *SIRegisterInfo::getRegUnitPressureSets(MCRegUnit RegUnit) const {
-  static const int Empty[] = { -1 };
+  
 
-  if (RegPressureIgnoredUnits[static_cast<unsigned>(RegUnit)])
+  if (static const int Empty[] = { -1 }; RegPressureIgnoredUnits[static_cast<unsigned>(RegUnit)])
     return Empty;
 
   return AMDGPUGenRegisterInfo::getRegUnitPressureSets(RegUnit);
@@ -3807,9 +3807,9 @@ bool SIRegisterInfo::getRegAllocationHints(Register VirtReg,
   const MachineRegisterInfo &MRI = MF.getRegInfo();
   const SIRegisterInfo *TRI = ST.getRegisterInfo();
 
-  std::pair<unsigned, Register> Hint = MRI.getRegAllocationHint(VirtReg);
+  
 
-  switch (Hint.first) {
+  switch (std::pair<unsigned, Register> Hint = MRI.getRegAllocationHint(VirtReg); Hint.first) {
   case AMDGPURI::Size32: {
     Register Paired = Hint.second;
     assert(Paired);
@@ -3947,8 +3947,8 @@ MachineInstr *SIRegisterInfo::findReachingDef(Register Reg, unsigned SubReg,
   } else {
     // Find last def.
     for (MCRegUnit Unit : regunits(Reg.asMCReg())) {
-      LiveRange &LR = LIS->getRegUnit(Unit);
-      if (VNInfo *V = LR.getVNInfoAt(UseIdx)) {
+      
+      if (VNInfo *LiveRange &LR = LIS->getRegUnit(Unit); V = LR.getVNInfoAt(UseIdx)) {
         if (!DefIdx.isValid() ||
             MDT.dominates(LIS->getInstructionFromIndex(DefIdx),
                           LIS->getInstructionFromIndex(V->def)))
@@ -4052,8 +4052,8 @@ SmallVector<StringLiteral>
 SIRegisterInfo::getVRegFlagsOfReg(Register Reg,
                                   const MachineFunction &MF) const {
   SmallVector<StringLiteral> RegFlags;
-  const SIMachineFunctionInfo *FuncInfo = MF.getInfo<SIMachineFunctionInfo>();
-  if (FuncInfo->checkFlag(Reg, AMDGPU::VirtRegFlag::WWM_REG))
+  
+  if (const SIMachineFunctionInfo *FuncInfo = MF.getInfo<SIMachineFunctionInfo>(); FuncInfo->checkFlag(Reg, AMDGPU::VirtRegFlag::WWM_REG))
     RegFlags.push_back("WWM_REG");
   return RegFlags;
 }

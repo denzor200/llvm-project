@@ -162,9 +162,9 @@ private:
         auto referenceOrder = referenceUseListOrder.at(valueID++);
         for (auto [use, referenceID] :
              llvm::zip(val.getUses(), referenceOrder)) {
-          uint64_t uniqueID =
-              bytecode::getUseID(use, opNumbering.at(use.getOwner()));
-          if (uniqueID != referenceID) {
+          
+          if (uint64_t uniqueID =
+              bytecode::getUseID(use, opNumbering.at(use.getOwner())); uniqueID != referenceID) {
             use.getOwner()->emitError()
                 << "found use-list order mismatch for value: " << val;
             return failure();
@@ -181,13 +181,13 @@ private:
   /// operands/results respectively.
   template <typename FuncT>
   LogicalResult walkOverValues(Operation *topLevelOp, FuncT callable) {
-    auto blockWalk = topLevelOp->walk([&](Block *block) {
+    
+
+    if (auto blockWalk = topLevelOp->walk([&](Block *block) {
       if (failed(callable(block->getArguments())))
         return WalkResult::interrupt();
       return WalkResult::advance();
-    });
-
-    if (blockWalk.wasInterrupted())
+    }); blockWalk.wasInterrupted())
       return failure();
 
     auto resultsWalk = topLevelOp->walk([&](Operation *op) {

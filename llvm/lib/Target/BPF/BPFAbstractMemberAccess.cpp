@@ -204,8 +204,8 @@ bool BPFAbstractMemberAccess::run(Function &F) {
   // and remember (anon record -> typedef) relations where the
   // anon record is defined as
   //   typedef [const/volatile/restrict]* [anon record]
-  DISubprogram *SP = F.getSubprogram();
-  if (SP && SP->isDefinition()) {
+  
+  if (DISubprogram *SP = F.getSubprogram(); SP && SP->isDefinition()) {
     for (DIType *Ty: SP->getType()->getTypeArray())
       CheckAnonRecordType(nullptr, Ty);
     for (const DINode *DN : SP->getRetainedNodes()) {
@@ -220,8 +220,8 @@ bool BPFAbstractMemberAccess::run(Function &F) {
 
 void BPFAbstractMemberAccess::ResetMetadata(struct CallInfo &CInfo) {
   if (auto Ty = dyn_cast<DICompositeType>(CInfo.Metadata)) {
-    auto It = AnonRecords.find(Ty);
-    if (It != AnonRecords.end() && It->second != nullptr)
+    
+    if (auto It = AnonRecords.find(Ty); It != AnonRecords.end() && It->second != nullptr)
       CInfo.Metadata = It->second;
   }
 }
@@ -232,11 +232,11 @@ void BPFAbstractMemberAccess::CheckCompositeType(DIDerivedType *ParentTy,
       ParentTy->getTag() != dwarf::DW_TAG_typedef)
     return;
 
-  auto [It, Inserted] = AnonRecords.try_emplace(CTy, ParentTy);
+  
   // Two or more typedef's may point to the same anon record.
   // If this is the case, set the typedef DIType to be nullptr
   // to indicate the duplication case.
-  if (!Inserted && It->second != ParentTy)
+  if (auto [It, Inserted] = AnonRecords.try_emplace(CTy, ParentTy); !Inserted && It->second != ParentTy)
     It->second = nullptr;
 }
 
@@ -540,9 +540,9 @@ void BPFAbstractMemberAccess::traceAICall(CallInst *Call,
     if (auto *BI = dyn_cast<BitCastInst>(Inst)) {
       traceBitCast(BI, Call, ParentInfo);
     } else if (auto *CI = dyn_cast<CallInst>(Inst)) {
-      CallInfo ChildInfo;
+      
 
-      if (IsPreserveDIAccessIndexCall(CI, ChildInfo) &&
+      if (CallInfo ChildInfo; IsPreserveDIAccessIndexCall(CI, ChildInfo) &&
           IsValidAIChain(ParentInfo.Metadata, ParentInfo.AccessIndex,
                          ChildInfo.Metadata)) {
         AIChain[CI] = std::make_pair(Call, ParentInfo);
@@ -572,8 +572,8 @@ void BPFAbstractMemberAccess::traceBitCast(BitCastInst *BitCast,
     if (auto *BI = dyn_cast<BitCastInst>(Inst)) {
       traceBitCast(BI, Parent, ParentInfo);
     } else if (auto *CI = dyn_cast<CallInst>(Inst)) {
-      CallInfo ChildInfo;
-      if (IsPreserveDIAccessIndexCall(CI, ChildInfo) &&
+      
+      if (CallInfo ChildInfo; IsPreserveDIAccessIndexCall(CI, ChildInfo) &&
           IsValidAIChain(ParentInfo.Metadata, ParentInfo.AccessIndex,
                          ChildInfo.Metadata)) {
         AIChain[CI] = std::make_pair(Parent, ParentInfo);
@@ -602,8 +602,8 @@ void BPFAbstractMemberAccess::traceGEP(GetElementPtrInst *GEP, CallInst *Parent,
     if (auto *BI = dyn_cast<BitCastInst>(Inst)) {
       traceBitCast(BI, Parent, ParentInfo);
     } else if (auto *CI = dyn_cast<CallInst>(Inst)) {
-      CallInfo ChildInfo;
-      if (IsPreserveDIAccessIndexCall(CI, ChildInfo) &&
+      
+      if (CallInfo ChildInfo; IsPreserveDIAccessIndexCall(CI, ChildInfo) &&
           IsValidAIChain(ParentInfo.Metadata, ParentInfo.AccessIndex,
                          ChildInfo.Metadata)) {
         AIChain[CI] = std::make_pair(Parent, ParentInfo);
@@ -949,8 +949,8 @@ Value *BPFAbstractMemberAccess::computeBaseAndAccessKey(CallInst *Call,
     // the action will be extracting field info.
     if (CallStack.size()) {
       auto StackElem2 = CallStack.top();
-      CallInfo CInfo2 = StackElem2.second;
-      if (CInfo2.Kind == BPFPreserveFieldInfoAI) {
+      
+      if (CallInfo CInfo2 = StackElem2.second; CInfo2.Kind == BPFPreserveFieldInfoAI) {
         InfoKind = CInfo2.AccessIndex;
         assert(CallStack.size() == 1);
       }
@@ -1019,8 +1019,8 @@ MDNode *BPFAbstractMemberAccess::computeAccessKey(CallInst *Call,
     assert(CTy->getTag() == dwarf::DW_TAG_enumeration_type);
     int EnumIndex = 0;
     for (const auto Element : CTy->getElements()) {
-      const auto *Enum = cast<DIEnumerator>(Element);
-      if (Enum->getName() == EnumeratorStr) {
+      
+      if (const auto *Enum = cast<DIEnumerator>(Element); Enum->getName() == EnumeratorStr) {
         AccessStr = std::to_string(EnumIndex);
         break;
       }

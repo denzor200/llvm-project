@@ -354,9 +354,9 @@ int ELFNixPlatformRuntimeState::registerAtExit(void (*F)(void *), void *Arg,
 
 void ELFNixPlatformRuntimeState::runAtExits(void *DSOHandle) {
   std::unique_lock<std::recursive_mutex> Lock(JDStatesMutex);
-  PerJITDylibState *JDS = getJITDylibStateByHeaderAddr(DSOHandle);
+  
 
-  if (JDS)
+  if (PerJITDylibState *JDS = getJITDylibStateByHeaderAddr(DSOHandle); JDS)
     runAtExits(Lock, *JDS);
 }
 
@@ -412,8 +412,8 @@ Error ELFNixPlatformRuntimeState::registerThreadDataSection(
   std::lock_guard<std::mutex> Lock(ThreadDataSectionsMutex);
   auto I = ThreadDataSections.upper_bound(ThreadDataSection.data());
   if (I != ThreadDataSections.begin()) {
-    auto J = std::prev(I);
-    if (J->first + J->second > ThreadDataSection.data())
+    
+    if (auto J = std::prev(I); J->first + J->second > ThreadDataSection.data())
       return make_error<StringError>("Overlapping .tdata sections");
   }
   ThreadDataSections.insert(

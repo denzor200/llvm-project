@@ -81,8 +81,8 @@ void CriticalAntiDepBreaker::StartBlock(MachineBasicBlock *BB) {
   BitVector Pristine = MFI.getPristineRegs(MF);
   for (const MCPhysReg *I = MF.getRegInfo().getCalleeSavedRegs(); *I;
        ++I) {
-    unsigned Reg = *I;
-    if (!IsReturnBlock && !Pristine.test(Reg))
+    
+    if (unsigned Reg = *I; !IsReturnBlock && !Pristine.test(Reg))
       continue;
     for (MCRegAliasIterator AI(*I, TRI, true); AI.isValid(); ++AI) {
       MCRegister Reg = *AI;
@@ -144,10 +144,10 @@ static const SDep *CriticalPathStep(const SUnit *SU) {
   for (const SDep &P : SU->Preds) {
     const SUnit *PredSU = P.getSUnit();
     unsigned PredLatency = P.getLatency();
-    unsigned PredTotalLatency = PredSU->getDepth() + PredLatency;
+    
     // In the case of a latency tie, prefer an anti-dependency edge over
     // other types of edges.
-    if (NextDepth < PredTotalLatency ||
+    if (unsigned PredTotalLatency = PredSU->getDepth() + PredLatency; NextDepth < PredTotalLatency ||
         (NextDepth == PredTotalLatency && P.getKind() == SDep::Anti)) {
       NextDepth = PredTotalLatency;
       Next = &P;
@@ -330,8 +330,8 @@ void CriticalAntiDepBreaker::ScanInstruction(MachineInstr &MI, unsigned Count) {
     // It wasn't previously live but now it is, this is a kill.
     // Repeat for all aliases.
     for (MCRegAliasIterator AI(Reg, TRI, true); AI.isValid(); ++AI) {
-      MCRegister AliasReg = *AI;
-      if (KillIndices[AliasReg.id()] == ~0u) {
+      
+      if (MCRegister AliasReg = *AI; KillIndices[AliasReg.id()] == ~0u) {
         KillIndices[AliasReg.id()] = Count;
         DefIndices[AliasReg.id()] = ~0u;
       }
@@ -638,10 +638,10 @@ BreakAntiDependencies(const std::vector<SUnit> &SUnits,
     // TODO: Instead of picking the first free register, consider which might
     // be the best.
     if (AntiDepReg) {
-      std::pair<std::multimap<MCRegister, MachineOperand *>::iterator,
+      
+      if (MCRegister std::pair<std::multimap<MCRegister, MachineOperand *>::iterator,
                 std::multimap<MCRegister, MachineOperand *>::iterator>
-          Range = RegRefs.equal_range(AntiDepReg);
-      if (MCRegister NewReg = findSuitableFreeRegister(
+          Range = RegRefs.equal_range(AntiDepReg); NewReg = findSuitableFreeRegister(
               Range.first, Range.second, AntiDepReg,
               LastNewReg[AntiDepReg.id()], RC, ForbidRegs)) {
         LLVM_DEBUG(dbgs() << "Breaking anti-dependence edge on "

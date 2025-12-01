@@ -53,8 +53,8 @@ static int getPrecedence(MCBinaryExpr::Opcode Op) {
 // needed.
 void MCExpr::print(raw_ostream &OS, const MCAsmInfo *MAI,
                    int SurroundingPrec) const {
-  constexpr int MaxPrec = 9;
-  switch (getKind()) {
+  
+  switch (constexpr int MaxPrec = 9; getKind()) {
   case MCExpr::Target:
     return cast<MCTargetExpr>(this)->printImpl(OS, MAI);
   case MCExpr::Constant: {
@@ -90,8 +90,8 @@ void MCExpr::print(raw_ostream &OS, const MCAsmInfo *MAI,
     const MCSymbol &Sym = SRE.getSymbol();
     Sym.print(OS, MAI);
 
-    const MCSymbolRefExpr::VariantKind Kind = SRE.getKind();
-    if (Kind) {
+    
+    if (const MCSymbolRefExpr::VariantKind Kind = SRE.getKind(); Kind) {
       if (!MAI) // should only be used by dump()
         OS << "@<variant " << Kind << '>';
       else if (MAI->useParensForSpecifier()) // ARM
@@ -368,8 +368,8 @@ static void attemptToFoldSymbolOffsetDifference(const MCAssembler *Asm,
         return;
       }
 
-      int64_t Num;
-      if (F->getKind() == MCFragment::FT_Data) {
+      
+      if (int64_t Num; F->getKind() == MCFragment::FT_Data) {
         Displacement += F->getFixedSize();
       } else if ((F->getKind() == MCFragment::FT_Relaxable ||
                   F->getKind() == MCFragment::FT_Align) &&

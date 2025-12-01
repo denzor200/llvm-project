@@ -92,11 +92,11 @@ RISCVRegisterInfo::getCalleeSavedRegs(const MachineFunction *MF) const {
                                   : CSR_Interrupt_SaveList;
   }
 
-  bool HasVectorCSR =
-      MF->getFunction().getCallingConv() == CallingConv::RISCV_VectorCall &&
-      Subtarget.hasVInstructions();
+  
 
-  switch (Subtarget.getTargetABI()) {
+  switch (bool HasVectorCSR =
+      MF->getFunction().getCallingConv() == CallingConv::RISCV_VectorCall &&
+      Subtarget.hasVInstructions(); Subtarget.getTargetABI()) {
   default:
     llvm_unreachable("Unrecognized ABI");
   case RISCVABI::ABI_ILP32E:
@@ -318,12 +318,12 @@ void RISCVRegisterInfo::adjustReg(MachineBasicBlock &MBB,
     bool IsCompressLUI =
         ((Val & 0xFFF) == 0) && (Hi20 != 0) &&
         (isUInt<5>(Hi20) || (Hi20 >= 0xfffe0 && Hi20 <= 0xfffff));
-    bool IsCompressAddSub =
+    
+
+    if (bool IsCompressAddSub =
         (SrcReg == DestReg) &&
         ((Val > 0 && RISCV::GPRNoX0RegClass.contains(SrcReg)) ||
-         (Val < 0 && RISCV::GPRCRegClass.contains(SrcReg)));
-
-    if (!(IsCompressLUI && IsCompressAddSub)) {
+         (Val < 0 && RISCV::GPRCRegClass.contains(SrcReg))); !(IsCompressLUI && IsCompressAddSub)) {
       BuildMI(MBB, II, DL, TII->get(RISCV::QC_E_ADDI), DestReg)
           .addReg(SrcReg, getKillRegState(KillSrcReg))
           .addImm(Val)
@@ -529,9 +529,9 @@ bool RISCVRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
   if (!IsRVVSpill) {
     int64_t Val = Offset.getFixed();
     int64_t Lo12 = SignExtend64<12>(Val);
-    unsigned Opc = MI.getOpcode();
+    
 
-    if (Opc == RISCV::ADDI && !isInt<12>(Val)) {
+    if (unsigned Opc = MI.getOpcode(); Opc == RISCV::ADDI && !isInt<12>(Val)) {
       // We chose to emit the canonical immediate sequence rather than folding
       // the offset into the using add under the theory that doing so doesn't
       // save dynamic instruction count and some target may fuse the canonical
@@ -640,8 +640,8 @@ bool RISCVRegisterInfo::needsFrameBaseReg(MachineInstr *MI,
 
   // For RISC-V, The machine instructions that include a FrameIndex operand
   // are load/store, ADDI instructions.
-  unsigned MIFrm = RISCVII::getFormat(MI->getDesc().TSFlags);
-  if (MIFrm != RISCVII::InstFormatI && MIFrm != RISCVII::InstFormatS)
+  
+  if (unsigned MIFrm = RISCVII::getFormat(MI->getDesc().TSFlags); MIFrm != RISCVII::InstFormatI && MIFrm != RISCVII::InstFormatS)
     return false;
   // We only generate virtual base registers for loads and stores, so
   // return false for everything else.
@@ -827,8 +827,8 @@ void RISCVRegisterInfo::getOffsetOpcodes(const StackOffset &Offset,
   DIExpression::appendOffset(Ops, Offset.getFixed());
 
   unsigned VLENB = getDwarfRegNum(RISCV::VLENB, true);
-  int64_t VLENBSized = Offset.getScalable() / 8;
-  if (VLENBSized > 0) {
+  
+  if (int64_t VLENBSized = Offset.getScalable() / 8; VLENBSized > 0) {
     Ops.push_back(dwarf::DW_OP_constu);
     Ops.push_back(VLENBSized);
     Ops.append({dwarf::DW_OP_bregx, VLENB, 0ULL});
@@ -898,8 +898,8 @@ bool RISCVRegisterInfo::getRegAllocationHints(
       bool IsOdd = (RegNum % 2 != 0);
 
       // Don't provide hints that are paired to a reserved register.
-      MCRegister Paired = PhysReg + (IsOdd ? -1 : 1);
-      if (WantOdd == IsOdd && !MRI->isReserved(Paired))
+      
+      if (MCRegister Paired = PhysReg + (IsOdd ? -1 : 1); WantOdd == IsOdd && !MRI->isReserved(Paired))
         Hints.push_back(PhysReg);
     }
   }
@@ -916,11 +916,11 @@ bool RISCVRegisterInfo::getRegAllocationHints(
   auto tryAddHint = [&](const MachineOperand &VRRegMO, const MachineOperand &MO,
                         bool NeedGPRC) -> void {
     Register Reg = MO.getReg();
-    Register PhysReg = Reg.isPhysical() ? Reg : Register(VRM->getPhys(Reg));
+    
     // TODO: Support GPRPair subregisters? Need to be careful with even/odd
     // registers. If the virtual register is an odd register of a pair and the
     // physical register is even (or vice versa), we should not add the hint.
-    if (PhysReg && (!NeedGPRC || RISCV::GPRCRegClass.contains(PhysReg)) &&
+    if (Register PhysReg = Reg.isPhysical() ? Reg : Register(VRM->getPhys(Reg)); PhysReg && (!NeedGPRC || RISCV::GPRCRegClass.contains(PhysReg)) &&
         !MO.getSubReg() && !VRRegMO.getSubReg()) {
       if (!MRI->isReserved(PhysReg) && !is_contained(Hints, PhysReg))
         TwoAddrHints.insert(PhysReg);
@@ -998,8 +998,8 @@ bool RISCVRegisterInfo::getRegAllocationHints(
   for (auto &MO : MRI->reg_nodbg_operands(VirtReg)) {
     const MachineInstr &MI = *MO.getParent();
     unsigned OpIdx = MO.getOperandNo();
-    bool NeedGPRC;
-    if (isCompressible(MI, NeedGPRC)) {
+    
+    if (bool NeedGPRC; isCompressible(MI, NeedGPRC)) {
       if (OpIdx == 0 && MI.getOperand(1).isReg()) {
         if (!NeedGPRC || MI.getNumExplicitOperands() < 3 ||
             MI.getOpcode() == RISCV::ADD_UW ||
@@ -1023,9 +1023,9 @@ bool RISCVRegisterInfo::getRegAllocationHints(
     if ((MI.getOpcode() == RISCV::ADDIW || MI.getOpcode() == RISCV::ADDI) &&
         MI.getOperand(1).isReg()) {
       const MachineBasicBlock &MBB = *MI.getParent();
-      MachineBasicBlock::const_iterator I = MI.getIterator();
+      
       // Is the previous instruction a LUI or AUIPC that can be fused?
-      if (I != MBB.begin()) {
+      if (MachineBasicBlock::const_iterator I = MI.getIterator(); I != MBB.begin()) {
         I = skipDebugInstructionsBackward(std::prev(I), MBB.begin());
         if ((I->getOpcode() == RISCV::LUI || I->getOpcode() == RISCV::AUIPC) &&
             I->getOperand(0).getReg() == MI.getOperand(1).getReg()) {
@@ -1048,21 +1048,21 @@ bool RISCVRegisterInfo::getRegAllocationHints(
 void RISCVRegisterInfo::updateRegAllocHint(Register Reg, Register NewReg,
                                            MachineFunction &MF) const {
   MachineRegisterInfo *MRI = &MF.getRegInfo();
-  std::pair<unsigned, Register> Hint = MRI->getRegAllocationHint(Reg);
+  
 
   // Handle RegPairEven/RegPairOdd hints for Zilsd register pairs
-  if ((Hint.first == RISCVRI::RegPairOdd ||
+  if (std::pair<unsigned, Register> Hint = MRI->getRegAllocationHint(Reg); (Hint.first == RISCVRI::RegPairOdd ||
        Hint.first == RISCVRI::RegPairEven) &&
       Hint.second.isVirtual()) {
     // If 'Reg' is one of the even/odd register pair and it's now changed
     // (e.g. coalesced) into a different register, the other register of the
     // pair allocation hint must be updated to reflect the relationship change.
     Register Partner = Hint.second;
-    std::pair<unsigned, Register> PartnerHint =
-        MRI->getRegAllocationHint(Partner);
+    
 
     // Make sure partner still points to us
-    if (PartnerHint.second == Reg) {
+    if (std::pair<unsigned, Register> PartnerHint =
+        MRI->getRegAllocationHint(Partner); PartnerHint.second == Reg) {
       // Update partner to point to NewReg instead of Reg
       MRI->setRegAllocationHint(Partner, PartnerHint.first, NewReg);
 

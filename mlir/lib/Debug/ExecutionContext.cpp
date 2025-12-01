@@ -67,8 +67,8 @@ void ExecutionContext::operator()(llvm::function_ref<void()> transform,
   auto handleUserInput = [&]() -> bool {
     if (!onBreakpointControlExecutionCallback)
       return true;
-    auto todoNext = onBreakpointControlExecutionCallback(actionStack);
-    switch (todoNext) {
+    
+    switch (auto todoNext = onBreakpointControlExecutionCallback(actionStack); todoNext) {
     case ExecutionContext::Apply:
       depthToBreak = std::nullopt;
       return true;

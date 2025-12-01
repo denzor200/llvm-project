@@ -35,8 +35,8 @@ bool checkIntegrityScopesTree(LVScope *Root) {
 
   // Add the given element to the integrity map.
   auto AddElement = [&](LVElement *Element, LVScope *Scope) {
-    LVIntegrity::iterator Iter = Integrity.find(Element);
-    if (Iter == Integrity.end())
+    
+    if (LVIntegrity::iterator Iter = Integrity.find(Element); Iter == Integrity.end())
       Integrity.emplace(Element, Scope);
     else
       // We found a duplicate.
@@ -115,8 +115,8 @@ Error LVSplitContext::createSplitFolder(StringRef Where) {
   Location = std::string(Where);
 
   // Add a trailing slash, if there is none.
-  size_t Pos = Location.find_last_of('/');
-  if (Location.length() != Pos + 1)
+  
+  if (size_t Pos = Location.find_last_of('/'); Location.length() != Pos + 1)
     Location.append("/");
 
   // Make sure the new directory exists, creating it if necessary.

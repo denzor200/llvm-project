@@ -298,8 +298,8 @@ static bool getTypeString(SmallStringEnc &Enc, const Decl *D,
 void XCoreTargetCodeGenInfo::emitTargetMD(
     const Decl *D, llvm::GlobalValue *GV,
     const CodeGen::CodeGenModule &CGM) const {
-  SmallStringEnc Enc;
-  if (getTypeString(Enc, D, CGM, TSC)) {
+  
+  if (SmallStringEnc Enc; getTypeString(Enc, D, CGM, TSC)) {
     llvm::LLVMContext &Ctx = CGM.getModule().getContext();
     llvm::Metadata *MDVals[] = {llvm::ConstantAsMetadata::get(GV),
                                 llvm::MDString::get(Ctx, Enc.str())};
@@ -317,8 +317,8 @@ void XCoreTargetCodeGenInfo::emitTargetMetadata(
   // of the container.
   for (unsigned I = 0; I != MangledDeclNames.size(); ++I) {
     auto Val = *(MangledDeclNames.begin() + I);
-    llvm::GlobalValue *GV = CGM.GetGlobalValue(Val.second);
-    if (GV) {
+    
+    if (llvm::GlobalValue *GV = CGM.GetGlobalValue(Val.second); GV) {
       const Decl *D = Val.first.getDecl()->getMostRecentDecl();
       emitTargetMD(D, GV, CGM);
     }
@@ -364,8 +364,8 @@ static bool appendRecordType(SmallStringEnc &Enc, const RecordType *RT,
                              const CodeGen::CodeGenModule &CGM,
                              TypeStringCache &TSC, const IdentifierInfo *ID) {
   // Append the cached TypeString if we have one.
-  StringRef TypeString = TSC.lookupStr(ID);
-  if (!TypeString.empty()) {
+  
+  if (StringRef TypeString = TSC.lookupStr(ID); !TypeString.empty()) {
     Enc += TypeString;
     return true;
   }
@@ -416,8 +416,8 @@ static bool appendEnumType(SmallStringEnc &Enc, const EnumType *ET,
                            TypeStringCache &TSC,
                            const IdentifierInfo *ID) {
   // Append the cached TypeString if we have one.
-  StringRef TypeString = TSC.lookupStr(ID);
-  if (!TypeString.empty()) {
+  
+  if (StringRef TypeString = TSC.lookupStr(ID); !TypeString.empty()) {
     Enc += TypeString;
     return true;
   }
@@ -572,8 +572,8 @@ static bool appendFunctionType(SmallStringEnc &Enc, const FunctionType *FT,
   if (const FunctionProtoType *FPT = FT->getAs<FunctionProtoType>()) {
     // N.B. we are only interested in the adjusted param types.
     auto I = FPT->param_type_begin();
-    auto E = FPT->param_type_end();
-    if (I != E) {
+    
+    if (auto E = FPT->param_type_end(); I != E) {
       do {
         if (!appendType(Enc, *I, CGM, TSC))
           return false;

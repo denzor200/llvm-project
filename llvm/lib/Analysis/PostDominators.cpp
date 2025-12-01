@@ -54,9 +54,9 @@ bool PostDominatorTree::dominates(const Instruction *I1,
   assert(I1 && I2 && "Expecting valid I1 and I2");
 
   const BasicBlock *BB1 = I1->getParent();
-  const BasicBlock *BB2 = I2->getParent();
+  
 
-  if (BB1 != BB2)
+  if (const BasicBlock *BB2 = I2->getParent(); BB1 != BB2)
     return Base::dominates(BB1, BB2);
 
   // PHINodes in a block are unordered.

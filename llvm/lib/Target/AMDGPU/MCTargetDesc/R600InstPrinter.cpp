@@ -32,8 +32,8 @@ void R600InstPrinter::printAbs(const MCInst *MI, unsigned OpNo,
 
 void R600InstPrinter::printBankSwizzle(const MCInst *MI, unsigned OpNo,
                                        raw_ostream &O) {
-  int BankSwizzle = MI->getOperand(OpNo).getImm();
-  switch (BankSwizzle) {
+  
+  switch (int BankSwizzle = MI->getOperand(OpNo).getImm(); BankSwizzle) {
   case 1:
     O << "BS:VEC_021/SCL_122";
     break;
@@ -60,8 +60,8 @@ void R600InstPrinter::printClamp(const MCInst *MI, unsigned OpNo,
 }
 
 void R600InstPrinter::printCT(const MCInst *MI, unsigned OpNo, raw_ostream &O) {
-  unsigned CT = MI->getOperand(OpNo).getImm();
-  switch (CT) {
+  
+  switch (unsigned CT = MI->getOperand(OpNo).getImm(); CT) {
   case 0:
     O << 'U';
     break;
@@ -75,8 +75,8 @@ void R600InstPrinter::printCT(const MCInst *MI, unsigned OpNo, raw_ostream &O) {
 
 void R600InstPrinter::printKCache(const MCInst *MI, unsigned OpNo,
                                   raw_ostream &O) {
-  int KCacheMode = MI->getOperand(OpNo).getImm();
-  if (KCacheMode > 0) {
+  
+  if (int KCacheMode = MI->getOperand(OpNo).getImm(); KCacheMode > 0) {
     int KCacheBank = MI->getOperand(OpNo - 2).getImm();
     O << "CB" << KCacheBank << ':';
     int KCacheAddr = MI->getOperand(OpNo + 2).getImm();
@@ -140,8 +140,8 @@ void R600InstPrinter::printOperand(const MCInst *MI, unsigned OpNo,
     return;
   }
 
-  const MCOperand &Op = MI->getOperand(OpNo);
-  if (Op.isReg()) {
+  
+  if (const MCOperand &Op = MI->getOperand(OpNo); Op.isReg()) {
     switch (Op.getReg().id()) {
     // This is the default predicate state, so we don't need to print it.
     case R600::PRED_SEL_OFF:
@@ -175,8 +175,8 @@ void R600InstPrinter::printRel(const MCInst *MI, unsigned OpNo,
 
 void R600InstPrinter::printRSel(const MCInst *MI, unsigned OpNo,
                                 raw_ostream &O) {
-  unsigned Sel = MI->getOperand(OpNo).getImm();
-  switch (Sel) {
+  
+  switch (unsigned Sel = MI->getOperand(OpNo).getImm(); Sel) {
   case 0:
     O << 'X';
     break;
@@ -215,8 +215,8 @@ void R600InstPrinter::printUpdatePred(const MCInst *MI, unsigned OpNo,
 
 void R600InstPrinter::printWrite(const MCInst *MI, unsigned OpNo,
                                  raw_ostream &O) {
-  const MCOperand &Op = MI->getOperand(OpNo);
-  if (Op.getImm() == 0) {
+  
+  if (const MCOperand &Op = MI->getOperand(OpNo); Op.getImm() == 0) {
     O << " (MASKED)";
   }
 }

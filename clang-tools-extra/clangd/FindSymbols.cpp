@@ -622,8 +622,8 @@ PragmaMarkSymbol markToSymbol(const PragmaMark &P) {
   //
   // We need to include a name here, otherwise editors won't properly render the
   // symbol.
-  StringRef MaybeGroupName = Name;
-  if (MaybeGroupName.consume_front("-") &&
+  
+  if (StringRef MaybeGroupName = Name; MaybeGroupName.consume_front("-") &&
       (MaybeGroupName.ltrim() != MaybeGroupName || MaybeGroupName.empty())) {
     Name = MaybeGroupName.empty() ? "(unnamed group)" : MaybeGroupName.ltrim();
     IsGroup = true;

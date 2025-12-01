@@ -261,9 +261,9 @@ bool X86ExpandPseudo::expandMI(MachineBasicBlock &MBB,
                                MachineBasicBlock::iterator MBBI) {
   MachineInstr &MI = *MBBI;
   unsigned Opcode = MI.getOpcode();
-  const DebugLoc &DL = MBBI->getDebugLoc();
+  
 #define GET_EGPR_IF_ENABLED(OPC) (STI->hasEGPR() ? OPC##_EVEX : OPC)
-  switch (Opcode) {
+  switch (const DebugLoc &DL = MBBI->getDebugLoc(); Opcode) {
   default:
     return false;
   case X86::TCRETURNdi:
@@ -306,9 +306,9 @@ bool X86ExpandPseudo::expandMI(MachineBasicBlock &MBB,
     }
 
     // Use this predicate to set REX prefix for X86_64 targets.
-    bool IsX64 = STI->isTargetWin64() || STI->isTargetUEFI64();
+    
     // Jump to label or value in register.
-    if (Opcode == X86::TCRETURNdi || Opcode == X86::TCRETURNdicc ||
+    if (bool IsX64 = STI->isTargetWin64() || STI->isTargetUEFI64(); Opcode == X86::TCRETURNdi || Opcode == X86::TCRETURNdicc ||
         Opcode == X86::TCRETURNdi64 || Opcode == X86::TCRETURNdi64cc) {
       unsigned Op;
       switch (Opcode) {
@@ -449,8 +449,8 @@ bool X86ExpandPseudo::expandMI(MachineBasicBlock &MBB,
     MachineInstr *NewInstr = BuildMI(MBB, MBBI, DL, TII->get(X86::LCMPXCHG16B));
     // Copy the operands related to the address. If we access a frame variable,
     // we need to replace the RBX base with SaveRbx, as RBX has another value.
-    const MachineOperand &Base = MBBI->getOperand(1);
-    if (Base.getReg() == X86::RBX || Base.getReg() == X86::EBX)
+    
+    if (const MachineOperand &Base = MBBI->getOperand(1); Base.getReg() == X86::RBX || Base.getReg() == X86::EBX)
       NewInstr->addOperand(MachineOperand::CreateReg(
           Base.getReg() == X86::RBX
               ? SaveRbx

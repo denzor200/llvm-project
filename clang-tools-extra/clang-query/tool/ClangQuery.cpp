@@ -137,8 +137,8 @@ int main(int argc, const char **argv) {
 
   if (!Commands.empty()) {
     for (auto &Command : Commands) {
-      QueryRef Q = QueryParser::parse(Command, QS);
-      if (!Q->run(llvm::outs(), QS))
+      
+      if (QueryRef Q = QueryParser::parse(Command, QS); !Q->run(llvm::outs(), QS))
         return 1;
     }
   } else if (!CommandFiles.empty()) {

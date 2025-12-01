@@ -73,8 +73,8 @@ struct ShapeInferencePass
     while (!opWorklist.empty()) {
       // Find the next operation ready for inference, that is an operation
       // with all operands already resolved (non-generic).
-      auto nextop = llvm::find_if(opWorklist, allOperandsInferred);
-      if (nextop == opWorklist.end())
+      
+      if (auto nextop = llvm::find_if(opWorklist, allOperandsInferred); nextop == opWorklist.end())
         break;
 
       Operation *op = *nextop;

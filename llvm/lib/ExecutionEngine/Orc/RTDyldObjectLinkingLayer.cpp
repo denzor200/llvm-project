@@ -247,8 +247,8 @@ Error RTDyldObjectLinkingLayer::onObjLoad(
     // weak.
     for (auto &Sym : COFFObj->symbols()) {
       // getFlags() on COFF symbols can't fail.
-      uint32_t SymFlags = cantFail(Sym.getFlags());
-      if (SymFlags & object::BasicSymbolRef::SF_Undefined)
+      
+      if (uint32_t SymFlags = cantFail(Sym.getFlags()); SymFlags & object::BasicSymbolRef::SF_Undefined)
         continue;
       auto Name = Sym.getName();
       if (!Name)
@@ -272,8 +272,8 @@ Error RTDyldObjectLinkingLayer::onObjLoad(
 
     // Handle any aliases.
     for (auto &Sym : COFFObj->symbols()) {
-      uint32_t SymFlags = cantFail(Sym.getFlags());
-      if (SymFlags & object::BasicSymbolRef::SF_Undefined)
+      
+      if (uint32_t SymFlags = cantFail(Sym.getFlags()); SymFlags & object::BasicSymbolRef::SF_Undefined)
         continue;
       auto Name = Sym.getName();
       if (!Name)
@@ -412,8 +412,8 @@ Error RTDyldObjectLinkingLayer::handleRemoveResources(JITDylib &JD,
   std::vector<MemoryManagerUP> MemMgrsToRemove;
 
   getExecutionSession().runSessionLocked([&] {
-    auto I = MemMgrs.find(K);
-    if (I != MemMgrs.end()) {
+    
+    if (auto I = MemMgrs.find(K); I != MemMgrs.end()) {
       std::swap(MemMgrsToRemove, I->second);
       MemMgrs.erase(I);
     }

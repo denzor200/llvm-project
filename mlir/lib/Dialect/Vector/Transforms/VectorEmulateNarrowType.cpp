@@ -1581,8 +1581,8 @@ static LogicalResult commonConversionPrecondition(PatternRewriter &rewriter,
 
   // TODO: consider relaxing this restriction in the future if we find ways
   // to really work with subbyte elements across the MLIR/LLVM boundary.
-  unsigned bitwidth = preconditionType.getElementTypeBitWidth();
-  if (bitwidth % 8 != 0)
+  
+  if (unsigned bitwidth = preconditionType.getElementTypeBitWidth(); bitwidth % 8 != 0)
     return rewriter.notifyMatchFailure(op, "bitwidth is not k * 8");
 
   return success();
@@ -2094,9 +2094,9 @@ struct RewriteAlignedSubByteIntExt : OpRewritePattern<ConversionOpType> {
     // Verify the preconditions.
     Value srcValue = conversionOp.getIn();
     VectorType srcVecType = dyn_cast<VectorType>(srcValue.getType());
-    VectorType dstVecType = dyn_cast<VectorType>(conversionOp.getType());
+    
 
-    if (failed(
+    if (VectorType dstVecType = dyn_cast<VectorType>(conversionOp.getType()); failed(
             commonConversionPrecondition(rewriter, dstVecType, conversionOp)))
       return failure();
 

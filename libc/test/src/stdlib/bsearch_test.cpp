@@ -14,8 +14,8 @@
 
 static int int_compare(const void *l, const void *r) {
   int li = *reinterpret_cast<const int *>(l);
-  int ri = *reinterpret_cast<const int *>(r);
-  if (li == ri)
+  
+  if (int ri = *reinterpret_cast<const int *>(r); li == ri)
     return 0;
   else if (li > ri)
     return 1;

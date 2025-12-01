@@ -115,11 +115,11 @@ Error registerMachOGraphInfo(Session &S, LinkGraph &G) {
       if (Sym->getAddress() > LastSym->getAddress())
         LastSym = Sym;
       if (isGOTSection || isStubsSection) {
-        Error Err =
+        
+        if (Error Err =
             isGOTSection
                 ? FileInfo.registerGOTEntry(G, *Sym, getMachOGOTTarget)
-                : FileInfo.registerStubEntry(G, *Sym, getMachOStubTarget);
-        if (Err)
+                : FileInfo.registerStubEntry(G, *Sym, getMachOStubTarget); Err)
           return Err;
         SectionContainsContent = true;
       } else if (Sym->hasName()) {

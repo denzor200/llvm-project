@@ -573,8 +573,8 @@ static inline int getStartOrEndSlot(const MachineInstr &MI)
           MI.getOpcode() == TargetOpcode::LIFETIME_END) &&
          "Expected LIFETIME_START or LIFETIME_END op");
   const MachineOperand &MO = MI.getOperand(0);
-  int Slot = MO.getIndex();
-  if (Slot >= 0)
+  
+  if (int Slot = MO.getIndex(); Slot >= 0)
     return Slot;
   return -1;
 }
@@ -754,8 +754,8 @@ unsigned StackColoring::collectMarkers(unsigned NumSlot) {
             LLVM_DEBUG(dbgs()
                        << " at " << printMBBReference(*MBB) << " index ");
             LLVM_DEBUG(Indexes->getInstructionIndex(MI).print(dbgs()));
-            const AllocaInst *Allocation = MFI->getObjectAllocation(Slot);
-            if (Allocation) {
+            
+            if (const AllocaInst *Allocation = MFI->getObjectAllocation(Slot); Allocation) {
               LLVM_DEBUG(dbgs()
                          << " with allocation: " << Allocation->getName());
             }
@@ -1060,8 +1060,8 @@ void StackColoring::remapInstructions(DenseMap<int, int> &SlotRemap) {
         if (const auto *FSV = dyn_cast_or_null<FixedStackPseudoSourceValue>(
                 MMO->getPseudoValue())) {
           int FI = FSV->getFrameIndex();
-          auto To = SlotRemap.find(FI);
-          if (To != SlotRemap.end())
+          
+          if (auto To = SlotRemap.find(FI); To != SlotRemap.end())
             SSRefs[FI].push_back(MMO);
         }
 
@@ -1080,8 +1080,8 @@ void StackColoring::remapInstructions(DenseMap<int, int> &SlotRemap) {
                 // If this memory location comes from a known stack slot
                 // that is not remapped, we continue checking.
                 // Otherwise, we need to invalidate AA infomation.
-                const AllocaInst *AI = dyn_cast_or_null<AllocaInst>(V);
-                if (AI && MergedAllocas.count(AI)) {
+                
+                if (const AllocaInst *AI = dyn_cast_or_null<AllocaInst>(V); AI && MergedAllocas.count(AI)) {
                   MayHaveConflictingAAMD = true;
                   break;
                 }

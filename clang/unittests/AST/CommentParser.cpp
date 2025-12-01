@@ -429,20 +429,20 @@ struct NoAttrs {};
   ParagraphComment *PC;
 
   {
-    ::testing::AssertionResult AR = GetChildAt(C, Idx, PC);
-    if (!AR)
+    
+    if (::testing::AssertionResult AR = GetChildAt(C, Idx, PC); !AR)
       return AR;
   }
 
   {
-    ::testing::AssertionResult AR = HasChildCount(PC, 1);
-    if (!AR)
+    
+    if (::testing::AssertionResult AR = HasChildCount(PC, 1); !AR)
       return AR;
   }
 
   {
-    ::testing::AssertionResult AR = HasTextAt(PC, 0, Text);
-    if (!AR)
+    
+    if (::testing::AssertionResult AR = HasTextAt(PC, 0, Text); !AR)
       return AR;
   }
 

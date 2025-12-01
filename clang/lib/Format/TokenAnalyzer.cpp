@@ -136,10 +136,10 @@ TokenAnalyzer::process(bool SkipAnnotation) {
 
     Penalty += RunResult.second;
     for (const auto &R : RunResult.first) {
-      auto Err = Result.add(R);
+      
       // FIXME: better error handling here. For now, simply return an empty
       // Replacements to indicate failure.
-      if (Err) {
+      if (auto Err = Result.add(R); Err) {
         llvm::errs() << llvm::toString(std::move(Err)) << "\n";
         return {tooling::Replacements(), 0};
       }

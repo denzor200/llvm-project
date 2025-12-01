@@ -256,9 +256,9 @@ static bool sinkInstruction(
 
     if (MSSAU && MSSAU->getMemorySSA()->getMemoryAccess(&I)) {
       // Create a new MemoryAccess and let MemorySSA set its defining access.
-      MemoryAccess *NewMemAcc =
-          MSSAU->createMemoryAccessInBB(IC, nullptr, N, MemorySSA::Beginning);
-      if (NewMemAcc) {
+      
+      if (MemoryAccess *NewMemAcc =
+          MSSAU->createMemoryAccessInBB(IC, nullptr, N, MemorySSA::Beginning); NewMemAcc) {
         if (auto *MemDef = dyn_cast<MemoryDef>(NewMemAcc))
           MSSAU->insertDef(MemDef, /*RenameUses=*/true);
         else {
@@ -381,8 +381,8 @@ PreservedAnalyses LoopSinkPass::run(Function &F, FunctionAnalysisManager &FAM) {
   do {
     Loop &L = *PreorderLoops.pop_back_val();
 
-    BasicBlock *Preheader = L.getLoopPreheader();
-    if (!Preheader)
+    
+    if (BasicBlock *Preheader = L.getLoopPreheader(); !Preheader)
       continue;
 
     // Note that we don't pass SCEV here because it is only used to invalidate

@@ -174,8 +174,8 @@ static std::string searchLibrary(StringRef name,
 
 static bool isI386Target(const opt::InputArgList &args,
                          const Triple &defaultTarget) {
-  auto *a = args.getLastArg(OPT_m);
-  if (a)
+  
+  if (auto *a = args.getLastArg(OPT_m); a)
     return StringRef(a->getValue()) == "i386pe";
   return defaultTarget.getArch() == Triple::x86;
 }
@@ -234,8 +234,8 @@ bool link(ArrayRef<const char *> argsArr, llvm::raw_ostream &stdoutOS,
   add("-lldmingw");
 
   if (auto *a = args.getLastArg(OPT_entry)) {
-    StringRef s = a->getValue();
-    if (isI386Target(args, defaultTarget) && s.starts_with("_"))
+    
+    if (StringRef s = a->getValue(); isI386Target(args, defaultTarget) && s.starts_with("_"))
       add("-entry:" + s.substr(1));
     else if (!s.empty())
       add("-entry:" + s);
@@ -314,8 +314,8 @@ bool link(ArrayRef<const char *> argsArr, llvm::raw_ostream &stdoutOS,
 
   if (auto *a = args.getLastArg(OPT_pdb)) {
     add("-debug");
-    StringRef v = a->getValue();
-    if (!v.empty())
+    
+    if (StringRef v = a->getValue(); !v.empty())
       add("-pdb:" + v);
     if (args.hasArg(OPT_strip_all)) {
       add("-debug:nodwarf,nosymtab");
@@ -328,8 +328,8 @@ bool link(ArrayRef<const char *> argsArr, llvm::raw_ostream &stdoutOS,
     add("-debug:dwarf");
   }
   if (auto *a = args.getLastArg(OPT_build_id)) {
-    StringRef v = a->getValue();
-    if (v == "none")
+    
+    if (StringRef v = a->getValue(); v == "none")
       add("-build-id:no");
     else {
       if (!v.empty())
@@ -344,8 +344,8 @@ bool link(ArrayRef<const char *> argsArr, llvm::raw_ostream &stdoutOS,
   }
 
   if (auto *a = args.getLastArg(OPT_functionpadmin)) {
-    StringRef v = a->getValue();
-    if (v.empty())
+    
+    if (StringRef v = a->getValue(); v.empty())
       add("-functionpadmin");
     else
       add("-functionpadmin:" + v);
@@ -424,8 +424,8 @@ bool link(ArrayRef<const char *> argsArr, llvm::raw_ostream &stdoutOS,
     add("-dependentloadflag:" + StringRef(a->getValue()));
 
   if (auto *a = args.getLastArg(OPT_icf)) {
-    StringRef s = a->getValue();
-    if (s == "all")
+    
+    if (StringRef s = a->getValue(); s == "all")
       add("-opt:icf");
     else if (s == "safe")
       add("-opt:safeicf");
@@ -438,8 +438,8 @@ bool link(ArrayRef<const char *> argsArr, llvm::raw_ostream &stdoutOS,
   }
 
   if (auto *a = args.getLastArg(OPT_m)) {
-    StringRef s = a->getValue();
-    if (s == "i386pe")
+    
+    if (StringRef s = a->getValue(); s == "i386pe")
       add("-machine:x86");
     else if (s == "i386pep")
       add("-machine:x64");
@@ -470,8 +470,8 @@ bool link(ArrayRef<const char *> argsArr, llvm::raw_ostream &stdoutOS,
 
   if (auto *a = args.getLastArg(OPT_error_limit)) {
     int n;
-    StringRef s = a->getValue();
-    if (s.getAsInteger(10, n))
+    
+    if (StringRef s = a->getValue(); s.getAsInteger(10, n))
       error(a->getSpelling() + ": number expected, but got " + s);
     else
       add("-errorlimit:" + s);
@@ -527,8 +527,8 @@ bool link(ArrayRef<const char *> argsArr, llvm::raw_ostream &stdoutOS,
   // "lto-wrapper.exe" for GCC cross-compiled for Windows), consider it an
   // unsupported LLVMgold.so option and error.
   for (opt::Arg *arg : args.filtered(OPT_plugin_opt_eq)) {
-    StringRef v(arg->getValue());
-    if (!v.ends_with("lto-wrapper") && !v.ends_with("lto-wrapper.exe"))
+    
+    if (StringRef v(arg->getValue()); !v.ends_with("lto-wrapper") && !v.ends_with("lto-wrapper.exe"))
       error(arg->getSpelling() + ": unknown plugin option '" + arg->getValue() +
             "'");
   }

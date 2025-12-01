@@ -75,9 +75,9 @@ bool lldb_private::formatters::CFBagSummaryProvider(
     ConstString type_name(valobj.GetTypeName());
 
     static ConstString g_CFBag("__CFBag");
-    static ConstString g_conststruct__CFBag("const struct __CFBag");
+    
 
-    if (type_name == g_CFBag || type_name == g_conststruct__CFBag) {
+    if (static ConstString g_conststruct__CFBag("const struct __CFBag"); type_name == g_CFBag || type_name == g_conststruct__CFBag) {
       if (valobj.IsPointerType())
         is_type_ok = true;
     }
@@ -130,8 +130,8 @@ bool lldb_private::formatters::CFBitVectorSummaryProvider(
 
   bool is_type_ok = false; // check to see if this is a CFBag we know about
   if (descriptor->IsCFType()) {
-    ConstString type_name(valobj.GetTypeName());
-    if (type_name == "__CFMutableBitVector" || type_name == "__CFBitVector" ||
+    
+    if (ConstString type_name(valobj.GetTypeName()); type_name == "__CFMutableBitVector" || type_name == "__CFBitVector" ||
         type_name == "CFMutableBitVectorRef" || type_name == "CFBitVectorRef") {
       if (valobj.IsPointerType())
         is_type_ok = true;
@@ -185,8 +185,8 @@ bool lldb_private::formatters::CFBitVectorSummaryProvider(
     bool bit4 = (byte & 16) == 16;
     bool bit5 = (byte & 32) == 32;
     bool bit6 = (byte & 64) == 64;
-    bool bit7 = (byte & 128) == 128;
-    if (count) {
+    
+    if (bool bit7 = (byte & 128) == 128; count) {
       stream.Printf("%c", bit7 ? '1' : '0');
       count -= 1;
     }
@@ -256,9 +256,9 @@ bool lldb_private::formatters::CFBinaryHeapSummaryProvider(
     static ConstString g_CFBinaryHeap("__CFBinaryHeap");
     static ConstString g_conststruct__CFBinaryHeap(
         "const struct __CFBinaryHeap");
-    static ConstString g_CFBinaryHeapRef("CFBinaryHeapRef");
+    
 
-    if (type_name == g_CFBinaryHeap ||
+    if (static ConstString g_CFBinaryHeapRef("CFBinaryHeapRef"); type_name == g_CFBinaryHeap ||
         type_name == g_conststruct__CFBinaryHeap ||
         type_name == g_CFBinaryHeapRef) {
       if (valobj.IsPointerType())

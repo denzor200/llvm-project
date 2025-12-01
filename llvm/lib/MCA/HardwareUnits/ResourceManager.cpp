@@ -135,8 +135,8 @@ ResourceManager::ResourceManager(const MCSchedModel &SM)
   for (unsigned I = 1, E = SM.getNumProcResourceKinds(); I < E; ++I) {
     uint64_t Mask = ProcResID2Mask[I];
     unsigned Index = getResourceStateIndex(Mask);
-    const ResourceState &RS = *Resources[Index];
-    if (!RS.isAResourceGroup()) {
+    
+    if (const ResourceState &RS = *Resources[Index]; !RS.isAResourceGroup()) {
       ProcResUnitMask |= Mask;
       continue;
     }
@@ -312,8 +312,8 @@ uint64_t ResourceManager::checkAvailability(const InstrDesc &Desc) const {
   // If this instruction has overlapping groups, make sure that we can
   // select at least one unit per group.
   for (const std::pair<uint64_t, ResourceUsage> &E : Desc.Resources) {
-    const ResourceState &RS = *Resources[getResourceStateIndex(E.first)];
-    if (!E.second.isReserved() && RS.isAResourceGroup()) {
+    
+    if (const ResourceState &RS = *Resources[getResourceStateIndex(E.first)]; !E.second.isReserved() && RS.isAResourceGroup()) {
       uint64_t ReadyMask = RS.getReadyMask() & ~ConsumedResourceMask;
       if (!ReadyMask) {
         BusyResourceMask |= RS.getReadyMask();
@@ -407,9 +407,9 @@ void ResourceManager::issueInstructionImpl(
 
     for (unsigned I = 0, E = Worklist.size(); I < E; ++I) {
       const auto &Elt = Worklist[I];
-      const ResourceState &RS = *Resources[getResourceStateIndex(Elt.first)];
+      
 
-      if (I == 0 || RS.getNumReadyUnits() == 1) {
+      if (const ResourceState &RS = *Resources[getResourceStateIndex(Elt.first)]; I == 0 || RS.getNumReadyUnits() == 1) {
         ResourceRef Pipe = selectPipe(Elt.first);
         use(Pipe);
         const CycleSegment &CS = Elt.second.CS;

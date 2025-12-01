@@ -52,8 +52,8 @@ Error DWARFRecordSectionSplitter::operator()(LinkGraph &G) {
   // which would invalidate iterators in the latter sequence.
   for (auto &KV : Caches) {
     auto &B = *KV.first;
-    auto &BCache = KV.second;
-    if (auto Err = processBlock(G, B, BCache))
+    
+    if (auto auto &BCache = KV.second; Err = processBlock(G, B, BCache))
       return Err;
   }
 

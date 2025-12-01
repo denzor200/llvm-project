@@ -693,14 +693,14 @@ llvm::Function *CGNVCUDARuntime::makeRegisterGlobalsFn() {
                "HIP managed variables not transformed");
         auto *ManagedVar = CGM.getModule().getNamedGlobal(
             Var->getName().drop_back(StringRef(".managed").size()));
-        llvm::Value *Args[] = {
+        
+        if (llvm::Value *Args[] = {
             &GpuBinaryHandlePtr,
             ManagedVar,
             Var,
             VarName,
             llvm::ConstantInt::get(VarSizeTy, VarSize),
-            llvm::ConstantInt::get(IntTy, Var->getAlignment())};
-        if (!Var->isDeclaration())
+            llvm::ConstantInt::get(IntTy, Var->getAlignment())}; !Var->isDeclaration())
           Builder.CreateCall(RegisterManagedVar, Args);
       } else {
         llvm::Value *Args[] = {
@@ -1132,21 +1132,21 @@ void CGNVCUDARuntime::handleVarRegistration(const VarDecl *D,
     // also registered with CUDA runtime.
     const auto *TD = cast<ClassTemplateSpecializationDecl>(
         D->getType()->castAsCXXRecordDecl());
-    const TemplateArgumentList &Args = TD->getTemplateArgs();
-    if (TD->hasAttr<CUDADeviceBuiltinSurfaceTypeAttr>()) {
+    
+    if (const TemplateArgumentList &Args = TD->getTemplateArgs(); TD->hasAttr<CUDADeviceBuiltinSurfaceTypeAttr>()) {
       assert(Args.size() == 2 &&
              "Unexpected number of template arguments of CUDA device "
              "builtin surface type.");
-      auto SurfType = Args[1].getAsIntegral();
-      if (!D->hasExternalStorage())
+      
+      if (auto SurfType = Args[1].getAsIntegral(); !D->hasExternalStorage())
         registerDeviceSurf(D, GV, !D->hasDefinition(), SurfType.getSExtValue());
     } else {
       assert(Args.size() == 3 &&
              "Unexpected number of template arguments of CUDA device "
              "builtin texture type.");
       auto TexType = Args[1].getAsIntegral();
-      auto Normalized = Args[2].getAsIntegral();
-      if (!D->hasExternalStorage())
+      
+      if (auto Normalized = Args[2].getAsIntegral(); !D->hasExternalStorage())
         registerDeviceTex(D, GV, !D->hasDefinition(), TexType.getSExtValue(),
                           Normalized.getZExtValue());
     }
@@ -1159,8 +1159,8 @@ void CGNVCUDARuntime::handleVarRegistration(const VarDecl *D,
 // the address of managed memory which will be allocated by the runtime.
 void CGNVCUDARuntime::transformManagedVars() {
   for (auto &&Info : DeviceVars) {
-    llvm::GlobalVariable *Var = Info.Var;
-    if (Info.Flags.getKind() == DeviceVarFlags::Variable &&
+    
+    if (llvm::GlobalVariable *Var = Info.Var; Info.Flags.getKind() == DeviceVarFlags::Variable &&
         Info.Flags.isManaged()) {
       auto *ManagedVar = new llvm::GlobalVariable(
           CGM.getModule(), Var->getType(),
@@ -1211,7 +1211,8 @@ void CGNVCUDARuntime::createOffloadingEntries() {
   for (VarInfo &I : DeviceVars) {
     uint64_t VarSize =
         CGM.getDataLayout().getTypeAllocSize(I.Var->getValueType());
-    int32_t Flags =
+    
+    if (int32_t Flags =
         (I.Flags.isExtern()
              ? static_cast<int32_t>(llvm::offloading::OffloadGlobalExtern)
              : 0) |
@@ -1220,8 +1221,7 @@ void CGNVCUDARuntime::createOffloadingEntries() {
              : 0) |
         (I.Flags.isNormalized()
              ? static_cast<int32_t>(llvm::offloading::OffloadGlobalNormalized)
-             : 0);
-    if (I.Flags.getKind() == DeviceVarFlags::Variable) {
+             : 0); I.Flags.getKind() == DeviceVarFlags::Variable) {
       if (I.Flags.isManaged()) {
         assert(I.Var->getName().ends_with(".managed") &&
                "HIP managed variables not transformed");
@@ -1267,8 +1267,8 @@ llvm::Function *CGNVCUDARuntime::finalizeModule() {
     // Static device variables have been externalized at this point, therefore
     // variables with LLVM private or internal linkage need not be added.
     for (auto &&Info : DeviceVars) {
-      auto Kind = Info.Flags.getKind();
-      if (!Info.Var->isDeclaration() &&
+      
+      if (auto Kind = Info.Flags.getKind(); !Info.Var->isDeclaration() &&
           !llvm::GlobalValue::isLocalLinkage(Info.Var->getLinkage()) &&
           (Kind == DeviceVarFlags::Variable ||
            Kind == DeviceVarFlags::Surface ||

@@ -311,9 +311,9 @@ size_t DIEAttributeCloner::cloneScalarAttr(
   switch (AttrSpec.Attr) {
   case dwarf::DW_AT_macro_info: {
     if (std::optional<uint64_t> Offset = Val.getAsSectionOffset()) {
-      const DWARFDebugMacro *Macro =
-          InUnit.getContaingFile().Dwarf->getDebugMacinfo();
-      if (Macro == nullptr || !Macro->hasEntryForOffset(*Offset))
+      
+      if (const DWARFDebugMacro *Macro =
+          InUnit.getContaingFile().Dwarf->getDebugMacinfo(); Macro == nullptr || !Macro->hasEntryForOffset(*Offset))
         return 0;
 
       DebugInfoOutputSection.notePatchWithOffsetUpdate(
@@ -325,9 +325,9 @@ size_t DIEAttributeCloner::cloneScalarAttr(
   } break;
   case dwarf::DW_AT_macros: {
     if (std::optional<uint64_t> Offset = Val.getAsSectionOffset()) {
-      const DWARFDebugMacro *Macro =
-          InUnit.getContaingFile().Dwarf->getDebugMacro();
-      if (Macro == nullptr || !Macro->hasEntryForOffset(*Offset))
+      
+      if (const DWARFDebugMacro *Macro =
+          InUnit.getContaingFile().Dwarf->getDebugMacro(); Macro == nullptr || !Macro->hasEntryForOffset(*Offset))
         return 0;
 
       DebugInfoOutputSection.notePatchWithOffsetUpdate(

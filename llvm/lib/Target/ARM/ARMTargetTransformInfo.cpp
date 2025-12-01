@@ -124,8 +124,8 @@ ARMTTIImpl::getPreferredAddressingMode(const Loop *L,
 std::optional<Instruction *>
 ARMTTIImpl::instCombineIntrinsic(InstCombiner &IC, IntrinsicInst &II) const {
   using namespace PatternMatch;
-  Intrinsic::ID IID = II.getIntrinsicID();
-  switch (IID) {
+  
+  switch (Intrinsic::ID IID = II.getIntrinsicID(); IID) {
   default:
     break;
   case Intrinsic::arm_neon_vld1: {
@@ -156,8 +156,8 @@ ARMTTIImpl::instCombineIntrinsic(InstCombiner &IC, IntrinsicInst &II) const {
                           &IC.getAssumptionCache(), &IC.getDominatorTree());
     unsigned AlignArg = II.arg_size() - 1;
     Value *AlignArgOp = II.getArgOperand(AlignArg);
-    MaybeAlign Align = cast<ConstantInt>(AlignArgOp)->getMaybeAlignValue();
-    if (Align && *Align < MemAlign) {
+    
+    if (MaybeAlign Align = cast<ConstantInt>(AlignArgOp)->getMaybeAlignValue(); Align && *Align < MemAlign) {
       return IC.replaceOperand(
           II, AlignArg,
           ConstantInt::get(Type::getInt32Ty(II.getContext()), MemAlign.value(),
@@ -213,8 +213,8 @@ ARMTTIImpl::instCombineIntrinsic(InstCombiner &IC, IntrinsicInst &II) const {
   }
   case Intrinsic::arm_mve_pred_v2i: {
     Value *Arg = II.getArgOperand(0);
-    Value *ArgArg;
-    if (match(Arg, PatternMatch::m_Intrinsic<Intrinsic::arm_mve_pred_i2v>(
+    
+    if (Value *ArgArg; match(Arg, PatternMatch::m_Intrinsic<Intrinsic::arm_mve_pred_i2v>(
                        PatternMatch::m_Value(ArgArg)))) {
       return IC.replaceInstUsesWith(II, ArgArg);
     }
@@ -241,19 +241,19 @@ ARMTTIImpl::instCombineIntrinsic(InstCombiner &IC, IntrinsicInst &II) const {
     assert(II.getArgOperand(CarryOp)->getType()->getScalarSizeInBits() == 32 &&
            "Bad type for intrinsic!");
 
-    KnownBits CarryKnown(32);
-    if (IC.SimplifyDemandedBits(&II, CarryOp, APInt::getOneBitSet(32, 29),
+    
+    if (KnownBits CarryKnown(32); IC.SimplifyDemandedBits(&II, CarryOp, APInt::getOneBitSet(32, 29),
                                 CarryKnown)) {
       return &II;
     }
     break;
   }
   case Intrinsic::arm_mve_vmldava: {
-    Instruction *I = cast<Instruction>(&II);
-    if (I->hasOneUse()) {
+    
+    if (Instruction *I = cast<Instruction>(&II); I->hasOneUse()) {
       auto *User = cast<Instruction>(*I->user_begin());
-      Value *OpZ;
-      if (match(User, m_c_Add(m_Specific(I), m_Value(OpZ))) &&
+      
+      if (Value *OpZ; match(User, m_c_Add(m_Specific(I), m_Value(OpZ))) &&
           match(I->getOperand(3), m_Zero())) {
         Value *OpX = I->getOperand(4);
         Value *OpY = I->getOperand(5);
@@ -472,8 +472,8 @@ InstructionCost ARMTTIImpl::getIntImmCostInst(unsigned Opcode, unsigned Idx,
 
   // We can convert <= -1 to < 0, which is generally quite cheap.
   if (Inst && Opcode == Instruction::ICmp && Idx == 1 && Imm.isAllOnes()) {
-    ICmpInst::Predicate Pred = cast<ICmpInst>(Inst)->getPredicate();
-    if (Pred == ICmpInst::ICMP_SGT || Pred == ICmpInst::ICMP_SLE)
+    
+    if (ICmpInst::Predicate Pred = cast<ICmpInst>(Inst)->getPredicate(); Pred == ICmpInst::ICMP_SGT || Pred == ICmpInst::ICMP_SLE)
       return std::min(getIntImmCost(Imm, Ty, CostKind),
                       getIntImmCost(Imm + 1, Ty, CostKind));
   }
@@ -641,8 +641,8 @@ InstructionCost ARMTTIImpl::getCastInstrCost(unsigned Opcode, Type *Dst,
     };
 
     auto *User = cast<Instruction>(*I->user_begin());
-    int UserISD = TLI->InstructionOpcodeToISD(User->getOpcode());
-    if (auto *Entry = ConvertCostTableLookup(NEONDoubleWidthTbl, UserISD,
+    
+    if (auto *int UserISD = TLI->InstructionOpcodeToISD(User->getOpcode()); Entry = ConvertCostTableLookup(NEONDoubleWidthTbl, UserISD,
                                              DstTy.getSimpleVT(),
                                              SrcTy.getSimpleVT())) {
       return AdjustCost(Entry->Cost);
@@ -661,8 +661,8 @@ InstructionCost ARMTTIImpl::getCastInstrCost(unsigned Opcode, Type *Dst,
         {ISD::FP_EXTEND, MVT::v2f32, 2},
         {ISD::FP_EXTEND, MVT::v4f32, 4}};
 
-    std::pair<InstructionCost, MVT> LT = getTypeLegalizationCost(Src);
-    if (const auto *Entry = CostTableLookup(NEONFltDblTbl, ISD, LT.second))
+    
+    if (const auto *std::pair<InstructionCost, MVT> LT = getTypeLegalizationCost(Src); Entry = CostTableLookup(NEONFltDblTbl, ISD, LT.second))
       return AdjustCost(LT.first * Entry->Cost);
   }
 
@@ -1093,9 +1093,9 @@ ARMTTIImpl::getAddressComputationCost(Type *PtrTy, ScalarEvolution *SE,
   // computation can more often be merged into the index mode. The resulting
   // extra micro-ops can significantly decrease throughput.
   unsigned NumVectorInstToHideOverhead = 10;
-  int MaxMergeDistance = 64;
+  
 
-  if (ST->hasNEON()) {
+  if (int MaxMergeDistance = 64; ST->hasNEON()) {
     if (PtrTy->isVectorTy() && SE &&
         !BaseT::isConstantStridedAccessLessThan(SE, Ptr, MaxMergeDistance + 1))
       return NumVectorInstToHideOverhead;
@@ -1268,8 +1268,8 @@ InstructionCost ARMTTIImpl::getShuffleCost(TTI::ShuffleKind Kind,
           {ISD::VECTOR_SHUFFLE, MVT::v8i16, 1},
           {ISD::VECTOR_SHUFFLE, MVT::v16i8, 1}};
 
-      std::pair<InstructionCost, MVT> LT = getTypeLegalizationCost(SrcTy);
-      if (const auto *Entry =
+      
+      if (const auto *std::pair<InstructionCost, MVT> LT = getTypeLegalizationCost(SrcTy); Entry =
               CostTableLookup(NEONDupTbl, ISD::VECTOR_SHUFFLE, LT.second))
         return LT.first * Entry->Cost;
     }
@@ -1289,8 +1289,8 @@ InstructionCost ARMTTIImpl::getShuffleCost(TTI::ShuffleKind Kind,
           {ISD::VECTOR_SHUFFLE, MVT::v8i16, 2},
           {ISD::VECTOR_SHUFFLE, MVT::v16i8, 2}};
 
-      std::pair<InstructionCost, MVT> LT = getTypeLegalizationCost(SrcTy);
-      if (const auto *Entry =
+      
+      if (const auto *std::pair<InstructionCost, MVT> LT = getTypeLegalizationCost(SrcTy); Entry =
               CostTableLookup(NEONShuffleTbl, ISD::VECTOR_SHUFFLE, LT.second))
         return LT.first * Entry->Cost;
     }
@@ -1313,8 +1313,8 @@ InstructionCost ARMTTIImpl::getShuffleCost(TTI::ShuffleKind Kind,
 
           {ISD::VECTOR_SHUFFLE, MVT::v16i8, 32}};
 
-      std::pair<InstructionCost, MVT> LT = getTypeLegalizationCost(SrcTy);
-      if (const auto *Entry = CostTableLookup(NEONSelShuffleTbl,
+      
+      if (const auto *std::pair<InstructionCost, MVT> LT = getTypeLegalizationCost(SrcTy); Entry = CostTableLookup(NEONSelShuffleTbl,
                                               ISD::VECTOR_SHUFFLE, LT.second))
         return LT.first * Entry->Cost;
     }
@@ -1329,8 +1329,8 @@ InstructionCost ARMTTIImpl::getShuffleCost(TTI::ShuffleKind Kind,
           {ISD::VECTOR_SHUFFLE, MVT::v4f32, 1},
           {ISD::VECTOR_SHUFFLE, MVT::v8f16, 1}};
 
-      std::pair<InstructionCost, MVT> LT = getTypeLegalizationCost(SrcTy);
-      if (const auto *Entry = CostTableLookup(MVEDupTbl, ISD::VECTOR_SHUFFLE,
+      
+      if (const auto *std::pair<InstructionCost, MVT> LT = getTypeLegalizationCost(SrcTy); Entry = CostTableLookup(MVEDupTbl, ISD::VECTOR_SHUFFLE,
                                               LT.second))
         return LT.first * Entry->Cost * ST->getMVEVectorCostFactor(CostKind);
     }
@@ -1637,8 +1637,8 @@ ARMTTIImpl::getMaskedMemoryOpCost(const MemIntrinsicCostAttributes &MICA,
   unsigned IID = MICA.getID();
   Type *Src = MICA.getDataType();
   Align Alignment = MICA.getAlignment();
-  unsigned AddressSpace = MICA.getAddressSpace();
-  if (ST->hasMVEIntegerOps()) {
+  
+  if (unsigned AddressSpace = MICA.getAddressSpace(); ST->hasMVEIntegerOps()) {
     if (IID == Intrinsic::masked_load &&
         isLegalMaskedLoad(Src, Alignment, AddressSpace))
       return ST->getMVEVectorCostFactor(CostKind);
@@ -1744,9 +1744,9 @@ InstructionCost ARMTTIImpl::getGatherScatterOpCost(
       const User *Us = *I->users().begin();
       if (isa<ZExtInst>(Us) || isa<SExtInst>(Us)) {
         // only allow valid type combinations
-        unsigned TypeSize =
-            cast<Instruction>(Us)->getType()->getScalarSizeInBits();
-        if (((TypeSize == 32 && (EltSize == 8 || EltSize == 16)) ||
+        
+        if (unsigned TypeSize =
+            cast<Instruction>(Us)->getType()->getScalarSizeInBits(); ((TypeSize == 32 && (EltSize == 8 || EltSize == 16)) ||
              (TypeSize == 16 && EltSize == 8)) &&
             TypeSize * NumElems == 128) {
           ExtSize = TypeSize;
@@ -1754,13 +1754,13 @@ InstructionCost ARMTTIImpl::getGatherScatterOpCost(
       }
     }
     // Check whether the input data needs to be truncated
-    TruncInst *T;
-    if ((I->getOpcode() == Instruction::Store ||
+    
+    if (TruncInst *T; (I->getOpcode() == Instruction::Store ||
          match(I, m_Intrinsic<Intrinsic::masked_scatter>())) &&
         (T = dyn_cast<TruncInst>(I->getOperand(0)))) {
       // Only allow valid type combinations
-      unsigned TypeSize = T->getOperand(0)->getType()->getScalarSizeInBits();
-      if (((EltSize == 16 && TypeSize == 32) ||
+      
+      if (unsigned TypeSize = T->getOperand(0)->getType()->getScalarSizeInBits(); ((EltSize == 16 && TypeSize == 32) ||
            (EltSize == 8 && (TypeSize == 32 || TypeSize == 16))) &&
           TypeSize * NumElems == 128)
         ExtSize = TypeSize;
@@ -1890,9 +1890,9 @@ InstructionCost ARMTTIImpl::getExtendedReductionCost(
   EVT ValVT = TLI->getValueType(DL, ValTy);
   EVT ResVT = TLI->getValueType(DL, ResTy);
 
-  int ISD = TLI->InstructionOpcodeToISD(Opcode);
+  
 
-  switch (ISD) {
+  switch (int ISD = TLI->InstructionOpcodeToISD(Opcode); ISD) {
   case ISD::ADD:
     if (ST->hasMVEIntegerOps() && ValVT.isSimple() && ResVT.isSimple()) {
       std::pair<InstructionCost, MVT> LT = getTypeLegalizationCost(ValTy);
@@ -1996,12 +1996,12 @@ ARMTTIImpl::getMinMaxReductionCost(Intrinsic::ID IID, VectorType *Ty,
     // All costs are the same for u/s min/max.  These lower to vminv, which are
     // given a slightly higher cost as they tend to take multiple cycles for
     // smaller type sizes.
-    static const CostTblEntry CostTblAdd[]{
+    
+    if (const auto *static const CostTblEntry CostTblAdd[]{
         {ISD::SMIN, MVT::v16i8, 4},
         {ISD::SMIN, MVT::v8i16, 3},
         {ISD::SMIN, MVT::v4i32, 2},
-    };
-    if (const auto *Entry = CostTableLookup(CostTblAdd, ISD::SMIN, LT.second))
+    }; Entry = CostTableLookup(CostTblAdd, ISD::SMIN, LT.second))
       return Entry->Cost * ST->getMVEVectorCostFactor(CostKind) * LT.first;
   }
 
@@ -2011,8 +2011,8 @@ ARMTTIImpl::getMinMaxReductionCost(Intrinsic::ID IID, VectorType *Ty,
 InstructionCost
 ARMTTIImpl::getIntrinsicInstrCost(const IntrinsicCostAttributes &ICA,
                                   TTI::TargetCostKind CostKind) const {
-  unsigned Opc = ICA.getID();
-  switch (Opc) {
+  
+  switch (unsigned Opc = ICA.getID(); Opc) {
   case Intrinsic::get_active_lane_mask:
     // Currently we make a somewhat optimistic assumption that
     // active_lane_mask's are always free. In reality it may be freely folded
@@ -2494,8 +2494,8 @@ static bool canTailPredicateLoop(Loop *L, LoopInfo *LI, ScalarEvolution &SE,
         return false;
       }
 
-      Type *T  = I.getType();
-      if (T->getScalarSizeInBits() > 32) {
+      
+      if (Type *T  = I.getType(); T->getScalarSizeInBits() > 32) {
         LLVM_DEBUG(dbgs() << "Unsupported Type: "; T->dump());
         return false;
       }
@@ -2522,10 +2522,10 @@ static bool canTailPredicateLoop(Loop *L, LoopInfo *LI, ScalarEvolution &SE,
           // least if they are loop invariant.
           // TODO: Loop variant strides should in theory work, too, but
           // this requires further testing.
-          const SCEV *PtrScev = PSE.getSE()->getSCEV(Ptr);
-          if (auto AR = dyn_cast<SCEVAddRecExpr>(PtrScev)) {
-            const SCEV *Step = AR->getStepRecurrence(*PSE.getSE());
-            if (PSE.getSE()->isLoopInvariant(Step, L))
+          
+          if (auto const SCEV *PtrScev = PSE.getSE()->getSCEV(Ptr); AR = dyn_cast<SCEVAddRecExpr>(PtrScev)) {
+            
+            if (const SCEV *Step = AR->getStepRecurrence(*PSE.getSE()); PSE.getSE()->isLoopInvariant(Step, L))
               continue;
           }
         }
@@ -2711,8 +2711,8 @@ void ARMTTIImpl::getUnrollingPreferences(Loop *L, ScalarEvolution &SE,
   if (ST->hasLOB()) {
     if (SE.hasLoopInvariantBackedgeTakenCount(L)) {
       const auto *BETC = SE.getBackedgeTakenCount(L);
-      auto *Outer = L->getOutermostLoop();
-      if ((L != Outer && Outer != L->getParentLoop()) ||
+      
+      if (auto *Outer = L->getOutermostLoop(); (L != Outer && Outer != L->getParentLoop()) ||
           (L != Outer && BETC && !SE.isLoopInvariant(BETC, Outer))) {
         Runtime = false;
       }
@@ -2744,8 +2744,8 @@ bool ARMTTIImpl::preferInLoopReduction(RecurKind Kind, Type *Ty) const {
   if (!ST->hasMVEIntegerOps())
     return false;
 
-  unsigned ScalarBits = Ty->getScalarSizeInBits();
-  switch (Kind) {
+  
+  switch (unsigned ScalarBits = Ty->getScalarSizeInBits(); Kind) {
   case RecurKind::Add:
     return ScalarBits <= 64;
   default:
@@ -2923,8 +2923,8 @@ bool ARMTTIImpl::isProfitableToSinkOperands(Instruction *I,
     // All uses of the shuffle should be sunk to avoid duplicating it across gpr
     // and vector registers
     for (Use &U : Op->uses()) {
-      Instruction *Insn = cast<Instruction>(U.getUser());
-      if (!IsSinker(Insn, U.getOperandNo()))
+      
+      if (Instruction *Insn = cast<Instruction>(U.getUser()); !IsSinker(Insn, U.getOperandNo()))
         return false;
     }
 
@@ -2957,9 +2957,9 @@ unsigned ARMTTIImpl::getNumBytesToPadGlobalArray(unsigned Size,
 
   // Max number of bytes that memcpy allows for lowering to load/stores before
   // it uses library function (__aeabi_memcpy).
-  unsigned MaxMemIntrinsicSize = getMaxMemIntrinsicInlineSizeThreshold();
+  
 
-  if (NewSize > MaxMemIntrinsicSize)
+  if (unsigned MaxMemIntrinsicSize = getMaxMemIntrinsicInlineSizeThreshold(); NewSize > MaxMemIntrinsicSize)
     return 0;
 
   return NumBytesToPad;

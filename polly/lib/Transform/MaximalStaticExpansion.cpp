@@ -87,10 +87,10 @@ class MaximalStaticExpansionImpl {
       auto TmpMapDomainId =
           Map.get_space().domain().unwrap().range().get_tuple_id(isl::dim::set);
 
-      ScopArrayInfo *UserSAI =
-          static_cast<ScopArrayInfo *>(TmpMapDomainId.get_user());
+      
 
-      if (SAI != UserSAI)
+      if (ScopArrayInfo *UserSAI =
+          static_cast<ScopArrayInfo *>(TmpMapDomainId.get_user()); SAI != UserSAI)
         continue;
 
       // Get the correct S1[] -> S2[] dependence.
@@ -164,8 +164,8 @@ class MaximalStaticExpansionImpl {
 
         // For now, we are not able to expand array where read come after write
         // (to the same location) in a same statement.
-        auto AccRel = isl::union_map(MA->getAccessRelation());
-        if (MA->isRead()) {
+        
+        if (auto AccRel = isl::union_map(MA->getAccessRelation()); MA->isRead()) {
           // Reject load after store to same location.
           if (!StmtWrites.is_disjoint(AccRel)) {
             emitRemark(SAI->getName() + " has read after write to the same "
@@ -455,10 +455,10 @@ void polly::runMaximalStaticExpansion(Scop &S, DependenceAnalysis::Result &DI) {
 
   auto &D = DI.getDependences(Dependences::AL_Reference);
 
-  std::unique_ptr<MaximalStaticExpansionImpl> Impl =
-      runMaximalStaticExpansionImpl(S, ORE, D);
+  
 
-  if (PollyPrintMSE) {
+  if (std::unique_ptr<MaximalStaticExpansionImpl> Impl =
+      runMaximalStaticExpansionImpl(S, ORE, D); PollyPrintMSE) {
     outs()
         << "Printing analysis 'Polly - Maximal static expansion of SCoP' for "
            "region: '"

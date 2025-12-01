@@ -221,7 +221,7 @@ struct MemrefAddressOfGlobalModel
 };
 
 struct MemrefGlobalVariableModel
-    : public GlobalVariableOpInterface::ExternalModel<MemrefGlobalVariableModel,
+    : public CallableOpInterface::ExternalModel<MemrefGlobalVariableModel,
                                                       memref::GlobalOp> {
   bool isConstant(Operation *op) const {
     auto globalOp = cast<memref::GlobalOp>(op);
@@ -346,8 +346,8 @@ static bool hasDeviceType(std::optional<mlir::ArrayAttr> arrayAttr,
     return false;
 
   for (auto attr : *arrayAttr) {
-    auto deviceTypeAttr = mlir::dyn_cast<mlir::acc::DeviceTypeAttr>(attr);
-    if (deviceTypeAttr.getValue() == deviceType)
+    
+    if (auto deviceTypeAttr = mlir::dyn_cast<mlir::acc::DeviceTypeAttr>(attr); deviceTypeAttr.getValue() == deviceType)
       return true;
   }
 
@@ -369,8 +369,8 @@ static std::optional<unsigned> findSegment(ArrayAttr segments,
                                            mlir::acc::DeviceType deviceType) {
   unsigned segmentIdx = 0;
   for (auto attr : segments) {
-    auto deviceTypeAttr = mlir::dyn_cast<mlir::acc::DeviceTypeAttr>(attr);
-    if (deviceTypeAttr.getValue() == deviceType)
+    
+    if (auto deviceTypeAttr = mlir::dyn_cast<mlir::acc::DeviceTypeAttr>(attr); deviceTypeAttr.getValue() == deviceType)
       return std::make_optional(segmentIdx);
     ++segmentIdx;
   }
@@ -640,8 +640,8 @@ static void printRecipeSym(mlir::OpAsmPrinter &p, mlir::Operation *op,
 //===----------------------------------------------------------------------===//
 LogicalResult acc::DataBoundsOp::verify() {
   auto extent = getExtent();
-  auto upperbound = getUpperbound();
-  if (!extent && !upperbound)
+  
+  if (auto upperbound = getUpperbound(); !extent && !upperbound)
     return emitError("expected extent or upperbound.");
   return success();
 }
@@ -1123,8 +1123,8 @@ struct RemoveEmptyKernelEnvironment
                                 PatternRewriter &rewriter) const override {
     assert(op->getNumRegions() == 1 && "expected op to have one region");
 
-    Block &block = op.getRegion().front();
-    if (!block.empty())
+    
+    if (Block &block = op.getRegion().front(); !block.empty())
       return failure();
 
     // Conservatively disable canonicalization of empty acc.kernel_environment
@@ -1290,13 +1290,13 @@ static LogicalResult createDestroyRegion(OpBuilder &builder, Location loc,
   auto varToFree =
       cast<TypedValue<PointerLikeType>>(destroyBlock->getArgument(1));
   if (isa<MappableType>(varType)) {
-    auto mappableTy = cast<MappableType>(varType);
-    if (!mappableTy.generatePrivateDestroy(builder, loc, varToFree))
+    
+    if (auto mappableTy = cast<MappableType>(varType); !mappableTy.generatePrivateDestroy(builder, loc, varToFree))
       return failure();
   } else {
     assert(isa<PointerLikeType>(varType) && "Expected PointerLikeType");
-    auto pointerLikeTy = cast<PointerLikeType>(varType);
-    if (!pointerLikeTy.genFree(builder, loc, varToFree, allocRes, varType))
+    
+    if (auto pointerLikeTy = cast<PointerLikeType>(varType); !pointerLikeTy.genFree(builder, loc, varToFree, allocRes, varType))
       return failure();
   }
 
@@ -1318,8 +1318,8 @@ static LogicalResult verifyInitLikeSingleArgRegion(
 
   if (region.empty())
     return op->emitOpError() << "expects non-empty " << regionName << " region";
-  Block &firstBlock = region.front();
-  if (firstBlock.getNumArguments() < 1 ||
+  
+  if (Block &firstBlock = region.front(); firstBlock.getNumArguments() < 1 ||
       firstBlock.getArgument(0).getType() != type)
     return op->emitOpError() << "expects " << regionName
                              << " region first "
@@ -1357,10 +1357,10 @@ PrivateRecipeOp::createAndPopulate(OpBuilder &builder, Location loc,
                                    StringRef varName, ValueRange bounds) {
   // First, validate that we can handle this variable type
   bool isMappable = isa<MappableType>(varType);
-  bool isPointerLike = isa<PointerLikeType>(varType);
+  
 
   // Unsupported type
-  if (!isMappable && !isPointerLike)
+  if (bool isPointerLike = isa<PointerLikeType>(varType); !isMappable && !isPointerLike)
     return std::nullopt;
 
   OpBuilder::InsertionGuard guard(builder);
@@ -1381,9 +1381,9 @@ PrivateRecipeOp::createAndPopulate(OpBuilder &builder, Location loc,
     // Extract the allocated value from the init block's yield operation
     auto yieldOp =
         cast<acc::YieldOp>(recipe.getInitRegion().front().getTerminator());
-    Value allocRes = yieldOp.getOperand(0);
+    
 
-    if (failed(createDestroyRegion(builder, loc, recipe.getDestroyRegion(),
+    if (Value allocRes = yieldOp.getOperand(0); failed(createDestroyRegion(builder, loc, recipe.getDestroyRegion(),
                                    varType, allocRes, bounds))) {
       recipe.erase();
       return std::nullopt;
@@ -1406,8 +1406,8 @@ LogicalResult acc::FirstprivateRecipeOp::verifyRegions() {
   if (getCopyRegion().empty())
     return emitOpError() << "expects non-empty copy region";
 
-  Block &firstBlock = getCopyRegion().front();
-  if (firstBlock.getNumArguments() < 2 ||
+  
+  if (Block &firstBlock = getCopyRegion().front(); firstBlock.getNumArguments() < 2 ||
       firstBlock.getArgument(0).getType() != getType())
     return emitOpError() << "expects copy region with two arguments of the "
                             "privatization type";
@@ -1429,10 +1429,10 @@ FirstprivateRecipeOp::createAndPopulate(OpBuilder &builder, Location loc,
                                         StringRef varName, ValueRange bounds) {
   // First, validate that we can handle this variable type
   bool isMappable = isa<MappableType>(varType);
-  bool isPointerLike = isa<PointerLikeType>(varType);
+  
 
   // Unsupported type
-  if (!isMappable && !isPointerLike)
+  if (bool isPointerLike = isa<PointerLikeType>(varType); !isMappable && !isPointerLike)
     return std::nullopt;
 
   OpBuilder::InsertionGuard guard(builder);
@@ -1460,9 +1460,9 @@ FirstprivateRecipeOp::createAndPopulate(OpBuilder &builder, Location loc,
     // Extract the allocated value from the init block's yield operation
     auto yieldOp =
         cast<acc::YieldOp>(recipe.getInitRegion().front().getTerminator());
-    Value allocRes = yieldOp.getOperand(0);
+    
 
-    if (failed(createDestroyRegion(builder, loc, recipe.getDestroyRegion(),
+    if (Value allocRes = yieldOp.getOperand(0); failed(createDestroyRegion(builder, loc, recipe.getDestroyRegion(),
                                    varType, allocRes, bounds))) {
       recipe.erase();
       return std::nullopt;
@@ -1485,8 +1485,8 @@ LogicalResult acc::ReductionRecipeOp::verifyRegions() {
   if (getCombinerRegion().empty())
     return emitOpError() << "expects non-empty combiner region";
 
-  Block &reductionBlock = getCombinerRegion().front();
-  if (reductionBlock.getNumArguments() < 2 ||
+  
+  if (Block &reductionBlock = getCombinerRegion().front(); reductionBlock.getNumArguments() < 2 ||
       reductionBlock.getArgument(0).getType() != getType() ||
       reductionBlock.getArgument(1).getType() != getType())
     return emitOpError() << "expects combiner region with the first two "
@@ -1880,8 +1880,8 @@ static ParseResult parseNumGangs(
 }
 
 static void printSingleDeviceType(mlir::OpAsmPrinter &p, mlir::Attribute attr) {
-  auto deviceTypeAttr = mlir::dyn_cast<mlir::acc::DeviceTypeAttr>(attr);
-  if (deviceTypeAttr.getValue() != mlir::acc::DeviceType::None)
+  
+  if (auto deviceTypeAttr = mlir::dyn_cast<mlir::acc::DeviceTypeAttr>(attr); deviceTypeAttr.getValue() != mlir::acc::DeviceType::None)
     p << " [" << attr << "]";
 }
 
@@ -2080,8 +2080,8 @@ static void printWaitClause(mlir::OpAsmPrinter &p, mlir::Operation *op,
     unsigned opIdx = 0;
     llvm::interleaveComma(llvm::enumerate(*deviceTypes), p, [&](auto it) {
       p << "{";
-      auto boolAttr = mlir::dyn_cast<mlir::BoolAttr>((*hasDevNum)[it.index()]);
-      if (boolAttr && boolAttr.getValue())
+      
+      if (auto boolAttr = mlir::dyn_cast<mlir::BoolAttr>((*hasDevNum)[it.index()]); boolAttr && boolAttr.getValue())
         p << "devnum: ";
       llvm::interleaveComma(
           llvm::seq<int32_t>(0, (*segments)[it.index()]), p, [&](auto it) {
@@ -2920,8 +2920,8 @@ bool hasDuplicateDeviceTypes(
   if (!segments)
     return false;
   for (auto attr : *segments) {
-    auto deviceTypeAttr = mlir::dyn_cast<mlir::acc::DeviceTypeAttr>(attr);
-    if (!deviceTypes.insert(deviceTypeAttr.getValue()).second)
+    
+    if (auto deviceTypeAttr = mlir::dyn_cast<mlir::acc::DeviceTypeAttr>(attr); !deviceTypes.insert(deviceTypeAttr.getValue()).second)
       return true;
   }
   return false;
@@ -3055,8 +3055,8 @@ LogicalResult acc::LoopOp::verify() {
   // Gang, worker and vector are incompatible with seq.
   if (getSeqAttr()) {
     for (auto attr : getSeqAttr()) {
-      auto deviceTypeAttr = mlir::dyn_cast<mlir::acc::DeviceTypeAttr>(attr);
-      if (hasVector(deviceTypeAttr.getValue()) ||
+      
+      if (auto deviceTypeAttr = mlir::dyn_cast<mlir::acc::DeviceTypeAttr>(attr); hasVector(deviceTypeAttr.getValue()) ||
           getVectorValue(deviceTypeAttr.getValue()) ||
           hasWorker(deviceTypeAttr.getValue()) ||
           getWorkerValue(deviceTypeAttr.getValue()) ||
@@ -3108,8 +3108,8 @@ LogicalResult acc::LoopOp::verify() {
     uint64_t collapseCount = getCollapseValue().value_or(1);
     if (getCollapseAttr()) {
       for (auto collapseEntry : getCollapseAttr()) {
-        auto intAttr = mlir::dyn_cast<IntegerAttr>(collapseEntry);
-        if (intAttr.getValue().getZExtValue() > collapseCount)
+        
+        if (auto intAttr = mlir::dyn_cast<IntegerAttr>(collapseEntry); intAttr.getValue().getZExtValue() > collapseCount)
           collapseCount = intAttr.getValue().getZExtValue();
       }
     }

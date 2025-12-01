@@ -30,8 +30,8 @@ size_t MutationDispatcher::CrossOver(const uint8_t *Data1, size_t Size1,
   bool CurrentlyUsingFirstData = true;
   while (OutPos < MaxOutSize && (Pos1 < Size1 || Pos2 < Size2)) {
     // Merge a part of Data into Out.
-    size_t OutSizeLeft = MaxOutSize - OutPos;
-    if (*InPos < InSize) {
+    
+    if (size_t OutSizeLeft = MaxOutSize - OutPos; *InPos < InSize) {
       size_t InSizeLeft = InSize - *InPos;
       size_t MaxExtraSize = std::min(OutSizeLeft, InSizeLeft);
       size_t ExtraSize = Rand(MaxExtraSize) + 1;

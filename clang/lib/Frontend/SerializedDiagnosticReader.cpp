@@ -328,8 +328,8 @@ class SDErrorCategoryType final : public std::error_category {
   }
 
   std::string message(int IE) const override {
-    auto E = static_cast<SDError>(IE);
-    switch (E) {
+    
+    switch (auto E = static_cast<SDError>(IE); E) {
     case SDError::CouldNotLoad:
       return "Failed to open diagnostics file";
     case SDError::InvalidSignature:

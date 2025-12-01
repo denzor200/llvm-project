@@ -262,8 +262,8 @@ QuantizedType QuantizeCastOp::getQuantizedType() {
 
 LogicalResult StorageCastOp::verify() {
   auto quantizedType = getQuantizedType();
-  auto integerType = getIntegerType();
-  if (quantizedType.getStorageType() != integerType)
+  
+  if (auto integerType = getIntegerType(); quantizedType.getStorageType() != integerType)
     return emitError(
         "storage type in quantized type expected to match integer type");
 

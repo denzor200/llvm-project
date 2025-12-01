@@ -407,8 +407,8 @@ struct CodeCompletionBuilder {
       if (Completion.RequiredQualifier.empty() && !C.SemaResult) {
         llvm::StringRef ShortestQualifier = C.IndexResult->Scope;
         for (llvm::StringRef Scope : AccessibleScopes) {
-          llvm::StringRef Qualifier = C.IndexResult->Scope;
-          if (Qualifier.consume_front(Scope) &&
+          
+          if (llvm::StringRef Qualifier = C.IndexResult->Scope; Qualifier.consume_front(Scope) &&
               Qualifier.size() < ShortestQualifier.size())
             ShortestQualifier = Qualifier;
         }
@@ -505,13 +505,13 @@ struct CodeCompletionBuilder {
     }
 
     if (!Completion.Documentation) {
-      auto SetDoc = [&](llvm::StringRef Doc) {
+      
+      if (auto SetDoc = [&](llvm::StringRef Doc) {
         if (!Doc.empty()) {
           Completion.Documentation.emplace();
           parseDocumentation(Doc, *Completion.Documentation);
         }
-      };
-      if (C.IndexResult) {
+      }; C.IndexResult) {
         SetDoc(C.IndexResult->Documentation);
       } else if (C.SemaResult) {
         const auto DocComment = getDocComment(*ASTCtx, *C.SemaResult,
@@ -1293,8 +1293,8 @@ private:
     ScoredSignature Result;
     Result.Signature = std::move(Signature);
     Result.Quality = Signal;
-    const FunctionDecl *Func = Candidate.getFunction();
-    if (Func && Result.Signature.documentation.value.empty()) {
+    
+    if (const FunctionDecl *Func = Candidate.getFunction(); Func && Result.Signature.documentation.value.empty()) {
       // Computing USR caches linkage, which may change after code completion.
       if (!hasUnstableLinkage(Func))
         Result.IDForDoc = clangd::getSymbolID(Func);
@@ -2006,8 +2006,8 @@ private:
         [&](const CodeCompletionResult &SemaResult) -> const Symbol * {
       if (auto SymID =
               getSymbolID(SemaResult, Recorder->CCSema->getSourceManager())) {
-        auto I = IndexResults.find(SymID);
-        if (I != IndexResults.end()) {
+        
+        if (auto I = IndexResults.find(SymID); I != IndexResults.end()) {
           UsedIndexResults.insert(&*I);
           return &*I;
         }
@@ -2093,8 +2093,8 @@ private:
     Relevance.ContextWords = &ContextWords;
     Relevance.MainFileSignals = Opts.MainFileSignals;
 
-    auto &First = Bundle.front();
-    if (auto FuzzyScore = fuzzyScore(First))
+    
+    if (auto auto &First = Bundle.front(); FuzzyScore = fuzzyScore(First))
       Relevance.NameMatch = *FuzzyScore;
     else
       return;
@@ -2153,10 +2153,10 @@ private:
   CodeCompletion toCodeCompletion(const CompletionCandidate::Bundle &Bundle) {
     std::optional<CodeCompletionBuilder> Builder;
     for (const auto &Item : Bundle) {
-      CodeCompletionString *SemaCCS =
+      
+      if (CodeCompletionString *SemaCCS =
           Item.SemaResult ? Recorder->codeCompletionString(*Item.SemaResult)
-                          : nullptr;
-      if (!Builder)
+                          : nullptr; !Builder)
         Builder.emplace(Recorder ? &Recorder->CCSema->getASTContext() : nullptr,
                         Item, SemaCCS, AccessibleScopes, *Inserter, FileName,
                         CCContextKind, Opts, IsUsingDeclaration, NextTokenKind);
@@ -2479,8 +2479,8 @@ bool isIncludeFile(llvm::StringRef Line) {
 bool allowImplicitCompletion(llvm::StringRef Content, unsigned Offset) {
   // Look at last line before completion point only.
   Content = Content.take_front(Offset);
-  auto Pos = Content.rfind('\n');
-  if (Pos != llvm::StringRef::npos)
+  
+  if (auto Pos = Content.rfind('\n'); Pos != llvm::StringRef::npos)
     Content = Content.substr(Pos + 1);
 
   // Complete after scope operators.

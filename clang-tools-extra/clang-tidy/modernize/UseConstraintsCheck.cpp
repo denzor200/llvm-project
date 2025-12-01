@@ -55,8 +55,8 @@ static std::optional<TemplateSpecializationTypeLoc>
 matchEnableIfSpecializationImplTypename(TypeLoc TheType) {
   if (const auto Dep = TheType.getAs<DependentNameTypeLoc>()) {
     const IdentifierInfo *Identifier = Dep.getTypePtr()->getIdentifier();
-    const ElaboratedTypeKeyword Keyword = Dep.getTypePtr()->getKeyword();
-    if (!Identifier || Identifier->getName() != "type" ||
+    
+    if (const ElaboratedTypeKeyword Keyword = Dep.getTypePtr()->getKeyword(); !Identifier || Identifier->getName() != "type" ||
         (Keyword != ElaboratedTypeKeyword::Typename &&
          Keyword != ElaboratedTypeKeyword::None)) {
       return std::nullopt;
@@ -122,8 +122,8 @@ matchEnableIfSpecializationImplTrait(TypeLoc TheType) {
 
     if (const auto *AliasedType =
             dyn_cast<DependentNameType>(Specialization->getAliasedType())) {
-      const ElaboratedTypeKeyword Keyword = AliasedType->getKeyword();
-      if (AliasedType->getIdentifier()->getName() != "type" ||
+      
+      if (const ElaboratedTypeKeyword Keyword = AliasedType->getKeyword(); AliasedType->getIdentifier()->getName() != "type" ||
           (Keyword != ElaboratedTypeKeyword::Typename &&
            Keyword != ElaboratedTypeKeyword::None)) {
         return std::nullopt;

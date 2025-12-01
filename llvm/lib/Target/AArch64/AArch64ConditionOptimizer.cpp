@@ -170,8 +170,8 @@ MachineInstr *AArch64ConditionOptimizer::findSuitableCompare(
     // cmn is an alias for adds with a dead destination register.
     case AArch64::ADDSWri:
     case AArch64::ADDSXri: {
-      unsigned ShiftAmt = AArch64_AM::getShiftValue(I.getOperand(3).getImm());
-      if (!I.getOperand(2).isImm()) {
+      
+      if (unsigned ShiftAmt = AArch64_AM::getShiftValue(I.getOperand(3).getImm()); !I.getOperand(2).isImm()) {
         LLVM_DEBUG(dbgs() << "Immediate of cmp is symbolic, " << I << '\n');
         return nullptr;
       } else if (I.getOperand(2).getImm() << ShiftAmt >= 0xfff) {
@@ -407,8 +407,8 @@ bool AArch64ConditionOptimizer::runOnMachineFunction(MachineFunction &MF) {
       // 2) (a <= {NewImm} && ...) || (a >= {NewImm} && ...)
 
       CmpInfo HeadCmpInfo = adjustCmp(HeadCmpMI, HeadCmp);
-      CmpInfo TrueCmpInfo = adjustCmp(TrueCmpMI, TrueCmp);
-      if (std::get<0>(HeadCmpInfo) == std::get<0>(TrueCmpInfo) &&
+      
+      if (CmpInfo TrueCmpInfo = adjustCmp(TrueCmpMI, TrueCmp); std::get<0>(HeadCmpInfo) == std::get<0>(TrueCmpInfo) &&
           std::get<1>(HeadCmpInfo) == std::get<1>(TrueCmpInfo)) {
         modifyCmp(HeadCmpMI, HeadCmpInfo);
         modifyCmp(TrueCmpMI, TrueCmpInfo);

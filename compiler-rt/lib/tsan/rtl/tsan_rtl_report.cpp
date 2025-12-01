@@ -61,9 +61,9 @@ static void StackStripMain(SymbolizedStack *frames) {
     return;
 #if !SANITIZER_GO
   const char *last = last_frame->info.function;
-  const char *last2 = last_frame2->info.function;
+  
   // Strip frame above 'main'
-  if (last2 && 0 == internal_strcmp(last2, "main")) {
+  if (const char *last2 = last_frame2->info.function; last2 && 0 == internal_strcmp(last2, "main")) {
     last_frame->ClearAll();
     last_frame2->next = nullptr;
   // Strip our internal thread start routine.
@@ -217,8 +217,8 @@ void ScopedReportBase::SymbolizeStackElems() {
 
   // symbolize any added locations
   for (usize i = 0, size = rep_->added_location_addrs.Size(); i < size; i++) {
-    AddedLocationAddr *added_loc = &rep_->added_location_addrs[i];
-    if (ReportLocation *loc = SymbolizeData(added_loc->addr)) {
+    
+    if (ReportLocation *AddedLocationAddr *added_loc = &rep_->added_location_addrs[i]; loc = SymbolizeData(added_loc->addr)) {
       loc->suppressable = true;
       rep_->locs[added_loc->locs_idx] = loc;
     }
@@ -329,8 +329,8 @@ void ScopedReportBase::AddLocation(uptr addr, uptr size) {
   int fd = -1;
   Tid creat_tid = kInvalidTid;
   StackID creat_stack = 0;
-  bool closed = false;
-  if (FdLocation(addr, &fd, &creat_tid, &creat_stack, &closed)) {
+  
+  if (bool closed = false; FdLocation(addr, &fd, &creat_tid, &creat_stack, &closed)) {
     auto *loc = New<ReportLocation>();
     loc->type = ReportLocationFD;
     loc->fd_closed = closed;
@@ -558,8 +558,8 @@ bool RestoreStack(EventType type, Sid sid, Epoch epoch, uptr addr, uptr size,
           return;
         }
         if (evp->is_func) {
-          auto *ev = reinterpret_cast<EventFunc *>(evp);
-          if (ev->pc) {
+          
+          if (auto *ev = reinterpret_cast<EventFunc *>(evp); ev->pc) {
             DPrintf2(" FuncEnter: pc=0x%llx\n", ev->pc);
             stack.PushBack(ev->pc);
           } else {
@@ -662,8 +662,8 @@ static bool HandleRacyStacks(ThreadState *thr, VarSizeStackTrace traces[2]) {
   hash.hash[0] = md5_hash(traces[0].trace, traces[0].size * sizeof(uptr));
   hash.hash[1] = md5_hash(traces[1].trace, traces[1].size * sizeof(uptr));
   {
-    ReadLock lock(&ctx->racy_mtx);
-    if (FindRacyStacks(hash))
+    
+    if (ReadLock lock(&ctx->racy_mtx); FindRacyStacks(hash))
       return true;
   }
   Lock lock(&ctx->racy_mtx);
@@ -699,8 +699,8 @@ bool OutputReport(ThreadState *thr, ScopedReport &srep) {
     ctx->fired_suppressions.push_back(s);
   }
   {
-    bool suppressed = OnReport(rep, pc_or_addr != 0);
-    if (suppressed) {
+    
+    if (bool suppressed = OnReport(rep, pc_or_addr != 0); suppressed) {
       thr->current_report = nullptr;
       return false;
     }
@@ -720,8 +720,8 @@ bool IsFiredSuppression(Context *ctx, ReportType type, StackTrace trace) {
     if (ctx->fired_suppressions[k].type != type)
       continue;
     for (uptr j = 0; j < trace.size; j++) {
-      FiredSuppression *s = &ctx->fired_suppressions[k];
-      if (trace.trace[j] == s->pc_or_addr) {
+      
+      if (FiredSuppression *s = &ctx->fired_suppressions[k]; trace.trace[j] == s->pc_or_addr) {
         if (s->supp)
           atomic_fetch_add(&s->supp->hit_count, 1, memory_order_relaxed);
         return true;
@@ -736,8 +736,8 @@ static bool IsFiredSuppression(Context *ctx, ReportType type, uptr addr) {
   for (uptr k = 0; k < ctx->fired_suppressions.size(); k++) {
     if (ctx->fired_suppressions[k].type != type)
       continue;
-    FiredSuppression *s = &ctx->fired_suppressions[k];
-    if (addr == s->pc_or_addr) {
+    
+    if (FiredSuppression *s = &ctx->fired_suppressions[k]; addr == s->pc_or_addr) {
       if (s->supp)
         atomic_fetch_add(&s->supp->hit_count, 1, memory_order_relaxed);
       return true;

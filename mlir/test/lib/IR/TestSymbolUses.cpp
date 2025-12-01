@@ -42,8 +42,8 @@ struct SymbolUsesPass
 
     // Test the functionality of symbolKnownUseEmpty.
     if (SymbolTable::symbolKnownUseEmpty(symbol, &module.getBodyRegion())) {
-      func::FuncOp funcSymbol = dyn_cast<func::FuncOp>(symbol);
-      if (funcSymbol && funcSymbol.isExternal())
+      
+      if (func::FuncOp funcSymbol = dyn_cast<func::FuncOp>(symbol); funcSymbol && funcSymbol.isExternal())
         deadFunctions.push_back(funcSymbol);
 
       symbol->emitRemark() << "symbol has no uses";

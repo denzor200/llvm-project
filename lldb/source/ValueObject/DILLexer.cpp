@@ -94,8 +94,8 @@ static std::optional<llvm::StringRef> IsNumber(llvm::StringRef &remainder,
     tail = tail.drop_front(body.size());
     bool isHex = body.contains_insensitive('x');
     bool hasExp = !isHex && body.contains_insensitive('e');
-    bool hasHexExp = isHex && body.contains_insensitive('p');
-    if (hasExp || hasHexExp) {
+    
+    if (bool hasHexExp = isHex && body.contains_insensitive('p'); hasExp || hasHexExp) {
       isFloat = true; // This marks numbers like 0x1p1 and 1e1 as float
       if (body.ends_with_insensitive("e") || body.ends_with_insensitive("p"))
         if (tail.consume_front("+") || tail.consume_front("-"))

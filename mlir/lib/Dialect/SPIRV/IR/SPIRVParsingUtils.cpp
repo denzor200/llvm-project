@@ -40,8 +40,8 @@ ParseResult parseVariableDecorations(OpAsmParser &parser,
       return failure();
     }
   } else if (succeeded(parser.parseOptionalKeyword(builtInName))) {
-    StringAttr builtIn;
-    if (parser.parseLParen() ||
+    
+    if (StringAttr builtIn; parser.parseLParen() ||
         parser.parseAttribute(builtIn, builtInName, state.attributes) ||
         parser.parseRParen()) {
       return failure();

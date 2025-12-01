@@ -55,8 +55,8 @@ Mangled::ManglingScheme Mangled::GetManglingScheme(llvm::StringRef name) {
     // known exception is the symbol `_Dmain`.
     // See `SymbolName` and `LName` in
     // https://dlang.org/spec/abi.html#name_mangling
-    llvm::StringRef buf = name.drop_front(2);
-    if (!buf.empty() && (llvm::isDigit(buf.front()) || name == "_Dmain"))
+    
+    if (llvm::StringRef buf = name.drop_front(2); !buf.empty() && (llvm::isDigit(buf.front()) || name == "_Dmain"))
       return Mangled::eManglingSchemeD;
   }
 
@@ -163,8 +163,8 @@ GetItaniumDemangledStr(const char *M) {
 
   DemangledNameInfo info;
   llvm::ItaniumPartialDemangler ipd;
-  bool err = ipd.partialDemangle(M);
-  if (!err) {
+  
+  if (bool err = ipd.partialDemangle(M); !err) {
     // Default buffer and size (OutputBuffer will realloc in case it's too
     // small).
     size_t demangled_size = 80;
@@ -479,8 +479,8 @@ bool Mangled::Decode(const DataExtractor &data, lldb::offset_t *offset_ptr,
   m_mangled.Clear();
   m_demangled.Clear();
   m_demangled_info.reset();
-  MangledEncoding encoding = (MangledEncoding)data.GetU8(offset_ptr);
-  switch (encoding) {
+  
+  switch (MangledEncoding encoding = (MangledEncoding)data.GetU8(offset_ptr); encoding) {
     case Empty:
       return true;
 
@@ -533,8 +533,8 @@ void Mangled::Encode(DataEncoder &file, ConstStringTable &strtab) const {
       // We have both mangled and demangled names. If the demangled name is the
       // counterpart of the mangled name, then we only need to save the mangled
       // named. If they are different, we need to save both.
-      ConstString s;
-      if (!(m_mangled.GetMangledCounterpart(s) && s == m_demangled))
+      
+      if (ConstString s; !(m_mangled.GetMangledCounterpart(s) && s == m_demangled))
         encoding = MangledAndDemangled;
     }
   } else if (m_demangled) {

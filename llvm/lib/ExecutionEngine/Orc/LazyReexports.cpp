@@ -60,8 +60,8 @@ Error LazyCallThroughManager::notifyResolved(ExecutorAddr TrampolineAddr,
   NotifyResolvedFunction NotifyResolved;
   {
     std::lock_guard<std::mutex> Lock(LCTMMutex);
-    auto I = Notifiers.find(TrampolineAddr);
-    if (I != Notifiers.end()) {
+    
+    if (auto I = Notifiers.find(TrampolineAddr); I != Notifiers.end()) {
       NotifyResolved = std::move(I->second);
       Notifiers.erase(I);
     }
@@ -87,9 +87,9 @@ void LazyCallThroughManager::resolveTrampolineLandingAddress(
     if (Result) {
       assert(Result->size() == 1 && "Unexpected result size");
       assert(Result->count(SymbolName) && "Unexpected result value");
-      ExecutorAddr LandingAddr = (*Result)[SymbolName].getAddress();
+      
 
-      if (auto Err = notifyResolved(TrampolineAddr, LandingAddr))
+      if (auto ExecutorAddr LandingAddr = (*Result)[SymbolName].getAddress(); Err = notifyResolved(TrampolineAddr, LandingAddr))
         NotifyLandingResolved(reportCallThroughError(std::move(Err)));
       else
         NotifyLandingResolved(LandingAddr);
@@ -313,8 +313,8 @@ Error LazyReexportsManager::handleRemoveResources(JITDylib &JD, ResourceKey K) {
 void LazyReexportsManager::handleTransferResources(JITDylib &JD,
                                                    ResourceKey DstK,
                                                    ResourceKey SrcK) {
-  auto I = KeyToReentryAddrs.find(SrcK);
-  if (I != KeyToReentryAddrs.end()) {
+  
+  if (auto I = KeyToReentryAddrs.find(SrcK); I != KeyToReentryAddrs.end()) {
     auto J = KeyToReentryAddrs.find(DstK);
     if (J == KeyToReentryAddrs.end()) {
       auto Tmp = std::move(I->second);

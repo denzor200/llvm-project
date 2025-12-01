@@ -254,8 +254,8 @@ bool BitValueOrdering::operator() (const BitTracker::BitValue &V1,
   if (V2.is(1) || V1.is(1))
     return !V2.is(1);
   // Both V1,V2 are refs.
-  unsigned Ind1 = BaseOrd[V1.RefI.Reg], Ind2 = BaseOrd[V2.RefI.Reg];
-  if (Ind1 != Ind2)
+  
+  if (unsigned Ind1 = BaseOrd[V1.RefI.Reg], Ind2 = BaseOrd[V2.RefI.Reg]; Ind1 != Ind2)
     return Ind1 < Ind2;
   // If V1.Pos==V2.Pos
   assert(V1.RefI.Pos != V2.RefI.Pos && "Bit values should be different");
@@ -340,8 +340,8 @@ bool RegisterCellLexCompare::operator() (unsigned VR1, unsigned VR2) const {
   const BitTracker::RegisterCell &RC1 = CM.lookup(VR1), &RC2 = CM.lookup(VR2);
   uint16_t W1 = RC1.width(), W2 = RC2.width();
   for (uint16_t i = 0, w = std::min(W1, W2); i < w; ++i) {
-    const BitTracker::BitValue &V1 = RC1[i], &V2 = RC2[i];
-    if (V1 != V2)
+    
+    if (const BitTracker::BitValue &V1 = RC1[i], &V2 = RC2[i]; V1 != V2)
       return BitOrd(V1, V2);
   }
   // Cells are equal up until the common length.
@@ -453,8 +453,8 @@ void OrderedRegisterList::insert(unsigned VR) {
 }
 
 void OrderedRegisterList::remove(unsigned VR) {
-  iterator L = llvm::lower_bound(Seq, VR, Ord);
-  if (L != Seq.end())
+  
+  if (iterator L = llvm::lower_bound(Seq, VR, Ord); L != Seq.end())
     Seq.erase(L);
 }
 
@@ -631,8 +631,8 @@ bool HexagonGenInsert::isConstant(unsigned VR) const {
   const BitTracker::RegisterCell &RC = CMS->lookup(VR);
   uint16_t W = RC.width();
   for (uint16_t i = 0; i < W; ++i) {
-    const BitTracker::BitValue &BV = RC[i];
-    if (BV.is(0) || BV.is(1))
+    
+    if (const BitTracker::BitValue &BV = RC[i]; BV.is(0) || BV.is(1))
       continue;
     return false;
   }
@@ -646,8 +646,8 @@ bool HexagonGenInsert::isSmallConstant(unsigned VR) const {
     return false;
   uint64_t V = 0, B = 1;
   for (uint16_t i = 0; i < W; ++i) {
-    const BitTracker::BitValue &BV = RC[i];
-    if (BV.is(1))
+    
+    if (const BitTracker::BitValue &BV = RC[i]; BV.is(1))
       V |= B;
     else if (!BV.is(0))
       return false;
@@ -687,8 +687,8 @@ bool HexagonGenInsert::isValidInsertForm(unsigned DstR, unsigned SrcR,
 bool HexagonGenInsert::findSelfReference(unsigned VR) const {
   const BitTracker::RegisterCell &RC = CMS->lookup(VR);
   for (uint16_t i = 0, w = RC.width(); i < w; ++i) {
-    const BitTracker::BitValue &V = RC[i];
-    if (V.Type == BitTracker::BitValue::Ref && V.RefI.Reg == VR)
+    
+    if (const BitTracker::BitValue &V = RC[i]; V.Type == BitTracker::BitValue::Ref && V.RefI.Reg == VR)
       return true;
   }
   return false;
@@ -697,8 +697,8 @@ bool HexagonGenInsert::findSelfReference(unsigned VR) const {
 bool HexagonGenInsert::findNonSelfReference(unsigned VR) const {
   BitTracker::RegisterCell RC = CMS->lookup(VR);
   for (uint16_t i = 0, w = RC.width(); i < w; ++i) {
-    const BitTracker::BitValue &V = RC[i];
-    if (V.Type == BitTracker::BitValue::Ref && V.RefI.Reg != VR)
+    
+    if (const BitTracker::BitValue &V = RC[i]; V.Type == BitTracker::BitValue::Ref && V.RefI.Reg != VR)
       return true;
   }
   return false;
@@ -750,8 +750,8 @@ unsigned HexagonGenInsert::distance(const MachineBasicBlock *FromB,
     // on it.
     if (PB == FromB || RPO.lookup(PB->getNumber()) >= ToRPO)
       continue;
-    unsigned D = PB->size() + distance(FromB, PB, RPO, M);
-    if (D > MaxD)
+    
+    if (unsigned D = PB->size() + distance(FromB, PB, RPO, M); D > MaxD)
       MaxD = D;
   }
 
@@ -927,9 +927,9 @@ void HexagonGenInsert::collectInBlock(MachineBasicBlock *B,
     InsDefs.clear();
     getInstrDefs(&MI, InsDefs);
     // Leave those alone. They are more transparent than "insert".
-    bool Skip = MI.isCopy() || MI.isRegSequence();
+    
 
-    if (!Skip) {
+    if (bool Skip = MI.isCopy() || MI.isRegSequence(); !Skip) {
       // Visit all defined registers, and attempt to find the corresponding
       // "insert" representations.
       for (unsigned VR = InsDefs.find_first(); VR; VR = InsDefs.find_next(VR)) {
@@ -1136,10 +1136,10 @@ void HexagonGenInsert::pruneUsesTooFar(unsigned VR, const UnsignedMap &RPO,
     unsigned SR = LL[i-1].first.SrcR, IR = LL[i-1].first.InsR;
     const MachineInstr *DefS = MRI->getVRegDef(SR);
     const MachineInstr *DefI = MRI->getVRegDef(IR);
-    unsigned DSV = distance(DefS, DefV, RPO, M);
-    if (DSV < Cutoff) {
-      unsigned DIV = distance(DefI, DefV, RPO, M);
-      if (DIV < Cutoff)
+    
+    if (unsigned DSV = distance(DefS, DefV, RPO, M); DSV < Cutoff) {
+      
+      if (unsigned DIV = distance(DefI, DefV, RPO, M); DIV < Cutoff)
         continue;
     }
     LL.erase(LL.begin()+(i-1));
@@ -1223,8 +1223,8 @@ bool IFOrdering::operator() (const IFRecordWithRegSet &A,
   if (ZeroA != ZeroB)
     return ZeroA > ZeroB;
   // Compare SumA/SizeA with SumB/SizeB, lower is better.
-  uint64_t AvgA = SumA*SizeB, AvgB = SumB*SizeA;
-  if (AvgA != AvgB)
+  
+  if (uint64_t AvgA = SumA*SizeB, AvgB = SumB*SizeA; AvgA != AvgB)
     return AvgA < AvgB;
 
   // The sets compare identical so far. Resort to comparing the IF records.
@@ -1354,8 +1354,8 @@ void HexagonGenInsert::selectCandidates() {
   // been eliminated.
   AllRMs.clear();
   for (IFMapType::iterator I = IFMap.begin(); I != End; ++I) {
-    const IFListType &LL = I->second;
-    if (!LL.empty())
+    
+    if (const IFListType &LL = I->second; !LL.empty())
       AllRMs.insert(LL[0].second);
   }
   for (IFMapType::iterator I = IFMap.begin(); I != End; ++I) {
@@ -1439,10 +1439,10 @@ bool HexagonGenInsert::removeDeadCode(MachineDomTreeNode *N) {
     Instrs.push_back(&MI);
 
   for (MachineInstr *MI : Instrs) {
-    unsigned Opc = MI->getOpcode();
+    
     // Do not touch lifetime markers. This is why the target-independent DCE
     // cannot be used.
-    if (Opc == TargetOpcode::LIFETIME_START ||
+    if (unsigned Opc = MI->getOpcode(); Opc == TargetOpcode::LIFETIME_START ||
         Opc == TargetOpcode::LIFETIME_END)
       continue;
     bool Store = false;

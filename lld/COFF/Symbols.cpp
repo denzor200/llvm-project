@@ -107,8 +107,8 @@ void Symbol::replaceKeepingName(Symbol *other, size_t size) {
 }
 
 COFFSymbolRef DefinedCOFF::getCOFFSymbol() {
-  size_t symSize = cast<ObjFile>(file)->getCOFFObj()->getSymbolTableEntrySize();
-  if (symSize == sizeof(coff_symbol16))
+  
+  if (size_t symSize = cast<ObjFile>(file)->getCOFFObj()->getSymbolTableEntrySize(); symSize == sizeof(coff_symbol16))
     return COFFSymbolRef(reinterpret_cast<const coff_symbol16 *>(sym));
   assert(symSize == sizeof(coff_symbol32));
   return COFFSymbolRef(reinterpret_cast<const coff_symbol32 *>(sym));

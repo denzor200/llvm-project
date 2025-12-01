@@ -163,8 +163,8 @@ void InProcessMemoryMapper::release(ArrayRef<ExecutorAddr> Bases,
     // free the memory
     auto MB = sys::MemoryBlock(Base.toPtr<void *>(), Size);
 
-    auto EC = sys::Memory::releaseMappedMemory(MB);
-    if (EC) {
+    
+    if (auto EC = sys::Memory::releaseMappedMemory(MB); EC) {
       Err = joinErrors(std::move(Err), errorCodeToError(EC));
     }
 

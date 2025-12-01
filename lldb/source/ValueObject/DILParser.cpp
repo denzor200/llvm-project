@@ -102,8 +102,8 @@ ASTNodeUP DILParser::ParseUnaryExpression() {
     Token token = CurToken();
     uint32_t loc = token.GetLocation();
     m_dil_lexer.Advance();
-    auto rhs = ParseExpression();
-    switch (token.GetKind()) {
+    
+    switch (auto rhs = ParseExpression(); token.GetKind()) {
     case Token::star:
       return std::make_unique<UnaryOpNode>(loc, UnaryOpKind::Deref,
                                            std::move(rhs));
@@ -136,8 +136,8 @@ ASTNodeUP DILParser::ParsePostfixExpression() {
   ASTNodeUP lhs = ParsePrimaryExpression();
   while (CurToken().IsOneOf({Token::l_square, Token::period, Token::arrow})) {
     uint32_t loc = CurToken().GetLocation();
-    Token token = CurToken();
-    switch (token.GetKind()) {
+    
+    switch (Token token = CurToken(); token.GetKind()) {
     case Token::l_square: {
       m_dil_lexer.Advance();
       std::optional<int64_t> index = ParseIntegerConstant();
@@ -201,9 +201,9 @@ ASTNodeUP DILParser::ParsePrimaryExpression() {
           {Token::coloncolon, Token::identifier, Token::l_paren})) {
     // Save the source location for the diagnostics message.
     uint32_t loc = CurToken().GetLocation();
-    std::string identifier = ParseIdExpression();
+    
 
-    if (!identifier.empty())
+    if (std::string identifier = ParseIdExpression(); !identifier.empty())
       return std::make_unique<IdentifierNode>(loc, identifier);
   }
 

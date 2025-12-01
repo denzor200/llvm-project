@@ -213,8 +213,8 @@ Error SimpleRemoteEPCServer::sendSetupMessage(
       shared::SPSArgList<shared::SPSSimpleRemoteEPCExecutorInfo>;
   auto SetupPacketBytes =
       shared::WrapperFunctionResult::allocate(SPSSerialize::size(EI));
-  shared::SPSOutputBuffer OB(SetupPacketBytes.data(), SetupPacketBytes.size());
-  if (!SPSSerialize::serialize(OB, EI))
+  
+  if (shared::SPSOutputBuffer OB(SetupPacketBytes.data(), SetupPacketBytes.size()); !SPSSerialize::serialize(OB, EI))
     return make_error<StringError>("Could not send setup packet",
                                    inconvertibleErrorCode());
 
@@ -250,9 +250,9 @@ void SimpleRemoteEPCServer::handleCallWrapper(
     using WrapperFnTy =
         shared::CWrapperFunctionResult (*)(const char *, size_t);
     auto *Fn = TagAddr.toPtr<WrapperFnTy>();
-    shared::WrapperFunctionResult ResultBytes(
-        Fn(ArgBytes.data(), ArgBytes.size()));
-    if (auto Err = sendMessage(SimpleRemoteEPCOpcode::Result, RemoteSeqNo,
+    
+    if (auto shared::WrapperFunctionResult ResultBytes(
+        Fn(ArgBytes.data(), ArgBytes.size())); Err = sendMessage(SimpleRemoteEPCOpcode::Result, RemoteSeqNo,
                                ExecutorAddr(),
                                {ResultBytes.data(), ResultBytes.size()}))
       ReportError(std::move(Err));

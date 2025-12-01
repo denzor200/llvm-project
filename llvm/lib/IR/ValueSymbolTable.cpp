@@ -50,8 +50,8 @@ ValueName *ValueSymbolTable::makeUniqueName(Value *V,
     // On NVPTX we cannot use a dot because PTX only allows [A-Za-z0-9_$] for
     // identifiers. This breaks ABI demangling but at least ptxas accepts and
     // compiles the program.
-    const Module *M = GV->getParent();
-    if (!(M && M->getTargetTriple().isNVPTX()))
+    
+    if (const Module *M = GV->getParent(); !(M && M->getTargetTriple().isNVPTX()))
       AppenDot = true;
   }
 

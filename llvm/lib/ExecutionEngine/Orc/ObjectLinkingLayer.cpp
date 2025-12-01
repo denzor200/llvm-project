@@ -19,9 +19,9 @@ char ObjectLinkingLayer::ID;
 void ObjectLinkingLayer::emit(std::unique_ptr<MaterializationResponsibility> R,
                               std::unique_ptr<MemoryBuffer> O) {
   assert(O && "Object must not be null");
-  MemoryBufferRef ObjBuffer = O->getMemBufferRef();
+  
 
-  if (auto G = jitlink::createLinkGraphFromObject(
+  if (auto MemoryBufferRef ObjBuffer = O->getMemBufferRef(); G = jitlink::createLinkGraphFromObject(
           ObjBuffer, getExecutionSession().getSymbolStringPool())) {
     emit(std::move(R), std::move(*G), std::move(O));
   } else {

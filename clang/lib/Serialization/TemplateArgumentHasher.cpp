@@ -141,8 +141,8 @@ void TemplateArgumentHasher::AddTemplateName(TemplateName Name) {
     BailedOut = true;
     break;
   case TemplateName::UsingTemplate: {
-    UsingShadowDecl *USD = Name.getAsUsingShadowDecl();
-    if (USD)
+    
+    if (UsingShadowDecl *USD = Name.getAsUsingShadowDecl(); USD)
       AddDecl(USD->getTargetDecl());
     else
       BailedOut = true;

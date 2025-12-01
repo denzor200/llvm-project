@@ -228,8 +228,8 @@ FunctionCallee llvm::declareSanitizerInitFunction(Module &M, StringRef InitName,
   auto *VoidTy = Type::getVoidTy(M.getContext());
   auto *FnTy = FunctionType::get(VoidTy, InitArgTypes, false);
   auto FnCallee = M.getOrInsertFunction(InitName, FnTy);
-  auto *Fn = cast<Function>(FnCallee.getCallee());
-  if (Weak && Fn->isDeclaration())
+  
+  if (auto *Fn = cast<Function>(FnCallee.getCallee()); Weak && Fn->isDeclaration())
     Fn->setLinkage(Function::ExternalWeakLinkage);
   return FnCallee;
 }
@@ -329,11 +329,11 @@ void llvm::filterDeadComdatFunctions(
   // Find comdats for which all users are dead now.
   SmallPtrSet<Comdat *, 32> DeadComdats;
   for (Comdat *C : MaybeDeadComdats) {
-    auto IsUserDead = [&](GlobalObject *GO) {
+    
+    if (auto IsUserDead = [&](GlobalObject *GO) {
       auto *F = dyn_cast<Function>(GO);
       return F && MaybeDeadFunctions.contains(F);
-    };
-    if (all_of(C->getUsers(), IsUserDead))
+    }; all_of(C->getUsers(), IsUserDead))
       DeadComdats.insert(C);
   }
 
@@ -347,9 +347,9 @@ void llvm::filterDeadComdatFunctions(
 std::string llvm::getUniqueModuleId(Module *M) {
   MD5 Md5;
 
-  auto *UniqueSourceFileIdentifier = dyn_cast_or_null<MDNode>(
-      M->getModuleFlag("Unique Source File Identifier"));
-  if (UniqueSourceFileIdentifier) {
+  
+  if (auto *UniqueSourceFileIdentifier = dyn_cast_or_null<MDNode>(
+      M->getModuleFlag("Unique Source File Identifier")); UniqueSourceFileIdentifier) {
     Md5.update(
         cast<MDString>(UniqueSourceFileIdentifier->getOperand(0))->getString());
   } else {

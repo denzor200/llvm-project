@@ -72,9 +72,9 @@ llvm::APSInt ComparisonCategoryInfo::ValueInfo::getIntValue() const {
 ComparisonCategoryInfo::ValueInfo *ComparisonCategoryInfo::lookupValueInfo(
     ComparisonCategoryResult ValueKind) const {
   // Check if we already have a cache entry for this value.
-  auto It = llvm::find_if(
-      Objects, [&](ValueInfo const &Info) { return Info.Kind == ValueKind; });
-  if (It != Objects.end())
+  
+  if (auto It = llvm::find_if(
+      Objects, [&](ValueInfo const &Info) { return Info.Kind == ValueKind; }); It != Objects.end())
     return &(*It);
 
   // We don't have a cached result. Lookup the variable declaration and create
@@ -90,9 +90,9 @@ ComparisonCategoryInfo::ValueInfo *ComparisonCategoryInfo::lookupValueInfo(
 static const NamespaceDecl *lookupStdNamespace(const ASTContext &Ctx,
                                                NamespaceDecl *&StdNS) {
   if (!StdNS) {
-    DeclContextLookupResult Lookup =
-        Ctx.getTranslationUnitDecl()->lookup(&Ctx.Idents.get("std"));
-    if (!Lookup.empty())
+    
+    if (DeclContextLookupResult Lookup =
+        Ctx.getTranslationUnitDecl()->lookup(&Ctx.Idents.get("std")); !Lookup.empty())
       StdNS = dyn_cast<NamespaceDecl>(Lookup.front());
   }
   return StdNS;
@@ -102,8 +102,8 @@ static const CXXRecordDecl *lookupCXXRecordDecl(const ASTContext &Ctx,
                                                 const NamespaceDecl *StdNS,
                                                 ComparisonCategoryType Kind) {
   StringRef Name = ComparisonCategories::getCategoryString(Kind);
-  DeclContextLookupResult Lookup = StdNS->lookup(&Ctx.Idents.get(Name));
-  if (!Lookup.empty())
+  
+  if (DeclContextLookupResult Lookup = StdNS->lookup(&Ctx.Idents.get(Name)); !Lookup.empty())
     if (const CXXRecordDecl *RD = dyn_cast<CXXRecordDecl>(Lookup.front()))
       return RD;
   return nullptr;
@@ -133,8 +133,8 @@ ComparisonCategories::lookupInfoForType(QualType Ty) const {
   // Check to see if we have information for the specified type cached.
   const auto *CanonRD = RD->getCanonicalDecl();
   for (const auto &KV : Data) {
-    const ComparisonCategoryInfo &Info = KV.second;
-    if (CanonRD == Info.Record->getCanonicalDecl())
+    
+    if (const ComparisonCategoryInfo &Info = KV.second; CanonRD == Info.Record->getCanonicalDecl())
       return &Info;
   }
 
@@ -146,11 +146,11 @@ ComparisonCategories::lookupInfoForType(QualType Ty) const {
   for (unsigned I = static_cast<unsigned>(CCT::First),
                 End = static_cast<unsigned>(CCT::Last);
        I <= End; ++I) {
-    CCT Kind = static_cast<CCT>(I);
+    
 
     // We've found the comparison category type. Build a new cache entry for
     // it.
-    if (getCategoryString(Kind) == RD->getName())
+    if (CCT Kind = static_cast<CCT>(I); getCategoryString(Kind) == RD->getName())
       return &Data.try_emplace((char)Kind, Ctx, RD, Kind).first->second;
   }
 

@@ -336,8 +336,8 @@ void IRNumberingState::number(Attribute attr) {
       NumberingDialectWriter writer(*this, config.getDialectVersionMap());
       // The client has the ability to override the group name through the
       // callback.
-      std::optional<StringRef> groupNameOverride;
-      if (succeeded(callback->write(attr, groupNameOverride, writer))) {
+      
+      if (std::optional<StringRef> groupNameOverride; succeeded(callback->write(attr, groupNameOverride, writer))) {
         if (groupNameOverride.has_value())
           numbering->dialect = &numberDialect(*groupNameOverride);
         return;
@@ -345,8 +345,8 @@ void IRNumberingState::number(Attribute attr) {
     }
 
     if (const auto *interface = numbering->dialect->interface) {
-      NumberingDialectWriter writer(*this, config.getDialectVersionMap());
-      if (succeeded(interface->writeAttribute(attr, writer)))
+      
+      if (NumberingDialectWriter writer(*this, config.getDialectVersionMap()); succeeded(interface->writeAttribute(attr, writer)))
         return;
     }
   }
@@ -503,8 +503,8 @@ void IRNumberingState::number(Type type) {
       NumberingDialectWriter writer(*this, config.getDialectVersionMap());
       // The client has the ability to override the group name through the
       // callback.
-      std::optional<StringRef> groupNameOverride;
-      if (succeeded(callback->write(type, groupNameOverride, writer))) {
+      
+      if (std::optional<StringRef> groupNameOverride; succeeded(callback->write(type, groupNameOverride, writer))) {
         if (groupNameOverride.has_value())
           numbering->dialect = &numberDialect(*groupNameOverride);
         return;
@@ -514,8 +514,8 @@ void IRNumberingState::number(Type type) {
     // If this attribute will be emitted using the bytecode format, perform a
     // dummy writing to number any nested components.
     if (const auto *interface = numbering->dialect->interface) {
-      NumberingDialectWriter writer(*this, config.getDialectVersionMap());
-      if (succeeded(interface->writeType(type, writer)))
+      
+      if (NumberingDialectWriter writer(*this, config.getDialectVersionMap()); succeeded(interface->writeType(type, writer)))
         return;
     }
   }
@@ -576,8 +576,8 @@ struct NumberingResourceBuilder : public AsmResourceBuilder {
   void numberEntry(StringRef key) {
     // TODO: We could pre-number resource key strings here as well.
 
-    auto *it = dialect->resourceMap.find(key);
-    if (it != dialect->resourceMap.end()) {
+    
+    if (auto *it = dialect->resourceMap.find(key); it != dialect->resourceMap.end()) {
       it->second->number = nextResourceID++;
       it->second->isDeclaration = false;
     }

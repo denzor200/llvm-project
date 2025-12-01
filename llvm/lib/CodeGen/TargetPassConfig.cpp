@@ -787,12 +787,12 @@ void TargetPassConfig::addPrintPass(const std::string &Banner) {
 }
 
 void TargetPassConfig::addVerifyPass(const std::string &Banner) {
-  bool Verify = VerifyMachineCode == cl::BOU_TRUE;
+  
 #ifdef EXPENSIVE_CHECKS
   if (VerifyMachineCode == cl::BOU_UNSET)
     Verify = TM->isMachineVerifierClean();
 #endif
-  if (Verify)
+  if (bool Verify = VerifyMachineCode == cl::BOU_TRUE; Verify)
     PM->add(createMachineVerifierPass(Banner));
 }
 
@@ -1146,8 +1146,8 @@ void TargetPassConfig::addMachinePasses() {
   if (EnableFSDiscriminator) {
     addPass(createMIRAddFSDiscriminatorsPass(
         sampleprof::FSDiscriminatorPass::Pass1));
-    const std::string ProfileFile = getFSProfileFile(TM);
-    if (!ProfileFile.empty() && !DisableRAFSProfileLoader)
+    
+    if (const std::string ProfileFile = getFSProfileFile(TM); !ProfileFile.empty() && !DisableRAFSProfileLoader)
       addPass(createMIRProfileLoaderPass(ProfileFile, getFSRemappingFile(TM),
                                          sampleprof::FSDiscriminatorPass::Pass1,
                                          nullptr));
@@ -1249,8 +1249,8 @@ void TargetPassConfig::addMachinePasses() {
   if (TM->Options.EnableMachineFunctionSplitter ||
       EnableMachineFunctionSplitter || SplitStaticData ||
       TM->Options.EnableStaticDataPartitioning) {
-    const std::string ProfileFile = getFSProfileFile(TM);
-    if (!ProfileFile.empty()) {
+    
+    if (const std::string ProfileFile = getFSProfileFile(TM); !ProfileFile.empty()) {
       if (EnableFSDiscriminator) {
         addPass(createMIRProfileLoaderPass(
             ProfileFile, getFSRemappingFile(TM),
@@ -1404,8 +1404,8 @@ FunctionPass *TargetPassConfig::createRegAllocPass(bool Optimized) {
   llvm::call_once(InitializeDefaultRegisterAllocatorFlag,
                   initializeDefaultRegisterAllocatorOnce);
 
-  RegisterRegAlloc::FunctionPassCtor Ctor = RegisterRegAlloc::getDefault();
-  if (Ctor != useDefaultRegisterAllocator)
+  
+  if (RegisterRegAlloc::FunctionPassCtor Ctor = RegisterRegAlloc::getDefault(); Ctor != useDefaultRegisterAllocator)
     return Ctor();
 
   // With no -regalloc= override, ask the target for a regalloc pass.
@@ -1557,8 +1557,8 @@ void TargetPassConfig::addBlockPlacement() {
   if (EnableFSDiscriminator) {
     addPass(createMIRAddFSDiscriminatorsPass(
         sampleprof::FSDiscriminatorPass::Pass2));
-    const std::string ProfileFile = getFSProfileFile(TM);
-    if (!ProfileFile.empty() && !DisableLayoutFSProfileLoader)
+    
+    if (const std::string ProfileFile = getFSProfileFile(TM); !ProfileFile.empty() && !DisableLayoutFSProfileLoader)
       addPass(createMIRProfileLoaderPass(ProfileFile, getFSRemappingFile(TM),
                                          sampleprof::FSDiscriminatorPass::Pass2,
                                          nullptr));

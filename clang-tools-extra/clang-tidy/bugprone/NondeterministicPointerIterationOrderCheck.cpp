@@ -45,12 +45,12 @@ void NondeterministicPointerIterationOrderCheck::registerMatchers(
 
 void NondeterministicPointerIterationOrderCheck::check(
     const MatchFinder::MatchResult &Result) {
-  const auto *ForRangePointers =
-      Result.Nodes.getNodeAs<CXXForRangeStmt>("cxxForRangeStmt");
+  
 
-  if ((ForRangePointers) && !(ForRangePointers->getBeginLoc().isMacroID())) {
-    const auto *RangeInit = Result.Nodes.getNodeAs<Stmt>("rangeinit");
-    if (const auto *ClassTemplate =
+  if (const auto *ForRangePointers =
+      Result.Nodes.getNodeAs<CXXForRangeStmt>("cxxForRangeStmt"); (ForRangePointers) && !(ForRangePointers->getBeginLoc().isMacroID())) {
+    
+    if (const auto *const auto *RangeInit = Result.Nodes.getNodeAs<Stmt>("rangeinit"); ClassTemplate =
             Result.Nodes.getNodeAs<ClassTemplateSpecializationDecl>(
                 "recorddecl")) {
       const TemplateArgumentList &TemplateArgs =

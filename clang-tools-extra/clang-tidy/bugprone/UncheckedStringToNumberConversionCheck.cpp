@@ -76,9 +76,9 @@ static ConversionKind classifyFormatString(StringRef Fmt, const LangOptions &LO,
 
       // Get the conversion specifier and use it to determine the conversion
       // kind.
-      const analyze_scanf::ScanfConversionSpecifier SCS =
-          FS.getConversionSpecifier();
-      if (SCS.isIntArg()) {
+      
+      if (const analyze_scanf::ScanfConversionSpecifier SCS =
+          FS.getConversionSpecifier(); SCS.isIntArg()) {
         switch (FS.getLengthModifier().getKind()) {
         case analyze_scanf::LengthModifier::AsLongLong:
           CK = ConversionKind::ToLongInt;

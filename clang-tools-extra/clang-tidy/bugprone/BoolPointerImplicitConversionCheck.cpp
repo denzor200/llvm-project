@@ -71,8 +71,8 @@ static void checkImpl(const MatchFinder::MatchResult &Result, const Expr *Ref,
 
 void BoolPointerImplicitConversionCheck::check(
     const MatchFinder::MatchResult &Result) {
-  const auto *If = Result.Nodes.getNodeAs<IfStmt>("if");
-  if (const auto *E = Result.Nodes.getNodeAs<Expr>("expr")) {
+  
+  if (const auto *const auto *If = Result.Nodes.getNodeAs<IfStmt>("if"); E = Result.Nodes.getNodeAs<Expr>("expr")) {
     const Decl *D = isa<DeclRefExpr>(E) ? cast<DeclRefExpr>(E)->getDecl()
                                         : cast<MemberExpr>(E)->getMemberDecl();
     const auto M =

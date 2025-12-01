@@ -94,9 +94,9 @@ Align GEPOperator::getMaxPreservedAlignment(const DataLayout &DL) const {
   for (gep_type_iterator GTI = gep_type_begin(this), GTE = gep_type_end(this);
        GTI != GTE; ++GTI) {
     uint64_t Offset;
-    ConstantInt *OpC = dyn_cast<ConstantInt>(GTI.getOperand());
+    
 
-    if (StructType *STy = GTI.getStructTypeOrNull()) {
+    if (StructType *ConstantInt *OpC = dyn_cast<ConstantInt>(GTI.getOperand()); STy = GTI.getStructTypeOrNull()) {
       const StructLayout *SL = DL.getStructLayout(STy);
       Offset = SL->getElementOffset(OpC->getZExtValue());
     } else {
@@ -127,8 +127,8 @@ bool GEPOperator::accumulateConstantOffset(
     APInt &Offset, function_ref<bool(Value &, APInt &)> ExternalAnalysis) {
   // Fast path for canonical getelementptr i8 form.
   if (SourceType->isIntegerTy(8) && !Index.empty() && !ExternalAnalysis) {
-    auto *CI = dyn_cast<ConstantInt>(Index.front());
-    if (CI && CI->getType()->isIntegerTy()) {
+    
+    if (auto *CI = dyn_cast<ConstantInt>(Index.front()); CI && CI->getType()->isIntegerTy()) {
       Offset += CI->getValue().sextOrTrunc(Offset.getBitWidth());
       return true;
     }
@@ -139,10 +139,10 @@ bool GEPOperator::accumulateConstantOffset(
   auto AccumulateOffset = [&](APInt Index, uint64_t Size) -> bool {
     Index = Index.sextOrTrunc(Offset.getBitWidth());
     // Truncate if type size exceeds index space.
-    APInt IndexedSize(Offset.getBitWidth(), Size, /*isSigned=*/false,
-                      /*implcitTrunc=*/true);
+    
     // For array or vector indices, scale the index by the size of the type.
-    if (!UsedExternalAnalysis) {
+    if (APInt IndexedSize(Offset.getBitWidth(), Size, /*isSigned=*/false,
+                      /*implcitTrunc=*/true); !UsedExternalAnalysis) {
       Offset += Index * IndexedSize;
     } else {
       // External Analysis can return a result higher/lower than the value
@@ -167,8 +167,8 @@ bool GEPOperator::accumulateConstantOffset(
     Value *V = GTI.getOperand();
     StructType *STy = GTI.getStructTypeOrNull();
     // Handle ConstantInt if possible.
-    auto *ConstOffset = dyn_cast<ConstantInt>(V);
-    if (ConstOffset && ConstOffset->getType()->isIntegerTy()) {
+    
+    if (auto *ConstOffset = dyn_cast<ConstantInt>(V); ConstOffset && ConstOffset->getType()->isIntegerTy()) {
       if (ConstOffset->isZero())
         continue;
       // if the type is scalable and the constant is not zero (vscale * n * 0 =
@@ -178,9 +178,9 @@ bool GEPOperator::accumulateConstantOffset(
       // Handle a struct index, which adds its field offset to the pointer.
       if (STy) {
         unsigned ElementIdx = ConstOffset->getZExtValue();
-        const StructLayout *SL = DL.getStructLayout(STy);
+        
         // Element offset is in bytes.
-        if (!AccumulateOffset(
+        if (const StructLayout *SL = DL.getStructLayout(STy); !AccumulateOffset(
                 APInt(Offset.getBitWidth(), SL->getElementOffset(ElementIdx)),
                 1))
           return false;
@@ -229,8 +229,8 @@ bool GEPOperator::collectOffset(
     Value *V = GTI.getOperand();
     StructType *STy = GTI.getStructTypeOrNull();
     // Handle ConstantInt if possible.
-    auto *ConstOffset = dyn_cast<ConstantInt>(V);
-    if (ConstOffset && ConstOffset->getType()->isIntegerTy()) {
+    
+    if (auto *ConstOffset = dyn_cast<ConstantInt>(V); ConstOffset && ConstOffset->getType()->isIntegerTy()) {
       if (ConstOffset->isZero())
         continue;
       // If the type is scalable and the constant is not zero (vscale * n * 0 =

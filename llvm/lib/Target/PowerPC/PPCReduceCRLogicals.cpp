@@ -60,12 +60,12 @@ static void updatePHIs(MachineBasicBlock *Successor, MachineBasicBlock *OrigMBB,
     // This is a really ugly-looking loop, but it was pillaged directly from
     // MachineBasicBlock::transferSuccessorsAndUpdatePHIs().
     for (unsigned i = 2, e = MI.getNumOperands() + 1; i != e; i += 2) {
-      MachineOperand &MO = MI.getOperand(i);
-      if (MO.getMBB() == OrigMBB) {
+      
+      if (MachineOperand &MO = MI.getOperand(i); MO.getMBB() == OrigMBB) {
         // Check if the instruction is actually defined in NewMBB.
         if (MI.getOperand(i - 1).isReg()) {
-          MachineInstr *DefMI = MRI->getVRegDef(MI.getOperand(i - 1).getReg());
-          if (DefMI->getParent() == NewMBB ||
+          
+          if (MachineInstr *DefMI = MRI->getVRegDef(MI.getOperand(i - 1).getReg()); DefMI->getParent() == NewMBB ||
               !OrigMBB->isSuccessor(Successor)) {
             MO.setMBB(NewMBB);
             break;
@@ -93,8 +93,8 @@ static void addIncomingValuesToPHIs(MachineBasicBlock *Successor,
     // This is a really ugly-looking loop, but it was pillaged directly from
     // MachineBasicBlock::transferSuccessorsAndUpdatePHIs().
     for (unsigned i = 2, e = MI.getNumOperands() + 1; i != e; i += 2) {
-      MachineOperand &MO = MI.getOperand(i);
-      if (MO.getMBB() == OrigMBB) {
+      
+      if (MachineOperand &MO = MI.getOperand(i); MO.getMBB() == OrigMBB) {
         MachineInstrBuilder MIB(*MI.getParent()->getParent(), &MI);
         MIB.addReg(MI.getOperand(i - 1).getReg()).addMBB(NewMBB);
         break;
@@ -421,8 +421,8 @@ public:
       return false;
 
     // If the subtarget doesn't use CR bits, there's nothing to do.
-    const PPCSubtarget &STI = MF.getSubtarget<PPCSubtarget>();
-    if (!STI.useCRBits())
+    
+    if (const PPCSubtarget &STI = MF.getSubtarget<PPCSubtarget>(); !STI.useCRBits())
       return false;
 
     initialize(MF);

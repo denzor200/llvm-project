@@ -164,8 +164,8 @@ struct ARMOutgoingValueHandler : public CallLowering::OutgoingValueHandler {
                           MRI.createGenericVirtualRegister(LLT::scalar(32))};
     MIRBuilder.buildUnmerge(NewRegs, Arg.Regs[0]);
 
-    bool IsLittle = MIRBuilder.getMF().getSubtarget<ARMSubtarget>().isLittle();
-    if (!IsLittle)
+    
+    if (bool IsLittle = MIRBuilder.getMF().getSubtarget<ARMSubtarget>().isLittle(); !IsLittle)
       std::swap(NewRegs[0], NewRegs[1]);
 
     if (Thunk) {
@@ -342,8 +342,8 @@ struct ARMIncomingValueHandler : public CallLowering::IncomingValueHandler {
     assignValueToReg(NewRegs[0], VA.getLocReg(), VA);
     assignValueToReg(NewRegs[1], NextVA.getLocReg(), NextVA);
 
-    bool IsLittle = MIRBuilder.getMF().getSubtarget<ARMSubtarget>().isLittle();
-    if (!IsLittle)
+    
+    if (bool IsLittle = MIRBuilder.getMF().getSubtarget<ARMSubtarget>().isLittle(); !IsLittle)
       std::swap(NewRegs[0], NewRegs[1]);
 
     MIRBuilder.buildMergeLikeInstr(Arg.Regs[0], NewRegs);
@@ -374,9 +374,9 @@ bool ARMCallLowering::lowerFormalArguments(MachineIRBuilder &MIRBuilder,
                                            ArrayRef<ArrayRef<Register>> VRegs,
                                            FunctionLoweringInfo &FLI) const {
   auto &TLI = *getTLI<ARMTargetLowering>();
-  auto Subtarget = TLI.getSubtarget();
+  
 
-  if (Subtarget->isThumb1Only())
+  if (auto Subtarget = TLI.getSubtarget(); Subtarget->isThumb1Only())
     return false;
 
   // Quick exit if there aren't any args
@@ -488,8 +488,8 @@ bool ARMCallLowering::lowerCall(MachineIRBuilder &MIRBuilder, CallLoweringInfo &
 
   MIB.add(Info.Callee);
   if (!IsDirect) {
-    auto CalleeReg = Info.Callee.getReg();
-    if (CalleeReg && !CalleeReg.isPhysical()) {
+    
+    if (auto CalleeReg = Info.Callee.getReg(); CalleeReg && !CalleeReg.isPhysical()) {
       unsigned CalleeIdx = IsThumb ? 2 : 0;
       MIB->getOperand(CalleeIdx).setReg(constrainOperandRegClass(
           MF, *TRI, MRI, *STI.getInstrInfo(), *STI.getRegBankInfo(),
@@ -528,8 +528,8 @@ bool ARMCallLowering::lowerCall(MachineIRBuilder &MIRBuilder, CallLoweringInfo &
     splitToValueTypes(Info.OrigRet, ArgInfos, DL, Info.CallConv);
     auto RetAssignFn = TLI.CCAssignFnForReturn(Info.CallConv, Info.IsVarArg);
     OutgoingValueAssigner Assigner(RetAssignFn);
-    CallReturnHandler RetHandler(MIRBuilder, MRI, MIB);
-    if (!determineAndHandleAssignments(RetHandler, Assigner, ArgInfos,
+    
+    if (CallReturnHandler RetHandler(MIRBuilder, MRI, MIB); !determineAndHandleAssignments(RetHandler, Assigner, ArgInfos,
                                        MIRBuilder, Info.CallConv,
                                        Info.IsVarArg))
       return false;

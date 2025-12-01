@@ -105,8 +105,8 @@ ParseResult Parser::parseDialectSymbolBody(StringRef &body,
       return emitError("unexpected nul or EOF in pretty dialect name");
     }
 
-    char c = *curPtr++;
-    switch (c) {
+    
+    switch (char c = *curPtr++; c) {
     case '\0':
       // This also handles the EOF case.
       if (!nestedPunctuation.empty())
@@ -287,8 +287,8 @@ Attribute Parser::parseExtendedAttr(Type type) {
       });
 
   // Ensure that the attribute has the same type as requested.
-  auto typedAttr = dyn_cast_or_null<TypedAttr>(attr);
-  if (type && typedAttr && typedAttr.getType() != type) {
+  
+  if (auto typedAttr = dyn_cast_or_null<TypedAttr>(attr); type && typedAttr && typedAttr.getType() != type) {
     emitError("attribute type different than expected: expected ")
         << type << ", but got " << typedAttr.getType();
     return nullptr;

@@ -1258,8 +1258,8 @@ class CGObjCGNUstep2 : public CGObjCGNUstep {
         // which should only be treated as the source of
         // truth in the absence of a true declaration.
         assert(OID && "Failed to find ObjCInterfaceDecl");
-        const ObjCInterfaceDecl *OIDDef = OID->getDefinition();
-        if (OIDDef != nullptr)
+        
+        if (const ObjCInterfaceDecl *OIDDef = OID->getDefinition(); OIDDef != nullptr)
           OID = OIDDef;
 
         auto Storage = llvm::GlobalValue::DefaultStorageClass;
@@ -1665,8 +1665,8 @@ class CGObjCGNUstep2 : public CGObjCGNUstep {
       llvm::IRBuilder<> b(llvm::BasicBlock::Create(CGM.getLLVMContext(), "entry",
             Init));
       for (const auto &lateInit : EarlyInitList) {
-        auto *global = TheModule.getGlobalVariable(lateInit.first);
-        if (global) {
+        
+        if (auto *global = TheModule.getGlobalVariable(lateInit.first); global) {
           llvm::GlobalVariable *GV = lateInit.second.first;
           b.CreateAlignedStore(
               global,
@@ -2198,12 +2198,12 @@ protected:
   llvm::Value *LookupIMPSuper(CodeGenFunction &CGF, Address ObjCSuper,
                               llvm::Value *cmd, MessageSendInfo &MSI) override {
     CGBuilderTy &Builder = CGF.Builder;
-    llvm::Value *lookupArgs[] = {
+    
+
+    if (llvm::Value *lookupArgs[] = {
         EnforceType(Builder, ObjCSuper.emitRawPointer(CGF), PtrToObjCSuperTy),
         cmd,
-    };
-
-    if (CGM.ReturnTypeUsesSRet(MSI.CallInfo))
+    }; CGM.ReturnTypeUsesSRet(MSI.CallInfo))
       return CGF.EmitNounwindRuntimeCall(MsgLookupSuperFnSRet, lookupArgs);
     else
       return CGF.EmitNounwindRuntimeCall(MsgLookupSuperFn, lookupArgs);
@@ -2385,8 +2385,8 @@ CGObjCGNU::CGObjCGNU(CodeGenModule &cgm, unsigned runtimeABIVersion,
   Zeros[1] = Zeros[0];
   NULLPtr = llvm::ConstantPointerNull::get(PtrToInt8Ty);
   // Get the selector Type.
-  QualType selTy = CGM.getContext().getObjCSelType();
-  if (QualType() == selTy) {
+  
+  if (QualType selTy = CGM.getContext().getObjCSelType(); QualType() == selTy) {
     SelectorTy = PtrToInt8Ty;
     SelectorElemTy = Int8Ty;
   } else {
@@ -2651,10 +2651,10 @@ llvm::Constant *CGObjCGNUstep::GetEHType(QualType T) {
   std::string className =
       std::string(IT->getDecl()->getIdentifier()->getName());
 
-  std::string typeinfoName = "__objc_eh_typeinfo_" + className;
+  
 
   // Return the existing typeinfo if it exists
-  if (llvm::Constant *typeinfo = TheModule.getGlobalVariable(typeinfoName))
+  if (llvm::Constant *std::string typeinfoName = "__objc_eh_typeinfo_" + className; typeinfo = TheModule.getGlobalVariable(typeinfoName))
     return typeinfo;
 
   // Otherwise create it.
@@ -3007,13 +3007,13 @@ CGObjCGNU::GenerateMessageSend(CodeGenFunction &CGF,
 
         // The address of the memory block is be passed in x8 for POD type,
         // or in x0 for non-POD type (marked as inreg).
-        bool shouldCheckForInReg =
+        
+        if (bool shouldCheckForInReg =
             CGM.getContext()
                 .getTargetInfo()
                 .getTriple()
                 .isWindowsMSVCEnvironment() &&
-            CGM.getContext().getTargetInfo().getTriple().isAArch64();
-        if (shouldCheckForInReg && CGM.ReturnTypeHasInReg(MSI.CallInfo)) {
+            CGM.getContext().getTargetInfo().getTriple().isAArch64(); shouldCheckForInReg && CGM.ReturnTypeHasInReg(MSI.CallInfo)) {
           name = "objc_msgSend_stret2";
         }
       }
@@ -3502,8 +3502,8 @@ void CGObjCGNU::GenerateProtocolHolderCategory() {
 /// bitfield / with the 63rd bit set will be 1<<64.
 llvm::Constant *CGObjCGNU::MakeBitField(ArrayRef<bool> bits) {
   int bitCount = bits.size();
-  int ptrBits = CGM.getDataLayout().getPointerSizeInBits();
-  if (bitCount < ptrBits) {
+  
+  if (int ptrBits = CGM.getDataLayout().getPointerSizeInBits(); bitCount < ptrBits) {
     uint64_t val = 1;
     for (int i=0 ; i<bitCount ; ++i) {
       if (bits[i]) val |= 1ULL<<(i+1);
@@ -3574,9 +3574,9 @@ void CGObjCGNU::GenerateCategory(const ObjCCategoryImplDecl *OCD) {
   // Protocol list
   Elements.add(GenerateCategoryProtocolList(CatDecl));
   if (isRuntime(ObjCRuntime::GNUstep, 2)) {
-    const ObjCCategoryDecl *Category =
-      Class->FindCategoryDeclaration(OCD->getIdentifier());
-    if (Category) {
+    
+    if (const ObjCCategoryDecl *Category =
+      Class->FindCategoryDeclaration(OCD->getIdentifier()); Category) {
       // Instance properties
       Elements.add(GeneratePropertyList(OCD, Category, false));
       // Class properties
@@ -3665,8 +3665,8 @@ llvm::Constant *CGObjCGNU::GeneratePropertyList(const Decl *Container,
     bool isSynthesized = false;
     bool isDynamic = false;
     if (!isProtocol) {
-      auto *propertyImpl = Context.getObjCPropertyImplDeclForPropertyDecl(property, Container);
-      if (propertyImpl) {
+      
+      if (auto *propertyImpl = Context.getObjCPropertyImplDeclForPropertyDecl(property, Container); propertyImpl) {
         isSynthesized = (propertyImpl->getPropertyImplementation() ==
             ObjCPropertyImplDecl::Synthesize);
         isDynamic = (propertyImpl->getPropertyImplementation() ==
@@ -3857,8 +3857,8 @@ void CGObjCGNU::GenerateClass(const ObjCImplementationDecl *OID) {
           cast<llvm::GlobalVariable>(IvarList)->getValueType(), IvarList,
           offsetPointerIndexes);
       // Get the existing variable, if one exists.
-      llvm::GlobalVariable *offset = TheModule.getNamedGlobal(Name);
-      if (offset) {
+      
+      if (llvm::GlobalVariable *offset = TheModule.getNamedGlobal(Name); offset) {
         offset->setInitializer(offsetValue);
         // If this is the real definition, change its linkage type so that
         // different modules will use this one, rather than their private

@@ -194,9 +194,9 @@ static bool isCompressedReg(Register Reg) {
 
 // Return true if MI is a load for which there exists a compressed version.
 static bool isCompressibleLoad(const MachineInstr &MI) {
-  const RISCVSubtarget &STI = MI.getMF()->getSubtarget<RISCVSubtarget>();
+  
 
-  switch (MI.getOpcode()) {
+  switch (const RISCVSubtarget &STI = MI.getMF()->getSubtarget<RISCVSubtarget>(); MI.getOpcode()) {
   default:
     return false;
   case RISCV::LBU:
@@ -219,9 +219,9 @@ static bool isCompressibleLoad(const MachineInstr &MI) {
 
 // Return true if MI is a store for which there exists a compressed version.
 static bool isCompressibleStore(const MachineInstr &MI) {
-  const RISCVSubtarget &STI = MI.getMF()->getSubtarget<RISCVSubtarget>();
+  
 
-  switch (MI.getOpcode()) {
+  switch (const RISCVSubtarget &STI = MI.getMF()->getSubtarget<RISCVSubtarget>(); MI.getOpcode()) {
   default:
     return false;
   case RISCV::SB:
@@ -254,9 +254,9 @@ static bool isCompressibleStore(const MachineInstr &MI) {
 //   {RISCV::NoRegister, 0} - No suitable optimization found for this
 //   instruction.
 static RegImmPair getRegImmPairPreventingCompression(const MachineInstr &MI) {
-  const unsigned Opcode = MI.getOpcode();
+  
 
-  if (isCompressibleLoad(MI) || isCompressibleStore(MI)) {
+  if (const unsigned Opcode = MI.getOpcode(); isCompressibleLoad(MI) || isCompressibleStore(MI)) {
     const MachineOperand &MOImm = MI.getOperand(2);
     if (!MOImm.isImm())
       return RegImmPair(Register(), 0);

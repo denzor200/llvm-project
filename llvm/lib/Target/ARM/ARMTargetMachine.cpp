@@ -260,8 +260,8 @@ ScheduleDAGInstrs *
 ARMBaseTargetMachine::createMachineScheduler(MachineSchedContext *C) const {
   ScheduleDAGMILive *DAG = createSchedLive(C);
   // add DAG Mutations here.
-  const ARMSubtarget &ST = C->MF->getSubtarget<ARMSubtarget>();
-  if (ST.hasFusion())
+  
+  if (const ARMSubtarget &ST = C->MF->getSubtarget<ARMSubtarget>(); ST.hasFusion())
     DAG->addMutation(createARMMacroFusionDAGMutation());
   return DAG;
 }

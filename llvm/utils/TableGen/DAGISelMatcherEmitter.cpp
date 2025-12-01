@@ -158,8 +158,8 @@ public:
       return A.second > B.second;
     });
     for (const auto &Predicate : PredicateList) {
-      TreePattern *TP = Predicate.first;
-      if (TreePredicateFn(TP).usesOperands())
+      
+      if (TreePattern *TP = Predicate.first; TreePredicateFn(TP).usesOperands())
         NodePredicatesWithOperands.push_back(TP);
       else
         NodePredicates.push_back(TP);
@@ -654,8 +654,8 @@ unsigned MatcherTableEmitter::EmitMatcher(const Matcher *N,
 
   case Matcher::CheckType: {
     if (cast<CheckTypeMatcher>(N)->getResNo() == 0) {
-      MVT VT = cast<CheckTypeMatcher>(N)->getType();
-      switch (VT.SimpleTy) {
+      
+      switch (MVT VT = cast<CheckTypeMatcher>(N)->getType(); VT.SimpleTy) {
       case MVT::i32:
       case MVT::i64:
         OS << "OPC_CheckTypeI" << MVT(VT).getSizeInBits() << ",\n";
@@ -679,8 +679,8 @@ unsigned MatcherTableEmitter::EmitMatcher(const Matcher *N,
   }
 
   case Matcher::CheckChildType: {
-    MVT VT = cast<CheckChildTypeMatcher>(N)->getType();
-    switch (VT.SimpleTy) {
+    
+    switch (MVT VT = cast<CheckChildTypeMatcher>(N)->getType(); VT.SimpleTy) {
     case MVT::i32:
     case MVT::i64:
       OS << "OPC_CheckChild" << cast<CheckChildTypeMatcher>(N)->getChildNo()
@@ -910,8 +910,8 @@ unsigned MatcherTableEmitter::EmitMatcher(const Matcher *N,
     const auto *C2RMatcher = cast<EmitCopyToRegMatcher>(N);
     int Bytes = 3;
     const CodeGenRegister *Reg = C2RMatcher->getDestPhysReg();
-    unsigned Slot = C2RMatcher->getSrcSlot();
-    if (Reg->EnumValue > 255) {
+    
+    if (unsigned Slot = C2RMatcher->getSrcSlot(); Reg->EnumValue > 255) {
       assert(isUInt<16>(Reg->EnumValue) && "not handled");
       OS << "OPC_EmitCopyToRegTwoByte, " << Slot << ", "
          << "TARGET_VAL(" << getQualifiedName(Reg->TheDef) << "),\n";

@@ -278,7 +278,9 @@ bool X86FixupInstTuningPass::processInstruction(
   };
 
   // Is ADD(X,X) more efficient than SHL(X,1)?
-  auto ProcessShiftLeftToAdd = [&](unsigned AddOpc) -> bool {
+  
+
+  switch (auto ProcessShiftLeftToAdd = [&](unsigned AddOpc) -> bool {
     if (MI.getOperand(NumOperands - 1).getImm() != 1)
       return false;
     if (!NewOpcPreferable(AddOpc, /*ReplaceInTie*/ true))
@@ -291,9 +293,7 @@ bool X86FixupInstTuningPass::processInstruction(
     }
     LLVM_DEBUG(dbgs() << "     With: " << MI);
     return false;
-  };
-
-  switch (Opc) {
+  }; Opc) {
   case X86::BLENDPDrri:
     return ProcessBLENDToMOV(X86::MOVSDrr, 0x3, 0x1);
   case X86::VBLENDPDrri:

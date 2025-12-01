@@ -64,8 +64,8 @@ void MissingFrameInferrer::initialize(
                  "A callsite should only appear once with either a known or a "
                  "zero (unknown) target value at this point");
           FuncRange *FromFRange = Binary->findFuncRange(From);
-          FuncRange *ToFRange = Binary->findFuncRange(To);
-          if (FromFRange != ToFRange)
+          
+          if (FuncRange *ToFRange = Binary->findFuncRange(To); FromFRange != ToFRange)
             SampledTailCalls[From].insert(To);
         }
       }

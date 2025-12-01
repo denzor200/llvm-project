@@ -200,12 +200,12 @@ IsValidMatrixOpParams(VectorType dataTy, MemDescType mdescTy,
   }
   if (subgroup_block_io && layout) {
     auto laneData = layout.getEffectiveLaneDataAsInt();
-    auto laneLayout = layout.getEffectiveLaneLayoutAsInt();
-    if (!laneData.empty()) {
-      bool isLaneDataContiguous =
+    
+    if (auto laneLayout = layout.getEffectiveLaneLayoutAsInt(); !laneData.empty()) {
+      
+      if (bool isLaneDataContiguous =
           std::all_of(laneData.begin(), std::prev(laneData.end()),
-                      [](int x) { return x == 1; });
-      if (!isLaneDataContiguous)
+                      [](int x) { return x == 1; }); !isLaneDataContiguous)
         return emitError() << "With subgroup_block_io, accessed data must be "
                               "contiguous and coalesced.";
       for (size_t i = 0; i < laneData.size(); ++i) {
@@ -277,12 +277,12 @@ void CreateNdDescOp::build(OpBuilder &builder, OperationState &state,
 
   if (auto memrefTy = dyn_cast<MemRefType>(srcTy)) {
     auto memrefShape = memrefTy.getShape();
-    auto [memrefStrides, _] = memrefTy.getStridesAndOffset();
+    
 
     // if shape and strides are from Memref, we don't need attributes for them
     // to keep the IR print clean (only do so for full-static case, otherwise
     // printer would fail trying to print empty array-attr).
-    if (staticShape == memrefShape && staticStrides == memrefStrides &&
+    if (auto [memrefStrides, _] = memrefTy.getStridesAndOffset(); staticShape == memrefShape && staticStrides == memrefStrides &&
         dynamicShape.empty() && dynamicStrides.empty()) {
       staticShapeAttr = DenseI64ArrayAttr();
       staticStridesAttr = DenseI64ArrayAttr();
@@ -341,12 +341,12 @@ void CreateNdDescOp::build(OpBuilder &builder, OperationState &state,
 
   if (auto memrefTy = dyn_cast<MemRefType>(srcTy)) {
     auto memrefShape = memrefTy.getShape();
-    auto [memrefStrides, _] = memrefTy.getStridesAndOffset();
+    
 
     // if shape and strides are from Memref, we don't need attributes for them
     // to keep the IR print clean (only do so for full-static case, otherwise
     // printer would fail trying to print empty array-attr).
-    if (staticShape == memrefShape && staticStrides == memrefStrides &&
+    if (auto [memrefStrides, _] = memrefTy.getStridesAndOffset(); staticShape == memrefShape && staticStrides == memrefStrides &&
         dynamicShape.empty() && dynamicStrides.empty()) {
       staticShapeAttr = DenseI64ArrayAttr();
       staticStridesAttr = DenseI64ArrayAttr();
@@ -1058,8 +1058,8 @@ LogicalResult DpasOp::verify() {
   if (lhsRank == 1 && rhsRank == 1 && resRank == 1) {
     auto numElems = getRhsType().getNumElements();
     auto elemTy = getRhsType().getElementType();
-    auto factor = 32 / elemTy.getIntOrFloatBitWidth();
-    if (numElems % factor != 0)
+    
+    if (auto factor = 32 / elemTy.getIntOrFloatBitWidth(); numElems % factor != 0)
       return emitOpError("Expecting B operand to be a multiple of 32 bits.");
     return success();
   }

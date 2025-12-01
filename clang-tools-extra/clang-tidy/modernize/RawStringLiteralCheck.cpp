@@ -162,9 +162,9 @@ void RawStringLiteralCheck::check(const MatchFinder::MatchResult &Result) {
   const SourceManager &SM = *Result.SourceManager;
   const LangOptions &LangOpts = getLangOpts();
   if (containsEscapedCharacters(Result, Literal, DisallowedChars)) {
-    const std::string Replacement =
-        createRawStringLiteral(Literal, DelimiterStem, SM, LangOpts);
-    if (ReplaceShorterLiterals ||
+    
+    if (const std::string Replacement =
+        createRawStringLiteral(Literal, DelimiterStem, SM, LangOpts); ReplaceShorterLiterals ||
         compareStringLength(Replacement, Literal, SM, LangOpts)) {
       diag(Literal->getBeginLoc(),
            "escaped string literal can be written as a raw string literal")

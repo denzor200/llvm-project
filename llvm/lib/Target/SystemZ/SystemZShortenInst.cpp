@@ -178,8 +178,8 @@ bool SystemZShortenInst::shortenFusedFPOp(MachineInstr &MI, unsigned Opcode) {
   MachineOperand &DstMO = MI.getOperand(0);
   MachineOperand &LHSMO = MI.getOperand(1);
   MachineOperand &RHSMO = MI.getOperand(2);
-  MachineOperand &AccMO = MI.getOperand(3);
-  if (SystemZMC::getFirstReg(DstMO.getReg()) < 16 &&
+  
+  if (MachineOperand &AccMO = MI.getOperand(3); SystemZMC::getFirstReg(DstMO.getReg()) < 16 &&
       SystemZMC::getFirstReg(LHSMO.getReg()) < 16 &&
       SystemZMC::getFirstReg(RHSMO.getReg()) < 16 &&
       SystemZMC::getFirstReg(AccMO.getReg()) < 16 &&

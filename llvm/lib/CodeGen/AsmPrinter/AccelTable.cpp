@@ -536,12 +536,12 @@ void Dwarf5AccelTableWriter::emitEntry(
   auto EntrySymbolIt =
       DIEOffsetToAccelEntryLabel.find(Entry.getDieOffsetAndUnitID());
   assert(EntrySymbolIt != DIEOffsetToAccelEntryLabel.end());
-  MCSymbol *EntrySymbol = EntrySymbolIt->getSecond();
+  
 
   // Emit the label for this Entry, so that IDX_parents may refer to it.
   // Note: a DIE may have multiple accelerator Entries; this check avoids
   // creating/emitting multiple labels for the same DIE.
-  if (EmittedAccelEntrySymbols.insert(EntrySymbol).second)
+  if (MCSymbol *EntrySymbol = EntrySymbolIt->getSecond(); EmittedAccelEntrySymbols.insert(EntrySymbol).second)
     Asm->OutStreamer->emitLabel(EntrySymbol);
 
   Asm->emitULEB128(Entry.getAbbrevNumber(), "Abbreviation code");

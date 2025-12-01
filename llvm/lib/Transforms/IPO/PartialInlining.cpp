@@ -436,8 +436,8 @@ PartialInlinerImpl::computeOutliningColdRegionsInfo(
         continue;
       DFS.push_back(*SI);
       // If branch isn't cold, we skip to the next one.
-      BranchProbability SuccProb = BPI.getEdgeProbability(ThisBB, *SI);
-      if (SuccProb > MinBranchProbability)
+      
+      if (BranchProbability SuccProb = BPI.getEdgeProbability(ThisBB, *SI); SuccProb > MinBranchProbability)
         continue;
 
       LLVM_DEBUG(dbgs() << "Found cold edge: " << ThisBB->getName() << "->"
@@ -513,8 +513,8 @@ PartialInlinerImpl::computeOutliningColdRegionsInfo(
 std::unique_ptr<FunctionOutliningInfo>
 PartialInlinerImpl::computeOutliningInfo(Function &F) const {
   BasicBlock *EntryBlock = &F.front();
-  BranchInst *BR = dyn_cast<BranchInst>(EntryBlock->getTerminator());
-  if (!BR || BR->isUnconditional())
+  
+  if (BranchInst *BR = dyn_cast<BranchInst>(EntryBlock->getTerminator()); !BR || BR->isUnconditional())
     return std::unique_ptr<FunctionOutliningInfo>();
 
   // Returns true if Succ is BB's successor
@@ -917,8 +917,8 @@ void PartialInlinerImpl::computeCallsiteToProfCountMap(
 
   for (User *User : Users) {
     CallBase *CB = getSupportedCallBase(User);
-    Function *Caller = CB->getCaller();
-    if (CurrentCaller != Caller) {
+    
+    if (Function *Caller = CB->getCaller(); CurrentCaller != Caller) {
       CurrentCaller = Caller;
       ComputeCurrBFI(Caller);
     } else {
@@ -1244,9 +1244,9 @@ std::pair<bool, Function *> PartialInlinerImpl::unswitchFunction(Function &F) {
   // implies we have profiling information.
   if (PSI.hasProfileSummary() && F.hasProfileData() &&
       !DisableMultiRegionPartialInline) {
-    std::unique_ptr<FunctionOutliningMultiRegionInfo> OMRI =
-        computeOutliningColdRegionsInfo(F, ORE);
-    if (OMRI) {
+    
+    if (std::unique_ptr<FunctionOutliningMultiRegionInfo> OMRI =
+        computeOutliningColdRegionsInfo(F, ORE); OMRI) {
       FunctionCloner Cloner(&F, OMRI.get(), ORE, LookupAssumptionCache, GetTTI);
 
       LLVM_DEBUG({
@@ -1255,9 +1255,9 @@ std::pair<bool, Function *> PartialInlinerImpl::unswitchFunction(Function &F) {
                << "\n";
       });
 
-      bool DidOutline = Cloner.doMultiRegionFunctionOutlining();
+      
 
-      if (DidOutline) {
+      if (bool DidOutline = Cloner.doMultiRegionFunctionOutlining(); DidOutline) {
         LLVM_DEBUG({
           dbgs() << ">>>>>> Outlined (Cloned) Function >>>>>>\n";
           Cloner.ClonedFunc->print(dbgs());
@@ -1466,9 +1466,9 @@ PreservedAnalyses PartialInlinerPass::run(Module &M,
     return FAM.getResult<TargetLibraryAnalysis>(F);
   };
 
-  ProfileSummaryInfo &PSI = AM.getResult<ProfileSummaryAnalysis>(M);
+  
 
-  if (PartialInlinerImpl(GetAssumptionCache, LookupAssumptionCache, GetTTI,
+  if (ProfileSummaryInfo &PSI = AM.getResult<ProfileSummaryAnalysis>(M); PartialInlinerImpl(GetAssumptionCache, LookupAssumptionCache, GetTTI,
                          GetTLI, PSI, GetBFI)
           .run(M))
     return PreservedAnalyses::none();

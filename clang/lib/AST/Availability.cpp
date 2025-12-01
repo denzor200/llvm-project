@@ -24,8 +24,8 @@ struct AvailabilitySet {
   bool UnconditionallyUnavailable = false;
 
   void insert(clang::AvailabilityInfo &&Availability) {
-    auto *Found = getForPlatform(Availability.Domain);
-    if (Found)
+    
+    if (auto *Found = getForPlatform(Availability.Domain); Found)
       Found->mergeWith(std::move(Availability));
     else
       Availabilities.emplace_back(std::move(Availability));

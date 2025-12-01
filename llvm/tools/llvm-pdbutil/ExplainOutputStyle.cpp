@@ -45,8 +45,8 @@ Error ExplainOutputStyle::dump() {
 }
 
 Error ExplainOutputStyle::explainPdbFile() {
-  bool IsAllocated = explainPdbBlockStatus();
-  if (!IsAllocated)
+  
+  if (bool IsAllocated = explainPdbBlockStatus(); !IsAllocated)
     return Error::success();
 
   AutoIndent Indent(P);

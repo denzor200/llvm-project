@@ -258,8 +258,8 @@ void A57ChainingConstraint::addInterChainConstraint(PBQPRAGraph &G, unsigned Rd,
     if (r == Rd)
       continue;
 
-    const LiveInterval &lr = LIs.getInterval(r);
-    if (ld.overlaps(lr)) {
+    
+    if (const LiveInterval &lr = LIs.getInterval(r); ld.overlaps(lr)) {
       const PBQPRAGraph::NodeMetadata::AllowedRegVector *vRdAllowed =
         &G.getNodeMetadata(node1).getAllowedRegs();
 

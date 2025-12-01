@@ -493,8 +493,8 @@ unsigned AArch64Subtarget::classifyGlobalFunctionReference(
     return AArch64II::MO_GOT;
 
   // NonLazyBind goes via GOT unless we know it's available locally.
-  auto *F = dyn_cast<Function>(GV);
-  if ((!isTargetMachO() || MachOUseNonLazyBind) && F &&
+  
+  if (auto *F = dyn_cast<Function>(GV); (!isTargetMachO() || MachOUseNonLazyBind) && F &&
       F->hasFnAttribute(Attribute::NonLazyBind) && !TM.shouldAssumeDSOLocal(GV))
     return AArch64II::MO_GOT;
 
@@ -598,8 +598,8 @@ void AArch64Subtarget::mirFileLoaded(MachineFunction &MF) const {
   // if the .mir file didn't specify it. Note that this will probably give you
   // bogus values after PEI has eliminated the callframe setup/destroy pseudo
   // instructions, specify explicitly if you need it to be correct.
-  MachineFrameInfo &MFI = MF.getFrameInfo();
-  if (!MFI.isMaxCallFrameSizeComputed())
+  
+  if (MachineFrameInfo &MFI = MF.getFrameInfo(); !MFI.isMaxCallFrameSizeComputed())
     MFI.computeMaxCallFrameSize(MF);
 }
 

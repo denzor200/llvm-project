@@ -89,9 +89,9 @@ static bool potentiallyAliasesMemref(BufferOriginAnalysis &analysis,
   for (auto other : otherList) {
     if (distinctAllocAndBlockArgument(other, memref))
       continue;
-    std::optional<bool> analysisResult =
-        analysis.isSameAllocation(other, memref);
-    if (!analysisResult.has_value() || analysisResult == true)
+    
+    if (std::optional<bool> analysisResult =
+        analysis.isSameAllocation(other, memref); !analysisResult.has_value() || analysisResult == true)
       return true;
   }
   return false;
@@ -168,9 +168,9 @@ struct RemoveDeallocMemrefsContainedInRetained
     // we can remove that operand later on.
     for (auto [i, retained] : llvm::enumerate(deallocOp.getRetained())) {
       Value updatedCondition = deallocOp.getUpdatedConditions()[i];
-      std::optional<bool> analysisResult =
-          analysis.isSameAllocation(retained, memref);
-      if (analysisResult == true) {
+      
+      if (std::optional<bool> analysisResult =
+          analysis.isSameAllocation(retained, memref); analysisResult == true) {
         auto disjunction = arith::OrIOp::create(rewriter, deallocOp.getLoc(),
                                                 updatedCondition, cond);
         rewriter.replaceAllUsesExcept(updatedCondition, disjunction.getResult(),

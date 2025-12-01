@@ -64,18 +64,18 @@ private:
     // target.
     for (unsigned I = LibFunc::Begin_LibFunc, E = LibFunc::End_LibFunc; I != E;
          ++I) {
-      LibFunc F = static_cast<LibFunc>(I);
-      if (TLI.has(F))
+      
+      if (LibFunc F = static_cast<LibFunc>(I); TLI.has(F))
         Libcalls.insert(TLI.getName(F));
     }
 
     SmallPtrSet<const TargetLowering *, 1> TLSet;
 
     for (const Function &F : TheModule) {
-      const TargetLowering *Lowering =
-          TM.getSubtargetImpl(F)->getTargetLowering();
+      
 
-      if (Lowering && TLSet.insert(Lowering).second)
+      if (const TargetLowering *Lowering =
+          TM.getSubtargetImpl(F)->getTargetLowering(); Lowering && TLSet.insert(Lowering).second)
         // TargetLowering has info on library calls that CodeGen expects to be
         // available, both from the C runtime and compiler-rt.
         for (unsigned I = 0, E = static_cast<unsigned>(RTLIB::UNKNOWN_LIBCALL);

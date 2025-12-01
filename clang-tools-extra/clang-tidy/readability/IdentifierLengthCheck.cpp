@@ -86,14 +86,14 @@ void IdentifierLengthCheck::registerMatchers(MatchFinder *Finder) {
 }
 
 void IdentifierLengthCheck::check(const MatchFinder::MatchResult &Result) {
-  const auto *StandaloneVar = Result.Nodes.getNodeAs<VarDecl>("standaloneVar");
-  if (StandaloneVar) {
+  
+  if (const auto *StandaloneVar = Result.Nodes.getNodeAs<VarDecl>("standaloneVar"); StandaloneVar) {
     if (!StandaloneVar->getIdentifier())
       return;
 
-    const StringRef VarName = StandaloneVar->getName();
+    
 
-    if (VarName.size() >= MinimumVariableNameLength ||
+    if (const StringRef VarName = StandaloneVar->getName(); VarName.size() >= MinimumVariableNameLength ||
         IgnoredVariableNames.match(VarName))
       return;
 
@@ -106,8 +106,8 @@ void IdentifierLengthCheck::check(const MatchFinder::MatchResult &Result) {
     if (!ExceptionVarName->getIdentifier())
       return;
 
-    const StringRef VarName = ExceptionVarName->getName();
-    if (VarName.size() >= MinimumExceptionNameLength ||
+    
+    if (const StringRef VarName = ExceptionVarName->getName(); VarName.size() >= MinimumExceptionNameLength ||
         IgnoredExceptionVariableNames.match(VarName))
       return;
 
@@ -120,9 +120,9 @@ void IdentifierLengthCheck::check(const MatchFinder::MatchResult &Result) {
     if (!LoopVar->getIdentifier())
       return;
 
-    const StringRef VarName = LoopVar->getName();
+    
 
-    if (VarName.size() >= MinimumLoopCounterNameLength ||
+    if (const StringRef VarName = LoopVar->getName(); VarName.size() >= MinimumLoopCounterNameLength ||
         IgnoredLoopCounterNames.match(VarName))
       return;
 
@@ -135,9 +135,9 @@ void IdentifierLengthCheck::check(const MatchFinder::MatchResult &Result) {
     if (!ParamVar->getIdentifier())
       return;
 
-    const StringRef VarName = ParamVar->getName();
+    
 
-    if (VarName.size() >= MinimumParameterNameLength ||
+    if (const StringRef VarName = ParamVar->getName(); VarName.size() >= MinimumParameterNameLength ||
         IgnoredParameterNames.match(VarName))
       return;
 

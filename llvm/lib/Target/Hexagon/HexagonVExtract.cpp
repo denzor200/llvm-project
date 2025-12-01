@@ -66,12 +66,12 @@ unsigned HexagonVExtract::genElemLoad(MachineInstr *ExtI, unsigned BaseR,
   Register ElemR = MRI.createVirtualRegister(&Hexagon::IntRegsRegClass);
 
   Register ExtIdxR = ExtI->getOperand(2).getReg();
-  unsigned ExtIdxS = ExtI->getOperand(2).getSubReg();
+  
 
   // Simplified check for a compile-time constant value of ExtIdxR.
-  if (ExtIdxS == 0) {
-    MachineInstr *DI = MRI.getVRegDef(ExtIdxR);
-    if (DI->getOpcode() == Hexagon::A2_tfrsi) {
+  if (unsigned ExtIdxS = ExtI->getOperand(2).getSubReg(); ExtIdxS == 0) {
+    
+    if (MachineInstr *DI = MRI.getVRegDef(ExtIdxR); DI->getOpcode() == Hexagon::A2_tfrsi) {
       unsigned V = DI->getOperand(1).getImm();
       V &= (HST->getVectorLength()-1) & -4u;
 
@@ -106,8 +106,8 @@ bool HexagonVExtract::runOnMachineFunction(MachineFunction &MF) {
 
   for (MachineBasicBlock &MBB : MF) {
     for (MachineInstr &MI : MBB) {
-      unsigned Opc = MI.getOpcode();
-      if (Opc != Hexagon::V6_extractw)
+      
+      if (unsigned Opc = MI.getOpcode(); Opc != Hexagon::V6_extractw)
         continue;
       Register VecR = MI.getOperand(1).getReg();
       VExtractMap[VecR].push_back(&MI);
@@ -176,8 +176,8 @@ bool HexagonVExtract::runOnMachineFunction(MachineFunction &MF) {
     // Update the required stack alignment.
     MachineInstr *AlignaI = MRI.getVRegDef(AR);
     assert(AlignaI->getOpcode() == Hexagon::PS_aligna);
-    MachineOperand &Op = AlignaI->getOperand(1);
-    if (*MaxAlign > Op.getImm())
+    
+    if (MachineOperand &Op = AlignaI->getOperand(1); *MaxAlign > Op.getImm())
       Op.setImm(MaxAlign->value());
   }
 

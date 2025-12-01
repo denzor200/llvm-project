@@ -89,8 +89,8 @@ bool RegisterContextHistory::ReadRegister(
     lldb_private::RegisterValue &value) {
   if (!reg_info)
     return false;
-  uint32_t reg_number = reg_info->kinds[eRegisterKindGeneric];
-  if (reg_number == LLDB_REGNUM_GENERIC_PC) {
+  
+  if (uint32_t reg_number = reg_info->kinds[eRegisterKindGeneric]; reg_number == LLDB_REGNUM_GENERIC_PC) {
     value.SetUInt(m_pc_value, reg_info->byte_size);
     return true;
   }

@@ -380,8 +380,8 @@ parseRewriteFunctionDescriptor(yaml::Stream &YS, yaml::ScalarNode *K,
   }
 
   {
-    std::string Error;
-    if (!Regex(Source).isValid(Error)) {
+    
+    if (std::string Error; !Regex(Source).isValid(Error)) {
       YS.printError(Descriptor, "invalid Source regex: " + Error);
       return false;
     }
@@ -447,8 +447,8 @@ parseRewriteGlobalVariableDescriptor(yaml::Stream &YS, yaml::ScalarNode *K,
   }
 
   {
-    std::string Error;
-    if (!Regex(Source).isValid(Error)) {
+    
+    if (std::string Error; !Regex(Source).isValid(Error)) {
       YS.printError(Descriptor, "invalid Source regex: " + Error);
       return false;
     }
@@ -514,8 +514,8 @@ parseRewriteGlobalAliasDescriptor(yaml::Stream &YS, yaml::ScalarNode *K,
   }
 
   {
-    std::string Error;
-    if (!Regex(Source).isValid(Error)) {
+    
+    if (std::string Error; !Regex(Source).isValid(Error)) {
       YS.printError(Descriptor, "invalid Source regex: " + Error);
       return false;
     }

@@ -347,8 +347,8 @@ static void findStmtsInUnspecifiedPointerContext(
       BO && (BO->getOpcode() == BO_EQ || BO->getOpcode() == BO_NE ||
              BO->getOpcode() == BO_LT || BO->getOpcode() == BO_LE ||
              BO->getOpcode() == BO_GT || BO->getOpcode() == BO_GE)) {
-    auto *LHS = BO->getLHS();
-    if (hasPointerType(*LHS))
+    
+    if (auto *LHS = BO->getLHS(); hasPointerType(*LHS))
       InnerMatcher(LHS);
 
     auto *RHS = BO->getRHS();
@@ -640,9 +640,9 @@ static bool isSafeSpanTwoParamConstruct(const CXXConstructExpr &Node,
   auto IsMethodCallToSizedObject = [](const Stmt *Node, StringRef MethodName) {
     if (const auto *MC = dyn_cast<CXXMemberCallExpr>(Node)) {
       const auto *MD = MC->getMethodDecl();
-      const auto *RD = MC->getRecordDecl();
+      
 
-      if (RD && MD)
+      if (const auto *RD = MC->getRecordDecl(); RD && MD)
         if (auto *II = RD->getDeclName().getAsIdentifierInfo();
             II && RD->isInStdNamespace())
           return llvm::is_contained({SIZED_CONTAINER_OR_VIEW_LIST},
@@ -694,10 +694,10 @@ static bool isSafeArraySubscript(const ArraySubscriptExpr &Node,
   const Expr *IndexExpr = Node.getIdx();
   if (!IndexExpr->isValueDependent() &&
       IndexExpr->EvaluateAsInt(EVResult, Ctx)) {
-    llvm::APSInt ArrIdx = EVResult.Val.getInt();
+    
     // FIXME: ArrIdx.isNegative() we could immediately emit an error as that's a
     // bug
-    if (ArrIdx.isNonNegative() && ArrIdx.getLimitedValue() < limit)
+    if (llvm::APSInt ArrIdx = EVResult.Val.getInt(); ArrIdx.isNonNegative() && ArrIdx.getLimitedValue() < limit)
       return true;
   } else if (const auto *BE = dyn_cast<BinaryOperator>(IndexExpr)) {
     // For an integer expression `e` and an integer constant `n`, `e & n` and
@@ -715,8 +715,8 @@ static bool isSafeArraySubscript(const ArraySubscriptExpr &Node,
       }
 
       if (!RHS->isValueDependent() && RHS->EvaluateAsInt(EVResult, Ctx)) {
-        llvm::APSInt result = EVResult.Val.getInt();
-        if (result.isNonNegative() && result.getLimitedValue() <= limit)
+        
+        if (llvm::APSInt result = EVResult.Val.getInt(); result.isNonNegative() && result.getLimitedValue() <= limit)
           return true;
       }
 
@@ -727,8 +727,8 @@ static bool isSafeArraySubscript(const ArraySubscriptExpr &Node,
          LHS->EvaluateAsInt(EVResult, Ctx)) || // case: `n & e`
         (!RHS->isValueDependent() &&
          RHS->EvaluateAsInt(EVResult, Ctx))) { // `e & n`
-      llvm::APSInt result = EVResult.Val.getInt();
-      if (result.isNonNegative() && result.getLimitedValue() < limit)
+      
+      if (llvm::APSInt result = EVResult.Val.getInt(); result.isNonNegative() && result.getLimitedValue() < limit)
         return true;
     }
     return false;
@@ -788,9 +788,9 @@ static const Expr *tryConstantFoldConditionalExpr(const Expr *E,
                                                   const ASTContext &Ctx) {
   // FIXME: more places can use this function
   if (const auto *CE = dyn_cast<ConditionalOperator>(E)) {
-    bool CondEval;
+    
 
-    if (CE->getCond()->EvaluateAsBooleanCondition(CondEval, Ctx))
+    if (bool CondEval; CE->getCond()->EvaluateAsBooleanCondition(CondEval, Ctx))
       return CondEval ? CE->getLHS() : CE->getRHS();
   }
   return E;
@@ -806,9 +806,9 @@ static bool isNullTermPointer(const Expr *Ptr, ASTContext &Ctx) {
     return true;
   if (auto *MCE = dyn_cast<CXXMemberCallExpr>(Ptr->IgnoreParenImpCasts())) {
     const CXXMethodDecl *MD = MCE->getMethodDecl();
-    const CXXRecordDecl *RD = MCE->getRecordDecl()->getCanonicalDecl();
+    
 
-    if (MD && RD && RD->isInStdNamespace() && MD->getIdentifier())
+    if (const CXXRecordDecl *RD = MCE->getRecordDecl()->getCanonicalDecl(); MD && RD && RD->isInStdNamespace() && MD->getIdentifier())
       if (MD->getName() == "c_str" && RD->getName() == "basic_string")
         return true;
   }
@@ -914,9 +914,9 @@ static bool hasUnsafeFormatOrSArg(const CallExpr *Call, const Expr *&UnsafeArg,
     }
   };
 
-  const Expr *Fmt = Call->getArg(FmtArgIdx);
+  
 
-  if (auto *SL = dyn_cast<clang::StringLiteral>(Fmt->IgnoreParenImpCasts())) {
+  if (auto *const Expr *Fmt = Call->getArg(FmtArgIdx); SL = dyn_cast<clang::StringLiteral>(Fmt->IgnoreParenImpCasts())) {
     if (SL->getCharByteWidth() == 1) {
       StringRef FmtStr = SL->getString();
       StringFormatStringHandler Handler(Call, FmtArgIdx, UnsafeArg, Ctx);
@@ -1150,9 +1150,9 @@ static bool hasUnsafePrintfStringArg(const CallExpr &Node, ASTContext &Ctx,
            .isNull() && //`FILE *` must be in the context if it is fprintf
       FirstPteTy.getCanonicalType() == Ctx.getFILEType().getCanonicalType()) {
     // It is a fprintf:
-    const Expr *UnsafeArg;
+    
 
-    if (hasUnsafeFormatOrSArg(&Node, UnsafeArg, 1, Ctx, false)) {
+    if (const Expr *UnsafeArg; hasUnsafeFormatOrSArg(&Node, UnsafeArg, 1, Ctx, false)) {
       Result.addNode(Tag, DynTypedNode::create(*UnsafeArg));
       return true;
     }
@@ -1174,14 +1174,14 @@ static bool hasUnsafePrintfStringArg(const CallExpr &Node, ASTContext &Ctx,
   }
 
   if (NumParms > 2) {
-    QualType SecondParmTy = FD->getParamDecl(1)->getType();
+    
 
-    if (!FirstPteTy.isConstQualified() && SecondParmTy->isIntegerType()) {
+    if (QualType SecondParmTy = FD->getParamDecl(1)->getType(); !FirstPteTy.isConstQualified() && SecondParmTy->isIntegerType()) {
       // If the first parameter type is non-const qualified `char *` and the
       // second is an integer, it is a snprintf:
-      const Expr *UnsafeArg;
+      
 
-      if (hasUnsafeFormatOrSArg(&Node, UnsafeArg, 2, Ctx, false)) {
+      if (const Expr *UnsafeArg; hasUnsafeFormatOrSArg(&Node, UnsafeArg, 2, Ctx, false)) {
         Result.addNode(Tag, DynTypedNode::create(*UnsafeArg));
         return true;
       }
@@ -2867,8 +2867,8 @@ bool clang::internal::anyConflict(const SmallVectorImpl<FixItHint> &FixIts,
 std::optional<FixItList>
 PtrToPtrAssignmentGadget::getFixits(const FixitStrategy &S) const {
   const auto *LeftVD = cast<VarDecl>(PtrLHS->getDecl());
-  const auto *RightVD = cast<VarDecl>(PtrRHS->getDecl());
-  switch (S.lookup(LeftVD)) {
+  
+  switch (const auto *RightVD = cast<VarDecl>(PtrRHS->getDecl()); S.lookup(LeftVD)) {
   case FixitStrategy::Kind::Span:
     if (S.lookup(RightVD) == FixitStrategy::Kind::Span)
       return FixItList{};
@@ -2891,7 +2891,7 @@ static inline std::optional<FixItList> createDataFixit(const ASTContext &Ctx,
 std::optional<FixItList>
 CArrayToPtrAssignmentGadget::getFixits(const FixitStrategy &S) const {
   const auto *LeftVD = cast<VarDecl>(PtrLHS->getDecl());
-  const auto *RightVD = cast<VarDecl>(PtrRHS->getDecl());
+  
   // TLDR: Implementing fixits for non-Wontfix strategy on both LHS and RHS is
   // non-trivial.
   //
@@ -2908,7 +2908,7 @@ CArrayToPtrAssignmentGadget::getFixits(const FixitStrategy &S) const {
   //
   // The only exception is Wontfix strategy for a given variable as that is
   // valid for any fixit produced for the given input source code.
-  if (S.lookup(LeftVD) == FixitStrategy::Kind::Span) {
+  if (const auto *RightVD = cast<VarDecl>(PtrRHS->getDecl()); S.lookup(LeftVD) == FixitStrategy::Kind::Span) {
     if (S.lookup(RightVD) == FixitStrategy::Kind::Wontfix) {
       return FixItList{};
     }
@@ -2923,8 +2923,8 @@ CArrayToPtrAssignmentGadget::getFixits(const FixitStrategy &S) const {
 std::optional<FixItList>
 PointerInitGadget::getFixits(const FixitStrategy &S) const {
   const auto *LeftVD = PtrInitLHS;
-  const auto *RightVD = cast<VarDecl>(PtrInitRHS->getDecl());
-  switch (S.lookup(LeftVD)) {
+  
+  switch (const auto *RightVD = cast<VarDecl>(PtrInitRHS->getDecl()); S.lookup(LeftVD)) {
   case FixitStrategy::Kind::Span:
     if (S.lookup(RightVD) == FixitStrategy::Kind::Span)
       return FixItList{};
@@ -2960,9 +2960,9 @@ ULCArraySubscriptGadget::getFixits(const FixitStrategy &S) const {
 
         // If the index has a negative constant value, we give up as no valid
         // fix-it can be generated:
-        const ASTContext &Ctx = // FIXME: we need ASTContext to be passed in!
-            VD->getASTContext();
-        if (!isNonNegativeIntegerExpr(Node->getIdx(), VD, Ctx))
+        
+        if (const ASTContext &Ctx = // FIXME: we need ASTContext to be passed in!
+            VD->getASTContext(); !isNonNegativeIntegerExpr(Node->getIdx(), VD, Ctx))
           return std::nullopt;
         // no-op is a good fix-it, otherwise
         return FixItList{};
@@ -2984,9 +2984,9 @@ fixUPCAddressofArraySubscriptWithSpan(const UnaryOperator *Node);
 std::optional<FixItList>
 UPCAddressofArraySubscriptGadget::getFixits(const FixitStrategy &S) const {
   auto DREs = getClaimedVarUseSites();
-  const auto *VD = cast<VarDecl>(DREs.front()->getDecl());
+  
 
-  switch (S.lookup(VD)) {
+  switch (const auto *VD = cast<VarDecl>(DREs.front()->getDecl()); S.lookup(VD)) {
   case FixitStrategy::Kind::Span:
     return fixUPCAddressofArraySubscriptWithSpan(Node);
   case FixitStrategy::Kind::Wontfix:
@@ -3021,9 +3021,9 @@ getEndCharLoc(const NodeTy *Node, const SourceManager &SM,
               const LangOptions &LangOpts) {
   if (unsigned TkLen =
           Lexer::MeasureTokenLength(Node->getEndLoc(), SM, LangOpts)) {
-    SourceLocation Loc = Node->getEndLoc().getLocWithOffset(TkLen - 1);
+    
 
-    if (Loc.isValid())
+    if (SourceLocation Loc = Node->getEndLoc().getLocWithOffset(TkLen - 1); Loc.isValid())
       return Loc;
   }
   return std::nullopt;
@@ -3099,9 +3099,9 @@ getSpanTypeText(StringRef EltTyText,
 
 std::optional<FixItList>
 DerefSimplePtrArithFixableGadget::getFixits(const FixitStrategy &s) const {
-  const VarDecl *VD = dyn_cast<VarDecl>(BaseDeclRefExpr->getDecl());
+  
 
-  if (VD && s.lookup(VD) == FixitStrategy::Kind::Span) {
+  if (const VarDecl *VD = dyn_cast<VarDecl>(BaseDeclRefExpr->getDecl()); VD && s.lookup(VD) == FixitStrategy::Kind::Span) {
     ASTContext &Ctx = VD->getASTContext();
     // std::span can't represent elements before its begin()
     if (auto ConstVal = Offset->getIntegerConstantExpr(Ctx))
@@ -3162,8 +3162,8 @@ DerefSimplePtrArithFixableGadget::getFixits(const FixitStrategy &s) const {
 
 std::optional<FixItList>
 PointerDereferenceGadget::getFixits(const FixitStrategy &S) const {
-  const VarDecl *VD = cast<VarDecl>(BaseDeclRefExpr->getDecl());
-  switch (S.lookup(VD)) {
+  
+  switch (const VarDecl *VD = cast<VarDecl>(BaseDeclRefExpr->getDecl()); S.lookup(VD)) {
   case FixitStrategy::Kind::Span: {
     ASTContext &Ctx = VD->getASTContext();
     SourceManager &SM = Ctx.getSourceManager();
@@ -3208,8 +3208,8 @@ static inline std::optional<FixItList> createDataFixit(const ASTContext &Ctx,
 // `DRE.data()`
 std::optional<FixItList>
 UPCStandalonePointerGadget::getFixits(const FixitStrategy &S) const {
-  const auto VD = cast<VarDecl>(Node->getDecl());
-  switch (S.lookup(VD)) {
+  
+  switch (const auto VD = cast<VarDecl>(Node->getDecl()); S.lookup(VD)) {
   case FixitStrategy::Kind::Array:
   case FixitStrategy::Kind::Span: {
     return createDataFixit(VD->getASTContext(), Node);
@@ -3980,8 +3980,8 @@ static void eraseVarsForUnfixableGroupMates(
   SmallVector<const VarDecl *, 8> ToErase;
 
   for (const auto &[VD, Ignore] : FixItsForVariable) {
-    VarGrpRef Grp = VarGrpMgr.getGroupOfVar(VD);
-    if (llvm::any_of(Grp,
+    
+    if (VarGrpRef Grp = VarGrpMgr.getGroupOfVar(VD); llvm::any_of(Grp,
                      [&FixItsForVariable](const VarDecl *GrpMember) -> bool {
                        return !FixItsForVariable.count(GrpMember);
                      })) {
@@ -4290,9 +4290,9 @@ static void applyGadgets(const Decl *D, FixableGadgetList FixableGadgets,
 
   for (const auto &it : FixablesForAllVars.byVar) {
     for (const FixableGadget *fixable : it.second) {
-      std::optional<std::pair<const VarDecl *, const VarDecl *>> ImplPair =
-          fixable->getStrategyImplications();
-      if (ImplPair) {
+      
+      if (std::optional<std::pair<const VarDecl *, const VarDecl *>> ImplPair =
+          fixable->getStrategyImplications(); ImplPair) {
         std::pair<const VarDecl *, const VarDecl *> Impl = std::move(*ImplPair);
         PtrAssignmentGraph[Impl.first].insert(Impl.second);
       }

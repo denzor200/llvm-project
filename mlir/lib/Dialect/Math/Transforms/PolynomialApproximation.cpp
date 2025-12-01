@@ -1269,8 +1269,8 @@ LogicalResult
 ExpApproximation::matchAndRewrite(math::ExpOp op,
                                   PatternRewriter &rewriter) const {
   auto shape = vectorShape(op.getOperand().getType());
-  auto elementTy = getElementTypeOrSelf(op.getType());
-  if (!elementTy.isF32())
+  
+  if (auto elementTy = getElementTypeOrSelf(op.getType()); !elementTy.isF32())
     return rewriter.notifyMatchFailure(op, "unsupported operand type");
 
   ImplicitLocOpBuilder builder(op->getLoc(), rewriter);

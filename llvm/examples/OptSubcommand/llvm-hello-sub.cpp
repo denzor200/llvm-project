@@ -93,8 +93,8 @@ int main(int argc, char **argv) {
   auto HandleSubCommandArg = [&](ID OptionType) {
     if (!Args.hasArg(OptionType))
       return false;
-    auto O = T.getOption(OptionType);
-    if (!O.isRegisteredSC(SubCommand)) {
+    
+    if (auto O = T.getOption(OptionType); !O.isRegisteredSC(SubCommand)) {
       llvm::errs() << "Option [" << O.getName()
                    << "] is not valid for SubCommand [" << SubCommand << "]\n";
       return false;

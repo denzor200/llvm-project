@@ -804,8 +804,8 @@ void DisassemblerTables::emitOpcodeDecision(raw_ostream &o1, raw_ostream &o2,
   unsigned index;
   for (index = 0; index < 256; ++index) {
     auto &decision = opDecision.modRMDecisions[index];
-    ModRMDecisionType dt = getDecisionType(decision);
-    if (!(dt == MODRM_ONEENTRY && decision.instructionIDs[0] == 0))
+    
+    if (ModRMDecisionType dt = getDecisionType(decision); !(dt == MODRM_ONEENTRY && decision.instructionIDs[0] == 0))
       break;
   }
   if (index == 256) {
@@ -1154,8 +1154,8 @@ void DisassemblerTables::setTableFields(
         inheritsFrom((InstructionContext)index, IC_64BIT))
       continue;
 
-    bool adSize64 = addressSize == 64;
-    if (inheritsFrom((InstructionContext)index,
+    
+    if (bool adSize64 = addressSize == 64; inheritsFrom((InstructionContext)index,
                      InstructionSpecifiers[uid].insnContext, noPrefix,
                      ignoresVEX_L, ignoresW, adSize64))
       setTableFields(decision.opcodeDecisions[index].modRMDecisions[opcode],

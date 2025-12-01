@@ -20,8 +20,8 @@
 namespace LIBC_NAMESPACE_DECL {
 
 LLVM_LIBC_FUNCTION(int, tcdrain, (int fd)) {
-  int ret = LIBC_NAMESPACE::syscall_impl<int>(SYS_ioctl, fd, TCSBRK, 1);
-  if (ret < 0) {
+  
+  if (int ret = LIBC_NAMESPACE::syscall_impl<int>(SYS_ioctl, fd, TCSBRK, 1); ret < 0) {
     libc_errno = -ret;
     return -1;
   }

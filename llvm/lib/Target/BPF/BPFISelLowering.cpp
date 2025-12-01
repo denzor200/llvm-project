@@ -319,8 +319,8 @@ BPFTargetLowering::getRegForInlineAsmConstraint(const TargetRegisterInfo *TRI,
 void BPFTargetLowering::ReplaceNodeResults(
   SDNode *N, SmallVectorImpl<SDValue> &Results, SelectionDAG &DAG) const {
   const char *Msg;
-  uint32_t Opcode = N->getOpcode();
-  switch (Opcode) {
+  
+  switch (uint32_t Opcode = N->getOpcode(); Opcode) {
   default:
     report_fatal_error("unhandled custom legalization: " + Twine(Opcode));
   case ISD::ATOMIC_LOAD_ADD:
@@ -399,9 +399,9 @@ SDValue BPFTargetLowering::LowerFormalArguments(
 
   bool HasMemArgs = false;
   for (size_t I = 0; I < ArgLocs.size(); ++I) {
-    auto &VA = ArgLocs[I];
+    
 
-    if (VA.isRegLoc()) {
+    if (auto &VA = ArgLocs[I]; VA.isRegLoc()) {
       // Arguments passed in registers
       EVT RegVT = VA.getLocVT();
       MVT::SimpleValueType SimpleTy = RegVT.getSimpleVT().SimpleTy;

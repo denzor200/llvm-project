@@ -226,9 +226,9 @@ static BaseOffset ComputeBaseOffset(const ASTContext &Context,
 
   // First, look for the virtual base class.
   for (int I = Path.size(), E = 0; I != E; --I) {
-    const CXXBasePathElement &Element = Path[I - 1];
+    
 
-    if (Element.Base->isVirtual()) {
+    if (const CXXBasePathElement &Element = Path[I - 1]; Element.Base->isVirtual()) {
       NonVirtualStart = I;
       QualType VBaseType = Element.Base->getType();
       VirtualBase = VBaseType->getAsCXXRecordDecl();
@@ -499,8 +499,8 @@ bool VCallOffsetMap::MethodsCanShareVCallOffset(const CXXMethodDecl *LHS,
 
   // The methods must have the same name.
   DeclarationName LHSName = LHS->getDeclName();
-  DeclarationName RHSName = RHS->getDeclName();
-  if (LHSName != RHSName)
+  
+  if (DeclarationName RHSName = RHS->getDeclName(); LHSName != RHSName)
     return false;
 
   // And the same signatures.
@@ -616,7 +616,7 @@ void
 VCallAndVBaseOffsetBuilder::AddVCallAndVBaseOffsets(BaseSubobject Base,
                                                     bool BaseIsVirtual,
                                                     CharUnits RealBaseOffset) {
-  const ASTRecordLayout &Layout = Context.getASTRecordLayout(Base.getBase());
+  
 
   // Itanium C++ ABI 2.5.2:
   //   ..in classes sharing a virtual table with a primary base class, the vcall
@@ -627,7 +627,7 @@ VCallAndVBaseOffsetBuilder::AddVCallAndVBaseOffsets(BaseSubobject Base,
 
   // (Since we're emitting the vcall and vbase offsets in reverse order, we'll
   // emit them for the primary base first).
-  if (const CXXRecordDecl *PrimaryBase = Layout.getPrimaryBase()) {
+  if (const CXXRecordDecl *const ASTRecordLayout &Layout = Context.getASTRecordLayout(Base.getBase()); PrimaryBase = Layout.getPrimaryBase()) {
     bool PrimaryBaseIsVirtual = Layout.isPrimaryBaseVirtual();
 
     CharUnits PrimaryBaseOffset;
@@ -1419,12 +1419,12 @@ bool ItaniumVTableBuilder::IsOverriderUsed(
       assert(Layout.getVBaseClassOffset(PrimaryBase).isZero() &&
              "Primary base should always be at offset 0!");
 
-      const ASTRecordLayout &LayoutClassLayout =
-        Context.getASTRecordLayout(LayoutClass);
+      
 
       // Now check if this is the primary base that is not a primary base in the
       // most derived class.
-      if (LayoutClassLayout.getVBaseClassOffset(PrimaryBase) !=
+      if (const ASTRecordLayout &LayoutClassLayout =
+        Context.getASTRecordLayout(LayoutClass); LayoutClassLayout.getVBaseClassOffset(PrimaryBase) !=
           FirstBaseOffsetInLayoutClass) {
         // We found it, stop walking the chain.
         break;
@@ -1483,9 +1483,9 @@ void ItaniumVTableBuilder::AddMethods(
   //   between their return types does not require an adjustment.
 
   const CXXRecordDecl *RD = Base.getBase();
-  const ASTRecordLayout &Layout = Context.getASTRecordLayout(RD);
+  
 
-  if (const CXXRecordDecl *PrimaryBase = Layout.getPrimaryBase()) {
+  if (const CXXRecordDecl *const ASTRecordLayout &Layout = Context.getASTRecordLayout(RD); PrimaryBase = Layout.getPrimaryBase()) {
     CharUnits PrimaryBaseOffset;
     CharUnits PrimaryBaseOffsetInLayoutClass;
     if (Layout.isPrimaryBaseVirtual()) {
@@ -1564,11 +1564,11 @@ void ItaniumVTableBuilder::AddMethods(
         // a primary base in the complete object.
         if (!isBuildingConstructorVTable() && OverriddenMD != MD) {
           // Compute the this adjustment.
-          ThisAdjustment ThisAdjustment =
-            ComputeThisAdjustment(OverriddenMD, BaseOffsetInLayoutClass,
-                                  Overrider);
+          
 
-          if (ThisAdjustment.Virtual.Itanium.VCallOffsetOffset &&
+          if (ThisAdjustment ThisAdjustment =
+            ComputeThisAdjustment(OverriddenMD, BaseOffsetInLayoutClass,
+                                  Overrider); ThisAdjustment.Virtual.Itanium.VCallOffsetOffset &&
               Overrider.Method->getParent() == MostDerivedClass) {
 
             // There's no return adjustment from OverriddenMD and MD,
@@ -1681,8 +1681,8 @@ void ItaniumVTableBuilder::LayoutVTable() {
   LayoutVTablesForVirtualBases(MostDerivedClass, VBases);
 
   // -fapple-kext adds an extra entry at end of vtbl.
-  bool IsAppleKext = Context.getLangOpts().AppleKext;
-  if (IsAppleKext)
+  
+  if (bool IsAppleKext = Context.getLangOpts().AppleKext; IsAppleKext)
     Components.push_back(VTableComponent::MakeVCallOffset(CharUnits::Zero()));
 }
 
@@ -1734,8 +1734,8 @@ void ItaniumVTableBuilder::LayoutPrimaryAndSecondaryVTables(
     assert(MethodVTableIndices.empty());
     for (const auto &I : MethodInfoMap) {
       const CXXMethodDecl *MD = I.first;
-      const MethodInfo &MI = I.second;
-      if (const CXXDestructorDecl *DD = dyn_cast<CXXDestructorDecl>(MD)) {
+      
+      if (const CXXDestructorDecl *const MethodInfo &MI = I.second; DD = dyn_cast<CXXDestructorDecl>(MD)) {
         MethodVTableIndices[GlobalDecl(DD, Dtor_Complete)]
             = MI.VTableIndex - AddressPoint;
         MethodVTableIndices[GlobalDecl(DD, Dtor_Deleting)]
@@ -1766,10 +1766,10 @@ void ItaniumVTableBuilder::LayoutPrimaryAndSecondaryVTables(
     if (Layout.isPrimaryBaseVirtual()) {
       // Check if this virtual primary base is a primary base in the layout
       // class. If it's not, we don't want to add it.
-      const ASTRecordLayout &LayoutClassLayout =
-        Context.getASTRecordLayout(LayoutClass);
+      
 
-      if (LayoutClassLayout.getVBaseClassOffset(PrimaryBase) !=
+      if (const ASTRecordLayout &LayoutClassLayout =
+        Context.getASTRecordLayout(LayoutClass); LayoutClassLayout.getVBaseClassOffset(PrimaryBase) !=
           OffsetInLayoutClass) {
         // We don't want to add this class (or any of its primary bases).
         break;
@@ -1859,12 +1859,12 @@ void ItaniumVTableBuilder::DeterminePrimaryVirtualBases(
         const ASTRecordLayout &LayoutClassLayout =
           Context.getASTRecordLayout(LayoutClass);
 
-        CharUnits PrimaryBaseOffsetInLayoutClass =
-          LayoutClassLayout.getVBaseClassOffset(PrimaryBase);
+        
 
         // We know that the base is not a primary base in the layout class if
         // the base offsets are different.
-        if (PrimaryBaseOffsetInLayoutClass != OffsetInLayoutClass)
+        if (CharUnits PrimaryBaseOffsetInLayoutClass =
+          LayoutClassLayout.getVBaseClassOffset(PrimaryBase); PrimaryBaseOffsetInLayoutClass != OffsetInLayoutClass)
           IsPrimaryVirtualBase = false;
       }
 
@@ -1990,10 +1990,10 @@ void ItaniumVTableBuilder::dumpLayout(raw_ostream &Out) {
 
     Out << llvm::format("%4d | ", I);
 
-    const VTableComponent &Component = Components[I];
+    
 
     // Dump the component.
-    switch (Component.getKind()) {
+    switch (const VTableComponent &Component = Components[I]; Component.getKind()) {
 
     case VTableComponent::CK_VCallOffset:
       Out << "vcall_offset ("
@@ -2115,8 +2115,8 @@ void ItaniumVTableBuilder::dumpLayout(raw_ostream &Out) {
     Out << '\n';
 
     // Dump the next address point.
-    uint64_t NextIndex = Index + 1;
-    if (unsigned Count = AddressPointsByIndex.count(NextIndex)) {
+    
+    if (unsigned uint64_t NextIndex = Index + 1; Count = AddressPointsByIndex.count(NextIndex)) {
       if (Count == 1) {
         const BaseSubobject &Base =
           AddressPointsByIndex.find(NextIndex)->second;
@@ -2245,10 +2245,10 @@ void ItaniumVTableBuilder::dumpLayout(raw_ostream &Out) {
       continue;
     MD = MD->getCanonicalDecl();
 
-    std::string MethodName = PredefinedExpr::ComputeName(
-        PredefinedIdentKind::PrettyFunctionNoVirtual, MD);
+    
 
-    if (const CXXDestructorDecl *DD = dyn_cast<CXXDestructorDecl>(MD)) {
+    if (const CXXDestructorDecl *std::string MethodName = PredefinedExpr::ComputeName(
+        PredefinedIdentKind::PrettyFunctionNoVirtual, MD); DD = dyn_cast<CXXDestructorDecl>(MD)) {
       GlobalDecl GD(DD, Dtor_Complete);
       assert(MethodVTableIndices.count(GD));
       uint64_t VTableIndex = MethodVTableIndices[GD];
@@ -2287,8 +2287,8 @@ MakeAddressPointIndices(const VTableLayout::AddressPointsMapTy &addressPoints,
   for (auto it = addressPoints.begin(); it != addressPoints.end(); ++it) {
     const auto &addressPointLoc = it->second;
     unsigned vtableIndex = addressPointLoc.VTableIndex;
-    unsigned addressPoint = addressPointLoc.AddressPointIndex;
-    if (indexMap[vtableIndex]) {
+    
+    if (unsigned addressPoint = addressPointLoc.AddressPointIndex; indexMap[vtableIndex]) {
       // Multiple BaseSubobjects can map to the same AddressPointLocation, but
       // every vtable index should have a unique address point.
       assert(indexMap[vtableIndex] == addressPoint &&
@@ -2655,9 +2655,9 @@ private:
       // and the entries shadowed by return adjusting thunks.
       if (MD->getParent() != MostDerivedClass || MI.Shadowed)
         continue;
-      MethodVFTableLocation Loc(MI.VBTableIndex, WhichVFPtr.getVBaseWithVPtr(),
-                                WhichVFPtr.NonVirtualOffset, MI.VFTableIndex);
-      if (const CXXDestructorDecl *DD = dyn_cast<CXXDestructorDecl>(MD)) {
+      
+      if (const CXXDestructorDecl *MethodVFTableLocation Loc(MI.VBTableIndex, WhichVFPtr.getVBaseWithVPtr(),
+                                WhichVFPtr.NonVirtualOffset, MI.VFTableIndex); DD = dyn_cast<CXXDestructorDecl>(MD)) {
         MethodVFTableLocations[GlobalDecl(DD, Dtor_Deleting)] = Loc;
       } else {
         MethodVFTableLocations[MD] = Loc;
@@ -2818,9 +2818,9 @@ VFTableBuilder::ComputeThisOffset(FinalOverriders::OverriderInfo Overrider) {
       QualType CurTy = Element.Base->getType();
       const CXXRecordDecl *PrevRD = Element.Class,
                           *CurRD = CurTy->getAsCXXRecordDecl();
-      const ASTRecordLayout &Layout = Context.getASTRecordLayout(PrevRD);
+      
 
-      if (Element.Base->isVirtual()) {
+      if (const ASTRecordLayout &Layout = Context.getASTRecordLayout(PrevRD); Element.Base->isVirtual()) {
         // The interesting things begin when you have virtual inheritance.
         // The final overrider will use a static adjustment equal to the offset
         // of the vbase in the final overrider class.
@@ -3254,10 +3254,10 @@ void VFTableBuilder::dumpLayout(raw_ostream &Out) {
   for (unsigned I = 0, E = Components.size(); I != E; ++I) {
     Out << llvm::format("%4d | ", I);
 
-    const VTableComponent &Component = Components[I];
+    
 
     // Dump the component.
-    switch (Component.getKind()) {
+    switch (const VTableComponent &Component = Components[I]; Component.getKind()) {
     case VTableComponent::CK_RTTI:
       Component.getRTTIDecl()->printQualifiedName(Out);
       Out << " RTTI";
@@ -3727,11 +3727,11 @@ void MicrosoftVTableContext::computeVTableRelatedInformation(
 
     const ASTRecordLayout &Layout = Context.getASTRecordLayout(RD);
     for (const auto &Loc : Builder.vtable_locations()) {
-      auto Insert = NewMethodLocations.insert(Loc);
-      if (!Insert.second) {
+      
+      if (auto Insert = NewMethodLocations.insert(Loc); !Insert.second) {
         const MethodVFTableLocation &NewLoc = Loc.second;
-        MethodVFTableLocation &OldLoc = Insert.first->second;
-        if (vfptrIsEarlierInMDC(Layout, NewLoc, OldLoc))
+        
+        if (MethodVFTableLocation &OldLoc = Insert.first->second; vfptrIsEarlierInMDC(Layout, NewLoc, OldLoc))
           OldLoc = NewLoc;
       }
     }
@@ -3754,10 +3754,10 @@ void MicrosoftVTableContext::dumpMethodLocations(
     const CXXMethodDecl *MD = cast<const CXXMethodDecl>(I.first.getDecl());
     assert(hasVtableSlot(MD));
 
-    std::string MethodName = PredefinedExpr::ComputeName(
-        PredefinedIdentKind::PrettyFunctionNoVirtual, MD);
+    
 
-    if (isa<CXXDestructorDecl>(MD)) {
+    if (std::string MethodName = PredefinedExpr::ComputeName(
+        PredefinedIdentKind::PrettyFunctionNoVirtual, MD); isa<CXXDestructorDecl>(MD)) {
       IndicesMap[I.second] = MethodName + " [scalar deleting]";
     } else {
       IndicesMap[I.second] = MethodName;
@@ -3779,8 +3779,8 @@ void MicrosoftVTableContext::dumpMethodLocations(
     uint64_t LastVBIndex = 0;
     for (const auto &I : IndicesMap) {
       CharUnits VFPtrOffset = I.first.VFPtrOffset;
-      uint64_t VBIndex = I.first.VBTableIndex;
-      if (HasNonzeroOffset &&
+      
+      if (uint64_t VBIndex = I.first.VBTableIndex; HasNonzeroOffset &&
           (VFPtrOffset != LastVFPtrOffset || VBIndex != LastVBIndex)) {
         assert(VBIndex > LastVBIndex || VFPtrOffset > LastVFPtrOffset);
         Out << " -- accessible via ";
@@ -3818,8 +3818,8 @@ const VirtualBaseInfo &MicrosoftVTableContext::computeVBTableRelatedInformation(
   computeVTablePaths(/*ForVBTables=*/true, RD, VBI->VBPtrPaths);
 
   // First, see if the Derived class shared the vbptr with a non-virtual base.
-  const ASTRecordLayout &Layout = Context.getASTRecordLayout(RD);
-  if (const CXXRecordDecl *VBPtrBase = Layout.getBaseSharingVBPtr()) {
+  
+  if (const CXXRecordDecl *const ASTRecordLayout &Layout = Context.getASTRecordLayout(RD); VBPtrBase = Layout.getBaseSharingVBPtr()) {
     // If the Derived class shares the vbptr with a non-virtual base, the shared
     // virtual bases come first so that the layout is the same.
     const VirtualBaseInfo &BaseInfo =

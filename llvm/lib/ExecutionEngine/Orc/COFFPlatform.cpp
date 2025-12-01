@@ -476,8 +476,8 @@ COFFPlatform::buildJDDepMap(JITDylib &JD) {
             continue;
           {
             // Bare jitdylibs not known to the platform
-            std::lock_guard<std::mutex> Lock(PlatformMutex);
-            if (!JITDylibToHeaderAddr.count(KV.first)) {
+            
+            if (std::lock_guard<std::mutex> Lock(PlatformMutex); !JITDylibToHeaderAddr.count(KV.first)) {
               LLVM_DEBUG({
                 dbgs() << "JITDylib unregistered to COFFPlatform detected in "
                           "LinkOrder: "
@@ -557,8 +557,8 @@ void COFFPlatform::rt_pushInitializers(PushInitializersSendResultFn SendResult,
   JITDylibSP JD;
   {
     std::lock_guard<std::mutex> Lock(PlatformMutex);
-    auto I = HeaderAddrToJITDylib.find(JDHeaderAddr);
-    if (I != HeaderAddrToJITDylib.end())
+    
+    if (auto I = HeaderAddrToJITDylib.find(JDHeaderAddr); I != HeaderAddrToJITDylib.end())
       JD = I->second;
   }
 
@@ -594,8 +594,8 @@ void COFFPlatform::rt_lookupSymbol(SendSymbolAddressFn SendResult,
 
   {
     std::lock_guard<std::mutex> Lock(PlatformMutex);
-    auto I = HeaderAddrToJITDylib.find(Handle);
-    if (I != HeaderAddrToJITDylib.end())
+    
+    if (auto I = HeaderAddrToJITDylib.find(Handle); I != HeaderAddrToJITDylib.end())
       JD = I->second;
   }
 
@@ -669,9 +669,9 @@ Error COFFPlatform::runBootstrapSubsectionInitializers(JDBootstrapState &BState,
   for (auto &Initializer : BState.Initializers)
     if (Initializer.first >= Start && Initializer.first <= End &&
         Initializer.second) {
-      auto Res =
-          ES.getExecutorProcessControl().runAsVoidFunction(Initializer.second);
-      if (!Res)
+      
+      if (auto Res =
+          ES.getExecutorProcessControl().runAsVoidFunction(Initializer.second); !Res)
         return Res.takeError();
     }
   return Error::success();
@@ -721,8 +721,8 @@ Error COFFPlatform::bootstrapCOFFRuntime(JITDylib &PlatformJD) {
 
   // Run static initializers collected in bootstrap stage.
   for (auto KV : JDBootstrapStates) {
-    auto &JDBState = KV.second;
-    if (auto Err = runBootstrapInitializers(JDBState))
+    
+    if (auto auto &JDBState = KV.second; Err = runBootstrapInitializers(JDBState))
       return Err;
   }
 
@@ -819,8 +819,8 @@ Error COFFPlatform::COFFPlatformPlugin::registerObjectPlatformSections(
   auto HeaderAddr = CP.JITDylibToHeaderAddr[&JD];
   assert(HeaderAddr && "Must be registered jitdylib");
   for (auto &S : G.sections()) {
-    jitlink::SectionRange Range(S);
-    if (Range.getSize())
+    
+    if (jitlink::SectionRange Range(S); Range.getSize())
       ObjSecs.push_back(std::make_pair(S.getName().str(), Range.getRange()));
   }
 
@@ -878,8 +878,8 @@ Error COFFPlatform::COFFPlatformPlugin::
   auto HeaderAddr = CP.JITDylibToHeaderAddr[&JD];
   COFFObjectSectionsMap ObjSecs;
   for (auto &S : G.sections()) {
-    jitlink::SectionRange Range(S);
-    if (Range.getSize())
+    
+    if (jitlink::SectionRange Range(S); Range.getSize())
       ObjSecs.push_back(std::make_pair(S.getName().str(), Range.getRange()));
   }
 

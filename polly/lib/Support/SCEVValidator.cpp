@@ -312,9 +312,9 @@ public:
     // We do not support unsigned max operations. If 'Expr' is constant during
     // Scop execution we treat this as a parameter, otherwise we bail out.
     for (int i = 0, e = Expr->getNumOperands(); i < e; ++i) {
-      ValidatorResult Op = visit(Expr->getOperand(i));
+      
 
-      if (!Op.isConstant()) {
+      if (ValidatorResult Op = visit(Expr->getOperand(i)); !Op.isConstant()) {
         POLLY_DEBUG(dbgs() << "INVALID: UMaxExpr has a non-constant operand");
         return ValidatorResult(SCEVType::INVALID);
       }
@@ -327,9 +327,9 @@ public:
     // We do not support unsigned min operations. If 'Expr' is constant during
     // Scop execution we treat this as a parameter, otherwise we bail out.
     for (int i = 0, e = Expr->getNumOperands(); i < e; ++i) {
-      ValidatorResult Op = visit(Expr->getOperand(i));
+      
 
-      if (!Op.isConstant()) {
+      if (ValidatorResult Op = visit(Expr->getOperand(i)); !Op.isConstant()) {
         POLLY_DEBUG(dbgs() << "INVALID: UMinExpr has a non-constant operand");
         return ValidatorResult(SCEVType::INVALID);
       }
@@ -342,9 +342,9 @@ public:
     // We do not support unsigned min operations. If 'Expr' is constant during
     // Scop execution we treat this as a parameter, otherwise we bail out.
     for (int i = 0, e = Expr->getNumOperands(); i < e; ++i) {
-      ValidatorResult Op = visit(Expr->getOperand(i));
+      
 
-      if (!Op.isConstant()) {
+      if (ValidatorResult Op = visit(Expr->getOperand(i)); !Op.isConstant()) {
         POLLY_DEBUG(
             dbgs()
             << "INVALID: SCEVSequentialUMinExpr has a non-constant operand");
@@ -422,8 +422,8 @@ public:
            "Assumed SRem instruction!");
 
     auto *Divisor = SRem->getOperand(1);
-    auto *CI = dyn_cast<ConstantInt>(Divisor);
-    if (!CI || CI->isZeroValue())
+    
+    if (auto *CI = dyn_cast<ConstantInt>(Divisor); !CI || CI->isZeroValue())
       return visitGenericInst(SRem, S);
 
     auto *Dividend = SRem->getOperand(0);
@@ -495,8 +495,8 @@ public:
         // If this check is not present, then we create data dependences which
         // are strictly not necessary by tracking the invariant load as a
         // scalar.
-        LoadInst *LI = dyn_cast<LoadInst>(Inst);
-        if (LI && ILS.contains(LI))
+        
+        if (LoadInst *LI = dyn_cast<LoadInst>(Inst); LI && ILS.contains(LI))
           return false;
       }
 
@@ -512,8 +512,8 @@ public:
       if (AllowLoops)
         return true;
 
-      auto *L = AddRec->getLoop();
-      if (R->contains(L) && !L->contains(Scope)) {
+      
+      if (auto *L = AddRec->getLoop(); R->contains(L) && !L->contains(Scope)) {
         HasInRegionDeps = true;
         return false;
       }
@@ -646,8 +646,8 @@ bool polly::isAffineConstraint(Value *V, const Region *R, Loop *Scope,
                               true) &&
            isAffineConstraint(ICmp->getOperand(1), R, Scope, SE, Params, true);
   } else if (auto *BinOp = dyn_cast<BinaryOperator>(V)) {
-    auto Opcode = BinOp->getOpcode();
-    if (Opcode == Instruction::And || Opcode == Instruction::Or)
+    
+    if (auto Opcode = BinOp->getOpcode(); Opcode == Instruction::And || Opcode == Instruction::Or)
       return isAffineConstraint(BinOp->getOperand(0), R, Scope, SE, Params,
                                 false) &&
              isAffineConstraint(BinOp->getOperand(1), R, Scope, SE, Params,
@@ -684,8 +684,8 @@ polly::extractConstantFactor(const SCEV *S, ScalarEvolution &SE) {
 
   auto *AddRec = dyn_cast<SCEVAddRecExpr>(S);
   if (AddRec) {
-    const SCEV *StartExpr = AddRec->getStart();
-    if (StartExpr->isZero()) {
+    
+    if (const SCEV *StartExpr = AddRec->getStart(); StartExpr->isZero()) {
       auto StepPair = extractConstantFactor(AddRec->getStepRecurrence(SE), SE);
       const SCEV *LeftOverAddRec =
           SE.getAddRecExpr(StartExpr, StepPair.second, AddRec->getLoop(),
@@ -707,9 +707,9 @@ polly::extractConstantFactor(const SCEV *S, ScalarEvolution &SE) {
     }
 
     for (unsigned u = 1, e = Add->getNumOperands(); u < e; u++) {
-      auto OpUPair = extractConstantFactor(Add->getOperand(u), SE);
+      
       // TODO: Use something smarter than equality here, e.g., gcd.
-      if (Factor == OpUPair.first)
+      if (auto OpUPair = extractConstantFactor(Add->getOperand(u), SE); Factor == OpUPair.first)
         LeftOvers.push_back(OpUPair.second);
       else if (Factor == SE.getNegativeSCEV(OpUPair.first))
         LeftOvers.push_back(SE.getNegativeSCEV(OpUPair.second));
@@ -747,8 +747,8 @@ const SCEV *polly::tryForwardThroughPHI(const SCEV *Expr, Region &R,
     Value *Final = nullptr;
 
     for (unsigned i = 0; i < PHI->getNumIncomingValues(); i++) {
-      BasicBlock *Incoming = PHI->getIncomingBlock(i);
-      if (SD->isErrorBlock(*Incoming, R) && R.contains(Incoming))
+      
+      if (BasicBlock *Incoming = PHI->getIncomingBlock(i); SD->isErrorBlock(*Incoming, R) && R.contains(Incoming))
         continue;
       if (Final)
         return Expr;
@@ -765,8 +765,8 @@ Value *polly::getUniqueNonErrorValue(PHINode *PHI, Region *R,
                                      ScopDetection *SD) {
   Value *V = nullptr;
   for (unsigned i = 0; i < PHI->getNumIncomingValues(); i++) {
-    BasicBlock *BB = PHI->getIncomingBlock(i);
-    if (!SD->isErrorBlock(*BB, *R)) {
+    
+    if (BasicBlock *BB = PHI->getIncomingBlock(i); !SD->isErrorBlock(*BB, *R)) {
       if (V)
         return nullptr;
       V = PHI->getIncomingValue(i);

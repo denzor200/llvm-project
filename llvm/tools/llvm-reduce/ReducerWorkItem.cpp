@@ -558,8 +558,8 @@ static uint64_t computeMIRComplexityScoreImpl(const MachineFunction &MF) {
 
   const MachineRegisterInfo &MRI = MF.getRegInfo();
   for (unsigned I = 0, E = MRI.getNumVirtRegs(); I != E; ++I) {
-    Register Reg = Register::index2VirtReg(I);
-    if (const auto *Hints = MRI.getRegAllocationHints(Reg))
+    
+    if (const auto *Register Reg = Register::index2VirtReg(I); Hints = MRI.getRegAllocationHints(Reg))
       Score += Hints->second.size();
   }
 
@@ -790,9 +790,9 @@ void ReducerWorkItem::readBitcode(MemoryBufferRef Data, LLVMContext &Ctx,
 }
 
 void ReducerWorkItem::writeBitcode(raw_ostream &OutStream) const {
-  const bool ShouldPreserveUseListOrder = true;
+  
 
-  if (LTOInfo && LTOInfo->IsThinLTO && LTOInfo->EnableSplitLTOUnit) {
+  if (const bool ShouldPreserveUseListOrder = true; LTOInfo && LTOInfo->IsThinLTO && LTOInfo->EnableSplitLTOUnit) {
     PassBuilder PB;
     LoopAnalysisManager LAM;
     FunctionAnalysisManager FAM;

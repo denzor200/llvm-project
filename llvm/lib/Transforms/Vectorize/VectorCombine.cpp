@@ -219,8 +219,8 @@ static bool canWidenLoad(LoadInst *Load, const TargetTransformInfo &TTI) {
   // sure we have all of our type-based constraints in place for this target.
   Type *ScalarTy = Load->getType()->getScalarType();
   uint64_t ScalarSize = ScalarTy->getPrimitiveSizeInBits();
-  unsigned MinVectorSize = TTI.getMinVectorRegisterBitWidth();
-  if (!ScalarSize || !MinVectorSize || MinVectorSize % ScalarSize != 0 ||
+  
+  if (unsigned MinVectorSize = TTI.getMinVectorRegisterBitWidth(); !ScalarSize || !MinVectorSize || MinVectorSize % ScalarSize != 0 ||
       ScalarSize % 8 != 0)
     return false;
 
@@ -1088,8 +1088,8 @@ bool VectorCombine::foldBitcastShuffle(Instruction &I) {
   // if it won't increase the number of bitcasts.
   if (!IsUnary) {
     auto *BCTy0 = dyn_cast<FixedVectorType>(peekThroughBitcasts(V0)->getType());
-    auto *BCTy1 = dyn_cast<FixedVectorType>(peekThroughBitcasts(V1)->getType());
-    if (!(BCTy0 && BCTy0->getElementType() == DestTy->getElementType()) &&
+    
+    if (auto *BCTy1 = dyn_cast<FixedVectorType>(peekThroughBitcasts(V1)->getType()); !(BCTy0 && BCTy0->getElementType() == DestTy->getElementType()) &&
         !(BCTy1 && BCTy1->getElementType() == DestTy->getElementType()))
       return false;
   }
@@ -1105,8 +1105,8 @@ bool VectorCombine::foldBitcastShuffle(Instruction &I) {
     // The bitcast is from narrow elements to wide elements. The shuffle mask
     // must choose consecutive elements to allow casting first.
     assert(DestEltSize % SrcEltSize == 0 && "Unexpected shuffle mask");
-    unsigned ScaleFactor = DestEltSize / SrcEltSize;
-    if (!widenShuffleMaskElts(ScaleFactor, Mask, NewMask))
+    
+    if (unsigned ScaleFactor = DestEltSize / SrcEltSize; !widenShuffleMaskElts(ScaleFactor, Mask, NewMask))
       return false;
   }
 
@@ -1311,12 +1311,12 @@ bool VectorCombine::scalarizeOpOrCmp(Instruction &I) {
   for (auto [OpNum, Op] : enumerate(Ops)) {
     Constant *VecC;
     Value *V;
-    uint64_t InsIdx = 0;
-    if (match(Op.get(), m_InsertElt(m_Constant(VecC), m_Value(V),
+    
+    if (uint64_t InsIdx = 0; match(Op.get(), m_InsertElt(m_Constant(VecC), m_Value(V),
                                     m_ConstantInt(InsIdx)))) {
       // Bail if any inserts are out of bounds.
-      VectorType *OpTy = cast<VectorType>(Op->getType());
-      if (OpTy->getElementCount().getKnownMinValue() <= InsIdx)
+      
+      if (VectorType *OpTy = cast<VectorType>(Op->getType()); OpTy->getElementCount().getKnownMinValue() <= InsIdx)
         return false;
       // All inserts must have the same index.
       // TODO: Deal with mismatched index constants and variable indexes?
@@ -1817,10 +1817,10 @@ bool VectorCombine::foldSingleElementStore(Instruction &I) {
 
   if (auto *Load = dyn_cast<LoadInst>(Source)) {
     auto VecTy = cast<VectorType>(SI->getValueOperand()->getType());
-    Value *SrcAddr = Load->getPointerOperand()->stripPointerCasts();
+    
     // Don't optimize for atomic/volatile load or store. Ensure memory is not
     // modified between, vector type matches store size, and index is inbounds.
-    if (!Load->isSimple() || Load->getParent() != SI->getParent() ||
+    if (Value *SrcAddr = Load->getPointerOperand()->stripPointerCasts(); !Load->isSimple() || Load->getParent() != SI->getParent() ||
         !DL->typeSizeEqualsStoreSize(Load->getType()->getScalarType()) ||
         SrcAddr != SI->getPointerOperand()->stripPointerCasts())
       return false;
@@ -2672,8 +2672,8 @@ bool VectorCombine::foldShuffleOfCastops(Instruction &I) {
     // The bitcast is from narrow elements to wide elements. The shuffle mask
     // must choose consecutive elements to allow casting first.
     assert(NumDstElts % NumSrcElts == 0 && "Unexpected shuffle mask");
-    unsigned ScaleFactor = NumDstElts / NumSrcElts;
-    if (!widenShuffleMaskElts(ScaleFactor, OldMask, NewMask))
+    
+    if (unsigned ScaleFactor = NumDstElts / NumSrcElts; !widenShuffleMaskElts(ScaleFactor, OldMask, NewMask))
       return false;
   }
 
@@ -3021,8 +3021,8 @@ static bool isFreeConcat(ArrayRef<InstLane> Item, TTI::TargetCostKind CostKind,
     if (!SliceV || SliceV->get()->getType() != Ty)
       return false;
     for (unsigned Elt = 0; Elt < NumElts; ++Elt) {
-      auto [V, Lane] = Item[Slice * NumElts + Elt];
-      if (Lane != static_cast<int>(Elt) || SliceV->get() != V->get())
+      
+      if (auto [V, Lane] = Item[Slice * NumElts + Elt]; Lane != static_cast<int>(Elt) || SliceV->get() != V->get())
         return false;
     }
   }
@@ -3236,8 +3236,8 @@ bool VectorCombine::foldShuffleToIdentity(Instruction &I) {
       } else if (auto *BitCast = dyn_cast<BitCastInst>(FrontU)) {
         // TODO: Handle vector widening/narrowing bitcasts.
         auto *DstTy = dyn_cast<FixedVectorType>(BitCast->getDestTy());
-        auto *SrcTy = dyn_cast<FixedVectorType>(BitCast->getSrcTy());
-        if (DstTy && SrcTy &&
+        
+        if (auto *SrcTy = dyn_cast<FixedVectorType>(BitCast->getSrcTy()); DstTy && SrcTy &&
             SrcTy->getNumElements() == DstTy->getNumElements()) {
           Worklist.push_back(generateInstLaneVectorFromOperand(Item, 0));
           continue;
@@ -3843,8 +3843,8 @@ bool VectorCombine::foldSelectShuffle(Instruction &I, bool FromReduction) {
   if (!FromReduction) {
     for (ShuffleVectorInst *SV : Shuffles) {
       for (auto *U : SV->users()) {
-        ShuffleVectorInst *SSV = dyn_cast<ShuffleVectorInst>(U);
-        if (SSV && isa<UndefValue>(SSV->getOperand(1)) && SSV->getType() == VT)
+        
+        if (ShuffleVectorInst *SSV = dyn_cast<ShuffleVectorInst>(U); SSV && isa<UndefValue>(SSV->getOperand(1)) && SSV->getType() == VT)
           Shuffles.push_back(SSV);
       }
     }
@@ -3893,10 +3893,10 @@ bool VectorCombine::foldSelectShuffle(Instruction &I, bool FromReduction) {
         ReconstructMask.push_back(-1);
       } else if (Mask[I] < static_cast<int>(NumElts)) {
         MaxV1Elt = std::max(MaxV1Elt, Mask[I]);
-        auto It = find_if(V1, [&](const std::pair<int, int> &A) {
+        
+        if (auto It = find_if(V1, [&](const std::pair<int, int> &A) {
           return Mask[I] == A.first;
-        });
-        if (It != V1.end())
+        }); It != V1.end())
           ReconstructMask.push_back(It - V1.begin());
         else {
           ReconstructMask.push_back(V1.size());
@@ -3904,10 +3904,10 @@ bool VectorCombine::foldSelectShuffle(Instruction &I, bool FromReduction) {
         }
       } else {
         MaxV2Elt = std::max<int>(MaxV2Elt, Mask[I] - NumElts);
-        auto It = find_if(V2, [&](const std::pair<int, int> &A) {
+        
+        if (auto It = find_if(V2, [&](const std::pair<int, int> &A) {
           return Mask[I] - static_cast<int>(NumElts) == A.first;
-        });
-        if (It != V2.end())
+        }); It != V2.end())
           ReconstructMask.push_back(NumElts + It - V2.begin());
         else {
           ReconstructMask.push_back(NumElts + V2.size());
@@ -3968,12 +3968,12 @@ bool VectorCombine::foldSelectShuffle(Instruction &I, bool FromReduction) {
   for (const auto &Mask : OrigReconstructMasks) {
     SmallVector<int> ReconstructMask;
     for (int M : Mask) {
-      auto FindIndex = [](const SmallVector<std::pair<int, int>> &V, int M) {
+      
+      if (auto FindIndex = [](const SmallVector<std::pair<int, int>> &V, int M) {
         auto It = find_if(V, [M](auto A) { return A.second == M; });
         assert(It != V.end() && "Expected all entries in Mask");
         return std::distance(V.begin(), It);
-      };
-      if (M < 0)
+      }; M < 0)
         ReconstructMask.push_back(-1);
       else if (M < static_cast<int>(NumElts)) {
         ReconstructMask.push_back(FindIndex(V1, M));
@@ -4188,14 +4188,14 @@ bool VectorCombine::shrinkType(Instruction &I) {
   if (I.getOpcode() == Instruction::LShr) {
     // Check that the shift amount is less than the number of bits in the
     // smaller type. Otherwise, the smaller lshr will return a poison value.
-    KnownBits ShAmtKB = computeKnownBits(I.getOperand(1), *DL);
-    if (ShAmtKB.getMaxValue().uge(BW))
+    
+    if (KnownBits ShAmtKB = computeKnownBits(I.getOperand(1), *DL); ShAmtKB.getMaxValue().uge(BW))
       return false;
   } else {
     // Check that the expression overall uses at most the same number of bits as
     // ZExted
-    KnownBits KB = computeKnownBits(&I, *DL);
-    if (KB.countMaxActiveBits() > BW)
+    
+    if (KnownBits KB = computeKnownBits(&I, *DL); KB.countMaxActiveBits() > BW)
       return false;
   }
 
@@ -4458,11 +4458,11 @@ bool VectorCombine::shrinkLoadForShuffles(Instruction &I) {
 
   // Get the range of vector elements used by shufflevector instructions.
   if (std::optional<IndexRange> Indices = GetIndexRangeInShuffles()) {
-    unsigned const NewNumElements = Indices->second + 1u;
+    
 
     // If the range of vector elements is smaller than the full load, attempt
     // to create a smaller load.
-    if (NewNumElements < OldNumElements) {
+    if (unsigned const NewNumElements = Indices->second + 1u; NewNumElements < OldNumElements) {
       IRBuilder Builder(&I);
       Builder.SetCurrentDebugLocation(I.getDebugLoc());
 

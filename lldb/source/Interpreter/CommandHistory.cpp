@@ -97,8 +97,8 @@ void CommandHistory::Dump(Stream &stream, size_t start_idx,
   std::lock_guard<std::recursive_mutex> guard(m_mutex);
   stop_idx = std::min(stop_idx + 1, m_history.size());
   for (size_t counter = start_idx; counter < stop_idx; counter++) {
-    const std::string hist_item = m_history[counter];
-    if (!hist_item.empty()) {
+    
+    if (const std::string hist_item = m_history[counter]; !hist_item.empty()) {
       stream.Indent();
       stream.Printf("%4" PRIu64 ": %s\n", (uint64_t)counter, hist_item.c_str());
     }

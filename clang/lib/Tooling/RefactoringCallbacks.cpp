@@ -106,8 +106,8 @@ ReplaceStmtWithStmt::ReplaceStmtWithStmt(StringRef FromId, StringRef ToId)
 void ReplaceStmtWithStmt::run(
     const ast_matchers::MatchFinder::MatchResult &Result) {
   const Stmt *FromMatch = Result.Nodes.getNodeAs<Stmt>(FromId);
-  const Stmt *ToMatch = Result.Nodes.getNodeAs<Stmt>(ToId);
-  if (FromMatch && ToMatch) {
+  
+  if (const Stmt *ToMatch = Result.Nodes.getNodeAs<Stmt>(ToId); FromMatch && ToMatch) {
     auto Err = Replace.add(
         replaceStmtWithStmt(*Result.SourceManager, *FromMatch, *ToMatch));
     // FIXME: better error handling. For now, just print error message in the
@@ -126,8 +126,8 @@ ReplaceIfStmtWithItsBody::ReplaceIfStmtWithItsBody(StringRef Id,
 void ReplaceIfStmtWithItsBody::run(
     const ast_matchers::MatchFinder::MatchResult &Result) {
   if (const IfStmt *Node = Result.Nodes.getNodeAs<IfStmt>(Id)) {
-    const Stmt *Body = PickTrueBranch ? Node->getThen() : Node->getElse();
-    if (Body) {
+    
+    if (const Stmt *Body = PickTrueBranch ? Node->getThen() : Node->getElse(); Body) {
       auto Err =
           Replace.add(replaceStmtWithStmt(*Result.SourceManager, *Node, *Body));
       // FIXME: better error handling. For now, just print error message in the

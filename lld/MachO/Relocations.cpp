@@ -105,8 +105,8 @@ InputSection *macho::offsetToInputSection(uint64_t *off) {
 
     size_t isecIdx = 0;
     for (; isecIdx < osec->inputs.size(); ++isecIdx) {
-      const ConcatInputSection *isec = osec->inputs[isecIdx];
-      if (*off < isec->outSecOff)
+      
+      if (const ConcatInputSection *isec = osec->inputs[isecIdx]; *off < isec->outSecOff)
         break;
     }
     assert(isecIdx > 0);

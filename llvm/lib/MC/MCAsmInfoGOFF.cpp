@@ -118,9 +118,9 @@ static void emitXATTR(raw_ostream &OS, StringRef Name,
 void MCAsmInfoGOFF::printSwitchToSection(const MCSection &Section,
                                          uint32_t Subsection, const Triple &T,
                                          raw_ostream &OS) const {
-  auto &Sec =
-      const_cast<MCSectionGOFF &>(static_cast<const MCSectionGOFF &>(Section));
-  switch (Sec.SymbolType) {
+  
+  switch (auto &Sec =
+      const_cast<MCSectionGOFF &>(static_cast<const MCSectionGOFF &>(Section)); Sec.SymbolType) {
   case GOFF::ESD_ST_SectionDefinition: {
     OS << Sec.getName() << " CSECT\n";
     Sec.Emitted = true;

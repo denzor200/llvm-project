@@ -253,8 +253,8 @@ Status PlatformRemoteGDBServer::ConnectRemote(Args &args) {
       m_gdb_client_up->SetWorkingDir(m_working_dir);
 
     m_supported_architectures.clear();
-    ArchSpec remote_arch = m_gdb_client_up->GetSystemArchitecture();
-    if (remote_arch) {
+    
+    if (ArchSpec remote_arch = m_gdb_client_up->GetSystemArchitecture(); remote_arch) {
       m_supported_architectures.push_back(remote_arch);
       if (remote_arch.GetTriple().isArch64Bit())
         m_supported_architectures.push_back(
@@ -285,16 +285,16 @@ const char *PlatformRemoteGDBServer::GetHostname() {
 
 std::optional<std::string>
 PlatformRemoteGDBServer::DoGetUserName(UserIDResolver::id_t uid) {
-  std::string name;
-  if (m_gdb_client_up && m_gdb_client_up->GetUserName(uid, name))
+  
+  if (std::string name; m_gdb_client_up && m_gdb_client_up->GetUserName(uid, name))
     return std::move(name);
   return std::nullopt;
 }
 
 std::optional<std::string>
 PlatformRemoteGDBServer::DoGetGroupName(UserIDResolver::id_t gid) {
-  std::string name;
-  if (m_gdb_client_up && m_gdb_client_up->GetGroupName(gid, name))
+  
+  if (std::string name; m_gdb_client_up && m_gdb_client_up->GetGroupName(gid, name))
     return std::move(name);
   return std::nullopt;
 }
@@ -345,8 +345,8 @@ Status PlatformRemoteGDBServer::LaunchProcess(ProcessLaunchInfo &launch_info) {
   m_gdb_client_up->SetDetachOnError(
       launch_info.GetFlags().Test(eLaunchFlagDetachOnError));
 
-  FileSpec working_dir = launch_info.GetWorkingDirectory();
-  if (working_dir) {
+  
+  if (FileSpec working_dir = launch_info.GetWorkingDirectory(); working_dir) {
     m_gdb_client_up->SetWorkingDir(working_dir);
   }
 
@@ -411,8 +411,8 @@ PlatformRemoteGDBServer::DebugProcess(ProcessLaunchInfo &launch_info,
   if (IsRemote()) {
     if (IsConnected()) {
       lldb::pid_t debugserver_pid = LLDB_INVALID_PROCESS_ID;
-      std::string connect_url;
-      if (!LaunchGDBServer(debugserver_pid, connect_url)) {
+      
+      if (std::string connect_url; !LaunchGDBServer(debugserver_pid, connect_url)) {
         error = Status::FromErrorStringWithFormat(
             "unable to launch a GDB server on '%s'", GetHostname());
       } else {
@@ -490,8 +490,8 @@ lldb::ProcessSP PlatformRemoteGDBServer::Attach(
   if (IsRemote()) {
     if (IsConnected()) {
       lldb::pid_t debugserver_pid = LLDB_INVALID_PROCESS_ID;
-      std::string connect_url;
-      if (!LaunchGDBServer(debugserver_pid, connect_url)) {
+      
+      if (std::string connect_url; !LaunchGDBServer(debugserver_pid, connect_url)) {
         error = Status::FromErrorStringWithFormat(
             "unable to launch a GDB server on '%s'", GetHostname());
       } else {

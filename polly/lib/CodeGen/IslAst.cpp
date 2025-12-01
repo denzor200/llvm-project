@@ -208,10 +208,10 @@ static bool astScheduleDimIsParallel(const isl::ast_build &Build,
     return false;
 
   isl::union_map Schedule = Build.get_schedule();
-  isl::union_map Dep = D->getDependences(
-      Dependences::TYPE_RAW | Dependences::TYPE_WAW | Dependences::TYPE_WAR);
+  
 
-  if (!D->isParallel(Schedule.get(), Dep.release())) {
+  if (isl::union_map Dep = D->getDependences(
+      Dependences::TYPE_RAW | Dependences::TYPE_WAW | Dependences::TYPE_WAR); !D->isParallel(Schedule.get(), Dep.release())) {
     isl::union_map DepsAll =
         D->getDependences(Dependences::TYPE_RAW | Dependences::TYPE_WAW |
                           Dependences::TYPE_WAR | Dependences::TYPE_TC_RED);
@@ -234,8 +234,8 @@ static bool astScheduleDimIsParallel(const isl::ast_build &Build,
   for (const auto &MaRedPair : D->getReductionDependences()) {
     if (!MaRedPair.second)
       continue;
-    isl::union_map MaRedDeps = isl::manage_copy(MaRedPair.second);
-    if (!D->isParallel(Schedule.get(), MaRedDeps.release()))
+    
+    if (isl::union_map MaRedDeps = isl::manage_copy(MaRedPair.second); !D->isParallel(Schedule.get(), MaRedDeps.release()))
       NodeInfo->BrokenReductions.insert(MaRedPair.first);
   }
   return true;
@@ -302,8 +302,8 @@ static isl_stat astBuildBeforeMark(__isl_keep isl_id *MarkId,
   if (!MarkId)
     return isl_stat_error;
 
-  AstBuildUserInfo *BuildInfo = (AstBuildUserInfo *)User;
-  if (strcmp(isl_id_get_name(MarkId), "SIMD") == 0)
+  
+  if (AstBuildUserInfo *BuildInfo = (AstBuildUserInfo *)User; strcmp(isl_id_get_name(MarkId), "SIMD") == 0)
     BuildInfo->InSIMD = true;
 
   return isl_stat_ok;
@@ -355,9 +355,9 @@ static isl::ast_expr buildCondition(Scop &S, isl::ast_build Build,
 
   const ScopArrayInfo *BaseLeft =
       ScopArrayInfo::getFromId(Left)->getBasePtrOriginSAI();
-  const ScopArrayInfo *BaseRight =
-      ScopArrayInfo::getFromId(Right)->getBasePtrOriginSAI();
-  if (BaseLeft && BaseLeft == BaseRight)
+  
+  if (const ScopArrayInfo *BaseRight =
+      ScopArrayInfo::getFromId(Right)->getBasePtrOriginSAI(); BaseLeft && BaseLeft == BaseRight)
     return True;
 
   isl::set Params = S.getContext();
@@ -381,8 +381,8 @@ static isl::ast_expr buildCondition(Scop &S, isl::ast_build Build,
     MinExpr = Build.access_from(BFirst).address_of();
     MaxExpr = Build.access_from(ASecond).address_of();
 
-    isl::ast_expr Result = MaxExpr.le(MinExpr);
-    if (!NonAliasGroup.is_null())
+    
+    if (isl::ast_expr Result = MaxExpr.le(MinExpr); !NonAliasGroup.is_null())
       NonAliasGroup = isl::manage(
           isl_ast_expr_or(NonAliasGroup.release(), Result.release()));
     else
@@ -401,8 +401,8 @@ isl::ast_expr IslAst::buildRunCondition(Scop &S, const isl::ast_build &Build) {
   // The conditions that need to be checked at run-time for this scop are
   // available as an isl_set in the runtime check context from which we can
   // directly derive a run-time condition.
-  auto PosCond = Build.expr_from(S.getAssumedContext());
-  if (S.hasTrivialInvalidContext()) {
+  
+  if (auto PosCond = Build.expr_from(S.getAssumedContext()); S.hasTrivialInvalidContext()) {
     RunCondition = std::move(PosCond);
   } else {
     auto ZeroV = isl::val::zero(Build.ctx());
@@ -502,10 +502,10 @@ IslAst::IslAst(IslAst &&O)
 void IslAst::init(const Dependences &D) {
   bool PerformParallelTest = PollyParallel || DetectParallel ||
                              PollyVectorizerChoice != VECTORIZER_NONE;
-  auto ScheduleTree = S.getScheduleTree();
+  
 
   // Skip AST and code generation if there was no benefit achieved.
-  if (!benefitsFromPolly(S, PerformParallelTest))
+  if (auto ScheduleTree = S.getScheduleTree(); !benefitsFromPolly(S, PerformParallelTest))
     return;
 
   auto ScopStats = S.getStatistics();

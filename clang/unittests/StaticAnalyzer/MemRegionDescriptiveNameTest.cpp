@@ -27,8 +27,8 @@ public:
     const MemRegion *ArgReg = Call.getArgSVal(0).getAsRegion();
     assert(ArgReg && "expecting a location as the first argument");
 
-    auto DescriptiveName = ArgReg->getDescriptiveName(/*UseQuotes=*/false);
-    if (ExplodedNode *Node = C.generateNonFatalErrorNode(C.getState())) {
+    
+    if (ExplodedNode *auto DescriptiveName = ArgReg->getDescriptiveName(/*UseQuotes=*/false); Node = C.generateNonFatalErrorNode(C.getState())) {
       auto Report =
           std::make_unique<PathSensitiveBugReport>(Bug, DescriptiveName, Node);
       C.emitReport(std::move(Report));

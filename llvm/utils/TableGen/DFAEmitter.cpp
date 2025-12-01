@@ -306,8 +306,8 @@ Transition::Transition(const Record *R, Automaton *Parent) {
          "State cannot be represented in 64 bits!");
   NewState = NewStateInit->convertKnownBitsToInt();
   for (StringRef A : Parent->getActionSymbolFields()) {
-    const RecordVal *SymbolV = R->getValue(A);
-    if (const auto *Ty = dyn_cast<RecordRecTy>(SymbolV->getType())) {
+    
+    if (const auto *const RecordVal *SymbolV = R->getValue(A); Ty = dyn_cast<RecordRecTy>(SymbolV->getType())) {
       Actions.emplace_back(R->getValueAsDef(A));
       Types.emplace_back(Ty->getAsString());
     } else if (isa<IntRecTy>(SymbolV->getType())) {

@@ -78,8 +78,8 @@ QualType findReturnType(const CXXRecordDecl &RD, StringRef MethodName) {
     if (!MD->isConst() || MD->getNumParams() != 0 ||
         MD->getOverloadedOperator() != OO_None)
       continue;
-    clang::IdentifierInfo *II = MD->getIdentifier();
-    if (II && II->isStr(MethodName))
+    
+    if (clang::IdentifierInfo *II = MD->getIdentifier(); II && II->isStr(MethodName))
       return MD->getReturnType();
   }
   return {};

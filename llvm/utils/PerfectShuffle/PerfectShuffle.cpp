@@ -296,8 +296,8 @@ int main() {
 
         // Scan the 8 entries.
         for (unsigned j = 0; j != 8; ++j) {
-          unsigned NewElt = setMaskElt(i, UndefIdx, j);
-          if (ShufTab[NewElt].Cost < MinCost) {
+          
+          if (unsigned NewElt = setMaskElt(i, UndefIdx, j); ShufTab[NewElt].Cost < MinCost) {
             MinCost = ShufTab[NewElt].Cost;
             MinVal = NewElt;
           }
@@ -317,8 +317,8 @@ int main() {
         for (unsigned LaneIdx = 0; LaneIdx < 4; LaneIdx++) {
           if (getMaskElt(i, LaneIdx) == 8)
             continue;
-          unsigned NewElt = setMaskElt(i, LaneIdx, 8);
-          if (ShufTab[NewElt].Cost + 1 < ShufTab[i].Cost) {
+          
+          if (unsigned NewElt = setMaskElt(i, LaneIdx, 8); ShufTab[NewElt].Cost + 1 < ShufTab[i].Cost) {
             MadeChange = true;
             ShufTab[i].Cost = ShufTab[NewElt].Cost + 1;
             ShufTab[i].Op = &InsOp;
@@ -330,8 +330,8 @@ int main() {
         // Similar idea for using a D register mov, masking out 2 lanes to undef
         for (unsigned LaneIdx = 0; LaneIdx < 4; LaneIdx += 2) {
           unsigned Ln0 = getMaskElt(i, LaneIdx);
-          unsigned Ln1 = getMaskElt(i, LaneIdx + 1);
-          if ((Ln0 == 0 && Ln1 == 1) || (Ln0 == 2 && Ln1 == 3) ||
+          
+          if (unsigned Ln1 = getMaskElt(i, LaneIdx + 1); (Ln0 == 0 && Ln1 == 1) || (Ln0 == 2 && Ln1 == 3) ||
               (Ln0 == 4 && Ln1 == 5) || (Ln0 == 6 && Ln1 == 7)) {
             unsigned NewElt = setMaskElt(i, LaneIdx, 8);
             NewElt = setMaskElt(NewElt, LaneIdx + 1, 8);

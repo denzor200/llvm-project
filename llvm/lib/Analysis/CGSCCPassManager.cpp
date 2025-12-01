@@ -471,10 +471,10 @@ PreservedAnalyses DevirtSCCRepeatedPass::run(LazyCallGraph::SCC &InitialC,
       // CallCounts, make the check below.
       for (auto &Pair : NewCallCounts) {
         auto &CallCountNew = Pair.second;
-        auto CountIt = CallCounts.find(Pair.first);
-        if (CountIt != CallCounts.end()) {
-          const auto &CallCountOld = CountIt->second;
-          if (CallCountOld.Indirect > CallCountNew.Indirect &&
+        
+        if (auto CountIt = CallCounts.find(Pair.first); CountIt != CallCounts.end()) {
+          
+          if (const auto &CallCountOld = CountIt->second; CallCountOld.Indirect > CallCountNew.Indirect &&
               CallCountOld.Direct < CallCountNew.Direct) {
             Devirt = true;
             break;
@@ -629,8 +629,8 @@ bool CGSCCAnalysisManagerModuleProxy::Result::invalidate(
         for (const auto &OuterInvalidationPair :
              OuterProxy->getOuterInvalidations()) {
           AnalysisKey *OuterAnalysisID = OuterInvalidationPair.first;
-          const auto &InnerAnalysisIDs = OuterInvalidationPair.second;
-          if (Inv.invalidate(OuterAnalysisID, M, PA)) {
+          
+          if (const auto &InnerAnalysisIDs = OuterInvalidationPair.second; Inv.invalidate(OuterAnalysisID, M, PA)) {
             if (!InnerPA)
               InnerPA = PA;
             for (AnalysisKey *InnerAnalysisID : InnerAnalysisIDs)
@@ -732,8 +732,8 @@ bool FunctionAnalysisManagerCGSCCProxy::Result::invalidate(
       for (const auto &OuterInvalidationPair :
            OuterProxy->getOuterInvalidations()) {
         AnalysisKey *OuterAnalysisID = OuterInvalidationPair.first;
-        const auto &InnerAnalysisIDs = OuterInvalidationPair.second;
-        if (Inv.invalidate(OuterAnalysisID, C, PA)) {
+        
+        if (const auto &InnerAnalysisIDs = OuterInvalidationPair.second; Inv.invalidate(OuterAnalysisID, C, PA)) {
           if (!FunctionPA)
             FunctionPA = PA;
           for (AnalysisKey *InnerAnalysisID : InnerAnalysisIDs)
@@ -1007,8 +1007,8 @@ static LazyCallGraph::SCC &updateCGAndAnalysisManagerForPass(
       continue;
 
     SCC &TargetC = *G.lookupSCC(E.getNode());
-    RefSCC &TargetRC = TargetC.getOuterRefSCC();
-    if (&TargetRC == RC && E.isCall()) {
+    
+    if (RefSCC &TargetRC = TargetC.getOuterRefSCC(); &TargetRC == RC && E.isCall()) {
       if (C != &TargetC) {
         // For separate SCCs this is trivial.
         RC->switchTrivialInternalEdgeToRef(N, E.getNode());
@@ -1025,11 +1025,11 @@ static LazyCallGraph::SCC &updateCGAndAnalysisManagerForPass(
   // Remove the easy cases quickly and actually pull them out of our list.
   llvm::erase_if(DeadTargets, [&](Node *TargetN) {
     SCC &TargetC = *G.lookupSCC(*TargetN);
-    RefSCC &TargetRC = TargetC.getOuterRefSCC();
+    
 
     // We can't trivially remove internal targets, so skip
     // those.
-    if (&TargetRC == RC)
+    if (RefSCC &TargetRC = TargetC.getOuterRefSCC(); &TargetRC == RC)
       return false;
 
     LLVM_DEBUG(dbgs() << "Deleting outgoing edge from '" << N << "' to '"
@@ -1043,11 +1043,11 @@ static LazyCallGraph::SCC &updateCGAndAnalysisManagerForPass(
   // form cycles that this would break.
   for (Node *RefTarget : DemotedCallTargets) {
     SCC &TargetC = *G.lookupSCC(*RefTarget);
-    RefSCC &TargetRC = TargetC.getOuterRefSCC();
+    
 
     // The easy case is when the target RefSCC is not this RefSCC. This is
     // only supported when the target RefSCC is a child of this RefSCC.
-    if (&TargetRC != RC) {
+    if (RefSCC &TargetRC = TargetC.getOuterRefSCC(); &TargetRC != RC) {
 #ifdef EXPENSIVE_CHECKS
       assert(RC->isAncestorOf(TargetRC) &&
              "Cannot potentially form RefSCC cycles here!");
@@ -1078,11 +1078,11 @@ static LazyCallGraph::SCC &updateCGAndAnalysisManagerForPass(
   // Now promote ref edges into call edges.
   for (Node *CallTarget : PromotedRefTargets) {
     SCC &TargetC = *G.lookupSCC(*CallTarget);
-    RefSCC &TargetRC = TargetC.getOuterRefSCC();
+    
 
     // The easy case is when the target RefSCC is not this RefSCC. This is
     // only supported when the target RefSCC is a child of this RefSCC.
-    if (&TargetRC != RC) {
+    if (RefSCC &TargetRC = TargetC.getOuterRefSCC(); &TargetRC != RC) {
 #ifdef EXPENSIVE_CHECKS
       assert(RC->isAncestorOf(TargetRC) &&
              "Cannot potentially form RefSCC cycles here!");

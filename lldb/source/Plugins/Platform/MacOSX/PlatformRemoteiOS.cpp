@@ -75,8 +75,8 @@ PlatformSP PlatformRemoteiOS::CreateInstance(bool force, const ArchSpec *arch) {
     case llvm::Triple::aarch64:
     case llvm::Triple::thumb: {
       const llvm::Triple &triple = arch->GetTriple();
-      llvm::Triple::VendorType vendor = triple.getVendor();
-      switch (vendor) {
+      
+      switch (llvm::Triple::VendorType vendor = triple.getVendor(); vendor) {
       case llvm::Triple::Apple:
         create = true;
         break;

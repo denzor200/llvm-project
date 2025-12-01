@@ -23,8 +23,8 @@ template <typename T>
 static Error visitKnownRecord(CVSymbol &Record,
                               SymbolVisitorCallbacks &Callbacks) {
   SymbolRecordKind RK = static_cast<SymbolRecordKind>(Record.kind());
-  T KnownRecord(RK);
-  if (auto EC = Callbacks.visitKnownRecord(Record, KnownRecord))
+  
+  if (auto T KnownRecord(RK); EC = Callbacks.visitKnownRecord(Record, KnownRecord))
     return EC;
   return Error::success();
 }
@@ -102,11 +102,11 @@ Error CVSymbolVisitor::visitSymbolStreamFiltered(const CVSymbolArray &Symbols,
   for (auto Begin = Symbols.begin(), End = Symbols.end(); Begin != End;
        ++Begin) {
     uint32_t BeginOffset = Begin.offset();
-    CVSymbol BeginSym = *Begin;
-    if (BeginOffset < SymbolOffset) {
+    
+    if (CVSymbol BeginSym = *Begin; BeginOffset < SymbolOffset) {
       if (symbolOpensScope(Begin->kind())) {
-        uint32_t EndOffset = getScopeEndOffset(BeginSym);
-        if (SymbolOffset < EndOffset) {
+        
+        if (uint32_t EndOffset = getScopeEndOffset(BeginSym); SymbolOffset < EndOffset) {
           ParentOffsets.push_back(BeginOffset);
           ParentEndOffsets.push_back(EndOffset);
         }

@@ -50,8 +50,8 @@ bool lldb_private::InferiorCallMmap(Process *process, addr_t &allocated_addr,
       ConstString("mmap"), eFunctionNameTypeFull, function_options, sc_list);
   const uint32_t count = sc_list.GetSize();
   if (count > 0) {
-    SymbolContext sc;
-    if (sc_list.GetContextAtIndex(0, sc)) {
+    
+    if (SymbolContext sc; sc_list.GetContextAtIndex(0, sc)) {
       EvaluateExpressionOptions options;
       options.SetStopOthers(true);
       options.SetUnwindOnError(true);
@@ -101,9 +101,9 @@ bool lldb_private::InferiorCallMmap(Process *process, addr_t &allocated_addr,
           if (frame) {
             ExecutionContext exe_ctx;
             frame->CalculateExecutionContext(exe_ctx);
-            ExpressionResults result = process->RunThreadPlan(
-                exe_ctx, call_plan_sp, options, diagnostics);
-            if (result == eExpressionCompleted) {
+            
+            if (ExpressionResults result = process->RunThreadPlan(
+                exe_ctx, call_plan_sp, options, diagnostics); result == eExpressionCompleted) {
 
               allocated_addr =
                   call_plan_sp->GetReturnValueObject()->GetValueAsUnsigned(
@@ -142,8 +142,8 @@ bool lldb_private::InferiorCallMunmap(Process *process, addr_t addr,
       ConstString("munmap"), eFunctionNameTypeFull, function_options, sc_list);
   const uint32_t count = sc_list.GetSize();
   if (count > 0) {
-    SymbolContext sc;
-    if (sc_list.GetContextAtIndex(0, sc)) {
+    
+    if (SymbolContext sc; sc_list.GetContextAtIndex(0, sc)) {
       EvaluateExpressionOptions options;
       options.SetStopOthers(true);
       options.SetUnwindOnError(true);
@@ -153,8 +153,8 @@ bool lldb_private::InferiorCallMunmap(Process *process, addr_t addr,
       options.SetTimeout(process->GetUtilityExpressionTimeout());
       options.SetTrapExceptions(false);
 
-      Address munmap_addr = sc.GetFunctionOrSymbolAddress();
-      if (munmap_addr.IsValid()) {
+      
+      if (Address munmap_addr = sc.GetFunctionOrSymbolAddress(); munmap_addr.IsValid()) {
         lldb::addr_t args[] = {addr, length};
         lldb::ThreadPlanSP call_plan_sp(new ThreadPlanCallFunction(
             *thread, munmap_addr, CompilerType(), args, options));
@@ -165,9 +165,9 @@ bool lldb_private::InferiorCallMunmap(Process *process, addr_t addr,
           if (frame) {
             ExecutionContext exe_ctx;
             frame->CalculateExecutionContext(exe_ctx);
-            ExpressionResults result = process->RunThreadPlan(
-                exe_ctx, call_plan_sp, options, diagnostics);
-            if (result == eExpressionCompleted) {
+            
+            if (ExpressionResults result = process->RunThreadPlan(
+                exe_ctx, call_plan_sp, options, diagnostics); result == eExpressionCompleted) {
               return true;
             }
           }

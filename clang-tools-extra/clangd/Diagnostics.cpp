@@ -117,14 +117,14 @@ std::optional<Range> diagnosticRange(const clang::Diagnostic &D,
   };
   auto Loc = M.getFileLoc(D.getLocation());
   for (const auto &CR : D.getRanges()) {
-    auto R = Lexer::makeFileCharRange(CR, M, L);
-    if (locationInRange(Loc, R, M))
+    
+    if (auto R = Lexer::makeFileCharRange(CR, M, L); locationInRange(Loc, R, M))
       return halfOpenToRange(M, PatchedRange(R));
   }
   // The range may be given as a fixit hint instead.
   for (const auto &F : D.getFixItHints()) {
-    auto R = Lexer::makeFileCharRange(F.RemoveRange, M, L);
-    if (locationInRange(Loc, R, M))
+    
+    if (auto R = Lexer::makeFileCharRange(F.RemoveRange, M, L); locationInRange(Loc, R, M))
       return halfOpenToRange(M, PatchedRange(R));
   }
   // Source locations from stale preambles might become OOB.
@@ -599,15 +599,15 @@ std::vector<Diag> StoreDiags::take(const clang::tidy::ClangTidyContext *Tidy) {
       }
       Diag.Source = Diag::Clang;
     } else if (Tidy != nullptr) {
-      std::string TidyDiag = Tidy->getCheckName(Diag.ID);
-      if (!TidyDiag.empty()) {
+      
+      if (std::string TidyDiag = Tidy->getCheckName(Diag.ID); !TidyDiag.empty()) {
         Diag.Name = std::move(TidyDiag);
         Diag.Source = Diag::ClangTidy;
         // clang-tidy bakes the name into diagnostic messages. Strip it out.
         // It would be much nicer to make clang-tidy not do this.
         auto CleanMessage = [&](std::string &Msg) {
-          StringRef Rest(Msg);
-          if (Rest.consume_back("]") && Rest.consume_back(Diag.Name) &&
+          
+          if (StringRef Rest(Msg); Rest.consume_back("]") && Rest.consume_back(Diag.Name) &&
               Rest.consume_back(" ["))
             Msg.resize(Rest.size());
         };
@@ -781,8 +781,8 @@ void StoreDiags::HandleDiagnostic(DiagnosticsEngine::Level DiagLevel,
       bool Invalid = false;
       llvm::StringRef Remove =
           Lexer::getSourceText(FixIt.RemoveRange, SM, *LangOpts, &Invalid);
-      llvm::StringRef Insert = FixIt.CodeToInsert;
-      if (!Invalid) {
+      
+      if (llvm::StringRef Insert = FixIt.CodeToInsert; !Invalid) {
         llvm::raw_svector_ostream M(Message);
         if (!Remove.empty() && !Insert.empty()) {
           M << "change '";
@@ -852,8 +852,8 @@ void StoreDiags::HandleDiagnostic(DiagnosticsEngine::Level DiagLevel,
 
     // Give include-fixer a chance to replace a note with a fix.
     if (Fixer) {
-      auto ReplacementFixes = Fixer(LastDiag->Severity, Info);
-      if (!ReplacementFixes.empty()) {
+      
+      if (auto ReplacementFixes = Fixer(LastDiag->Severity, Info); !ReplacementFixes.empty()) {
         assert(Info.getNumFixItHints() == 0 &&
                "Include-fixer replaced a note with clang fix-its attached!");
         LastDiag->Fixes.insert(LastDiag->Fixes.end(), ReplacementFixes.begin(),
@@ -918,10 +918,10 @@ bool isDiagnosticSuppressed(const clang::Diagnostic &Diag,
     if (Suppress.contains(normalizeSuppressedCode(CodePtr)))
       return true;
   }
-  StringRef Warning =
+  
+  if (StringRef Warning =
       Diag.getDiags()->getDiagnosticIDs()->getWarningOptionForDiag(
-          Diag.getID());
-  if (!Warning.empty() && Suppress.contains(Warning))
+          Diag.getID()); !Warning.empty() && Suppress.contains(Warning))
     return true;
   return false;
 }

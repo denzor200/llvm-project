@@ -29,8 +29,8 @@ SymbolFileWasm::GetVendorDWARFOpcodeSize(const DataExtractor &data,
     return LLDB_INVALID_OFFSET;
 
   lldb::offset_t offset = data_offset;
-  const uint8_t wasm_op = data.GetU8(&offset);
-  switch (wasm_op) {
+  
+  switch (const uint8_t wasm_op = data.GetU8(&offset); wasm_op) {
   case 0: // LOCAL
   case 1: // GLOBAL_FIXED
   case 2: // OPERAND_STACK
@@ -63,8 +63,8 @@ bool SymbolFileWasm::ParseVendorDWARFOpcode(uint8_t op,
   /// |0                    | Local                 |
   /// |1 or 3               | Global                |
   /// |2                    | Operand Stack         |
-  const uint8_t wasm_op = opcodes.GetU8(&offset);
-  switch (wasm_op) {
+  
+  switch (const uint8_t wasm_op = opcodes.GetU8(&offset); wasm_op) {
   case 0: // LOCAL
     index = opcodes.GetULEB128(&offset);
     tag = eWasmTagLocal;
@@ -88,9 +88,9 @@ bool SymbolFileWasm::ParseVendorDWARFOpcode(uint8_t op,
   const uint32_t reg_num = GetWasmRegister(tag, index);
 
   Value tmp;
-  llvm::Error error = DWARFExpression::ReadRegisterValueAsScalar(
-      reg_ctx, reg_kind, reg_num, tmp);
-  if (error) {
+  
+  if (llvm::Error error = DWARFExpression::ReadRegisterValueAsScalar(
+      reg_ctx, reg_kind, reg_num, tmp); error) {
     LLDB_LOG_ERROR(GetLog(DWARFLog::DebugInfo), std::move(error), "{0}");
     return false;
   }

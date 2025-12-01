@@ -303,8 +303,8 @@ void darwin::Linker::AddLinkArgs(Compilation &C, const ArgList &Args,
     Args.AddAllArgs(CmdArgs, options::OPT_bundle__loader);
     Args.AddAllArgs(CmdArgs, options::OPT_client__name);
 
-    Arg *A;
-    if ((A = Args.getLastArg(options::OPT_compatibility__version)) ||
+    
+    if (Arg *A; (A = Args.getLastArg(options::OPT_compatibility__version)) ||
         (A = Args.getLastArg(options::OPT_current__version)) ||
         (A = Args.getLastArg(options::OPT_install__name)))
       D.Diag(diag::err_drv_argument_only_allowed_with) << A->getAsString(Args)
@@ -316,8 +316,8 @@ void darwin::Linker::AddLinkArgs(Compilation &C, const ArgList &Args,
   } else {
     CmdArgs.push_back("-dylib");
 
-    Arg *A;
-    if ((A = Args.getLastArg(options::OPT_bundle)) ||
+    
+    if (Arg *A; (A = Args.getLastArg(options::OPT_bundle)) ||
         (A = Args.getLastArg(options::OPT_bundle__loader)) ||
         (A = Args.getLastArg(options::OPT_client__name)) ||
         (A = Args.getLastArg(options::OPT_force__flat__namespace)) ||
@@ -479,9 +479,9 @@ void darwin::Linker::AddLinkArgs(Compilation &C, const ArgList &Args,
       CmdArgs.push_back(Args.MakeArgString(Twine("--cs-profile-path=") + Path));
     }
 
-    auto *CodeGenDataGenArg =
-        Args.getLastArg(options::OPT_fcodegen_data_generate_EQ);
-    if (CodeGenDataGenArg)
+    
+    if (auto *CodeGenDataGenArg =
+        Args.getLastArg(options::OPT_fcodegen_data_generate_EQ); CodeGenDataGenArg)
       CmdArgs.push_back(
           Args.MakeArgString(Twine("--codegen-data-generate-path=") +
                              CodeGenDataGenArg->getValue()));
@@ -504,9 +504,9 @@ static bool checkRemarksOptions(const Driver &D, const ArgList &Args,
   // which means more than one remark file is being generated.
   bool hasMultipleInvocations =
       Args.getAllArgValues(options::OPT_arch).size() > 1;
-  bool hasExplicitOutputFile =
-      Args.getLastArg(options::OPT_foptimization_record_file_EQ);
-  if (hasMultipleInvocations && hasExplicitOutputFile) {
+  
+  if (bool hasExplicitOutputFile =
+      Args.getLastArg(options::OPT_foptimization_record_file_EQ); hasMultipleInvocations && hasExplicitOutputFile) {
     D.Diag(diag::err_drv_invalid_output_with_multiple_archs)
         << "-foptimization-record-file";
     return false;
@@ -634,8 +634,8 @@ void darwin::Linker::ConstructJob(Compilation &C, const JobAction &JA,
   auto *CodeGenDataUseArg = Args.getLastArg(options::OPT_fcodegen_data_use_EQ);
 
   // We only allow one of them to be specified.
-  const Driver &D = getToolChain().getDriver();
-  if (CodeGenDataGenArg && CodeGenDataUseArg)
+  
+  if (const Driver &D = getToolChain().getDriver(); CodeGenDataGenArg && CodeGenDataUseArg)
     D.Diag(diag::err_drv_argument_not_allowed_with)
         << CodeGenDataGenArg->getAsString(Args)
         << CodeGenDataUseArg->getAsString(Args);
@@ -862,8 +862,8 @@ void darwin::StaticLibTool::ConstructJob(Compilation &C, const JobAction &JA,
 
   // Delete old output archive file if it already exists before generating a new
   // archive file.
-  const auto *OutputFileName = Output.getFilename();
-  if (Output.isFilename() && llvm::sys::fs::exists(OutputFileName)) {
+  
+  if (const auto *OutputFileName = Output.getFilename(); Output.isFilename() && llvm::sys::fs::exists(OutputFileName)) {
     if (std::error_code EC = llvm::sys::fs::remove(OutputFileName)) {
       D.Diag(diag::err_drv_unable_to_remove_file) << EC.message();
       return;
@@ -1407,8 +1407,8 @@ StringRef Darwin::getSDKName(StringRef isysroot) {
   auto BeginSDK = llvm::sys::path::rbegin(isysroot);
   auto EndSDK = llvm::sys::path::rend(isysroot);
   for (auto IT = BeginSDK; IT != EndSDK; ++IT) {
-    StringRef SDK = *IT;
-    if (SDK.consume_back(".sdk"))
+    
+    if (StringRef SDK = *IT; SDK.consume_back(".sdk"))
       return SDK;
   }
   return "";
@@ -1522,8 +1522,8 @@ void DarwinClang::AddLinkSanitizerLibArgs(const ArgList &Args,
 ToolChain::RuntimeLibType DarwinClang::GetRuntimeLibType(
     const ArgList &Args) const {
   if (Arg* A = Args.getLastArg(options::OPT_rtlib_EQ)) {
-    StringRef Value = A->getValue();
-    if (Value != "compiler-rt" && Value != "platform")
+    
+    if (StringRef Value = A->getValue(); Value != "compiler-rt" && Value != "platform")
       getDriver().Diag(clang::diag::err_drv_unsupported_rtlib_for_platform)
           << Value << "darwin";
   }
@@ -1793,8 +1793,8 @@ struct DarwinPlatform {
   /// Returns the OS version with the argument / environment variable that
   /// specified it.
   std::string getAsString(DerivedArgList &Args, const OptTable &Opts) {
-    auto &[Arg, OSVersionStr] = Arguments;
-    switch (Kind) {
+    
+    switch (auto &[Arg, OSVersionStr] = Arguments; Kind) {
     case TargetArg:
     case MTargetOSArg:
     case OSVersionArg:
@@ -1839,8 +1839,8 @@ struct DarwinPlatform {
       // lower than the version that's implied by the OS version. In that case
       // we need to use the minimum version as the native target version.
       if (TargetVariantTriple) {
-        auto TargetVariantVersion = TargetVariantTriple->getOSVersion();
-        if (TargetVariantVersion.getMajor()) {
+        
+        if (auto TargetVariantVersion = TargetVariantTriple->getOSVersion(); TargetVariantVersion.getMajor()) {
           if (TargetVariantVersion < ZipperedOSVersion)
             ZipperedOSVersion = TargetVariantVersion;
         }
@@ -2152,8 +2152,8 @@ inferDeploymentTargetFromSDK(DerivedArgList &Args,
     // Slice the version number out.
     // Version number is between the first and the last number.
     size_t StartVer = SDK.find_first_of("0123456789");
-    size_t EndVer = SDK.find_last_of("0123456789");
-    if (StartVer != StringRef::npos && EndVer > StartVer)
+    
+    if (size_t EndVer = SDK.find_last_of("0123456789"); StartVer != StringRef::npos && EndVer > StartVer)
       Version = std::string(SDK.slice(StartVer, EndVer + 1));
   }
   if (Version.empty())
@@ -2271,9 +2271,9 @@ std::optional<DarwinPlatform> getDeploymentTargetFromTargetArg(
     return std::nullopt;
   std::optional<llvm::Triple> TargetVariantTriple;
   for (const Arg *A : Args.filtered(options::OPT_darwin_target_variant)) {
-    llvm::Triple TVT(A->getValue());
+    
     // Find a matching <arch>-<vendor> target variant triple that can be used.
-    if ((Triple.getArch() == llvm::Triple::aarch64 ||
+    if (llvm::Triple TVT(A->getValue()); (Triple.getArch() == llvm::Triple::aarch64 ||
          TVT.getArchName() == Triple.getArchName()) &&
         TVT.getArch() == Triple.getArch() &&
         TVT.getSubArch() == Triple.getSubArch() &&
@@ -2399,8 +2399,8 @@ void Darwin::AddDeploymentTarget(DerivedArgList &Args) const {
       unsigned TargetMajor, TargetMinor, TargetMicro;
       bool TargetExtra;
       unsigned ArgMajor, ArgMinor, ArgMicro;
-      bool ArgExtra;
-      if (PlatformAndVersion->getPlatform() !=
+      
+      if (bool ArgExtra; PlatformAndVersion->getPlatform() !=
               PlatformAndVersionFromOSVersionArg->getPlatform() ||
           (Driver::GetReleaseVersion(
                PlatformAndVersion->getOSVersion().getAsString(), TargetMajor,
@@ -2433,9 +2433,9 @@ void Darwin::AddDeploymentTarget(DerivedArgList &Args) const {
                   Args, getDriver(), SDKInfo))) {
     // The OS target can be specified using the -mtargetos= argument.
     // Disallow mixing -mtargetos= and -m<os>version-min=.
-    std::optional<DarwinPlatform> PlatformAndVersionFromOSVersionArg =
-        getDeploymentTargetFromOSVersionArg(Args, getDriver());
-    if (PlatformAndVersionFromOSVersionArg) {
+    
+    if (std::optional<DarwinPlatform> PlatformAndVersionFromOSVersionArg =
+        getDeploymentTargetFromOSVersionArg(Args, getDriver()); PlatformAndVersionFromOSVersionArg) {
       std::string MTargetOSArgStr = PlatformAndVersion->getAsString(Args, Opts);
       std::string OSVersionArgStr =
           PlatformAndVersionFromOSVersionArg->getAsString(Args, Opts);
@@ -2452,9 +2452,9 @@ void Darwin::AddDeploymentTarget(DerivedArgList &Args) const {
           getDeploymentTargetFromEnvironmentVariables(getDriver(), getTriple());
       if (PlatformAndVersion) {
         // Don't infer simulator from the arch when the SDK is also specified.
-        std::optional<DarwinPlatform> SDKTarget =
-            inferDeploymentTargetFromSDK(Args, SDKInfo);
-        if (SDKTarget)
+        
+        if (std::optional<DarwinPlatform> SDKTarget =
+            inferDeploymentTargetFromSDK(Args, SDKInfo); SDKTarget)
           PlatformAndVersion->setEnvironment(SDKTarget->getEnvironment());
       }
     }
@@ -2594,11 +2594,11 @@ void Darwin::AddDeploymentTarget(DerivedArgList &Args) const {
   }
 
   if (const Arg *A = Args.getLastArg(options::OPT_isysroot)) {
-    StringRef SDK = getSDKName(A->getValue());
-    if (SDK.size() > 0) {
+    
+    if (StringRef SDK = getSDKName(A->getValue()); SDK.size() > 0) {
       size_t StartVer = SDK.find_first_of("0123456789");
-      StringRef SDKName = SDK.slice(0, StartVer);
-      if (!SDKName.starts_with(getPlatformFamily()) &&
+      
+      if (StringRef SDKName = SDK.slice(0, StartVer); !SDKName.starts_with(getPlatformFamily()) &&
           !dropSDKNamePrefix(SDKName).starts_with(getPlatformFamily()))
         getDriver().Diag(diag::warn_incompatible_sysroot)
             << SDKName << getPlatformFamily();
@@ -2746,9 +2746,9 @@ void AppleMachO::AddClangCXXStdlibIncludeArgs(
                         options::OPT_nostdincxx))
     return;
 
-  llvm::SmallString<128> Sysroot = GetEffectiveSysroot(DriverArgs);
+  
 
-  switch (GetCXXStdlibType(DriverArgs)) {
+  switch (llvm::SmallString<128> Sysroot = GetEffectiveSysroot(DriverArgs); GetCXXStdlibType(DriverArgs)) {
   case ToolChain::CST_Libcxx: {
     // On Darwin, libc++ can be installed in one of the following places:
     // 1. Alongside the compiler in <clang-executable-folder>/../include/c++/v1
@@ -2843,9 +2843,9 @@ void DarwinClang::AddGnuCPlusPlusIncludePaths(
 
 void AppleMachO::AddCXXStdlibLibArgs(const ArgList &Args,
                                      ArgStringList &CmdArgs) const {
-  CXXStdlibType Type = GetCXXStdlibType(Args);
+  
 
-  switch (Type) {
+  switch (CXXStdlibType Type = GetCXXStdlibType(Args); Type) {
   case ToolChain::CST_Libcxx:
     CmdArgs.push_back("-lc++");
     if (Args.hasArg(options::OPT_fexperimental_library))
@@ -2993,11 +2993,11 @@ DerivedArgList *MachO::TranslateArgs(const DerivedArgList &Args,
   if (!BoundArch.empty()) {
     StringRef Name = BoundArch;
     const Option MCpu = Opts.getOption(options::OPT_mcpu_EQ);
-    const Option MArch = Opts.getOption(options::OPT_march_EQ);
+    
 
     // This code must be kept in sync with LLVM's getArchTypeForDarwinArch,
     // which defines the list of which architectures we accept.
-    if (Name == "ppc")
+    if (const Option MArch = Opts.getOption(options::OPT_march_EQ); Name == "ppc")
       ;
     else if (Name == "ppc601")
       DAL->AddJoinedArg(nullptr, MCpu, "601");
@@ -3120,8 +3120,8 @@ sdkSupportsBuiltinModules(const std::optional<DarwinSDKInfo> &SDKInfo) {
     // the old behavior which is to not use builtin modules.
     return false;
 
-  VersionTuple SDKVersion = SDKInfo->getVersion();
-  switch (SDKInfo->getOS()) {
+  
+  switch (VersionTuple SDKVersion = SDKInfo->getVersion(); SDKInfo->getOS()) {
   // Existing SDKs added support for builtin modules in the fall
   // 2024 major releases.
   case llvm::Triple::MacOSX:
@@ -3292,8 +3292,8 @@ void Darwin::addClangTargetOptions(
                           options::OPT_fno_modulemap_allow_subdirectory_search,
                           false)) {
     bool RequiresSubdirectorySearch;
-    VersionTuple SDKVersion = SDKInfo->getVersion();
-    switch (TargetPlatform) {
+    
+    switch (VersionTuple SDKVersion = SDKInfo->getVersion(); TargetPlatform) {
     default:
       RequiresSubdirectorySearch = true;
       break;
@@ -3508,8 +3508,8 @@ void Darwin::addMinVersionArgs(const ArgList &Args,
     CmdArgs.push_back("-macosx_version_min");
   }
 
-  VersionTuple MinTgtVers = getEffectiveTriple().getMinimumSupportedOSVersion();
-  if (!MinTgtVers.empty() && MinTgtVers > TargetVersion)
+  
+  if (VersionTuple MinTgtVers = getEffectiveTriple().getMinimumSupportedOSVersion(); !MinTgtVers.empty() && MinTgtVers > TargetVersion)
     TargetVersion = MinTgtVers;
   CmdArgs.push_back(Args.MakeArgString(TargetVersion.getAsString()));
   if (TargetVariantTriple) {

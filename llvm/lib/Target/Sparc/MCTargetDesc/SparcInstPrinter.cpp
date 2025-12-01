@@ -116,8 +116,8 @@ void SparcInstPrinter::printOperand(const MCInst *MI, int opNum,
   const MCOperand &MO = MI->getOperand (opNum);
 
   if (MO.isReg()) {
-    MCRegister Reg = MO.getReg();
-    if (isV9(STI))
+    
+    if (MCRegister Reg = MO.getReg(); isV9(STI))
       printRegName(O, Reg, SP::RegNamesStateReg);
     else
       printRegName(O, Reg);
@@ -247,8 +247,8 @@ void SparcInstPrinter::printMembarTag(const MCInst *MI, int opNum,
 void SparcInstPrinter::printASITag(const MCInst *MI, int opNum,
                                    const MCSubtargetInfo &STI, raw_ostream &O) {
   unsigned Imm = MI->getOperand(opNum).getImm();
-  auto ASITag = SparcASITag::lookupASITagByEncoding(Imm);
-  if (isV9(STI) && ASITag)
+  
+  if (auto ASITag = SparcASITag::lookupASITagByEncoding(Imm); isV9(STI) && ASITag)
     O << '#' << ASITag->Name;
   else
     O << Imm;
@@ -258,8 +258,8 @@ void SparcInstPrinter::printPrefetchTag(const MCInst *MI, int opNum,
                                         const MCSubtargetInfo &STI,
                                         raw_ostream &O) {
   unsigned Imm = MI->getOperand(opNum).getImm();
-  auto PrefetchTag = SparcPrefetchTag::lookupPrefetchTagByEncoding(Imm);
-  if (PrefetchTag)
+  
+  if (auto PrefetchTag = SparcPrefetchTag::lookupPrefetchTagByEncoding(Imm); PrefetchTag)
     O << '#' << PrefetchTag->Name;
   else
     O << Imm;
@@ -273,8 +273,8 @@ void SparcInstPrinter::printCTILabel(const MCInst *MI, uint64_t Address,
   // If the label has already been resolved to an immediate offset (say, when
   // we're running the disassembler), just print the immediate.
   if (Op.isImm()) {
-    int64_t Offset = Op.getImm();
-    if (PrintBranchImmAsAddress) {
+    
+    if (int64_t Offset = Op.getImm(); PrintBranchImmAsAddress) {
       uint64_t Target = Address + Offset;
       if (STI.getTargetTriple().isSPARC32())
         Target &= 0xffffffff;

@@ -136,8 +136,8 @@ static Distro::DistroType DetectDistro(llvm::vfs::FileSystem &VFS) {
   if (File) {
     StringRef Data = File.get()->getBuffer();
     // Contents: < major.minor > or < codename/sid >
-    int MajorVersion;
-    if (!Data.split('.').first.getAsInteger(10, MajorVersion)) {
+    
+    if (int MajorVersion; !Data.split('.').first.getAsInteger(10, MajorVersion)) {
       switch (MajorVersion) {
       case 8:
         return Distro::DebianJessie;
@@ -185,11 +185,11 @@ static Distro::DistroType DetectDistro(llvm::vfs::FileSystem &VFS) {
       // Newer versions use VERSION = x.y
       std::pair<StringRef, StringRef> SplitVer =
           SplitLine.second.trim().split('.');
-      int Version;
+      
 
       // OpenSUSE/SLES 10 and older are not supported and not compatible
       // with our rules, so just treat them as Distro::UnknownDistro.
-      if (!SplitVer.first.getAsInteger(10, Version) && Version > 10)
+      if (int Version; !SplitVer.first.getAsInteger(10, Version) && Version > 10)
         return Distro::OpenSUSE;
       return Distro::UnknownDistro;
     }

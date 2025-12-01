@@ -558,7 +558,7 @@ void transform::InsertPrefetchOp::getEffects(
   modifiesPayload(effects);
 }
 
-void transform::ConvertLayoutOp::build(
+void mlir::xegpu::ConvertLayoutOp::build(
     OpBuilder &builder, OperationState &ostate, Value target,
     ArrayRef<OpFoldResult> mixedInputSgLayout,
     ArrayRef<OpFoldResult> mixedInputSgData,
@@ -603,11 +603,11 @@ void transform::ConvertLayoutOp::build(
 }
 
 DiagnosedSilenceableFailure
-transform::ConvertLayoutOp::apply(transform::TransformRewriter &rewriter,
+mlir::xegpu::ConvertLayoutOp::apply(transform::TransformRewriter &rewriter,
                                   transform::TransformResults &results,
                                   transform::TransformState &state) {
-  auto targetValues = state.getPayloadValues(getTarget());
-  if (!llvm::hasSingleElement(targetValues))
+  
+  if (auto targetValues = state.getPayloadValues(getTarget()); !llvm::hasSingleElement(targetValues))
     return emitDefiniteFailure()
            << "requires exactly one target value handle (got "
            << llvm::range_size(targetValues) << ")";

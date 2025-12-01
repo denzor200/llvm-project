@@ -166,8 +166,8 @@ public:
       Instruction *I = Worklist.pop_back_val();
       // Insert instructions from the loop that we depend on.
       for (Value *V : I->operand_values()) {
-        auto *I = dyn_cast<Instruction>(V);
-        if (I && OrigLoop->contains(I->getParent()) && Set.insert(I))
+        
+        if (auto *I = dyn_cast<Instruction>(V); I && OrigLoop->contains(I->getParent()) && Set.insert(I))
           Worklist.push_back(I);
       }
     }
@@ -514,8 +514,8 @@ public:
       for (Instruction *Inst : Instructions) {
         // Note that this could be -1 if Inst is duplicated across multiple
         // partitions.
-        int ThisPartition = this->InstToPartitionId[Inst];
-        if (Partition == -2)
+        
+        if (int ThisPartition = this->InstToPartitionId[Inst]; Partition == -2)
           Partition = ThisPartition;
         // -1 means belonging to multiple partitions.
         else if (Partition == -1)
@@ -575,8 +575,8 @@ private:
   void mergeAdjacentPartitionsIf(UnaryPredicate Predicate) {
     InstPartition *PrevMatch = nullptr;
     for (auto I = PartitionContainer.begin(); I != PartitionContainer.end();) {
-      auto DoesMatch = Predicate(&*I);
-      if (PrevMatch == nullptr && DoesMatch) {
+      
+      if (auto DoesMatch = Predicate(&*I); PrevMatch == nullptr && DoesMatch) {
         PrevMatch = &*I;
         ++I;
       } else if (PrevMatch != nullptr && DoesMatch) {
@@ -718,10 +718,10 @@ public:
 
     int NumUnsafeDependencesActive = 0;
     for (const auto &InstDep : MID) {
-      Instruction *I = InstDep.Inst;
+      
       // We update NumUnsafeDependencesActive post-instruction, catch the
       // start of a dependence directly via NumUnsafeDependencesStartOrEnd.
-      if (NumUnsafeDependencesActive ||
+      if (Instruction *I = InstDep.Inst; NumUnsafeDependencesActive ||
           InstDep.NumUnsafeDependencesStartOrEnd > 0)
         Partitions.addToCyclicPartition(I);
       else
@@ -1014,8 +1014,8 @@ PreservedAnalyses LoopDistributePass::run(Function &F,
   auto &ORE = AM.getResult<OptimizationRemarkEmitterAnalysis>(F);
 
   LoopAccessInfoManager &LAIs = AM.getResult<LoopAccessAnalysis>(F);
-  bool Changed = runImpl(F, &LI, &DT, &SE, &ORE, LAIs);
-  if (!Changed)
+  
+  if (bool Changed = runImpl(F, &LI, &DT, &SE, &ORE, LAIs); !Changed)
     return PreservedAnalyses::all();
   PreservedAnalyses PA;
   PA.preserve<LoopAnalysis>();

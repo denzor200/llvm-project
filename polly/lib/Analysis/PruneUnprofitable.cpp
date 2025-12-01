@@ -41,8 +41,8 @@ STATISTIC(NumBoxedLoops, "Number of boxed loops in SCoPs after pruning");
 STATISTIC(NumAffineLoops, "Number of affine loops in SCoPs after pruning");
 
 static void updateStatistics(Scop &S, bool Pruned) {
-  Scop::ScopStatistics ScopStats = S.getStatistics();
-  if (Pruned) {
+  
+  if (Scop::ScopStatistics ScopStats = S.getStatistics(); Pruned) {
     ScopsPruned++;
     NumPrunedLoops += ScopStats.NumAffineLoops + ScopStats.NumBoxedLoops;
     NumPrunedBoxedLoops += ScopStats.NumBoxedLoops;

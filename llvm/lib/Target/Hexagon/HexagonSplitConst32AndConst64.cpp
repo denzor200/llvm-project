@@ -53,8 +53,8 @@ INITIALIZE_PASS(HexagonSplitConst32AndConst64, "split-const-for-sdata",
 bool HexagonSplitConst32AndConst64::runOnMachineFunction(MachineFunction &Fn) {
   auto &HST = Fn.getSubtarget<HexagonSubtarget>();
   auto &HTM = static_cast<const HexagonTargetMachine&>(Fn.getTarget());
-  auto &TLOF = *HTM.getObjFileLowering();
-  if (HST.useSmallData() && TLOF.isSmallDataEnabled(HTM))
+  
+  if (auto &TLOF = *HTM.getObjFileLowering(); HST.useSmallData() && TLOF.isSmallDataEnabled(HTM))
     return false;
 
   const TargetInstrInfo *TII = HST.getInstrInfo();
@@ -63,9 +63,9 @@ bool HexagonSplitConst32AndConst64::runOnMachineFunction(MachineFunction &Fn) {
   // Loop over all of the basic blocks
   for (MachineBasicBlock &B : Fn) {
     for (MachineInstr &MI : llvm::make_early_inc_range(B)) {
-      unsigned Opc = MI.getOpcode();
+      
 
-      if (Opc == Hexagon::CONST32) {
+      if (unsigned Opc = MI.getOpcode(); Opc == Hexagon::CONST32) {
         Register DestReg = MI.getOperand(0).getReg();
         uint64_t ImmValue = MI.getOperand(1).getImm();
         const DebugLoc &DL = MI.getDebugLoc();

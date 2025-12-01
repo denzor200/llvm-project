@@ -260,7 +260,7 @@ SDValue DAGTypeLegalizer::SoftenFloatRes_BUILD_PAIR(SDNode *N) {
 }
 
 SDValue DAGTypeLegalizer::SoftenFloatRes_ConstantFP(SDNode *N) {
-  ConstantFPSDNode *CN = cast<ConstantFPSDNode>(N);
+  
   // In ppcf128, the high 64 bits are always first in memory regardless
   // of Endianness. LLVM's APFloat representation is not Endian sensitive,
   // and so always converts into a 128-bit APInt in a non-Endian-sensitive
@@ -268,7 +268,7 @@ SDValue DAGTypeLegalizer::SoftenFloatRes_ConstantFP(SDNode *N) {
   // so on big-Endian targets, the two doubles are output in the wrong
   // order. Fix this by manually flipping the order of the high 64 bits
   // and the low 64 bits here.
-  if (DAG.getDataLayout().isBigEndian() &&
+  if (ConstantFPSDNode *CN = cast<ConstantFPSDNode>(N); DAG.getDataLayout().isBigEndian() &&
       CN->getValueType(0).getSimpleVT() == llvm::MVT::ppcf128) {
     uint64_t words[2] = { CN->getValueAPF().bitcastToAPInt().getRawData()[1],
                           CN->getValueAPF().bitcastToAPInt().getRawData()[0] };
@@ -1430,8 +1430,8 @@ SDValue DAGTypeLegalizer::SoftenFloatOp_FCOPYSIGN(SDNode *N) {
   unsigned RSize = RVT.getSizeInBits();
 
   // Shift right or sign-extend it if the two operands have different types.
-  int SizeDiff = RSize - LSize;
-  if (SizeDiff > 0) {
+  
+  if (int SizeDiff = RSize - LSize; SizeDiff > 0) {
     RHS =
         DAG.getNode(ISD::SRL, dl, RVT, RHS,
                     DAG.getConstant(SizeDiff, dl,
@@ -3002,9 +3002,9 @@ SDValue DAGTypeLegalizer::PromoteFloatRes_EXTRACT_VECTOR_ELT(SDNode *N) {
     EVT VecVT = Vec->getValueType(0);
     EVT EltVT = VecVT.getVectorElementType();
 
-    uint64_t IdxVal = Idx->getAsZExtVal();
+    
 
-    switch (getTypeAction(VecVT)) {
+    switch (uint64_t IdxVal = Idx->getAsZExtVal(); getTypeAction(VecVT)) {
     default: break;
     case TargetLowering::TypeScalarizeVector: {
       SDValue Res = GetScalarizedVector(N->getOperand(0));

@@ -73,9 +73,9 @@ static bool BCP(InterpState &S, CodePtr &RealPC, int32_t Offset, PrimType PT) {
       auto Op = PC.read<Opcode>();
       if (Op == OP_EndSpeculation)
         return true;
-      CodePtr OpPC = PC;
+      
 
-      switch (Op) {
+      switch (CodePtr OpPC = PC; Op) {
 #define GET_INTERP
 #include "Opcodes.inc"
 #undef GET_INTERP
@@ -552,11 +552,11 @@ bool CheckSubobject(InterpState &S, CodePtr OpPC, const Pointer &Ptr,
 bool CheckDowncast(InterpState &S, CodePtr OpPC, const Pointer &Ptr,
                    uint32_t Offset) {
   uint32_t MinOffset = Ptr.getDeclDesc()->getMetadataSize();
-  uint32_t PtrOffset = Ptr.getByteOffset();
+  
 
   // We subtract Offset from PtrOffset. The result must be at least
   // MinOffset.
-  if (Offset < PtrOffset && (PtrOffset - Offset) >= MinOffset)
+  if (uint32_t PtrOffset = Ptr.getByteOffset(); Offset < PtrOffset && (PtrOffset - Offset) >= MinOffset)
     return true;
 
   const auto *E = cast<CastExpr>(S.Current->getExpr(OpPC));
@@ -932,9 +932,9 @@ static bool diagnoseCallableDecl(InterpState &S, CodePtr OpPC,
     // FIXME: Instead of checking for an implementation-defined function,
     // check and evaluate the assert() macro.
     StringRef Name = DiagDecl->getName();
-    bool AssertFailed =
-        Name == "__assert_rtn" || Name == "__assert_fail" || Name == "_wassert";
-    if (AssertFailed) {
+    
+    if (bool AssertFailed =
+        Name == "__assert_rtn" || Name == "__assert_fail" || Name == "_wassert"; AssertFailed) {
       S.FFDiag(S.Current->getLocation(OpPC),
                diag::note_constexpr_assert_failed);
       return false;
@@ -978,8 +978,8 @@ static bool diagnoseCallableDecl(InterpState &S, CodePtr OpPC,
     // for a constant expression. It might be defined at the point we're
     // actually calling it.
     bool IsExtern = DiagDecl->getStorageClass() == SC_Extern;
-    bool IsDefined = DiagDecl->isDefined();
-    if (!IsDefined && !IsExtern && DiagDecl->isConstexpr() &&
+    
+    if (bool IsDefined = DiagDecl->isDefined(); !IsDefined && !IsExtern && DiagDecl->isConstexpr() &&
         S.checkingPotentialConstantExpression())
       return false;
 
@@ -1045,8 +1045,8 @@ bool CheckThis(InterpState &S, CodePtr OpPC) {
   if (S.Current->hasThisPointer())
     return true;
 
-  const Expr *E = S.Current->getExpr(OpPC);
-  if (S.getLangOpts().CPlusPlus11) {
+  
+  if (const Expr *E = S.Current->getExpr(OpPC); S.getLangOpts().CPlusPlus11) {
     bool IsImplicit = false;
     if (const auto *TE = dyn_cast<CXXThisExpr>(E))
       IsImplicit = TE->isImplicit();
@@ -1191,8 +1191,8 @@ static bool CheckNonNullArgs(InterpState &S, CodePtr OpPC, const Function *F,
   unsigned Index = 0;
   for (const Expr *Arg : Args) {
     if (NonNullArgs[Index] && Arg->getType()->isPointerType()) {
-      const Pointer &ArgPtr = S.Stk.peek<Pointer>(ArgSize - Offset);
-      if (ArgPtr.isZero()) {
+      
+      if (const Pointer &ArgPtr = S.Stk.peek<Pointer>(ArgSize - Offset); ArgPtr.isZero()) {
         const SourceLocation &Loc = S.Current->getLocation(OpPC);
         S.CCEDiag(Loc, diag::note_non_null_attribute_failed);
         return false;
@@ -1299,10 +1299,10 @@ bool Free(InterpState &S, CodePtr OpPC, bool DeleteIsArrayForm,
     const Descriptor *BlockDesc = BlockToDelete->getDescriptor();
     if (std::optional<DynamicAllocator::Form> AllocForm =
             Allocator.getAllocationForm(Source)) {
-      DynamicAllocator::Form DeleteForm =
+      
+      if (DynamicAllocator::Form DeleteForm =
           DeleteIsArrayForm ? DynamicAllocator::Form::Array
-                            : DynamicAllocator::Form::NonArray;
-      if (!CheckNewDeleteForms(S, OpPC, *AllocForm, DeleteForm, BlockDesc,
+                            : DynamicAllocator::Form::NonArray; !CheckNewDeleteForms(S, OpPC, *AllocForm, DeleteForm, BlockDesc,
                                Source))
         return false;
     }
@@ -1413,8 +1413,8 @@ bool CheckLiteralType(InterpState &S, CodePtr OpPC, const Type *T) {
     return true;
   }
 
-  const Expr *E = S.Current->getExpr(OpPC);
-  if (S.getLangOpts().CPlusPlus11)
+  
+  if (const Expr *E = S.Current->getExpr(OpPC); S.getLangOpts().CPlusPlus11)
     S.FFDiag(E, diag::note_constexpr_nonliteral) << E->getType();
   else
     S.FFDiag(E, diag::note_invalid_subexpr_in_const_expr);
@@ -1518,9 +1518,9 @@ bool CheckFunctionDecl(InterpState &S, CodePtr OpPC, const FunctionDecl *FD) {
     return false;
 
   const FunctionDecl *Definition = nullptr;
-  const Stmt *Body = FD->getBody(Definition);
+  
 
-  if (Definition && Body &&
+  if (const Stmt *Body = FD->getBody(Definition); Definition && Body &&
       (Definition->isConstexpr() || Definition->hasAttr<MSConstexprAttr>()))
     return true;
 
@@ -1541,13 +1541,13 @@ bool CallVar(InterpState &S, CodePtr OpPC, const Function *Func,
   if (Func->hasThisPointer()) {
     size_t ArgSize = Func->getArgSize() + VarArgSize;
     size_t ThisOffset = ArgSize - (Func->hasRVO() ? primSize(PT_Ptr) : 0);
-    const Pointer &ThisPtr = S.Stk.peek<Pointer>(ThisOffset);
+    
 
     // If the current function is a lambda static invoker and
     // the function we're about to call is a lambda call operator,
     // skip the CheckInvoke, since the ThisPtr is a null pointer
     // anyway.
-    if (!(S.Current->getFunction() &&
+    if (const Pointer &ThisPtr = S.Stk.peek<Pointer>(ThisOffset); !(S.Current->getFunction() &&
           S.Current->getFunction()->isLambdaStaticInvoker() &&
           Func->isLambdaCallOperator())) {
       if (!CheckInvoke(S, OpPC, ThisPtr))
@@ -2022,9 +2022,9 @@ bool InvalidNewDeleteExpr(InterpState &S, CodePtr OpPC, const Expr *E) {
   assert(E);
 
   if (const auto *NewExpr = dyn_cast<CXXNewExpr>(E)) {
-    const FunctionDecl *OperatorNew = NewExpr->getOperatorNew();
+    
 
-    if (NewExpr->getNumPlacementArgs() > 0) {
+    if (const FunctionDecl *OperatorNew = NewExpr->getOperatorNew(); NewExpr->getNumPlacementArgs() > 0) {
       // This is allowed pre-C++26, but only an std function.
       if (S.getLangOpts().CPlusPlus26 || S.Current->isStdFunction())
         return true;
@@ -2049,8 +2049,8 @@ bool InvalidNewDeleteExpr(InterpState &S, CodePtr OpPC, const Expr *E) {
     }
   } else {
     const auto *DeleteExpr = cast<CXXDeleteExpr>(E);
-    const FunctionDecl *OperatorDelete = DeleteExpr->getOperatorDelete();
-    if (!OperatorDelete
+    
+    if (const FunctionDecl *OperatorDelete = DeleteExpr->getOperatorDelete(); !OperatorDelete
              ->isUsableAsGlobalAllocationFunctionInConstantEvaluation()) {
       S.FFDiag(S.Current->getSource(OpPC),
                diag::note_constexpr_new_non_replaceable)
@@ -2195,8 +2195,8 @@ bool arePotentiallyOverlappingStringLiterals(const Pointer &LHS,
 
   StringRef LHSStr((const char *)LHS.atIndex(0).getRawAddress(), LHSLength);
   StringRef RHSStr((const char *)RHS.atIndex(0).getRawAddress(), RHSLength);
-  int32_t IndexDiff = RHSOffset - LHSOffset;
-  if (IndexDiff < 0) {
+  
+  if (int32_t IndexDiff = RHSOffset - LHSOffset; IndexDiff < 0) {
     if (static_cast<int32_t>(LHSLength) < -IndexDiff)
       return false;
     LHSStr = LHSStr.drop_front(-IndexDiff);
@@ -2235,20 +2235,20 @@ static void copyPrimitiveMemory(InterpState &S, const Pointer &Ptr,
                                 PrimType T) {
 
   if (T == PT_IntAPS) {
-    auto &Val = Ptr.deref<IntegralAP<true>>();
-    if (!Val.singleWord()) {
+    
+    if (auto &Val = Ptr.deref<IntegralAP<true>>(); !Val.singleWord()) {
       uint64_t *NewMemory = new (S.P) uint64_t[Val.numWords()];
       Val.take(NewMemory);
     }
   } else if (T == PT_IntAP) {
-    auto &Val = Ptr.deref<IntegralAP<false>>();
-    if (!Val.singleWord()) {
+    
+    if (auto &Val = Ptr.deref<IntegralAP<false>>(); !Val.singleWord()) {
       uint64_t *NewMemory = new (S.P) uint64_t[Val.numWords()];
       Val.take(NewMemory);
     }
   } else if (T == PT_Float) {
-    auto &Val = Ptr.deref<Floating>();
-    if (!Val.singleWord()) {
+    
+    if (auto &Val = Ptr.deref<Floating>(); !Val.singleWord()) {
       uint64_t *NewMemory = new (S.P) uint64_t[Val.numWords()];
       Val.take(NewMemory);
     }
@@ -2258,8 +2258,8 @@ static void copyPrimitiveMemory(InterpState &S, const Pointer &Ptr,
 template <typename T>
 static void copyPrimitiveMemory(InterpState &S, const Pointer &Ptr) {
   assert(needsAlloc<T>());
-  auto &Val = Ptr.deref<T>();
-  if (!Val.singleWord()) {
+  
+  if (auto &Val = Ptr.deref<T>(); !Val.singleWord()) {
     uint64_t *NewMemory = new (S.P) uint64_t[Val.numWords()];
     Val.take(NewMemory);
   }
@@ -2280,8 +2280,8 @@ static void finishGlobalRecurse(InterpState &S, const Pointer &Ptr) {
   }
 
   if (const Descriptor *D = Ptr.getFieldDesc(); D && D->isArray()) {
-    unsigned NumElems = D->getNumElems();
-    if (NumElems == 0)
+    
+    if (unsigned NumElems = D->getNumElems(); NumElems == 0)
       return;
 
     if (D->isPrimitiveArray()) {
@@ -2344,9 +2344,9 @@ bool Interpret(InterpState &S) {
 
   for (;;) {
     auto Op = PC.read<Opcode>();
-    CodePtr OpPC = PC;
+    
 
-    switch (Op) {
+    switch (CodePtr OpPC = PC; Op) {
 #define GET_INTERP
 #include "Opcodes.inc"
 #undef GET_INTERP

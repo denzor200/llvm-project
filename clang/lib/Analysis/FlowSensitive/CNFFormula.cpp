@@ -74,8 +74,8 @@ struct CNFFormulaBuilder {
     if (Simplified.size() == 1) {
       // We have new unit clause.
       const Literal lit = Simplified.front();
-      const Variable v = var(lit);
-      if (isPosLit(lit))
+      
+      if (const Variable v = var(lit); isPosLit(lit))
         trueVars.insert(v);
       else
         falseVars.insert(v);

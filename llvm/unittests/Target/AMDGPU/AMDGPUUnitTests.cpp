@@ -216,8 +216,8 @@ static void testAbsoluteLimits(StringRef CPUName, StringRef FS,
   Func->setCallingConv(CallingConv::AMDGPU_CS_Chain);
   Func->addFnAttr("amdgpu-flat-work-group-size", "1,32");
 
-  std::string DVGPRBlockSize = std::to_string(DynamicVGPRBlockSize);
-  if (DynamicVGPRBlockSize)
+  
+  if (std::string DVGPRBlockSize = std::to_string(DynamicVGPRBlockSize); DynamicVGPRBlockSize)
     Func->addFnAttr("amdgpu-dynamic-vgpr-block-size", DVGPRBlockSize);
 
   auto Range = ST.getWavesPerEU(*Func);

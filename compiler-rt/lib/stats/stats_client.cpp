@@ -45,17 +45,17 @@ struct RegisterSanStats {
 
   RegisterSanStats() {
     typedef unsigned (*reg_func_t)(StatModule **);
-    reg_func_t reg_func = reinterpret_cast<reg_func_t>(
-        LookupSymbolFromMain("__sanitizer_stats_register"));
-    if (reg_func)
+    
+    if (reg_func_t reg_func = reinterpret_cast<reg_func_t>(
+        LookupSymbolFromMain("__sanitizer_stats_register")); reg_func)
       module_id = reg_func(&list);
   }
 
   ~RegisterSanStats() {
     typedef void (*unreg_func_t)(unsigned);
-    unreg_func_t unreg_func = reinterpret_cast<unreg_func_t>(
-        LookupSymbolFromMain("__sanitizer_stats_unregister"));
-    if (unreg_func)
+    
+    if (unreg_func_t unreg_func = reinterpret_cast<unreg_func_t>(
+        LookupSymbolFromMain("__sanitizer_stats_unregister")); unreg_func)
       unreg_func(module_id);
   }
 } reg;
@@ -74,10 +74,10 @@ extern "C" void __sanitizer_stat_report(StatInfo *s) {
 #elif defined(_WIN32) && !defined(__clang__)
   uptr old_data = InterlockedIncrement(&s->data);
 #else
-  uptr old_data = __sync_fetch_and_add(&s->data, 1);
+  
 #endif
 
   // Overflow check.
-  if (CountFromData(old_data + 1) == 0)
+  if (uptr old_data = __sync_fetch_and_add(&s->data, 1); CountFromData(old_data + 1) == 0)
     Trap();
 }

@@ -49,8 +49,8 @@ public:
           std::make_shared<SupportFile>(file), line, column, context_before,
           context_after, current_line_cstr, s);
     } else {
-      lldb::DebuggerSP debugger_sp(m_debugger_wp.lock());
-      if (debugger_sp) {
+      
+      if (lldb::DebuggerSP debugger_sp(m_debugger_wp.lock()); debugger_sp) {
         return debugger_sp->GetSourceManager()
             .DisplaySourceLinesWithLineNumbers(
                 std::make_shared<SupportFile>(file), line, column,

@@ -421,8 +421,8 @@ bool COFFAsmParser::parseSectionArguments(StringRef, SMLoc) {
     return TokError("unexpected token in directive");
 
   if (Flags & COFF::IMAGE_SCN_CNT_CODE) {
-    const Triple &T = getContext().getTargetTriple();
-    if (T.getArch() == Triple::arm || T.getArch() == Triple::thumb)
+    
+    if (const Triple &T = getContext().getTargetTriple(); T.getArch() == Triple::arm || T.getArch() == Triple::thumb)
       Flags |= COFF::IMAGE_SCN_MEM_16BIT;
   }
   parseSectionSwitch(SectionName, Flags, COMDATSymName, Type, UniqueID);

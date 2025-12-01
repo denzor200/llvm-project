@@ -709,8 +709,8 @@ void ModuleSanitizerCoverage::instrumentFunction(Function &F) {
       BlocksToInstrument.push_back(&BB);
     for (auto &Inst : BB) {
       if (Options.IndirectCalls) {
-        CallBase *CB = dyn_cast<CallBase>(&Inst);
-        if (CB && CB->isIndirectCall())
+        
+        if (CallBase *CB = dyn_cast<CallBase>(&Inst); CB && CB->isIndirectCall())
           IndirCalls.push_back(&Inst);
       }
       if (Options.TraceCmp) {
@@ -1105,9 +1105,9 @@ void ModuleSanitizerCoverage::InjectCoverageAtBlock(Function &F, BasicBlock &BB,
   }
   if (Options.StackDepth && IsEntryBB && !IsLeafFunc) {
     Module *M = F.getParent();
-    const DataLayout &DL = M->getDataLayout();
+    
 
-    if (Options.StackDepthCallbackMin) {
+    if (const DataLayout &DL = M->getDataLayout(); Options.StackDepthCallbackMin) {
       // In callback mode, only add call when stack depth reaches minimum.
       int EstimatedStackSize = 0;
       // If dynamic alloca found, always add call.
@@ -1228,8 +1228,8 @@ void ModuleSanitizerCoverage::createFunctionControlFlow(Function &F) {
           CFs.push_back((Constant *)IRB.CreateIntToPtr(
               ConstantInt::get(IntptrTy, -1), PtrTy));
         } else {
-          auto CalledF = CB->getCalledFunction();
-          if (CalledF && !CalledF->isIntrinsic())
+          
+          if (auto CalledF = CB->getCalledFunction(); CalledF && !CalledF->isIntrinsic())
             CFs.push_back((Constant *)IRB.CreatePointerCast(CalledF, PtrTy));
         }
       }

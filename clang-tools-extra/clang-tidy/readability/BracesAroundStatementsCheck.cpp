@@ -39,8 +39,8 @@ forwardSkipWhitespaceAndComments(SourceLocation Loc, const SourceManager &SM,
     while (isWhitespace(*SM.getCharacterData(Loc)))
       Loc = Loc.getLocWithOffset(1);
 
-    const tok::TokenKind TokKind = getTokenKind(Loc, SM, LangOpts);
-    if (TokKind != tok::comment)
+    
+    if (const tok::TokenKind TokKind = getTokenKind(Loc, SM, LangOpts); TokKind != tok::comment)
       return Loc;
 
     // Fast-forward current token.
@@ -70,10 +70,10 @@ void BracesAroundStatementsCheck::registerMatchers(MatchFinder *Finder) {
 void BracesAroundStatementsCheck::check(
     const MatchFinder::MatchResult &Result) {
   const SourceManager &SM = *Result.SourceManager;
-  const ASTContext *Context = Result.Context;
+  
 
   // Get location of closing parenthesis or 'do' to insert opening brace.
-  if (const auto *S = Result.Nodes.getNodeAs<ForStmt>("for")) {
+  if (const auto *const ASTContext *Context = Result.Context; S = Result.Nodes.getNodeAs<ForStmt>("for")) {
     checkStmt(Result, S->getBody(), S->getRParenLoc());
   } else if (const auto *S =
                  Result.Nodes.getNodeAs<CXXForRangeStmt>("for-range")) {
@@ -159,9 +159,9 @@ bool BracesAroundStatementsCheck::checkStmt(
         BraceInsertionHints.resultingCompoundLineExtent(*Result.SourceManager) <
             ShortStatementLines)
       return false;
-    auto Diag = diag(BraceInsertionHints.DiagnosticPos,
-                     "statement should be inside braces");
-    if (BraceInsertionHints.offersFixIts())
+    
+    if (auto Diag = diag(BraceInsertionHints.DiagnosticPos,
+                     "statement should be inside braces"); BraceInsertionHints.offersFixIts())
       Diag << BraceInsertionHints.openingBraceFixIt()
            << BraceInsertionHints.closingBraceFixIt();
   }

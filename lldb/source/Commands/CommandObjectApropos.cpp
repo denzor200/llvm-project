@@ -27,11 +27,11 @@ CommandObjectApropos::CommandObjectApropos(CommandInterpreter &interpreter)
 CommandObjectApropos::~CommandObjectApropos() = default;
 
 void CommandObjectApropos::DoExecute(Args &args, CommandReturnObject &result) {
-  const size_t argc = args.GetArgumentCount();
+  
 
-  if (argc == 1) {
-    auto search_word = args[0].ref();
-    if (!search_word.empty()) {
+  if (const size_t argc = args.GetArgumentCount(); argc == 1) {
+    
+    if (auto search_word = args[0].ref(); !search_word.empty()) {
       // The bulk of the work must be done inside the Command Interpreter,
       // since the command dictionary is private.
       StringList commands_found;
@@ -59,9 +59,9 @@ void CommandObjectApropos::DoExecute(Args &args, CommandReturnObject &result) {
       }
 
       std::vector<const Property *> properties;
-      const size_t num_properties =
-          GetDebugger().Apropos(search_word, properties);
-      if (num_properties) {
+      
+      if (const size_t num_properties =
+          GetDebugger().Apropos(search_word, properties); num_properties) {
         const bool dump_qualified_name = true;
         result.AppendMessageWithFormatv(
             "\nThe following settings variables may relate to '{0}': \n\n",

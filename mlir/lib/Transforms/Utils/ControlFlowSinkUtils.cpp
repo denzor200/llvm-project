@@ -151,8 +151,8 @@ void mlir::getSinglyExecutedRegionsToSink(RegionBranchOpInterface branch,
   // For a simple control-flow sink, only consider regions that are executed at
   // most once.
   for (auto it : llvm::zip(branch->getRegions(), bounds)) {
-    const InvocationBounds &bound = std::get<1>(it);
-    if (bound.getUpperBound() && *bound.getUpperBound() <= 1)
+    
+    if (const InvocationBounds &bound = std::get<1>(it); bound.getUpperBound() && *bound.getUpperBound() <= 1)
       regions.push_back(&std::get<0>(it));
   }
 }

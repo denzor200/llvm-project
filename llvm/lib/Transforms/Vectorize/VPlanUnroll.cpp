@@ -290,16 +290,16 @@ void UnrollState::unrollRecipeByUF(VPRecipeBase &R) {
     Copy->insertBefore(VPBB, InsertPt);
     addRecipeForPart(&R, Copy, Part);
 
-    VPValue *Op;
-    if (match(&R, m_VPInstruction<VPInstruction::FirstOrderRecurrenceSplice>(
+    
+    if (VPValue *Op; match(&R, m_VPInstruction<VPInstruction::FirstOrderRecurrenceSplice>(
                       m_VPValue(), m_VPValue(Op)))) {
       Copy->setOperand(0, getValueForPart(Op, Part - 1));
       Copy->setOperand(1, getValueForPart(Op, Part));
       continue;
     }
     if (auto *Red = dyn_cast<VPReductionRecipe>(&R)) {
-      auto *Phi = dyn_cast<VPReductionPHIRecipe>(R.getOperand(0));
-      if (Phi && Phi->isOrdered()) {
+      
+      if (auto *Phi = dyn_cast<VPReductionPHIRecipe>(R.getOperand(0)); Phi && Phi->isOrdered()) {
         auto &Parts = VPV2Parts[Phi];
         if (Part == 1) {
           Parts.clear();
@@ -325,8 +325,8 @@ void UnrollState::unrollRecipeByUF(VPRecipeBase &R) {
 }
 
 void UnrollState::unrollBlock(VPBlockBase *VPB) {
-  auto *VPR = dyn_cast<VPRegionBlock>(VPB);
-  if (VPR) {
+  
+  if (auto *VPR = dyn_cast<VPRegionBlock>(VPB); VPR) {
     if (VPR->isReplicator())
       return unrollReplicateRegionByUF(VPR);
 
@@ -417,8 +417,8 @@ void VPlanTransforms::unrollByUF(VPlan &Plan, unsigned UF) {
     // Remove recipes that are redundant after unrolling.
     for (VPBasicBlock *VPBB : VPBlockUtils::blocksOnly<VPBasicBlock>(Iter)) {
       for (VPRecipeBase &R : make_early_inc_range(*VPBB)) {
-        auto *VPI = dyn_cast<VPInstruction>(&R);
-        if (VPI &&
+        
+        if (auto *VPI = dyn_cast<VPInstruction>(&R); VPI &&
             VPI->getOpcode() == VPInstruction::CanonicalIVIncrementForPart &&
             VPI->getNumOperands() == 1) {
           VPI->replaceAllUsesWith(VPI->getOperand(0));
@@ -472,8 +472,8 @@ static VPValue *
 cloneForLane(VPlan &Plan, VPBuilder &Builder, Type *IdxTy,
              VPSingleDefRecipe *DefR, VPLane Lane,
              const DenseMap<VPValue *, SmallVector<VPValue *>> &Def2LaneDefs) {
-  VPValue *Op;
-  if (match(DefR, m_VPInstruction<VPInstruction::Unpack>(m_VPValue(Op)))) {
+  
+  if (VPValue *Op; match(DefR, m_VPInstruction<VPInstruction::Unpack>(m_VPValue(Op)))) {
     auto LaneDefs = Def2LaneDefs.find(Op);
     if (LaneDefs != Def2LaneDefs.end())
       return LaneDefs->second[Lane.getKnownLane()];

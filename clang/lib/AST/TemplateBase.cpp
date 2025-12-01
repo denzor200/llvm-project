@@ -182,8 +182,8 @@ void TemplateArgument::initFromIntegral(const ASTContext &Ctx,
   Integer.BitWidth = Value.getBitWidth();
   Integer.IsUnsigned = Value.isUnsigned();
   // If the value is large, we have to get additional memory from the ASTContext
-  unsigned NumWords = Value.getNumWords();
-  if (NumWords > 1) {
+  
+  if (unsigned NumWords = Value.getNumWords(); NumWords > 1) {
     void *Mem = Ctx.Allocate(NumWords * sizeof(uint64_t));
     std::memcpy(Mem, Value.getRawData(), NumWords * sizeof(uint64_t));
     Integer.pVal = static_cast<uint64_t *>(Mem);
@@ -259,8 +259,8 @@ TemplateArgument::CreatePackCopy(ASTContext &Context,
 }
 
 TemplateArgumentDependence TemplateArgument::getDependence() const {
-  auto Deps = TemplateArgumentDependence::None;
-  switch (getKind()) {
+  
+  switch (auto Deps = TemplateArgumentDependence::None; getKind()) {
   case Null:
     llvm_unreachable("Should not have a NULL template argument");
 

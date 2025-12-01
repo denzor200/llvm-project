@@ -51,9 +51,9 @@ CreateFrontendBaseAction(CompilerInstance &CI) {
 
   unsigned UseCIR = CI.getFrontendOpts().UseClangIRPipeline;
   frontend::ActionKind Act = CI.getFrontendOpts().ProgramAction;
-  bool EmitsCIR = Act == EmitCIR;
+  
 
-  if (!UseCIR && EmitsCIR)
+  if (bool EmitsCIR = Act == EmitCIR; !UseCIR && EmitsCIR)
     llvm::report_fatal_error("-emit-cir and only valid when using -fclangir");
 
   switch (CI.getFrontendOpts().ProgramAction) {

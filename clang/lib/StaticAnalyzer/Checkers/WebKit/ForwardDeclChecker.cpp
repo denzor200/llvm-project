@@ -166,8 +166,8 @@ public:
       return;
 
     for (auto *Member : RD->fields()) {
-      auto QT = Member->getType();
-      if (isUnknownType(QT)) {
+      
+      if (auto QT = Member->getType(); isUnknownType(QT)) {
         SmallString<100> Buf;
         llvm::raw_svector_ostream Os(Buf);
 
@@ -266,16 +266,16 @@ public:
     while (ArgExpr) {
       ArgExpr = ArgExpr->IgnoreParenCasts();
       if (auto *InnerCE = dyn_cast<CallExpr>(ArgExpr)) {
-        auto *InnerCallee = InnerCE->getDirectCallee();
-        if (InnerCallee && InnerCallee->isInStdNamespace() &&
+        
+        if (auto *InnerCallee = InnerCE->getDirectCallee(); InnerCallee && InnerCallee->isInStdNamespace() &&
             safeGetName(InnerCallee) == "move" && InnerCE->getNumArgs() == 1) {
           ArgExpr = InnerCE->getArg(0);
           continue;
         }
       }
       if (auto *UO = dyn_cast<UnaryOperator>(ArgExpr)) {
-        auto OpCode = UO->getOpcode();
-        if (OpCode == UO_Deref || OpCode == UO_AddrOf) {
+        
+        if (auto OpCode = UO->getOpcode(); OpCode == UO_Deref || OpCode == UO_AddrOf) {
           ArgExpr = UO->getSubExpr();
           continue;
         }
@@ -289,8 +289,8 @@ public:
     }
 
     if (auto *OpCE = dyn_cast<CXXOperatorCallExpr>(ArgExpr)) {
-      auto *Method = dyn_cast_or_null<CXXMethodDecl>(OpCE->getDirectCallee());
-      if (Method && isOwnerPtr(safeGetName(Method->getParent()))) {
+      
+      if (auto *Method = dyn_cast_or_null<CXXMethodDecl>(OpCE->getDirectCallee()); Method && isOwnerPtr(safeGetName(Method->getParent()))) {
         if (OpCE->getOperator() == OO_Star && OpCE->getNumArgs() == 1)
           return;
       }
@@ -307,8 +307,8 @@ public:
       }
     }
 
-    QualType ArgType = Param->getType();
-    if (!isUnknownType(ArgType))
+    
+    if (QualType ArgType = Param->getType(); !isUnknownType(ArgType))
       return;
 
     reportUnknownArgType(Arg, Param, DeclWithIssue);

@@ -103,8 +103,8 @@ static Error validateAndSetOptions(opt::InputArgList &Args, Options &Options) {
     Options.NumThreads = 0; // Use all available hardware threads
 
   if (opt::Arg *Tombstone = Args.getLastArg(OPT_tombstone)) {
-    StringRef S = Tombstone->getValue();
-    if (S == "bfd")
+    
+    if (StringRef S = Tombstone->getValue(); S == "bfd")
       Options.Tombstone = TombstoneKind::BFD;
     else if (S == "maxpc")
       Options.Tombstone = TombstoneKind::MaxPC;
@@ -119,8 +119,8 @@ static Error validateAndSetOptions(opt::InputArgList &Args, Options &Options) {
   }
 
   if (opt::Arg *LinkerKind = Args.getLastArg(OPT_linker)) {
-    StringRef S = LinkerKind->getValue();
-    if (S == "classic")
+    
+    if (StringRef S = LinkerKind->getValue(); S == "classic")
       Options.UseDWARFLinkerParallel = false;
     else if (S == "parallel")
       Options.UseDWARFLinkerParallel = true;
@@ -131,9 +131,9 @@ static Error validateAndSetOptions(opt::InputArgList &Args, Options &Options) {
   }
 
   if (opt::Arg *BuildAccelerator = Args.getLastArg(OPT_build_accelerator)) {
-    StringRef S = BuildAccelerator->getValue();
+    
 
-    if (S == "none")
+    if (StringRef S = BuildAccelerator->getValue(); S == "none")
       Options.AccelTableKind = DwarfUtilAccelKind::None;
     else if (S == "DWARF")
       Options.AccelTableKind = DwarfUtilAccelKind::DWARF;

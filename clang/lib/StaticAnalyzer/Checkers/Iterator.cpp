@@ -28,8 +28,8 @@ bool isIterator(const CXXRecordDecl *CRD) {
   if (!CRD)
     return false;
 
-  const auto Name = CRD->getName();
-  if (!(Name.ends_with_insensitive("iterator") ||
+  
+  if (const auto Name = CRD->getName(); !(Name.ends_with_insensitive("iterator") ||
         Name.ends_with_insensitive("iter") || Name.ends_with_insensitive("it")))
     return false;
 

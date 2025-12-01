@@ -370,8 +370,8 @@ private:
             TargetSymbol = TargetSymbolOrErr->GraphSymbol;
           else
             return TargetSymbolOrErr.takeError();
-          uint32_t Instr = *(const ulittle32_t *)FixupContent;
-          if ((Instr & 0x7fffffff) != 0x14000000)
+          
+          if (uint32_t Instr = *(const ulittle32_t *)FixupContent; (Instr & 0x7fffffff) != 0x14000000)
             return make_error<JITLinkError>("BRANCH26 target is not a B or BL "
                                             "instruction with a zero addend");
           Kind = aarch64::Branch26PCRel;
@@ -417,8 +417,8 @@ private:
             TargetSymbol = TargetSymbolOrErr->GraphSymbol;
           else
             return TargetSymbolOrErr.takeError();
-          uint32_t Instr = *(const ulittle32_t *)FixupContent;
-          if ((Instr & 0xffffffe0) != 0x90000000)
+          
+          if (uint32_t Instr = *(const ulittle32_t *)FixupContent; (Instr & 0xffffffe0) != 0x90000000)
             return make_error<JITLinkError>("PAGE21/GOTPAGE21 target is not an "
                                             "ADRP instruction with a zero "
                                             "addend");
@@ -438,8 +438,8 @@ private:
           else
             return TargetSymbolOrErr.takeError();
           uint32_t Instr = *(const ulittle32_t *)FixupContent;
-          uint32_t EncodedAddend = (Instr & 0x003FFC00) >> 10;
-          if (EncodedAddend != 0)
+          
+          if (uint32_t EncodedAddend = (Instr & 0x003FFC00) >> 10; EncodedAddend != 0)
             return make_error<JITLinkError>("GOTPAGEOFF12 target has non-zero "
                                             "encoded addend");
           Kind = aarch64::PageOffset12;
@@ -451,8 +451,8 @@ private:
             TargetSymbol = TargetSymbolOrErr->GraphSymbol;
           else
             return TargetSymbolOrErr.takeError();
-          uint32_t Instr = *(const ulittle32_t *)FixupContent;
-          if ((Instr & 0xfffffc00) != 0xf9400000)
+          
+          if (uint32_t Instr = *(const ulittle32_t *)FixupContent; (Instr & 0xfffffc00) != 0xf9400000)
             return make_error<JITLinkError>("GOTPAGEOFF12 target is not an LDR "
                                             "immediate instruction with a zero "
                                             "addend");

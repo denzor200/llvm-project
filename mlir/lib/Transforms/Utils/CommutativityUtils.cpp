@@ -148,8 +148,8 @@ struct CommutativeOperand {
     if (!frontAncestor)
       return;
     for (Value operand : frontAncestor->getOperands()) {
-      Operation *operandDefOp = operand.getDefiningOp();
-      if (!operandDefOp || !visitedAncestors.contains(operandDefOp))
+      
+      if (Operation *operandDefOp = operand.getDefiningOp(); !operandDefOp || !visitedAncestors.contains(operandDefOp))
         pushAncestor(operandDefOp);
     }
   }

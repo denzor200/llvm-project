@@ -49,8 +49,8 @@ TEST_F(X86TestBase, TestResumablePipeline) {
     }
 
     // Run the pipeline.
-    Expected<unsigned> Cycles = P->run();
-    if (!Cycles) {
+    
+    if (Expected<unsigned> Cycles = P->run(); !Cycles) {
       // Should be a stream pause error.
       ASSERT_TRUE(Cycles.errorIsA<mca::InstStreamPause>());
       llvm::consumeError(Cycles.takeError());
@@ -92,8 +92,8 @@ TEST_F(X86TestBase, TestInstructionRecycling) {
   auto GetRecycledInst = [&](const mca::InstrDesc &Desc) -> mca::Instruction * {
     auto It = RecycledInsts.find(&Desc);
     if (It != RecycledInsts.end()) {
-      auto &Insts = It->second;
-      if (Insts.size()) {
+      
+      if (auto &Insts = It->second; Insts.size()) {
         mca::Instruction *I = *Insts.begin();
         Insts.erase(I);
         return I;
@@ -138,10 +138,10 @@ TEST_F(X86TestBase, TestInstructionRecycling) {
   // Tile size = 7
   for (unsigned i = 0U, E = MCIs.size(); i < E;) {
     for (unsigned TE = i + 7; i < TE && i < E; ++i) {
-      Expected<std::unique_ptr<mca::Instruction>> InstOrErr =
-          IB.createInstruction(MCIs[i], Instruments);
+      
 
-      if (!InstOrErr) {
+      if (Expected<std::unique_ptr<mca::Instruction>> InstOrErr =
+          IB.createInstruction(MCIs[i], Instruments); !InstOrErr) {
         mca::Instruction *RecycledInst = nullptr;
         // Check if the returned instruction is a recycled
         // one.
@@ -160,8 +160,8 @@ TEST_F(X86TestBase, TestInstructionRecycling) {
     }
 
     // Run the pipeline.
-    Expected<unsigned> Cycles = P->run();
-    if (!Cycles) {
+    
+    if (Expected<unsigned> Cycles = P->run(); !Cycles) {
       // Should be a stream pause error.
       ASSERT_TRUE(Cycles.errorIsA<mca::InstStreamPause>());
       llvm::consumeError(Cycles.takeError());

@@ -359,10 +359,10 @@ FunctionImporter::ImportMapTy::addDefinition(StringRef FromModule,
 
 void FunctionImporter::ImportMapTy::maybeAddDeclaration(
     StringRef FromModule, GlobalValue::GUID GUID) {
-  auto [Def, Decl] = IDs.createImportIDs(FromModule, GUID);
+  
   // Insert Decl only if Def is not present.  Note that a definition takes
   // precedence over a declaration for a given GUID.
-  if (!Imports.contains(Def))
+  if (auto [Def, Decl] = IDs.createImportIDs(FromModule, GUID); !Imports.contains(Def))
     Imports.insert(Decl);
 }
 
@@ -440,8 +440,8 @@ class GlobalsImporter final {
         // than as part of the logic deciding which functions to import (i.e.
         // based on profile information). Should we decide to handle them here,
         // we can refactor accordingly at that time.
-        bool CanImportDecl = false;
-        if (!GVS ||
+        
+        if (bool CanImportDecl = false; !GVS ||
             shouldSkipLocalInAnotherModule(GVS, VI.getSummaryList().size(),
                                            Summary.modulePath()) ||
             !Index.canImportGlobalVar(GVS, /* AnalyzeRefs */ true,
@@ -675,8 +675,8 @@ class WorkloadImportsManager : public ModuleImportsManager {
     StringMap<ValueInfo> NameToValueInfo;
     StringSet<> AmbiguousNames;
     for (auto &I : Index) {
-      ValueInfo VI = Index.getValueInfo(I);
-      if (!NameToValueInfo.insert(std::make_pair(VI.name(), VI)).second)
+      
+      if (ValueInfo VI = Index.getValueInfo(I); !NameToValueInfo.insert(std::make_pair(VI.name(), VI)).second)
         LLVM_DEBUG(AmbiguousNames.insert(VI.name()));
     }
     auto DbgReportIfAmbiguous = [&](StringRef Name) {
@@ -1095,9 +1095,9 @@ void ModuleImportsManager::computeImportForModule(
   while (!Worklist.empty()) {
     auto GVInfo = Worklist.pop_back_val();
     auto *Summary = std::get<0>(GVInfo);
-    auto Threshold = std::get<1>(GVInfo);
+    
 
-    if (auto *FS = dyn_cast<FunctionSummary>(Summary))
+    if (auto *auto Threshold = std::get<1>(GVInfo); FS = dyn_cast<FunctionSummary>(Summary))
       computeImportForFunction(*FS, Threshold, DefinedGVSummaries, Worklist,
                                GVI, ImportList, ImportThresholds);
   }
@@ -1990,8 +1990,8 @@ Expected<bool> FunctionImporter::importFunctions(
           if (Error Err = GA.materialize())
             return std::move(Err);
           // Import alias as a copy of its aliasee.
-          GlobalObject *GO = GA.getAliaseeObject();
-          if (Error Err = GO->materialize())
+          
+          if (Error GlobalObject *GO = GA.getAliaseeObject(); Err = GO->materialize())
             return std::move(Err);
           auto *Fn = replaceAliasWithAliasee(SrcModule.get(), &GA);
           LLVM_DEBUG(dbgs() << "Is importing aliasee fn " << GO->getGUID()

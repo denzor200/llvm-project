@@ -168,12 +168,12 @@ public:
       SymbolNameVector MissingSymbols;
       for (auto &[Sym, Flags] : MR->getSymbols()) {
 
-        auto I = InternedResult.find(Sym);
+        
 
         // If this is a materialization-side-effects only symbol then bump
         // the counter and remove in from the result, otherwise make sure that
         // it's defined.
-        if (Flags.hasMaterializationSideEffectsOnly())
+        if (auto I = InternedResult.find(Sym); Flags.hasMaterializationSideEffectsOnly())
           ++NumMaterializationSideEffectsOnlySymbols;
         else if (I == InternedResult.end())
           MissingSymbols.push_back(Sym);
@@ -445,8 +445,8 @@ private:
           SDG.Symbols.insert(Def->getName());
 
         for (auto *Dep : BI.SymbolDeps) {
-          auto DepName = Dep->getName();
-          if (Dep->isDefined())
+          
+          if (auto DepName = Dep->getName(); Dep->isDefined())
             SDG.Dependencies[&TargetJD].insert(std::move(DepName));
           else {
             auto SourceJDItr =
@@ -542,8 +542,8 @@ Error LinkGraphLinkingLayer::handleRemoveResources(JITDylib &JD,
 
   std::vector<FinalizedAlloc> AllocsToRemove;
   getExecutionSession().runSessionLocked([&] {
-    auto I = Allocs.find(K);
-    if (I != Allocs.end()) {
+    
+    if (auto I = Allocs.find(K); I != Allocs.end()) {
       std::swap(AllocsToRemove, I->second);
       Allocs.erase(I);
     }

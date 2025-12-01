@@ -65,8 +65,8 @@ static void rank(std::vector<SymbolAndSignals> &Symbols,
   llvm::sort(Symbols,
              [&](const SymbolAndSignals &A, const SymbolAndSignals &B) {
                auto AS = Score[A.Symbol.getFilePath()];
-               auto BS = Score[B.Symbol.getFilePath()];
-               if (AS != BS)
+               
+               if (auto BS = Score[B.Symbol.getFilePath()]; AS != BS)
                  return AS > BS;
                return A.Symbol.getFilePath() < B.Symbol.getFilePath();
              });

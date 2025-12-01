@@ -74,10 +74,10 @@ class PPCBoolRetToInt : public FunctionPass {
     Defs.insert(V);
     while (!WorkList.empty()) {
       Value *Curr = WorkList.pop_back_val();
-      auto *CurrUser = dyn_cast<User>(Curr);
+      
       // Operands of CallInst/Constant are skipped because they may not be Bool
       // type. For CallInst, their positions are defined by ABI.
-      if (CurrUser && !isa<CallInst>(Curr) && !isa<Constant>(Curr))
+      if (auto *CurrUser = dyn_cast<User>(Curr); CurrUser && !isa<CallInst>(Curr) && !isa<Constant>(Curr))
         for (auto &Op : CurrUser->operands())
           if (Defs.insert(Op).second)
             WorkList.push_back(Op);
@@ -238,8 +238,8 @@ class PPCBoolRetToInt : public FunctionPass {
     ++NumBoolToIntPromotion;
 
     for (Value *V : Defs) {
-      auto [It, Inserted] = BoolToIntMap.try_emplace(V);
-      if (Inserted)
+      
+      if (auto [It, Inserted] = BoolToIntMap.try_emplace(V); Inserted)
         It->second = translate(V);
     }
 

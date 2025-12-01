@@ -65,9 +65,9 @@ std::vector<Hinted<SymbolLocation>> locateMacro(const Macro &M,
 
 std::vector<Hinted<SymbolLocation>> locateSymbol(const Symbol &S,
                                                  const LangOptions &LO) {
-  const auto L = !LO.CPlusPlus && LO.C99 ? tooling::stdlib::Lang::C
-                                         : tooling::stdlib::Lang::CXX;
-  switch (S.kind()) {
+  
+  switch (const auto L = !LO.CPlusPlus && LO.C99 ? tooling::stdlib::Lang::C
+                                         : tooling::stdlib::Lang::CXX; S.kind()) {
   case Symbol::Declaration:
     return locateDecl(S.declaration());
   case Symbol::Macro:

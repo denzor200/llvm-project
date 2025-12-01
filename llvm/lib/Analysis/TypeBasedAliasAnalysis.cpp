@@ -340,9 +340,9 @@ public:
 
     for (unsigned Idx = FirstFieldOpNo; Idx < NumOperands;
          Idx += NumOpsPerField) {
-      uint64_t Cur =
-          mdconst::extract<ConstantInt>(Operands[Idx + 1])->getZExtValue();
-      if (Cur > Offset) {
+      
+      if (uint64_t Cur =
+          mdconst::extract<ConstantInt>(Operands[Idx + 1])->getZExtValue(); Cur > Offset) {
         assert(Idx >= FirstFieldOpNo + NumOpsPerField &&
                "TBAAStructTypeNode::getField should have an offset match!");
         TheIdx = Idx - NumOpsPerField;
@@ -590,8 +590,8 @@ static const MDNode *createAccessTag(const MDNode *AccessType) {
 static bool hasField(TBAAStructTypeNode BaseType,
                      TBAAStructTypeNode FieldType) {
   for (unsigned I = 0, E = BaseType.getNumFields(); I != E; ++I) {
-    TBAAStructTypeNode T = BaseType.getFieldType(I);
-    if (T == FieldType || hasField(T, FieldType))
+    
+    if (TBAAStructTypeNode T = BaseType.getFieldType(I); T == FieldType || hasField(T, FieldType))
       return true;
   }
   return false;
@@ -661,8 +661,8 @@ static bool mayBeAccessToSubobjectOf(TBAAStructTagNode BaseTag,
   // we support aggregates as access types.
   if (NewFormat) {
     // TBAAStructTypeNode BaseAccessType(BaseTag.getAccessType());
-    TBAAStructTypeNode FieldType(SubobjectTag.getBaseType());
-    if (hasField(BaseType, FieldType)) {
+    
+    if (TBAAStructTypeNode FieldType(SubobjectTag.getBaseType()); hasField(BaseType, FieldType)) {
       if (GenericTag)
         *GenericTag = createAccessTag(CommonType);
       MayAlias = true;
@@ -848,8 +848,8 @@ MDNode *AAMDNodes::extendToTBAA(MDNode *MD, ssize_t Len) {
 
 AAMDNodes AAMDNodes::adjustForAccess(unsigned AccessSize) {
   AAMDNodes New = *this;
-  MDNode *M = New.TBAAStruct;
-  if (!New.TBAA && M && M->getNumOperands() >= 3 && M->getOperand(0) &&
+  
+  if (MDNode *M = New.TBAAStruct; !New.TBAA && M && M->getNumOperands() >= 3 && M->getOperand(0) &&
       mdconst::hasa<ConstantInt>(M->getOperand(0)) &&
       mdconst::extract<ConstantInt>(M->getOperand(0))->isZero() &&
       M->getOperand(1) && mdconst::hasa<ConstantInt>(M->getOperand(1)) &&

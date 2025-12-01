@@ -643,9 +643,9 @@ llvm::Error Interpreter::CreateExecutor(JITConfig Config) {
 
   const std::string &TT = getCompilerInstance()->getTargetOpts().Triple;
   llvm::Triple TargetTriple(TT);
-  bool IsWindowsTarget = TargetTriple.isOSWindows();
+  
 
-  if (!IsWindowsTarget && Config.IsOutOfProcess) {
+  if (bool IsWindowsTarget = TargetTriple.isOSWindows(); !IsWindowsTarget && Config.IsOutOfProcess) {
     if (!JITBuilder) {
       auto ResOrErr = outOfProcessJITBuilder(Config);
       if (!ResOrErr)
@@ -700,8 +700,8 @@ llvm::Error Interpreter::Execute(PartialTranslationUnit &T) {
                    << ": [TU=" << T.TUPart << ", M=" << T.TheModule.get()
                    << " (" << T.TheModule->getName() << ")]\n");
   if (!IncrExecutor) {
-    auto Err = CreateExecutor();
-    if (Err)
+    
+    if (auto Err = CreateExecutor(); Err)
       return Err;
   }
   // FIXME: Add a callback to retain the llvm::Module once the JIT is done.

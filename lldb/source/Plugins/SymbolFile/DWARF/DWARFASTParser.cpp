@@ -29,8 +29,8 @@ DWARFASTParser::ParseChildArrayInfo(const DWARFDIE &parent_die,
     return std::nullopt;
 
   for (DWARFDIE die : parent_die.children()) {
-    const dw_tag_t tag = die.Tag();
-    if (tag != DW_TAG_subrange_type)
+    
+    if (const dw_tag_t tag = die.Tag(); tag != DW_TAG_subrange_type)
       continue;
 
     DWARFAttributes attributes = die.GetAttributes();
@@ -43,8 +43,8 @@ DWARFASTParser::ParseChildArrayInfo(const DWARFDIE &parent_die,
     bool upper_bound_valid = false;
     for (size_t i = 0; i < attributes.Size(); ++i) {
       const dw_attr_t attr = attributes.AttributeAtIndex(i);
-      DWARFFormValue form_value;
-      if (attributes.ExtractFormValueAtIndex(i, form_value)) {
+      
+      if (DWARFFormValue form_value; attributes.ExtractFormValueAtIndex(i, form_value)) {
         switch (attr) {
         case DW_AT_name:
           break;
@@ -56,9 +56,9 @@ DWARFASTParser::ParseChildArrayInfo(const DWARFDIE &parent_die,
                 if (auto frame = exe_ctx->GetFrameSP()) {
                   Status error;
                   lldb::VariableSP var_sp;
-                  auto valobj_sp = frame->GetValueForVariableExpressionPath(
-                      var_die.GetName(), eNoDynamicValues, 0, var_sp, error);
-                  if (valobj_sp) {
+                  
+                  if (auto valobj_sp = frame->GetValueForVariableExpressionPath(
+                      var_die.GetName(), eNoDynamicValues, 0, var_sp, error); valobj_sp) {
                     num_elements = valobj_sp->GetValueAsUnsigned(0);
                     break;
                   }
@@ -116,9 +116,9 @@ Type *DWARFASTParser::GetTypeForDIE(const DWARFDIE &die) {
   DWARFFormValue type_die_form;
   for (size_t i = 0; i < attributes.Size(); ++i) {
     dw_attr_t attr = attributes.AttributeAtIndex(i);
-    DWARFFormValue form_value;
+    
 
-    if (attr == DW_AT_type && attributes.ExtractFormValueAtIndex(i, form_value))
+    if (DWARFFormValue form_value; attr == DW_AT_type && attributes.ExtractFormValueAtIndex(i, form_value))
       return dwarf->ResolveTypeUID(form_value.Reference(), true);
   }
 

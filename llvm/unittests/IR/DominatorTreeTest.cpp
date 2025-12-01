@@ -941,8 +941,8 @@ TEST(DominatorTree, InsertDelete) {
   std::optional<CFGBuilder::Update> LastUpdate;
   while ((LastUpdate = B.applyUpdate())) {
     BasicBlock *From = B.getOrAddBlock(LastUpdate->Edge.From);
-    BasicBlock *To = B.getOrAddBlock(LastUpdate->Edge.To);
-    if (LastUpdate->Action == Insert) {
+    
+    if (BasicBlock *To = B.getOrAddBlock(LastUpdate->Edge.To); LastUpdate->Action == Insert) {
       DT.insertEdge(From, To);
       PDT.insertEdge(From, To);
     } else {
@@ -979,8 +979,8 @@ TEST(DominatorTree, InsertDeleteExhaustive) {
     std::optional<CFGBuilder::Update> LastUpdate;
     while ((LastUpdate = B.applyUpdate())) {
       BasicBlock *From = B.getOrAddBlock(LastUpdate->Edge.From);
-      BasicBlock *To = B.getOrAddBlock(LastUpdate->Edge.To);
-      if (LastUpdate->Action == Insert) {
+      
+      if (BasicBlock *To = B.getOrAddBlock(LastUpdate->Edge.To); LastUpdate->Action == Insert) {
         DT.insertEdge(From, To);
         PDT.insertEdge(From, To);
       } else {

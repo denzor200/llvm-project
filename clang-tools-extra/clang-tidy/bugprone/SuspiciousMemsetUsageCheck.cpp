@@ -106,8 +106,8 @@ void SuspiciousMemsetUsageCheck::check(const MatchFinder::MatchResult &Result) {
     Expr::EvalResult EVResult;
     if (!FillChar->isValueDependent() &&
         FillChar->EvaluateAsInt(EVResult, *Result.Context)) {
-      const llvm::APSInt Value1 = EVResult.Val.getInt();
-      if (Value1 == 0 || Value1.isNegative())
+      
+      if (const llvm::APSInt Value1 = EVResult.Val.getInt(); Value1 == 0 || Value1.isNegative())
         return;
     }
 

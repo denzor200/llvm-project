@@ -169,9 +169,9 @@ bool SBTypeEnumMember::GetDescription(
     lldb::SBStream &description, lldb::DescriptionLevel description_level) {
   LLDB_INSTRUMENT_VA(this, description, description_level);
 
-  Stream &strm = description.ref();
+  
 
-  if (m_opaque_sp.get()) {
+  if (Stream &strm = description.ref(); m_opaque_sp.get()) {
     if (m_opaque_sp->GetIntegerType()->GetDescription(strm,
                                                       description_level)) {
       strm.Printf(" %s", m_opaque_sp->GetName().GetCString());

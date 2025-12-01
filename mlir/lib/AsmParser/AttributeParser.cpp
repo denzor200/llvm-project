@@ -194,8 +194,8 @@ Attribute Parser::parseAttribute(Type type) {
         break;
       }
       // Parse the reference itself.
-      auto curLoc = getToken().getLoc();
-      if (getToken().isNot(Token::at_identifier)) {
+      
+      if (auto curLoc = getToken().getLoc(); getToken().isNot(Token::at_identifier)) {
         emitError(curLoc, "expected nested symbol reference identifier");
         return Attribute();
       }
@@ -361,8 +361,8 @@ static std::optional<APInt> buildAttributeAPInt(Type type, bool isNegative,
                                                 StringRef spelling) {
   // Parse the integer value into an APInt that is big enough to hold the value.
   APInt result;
-  bool isHex = spelling.size() > 1 && spelling[1] == 'x';
-  if (spelling.getAsInteger(isHex ? 0 : 10, result))
+  
+  if (bool isHex = spelling.size() > 1 && spelling[1] == 'x'; spelling.getAsInteger(isHex ? 0 : 10, result))
     return std::nullopt;
 
   // Extend or truncate the bitwidth to the right size.
@@ -568,8 +568,8 @@ DenseElementsAttr TensorLiteralParser::getAttr(SMLoc loc, ShapedType type) {
     isComplex = true;
     // Complex types have N*2 elements or complex splat.
     // Empty shape may mean a splat or empty literal, only validate splats.
-    bool isSplat = shape.empty() && type.getNumElements() != 0;
-    if (isSplat && storage.size() != 2) {
+    
+    if (bool isSplat = shape.empty() && type.getNumElements() != 0; isSplat && storage.size() != 2) {
       p.emitError(loc) << "parsed " << storage.size() << " elements, but type ("
                        << complexTy << ") expected 2 elements";
       return nullptr;
@@ -705,8 +705,8 @@ DenseElementsAttr TensorLiteralParser::getStringAttr(SMLoc loc, ShapedType type,
 
 /// Build a Dense attribute with hex data for the given type.
 DenseElementsAttr TensorLiteralParser::getHexAttr(SMLoc loc, ShapedType type) {
-  Type elementType = type.getElementType();
-  if (!elementType.isIntOrIndexOrFloat() && !isa<ComplexType>(elementType)) {
+  
+  if (Type elementType = type.getElementType(); !elementType.isIntOrIndexOrFloat() && !isa<ComplexType>(elementType)) {
     p.emitError(loc)
         << "expected floating-point, integer, or complex element type, got "
         << elementType;
@@ -875,8 +875,8 @@ ParseResult DenseArrayElementParser::parseIntegerElement(Parser &p) {
 
   // Parse an integer literal as an APInt.
   std::optional<APInt> value;
-  StringRef spelling = p.getToken().getSpelling();
-  if (p.getToken().isAny(Token::kw_true, Token::kw_false)) {
+  
+  if (StringRef spelling = p.getToken().getSpelling(); p.getToken().isAny(Token::kw_true, Token::kw_false)) {
     if (!type.isInteger(1))
       return p.emitError("expected i1 type for 'true' or 'false' values");
     value = APInt(/*numBits=*/8, p.getToken().is(Token::kw_true),
@@ -1138,9 +1138,9 @@ Attribute Parser::parseStridedLayoutAttr() {
       return std::nullopt;
     };
 
-    bool negative = consumeIf(Token::minus);
+    
 
-    if (getToken().is(Token::integer)) {
+    if (bool negative = consumeIf(Token::minus); getToken().is(Token::integer)) {
       std::optional<uint64_t> value = getToken().getUInt64IntegerValue();
       if (!value ||
           *value > static_cast<uint64_t>(std::numeric_limits<int64_t>::max()))

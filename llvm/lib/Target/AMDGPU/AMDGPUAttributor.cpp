@@ -249,8 +249,8 @@ private:
     uint8_t Status = NONE;
 
     if (CE->getOpcode() == Instruction::AddrSpaceCast) {
-      unsigned SrcAS = CE->getOperand(0)->getType()->getPointerAddressSpace();
-      if (SrcAS == AMDGPUAS::PRIVATE_ADDRESS)
+      
+      if (unsigned SrcAS = CE->getOperand(0)->getType()->getPointerAddressSpace(); SrcAS == AMDGPUAS::PRIVATE_ADDRESS)
         Status |= ADDR_SPACE_CAST_PRIVATE_TO_FLAT;
       else if (SrcAS == AMDGPUAS::LOCAL_ADDRESS)
         Status |= ADDR_SPACE_CAST_LOCAL_TO_FLAT;
@@ -384,9 +384,9 @@ struct AAUniformWorkGroupSizeFunction : public AAUniformWorkGroupSize {
 
   void initialize(Attributor &A) override {
     Function *F = getAssociatedFunction();
-    CallingConv::ID CC = F->getCallingConv();
+    
 
-    if (CC != CallingConv::AMDGPU_KERNEL)
+    if (CallingConv::ID CC = F->getCallingConv(); CC != CallingConv::AMDGPU_KERNEL)
       return;
 
     bool InitialValue = false;
@@ -420,8 +420,8 @@ struct AAUniformWorkGroupSizeFunction : public AAUniformWorkGroupSize {
       return true;
     };
 
-    bool AllCallSitesKnown = true;
-    if (!A.checkForAllCallSites(CheckCallSite, *this, true, AllCallSitesKnown))
+    
+    if (bool AllCallSitesKnown = true; !A.checkForAllCallSites(CheckCallSite, *this, true, AllCallSitesKnown))
       return indicatePessimisticFixpoint();
 
     return Change;
@@ -644,8 +644,8 @@ private:
     bool NeedsQueuePtr = false;
 
     auto CheckAddrSpaceCasts = [&](Instruction &I) {
-      unsigned SrcAS = static_cast<AddrSpaceCastInst &>(I).getSrcAddressSpace();
-      if (castRequiresQueuePtr(SrcAS)) {
+      
+      if (unsigned SrcAS = static_cast<AddrSpaceCastInst &>(I).getSrcAddressSpace(); castRequiresQueuePtr(SrcAS)) {
         NeedsQueuePtr = true;
         return false;
       }
@@ -862,8 +862,8 @@ struct AAAMDSizeRangeAttribute
       return true;
     };
 
-    bool AllCallSitesKnown = true;
-    if (!A.checkForAllCallSites(CheckCallSite, *this,
+    
+    if (bool AllCallSitesKnown = true; !A.checkForAllCallSites(CheckCallSite, *this,
                                 /*RequireAllCallSites=*/true,
                                 AllCallSitesKnown))
       return indicatePessimisticFixpoint();
@@ -1067,8 +1067,8 @@ struct AAAMDMaxNumWorkgroups
       return true;
     };
 
-    bool AllCallSitesKnown = true;
-    if (!A.checkForAllCallSites(CheckCallSite, *this,
+    
+    if (bool AllCallSitesKnown = true; !A.checkForAllCallSites(CheckCallSite, *this,
                                 /*RequireAllCallSites=*/true,
                                 AllCallSitesKnown))
       return indicatePessimisticFixpoint();
@@ -1135,10 +1135,10 @@ struct AAAMDWavesPerEU : public AAAMDSizeRangeAttribute {
 
   void initialize(Attributor &A) override {
     Function *F = getAssociatedFunction();
-    auto &InfoCache = static_cast<AMDGPUInformationCache &>(A.getInfoCache());
+    
 
     // If the attribute exists, we will honor it if it is not the default.
-    if (auto Attr = InfoCache.getWavesPerEUAttr(*F)) {
+    if (auto auto &InfoCache = static_cast<AMDGPUInformationCache &>(A.getInfoCache()); Attr = InfoCache.getWavesPerEUAttr(*F)) {
       std::pair<unsigned, unsigned> MaxWavesPerEURange{
           1U, InfoCache.getMaxWavesPerEU(*F)};
       if (*Attr != MaxWavesPerEURange) {
@@ -1184,8 +1184,8 @@ struct AAAMDWavesPerEU : public AAAMDSizeRangeAttribute {
       return true;
     };
 
-    bool AllCallSitesKnown = true;
-    if (!A.checkForAllCallSites(CheckCallSite, *this, true, AllCallSitesKnown))
+    
+    if (bool AllCallSitesKnown = true; !A.checkForAllCallSites(CheckCallSite, *this, true, AllCallSitesKnown))
       return indicatePessimisticFixpoint();
 
     return Change;
@@ -1343,9 +1343,9 @@ struct AAAMDGPUMinAGPRAlloc
     // assembly and special intrinsics.
     auto CheckForMinAGPRAllocs = [&](Instruction &I) {
       const auto &CB = cast<CallBase>(I);
-      const Value *CalleeOp = CB.getCalledOperand();
+      
 
-      if (const InlineAsm *IA = dyn_cast<InlineAsm>(CalleeOp)) {
+      if (const InlineAsm *const Value *CalleeOp = CB.getCalledOperand(); IA = dyn_cast<InlineAsm>(CalleeOp)) {
         // Technically, the inline asm could be invoking a call to an unknown
         // external function that requires AGPRs, but ignore that.
         unsigned NumRegs = inlineAsmGetNumRequiredAGPRs(IA, CB);
@@ -1401,8 +1401,8 @@ struct AAAMDGPUMinAGPRAlloc
       return true;
     };
 
-    bool UsedAssumedInformation = false;
-    if (!A.checkForAllCallLikeInstructions(CheckForMinAGPRAllocs, *this,
+    
+    if (bool UsedAssumedInformation = false; !A.checkForAllCallLikeInstructions(CheckForMinAGPRAllocs, *this,
                                            UsedAssumedInformation))
       return indicatePessimisticFixpoint();
 
@@ -1508,8 +1508,8 @@ struct AAAMDGPUClusterDimsFunction : public AAAMDGPUClusterDims {
       return merge(CallerAA->getClusterDims());
     };
 
-    bool UsedAssumedInformation = false;
-    if (!A.checkForAllCallSites(CheckCallSite, *this,
+    
+    if (bool UsedAssumedInformation = false; !A.checkForAllCallSites(CheckCallSite, *this,
                                 /*RequireAllCallSites=*/true,
                                 UsedAssumedInformation))
       return indicatePessimisticFixpoint();
@@ -1634,8 +1634,8 @@ static bool runImpl(Module &M, AnalysisGetter &AG, TargetMachine &TM,
     A.getOrCreateAAFor<AAAMDAttributes>(IRPosition::function(*F));
     A.getOrCreateAAFor<AAUniformWorkGroupSize>(IRPosition::function(*F));
     A.getOrCreateAAFor<AAAMDMaxNumWorkgroups>(IRPosition::function(*F));
-    CallingConv::ID CC = F->getCallingConv();
-    if (!AMDGPU::isEntryFunctionCC(CC)) {
+    
+    if (CallingConv::ID CC = F->getCallingConv(); !AMDGPU::isEntryFunctionCC(CC)) {
       A.getOrCreateAAFor<AAAMDFlatWorkGroupSize>(IRPosition::function(*F));
       A.getOrCreateAAFor<AAAMDWavesPerEU>(IRPosition::function(*F));
     }

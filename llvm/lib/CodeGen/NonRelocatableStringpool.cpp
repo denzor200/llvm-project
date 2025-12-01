@@ -13,8 +13,8 @@ using namespace llvm;
 
 DwarfStringPoolEntryRef NonRelocatableStringpool::getEntry(StringRef S) {
   auto I = Strings.try_emplace(S);
-  auto &Entry = I.first->second;
-  if (I.second || !Entry.isIndexed()) {
+  
+  if (auto &Entry = I.first->second; I.second || !Entry.isIndexed()) {
     Entry.Index = NumEntries++;
     Entry.Offset = CurrentEndOffset;
     Entry.Symbol = nullptr;

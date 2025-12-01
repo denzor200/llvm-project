@@ -140,8 +140,8 @@ int main(int argc, char **argv) {
 
   if (!DisableVerify) {
     std::string ErrorStr;
-    raw_string_ostream OS(ErrorStr);
-    if (verifyModule(*M, &OS)) {
+    
+    if (raw_string_ostream OS(ErrorStr); verifyModule(*M, &OS)) {
       errs() << argv[0]
              << ": assembly parsed, but does not verify as correct!\n";
       errs() << OS.str();

@@ -168,8 +168,8 @@ ExtractFunction::createSourceReplacements(RefactoringRuleContext &Context) {
     if (Semicolons.isNeededInExtractedFunction())
       OS << ';';
     OS << "\n}\n\n";
-    auto Err = Change.insert(SM, ExtractedDeclLocation, OS.str());
-    if (Err)
+    
+    if (auto Err = Change.insert(SM, ExtractedDeclLocation, OS.str()); Err)
       return std::move(Err);
   }
 

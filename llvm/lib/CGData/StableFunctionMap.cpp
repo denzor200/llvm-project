@@ -182,8 +182,8 @@ removeIdenticalIndexPair(StableFunctionMap::StableFunctionEntries &SFS) {
     bool Identical = true;
     for (unsigned J = 1; J < StableFunctionCount; ++J) {
       auto &SF = SFS[J];
-      const auto &SHash = SF->IndexOperandHashMap->at(Pair);
-      if (Hash != SHash) {
+      
+      if (const auto &SHash = SF->IndexOperandHashMap->at(Pair); Hash != SHash) {
         Identical = false;
         break;
       }
@@ -270,8 +270,8 @@ void StableFunctionMap::finalize(bool SkipTrim) {
         break;
       }
       for (auto &P : *RSF->IndexOperandHashMap) {
-        auto &InstOpndIndex = P.first;
-        if (!SF->IndexOperandHashMap->count(InstOpndIndex)) {
+        
+        if (auto &InstOpndIndex = P.first; !SF->IndexOperandHashMap->count(InstOpndIndex)) {
           Invalid = true;
           break;
         }

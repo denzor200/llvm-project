@@ -204,10 +204,10 @@ void elf::addReservedSymbols(Ctx &ctx) {
   // the .got section.
   // We do not allow _GLOBAL_OFFSET_TABLE_ to be defined by input objects as the
   // correctness of some relocations depends on its value.
-  StringRef gotSymName =
-      (ctx.arg.emachine == EM_PPC64) ? ".TOC." : "_GLOBAL_OFFSET_TABLE_";
+  
 
-  if (Symbol *s = ctx.symtab->find(gotSymName)) {
+  if (Symbol *StringRef gotSymName =
+      (ctx.arg.emachine == EM_PPC64) ? ".TOC." : "_GLOBAL_OFFSET_TABLE_"; s = ctx.symtab->find(gotSymName)) {
     if (s->isDefined()) {
       ErrAlways(ctx) << s->file << " cannot redefine linker defined symbol '"
                      << gotSymName << "'";
@@ -290,8 +290,8 @@ static void demoteSymbolsAndComputeIsPreemptible(Ctx &ctx) {
       if (d->section && !d->section->isLive())
         demoteDefined(*d, sectionIndexMap[d->file]);
     } else {
-      auto *s = dyn_cast<SharedSymbol>(sym);
-      if (sym->isLazy() || (s && !cast<SharedFile>(s->file)->isNeeded)) {
+      
+      if (auto *s = dyn_cast<SharedSymbol>(sym); sym->isLazy() || (s && !cast<SharedFile>(s->file)->isNeeded)) {
         uint8_t binding = sym->isLazy() ? sym->binding : uint8_t(STB_WEAK);
         Undefined(ctx.internalFile, sym->getName(), binding, sym->stOther,
                   sym->type)
@@ -399,8 +399,8 @@ template <class ELFT, class RelTy>
 static void markUsedLocalSymbolsImpl(ObjFile<ELFT> *file,
                                      llvm::ArrayRef<RelTy> rels) {
   for (const RelTy &rel : rels) {
-    Symbol &sym = file->getRelocTargetSym(rel);
-    if (sym.isLocal())
+    
+    if (Symbol &sym = file->getRelocTargetSym(rel); sym.isLocal())
       sym.used = true;
   }
 }
@@ -426,8 +426,8 @@ template <class ELFT> static void markUsedLocalSymbols(Ctx &ctx) {
         // The is64=true variant also works with ELF32 since only the r_symidx
         // member is used.
         for (Elf_Crel_Impl<true> r : RelocsCrel<true>(isec->content_)) {
-          Symbol &sym = file->getSymbol(r.r_symidx);
-          if (sym.isLocal())
+          
+          if (Symbol &sym = file->getSymbol(r.r_symidx); sym.isLocal())
             sym.used = true;
         }
       }
@@ -776,8 +776,8 @@ unsigned elf::getSectionRank(Ctx &ctx, OutputSection &osec) {
     // that we would like to make sure appear is a specific order to maximize
     // their coverage by a single signed 16-bit offset from the TOC base
     // pointer.
-    StringRef name = osec.name;
-    if (name == ".got")
+    
+    if (StringRef name = osec.name; name == ".got")
       rank |= 1;
     else if (name == ".toc")
       rank |= 2;
@@ -795,8 +795,8 @@ unsigned elf::getSectionRank(Ctx &ctx, OutputSection &osec) {
   if (ctx.arg.emachine == EM_RISCV) {
     // .sdata and .sbss are placed closer to make GP relaxation more profitable
     // and match GNU ld.
-    StringRef name = osec.name;
-    if (name == ".sdata" || (osec.type == SHT_NOBITS && name != ".sbss"))
+    
+    if (StringRef name = osec.name; name == ".sdata" || (osec.type == SHT_NOBITS && name != ".sbss"))
       rank |= 1;
   }
 
@@ -865,8 +865,8 @@ template <class ELFT> void Writer<ELFT>::setReservedSymbolSections() {
   // .rela_iplt_{start,end} mark the start and the end of the section containing
   // IRELATIVE relocations.
   if (ctx.sym.relaIpltStart) {
-    auto &dyn = getIRelativeSection(ctx);
-    if (dyn.isNeeded()) {
+    
+    if (auto &dyn = getIRelativeSection(ctx); dyn.isNeeded()) {
       ctx.sym.relaIpltStart->section = &dyn;
       ctx.sym.relaIpltEnd->section = &dyn;
       ctx.sym.relaIpltEnd->value = dyn.getSize();
@@ -988,12 +988,12 @@ findOrphanPos(Ctx &ctx, SmallVectorImpl<SectionCommand *>::iterator b,
   // As a special case, place .relro_padding before the SymbolAssignment using
   // DATA_SEGMENT_RELRO_END, if present.
   if (ctx.in.relroPadding && sec == ctx.in.relroPadding->getParent()) {
-    auto i = std::find_if(b, e, [=](SectionCommand *a) {
+    
+    if (auto i = std::find_if(b, e, [=](SectionCommand *a) {
       if (auto *assign = dyn_cast<SymbolAssignment>(a))
         return assign->dataSegmentRelroEnd;
       return false;
-    });
-    if (i != e)
+    }); i != e)
       return i;
   }
 
@@ -1006,8 +1006,8 @@ findOrphanPos(Ctx &ctx, SmallVectorImpl<SectionCommand *>::iterator b,
   int maxP = 0;
   auto i = e;
   for (auto j = b; j != e; ++j) {
-    int p = getRankProximity(sec, *j);
-    if (p > maxP ||
+    
+    if (int p = getRankProximity(sec, *j); p > maxP ||
         (p == maxP && cast<OutputDesc>(*j)->osec.sortRank <= sec->sortRank)) {
       maxP = p;
       i = j;
@@ -1071,8 +1071,8 @@ static void maybeShuffle(Ctx &ctx,
     for (InputSectionBase *sec : sections)
       if (patAndSeed.first.match(sec->name))
         matched.push_back(sec);
-    const uint32_t seed = patAndSeed.second;
-    if (seed == UINT32_MAX) {
+    
+    if (const uint32_t seed = patAndSeed.second; seed == UINT32_MAX) {
       // If --shuffle-sections <section-glob>=-1, reverse the section order. The
       // section order is stable even if the number of sections changes. This is
       // useful to catch issues like static initialization order fiasco
@@ -1453,8 +1453,8 @@ template <class ELFT> void Writer<ELFT>::resolveShfLinkOrder() {
       sections.clear();
       for (InputSection *&isec : isd->sections) {
         if (isec->flags & SHF_LINK_ORDER) {
-          InputSection *link = isec->getLinkOrderDep();
-          if (link && !link->getParent())
+          
+          if (InputSection *link = isec->getLinkOrderDep(); link && !link->getParent())
             ErrAlways(ctx) << isec << ": sh_link points to discarded section "
                            << link;
           hasLinkOrder = true;
@@ -1604,9 +1604,9 @@ template <class ELFT> void Writer<ELFT>::finalizeAddressDependentContent() {
         changed |= part.memtagGlobalDescriptors->updateAllocSize(ctx);
     }
 
-    std::pair<const OutputSection *, const Defined *> changes =
-        ctx.script->assignAddresses();
-    if (!changed) {
+    
+    if (std::pair<const OutputSection *, const Defined *> changes =
+        ctx.script->assignAddresses(); !changed) {
       // Some symbols may be dependent on section addresses. When we break the
       // loop, the symbol values are finalized because a previous
       // assignAddresses() finalized section addresses.
@@ -1847,8 +1847,8 @@ template <class ELFT> void Writer<ELFT>::finalizeSections() {
         // Set riscvGlobalPointer to be used by the optional global pointer
         // relaxation.
         if (ctx.arg.relaxGP) {
-          Symbol *s = ctx.symtab->find("__global_pointer$");
-          if (s && s->isDefined())
+          
+          if (Symbol *s = ctx.symtab->find("__global_pointer$"); s && s->isDefined())
             ctx.sym.riscvGlobalPointer = cast<Defined>(s);
         }
       }
@@ -1866,8 +1866,8 @@ template <class ELFT> void Writer<ELFT>::finalizeSections() {
       // 2) is special cased in @tpoff computation. To satisfy 1), we define it
       // as an absolute symbol of zero. This is different from GNU linkers which
       // define _TLS_MODULE_BASE_ relative to the first TLS section.
-      Symbol *s = ctx.symtab->find("_TLS_MODULE_BASE_");
-      if (s && s->isUndefined()) {
+      
+      if (Symbol *s = ctx.symtab->find("_TLS_MODULE_BASE_"); s && s->isUndefined()) {
         s->resolve(ctx, Defined{ctx, ctx.internalFile, StringRef(), STB_GLOBAL,
                                 STV_HIDDEN, STT_TLS, /*value=*/0, 0,
                                 /*section=*/nullptr});
@@ -2025,8 +2025,8 @@ template <class ELFT> void Writer<ELFT>::finalizeSections() {
 
   // Prefer command line supplied address over other constraints.
   for (OutputSection *sec : ctx.outputSections) {
-    auto i = ctx.arg.sectionStartMap.find(sec->name);
-    if (i != ctx.arg.sectionStartMap.end())
+    
+    if (auto i = ctx.arg.sectionStartMap.find(sec->name); i != ctx.arg.sectionStartMap.end())
       sec->addrExpr = [=] { return i->second; };
   }
 
@@ -2256,8 +2256,8 @@ template <class ELFT> void Writer<ELFT>::addStartEndSymbols() {
   auto define = [=](StringRef start, StringRef end, OutputSection *os) {
     if (os) {
       Defined *startSym = addOptionalRegular(ctx, start, os, 0);
-      Defined *stopSym = addOptionalRegular(ctx, end, os, -1);
-      if (startSym || stopSym)
+      
+      if (Defined *stopSym = addOptionalRegular(ctx, end, os, -1); startSym || stopSym)
         os->usedInExpression = true;
     } else {
       addOptionalRegular(ctx, start, ctx.out.elfHeader.get(), 0);
@@ -2865,8 +2865,8 @@ static uint64_t getEntryAddr(Ctx &ctx) {
     return b->getVA(ctx);
 
   // Case 4
-  uint64_t addr;
-  if (to_integer(ctx.arg.entry, addr))
+  
+  if (uint64_t addr; to_integer(ctx.arg.entry, addr))
     return addr;
 
   // Case 5
@@ -2907,8 +2907,8 @@ template <class ELFT> void Writer<ELFT>::writeHeader() {
   // e_shnum = 0, SHdrs[0].sh_size = number of sections.
   // e_shstrndx = SHN_XINDEX, SHdrs[0].sh_link = .shstrtab section index.
   auto *sHdrs = reinterpret_cast<Elf_Shdr *>(ctx.bufferStart + eHdr->e_shoff);
-  size_t num = ctx.outputSections.size() + 1;
-  if (num >= SHN_LORESERVE)
+  
+  if (size_t num = ctx.outputSections.size() + 1; num >= SHN_LORESERVE)
     sHdrs->sh_size = num;
   else
     eHdr->e_shnum = num;
@@ -2927,8 +2927,8 @@ template <class ELFT> void Writer<ELFT>::writeHeader() {
 
 // Open a result file.
 template <class ELFT> void Writer<ELFT>::openFile() {
-  uint64_t maxSize = ctx.arg.is64 ? INT64_MAX : UINT32_MAX;
-  if (fileSize != size_t(fileSize) || maxSize < fileSize) {
+  
+  if (uint64_t maxSize = ctx.arg.is64 ? INT64_MAX : UINT32_MAX; fileSize != size_t(fileSize) || maxSize < fileSize) {
     std::string msg;
     raw_string_ostream s(msg);
     s << "output file too large: " << fileSize << " bytes\n"

@@ -190,8 +190,8 @@ public:
     // If we don't have VSX on the subtarget, don't do anything.
     // Also, on Power 9 the load and store ops preserve element order and so
     // the swaps are not required.
-    const PPCSubtarget &STI = MF.getSubtarget<PPCSubtarget>();
-    if (!STI.hasVSX() || !STI.needsSwapsForVSXMemOps())
+    
+    if (const PPCSubtarget &STI = MF.getSubtarget<PPCSubtarget>(); !STI.hasVSX() || !STI.needsSwapsForVSXMemOps())
       return false;
 
     bool Changed = false;
@@ -251,11 +251,11 @@ bool PPCVSXSwapRemoval::gatherVectorInstructions() {
       for (const MachineOperand &MO : MI.operands()) {
         if (!MO.isReg())
           continue;
-        Register Reg = MO.getReg();
+        
         // All operands need to be checked because there are instructions that
         // operate on a partial register and produce a full register (such as
         // XXPERMDIs).
-        if (isAnyVecReg(Reg, Partial))
+        if (Register Reg = MO.getReg(); isAnyVecReg(Reg, Partial))
           RelevantInstr = true;
       }
 
@@ -268,9 +268,9 @@ bool PPCVSXSwapRemoval::gatherVectorInstructions() {
       // instruction and ID fields before pushing it to the back
       // of the swap vector.
       PPCVSXSwapEntry SwapEntry{};
-      int VecIdx = addSwapEntry(&MI, SwapEntry);
+      
 
-      switch(MI.getOpcode()) {
+      switch(int VecIdx = addSwapEntry(&MI, SwapEntry); MI.getOpcode()) {
       default:
         // Unless noted otherwise, an instruction is considered
         // safe for the optimization.  There are a large number of
@@ -291,8 +291,8 @@ bool PPCVSXSwapRemoval::gatherVectorInstructions() {
         // SUBREG_TO_REG to find the real source value for comparison.
         // If the real source value is a physical register, then mark the
         // XXPERMDI as mentioning a physical register.
-        int immed = MI.getOperand(3).getImm();
-        if (immed == 2) {
+        
+        if (int immed = MI.getOperand(3).getImm(); immed == 2) {
           unsigned trueReg1 = lookThruCopyLike(MI.getOperand(1).getReg(),
                                                VecIdx);
           unsigned trueReg2 = lookThruCopyLike(MI.getOperand(2).getReg(),
@@ -722,9 +722,9 @@ void PPCVSXSwapRemoval::recordUnoptimizableWebs() {
       Register UseReg = MI->getOperand(0).getReg();
       MachineInstr *DefMI = MRI->getVRegDef(UseReg);
       Register DefReg = DefMI->getOperand(0).getReg();
-      int DefIdx = SwapMap[DefMI];
+      
 
-      if (!SwapVector[DefIdx].IsSwap || SwapVector[DefIdx].IsLoad ||
+      if (int DefIdx = SwapMap[DefMI]; !SwapVector[DefIdx].IsSwap || SwapVector[DefIdx].IsLoad ||
           SwapVector[DefIdx].IsStore) {
 
         SwapVector[Repr].WebRejected = 1;
@@ -776,9 +776,9 @@ void PPCVSXSwapRemoval::markSwapsForRemoval() {
   for (unsigned EntryIdx = 0; EntryIdx < SwapVector.size(); ++EntryIdx) {
 
     if (SwapVector[EntryIdx].IsLoad && SwapVector[EntryIdx].IsSwap) {
-      int Repr = EC->getLeaderValue(SwapVector[EntryIdx].VSEId);
+      
 
-      if (!SwapVector[Repr].WebRejected) {
+      if (int Repr = EC->getLeaderValue(SwapVector[EntryIdx].VSEId); !SwapVector[Repr].WebRejected) {
         MachineInstr *MI = SwapVector[EntryIdx].VSEMI;
         Register DefReg = MI->getOperand(0).getReg();
 
@@ -792,9 +792,9 @@ void PPCVSXSwapRemoval::markSwapsForRemoval() {
       }
 
     } else if (SwapVector[EntryIdx].IsStore && SwapVector[EntryIdx].IsSwap) {
-      int Repr = EC->getLeaderValue(SwapVector[EntryIdx].VSEId);
+      
 
-      if (!SwapVector[Repr].WebRejected) {
+      if (int Repr = EC->getLeaderValue(SwapVector[EntryIdx].VSEId); !SwapVector[Repr].WebRejected) {
         MachineInstr *MI = SwapVector[EntryIdx].VSEMI;
         Register UseReg = MI->getOperand(0).getReg();
         MachineInstr *DefMI = MRI->getVRegDef(UseReg);
@@ -807,9 +807,9 @@ void PPCVSXSwapRemoval::markSwapsForRemoval() {
 
     } else if (SwapVector[EntryIdx].IsSwappable &&
                SwapVector[EntryIdx].SpecialHandling != 0) {
-      int Repr = EC->getLeaderValue(SwapVector[EntryIdx].VSEId);
+      
 
-      if (!SwapVector[Repr].WebRejected)
+      if (int Repr = EC->getLeaderValue(SwapVector[EntryIdx].VSEId); !SwapVector[Repr].WebRejected)
         handleSpecialSwappables(EntryIdx);
     }
   }

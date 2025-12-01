@@ -38,8 +38,8 @@ void SingleWorkItemBarrierCheck::registerMatchers(MatchFinder *Finder) {
 
 void SingleWorkItemBarrierCheck::check(const MatchFinder::MatchResult &Result) {
   const auto *MatchedDecl = Result.Nodes.getNodeAs<FunctionDecl>("function");
-  const auto *MatchedBarrier = Result.Nodes.getNodeAs<CallExpr>("barrier");
-  if (AOCVersion < 1701) {
+  
+  if (const auto *MatchedBarrier = Result.Nodes.getNodeAs<CallExpr>("barrier"); AOCVersion < 1701) {
     // get_group_id and get_local_linear_id were added at/after v17.01
     diag(MatchedDecl->getLocation(),
          "kernel function %0 does not call 'get_global_id' or 'get_local_id' "

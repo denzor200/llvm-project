@@ -326,9 +326,9 @@ struct Log2Log10OpPattern final : public OpConversionPattern<MathLogOp> {
             rewriter, loc, type, rewriter.getFloatAttr(floatType, value));
       }
       if (auto vectorType = dyn_cast<VectorType>(type)) {
-        Type elemType = vectorType.getElementType();
+        
 
-        if (isa<FloatType>(elemType)) {
+        if (Type elemType = vectorType.getElementType(); isa<FloatType>(elemType)) {
           return spirv::ConstantOp::create(
               rewriter, loc, type,
               DenseFPElementsAttr::get(
@@ -359,8 +359,8 @@ struct PowFOpPattern final : public OpConversionPattern<math::PowFOp> {
     if (LogicalResult res = checkSourceOpTypes(rewriter, powfOp); failed(res))
       return res;
 
-    Type dstType = getTypeConverter()->convertType(powfOp.getType());
-    if (!dstType)
+    
+    if (Type dstType = getTypeConverter()->convertType(powfOp.getType()); !dstType)
       return failure();
 
     // Get the scalar float type.

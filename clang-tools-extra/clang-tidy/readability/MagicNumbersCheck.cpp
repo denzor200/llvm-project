@@ -25,8 +25,8 @@ namespace clang {
 
 static bool isUsedToInitializeAConstant(const MatchFinder::MatchResult &Result,
                                         const DynTypedNode &Node) {
-  const auto *AsDecl = Node.get<DeclaratorDecl>();
-  if (AsDecl) {
+  
+  if (const auto *AsDecl = Node.get<DeclaratorDecl>(); AsDecl) {
     if (AsDecl->getType().isConstQualified())
       return true;
 
@@ -55,8 +55,8 @@ static bool isUsedToDefineATypeAlias(const MatchFinder::MatchResult &Result,
 
 static bool isUsedToDefineABitField(const MatchFinder::MatchResult &Result,
                                     const DynTypedNode &Node) {
-  const auto *AsFieldDecl = Node.get<FieldDecl>();
-  if (AsFieldDecl && AsFieldDecl->isBitField())
+  
+  if (const auto *AsFieldDecl = Node.get<FieldDecl>(); AsFieldDecl && AsFieldDecl->isBitField())
     return true;
 
   return llvm::any_of(Result.Context->getParents(Node),

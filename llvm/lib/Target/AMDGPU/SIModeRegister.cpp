@@ -169,8 +169,8 @@ FunctionPass *llvm::createSIModeRegisterPass() {
 // double precision setting.
 Status SIModeRegister::getInstructionMode(MachineInstr &MI,
                                           const SIInstrInfo *TII) {
-  unsigned Opcode = MI.getOpcode();
-  if (TII->usesFPDPRounding(MI) ||
+  
+  if (unsigned Opcode = MI.getOpcode(); TII->usesFPDPRounding(MI) ||
       Opcode == AMDGPU::FPTRUNC_ROUND_F16_F32_PSEUDO ||
       Opcode == AMDGPU::FPTRUNC_ROUND_F16_F32_PSEUDO_fake16_e32 ||
       Opcode == AMDGPU::FPTRUNC_ROUND_F16_F32_PSEUDO_t16_e64 ||
@@ -265,8 +265,8 @@ void SIModeRegister::processBlockPhase1(MachineBasicBlock &MBB,
   bool RequirePending = true;
   Status IPChange;
   for (MachineInstr &MI : MBB) {
-    Status InstrMode = getInstructionMode(MI, TII);
-    if (MI.getOpcode() == AMDGPU::S_SETREG_B32 ||
+    
+    if (Status InstrMode = getInstructionMode(MI, TII); MI.getOpcode() == AMDGPU::S_SETREG_B32 ||
         MI.getOpcode() == AMDGPU::S_SETREG_B32_mode ||
         MI.getOpcode() == AMDGPU::S_SETREG_IMM32_B32 ||
         MI.getOpcode() == AMDGPU::S_SETREG_IMM32_B32_mode) {
@@ -373,8 +373,8 @@ void SIModeRegister::processBlockPhase2(MachineBasicBlock &MBB,
     // this block).
     MachineBasicBlock::pred_iterator P = MBB.pred_begin(), E = MBB.pred_end();
     MachineBasicBlock &PB = *(*P);
-    unsigned PredBlock = PB.getNumber();
-    if ((ThisBlock == PredBlock) && (std::next(P) == E)) {
+    
+    if (unsigned PredBlock = PB.getNumber(); (ThisBlock == PredBlock) && (std::next(P) == E)) {
       BlockInfo[ThisBlock]->Pred = DefaultStatus;
       ExitSet = true;
     } else if (BlockInfo[PredBlock]->ExitSet) {
@@ -385,8 +385,8 @@ void SIModeRegister::processBlockPhase2(MachineBasicBlock &MBB,
 
     for (P = std::next(P); P != E; P = std::next(P)) {
       MachineBasicBlock *Pred = *P;
-      unsigned PredBlock = Pred->getNumber();
-      if (BlockInfo[PredBlock]->ExitSet) {
+      
+      if (unsigned PredBlock = Pred->getNumber(); BlockInfo[PredBlock]->ExitSet) {
         if (BlockInfo[ThisBlock]->ExitSet) {
           BlockInfo[ThisBlock]->Pred =
               BlockInfo[ThisBlock]->Pred.intersect(BlockInfo[PredBlock]->Exit);
@@ -417,11 +417,11 @@ void SIModeRegister::processBlockPhase2(MachineBasicBlock &MBB,
 // not we insert an appropriate setreg instruction to modify the Mode register.
 void SIModeRegister::processBlockPhase3(MachineBasicBlock &MBB,
                                         const SIInstrInfo *TII) {
-  unsigned ThisBlock = MBB.getNumber();
-  if (!BlockInfo[ThisBlock]->Pred.isCompatible(BlockInfo[ThisBlock]->Require)) {
-    Status Delta =
-        BlockInfo[ThisBlock]->Pred.delta(BlockInfo[ThisBlock]->Require);
-    if (BlockInfo[ThisBlock]->FirstInsertionPoint)
+  
+  if (unsigned ThisBlock = MBB.getNumber(); !BlockInfo[ThisBlock]->Pred.isCompatible(BlockInfo[ThisBlock]->Require)) {
+    
+    if (Status Delta =
+        BlockInfo[ThisBlock]->Pred.delta(BlockInfo[ThisBlock]->Require); BlockInfo[ThisBlock]->FirstInsertionPoint)
       insertSetreg(MBB, BlockInfo[ThisBlock]->FirstInsertionPoint, TII, Delta);
     else
       insertSetreg(MBB, &MBB.instr_front(), TII, Delta);
@@ -447,8 +447,8 @@ bool SIModeRegister::run(MachineFunction &MF) {
   // having constrained FP intrinsics. This pass fixes up operations that uses
   // a non-default rounding mode for non-strictfp functions. But it should not
   // assume or modify any default rounding modes in case of strictfp functions.
-  const Function &F = MF.getFunction();
-  if (F.hasFnAttribute(llvm::Attribute::StrictFP))
+  
+  if (const Function &F = MF.getFunction(); F.hasFnAttribute(llvm::Attribute::StrictFP))
     return Changed;
   BlockInfo.resize(MF.getNumBlockIDs());
   const GCNSubtarget &ST = MF.getSubtarget<GCNSubtarget>();

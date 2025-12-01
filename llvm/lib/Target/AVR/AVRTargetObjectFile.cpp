@@ -38,8 +38,8 @@ MCSection *AVRTargetObjectFile::SelectSectionForGlobal(
     const GlobalObject *GO, SectionKind Kind, const TargetMachine &TM) const {
   // Global values in flash memory are placed in the progmem*.data section
   // unless they already have a user assigned section.
-  const auto &AVRTM = static_cast<const AVRTargetMachine &>(TM);
-  if (AVR::isProgramMemoryAddress(GO) && !GO->hasSection() &&
+  
+  if (const auto &AVRTM = static_cast<const AVRTargetMachine &>(TM); AVR::isProgramMemoryAddress(GO) && !GO->hasSection() &&
       Kind.isReadOnly()) {
     // The AVR subtarget should support LPM to access section '.progmem*.data'.
     if (!AVRTM.getSubtargetImpl()->hasLPM()) {

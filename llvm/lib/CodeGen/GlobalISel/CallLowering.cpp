@@ -228,8 +228,8 @@ void CallLowering::setArgFlags(CallLowering::ArgInfo &Arg, unsigned OpIdx,
   const AttributeList &Attrs = FuncInfo.getAttributes();
   addArgFlagsFromAttributes(Flags, Attrs, OpIdx);
 
-  PointerType *PtrTy = dyn_cast<PointerType>(Arg.Ty->getScalarType());
-  if (PtrTy) {
+  
+  if (PointerType *PtrTy = dyn_cast<PointerType>(Arg.Ty->getScalarType()); PtrTy) {
     Flags.setPointer();
     Flags.setPointerAddrSpace(PtrTy->getPointerAddressSpace());
   }
@@ -402,9 +402,9 @@ static void buildCopyFromRegs(MachineIRBuilder &B, ArrayRef<Register> OrigRegs,
       OrigRegs.size() == 1 && Regs.size() == 1) {
     Register SrcReg = Regs[0];
 
-    LLT LocTy = MRI.getType(SrcReg);
+    
 
-    if (Flags.isSExt()) {
+    if (LLT LocTy = MRI.getType(SrcReg); Flags.isSExt()) {
       SrcReg = B.buildAssertSExt(LocTy, SrcReg, LLTy.getScalarSizeInBits())
                    .getReg(0);
     } else if (Flags.isZExt()) {
@@ -1103,8 +1103,8 @@ bool CallLowering::checkReturn(CCState &CCInfo,
                                SmallVectorImpl<BaseArgInfo> &Outs,
                                CCAssignFn *Fn) const {
   for (unsigned I = 0, E = Outs.size(); I < E; ++I) {
-    MVT VT = MVT::getVT(Outs[I].Ty);
-    if (Fn(I, VT, VT, CCValAssign::Full, Outs[I].Flags[0], Outs[I].Ty, CCInfo))
+    
+    if (MVT VT = MVT::getVT(Outs[I].Ty); Fn(I, VT, VT, CCValAssign::Full, Outs[I].Flags[0], Outs[I].Ty, CCInfo))
       return false;
   }
   return true;

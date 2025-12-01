@@ -14,13 +14,13 @@ using namespace llvm;
 bool ConstantRangeList::isOrderedRanges(ArrayRef<ConstantRange> RangesRef) {
   if (RangesRef.empty())
     return true;
-  auto Range = RangesRef[0];
-  if (Range.getLower().sge(Range.getUpper()))
+  
+  if (auto Range = RangesRef[0]; Range.getLower().sge(Range.getUpper()))
     return false;
   for (unsigned i = 1; i < RangesRef.size(); i++) {
     auto CurRange = RangesRef[i];
-    auto PreRange = RangesRef[i - 1];
-    if (CurRange.getLower().sge(CurRange.getUpper()) ||
+    
+    if (auto PreRange = RangesRef[i - 1]; CurRange.getLower().sge(CurRange.getUpper()) ||
         CurRange.getLower().sle(PreRange.getUpper()))
       return false;
   }
@@ -217,8 +217,8 @@ ConstantRangeList::intersectWith(const ConstantRangeList &CRL) const {
     // considers the complex upper wrapped case and may result two ranges,
     // like (2, 8) && (6, 4) = {(2, 4), (6, 8)}.
     APInt Start = APIntOps::smax(Range.getLower(), OtherRange.getLower());
-    APInt End = APIntOps::smin(Range.getUpper(), OtherRange.getUpper());
-    if (Start.slt(End))
+    
+    if (APInt End = APIntOps::smin(Range.getUpper(), OtherRange.getUpper()); Start.slt(End))
       Result.Ranges.push_back(ConstantRange(Start, End));
 
     // Move to the next Range in one list determined by the uppers.

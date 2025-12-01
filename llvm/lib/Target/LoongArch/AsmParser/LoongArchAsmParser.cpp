@@ -556,14 +556,14 @@ public:
   }
 
   void print(raw_ostream &OS, const MCAsmInfo &MAI) const override {
-    auto RegName = [](MCRegister Reg) {
+    
+
+    switch (auto RegName = [](MCRegister Reg) {
       if (Reg)
         return LoongArchInstPrinter::getRegisterName(Reg);
       else
         return "noreg";
-    };
-
-    switch (Kind) {
+    }; Kind) {
     case KindTy::Immediate:
       MAI.printExpr(OS, *getImm());
       break;
@@ -672,8 +672,8 @@ ParseStatus LoongArchAsmParser::tryParseRegister(MCRegister &Reg,
   if (getLexer().getKind() != AsmToken::Identifier)
     return ParseStatus::NoMatch;
 
-  StringRef Name = Tok.getIdentifier();
-  if (matchRegisterNameHelper(Reg, Name))
+  
+  if (StringRef Name = Tok.getIdentifier(); matchRegisterNameHelper(Reg, Name))
     return ParseStatus::NoMatch;
 
   getParser().Lex(); // Eat identifier token.
@@ -689,8 +689,8 @@ bool LoongArchAsmParser::classifySymbolRef(const MCExpr *Expr,
     Expr = RE->getSubExpr();
   }
 
-  MCValue Res;
-  if (Expr->evaluateAsRelocatable(Res, nullptr))
+  
+  if (MCValue Res; Expr->evaluateAsRelocatable(Res, nullptr))
     return Res.getSpecifier() == LoongArchMCExpr::VK_None;
   return false;
 }
@@ -872,9 +872,9 @@ void LoongArchAsmParser::emitLAInstSeq(MCRegister DestReg, MCRegister TmpReg,
   for (LoongArchAsmParser::Inst &Inst : Insts) {
     unsigned Opc = Inst.Opc;
     auto VK = LoongArchMCExpr::Specifier(Inst.Specifier);
-    const LoongArchMCExpr *LE =
-        LoongArchMCExpr::create(Symbol, VK, Ctx, RelaxHint);
-    switch (Opc) {
+    
+    switch (const LoongArchMCExpr *LE =
+        LoongArchMCExpr::create(Symbol, VK, Ctx, RelaxHint); Opc) {
     default:
       llvm_unreachable("unexpected opcode");
     case LoongArch::PCALAU12I:
@@ -1561,15 +1561,15 @@ bool LoongArchAsmParser::processInstruction(MCInst &Inst, SMLoc IDLoc,
 
 unsigned LoongArchAsmParser::checkTargetMatchPredicate(MCInst &Inst) {
   unsigned Opc = Inst.getOpcode();
-  const MCInstrDesc &MCID = MII.get(Opc);
-  switch (Opc) {
+  
+  switch (const MCInstrDesc &MCID = MII.get(Opc); Opc) {
   default:
     if (LoongArchII::isSubjectToAMORdConstraint(MCID.TSFlags)) {
       const bool IsAMCAS = LoongArchII::isAMCAS(MCID.TSFlags);
       MCRegister Rd = Inst.getOperand(0).getReg();
       MCRegister Rk = Inst.getOperand(IsAMCAS ? 2 : 1).getReg();
-      MCRegister Rj = Inst.getOperand(IsAMCAS ? 3 : 2).getReg();
-      if ((Rd == Rk || Rd == Rj) && Rd != LoongArch::R0)
+      
+      if (MCRegister Rj = Inst.getOperand(IsAMCAS ? 3 : 2).getReg(); (Rd == Rk || Rd == Rj) && Rd != LoongArch::R0)
         return Match_RequiresAMORdDifferRkRj;
     }
     break;
@@ -1607,11 +1607,11 @@ unsigned LoongArchAsmParser::checkTargetMatchPredicate(MCInst &Inst) {
         (Opc == LoongArch::BSTRINS_W || Opc == LoongArch::BSTRINS_D)
             ? Inst.getOperand(3).getImm()
             : Inst.getOperand(2).getImm();
-    const signed Lsb =
+    
+    if (const signed Lsb =
         (Opc == LoongArch::BSTRINS_W || Opc == LoongArch::BSTRINS_D)
             ? Inst.getOperand(4).getImm()
-            : Inst.getOperand(3).getImm();
-    if (Msb < Lsb)
+            : Inst.getOperand(3).getImm(); Msb < Lsb)
       return Match_RequiresMsbNotLessThanLsb;
     return Match_Success;
   }
@@ -1701,8 +1701,8 @@ bool LoongArchAsmParser::matchAndEmitInstruction(SMLoc IDLoc, unsigned &Opcode,
   // other than the generic Match_InvalidOperand, and the
   // corresponding operand is missing.
   if (Result > FIRST_TARGET_MATCH_RESULT_TY) {
-    SMLoc ErrorLoc = IDLoc;
-    if (ErrorInfo != ~0ULL && ErrorInfo >= Operands.size())
+    
+    if (SMLoc ErrorLoc = IDLoc; ErrorInfo != ~0ULL && ErrorInfo >= Operands.size())
       return Error(ErrorLoc, "too few operands for instruction");
   }
 

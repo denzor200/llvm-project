@@ -57,8 +57,8 @@ LLVM_LIBC_FUNCTION(float, sinhf, (float x)) {
     if (xbits.is_inf())
       return x;
 
-    int rounding = fputil::quick_get_round();
-    if (xbits.is_neg()) {
+    
+    if (int rounding = fputil::quick_get_round(); xbits.is_neg()) {
       if (LIBC_UNLIKELY(rounding == FE_UPWARD || rounding == FE_TOWARDZERO))
         return -FPBits::max_normal().get_val();
     } else {

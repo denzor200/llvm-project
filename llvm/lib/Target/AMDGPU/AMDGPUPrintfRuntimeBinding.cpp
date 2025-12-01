@@ -97,8 +97,8 @@ void AMDGPUPrintfRuntimeBindingImpl::getConversionSpecifiers(
     bool ArgDump = false;
     StringRef CurFmt = Fmt.substr(PrevFmtSpecifierIdx,
                                   CurFmtSpecifierIdx - PrevFmtSpecifierIdx);
-    size_t pTag = CurFmt.find_last_of('%');
-    if (pTag != StringRef::npos) {
+    
+    if (size_t pTag = CurFmt.find_last_of('%'); pTag != StringRef::npos) {
       ArgDump = true;
       while (pTag && CurFmt[--pTag] == '%') {
         ArgDump = !ArgDump;
@@ -155,8 +155,8 @@ bool AMDGPUPrintfRuntimeBindingImpl::lowerPrintfForGpu(Module &M) {
 
     StringRef FormatStr;
     if (!getConstantStringInfo(Op, FormatStr)) {
-      Value *Stripped = Op->stripPointerCasts();
-      if (!isa<UndefValue>(Stripped) && !isa<ConstantPointerNull>(Stripped))
+      
+      if (Value *Stripped = Op->stripPointerCasts(); !isa<UndefValue>(Stripped) && !isa<ConstantPointerNull>(Stripped))
         diagnoseInvalidFormatString(CI);
       continue;
     }
@@ -206,12 +206,12 @@ bool AMDGPUPrintfRuntimeBindingImpl::lowerPrintfForGpu(Module &M) {
         CI->setOperand(ArgCount, Arg);
       }
       if (OpConvSpecifiers[ArgCount - 1] == 'f') {
-        ConstantFP *FpCons = dyn_cast<ConstantFP>(Arg);
-        if (FpCons)
+        
+        if (ConstantFP *FpCons = dyn_cast<ConstantFP>(Arg); FpCons)
           ArgSize = 4;
         else {
-          FPExtInst *FpExt = dyn_cast<FPExtInst>(Arg);
-          if (FpExt && FpExt->getType()->isDoubleTy() &&
+          
+          if (FPExtInst *FpExt = dyn_cast<FPExtInst>(Arg); FpExt && FpExt->getType()->isDoubleTy() &&
               FpExt->getOperand(0)->getType()->isFloatTy())
             ArgSize = 4;
         }
@@ -350,8 +350,8 @@ bool AMDGPUPrintfRuntimeBindingImpl::lowerPrintfForGpu(Module &M) {
         WhatToStore.push_back(Arg);
       } else if (isa<PointerType>(ArgType)) {
         if (shouldPrintAsStr(OpConvSpecifiers[ArgCount - 1], ArgType)) {
-          StringRef S = getAsConstantStr(Arg);
-          if (!S.empty()) {
+          
+          if (StringRef S = getAsConstantStr(Arg); !S.empty()) {
             const uint64_t ReadSize = 4;
 
             DataExtractor Extractor(S, /*IsLittleEndian=*/true, 8);
@@ -425,8 +425,8 @@ bool AMDGPUPrintfRuntimeBindingImpl::lowerPrintfForGpu(Module &M) {
 }
 
 bool AMDGPUPrintfRuntimeBindingImpl::run(Module &M) {
-  Triple TT(M.getTargetTriple());
-  if (TT.getArch() == Triple::r600)
+  
+  if (Triple TT(M.getTargetTriple()); TT.getArch() == Triple::r600)
     return false;
 
   auto *PrintfFunction = M.getFunction("printf");

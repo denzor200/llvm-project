@@ -219,8 +219,8 @@ Position sourceLocToPosition(const SourceManager &SM, SourceLocation Loc) {
   Position P;
   P.line = static_cast<int>(SM.getLineNumber(FID, Offset)) - 1;
   bool Invalid = false;
-  llvm::StringRef Code = SM.getBufferData(FID, &Invalid);
-  if (!Invalid) {
+  
+  if (llvm::StringRef Code = SM.getBufferData(FID, &Invalid); !Invalid) {
     auto ColumnInBytes = SM.getColumnNumber(FID, Offset) - 1;
     auto LineSoFar = Code.substr(Offset - ColumnInBytes, ColumnInBytes);
     P.character = lspLength(LineSoFar);
@@ -827,8 +827,8 @@ std::vector<std::string> visibleNamespaces(llvm::StringRef Code,
   llvm::StringMap<llvm::StringSet<>> UsingDirectives;
 
   parseNamespaceEvents(Code, LangOpts, [&](NamespaceEvent Event) {
-    llvm::StringRef NS = Event.Payload;
-    switch (Event.Trigger) {
+    
+    switch (llvm::StringRef NS = Event.Payload; Event.Trigger) {
     case NamespaceEvent::BeginNamespace:
     case NamespaceEvent::EndNamespace:
       Current = std::move(Event.Payload);
@@ -851,8 +851,8 @@ std::vector<std::string> visibleNamespaces(llvm::StringRef Code,
   std::vector<std::string> Found;
   for (llvm::StringRef Enclosing : ancestorNamespaces(Current)) {
     Found.push_back(std::string(Enclosing));
-    auto It = UsingDirectives.find(Enclosing);
-    if (It != UsingDirectives.end())
+    
+    if (auto It = UsingDirectives.find(Enclosing); It != UsingDirectives.end())
       for (const auto &Used : It->second)
         Found.push_back(std::string(Used.getKey()));
   }
@@ -918,8 +918,8 @@ static bool isLikelyIdentifier(llvm::StringRef Word, llvm::StringRef Before,
   // Don't search too far back.
   // This duplicates clang's doxygen parser, revisit if it gets complicated.
   Before = Before.take_back(100); // Don't search too far back.
-  auto Pos = Before.find_last_of("\\@");
-  if (Pos != llvm::StringRef::npos) {
+  
+  if (auto Pos = Before.find_last_of("\\@"); Pos != llvm::StringRef::npos) {
     llvm::StringRef Tag = Before.substr(Pos + 1).rtrim(' ');
     if (Tag == "p" || Tag == "c" || Tag == "class" || Tag == "tparam" ||
         Tag == "param" || Tag == "param[in]" || Tag == "param[out]" ||
@@ -1250,8 +1250,8 @@ bool isHeaderFile(llvm::StringRef FileName,
 }
 
 bool isProtoFile(SourceLocation Loc, const SourceManager &SM) {
-  auto FileName = SM.getFilename(Loc);
-  if (!FileName.ends_with(".proto.h") && !FileName.ends_with(".pb.h"))
+  
+  if (auto FileName = SM.getFilename(Loc); !FileName.ends_with(".proto.h") && !FileName.ends_with(".pb.h"))
     return false;
   auto FID = SM.getFileID(Loc);
   // All proto generated headers should start with this line.
@@ -1265,13 +1265,13 @@ SourceLocation translatePreamblePatchLocation(SourceLocation Loc,
                                               const SourceManager &SM) {
   auto DefFile = SM.getFileID(Loc);
   if (auto FE = SM.getFileEntryRefForID(DefFile)) {
-    auto IncludeLoc = SM.getIncludeLoc(DefFile);
+    
     // Preamble patch is included inside the builtin file.
-    if (IncludeLoc.isValid() && SM.isWrittenInBuiltinFile(IncludeLoc) &&
+    if (auto IncludeLoc = SM.getIncludeLoc(DefFile); IncludeLoc.isValid() && SM.isWrittenInBuiltinFile(IncludeLoc) &&
         FE->getName().ends_with(PreamblePatch::HeaderName)) {
-      auto Presumed = SM.getPresumedLoc(Loc);
+      
       // Check that line directive is pointing at main file.
-      if (Presumed.isValid() && Presumed.getFileID().isInvalid() &&
+      if (auto Presumed = SM.getPresumedLoc(Loc); Presumed.isValid() && Presumed.getFileID().isInvalid() &&
           isMainFile(Presumed.getFilename(), SM)) {
         Loc = SM.translateLineCol(SM.getMainFileID(), Presumed.getLine(),
                                   Presumed.getColumn());

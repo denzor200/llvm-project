@@ -398,8 +398,8 @@ SBError SBPlatform::ConnectRemote(SBPlatformConnectOptions &connect_options) {
 void SBPlatform::DisconnectRemote() {
   LLDB_INSTRUMENT_VA(this);
 
-  PlatformSP platform_sp(GetSP());
-  if (platform_sp)
+  
+  if (PlatformSP platform_sp(GetSP()); platform_sp)
     platform_sp->DisconnectRemote();
 }
 
@@ -417,8 +417,8 @@ const char *SBPlatform::GetTriple() {
 
   PlatformSP platform_sp(GetSP());
   if (platform_sp) {
-    ArchSpec arch(platform_sp->GetSystemArchitecture());
-    if (arch.IsValid()) {
+    
+    if (ArchSpec arch(platform_sp->GetSystemArchitecture()); arch.IsValid()) {
       // Const-ify the string so we don't need to worry about the lifetime of
       // the string
       return ConstString(arch.GetTriple().getTriple().c_str()).GetCString();

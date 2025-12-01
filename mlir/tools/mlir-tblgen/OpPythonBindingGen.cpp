@@ -417,8 +417,8 @@ static void emitElementAccessors(
     // Count the number of simple elements
     unsigned numSimpleLength = 0;
     for (unsigned i = 0; i < numElements; ++i) {
-      const NamedTypeConstraint &element = getElement(op, i);
-      if (!element.isVariableLength()) {
+      
+      if (const NamedTypeConstraint &element = getElement(op, i); !element.isVariableLength()) {
         ++numSimpleLength;
       }
     }
@@ -439,8 +439,8 @@ static void emitElementAccessors(
         }
         if (std::strcmp(type.c_str(), "_ods_ir.Value") == 0 ||
             std::strcmp(type.c_str(), "_ods_ir.OpResult") == 0) {
-          StringRef pythonType = getPythonType(element.constraint.getCppType());
-          if (!pythonType.empty())
+          
+          if (StringRef pythonType = getPythonType(element.constraint.getCppType()); !pythonType.empty())
             type += "[" + pythonType.str() + "]";
         }
         os << formatv(opVariadicEqualPrefixTemplate, sanitizeName(element.name),
@@ -476,8 +476,8 @@ static void emitElementAccessors(
                                                  : "_ods_ir.OpResult";
         if (std::strcmp(type.c_str(), "_ods_ir.Value") == 0 ||
             std::strcmp(type.c_str(), "_ods_ir.OpResult") == 0) {
-          StringRef pythonType = getPythonType(element.constraint.getCppType());
-          if (!pythonType.empty())
+          
+          if (StringRef pythonType = getPythonType(element.constraint.getCppType()); !pythonType.empty())
             type += "[" + pythonType.str() + "]";
         }
         if (!element.isVariableLength()) {
@@ -1088,8 +1088,8 @@ static void emitSegmentSpec(
     raw_ostream &os) {
   std::string segmentSpec("[");
   for (int i = 0, e = getNumElements(op); i < e; ++i) {
-    const NamedTypeConstraint &element = getElement(op, i);
-    if (element.isOptional()) {
+    
+    if (const NamedTypeConstraint &element = getElement(op, i); element.isOptional()) {
       segmentSpec.append("0,");
     } else if (element.isVariadic()) {
       segmentSpec.append("-1,");
@@ -1229,8 +1229,8 @@ static bool emitAllOps(const RecordKeeper &records, raw_ostream &os) {
     os << formatv(dialectClassTemplate, clDialectName.getValue());
 
   for (const Record *rec : records.getAllDerivedDefinitions("Op")) {
-    Operator op(rec);
-    if (op.getDialectName() == clDialectName.getValue())
+    
+    if (Operator op(rec); op.getDialectName() == clDialectName.getValue())
       emitOpBindings(op, os);
   }
   return false;

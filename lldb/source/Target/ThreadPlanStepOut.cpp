@@ -190,9 +190,9 @@ void ThreadPlanStepOut::SetupReturnAddress(
     }
 
     if (immediate_return_from_sp) {
-      const SymbolContext &sc =
-          immediate_return_from_sp->GetSymbolContext(eSymbolContextFunction);
-      if (sc.function) {
+      
+      if (const SymbolContext &sc =
+          immediate_return_from_sp->GetSymbolContext(eSymbolContextFunction); sc.function) {
         m_immediate_step_from_function = sc.function;
       }
     }
@@ -220,8 +220,8 @@ void ThreadPlanStepOut::SetupAvoidNoDebug(
 }
 
 void ThreadPlanStepOut::DidPush() {
-  Thread &thread = GetThread();
-  if (m_step_out_to_inline_plan_sp)
+  
+  if (Thread &thread = GetThread(); m_step_out_to_inline_plan_sp)
     thread.QueueThreadPlan(m_step_out_to_inline_plan_sp, false);
   else if (m_step_through_inline_plan_sp)
     thread.QueueThreadPlan(m_step_through_inline_plan_sp, false);
@@ -327,8 +327,8 @@ bool ThreadPlanStepOut::DoPlanExplainsStop(Event *event_ptr) {
 
   StopInfoSP stop_info_sp = GetPrivateStopInfo();
   if (stop_info_sp) {
-    StopReason reason = stop_info_sp->GetStopReason();
-    if (reason == eStopReasonBreakpoint) {
+    
+    if (StopReason reason = stop_info_sp->GetStopReason(); reason == eStopReasonBreakpoint) {
       // If this is OUR breakpoint, we're fine, otherwise we don't know why
       // this happened...
       BreakpointSiteSP site_sp(
@@ -405,8 +405,8 @@ bool ThreadPlanStepOut::ShouldStop(Event *event_ptr) {
   }
 
   if (!done) {
-    StopInfoSP stop_info_sp = GetPrivateStopInfo();
-    if (stop_info_sp && stop_info_sp->GetStopReason() == eStopReasonBreakpoint) {
+    
+    if (StopInfoSP stop_info_sp = GetPrivateStopInfo(); stop_info_sp && stop_info_sp->GetStopReason() == eStopReasonBreakpoint) {
       StackID frame_zero_id = GetThread().GetStackFrameAtIndex(0)->GetStackID();
       done = !(frame_zero_id < m_step_out_to_id);
     }
@@ -468,8 +468,8 @@ bool ThreadPlanStepOut::MischiefManaged() {
     // reason and we're now stopping for some other reason altogether, then
     // we're done with this step out operation.
 
-    Log *log = GetLog(LLDBLog::Step);
-    if (log)
+    
+    if (Log *log = GetLog(LLDBLog::Step); log)
       LLDB_LOGF(log, "Completed step out plan.");
     if (m_return_bp_id != LLDB_INVALID_BREAK_ID) {
       GetTarget().RemoveBreakpointByID(m_return_bp_id);
@@ -501,11 +501,11 @@ bool ThreadPlanStepOut::QueueInlinedStepPlan(bool queue_now) {
 
   Block *from_block = immediate_return_from_sp->GetFrameBlock();
   if (from_block) {
-    Block *inlined_block = from_block->GetContainingInlinedBlock();
-    if (inlined_block) {
+    
+    if (Block *inlined_block = from_block->GetContainingInlinedBlock(); inlined_block) {
       size_t num_ranges = inlined_block->GetNumRanges();
-      AddressRange inline_range;
-      if (inlined_block->GetRangeAtIndex(0, inline_range)) {
+      
+      if (AddressRange inline_range; inlined_block->GetRangeAtIndex(0, inline_range)) {
         SymbolContext inlined_sc;
         inlined_block->CalculateSymbolContext(&inlined_sc);
         inlined_sc.target_sp = GetTarget().shared_from_this();
@@ -522,8 +522,8 @@ bool ThreadPlanStepOut::QueueInlinedStepPlan(bool queue_now) {
         m_step_through_inline_plan_sp->SetPrivate(true);
 
         step_through_inline_plan_ptr->SetOkayToDiscard(true);
-        StreamString errors;
-        if (!step_through_inline_plan_ptr->ValidatePlan(&errors)) {
+        
+        if (StreamString errors; !step_through_inline_plan_ptr->ValidatePlan(&errors)) {
           // FIXME: Log this failure.
           delete step_through_inline_plan_ptr;
           return false;
@@ -556,8 +556,8 @@ void ThreadPlanStepOut::CalculateReturnValue() {
         m_immediate_step_from_function->GetCompilerType()
             .GetFunctionReturnType();
     if (return_compiler_type) {
-      lldb::ABISP abi_sp = m_process.GetABI();
-      if (abi_sp)
+      
+      if (lldb::ABISP abi_sp = m_process.GetABI(); abi_sp)
         m_return_valobj_sp =
             abi_sp->GetReturnValueObject(GetThread(), return_compiler_type);
     }

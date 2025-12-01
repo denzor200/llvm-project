@@ -43,8 +43,8 @@ namespace {
 static LogicalResult
 checkConstantOperands(Operation *op, ArrayRef<unsigned int> operandIndices) {
   for (const auto index : operandIndices) {
-    Attribute attr;
-    if (!matchPattern(op->getOperand(index), m_Constant(&attr))) {
+    
+    if (Attribute attr; !matchPattern(op->getOperand(index), m_Constant(&attr))) {
       return op->emitOpError("expected compile time resolvable constant, but "
                              "got variable value for operand #")
              << index;
@@ -318,11 +318,11 @@ private:
           return failure();
         }
       }
-      auto dilation = convOp.getDilation();
-      if (ShapedType weightType =
+      
+      if (ShapedType auto dilation = convOp.getDilation(); weightType =
               dyn_cast<ShapedType>(op->getOperand(1).getType())) {
-        auto shape = weightType.getShape();
-        if (isa<tosa::Conv2DOp>(op)) {
+        
+        if (auto shape = weightType.getShape(); isa<tosa::Conv2DOp>(op)) {
           assert(shape.size() == 4);
           assert(dilation.size() == 2);
           if (failed(levelCheckKernel(op, dilation[0] * shape[1],
@@ -527,10 +527,10 @@ LogicalResult TosaValidation::levelCheckRanks(tosa::ArgMaxOp tosaOp) {
 
 template <>
 LogicalResult TosaValidation::levelCheckRanks(tosa::IfOp tosaOp) {
-  auto *op = tosaOp.getOperation();
+  
 
   // Only the condition input has rank limitation.
-  if (failed(levelCheckRank(op, tosaOp.getCondition(), "operand",
+  if (auto *op = tosaOp.getOperation(); failed(levelCheckRank(op, tosaOp.getCondition(), "operand",
                             targetEnv.getLevel().MAX_RANK)))
     return failure();
 
@@ -540,8 +540,8 @@ LogicalResult TosaValidation::levelCheckRanks(tosa::IfOp tosaOp) {
 template <>
 LogicalResult TosaValidation::levelCheckRanks(tosa::VariableOp tosaOp) {
   auto *op = tosaOp.getOperation();
-  auto variableType = getVariableType(tosaOp);
-  if (failed(levelCheckRank(op, variableType, "variable type",
+  
+  if (auto variableType = getVariableType(tosaOp); failed(levelCheckRank(op, variableType, "variable type",
                             targetEnv.getLevel().MAX_RANK)))
     return failure();
 
@@ -551,8 +551,8 @@ LogicalResult TosaValidation::levelCheckRanks(tosa::VariableOp tosaOp) {
 template <>
 LogicalResult TosaValidation::levelCheckSizes(tosa::VariableOp tosaOp) {
   auto *op = tosaOp.getOperation();
-  auto variableType = getVariableType(tosaOp);
-  if (failed(levelCheckSize(op, variableType, "variable type")))
+  
+  if (auto variableType = getVariableType(tosaOp); failed(levelCheckSize(op, variableType, "variable type")))
     return failure();
 
   return success();
@@ -789,14 +789,14 @@ LogicalResult TosaValidation::CheckVariableReadOrWrite(Operation *op) {
     auto varType = variablesMap[nameAttr];
 
     for (auto v : op->getOperands()) {
-      auto type = v.getType();
-      if (!CompatibleTypes(type, varType))
+      
+      if (auto type = v.getType(); !CompatibleTypes(type, varType))
         return op->emitOpError() << "operand type does not equal variable type";
     }
 
     for (auto v : op->getResults()) {
-      auto type = v.getType();
-      if (!CompatibleTypes(type, varType))
+      
+      if (auto type = v.getType(); !CompatibleTypes(type, varType))
         return op->emitOpError() << "result type does not equal variable type";
     }
   }
@@ -831,8 +831,8 @@ LogicalResult checkErrorIfResize(Operation *op) {
     const SmallVector<int64_t, 4> sizes = {
         outputType.getDimSize(1), outputType.getDimSize(2),
         inputType.getDimSize(1), inputType.getDimSize(2)};
-    const int64_t *maxDim = llvm::max_element(sizes);
-    if (maxDim != sizes.end() && *maxDim >= 16384)
+    
+    if (const int64_t *maxDim = llvm::max_element(sizes); maxDim != sizes.end() && *maxDim >= 16384)
       return op->emitOpError(
                  "expect input/output height/width dims to be < 16384, ")
              << "got [OH, OW, IH, IW] = " << sizes;
@@ -986,8 +986,8 @@ LogicalResult checkErrorIfTable(Operation *op) {
 
   const ShapeAdaptor tableShape(table.getTable().getType());
   if (tableShape.hasStaticShape()) {
-    const auto numElements = tableShape.getNumElements();
-    if (numElements != tableSize)
+    
+    if (const auto numElements = tableShape.getNumElements(); numElements != tableSize)
       return op->emitOpError() << "requires table size of " << tableSize
                                << ", got " << numElements;
   }
@@ -1249,16 +1249,16 @@ void TosaValidation::runOnOperation() {
     const bool allowUnsigned =
         !strictOpSpecAlignment && isa<tosa::RescaleOp>(op);
     for (Value operand : op->getOperands()) {
-      auto elementTy = getElementTypeOrSelf(operand);
-      if (!isValidElementType(elementTy, allowUnsigned)) {
+      
+      if (auto elementTy = getElementTypeOrSelf(operand); !isValidElementType(elementTy, allowUnsigned)) {
         op->emitOpError() << "is not profile-aligned: element type "
                           << elementTy << " is not legal";
         return signalPassFailure();
       }
     }
     for (Type resultTy : op->getResultTypes()) {
-      auto elementTy = getElementTypeOrSelf(resultTy);
-      if (!isValidElementType(elementTy, allowUnsigned)) {
+      
+      if (auto elementTy = getElementTypeOrSelf(resultTy); !isValidElementType(elementTy, allowUnsigned)) {
         op->emitOpError() << "is not profile-aligned: element type "
                           << elementTy << " is not legal";
         return signalPassFailure();

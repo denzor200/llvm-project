@@ -410,8 +410,8 @@ tok::PPKeywordKind IdentifierInfo::getPPKeywordID() const {
 
   unsigned Len = getLength();
   if (Len < 2) return tok::pp_not_keyword;
-  const char *Name = getNameStart();
-  switch (HASH(Len, Name[0], Name[2])) {
+  
+  switch (const char *Name = getNameStart(); HASH(Len, Name[0], Name[2])) {
   default: return tok::pp_not_keyword;
   CASE( 2, 'i', '\0', if);
   CASE( 4, 'e', 'i', elif);
@@ -665,9 +665,9 @@ ObjCStringFormatFamily Selector::getStringFormatFamilyImpl(Selector sel) {
   const IdentifierInfo *first = sel.getIdentifierInfoForSlot(0);
   if (!first) return SFF_None;
 
-  StringRef name = first->getName();
+  
 
-  switch (name.front()) {
+  switch (StringRef name = first->getName(); name.front()) {
     case 'a':
       if (name == "appendFormat") return SFF_NSString;
       break;

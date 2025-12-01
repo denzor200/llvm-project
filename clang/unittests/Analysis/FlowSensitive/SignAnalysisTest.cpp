@@ -299,8 +299,8 @@ void transferExpr(const Expr *E, const MatchFinder::MatchResult &M,
     return;
   }
 
-  const Sign S = getSign(R.Val.getInt().getExtValue());
-  switch (S) {
+  
+  switch (const Sign S = getSign(R.Val.getInt().getExtValue()); S) {
   case Sign::Negative:
     initNegative(*Val, State.Env);
     break;
@@ -477,8 +477,8 @@ template <typename Node>
 testing::AssertionResult isPropertyImplied(const Environment &Env,
                                            ASTContext &ASTCtx, const Node *N,
                                            StringRef Property, bool Implies) {
-  auto [Result, Prop] = getProperty(Env, ASTCtx, N, Property);
-  if (!Prop)
+  
+  if (auto [Result, Prop] = getProperty(Env, ASTCtx, N, Property); !Prop)
     return Result;
   auto *BVProp = cast<BoolValue>(Prop);
   if (Env.proves(BVProp->formula()) != Implies)

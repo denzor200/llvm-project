@@ -196,9 +196,9 @@ static void getAArch64MultilibFlags(const Driver &D,
     Result.push_back(llvm::join(MArch, "+"));
   }
 
-  const Arg *BranchProtectionArg =
-      Args.getLastArgNoClaim(options::OPT_mbranch_protection_EQ);
-  if (BranchProtectionArg) {
+  
+  if (const Arg *BranchProtectionArg =
+      Args.getLastArgNoClaim(options::OPT_mbranch_protection_EQ); BranchProtectionArg) {
     Result.push_back(BranchProtectionArg->getAsString(Args));
   }
 
@@ -291,9 +291,9 @@ static void getARMMultilibFlags(const Driver &D, const llvm::Triple &Triple,
   else
     Result.push_back("-fno-rwpi");
 
-  const Arg *BranchProtectionArg =
-      Args.getLastArgNoClaim(options::OPT_mbranch_protection_EQ);
-  if (BranchProtectionArg) {
+  
+  if (const Arg *BranchProtectionArg =
+      Args.getLastArgNoClaim(options::OPT_mbranch_protection_EQ); BranchProtectionArg) {
     Result.push_back(BranchProtectionArg->getAsString(Args));
   }
 
@@ -446,8 +446,8 @@ static const DriverSuffix *FindDriverSuffix(StringRef ProgName, size_t &Pos) {
   };
 
   for (const auto &DS : DriverSuffixes) {
-    StringRef Suffix(DS.Suffix);
-    if (ProgName.ends_with(Suffix)) {
+    
+    if (StringRef Suffix(DS.Suffix); ProgName.ends_with(Suffix)) {
       Pos = ProgName.size() - Suffix.size();
       return &DS;
     }
@@ -850,8 +850,8 @@ void ToolChain::addFortranRuntimeLibs(const ArgList &Args,
   if (Args.hasFlag(options::OPT_fopenmp, options::OPT_fopenmp_EQ,
                    options::OPT_fno_openmp, false)) {
     Driver::OpenMPRuntimeKind OMPRuntime = getDriver().getOpenMPRuntime(Args);
-    ToolChain::RuntimeLibType RuntimeLib = GetRuntimeLibType(Args);
-    if ((OMPRuntime == Driver::OMPRT_OMP &&
+    
+    if (ToolChain::RuntimeLibType RuntimeLib = GetRuntimeLibType(Args); (OMPRuntime == Driver::OMPRT_OMP &&
          RuntimeLib == ToolChain::RLT_Libgcc) &&
         !getTriple().isKnownWindowsMSVCEnvironment()) {
       CmdArgs.push_back("-latomic");
@@ -918,14 +918,14 @@ ToolChain::getFallbackAndroidTargetPath(StringRef BaseDir) const {
   for (llvm::vfs::directory_iterator LI = getVFS().dir_begin(BaseDir, EC), LE;
        !EC && LI != LE; LI = LI.increment(EC)) {
     StringRef DirName = llvm::sys::path::filename(LI->path());
-    StringRef DirNameSuffix = DirName;
-    if (DirNameSuffix.consume_front(TripleWithoutLevelStr)) {
+    
+    if (StringRef DirNameSuffix = DirName; DirNameSuffix.consume_front(TripleWithoutLevelStr)) {
       if (DirNameSuffix.empty() && TripleDir.empty()) {
         TripleDir = DirName;
         UsingUnversionedDir = true;
       } else {
-        unsigned Version;
-        if (!DirNameSuffix.getAsInteger(10, Version) && Version > BestVersion &&
+        
+        if (unsigned Version; !DirNameSuffix.getAsInteger(10, Version) && Version > BestVersion &&
             Version < TripleVersion) {
           BestVersion = Version;
           TripleDir = DirName;
@@ -1131,8 +1131,8 @@ std::string ToolChain::GetLinkerPath(bool *LinkerIsLLD) const {
   // If we're passed -fuse-ld= with no argument, or with the argument ld,
   // then use whatever the default system linker is.
   if (UseLinker.empty() || UseLinker == "ld") {
-    const char *DefaultLinker = getDefaultLinker();
-    if (llvm::sys::path::is_absolute(DefaultLinker))
+    
+    if (const char *DefaultLinker = getDefaultLinker(); llvm::sys::path::is_absolute(DefaultLinker))
       return std::string(DefaultLinker);
     else
       return GetProgramPath(DefaultLinker);
@@ -1196,8 +1196,8 @@ bool ToolChain::HasNativeLLVMSupport() const {
 }
 
 bool ToolChain::isCrossCompiling() const {
-  llvm::Triple HostTriple(LLVM_HOST_TRIPLE);
-  switch (HostTriple.getArch()) {
+  
+  switch (llvm::Triple HostTriple(LLVM_HOST_TRIPLE); HostTriple.getArch()) {
   // The A32/T32/T16 instruction sets are not separate architectures in this
   // context.
   case llvm::Triple::arm:
@@ -1248,8 +1248,8 @@ std::string ToolChain::ComputeLLVMTriple(const ArgList &Args,
     if (Arg *A = Args.getLastArg(options::OPT_march_EQ)) {
       // x86_64h goes in the triple. Other -march options just use the
       // vanilla triple we already have.
-      StringRef MArch = A->getValue();
-      if (MArch == "x86_64h")
+      
+      if (StringRef MArch = A->getValue(); MArch == "x86_64h")
         Triple.setArchName(MArch);
     }
     return Triple.getTriple();
@@ -1325,10 +1325,10 @@ ToolChain::RuntimeLibType ToolChain::GetRuntimeLibType(
     return *runtimeLibType;
 
   const Arg* A = Args.getLastArg(options::OPT_rtlib_EQ);
-  StringRef LibName = A ? A->getValue() : CLANG_DEFAULT_RTLIB;
+  
 
   // Only use "platform" in tests to override CLANG_DEFAULT_RTLIB!
-  if (LibName == "compiler-rt")
+  if (StringRef LibName = A ? A->getValue() : CLANG_DEFAULT_RTLIB; LibName == "compiler-rt")
     runtimeLibType = ToolChain::RLT_CompilerRT;
   else if (LibName == "libgcc")
     runtimeLibType = ToolChain::RLT_Libgcc;
@@ -1351,13 +1351,13 @@ ToolChain::UnwindLibType ToolChain::GetUnwindLibType(
     return *unwindLibType;
 
   const Arg *A = Args.getLastArg(options::OPT_unwindlib_EQ);
-  StringRef LibName = A ? A->getValue() : CLANG_DEFAULT_UNWINDLIB;
+  
 
-  if (LibName == "none")
+  if (StringRef LibName = A ? A->getValue() : CLANG_DEFAULT_UNWINDLIB; LibName == "none")
     unwindLibType = ToolChain::UNW_None;
   else if (LibName == "platform" || LibName == "") {
-    ToolChain::RuntimeLibType RtLibType = GetRuntimeLibType(Args);
-    if (RtLibType == ToolChain::RLT_CompilerRT) {
+    
+    if (ToolChain::RuntimeLibType RtLibType = GetRuntimeLibType(Args); RtLibType == ToolChain::RLT_CompilerRT) {
       if (getTriple().isAndroid() || getTriple().isOSAIX())
         unwindLibType = ToolChain::UNW_CompilerRT;
       else
@@ -1386,10 +1386,10 @@ ToolChain::CXXStdlibType ToolChain::GetCXXStdlibType(const ArgList &Args) const{
     return *cxxStdlibType;
 
   const Arg *A = Args.getLastArg(options::OPT_stdlib_EQ);
-  StringRef LibName = A ? A->getValue() : CLANG_DEFAULT_CXX_STDLIB;
+  
 
   // Only use "platform" in tests to override CLANG_DEFAULT_CXX_STDLIB!
-  if (LibName == "libc++")
+  if (StringRef LibName = A ? A->getValue() : CLANG_DEFAULT_CXX_STDLIB; LibName == "libc++")
     cxxStdlibType = ToolChain::CST_Libcxx;
   else if (LibName == "libstdc++")
     cxxStdlibType = ToolChain::CST_Libstdcxx;
@@ -1480,8 +1480,8 @@ std::string ToolChain::detectLibcxxVersion(StringRef IncludePath) const {
   for (llvm::vfs::directory_iterator LI = getVFS().dir_begin(Path, EC), LE;
        !EC && LI != LE; LI = LI.increment(EC)) {
     StringRef VersionText = llvm::sys::path::filename(LI->path());
-    int Version;
-    if (VersionText[0] == 'v' &&
+    
+    if (int Version; VersionText[0] == 'v' &&
         !VersionText.substr(1).getAsInteger(10, Version)) {
       if (Version > MaxVersion) {
         MaxVersion = Version;
@@ -1536,9 +1536,9 @@ void ToolChain::AddCXXStdlibLibArgs(const ArgList &Args,
                                     ArgStringList &CmdArgs) const {
   assert(!Args.hasArg(options::OPT_nostdlibxx) &&
          "should not have called this");
-  CXXStdlibType Type = GetCXXStdlibType(Args);
+  
 
-  switch (Type) {
+  switch (CXXStdlibType Type = GetCXXStdlibType(Args); Type) {
   case ToolChain::CST_Libcxx:
     CmdArgs.push_back("-lc++");
     if (Args.hasArg(options::OPT_fexperimental_library))
@@ -1583,8 +1583,8 @@ bool ToolChain::isFastMathRuntimeAvailable(const ArgList &Args,
         A->getOption().getID() == options::OPT_fno_unsafe_math_optimizations)
       Default = false;
     if (A && A->getOption().getID() == options::OPT_ffp_model_EQ) {
-      StringRef Model = A->getValue();
-      if (Model != "fast" && Model != "aggressive")
+      
+      if (StringRef Model = A->getValue(); Model != "fast" && Model != "aggressive")
         Default = false;
     }
   }
@@ -1601,8 +1601,8 @@ bool ToolChain::isFastMathRuntimeAvailable(const ArgList &Args,
 
 bool ToolChain::addFastMathRuntimeIfAvailable(const ArgList &Args,
                                               ArgStringList &CmdArgs) const {
-  std::string Path;
-  if (isFastMathRuntimeAvailable(Args, Path)) {
+  
+  if (std::string Path; isFastMathRuntimeAvailable(Args, Path)) {
     CmdArgs.push_back(Args.MakeArgString(Path));
     return true;
   }
@@ -1691,8 +1691,8 @@ ToolChain::computeMSVCVersion(const Driver *D,
   }
 
   if (MSCompatibilityVersion) {
-    VersionTuple MSVT;
-    if (MSVT.tryParse(MSCompatibilityVersion->getValue())) {
+    
+    if (VersionTuple MSVT; MSVT.tryParse(MSCompatibilityVersion->getValue())) {
       if (D)
         D->Diag(diag::err_drv_invalid_value)
             << MSCompatibilityVersion->getAsString(Args)
@@ -1703,8 +1703,8 @@ ToolChain::computeMSVCVersion(const Driver *D,
   }
 
   if (MSCVersion) {
-    unsigned Version = 0;
-    if (StringRef(MSCVersion->getValue()).getAsInteger(10, Version)) {
+    
+    if (unsigned Version = 0; StringRef(MSCVersion->getValue()).getAsInteger(10, Version)) {
       if (D)
         D->Diag(diag::err_drv_invalid_value)
             << MSCVersion->getAsString(Args) << MSCVersion->getValue();
@@ -1746,10 +1746,10 @@ llvm::opt::DerivedArgList *ToolChain::TranslateOpenMPTargetArgs(
         A->getOption().matches(options::OPT_Xopenmp_target);
 
     if (A->getOption().matches(options::OPT_Xopenmp_target_EQ)) {
-      llvm::Triple TT(getOpenMPTriple(A->getValue(0)));
+      
 
       // Passing device args: -Xopenmp-target=<triple> -opt=val.
-      if (TT.getTriple() == getTripleString())
+      if (llvm::Triple TT(getOpenMPTriple(A->getValue(0))); TT.getTriple() == getTripleString())
         Index = Args.getBaseArgs().MakeIndex(A->getValue(1));
       else
         continue;

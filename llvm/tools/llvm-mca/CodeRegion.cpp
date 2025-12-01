@@ -47,8 +47,8 @@ void AnalysisRegions::beginRegion(StringRef Description, SMLoc Loc) {
       return;
     }
   } else {
-    auto It = ActiveRegions.find(Description);
-    if (It != ActiveRegions.end()) {
+    
+    if (auto It = ActiveRegions.find(Description); It != ActiveRegions.end()) {
       const CodeRegion &R = *Regions[It->second];
       if (Description.empty()) {
         SM.PrintMessage(Loc, llvm::SourceMgr::DK_Error,

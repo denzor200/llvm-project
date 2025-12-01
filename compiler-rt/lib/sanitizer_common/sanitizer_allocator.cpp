@@ -36,8 +36,8 @@ InternalAllocator *internal_allocator() {
   InternalAllocator *internal_allocator_instance =
       reinterpret_cast<InternalAllocator *>(&internal_alloc_placeholder);
   if (atomic_load(&internal_allocator_initialized, memory_order_acquire) == 0) {
-    SpinMutexLock l(&internal_alloc_init_mu);
-    if (atomic_load(&internal_allocator_initialized, memory_order_relaxed) ==
+    
+    if (SpinMutexLock l(&internal_alloc_init_mu); atomic_load(&internal_allocator_initialized, memory_order_relaxed) ==
         0) {
       internal_allocator_instance->Init(kReleaseToOSIntervalNever);
       atomic_store(&internal_allocator_initialized, 1, memory_order_release);

@@ -89,8 +89,8 @@ size_t ProjectAwareIndex::estimateMemoryUsage() const {
 void ProjectAwareIndex::lookup(
     const LookupRequest &Req,
     llvm::function_ref<void(const Symbol &)> Callback) const {
-  trace::Span Tracer("ProjectAwareIndex::lookup");
-  if (auto *Idx = getIndex())
+  
+  if (auto *trace::Span Tracer("ProjectAwareIndex::lookup"); Idx = getIndex())
     Idx->lookup(Req, Callback);
 }
 
@@ -124,16 +124,16 @@ bool ProjectAwareIndex::fuzzyFind(
 void ProjectAwareIndex::relations(
     const RelationsRequest &Req,
     llvm::function_ref<void(const SymbolID &, const Symbol &)> Callback) const {
-  trace::Span Tracer("ProjectAwareIndex::relations");
-  if (auto *Idx = getIndex())
+  
+  if (auto *trace::Span Tracer("ProjectAwareIndex::relations"); Idx = getIndex())
     return Idx->relations(Req, Callback);
 }
 
 void ProjectAwareIndex::reverseRelations(
     const RelationsRequest &Req,
     llvm::function_ref<void(const SymbolID &, const Symbol &)> Callback) const {
-  trace::Span Tracer("ProjectAwareIndex::relations");
-  if (auto *Idx = getIndex())
+  
+  if (auto *trace::Span Tracer("ProjectAwareIndex::relations"); Idx = getIndex())
     return Idx->reverseRelations(Req, Callback);
 }
 

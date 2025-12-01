@@ -493,9 +493,9 @@ Value *AMDGPUAtomicOptimizerImpl::buildShiftRight(IRBuilder<> &B, Value *V,
                                                   Value *Identity) const {
   Type *AtomicTy = V->getType();
   Module *M = B.GetInsertBlock()->getModule();
-  Function *UpdateDPP = Intrinsic::getOrInsertDeclaration(
-      M, Intrinsic::amdgcn_update_dpp, AtomicTy);
-  if (ST.hasDPPWavefrontShifts()) {
+  
+  if (Function *UpdateDPP = Intrinsic::getOrInsertDeclaration(
+      M, Intrinsic::amdgcn_update_dpp, AtomicTy); ST.hasDPPWavefrontShifts()) {
     // GFX9 has DPP wavefront shift operations.
     V = B.CreateCall(UpdateDPP,
                      {Identity, V, B.getInt32(DPP::WAVE_SHR1), B.getInt32(0xf),

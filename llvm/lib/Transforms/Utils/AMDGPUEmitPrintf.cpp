@@ -249,8 +249,8 @@ static Value *callBufferedPrintfStart(
 
   for (size_t i = 1; i < Args.size(); i++) {
     if (SpecIsCString.test(i)) {
-      StringRef ArgStr;
-      if (getConstantStringInfo(Args[i], ArgStr)) {
+      
+      if (StringRef ArgStr; getConstantStringInfo(Args[i], ArgStr)) {
         auto alignedLen = alignTo(ArgStr.size() + 1, 8);
         StringContents.push_back(StringData(
             ArgStr,
@@ -345,8 +345,8 @@ static void processConstantStringArg(StringData *SD, IRBuilder<> &Builder,
     WhatToStore.push_back(ConstantInt::get(IntTy, IntVal));
   }
   // Additional padding for 8 byte alignment
-  int Rem = (Str.size() % 8);
-  if (Rem > 0 && Rem <= 4)
+  
+  if (int Rem = (Str.size() % 8); Rem > 0 && Rem <= 4)
     WhatToStore.push_back(ConstantInt::get(Builder.getInt32Ty(), 0));
 }
 

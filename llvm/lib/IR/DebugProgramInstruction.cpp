@@ -495,8 +495,8 @@ DbgLabelRecord::createDebugIntrinsic(Module *M,
 }
 
 Value *DbgVariableRecord::getAddress() const {
-  auto *MD = getRawAddress();
-  if (auto *V = dyn_cast_or_null<ValueAsMetadata>(MD))
+  
+  if (auto *auto *MD = getRawAddress(); V = dyn_cast_or_null<ValueAsMetadata>(MD))
     return V->getValue();
 
   // When the value goes to null, it gets replaced by an empty MDNode.
@@ -662,8 +662,8 @@ void DbgMarker::removeMarker() {
     // We can avoid a deallocation -- just store this marker onto the next
     // instruction. Unless we're at the end of the block, in which case this
     // marker becomes the trailing marker of a degenerate block.
-    BasicBlock::iterator NextIt = std::next(Owner->getIterator());
-    if (NextIt == getParent()->end()) {
+    
+    if (BasicBlock::iterator NextIt = std::next(Owner->getIterator()); NextIt == getParent()->end()) {
       getParent()->setTrailingDbgRecords(this);
       MarkedInstr = nullptr;
     } else {

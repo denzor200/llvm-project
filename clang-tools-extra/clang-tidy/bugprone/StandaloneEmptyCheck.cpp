@@ -48,8 +48,8 @@ using ast_matchers::voidType;
 
 static const Expr *getCondition(const BoundNodes &Nodes,
                                 const StringRef NodeId) {
-  const auto *If = Nodes.getNodeAs<IfStmt>(NodeId);
-  if (If != nullptr)
+  
+  if (const auto *If = Nodes.getNodeAs<IfStmt>(NodeId); If != nullptr)
     return If->getCond();
 
   const auto *For = Nodes.getNodeAs<ForStmt>(NodeId);
@@ -101,9 +101,9 @@ void StandaloneEmptyCheck::check(const MatchFinder::MatchResult &Result) {
   const auto *PParentStmtExpr = Result.Nodes.getNodeAs<Expr>("stexpr");
   const auto *ParentCompStmt = Result.Nodes.getNodeAs<CompoundStmt>("parent");
   const auto *ParentCond = getCondition(Result.Nodes, "parent");
-  const auto *ParentReturnStmt = Result.Nodes.getNodeAs<ReturnStmt>("parent");
+  
 
-  if (const auto *MemberCall =
+  if (const auto *const auto *ParentReturnStmt = Result.Nodes.getNodeAs<ReturnStmt>("parent"); MemberCall =
           Result.Nodes.getNodeAs<CXXMemberCallExpr>("empty")) {
     // Skip if it's a condition of the parent statement.
     if (ParentCond == MemberCall->getExprStmt())
@@ -134,15 +134,15 @@ void StandaloneEmptyCheck::check(const MatchFinder::MatchResult &Result) {
                  !llvm::cast<CXXMethodDecl>(ND)->isConst();
         });
 
-    const bool HasClear = !Candidates.empty();
-    if (HasClear) {
+    
+    if (const bool HasClear = !Candidates.empty(); HasClear) {
       const auto *Clear = llvm::cast<CXXMethodDecl>(Candidates.at(0));
       const QualType RangeType =
           MemberCall->getImplicitObjectArgument()->getType();
-      const bool QualifierIncompatible =
+      
+      if (const bool QualifierIncompatible =
           (!Clear->isVolatile() && RangeType.isVolatileQualified()) ||
-          RangeType.isConstQualified();
-      if (!QualifierIncompatible) {
+          RangeType.isConstQualified(); !QualifierIncompatible) {
         diag(MemberLoc,
              "ignoring the result of 'empty()'; did you mean 'clear()'? ")
             << FixItHint::CreateReplacement(ReplacementRange, "clear");

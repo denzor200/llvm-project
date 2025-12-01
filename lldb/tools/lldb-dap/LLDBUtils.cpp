@@ -44,9 +44,9 @@ bool RunLLDBCommands(lldb::SBDebugger &debugger, llvm::StringRef prefix,
 
     // Get the current prompt from settings.
     if (const lldb::SBStructuredData prompt = debugger.GetSetting("prompt")) {
-      const size_t prompt_length = prompt.GetStringValue(nullptr, 0);
+      
 
-      if (prompt_length != 0) {
+      if (const size_t prompt_length = prompt.GetStringValue(nullptr, 0); prompt_length != 0) {
         prompt_string.resize(prompt_length + 1);
         prompt.GetStringValue(prompt_string.data(), prompt_string.length());
       }
@@ -94,8 +94,8 @@ bool RunLLDBCommands(lldb::SBDebugger &debugger, llvm::StringRef prefix,
       if (echo_commands)
         strm << prompt_string.c_str() << command << '\n';
 
-      auto output_len = result.GetOutputSize();
-      if (output_len) {
+      
+      if (auto output_len = result.GetOutputSize(); output_len) {
         const char *output = result.GetOutput();
         strm << output;
       }
@@ -195,8 +195,8 @@ GetStopDisassemblyDisplay(lldb::SBDebugger &debugger) {
       lldb::StopDisassemblyType::eStopDisassemblyTypeNoDebugInfo;
   lldb::SBStructuredData string_result =
       debugger.GetSetting("stop-disassembly-display");
-  const size_t result_length = string_result.GetStringValue(nullptr, 0);
-  if (result_length > 0) {
+  
+  if (const size_t result_length = string_result.GetStringValue(nullptr, 0); result_length > 0) {
     std::string result_string(result_length, '\0');
     string_result.GetStringValue(result_string.data(), result_length + 1);
 

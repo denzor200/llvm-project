@@ -73,13 +73,13 @@ spirv::mapMemorySpaceToVulkanStorageClass(Attribute memorySpaceAttr) {
   auto intAttr = dyn_cast<IntegerAttr>(memorySpaceAttr);
   if (!intAttr)
     return std::nullopt;
-  unsigned memorySpace = intAttr.getInt();
+  
 
 #define STORAGE_SPACE_MAP_FN(storage, space)                                   \
   case space:                                                                  \
     return storage;
 
-  switch (memorySpace) {
+  switch (unsigned memorySpace = intAttr.getInt(); memorySpace) {
     VULKAN_STORAGE_SPACE_MAP_LIST(STORAGE_SPACE_MAP_FN)
   default:
     break;
@@ -127,13 +127,13 @@ spirv::mapMemorySpaceToOpenCLStorageClass(Attribute memorySpaceAttr) {
   auto intAttr = dyn_cast<IntegerAttr>(memorySpaceAttr);
   if (!intAttr)
     return std::nullopt;
-  unsigned memorySpace = intAttr.getInt();
+  
 
 #define STORAGE_SPACE_MAP_FN(storage, space)                                   \
   case space:                                                                  \
     return storage;
 
-  switch (memorySpace) {
+  switch (unsigned memorySpace = intAttr.getInt(); memorySpace) {
     OPENCL_STORAGE_SPACE_MAP_LIST(STORAGE_SPACE_MAP_FN)
   default:
     break;
@@ -293,8 +293,8 @@ public:
 
     spirv::MemorySpaceToStorageClassMap spaceToStorage = memorySpaceMap;
     if (spirv::TargetEnvAttr attr = spirv::lookupTargetEnv(op)) {
-      spirv::TargetEnv targetEnv(attr);
-      if (targetEnv.allows(spirv::Capability::Kernel)) {
+      
+      if (spirv::TargetEnv targetEnv(attr); targetEnv.allows(spirv::Capability::Kernel)) {
         spaceToStorage = spirv::mapMemorySpaceToOpenCLStorageClass;
       } else if (targetEnv.allows(spirv::Capability::Shader)) {
         spaceToStorage = spirv::mapMemorySpaceToVulkanStorageClass;

@@ -39,8 +39,8 @@ void FixedAddressChecker::checkPreStmt(const BinaryOperator *B,
   if (B->getOpcode() != BO_Assign)
     return;
 
-  QualType T = B->getType();
-  if (!T->isPointerType())
+  
+  if (QualType T = B->getType(); !T->isPointerType())
     return;
 
   // Omit warning if the RHS has already pointer type. Without this passing

@@ -91,8 +91,8 @@ int llvm_mt_main(int Argc, char **Argv, const llvm::ToolContext &) {
     raw_string_ostream OS(Diag);
     OS << "invalid option '" << ArgString << "'";
 
-    std::string Nearest;
-    if (T.findNearest(ArgString, Nearest) < 2)
+    
+    if (std::string Nearest; T.findNearest(ArgString, Nearest) < 2)
       OS << ", did you mean '" << Nearest << "'?";
 
     reportError(OS.str());

@@ -194,8 +194,8 @@ static void ParseArgs(int argc, char **argv) {
   EagerLoadModules = Args.hasArg(OPT_eager_load_pcm);
 
   if (const llvm::opt::Arg *A = Args.getLastArg(OPT_j)) {
-    StringRef S{A->getValue()};
-    if (!llvm::to_integer(S, NumThreads, 0)) {
+    
+    if (StringRef S{A->getValue()}; !llvm::to_integer(S, NumThreads, 0)) {
       llvm::errs() << ToolName << ": for the -j option: '" << S
                    << "' value invalid for uint argument!\n";
       std::exit(1);
@@ -771,8 +771,8 @@ static std::string constructPCMPath(ModuleID MID, StringRef OutputDir) {
 static std::string lookupModuleOutput(const ModuleDeps &MD,
                                       ModuleOutputKind MOK,
                                       StringRef OutputDir) {
-  std::string PCMPath = constructPCMPath(MD.ID, OutputDir);
-  switch (MOK) {
+  
+  switch (std::string PCMPath = constructPCMPath(MD.ID, OutputDir); MOK) {
   case ModuleOutputKind::ModuleFile:
     return PCMPath;
   case ModuleOutputKind::DependencyFile:
@@ -966,9 +966,9 @@ int clang_scan_deps_main(int argc, char **argv, const llvm::ToolContext &) {
         }
 
         if (!HasResourceDir && ResourceDirRecipe == RDRK_InvokeCompiler) {
-          StringRef ResourceDir =
-              ResourceDirCache.findResourceDir(Args, ClangCLMode);
-          if (!ResourceDir.empty()) {
+          
+          if (StringRef ResourceDir =
+              ResourceDirCache.findResourceDir(Args, ClangCLMode); !ResourceDir.empty()) {
             AdjustedArgs.push_back("-resource-dir");
             AdjustedArgs.push_back(std::string(ResourceDir));
           }
@@ -1046,8 +1046,8 @@ int clang_scan_deps_main(int argc, char **argv, const llvm::ToolContext &) {
 
       // Run the tool on it.
       if (Format == ScanningOutputFormat::Make) {
-        auto MaybeFile = WorkerTool.getDependencyFile(Input->CommandLine, CWD);
-        if (handleMakeDependencyToolResult(Filename, MaybeFile, DependencyOS,
+        
+        if (auto MaybeFile = WorkerTool.getDependencyFile(Input->CommandLine, CWD); handleMakeDependencyToolResult(Filename, MaybeFile, DependencyOS,
                                            Errs))
           HadErrors = true;
       } else if (Format == ScanningOutputFormat::P1689) {
@@ -1098,10 +1098,10 @@ int clang_scan_deps_main(int argc, char **argv, const llvm::ToolContext &) {
         ModuleNameRef.split(Names, ',');
 
         if (Names.size() == 1) {
-          auto MaybeModuleDepsGraph = WorkerTool.getModuleDependencies(
+          
+          if (auto MaybeModuleDepsGraph = WorkerTool.getModuleDependencies(
               Names[0], Input->CommandLine, CWD, AlreadySeenModules,
-              LookupOutput);
-          if (handleModuleResult(Names[0], MaybeModuleDepsGraph, *FD,
+              LookupOutput); handleModuleResult(Names[0], MaybeModuleDepsGraph, *FD,
                                  LocalIndex, DependencyOS, Errs))
             HadErrors = true;
         } else {
@@ -1116,10 +1116,10 @@ int clang_scan_deps_main(int argc, char **argv, const llvm::ToolContext &) {
           }
 
           for (auto N : Names) {
-            auto MaybeModuleDepsGraph =
+            
+            if (auto MaybeModuleDepsGraph =
                 WorkerTool.computeDependenciesByNameWithContext(
-                    N, AlreadySeenModules, LookupOutput);
-            if (handleModuleResult(N, MaybeModuleDepsGraph, *FD, LocalIndex,
+                    N, AlreadySeenModules, LookupOutput); handleModuleResult(N, MaybeModuleDepsGraph, *FD, LocalIndex,
                                    DependencyOS, Errs)) {
               HadErrors = true;
               break;

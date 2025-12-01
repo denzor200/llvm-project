@@ -53,10 +53,10 @@ void FoldingSetNodeID::AddString(StringRef String) {
 
   unsigned Units = Size / 4;
   unsigned Pos = 0;
-  const unsigned *Base = (const unsigned*) String.data();
+  
 
   // If the string is aligned do a bulk transfer.
-  if (!((intptr_t)Base & 3)) {
+  if (const unsigned *Base = (const unsigned*) String.data(); !((intptr_t)Base & 3)) {
     Bits.append(Base, Base + Units);
     Pos = (Units + 1) * 4;
   } else {
@@ -398,9 +398,9 @@ FoldingSetIteratorImpl::FoldingSetIteratorImpl(void **Bucket) {
 
 void FoldingSetIteratorImpl::advance() {
   // If there is another link within this bucket, go to it.
-  void *Probe = NodePtr->getNextInBucket();
+  
 
-  if (FoldingSetNode *NextNodeInBucket = GetNextPtr(Probe))
+  if (FoldingSetNode *void *Probe = NodePtr->getNextInBucket(); NextNodeInBucket = GetNextPtr(Probe))
     NodePtr = NextNodeInBucket;
   else {
     // Otherwise, this is the last link in this bucket.

@@ -951,8 +951,8 @@ InstallAPIContext Options::createContext() {
   auto ParseGlobs = [&](const PathSeq &Paths, HeaderType Type) {
     assert(Type != HeaderType::Unknown && "Missing header type.");
     for (const StringRef Path : Paths) {
-      auto Glob = HeaderGlob::create(Path, Type);
-      if (Glob)
+      
+      if (auto Glob = HeaderGlob::create(Path, Type); Glob)
         ExcludedHeaderGlobs.emplace_back(std::move(Glob.get()));
       else {
         consumeError(Glob.takeError());
@@ -1018,8 +1018,8 @@ InstallAPIContext Options::createContext() {
     assert(Type != HeaderType::Unknown && "Missing header type.");
     if (!HeaderPath.empty()) {
       auto EscapedString = Regex::escape(HeaderPath);
-      Regex UmbrellaRegex(EscapedString);
-      if (!MarkandMoveUmbrellaInHeaders(UmbrellaRegex, Type)) {
+      
+      if (Regex UmbrellaRegex(EscapedString); !MarkandMoveUmbrellaInHeaders(UmbrellaRegex, Type)) {
         Diags->Report(diag::err_no_such_umbrella_header_file)
             << HeaderPath << (unsigned)Type;
         return false;

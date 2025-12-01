@@ -64,8 +64,8 @@ CalcNodeSethiUllmanNumber(const SUnit *SU, std::vector<unsigned> &SUNumbers) {
   for (const SDep &Pred : SU->Preds) {
     if (Pred.isCtrl()) continue;  // ignore chain preds
     SUnit *PredSU = Pred.getSUnit();
-    unsigned PredSethiUllman = CalcNodeSethiUllmanNumber(PredSU, SUNumbers);
-    if (PredSethiUllman > SethiUllmanNumber) {
+    
+    if (unsigned PredSethiUllman = CalcNodeSethiUllmanNumber(PredSU, SUNumbers); PredSethiUllman > SethiUllmanNumber) {
       SethiUllmanNumber = PredSethiUllman;
       Extra = 0;
     }
@@ -107,10 +107,10 @@ static unsigned closestSucc(const SUnit *SU) {
   unsigned MaxHeight = 0;
   for (const SDep &Succ : SU->Succs) {
     if (Succ.isCtrl()) continue;  // ignore chain succs
-    unsigned Height = Succ.getSUnit()->getHeight();
+    
     // If there are bunch of CopyToRegs stacked up, they should be considered
     // to be at the same position.
-    if (Height > MaxHeight)
+    if (unsigned Height = Succ.getSUnit()->getHeight(); Height > MaxHeight)
       MaxHeight = Height;
   }
   return MaxHeight;
@@ -133,7 +133,7 @@ static int BUCompareLatency(const SUnit *left, const SUnit *right) {
   // Scheduling an instruction that uses a VReg whose postincrement has not yet
   // been scheduled will induce a copy. Model this as an extra cycle of latency.
   int LHeight = (int)left->getHeight();
-  int RHeight = (int)right->getHeight();
+  
 
   // If either node is scheduling for latency, sort them by height/depth
   // and latency.
@@ -142,7 +142,7 @@ static int BUCompareLatency(const SUnit *left, const SUnit *right) {
   // is enabled, grouping instructions by cycle, then its height is already
   // covered so only its depth matters. We also reach this point if both stall
   // but have the same height.
-  if (LHeight != RHeight)
+  if (int RHeight = (int)right->getHeight(); LHeight != RHeight)
     return LHeight > RHeight ? 1 : -1;
 
   int LDepth = left->getDepth();
@@ -166,8 +166,8 @@ const SUnit *GCNILPScheduler::pickBest(const SUnit *left, const SUnit *right)
   bool const DisableSchedCriticalPath = false;
   int MaxReorderWindow = 6;
   if (!DisableSchedCriticalPath) {
-    int spread = (int)left->getDepth() - (int)right->getDepth();
-    if (std::abs(spread) > MaxReorderWindow) {
+    
+    if (int spread = (int)left->getDepth() - (int)right->getDepth(); std::abs(spread) > MaxReorderWindow) {
       LLVM_DEBUG(dbgs() << "Depth of SU(" << left->NodeNum << "): "
                         << left->getDepth() << " != SU(" << right->NodeNum
                         << "): " << right->getDepth() << "\n");
@@ -177,8 +177,8 @@ const SUnit *GCNILPScheduler::pickBest(const SUnit *left, const SUnit *right)
 
   bool const DisableSchedHeight = false;
   if (!DisableSchedHeight && left->getHeight() != right->getHeight()) {
-    int spread = (int)left->getHeight() - (int)right->getHeight();
-    if (std::abs(spread) > MaxReorderWindow)
+    
+    if (int spread = (int)left->getHeight() - (int)right->getHeight(); std::abs(spread) > MaxReorderWindow)
       return left->getHeight() > right->getHeight() ? right : left;
   }
 
@@ -219,8 +219,8 @@ const SUnit *GCNILPScheduler::pickBest(const SUnit *left, const SUnit *right)
 
   bool const DisableSchedCycles = false;
   if (!DisableSchedCycles) {
-    int result = BUCompareLatency(left, right);
-    if (result != 0)
+    
+    if (int result = BUCompareLatency(left, right); result != 0)
       return result > 0 ? right : left;
     return left;
   }
@@ -240,8 +240,8 @@ GCNILPScheduler::Candidate* GCNILPScheduler::pickCandidate() {
     return nullptr;
   auto Best = AvailQueue.begin();
   for (auto I = std::next(AvailQueue.begin()), E = AvailQueue.end(); I != E; ++I) {
-    const auto *NewBestSU = pickBest(Best->SU, I->SU);
-    if (NewBestSU != Best->SU) {
+    
+    if (const auto *NewBestSU = pickBest(Best->SU, I->SU); NewBestSU != Best->SU) {
       assert(NewBestSU == I->SU);
       Best = I;
     }

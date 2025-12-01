@@ -201,9 +201,9 @@ verifyTypesAlongAllEdges(RegionBranchOpInterface branchOp,
     for (const auto &typesIdx :
          llvm::enumerate(llvm::zip(*sourceTypes, succInputsTypes))) {
       Type sourceType = std::get<0>(typesIdx.value());
-      Type inputType = std::get<1>(typesIdx.value());
+      
 
-      if (!branchOp.areTypesCompatible(sourceType, inputType)) {
+      if (Type inputType = std::get<1>(typesIdx.value()); !branchOp.areTypesCompatible(sourceType, inputType)) {
         InFlightDiagnostic diag =
             branchOp->emitOpError("along control flow edge ");
         return printRegionEdgeName(diag, sourcePoint, succ)

@@ -250,8 +250,8 @@ public:
 CXDiagnosticSet DiagLoader::load(const char *file) {
   TopDiags = std::make_unique<CXLoadedDiagnosticSetImpl>();
 
-  std::error_code EC = readDiagnostics(file);
-  if (EC) {
+  
+  if (std::error_code EC = readDiagnostics(file); EC) {
     switch (EC.value()) {
     case static_cast<int>(serialized_diags::SDError::HandlerFailed):
       // We've already reported the problem.
@@ -272,8 +272,8 @@ CXDiagnosticSet DiagLoader::load(const char *file) {
 std::error_code
 DiagLoader::readLocation(const serialized_diags::Location &SDLoc,
                          CXLoadedDiagnostic::Location &LoadedLoc) {
-  unsigned FileID = SDLoc.FileID;
-  if (FileID == 0)
+  
+  if (unsigned FileID = SDLoc.FileID; FileID == 0)
     LoadedLoc.file = nullptr;
   else {
     auto It = TopDiags->Files.find(FileID);

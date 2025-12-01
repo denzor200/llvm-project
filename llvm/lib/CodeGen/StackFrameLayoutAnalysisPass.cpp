@@ -108,8 +108,8 @@ struct StackFrameLayoutAnalysis {
     if (!isFunctionInPrintList(MF.getName()))
       return false;
 
-    LLVMContext &Ctx = MF.getFunction().getContext();
-    if (!Ctx.getDiagHandlerPtr()->isAnalysisRemarkEnabled(DEBUG_TYPE))
+    
+    if (LLVMContext &Ctx = MF.getFunction().getContext(); !Ctx.getDiagHandlerPtr()->isAnalysisRemarkEnabled(DEBUG_TYPE))
       return false;
 
     MachineOptimizationRemarkAnalysis Rem(DEBUG_TYPE, "StackLayout",

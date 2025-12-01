@@ -420,7 +420,7 @@ struct LowerGpuOpsToNVVMOpsPass final
       populateGpuSubgroupReduceOpLoweringPattern(converter, llvmPatterns);
     configureGpuToNVVMConversionLegality(target);
     ConversionConfig config;
-    config.allowPatternRollback = allowPatternRollback;
+    config.allowPatternRollback = mlir::ConvertToLLVMPassOptions::allowPatternRollback;
     if (failed(
             applyPartialConversion(m, target, std::move(llvmPatterns), config)))
       signalPassFailure();

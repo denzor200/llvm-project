@@ -65,8 +65,8 @@ LLVM_LIBC_FUNCTION(void, sincos, (double x, double *sin_x, double *cos_x)) {
         *cos_x = fputil::round_result_slightly_down(1.0);
 
         if (LIBC_UNLIKELY(x_e < 4)) {
-          int rounding_mode = fputil::quick_get_round();
-          if (rounding_mode == FE_TOWARDZERO ||
+          
+          if (int rounding_mode = fputil::quick_get_round(); rounding_mode == FE_TOWARDZERO ||
               (xbits.sign() == Sign::POS && rounding_mode == FE_DOWNWARD) ||
               (xbits.sign() == Sign::NEG && rounding_mode == FE_UPWARD))
             *sin_x = FPBits(xbits.uintval() - 1).get_val();

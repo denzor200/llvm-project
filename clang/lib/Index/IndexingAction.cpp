@@ -243,8 +243,8 @@ static void indexPreprocessorModuleMacros(Preprocessor &PP,
   for (const auto &M : PP.macros()) {
     if (M.second.getLatest() == nullptr) {
       for (auto *MM : PP.getLeafModuleMacros(M.first)) {
-        auto *OwningMod = MM->getOwningModule();
-        if (OwningMod && OwningMod->getASTFile() == Mod.File) {
+        
+        if (auto *OwningMod = MM->getOwningModule(); OwningMod && OwningMod->getASTFile() == Mod.File) {
           if (auto *MI = MM->getMacroInfo()) {
             indexPreprocessorMacro(M.first, MI, MacroDirective::MD_Define,
                                    MI->getDefinitionLoc(), DataConsumer);

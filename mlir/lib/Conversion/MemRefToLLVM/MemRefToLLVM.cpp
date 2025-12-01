@@ -50,9 +50,9 @@ static bool isStaticStrideOrOffset(int64_t strideOrOffset) {
 static FailureOr<LLVM::LLVMFuncOp>
 getFreeFn(OpBuilder &b, const LLVMTypeConverter *typeConverter,
           Operation *module, SymbolTableCollection *symbolTables) {
-  bool useGenericFn = typeConverter->getOptions().useGenericFunctions;
+  
 
-  if (useGenericFn)
+  if (bool useGenericFn = typeConverter->getOptions().useGenericFunctions; useGenericFn)
     return LLVM::lookupOrCreateGenericFreeFn(b, module, symbolTables);
 
   return LLVM::lookupOrCreateFreeFn(b, module, symbolTables);
@@ -62,8 +62,8 @@ static FailureOr<LLVM::LLVMFuncOp>
 getNotalignedAllocFn(OpBuilder &b, const LLVMTypeConverter *typeConverter,
                      Operation *module, Type indexType,
                      SymbolTableCollection *symbolTables) {
-  bool useGenericFn = typeConverter->getOptions().useGenericFunctions;
-  if (useGenericFn)
+  
+  if (bool useGenericFn = typeConverter->getOptions().useGenericFunctions; useGenericFn)
     return LLVM::lookupOrCreateGenericAllocFn(b, module, indexType,
                                               symbolTables);
 
@@ -74,9 +74,9 @@ static FailureOr<LLVM::LLVMFuncOp>
 getAlignedAllocFn(OpBuilder &b, const LLVMTypeConverter *typeConverter,
                   Operation *module, Type indexType,
                   SymbolTableCollection *symbolTables) {
-  bool useGenericFn = typeConverter->getOptions().useGenericFunctions;
+  
 
-  if (useGenericFn)
+  if (bool useGenericFn = typeConverter->getOptions().useGenericFunctions; useGenericFn)
     return LLVM::lookupOrCreateGenericAlignedAllocFn(b, module, indexType,
                                                      symbolTables);
 
@@ -122,8 +122,8 @@ static Value castAllocFuncResult(ConversionPatternRewriter &rewriter,
   FailureOr<unsigned> maybeMemrefAddrSpace =
       typeConverter.getMemRefAddressSpace(memRefType);
   assert(succeeded(maybeMemrefAddrSpace) && "unsupported address space");
-  unsigned memrefAddrSpace = *maybeMemrefAddrSpace;
-  if (allocatedPtrTy.getAddressSpace() != memrefAddrSpace)
+  
+  if (unsigned memrefAddrSpace = *maybeMemrefAddrSpace; allocatedPtrTy.getAddressSpace() != memrefAddrSpace)
     allocatedPtr = LLVM::AddrSpaceCastOp::create(
         rewriter, loc,
         LLVM::LLVMPointerType::get(rewriter.getContext(), memrefAddrSpace),
@@ -643,10 +643,10 @@ private:
 
     // Take advantage if index is constant.
     MemRefType memRefType = cast<MemRefType>(operandType);
-    Type indexType = getIndexType();
-    if (std::optional<int64_t> index = getConstantDimIndex(dimOp)) {
-      int64_t i = *index;
-      if (i >= 0 && i < memRefType.getRank()) {
+    
+    if (std::optional<int64_t> Type indexType = getIndexType(); index = getConstantDimIndex(dimOp)) {
+      
+      if (int64_t i = *index; i >= 0 && i < memRefType.getRank()) {
         if (memRefType.isDynamicDim(i)) {
           // extract dynamic size from the memref descriptor.
           MemRefDescriptor descriptor(adaptor.getSource());
@@ -1540,8 +1540,8 @@ private:
           Value shapeOp = reshapeOp.getShape();
           Value index = createIndexAttrConstant(rewriter, loc, indexType, i);
           dimSize = memref::LoadOp::create(rewriter, loc, shapeOp, index);
-          Type indexType = getIndexType();
-          if (dimSize.getType() != indexType)
+          
+          if (Type indexType = getIndexType(); dimSize.getType() != indexType)
             dimSize = typeConverter->materializeTargetConversion(
                 rewriter, loc, indexType, dimSize);
           assert(dimSize && "Invalid memref element type");
@@ -2066,8 +2066,8 @@ void mlir::populateFinalizeMemRefToLLVMConversionPatterns(
   // clang-format on
   patterns.add<GlobalMemrefOpLowering, MemRefCopyOpLowering>(converter,
                                                              symbolTables);
-  auto allocLowering = converter.getOptions().allocLowering;
-  if (allocLowering == LowerToLLVMOptions::AllocLowering::AlignedAlloc)
+  
+  if (auto allocLowering = converter.getOptions().allocLowering; allocLowering == LowerToLLVMOptions::AllocLowering::AlignedAlloc)
     patterns.add<AlignedAllocOpLowering, DeallocOpLowering>(converter,
                                                             symbolTables);
   else if (allocLowering == LowerToLLVMOptions::AllocLowering::Malloc)

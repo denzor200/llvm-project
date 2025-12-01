@@ -143,9 +143,9 @@ clang::NamedDecl *NameSearchContext::AddGenericFunDecl() {
 clang::NamedDecl *
 NameSearchContext::AddTypeDecl(const CompilerType &clang_type) {
   if (ClangUtil::IsClangType(clang_type)) {
-    QualType qual_type = ClangUtil::GetQualType(clang_type);
+    
 
-    if (const TypedefType *typedef_type =
+    if (const TypedefType *QualType qual_type = ClangUtil::GetQualType(clang_type); typedef_type =
             llvm::dyn_cast<TypedefType>(qual_type)) {
       TypedefNameDecl *typedef_name_decl = typedef_type->getDecl();
 

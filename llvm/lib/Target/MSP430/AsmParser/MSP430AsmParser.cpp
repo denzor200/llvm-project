@@ -257,10 +257,10 @@ bool MSP430AsmParser::matchAndEmitInstruction(SMLoc Loc, unsigned &Opcode,
                                               uint64_t &ErrorInfo,
                                               bool MatchingInlineAsm) {
   MCInst Inst;
-  unsigned MatchResult =
-      MatchInstructionImpl(Operands, Inst, ErrorInfo, MatchingInlineAsm);
+  
 
-  switch (MatchResult) {
+  switch (unsigned MatchResult =
+      MatchInstructionImpl(Operands, Inst, ErrorInfo, MatchingInlineAsm); MatchResult) {
   case Match_Success:
     Inst.setLoc(Loc);
     Out.emitInstruction(Inst, *STI);
@@ -459,9 +459,9 @@ bool MSP430AsmParser::ParseOperand(OperandVector &Operands) {
     case AsmToken::Plus:
     case AsmToken::Minus: {
       SMLoc StartLoc = getParser().getTok().getLoc();
-      const MCExpr *Val;
+      
       // Try constexpr[(rN)]
-      if (!getParser().parseExpression(Val)) {
+      if (const MCExpr *Val; !getParser().parseExpression(Val)) {
         MCRegister RegNo = MSP430::PC;
         SMLoc EndLoc = getParser().getTok().getLoc();
         // Try (rN)
@@ -483,8 +483,8 @@ bool MSP430AsmParser::ParseOperand(OperandVector &Operands) {
       // Try &constexpr
       SMLoc StartLoc = getParser().getTok().getLoc();
       getLexer().Lex(); // Eat '&'
-      const MCExpr *Val;
-      if (!getParser().parseExpression(Val)) {
+      
+      if (const MCExpr *Val; !getParser().parseExpression(Val)) {
         SMLoc EndLoc = getParser().getTok().getLoc();
         Operands.push_back(MSP430Operand::CreateMem(MSP430::SR, Val, StartLoc,
           EndLoc));
@@ -515,8 +515,8 @@ bool MSP430AsmParser::ParseOperand(OperandVector &Operands) {
       // Try #constexpr
       SMLoc StartLoc = getParser().getTok().getLoc();
       getLexer().Lex(); // Eat '#'
-      const MCExpr *Val;
-      if (!getParser().parseExpression(Val)) {
+      
+      if (const MCExpr *Val; !getParser().parseExpression(Val)) {
         SMLoc EndLoc = getParser().getTok().getLoc();
         Operands.push_back(MSP430Operand::CreateImm(Val, StartLoc, EndLoc));
         return false;

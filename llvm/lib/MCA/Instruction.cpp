@@ -141,14 +141,14 @@ const CriticalDependency &Instruction::computeCriticalRegDep() {
 
   unsigned MaxLatency = 0;
   for (const WriteState &WS : getDefs()) {
-    const CriticalDependency &WriteCRD = WS.getCriticalRegDep();
-    if (WriteCRD.Cycles > MaxLatency)
+    
+    if (const CriticalDependency &WriteCRD = WS.getCriticalRegDep(); WriteCRD.Cycles > MaxLatency)
       CriticalRegDep = WriteCRD;
   }
 
   for (const ReadState &RS : getUses()) {
-    const CriticalDependency &ReadCRD = RS.getCriticalRegDep();
-    if (ReadCRD.Cycles > MaxLatency)
+    
+    if (const CriticalDependency &ReadCRD = RS.getCriticalRegDep(); ReadCRD.Cycles > MaxLatency)
       CriticalRegDep = ReadCRD;
   }
 

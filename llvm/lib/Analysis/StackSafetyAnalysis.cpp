@@ -429,7 +429,9 @@ void StackSafetyLocalAnalysis::analyzeAllUses(Value *Ptr,
 
       assert(V == UI.get());
 
-      auto RecordStore = [&](const Value* StoredVal) {
+      
+
+      switch (auto RecordStore = [&](const Value* StoredVal) {
         if (V == StoredVal) {
           // Stored the pointer - conservatively assume it may be unsafe.
           US.addRange(I, UnknownRange, /*IsSafe=*/false);
@@ -444,9 +446,7 @@ void StackSafetyLocalAnalysis::analyzeAllUses(Value *Ptr,
         bool Safe = isSafeAccess(UI, AI, TypeSize);
         US.addRange(I, AccessRange, Safe);
         return;
-      };
-
-      switch (I->getOpcode()) {
+      }; I->getOpcode()) {
       case Instruction::Load: {
         if (AI && !SL.isAliveAfter(AI, I)) {
           US.addRange(I, UnknownRange, /*IsSafe=*/false);
@@ -645,9 +645,9 @@ bool StackSafetyDataFlowAnalysis<CalleeTy>::updateOneUse(UseInfo<CalleeTy> &US,
     assert(!KV.second.isEmptySet() &&
            "Param range can't be empty-set, invalid offset range");
 
-    ConstantRange CalleeRange =
-        getArgumentAccessRange(KV.first.Callee, KV.first.ParamNo, KV.second);
-    if (!US.Range.contains(CalleeRange)) {
+    
+    if (ConstantRange CalleeRange =
+        getArgumentAccessRange(KV.first.Callee, KV.first.ParamNo, KV.second); !US.Range.contains(CalleeRange)) {
       Changed = true;
       if (UpdateToFullSet)
         US.Range = UnknownRange;
@@ -807,8 +807,8 @@ void resolveAllCalls(UseInfo<GlobalValue> &Use,
   UseInfo<GlobalValue>::CallsTy TmpCalls;
   std::swap(TmpCalls, Use.Calls);
   for (const auto &C : TmpCalls) {
-    const Function *F = findCalleeInModule(C.first.Callee);
-    if (F) {
+    
+    if (const Function *F = findCalleeInModule(C.first.Callee); F) {
       Use.Calls.emplace(CallInfo<GlobalValue>(F, C.first.ParamNo), C.second);
       continue;
     }
@@ -919,8 +919,8 @@ const StackSafetyGlobalInfo::InfoTy &StackSafetyGlobalInfo::getInfo() const {
       for (auto &KV : FnKV.second.Allocas) {
         ++NumAllocaTotal;
         const AllocaInst *AI = KV.first;
-        auto AIRange = getStaticAllocaSizeRange(*AI);
-        if (AIRange.contains(KV.second.Range)) {
+        
+        if (auto AIRange = getStaticAllocaSizeRange(*AI); AIRange.contains(KV.second.Range)) {
           Info->SafeAllocas.insert(AI);
           ++NumAllocaStackSafe;
         }
@@ -1014,8 +1014,8 @@ void StackSafetyGlobalInfo::print(raw_ostream &O) const {
       O << "    safe accesses:"
         << "\n";
       for (const auto &I : instructions(F)) {
-        const CallInst *Call = dyn_cast<CallInst>(&I);
-        if ((isa<StoreInst>(I) || isa<LoadInst>(I) || isa<MemIntrinsic>(I) ||
+        
+        if (const CallInst *Call = dyn_cast<CallInst>(&I); (isa<StoreInst>(I) || isa<LoadInst>(I) || isa<MemIntrinsic>(I) ||
              isa<AtomicCmpXchgInst>(I) || isa<AtomicRMWInst>(I) ||
              (Call && Call->hasByValArgument())) &&
             stackAccessIsSafe(I)) {

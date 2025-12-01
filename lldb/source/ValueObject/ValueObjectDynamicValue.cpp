@@ -38,8 +38,8 @@ ValueObjectDynamicValue::ValueObjectDynamicValue(
 }
 
 CompilerType ValueObjectDynamicValue::GetCompilerTypeImpl() {
-  const bool success = UpdateValueIfNeeded(false);
-  if (success) {
+  
+  if (const bool success = UpdateValueIfNeeded(false); success) {
     if (m_dynamic_type_info.HasType())
       return m_value.GetCompilerType();
     else
@@ -49,8 +49,8 @@ CompilerType ValueObjectDynamicValue::GetCompilerTypeImpl() {
 }
 
 ConstString ValueObjectDynamicValue::GetTypeName() {
-  const bool success = UpdateValueIfNeeded(false);
-  if (success) {
+  
+  if (const bool success = UpdateValueIfNeeded(false); success) {
     if (m_dynamic_type_info.HasName())
       return m_dynamic_type_info.GetName();
   }
@@ -58,16 +58,16 @@ ConstString ValueObjectDynamicValue::GetTypeName() {
 }
 
 TypeImpl ValueObjectDynamicValue::GetTypeImpl() {
-  const bool success = UpdateValueIfNeeded(false);
-  if (success && m_type_impl.IsValid()) {
+  
+  if (const bool success = UpdateValueIfNeeded(false); success && m_type_impl.IsValid()) {
     return m_type_impl;
   }
   return m_parent->GetTypeImpl();
 }
 
 ConstString ValueObjectDynamicValue::GetQualifiedTypeName() {
-  const bool success = UpdateValueIfNeeded(false);
-  if (success) {
+  
+  if (const bool success = UpdateValueIfNeeded(false); success) {
     if (m_dynamic_type_info.HasName())
       return m_dynamic_type_info.GetName();
   }
@@ -75,8 +75,8 @@ ConstString ValueObjectDynamicValue::GetQualifiedTypeName() {
 }
 
 ConstString ValueObjectDynamicValue::GetDisplayTypeName() {
-  const bool success = UpdateValueIfNeeded(false);
-  if (success) {
+  
+  if (const bool success = UpdateValueIfNeeded(false); success) {
     if (m_dynamic_type_info.HasType())
       return GetCompilerType().GetDisplayTypeName();
     if (m_dynamic_type_info.HasName())
@@ -87,8 +87,8 @@ ConstString ValueObjectDynamicValue::GetDisplayTypeName() {
 
 llvm::Expected<uint32_t>
 ValueObjectDynamicValue::CalculateNumChildren(uint32_t max) {
-  const bool success = UpdateValueIfNeeded(false);
-  if (success && m_dynamic_type_info.HasType()) {
+  
+  if (const bool success = UpdateValueIfNeeded(false); success && m_dynamic_type_info.HasType()) {
     ExecutionContext exe_ctx(GetExecutionContextRef());
     auto children_count = GetCompilerType().GetNumChildren(true, &exe_ctx);
     if (!children_count)
@@ -99,8 +99,8 @@ ValueObjectDynamicValue::CalculateNumChildren(uint32_t max) {
 }
 
 llvm::Expected<uint64_t> ValueObjectDynamicValue::GetByteSize() {
-  const bool success = UpdateValueIfNeeded(false);
-  if (success && m_dynamic_type_info.HasType()) {
+  
+  if (const bool success = UpdateValueIfNeeded(false); success && m_dynamic_type_info.HasType()) {
     ExecutionContext exe_ctx(GetExecutionContextRef());
     return m_value.GetValueByteSize(nullptr, &exe_ctx);
   } else
@@ -130,8 +130,8 @@ bool ValueObjectDynamicValue::UpdateValue() {
   }
 
   ExecutionContext exe_ctx(GetExecutionContextRef());
-  Target *target = exe_ctx.GetTargetPtr();
-  if (target) {
+  
+  if (Target *target = exe_ctx.GetTargetPtr(); target) {
     m_data.SetByteOrder(target->GetArchitecture().GetByteOrder());
     m_data.SetAddressByteSize(target->GetArchitecture().GetAddressByteSize());
   }
@@ -244,10 +244,10 @@ bool ValueObjectDynamicValue::UpdateValue() {
     // that was found, point to that buffer. Later on this function will copy
     // the buffer over.
     if (value_type == Value::ValueType::HostAddress && !local_buffer.empty()) {
-      auto *exe_scope = exe_ctx.GetBestExecutionContextScope();
+      
       // If we found a host address but it doesn't fit in the buffer, there's
       // nothing we can do.
-      if (local_buffer.size() <
+      if (auto *exe_scope = exe_ctx.GetBestExecutionContextScope(); local_buffer.size() <
           llvm::expectedToOptional(
               m_dynamic_type_info.GetCompilerType().GetByteSize(exe_scope))) {
         SetValueIsValid(false);
@@ -362,9 +362,9 @@ bool ValueObjectDynamicValue::SetData(DataExtractor &data, Status &error) {
   // parser instead of the value editing facility
   if (my_value != parent_value) {
     // but NULL'ing out a value should always be allowed
-    lldb::offset_t offset = 0;
+    
 
-    if (data.GetAddress(&offset) != 0) {
+    if (lldb::offset_t offset = 0; data.GetAddress(&offset) != 0) {
       error = Status::FromErrorString(
           "unable to modify dynamic value, use 'expression' command");
       return false;

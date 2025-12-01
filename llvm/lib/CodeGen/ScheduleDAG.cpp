@@ -222,8 +222,8 @@ void SUnit::setDepthDirty() {
     SUnit *SU = WorkList.pop_back_val();
     SU->isDepthCurrent = false;
     for (SDep &SuccDep : SU->Succs) {
-      SUnit *SuccSU = SuccDep.getSUnit();
-      if (SuccSU->isDepthCurrent)
+      
+      if (SUnit *SuccSU = SuccDep.getSUnit(); SuccSU->isDepthCurrent)
         WorkList.push_back(SuccSU);
     }
   } while (!WorkList.empty());
@@ -237,8 +237,8 @@ void SUnit::setHeightDirty() {
     SUnit *SU = WorkList.pop_back_val();
     SU->isHeightCurrent = false;
     for (SDep &PredDep : SU->Preds) {
-      SUnit *PredSU = PredDep.getSUnit();
-      if (PredSU->isHeightCurrent)
+      
+      if (SUnit *PredSU = PredDep.getSUnit(); PredSU->isHeightCurrent)
         WorkList.push_back(PredSU);
     }
   } while (!WorkList.empty());
@@ -270,8 +270,8 @@ void SUnit::ComputeDepth() {
     bool Done = true;
     unsigned MaxPredDepth = 0;
     for (const SDep &PredDep : Cur->Preds) {
-      SUnit *PredSU = PredDep.getSUnit();
-      if (PredSU->isDepthCurrent)
+      
+      if (SUnit *PredSU = PredDep.getSUnit(); PredSU->isDepthCurrent)
         MaxPredDepth = std::max(MaxPredDepth,
                                 PredSU->Depth + PredDep.getLatency());
       else {
@@ -301,8 +301,8 @@ void SUnit::ComputeHeight() {
     bool Done = true;
     unsigned MaxSuccHeight = 0;
     for (const SDep &SuccDep : Cur->Succs) {
-      SUnit *SuccSU = SuccDep.getSUnit();
-      if (SuccSU->isHeightCurrent)
+      
+      if (SUnit *SuccSU = SuccDep.getSUnit(); SuccSU->isHeightCurrent)
         MaxSuccHeight = std::max(MaxSuccHeight,
                                  SuccSU->Height + SuccDep.getLatency());
       else {
@@ -503,8 +503,8 @@ void ScheduleDAGTopologicalSort::InitDAGTopologicalSorting() {
     if (SU->NodeNum < DAGSize)
       Allocate(SU->NodeNum, --Id);
     for (const SDep &PredDep : SU->Preds) {
-      SUnit *SU = PredDep.getSUnit();
-      if (SU->NodeNum < DAGSize && !--Node2Index[SU->NodeNum])
+      
+      if (SUnit *SU = PredDep.getSUnit(); SU->NodeNum < DAGSize && !--Node2Index[SU->NodeNum])
         // If all dependencies of the node are processed already,
         // then the node can be computed now.
         WorkList.push_back(SU);
@@ -554,9 +554,9 @@ void ScheduleDAGTopologicalSort::AddPred(SUnit *Y, SUnit *X) {
   int UpperBound, LowerBound;
   LowerBound = Node2Index[Y->NodeNum];
   UpperBound = Node2Index[X->NodeNum];
-  bool HasLoop = false;
+  
   // Is Ord(X) < Ord(Y) ?
-  if (LowerBound < UpperBound) {
+  if (bool HasLoop = false; LowerBound < UpperBound) {
     // Update the topological order.
     Visited.reset();
     DFS(Y, UpperBound, HasLoop);
@@ -688,8 +688,8 @@ void ScheduleDAGTopologicalSort::Shift(BitVector& Visited, int LowerBound,
 
   for (i = LowerBound; i <= UpperBound; ++i) {
     // w is node at topological index i.
-    int w = Index2Node[i];
-    if (Visited.test(w)) {
+    
+    if (int w = Index2Node[i]; Visited.test(w)) {
       // Unmark.
       Visited.reset(w);
       L.push_back(w);

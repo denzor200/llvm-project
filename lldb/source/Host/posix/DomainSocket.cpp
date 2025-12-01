@@ -212,8 +212,8 @@ std::vector<std::string> DomainSocket::GetListeningConnectionURI() const {
   struct sockaddr_un addr;
   memset(&addr, 0, sizeof(struct sockaddr_un));
   addr.sun_family = AF_UNIX;
-  socklen_t addr_len = sizeof(struct sockaddr_un);
-  if (::getsockname(m_socket, (struct sockaddr *)&addr, &addr_len) != 0)
+  
+  if (socklen_t addr_len = sizeof(struct sockaddr_un); ::getsockname(m_socket, (struct sockaddr *)&addr, &addr_len) != 0)
     return {};
 
   return {llvm::formatv("unix-connect://{0}", addr.sun_path)};

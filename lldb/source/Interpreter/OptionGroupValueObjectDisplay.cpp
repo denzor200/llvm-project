@@ -70,9 +70,9 @@ Status OptionGroupValueObjectDisplay::SetOptionValue(
     ExecutionContext *execution_context) {
   Status error;
   const int short_option = g_option_table[option_idx].short_option;
-  bool success = false;
+  
 
-  switch (short_option) {
+  switch (bool success = false; short_option) {
   case 'd': {
     int32_t result;
     result = OptionArgParser::ToOptionEnum(option_arg, GetDynamicValueTypes(),
@@ -173,9 +173,9 @@ void OptionGroupValueObjectDisplay::OptionParsingStarting(
   ignore_cap = false;
   run_validator = false;
 
-  TargetSP target_sp =
-      execution_context ? execution_context->GetTargetSP() : TargetSP();
-  if (target_sp) {
+  
+  if (TargetSP target_sp =
+      execution_context ? execution_context->GetTargetSP() : TargetSP(); target_sp) {
     use_dynamic = target_sp->GetPreferDynamicValue();
     auto max_depth_config = target_sp->GetMaximumDepthOfChildrenToDisplay();
     max_depth = std::get<uint32_t>(max_depth_config);

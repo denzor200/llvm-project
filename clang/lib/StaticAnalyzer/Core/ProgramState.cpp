@@ -33,8 +33,8 @@ void ProgramStateRetain(const ProgramState *state) {
 /// Decrement the number of times this state is referenced.
 void ProgramStateRelease(const ProgramState *state) {
   assert(state->refCount > 0);
-  ProgramState *s = const_cast<ProgramState*>(state);
-  if (--s->refCount == 0) {
+  
+  if (ProgramState *s = const_cast<ProgramState*>(state); --s->refCount == 0) {
     ProgramStateManager &Mgr = s->getStateManager();
     Mgr.StateSet.RemoveNode(s);
     s->~ProgramState();
@@ -117,9 +117,9 @@ ProgramStateRef ProgramState::bindLoc(Loc LV,
   ProgramStateManager &Mgr = getStateManager();
   ExprEngine &Eng = Mgr.getOwningEngine();
   ProgramStateRef State = makeWithStore(Mgr.StoreMgr->Bind(getStore(), LV, V));
-  const MemRegion *MR = LV.getAsRegion();
+  
 
-  if (MR && notifyChanges)
+  if (const MemRegion *MR = LV.getAsRegion(); MR && notifyChanges)
     return Eng.processRegionChange(State, MR, LCtx);
 
   return State;
@@ -251,8 +251,8 @@ SVal ProgramState::getSValAsScalarOrLoc(const MemRegion *R) const {
     return UnknownVal();
 
   if (const TypedValueRegion *TR = dyn_cast<TypedValueRegion>(R)) {
-    QualType T = TR->getValueType();
-    if (Loc::isLocType(T) || T->isIntegralOrEnumerationType())
+    
+    if (QualType T = TR->getValueType(); Loc::isLocType(T) || T->isIntegralOrEnumerationType())
       return getSVal(R);
   }
 
@@ -651,8 +651,8 @@ bool ScanReachableSymbols::scan(const MemRegion *R) {
 
     // When we reach the topmost region, scan all symbols in it.
     if (isa<MemSpaceRegion>(Super)) {
-      StoreManager &StoreMgr = state->getStateManager().getStoreManager();
-      if (!StoreMgr.scanReachableSymbols(state->getStore(), SR, *this))
+      
+      if (StoreManager &StoreMgr = state->getStateManager().getStoreManager(); !StoreMgr.scanReachableSymbols(state->getStore(), SR, *this))
         return false;
     }
   }

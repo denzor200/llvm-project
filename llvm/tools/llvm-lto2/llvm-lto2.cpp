@@ -558,8 +558,8 @@ static int dumpSymtab(int argc, char **argv) {
         outs() << "         size " << Sym.getCommonSize() << " align "
                << Sym.getCommonAlignment() << '\n';
 
-      int Comdat = Sym.getComdatIndex();
-      if (Comdat != -1) {
+      
+      if (int Comdat = Sym.getComdatIndex(); Comdat != -1) {
         outs() << "         comdat ";
         switch (ComdatTable[Comdat].second) {
         case Comdat::Any:

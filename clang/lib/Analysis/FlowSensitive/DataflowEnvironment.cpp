@@ -49,8 +49,8 @@ static llvm::DenseMap<const ValueDecl *, StorageLocation *> intersectDeclToLoc(
     const llvm::DenseMap<const ValueDecl *, StorageLocation *> &DeclToLoc2) {
   llvm::DenseMap<const ValueDecl *, StorageLocation *> Result;
   for (auto &Entry : DeclToLoc1) {
-    auto It = DeclToLoc2.find(Entry.first);
-    if (It != DeclToLoc2.end() && Entry.second == It->second)
+    
+    if (auto It = DeclToLoc2.find(Entry.first); It != DeclToLoc2.end() && Entry.second == It->second)
       Result.insert({Entry.first, Entry.second});
   }
   return Result;
@@ -355,8 +355,8 @@ public:
   }
 
   bool VisitReturnStmt(ReturnStmt *Return) override {
-    Expr *RetValue = Return->getRetValue();
-    if (RetValue != nullptr && RetValue->getType()->isRecordType() &&
+    
+    if (Expr *RetValue = Return->getRetValue(); RetValue != nullptr && RetValue->getType()->isRecordType() &&
         RetValue->isPRValue())
       PropagateResultObject(RetValue, LocForRecordReturnVal);
     return true;
@@ -779,8 +779,8 @@ Environment Environment::join(const Environment &EnvA, const Environment &EnvB,
   JoinedEnv.InitialTargetFunc = EnvA.InitialTargetFunc;
   JoinedEnv.InitialTargetStmt = EnvA.InitialTargetStmt;
 
-  const FunctionDecl *Func = EnvA.getCurrentFunc();
-  if (!Func) {
+  
+  if (const FunctionDecl *Func = EnvA.getCurrentFunc(); !Func) {
     JoinedEnv.ReturnVal = nullptr;
   } else {
     JoinedEnv.ReturnVal =
@@ -1062,9 +1062,9 @@ void Environment::initializeFieldsWithValues(RecordStorageLocation &Loc,
 
   for (const FieldDecl *Field : DACtx->getModeledFields(Type)) {
     assert(Field != nullptr);
-    QualType FieldType = Field->getType();
+    
 
-    if (FieldType->isReferenceType()) {
+    if (QualType FieldType = Field->getType(); FieldType->isReferenceType()) {
       Loc.setChild(*Field,
                    &createLocAndMaybeValue(FieldType, Visited, Depth + 1,
                                            CreatedValuesCount));
@@ -1105,8 +1105,8 @@ StorageLocation &Environment::createObjectInternal(const ValueDecl *D,
       D ? createStorageLocation(*D) : createStorageLocation(Ty);
 
   if (Ty->isRecordType()) {
-    auto &RecordLoc = cast<RecordStorageLocation>(Loc);
-    if (!InitExpr)
+    
+    if (auto &RecordLoc = cast<RecordStorageLocation>(Loc); !InitExpr)
       initializeFieldsWithValues(RecordLoc);
   } else {
     Value *Val = nullptr;

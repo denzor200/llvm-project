@@ -66,20 +66,20 @@ ThreadMemory::CreateRegisterContextForFrame(StackFrame *frame) {
 
 bool ThreadMemory::CalculateStopInfo() {
   if (m_backing_thread_sp) {
-    lldb::StopInfoSP backing_stop_info_sp(
-        m_backing_thread_sp->GetPrivateStopInfo());
-    if (backing_stop_info_sp &&
+    
+    if (lldb::StopInfoSP backing_stop_info_sp(
+        m_backing_thread_sp->GetPrivateStopInfo()); backing_stop_info_sp &&
         backing_stop_info_sp->IsValidForOperatingSystemThread(*this)) {
       backing_stop_info_sp->SetThread(shared_from_this());
       SetStopInfo(backing_stop_info_sp);
       return true;
     }
   } else {
-    ProcessSP process_sp(GetProcess());
+    
 
-    if (process_sp) {
-      OperatingSystem *os = process_sp->GetOperatingSystem();
-      if (os) {
+    if (ProcessSP process_sp(GetProcess()); process_sp) {
+      
+      if (OperatingSystem *os = process_sp->GetOperatingSystem(); os) {
         SetStopInfo(os->CreateThreadStopReason(this));
         return true;
       }

@@ -34,10 +34,10 @@ void X86InstPrinterCommon::printCondCode(const MCInst *MI, unsigned Op,
                                          raw_ostream &O) {
   int64_t Imm = MI->getOperand(Op).getImm();
   unsigned Opc = MI->getOpcode();
-  bool IsCCMPOrCTEST = X86::isCCMPCC(Opc) || X86::isCTESTCC(Opc);
+  
 
   // clang-format off
-  switch (Imm) {
+  switch (bool IsCCMPOrCTEST = X86::isCCMPCC(Opc) || X86::isCTESTCC(Opc); Imm) {
   default: llvm_unreachable("Invalid condcode argument!");
   case    0: O << "o";  break;
   case    1: O << "no"; break;
@@ -82,8 +82,8 @@ void X86InstPrinterCommon::printCondFlags(const MCInst *MI, unsigned Op,
 
 void X86InstPrinterCommon::printSSEAVXCC(const MCInst *MI, unsigned Op,
                                          raw_ostream &O) {
-  int64_t Imm = MI->getOperand(Op).getImm();
-  switch (Imm) {
+  
+  switch (int64_t Imm = MI->getOperand(Op).getImm(); Imm) {
   default: llvm_unreachable("Invalid ssecc/avxcc argument!");
   case    0: O << "eq"; break;
   case    1: O << "lt"; break;
@@ -124,8 +124,8 @@ void X86InstPrinterCommon::printVPCOMMnemonic(const MCInst *MI,
                                               raw_ostream &OS) {
   OS << "vpcom";
 
-  int64_t Imm = MI->getOperand(MI->getNumOperands() - 1).getImm();
-  switch (Imm) {
+  
+  switch (int64_t Imm = MI->getOperand(MI->getNumOperands() - 1).getImm(); Imm) {
   default: llvm_unreachable("Invalid vpcom argument!");
   case 0: OS << "lt"; break;
   case 1: OS << "le"; break;
@@ -329,8 +329,8 @@ void X86InstPrinterCommon::printCMPMnemonic(const MCInst *MI, bool IsVCmp,
 
 void X86InstPrinterCommon::printRoundingControl(const MCInst *MI, unsigned Op,
                                                 raw_ostream &O) {
-  int64_t Imm = MI->getOperand(Op).getImm();
-  switch (Imm) {
+  
+  switch (int64_t Imm = MI->getOperand(Op).getImm(); Imm) {
   default:
     llvm_unreachable("Invalid rounding control!");
   case X86::TO_NEAREST_INT:
@@ -359,8 +359,8 @@ void X86InstPrinterCommon::printPCRelImm(const MCInst *MI, uint64_t Address,
   if (SymbolizeOperands)
     return;
 
-  const MCOperand &Op = MI->getOperand(OpNo);
-  if (Op.isImm()) {
+  
+  if (const MCOperand &Op = MI->getOperand(OpNo); Op.isImm()) {
     if (PrintBranchImmAsAddress) {
       uint64_t Target = Address + Op.getImm();
       if (MAI.getCodePointerSize() == 4)
@@ -373,8 +373,8 @@ void X86InstPrinterCommon::printPCRelImm(const MCInst *MI, uint64_t Address,
     // If a symbolic branch target was added as a constant expression then print
     // that address in hex.
     const MCConstantExpr *BranchTarget = dyn_cast<MCConstantExpr>(Op.getExpr());
-    int64_t Address;
-    if (BranchTarget && BranchTarget->evaluateAsAbsolute(Address)) {
+    
+    if (int64_t Address; BranchTarget && BranchTarget->evaluateAsAbsolute(Address)) {
       markup(O, Markup::Immediate) << formatHex((uint64_t)Address);
     } else {
       // Otherwise, just print the expression.

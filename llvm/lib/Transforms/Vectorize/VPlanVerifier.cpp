@@ -419,8 +419,8 @@ bool VPlanVerifier::verifyBlock(const VPBlockBase *VPB) {
 
   for (const VPBlockBase *Succ : Successors) {
     // There must be a bi-directional link between block and successor.
-    const auto &SuccPreds = Succ->getPredecessors();
-    if (!is_contained(SuccPreds, VPB)) {
+    
+    if (const auto &SuccPreds = Succ->getPredecessors(); !is_contained(SuccPreds, VPB)) {
       errs() << "Missing predecessor link.\n";
       return false;
     }
@@ -444,8 +444,8 @@ bool VPlanVerifier::verifyBlock(const VPBlockBase *VPB) {
     }
 
     // There must be a bi-directional link between block and predecessor.
-    const auto &PredSuccs = Pred->getSuccessors();
-    if (!is_contained(PredSuccs, VPB)) {
+    
+    if (const auto &PredSuccs = Pred->getSuccessors(); !is_contained(PredSuccs, VPB)) {
       errs() << "Missing successor link.\n";
       return false;
     }

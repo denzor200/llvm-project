@@ -278,11 +278,11 @@ static ScanResult scanCortexA8Errata657417(InputSection *isec, uint64_t &off,
   uint16_t hw11 = *instBuf++;
   uint16_t hw12 = *instBuf++;
   uint16_t hw21 = *instBuf++;
-  uint16_t hw22 = *instBuf++;
-  if (is32bitInstruction(hw11) && is32bitInstruction(hw21)) {
+  
+  if (uint16_t hw22 = *instBuf++; is32bitInstruction(hw11) && is32bitInstruction(hw21)) {
     uint32_t instr1 = (hw11 << 16) | hw12;
-    uint32_t instr2 = (hw21 << 16) | hw22;
-    if (!is32bitBranch(instr1) && is32bitBranch(instr2)) {
+    
+    if (uint32_t instr2 = (hw21 << 16) | hw22; !is32bitBranch(instr1) && is32bitBranch(instr2)) {
       // Find a relocation for the branch if it exists. This will be used
       // to determine the target.
       uint64_t branchOff = off + 4;
@@ -508,8 +508,8 @@ ARMErr657417Patcher::patchInputSectionDescription(
                                                     : (*nonThumbSym)->value;
 
       while (off < limit) {
-        ScanResult sr = scanCortexA8Errata657417(isec, off, limit);
-        if (sr.off)
+        
+        if (ScanResult sr = scanCortexA8Errata657417(isec, off, limit); sr.off)
           implementPatch(sr, isec, patches);
       }
       if (nonThumbSym == mapSyms.end())
@@ -530,9 +530,9 @@ bool ARMErr657417Patcher::createFixes() {
       continue;
     for (SectionCommand *cmd : os->commands)
       if (auto *isd = dyn_cast<InputSectionDescription>(cmd)) {
-        std::vector<Patch657417Section *> patches =
-            patchInputSectionDescription(*isd);
-        if (!patches.empty()) {
+        
+        if (std::vector<Patch657417Section *> patches =
+            patchInputSectionDescription(*isd); !patches.empty()) {
           insertPatches(*isd, patches);
           addressesChanged = true;
         }

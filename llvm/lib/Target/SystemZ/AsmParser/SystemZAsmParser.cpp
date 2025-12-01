@@ -932,8 +932,8 @@ ParseStatus SystemZAsmParser::parseAnyRegister(OperandVector &Operands) {
       return ParseStatus::Failure;
 
     if (auto *CE = dyn_cast<MCConstantExpr>(Register)) {
-      int64_t Value = CE->getValue();
-      if (Value < 0 || Value > 15)
+      
+      if (int64_t Value = CE->getValue(); Value < 0 || Value > 15)
         return Error(StartLoc, "invalid register");
     }
 
@@ -1046,9 +1046,9 @@ bool SystemZAsmParser::parseAddress(bool &HaveReg1, Register &Reg1,
   // The restriction only applies to the first Register (i.e. Reg1). Reg2 is
   // always a general register. Reg1 should be of group RegV if "HasVectorIndex"
   // (i.e. insn is of type BDVMem) is true.
-  RegisterGroup RegGroup = HasVectorIndex ? RegV : RegGR;
+  
 
-  if (getLexer().is(AsmToken::LParen)) {
+  if (RegisterGroup RegGroup = HasVectorIndex ? RegV : RegGR; getLexer().is(AsmToken::LParen)) {
     Parser.Lex();
 
     if (isParsingGNU() && getLexer().is(AsmToken::Percent)) {
@@ -1141,8 +1141,8 @@ ParseStatus SystemZAsmParser::parseAddress(OperandVector &Operands,
   const MCExpr *Length;
 
   bool HasLength = (MemKind == BDLMem) ? true : false;
-  bool HasVectorIndex = (MemKind == BDVMem) ? true : false;
-  if (parseAddress(HaveReg1, Reg1, HaveReg2, Reg2, Disp, Length, HasLength,
+  
+  if (bool HasVectorIndex = (MemKind == BDVMem) ? true : false; parseAddress(HaveReg1, Reg1, HaveReg2, Reg2, Disp, Length, HasLength,
                    HasVectorIndex))
     return ParseStatus::Failure;
 
@@ -1339,8 +1339,8 @@ bool SystemZAsmParser::parseDirectiveInsn(SMLoc L) {
     MatchClassKind Kind = Entry->OperandKinds[I];
 
     // Verify operand.
-    unsigned Res = validateOperandClass(Operand, Kind, *STI);
-    if (Res != Match_Success)
+    
+    if (unsigned Res = validateOperandClass(Operand, Kind, *STI); Res != Match_Success)
       return Error(Operand.getStartLoc(), "unexpected operand type");
 
     // Add operands to instruction.
@@ -1695,8 +1695,8 @@ ParseStatus SystemZAsmParser::parsePCRel(OperandVector &Operands,
       return Error(Parser.getTok().getLoc(), "unexpected token");
 
     auto Kind = SystemZ::S_None;
-    StringRef Name = Parser.getTok().getString();
-    if (Name == "tls_gdcall")
+    
+    if (StringRef Name = Parser.getTok().getString(); Name == "tls_gdcall")
       Kind = SystemZ::S_TLSGD;
     else if (Name == "tls_ldcall")
       Kind = SystemZ::S_TLSLDM;

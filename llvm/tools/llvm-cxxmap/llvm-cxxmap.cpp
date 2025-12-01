@@ -57,8 +57,8 @@ static cl::opt<bool> WarnIncomplete(
 static void warn(Twine Message, Twine Whence = "",
                  std::string Hint = "") {
   WithColor::warning();
-  std::string WhenceStr = Whence.str();
-  if (!WhenceStr.empty())
+  
+  if (std::string WhenceStr = Whence.str(); !WhenceStr.empty())
     errs() << WhenceStr << ": ";
   errs() << Message << "\n";
   if (!Hint.empty())
@@ -68,8 +68,8 @@ static void warn(Twine Message, Twine Whence = "",
 static void exitWithError(Twine Message, Twine Whence = "",
                           std::string Hint = "") {
   WithColor::error();
-  std::string WhenceStr = Whence.str();
-  if (!WhenceStr.empty())
+  
+  if (std::string WhenceStr = Whence.str(); !WhenceStr.empty())
     errs() << WhenceStr << ": ";
   errs() << Message << "\n";
   if (!Hint.empty())

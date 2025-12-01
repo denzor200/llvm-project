@@ -394,8 +394,8 @@ static bool shouldPinPassToLegacyPM(StringRef Pass) {
 // For use in NPM transition.
 static bool shouldForceLegacyPM() {
   for (const PassInfo *P : PassList) {
-    StringRef Arg = P->getPassArgument();
-    if (shouldPinPassToLegacyPM(Arg))
+    
+    if (StringRef Arg = P->getPassArgument(); shouldPinPassToLegacyPM(Arg))
       return true;
   }
   return false;
@@ -641,10 +641,10 @@ optMain(int argc, char **argv,
   if (ModuleTriple.getArch()) {
     CPUStr = codegen::getCPUStr();
     FeaturesStr = codegen::getFeaturesStr();
-    Expected<std::unique_ptr<TargetMachine>> ExpectedTM =
+    
+    if (auto Expected<std::unique_ptr<TargetMachine>> ExpectedTM =
         codegen::createTargetMachineForTriple(ModuleTriple.str(),
-                                              GetCodeGenOptLevel());
-    if (auto E = ExpectedTM.takeError()) {
+                                              GetCodeGenOptLevel()); E = ExpectedTM.takeError()) {
       errs() << argv[0] << ": WARNING: failed to create target machine for '"
              << ModuleTriple.str() << "': " << toString(std::move(E)) << "\n";
     } else {
@@ -832,8 +832,8 @@ optMain(int argc, char **argv,
   // Create a new optimization pass for each one specified on the command line.
   for (const PassInfo *PassInf : PassList) {
     if (PassInf->getNormalCtor()) {
-      Pass *P = PassInf->getNormalCtor()();
-      if (P) {
+      
+      if (Pass *P = PassInf->getNormalCtor()(); P) {
         // Add the pass to the pass manager.
         Passes.add(P);
         // If we are verifying all of the intermediate steps, add the verifier.

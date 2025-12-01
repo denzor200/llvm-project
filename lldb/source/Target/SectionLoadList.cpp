@@ -52,10 +52,10 @@ SectionLoadList::GetSectionLoadAddress(const lldb::SectionSP &section) const {
   addr_t section_load_addr = LLDB_INVALID_ADDRESS;
   if (section) {
     std::lock_guard<std::recursive_mutex> guard(m_mutex);
-    sect_to_addr_collection::const_iterator pos =
-        m_sect_to_addr.find(section.get());
+    
 
-    if (pos != m_sect_to_addr.end())
+    if (sect_to_addr_collection::const_iterator pos =
+        m_sect_to_addr.find(section.get()); pos != m_sect_to_addr.end())
       section_load_addr = pos->second;
   }
   return section_load_addr;
@@ -101,10 +101,10 @@ bool SectionLoadList::SetSectionLoadAddress(const lldb::SectionSP &section,
       // shared the same "__LINKEDIT" sections, so the dynamic loader can pass
       // false for "warn_multiple").
       if (warn_multiple && section != ats_pos->second) {
-        ModuleSP module_sp(section->GetModule());
-        if (module_sp) {
-          ModuleSP curr_module_sp(ats_pos->second->GetModule());
-          if (curr_module_sp) {
+        
+        if (ModuleSP module_sp(section->GetModule()); module_sp) {
+          
+          if (ModuleSP curr_module_sp(ats_pos->second->GetModule()); curr_module_sp) {
             module_sp->ReportWarning(
                 "address {0:x16} maps to more than one section: {1}.{2} and "
                 "{3}.{4}",
@@ -147,9 +147,9 @@ size_t SectionLoadList::SetSectionUnloaded(const lldb::SectionSP &section_sp) {
   size_t unload_count = 0;
 
   if (section_sp) {
-    Log *log = GetLog(LLDBLog::DynamicLoader);
+    
 
-    if (log && log->GetVerbose()) {
+    if (Log *log = GetLog(LLDBLog::DynamicLoader); log && log->GetVerbose()) {
       ModuleSP module_sp = section_sp->GetModule();
       std::string module_name("<Unknown>");
       if (module_sp) {
@@ -171,9 +171,9 @@ size_t SectionLoadList::SetSectionUnloaded(const lldb::SectionSP &section_sp) {
       addr_t load_addr = sta_pos->second;
       m_sect_to_addr.erase(sta_pos);
 
-      addr_to_sect_collection::iterator ats_pos =
-          m_addr_to_sect.find(load_addr);
-      if (ats_pos != m_addr_to_sect.end())
+      
+      if (addr_to_sect_collection::iterator ats_pos =
+          m_addr_to_sect.find(load_addr); ats_pos != m_addr_to_sect.end())
         m_addr_to_sect.erase(ats_pos);
     }
   }
@@ -182,9 +182,9 @@ size_t SectionLoadList::SetSectionUnloaded(const lldb::SectionSP &section_sp) {
 
 bool SectionLoadList::SetSectionUnloaded(const lldb::SectionSP &section_sp,
                                          addr_t load_addr) {
-  Log *log = GetLog(LLDBLog::DynamicLoader);
+  
 
-  if (log && log->GetVerbose()) {
+  if (Log *log = GetLog(LLDBLog::DynamicLoader); log && log->GetVerbose()) {
     ModuleSP module_sp = section_sp->GetModule();
     std::string module_name("<Unknown>");
     if (module_sp) {
@@ -221,15 +221,15 @@ bool SectionLoadList::ResolveLoadAddress(addr_t load_addr, Address &so_addr,
   // First find the top level section that this load address exists in
   std::lock_guard<std::recursive_mutex> guard(m_mutex);
   if (!m_addr_to_sect.empty()) {
-    addr_to_sect_collection::const_iterator pos =
-        m_addr_to_sect.lower_bound(load_addr);
-    if (pos != m_addr_to_sect.end()) {
+    
+    if (addr_to_sect_collection::const_iterator pos =
+        m_addr_to_sect.lower_bound(load_addr); pos != m_addr_to_sect.end()) {
       if (load_addr != pos->first && pos != m_addr_to_sect.begin())
         --pos;
-      const addr_t pos_load_addr = pos->first;
-      if (load_addr >= pos_load_addr) {
-        addr_t offset = load_addr - pos_load_addr;
-        if (offset < pos->second->GetByteSize() + (allow_section_end ? 1 : 0)) {
+      
+      if (const addr_t pos_load_addr = pos->first; load_addr >= pos_load_addr) {
+        
+        if (addr_t offset = load_addr - pos_load_addr; offset < pos->second->GetByteSize() + (allow_section_end ? 1 : 0)) {
           // We have found the top level section, now we need to find the
           // deepest child section.
           return pos->second->ResolveContainedAddress(offset, so_addr,
@@ -239,11 +239,11 @@ bool SectionLoadList::ResolveLoadAddress(addr_t load_addr, Address &so_addr,
     } else {
       // There are no entries that have an address that is >= load_addr, so we
       // need to check the last entry on our collection.
-      addr_to_sect_collection::const_reverse_iterator rpos =
-          m_addr_to_sect.rbegin();
-      if (load_addr >= rpos->first) {
-        addr_t offset = load_addr - rpos->first;
-        if (offset <
+      
+      if (addr_to_sect_collection::const_reverse_iterator rpos =
+          m_addr_to_sect.rbegin(); load_addr >= rpos->first) {
+        
+        if (addr_t offset = load_addr - rpos->first; offset <
             rpos->second->GetByteSize() + (allow_section_end ? 1 : 0)) {
           // We have found the top level section, now we need to find the
           // deepest child section.

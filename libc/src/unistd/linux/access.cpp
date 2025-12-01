@@ -20,7 +20,7 @@ namespace LIBC_NAMESPACE_DECL {
 
 LLVM_LIBC_FUNCTION(int, access, (const char *path, int mode)) {
 #ifdef SYS_access
-  int ret = LIBC_NAMESPACE::syscall_impl<int>(SYS_access, path, mode);
+  
 #elif defined(SYS_faccessat)
   int ret =
       LIBC_NAMESPACE::syscall_impl<int>(SYS_faccessat, AT_FDCWD, path, mode);
@@ -28,7 +28,7 @@ LLVM_LIBC_FUNCTION(int, access, (const char *path, int mode)) {
 #error "access and faccessat syscalls not available."
 #endif
 
-  if (ret < 0) {
+  if (int ret = LIBC_NAMESPACE::syscall_impl<int>(SYS_access, path, mode); ret < 0) {
     libc_errno = -ret;
     return -1;
   }

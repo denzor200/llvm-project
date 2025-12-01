@@ -193,8 +193,8 @@ static bool checkRegUnitInterference(LiveIntervals &LIS,
   CoalescerPair CP(VirtReg.reg(), PhysReg, TRI);
 
   for (MCRegUnit Unit : TRI.regunits(PhysReg)) {
-    const LiveRange &UnitRange = LIS.getRegUnit(Unit);
-    if (VirtReg.overlaps(UnitRange, CP, *LIS.getSlotIndexes()))
+    
+    if (const LiveRange &UnitRange = LIS.getRegUnit(Unit); VirtReg.overlaps(UnitRange, CP, *LIS.getSlotIndexes()))
       return true;
   }
   return false;

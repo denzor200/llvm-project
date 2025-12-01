@@ -182,8 +182,8 @@ int64_t MCRegisterInfo::getDwarfRegNumFromDwarfEHRegNum(uint64_t RegNum) const {
   // EH register number to an LLVM register number, assume it's just a
   // valid DWARF register number as is.
   if (std::optional<MCRegister> LRegNum = getLLVMRegNum(RegNum, true)) {
-    int DwarfRegNum = getDwarfRegNum(*LRegNum, false);
-    if (DwarfRegNum == -1)
+    
+    if (int DwarfRegNum = getDwarfRegNum(*LRegNum, false); DwarfRegNum == -1)
       return RegNum;
     else
       return DwarfRegNum;

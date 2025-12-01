@@ -33,8 +33,8 @@ ProgramStateRef RangedConstraintManager::assumeSym(ProgramStateRef State,
   if (const SymIntExpr *SIE = dyn_cast<SymIntExpr>(Sym)) {
     // We can only simplify expressions whose RHS is an integer.
 
-    BinaryOperator::Opcode op = SIE->getOpcode();
-    if (BinaryOperator::isComparisonOp(op) && op != BO_Cmp) {
+    
+    if (BinaryOperator::Opcode op = SIE->getOpcode(); BinaryOperator::isComparisonOp(op) && op != BO_Cmp) {
       if (!Assumption)
         op = BinaryOperator::negateComparisonOp(op);
 
@@ -47,8 +47,8 @@ ProgramStateRef RangedConstraintManager::assumeSym(ProgramStateRef State,
   }
 
   if (const auto *SSE = dyn_cast<SymSymExpr>(Sym)) {
-    BinaryOperator::Opcode Op = SSE->getOpcode();
-    if (BinaryOperator::isComparisonOp(Op)) {
+    
+    if (BinaryOperator::Opcode Op = SSE->getOpcode(); BinaryOperator::isComparisonOp(Op)) {
 
       // We convert equality operations for pointers only.
       if (Loc::isLocType(SSE->getLHS()->getType()) &&
@@ -218,8 +218,8 @@ void RangedConstraintManager::computeAdjustment(SymbolRef &Sym,
                                                 llvm::APSInt &Adjustment) {
   // Is it a "($sym+constant1)" expression?
   if (const SymIntExpr *SE = dyn_cast<SymIntExpr>(Sym)) {
-    BinaryOperator::Opcode Op = SE->getOpcode();
-    if (Op == BO_Add || Op == BO_Sub) {
+    
+    if (BinaryOperator::Opcode Op = SE->getOpcode(); Op == BO_Add || Op == BO_Sub) {
       Sym = SE->getLHS();
       Adjustment = APSIntType(Adjustment).convert(SE->getRHS());
 

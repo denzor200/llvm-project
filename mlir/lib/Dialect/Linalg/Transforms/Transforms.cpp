@@ -54,8 +54,8 @@ SmallVector<Value> mlir::linalg::peelLoop(RewriterBase &rewriter,
                                           Operation *op) {
   return llvm::TypeSwitch<Operation *, SmallVector<Value, 4>>(op)
       .Case<scf::ForOp>([&](scf::ForOp forOp) {
-        scf::ForOp partialIteration;
-        if (succeeded(scf::peelForLoopAndSimplifyBounds(rewriter, forOp,
+        
+        if (scf::ForOp partialIteration; succeeded(scf::peelForLoopAndSimplifyBounds(rewriter, forOp,
                                                         partialIteration)))
           return partialIteration->getResults();
         assert(!partialIteration && "expected that loop was not peeled");
@@ -900,8 +900,8 @@ LogicalResult mlir::linalg::CopyVectorizationPattern::matchAndRewrite(
 Value DecomposePadOpPattern::createFillOrGenerateOp(
     RewriterBase &rewriter, tensor::PadOp padOp, Value dest,
     const SmallVector<Value> &dynSizes) const {
-  auto padValue = padOp.getConstantPaddingValue();
-  if (padValue) {
+  
+  if (auto padValue = padOp.getConstantPaddingValue(); padValue) {
     // Move the padding value defined inside the PadOp block to outside.
     if (padValue.getParentBlock() == &padOp.getRegion().front())
       rewriter.moveOpBefore(padValue.getDefiningOp(), padOp);
@@ -1456,8 +1456,8 @@ FailureOr<Conv1DOp> DownscaleSizeOneWindowed2DConvolution<Conv2DOp, Conv1DOp>::
   int64_t khSize = kernelShape[khIndex], kwSize = kernelShape[kwIndex];
   int64_t ohSize = outputShape[ohIndex], owSize = outputShape[owIndex];
   bool removeH = (khSize == 1 && ohSize == 1);
-  bool removeW = (kwSize == 1 && owSize == 1);
-  if (!removeH && !removeW)
+  
+  if (bool removeW = (kwSize == 1 && owSize == 1); !removeH && !removeW)
     return failure();
 
   // Get new shapes and types for all operands by removing the size-1
@@ -1544,8 +1544,8 @@ DownscaleDepthwiseConv2DNhwcHwcOp::returningMatchAndRewrite(
   int64_t khSize = kernelShape[0], kwSize = kernelShape[1];
   int64_t ohSize = outputShape[1], owSize = outputShape[2];
   bool removeH = (khSize == 1 && ohSize == 1);
-  bool removeW = (kwSize == 1 && owSize == 1);
-  if (!removeH && !removeW)
+  
+  if (bool removeW = (kwSize == 1 && owSize == 1); !removeH && !removeW)
     return failure();
 
   // Get new shapes and types for all operands by removing the size-1
@@ -1612,8 +1612,8 @@ DownscaleConv2DOp::returningMatchAndRewrite(Conv2DOp convOp,
   int64_t khSize = kernelShape[0], kwSize = kernelShape[1];
   int64_t ohSize = outputShape[0], owSize = outputShape[1];
   bool removeH = (khSize == 1 && ohSize == 1);
-  bool removeW = (kwSize == 1 && owSize == 1);
-  if (!removeH && !removeW)
+  
+  if (bool removeW = (kwSize == 1 && owSize == 1); !removeH && !removeW)
     return failure();
 
   // Get new shapes and types for all operands by removing the size-1

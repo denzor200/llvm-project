@@ -175,8 +175,8 @@ struct Thread {
 
   int join(int *val) {
     ThreadReturnValue retval;
-    int status = join(retval);
-    if (status != 0)
+    
+    if (int status = join(retval); status != 0)
       return status;
     if (val != nullptr)
       *val = retval.stdc_retval;
@@ -185,8 +185,8 @@ struct Thread {
 
   int join(void **val) {
     ThreadReturnValue retval;
-    int status = join(retval);
-    if (status != 0)
+    
+    if (int status = join(retval); status != 0)
       return status;
     if (val != nullptr)
       *val = retval.posix_retval;

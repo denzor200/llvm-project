@@ -48,8 +48,8 @@ class CollectUnexpandedParameterPacksVisitor
         // call operator, so we don't need to look for all the other ways we
         // could have reached a dependent parameter pack.
         auto *FD = dyn_cast<FunctionDecl>(VD->getDeclContext());
-        auto *FTD = FD ? FD->getDescribedFunctionTemplate() : nullptr;
-        if (FTD && FTD->getTemplateParameters()->getDepth() >= DepthLimit)
+        
+        if (auto *FTD = FD ? FD->getDescribedFunctionTemplate() : nullptr; FTD && FTD->getTemplateParameters()->getDepth() >= DepthLimit)
           return;
       } else if (ND->isTemplateParameterPack() &&
                  getDepthAndIndex(ND).first >= DepthLimit) {
@@ -198,8 +198,8 @@ class CollectUnexpandedParameterPacksVisitor
     /// Suppress traversal into statements and expressions that
     /// do not contain unexpanded parameter packs.
     bool TraverseStmt(Stmt *S) override {
-      Expr *E = dyn_cast_or_null<Expr>(S);
-      if ((E && E->containsUnexpandedParameterPack()) || InLambdaOrBlock)
+      
+      if (Expr *E = dyn_cast_or_null<Expr>(S); (E && E->containsUnexpandedParameterPack()) || InLambdaOrBlock)
         return DynamicRecursiveASTVisitor::TraverseStmt(S);
 
       return true;
@@ -445,14 +445,14 @@ Sema::DiagnoseUnexpandedParameterPacks(SourceLocation Loc,
   SmallVector<UnexpandedParameterPack, 4> ParamPackReferences;
   if (sema::CapturingScopeInfo *CSI = getEnclosingLambdaOrBlock()) {
     for (auto &Pack : Unexpanded) {
-      auto DeclaresThisPack = [&](NamedDecl *LocalPack) {
+      
+      if (auto DeclaresThisPack = [&](NamedDecl *LocalPack) {
         if (auto *TTPT = Pack.first.dyn_cast<const TemplateTypeParmType *>()) {
           auto *TTPD = dyn_cast<TemplateTypeParmDecl>(LocalPack);
           return TTPD && TTPD->getTypeForDecl() == TTPT;
         }
         return declaresSameEntity(cast<NamedDecl *>(Pack.first), LocalPack);
-      };
-      if (llvm::any_of(CSI->LocalPacks, DeclaresThisPack))
+      }; llvm::any_of(CSI->LocalPacks, DeclaresThisPack))
         ParamPackReferences.push_back(Pack);
     }
 
@@ -912,10 +912,10 @@ bool Sema::CheckParameterPacksForExpansion(
     unsigned NewPackSize, PendingPackExpansionSize = 0;
     if (IsVarDeclPack) {
       // Figure out whether we're instantiating to an argument pack or not.
-      llvm::PointerUnion<Decl *, DeclArgumentPack *> *Instantiation =
+      
+      if (llvm::PointerUnion<Decl *, DeclArgumentPack *> *Instantiation =
           CurrentInstantiationScope->findInstantiationOf(
-              cast<NamedDecl *>(ParmPack.first));
-      if (isa<DeclArgumentPack *>(*Instantiation)) {
+              cast<NamedDecl *>(ParmPack.first)); isa<DeclArgumentPack *>(*Instantiation)) {
         // We could expand this function parameter pack.
         NewPackSize = cast<DeclArgumentPack *>(*Instantiation)->size();
       } else {
@@ -1134,8 +1134,8 @@ UnsignedOrNone Sema::getNumArgumentsInExpansion(
 }
 
 bool Sema::containsUnexpandedParameterPacks(Declarator &D) {
-  const DeclSpec &DS = D.getDeclSpec();
-  switch (DS.getTypeSpecType()) {
+  
+  switch (const DeclSpec &DS = D.getDeclSpec(); DS.getTypeSpecType()) {
   case TST_typename_pack_indexing:
   case TST_typename:
   case TST_typeof_unqualType:
@@ -1198,8 +1198,8 @@ bool Sema::containsUnexpandedParameterPacks(Declarator &D) {
   }
 
   for (unsigned I = 0, N = D.getNumTypeObjects(); I != N; ++I) {
-    const DeclaratorChunk &Chunk = D.getTypeObject(I);
-    switch (Chunk.Kind) {
+    
+    switch (const DeclaratorChunk &Chunk = D.getTypeObject(I); Chunk.Kind) {
     case DeclaratorChunk::Pointer:
     case DeclaratorChunk::Reference:
     case DeclaratorChunk::Paren:
@@ -1332,8 +1332,8 @@ ExprResult Sema::ActOnPackIndexingExpr(Scope *S, Expr *PackExpression,
                                        SourceLocation LSquareLoc,
                                        Expr *IndexExpr,
                                        SourceLocation RSquareLoc) {
-  bool isParameterPack = ::isParameterPack(PackExpression);
-  if (!isParameterPack) {
+  
+  if (bool isParameterPack = ::isParameterPack(PackExpression); !isParameterPack) {
     if (!PackExpression->containsErrors())
       Diag(PackExpression->getBeginLoc(), diag::err_expected_name_of_pack)
           << PackExpression;
@@ -1515,8 +1515,8 @@ static void CheckFoldOperand(Sema &S, Expr *E) {
     return;
 
   E = E->IgnoreImpCasts();
-  auto *OCE = dyn_cast<CXXOperatorCallExpr>(E);
-  if ((OCE && OCE->isInfixBinaryOp()) || isa<BinaryOperator>(E) ||
+  
+  if (auto *OCE = dyn_cast<CXXOperatorCallExpr>(E); (OCE && OCE->isInfixBinaryOp()) || isa<BinaryOperator>(E) ||
       isa<AbstractConditionalOperator>(E)) {
     S.Diag(E->getExprLoc(), diag::err_fold_expression_bad_operand)
         << E->getSourceRange()

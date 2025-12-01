@@ -74,14 +74,14 @@ static void printDiagnosticOptions(raw_ostream &OS,
       Started = true;
     }
 
-    StringRef Opt =
+    
+    if (StringRef Opt =
         Info.getDiags()->getDiagnosticIDs()->getWarningOptionForDiag(
-            Info.getID());
-    if (!Opt.empty()) {
+            Info.getID()); !Opt.empty()) {
       OS << (Started ? "," : " [")
          << (Level == DiagnosticsEngine::Remark ? "-R" : "-W") << Opt;
-      StringRef OptValue = Info.getFlagValue();
-      if (!OptValue.empty())
+      
+      if (StringRef OptValue = Info.getFlagValue(); !OptValue.empty())
         OS << "=" << OptValue;
       Started = true;
     }
@@ -89,9 +89,9 @@ static void printDiagnosticOptions(raw_ostream &OS,
 
   // If the user wants to see category information, include it too.
   if (DiagOpts.ShowCategories) {
-    unsigned DiagCategory =
-      DiagnosticIDs::getCategoryNumberForDiag(Info.getID());
-    if (DiagCategory) {
+    
+    if (unsigned DiagCategory =
+      DiagnosticIDs::getCategoryNumberForDiag(Info.getID()); DiagCategory) {
       OS << (Started ? "," : " [");
       Started = true;
       if (DiagOpts.ShowCategories == 1)

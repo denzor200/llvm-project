@@ -27,8 +27,8 @@ void TestBase64(StringRef Input, StringRef Final) {
 
 void TestBase64Decode(StringRef Input, StringRef Expected,
                       StringRef ExpectedErrorMessage = {}) {
-  std::vector<char> DecodedBytes;
-  if (ExpectedErrorMessage.empty()) {
+  
+  if (std::vector<char> DecodedBytes; ExpectedErrorMessage.empty()) {
     ASSERT_THAT_ERROR(decodeBase64(Input, DecodedBytes), Succeeded());
     EXPECT_EQ(llvm::ArrayRef<char>(DecodedBytes),
               llvm::ArrayRef<char>(Expected));

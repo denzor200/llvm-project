@@ -313,7 +313,8 @@ private:
 // types.
 template <Operation op, typename InputType, typename OutputType>
 constexpr bool is_valid_operation() {
-  constexpr bool IS_NARROWING_OP =
+  
+  if (constexpr bool IS_NARROWING_OP =
       (op == Operation::Sqrt && cpp::is_floating_point_v<InputType> &&
        cpp::is_floating_point_v<OutputType> &&
        sizeof(OutputType) <= sizeof(InputType)) ||
@@ -326,8 +327,7 @@ constexpr bool is_valid_operation() {
       (op == Operation::Fma && internal::IsTernaryInput<InputType>::VALUE &&
        cpp::is_floating_point_v<
            typename internal::MakeScalarInput<InputType>::type> &&
-       cpp::is_floating_point_v<OutputType>);
-  if (IS_NARROWING_OP)
+       cpp::is_floating_point_v<OutputType>); IS_NARROWING_OP)
     return true;
   return (Operation::BeginUnaryOperationsSingleOutput < op &&
           op < Operation::EndUnaryOperationsSingleOutput &&

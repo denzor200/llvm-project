@@ -43,8 +43,8 @@ static GlobalVariable *uniquifyGVPerKernel(Module &M, GlobalVariable *GV,
   bool NeedsReplacement = false;
   for (Use &U : GV->uses()) {
     if (auto *I = dyn_cast<Instruction>(U.getUser())) {
-      Function *F = I->getFunction();
-      if (isKernel(*F) && F != KF) {
+      
+      if (Function *F = I->getFunction(); isKernel(*F) && F != KF) {
         NeedsReplacement = true;
         break;
       }
@@ -60,8 +60,8 @@ static GlobalVariable *uniquifyGVPerKernel(Module &M, GlobalVariable *GV,
   NewGV->copyAttributesFrom(GV);
   for (Use &U : make_early_inc_range(GV->uses())) {
     if (auto *I = dyn_cast<Instruction>(U.getUser())) {
-      Function *F = I->getFunction();
-      if (!isKernel(*F) || F == KF) {
+      
+      if (Function *F = I->getFunction(); !isKernel(*F) || F == KF) {
         U.getUser()->replaceUsesOfWith(GV, NewGV);
       }
     }

@@ -226,9 +226,9 @@ void CGObjCRuntime::EmitTryCatchStmt(CodeGenFunction &CGF,
     CodeGenFunction::LexicalScope Cleanups(CGF, Handler.Body->getSourceRange());
     SaveAndRestore RevertAfterScope(CGF.CurrentFuncletPad);
     if (useFunclets) {
-      llvm::BasicBlock::iterator CPICandidate =
-          Handler.Block->getFirstNonPHIIt();
-      if (CPICandidate != Handler.Block->end()) {
+      
+      if (llvm::BasicBlock::iterator CPICandidate =
+          Handler.Block->getFirstNonPHIIt(); CPICandidate != Handler.Block->end()) {
         if (auto *CPI = dyn_cast_or_null<llvm::CatchPadInst>(CPICandidate)) {
           CGF.CurrentFuncletPad = CPI;
           CPI->setOperand(2, CGF.getExceptionSlot().emitRawPointer(CGF));
@@ -287,9 +287,9 @@ void CGObjCRuntime::EmitInitOfCatchParam(CodeGenFunction &CGF,
                                          llvm::Value *exn,
                                          const VarDecl *paramDecl) {
 
-  Address paramAddr = CGF.GetAddrOfLocalVar(paramDecl);
+  
 
-  switch (paramDecl->getType().getQualifiers().getObjCLifetime()) {
+  switch (Address paramAddr = CGF.GetAddrOfLocalVar(paramDecl); paramDecl->getType().getQualifiers().getObjCLifetime()) {
   case Qualifiers::OCL_Strong:
     exn = CGF.EmitARCRetainNonBlock(exn);
     [[fallthrough]];
@@ -401,8 +401,8 @@ bool CGObjCRuntime::canMessageReceiverBeNull(CodeGenFunction &CGF,
   // and the receiver is a load of self, then self is a valid object.
   if (auto curMethod =
                dyn_cast_or_null<ObjCMethodDecl>(CGF.CurCodeDecl)) {
-    auto self = curMethod->getSelfDecl();
-    if (self->getType().isConstQualified()) {
+    
+    if (auto self = curMethod->getSelfDecl(); self->getType().isConstQualified()) {
       if (auto LI = dyn_cast<llvm::LoadInst>(receiver->stripPointerCasts())) {
         llvm::Value *selfAddr = CGF.GetAddrOfLocalVar(self).emitRawPointer(CGF);
         if (selfAddr == LI->getPointerOperand()) {
@@ -431,19 +431,19 @@ void CGObjCRuntime::destroyCalleeDestroyedArguments(CodeGenFunction &CGF,
   CallArgList::const_iterator I = callArgs.begin();
   for (auto i = method->param_begin(), e = method->param_end();
          i != e; ++i, ++I) {
-    const ParmVarDecl *param = (*i);
-    if (param->hasAttr<NSConsumedAttr>()) {
+    
+    if (const ParmVarDecl *param = (*i); param->hasAttr<NSConsumedAttr>()) {
       RValue RV = I->getRValue(CGF);
       assert(RV.isScalar() &&
              "NullReturnState::complete - arg not on object");
       CGF.EmitARCRelease(RV.getScalarVal(), ARCImpreciseLifetime);
     } else {
       QualType QT = param->getType();
-      auto *RD = QT->getAsRecordDecl();
-      if (RD && RD->isParamDestroyedInCallee()) {
+      
+      if (auto *RD = QT->getAsRecordDecl(); RD && RD->isParamDestroyedInCallee()) {
         RValue RV = I->getRValue(CGF);
-        QualType::DestructionKind DtorKind = QT.isDestructedType();
-        switch (DtorKind) {
+        
+        switch (QualType::DestructionKind DtorKind = QT.isDestructedType(); DtorKind) {
         case QualType::DK_cxx_destructor:
           CGF.destroyCXXObject(CGF, RV.getAggregateAddress(), QT);
           break;

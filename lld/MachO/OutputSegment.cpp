@@ -92,9 +92,9 @@ static int segmentOrder(OutputSegment *seg) {
 }
 
 static int sectionOrder(OutputSection *osec) {
-  StringRef segname = osec->parent->name;
+  
   // Sections are uniquely identified by their segment + section name.
-  if (segname == segment_names::text) {
+  if (StringRef segname = osec->parent->name; segname == segment_names::text) {
     if (osec->name == section_names::header)
       return -7;
     // `__text` needs to precede the other code sections since its

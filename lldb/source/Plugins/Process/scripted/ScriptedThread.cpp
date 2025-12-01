@@ -117,10 +117,10 @@ RegisterContextSP ScriptedThread::GetRegisterContext() {
 
 RegisterContextSP
 ScriptedThread::CreateRegisterContextForFrame(StackFrame *frame) {
-  const uint32_t concrete_frame_idx =
-      frame ? frame->GetConcreteFrameIndex() : 0;
+  
 
-  if (concrete_frame_idx)
+  if (const uint32_t concrete_frame_idx =
+      frame ? frame->GetConcreteFrameIndex() : 0; concrete_frame_idx)
     return GetUnwinder().CreateRegisterContextForFrame(frame);
 
   lldb::RegisterContextSP reg_ctx_sp;
@@ -253,9 +253,9 @@ bool ScriptedThread::LoadArtificialStackFrames() {
 
     auto frame_from_dict_or_err = create_frame_from_dict(idx);
     if (!frame_from_dict_or_err) {
-      auto frame_from_script_obj_or_err = create_frame_from_script_object(idx);
+      
 
-      if (!frame_from_script_obj_or_err) {
+      if (auto frame_from_script_obj_or_err = create_frame_from_script_object(idx); !frame_from_script_obj_or_err) {
         return ScriptedInterface::ErrorWithMessage<bool>(
             LLVM_PRETTY_FUNCTION,
             llvm::Twine("Couldn't add artificial frame (" + llvm::Twine(idx) +
@@ -295,8 +295,8 @@ bool ScriptedThread::CalculateStopInfo() {
   // need to hit the breakpoint when we resume.  This will be cleared
   // if we CreateStopReasonWithBreakpointSiteID.
   if (RegisterContextSP reg_ctx_sp = GetRegisterContext()) {
-    addr_t pc = reg_ctx_sp->GetPC();
-    if (BreakpointSiteSP bp_site_sp =
+    
+    if (BreakpointSiteSP addr_t pc = reg_ctx_sp->GetPC(); bp_site_sp =
             GetProcess()->GetBreakpointSiteList().FindByAddress(pc))
       if (bp_site_sp->IsEnabled())
         SetThreadStoppedAtUnexecutedBP(pc);
@@ -415,8 +415,8 @@ std::shared_ptr<DynamicRegisterInfo> ScriptedThread::GetDynamicRegisterInfo() {
   if (!m_register_info_sp) {
     StructuredData::DictionarySP reg_info = GetInterface()->GetRegisterInfo();
 
-    Status error;
-    if (!reg_info)
+    
+    if (Status error; !reg_info)
       return ScriptedInterface::ErrorWithMessage<
           std::shared_ptr<DynamicRegisterInfo>>(
           LLVM_PRETTY_FUNCTION, "Failed to get scripted thread registers info.",

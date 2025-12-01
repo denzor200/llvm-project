@@ -364,9 +364,9 @@ StructuredData::ObjectSP BreakpointOptions::SerializeToStructuredData() {
   if (m_set_flags.Test(eCallback) && m_baton_is_command_baton) {
     auto cmd_baton =
         std::static_pointer_cast<CommandBaton>(m_callback_baton_sp);
-    StructuredData::ObjectSP commands_sp =
-        cmd_baton->getItem()->SerializeToStructuredData();
-    if (commands_sp) {
+    
+    if (StructuredData::ObjectSP commands_sp =
+        cmd_baton->getItem()->SerializeToStructuredData(); commands_sp) {
       options_dict_sp->AddItem(
           BreakpointOptions::CommandData::GetSerializationKey(), commands_sp);
     }
@@ -601,8 +601,8 @@ bool BreakpointOptions::BreakpointOptionsCallbackFunction(
 
   if (commands.GetSize() > 0) {
     ExecutionContext exe_ctx(context->exe_ctx_ref);
-    Target *target = exe_ctx.GetTargetPtr();
-    if (target) {
+    
+    if (Target *target = exe_ctx.GetTargetPtr(); target) {
       Debugger &debugger = target->GetDebugger();
       CommandReturnObject result(debugger.GetUseColor());
 

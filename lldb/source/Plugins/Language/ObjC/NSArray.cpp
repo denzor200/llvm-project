@@ -432,8 +432,8 @@ bool lldb_private::formatters::NSArraySummaryProvider(
       return false;
   } else {
     auto &map(NSArray_Additionals::GetAdditionalSummaries());
-    auto iter = map.find(class_name), end = map.end();
-    if (iter != end)
+    
+    if (auto iter = map.find(class_name), end = map.end(); iter != end)
       return iter->second(valobj, stream, options);
     else
       return false;
@@ -595,8 +595,8 @@ lldb_private::formatters::GenericNSArrayISyntheticFrontEnd<D32, D64, Inline>::
     : SyntheticChildrenFrontEnd(*valobj_sp), m_exe_ctx_ref(),
       m_data_32(nullptr), m_data_64(nullptr) {
   if (valobj_sp) {
-    CompilerType type = valobj_sp->GetCompilerType();
-    if (type) {
+    
+    if (CompilerType type = valobj_sp->GetCompilerType(); type) {
       TypeSystemClangSP scratch_ts_sp = ScratchTypeSystemClang::GetForTarget(
           *valobj_sp->GetExecutionContextRef().GetTargetSP());
       if (scratch_ts_sp)
@@ -737,9 +737,9 @@ lldb_private::formatters::NSArray1SyntheticFrontEnd::NSArray1SyntheticFrontEnd(
 llvm::Expected<size_t>
 lldb_private::formatters::NSArray1SyntheticFrontEnd::GetIndexOfChildWithName(
     ConstString name) {
-  static const ConstString g_zero("[0]");
+  
 
-  if (name == g_zero)
+  if (static const ConstString g_zero("[0]"); name == g_zero)
     return 0;
 
   return UINT32_MAX;
@@ -758,9 +758,9 @@ lldb_private::formatters::NSArray1SyntheticFrontEnd::Update() {
 lldb::ValueObjectSP
 lldb_private::formatters::NSArray1SyntheticFrontEnd::GetChildAtIndex(
     uint32_t idx) {
-  static const ConstString g_zero("[0]");
+  
 
-  if (idx == 0) {
+  if (static const ConstString g_zero("[0]"); idx == 0) {
     TypeSystemClangSP scratch_ts_sp =
         ScratchTypeSystemClang::GetForTarget(*m_backend.GetTargetSP());
     if (scratch_ts_sp) {
@@ -846,8 +846,8 @@ lldb_private::formatters::NSArraySyntheticFrontEndCreator(
     return (new CallStackArray::NSCallStackArraySyntheticFrontEnd(valobj_sp));
   } else {
     auto &map(NSArray_Additionals::GetAdditionalSynthetics());
-    auto iter = map.find(class_name), end = map.end();
-    if (iter != end)
+    
+    if (auto iter = map.find(class_name), end = map.end(); iter != end)
       return iter->second(synth, valobj_sp);
   }
 

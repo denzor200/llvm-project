@@ -51,8 +51,8 @@ void SpeculateQuery::findCalles(const BasicBlock *BB,
   assert(BB != nullptr && "Traversing Null BB to find calls?");
 
   auto getCalledFunction = [&CallesNames](const CallBase *Call) {
-    auto CalledValue = Call->getCalledOperand()->stripPointerCasts();
-    if (auto DirectCall = dyn_cast<Function>(CalledValue))
+    
+    if (auto auto CalledValue = Call->getCalledOperand()->stripPointerCasts(); DirectCall = dyn_cast<Function>(CalledValue))
       CallesNames.insert(DirectCall->getName());
   };
   for (auto &I : BB->instructionsWithoutDebug())

@@ -67,29 +67,29 @@ ValueObjectVariable::ValueObjectVariable(ExecutionContextScope *exe_scope,
 ValueObjectVariable::~ValueObjectVariable() = default;
 
 CompilerType ValueObjectVariable::GetCompilerTypeImpl() {
-  Type *var_type = m_variable_sp->GetType();
-  if (var_type)
+  
+  if (Type *var_type = m_variable_sp->GetType(); var_type)
     return var_type->GetForwardCompilerType();
   return CompilerType();
 }
 
 ConstString ValueObjectVariable::GetTypeName() {
-  Type *var_type = m_variable_sp->GetType();
-  if (var_type)
+  
+  if (Type *var_type = m_variable_sp->GetType(); var_type)
     return var_type->GetName();
   return ConstString();
 }
 
 ConstString ValueObjectVariable::GetDisplayTypeName() {
-  Type *var_type = m_variable_sp->GetType();
-  if (var_type)
+  
+  if (Type *var_type = m_variable_sp->GetType(); var_type)
     return var_type->GetForwardCompilerType().GetDisplayTypeName();
   return ConstString();
 }
 
 ConstString ValueObjectVariable::GetQualifiedTypeName() {
-  Type *var_type = m_variable_sp->GetType();
-  if (var_type)
+  
+  if (Type *var_type = m_variable_sp->GetType(); var_type)
     return var_type->GetQualifiedName();
   return ConstString();
 }
@@ -128,9 +128,9 @@ bool ValueObjectVariable::UpdateValue() {
   m_error.Clear();
 
   Variable *variable = m_variable_sp.get();
-  DWARFExpressionList &expr_list = variable->LocationExpressionList();
+  
 
-  if (variable->GetLocationIsConstantValueData()) {
+  if (DWARFExpressionList &expr_list = variable->LocationExpressionList(); variable->GetLocationIsConstantValueData()) {
     // expr doesn't contain DWARF bytes, it contains the constant variable
     // value bytes themselves...
     if (expr_list.GetExpressionData(m_data)) {
@@ -188,16 +188,16 @@ bool ValueObjectVariable::UpdateValue() {
       if (value_type == Value::ValueType::HostAddress &&
           compiler_type.IsValid()) {
         if (size_t value_buf_size = m_value.GetBuffer().GetByteSize()) {
-          size_t value_size = m_value.GetValueByteSize(&m_error, &exe_ctx);
-          if (m_error.Success() && value_buf_size < value_size)
+          
+          if (size_t value_size = m_value.GetValueByteSize(&m_error, &exe_ctx); m_error.Success() && value_buf_size < value_size)
             m_value.ResizeData(value_size);
         }
       }
 
       Process *process = exe_ctx.GetProcessPtr();
-      const bool process_is_alive = process && process->IsAlive();
+      
 
-      switch (value_type) {
+      switch (const bool process_is_alive = process && process->IsAlive(); value_type) {
       case Value::ValueType::Invalid:
         m_error = Status::FromErrorString("invalid value");
         break;
@@ -257,10 +257,10 @@ void ValueObjectVariable::DoUpdateChildrenAddressType(ValueObject &valobj) {
   Process *process = exe_ctx.GetProcessPtr();
   const bool process_is_alive = process && process->IsAlive();
   const uint32_t type_info = valobj.GetCompilerType().GetTypeInfo();
-  const bool is_pointer_or_ref =
-      (type_info & (lldb::eTypeIsPointer | lldb::eTypeIsReference)) != 0;
+  
 
-  switch (value_type) {
+  switch (const bool is_pointer_or_ref =
+      (type_info & (lldb::eTypeIsPointer | lldb::eTypeIsReference)) != 0; value_type) {
   case Value::ValueType::Invalid:
     break;
   case Value::ValueType::FileAddress:
@@ -305,11 +305,11 @@ void ValueObjectVariable::DoUpdateChildrenAddressType(ValueObject &valobj) {
 }
 
 bool ValueObjectVariable::IsInScope() {
-  const ExecutionContextRef &exe_ctx_ref = GetExecutionContextRef();
-  if (exe_ctx_ref.HasFrameRef()) {
+  
+  if (const ExecutionContextRef &exe_ctx_ref = GetExecutionContextRef(); exe_ctx_ref.HasFrameRef()) {
     ExecutionContext exe_ctx(exe_ctx_ref);
-    StackFrame *frame = exe_ctx.GetFramePtr();
-    if (frame) {
+    
+    if (StackFrame *frame = exe_ctx.GetFramePtr(); frame) {
       return m_variable_sp->IsInScope(frame);
     } else {
       // This ValueObject had a frame at one time, but now we can't locate it,
@@ -324,8 +324,8 @@ bool ValueObjectVariable::IsInScope() {
 
 lldb::ModuleSP ValueObjectVariable::GetModule() {
   if (m_variable_sp) {
-    SymbolContextScope *sc_scope = m_variable_sp->GetSymbolContextScope();
-    if (sc_scope) {
+    
+    if (SymbolContextScope *sc_scope = m_variable_sp->GetSymbolContextScope(); sc_scope) {
       return sc_scope->CalculateSymbolContextModule();
     }
   }

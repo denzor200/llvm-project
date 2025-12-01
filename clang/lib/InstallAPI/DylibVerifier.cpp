@@ -19,10 +19,10 @@ namespace clang {
 namespace installapi {
 
 ArchitectureSet &LibAttrs::getArchSet(StringRef Attr) {
-  auto *It = llvm::find_if(LibraryAttributes, [&Attr](const auto &Input) {
+  
+  if (auto *It = llvm::find_if(LibraryAttributes, [&Attr](const auto &Input) {
     return Attr == Input.first;
-  });
-  if (It != LibraryAttributes.end())
+  }); It != LibraryAttributes.end())
     return It->second;
   LibraryAttributes.push_back({Attr.str(), ArchitectureSet()});
   return LibraryAttributes.back().second;
@@ -118,8 +118,8 @@ std::string DylibVerifier::getAnnotatedName(const Record *R,
   // tied to it. This can only ever happen when the location has to come from
   // debug info.
   if (ValidSourceLoc) {
-    StringRef PrettyNameRef(PrettyName);
-    if ((SymCtx.Kind == EncodeKind::GlobalSymbol) &&
+    
+    if (StringRef PrettyNameRef(PrettyName); (SymCtx.Kind == EncodeKind::GlobalSymbol) &&
         !isCppMangled(SymbolName) && PrettyNameRef.starts_with("_"))
       return Annotation + PrettyNameRef.drop_front(1).str();
     return Annotation + PrettyName;
@@ -378,9 +378,9 @@ DylibVerifier::Result DylibVerifier::compareAvailability(const Record *R,
   if (shouldIgnoreZipperedAvailability(R, SymCtx))
     return Result::Ignore;
 
-  const bool IsDeclAvailable = SymCtx.FA->Avail.isUnavailable();
+  
 
-  switch (Mode) {
+  switch (const bool IsDeclAvailable = SymCtx.FA->Avail.isUnavailable(); Mode) {
   case VerificationMode::ErrorsAndWarnings:
     Ctx.emitDiag([&]() {
       Ctx.Diag->Report(SymCtx.FA->Loc, diag::warn_header_availability_mismatch)

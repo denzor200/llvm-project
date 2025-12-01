@@ -293,8 +293,8 @@ void CodeGenTarget::ComputeInstrsByEnum() const {
   [[maybe_unused]] unsigned SkippedInsts = 0;
 
   for (const auto &[_, CGIUp] : InstMap) {
-    const CodeGenInstruction *CGI = CGIUp.get();
-    if (CGI->Namespace != "TargetOpcode") {
+    
+    if (const CodeGenInstruction *CGI = CGIUp.get(); CGI->Namespace != "TargetOpcode") {
 
       if (CGI->TheDef->isSubClassOf(
               "TargetSpecializedStandardPseudoInstruction")) {
@@ -398,8 +398,8 @@ ComplexPattern::ComplexPattern(const Record *R) {
   // maps a sub-dag to a complex pattern. e.g. favors LEA over ADD. To get best
   // possible pattern match we'll need to dynamically calculate the complexity
   // of all patterns a dag can potentially map to.
-  int64_t RawComplexity = R->getValueAsInt("Complexity");
-  if (RawComplexity == -1)
+  
+  if (int64_t RawComplexity = R->getValueAsInt("Complexity"); RawComplexity == -1)
     Complexity = NumOperands * 3;
   else
     Complexity = RawComplexity;

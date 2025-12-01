@@ -52,9 +52,9 @@ void ARMTargetStreamer::reset() {}
 void ARMTargetStreamer::emitInst(uint32_t Inst, char Suffix) {
   unsigned Size;
   char Buffer[4];
-  const bool LittleEndian = getContext().getAsmInfo()->isLittleEndian();
+  
 
-  switch (Suffix) {
+  switch (const bool LittleEndian = getContext().getAsmInfo()->isLittleEndian(); Suffix) {
   case '\0':
     Size = 4;
 
@@ -180,8 +180,8 @@ static bool isV8M(const MCSubtargetInfo &STI) {
 void ARMTargetStreamer::emitTargetAttributes(const MCSubtargetInfo &STI) {
   switchVendor("aeabi");
 
-  const StringRef CPUString = STI.getCPU();
-  if (!CPUString.empty() && !CPUString.starts_with("generic")) {
+  
+  if (const StringRef CPUString = STI.getCPU(); !CPUString.empty() && !CPUString.starts_with("generic")) {
     // FIXME: remove krait check when GNU tools support krait cpu
     if (STI.hasFeature(ARM::ProcKrait)) {
       emitTextAttribute(ARMBuildAttrs::CPU_name, "cortex-a9");

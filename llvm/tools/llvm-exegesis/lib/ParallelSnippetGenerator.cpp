@@ -192,9 +192,9 @@ generateSingleRegisterForInstrAvoidingDefUseOverlap(
     }
   }
 
-  bool IsDefWithTiedUse =
-      Instr.Variables[Op.getVariableIndex()].hasTiedOperands();
-  if (Op.isUse() || IsDefWithTiedUse) {
+  
+  if (bool IsDefWithTiedUse =
+      Instr.Variables[Op.getVariableIndex()].hasTiedOperands(); Op.isUse() || IsDefWithTiedUse) {
     // Now, important bit: if we have used some register for def,
     // then we can not use that same register for *any* use,
     // be it either an untied use, or an use tied to a def.

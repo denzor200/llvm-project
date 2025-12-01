@@ -146,8 +146,8 @@ void VirtRegMap::assignVirt2StackSlot(Register virtReg, int SS) {
 void VirtRegMap::print(raw_ostream &OS, const Module*) const {
   OS << "********** REGISTER MAP **********\n";
   for (unsigned i = 0, e = MRI->getNumVirtRegs(); i != e; ++i) {
-    Register Reg = Register::index2VirtReg(i);
-    if (Virt2PhysMap[Reg]) {
+    
+    if (Register Reg = Register::index2VirtReg(i); Virt2PhysMap[Reg]) {
       OS << '[' << printReg(Reg, TRI) << " -> "
          << printReg(Virt2PhysMap[Reg], TRI) << "] "
          << TRI->getRegClassName(MRI->getRegClass(Reg)) << "\n";
@@ -155,8 +155,8 @@ void VirtRegMap::print(raw_ostream &OS, const Module*) const {
   }
 
   for (unsigned i = 0, e = MRI->getNumVirtRegs(); i != e; ++i) {
-    Register Reg = Register::index2VirtReg(i);
-    if (Virt2StackSlotMap[Reg] != VirtRegMap::NO_STACK_SLOT) {
+    
+    if (Register Reg = Register::index2VirtReg(i); Virt2StackSlotMap[Reg] != VirtRegMap::NO_STACK_SLOT) {
       OS << '[' << printReg(Reg, TRI) << " -> fi#" << Virt2StackSlotMap[Reg]
          << "] " << TRI->getRegClassName(MRI->getRegClass(Reg)) << "\n";
     }
@@ -585,7 +585,7 @@ bool VirtRegRewriter::subRegLiveThrough(const MachineInstr &MI,
   SlotIndex BeforeMIUses = MIIndex.getBaseIndex();
   SlotIndex AfterMIDefs = MIIndex.getBoundaryIndex();
   for (MCRegUnit Unit : TRI->regunits(SuperPhysReg)) {
-    const LiveRange &UnitRange = LIS->getRegUnit(Unit);
+    
     // If the regunit is live both before and after MI,
     // we assume it is live through.
     // Generally speaking, this is not true, because something like
@@ -596,7 +596,7 @@ bool VirtRegRewriter::subRegLiveThrough(const MachineInstr &MI,
     // is defined at the same time as RU (i.e., "vreg, RU = op RU").
     // Thus, vreg and RU interferes and vreg cannot be assigned to
     // SuperPhysReg. Therefore, this situation cannot happen.
-    if (UnitRange.liveAt(AfterMIDefs) && UnitRange.liveAt(BeforeMIUses))
+    if (const LiveRange &UnitRange = LIS->getRegUnit(Unit); UnitRange.liveAt(AfterMIDefs) && UnitRange.liveAt(BeforeMIUses))
       return true;
   }
   return false;
@@ -613,8 +613,8 @@ LaneBitmask VirtRegRewriter::liveOutUndefPhiLanesForUndefSubregDef(
 
   for (const LiveInterval::SubRange &SR : LI.subranges()) {
     // Figure out which lanes are undef live into a successor.
-    LaneBitmask NeedImpDefLanes = UndefMask & SR.LaneMask;
-    if (NeedImpDefLanes.any() && !LIS->isLiveOutOfMBB(SR, &MBB)) {
+    
+    if (LaneBitmask NeedImpDefLanes = UndefMask & SR.LaneMask; NeedImpDefLanes.any() && !LIS->isLiveOutOfMBB(SR, &MBB)) {
       for (const MachineBasicBlock *Succ : MBB.successors()) {
         if (LIS->isLiveInToMBB(SR, Succ))
           LiveOutUndefLanes |= NeedImpDefLanes;
@@ -693,10 +693,10 @@ void VirtRegRewriter::rewrite() {
               if (MO.isUndef()) {
                 const LiveInterval &LI = LIS->getInterval(VirtReg);
 
-                LaneBitmask LiveOutUndefLanes =
+                
+                if (LaneBitmask LiveOutUndefLanes =
                     liveOutUndefPhiLanesForUndefSubregDef(LI, *MBBI, SubReg,
-                                                          PhysReg, MI);
-                if (LiveOutUndefLanes.any()) {
+                                                          PhysReg, MI); LiveOutUndefLanes.any()) {
                   SmallVector<unsigned, 16> CoveringIndexes;
 
                   // TODO: Just use one super register def if none of the lanes

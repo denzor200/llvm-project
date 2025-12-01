@@ -230,8 +230,8 @@ void TokenBuffer::indexExpandedTokens() {
   ExpandedTokIndex.reserve(ExpandedTokens.size());
   // Index ExpandedTokens for faster lookups by SourceLocation.
   for (size_t I = 0, E = ExpandedTokens.size(); I != E; ++I) {
-    SourceLocation Loc = ExpandedTokens[I].location();
-    if (Loc.isValid())
+    
+    if (SourceLocation Loc = ExpandedTokens[I].location(); Loc.isValid())
       ExpandedTokIndex[Loc] = I;
   }
 }
@@ -563,8 +563,8 @@ TokenBuffer::macroExpansions(FileID FID) const {
   std::vector<const syntax::Token *> Expansions;
   auto &Spelled = File.SpelledTokens;
   for (auto Mapping : File.Mappings) {
-    const syntax::Token *Token = &Spelled[Mapping.BeginSpelled];
-    if (Token->kind() == tok::TokenKind::identifier)
+    
+    if (const syntax::Token *Token = &Spelled[Mapping.BeginSpelled]; Token->kind() == tok::TokenKind::identifier)
       Expansions.push_back(Token);
   }
   return Expansions;
@@ -811,9 +811,9 @@ private:
     SourceLocation Expansion = SM.getExpansionLoc(Tok.location());
     FileID File = SM.getFileID(Expansion);
     const auto &SpelledTokens = Result.Files[File].SpelledTokens;
-    auto &NextSpelled = this->NextSpelled[File];
+    
 
-    if (Tok.location().isFileID()) {
+    if (auto &NextSpelled = this->NextSpelled[File]; Tok.location().isFileID()) {
       // A run of file tokens continues while the expanded/spelled tokens match.
       while (NextSpelled < SpelledTokens.size() &&
              NextExpanded < Result.ExpandedTokens.size() &&

@@ -81,8 +81,8 @@ void dispatchIndexOpFoldResults(ArrayRef<OpFoldResult> ofrs,
 OpFoldResult getAsOpFoldResult(Value val) {
   if (!val)
     return OpFoldResult();
-  Attribute attr;
-  if (matchPattern(val, m_Constant(&attr)))
+  
+  if (Attribute attr; matchPattern(val, m_Constant(&attr)))
     return attr;
   return val;
 }
@@ -118,14 +118,14 @@ SmallVector<OpFoldResult> getAsIndexOpFoldResult(MLIRContext *ctx,
 std::optional<std::pair<APInt, bool>> getConstantAPIntValue(OpFoldResult ofr) {
   // Case 1: Check for Constant integer.
   if (auto val = llvm::dyn_cast_if_present<Value>(ofr)) {
-    APInt intVal;
-    if (matchPattern(val, m_ConstantInt(&intVal)))
+    
+    if (APInt intVal; matchPattern(val, m_ConstantInt(&intVal)))
       return std::make_pair(intVal, val.getType().isIndex());
     return std::nullopt;
   }
   // Case 2: Check for IntegerAttr.
-  Attribute attr = llvm::dyn_cast_if_present<Attribute>(ofr);
-  if (auto intAttr = dyn_cast_or_null<IntegerAttr>(attr))
+  
+  if (auto Attribute attr = llvm::dyn_cast_if_present<Attribute>(ofr); intAttr = dyn_cast_or_null<IntegerAttr>(attr))
     return std::make_pair(intAttr.getValue(), intAttr.getType().isIndex());
   return std::nullopt;
 }
@@ -287,8 +287,8 @@ std::optional<APInt> constantTripCount(
       if (auto intType = dyn_cast<IntegerType>(intAttr.getType()))
         return std::make_tuple(intType.getWidth(), intType.isIndex());
     } else {
-      auto val = cast<Value>(ofr);
-      if (auto intType = dyn_cast<IntegerType>(val.getType()))
+      
+      if (auto auto val = cast<Value>(ofr); intType = dyn_cast<IntegerType>(val.getType()))
         return std::make_tuple(intType.getWidth(), intType.isIndex());
     }
     return std::make_tuple(IndexType::kInternalStorageBitWidth, true);
@@ -398,8 +398,8 @@ LogicalResult foldDynamicIndexList(SmallVectorImpl<OpFoldResult> &ofrs,
   for (OpFoldResult &ofr : ofrs) {
     if (isa<Attribute>(ofr))
       continue;
-    Attribute attr;
-    if (matchPattern(cast<Value>(ofr), m_Constant(&attr))) {
+    
+    if (Attribute attr; matchPattern(cast<Value>(ofr), m_Constant(&attr))) {
       // Note: All ofrs have index type.
       if (onlyNonNegative && *getConstantIntValue(attr) < 0)
         continue;

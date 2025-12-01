@@ -26,8 +26,8 @@ getBestGuess(llvm::StringRef Search, llvm::ArrayRef<llvm::StringRef> Allowed,
       Res = Item;
       continue;
     }
-    unsigned Distance = Item.edit_distance(Search);
-    if (Distance < MaxEditDistance) {
+    
+    if (unsigned Distance = Item.edit_distance(Search); Distance < MaxEditDistance) {
       MaxEditDistance = Distance;
       Res = Item;
     }
@@ -62,11 +62,11 @@ getBestGuess(llvm::StringRef Search, llvm::ArrayRef<llvm::StringRef> Allowed,
 std::optional<std::string>
 clang::ast_matchers::dynamic::internal::ArgTypeTraits<
     clang::attr::Kind>::getBestGuess(const VariantValue &Value) {
-  static constexpr llvm::StringRef Allowed[] = {
+  
+  if (static constexpr llvm::StringRef Allowed[] = {
 #define ATTR(X) "attr::" #X,
 #include "clang/Basic/AttrList.inc"
-  };
-  if (Value.isString())
+  }; Value.isString())
     return ::getBestGuess(Value.getString(), llvm::ArrayRef(Allowed), "attr::");
   return std::nullopt;
 }
@@ -74,11 +74,11 @@ clang::ast_matchers::dynamic::internal::ArgTypeTraits<
 std::optional<std::string>
 clang::ast_matchers::dynamic::internal::ArgTypeTraits<
     clang::CastKind>::getBestGuess(const VariantValue &Value) {
-  static constexpr llvm::StringRef Allowed[] = {
+  
+  if (static constexpr llvm::StringRef Allowed[] = {
 #define CAST_OPERATION(Name) "CK_" #Name,
 #include "clang/AST/OperationKinds.def"
-  };
-  if (Value.isString())
+  }; Value.isString())
     return ::getBestGuess(Value.getString(), llvm::ArrayRef(Allowed), "CK_");
   return std::nullopt;
 }
@@ -86,12 +86,12 @@ clang::ast_matchers::dynamic::internal::ArgTypeTraits<
 std::optional<std::string>
 clang::ast_matchers::dynamic::internal::ArgTypeTraits<
     clang::OpenMPClauseKind>::getBestGuess(const VariantValue &Value) {
-  static constexpr llvm::StringRef Allowed[] = {
+  
+  if (static constexpr llvm::StringRef Allowed[] = {
 #define GEN_CLANG_CLAUSE_CLASS
 #define CLAUSE_CLASS(Enum, Str, Class) #Enum,
 #include "llvm/Frontend/OpenMP/OMP.inc"
-  };
-  if (Value.isString())
+  }; Value.isString())
     return ::getBestGuess(Value.getString(), llvm::ArrayRef(Allowed), "OMPC_");
   return std::nullopt;
 }
@@ -99,12 +99,12 @@ clang::ast_matchers::dynamic::internal::ArgTypeTraits<
 std::optional<std::string>
 clang::ast_matchers::dynamic::internal::ArgTypeTraits<
     clang::UnaryExprOrTypeTrait>::getBestGuess(const VariantValue &Value) {
-  static constexpr llvm::StringRef Allowed[] = {
+  
+  if (static constexpr llvm::StringRef Allowed[] = {
 #define UNARY_EXPR_OR_TYPE_TRAIT(Spelling, Name, Key) "UETT_" #Name,
 #define CXX11_UNARY_EXPR_OR_TYPE_TRAIT(Spelling, Name, Key) "UETT_" #Name,
 #include "clang/Basic/TokenKinds.def"
-  };
-  if (Value.isString())
+  }; Value.isString())
     return ::getBestGuess(Value.getString(), llvm::ArrayRef(Allowed), "UETT_");
   return std::nullopt;
 }

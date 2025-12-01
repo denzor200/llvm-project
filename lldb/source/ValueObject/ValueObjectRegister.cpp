@@ -76,8 +76,8 @@ ConstString ValueObjectRegisterSet::GetQualifiedTypeName() {
 
 llvm::Expected<uint32_t>
 ValueObjectRegisterSet::CalculateNumChildren(uint32_t max) {
-  const RegisterSet *reg_set = m_reg_ctx_sp->GetRegisterSet(m_reg_set_idx);
-  if (reg_set) {
+  
+  if (const RegisterSet *reg_set = m_reg_ctx_sp->GetRegisterSet(m_reg_set_idx); reg_set) {
     auto reg_count = reg_set->num_registers;
     return reg_count <= max ? reg_count : max;
   }
@@ -90,14 +90,14 @@ bool ValueObjectRegisterSet::UpdateValue() {
   m_error.Clear();
   SetValueDidChange(false);
   ExecutionContext exe_ctx(GetExecutionContextRef());
-  StackFrame *frame = exe_ctx.GetFramePtr();
-  if (frame == nullptr)
+  
+  if (StackFrame *frame = exe_ctx.GetFramePtr(); frame == nullptr)
     m_reg_ctx_sp.reset();
   else {
     m_reg_ctx_sp = frame->GetRegisterContext();
     if (m_reg_ctx_sp) {
-      const RegisterSet *reg_set = m_reg_ctx_sp->GetRegisterSet(m_reg_set_idx);
-      if (reg_set == nullptr)
+      
+      if (const RegisterSet *reg_set = m_reg_ctx_sp->GetRegisterSet(m_reg_set_idx); reg_set == nullptr)
         m_reg_ctx_sp.reset();
       else if (m_reg_set != reg_set) {
         SetValueDidChange(true);
@@ -129,8 +129,8 @@ ValueObjectRegisterSet::GetChildMemberWithName(llvm::StringRef name,
                                                bool can_create) {
   ValueObject *valobj = nullptr;
   if (m_reg_ctx_sp && m_reg_set) {
-    const RegisterInfo *reg_info = m_reg_ctx_sp->GetRegisterInfoByName(name);
-    if (reg_info != nullptr)
+    
+    if (const RegisterInfo *reg_info = m_reg_ctx_sp->GetRegisterInfoByName(name); reg_info != nullptr)
       valobj = new ValueObjectRegister(*this, m_reg_ctx_sp, reg_info);
   }
   if (valobj)
@@ -142,8 +142,8 @@ ValueObjectRegisterSet::GetChildMemberWithName(llvm::StringRef name,
 llvm::Expected<size_t>
 ValueObjectRegisterSet::GetIndexOfChildWithName(llvm::StringRef name) {
   if (m_reg_ctx_sp && m_reg_set) {
-    const RegisterInfo *reg_info = m_reg_ctx_sp->GetRegisterInfoByName(name);
-    if (reg_info != nullptr)
+    
+    if (const RegisterInfo *reg_info = m_reg_ctx_sp->GetRegisterInfoByName(name); reg_info != nullptr)
       return reg_info->kinds[eRegisterKindLLDB];
   }
   return llvm::createStringError("Type has no child named '%s'",
@@ -194,12 +194,12 @@ ValueObjectRegister::~ValueObjectRegister() = default;
 
 CompilerType ValueObjectRegister::GetCompilerTypeImpl() {
   if (!m_compiler_type.IsValid()) {
-    ExecutionContext exe_ctx(GetExecutionContextRef());
-    if (auto *target = exe_ctx.GetTargetPtr()) {
+    
+    if (auto *ExecutionContext exe_ctx(GetExecutionContextRef()); target = exe_ctx.GetTargetPtr()) {
       if (auto *exe_module = target->GetExecutableModulePointer()) {
-        auto type_system_or_err =
-            exe_module->GetTypeSystemForLanguage(eLanguageTypeC);
-        if (auto err = type_system_or_err.takeError()) {
+        
+        if (auto auto type_system_or_err =
+            exe_module->GetTypeSystemForLanguage(eLanguageTypeC); err = type_system_or_err.takeError()) {
           LLDB_LOG_ERROR(GetLog(LLDBLog::Types), std::move(err),
                          "Unable to get CompilerType from TypeSystem: {0}");
         } else {
@@ -235,18 +235,18 @@ llvm::Expected<uint64_t> ValueObjectRegister::GetByteSize() {
 bool ValueObjectRegister::UpdateValue() {
   m_error.Clear();
   ExecutionContext exe_ctx(GetExecutionContextRef());
-  StackFrame *frame = exe_ctx.GetFramePtr();
-  if (frame == nullptr) {
+  
+  if (StackFrame *frame = exe_ctx.GetFramePtr(); frame == nullptr) {
     m_reg_ctx_sp.reset();
     m_reg_value.Clear();
   }
 
   if (m_reg_ctx_sp) {
-    RegisterValue m_old_reg_value(m_reg_value);
-    if (m_reg_ctx_sp->ReadRegister(&m_reg_info, m_reg_value)) {
+    
+    if (RegisterValue m_old_reg_value(m_reg_value); m_reg_ctx_sp->ReadRegister(&m_reg_info, m_reg_value)) {
       if (m_reg_value.GetData(m_data)) {
-        Process *process = exe_ctx.GetProcessPtr();
-        if (process)
+        
+        if (Process *process = exe_ctx.GetProcessPtr(); process)
           m_data.SetAddressByteSize(process->GetAddressByteSize());
         m_value.SetContext(Value::ContextType::RegisterInfo,
                            (void *)&m_reg_info);

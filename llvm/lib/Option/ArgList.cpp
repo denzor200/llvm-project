@@ -184,8 +184,8 @@ void ArgList::ClaimAllArgs() const {
 const char *ArgList::GetOrMakeJoinedArgString(unsigned Index,
                                               StringRef LHS,
                                               StringRef RHS) const {
-  StringRef Cur = getArgString(Index);
-  if (Cur.size() == LHS.size() + RHS.size() && Cur.starts_with(LHS) &&
+  
+  if (StringRef Cur = getArgString(Index); Cur.size() == LHS.size() + RHS.size() && Cur.starts_with(LHS) &&
       Cur.ends_with(RHS))
     return Cur.data();
 

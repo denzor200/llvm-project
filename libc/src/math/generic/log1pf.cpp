@@ -45,9 +45,9 @@ LIBC_INLINE float log(double x) {
   using FPBits = typename fputil::FPBits<double>;
   FPBits xbits(x);
 
-  uint64_t x_u = xbits.uintval();
+  
 
-  if (LIBC_UNLIKELY(x_u > FPBits::max_normal().uintval())) {
+  if (uint64_t x_u = xbits.uintval(); LIBC_UNLIKELY(x_u > FPBits::max_normal().uintval())) {
     if (xbits.is_neg() && !xbits.is_nan()) {
       fputil::set_errno_if_required(EDOM);
       fputil::raise_except_if_required(FE_INVALID);

@@ -423,8 +423,8 @@ void OutputSection::splitECChunks() {
 bool Writer::isInRange(uint16_t relType, uint64_t s, uint64_t p, int margin,
                        MachineTypes machine) {
   if (machine == ARMNT) {
-    int64_t diff = AbsoluteDifference(s, p + 4) + margin;
-    switch (relType) {
+    
+    switch (int64_t diff = AbsoluteDifference(s, p + 4) + margin; relType) {
     case IMAGE_REL_ARM_BRANCH20T:
       return isInt<21>(diff);
     case IMAGE_REL_ARM_BRANCH24T:
@@ -434,8 +434,8 @@ bool Writer::isInRange(uint16_t relType, uint64_t s, uint64_t p, int margin,
       return true;
     }
   } else if (isAnyArm64(machine)) {
-    int64_t diff = AbsoluteDifference(s, p) + margin;
-    switch (relType) {
+    
+    switch (int64_t diff = AbsoluteDifference(s, p) + margin; relType) {
     case IMAGE_REL_ARM64_BRANCH26:
       return isInt<28>(diff);
     case IMAGE_REL_ARM64_BRANCH19:
@@ -495,8 +495,8 @@ bool Writer::createThunks(OutputSection *os, int margin) {
   for (size_t i = 0; i != os->chunks.size(); ++i) {
     SectionChunk *sc = dyn_cast<SectionChunk>(os->chunks[i]);
     if (!sc) {
-      auto chunk = cast<NonSectionChunk>(os->chunks[i]);
-      if (uint32_t size = chunk->extendRanges()) {
+      
+      if (uint32_t auto chunk = cast<NonSectionChunk>(os->chunks[i]); size = chunk->extendRanges()) {
         thunksSize += size;
         addressesChanged = true;
       }
@@ -834,8 +834,8 @@ void Writer::run() {
     return;
 
   llvm::TimeTraceScope timeScope("Commit PE to disk");
-  ScopedTimer t2(ctx.outputCommitTimer);
-  if (auto e = buffer->commit())
+  
+  if (auto ScopedTimer t2(ctx.outputCommitTimer); e = buffer->commit())
     Fatal(ctx) << "failed to write output '" << buffer->getPath()
                << "': " << toString(std::move(e));
 }
@@ -867,8 +867,8 @@ void Writer::sortBySectionOrder(std::vector<Chunk *> &chunks) {
 void Writer::fixPartialSectionChars(StringRef name, uint32_t chars) {
   for (auto it : partialSections) {
     PartialSection *pSec = it.second;
-    StringRef curName = pSec->name;
-    if (!curName.consume_front(name) ||
+    
+    if (StringRef curName = pSec->name; !curName.consume_front(name) ||
         (!curName.empty() && !curName.starts_with("$")))
       continue;
     if (pSec->characteristics == chars)
@@ -1329,8 +1329,8 @@ void Writer::createImportTables() {
 
     if (file->impSym && !isa<DefinedImportData>(file->impSym))
       Fatal(ctx) << file->symtab.printSymbol(file->impSym) << " was replaced";
-    DefinedImportData *impSym = cast_or_null<DefinedImportData>(file->impSym);
-    if (ctx.config.delayLoads.count(StringRef(file->dllName).lower())) {
+    
+    if (DefinedImportData *impSym = cast_or_null<DefinedImportData>(file->impSym); ctx.config.delayLoads.count(StringRef(file->dllName).lower())) {
       if (!file->thunkSym)
         Fatal(ctx) << "cannot delay-load " << toString(file)
                    << " due to import of data: "
@@ -1355,8 +1355,8 @@ void Writer::appendImportThunks() {
       if (!isa<DefinedImportThunk>(file->thunkSym))
         Fatal(ctx) << file->symtab.printSymbol(file->thunkSym)
                    << " was replaced";
-      auto *chunk = cast<DefinedImportThunk>(file->thunkSym)->getChunk();
-      if (chunk->live)
+      
+      if (auto *chunk = cast<DefinedImportThunk>(file->thunkSym)->getChunk(); chunk->live)
         textSec->addChunk(chunk);
     }
 
@@ -1364,8 +1364,8 @@ void Writer::appendImportThunks() {
       if (!isa<DefinedImportThunk>(file->auxThunkSym))
         Fatal(ctx) << file->symtab.printSymbol(file->auxThunkSym)
                    << " was replaced";
-      auto *chunk = cast<DefinedImportThunk>(file->auxThunkSym)->getChunk();
-      if (chunk->live)
+      
+      if (auto *chunk = cast<DefinedImportThunk>(file->auxThunkSym)->getChunk(); chunk->live)
         textSec->addChunk(chunk);
     }
 
@@ -1544,8 +1544,8 @@ std::optional<coff_symbol16> Writer::createSymbol(Defined *def) {
   if (def->isRuntimePseudoReloc)
     return std::nullopt;
 
-  StringRef name = def->getName();
-  if (name.size() > COFF::NameSize) {
+  
+  if (StringRef name = def->getName(); name.size() > COFF::NameSize) {
     sym.Name.Offset.Zeroes = 0;
     sym.Name.Offset.Offset = 0; // Filled in later.
     strtab.add(name);
@@ -1607,8 +1607,8 @@ void Writer::createSymbolAndStringTable() {
           continue;
         d->writtenToSymtab = true;
         if (auto *dc = dyn_cast_or_null<DefinedCOFF>(d)) {
-          COFFSymbolRef symRef = dc->getCOFFSymbol();
-          if (symRef.isSectionDefinition() ||
+          
+          if (COFFSymbolRef symRef = dc->getCOFFSymbol(); symRef.isSectionDefinition() ||
               symRef.getStorageClass() == COFF::IMAGE_SYM_CLASS_LABEL)
             continue;
         }
@@ -1777,8 +1777,8 @@ void Writer::assignAddresses() {
     for (Chunk *c : sec->chunks) {
       // Alignment EC code range baudaries.
       if (isArm64EC(ctx.config.machine) && sec->isCodeSection()) {
-        std::optional<chpe_range_type> rangeType = c->getArm64ECRangeType();
-        if (rangeType != prevECRange) {
+        
+        if (std::optional<chpe_range_type> rangeType = c->getArm64ECRangeType(); rangeType != prevECRange) {
           virtualSize = alignTo(virtualSize, 4096);
           prevECRange = rangeType;
         }
@@ -1821,10 +1821,10 @@ template <typename PEHeaderTy> void Writer::writeHeader() {
   Configuration *config = &ctx.config;
 
   uint8_t *buf = buffer->getBufferStart();
-  auto *dos = reinterpret_cast<dos_header *>(buf);
+  
 
   // Write DOS program.
-  if (config->dosStub) {
+  if (auto *dos = reinterpret_cast<dos_header *>(buf); config->dosStub) {
     memcpy(buf, config->dosStub->getBufferStart(),
            config->dosStub->getBufferSize());
     // MS link.exe accepts an invalid `e_lfanew` (AddressOfNewExeHeader) and
@@ -2115,10 +2115,10 @@ static void maybeAddAddressTakenFunction(SymbolRVASet &addressTakenSyms,
     // This is a regular, defined, symbol from a COFF file. Mark the symbol as
     // address taken if the symbol type is function and it's in an executable
     // section.
-    auto *d = cast<DefinedRegular>(s);
-    if (d->getCOFFSymbol().getComplexType() == COFF::IMAGE_SYM_DTYPE_FUNCTION) {
-      SectionChunk *sc = dyn_cast<SectionChunk>(d->getChunk());
-      if (sc && sc->live &&
+    
+    if (auto *d = cast<DefinedRegular>(s); d->getCOFFSymbol().getComplexType() == COFF::IMAGE_SYM_DTYPE_FUNCTION) {
+      
+      if (SectionChunk *sc = dyn_cast<SectionChunk>(d->getChunk()); sc && sc->live &&
           sc->getOutputCharacteristics() & IMAGE_SCN_MEM_EXECUTE)
         addSymbolToRVASet(addressTakenSyms, d);
     }
@@ -2424,8 +2424,8 @@ void Writer::createRuntimePseudoRelocs() {
       Log(ctx) << "Writing " << Twine(rels.size())
                << " runtime pseudo relocations";
       const char *symbolName = "_pei386_runtime_relocator";
-      Symbol *relocator = symtab.findUnderscore(symbolName);
-      if (!relocator)
+      
+      if (Symbol *relocator = symtab.findUnderscore(symbolName); !relocator)
         Err(ctx)
             << "output image has runtime pseudo relocations, but the function "
             << symbolName
@@ -2969,9 +2969,9 @@ void Writer::prepareLoadConfig() {
 
     OutputSection *sec = ctx.getOutputSection(symtab.loadConfigSym->getChunk());
     uint8_t *secBuf = buffer->getBufferStart() + sec->getFileOff();
-    uint8_t *symBuf = secBuf + (symtab.loadConfigSym->getRVA() - sec->getRVA());
+    
 
-    if (ctx.config.is64())
+    if (uint8_t *symBuf = secBuf + (symtab.loadConfigSym->getRVA() - sec->getRVA()); ctx.config.is64())
       prepareLoadConfig(symtab,
                         reinterpret_cast<coff_load_configuration64 *>(symBuf));
     else

@@ -98,12 +98,12 @@ private:
       // Instead we send the complete (X) event in the destructor.
 
       // If our parent was on a different thread, add an arrow to this span.
-      auto *Parent = Context::current().get(SpanKey);
-      if (Parent && *Parent && (*Parent)->TID != TID) {
+      
+      if (auto *Parent = Context::current().get(SpanKey); Parent && *Parent && (*Parent)->TID != TID) {
         // If the parent span ended already, then show this as "following" it.
         // Otherwise show us as "parallel".
-        double OriginTime = (*Parent)->EndTime;
-        if (!OriginTime)
+        
+        if (double OriginTime = (*Parent)->EndTime; !OriginTime)
           OriginTime = (*Parent)->StartTime;
 
         auto FlowID = nextID();
@@ -167,8 +167,8 @@ private:
   // If we haven't already, emit metadata describing this thread.
   void captureThreadMetadata() {
     uint64_t TID = llvm::get_threadid();
-    std::lock_guard<std::mutex> Lock(Mu);
-    if (ThreadsWithMD.insert(TID).second) {
+    
+    if (std::lock_guard<std::mutex> Lock(Mu); ThreadsWithMD.insert(TID).second) {
       llvm::SmallString<32> Name;
       llvm::get_thread_name(Name);
       if (!Name.empty()) {
@@ -206,8 +206,8 @@ public:
   void record(const Metric &Metric, double Value,
               llvm::StringRef Label) override {
     assert(!needsQuote(Metric.Name));
-    std::string QuotedLabel;
-    if (needsQuote(Label))
+    
+    if (std::string QuotedLabel; needsQuote(Label))
       Label = QuotedLabel = quote(Label);
     uint64_t Micros = std::chrono::duration_cast<std::chrono::microseconds>(
                           std::chrono::steady_clock::now() - Start)

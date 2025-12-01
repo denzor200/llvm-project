@@ -176,8 +176,8 @@ TYPED_TEST(OptSubCommandTableTest, SubCommandParsing) {
     auto HandleSubCommandArg = [&](ID OptionType) {
       if (!AL.hasArg(OptionType))
         return false;
-      auto O = T.getOption(OptionType);
-      if (!O.isRegisteredSC(SC)) {
+      
+      if (auto O = T.getOption(OptionType); !O.isRegisteredSC(SC)) {
         ErrMsg.clear();
         RSO1 << "Option [" << O.getName() << "] is not valid for SubCommand ["
              << SC << "]\n";

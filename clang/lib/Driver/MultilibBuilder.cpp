@@ -22,8 +22,8 @@ static void normalizePathSegment(std::string &Segment) {
 
   // Prune trailing "/" or "./"
   while (true) {
-    StringRef last = llvm::sys::path::filename(seg);
-    if (last != ".")
+    
+    if (StringRef last = llvm::sys::path::filename(seg); last != ".")
       break;
     seg = llvm::sys::path::parent_path(seg);
   }
@@ -157,8 +157,8 @@ MultilibSetBuilder::Either(ArrayRef<MultilibBuilder> MultilibSegments) {
   else {
     for (const auto &New : MultilibSegments) {
       for (const auto &Base : Multilibs) {
-        MultilibBuilder MO = compose(Base, New);
-        if (MO.isValid())
+        
+        if (MultilibBuilder MO = compose(Base, New); MO.isValid())
           Composed.push_back(MO);
       }
     }

@@ -227,8 +227,8 @@ void transform::AlternativesOp::getEffects(
 LogicalResult transform::AlternativesOp::verify() {
   for (Region &alternative : getAlternatives()) {
     Block &block = alternative.front();
-    Operation *terminator = block.getTerminator();
-    if (terminator->getOperands().getTypes() != getResults().getTypes()) {
+    
+    if (Operation *terminator = block.getTerminator(); terminator->getOperands().getTypes() != getResults().getTypes()) {
       InFlightDiagnostic diag = emitOpError()
                                 << "expects terminator operands to have the "
                                    "same type as results of the operation";
@@ -336,8 +336,8 @@ DiagnosedSilenceableFailure transform::ApplyDeadCodeEliminationOp::applyToOne(
   auto eraseOp = [&](Operation *op) {
     // Remove op and nested ops from the worklist.
     op->walk([&](Operation *op) {
-      const auto *it = llvm::find(worklist, op);
-      if (it != worklist.end())
+      
+      if (const auto *it = llvm::find(worklist, op); it != worklist.end())
         worklist.erase(it);
     });
     rewriter.eraseOp(op);
@@ -514,9 +514,9 @@ DiagnosedSilenceableFailure transform::ApplyConversionPatternsOp::apply(
   // Instantiate the default type converter if a type converter builder is
   // specified.
   std::unique_ptr<TypeConverter> defaultTypeConverter;
-  transform::TypeConverterBuilderOpInterface typeConverterBuilder =
-      getDefaultTypeConverter();
-  if (typeConverterBuilder)
+  
+  if (transform::TypeConverterBuilderOpInterface typeConverterBuilder =
+      getDefaultTypeConverter(); typeConverterBuilder)
     defaultTypeConverter = typeConverterBuilder.getTypeConverter();
 
   // Configure conversion target.
@@ -664,9 +664,9 @@ LogicalResult transform::ApplyConversionPatternsOp::verify() {
     // Check default type converter type.
     if (!getPatterns().empty()) {
       for (Operation &op : getPatterns().front()) {
-        auto descriptor =
-            cast<transform::ConversionPatternDescriptorOpInterface>(&op);
-        if (failed(descriptor.verifyTypeConverter(typeConverterOp)))
+        
+        if (auto descriptor =
+            cast<transform::ConversionPatternDescriptorOpInterface>(&op); failed(descriptor.verifyTypeConverter(typeConverterOp)))
           return failure();
       }
     }
@@ -1088,8 +1088,8 @@ matchBlock(Block &block,
            transform::TransformState &state,
            SmallVectorImpl<SmallVector<transform::MappedValue>> &mappings) {
   assert(block.getParent() && "cannot match using a detached block");
-  auto matchScope = state.make_region_scope(*block.getParent());
-  if (failed(
+  
+  if (auto matchScope = state.make_region_scope(*block.getParent()); failed(
           state.mapBlockArguments(block.getArguments(), blockArgumentMapping)))
     return DiagnosedSilenceableFailure::definiteFailure();
 
@@ -1667,18 +1667,18 @@ transform::ForeachOp::apply(transform::TransformRewriter &rewriter,
     auto scope = state.make_region_scope(getBody());
     // Set up arguments to the region's block.
     for (auto &&[argIdx, blockArg] : llvm::enumerate(blockArguments)) {
-      MappedValue argument = payloads[argIdx][iterIdx];
+      
       // Note that each blockArg's handle gets associated with just a single
       // element from the corresponding target's payload.
-      if (failed(state.mapBlockArgument(blockArg, {argument})))
+      if (MappedValue argument = payloads[argIdx][iterIdx]; failed(state.mapBlockArgument(blockArg, {argument})))
         return DiagnosedSilenceableFailure::definiteFailure();
     }
 
     // Execute loop body.
     for (Operation &transform : getBody().front().without_terminator()) {
-      DiagnosedSilenceableFailure result = state.applyTransform(
-          llvm::cast<transform::TransformOpInterface>(transform));
-      if (!result.succeeded())
+      
+      if (DiagnosedSilenceableFailure result = state.applyTransform(
+          llvm::cast<transform::TransformOpInterface>(transform)); !result.succeeded())
         return result;
     }
 
@@ -1710,8 +1710,8 @@ void transform::ForeachOp::getEffects(
   // arity errors, this method might get called before/in absence of `verify()`.
   for (auto &&[target, blockArg] :
        llvm::zip(getTargetsMutable(), getBody().front().getArguments())) {
-    BlockArgument blockArgument = blockArg;
-    if (any_of(getBody().front().without_terminator(), [&](Operation &op) {
+    
+    if (BlockArgument blockArgument = blockArg; any_of(getBody().front().without_terminator(), [&](Operation &op) {
           return isHandleConsumed(blockArgument,
                                   cast<TransformOpInterface>(&op));
         })) {
@@ -2094,9 +2094,9 @@ void transform::IncludeOp::getEffects(
 
   // Bail if the callee is unknown. This may run as part of the verification
   // process before we verified the validity of the callee or of this op.
-  auto target =
-      getOperation()->getAttrOfType<SymbolRefAttr>(getTargetAttrName());
-  if (!target)
+  
+  if (auto target =
+      getOperation()->getAttrOfType<SymbolRefAttr>(getTargetAttrName()); !target)
     return defaultEffects();
   auto callee = SymbolTable::lookupNearestSymbolFrom<NamedSequenceOp>(
       getOperation(), getTarget());
@@ -2141,8 +2141,8 @@ transform::IncludeOp::verifySymbolUses(SymbolTableCollection &symbolTable) {
 
   for (unsigned i = 0, e = fnType.getNumResults(); i != e; ++i) {
     Type resultType = getResult(i).getType();
-    Type funcType = fnType.getResult(i);
-    if (!implementSameTransformInterface(resultType, funcType)) {
+    
+    if (Type funcType = fnType.getResult(i); !implementSameTransformInterface(resultType, funcType)) {
       return emitOpError() << "type of result #" << i
                            << " must implement the same transform dialect "
                               "interface as the corresponding callee result";
@@ -2375,8 +2375,8 @@ transform::NamedSequenceOp::apply(transform::TransformRewriter &rewriter,
   // Note: this is the same implementation as PossibleTopLevelTransformOp but
   // without attaching the interface / trait since that is tailored to a
   // dangling top-level op that does not get "called".
-  auto scope = state.make_region_scope(getBody());
-  if (failed(detail::mapPossibleTopLevelTransformOpBlockArguments(
+  
+  if (auto scope = state.make_region_scope(getBody()); failed(detail::mapPossibleTopLevelTransformOpBlockArguments(
           state, this->getOperation(), getBody())))
     return DiagnosedSilenceableFailure::definiteFailure();
 
@@ -2743,8 +2743,8 @@ transform::ReplicateOp::apply(transform::TransformRewriter &rewriter,
                               transform::TransformState &state) {
   unsigned numRepetitions = llvm::range_size(state.getPayloadOps(getPattern()));
   for (const auto &en : llvm::enumerate(getHandles())) {
-    Value handle = en.value();
-    if (isa<TransformHandleTypeInterface>(handle.getType())) {
+    
+    if (Value handle = en.value(); isa<TransformHandleTypeInterface>(handle.getType())) {
       SmallVector<Operation *> current =
           llvm::to_vector(state.getPayloadOps(handle));
       SmallVector<Operation *> payload;
@@ -2783,8 +2783,8 @@ transform::SequenceOp::apply(transform::TransformRewriter &rewriter,
                              transform::TransformResults &results,
                              transform::TransformState &state) {
   // Map the entry block argument to the list of operations.
-  auto scope = state.make_region_scope(*getBodyBlock()->getParent());
-  if (failed(mapBlockArguments(state)))
+  
+  if (auto scope = state.make_region_scope(*getBodyBlock()->getParent()); failed(mapBlockArguments(state)))
     return DiagnosedSilenceableFailure::definiteFailure();
 
   return applySequenceBlock(*getBodyBlock(), getFailurePropagationMode(), state,

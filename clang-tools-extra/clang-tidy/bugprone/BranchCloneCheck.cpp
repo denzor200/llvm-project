@@ -126,9 +126,9 @@ static bool isIdenticalStmt(const ASTContext &Ctx, const Stmt *Stmt1,
     return false;
 
   const auto *Expr1 = dyn_cast<Expr>(Stmt1);
-  const auto *Expr2 = dyn_cast<Expr>(Stmt2);
+  
 
-  if (Expr1 && Expr2) {
+  if (const auto *Expr2 = dyn_cast<Expr>(Stmt2); Expr1 && Expr2) {
     // If Stmt1 has side effects then don't warn even if expressions
     // are identical.
     if (!IgnoreSideEffects && Expr1->HasSideEffects(Ctx) &&
@@ -374,10 +374,10 @@ void BranchCloneCheck::check(const MatchFinder::MatchResult &Result) {
           // We report the first occurrence only when we find the second one.
           diag(Branches[I]->getBeginLoc(),
                "repeated branch body in conditional chain");
-          const SourceLocation End =
+          
+          if (const SourceLocation End =
               Lexer::getLocForEndOfToken(Branches[I]->getEndLoc(), 0,
-                                         *Result.SourceManager, getLangOpts());
-          if (End.isValid()) {
+                                         *Result.SourceManager, getLangOpts()); End.isValid()) {
             diag(End, "end of the original", DiagnosticIDs::Note);
           }
         }
@@ -476,10 +476,10 @@ void BranchCloneCheck::check(const MatchFinder::MatchResult &Result) {
 
   if (const auto *IS = Result.Nodes.getNodeAs<IfStmt>("ifWithDescendantIf")) {
     const Stmt *Then = IS->getThen();
-    const auto *CS = dyn_cast<CompoundStmt>(Then);
-    if (CS && (!CS->body_empty())) {
-      const auto *InnerIf = dyn_cast<IfStmt>(*CS->body_begin());
-      if (InnerIf && isIdenticalStmt(Context, IS->getCond(), InnerIf->getCond(),
+    
+    if (const auto *CS = dyn_cast<CompoundStmt>(Then); CS && (!CS->body_empty())) {
+      
+      if (const auto *InnerIf = dyn_cast<IfStmt>(*CS->body_begin()); InnerIf && isIdenticalStmt(Context, IS->getCond(), InnerIf->getCond(),
                                      /*IgnoreSideEffects=*/false)) {
         diag(IS->getBeginLoc(), "if with identical inner if statement");
         diag(InnerIf->getBeginLoc(), "inner if starts here",

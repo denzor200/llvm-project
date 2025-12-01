@@ -29,9 +29,9 @@ inline int ompd_sizeof(ompd_target_prim_types_t t) {
 
 TType &TTypeFactory::getType(ompd_address_space_context_t *context,
                              const char *typeName, ompd_addr_t segment) {
-  TType empty(true);
+  
 
-  if (ttypes.find(context) == ttypes.end()) {
+  if (TType empty(true); ttypes.find(context) == ttypes.end()) {
     std::map<const char *, TType> empty;
     ttypes[context] = empty;
   }

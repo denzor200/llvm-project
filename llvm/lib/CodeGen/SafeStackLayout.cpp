@@ -89,8 +89,8 @@ void StackLayout::layoutObject(StackObject &Obj) {
     }
   }
 
-  unsigned LastRegionEnd = Regions.empty() ? 0 : Regions.back().End;
-  if (End > LastRegionEnd) {
+  
+  if (unsigned LastRegionEnd = Regions.empty() ? 0 : Regions.back().End; End > LastRegionEnd) {
     // Insert a new region at the end. Maybe two.
     if (Start > LastRegionEnd) {
       LLVM_DEBUG(dbgs() << "  Creating gap region: " << LastRegionEnd << " .. "

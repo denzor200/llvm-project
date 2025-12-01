@@ -162,8 +162,8 @@ static void computeConstraintToUse(const TargetLowering *TLI,
     // Labels and constants are handled elsewhere ('X' is the only thing
     // that matches labels).  For Functions, the type here is the type of
     // the result, which is not what we want to look at; leave them alone.
-    Value *Val = OpInfo.CallOperandVal;
-    if (isa<BasicBlock>(Val) || isa<ConstantInt>(Val) || isa<Function>(Val))
+    
+    if (Value *Val = OpInfo.CallOperandVal; isa<BasicBlock>(Val) || isa<ConstantInt>(Val) || isa<Function>(Val))
       return;
 
     // Otherwise, try to resolve it to something we know about by looking at
@@ -550,8 +550,8 @@ bool InlineAsmLowering::lowerInlineAsm(
 
     case InlineAsm::isClobber: {
 
-      const unsigned NumRegs = OpInfo.Regs.size();
-      if (NumRegs > 0) {
+      
+      if (const unsigned NumRegs = OpInfo.Regs.size(); NumRegs > 0) {
         unsigned Flag = InlineAsm::Flag(InlineAsm::Kind::Clobber, NumRegs);
         Inst.addImm(Flag);
 
@@ -653,8 +653,8 @@ bool InlineAsmLowering::lowerAsmOperandForConstraint(
   if (Constraint.size() > 1)
     return false;
 
-  char ConstraintLetter = Constraint[0];
-  switch (ConstraintLetter) {
+  
+  switch (char ConstraintLetter = Constraint[0]; ConstraintLetter) {
   default:
     return false;
   case 'i': // Simple Integer or Relocatable Constant

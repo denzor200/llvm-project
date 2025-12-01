@@ -22,7 +22,7 @@ namespace LIBC_NAMESPACE_DECL {
 
 LLVM_LIBC_FUNCTION(int, mkdir, (const char *path, mode_t mode)) {
 #ifdef SYS_mkdir
-  int ret = LIBC_NAMESPACE::syscall_impl<int>(SYS_mkdir, path, mode);
+  
 #elif defined(SYS_mkdirat)
   int ret =
       LIBC_NAMESPACE::syscall_impl<int>(SYS_mkdirat, AT_FDCWD, path, mode);
@@ -30,7 +30,7 @@ LLVM_LIBC_FUNCTION(int, mkdir, (const char *path, mode_t mode)) {
 #error "mkdir and mkdirat syscalls not available."
 #endif
 
-  if (ret < 0) {
+  if (int ret = LIBC_NAMESPACE::syscall_impl<int>(SYS_mkdir, path, mode); ret < 0) {
     libc_errno = -ret;
     return -1;
   }

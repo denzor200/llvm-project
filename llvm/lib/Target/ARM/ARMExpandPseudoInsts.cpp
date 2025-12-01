@@ -507,8 +507,8 @@ static const NEONLdStTableEntry *LookupNEONLdSt(unsigned Opcode) {
   }
 #endif
 
-  auto I = llvm::lower_bound(NEONLdStTable, Opcode);
-  if (I != std::end(NEONLdStTable) && I->PseudoOpc == Opcode)
+  
+  if (auto I = llvm::lower_bound(NEONLdStTable, Opcode); I != std::end(NEONLdStTable) && I->PseudoOpc == Opcode)
     return I;
   return nullptr;
 }
@@ -567,7 +567,9 @@ void ARMExpandPseudo::ExpandVLD(MachineBasicBlock::iterator &MBBI) {
   bool DstIsDead = MI.getOperand(OpIdx).isDead();
   Register DstReg = MI.getOperand(OpIdx++).getReg();
 
-  bool IsVLD2DUP = TableEntry->RealOpc == ARM::VLD2DUPd8x2 ||
+  
+
+  if (bool IsVLD2DUP = TableEntry->RealOpc == ARM::VLD2DUPd8x2 ||
                    TableEntry->RealOpc == ARM::VLD2DUPd16x2 ||
                    TableEntry->RealOpc == ARM::VLD2DUPd32x2 ||
                    TableEntry->RealOpc == ARM::VLD2DUPd8x2wb_fixed ||
@@ -575,9 +577,7 @@ void ARMExpandPseudo::ExpandVLD(MachineBasicBlock::iterator &MBBI) {
                    TableEntry->RealOpc == ARM::VLD2DUPd32x2wb_fixed ||
                    TableEntry->RealOpc == ARM::VLD2DUPd8x2wb_register ||
                    TableEntry->RealOpc == ARM::VLD2DUPd16x2wb_register ||
-                   TableEntry->RealOpc == ARM::VLD2DUPd32x2wb_register;
-
-  if (IsVLD2DUP) {
+                   TableEntry->RealOpc == ARM::VLD2DUPd32x2wb_register; IsVLD2DUP) {
     unsigned SubRegIndex;
     if (RegSpc == EvenDblSpc) {
       SubRegIndex = ARM::dsub_0;
@@ -617,8 +617,8 @@ void ARMExpandPseudo::ExpandVLD(MachineBasicBlock::iterator &MBBI) {
     // case, fixed forms do not take any offset nodes, so here we skip them for
     // such instructions. Once all real and pseudo writing-back instructions are
     // rewritten without use of am6offset nodes, this code will go away.
-    const MachineOperand &AM6Offset = MI.getOperand(OpIdx++);
-    if (TableEntry->RealOpc == ARM::VLD1d8Qwb_fixed ||
+    
+    if (const MachineOperand &AM6Offset = MI.getOperand(OpIdx++); TableEntry->RealOpc == ARM::VLD1d8Qwb_fixed ||
         TableEntry->RealOpc == ARM::VLD1d16Qwb_fixed ||
         TableEntry->RealOpc == ARM::VLD1d32Qwb_fixed ||
         TableEntry->RealOpc == ARM::VLD1d64Qwb_fixed ||
@@ -696,8 +696,8 @@ void ARMExpandPseudo::ExpandVST(MachineBasicBlock::iterator &MBBI) {
     // case, fixed forms do not take any offset nodes, so here we skip them for
     // such instructions. Once all real and pseudo writing-back instructions are
     // rewritten without use of am6offset nodes, this code will go away.
-    const MachineOperand &AM6Offset = MI.getOperand(OpIdx++);
-    if (TableEntry->RealOpc == ARM::VST1d8Qwb_fixed ||
+    
+    if (const MachineOperand &AM6Offset = MI.getOperand(OpIdx++); TableEntry->RealOpc == ARM::VST1d8Qwb_fixed ||
         TableEntry->RealOpc == ARM::VST1d16Qwb_fixed ||
         TableEntry->RealOpc == ARM::VST1d32Qwb_fixed ||
         TableEntry->RealOpc == ARM::VST1d64Qwb_fixed ||
@@ -954,8 +954,8 @@ static MachineOperand makeImplicit(const MachineOperand &MO) {
 
 static MachineOperand getMovOperand(const MachineOperand &MO,
                                     unsigned TargetFlag) {
-  unsigned TF = MO.getTargetFlags() | TargetFlag;
-  switch (MO.getType()) {
+  
+  switch (unsigned TF = MO.getTargetFlags() | TargetFlag; MO.getType()) {
   case MachineOperand::MO_Immediate: {
     unsigned Imm = MO.getImm();
     switch (TargetFlag) {
@@ -1463,8 +1463,8 @@ void ARMExpandPseudo::CMSESaveClearFPRegsV8(
         }
       }
     } else if (Op.isReg() && Op.isDef()) {
-      Register Reg = Op.getReg();
-      if (ARM::SPRRegClass.contains(Reg) || ARM::DPRRegClass.contains(Reg) ||
+      
+      if (Register Reg = Op.getReg(); ARM::SPRRegClass.contains(Reg) || ARM::DPRRegClass.contains(Reg) ||
           ARM::QPRRegClass.contains(Reg))
         ReturnsFPReg = true;
     }
@@ -1596,12 +1596,12 @@ void ARMExpandPseudo::CMSESaveClearFPRegsV81(MachineBasicBlock &MBB,
                                              DebugLoc &DL,
                                              const LivePhysRegs &LiveRegs) {
   BitVector ClearRegs(32, true);
-  bool DefFP = determineFPRegsToClear(*MBBI, ClearRegs);
+  
 
   // If the instruction does not write to a FP register and no elements were
   // removed from the set, then no FP registers were used to pass
   // arguments/returns.
-  if (!DefFP && ClearRegs.count() == ClearRegs.size()) {
+  if (bool DefFP = determineFPRegsToClear(*MBBI, ClearRegs); !DefFP && ClearRegs.count() == ClearRegs.size()) {
     // save space on stack for VLSTM
     BuildMI(MBB, MBBI, DL, TII->get(ARM::tSUBspi), ARM::SP)
         .addReg(ARM::SP)
@@ -1789,8 +1789,8 @@ static bool definesOrUsesFPReg(const MachineInstr &MI) {
   for (const MachineOperand &Op : MI.operands()) {
     if (!Op.isReg())
       continue;
-    Register Reg = Op.getReg();
-    if ((Reg >= ARM::Q0 && Reg <= ARM::Q7) ||
+    
+    if (Register Reg = Op.getReg(); (Reg >= ARM::Q0 && Reg <= ARM::Q7) ||
         (Reg >= ARM::D0 && Reg <= ARM::D15) ||
         (Reg >= ARM::S0 && Reg <= ARM::S31))
       return true;
@@ -2086,8 +2086,8 @@ static void CMSEPushCalleeSaves(const TargetInstrInfo &TII,
                                 MachineBasicBlock::iterator MBBI,
                                 Register JumpReg, const LivePhysRegs &LiveRegs,
                                 bool Thumb1Only) {
-  const DebugLoc &DL = MBBI->getDebugLoc();
-  if (Thumb1Only) { // push Lo and Hi regs separately
+  
+  if (const DebugLoc &DL = MBBI->getDebugLoc(); Thumb1Only) { // push Lo and Hi regs separately
     MachineInstrBuilder PushMIB =
         BuildMI(MBB, MBBI, DL, TII.get(ARM::tPUSH)).add(predOps(ARMCC::AL));
     for (unsigned Reg = ARM::R4; Reg < ARM::R8; ++Reg) {
@@ -2147,8 +2147,8 @@ static void CMSEPopCalleeSaves(const TargetInstrInfo &TII,
                                MachineBasicBlock &MBB,
                                MachineBasicBlock::iterator MBBI,
                                bool Thumb1Only) {
-  const DebugLoc &DL = MBBI->getDebugLoc();
-  if (Thumb1Only) {
+  
+  if (const DebugLoc &DL = MBBI->getDebugLoc(); Thumb1Only) {
     MachineInstrBuilder PopMIB =
         BuildMI(MBB, MBBI, DL, TII.get(ARM::tPOP)).add(predOps(ARMCC::AL));
     for (int R = 0; R < 4; ++R) {
@@ -2175,8 +2175,8 @@ bool ARMExpandPseudo::ExpandMI(MachineBasicBlock &MBB,
                                MachineBasicBlock::iterator MBBI,
                                MachineBasicBlock::iterator &NextMBBI) {
   MachineInstr &MI = *MBBI;
-  unsigned Opcode = MI.getOpcode();
-  switch (Opcode) {
+  
+  switch (unsigned Opcode = MI.getOpcode(); Opcode) {
     default:
       return false;
 
@@ -2205,8 +2205,8 @@ bool ARMExpandPseudo::ExpandMI(MachineBasicBlock &MBB,
             .add(MI.getOperand(5));
       } else {
         // Expand to VBSL
-        unsigned NewOpc = Opcode == ARM::VBSPd ? ARM::VBSLd : ARM::VBSLq;
-        if (DstReg == MI.getOperand(1).getReg()) {
+        
+        if (unsigned NewOpc = Opcode == ARM::VBSPd ? ARM::VBSLd : ARM::VBSLq; DstReg == MI.getOperand(1).getReg()) {
           BuildMI(MBB, MBBI, MI.getDebugLoc(), TII->get(NewOpc))
               .add(MI.getOperand(0))
               .add(MI.getOperand(1))
@@ -2381,10 +2381,10 @@ bool ARMExpandPseudo::ExpandMI(MachineBasicBlock &MBB,
 
       // Get the first cleared register as a scratch (to use later with tBIC).
       // We need to use the first so we can ensure it is a low register.
-      unsigned ScratchReg = ClearRegs.front();
+      
 
       // Clear LSB of JumpReg
-      if (AFI->isThumb2Function()) {
+      if (unsigned ScratchReg = ClearRegs.front(); AFI->isThumb2Function()) {
         BuildMI(MBB, MBBI, DL, TII->get(ARM::t2BICri), JumpReg)
             .addReg(JumpReg)
             .addImm(1)
@@ -2546,11 +2546,11 @@ bool ARMExpandPseudo::ExpandMI(MachineBasicBlock &MBB,
     }
     case ARM::Int_eh_sjlj_dispatchsetup: {
       MachineFunction &MF = *MI.getParent()->getParent();
-      const ARMBaseRegisterInfo &RI = TII->getRegisterInfo();
+      
       // For functions using a base pointer, we rematerialize it (via the frame
       // pointer) here since eh.sjlj.setjmp and eh.sjlj.longjmp don't do it
       // for us. Otherwise, expand to nothing.
-      if (RI.hasBasePointer(MF)) {
+      if (const ARMBaseRegisterInfo &RI = TII->getRegisterInfo(); RI.hasBasePointer(MF)) {
         int32_t NumBytes = AFI->getFramePtrSpillOffset();
         Register FramePtr = RI.getFrameRegister(MF);
         assert(MF.getSubtarget().getFrameLowering()->hasFP(MF) &&

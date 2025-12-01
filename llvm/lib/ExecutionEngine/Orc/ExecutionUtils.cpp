@@ -150,8 +150,8 @@ Error CtorDtorRunner::run() {
   assert(!LookupSet.containsDuplicates() &&
          "Ctor/Dtor list contains duplicates");
 
-  auto &ES = JD.getExecutionSession();
-  if (auto CtorDtorMap = ES.lookup(
+  
+  if (auto auto &ES = JD.getExecutionSession(); CtorDtorMap = ES.lookup(
           makeJITDylibSearchOrder(&JD, JITDylibLookupFlags::MatchAllSymbols),
           std::move(LookupSet))) {
     for (auto &KV : CtorDtorsByPriority) {
@@ -205,8 +205,8 @@ void ItaniumCXAAtExitSupport::runAtExits(void *DSOHandle) {
 
   {
     std::lock_guard<std::mutex> Lock(AtExitsMutex);
-    auto I = AtExitRecords.find(DSOHandle);
-    if (I != AtExitRecords.end()) {
+    
+    if (auto I = AtExitRecords.find(DSOHandle); I != AtExitRecords.end()) {
       AtExitsToRun = std::move(I->second);
       AtExitRecords.erase(I);
     }
@@ -532,8 +532,8 @@ Error DLLImportDefinitionGenerator::tryToGenerate(
     if (Deinterned.starts_with(getImpPrefix()))
       Deinterned = Deinterned.drop_front(StringRef(getImpPrefix()).size());
     // Don't degrade the required state
-    auto [It, Inserted] = ToLookUpSymbols.try_emplace(Deinterned);
-    if (Inserted || It->second != SymbolLookupFlags::RequiredSymbol)
+    
+    if (auto [It, Inserted] = ToLookUpSymbols.try_emplace(Deinterned); Inserted || It->second != SymbolLookupFlags::RequiredSymbol)
       It->second = KV.second;
   }
 

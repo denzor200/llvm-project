@@ -300,9 +300,9 @@ static void handleDivremOverflowImpl(OverflowData *Data, ValueHandle LHS,
   if (ignoreReport(Loc, Opts, ET))
     return;
 
-  ScopedReport R(Opts, Loc, ET);
+  
 
-  switch (ET) {
+  switch (ScopedReport R(Opts, Loc, ET); ET) {
   case ErrorType::SignedIntegerOverflow:
     Diag(Loc, DL_Error, ET,
          "division of %0 by -1 cannot be represented in type %1")
@@ -612,12 +612,12 @@ static void handleImplicitConversion(ImplicitConversionData *Data,
   if (ignoreReport(Loc, Opts, ET))
     return;
 
-  ScopedReport R(Opts, Loc, ET);
+  
 
   // In the case we have a bitfield, we want to explicitly say so in the
   // error message.
   // FIXME: is it possible to dump the values as hex with fixed width?
-  if (Data->BitfieldBits)
+  if (ScopedReport R(Opts, Loc, ET); Data->BitfieldBits)
     Diag(Loc, DL_Error, ET,
          "implicit conversion from type %0 of value %1 (%2-bit, %3signed) to "
          "type %4 changed the value to %5 (%6-bit bitfield, %7signed)")

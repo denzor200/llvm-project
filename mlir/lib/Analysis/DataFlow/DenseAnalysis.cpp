@@ -208,8 +208,8 @@ void AbstractDenseForwardDataFlowAnalysis::visitBlock(Block *block) {
   if (block->isEntryBlock()) {
     LDBG() << "  Processing entry block";
     // Check if this block is the entry block of a callable region.
-    auto callable = dyn_cast<CallableOpInterface>(block->getParentOp());
-    if (callable && callable.getCallableRegion() == block->getParent()) {
+    
+    if (auto callable = dyn_cast<CallableOpInterface>(block->getParentOp()); callable && callable.getCallableRegion() == block->getParent()) {
       LDBG() << "    Entry block of callable region";
       const auto *callsites = getOrCreateFor<PredecessorState>(
           point, getProgramPointAfter(callable));
@@ -556,8 +556,8 @@ void AbstractDenseBackwardDataFlowAnalysis::visitBlock(Block *block) {
     // If this block is exiting from a callable, the successors of exiting from
     // a callable are the successors of all call sites. And the call sites
     // themselves are predecessors of the callable.
-    auto callable = dyn_cast<CallableOpInterface>(block->getParentOp());
-    if (callable && callable.getCallableRegion() == block->getParent()) {
+    
+    if (auto callable = dyn_cast<CallableOpInterface>(block->getParentOp()); callable && callable.getCallableRegion() == block->getParent()) {
       LDBG() << "    Exit block of callable region";
       const auto *callsites = getOrCreateFor<PredecessorState>(
           point, getProgramPointAfter(callable));

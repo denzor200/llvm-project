@@ -622,8 +622,8 @@ TEST_F(DWARFASTParserClangTests, TestSpecDeclExistsError) {
     SymbolContext sc;
     bool new_type = false;
     auto type = ast_parser.ParseTypeFromDWARF(sc, die, &new_type);
-    llvm::StringRef die_name = llvm::StringRef(die.GetName());
-    if (die_name.starts_with("_Optional_payload")) {
+    
+    if (llvm::StringRef die_name = llvm::StringRef(die.GetName()); die_name.starts_with("_Optional_payload")) {
       specializations.push_back(std::move(type));
     }
   }

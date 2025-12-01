@@ -546,13 +546,13 @@ RTLIB::Libcall RTLIB::getOUTLINE_ATOMIC(unsigned Opc, AtomicOrdering Order,
                                         MVT VT) {
   if (!VT.isScalarInteger())
     return UNKNOWN_LIBCALL;
-  uint64_t MemSize = VT.getScalarSizeInBits() / 8;
+  
 
 #define LCALLS(A, B)                                                           \
   { A##B##_RELAX, A##B##_ACQ, A##B##_REL, A##B##_ACQ_REL }
 #define LCALL5(A)                                                              \
   LCALLS(A, 1), LCALLS(A, 2), LCALLS(A, 4), LCALLS(A, 8), LCALLS(A, 16)
-  switch (Opc) {
+  switch (uint64_t MemSize = VT.getScalarSizeInBits() / 8; Opc) {
   case ISD::ATOMIC_CMP_SWAP: {
     const Libcall LC[5][4] = {LCALL5(OUTLINE_ATOMIC_CAS)};
     return getOutlineAtomicHelper(LC, Order, MemSize);
@@ -706,8 +706,8 @@ ISD::CondCode TargetLoweringBase::getSoftFloatCmpLibcallPredicate(
   //
   // FIXME: It would be cleaner to directly express this as a 3-way comparison
   // soft FP libcall instead of individual compares.
-  RTLIB::Libcall LC = RTLIB::RuntimeLibcallsInfo::getLibcallFromImpl(Impl);
-  switch (LC) {
+  
+  switch (RTLIB::Libcall LC = RTLIB::RuntimeLibcallsInfo::getLibcallFromImpl(Impl); LC) {
   case RTLIB::OEQ_F32:
   case RTLIB::OEQ_F64:
   case RTLIB::OEQ_F128:
@@ -835,8 +835,8 @@ void TargetLoweringBase::initActions() {
   }
 
   for (MVT VT : MVT::fp_valuetypes()) {
-    MVT IntVT = MVT::getIntegerVT(VT.getFixedSizeInBits());
-    if (IntVT.isValid()) {
+    
+    if (MVT IntVT = MVT::getIntegerVT(VT.getFixedSizeInBits()); IntVT.isValid()) {
       setOperationAction(ISD::ATOMIC_SWAP, VT, Promote);
       AddPromotedToType(ISD::ATOMIC_SWAP, VT, IntVT);
     }
@@ -1186,9 +1186,9 @@ TargetLoweringBase::getTypeConversion(LLVMContext &Context, EVT VT) const {
         break;
 
       // Build a new vector type and check if it is legal.
-      MVT NVT = MVT::getVectorVT(EltVT.getSimpleVT(), NumElts);
+      
       // Found a legal promoted vector type.
-      if (NVT != MVT() && ValueTypeActions.getTypeAction(NVT) == TypeLegal)
+      if (MVT NVT = MVT::getVectorVT(EltVT.getSimpleVT(), NumElts); NVT != MVT() && ValueTypeActions.getTypeAction(NVT) == TypeLegal)
         return LegalizeKind(TypePromoteInteger,
                             EVT::getVectorVT(Context, EltVT, NumElts));
     }
@@ -1452,8 +1452,8 @@ void TargetLoweringBase::computeRegisterProperties(
   unsigned LegalIntReg = LargestIntReg;
   for (unsigned IntReg = LargestIntReg - 1;
        IntReg >= (unsigned)MVT::i1; --IntReg) {
-    MVT IVT = (MVT::SimpleValueType)IntReg;
-    if (isTypeLegal(IVT)) {
+    
+    if (MVT IVT = (MVT::SimpleValueType)IntReg; isTypeLegal(IVT)) {
       LegalIntReg = IntReg;
     } else {
       RegisterTypeForVT[IntReg] = TransformToType[IntReg] =
@@ -1519,9 +1519,9 @@ void TargetLoweringBase::computeRegisterProperties(
   if (!isTypeLegal(MVT::f16)) {
     // Allow targets to control how we legalize half.
     bool SoftPromoteHalfType = softPromoteHalfType();
-    bool UseFPRegsForHalfType = !SoftPromoteHalfType || useFPRegsForHalfType();
+    
 
-    if (!UseFPRegsForHalfType) {
+    if (bool UseFPRegsForHalfType = !SoftPromoteHalfType || useFPRegsForHalfType(); !UseFPRegsForHalfType) {
       NumRegistersForVT[MVT::f16] = NumRegistersForVT[MVT::i16];
       RegisterTypeForVT[MVT::f16] = RegisterTypeForVT[MVT::i16];
     } else {
@@ -1557,8 +1557,8 @@ void TargetLoweringBase::computeRegisterProperties(
     ElementCount EC = VT.getVectorElementCount();
     bool IsLegalWiderType = false;
     bool IsScalable = VT.isScalableVector();
-    LegalizeTypeAction PreferredAction = getPreferredVectorAction(VT);
-    switch (PreferredAction) {
+    
+    switch (LegalizeTypeAction PreferredAction = getPreferredVectorAction(VT); PreferredAction) {
     case TypePromoteInteger: {
       MVT::SimpleValueType EndVT = IsScalable ?
                                    MVT::LAST_INTEGER_SCALABLE_VECTOR_VALUETYPE :
@@ -1567,10 +1567,10 @@ void TargetLoweringBase::computeRegisterProperties(
       // promotion was found, fall through to the widen-vector method.
       for (unsigned nVT = i + 1;
            (MVT::SimpleValueType)nVT <= EndVT; ++nVT) {
-        MVT SVT = (MVT::SimpleValueType) nVT;
+        
         // Promote vectors of integers to vectors with the same number
         // of elements, with a wider element type.
-        if (SVT.getScalarSizeInBits() > EltVT.getFixedSizeInBits() &&
+        if (MVT SVT = (MVT::SimpleValueType) nVT; SVT.getScalarSizeInBits() > EltVT.getFixedSizeInBits() &&
             SVT.getVectorElementCount() == EC && isTypeLegal(SVT)) {
           TransformToType[i] = SVT;
           RegisterTypeForVT[i] = SVT;
@@ -1589,8 +1589,8 @@ void TargetLoweringBase::computeRegisterProperties(
       if (isPowerOf2_32(EC.getKnownMinValue())) {
         // Try to widen the vector.
         for (unsigned nVT = i + 1; nVT <= MVT::LAST_VECTOR_VALUETYPE; ++nVT) {
-          MVT SVT = (MVT::SimpleValueType) nVT;
-          if (SVT.getVectorElementType() == EltVT &&
+          
+          if (MVT SVT = (MVT::SimpleValueType) nVT; SVT.getVectorElementType() == EltVT &&
               SVT.isScalableVector() == IsScalable &&
               SVT.getVectorElementCount().getKnownMinValue() >
                   EC.getKnownMinValue() &&
@@ -1607,8 +1607,8 @@ void TargetLoweringBase::computeRegisterProperties(
           break;
       } else {
         // Only widen to the next power of 2 to keep consistency with EVT.
-        MVT NVT = VT.getPow2VectorType();
-        if (isTypeLegal(NVT)) {
+        
+        if (MVT NVT = VT.getPow2VectorType(); isTypeLegal(NVT)) {
           TransformToType[i] = NVT;
           ValueTypeActions.setTypeAction(VT, TypeWidenVector);
           RegisterTypeForVT[i] = NVT;
@@ -1698,11 +1698,11 @@ unsigned TargetLoweringBase::getVectorTypeBreakdown(LLVMContext &Context,
   // are wider, then we should convert to that legal vector type.
   // This handles things like <2 x float> -> <4 x float> and
   // <4 x i1> -> <4 x i32>.
-  LegalizeTypeAction TA = getTypeAction(Context, VT);
-  if (!EltCnt.isScalar() &&
+  
+  if (LegalizeTypeAction TA = getTypeAction(Context, VT); !EltCnt.isScalar() &&
       (TA == TypeWidenVector || TA == TypePromoteInteger)) {
-    EVT RegisterEVT = getTypeToTransformTo(Context, VT);
-    if (isTypeLegal(RegisterEVT)) {
+    
+    if (EVT RegisterEVT = getTypeToTransformTo(Context, VT); isTypeLegal(RegisterEVT)) {
       IntermediateVT = RegisterEVT;
       RegisterVT = RegisterEVT.getSimpleVT();
       NumIntermediates = 1;
@@ -1813,8 +1813,8 @@ void llvm::GetReturnInfo(CallingConv::ID CC, Type *ReturnType,
                          const TargetLowering &TLI, const DataLayout &DL) {
   SmallVector<Type *, 4> Types;
   ComputeValueTypes(DL, ReturnType, Types);
-  unsigned NumValues = Types.size();
-  if (NumValues == 0) return;
+  
+  if (unsigned NumValues = Types.size(); NumValues == 0) return;
 
   for (Type *Ty : Types) {
     EVT VT = TLI.getValueType(DL, Ty);
@@ -1862,8 +1862,8 @@ bool TargetLoweringBase::allowsMemoryAccessForAlignment(
   // would be to implement this check directly (make this a virtual function).
   // For example, the ABI alignment may change based on software platform while
   // this function should only be affected by hardware implementation.
-  Type *Ty = VT.getTypeForEVT(Context);
-  if (VT.isZeroSized() || Alignment >= DL.getABITypeAlign(Ty)) {
+  
+  if (Type *Ty = VT.getTypeForEVT(Context); VT.isZeroSized() || Alignment >= DL.getABITypeAlign(Ty)) {
     // Assume that an access that meets the ABI-specified alignment is fast.
     if (Fast != nullptr)
       *Fast = 1;
@@ -2015,9 +2015,9 @@ TargetLoweringBase::getDefaultSafeStackPointerLocation(IRBuilderBase &IRB,
       dyn_cast_or_null<GlobalVariable>(M->getNamedValue(UnsafeStackPtrVar));
 
   const DataLayout &DL = M->getDataLayout();
-  PointerType *StackPtrTy = DL.getAllocaPtrType(M->getContext());
+  
 
-  if (!UnsafeStackPtr) {
+  if (PointerType *StackPtrTy = DL.getAllocaPtrType(M->getContext()); !UnsafeStackPtr) {
     auto TLSModel = UseTLS ?
         GlobalValue::InitialExecTLSModel :
         GlobalValue::NotThreadLocal;
@@ -2169,9 +2169,9 @@ Value *TargetLoweringBase::getSDagStackGuard(const Module &M) const {
 
 Function *TargetLoweringBase::getSSPStackGuardCheck(const Module &M) const {
   // MSVC CRT has a function to validate security cookie.
-  RTLIB::LibcallImpl SecurityCheckCookieLibcall =
-      getLibcallImpl(RTLIB::SECURITY_CHECK_COOKIE);
-  if (SecurityCheckCookieLibcall != RTLIB::Unsupported)
+  
+  if (RTLIB::LibcallImpl SecurityCheckCookieLibcall =
+      getLibcallImpl(RTLIB::SECURITY_CHECK_COOKIE); SecurityCheckCookieLibcall != RTLIB::Unsupported)
     return M.getFunction(getLibcallImplName(SecurityCheckCookieLibcall));
   return nullptr;
 }
@@ -2263,12 +2263,12 @@ static bool parseRefinementStep(StringRef In, size_t &Position,
   if (Position == StringRef::npos)
     return false;
 
-  StringRef RefStepString = In.substr(Position + 1);
+  
   // Allow exactly one numeric character for the additional refinement
   // step parameter.
-  if (RefStepString.size() == 1) {
-    char RefStepChar = RefStepString[0];
-    if (isDigit(RefStepChar)) {
+  if (StringRef RefStepString = In.substr(Position + 1); RefStepString.size() == 1) {
+    
+    if (char RefStepChar = RefStepString[0]; isDigit(RefStepChar)) {
       Value = RefStepChar - '0';
       return true;
     }
@@ -2285,15 +2285,15 @@ static int getOpEnabled(bool IsSqrt, EVT VT, StringRef Override) {
 
   SmallVector<StringRef, 4> OverrideVector;
   Override.split(OverrideVector, ',');
-  unsigned NumArgs = OverrideVector.size();
+  
 
   // Check if "all", "none", or "default" was specified.
-  if (NumArgs == 1) {
+  if (unsigned NumArgs = OverrideVector.size(); NumArgs == 1) {
     // Look for an optional setting of the number of refinement steps needed
     // for this type of reciprocal operation.
     size_t RefPos;
-    uint8_t RefSteps;
-    if (parseRefinementStep(Override, RefPos, RefSteps)) {
+    
+    if (uint8_t RefSteps; parseRefinementStep(Override, RefPos, RefSteps)) {
       // Split the string for further processing.
       Override = Override.substr(0, RefPos);
     }
@@ -2319,8 +2319,8 @@ static int getOpEnabled(bool IsSqrt, EVT VT, StringRef Override) {
 
   for (StringRef RecipType : OverrideVector) {
     size_t RefPos;
-    uint8_t RefSteps;
-    if (parseRefinementStep(RecipType, RefPos, RefSteps))
+    
+    if (uint8_t RefSteps; parseRefinementStep(RecipType, RefPos, RefSteps))
       RecipType = RecipType.substr(0, RefPos);
 
     // Ignore the disablement token for string matching.
@@ -2345,10 +2345,10 @@ static int getOpRefinementSteps(bool IsSqrt, EVT VT, StringRef Override) {
 
   SmallVector<StringRef, 4> OverrideVector;
   Override.split(OverrideVector, ',');
-  unsigned NumArgs = OverrideVector.size();
+  
 
   // Check if "all", "default", or "none" was specified.
-  if (NumArgs == 1) {
+  if (unsigned NumArgs = OverrideVector.size(); NumArgs == 1) {
     // Look for an optional setting of the number of refinement steps needed
     // for this type of reciprocal operation.
     size_t RefPos;
@@ -2497,9 +2497,9 @@ TargetLoweringBase::getAtomicMemOperandFlags(const Instruction &AI,
 MachineMemOperand::Flags TargetLoweringBase::getVPIntrinsicMemOperandFlags(
     const VPIntrinsic &VPIntrin) const {
   MachineMemOperand::Flags Flags = MachineMemOperand::MONone;
-  Intrinsic::ID IntrinID = VPIntrin.getIntrinsicID();
+  
 
-  switch (IntrinID) {
+  switch (Intrinsic::ID IntrinID = VPIntrin.getIntrinsicID(); IntrinID) {
   default:
     llvm_unreachable("unexpected intrinsic. Existing code may be appropriate "
                      "for it, but support must be explicitly enabled");
@@ -2554,7 +2554,9 @@ bool TargetLoweringBase::shouldLocalize(const MachineInstr &MI,
   // break even in terms of code size when the original MI has 2 users vs
   // choosing to potentially spill. Any more than 2 users we we have a net code
   // size increase. This doesn't take into account register pressure though.
-  auto maxUses = [](unsigned RematCost) {
+  
+
+  switch (auto maxUses = [](unsigned RematCost) {
     // A cost of 1 means remats are basically free.
     if (RematCost == 1)
       return std::numeric_limits<unsigned>::max();
@@ -2565,9 +2567,7 @@ bool TargetLoweringBase::shouldLocalize(const MachineInstr &MI,
     if (RematCost > 2)
       return 1U;
     llvm_unreachable("Unexpected remat cost");
-  };
-
-  switch (MI.getOpcode()) {
+  }; MI.getOpcode()) {
   default:
     return false;
   // Constants-like instructions should be close to their users.

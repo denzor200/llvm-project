@@ -92,8 +92,8 @@ static bool CheckAsmLValue(Expr *E, Sema &S) {
 
   // Okay, this is not an lvalue, but perhaps it is the result of a cast that we
   // are supposed to allow.
-  const Expr *E2 = E->IgnoreParenNoopCasts(S.Context);
-  if (E != E2 && E2->isLValue()) {
+  
+  if (const Expr *E2 = E->IgnoreParenNoopCasts(S.Context); E != E2 && E2->isLValue()) {
     emitAndFixInvalidAsmCastLValue(E2, E, S);
     // Accept, even if we emitted an error diagnostic.
     return false;
@@ -190,8 +190,8 @@ static StringRef extractRegisterName(const Expr *Expression,
   Expression = Expression->IgnoreImpCasts();
   if (const DeclRefExpr *AsmDeclRef = dyn_cast<DeclRefExpr>(Expression)) {
     // Handle cases where the expression is a variable
-    const VarDecl *Variable = dyn_cast<VarDecl>(AsmDeclRef->getDecl());
-    if (Variable && Variable->getStorageClass() == SC_Register) {
+    
+    if (const VarDecl *Variable = dyn_cast<VarDecl>(AsmDeclRef->getDecl()); Variable && Variable->getStorageClass() == SC_Register) {
       if (AsmLabelAttr *Attr = Variable->getAttr<AsmLabelAttr>())
         if (Target.isValidGCCRegisterName(Attr->getLabel()))
           return Target.getNormalizedGCCRegisterName(Attr->getLabel(), true);
@@ -213,9 +213,9 @@ getClobberConflictLocation(MultiExprArg Exprs, Expr **Constraints,
   for (unsigned int i = 0; i < Exprs.size() - NumLabels; ++i) {
     std::string Constraint =
         GCCAsmStmt::ExtractStringFromGCCAsmStmtComponent(Constraints[i]);
-    StringRef InOutReg = Target.getConstraintRegister(
-        Constraint, extractRegisterName(Exprs[i], Target));
-    if (InOutReg != "")
+    
+    if (StringRef InOutReg = Target.getConstraintRegister(
+        Constraint, extractRegisterName(Exprs[i], Target)); InOutReg != "")
       InOutVars.insert(InOutReg);
   }
   // Check for each item in the clobber list if it conflicts with the input
@@ -346,9 +346,9 @@ StmtResult Sema::ActOnGCCAsmStmt(SourceLocation AsmLoc, bool IsSimple,
     if (OutputExpr->isTypeDependent())
       continue;
 
-    Expr::isModifiableLvalueResult IsLV =
-        OutputExpr->isModifiableLvalue(Context, /*Loc=*/nullptr);
-    switch (IsLV) {
+    
+    switch (Expr::isModifiableLvalueResult IsLV =
+        OutputExpr->isModifiableLvalue(Context, /*Loc=*/nullptr); IsLV) {
     case Expr::MLV_Valid:
       // Cool, this is an lvalue.
       break;
@@ -442,12 +442,12 @@ StmtResult Sema::ActOnGCCAsmStmt(SourceLocation AsmLoc, bool IsSimple,
 
       if (Info.requiresImmediateConstant() && !Info.allowsRegister()) {
         if (!InputExpr->isValueDependent()) {
-          Expr::EvalResult EVResult;
-          if (InputExpr->EvaluateAsRValue(EVResult, Context, true)) {
+          
+          if (Expr::EvalResult EVResult; InputExpr->EvaluateAsRValue(EVResult, Context, true)) {
             // For compatibility with GCC, we also allow pointers that would be
             // integral constant expressions if they were cast to int.
-            llvm::APSInt IntResult;
-            if (EVResult.Val.toIntegralConstant(IntResult, InputExpr->getType(),
+            
+            if (llvm::APSInt IntResult; EVResult.Val.toIntegralConstant(IntResult, InputExpr->getType(),
                                                 Context))
               if (!Info.isValidAsmImmediate(IntResult))
                 return StmtError(
@@ -600,8 +600,8 @@ StmtResult Sema::ActOnGCCAsmStmt(SourceLocation AsmLoc, bool IsSimple,
   for (unsigned i = 0, e = OutputConstraintInfos.size(); i != e; ++i) {
     TargetInfo::ConstraintInfo &Info = OutputConstraintInfos[i];
     StringRef ConstraintStr = Info.getConstraintStr();
-    unsigned AltCount = ConstraintStr.count(',') + 1;
-    if (NumAlternatives == ~0U) {
+    
+    if (unsigned AltCount = ConstraintStr.count(',') + 1; NumAlternatives == ~0U) {
       NumAlternatives = AltCount;
     } else if (NumAlternatives != AltCount) {
       targetDiag(NS->getOutputExpr(i)->getBeginLoc(),
@@ -615,8 +615,8 @@ StmtResult Sema::ActOnGCCAsmStmt(SourceLocation AsmLoc, bool IsSimple,
   for (unsigned i = 0, e = InputConstraintInfos.size(); i != e; ++i) {
     TargetInfo::ConstraintInfo &Info = InputConstraintInfos[i];
     StringRef ConstraintStr = Info.getConstraintStr();
-    unsigned AltCount = ConstraintStr.count(',') + 1;
-    if (NumAlternatives == ~0U) {
+    
+    if (unsigned AltCount = ConstraintStr.count(',') + 1; NumAlternatives == ~0U) {
       NumAlternatives = AltCount;
     } else if (NumAlternatives != AltCount) {
       targetDiag(NS->getInputExpr(i)->getBeginLoc(),
@@ -873,9 +873,9 @@ bool Sema::LookupInlineAsmField(StringRef Base, StringRef Member,
     if (const Type *PT = getCurrentThisType().getTypePtrOrNull())
       FoundDecl = PT->getPointeeType()->getAsTagDecl();
   } else {
-    LookupResult BaseResult(*this, &Context.Idents.get(Base), SourceLocation(),
-                            LookupOrdinaryName);
-    if (LookupName(BaseResult, getCurScope()) && BaseResult.isSingleResult())
+    
+    if (LookupResult BaseResult(*this, &Context.Idents.get(Base), SourceLocation(),
+                            LookupOrdinaryName); LookupName(BaseResult, getCurScope()) && BaseResult.isSingleResult())
       FoundDecl = BaseResult.getFoundDecl();
   }
 
@@ -984,8 +984,8 @@ StmtResult Sema::ActOnMSAsmStmt(SourceLocation AsmLoc, SourceLocation LBraceLoc,
 
   bool InvalidOperand = false;
   for (uint64_t I = 0; I < NumOutputs + NumInputs; ++I) {
-    Expr *E = Exprs[I];
-    if (E->getType()->isBitIntType()) {
+    
+    if (Expr *E = Exprs[I]; E->getType()->isBitIntType()) {
       InvalidOperand = true;
       Diag(E->getBeginLoc(), diag::err_asm_invalid_type)
           << E->getType() << (I < NumOutputs)

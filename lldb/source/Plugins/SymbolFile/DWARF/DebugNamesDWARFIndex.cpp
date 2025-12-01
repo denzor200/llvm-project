@@ -197,8 +197,8 @@ void DebugNamesDWARFIndex::GetGlobalVariables(
     llvm::function_ref<IterationAction(DWARFDIE die)> callback) {
   for (const DebugNames::NameIndex &ni: *m_debug_names_up) {
     for (DebugNames::NameTableEntry nte: ni) {
-      Mangled mangled_name(nte.getString());
-      if (!mangled_name.NameMatches(regex))
+      
+      if (Mangled mangled_name(nte.getString()); !mangled_name.NameMatches(regex))
         continue;
 
       uint64_t entry_offset = nte.getEntryOffset();
@@ -488,8 +488,8 @@ void DebugNamesDWARFIndex::GetNamespaces(
     llvm::function_ref<IterationAction(DWARFDIE die)> callback) {
   for (const DebugNames::Entry &entry :
        m_debug_names_up->equal_range(name.GetStringRef())) {
-    llvm::dwarf::Tag entry_tag = entry.tag();
-    if (entry_tag == DW_TAG_namespace ||
+    
+    if (llvm::dwarf::Tag entry_tag = entry.tag(); entry_tag == DW_TAG_namespace ||
         entry_tag == DW_TAG_imported_declaration) {
       if (ProcessEntry(entry, callback) == IterationAction::Stop)
         return;
@@ -579,8 +579,8 @@ void DebugNamesDWARFIndex::GetNamespacesWithParents(
                [](const CompilerContext &ctx) { return !ctx.name.IsEmpty(); });
   for (const DebugNames::Entry &entry :
        m_debug_names_up->equal_range(name.GetStringRef())) {
-    llvm::dwarf::Tag entry_tag = entry.tag();
-    if (entry_tag == DW_TAG_namespace ||
+    
+    if (llvm::dwarf::Tag entry_tag = entry.tag(); entry_tag == DW_TAG_namespace ||
         entry_tag == DW_TAG_imported_declaration) {
       std::optional<llvm::SmallVector<Entry, 4>> parent_chain =
           getParentChain(entry);
@@ -617,8 +617,8 @@ void DebugNamesDWARFIndex::GetFunctions(
   std::set<DWARFDebugInfoEntry *> seen;
   for (const DebugNames::Entry &entry :
        m_debug_names_up->equal_range(name.GetStringRef())) {
-    Tag tag = entry.tag();
-    if (tag != DW_TAG_subprogram && tag != DW_TAG_inlined_subroutine)
+    
+    if (Tag tag = entry.tag(); tag != DW_TAG_subprogram && tag != DW_TAG_inlined_subroutine)
       continue;
 
     if (DWARFDIE die = GetDIE(entry)) {
@@ -646,8 +646,8 @@ void DebugNamesDWARFIndex::GetFunctions(
       uint64_t entry_offset = nte.getEntryOffset();
       llvm::Expected<DebugNames::Entry> entry_or = ni.getEntry(&entry_offset);
       for (; entry_or; entry_or = ni.getEntry(&entry_offset)) {
-        Tag tag = entry_or->tag();
-        if (tag != DW_TAG_subprogram && tag != DW_TAG_inlined_subroutine)
+        
+        if (Tag tag = entry_or->tag(); tag != DW_TAG_subprogram && tag != DW_TAG_inlined_subroutine)
           continue;
 
         if (ProcessEntry(*entry_or, callback) == IterationAction::Stop)

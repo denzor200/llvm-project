@@ -867,8 +867,8 @@ delinearizeInductionVariable(RewriterBase &rewriter, Location loc,
 
   llvm::BitVector isUbOne(ubs.size());
   for (auto [index, ub] : llvm::enumerate(ubs)) {
-    auto ubCst = getConstantIntValue(ub);
-    if (ubCst && ubCst.value() == 1)
+    
+    if (auto ubCst = getConstantIntValue(ub); ubCst && ubCst.value() == 1)
       isUbOne.set(index);
   }
 
@@ -1046,10 +1046,10 @@ LogicalResult mlir::coalescePerfectlyNestedSCFForLoops(scf::ForOp op) {
   for (unsigned end = loops.size(); end > 0; --end) {
     unsigned start = 0;
     for (; start < end - 1; ++start) {
-      auto maxPos =
+      
+      if (auto maxPos =
           *std::max_element(std::next(operandsDefinedAbove.begin(), start),
-                            std::next(operandsDefinedAbove.begin(), end));
-      if (maxPos > start)
+                            std::next(operandsDefinedAbove.begin(), end)); maxPos > start)
         continue;
       if (iterArgChainStart[end - 1] > start)
         continue;
@@ -1610,8 +1610,8 @@ FailureOr<scf::ParallelOp> mlir::parallelLoopUnrollByFactors(
             "dynamic loop sizes are not supported.");
 
   for (unsigned dimIdx = firstLoopDimIdx; dimIdx < numLoops; dimIdx++) {
-    const uint64_t unrollFactor = unrollFactors[dimIdx - firstLoopDimIdx];
-    if (tripCounts[dimIdx] % unrollFactor)
+    
+    if (const uint64_t unrollFactor = unrollFactors[dimIdx - firstLoopDimIdx]; tripCounts[dimIdx] % unrollFactor)
       return rewriter.notifyMatchFailure(
           op, "Unroll factors don't divide the iteration space evenly");
   }

@@ -106,14 +106,14 @@ void AMDGPUInstPrinter::printNamedBit(const MCInst *MI, unsigned OpNo,
 void AMDGPUInstPrinter::printOffset(const MCInst *MI, unsigned OpNo,
                                     const MCSubtargetInfo &STI,
                                     raw_ostream &O) {
-  uint32_t Imm = MI->getOperand(OpNo).getImm();
-  if (Imm != 0) {
+  
+  if (uint32_t Imm = MI->getOperand(OpNo).getImm(); Imm != 0) {
     O << " offset:";
 
     // GFX12 uses a 24-bit signed offset for VBUFFER.
     const MCInstrDesc &Desc = MII.get(MI->getOpcode());
-    bool IsVBuffer = Desc.TSFlags & (SIInstrFlags::MUBUF | SIInstrFlags::MTBUF);
-    if (AMDGPU::isGFX12(STI) && IsVBuffer)
+    
+    if (bool IsVBuffer = Desc.TSFlags & (SIInstrFlags::MUBUF | SIInstrFlags::MTBUF); AMDGPU::isGFX12(STI) && IsVBuffer)
       O << formatDec(SignExtend32<24>(Imm));
     else
       printU16ImmDecOperand(MI, OpNo, O);
@@ -123,16 +123,16 @@ void AMDGPUInstPrinter::printOffset(const MCInst *MI, unsigned OpNo,
 void AMDGPUInstPrinter::printFlatOffset(const MCInst *MI, unsigned OpNo,
                                         const MCSubtargetInfo &STI,
                                         raw_ostream &O) {
-  uint32_t Imm = MI->getOperand(OpNo).getImm();
-  if (Imm != 0) {
+  
+  if (uint32_t Imm = MI->getOperand(OpNo).getImm(); Imm != 0) {
     O << " offset:";
 
     const MCInstrDesc &Desc = MII.get(MI->getOpcode());
-    bool AllowNegative = (Desc.TSFlags & (SIInstrFlags::FlatGlobal |
-                                          SIInstrFlags::FlatScratch)) ||
-                         AMDGPU::isGFX12(STI);
+    
 
-    if (AllowNegative) // Signed offset
+    if (bool AllowNegative = (Desc.TSFlags & (SIInstrFlags::FlatGlobal |
+                                          SIInstrFlags::FlatScratch)) ||
+                         AMDGPU::isGFX12(STI); AllowNegative) // Signed offset
       O << formatDec(SignExtend32(Imm, AMDGPU::getNumFlatOffsetBits(STI)));
     else // Unsigned offset
       printU16ImmDecOperand(MI, OpNo, O);
@@ -273,8 +273,8 @@ void AMDGPUInstPrinter::printDim(const MCInst *MI, unsigned OpNo,
   unsigned Dim = MI->getOperand(OpNo).getImm();
   O << " dim:SQ_RSRC_IMG_";
 
-  const AMDGPU::MIMGDimInfo *DimInfo = AMDGPU::getMIMGDimInfoByEncoding(Dim);
-  if (DimInfo)
+  
+  if (const AMDGPU::MIMGDimInfo *DimInfo = AMDGPU::getMIMGDimInfoByEncoding(Dim); DimInfo)
     O << DimInfo->AsmSuffix;
   else
     O << Dim;
@@ -302,8 +302,8 @@ void AMDGPUInstPrinter::printSymbolicFormat(const MCInst *MI,
     AMDGPU::getNamedOperandIdx(MI->getOpcode(), AMDGPU::OpName::format);
   assert(OpNo != -1);
 
-  unsigned Val = MI->getOperand(OpNo).getImm();
-  if (AMDGPU::isGFX10Plus(STI)) {
+  
+  if (unsigned Val = MI->getOperand(OpNo).getImm(); AMDGPU::isGFX10Plus(STI)) {
     if (Val == UFMT_DEFAULT)
       return;
     if (isValidUnifiedFormat(Val, STI)) {
@@ -423,8 +423,8 @@ void AMDGPUInstPrinter::printRegOperand(MCRegister Reg, unsigned Opc,
 void AMDGPUInstPrinter::printVOPDst(const MCInst *MI, unsigned OpNo,
                                     const MCSubtargetInfo &STI, raw_ostream &O) {
   auto Opcode = MI->getOpcode();
-  auto Flags = MII.get(Opcode).TSFlags;
-  if (OpNo == 0) {
+  
+  if (auto Flags = MII.get(Opcode).TSFlags; OpNo == 0) {
     if (Flags & SIInstrFlags::VOP3 && Flags & SIInstrFlags::DPP)
       O << "_e64_dpp";
     else if (Flags & SIInstrFlags::VOP3) {
@@ -506,8 +506,8 @@ void AMDGPUInstPrinter::printAVLdSt32Align2RegOp(const MCInst *MI,
 void AMDGPUInstPrinter::printImmediateInt16(uint32_t Imm,
                                             const MCSubtargetInfo &STI,
                                             raw_ostream &O) {
-  int32_t SImm = static_cast<int32_t>(Imm);
-  if (isInlinableIntLiteral(SImm)) {
+  
+  if (int32_t SImm = static_cast<int32_t>(Imm); isInlinableIntLiteral(SImm)) {
     O << SImm;
     return;
   }
@@ -573,8 +573,8 @@ static bool printImmediateBFloat16(uint32_t Imm, const MCSubtargetInfo &STI,
 void AMDGPUInstPrinter::printImmediateBF16(uint32_t Imm,
                                            const MCSubtargetInfo &STI,
                                            raw_ostream &O) {
-  int16_t SImm = static_cast<int16_t>(Imm);
-  if (isInlinableIntLiteral(SImm)) {
+  
+  if (int16_t SImm = static_cast<int16_t>(Imm); isInlinableIntLiteral(SImm)) {
     O << SImm;
     return;
   }
@@ -588,8 +588,8 @@ void AMDGPUInstPrinter::printImmediateBF16(uint32_t Imm,
 void AMDGPUInstPrinter::printImmediateF16(uint32_t Imm,
                                           const MCSubtargetInfo &STI,
                                           raw_ostream &O) {
-  int16_t SImm = static_cast<int16_t>(Imm);
-  if (isInlinableIntLiteral(SImm)) {
+  
+  if (int16_t SImm = static_cast<int16_t>(Imm); isInlinableIntLiteral(SImm)) {
     O << SImm;
     return;
   }
@@ -605,8 +605,8 @@ void AMDGPUInstPrinter::printImmediateF16(uint32_t Imm,
 void AMDGPUInstPrinter::printImmediateV216(uint32_t Imm, uint8_t OpType,
                                            const MCSubtargetInfo &STI,
                                            raw_ostream &O) {
-  int32_t SImm = static_cast<int32_t>(Imm);
-  if (isInlinableIntLiteral(SImm)) {
+  
+  if (int32_t SImm = static_cast<int32_t>(Imm); isInlinableIntLiteral(SImm)) {
     O << SImm;
     return;
   }
@@ -671,8 +671,8 @@ bool AMDGPUInstPrinter::printImmediateFloat32(uint32_t Imm,
 void AMDGPUInstPrinter::printImmediate32(uint32_t Imm,
                                          const MCSubtargetInfo &STI,
                                          raw_ostream &O) {
-  int32_t SImm = static_cast<int32_t>(Imm);
-  if (isInlinableIntLiteral(SImm)) {
+  
+  if (int32_t SImm = static_cast<int32_t>(Imm); isInlinableIntLiteral(SImm)) {
     O << SImm;
     return;
   }
@@ -686,8 +686,8 @@ void AMDGPUInstPrinter::printImmediate32(uint32_t Imm,
 void AMDGPUInstPrinter::printImmediate64(uint64_t Imm,
                                          const MCSubtargetInfo &STI,
                                          raw_ostream &O, bool IsFP) {
-  int64_t SImm = static_cast<int64_t>(Imm);
-  if (SImm >= -16 && SImm <= 64) {
+  
+  if (int64_t SImm = static_cast<int64_t>(Imm); SImm >= -16 && SImm <= 64) {
     O << SImm;
     return;
   }
@@ -775,11 +775,11 @@ void AMDGPUInstPrinter::printOperand(const MCInst *MI, unsigned OpNo,
                                      raw_ostream &O) {
   unsigned Opc = MI->getOpcode();
   const MCInstrDesc &Desc = MII.get(Opc);
-  int ModIdx = AMDGPU::getNamedOperandIdx(Opc, AMDGPU::OpName::src0_modifiers);
+  
   // 0, 1 and 2 are the first printed operands in different cases
   // If there are printed modifiers, printOperandAndFPInputMods or
   // printOperandAndIntInputMods will be called instead
-  if ((OpNo == 0 ||
+  if (int ModIdx = AMDGPU::getNamedOperandIdx(Opc, AMDGPU::OpName::src0_modifiers); (OpNo == 0 ||
        (OpNo == 1 && (Desc.TSFlags & SIInstrFlags::DPP) && ModIdx != -1)) &&
       (Desc.TSFlags & SIInstrFlags::VOPC) && !isVOPCAsmOnly(Desc.getOpcode()) &&
       (Desc.hasImplicitDefOfPhysReg(AMDGPU::VCC) ||
@@ -812,17 +812,17 @@ void AMDGPUInstPrinter::printRegularOperand(const MCInst *MI, unsigned OpNo,
       int16_t RCID = MII.getOpRegClassID(
           OpInfo, STI.getHwMode(MCSubtargetInfo::HwMode_RegInfo));
       const MCRegisterClass &RC = MRI.getRegClass(RCID);
-      auto Reg = mc2PseudoReg(Op.getReg());
-      if (!RC.contains(Reg) && !isInlineValue(Reg)) {
-        bool IsWaveSizeOp = OpInfo.isLookupRegClassByHwMode() &&
-                            (OpInfo.RegClass == AMDGPU::SReg_1 ||
-                             OpInfo.RegClass == AMDGPU::SReg_1_XEXEC);
+      
+      if (auto Reg = mc2PseudoReg(Op.getReg()); !RC.contains(Reg) && !isInlineValue(Reg)) {
+        
         // Suppress this comment for a mismatched wavesize. Some users expect to
         // be able to assemble and disassemble modules with mixed wavesizes, but
         // we do not know the subtarget in different functions in MC.
         //
         // TODO: Should probably print it anyway, maybe a more specific version.
-        if (!IsWaveSizeOp) {
+        if (bool IsWaveSizeOp = OpInfo.isLookupRegClassByHwMode() &&
+                            (OpInfo.RegClass == AMDGPU::SReg_1 ||
+                             OpInfo.RegClass == AMDGPU::SReg_1_XEXEC); !IsWaveSizeOp) {
           O << "/*Invalid register, operand has \'" << MRI.getRegClassName(&RC)
             << "\' register class*/";
         }
@@ -955,8 +955,8 @@ void AMDGPUInstPrinter::printOperandAndFPInputMods(const MCInst *MI,
                                                    unsigned OpNo,
                                                    const MCSubtargetInfo &STI,
                                                    raw_ostream &O) {
-  const MCInstrDesc &Desc = MII.get(MI->getOpcode());
-  if (needsImpliedVcc(Desc, OpNo))
+  
+  if (const MCInstrDesc &Desc = MII.get(MI->getOpcode()); needsImpliedVcc(Desc, OpNo))
     printDefaultVccOperand(true, STI, O);
 
   unsigned InputModifiers = MI->getOperand(OpNo).getImm();
@@ -1008,8 +1008,8 @@ void AMDGPUInstPrinter::printOperandAndIntInputMods(const MCInst *MI,
                                                     unsigned OpNo,
                                                     const MCSubtargetInfo &STI,
                                                     raw_ostream &O) {
-  const MCInstrDesc &Desc = MII.get(MI->getOpcode());
-  if (needsImpliedVcc(Desc, OpNo))
+  
+  if (const MCInstrDesc &Desc = MII.get(MI->getOpcode()); needsImpliedVcc(Desc, OpNo))
     printDefaultVccOperand(true, STI, O);
 
   unsigned InputModifiers = MI->getOperand(OpNo).getImm();
@@ -1053,9 +1053,9 @@ void AMDGPUInstPrinter::printDPPCtrl(const MCInst *MI, unsigned OpNo,
   using namespace AMDGPU::DPP;
 
   unsigned Imm = MI->getOperand(OpNo).getImm();
-  const MCInstrDesc &Desc = MII.get(MI->getOpcode());
+  
 
-  if (!AMDGPU::isLegalDPALU_DPPControl(STI, Imm) &&
+  if (const MCInstrDesc &Desc = MII.get(MI->getOpcode()); !AMDGPU::isLegalDPALU_DPPControl(STI, Imm) &&
       AMDGPU::isDPALU_DPP(Desc, MII, STI)) {
     O << " /* DP ALU dpp only supports "
       << (isGFX12(STI) ? "row_share" : "row_newbcast") << " */";
@@ -1143,8 +1143,8 @@ void AMDGPUInstPrinter::printDPPCtrl(const MCInst *MI, unsigned OpNo,
 void AMDGPUInstPrinter::printDppBoundCtrl(const MCInst *MI, unsigned OpNo,
                                           const MCSubtargetInfo &STI,
                                           raw_ostream &O) {
-  unsigned Imm = MI->getOperand(OpNo).getImm();
-  if (Imm) {
+  
+  if (unsigned Imm = MI->getOperand(OpNo).getImm(); Imm) {
     O << " bound_ctrl:1";
   }
 }
@@ -1152,8 +1152,8 @@ void AMDGPUInstPrinter::printDppBoundCtrl(const MCInst *MI, unsigned OpNo,
 void AMDGPUInstPrinter::printDppFI(const MCInst *MI, unsigned OpNo,
                                    const MCSubtargetInfo &STI, raw_ostream &O) {
   using namespace llvm::AMDGPU::DPP;
-  unsigned Imm = MI->getOperand(OpNo).getImm();
-  if (Imm == DPP_FI_1 || Imm == DPP8_FI_1) {
+  
+  if (unsigned Imm = MI->getOperand(OpNo).getImm(); Imm == DPP_FI_1 || Imm == DPP8_FI_1) {
     O << " fi:1";
   }
 }
@@ -1162,8 +1162,8 @@ void AMDGPUInstPrinter::printSDWASel(const MCInst *MI, unsigned OpNo,
                                      raw_ostream &O) {
   using namespace llvm::AMDGPU::SDWA;
 
-  unsigned Imm = MI->getOperand(OpNo).getImm();
-  switch (Imm) {
+  
+  switch (unsigned Imm = MI->getOperand(OpNo).getImm(); Imm) {
   case SdwaSel::BYTE_0: O << "BYTE_0"; break;
   case SdwaSel::BYTE_1: O << "BYTE_1"; break;
   case SdwaSel::BYTE_2: O << "BYTE_2"; break;
@@ -1202,8 +1202,8 @@ void AMDGPUInstPrinter::printSDWADstUnused(const MCInst *MI, unsigned OpNo,
   using namespace llvm::AMDGPU::SDWA;
 
   O << "dst_unused:";
-  unsigned Imm = MI->getOperand(OpNo).getImm();
-  switch (Imm) {
+  
+  switch (unsigned Imm = MI->getOperand(OpNo).getImm(); Imm) {
   case DstUnused::UNUSED_PAD: O << "UNUSED_PAD"; break;
   case DstUnused::UNUSED_SEXT: O << "UNUSED_SEXT"; break;
   case DstUnused::UNUSED_PRESERVE: O << "UNUSED_PRESERVE"; break;
@@ -1218,10 +1218,10 @@ void AMDGPUInstPrinter::printExpSrcN(const MCInst *MI, unsigned OpNo,
   int EnIdx = AMDGPU::getNamedOperandIdx(Opc, AMDGPU::OpName::en);
   unsigned En = MI->getOperand(EnIdx).getImm();
 
-  int ComprIdx = AMDGPU::getNamedOperandIdx(Opc, AMDGPU::OpName::compr);
+  
 
   // If compr is set, print as src0, src0, src1, src1
-  if (MI->getOperand(ComprIdx).getImm())
+  if (int ComprIdx = AMDGPU::getNamedOperandIdx(Opc, AMDGPU::OpName::compr); MI->getOperand(ComprIdx).getImm())
     OpNo = OpNo - N + N / 2;
 
   if (En & (1 << N))
@@ -1263,8 +1263,8 @@ void AMDGPUInstPrinter::printExpTgt(const MCInst *MI, unsigned OpNo,
   unsigned Id = MI->getOperand(OpNo).getImm() & ((1 << 6) - 1);
 
   int Index;
-  StringRef TgtName;
-  if (getTgtName(Id, TgtName, Index) && isSupportedTgtId(Id, STI)) {
+  
+  if (StringRef TgtName; getTgtName(Id, TgtName, Index) && isSupportedTgtId(Id, STI)) {
     O << ' ' << TgtName;
     if (Index >= 0)
       O << Index;
@@ -1335,8 +1335,8 @@ void AMDGPUInstPrinter::printPackedModifier(const MCInst *MI,
     for (AMDGPU::OpName OpName :
          {AMDGPU::OpName::src0_modifiers, AMDGPU::OpName::src1_modifiers,
           AMDGPU::OpName::src2_modifiers}) {
-      int Idx = AMDGPU::getNamedOperandIdx(Opc, OpName);
-      if (Idx != -1)
+      
+      if (int Idx = AMDGPU::getNamedOperandIdx(Opc, OpName); Idx != -1)
         Ops[NumOps++] = MI->getOperand(Idx).getImm();
       else
         Ops[NumOps++] = DefaultValue;
@@ -1374,8 +1374,8 @@ void AMDGPUInstPrinter::printOpSel(const MCInst *MI, unsigned,
         AMDGPU::getNamedOperandIdx(Opc, AMDGPU::OpName::src0_modifiers);
     unsigned Mod = MI->getOperand(SrcMod).getImm();
     unsigned Index0 = !!(Mod & SISrcMods::OP_SEL_0);
-    unsigned Index1 = !!(Mod & SISrcMods::OP_SEL_1);
-    if (Index0 || Index1)
+    
+    if (unsigned Index1 = !!(Mod & SISrcMods::OP_SEL_1); Index0 || Index1)
       O << " op_sel:[" << Index0 << ',' << Index1 << ']';
     return;
   }
@@ -1383,8 +1383,8 @@ void AMDGPUInstPrinter::printOpSel(const MCInst *MI, unsigned,
     auto FIN = AMDGPU::getNamedOperandIdx(Opc, AMDGPU::OpName::src0_modifiers);
     auto BCN = AMDGPU::getNamedOperandIdx(Opc, AMDGPU::OpName::src1_modifiers);
     unsigned FI = !!(MI->getOperand(FIN).getImm() & SISrcMods::OP_SEL_0);
-    unsigned BC = !!(MI->getOperand(BCN).getImm() & SISrcMods::OP_SEL_0);
-    if (FI || BC)
+    
+    if (unsigned BC = !!(MI->getOperand(BCN).getImm() & SISrcMods::OP_SEL_0); FI || BC)
       O << " op_sel:[" << FI << ',' << BC << ']';
     return;
   }
@@ -1554,8 +1554,8 @@ void AMDGPUInstPrinter::printMatrixBScaleFmt(const MCInst *MI, unsigned OpNo,
 void AMDGPUInstPrinter::printInterpSlot(const MCInst *MI, unsigned OpNum,
                                         const MCSubtargetInfo &STI,
                                         raw_ostream &O) {
-  unsigned Imm = MI->getOperand(OpNum).getImm();
-  switch (Imm) {
+  
+  switch (unsigned Imm = MI->getOperand(OpNum).getImm(); Imm) {
   case 0:
     O << "p10";
     break;
@@ -1588,9 +1588,9 @@ void AMDGPUInstPrinter::printGPRIdxMode(const MCInst *MI, unsigned OpNo,
                                         const MCSubtargetInfo &STI,
                                         raw_ostream &O) {
   using namespace llvm::AMDGPU::VGPRIndexMode;
-  unsigned Val = MI->getOperand(OpNo).getImm();
+  
 
-  if ((Val & ~ENABLE_MASK) != 0) {
+  if (unsigned Val = MI->getOperand(OpNo).getImm(); (Val & ~ENABLE_MASK) != 0) {
     O << formatHex(static_cast<uint64_t>(Val));
   } else {
     O << "gpr_idx(";
@@ -1634,8 +1634,8 @@ void AMDGPUInstPrinter::printIfSet(const MCInst *MI, unsigned OpNo,
 void AMDGPUInstPrinter::printOModSI(const MCInst *MI, unsigned OpNo,
                                     const MCSubtargetInfo &STI,
                                     raw_ostream &O) {
-  int Imm = MI->getOperand(OpNo).getImm();
-  if (Imm == SIOutMods::MUL2)
+  
+  if (int Imm = MI->getOperand(OpNo).getImm(); Imm == SIOutMods::MUL2)
     O << " mul:2";
   else if (Imm == SIOutMods::MUL4)
     O << " mul:4";
@@ -1655,9 +1655,9 @@ void AMDGPUInstPrinter::printSendMsg(const MCInst *MI, unsigned OpNo,
   uint16_t StreamId;
   decodeMsg(Imm16, MsgId, OpId, StreamId, STI);
 
-  StringRef MsgName = getMsgName(MsgId, STI);
+  
 
-  if (!MsgName.empty() && isValidMsgOp(MsgId, OpId, STI) &&
+  if (StringRef MsgName = getMsgName(MsgId, STI); !MsgName.empty() && isValidMsgOp(MsgId, OpId, STI) &&
       isValidMsgStream(MsgId, OpId, StreamId, STI)) {
     O << "sendmsg(" << MsgName;
     if (msgRequiresOp(MsgId, STI)) {
@@ -1687,9 +1687,9 @@ static void printSwizzleBitmask(const uint16_t AndMask,
 
   for (unsigned Mask = 1 << (BITMASK_WIDTH - 1); Mask > 0; Mask >>= 1) {
     uint16_t p0 = Probe0 & Mask;
-    uint16_t p1 = Probe1 & Mask;
+    
 
-    if (p0 == p1) {
+    if (uint16_t p1 = Probe1 & Mask; p0 == p1) {
       if (p0 == 0) {
         O << "0";
       } else {
@@ -1746,9 +1746,9 @@ void AMDGPUInstPrinter::printSwizzle(const MCInst *MI, unsigned OpNo,
 
     uint16_t AndMask = (Imm >> BITMASK_AND_SHIFT) & BITMASK_MASK;
     uint16_t OrMask  = (Imm >> BITMASK_OR_SHIFT)  & BITMASK_MASK;
-    uint16_t XorMask = (Imm >> BITMASK_XOR_SHIFT) & BITMASK_MASK;
+    
 
-    if (AndMask == BITMASK_MAX && OrMask == 0 && llvm::popcount(XorMask) == 1) {
+    if (uint16_t XorMask = (Imm >> BITMASK_XOR_SHIFT) & BITMASK_MASK; AndMask == BITMASK_MAX && OrMask == 0 && llvm::popcount(XorMask) == 1) {
 
       O << "swizzle(" << IdSymbolic[ID_SWAP];
       O << ",";
@@ -1765,8 +1765,8 @@ void AMDGPUInstPrinter::printSwizzle(const MCInst *MI, unsigned OpNo,
 
     } else {
 
-      uint16_t GroupSize = BITMASK_MAX - AndMask + 1;
-      if (GroupSize > 1 &&
+      
+      if (uint16_t GroupSize = BITMASK_MAX - AndMask + 1; GroupSize > 1 &&
           isPowerOf2_64(GroupSize) &&
           OrMask < GroupSize &&
           XorMask == 0) {
@@ -1823,8 +1823,8 @@ void AMDGPUInstPrinter::printDepCtr(const MCInst *MI, unsigned OpNo,
 
   uint64_t Imm16 = MI->getOperand(OpNo).getImm() & 0xffff;
 
-  bool HasNonDefaultVal = false;
-  if (isSymbolicDepCtrEncoding(Imm16, HasNonDefaultVal, STI)) {
+  
+  if (bool HasNonDefaultVal = false; isSymbolicDepCtrEncoding(Imm16, HasNonDefaultVal, STI)) {
     int Id = 0;
     StringRef Name;
     unsigned Val;
@@ -1915,8 +1915,8 @@ void AMDGPUInstPrinter::printNamedInt(const MCInst *MI, unsigned OpNo,
                                       const MCSubtargetInfo &STI,
                                       raw_ostream &O, StringRef Prefix,
                                       bool PrintInHex, bool AlwaysPrint) {
-  int64_t V = MI->getOperand(OpNo).getImm();
-  if (AlwaysPrint || V != 0)
+  
+  if (int64_t V = MI->getOperand(OpNo).getImm(); AlwaysPrint || V != 0)
     O << ' ' << Prefix << ':' << (PrintInHex ? formatHex(V) : formatDec(V));
 }
 

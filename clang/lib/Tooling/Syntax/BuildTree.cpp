@@ -46,10 +46,10 @@ using namespace clang;
 // wrapping `1` in `X x = 1;`.
 static Expr *IgnoreImplicitConstructorSingleStep(Expr *E) {
   if (auto *C = dyn_cast<CXXConstructExpr>(E)) {
-    auto NumArgs = C->getNumArgs();
-    if (NumArgs == 1 || (NumArgs > 1 && isa<CXXDefaultArgExpr>(C->getArg(1)))) {
-      Expr *A = C->getArg(0);
-      if (C->getParenOrBraceRange().isInvalid())
+    
+    if (auto NumArgs = C->getNumArgs(); NumArgs == 1 || (NumArgs > 1 && isa<CXXDefaultArgExpr>(C->getArg(1)))) {
+      
+      if (Expr *A = C->getArg(0); C->getParenOrBraceRange().isInvalid())
         return A;
     }
   }
@@ -97,8 +97,8 @@ namespace {
 /// returns.
 struct GetStartLoc : TypeLocVisitor<GetStartLoc, SourceLocation> {
   SourceLocation VisitParenTypeLoc(ParenTypeLoc T) {
-    auto L = Visit(T.getInnerLoc());
-    if (L.isValid())
+    
+    if (auto L = Visit(T.getInnerLoc()); L.isValid())
       return L;
     return T.getLParenLoc();
   }
@@ -143,8 +143,8 @@ struct GetStartLoc : TypeLocVisitor<GetStartLoc, SourceLocation> {
 
 private:
   template <class PtrLoc> SourceLocation HandlePointer(PtrLoc T) {
-    auto L = Visit(T.getPointeeLoc());
-    if (L.isValid())
+    
+    if (auto L = Visit(T.getPointeeLoc()); L.isValid())
       return L;
     return T.getLocalSourceRange().getBegin();
   }
@@ -248,8 +248,8 @@ static SourceLocation getQualifiedNameStart(NamedDecl *D) {
          "only DeclaratorDecl and TypedefNameDecl are supported.");
 
   auto DN = D->getDeclName();
-  bool IsAnonymous = DN.isIdentifier() && !DN.getAsIdentifierInfo();
-  if (IsAnonymous)
+  
+  if (bool IsAnonymous = DN.isIdentifier() && !DN.getAsIdentifierInfo(); IsAnonymous)
     return SourceLocation();
 
   if (const auto *DD = dyn_cast<DeclaratorDecl>(D)) {
@@ -268,9 +268,9 @@ static SourceLocation getQualifiedNameStart(NamedDecl *D) {
 ///     `int a()` -> range of `()`.
 static SourceRange getInitializerRange(Decl *D) {
   if (auto *V = dyn_cast<VarDecl>(D)) {
-    auto *I = V->getInit();
+    
     // Initializers in range-based-for are not part of the declarator
-    if (I && !V->isCXXForRangeDecl())
+    if (auto *I = V->getInit(); I && !V->isCXXForRangeDecl())
       return I->getSourceRange();
   }
 
@@ -900,11 +900,11 @@ public:
       auto TokLoc = S->getBeginLoc();
       auto TokSpelling =
           Builder.findToken(TokLoc)->text(Context.getSourceManager());
-      auto Literal =
+      
+      if (auto Literal =
           NumericLiteralParser(TokSpelling, TokLoc, Context.getSourceManager(),
                                Context.getLangOpts(), Context.getTargetInfo(),
-                               Context.getDiagnostics());
-      if (Literal.isIntegerLiteral())
+                               Context.getDiagnostics()); Literal.isIntegerLiteral())
         return new (allocator()) syntax::IntegerUserDefinedLiteralExpression;
       else {
         assert(Literal.isFloatingLiteral());
@@ -954,8 +954,8 @@ public:
       return buildIdentifier(NNSLoc.getLocalSourceRange(), /*DropBack=*/true);
 
     case NestedNameSpecifier::Kind::Type: {
-      TypeLoc TL = NNSLoc.castAsTypeLoc();
-      switch (TL.getTypeLocClass()) {
+      
+      switch (TypeLoc TL = NNSLoc.castAsTypeLoc(); TL.getTypeLocClass()) {
       case TypeLoc::Record:
       case TypeLoc::InjectedClassName:
       case TypeLoc::Enum:
@@ -1186,9 +1186,9 @@ public:
     auto Args = dropDefaultArgs(ArgsAndDefaultArgs);
     for (auto *Arg : Args) {
       Builder.markExprChild(Arg, syntax::NodeRole::ListElement);
-      const auto *DelimiterToken =
-          std::next(Builder.findToken(Arg->getEndLoc()));
-      if (DelimiterToken->kind() == clang::tok::TokenKind::comma)
+      
+      if (const auto *DelimiterToken =
+          std::next(Builder.findToken(Arg->getEndLoc())); DelimiterToken->kind() == clang::tok::TokenKind::comma)
         Builder.markChildToken(DelimiterToken, syntax::NodeRole::ListDelimiter);
     }
 
@@ -1204,11 +1204,11 @@ public:
   bool WalkUpFromCallExpr(CallExpr *S) {
     Builder.markExprChild(S->getCallee(), syntax::NodeRole::Callee);
 
-    const auto *LParenToken =
-        std::next(Builder.findToken(S->getCallee()->getEndLoc()));
+    
     // FIXME: Assert that `LParenToken` is indeed a `l_paren` once we have fixed
     // the test on decltype desctructors.
-    if (LParenToken->kind() == clang::tok::l_paren)
+    if (const auto *LParenToken =
+        std::next(Builder.findToken(S->getCallee()->getEndLoc())); LParenToken->kind() == clang::tok::l_paren)
       Builder.markChildToken(LParenToken, syntax::NodeRole::OpenParen);
 
     Builder.markChild(buildCallArguments(S->arguments()),
@@ -1281,11 +1281,11 @@ public:
     case syntax::NodeKind::CallExpression: {
       Builder.markExprChild(S->getArg(0), syntax::NodeRole::Callee);
 
-      const auto *LParenToken =
-          std::next(Builder.findToken(S->getArg(0)->getEndLoc()));
+      
       // FIXME: Assert that `LParenToken` is indeed a `l_paren` once we have
       // fixed the test on decltype desctructors.
-      if (LParenToken->kind() == clang::tok::l_paren)
+      if (const auto *LParenToken =
+          std::next(Builder.findToken(S->getArg(0)->getEndLoc())); LParenToken->kind() == clang::tok::l_paren)
         Builder.markChildToken(LParenToken, syntax::NodeRole::OpenParen);
 
       Builder.markChild(buildCallArguments(CallExpr::arg_range(
@@ -1350,8 +1350,8 @@ public:
   buildParameterDeclarationList(ArrayRef<ParmVarDecl *> Params) {
     for (auto *P : Params) {
       Builder.markChild(P, syntax::NodeRole::ListElement);
-      const auto *DelimiterToken = std::next(Builder.findToken(P->getEndLoc()));
-      if (DelimiterToken->kind() == clang::tok::TokenKind::comma)
+      
+      if (const auto *DelimiterToken = std::next(Builder.findToken(P->getEndLoc())); DelimiterToken->kind() == clang::tok::TokenKind::comma)
         Builder.markChildToken(DelimiterToken, syntax::NodeRole::ListDelimiter);
     }
     auto *Parameters = new (allocator()) syntax::ParameterDeclarationList;
@@ -1589,8 +1589,8 @@ private:
     if (!Builder.isResponsibleForCreatingDeclaration(D)) {
       // If this is not the last declarator in the declaration we expect a
       // delimiter after it.
-      const auto *DelimiterToken = std::next(Builder.findToken(Range.getEnd()));
-      if (DelimiterToken->kind() == clang::tok::TokenKind::comma)
+      
+      if (const auto *DelimiterToken = std::next(Builder.findToken(Range.getEnd())); DelimiterToken->kind() == clang::tok::TokenKind::comma)
         Builder.markChildToken(DelimiterToken, syntax::NodeRole::ListDelimiter);
     } else {
       auto *DL = new (allocator()) syntax::DeclaratorList;

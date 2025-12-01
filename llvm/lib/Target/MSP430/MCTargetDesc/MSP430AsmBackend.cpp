@@ -77,8 +77,8 @@ public:
 uint64_t MSP430AsmBackend::adjustFixupValue(const MCFixup &Fixup,
                                             uint64_t Value,
                                             MCContext &Ctx) const {
-  unsigned Kind = Fixup.getKind();
-  switch (Kind) {
+  
+  switch (unsigned Kind = Fixup.getKind(); Kind) {
   case MSP430::fixup_10_pcrel: {
     if (Value & 0x1)
       Ctx.reportError(Fixup.getLoc(), "fixup value must be 2-byte aligned");

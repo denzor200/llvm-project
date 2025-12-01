@@ -380,8 +380,8 @@ AMDGPULibFunc::Param ParamIterator::getNextParam() {
   AMDGPULibFunc::Param P;
   if (Index >= int(sizeof Rule.Param/sizeof Rule.Param[0])) return P;
 
-  const char R = Rule.Param[Index];
-  switch (R) {
+  
+  switch (const char R = Rule.Param[Index]; R) {
   case E_NONE:     break;
   case EX_UINT:
     P.ArgType = AMDGPULibFunc::U32; break;
@@ -541,8 +541,8 @@ AMDGPUMangledLibFunc::AMDGPUMangledLibFunc(EFuncId id, FunctionType *FT,
 // Demangling
 
 static int parseVecSize(StringRef& mangledName) {
-  size_t const Len = eatNumber(mangledName);
-  switch (Len) {
+  
+  switch (size_t const Len = eatNumber(mangledName); Len) {
   case 2: case 3: case 4: case 8: case 16:
     return Len;
   default:
@@ -618,8 +618,8 @@ bool ItaniumParamParser::parseItaniumParam(StringRef& param,
   }
 
   // parse type
-  char const TC = param.front();
-  if (isDigit(TC)) {
+  
+  if (char const TC = param.front(); isDigit(TC)) {
     res.ArgType =
         StringSwitch<AMDGPULibFunc::EType>(eatLengthPrefixedName(param))
             .StartsWith("ocl_image1d_array", AMDGPULibFunc::IMG1DA)
@@ -707,8 +707,8 @@ bool AMDGPULibFunc::parse(StringRef FuncName, AMDGPULibFunc &F) {
 }
 
 StringRef AMDGPUMangledLibFunc::getUnmangledName(StringRef mangledName) {
-  StringRef S = mangledName;
-  if (eatTerm(S, "_Z"))
+  
+  if (StringRef S = mangledName; eatTerm(S, "_Z"))
     return eatLengthPrefixedName(S);
   return StringRef();
 }
@@ -796,8 +796,8 @@ class ItaniumMangler {
 
   int findSubst(const AMDGPULibFunc::Param& P) const {
     for(unsigned I = 0; I < Str.size(); ++I) {
-      const AMDGPULibFunc::Param& T = Str[I];
-      if (P.PtrKind    == T.PtrKind &&
+      
+      if (const AMDGPULibFunc::Param& T = Str[I]; P.PtrKind    == T.PtrKind &&
           P.VectorSize == T.VectorSize &&
           P.ArgType    == T.ArgType) {
         return I;
@@ -842,10 +842,10 @@ public:
       os << 'P';
       if (p.PtrKind & AMDGPULibFunc::CONST) os << 'K';
       if (p.PtrKind & AMDGPULibFunc::VOLATILE) os << 'V';
-      unsigned AS = UseAddrSpace
+      
+      if (unsigned AS = UseAddrSpace
                         ? AMDGPULibFuncBase::getAddrSpaceFromEPtrKind(p.PtrKind)
-                        : 0;
-      if (EnableOCLManglingMismatchWA || AS != 0)
+                        : 0; EnableOCLManglingMismatchWA || AS != 0)
         os << "U3AS" << AS;
       Ptr = p;
       p.PtrKind = 0;
@@ -1085,10 +1085,10 @@ Function *AMDGPULibFunc::getFunction(Module *M, const AMDGPULibFunc &fInfo) {
 FunctionCallee AMDGPULibFunc::getOrInsertFunction(Module *M,
                                                   const AMDGPULibFunc &fInfo) {
   std::string const FuncName = fInfo.mangle();
-  Function *F = dyn_cast_or_null<Function>(
-    M->getValueSymbolTable().lookup(FuncName));
+  
 
-  if (F) {
+  if (Function *F = dyn_cast_or_null<Function>(
+    M->getValueSymbolTable().lookup(FuncName)); F) {
     if (F->hasFnAttribute(Attribute::NoBuiltin))
       return nullptr;
     if (!F->isDeclaration() &&
@@ -1104,8 +1104,8 @@ FunctionCallee AMDGPULibFunc::getOrInsertFunction(Module *M,
          PI = FuncTy->param_begin(),
          PE = FuncTy->param_end();
        PI != PE; ++PI) {
-    const Type* argTy = static_cast<const Type*>(*PI);
-    if (argTy->isPointerTy()) {
+    
+    if (const Type* argTy = static_cast<const Type*>(*PI); argTy->isPointerTy()) {
       hasPtr = true;
       break;
     }

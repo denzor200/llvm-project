@@ -71,8 +71,8 @@ LayoutOverrideSource::LayoutOverrideSource(StringRef Filename) {
     if (ExpectingType) {
       ExpectingType = false;
 
-      StringRef::size_type Pos;
-      if ((Pos = LineStr.find("struct ")) != StringRef::npos)
+      
+      if (StringRef::size_type Pos; (Pos = LineStr.find("struct ")) != StringRef::npos)
         LineStr = LineStr.substr(Pos + strlen("struct "));
       else if ((Pos = LineStr.find("class ")) != StringRef::npos)
         LineStr = LineStr.substr(Pos + strlen("class "));
@@ -93,8 +93,8 @@ LayoutOverrideSource::LayoutOverrideSource(StringRef Filename) {
       // Skip past the " Size:" prefix.
       LineStr = LineStr.substr(Pos + strlen(" Size:"));
 
-      unsigned long long Size = 0;
-      if (parseUnsigned(LineStr, Size))
+      
+      if (unsigned long long Size = 0; parseUnsigned(LineStr, Size))
         CurrentLayout.Size = Size;
       continue;
     }
@@ -105,8 +105,8 @@ LayoutOverrideSource::LayoutOverrideSource(StringRef Filename) {
       // Skip past the "Alignment:" prefix.
       LineStr = LineStr.substr(Pos + strlen("Alignment:"));
 
-      unsigned long long Alignment = 0;
-      if (parseUnsigned(LineStr, Alignment))
+      
+      if (unsigned long long Alignment = 0; parseUnsigned(LineStr, Alignment))
         CurrentLayout.Align = Alignment;
       continue;
     }
@@ -119,8 +119,8 @@ LayoutOverrideSource::LayoutOverrideSource(StringRef Filename) {
       LineStr = LineStr.substr(Pos + strlen("sizeof="));
 
       // Parse size.
-      unsigned long long Size = 0;
-      if (parseUnsigned(LineStr, Size))
+      
+      if (unsigned long long Size = 0; parseUnsigned(LineStr, Size))
         CurrentLayout.Size = Size * 8;
 
       Pos = LineStr.find("align=");
@@ -129,8 +129,8 @@ LayoutOverrideSource::LayoutOverrideSource(StringRef Filename) {
         LineStr = LineStr.substr(Pos + strlen("align="));
 
         // Parse alignment.
-        unsigned long long Alignment = 0;
-        if (parseUnsigned(LineStr, Alignment))
+        
+        if (unsigned long long Alignment = 0; parseUnsigned(LineStr, Alignment))
           CurrentLayout.Align = Alignment * 8;
       }
 
@@ -142,8 +142,8 @@ LayoutOverrideSource::LayoutOverrideSource(StringRef Filename) {
     if (Pos != StringRef::npos) {
       LineStr = LineStr.substr(Pos + strlen("FieldOffsets: ["));
       while (!LineStr.empty() && isDigit(LineStr[0])) {
-        unsigned long long Offset = 0;
-        if (parseUnsigned(LineStr, Offset))
+        
+        if (unsigned long long Offset = 0; parseUnsigned(LineStr, Offset))
           CurrentLayout.FieldOffsets.push_back(Offset);
 
         // Skip over this offset, the following comma, and any spaces.
@@ -157,8 +157,8 @@ LayoutOverrideSource::LayoutOverrideSource(StringRef Filename) {
     if (Pos != StringRef::npos) {
       LineStr = LineStr.substr(Pos + strlen("VBaseOffsets: ["));
       while (!LineStr.empty() && isDigit(LineStr[0])) {
-        unsigned long long Offset = 0;
-        if (parseUnsigned(LineStr, Offset))
+        
+        if (unsigned long long Offset = 0; parseUnsigned(LineStr, Offset))
           CurrentLayout.VBaseOffsets.push_back(CharUnits::fromQuantity(Offset));
 
         // Skip over this offset, the following comma, and any spaces.
@@ -173,8 +173,8 @@ LayoutOverrideSource::LayoutOverrideSource(StringRef Filename) {
     if (Pos != StringRef::npos) {
       LineStr = LineStr.substr(Pos + strlen("BaseOffsets: ["));
       while (!LineStr.empty() && isDigit(LineStr[0])) {
-        unsigned long long Offset = 0;
-        if (parseUnsigned(LineStr, Offset))
+        
+        if (unsigned long long Offset = 0; parseUnsigned(LineStr, Offset))
           CurrentLayout.BaseOffsets.push_back(CharUnits::fromQuantity(Offset));
 
         // Skip over this offset, the following comma, and any spaces.

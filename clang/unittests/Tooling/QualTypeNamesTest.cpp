@@ -25,9 +25,9 @@ struct TypeNameVisitor : TestVisitor {
       Policy.AnonymousTagLocations = true;
       Policy.PolishForDeclaration = true;
       Policy.SuppressUnwrittenScope = true;
-      std::string ActualName = TypeName::getFullyQualifiedName(
-          VD->getType(), *Context, Policy, WithGlobalNsPrefix);
-      if (ExpectedName != ActualName) {
+      
+      if (std::string ActualName = TypeName::getFullyQualifiedName(
+          VD->getType(), *Context, Policy, WithGlobalNsPrefix); ExpectedName != ActualName) {
         // A custom message makes it much easier to see what declaration
         // failed compared to EXPECT_EQ.
         ADD_FAILURE() << "Typename::getFullyQualifiedName failed for "

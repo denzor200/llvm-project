@@ -67,8 +67,8 @@ PPCTTIImpl::getPopcntSupport(unsigned TyWidth) const {
 
 std::optional<Instruction *>
 PPCTTIImpl::instCombineIntrinsic(InstCombiner &IC, IntrinsicInst &II) const {
-  Intrinsic::ID IID = II.getIntrinsicID();
-  switch (IID) {
+  
+  switch (Intrinsic::ID IID = II.getIntrinsicID(); IID) {
   default:
     break;
   case Intrinsic::ppc_altivec_lvx:
@@ -117,8 +117,8 @@ PPCTTIImpl::instCombineIntrinsic(InstCombiner &IC, IntrinsicInst &II) const {
       // Check that all of the elements are integer constants or undefs.
       bool AllEltsOk = true;
       for (unsigned I = 0; I != 16; ++I) {
-        Constant *Elt = Mask->getAggregateElement(I);
-        if (!Elt || !(isa<ConstantInt>(Elt) || isa<UndefValue>(Elt))) {
+        
+        if (Constant *Elt = Mask->getAggregateElement(I); !Elt || !(isa<ConstantInt>(Elt) || isa<UndefValue>(Elt))) {
           AllEltsOk = false;
           break;
         }
@@ -353,8 +353,8 @@ bool PPCTTIImpl::isHardwareLoopProfitable(Loop *L, ScalarEvolution &SE,
       TM.getTargetTransformInfo(*L->getHeader()->getParent());
 
   // Do not convert small short loops to CTR loop.
-  unsigned ConstTripCount = SE.getSmallConstantTripCount(L);
-  if (ConstTripCount && ConstTripCount < SmallCTRLoopThreshold) {
+  
+  if (unsigned ConstTripCount = SE.getSmallConstantTripCount(L); ConstTripCount && ConstTripCount < SmallCTRLoopThreshold) {
     SmallPtrSet<const Value *, 32> EphValues;
     CodeMetrics::collectEphemeralValues(L, &AC, EphValues);
     CodeMetrics Metrics;
@@ -508,9 +508,9 @@ PPCTTIImpl::getRegisterBitWidth(TargetTransformInfo::RegisterKind K) const {
 
 unsigned PPCTTIImpl::getCacheLineSize() const {
   // Starting with P7 we have a cache line size of 128.
-  unsigned Directive = ST->getCPUDirective();
+  
   // Assume that Future CPU has the same cache line size as the others.
-  if (Directive == PPC::DIR_PWR7 || Directive == PPC::DIR_PWR8 ||
+  if (unsigned Directive = ST->getCPUDirective(); Directive == PPC::DIR_PWR7 || Directive == PPC::DIR_PWR8 ||
       Directive == PPC::DIR_PWR9 || Directive == PPC::DIR_PWR10 ||
       Directive == PPC::DIR_PWR11 || Directive == PPC::DIR_PWR_FUTURE)
     return 128;
@@ -582,8 +582,8 @@ InstructionCost PPCTTIImpl::vectorCostAdjustmentFactor(unsigned Opcode,
     return InstructionCost(1);
 
   if (Ty2) {
-    std::pair<InstructionCost, MVT> LT2 = getTypeLegalizationCost(Ty2);
-    if (LT2.first != 1 || !LT2.second.isVector())
+    
+    if (std::pair<InstructionCost, MVT> LT2 = getTypeLegalizationCost(Ty2); LT2.first != 1 || !LT2.second.isVector())
       return InstructionCost(1);
   }
 
@@ -711,8 +711,8 @@ InstructionCost PPCTTIImpl::getVectorInstrCost(unsigned Opcode, Type *Val,
     // Computing on 1 bit values requires extra mask or compare operations.
     unsigned MaskCostForOneBitSize = (VecMaskCost && EltSize == 1) ? 1 : 0;
     // Computing on non const index requires extra mask or compare operations.
-    unsigned MaskCostForIdx = (Index != -1U) ? 0 : 1;
-    if (ST->hasP9Altivec()) {
+    
+    if (unsigned MaskCostForIdx = (Index != -1U) ? 0 : 1; ST->hasP9Altivec()) {
       // P10 has vxform insert which can handle non const index. The
       // MaskCostForIdx is for masking the index.
       // P9 has insert for const index. A move-to VSR and a permute/insert.
@@ -729,8 +729,8 @@ InstructionCost PPCTTIImpl::getVectorInstrCost(unsigned Opcode, Type *Val,
         if (EltSize == 64 && Index != -1U)
           return 1;
         if (EltSize == 32) {
-          unsigned MfvsrwzIndex = ST->isLittleEndian() ? 2 : 1;
-          if (Index == MfvsrwzIndex)
+          
+          if (unsigned MfvsrwzIndex = ST->isLittleEndian() ? 2 : 1; Index == MfvsrwzIndex)
             return 1;
 
           // For other indexs like non const, P9 has vxform extract. The
@@ -868,9 +868,9 @@ InstructionCost PPCTTIImpl::getInterleavedMemoryOpCost(
     unsigned Opcode, Type *VecTy, unsigned Factor, ArrayRef<unsigned> Indices,
     Align Alignment, unsigned AddressSpace, TTI::TargetCostKind CostKind,
     bool UseMaskForCond, bool UseMaskForGaps) const {
-  InstructionCost CostFactor =
-      vectorCostAdjustmentFactor(Opcode, VecTy, nullptr);
-  if (!CostFactor.isValid())
+  
+  if (InstructionCost CostFactor =
+      vectorCostAdjustmentFactor(Opcode, VecTy, nullptr); !CostFactor.isValid())
     return InstructionCost::getMax();
 
   if (UseMaskForCond || UseMaskForGaps)
@@ -976,9 +976,9 @@ bool PPCTTIImpl::isLSRCostLess(const TargetTransformInfo::LSRCost &C1,
 bool PPCTTIImpl::isNumRegsMajorCostOfLSR() const { return false; }
 
 bool PPCTTIImpl::shouldBuildRelLookupTables() const {
-  const PPCTargetMachine &TM = ST->getTargetMachine();
+  
   // XCOFF hasn't implemented lowerRelativeReference, disable non-ELF for now.
-  if (!TM.isELFv2ABI())
+  if (const PPCTargetMachine &TM = ST->getTargetMachine(); !TM.isELFv2ABI())
     return false;
   return BaseT::shouldBuildRelLookupTables();
 }

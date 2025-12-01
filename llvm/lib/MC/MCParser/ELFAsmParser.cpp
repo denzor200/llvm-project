@@ -347,8 +347,8 @@ unsigned ELFAsmParser::parseSunStyleSectionFlags() {
     if (!getLexer().is(AsmToken::Identifier))
       return -1U;
 
-    StringRef flagId = getTok().getIdentifier();
-    if (flagId == "alloc")
+    
+    if (StringRef flagId = getTok().getIdentifier(); flagId == "alloc")
       flags |= ELF::SHF_ALLOC;
     else if (flagId == "execinstr")
       flags |= ELF::SHF_EXECINSTR;
@@ -675,8 +675,8 @@ EndStmt:
   if (getContext().getGenDwarfForAssembly() &&
       (Section->getFlags() & ELF::SHF_ALLOC) &&
       (Section->getFlags() & ELF::SHF_EXECINSTR)) {
-    bool InsertResult = getContext().addGenDwarfSection(Section);
-    if (InsertResult && getContext().getDwarfVersion() <= 2)
+    
+    if (bool InsertResult = getContext().addGenDwarfSection(Section); InsertResult && getContext().getDwarfVersion() <= 2)
       Warning(loc, "DWARF2 only supports one section per compilation unit");
   }
 

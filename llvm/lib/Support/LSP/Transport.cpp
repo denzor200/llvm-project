@@ -68,8 +68,8 @@ void Reply::operator()(llvm::Expected<llvm::json::Value> Reply) {
   }
   assert(Transport && "expected valid transport to reply to");
 
-  std::lock_guard<std::mutex> TransportLock(TransportOutputMutex);
-  if (Reply) {
+  
+  if (std::lock_guard<std::mutex> TransportLock(TransportOutputMutex); Reply) {
     Logger::info("--> reply:{0}({1})", Method, Id);
     Transport->reply(std::move(Id), std::move(Reply));
   } else {
@@ -91,8 +91,8 @@ bool MessageHandler::onNotify(llvm::StringRef Method, llvm::json::Value Value) {
   if (Method == "$cancel") {
     // TODO: Add support for cancelling requests.
   } else {
-    auto It = NotificationHandlers.find(Method);
-    if (It != NotificationHandlers.end())
+    
+    if (auto It = NotificationHandlers.find(Method); It != NotificationHandlers.end())
       It->second(std::move(Value));
   }
   return true;
@@ -313,8 +313,8 @@ JSONTransportInputOverFile::readStandardMessage(std::string &Json) {
       return failure();
 
     // Content-Length is a mandatory header, and the only one we handle.
-    StringRef LineRef = Line;
-    if (LineRef.consume_front("Content-Length: ")) {
+    
+    if (StringRef LineRef = Line; LineRef.consume_front("Content-Length: ")) {
       llvm::getAsUnsignedInteger(LineRef.trim(), 0, ContentLength);
     } else if (!LineRef.trim().empty()) {
       // It's another header, ignore it.

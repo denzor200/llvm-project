@@ -104,9 +104,9 @@ Status OptionGroupPythonClassWithDict::SetOptionValue(
       if (!m_current_key.empty()) {
         if (!option_arg.empty()) {
           double d = 0;
-          std::string opt = option_arg.lower();
+          
 
-          if (llvm::to_integer(option_arg, d)) {
+          if (std::string opt = option_arg.lower(); llvm::to_integer(option_arg, d)) {
             if (opt[0] == '-')
               m_dict_sp->AddIntegerItem(m_current_key, static_cast<int64_t>(d));
             else

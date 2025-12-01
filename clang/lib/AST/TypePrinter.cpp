@@ -213,9 +213,9 @@ bool TypePrinter::canPrefixQualifiers(const Type *T,
     UnderlyingType = AT->desugar().getTypePtr();
   if (const auto *Subst = dyn_cast<SubstTemplateTypeParmType>(T))
     UnderlyingType = Subst->getReplacementType().getTypePtr();
-  Type::TypeClass TC = UnderlyingType->getTypeClass();
+  
 
-  switch (TC) {
+  switch (Type::TypeClass TC = UnderlyingType->getTypeClass(); TC) {
     case Type::Auto:
     case Type::Builtin:
     case Type::Complex:
@@ -1567,9 +1567,9 @@ void TypePrinter::printTagType(const TagType *T, raw_ostream &OS) {
       if (!HasKindDecoration)
         OS << " " << D->getKindName();
 
-      PresumedLoc PLoc = D->getASTContext().getSourceManager().getPresumedLoc(
-          D->getLocation());
-      if (PLoc.isValid()) {
+      
+      if (PresumedLoc PLoc = D->getASTContext().getSourceManager().getPresumedLoc(
+          D->getLocation()); PLoc.isValid()) {
         OS << " at ";
         StringRef File = PLoc.getFilename();
         llvm::SmallString<1024> WrittenFile(File);
@@ -1599,8 +1599,8 @@ void TypePrinter::printTagType(const TagType *T, raw_ostream &OS) {
         S->getSpecializedTemplate()->getTemplateParameters();
     const ASTTemplateArgumentListInfo *TArgAsWritten =
         S->getTemplateArgsAsWritten();
-    IncludeStrongLifetimeRAII Strong(Policy);
-    if (TArgAsWritten && !Policy.PrintAsCanonical)
+    
+    if (IncludeStrongLifetimeRAII Strong(Policy); TArgAsWritten && !Policy.PrintAsCanonical)
       printTemplateArgumentList(OS, TArgAsWritten->arguments(), Policy,
                                 TParams);
     else
@@ -1649,10 +1649,10 @@ void TypePrinter::printInjectedClassNameBefore(const InjectedClassNameType *T,
   IncludeStrongLifetimeRAII Strong(Policy);
   T->getTemplateName(Ctx).print(OS, Policy);
   if (Policy.PrintInjectedClassNameWithArguments) {
-    auto *Decl = T->getDecl();
+    
     // FIXME: Use T->getTemplateArgs(Ctx) when that supports as-written
     // arguments.
-    if (auto *RD = dyn_cast<ClassTemplateSpecializationDecl>(Decl)) {
+    if (auto *auto *Decl = T->getDecl(); RD = dyn_cast<ClassTemplateSpecializationDecl>(Decl)) {
       printTemplateArgumentList(OS, RD->getTemplateArgsAsWritten()->arguments(),
                                 Policy,
                                 T->getTemplateDecl()->getTemplateParameters());
@@ -1672,8 +1672,8 @@ void TypePrinter::printInjectedClassNameAfter(const InjectedClassNameType *T,
 
 void TypePrinter::printTemplateTypeParmBefore(const TemplateTypeParmType *T,
                                               raw_ostream &OS) {
-  TemplateTypeParmDecl *D = T->getDecl();
-  if (D && D->isImplicit()) {
+  
+  if (TemplateTypeParmDecl *D = T->getDecl(); D && D->isImplicit()) {
     if (auto *TC = D->getTypeConstraint()) {
       TC->print(OS, Policy);
       OS << ' ';
@@ -1717,8 +1717,8 @@ void TypePrinter::printSubstBuiltinTemplatePackAfter(
 void TypePrinter::printSubstTemplateTypeParmPackBefore(
                                         const SubstTemplateTypeParmPackType *T,
                                         raw_ostream &OS) {
-  IncludeStrongLifetimeRAII Strong(Policy);
-  if (const TemplateTypeParmDecl *D = T->getReplacedParameter()) {
+  
+  if (const TemplateTypeParmDecl *IncludeStrongLifetimeRAII Strong(Policy); D = T->getReplacedParameter()) {
     if (D && D->isImplicit()) {
       if (auto *TC = D->getTypeConstraint()) {
         TC->print(OS, Policy);
@@ -2156,8 +2156,8 @@ void TypePrinter::printHLSLAttributedResourceAfter(
   if (Attrs.IsCounter)
     OS << " [[hlsl::is_counter]]";
 
-  QualType ContainedTy = T->getContainedType();
-  if (!ContainedTy.isNull()) {
+  
+  if (QualType ContainedTy = T->getContainedType(); !ContainedTy.isNull()) {
     OS << " [[hlsl::contained_type(";
     printBefore(ContainedTy, OS);
     printAfter(ContainedTy, OS);
@@ -2361,8 +2361,8 @@ static bool isSubstitutedType(ASTContext &Ctx, QualType T, QualType Pattern,
   // Recurse into pointer-like types.
   {
     QualType TPointee = T->getPointeeType();
-    QualType PPointee = Pattern->getPointeeType();
-    if (!TPointee.isNull() && !PPointee.isNull())
+    
+    if (QualType PPointee = Pattern->getPointeeType(); !TPointee.isNull() && !PPointee.isNull())
       return T->getTypeClass() == Pattern->getTypeClass() &&
              isSubstitutedType(Ctx, TPointee, PPointee, Args, Depth);
   }
@@ -2518,8 +2518,8 @@ printTo(raw_ostream &OS, ArrayRef<TA> Args, const PrintingPolicy &Policy,
     // Print the argument into a string.
     SmallString<128> Buf;
     llvm::raw_svector_ostream ArgOS(Buf);
-    const TemplateArgument &Argument = getArgument(Arg);
-    if (Argument.getKind() == TemplateArgument::Pack) {
+    
+    if (const TemplateArgument &Argument = getArgument(Arg); Argument.getKind() == TemplateArgument::Pack) {
       if (Argument.pack_size() && !FirstArg)
         OS << Comma;
       printTo(ArgOS, Argument.getPackAsArray(), Policy, TPL,
@@ -2708,8 +2708,8 @@ void Qualifiers::print(raw_ostream &OS, const PrintingPolicy& Policy,
                        bool appendSpaceIfNonEmpty) const {
   bool addSpace = false;
 
-  unsigned quals = getCVRQualifiers();
-  if (quals) {
+  
+  if (unsigned quals = getCVRQualifiers(); quals) {
     AppendTypeQualList(OS, quals, Policy.Restrict);
     addSpace = true;
   }

@@ -680,8 +680,8 @@ TEST_F(MIR2VecEmbeddingTestFixture, PhysicalAndVirtualRegisterHandling) {
   // Find GR32 register class
   const TargetRegisterClass *GR32RC = nullptr;
   for (unsigned i = 0; i < TRI->getNumRegClasses(); ++i) {
-    const TargetRegisterClass *RC = TRI->getRegClass(i);
-    if (std::string(TRI->getRegClassName(RC)) == "GR32") {
+    
+    if (const TargetRegisterClass *RC = TRI->getRegClass(i); std::string(TRI->getRegClassName(RC)) == "GR32") {
       GR32RC = RC;
       break;
     }

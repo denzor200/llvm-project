@@ -130,8 +130,8 @@ static UUID parseModuleId(llvm::Triple::OSType os, llvm::StringRef str) {
 }
 
 std::optional<Record::Kind> Record::classify(llvm::StringRef Line) {
-  Token Tok = consume<Token>(Line);
-  switch (Tok) {
+  
+  switch (Token Tok = consume<Token>(Line); Tok) {
   case Token::Module:
     return Record::Module;
   case Token::Info:
@@ -307,9 +307,9 @@ static bool parsePublicOrFunc(llvm::StringRef Line, bool &Multiple,
 std::optional<FuncRecord> FuncRecord::parse(llvm::StringRef Line) {
   bool Multiple;
   lldb::addr_t Address, Size, ParamSize;
-  llvm::StringRef Name;
+  
 
-  if (parsePublicOrFunc(Line, Multiple, Address, &Size, ParamSize, Name))
+  if (llvm::StringRef Name; parsePublicOrFunc(Line, Multiple, Address, &Size, ParamSize, Name))
     return FuncRecord(Multiple, Address, Size, ParamSize, Name);
 
   return std::nullopt;
@@ -416,9 +416,9 @@ llvm::raw_ostream &breakpad::operator<<(llvm::raw_ostream &OS,
 std::optional<PublicRecord> PublicRecord::parse(llvm::StringRef Line) {
   bool Multiple;
   lldb::addr_t Address, ParamSize;
-  llvm::StringRef Name;
+  
 
-  if (parsePublicOrFunc(Line, Multiple, Address, nullptr, ParamSize, Name))
+  if (llvm::StringRef Name; parsePublicOrFunc(Line, Multiple, Address, nullptr, ParamSize, Name))
     return PublicRecord(Multiple, Address, ParamSize, Name);
 
   return std::nullopt;

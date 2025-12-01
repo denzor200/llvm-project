@@ -43,8 +43,8 @@ ThreadPlanStepRange::ThreadPlanStepRange(ThreadPlanKind kind, const char *name,
   m_use_fast_step = GetTarget().GetUseFastStepping();
   AddRange(range);
   m_stack_id = thread.GetStackFrameAtIndex(0)->GetStackID();
-  StackFrameSP parent_stack = thread.GetStackFrameAtIndex(1);
-  if (parent_stack)
+  
+  if (StackFrameSP parent_stack = thread.GetStackFrameAtIndex(1); parent_stack)
     m_parent_stack_id = parent_stack->GetStackID();
 }
 
@@ -87,8 +87,8 @@ void ThreadPlanStepRange::AddRange(const AddressRange &new_range) {
 }
 
 void ThreadPlanStepRange::DumpRanges(Stream *s) {
-  size_t num_ranges = m_address_ranges.size();
-  if (num_ranges == 1) {
+  
+  if (size_t num_ranges = m_address_ranges.size(); num_ranges == 1) {
     m_address_ranges[0].Dump(s, &GetTarget(), Address::DumpStyleLoadAddress);
   } else {
     for (size_t i = 0; i < num_ranges; i++) {
@@ -116,9 +116,9 @@ bool ThreadPlanStepRange::InRange() {
     // See if we've just stepped to another part of the same line number...
     StackFrame *frame = thread.GetStackFrameAtIndex(0).get();
 
-    SymbolContext new_context(
-        frame->GetSymbolContext(eSymbolContextEverything));
-    if (m_addr_context.line_entry.IsValid() &&
+    
+    if (SymbolContext new_context(
+        frame->GetSymbolContext(eSymbolContextEverything)); m_addr_context.line_entry.IsValid() &&
         new_context.line_entry.IsValid()) {
       if (m_addr_context.line_entry.original_file_sp->Equal(
               *new_context.line_entry.original_file_sp,
@@ -358,8 +358,8 @@ bool ThreadPlanStepRange::SetNextBranchBreakpoint() {
 
     // If we didn't find a branch, run to the end of the range.
     if (branch_index == UINT32_MAX) {
-      uint32_t last_index = instructions->GetSize() - 1;
-      if (last_index - pc_index > 1) {
+      
+      if (uint32_t last_index = instructions->GetSize() - 1; last_index - pc_index > 1) {
         InstructionSP last_inst =
             instructions->GetInstructionAtIndex(last_index);
         size_t last_inst_size = last_inst->GetOpcode().GetByteSize();
@@ -388,8 +388,8 @@ bool ThreadPlanStepRange::SetNextBranchBreakpoint() {
         if (log) {
           lldb::break_id_t bp_site_id = LLDB_INVALID_BREAK_ID;
           if (bp_loc) {
-            BreakpointSiteSP bp_site = bp_loc->GetBreakpointSite();
-            if (bp_site) {
+            
+            if (BreakpointSiteSP bp_site = bp_loc->GetBreakpointSite(); bp_site) {
               bp_site_id = bp_site->GetID();
             }
           }
@@ -534,9 +534,9 @@ bool ThreadPlanStepRange::MischiefManaged() {
 
 bool ThreadPlanStepRange::IsPlanStale() {
   Log *log = GetLog(LLDBLog::Step);
-  FrameComparison frame_order = CompareCurrentFrameToStartFrame();
+  
 
-  if (frame_order == eFrameCompareOlder) {
+  if (FrameComparison frame_order = CompareCurrentFrameToStartFrame(); frame_order == eFrameCompareOlder) {
     if (log) {
       LLDB_LOGF(log, "ThreadPlanStepRange::IsPlanStale returning true, we've "
                      "stepped out.");
@@ -551,9 +551,9 @@ bool ThreadPlanStepRange::IsPlanStale() {
       lldb::addr_t addr = GetThread().GetRegisterContext()->GetPC() - 1;
       size_t num_ranges = m_address_ranges.size();
       for (size_t i = 0; i < num_ranges; i++) {
-        bool in_range = 
-            m_address_ranges[i].ContainsLoadAddress(addr, &GetTarget());
-        if (in_range) {
+        
+        if (bool in_range = 
+            m_address_ranges[i].ContainsLoadAddress(addr, &GetTarget()); in_range) {
           SetPlanComplete();
         }
       }

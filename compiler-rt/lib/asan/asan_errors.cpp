@@ -73,9 +73,9 @@ void ErrorNewDeleteTypeMismatch::Print() {
         "  size of the deallocated type: %zd bytes.\n",
         addr_description.chunk_access.chunk_size, delete_size);
   }
-  const uptr user_alignment =
-      addr_description.chunk_access.user_requested_alignment;
-  if (delete_alignment != user_alignment) {
+  
+  if (const uptr user_alignment =
+      addr_description.chunk_access.user_requested_alignment; delete_alignment != user_alignment) {
     char user_alignment_str[32];
     char delete_alignment_str[32];
     internal_snprintf(user_alignment_str, sizeof(user_alignment_str),
@@ -571,8 +571,8 @@ static void PrintLegend(InternalScopedString *str) {
 
 static void PrintShadowBytes(InternalScopedString *str, const char *before,
                              u8 *bytes, u8 *guilty, uptr n) {
-  Decorator d;
-  if (before)
+  
+  if (Decorator d; before)
     str->AppendF("%s%p:", before,
                  (void *)ShadowToMem(reinterpret_cast<uptr>(bytes)));
   for (uptr i = 0; i < n; i++) {
@@ -633,8 +633,8 @@ static void CheckPoisonRecords(uptr addr) {
 
   PoisonRecord record;
   if (FindPoisonRecord(addr, record)) {
-    StackTrace poison_stack = StackDepotGet(record.stack_id);
-    if (poison_stack.size > 0) {
+    
+    if (StackTrace poison_stack = StackDepotGet(record.stack_id); poison_stack.size > 0) {
       Printf("Memory was manually poisoned by thread T%u:\n", record.thread_id);
       poison_stack.Print();
     }

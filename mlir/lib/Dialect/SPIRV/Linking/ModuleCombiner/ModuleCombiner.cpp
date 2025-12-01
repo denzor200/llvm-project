@@ -184,13 +184,13 @@ OwningOpRef<spirv::ModuleOp> combine(ArrayRef<spirv::ModuleOp> inputModules,
           symRenameListener(inputModule, oldSymName, newSymName);
 
         // Insert the module associated with the symbol name.
-        auto emplaceResult =
-            symNameToModuleMap.try_emplace(newSymName, inputModule);
+        
 
         // If an entry with the same symbol name is already present, this must
         // be a problem with the implementation, specially clean-up of the map
         // while iterating over the combined module above.
-        if (!emplaceResult.second) {
+        if (auto emplaceResult =
+            symNameToModuleMap.try_emplace(newSymName, inputModule); !emplaceResult.second) {
           inputModule.emitError("did not expect to find an entry for symbol ")
               << symbolOp.getName();
           return nullptr;

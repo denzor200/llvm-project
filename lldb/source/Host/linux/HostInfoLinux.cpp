@@ -90,8 +90,8 @@ llvm::StringRef HostInfoLinux::GetDistributionId() {
         LLDB_LOGF(log, "distribution id command returned \"%s\"",
                   distribution_id);
 
-        const char *const distributor_id_key = "Distributor ID:\t";
-        if (strstr(distribution_id, distributor_id_key)) {
+        
+        if (const char *const distributor_id_key = "Distributor ID:\t"; strstr(distribution_id, distributor_id_key)) {
           // strip newlines
           std::string id_string(distribution_id + strlen(distributor_id_key));
           llvm::erase(id_string, '\n');
@@ -128,8 +128,8 @@ FileSpec HostInfoLinux::GetProgramFileSpec() {
 
   if (!g_program_filespec) {
     char exe_path[PATH_MAX];
-    ssize_t len = readlink("/proc/self/exe", exe_path, sizeof(exe_path) - 1);
-    if (len > 0) {
+    
+    if (ssize_t len = readlink("/proc/self/exe", exe_path, sizeof(exe_path) - 1); len > 0) {
       exe_path[len] = 0;
       g_program_filespec.SetFile(exe_path, FileSpec::Style::native);
     }

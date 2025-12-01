@@ -201,8 +201,8 @@ void mlirDebuggerCursorSelectPreviousIRUnit() {
     state.cursor = previous;
   } else if (auto *region = llvm::dyn_cast_if_present<Region *>(*unit)) {
     llvm::outs() << "Has region\n";
-    Operation *parent = region->getParentOp();
-    if (!parent) {
+    
+    if (Operation *parent = region->getParentOp(); !parent) {
       llvm::outs() << "No parent operation for the current region\n";
       return;
     }

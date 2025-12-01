@@ -72,9 +72,9 @@ struct ExampleAttrInfo : public ParsedAttrInfo {
     // If there are arguments, the first argument should be a string literal.
     if (Attr.getNumArgs() > 0) {
       auto *Arg0 = Attr.getArgAsExpr(0);
-      StringLiteral *Literal =
-          dyn_cast<StringLiteral>(Arg0->IgnoreParenCasts());
-      if (!Literal) {
+      
+      if (StringLiteral *Literal =
+          dyn_cast<StringLiteral>(Arg0->IgnoreParenCasts()); !Literal) {
         unsigned ID = S.getDiagnostics().getCustomDiagID(
             DiagnosticsEngine::Error, "first argument to the 'example' "
                                       "attribute must be a string literal");
@@ -122,9 +122,9 @@ struct ExampleAttrInfo : public ParsedAttrInfo {
     // If there are arguments, the first argument should be a string literal.
     if (Attr.getNumArgs() > 0) {
       auto *Arg0 = Attr.getArgAsExpr(0);
-      StringLiteral *Literal =
-          dyn_cast<StringLiteral>(Arg0->IgnoreParenCasts());
-      if (!Literal) {
+      
+      if (StringLiteral *Literal =
+          dyn_cast<StringLiteral>(Arg0->IgnoreParenCasts()); !Literal) {
         unsigned ID = S.getDiagnostics().getCustomDiagID(
             DiagnosticsEngine::Error, "first argument to the 'example' "
                                       "attribute must be a string literal");

@@ -66,8 +66,8 @@ void LoongArchAsmPrinter::emitInstruction(const MachineInstr *MI) {
     return;
   }
 
-  MCInst TmpInst;
-  if (!lowerLoongArchMachineInstrToMCInst(MI, TmpInst, *this))
+  
+  if (MCInst TmpInst; !lowerLoongArchMachineInstrToMCInst(MI, TmpInst, *this))
     EmitToStreamer(*OutStreamer, TmpInst);
 }
 
@@ -172,15 +172,15 @@ bool LoongArchAsmPrinter::PrintAsmMemoryOperand(const MachineInstr *MI,
 }
 
 void LoongArchAsmPrinter::LowerSTATEPOINT(const MachineInstr &MI) {
-  StatepointOpers SOpers(&MI);
-  if (unsigned PatchBytes = SOpers.getNumPatchBytes()) {
+  
+  if (unsigned StatepointOpers SOpers(&MI); PatchBytes = SOpers.getNumPatchBytes()) {
     assert(PatchBytes % 4 == 0 && "Invalid number of NOP bytes requested!");
     emitNops(PatchBytes / 4);
   } else {
     // Lower call target and choose correct opcode.
     const MachineOperand &CallTarget = SOpers.getCallTarget();
-    MCOperand CallTargetMCOp;
-    switch (CallTarget.getType()) {
+    
+    switch (MCOperand CallTargetMCOp; CallTarget.getType()) {
     case MachineOperand::MO_GlobalAddress:
     case MachineOperand::MO_ExternalSymbol:
       lowerOperand(CallTarget, CallTargetMCOp);
@@ -213,8 +213,8 @@ void LoongArchAsmPrinter::LowerSTATEPOINT(const MachineInstr &MI) {
 
 void LoongArchAsmPrinter::LowerPATCHABLE_FUNCTION_ENTER(
     const MachineInstr &MI) {
-  const Function &F = MF->getFunction();
-  if (F.hasFnAttribute("patchable-function-entry")) {
+  
+  if (const Function &F = MF->getFunction(); F.hasFnAttribute("patchable-function-entry")) {
     unsigned Num;
     if (F.getFnAttribute("patchable-function-entry")
             .getValueAsString()

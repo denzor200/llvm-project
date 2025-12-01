@@ -342,8 +342,8 @@ Instruction *InstCombinerImpl::foldSelectOpOp(SelectInst &SI, Instruction *TI,
 
   if (TI->hasOneUse() || FI->hasOneUse()) {
     // Cond ? -X : -Y --> -(Cond ? X : Y)
-    Value *X, *Y;
-    if (match(TI, m_FNeg(m_Value(X))) && match(FI, m_FNeg(m_Value(Y)))) {
+    
+    if (Value *X, *Y; match(TI, m_FNeg(m_Value(X))) && match(FI, m_FNeg(m_Value(Y)))) {
       // Intersect FMF from the fneg instructions and union those with the
       // select.
       FastMathFlags FMF = TI->getFastMathFlags();
@@ -382,8 +382,8 @@ Instruction *InstCombinerImpl::foldSelectOpOp(SelectInst &SI, Instruction *TI,
         Value *LdexpVal0 = TII->getArgOperand(0);
         Value *LdexpExp0 = TII->getArgOperand(1);
         Value *LdexpVal1 = FII->getArgOperand(0);
-        Value *LdexpExp1 = FII->getArgOperand(1);
-        if (LdexpExp0->getType() == LdexpExp1->getType()) {
+        
+        if (Value *LdexpExp1 = FII->getArgOperand(1); LdexpExp0->getType() == LdexpExp1->getType()) {
           FPMathOperator *SelectFPOp = cast<FPMathOperator>(&SI);
           FastMathFlags FMF = cast<FPMathOperator>(TII)->getFastMathFlags();
           FMF &= cast<FPMathOperator>(FII)->getFastMathFlags();
@@ -3408,8 +3408,8 @@ static bool impliesPoisonOrCond(const Value *ValAssumedPoison, const Value *V,
     Value *LHS = ICmp->getOperand(0);
     const APInt *RHSC1;
     const APInt *RHSC2;
-    CmpPredicate Pred;
-    if (ICmp->hasSameSign() &&
+    
+    if (CmpPredicate Pred; ICmp->hasSameSign() &&
         match(ICmp->getOperand(1), m_APIntForbidPoison(RHSC1)) &&
         match(V, m_ICmp(Pred, m_Specific(LHS), m_APIntAllowPoison(RHSC2)))) {
       unsigned BitWidth = RHSC1->getBitWidth();
@@ -3644,14 +3644,14 @@ Instruction *InstCombinerImpl::foldSelectOfBools(SelectInst &SI) {
   //   if c implies that b is false.
   if (match(CondVal, m_LogicalOr(m_Value(A), m_Value(B))) &&
       match(FalseVal, m_Zero())) {
-    std::optional<bool> Res = isImpliedCondition(TrueVal, B, DL);
-    if (Res && *Res == false)
+    
+    if (std::optional<bool> Res = isImpliedCondition(TrueVal, B, DL); Res && *Res == false)
       return replaceOperand(SI, 0, A);
   }
   if (match(TrueVal, m_LogicalOr(m_Value(A), m_Value(B))) &&
       match(FalseVal, m_Zero())) {
-    std::optional<bool> Res = isImpliedCondition(CondVal, B, DL);
-    if (Res && *Res == false)
+    
+    if (std::optional<bool> Res = isImpliedCondition(CondVal, B, DL); Res && *Res == false)
       return replaceOperand(SI, 1, A);
   }
   // select c, true, (a && b)  -> select c, true, a
@@ -3659,14 +3659,14 @@ Instruction *InstCombinerImpl::foldSelectOfBools(SelectInst &SI) {
   //   if c = false implies that b = true
   if (match(TrueVal, m_One()) &&
       match(FalseVal, m_LogicalAnd(m_Value(A), m_Value(B)))) {
-    std::optional<bool> Res = isImpliedCondition(CondVal, B, DL, false);
-    if (Res && *Res == true)
+    
+    if (std::optional<bool> Res = isImpliedCondition(CondVal, B, DL, false); Res && *Res == true)
       return replaceOperand(SI, 2, A);
   }
   if (match(CondVal, m_LogicalAnd(m_Value(A), m_Value(B))) &&
       match(TrueVal, m_One())) {
-    std::optional<bool> Res = isImpliedCondition(FalseVal, B, DL, false);
-    if (Res && *Res == true)
+    
+    if (std::optional<bool> Res = isImpliedCondition(FalseVal, B, DL, false); Res && *Res == true)
       return replaceOperand(SI, 0, A);
   }
 
@@ -3687,8 +3687,8 @@ Instruction *InstCombinerImpl::foldSelectOfBools(SelectInst &SI) {
       if (MayNeedFreeze)
         C = Builder.CreateFreeze(C);
       if (!ProfcheckDisableMetadataFixes) {
-        Value *C2 = nullptr, *A2 = nullptr, *B2 = nullptr;
-        if (match(CondVal, m_LogicalAnd(m_Specific(C), m_Value(A2))) &&
+        
+        if (Value *C2 = nullptr, *A2 = nullptr, *B2 = nullptr; match(CondVal, m_LogicalAnd(m_Specific(C), m_Value(A2))) &&
             SelCond) {
           return SelectInst::Create(C, A, B, "", nullptr, SelCond);
         } else if (match(FalseVal,
@@ -3718,8 +3718,8 @@ Instruction *InstCombinerImpl::foldSelectOfBools(SelectInst &SI) {
       if (MayNeedFreeze)
         C = Builder.CreateFreeze(C);
       if (!ProfcheckDisableMetadataFixes) {
-        Value *C2 = nullptr, *A2 = nullptr, *B2 = nullptr;
-        if (match(CondVal, m_LogicalAnd(m_Not(m_Value(C2)), m_Value(A2))) &&
+        
+        if (Value *C2 = nullptr, *A2 = nullptr, *B2 = nullptr; match(CondVal, m_LogicalAnd(m_Not(m_Value(C2)), m_Value(A2))) &&
             SelCond) {
           SelectInst *NewSI = SelectInst::Create(C, B, A, "", nullptr, SelCond);
           NewSI->swapProfMetadata();
@@ -3794,8 +3794,8 @@ static bool isSafeToRemoveBitCeilSelect(ICmpInst::Predicate Pred, Value *Cond0,
   };
 
   const APInt *C = nullptr;
-  Value *CommonAncestor;
-  if (MatchForward(Cond0)) {
+  
+  if (Value *CommonAncestor; MatchForward(Cond0)) {
     // Cond0 is either CtlzOp or CtlzOp's parent.  CR has been updated.
   } else if (match(Cond0, m_Add(m_Value(CommonAncestor), m_APInt(C)))) {
     CR = CR.sub(*C);
@@ -3989,12 +3989,12 @@ Instruction *InstCombinerImpl::foldSelectToCmp(SelectInst &SI) {
 
   // Special cases with constants: x == C ? 0 : (x > C-1 ? 1 : -1)
   if (Pred == ICmpInst::ICMP_EQ && match(TV, m_Zero())) {
-    const APInt *C;
-    if (match(RHS, m_APInt(C))) {
+    
+    if (const APInt *C; match(RHS, m_APInt(C))) {
       CmpPredicate InnerPred;
       Value *InnerRHS;
-      const APInt *InnerTV, *InnerFV;
-      if (match(FV,
+      
+      if (const APInt *InnerTV, *InnerFV; match(FV,
                 m_Select(m_ICmp(InnerPred, m_Specific(LHS), m_Value(InnerRHS)),
                          m_APInt(InnerTV), m_APInt(InnerFV)))) {
 
@@ -4002,10 +4002,10 @@ Instruction *InstCombinerImpl::foldSelectToCmp(SelectInst &SI) {
         if (ICmpInst::isGT(InnerPred) && InnerTV->isOne() &&
             InnerFV->isAllOnes()) {
           IsSigned = ICmpInst::isSigned(InnerPred);
-          bool CanSubOne = IsSigned ? !C->isMinSignedValue() : !C->isMinValue();
-          if (CanSubOne) {
-            APInt Cminus1 = *C - 1;
-            if (match(InnerRHS, m_SpecificInt(Cminus1)))
+          
+          if (bool CanSubOne = IsSigned ? !C->isMinSignedValue() : !C->isMinValue(); CanSubOne) {
+            
+            if (APInt Cminus1 = *C - 1; match(InnerRHS, m_SpecificInt(Cminus1)))
               Replace = true;
           }
         }
@@ -4014,10 +4014,10 @@ Instruction *InstCombinerImpl::foldSelectToCmp(SelectInst &SI) {
         if (ICmpInst::isLT(InnerPred) && InnerTV->isAllOnes() &&
             InnerFV->isOne()) {
           IsSigned = ICmpInst::isSigned(InnerPred);
-          bool CanAddOne = IsSigned ? !C->isMaxSignedValue() : !C->isMaxValue();
-          if (CanAddOne) {
-            APInt Cplus1 = *C + 1;
-            if (match(InnerRHS, m_SpecificInt(Cplus1)))
+          
+          if (bool CanAddOne = IsSigned ? !C->isMaxSignedValue() : !C->isMaxValue(); CanAddOne) {
+            
+            if (APInt Cplus1 = *C + 1; match(InnerRHS, m_SpecificInt(Cplus1)))
               Replace = true;
           }
         }
@@ -4044,8 +4044,8 @@ static bool matchFMulByZeroIfResultEqZero(InstCombinerImpl &IC, Value *Cmp0,
                                           Value *Cmp1, Value *TrueVal,
                                           Value *FalseVal, Instruction &CtxI,
                                           bool SelectIsNSZ) {
-  Value *MulRHS;
-  if (match(Cmp1, m_PosZeroFP()) &&
+  
+  if (Value *MulRHS; match(Cmp1, m_PosZeroFP()) &&
       match(TrueVal, m_c_FMul(m_Specific(Cmp0), m_Value(MulRHS)))) {
     FastMathFlags FMF = cast<FPMathOperator>(TrueVal)->getFastMathFlags();
     // nsz must be on the select, it must be ignored on the multiply. We
@@ -4090,8 +4090,8 @@ static Value *foldSelectIntoAddConstant(SelectInst &SI,
                                         InstCombiner::BuilderTy &Builder) {
   // Do this transformation only when select instruction gives NaN and NSZ
   // guarantee.
-  auto *SIFOp = dyn_cast<FPMathOperator>(&SI);
-  if (!SIFOp || !SIFOp->hasNoSignedZeros() || !SIFOp->hasNoNaNs())
+  
+  if (auto *SIFOp = dyn_cast<FPMathOperator>(&SI); !SIFOp || !SIFOp->hasNoSignedZeros() || !SIFOp->hasNoNaNs())
     return nullptr;
 
   auto TryFoldIntoAddConstant =
@@ -4151,8 +4151,8 @@ static Value *foldSelectBitTest(SelectInst &Sel, Value *CondVal, Value *TrueVal,
                                 InstCombiner::BuilderTy &Builder,
                                 const SimplifyQuery &SQ) {
   // If this is a vector select, we need a vector compare.
-  Type *SelType = Sel.getType();
-  if (SelType->isVectorTy() != CondVal->getType()->isVectorTy())
+  
+  if (Type *SelType = Sel.getType(); SelType->isVectorTy() != CondVal->getType()->isVectorTy())
     return nullptr;
 
   Value *V;
@@ -4349,11 +4349,11 @@ Instruction *InstCombinerImpl::visitSelectInst(SelectInst &SI) {
   if (SIFPOp) {
     // TODO: Try to forward-propagate FMF from select arms to the select.
 
-    auto *FCmp = dyn_cast<FCmpInst>(CondVal);
+    
 
     // Canonicalize select of FP values where NaN and -0.0 are not valid as
     // minnum/maxnum intrinsics.
-    if (SIFPOp->hasNoNaNs() &&
+    if (auto *FCmp = dyn_cast<FCmpInst>(CondVal); SIFPOp->hasNoNaNs() &&
         (SIFPOp->hasNoSignedZeros() ||
          (SIFPOp->hasOneUse() &&
           canIgnoreSignBitOfZero(*SIFPOp->use_begin())))) {
@@ -4474,8 +4474,8 @@ Instruction *InstCombinerImpl::visitSelectInst(SelectInst &SI) {
 
       bool IsCastNeeded = LHS->getType() != SelType;
       Value *CmpLHS = cast<CmpInst>(CondVal)->getOperand(0);
-      Value *CmpRHS = cast<CmpInst>(CondVal)->getOperand(1);
-      if (IsCastNeeded ||
+      
+      if (Value *CmpRHS = cast<CmpInst>(CondVal)->getOperand(1); IsCastNeeded ||
           (LHS->getType()->isFPOrFPVectorTy() &&
            ((CmpLHS != LHS && CmpLHS != RHS) ||
             (CmpRHS != LHS && CmpRHS != RHS)))) {
@@ -4768,8 +4768,8 @@ Instruction *InstCombinerImpl::visitSelectInst(SelectInst &SI) {
     if (!CC.AffectedValues.empty()) {
       if (!isa<Constant>(TrueVal) &&
           hasAffectedValue(TrueVal, CC.AffectedValues, /*Depth=*/0)) {
-        KnownBits Known = llvm::computeKnownBits(TrueVal, Q);
-        if (Known.isConstant())
+        
+        if (KnownBits Known = llvm::computeKnownBits(TrueVal, Q); Known.isConstant())
           return replaceOperand(SI, 1,
                                 ConstantInt::get(SelType, Known.getConstant()));
       }
@@ -4777,8 +4777,8 @@ Instruction *InstCombinerImpl::visitSelectInst(SelectInst &SI) {
       CC.Invert = true;
       if (!isa<Constant>(FalseVal) &&
           hasAffectedValue(FalseVal, CC.AffectedValues, /*Depth=*/0)) {
-        KnownBits Known = llvm::computeKnownBits(FalseVal, Q);
-        if (Known.isConstant())
+        
+        if (KnownBits Known = llvm::computeKnownBits(FalseVal, Q); Known.isConstant())
           return replaceOperand(SI, 2,
                                 ConstantInt::get(SelType, Known.getConstant()));
       }

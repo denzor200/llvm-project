@@ -74,9 +74,9 @@ void InvalidatedIteratorChecker::checkPreStmt(const UnaryOperator *UO,
 
   ProgramStateRef State = C.getState();
   UnaryOperatorKind OK = UO->getOpcode();
-  SVal SubVal = State->getSVal(UO->getSubExpr(), C.getLocationContext());
+  
 
-  if (isAccessOperator(OK)) {
+  if (SVal SubVal = State->getSVal(UO->getSubExpr(), C.getLocationContext()); isAccessOperator(OK)) {
     verifyAccess(C, SubVal);
   }
 }
@@ -85,9 +85,9 @@ void InvalidatedIteratorChecker::checkPreStmt(const BinaryOperator *BO,
                                               CheckerContext &C) const {
   ProgramStateRef State = C.getState();
   BinaryOperatorKind OK = BO->getOpcode();
-  SVal LVal = State->getSVal(BO->getLHS(), C.getLocationContext());
+  
 
-  if (isAccessOperator(OK)) {
+  if (SVal LVal = State->getSVal(BO->getLHS(), C.getLocationContext()); isAccessOperator(OK)) {
     verifyAccess(C, LVal);
   }
 }
@@ -112,8 +112,8 @@ void InvalidatedIteratorChecker::checkPreStmt(const MemberExpr *ME,
 void InvalidatedIteratorChecker::verifyAccess(CheckerContext &C,
                                               SVal Val) const {
   auto State = C.getState();
-  const auto *Pos = getIteratorPosition(State, Val);
-  if (Pos && !Pos->isValid()) {
+  
+  if (const auto *Pos = getIteratorPosition(State, Val); Pos && !Pos->isValid()) {
     auto *N = C.generateErrorNode(State);
     if (!N) {
       return;

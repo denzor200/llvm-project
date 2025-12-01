@@ -188,10 +188,10 @@ public:
   LogicalResult matchAndRewrite(ExtractStridedSliceOp op,
                                 PatternRewriter &rewriter) const override {
     auto dstType = op.getType();
-    auto srcType = op.getSourceVectorType();
+    
 
     // Scalable vectors are not supported by vector shuffle.
-    if (dstType.isScalable() || srcType.isScalable())
+    if (auto srcType = op.getSourceVectorType(); dstType.isScalable() || srcType.isScalable())
       return failure();
 
     assert(!op.getOffsets().getValue().empty() && "Unexpected empty offsets");

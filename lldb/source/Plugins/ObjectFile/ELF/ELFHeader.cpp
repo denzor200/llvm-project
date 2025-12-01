@@ -98,10 +98,10 @@ void ELFHeader::ParseHeaderExtension(lldb_private::DataExtractor &data) {
   ELFSectionHeader section_zero;
   lldb::offset_t offset = 0;
   lldb_private::DataExtractor sh_data(data, e_shoff, e_shentsize);
-  bool ok = section_zero.Parse(sh_data, &offset);
+  
 
   // If we succeeded, fix the header.
-  if (ok) {
+  if (bool ok = section_zero.Parse(sh_data, &offset); ok) {
     if (e_phnum_hdr == 0xFFFF) // PN_XNUM
       e_phnum = section_zero.sh_info;
     if (e_shnum_hdr == SHN_UNDEF)

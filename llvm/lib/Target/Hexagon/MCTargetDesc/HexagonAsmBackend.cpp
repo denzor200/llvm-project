@@ -417,9 +417,9 @@ public:
          HMI.getOpcode() != Hexagon::C4_addipc))
       if (HexagonMCInstrInfo::isExtendable(*MCII, HMI)) {
         Relaxable = true;
-        MCOperand const &Operand =
-            HMI.getOperand(HexagonMCInstrInfo::getExtendableOp(*MCII, HMI));
-        if (HexagonMCInstrInfo::mustNotExtend(*Operand.getExpr()))
+        
+        if (MCOperand const &Operand =
+            HMI.getOperand(HexagonMCInstrInfo::getExtendableOp(*MCII, HMI)); HexagonMCInstrInfo::mustNotExtend(*Operand.getExpr()))
           Relaxable = false;
       }
 
@@ -445,8 +445,8 @@ public:
     *RelaxTarget = nullptr;
     MCInst &MCI = const_cast<MCInst &>(HexagonMCInstrInfo::instruction(
         MCB, (Fixup.getOffset() - F.getFixedSize()) / HEXAGON_INSTR_SIZE));
-    bool Relaxable = isInstRelaxable(MCI);
-    if (Relaxable == false)
+    
+    if (bool Relaxable = isInstRelaxable(MCI); Relaxable == false)
       return false;
     // If we cannot resolve the fixup value, it requires relaxation.
     if (!Resolved) {
@@ -521,10 +521,10 @@ public:
     // Copy the results into the bundle.
     bool Update = false;
     for (auto &I : HexagonMCInstrInfo::bundleInstructions(Inst)) {
-      MCInst &CrntHMI = const_cast<MCInst &>(*I.getInst());
+      
 
       // if immediate extender needed, add it in
-      if (*RelaxTarget == &CrntHMI) {
+      if (MCInst &CrntHMI = const_cast<MCInst &>(*I.getInst()); *RelaxTarget == &CrntHMI) {
         Update = true;
         assert((HexagonMCInstrInfo::bundleSize(Res) < HEXAGON_PACKET_SIZE) &&
                "No room to insert extender for relaxation");
@@ -672,9 +672,9 @@ void HexagonAsmBackend::applyFixup(const MCFragment &F, const MCFixup &Fixup,
   Value = adjustFixupValue(Kind, FixupValue);
   if (!Value)
     return;
-  int sValue = (int)Value;
+  
 
-  switch ((unsigned)Kind) {
+  switch (int sValue = (int)Value; (unsigned)Kind) {
   default:
     return;
 

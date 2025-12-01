@@ -316,8 +316,8 @@ struct ScalarTraits<SerializedAffineMap> {
   static StringRef input(StringRef scalar, void *rawYamlContext,
                          SerializedAffineMap &value) {
     assert(rawYamlContext);
-    auto *yamlContext = static_cast<LinalgYAMLContext *>(rawYamlContext);
-    if (auto attr = dyn_cast_or_null<AffineMapAttr>(
+    
+    if (auto auto *yamlContext = static_cast<LinalgYAMLContext *>(rawYamlContext); attr = dyn_cast_or_null<AffineMapAttr>(
             mlir::parseAttribute(scalar, yamlContext->mlirContext)))
       value.affineMapAttr = attr;
     else if (!value.affineMapAttr || !isa<AffineMapAttr>(value.affineMapAttr))

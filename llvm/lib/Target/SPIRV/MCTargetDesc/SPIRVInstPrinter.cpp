@@ -116,12 +116,12 @@ void SPIRVInstPrinter::printInst(const MCInst *MI, uint64_t Address,
     printUnknownType(MI, OS);
   } else {
     // Print any extra operands for variadic instructions.
-    const MCInstrDesc &MCDesc = MII.get(OpCode);
-    if (MCDesc.isVariadic()) {
+    
+    if (const MCInstrDesc &MCDesc = MII.get(OpCode); MCDesc.isVariadic()) {
       const unsigned NumFixedOps = MCDesc.getNumOperands();
       const unsigned LastFixedIndex = NumFixedOps - 1;
-      const int FirstVariableIndex = NumFixedOps;
-      if (NumFixedOps > 0 && MCDesc.operands()[LastFixedIndex].OperandType ==
+      
+      if (const int FirstVariableIndex = NumFixedOps; NumFixedOps > 0 && MCDesc.operands()[LastFixedIndex].OperandType ==
                                  MCOI::OPERAND_UNKNOWN) {
         // For instructions where a custom type (not reg or immediate) comes as
         // the last operand before the variable_ops. This is usually a StringImm
@@ -244,8 +244,8 @@ void SPIRVInstPrinter::printInst(const MCInst *MI, uint64_t Address,
           printOpConstantVarOps(MI, NumFixedOps - 1, OS);
           break;
         case SPIRV::OpCooperativeMatrixMulAddKHR: {
-          const unsigned NumOps = MI->getNumOperands();
-          if (NumFixedOps == NumOps)
+          
+          if (const unsigned NumOps = MI->getNumOperands(); NumFixedOps == NumOps)
             break;
 
           OS << ' ';
@@ -305,8 +305,8 @@ void SPIRVInstPrinter::printInst(const MCInst *MI, uint64_t Address,
         case SPIRV::OpSDotAccSat:
         case SPIRV::OpUDotAccSat:
         case SPIRV::OpSUDotAccSat: {
-          const unsigned NumOps = MI->getNumOperands();
-          if (NumOps > NumFixedOps) {
+          
+          if (const unsigned NumOps = MI->getNumOperands(); NumOps > NumFixedOps) {
             OS << ' ';
             printSymbolicOperand<OperandCategory::PackedVectorFormatsOperand>(
                 MI, NumOps - 1, OS);
@@ -316,8 +316,8 @@ void SPIRVInstPrinter::printInst(const MCInst *MI, uint64_t Address,
         }
         case SPIRV::OpPredicatedLoadINTEL:
         case SPIRV::OpPredicatedStoreINTEL: {
-          const unsigned NumOps = MI->getNumOperands();
-          if (NumOps > NumFixedOps) {
+          
+          if (const unsigned NumOps = MI->getNumOperands(); NumOps > NumFixedOps) {
             OS << ' ';
             printSymbolicOperand<OperandCategory::MemoryOperandOperand>(
                 MI, NumOps - 1, OS);
@@ -341,8 +341,8 @@ void SPIRVInstPrinter::printOpExtInst(const MCInst *MI, raw_ostream &O) {
   // type of ExtInst operands to print based on the instruction set and number.
   const MCInstrDesc &MCDesc = MII.get(MI->getOpcode());
   unsigned NumFixedOps = MCDesc.getNumOperands();
-  const auto NumOps = MI->getNumOperands();
-  if (NumOps == NumFixedOps)
+  
+  if (const auto NumOps = MI->getNumOperands(); NumOps == NumFixedOps)
     return;
 
   O << ' ';
@@ -355,9 +355,9 @@ void SPIRVInstPrinter::printOpDecorate(const MCInst *MI, raw_ostream &O) {
   // The fixed operands have already been printed, so just need to decide what
   // type of decoration operands to print based on the Decoration type.
   const MCInstrDesc &MCDesc = MII.get(MI->getOpcode());
-  unsigned NumFixedOps = MCDesc.getNumOperands();
+  
 
-  if (NumFixedOps != MI->getNumOperands()) {
+  if (unsigned NumFixedOps = MCDesc.getNumOperands(); NumFixedOps != MI->getNumOperands()) {
     auto DecOp = MI->getOperand(NumFixedOps - 1);
     auto Dec = static_cast<Decoration::Decoration>(DecOp.getImm());
 
@@ -428,16 +428,16 @@ void SPIRVInstPrinter::printUnknownType(const MCInst *MI, raw_ostream &O) {
 void SPIRVInstPrinter::printOperand(const MCInst *MI, unsigned OpNo,
                                     raw_ostream &O) {
   if (OpNo < MI->getNumOperands()) {
-    const MCOperand &Op = MI->getOperand(OpNo);
-    if (Op.isReg())
+    
+    if (const MCOperand &Op = MI->getOperand(OpNo); Op.isReg())
       O << '%' << (getIDFromRegister(Op.getReg().id()) + 1);
     else if (Op.isImm()) {
-      int64_t Imm = Op.getImm();
+      
       // For OpVectorShuffle:
       // A Component literal may also be FFFFFFFF, which means the corresponding
       // result component has no source and is undefined.
       // LLVM representation of poison/undef becomes -1 when lowered to MI.
-      if (MI->getOpcode() == SPIRV::OpVectorShuffle && Imm == -1)
+      if (int64_t Imm = Op.getImm(); MI->getOpcode() == SPIRV::OpVectorShuffle && Imm == -1)
         O << "0xFFFFFFFF";
       else
         O << formatImm(Imm);

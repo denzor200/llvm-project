@@ -222,9 +222,9 @@ llvm::Error BaseRequestHandler::LaunchProcess(
   {
     // Perform the launch in synchronous mode so that we don't have to worry
     // about process state changes during the launch.
-    ScopeSyncMode scope_sync_mode(dap.debugger);
+    
 
-    if (arguments.console != protocol::eConsoleInternal) {
+    if (ScopeSyncMode scope_sync_mode(dap.debugger); arguments.console != protocol::eConsoleInternal) {
       if (llvm::Error err = RunInTerminal(dap, arguments))
         return err;
     } else if (launchCommands.empty()) {

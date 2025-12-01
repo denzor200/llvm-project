@@ -73,8 +73,8 @@ Error ELFDebugObjectSection<ELFT>::validateInBounds(StringRef Buffer,
                                                     const char *Name) const {
   const uint8_t *Start = Buffer.bytes_begin();
   const uint8_t *End = Buffer.bytes_end();
-  const uint8_t *HeaderPtr = reinterpret_cast<uint8_t *>(Header);
-  if (HeaderPtr < Start || HeaderPtr + sizeof(typename ELFT::Shdr) > End)
+  
+  if (const uint8_t *HeaderPtr = reinterpret_cast<uint8_t *>(Header); HeaderPtr < Start || HeaderPtr + sizeof(typename ELFT::Shdr) > End)
     return make_error<StringError>(
         formatv("{0} section header at {1:x16} not within bounds of the "
                 "given debug object buffer [{2:x16} - {3:x16}]",
@@ -256,8 +256,8 @@ std::unique_ptr<WritableMemoryBuffer>
 ELFDebugObject::CopyBuffer(MemoryBufferRef Buffer, Error &Err) {
   ErrorAsOutParameter _(Err);
   size_t Size = Buffer.getBufferSize();
-  StringRef Name = Buffer.getBufferIdentifier();
-  if (auto Copy = WritableMemoryBuffer::getNewUninitMemBuffer(Size, Name)) {
+  
+  if (auto StringRef Name = Buffer.getBufferIdentifier(); Copy = WritableMemoryBuffer::getNewUninitMemBuffer(Size, Name)) {
     memcpy(Copy->getBufferStart(), Buffer.getBufferStart(), Size);
     return Copy;
   }
@@ -376,8 +376,8 @@ Error ELFDebugObject::recordSection(
     StringRef Name, std::unique_ptr<ELFDebugObjectSection<ELFT>> Section) {
   if (Error Err = Section->validateInBounds(this->getBuffer(), Name.data()))
     return Err;
-  bool Inserted = Sections.try_emplace(Name, std::move(Section)).second;
-  if (!Inserted)
+  
+  if (bool Inserted = Sections.try_emplace(Name, std::move(Section)).second; !Inserted)
     LLVM_DEBUG(dbgs() << "Skipping debug registration for section '" << Name
                       << "' in object " << Buffer->getBufferIdentifier()
                       << " (duplicate name)\n");
@@ -518,8 +518,8 @@ void ELFDebugObjectPlugin::notifyTransferringResources(JITDylib &JD,
   // Debug objects are stored by ResourceKey only after registration.
   // Thus, pending objects don't need to be updated here.
   std::lock_guard<std::mutex> Lock(RegisteredObjsLock);
-  auto SrcIt = RegisteredObjs.find(SrcKey);
-  if (SrcIt != RegisteredObjs.end()) {
+  
+  if (auto SrcIt = RegisteredObjs.find(SrcKey); SrcIt != RegisteredObjs.end()) {
     // Resources from distinct MaterializationResponsibilitys can get merged
     // after emission, so we can have multiple debug objects per resource key.
     for (std::unique_ptr<DebugObject> &DebugObj : SrcIt->second)

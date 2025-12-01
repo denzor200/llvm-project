@@ -67,8 +67,8 @@ bool callsiteIsHot(const FunctionSamples *CallsiteFS, ProfileSummaryInfo *PSI,
     return false; // The callsite was not inlined in the original binary.
 
   assert(PSI && "PSI is expected to be non null");
-  uint64_t CallsiteTotalSamples = CallsiteFS->getTotalSamples();
-  if (ProfAccForSymsInList)
+  
+  if (uint64_t CallsiteTotalSamples = CallsiteFS->getTotalSamples(); ProfAccForSymsInList)
     return !PSI->isColdCount(CallsiteTotalSamples);
   else
     return PSI->isHotCount(CallsiteTotalSamples);
@@ -107,8 +107,8 @@ SampleCoverageTracker::countUsedRecords(const FunctionSamples *FS,
   // total samples, these are callees that were never invoked at runtime.
   for (const auto &I : FS->getCallsiteSamples())
     for (const auto &J : I.second) {
-      const FunctionSamples *CalleeSamples = &J.second;
-      if (callsiteIsHot(CalleeSamples, PSI, ProfAccForSymsInList))
+      
+      if (const FunctionSamples *CalleeSamples = &J.second; callsiteIsHot(CalleeSamples, PSI, ProfAccForSymsInList))
         Count += countUsedRecords(CalleeSamples, PSI);
     }
 
@@ -126,8 +126,8 @@ SampleCoverageTracker::countBodyRecords(const FunctionSamples *FS,
   // Only count records in hot callsites.
   for (const auto &I : FS->getCallsiteSamples())
     for (const auto &J : I.second) {
-      const FunctionSamples *CalleeSamples = &J.second;
-      if (callsiteIsHot(CalleeSamples, PSI, ProfAccForSymsInList))
+      
+      if (const FunctionSamples *CalleeSamples = &J.second; callsiteIsHot(CalleeSamples, PSI, ProfAccForSymsInList))
         Count += countBodyRecords(CalleeSamples, PSI);
     }
 
@@ -147,8 +147,8 @@ SampleCoverageTracker::countBodySamples(const FunctionSamples *FS,
   // Only count samples in hot callsites.
   for (const auto &I : FS->getCallsiteSamples())
     for (const auto &J : I.second) {
-      const FunctionSamples *CalleeSamples = &J.second;
-      if (callsiteIsHot(CalleeSamples, PSI, ProfAccForSymsInList))
+      
+      if (const FunctionSamples *CalleeSamples = &J.second; callsiteIsHot(CalleeSamples, PSI, ProfAccForSymsInList))
         Total += countBodySamples(CalleeSamples, PSI);
     }
 

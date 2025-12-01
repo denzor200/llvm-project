@@ -184,10 +184,10 @@ bool ARMBlockPlacement::fixBackwardsWLS(MachineLoop *ML) {
     for (auto &Terminator : MBB->terminators()) {
       if (!isWhileLoopStart(Terminator))
         continue;
-      MachineBasicBlock *WLSTarget = getWhileLoopStartTargetBB(Terminator);
+      
       // TODO: Analyse the blocks to make a decision if it would be worth
       // moving Preheader even if we'd introduce a backwards WLS
-      if (WLSTarget == Predecessor) {
+      if (MachineBasicBlock *WLSTarget = getWhileLoopStartTargetBB(Terminator); WLSTarget == Predecessor) {
         LLVM_DEBUG(dbgs() << DEBUG_PREFIX << "Can't move Predecessor block as "
                           << "it would convert a WLS from forward to a "
                           << "backwards branching WLS\n");

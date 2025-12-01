@@ -103,8 +103,8 @@ static void processCall(CallBase *CB, Function *Caller, Function *NewCallee,
   CB->replaceAllUsesWith(NewCB);
 
   InlineFunctionInfo IFI;
-  InlineResult IR = InlineFunction(*NewCB, IFI);
-  if (IR.isSuccess()) {
+  
+  if (InlineResult IR = InlineFunction(*NewCB, IFI); IR.isSuccess()) {
     CB->eraseFromParent();
   } else {
     NewCB->replaceAllUsesWith(CB);
@@ -157,10 +157,10 @@ PreservedAnalyses CoroAnnotationElidePass::run(LazyCallGraph::SCC &C,
 
         auto BlockFreq = BFI.getBlockFreq(CB->getParent()).getFrequency();
         auto EntryFreq = BFI.getEntryFreq().getFrequency();
-        uint64_t MinFreq =
-            static_cast<uint64_t>(EntryFreq * CoroElideBranchRatio);
+        
 
-        if (BlockFreq < MinFreq) {
+        if (uint64_t MinFreq =
+            static_cast<uint64_t>(EntryFreq * CoroElideBranchRatio); BlockFreq < MinFreq) {
           ORE.emit([&]() {
             return OptimizationRemarkMissed(
                        DEBUG_TYPE, "CoroAnnotationElideUnlikely", Caller)

@@ -33,10 +33,10 @@ public:
       const clang::DeclContext *decl_ctx, clang::DeclarationName name,
       const clang::DeclContext *original_dc) override {
 
-    Log *log(GetLog(
-        LLDBLog::Expressions)); // FIXME - a more appropriate log channel?
+    // FIXME - a more appropriate log channel?
 
-    if (log) {
+    if (Log *log(GetLog(
+        LLDBLog::Expressions)); log) {
       LLDB_LOGF(log,
                 "AppleObjCExternalASTSource::FindExternalVisibleDeclsByName"
                 " on (ASTContext*)%p Looking for %s in (%sDecl*)%p",
@@ -323,8 +323,8 @@ public:
     bool is_zero_argument = true;
 
     while (*name_cursor != '\0') {
-      const char *colon_loc = strchr(name_cursor, ':');
-      if (!colon_loc) {
+      
+      if (const char *colon_loc = strchr(name_cursor, ':'); !colon_loc) {
         selector_components.push_back(
             &ast_ctx.Idents.get(llvm::StringRef(name_cursor)));
         break;
@@ -488,14 +488,14 @@ bool AppleObjCDeclVendor::FinishDecl(clang::ObjCInterfaceDecl *interface_decl) {
     if (ivar_type.IsValid()) {
       clang::TypeSourceInfo *const type_source_info = nullptr;
       const bool is_synthesized = false;
-      clang::ObjCIvarDecl *ivar_decl = clang::ObjCIvarDecl::Create(
+      
+
+      if (clang::ObjCIvarDecl *ivar_decl = clang::ObjCIvarDecl::Create(
           m_ast_ctx->getASTContext(), interface_decl, clang::SourceLocation(),
           clang::SourceLocation(), &m_ast_ctx->getASTContext().Idents.get(name),
           ClangUtil::GetQualType(ivar_type),
           type_source_info, // TypeSourceInfo *
-          clang::ObjCIvarDecl::Public, nullptr, is_synthesized);
-
-      if (ivar_decl) {
+          clang::ObjCIvarDecl::Public, nullptr, is_synthesized); ivar_decl) {
         interface_decl->addDecl(ivar_decl);
       }
     }
@@ -546,10 +546,10 @@ uint32_t AppleObjCDeclVendor::FindDecls(ConstString name, bool append,
   clang::DeclarationName decl_name =
       ast_ctx.DeclarationNames.getIdentifier(&identifier_info);
 
-  clang::DeclContext::lookup_result lookup_result =
-      ast_ctx.getTranslationUnitDecl()->lookup(decl_name);
+  
 
-  if (!lookup_result.empty()) {
+  if (clang::DeclContext::lookup_result lookup_result =
+      ast_ctx.getTranslationUnitDecl()->lookup(decl_name); !lookup_result.empty()) {
     if (clang::ObjCInterfaceDecl *result_iface_decl =
             llvm::dyn_cast<clang::ObjCInterfaceDecl>(*lookup_result.begin())) {
       if (log) {

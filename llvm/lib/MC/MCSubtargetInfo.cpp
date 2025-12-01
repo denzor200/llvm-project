@@ -63,10 +63,10 @@ static void ApplyFeatureFlag(FeatureBitset &Bits, StringRef Feature,
          "Feature flags should start with '+' or '-'");
 
   // Find feature in table.
-  const SubtargetFeatureKV *FeatureEntry =
-      Find(SubtargetFeatures::StripFlag(Feature), FeatureTable);
+  
   // If there is a match
-  if (FeatureEntry) {
+  if (const SubtargetFeatureKV *FeatureEntry =
+      Find(SubtargetFeatures::StripFlag(Feature), FeatureTable); FeatureEntry) {
     // Enable/disable feature in bits
     if (SubtargetFeatures::isEnabled(Feature)) {
       Bits.set(FeatureEntry->Value);
@@ -188,10 +188,10 @@ static FeatureBitset getFeatures(MCSubtargetInfo &STI, StringRef CPU,
 
   // Find CPU entry if CPU name is specified.
   else if (!CPU.empty()) {
-    const SubtargetSubTypeKV *CPUEntry = Find(CPU, ProcDesc);
+    
 
     // If there is a match
-    if (CPUEntry) {
+    if (const SubtargetSubTypeKV *CPUEntry = Find(CPU, ProcDesc); CPUEntry) {
       // Set the features implied by this CPU feature, if any.
       SetImpliedBits(Bits, CPUEntry->Implies.getAsBitset(), ProcFeatures);
     } else {
@@ -201,10 +201,10 @@ static FeatureBitset getFeatures(MCSubtargetInfo &STI, StringRef CPU,
   }
 
   if (!TuneCPU.empty()) {
-    const SubtargetSubTypeKV *CPUEntry = Find(TuneCPU, ProcDesc);
+    
 
     // If there is a match
-    if (CPUEntry) {
+    if (const SubtargetSubTypeKV *CPUEntry = Find(TuneCPU, ProcDesc); CPUEntry) {
       // Set the features implied by this CPU feature, if any.
       SetImpliedBits(Bits, CPUEntry->TuneImplies.getAsBitset(), ProcFeatures);
     } else if (TuneCPU != CPU) {
@@ -288,10 +288,10 @@ FeatureBitset MCSubtargetInfo::ClearFeatureBitsTransitively(
 
 FeatureBitset MCSubtargetInfo::ToggleFeature(StringRef Feature) {
   // Find feature in table.
-  const SubtargetFeatureKV *FeatureEntry =
-      Find(SubtargetFeatures::StripFlag(Feature), ProcFeatures);
+  
   // If there is a match
-  if (FeatureEntry) {
+  if (const SubtargetFeatureKV *FeatureEntry =
+      Find(SubtargetFeatures::StripFlag(Feature), ProcFeatures); FeatureEntry) {
     if (FeatureBits.test(FeatureEntry->Value)) {
       FeatureBits.reset(FeatureEntry->Value);
       // For each feature that implies this, clear it.

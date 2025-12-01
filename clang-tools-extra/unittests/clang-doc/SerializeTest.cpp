@@ -37,8 +37,8 @@ public:
 
   template <typename T> bool mapDecl(const T *D) {
     Location Loc(0, 0, "test.cpp");
-    auto [Child, Parent] = serialize::emitInfo(D, getComment(D), Loc, Public);
-    if (Child)
+    
+    if (auto [Child, Parent] = serialize::emitInfo(D, getComment(D), Loc, Public); Child)
       EmittedInfos.emplace_back(std::move(Child));
     if (Parent)
       EmittedInfos.emplace_back(std::move(Parent));

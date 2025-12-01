@@ -196,9 +196,9 @@ void StmtPrinter::PrintFPPragmas(CompoundStmt *S) {
              << NL;
   }
   if (FPO.hasSpecifiedExceptionModeOverride()) {
-    LangOptions::FPExceptionModeKind EM =
-        FPO.getSpecifiedExceptionModeOverride();
-    if (!FEnvAccess || EM != LangOptions::FPE_Strict) {
+    
+    if (LangOptions::FPExceptionModeKind EM =
+        FPO.getSpecifiedExceptionModeOverride(); !FEnvAccess || EM != LangOptions::FPE_Strict) {
       Indent() << "#pragma clang fp exceptions(";
       switch (FPO.getSpecifiedExceptionModeOverride()) {
       default:
@@ -690,8 +690,8 @@ void StmtPrinter::VisitSEHTryStmt(SEHTryStmt *Node) {
   Indent() << (Node->getIsCXXTry() ? "try " : "__try ");
   PrintRawCompoundStmt(Node->getTryBlock());
   SEHExceptStmt *E = Node->getExceptHandler();
-  SEHFinallyStmt *F = Node->getFinallyHandler();
-  if(E)
+  
+  if(SEHFinallyStmt *F = Node->getFinallyHandler(); E)
     PrintRawSEHExceptHandler(E);
   else {
     assert(F && "Must have a finally block...");
@@ -1461,10 +1461,10 @@ static bool printExprAsWritten(raw_ostream &OS, Expr *E,
   if (!Context)
     return false;
   bool Invalid = false;
-  StringRef Source = Lexer::getSourceText(
+  
+  if (StringRef Source = Lexer::getSourceText(
       CharSourceRange::getTokenRange(E->getSourceRange()),
-      Context->getSourceManager(), Context->getLangOpts(), &Invalid);
-  if (!Invalid) {
+      Context->getSourceManager(), Context->getLangOpts(), &Invalid); !Invalid) {
     OS << Source;
     return true;
   }
@@ -1667,8 +1667,8 @@ void StmtPrinter::VisitGenericSelectionExpr(GenericSelectionExpr *Node) {
 
   for (const GenericSelectionExpr::Association &Assoc : Node->associations()) {
     OS << ", ";
-    QualType T = Assoc.getType();
-    if (T.isNull())
+    
+    if (QualType T = Assoc.getType(); T.isNull())
       OS << "default";
     else
       T.print(OS, Policy);
@@ -1774,11 +1774,11 @@ void StmtPrinter::VisitMemberExpr(MemberExpr *Node) {
     PrintExpr(Node->getBase());
 
     auto *ParentMember = dyn_cast<MemberExpr>(Node->getBase());
-    FieldDecl *ParentDecl =
-        ParentMember ? dyn_cast<FieldDecl>(ParentMember->getMemberDecl())
-                     : nullptr;
+    
 
-    if (!ParentDecl || !ParentDecl->isAnonymousStructOrUnion())
+    if (FieldDecl *ParentDecl =
+        ParentMember ? dyn_cast<FieldDecl>(ParentMember->getMemberDecl())
+                     : nullptr; !ParentDecl || !ParentDecl->isAnonymousStructOrUnion())
       OS << (Node->isArrow() ? "->" : ".");
   }
 
@@ -2057,8 +2057,8 @@ void StmtPrinter::VisitAtomicExpr(AtomicExpr *Node) {
 
 // C++
 void StmtPrinter::VisitCXXOperatorCallExpr(CXXOperatorCallExpr *Node) {
-  OverloadedOperatorKind Kind = Node->getOperator();
-  if (Kind == OO_PlusPlus || Kind == OO_MinusMinus) {
+  
+  if (OverloadedOperatorKind Kind = Node->getOperator(); Kind == OO_PlusPlus || Kind == OO_MinusMinus) {
     if (Node->getNumArgs() == 1) {
       OS << getOperatorSpelling(Kind) << ' ';
       PrintExpr(Node->getArg(0));
@@ -2092,8 +2092,8 @@ void StmtPrinter::VisitCXXOperatorCallExpr(CXXOperatorCallExpr *Node) {
 
 void StmtPrinter::VisitCXXMemberCallExpr(CXXMemberCallExpr *Node) {
   // If we have a conversion operator call only print the argument.
-  CXXMethodDecl *MD = Node->getMethodDecl();
-  if (isa_and_nonnull<CXXConversionDecl>(MD)) {
+  
+  if (CXXMethodDecl *MD = Node->getMethodDecl(); isa_and_nonnull<CXXConversionDecl>(MD)) {
     PrintExpr(Node->getImplicitObjectArgument());
     return;
   }
@@ -2457,8 +2457,8 @@ void StmtPrinter::VisitCXXNewExpr(CXXNewExpr *E) {
   if (E->isGlobalNew())
     OS << "::";
   OS << "new ";
-  unsigned NumPlace = E->getNumPlacementArgs();
-  if (NumPlace > 0 && !isa<CXXDefaultArgExpr>(E->getPlacementArg(0))) {
+  
+  if (unsigned NumPlace = E->getNumPlacementArgs(); NumPlace > 0 && !isa<CXXDefaultArgExpr>(E->getPlacementArg(0))) {
     OS << "(";
     PrintExpr(E->getPlacementArg(0));
     for (unsigned i = 1; i < NumPlace; ++i) {
@@ -2717,8 +2717,8 @@ void StmtPrinter::VisitRequiresExpr(RequiresExpr *E) {
         OS << " }";
         if (ExprReq->getNoexceptLoc().isValid())
           OS << " noexcept";
-        const auto &RetReq = ExprReq->getReturnTypeRequirement();
-        if (!RetReq.isEmpty()) {
+        
+        if (const auto &RetReq = ExprReq->getReturnTypeRequirement(); !RetReq.isEmpty()) {
           OS << " -> ";
           if (RetReq.isSubstitutionFailure())
             OS << "<<error-type>>";
@@ -2883,9 +2883,9 @@ void StmtPrinter::VisitBlockExpr(BlockExpr *Node) {
   BlockDecl *BD = Node->getBlockDecl();
   OS << "^";
 
-  const FunctionType *AFT = Node->getFunctionType();
+  
 
-  if (isa<FunctionNoProtoType>(AFT)) {
+  if (const FunctionType *AFT = Node->getFunctionType(); isa<FunctionNoProtoType>(AFT)) {
     OS << "()";
   } else if (!BD->param_empty() || cast<FunctionProtoType>(AFT)->isVariadic()) {
     OS << '(';
@@ -2896,8 +2896,8 @@ void StmtPrinter::VisitBlockExpr(BlockExpr *Node) {
       (*AI)->getType().print(OS, Policy, ParamStr);
     }
 
-    const auto *FT = cast<FunctionProtoType>(AFT);
-    if (FT->isVariadic()) {
+    
+    if (const auto *FT = cast<FunctionProtoType>(AFT); FT->isVariadic()) {
       if (!BD->param_empty()) OS << ", ";
       OS << "...";
     }

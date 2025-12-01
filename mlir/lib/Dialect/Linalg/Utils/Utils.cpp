@@ -242,8 +242,8 @@ bool isReductionIterator(utils::IteratorType iteratorType) {
 /// Returns the BlockArgument that leads to `val`, if any. Traverses optional
 /// ext* ops.
 static BlockArgument getBlockArgumentWithOptionalExtOps(Value val) {
-  BlockArgument blockArg = dyn_cast<BlockArgument>(val);
-  if ((blockArg))
+  
+  if (BlockArgument blockArg = dyn_cast<BlockArgument>(val); (blockArg))
     return blockArg;
 
   Operation *defOp = val.getDefiningOp();
@@ -1349,9 +1349,9 @@ static void generateParallelLoopNest(
                      .size();
   }
 
-  auto remainderProcInfo =
-      procInfo.empty() ? procInfo : procInfo.drop_front(numProcessed);
-  switch (distributionMethod) {
+  
+  switch (auto remainderProcInfo =
+      procInfo.empty() ? procInfo : procInfo.drop_front(numProcessed); distributionMethod) {
   case DistributionMethod::None: {
     // Generate a single parallel loop-nest operation for all outermost
     // parallel loops and recurse.
@@ -1564,9 +1564,9 @@ computeSliceParameters(OpBuilder &builder, Location loc, Value valueToTile,
     int64_t shapeSize = shape[r];
     std::optional<int64_t> sizeCst = getConstantIntValue(size);
     auto hasTileSizeOne = sizeCst == 1;
-    auto dividesEvenly = sizeCst && ShapedType::isStatic(shapeSize) &&
-                         ((shapeSize % *sizeCst) == 0);
-    if (!hasTileSizeOne && !dividesEvenly) {
+    
+    if (auto dividesEvenly = sizeCst && ShapedType::isStatic(shapeSize) &&
+                         ((shapeSize % *sizeCst) == 0); !hasTileSizeOne && !dividesEvenly) {
       LLVM_DEBUG(llvm::dbgs() << "makeTiledShape: shapeSize=" << shapeSize
                               << ", size: " << size
                               << ": make sure in bound with affine.min\n");
@@ -1661,8 +1661,8 @@ SmallVector<Value> insertSlicesBack(OpBuilder &builder, Location loc,
   for (OpOperand &opOperand : op.getDpsInitsMutable()) {
     // TODO: use an interface/adaptor to avoid leaking position in
     // `tiledOperands`.
-    Value outputTensor = operands[opOperand.getOperandNumber()];
-    if (auto sliceOp = outputTensor.getDefiningOp<tensor::ExtractSliceOp>()) {
+    
+    if (auto Value outputTensor = operands[opOperand.getOperandNumber()]; sliceOp = outputTensor.getDefiningOp<tensor::ExtractSliceOp>()) {
       Value inserted = tensor::InsertSliceOp::create(
           builder, loc, sliceOp.getSource().getType(), results[resultIdx],
           sliceOp.getSource(), sliceOp.getOffsets(), sliceOp.getSizes(),
@@ -1794,8 +1794,8 @@ getReassociationMapForFoldingUnitDims(ArrayRef<OpFoldResult> mixedSizes) {
     auto dim = it.index();
     auto size = it.value();
     curr.push_back(dim);
-    auto attr = llvm::dyn_cast_if_present<Attribute>(size);
-    if (attr && cast<IntegerAttr>(attr).getInt() == 1)
+    
+    if (auto attr = llvm::dyn_cast_if_present<Attribute>(size); attr && cast<IntegerAttr>(attr).getInt() == 1)
       continue;
     reassociation.emplace_back(ReassociationIndices{});
     std::swap(reassociation.back(), curr);

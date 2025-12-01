@@ -303,10 +303,10 @@ bool X86CmovConverterPass::collectCmovCandidates(
       if (I.isDebugInstr())
         continue;
 
-      X86::CondCode CC = X86::getCondFromCMov(I);
+      
       // Check if we found a X86::CMOVrr instruction. If it is marked as
       // unpredictable, skip it and do not convert it to branch.
-      if (CC != X86::COND_INVALID &&
+      if (X86::CondCode CC = X86::getCondFromCMov(I); CC != X86::COND_INVALID &&
           !I.getFlag(MachineInstr::MIFlag::Unpredictable) &&
           (IncludeLoads || !I.mayLoad())) {
         if (Group.empty()) {
@@ -454,8 +454,8 @@ bool X86CmovConverterPass::checkForProfitableCmovCandidates(
           if (!MO.isReg() || !MO.isUse())
             continue;
           Register Reg = MO.getReg();
-          auto &RDM = RegDefMaps[Reg.isVirtual()];
-          if (MachineInstr *DefMI = RDM.lookup(Reg)) {
+          
+          if (MachineInstr *auto &RDM = RegDefMaps[Reg.isVirtual()]; DefMI = RDM.lookup(Reg)) {
             OperandToDefMap[&MO] = DefMI;
             DepthInfo Info = DepthMap.lookup(DefMI);
             MIDepth = std::max(MIDepth, Info.Depth);

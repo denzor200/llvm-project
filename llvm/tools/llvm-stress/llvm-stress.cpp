@@ -228,8 +228,8 @@ protected:
   Value *getRandomValue(Type *Tp) {
     unsigned index = getRandom();
     for (unsigned i=0; i<PT->size(); ++i) {
-      Value *V = PT->at((index + i) % PT->size());
-      if (V->getType() == Tp)
+      
+      if (Value *V = PT->at((index + i) % PT->size()); V->getType() == Tp)
         return V;
     }
 
@@ -259,8 +259,8 @@ protected:
   Value *getRandomPointerValue() {
     unsigned index = getRandom();
     for (unsigned i=0; i<PT->size(); ++i) {
-      Value *V = PT->at((index + i) % PT->size());
-      if (V->getType()->isPointerTy())
+      
+      if (Value *V = PT->at((index + i) % PT->size()); V->getType()->isPointerTy())
         return V;
     }
     return UndefValue::get(PointerType::get(Context, 0));
@@ -270,8 +270,8 @@ protected:
   Value *getRandomVectorValue() {
     unsigned index = getRandom();
     for (unsigned i=0; i<PT->size(); ++i) {
-      Value *V = PT->at((index + i) % PT->size());
-      if (V->getType()->isVectorTy())
+      
+      if (Value *V = PT->at((index + i) % PT->size()); V->getType()->isVectorTy())
         return V;
     }
     return UndefValue::get(pickVectorType());

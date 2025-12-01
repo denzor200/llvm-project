@@ -14,8 +14,8 @@ using namespace llvm;
 
 static msgpack::DocNode getNode(msgpack::DocNode DN, msgpack::Type Type,
                                 MCValue Val) {
-  msgpack::Document *Doc = DN.getDocument();
-  switch (Type) {
+  
+  switch (msgpack::Document *Doc = DN.getDocument(); Type) {
   default:
     return Doc->getEmptyNode();
   case msgpack::Type::Int:
@@ -29,8 +29,8 @@ static msgpack::DocNode getNode(msgpack::DocNode DN, msgpack::Type Type,
 
 void DelayedMCExprs::assignDocNode(msgpack::DocNode &DN, msgpack::Type Type,
                                    const MCExpr *ExprValue) {
-  MCValue Res;
-  if (ExprValue->evaluateAsRelocatable(Res, nullptr)) {
+  
+  if (MCValue Res; ExprValue->evaluateAsRelocatable(Res, nullptr)) {
     if (Res.isAbsolute()) {
       DN = getNode(DN, Type, Res);
       return;

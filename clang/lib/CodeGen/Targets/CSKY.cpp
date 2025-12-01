@@ -106,8 +106,8 @@ ABIArgInfo CSKYABIInfo::classifyArgumentType(QualType Ty, int &ArgGPRsLeft,
   // Complex types for the hard float ABI must be passed direct rather than
   // using CoerceAndExpand.
   if (Ty->isComplexType() && FLen && !isReturnType) {
-    QualType EltTy = Ty->castAs<ComplexType>()->getElementType();
-    if (getContext().getTypeSize(EltTy) <= FLen) {
+    
+    if (QualType EltTy = Ty->castAs<ComplexType>()->getElementType(); getContext().getTypeSize(EltTy) <= FLen) {
       ArgFPRsLeft -= 2;
       return ABIArgInfo::getDirect();
     }

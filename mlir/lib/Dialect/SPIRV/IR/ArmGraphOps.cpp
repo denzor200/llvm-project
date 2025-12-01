@@ -35,8 +35,8 @@ ParseResult spirv::GraphARMOp::parse(OpAsmParser &parser,
   Builder &builder = parser.getBuilder();
 
   // Parse the name as a symbol.
-  StringAttr nameAttr;
-  if (parser.parseSymbolName(nameAttr, SymbolTable::getSymbolAttrName(),
+  
+  if (StringAttr nameAttr; parser.parseSymbolName(nameAttr, SymbolTable::getSymbolAttrName(),
                              result.attributes))
     return failure();
 
@@ -87,8 +87,8 @@ void spirv::GraphARMOp::print(OpAsmPrinter &printer) {
                                                     getResAttrsAttrName()});
 
   // Print the body.
-  Region &body = this->getBody();
-  if (!body.empty()) {
+  
+  if (Region &body = this->getBody(); !body.empty()) {
     printer << ' ';
     printer.printRegion(body, /*printEntryBlockArgs=*/false,
                         /*printBlockTerminators=*/true);
@@ -118,8 +118,8 @@ LogicalResult spirv::GraphARMOp::verifyBody() {
   if (!isExternal()) {
     Block &entryBlock = front();
 
-    unsigned numArguments = this->getNumArguments();
-    if (entryBlock.getNumArguments() != numArguments)
+    
+    if (unsigned numArguments = this->getNumArguments(); entryBlock.getNumArguments() != numArguments)
       return emitOpError("entry block must have ")
              << numArguments << " arguments to match graph signature";
 
@@ -218,8 +218,8 @@ void spirv::GraphEntryPointARMOp::build(OpBuilder &builder,
 
 ParseResult spirv::GraphEntryPointARMOp::parse(OpAsmParser &parser,
                                                OperationState &result) {
-  FlatSymbolRefAttr fn;
-  if (parser.parseAttribute(fn, Type(), kFnNameAttrName, result.attributes))
+  
+  if (FlatSymbolRefAttr fn; parser.parseAttribute(fn, Type(), kFnNameAttrName, result.attributes))
     return failure();
 
   SmallVector<Attribute, 4> interfaceVars;
@@ -228,8 +228,8 @@ ParseResult spirv::GraphEntryPointARMOp::parse(OpAsmParser &parser,
     if (parser.parseCommaSeparatedList([&]() -> ParseResult {
           // The name of the interface variable attribute is not important.
           FlatSymbolRefAttr var;
-          NamedAttrList attrs;
-          if (parser.parseAttribute(var, Type(), "var_symbol", attrs))
+          
+          if (NamedAttrList attrs; parser.parseAttribute(var, Type(), "var_symbol", attrs))
             return failure();
           interfaceVars.push_back(var);
           return success();

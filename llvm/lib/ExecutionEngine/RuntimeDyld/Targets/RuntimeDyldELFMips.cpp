@@ -13,8 +13,8 @@
 
 void RuntimeDyldELFMips::resolveRelocation(const RelocationEntry &RE,
                                            uint64_t Value) {
-  const SectionEntry &Section = Sections[RE.SectionID];
-  if (IsMipsO32ABI)
+  
+  if (const SectionEntry &Section = Sections[RE.SectionID]; IsMipsO32ABI)
     resolveMIPSO32Relocation(Section, RE.Offset, Value, RE.RelType, RE.Addend);
   else if (IsMipsN32ABI) {
     resolveMIPSN32Relocation(Section, RE.Offset, Value, RE.RelType, RE.Addend,
@@ -212,9 +212,9 @@ int64_t RuntimeDyldELFMips::evaluateMIPS64Relocation(
 
 void RuntimeDyldELFMips::applyMIPSRelocation(uint8_t *TargetPtr, int64_t Value,
                                              uint32_t Type) {
-  uint32_t Insn = readBytesUnaligned(TargetPtr, 4);
+  
 
-  switch (Type) {
+  switch (uint32_t Insn = readBytesUnaligned(TargetPtr, 4); Type) {
   default:
     llvm_unreachable("Unknown relocation type!");
     break;

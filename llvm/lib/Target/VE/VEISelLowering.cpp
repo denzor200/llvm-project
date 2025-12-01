@@ -338,8 +338,8 @@ void VETargetLowering::initVPUActions() {
   // vNt32, vNt64 ops (legal element types)
   for (MVT VT : MVT::vector_valuetypes()) {
     MVT ElemVT = VT.getVectorElementType();
-    unsigned ElemBits = ElemVT.getScalarSizeInBits();
-    if (ElemBits != 32 && ElemBits != 64)
+    
+    if (unsigned ElemBits = ElemVT.getScalarSizeInBits(); ElemBits != 32 && ElemBits != 64)
       continue;
 
     for (unsigned MemOpc : {ISD::MLOAD, ISD::MSTORE, ISD::LOAD, ISD::STORE})
@@ -603,9 +603,9 @@ SDValue VETargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
 
   // Analyze operands again if it is required to store BOTH.
   SmallVector<CCValAssign, 16> ArgLocs2;
-  CCState CCInfo2(CLI.CallConv, CLI.IsVarArg, DAG.getMachineFunction(),
-                  ArgLocs2, *DAG.getContext());
-  if (UseBoth)
+  
+  if (CCState CCInfo2(CLI.CallConv, CLI.IsVarArg, DAG.getMachineFunction(),
+                  ArgLocs2, *DAG.getContext()); UseBoth)
     CCInfo2.AnalyzeCallOperands(CLI.Outs, getParamCC(CLI.CallConv, true));
 
   // Get the size of the outgoing arguments stack space requirement.
@@ -966,9 +966,9 @@ SDValue VETargetLowering::makeAddress(SDValue Op, SelectionDAG &DAG) const {
 
   // Handle PIC mode first. VE needs a got load for every variable!
   if (isPositionIndependent()) {
-    auto GlobalN = dyn_cast<GlobalAddressSDNode>(Op);
+    
 
-    if (isa<ConstantPoolSDNode>(Op) || isa<JumpTableSDNode>(Op) ||
+    if (auto GlobalN = dyn_cast<GlobalAddressSDNode>(Op); isa<ConstantPoolSDNode>(Op) || isa<JumpTableSDNode>(Op) ||
         (GlobalN && GlobalN->getGlobal()->hasLocalLinkage())) {
       // Create following instructions for local linkage PIC code.
       //     lea %reg, label@gotoff_lo
@@ -1052,12 +1052,12 @@ SDValue VETargetLowering::lowerATOMIC_FENCE(SDValue Op,
   SDLoc DL(Op);
   AtomicOrdering FenceOrdering =
       static_cast<AtomicOrdering>(Op.getConstantOperandVal(1));
-  SyncScope::ID FenceSSID =
-      static_cast<SyncScope::ID>(Op.getConstantOperandVal(2));
+  
 
   // VE uses Release consistency, so need a fence instruction if it is a
   // cross-thread fence.
-  if (FenceSSID == SyncScope::System) {
+  if (SyncScope::ID FenceSSID =
+      static_cast<SyncScope::ID>(Op.getConstantOperandVal(2)); FenceSSID == SyncScope::System) {
     switch (FenceOrdering) {
     case AtomicOrdering::NotAtomic:
     case AtomicOrdering::Unordered:
@@ -1711,8 +1711,8 @@ static SDValue lowerRETURNADDR(SDValue Op, SelectionDAG &DAG,
 SDValue VETargetLowering::lowerINTRINSIC_WO_CHAIN(SDValue Op,
                                                   SelectionDAG &DAG) const {
   SDLoc DL(Op);
-  unsigned IntNo = Op.getConstantOperandVal(0);
-  switch (IntNo) {
+  
+  switch (unsigned IntNo = Op.getConstantOperandVal(0); IntNo) {
   default: // Don't custom lower most intrinsics.
     return SDValue();
   case Intrinsic::eh_sjlj_lsda: {
@@ -1746,8 +1746,8 @@ static bool getUniqueInsertion(SDNode *N, unsigned &UniqueIdx) {
   // Find first non-undef insertion.
   unsigned Idx;
   for (Idx = 0; Idx < BVN->getNumOperands(); ++Idx) {
-    auto ElemV = BVN->getOperand(Idx);
-    if (!ElemV->isUndef())
+    
+    if (auto ElemV = BVN->getOperand(Idx); !ElemV->isUndef())
       break;
   }
   // Catch the (hypothetical) all-undef case.
@@ -1757,8 +1757,8 @@ static bool getUniqueInsertion(SDNode *N, unsigned &UniqueIdx) {
   UniqueIdx = Idx++;
   // Verify that all other insertions are undef.
   for (; Idx < BVN->getNumOperands(); ++Idx) {
-    auto ElemV = BVN->getOperand(Idx);
-    if (!ElemV->isUndef())
+    
+    if (auto ElemV = BVN->getOperand(Idx); !ElemV->isUndef())
       return false;
   }
   return true;
@@ -1777,8 +1777,8 @@ SDValue VETargetLowering::lowerBUILD_VECTOR(SDValue Op,
   MVT ResultVT = Op.getSimpleValueType();
 
   // If there is just one element, expand to INSERT_VECTOR_ELT.
-  unsigned UniqueIdx;
-  if (getUniqueInsertion(Op.getNode(), UniqueIdx)) {
+  
+  if (unsigned UniqueIdx; getUniqueInsertion(Op.getNode(), UniqueIdx)) {
     SDValue AccuV = CDAG.getUNDEF(Op.getValueType());
     auto ElemV = Op->getOperand(UniqueIdx);
     SDValue IdxV = CDAG.getConstant(UniqueIdx, MVT::i64);
@@ -2597,8 +2597,8 @@ VETargetLowering::emitSjLjDispatchBlock(MachineInstr &MI,
 
       MachineInstrBuilder MIB(*MF, &II);
       for (unsigned RI = 0; SavedRegs[RI]; ++RI) {
-        Register Reg = SavedRegs[RI];
-        if (!DefRegs.contains(Reg))
+        
+        if (Register Reg = SavedRegs[RI]; !DefRegs.contains(Reg))
           MIB.addReg(Reg, RegState::ImplicitDefine | RegState::Dead);
       }
 
@@ -3004,8 +3004,8 @@ std::pair<unsigned, const TargetRegisterClass *>
 VETargetLowering::getRegForInlineAsmConstraint(const TargetRegisterInfo *TRI,
                                                StringRef Constraint,
                                                MVT VT) const {
-  const TargetRegisterClass *RC = nullptr;
-  if (Constraint.size() == 1) {
+  
+  if (const TargetRegisterClass *RC = nullptr; Constraint.size() == 1) {
     switch (Constraint[0]) {
     default:
       return TargetLowering::getRegForInlineAsmConstraint(TRI, Constraint, VT);

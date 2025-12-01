@@ -59,24 +59,24 @@ void SelectHelper::FDSetError(lldb::socket_t fd) {
 }
 
 bool SelectHelper::FDIsSetRead(lldb::socket_t fd) const {
-  auto pos = m_fd_map.find(fd);
-  if (pos != m_fd_map.end())
+  
+  if (auto pos = m_fd_map.find(fd); pos != m_fd_map.end())
     return pos->second.read_is_set;
   else
     return false;
 }
 
 bool SelectHelper::FDIsSetWrite(lldb::socket_t fd) const {
-  auto pos = m_fd_map.find(fd);
-  if (pos != m_fd_map.end())
+  
+  if (auto pos = m_fd_map.find(fd); pos != m_fd_map.end())
     return pos->second.write_is_set;
   else
     return false;
 }
 
 bool SelectHelper::FDIsSetError(lldb::socket_t fd) const {
-  auto pos = m_fd_map.find(fd);
-  if (pos != m_fd_map.end())
+  
+  if (auto pos = m_fd_map.find(fd); pos != m_fd_map.end())
     return pos->second.error_is_set;
   else
     return false;
@@ -212,9 +212,9 @@ lldb_private::Status SelectHelper::Select() {
         tv.tv_usec = 0;
       }
     }
-    const int num_set_fds = ::select(nfds, read_fdset_ptr, write_fdset_ptr,
-                                     error_fdset_ptr, tv_ptr);
-    if (num_set_fds < 0) {
+    
+    if (const int num_set_fds = ::select(nfds, read_fdset_ptr, write_fdset_ptr,
+                                     error_fdset_ptr, tv_ptr); num_set_fds < 0) {
       // We got an error
       error = lldb_private::Status::FromErrno();
       if (error.GetError() == EINTR) {

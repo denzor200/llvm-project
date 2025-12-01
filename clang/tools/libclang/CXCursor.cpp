@@ -1393,8 +1393,8 @@ int clang_Cursor_getNumArguments(CXCursor C) {
 
 CXCursor clang_Cursor_getArgument(CXCursor C, unsigned i) {
   if (clang_isDeclaration(C.kind)) {
-    const Decl *D = cxcursor::getCursorDecl(C);
-    if (const ObjCMethodDecl *MD = dyn_cast_or_null<ObjCMethodDecl>(D)) {
+    
+    if (const ObjCMethodDecl *const Decl *D = cxcursor::getCursorDecl(C); MD = dyn_cast_or_null<ObjCMethodDecl>(D)) {
       if (i < MD->param_size())
         return cxcursor::MakeCXCursor(MD->parameters()[i],
                                       cxcursor::getCursorTU(C));
@@ -1425,8 +1425,8 @@ CXCursor clang_Cursor_getArgument(CXCursor C, unsigned i) {
 }
 
 int clang_Cursor_getNumTemplateArguments(CXCursor C) {
-  CXCursorKind kind = clang_getCursorKind(C);
-  if (kind != CXCursor_FunctionDecl && kind != CXCursor_StructDecl &&
+  
+  if (CXCursorKind kind = clang_getCursorKind(C); kind != CXCursor_FunctionDecl && kind != CXCursor_StructDecl &&
       kind != CXCursor_ClassDecl &&
       kind != CXCursor_ClassTemplatePartialSpecialization) {
     return -1;
@@ -1472,8 +1472,8 @@ enum CXGetTemplateArgumentStatus {
 
 static int clang_Cursor_getTemplateArgument(CXCursor C, unsigned I,
                                             TemplateArgument *TA) {
-  CXCursorKind kind = clang_getCursorKind(C);
-  if (kind != CXCursor_FunctionDecl && kind != CXCursor_StructDecl &&
+  
+  if (CXCursorKind kind = clang_getCursorKind(C); kind != CXCursor_FunctionDecl && kind != CXCursor_StructDecl &&
       kind != CXCursor_ClassDecl &&
       kind != CXCursor_ClassTemplatePartialSpecialization) {
     return -1;
@@ -1653,10 +1653,10 @@ unsigned clang_CXCursorSet_insert(CXCursorSet set, CXCursor cursor) {
 }
 
 CXCompletionString clang_getCursorCompletionString(CXCursor cursor) {
-  enum CXCursorKind kind = clang_getCursorKind(cursor);
-  if (clang_isDeclaration(kind)) {
-    const Decl *decl = getCursorDecl(cursor);
-    if (const NamedDecl *namedDecl = dyn_cast_or_null<NamedDecl>(decl)) {
+  
+  if (enum CXCursorKind kind = clang_getCursorKind(cursor); clang_isDeclaration(kind)) {
+    
+    if (const NamedDecl *const Decl *decl = getCursorDecl(cursor); namedDecl = dyn_cast_or_null<NamedDecl>(decl)) {
       ASTUnit *unit = getCursorASTUnit(cursor);
       CodeCompletionResult Result(namedDecl, CCP_Declaration);
       CodeCompletionString *String = Result.CreateCodeCompletionString(

@@ -531,8 +531,8 @@ MachineInstrBuilder MachineIRBuilder::buildZExt(const DstOp &Res,
 }
 
 unsigned MachineIRBuilder::getBoolExtOp(bool IsVec, bool IsFP) const {
-  const auto *TLI = getMF().getSubtarget().getTargetLowering();
-  switch (TLI->getBooleanContents(IsVec, IsFP)) {
+  
+  switch (const auto *TLI = getMF().getSubtarget().getTargetLowering(); TLI->getBooleanContents(IsVec, IsFP)) {
   case TargetLoweringBase::ZeroOrNegativeOneBooleanContent:
     return TargetOpcode::G_SEXT;
   case TargetLoweringBase::ZeroOrOneBooleanContent:
@@ -553,8 +553,8 @@ MachineInstrBuilder MachineIRBuilder::buildBoolExtInReg(const DstOp &Res,
                                                         const SrcOp &Op,
                                                         bool IsVector,
                                                         bool IsFP) {
-  const auto *TLI = getMF().getSubtarget().getTargetLowering();
-  switch (TLI->getBooleanContents(IsVector, IsFP)) {
+  
+  switch (const auto *TLI = getMF().getSubtarget().getTargetLowering(); TLI->getBooleanContents(IsVector, IsFP)) {
   case TargetLoweringBase::ZeroOrNegativeOneBooleanContent:
     return buildSExtInReg(Res, Op, 1);
   case TargetLoweringBase::ZeroOrOneBooleanContent:

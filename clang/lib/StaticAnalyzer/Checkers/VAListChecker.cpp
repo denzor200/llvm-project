@@ -238,8 +238,8 @@ VAListChecker::getStartCallSite(const ExplodedNode *N,
   bool SeenInitializedState = false;
 
   while (N) {
-    VAListState S = getVAListState(N->getState(), Reg);
-    if (S == VAListState::Initialized) {
+    
+    if (VAListState S = getVAListState(N->getState(), Reg); S == VAListState::Initialized) {
       SeenInitializedState = true;
     } else if (SeenInitializedState) {
       break;

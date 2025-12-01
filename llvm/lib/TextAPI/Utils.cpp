@@ -21,9 +21,9 @@ void llvm::MachO::replace_extension(SmallVectorImpl<char> &Path,
                                     const Twine &Extension) {
   StringRef P(Path.begin(), Path.size());
   auto ParentPath = sys::path::parent_path(P);
-  auto Filename = sys::path::filename(P);
+  
 
-  if (!ParentPath.ends_with(Filename.str() + ".framework")) {
+  if (auto Filename = sys::path::filename(P); !ParentPath.ends_with(Filename.str() + ".framework")) {
     sys::path::replace_extension(Path, Extension);
     return;
   }
@@ -164,8 +164,8 @@ llvm::Expected<Regex> llvm::MachO::createRegexFromGlob(StringRef Glob) {
   SmallString<128> RegexString("^");
   unsigned NumWildcards = 0;
   for (unsigned i = 0; i < Glob.size(); ++i) {
-    char C = Glob[i];
-    switch (C) {
+    
+    switch (char C = Glob[i]; C) {
     case '?':
       RegexString += '.';
       break;
@@ -177,9 +177,9 @@ llvm::Expected<Regex> llvm::MachO::createRegexFromGlob(StringRef Glob) {
         ++NumWildcards;
         ++i;
       }
-      const char *NextChar = i < Glob.size() ? Glob.data() + i : nullptr;
+      
 
-      if ((NumWildcards > 1) && (PrevChar == nullptr || *PrevChar == '/') &&
+      if (const char *NextChar = i < Glob.size() ? Glob.data() + i : nullptr; (NumWildcards > 1) && (PrevChar == nullptr || *PrevChar == '/') &&
           (NextChar == nullptr || *NextChar == '/')) {
         RegexString += "(([^/]*(/|$))*)";
       } else
@@ -197,8 +197,8 @@ llvm::Expected<Regex> llvm::MachO::createRegexFromGlob(StringRef Glob) {
     return make_error<StringError>("not a glob", inconvertibleErrorCode());
 
   llvm::Regex Rule = Regex(RegexString);
-  std::string Error;
-  if (!Rule.isValid(Error))
+  
+  if (std::string Error; !Rule.isValid(Error))
     return make_error<StringError>(Error, inconvertibleErrorCode());
 
   return std::move(Rule);

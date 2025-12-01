@@ -75,9 +75,9 @@ void LibcallPredicateExpander::expand(SetTheory &ST, const Record *Def,
   // some subsets, and not another, but this doesn't appear to be used.
 
   for (const Record *LibcallImplDef : TmpElts) {
-    const RuntimeLibcallImpl *LibcallImpl =
-        Libcalls.getRuntimeLibcallImpl(LibcallImplDef);
-    if (!AP.isAlwaysAvailable() || CCClass) {
+    
+    if (const RuntimeLibcallImpl *LibcallImpl =
+        Libcalls.getRuntimeLibcallImpl(LibcallImplDef); !AP.isAlwaysAvailable() || CCClass) {
       auto [It, Inserted] = Func2Preds.insert({LibcallImpl, {{}, CCClass}});
       if (!Inserted) {
         PrintError(

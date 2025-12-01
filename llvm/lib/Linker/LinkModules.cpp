@@ -158,9 +158,9 @@ bool ModuleLinker::computeResultingSelectionKind(StringRef ComdatName,
   // Comdat::SelectionKind::Largest is a behavior that comes from COFF.
   bool DstAnyOrLargest = Dst == Comdat::SelectionKind::Any ||
                          Dst == Comdat::SelectionKind::Largest;
-  bool SrcAnyOrLargest = Src == Comdat::SelectionKind::Any ||
-                         Src == Comdat::SelectionKind::Largest;
-  if (DstAnyOrLargest && SrcAnyOrLargest) {
+  
+  if (bool SrcAnyOrLargest = Src == Comdat::SelectionKind::Any ||
+                         Src == Comdat::SelectionKind::Largest; DstAnyOrLargest && SrcAnyOrLargest) {
     if (Dst == Comdat::SelectionKind::Largest ||
         Src == Comdat::SelectionKind::Largest)
       Result = Comdat::SelectionKind::Largest;
@@ -344,8 +344,8 @@ bool ModuleLinker::linkIfNeeded(GlobalValue &GV,
 
   if (DGV && !GV.hasLocalLinkage() && !GV.hasAppendingLinkage()) {
     auto *DGVar = dyn_cast<GlobalVariable>(DGV);
-    auto *SGVar = dyn_cast<GlobalVariable>(&GV);
-    if (DGVar && SGVar) {
+    
+    if (auto *SGVar = dyn_cast<GlobalVariable>(&GV); DGVar && SGVar) {
       if (DGVar->isDeclaration() && SGVar->isDeclaration() &&
           (!DGVar->isConstant() || !SGVar->isConstant())) {
         DGVar->setConstant(false);

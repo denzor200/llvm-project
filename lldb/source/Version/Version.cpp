@@ -56,8 +56,8 @@ const char *lldb_private::GetVersion() {
       g_version_str += ")";
     }
 
-    std::string clang_rev(clang::getClangRevision());
-    if (clang_rev.length() > 0) {
+    
+    if (std::string clang_rev(clang::getClangRevision()); clang_rev.length() > 0) {
       g_version_str += "\n  clang revision ";
       g_version_str += clang_rev;
     }

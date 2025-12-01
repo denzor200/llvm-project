@@ -52,8 +52,8 @@ bool AppleObjCRuntimeV1::GetDynamicTypeAndAddress(
   class_type_or_name.Clear();
   value_type = Value::ValueType::Scalar;
   if (CouldHaveDynamicValue(in_value)) {
-    auto class_descriptor(GetClassDescriptor(in_value));
-    if (class_descriptor && class_descriptor->IsValid() &&
+    
+    if (auto class_descriptor(GetClassDescriptor(in_value)); class_descriptor && class_descriptor->IsValid() &&
         class_descriptor->GetClassName()) {
       const addr_t object_ptr = in_value.GetPointerValue().address;
       address.SetRawAddress(object_ptr);
@@ -71,9 +71,9 @@ AppleObjCRuntimeV1::CreateInstance(Process *process,
   // OBJC section to make
   // sure we aren't using the V1 runtime.
   if (language == eLanguageTypeObjC) {
-    ModuleSP objc_module_sp;
+    
 
-    if (AppleObjCRuntime::GetObjCVersion(process, objc_module_sp) ==
+    if (ModuleSP objc_module_sp; AppleObjCRuntime::GetObjCVersion(process, objc_module_sp) ==
         ObjCRuntimeVersions::eAppleObjC_V1)
       return new AppleObjCRuntimeV1(process);
     else
@@ -289,17 +289,17 @@ lldb::addr_t AppleObjCRuntimeV1::GetISAHashTablePointer() {
     const Symbol *symbol = objc_module_sp->FindFirstSymbolWithNameAndType(
         g_objc_debug_class_hash, lldb::eSymbolTypeData);
     if (symbol && symbol->ValueIsAddress()) {
-      Process *process = GetProcess();
-      if (process) {
+      
+      if (Process *process = GetProcess(); process) {
 
-        lldb::addr_t objc_debug_class_hash_addr =
-            symbol->GetAddressRef().GetLoadAddress(&process->GetTarget());
+        
 
-        if (objc_debug_class_hash_addr != LLDB_INVALID_ADDRESS) {
+        if (lldb::addr_t objc_debug_class_hash_addr =
+            symbol->GetAddressRef().GetLoadAddress(&process->GetTarget()); objc_debug_class_hash_addr != LLDB_INVALID_ADDRESS) {
           Status error;
-          lldb::addr_t objc_debug_class_hash_ptr =
-              process->ReadPointerFromMemory(objc_debug_class_hash_addr, error);
-          if (objc_debug_class_hash_ptr != 0 &&
+          
+          if (lldb::addr_t objc_debug_class_hash_ptr =
+              process->ReadPointerFromMemory(objc_debug_class_hash_addr, error); objc_debug_class_hash_ptr != 0 &&
               objc_debug_class_hash_ptr != LLDB_INVALID_ADDRESS) {
             m_isa_hash_table_ptr = objc_debug_class_hash_ptr;
           }
@@ -312,9 +312,9 @@ lldb::addr_t AppleObjCRuntimeV1::GetISAHashTablePointer() {
 
 void AppleObjCRuntimeV1::UpdateISAToDescriptorMapIfNeeded() {
   // TODO: implement HashTableSignature...
-  Process *process = GetProcess();
+  
 
-  if (process) {
+  if (Process *process = GetProcess(); process) {
     // Update the process stop ID that indicates the last time we updated the
     // map, whether it was successful or not.
     m_isa_to_descriptor_stop_id = process->GetStopID();
@@ -341,8 +341,8 @@ void AppleObjCRuntimeV1::UpdateISAToDescriptorMapIfNeeded() {
       // } NXHashTable;
 
       Status error;
-      DataBufferHeap buffer(1024, 0);
-      if (process->ReadMemory(hash_table_ptr, buffer.GetBytes(), 20, error) ==
+      
+      if (DataBufferHeap buffer(1024, 0); process->ReadMemory(hash_table_ptr, buffer.GetBytes(), 20, error) ==
           20) {
         const uint32_t addr_size = m_process->GetAddressByteSize();
         const ByteOrder byte_order = m_process->GetByteOrder();
@@ -351,8 +351,8 @@ void AppleObjCRuntimeV1::UpdateISAToDescriptorMapIfNeeded() {
         lldb::offset_t offset = addr_size; // Skip prototype
         const uint32_t count = data.GetU32(&offset);
         const uint32_t num_buckets = data.GetU32(&offset);
-        const addr_t buckets_ptr = data.GetAddress(&offset);
-        if (m_hash_signature.NeedsUpdate(count, num_buckets, buckets_ptr)) {
+        
+        if (const addr_t buckets_ptr = data.GetAddress(&offset); m_hash_signature.NeedsUpdate(count, num_buckets, buckets_ptr)) {
           m_hash_signature.UpdateSignature(count, num_buckets, buckets_ptr);
 
           const uint32_t data_size = num_buckets * 2 * sizeof(uint32_t);

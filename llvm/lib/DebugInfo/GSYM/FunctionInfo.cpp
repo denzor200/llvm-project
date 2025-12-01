@@ -163,8 +163,8 @@ llvm::Expected<uint64_t> FunctionInfo::encode(FileWriter &Out,
     // writing the LineTable out with the number of bytes that were written.
     Out.writeU32(0);
     const auto StartOffset = Out.tell();
-    llvm::Error err = OptLineTable->encode(Out, Range.start());
-    if (err)
+    
+    if (llvm::Error err = OptLineTable->encode(Out, Range.start()); err)
       return std::move(err);
     const auto Length = Out.tell() - StartOffset;
     if (Length > UINT32_MAX)
@@ -181,8 +181,8 @@ llvm::Expected<uint64_t> FunctionInfo::encode(FileWriter &Out,
     // writing the LineTable out with the number of bytes that were written.
     Out.writeU32(0);
     const auto StartOffset = Out.tell();
-    llvm::Error err = Inline->encode(Out, Range.start());
-    if (err)
+    
+    if (llvm::Error err = Inline->encode(Out, Range.start()); err)
       return std::move(err);
     const auto Length = Out.tell() - StartOffset;
     if (Length > UINT32_MAX)
@@ -199,8 +199,8 @@ llvm::Expected<uint64_t> FunctionInfo::encode(FileWriter &Out,
     // writing the LineTable out with the number of bytes that were written.
     Out.writeU32(0);
     const auto StartOffset = Out.tell();
-    llvm::Error err = MergedFunctions->encode(Out);
-    if (err)
+    
+    if (llvm::Error err = MergedFunctions->encode(Out); err)
       return std::move(err);
     const auto Length = Out.tell() - StartOffset;
     if (Length > UINT32_MAX)
@@ -218,8 +218,8 @@ llvm::Expected<uint64_t> FunctionInfo::encode(FileWriter &Out,
     // writing the CallSites out with the number of bytes that were written.
     Out.writeU32(0);
     const auto StartOffset = Out.tell();
-    Error Err = CallSites->encode(Out);
-    if (Err)
+    
+    if (Error Err = CallSites->encode(Out); Err)
       return std::move(Err);
     const auto Length = Out.tell() - StartOffset;
     if (Length > UINT32_MAX)
@@ -275,9 +275,9 @@ FunctionInfo::lookup(DataExtractor &Data, const GsymReader &GR,
     if (InfoLength != InfoBytes.size())
       return createStringError(std::errc::io_error,
                                "FunctionInfo data is truncated");
-    DataExtractor InfoData(InfoBytes, Data.isLittleEndian(),
-                           Data.getAddressSize());
-    switch (IT) {
+    
+    switch (DataExtractor InfoData(InfoBytes, Data.isLittleEndian(),
+                           Data.getAddressSize()); IT) {
       case InfoType::EndOfList:
         Done = true;
         break;

@@ -110,8 +110,8 @@ void BinaryFunction::postProcessProfile() {
       continue;
 
     BinaryBasicBlock *FTSuccessor = BB->getSuccessor();
-    BinaryBasicBlock::BinaryBranchInfo &BI = BB->getBranchInfo(*FTSuccessor);
-    if (!BI.Count) {
+    
+    if (BinaryBasicBlock::BinaryBranchInfo &BI = BB->getBranchInfo(*FTSuccessor); !BI.Count) {
       BI.Count = BB->getKnownExecutionCount();
       FTSuccessor->setExecutionCount(FTSuccessor->getKnownExecutionCount() +
                                      BI.Count);
@@ -124,8 +124,8 @@ void BinaryFunction::postProcessProfile() {
       // of an incoming/outgoing jump.
       auto SuccBIIter = BB->branch_info_begin();
       for (BinaryBasicBlock *Succ : BB->successors()) {
-        uint64_t Count = SuccBIIter->Count;
-        if (Count != BinaryBasicBlock::COUNT_NO_PROFILE && Count > 0) {
+        
+        if (uint64_t Count = SuccBIIter->Count; Count != BinaryBasicBlock::COUNT_NO_PROFILE && Count > 0) {
           Succ->setExecutionCount(std::max(Succ->getExecutionCount(), Count));
           BB->setExecutionCount(std::max(BB->getExecutionCount(), Count));
         }
@@ -138,8 +138,8 @@ void BinaryFunction::postProcessProfile() {
         if (!BC.MIB->isCall(Inst))
           continue;
 
-        auto CountAnnt = BC.MIB->tryGetAnnotationAs<uint64_t>(Inst, "Count");
-        if (CountAnnt)
+        
+        if (auto CountAnnt = BC.MIB->tryGetAnnotationAs<uint64_t>(Inst, "Count"); CountAnnt)
           BB->setExecutionCount(std::max(BB->getExecutionCount(), *CountAnnt));
       }
     }
@@ -176,8 +176,8 @@ void BinaryFunction::postProcessProfile() {
     uint64_t Delta = (JTAddress - JT->getAddress()) / JT->EntrySize;
     EI += Delta;
     while (EI != JT->Entries.end()) {
-      const BinaryBasicBlock *TargetBB = getBasicBlockForLabel(*EI);
-      if (TargetBB) {
+      
+      if (const BinaryBasicBlock *TargetBB = getBasicBlockForLabel(*EI); TargetBB) {
         const BinaryBasicBlock::BinaryBranchInfo &BranchInfo =
             BB->getBranchInfo(*TargetBB);
         assert(Delta < JT->Counts.size());
@@ -326,8 +326,8 @@ void BinaryFunction::inferFallThroughCounts() {
 
     if (BB->succ_size() <= 2) {
       // Skip if the last instruction is an unconditional jump.
-      const MCInst *LastInstr = BB->getLastNonPseudoInstr();
-      if (LastInstr && (BC.MIB->isUnconditionalBranch(*LastInstr) ||
+      
+      if (const MCInst *LastInstr = BB->getLastNonPseudoInstr(); LastInstr && (BC.MIB->isUnconditionalBranch(*LastInstr) ||
                         BC.MIB->isIndirectBranch(*LastInstr)))
         continue;
       // If there is an FT it will be the last successor.

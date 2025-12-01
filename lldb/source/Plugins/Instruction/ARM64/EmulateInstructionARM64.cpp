@@ -817,9 +817,9 @@ bool EmulateInstructionARM64::EmulateLDPSTP(const uint32_t opcode) {
   Context context_t2;
 
   RegisterValue::BytesContainer buffer;
-  Status error;
+  
 
-  switch (memop) {
+  switch (Status error; memop) {
   case MemOp_STORE: {
     if (n == 31 || n == GetFramePointerRegisterNumber()) // if this store is
                                                          // based off of the sp
@@ -1105,8 +1105,8 @@ bool EmulateInstructionARM64::EmulateB(const uint32_t opcode) {
 
   switch (branch_type) {
   case BranchType_CALL: {
-    addr_t x30 = pc + 4;
-    if (!WriteRegisterUnsigned(context, eRegisterKindLLDB, gpr_lr_arm64, x30))
+    
+    if (addr_t x30 = pc + 4; !WriteRegisterUnsigned(context, eRegisterKindLLDB, gpr_lr_arm64, x30))
       return false;
   } break;
   case BranchType_JMP:

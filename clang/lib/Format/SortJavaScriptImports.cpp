@@ -371,8 +371,8 @@ private:
       // clang-format comments toggle formatting on/off.
       // This is tracked in FormattingOff here and on JsModuleReference.
       while (Current && Current->is(tok::comment)) {
-        StringRef CommentText = Current->TokenText.trim();
-        if (isClangFormatOff(CommentText)) {
+        
+        if (StringRef CommentText = Current->TokenText.trim(); isClangFormatOff(CommentText)) {
           FormattingOff = true;
         } else if (isClangFormatOn(CommentText)) {
           FormattingOff = false;

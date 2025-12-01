@@ -44,8 +44,8 @@ void OptionValueArray::DumpValue(const ExecutionContext *exe_ctx, Stream &strm,
         strm.Indent();
         strm.Printf("[%u]: ", i);
       }
-      const uint32_t extra_dump_options = m_raw_value_dump ? eDumpOptionRaw : 0;
-      switch (array_element_type) {
+      
+      switch (const uint32_t extra_dump_options = m_raw_value_dump ? eDumpOptionRaw : 0; array_element_type) {
       default:
       case eTypeArray:
       case eTypeDictionary:
@@ -163,8 +163,8 @@ size_t OptionValueArray::GetArgs(Args &args) const {
   args.Clear();
   const uint32_t size = m_values.size();
   for (uint32_t i = 0; i < size; ++i) {
-    auto string_value = m_values[i]->GetValueAs<llvm::StringRef>();
-    if (string_value)
+    
+    if (auto string_value = m_values[i]->GetValueAs<llvm::StringRef>(); string_value)
       args.AppendArgument(*string_value);
   }
 
@@ -173,8 +173,8 @@ size_t OptionValueArray::GetArgs(Args &args) const {
 
 Status OptionValueArray::SetArgs(const Args &args, VarSetOperationType op) {
   Status error;
-  const size_t argc = args.GetArgumentCount();
-  switch (op) {
+  
+  switch (const size_t argc = args.GetArgumentCount(); op) {
   case eVarSetOperationInvalid:
     error = Status::FromErrorString("unsupported operation");
     break;
@@ -183,8 +183,8 @@ Status OptionValueArray::SetArgs(const Args &args, VarSetOperationType op) {
   case eVarSetOperationInsertAfter:
     if (argc > 1) {
       uint32_t idx;
-      const uint32_t count = GetSize();
-      if (!llvm::to_integer(args.GetArgumentAtIndex(0), idx) || idx > count) {
+      
+      if (const uint32_t count = GetSize(); !llvm::to_integer(args.GetArgumentAtIndex(0), idx) || idx > count) {
         error = Status::FromErrorStringWithFormat(
             "invalid insert array index %s, index must be 0 through %u",
             args.GetArgumentAtIndex(0), count);
@@ -192,9 +192,9 @@ Status OptionValueArray::SetArgs(const Args &args, VarSetOperationType op) {
         if (op == eVarSetOperationInsertAfter)
           ++idx;
         for (size_t i = 1; i < argc; ++i, ++idx) {
-          lldb::OptionValueSP value_sp(CreateValueFromCStringForTypeMask(
-              args.GetArgumentAtIndex(i), m_type_mask, error));
-          if (value_sp) {
+          
+          if (lldb::OptionValueSP value_sp(CreateValueFromCStringForTypeMask(
+              args.GetArgumentAtIndex(i), m_type_mask, error)); value_sp) {
             if (error.Fail())
               return error;
             if (idx >= m_values.size())
@@ -222,8 +222,8 @@ Status OptionValueArray::SetArgs(const Args &args, VarSetOperationType op) {
       bool all_indexes_valid = true;
       size_t i;
       for (i = 0; i < argc; ++i) {
-        size_t idx;
-        if (!llvm::to_integer(args.GetArgumentAtIndex(i), idx) || idx >= size) {
+        
+        if (size_t idx; !llvm::to_integer(args.GetArgumentAtIndex(i), idx) || idx >= size) {
           all_indexes_valid = false;
           break;
         } else
@@ -231,8 +231,8 @@ Status OptionValueArray::SetArgs(const Args &args, VarSetOperationType op) {
       }
 
       if (all_indexes_valid) {
-        size_t num_remove_indexes = remove_indexes.size();
-        if (num_remove_indexes) {
+        
+        if (size_t num_remove_indexes = remove_indexes.size(); num_remove_indexes) {
           // Sort and then erase in reverse so indexes are always valid
           if (num_remove_indexes > 1) {
             llvm::sort(remove_indexes);
@@ -265,16 +265,16 @@ Status OptionValueArray::SetArgs(const Args &args, VarSetOperationType op) {
   case eVarSetOperationReplace:
     if (argc > 1) {
       uint32_t idx;
-      const uint32_t count = GetSize();
-      if (!llvm::to_integer(args.GetArgumentAtIndex(0), idx) || idx > count) {
+      
+      if (const uint32_t count = GetSize(); !llvm::to_integer(args.GetArgumentAtIndex(0), idx) || idx > count) {
         error = Status::FromErrorStringWithFormat(
             "invalid replace array index %s, index must be 0 through %u",
             args.GetArgumentAtIndex(0), count);
       } else {
         for (size_t i = 1; i < argc; ++i, ++idx) {
-          lldb::OptionValueSP value_sp(CreateValueFromCStringForTypeMask(
-              args.GetArgumentAtIndex(i), m_type_mask, error));
-          if (value_sp) {
+          
+          if (lldb::OptionValueSP value_sp(CreateValueFromCStringForTypeMask(
+              args.GetArgumentAtIndex(i), m_type_mask, error)); value_sp) {
             if (error.Fail())
               return error;
             if (idx < count)
@@ -301,9 +301,9 @@ Status OptionValueArray::SetArgs(const Args &args, VarSetOperationType op) {
     [[fallthrough]];
   case eVarSetOperationAppend:
     for (size_t i = 0; i < argc; ++i) {
-      lldb::OptionValueSP value_sp(CreateValueFromCStringForTypeMask(
-          args.GetArgumentAtIndex(i), m_type_mask, error));
-      if (value_sp) {
+      
+      if (lldb::OptionValueSP value_sp(CreateValueFromCStringForTypeMask(
+          args.GetArgumentAtIndex(i), m_type_mask, error)); value_sp) {
         if (error.Fail())
           return error;
         m_value_was_set = true;

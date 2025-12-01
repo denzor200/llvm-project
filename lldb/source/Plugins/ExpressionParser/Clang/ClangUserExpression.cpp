@@ -223,8 +223,8 @@ void ClangUserExpression::ScanContext(ExecutionContext &exe_ctx, Status &err) {
             TypeSystemClang::DeclContextGetMetaData(decl_context,
                                                     function_decl);
         metadata && metadata->HasObjectPtr()) {
-      lldb::LanguageType language = metadata->GetObjectPtrLanguage();
-      if (language == lldb::eLanguageTypeC_plus_plus) {
+      
+      if (lldb::LanguageType language = metadata->GetObjectPtrLanguage(); language == lldb::eLanguageTypeC_plus_plus) {
         if (m_enforce_valid_object) {
           lldb::VariableListSP variable_list_sp(
               function_block->GetBlockVariableList(true));
@@ -407,9 +407,9 @@ void ClangUserExpression::CreateSourceCode(
     DiagnosticManager &diagnostic_manager, ExecutionContext &exe_ctx,
     std::vector<std::string> modules_to_import, bool for_completion) {
 
-  std::string prefix = m_expr_prefix;
+  
 
-  if (m_options.GetExecutionPolicy() == eExecutionPolicyTopLevel) {
+  if (std::string prefix = m_expr_prefix; m_options.GetExecutionPolicy() == eExecutionPolicyTopLevel) {
     m_transformed_text = m_expr_text;
   } else {
     m_source_code.reset(ClangExpressionSourceCode::CreateWrapped(
@@ -426,9 +426,9 @@ void ClangUserExpression::CreateSourceCode(
     // transformed code. We need this later for the code completion.
     std::size_t original_start;
     std::size_t original_end;
-    bool found_bounds = m_source_code->GetOriginalBodyBounds(
-        m_transformed_text, original_start, original_end);
-    if (found_bounds)
+    
+    if (bool found_bounds = m_source_code->GetOriginalBodyBounds(
+        m_transformed_text, original_start, original_end); found_bounds)
       m_user_expression_start_pos = original_start;
   }
 }
@@ -597,13 +597,13 @@ bool ClangUserExpression::TryParse(
   //
 
   {
-    Status jit_error = m_parser->PrepareForExecution(
-        m_jit_start_addr, m_jit_end_addr, m_execution_unit_sp, exe_ctx,
-        m_can_interpret, execution_policy);
+    
 
-    if (!jit_error.Success()) {
-      const char *error_cstr = jit_error.AsCString();
-      if (error_cstr && error_cstr[0])
+    if (Status jit_error = m_parser->PrepareForExecution(
+        m_jit_start_addr, m_jit_end_addr, m_execution_unit_sp, exe_ctx,
+        m_can_interpret, execution_policy); !jit_error.Success()) {
+      
+      if (const char *error_cstr = jit_error.AsCString(); error_cstr && error_cstr[0])
         diagnostic_manager.PutString(lldb::eSeverityError, error_cstr);
       else
         diagnostic_manager.PutString(lldb::eSeverityError,
@@ -717,9 +717,9 @@ bool ClangUserExpression::Parse(DiagnosticManager &diagnostic_manager,
   }
 
   if (generate_debug_info) {
-    lldb::ModuleSP jit_module_sp(m_execution_unit_sp->GetJITModule());
+    
 
-    if (jit_module_sp) {
+    if (lldb::ModuleSP jit_module_sp(m_execution_unit_sp->GetJITModule()); jit_module_sp) {
       ConstString const_func_name(FunctionName());
       FileSpec jit_file;
       jit_file.SetFilename(const_func_name);
@@ -869,9 +869,9 @@ bool ClangUserExpression::AddArguments(ExecutionContext &exe_ctx,
                                        lldb::addr_t struct_address,
                                        DiagnosticManager &diagnostic_manager) {
   lldb::addr_t object_ptr = LLDB_INVALID_ADDRESS;
-  lldb::addr_t cmd_ptr = LLDB_INVALID_ADDRESS;
+  
 
-  if (m_needs_object_ptr) {
+  if (lldb::addr_t cmd_ptr = LLDB_INVALID_ADDRESS; m_needs_object_ptr) {
     lldb::StackFrameSP frame_sp = exe_ctx.GetFrameSP();
     if (!frame_sp)
       return true;
@@ -891,8 +891,8 @@ bool ClangUserExpression::AddArguments(ExecutionContext &exe_ctx,
     Status object_ptr_error;
 
     if (m_ctx_obj) {
-      ValueObject::AddrAndType address = m_ctx_obj->GetAddressOf(false);
-      if (address.address == LLDB_INVALID_ADDRESS ||
+      
+      if (ValueObject::AddrAndType address = m_ctx_obj->GetAddressOf(false); address.address == LLDB_INVALID_ADDRESS ||
           address.type != eAddressTypeLoad)
         object_ptr_error = Status::FromErrorString("Can't get context object's "
                                                    "debuggee address");
@@ -953,9 +953,9 @@ void ClangUserExpression::ClangUserExpressionHelper::ResetDeclMap(
     bool keep_result_in_memory,
     ValueObject *ctx_obj) {
   std::shared_ptr<ClangASTImporter> ast_importer;
-  auto *state = exe_ctx.GetTargetSP()->GetPersistentExpressionStateForLanguage(
-      lldb::eLanguageTypeC);
-  if (state) {
+  
+  if (auto *state = exe_ctx.GetTargetSP()->GetPersistentExpressionStateForLanguage(
+      lldb::eLanguageTypeC); state) {
     auto *persistent_vars = llvm::cast<ClangPersistentVariables>(state);
     ast_importer = persistent_vars->GetClangASTImporter();
   }

@@ -251,8 +251,8 @@ void WinException::endFuncletImpl() {
   if (!CurrentFuncletEntry)
     return;
 
-  const MachineFunction *MF = Asm->MF;
-  if (shouldEmitMoves || shouldEmitPersonality) {
+  
+  if (const MachineFunction *MF = Asm->MF; shouldEmitMoves || shouldEmitPersonality) {
     const Function &F = MF->getFunction();
     EHPersonality Per = EHPersonality::Unknown;
     if (F.hasPersonalityFn())
@@ -634,8 +634,8 @@ void WinException::emitSEHActionsForRange(const WinEHFuncInfo &FuncInfo,
     const SEHUnwindMapEntry &UME = FuncInfo.SEHUnwindMap[State];
     const MCExpr *FilterOrFinally;
     const MCExpr *ExceptOrNull;
-    auto *Handler = cast<MachineBasicBlock *>(UME.Handler);
-    if (UME.IsFinally) {
+    
+    if (auto *Handler = cast<MachineBasicBlock *>(UME.Handler); UME.IsFinally) {
       FilterOrFinally = create32bitRef(getMCSymbolForMBB(Asm, Handler));
       ExceptOrNull = MCConstantExpr::create(0, Ctx);
     } else {
@@ -964,8 +964,8 @@ void WinException::emitEHRegistrationOffsetLabel(const WinEHFuncInfo &FuncInfo,
   // the parent frame offset label, but it should be garbage and should never be
   // used.
   int64_t Offset = 0;
-  int FI = FuncInfo.EHRegNodeFrameIndex;
-  if (FI != INT_MAX) {
+  
+  if (int FI = FuncInfo.EHRegNodeFrameIndex; FI != INT_MAX) {
     const TargetFrameLowering *TFI = Asm->MF->getSubtarget().getFrameLowering();
     Offset = TFI->getNonLocalFrameIndexReference(*Asm->MF, FI).getFixed();
   }
@@ -1026,8 +1026,8 @@ void WinException::emitExceptHandlerTable(const MachineFunction *MF) {
 
     // Retrieve the Guard Stack slot.
     int GSCookieOffset = -2;
-    const MachineFrameInfo &MFI = MF->getFrameInfo();
-    if (MFI.hasStackProtectorIndex()) {
+    
+    if (const MachineFrameInfo &MFI = MF->getFrameInfo(); MFI.hasStackProtectorIndex()) {
       Register UnusedReg;
       const TargetFrameLowering *TFI = MF->getSubtarget().getFrameLowering();
       int SSPIdx = MFI.getStackProtectorIndex();
@@ -1221,8 +1221,8 @@ void WinException::emitCLRExceptionTable(const MachineFunction *MF) {
              EnteredState != CurrentState;
              EnteredState =
                  FuncInfo.ClrEHUnwindMap[EnteredState].TryParentState) {
-          int &MinEnclosingState = MinClauseMap[EnteredState];
-          if (FuncletState < MinEnclosingState)
+          
+          if (int &MinEnclosingState = MinClauseMap[EnteredState]; FuncletState < MinEnclosingState)
             MinEnclosingState = FuncletState;
         }
         // Save the previous current start/label on the stack and update to

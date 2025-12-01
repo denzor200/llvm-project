@@ -257,9 +257,9 @@ static ParseRet tryParseParameter(StringRef &ParseString, VFParamKind &PKind,
     return ParseRet::OK;
   }
 
-  const ParseRet HasLinearRuntime =
-      tryParseLinearWithRuntimeStep(ParseString, PKind, StepOrPos);
-  if (HasLinearRuntime != ParseRet::None)
+  
+  if (const ParseRet HasLinearRuntime =
+      tryParseLinearWithRuntimeStep(ParseString, PKind, StepOrPos); HasLinearRuntime != ParseRet::None)
     return HasLinearRuntime;
 
   const ParseRet HasLinearCompileTime =
@@ -279,9 +279,9 @@ static ParseRet tryParseParameter(StringRef &ParseString, VFParamKind &PKind,
 /// accordingly, and return success.  On a syntax error, it return a
 /// parsing error. If nothing is parsed, it returns std::nullopt.
 static ParseRet tryParseAlign(StringRef &ParseString, Align &Alignment) {
-  uint64_t Val;
+  
   //    "a" <number>
-  if (ParseString.consume_front("a")) {
+  if (uint64_t Val; ParseString.consume_front("a")) {
     if (ParseString.consumeInteger(10, Val))
       return ParseRet::Error;
 
@@ -346,11 +346,11 @@ getScalableECFromSignature(const FunctionType *Signature, const VFISAKind ISA,
   }
 
   // Also check the return type if not void.
-  Type *RetTy = Signature->getReturnType();
-  if (!RetTy->isVoidTy()) {
+  
+  if (Type *RetTy = Signature->getReturnType(); !RetTy->isVoidTy()) {
     // If the return type is a struct, only allow unpacked struct literals.
-    StructType *StructTy = dyn_cast<StructType>(RetTy);
-    if (StructTy && !isUnpackedStructLiteral(StructTy))
+    
+    if (StructType *StructTy = dyn_cast<StructType>(RetTy); StructTy && !isUnpackedStructLiteral(StructTy))
       return std::nullopt;
 
     for (Type *RetTy : getContainedTypes(RetTy)) {
@@ -420,9 +420,9 @@ std::optional<VFInfo> VFABI::tryDemangleForVFABI(StringRef MangledName,
     if (ParamFound == ParseRet::OK) {
       Align Alignment;
       // Look for the alignment token "a <number>".
-      const ParseRet AlignFound = tryParseAlign(MangledName, Alignment);
+      
       // Bail off if there is a syntax error in the align token.
-      if (AlignFound == ParseRet::Error)
+      if (const ParseRet AlignFound = tryParseAlign(MangledName, Alignment); AlignFound == ParseRet::Error)
         return std::nullopt;
 
       // Add the parameter.
@@ -542,9 +542,9 @@ void VFABI::getVectorVariantNames(
   S.split(ListAttr, ",");
 
   for (const auto &S : SetVector<StringRef>(llvm::from_range, ListAttr)) {
-    std::optional<VFInfo> Info =
-        VFABI::tryDemangleForVFABI(S, CI.getFunctionType());
-    if (Info && CI.getModule()->getFunction(Info->VectorName)) {
+    
+    if (std::optional<VFInfo> Info =
+        VFABI::tryDemangleForVFABI(S, CI.getFunctionType()); Info && CI.getModule()->getFunction(Info->VectorName)) {
       LLVM_DEBUG(dbgs() << "VFABI: Adding mapping '" << S << "' for " << CI
                         << "\n");
       VariantMappings.push_back(std::string(S));

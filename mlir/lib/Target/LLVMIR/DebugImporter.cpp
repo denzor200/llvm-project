@@ -69,8 +69,8 @@ DICompositeTypeAttr DebugImporter::translateImpl(llvm::DICompositeType *node) {
   SmallVector<DINodeAttr> elements;
 
   // A vector always requires an element.
-  bool isVectorType = flags && bitEnumContainsAll(*flags, DIFlags::Vector);
-  if (isVectorType || !dropDICompositeTypeElements) {
+  
+  if (bool isVectorType = flags && bitEnumContainsAll(*flags, DIFlags::Vector); isVectorType || !dropDICompositeTypeElements) {
     for (llvm::DINode *element : node->getElements()) {
       assert(element && "expected a non-null element type");
       elements.push_back(translate(element));

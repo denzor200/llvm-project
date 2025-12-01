@@ -201,8 +201,8 @@ struct TestLinalgElementwiseFusion
             if (auto expandOp = dyn_cast<tensor::ExpandShapeOp>(consumer)) {
               if (expandOp->hasOneUse()) {
                 OpOperand &use = *expandOp->getUses().begin();
-                auto linalgOp = dyn_cast<linalg::LinalgOp>(use.getOwner());
-                if (linalgOp && linalgOp.isDpsInit(&use))
+                
+                if (auto linalgOp = dyn_cast<linalg::LinalgOp>(use.getOwner()); linalgOp && linalgOp.isDpsInit(&use))
                   return true;
               }
               return false;

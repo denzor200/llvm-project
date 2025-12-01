@@ -28,9 +28,9 @@ void ManagedStaticBase::RegisterManagedStatic(void *(*Creator)(),
                                               void (*Deleter)(void*)) const {
   assert(Creator);
   if (llvm_is_multithreaded()) {
-    std::lock_guard<std::recursive_mutex> Lock(*getManagedStaticMutex());
+    
 
-    if (!Ptr.load(std::memory_order_relaxed)) {
+    if (std::lock_guard<std::recursive_mutex> Lock(*getManagedStaticMutex()); !Ptr.load(std::memory_order_relaxed)) {
       void *Tmp = Creator();
 
       Ptr.store(Tmp, std::memory_order_release);

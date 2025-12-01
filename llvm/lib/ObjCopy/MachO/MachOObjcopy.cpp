@@ -121,8 +121,8 @@ static void updateAndRemoveSymbols(const CommonConfig &Config,
         (Config.Weaken || Config.SymbolsToWeaken.matches(Sym.Name)))
       Sym.n_desc |= MachO::N_WEAK_DEF;
 
-    auto I = Config.SymbolsToRename.find(Sym.Name);
-    if (I != Config.SymbolsToRename.end())
+    
+    if (auto I = Config.SymbolsToRename.find(Sym.Name); I != Config.SymbolsToRename.end())
       Sym.Name = std::string(I->getValue());
   });
 
@@ -189,8 +189,8 @@ static Error processLoadCommands(const MachOConfig &MachOConfig, Object &Obj) {
       if (MachOConfig.RemoveAllRpaths)
         return true;
 
-      StringRef RPath = getPayloadString(LC);
-      if (RPathsToRemove.count(RPath)) {
+      
+      if (StringRef RPath = getPayloadString(LC); RPathsToRemove.count(RPath)) {
         RPathsToRemove.erase(RPath);
         return true;
       }
@@ -242,8 +242,8 @@ static Error processLoadCommands(const MachOConfig &MachOConfig, Object &Obj) {
 
     case MachO::LC_RPATH: {
       StringRef RPath = getPayloadString(LC);
-      StringRef NewRPath = MachOConfig.RPathsToUpdate.lookup(RPath);
-      if (!NewRPath.empty())
+      
+      if (StringRef NewRPath = MachOConfig.RPathsToUpdate.lookup(RPath); !NewRPath.empty())
         updateLoadCommandPayloadString<MachO::rpath_command>(LC, NewRPath);
       break;
     }
@@ -253,9 +253,9 @@ static Error processLoadCommands(const MachOConfig &MachOConfig, Object &Obj) {
     case MachO::LC_LOAD_DYLIB:
     case MachO::LC_LOAD_WEAK_DYLIB:
       StringRef InstallName = getPayloadString(LC);
-      StringRef NewInstallName =
-          MachOConfig.InstallNamesToUpdate.lookup(InstallName);
-      if (!NewInstallName.empty())
+      
+      if (StringRef NewInstallName =
+          MachOConfig.InstallNamesToUpdate.lookup(InstallName); !NewInstallName.empty())
         updateLoadCommandPayloadString<MachO::dylib_command>(LC,
                                                              NewInstallName);
       break;
@@ -337,8 +337,8 @@ static Error addSection(const NewSectionInfo &NewSection, Object &Obj) {
 
   // Add the a section into an existing segment.
   for (LoadCommand &LC : Obj.LoadCommands) {
-    std::optional<StringRef> SegName = LC.getSegmentName();
-    if (SegName && SegName == TargetSegName) {
+    
+    if (std::optional<StringRef> SegName = LC.getSegmentName(); SegName && SegName == TargetSegName) {
       uint64_t Addr = *LC.getSegmentVMAddr();
       for (const std::unique_ptr<Section> &S : LC.Sections)
         Addr = std::max(Addr, S->Addr + S->Size);

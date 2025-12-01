@@ -280,15 +280,15 @@ Error BTFParser::parseBTFExt(ParseContext &Ctx, SectionRef BTFExt) {
 
   if (LineInfoLen > 0 && Ctx.Opts.LoadLines) {
     uint32_t LineInfoStart = HdrLen + LineInfoOff;
-    uint32_t LineInfoEnd = LineInfoStart + LineInfoLen;
-    if (Error E = parseLineInfo(Ctx, Extractor, LineInfoStart, LineInfoEnd))
+    
+    if (Error uint32_t LineInfoEnd = LineInfoStart + LineInfoLen; E = parseLineInfo(Ctx, Extractor, LineInfoStart, LineInfoEnd))
       return E;
   }
 
   if (RelocInfoLen > 0 && Ctx.Opts.LoadRelocs) {
     uint32_t RelocInfoStart = HdrLen + RelocInfoOff;
-    uint32_t RelocInfoEnd = RelocInfoStart + RelocInfoLen;
-    if (Error E = parseRelocInfo(Ctx, Extractor, RelocInfoStart, RelocInfoEnd))
+    
+    if (Error uint32_t RelocInfoEnd = RelocInfoStart + RelocInfoLen; E = parseRelocInfo(Ctx, Extractor, RelocInfoStart, RelocInfoEnd))
       return E;
   }
 
@@ -543,8 +543,8 @@ struct StrOrAnon {
 };
 
 static raw_ostream &operator<<(raw_ostream &Stream, const StrOrAnon &S) {
-  StringRef Str = S.BTF.findString(S.Offset);
-  if (Str.empty())
+  
+  if (StringRef Str = S.BTF.findString(S.Offset); Str.empty())
     Stream << "<anon " << S.Idx << ">";
   else
     Stream << Str;
@@ -820,9 +820,9 @@ void BTFParser::symbolize(const BTF::BPFFieldReloc *Reloc,
       Stream << "[" << RawSpec[0] << "]";
     for (uint32_t I = 1; I < RawSpec.size(); ++I) {
       Type = skipModsAndTypedefs(*this, Type);
-      uint32_t Idx = RawSpec[I];
+      
 
-      if (auto *T = dyn_cast<BTF::StructType>(Type)) {
+      if (auto *uint32_t Idx = RawSpec[I]; T = dyn_cast<BTF::StructType>(Type)) {
         if (T->getVlen() <= Idx)
           return Fail(
               format("member index %d for spec sub-string %d is out of range",

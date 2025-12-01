@@ -167,22 +167,22 @@ void DataEncoder::AppendAddress(lldb::addr_t addr) {
 
 void DataEncoder::AppendData(llvm::StringRef data) {
   const char *bytes = data.data();
-  const size_t length = data.size();
-  if (bytes && length > 0)
+  
+  if (const size_t length = data.size(); bytes && length > 0)
     m_data_sp->AppendData(bytes, length);
 }
 
 void DataEncoder::AppendData(llvm::ArrayRef<uint8_t> data) {
   const uint8_t *bytes = data.data();
-  const size_t length = data.size();
-  if (bytes && length > 0)
+  
+  if (const size_t length = data.size(); bytes && length > 0)
     m_data_sp->AppendData(bytes, length);
 }
 
 void DataEncoder::AppendCString(llvm::StringRef data) {
   const char *bytes = data.data();
-  const size_t length = data.size();
-  if (bytes) {
+  
+  if (const size_t length = data.size(); bytes) {
     if (length > 0)
       m_data_sp->AppendData(bytes, length);
     if (length == 0 || bytes[length - 1] != '\0')

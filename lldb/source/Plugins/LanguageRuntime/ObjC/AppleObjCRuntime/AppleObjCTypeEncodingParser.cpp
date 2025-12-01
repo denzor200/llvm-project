@@ -121,8 +121,8 @@ clang::QualType AppleObjCTypeEncodingParser::BuildAggregate(
       in_union = false;
       break;
     } else {
-      auto element = ReadStructElement(ast_ctx, type, for_expression);
-      if (element.type.isNull())
+      
+      if (auto element = ReadStructElement(ast_ctx, type, for_expression); element.type.isNull())
         break;
       else
         elements.push_back(element);
@@ -231,9 +231,9 @@ clang::QualType AppleObjCTypeEncodingParser::BuildObjCObjectPointerType(
   }
 
   if (for_expression && !name.empty()) {
-    size_t less_than_pos = name.find('<');
+    
 
-    if (less_than_pos != std::string::npos) {
+    if (size_t less_than_pos = name.find('<'); less_than_pos != std::string::npos) {
       if (less_than_pos == 0)
         return ast_ctx.getObjCIdType();
       else
@@ -329,17 +329,17 @@ AppleObjCTypeEncodingParser::BuildType(TypeSystemClang &clang_ast_ctx,
   case _C_SEL:
     return ast_ctx.getObjCSelType();
   case _C_BFLD: {
-    uint32_t size = ReadNumber(type);
-    if (bitfield_bit_size) {
+    
+    if (uint32_t size = ReadNumber(type); bitfield_bit_size) {
       *bitfield_bit_size = size;
       return ast_ctx.UnsignedIntTy; // FIXME: the spec is fairly vague here.
     } else
       return clang::QualType();
   }
   case _C_CONST: {
-    clang::QualType target_type =
-        BuildType(clang_ast_ctx, type, for_expression);
-    if (target_type.isNull())
+    
+    if (clang::QualType target_type =
+        BuildType(clang_ast_ctx, type, for_expression); target_type.isNull())
       return clang::QualType();
     else if (target_type == ast_ctx.UnknownAnyTy)
       return ast_ctx.UnknownAnyTy;
@@ -355,9 +355,9 @@ AppleObjCTypeEncodingParser::BuildType(TypeSystemClang &clang_ast_ctx,
       // practical cases
       return ast_ctx.VoidPtrTy;
     } else {
-      clang::QualType target_type =
-          BuildType(clang_ast_ctx, type, for_expression);
-      if (target_type.isNull())
+      
+      if (clang::QualType target_type =
+          BuildType(clang_ast_ctx, type, for_expression); target_type.isNull())
         return clang::QualType();
       else if (target_type == ast_ctx.UnknownAnyTy)
         return ast_ctx.UnknownAnyTy;

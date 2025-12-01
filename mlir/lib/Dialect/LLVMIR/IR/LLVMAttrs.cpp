@@ -262,8 +262,8 @@ ParseResult parseExpressionArg(AsmParser &parser, uint64_t opcode,
     uint64_t operand = 0;
     if (!args.empty() && opcode == llvm::dwarf::DW_OP_LLVM_convert) {
       // Attempt to parse a keyword.
-      StringRef keyword;
-      if (succeeded(parser.parseOptionalKeyword(&keyword))) {
+      
+      if (StringRef keyword; succeeded(parser.parseOptionalKeyword(&keyword))) {
         operand = llvm::dwarf::getAttributeEncoding(keyword);
         if (operand == 0) {
           // The keyword is invalid.
@@ -512,8 +512,8 @@ ModuleFlagAttr::verify(function_ref<InFlightDiagnostic()> emitError,
                        LLVM::ModFlagBehavior flagBehavior, StringAttr key,
                        Attribute value) {
   if (key == LLVMDialect::getModuleFlagKeyCGProfileName()) {
-    auto arrayAttr = dyn_cast<ArrayAttr>(value);
-    if ((!arrayAttr) || (!llvm::all_of(arrayAttr, [](Attribute attr) {
+    
+    if (auto arrayAttr = dyn_cast<ArrayAttr>(value); (!arrayAttr) || (!llvm::all_of(arrayAttr, [](Attribute attr) {
           return isa<ModuleFlagCGProfileEntryAttr>(attr);
         })))
       return emitError()

@@ -82,8 +82,8 @@ using FuncCallerMap = DenseMap<func::FuncOp, DenseSet<Operation *>>;
 /// Get or create FuncAnalysisState.
 static FuncAnalysisState &
 getOrCreateFuncAnalysisState(OneShotAnalysisState &state) {
-  auto *result = state.getExtension<FuncAnalysisState>();
-  if (result)
+  
+  if (auto *result = state.getExtension<FuncAnalysisState>(); result)
     return *result;
   return state.addExtension<FuncAnalysisState>();
 }
@@ -147,8 +147,8 @@ aliasingFuncOpBBArgsAnalysis(FuncOp funcOp, OneShotAnalysisState &state,
       for (func::ReturnOp returnOp : returnOps) {
         for (OpOperand &returnVal : returnOp->getOpOperands()) {
           if (isa<RankedTensorType>(returnVal.get().getType())) {
-            int64_t returnIdx = returnVal.getOperandNumber();
-            if (state.areAliasingBufferizedValues(returnVal.get(), bbArg))
+            
+            if (int64_t returnIdx = returnVal.getOperandNumber(); state.areAliasingBufferizedValues(returnVal.get(), bbArg))
               aliases.insert(returnIdx);
           }
         }
@@ -195,9 +195,9 @@ aliasingFuncOpBBArgsAnalysis(FuncOp funcOp, OneShotAnalysisState &state,
     // which is just "merged", equivalence information must match across all
     // func.return ops.
     for (func::ReturnOp returnOp : ArrayRef(returnOps).drop_front()) {
-      std::optional<int64_t> maybeEquiv =
-          findEquivalentBlockArgIdx(returnOp->getOpOperand(i));
-      if (maybeEquiv != bbArgIdx) {
+      
+      if (std::optional<int64_t> maybeEquiv =
+          findEquivalentBlockArgIdx(returnOp->getOpOperand(i)); maybeEquiv != bbArgIdx) {
         allEquiv = false;
         break;
       }
@@ -354,9 +354,9 @@ static LogicalResult getFuncOpsOrderedByCalls(
     orderedFuncOps.push_back(func);
 
     for (func::FuncOp caller : calledBy[func]) {
-      auto &count = numberCallOpsContainedInFuncOp[caller];
+      
 
-      if (--count == 0)
+      if (auto &count = numberCallOpsContainedInFuncOp[caller]; --count == 0)
         worklist.push_back(caller);
     }
 

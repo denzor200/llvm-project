@@ -611,8 +611,8 @@ public:
                      lldb::addr_t frame_bottom, Status &err) override {
     Log *log = GetLog(LLDBLog::Expressions);
 
-    const lldb::addr_t load_addr = process_address + m_offset;
-    if (log) {
+    
+    if (const lldb::addr_t load_addr = process_address + m_offset; log) {
       LLDB_LOGF(log,
                 "EntityVariable::Dematerialize [address = 0x%" PRIx64
                 ", m_variable_sp = %s]",
@@ -1281,9 +1281,9 @@ public:
                      lldb::addr_t frame_bottom, Status &err) override {
     Log *log = GetLog(LLDBLog::Expressions);
 
-    const lldb::addr_t load_addr = process_address + m_offset;
+    
 
-    if (log) {
+    if (const lldb::addr_t load_addr = process_address + m_offset; log) {
       LLDB_LOGF(log,
                 "EntitySymbol::Dematerialize [address = 0x%" PRIx64
                 ", m_symbol = %s]",
@@ -1512,9 +1512,9 @@ uint32_t Materializer::AddRegister(const RegisterInfo &register_info,
 }
 
 Materializer::~Materializer() {
-  DematerializerSP dematerializer_sp = m_dematerializer_wp.lock();
+  
 
-  if (dematerializer_sp)
+  if (DematerializerSP dematerializer_sp = m_dematerializer_wp.lock(); dematerializer_sp)
     dematerializer_sp->Wipe();
 }
 

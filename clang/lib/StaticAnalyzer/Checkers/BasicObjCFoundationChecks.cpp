@@ -376,9 +376,9 @@ enum CFNumberType {
 };
 
 static std::optional<uint64_t> GetCFNumberSize(ASTContext &Ctx, uint64_t i) {
-  static const unsigned char FixedSize[] = { 8, 16, 32, 64, 32, 64 };
+  
 
-  if (i < kCFNumberCharType)
+  if (static const unsigned char FixedSize[] = { 8, 16, 32, 64, 32, 64 }; i < kCFNumberCharType)
     return FixedSize[i-1];
 
   QualType T;
@@ -678,9 +678,9 @@ VariadicMethodTypeChecker::isVariadicMessage(const ObjCMethodCall &msg) const {
     // initWithObjects: implementation that does accept non-Objective-C pointer
     // types, but the chance of that happening is pretty small compared to the
     // gains that this analysis gives.
-    const ObjCInterfaceDecl *Class = MD->getClassInterface();
+    
 
-    switch (findKnownClass(Class)) {
+    switch (const ObjCInterfaceDecl *Class = MD->getClassInterface(); findKnownClass(Class)) {
     case FC_NSArray:
     case FC_NSOrderedSet:
     case FC_NSSet:
@@ -691,9 +691,9 @@ VariadicMethodTypeChecker::isVariadicMessage(const ObjCMethodCall &msg) const {
       return false;
     }
   } else {
-    const ObjCInterfaceDecl *Class = msg.getReceiverInterface();
+    
 
-    switch (findKnownClass(Class)) {
+    switch (const ObjCInterfaceDecl *Class = msg.getReceiverInterface(); findKnownClass(Class)) {
       case FC_NSArray:
         return S == arrayWithObjectsS;
       case FC_NSOrderedSet:
@@ -1203,8 +1203,8 @@ void ObjCNonNilReturnValueChecker::checkPostObjCMessage(const ObjCMethodCall &M,
     // [NSArray|NSOrderedSet]::[ObjectAtIndex|ObjectAtIndexedSubscript]
     // are never 'nil'.
     if (Cl == FC_NSArray || Cl == FC_NSOrderedSet) {
-      Selector Sel = M.getSelector();
-      if (Sel == ObjectAtIndex || Sel == ObjectAtIndexedSubscript) {
+      
+      if (Selector Sel = M.getSelector(); Sel == ObjectAtIndex || Sel == ObjectAtIndexedSubscript) {
         // Go ahead and assume the value is non-nil.
         State = assumeExprIsNonNull(M.getOriginExpr(), State, C);
       }

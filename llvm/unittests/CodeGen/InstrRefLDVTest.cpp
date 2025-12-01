@@ -132,8 +132,8 @@ public:
     auto *TRI = MF->getRegInfo().getTargetRegisterInfo();
     // Slow, but works.
     for (unsigned int I = 1; I < TRI->getNumRegs(); ++I) {
-      const char *Name = TRI->getName(I);
-      if (strcmp(WantedName, Name) == 0)
+      
+      if (const char *Name = TRI->getName(I); strcmp(WantedName, Name) == 0)
         return I;
     }
 

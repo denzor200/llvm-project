@@ -45,9 +45,9 @@ static void writeMCFGToDotFile(MachineFunction &MF) {
   std::error_code EC;
   raw_fd_ostream File(Filename, EC, sys::fs::OF_Text);
 
-  DOTMachineFuncInfo MCFGInfo(&MF);
+  
 
-  if (!EC)
+  if (DOTMachineFuncInfo MCFGInfo(&MF); !EC)
     WriteGraph(File, &MCFGInfo, CFGOnly);
   else
     errs() << "  error opening file for writing!";

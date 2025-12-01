@@ -110,8 +110,8 @@ void TracePC::PrintModuleInfo() {
   if (size_t NumExtraCounters = ExtraCountersEnd() - ExtraCountersBegin())
     Printf("INFO: %zd Extra Counters\n", NumExtraCounters);
 
-  size_t MaxFeatures = CollectFeatures([](uint32_t) {});
-  if (MaxFeatures > std::numeric_limits<uint32_t>::max())
+  
+  if (size_t MaxFeatures = CollectFeatures([](uint32_t) {}); MaxFeatures > std::numeric_limits<uint32_t>::max())
     Printf("WARNING: The coverage PC tables may produce up to %zu features.\n"
            "This exceeds the maximum 32-bit value. Some features may be\n"
            "ignored, and fuzzing may become less precise. If possible,\n"
@@ -226,8 +226,8 @@ const TracePC::PCTableEntry *TracePC::PCTableEntryByIdx(uintptr_t Idx) {
 
 static std::string GetModuleName(uintptr_t PC) {
   char ModulePathRaw[4096] = "";  // What's PATH_MAX in portable C++?
-  void *OffsetRaw = nullptr;
-  if (!EF->__sanitizer_get_module_and_offset_for_pc(
+  
+  if (void *OffsetRaw = nullptr; !EF->__sanitizer_get_module_and_offset_for_pc(
       reinterpret_cast<void *>(PC), ModulePathRaw,
       sizeof(ModulePathRaw), &OffsetRaw))
     return "";

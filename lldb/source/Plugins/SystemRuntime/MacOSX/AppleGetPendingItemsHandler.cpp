@@ -141,11 +141,11 @@ lldb::addr_t AppleGetPendingItemsHandler::SetupGetPendingItemsFunction(
 
   // Scope for mutex locker:
   {
-    std::lock_guard<std::mutex> guard(m_get_pending_items_function_mutex);
+    
 
     // First stage is to make the ClangUtility to hold our injected function:
 
-    if (!m_get_pending_items_impl_code) {
+    if (std::lock_guard<std::mutex> guard(m_get_pending_items_function_mutex); !m_get_pending_items_impl_code) {
       if (g_get_pending_items_function_code != nullptr) {
         auto utility_fn_or_error = exe_ctx.GetTargetRef().CreateUtilityFunction(
             g_get_pending_items_function_code,

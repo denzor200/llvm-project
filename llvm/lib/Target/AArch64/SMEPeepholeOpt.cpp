@@ -86,8 +86,8 @@ static bool isMatchingStartStopPair(const MachineInstr *MI1,
   // to the function.
   if (MI1->getOperand(3).isReg() && MI2->getOperand(3).isReg()) {
     Register Reg1 = MI1->getOperand(3).getReg();
-    Register Reg2 = MI2->getOperand(3).getReg();
-    if (Reg1.isPhysical() || Reg2.isPhysical() || Reg1 != Reg2)
+    
+    if (Register Reg2 = MI2->getOperand(3).getReg(); Reg1.isPhysical() || Reg2.isPhysical() || Reg1 != Reg2)
       return false;
   }
 
@@ -317,8 +317,8 @@ bool SMEPeepholeOpt::runOnMachineFunction(MachineFunction &MF) {
     }
   }
 
-  AArch64FunctionInfo *AFI = MF.getInfo<AArch64FunctionInfo>();
-  if (FunctionHasAllSMChangesRemoved)
+  
+  if (AArch64FunctionInfo *AFI = MF.getInfo<AArch64FunctionInfo>(); FunctionHasAllSMChangesRemoved)
     AFI->setHasStreamingModeChanges(false);
 
   return Changed;

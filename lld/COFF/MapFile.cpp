@@ -103,8 +103,8 @@ static void getSymbols(const COFFLinkerContext &ctx,
       if (!b || !b->isLive())
         continue;
       if (auto *sym = dyn_cast<DefinedCOFF>(b)) {
-        COFFSymbolRef symRef = sym->getCOFFSymbol();
-        if (!symRef.isSectionDefinition() &&
+        
+        if (COFFSymbolRef symRef = sym->getCOFFSymbol(); !symRef.isSectionDefinition() &&
             symRef.getStorageClass() != COFF::IMAGE_SYM_CLASS_LABEL) {
           if (symRef.getStorageClass() == COFF::IMAGE_SYM_CLASS_STATIC)
             staticSyms.push_back(sym);
@@ -299,8 +299,8 @@ void lld::coff::writeMapFile(COFFLinkerContext &ctx) {
   uint64_t entryAddress = 0;
 
   if (!ctx.config.noEntry) {
-    Defined *entry = dyn_cast_or_null<Defined>(ctx.symtab.entry);
-    if (entry) {
+    
+    if (Defined *entry = dyn_cast_or_null<Defined>(ctx.symtab.entry); entry) {
       Chunk *chunk = entry->getChunk();
       entrySecIndex = chunk->getOutputSectionIdx();
       entryAddress =

@@ -111,8 +111,8 @@ static void AddExpectRace(ExpectRace *list,
 static ExpectRace *FindRace(ExpectRace *list, uptr addr, uptr size) {
   for (ExpectRace *race = list->next; race != list; race = race->next) {
     uptr maxbegin = max(race->addr, addr);
-    uptr minend = min(race->addr + race->size, addr + size);
-    if (maxbegin < minend)
+    
+    if (uptr minend = min(race->addr + race->size, addr + size); maxbegin < minend)
       return race;
   }
   return 0;

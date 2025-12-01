@@ -206,8 +206,8 @@ RangeSelector transformer::name(std::string ID) {
       // `foo<int>` for which this range will be too short.  Doing so will
       // require subcasing `NamedDecl`, because it doesn't provide virtual
       // access to the \c DeclarationNameInfo.
-      StringRef Text = tooling::getText(R, *Result.Context);
-      if (Text != D->getName())
+      
+      if (StringRef Text = tooling::getText(R, *Result.Context); Text != D->getName())
         return llvm::make_error<StringError>(
             llvm::errc::not_supported,
             "range selected by name(node id=" + ID + "): '" + Text +

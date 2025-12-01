@@ -146,16 +146,16 @@ struct MemOp {
     return false;
   }
   bool isMemcmp(TargetLibraryInfo &TLI) {
-    LibFunc Func;
-    if (asMI() == nullptr && TLI.getLibFunc(*asCI(), Func) &&
+    
+    if (LibFunc Func; asMI() == nullptr && TLI.getLibFunc(*asCI(), Func) &&
         Func == LibFunc_memcmp) {
       return true;
     }
     return false;
   }
   bool isBcmp(TargetLibraryInfo &TLI) {
-    LibFunc Func;
-    if (asMI() == nullptr && TLI.getLibFunc(*asCI(), Func) &&
+    
+    if (LibFunc Func; asMI() == nullptr && TLI.getLibFunc(*asCI(), Func) &&
         Func == LibFunc_bcmp) {
       return true;
     }
@@ -164,8 +164,8 @@ struct MemOp {
   const char *getName(TargetLibraryInfo &TLI) {
     if (auto MI = asMI())
       return getMIName(MI);
-    LibFunc Func;
-    if (TLI.getLibFunc(*asCI(), Func)) {
+    
+    if (LibFunc Func; TLI.getLibFunc(*asCI(), Func)) {
       if (Func == LibFunc_memcmp)
         return "memcmp";
       if (Func == LibFunc_bcmp)
@@ -199,16 +199,16 @@ public:
   }
 
   void visitMemIntrinsic(MemIntrinsic &MI) {
-    Value *Length = MI.getLength();
+    
     // Not perform on constant length calls.
-    if (isa<ConstantInt>(Length))
+    if (Value *Length = MI.getLength(); isa<ConstantInt>(Length))
       return;
     WorkList.push_back(MemOp(&MI));
   }
 
   void visitCallInst(CallInst &CI) {
-    LibFunc Func;
-    if (TLI.getLibFunc(CI, Func) &&
+    
+    if (LibFunc Func; TLI.getLibFunc(CI, Func) &&
         (Func == LibFunc_memcmp || Func == LibFunc_bcmp) &&
         !isa<ConstantInt>(CI.getArgOperand(2))) {
       WorkList.push_back(MemOp(&CI));
@@ -473,8 +473,8 @@ PreservedAnalyses PGOMemOPSizeOpt::run(Function &F,
   auto &ORE = FAM.getResult<OptimizationRemarkEmitterAnalysis>(F);
   auto *DT = FAM.getCachedResult<DominatorTreeAnalysis>(F);
   auto &TLI = FAM.getResult<TargetLibraryAnalysis>(F);
-  bool Changed = PGOMemOPSizeOptImpl(F, BFI, ORE, DT, TLI);
-  if (!Changed)
+  
+  if (bool Changed = PGOMemOPSizeOptImpl(F, BFI, ORE, DT, TLI); !Changed)
     return PreservedAnalyses::all();
   auto PA = PreservedAnalyses();
   PA.preserve<DominatorTreeAnalysis>();

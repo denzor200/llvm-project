@@ -119,8 +119,8 @@ static void emitAssemblyFormat(StringRef opName, StringRef format,
   os << split.first.trim() << "\n";
   do {
     split = split.second.split('\n');
-    StringRef formatChunk = split.first.trim();
-    if (!formatChunk.empty())
+    
+    if (StringRef formatChunk = split.first.trim(); !formatChunk.empty())
       os.indent(indent) << formatChunk << "\n";
   } while (!split.second.empty());
   os << "```\n";
@@ -226,8 +226,8 @@ static void emitOpDoc(const Operator &op, raw_ostream &os) {
       os << "<tr>";
       os << "<td><code>" << it.name << "</code></td><td>" << storageType
          << "</td><td>";
-      StringRef description = resolveAttrDescription(it.attr);
-      if (allowHugoSpecificFeatures && !description.empty()) {
+      
+      if (StringRef description = resolveAttrDescription(it.attr); allowHugoSpecificFeatures && !description.empty()) {
         // Expandable description.
         // This appears as just the summary, but when clicked shows the full
         // description.

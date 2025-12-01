@@ -211,8 +211,8 @@ bool LoopVersioningLICM::legalLoopStructure() {
   }
   // We need to be able to compute the loop trip count in order
   // to generate the bound checks.
-  const SCEV *ExitCount = SE->getBackedgeTakenCount(CurLoop);
-  if (isa<SCEVCouldNotCompute>(ExitCount)) {
+  
+  if (const SCEV *ExitCount = SE->getBackedgeTakenCount(CurLoop); isa<SCEVCouldNotCompute>(ExitCount)) {
     LLVM_DEBUG(dbgs() << "    loop does not have trip count\n");
     return false;
   }

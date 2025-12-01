@@ -92,8 +92,8 @@ OpOperand *WarpDistributionPattern::getWarpResult(
   gpu::YieldOp yield = warpOp.getTerminator();
   for (OpOperand &yieldOperand : yield->getOpOperands()) {
     Value yieldValues = yieldOperand.get();
-    Operation *definedOp = yieldValues.getDefiningOp();
-    if (definedOp && fn(definedOp)) {
+    
+    if (Operation *definedOp = yieldValues.getDefiningOp(); definedOp && fn(definedOp)) {
       if (!warpOp.getResult(yieldOperand.getOperandNumber()).use_empty())
         return &yieldOperand;
     }

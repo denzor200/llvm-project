@@ -840,12 +840,12 @@ LowerCallResults(MachineInstr &CallResults, DebugLoc DL, MachineBasicBlock *BB,
     // This gets replaced with the correct value in WebAssemblyMCInstLower.cpp
     MIB.addImm(0);
     // The table into which this call_indirect indexes.
-    MCSymbolWasm *Table = IsFuncrefCall
+    
+    if (MCSymbolWasm *Table = IsFuncrefCall
                               ? WebAssembly::getOrCreateFuncrefCallTableSymbol(
                                     MF.getContext(), Subtarget)
                               : WebAssembly::getOrCreateFunctionTableSymbol(
-                                    MF.getContext(), Subtarget);
-    if (Subtarget->hasCallIndirectOverlong()) {
+                                    MF.getContext(), Subtarget); Subtarget->hasCallIndirectOverlong()) {
       MIB.addSym(Table);
     } else {
       // For the MVP there is at most one table whose number is 0, but we can't
@@ -901,9 +901,9 @@ LowerCallResults(MachineInstr &CallResults, DebugLoc DL, MachineBasicBlock *BB,
 MachineBasicBlock *WebAssemblyTargetLowering::EmitInstrWithCustomInserter(
     MachineInstr &MI, MachineBasicBlock *BB) const {
   const TargetInstrInfo &TII = *Subtarget->getInstrInfo();
-  DebugLoc DL = MI.getDebugLoc();
+  
 
-  switch (MI.getOpcode()) {
+  switch (DebugLoc DL = MI.getDebugLoc(); MI.getOpcode()) {
   default:
     llvm_unreachable("Unexpected instr type to insert");
   case WebAssembly::FP_TO_SINT_I32_F32:
@@ -1122,8 +1122,8 @@ void WebAssemblyTargetLowering::computeKnownBitsForTargetNode(
   default:
     break;
   case ISD::INTRINSIC_WO_CHAIN: {
-    unsigned IntNo = Op.getConstantOperandVal(0);
-    switch (IntNo) {
+    
+    switch (unsigned IntNo = Op.getConstantOperandVal(0); IntNo) {
     default:
       break;
     case Intrinsic::wasm_bitmask: {
@@ -1142,8 +1142,8 @@ void WebAssemblyTargetLowering::computeKnownBitsForTargetNode(
     // We know the high half, of each destination vector element, will be zero.
     SDValue SrcOp = Op.getOperand(0);
     EVT VT = SrcOp.getSimpleValueType();
-    unsigned BitWidth = Known.getBitWidth();
-    if (VT == MVT::v8i8 || VT == MVT::v16i8) {
+    
+    if (unsigned BitWidth = Known.getBitWidth(); VT == MVT::v8i8 || VT == MVT::v16i8) {
       assert(BitWidth >= 8 && "Unexpected width!");
       APInt Mask = APInt::getHighBitsSet(BitWidth, BitWidth - 8);
       Known.Zero |= Mask;
@@ -1164,8 +1164,8 @@ void WebAssemblyTargetLowering::computeKnownBitsForTargetNode(
   case WebAssemblyISD::I64_ADD128:
     if (Op.getResNo() == 1) {
       SDValue LHS_HI = Op.getOperand(1);
-      SDValue RHS_HI = Op.getOperand(3);
-      if (isNullConstant(LHS_HI) && isNullConstant(RHS_HI))
+      
+      if (SDValue RHS_HI = Op.getOperand(3); isNullConstant(LHS_HI) && isNullConstant(RHS_HI))
         Known.Zero.setBitsFrom(1);
     }
     break;
@@ -1175,11 +1175,11 @@ void WebAssemblyTargetLowering::computeKnownBitsForTargetNode(
 TargetLoweringBase::LegalizeTypeAction
 WebAssemblyTargetLowering::getPreferredVectorAction(MVT VT) const {
   if (VT.isFixedLengthVector()) {
-    MVT EltVT = VT.getVectorElementType();
+    
     // We have legal vector types with these lane types, so widening the
     // vector would let us use some of the lanes directly without having to
     // extend or truncate values.
-    if (EltVT == MVT::i8 || EltVT == MVT::i16 || EltVT == MVT::i32 ||
+    if (MVT EltVT = VT.getVectorElementType(); EltVT == MVT::i8 || EltVT == MVT::i16 || EltVT == MVT::i32 ||
         EltVT == MVT::i64 || EltVT == MVT::f32 || EltVT == MVT::f64)
       return TypeWidenVector;
   }
@@ -1686,8 +1686,8 @@ void WebAssemblyTargetLowering::ReplaceNodeResults(
 
 SDValue WebAssemblyTargetLowering::LowerOperation(SDValue Op,
                                                   SelectionDAG &DAG) const {
-  SDLoc DL(Op);
-  switch (Op.getOpcode()) {
+  
+  switch (SDLoc DL(Op); Op.getOpcode()) {
   default:
     llvm_unreachable("unimplemented operation lowering");
     return SDValue();
@@ -2063,10 +2063,10 @@ SDValue WebAssemblyTargetLowering::LowerGlobalAddress(SDValue Op,
     fail(DL, DAG, "Invalid address space for WebAssembly target");
 
   unsigned OperandFlags = 0;
-  const GlobalValue *GV = GA->getGlobal();
+  
   // Since WebAssembly tables cannot yet be shared accross modules, we don't
   // need special treatment for tables in PIC mode.
-  if (isPositionIndependent() &&
+  if (const GlobalValue *GV = GA->getGlobal(); isPositionIndependent() &&
       !WebAssembly::isWebAssemblyTableType(GV->getValueType())) {
     if (getTargetMachine().shouldAssumeDSOLocal(GV)) {
       MachineFunction &MF = DAG.getMachineFunction();
@@ -2207,8 +2207,8 @@ SDValue WebAssemblyTargetLowering::LowerIntrinsic(SDValue Op,
     Ops[OpIdx++] = Op.getOperand(1);
     Ops[OpIdx++] = Op.getOperand(2);
     while (OpIdx < 18) {
-      const SDValue &MaskIdx = Op.getOperand(OpIdx + 1);
-      if (MaskIdx.isUndef() || MaskIdx.getNode()->getAsZExtVal() >= 32) {
+      
+      if (const SDValue &MaskIdx = Op.getOperand(OpIdx + 1); MaskIdx.isUndef() || MaskIdx.getNode()->getAsZExtVal() >= 32) {
         bool isTarget = MaskIdx.getNode()->getOpcode() == ISD::TargetConstant;
         Ops[OpIdx++] = DAG.getConstant(0, DL, MVT::i32, isTarget);
       } else {
@@ -2503,9 +2503,9 @@ SDValue WebAssemblyTargetLowering::LowerBUILD_VECTOR(SDValue Op,
   SmallVector<ShuffleEntry, 16> ShuffleCounts;
 
   auto AddCount = [](auto &Counts, const auto &Val) {
-    auto CountIt =
-        llvm::find_if(Counts, [&Val](auto E) { return E.first == Val; });
-    if (CountIt == Counts.end()) {
+    
+    if (auto CountIt =
+        llvm::find_if(Counts, [&Val](auto E) { return E.first == Val; }); CountIt == Counts.end()) {
       Counts.emplace_back(Val, 1);
     } else {
       CountIt->second++;
@@ -2533,8 +2533,8 @@ SDValue WebAssemblyTargetLowering::LowerBUILD_VECTOR(SDValue Op,
     if (auto ShuffleSrc = GetShuffleSrc(Lane))
       AddCount(ShuffleCounts, ShuffleSrc);
     if (CanSwizzle) {
-      auto SwizzleSrcs = GetSwizzleSrcs(I, Lane);
-      if (SwizzleSrcs.first)
+      
+      if (auto SwizzleSrcs = GetSwizzleSrcs(I, Lane); SwizzleSrcs.first)
         AddCount(SwizzleCounts, SwizzleSrcs);
     }
   }
@@ -2606,8 +2606,8 @@ SDValue WebAssemblyTargetLowering::LowerBUILD_VECTOR(SDValue Op,
     assert(DestLaneCount <= 16);
     for (size_t I = 0; I < DestLaneCount; ++I) {
       const SDValue &Lane = Op->getOperand(I);
-      SDValue Src = GetShuffleSrc(Lane);
-      if (Src == ShuffleSrc1) {
+      
+      if (SDValue Src = GetShuffleSrc(Lane); Src == ShuffleSrc1) {
         Mask[I] = Lane->getConstantOperandVal(1) * Scale1;
       } else if (Src && Src == ShuffleSrc2) {
         Mask[I] = DestLaneCount + Lane->getConstantOperandVal(1) * Scale2;
@@ -2629,8 +2629,8 @@ SDValue WebAssemblyTargetLowering::LowerBUILD_VECTOR(SDValue Op,
         // within the expected range during ISel. Check whether the value is in
         // bounds based on the lane bit width and if it is out of bounds, lop
         // off the extra bits.
-        uint64_t LaneBits = 128 / Lanes;
-        if (auto *Const = dyn_cast<ConstantSDNode>(Lane.getNode())) {
+        
+        if (auto *uint64_t LaneBits = 128 / Lanes; Const = dyn_cast<ConstantSDNode>(Lane.getNode())) {
           ConstLanes.push_back(DAG.getConstant(
               Const->getAPIntValue().trunc(LaneBits).getZExtValue(),
               SDLoc(Lane), LaneT));
@@ -2667,8 +2667,8 @@ SDValue WebAssemblyTargetLowering::LowerBUILD_VECTOR(SDValue Op,
 
   // Add replace_lane instructions for any unhandled values
   for (size_t I = 0; I < Lanes; ++I) {
-    const SDValue &Lane = Op->getOperand(I);
-    if (!Lane.isUndef() && !IsLaneConstructed(I, Lane))
+    
+    if (const SDValue &Lane = Op->getOperand(I); !Lane.isUndef() && !IsLaneConstructed(I, Lane))
       Result = DAG.getNode(ISD::INSERT_VECTOR_ELT, DL, VecT, Result, Lane,
                            DAG.getConstant(I, DL, MVT::i32));
   }
@@ -2728,8 +2728,8 @@ SDValue
 WebAssemblyTargetLowering::LowerAccessVectorElement(SDValue Op,
                                                     SelectionDAG &DAG) const {
   // Allow constant lane indices, expand variable lane indices
-  SDNode *IdxNode = Op.getOperand(Op.getNumOperands() - 1).getNode();
-  if (isa<ConstantSDNode>(IdxNode)) {
+  
+  if (SDNode *IdxNode = Op.getOperand(Op.getNumOperands() - 1).getNode(); isa<ConstantSDNode>(IdxNode)) {
     // Ensure the index type is i32 to match the tablegen patterns
     uint64_t Idx = IdxNode->getAsZExtVal();
     SmallVector<SDValue, 3> Ops(Op.getNode()->ops());
@@ -2797,8 +2797,8 @@ SDValue WebAssemblyTargetLowering::LowerShift(SDValue Op,
       if (!isa<ConstantSDNode>(RHS.getNode()))
         std::swap(LHS, RHS);
 
-      auto ConstantRHS = dyn_cast<ConstantSDNode>(RHS.getNode());
-      if (ConstantRHS && ConstantRHS->getAPIntValue() == MaskBits)
+      
+      if (auto ConstantRHS = dyn_cast<ConstantSDNode>(RHS.getNode()); ConstantRHS && ConstantRHS->getAPIntValue() == MaskBits)
         MaskOp = LHS;
     }
 

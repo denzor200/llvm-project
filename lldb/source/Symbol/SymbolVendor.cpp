@@ -41,8 +41,8 @@ SymbolVendor *SymbolVendor::FindPlugin(const lldb::ModuleSP &module_sp,
   // The default implementation just tries to create debug information using
   // the file representation for the module.
   ObjectFileSP sym_objfile_sp;
-  FileSpec sym_spec = module_sp->GetSymbolFileFileSpec();
-  if (sym_spec && sym_spec != module_sp->GetObjectFile()->GetFileSpec()) {
+  
+  if (FileSpec sym_spec = module_sp->GetSymbolFileFileSpec(); sym_spec && sym_spec != module_sp->GetObjectFile()->GetFileSpec()) {
     DataBufferSP data_sp;
     offset_t data_offset = 0;
     sym_objfile_sp = ObjectFile::FindPlugin(
@@ -62,10 +62,10 @@ SymbolVendor::SymbolVendor(const lldb::ModuleSP &module_sp)
 
 // Add a representation given an object file.
 void SymbolVendor::AddSymbolFileRepresentation(const ObjectFileSP &objfile_sp) {
-  ModuleSP module_sp(GetModule());
-  if (module_sp) {
-    std::lock_guard<std::recursive_mutex> guard(module_sp->GetMutex());
-    if (objfile_sp)
+  
+  if (ModuleSP module_sp(GetModule()); module_sp) {
+    
+    if (std::lock_guard<std::recursive_mutex> guard(module_sp->GetMutex()); objfile_sp)
       m_sym_file_up.reset(SymbolFile::FindPlugin(objfile_sp));
   }
 }

@@ -111,8 +111,8 @@ static LinalgOp fuse(OpBuilder &b, LinalgOp producer,
     OpFoldResult dim =
         createFoldedDimOp(b, loc, shapeDim.shape, shapeDim.dimension);
     sizeBounds.push_back(dim);
-    auto it = fusedLoopsAndRanges.find(i);
-    if (it != fusedLoopsAndRanges.end()) {
+    
+    if (auto it = fusedLoopsAndRanges.find(i); it != fusedLoopsAndRanges.end()) {
       ivs.push_back(it->second.offset);
       tileSizes.push_back(it->second.size);
       loopRanges.push_back(it->second);

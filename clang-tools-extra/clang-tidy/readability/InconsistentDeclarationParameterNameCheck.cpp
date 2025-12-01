@@ -108,11 +108,11 @@ findDifferingParamsInDeclaration(const FunctionDecl *ParameterSourceDeclaration,
   while (SourceParamIt != ParameterSourceDeclaration->param_end() &&
          OtherParamIt != OtherDeclaration->param_end()) {
     auto SourceParamName = (*SourceParamIt)->getName();
-    auto OtherParamName = (*OtherParamIt)->getName();
+    
 
     // FIXME: Provide a way to extract commented out parameter name from comment
     // next to it.
-    if (!nameMatch(SourceParamName, OtherParamName, Strict)) {
+    if (auto OtherParamName = (*OtherParamIt)->getName(); !nameMatch(SourceParamName, OtherParamName, Strict)) {
       const SourceRange OtherParamNameRange =
           DeclarationNameInfo((*OtherParamIt)->getDeclName(),
                               (*OtherParamIt)->getLocation())
@@ -141,13 +141,13 @@ findInconsistentDeclarations(const FunctionDecl *OriginalDeclaration,
       ParameterSourceDeclaration->getLocation();
 
   for (const FunctionDecl *OtherDeclaration : OriginalDeclaration->redecls()) {
-    const SourceLocation OtherLocation = OtherDeclaration->getLocation();
-    if (OtherLocation != ParameterSourceLocation) { // Skip self.
-      DifferingParamsContainer DifferingParams =
+    
+    if (const SourceLocation OtherLocation = OtherDeclaration->getLocation(); OtherLocation != ParameterSourceLocation) { // Skip self.
+      
+      if (DifferingParamsContainer DifferingParams =
           findDifferingParamsInDeclaration(ParameterSourceDeclaration,
                                            OtherDeclaration,
-                                           OriginalDeclaration, Strict);
-      if (!DifferingParams.empty()) {
+                                           OriginalDeclaration, Strict); !DifferingParams.empty()) {
         InconsistentDeclarations.emplace_back(OtherDeclaration->getLocation(),
                                               std::move(DifferingParams));
       }
@@ -167,9 +167,9 @@ findInconsistentDeclarations(const FunctionDecl *OriginalDeclaration,
 
 static const FunctionDecl *
 getParameterSourceDeclaration(const FunctionDecl *OriginalDeclaration) {
-  const FunctionTemplateDecl *PrimaryTemplate =
-      OriginalDeclaration->getPrimaryTemplate();
-  if (PrimaryTemplate != nullptr) {
+  
+  if (const FunctionTemplateDecl *PrimaryTemplate =
+      OriginalDeclaration->getPrimaryTemplate(); PrimaryTemplate != nullptr) {
     // In case of template specializations, use primary template declaration as
     // the source of parameter names.
     return PrimaryTemplate->getTemplatedDecl();

@@ -490,8 +490,8 @@ std::string SymbolInfoMap::SymbolInfo::getAllRangeUse(
 bool SymbolInfoMap::bindOpArgument(DagNode node, StringRef symbol,
                                    const Operator &op, int argIndex,
                                    std::optional<int> variadicSubIndex) {
-  StringRef name = getValuePackName(symbol);
-  if (name != symbol) {
+  
+  if (StringRef name = getValuePackName(symbol); name != symbol) {
     auto error = formatv(
         "symbol '{0}' with trailing index cannot bind to op argument", symbol);
     PrintFatalError(loc, error);
@@ -837,15 +837,15 @@ void Pattern::collectBoundSymbols(DagNode tree, SymbolInfoMap &infoMap,
 
       // We can only bind symbols to arguments in source pattern. Those
       // symbols are referenced in result patterns.
-      auto treeArgName = tree.getArgName(i);
+      
 
       // `$_` is a special symbol meaning ignore the current argument.
-      if (!treeArgName.empty() && treeArgName != "_") {
-        DagLeaf leaf = tree.getArgAsLeaf(i);
+      if (auto treeArgName = tree.getArgName(i); !treeArgName.empty() && treeArgName != "_") {
+        
 
         // In (NativeCodeCall<"Foo($_self, $0, $1, $2, $3)"> I8Attr:$a, I8:$b,
         //     $c, I8Prop:$d),
-        if (leaf.isUnspecified()) {
+        if (DagLeaf leaf = tree.getArgAsLeaf(i); leaf.isUnspecified()) {
           // This is case of $c, a Value without any constraints.
           verifyBind(infoMap.bindValue(treeArgName), treeArgName);
         } else if (leaf.isPropMatcher()) {
@@ -862,11 +862,11 @@ void Pattern::collectBoundSymbols(DagNode tree, SymbolInfoMap &infoMap,
                      treeArgName);
         } else {
           auto constraint = leaf.getAsConstraint();
-          bool isAttr = leaf.isAttrMatcher() || leaf.isEnumCase() ||
-                        leaf.isConstantAttr() ||
-                        constraint.getKind() == Constraint::Kind::CK_Attr;
+          
 
-          if (isAttr) {
+          if (bool isAttr = leaf.isAttrMatcher() || leaf.isEnumCase() ||
+                        leaf.isConstantAttr() ||
+                        constraint.getKind() == Constraint::Kind::CK_Attr; isAttr) {
             // This is case of $a, a binding to a certain attribute.
             verifyBind(infoMap.bindAttr(treeArgName), treeArgName);
             continue;
@@ -922,8 +922,8 @@ void Pattern::collectBoundSymbols(DagNode tree, SymbolInfoMap &infoMap,
         if (DagNode subTree = tree.getArgAsNestedDag(i)) {
           collectBoundSymbols(subTree, infoMap, isSrcPattern);
         } else {
-          auto argName = tree.getArgName(i);
-          if (!argName.empty() && argName != "_") {
+          
+          if (auto argName = tree.getArgName(i); !argName.empty() && argName != "_") {
             verifyBind(infoMap.bindOpArgument(parent, argName, op, opArgIdx),
                        argName);
           }
@@ -936,8 +936,8 @@ void Pattern::collectBoundSymbols(DagNode tree, SymbolInfoMap &infoMap,
     // (potentially) repeating argName within the `variadic` DAG.
     auto collectSymbolInVariadic = [&](DagNode parent, DagNode tree,
                                        int opArgIdx) {
-      auto treeName = tree.getSymbol();
-      if (!treeName.empty()) {
+      
+      if (auto treeName = tree.getSymbol(); !treeName.empty()) {
         // If treeName is specified, bind to the full variadic operand_range.
         verifyBind(infoMap.bindOpArgument(parent, treeName, op, opArgIdx,
                                           std::nullopt),
@@ -948,8 +948,8 @@ void Pattern::collectBoundSymbols(DagNode tree, SymbolInfoMap &infoMap,
         if (DagNode subTree = tree.getArgAsNestedDag(i)) {
           collectBoundSymbols(subTree, infoMap, isSrcPattern);
         } else {
-          auto argName = tree.getArgName(i);
-          if (!argName.empty() && argName != "_") {
+          
+          if (auto argName = tree.getArgName(i); !argName.empty() && argName != "_") {
             verifyBind(infoMap.bindOpArgument(parent, argName, op, opArgIdx,
                                               /*variadicSubIndex=*/i),
                        argName);
@@ -982,9 +982,9 @@ void Pattern::collectBoundSymbols(DagNode tree, SymbolInfoMap &infoMap,
       if (isSrcPattern) {
         // We can only bind symbols to op arguments in source pattern. Those
         // symbols are referenced in result patterns.
-        auto treeArgName = tree.getArgName(i);
+        
         // `$_` is a special symbol meaning ignore the current argument.
-        if (!treeArgName.empty() && treeArgName != "_") {
+        if (auto treeArgName = tree.getArgName(i); !treeArgName.empty() && treeArgName != "_") {
           LLVM_DEBUG(dbgs() << "found symbol bound to op argument: "
                             << treeArgName << '\n');
           verifyBind(infoMap.bindOpArgument(tree, treeArgName, op, opArgIdx),

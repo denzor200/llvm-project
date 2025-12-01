@@ -25,8 +25,8 @@ llvm::parseStatepointDirectivesFromAttrs(AttributeList AS) {
   StatepointDirectives Result;
 
   Attribute AttrID = AS.getFnAttr("statepoint-id");
-  uint64_t StatepointID;
-  if (AttrID.isStringAttribute())
+  
+  if (uint64_t StatepointID; AttrID.isStringAttribute())
     if (!AttrID.getValueAsString().getAsInteger(10, StatepointID))
       Result.StatepointID = StatepointID;
 

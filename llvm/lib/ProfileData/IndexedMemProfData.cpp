@@ -434,8 +434,8 @@ Error IndexedMemProfReader::deserializeRadixTreeBased(
          "Data access profile is either empty or after the record table");
   if (DataAccessProfOffset > RecordTableOffset) {
     DataAccessProfileData = std::make_unique<memprof::DataAccessProfData>();
-    const unsigned char *DAPPtr = Start + DataAccessProfOffset;
-    if (Error E = DataAccessProfileData->deserialize(DAPPtr))
+    
+    if (Error const unsigned char *DAPPtr = Start + DataAccessProfOffset; E = DataAccessProfileData->deserialize(DAPPtr))
       return E;
   }
 
@@ -447,11 +447,11 @@ Error IndexedMemProfReader::deserialize(const unsigned char *Start,
   const unsigned char *Ptr = Start + MemProfOffset;
 
   // Read the MemProf version number.
-  const uint64_t FirstWord =
-      support::endian::readNext<uint64_t, llvm::endianness::little>(Ptr);
+  
 
   // Check if the version is supported
-  if (FirstWord >= memprof::MinimumSupportedVersion &&
+  if (const uint64_t FirstWord =
+      support::endian::readNext<uint64_t, llvm::endianness::little>(Ptr); FirstWord >= memprof::MinimumSupportedVersion &&
       FirstWord <= memprof::MaximumSupportedVersion) {
     // Everything is good. We can proceed to deserialize the rest.
     Version = static_cast<memprof::IndexedVersion>(FirstWord);

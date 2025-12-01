@@ -215,8 +215,8 @@ void InMemoryRawLog(int32_t FuncId, XRayEntryType Type,
     internal_memcpy(&StackTop, StackEntryPtr, sizeof(StackEntry));
     if (StackTop.FuncId == FuncId && StackTop.CPU == CPU &&
         StackTop.TSC < TSC) {
-      auto Delta = TSC - StackTop.TSC;
-      if (Delta < atomic_load(&ThresholdTicks, memory_order_relaxed)) {
+      
+      if (auto Delta = TSC - StackTop.TSC; Delta < atomic_load(&ThresholdTicks, memory_order_relaxed)) {
         DCHECK(TLD.BufferOffset > 0);
         TLD.BufferOffset -= StackTop.Type == XRayEntryType::ENTRY ? 1 : 2;
         return;
@@ -306,8 +306,8 @@ void basicLoggingHandleArg0EmulateTSC(int32_t FuncId, XRayEntryType Type)
     XRAY_NEVER_INSTRUMENT {
   InMemoryRawLog(FuncId, Type, [](uint8_t &CPU) XRAY_NEVER_INSTRUMENT {
     timespec TS;
-    int result = clock_gettime(CLOCK_REALTIME, &TS);
-    if (result != 0) {
+    
+    if (int result = clock_gettime(CLOCK_REALTIME, &TS); result != 0) {
       Report("clock_gettimg(2) return %d, errno=%d.", result, int(errno));
       TS = {0, 0};
     }
@@ -326,8 +326,8 @@ void basicLoggingHandleArg1EmulateTSC(int32_t FuncId, XRayEntryType Type,
   InMemoryRawLogWithArg(
       FuncId, Type, Arg1, [](uint8_t &CPU) XRAY_NEVER_INSTRUMENT {
         timespec TS;
-        int result = clock_gettime(CLOCK_REALTIME, &TS);
-        if (result != 0) {
+        
+        if (int result = clock_gettime(CLOCK_REALTIME, &TS); result != 0) {
           Report("clock_gettimg(2) return %d, errno=%d.", result, int(errno));
           TS = {0, 0};
         }
@@ -372,8 +372,8 @@ static void TLDDestructor(void *P) XRAY_NEVER_INSTRUMENT {
 XRayLogInitStatus basicLoggingInit(UNUSED size_t BufferSize,
                                    UNUSED size_t BufferMax, void *Options,
                                    size_t OptionsSize) XRAY_NEVER_INSTRUMENT {
-  uint8_t Expected = 0;
-  if (!atomic_compare_exchange_strong(&BasicInitialized, &Expected, 1,
+  
+  if (uint8_t Expected = 0; !atomic_compare_exchange_strong(&BasicInitialized, &Expected, 1,
                                       memory_order_acq_rel)) {
     if (Verbosity())
       Report("Basic logging already initialized.\n");
@@ -440,8 +440,8 @@ XRayLogInitStatus basicLoggingInit(UNUSED size_t BufferSize,
 }
 
 XRayLogInitStatus basicLoggingFinalize() XRAY_NEVER_INSTRUMENT {
-  uint8_t Expected = 0;
-  if (!atomic_compare_exchange_strong(&BasicInitialized, &Expected, 0,
+  
+  if (uint8_t Expected = 0; !atomic_compare_exchange_strong(&BasicInitialized, &Expected, 0,
                                       memory_order_acq_rel) &&
       Verbosity())
     Report("Basic logging already finalized.\n");
@@ -469,15 +469,15 @@ bool basicLogDynamicInitializer() XRAY_NEVER_INSTRUMENT {
       basicLoggingHandleArg0Empty,
       basicLoggingFlush,
   };
-  auto RegistrationResult = __xray_log_register_mode("xray-basic", Impl);
-  if (RegistrationResult != XRayLogRegisterStatus::XRAY_REGISTRATION_OK &&
+  
+  if (auto RegistrationResult = __xray_log_register_mode("xray-basic", Impl); RegistrationResult != XRayLogRegisterStatus::XRAY_REGISTRATION_OK &&
       Verbosity())
     Report("Cannot register XRay Basic Mode to 'xray-basic'; error = %d\n",
            RegistrationResult);
   if (flags()->xray_naive_log ||
       !internal_strcmp(flags()->xray_mode, "xray-basic")) {
-    auto SelectResult = __xray_log_select_mode("xray-basic");
-    if (SelectResult != XRayLogRegisterStatus::XRAY_REGISTRATION_OK) {
+    
+    if (auto SelectResult = __xray_log_select_mode("xray-basic"); SelectResult != XRayLogRegisterStatus::XRAY_REGISTRATION_OK) {
       if (Verbosity())
         Report("Failed selecting XRay Basic Mode; error = %d\n", SelectResult);
       return false;

@@ -176,8 +176,8 @@ void CodeGenFunction::CGFPOptionsRAII::ConstructorHelper(FPOptions FPFeatures) {
   auto mergeFnAttrValue = [&](StringRef Name, bool Value) {
     auto OldValue =
         CGF.CurFn->getFnAttribute(Name).getValueAsBool();
-    auto NewValue = OldValue & Value;
-    if (OldValue != NewValue)
+    
+    if (auto NewValue = OldValue & Value; OldValue != NewValue)
       CGF.CurFn->addFnAttr(Name, llvm::toStringRef(NewValue));
   };
   mergeFnAttrValue("no-infs-fp-math", FPFeatures.getNoHonorInfs());
@@ -308,9 +308,9 @@ TypeEvaluationKind CodeGenFunction::getEvaluationKind(QualType type) {
 llvm::DebugLoc CodeGenFunction::EmitReturnBlock() {
   // For cleanliness, we try to avoid emitting the return block for
   // simple cases.
-  llvm::BasicBlock *CurBB = Builder.GetInsertBlock();
+  
 
-  if (CurBB) {
+  if (llvm::BasicBlock *CurBB = Builder.GetInsertBlock(); CurBB) {
     assert(!CurBB->getTerminator() && "Unexpected terminated block.");
 
     // We have a valid insert point, reuse it if it is empty or there are no
@@ -484,8 +484,8 @@ void CodeGenFunction::FinishFunction(SourceLocation EndLoc) {
   // If someone took the address of a label but never did an indirect goto, we
   // made a zero entry PHI node, which is illegal, zap it now.
   if (IndirectBranch) {
-    llvm::PHINode *PN = cast<llvm::PHINode>(IndirectBranch->getAddress());
-    if (PN->getNumIncomingValues() == 0) {
+    
+    if (llvm::PHINode *PN = cast<llvm::PHINode>(IndirectBranch->getAddress()); PN->getNumIncomingValues() == 0) {
       PN->replaceAllUsesWith(llvm::PoisonValue::get(PN->getType()));
       PN->eraseFromParent();
     }
@@ -556,9 +556,9 @@ void CodeGenFunction::FinishFunction(SourceLocation EndLoc) {
     ReturnBlock.getBlock()->eraseFromParent();
   }
   if (ReturnValue.isValid()) {
-    auto *RetAlloca =
-        dyn_cast<llvm::AllocaInst>(ReturnValue.emitRawPointer(*this));
-    if (RetAlloca && RetAlloca->use_empty()) {
+    
+    if (auto *RetAlloca =
+        dyn_cast<llvm::AllocaInst>(ReturnValue.emitRawPointer(*this)); RetAlloca && RetAlloca->use_empty()) {
       RetAlloca->eraseFromParent();
       ReturnValue = Address::invalid();
     }
@@ -687,8 +687,8 @@ static bool endsWithReturn(const Decl* F) {
     Body = OMD->getBody();
 
   if (auto *CS = dyn_cast_or_null<CompoundStmt>(Body)) {
-    auto LastStmt = CS->body_rbegin();
-    if (LastStmt != CS->body_rend())
+    
+    if (auto LastStmt = CS->body_rbegin(); LastStmt != CS->body_rend())
       return isa<ReturnStmt>(*LastStmt);
   }
   return false;
@@ -928,12 +928,12 @@ void CodeGenFunction::StartFunction(GlobalDecl GD, QualType RetTy,
             XRayInstrKind::FunctionEntry))
       Fn->addFnAttr("xray-skip-entry");
 
-    auto FuncGroups = CGM.getCodeGenOpts().XRayTotalFunctionGroups;
-    if (FuncGroups > 1) {
+    
+    if (auto FuncGroups = CGM.getCodeGenOpts().XRayTotalFunctionGroups; FuncGroups > 1) {
       auto FuncName = llvm::ArrayRef<uint8_t>(CurFn->getName().bytes_begin(),
                                               CurFn->getName().bytes_end());
-      auto Group = crc32(FuncName) % FuncGroups;
-      if (Group != CGM.getCodeGenOpts().XRaySelectedFunctionGroup &&
+      
+      if (auto Group = crc32(FuncName) % FuncGroups; Group != CGM.getCodeGenOpts().XRaySelectedFunctionGroup &&
           !AlwaysXRayAttr)
         Fn->addFnAttr("function-instrument", "xray-never");
     }
@@ -1051,8 +1051,8 @@ void CodeGenFunction::StartFunction(GlobalDecl GD, QualType RetTy,
   // If we're checking nullability, we need to know whether we can check the
   // return value. Initialize the flag to 'true' and refine it in EmitParmDecl.
   if (SanOpts.has(SanitizerKind::NullabilityReturn)) {
-    auto Nullability = FnRetTy->getNullability();
-    if (Nullability && *Nullability == NullabilityKind::NonNull &&
+    
+    if (auto Nullability = FnRetTy->getNullability(); Nullability && *Nullability == NullabilityKind::NonNull &&
         !FnRetTy->isRecordType()) {
       if (!(SanOpts.has(SanitizerKind::ReturnsNonnullAttribute) &&
             CurCodeDecl && CurCodeDecl->getAttr<ReturnsNonNullAttr>()))
@@ -1290,8 +1290,8 @@ void CodeGenFunction::StartFunction(GlobalDecl GD, QualType RetTy,
 
         // Get the lvalue for the field (which is a copy of the enclosing object
         // or contains the address of the enclosing object).
-        LValue ThisFieldLValue = EmitLValueForLambdaField(LambdaThisCaptureField);
-        if (!LambdaThisCaptureField->getType()->isPointerType()) {
+        
+        if (LValue ThisFieldLValue = EmitLValueForLambdaField(LambdaThisCaptureField); !LambdaThisCaptureField->getType()->isPointerType()) {
           // If the enclosing object was captured by value, just use its
           // address. Sign this pointer.
           CXXThisValue = ThisFieldLValue.getPointer(*this);
@@ -1495,8 +1495,8 @@ void CodeGenFunction::GenerateCode(GlobalDecl GD, llvm::Function *Fn,
          PD = PD->getPreviousDecl()) {
       if (LLVM_UNLIKELY(PD->isInlineBuiltinDeclaration())) {
         std::string FDInlineName = (Fn->getName() + ".inline").str();
-        llvm::Module *M = Fn->getParent();
-        if (llvm::Function *Clone = M->getFunction(FDInlineName)) {
+        
+        if (llvm::Function *llvm::Module *M = Fn->getParent(); Clone = M->getFunction(FDInlineName)) {
           Clone->replaceAllUsesWith(Fn);
           Clone->eraseFromParent();
         }
@@ -1812,8 +1812,8 @@ void CodeGenFunction::EmitBranchToCounterBlock(
     llvm::BasicBlock *FalseBlock, uint64_t TrueCount /* = 0 */,
     Stmt::Likelihood LH /* =None */, const Expr *CntrIdx /* = nullptr */) {
   // If not instrumenting, just emit a branch.
-  bool InstrumentRegions = CGM.getCodeGenOpts().hasProfileClangInstr();
-  if (!InstrumentRegions || !isInstrumentedCondition(Cond))
+  
+  if (bool InstrumentRegions = CGM.getCodeGenOpts().hasProfileClangInstr(); !InstrumentRegions || !isInstrumentedCondition(Cond))
     return EmitBranchOnBoolExpr(Cond, TrueBlock, FalseBlock, TrueCount, LH);
 
   const Stmt *CntrStmt = (CntrIdx ? CntrIdx : Cond);
@@ -2014,10 +2014,10 @@ void CodeGenFunction::EmitBranchOnBoolExpr(
     // Avoid doing this optimization when instrumenting a condition for MC/DC.
     // LNot is taken as part of the condition for simplicity, and changing its
     // sense negatively impacts test vector tracking.
-    bool MCDCCondition = CGM.getCodeGenOpts().hasProfileClangInstr() &&
+    
+    if (bool MCDCCondition = CGM.getCodeGenOpts().hasProfileClangInstr() &&
                          CGM.getCodeGenOpts().MCDCCoverage &&
-                         isInstrumentedCondition(Cond);
-    if (CondUOp->getOpcode() == UO_LNot && !MCDCCondition) {
+                         isInstrumentedCondition(Cond); CondUOp->getOpcode() == UO_LNot && !MCDCCondition) {
       // Negate the count.
       uint64_t FalseCount = getCurrentProfileCount() - TrueCount;
       // The values of the enum are chosen to make this negation possible.
@@ -2110,10 +2110,10 @@ void CodeGenFunction::EmitBranchOnBoolExpr(
   // If the branch has a condition wrapped by __builtin_unpredictable,
   // create metadata that specifies that the branch is unpredictable.
   // Don't bother if not optimizing because that metadata would not be used.
-  auto *Call = dyn_cast<CallExpr>(Cond->IgnoreImpCasts());
-  if (Call && CGM.getCodeGenOpts().OptimizationLevel != 0) {
-    auto *FD = dyn_cast_or_null<FunctionDecl>(Call->getCalleeDecl());
-    if (FD && FD->getBuiltinID() == Builtin::BI__builtin_unpredictable) {
+  
+  if (auto *Call = dyn_cast<CallExpr>(Cond->IgnoreImpCasts()); Call && CGM.getCodeGenOpts().OptimizationLevel != 0) {
+    
+    if (auto *FD = dyn_cast_or_null<FunctionDecl>(Call->getCalleeDecl()); FD && FD->getBuiltinID() == Builtin::BI__builtin_unpredictable) {
       llvm::MDBuilder MDHelper(getLLVMContext());
       Unpredictable = MDHelper.createUnpredictable();
     }
@@ -2239,8 +2239,8 @@ CodeGenFunction::EmitNullInitialization(Address DestPtr, QualType Ty) {
                                           getContext().getAsArrayType(Ty))) {
       auto VlaSize = getVLASize(vlaType);
       SizeVal = VlaSize.NumElts;
-      CharUnits eltSize = getContext().getTypeSizeInChars(VlaSize.Type);
-      if (!eltSize.isOne())
+      
+      if (CharUnits eltSize = getContext().getTypeSizeInChars(VlaSize.Type); !eltSize.isOne())
         SizeVal = Builder.CreateNUWMul(SizeVal, CGM.getSize(eltSize));
       vla = vlaType;
     } else {
@@ -2458,8 +2458,8 @@ void CodeGenFunction::EmitVariablyModifiedType(QualType type) {
   do {
     assert(type->isVariablyModifiedType());
 
-    const Type *ty = type.getTypePtr();
-    switch (ty->getTypeClass()) {
+    
+    switch (const Type *ty = type.getTypePtr(); ty->getTypeClass()) {
 
 #define TYPE(Class, Base)
 #define ABSTRACT_TYPE(Class, Base)
@@ -2529,8 +2529,8 @@ void CodeGenFunction::EmitVariablyModifiedType(QualType type) {
       if (const Expr *sizeExpr = vat->getSizeExpr()) {
         // It's possible that we might have emitted this already,
         // e.g. with a typedef and a pointer to it.
-        llvm::Value *&entry = VLASizeMap[sizeExpr];
-        if (!entry) {
+        
+        if (llvm::Value *&entry = VLASizeMap[sizeExpr]; !entry) {
           llvm::Value *size = EmitScalarExpr(sizeExpr);
 
           // C11 6.7.6.2p5:
@@ -2787,8 +2787,8 @@ void CodeGenFunction::checkTargetFeatures(const CallExpr *E,
   // SemaChecking cannot handle below x86 builtins because they have different
   // parameter ranges with different TargetAttribute of caller.
   if (CGM.getContext().getTargetInfo().getTriple().isX86()) {
-    unsigned BuiltinID = TargetDecl->getBuiltinID();
-    if (BuiltinID == X86::BI__builtin_ia32_cmpps ||
+    
+    if (unsigned BuiltinID = TargetDecl->getBuiltinID(); BuiltinID == X86::BI__builtin_ia32_cmpps ||
         BuiltinID == X86::BI__builtin_ia32_cmpss ||
         BuiltinID == X86::BI__builtin_ia32_cmppd ||
         BuiltinID == X86::BI__builtin_ia32_cmpsd) {
@@ -2835,8 +2835,8 @@ void CodeGenFunction::checkTargetFeatures(SourceLocation Loc,
   // referenced by an accelerator executable function, we emit an error.
   bool IsHipStdPar = getLangOpts().HIPStdPar && getLangOpts().CUDAIsDevice;
   if (BuiltinID) {
-    StringRef FeatureList(CGM.getContext().BuiltinInfo.getRequiredFeatures(BuiltinID));
-    if (!Builtin::evaluateRequiredTargetFeatures(
+    
+    if (StringRef FeatureList(CGM.getContext().BuiltinInfo.getRequiredFeatures(BuiltinID)); !Builtin::evaluateRequiredTargetFeatures(
         FeatureList, CallerFeatureMap) && !IsHipStdPar) {
       CGM.getDiags().Report(Loc, diag::err_builtin_needs_feature)
           << TargetDecl->getDeclName()
@@ -2934,10 +2934,10 @@ CodeGenFunction::FormX86ResolverCondition(const FMVResolverOption &RO) {
   llvm::Value *Condition = nullptr;
 
   if (RO.Architecture) {
-    StringRef Arch = *RO.Architecture;
+    
     // If arch= specifies an x86-64 micro-architecture level, test the feature
     // with __builtin_cpu_supports, otherwise use __builtin_cpu_is.
-    if (Arch.starts_with("x86-64"))
+    if (StringRef Arch = *RO.Architecture; Arch.starts_with("x86-64"))
       Condition = EmitX86CpuSupports({Arch});
     else
       Condition = EmitX86CpuIs(Arch);
@@ -2976,10 +2976,10 @@ static void CreateMultiVersionResolverReturn(CodeGenModule &CGM,
 void CodeGenFunction::EmitMultiVersionResolver(
     llvm::Function *Resolver, ArrayRef<FMVResolverOption> Options) {
 
-  llvm::Triple::ArchType ArchType =
-      getContext().getTargetInfo().getTriple().getArch();
+  
 
-  switch (ArchType) {
+  switch (llvm::Triple::ArchType ArchType =
+      getContext().getTargetInfo().getTriple().getArch(); ArchType) {
   case llvm::Triple::x86:
   case llvm::Triple::x86_64:
     EmitX86MultiVersionResolver(Resolver, Options);
@@ -3055,8 +3055,8 @@ void CodeGenFunction::EmitRISCVMultiVersionResolver(
 
       assert(FeatStr.size() == 1 && "Feature string not delimited");
 
-      std::string &CurrFeat = FeatStr.front();
-      if (CurrFeat[0] == '+')
+      
+      if (std::string &CurrFeat = FeatStr.front(); CurrFeat[0] == '+')
         TargetAttrFeats.push_back(CurrFeat.substr(1));
     }
 

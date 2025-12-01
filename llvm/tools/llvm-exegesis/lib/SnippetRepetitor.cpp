@@ -63,8 +63,8 @@ public:
       // We can not use loop snippet repetitor for terminator instructions.
       for (const MCInst &Inst : Instructions) {
         const unsigned Opcode = Inst.getOpcode();
-        const MCInstrDesc &MCID = Filler.MCII->get(Opcode);
-        if (!MCID.isTerminator())
+        
+        if (const MCInstrDesc &MCID = Filler.MCII->get(Opcode); !MCID.isTerminator())
           continue;
         Entry.addReturn(State.getExegesisTarget(), CleanupMemory);
         return;

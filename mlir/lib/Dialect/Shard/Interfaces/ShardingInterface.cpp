@@ -133,8 +133,8 @@ FailureOr<std::pair<bool, Sharding>> shard::getSharding(OpResult result) {
   if (anyShardedForUsers) {
     SmallVector<ShardOp> shardOps;
     for (Operation *user : val.getUsers()) {
-      ShardOp shardOp = llvm::dyn_cast<ShardOp>(user);
-      if (shardOp)
+      
+      if (ShardOp shardOp = llvm::dyn_cast<ShardOp>(user); shardOp)
         shardOps.push_back(shardOp);
     }
     Sharding shardForDef = shardOps[0].getSharding();
@@ -150,8 +150,8 @@ FailureOr<std::pair<bool, Sharding>> shard::getSharding(OpResult result) {
 }
 
 FailureOr<std::pair<bool, Sharding>> shard::getSharding(OpOperand &opOperand) {
-  Value val = opOperand.get();
-  if (ShardOp shardOp = val.getDefiningOp<ShardOp>())
+  
+  if (ShardOp Value val = opOperand.get(); shardOp = val.getDefiningOp<ShardOp>())
     return std::make_pair(shardOp.getAnnotateForUsers(),
                           Sharding(shardOp.getSharding()));
 
@@ -371,8 +371,8 @@ static Sharding getSharding(OpResult result,
     // `expr` must be an `AffineDimExpr` because `map` is verified by
     // isProjectedPermutation
     auto dim = cast<AffineDimExpr>(expr);
-    unsigned loopIdx = dim.getPosition();
-    if (loopIdx < shardingOption.shardingArray.size())
+    
+    if (unsigned loopIdx = dim.getPosition(); loopIdx < shardingOption.shardingArray.size())
       splitAxes[it.index()].append(shardingOption.shardingArray[loopIdx]);
   }
 
@@ -559,8 +559,8 @@ static void updateGridAxisAssignmentForLoopIterators(
     SmallVector<std::optional<SmallVector<GridAxis>>>
         &gridAxesAssignmentForLoopIterators) {
   AffineDimExpr affineDimExpr = cast<AffineDimExpr>(indexingExpr);
-  unsigned loopIteratorIdx = affineDimExpr.getPosition();
-  if (gridAxesAssignmentForLoopIterators[loopIteratorIdx]) {
+  
+  if (unsigned loopIteratorIdx = affineDimExpr.getPosition(); gridAxesAssignmentForLoopIterators[loopIteratorIdx]) {
     assert(llvm::equal(gridAxesAssignmentForTensorAxis,
                        *gridAxesAssignmentForLoopIterators[loopIteratorIdx]));
   } else {

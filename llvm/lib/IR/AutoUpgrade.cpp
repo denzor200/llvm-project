@@ -68,8 +68,8 @@ static bool upgradePTESTIntrinsic(Function *F, Intrinsic::ID IID,
                                   Function *&NewFn) {
   // Check whether this is an old version of the function, which received
   // v4f32 arguments.
-  Type *Arg0Type = F->getFunctionType()->getParamType(0);
-  if (Arg0Type != FixedVectorType::get(Type::getFloatTy(F->getContext()), 4))
+  
+  if (Type *Arg0Type = F->getFunctionType()->getParamType(0); Arg0Type != FixedVectorType::get(Type::getFloatTy(F->getContext()), 4))
     return false;
 
   // Yes, it's old, replace it with new version.
@@ -83,9 +83,9 @@ static bool upgradePTESTIntrinsic(Function *F, Intrinsic::ID IID,
 static bool upgradeX86IntrinsicsWith8BitMask(Function *F, Intrinsic::ID IID,
                                              Function *&NewFn) {
   // Check that the last argument is an i32.
-  Type *LastArgType = F->getFunctionType()->getParamType(
-     F->getFunctionType()->getNumParams() - 1);
-  if (!LastArgType->isIntegerTy(32))
+  
+  if (Type *LastArgType = F->getFunctionType()->getParamType(
+     F->getFunctionType()->getNumParams() - 1); !LastArgType->isIntegerTy(32))
     return false;
 
   // Move this function aside and map down.
@@ -113,8 +113,8 @@ static bool upgradeX86MultiplyAddBytes(Function *F, Intrinsic::ID IID,
                                        Function *&NewFn) {
   // check if input argument type is a vector of i8
   Type *Arg1Type = F->getFunctionType()->getParamType(1);
-  Type *Arg2Type = F->getFunctionType()->getParamType(2);
-  if (Arg1Type->isVectorTy() &&
+  
+  if (Type *Arg2Type = F->getFunctionType()->getParamType(2); Arg1Type->isVectorTy() &&
       cast<VectorType>(Arg1Type)->getElementType()->isIntegerTy(8) &&
       Arg2Type->isVectorTy() &&
       cast<VectorType>(Arg2Type)->getElementType()->isIntegerTy(8))
@@ -665,11 +665,11 @@ static bool upgradeX86IntrinsicFunction(Function *F, StringRef Name,
     if (Name.starts_with("vpermil2")) { // Added in 3.9
       // Upgrade any XOP PERMIL2 index operand still using a float/double
       // vector.
-      auto Idx = F->getFunctionType()->getParamType(2);
-      if (Idx->isFPOrFPVectorTy()) {
+      
+      if (auto Idx = F->getFunctionType()->getParamType(2); Idx->isFPOrFPVectorTy()) {
         unsigned IdxSize = Idx->getPrimitiveSizeInBits();
-        unsigned EltSize = Idx->getScalarSizeInBits();
-        if (EltSize == 64 && IdxSize == 128)
+        
+        if (unsigned EltSize = Idx->getScalarSizeInBits(); EltSize == 64 && IdxSize == 128)
           ID = Intrinsic::x86_xop_vpermil2pd;
         else if (EltSize == 32 && IdxSize == 128)
           ID = Intrinsic::x86_xop_vpermil2ps;
@@ -816,8 +816,8 @@ static bool upgradeArmOrAarch64IntrinsicFunction(bool IsArm, Function *F,
               Intrinsic::arm_neon_vst4lane};
 
           auto fArgs = F->getFunctionType()->params();
-          Type *Tys[] = {fArgs[0], fArgs[1]};
-          if (Groups[1].size() == 1)
+          
+          if (Type *Tys[] = {fArgs[0], fArgs[1]}; Groups[1].size() == 1)
             NewFn = Intrinsic::getOrInsertDeclaration(
                 F->getParent(), StoreInts[fArgs.size() - 3], Tys);
           else
@@ -858,8 +858,8 @@ static bool upgradeArmOrAarch64IntrinsicFunction(bool IsArm, Function *F,
 
         if (Name.consume_back(".v2i64")) {
           // 'arm.mve.*.v2i64.v4i1'
-          bool IsGather = Name.consume_front("vldr.gather.");
-          if (IsGather || Name.consume_front("vstr.scatter.")) {
+          
+          if (bool IsGather = Name.consume_front("vldr.gather."); IsGather || Name.consume_front("vstr.scatter.")) {
             if (Name.consume_front("base.")) {
               // Optional 'wb.' prefix.
               Name.consume_front("wb.");
@@ -910,8 +910,8 @@ static bool upgradeArmOrAarch64IntrinsicFunction(bool IsArm, Function *F,
         // 'aarch64.neon.addp*'.
         if (F->arg_size() != 2)
           return false; // Invalid IR.
-        VectorType *Ty = dyn_cast<VectorType>(F->getReturnType());
-        if (Ty && Ty->getElementType()->isFloatingPointTy()) {
+        
+        if (VectorType *Ty = dyn_cast<VectorType>(F->getReturnType()); Ty && Ty->getElementType()->isFloatingPointTy()) {
           NewFn = Intrinsic::getOrInsertDeclaration(
               F->getParent(), Intrinsic::aarch64_neon_faddp, Ty);
           return true;
@@ -1186,8 +1186,8 @@ static bool upgradeIntrinsicFunction1(Function *F, Function *&NewFn,
   switch (Name[0]) {
   default: break;
   case 'a': {
-    bool IsArm = Name.consume_front("arm.");
-    if (IsArm || Name.consume_front("aarch64.")) {
+    
+    if (bool IsArm = Name.consume_front("arm."); IsArm || Name.consume_front("aarch64.")) {
       if (upgradeArmOrAarch64IntrinsicFunction(IsArm, F, Name, NewFn))
         return true;
       break;
@@ -1469,8 +1469,8 @@ static bool upgradeIntrinsicFunction1(Function *F, Function *&NewFn,
 
       // Check for nvvm intrinsics that need a return type adjustment.
       if (!F->getReturnType()->getScalarType()->isBFloatTy()) {
-        Intrinsic::ID IID = shouldUpgradeNVPTXBF16Intrinsic(Name);
-        if (IID != Intrinsic::not_intrinsic) {
+        
+        if (Intrinsic::ID IID = shouldUpgradeNVPTXBF16Intrinsic(Name); IID != Intrinsic::not_intrinsic) {
           NewFn = nullptr;
           return true;
         }
@@ -1563,8 +1563,8 @@ static bool upgradeIntrinsicFunction1(Function *F, Function *&NewFn,
   }
   case 'o':
     if (Name.starts_with("objectsize.")) {
-      Type *Tys[2] = { F->getReturnType(), F->arg_begin()->getType() };
-      if (F->arg_size() == 2 || F->arg_size() == 3) {
+      
+      if (Type *Tys[2] = { F->getReturnType(), F->arg_begin()->getType() }; F->arg_size() == 2 || F->arg_size() == 3) {
         rename(F);
         NewFn = Intrinsic::getOrInsertDeclaration(F->getParent(),
                                                   Intrinsic::objectsize, Tys);
@@ -1748,8 +1748,8 @@ bool llvm::UpgradeIntrinsicFunction(Function *F, Function *&NewFn,
     F = NewFn;
   if (Intrinsic::ID id = F->getIntrinsicID()) {
     // Only do this if the intrinsic signature is valid.
-    SmallVector<Type *> OverloadTys;
-    if (Intrinsic::getIntrinsicSignature(id, F->getFunctionType(), OverloadTys))
+    
+    if (SmallVector<Type *> OverloadTys; Intrinsic::getIntrinsicSignature(id, F->getFunctionType(), OverloadTys))
       F->setAttributes(
           Intrinsic::getAttributes(F->getContext(), id, F->getFunctionType()));
   }
@@ -2205,8 +2205,8 @@ static Value *applyX86MaskOn1BitsVec(IRBuilder<> &Builder, Value *Vec,
                                      Value *Mask) {
   unsigned NumElts = cast<FixedVectorType>(Vec->getType())->getNumElements();
   if (Mask) {
-    const auto *C = dyn_cast<Constant>(Mask);
-    if (!C || !C->isAllOnesValue())
+    
+    if (const auto *C = dyn_cast<Constant>(Mask); !C || !C->isAllOnesValue())
       Vec = Builder.CreateAnd(Vec, getX86MaskVec(Builder, Mask, NumElts));
   }
 
@@ -2430,8 +2430,8 @@ static bool upgradeAVX512MaskToSelect(StringRef Name, IRBuilder<> &Builder,
   } else if (Name == "cvttps2dq.256") {
     IID = Intrinsic::x86_avx_cvtt_ps2dq_256;
   } else if (Name.starts_with("permvar.")) {
-    bool IsFloat = CI.getType()->isFPOrFPVectorTy();
-    if (VecWidth == 256 && EltWidth == 32 && IsFloat)
+    
+    if (bool IsFloat = CI.getType()->isFPOrFPVectorTy(); VecWidth == 256 && EltWidth == 32 && IsFloat)
       IID = Intrinsic::x86_avx2_permps;
     else if (VecWidth == 256 && EltWidth == 32 && !IsFloat)
       IID = Intrinsic::x86_avx2_permd;
@@ -2525,8 +2525,8 @@ static bool upgradeAVX512MaskToSelect(StringRef Name, IRBuilder<> &Builder,
 /// Upgrade comment in call to inline asm that represents an objc retain release
 /// marker.
 void llvm::UpgradeInlineAsmString(std::string *AsmStr) {
-  size_t Pos;
-  if (AsmStr->find("mov\tfp") == 0 &&
+  
+  if (size_t Pos; AsmStr->find("mov\tfp") == 0 &&
       AsmStr->find("objc_retainAutoreleaseReturnValue") != std::string::npos &&
       (Pos = AsmStr->find("# marker")) != std::string::npos) {
     AsmStr->replace(Pos, 1, ";");
@@ -2671,8 +2671,8 @@ static Value *upgradeNVVMIntrinsicCall(StringRef Name, CallBase *CI,
     Rep = Builder.CreateIntrinsic(Intrinsic::nvvm_barrier_cta_sync_count, {},
                                   {CI->getArgOperand(0), CI->getArgOperand(1)});
   } else {
-    Intrinsic::ID IID = shouldUpgradeNVPTXBF16Intrinsic(Name);
-    if (IID != Intrinsic::not_intrinsic &&
+    
+    if (Intrinsic::ID IID = shouldUpgradeNVPTXBF16Intrinsic(Name); IID != Intrinsic::not_intrinsic &&
         !F->getReturnType()->getScalarType()->isBFloatTy()) {
       rename(F);
       Function *NewFn = Intrinsic::getOrInsertDeclaration(F->getParent(), IID);
@@ -3044,8 +3044,8 @@ static Value *upgradeX86IntrinsicCall(StringRef Name, CallBase *CI, Function *F,
     Rep = CI->getArgOperand(0);
     auto *SrcTy = cast<FixedVectorType>(Rep->getType());
 
-    unsigned NumDstElts = DstTy->getNumElements();
-    if (NumDstElts < SrcTy->getNumElements()) {
+    
+    if (unsigned NumDstElts = DstTy->getNumElements(); NumDstElts < SrcTy->getNumElements()) {
       assert(NumDstElts == 2 && "Unexpected vector size");
       Rep = Builder.CreateShuffleVector(Rep, Rep, ArrayRef<int>{0, 1});
     }
@@ -4125,8 +4125,8 @@ static Value *upgradeX86IntrinsicCall(StringRef Name, CallBase *CI, Function *F,
     bool IsMaskZ = Name[11] == 'z';
     // Drop the "avx512.mask." to make it easier.
     Name = Name.drop_front(IsMask3 || IsMaskZ ? 13 : 12);
-    bool IsSubAdd = Name[3] == 's';
-    if (CI->arg_size() == 5) {
+    
+    if (bool IsSubAdd = Name[3] == 's'; CI->arg_size() == 5) {
       Intrinsic::ID IID;
       // Check the character before ".512" in string.
       if (Name[Name.size() - 5] == 's')
@@ -4473,8 +4473,8 @@ static Value *upgradeARMIntrinsicCall(StringRef Name, CallBase *CI, Function *F,
 
     std::vector<Value *> Ops;
     for (Value *Op : CI->args()) {
-      Type *Ty = Op->getType();
-      if (Ty->getScalarSizeInBits() == 1) {
+      
+      if (Type *Ty = Op->getType(); Ty->getScalarSizeInBits() == 1) {
         Value *C1 = Builder.CreateIntrinsic(
             Intrinsic::arm_mve_pred_v2i,
             {VectorType::get(Builder.getInt1Ty(), 4, false)}, Op);
@@ -4649,9 +4649,9 @@ static void upgradeDbgIntrinsicToDbgRecord(StringRef Name, CallBase *CI) {
     unsigned VarOp = 1;
     unsigned ExprOp = 2;
     if (CI->arg_size() == 4) {
-      auto *Offset = dyn_cast_or_null<Constant>(CI->getArgOperand(1));
+      
       // Nonzero offset dbg.values get dropped without a replacement.
-      if (!Offset || !Offset->isZeroValue())
+      if (auto *Offset = dyn_cast_or_null<Constant>(CI->getArgOperand(1)); !Offset || !Offset->isZeroValue())
         return;
       VarOp = 2;
       ExprOp = 3;
@@ -5048,8 +5048,8 @@ void llvm::UpgradeIntrinsicCall(CallBase *CI, Function *NewFn) {
 
     // Create AddrSpaceCast to shared_cluster if needed.
     // This handles case (1) in shouldUpgradeNVPTXTMAG2SIntrinsics().
-    unsigned AS = CI->getArgOperand(0)->getType()->getPointerAddressSpace();
-    if (AS == NVPTXAS::ADDRESS_SPACE_SHARED)
+    
+    if (unsigned AS = CI->getArgOperand(0)->getType()->getPointerAddressSpace(); AS == NVPTXAS::ADDRESS_SPACE_SHARED)
       Args[0] = Builder.CreateAddrSpaceCast(
           Args[0], Builder.getPtrTy(NVPTXAS::ADDRESS_SPACE_SHARED_CLUSTER));
 
@@ -5282,14 +5282,14 @@ void llvm::UpgradeIntrinsicCall(CallBase *CI, Function *NewFn) {
       reportFatalUsageError("Invalid alignment argument");
     };
     auto GetAlign = [&](Value *Op) {
-      MaybeAlign Align = GetMaybeAlign(Op);
-      if (Align)
+      
+      if (MaybeAlign Align = GetMaybeAlign(Op); Align)
         return *Align;
       reportFatalUsageError("Invalid zero alignment argument");
     };
 
-    const DataLayout &DL = CI->getDataLayout();
-    switch (NewFn->getIntrinsicID()) {
+    
+    switch (const DataLayout &DL = CI->getDataLayout(); NewFn->getIntrinsicID()) {
     case Intrinsic::masked_load:
       NewCall = Builder.CreateMaskedLoad(
           CI->getType(), CI->getArgOperand(0), GetAlign(CI->getArgOperand(1)),
@@ -5395,8 +5395,8 @@ void llvm::UpgradeCallsToIntrinsic(Function *F) {
 
   // Check if this function should be upgraded and get the replacement function
   // if there is one.
-  Function *NewFn;
-  if (UpgradeIntrinsicFunction(F, NewFn)) {
+  
+  if (Function *NewFn; UpgradeIntrinsicFunction(F, NewFn)) {
     // Replace all users of the old function with the new function or new
     // instructions. This is not a range loop because the call is deleted.
     for (User *U : make_early_inc_range(F->users()))
@@ -5441,8 +5441,8 @@ Instruction *llvm::UpgradeBitCastInst(unsigned Opc, Value *V, Type *DestTy,
     return nullptr;
 
   Temp = nullptr;
-  Type *SrcTy = V->getType();
-  if (SrcTy->isPtrOrPtrVectorTy() && DestTy->isPtrOrPtrVectorTy() &&
+  
+  if (Type *SrcTy = V->getType(); SrcTy->isPtrOrPtrVectorTy() && DestTy->isPtrOrPtrVectorTy() &&
       SrcTy->getPointerAddressSpace() != DestTy->getPointerAddressSpace()) {
     LLVMContext &Context = V->getContext();
 
@@ -5461,8 +5461,8 @@ Constant *llvm::UpgradeBitCastExpr(unsigned Opc, Constant *C, Type *DestTy) {
   if (Opc != Instruction::BitCast)
     return nullptr;
 
-  Type *SrcTy = C->getType();
-  if (SrcTy->isPtrOrPtrVectorTy() && DestTy->isPtrOrPtrVectorTy() &&
+  
+  if (Type *SrcTy = C->getType(); SrcTy->isPtrOrPtrVectorTy() && DestTy->isPtrOrPtrVectorTy() &&
       SrcTy->getPointerAddressSpace() != DestTy->getPointerAddressSpace()) {
     LLVMContext &Context = C->getContext();
 
@@ -5497,8 +5497,8 @@ bool llvm::UpgradeDebugInfo(Module &M) {
       return false;
     });
     if (OpIt != ModFlags->op_end()) {
-      const MDOperand &ValOp = (*OpIt)->getOperand(2);
-      if (auto *CI = mdconst::dyn_extract_or_null<ConstantInt>(ValOp))
+      
+      if (auto *const MDOperand &ValOp = (*OpIt)->getOperand(2); CI = mdconst::dyn_extract_or_null<ConstantInt>(ValOp))
         Version = CI->getZExtValue();
     }
   }
@@ -5648,8 +5648,8 @@ void llvm::UpgradeNVVMAnnotations(Module &M) {
     for (unsigned j = 1, je = MD->getNumOperands(); j < je; j += 2) {
       MDString *K = cast<MDString>(MD->getOperand(j));
       const MDOperand &V = MD->getOperand(j + 1);
-      bool Upgraded = upgradeSingleNVVMAnnotation(GV, K->getString(), V);
-      if (!Upgraded)
+      
+      if (bool Upgraded = upgradeSingleNVVMAnnotation(GV, K->getString(), V); !Upgraded)
         NewOperands.append({K, V});
     }
 
@@ -5667,12 +5667,12 @@ void llvm::UpgradeNVVMAnnotations(Module &M) {
 static bool upgradeRetainReleaseMarker(Module &M) {
   bool Changed = false;
   const char *MarkerKey = "clang.arc.retainAutoreleasedReturnValueMarker";
-  NamedMDNode *ModRetainReleaseMarker = M.getNamedMetadata(MarkerKey);
-  if (ModRetainReleaseMarker) {
-    MDNode *Op = ModRetainReleaseMarker->getOperand(0);
-    if (Op) {
-      MDString *ID = dyn_cast_or_null<MDString>(Op->getOperand(0));
-      if (ID) {
+  
+  if (NamedMDNode *ModRetainReleaseMarker = M.getNamedMetadata(MarkerKey); ModRetainReleaseMarker) {
+    
+    if (MDNode *Op = ModRetainReleaseMarker->getOperand(0); Op) {
+      
+      if (MDString *ID = dyn_cast_or_null<MDString>(Op->getOperand(0)); ID) {
         SmallVector<StringRef, 4> ValueComp;
         ID->getString().split(ValueComp, "#");
         if (ValueComp.size() == 2) {
@@ -5846,8 +5846,8 @@ bool llvm::UpgradeModuleFlags(Module &M) {
     if (ID->getString() == "PIC Level") {
       if (auto *Behavior =
               mdconst::dyn_extract_or_null<ConstantInt>(Op->getOperand(0))) {
-        uint64_t V = Behavior->getLimitedValue();
-        if (V == Module::Error || V == Module::Max)
+        
+        if (uint64_t V = Behavior->getLimitedValue(); V == Module::Error || V == Module::Max)
           SetBehavior(Module::Min);
       }
     }
@@ -5897,11 +5897,11 @@ bool llvm::UpgradeModuleFlags(Module &M) {
     // IRUpgrader turns a i32 type "Objective-C Garbage Collection" into i8 value.
     // If the higher bits are set, it adds new module flag for swift info.
     if (ID->getString() == "Objective-C Garbage Collection") {
-      auto Md = dyn_cast<ConstantAsMetadata>(Op->getOperand(2));
-      if (Md) {
+      
+      if (auto Md = dyn_cast<ConstantAsMetadata>(Op->getOperand(2)); Md) {
         assert(Md->getValue() && "Expected non-empty metadata");
-        auto Type = Md->getValue()->getType();
-        if (Type == Int8Ty)
+        
+        if (auto Type = Md->getValue()->getType(); Type == Int8Ty)
           continue;
         unsigned Val = Md->getValue()->getUniqueInteger().getZExtValue();
         if ((Val & 0xff) != Val) {
@@ -6083,8 +6083,8 @@ static void ConvertFunctionAttr(Function &F, bool Set, StringRef FnAttrName) {
     if (Set)
       F.addFnAttr(FnAttrName);
   } else {
-    auto A = F.getFnAttribute(FnAttrName);
-    if ("false" == A.getValueAsString())
+    
+    if (auto A = F.getFnAttribute(FnAttrName); "false" == A.getValueAsString())
       F.removeFnAttr(FnAttrName);
     else if ("true" == A.getValueAsString()) {
       F.removeFnAttr(FnAttrName);
@@ -6255,8 +6255,8 @@ std::string llvm::UpgradeDataLayoutString(StringRef DL, StringRef TT) {
 
   if (T.isLoongArch64() || T.isRISCV64()) {
     // Make i32 a native type for 64-bit LoongArch and RISC-V.
-    auto I = DL.find("-n64-");
-    if (I != StringRef::npos)
+    
+    if (auto I = DL.find("-n64-"); I != StringRef::npos)
       return (DL.take_front(I) + "-n32:64-" + DL.drop_front(I + 5)).str();
     return DL.str();
   }
@@ -6288,8 +6288,8 @@ std::string llvm::UpgradeDataLayoutString(StringRef DL, StringRef TT) {
         Res.append("-p7:160:256:256:32");
       if (!DL.contains("-p8") && !DL.starts_with("p8"))
         Res.append("-p8:128:128:128:48");
-      constexpr StringRef OldP8("-p8:128:128-");
-      if (DL.contains(OldP8))
+      
+      if (constexpr StringRef OldP8("-p8:128:128-"); DL.contains(OldP8))
         Res.replace(Res.find(OldP8), OldP8.size(), "-p8:128:128:128:48-");
       if (!DL.contains("-p9") && !DL.starts_with("p9"))
         Res.append("-p9:192:256:256:32");
@@ -6305,11 +6305,11 @@ std::string llvm::UpgradeDataLayoutString(StringRef DL, StringRef TT) {
   auto AddPtr32Ptr64AddrSpaces = [&DL, &Res]() {
     // If the datalayout matches the expected format, add pointer size address
     // spaces to the datalayout.
-    StringRef AddrSpaces{"-p270:32:32-p271:32:32-p272:64:64"};
-    if (!DL.contains(AddrSpaces)) {
+    
+    if (StringRef AddrSpaces{"-p270:32:32-p271:32:32-p272:64:64"}; !DL.contains(AddrSpaces)) {
       SmallVector<StringRef, 4> Groups;
-      Regex R("^([Ee]-m:[a-z](-p:32:32)?)(-.*)$");
-      if (R.match(Res, &Groups))
+      
+      if (Regex R("^([Ee]-m:[a-z](-p:32:32)?)(-.*)$"); R.match(Res, &Groups))
         Res = (Groups[1] + AddrSpaces + Groups[3]).str();
     }
   };
@@ -6330,8 +6330,8 @@ std::string llvm::UpgradeDataLayoutString(StringRef DL, StringRef TT) {
     std::string I64 = "-i64:64";
     std::string I128 = "-i128:128";
     if (!StringRef(Res).contains(I128)) {
-      size_t Pos = Res.find(I64);
-      if (Pos != size_t(-1))
+      
+      if (size_t Pos = Res.find(I64); Pos != size_t(-1))
         Res.insert(Pos + I64.size(), I128);
     }
     return Res;
@@ -6352,8 +6352,8 @@ std::string llvm::UpgradeDataLayoutString(StringRef DL, StringRef TT) {
     std::string I128 = "-i128:128";
     if (StringRef Ref = Res; !Ref.contains(I128)) {
       SmallVector<StringRef, 4> Groups;
-      Regex R("^(e(-[mpi][^-]*)*)((-[^mpi][^-]*)*)$");
-      if (R.match(Res, &Groups))
+      
+      if (Regex R("^(e(-[mpi][^-]*)*)((-[^mpi][^-]*)*)$"); R.match(Res, &Groups))
         Res = (Groups[1] + I128 + Groups[3]).str();
     }
   }
@@ -6363,8 +6363,8 @@ std::string llvm::UpgradeDataLayoutString(StringRef DL, StringRef TT) {
   // the MSVC environment before this upgrade was added.
   if (T.isWindowsMSVCEnvironment() && !T.isArch64Bit()) {
     StringRef Ref = Res;
-    auto I = Ref.find("-f80:32-");
-    if (I != StringRef::npos)
+    
+    if (auto I = Ref.find("-f80:32-"); I != StringRef::npos)
       Res = (Ref.take_front(I) + "-f80:128-" + Ref.drop_front(I + 8)).str();
   }
 

@@ -174,9 +174,9 @@ LogicalResult spirv::InterfaceVarABIAttr::verifyInvariants(
 
   if (storageClass) {
     if (auto storageClassAttr = llvm::cast<IntegerAttr>(storageClass)) {
-      auto storageClassValue =
-          spirv::symbolizeStorageClass(storageClassAttr.getInt());
-      if (!storageClassValue)
+      
+      if (auto storageClassValue =
+          spirv::symbolizeStorageClass(storageClassAttr.getInt()); !storageClassValue)
         return emitError() << "unknown storage class";
     } else {
       return emitError() << "expected valid storage class";
@@ -369,8 +369,8 @@ parseKeywordList(DialectAsmParser &parser,
   // is successfully parsed, then we have more keywords to parse.
   if (failed(parser.parseCommaSeparatedList([&]() {
         auto loc = parser.getCurrentLocation();
-        StringRef keyword;
-        if (parser.parseKeyword(&keyword) ||
+        
+        if (StringRef keyword; parser.parseKeyword(&keyword) ||
             failed(processKeyword(loc, keyword)))
           return failure();
         return success();
@@ -553,8 +553,8 @@ static Attribute parseTargetEnvAttr(DialectAsmParser &parser) {
   uint32_t deviceID = spirv::TargetEnvAttr::kUnknownDeviceID;
   {
     auto loc = parser.getCurrentLocation();
-    StringRef vendorStr;
-    if (succeeded(parser.parseOptionalKeyword(&vendorStr))) {
+    
+    if (StringRef vendorStr; succeeded(parser.parseOptionalKeyword(&vendorStr))) {
       if (auto vendorSymbol = spirv::symbolizeVendor(vendorStr))
         vendorID = *vendorSymbol;
       else
@@ -635,8 +635,8 @@ static void print(spirv::VerCapExtAttr triple, DialectAsmPrinter &printer) {
 static void print(spirv::TargetEnvAttr targetEnv, DialectAsmPrinter &printer) {
   printer << spirv::TargetEnvAttr::getKindName() << "<#spirv.";
   print(targetEnv.getTripleAttr(), printer);
-  auto clientAPI = targetEnv.getClientAPI();
-  if (clientAPI != spirv::ClientAPI::Unknown)
+  
+  if (auto clientAPI = targetEnv.getClientAPI(); clientAPI != spirv::ClientAPI::Unknown)
     printer << ", api=" << clientAPI;
   spirv::Vendor vendorID = targetEnv.getVendorID();
   spirv::DeviceType deviceType = targetEnv.getDeviceType();

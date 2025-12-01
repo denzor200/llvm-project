@@ -278,8 +278,8 @@ LogicalResult FlatAffineValueConstraints::addSliceBounds(
       if (failed(addBound(BoundType::UB, pos, ubMap, operands)))
         return failure();
     } else {
-      auto loop = getForInductionVarOwner(values[i]);
-      if (failed(this->addAffineForOpDomain(loop)))
+      
+      if (auto loop = getForInductionVarOwner(values[i]); failed(this->addAffineForOpDomain(loop)))
         return failure();
     }
   }
@@ -294,8 +294,8 @@ FlatAffineValueConstraints::composeMap(const AffineValueMap *vMap) {
 
 // Turn a symbol into a dimension.
 static void turnSymbolIntoDim(FlatAffineValueConstraints *cst, Value value) {
-  unsigned pos;
-  if (cst->findVar(value, &pos) && pos >= cst->getNumDimVars() &&
+  
+  if (unsigned pos; cst->findVar(value, &pos) && pos >= cst->getNumDimVars() &&
       pos < cst->getNumDimAndSymbolVars()) {
     cst->swapVar(pos, cst->getNumDimVars());
     cst->setDimSymbolSeparation(cst->getNumSymbolVars() - 1);
@@ -419,8 +419,8 @@ void FlatAffineRelation::compose(const FlatAffineRelation &other) {
       setValue(i, *relMaybeValues[i]);
   // Add and match range of `this` to range of `rel`.
   for (unsigned i = 0, e = getNumRangeDims(); i < e; ++i) {
-    unsigned rangeIdx = rel.getNumDomainDims() + i;
-    if (thisMaybeValues[rangeIdx].has_value())
+    
+    if (unsigned rangeIdx = rel.getNumDomainDims() + i; thisMaybeValues[rangeIdx].has_value())
       rel.setValue(rangeIdx, *thisMaybeValues[rangeIdx]);
   }
 

@@ -229,10 +229,10 @@ static bool CheckBitcastType(InterpState &S, CodePtr OpPC, QualType T,
     const ASTContext &ASTCtx = S.getASTContext();
     QualType EltTy = VT->getElementType();
     unsigned NElts = VT->getNumElements();
-    unsigned EltSize =
-        VT->isPackedVectorBoolType(ASTCtx) ? 1 : ASTCtx.getTypeSize(EltTy);
+    
 
-    if ((NElts * EltSize) % ASTCtx.getCharWidth() != 0) {
+    if (unsigned EltSize =
+        VT->isPackedVectorBoolType(ASTCtx) ? 1 : ASTCtx.getTypeSize(EltTy); (NElts * EltSize) % ASTCtx.getCharWidth() != 0) {
       // The vector's size in bits is not a multiple of the target's byte size,
       // so its layout is unspecified. For now, we'll simply treat these cases
       // as unsupported (this should only be possible with OpenCL bool vectors
@@ -335,8 +335,8 @@ bool clang::interp::DoBitCast(InterpState &S, CodePtr OpPC, const Pointer &Ptr,
 
   BitcastBuffer Buffer(FullBitWidth);
   size_t BuffSize = FullBitWidth.roundToBytes();
-  QualType DataType = Ptr.getFieldDesc()->getDataType(S.getASTContext());
-  if (!CheckBitcastType(S, OpPC, DataType, /*IsToType=*/false))
+  
+  if (QualType DataType = Ptr.getFieldDesc()->getDataType(S.getASTContext()); !CheckBitcastType(S, OpPC, DataType, /*IsToType=*/false))
     return false;
 
   bool Success = readPointerToBuffer(S.getContext(), Ptr, Buffer,
@@ -372,9 +372,9 @@ bool clang::interp::DoBitCastPtr(InterpState &S, CodePtr OpPC,
   assert(ToPtr.isBlockPointer());
 
   QualType FromType = FromPtr.getFieldDesc()->getDataType(S.getASTContext());
-  QualType ToType = ToPtr.getFieldDesc()->getDataType(S.getASTContext());
+  
 
-  if (!CheckBitcastType(S, OpPC, ToType, /*IsToType=*/true))
+  if (QualType ToType = ToPtr.getFieldDesc()->getDataType(S.getASTContext()); !CheckBitcastType(S, OpPC, ToType, /*IsToType=*/true))
     return false;
   if (!CheckBitcastType(S, OpPC, FromType, /*IsToType=*/false))
     return false;

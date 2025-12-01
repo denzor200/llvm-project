@@ -187,9 +187,9 @@ std::optional<StringRef> clang::getRangeText(SourceRange SR,
                                              const LangOptions &LangOpts) {
   bool Invalid = false;
   CharSourceRange CSR = CharSourceRange::getCharRange(SR);
-  StringRef Text = Lexer::getSourceText(CSR, SM, LangOpts, &Invalid);
+  
 
-  if (!Invalid)
+  if (StringRef Text = Lexer::getSourceText(CSR, SM, LangOpts, &Invalid); !Invalid)
     return Text;
   return std::nullopt;
 }

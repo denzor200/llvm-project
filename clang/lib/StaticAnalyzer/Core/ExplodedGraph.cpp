@@ -318,8 +318,8 @@ const Stmt *ExplodedNode::getStmtForDiagnostics() const {
   // We cannot place diagnostics on autosynthesized code.
   // Put them onto the call site through which we jumped into autosynthesized
   // code for the first time.
-  const LocationContext *LC = getLocationContext();
-  if (LC->getAnalysisDeclContext()->isBodyAutosynthesized()) {
+  
+  if (const LocationContext *LC = getLocationContext(); LC->getAnalysisDeclContext()->isBodyAutosynthesized()) {
     // It must be a stack frame because we only autosynthesize functions.
     return cast<StackFrameContext>(findTopAutosynthesizedParentContext(LC))
         ->getCallSite();
@@ -358,8 +358,8 @@ const Stmt *ExplodedNode::getNextStmtForDiagnostics() const {
         case Stmt::ConditionalOperatorClass:
           continue;
         case Stmt::BinaryOperatorClass: {
-          BinaryOperatorKind Op = cast<BinaryOperator>(S)->getOpcode();
-          if (Op == BO_LAnd || Op == BO_LOr)
+          
+          if (BinaryOperatorKind Op = cast<BinaryOperator>(S)->getOpcode(); Op == BO_LAnd || Op == BO_LOr)
             continue;
           break;
         }

@@ -51,8 +51,8 @@ public:
   void invoke_prepare() {
     cpp::lock_guard lock(mtx);
     for (size_t i = 0; i < next_index; ++i) {
-      auto prepare = list[i].prepare;
-      if (prepare)
+      
+      if (auto prepare = list[i].prepare; prepare)
         prepare();
     }
   }
@@ -60,8 +60,8 @@ public:
   void invoke_parent() {
     cpp::lock_guard lock(mtx);
     for (size_t i = 0; i < next_index; ++i) {
-      auto parent = list[i].parent;
-      if (parent)
+      
+      if (auto parent = list[i].parent; parent)
         parent();
     }
   }
@@ -69,8 +69,8 @@ public:
   void invoke_child() {
     cpp::lock_guard lock(mtx);
     for (size_t i = 0; i < next_index; ++i) {
-      auto child = list[i].child;
-      if (child)
+      
+      if (auto child = list[i].child; child)
         child();
     }
   }

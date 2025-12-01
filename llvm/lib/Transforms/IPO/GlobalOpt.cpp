@@ -131,8 +131,8 @@ static bool isLeakCheckerRoot(GlobalVariable *GV) {
 
   unsigned Limit = 20;
   do {
-    Type *Ty = Types.pop_back_val();
-    switch (Ty->getTypeID()) {
+    
+    switch (Type *Ty = Types.pop_back_val(); Ty->getTypeID()) {
       default: break;
       case Type::PointerTyID:
         return true;
@@ -215,10 +215,10 @@ CleanupPointerRootUsers(GlobalVariable *GV,
   SmallVector<User *> Worklist(GV->users());
   // Constants can't be pointers to dynamically allocated memory.
   while (!Worklist.empty()) {
-    User *U = Worklist.pop_back_val();
-    if (StoreInst *SI = dyn_cast<StoreInst>(U)) {
-      Value *V = SI->getValueOperand();
-      if (isa<Constant>(V)) {
+    
+    if (StoreInst *User *U = Worklist.pop_back_val(); SI = dyn_cast<StoreInst>(U)) {
+      
+      if (Value *V = SI->getValueOperand(); isa<Constant>(V)) {
         Changed = true;
         SI->eraseFromParent();
       } else if (Instruction *I = dyn_cast<Instruction>(V)) {
@@ -234,8 +234,8 @@ CleanupPointerRootUsers(GlobalVariable *GV,
           Dead.push_back(std::make_pair(I, MSI));
       }
     } else if (MemTransferInst *MTI = dyn_cast<MemTransferInst>(U)) {
-      GlobalVariable *MemSrc = dyn_cast<GlobalVariable>(MTI->getSource());
-      if (MemSrc && MemSrc->isConstant()) {
+      
+      if (GlobalVariable *MemSrc = dyn_cast<GlobalVariable>(MTI->getSource()); MemSrc && MemSrc->isConstant()) {
         Changed = true;
         MTI->eraseFromParent();
       } else if (Instruction *I = dyn_cast<Instruction>(MTI->getSource())) {
@@ -366,8 +366,8 @@ static bool collectSRATypes(DenseMap<uint64_t, GlobalPart> &Parts,
     Use *U = Worklist.pop_back_val();
     User *V = U->getUser();
 
-    auto *GEP = dyn_cast<GEPOperator>(V);
-    if (isa<BitCastOperator>(V) || isa<AddrSpaceCastOperator>(V) ||
+    
+    if (auto *GEP = dyn_cast<GEPOperator>(V); isa<BitCastOperator>(V) || isa<AddrSpaceCastOperator>(V) ||
         (GEP && GEP->hasAllConstantIndices())) {
       AppendUses(V);
       continue;
@@ -481,9 +481,9 @@ static void transferSRADebugInfo(GlobalVariable *GV, GlobalVariable *NGV,
     if (CurVarSize != 0 && /* CurVarSize is known */
         CurVarOffsetInBits >= FragmentOffsetInBits &&
         CurVarEndInBits <= FragmentEndInBits) {
-      uint64_t CurVarOffsetInFragment =
-          (CurVarOffsetInBits - FragmentOffsetInBits) / 8;
-      if (CurVarOffsetInFragment != 0)
+      
+      if (uint64_t CurVarOffsetInFragment =
+          (CurVarOffsetInBits - FragmentOffsetInBits) / 8; CurVarOffsetInFragment != 0)
         Expr = DIExpression::get(Expr->getContext(), {dwarf::DW_OP_plus_uconst,
                                                       CurVarOffsetInFragment});
       else
@@ -625,10 +625,10 @@ static GlobalVariable *SRAGlobal(GlobalVariable *GV, const DataLayout &DL) {
 
       // Update the pointer operand and recalculate alignment.
       Align PrefAlign = DL.getPrefTypeAlign(getLoadStoreType(V));
-      Align NewAlign =
-          getOrEnforceKnownAlignment(NGV, PrefAlign, DL, cast<Instruction>(V));
+      
 
-      if (auto *LI = dyn_cast<LoadInst>(V)) {
+      if (auto *Align NewAlign =
+          getOrEnforceKnownAlignment(NGV, PrefAlign, DL, cast<Instruction>(V)); LI = dyn_cast<LoadInst>(V)) {
         LI->setOperand(0, NGV);
         LI->setAlignment(NewAlign);
       } else {
@@ -719,8 +719,8 @@ static bool allUsesOfLoadedValueWillTrapIfNull(const GlobalVariable *GV) {
       if (auto *LI = dyn_cast<LoadInst>(U)) {
         if (!LI->isSimple())
           return false;
-        SmallPtrSet<const PHINode *, 8> PHIs;
-        if (!AllUsesOfValueWillTrapIfNull(LI, PHIs))
+        
+        if (SmallPtrSet<const PHINode *, 8> PHIs; !AllUsesOfValueWillTrapIfNull(LI, PHIs))
           return false;
       } else if (auto *SI = dyn_cast<StoreInst>(U)) {
         if (!SI->isSimple())
@@ -780,8 +780,8 @@ static bool OptimizeAwayTrappingUsesOfValue(Value *V, Constant *NewV) {
         Changed = true;
       }
     } else if (isa<CallInst>(I) || isa<InvokeInst>(I)) {
-      CallBase *CB = cast<CallBase>(I);
-      if (CB->getCalledOperand() == V) {
+      
+      if (CallBase *CB = cast<CallBase>(I); CB->getCalledOperand() == V) {
         // Calling through the pointer!  Turn into a direct call, but be careful
         // that the pointer is not also being passed as an argument.
         CB->setCalledOperand(NewV);
@@ -1149,8 +1149,8 @@ optimizeOnceStoredGlobal(GlobalVariable *GV, Value *StoredOnceVal,
         return true;
     } else if (isAllocationFn(StoredOnceVal, GetTLI)) {
       if (auto *CI = dyn_cast<CallInst>(StoredOnceVal)) {
-        auto *TLI = &GetTLI(*CI->getFunction());
-        if (tryToOptimizeStoreOfAllocationToGlobal(GV, CI, DL, TLI))
+        
+        if (auto *TLI = &GetTLI(*CI->getFunction()); tryToOptimizeStoreOfAllocationToGlobal(GV, CI, DL, TLI))
           return true;
       }
     }
@@ -1213,8 +1213,8 @@ static bool TryToShrinkGlobalToBoolean(GlobalVariable *GV, Constant *OtherVal) {
   if (CI && CI->getValue().getActiveBits() <= 64) {
     IsOneZero = InitVal->isNullValue() && CI->isOne();
 
-    auto *CIInit = dyn_cast<ConstantInt>(GV->getInitializer());
-    if (CIInit && CIInit->getValue().getActiveBits() <= 64) {
+    
+    if (auto *CIInit = dyn_cast<ConstantInt>(GV->getInitializer()); CIInit && CIInit->getValue().getActiveBits() <= 64) {
       uint64_t ValInit = CIInit->getZExtValue();
       uint64_t ValOther = CI->getZExtValue();
       uint64_t ValMinus = ValOther - ValInit;
@@ -1270,12 +1270,12 @@ static bool TryToShrinkGlobalToBoolean(GlobalVariable *GV, Constant *OtherVal) {
         // Otherwise, we are storing a previously loaded copy.  To do this,
         // change the copy from copying the original value to just copying the
         // bool.
-        Instruction *StoredVal = cast<Instruction>(SI->getOperand(0));
+        
 
         // If we've already replaced the input, StoredVal will be a cast or
         // select instruction.  If not, it will be a load of the original
         // global.
-        if (LoadInst *LI = dyn_cast<LoadInst>(StoredVal)) {
+        if (LoadInst *Instruction *StoredVal = cast<Instruction>(SI->getOperand(0)); LI = dyn_cast<LoadInst>(StoredVal)) {
           assert(LI->getOperand(0) == GV && "Not a copy!");
           // Insert a new load, to preserve the saved value.
           StoreVal =
@@ -1399,13 +1399,13 @@ static bool isPointerValueDeadOnEntryToFunction(
   //
   // The threshold here is fairly large because global->local demotion is a
   // very powerful optimization should it fire.
-  const unsigned Threshold = 100;
-  if (Loads.size() * Stores.size() > Threshold)
+  
+  if (const unsigned Threshold = 100; Loads.size() * Stores.size() > Threshold)
     return false;
 
   for (auto *L : Loads) {
-    auto *LTy = L->getType();
-    if (none_of(Stores, [&](const StoreInst *S) {
+    
+    if (auto *LTy = L->getType(); none_of(Stores, [&](const StoreInst *S) {
           auto *STy = S->getValueOperand()->getType();
           // The load is only dominated by the store if DomTree says so
           // and the number of bits loaded in L is less than or equal to
@@ -1557,8 +1557,8 @@ processInternalGlobal(GlobalVariable *GV, const GlobalStatus &GS,
     ++NumMarked;
   }
   if (!GV->getInitializer()->getType()->isSingleValueType()) {
-    const DataLayout &DL = GV->getDataLayout();
-    if (SRAGlobal(GV, DL))
+    
+    if (const DataLayout &DL = GV->getDataLayout(); SRAGlobal(GV, DL))
       return true;
   }
   Value *StoredOnceValue = GS.getStoredOnceValue();
@@ -1652,9 +1652,9 @@ processGlobal(GlobalValue &GV,
 
   bool Changed = false;
   if (!GS.IsCompared && !GV.hasGlobalUnnamedAddr()) {
-    auto NewUnnamedAddr = GV.hasLocalLinkage() ? GlobalValue::UnnamedAddr::Global
-                                               : GlobalValue::UnnamedAddr::Local;
-    if (NewUnnamedAddr != GV.getUnnamedAddr()) {
+    
+    if (auto NewUnnamedAddr = GV.hasLocalLinkage() ? GlobalValue::UnnamedAddr::Global
+                                               : GlobalValue::UnnamedAddr::Local; NewUnnamedAddr != GV.getUnnamedAddr()) {
       GV.setUnnamedAddr(NewUnnamedAddr);
       NumUnnamed++;
       Changed = true;
@@ -1687,8 +1687,8 @@ static void ChangeCalleesToFastCall(Function *F) {
 
 static AttributeList StripAttr(LLVMContext &C, AttributeList Attrs,
                                Attribute::AttrKind A) {
-  unsigned AttrIndex;
-  if (Attrs.hasAttrSomewhere(A, &AttrIndex))
+  
+  if (unsigned AttrIndex; Attrs.hasAttrSomewhere(A, &AttrIndex))
     return Attrs.removeAttributeAtIndex(C, AttrIndex, A);
   return Attrs;
 }
@@ -1706,10 +1706,10 @@ static void RemoveAttribute(Function *F, Attribute::AttrKind A) {
 /// explicitly requested something with performance implications like coldcc,
 /// GHC, or anyregcc.
 static bool hasChangeableCCImpl(Function *F) {
-  CallingConv::ID CC = F->getCallingConv();
+  
 
   // FIXME: Is it worth transforming x86_stdcallcc and x86_fastcallcc?
-  if (CC != CallingConv::C && CC != CallingConv::X86_ThisCall)
+  if (CallingConv::ID CC = F->getCallingConv(); CC != CallingConv::C && CC != CallingConv::X86_ThisCall)
     return false;
 
   if (F->isVarArg())
@@ -1826,8 +1826,8 @@ hasOnlyColdCalls(Function &F,
 
 static bool hasMustTailCallers(Function *F) {
   for (User *U : F->users()) {
-    CallBase *CB = cast<CallBase>(U);
-    if (CB->isMustTailCall())
+    
+    if (CallBase *CB = cast<CallBase>(U); CB->isMustTailCall())
       return true;
   }
   return false;
@@ -2000,12 +2000,12 @@ OptimizeFunctions(Module &M,
 
     if (hasChangeableCC(&F, ChangeableCCCache)) {
       NumInternalFunc++;
-      TargetTransformInfo &TTI = GetTTI(F);
+      
       // Change the calling convention to coldcc if either stress testing is
       // enabled or the target would like to use coldcc on functions which are
       // cold at all call sites and the callers contain no other non coldcc
       // calls.
-      if (EnableColdCCStressTest ||
+      if (TargetTransformInfo &TTI = GetTTI(F); EnableColdCCStressTest ||
           (TTI.useColdCCForColdCall(F) &&
            isValidCandidateForColdCC(F, GetBFI, AllCallsCold))) {
         ChangeableCCCache.erase(&F);
@@ -2020,8 +2020,8 @@ OptimizeFunctions(Module &M,
       // If this function has a calling convention worth changing, is not a
       // varargs function, is only called directly, and is supported by the
       // target, promote it to use the Fast calling convention.
-      TargetTransformInfo &TTI = GetTTI(F);
-      if (TTI.useFastCCForInternalCall(F)) {
+      
+      if (TargetTransformInfo &TTI = GetTTI(F); TTI.useFastCCForInternalCall(F)) {
         F.setCallingConv(CallingConv::Fast);
         ChangeCalleesToFastCall(&F);
         ++NumFastCallFns;
@@ -2060,8 +2060,8 @@ OptimizeGlobalVars(Module &M,
         // TLI is not used in the case of a Constant, so use default nullptr
         // for that optional parameter, since we don't have a Function to
         // provide GetTLI anyway.
-        Constant *New = ConstantFoldConstant(C, DL, /*TLI*/ nullptr);
-        if (New != C)
+        
+        if (Constant *New = ConstantFoldConstant(C, DL, /*TLI*/ nullptr); New != C)
           GV.setInitializer(New);
       }
 
@@ -2576,8 +2576,8 @@ static bool OptimizeNonTrivialIFuncs(
 
     for (Function *V : Versions) {
       VersionOf.insert({V, &IF});
-      auto [It, Inserted] = FeatureMask.try_emplace(V);
-      if (Inserted)
+      
+      if (auto [It, Inserted] = FeatureMask.try_emplace(V); Inserted)
         It->second = GetTTI(*V).getFeatureMask(*V);
     }
 
@@ -2608,8 +2608,8 @@ static bool OptimizeNonTrivialIFuncs(
             CallerIF = It->second;
           else if (!CallerIsFMV && OptimizeNonFMVCallers) {
             // The caller is non-FMV.
-            auto [It, Inserted] = FeatureMask.try_emplace(Caller);
-            if (Inserted)
+            
+            if (auto [It, Inserted] = FeatureMask.try_emplace(Caller); Inserted)
               It->second = TTI.getFeatureMask(*Caller);
           } else
             // The caller is none of the above, skip.
@@ -2657,12 +2657,12 @@ static bool OptimizeNonTrivialIFuncs(
 
         Function *Callee = Callees[I];
         APInt CallerBits = FeatureMask[Caller];
-        APInt CalleeBits = FeatureMask[Callee];
+        
 
         // Statically resolve calls from the current caller to the current
         // callee, iff the caller feature bits are a superset of the callee
         // feature bits.
-        if (CalleeBits.isSubsetOf(CallerBits)) {
+        if (APInt CalleeBits = FeatureMask[Callee]; CalleeBits.isSubsetOf(CallerBits)) {
           // Not all caller versions are necessarily users of the callee IFUNC.
           if (auto It = CallSites.find(Caller); It != CallSites.end()) {
             for (CallBase *CS : It->second) {

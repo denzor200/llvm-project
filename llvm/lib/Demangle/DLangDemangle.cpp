@@ -572,10 +572,10 @@ char *llvm::dlangDemangle(std::string_view MangledName) {
   } else {
 
     Demangler D(MangledName);
-    const char *M = D.parseMangle(&Demangled);
+    
 
     // Check that the entire symbol was successfully demangled.
-    if (M == nullptr || *M != '\0') {
+    if (const char *M = D.parseMangle(&Demangled); M == nullptr || *M != '\0') {
       std::free(Demangled.getBuffer());
       return nullptr;
     }

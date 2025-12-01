@@ -26,8 +26,8 @@ LLVM_LIBC_FUNCTION(int, wcsncmp,
   auto comp = [](wchar_t l, wchar_t r) -> int { return l - r; };
 
   for (; n > 1; --n, ++left, ++right) {
-    wchar_t lc = *left;
-    if (!comp(lc, '\0') || comp(lc, *right))
+    
+    if (wchar_t lc = *left; !comp(lc, '\0') || comp(lc, *right))
       break;
   }
   return comp(*left, *right);

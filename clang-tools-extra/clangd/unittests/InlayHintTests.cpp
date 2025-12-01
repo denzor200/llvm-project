@@ -63,8 +63,8 @@ struct ExpectedHint {
 
 MATCHER_P2(HintMatcher, Expected, Code, llvm::to_string(Expected)) {
   llvm::StringRef ExpectedView(Expected.Label);
-  std::string ResultLabel = arg.joinLabels();
-  if (ResultLabel != ExpectedView.trim(" ") ||
+  
+  if (std::string ResultLabel = arg.joinLabels(); ResultLabel != ExpectedView.trim(" ") ||
       arg.paddingLeft != ExpectedView.starts_with(" ") ||
       arg.paddingRight != ExpectedView.ends_with(" ")) {
     *result_listener << "label is '" << ResultLabel << "'";

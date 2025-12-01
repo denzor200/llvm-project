@@ -163,8 +163,8 @@ struct SplitCacheDirected final : public SplitStrategy {
     // All remaining blocks are warm / cold depending on if count is
     // greater than zero or not.
     for (size_t Index = 0; Index < BlockOrder.size(); Index++) {
-      BinaryBasicBlock *BB = BlockOrder[Index];
-      if (Index <= BestSplitIndex)
+      
+      if (BinaryBasicBlock *BB = BlockOrder[Index]; Index <= BestSplitIndex)
         BB->setFragmentNum(FragmentNum::main());
       else
         BB->setFragmentNum(BB->getKnownExecutionCount() > 0
@@ -347,8 +347,8 @@ private:
 
       const size_t DstGI = GlobalIndices[DstBB];
       for (const BinaryBasicBlock *SrcBB : Callers[DstGI]) {
-        const BinaryFunction *SrcBF = SrcBB->getFunction();
-        if (ThisBF == SrcBF)
+        
+        if (const BinaryFunction *SrcBF = SrcBB->getFunction(); ThisBF == SrcBF)
           continue;
 
         const size_t CallCount = SrcBB->getKnownExecutionCount();
@@ -568,9 +568,9 @@ private:
           BlockOrder[Index + 1] == getMostLikelySuccessor(LastHotBB))
         continue;
 
-      const SplitScore Score =
-          computeSplitScore(BF, BlockOrder, Index, CoverCalls);
-      if (Score.sum() > BestScore.sum())
+      
+      if (const SplitScore Score =
+          computeSplitScore(BF, BlockOrder, Index, CoverCalls); Score.sum() > BestScore.sum())
         BestScore = Score;
     }
 

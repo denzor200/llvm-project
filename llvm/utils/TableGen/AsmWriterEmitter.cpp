@@ -115,8 +115,8 @@ static void EmitInstructions(std::vector<AsmWriterInst> &Insts, raw_ostream &O,
   std::vector<AsmWriterInst> SimilarInsts;
   unsigned DifferingOperand = ~0;
   for (unsigned i = Insts.size(); i != 0; --i) {
-    unsigned DiffOp = Insts[i - 1].MatchesAllButOneOp(FirstInst);
-    if (DiffOp != ~1U) {
+    
+    if (unsigned DiffOp = Insts[i - 1].MatchesAllButOneOp(FirstInst); DiffOp != ~1U) {
       if (DifferingOperand == ~0U) // First match!
         DifferingOperand = DiffOp;
 
@@ -414,8 +414,8 @@ void AsmWriterEmitter::EmitGetMnemonic(
         OpcodeInfo[Instructions[Idx].CGIIndex] |=
             (uint64_t)i << (OpcodeInfoBits - BitsLeft);
         // Remove the info about this operand from the instruction.
-        AsmWriterInst &Inst = Instructions[Idx];
-        if (!Inst.Operands.empty()) {
+        
+        if (AsmWriterInst &Inst = Instructions[Idx]; !Inst.Operands.empty()) {
           assert(NumOps <= Inst.Operands.size() &&
                  "Can't remove this many ops!");
           Inst.Operands.erase(Inst.Operands.begin(),
@@ -902,8 +902,8 @@ void AsmWriterEmitter::EmitPrintAliasInstruction(raw_ostream &O) {
               Operands[OpNum].getTiedRegister() != -1) {
             // Tied operands of different RegisterClass should be explicit
             // within an instruction's syntax and so cannot be skipped.
-            int TiedOpNum = Operands[OpNum].getTiedRegister();
-            if (Operands[OpNum].Rec->getName() ==
+            
+            if (int TiedOpNum = Operands[OpNum].getTiedRegister(); Operands[OpNum].Rec->getName() ==
                 Operands[TiedOpNum].Rec->getName()) {
               ++MIOpNum;
               continue;
@@ -930,9 +930,9 @@ void AsmWriterEmitter::EmitPrintAliasInstruction(raw_ostream &O) {
           if (Rec->isSubClassOf("RegisterOperand") ||
               Rec->isSubClassOf("Operand")) {
             StringRef PrintMethod = Rec->getValueAsString("PrintMethod");
-            bool IsPCRel =
-                Rec->getValueAsString("OperandType") == "OPERAND_PCREL";
-            if (PrintMethod != "" && PrintMethod != "printOperand") {
+            
+            if (bool IsPCRel =
+                Rec->getValueAsString("OperandType") == "OPERAND_PCREL"; PrintMethod != "" && PrintMethod != "printOperand") {
               PrintMethodIdx = llvm::find_if(PrintMethods,
                                              [&](auto &X) {
                                                return X.first == PrintMethod;

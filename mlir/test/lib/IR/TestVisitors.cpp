@@ -126,8 +126,8 @@ static void testSkipErasureCallbacks(Operation *op) {
   auto skipBlockErasure = [](Block *block) {
     // Do not erase module and module children blocks. Otherwise there wouldn't
     // be too much to test in pre-order.
-    Operation *parentOp = block->getParentOp();
-    if (isa<ModuleOp>(parentOp) || isa<ModuleOp>(parentOp->getParentOp()))
+    
+    if (Operation *parentOp = block->getParentOp(); isa<ModuleOp>(parentOp) || isa<ModuleOp>(parentOp->getParentOp()))
       return WalkResult::advance();
 
     if (block->use_empty()) {

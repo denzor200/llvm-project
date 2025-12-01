@@ -779,8 +779,8 @@ int dsymutil_main(int argc, char **argv, const llvm::ToolContext &) {
         if (NeedsTempFiles) {
           TempFiles.emplace_back(Map->getTriple().getArchName().str());
 
-          auto E = TempFiles.back().createTempFile();
-          if (E) {
+          
+          if (auto E = TempFiles.back().createTempFile(); E) {
             std::lock_guard<std::mutex> Guard(ErrorHandlerMutex);
             WithColor::error() << toString(std::move(E));
             AllOK.fetch_and(false);

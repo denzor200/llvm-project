@@ -173,8 +173,8 @@ rewriteIncludes(const llvm::ArrayRef<const char *> &Args, size_t Idx,
   auto getAbsPath = [](StringRef InInc, SmallVectorImpl<char> &OutInc) -> bool {
     if (path::is_absolute(InInc)) // Nothing to do here...
       return false;
-    std::error_code EC = fs::current_path(OutInc);
-    if (EC)
+    
+    if (std::error_code EC = fs::current_path(OutInc); EC)
       return false;
     path::append(OutInc, InInc);
     return true;
@@ -185,8 +185,8 @@ rewriteIncludes(const llvm::ArrayRef<const char *> &Args, size_t Idx,
     StringRef FlagRef(Args[Idx + NumArgs - 1]);
     assert((FlagRef.starts_with("-F") || FlagRef.starts_with("-I")) &&
            "Expecting -I or -F");
-    StringRef Inc = FlagRef.substr(2);
-    if (getAbsPath(Inc, NewInc)) {
+    
+    if (StringRef Inc = FlagRef.substr(2); getAbsPath(Inc, NewInc)) {
       SmallString<128> NewArg(FlagRef.slice(0, 2));
       NewArg += NewInc;
       IncFlags.push_back(std::move(NewArg));

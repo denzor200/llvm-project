@@ -38,9 +38,9 @@ Watchpoint::Watchpoint(Target &target, lldb::addr_t addr, uint32_t size,
   else {
     // If we don't have a known type, then we force it to unsigned int of the
     // right size.
-    auto type_system_or_err =
-        target.GetScratchTypeSystemForLanguage(eLanguageTypeC);
-    if (auto err = type_system_or_err.takeError()) {
+    
+    if (auto auto type_system_or_err =
+        target.GetScratchTypeSystemForLanguage(eLanguageTypeC); err = type_system_or_err.takeError()) {
       LLDB_LOG_ERROR(GetLog(LLDBLog::Watchpoints), std::move(err),
                      "Failed to set type: {0}");
     } else {
@@ -518,8 +518,8 @@ void Watchpoint::WatchpointEventData::Dump(Stream *s) const {}
 const Watchpoint::WatchpointEventData *
 Watchpoint::WatchpointEventData::GetEventDataFromEvent(const Event *event) {
   if (event) {
-    const EventData *event_data = event->GetData();
-    if (event_data &&
+    
+    if (const EventData *event_data = event->GetData(); event_data &&
         event_data->GetFlavor() == WatchpointEventData::GetFlavorString())
       return static_cast<const WatchpointEventData *>(event->GetData());
   }
@@ -540,8 +540,8 @@ WatchpointSP Watchpoint::WatchpointEventData::GetWatchpointFromEvent(
     const EventSP &event_sp) {
   WatchpointSP wp_sp;
 
-  const WatchpointEventData *data = GetEventDataFromEvent(event_sp.get());
-  if (data)
+  
+  if (const WatchpointEventData *data = GetEventDataFromEvent(event_sp.get()); data)
     wp_sp = data->m_new_watchpoint_sp;
 
   return wp_sp;

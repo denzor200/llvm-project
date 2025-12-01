@@ -672,8 +672,8 @@ unsigned GCCAsmStmt::AnalyzeAsmString(SmallVectorImpl<AsmStringPiece>&Pieces,
       return 0;
     }
 
-    char CurChar = *CurPtr++;
-    switch (CurChar) {
+    
+    switch (char CurChar = *CurPtr++; CurChar) {
     case '$': CurStringPiece += "$$"; continue;
     case '{': CurStringPiece += (HasVariants ? "$(" : "{"); continue;
     case '|': CurStringPiece += (HasVariants ? "$|" : "|"); continue;
@@ -753,9 +753,9 @@ unsigned GCCAsmStmt::AnalyzeAsmString(SmallVectorImpl<AsmStringPiece>&Pieces,
       while (CurPtr != StrEnd && isDigit(*CurPtr))
         N = N*10 + ((*CurPtr++)-'0');
 
-      unsigned NumOperands = getNumOutputs() + getNumPlusOperands() +
-                             getNumInputs() + getNumLabels();
-      if (N >= NumOperands) {
+      
+      if (unsigned NumOperands = getNumOutputs() + getNumPlusOperands() +
+                             getNumInputs() + getNumLabels(); N >= NumOperands) {
         DiagOffs = CurPtr-StrStart-1;
         return diag::err_asm_invalid_operand_number;
       }
@@ -858,10 +858,10 @@ std::string MSAsmStmt::generateAsmString(const ASTContext &C) const {
   AsmStr.split(Pieces, "\n\t");
   std::string MSAsmString;
   for (size_t I = 0, E = Pieces.size(); I < E; ++I) {
-    StringRef Instruction = Pieces[I];
+    
     // For vex/vex2/vex3/evex masm style prefix, convert it to att style
     // since we don't support masm style prefix in backend.
-    if (Instruction.starts_with("vex "))
+    if (StringRef Instruction = Pieces[I]; Instruction.starts_with("vex "))
       MSAsmString += '{' + Instruction.substr(0, 3).str() + '}' +
                      Instruction.substr(3).str();
     else if (Instruction.starts_with("vex2 ") ||

@@ -59,8 +59,8 @@ static void getTemplateParameters(const TemplateParameterList *TemplateParams,
     if (i > 0)
       Stream << ", ";
 
-    const NamedDecl *Param = TemplateParams->getParam(i);
-    if (const auto *TTP = llvm::dyn_cast<TemplateTypeParmDecl>(Param)) {
+    
+    if (const auto *const NamedDecl *Param = TemplateParams->getParam(i); TTP = llvm::dyn_cast<TemplateTypeParmDecl>(Param)) {
       if (TTP->wasDeclaredWithTypename())
         Stream << "typename";
       else
@@ -321,8 +321,8 @@ bool ClangDocCommentVisitor::isWhitespaceOnly(llvm::StringRef S) const {
 }
 
 std::string ClangDocCommentVisitor::getCommandName(unsigned CommandID) const {
-  const CommandInfo *Info = CommandTraits::getBuiltinCommandInfo(CommandID);
-  if (Info)
+  
+  if (const CommandInfo *Info = CommandTraits::getBuiltinCommandInfo(CommandID); Info)
     return Info->Name;
   // TODO: Add parsing for \file command.
   return "<not a builtin command>";

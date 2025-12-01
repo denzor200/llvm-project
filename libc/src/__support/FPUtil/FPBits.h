@@ -560,8 +560,8 @@ public:
     return exp_bits() == encode(Exponent::subnormal());
   }
   LIBC_INLINE constexpr bool is_normal() const {
-    const auto exp = exp_bits();
-    if (exp == encode(Exponent::subnormal()) || exp == encode(Exponent::inf()))
+    
+    if (const auto exp = exp_bits(); exp == encode(Exponent::subnormal()) || exp == encode(Exponent::inf()))
       return false;
     return get_implicit_bit();
   }

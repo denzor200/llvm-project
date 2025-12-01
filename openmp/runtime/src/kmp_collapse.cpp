@@ -111,9 +111,9 @@ void kmp_canonicalize_loop_nest(ident_t *loc,
                                 kmp_index_t n) {
 
   for (kmp_index_t ind = 0; ind < n; ++ind) {
-    auto bounds = &(original_bounds_nest[ind]);
+    
 
-    switch (bounds->loop_type) {
+    switch (auto bounds = &(original_bounds_nest[ind]); bounds->loop_type) {
     case loop_type_t::loop_type_int32:
       kmp_canonicalize_one_loop_XX<kmp_int32>(
           loc,
@@ -310,9 +310,9 @@ bool kmp_iv_is_in_upper_bound_XX(const bounds_infoXX_template<T> *bounds,
                                  kmp_index_t ind) {
 
   T iv = static_cast<T>(original_ivs[ind]);
-  T outer_iv = static_cast<T>(original_ivs[bounds->outer_iv]);
+  
 
-  if (((bounds->comparison == comparison_t::comp_less_or_eq) &&
+  if (T outer_iv = static_cast<T>(original_ivs[bounds->outer_iv]); ((bounds->comparison == comparison_t::comp_less_or_eq) &&
        (iv > (bounds->ub0 + bounds->ub1 * outer_iv))) ||
       ((bounds->comparison == comparison_t::comp_greater_or_eq) &&
        (iv < (bounds->ub0 + bounds->ub1 * outer_iv)))) {
@@ -333,9 +333,9 @@ bool kmp_calc_one_iv_XX(const bounds_infoXX_template<T> *bounds,
                         bool start_with_lower_bound, bool checkBounds) {
 
   kmp_uint64 temp = 0;
-  T outer_iv = static_cast<T>(original_ivs[bounds->outer_iv]);
+  
 
-  if (start_with_lower_bound) {
+  if (T outer_iv = static_cast<T>(original_ivs[bounds->outer_iv]); start_with_lower_bound) {
     // we moved to the next iteration on one of outer loops, should start
     // with the lower bound here:
     temp = bounds->lb0 + bounds->lb1 * outer_iv;
@@ -550,9 +550,9 @@ void kmp_calc_span_lessoreq_XX(
     {
       span_t bound_candidate1 =
           bbounds.lb0 + bbounds.lb1 * previous->span_smallest;
-      span_t bound_candidate2 =
-          bbounds.lb0 + bbounds.lb1 * previous->span_biggest;
-      if (bound_candidate1 < bound_candidate2) {
+      
+      if (span_t bound_candidate2 =
+          bbounds.lb0 + bbounds.lb1 * previous->span_biggest; bound_candidate1 < bound_candidate2) {
         bounds->span_smallest = bound_candidate1;
       } else {
         bounds->span_smallest = bound_candidate2;
@@ -565,9 +565,9 @@ void kmp_calc_span_lessoreq_XX(
 
       span_t bound_candidate1 =
           bbounds.ub0 + bbounds.ub1 * previous->span_smallest;
-      span_t bound_candidate2 =
-          bbounds.ub0 + bbounds.ub1 * previous->span_biggest;
-      if (bound_candidate1 < bound_candidate2) {
+      
+      if (span_t bound_candidate2 =
+          bbounds.ub0 + bbounds.ub1 * previous->span_biggest; bound_candidate1 < bound_candidate2) {
         bounds->span_biggest = bound_candidate2;
       } else {
         bounds->span_biggest = bound_candidate1;
@@ -614,9 +614,9 @@ void kmp_calc_span_greateroreq_XX(
     {
       span_t bound_candidate1 =
           bbounds.lb0 + bbounds.lb1 * previous->span_smallest;
-      span_t bound_candidate2 =
-          bbounds.lb0 + bbounds.lb1 * previous->span_biggest;
-      if (bound_candidate1 >= bound_candidate2) {
+      
+      if (span_t bound_candidate2 =
+          bbounds.lb0 + bbounds.lb1 * previous->span_biggest; bound_candidate1 >= bound_candidate2) {
         bounds->span_smallest = bound_candidate1;
       } else {
         bounds->span_smallest = bound_candidate2;
@@ -629,9 +629,9 @@ void kmp_calc_span_greateroreq_XX(
 
       span_t bound_candidate1 =
           bbounds.ub0 + bbounds.ub1 * previous->span_smallest;
-      span_t bound_candidate2 =
-          bbounds.ub0 + bbounds.ub1 * previous->span_biggest;
-      if (bound_candidate1 >= bound_candidate2) {
+      
+      if (span_t bound_candidate2 =
+          bbounds.ub0 + bbounds.ub1 * previous->span_biggest; bound_candidate1 >= bound_candidate2) {
         bounds->span_biggest = bound_candidate2;
       } else {
         bounds->span_biggest = bound_candidate1;
@@ -677,9 +677,9 @@ void kmp_calc_new_bounds_XX(
     /* in/out*/ bounds_info_internalXX_template<T> *bounds,
     /* in/out*/ bounds_info_internal_t *bounds_nest) {
 
-  auto &bbounds = bounds->b;
+  
 
-  if (bbounds.lb1 == bbounds.ub1) {
+  if (auto &bbounds = bounds->b; bbounds.lb1 == bbounds.ub1) {
     // Already parallel, no need to adjust:
     bounds->loop_bounds_adjusted = false;
   } else {
@@ -913,10 +913,10 @@ bool kmp_calc_original_ivs_from_iterations(
 
   for (; ind < n;) {
     auto bounds = &(original_bounds_nest[ind]);
-    bool good = kmp_calc_one_iv(bounds, /*in/out*/ original_ivs, iterations,
-                                ind, (lengthened_ind < ind), true);
+    
 
-    if (!good) {
+    if (bool good = kmp_calc_one_iv(bounds, /*in/out*/ original_ivs, iterations,
+                                ind, (lengthened_ind < ind), true); !good) {
       // The calculated iv value is too big (or too small for >=):
       if (ind == 0) {
         // Space is empty:
@@ -1174,12 +1174,12 @@ bool kmp_calc_original_ivs_for_chunk_end(
     auto bounds = &(original_bounds_nest[ind]);
     auto updated_bounds = &(updated_bounds_nest[ind].b);
 
-    bool good = kmp_calc_one_iv_for_chunk_end(
+    
+
+    if (bool good = kmp_calc_one_iv_for_chunk_end(
         bounds, updated_bounds,
         /*in/out*/ original_ivs, iterations, ind, (lengthened_ind < ind),
-        (equal_ind >= ind - 1), original_ivs_start);
-
-    if (!good) {
+        (equal_ind >= ind - 1), original_ivs_start); !good) {
       // Too big (or too small for >=).
       if (ind == 0) {
         // Need to reduce to the end.
@@ -1298,9 +1298,9 @@ kmp_identify_nested_loop_structure(/*in*/ bounds_info_t *original_bounds_nest,
                                         original_bounds_nest[0].ub0_u64);
   kmp_uint64 outer_lb1_u64 = kmp_fix_iv(original_bounds_nest[0].loop_iv_type,
                                         original_bounds_nest[0].lb1_u64);
-  kmp_uint64 outer_ub1_u64 = kmp_fix_iv(original_bounds_nest[0].loop_iv_type,
-                                        original_bounds_nest[0].ub1_u64);
-  if (outer_lb0_u64 != 0 || outer_lb1_u64 != 0 || outer_ub1_u64 != 0) {
+  
+  if (kmp_uint64 outer_ub1_u64 = kmp_fix_iv(original_bounds_nest[0].loop_iv_type,
+                                        original_bounds_nest[0].ub1_u64); outer_lb0_u64 != 0 || outer_lb1_u64 != 0 || outer_ub1_u64 != 0) {
     return nested_loop_type_unkown;
   }
   // check inner bounds to determine triangle type

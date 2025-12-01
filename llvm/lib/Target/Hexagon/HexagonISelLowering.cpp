@@ -126,10 +126,10 @@ static bool CC_SkipOdd(unsigned &ValNo, MVT &ValVT, MVT &LocVT,
     Hexagon::R3, Hexagon::R4, Hexagon::R5
   };
   const unsigned NumArgRegs = std::size(ArgRegs);
-  unsigned RegNum = State.getFirstUnallocated(ArgRegs);
+  
 
   // RegNum is an index into ArgRegs: skip a register if RegNum is odd.
-  if (RegNum != NumArgRegs && RegNum % 2 == 1)
+  if (unsigned RegNum = State.getFirstUnallocated(ArgRegs); RegNum != NumArgRegs && RegNum % 2 == 1)
     State.AllocateReg(ArgRegs[RegNum]);
 
   // Always return false here, as this function only makes sure that the first
@@ -207,9 +207,9 @@ MVT HexagonTargetLowering::getRegisterTypeForCallingConv(LLVMContext &Context,
                                                          EVT VT) const {
 
   if (VT.isVector() && VT.getVectorElementType() == MVT::i1) {
-    auto [RegisterVT, NumRegisters] =
-        handleMaskRegisterForCallingConv(Subtarget, VT);
-    if (RegisterVT != MVT::INVALID_SIMPLE_VALUE_TYPE)
+    
+    if (auto [RegisterVT, NumRegisters] =
+        handleMaskRegisterForCallingConv(Subtarget, VT); RegisterVT != MVT::INVALID_SIMPLE_VALUE_TYPE)
       return RegisterVT;
   }
 
@@ -220,8 +220,8 @@ SDValue
 HexagonTargetLowering::LowerINTRINSIC_WO_CHAIN(SDValue Op, SelectionDAG &DAG)
       const {
   unsigned IntNo = Op.getConstantOperandVal(0);
-  SDLoc dl(Op);
-  switch (IntNo) {
+  
+  switch (SDLoc dl(Op); IntNo) {
   default:
     return SDValue(); // Don't custom lower most intrinsics.
   case Intrinsic::thread_pointer: {
@@ -272,11 +272,11 @@ HexagonTargetLowering::LowerReturn(SDValue Chain, CallingConv::ID CallConv,
   SmallVector<CCValAssign, 16> RVLocs;
 
   // CCState - Info about the registers and stack slot.
-  CCState CCInfo(CallConv, IsVarArg, DAG.getMachineFunction(), RVLocs,
-                 *DAG.getContext());
+  
 
   // Analyze return values of ISD::RET
-  if (Subtarget.useHVXOps())
+  if (CCState CCInfo(CallConv, IsVarArg, DAG.getMachineFunction(), RVLocs,
+                 *DAG.getContext()); Subtarget.useHVXOps())
     CCInfo.AnalyzeReturn(Outs, RetCC_Hexagon_HVX);
   else
     CCInfo.AnalyzeReturn(Outs, RetCC_Hexagon);
@@ -416,10 +416,10 @@ SDValue HexagonTargetLowering::LowerCallResult(
   // Assign locations to each value returned by this call.
   SmallVector<CCValAssign, 16> RVLocs;
 
-  CCState CCInfo(CallConv, IsVarArg, DAG.getMachineFunction(), RVLocs,
-                 *DAG.getContext());
+  
 
-  if (Subtarget.useHVXOps())
+  if (CCState CCInfo(CallConv, IsVarArg, DAG.getMachineFunction(), RVLocs,
+                 *DAG.getContext()); Subtarget.useHVXOps())
     CCInfo.AnalyzeCallResult(Ins, RetCC_Hexagon_HVX);
   else
     CCInfo.AnalyzeCallResult(Ins, RetCC_Hexagon);
@@ -806,9 +806,9 @@ SDValue HexagonTargetLowering::LowerREADSTEADYCOUNTER(SDValue Op,
 SDValue HexagonTargetLowering::LowerINTRINSIC_VOID(SDValue Op,
       SelectionDAG &DAG) const {
   SDValue Chain = Op.getOperand(0);
-  unsigned IntNo = Op.getConstantOperandVal(1);
+  
   // Lower the hexagon_prefetch builtin to DCFETCH, as above.
-  if (IntNo == Intrinsic::hexagon_prefetch) {
+  if (unsigned IntNo = Op.getConstantOperandVal(1); IntNo == Intrinsic::hexagon_prefetch) {
     SDValue Addr = Op.getOperand(2);
     SDLoc DL(Op);
     SDValue Zero = DAG.getConstant(0, DL, MVT::i32);
@@ -829,9 +829,9 @@ HexagonTargetLowering::LowerDYNAMIC_STACKALLOC(SDValue Op,
   assert(AlignConst && "Non-constant Align in LowerDYNAMIC_STACKALLOC");
 
   unsigned A = AlignConst->getSExtValue();
-  auto &HFI = *Subtarget.getFrameLowering();
+  
   // "Zero" means natural stack alignment.
-  if (A == 0)
+  if (auto &HFI = *Subtarget.getFrameLowering(); A == 0)
     A = HFI.getStackAlign().value();
 
   LLVM_DEBUG({
@@ -950,9 +950,9 @@ SDValue HexagonTargetLowering::LowerFormalArguments(
       // Create the frame index object for this incoming parameter.
       int Offset = HEXAGON_LRFP_SIZE + VA.getLocMemOffset();
       int FI = MFI.CreateFixedObject(ObjSize, Offset, true);
-      SDValue FIN = DAG.getFrameIndex(FI, MVT::i32);
+      
 
-      if (Flags.isByVal()) {
+      if (SDValue FIN = DAG.getFrameIndex(FI, MVT::i32); Flags.isByVal()) {
         // If it's a pass-by-value aggregate, then do not dereference the stack
         // location. Instead, we should generate a reference to the stack
         // location.
@@ -977,11 +977,11 @@ SDValue HexagonTargetLowering::LowerFormalArguments(
     // Create Frame index for the start of register saved area.
     int NumVarArgRegs = 6 - HFL.FirstVarArgSavedReg;
     bool RequiresPadding = (NumVarArgRegs & 1);
-    int RegSaveAreaSizePlusPadding = RequiresPadding
-                                        ? (NumVarArgRegs + 1) * 4
-                                        : NumVarArgRegs * 4;
+    
 
-    if (RegSaveAreaSizePlusPadding > 0) {
+    if (int RegSaveAreaSizePlusPadding = RequiresPadding
+                                        ? (NumVarArgRegs + 1) * 4
+                                        : NumVarArgRegs * 4; RegSaveAreaSizePlusPadding > 0) {
       // The offset to saved register area should be 8 byte aligned.
       int RegAreaStart = HEXAGON_LRFP_SIZE + CCInfo.getStackSize();
       if (!(RegAreaStart % 8))
@@ -1150,8 +1150,8 @@ SDValue HexagonTargetLowering::LowerSETCC(SDValue Op, SelectionDAG &DAG) const {
 
   if (OpTy == MVT::i8 || OpTy == MVT::i16) {
     ConstantSDNode *C = dyn_cast<ConstantSDNode>(RHS);
-    bool IsNegative = C && C->getAPIntValue().isNegative();
-    if (IsNegative || isSExtFree(LHS) || isSExtFree(RHS))
+    
+    if (bool IsNegative = C && C->getAPIntValue().isNegative(); IsNegative || isSExtFree(LHS) || isSExtFree(RHS))
       return DAG.getSetCC(dl, ResTy,
                           DAG.getSExtOrTrunc(LHS, SDLoc(LHS), MVT::i32),
                           DAG.getSExtOrTrunc(RHS, SDLoc(RHS), MVT::i32), CC);
@@ -1248,8 +1248,8 @@ HexagonTargetLowering::LowerRETURNADDR(SDValue Op, SelectionDAG &DAG) const {
 
   EVT VT = Op.getValueType();
   SDLoc dl(Op);
-  unsigned Depth = Op.getConstantOperandVal(0);
-  if (Depth) {
+  
+  if (unsigned Depth = Op.getConstantOperandVal(0); Depth) {
     SDValue FrameAddr = LowerFRAMEADDR(Op, DAG);
     SDValue Offset = DAG.getConstant(4, dl, MVT::i32);
     return DAG.getLoad(VT, dl, DAG.getEntryNode(),
@@ -1294,12 +1294,12 @@ HexagonTargetLowering::LowerGLOBALADDRESS(SDValue Op, SelectionDAG &DAG) const {
   int64_t Offset = GAN->getOffset();
 
   auto &HLOF = *HTM.getObjFileLowering();
-  Reloc::Model RM = HTM.getRelocationModel();
+  
 
-  if (RM == Reloc::Static) {
+  if (Reloc::Model RM = HTM.getRelocationModel(); RM == Reloc::Static) {
     SDValue GA = DAG.getTargetGlobalAddress(GV, dl, PtrVT, Offset);
-    const GlobalObject *GO = GV->getAliaseeObject();
-    if (GO && Subtarget.useSmallData() && HLOF.isGlobalInSmallSection(GO, HTM))
+    
+    if (const GlobalObject *GO = GV->getAliaseeObject(); GO && Subtarget.useSmallData() && HLOF.isGlobalInSmallSection(GO, HTM))
       return DAG.getNode(HexagonISD::CONST32_GP, dl, PtrVT, GA);
     return DAG.getNode(HexagonISD::CONST32, dl, PtrVT, GA);
   }
@@ -1325,8 +1325,8 @@ HexagonTargetLowering::LowerBlockAddress(SDValue Op, SelectionDAG &DAG) const {
   SDLoc dl(Op);
   EVT PtrVT = getPointerTy(DAG.getDataLayout());
 
-  Reloc::Model RM = HTM.getRelocationModel();
-  if (RM == Reloc::Static) {
+  
+  if (Reloc::Model RM = HTM.getRelocationModel(); RM == Reloc::Static) {
     SDValue A = DAG.getTargetBlockAddress(BA, PtrVT);
     return DAG.getNode(HexagonISD::CONST32_GP, dl, PtrVT, A);
   }
@@ -1484,9 +1484,9 @@ HexagonTargetLowering::LowerToTLSGeneralDynamicModel(GlobalAddressSDNode *GA,
 SDValue
 HexagonTargetLowering::LowerGlobalTLSAddress(SDValue Op,
       SelectionDAG &DAG) const {
-  GlobalAddressSDNode *GA = cast<GlobalAddressSDNode>(Op);
+  
 
-  switch (HTM.getTLSModel(GA->getGlobal())) {
+  switch (GlobalAddressSDNode *GA = cast<GlobalAddressSDNode>(Op); HTM.getTLSModel(GA->getGlobal())) {
     case TLSModel::GeneralDynamic:
     case TLSModel::LocalDynamic:
       return LowerToTLSGeneralDynamicModel(GA, DAG);
@@ -2066,9 +2066,9 @@ static Value *returnEdge(const PHINode *PN, Value *IntrBaseVal) {
   const BasicBlock *Parent = PN->getParent();
   int Idx = -1;
   for (unsigned i = 0, e = PN->getNumIncomingValues(); i < e; ++i) {
-    BasicBlock *Blk = PN->getIncomingBlock(i);
+    
     // Determine if the back edge is originated from intrinsic.
-    if (Blk == Parent) {
+    if (BasicBlock *Blk = PN->getIncomingBlock(i); Blk == Parent) {
       Value *BackEdgeVal = PN->getIncomingValue(i);
       Value *BaseVal;
       // Loop over till we return the same Value or we hit the IntrBaseVal.
@@ -2233,8 +2233,8 @@ HexagonTargetLowering::getPreferredVectorAction(MVT VT) const {
     return TargetLoweringBase::TypeScalarizeVector;
 
   if (Subtarget.useHVXOps()) {
-    unsigned Action = getPreferredHvxVectorAction(VT);
-    if (Action != ~0u)
+    
+    if (unsigned Action = getPreferredHvxVectorAction(VT); Action != ~0u)
       return static_cast<TargetLoweringBase::LegalizeTypeAction>(Action);
   }
 
@@ -2253,8 +2253,8 @@ HexagonTargetLowering::getPreferredVectorAction(MVT VT) const {
 TargetLoweringBase::LegalizeAction
 HexagonTargetLowering::getCustomOperationAction(SDNode &Op) const {
   if (Subtarget.useHVXOps()) {
-    unsigned Action = getCustomHvxOperationAction(Op);
-    if (Action != ~0u)
+    
+    if (unsigned Action = getCustomHvxOperationAction(Op); Action != ~0u)
       return static_cast<TargetLoweringBase::LegalizeAction>(Action);
   }
   return TargetLoweringBase::Legal;
@@ -2263,8 +2263,8 @@ HexagonTargetLowering::getCustomOperationAction(SDNode &Op) const {
 std::pair<SDValue, int>
 HexagonTargetLowering::getBaseAndOffset(SDValue Addr) const {
   if (Addr.getOpcode() == ISD::ADD) {
-    SDValue Op1 = Addr.getOperand(1);
-    if (auto *CN = dyn_cast<const ConstantSDNode>(Op1.getNode()))
+    
+    if (auto *SDValue Op1 = Addr.getOperand(1); CN = dyn_cast<const ConstantSDNode>(Op1.getNode()))
       return { Addr.getOperand(0), CN->getSExtValue() };
   }
   return { Addr, 0 };
@@ -2715,8 +2715,8 @@ HexagonTargetLowering::extractVector(SDValue VecV, SDValue IdxV,
   SDValue ExtV;
 
   if (auto *IdxN = dyn_cast<ConstantSDNode>(IdxV)) {
-    unsigned Off = IdxN->getZExtValue() * ElemWidth;
-    if (VecWidth == 64 && ValWidth == 32) {
+    
+    if (unsigned Off = IdxN->getZExtValue() * ElemWidth; VecWidth == 64 && ValWidth == 32) {
       assert(Off == 0 || Off == 32);
       ExtV = Off == 0 ? LoHalf(VecV, DAG) : HiHalf(VecV, DAG);
     } else if (Off == 0 && (ValWidth % 8) == 0) {
@@ -3438,9 +3438,9 @@ HexagonTargetLowering::LowerOperationWrapper(SDNode *N,
   }
 
   SDValue Op(N, 0);
-  unsigned Opc = N->getOpcode();
+  
 
-  switch (Opc) {
+  switch (unsigned Opc = N->getOpcode(); Opc) {
     case HexagonISD::SSAT:
     case HexagonISD::USAT:
       Results.push_back(opJoin(SplitVectorOp(Op, DAG), SDLoc(Op), DAG));
@@ -3502,9 +3502,9 @@ HexagonTargetLowering::PerformDAGCombine(SDNode *N,
   unsigned Opc = Op.getOpcode();
 
   if (Opc == ISD::TRUNCATE) {
-    SDValue Op0 = Op.getOperand(0);
+    
     // fold (truncate (build pair x, y)) -> (truncate x) or x
-    if (Op0.getOpcode() == ISD::BUILD_PAIR) {
+    if (SDValue Op0 = Op.getOperand(0); Op0.getOpcode() == ISD::BUILD_PAIR) {
       EVT TruncTy = Op.getValueType();
       SDValue Elem0 = Op0.getOperand(0);
       // if we match the low element of the pair, just return it.
@@ -3520,8 +3520,8 @@ HexagonTargetLowering::PerformDAGCombine(SDNode *N,
     return SDValue();
 
   if (Opc == HexagonISD::P2D) {
-    SDValue P = Op.getOperand(0);
-    switch (P.getOpcode()) {
+    
+    switch (SDValue P = Op.getOperand(0); P.getOpcode()) {
     case HexagonISD::PTRUE:
       return DCI.DAG.getAllOnesConstant(dl, ty(Op));
     case HexagonISD::PFALSE:
@@ -3533,19 +3533,19 @@ HexagonTargetLowering::PerformDAGCombine(SDNode *N,
     // This is pretty much duplicated in HexagonISelLoweringHVX...
     //
     // (vselect (xor x, ptrue), v0, v1) -> (vselect x, v1, v0)
-    SDValue Cond = Op.getOperand(0);
-    if (Cond->getOpcode() == ISD::XOR) {
-      SDValue C0 = Cond.getOperand(0), C1 = Cond.getOperand(1);
-      if (C1->getOpcode() == HexagonISD::PTRUE) {
+    
+    if (SDValue Cond = Op.getOperand(0); Cond->getOpcode() == ISD::XOR) {
+      
+      if (SDValue C0 = Cond.getOperand(0), C1 = Cond.getOperand(1); C1->getOpcode() == HexagonISD::PTRUE) {
         SDValue VSel = DCI.DAG.getNode(ISD::VSELECT, dl, ty(Op), C0,
                                        Op.getOperand(2), Op.getOperand(1));
         return VSel;
       }
     }
   } else if (Opc == ISD::TRUNCATE) {
-    SDValue Op0 = Op.getOperand(0);
+    
     // fold (truncate (build pair x, y)) -> (truncate x) or x
-    if (Op0.getOpcode() == ISD::BUILD_PAIR) {
+    if (SDValue Op0 = Op.getOperand(0); Op0.getOpcode() == ISD::BUILD_PAIR) {
       MVT TruncTy = ty(Op);
       SDValue Elem0 = Op0.getOperand(0);
       // if we match the low element of the pair, just return it.
@@ -3783,9 +3783,9 @@ bool HexagonTargetLowering::IsEligibleForTailCallOptimization(
   // used are not C or Fast.
   if (!CCMatch) {
     bool R = (CallerCC == CallingConv::C || CallerCC == CallingConv::Fast);
-    bool E = (CalleeCC == CallingConv::C || CalleeCC == CallingConv::Fast);
+    
     // If R & E, then ok.
-    if (!R || !E)
+    if (bool E = (CalleeCC == CallingConv::C || CalleeCC == CallingConv::Fast); !R || !E)
       return false;
   }
 

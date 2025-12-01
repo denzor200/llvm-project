@@ -60,9 +60,9 @@ SPIRVTranslate(Module *M, std::string &SpirvObj, std::string &ErrMsg,
   static const std::string DefaultMArch = "";
 
   std::set<SPIRV::Extension::Extension> AllowedExtIds;
-  StringRef UnknownExt =
-      SPIRVExtensionsParser::checkExtensions(AllowExtNames, AllowedExtIds);
-  if (!UnknownExt.empty()) {
+  
+  if (StringRef UnknownExt =
+      SPIRVExtensionsParser::checkExtensions(AllowExtNames, AllowedExtIds); !UnknownExt.empty()) {
     ErrMsg = "Unknown SPIR-V extension: " + UnknownExt.str();
     return false;
   }

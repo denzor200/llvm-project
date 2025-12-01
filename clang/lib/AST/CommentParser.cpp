@@ -191,10 +191,10 @@ public:
     SourceLocation Loc = getSourceLocation();
 
     while (!isEnd()) {
-      const char C = peek();
+      
       // For non-whitespace characters we check if it's a template or otherwise
       // continue reading the text into a word.
-      if (!isWhitespace(C)) {
+      if (const char C = peek(); !isWhitespace(C)) {
         if (C == '<') {
           if (!lexTemplate(WordText))
             return false;
@@ -292,8 +292,8 @@ public:
     const char *WordBegin = Pos.BufferPtr;
     SourceLocation Loc = getSourceLocation();
     while (!isEnd()) {
-      const char C = peek();
-      if (!isWhitespace(C)) {
+      
+      if (const char C = peek(); !isWhitespace(C)) {
         WordText.push_back(C);
         consumeChar();
       } else
@@ -326,8 +326,8 @@ public:
     SourceLocation Loc = getSourceLocation();
     bool Error = false;
     if (!isEnd()) {
-      const char C = peek();
-      if (C == OpenDelim) {
+      
+      if (const char C = peek(); C == OpenDelim) {
         WordText.push_back(C);
         consumeChar();
       } else
@@ -412,8 +412,8 @@ void Parser::parseParamCommandArgs(ParamCommandComment *PC,
 
 void Parser::parseTParamCommandArgs(TParamCommandComment *TPC,
                                     TextTokenRetokenizer &Retokenizer) {
-  Token Arg;
-  if (Retokenizer.lexWord(Arg))
+  
+  if (Token Arg; Retokenizer.lexWord(Arg))
     S.actOnTParamCommandParamNameArg(TPC,
                                      Arg.getLocation(),
                                      Arg.getEndLocation(),
@@ -477,9 +477,9 @@ BlockCommandComment *Parser::parseBlockCommand() {
   TParamCommandComment *TPC = nullptr;
   BlockCommandComment *BC = nullptr;
   const CommandInfo *Info = Traits.getCommandInfo(Tok.getCommandID());
-  CommandMarkerKind CommandMarker =
-      Tok.is(tok::backslash_command) ? CMK_Backslash : CMK_At;
-  if (Info->IsParamCommand) {
+  
+  if (CommandMarkerKind CommandMarker =
+      Tok.is(tok::backslash_command) ? CMK_Backslash : CMK_At; Info->IsParamCommand) {
     PC = S.actOnParamCommandStart(Tok.getLocation(),
                                   Tok.getEndLocation(),
                                   Tok.getCommandID(),
@@ -500,8 +500,8 @@ BlockCommandComment *Parser::parseBlockCommand() {
   if (isTokBlockCommand()) {
     // Block command ahead.  We can't nest block commands, so pretend that this
     // command has an empty argument.
-    ParagraphComment *Paragraph = S.actOnParagraphComment({});
-    if (PC) {
+    
+    if (ParagraphComment *Paragraph = S.actOnParagraphComment({}); PC) {
       S.actOnParamCommandFinish(PC, Paragraph);
       return PC;
     } else if (TPC) {
@@ -681,10 +681,10 @@ HTMLStartTagComment *Parser::parseHTMLStartTag() {
                                                   HST->getLocation(),
                                                   &StartLineInvalid);
       bool EndLineInvalid;
-      const unsigned EndLine = SourceMgr.getPresumedLineNumber(
+      
+      if (const unsigned EndLine = SourceMgr.getPresumedLineNumber(
                                                   Tok.getLocation(),
-                                                  &EndLineInvalid);
-      if (StartLineInvalid || EndLineInvalid || StartLine == EndLine)
+                                                  &EndLineInvalid); StartLineInvalid || EndLineInvalid || StartLine == EndLine)
         Diag(Tok.getLocation(),
              diag::warn_doc_html_start_tag_expected_ident_or_greater)
           << HST->getSourceRange();

@@ -78,8 +78,8 @@ LINKAGE kmp_itthash_entry *__kmp_itthash_find(kmp_info_t *thread,
 
   if (entry == NULL) {
     // two foreign threads could report frames concurrently
-    int cnt = KMP_TEST_THEN_INC32(&h->count);
-    if (cnt >= KMP_MAX_FRAME_DOMAINS) {
+    
+    if (int cnt = KMP_TEST_THEN_INC32(&h->count); cnt >= KMP_MAX_FRAME_DOMAINS) {
       KMP_TEST_THEN_DEC32(&h->count); // revert the count
       return entry; // too many entries
     }
@@ -125,8 +125,8 @@ LINKAGE kmp_itthash_entry *__kmp_itthash_find(kmp_info_t *thread,
 
 LINKAGE void __kmp_itt_region_forking(int gtid, int team_size, int barriers) {
 #if USE_ITT_NOTIFY
-  kmp_team_t *team = __kmp_team_from_gtid(gtid);
-  if (team->t.t_active_level > 1) {
+  
+  if (kmp_team_t *team = __kmp_team_from_gtid(gtid); team->t.t_active_level > 1) {
     // The frame notifications are only supported for the outermost teams.
     return;
   }
@@ -189,11 +189,11 @@ LINKAGE void __kmp_itt_frame_submit(int gtid, __itt_timestamp begin,
     // no sense to report a region without location info
     return;
   }
-  kmp_info_t *th = __kmp_thread_from_gtid(gtid);
-  if (region) {
+  
+  if (kmp_info_t *th = __kmp_thread_from_gtid(gtid); region) {
     kmp_team_t *team = __kmp_team_from_gtid(gtid);
-    int serialized = (region == 2 ? 1 : 0);
-    if (team->t.t_active_level + serialized > 1) {
+    
+    if (int serialized = (region == 2 ? 1 : 0); team->t.t_active_level + serialized > 1) {
       // The frame notifications are only supported for the outermost teams.
       return;
     }
@@ -366,8 +366,8 @@ LINKAGE void __kmp_itt_region_finished(int gtid) {
 // ----------------------------------------------------------------------------
 LINKAGE void __kmp_itt_region_joined(int gtid) {
 #if USE_ITT_NOTIFY
-  kmp_team_t *team = __kmp_team_from_gtid(gtid);
-  if (team->t.t_active_level > 1) {
+  
+  if (kmp_team_t *team = __kmp_team_from_gtid(gtid); team->t.t_active_level > 1) {
     // The frame notifications are only supported for the outermost teams.
     return;
   }
@@ -422,13 +422,13 @@ void *__kmp_itt_barrier_object(int gtid, int bt, int set_name,
   void *object = NULL;
 #if USE_ITT_NOTIFY
   kmp_info_t *thr = __kmp_thread_from_gtid(gtid);
-  kmp_team_t *team = thr->th.th_team;
+  
 
   // NOTE: If the function is called from __kmp_fork_barrier, team pointer can
   // be NULL. This "if" helps to avoid crash. However, this is not complete
   // solution, and reporting fork/join barriers to ITT should be revisited.
 
-  if (team != NULL) {
+  if (kmp_team_t *team = thr->th.th_team; team != NULL) {
     // Primary thread increases b_arrived by KMP_BARRIER_STATE_BUMP each time.
     // Divide b_arrived by KMP_BARRIER_STATE_BUMP to get plain barrier counter.
     kmp_uint64 counter =
@@ -856,8 +856,8 @@ void __kmp_itt_ordered_init(int gtid) {
 void __kmp_itt_ordered_prep(int gtid) {
 #if USE_ITT_NOTIFY
   if (__itt_sync_create_ptr) {
-    kmp_team_t *t = __kmp_team_from_gtid(gtid);
-    if (!t->t.t_serialized) {
+    
+    if (kmp_team_t *t = __kmp_team_from_gtid(gtid); !t->t.t_serialized) {
       kmp_info_t *th = __kmp_thread_from_gtid(gtid);
       __itt_sync_prepare(th->th.th_dispatch->th_dispatch_sh_current);
     }
@@ -868,8 +868,8 @@ void __kmp_itt_ordered_prep(int gtid) {
 void __kmp_itt_ordered_start(int gtid) {
 #if USE_ITT_NOTIFY
   if (__itt_sync_create_ptr) {
-    kmp_team_t *t = __kmp_team_from_gtid(gtid);
-    if (!t->t.t_serialized) {
+    
+    if (kmp_team_t *t = __kmp_team_from_gtid(gtid); !t->t.t_serialized) {
       kmp_info_t *th = __kmp_thread_from_gtid(gtid);
       __itt_sync_acquired(th->th.th_dispatch->th_dispatch_sh_current);
     }
@@ -880,8 +880,8 @@ void __kmp_itt_ordered_start(int gtid) {
 void __kmp_itt_ordered_end(int gtid) {
 #if USE_ITT_NOTIFY
   if (__itt_sync_create_ptr) {
-    kmp_team_t *t = __kmp_team_from_gtid(gtid);
-    if (!t->t.t_serialized) {
+    
+    if (kmp_team_t *t = __kmp_team_from_gtid(gtid); !t->t.t_serialized) {
       kmp_info_t *th = __kmp_thread_from_gtid(gtid);
       __itt_sync_releasing(th->th.th_dispatch->th_dispatch_sh_current);
     }

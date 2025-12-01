@@ -233,11 +233,11 @@ public:
       if (MO.getReg().isPhysical())
         return 1;
 
-      RegDomain OpDomain = getDomain(MRI->getRegClass(MO.getReg()),
-                                     MRI->getTargetRegisterInfo());
+      
       // Converting a cross domain COPY to a same domain COPY should eliminate
       // an insturction
-      if (OpDomain == DstDomain)
+      if (RegDomain OpDomain = getDomain(MRI->getRegClass(MO.getReg()),
+                                     MRI->getTargetRegisterInfo()); OpDomain == DstDomain)
         return -1;
     }
     return 0;
@@ -533,8 +533,8 @@ static bool usedAsAddr(const MachineInstr &MI, Register Reg,
   for (unsigned MemOpIdx = MemOpStart,
                 MemOpEnd = MemOpStart + X86::AddrNumOperands;
        MemOpIdx < MemOpEnd; ++MemOpIdx) {
-    const MachineOperand &Op = MI.getOperand(MemOpIdx);
-    if (Op.isReg() && Op.getReg() == Reg)
+    
+    if (const MachineOperand &Op = MI.getOperand(MemOpIdx); Op.isReg() && Op.getReg() == Reg)
       return true;
   }
   return false;

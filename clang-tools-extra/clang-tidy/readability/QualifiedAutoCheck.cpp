@@ -264,20 +264,20 @@ void QualifiedAutoCheck::check(const MatchFinder::MatchResult &Result) {
               // explicitly.
 
     if (Var->getType().isLocalConstQualified()) {
-      std::optional<Token> Token = findQualToken(Var, Qualifier::Const, Result);
-      if (!Token || Token->getLocation().isMacroID())
+      
+      if (std::optional<Token> Token = findQualToken(Var, Qualifier::Const, Result); !Token || Token->getLocation().isMacroID())
         return;
     }
     if (Var->getType().isLocalVolatileQualified()) {
-      std::optional<Token> Token =
-          findQualToken(Var, Qualifier::Volatile, Result);
-      if (!Token || Token->getLocation().isMacroID())
+      
+      if (std::optional<Token> Token =
+          findQualToken(Var, Qualifier::Volatile, Result); !Token || Token->getLocation().isMacroID())
         return;
     }
     if (Var->getType().isLocalRestrictQualified()) {
-      std::optional<Token> Token =
-          findQualToken(Var, Qualifier::Restrict, Result);
-      if (!Token || Token->getLocation().isMacroID())
+      
+      if (std::optional<Token> Token =
+          findQualToken(Var, Qualifier::Restrict, Result); !Token || Token->getLocation().isMacroID())
         return;
     }
 

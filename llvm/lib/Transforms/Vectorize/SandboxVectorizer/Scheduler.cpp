@@ -171,8 +171,8 @@ bool Scheduler::tryScheduleUntil(ArrayRef<Instruction *> Instrs) {
     };
     while (!ReadyList.empty()) {
       auto *ReadyN = ReadyList.pop();
-      auto Res = TryScheduleBndl(ReadyN);
-      switch (Res) {
+      
+      switch (auto Res = TryScheduleBndl(ReadyN); Res) {
       case TryScheduleRes::Success:
         // We successfully scheduled ReadyN, keep scheduling.
         continue;
@@ -190,8 +190,8 @@ bool Scheduler::tryScheduleUntil(ArrayRef<Instruction *> Instrs) {
     // Try to schedule nodes from the Retry list.
     KeepScheduling = false;
     for (auto *N : make_early_inc_range(Retry)) {
-      auto Res = TryScheduleBndl(N);
-      if (Res == TryScheduleRes::Success) {
+      
+      if (auto Res = TryScheduleBndl(N); Res == TryScheduleRes::Success) {
         Retry.erase(find(Retry, N));
         KeepScheduling = true;
       }
@@ -281,8 +281,8 @@ void Scheduler::trimSchedule(ArrayRef<Instruction *> Instrs) {
   ReadyList.clear();
   Interval<Instruction> RefillIntvl(DAG.getInterval().top(), LowestI);
   for (Instruction &I : RefillIntvl) {
-    auto *N = DAG.getNode(&I);
-    if (N->ready())
+    
+    if (auto *N = DAG.getNode(&I); N->ready())
       ReadyList.insert(N);
   }
 }
@@ -305,8 +305,8 @@ bool Scheduler::trySchedule(ArrayRef<Instruction *> Instrs) {
   if (any_of(Instrs,
              [this](Instruction *I) { return I->getParent() != ScheduledBB; }))
     return false;
-  auto SchedState = getBndlSchedState(Instrs);
-  switch (SchedState) {
+  
+  switch (auto SchedState = getBndlSchedState(Instrs); SchedState) {
   case BndlSchedState::FullyScheduled:
     // Nothing to do.
     return true;
@@ -332,8 +332,8 @@ bool Scheduler::trySchedule(ArrayRef<Instruction *> Instrs) {
     Interval<Instruction> Extension = DAG.extend(Instrs);
     // Add nodes to ready list.
     for (auto &I : Extension) {
-      auto *N = DAG.getNode(&I);
-      if (N->ready())
+      
+      if (auto *N = DAG.getNode(&I); N->ready())
         ReadyList.insert(N);
     }
     // Try schedule all nodes until we can schedule Instrs back-to-back.

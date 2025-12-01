@@ -167,8 +167,8 @@ createRuleMapping(const std::vector<const PathDiagnostic *> &Diags,
 
   for (const PathDiagnostic *D : Diags) {
     StringRef CheckName = D->getCheckerName();
-    std::pair<llvm::StringSet<>::iterator, bool> P = Seen.insert(CheckName);
-    if (P.second) {
+    
+    if (std::pair<llvm::StringSet<>::iterator, bool> P = Seen.insert(CheckName); P.second) {
       auto Rule = SarifRule::create()
                       .setName(CheckName)
                       .setRuleId(CheckName)
@@ -200,12 +200,12 @@ SarifDiagnostics::createResult(const PathDiagnostic *Diag,
   std::string HtmlReportURL;
   if (FM && !FM->empty()) {
     // Find the HTML report that was generated for this issue, if one exists.
-    PDFileEntry::ConsumerFiles *Files = FM->getFiles(*Diag);
-    if (Files) {
-      auto HtmlFile = llvm::find_if(*Files, [](const auto &File) {
+    
+    if (PDFileEntry::ConsumerFiles *Files = FM->getFiles(*Diag); Files) {
+      
+      if (auto HtmlFile = llvm::find_if(*Files, [](const auto &File) {
         return File.first == HTML_DIAGNOSTICS_NAME;
-      });
-      if (HtmlFile != Files->end()) {
+      }); HtmlFile != Files->end()) {
         SmallString<128> HtmlReportPath =
             llvm::sys::path::parent_path(OutputFile);
         llvm::sys::path::append(HtmlReportPath, HtmlFile->second);

@@ -476,8 +476,8 @@ bool IndirectCallPromoter::isValidTarget(uint64_t Target,
     return false;
   }
 
-  const char *Reason = nullptr;
-  if (!isLegalToPromote(CB, TargetFunction, &Reason)) {
+  
+  if (const char *Reason = nullptr; !isLegalToPromote(CB, TargetFunction, &Reason)) {
 
     ORE.emit([&]() {
       return OptimizationRemarkMissed(DEBUG_TYPE, "UnableToPromote", &CB)
@@ -1108,9 +1108,9 @@ static bool promoteIndirectCalls(Module &M, ProfileSummaryInfo *PSI, bool InLTO,
 
 PreservedAnalyses PGOIndirectCallPromotion::run(Module &M,
                                                 ModuleAnalysisManager &MAM) {
-  ProfileSummaryInfo *PSI = &MAM.getResult<ProfileSummaryAnalysis>(M);
+  
 
-  if (!promoteIndirectCalls(M, PSI, InLTO | ICPLTOMode,
+  if (ProfileSummaryInfo *PSI = &MAM.getResult<ProfileSummaryAnalysis>(M); !promoteIndirectCalls(M, PSI, InLTO | ICPLTOMode,
                             SamplePGO | ICPSamplePGOMode, MAM))
     return PreservedAnalyses::all();
 

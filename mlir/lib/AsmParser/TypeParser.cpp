@@ -417,8 +417,8 @@ Type Parser::parseTensorType() {
   // Parse an optional encoding attribute.
   Attribute encoding;
   if (consumeIf(Token::comma)) {
-    auto parseResult = parseOptionalAttribute(encoding);
-    if (parseResult.has_value()) {
+    
+    if (auto parseResult = parseOptionalAttribute(encoding); parseResult.has_value()) {
       if (failed(parseResult.value()))
         return nullptr;
       if (auto v = dyn_cast_or_null<VerifiableTensorEncoding>(encoding)) {
@@ -542,8 +542,8 @@ ParseResult
 Parser::parseDimensionListRanked(SmallVectorImpl<int64_t> &dimensions,
                                  bool allowDynamic, bool withTrailingX) {
   auto parseDim = [&]() -> LogicalResult {
-    auto loc = getToken().getLoc();
-    if (consumeIf(Token::question)) {
+    
+    if (auto loc = getToken().getLoc(); consumeIf(Token::question)) {
       if (!allowDynamic)
         return emitError(loc, "expected static shape");
       dimensions.push_back(ShapedType::kDynamic);

@@ -42,8 +42,8 @@ void TpiStreamBuilder::updateTypeIndexOffsets(ArrayRef<uint16_t> Sizes) {
   // If we just crossed an 8KB threshold, add a type index offset.
   for (uint16_t Size : Sizes) {
     size_t NewSize = TypeRecordBytes + Size;
-    constexpr size_t EightKB = 8 * 1024;
-    if (NewSize / EightKB > TypeRecordBytes / EightKB || TypeRecordCount == 0) {
+    
+    if (constexpr size_t EightKB = 8 * 1024; NewSize / EightKB > TypeRecordBytes / EightKB || TypeRecordCount == 0) {
       TypeIndexOffsets.push_back(
           {codeview::TypeIndex(codeview::TypeIndex::FirstNonSimpleIndex +
                                TypeRecordCount),
@@ -140,8 +140,8 @@ uint32_t TpiStreamBuilder::calculateIndexOffsetSize() const {
 }
 
 Error TpiStreamBuilder::finalizeMsfLayout() {
-  uint32_t Length = calculateSerializedLength();
-  if (auto EC = Msf.setStreamSize(Idx, Length))
+  
+  if (auto uint32_t Length = calculateSerializedLength(); EC = Msf.setStreamSize(Idx, Length))
     return EC;
 
   uint32_t HashStreamSize =

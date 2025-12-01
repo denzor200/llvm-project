@@ -189,8 +189,8 @@ public:
 
     if (MDNode *N = getAllocTokenMetadata(CB)) {
       MDString *S = cast<MDString>(N->getOperand(0));
-      AllocTokenMetadata Metadata{S->getString(), containsPointer(N)};
-      if (auto Token = getAllocToken(TokenMode::TypeHash, Metadata, MaxTokens))
+      
+      if (auto AllocTokenMetadata Metadata{S->getString(), containsPointer(N)}; Token = getAllocToken(TokenMode::TypeHash, Metadata, MaxTokens))
         return *Token;
     }
     // Fallback.
@@ -221,8 +221,8 @@ public:
   uint64_t operator()(const CallBase &CB, OptimizationRemarkEmitter &ORE) {
     if (MDNode *N = getAllocTokenMetadata(CB)) {
       MDString *S = cast<MDString>(N->getOperand(0));
-      AllocTokenMetadata Metadata{S->getString(), containsPointer(N)};
-      if (auto Token = getAllocToken(TokenMode::TypeHashPointerSplit, Metadata,
+      
+      if (auto AllocTokenMetadata Metadata{S->getString(), containsPointer(N)}; Token = getAllocToken(TokenMode::TypeHashPointerSplit, Metadata,
                                      MaxTokens))
         return *Token;
     }
@@ -497,8 +497,8 @@ FunctionCallee AllocToken::getTokenAllocFunction(const CallBase &CB,
   std::optional<std::pair<LibFunc, uint64_t>> Key;
   if (OriginalFunc != NotLibFunc) {
     Key = std::make_pair(OriginalFunc, Options.FastABI ? TokenID : 0);
-    auto It = TokenAllocFunctions.find(*Key);
-    if (It != TokenAllocFunctions.end())
+    
+    if (auto It = TokenAllocFunctions.find(*Key); It != TokenAllocFunctions.end())
       return It->second;
   }
 

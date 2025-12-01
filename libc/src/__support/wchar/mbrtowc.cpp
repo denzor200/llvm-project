@@ -29,9 +29,9 @@ ErrorOr<size_t> mbrtowc(wchar_t *__restrict pwc, const char *__restrict s,
   size_t i = 0;
   // Reading in bytes until we have a complete wc or error
   for (; i < n && !char_conv.isFull(); ++i) {
-    int err = char_conv.push(static_cast<char8_t>(s[i]));
+    
     // Encoding error
-    if (err == EILSEQ)
+    if (int err = char_conv.push(static_cast<char8_t>(s[i])); err == EILSEQ)
       return Error(err);
   }
   auto wc = char_conv.pop_utf32();

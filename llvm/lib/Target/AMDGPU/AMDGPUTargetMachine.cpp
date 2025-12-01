@@ -239,27 +239,27 @@ static cl::opt<WWMRegisterRegAlloc::FunctionPassCtor, false,
                 cl::desc("Register allocator to use for WWM registers"));
 
 static void initializeDefaultSGPRRegisterAllocatorOnce() {
-  RegisterRegAlloc::FunctionPassCtor Ctor = SGPRRegisterRegAlloc::getDefault();
+  
 
-  if (!Ctor) {
+  if (RegisterRegAlloc::FunctionPassCtor Ctor = SGPRRegisterRegAlloc::getDefault(); !Ctor) {
     Ctor = SGPRRegAlloc;
     SGPRRegisterRegAlloc::setDefault(SGPRRegAlloc);
   }
 }
 
 static void initializeDefaultVGPRRegisterAllocatorOnce() {
-  RegisterRegAlloc::FunctionPassCtor Ctor = VGPRRegisterRegAlloc::getDefault();
+  
 
-  if (!Ctor) {
+  if (RegisterRegAlloc::FunctionPassCtor Ctor = VGPRRegisterRegAlloc::getDefault(); !Ctor) {
     Ctor = VGPRRegAlloc;
     VGPRRegisterRegAlloc::setDefault(VGPRRegAlloc);
   }
 }
 
 static void initializeDefaultWWMRegisterAllocatorOnce() {
-  RegisterRegAlloc::FunctionPassCtor Ctor = WWMRegisterRegAlloc::getDefault();
+  
 
-  if (!Ctor) {
+  if (RegisterRegAlloc::FunctionPassCtor Ctor = WWMRegisterRegAlloc::getDefault(); !Ctor) {
     Ctor = WWMRegAlloc;
     WWMRegisterRegAlloc::setDefault(WWMRegAlloc);
   }
@@ -1067,8 +1067,8 @@ AMDGPUTargetMachine::getPredicatedAddrSpace(const Value *V) const {
   // Check the global pointer predication based on
   // (!is_share(p) && !is_private(p)). Note that logic 'and' is commutative and
   // the order of 'is_shared' and 'is_private' is not significant.
-  Value *Ptr;
-  if (match(
+  
+  if (Value *Ptr; match(
           const_cast<Value *>(V),
           m_c_And(m_Not(m_Intrinsic<Intrinsic::amdgcn_is_shared>(m_Value(Ptr))),
                   m_Not(m_Intrinsic<Intrinsic::amdgcn_is_private>(
@@ -1166,8 +1166,8 @@ Error GCNTargetMachine::buildCodeGenPipeline(
 
 ScheduleDAGInstrs *
 GCNTargetMachine::createMachineScheduler(MachineSchedContext *C) const {
-  const GCNSubtarget &ST = C->MF->getSubtarget<GCNSubtarget>();
-  if (ST.enableSIScheduler())
+  
+  if (const GCNSubtarget &ST = C->MF->getSubtarget<GCNSubtarget>(); ST.enableSIScheduler())
     return createSIMachineScheduler(C);
 
   Attribute SchedStrategyAttr =
@@ -1640,8 +1640,8 @@ FunctionPass *GCNPassConfig::createSGPRAllocPass(bool Optimized) {
   llvm::call_once(InitializeDefaultSGPRRegisterAllocatorFlag,
                   initializeDefaultSGPRRegisterAllocatorOnce);
 
-  RegisterRegAlloc::FunctionPassCtor Ctor = SGPRRegisterRegAlloc::getDefault();
-  if (Ctor != useDefaultRegisterAllocator)
+  
+  if (RegisterRegAlloc::FunctionPassCtor Ctor = SGPRRegisterRegAlloc::getDefault(); Ctor != useDefaultRegisterAllocator)
     return Ctor();
 
   if (Optimized)
@@ -1655,8 +1655,8 @@ FunctionPass *GCNPassConfig::createVGPRAllocPass(bool Optimized) {
   llvm::call_once(InitializeDefaultVGPRRegisterAllocatorFlag,
                   initializeDefaultVGPRRegisterAllocatorOnce);
 
-  RegisterRegAlloc::FunctionPassCtor Ctor = VGPRRegisterRegAlloc::getDefault();
-  if (Ctor != useDefaultRegisterAllocator)
+  
+  if (RegisterRegAlloc::FunctionPassCtor Ctor = VGPRRegisterRegAlloc::getDefault(); Ctor != useDefaultRegisterAllocator)
     return Ctor();
 
   if (Optimized)
@@ -1670,8 +1670,8 @@ FunctionPass *GCNPassConfig::createWWMRegAllocPass(bool Optimized) {
   llvm::call_once(InitializeDefaultWWMRegisterAllocatorFlag,
                   initializeDefaultWWMRegisterAllocatorOnce);
 
-  RegisterRegAlloc::FunctionPassCtor Ctor = WWMRegisterRegAlloc::getDefault();
-  if (Ctor != useDefaultRegisterAllocator)
+  
+  if (RegisterRegAlloc::FunctionPassCtor Ctor = WWMRegisterRegAlloc::getDefault(); Ctor != useDefaultRegisterAllocator)
     return Ctor();
 
   if (Optimized)

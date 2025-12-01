@@ -93,10 +93,10 @@ bool ConversionFixItGenerator::tryToFixConversion(const Expr *FullExpr,
   if (const PointerType *FromPtrTy = dyn_cast<PointerType>(FromQTy)) {
     OverloadFixItKind FixKind = OFIK_Dereference;
 
-    bool CanConvert = CompareTypes(
+    
+    if (bool CanConvert = CompareTypes(
       S.Context.getCanonicalType(FromPtrTy->getPointeeType()), ToQTy,
-                                 S, Begin, VK_LValue);
-    if (CanConvert) {
+                                 S, Begin, VK_LValue); CanConvert) {
       // Do not suggest dereferencing a Null pointer.
       if (Expr->IgnoreParenCasts()->
           isNullPointerConstant(S.Context, Expr::NPC_ValueDependentIsNotNull))

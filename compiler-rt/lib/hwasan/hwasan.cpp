@@ -435,8 +435,8 @@ void __hwasan_print_shadow(const void *p, uptr sz) {
          ptr_raw + sz, GetTagFromPointer((uptr)p));
   for (uptr s = shadow_first; s <= shadow_last; ++s) {
     tag_t mem_tag = *reinterpret_cast<tag_t *>(s);
-    uptr granule_addr = ShadowToMem(s);
-    if (mem_tag && mem_tag < kShadowAlignment)
+    
+    if (uptr granule_addr = ShadowToMem(s); mem_tag && mem_tag < kShadowAlignment)
       Printf("  %zx: %02x(%02x)\n", granule_addr, mem_tag,
              *reinterpret_cast<tag_t *>(granule_addr + kShadowAlignment - 1));
     else
@@ -686,8 +686,8 @@ void __hwasan_handle_longjmp(const void *sp_dst) {
   CHECK_EQ(GetTagFromPointer(dst), 0);
 
   uptr sp = (uptr)__builtin_frame_address(0);
-  static const uptr kMaxExpectedCleanupSize = 64 << 20;  // 64M
-  if (dst < sp || dst - sp > kMaxExpectedCleanupSize) {
+   // 64M
+  if (static const uptr kMaxExpectedCleanupSize = 64 << 20; dst < sp || dst - sp > kMaxExpectedCleanupSize) {
     Report(
         "WARNING: HWASan is ignoring requested __hwasan_handle_longjmp: "
         "stack top: %p; target %p; distance: %p (%zd)\n"
@@ -735,8 +735,8 @@ u8 __hwasan_generate_tag() {
 }
 
 void __hwasan_add_frame_record(u64 frame_record_info) {
-  Thread *t = GetCurrentThread();
-  if (t)
+  
+  if (Thread *t = GetCurrentThread(); t)
     t->stack_allocations()->push(frame_record_info);
 }
 

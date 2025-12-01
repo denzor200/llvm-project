@@ -102,8 +102,8 @@ static void printMArch(raw_ostream &OS, ArrayRef<const Record *> Features) {
 
   // Convert features to FeatureVector.
   for (const Record *Feature : Features) {
-    StringRef FeatureName = getExtensionName(Feature);
-    if (Feature->isSubClassOf("RISCVExtension")) {
+    
+    if (StringRef FeatureName = getExtensionName(Feature); Feature->isSubClassOf("RISCVExtension")) {
       unsigned Major = Feature->getValueAsInt("MajorVersion");
       unsigned Minor = Feature->getValueAsInt("MinorVersion");
       Extensions[FeatureName.str()] = {Major, Minor};
@@ -156,10 +156,10 @@ static void emitRISCVProfiles(const RecordKeeper &Records, raw_ostream &OS) {
 
   if (!Profiles.empty()) {
     printProfileTable(OS, Profiles, /*Experimental=*/false);
-    bool HasExperimentalProfiles = any_of(Profiles, [&](const Record *Rec) {
+    
+    if (bool HasExperimentalProfiles = any_of(Profiles, [&](const Record *Rec) {
       return Rec->getValueAsBit("Experimental");
-    });
-    if (HasExperimentalProfiles)
+    }); HasExperimentalProfiles)
       printProfileTable(OS, Profiles, /*Experimental=*/true);
   }
 
@@ -190,10 +190,10 @@ static void emitRISCVProcs(const RecordKeeper &RK, raw_ostream &OS) {
     OS << "PROC(" << Rec->getName() << ", {\"" << Rec->getValueAsString("Name")
        << "\"}, {\"";
 
-    StringRef MArch = Rec->getValueAsString("DefaultMarch");
+    
 
     // Compute MArch from features if we don't specify it.
-    if (MArch.empty())
+    if (StringRef MArch = Rec->getValueAsString("DefaultMarch"); MArch.empty())
       printMArch(OS, Features);
     else
       OS << MArch;
@@ -229,8 +229,8 @@ static void emitRISCVExtensionBitmask(const RecordKeeper &RK, raw_ostream &OS) {
       RK.getAllDerivedDefinitionsIfDefined("RISCVExtensionBitmask");
   llvm::sort(Extensions, [](const Record *Rec1, const Record *Rec2) {
     unsigned GroupID1 = Rec1->getValueAsInt("GroupID");
-    unsigned GroupID2 = Rec2->getValueAsInt("GroupID");
-    if (GroupID1 != GroupID2)
+    
+    if (unsigned GroupID2 = Rec2->getValueAsInt("GroupID"); GroupID1 != GroupID2)
       return GroupID1 < GroupID2;
 
     return Rec1->getValueAsInt("BitPos") < Rec2->getValueAsInt("BitPos");

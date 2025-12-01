@@ -655,8 +655,8 @@ rounded_div(const DyadicFloat<Bits> &af, const DyadicFloat<Bits> &bf) {
   DblMant a = af.mantissa, b = bf.mantissa, q = qf.mantissa;
   q <<= 2; // leave room for a round bit, even if exponent decreases
   a <<= af.exponent - bf.exponent - qf.exponent + 2;
-  DblMant qb = q * b;
-  if (qb < a) {
+  
+  if (DblMant qb = q * b; qb < a) {
     DblMant too_small = a - b;
     while (qb <= too_small) {
       qb += b;

@@ -142,9 +142,9 @@ QueryRef QueryParser::parseSetTraversalKind(TraversalKind QuerySession::*Var) {
 
 QueryRef QueryParser::endQuery(QueryRef Q) {
   StringRef Extra = Line;
-  StringRef ExtraTrimmed = Extra.ltrim(" \t\v\f\r");
+  
 
-  if (ExtraTrimmed.starts_with('\n') || ExtraTrimmed.starts_with("\r\n"))
+  if (StringRef ExtraTrimmed = Extra.ltrim(" \t\v\f\r"); ExtraTrimmed.starts_with('\n') || ExtraTrimmed.starts_with("\r\n"))
     Q->RemainingContent = Extra;
   else {
     StringRef TrailingWord = lexWord();

@@ -21,8 +21,8 @@ static bool areTypesEqual(QualType S, QualType D) {
     return true;
 
   const auto *TS = S->getAs<TypedefType>();
-  const auto *TD = D->getAs<TypedefType>();
-  if (TS != TD)
+  
+  if (const auto *TD = D->getAs<TypedefType>(); TS != TD)
     return false;
 
   const QualType PtrS = S->getPointeeType();
@@ -41,8 +41,8 @@ static bool areTypesEqual(QualType S, QualType D) {
 static bool areTypesEqual(QualType TypeS, QualType TypeD,
                           bool IgnoreTypeAliases) {
   const QualType CTypeS = TypeS.getCanonicalType();
-  const QualType CTypeD = TypeD.getCanonicalType();
-  if (CTypeS != CTypeD)
+  
+  if (const QualType CTypeD = TypeD.getCanonicalType(); CTypeS != CTypeD)
     return false;
 
   return IgnoreTypeAliases || areTypesEqual(TypeS.getLocalUnqualifiedType(),

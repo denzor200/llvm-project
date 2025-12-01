@@ -77,9 +77,9 @@ Error MCATestBase::runBaselineMCA(
   }
   SmallVector<std::unique_ptr<mca::Instruction>> LoweredInsts;
   for (const auto &MCI : Insts) {
-    Expected<std::unique_ptr<mca::Instruction>> Inst =
-        IB.createInstruction(MCI, Instruments);
-    if (!Inst) {
+    
+    if (Expected<std::unique_ptr<mca::Instruction>> Inst =
+        IB.createInstruction(MCI, Instruments); !Inst) {
       if (auto NewE =
               handleErrors(Inst.takeError(),
                            [this](const mca::InstructionError<MCInst> &IE) {

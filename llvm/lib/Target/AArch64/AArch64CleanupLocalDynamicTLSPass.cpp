@@ -41,8 +41,8 @@ struct LDTLSCleanup : public MachineFunctionPass {
     if (skipFunction(MF.getFunction()))
       return false;
 
-    AArch64FunctionInfo *AFI = MF.getInfo<AArch64FunctionInfo>();
-    if (AFI->getNumLocalDynamicTLSAccesses() < 2) {
+    
+    if (AArch64FunctionInfo *AFI = MF.getInfo<AArch64FunctionInfo>(); AFI->getNumLocalDynamicTLSAccesses() < 2) {
       // No point folding accesses if there isn't at least two.
       return false;
     }

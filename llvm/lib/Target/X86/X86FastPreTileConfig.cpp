@@ -116,9 +116,9 @@ static bool dominates(MachineBasicBlock &MBB,
 /// stack.
 int X86FastPreTileConfig::getStackSpaceFor(Register VirtReg) {
   // Find the location Reg would belong...
-  int SS = StackSlotForVirtReg[VirtReg];
+  
   // Already has space allocated?
-  if (SS != -1)
+  if (int SS = StackSlotForVirtReg[VirtReg]; SS != -1)
     return SS;
 
   // Allocate a new stack object for this spill location...
@@ -291,8 +291,8 @@ static bool isTileDef(MachineRegisterInfo *MRI, MachineInstr &MI) {
 }
 
 static ShapeT getShape(MachineRegisterInfo *MRI, Register TileReg) {
-  MachineInstr *MI = MRI->getVRegDef(TileReg);
-  if (isTileDef(MRI, *MI)) {
+  
+  if (MachineInstr *MI = MRI->getVRegDef(TileReg); isTileDef(MRI, *MI)) {
     MachineOperand *RowMO = &MI->getOperand(1);
     MachineOperand *ColMO = &MI->getOperand(2);
     return ShapeT(RowMO, ColMO, MRI);
@@ -350,8 +350,8 @@ void X86FastPreTileConfig::convertPHI(MachineBasicBlock *MBB,
     MachineBasicBlock *InMBB = PHI.getOperand(I + 1).getMBB();
 
     MachineInstr *TileDefMI = MRI->getVRegDef(InTileReg);
-    MachineBasicBlock::iterator InsertPos;
-    if (TileDefMI->isPHI()) {
+    
+    if (MachineBasicBlock::iterator InsertPos; TileDefMI->isPHI()) {
       InsertPos = TileDefMI->getParent()->getFirstNonPHI();
       if (auto It = VisitedPHIs.find(TileDefMI);
           It != VisitedPHIs.end()) { // circular phi reference
@@ -426,8 +426,8 @@ void X86FastPreTileConfig::convertPHI(MachineBasicBlock *MBB,
 }
 
 static bool isTileRegDef(MachineRegisterInfo *MRI, MachineInstr &MI) {
-  MachineOperand &MO = MI.getOperand(0);
-  if (MO.isReg() && MO.getReg().isVirtual() && isTileRegister(MRI, MO.getReg()))
+  
+  if (MachineOperand &MO = MI.getOperand(0); MO.isReg() && MO.getReg().isVirtual() && isTileRegister(MRI, MO.getReg()))
     return true;
   return false;
 }
@@ -477,8 +477,8 @@ void X86FastPreTileConfig::canonicalizePHIs(MachineBasicBlock &MBB) {
     // dependency.
     Register DefTileReg;
     for (unsigned I = 1, E = DefMI->getNumOperands(); I != E; I += 2) {
-      MachineBasicBlock *InMBB = PHI->getOperand(I + 1).getMBB();
-      if (InMBB != &MBB)
+      
+      if (MachineBasicBlock *InMBB = PHI->getOperand(I + 1).getMBB(); InMBB != &MBB)
         continue;
       DefTileReg = DefMI->getOperand(I).getReg();
       InMO->setReg(DefTileReg);
@@ -525,8 +525,8 @@ bool X86FastPreTileConfig::configBasicBlock(MachineBasicBlock &MBB) {
     for (const MachineOperand &MO : MI.operands()) {
       if (!MO.isReg())
         continue;
-      Register Reg = MO.getReg();
-      if (Reg.isVirtual() && isTileRegister(MRI, Reg))
+      
+      if (Register Reg = MO.getReg(); Reg.isVirtual() && isTileRegister(MRI, Reg))
         return true;
     }
     return false;

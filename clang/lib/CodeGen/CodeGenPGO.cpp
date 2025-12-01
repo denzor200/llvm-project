@@ -251,8 +251,8 @@ struct MapRegionCounters : public RecursiveASTVisitor<MapRegionCounters> {
     }
 
     if (const Expr *E = dyn_cast<Expr>(S)) {
-      const BinaryOperator *BinOp = dyn_cast<BinaryOperator>(E->IgnoreParens());
-      if (BinOp && BinOp->isLogicalOp()) {
+      
+      if (const BinaryOperator *BinOp = dyn_cast<BinaryOperator>(E->IgnoreParens()); BinOp && BinOp->isLogicalOp()) {
         /// Check for "split-nested" logical operators. This happens when a new
         /// boolean expression logical-op nest is encountered within an existing
         /// boolean expression, separated by a non-logical operator.  For
@@ -284,8 +284,8 @@ struct MapRegionCounters : public RecursiveASTVisitor<MapRegionCounters> {
       return true;
 
     if (const Expr *E = dyn_cast<Expr>(S)) {
-      const BinaryOperator *BinOp = dyn_cast<BinaryOperator>(E->IgnoreParens());
-      if (BinOp && BinOp->isLogicalOp()) {
+      
+      if (const BinaryOperator *BinOp = dyn_cast<BinaryOperator>(E->IgnoreParens()); BinOp && BinOp->isLogicalOp()) {
         assert(LogOpStack.back() == BinOp);
         LogOpStack.pop_back();
 
@@ -565,8 +565,8 @@ struct MapRegionCounters : public RecursiveASTVisitor<MapRegionCounters> {
       case Stmt::CXXThrowExprClass:
         return PGOHash::ThrowExpr;
       case Stmt::UnaryOperatorClass: {
-        const UnaryOperator *UO = cast<UnaryOperator>(S);
-        if (UO->getOpcode() == UO_LNot)
+        
+        if (const UnaryOperator *UO = cast<UnaryOperator>(S); UO->getOpcode() == UO_LNot)
           return PGOHash::UnaryOperatorLNot;
         break;
       }
@@ -871,8 +871,8 @@ struct ComputeRegionCounts : public ConstStmtVisitor<ComputeRegionCounts> {
     RecordStmtCount(S);
 
     if (S->isConsteval()) {
-      const Stmt *Stm = S->isNegatedConsteval() ? S->getThen() : S->getElse();
-      if (Stm)
+      
+      if (const Stmt *Stm = S->isNegatedConsteval() ? S->getThen() : S->getElse(); Stm)
         Visit(Stm);
       return;
     }
@@ -1170,8 +1170,8 @@ CodeGenPGO::emitEmptyCounterMapping(const Decl *D, StringRef Name,
 
 void CodeGenPGO::computeRegionCounts(const Decl *D) {
   StmtCountMap.reset(new llvm::DenseMap<const Stmt *, uint64_t>);
-  ComputeRegionCounts Walker(*StmtCountMap, *this);
-  if (const FunctionDecl *FD = dyn_cast_or_null<FunctionDecl>(D))
+  
+  if (const FunctionDecl *ComputeRegionCounts Walker(*StmtCountMap, *this); FD = dyn_cast_or_null<FunctionDecl>(D))
     Walker.VisitFunctionDecl(FD);
   else if (const ObjCMethodDecl *MD = dyn_cast_or_null<ObjCMethodDecl>(D))
     Walker.VisitObjCMethodDecl(MD);
@@ -1215,11 +1215,11 @@ void CodeGenPGO::emitCounterSetOrIncrement(CGBuilderTy &Builder, const Stmt *S,
       llvm::ConstantExpr::getPointerBitCastOrAddrSpaceCast(
           FuncNameVar, llvm::PointerType::get(CGM.getLLVMContext(), 0));
 
-  llvm::Value *Args[] = {
-      NormalizedFuncNameVarPtr, Builder.getInt64(FunctionHash),
-      Builder.getInt32(NumRegionCounters), Builder.getInt32(Counter), StepV};
+  
 
-  if (llvm::EnableSingleByteCoverage)
+  if (llvm::Value *Args[] = {
+      NormalizedFuncNameVarPtr, Builder.getInt64(FunctionHash),
+      Builder.getInt32(NumRegionCounters), Builder.getInt32(Counter), StepV}; llvm::EnableSingleByteCoverage)
     Builder.CreateCall(CGM.getIntrinsic(llvm::Intrinsic::instrprof_cover),
                        ArrayRef(Args, 4));
   else if (!StepV)
@@ -1388,8 +1388,8 @@ void CodeGenPGO::valueProfile(CGBuilderTy &Builder, uint32_t ValueKind,
   if (isa<llvm::Constant>(ValuePtr))
     return;
 
-  bool InstrumentValueSites = CGM.getCodeGenOpts().hasProfileClangInstr();
-  if (InstrumentValueSites && RegionCounterMap) {
+  
+  if (bool InstrumentValueSites = CGM.getCodeGenOpts().hasProfileClangInstr(); InstrumentValueSites && RegionCounterMap) {
     auto BuilderInsertPoint = Builder.saveIP();
     Builder.SetInsertPoint(ValueSite);
     llvm::Value *Args[5] = {

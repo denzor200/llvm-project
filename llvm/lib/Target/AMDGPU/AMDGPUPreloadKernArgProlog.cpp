@@ -164,9 +164,9 @@ static LoadConfig getLoadParameters(const TargetRegisterInfo &TRI,
 
   for (const auto &Config : Configs) {
     if (NumKernArgPreloadSGPRs >= Config.Size) {
-      Register LoadReg = TRI.getMatchingSuperReg(KernArgPreloadSGPR,
-                                                 AMDGPU::sub0, Config.RegClass);
-      if (LoadReg) {
+      
+      if (Register LoadReg = TRI.getMatchingSuperReg(KernArgPreloadSGPR,
+                                                 AMDGPU::sub0, Config.RegClass); LoadReg) {
         LoadConfig C(Config);
         C.LoadReg = LoadReg;
         return C;

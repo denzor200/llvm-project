@@ -164,8 +164,8 @@ SARIFDiagnostic::addDiagnosticLevelToRule(SarifRule Rule,
 llvm::StringRef SARIFDiagnostic::emitFilename(StringRef Filename,
                                               const SourceManager &SM) {
   if (DiagOpts.AbsolutePath) {
-    auto File = SM.getFileManager().getOptionalFileRef(Filename);
-    if (File) {
+    
+    if (auto File = SM.getFileManager().getOptionalFileRef(Filename); File) {
       // We want to print a simplified absolute path, i. e. without "dots".
       //
       // The hardest part here are the paths like "<part1>/<link>/../<part2>".

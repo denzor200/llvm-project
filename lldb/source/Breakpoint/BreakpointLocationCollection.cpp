@@ -25,9 +25,9 @@ BreakpointLocationCollection::~BreakpointLocationCollection() = default;
 
 void BreakpointLocationCollection::Add(const BreakpointLocationSP &bp_loc) {
   std::lock_guard<std::recursive_mutex> guard(m_collection_mutex);
-  BreakpointLocationSP old_bp_loc =
-      FindByIDPair(bp_loc->GetBreakpoint().GetID(), bp_loc->GetID());
-  if (!old_bp_loc.get()) {
+  
+  if (BreakpointLocationSP old_bp_loc =
+      FindByIDPair(bp_loc->GetBreakpoint().GetID(), bp_loc->GetID()); !old_bp_loc.get()) {
     m_break_loc_collection.push_back(bp_loc);
     if (m_preserving_bkpts) {
       lldb::break_id_t bp_loc_id = bp_loc->GetID();
@@ -35,8 +35,8 @@ void BreakpointLocationCollection::Add(const BreakpointLocationSP &bp_loc) {
       lldb::break_id_t bp_id = bkpt.GetID();
       std::pair<lldb::break_id_t, lldb::break_id_t> key =
           std::make_pair(bp_id, bp_loc_id);
-      auto entry = m_preserved_bps.find(key);
-      if (entry == m_preserved_bps.end())
+      
+      if (auto entry = m_preserved_bps.find(key); entry == m_preserved_bps.end())
         m_preserved_bps.emplace(key, bkpt.shared_from_this());
     }
   }
@@ -50,8 +50,8 @@ bool BreakpointLocationCollection::Remove(lldb::break_id_t bp_id,
     if (m_preserving_bkpts) {
       std::pair<lldb::break_id_t, lldb::break_id_t> key =
           std::make_pair(bp_id, bp_loc_id);
-      auto entry = m_preserved_bps.find(key);
-      if (entry == m_preserved_bps.end())
+      
+      if (auto entry = m_preserved_bps.find(key); entry == m_preserved_bps.end())
         assert(0 && "Breakpoint added to collection but not preserving map.");
       else
         m_preserved_bps.erase(entry);

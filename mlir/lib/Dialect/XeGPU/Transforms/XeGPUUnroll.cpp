@@ -133,8 +133,8 @@ SmallVector<Value> computeUnrolledOffsets(
   ArrayRef<int64_t> shape = tdescTy.getShape();
 
   auto addi = [&](OpFoldResult a, int64_t b) -> Value {
-    std::optional<int64_t> maybeInt = getConstantIntValue(a);
-    if (maybeInt) {
+    
+    if (std::optional<int64_t> maybeInt = getConstantIntValue(a); maybeInt) {
       return arith::ConstantIndexOp::create(rewriter, loc, *maybeInt + b);
     } else {
       auto aV = llvm::cast<Value>(a);

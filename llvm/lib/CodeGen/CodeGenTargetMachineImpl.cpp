@@ -228,9 +228,9 @@ bool CodeGenTargetMachineImpl::addPassesToEmitFile(
   // Add common CodeGen passes.
   if (!MMIWP)
     MMIWP = new MachineModuleInfoWrapperPass(this);
-  TargetPassConfig *PassConfig =
-      addPassesToGenerateCode(*this, PM, DisableVerify, *MMIWP);
-  if (!PassConfig)
+  
+  if (TargetPassConfig *PassConfig =
+      addPassesToGenerateCode(*this, PM, DisableVerify, *MMIWP); !PassConfig)
     return true;
 
   if (TargetPassConfig::willCompleteCodeGenPipeline()) {
@@ -257,9 +257,9 @@ bool CodeGenTargetMachineImpl::addPassesToEmitMC(PassManagerBase &PM,
                                                  bool DisableVerify) {
   // Add common CodeGen passes.
   MachineModuleInfoWrapperPass *MMIWP = new MachineModuleInfoWrapperPass(this);
-  TargetPassConfig *PassConfig =
-      addPassesToGenerateCode(*this, PM, DisableVerify, *MMIWP);
-  if (!PassConfig)
+  
+  if (TargetPassConfig *PassConfig =
+      addPassesToGenerateCode(*this, PM, DisableVerify, *MMIWP); !PassConfig)
     return true;
   assert(TargetPassConfig::willCompleteCodeGenPipeline() &&
          "Cannot emit MC with limited codegen pipeline");

@@ -208,15 +208,15 @@ Error EHFrameEdgeFixer::processCIE(ParseContext &PC, Block &B,
 
   // Read and validate the code alignment factor.
   {
-    uint64_t CodeAlignmentFactor = 0;
-    if (auto Err = RecordReader.readULEB128(CodeAlignmentFactor))
+    
+    if (auto uint64_t CodeAlignmentFactor = 0; Err = RecordReader.readULEB128(CodeAlignmentFactor))
       return Err;
   }
 
   // Read and validate the data alignment factor.
   {
-    int64_t DataAlignmentFactor = 0;
-    if (auto Err = RecordReader.readSLEB128(DataAlignmentFactor))
+    
+    if (auto int64_t DataAlignmentFactor = 0; Err = RecordReader.readSLEB128(DataAlignmentFactor))
       return Err;
   }
 
@@ -383,8 +383,8 @@ Error EHFrameEdgeFixer::processFDE(ParseContext &PC, Block &B,
     return Err;
 
   if (CIEInfo->AugmentationDataPresent) {
-    uint64_t AugmentationDataSize;
-    if (auto Err = RecordReader.readULEB128(AugmentationDataSize))
+    
+    if (auto uint64_t AugmentationDataSize; Err = RecordReader.readULEB128(AugmentationDataSize))
       return Err;
 
     if (CIEInfo->LSDAPresent)

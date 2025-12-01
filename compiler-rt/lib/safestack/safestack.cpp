@@ -199,8 +199,8 @@ void thread_cleanup_handler(void *_iter) {
   // Free stacks for dead threads
   thread_stack_ll **stackp = &temp_stacks;
   while (*stackp) {
-    thread_stack_ll *stack = *stackp;
-    if (stack->pid != pid ||
+    
+    if (thread_stack_ll *stack = *stackp; stack->pid != pid ||
         (-1 == TgKill(stack->pid, stack->tid, 0) && errno == ESRCH)) {
       Munmap(stack->stack_base, stack->size);
       *stackp = stack->next;
@@ -303,8 +303,8 @@ void __safestack_init() {
   size_t size = kDefaultUnsafeStackSize;
   size_t guard = 4096;
 
-  struct rlimit limit;
-  if (getrlimit(RLIMIT_STACK, &limit) == 0 && limit.rlim_cur != RLIM_INFINITY)
+  
+  if (struct rlimit limit; getrlimit(RLIMIT_STACK, &limit) == 0 && limit.rlim_cur != RLIM_INFINITY)
     size = limit.rlim_cur;
 
   // Allocate unsafe stack for main thread

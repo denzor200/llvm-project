@@ -285,8 +285,8 @@ bool linalg::isaElemwiseSingleBinaryOpInterface(linalg::GenericOp op) {
 static Value getSourceSkipUnary(Value value) {
   Operation *op = value.getDefiningOp();
   while (op && op->getNumOperands() == 1) {
-    auto iface = dyn_cast<MemoryEffectOpInterface>(op);
-    if (!iface || !iface.hasNoEffect())
+    
+    if (auto iface = dyn_cast<MemoryEffectOpInterface>(op); !iface || !iface.hasNoEffect())
       break;
     value = op->getOperand(0);
     op = value.getDefiningOp();
@@ -585,8 +585,8 @@ bool mlir::linalg::isaContractionOpInterface(LinalgOp linalgOp) {
 /// In the future, we may wish to allow more input arguments and elementwise and
 /// constant operations that do not involve the reduction dimension(s).
 LogicalResult mlir::linalg::detail::verifyContractionInterface(Operation *op) {
-  auto res = isContractionInterfaceImpl(op);
-  if (res != MatchContractionResult::Success)
+  
+  if (auto res = isContractionInterfaceImpl(op); res != MatchContractionResult::Success)
     return op->emitError(getMatchContractionMessage(res));
   return success();
 }
@@ -802,8 +802,8 @@ inferConvolutionDimsImpl(LinalgOp linalgOp,
   llvm::sort(dimensions.depth);
 
   // Use the op carried strides/dilations attribute if present.
-  auto nativeStrides = linalgOp->getAttrOfType<DenseIntElementsAttr>("strides");
-  if (!nativeStrides) {
+  
+  if (auto nativeStrides = linalgOp->getAttrOfType<DenseIntElementsAttr>("strides"); !nativeStrides) {
     SmallVector<AffineExpr, 2> strideExprs;
     for (unsigned oiDim : dimensions.outputImage)
       strideExprs.push_back(inputExprWalker.strideAndDilationMapping[oiDim]);
@@ -1047,8 +1047,8 @@ bool mlir::linalg::isaConvolutionOpInterface(LinalgOp linalgOp,
 }
 
 LogicalResult mlir::linalg::detail::verifyConvolutionInterface(Operation *op) {
-  MatchConvolutionResult res = isConvolutionInterfaceImpl(op);
-  if (res != MatchConvolutionResult::Success)
+  
+  if (MatchConvolutionResult res = isConvolutionInterfaceImpl(op); res != MatchConvolutionResult::Success)
     return op->emitError(getMatchConvolutionMessage(res));
   return success();
 }
@@ -1118,8 +1118,8 @@ SmallVector<Range, 4> LinalgOp::createLoopRanges(OpBuilder &b, Location loc) {
   auto viewSizes = createFlatListOfOperandDims(b, loc);
   SmallVector<Range, 4> res(numDims);
   for (unsigned idx = 0; idx < numRes; ++idx) {
-    auto result = map.getResult(idx);
-    if (auto d = dyn_cast<AffineDimExpr>(result)) {
+    
+    if (auto auto result = map.getResult(idx); d = dyn_cast<AffineDimExpr>(result)) {
       if (res[d.getPosition()].offset)
         continue;
       res[d.getPosition()] =
@@ -1261,8 +1261,8 @@ LogicalResult mlir::linalg::detail::verifyStructuredOpInterface(Operation *op) {
   for (OpOperand &opOperand : linalgOp->getOpOperands()) {
     AffineMap indexingMap = linalgOp.getMatchingIndexingMap(&opOperand);
     // Domain must be consistent.
-    unsigned numLoops = linalgOp.getNumLoops();
-    if (indexingMap.getNumDims() != numLoops)
+    
+    if (unsigned numLoops = linalgOp.getNumLoops(); indexingMap.getNumDims() != numLoops)
       return op->emitOpError("expected indexing_map #")
              << opOperand.getOperandNumber() << " to have " << numLoops
              << " dim(s) to match the number of loops";

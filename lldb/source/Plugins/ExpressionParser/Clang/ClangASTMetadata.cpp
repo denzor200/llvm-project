@@ -28,9 +28,9 @@ void ClangASTMetadata::SetIsDynamicCXXType(std::optional<bool> b) {
 }
 
 void ClangASTMetadata::Dump(Stream *s) {
-  lldb::user_id_t uid = GetUserID();
+  
 
-  if (uid != LLDB_INVALID_UID) {
+  if (lldb::user_id_t uid = GetUserID(); uid != LLDB_INVALID_UID) {
     s->Printf("uid=0x%" PRIx64, uid);
   }
 

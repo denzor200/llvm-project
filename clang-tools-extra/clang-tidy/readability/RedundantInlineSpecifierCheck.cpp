@@ -106,17 +106,17 @@ template <typename T>
 void RedundantInlineSpecifierCheck::handleMatchedDecl(
     const T *MatchedDecl, const SourceManager &Sources,
     const MatchFinder::MatchResult &Result, StringRef Message) {
-  const SourceLocation Loc = getInlineTokenLocation(
-      MatchedDecl->getSourceRange(), Sources, Result.Context->getLangOpts());
-  if (Loc.isValid())
+  
+  if (const SourceLocation Loc = getInlineTokenLocation(
+      MatchedDecl->getSourceRange(), Sources, Result.Context->getLangOpts()); Loc.isValid())
     diag(Loc, Message) << MatchedDecl << FixItHint::CreateRemoval(Loc);
 }
 
 void RedundantInlineSpecifierCheck::check(
     const MatchFinder::MatchResult &Result) {
-  const SourceManager &Sources = *Result.SourceManager;
+  
 
-  if (const auto *MatchedDecl =
+  if (const auto *const SourceManager &Sources = *Result.SourceManager; MatchedDecl =
           Result.Nodes.getNodeAs<FunctionDecl>("fun_decl")) {
     handleMatchedDecl(
         MatchedDecl, Sources, Result,

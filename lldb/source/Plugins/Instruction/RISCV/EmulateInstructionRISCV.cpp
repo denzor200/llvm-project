@@ -693,8 +693,8 @@ std::optional<DecodeResult> EmulateInstructionRISCV::Decode(uint32_t inst) {
   bool is_16b = (inst & 0b11) != 0b11;
   bool is_32b = (inst & 0x1f) != 0x1f;
   bool is_48b = (inst & 0x3f) != 0x1f;
-  bool is_64b = (inst & 0x7f) != 0x3f;
-  if (is_16b)
+  
+  if (bool is_64b = (inst & 0x7f) != 0x3f; is_16b)
     m_last_size = 2;
   else if (is_32b)
     m_last_size = 4;
@@ -1120,9 +1120,9 @@ public:
     return transformOptional(
                zipOpt(inst.rs1.ReadI64(m_emu), inst.rs2.ReadI64(m_emu)),
                [&](auto &&tup) {
-                 auto [dividend, divisor] = tup;
+                 
 
-                 if (divisor == 0)
+                 if (auto [dividend, divisor] = tup; divisor == 0)
                    return inst.rd.Write(m_emu, UINT64_MAX);
 
                  if (dividend == INT64_MIN && divisor == -1)
@@ -1135,9 +1135,9 @@ public:
   bool operator()(DIVU inst) {
     return transformOptional(zipOpt(inst.rs1.Read(m_emu), inst.rs2.Read(m_emu)),
                              [&](auto &&tup) {
-                               auto [dividend, divisor] = tup;
+                               
 
-                               if (divisor == 0)
+                               if (auto [dividend, divisor] = tup; divisor == 0)
                                  return inst.rd.Write(m_emu, UINT64_MAX);
 
                                return inst.rd.Write(m_emu, dividend / divisor);
@@ -1148,9 +1148,9 @@ public:
     return transformOptional(
                zipOpt(inst.rs1.ReadI64(m_emu), inst.rs2.ReadI64(m_emu)),
                [&](auto &&tup) {
-                 auto [dividend, divisor] = tup;
+                 
 
-                 if (divisor == 0)
+                 if (auto [dividend, divisor] = tup; divisor == 0)
                    return inst.rd.Write(m_emu, dividend);
 
                  if (dividend == INT64_MIN && divisor == -1)
@@ -1163,9 +1163,9 @@ public:
   bool operator()(REMU inst) {
     return transformOptional(zipOpt(inst.rs1.Read(m_emu), inst.rs2.Read(m_emu)),
                              [&](auto &&tup) {
-                               auto [dividend, divisor] = tup;
+                               
 
-                               if (divisor == 0)
+                               if (auto [dividend, divisor] = tup; divisor == 0)
                                  return inst.rd.Write(m_emu, dividend);
 
                                return inst.rd.Write(m_emu, dividend % divisor);
@@ -1185,9 +1185,9 @@ public:
     return transformOptional(
                zipOpt(inst.rs1.ReadI32(m_emu), inst.rs2.ReadI32(m_emu)),
                [&](auto &&tup) {
-                 auto [dividend, divisor] = tup;
+                 
 
-                 if (divisor == 0)
+                 if (auto [dividend, divisor] = tup; divisor == 0)
                    return inst.rd.Write(m_emu, UINT64_MAX);
 
                  if (dividend == INT32_MIN && divisor == -1)
@@ -1201,9 +1201,9 @@ public:
     return transformOptional(
                zipOpt(inst.rs1.ReadU32(m_emu), inst.rs2.ReadU32(m_emu)),
                [&](auto &&tup) {
-                 auto [dividend, divisor] = tup;
+                 
 
-                 if (divisor == 0)
+                 if (auto [dividend, divisor] = tup; divisor == 0)
                    return inst.rd.Write(m_emu, UINT64_MAX);
 
                  return inst.rd.Write(m_emu, SextW(dividend / divisor));
@@ -1214,9 +1214,9 @@ public:
     return transformOptional(
                zipOpt(inst.rs1.ReadI32(m_emu), inst.rs2.ReadI32(m_emu)),
                [&](auto &&tup) {
-                 auto [dividend, divisor] = tup;
+                 
 
-                 if (divisor == 0)
+                 if (auto [dividend, divisor] = tup; divisor == 0)
                    return inst.rd.Write(m_emu, SextW(dividend));
 
                  if (dividend == INT32_MIN && divisor == -1)
@@ -1230,9 +1230,9 @@ public:
     return transformOptional(
                zipOpt(inst.rs1.ReadU32(m_emu), inst.rs2.ReadU32(m_emu)),
                [&](auto &&tup) {
-                 auto [dividend, divisor] = tup;
+                 
 
-                 if (divisor == 0)
+                 if (auto [dividend, divisor] = tup; divisor == 0)
                    return inst.rd.Write(m_emu, SextW(dividend));
 
                  return inst.rd.Write(m_emu, SextW(dividend % divisor));
@@ -1409,8 +1409,8 @@ public:
     return transformOptional(zipOpt(inst.rs1.ReadAPFloat(m_emu, isDouble),
                                     inst.rs2.ReadAPFloat(m_emu, isDouble)),
                              [&](auto &&tup) {
-                               auto [rs1, rs2] = tup;
-                               if (isNegate)
+                               
+                               if (auto [rs1, rs2] = tup; isNegate)
                                  rs2.changeSign();
                                rs1.copySign(rs2);
                                return inst.rd.WriteAPFloat(m_emu, rs1);
@@ -1423,12 +1423,12 @@ public:
     return transformOptional(zipOpt(inst.rs1.ReadAPFloat(m_emu, isDouble),
                                     inst.rs2.ReadAPFloat(m_emu, isDouble)),
                              [&](auto &&tup) {
-                               auto [rs1, rs2] = tup;
+                               
                                // spec: the sign bit is the XOR of the sign bits
                                // of rs1 and rs2. if rs1 and rs2 have the same
                                // signs set rs1 to positive else set rs1 to
                                // negative
-                               if (rs1.isNegative() == rs2.isNegative()) {
+                               if (auto [rs1, rs2] = tup; rs1.isNegative() == rs2.isNegative()) {
                                  rs1.clearSign();
                                } else {
                                  rs1.clearSign();
@@ -1446,12 +1446,12 @@ public:
                zipOpt(inst.rs1.ReadAPFloat(m_emu, isDouble),
                       inst.rs2.ReadAPFloat(m_emu, isDouble)),
                [&](auto &&tup) {
-                 auto [rs1, rs2] = tup;
+                 
                  // If both inputs are NaNs, the result is the canonical NaN.
                  // If only one operand is a NaN, the result is the non-NaN
                  // operand. Signaling NaN inputs set the invalid operation
                  // exception flag, even when the result is not NaN.
-                 if (rs1.isNaN() || rs2.isNaN())
+                 if (auto [rs1, rs2] = tup; rs1.isNaN() || rs2.isNaN())
                    m_emu.SetAccruedExceptions(APFloat::opInvalidOp);
                  if (rs1.isNaN() && rs2.isNaN()) {
                    auto canonicalNaN = APFloat::getQNaN(rs1.getSemantics());
@@ -1481,8 +1481,8 @@ public:
                    else
                      return inst.rd.Write(m_emu, 0x7fc0'0000);
                  }
-                 auto bits = rs1.bitcastToAPInt().getZExtValue();
-                 if (isDouble)
+                 
+                 if (auto bits = rs1.bitcastToAPInt().getZExtValue(); isDouble)
                    return inst.rd.Write(m_emu, bits);
                  else
                    return inst.rd.Write(m_emu, uint64_t(bits & 0xffff'ffff));
@@ -1500,8 +1500,8 @@ public:
                zipOpt(inst.rs1.ReadAPFloat(m_emu, isDouble),
                       inst.rs2.ReadAPFloat(m_emu, isDouble)),
                [&](auto &&tup) {
-                 auto [rs1, rs2] = tup;
-                 if (rs1.isNaN() || rs2.isNaN()) {
+                 
+                 if (auto [rs1, rs2] = tup; rs1.isNaN() || rs2.isNaN()) {
                    if (cmp == FEQ) {
                      if (rs1.isSignaling() || rs2.isSignaling()) {
                        auto res =
@@ -1759,8 +1759,8 @@ RoundingMode EmulateInstructionRISCV::GetRoundingMode() {
                                    LLDB_INVALID_ADDRESS, &success);
   if (!success)
     return RoundingMode::Invalid;
-  auto frm = (fcsr >> 5) & 0x7;
-  switch (frm) {
+  
+  switch (auto frm = (fcsr >> 5) & 0x7; frm) {
   case 0b000:
     return RoundingMode::NearestTiesToEven;
   case 0b001:
@@ -1840,9 +1840,9 @@ EmulateInstructionRISCV::GetRegisterInfo(RegisterKind reg_kind,
   RegisterInfoPOSIX_riscv64 reg_info(m_arch,
                                      RegisterInfoPOSIX_riscv64::eRegsetMaskAll);
   const RegisterInfo *array = reg_info.GetRegisterInfo();
-  const uint32_t length = reg_info.GetRegisterCount();
+  
 
-  if (reg_index >= length || reg_kind != eRegisterKindLLDB)
+  if (const uint32_t length = reg_info.GetRegisterCount(); reg_index >= length || reg_kind != eRegisterKindLLDB)
     return {};
 
   return array[reg_index];
@@ -2042,8 +2042,8 @@ RISCVSingleStepBreakpointLocationsPredictor::HandleAtomicSequence(
   // sequence.
   inst = riscv_emulator->ReadInstructionAt(exit_pc);
   if (inst) {
-    B *branch = std::get_if<B>(&inst->decoded);
-    if (branch && (exit_pc + SignExt(branch->imm)) == entry_pc)
+    
+    if (B *branch = std::get_if<B>(&inst->decoded); branch && (exit_pc + SignExt(branch->imm)) == entry_pc)
       exit_pc += inst->is_rvc ? 2 : 4;
   }
 

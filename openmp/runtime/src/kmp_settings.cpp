@@ -223,8 +223,8 @@ struct kmp_trimmed_str_t {
   kmp_str_buf_t buf;
   kmp_trimmed_str_t(const char *str) {
     __kmp_str_buf_init(&buf);
-    size_t len = KMP_STRLEN(str);
-    if (len == 0)
+    
+    if (size_t len = KMP_STRLEN(str); len == 0)
       return;
     const char *begin = str;
     const char *end = str + KMP_STRLEN(str) - 1;
@@ -275,12 +275,12 @@ static void __kmp_stg_parse_size(char const *name, char const *value,
                                  size_t size_min, size_t size_max,
                                  int *is_specified, size_t *out,
                                  size_t factor) {
-  char const *msg = NULL;
+  
 #if KMP_OS_DARWIN
   size_min = __kmp_round4k(size_min);
   size_max = __kmp_round4k(size_max);
 #endif // KMP_OS_DARWIN
-  if (value) {
+  if (char const *msg = NULL; value) {
     if (is_specified != NULL) {
       *is_specified = 1;
     }
@@ -1015,8 +1015,8 @@ static void __kmp_stg_parse_stacksize(char const *name, char const *value,
 // customer request in future.
 static void __kmp_stg_print_stacksize(kmp_str_buf_t *buffer, char const *name,
                                       void *data) {
-  kmp_stg_ss_data_t *stacksize = (kmp_stg_ss_data_t *)data;
-  if (__kmp_env_format) {
+  
+  if (kmp_stg_ss_data_t *stacksize = (kmp_stg_ss_data_t *)data; __kmp_env_format) {
     KMP_STR_BUF_PRINT_NAME_EX(name);
     __kmp_str_buf_print_size(buffer, (__kmp_stksize % 1024)
                                          ? __kmp_stksize / stacksize->factor
@@ -1389,8 +1389,8 @@ static void __kmp_stg_print_task_stealing(kmp_str_buf_t *buffer,
 static void __kmp_stg_parse_max_active_levels(char const *name,
                                               char const *value, void *data) {
   kmp_uint64 tmp_dflt = 0;
-  char const *msg = NULL;
-  if (!__kmp_dflt_max_active_levels_set) {
+  
+  if (char const *msg = NULL; !__kmp_dflt_max_active_levels_set) {
     // Don't overwrite __kmp_dflt_max_active_levels if we get an invalid setting
     __kmp_str_to_uint(value, &tmp_dflt, &msg);
     if (msg != NULL) { // invalid setting; print warning and ignore
@@ -1942,8 +1942,8 @@ static void __kmp_stg_parse_force_reduction(char const *name, char const *value,
 static void __kmp_stg_print_force_reduction(kmp_str_buf_t *buffer,
                                             char const *name, void *data) {
 
-  kmp_stg_fr_data_t *reduction = (kmp_stg_fr_data_t *)data;
-  if (reduction->force) {
+  
+  if (kmp_stg_fr_data_t *reduction = (kmp_stg_fr_data_t *)data; reduction->force) {
     if (__kmp_force_reduction_method == critical_reduce_block) {
       __kmp_stg_print_str(buffer, name, "critical");
     } else if (__kmp_force_reduction_method == atomic_reduce_block) {
@@ -2412,8 +2412,8 @@ static void __kmp_parse_affinity_env(char const *name, char const *value,
       if (!set) {
         // Try any hardware topology type for granularity
         KMP_FOREACH_HW_TYPE(type) {
-          const char *name = __kmp_hw_get_keyword(type);
-          if (__kmp_match_str(name, buf, CCAST(const char **, &next))) {
+          
+          if (const char *name = __kmp_hw_get_keyword(type); __kmp_match_str(name, buf, CCAST(const char **, &next))) {
             set_gran(type, -1);
             buf = next;
             set = true;
@@ -2564,9 +2564,9 @@ static void __kmp_parse_affinity_env(char const *name, char const *value,
 
     if (__kmp_affinity.gran == KMP_HW_UNKNOWN) {
       int verbose = out_affinity->flags.verbose;
-      int warnings = out_affinity->flags.warnings;
+      
 #if KMP_MIC_SUPPORTED
-      if (__kmp_mic_type != non_mic) {
+      if (int warnings = out_affinity->flags.warnings; __kmp_mic_type != non_mic) {
         if (verbose || warnings) {
           KMP_WARNING(AffGranUsing, out_affinity->env_var, "fine");
         }
@@ -2692,8 +2692,8 @@ static void __kmp_print_affinity_env(kmp_str_buf_t *buffer, char const *name,
     __kmp_str_buf_print(buffer, "%s", "disabled");
   } else {
     int compact = affinity.compact;
-    int offset = affinity.offset;
-    switch (affinity.type) {
+    
+    switch (int offset = affinity.offset; affinity.type) {
     case affinity_none:
       __kmp_str_buf_print(buffer, "%s", "none");
       break;
@@ -3075,8 +3075,8 @@ static void __kmp_stg_parse_places(char const *name, char const *value,
 
   // Standard choices
   for (size_t i = 0; i < sizeof(std_places) / sizeof(std_places[0]); ++i) {
-    const kmp_place_t &place = std_places[i];
-    if (__kmp_match_str(place.name, scan, &next)) {
+    
+    if (const kmp_place_t &place = std_places[i]; __kmp_match_str(place.name, scan, &next)) {
       scan = next;
       __kmp_places_set(affinity_compact, place.type);
       set = true;
@@ -3275,8 +3275,8 @@ static void __kmp_stg_print_places(kmp_str_buf_t *buffer, char const *name,
       if (__kmp_affinity.core_attr_gran.valid) {
         kmp_hw_core_type_t ct =
             (kmp_hw_core_type_t)__kmp_affinity.core_attr_gran.core_type;
-        int eff = __kmp_affinity.core_attr_gran.core_eff;
-        if (ct != KMP_HW_CORE_TYPE_UNKNOWN) {
+        
+        if (int eff = __kmp_affinity.core_attr_gran.core_eff; ct != KMP_HW_CORE_TYPE_UNKNOWN) {
           const char *ct_name = __kmp_hw_get_core_type_keyword(ct);
           __kmp_str_buf_print(buffer, ":%s", ct_name);
         } else if (eff >= 0 && eff < KMP_HW_MAX_NUM_CORE_EFFS) {
@@ -4090,8 +4090,8 @@ static void __kmp_stg_print_kmp_dynamic_mode(kmp_str_buf_t *buffer,
 
 static void __kmp_stg_parse_ld_balance_interval(char const *name,
                                                 char const *value, void *data) {
-  double interval = __kmp_convert_to_double(value);
-  if (interval >= 0) {
+  
+  if (double interval = __kmp_convert_to_double(value); interval >= 0) {
     __kmp_load_balance_interval = interval;
   } else {
     KMP_WARNING(StgInvalidValue, name, value);
@@ -4131,8 +4131,8 @@ static void __kmp_stg_parse_schedule(char const *name, char const *value,
                                      void *data) {
 
   if (value != NULL) {
-    size_t length = KMP_STRLEN(value);
-    if (length > INT_MAX) {
+    
+    if (size_t length = KMP_STRLEN(value); length > INT_MAX) {
       KMP_WARNING(LongValue, name);
     } else {
       const char *semicolon;
@@ -4359,8 +4359,8 @@ static const char *__kmp_parse_single_omp_schedule(const char *name,
 static void __kmp_stg_parse_omp_schedule(char const *name, char const *value,
                                          void *data) {
   size_t length;
-  const char *ptr = value;
-  if (ptr) {
+  
+  if (const char *ptr = value; ptr) {
     SKIP_WS(ptr);
     length = KMP_STRLEN(value);
     if (length) {
@@ -5086,9 +5086,9 @@ static kmp_hw_t __kmp_stg_parse_hw_subset_name(char const *token) {
       kmp_hw_t type = possible[i];
       s = __kmp_hw_get_keyword(type, false);
       if (index < KMP_STRLEN(s)) {
-        char c = (char)toupper(s[index]);
+        
         // Mark hardware types for removal when the characters do not match
-        if (c != token_char) {
+        if (char c = (char)toupper(s[index]); c != token_char) {
           possible[i] = KMP_HW_UNKNOWN;
           num_possible--;
         }
@@ -5775,8 +5775,8 @@ static int const __kmp_stg_count =
 
 static inline kmp_setting_t *__kmp_stg_find(char const *name) {
 
-  int i;
-  if (name != NULL) {
+  
+  if (int i; name != NULL) {
     for (i = 0; i < __kmp_stg_count; ++i) {
       if (strcmp(__kmp_stg_table[i].name, name) == 0) {
         return &__kmp_stg_table[i];
@@ -5806,9 +5806,9 @@ static int __kmp_stg_cmp(void const *_a, void const *_b) {
 
 static void __kmp_stg_init(void) {
 
-  static int initialized = 0;
+  
 
-  if (!initialized) {
+  if (static int initialized = 0; !initialized) {
 
     // Sort table.
     qsort(__kmp_stg_table, __kmp_stg_count - 1, sizeof(kmp_setting_t),
@@ -6012,8 +6012,8 @@ static void __kmp_stg_parse(char const *name, char const *value) {
   }
 
   if (value != NULL) {
-    kmp_setting_t *setting = __kmp_stg_find(name);
-    if (setting != NULL) {
+    
+    if (kmp_setting_t *setting = __kmp_stg_find(name); setting != NULL) {
       setting->parse(name, value, setting->data);
       setting->defined = 1;
     }
@@ -6057,8 +6057,8 @@ static int __kmp_stg_check_rivals( // 0 -- Ok, 1 -- errors found.
 
 static int __kmp_env_toPrint(char const *name, int flag) {
   int rc = 0;
-  kmp_setting_t *setting = __kmp_stg_find(name);
-  if (setting != NULL) {
+  
+  if (kmp_setting_t *setting = __kmp_stg_find(name); setting != NULL) {
     rc = setting->defined;
     if (flag >= 0) {
       setting->defined = flag;
@@ -6141,8 +6141,8 @@ void __kmp_env_initialize(char const *string) {
     if (block.vars[i].value == NULL) {
       continue;
     }
-    kmp_setting_t *setting = __kmp_stg_find(block.vars[i].name);
-    if (setting != NULL) {
+    
+    if (kmp_setting_t *setting = __kmp_stg_find(block.vars[i].name); setting != NULL) {
       setting->set = 1;
     }
   }
@@ -6165,8 +6165,8 @@ void __kmp_env_initialize(char const *string) {
   // specifying the affinity type via GOMP_CPU_AFFINITY or the OMP 4.0
   // affinity mechanism.
   __kmp_affinity_notype = NULL;
-  char const *aff_str = __kmp_env_blk_var(&block, "KMP_AFFINITY");
-  if (aff_str != NULL) {
+  
+  if (char const *aff_str = __kmp_env_blk_var(&block, "KMP_AFFINITY"); aff_str != NULL) {
     // Check if the KMP_AFFINITY type is specified in the string.
     // We just search the string for "compact", "scatter", etc.
     // without really parsing the string.  The syntax of the
@@ -6510,8 +6510,8 @@ void __kmp_env_print() {
   __kmp_str_buf_print(&buffer, "\n%s\n\n", KMP_I18N_STR(UserSettings));
   for (i = 0; i < block.count; ++i) {
     char const *name = block.vars[i].name;
-    char const *value = block.vars[i].value;
-    if ((KMP_STRLEN(name) > 4 && strncmp(name, "KMP_", 4) == 0) ||
+    
+    if (char const *value = block.vars[i].value; (KMP_STRLEN(name) > 4 && strncmp(name, "KMP_", 4) == 0) ||
         strncmp(name, "OMP_", 4) == 0
 #ifdef KMP_GOMP_COMPAT
         || strncmp(name, "GOMP_", 5) == 0

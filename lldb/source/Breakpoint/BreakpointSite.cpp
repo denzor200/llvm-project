@@ -94,9 +94,9 @@ std::optional<uint32_t> BreakpointSite::GetSuggestedStackFrameIndex() {
   std::optional<uint32_t> result;
   std::lock_guard<std::recursive_mutex> guard(m_constituents_mutex);
   for (BreakpointLocationSP loc_sp : m_constituents.BreakpointLocations()) {
-    std::optional<uint32_t> loc_frame_index =
-        loc_sp->GetSuggestedStackFrameIndex();
-    if (loc_frame_index) {
+    
+    if (std::optional<uint32_t> loc_frame_index =
+        loc_sp->GetSuggestedStackFrameIndex(); loc_frame_index) {
       if (result)
         result = std::max(*loc_frame_index, *result);
       else

@@ -152,8 +152,8 @@ static void ConnectProlog(Loop *L, Value *BECount, unsigned Count,
 
   // Make sure that created prolog loop is in simplified form
   SmallVector<BasicBlock *, 4> PrologExitPreds;
-  Loop *PrologLoop = LI->getLoopFor(PrologLatch);
-  if (PrologLoop) {
+  
+  if (Loop *PrologLoop = LI->getLoopFor(PrologLatch); PrologLoop) {
     for (BasicBlock *PredBB : predecessors(PrologExit))
       if (PrologLoop->contains(PredBB))
         PrologExitPreds.push_back(PredBB);
@@ -299,8 +299,8 @@ static void ConnectEpilog(Loop *L, Value *ModVal, BasicBlock *NewExit,
     assert(EpilogPN->getParent() == Exit && "EpilogPN should be in Exit block");
 
     Value *V = PN.getIncomingValueForBlock(Latch);
-    Instruction *I = dyn_cast<Instruction>(V);
-    if (I && L->contains(I))
+    
+    if (Instruction *I = dyn_cast<Instruction>(V); I && L->contains(I))
       // If value comes from an instruction in the loop add VMap value.
       V = VMap.lookup(I);
     // For the instruction out of the loop, constant or undefined value
@@ -982,8 +982,8 @@ bool llvm::UnrollRuntimeLoopRemainder(
     for (auto *BB : L->blocks()) {
       auto *DomNodeBB = DT->getNode(BB);
       for (auto *DomChild : DomNodeBB->children()) {
-        auto *DomChildBB = DomChild->getBlock();
-        if (!L->contains(LI->getLoopFor(DomChildBB)) &&
+        
+        if (auto *DomChildBB = DomChild->getBlock(); !L->contains(LI->getLoopFor(DomChildBB)) &&
             DomChildBB->getUniquePredecessor() != BB)
           ChildrenToUpdate.push_back(DomChildBB);
       }

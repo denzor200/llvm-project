@@ -302,12 +302,12 @@ Module *MCJIT::findModuleForSymbol(const std::string &Name,
                               E = OwnedModules.end_added();
        I != E; ++I) {
     Module *M = *I;
-    Function *F = M->getFunction(DemangledName);
-    if (F && !F->isDeclaration())
+    
+    if (Function *F = M->getFunction(DemangledName); F && !F->isDeclaration())
       return M;
     if (!CheckFunctionsOnly) {
-      GlobalVariable *G = M->getGlobalVariable(DemangledName);
-      if (G && !G->isDeclaration())
+      
+      if (GlobalVariable *G = M->getGlobalVariable(DemangledName); G && !G->isDeclaration())
         return M;
       // FIXME: Do we need to worry about global aliases?
     }
@@ -422,10 +422,10 @@ void *MCJIT::getPointerToFunction(Function *F) {
   }
 
   Module *M = F->getParent();
-  bool HasBeenAddedButNotLoaded = OwnedModules.hasModuleBeenAddedButNotLoaded(M);
+  
 
   // Make sure the relevant module has been compiled and loaded.
-  if (HasBeenAddedButNotLoaded)
+  if (bool HasBeenAddedButNotLoaded = OwnedModules.hasModuleBeenAddedButNotLoaded(M); HasBeenAddedButNotLoaded)
     generateCodeForModule(M);
   else if (!OwnedModules.hasModuleBeenLoaded(M)) {
     // If this function doesn't belong to one of our modules, we're done.
@@ -463,8 +463,8 @@ Function *MCJIT::FindFunctionNamedInModulePtrSet(StringRef FnName,
                                                  ModulePtrSet::iterator I,
                                                  ModulePtrSet::iterator E) {
   for (; I != E; ++I) {
-    Function *F = (*I)->getFunction(FnName);
-    if (F && !F->isDeclaration())
+    
+    if (Function *F = (*I)->getFunction(FnName); F && !F->isDeclaration())
       return F;
   }
   return nullptr;
@@ -475,8 +475,8 @@ GlobalVariable *MCJIT::FindGlobalVariableNamedInModulePtrSet(StringRef Name,
                                                              ModulePtrSet::iterator I,
                                                              ModulePtrSet::iterator E) {
   for (; I != E; ++I) {
-    GlobalVariable *GV = (*I)->getGlobalVariable(Name, AllowInternal);
-    if (GV && !GV->isDeclaration())
+    
+    if (GlobalVariable *GV = (*I)->getGlobalVariable(Name, AllowInternal); GV && !GV->isDeclaration())
       return GV;
   }
   return nullptr;
@@ -567,12 +567,12 @@ GenericValue MCJIT::runFunction(Function *F, ArrayRef<GenericValue> ArgValues) {
 
   // Handle cases where no arguments are passed first.
   if (ArgValues.empty()) {
-    GenericValue rv;
-    switch (RetTy->getTypeID()) {
+    
+    switch (GenericValue rv; RetTy->getTypeID()) {
     default: llvm_unreachable("Unknown return type for function call!");
     case Type::IntegerTyID: {
-      unsigned BitWidth = cast<IntegerType>(RetTy)->getBitWidth();
-      if (BitWidth == 1)
+      
+      if (unsigned BitWidth = cast<IntegerType>(RetTy)->getBitWidth(); BitWidth == 1)
         rv.IntVal = APInt(BitWidth, ((bool(*)())(intptr_t)FPtr)());
       else if (BitWidth <= 8)
         rv.IntVal = APInt(BitWidth, ((char(*)())(intptr_t)FPtr)());

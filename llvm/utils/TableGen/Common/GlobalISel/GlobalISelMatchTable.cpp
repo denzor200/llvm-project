@@ -507,8 +507,8 @@ bool GroupMatcher::addMatcher(Matcher &Candidate) {
 
   // Only add candidates that have a matching first condition that can be
   // hoisted into the GroupMatcher.
-  const PredicateMatcher &Predicate = Candidate.getFirstCondition();
-  if (!candidateConditionMatches(Predicate) ||
+  
+  if (const PredicateMatcher &Predicate = Candidate.getFirstCondition(); !candidateConditionMatches(Predicate) ||
       cannotHoistCondition(Predicate, Candidate))
     return false;
 
@@ -533,8 +533,8 @@ void GroupMatcher::finalize() {
     if (cannotHoistCondition(FirstCondition, FirstRule))
       return;
     for (unsigned I = 1, E = Matchers.size(); I < E; ++I) {
-      const auto &OtherFirstCondition = Matchers[I]->getFirstCondition();
-      if (!OtherFirstCondition.isIdentical(FirstCondition) ||
+      
+      if (const auto &OtherFirstCondition = Matchers[I]->getFirstCondition(); !OtherFirstCondition.isIdentical(FirstCondition) ||
           cannotHoistCondition(OtherFirstCondition, *Matchers[I]))
         return;
     }
@@ -574,8 +574,8 @@ void GroupMatcher::optimize() {
   auto E = Matchers.end();
   while (T != E) {
     while (T != E) {
-      auto *R = static_cast<RuleMatcher *>(*T);
-      if (!R->getFirstConditionAsRootType().get().isValid())
+      
+      if (auto *R = static_cast<RuleMatcher *>(*T); !R->getFirstConditionAsRootType().get().isValid())
         break;
       ++T;
     }
@@ -627,10 +627,10 @@ bool SwitchMatcher::candidateConditionMatches(
   }
 
   const Matcher &CaseRepresentative = **Matchers.begin();
-  const auto &RepresentativeCondition = CaseRepresentative.getFirstCondition();
+  
   // Switch-cases must share the same kind of condition and path to the value it
   // checks:
-  if (!Predicate.isIdenticalDownToValue(RepresentativeCondition))
+  if (const auto &RepresentativeCondition = CaseRepresentative.getFirstCondition(); !Predicate.isIdenticalDownToValue(RepresentativeCondition))
     return false;
 
   const auto Value = Predicate.getValue();
@@ -745,8 +745,8 @@ bool RuleMatcher::recordsOperand() const {
 }
 
 LLTCodeGen RuleMatcher::getFirstConditionAsRootType() {
-  InstructionMatcher &InsnMatcher = *Matchers.front();
-  if (!InsnMatcher.predicates_empty())
+  
+  if (InstructionMatcher &InsnMatcher = *Matchers.front(); !InsnMatcher.predicates_empty())
     if (const auto *TM =
             dyn_cast<LLTOperandMatcher>(&**InsnMatcher.predicates_begin()))
       if (TM->getInsnVarID() == 0 && TM->getOpIdx() == 0)
@@ -860,8 +860,8 @@ GISelFlags RuleMatcher::updateGISelFlag(GISelFlags CurFlags, const Record *R,
   // If it's set, it always takes precedence over the existing value so
   // clear/set the corresponding bit.
   bool Unset = false;
-  bool Value = R->getValueAsBitOrUnset("GIIgnoreCopies", Unset);
-  if (!Unset)
+  
+  if (bool Value = R->getValueAsBitOrUnset("GIIgnoreCopies", Unset); !Unset)
     return Value ? (CurFlags | FlagBit) : (CurFlags & ~FlagBit);
   return CurFlags;
 }
@@ -887,9 +887,9 @@ Error RuleMatcher::defineComplexSubOperand(StringRef SymbolicName,
   auto [It, Inserted] = ComplexSubOperands.try_emplace(
       SymbolicName, ComplexPattern, RendererID, SubOperandID);
   if (!Inserted) {
-    const std::string &RecordedParentName =
-        ComplexSubOperandsParentName[SymbolicName];
-    if (RecordedParentName != ParentName)
+    
+    if (const std::string &RecordedParentName =
+        ComplexSubOperandsParentName[SymbolicName]; RecordedParentName != ParentName)
       return failUnsupported("Error: Complex suboperand " + SymbolicName +
                              " referenced by different operands: " +
                              RecordedParentName + " and " + ParentName + ".");
@@ -2227,9 +2227,9 @@ bool BuildMIAction::canMutate(RuleMatcher &Rule,
 
   for (const auto &Renderer : enumerate(OperandRenderers)) {
     if (const auto *Copy = dyn_cast<CopyRenderer>(&*Renderer.value())) {
-      const OperandMatcher &OM =
-          Rule.getOperandMatcher(Copy->getSymbolicName());
-      if (Insn != &OM.getInstructionMatcher() ||
+      
+      if (const OperandMatcher &OM =
+          Rule.getOperandMatcher(Copy->getSymbolicName()); Insn != &OM.getInstructionMatcher() ||
           OM.getOpIdx() != Renderer.index())
         return false;
     } else {
@@ -2341,9 +2341,9 @@ void BuildMIAction::emitActionOpcodes(MatchTable &Table,
     Renderer->emitRenderOpcodes(Table, Rule);
 
   for (auto [OpIdx, Def] : enumerate(I->ImplicitDefs)) {
-    auto Namespace =
-        Def->getValue("Namespace") ? Def->getValueAsString("Namespace") : "";
-    if (DeadImplicitDefs.contains(Def)) {
+    
+    if (auto Namespace =
+        Def->getValue("Namespace") ? Def->getValueAsString("Namespace") : ""; DeadImplicitDefs.contains(Def)) {
       Table
           << MatchTable::Opcode("GIR_SetImplicitDefDead")
           << MatchTable::Comment("InsnID") << MatchTable::ULEB128Value(InsnID)

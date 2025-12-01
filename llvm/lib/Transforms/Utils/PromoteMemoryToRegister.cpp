@@ -903,10 +903,10 @@ void PromoteMem2Reg::run() {
              I = NewPhiNodes.begin(),
              E = NewPhiNodes.end();
          I != E;) {
-      PHINode *PN = I->second;
+      
 
       // If this PHI node merges one value and/or undefs, get the value.
-      if (Value *V = simplifyInstruction(PN, SQ)) {
+      if (Value *PHINode *PN = I->second; V = simplifyInstruction(PN, SQ)) {
         PN->replaceAllUsesWith(V);
         PN->eraseFromParent();
         NewPhiNodes.erase(I++);

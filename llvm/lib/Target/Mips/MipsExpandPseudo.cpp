@@ -1017,9 +1017,9 @@ bool MipsExpandPseudo::expandMI(MachineBasicBlock &MBB,
                                 MachineBasicBlock::iterator MBBI,
                                 MachineBasicBlock::iterator &NMBB) {
 
-  bool Modified = false;
+  
 
-  switch (MBBI->getOpcode()) {
+  switch (bool Modified = false; MBBI->getOpcode()) {
   case Mips::ATOMIC_CMP_SWAP_I32_POSTRA:
   case Mips::ATOMIC_CMP_SWAP_I64_POSTRA:
     return expandAtomicCmpSwap(MBB, MBBI, NMBB);

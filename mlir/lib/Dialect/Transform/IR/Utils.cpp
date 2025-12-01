@@ -147,16 +147,16 @@ transform::detail::mergeSymbolsInto(Operation *target,
       };
 
       if (symbolOp.isPrivate()) {
-        InFlightDiagnostic diag = renameToUnique(
-            symbolOp, collidingOp, *symbolTable, *otherSymbolTable);
-        if (failed(diag))
+        
+        if (InFlightDiagnostic diag = renameToUnique(
+            symbolOp, collidingOp, *symbolTable, *otherSymbolTable); failed(diag))
           return diag;
         continue;
       }
       if (collidingOp.isPrivate()) {
-        InFlightDiagnostic diag = renameToUnique(
-            collidingOp, symbolOp, *otherSymbolTable, *symbolTable);
-        if (failed(diag))
+        
+        if (InFlightDiagnostic diag = renameToUnique(
+            collidingOp, symbolOp, *otherSymbolTable, *symbolTable); failed(diag))
           return diag;
         continue;
       }
@@ -227,8 +227,8 @@ transform::detail::mergeSymbolsInto(Operation *target,
 
       // Do the actual merging.
       {
-        InFlightDiagnostic diag = mergeInto(funcOp, collidingFuncOp);
-        if (failed(diag))
+        
+        if (InFlightDiagnostic diag = mergeInto(funcOp, collidingFuncOp); failed(diag))
           return diag;
       }
     }

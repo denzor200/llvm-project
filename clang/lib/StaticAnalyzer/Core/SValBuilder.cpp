@@ -389,8 +389,8 @@ std::optional<SVal> SValBuilder::getConstantVal(const Expr *E) {
   case Stmt::CXXReinterpretCastExprClass:
   case Stmt::CXXStaticCastExprClass:
   case Stmt::ImplicitCastExprClass: {
-    const auto *CE = cast<CastExpr>(E);
-    switch (CE->getCastKind()) {
+    
+    switch (const auto *CE = cast<CastExpr>(E); CE->getCastKind()) {
     default:
       break;
     case CK_ArrayToPointerDecay:
@@ -648,8 +648,8 @@ public:
 
     CastTy = Context.getCanonicalType(CastTy);
 
-    const bool IsUnknownOriginalType = OriginalTy.isNull();
-    if (!IsUnknownOriginalType) {
+    
+    if (const bool IsUnknownOriginalType = OriginalTy.isNull(); !IsUnknownOriginalType) {
       OriginalTy = Context.getCanonicalType(OriginalTy);
 
       if (CastTy == OriginalTy)
@@ -701,8 +701,8 @@ public:
       return VB.makeLocAsInteger(V, BitWidth);
     }
 
-    const bool IsUnknownOriginalType = OriginalTy.isNull();
-    if (!IsUnknownOriginalType) {
+    
+    if (const bool IsUnknownOriginalType = OriginalTy.isNull(); !IsUnknownOriginalType) {
       // Array to pointer.
       if (isa<ArrayType>(OriginalTy))
         if (CastTy->isPointerType() || CastTy->isReferenceType())
@@ -731,11 +731,11 @@ public:
 
       if (const SymbolicRegion *SymR = R->getSymbolicBase()) {
         SymbolRef Sym = SymR->getSymbol();
-        QualType Ty = Sym->getType();
+        
         // This change is needed for architectures with varying
         // pointer widths. See the amdgcn opencl reproducer with
         // this change as an example: solver-sym-simplification-ptr-bool.cl
-        if (!Ty->isReferenceType())
+        if (QualType Ty = Sym->getType(); !Ty->isReferenceType())
           return VB.makeNonLoc(
               Sym, BO_NE, VB.getBasicValueFactory().getZeroWithTypeSize(Ty),
               CastTy);
@@ -845,8 +845,8 @@ public:
       //  }
 
       // Get the result of casting a region to a different type.
-      const MemRegion *R = V.getRegion();
-      if (auto OptMemRegV = VB.getCastedMemRegionVal(R, CastTy))
+      
+      if (auto const MemRegion *R = V.getRegion(); OptMemRegV = VB.getCastedMemRegionVal(R, CastTy))
         return *OptMemRegV;
     }
 
@@ -955,9 +955,9 @@ public:
   SVal VisitSymbolVal(nonloc::SymbolVal V) {
     SymbolRef SE = V.getSymbol();
 
-    const bool IsUnknownOriginalType = OriginalTy.isNull();
+    
     // Symbol to bool.
-    if (!IsUnknownOriginalType && CastTy->isBooleanType()) {
+    if (const bool IsUnknownOriginalType = OriginalTy.isNull(); !IsUnknownOriginalType && CastTy->isBooleanType()) {
       // Non-float to bool.
       if (Loc::isLocType(OriginalTy) ||
           OriginalTy->isIntegralOrEnumerationType() ||
@@ -973,13 +973,13 @@ public:
       // NOTE: In the end the type of SymbolCast shall be equal to CastTy.
       if (T->isIntegralOrUnscopedEnumerationType() &&
           CastTy->isIntegralOrUnscopedEnumerationType()) {
-        AnalyzerOptions &Opts = VB.getStateManager()
-                                    .getOwningEngine()
-                                    .getAnalysisManager()
-                                    .getAnalyzerOptions();
+        
         // If appropriate option is disabled, ignore the cast.
         // NOTE: ShouldSupportSymbolicIntegerCasts is `false` by default.
-        if (!Opts.ShouldSupportSymbolicIntegerCasts)
+        if (AnalyzerOptions &Opts = VB.getStateManager()
+                                    .getOwningEngine()
+                                    .getAnalysisManager()
+                                    .getAnalyzerOptions(); !Opts.ShouldSupportSymbolicIntegerCasts)
           return V;
         return simplifySymbolCast(V, CastTy);
       }
@@ -1072,8 +1072,8 @@ public:
     const auto WT = TTy.getBitWidth();
 
     if (WC <= WT) {
-      const bool isSameType = (RT == CastTy);
-      if (isSameType)
+      
+      if (const bool isSameType = (RT == CastTy); isSameType)
         return nonloc::SymbolVal(RootSym);
       return VB.makeNonLoc(RootSym, RT, CastTy);
     }

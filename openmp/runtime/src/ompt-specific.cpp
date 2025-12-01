@@ -49,9 +49,9 @@
 //----------------------------------------------------------
 
 ompt_team_info_t *__ompt_get_teaminfo(int depth, int *size) {
-  kmp_info_t *thr = ompt_get_thread();
+  
 
-  if (thr) {
+  if (kmp_info_t *thr = ompt_get_thread(); thr) {
     kmp_team *team = thr->th.th_team;
     if (team == NULL)
       return NULL;
@@ -102,9 +102,9 @@ ompt_team_info_t *__ompt_get_teaminfo(int depth, int *size) {
 
 ompt_task_info_t *__ompt_get_task_info_object(int depth) {
   ompt_task_info_t *info = NULL;
-  kmp_info_t *thr = ompt_get_thread();
+  
 
-  if (thr) {
+  if (kmp_info_t *thr = ompt_get_thread(); thr) {
     kmp_taskdata_t *taskdata = thr->th.th_current_task;
     ompt_lw_taskteam_t *lwt = NULL,
                        *next_lwt = LWT_FROM_TEAM(taskdata->td_team);
@@ -142,9 +142,9 @@ ompt_task_info_t *__ompt_get_task_info_object(int depth) {
 
 ompt_task_info_t *__ompt_get_scheduling_taskinfo(int depth) {
   ompt_task_info_t *info = NULL;
-  kmp_info_t *thr = ompt_get_thread();
+  
 
-  if (thr) {
+  if (kmp_info_t *thr = ompt_get_thread(); thr) {
     kmp_taskdata_t *taskdata = thr->th.th_current_task;
 
     ompt_lw_taskteam_t *lwt = NULL,
@@ -213,16 +213,16 @@ ompt_data_t *__ompt_get_thread_data_internal() {
 //----------------------------------------------------------
 
 void __ompt_thread_assign_wait_id(void *variable) {
-  kmp_info_t *ti = ompt_get_thread();
+  
 
-  if (ti)
+  if (kmp_info_t *ti = ompt_get_thread(); ti)
     ti->th.ompt_thread_info.wait_id = (ompt_wait_id_t)(uintptr_t)variable;
 }
 
 int __ompt_get_state_internal(ompt_wait_id_t *omp_wait_id) {
-  kmp_info_t *ti = ompt_get_thread();
+  
 
-  if (ti) {
+  if (kmp_info_t *ti = ompt_get_thread(); ti) {
     if (omp_wait_id)
       *omp_wait_id = ti->th.ompt_thread_info.wait_id;
     return ti->th.ompt_thread_info.state;
@@ -275,8 +275,8 @@ void __ompt_lw_taskteam_init(ompt_lw_taskteam_t *lwt, kmp_info_t *thr, int gtid,
 
 void __ompt_lw_taskteam_link(ompt_lw_taskteam_t *lwt, kmp_info_t *thr,
                              int on_heap, bool always) {
-  ompt_lw_taskteam_t *link_lwt = lwt;
-  if (always ||
+  
+  if (ompt_lw_taskteam_t *link_lwt = lwt; always ||
       thr->th.th_team->t.t_serialized >
           1) { // we already have a team, so link the new team and swap values
     if (on_heap) { // the lw_taskteam cannot stay on stack, allocate it on heap
@@ -318,8 +318,8 @@ void __ompt_lw_taskteam_link(ompt_lw_taskteam_t *lwt, kmp_info_t *thr,
 }
 
 void __ompt_lw_taskteam_unlink(kmp_info_t *thr) {
-  ompt_lw_taskteam_t *lwtask = thr->th.th_team->t.ompt_serialized_team_info;
-  if (lwtask) {
+  
+  if (ompt_lw_taskteam_t *lwtask = thr->th.th_team->t.ompt_serialized_team_info; lwtask) {
     ompt_task_info_t tmp_task = lwtask->ompt_task_info;
     lwtask->ompt_task_info = *OMPT_CUR_TASK_INFO(thr);
     *OMPT_CUR_TASK_INFO(thr) = tmp_task;
@@ -371,9 +371,9 @@ int __ompt_get_task_info_internal(int ancestor_level, int *type,
   ompt_task_info_t *info = NULL;
   ompt_team_info_t *team_info = NULL;
   kmp_info_t *thr = ompt_get_thread();
-  int level = ancestor_level;
+  
 
-  if (thr) {
+  if (int level = ancestor_level; thr) {
     kmp_taskdata_t *taskdata = thr->th.th_current_task;
     if (taskdata == NULL)
       return 0;

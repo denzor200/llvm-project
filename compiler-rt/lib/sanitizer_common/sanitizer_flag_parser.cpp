@@ -150,8 +150,8 @@ bool FlagParser::ParseFile(const char *path, bool ignore_missing) {
   char *data;
   uptr data_mapped_size;
   error_t err;
-  uptr len;
-  if (!ReadFileToBuffer(path, &data, &data_mapped_size, &len,
+  
+  if (uptr len; !ReadFileToBuffer(path, &data, &data_mapped_size, &len,
                         Max(kMaxIncludeSize, GetPageSizeCached()), &err)) {
     if (ignore_missing)
       return true;

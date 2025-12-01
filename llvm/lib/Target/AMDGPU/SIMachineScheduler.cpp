@@ -350,8 +350,8 @@ void SIScheduleBlock::initRegPressure(MachineBasicBlock::iterator BeginBlock,
   // Comparing to LiveInRegs is not sufficient to differentiate 4 vs 5, 7
   // The use of findDefBetween removes the case 4.
   for (const auto &RegMaskPair : RPTracker.getPressure().LiveOutRegs) {
-    VirtRegOrUnit VRegOrUnit = RegMaskPair.VRegOrUnit;
-    if (VRegOrUnit.isVirtualReg() &&
+    
+    if (VirtRegOrUnit VRegOrUnit = RegMaskPair.VRegOrUnit; VRegOrUnit.isVirtualReg() &&
         isDefBetween(VRegOrUnit.asVirtualReg(),
                      LIS->getInstructionIndex(*BeginBlock).getRegSlot(),
                      LIS->getInstructionIndex(*EndBlock).getRegSlot(), MRI,
@@ -490,9 +490,9 @@ void SIScheduleBlock::nodeScheduled(SUnit *SU) {
 
   if (DAG->IsLowLatencySU[SU->NodeNum]) {
      for (SDep& Succ : SU->Succs) {
-      std::map<unsigned, unsigned>::iterator I =
-        NodeNum2Index.find(Succ.getSUnit()->NodeNum);
-      if (I != NodeNum2Index.end())
+      
+      if (std::map<unsigned, unsigned>::iterator I =
+        NodeNum2Index.find(Succ.getSUnit()->NodeNum); I != NodeNum2Index.end())
         HasLowLatencyNonWaitedParent[I->second] = 1;
     }
   }
@@ -628,8 +628,8 @@ void SIScheduleBlockCreator::colorHighLatenciesAlone() {
   unsigned DAGSize = DAG->SUnits.size();
 
   for (unsigned i = 0, e = DAGSize; i != e; ++i) {
-    SUnit *SU = &DAG->SUnits[i];
-    if (DAG->IsHighLatencySU[SU->NodeNum]) {
+    
+    if (SUnit *SU = &DAG->SUnits[i]; DAG->IsHighLatencySU[SU->NodeNum]) {
       CurrentColoring[SU->NodeNum] = NextReservedID++;
     }
   }
@@ -654,8 +654,8 @@ void SIScheduleBlockCreator::colorHighLatenciesGroups() {
   std::set<unsigned> FormingGroup;
 
   for (unsigned i = 0, e = DAGSize; i != e; ++i) {
-    SUnit *SU = &DAG->SUnits[i];
-    if (DAG->IsHighLatencySU[SU->NodeNum])
+    
+    if (SUnit *SU = &DAG->SUnits[i]; DAG->IsHighLatencySU[SU->NodeNum])
       ++NumHighLatencies;
   }
 
@@ -670,8 +670,8 @@ void SIScheduleBlockCreator::colorHighLatenciesGroups() {
     GroupSize = 4;
 
   for (unsigned SUNum : DAG->TopDownIndex2SU) {
-    const SUnit &SU = DAG->SUnits[SUNum];
-    if (DAG->IsHighLatencySU[SU.NodeNum]) {
+    
+    if (const SUnit &SU = DAG->SUnits[SUNum]; DAG->IsHighLatencySU[SU.NodeNum]) {
       unsigned CompatibleGroup = true;
       int ProposedColor = Color;
       std::vector<int> AdditionalElements;
@@ -842,9 +842,9 @@ void SIScheduleBlockCreator::colorComputeReservedDependencies() {
       CurrentBottomUpReservedDependencyColoring[SU->NodeNum] =
         *SUColors.begin();
     else {
-      std::map<std::set<unsigned>, unsigned>::iterator Pos =
-        ColorCombinations.find(SUColors);
-      if (Pos != ColorCombinations.end()) {
+      
+      if (std::map<std::set<unsigned>, unsigned>::iterator Pos =
+        ColorCombinations.find(SUColors); Pos != ColorCombinations.end()) {
         CurrentBottomUpReservedDependencyColoring[SU->NodeNum] = Pos->second;
       } else {
         CurrentBottomUpReservedDependencyColoring[SU->NodeNum] =
@@ -1078,8 +1078,8 @@ void SIScheduleBlockCreator::regroupNoUserInstructions() {
       continue;
 
     for (SDep& SuccDep : SU->Succs) {
-       SUnit *Succ = SuccDep.getSUnit();
-      if (SuccDep.isWeak() || Succ->NodeNum >= DAGSize)
+       
+      if (SUnit *Succ = SuccDep.getSUnit(); SuccDep.isWeak() || Succ->NodeNum >= DAGSize)
         continue;
       hasSuccessor = true;
     }
@@ -1103,8 +1103,8 @@ void SIScheduleBlockCreator::colorExports() {
   // register than used in a previous export.
   // If that happens, do not regroup the exports.
   for (unsigned SUNum : DAG->TopDownIndex2SU) {
-    const SUnit &SU = DAG->SUnits[SUNum];
-    if (SIInstrInfo::isEXP(*SU.getInstr())) {
+    
+    if (const SUnit &SU = DAG->SUnits[SUNum]; SIInstrInfo::isEXP(*SU.getInstr())) {
       // SU is an export instruction. Check whether one of its successor
       // dependencies is a non-export, in which case we skip export grouping.
       for (const SDep &SuccDep : SU.Succs) {
@@ -1338,8 +1338,8 @@ void SIScheduleBlockCreator::scheduleInsideBlocks() {
   // Restore old ordering (which prevents a LIS->handleMove bug).
   for (unsigned i = PosOld.size(), e = 0; i != e; --i) {
     MachineBasicBlock::iterator POld = PosOld[i-1];
-    MachineBasicBlock::iterator PNew = PosNew[i-1];
-    if (PNew != POld) {
+    
+    if (MachineBasicBlock::iterator PNew = PosNew[i-1]; PNew != POld) {
       // Update the instruction stream.
       DAG->getBB()->splice(POld, DAG->getBB(), PNew);
 
@@ -1359,8 +1359,8 @@ void SIScheduleBlockCreator::fillStats() {
 
   for (unsigned i = 0, e = DAGSize; i != e; ++i) {
     int BlockIndice = TopDownIndex2Block[i];
-    SIScheduleBlock *Block = CurrentBlocks[BlockIndice];
-    if (Block->getPreds().empty())
+    
+    if (SIScheduleBlock *Block = CurrentBlocks[BlockIndice]; Block->getPreds().empty())
       Block->Depth = 0;
     else {
       unsigned Depth = 0;
@@ -1374,8 +1374,8 @@ void SIScheduleBlockCreator::fillStats() {
 
   for (unsigned i = 0, e = DAGSize; i != e; ++i) {
     int BlockIndice = BottomUpIndex2Block[i];
-    SIScheduleBlock *Block = CurrentBlocks[BlockIndice];
-    if (Block->getSuccs().empty())
+    
+    if (SIScheduleBlock *Block = CurrentBlocks[BlockIndice]; Block->getSuccs().empty())
       Block->Height = 0;
     else {
       unsigned Height = 0;
@@ -1412,9 +1412,9 @@ SIScheduleBlockScheduler::SIScheduleBlockScheduler(SIScheduleDAGMI *DAG,
       int topoInd = -1;
       for (SIScheduleBlock* Pred: Block->getPreds()) {
         std::set<Register> PredOutRegs = Pred->getOutRegs();
-        std::set<Register>::iterator RegPos = PredOutRegs.find(Reg);
+        
 
-        if (RegPos != PredOutRegs.end()) {
+        if (std::set<Register>::iterator RegPos = PredOutRegs.find(Reg); RegPos != PredOutRegs.end()) {
           Found = true;
           if (topoInd < BlocksStruct.TopDownBlock2Index[Pred->getID()]) {
             topoInd = BlocksStruct.TopDownBlock2Index[Pred->getID()];
@@ -1458,9 +1458,9 @@ SIScheduleBlockScheduler::SIScheduleBlockScheduler(SIScheduleDAGMI *DAG,
       // Do reverse traversal
       int ID = BlocksStruct.TopDownIndex2Block[Blocks.size()-1-i];
       SIScheduleBlock *Block = Blocks[ID];
-      const std::set<Register> &OutRegs = Block->getOutRegs();
+      
 
-      if (!VRegOrUnit.isVirtualReg() ||
+      if (const std::set<Register> &OutRegs = Block->getOutRegs(); !VRegOrUnit.isVirtualReg() ||
           OutRegs.find(VRegOrUnit.asVirtualReg()) == OutRegs.end())
         continue;
 
@@ -1476,9 +1476,9 @@ SIScheduleBlockScheduler::SIScheduleBlockScheduler(SIScheduleDAGMI *DAG,
       bool Found = false;
       for (SIScheduleBlock* Pred: Block->getPreds()) {
         std::set<Register> PredOutRegs = Pred->getOutRegs();
-        std::set<Register>::iterator RegPos = PredOutRegs.find(Reg);
+        
 
-        if (RegPos != PredOutRegs.end()) {
+        if (std::set<Register>::iterator RegPos = PredOutRegs.find(Reg); RegPos != PredOutRegs.end()) {
           Found = true;
           break;
         }
@@ -1490,8 +1490,8 @@ SIScheduleBlockScheduler::SIScheduleBlockScheduler(SIScheduleDAGMI *DAG,
   }
 
   for (unsigned i = 0, e = Blocks.size(); i != e; ++i) {
-    SIScheduleBlock *Block = Blocks[i];
-    if (BlockNumPredsLeft[i] == 0) {
+    
+    if (SIScheduleBlock *Block = Blocks[i]; BlockNumPredsLeft[i] == 0) {
       ReadyBlocks.push_back(Block);
     }
   }
@@ -1899,11 +1899,11 @@ void SIScheduleDAGMI::schedule()
   for (unsigned i = 0, e = (unsigned)SUnits.size(); i != e; ++i) {
     SUnit *SU = &SUnits[i];
     const MachineOperand *BaseLatOp;
-    int64_t OffLatReg;
-    if (SITII->isLowLatencyInstruction(*SU->getInstr())) {
+    
+    if (int64_t OffLatReg; SITII->isLowLatencyInstruction(*SU->getInstr())) {
       IsLowLatencySU[i] = 1;
-      bool OffsetIsScalable;
-      if (SITII->getMemOperandWithOffset(*SU->getInstr(), BaseLatOp, OffLatReg,
+      
+      if (bool OffsetIsScalable; SITII->getMemOperandWithOffset(*SU->getInstr(), BaseLatOp, OffLatReg,
                                          OffsetIsScalable, TRI))
         LowLatencyOffset[i] = OffLatReg;
     } else if (SITII->isHighLatencyDef(SU->getInstr()->getOpcode()))

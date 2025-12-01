@@ -140,8 +140,8 @@ int main(int argc, const char **argv) {
   for (StringRef Pattern : Patterns) {
     Pattern = Pattern.trim();
     bool Enabled = !Pattern.consume_front("-");
-    Expected<GlobPattern> Pat = GlobPattern::create(Pattern);
-    if (Pat)
+    
+    if (Expected<GlobPattern> Pat = GlobPattern::create(Pattern); Pat)
       Filters.emplace_back(std::move(*Pat), Enabled);
     else
       error(toString(Pat.takeError()));

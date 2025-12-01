@@ -57,10 +57,10 @@ mlir::splitAndProcessBuffer(std::unique_ptr<llvm::MemoryBuffer> originalBuffer,
     }
 
     // Check that suffix is as expected and doesn't have any dash post.
-    bool expectedSuffix =
+    
+    if (bool expectedSuffix =
         buffer.starts_with(inputSplitMarker.take_back(checkLen)) &&
-        buffer.size() > checkLen && buffer[checkLen] != '0';
-    if (expectedSuffix) {
+        buffer.size() > checkLen && buffer[checkLen] != '0'; expectedSuffix) {
       sourceBuffers.push_back(prev);
       prev = buffer.drop_front(checkLen);
     } else {
@@ -87,10 +87,10 @@ mlir::splitAndProcessBuffer(std::unique_ptr<llvm::MemoryBuffer> originalBuffer,
                          .str());
     // Use MemoryBufferRef to avoid copying the buffer & keep at same location
     // relative to the original buffer.
-    auto subMemBuffer =
+    
+    if (auto subMemBuffer =
         llvm::MemoryBuffer::getMemBuffer(llvm::MemoryBufferRef(subBuffer, name),
-                                         /*RequiresNullTerminator=*/false);
-    if (failed(
+                                         /*RequiresNullTerminator=*/false); failed(
             processChunkBuffer(std::move(subMemBuffer), originalBufferRef, os)))
       hadFailure = true;
   };

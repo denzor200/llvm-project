@@ -266,11 +266,11 @@ void llvm::runDeltaPass(TestRunner &Test, const DeltaPass &Pass) {
               E = ChunksStillConsideredInteresting.rend();
          I != E; ++I) {
       std::unique_ptr<ReducerWorkItem> Result = nullptr;
-      unsigned WorkLeft = std::distance(I, E);
+      
 
       // Run in parallel mode, if the user requested more than one thread and
       // there are at least a few chunks to process.
-      if (NumJobs > 1 && WorkLeft > 1) {
+      if (unsigned WorkLeft = std::distance(I, E); NumJobs > 1 && WorkLeft > 1) {
         unsigned NumInitialTasks = std::min(WorkLeft, unsigned(NumJobs));
         unsigned NumChunksProcessed = 0;
 
@@ -306,8 +306,8 @@ void llvm::runDeltaPass(TestRunner &Test, const DeltaPass &Pass) {
           SmallString<0> Res = Future.get();
           TaskQueue.pop_front();
           if (Res.empty()) {
-            unsigned NumScheduledTasks = NumChunksProcessed + TaskQueue.size();
-            if (!AnyReduced && I + NumScheduledTasks != E) {
+            
+            if (unsigned NumScheduledTasks = NumChunksProcessed + TaskQueue.size(); !AnyReduced && I + NumScheduledTasks != E) {
               Chunk ChunkToCheck = *(I + NumScheduledTasks);
               TaskQueue.emplace_back(ChunkThreadPool.async(
                   ProcessChunkFromSerializedBitcode, ChunkToCheck,

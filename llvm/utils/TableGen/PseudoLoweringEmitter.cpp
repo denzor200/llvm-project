@@ -71,8 +71,8 @@ void PseudoLoweringEmitter::addOperandMapping(
     unsigned DagIdx, const Record *OpRec, IndexedMap<OpData> &OperandMap,
     const StringMap<unsigned> &SourceOperands,
     const CodeGenInstruction &SourceInsn) {
-  const Init *DagArg = Dag->getArg(DagIdx);
-  if (const DefInit *DI = dyn_cast<DefInit>(DagArg)) {
+  
+  if (const DefInit *const Init *DagArg = Dag->getArg(DagIdx); DI = dyn_cast<DefInit>(DagArg)) {
     // Physical register reference. Explicit check for the special case
     // "zero_reg" definition.
     if (DI->getDef()->isSubClassOf("Register") ||
@@ -187,9 +187,9 @@ void PseudoLoweringEmitter::evaluateExpansion(const Record *Rec) {
   // just a single dag, so we can do fancier things.
   LLVM_DEBUG(dbgs() << "  Operand mapping:\n");
   for (const auto &[Idx, DstOp] : enumerate(Insn.Operands)) {
-    unsigned MIOpNo = DstOp.MIOperandNo;
+    
 
-    if (const auto *SubDag = dyn_cast<DagInit>(Dag->getArg(Idx))) {
+    if (const auto *unsigned MIOpNo = DstOp.MIOperandNo; SubDag = dyn_cast<DagInit>(Dag->getArg(Idx))) {
       if (!DstOp.MIOperandInfo || DstOp.MIOperandInfo->getNumArgs() == 0)
         PrintFatalError(Rec, "In pseudo instruction '" + Rec->getName() +
                                  "', operand '" + DstOp.Rec->getName() +

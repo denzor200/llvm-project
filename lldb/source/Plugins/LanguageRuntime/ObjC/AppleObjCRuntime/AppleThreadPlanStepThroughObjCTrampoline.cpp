@@ -130,9 +130,9 @@ bool AppleThreadPlanStepThroughObjCTrampoline::ShouldStop(Event *event_ptr) {
 
   // Second stage, if all went well with the function calling,  get the
   // implementation function address, and queue up a "run to that address" plan.
-  Log *log = GetLog(LLDBLog::Step);
+  
 
-  if (!m_run_to_sp) {
+  if (Log *log = GetLog(LLDBLog::Step); !m_run_to_sp) {
     Value target_addr_value;
     ExecutionContext exc_ctx;
     GetThread().CalculateExecutionContext(exc_ctx);
@@ -361,8 +361,8 @@ bool AppleThreadPlanStepThroughDirectDispatch::ShouldStop(Event *event_ptr) {
   // implementation.  Either we went directly to the default implementation, 
   // of the overridden implementation didn't have debug info.  
   // So we should mark ourselves as done.
-  const bool step_out_should_stop = ThreadPlanStepOut::ShouldStop(event_ptr);
-  if (step_out_should_stop) {
+  
+  if (const bool step_out_should_stop = ThreadPlanStepOut::ShouldStop(event_ptr); step_out_should_stop) {
     SetPlanComplete(true);
     return true;
   }
@@ -379,8 +379,8 @@ bool AppleThreadPlanStepThroughDirectDispatch::ShouldStop(Event *event_ptr) {
     if (!m_objc_step_through_sp->PlanSucceeded()) {
       LLDB_LOGF(log, "ObjC Step through plan failed.  Stepping out.");
     }
-    Status error;
-    if (InvokeShouldStopHereCallback(eFrameCompareYounger, error)) {
+    
+    if (Status error; InvokeShouldStopHereCallback(eFrameCompareYounger, error)) {
       SetPlanComplete(true);
       return true;
     }

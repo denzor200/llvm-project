@@ -168,8 +168,8 @@ private:
   /// Returns an accumulator factory using either the op attribute or the body
   /// region.
   AccumulatorFactory getFactory() {
-    auto &body = reduceOp.getBody();
-    if (!body.empty())
+    
+    if (auto &body = reduceOp.getBody(); !body.empty())
       return getFactory(body);
     auto opAttr = reduceOp.getOp();
     if (opAttr)

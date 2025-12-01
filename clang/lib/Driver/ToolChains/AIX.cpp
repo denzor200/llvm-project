@@ -36,9 +36,9 @@ void aix::Assembler::ConstructJob(Compilation &C, const JobAction &JA,
   ArgStringList CmdArgs;
 
   const bool IsArch32Bit = getToolChain().getTriple().isArch32Bit();
-  const bool IsArch64Bit = getToolChain().getTriple().isArch64Bit();
+  
   // Only support 32 and 64 bit.
-  if (!IsArch32Bit && !IsArch64Bit)
+  if (const bool IsArch64Bit = getToolChain().getTriple().isArch64Bit(); !IsArch32Bit && !IsArch64Bit)
     llvm_unreachable("Unsupported bit width value.");
 
   if (Arg *A = C.getArgs().getLastArg(options::OPT_G)) {
@@ -97,8 +97,8 @@ static bool hasExportListLinkerOpts(const ArgStringList &CmdArgs) {
     // If we split -b option, check the next opt.
     if (ArgString == "-b" && i + 1 < Size) {
       ++i;
-      llvm::StringRef ArgNextString(CmdArgs[i]);
-      if (ArgNextString.starts_with("E:") ||
+      
+      if (llvm::StringRef ArgNextString(CmdArgs[i]); ArgNextString.starts_with("E:") ||
           ArgNextString.starts_with("export:") || ArgNextString == "expall" ||
           ArgNextString == "expfull")
         return true;
@@ -116,9 +116,9 @@ void aix::Linker::ConstructJob(Compilation &C, const JobAction &JA,
   ArgStringList CmdArgs;
 
   const bool IsArch32Bit = ToolChain.getTriple().isArch32Bit();
-  const bool IsArch64Bit = ToolChain.getTriple().isArch64Bit();
+  
   // Only support 32 and 64 bit.
-  if (!(IsArch32Bit || IsArch64Bit))
+  if (const bool IsArch64Bit = ToolChain.getTriple().isArch64Bit(); !(IsArch32Bit || IsArch64Bit))
     llvm_unreachable("Unsupported bit width value.");
 
   if (Arg *A = C.getArgs().getLastArg(options::OPT_G)) {
@@ -169,8 +169,8 @@ void aix::Linker::ConstructJob(Compilation &C, const JobAction &JA,
     CmdArgs.push_back("-bdbg:namedsects:ss");
 
   if (Arg *A = Args.getLastArg(options::OPT_mxcoff_build_id_EQ)) {
-    StringRef BuildId = A->getValue();
-    if (BuildId[0] != '0' || BuildId[1] != 'x' ||
+    
+    if (StringRef BuildId = A->getValue(); BuildId[0] != '0' || BuildId[1] != 'x' ||
         BuildId.find_if_not(llvm::isHexDigit, 2) != StringRef::npos)
       ToolChain.getDriver().Diag(diag::err_drv_unsupported_option_argument)
           << A->getSpelling() << BuildId;
@@ -383,8 +383,8 @@ void AIX::AddOpenMPIncludeArgs(const ArgList &DriverArgs,
   // Add OpenMP include paths if -fopenmp is specified.
   if (DriverArgs.hasFlag(options::OPT_fopenmp, options::OPT_fopenmp_EQ,
                          options::OPT_fno_openmp, false)) {
-    SmallString<128> PathOpenMP;
-    switch (getDriver().getOpenMPRuntime(DriverArgs)) {
+    
+    switch (SmallString<128> PathOpenMP; getDriver().getOpenMPRuntime(DriverArgs)) {
     case Driver::OMPRT_OMP:
       PathOpenMP = GetHeaderSysroot(DriverArgs);
       llvm::sys::path::append(PathOpenMP, "opt/IBM/openxlCSDK", "include",
@@ -407,9 +407,9 @@ void AIX::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
     return;
 
   llvm::StringRef Sysroot = GetHeaderSysroot(DriverArgs);
-  const Driver &D = getDriver();
+  
 
-  if (!DriverArgs.hasArg(options::OPT_nobuiltininc)) {
+  if (const Driver &D = getDriver(); !DriverArgs.hasArg(options::OPT_nobuiltininc)) {
     SmallString<128> P(D.ResourceDir);
     // Add the PowerPC intrinsic headers (<resource>/include/ppc_wrappers)
     path::append(P, "include", "ppc_wrappers");
@@ -511,11 +511,11 @@ static void addTocDataOptions(const llvm::opt::ArgList &Args,
   std::set<llvm::StringRef> ExplicitlySpecifiedGlobals;
   for (const auto Arg :
        Args.filtered(options::OPT_mtocdata_EQ, options::OPT_mno_tocdata_EQ)) {
-    TOCDataSetting ArgTocDataSetting =
-        Arg->getOption().matches(options::OPT_mtocdata_EQ) ? DataInTOC
-                                                           : AddressInTOC;
+    
 
-    if (ArgTocDataSetting != DefaultTocDataSetting)
+    if (TOCDataSetting ArgTocDataSetting =
+        Arg->getOption().matches(options::OPT_mtocdata_EQ) ? DataInTOC
+                                                           : AddressInTOC; ArgTocDataSetting != DefaultTocDataSetting)
       for (const char *Val : Arg->getValues())
         ExplicitlySpecifiedGlobals.insert(Val);
     else
@@ -545,9 +545,9 @@ static void addTocDataOptions(const llvm::opt::ArgList &Args,
       TOCDataGloballyinEffect ? "-mtocdata" : "-mno-tocdata";
   CC1Args.push_back(TocDataGlobalOption);
 
-  const char *TocDataListOption =
-      TOCDataGloballyinEffect ? "-mno-tocdata=" : "-mtocdata=";
-  if (!ExplicitlySpecifiedGlobals.empty())
+  
+  if (const char *TocDataListOption =
+      TOCDataGloballyinEffect ? "-mno-tocdata=" : "-mtocdata="; !ExplicitlySpecifiedGlobals.empty())
     CC1Args.push_back(Args.MakeArgString(llvm::Twine(
         buildExceptionList(ExplicitlySpecifiedGlobals, TocDataListOption))));
 }
@@ -588,8 +588,8 @@ void AIX::addProfileRTLibs(const llvm::opt::ArgList &Args,
 
     if (const auto *A =
             Args.getLastArgNoClaim(options::OPT_fprofile_update_EQ)) {
-      StringRef Val = A->getValue();
-      if (Val == "atomic" || Val == "prefer-atomic")
+      
+      if (StringRef Val = A->getValue(); Val == "atomic" || Val == "prefer-atomic")
         CmdArgs.push_back("-latomic");
     }
   }

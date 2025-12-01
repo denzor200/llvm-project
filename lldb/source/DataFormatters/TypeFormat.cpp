@@ -46,11 +46,11 @@ bool TypeFormatImpl_Format::FormatObject(ValueObject *valobj,
     Value &value(valobj->GetValue());
     const Value::ContextType context_type = value.GetContextType();
     ExecutionContext exe_ctx(valobj->GetExecutionContextRef());
-    DataExtractor data;
+    
 
-    if (context_type == Value::ContextType::RegisterInfo) {
-      const RegisterInfo *reg_info = value.GetRegisterInfo();
-      if (reg_info) {
+    if (DataExtractor data; context_type == Value::ContextType::RegisterInfo) {
+      
+      if (const RegisterInfo *reg_info = value.GetRegisterInfo(); reg_info) {
         Status error;
         valobj->GetData(data, error);
         if (error.Fail())
@@ -63,19 +63,19 @@ bool TypeFormatImpl_Format::FormatObject(ValueObject *valobj,
         dest = std::string(reg_sstr.GetString());
       }
     } else {
-      CompilerType compiler_type = value.GetCompilerType();
-      if (compiler_type) {
+      
+      if (CompilerType compiler_type = value.GetCompilerType(); compiler_type) {
         // put custom bytes to display in the DataExtractor to override the
         // default value logic
         if (GetFormat() == eFormatCString) {
-          lldb_private::Flags type_flags(compiler_type.GetTypeInfo(
-              nullptr)); // disambiguate w.r.t. TypeFormatImpl::Flags
-          if (type_flags.Test(eTypeIsPointer) &&
+          // disambiguate w.r.t. TypeFormatImpl::Flags
+          if (lldb_private::Flags type_flags(compiler_type.GetTypeInfo(
+              nullptr)); type_flags.Test(eTypeIsPointer) &&
               !type_flags.Test(eTypeIsObjC)) {
             // if we are dumping a pointer as a c-string, get the pointee data
             // as a string
-            TargetSP target_sp(valobj->GetTargetSP());
-            if (target_sp) {
+            
+            if (TargetSP target_sp(valobj->GetTargetSP()); target_sp) {
               size_t max_len = target_sp->GetMaximumSizeOfStringSummary();
               Status error;
               WritableDataBufferSP buffer_sp(

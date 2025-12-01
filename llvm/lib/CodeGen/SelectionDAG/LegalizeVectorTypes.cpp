@@ -1796,8 +1796,8 @@ void DAGTypeLegalizer::SplitVecRes_INSERT_SUBVECTOR(SDNode *N, SDValue &Lo,
 
   if (getTypeAction(SubVecVT) == TargetLowering::TypeWidenVector &&
       Vec.isUndef() && SubVecVT.getVectorElementType() == MVT::i1) {
-    SDValue WideSubVec = GetWidenedVector(SubVec);
-    if (WideSubVec.getValueType() == VecVT) {
+    
+    if (SDValue WideSubVec = GetWidenedVector(SubVec); WideSubVec.getValueType() == VecVT) {
       std::tie(Lo, Hi) = DAG.SplitVector(WideSubVec, SDLoc(WideSubVec));
       return;
     }
@@ -1846,8 +1846,8 @@ void DAGTypeLegalizer::SplitVecRes_FPOp_MultiType(SDNode *N, SDValue &Lo,
 
   SDValue RHSLo, RHSHi;
   SDValue RHS = N->getOperand(1);
-  EVT RHSVT = RHS.getValueType();
-  if (RHSVT.isVector()) {
+  
+  if (EVT RHSVT = RHS.getValueType(); RHSVT.isVector()) {
     if (getTypeAction(RHSVT) == TargetLowering::TypeSplitVector)
       GetSplitVector(RHS, RHSLo, RHSHi);
     else
@@ -2009,8 +2009,8 @@ SDValue DAGTypeLegalizer::UnrollVectorOp_StrictFP(SDNode *N, unsigned ResNE) {
     Operands[0] = Chain;
     for (unsigned j = 1, e = N->getNumOperands(); j != e; ++j) {
       SDValue Operand = N->getOperand(j);
-      EVT OperandVT = Operand.getValueType();
-      if (OperandVT.isVector()) {
+      
+      if (EVT OperandVT = Operand.getValueType(); OperandVT.isVector()) {
         EVT OperandEltVT = OperandVT.getVectorElementType();
         Operands[j] = DAG.getExtractVectorElt(dl, OperandEltVT, Operand, i);
       } else {
@@ -2926,8 +2926,8 @@ void DAGTypeLegalizer::SplitVecRes_VECTOR_SHUFFLE(ShuffleVectorSDNode *N,
     for (unsigned I = 0; I < NewElts; ++I) {
       if (Mask[I] == PoisonMaskElem)
         continue;
-      unsigned Idx = Mask[I];
-      if (Idx >= NewElts)
+      
+      if (unsigned Idx = Mask[I]; Idx >= NewElts)
         Ops[I] = Input2.getOperand(Idx - NewElts);
       else
         Ops[I] = Input1.getOperand(Idx);
@@ -2949,8 +2949,8 @@ void DAGTypeLegalizer::SplitVecRes_VECTOR_SHUFFLE(ShuffleVectorSDNode *N,
     MapVector<std::pair<SDValue, SDValue>, SmallVector<unsigned>> ShufflesIdxs;
     for (unsigned Idx = 0; Idx < std::size(Inputs); ++Idx) {
       SDValue Input = Inputs[Idx];
-      auto *Shuffle = dyn_cast<ShuffleVectorSDNode>(Input.getNode());
-      if (!Shuffle ||
+      
+      if (auto *Shuffle = dyn_cast<ShuffleVectorSDNode>(Input.getNode()); !Shuffle ||
           Input.getOperand(0).getValueType() != Input.getValueType())
         continue;
       ShufflesIdxs[std::make_pair(Input.getOperand(0), Input.getOperand(1))]
@@ -3074,8 +3074,8 @@ void DAGTypeLegalizer::SplitVecRes_VECTOR_SHUFFLE(ShuffleVectorSDNode *N,
           for (int &Idx : Mask) {
             if (Idx == PoisonMaskElem)
               continue;
-            unsigned SrcRegIdx = Idx / NewElts;
-            if (SrcRegIdx != I)
+            
+            if (unsigned SrcRegIdx = Idx / NewElts; SrcRegIdx != I)
               continue;
             int MaskElt = Shuffle->getMaskElt(Idx % NewElts);
             if (MaskElt == PoisonMaskElem) {
@@ -3107,8 +3107,8 @@ void DAGTypeLegalizer::SplitVecRes_VECTOR_SHUFFLE(ShuffleVectorSDNode *N,
             for (int &Idx : Mask) {
               if (Idx == PoisonMaskElem)
                 continue;
-              unsigned SrcRegIdx = Idx / NewElts;
-              if (SrcRegIdx != I)
+              
+              if (unsigned SrcRegIdx = Idx / NewElts; SrcRegIdx != I)
                 continue;
               int MaskElt = Shuffle->getMaskElt(Idx % NewElts);
               if (MaskElt == PoisonMaskElem) {
@@ -4797,8 +4797,8 @@ void DAGTypeLegalizer::ReplaceOtherWidenResults(SDNode *N, SDNode *WidenNode,
   for (unsigned ResNo = 0; ResNo < NumResults; ResNo++) {
     if (ResNo == WidenResNo)
       continue;
-    EVT ResVT = N->getValueType(ResNo);
-    if (getTypeAction(ResVT) == TargetLowering::TypeWidenVector) {
+    
+    if (EVT ResVT = N->getValueType(ResNo); getTypeAction(ResVT) == TargetLowering::TypeWidenVector) {
       SetWidenedVector(SDValue(N, ResNo), SDValue(WidenNode, ResNo));
     } else {
       SDLoc DL(N);
@@ -5678,8 +5678,8 @@ SDValue DAGTypeLegalizer::WidenVecRes_Convert(SDNode *N) {
   // necessary.
   unsigned MinElts = N->getValueType(0).getVectorNumElements();
   for (unsigned i=0; i < MinElts; ++i) {
-    SDValue Val = DAG.getExtractVectorElt(DL, InEltVT, InOp, i);
-    if (N->getNumOperands() == 1)
+    
+    if (SDValue Val = DAG.getExtractVectorElt(DL, InEltVT, InOp, i); N->getNumOperands() == 1)
       Ops[i] = DAG.getNode(Opcode, DL, EltVT, Val, Flags);
     else
       Ops[i] = DAG.getNode(Opcode, DL, EltVT, Val, N->getOperand(1), Flags);
@@ -5992,9 +5992,9 @@ SDValue DAGTypeLegalizer::WidenVecRes_BITCAST(SDNode *N) {
 
   unsigned WidenSize = WidenVT.getSizeInBits();
   unsigned InSize = InVT.getSizeInBits();
-  unsigned InScalarSize = InVT.getScalarSizeInBits();
+  
   // x86mmx is not an acceptable vector element type, so don't try.
-  if (WidenSize % InScalarSize == 0 && InVT != MVT::x86mmx) {
+  if (unsigned InScalarSize = InVT.getScalarSizeInBits(); WidenSize % InScalarSize == 0 && InVT != MVT::x86mmx) {
     // Determine new input vector type.  The new input vector type will use
     // the same element type (if its a vector) or use the input type as a
     // vector.  It is the same size as the type to widen to.
@@ -6084,8 +6084,8 @@ SDValue DAGTypeLegalizer::WidenVecRes_CONCAT_VECTORS(SDNode *N) {
   bool InputWidened = false; // Indicates we need to widen the input.
   if (getTypeAction(InVT) != TargetLowering::TypeWidenVector) {
     unsigned WidenNumElts = WidenVT.getVectorMinNumElements();
-    unsigned NumInElts = InVT.getVectorMinNumElements();
-    if (WidenNumElts % NumInElts == 0) {
+    
+    if (unsigned NumInElts = InVT.getVectorMinNumElements(); WidenNumElts % NumInElts == 0) {
       // Add undef vectors to widen to correct length.
       unsigned NumConcat = WidenNumElts / NumInElts;
       SDValue UndefVal = DAG.getPOISON(InVT);
@@ -6170,8 +6170,8 @@ SDValue DAGTypeLegalizer::WidenVecRes_EXTRACT_SUBVECTOR(SDNode *N) {
   SDValue Idx = N->getOperand(1);
   SDLoc dl(N);
 
-  auto InOpTypeAction = getTypeAction(InOp.getValueType());
-  if (InOpTypeAction == TargetLowering::TypeWidenVector)
+  
+  if (auto InOpTypeAction = getTypeAction(InOp.getValueType()); InOpTypeAction == TargetLowering::TypeWidenVector)
     InOp = GetWidenedVector(InOp);
 
   EVT InVT = InOp.getValueType();
@@ -6643,8 +6643,8 @@ SDValue DAGTypeLegalizer::convertMask(SDValue InMask, EVT MaskVT,
   // extend or truncate is needed.
   LLVMContext &Ctx = *DAG.getContext();
   unsigned MaskScalarBits = MaskVT.getScalarSizeInBits();
-  unsigned ToMaskScalBits = ToMaskVT.getScalarSizeInBits();
-  if (MaskScalarBits < ToMaskScalBits) {
+  
+  if (unsigned ToMaskScalBits = ToMaskVT.getScalarSizeInBits(); MaskScalarBits < ToMaskScalBits) {
     EVT ExtVT = EVT::getVectorVT(Ctx, ToMaskVT.getVectorElementType(),
                                  MaskVT.getVectorNumElements());
     Mask = DAG.getNode(ISD::SIGN_EXTEND, SDLoc(Mask), ExtVT, Mask);
@@ -6720,8 +6720,8 @@ SDValue DAGTypeLegalizer::WidenVSELECTMask(SDNode *N) {
     EVT SetCCOpVT = getSETCCOperandType(Cond);
     while (TLI.getTypeAction(Ctx, SetCCOpVT) != TargetLowering::TypeLegal)
       SetCCOpVT = TLI.getTypeToTransformTo(Ctx, SetCCOpVT);
-    EVT SetCCResVT = getSetCCResultType(SetCCOpVT);
-    if (SetCCResVT.getScalarSizeInBits() == 1)
+    
+    if (EVT SetCCResVT = getSetCCResultType(SetCCOpVT); SetCCResVT.getScalarSizeInBits() == 1)
       return SDValue();
   } else if (CondVT.getScalarType() == MVT::i1) {
     // If there is support for an i1 vector mask (or only scalar i1 conditions),
@@ -6763,8 +6763,8 @@ SDValue DAGTypeLegalizer::WidenVSELECTMask(SDNode *N) {
     // other to ToMaskVT.
     if (ScalarBits0 != ScalarBits1) {
       EVT NarrowVT = ((ScalarBits0 < ScalarBits1) ? VT0 : VT1);
-      EVT WideVT = ((NarrowVT == VT0) ? VT1 : VT0);
-      if (ScalarBits_ToMask >= WideVT.getScalarSizeInBits())
+      
+      if (EVT WideVT = ((NarrowVT == VT0) ? VT1 : VT0); ScalarBits_ToMask >= WideVT.getScalarSizeInBits())
         MaskVT = WideVT;
       else if (ScalarBits_ToMask <= NarrowVT.getScalarSizeInBits())
         MaskVT = NarrowVT;
@@ -6858,8 +6858,8 @@ SDValue DAGTypeLegalizer::WidenVecRes_VECTOR_SHUFFLE(ShuffleVectorSDNode *N) {
   // Adjust mask based on new input vector length.
   SmallVector<int, 16> NewMask(WidenNumElts, -1);
   for (unsigned i = 0; i != NumElts; ++i) {
-    int Idx = N->getMaskElt(i);
-    if (Idx < (int)NumElts)
+    
+    if (int Idx = N->getMaskElt(i); Idx < (int)NumElts)
       NewMask[i] = Idx;
     else
       NewMask[i] = Idx - NumElts + WidenNumElts;
@@ -7189,8 +7189,8 @@ SDValue DAGTypeLegalizer::WidenVecOp_EXTEND(SDNode *N) {
   if (InVT.getSizeInBits() != VT.getSizeInBits()) {
     EVT InEltVT = InVT.getVectorElementType();
     for (EVT FixedVT : MVT::vector_valuetypes()) {
-      EVT FixedEltVT = FixedVT.getVectorElementType();
-      if (TLI.isTypeLegal(FixedVT) &&
+      
+      if (EVT FixedEltVT = FixedVT.getVectorElementType(); TLI.isTypeLegal(FixedVT) &&
           FixedVT.getSizeInBits() == VT.getSizeInBits() &&
           FixedEltVT == InEltVT) {
         assert(FixedVT.getVectorNumElements() >= VT.getVectorNumElements() &&
@@ -7381,8 +7381,8 @@ SDValue DAGTypeLegalizer::WidenVecOp_BITCAST(SDNode *N) {
   if (!VT.isVector() && VT != MVT::x86mmx &&
       InWidenSize.hasKnownScalarFactor(Size)) {
     unsigned NewNumElts = InWidenSize.getKnownScalarFactor(Size);
-    EVT NewVT = EVT::getVectorVT(*DAG.getContext(), VT, NewNumElts);
-    if (TLI.isTypeLegal(NewVT)) {
+    
+    if (EVT NewVT = EVT::getVectorVT(*DAG.getContext(), VT, NewNumElts); TLI.isTypeLegal(NewVT)) {
       SDValue BitOp = DAG.getNode(ISD::BITCAST, dl, NewVT, InOp);
       return DAG.getExtractVectorElt(dl, VT, BitOp, 0);
     }
@@ -7394,13 +7394,13 @@ SDValue DAGTypeLegalizer::WidenVecOp_BITCAST(SDNode *N) {
   // having to copy via memory.
   if (VT.isVector()) {
     EVT EltVT = VT.getVectorElementType();
-    unsigned EltSize = EltVT.getFixedSizeInBits();
-    if (InWidenSize.isKnownMultipleOf(EltSize)) {
+    
+    if (unsigned EltSize = EltVT.getFixedSizeInBits(); InWidenSize.isKnownMultipleOf(EltSize)) {
       ElementCount NewNumElts =
           (InWidenVT.getVectorElementCount() * InWidenVT.getScalarSizeInBits())
               .divideCoefficientBy(EltSize);
-      EVT NewVT = EVT::getVectorVT(*DAG.getContext(), EltVT, NewNumElts);
-      if (TLI.isTypeLegal(NewVT)) {
+      
+      if (EVT NewVT = EVT::getVectorVT(*DAG.getContext(), EltVT, NewNumElts); TLI.isTypeLegal(NewVT)) {
         SDValue BitOp = DAG.getNode(ISD::BITCAST, dl, NewVT, InOp);
         return DAG.getExtractSubvector(dl, VT, BitOp, 0);
       }
@@ -7478,11 +7478,11 @@ SDValue DAGTypeLegalizer::WidenVecOp_INSERT_SUBVECTOR(SDNode *N) {
   else if (VT.isScalableVector() && SubVT.isFixedLengthVector()) {
     // Otherwise, if we're inserting a fixed vector into a scalable vector and
     // we know the minimum vscale we can work out if it's valid ourselves.
-    Attribute Attr = DAG.getMachineFunction().getFunction().getFnAttribute(
-        Attribute::VScaleRange);
-    if (Attr.isValid()) {
-      unsigned VScaleMin = Attr.getVScaleRangeMin();
-      if (VT.getSizeInBits().getKnownMinValue() * VScaleMin >=
+    
+    if (Attribute Attr = DAG.getMachineFunction().getFunction().getFnAttribute(
+        Attribute::VScaleRange); Attr.isValid()) {
+      
+      if (unsigned VScaleMin = Attr.getVScaleRangeMin(); VT.getSizeInBits().getKnownMinValue() * VScaleMin >=
           SubVT.getFixedSizeInBits())
         IndicesValid = true;
     }
@@ -8099,8 +8099,8 @@ static std::optional<EVT> findMemType(SelectionDAG &DAG,
     if (Scalable != MemVT.isScalableVector())
       continue;
     unsigned MemVTWidth = MemVT.getSizeInBits().getKnownMinValue();
-    auto Action = TLI.getTypeAction(*DAG.getContext(), MemVT);
-    if ((Action == TargetLowering::TypeLegal ||
+    
+    if (auto Action = TLI.getTypeAction(*DAG.getContext(), MemVT); (Action == TargetLowering::TypeLegal ||
          Action == TargetLowering::TypePromoteInteger) &&
         WidenEltVT == MemVT.getVectorElementType() &&
         (WidenWidth % MemVTWidth) == 0 &&
@@ -8430,9 +8430,9 @@ bool DAGTypeLegalizer::GenWidenVectorStores(SmallVectorImpl<SDValue> &StChain,
   for (const auto &Pair : MemVTs) {
     EVT NewVT = Pair.first;
     unsigned Count = Pair.second;
-    TypeSize NewVTWidth = NewVT.getSizeInBits();
+    
 
-    if (NewVT.isVector()) {
+    if (TypeSize NewVTWidth = NewVT.getSizeInBits(); NewVT.isVector()) {
       unsigned NumVTElts = NewVT.getVectorMinNumElements();
       do {
         Align NewAlign = ScaledOffset == 0

@@ -318,8 +318,8 @@ LogicalResult UniformQuantizedType::verifyInvariants(
 
   // Verify scale.
   double minScale = getMinScale(expressedType);
-  double maxScale = getMaxScale(expressedType);
-  if (scale < minScale || scale > maxScale)
+  
+  if (double maxScale = getMaxScale(expressedType); scale < minScale || scale > maxScale)
     return emitError() << "scale out of expressed type range [" << minScale
                        << ", " << maxScale << "]";
 

@@ -34,8 +34,8 @@ void MisplacedArrayIndexCheck::check(const MatchFinder::MatchResult &Result) {
 
   // Only try to fixit when LHS and RHS can be swapped directly without changing
   // the logic.
-  const Expr *RHSE = ArraySubscriptE->getRHS()->IgnoreParenImpCasts();
-  if (!isa<StringLiteral>(RHSE) && !isa<DeclRefExpr>(RHSE) &&
+  
+  if (const Expr *RHSE = ArraySubscriptE->getRHS()->IgnoreParenImpCasts(); !isa<StringLiteral>(RHSE) && !isa<DeclRefExpr>(RHSE) &&
       !isa<MemberExpr>(RHSE))
     return;
 

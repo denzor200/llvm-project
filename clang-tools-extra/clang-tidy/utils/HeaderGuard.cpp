@@ -32,8 +32,8 @@ public:
                    FileID PrevFID) override {
     // Record all files we enter. We'll need them to diagnose headers without
     // guards.
-    const SourceManager &SM = PP->getSourceManager();
-    if (Reason == EnterFile && FileType == SrcMgr::C_User) {
+    
+    if (const SourceManager &SM = PP->getSourceManager(); Reason == EnterFile && FileType == SrcMgr::C_User) {
       if (OptionalFileEntryRef FE =
               SM.getFileEntryRefForID(SM.getFileID(Loc))) {
         const std::string FileName = cleanPath(FE->getName());
@@ -162,11 +162,11 @@ public:
                                          std::vector<FixItHint> &FixIts) {
     std::string CPPVar = Check->getHeaderGuard(FileName, CurHeaderGuard);
     CPPVar = Check->sanitizeHeaderGuard(CPPVar);
-    const std::string CPPVarUnder = CPPVar + '_';
+    
 
     // Allow a trailing underscore if and only if we don't have to change the
     // endif comment too.
-    if (Ifndef.isValid() && CurHeaderGuard != CPPVar &&
+    if (const std::string CPPVarUnder = CPPVar + '_'; Ifndef.isValid() && CurHeaderGuard != CPPVar &&
         (CurHeaderGuard != CPPVarUnder ||
          wouldFixEndifComment(FileName, EndIf, CurHeaderGuard))) {
       FixIts.push_back(FixItHint::CreateReplacement(
@@ -187,8 +187,8 @@ public:
   void checkEndifComment(StringRef FileName, SourceLocation EndIf,
                          StringRef HeaderGuard,
                          std::vector<FixItHint> &FixIts) {
-    size_t EndIfLen = 0;
-    if (wouldFixEndifComment(FileName, EndIf, HeaderGuard, &EndIfLen)) {
+    
+    if (size_t EndIfLen = 0; wouldFixEndifComment(FileName, EndIf, HeaderGuard, &EndIfLen)) {
       FixIts.push_back(FixItHint::CreateReplacement(
           CharSourceRange::getCharRange(EndIf,
                                         EndIf.getLocWithOffset(EndIfLen)),
@@ -225,8 +225,8 @@ public:
       bool SeenMacro = false;
       for (const auto &MacroEntry : Macros) {
         const StringRef Name = MacroEntry.first.getIdentifierInfo()->getName();
-        const SourceLocation DefineLoc = MacroEntry.first.getLocation();
-        if ((Name == CPPVar || Name == CPPVarUnder) &&
+        
+        if (const SourceLocation DefineLoc = MacroEntry.first.getLocation(); (Name == CPPVar || Name == CPPVarUnder) &&
             SM.isWrittenInSameFile(StartLoc, DefineLoc)) {
           Check->diag(DefineLoc, "code/includes outside of area guarded by "
                                  "header guard; consider moving it");

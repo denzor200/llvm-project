@@ -980,8 +980,8 @@ lldb_private::formatters::NSDictionary1SyntheticFrontEnd::
 
 llvm::Expected<size_t> lldb_private::formatters::
     NSDictionary1SyntheticFrontEnd::GetIndexOfChildWithName(ConstString name) {
-  static const ConstString g_zero("[0]");
-  if (name == g_zero)
+  
+  if (static const ConstString g_zero("[0]"); name == g_zero)
     return 0;
   return llvm::createStringError("Type has no child named '%s'",
                                  name.AsCString());

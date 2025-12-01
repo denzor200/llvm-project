@@ -67,9 +67,9 @@ struct TestOneShotModuleBufferizePass
                               tensorType.getElementType(), layout, memSpace));
         };
 
-    bufferization::BufferizationState bufferizationState;
+    
 
-    if (failed(bufferization::runOneShotModuleBufferize(getOperation(), opt,
+    if (bufferization::BufferizationState bufferizationState; failed(bufferization::runOneShotModuleBufferize(getOperation(), opt,
                                                         bufferizationState)))
       signalPassFailure();
   }

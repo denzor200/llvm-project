@@ -32,8 +32,8 @@ using namespace lldb_private;
 
 /// Common completion logic for log enable/disable.
 static void CompleteEnableDisable(CompletionRequest &request) {
-  size_t arg_index = request.GetCursorIndex();
-  if (arg_index == 0) { // We got: log enable/disable x[tab]
+  
+  if (size_t arg_index = request.GetCursorIndex(); arg_index == 0) { // We got: log enable/disable x[tab]
     for (llvm::StringRef channel : Log::ListChannels())
       request.TryCompleteCurrentArg(channel);
   } else if (arg_index >= 1) { // We got: log enable/disable channel x[tab]
@@ -88,9 +88,9 @@ public:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'f':
         log_file.SetFile(option_arg, FileSpec::Style::native);
         FileSystem::Instance().Resolve(log_file);
@@ -337,9 +337,9 @@ public:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'f':
         log_file.SetFile(option_arg, FileSpec::Style::native);
         FileSystem::Instance().Resolve(log_file);
@@ -432,8 +432,8 @@ protected:
       Timer::SetDisplayDepth(UINT32_MAX);
       result.SetStatus(eReturnStatusSuccessFinishNoResult);
     } else if (args.GetArgumentCount() == 1) {
-      uint32_t depth;
-      if (args[0].ref().consumeInteger(0, depth)) {
+      
+      if (uint32_t depth; args[0].ref().consumeInteger(0, depth)) {
         result.AppendError(
             "Could not convert enable depth to an unsigned integer.");
       } else {
@@ -540,10 +540,10 @@ protected:
 
     if (args.GetArgumentCount() == 1) {
       bool success;
-      bool increment =
-          OptionArgParser::ToBoolean(args[0].ref(), false, &success);
+      
 
-      if (success) {
+      if (bool increment =
+          OptionArgParser::ToBoolean(args[0].ref(), false, &success); success) {
         Timer::SetQuiet(!increment);
         result.SetStatus(eReturnStatusSuccessFinishNoResult);
       } else

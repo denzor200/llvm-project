@@ -129,8 +129,8 @@ static Environment ComputeLaunchEnvironment(Environment target,
   for (const auto &KV : target) {
     // If the host value differs from the target (or is unset), then set it
     // through QEMU_SET_ENV. Identical entries will be forwarded automatically.
-    auto host_it = host.find(KV.first());
-    if (host_it == host.end() || host_it->second != KV.second)
+    
+    if (auto host_it = host.find(KV.first()); host_it == host.end() || host_it->second != KV.second)
       set_env.push_back(Environment::compose(KV));
   }
   llvm::sort(set_env);

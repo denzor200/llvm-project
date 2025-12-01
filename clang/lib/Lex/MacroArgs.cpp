@@ -234,8 +234,8 @@ Token MacroArgs::StringifyArgument(const Token *ArgToks,
         Tok.is(tok::utf16_char_constant) ||    // u'x'.
         Tok.is(tok::utf32_char_constant)) {    // U'x'.
       bool Invalid = false;
-      std::string TokStr = PP.getSpelling(Tok, &Invalid);
-      if (!Invalid) {
+      
+      if (std::string TokStr = PP.getSpelling(Tok, &Invalid); !Invalid) {
         std::string Str = Lexer::Stringify(TokStr);
         Result.append(Str.begin(), Str.end());
       }
@@ -248,9 +248,9 @@ Token MacroArgs::StringifyArgument(const Token *ArgToks,
       Result.resize(CurStrLen+Tok.getLength());
       const char *BufPtr = Result.data() + CurStrLen;
       bool Invalid = false;
-      unsigned ActualTokLen = PP.getSpelling(Tok, BufPtr, &Invalid);
+      
 
-      if (!Invalid) {
+      if (unsigned ActualTokLen = PP.getSpelling(Tok, BufPtr, &Invalid); !Invalid) {
         // If getSpelling returned a pointer to an already uniqued version of
         // the string instead of filling in BufPtr, memcpy it onto our string.
         if (ActualTokLen && BufPtr != &Result[CurStrLen])

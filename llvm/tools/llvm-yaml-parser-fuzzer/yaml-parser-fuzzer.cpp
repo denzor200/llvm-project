@@ -38,13 +38,13 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
   // Ensure we don't crash on byte strings with no null characters, but with
   // an invalid character one-past-the-end of the actual input to the parser.
   Input.back() = 1;
-  bool IsValidWhen1Terminated = isValidYaml(Input.data(), Input.size() - 1);
+  
 
   // The parser should either accept all of these inputs, or reject all of
   // them, because the parser sees an identical byte string in each case. This
   // should hopefully catch some cases where the parser is sensitive to what is
   // present one-past-the-end of the actual input.
-  if (IsValidWithout0s != IsValidWhen0Terminated ||
+  if (bool IsValidWhen1Terminated = isValidYaml(Input.data(), Input.size() - 1); IsValidWithout0s != IsValidWhen0Terminated ||
       IsValidWhen0Terminated != IsValidWhen1Terminated)
     LLVM_BUILTIN_TRAP;
 

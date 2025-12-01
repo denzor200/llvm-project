@@ -42,8 +42,8 @@ bool LoopInversionPass::runOnFunction(BinaryFunction &BF) {
     BinaryBasicBlock *SuccBB = *BB->succ_begin();
     BinaryBasicBlock *PredBB = *BB->pred_begin();
     const unsigned BBIndex = BB->getLayoutIndex();
-    const unsigned SuccBBIndex = SuccBB->getLayoutIndex();
-    if (SuccBB == PredBB && BB != SuccBB && BBIndex != 0 && SuccBBIndex != 0 &&
+    
+    if (const unsigned SuccBBIndex = SuccBB->getLayoutIndex(); SuccBB == PredBB && BB != SuccBB && BBIndex != 0 && SuccBBIndex != 0 &&
         SuccBB->succ_size() == 2 &&
         BB->getFragmentNum() == SuccBB->getFragmentNum()) {
       // Get the second successor (after loop BB)
@@ -57,9 +57,9 @@ bool LoopInversionPass::runOnFunction(BinaryFunction &BF) {
 
       assert(SecondSucc != nullptr && "Unable to find a second BB successor");
       const uint64_t LoopCount = SuccBB->getBranchInfo(*BB).Count;
-      const uint64_t ExitCount = SuccBB->getBranchInfo(*SecondSucc).Count;
+      
 
-      if (LoopCount < ExitCount) {
+      if (const uint64_t ExitCount = SuccBB->getBranchInfo(*SecondSucc).Count; LoopCount < ExitCount) {
         if (BBIndex > SuccBBIndex)
           continue;
       } else if (BBIndex < SuccBBIndex) {

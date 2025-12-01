@@ -520,8 +520,8 @@ static const Target *getTarget(const ObjectFile *Obj) {
     TheTriple = Obj->makeTriple();
   } else {
     TheTriple.setTriple(Triple::normalize(TripleName));
-    auto Arch = Obj->getArch();
-    if (Arch == Triple::arm || Arch == Triple::armeb)
+    
+    if (auto Arch = Obj->getArch(); Arch == Triple::arm || Arch == Triple::armeb)
       Obj->setARMSubArch(TheTriple);
   }
 
@@ -582,8 +582,8 @@ static bool getHidden(RelocationRef RelRef) {
     if (Type == MachO::X86_64_RELOC_UNSIGNED && Rel.d.a > 0) {
       DataRefImpl RelPrev = Rel;
       RelPrev.d.a--;
-      uint64_t PrevType = MachO->getRelocationType(RelPrev);
-      if (PrevType == MachO::X86_64_RELOC_SUBTRACTOR)
+      
+      if (uint64_t PrevType = MachO->getRelocationType(RelPrev); PrevType == MachO::X86_64_RELOC_SUBTRACTOR)
         return true;
     }
   }
@@ -1272,8 +1272,8 @@ addDynamicElfSymbols(const ELFObjectFileBase &Obj,
 
 static std::optional<SectionRef> getWasmCodeSection(const WasmObjectFile &Obj) {
   for (auto SecI : Obj.sections()) {
-    const WasmSection &Section = Obj.getWasmSection(SecI);
-    if (Section.Type == wasm::WASM_SEC_CODE)
+    
+    if (const WasmSection &Section = Obj.getWasmSection(SecI); Section.Type == wasm::WASM_SEC_CODE)
       return SecI;
   }
   return std::nullopt;
@@ -1334,8 +1334,8 @@ static void addPltEntries(const MCSubtargetInfo &STI, const ObjectFile &Obj,
   for (auto Plt : ElfObj->getPltEntries(STI)) {
     if (Plt.Symbol) {
       SymbolRef Symbol(*Plt.Symbol, ElfObj);
-      uint8_t SymbolType = getElfSymbolType(Obj, Symbol);
-      if (Expected<StringRef> NameOrErr = Symbol.getName()) {
+      
+      if (Expected<StringRef> uint8_t SymbolType = getElfSymbolType(Obj, Symbol); NameOrErr = Symbol.getName()) {
         if (!NameOrErr->empty())
           AllSymbols[SectionNames[Plt.Section]].emplace_back(
               Plt.Address, Saver.save((*NameOrErr + "@plt").str()), SymbolType);
@@ -1401,8 +1401,8 @@ getRelocsMap(object::ObjectFile const &Obj) {
 // because they are not loadable.
 // TODO: implement for other file formats.
 static bool shouldAdjustVA(const SectionRef &Section) {
-  const ObjectFile *Obj = Section.getObject();
-  if (Obj->isELF())
+  
+  if (const ObjectFile *Obj = Section.getObject(); Obj->isELF())
     return ELFSectionRef(Section).getFlags() & ELF::SHF_ALLOC;
   return false;
 }
@@ -1489,9 +1489,9 @@ SymbolInfoTy objdump::createSymbolInfo(const ObjectFile &Obj,
                                        bool IsMappingSymbol) {
   const StringRef FileName = Obj.getFileName();
   const uint64_t Addr = unwrapOrError(Symbol.getAddress(), FileName);
-  const StringRef Name = unwrapOrError(Symbol.getName(), FileName);
+  
 
-  if (Obj.isXCOFF() && (SymbolDescription || TracebackTable)) {
+  if (const StringRef Name = unwrapOrError(Symbol.getName(), FileName); Obj.isXCOFF() && (SymbolDescription || TracebackTable)) {
     const auto &XCOFFObj = cast<XCOFFObjectFile>(Obj);
     DataRefImpl SymbolDRI = Symbol.getRawDataRefImpl();
 
@@ -1570,8 +1570,8 @@ collectLocalBranchTargets(ArrayRef<uint8_t> Bytes, MCInstrAnalysis *MIA,
   const bool isPPC = STI->getTargetTriple().isPPC();
   const bool isX86 = STI->getTargetTriple().isX86();
   const bool isAArch64 = STI->getTargetTriple().isAArch64();
-  const bool isBPF = STI->getTargetTriple().isBPF();
-  if (!isPPC && !isX86 && !isAArch64 && !isBPF)
+  
+  if (const bool isBPF = STI->getTargetTriple().isBPF(); !isPPC && !isX86 && !isAArch64 && !isBPF)
     return;
 
   if (MIA)
@@ -1595,8 +1595,8 @@ collectLocalBranchTargets(ArrayRef<uint8_t> Bytes, MCInstrAnalysis *MIA,
     if (MIA) {
       if (Disassembled) {
         uint64_t Target;
-        bool TargetKnown = MIA->evaluateBranch(Inst, Index, Size, Target);
-        if (TargetKnown && (Target >= Start && Target < End) &&
+        
+        if (bool TargetKnown = MIA->evaluateBranch(Inst, Index, Size, Target); TargetKnown && (Target >= Start && Target < End) &&
             !Targets.count(Target)) {
           // On PowerPC and AIX, a function call is encoded as a branch to 0.
           // On other PowerPC platforms (ELF), a function call is encoded as
@@ -1730,8 +1730,8 @@ disassembleObject(ObjectFile &Obj, const ObjectFile &DbgObj,
       PrimaryIsThumb =
           PrimaryTarget.SubtargetInfo->checkFeatures("+thumb-mode");
     } else if (const auto *COFFObj = dyn_cast<COFFObjectFile>(&Obj)) {
-      const chpe_metadata *CHPEMetadata = COFFObj->getCHPEMetadata();
-      if (CHPEMetadata && CHPEMetadata->CodeMapCount) {
+      
+      if (const chpe_metadata *CHPEMetadata = COFFObj->getCHPEMetadata(); CHPEMetadata && CHPEMetadata->CodeMapCount) {
         uintptr_t CodeMapInt;
         cantFail(COFFObj->getRvaPtr(CHPEMetadata->CodeMap, CodeMapInt));
         auto CodeMap = reinterpret_cast<const chpe_range_entry *>(CodeMapInt);
@@ -1781,12 +1781,12 @@ disassembleObject(ObjectFile &Obj, const ObjectFile &DbgObj,
       // not be printed in disassembly listing.
       if (getElfSymbolType(Obj, Symbol) != ELF::STT_SECTION &&
           hasMappingSymbols(Obj)) {
-        section_iterator SecI = unwrapOrError(Symbol.getSection(), FileName);
-        if (SecI != Obj.section_end()) {
+        
+        if (section_iterator SecI = unwrapOrError(Symbol.getSection(), FileName); SecI != Obj.section_end()) {
           uint64_t SectionAddr = SecI->getAddress();
           uint64_t Address = cantFail(Symbol.getAddress());
-          StringRef Name = *NameOrErr;
-          if (Name.consume_front("$") && Name.size() &&
+          
+          if (StringRef Name = *NameOrErr; Name.consume_front("$") && Name.size() &&
               strchr("adtx", Name[0])) {
             AllMappingSymbols[*SecI].emplace_back(Address - SectionAddr,
                                                   Name[0]);
@@ -2000,10 +2000,10 @@ disassembleObject(ObjectFile &Obj, const ObjectFile &DbgObj,
       }
     }
     if (CreateDummy) {
-      SymbolInfoTy Sym = createDummySymbolInfo(
+      
+      if (SymbolInfoTy Sym = createDummySymbolInfo(
           Obj, SectionAddr, SectionName,
-          Section.isText() ? ELF::STT_FUNC : ELF::STT_OBJECT);
-      if (Obj.isXCOFF())
+          Section.isText() ? ELF::STT_FUNC : ELF::STT_OBJECT); Obj.isXCOFF())
         Symbols.insert(Symbols.begin(), Sym);
       else
         Symbols.insert(llvm::lower_bound(Symbols, Sym), Sym);
@@ -2082,8 +2082,8 @@ disassembleObject(ObjectFile &Obj, const ObjectFile &DbgObj,
         DisassembleAsELFData = true; // unless we find a code symbol below
 
         for (size_t i = 0; i < SymbolsHere.size(); ++i) {
-          uint8_t SymTy = SymbolsHere[i].Type;
-          if (SymTy != ELF::STT_OBJECT && SymTy != ELF::STT_COMMON) {
+          
+          if (uint8_t SymTy = SymbolsHere[i].Type; SymTy != ELF::STT_OBJECT && SymTy != ELF::STT_COMMON) {
             DisassembleAsELFData = false;
             DisplaySymIndex = i;
           }
@@ -2249,8 +2249,8 @@ disassembleObject(ObjectFile &Obj, const ObjectFile &DbgObj,
 
       // Skip relocations from symbols that are not dumped.
       for (; RelCur != RelEnd; ++RelCur) {
-        uint64_t Offset = RelCur->getOffset() - RelAdjustment;
-        if (Index <= Offset)
+        
+        if (uint64_t Offset = RelCur->getOffset() - RelAdjustment; Index <= Offset)
           break;
       }
 
@@ -2293,12 +2293,12 @@ disassembleObject(ObjectFile &Obj, const ObjectFile &DbgObj,
           }
         } else if (!CHPECodeMap.empty()) {
           uint64_t Address = SectionAddr + Index;
-          auto It = partition_point(
+          
+          if (auto It = partition_point(
               CHPECodeMap,
               [Address](const std::pair<uint64_t, uint64_t> &Entry) {
                 return Entry.first <= Address;
-              });
-          if (It != CHPECodeMap.begin() && Address < (It - 1)->second) {
+              }); It != CHPECodeMap.begin() && Address < (It - 1)->second) {
             DT = &*SecondaryTarget;
           } else {
             DT = &PrimaryTarget;
@@ -2660,9 +2660,9 @@ static void disassembleObject(ObjectFile *Obj, bool InlineRelocs,
     // disassembler read the instructions the right way round, and also tell
     // our own prettyprinter to retrieve the encodings the same way to print in
     // hex.
-    const auto *Elf32BE = dyn_cast<ELF32BEObjectFile>(Obj);
+    
 
-    if (Elf32BE && (Elf32BE->isRelocatableObject() ||
+    if (const auto *Elf32BE = dyn_cast<ELF32BEObjectFile>(Obj); Elf32BE && (Elf32BE->isRelocatableObject() ||
                     !(Elf32BE->getPlatformFlags() & ELF::EF_ARM_BE8))) {
       Features.AddFeature("+big-endian-instructions");
       ARMPrettyPrinterInst.setInstructionEndianness(llvm::endianness::big);
@@ -2688,16 +2688,16 @@ static void disassembleObject(ObjectFile *Obj, bool InlineRelocs,
       SecondaryTarget.emplace(PrimaryTarget, Features);
     }
   } else if (const auto *COFFObj = dyn_cast<COFFObjectFile>(Obj)) {
-    const chpe_metadata *CHPEMetadata = COFFObj->getCHPEMetadata();
-    if (CHPEMetadata && CHPEMetadata->CodeMapCount) {
+    
+    if (const chpe_metadata *CHPEMetadata = COFFObj->getCHPEMetadata(); CHPEMetadata && CHPEMetadata->CodeMapCount) {
       // Set up x86_64 disassembler for ARM64EC binaries.
       Triple X64Triple(TripleName);
       X64Triple.setArch(Triple::ArchType::x86_64);
 
       std::string Error;
-      const Target *X64Target =
-          TargetRegistry::lookupTarget("", X64Triple, Error);
-      if (X64Target) {
+      
+      if (const Target *X64Target =
+          TargetRegistry::lookupTarget("", X64Triple, Error); X64Target) {
         SubtargetFeatures X64Features;
         SecondaryTarget.emplace(X64Target, *Obj, X64Triple.getTriple(), "",
                                 X64Features);
@@ -2778,9 +2778,9 @@ void Dumper::printRelocations() {
       // CREL sections require decoding, each section may have its own specific
       // decode problems.
       if (O.isELF() && ELFSectionRef(Section).getType() == ELF::SHT_CREL) {
-        StringRef Err =
-            cast<const ELFObjectFileBase>(O).getCrelDecodeProblem(Section);
-        if (!Err.empty()) {
+        
+        if (StringRef Err =
+            cast<const ELFObjectFileBase>(O).getCrelDecodeProblem(Section); !Err.empty()) {
           reportUniqueWarning(Err);
           continue;
         }
@@ -3060,28 +3060,28 @@ void Dumper::printSymbol(const SymbolRef &Symbol,
     outs() << "*COM*";
   } else if (Section == O.section_end()) {
     if (O.isXCOFF()) {
-      XCOFFSymbolRef XCOFFSym = cast<const XCOFFObjectFile>(O).toSymbolRef(
-          Symbol.getRawDataRefImpl());
-      if (XCOFF::N_DEBUG == XCOFFSym.getSectionNumber())
+      
+      if (XCOFFSymbolRef XCOFFSym = cast<const XCOFFObjectFile>(O).toSymbolRef(
+          Symbol.getRawDataRefImpl()); XCOFF::N_DEBUG == XCOFFSym.getSectionNumber())
         outs() << "*DEBUG*";
       else
         outs() << "*UND*";
     } else
       outs() << "*UND*";
   } else {
-    StringRef SegmentName = getSegmentName(MachO, *Section);
-    if (!SegmentName.empty())
+    
+    if (StringRef SegmentName = getSegmentName(MachO, *Section); !SegmentName.empty())
       outs() << SegmentName << ",";
     StringRef SectionName = unwrapOrError(Section->getName(), FileName);
     outs() << SectionName;
     if (O.isXCOFF()) {
-      std::optional<SymbolRef> SymRef =
-          getXCOFFSymbolContainingSymbolRef(cast<XCOFFObjectFile>(O), Symbol);
-      if (SymRef) {
+      
+      if (std::optional<SymbolRef> SymRef =
+          getXCOFFSymbolContainingSymbolRef(cast<XCOFFObjectFile>(O), Symbol); SymRef) {
 
-        Expected<StringRef> NameOrErr = SymRef->getName();
+        
 
-        if (NameOrErr) {
+        if (Expected<StringRef> NameOrErr = SymRef->getName(); NameOrErr) {
           outs() << " (csect:";
           std::string SymName =
               Demangle ? demangle(*NameOrErr) : NameOrErr->str();
@@ -3327,8 +3327,8 @@ static void checkForInvalidStartStopAddress(ObjectFile *Obj, uint64_t Start,
   for (const SectionRef &Section : Obj->sections())
     if (ELFSectionRef(Section).getFlags() & ELF::SHF_ALLOC) {
       uint64_t BaseAddr = Section.getAddress();
-      uint64_t Size = Section.getSize();
-      if ((Start < BaseAddr + Size) && Stop > BaseAddr)
+      
+      if (uint64_t Size = Section.getSize(); (Start < BaseAddr + Size) && Stop > BaseAddr)
         return;
     }
 
@@ -3480,9 +3480,9 @@ static void dumpInput(StringRef file) {
 
   // Attempt to open the binary.
   OwningBinary<Binary> OBinary = unwrapOrError(createBinary(file), file);
-  Binary &Binary = *OBinary.getBinary();
+  
 
-  if (Archive *A = dyn_cast<Archive>(&Binary))
+  if (Archive *Binary &Binary = *OBinary.getBinary(); A = dyn_cast<Archive>(&Binary))
     dumpArchive(A);
   else if (ObjectFile *O = dyn_cast<ObjectFile>(&Binary))
     dumpObject(O);
@@ -3498,8 +3498,8 @@ template <typename T>
 static void parseIntArg(const llvm::opt::InputArgList &InputArgs, int ID,
                         T &Value) {
   if (const opt::Arg *A = InputArgs.getLastArg(ID)) {
-    StringRef V(A->getValue());
-    if (!llvm::to_integer(V, Value, 0)) {
+    
+    if (StringRef V(A->getValue()); !llvm::to_integer(V, Value, 0)) {
       reportCmdLineError(A->getSpelling() +
                          ": expected a non-negative integer, but got '" + V +
                          "'");
@@ -3576,8 +3576,8 @@ static void parseOtoolOptions(const llvm::opt::InputArgList &InputArgs) {
     reportCmdLineError("no input file");
 
   for (const Arg *A : InputArgs) {
-    const Option &O = A->getOption();
-    if (O.getGroup().isValid() && O.getGroup().getID() == OTOOL_grp_obsolete) {
+    
+    if (const Option &O = A->getOption(); O.getGroup().isValid() && O.getGroup().getID() == OTOOL_grp_obsolete) {
       reportCmdLineWarning(O.getPrefixedName() +
                            " is obsolete and not implemented");
     }

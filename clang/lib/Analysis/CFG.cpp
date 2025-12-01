@@ -465,8 +465,8 @@ reverse_children::reverse_children(Stmt *S, ASTContext &Ctx) {
     auto *AS = cast<AttributedStmt>(S);
     for (const auto *Attr : AS->getAttrs()) {
       if (const auto *AssumeAttr = dyn_cast<CXXAssumeAttr>(Attr)) {
-        Expr *AssumeExpr = AssumeAttr->getAssumption();
-        if (!AssumeExpr->HasSideEffects(Ctx)) {
+        
+        if (Expr *AssumeExpr = AssumeAttr->getAssumption(); !AssumeExpr->HasSideEffects(Ctx)) {
           childrenBuf.push_back(AssumeExpr);
         }
       }
@@ -767,8 +767,8 @@ private:
                 std::is_base_of_v<ObjCMessageExpr, CallLikeExpr>>>
   void findConstructionContextsForArguments(CallLikeExpr *E) {
     for (unsigned i = 0, e = E->getNumArgs(); i != e; ++i) {
-      Expr *Arg = E->getArg(i);
-      if (Arg->getType()->getAsCXXRecordDecl() && !Arg->isGLValue())
+      
+      if (Expr *Arg = E->getArg(i); Arg->getType()->getAsCXXRecordDecl() && !Arg->isGLValue())
         findConstructionContexts(
             ConstructionContextLayer::create(cfg->getBumpVectorContext(),
                                              ConstructionContextItem(E, i)),
@@ -842,8 +842,8 @@ private:
   }
 
   void appendConstructor(CXXConstructExpr *CE) {
-    CXXConstructorDecl *C = CE->getConstructor();
-    if (C && C->isNoReturn())
+    
+    if (CXXConstructorDecl *C = CE->getConstructor(); C && C->isNoReturn())
       Block = createNoReturnBlock();
     else
       autoCreateBlock();
@@ -1052,14 +1052,14 @@ private:
     if (const auto *UnOp = dyn_cast<UnaryOperator>(E->IgnoreParens())) {
       // Get the sub expression of the unary expression and get the Integer
       // Literal.
-      const Expr *SubExpr = UnOp->getSubExpr()->IgnoreParens();
+      
 
-      if (const auto *IntLiteral = dyn_cast<IntegerLiteral>(SubExpr)) {
+      if (const auto *const Expr *SubExpr = UnOp->getSubExpr()->IgnoreParens(); IntLiteral = dyn_cast<IntegerLiteral>(SubExpr)) {
 
-        llvm::APInt Value = IntLiteral->getValue();
+        
 
         // Perform the operation manually.
-        switch (UnOp->getOpcode()) {
+        switch (llvm::APInt Value = IntLiteral->getValue(); UnOp->getOpcode()) {
         case UO_Plus:
           return Value;
         case UO_Minus:
@@ -1267,9 +1267,9 @@ private:
       // compatible since they are comparing with the same DRE.
       int Order = Context->getFloatingTypeSemanticOrder(NumExpr1->getType(),
                                                         NumExpr2->getType());
-      bool Ignored = false;
+      
 
-      if (Order > 0) {
+      if (bool Ignored = false; Order > 0) {
         // type rank L1 > L2:
         if (llvm::APFloat::opOK !=
             L2.convert(L1.getSemantics(), llvm::APFloat::rmNearestTiesToEven,
@@ -1362,15 +1362,15 @@ private:
             // must be false.
             Expr::EvalResult LHSResult;
             if (Bop->getLHS()->EvaluateAsInt(LHSResult, *Context)) {
-              llvm::APSInt IntVal = LHSResult.Val.getInt();
-              if (!IntVal.getBoolValue()) {
+              
+              if (llvm::APSInt IntVal = LHSResult.Val.getInt(); !IntVal.getBoolValue()) {
                 return TryResult(false);
               }
             }
             Expr::EvalResult RHSResult;
             if (Bop->getRHS()->EvaluateAsInt(RHSResult, *Context)) {
-              llvm::APSInt IntVal = RHSResult.Val.getInt();
-              if (!IntVal.getBoolValue()) {
+              
+              if (llvm::APSInt IntVal = RHSResult.Val.getInt(); !IntVal.getBoolValue()) {
                 return TryResult(false);
               }
             }
@@ -1394,45 +1394,45 @@ private:
           if (LHS.isTrue() == (Bop->getOpcode() == BO_LOr))
             return LHS.isTrue();
 
-          TryResult RHS = tryEvaluateBool(Bop->getRHS());
-          if (RHS.isKnown()) {
+          
+          if (TryResult RHS = tryEvaluateBool(Bop->getRHS()); RHS.isKnown()) {
             if (Bop->getOpcode() == BO_LOr)
               return LHS.isTrue() || RHS.isTrue();
             else
               return LHS.isTrue() && RHS.isTrue();
           }
         } else {
-          TryResult RHS = tryEvaluateBool(Bop->getRHS());
-          if (RHS.isKnown()) {
+          
+          if (TryResult RHS = tryEvaluateBool(Bop->getRHS()); RHS.isKnown()) {
             // We can't evaluate the LHS; however, sometimes the result
             // is determined by the RHS: X && 0 -> 0, X || 1 -> 1.
             if (RHS.isTrue() == (Bop->getOpcode() == BO_LOr))
               return RHS.isTrue();
           } else {
-            TryResult BopRes = checkIncorrectLogicOperator(Bop);
-            if (BopRes.isKnown())
+            
+            if (TryResult BopRes = checkIncorrectLogicOperator(Bop); BopRes.isKnown())
               return BopRes.isTrue();
           }
         }
 
         return {};
       } else if (Bop->isEqualityOp()) {
-          TryResult BopRes = checkIncorrectEqualityOperator(Bop);
-          if (BopRes.isKnown())
+          
+          if (TryResult BopRes = checkIncorrectEqualityOperator(Bop); BopRes.isKnown())
             return BopRes.isTrue();
       } else if (Bop->isRelationalOp()) {
-        TryResult BopRes = checkIncorrectRelationalOperator(Bop);
-        if (BopRes.isKnown())
+        
+        if (TryResult BopRes = checkIncorrectRelationalOperator(Bop); BopRes.isKnown())
           return BopRes.isTrue();
       } else if (Bop->getOpcode() == BO_Or) {
-        TryResult BopRes = checkIncorrectBitwiseOrOperator(Bop);
-        if (BopRes.isKnown())
+        
+        if (TryResult BopRes = checkIncorrectBitwiseOrOperator(Bop); BopRes.isKnown())
           return BopRes.isTrue();
       }
     }
 
-    bool Result;
-    if (E->EvaluateAsBooleanCondition(Result, *Context))
+    
+    if (bool Result; E->EvaluateAsBooleanCondition(Result, *Context))
       return Result;
 
     return {};
@@ -1534,12 +1534,12 @@ void CFGBuilder::findConstructionContexts(
   if (!Child)
     return;
 
-  auto withExtraLayer = [this, Layer](const ConstructionContextItem &Item) {
+  
+
+  switch(auto withExtraLayer = [this, Layer](const ConstructionContextItem &Item) {
     return ConstructionContextLayer::create(cfg->getBumpVectorContext(), Item,
                                             Layer);
-  };
-
-  switch(Child->getStmtClass()) {
+  }; Child->getStmtClass()) {
   case Stmt::CXXConstructExprClass:
   case Stmt::CXXTemporaryObjectExprClass: {
     // Support pre-C++17 copy elision AST.
@@ -1559,8 +1559,8 @@ void CFGBuilder::findConstructionContexts(
   case Stmt::CXXOperatorCallExprClass:
   case Stmt::UserDefinedLiteralClass:
   case Stmt::ObjCMessageExprClass: {
-    auto *E = cast<Expr>(Child);
-    if (CFGCXXRecordTypedCall::isCXXRecordTypedCall(E))
+    
+    if (auto *E = cast<Expr>(Child); CFGCXXRecordTypedCall::isCXXRecordTypedCall(E))
       consumeConstructionContext(Layer, E);
     break;
   }
@@ -1575,9 +1575,9 @@ void CFGBuilder::findConstructionContexts(
     break;
   }
   case Stmt::ImplicitCastExprClass: {
-    auto *Cast = cast<ImplicitCastExpr>(Child);
+    
     // Should we support other implicit cast kinds?
-    switch (Cast->getCastKind()) {
+    switch (auto *Cast = cast<ImplicitCastExpr>(Child); Cast->getCastKind()) {
     case CK_NoOp:
     case CK_ConstructorConversion:
       findConstructionContexts(Layer, Cast->getSubExpr());
@@ -1621,8 +1621,8 @@ void CFGBuilder::findConstructionContexts(
     break;
   }
   case Stmt::InitListExprClass: {
-    auto *ILE = cast<InitListExpr>(Child);
-    if (ILE->isTransparent()) {
+    
+    if (auto *ILE = cast<InitListExpr>(Child); ILE->isTransparent()) {
       findConstructionContexts(Layer, ILE->getInit(0));
       break;
     }
@@ -1667,8 +1667,8 @@ std::unique_ptr<CFG> CFGBuilder::buildCFG(const Decl *D, Stmt *Statement) {
   Block = nullptr;  // the EXIT block is empty.  Create all other blocks lazily.
 
   // Add parameters to the initial scope to handle their dtos and lifetime ends.
-  LocalScope *paramScope = nullptr;
-  if (const auto *FD = dyn_cast_or_null<FunctionDecl>(D))
+  
+  if (const auto *LocalScope *paramScope = nullptr; FD = dyn_cast_or_null<FunctionDecl>(D))
     for (ParmVarDecl *PD : FD->parameters())
       paramScope = addLocalScopeForVarDecl(PD, paramScope);
 
@@ -1727,8 +1727,8 @@ std::unique_ptr<CFG> CFGBuilder::buildCFG(const Decl *D, Stmt *Statement) {
   for (BackpatchBlocksTy::iterator I = BackpatchBlocks.begin(),
                                    E = BackpatchBlocks.end(); I != E; ++I ) {
 
-    CFGBlock *B = I->block;
-    if (auto *G = dyn_cast<GotoStmt>(B->getTerminator())) {
+    
+    if (auto *CFGBlock *B = I->block; G = dyn_cast<GotoStmt>(B->getTerminator())) {
       LabelMapTy::iterator LI = LabelMap.find(G->getLabel());
       // If there is no target for the goto, then we are looking at an
       // incomplete AST.  Handle this by not registering a successor.
@@ -1881,8 +1881,8 @@ static QualType getReferenceInitTemporaryType(const Expr *Init,
     }
 
     // Skip sub-object accesses into rvalues.
-    const Expr *SkippedInit = Init->skipRValueSubobjectAdjustments();
-    if (SkippedInit != Init) {
+    
+    if (const Expr *SkippedInit = Init->skipRValueSubobjectAdjustments(); SkippedInit != Init) {
       Init = SkippedInit;
       continue;
     }
@@ -2163,13 +2163,13 @@ void CFGBuilder::addLocalScopeForStmt(Stmt *S) {
       !BuildOpts.AddScopes)
     return;
 
-  LocalScope *Scope = nullptr;
+  
 
   // For compound statement we will be creating explicit scope.
-  if (CompoundStmt *CS = dyn_cast<CompoundStmt>(S)) {
+  if (CompoundStmt *LocalScope *Scope = nullptr; CS = dyn_cast<CompoundStmt>(S)) {
     for (auto *BI : CS->body()) {
-      Stmt *SI = BI->stripLabelLikeStatements();
-      if (DeclStmt *DS = dyn_cast<DeclStmt>(SI))
+      
+      if (DeclStmt *Stmt *SI = BI->stripLabelLikeStatements(); DS = dyn_cast<DeclStmt>(SI))
         Scope = addLocalScopeForDeclStmt(DS, Scope);
     }
     return;
@@ -2593,8 +2593,8 @@ CFGBlock *CFGBuilder::VisitAttributedStmt(AttributedStmt *A,
   // So only add the AttributedStmt for FallThrough, which has CFG effects and
   // also no children, and omit the others. None of the other current StmtAttrs
   // have semantic meaning for the CFG.
-  bool isInterestingAttribute = isFallthroughStatement(A) || isCXXAssumeAttr(A);
-  if (isInterestingAttribute && asc.alwaysAdd(*this, A)) {
+  
+  if (bool isInterestingAttribute = isFallthroughStatement(A) || isCXXAssumeAttr(A); isInterestingAttribute && asc.alwaysAdd(*this, A)) {
     autoCreateBlock();
     appendStmt(Block, A);
   }
@@ -2802,8 +2802,8 @@ static bool CanThrow(Expr *E, ASTContext &Ctx) {
 
 static bool isBuiltinAssumeWithSideEffects(const ASTContext &Ctx,
                                            const CallExpr *CE) {
-  unsigned BuiltinID = CE->getBuiltinCallee();
-  if (BuiltinID != Builtin::BI__assume &&
+  
+  if (unsigned BuiltinID = CE->getBuiltinCallee(); BuiltinID != Builtin::BI__assume &&
       BuiltinID != Builtin::BI__builtin_assume)
     return false;
 
@@ -2814,11 +2814,11 @@ CFGBlock *CFGBuilder::VisitCallExpr(CallExpr *C, AddStmtChoice asc) {
   // Compute the callee type.
   QualType calleeType = C->getCallee()->getType();
   if (calleeType == Context->BoundMemberTy) {
-    QualType boundType = Expr::findBoundMemberType(C->getCallee());
+    
 
     // We should only get a null bound type if processing a dependent
     // CFG.  Recover by assuming nothing.
-    if (!boundType.isNull()) calleeType = boundType;
+    if (QualType boundType = Expr::findBoundMemberType(C->getCallee()); !boundType.isNull()) calleeType = boundType;
   }
 
   // If this is a call to a no-return function, this stops the block here.
@@ -2942,10 +2942,10 @@ CFGBlock *CFGBuilder::VisitCompoundStmt(CompoundStmt *C,
   for (Stmt *S : llvm::reverse(C->body())) {
     // If we hit a segment of code just containing ';' (NullStmts), we can
     // get a null block back.  In such cases, just use the LastBlock
-    CFGBlock *newBlock = Visit(S, AddStmtChoice::AlwaysAdd,
-                               ExternallyDestructed);
+    
 
-    if (newBlock)
+    if (CFGBlock *newBlock = Visit(S, AddStmtChoice::AlwaysAdd,
+                               ExternallyDestructed); newBlock)
       LastBlock = newBlock;
 
     if (badCFG)
@@ -2978,8 +2978,8 @@ CFGBlock *CFGBuilder::VisitConditionalOperator(AbstractConditionalOperator *C,
   Succ = ConfluenceBlock;
   Block = nullptr;
   CFGBlock *LHSBlock = nullptr;
-  const Expr *trueExpr = C->getTrueExpr();
-  if (trueExpr != opaqueValue) {
+  
+  if (const Expr *trueExpr = C->getTrueExpr(); trueExpr != opaqueValue) {
     LHSBlock = Visit(C->getTrueExpr(), alwaysAdd);
     if (badCFG)
       return nullptr;
@@ -3151,8 +3151,8 @@ CFGBlock *CFGBuilder::VisitDeclSubExpr(DeclStmt *DS) {
     if (HasTemporaries) {
       // For expression with temporaries go directly to subexpression to omit
       // generating destructors for the second time.
-      ExprWithCleanups *EC = cast<ExprWithCleanups>(Init);
-      if (CFGBlock *newBlock = Visit(EC->getSubExpr()))
+      
+      if (CFGBlock *ExprWithCleanups *EC = cast<ExprWithCleanups>(Init); newBlock = Visit(EC->getSubExpr()))
         LastBlock = newBlock;
     }
     else {
@@ -3539,8 +3539,8 @@ CFGBlock *CFGBuilder::VisitBlockExpr(BlockExpr *E, AddStmtChoice asc) {
   CFGBlock *LastBlock = VisitNoRecurse(E, asc);
   for (const BlockDecl::Capture &CI : E->getBlockDecl()->captures()) {
     if (Expr *CopyExpr = CI.getCopyExpr()) {
-      CFGBlock *Tmp = Visit(CopyExpr);
-      if (Tmp)
+      
+      if (CFGBlock *Tmp = Visit(CopyExpr); Tmp)
         LastBlock = Tmp;
     }
   }
@@ -3564,8 +3564,8 @@ CFGBlock *CFGBuilder::VisitLambdaExpr(LambdaExpr *E, AddStmtChoice asc) {
                                    cfg->getBumpVectorContext(), {E, Idx}),
                                AILEInit ? AILEInit : Init);
 
-      CFGBlock *Tmp = Visit(Init);
-      if (Tmp)
+      
+      if (CFGBlock *Tmp = Visit(Init); Tmp)
         LastBlock = Tmp;
     }
   }
@@ -3933,11 +3933,11 @@ CFGBlock *CFGBuilder::VisitObjCAtSynchronizedStmt(ObjCAtSynchronizedStmt *S) {
   // FIXME: Add locking 'primitives' to CFG for @synchronized.
 
   // Inline the body.
-  CFGBlock *SyncBlock = addStmt(S->getSynchBody());
+  
 
   // The sync body starts its own basic block.  This makes it a little easier
   // for diagnostic clients.
-  if (SyncBlock) {
+  if (CFGBlock *SyncBlock = addStmt(S->getSynchBody()); SyncBlock) {
     if (badCFG)
       return nullptr;
 
@@ -4575,9 +4575,9 @@ static bool shouldAddCase(bool &switchExclusivelyCovered,
     if (switchCond->Val.isInt()) {
       // Evaluate the LHS of the case value.
       const llvm::APSInt &lhsInt = CS->getLHS()->EvaluateKnownConstInt(Ctx);
-      const llvm::APSInt &condInt = switchCond->Val.getInt();
+      
 
-      if (condInt == lhsInt) {
+      if (const llvm::APSInt &condInt = switchCond->Val.getInt(); condInt == lhsInt) {
         addCase = true;
         switchExclusivelyCovered = true;
       }
@@ -4990,8 +4990,8 @@ CFGBlock *CFGBuilder::VisitCXXDeleteExpr(CXXDeleteExpr *DE,
                                          AddStmtChoice asc) {
   autoCreateBlock();
   appendStmt(Block, DE);
-  QualType DTy = DE->getDestroyedType();
-  if (!DTy.isNull()) {
+  
+  if (QualType DTy = DE->getDestroyedType(); !DTy.isNull()) {
     DTy = DTy.getNonReferenceType();
     CXXRecordDecl *RD = Context->getBaseElementType(DTy)->getAsCXXRecordDecl();
     if (RD) {
@@ -5232,9 +5232,9 @@ CFGBlock *CFGBuilder::VisitCXXBindTemporaryExprForTemporaryDtors(
     // If lifetime of temporary is not prolonged (by assigning to constant
     // reference) add destructor for it.
 
-    const CXXDestructorDecl *Dtor = E->getTemporary()->getDestructor();
+    
 
-    if (Dtor->getParent()->isAnyDestructorNoReturn()) {
+    if (const CXXDestructorDecl *Dtor = E->getTemporary()->getDestructor(); Dtor->getParent()->isAnyDestructorNoReturn()) {
       // If the destructor is marked as a no-return destructor, we need to
       // create a new block for the destructor which does not have as a
       // successor anything built thus far. Control won't flow out of this
@@ -5518,8 +5518,8 @@ bool CFGBlock::FilterEdge(const CFGBlock::FilterOptions &F,
     if (const SwitchStmt *S =
         dyn_cast_or_null<SwitchStmt>(From->getTerminatorStmt())) {
       if (S->isAllEnumCasesCovered()) {
-        const Stmt *L = To->getLabel();
-        if (!L || !isa<CaseStmt>(L))
+        
+        if (const Stmt *L = To->getLabel(); !L || !isa<CaseStmt>(L))
           return true;
       }
     }
@@ -5563,35 +5563,35 @@ public:
               DeclMap[cast<DeclStmt>(stmt)->getSingleDecl()] = P;
               break;
             case Stmt::IfStmtClass: {
-              const VarDecl *var = cast<IfStmt>(stmt)->getConditionVariable();
-              if (var)
+              
+              if (const VarDecl *var = cast<IfStmt>(stmt)->getConditionVariable(); var)
                 DeclMap[var] = P;
               break;
             }
             case Stmt::ForStmtClass: {
-              const VarDecl *var = cast<ForStmt>(stmt)->getConditionVariable();
-              if (var)
+              
+              if (const VarDecl *var = cast<ForStmt>(stmt)->getConditionVariable(); var)
                 DeclMap[var] = P;
               break;
             }
             case Stmt::WhileStmtClass: {
-              const VarDecl *var =
-                cast<WhileStmt>(stmt)->getConditionVariable();
-              if (var)
+              
+              if (const VarDecl *var =
+                cast<WhileStmt>(stmt)->getConditionVariable(); var)
                 DeclMap[var] = P;
               break;
             }
             case Stmt::SwitchStmtClass: {
-              const VarDecl *var =
-                cast<SwitchStmt>(stmt)->getConditionVariable();
-              if (var)
+              
+              if (const VarDecl *var =
+                cast<SwitchStmt>(stmt)->getConditionVariable(); var)
                 DeclMap[var] = P;
               break;
             }
             case Stmt::CXXCatchStmtClass: {
-              const VarDecl *var =
-                cast<CXXCatchStmt>(stmt)->getExceptionDecl();
-              if (var)
+              
+              if (const VarDecl *var =
+                cast<CXXCatchStmt>(stmt)->getExceptionDecl(); var)
                 DeclMap[var] = P;
               break;
             }
@@ -5905,8 +5905,8 @@ static void print_elem(raw_ostream &OS, StmtPrinterHelper &Helper,
     if (const StmtExpr *SE = dyn_cast<StmtExpr>(S)) {
       const CompoundStmt *Sub = SE->getSubStmt();
 
-      auto Children = Sub->children();
-      if (Children.begin() != Children.end()) {
+      
+      if (auto Children = Sub->children(); Children.begin() != Children.end()) {
         OS << "({ ... ; ";
         Helper.handledStmt(*SE->getSubStmt()->body_rbegin(),OS);
         OS << " })";

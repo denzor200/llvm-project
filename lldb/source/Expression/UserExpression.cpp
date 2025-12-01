@@ -59,9 +59,9 @@ UserExpression::~UserExpression() = default;
 void UserExpression::InstallContext(ExecutionContext &exe_ctx) {
   m_jit_process_wp = exe_ctx.GetProcessSP();
 
-  lldb::StackFrameSP frame_sp = exe_ctx.GetFrameSP();
+  
 
-  if (frame_sp)
+  if (lldb::StackFrameSP frame_sp = exe_ctx.GetFrameSP(); frame_sp)
     m_address = frame_sp->GetFrameCodeAddress();
 }
 
@@ -154,10 +154,10 @@ UserExpression::Evaluate(ExecutionContext &exe_ctx,
   };
 
   if (ctx_obj) {
-    static unsigned const ctx_type_mask = lldb::TypeFlags::eTypeIsClass |
+    
+    if (static unsigned const ctx_type_mask = lldb::TypeFlags::eTypeIsClass |
                                           lldb::TypeFlags::eTypeIsStructUnion |
-                                          lldb::TypeFlags::eTypeIsReference;
-    if (!(ctx_obj->GetTypeInfo() & ctx_type_mask)) {
+                                          lldb::TypeFlags::eTypeIsReference; !(ctx_obj->GetTypeInfo() & ctx_type_mask)) {
       LLDB_LOG(log, "== [UserExpression::Evaluate] Passed a context object of "
                     "an invalid type, can't run expressions.");
       set_error(Status("a context object of an invalid type passed"));
@@ -346,9 +346,9 @@ UserExpression::Evaluate(ExecutionContext &exe_ctx,
   }
 
   if (parse_success) {
-    lldb::ExpressionVariableSP expr_result;
+    
 
-    if (execution_policy == eExecutionPolicyNever &&
+    if (lldb::ExpressionVariableSP expr_result; execution_policy == eExecutionPolicyNever &&
         !user_expression_sp->CanInterpret()) {
       LLDB_LOG(log, "== [UserExpression::Evaluate] Expression may not run, but "
                     "is not constant ==");

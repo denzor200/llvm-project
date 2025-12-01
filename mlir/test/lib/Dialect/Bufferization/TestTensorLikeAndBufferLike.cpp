@@ -83,8 +83,8 @@ struct TestTensorLikeAndBufferLikePass
     auto op = getOperation();
 
     op.walk([](func::FuncOp funcOp) {
-      const auto dict = findAllImplementeesOfTensorOrBufferLike(funcOp);
-      if (!dict.empty()) {
+      
+      if (const auto dict = findAllImplementeesOfTensorOrBufferLike(funcOp); !dict.empty()) {
         funcOp->setAttr("found", dict);
       }
     });

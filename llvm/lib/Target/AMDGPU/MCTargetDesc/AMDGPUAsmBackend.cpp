@@ -105,9 +105,9 @@ static unsigned getFixupKindNumBytes(unsigned Kind) {
 
 static uint64_t adjustFixupValue(const MCFixup &Fixup, uint64_t Value,
                                  MCContext *Ctx) {
-  int64_t SignedValue = static_cast<int64_t>(Value);
+  
 
-  switch (Fixup.getKind()) {
+  switch (int64_t SignedValue = static_cast<int64_t>(Value); Fixup.getKind()) {
   case AMDGPU::fixup_si_sopp_br: {
     int64_t BrImm = (SignedValue - 4) / 4;
 

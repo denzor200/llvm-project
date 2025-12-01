@@ -220,8 +220,8 @@ void DWARFUnitIndex::dump(raw_ostream &OS) const {
   OS << "Index Signature         ";
   for (unsigned i = 0; i != Header.NumColumns; ++i) {
     DWARFSectionKind Kind = ColumnKinds[i];
-    StringRef Name = getColumnHeader(Kind);
-    if (!Name.empty())
+    
+    if (StringRef Name = getColumnHeader(Kind); !Name.empty())
       OS << ' '
          << left_justify(Name,
                          Kind == DWARFSectionKind::DW_SECT_INFO ? 40 : 24);
@@ -230,8 +230,8 @@ void DWARFUnitIndex::dump(raw_ostream &OS) const {
   }
   OS << "\n----- ------------------";
   for (unsigned i = 0; i != Header.NumColumns; ++i) {
-    DWARFSectionKind Kind = ColumnKinds[i];
-    if (Kind == DWARFSectionKind::DW_SECT_INFO ||
+    
+    if (DWARFSectionKind Kind = ColumnKinds[i]; Kind == DWARFSectionKind::DW_SECT_INFO ||
         Kind == DWARFSectionKind::DW_SECT_EXT_TYPES)
       OS << " ----------------------------------------";
     else
@@ -239,13 +239,13 @@ void DWARFUnitIndex::dump(raw_ostream &OS) const {
   }
   OS << '\n';
   for (unsigned i = 0; i != Header.NumBuckets; ++i) {
-    auto &Row = Rows[i];
-    if (auto *Contribs = Row.Contributions.get()) {
+    
+    if (auto *auto &Row = Rows[i]; Contribs = Row.Contributions.get()) {
       OS << format("%5u 0x%016" PRIx64 " ", i + 1, Row.Signature);
       for (unsigned i = 0; i != Header.NumColumns; ++i) {
         auto &Contrib = Contribs[i];
-        DWARFSectionKind Kind = ColumnKinds[i];
-        if (Kind == DWARFSectionKind::DW_SECT_INFO ||
+        
+        if (DWARFSectionKind Kind = ColumnKinds[i]; Kind == DWARFSectionKind::DW_SECT_INFO ||
             Kind == DWARFSectionKind::DW_SECT_EXT_TYPES)
           OS << format("[0x%016" PRIx64 ", 0x%016" PRIx64 ") ",
                        Contrib.getOffset(),

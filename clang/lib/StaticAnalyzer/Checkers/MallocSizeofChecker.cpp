@@ -56,8 +56,8 @@ public:
     II_realloc(&Ctx->Idents.get("realloc")) {}
 
   void VisitChild(ExprParent Parent, const Stmt *S) {
-    TypeCallPair AllocCall = Visit(S);
-    if (AllocCall.second && AllocCall.second != S)
+    
+    if (TypeCallPair AllocCall = Visit(S); AllocCall.second && AllocCall.second != S)
       Calls.push_back(CallRecord(Parent, cast<Expr>(S), AllocCall.first,
                                  AllocCall.second));
   }
@@ -88,10 +88,10 @@ public:
 
   TypeCallPair VisitCallExpr(const CallExpr *E) {
     VisitChildren(E);
-    const FunctionDecl *FD = E->getDirectCallee();
-    if (FD) {
-      IdentifierInfo *II = FD->getIdentifier();
-      if (II == II_malloc || II == II_calloc || II == II_realloc)
+    
+    if (const FunctionDecl *FD = E->getDirectCallee(); FD) {
+      
+      if (IdentifierInfo *II = FD->getIdentifier(); II == II_malloc || II == II_calloc || II == II_realloc)
         return TypeCallPair((const TypeSourceInfo *)nullptr, E);
     }
     return TypeCallPair();

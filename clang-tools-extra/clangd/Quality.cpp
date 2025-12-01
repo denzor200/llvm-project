@@ -42,8 +42,8 @@ static bool hasDeclInMainFile(const Decl &D) {
 
 static bool hasUsingDeclInMainFile(const CodeCompletionResult &R) {
   const auto &Context = R.Declaration->getASTContext();
-  const auto &SourceMgr = Context.getSourceManager();
-  if (R.ShadowDecl) {
+  
+  if (const auto &SourceMgr = Context.getSourceManager(); R.ShadowDecl) {
     if (isInsideMainFile(R.ShadowDecl->getLocation(), SourceMgr))
       return true;
   }
@@ -318,8 +318,8 @@ void SymbolRelevanceSignals::computeASTSignals(
     if (const auto *NSD = dyn_cast<NamespaceDecl>(ND->getDeclContext())) {
       if (NSD->isAnonymousNamespace())
         return;
-      std::string Scope = printNamespaceScope(*NSD);
-      if (!Scope.empty())
+      
+      if (std::string Scope = printNamespaceScope(*NSD); !Scope.empty())
         ScopeRefsInFile = std::max(
             ScopeRefsInFile, MainFileSignals->RelatedNamespaces.lookup(Scope));
     }

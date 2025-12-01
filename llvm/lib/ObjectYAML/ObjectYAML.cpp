@@ -34,13 +34,13 @@ void MappingTraits<YamlObjectFile>::mapping(IO &IO,
       MappingTraits<MachOYAML::UniversalBinary>::mapping(IO,
                                                          *ObjectFile.FatMachO);
   } else {
-    Input &In = (Input &)IO;
-    if (IO.mapTag("!Arch")) {
+    
+    if (Input &In = (Input &)IO; IO.mapTag("!Arch")) {
       ObjectFile.Arch.reset(new ArchYAML::Archive());
       MappingTraits<ArchYAML::Archive>::mapping(IO, *ObjectFile.Arch);
-      std::string Err =
-          MappingTraits<ArchYAML::Archive>::validate(IO, *ObjectFile.Arch);
-      if (!Err.empty())
+      
+      if (std::string Err =
+          MappingTraits<ArchYAML::Archive>::validate(IO, *ObjectFile.Arch); !Err.empty())
         IO.setError(Err);
     } else if (IO.mapTag("!ELF")) {
       ObjectFile.Elf.reset(new ELFYAML::Object());

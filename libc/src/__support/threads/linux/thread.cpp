@@ -106,11 +106,11 @@ LIBC_INLINE ErrorOr<void *> alloc_stack(size_t stacksize, size_t guardsize) {
   if (guardsize) {
     // Give read/write permissions to actual stack.
     // TODO: We are assuming stack growsdown here.
-    long result = LIBC_NAMESPACE::syscall_impl<long>(
-        SYS_mprotect, mmap_result + guardsize, stacksize,
-        PROT_READ | PROT_WRITE);
+    
 
-    if (result != 0)
+    if (long result = LIBC_NAMESPACE::syscall_impl<long>(
+        SYS_mprotect, mmap_result + guardsize, stacksize,
+        PROT_READ | PROT_WRITE); result != 0)
       return Error{int(-result)};
   }
   mmap_result += guardsize;
@@ -353,8 +353,8 @@ int Thread::join(ThreadReturnValue &retval) {
 }
 
 int Thread::detach() {
-  uint32_t joinable_state = uint32_t(DetachState::JOINABLE);
-  if (attrib->detach_state.compare_exchange_strong(
+  
+  if (uint32_t joinable_state = uint32_t(DetachState::JOINABLE); attrib->detach_state.compare_exchange_strong(
           joinable_state, uint32_t(DetachState::DETACHED))) {
     return int(DetachType::SIMPLE);
   }
@@ -404,9 +404,9 @@ int Thread::set_name(const cpp::string_view &name) {
   if (*this == self) {
     // If we are setting the name of the current thread, then we can
     // use the syscall to set the name.
-    int retval =
-        LIBC_NAMESPACE::syscall_impl<int>(SYS_prctl, PR_SET_NAME, name.data());
-    if (retval < 0)
+    
+    if (int retval =
+        LIBC_NAMESPACE::syscall_impl<int>(SYS_prctl, PR_SET_NAME, name.data()); retval < 0)
       return -retval;
     else
       return 0;
@@ -446,9 +446,9 @@ int Thread::get_name(cpp::StringStream &name) const {
   if (*this == self) {
     // If we are getting the name of the current thread, then we can
     // use the syscall to get the name.
-    int retval =
-        LIBC_NAMESPACE::syscall_impl<int>(SYS_prctl, PR_GET_NAME, name_buffer);
-    if (retval < 0)
+    
+    if (int retval =
+        LIBC_NAMESPACE::syscall_impl<int>(SYS_prctl, PR_GET_NAME, name_buffer); retval < 0)
       return -retval;
     name << name_buffer << cpp::StringStream::ENDS;
     return 0;
@@ -495,8 +495,8 @@ void thread_exit(ThreadReturnValue retval, ThreadStyle style) {
   // be called by the thread which owns them.
   internal::call_atexit_callbacks(attrib);
 
-  uint32_t joinable_state = uint32_t(DetachState::JOINABLE);
-  if (!attrib->detach_state.compare_exchange_strong(
+  
+  if (uint32_t joinable_state = uint32_t(DetachState::JOINABLE); !attrib->detach_state.compare_exchange_strong(
           joinable_state, uint32_t(DetachState::EXITING))) {
     // Thread is detached so cleanup the resources.
     cleanup_thread_resources(attrib);

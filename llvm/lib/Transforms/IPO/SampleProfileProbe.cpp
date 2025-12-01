@@ -150,8 +150,8 @@ void PseudoProbeVerifier::verifyProbeFactors(
     float CurProbeFactor = I.second;
     auto [It, Inserted] = PrevProbeFactors.try_emplace(I.first);
     if (!Inserted) {
-      float PrevProbeFactor = It->second;
-      if (std::abs(CurProbeFactor - PrevProbeFactor) >
+      
+      if (float PrevProbeFactor = It->second; std::abs(CurProbeFactor - PrevProbeFactor) >
           DistributionFactorVariance) {
         if (!BannerPrinted) {
           dbgs() << "Function " << F->getName() << ":\n";
@@ -222,8 +222,8 @@ void SampleProfileProber::findUnreachableBlocks(
 void SampleProfileProber::findInvokeNormalDests(
     DenseSet<BasicBlock *> &InvokeNormalDests) {
   for (auto &BB : *F) {
-    auto *TI = BB.getTerminator();
-    if (auto *II = dyn_cast<InvokeInst>(TI)) {
+    
+    if (auto *auto *TI = BB.getTerminator(); II = dyn_cast<InvokeInst>(TI)) {
       auto *ND = II->getNormalDest();
       InvokeNormalDests.insert(ND);
 

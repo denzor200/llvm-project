@@ -37,9 +37,9 @@ matchAndReplaceDepthwiseConv(Operation *operation, Value input, Value kernel,
                              Value iZp, Value kZp, Value init, Attribute stride,
                              Attribute dilation, PatternRewriter &rewriter) {
   Location loc = operation->getLoc();
-  auto linalgOp = dyn_cast<LinalgOp>(operation);
+  
   // Exit out on the memref version of this operation.
-  if (!linalgOp || !linalgOp.hasPureTensorSemantics())
+  if (auto linalgOp = dyn_cast<LinalgOp>(operation); !linalgOp || !linalgOp.hasPureTensorSemantics())
     return failure();
 
   auto result = operation->getResult(0);

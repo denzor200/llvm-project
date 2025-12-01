@@ -304,8 +304,8 @@ static void printUnwindCode(ArrayRef<UnwindCode> UCs, bool &SeenFirstEpilog) {
 
   case UOP_Epilog:
     if (SeenFirstEpilog) {
-      uint32_t Offset = UCs[0].getEpilogOffset();
-      if (Offset == 0) {
+      
+      if (uint32_t Offset = UCs[0].getEpilogOffset(); Offset == 0) {
         outs() << " padding";
       } else {
         outs() << " offset=" << format("0x%X", Offset);
@@ -360,8 +360,8 @@ static Error resolveSectionAndAddress(const COFFObjectFile *Obj,
 static Error resolveSymbol(const std::vector<RelocationRef> &Rels,
                                      uint64_t Offset, SymbolRef &Sym) {
   for (auto &R : Rels) {
-    uint64_t Ofs = R.getOffset();
-    if (Ofs == Offset) {
+    
+    if (uint64_t Ofs = R.getOffset(); Ofs == Offset) {
       Sym = *R.getSymbol();
       return Error::success();
     }
@@ -404,8 +404,8 @@ static Error resolveSymbolName(const std::vector<RelocationRef> &Rels,
 static void printCOFFSymbolAddress(raw_ostream &Out,
                                    const std::vector<RelocationRef> &Rels,
                                    uint64_t Offset, uint32_t Disp) {
-  StringRef Sym;
-  if (!resolveSymbolName(Rels, Offset, Sym)) {
+  
+  if (StringRef Sym; !resolveSymbolName(Rels, Offset, Sym)) {
     Out << Sym;
     if (Disp > 0)
       Out << format(" + 0x%04x", Disp);
@@ -453,10 +453,10 @@ static void printTLSDirectoryT(const coff_tls_directory<T> *TLSDir) {
 
 static void printTLSDirectory(const COFFObjectFile *Obj) {
   const pe32_header *PE32Header = Obj->getPE32Header();
-  const pe32plus_header *PE32PlusHeader = Obj->getPE32PlusHeader();
+  
 
   // Skip if it's not executable.
-  if (!PE32Header && !PE32PlusHeader)
+  if (const pe32plus_header *PE32PlusHeader = Obj->getPE32PlusHeader(); !PE32Header && !PE32PlusHeader)
     return;
 
   if (PE32Header) {
@@ -877,9 +877,9 @@ void objdump::printCOFFSymbolTable(const COFFObjectFile &coff) {
            << Name;
     if (Demangle && Name.starts_with("?")) {
       int Status = -1;
-      char *DemangledSymbol = microsoftDemangle(Name, nullptr, &Status);
+      
 
-      if (Status == 0 && DemangledSymbol) {
+      if (char *DemangledSymbol = microsoftDemangle(Name, nullptr, &Status); Status == 0 && DemangledSymbol) {
         outs() << " (" << StringRef(DemangledSymbol) << ")";
         std::free(DemangledSymbol);
       } else {

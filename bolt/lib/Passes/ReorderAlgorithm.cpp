@@ -481,8 +481,8 @@ void TSPReorderAlgorithm::reorderBasicBlocks(BinaryFunction &BF,
     for (uint64_t I = 0; I < N; ++I) {
       if (DP[Set][I] == -1)
         continue;
-      int64_t AdjWeight = Weight[I][Last] > 0 ? Weight[I][Last] : 0;
-      if (DP[Set][I] + AdjWeight > Best) {
+      
+      if (int64_t AdjWeight = Weight[I][Last] > 0 ? Weight[I][Last] : 0; DP[Set][I] + AdjWeight > Best) {
         NewLast = I;
         Best = DP[Set][I] + AdjWeight;
       }

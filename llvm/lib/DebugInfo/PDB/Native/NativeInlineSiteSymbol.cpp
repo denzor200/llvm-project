@@ -87,8 +87,8 @@ std::string NativeInlineSiteSymbol::getName() const {
     FuncIdRecord FRecord;
     cantFail(
         TypeDeserializer::deserializeAs<FuncIdRecord>(InlineeType, FRecord));
-    TypeIndex ParentScope = FRecord.getParentScope();
-    if (!ParentScope.isNoneType()) {
+    
+    if (TypeIndex ParentScope = FRecord.getParentScope(); !ParentScope.isNoneType()) {
       QualifiedName.append(std::string(Ids.getTypeName(ParentScope)));
       QualifiedName.append("::");
     }

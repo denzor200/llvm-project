@@ -65,8 +65,8 @@ void ComparisonInTempFailureRetryCheck::check(
   SourceLocation LocStart = Node.getBeginLoc();
   while (LocStart.isMacroID()) {
     const SourceLocation Invocation = SM.getImmediateMacroCallerLoc(LocStart);
-    Token Tok;
-    if (!Lexer::getRawToken(SM.getSpellingLoc(Invocation), Tok, SM, Opts,
+    
+    if (Token Tok; !Lexer::getRawToken(SM.getSpellingLoc(Invocation), Tok, SM, Opts,
                             /*IgnoreWhiteSpace=*/true)) {
       if (Tok.getKind() == tok::raw_identifier &&
           llvm::is_contained(RetryMacros, Tok.getRawIdentifier())) {

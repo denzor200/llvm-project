@@ -61,8 +61,8 @@ void HexagonMCShuffler::init(MCInst &MCB, MCInst const &AddMI,
     // Copy the bundle for the shuffling.
     for (auto const &I : HexagonMCInstrInfo::bundleInstructions(MCB)) {
       assert(!HexagonMCInstrInfo::getDesc(MCII, *I.getInst()).isPseudo());
-      MCInst &MI = *const_cast<MCInst *>(I.getInst());
-      if (!HexagonMCInstrInfo::isImmext(MI)) {
+      
+      if (MCInst &MI = *const_cast<MCInst *>(I.getInst()); !HexagonMCInstrInfo::isImmext(MI)) {
         append(MI, Extender, HexagonMCInstrInfo::getUnits(MCII, STI, MI));
         Extender = nullptr;
       } else
@@ -83,8 +83,8 @@ void HexagonMCShuffler::copyTo(MCInst &MCB) {
   // Copy the results into the bundle.
   for (auto &I : *this) {
     MCInst const &MI = I.getDesc();
-    MCInst const *Extender = I.getExtender();
-    if (Extender)
+    
+    if (MCInst const *Extender = I.getExtender(); Extender)
       MCB.addOperand(MCOperand::createInst(Extender));
     MCB.addOperand(MCOperand::createInst(&MI));
   }

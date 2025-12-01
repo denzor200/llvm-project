@@ -538,9 +538,9 @@ const char *LLVMGetInlineAsmConstraintString(LLVMValueRef InlineAsmVal,
 LLVMInlineAsmDialect LLVMGetInlineAsmDialect(LLVMValueRef InlineAsmVal) {
 
   Value *Val = unwrap<Value>(InlineAsmVal);
-  InlineAsm::AsmDialect Dialect = cast<InlineAsm>(Val)->getDialect();
+  
 
-  switch (Dialect) {
+  switch (InlineAsm::AsmDialect Dialect = cast<InlineAsm>(Val)->getDialect(); Dialect) {
   case InlineAsm::AD_ATT:
     return LLVMInlineAsmDialectATT;
   case InlineAsm::AD_Intel:
@@ -1179,8 +1179,8 @@ LLVMUseRef LLVMGetFirstUse(LLVMValueRef Val) {
 }
 
 LLVMUseRef LLVMGetNextUse(LLVMUseRef U) {
-  Use *Next = unwrap(U)->getNext();
-  if (Next)
+  
+  if (Use *Next = unwrap(U)->getNext(); Next)
     return wrap(Next);
   return nullptr;
 }
@@ -1583,9 +1583,9 @@ long long LLVMConstIntGetSExtValue(LLVMValueRef ConstantVal) {
 
 double LLVMConstRealGetDouble(LLVMValueRef ConstantVal, LLVMBool *LosesInfo) {
   ConstantFP *cFP = unwrap<ConstantFP>(ConstantVal) ;
-  Type *Ty = cFP->getType();
+  
 
-  if (Ty->isHalfTy() || Ty->isBFloatTy() || Ty->isFloatTy() ||
+  if (Type *Ty = cFP->getType(); Ty->isHalfTy() || Ty->isBFloatTy() || Ty->isFloatTy() ||
       Ty->isDoubleTy()) {
     *LosesInfo = false;
     return cFP->getValueAPF().convertToDouble();
@@ -1973,9 +1973,9 @@ LLVMLinkage LLVMGetLinkage(LLVMValueRef Global) {
 }
 
 void LLVMSetLinkage(LLVMValueRef Global, LLVMLinkage Linkage) {
-  GlobalValue *GV = unwrap<GlobalValue>(Global);
+  
 
-  switch (Linkage) {
+  switch (GlobalValue *GV = unwrap<GlobalValue>(Global); Linkage) {
   case LLVMExternalLinkage:
     GV->setLinkage(GlobalValue::ExternalLinkage);
     break;
@@ -2080,9 +2080,9 @@ LLVMUnnamedAddr LLVMGetUnnamedAddress(LLVMValueRef Global) {
 }
 
 void LLVMSetUnnamedAddress(LLVMValueRef Global, LLVMUnnamedAddr UnnamedAddr) {
-  GlobalValue *GV = unwrap<GlobalValue>(Global);
+  
 
-  switch (UnnamedAddr) {
+  switch (GlobalValue *GV = unwrap<GlobalValue>(Global); UnnamedAddr) {
   case LLVMNoUnnamedAddr:
     return GV->setUnnamedAddr(GlobalVariable::UnnamedAddr::None);
   case LLVMLocalUnnamedAddr:
@@ -2131,8 +2131,8 @@ unsigned LLVMGetAlignment(LLVMValueRef V) {
 }
 
 void LLVMSetAlignment(LLVMValueRef V, unsigned Bytes) {
-  Value *P = unwrap(V);
-  if (GlobalVariable *GV = dyn_cast<GlobalVariable>(P))
+  
+  if (GlobalVariable *Value *P = unwrap(V); GV = dyn_cast<GlobalVariable>(P))
     GV->setAlignment(MaybeAlign(Bytes));
   else if (Function *F = dyn_cast<Function>(P))
     F->setAlignment(MaybeAlign(Bytes));
@@ -2313,9 +2313,9 @@ LLVMThreadLocalMode LLVMGetThreadLocalMode(LLVMValueRef GlobalVar) {
 }
 
 void LLVMSetThreadLocalMode(LLVMValueRef GlobalVar, LLVMThreadLocalMode Mode) {
-  GlobalVariable *GV = unwrap<GlobalVariable>(GlobalVar);
+  
 
-  switch (Mode) {
+  switch (GlobalVariable *GV = unwrap<GlobalVariable>(GlobalVar); Mode) {
   case LLVMNotThreadLocal:
     GV->setThreadLocalMode(GlobalVariable::NotThreadLocal);
     break;
@@ -2548,8 +2548,8 @@ const char *LLVMGetGC(LLVMValueRef Fn) {
 }
 
 void LLVMSetGC(LLVMValueRef Fn, const char *GC) {
-  Function *F = unwrap<Function>(Fn);
-  if (GC)
+  
+  if (Function *F = unwrap<Function>(Fn); GC)
     F->setGC(GC);
   else
     F->clearGC();

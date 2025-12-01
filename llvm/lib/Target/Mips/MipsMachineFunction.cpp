@@ -200,8 +200,8 @@ MachinePointerInfo MipsFunctionInfo::callPtrInfo(MachineFunction &MF,
 
 int MipsFunctionInfo::getMoveF64ViaSpillFI(MachineFunction &MF,
                                            const TargetRegisterClass *RC) {
-  const TargetRegisterInfo &TRI = *MF.getSubtarget().getRegisterInfo();
-  if (MoveF64ViaSpillFI == -1) {
+  
+  if (const TargetRegisterInfo &TRI = *MF.getSubtarget().getRegisterInfo(); MoveF64ViaSpillFI == -1) {
     MoveF64ViaSpillFI = MF.getFrameInfo().CreateStackObject(
         TRI.getSpillSize(*RC), TRI.getSpillAlign(*RC), false);
   }

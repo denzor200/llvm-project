@@ -37,8 +37,8 @@ namespace llvm {
 namespace bolt {
 
 void dumpCFI(const BinaryFunction &BF, const MCInst &Instr, AsmPrinter &MAP) {
-  const MCCFIInstruction *CFIInstr = BF.getCFIFor(Instr);
-  switch (CFIInstr->getOperation()) {
+  
+  switch (const MCCFIInstruction *CFIInstr = BF.getCFIFor(Instr); CFIInstr->getOperation()) {
   // Skip unsupported CFI instructions.
   case MCCFIInstruction::OpRememberState:
   case MCCFIInstruction::OpRestoreState:
@@ -186,8 +186,8 @@ void dumpFunction(const BinaryFunction &BF) {
             Operand.getExpr()->getKind() == MCExpr::SymbolRef) {
           std::pair<const MCSymbol *, uint64_t> TSI =
               BC.MIB->getTargetSymbolInfo(Operand.getExpr());
-          const MCSymbol *Symbol = TSI.first;
-          if (IsCall)
+          
+          if (const MCSymbol *Symbol = TSI.first; IsCall)
             CallReferences.insert(Symbol);
           else if (const BinaryData *BD =
                        BC.getBinaryDataByName(Symbol->getName()))

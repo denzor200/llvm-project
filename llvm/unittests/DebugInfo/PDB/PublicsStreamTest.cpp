@@ -85,8 +85,8 @@ void MockPublics::addPublics(ArrayRef<PublicSym> Publics) {
 }
 
 Error MockPublics::finish() {
-  auto Err = Gsi.finalizeMsfLayout();
-  if (Err)
+  
+  if (auto Err = Gsi.finalizeMsfLayout(); Err)
     return Err;
 
   auto ExpectedLayout = MsfBuilder.generateLayout();

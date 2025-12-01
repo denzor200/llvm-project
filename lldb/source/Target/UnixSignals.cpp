@@ -28,8 +28,8 @@ UnixSignals::Signal::Signal(llvm::StringRef name, bool default_suppress,
       m_default_stop(default_stop), m_default_notify(default_notify) {}
 
 lldb::UnixSignalsSP UnixSignals::Create(const ArchSpec &arch) {
-  const auto &triple = arch.GetTriple();
-  switch (triple.getOS()) {
+  
+  switch (const auto &triple = arch.GetTriple(); triple.getOS()) {
   case llvm::Triple::Linux:
     return std::make_shared<LinuxSignals>();
   case llvm::Triple::FreeBSD:
@@ -156,9 +156,9 @@ std::string UnixSignals::GetSignalDescription(
     str = pos->second.m_name.str();
 
     if (code) {
-      std::map<int32_t, SignalCode>::const_iterator cpos =
-          pos->second.m_codes.find(*code);
-      if (cpos != pos->second.m_codes.end()) {
+      
+      if (std::map<int32_t, SignalCode>::const_iterator cpos =
+          pos->second.m_codes.find(*code); cpos != pos->second.m_codes.end()) {
         const SignalCode &sc = cpos->second;
         str += ": ";
         if (sc.m_print_option != SignalCodePrintOption::Bounds)
@@ -219,8 +219,8 @@ int32_t UnixSignals::GetSignalNumberFromName(const char *name) const {
       return pos->first;
   }
 
-  int32_t signo;
-  if (llvm::to_integer(name, signo))
+  
+  if (int32_t signo; llvm::to_integer(name, signo))
     return signo;
   return LLDB_INVALID_SIGNAL_NUMBER;
 }
@@ -234,8 +234,8 @@ int32_t UnixSignals::GetFirstSignalNumber() const {
 
 int32_t UnixSignals::GetNextSignalNumber(int32_t current_signal) const {
   collection::const_iterator pos = m_signals.find(current_signal);
-  collection::const_iterator end = m_signals.end();
-  if (pos == end)
+  
+  if (collection::const_iterator end = m_signals.end(); pos == end)
     return LLDB_INVALID_SIGNAL_NUMBER;
   else {
     pos++;
@@ -277,8 +277,8 @@ bool UnixSignals::SetShouldSuppress(int signo, bool value) {
 }
 
 bool UnixSignals::SetShouldSuppress(const char *signal_name, bool value) {
-  const int32_t signo = GetSignalNumberFromName(signal_name);
-  if (signo != LLDB_INVALID_SIGNAL_NUMBER)
+  
+  if (const int32_t signo = GetSignalNumberFromName(signal_name); signo != LLDB_INVALID_SIGNAL_NUMBER)
     return SetShouldSuppress(signo, value);
   return false;
 }
@@ -301,8 +301,8 @@ bool UnixSignals::SetShouldStop(int signo, bool value) {
 }
 
 bool UnixSignals::SetShouldStop(const char *signal_name, bool value) {
-  const int32_t signo = GetSignalNumberFromName(signal_name);
-  if (signo != LLDB_INVALID_SIGNAL_NUMBER)
+  
+  if (const int32_t signo = GetSignalNumberFromName(signal_name); signo != LLDB_INVALID_SIGNAL_NUMBER)
     return SetShouldStop(signo, value);
   return false;
 }
@@ -325,8 +325,8 @@ bool UnixSignals::SetShouldNotify(int signo, bool value) {
 }
 
 bool UnixSignals::SetShouldNotify(const char *signal_name, bool value) {
-  const int32_t signo = GetSignalNumberFromName(signal_name);
-  if (signo != LLDB_INVALID_SIGNAL_NUMBER)
+  
+  if (const int32_t signo = GetSignalNumberFromName(signal_name); signo != LLDB_INVALID_SIGNAL_NUMBER)
     return SetShouldNotify(signo, value);
   return false;
 }
@@ -375,8 +375,8 @@ UnixSignals::GetFilteredSignals(std::optional<bool> should_suppress,
 }
 
 void UnixSignals::IncrementSignalHitCount(int signo) {
-  collection::iterator pos = m_signals.find(signo);
-  if (pos != m_signals.end())
+  
+  if (collection::iterator pos = m_signals.find(signo); pos != m_signals.end())
     pos->second.m_hit_count += 1;
 }
 

@@ -400,8 +400,8 @@ PhiAnalyzer::PeelCounter PhiAnalyzer::calculate(const Value &V) {
 std::optional<unsigned> PhiAnalyzer::calculateIterationsToPeel() {
   unsigned Iterations = 0;
   for (auto &PHI : L.getHeader()->phis()) {
-    PeelCounter ToInvarianceOrInduction = calculate(PHI);
-    if (ToInvarianceOrInduction != Unknown) {
+    
+    if (PeelCounter ToInvarianceOrInduction = calculate(PHI); ToInvarianceOrInduction != Unknown) {
       unsigned Val = ToInvarianceOrInduction->first;
       assert(Val <= MaxIterations && "bad result in phi analysis");
       Iterations = std::max(Iterations, Val);
@@ -457,8 +457,8 @@ static unsigned peelToTurnInvariantLoadsDerefencebale(Loop &L,
       if (BB == Header)
         continue;
       if (auto *LI = dyn_cast<LoadInst>(&I)) {
-        Value *Ptr = LI->getPointerOperand();
-        if (DT.dominates(BB, Latch) && L.isLoopInvariant(Ptr) &&
+        
+        if (Value *Ptr = LI->getPointerOperand(); DT.dominates(BB, Latch) && L.isLoopInvariant(Ptr) &&
             !isDereferenceablePointer(Ptr, LI->getType(), DL, LI, AC, &DT))
           LoadUsers.insert_range(I.users());
       }
@@ -474,8 +474,8 @@ static unsigned peelToTurnInvariantLoadsDerefencebale(Loop &L,
 }
 
 bool llvm::canPeelLastIteration(const Loop &L, ScalarEvolution &SE) {
-  const SCEV *BTC = SE.getBackedgeTakenCount(&L);
-  if (isa<SCEVCouldNotCompute>(BTC))
+  
+  if (const SCEV *BTC = SE.getBackedgeTakenCount(&L); isa<SCEVCouldNotCompute>(BTC))
     return false;
 
   // Check if the exit condition of the loop can be adjusted by the peeling
@@ -512,8 +512,8 @@ static bool shouldPeelLastIteration(Loop &L, CmpPredicate Pred,
     return false;
 
   const SCEV *BTC = SE.getBackedgeTakenCount(&L);
-  SCEVExpander Expander(SE, L.getHeader()->getDataLayout(), "loop-peel");
-  if (!SE.isKnownNonZero(BTC) &&
+  
+  if (SCEVExpander Expander(SE, L.getHeader()->getDataLayout(), "loop-peel"); !SE.isKnownNonZero(BTC) &&
       Expander.isHighCostExpansion(BTC, &L, SCEVCheapExpansionBudget, &TTI,
                                    L.getLoopPredecessor()->getTerminator()))
     return false;
@@ -549,8 +549,8 @@ countToEliminateCompares(Loop &L, unsigned MaxPeelCount, ScalarEvolution &SE,
   unsigned DesiredPeelCountLast = 0;
 
   // Do not peel the entire loop.
-  const SCEV *BE = SE.getConstantMaxBackedgeTakenCount(&L);
-  if (const SCEVConstant *SC = dyn_cast<SCEVConstant>(BE))
+  
+  if (const SCEVConstant *const SCEV *BE = SE.getConstantMaxBackedgeTakenCount(&L); SC = dyn_cast<SCEVConstant>(BE))
     MaxPeelCount =
         std::min((unsigned)SC->getAPInt().getLimitedValue() - 1, MaxPeelCount);
 
@@ -766,8 +766,8 @@ void llvm::computePeelCount(Loop *L, unsigned LoopSize,
     return;
 
   // If the user provided a peel count, use that.
-  bool UserPeelCount = UnrollForcePeelCount.getNumOccurrences() > 0;
-  if (UserPeelCount) {
+  
+  if (bool UserPeelCount = UnrollForcePeelCount.getNumOccurrences() > 0; UserPeelCount) {
     LLVM_DEBUG(dbgs() << "Force-peeling first " << UnrollForcePeelCount
                       << " iterations.\n");
     PP.PeelCount = UnrollForcePeelCount;
@@ -1020,8 +1020,8 @@ static void cloneLoopBlocks(
         VMap[&*I] = NewPHI->getIncomingValueForBlock(PreHeader);
       } else {
         Value *LatchVal = NewPHI->getIncomingValueForBlock(Latch);
-        Instruction *LatchInst = dyn_cast<Instruction>(LatchVal);
-        if (LatchInst && L->contains(LatchInst))
+        
+        if (Instruction *LatchInst = dyn_cast<Instruction>(LatchVal); LatchInst && L->contains(LatchInst))
           VMap[&*I] = LVMap[LatchInst];
         else
           VMap[&*I] = LatchVal;
@@ -1037,8 +1037,8 @@ static void cloneLoopBlocks(
   for (auto Edge : ExitEdges)
     for (PHINode &PHI : Edge.second->phis()) {
       Value *LatchVal = PHI.getIncomingValueForBlock(Edge.first);
-      Instruction *LatchInst = dyn_cast<Instruction>(LatchVal);
-      if (LatchInst && L->contains(LatchInst))
+      
+      if (Instruction *LatchInst = dyn_cast<Instruction>(LatchVal); LatchInst && L->contains(LatchInst))
         LatchVal = VMap[LatchVal];
       PHI.addIncoming(LatchVal, cast<BasicBlock>(VMap[Edge.first]));
       SE.forgetLcssaPhiWithNewPredecessor(L, &PHI);
@@ -1123,8 +1123,8 @@ bool llvm::peelLoop(Loop *L, unsigned PeelCount, bool PeelLast, LoopInfo *LI,
     auto *BBDomNode = DT.getNode(BB);
     SmallVector<BasicBlock *, 16> ChildrenToUpdate;
     for (auto *ChildDomNode : BBDomNode->children()) {
-      auto *ChildBB = ChildDomNode->getBlock();
-      if (!L->contains(ChildBB))
+      
+      if (auto *ChildBB = ChildDomNode->getBlock(); !L->contains(ChildBB))
         ChildrenToUpdate.push_back(ChildBB);
     }
     // The new idom of the block will be the nearest common dominator
@@ -1223,9 +1223,9 @@ bool llvm::peelLoop(Loop *L, unsigned PeelCount, bool PeelLast, LoopInfo *LI,
       auto *BI = B.CreateCondBr(Cond, NewPreHeader, InsertTop);
       SmallVector<uint32_t> Weights;
       auto *OrigLatchBr = Latch->getTerminator();
-      auto HasBranchWeights = !ProfcheckDisableMetadataFixes &&
-                              extractBranchWeights(*OrigLatchBr, Weights);
-      if (HasBranchWeights) {
+      
+      if (auto HasBranchWeights = !ProfcheckDisableMetadataFixes &&
+                              extractBranchWeights(*OrigLatchBr, Weights); HasBranchWeights) {
         // The probability that the new guard skips the loop to execute just one
         // iteration is the original loop's probability of exiting at the latch
         // after any iteration. That should maintain the original loop body
@@ -1363,8 +1363,8 @@ bool llvm::peelLoop(Loop *L, unsigned PeelCount, bool PeelLast, LoopInfo *LI,
     // Now adjust users of the original exit values by replacing them with the
     // exit value from the peeled iteration and remove them.
     for (const auto &[P, E] : ExitValues) {
-      Instruction *ExitInst = dyn_cast<Instruction>(E);
-      if (ExitInst && L->contains(ExitInst))
+      
+      if (Instruction *ExitInst = dyn_cast<Instruction>(E); ExitInst && L->contains(ExitInst))
         P->replaceAllUsesWith(&*VMap[ExitInst]);
       else
         P->replaceAllUsesWith(E);
@@ -1377,8 +1377,8 @@ bool llvm::peelLoop(Loop *L, unsigned PeelCount, bool PeelLast, LoopInfo *LI,
     for (BasicBlock::iterator I = Header->begin(); isa<PHINode>(I); ++I) {
       PHINode *PHI = cast<PHINode>(I);
       Value *NewVal = PHI->getIncomingValueForBlock(Latch);
-      Instruction *LatchInst = dyn_cast<Instruction>(NewVal);
-      if (LatchInst && L->contains(LatchInst))
+      
+      if (Instruction *LatchInst = dyn_cast<Instruction>(NewVal); LatchInst && L->contains(LatchInst))
         NewVal = LVMap[LatchInst];
 
       PHI->setIncomingValueForBlock(NewPreHeader, NewVal);

@@ -269,8 +269,8 @@ llvm::Error AtomicChange::insert(const SourceManager &SM, SourceLocation Loc,
   if (Text.empty())
     return llvm::Error::success();
   Replacement R(SM, Loc, 0, Text);
-  llvm::Error Err = Replaces.add(R);
-  if (Err) {
+  
+  if (llvm::Error Err = Replaces.add(R); Err) {
     return llvm::handleErrors(
         std::move(Err), [&](const ReplacementError &RE) -> llvm::Error {
           if (RE.get() != replacement_error::insert_conflict)
@@ -314,8 +314,8 @@ applyAtomicChanges(llvm::StringRef FilePath, llvm::StringRef Code,
 
   Replacements AllReplaces = std::move(*Replaces);
   for (const auto &R : *HeaderReplacements) {
-    llvm::Error Err = AllReplaces.add(R);
-    if (Err)
+    
+    if (llvm::Error Err = AllReplaces.add(R); Err)
       return make_string_error(
           "Failed to combine existing replacements with header replacements: " +
           llvm::toString(std::move(Err)));

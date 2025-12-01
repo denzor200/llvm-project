@@ -36,8 +36,8 @@ static std::string Dump(const MCInst &McInst) {
 
 MATCHER(EqMCInst, "") {
   const std::string Lhs = Dump(get<0>(arg));
-  const std::string Rhs = Dump(get<1>(arg));
-  if (Lhs != Rhs) {
+  
+  if (const std::string Rhs = Dump(get<1>(arg)); Lhs != Rhs) {
     *result_listener << Lhs << " <=> " << Rhs;
     return false;
   }

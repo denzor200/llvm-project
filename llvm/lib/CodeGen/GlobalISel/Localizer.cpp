@@ -113,8 +113,8 @@ bool Localizer::localizeInterBlock(MachineFunction &MF,
       // edges, causing remat into each predecessor. Allow this to a certain
       // extent.
       unsigned NumPhiUses = getNumPhiUses(MOUse);
-      const unsigned PhiThreshold = 2; // FIXME: Tune this more.
-      if (NumPhiUses > PhiThreshold)
+      // FIXME: Tune this more.
+      if (const unsigned PhiThreshold = 2; NumPhiUses > PhiThreshold)
         continue;
 
       LLVM_DEBUG(dbgs() << "Fixing non-local use\n");
@@ -125,8 +125,8 @@ bool Localizer::localizeInterBlock(MachineFunction &MF,
         // Create the localized instruction.
         MachineInstr *LocalizedMI = MF.CloneMachineInstr(&MI);
         LocalizedInstrs.insert(LocalizedMI);
-        MachineInstr &UseMI = *MOUse.getParent();
-        if (MRI->hasOneUse(Reg) && !UseMI.isPHI())
+        
+        if (MachineInstr &UseMI = *MOUse.getParent(); MRI->hasOneUse(Reg) && !UseMI.isPHI())
           InsertMBB->insert(UseMI, LocalizedMI);
         else
           InsertMBB->insert(InsertMBB->SkipPHIsAndLabels(InsertMBB->begin()),

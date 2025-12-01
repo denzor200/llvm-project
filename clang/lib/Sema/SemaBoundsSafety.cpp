@@ -139,8 +139,8 @@ bool Sema::CheckCountedByAttrOnField(FieldDecl *FD, Expr *E, bool CountInBytes,
     // Exception: void has an implicit size of 1 byte for pointer arithmetic
     // (following GNU convention). Therefore, counted_by on void* is allowed
     // and behaves equivalently to sized_by (treating the count as bytes).
-    bool IsVoidPtr = PointeeTy->isVoidType();
-    if (IsVoidPtr) {
+    
+    if (bool IsVoidPtr = PointeeTy->isVoidType(); IsVoidPtr) {
       // Emit a warning that this is a GNU extension.
       Diag(FD->getBeginLoc(), diag::ext_gnu_counted_by_void_ptr) << Kind;
       Diag(FD->getBeginLoc(), diag::note_gnu_counted_by_void_ptr_use_sized_by)
@@ -217,9 +217,9 @@ bool Sema::CheckCountedByAttrOnField(FieldDecl *FD, Expr *E, bool CountInBytes,
     // point. Thus, an additional diagnostic in case it's not anonymous struct
     // is done later in `Parser::ParseStructDeclaration`.
     auto *RD = GetEnclosingNamedOrTopAnonRecord(FD);
-    auto *CountRD = GetEnclosingNamedOrTopAnonRecord(CountFD);
+    
 
-    if (RD != CountRD) {
+    if (auto *CountRD = GetEnclosingNamedOrTopAnonRecord(CountFD); RD != CountRD) {
       Diag(E->getBeginLoc(), diag::err_count_attr_param_not_in_same_struct)
           << CountFD << Kind << FieldTy->isArrayType() << E->getSourceRange();
       Diag(CountFD->getBeginLoc(),

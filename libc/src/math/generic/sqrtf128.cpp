@@ -373,8 +373,8 @@ LLVM_LIBC_FUNCTION(float128, sqrtf128, (float128 x)) {
     UInt128 m = v >> 15;
     UInt128 m2 = m * m;
     // The difference of the squared result and the argument
-    Int128 t0 = static_cast<Int128>(m2 - (x_reduced << 98));
-    if (t0 == 0) {
+    
+    if (Int128 t0 = static_cast<Int128>(m2 - (x_reduced << 98)); t0 == 0) {
       // the square root is exact
       v = m << 15;
     } else {
@@ -387,8 +387,8 @@ LLVM_LIBC_FUNCTION(float128, sqrtf128, (float128 x)) {
       t1 -= m_xor_sgn;
       t1 += Int128(1) + sgn;
 
-      Int128 sgn1 = t1 >> 127;
-      if (LIBC_UNLIKELY(sgn == sgn1)) {
+      
+      if (Int128 sgn1 = t1 >> 127; LIBC_UNLIKELY(sgn == sgn1)) {
         t0 = t1;
         v -= sgn << 15;
         t1 -= m_xor_sgn;

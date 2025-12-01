@@ -79,8 +79,8 @@ MipsRegisterInfo::getRegPressureLimit(const TargetRegisterClass *RC,
 const MCPhysReg *
 MipsRegisterInfo::getCalleeSavedRegs(const MachineFunction *MF) const {
   const MipsSubtarget &Subtarget = MF->getSubtarget<MipsSubtarget>();
-  const Function &F = MF->getFunction();
-  if (F.hasFnAttribute("interrupt")) {
+  
+  if (const Function &F = MF->getFunction(); F.hasFnAttribute("interrupt")) {
     if (Subtarget.hasMips64())
       return Subtarget.hasMips64r6() ? CSR_Interrupt_64R6_SaveList
                                      : CSR_Interrupt_64_SaveList;
@@ -274,10 +274,10 @@ Register MipsRegisterInfo::
 getFrameRegister(const MachineFunction &MF) const {
   const MipsSubtarget &Subtarget = MF.getSubtarget<MipsSubtarget>();
   const TargetFrameLowering *TFI = Subtarget.getFrameLowering();
-  bool IsN64 =
-      static_cast<const MipsTargetMachine &>(MF.getTarget()).getABI().IsN64();
+  
 
-  if (Subtarget.inMips16Mode())
+  if (bool IsN64 =
+      static_cast<const MipsTargetMachine &>(MF.getTarget()).getABI().IsN64(); Subtarget.inMips16Mode())
     return TFI->hasFP(MF) ? Mips::S0 : Mips::SP;
   else
     return TFI->hasFP(MF) ? (IsN64 ? Mips::FP_64 : Mips::FP) :

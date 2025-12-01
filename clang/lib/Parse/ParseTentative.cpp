@@ -44,9 +44,9 @@ bool Parser::isCXXDeclarationStatement(
       switch (Tok.getKind()) {
       case tok::identifier: {
         IdentifierInfo *II = Tok.getIdentifierInfo();
-        bool isDeductionGuide = Actions.isDeductionGuideName(
-            getCurScope(), *II, Tok.getLocation(), SS, /*Template=*/nullptr);
-        if (Actions.isCurrentClassName(*II, getCurScope(), &SS) ||
+        
+        if (bool isDeductionGuide = Actions.isDeductionGuideName(
+            getCurScope(), *II, Tok.getLocation(), SS, /*Template=*/nullptr); Actions.isCurrentClassName(*II, getCurScope(), &SS) ||
             isDeductionGuide) {
           if (isConstructorDeclarator(
                   /*Unqualified=*/SS.isEmpty(), isDeductionGuide,
@@ -244,12 +244,12 @@ Parser::TPResult
 Parser::TryParseInitDeclaratorList(bool MayHaveTrailingReturnType) {
   while (true) {
     // declarator
-    TPResult TPR = TryParseDeclarator(
+    
+    if (TPResult TPR = TryParseDeclarator(
         /*mayBeAbstract=*/false,
         /*mayHaveIdentifier=*/true,
         /*mayHaveDirectInit=*/false,
-        /*mayHaveTrailingReturnType=*/MayHaveTrailingReturnType);
-    if (TPR != TPResult::Ambiguous)
+        /*mayHaveTrailingReturnType=*/MayHaveTrailingReturnType); TPR != TPResult::Ambiguous)
       return TPR;
 
     // [GNU] simple-asm-expr[opt] attributes[opt]
@@ -908,8 +908,8 @@ Parser::TPResult Parser::TryParseDeclarator(bool mayBeAbstract,
              ImplicitTypenameContext::No))) { // 'int(int)' is a function.
       // '(' parameter-declaration-clause ')' cv-qualifier-seq[opt]
       //        exception-specification[opt]
-      TPResult TPR = TryParseFunctionDeclarator(mayHaveTrailingReturnType);
-      if (TPR != TPResult::Ambiguous)
+      
+      if (TPResult TPR = TryParseFunctionDeclarator(mayHaveTrailingReturnType); TPR != TPResult::Ambiguous)
         return TPR;
     } else {
       // '(' declarator ')'
@@ -919,8 +919,8 @@ Parser::TPResult Parser::TryParseDeclarator(bool mayBeAbstract,
                       tok::kw___stdcall, tok::kw___fastcall, tok::kw___thiscall,
                       tok::kw___regcall, tok::kw___vectorcall))
         return TPResult::True; // attributes indicate declaration
-      TPResult TPR = TryParseDeclarator(mayBeAbstract, mayHaveIdentifier);
-      if (TPR != TPResult::Ambiguous)
+      
+      if (TPResult TPR = TryParseDeclarator(mayBeAbstract, mayHaveIdentifier); TPR != TPResult::Ambiguous)
         return TPR;
       if (Tok.isNot(tok::r_paren))
         return TPResult::False;
@@ -1002,7 +1002,8 @@ Parser::TPResult
 Parser::isCXXDeclarationSpecifier(ImplicitTypenameContext AllowImplicitTypename,
                                   Parser::TPResult BracedCastResult,
                                   bool *InvalidAsDeclSpec) {
-  auto IsPlaceholderSpecifier = [&](TemplateIdAnnotation *TemplateId,
+  
+  switch (auto IsPlaceholderSpecifier = [&](TemplateIdAnnotation *TemplateId,
                                     int Lookahead) {
     // We have a placeholder-constraint (we check for 'auto' or 'decltype' to
     // distinguish 'C<int>;' from 'C<int> auto c = 1;')
@@ -1030,8 +1031,7 @@ Parser::isCXXDeclarationSpecifier(ImplicitTypenameContext AllowImplicitTypename,
             // `BinaryConcept<int> auto f = bar();`
             (TemplateId->NumArgs == 0 &&
              GetLookAheadToken(Lookahead + 1).isOneOf(tok::amp, tok::ampamp)));
-  };
-  switch (Tok.getKind()) {
+  }; Tok.getKind()) {
   case tok::identifier: {
     if (GetLookAheadToken(1).is(tok::ellipsis) &&
         GetLookAheadToken(2).is(tok::l_square)) {
@@ -1134,8 +1134,8 @@ Parser::isCXXDeclarationSpecifier(ImplicitTypenameContext AllowImplicitTypename,
   }
 
   case tok::coloncolon: {    // ::foo::bar
-    const Token &Next = NextToken();
-    if (Next.isOneOf(tok::kw_new,       // ::new
+    
+    if (const Token &Next = NextToken(); Next.isOneOf(tok::kw_new,       // ::new
                      tok::kw_delete))   // ::delete
       return TPResult::False;
     [[fallthrough]];
@@ -1678,8 +1678,8 @@ bool Parser::isCXXFunctionDeclarator(
     if (Tok.isNot(tok::r_paren))
       TPR = TPResult::False;
     else {
-      const Token &Next = NextToken();
-      if (Next.isOneOf(tok::amp, tok::ampamp, tok::kw_const, tok::kw_volatile,
+      
+      if (const Token &Next = NextToken(); Next.isOneOf(tok::amp, tok::ampamp, tok::kw_const, tok::kw_volatile,
                        tok::kw_throw, tok::kw_noexcept, tok::l_square,
                        tok::l_brace, tok::kw_try, tok::equal, tok::arrow) ||
           isCXX11VirtSpecifier(Next))

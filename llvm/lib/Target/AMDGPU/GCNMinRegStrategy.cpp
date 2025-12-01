@@ -113,8 +113,8 @@ unsigned GCNMinRegScheduler::findMax(unsigned Num, Calc C) {
   T Max = std::numeric_limits<T>::min();
   unsigned NumMax = 0;
   for (auto I = RQ.begin(); Num; --Num) {
-    T Cur = C(*I);
-    if (Cur >= Max) {
+    
+    if (T Cur = C(*I); Cur >= Max) {
       if (Cur > Max) {
         Max = Cur;
         NumMax = 1;

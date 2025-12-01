@@ -142,8 +142,8 @@ static std::string ParseAndGenerateDWARF(llvm::StringRef expr) {
         if (symbol.GetName() == "INIT")
           return MakeNode<InitialValueNode>(alloc);
 
-        uint32_t num;
-        if (to_integer(symbol.GetName().drop_front(), num))
+        
+        if (uint32_t num; to_integer(symbol.GetName().drop_front(), num))
           return MakeNode<RegisterNode>(alloc, num);
         return nullptr;
       })) {

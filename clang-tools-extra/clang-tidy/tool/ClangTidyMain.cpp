@@ -490,8 +490,8 @@ static StringRef closest(StringRef Value, const StringSet<> &Allowed) {
   unsigned MaxEdit = 5U;
   StringRef Closest;
   for (auto Item : Allowed.keys()) {
-    const unsigned Cur = Value.edit_distance_insensitive(Item, true, MaxEdit);
-    if (Cur < MaxEdit) {
+    
+    if (const unsigned Cur = Value.edit_distance_insensitive(Item, true, MaxEdit); Cur < MaxEdit) {
       Closest = Item;
       MaxEdit = Cur;
     }
@@ -519,8 +519,8 @@ static bool verifyChecks(const StringSet<> &AllChecks, StringRef CheckGlob,
         llvm::raw_ostream &Output =
             llvm::WithColor::warning(llvm::errs(), Source)
             << "unknown check '" << Item.Text << '\'';
-        const llvm::StringRef Closest = closest(Item.Text, AllChecks);
-        if (!Closest.empty())
+        
+        if (const llvm::StringRef Closest = closest(Item.Text, AllChecks); !Closest.empty())
           Output << "; did you mean '" << Closest << '\'';
         Output << VerifyConfigWarningEnd;
       }
@@ -559,8 +559,8 @@ static bool verifyOptions(const llvm::StringSet<> &ValidOptions,
     AnyInvalid = true;
     auto &Output = llvm::WithColor::warning(llvm::errs(), Source)
                    << "unknown check option '" << Key << '\'';
-    const llvm::StringRef Closest = closest(Key, ValidOptions);
-    if (!Closest.empty())
+    
+    if (const llvm::StringRef Closest = closest(Key, ValidOptions); !Closest.empty())
       Output << "; did you mean '" << Closest << '\'';
     Output << VerifyConfigWarningEnd;
   }
@@ -602,8 +602,8 @@ int clangTidyMain(int argc, const char **argv) {
       llvm::Triple(llvm::sys::getProcessTriple()).isOSWindows()
           ? llvm::cl::TokenizeWindowsCommandLine
           : llvm::cl::TokenizeGNUCommandLine;
-  llvm::cl::ExpansionContext ECtx(Alloc, Tokenizer);
-  if (llvm::Error Err = ECtx.expandResponseFiles(Args)) {
+  
+  if (llvm::Error llvm::cl::ExpansionContext ECtx(Alloc, Tokenizer); Err = ECtx.expandResponseFiles(Args)) {
     llvm::WithColor::error() << llvm::toString(std::move(Err)) << "\n";
     return 1;
   }

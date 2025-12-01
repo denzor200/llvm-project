@@ -290,8 +290,8 @@ IndirectCallPromotion::getCallTargets(BinaryBasicBlock &BB,
     auto Result = First;
     while (++First != Last) {
       Callsite &A = *Result;
-      const Callsite &B = *First;
-      if (A.To.Sym && B.To.Sym && A.To.Sym == B.To.Sym)
+      
+      if (const Callsite &B = *First; A.To.Sym && B.To.Sym && A.To.Sym == B.To.Sym)
         A.JTIndices.insert(A.JTIndices.end(), B.JTIndices.begin(),
                            B.JTIndices.end());
       else
@@ -311,12 +311,12 @@ IndirectCallPromotion::getCallTargets(BinaryBasicBlock &BB,
         Inst.getOperand(0).getReg() == BC.MRI->getProgramCounter())
       return Targets;
 
-    const auto ICSP = BC.MIB->tryGetAnnotationAs<IndirectCallSiteProfile>(
-        Inst, "CallProfile");
-    if (ICSP) {
+    
+    if (const auto ICSP = BC.MIB->tryGetAnnotationAs<IndirectCallSiteProfile>(
+        Inst, "CallProfile"); ICSP) {
       for (const IndirectCallProfile &CSP : ICSP.get()) {
-        Callsite Site(BF, CSP);
-        if (Site.isValid())
+        
+        if (Callsite Site(BF, CSP); Site.isValid())
           Targets.emplace_back(std::move(Site));
       }
     }
@@ -736,8 +736,8 @@ IndirectCallPromotion::MethodInfoType IndirectCallPromotion::maybeGetVtableSyms(
   if (VtableReg != MethodReg) {
     for (MCInst *CurInst = MethodFetchInsns.front(); CurInst < &Inst;
          ++CurInst) {
-      const MCInstrDesc &InstrInfo = BC.MII->get(CurInst->getOpcode());
-      if (InstrInfo.hasDefOfPhysReg(*CurInst, VtableReg, *BC.MRI))
+      
+      if (const MCInstrDesc &InstrInfo = BC.MII->get(CurInst->getOpcode()); InstrInfo.hasDefOfPhysReg(*CurInst, VtableReg, *BC.MRI))
         return MethodInfoType();
     }
   }
@@ -1013,8 +1013,8 @@ size_t IndirectCallPromotion::canPromoteCallsite(
     // Compute the misprediction frequency of the top N call targets.  If this
     // frequency is greater than the threshold, we should try ICP on this
     // callsite.
-    const double TopNFrequency = (100.0 * TotalMispredictsTopN) / NumCalls;
-    if (TopNFrequency == 0 || TopNFrequency < opts::ICPMispredictThreshold) {
+    
+    if (const double TopNFrequency = (100.0 * TotalMispredictsTopN) / NumCalls; TopNFrequency == 0 || TopNFrequency < opts::ICPMispredictThreshold) {
       if (opts::Verbosity >= 1) {
         const ptrdiff_t InstIdx = &Inst - &(*BB.begin());
         BC.outs() << "BOLT-INFO: ICP failed in " << *BF << " @ " << InstIdx
@@ -1057,10 +1057,10 @@ size_t IndirectCallPromotion::canPromoteCallsite(
       // Compute the misprediction frequency of the top N call targets.  If
       // this frequency is less than the threshold, we should skip ICP at
       // this callsite.
-      const double TopNMispredictFrequency =
-          (100.0 * TotalMispredictsTopN) / NumCalls;
+      
 
-      if (TopNMispredictFrequency < opts::ICPMispredictThreshold) {
+      if (const double TopNMispredictFrequency =
+          (100.0 * TotalMispredictsTopN) / NumCalls; TopNMispredictFrequency < opts::ICPMispredictThreshold) {
         if (opts::Verbosity >= 1) {
           const ptrdiff_t InstIdx = &Inst - &(*BB.begin());
           BC.outs() << "BOLT-INFO: ICP failed in " << *BF << " @ " << InstIdx
@@ -1079,8 +1079,8 @@ size_t IndirectCallPromotion::canPromoteCallsite(
   if (!IsJumpTable && opts::ICPPeelForInline) {
     for (size_t I = 0; I < N; ++I) {
       const MCSymbol *TargetSym = Targets[I].To.Sym;
-      const BinaryFunction *TargetBF = BC.getFunctionForSymbol(TargetSym);
-      if (!TargetBF || !BinaryFunctionPass::shouldOptimize(*TargetBF) ||
+      
+      if (const BinaryFunction *TargetBF = BC.getFunctionForSymbol(TargetSym); !TargetBF || !BinaryFunctionPass::shouldOptimize(*TargetBF) ||
           getInliningInfo(*TargetBF).Type == InliningType::INL_NONE) {
         N = I;
         break;
@@ -1185,10 +1185,10 @@ Error IndirectCallPromotion::runOnFunctions(BinaryContext &BC) {
           const bool IsJumpTable = Function.getJumpTable(Inst);
           const bool HasIndirectCallProfile =
               BC.MIB->hasAnnotation(Inst, "CallProfile");
-          const bool IsDirectCall =
-              (BC.MIB->isCall(Inst) && BC.MIB->getTargetSymbol(Inst, 0));
+          
 
-          if (!IsDirectCall &&
+          if (const bool IsDirectCall =
+              (BC.MIB->isCall(Inst) && BC.MIB->getTargetSymbol(Inst, 0)); !IsDirectCall &&
               ((HasIndirectCallProfile && !IsJumpTable && OptimizeCalls) ||
                (IsJumpTable && OptimizeJumpTables))) {
             uint64_t NumCalls = 0;
@@ -1299,9 +1299,9 @@ Error IndirectCallPromotion::runOnFunctions(BinaryContext &BC) {
         // If FLAGS regs is alive after this jmp site, do not try
         // promoting because we will clobber FLAGS.
         if (IsJumpTable) {
-          ErrorOr<const BitVector &> State =
-              Info.getLivenessAnalysis().getStateBefore(Inst);
-          if (!State || (State && (*State)[BC.MIB->getFlagsReg()])) {
+          
+          if (ErrorOr<const BitVector &> State =
+              Info.getLivenessAnalysis().getStateBefore(Inst); !State || (State && (*State)[BC.MIB->getFlagsReg()])) {
             if (opts::Verbosity >= 1)
               BC.outs() << "BOLT-INFO: ICP failed in " << Function << " @ "
                         << InstIdx << " in " << BB->getName()
@@ -1341,8 +1341,8 @@ Error IndirectCallPromotion::runOnFunctions(BinaryContext &BC) {
         // If we can't resolve any of the target symbols, punt on this callsite.
         // TODO: can this ever happen?
         if (SymTargets.size() < N) {
-          const size_t LastTarget = SymTargets.size();
-          if (opts::Verbosity >= 1)
+          
+          if (const size_t LastTarget = SymTargets.size(); opts::Verbosity >= 1)
             BC.outs() << "BOLT-INFO: ICP failed in " << Function << " @ "
                       << InstIdx << " in " << BB->getName()
                       << ", calls = " << NumCalls

@@ -73,8 +73,8 @@ static uptr max_malloced_memory;
 
 static void MergeThreadStats(ThreadContextBase *tctx_base, void *arg) {
   AsanStats *accumulated_stats = reinterpret_cast<AsanStats*>(arg);
-  AsanThreadContext *tctx = static_cast<AsanThreadContext*>(tctx_base);
-  if (AsanThread *t = tctx->thread)
+  
+  if (AsanThread *AsanThreadContext *tctx = static_cast<AsanThreadContext*>(tctx_base); t = tctx->thread)
     accumulated_stats->MergeFrom(&t->stats());
 }
 

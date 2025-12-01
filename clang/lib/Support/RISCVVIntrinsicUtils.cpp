@@ -116,8 +116,8 @@ bool RVVType::verifyType() const {
     return false;
   if (IsTuple && (1 << std::max(0, LMUL.Log2LMUL)) * NF > 8)
     return false;
-  unsigned V = *Scale;
-  switch (ElementBitwidth) {
+  
+  switch (unsigned V = *Scale; ElementBitwidth) {
   case 1:
   case 8:
     // Check Scale is 1,2,4,8,16,32,64
@@ -412,8 +412,8 @@ PrototypeDescriptor::parsePrototypeDescriptor(
     return PD;
 
   // Handle base type modifier
-  auto PType = PrototypeDescriptorStr.back();
-  switch (PType) {
+  
+  switch (auto PType = PrototypeDescriptorStr.back(); PType) {
   case 'e':
     PT = BaseTypeModifier::Scalar;
     break;
@@ -471,8 +471,8 @@ PrototypeDescriptor::parsePrototypeDescriptor(
     assert(!PrototypeDescriptorStr.contains('(') &&
            "Only allow one vector type modifier");
 
-    auto ComplexTT = ComplexType.split(":");
-    if (ComplexTT.first == "Log2EEW") {
+    
+    if (auto ComplexTT = ComplexType.split(":"); ComplexTT.first == "Log2EEW") {
       uint32_t Log2EEW;
       if (ComplexTT.second.getAsInteger(10, Log2EEW)) {
         llvm_unreachable("Invalid Log2EEW value!");
@@ -1043,8 +1043,8 @@ llvm::SmallVector<PrototypeDescriptor> RVVIntrinsic::computeBuiltinTypes(
     bool HasMaskedOffOperand, bool HasVL, unsigned NF,
     PolicyScheme DefaultScheme, Policy PolicyAttrs, bool IsTuple) {
   SmallVector<PrototypeDescriptor> NewPrototype(Prototype);
-  bool HasPassthruOp = DefaultScheme == PolicyScheme::HasPassthruOperand;
-  if (IsMasked) {
+  
+  if (bool HasPassthruOp = DefaultScheme == PolicyScheme::HasPassthruOperand; IsMasked) {
     // If HasMaskedOffOperand, insert result type as first input operand if
     // need.
     if (HasMaskedOffOperand && !PolicyAttrs.isTAMAPolicy()) {

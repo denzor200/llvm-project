@@ -75,9 +75,9 @@ llvm::Expected<std::string> DependencyScanningTool::getDependencyFile(
     const std::vector<std::string> &CommandLine, StringRef CWD) {
   MakeDependencyPrinterConsumer Consumer;
   CallbackActionController Controller(nullptr);
-  auto Result =
-      Worker.computeDependencies(CWD, CommandLine, Consumer, Controller);
-  if (Result)
+  
+  if (auto Result =
+      Worker.computeDependencies(CWD, CommandLine, Consumer, Controller); Result)
     return std::move(Result);
   std::string Output;
   Consumer.printDependencies(Output);
@@ -128,9 +128,9 @@ llvm::Expected<P1689Rule> DependencyScanningTool::getP1689ModuleDependencyFile(
   P1689Rule Rule;
   P1689ModuleDependencyPrinterConsumer Consumer(Rule, Command);
   P1689ActionController Controller;
-  auto Result = Worker.computeDependencies(CWD, Command.CommandLine, Consumer,
-                                           Controller);
-  if (Result)
+  
+  if (auto Result = Worker.computeDependencies(CWD, Command.CommandLine, Consumer,
+                                           Controller); Result)
     return std::move(Result);
 
   MakeformatOutputPath = Consumer.getMakeFormatDependencyOutputPath();
@@ -147,10 +147,10 @@ DependencyScanningTool::getTranslationUnitDependencies(
     std::optional<llvm::MemoryBufferRef> TUBuffer) {
   FullDependencyConsumer Consumer(AlreadySeen);
   CallbackActionController Controller(LookupModuleOutput);
-  llvm::Error Result = Worker.computeDependencies(CWD, CommandLine, Consumer,
-                                                  Controller, TUBuffer);
+  
 
-  if (Result)
+  if (llvm::Error Result = Worker.computeDependencies(CWD, CommandLine, Consumer,
+                                                  Controller, TUBuffer); Result)
     return std::move(Result);
   return Consumer.takeTranslationUnitDeps();
 }
@@ -189,9 +189,9 @@ DependencyScanningTool::computeDependenciesByNameWithContext(
     LookupModuleOutputCallback LookupModuleOutput) {
   FullDependencyConsumer Consumer(AlreadySeen);
   CallbackActionController Controller(LookupModuleOutput);
-  llvm::Error Result = Worker.computeDependenciesByNameWithContextOrError(
-      ModuleName, Consumer, Controller);
-  if (Result)
+  
+  if (llvm::Error Result = Worker.computeDependenciesByNameWithContextOrError(
+      ModuleName, Consumer, Controller); Result)
     return std::move(Result);
 
   return Consumer.takeTranslationUnitDeps();

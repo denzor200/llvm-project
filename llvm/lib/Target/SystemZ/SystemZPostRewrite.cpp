@@ -81,9 +81,9 @@ void SystemZPostRewrite::selectLOCRMux(MachineBasicBlock &MBB,
   Register DestReg = MBBI->getOperand(0).getReg();
   Register SrcReg = MBBI->getOperand(2).getReg();
   bool DestIsHigh = SystemZ::isHighReg(DestReg);
-  bool SrcIsHigh = SystemZ::isHighReg(SrcReg);
+  
 
-  if (!DestIsHigh && !SrcIsHigh)
+  if (bool SrcIsHigh = SystemZ::isHighReg(SrcReg); !DestIsHigh && !SrcIsHigh)
     MBBI->setDesc(TII->get(LowOpcode));
   else if (DestIsHigh && SrcIsHigh)
     MBBI->setDesc(TII->get(HighOpcode));
@@ -234,13 +234,13 @@ bool SystemZPostRewrite::selectMI(MachineBasicBlock &MBB,
   // Note: If this could be done during regalloc in foldMemoryOperandImpl()
   // while also updating the LiveIntervals, there would be no need for the
   // MemFoldPseudo to begin with.
-  int TargetMemOpcode = SystemZ::getTargetMemOpcode(Opcode);
-  if (TargetMemOpcode != -1) {
+  
+  if (int TargetMemOpcode = SystemZ::getTargetMemOpcode(Opcode); TargetMemOpcode != -1) {
     MI.setDesc(TII->get(TargetMemOpcode));
     MI.tieOperands(0, 1);
     Register DstReg = MI.getOperand(0).getReg();
-    MachineOperand &SrcMO = MI.getOperand(1);
-    if (DstReg != SrcMO.getReg()) {
+    
+    if (MachineOperand &SrcMO = MI.getOperand(1); DstReg != SrcMO.getReg()) {
       BuildMI(MBB, &MI, MI.getDebugLoc(), TII->get(SystemZ::COPY), DstReg)
         .addReg(SrcMO.getReg());
       SrcMO.setReg(DstReg);

@@ -593,8 +593,8 @@ BasicBlock::iterator coro::getSpillInsertionPt(const coro::Shape &Shape,
     // that the suspend will be followed by a branch.
     InsertPt = CSI->getParent()->getSingleSuccessor()->getFirstNonPHIIt();
   } else {
-    auto *I = cast<Instruction>(Def);
-    if (!DT.dominates(Shape.CoroBegin, I)) {
+    
+    if (auto *I = cast<Instruction>(Def); !DT.dominates(Shape.CoroBegin, I)) {
       // If it is not dominated by CoroBegin, then spill should be
       // inserted immediately after CoroFrame is computed.
       InsertPt = Shape.getInsertPtAfterFramePtr();
@@ -605,8 +605,8 @@ BasicBlock::iterator coro::getSpillInsertionPt(const coro::Shape &Shape,
       InsertPt = NewBB->getTerminator()->getIterator();
     } else if (isa<PHINode>(I)) {
       // Skip the PHINodes and EH pads instructions.
-      BasicBlock *DefBlock = I->getParent();
-      if (auto *CSI = dyn_cast<CatchSwitchInst>(DefBlock->getTerminator()))
+      
+      if (auto *BasicBlock *DefBlock = I->getParent(); CSI = dyn_cast<CatchSwitchInst>(DefBlock->getTerminator()))
         InsertPt = splitBeforeCatchSwitch(CSI)->getIterator();
       else
         InsertPt = DefBlock->getFirstInsertionPt();

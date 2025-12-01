@@ -250,8 +250,8 @@ UnsignedOrNone Program::createGlobal(const DeclTy &D, QualType Ty,
   Descriptor *Desc;
   const bool IsConst = Ty.isConstQualified();
   const bool IsTemporary = D.dyn_cast<const Expr *>();
-  const bool IsVolatile = Ty.isVolatileQualified();
-  if (OptPrimType T = Ctx.classify(Ty))
+  
+  if (OptPrimType const bool IsVolatile = Ty.isVolatileQualified(); T = Ctx.classify(Ty))
     Desc = createDescriptor(D, *T, nullptr, Descriptor::GlobalMD, IsConst,
                             IsTemporary, /*IsMutable=*/false, IsVolatile);
   else
@@ -410,8 +410,8 @@ Descriptor *Program::createDescriptor(const DeclTy &D, const Type *Ty,
       size_t NumElems = CAT->getZExtSize();
       if (OptPrimType T = Ctx.classify(ElemTy)) {
         // Arrays of primitives.
-        unsigned ElemSize = primSize(*T);
-        if (std::numeric_limits<unsigned>::max() / ElemSize <= NumElems) {
+        
+        if (unsigned ElemSize = primSize(*T); std::numeric_limits<unsigned>::max() / ElemSize <= NumElems) {
           return {};
         }
         return allocateDescriptor(D, *T, MDSize, NumElems, IsConst, IsTemporary,

@@ -96,8 +96,8 @@ bool PlatformDarwinDevice::UpdateSDKDirectoryInfosIfNeeded() {
                     "searching %s for additional SDKs",
                     local_sdk_cache.GetPath().c_str());
         }
-        char path[PATH_MAX];
-        if (local_sdk_cache.GetPath(path, sizeof(path))) {
+        
+        if (char path[PATH_MAX]; local_sdk_cache.GetPath(path, sizeof(path))) {
           FileSystem::Instance().EnumerateDirectory(
               path, find_directories, find_files, find_other,
               GetContainedFilesIntoVectorOfStringsCallback,
@@ -117,8 +117,8 @@ bool PlatformDarwinDevice::UpdateSDKDirectoryInfosIfNeeded() {
         }
       }
 
-      const char *addtional_platform_dirs = getenv("PLATFORM_SDK_DIRECTORY");
-      if (addtional_platform_dirs) {
+      
+      if (const char *addtional_platform_dirs = getenv("PLATFORM_SDK_DIRECTORY"); addtional_platform_dirs) {
         SDKDirectoryInfoCollection env_var_sdk_directory_infos;
         FileSystem::Instance().EnumerateDirectory(
             addtional_platform_dirs, find_directories, find_files, find_other,
@@ -146,8 +146,8 @@ bool PlatformDarwinDevice::UpdateSDKDirectoryInfosIfNeeded() {
 
 const PlatformDarwinDevice::SDKDirectoryInfo *
 PlatformDarwinDevice::GetSDKDirectoryForCurrentOSVersion() {
-  uint32_t i;
-  if (UpdateSDKDirectoryInfosIfNeeded()) {
+  
+  if (uint32_t i; UpdateSDKDirectoryInfosIfNeeded()) {
     const uint32_t num_sdk_infos = m_sdk_directory_infos.size();
     std::vector<bool> check_sdk_info(num_sdk_infos, true);
 
@@ -215,12 +215,12 @@ const PlatformDarwinDevice::SDKDirectoryInfo *
 PlatformDarwinDevice::GetSDKDirectoryForLatestOSVersion() {
   const PlatformDarwinDevice::SDKDirectoryInfo *result = nullptr;
   if (UpdateSDKDirectoryInfosIfNeeded()) {
-    auto max = std::max_element(
+    
+    if (auto max = std::max_element(
         m_sdk_directory_infos.begin(), m_sdk_directory_infos.end(),
         [](const SDKDirectoryInfo &a, const SDKDirectoryInfo &b) {
           return a.version < b.version;
-        });
-    if (max != m_sdk_directory_infos.end())
+        }); max != m_sdk_directory_infos.end())
       result = &*max;
   }
   return result;
@@ -257,8 +257,8 @@ const char *PlatformDarwinDevice::GetDeviceSupportDirectoryForOSVersion() {
     if (sdk_dir_info == nullptr)
       sdk_dir_info = GetSDKDirectoryForLatestOSVersion();
     if (sdk_dir_info) {
-      char path[PATH_MAX];
-      if (sdk_dir_info->directory.GetPath(path, sizeof(path))) {
+      
+      if (char path[PATH_MAX]; sdk_dir_info->directory.GetPath(path, sizeof(path))) {
         m_device_support_directory_for_os_version = path;
         return m_device_support_directory_for_os_version.c_str();
       }
@@ -421,9 +421,9 @@ lldb_private::Status PlatformDarwinDevice::GetSharedModuleWithLocalCache(
                       (IsHost() ? "host" : "remote"),
                       module_spec.GetFileSpec().GetDirectory().AsCString(),
                       module_spec.GetFileSpec().GetFilename().AsCString());
-            Status err =
-                BringInRemoteFile(this, module_spec, module_cache_spec);
-            if (err.Fail())
+            
+            if (Status err =
+                BringInRemoteFile(this, module_spec, module_cache_spec); err.Fail())
               return err;
           }
         }

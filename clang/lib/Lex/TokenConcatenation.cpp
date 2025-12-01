@@ -174,8 +174,8 @@ bool TokenConcatenation::AvoidConcat(const Token &PrevPrevTok,
   // were an issue, the tokens would have been lexed differently.
   SourceManager &SM = PP.getSourceManager();
   SourceLocation PrevSpellLoc = SM.getSpellingLoc(PrevTok.getLocation());
-  SourceLocation SpellLoc = SM.getSpellingLoc(Tok.getLocation());
-  if (PrevSpellLoc.getLocWithOffset(PrevTok.getLength()) == SpellLoc)
+  
+  if (SourceLocation SpellLoc = SM.getSpellingLoc(Tok.getLocation()); PrevSpellLoc.getLocWithOffset(PrevTok.getLength()) == SpellLoc)
     return false;
 
   tok::TokenKind PrevKind = PrevTok.getKind();

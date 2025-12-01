@@ -66,8 +66,8 @@ unsigned AArch64WinCOFFObjectWriter::getRelocType(
   const MCExpr *Expr = Fixup.getValue();
 
   if (auto *A64E = dyn_cast<MCSpecifierExpr>(Expr)) {
-    AArch64::Specifier Spec = A64E->getSpecifier();
-    switch (AArch64::getSymbolLoc(Spec)) {
+    
+    switch (AArch64::Specifier Spec = A64E->getSpecifier(); AArch64::getSymbolLoc(Spec)) {
     case AArch64::S_ABS:
     case AArch64::S_SECREL:
       // Supported
@@ -131,8 +131,8 @@ unsigned AArch64WinCOFFObjectWriter::getRelocType(
   case AArch64::fixup_aarch64_ldst_imm12_scale8:
   case AArch64::fixup_aarch64_ldst_imm12_scale16:
     if (auto *A64E = dyn_cast<MCSpecifierExpr>(Expr)) {
-      AArch64::Specifier Spec = A64E->getSpecifier();
-      if (Spec == AArch64::S_SECREL_LO12)
+      
+      if (AArch64::Specifier Spec = A64E->getSpecifier(); Spec == AArch64::S_SECREL_LO12)
         return COFF::IMAGE_REL_ARM64_SECREL_LOW12L;
     }
     return COFF::IMAGE_REL_ARM64_PAGEOFFSET_12L;

@@ -37,7 +37,7 @@ XCOFFObjectWriter &MCXCOFFStreamer::getWriter() {
 
 void MCXCOFFStreamer::changeSection(MCSection *Section, uint32_t Subsection) {
   MCObjectStreamer::changeSection(Section, Subsection);
-  auto *Sec = static_cast<const MCSectionXCOFF *>(Section);
+  
   // We might miss calculating the symbols difference as absolute value before
   // adding fixups when symbol_A without the fragment set is the csect itself
   // and symbol_B is in it.
@@ -45,7 +45,7 @@ void MCXCOFFStreamer::changeSection(MCSection *Section, uint32_t Subsection) {
   // sections because we don't have other cases that hit this problem yet.
   // if (IsDwarfSec || CsectProp->MappingClass == XCOFF::XMC_PR)
   //   QualName->setFragment(F);
-  if (Sec->isDwarfSect() || Sec->getMappingClass() == XCOFF::XMC_PR)
+  if (auto *Sec = static_cast<const MCSectionXCOFF *>(Section); Sec->isDwarfSect() || Sec->getMappingClass() == XCOFF::XMC_PR)
     Sec->getQualNameSymbol()->setFragment(CurFrag);
 }
 
@@ -108,8 +108,8 @@ void MCXCOFFStreamer::emitXCOFFRefDirective(const MCSymbol *Symbol) {
 
 void MCXCOFFStreamer::emitXCOFFRenameDirective(const MCSymbol *Name,
                                                StringRef Rename) {
-  auto *Symbol = static_cast<const MCSymbolXCOFF *>(Name);
-  if (!Symbol->hasRename())
+  
+  if (auto *Symbol = static_cast<const MCSymbolXCOFF *>(Name); !Symbol->hasRename())
     report_fatal_error("Only explicit .rename is supported for XCOFF.");
 }
 

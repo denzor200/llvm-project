@@ -231,8 +231,8 @@ lldb::ValueType ValueObjectConstResult::GetValueType() const {
 }
 
 llvm::Expected<uint64_t> ValueObjectConstResult::GetByteSize() {
-  ExecutionContext exe_ctx(GetExecutionContextRef());
-  if (!m_byte_size) {
+  
+  if (ExecutionContext exe_ctx(GetExecutionContextRef()); !m_byte_size) {
     auto size_or_err =
         GetCompilerType().GetByteSize(exe_ctx.GetBestExecutionContextScope());
     if (!size_or_err)
@@ -310,8 +310,8 @@ ValueObjectConstResult::GetDynamicValue(lldb::DynamicValueType use_dynamic) {
   if (use_dynamic != eNoDynamicValues) {
     if (!IsDynamic()) {
       ExecutionContext exe_ctx(GetExecutionContextRef());
-      Process *process = exe_ctx.GetProcessPtr();
-      if (process && process->IsPossibleDynamicValue(*this))
+      
+      if (Process *process = exe_ctx.GetProcessPtr(); process && process->IsPossibleDynamicValue(*this))
         m_dynamic_value = new ValueObjectDynamicValue(*this, use_dynamic);
     }
     if (m_dynamic_value && m_dynamic_value->GetError().Success())

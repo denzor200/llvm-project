@@ -125,9 +125,9 @@ void VectorizerTestPass::testVectorShapeRatio(llvm::raw_ostream &outs) {
     // purpose of this test. If we need to test more intricate behavior in the
     // future we can always extend.
     auto superVectorType = cast<VectorType>(opInst->getResult(0).getType());
-    auto ratio =
-        computeShapeRatio(superVectorType.getShape(), subVectorType.getShape());
-    if (!ratio) {
+    
+    if (auto ratio =
+        computeShapeRatio(superVectorType.getShape(), subVectorType.getShape()); !ratio) {
       opInst->emitRemark("NOT MATCHED");
     } else {
       outs << "\nmatched: " << *opInst << " with shape ratio: ";
@@ -254,17 +254,17 @@ void VectorizerTestPass::testVecAffineLoopNest(llvm::raw_ostream &outs) {
 
 void VectorizerTestPass::runOnOperation() {
   // Only support single block functions at this point.
-  func::FuncOp f = getOperation();
-  if (!llvm::hasSingleElement(f))
+  
+  if (func::FuncOp f = getOperation(); !llvm::hasSingleElement(f))
     return;
 
   std::string str;
   llvm::raw_string_ostream outs(str);
 
   { // Tests that expect a NestedPatternContext to be allocated externally.
-    NestedPatternContext mlContext;
+    
 
-    if (!clTestVectorShapeRatio.empty())
+    if (NestedPatternContext mlContext; !clTestVectorShapeRatio.empty())
       testVectorShapeRatio(outs);
 
     if (clTestForwardSlicingAnalysis)

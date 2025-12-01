@@ -135,8 +135,8 @@ DWARFDIE::GetAttributeValueAsReferenceDIE(const dw_attr_t attr) const {
   if (IsValid()) {
     DWARFUnit *cu = GetCU();
     const bool check_elaborating_dies = true;
-    DWARFFormValue form_value;
-    if (m_die->GetAttributeValue(cu, attr, form_value, nullptr,
+    
+    if (DWARFFormValue form_value; m_die->GetAttributeValue(cu, attr, form_value, nullptr,
                                  check_elaborating_dies))
       return form_value.Reference();
   }
@@ -380,11 +380,11 @@ lldb_private::Type *DWARFDIE::ResolveTypeUID(const DWARFDIE &die) const {
 
 static CompilerContext GetContextEntry(DWARFDIE die,
                                        bool derive_template_names) {
-  auto ctx = [die](CompilerContextKind kind) {
-    return CompilerContext(kind, ConstString(die.GetName()));
-  };
+  
 
-  switch (die.Tag()) {
+  switch (auto ctx = [die](CompilerContextKind kind) {
+    return CompilerContext(kind, ConstString(die.GetName()));
+  }; die.Tag()) {
   case DW_TAG_module:
     return ctx(CompilerContextKind::Module);
   case DW_TAG_namespace:
@@ -609,8 +609,8 @@ DWARFDIE::child_iterator DWARFDIE::begin() const {
 DWARFDIE::child_iterator DWARFDIE::end() const { return child_iterator(); }
 
 std::optional<DWARFFormValue> DWARFDIE::find(const dw_attr_t attr) const {
-  DWARFFormValue form_value;
-  if (m_die->GetAttributeValue(m_cu, attr, form_value, nullptr, false))
+  
+  if (DWARFFormValue form_value; m_die->GetAttributeValue(m_cu, attr, form_value, nullptr, false))
     return form_value;
   return std::nullopt;
 }

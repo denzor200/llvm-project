@@ -136,12 +136,12 @@ lldb::addr_t AppleGetItemInfoHandler::SetupGetItemInfoFunction(
 
   // Scope for mutex locker:
   {
-    std::lock_guard<std::mutex> guard(m_get_item_info_function_mutex);
+    
 
     // First stage is to make the UtilityFunction to hold our injected
     // function:
 
-    if (!m_get_item_info_impl_code) {
+    if (std::lock_guard<std::mutex> guard(m_get_item_info_function_mutex); !m_get_item_info_impl_code) {
       if (g_get_item_info_function_code != nullptr) {
         auto utility_fn_or_error = exe_ctx.GetTargetRef().CreateUtilityFunction(
             g_get_item_info_function_code, g_get_item_info_function_name,

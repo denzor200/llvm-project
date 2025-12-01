@@ -106,8 +106,8 @@ public:
     if (!Builder.getIsFPConstrained())
       return nullptr;
 
-    llvm::Type *Ty = V->getType();
-    if (Ty->isHalfTy() || Ty->isFloatTy() || Ty->isDoubleTy() ||
+    
+    if (llvm::Type *Ty = V->getType(); Ty->isHalfTy() || Ty->isFloatTy() || Ty->isDoubleTy() ||
         Ty->isFP128Ty()) {
       llvm::Module &M = CGM.getModule();
       auto &Ctx = M.getContext();
@@ -208,8 +208,8 @@ llvm::Type *SystemZABIInfo::getFPArgumentType(QualType Ty,
 }
 
 QualType SystemZABIInfo::GetSingleElementType(QualType Ty) const {
-  const auto *RD = Ty->getAsRecordDecl();
-  if (RD && RD->isStructureOrClass()) {
+  
+  if (const auto *RD = Ty->getAsRecordDecl(); RD && RD->isStructureOrClass()) {
     QualType Found;
 
     // If this is a C++ record, check the bases first.
@@ -508,9 +508,9 @@ bool SystemZTargetCodeGenInfo::isVectorTypeBased(const Type *Ty,
     const Type *SingleEltTy = getABIInfo<SystemZABIInfo>()
                                   .GetSingleElementType(QualType(Ty, 0))
                                   .getTypePtr();
-    bool SingleVecEltStruct = SingleEltTy != Ty && SingleEltTy->isVectorType() &&
-      Ctx.getTypeSize(SingleEltTy) == Ctx.getTypeSize(Ty);
-    if (Ty->isVectorType() || SingleVecEltStruct)
+    
+    if (bool SingleVecEltStruct = SingleEltTy != Ty && SingleEltTy->isVectorType() &&
+      Ctx.getTypeSize(SingleEltTy) == Ctx.getTypeSize(Ty); Ty->isVectorType() || SingleVecEltStruct)
       return Ctx.getTypeSize(Ty) / 8 <= 16;
   }
 

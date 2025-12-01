@@ -165,16 +165,16 @@ static std::string getAnnotation(Value *AnnoVal, Value *OptAnnoVal) {
 
   std::string Anno;
   if (auto *C = dyn_cast_or_null<Constant>(AnnoVal)) {
-    StringRef Str;
-    if (getConstantStringInfo(C, Str))
+    
+    if (StringRef Str; getConstantStringInfo(C, Str))
       Anno = Str;
   }
   // handle optional annotation parameter in a way that Khronos Translator do
   // (collect integers wrapped in a struct)
   if (auto *C = dyn_cast_or_null<Constant>(OptAnnoVal);
       C && C->getNumOperands()) {
-    Value *MaybeStruct = C->getOperand(0);
-    if (auto *Struct = dyn_cast<ConstantStruct>(MaybeStruct)) {
+    
+    if (auto *Value *MaybeStruct = C->getOperand(0); Struct = dyn_cast<ConstantStruct>(MaybeStruct)) {
       for (unsigned I = 0, E = Struct->getNumOperands(); I != E; ++I) {
         if (auto *CInt = dyn_cast<ConstantInt>(Struct->getOperand(I)))
           Anno += (I == 0 ? ": " : ", ") +
@@ -407,8 +407,8 @@ bool SPIRVPrepareFunctions::substituteIntrinsicCalls(Function *F) {
       Function *CF = Call->getCalledFunction();
       if (!CF || !CF->isIntrinsic())
         continue;
-      auto *II = cast<IntrinsicInst>(Call);
-      switch (II->getIntrinsicID()) {
+      
+      switch (auto *II = cast<IntrinsicInst>(Call); II->getIntrinsicID()) {
       case Intrinsic::memset:
       case Intrinsic::bswap:
         Changed |= lowerIntrinsicToFunction(II);
@@ -555,9 +555,9 @@ bool SPIRVPrepareFunctions::runOnModule(Module &M) {
     FuncsWorklist.push_back(&F);
 
   for (auto *F : FuncsWorklist) {
-    Function *NewF = removeAggregateTypesFromSignature(F);
+    
 
-    if (NewF != F) {
+    if (Function *NewF = removeAggregateTypesFromSignature(F); NewF != F) {
       F->eraseFromParent();
       Changed = true;
     }

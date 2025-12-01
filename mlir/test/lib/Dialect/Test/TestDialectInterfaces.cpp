@@ -140,8 +140,8 @@ struct TestBytecodeDialectInterface : public BytecodeDialectInterface {
 
 private:
   Attribute readAttrNewEncoding(DialectBytecodeReader &reader) const {
-    uint64_t encoding;
-    if (failed(reader.readVarInt(encoding)) ||
+    
+    if (uint64_t encoding; failed(reader.readVarInt(encoding)) ||
         encoding != test_encoding::k_attr_params)
       return Attribute();
     // The new encoding has v0 first, v1 second.
@@ -153,8 +153,8 @@ private:
   }
 
   Attribute readAttrOldEncoding(DialectBytecodeReader &reader) const {
-    uint64_t encoding;
-    if (failed(reader.readVarInt(encoding)) ||
+    
+    if (uint64_t encoding; failed(reader.readVarInt(encoding)) ||
         encoding != test_encoding::k_attr_params)
       return Attribute();
     // The old encoding has v1 first, v0 second.

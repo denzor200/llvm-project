@@ -67,9 +67,9 @@ applyTweak(ParsedAST &AST, llvm::Annotations::Range Range, StringRef TweakID,
   std::optional<llvm::Expected<Tweak::Effect>> Result;
   SelectionTree::createEach(AST.getASTContext(), AST.getTokens(), Range.Begin,
                             Range.End, [&](SelectionTree ST) {
-                              Tweak::Selection S(Index, AST, Range.Begin,
-                                                 Range.End, std::move(ST), FS);
-                              if (auto T = prepareTweak(TweakID, S, nullptr)) {
+                              
+                              if (auto Tweak::Selection S(Index, AST, Range.Begin,
+                                                 Range.End, std::move(ST), FS); T = prepareTweak(TweakID, S, nullptr)) {
                                 Result = (*T)->apply(S);
                                 return true;
                               } else {

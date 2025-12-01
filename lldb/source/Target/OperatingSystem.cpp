@@ -15,15 +15,15 @@ using namespace lldb_private;
 
 OperatingSystem *OperatingSystem::FindPlugin(Process *process,
                                              const char *plugin_name) {
-  OperatingSystemCreateInstance create_callback = nullptr;
-  if (plugin_name) {
+  
+  if (OperatingSystemCreateInstance create_callback = nullptr; plugin_name) {
     create_callback =
         PluginManager::GetOperatingSystemCreateCallbackForPluginName(
             plugin_name);
     if (create_callback) {
-      std::unique_ptr<OperatingSystem> instance_up(
-          create_callback(process, true));
-      if (instance_up)
+      
+      if (std::unique_ptr<OperatingSystem> instance_up(
+          create_callback(process, true)); instance_up)
         return instance_up.release();
     }
   } else {
@@ -32,9 +32,9 @@ OperatingSystem *OperatingSystem::FindPlugin(Process *process,
               PluginManager::GetOperatingSystemCreateCallbackAtIndex(idx)) !=
          nullptr;
          ++idx) {
-      std::unique_ptr<OperatingSystem> instance_up(
-          create_callback(process, false));
-      if (instance_up)
+      
+      if (std::unique_ptr<OperatingSystem> instance_up(
+          create_callback(process, false)); instance_up)
         return instance_up.release();
     }
   }

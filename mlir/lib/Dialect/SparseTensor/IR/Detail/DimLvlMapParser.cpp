@@ -145,8 +145,8 @@ FailureOr<DimLvlMap> DimLvlMapParser::parseDimLvlMap() {
   FAILURE_IF_FAILED(parseDimSpecList())
   FAILURE_IF_FAILED(parser.parseArrow())
   FAILURE_IF_FAILED(parseLvlSpecList())
-  InFlightDiagnostic ifd = env.emitErrorIfAnyUnbound(parser);
-  if (failed(ifd))
+  
+  if (InFlightDiagnostic ifd = env.emitErrorIfAnyUnbound(parser); failed(ifd))
     return ifd;
   return DimLvlMap(env.getRanks().getSymRank(), dimSpecs, lvlSpecs);
 }

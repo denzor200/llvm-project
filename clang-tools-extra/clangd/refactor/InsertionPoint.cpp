@@ -66,8 +66,8 @@ std::optional<const Decl *> insertionDecl(const DeclContext &DC,
 SourceLocation beginLoc(const Decl &D) {
   auto Loc = D.getBeginLoc();
   if (RawComment *Comment = D.getASTContext().getRawCommentForDeclNoCache(&D)) {
-    auto CommentLoc = Comment->getBeginLoc();
-    if (CommentLoc.isValid() && Loc.isValid() &&
+    
+    if (auto CommentLoc = Comment->getBeginLoc(); CommentLoc.isValid() && Loc.isValid() &&
         D.getASTContext().getSourceManager().isBeforeInTranslationUnit(
             CommentLoc, Loc))
       Loc = CommentLoc;

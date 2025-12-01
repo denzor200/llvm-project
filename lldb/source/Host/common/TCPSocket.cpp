@@ -86,13 +86,13 @@ bool TCPSocket::IsValid() const {
 uint16_t TCPSocket::GetLocalPortNumber() const {
   if (m_socket != kInvalidSocketValue) {
     SocketAddress sock_addr;
-    socklen_t sock_addr_len = sock_addr.GetMaxLength();
-    if (::getsockname(m_socket, sock_addr, &sock_addr_len) == 0)
+    
+    if (socklen_t sock_addr_len = sock_addr.GetMaxLength(); ::getsockname(m_socket, sock_addr, &sock_addr_len) == 0)
       return sock_addr.GetPort();
   } else if (!m_listen_sockets.empty()) {
     SocketAddress sock_addr;
-    socklen_t sock_addr_len = sock_addr.GetMaxLength();
-    if (::getsockname(m_listen_sockets.begin()->first, sock_addr,
+    
+    if (socklen_t sock_addr_len = sock_addr.GetMaxLength(); ::getsockname(m_listen_sockets.begin()->first, sock_addr,
                       &sock_addr_len) == 0)
       return sock_addr.GetPort();
   }
@@ -104,8 +104,8 @@ std::string TCPSocket::GetLocalIPAddress() const {
   // bound to
   if (m_socket != kInvalidSocketValue) {
     SocketAddress sock_addr;
-    socklen_t sock_addr_len = sock_addr.GetMaxLength();
-    if (::getsockname(m_socket, sock_addr, &sock_addr_len) == 0)
+    
+    if (socklen_t sock_addr_len = sock_addr.GetMaxLength(); ::getsockname(m_socket, sock_addr, &sock_addr_len) == 0)
       return sock_addr.GetIPAddress();
   }
   return "";
@@ -114,8 +114,8 @@ std::string TCPSocket::GetLocalIPAddress() const {
 uint16_t TCPSocket::GetRemotePortNumber() const {
   if (m_socket != kInvalidSocketValue) {
     SocketAddress sock_addr;
-    socklen_t sock_addr_len = sock_addr.GetMaxLength();
-    if (::getpeername(m_socket, sock_addr, &sock_addr_len) == 0)
+    
+    if (socklen_t sock_addr_len = sock_addr.GetMaxLength(); ::getpeername(m_socket, sock_addr, &sock_addr_len) == 0)
       return sock_addr.GetPort();
   }
   return 0;
@@ -126,8 +126,8 @@ std::string TCPSocket::GetRemoteIPAddress() const {
   // bound to
   if (m_socket != kInvalidSocketValue) {
     SocketAddress sock_addr;
-    socklen_t sock_addr_len = sock_addr.GetMaxLength();
-    if (::getpeername(m_socket, sock_addr, &sock_addr_len) == 0)
+    
+    if (socklen_t sock_addr_len = sock_addr.GetMaxLength(); ::getpeername(m_socket, sock_addr, &sock_addr_len) == 0)
       return sock_addr.GetIPAddress();
   }
   return "";
@@ -243,8 +243,8 @@ Status TCPSocket::Listen(llvm::StringRef name, int backlog) {
     }
 
     if (host_port->port == 0) {
-      socklen_t sa_len = listen_address.GetLength();
-      if (getsockname(fd, &listen_address.sockaddr(), &sa_len) == 0)
+      
+      if (socklen_t sa_len = listen_address.GetLength(); getsockname(fd, &listen_address.sockaddr(), &sa_len) == 0)
         host_port->port = listen_address.GetPort();
     }
     m_listen_sockets[fd] = listen_address;

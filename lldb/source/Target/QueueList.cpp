@@ -24,8 +24,8 @@ uint32_t QueueList::GetSize() {
 }
 
 lldb::QueueSP QueueList::GetQueueAtIndex(uint32_t idx) {
-  std::lock_guard<std::mutex> guard(m_mutex);
-  if (idx < m_queues.size()) {
+  
+  if (std::lock_guard<std::mutex> guard(m_mutex); idx < m_queues.size()) {
     return m_queues[idx];
   } else {
     return QueueSP();
@@ -38,8 +38,8 @@ void QueueList::Clear() {
 }
 
 void QueueList::AddQueue(QueueSP queue_sp) {
-  std::lock_guard<std::mutex> guard(m_mutex);
-  if (queue_sp.get()) {
+  
+  if (std::lock_guard<std::mutex> guard(m_mutex); queue_sp.get()) {
     m_queues.push_back(queue_sp);
   }
 }

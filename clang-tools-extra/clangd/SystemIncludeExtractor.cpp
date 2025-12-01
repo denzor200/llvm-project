@@ -110,10 +110,10 @@ struct DriverArgs {
     }
     this->Driver = Driver.str().str();
     for (size_t I = 0, E = Cmd.CommandLine.size(); I < E; ++I) {
-      llvm::StringRef Arg = Cmd.CommandLine[I];
+      
 
       // Look for Language related flags.
-      if (Arg.consume_front("-x")) {
+      if (llvm::StringRef Arg = Cmd.CommandLine[I]; Arg.consume_front("-x")) {
         if (Arg.empty() && I + 1 < E)
           Lang = Cmd.CommandLine[I + 1];
         else
@@ -175,8 +175,8 @@ struct DriverArgs {
     // This is important as we want to cache each language separately.
     if (Lang.empty()) {
       llvm::StringRef Ext = llvm::sys::path::extension(File).trim('.');
-      auto Type = driver::types::lookupTypeForExtension(Ext);
-      if (Type == driver::types::TY_INVALID) {
+      
+      if (auto Type = driver::types::lookupTypeForExtension(Ext); Type == driver::types::TY_INVALID) {
         elog("System include extraction: invalid file type for {0}", Ext);
       } else {
         Lang = driver::types::getTypeName(Type);
@@ -277,8 +277,8 @@ std::optional<DriverInfo> parseDriverOutput(llvm::StringRef Output) {
   bool SeenIncludes = false;
   bool SeenTarget = false;
   for (auto *It = Lines.begin(); State != Done && It != Lines.end(); ++It) {
-    auto Line = *It;
-    switch (State) {
+    
+    switch (auto Line = *It; State) {
     case Initial:
       if (!SeenIncludes && Line.trim() == SIS) {
         SeenIncludes = true;
@@ -365,8 +365,8 @@ extractSystemIncludesAndTarget(const DriverArgs &InputArgs,
 
   std::string Driver = InputArgs.Driver;
   if (!llvm::sys::path::is_absolute(Driver)) {
-    auto DriverProgram = llvm::sys::findProgramByName(Driver);
-    if (DriverProgram) {
+    
+    if (auto DriverProgram = llvm::sys::findProgramByName(Driver); DriverProgram) {
       vlog("System include extraction: driver {0} expanded to {1}", Driver,
            *DriverProgram);
       Driver = *DriverProgram;

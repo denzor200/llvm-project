@@ -128,8 +128,8 @@ static void optimizeDiagnosticOpts(DiagnosticOptions &Opts,
     return;
   bool Wsystem_headers = false;
   for (StringRef Opt : Opts.Warnings) {
-    bool isPositive = !Opt.consume_front("no-");
-    if (Opt == "system-headers")
+    
+    if (bool isPositive = !Opt.consume_front("no-"); Opt == "system-headers")
       Wsystem_headers = isPositive;
   }
   if (Wsystem_headers)
@@ -400,10 +400,10 @@ void ModuleDepCollector::addModuleFiles(
     CompilerInvocation &CI, ArrayRef<ModuleID> ClangModuleDeps) const {
   for (const ModuleID &MID : ClangModuleDeps) {
     ModuleDeps *MD = ModuleDepsByID.lookup(MID);
-    std::string PCMPath =
-        Controller.lookupModuleOutput(*MD, ModuleOutputKind::ModuleFile);
+    
 
-    if (Service.shouldEagerLoadModules())
+    if (std::string PCMPath =
+        Controller.lookupModuleOutput(*MD, ModuleOutputKind::ModuleFile); Service.shouldEagerLoadModules())
       CI.getFrontendOpts().ModuleFiles.push_back(std::move(PCMPath));
     else
       CI.getHeaderSearchOpts().PrebuiltModuleFiles.insert(
@@ -415,10 +415,10 @@ void ModuleDepCollector::addModuleFiles(
     CowCompilerInvocation &CI, ArrayRef<ModuleID> ClangModuleDeps) const {
   for (const ModuleID &MID : ClangModuleDeps) {
     ModuleDeps *MD = ModuleDepsByID.lookup(MID);
-    std::string PCMPath =
-        Controller.lookupModuleOutput(*MD, ModuleOutputKind::ModuleFile);
+    
 
-    if (Service.shouldEagerLoadModules())
+    if (std::string PCMPath =
+        Controller.lookupModuleOutput(*MD, ModuleOutputKind::ModuleFile); Service.shouldEagerLoadModules())
       CI.getMutFrontendOpts().ModuleFiles.push_back(std::move(PCMPath));
     else
       CI.getMutHeaderSearchOpts().PrebuiltModuleFiles.insert(
@@ -443,8 +443,8 @@ void ModuleDepCollector::applyDiscoveredDependencies(CompilerInvocation &CI) {
                             CI.getLangOpts(), CI.getCodeGenOpts());
 
   if (llvm::any_of(CI.getFrontendOpts().Inputs, needsModules)) {
-    Preprocessor &PP = ScanInstance.getPreprocessor();
-    if (Module *CurrentModule = PP.getCurrentModuleImplementation())
+    
+    if (Module *Preprocessor &PP = ScanInstance.getPreprocessor(); CurrentModule = PP.getCurrentModuleImplementation())
       if (OptionalFileEntryRef CurrentModuleMap =
               PP.getHeaderSearchInfo()
                   .getModuleMap()
@@ -541,12 +541,12 @@ void ModuleDepCollectorPP::LexedFileChanged(FileID FID,
   if (Reason != LexedFileChangeReason::EnterFile)
     return;
 
-  SourceManager &SM = MDC.ScanInstance.getSourceManager();
+  
 
   // Dependency generation really does want to go all the way to the
   // file entry for a source location to find out what is depended on.
   // We do not want #line markers to affect dependency generation!
-  if (std::optional<StringRef> Filename = SM.getNonBuiltinFilenameForID(FID))
+  if (std::optional<StringRef> SourceManager &SM = MDC.ScanInstance.getSourceManager(); Filename = SM.getNonBuiltinFilenameForID(FID))
     MDC.addFileDep(llvm::sys::path::remove_leading_dotslash(*Filename));
 }
 
@@ -581,9 +581,9 @@ void ModuleDepCollectorPP::handleImport(const Module *Imported) {
   if (!Imported)
     return;
 
-  const Module *TopLevelModule = Imported->getTopLevelModule();
+  
 
-  if (MDC.isPrebuiltModule(TopLevelModule))
+  if (const Module *TopLevelModule = Imported->getTopLevelModule(); MDC.isPrebuiltModule(TopLevelModule))
     MDC.DirectPrebuiltModularDeps.insert(
         {TopLevelModule, PrebuiltModuleDep{TopLevelModule}});
   else {
@@ -648,9 +648,9 @@ void ModuleDepCollectorPP::EndOfMainFile() {
     MDC.Consumer.handleModuleDependency(*I.second);
 
   for (const Module *M : MDC.DirectModularDeps) {
-    auto It = MDC.ModularDeps.find(M);
+    
     // Only report direct dependencies that were successfully handled.
-    if (It != MDC.ModularDeps.end())
+    if (auto It = MDC.ModularDeps.find(M); It != MDC.ModularDeps.end())
       MDC.Consumer.handleDirectModuleDependency(It->second->ID);
   }
 
@@ -695,10 +695,10 @@ ModuleDepCollectorPP::handleTopLevelModule(const Module *M) {
   if (!M->UseExportAsModuleLinkName)
     MD.LinkLibraries = M->LinkLibraries;
 
-  ModuleMap &ModMapInfo =
-      MDC.ScanInstance.getPreprocessor().getHeaderSearchInfo().getModuleMap();
+  
 
-  if (auto ModuleMap = ModMapInfo.getModuleMapFileForUniquing(M)) {
+  if (auto ModuleMap &ModMapInfo =
+      MDC.ScanInstance.getPreprocessor().getHeaderSearchInfo().getModuleMap(); ModuleMap = ModMapInfo.getModuleMapFileForUniquing(M)) {
     SmallString<128> Path = ModuleMap->getNameAsRequested();
     ModMapInfo.canonicalizeModuleMapPath(Path);
     MD.ClangModuleMapFile = std::string(Path);
@@ -770,10 +770,10 @@ ModuleDepCollectorPP::handleTopLevelModule(const Module *M) {
                             ScanningOptimizations::IgnoreCWD) &&
                         isSafeToIgnoreCWD(BuildInvocation);
             if (IgnoreCWD) {
-              llvm::ErrorOr<std::string> CWD =
+              
+              if (llvm::ErrorOr<std::string> CWD =
                   MDC.ScanInstance.getVirtualFileSystem()
-                      .getCurrentWorkingDirectory();
-              if (CWD)
+                      .getCurrentWorkingDirectory(); CWD)
                 optimizeCWD(BuildInvocation, *CWD);
             }
           });

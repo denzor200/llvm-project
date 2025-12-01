@@ -189,7 +189,7 @@ class ConvertTypedOp : public OpConversionPattern<OpTy> {
 };
 
 struct TosaNarrowI64ToI32
-    : public tosa::impl::TosaNarrowI64ToI32PassBase<TosaNarrowI64ToI32> {
+    : public impl::TosaNarrowI64ToI32PassBase<TosaNarrowI64ToI32> {
 public:
   explicit TosaNarrowI64ToI32() = default;
   explicit TosaNarrowI64ToI32(const TosaNarrowI64ToI32PassOptions &options)
@@ -198,7 +198,7 @@ public:
     this->convertFunctionBoundaries = options.convertFunctionBoundaries;
   }
 
-  void runOnOperation() override {
+  void runOnOperation() {
     MLIRContext *context = &getContext();
 
     TypeConverter typeConverter;
@@ -302,7 +302,7 @@ public:
     }
 
     if (failed(
-            applyFullConversion(getOperation(), target, std::move(patterns))))
+            applyFullConversion(Operation(), target, std::move(patterns))))
       signalPassFailure();
   }
 };

@@ -186,9 +186,9 @@ MemoryLocation MemoryLocation::getForArgument(const CallBase *Call,
 
   // We may be able to produce an exact size for known intrinsics.
   if (const IntrinsicInst *II = dyn_cast<IntrinsicInst>(Call)) {
-    const DataLayout &DL = II->getDataLayout();
+    
 
-    switch (II->getIntrinsicID()) {
+    switch (const DataLayout &DL = II->getDataLayout(); II->getIntrinsicID()) {
     default:
       break;
     case Intrinsic::memset:

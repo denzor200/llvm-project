@@ -75,8 +75,8 @@ static void mergeFixits(ArrayRef<FixItHint> FixItHints,
                     /*afterToken=*/false, Hint.BeforePreviousInsertions);
     }
 
-  edit::EditedSource Editor(SM, LangOpts);
-  if (Editor.commit(commit)) {
+  
+  if (edit::EditedSource Editor(SM, LangOpts); Editor.commit(commit)) {
     FixitReceiver Rec(MergedFixits);
     Editor.applyRewrites(Rec);
   }
@@ -440,9 +440,9 @@ void DiagnosticRenderer::emitSingleMacroExpansion(
 
   SmallString<100> MessageStorage;
   llvm::raw_svector_ostream Message(MessageStorage);
-  StringRef MacroName = Lexer::getImmediateMacroNameForDiagnostics(
-      Loc, Loc.getManager(), LangOpts);
-  if (MacroName.empty())
+  
+  if (StringRef MacroName = Lexer::getImmediateMacroNameForDiagnostics(
+      Loc, Loc.getManager(), LangOpts); MacroName.empty())
     Message << "expanded from here";
   else
     Message << "expanded from macro '" << MacroName << "'";
@@ -461,9 +461,9 @@ rangesInsideSameMacroArgExpansion(FullSourceLoc Loc,
   SmallVector<CharSourceRange> SpellingRanges;
   mapDiagnosticRanges(Loc, Ranges, SpellingRanges);
 
-  unsigned ValidCount =
-      llvm::count_if(Ranges, [](const auto &R) { return R.isValid(); });
-  if (ValidCount > SpellingRanges.size())
+  
+  if (unsigned ValidCount =
+      llvm::count_if(Ranges, [](const auto &R) { return R.isValid(); }); ValidCount > SpellingRanges.size())
     return false;
 
   const SourceManager &SM = Loc.getManager();

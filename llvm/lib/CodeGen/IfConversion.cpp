@@ -293,15 +293,15 @@ namespace {
     bool MeetIfcvtSizeLimit(BBInfo &TBBInfo, BBInfo &FBBInfo,
                             MachineBasicBlock &CommBB, unsigned Dups,
                             BranchProbability Prediction, bool Forked) const {
-      const MachineFunction &MF = *TBBInfo.BB->getParent();
-      if (MF.getFunction().hasMinSize()) {
+      
+      if (const MachineFunction &MF = *TBBInfo.BB->getParent(); MF.getFunction().hasMinSize()) {
         MachineBasicBlock::iterator TIB = TBBInfo.BB->begin();
         MachineBasicBlock::iterator FIB = FBBInfo.BB->begin();
         MachineBasicBlock::iterator TIE = TBBInfo.BB->end();
         MachineBasicBlock::iterator FIE = FBBInfo.BB->end();
 
-        unsigned Dups1 = 0, Dups2 = 0;
-        if (!CountDuplicatedInstructions(TIB, FIB, TIE, FIE, Dups1, Dups2,
+        
+        if (unsigned Dups1 = 0, Dups2 = 0; !CountDuplicatedInstructions(TIB, FIB, TIE, FIE, Dups1, Dups2,
                                          *TBBInfo.BB, *FBBInfo.BB,
                                          /*SkipUnconditionalBranches*/ true))
           llvm_unreachable("should already have been checked by ValidDiamond");
@@ -424,9 +424,9 @@ namespace {
                               const std::unique_ptr<IfcvtToken> &C2) {
       int Incr1 = (C1->Kind == ICDiamond)
         ? -(int)(C1->NumDups + C1->NumDups2) : (int)C1->NumDups;
-      int Incr2 = (C2->Kind == ICDiamond)
-        ? -(int)(C2->NumDups + C2->NumDups2) : (int)C2->NumDups;
-      if (Incr1 > Incr2)
+      
+      if (int Incr2 = (C2->Kind == ICDiamond)
+        ? -(int)(C2->NumDups + C2->NumDups2) : (int)C2->NumDups; Incr1 > Incr2)
         return true;
       else if (Incr1 == Incr2) {
         // Favors subsumption.
@@ -704,9 +704,9 @@ bool IfConverter::ValidTriangle(BBInfo &TrueBBI, BBInfo &FalseBBI,
         // Ends with an unconditional branch. It will be removed.
         --Size;
       else {
-        MachineBasicBlock *FExit = FalseBranch
-          ? TrueBBI.TrueBB : TrueBBI.FalseBB;
-        if (FExit)
+        
+        if (MachineBasicBlock *FExit = FalseBranch
+          ? TrueBBI.TrueBB : TrueBBI.FalseBB; FExit)
           // Require a conditional branch
           ++Size;
       }
@@ -1136,8 +1136,8 @@ void IfConverter::ScanInstructions(BBInfo &BBI,
     if (!isPredicated) {
       BBI.NonPredSize++;
       unsigned ExtraPredCost = TII->getPredicationCost(MI);
-      unsigned NumCycles = SchedModel.computeInstrLatency(&MI, false);
-      if (NumCycles > 1)
+      
+      if (unsigned NumCycles = SchedModel.computeInstrLatency(&MI, false); NumCycles > 1)
         BBI.ExtraCost += NumCycles-1;
       BBI.ExtraCost2 += ExtraPredCost;
     } else if (!AlreadyPredicated) {
@@ -1310,7 +1310,9 @@ void IfConverter::AnalyzeBlock(
 
     if (CanRevCond) {
       BBInfo TrueBBICalc, FalseBBICalc;
-      auto feasibleDiamond = [&](bool Forked) {
+      
+
+      if (auto feasibleDiamond = [&](bool Forked) {
         bool MeetsSize = MeetIfcvtSizeLimit(TrueBBICalc, FalseBBICalc, *BB,
                                             Dups + Dups2, Prediction, Forked);
         bool TrueFeasible = FeasibilityAnalysis(TrueBBI, BBI.BrCond,
@@ -1320,9 +1322,7 @@ void IfConverter::AnalyzeBlock(
                                                  /* IsTriangle */ false, /* RevCond */ false,
                                                  /* hasCommonTail */ true);
         return MeetsSize && TrueFeasible && FalseFeasible;
-      };
-
-      if (ValidDiamond(TrueBBI, FalseBBI, Dups, Dups2,
+      }; ValidDiamond(TrueBBI, FalseBBI, Dups, Dups2,
                        TrueBBICalc, FalseBBICalc)) {
         if (feasibleDiamond(false)) {
           // Diamond:
@@ -1656,8 +1656,8 @@ bool IfConverter::IfConvertTriangle(BBInfo &BBI, IfcvtKind Kind) {
       for (MachineBasicBlock *PBB : CvtMBB.predecessors()) {
         if (PBB == BBI.BB)
           continue;
-        BBInfo &PBBI = BBAnalysis[PBB->getNumber()];
-        if (PBBI.IsEnqueued) {
+        
+        if (BBInfo &PBBI = BBAnalysis[PBB->getNumber()]; PBBI.IsEnqueued) {
           PBBI.IsAnalyzed = false;
           PBBI.IsEnqueued = false;
         }
@@ -2087,8 +2087,8 @@ bool IfConverter::IfConvertDiamond(BBInfo &BBI, IfcvtKind Kind,
     if (NumPreds > 1)
       CanMergeTail = false;
     else if (NumPreds == 1 && CanMergeTail) {
-      MachineBasicBlock::pred_iterator PI = TailBB->pred_begin();
-      if (*PI != TrueBBI.BB && *PI != FalseBBI.BB)
+      
+      if (MachineBasicBlock::pred_iterator PI = TailBB->pred_begin(); *PI != TrueBBI.BB && *PI != FalseBBI.BB)
         CanMergeTail = false;
     }
     if (CanMergeTail) {
@@ -2111,8 +2111,8 @@ bool IfConverter::IfConvertDiamond(BBInfo &BBI, IfcvtKind Kind,
 
 static bool MaySpeculate(const MachineInstr &MI,
                          SmallSet<MCRegister, 4> &LaterRedefs) {
-  bool SawStore = true;
-  if (!MI.isSafeToMove(SawStore))
+  
+  if (bool SawStore = true; !MI.isSafeToMove(SawStore))
     return false;
 
   for (const MachineOperand &MO : MI.operands()) {

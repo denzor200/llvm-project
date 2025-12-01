@@ -117,8 +117,8 @@ Error RegexMatcher::insert(StringRef Pattern, unsigned LineNumber) {
 
   // Check that the regexp is valid.
   Regex CheckRE(Regexp);
-  std::string REError;
-  if (!CheckRE.isValid(REError))
+  
+  if (std::string REError; !CheckRE.isValid(REError))
     return createStringError(errc::invalid_argument, REError);
 
   RegExes.emplace_back(Pattern, LineNumber, std::move(CheckRE));
@@ -154,8 +154,8 @@ void GlobMatcher::LazyInit() const {
     if (Suffix.empty() && Prefix.empty()) {
       // If both prefix and suffix are empty put into special tree to search by
       // substring in a middle.
-      StringRef Substr = G.Pattern.longest_substr();
-      if (!Substr.empty()) {
+      
+      if (StringRef Substr = G.Pattern.longest_substr(); !Substr.empty()) {
         // But only if substring is not empty. Searching this tree is more
         // expensive.
         auto &V = SubstrToGlob.emplace(Substr).first->second;
@@ -180,8 +180,8 @@ unsigned GlobMatcher::match(StringRef Query) const {
         for (int Idx : reverse(V)) {
           if (Best > Idx)
             break;
-          const GlobMatcher::Glob &G = Globs[Idx];
-          if (G.Pattern.match(Query)) {
+          
+          if (const GlobMatcher::Glob &G = Globs[Idx]; G.Pattern.match(Query)) {
             Best = Idx;
             // As soon as we find a match in the vector, we can break for this
             // vector, since the globs are already sorted by priority within the
@@ -202,8 +202,8 @@ unsigned GlobMatcher::match(StringRef Query) const {
         for (int Idx : reverse(V)) {
           if (Best > Idx)
             break;
-          const GlobMatcher::Glob &G = Globs[Idx];
-          if (G.Pattern.match(Query)) {
+          
+          if (const GlobMatcher::Glob &G = Globs[Idx]; G.Pattern.match(Query)) {
             Best = Idx;
             // As soon as we find a match in the vector, we can break for this
             // vector, since the globs are already sorted by priority within the
@@ -324,8 +324,8 @@ bool SpecialCaseList::parse(unsigned FileIdx, const MemoryBuffer *MB,
                             std::string &Error) {
   unsigned long long Version = 2;
 
-  StringRef Header = MB->getBuffer();
-  if (Header.consume_front("#!special-case-list-v"))
+  
+  if (StringRef Header = MB->getBuffer(); Header.consume_front("#!special-case-list-v"))
     consumeUnsignedInteger(Header, 10, Version);
 
   // In https://reviews.llvm.org/D154014 we added glob support and planned
@@ -412,8 +412,8 @@ SpecialCaseList::inSectionBlame(StringRef Section, StringRef Prefix,
                                 StringRef Query, StringRef Category) const {
   for (const auto &S : reverse(Sections)) {
     if (S.Impl->SectionMatcher.matchAny(Section)) {
-      unsigned Blame = S.getLastMatch(Prefix, Query, Category);
-      if (Blame)
+      
+      if (unsigned Blame = S.getLastMatch(Prefix, Query, Category); Blame)
         return {S.FileIdx, Blame};
     }
   }

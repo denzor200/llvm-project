@@ -157,8 +157,8 @@ public:
     ModRefInfo GlobalMRI =
         mayReadAnyGlobal() ? ModRefInfo::Ref : ModRefInfo::NoModRef;
     if (AlignedMap *P = Info.getPointer()) {
-      auto I = P->Map.find(&GV);
-      if (I != P->Map.end())
+      
+      if (auto I = P->Map.find(&GV); I != P->Map.end())
         GlobalMRI |= I->second;
     }
     return GlobalMRI;
@@ -325,8 +325,8 @@ bool GlobalsAAResult::AnalyzeUsesOfPointer(Value *V,
     return true;
 
   for (Use &U : V->uses()) {
-    User *I = U.getUser();
-    if (LoadInst *LI = dyn_cast<LoadInst>(I)) {
+    
+    if (LoadInst *User *I = U.getUser(); LI = dyn_cast<LoadInst>(I)) {
       if (Readers)
         Readers->insert(LI->getParent()->getParent());
     } else if (StoreInst *SI = dyn_cast<StoreInst>(I)) {
@@ -364,12 +364,12 @@ bool GlobalsAAResult::AnalyzeUsesOfPointer(Value *V,
           // In general, we return true for unknown calls, but there are
           // some simple checks that we can do for functions that
           // will never call back into the module.
-          auto *F = Call->getCalledFunction();
+          
           // TODO: we should be able to remove isDeclaration() check
           // and let the function body analysis check for captures,
           // and collect the mod-ref effects. This information will
           // be later propagated via the call graph.
-          if (!F || !F->isDeclaration())
+          if (auto *F = Call->getCalledFunction(); !F || !F->isDeclaration())
             return true;
           // Note that the NoCallback check here is a little bit too
           // conservative. If there are no captures of the global
@@ -566,8 +566,8 @@ void GlobalsAAResult::AnalyzeCallGraph(CallGraph &CG, Module &M) {
           } else {
             // Can't say anything about it.  However, if it is inside our SCC,
             // then nothing needs to be done.
-            CallGraphNode *CalleeNode = CG[Callee];
-            if (!is_contained(SCC, CalleeNode))
+            
+            if (CallGraphNode *CalleeNode = CG[Callee]; !is_contained(SCC, CalleeNode))
               KnowNothing = true;
           }
         } else {
@@ -744,13 +744,13 @@ bool GlobalsAAResult::isNonEscapingGlobalNoAlias(const GlobalValue *GV,
       // Distinct GlobalVariables never alias, unless overriden or zero-sized.
       // FIXME: The condition can be refined, but be conservative for now.
       auto *GVar = dyn_cast<GlobalVariable>(GV);
-      auto *InputGVar = dyn_cast<GlobalVariable>(InputGV);
-      if (GVar && InputGVar &&
+      
+      if (auto *InputGVar = dyn_cast<GlobalVariable>(InputGV); GVar && InputGVar &&
           !GVar->isDeclaration() && !InputGVar->isDeclaration() &&
           !GVar->isInterposable() && !InputGVar->isInterposable()) {
         Type *GVType = GVar->getInitializer()->getType();
-        Type *InputGVType = InputGVar->getInitializer()->getType();
-        if (GVType->isSized() && InputGVType->isSized() &&
+        
+        if (Type *InputGVType = InputGVar->getInitializer()->getType(); GVType->isSized() && InputGVType->isSized() &&
             (DL.getTypeAllocSize(GVType) > 0) &&
             (DL.getTypeAllocSize(InputGVType) > 0))
           continue;
@@ -772,8 +772,8 @@ bool GlobalsAAResult::isNonEscapingGlobalNoAlias(const GlobalValue *GV,
     if (CtxI)
       if (auto *CPN = dyn_cast<ConstantPointerNull>(Input)) {
         // Null pointer cannot alias with a non-addr-taken global.
-        const Function *F = CtxI->getFunction();
-        if (!NullPointerIsDefined(F, CPN->getType()->getAddressSpace()))
+        
+        if (const Function *F = CtxI->getFunction(); !NullPointerIsDefined(F, CPN->getType()->getAddressSpace()))
           continue;
       }
 
@@ -787,8 +787,8 @@ bool GlobalsAAResult::isNonEscapingGlobalNoAlias(const GlobalValue *GV,
     if (auto *LI = dyn_cast<LoadInst>(Input)) {
       // A pointer loaded from a global would have been captured, and we know
       // that the global is non-escaping, so no alias.
-      const Value *Ptr = getUnderlyingObject(LI->getPointerOperand());
-      if (isNonEscapingGlobalNoAliasWithLoad(GV, Ptr, Depth, DL))
+      
+      if (const Value *Ptr = getUnderlyingObject(LI->getPointerOperand()); isNonEscapingGlobalNoAliasWithLoad(GV, Ptr, Depth, DL))
         // The load does not alias with GV.
         continue;
       // Otherwise, a load could come from anywhere, so bail.
@@ -870,8 +870,8 @@ AliasResult GlobalsAAResult::alias(const MemoryLocation &LocA,
     // conclude no-alias.
     if ((GV1 || GV2) && GV1 != GV2) {
       const GlobalValue *GV = GV1 ? GV1 : GV2;
-      const Value *UV = GV1 ? UV2 : UV1;
-      if (isNonEscapingGlobalNoAlias(GV, UV, CtxI))
+      
+      if (const Value *UV = GV1 ? UV2 : UV1; isNonEscapingGlobalNoAlias(GV, UV, CtxI))
         return AliasResult::NoAlias;
     }
 

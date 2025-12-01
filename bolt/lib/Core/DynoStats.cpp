@@ -131,8 +131,8 @@ void DynoStats::operator+=(const DynoStats &Other) {
     Stats[Stat] += Other[Stat];
   }
   for (const OpcodeStatTy &Stat : Other.OpcodeHistogram) {
-    auto I = OpcodeHistogram.find(Stat.first);
-    if (I == OpcodeHistogram.end()) {
+    
+    if (auto I = OpcodeHistogram.find(Stat.first); I == OpcodeHistogram.end()) {
       OpcodeHistogram.emplace(Stat);
     } else {
       // Merge other histograms, log only the opts::PrintDynoOpcodeStat'th
@@ -189,8 +189,8 @@ DynoStats getDynoStats(BinaryFunction &BF) {
     for (const MCInst &Instr : *BB) {
       if (opts::PrintDynoOpcodeStat) {
         unsigned Opcode = Instr.getOpcode();
-        auto I = Stats.OpcodeHistogram.find(Opcode);
-        if (I == Stats.OpcodeHistogram.end()) {
+        
+        if (auto I = Stats.OpcodeHistogram.find(Opcode); I == Stats.OpcodeHistogram.end()) {
           DynoStats::MaxOpcodeHistogramTy MMap;
           MMap.emplace(BBExecutionCount,
                        std::make_pair(BF.getOneName(), BB->getOffset()));
@@ -200,8 +200,8 @@ DynoStats getDynoStats(BinaryFunction &BF) {
           I->second.first += BBExecutionCount;
           bool Insert = true;
           if (I->second.second.size() == opts::PrintDynoOpcodeStat) {
-            auto First = I->second.second.begin();
-            if (First->first < BBExecutionCount)
+            
+            if (auto First = I->second.second.begin(); First->first < BBExecutionCount)
               I->second.second.erase(First);
             else
               Insert = false;
@@ -232,8 +232,8 @@ DynoStats getDynoStats(BinaryFunction &BF) {
       if (BC.MIB->isIndirectCall(Instr)) {
         Stats[DynoStats::INDIRECT_CALLS] += CallFreq;
       } else if (const MCSymbol *CallSymbol = BC.MIB->getTargetSymbol(Instr)) {
-        const BinaryFunction *BF = BC.getFunctionForSymbol(CallSymbol);
-        if (BF && BF->isPLTFunction()) {
+        
+        if (const BinaryFunction *BF = BC.getFunctionForSymbol(CallSymbol); BF && BF->isPLTFunction()) {
           Stats[DynoStats::PLT_CALLS] += CallFreq;
 
           // We don't process PLT functions and hence have to adjust relevant

@@ -154,8 +154,8 @@ void Preprocessor::AnnotatePreviousCachedTokens(const Token &Tok) {
   // Start from the end of the cached tokens list and look for the token
   // that is the beginning of the annotation token.
   for (CachedTokensTy::size_type i = CachedLexPos; i != 0; --i) {
-    CachedTokensTy::iterator AnnotBegin = CachedTokens.begin() + i-1;
-    if (AnnotBegin->getLocation() == Tok.getLocation()) {
+    
+    if (CachedTokensTy::iterator AnnotBegin = CachedTokens.begin() + i-1; AnnotBegin->getLocation() == Tok.getLocation()) {
       assert((!isBacktrackEnabled() || LastBacktrackPos().first <= i) &&
              "The backtrack pos points inside the annotated tokens!");
       // Replace the cached tokens with the single annotation token.

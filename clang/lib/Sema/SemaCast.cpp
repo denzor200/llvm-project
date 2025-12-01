@@ -765,10 +765,10 @@ CastsAwayConstness(Sema &Self, QualType SrcType, QualType DestType,
     if (CheckCVR) {
       Qualifiers SrcCvrQuals =
           Qualifiers::fromCVRMask(SrcQuals.getCVRQualifiers());
-      Qualifiers DestCvrQuals =
-          Qualifiers::fromCVRMask(DestQuals.getCVRQualifiers());
+      
 
-      if (SrcCvrQuals != DestCvrQuals) {
+      if (Qualifiers DestCvrQuals =
+          Qualifiers::fromCVRMask(DestQuals.getCVRQualifiers()); SrcCvrQuals != DestCvrQuals) {
         if (CastAwayQualifiers)
           *CastAwayQualifiers = SrcCvrQuals - DestCvrQuals;
 
@@ -983,9 +983,9 @@ void CastOperation::CheckDynamicCast() {
   if (!Self.getLangOpts().RTTIData) {
     bool MicrosoftABI =
         Self.getASTContext().getTargetInfo().getCXXABI().isMicrosoft();
-    bool isClangCL = Self.getDiagnostics().getDiagnosticOptions().getFormat() ==
-                     DiagnosticOptions::MSVC;
-    if (MicrosoftABI || !DestPointee->isVoidType())
+    
+    if (bool isClangCL = Self.getDiagnostics().getDiagnosticOptions().getFormat() ==
+                     DiagnosticOptions::MSVC; MicrosoftABI || !DestPointee->isVoidType())
       Self.Diag(OpRange.getBegin(),
                 diag::warn_no_dynamic_cast_with_rtti_disabled)
           << isClangCL;
@@ -994,8 +994,8 @@ void CastOperation::CheckDynamicCast() {
   // For a dynamic_cast to a final type, IR generation might emit a reference
   // to the vtable.
   if (DestRecord) {
-    auto *DestDecl = DestRecord->getAsCXXRecordDecl();
-    if (DestDecl->isEffectivelyFinal())
+    
+    if (auto *DestDecl = DestRecord->getAsCXXRecordDecl(); DestDecl->isEffectivelyFinal())
       Self.MarkVTableUsed(OpRange.getBegin(), DestDecl);
   }
 
@@ -1514,8 +1514,8 @@ static TryCastResult TryStaticCast(Sema &Self, ExprResult &SrcExpr,
   // void*. C++ 5.2.9p10 specifies additional restrictions, which really is
   // just the usual constness stuff.
   if (const PointerType *SrcPointer = SrcType->getAs<PointerType>()) {
-    QualType SrcPointee = SrcPointer->getPointeeType();
-    if (SrcPointee->isVoidType()) {
+    
+    if (QualType SrcPointee = SrcPointer->getPointeeType(); SrcPointee->isVoidType()) {
       if (const PointerType *DestPointer = DestType->getAs<PointerType>()) {
         QualType DestPointee = DestPointer->getPointeeType();
         if (DestPointee->isIncompleteOrObjectType()) {
@@ -1939,9 +1939,9 @@ TryCastResult TryStaticImplicitCast(Sema &Self, ExprResult &SrcExpr,
   // There is no other way that works.
   // On the other hand, if we're checking a C-style cast, we've still got
   // the reinterpret_cast way.
-  bool CStyle = (CCK == CheckedConversionKind::CStyleCast ||
-                 CCK == CheckedConversionKind::FunctionalCast);
-  if (InitSeq.Failed() && (CStyle || !DestType->isReferenceType()))
+  
+  if (bool CStyle = (CCK == CheckedConversionKind::CStyleCast ||
+                 CCK == CheckedConversionKind::FunctionalCast); InitSeq.Failed() && (CStyle || !DestType->isReferenceType()))
     return TC_NotApplicable;
 
   ExprResult Result = InitSeq.Perform(Self, Entity, InitKind, SrcExprRaw);
@@ -2229,12 +2229,12 @@ static void DiagnoseCallingConvCast(Sema &Self, const ExprResult &SrcExpr,
 static void checkIntToPointerCast(bool CStyle, const SourceRange &OpRange,
                                   const Expr *SrcExpr, QualType DestType,
                                   Sema &Self) {
-  QualType SrcType = SrcExpr->getType();
+  
 
   // Not warning on reinterpret_cast, boolean, constant expressions, etc
   // are not explicit design choices, but consistent with GCC's behavior.
   // Feel free to modify them if you've reason/evidence for an alternative.
-  if (CStyle && SrcType->isIntegralType(Self.Context)
+  if (QualType SrcType = SrcExpr->getType(); CStyle && SrcType->isIntegralType(Self.Context)
       && !SrcType->isBooleanType()
       && !SrcType->isEnumeralType()
       && !SrcExpr->isIntegerConstantExpr(Self.Context)
@@ -2496,9 +2496,9 @@ static TryCastResult TryReinterpretCast(Sema &Self, ExprResult &SrcExpr,
     //   integral type size doesn't matter (except we don't allow bool).
     if ((Self.Context.getTypeSize(SrcType) >
          Self.Context.getTypeSize(DestType))) {
-      bool MicrosoftException =
-          Self.getLangOpts().MicrosoftExt && !DestType->isBooleanType();
-      if (MicrosoftException) {
+      
+      if (bool MicrosoftException =
+          Self.getLangOpts().MicrosoftExt && !DestType->isBooleanType(); MicrosoftException) {
         unsigned Diag = SrcType->isVoidPointerType()
                             ? diag::warn_void_pointer_to_int_cast
                             : diag::warn_pointer_to_int_cast;
@@ -2697,8 +2697,8 @@ void CastOperation::checkAddressSpaceCast(QualType SrcType, QualType DestType) {
       const PointerType *DestPPtr = cast<PointerType>(DestPtr);
       const PointerType *SrcPPtr = cast<PointerType>(SrcPtr);
       QualType DestPPointee = DestPPtr->getPointeeType();
-      QualType SrcPPointee = SrcPPtr->getPointeeType();
-      if (Nested
+      
+      if (QualType SrcPPointee = SrcPPtr->getPointeeType(); Nested
               ? DestPPointee.getAddressSpace() != SrcPPointee.getAddressSpace()
               : !DestPPointee.isAddressSpaceOverlapping(SrcPPointee,
                                                         Self.getASTContext())) {
@@ -2721,9 +2721,9 @@ void CastOperation::checkAddressSpaceCast(QualType SrcType, QualType DestType) {
 bool Sema::ShouldSplatAltivecScalarInCast(const VectorType *VecTy) {
   bool SrcCompatXL = this->getLangOpts().getAltivecSrcCompat() ==
                      LangOptions::AltivecSrcCompatKind::XL;
-  VectorKind VKind = VecTy->getVectorKind();
+  
 
-  if ((VKind == VectorKind::AltiVecVector) ||
+  if (VectorKind VKind = VecTy->getVectorKind(); (VKind == VectorKind::AltiVecVector) ||
       (SrcCompatXL && ((VKind == VectorKind::AltiVecBool) ||
                        (VKind == VectorKind::AltiVecPixel)))) {
     return true;
@@ -2733,9 +2733,9 @@ bool Sema::ShouldSplatAltivecScalarInCast(const VectorType *VecTy) {
 
 bool Sema::CheckAltivecInitFromScalar(SourceRange R, QualType VecTy,
                                       QualType SrcTy) {
-  bool SrcCompatGCC = this->getLangOpts().getAltivecSrcCompat() ==
-                      LangOptions::AltivecSrcCompatKind::GCC;
-  if (this->getLangOpts().AltiVec && SrcCompatGCC) {
+  
+  if (bool SrcCompatGCC = this->getLangOpts().getAltivecSrcCompat() ==
+                      LangOptions::AltivecSrcCompatKind::GCC; this->getLangOpts().AltiVec && SrcCompatGCC) {
     this->Diag(R.getBegin(),
                diag::err_invalid_conversion_between_vector_and_integer)
         << VecTy << SrcTy << R;
@@ -2880,11 +2880,11 @@ void CastOperation::CheckCXXCStyleCast(bool FunctionalStyle,
   if (tcr != TC_Success && msg != 0) {
     if (SrcExpr.get()->getType() == Self.Context.OverloadTy) {
       DeclAccessPair Found;
-      FunctionDecl *Fn = Self.ResolveAddressOfOverloadedFunction(SrcExpr.get(),
+      
+      if (FunctionDecl *Fn = Self.ResolveAddressOfOverloadedFunction(SrcExpr.get(),
                                 DestType,
                                 /*Complain*/ true,
-                                Found);
-      if (Fn) {
+                                Found); Fn) {
         // If DestType is a function type (not to be confused with the function
         // pointer type), it will be possible to resolve the function address,
         // but the type cast should be considered as failure.
@@ -2938,9 +2938,9 @@ bool CastOperation::CheckHLSLCStyleCast(CheckedConversionKind CCK) {
   // are changed, it might change which cast handles what in a few cases
   if (Self.HLSL().CanPerformAggregateSplatCast(SrcExpr.get(), DestType)) {
     SrcExpr = Self.DefaultLvalueConversion(SrcExpr.get());
-    const VectorType *VT = SrcTy->getAs<VectorType>();
+    
     // change splat from vec1 case to splat from scalar
-    if (VT && VT->getNumElements() == 1)
+    if (const VectorType *VT = SrcTy->getAs<VectorType>(); VT && VT->getNumElements() == 1)
       SrcExpr = Self.ImpCastExprToType(
           SrcExpr.get(), VT->getElementType(), CK_HLSLVectorTruncation,
           SrcExpr.get()->getValueKind(), nullptr, CCK);
@@ -3125,8 +3125,8 @@ void CastOperation::CheckCStyleCast() {
 
     // OpenCL v2.0 s6.13.10 - Allow casts from '0' to event_t type.
     if (Self.getLangOpts().OpenCL && DestType->isEventT()) {
-      Expr::EvalResult Result;
-      if (SrcExpr.get()->EvaluateAsInt(Result, Self.Context)) {
+      
+      if (Expr::EvalResult Result; SrcExpr.get()->EvaluateAsInt(Result, Self.Context)) {
         llvm::APSInt CastInt = Result.Val.getInt();
         if (0 == CastInt) {
           Kind = CK_ZeroToOCLOpaqueType;
@@ -3305,8 +3305,8 @@ void CastOperation::CheckCStyleCast() {
     if (SrcExpr.isInvalid())
       return;
 
-    const PointerType *CastPtr = DestType->getAs<PointerType>();
-    if (Self.getLangOpts().ObjCAutoRefCount && CastPtr) {
+    
+    if (const PointerType *CastPtr = DestType->getAs<PointerType>(); Self.getLangOpts().ObjCAutoRefCount && CastPtr) {
       if (const PointerType *ExprPtr = SrcType->getAs<PointerType>()) {
         Qualifiers CastQuals = CastPtr->getPointeeType().getQualifiers();
         Qualifiers ExprQuals = ExprPtr->getPointeeType().getQualifiers();
@@ -3338,9 +3338,9 @@ void CastOperation::CheckCStyleCast() {
     QualType DestTy = cast<PointerType>(DestType)->getPointeeType();
 
     const RecordDecl *SrcRD = SrcTy->getAsRecordDecl();
-    const RecordDecl *DestRD = DestTy->getAsRecordDecl();
+    
 
-    if (SrcRD && DestRD && SrcRD->hasAttr<RandomizeLayoutAttr>() &&
+    if (const RecordDecl *DestRD = DestTy->getAsRecordDecl(); SrcRD && DestRD && SrcRD->hasAttr<RandomizeLayoutAttr>() &&
         SrcRD != DestRD) {
       // The struct we are casting the pointer from was randomized.
       Self.Diag(OpRange.getBegin(), diag::err_cast_from_randomized_struct)

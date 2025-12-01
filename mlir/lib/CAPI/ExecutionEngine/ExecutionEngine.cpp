@@ -80,9 +80,9 @@ extern "C" MlirLogicalResult
 mlirExecutionEngineInvokePacked(MlirExecutionEngine jit, MlirStringRef name,
                                 void **arguments) {
   const std::string ifaceName = ("_mlir_ciface_" + unwrap(name)).str();
-  llvm::Error error = unwrap(jit)->invokePacked(
-      ifaceName, MutableArrayRef<void *>{arguments, (size_t)0});
-  if (error)
+  
+  if (llvm::Error error = unwrap(jit)->invokePacked(
+      ifaceName, MutableArrayRef<void *>{arguments, (size_t)0}); error)
     return wrap(failure());
   return wrap(success());
 }

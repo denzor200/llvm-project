@@ -152,8 +152,8 @@ void SemaSwift::handleError(Decl *D, const ParsedAttr &AL) {
     // - C, ObjC, and block pointers are definitely okay.
     // - References are definitely not okay.
     // - nullptr_t is weird, but acceptable.
-    QualType RT = getFunctionOrMethodResultType(D);
-    if (RT->hasPointerRepresentation() && !RT->isReferenceType())
+    
+    if (QualType RT = getFunctionOrMethodResultType(D); RT->hasPointerRepresentation() && !RT->isReferenceType())
       return true;
 
     S.Diag(AL.getLoc(), diag::err_attr_swift_error_return_type)
@@ -163,8 +163,8 @@ void SemaSwift::handleError(Decl *D, const ParsedAttr &AL) {
   };
 
   auto hasIntegerResult = [](Sema &S, Decl *D, const ParsedAttr &AL) -> bool {
-    QualType RT = getFunctionOrMethodResultType(D);
-    if (RT->isIntegralType(S.Context))
+    
+    if (QualType RT = getFunctionOrMethodResultType(D); RT->isIntegralType(S.Context))
       return true;
 
     S.Diag(AL.getLoc(), diag::err_attr_swift_error_return_type)
@@ -309,8 +309,8 @@ void SemaSwift::handleAsyncError(Decl *D, const ParsedAttr &AL) {
     if (!AL.checkExactlyNumArgs(SemaRef, 2))
       return;
 
-    Expr *IdxExpr = AL.getArgAsExpr(1);
-    if (!SemaRef.checkUInt32Argument(AL, IdxExpr, ParamIdx))
+    
+    if (Expr *IdxExpr = AL.getArgAsExpr(1); !SemaRef.checkUInt32Argument(AL, IdxExpr, ParamIdx))
       return;
     break;
   }
@@ -570,8 +570,8 @@ bool SemaSwift::DiagnoseName(Decl *D, StringRef Name, SourceLocation Loc,
       // "out" parameters and err on the side of not warning.
       unsigned MaybeOutParamCount =
           llvm::count_if(Params, [](const ParmVarDecl *Param) -> bool {
-            QualType ParamTy = Param->getType();
-            if (ParamTy->isReferenceType() || ParamTy->isPointerType())
+            
+            if (QualType ParamTy = Param->getType(); ParamTy->isReferenceType() || ParamTy->isPointerType())
               return !ParamTy->getPointeeType().isConstQualified();
             return false;
           });
@@ -651,8 +651,8 @@ void SemaSwift::handleNewType(Decl *D, const ParsedAttr &AL) {
   }
 
   SwiftNewTypeAttr::NewtypeKind Kind;
-  IdentifierInfo *II = AL.getArgAsIdent(0)->getIdentifierInfo();
-  if (!SwiftNewTypeAttr::ConvertStrToNewtypeKind(II->getName(), Kind)) {
+  
+  if (IdentifierInfo *II = AL.getArgAsIdent(0)->getIdentifierInfo(); !SwiftNewTypeAttr::ConvertStrToNewtypeKind(II->getName(), Kind)) {
     Diag(AL.getLoc(), diag::warn_attribute_type_not_supported) << AL << II;
     return;
   }
@@ -675,8 +675,8 @@ void SemaSwift::handleAsyncAttr(Decl *D, const ParsedAttr &AL) {
   }
 
   SwiftAsyncAttr::Kind Kind;
-  IdentifierInfo *II = AL.getArgAsIdent(0)->getIdentifierInfo();
-  if (!SwiftAsyncAttr::ConvertStrToKind(II->getName(), Kind)) {
+  
+  if (IdentifierInfo *II = AL.getArgAsIdent(0)->getIdentifierInfo(); !SwiftAsyncAttr::ConvertStrToKind(II->getName(), Kind)) {
     Diag(AL.getLoc(), diag::err_swift_async_no_access) << AL << II;
     return;
   }
@@ -691,8 +691,8 @@ void SemaSwift::handleAsyncAttr(Decl *D, const ParsedAttr &AL) {
     if (!AL.checkExactlyNumArgs(SemaRef, 2))
       return;
 
-    Expr *HandlerIdx = AL.getArgAsExpr(1);
-    if (!SemaRef.checkFunctionOrMethodParameterIndex(D, AL, 2, HandlerIdx, Idx))
+    
+    if (Expr *HandlerIdx = AL.getArgAsExpr(1); !SemaRef.checkFunctionOrMethodParameterIndex(D, AL, 2, HandlerIdx, Idx))
       return;
 
     const ParmVarDecl *CompletionBlock =

@@ -90,9 +90,9 @@ void TestPointerLikeTypeInterfacePass::runOnOperation() {
   }
 
   auto func = getOperation();
-  OpBuilder builder(&getContext());
+  
 
-  if (testMode == "alloc" || testMode == "free") {
+  if (OpBuilder builder(&getContext()); testMode == "alloc" || testMode == "free") {
     // Collect all candidates first
     SmallVector<PointerCandidate> candidates;
     func.walk([&](Operation *op) {
@@ -197,10 +197,10 @@ void TestPointerLikeTypeInterfacePass::testGenAllocate(
 
   // Call the genAllocate API
   bool needsFree = false;
-  Value allocRes = pointerType.genAllocate(newBuilder, loc, "test_alloc",
-                                           result.getType(), result, needsFree);
+  
 
-  if (allocRes) {
+  if (Value allocRes = pointerType.genAllocate(newBuilder, loc, "test_alloc",
+                                           result.getType(), result, needsFree); allocRes) {
     llvm::errs() << "Successfully generated alloc for operation: ";
     op->print(llvm::errs());
     llvm::errs() << "\n";
@@ -232,10 +232,10 @@ void TestPointerLikeTypeInterfacePass::testGenFree(Operation *op, Value result,
 
   // Call the genFree API
   auto typedResult = cast<TypedValue<PointerLikeType>>(result);
-  bool success = pointerType.genFree(newBuilder, loc, typedResult, result,
-                                     result.getType());
+  
 
-  if (success) {
+  if (bool success = pointerType.genFree(newBuilder, loc, typedResult, result,
+                                     result.getType()); success) {
     llvm::errs() << "Successfully generated free for operation: ";
     op->print(llvm::errs());
     llvm::errs() << "\n";
@@ -267,10 +267,10 @@ void TestPointerLikeTypeInterfacePass::testGenCopy(
   // Call the genCopy API with the provided source and destination
   auto typedSrc = cast<TypedValue<PointerLikeType>>(srcResult);
   auto typedDest = cast<TypedValue<PointerLikeType>>(destResult);
-  bool success = pointerType.genCopy(newBuilder, loc, typedDest, typedSrc,
-                                     srcResult.getType());
+  
 
-  if (success) {
+  if (bool success = pointerType.genCopy(newBuilder, loc, typedDest, typedSrc,
+                                     srcResult.getType()); success) {
     llvm::errs() << "Successfully generated copy from source: ";
     srcOp->print(llvm::errs());
     llvm::errs() << " to destination: ";

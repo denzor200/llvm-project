@@ -157,8 +157,8 @@ AliasResult AliasSet::aliasesMemoryLocation(const MemoryLocation &MemLoc,
 
   // Check all of the memory locations in the set...
   for (const auto &ASMemLoc : MemoryLocs) {
-    AliasResult AR = AA.alias(MemLoc, ASMemLoc);
-    if (AR != AliasResult::NoAlias)
+    
+    if (AliasResult AR = AA.alias(MemLoc, ASMemLoc); AR != AliasResult::NoAlias)
       return AR;
   }
 
@@ -181,8 +181,8 @@ ModRefInfo AliasSet::aliasesUnknownInst(const Instruction *Inst,
 
   for (Instruction *UnknownInst : UnknownInsts) {
     const auto *C1 = dyn_cast<CallBase>(UnknownInst);
-    const auto *C2 = dyn_cast<CallBase>(Inst);
-    if (!C1 || !C2 || isModOrRefSet(AA.getModRefInfo(C1, C2)) ||
+    
+    if (const auto *C2 = dyn_cast<CallBase>(Inst); !C1 || !C2 || isModOrRefSet(AA.getModRefInfo(C1, C2)) ||
         isModOrRefSet(AA.getModRefInfo(C2, C1))) {
       // TODO: Could be more precise, but not really useful right now.
       return ModRefInfo::ModRef;
@@ -409,8 +409,8 @@ void AliasSetTracker::add(Instruction *I) {
 
       for (auto IdxArgPair : enumerate(Call->args())) {
         int ArgIdx = IdxArgPair.index();
-        const Value *Arg = IdxArgPair.value();
-        if (!Arg->getType()->isPointerTy())
+        
+        if (const Value *Arg = IdxArgPair.value(); !Arg->getType()->isPointerTy())
           continue;
         MemoryLocation ArgLoc =
             MemoryLocation::getForArgument(Call, ArgIdx, nullptr);
@@ -473,8 +473,8 @@ AliasSet &AliasSetTracker::mergeAllAliasSets() {
 
   for (auto *Cur : ASVector) {
     // If Cur was already forwarding, just forward to the new AS instead.
-    AliasSet *FwdTo = Cur->Forward;
-    if (FwdTo) {
+    
+    if (AliasSet *FwdTo = Cur->Forward; FwdTo) {
       Cur->Forward = AliasAnyAS;
       AliasAnyAS->addRef();
       FwdTo->dropRef(*this);

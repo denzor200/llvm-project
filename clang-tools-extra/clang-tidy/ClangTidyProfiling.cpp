@@ -81,8 +81,8 @@ ClangTidyProfiling::ClangTidyProfiling(std::optional<StorageParams> Storage)
     : Storage(std::move(Storage)) {}
 
 ClangTidyProfiling::~ClangTidyProfiling() {
-  llvm::TimerGroup TG{"clang-tidy", "clang-tidy checks profiling", Records};
-  if (!Storage)
+  
+  if (llvm::TimerGroup TG{"clang-tidy", "clang-tidy checks profiling", Records}; !Storage)
     printUserFriendlyTable(llvm::errs(), TG);
   else
     storeProfileData(TG);

@@ -416,8 +416,8 @@ Error LVPatterns::createMatchEntry(LVMatchInfo &Filters, StringRef Pattern,
     if (Pattern.size()) {
       Match.RE = std::make_shared<Regex>(Pattern, IgnoreCase ? Regex::IgnoreCase
                                                              : Regex::NoFlags);
-      std::string Error;
-      if (!Match.RE->isValid(Error))
+      
+      if (std::string Error; !Match.RE->isValid(Error))
         return createStringError(errc::invalid_argument,
                                  "Error in regular expression: %s",
                                  Error.c_str());
@@ -458,8 +458,8 @@ void LVPatterns::addPatterns(StringSet<> &Patterns, LVMatchInfo &Filters) {
   bool IgnoreCase = options().getSelectIgnoreCase();
   bool UseRegex = options().getSelectUseRegex();
   for (const StringSet<>::value_type &Entry : Patterns) {
-    StringRef Pattern = Entry.first();
-    if (Error Err = createMatchEntry(Filters, Pattern, IgnoreCase, UseRegex))
+    
+    if (Error StringRef Pattern = Entry.first(); Err = createMatchEntry(Filters, Pattern, IgnoreCase, UseRegex))
       consumeError(std::move(Err));
   }
 

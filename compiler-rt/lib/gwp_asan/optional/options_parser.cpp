@@ -151,8 +151,8 @@ bool parseBool(const char *Value, bool *b) {
 
 bool OptionParser::setOptionToValue(const char *Name, const char *Value) {
   for (size_t I = 0; I < NumberOfOptions; ++I) {
-    const uintptr_t Len = strlen(Options[I].Name);
-    if (strncmp(Name, Options[I].Name, Len) != 0 || Name[Len] != '=')
+    
+    if (const uintptr_t Len = strlen(Options[I].Name); strncmp(Name, Options[I].Name, Len) != 0 || Name[Len] != '=')
       continue;
     bool Ok = false;
     switch (Options[I].Type) {

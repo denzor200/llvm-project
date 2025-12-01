@@ -84,8 +84,8 @@ struct RedirectingImporter : public ASTImporter {
 
 protected:
   llvm::Expected<Decl *> ImportImpl(Decl *FromD) override {
-    auto *ND = dyn_cast<NamedDecl>(FromD);
-    if (!ND || ND->getName() != "shouldNotBeImported")
+    
+    if (auto *ND = dyn_cast<NamedDecl>(FromD); !ND || ND->getName() != "shouldNotBeImported")
       return ASTImporter::ImportImpl(FromD);
     for (Decl *D : getToContext().getTranslationUnitDecl()->decls()) {
       if (auto *ND = dyn_cast<NamedDecl>(D))
@@ -5385,8 +5385,8 @@ TEST_P(ASTImporterOptionSpecificTestBase,
   EXPECT_EQ(P1, P2);
   EXPECT_TRUE(DC == ToD1 || DC == ToD2);
 
-  ASTImporterLookupTable *Tbl = SharedStatePtr->getLookupTable();
-  if (Tbl->contains(ToD1, P1)) {
+  
+  if (ASTImporterLookupTable *Tbl = SharedStatePtr->getLookupTable(); Tbl->contains(ToD1, P1)) {
     EXPECT_FALSE(Tbl->contains(ToD2, P1));
   } else {
     EXPECT_TRUE(Tbl->contains(ToD2, P1));
@@ -9326,8 +9326,8 @@ protected:
 
   void testImport(Decl *ToTU, Decl *FromTU, Decl *FromD) {
     checkInjType(FromTU->getASTContext(), cast<CXXRecordDecl>(FromD));
-    Decl *ToD = Import(FromD, Lang_CXX11);
-    if (auto *ToRD = dyn_cast<CXXRecordDecl>(ToD))
+    
+    if (auto *Decl *ToD = Import(FromD, Lang_CXX11); ToRD = dyn_cast<CXXRecordDecl>(ToD))
       checkInjType(ToTU->getASTContext(), ToRD);
   }
 
@@ -10076,9 +10076,9 @@ protected:
         cast<NonTypeTemplateParmDecl>(D->getTemplateParameters()->getParam(0));
     auto *TypeP =
         cast<TemplateTypeParmDecl>(D->getTemplateParameters()->getParam(1));
-    auto *TemplateP =
-        cast<TemplateTemplateParmDecl>(D->getTemplateParameters()->getParam(2));
-    if (InheritedFromD) {
+    
+    if (auto *TemplateP =
+        cast<TemplateTemplateParmDecl>(D->getTemplateParameters()->getParam(2)); InheritedFromD) {
       EXPECT_TRUE(NonTypeP->getDefaultArgStorage().isInherited());
       EXPECT_TRUE(TypeP->getDefaultArgStorage().isInherited());
       EXPECT_TRUE(TemplateP->getDefaultArgStorage().isInherited());

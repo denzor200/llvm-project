@@ -680,8 +680,8 @@ public:
   matchAndRewrite(CastOp castOp, typename CastOp::Adaptor adaptor,
                   ConversionPatternRewriter &rewriter) const override {
 
-    Type operandType = adaptor.getIn().getType();
-    if (!emitc::isSupportedFloatType(operandType))
+    
+    if (Type operandType = adaptor.getIn().getType(); !emitc::isSupportedFloatType(operandType))
       return rewriter.notifyMatchFailure(castOp,
                                          "unsupported cast source type");
 
@@ -771,8 +771,8 @@ public:
   matchAndRewrite(CastOp castOp, typename CastOp::Adaptor adaptor,
                   ConversionPatternRewriter &rewriter) const override {
     // Vectors in particular are not supported.
-    Type operandType = adaptor.getIn().getType();
-    if (!emitc::isSupportedFloatType(operandType))
+    
+    if (Type operandType = adaptor.getIn().getType(); !emitc::isSupportedFloatType(operandType))
       return rewriter.notifyMatchFailure(castOp,
                                          "unsupported cast source type");
     if (auto roundingModeOp =

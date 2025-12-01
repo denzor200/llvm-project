@@ -550,8 +550,8 @@ size_t ABISysV_mips::GetRedZoneSize() const { return 0; }
 
 ABISP
 ABISysV_mips::CreateInstance(lldb::ProcessSP process_sp, const ArchSpec &arch) {
-  const llvm::Triple::ArchType arch_type = arch.GetTriple().getArch();
-  if ((arch_type == llvm::Triple::mips) ||
+  
+  if (const llvm::Triple::ArchType arch_type = arch.GetTriple().getArch(); (arch_type == llvm::Triple::mips) ||
       (arch_type == llvm::Triple::mipsel)) {
     return ABISP(
         new ABISysV_mips(std::move(process_sp), MakeMCRegisterInfo(arch)));
@@ -727,20 +727,20 @@ Status ABISysV_mips::SetReturnValueObject(lldb::StackFrameSP &frame_sp,
 
     lldb::offset_t offset = 0;
     if (num_bytes <= 8) {
-      const RegisterInfo *r2_info = reg_ctx->GetRegisterInfoByName("r2", 0);
-      if (num_bytes <= 4) {
-        uint32_t raw_value = data.GetMaxU32(&offset, num_bytes);
+      
+      if (const RegisterInfo *r2_info = reg_ctx->GetRegisterInfoByName("r2", 0); num_bytes <= 4) {
+        
 
-        if (reg_ctx->WriteRegisterFromUnsigned(r2_info, raw_value))
+        if (uint32_t raw_value = data.GetMaxU32(&offset, num_bytes); reg_ctx->WriteRegisterFromUnsigned(r2_info, raw_value))
           set_it_simple = true;
       } else {
-        uint32_t raw_value = data.GetMaxU32(&offset, 4);
+        
 
-        if (reg_ctx->WriteRegisterFromUnsigned(r2_info, raw_value)) {
+        if (uint32_t raw_value = data.GetMaxU32(&offset, 4); reg_ctx->WriteRegisterFromUnsigned(r2_info, raw_value)) {
           const RegisterInfo *r3_info = reg_ctx->GetRegisterInfoByName("r3", 0);
-          uint32_t raw_value = data.GetMaxU32(&offset, num_bytes - offset);
+          
 
-          if (reg_ctx->WriteRegisterFromUnsigned(r3_info, raw_value))
+          if (uint32_t raw_value = data.GetMaxU32(&offset, num_bytes - offset); reg_ctx->WriteRegisterFromUnsigned(r3_info, raw_value))
             set_it_simple = true;
         }
       }
@@ -872,9 +872,9 @@ ValueObjectSP ABISysV_mips::GetReturnValueObjectImpl(
         break;
       case 64:
         static_assert(sizeof(double) == sizeof(uint64_t));
-        const RegisterInfo *r3_reg_info =
-            reg_ctx->GetRegisterInfoByName("r3", 0);
-        if (target_byte_order == eByteOrderLittle)
+        
+        if (const RegisterInfo *r3_reg_info =
+            reg_ctx->GetRegisterInfoByName("r3", 0); target_byte_order == eByteOrderLittle)
           raw_value =
               ((reg_ctx->ReadRegisterAsUnsigned(r3_reg_info, 0)) << 32) |
               raw_value;
@@ -892,9 +892,9 @@ ValueObjectSP ABISysV_mips::GetReturnValueObjectImpl(
       DataExtractor f0_data;
       reg_ctx->ReadRegister(f0_info, f0_value);
       f0_value.GetData(f0_data);
-      lldb::offset_t offset = 0;
+      
 
-      if (!return_compiler_type.IsVectorType() && !is_complex) {
+      if (lldb::offset_t offset = 0; !return_compiler_type.IsVectorType() && !is_complex) {
         switch (*bit_width) {
         default:
           return return_valobj_sp;
@@ -999,9 +999,9 @@ bool ABISysV_mips::RegisterIsCalleeSaved(const RegisterInfo *reg_info) {
   if (reg_info) {
     // Preserved registers are :
     // r16-r23, r28, r29, r30, r31
-    const char *name = reg_info->name;
+    
 
-    if (name[0] == 'r') {
+    if (const char *name = reg_info->name; name[0] == 'r') {
       switch (name[1]) {
       case '1':
         if (name[2] == '6' || name[2] == '7' || name[2] == '8' ||

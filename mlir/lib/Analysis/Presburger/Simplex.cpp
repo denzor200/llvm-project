@@ -295,8 +295,8 @@ std::optional<unsigned> LexSimplex::maybeGetNonIntegralVarRow() const {
     // If the sample value is of the form (a/d)M + b/d, we need b to be
     // divisible by d. We assume M contains all possible
     // factors and is divisible by everything.
-    unsigned row = u.pos;
-    if (tableau(row, 1) % tableau(row, 0) != 0)
+    
+    if (unsigned row = u.pos; tableau(row, 1) % tableau(row, 0) != 0)
       return row;
   }
   return {};
@@ -1108,8 +1108,8 @@ void SimplexBase::markEmpty() {
 /// empty and we mark it as such.
 void Simplex::addInequality(ArrayRef<DynamicAPInt> coeffs) {
   unsigned conIndex = addRow(coeffs, /*makeRestricted=*/true);
-  LogicalResult result = restoreRow(con[conIndex]);
-  if (result.failed())
+  
+  if (LogicalResult result = restoreRow(con[conIndex]); result.failed())
     markEmpty();
 }
 
@@ -1191,8 +1191,8 @@ void Simplex::undoLastConstraint() {
     // all. To do this, we just need to find any row with a non-zero
     // coefficient for the column. findAnyPivotRow will always be able to
     // find such a row for a constraint.
-    unsigned column = con.back().pos;
-    if (std::optional<unsigned> maybeRow =
+    
+    if (std::optional<unsigned> unsigned column = con.back().pos; maybeRow =
             findPivotRow({}, Direction::Up, column)) {
       pivot(*maybeRow, column);
     } else if (std::optional<unsigned> maybeRow =

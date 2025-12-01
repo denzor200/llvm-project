@@ -395,8 +395,8 @@ CGHLSLOffsetInfo CGHLSLOffsetInfo::fromDecl(const HLSLBufferDecl &BufDecl) {
         Offset = POA->getOffsetInBytes();
         break;
       }
-      auto *RBA = dyn_cast<HLSLResourceBindingAttr>(Attr);
-      if (RBA &&
+      
+      if (auto *RBA = dyn_cast<HLSLResourceBindingAttr>(Attr); RBA &&
           RBA->getRegisterType() == HLSLResourceBindingAttr::RegisterType::C) {
         Offset = RBA->getSlotNumber() * CBufferRowSizeInBytes;
         break;
@@ -441,10 +441,10 @@ void CGHLSLRuntime::addBuffer(const HLSLBufferDecl *BufDecl) {
 void CGHLSLRuntime::addRootSignature(
     const HLSLRootSignatureDecl *SignatureDecl) {
   llvm::Module &M = CGM.getModule();
-  Triple T(M.getTargetTriple());
+  
 
   // Generated later with the function decl if not targeting root signature
-  if (T.getEnvironment() != Triple::EnvironmentType::RootSignature)
+  if (Triple T(M.getTargetTriple()); T.getEnvironment() != Triple::EnvironmentType::RootSignature)
     return;
 
   addRootSignatureMD(SignatureDecl->getVersion(),
@@ -471,8 +471,8 @@ void CGHLSLRuntime::finishCodeGen() {
   auto &CodeGenOpts = CGM.getCodeGenOpts();
   auto &LangOpts = CGM.getLangOpts();
   llvm::Module &M = CGM.getModule();
-  Triple T(M.getTargetTriple());
-  if (T.getArch() == Triple::ArchType::dxil)
+  
+  if (Triple T(M.getTargetTriple()); T.getArch() == Triple::ArchType::dxil)
     addDxilValVersion(TargetOpts.DxilValidatorVersion, M);
   if (CodeGenOpts.ResMayAlias)
     M.setModuleFlag(llvm::Module::ModFlagBehavior::Error, "dx.resmayalias", 1);
@@ -1056,8 +1056,8 @@ void CGHLSLRuntime::generateGlobalCtorDtorCalls() {
 
   // No need to keep global ctors/dtors for non-lib profile after call to
   // ctors/dtors added for entry.
-  Triple T(M.getTargetTriple());
-  if (T.getEnvironment() != Triple::EnvironmentType::Library) {
+  
+  if (Triple T(M.getTargetTriple()); T.getEnvironment() != Triple::EnvironmentType::Library) {
     if (auto *GV = M.getNamedGlobal("llvm.global_ctors"))
       GV->eraseFromParent();
     if (auto *GV = M.getNamedGlobal("llvm.global_dtors"))
@@ -1107,10 +1107,10 @@ void CGHLSLRuntime::initializeBufferFromBinding(const HLSLBufferDecl *BufDecl,
   auto *Index = llvm::ConstantInt::get(CGM.IntTy, 0);
   auto *RangeSize = llvm::ConstantInt::get(CGM.IntTy, 1);
   auto *Space = llvm::ConstantInt::get(CGM.IntTy, Binding.getSpace());
-  Value *Name = buildNameForResource(BufDecl->getName(), CGM);
+  
 
   // buffer with explicit binding
-  if (Binding.isExplicit()) {
+  if (Value *Name = buildNameForResource(BufDecl->getName(), CGM); Binding.isExplicit()) {
     llvm::Intrinsic::ID IntrinsicID =
         CGM.getHLSLRuntime().getCreateHandleFromBindingIntrinsic();
     auto *RegSlot = llvm::ConstantInt::get(CGM.IntTy, Binding.getSlot());
@@ -1139,8 +1139,8 @@ llvm::Instruction *CGHLSLRuntime::getConvergenceToken(BasicBlock &BB) {
 
   auto E = BB.end();
   for (auto I = BB.begin(); I != E; ++I) {
-    auto *II = dyn_cast<llvm::IntrinsicInst>(&*I);
-    if (II && llvm::isConvergenceControlIntrinsic(II->getIntrinsicID())) {
+    
+    if (auto *II = dyn_cast<llvm::IntrinsicInst>(&*I); II && llvm::isConvergenceControlIntrinsic(II->getIntrinsicID())) {
       return II;
     }
   }
@@ -1450,8 +1450,8 @@ class HLSLBufferCopyEmitter {
     // Copy the struct field by field, but skip any explicit padding.
     unsigned Skipped = 0;
     for (unsigned I = 0, E = ST->getNumElements(); I < E; ++I) {
-      llvm::Type *ElementTy = ST->getElementType(I);
-      if (CGF.CGM.getTargetCodeGenInfo().isHLSLPadding(ElementTy))
+      
+      if (llvm::Type *ElementTy = ST->getElementType(I); CGF.CGM.getTargetCodeGenInfo().isHLSLPadding(ElementTy))
         ++Skipped;
       else
         emitCopyAtIndices(ElementTy, llvm::ConstantInt::get(CGF.Int32Ty, I),

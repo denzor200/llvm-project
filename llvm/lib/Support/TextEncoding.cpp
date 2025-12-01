@@ -324,9 +324,9 @@ ErrorOr<TextEncodingConverter> TextEncodingConverter::create(StringRef From,
   std::optional<TextEncoding> FromEncoding = getKnownEncoding(From);
   std::optional<TextEncoding> ToEncoding = getKnownEncoding(To);
   if (FromEncoding && ToEncoding) {
-    ErrorOr<TextEncodingConverter> Converter =
-        create(*FromEncoding, *ToEncoding);
-    if (Converter)
+    
+    if (ErrorOr<TextEncodingConverter> Converter =
+        create(*FromEncoding, *ToEncoding); Converter)
       return Converter;
   }
 #if HAVE_ICU

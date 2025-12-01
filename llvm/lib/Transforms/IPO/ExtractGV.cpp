@@ -21,8 +21,8 @@ using namespace llvm;
 /// This also makes sure GV cannot be dropped so that references from
 /// the split module remain valid.
 static void makeVisible(GlobalValue &GV, bool Delete) {
-  bool Local = GV.hasLocalLinkage();
-  if (Local || Delete) {
+  
+  if (bool Local = GV.hasLocalLinkage(); Local || Delete) {
     GV.setLinkage(GlobalValue::ExternalLinkage);
     if (Local)
       GV.setVisibility(GlobalValue::HiddenVisibility);

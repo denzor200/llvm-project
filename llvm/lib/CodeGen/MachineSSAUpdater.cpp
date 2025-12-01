@@ -95,8 +95,8 @@ Register LookForIdenticalPHI(MachineBasicBlock *BB,
     bool Same = true;
     for (unsigned i = 1, e = I->getNumOperands(); i != e; i += 2) {
       Register SrcReg = I->getOperand(i).getReg();
-      MachineBasicBlock *SrcBB = I->getOperand(i+1).getMBB();
-      if (AVals[SrcBB] != SrcReg) {
+      
+      if (MachineBasicBlock *SrcBB = I->getOperand(i+1).getMBB(); AVals[SrcBB] != SrcReg) {
         Same = false;
         break;
       }
@@ -240,9 +240,9 @@ void MachineSSAUpdater::RewriteUse(MachineOperand &U) {
   // MO. Or, if possible, just constrain the class for NewVR to avoid the need
   // for a COPY.
   if (NewVR) {
-    const TargetRegisterClass *UseRC =
-        dyn_cast_or_null<const TargetRegisterClass *>(RegAttrs.RCOrRB);
-    if (UseRC && !MRI->constrainRegClass(NewVR, UseRC)) {
+    
+    if (const TargetRegisterClass *UseRC =
+        dyn_cast_or_null<const TargetRegisterClass *>(RegAttrs.RCOrRB); UseRC && !MRI->constrainRegClass(NewVR, UseRC)) {
       MachineBasicBlock *UseBB = UseMI->getParent();
       MachineInstr *InsertedCopy =
           InsertNewDef(TargetOpcode::COPY, UseBB, UseBB->getFirstNonPHI(),
@@ -351,8 +351,8 @@ public:
   /// ValueIsNewPHI - Like ValueIsPHI but also check if the PHI has no source
   /// operands, i.e., it was just added.
   static MachineInstr *ValueIsNewPHI(Register Val, MachineSSAUpdater *Updater) {
-    MachineInstr *PHI = ValueIsPHI(Val, Updater);
-    if (PHI && PHI->getNumOperands() <= 1)
+    
+    if (MachineInstr *PHI = ValueIsPHI(Val, Updater); PHI && PHI->getNumOperands() <= 1)
       return PHI;
     return nullptr;
   }

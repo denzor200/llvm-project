@@ -23,9 +23,9 @@ using namespace mlir;
 LLVM::LLVMFuncOp mlir::getOrDefineFunction(Operation *moduleOp, Location loc,
                                            OpBuilder &b, StringRef name,
                                            LLVM::LLVMFunctionType type) {
-  auto existing = dyn_cast_or_null<LLVM::LLVMFuncOp>(
-      SymbolTable::lookupSymbolIn(moduleOp, name));
-  if (existing)
+  
+  if (auto existing = dyn_cast_or_null<LLVM::LLVMFuncOp>(
+      SymbolTable::lookupSymbolIn(moduleOp, name)); existing)
     return existing;
 
   OpBuilder::InsertionGuard guard(b);

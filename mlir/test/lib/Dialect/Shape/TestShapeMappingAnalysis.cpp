@@ -24,9 +24,9 @@ struct TestShapeMappingPass
     return "Print the contents of a constructed shape mapping information.";
   }
   void runOnOperation() override {
-    std::optional<std::reference_wrapper<shape::ShapeMappingAnalysis>>
-        maybeAnalysis = getCachedAnalysis<shape::ShapeMappingAnalysis>();
-    if (maybeAnalysis.has_value())
+    
+    if (std::optional<std::reference_wrapper<shape::ShapeMappingAnalysis>>
+        maybeAnalysis = getCachedAnalysis<shape::ShapeMappingAnalysis>(); maybeAnalysis.has_value())
       maybeAnalysis->get().print(llvm::errs());
     else
       llvm::errs() << "No cached ShapeMappingAnalysis existed.";

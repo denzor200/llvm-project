@@ -152,10 +152,10 @@ void Instruction::insertBefore(BasicBlock &BB,
   // We've inserted "this": if InsertAtHead is set then it comes before any
   // DbgVariableRecords attached to InsertPos. But if it's not set, then any
   // DbgRecords should now come before "this".
-  bool InsertAtHead = InsertPos.getHeadBit();
-  if (!InsertAtHead) {
-    DbgMarker *SrcMarker = BB.getMarker(InsertPos);
-    if (SrcMarker && !SrcMarker->empty()) {
+  
+  if (bool InsertAtHead = InsertPos.getHeadBit(); !InsertAtHead) {
+    
+    if (DbgMarker *SrcMarker = BB.getMarker(InsertPos); SrcMarker && !SrcMarker->empty()) {
       // If this assertion fires, the calling code is about to insert a PHI
       // after debug-records, which would form a sequence like:
       //     %0 = PHI
@@ -249,11 +249,11 @@ void Instruction::moveBeforeImpl(BasicBlock &BB, InstListType::iterator I,
   BB.getInstList().splice(I, getParent()->getInstList(), getIterator());
 
   if (!Preserve) {
-    DbgMarker *NextMarker = getParent()->getNextMarker(this);
+    
 
     // If we're inserting at point I, and not in front of the DbgRecords
     // attached there, then we should absorb the DbgRecords attached to I.
-    if (!InsertAtHead && NextMarker && !NextMarker->empty()) {
+    if (DbgMarker *NextMarker = getParent()->getNextMarker(this); !InsertAtHead && NextMarker && !NextMarker->empty()) {
       adoptDbgRecords(&BB, I, false);
     }
   }

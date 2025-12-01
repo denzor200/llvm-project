@@ -210,10 +210,10 @@ public:
   // platform_close is expected to cleanup the complete file object.
   int close() {
     {
-      FileLock lock(this);
-      if (prev_op == FileOp::WRITE && pos > 0) {
-        auto buf_result = platform_write(this, buf, pos);
-        if (buf_result.has_error() || buf_result.value < pos) {
+      
+      if (FileLock lock(this); prev_op == FileOp::WRITE && pos > 0) {
+        
+        if (auto buf_result = platform_write(this, buf, pos); buf_result.has_error() || buf_result.value < pos) {
           err = true;
           return buf_result.error;
         }

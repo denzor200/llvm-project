@@ -63,10 +63,10 @@ VirtualUse VirtualUse::create(Scop *S, ScopStmt *UserStmt, Loop *UserScope,
   // Is the value synthesizable? If the user has been pruned
   // (UserStmt == nullptr), it is either not used anywhere or is synthesizable.
   // We assume synthesizable which practically should have the same effect.
-  auto *SE = S->getSE();
-  if (SE->isSCEVable(Val->getType())) {
-    const SCEV *ScevExpr = SE->getSCEVAtScope(Val, UserScope);
-    if (!UserStmt || canSynthesize(Val, *UserStmt->getParent(), SE, UserScope))
+  
+  if (auto *SE = S->getSE(); SE->isSCEVable(Val->getType())) {
+    
+    if (const SCEV *ScevExpr = SE->getSCEVAtScope(Val, UserScope); !UserStmt || canSynthesize(Val, *UserStmt->getParent(), SE, UserScope))
       return VirtualUse(UserStmt, Val, Synthesizable, ScevExpr, nullptr);
   }
 
@@ -331,10 +331,10 @@ static void walkReachable(Scop *S, LoopInfo *LI,
         const ScopArrayInfo *SAI = Acc->getScopArrayInfo();
 
         if (Acc->isLatestValueKind()) {
-          MemoryAccess *DefAcc = S->getValueDef(SAI);
+          
 
           // Accesses to read-only values do not have a definition.
-          if (DefAcc)
+          if (MemoryAccess *DefAcc = S->getValueDef(SAI); DefAcc)
             WorklistAccs.push_back(S->getValueDef(SAI));
         }
 

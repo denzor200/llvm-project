@@ -232,8 +232,8 @@ bool RISCVInsertWriteVXRM::computeVXRMChanges(const MachineBasicBlock &MBB) {
 
   bool NeedVXRMWrite = false;
   for (const MachineInstr &MI : MBB) {
-    int VXRMIdx = RISCVII::getVXRMOpNum(MI.getDesc());
-    if (VXRMIdx >= 0 && !RISCVInstrInfo::ignoresVXRM(MI)) {
+    
+    if (int VXRMIdx = RISCVII::getVXRMOpNum(MI.getDesc()); VXRMIdx >= 0 && !RISCVInstrInfo::ignoresVXRM(MI)) {
       unsigned NewVXRMImm = MI.getOperand(VXRMIdx).getImm();
 
       if (!BBInfo.VXRMUse.isValid())
@@ -390,8 +390,8 @@ void RISCVInsertWriteVXRM::emitWriteVXRM(MachineBasicBlock &MBB) {
   }
 
   for (MachineInstr &MI : MBB) {
-    int VXRMIdx = RISCVII::getVXRMOpNum(MI.getDesc());
-    if (VXRMIdx >= 0 && !RISCVInstrInfo::ignoresVXRM(MI)) {
+    
+    if (int VXRMIdx = RISCVII::getVXRMOpNum(MI.getDesc()); VXRMIdx >= 0 && !RISCVInstrInfo::ignoresVXRM(MI)) {
       unsigned NewVXRMImm = MI.getOperand(VXRMIdx).getImm();
 
       if (PendingInsert || !Info.isStatic() ||

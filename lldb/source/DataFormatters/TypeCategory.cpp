@@ -59,8 +59,8 @@ static bool IsApplicable(lldb::LanguageType category_lang,
 
 bool TypeCategoryImpl::IsApplicable(lldb::LanguageType lang) {
   for (size_t idx = 0; idx < GetNumLanguages(); idx++) {
-    const lldb::LanguageType category_lang = GetLanguageAtIndex(idx);
-    if (::IsApplicable(category_lang, lang))
+    
+    if (const lldb::LanguageType category_lang = GetLanguageAtIndex(idx); ::IsApplicable(category_lang, lang))
       return true;
   }
   return false;

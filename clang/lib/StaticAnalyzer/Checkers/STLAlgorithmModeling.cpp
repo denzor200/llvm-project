@@ -89,8 +89,8 @@ public:
 
 bool STLAlgorithmModeling::evalCall(const CallEvent &Call,
                                     CheckerContext &C) const {
-  const auto *CE = dyn_cast_or_null<CallExpr>(Call.getOriginExpr());
-  if (!CE)
+  
+  if (const auto *CE = dyn_cast_or_null<CallExpr>(Call.getOriginExpr()); !CE)
     return false;
 
   const FnCheck *Handler = Callbacks.lookup(Call);

@@ -1118,8 +1118,8 @@ public:
       (void)idx;
       offsetTable.push_back(propertiesBuffers.size() - offsetsReader.size());
       ArrayRef<uint8_t> rawProperties;
-      uint64_t dataSize;
-      if (failed(offsetsReader.parseVarInt(dataSize)) ||
+      
+      if (uint64_t dataSize; failed(offsetsReader.parseVarInt(dataSize)) ||
           failed(offsetsReader.parseBytes(dataSize, rawProperties)))
         return failure();
     }
@@ -1147,10 +1147,10 @@ public:
     {
       // "Seek" to the requested offset by getting a new reader with the right
       // sub-buffer.
-      EncodingReader reader(propertiesBuffers.drop_front(propertiesOffset),
-                            fileLoc);
+      
       // Properties are stored as a sequence of {size + raw_data}.
-      if (failed(
+      if (EncodingReader reader(propertiesBuffers.drop_front(propertiesOffset),
+                            fileLoc); failed(
               dialectReader.withEncodingReader(reader).readBlob(rawProperties)))
         return failure();
     }
@@ -1455,10 +1455,10 @@ private:
     // The typical case where this is necessary is the resource blob
     // optimization in `parseAsBlob` where we reference the weights from the
     // provided buffer instead of copying them to a new allocation.
-    const bool isGloballyAligned =
-        ((uintptr_t)buffer.getBufferStart() & (alignment - 1)) == 0;
+    
 
-    if (!isGloballyAligned)
+    if (const bool isGloballyAligned =
+        ((uintptr_t)buffer.getBufferStart() & (alignment - 1)) == 0; !isGloballyAligned)
       return emitError("expected section alignment ")
              << alignment << " but bytecode buffer 0x"
              << Twine::utohexstr((uint64_t)buffer.getBufferStart())
@@ -1747,8 +1747,8 @@ LogicalResult BytecodeReader::Impl::read(
   }
   // Check that all of the required sections were found.
   for (int i = 0; i < bytecode::Section::kNumSections; ++i) {
-    bytecode::Section::ID sectionID = static_cast<bytecode::Section::ID>(i);
-    if (!sectionDatas[i] && !isSectionOptional(sectionID, version)) {
+    
+    if (bytecode::Section::ID sectionID = static_cast<bytecode::Section::ID>(i); !sectionDatas[i] && !isSectionOptional(sectionID, version)) {
       return reader.emitError("missing data for top-level section: ",
                               ::toString(sectionID));
     }
@@ -1791,8 +1791,8 @@ LogicalResult BytecodeReader::Impl::parseVersion(EncodingReader &reader) {
 
   // Validate the bytecode version.
   uint64_t currentVersion = bytecode::kVersion;
-  uint64_t minSupportedVersion = bytecode::kMinSupportedVersion;
-  if (version < minSupportedVersion) {
+  
+  if (uint64_t minSupportedVersion = bytecode::kMinSupportedVersion; version < minSupportedVersion) {
     return reader.emitError("bytecode version ", version,
                             " is older than the current version of ",
                             currentVersion, ", and upgrade is not supported");
@@ -1945,9 +1945,9 @@ BytecodeReader::Impl::parseOpName(EncodingReader &reader,
       opName->opName.emplace(opName->dialect->name, getContext());
     } else {
       // Load the dialect and its version.
-      DialectReader dialectReader(attrTypeReader, stringReader, resourceReader,
-                                  dialectsMap, reader, version);
-      if (failed(opName->dialect->load(dialectReader, getContext())))
+      
+      if (DialectReader dialectReader(attrTypeReader, stringReader, resourceReader,
+                                  dialectsMap, reader, version); failed(opName->dialect->load(dialectReader, getContext())))
         return failure();
       opName->opName.emplace((opName->dialect->name + "." + opName->name).str(),
                              getContext());
@@ -2344,9 +2344,9 @@ BytecodeReader::Impl::parseOpWithoutRegions(EncodingReader &reader,
     // stored as an attribute. Otherwise the op must implement the bytecode
     // interface and control the serialization.
     if (wasRegistered) {
-      DialectReader dialectReader(attrTypeReader, stringReader, resourceReader,
-                                  dialectsMap, reader, version);
-      if (failed(
+      
+      if (DialectReader dialectReader(attrTypeReader, stringReader, resourceReader,
+                                  dialectsMap, reader, version); failed(
               propertiesReader.read(fileLoc, dialectReader, &*opName, opState)))
         return failure();
     } else {
@@ -2571,8 +2571,8 @@ LogicalResult BytecodeReader::Impl::defineValues(EncodingReader &reader,
   std::vector<Value> &values = valueScope.values;
 
   unsigned &valueID = valueScope.nextValueIDs.back();
-  unsigned valueIDEnd = valueID + newValues.size();
-  if (valueIDEnd > values.size()) {
+  
+  if (unsigned valueIDEnd = valueID + newValues.size(); valueIDEnd > values.size()) {
     return reader.emitError(
         "value index range was outside of the expected range for "
         "the parent region, got [",
@@ -2582,10 +2582,10 @@ LogicalResult BytecodeReader::Impl::defineValues(EncodingReader &reader,
 
   // Assign the values and update any forward references.
   for (unsigned i = 0, e = newValues.size(); i != e; ++i, ++valueID) {
-    Value newValue = newValues[i];
+    
 
     // Check to see if a definition for this value already exists.
-    if (Value oldValue = std::exchange(values[valueID], newValue)) {
+    if (Value Value newValue = newValues[i]; oldValue = std::exchange(values[valueID], newValue)) {
       Operation *forwardRefOp = oldValue.getDefiningOp();
 
       // Assert that this is a forward reference operation. Given how we compute

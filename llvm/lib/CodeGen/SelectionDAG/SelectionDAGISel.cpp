@@ -605,8 +605,8 @@ bool SelectionDAGISel::runOnMachineFunction(MachineFunction &mf) {
       if (!succ_empty(&BB))
         continue;
 
-      const Instruction *Term = BB.getTerminator();
-      if (isa<UnreachableInst>(Term) || isa<ReturnInst>(Term))
+      
+      if (const Instruction *Term = BB.getTerminator(); isa<UnreachableInst>(Term) || isa<ReturnInst>(Term))
         continue;
 
       // Bail out if the exit block is not Return nor Unreachable.
@@ -673,8 +673,8 @@ bool SelectionDAGISel::runOnMachineFunction(MachineFunction &mf) {
       if (!MBB.succ_empty())
         continue;
 
-      MachineBasicBlock::iterator Term = MBB.getFirstTerminator();
-      if (Term != MBB.end() && Term->isReturn()) {
+      
+      if (MachineBasicBlock::iterator Term = MBB.getFirstTerminator(); Term != MBB.end() && Term->isReturn()) {
         Returns.push_back(&MBB);
         continue;
       }
@@ -699,8 +699,8 @@ bool SelectionDAGISel::runOnMachineFunction(MachineFunction &mf) {
     if (Reg.isPhysical())
       EntryMBB->insert(EntryMBB->begin(), MI);
     else {
-      MachineInstr *Def = RegInfo->getVRegDef(Reg);
-      if (Def) {
+      
+      if (MachineInstr *Def = RegInfo->getVRegDef(Reg); Def) {
         MachineBasicBlock::iterator InsertPos = Def;
         // FIXME: VR def may not be in entry block.
         Def->getParent()->insert(std::next(InsertPos), MI);
@@ -778,8 +778,8 @@ bool SelectionDAGISel::runOnMachineFunction(MachineFunction &mf) {
       break;
 
     for (const auto &MI : MBB) {
-      const MCInstrDesc &MCID = TII->get(MI.getOpcode());
-      if ((MCID.isCall() && !MCID.isReturn()) ||
+      
+      if (const MCInstrDesc &MCID = TII->get(MI.getOpcode()); (MCID.isCall() && !MCID.isReturn()) ||
           MI.isStackAligningInlineAsm()) {
         MFI.setHasCalls(true);
       }
@@ -1237,8 +1237,8 @@ void SelectionDAGISel::EnforceNodeIdInvariant(SDNode *Node) {
   while (!Nodes.empty()) {
     SDNode *N = Nodes.pop_back_val();
     for (auto *U : N->users()) {
-      auto UId = U->getNodeId();
-      if (UId > 0) {
+      
+      if (auto UId = U->getNodeId(); UId > 0) {
         InvalidateNodeId(U);
         Nodes.push_back(U);
       }
@@ -1372,8 +1372,8 @@ void SelectionDAGISel::DoInstructionSelection() {
 static bool hasExceptionPointerOrCodeUser(const CatchPadInst *CPI) {
   for (const User *U : CPI->users()) {
     if (const IntrinsicInst *EHPtrCall = dyn_cast<IntrinsicInst>(U)) {
-      Intrinsic::ID IID = EHPtrCall->getIntrinsicID();
-      if (IID == Intrinsic::eh_exceptionpointer ||
+      
+      if (Intrinsic::ID IID = EHPtrCall->getIntrinsicID(); IID == Intrinsic::eh_exceptionpointer ||
           IID == Intrinsic::eh_exceptioncode)
         return true;
     }
@@ -1394,14 +1394,14 @@ static void mapWasmLandingPadIndex(MachineBasicBlock *MBB,
       cast<Constant>(CPI->getArgOperand(0))->isNullValue();
   // cathchpads for longjmp use an empty type list, e.g. catchpad within %0 []
   // and they don't need LSDA info
-  bool IsCatchLongjmp = CPI->arg_size() == 0;
-  if (!IsSingleCatchAllClause && !IsCatchLongjmp) {
+  
+  if (bool IsCatchLongjmp = CPI->arg_size() == 0; !IsSingleCatchAllClause && !IsCatchLongjmp) {
     // Create a mapping from landing pad label to landing pad index.
     bool IntrFound = false;
     for (const User *U : CPI->users()) {
       if (const auto *Call = dyn_cast<IntrinsicInst>(U)) {
-        Intrinsic::ID IID = Call->getIntrinsicID();
-        if (IID == Intrinsic::wasm_landingpad_index) {
+        
+        if (Intrinsic::ID IID = Call->getIntrinsicID(); IID == Intrinsic::wasm_landingpad_index) {
           Value *IndexArg = Call->getArgOperand(1);
           int Index = cast<ConstantInt>(IndexArg)->getZExtValue();
           MF->setWasmLandingPadIndex(MBB, Index);
@@ -1483,8 +1483,8 @@ void SelectionDAGISel::reportIPToStateForBlocks(MachineFunction *MF) {
     return;
   for (MachineBasicBlock &MBB : *MF) {
     const BasicBlock *BB = MBB.getBasicBlock();
-    int State = EHInfo->BlockToStateMap[BB];
-    if (BB->getFirstMayFaultInst()) {
+    
+    if (int State = EHInfo->BlockToStateMap[BB]; BB->getFirstMayFaultInst()) {
       // Report IP range only for blocks with Faulty inst
       auto MBBb = MBB.getFirstNonPHI();
 
@@ -1583,8 +1583,8 @@ static bool processDbgDeclare(FunctionLoweringInfo &FuncInfo,
   // intrinsic and handle this during isel like dbg.value.
   int FI = std::numeric_limits<int>::max();
   if (const auto *AI = dyn_cast<AllocaInst>(Address)) {
-    auto SI = FuncInfo.StaticAllocaMap.find(AI);
-    if (SI != FuncInfo.StaticAllocaMap.end())
+    
+    if (auto SI = FuncInfo.StaticAllocaMap.find(AI); SI != FuncInfo.StaticAllocaMap.end())
       FI = SI->second;
   } else if (const auto *Arg = dyn_cast<Argument>(Address))
     FI = FuncInfo.getArgumentFrameIndex(Arg);
@@ -2002,8 +2002,8 @@ SelectionDAGISel::FinishBasicBlock() {
     CodeGenAndEmitDAG();
 
     // CodeGen Failure MBB if we have not codegened it yet.
-    MachineBasicBlock *FailureMBB = SDB->SPDescriptor.getFailureMBB();
-    if (FailureMBB->empty()) {
+    
+    if (MachineBasicBlock *FailureMBB = SDB->SPDescriptor.getFailureMBB(); FailureMBB->empty()) {
       FuncInfo->MBB = FailureMBB;
       FuncInfo->InsertPt = FailureMBB->end();
       SDB->visitSPDescriptorFailure(SDB->SPDescriptor);
@@ -2090,8 +2090,8 @@ SelectionDAGISel::FinishBasicBlock() {
       }
       // One of "cases" BB.
       for (const SwitchCG::BitTestCase &BT : BTB.Cases) {
-        MachineBasicBlock* cBB = BT.ThisBB;
-        if (cBB->isSuccessor(PHIBB))
+        
+        if (MachineBasicBlock* cBB = BT.ThisBB; cBB->isSuccessor(PHIBB))
           PHI.addReg(P.second).addMBB(cBB);
       }
     }
@@ -2295,8 +2295,8 @@ void SelectionDAGISel::SelectInlineAsmMemoryOperands(std::vector<SDValue> &Ops,
     --e;  // Don't process a glue operand if it is here.
 
   while (i != e) {
-    InlineAsm::Flag Flags(Ops[i]->getAsZExtVal());
-    if (!Flags.isMemKind() && !Flags.isFuncKind()) {
+    
+    if (InlineAsm::Flag Flags(Ops[i]->getAsZExtVal()); !Flags.isMemKind() && !Flags.isFuncKind()) {
       // Just skip over this operand, copying the operands verbatim.
       Handles.insert(Handles.end(), Ops.begin() + i,
                      Ops.begin() + i + Flags.getNumOperandRegisters() + 1);
@@ -2305,8 +2305,8 @@ void SelectionDAGISel::SelectInlineAsmMemoryOperands(std::vector<SDValue> &Ops,
       assert(Flags.getNumOperandRegisters() == 1 &&
              "Memory operand with multiple values?");
 
-      unsigned TiedToOperand;
-      if (Flags.isUseOperandTiedToDef(TiedToOperand)) {
+      
+      if (unsigned TiedToOperand; Flags.isUseOperandTiedToDef(TiedToOperand)) {
         // We need the constraint ID from the operand this is tied to.
         unsigned CurOp = InlineAsm::Op_FirstOperand;
         Flags = InlineAsm::Flag(Ops[CurOp]->getAsZExtVal());
@@ -2856,8 +2856,8 @@ MorphNode(SDNode *Node, unsigned TargetOpc, SDVTList VTList,
   // than the old isel though.
   int OldGlueResultNo = -1, OldChainResultNo = -1;
 
-  unsigned NTMNumResults = Node->getNumValues();
-  if (Node->getValueType(NTMNumResults-1) == MVT::Glue) {
+  
+  if (unsigned NTMNumResults = Node->getNumValues(); Node->getValueType(NTMNumResults-1) == MVT::Glue) {
     OldGlueResultNo = NTMNumResults-1;
     if (NTMNumResults != 1 &&
         Node->getValueType(NTMNumResults-2) == MVT::Other)
@@ -3074,8 +3074,8 @@ static unsigned IsPredicateKnownToFail(const unsigned char *Table,
                                        bool &Result,
                                        const SelectionDAGISel &SDISel,
                   SmallVectorImpl<std::pair<SDValue, SDNode*>> &RecordedNodes) {
-  unsigned Opcode = Table[Index++];
-  switch (Opcode) {
+  
+  switch (unsigned Opcode = Table[Index++]; Opcode) {
   default:
     Result = false;
     return Index-1;  // Could not evaluate this predicate.
@@ -3443,9 +3443,9 @@ void SelectionDAGISel::SelectCodeCommon(SDNode *NodeToMatch,
 #ifndef NDEBUG
     unsigned CurrentOpcodeIndex = MatcherIndex;
 #endif
-    BuiltinOpcodes Opcode =
-        static_cast<BuiltinOpcodes>(MatcherTable[MatcherIndex++]);
-    switch (Opcode) {
+    
+    switch (BuiltinOpcodes Opcode =
+        static_cast<BuiltinOpcodes>(MatcherTable[MatcherIndex++]); Opcode) {
     case OPC_Scope: {
       // Okay, the semantics of this operation are that we should push a scope
       // then evaluate the first child.  However, pushing a scope only to have
@@ -3646,8 +3646,8 @@ void SelectionDAGISel::SelectCodeCommon(SDNode *NodeToMatch,
       for (unsigned i = 0; i < OpNum; ++i)
         Operands.push_back(RecordedNodes[MatcherTable[MatcherIndex++]].first);
 
-      unsigned PredNo = MatcherTable[MatcherIndex++];
-      if (!CheckNodePredicateWithOperands(N, PredNo, Operands))
+      
+      if (unsigned PredNo = MatcherTable[MatcherIndex++]; !CheckNodePredicateWithOperands(N, PredNo, Operands))
         break;
       continue;
     }
@@ -3703,8 +3703,8 @@ void SelectionDAGISel::SelectCodeCommon(SDNode *NodeToMatch,
       continue;
 
     case OPC_CheckTypeRes: {
-      unsigned Res = MatcherTable[MatcherIndex++];
-      if (!::CheckType(getSimpleVT(MatcherTable, MatcherIndex), N.getValue(Res),
+      
+      if (unsigned Res = MatcherTable[MatcherIndex++]; !::CheckType(getSimpleVT(MatcherTable, MatcherIndex), N.getValue(Res),
                        TLI, CurDAG->getDataLayout()))
         break;
       continue;
@@ -4489,8 +4489,8 @@ void SelectionDAGISel::CannotYetSelect(SDNode *N) {
     Msg << "\nIn function: " << MF->getName();
   } else {
     bool HasInputChain = N->getOperand(0).getValueType() == MVT::Other;
-    unsigned iid = N->getConstantOperandVal(HasInputChain);
-    if (iid < Intrinsic::num_intrinsics)
+    
+    if (unsigned iid = N->getConstantOperandVal(HasInputChain); iid < Intrinsic::num_intrinsics)
       Msg << "intrinsic %" << Intrinsic::getBaseName((Intrinsic::ID)iid);
     else
       Msg << "unknown intrinsic #" << iid;

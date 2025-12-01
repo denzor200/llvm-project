@@ -87,8 +87,8 @@ Error Config::addSaveTemps(std::string OutputFileName, bool UseInputModulePath,
                            const DenseSet<StringRef> &SaveTempsArgs) {
   ShouldDiscardValueNames = false;
 
-  std::error_code EC;
-  if (SaveTempsArgs.empty() || SaveTempsArgs.contains("resolution")) {
+  
+  if (std::error_code EC; SaveTempsArgs.empty() || SaveTempsArgs.contains("resolution")) {
     ResolutionFile =
         std::make_unique<raw_fd_ostream>(OutputFileName + "resolution.txt", EC,
                                          sys::fs::OpenFlags::OF_TextWithCRLF);
@@ -412,8 +412,8 @@ static void codegen(const Config &Conf, TargetMachine *TM,
   std::unique_ptr<ToolOutputFile> DwoOut;
   SmallString<1024> DwoFile(Conf.SplitDwarfOutput);
   if (!Conf.DwoDir.empty()) {
-    std::error_code EC;
-    if (auto EC = llvm::sys::fs::create_directories(Conf.DwoDir))
+    
+    if (auto std::error_code EC; EC = llvm::sys::fs::create_directories(Conf.DwoDir))
       report_fatal_error(Twine("Failed to create directory ") + Conf.DwoDir +
                          ": " + EC.message());
 
@@ -719,9 +719,9 @@ Error lto::thinBackend(const Config &Conf, unsigned Task, AddStreamFn AddStream,
 
   {
     llvm::TimeTraceScope importScope("Import functions");
-    FunctionImporter Importer(CombinedIndex, ModuleLoader,
-                              ClearDSOLocalOnDeclarations);
-    if (Error Err = Importer.importFunctions(Mod, ImportList).takeError())
+    
+    if (Error FunctionImporter Importer(CombinedIndex, ModuleLoader,
+                              ClearDSOLocalOnDeclarations); Err = Importer.importFunctions(Mod, ImportList).takeError())
       return Err;
   }
 
@@ -739,8 +739,8 @@ BitcodeModule *lto::findThinLTOModule(MutableArrayRef<BitcodeModule> BMs) {
     return BMs.begin();
 
   for (BitcodeModule &BM : BMs) {
-    Expected<BitcodeLTOInfo> LTOInfo = BM.getLTOInfo();
-    if (LTOInfo && LTOInfo->IsThinLTO)
+    
+    if (Expected<BitcodeLTOInfo> LTOInfo = BM.getLTOInfo(); LTOInfo && LTOInfo->IsThinLTO)
       return &BM;
   }
   return nullptr;

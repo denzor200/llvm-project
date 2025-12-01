@@ -112,8 +112,8 @@ Triple ObjectFile::makeTriple() const {
   auto Arch = getArch();
   TheTriple.setArch(Triple::ArchType(Arch));
 
-  auto OS = getOS();
-  if (OS != Triple::UnknownOS)
+  
+  if (auto OS = getOS(); OS != Triple::UnknownOS)
     TheTriple.setOS(OS);
 
   // For ARM targets, try to use the build attributes to build determine
@@ -127,8 +127,8 @@ Triple ObjectFile::makeTriple() const {
   if (isMachO()) {
     TheTriple.setObjectFormat(Triple::MachO);
   } else if (isCOFF()) {
-    const auto COFFObj = cast<COFFObjectFile>(this);
-    if (COFFObj->getArch() == Triple::thumb)
+    
+    if (const auto COFFObj = cast<COFFObjectFile>(this); COFFObj->getArch() == Triple::thumb)
       TheTriple.setTriple("thumbv7-windows");
   } else if (isXCOFF()) {
     // XCOFF implies AIX.
@@ -149,8 +149,8 @@ Triple ObjectFile::makeTriple() const {
 Expected<std::unique_ptr<ObjectFile>>
 ObjectFile::createObjectFile(MemoryBufferRef Object, file_magic Type,
                              bool InitContent) {
-  StringRef Data = Object.getBuffer();
-  if (Type == file_magic::unknown)
+  
+  if (StringRef Data = Object.getBuffer(); Type == file_magic::unknown)
     Type = identify_magic(Data);
 
   switch (Type) {

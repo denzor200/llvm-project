@@ -29,8 +29,8 @@ ProgramStateRef SimpleConstraintManager::assumeInternal(ProgramStateRef State,
   if (std::optional<Loc> LV = Cond.getAs<Loc>()) {
     SValBuilder &SVB = State->getStateManager().getSValBuilder();
     QualType T;
-    const MemRegion *MR = LV->getAsRegion();
-    if (const TypedRegion *TR = dyn_cast_or_null<TypedRegion>(MR))
+    
+    if (const TypedRegion *const MemRegion *MR = LV->getAsRegion(); TR = dyn_cast_or_null<TypedRegion>(MR))
       T = TR->getLocationType();
     else
       T = SVB.getContext().VoidPtrTy;

@@ -172,15 +172,15 @@ static bool isZero(const Expr *E) {
 }
 
 static const Expr *ignoreUnaryPlus(const Expr *E) {
-  auto *UnaryOp = dyn_cast<UnaryOperator>(E);
-  if (UnaryOp && UnaryOp->getOpcode() == UO_Plus)
+  
+  if (auto *UnaryOp = dyn_cast<UnaryOperator>(E); UnaryOp && UnaryOp->getOpcode() == UO_Plus)
     return UnaryOp->getSubExpr();
   return E;
 }
 
 static const Expr *getInitializer(const Expr *E) {
-  auto *InitList = dyn_cast<InitListExpr>(E);
-  if (InitList && InitList->getNumInits() == 1)
+  
+  if (auto *InitList = dyn_cast<InitListExpr>(E); InitList && InitList->getNumInits() == 1)
     return InitList->getInit(0)->IgnoreParenImpCasts();
   return E;
 }
@@ -287,8 +287,8 @@ void UseDefaultMemberInitCheck::checkDefaultInit(
 
   // Check whether we have multiple hand-written constructors and bomb out, as
   // it is hard to reconcile their sets of member initializers.
-  const auto *ClassDecl = cast<CXXRecordDecl>(Field->getParent());
-  if (llvm::count_if(ClassDecl->decls(), [](const Decl *D) {
+  
+  if (const auto *ClassDecl = cast<CXXRecordDecl>(Field->getParent()); llvm::count_if(ClassDecl->decls(), [](const Decl *D) {
         if (const auto *FTD = dyn_cast<FunctionTemplateDecl>(D))
           D = FTD->getTemplatedDecl();
         if (const auto *Ctor = dyn_cast<CXXConstructorDecl>(D))

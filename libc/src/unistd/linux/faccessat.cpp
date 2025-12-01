@@ -21,13 +21,13 @@ namespace LIBC_NAMESPACE_DECL {
 LLVM_LIBC_FUNCTION(int, faccessat,
                    (int fd, const char *path, int amode, int flag)) {
 #ifdef SYS_faccessat2
-  int ret =
-      LIBC_NAMESPACE::syscall_impl<int>(SYS_faccessat2, fd, path, amode, flag);
+  
 #else
 #error "faccessat2 syscall is not available."
 #endif
 
-  if (ret < 0) {
+  if (int ret =
+      LIBC_NAMESPACE::syscall_impl<int>(SYS_faccessat2, fd, path, amode, flag); ret < 0) {
     libc_errno = -ret;
     return -1;
   }

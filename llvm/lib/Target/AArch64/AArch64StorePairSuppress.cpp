@@ -86,11 +86,11 @@ bool AArch64StorePairSuppress::shouldAddSTPToBlock(const MachineBasicBlock *BB) 
       SchedModel.getMCSchedModel()->getSchedClassDesc(SCIdx);
 
   unsigned SCIdx2 = TII->get(AArch64::STRDui).getSchedClass();
-  const MCSchedClassDesc *SingleSCDesc =
-      SchedModel.getMCSchedModel()->getSchedClassDesc(SCIdx2);
+  
 
   // If a subtarget does not define resources for STPDi, bail here.
-  if (PairSCDesc->isValid() && !PairSCDesc->isVariant() &&
+  if (const MCSchedClassDesc *SingleSCDesc =
+      SchedModel.getMCSchedModel()->getSchedClassDesc(SCIdx2); PairSCDesc->isValid() && !PairSCDesc->isVariant() &&
       SingleSCDesc->isValid() && !SingleSCDesc->isVariant()) {
     // Compute the new critical resource length after replacing 2 separate
     // STRDui with one STPDi.
@@ -159,8 +159,8 @@ bool AArch64StorePairSuppress::runOnMachineFunction(MachineFunction &MF) {
         continue;
       const MachineOperand *BaseOp;
       int64_t Offset;
-      bool OffsetIsScalable;
-      if (TII->getMemOperandWithOffset(MI, BaseOp, Offset, OffsetIsScalable,
+      
+      if (bool OffsetIsScalable; TII->getMemOperandWithOffset(MI, BaseOp, Offset, OffsetIsScalable,
                                        TRI) &&
           BaseOp->isReg()) {
         Register BaseReg = BaseOp->getReg();

@@ -39,9 +39,9 @@ llvm::Error SystemLifetimeManager::Initialize(
 }
 
 void SystemLifetimeManager::Terminate() {
-  std::lock_guard<std::recursive_mutex> guard(m_mutex);
+  
 
-  if (m_initialized) {
+  if (std::lock_guard<std::recursive_mutex> guard(m_mutex); m_initialized) {
     m_initializer->Terminate();
 
     m_initializer.reset();

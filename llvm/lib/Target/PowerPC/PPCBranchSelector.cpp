@@ -290,12 +290,12 @@ bool PPCBSel::runOnMachineFunction(MachineFunction &Fn) {
   FirstImpreciseBlock = -1;
 
   // Measure each MBB and compute a size for the entire function.
-  unsigned FuncSize = ComputeBlockSizes(Fn);
+  
 
   // If the entire function is smaller than the displacement of a branch field,
   // we know we don't need to shrink any branches in this function.  This is a
   // common case.
-  if (FuncSize < (1 << 15)) {
+  if (unsigned FuncSize = ComputeBlockSizes(Fn); FuncSize < (1 << 15)) {
     BlockSizes.clear();
     return false;
   }

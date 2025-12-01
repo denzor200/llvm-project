@@ -325,8 +325,8 @@ ProgramStateRef PthreadLockChecker::resolvePossiblyDestroyedMutex(
          lstate->isUnlockedAndPossiblyDestroyed());
 
   ConstraintManager &CMgr = state->getConstraintManager();
-  ConditionTruthVal retZero = CMgr.isNull(state, *sym);
-  if (retZero.isConstrainedFalse()) {
+  
+  if (ConditionTruthVal retZero = CMgr.isNull(state, *sym); retZero.isConstrainedFalse()) {
     if (lstate->isUntouchedAndPossiblyDestroyed())
       state = state->remove<LockMap>(lockR);
     else if (lstate->isUnlockedAndPossiblyDestroyed())
@@ -454,8 +454,8 @@ void PthreadLockChecker::AcquireLockAux(const CallEvent &Call,
   ProgramStateRef lockSucc = state;
   if (IsTryLock) {
     // Bifurcate the state, and allow a mode where the lock acquisition fails.
-    SVal RetVal = Call.getReturnValue();
-    if (auto DefinedRetVal = RetVal.getAs<DefinedSVal>()) {
+    
+    if (auto SVal RetVal = Call.getReturnValue(); DefinedRetVal = RetVal.getAs<DefinedSVal>()) {
       ProgramStateRef lockFail;
       switch (Semantics) {
       case PthreadSemantics:
@@ -474,8 +474,8 @@ void PthreadLockChecker::AcquireLockAux(const CallEvent &Call,
     // and returned an Unknown or Undefined value.
   } else if (Semantics == PthreadSemantics) {
     // Assume that the return value was 0.
-    SVal RetVal = Call.getReturnValue();
-    if (auto DefinedRetVal = RetVal.getAs<DefinedSVal>()) {
+    
+    if (auto SVal RetVal = Call.getReturnValue(); DefinedRetVal = RetVal.getAs<DefinedSVal>()) {
       // FIXME: If the lock function was inlined and returned true,
       // we need to behave sanely - at least generate sink.
       lockSucc = state->assume(*DefinedRetVal, false);
@@ -532,8 +532,8 @@ void PthreadLockChecker::ReleaseLockAux(const CallEvent &Call,
   LockSetTy LS = state->get<LockSet>();
 
   if (!LS.isEmpty()) {
-    const MemRegion *firstLockR = LS.getHead();
-    if (firstLockR != lockR) {
+    
+    if (const MemRegion *firstLockR = LS.getHead(); firstLockR != lockR) {
       reportBug(C, BT_lor, MtxExpr, CheckKind,
                 "This was not the most recently acquired lock. Possible lock "
                 "order reversal");

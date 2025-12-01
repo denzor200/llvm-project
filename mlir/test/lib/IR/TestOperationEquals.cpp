@@ -22,8 +22,8 @@ struct TestOperationEqualPass
   void runOnOperation() override {
     ModuleOp module = getOperation();
     // Expects two operations at the top-level:
-    int opCount = module.getBody()->getOperations().size();
-    if (opCount != 2) {
+    
+    if (int opCount = module.getBody()->getOperations().size(); opCount != 2) {
       module.emitError() << "expected 2 top-level ops in the module, got "
                          << opCount;
       return signalPassFailure();

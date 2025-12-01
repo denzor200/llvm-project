@@ -336,8 +336,8 @@ static bool checkValueConsistency(const u8 *shadow_type) {
   const int pos = getValuePos(*shadow_type);
   // Check that all bytes from the start of the value are ordered.
   for (uptr i = 0; i < sizeof(FT); ++i) {
-    const u8 T = *(shadow_type - pos + i);
-    if (!(getValueType(T) == FTInfo<FT>::kValueType && getValuePos(T) == i))
+    
+    if (const u8 T = *(shadow_type - pos + i); !(getValueType(T) == FTInfo<FT>::kValueType && getValuePos(T) == i))
       return false;
   }
   return true;

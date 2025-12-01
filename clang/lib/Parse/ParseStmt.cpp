@@ -200,14 +200,14 @@ Retry:
 
     bool HaveAttrs = !CXX11Attrs.empty() || !GNUAttrs.empty();
     auto IsStmtAttr = [](ParsedAttr &Attr) { return Attr.isStmtAttr(); };
-    bool AllAttrsAreStmtAttrs = llvm::all_of(CXX11Attrs, IsStmtAttr) &&
-                                llvm::all_of(GNUAttrs, IsStmtAttr);
+    
     // In C, the grammar production for statement (C23 6.8.1p1) does not allow
     // for declarations, which is different from C++ (C++23 [stmt.pre]p1). So
     // in C++, we always allow a declaration, but in C we need to check whether
     // we're in a statement context that allows declarations. e.g., in C, the
     // following is invalid: if (1) int x;
-    if ((getLangOpts().CPlusPlus || getLangOpts().MicrosoftExt ||
+    if (bool AllAttrsAreStmtAttrs = llvm::all_of(CXX11Attrs, IsStmtAttr) &&
+                                llvm::all_of(GNUAttrs, IsStmtAttr); (getLangOpts().CPlusPlus || getLangOpts().MicrosoftExt ||
          (StmtCtx & ParsedStmtContext::AllowDeclarationsInC) !=
              ParsedStmtContext()) &&
         ((GNUAttributeLoc.isValid() && !(HaveAttrs && AllAttrsAreStmtAttrs)) ||
@@ -1061,9 +1061,9 @@ bool Parser::ConsumeNullStmt(StmtVector &Stmts) {
     EndLoc = Tok.getLocation();
 
     // Don't just ConsumeToken() this tok::semi, do store it in AST.
-    StmtResult R =
-        ParseStatementOrDeclaration(Stmts, ParsedStmtContext::SubStmt);
-    if (R.isUsable())
+    
+    if (StmtResult R =
+        ParseStatementOrDeclaration(Stmts, ParsedStmtContext::SubStmt); R.isUsable())
       Stmts.push_back(R.get());
   }
 
@@ -1256,10 +1256,10 @@ bool Parser::ParseParenExprOrCondition(StmtResult *InitStmt,
   if (getLangOpts().CPlusPlus) {
     Cond = ParseCXXCondition(InitStmt, Loc, CK, false);
   } else {
-    ExprResult CondExpr = ParseExpression();
+    
 
     // If required, convert to a boolean value.
-    if (CondExpr.isInvalid())
+    if (ExprResult CondExpr = ParseExpression(); CondExpr.isInvalid())
       Cond = Sema::ConditionError();
     else
       Cond = Actions.ActOnCondition(getCurScope(), Loc, CondExpr.get(), CK,
@@ -1977,10 +1977,10 @@ StmtResult Parser::ParseForStatement(SourceLocation *TrailingElseLoc,
     ForRangeInfo.LoopVar =
         Actions.ActOnCXXForRangeIdentifier(getCurScope(), Loc, Name, attrs);
   } else if (isForInitDeclaration()) {  // for (int X = 4;
-    ParenBraceBracketBalancer BalancerRAIIObj(*this);
+    
 
     // Parse declaration, which eats the ';'.
-    if (!C99orCXXorObjC) {   // Use of C99-style for loops in C90 mode?
+    if (ParenBraceBracketBalancer BalancerRAIIObj(*this); !C99orCXXorObjC) {   // Use of C99-style for loops in C90 mode?
       Diag(Tok, diag::ext_c99_variable_decl_in_for_loop);
       Diag(Tok, diag::warn_gcc_variable_decl_in_for_loop);
     }
@@ -2135,8 +2135,8 @@ StmtResult Parser::ParseForStatement(SourceLocation *TrailingElseLoc,
         // We permit 'continue' and 'break' in the condition of a for loop.
         getCurScope()->AddFlags(Scope::BreakScope | Scope::ContinueScope);
 
-        ExprResult SecondExpr = ParseExpression();
-        if (SecondExpr.isInvalid())
+        
+        if (ExprResult SecondExpr = ParseExpression(); SecondExpr.isInvalid())
           SecondPart = Sema::ConditionError();
         else
           SecondPart = Actions.ActOnCondition(
@@ -2562,8 +2562,8 @@ StmtResult Parser::ParseCXXTryBlockCommon(SourceLocation TryLoc, bool FnTry) {
     if (Tok.isNot(tok::kw_catch))
       return StmtError(Diag(Tok, diag::err_expected_catch));
     while (Tok.is(tok::kw_catch)) {
-      StmtResult Handler(ParseCXXCatchBlock(FnTry));
-      if (!Handler.isInvalid())
+      
+      if (StmtResult Handler(ParseCXXCatchBlock(FnTry)); !Handler.isInvalid())
         Handlers.push_back(Handler.get());
     }
     // Don't bother creating the full statement if we don't have any usable
@@ -2674,9 +2674,9 @@ void Parser::ParseMicrosoftIfExistsStatement(StmtVector &Stmts) {
 
   // Condition is true, parse the statements.
   while (Tok.isNot(tok::r_brace)) {
-    StmtResult R =
-        ParseStatementOrDeclaration(Stmts, ParsedStmtContext::Compound);
-    if (R.isUsable())
+    
+    if (StmtResult R =
+        ParseStatementOrDeclaration(Stmts, ParsedStmtContext::Compound); R.isUsable())
       Stmts.push_back(R.get());
   }
   Braces.consumeClose();

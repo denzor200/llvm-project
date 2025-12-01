@@ -190,8 +190,8 @@ private:
     //    and the result value is returned. If an error occurs we get a nullptr
     //    and propagate.
     //
-    mlir::Value lhs = mlirGen(*binop.getLHS());
-    if (!lhs)
+    
+    if (mlir::Value lhs = mlirGen(*binop.getLHS()); !lhs)
       return nullptr;
     mlir::Value rhs = mlirGen(*binop.getRHS());
     if (!rhs)
@@ -228,8 +228,8 @@ private:
     auto location = loc(ret.loc());
 
     // 'return' takes an optional expression, handle that case here.
-    mlir::Value expr = nullptr;
-    if (ret.getExpr().has_value()) {
+    
+    if (mlir::Value expr = nullptr; ret.getExpr().has_value()) {
       if (!(expr = mlirGen(**ret.getExpr())))
         return mlir::failure();
     }
@@ -336,8 +336,8 @@ private:
   /// Emit a print expression. It emits specific operations for two builtins:
   /// transpose(x) and print(x).
   llvm::LogicalResult mlirGen(PrintExprAST &call) {
-    auto arg = mlirGen(*call.getArg());
-    if (!arg)
+    
+    if (auto arg = mlirGen(*call.getArg()); !arg)
       return mlir::failure();
 
     PrintOp::create(builder, loc(call.loc()), arg);

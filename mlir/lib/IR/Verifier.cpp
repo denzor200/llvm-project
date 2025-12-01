@@ -86,8 +86,8 @@ LogicalResult OperationVerifier::verifyOpAndDominance(Operation &op) {
   // CFG's can cause dominator analysis construction to crash and we want the
   // verifier to be resilient to malformed code.
   if (op.getNumRegions() != 0) {
-    DominanceInfo domInfo;
-    if (failed(verifyDominanceOfContainedRegions(op, domInfo)))
+    
+    if (DominanceInfo domInfo; failed(verifyDominanceOfContainedRegions(op, domInfo)))
       return failure();
   }
 
@@ -146,8 +146,8 @@ LogicalResult OperationVerifier::verifyOnExit(Block &block) {
   if (mayBeValidWithoutTerminator(&block))
     return success();
 
-  Operation &terminator = block.back();
-  if (!terminator.mightHaveTrait<OpTrait::IsTerminator>())
+  
+  if (Operation &terminator = block.back(); !terminator.mightHaveTrait<OpTrait::IsTerminator>())
     return block.back().emitError("block with no terminator, has ")
            << terminator;
 
@@ -183,14 +183,14 @@ LogicalResult OperationVerifier::verifyOnEntrance(Operation &op) {
   MutableArrayRef<Region> regions = op.getRegions();
   for (unsigned i = 0; i < numRegions; ++i) {
     Region &region = regions[i];
-    RegionKind kind =
-        kindInterface ? kindInterface.getRegionKind(i) : RegionKind::SSACFG;
+    
     // Check that Graph Regions only have a single basic block. This is
     // similar to the code in SingleBlockImplicitTerminator, but doesn't
     // require the trait to be specified. This arbitrary limitation is
     // designed to limit the number of cases that have to be handled by
     // transforms and conversions.
-    if (op.isRegistered() && kind == RegionKind::Graph) {
+    if (RegionKind kind =
+        kindInterface ? kindInterface.getRegionKind(i) : RegionKind::SSACFG; op.isRegistered() && kind == RegionKind::Graph) {
       // Non-empty regions must contain a single basic block.
       if (!region.empty() && !region.hasOneBlock())
         return op.emitOpError("expects graph region #")
@@ -336,8 +336,8 @@ static void diagnoseInvalidOperandDominance(Operation &op, unsigned operandNo) {
     Block *block1 = op.getBlock();
     Block *block2 = useOp->getBlock();
     Region *region1 = block1->getParent();
-    Region *region2 = block2->getParent();
-    if (block1 == block2)
+    
+    if (Region *region2 = block2->getParent(); block1 == block2)
       note << " (op in the same block)";
     else if (region1 == region2)
       note << " (op in the same region)";

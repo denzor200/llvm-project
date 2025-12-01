@@ -180,8 +180,8 @@ public:
     // Use CFI information to keep track of which register is being used to
     // access the frame
     if (BC.MIB->isCFI(Inst)) {
-      const MCCFIInstruction *CFI = BF.getCFIFor(Inst);
-      switch (CFI->getOperation()) {
+      
+      switch (const MCCFIInstruction *CFI = BF.getCFIFor(Inst); CFI->getOperation()) {
       case MCCFIInstruction::OpDefCfa:
         CfaOffset = CFI->getOffset();
         [[fallthrough]];
@@ -545,9 +545,9 @@ FrameAnalysis::FrameAnalysis(BinaryContext &BC, BinaryFunctionCallGraph &CG)
     }
 
     {
-      NamedRegionTimer T1("restorefi", "restore frame index", "FA",
-                          "FA breakdown", opts::TimeFA);
-      if (!restoreFrameIndex(I.second)) {
+      
+      if (NamedRegionTimer T1("restorefi", "restore frame index", "FA",
+                          "FA breakdown", opts::TimeFA); !restoreFrameIndex(I.second)) {
         ++NumFunctionsFailedRestoreFI;
         CountFunctionsFailedRestoreFI += I.second.getFunctionScore();
         continue;

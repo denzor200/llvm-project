@@ -267,9 +267,9 @@ void DFAJumpThreading::unfold(DomTreeUpdater *DTU, LoopInfo *LI,
 
     // Insert the real conditional branch based on the original condition.
     StartBlockTerm->eraseFromParent();
-    auto *BI =
-        BranchInst::Create(EndBlock, NewBlock, SI->getCondition(), StartBlock);
-    if (!ProfcheckDisableMetadataFixes)
+    
+    if (auto *BI =
+        BranchInst::Create(EndBlock, NewBlock, SI->getCondition(), StartBlock); !ProfcheckDisableMetadataFixes)
       BI->setMetadata(LLVMContext::MD_prof,
                       SI->getMetadata(LLVMContext::MD_prof));
     DTU->applyUpdates({{DominatorTree::Insert, StartBlock, NewBlock}});
@@ -305,9 +305,9 @@ void DFAJumpThreading::unfold(DomTreeUpdater *DTU, LoopInfo *LI,
     //  (Use)
     BranchInst::Create(EndBlock, NewBlockF);
     // Insert the real conditional branch based on the original condition.
-    auto *BI =
-        BranchInst::Create(EndBlock, NewBlockF, SI->getCondition(), NewBlockT);
-    if (!ProfcheckDisableMetadataFixes)
+    
+    if (auto *BI =
+        BranchInst::Create(EndBlock, NewBlockF, SI->getCondition(), NewBlockT); !ProfcheckDisableMetadataFixes)
       BI->setMetadata(LLVMContext::MD_prof,
                       SI->getMetadata(LLVMContext::MD_prof));
     DTU->applyUpdates({{DominatorTree::Insert, NewBlockT, NewBlockF},
@@ -563,8 +563,8 @@ private:
     // If select will not be sunk during unfolding, and it is in the same basic
     // block as another state defining select, then cannot unfold both.
     for (SelectInstToUnfold SIToUnfold : SelectInsts) {
-      SelectInst *PrevSI = SIToUnfold.getInst();
-      if (PrevSI->getTrueValue() != SI && PrevSI->getFalseValue() != SI &&
+      
+      if (SelectInst *PrevSI = SIToUnfold.getInst(); PrevSI->getTrueValue() != SI && PrevSI->getFalseValue() != SI &&
           PrevSI->getParent() == SI->getParent())
         return false;
     }
@@ -1126,8 +1126,8 @@ private:
 
       // We already cloned BB for this NextState, now just update the branch
       // and continue.
-      BasicBlock *NextBB = getClonedBB(BB, NextState, DuplicateMap);
-      if (NextBB) {
+      
+      if (BasicBlock *NextBB = getClonedBB(BB, NextState, DuplicateMap); NextBB) {
         updatePredecessor(PrevBB, BB, NextBB, DTU);
         PrevBB = NextBB;
         continue;
@@ -1160,8 +1160,8 @@ private:
       // Scan all uses of this instruction to see if it is used outside of its
       // block, and if so, record them in UsesToRename.
       for (Use &U : I->uses()) {
-        Instruction *User = cast<Instruction>(U.getUser());
-        if (PHINode *UserPN = dyn_cast<PHINode>(User)) {
+        
+        if (PHINode *Instruction *User = cast<Instruction>(U.getUser()); UserPN = dyn_cast<PHINode>(User)) {
           if (UserPN->getIncomingBlock(U) == BB)
             continue;
         } else if (User->getParent() == BB) {
@@ -1271,8 +1271,8 @@ private:
       SwitchInst *Switch = SwitchPaths->getSwitchInst();
       BasicBlock *NextCase = getNextCaseSuccessor(Switch, NextState);
       BlocksToUpdate.push_back(NextCase);
-      BasicBlock *ClonedSucc = getClonedBB(NextCase, NextState, DuplicateMap);
-      if (ClonedSucc)
+      
+      if (BasicBlock *ClonedSucc = getClonedBB(NextCase, NextState, DuplicateMap); ClonedSucc)
         BlocksToUpdate.push_back(ClonedSucc);
     }
     // Otherwise update phis in all successors.
@@ -1283,8 +1283,8 @@ private:
         // Check if a successor has already been cloned for the particular exit
         // value. In this case if a successor was already cloned, the phi nodes
         // in the cloned block should be updated directly.
-        BasicBlock *ClonedSucc = getClonedBB(Succ, NextState, DuplicateMap);
-        if (ClonedSucc)
+        
+        if (BasicBlock *ClonedSucc = getClonedBB(Succ, NextState, DuplicateMap); ClonedSucc)
           BlocksToUpdate.push_back(ClonedSucc);
       }
     }
@@ -1294,14 +1294,14 @@ private:
     // value from BB or a cloned value.
     for (BasicBlock *Succ : BlocksToUpdate) {
       for (PHINode &Phi : Succ->phis()) {
-        Value *Incoming = Phi.getIncomingValueForBlock(BB);
-        if (Incoming) {
+        
+        if (Value *Incoming = Phi.getIncomingValueForBlock(BB); Incoming) {
           if (isa<Constant>(Incoming)) {
             Phi.addIncoming(Incoming, ClonedBB);
             continue;
           }
-          Value *ClonedVal = VMap[Incoming];
-          if (ClonedVal)
+          
+          if (Value *ClonedVal = VMap[Incoming]; ClonedVal)
             Phi.addIncoming(ClonedVal, ClonedBB);
           else
             Phi.addIncoming(Incoming, ClonedBB);
@@ -1507,8 +1507,8 @@ bool DFAJumpThreading::run(Function &F) {
     CodeMetrics::collectEphemeralValues(&F, AC, EphValues);
 
   for (AllSwitchPaths SwitchPaths : ThreadableLoops) {
-    TransformDFA Transform(&SwitchPaths, DTU, AC, TTI, ORE, EphValues);
-    if (Transform.run())
+    
+    if (TransformDFA Transform(&SwitchPaths, DTU, AC, TTI, ORE, EphValues); Transform.run())
       MadeChanges = LoopInfoBroken = true;
   }
 

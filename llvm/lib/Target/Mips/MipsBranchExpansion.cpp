@@ -207,8 +207,8 @@ static std::pair<Iter, bool> getNextMachineInstr(Iter Position,
                                                  MachineBasicBlock *Parent) {
   if (Position == Parent->end()) {
     do {
-      MachineBasicBlock *Succ = Parent->getNextNode();
-      if (Succ != nullptr && Parent->isSuccessor(Succ)) {
+      
+      if (MachineBasicBlock *Succ = Parent->getNextNode(); Succ != nullptr && Parent->isSuccessor(Succ)) {
         Position = Succ->begin();
         Parent = Succ;
       } else {
@@ -228,9 +228,9 @@ static std::pair<Iter, bool> getNextMachineInstr(Iter Position,
 /// operand.
 static MachineBasicBlock *getTargetMBB(const MachineInstr &Br) {
   for (unsigned I = 0, E = Br.getDesc().getNumOperands(); I < E; ++I) {
-    const MachineOperand &MO = Br.getOperand(I);
+    
 
-    if (MO.isMBB())
+    if (const MachineOperand &MO = Br.getOperand(I); MO.isMBB())
       return MO.getMBB();
   }
 
@@ -343,9 +343,9 @@ void MipsBranchExpansion::replaceBranch(MachineBasicBlock &MBB, Iter Br,
   MachineInstrBuilder MIB = BuildMI(MBB, Br, DL, NewDesc);
 
   for (unsigned I = 0, E = Br->getDesc().getNumOperands(); I < E; ++I) {
-    MachineOperand &MO = Br->getOperand(I);
+    
 
-    switch (MO.getType()) {
+    switch (MachineOperand &MO = Br->getOperand(I); MO.getType()) {
     case MachineOperand::MO_Register:
       MIB.addReg(MO.getReg());
       break;
@@ -428,12 +428,12 @@ void MipsBranchExpansion::expandToLongBranch(MBBInfo &I) {
     // We must select between the MIPS32r6/MIPS64r6 BALC (which is a normal
     // instruction) and the pre-MIPS32r6/MIPS64r6 definition (which is an
     // pseudo-instruction wrapping BGEZAL).
-    const unsigned BalOp =
+    
+
+    if (const unsigned BalOp =
         STI->hasMips32r6()
             ? STI->inMicroMipsMode() ? Mips::BALC_MMR6 : Mips::BALC
-            : STI->inMicroMipsMode() ? Mips::BAL_BR_MM : Mips::BAL_BR;
-
-    if (!ABI.IsN64()) {
+            : STI->inMicroMipsMode() ? Mips::BAL_BR_MM : Mips::BAL_BR; !ABI.IsN64()) {
       // Pre R6:
       // $longbr:
       //  addiu $sp, $sp, -8
@@ -802,8 +802,8 @@ bool MipsBranchExpansion::handleSlot(Pred Predicate, Safe SafeInSlot) {
       }
 
       if (LastInstInFunction || !SafeInSlot(*IInSlot, *I)) {
-        MachineBasicBlock::instr_iterator Iit = I->getIterator();
-        if (std::next(Iit) == FI->end() ||
+        
+        if (MachineBasicBlock::instr_iterator Iit = I->getIterator(); std::next(Iit) == FI->end() ||
             std::next(Iit)->getOpcode() != Mips::NOP) {
           Changed = true;
           TII->insertNop(*(I->getParent()), std::next(I), I->getDebugLoc())
@@ -883,14 +883,14 @@ bool MipsBranchExpansion::handlePossibleLongBranch() {
       MachineBasicBlock *MBB = MFp->getBlockNumbered(I);
       // Search for MBB's branch instruction.
       ReverseIter End = MBB->rend();
-      ReverseIter Br = getNonDebugInstr(MBB->rbegin(), End);
+      
 
-      if ((Br != End) && Br->isBranch() && !Br->isIndirectBranch() &&
+      if (ReverseIter Br = getNonDebugInstr(MBB->rbegin(), End); (Br != End) && Br->isBranch() && !Br->isIndirectBranch() &&
           (Br->isConditionalBranch() ||
            (Br->isUnconditionalBranch() && IsPIC))) {
-        int64_t Offset = computeOffset(&*Br);
+        
 
-        if (ForceLongBranchFirstPass ||
+        if (int64_t Offset = computeOffset(&*Br); ForceLongBranchFirstPass ||
             !TII->isBranchOffsetInRange(Br->getOpcode(), Offset)) {
           MBBInfos[I].Offset = Offset;
           MBBInfos[I].Br = &*Br;

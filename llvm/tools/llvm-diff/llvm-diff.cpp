@@ -43,8 +43,8 @@ static void diffGlobal(DifferenceEngine &Engine, Module &L, Module &R,
   Name.consume_front("@");
 
   Function *LFn = L.getFunction(Name);
-  Function *RFn = R.getFunction(Name);
-  if (LFn && RFn)
+  
+  if (Function *RFn = R.getFunction(Name); LFn && RFn)
     Engine.diff(LFn, RFn);
   else if (!LFn && !RFn)
     errs() << "No function named @" << Name << " in either module\n";

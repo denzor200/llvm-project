@@ -17,10 +17,10 @@ RegisterNumber::RegisterNumber(lldb_private::Thread &thread,
     : m_reg_ctx_sp(thread.GetRegisterContext()), m_regnum(num), m_kind(kind),
       m_kind_regnum_map(), m_name("") {
   if (m_reg_ctx_sp.get()) {
-    const lldb_private::RegisterInfo *reginfo =
+    
+    if (const lldb_private::RegisterInfo *reginfo =
         m_reg_ctx_sp->GetRegisterInfoAtIndex(
-            GetAsKind(lldb::eRegisterKindLLDB));
-    if (reginfo && reginfo->name) {
+            GetAsKind(lldb::eRegisterKindLLDB)); reginfo && reginfo->name) {
       m_name = reginfo->name;
     }
   }
@@ -34,10 +34,10 @@ void RegisterNumber::init(lldb_private::Thread &thread, lldb::RegisterKind kind,
   m_regnum = num;
   m_kind = kind;
   if (m_reg_ctx_sp.get()) {
-    const lldb_private::RegisterInfo *reginfo =
+    
+    if (const lldb_private::RegisterInfo *reginfo =
         m_reg_ctx_sp->GetRegisterInfoAtIndex(
-            GetAsKind(lldb::eRegisterKindLLDB));
-    if (reginfo && reginfo->name) {
+            GetAsKind(lldb::eRegisterKindLLDB)); reginfo && reginfo->name) {
       m_name = reginfo->name;
     }
   }
@@ -62,8 +62,8 @@ bool RegisterNumber::operator==(RegisterNumber &rhs) {
     return m_regnum == rhs.m_regnum;
   }
 
-  uint32_t rhs_regnum = rhs.GetAsKind(m_kind);
-  if (rhs_regnum != LLDB_INVALID_REGNUM) {
+  
+  if (uint32_t rhs_regnum = rhs.GetAsKind(m_kind); rhs_regnum != LLDB_INVALID_REGNUM) {
     return m_regnum == rhs_regnum;
   }
   uint32_t lhs_regnum = GetAsKind(rhs.m_kind);

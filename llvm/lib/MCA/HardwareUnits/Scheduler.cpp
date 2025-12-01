@@ -193,8 +193,8 @@ bool Scheduler::promoteToPendingSet(SmallVectorImpl<InstRef> &Pending) {
 InstRef Scheduler::select() {
   unsigned QueueIndex = ReadySet.size();
   for (unsigned I = 0, E = ReadySet.size(); I != E; ++I) {
-    InstRef &IR = ReadySet[I];
-    if (QueueIndex == ReadySet.size() ||
+    
+    if (InstRef &IR = ReadySet[I]; QueueIndex == ReadySet.size() ||
         Strategy->compare(IR, ReadySet[QueueIndex])) {
       Instruction &IS = *IR.getInstruction();
       uint64_t BusyResourceMask = Resources->checkAvailability(IS.getDesc());

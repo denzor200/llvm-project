@@ -41,8 +41,8 @@ CollectorMetadataAnalysis::run(Module &M, ModuleAnalysisManager &MAM) {
     if (F.isDeclaration() || !F.hasGC())
       continue;
     StringRef GCName = F.getGC();
-    auto [It, Inserted] = StrategyMap.try_emplace(GCName);
-    if (Inserted) {
+    
+    if (auto [It, Inserted] = StrategyMap.try_emplace(GCName); Inserted) {
       It->second = getGCStrategy(GCName);
       It->second->Name = GCName;
     }

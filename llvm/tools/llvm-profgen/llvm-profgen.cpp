@@ -89,9 +89,9 @@ static void validateCommandLine() {
     bool HasUnsymbolizedProfile =
         UnsymbolizedProfFilename.getNumOccurrences() > 0;
     bool HasSampleProfile = SampleProfFilename.getNumOccurrences() > 0;
-    uint16_t S =
-        HasPerfData + HasPerfScript + HasUnsymbolizedProfile + HasSampleProfile;
-    if (S != 1) {
+    
+    if (uint16_t S =
+        HasPerfData + HasPerfScript + HasUnsymbolizedProfile + HasSampleProfile; S != 1) {
       std::string Msg =
           S > 1
               ? "`--perfscript`, `--perfdata` and `--unsymbolized-profile` "

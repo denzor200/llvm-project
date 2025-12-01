@@ -193,8 +193,8 @@ std::string BareMetal::computeSysRoot() const {
 }
 
 std::string BareMetal::getCompilerRTPath() const {
-  const Driver &D = getDriver();
-  if (IsGCCInstallationValid || detectGCCToolchainAdjacent(getDriver())) {
+  
+  if (const Driver &D = getDriver(); IsGCCInstallationValid || detectGCCToolchainAdjacent(getDriver())) {
     SmallString<128> Path(D.ResourceDir);
     llvm::sys::path::append(Path, "lib");
     return std::string(Path.str());
@@ -219,8 +219,8 @@ BareMetal::BareMetal(const Driver &D, const llvm::Triple &Triple,
                      const ArgList &Args)
     : Generic_ELF(D, Triple, Args) {
   IsGCCInstallationValid = initGCCInstallation(Triple, Args);
-  std::string ComputedSysRoot = computeSysRoot();
-  if (IsGCCInstallationValid) {
+  
+  if (std::string ComputedSysRoot = computeSysRoot(); IsGCCInstallationValid) {
     if (!isRISCVBareMetal(Triple))
       D.Diag(clang::diag::warn_drv_multilib_not_available_for_target);
 
@@ -561,8 +561,8 @@ void baremetal::StaticLibTool::ConstructJob(Compilation &C, const JobAction &JA,
 
   // Delete old output archive file if it already exists before generating a new
   // archive file.
-  const char *OutputFileName = Output.getFilename();
-  if (Output.isFilename() && llvm::sys::fs::exists(OutputFileName)) {
+  
+  if (const char *OutputFileName = Output.getFilename(); Output.isFilename() && llvm::sys::fs::exists(OutputFileName)) {
     if (std::error_code EC = llvm::sys::fs::remove(OutputFileName)) {
       D.Diag(diag::err_drv_unable_to_remove_file) << EC.message();
       return;
@@ -634,8 +634,8 @@ void baremetal::Linker::ConstructJob(Compilation &C, const JobAction &JA,
       CmdArgs.push_back(Args.MakeArgString(TC.GetFilePath(crt)));
     }
     if (TC.hasValidGCCInstallation() || detectGCCToolchainAdjacent(D)) {
-      auto RuntimeLib = TC.GetRuntimeLibType(Args);
-      switch (RuntimeLib) {
+      
+      switch (auto RuntimeLib = TC.GetRuntimeLibType(Args); RuntimeLib) {
       case (ToolChain::RLT_Libgcc): {
         CRTBegin = IsStaticPIE ? "crtbeginS.o" : "crtbegin.o";
         CRTEnd = IsStaticPIE ? "crtendS.o" : "crtend.o";

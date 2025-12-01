@@ -320,8 +320,8 @@ DwarfInstrProfCorrelator<IntPtrT>::getLocation(const DWARFDie &Die) const {
       if (Op.getCode() == dwarf::DW_OP_addr)
         return Op.getRawOperand(0);
       if (Op.getCode() == dwarf::DW_OP_addrx) {
-        uint64_t Index = Op.getRawOperand(0);
-        if (auto SA = DU.getAddrOffsetSectionItem(Index))
+        
+        if (auto uint64_t Index = Op.getRawOperand(0); SA = DU.getAddrOffsetSectionItem(Index))
           return SA->Address;
       }
     }
@@ -398,8 +398,8 @@ void DwarfInstrProfCorrelator<IntPtrT>::correlateProfileDataImpl(
       return;
     }
     uint64_t CountersStart = this->Ctx->CountersSectionStart;
-    uint64_t CountersEnd = this->Ctx->CountersSectionEnd;
-    if (*CounterPtr < CountersStart || *CounterPtr >= CountersEnd) {
+    
+    if (uint64_t CountersEnd = this->Ctx->CountersSectionEnd; *CounterPtr < CountersStart || *CounterPtr >= CountersEnd) {
       if (UnlimitedWarnings || ++NumSuppressedWarnings < 1) {
         WithColor::warning()
             << format("CounterPtr out of range for function %s: Actual=0x%x "
@@ -477,8 +477,8 @@ void BinaryInstrProfCorrelator<IntPtrT>::correlateProfileDataImpl(
   for (const RawProfData *I = DataStart; I < DataEnd; ++I) {
     uint64_t CounterPtr = this->template maybeSwap<IntPtrT>(I->CounterPtr);
     uint64_t CountersStart = this->Ctx->CountersSectionStart;
-    uint64_t CountersEnd = this->Ctx->CountersSectionEnd;
-    if (CounterPtr < CountersStart || CounterPtr >= CountersEnd) {
+    
+    if (uint64_t CountersEnd = this->Ctx->CountersSectionEnd; CounterPtr < CountersStart || CounterPtr >= CountersEnd) {
       if (UnlimitedWarnings || ++NumSuppressedWarnings < 1) {
         WithColor::warning()
             << format("CounterPtr out of range for function: Actual=0x%x "

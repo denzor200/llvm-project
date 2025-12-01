@@ -68,8 +68,8 @@ void UnhandledExceptionAtNewCheck::registerMatchers(MatchFinder *Finder) {
 
 void UnhandledExceptionAtNewCheck::check(
     const MatchFinder::MatchResult &Result) {
-  const auto *MatchedExpr = Result.Nodes.getNodeAs<CXXNewExpr>("new-expr");
-  if (MatchedExpr)
+  
+  if (const auto *MatchedExpr = Result.Nodes.getNodeAs<CXXNewExpr>("new-expr"); MatchedExpr)
     diag(MatchedExpr->getBeginLoc(),
          "missing exception handler for allocation failure at 'new'");
 }

@@ -139,8 +139,8 @@ static Value createAllocation(OpBuilder &builder, Location loc,
                               MemRefType memRefType, Value sz,
                               bool enableInit) {
   Value buffer = memref::AllocOp::create(builder, loc, memRefType, sz);
-  Type elemType = memRefType.getElementType();
-  if (enableInit) {
+  
+  if (Type elemType = memRefType.getElementType(); enableInit) {
     Value fillValue = constantZero(builder, loc, elemType);
     linalg::FillOp::create(builder, loc, fillValue, buffer);
   }
@@ -236,8 +236,8 @@ static void createAllocFields(OpBuilder &builder, Location loc,
   Value posZero = constantZero(builder, loc, stt.getPosType());
   for (Level lvl = 0, lvlRank = stt.getLvlRank(); lvl < lvlRank; lvl++) {
     desc.setLvlSize(builder, loc, lvl, lvlSizesValues[lvl]);
-    const auto lt = stt.getLvlType(lvl);
-    if (isCompressedLT(lt) || isLooseCompressedLT(lt))
+    
+    if (const auto lt = stt.getLvlType(lvl); isCompressedLT(lt) || isLooseCompressedLT(lt))
       createPushback(builder, loc, desc, SparseTensorFieldKind::PosMemRef, lvl,
                      /*value=*/posZero);
   }
@@ -361,8 +361,8 @@ static void genEndInsert(OpBuilder &builder, Location loc,
   const SparseTensorType stt(desc.getRankedTensorType());
   const Level lvlRank = stt.getLvlRank();
   for (Level lvl = 0; lvl < lvlRank; lvl++) {
-    const auto lt = stt.getLvlType(lvl);
-    if (isCompressedLT(lt)) {
+    
+    if (const auto lt = stt.getLvlType(lvl); isCompressedLT(lt)) {
       // Compressed dimensions need a position cleanup for all entries
       // that were not visited during the insertion pass.
       //
@@ -474,8 +474,8 @@ public:
     Value parentPos = constantZero(builder, loc, builder.getIndexType());
     // Generate code for every level.
     for (Level lvl = 0; lvl < lvlRank; lvl++) {
-      const auto lt = stt.getLvlType(lvl);
-      if (isCompressedLT(lt) || isLooseCompressedLT(lt)) {
+      
+      if (const auto lt = stt.getLvlType(lvl); isCompressedLT(lt) || isLooseCompressedLT(lt)) {
         // Create:
         //   if (!present) {
         //     coordinates[lvl].push_back(coords[lvl])
@@ -596,8 +596,8 @@ public:
     SmallVector<Type> sparseFlat;
     for (auto ret : op.getResults()) {
       assert(retOffset < newCall.getNumResults());
-      auto retType = ret.getType();
-      if (failed(typeConverter->convertType(retType, sparseFlat)))
+      
+      if (auto retType = ret.getType(); failed(typeConverter->convertType(retType, sparseFlat)))
         llvm_unreachable("Failed to convert type in sparse tensor codegen");
 
       // Converted types can not be empty when the type conversion succeed.

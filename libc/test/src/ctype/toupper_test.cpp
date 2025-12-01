@@ -51,8 +51,8 @@ TEST(LlvmLibcToUpper, SimpleTest) {
 
 TEST(LlvmLibcToUpper, DefaultLocale) {
   for (int ch = -255; ch < 255; ++ch) {
-    int char_index = span_index(ch, LOWER_ARR);
-    if (char_index != -1)
+    
+    if (int char_index = span_index(ch, LOWER_ARR); char_index != -1)
       EXPECT_EQ(LIBC_NAMESPACE::toupper(ch),
                 static_cast<int>(UPPER_ARR[char_index]));
     else

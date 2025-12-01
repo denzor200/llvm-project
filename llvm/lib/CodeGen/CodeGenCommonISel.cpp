@@ -174,11 +174,11 @@ llvm::findSplitPointForStackProtector(MachineBasicBlock *BB,
 }
 
 FPClassTest llvm::invertFPClassTestIfSimpler(FPClassTest Test, bool UseFCmp) {
-  FPClassTest InvertedTest = ~Test;
+  
 
   // Pick the direction with fewer tests
   // TODO: Handle more combinations of cases that can be handled together
-  switch (static_cast<unsigned>(InvertedTest)) {
+  switch (FPClassTest InvertedTest = ~Test; static_cast<unsigned>(InvertedTest)) {
   case fcNan:
   case fcSNan:
   case fcQNan:

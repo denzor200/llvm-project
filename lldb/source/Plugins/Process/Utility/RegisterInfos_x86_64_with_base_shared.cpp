@@ -238,9 +238,9 @@ uint32_t RegisterInfos_x86_64_with_base_shared::g_invalidate_st7_64[] = {
 RegInfo &GetRegInfoShared(llvm::Triple::ArchType arch_type, bool with_base) {
   static std::once_flag once_flag_x86, once_flag_x86_64,
       once_flag_x86_64_with_base;
-  static RegInfo reg_info_x86, reg_info_x86_64, reg_info_x86_64_with_base, reg_info_invalid;
+  
 
-  switch (arch_type) {
+  switch (static RegInfo reg_info_x86, reg_info_x86_64, reg_info_x86_64_with_base, reg_info_invalid; arch_type) {
   case llvm::Triple::x86:
     std::call_once(once_flag_x86, []() {
       reg_info_x86.num_registers = k_num_registers_i386;

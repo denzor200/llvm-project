@@ -65,10 +65,10 @@ bool XMLDocument::ParseMemory(const char *xml, size_t xml_length,
 XMLNode XMLDocument::GetRootElement(const char *required_name) {
 #if LLDB_ENABLE_LIBXML2
   if (IsValid()) {
-    XMLNode root_node(xmlDocGetRootElement(m_document));
-    if (required_name) {
-      llvm::StringRef actual_name = root_node.GetName();
-      if (actual_name == required_name)
+    
+    if (XMLNode root_node(xmlDocGetRootElement(m_document)); required_name) {
+      
+      if (llvm::StringRef actual_name = root_node.GetName(); actual_name == required_name)
         return root_node;
     } else {
       return root_node;
@@ -137,8 +137,8 @@ std::string XMLNode::GetAttributeValue(const char *name,
   std::string attr_value;
 #if LLDB_ENABLE_LIBXML2
   if (IsValid()) {
-    xmlChar *value = xmlGetProp(m_node, (const xmlChar *)name);
-    if (value) {
+    
+    if (xmlChar *value = xmlGetProp(m_node, (const xmlChar *)name); value) {
       attr_value = (const char *)value;
       xmlFree(value);
     }
@@ -168,8 +168,8 @@ void XMLNode::ForEachChildNode(NodeCallback const &callback) const {
 
 void XMLNode::ForEachChildElement(NodeCallback const &callback) const {
 #if LLDB_ENABLE_LIBXML2
-  XMLNode child = GetChild();
-  if (child)
+  
+  if (XMLNode child = GetChild(); child)
     child.ForEachSiblingElement(callback);
 #endif
 }
@@ -177,8 +177,8 @@ void XMLNode::ForEachChildElement(NodeCallback const &callback) const {
 void XMLNode::ForEachChildElementWithName(const char *name,
                                           NodeCallback const &callback) const {
 #if LLDB_ENABLE_LIBXML2
-  XMLNode child = GetChild();
-  if (child)
+  
+  if (XMLNode child = GetChild(); child)
     child.ForEachSiblingElementWithName(name, callback);
 #endif
 }
@@ -192,8 +192,8 @@ void XMLNode::ForEachAttribute(AttributeCallback const &callback) const {
       // check if name matches
       if (attr->name) {
         // check child is a text node
-        xmlNodePtr child = attr->children;
-        if (child->type == XML_TEXT_NODE) {
+        
+        if (xmlNodePtr child = attr->children; child->type == XML_TEXT_NODE) {
           llvm::StringRef attr_value;
           if (child->content)
             attr_value = llvm::StringRef((const char *)child->content);
@@ -386,8 +386,8 @@ llvm::StringRef ApplePropertyList::GetErrors() const {
 
 bool ApplePropertyList::ParseFile(const char *path) {
   if (m_xml_doc.ParseFile(path)) {
-    XMLNode plist = m_xml_doc.GetRootElement("plist");
-    if (plist) {
+    
+    if (XMLNode plist = m_xml_doc.GetRootElement("plist"); plist) {
       plist.ForEachChildElementWithName("dict",
                                         [this](const XMLNode &dict) -> bool {
                                           this->m_dict_node = dict;
@@ -403,8 +403,8 @@ bool ApplePropertyList::IsValid() const { return (bool)m_dict_node; }
 
 bool ApplePropertyList::GetValueAsString(const char *key,
                                          std::string &value) const {
-  XMLNode value_node = GetValueNode(key);
-  if (value_node)
+  
+  if (XMLNode value_node = GetValueNode(key); value_node)
     return ApplePropertyList::ExtractStringFromValueNode(value_node, value);
   return false;
 }
@@ -416,8 +416,8 @@ XMLNode ApplePropertyList::GetValueNode(const char *key) const {
   if (IsValid()) {
     m_dict_node.ForEachChildElementWithName(
         "key", [key, &value_node](const XMLNode &key_node) -> bool {
-          std::string key_name;
-          if (key_node.GetElementText(key_name)) {
+          
+          if (std::string key_name; key_node.GetElementText(key_name)) {
             if (key_name == key) {
               value_node = key_node.GetSibling();
               while (value_node && !value_node.IsElement())
@@ -437,8 +437,8 @@ bool ApplePropertyList::ExtractStringFromValueNode(const XMLNode &node,
   value.clear();
 #if LLDB_ENABLE_LIBXML2
   if (node.IsValid()) {
-    llvm::StringRef element_name = node.GetName();
-    if (element_name == "true" || element_name == "false") {
+    
+    if (llvm::StringRef element_name = node.GetName(); element_name == "true" || element_name == "false") {
       // The text value _is_ the element name itself...
       value = element_name.str();
       return true;
@@ -454,8 +454,8 @@ bool ApplePropertyList::ExtractStringFromValueNode(const XMLNode &node,
 #if LLDB_ENABLE_LIBXML2
 
 static StructuredData::ObjectSP CreatePlistValue(XMLNode node) {
-  llvm::StringRef element_name = node.GetName();
-  if (element_name == "array") {
+  
+  if (llvm::StringRef element_name = node.GetName(); element_name == "array") {
     std::shared_ptr<StructuredData::Array> array_sp(
         new StructuredData::Array());
     node.ForEachChildElement([&array_sp](const XMLNode &node) -> bool {

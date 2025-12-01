@@ -61,8 +61,8 @@ static BinaryBasicBlock *getBBAtHotColdSplitPoint(BinaryFunction &Func) {
   for (auto I = Func.getLayout().block_begin(),
             E = Func.getLayout().block_end();
        I != E; ++I) {
-    auto Next = std::next(I);
-    if (Next != E && (*Next)->isCold())
+    
+    if (auto Next = std::next(I); Next != E && (*Next)->isCold())
       return *I;
   }
   llvm_unreachable("No hot-cold split point found");
@@ -137,8 +137,8 @@ BinaryBasicBlock *LongJmpPass::lookupStubFromGroup(
   if (Cand == Candidates.end()) {
     Cand = std::prev(Cand);
   } else if (Cand != Candidates.begin()) {
-    const StubTy *LeftCand = std::prev(Cand);
-    if (Cand->first - DotAddress > DotAddress - LeftCand->first)
+    
+    if (const StubTy *LeftCand = std::prev(Cand); Cand->first - DotAddress > DotAddress - LeftCand->first)
       Cand = LeftCand;
   }
   int BitsAvail = BC.MIB->getPCRelEncodingSize(Inst) - 1;
@@ -199,8 +199,8 @@ LongJmpPass::replaceTargetWithStub(BinaryBasicBlock &BB, MCInst &Inst,
   // If already using stub and the stub is from another function, create a local
   // stub, since the foreign stub is now out of range
   if (!TgtBB) {
-    auto SSIter = SharedStubs.find(TgtSym);
-    if (SSIter != SharedStubs.end()) {
+    
+    if (auto SSIter = SharedStubs.find(TgtSym); SSIter != SharedStubs.end()) {
       TgtSym = BC.MIB->getTargetSymbol(*SSIter->second->begin());
       --NumSharedStubs;
     }
@@ -311,9 +311,9 @@ uint64_t LongJmpPass::tentativeLayoutRelocColdPart(
     if (!Func->isSplit())
       continue;
     DotAddress = alignTo(DotAddress, Func->getMinAlignment());
-    uint64_t Pad =
-        offsetToAlignment(DotAddress, llvm::Align(Func->getAlignment()));
-    if (Pad <= Func->getMaxColdAlignmentBytes())
+    
+    if (uint64_t Pad =
+        offsetToAlignment(DotAddress, llvm::Align(Func->getAlignment())); Pad <= Func->getMaxColdAlignmentBytes())
       DotAddress += Pad;
     ColdAddresses[Func] = DotAddress;
     LLVM_DEBUG(dbgs() << Func->getPrintName() << " cold tentative: "
@@ -370,9 +370,9 @@ uint64_t LongJmpPass::tentativeLayoutRelocMode(
       runColdLayout();
 
     DotAddress = alignTo(DotAddress, Func->getMinAlignment());
-    uint64_t Pad =
-        offsetToAlignment(DotAddress, llvm::Align(Func->getAlignment()));
-    if (Pad <= Func->getMaxAlignmentBytes())
+    
+    if (uint64_t Pad =
+        offsetToAlignment(DotAddress, llvm::Align(Func->getAlignment())); Pad <= Func->getMaxAlignmentBytes())
       DotAddress += Pad;
     HotAddresses[Func] = DotAddress;
     LLVM_DEBUG(dbgs() << Func->getPrintName() << " tentative: "
@@ -423,9 +423,9 @@ void LongJmpPass::tentativeLayout(
     // Initial padding
     if (EstimatedTextSize <= BC.OldTextSectionSize) {
       DotAddress = BC.OldTextSectionAddress;
-      uint64_t Pad =
-          offsetToAlignment(DotAddress, llvm::Align(opts::AlignText));
-      if (Pad + EstimatedTextSize <= BC.OldTextSectionSize) {
+      
+      if (uint64_t Pad =
+          offsetToAlignment(DotAddress, llvm::Align(opts::AlignText)); Pad + EstimatedTextSize <= BC.OldTextSectionSize) {
         DotAddress += Pad;
       }
     }
@@ -532,8 +532,8 @@ bool LongJmpPass::needsStub(const BinaryBasicBlock &BB, const MCInst &Inst,
   const BinaryBasicBlock *TgtBB = Func.getBasicBlockForLabel(TgtSym);
   // Check for shared stubs from foreign functions
   if (!TgtBB) {
-    auto SSIter = SharedStubs.find(TgtSym);
-    if (SSIter != SharedStubs.end())
+    
+    if (auto SSIter = SharedStubs.find(TgtSym); SSIter != SharedStubs.end())
       TgtBB = SSIter->second;
   }
 
@@ -596,8 +596,8 @@ Error LongJmpPass::relax(BinaryFunction &Func, bool &Modified) {
         uint64_t Mask = ~((1ULL << BitsAvail) - 1);
         assert(FrontierAddress > DotAddress &&
                "Hot code should be before the frontier");
-        uint64_t PCRelTgt = FrontierAddress - DotAddress;
-        if (!(PCRelTgt & Mask))
+        
+        if (uint64_t PCRelTgt = FrontierAddress - DotAddress; !(PCRelTgt & Mask))
           InsertionPoint = Frontier;
       }
       // Always put stubs at the end of the function if non-simple. We can't

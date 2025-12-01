@@ -70,8 +70,8 @@ FunctionPass *llvm::createX86LowerTileCopyPass() {
 }
 
 bool X86LowerTileCopy::runOnMachineFunction(MachineFunction &MF) {
-  X86MachineFunctionInfo *FuncInfo = MF.getInfo<X86MachineFunctionInfo>();
-  if (FuncInfo->getAMXProgModel() != AMXProgModelEnum::ManagedRA)
+  
+  if (X86MachineFunctionInfo *FuncInfo = MF.getInfo<X86MachineFunctionInfo>(); FuncInfo->getAMXProgModel() != AMXProgModelEnum::ManagedRA)
     return false;
 
   const X86Subtarget &ST = MF.getSubtarget<X86Subtarget>();

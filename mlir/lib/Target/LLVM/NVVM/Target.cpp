@@ -170,8 +170,8 @@ LogicalResult SerializeGPUModuleBase::appendStandardLibs() {
       type, resourceManager.insert("_mlir_embedded_libdevice",
                                    std::move(unmanagedBlob))));
 #else
-  StringRef pathRef = getToolkitPath();
-  if (!pathRef.empty()) {
+  
+  if (StringRef pathRef = getToolkitPath(); !pathRef.empty()) {
     SmallVector<char, 256> path;
     path.insert(path.begin(), pathRef.begin(), pathRef.end());
     pathRef = StringRef(path.data(), path.size());

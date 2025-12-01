@@ -457,8 +457,8 @@ HexagonTargetLowering::initializeHVXLowering() {
     int MaxElems = (8*HwLen) / ElemWidth;
     for (int N = 2; N < MaxElems; N *= 2) {
       MVT VecTy = MVT::getVectorVT(ElemTy, N);
-      auto Action = getPreferredVectorAction(VecTy);
-      if (Action == TargetLoweringBase::TypeWidenVector) {
+      
+      if (auto Action = getPreferredVectorAction(VecTy); Action == TargetLoweringBase::TypeWidenVector) {
         setOperationAction(ISD::LOAD,         VecTy, Custom);
         setOperationAction(ISD::STORE,        VecTy, Custom);
         setOperationAction(ISD::SETCC,        VecTy, Custom);
@@ -473,8 +473,8 @@ HexagonTargetLowering::initializeHVXLowering() {
           setOperationAction(ISD::UINT_TO_FP,   VecTy, Custom);
         }
 
-        MVT BoolTy = MVT::getVectorVT(MVT::i1, N);
-        if (!isTypeLegal(BoolTy))
+        
+        if (MVT BoolTy = MVT::getVectorVT(MVT::i1, N); !isTypeLegal(BoolTy))
           setOperationAction(ISD::SETCC, BoolTy, Custom);
       }
     }
@@ -508,8 +508,8 @@ HexagonTargetLowering::getPreferredHvxVectorAction(MVT VecTy) const {
   if (ElemTy == MVT::i1) {
     for (MVT T : Tys) {
       assert(T != MVT::i1);
-      auto A = getPreferredHvxVectorAction(MVT::getVectorVT(T, VecLen));
-      if (A != ~0u)
+      
+      if (auto A = getPreferredHvxVectorAction(MVT::getVectorVT(T, VecLen)); A != ~0u)
         return A;
     }
     return ~0u;
@@ -537,8 +537,8 @@ HexagonTargetLowering::getPreferredHvxVectorAction(MVT VecTy) const {
 
 unsigned
 HexagonTargetLowering::getCustomHvxOperationAction(SDNode &Op) const {
-  unsigned Opc = Op.getOpcode();
-  switch (Opc) {
+  
+  switch (unsigned Opc = Op.getOpcode(); Opc) {
   case HexagonISD::SMUL_LOHI:
   case HexagonISD::UMUL_LOHI:
   case HexagonISD::USMUL_LOHI:
@@ -664,9 +664,9 @@ void HexagonTargetLowering::AdjustHvxInstrPostInstrSelection(
   MachineFunction &MF = *MB.getParent();
   MachineRegisterInfo &MRI = MF.getRegInfo();
   DebugLoc DL = MI.getDebugLoc();
-  auto At = MI.getIterator();
+  
 
-  switch (Opc) {
+  switch (auto At = MI.getIterator(); Opc) {
   case Hexagon::PS_vsplatib:
     if (Subtarget.useHVXV62Ops()) {
       // SplatV = A2_tfrsi #imm
@@ -941,8 +941,8 @@ HexagonTargetLowering::buildHvxVectorReg(ArrayRef<SDValue> Values,
   SDValue ExtVec;
   if (IsBuildFromExtracts(ExtVec, ExtIdx)) {
     MVT ExtTy = ty(ExtVec);
-    unsigned ExtLen = ExtTy.getVectorNumElements();
-    if (ExtLen == VecLen || ExtLen == 2*VecLen) {
+    
+    if (unsigned ExtLen = ExtTy.getVectorNumElements(); ExtLen == VecLen || ExtLen == 2*VecLen) {
       // Construct a new shuffle mask that will produce a vector with the same
       // number of elements as the input vector, and such that the vector we
       // want will be the initial subvector of it.
@@ -1764,8 +1764,8 @@ HexagonTargetLowering::LowerHvxConcatVectors(SDValue Op, SelectionDAG &DAG)
     // a legal type. If any of the extracted elements is not of a valid
     // type, sign-extend it to a valid one.
     for (SDValue &V : Elems) {
-      MVT Ty = ty(V);
-      if (!isTypeLegal(Ty)) {
+      
+      if (MVT Ty = ty(V); !isTypeLegal(Ty)) {
         MVT NTy = typeLegalize(Ty, DAG);
         if (V.getOpcode() == ISD::EXTRACT_VECTOR_ELT) {
           V = DAG.getNode(ISD::SIGN_EXTEND_INREG, dl, NTy,
@@ -3560,8 +3560,8 @@ HexagonTargetLowering::ExpandHvxResizeIntoSteps(SDValue Op, SelectionDAG &DAG)
   assert(NumElems == ResTy.getVectorNumElements());
 
   auto repeatOp = [&](unsigned NewWidth, SDValue Arg) {
-    MVT Ty = MVT::getVectorVT(MVT::getIntegerVT(NewWidth), NumElems);
-    switch (Opc) {
+    
+    switch (MVT Ty = MVT::getVectorVT(MVT::getIntegerVT(NewWidth), NumElems); Opc) {
       case HexagonISD::SSAT:
       case HexagonISD::USAT:
         return DAG.getNode(Opc, dl, Ty, {Arg, DAG.getValueType(Ty)});
@@ -3594,9 +3594,9 @@ HexagonTargetLowering::LegalizeHvxResize(SDValue Op, SelectionDAG &DAG) const {
   MVT ResTy = ty(Op);
   unsigned InpWidth = InpTy.getSizeInBits();
   unsigned ResWidth = ResTy.getSizeInBits();
-  unsigned Opc = Op.getOpcode();
+  
 
-  if (shouldWidenToHvx(InpTy, DAG) || shouldWidenToHvx(ResTy, DAG)) {
+  if (unsigned Opc = Op.getOpcode(); shouldWidenToHvx(InpTy, DAG) || shouldWidenToHvx(ResTy, DAG)) {
     // First, make sure that the narrower type is widened to HVX.
     // This may cause the result to be wider than what the legalizer
     // expects, so insert EXTRACT_SUBVECTOR to bring it back to the
@@ -3873,8 +3873,8 @@ HexagonTargetLowering::PerformHvxDAGCombine(SDNode *N, DAGCombinerInfo &DCI)
       // (vselect (xor x, qtrue), v0, v1) -> (vselect x, v1, v0)
       SDValue Cond = Ops[0];
       if (Cond->getOpcode() == ISD::XOR) {
-        SDValue C0 = Cond.getOperand(0), C1 = Cond.getOperand(1);
-        if (C1->getOpcode() == HexagonISD::QTRUE)
+        
+        if (SDValue C0 = Cond.getOperand(0), C1 = Cond.getOperand(1); C1->getOpcode() == HexagonISD::QTRUE)
           return DAG.getNode(ISD::VSELECT, dl, ty(Op), C0, Ops[2], Ops[1]);
       }
       break;
@@ -3915,8 +3915,8 @@ bool
 HexagonTargetLowering::shouldSplitToHvx(MVT Ty, SelectionDAG &DAG) const {
   if (Subtarget.isHVXVectorType(Ty, true))
     return false;
-  auto Action = getPreferredHvxVectorAction(Ty);
-  if (Action == TargetLoweringBase::TypeSplitVector)
+  
+  if (auto Action = getPreferredHvxVectorAction(Ty); Action == TargetLoweringBase::TypeSplitVector)
     return Subtarget.isHVXVectorType(typeLegalize(Ty, DAG), true);
   return false;
 }
@@ -3925,8 +3925,8 @@ bool
 HexagonTargetLowering::shouldWidenToHvx(MVT Ty, SelectionDAG &DAG) const {
   if (Subtarget.isHVXVectorType(Ty, true))
     return false;
-  auto Action = getPreferredHvxVectorAction(Ty);
-  if (Action == TargetLoweringBase::TypeWidenVector)
+  
+  if (auto Action = getPreferredHvxVectorAction(Ty); Action == TargetLoweringBase::TypeWidenVector)
     return Subtarget.isHVXVectorType(typeLegalize(Ty, DAG), true);
   return false;
 }

@@ -370,9 +370,9 @@ public:
     FunctionEffectKindSet InferrableEffects;
 
     for (FunctionEffect effect : AllInferrableEffectsToVerify) {
-      std::optional<FunctionEffect> ProblemCalleeEffect =
-          effect.effectProhibitingInference(*CInfo.CDecl, CInfo.Effects);
-      if (!ProblemCalleeEffect)
+      
+      if (std::optional<FunctionEffect> ProblemCalleeEffect =
+          effect.effectProhibitingInference(*CInfo.CDecl, CInfo.Effects); !ProblemCalleeEffect)
         InferrableEffects.insert(effect);
       else {
         // Add a Violation for this effect if a caller were to
@@ -549,8 +549,8 @@ public:
     // Gather all of the effects to be verified to see what operations need to
     // be checked, and to see which ones are inferrable.
     for (FunctionEffect Effect : S.AllEffectsToVerify) {
-      const FunctionEffect::Flags Flags = Effect.flags();
-      if (Flags & FunctionEffect::FE_InferrableOnCallees)
+      
+      if (const FunctionEffect::Flags Flags = Effect.flags(); Flags & FunctionEffect::FE_InferrableOnCallees)
         AllInferrableEffectsToVerify.insert(Effect);
     }
     LLVM_DEBUG(llvm::dbgs() << "AllInferrableEffectsToVerify: ";
@@ -790,8 +790,8 @@ private:
         return CDK_Constructor;
       if (isa<CXXDestructorDecl>(D))
         return CDK_Destructor;
-      const CXXRecordDecl *Rec = Method->getParent();
-      if (Rec->isLambda())
+      
+      if (const CXXRecordDecl *Rec = Method->getParent(); Rec->isLambda())
         return CDK_Lambda;
     }
     return CDK_Function;
@@ -838,8 +838,8 @@ private:
 
     // Top-level violations are warnings.
     for (const Violation &Viol1 : Viols) {
-      StringRef effectName = Viol1.Effect.name();
-      switch (Viol1.ID) {
+      
+      switch (StringRef effectName = Viol1.Effect.name(); Viol1.ID) {
       case ViolationID::None:
       case ViolationID::DeclDisallowsInference: // Shouldn't happen
                                                 // here.
@@ -885,8 +885,8 @@ private:
             // - indirect (virtual or through function pointer)
             // - effect has been explicitly disclaimed (e.g. "blocking")
 
-            CallableType CType = CalleeInfo.type();
-            if (CType == CallableType::Virtual)
+            
+            if (CallableType CType = CalleeInfo.type(); CType == CallableType::Virtual)
               S.Diag(Callee->getLocation(),
                      diag::note_func_effect_call_indirect)
                   << Indirect_VirtualMethod << effectName;
@@ -1213,8 +1213,8 @@ private:
       // unpacked.
       QualType CalleeExprQT = CalleeExpr->getType();
       if (CalleeExpr->isBoundMemberFunction(Outer.S.getASTContext())) {
-        QualType QT = Expr::findBoundMemberType(CalleeExpr);
-        if (!QT.isNull())
+        
+        if (QualType QT = Expr::findBoundMemberType(CalleeExpr); !QT.isNull())
           CalleeExprQT = QT;
       }
       checkIndirectCall(Call, CalleeExprQT);
@@ -1233,9 +1233,9 @@ private:
                                   ViolationID::HasStaticLocalVariable,
                                   Var->getLocation());
 
-      const QualType::DestructionKind DK =
-          Var->needsDestruction(Outer.S.getASTContext());
-      if (DK == QualType::DK_cxx_destructor)
+      
+      if (const QualType::DestructionKind DK =
+          Var->needsDestruction(Outer.S.getASTContext()); DK == QualType::DK_cxx_destructor)
         followTypeDtor(Var->getType(), Var->getLocation());
       return true;
     }
@@ -1283,8 +1283,8 @@ private:
     }
 
     bool VisitCXXBindTemporaryExpr(CXXBindTemporaryExpr *BTE) override {
-      const CXXDestructorDecl *Dtor = BTE->getTemporary()->getDestructor();
-      if (Dtor != nullptr) {
+      
+      if (const CXXDestructorDecl *Dtor = BTE->getTemporary()->getDestructor(); Dtor != nullptr) {
         CallableInfo CI(*Dtor);
         followCall(CI, BTE->getBeginLoc());
       }
@@ -1355,8 +1355,8 @@ private:
     }
 
     bool VisitDeclRefExpr(DeclRefExpr *E) override {
-      const ValueDecl *Val = E->getDecl();
-      if (const auto *Var = dyn_cast<VarDecl>(Val)) {
+      
+      if (const auto *const ValueDecl *Val = E->getDecl(); Var = dyn_cast<VarDecl>(Val)) {
         if (Var->getTLSKind() != VarDecl::TLS_None) {
           // At least on macOS, thread-local variables are initialized on
           // first access, including a heap allocation.
@@ -1401,8 +1401,8 @@ private:
 
 Analyzer::AnalysisMap::~AnalysisMap() {
   for (const auto &Item : *this) {
-    FuncAnalysisPtr AP = Item.second;
-    if (auto *PFA = dyn_cast<PendingFunctionAnalysis *>(AP))
+    
+    if (auto *FuncAnalysisPtr AP = Item.second; PFA = dyn_cast<PendingFunctionAnalysis *>(AP))
       delete PFA;
     else
       delete cast<CompleteFunctionAnalysis *>(AP);
@@ -1537,8 +1537,8 @@ Sema::FunctionEffectDiffVector::FunctionEffectDiffVector(
       cmp = -1;
     else {
       FunctionEffectWithCondition Old = *POld;
-      FunctionEffectWithCondition New = *PNew;
-      if (Old.Effect.kind() < New.Effect.kind())
+      
+      if (FunctionEffectWithCondition New = *PNew; Old.Effect.kind() < New.Effect.kind())
         cmp = -1;
       else if (New.Effect.kind() < Old.Effect.kind())
         cmp = 1;

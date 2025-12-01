@@ -125,8 +125,8 @@ LogicalResult GatherOp::verify() {
   // Verify that the pointer type's memory space allows loads.
   MemorySpaceAttrInterface ms =
       cast<PtrType>(getPtrs().getType().getElementType()).getMemorySpace();
-  DataLayout dataLayout = DataLayout::closest(*this);
-  if (!ms.isValidLoad(getResult().getType(), AtomicOrdering::not_atomic,
+  
+  if (DataLayout dataLayout = DataLayout::closest(*this); !ms.isValidLoad(getResult().getType(), AtomicOrdering::not_atomic,
                       getAlignment(), &dataLayout, emitDiag))
     return failure();
 
@@ -183,8 +183,8 @@ void LoadOp::getEffects(
 LogicalResult LoadOp::verify() {
   auto emitDiag = [&]() -> InFlightDiagnostic { return emitError(); };
   MemorySpaceAttrInterface ms = getPtr().getType().getMemorySpace();
-  DataLayout dataLayout = DataLayout::closest(*this);
-  if (!ms.isValidLoad(getResult().getType(), getOrdering(), getAlignment(),
+  
+  if (DataLayout dataLayout = DataLayout::closest(*this); !ms.isValidLoad(getResult().getType(), getOrdering(), getAlignment(),
                       &dataLayout, emitDiag))
     return failure();
   if (failed(verifyAlignment(getAlignment(), emitDiag)))
@@ -217,8 +217,8 @@ LogicalResult MaskedLoadOp::verify() {
   auto emitDiag = [&]() -> InFlightDiagnostic { return emitError(); };
   // Verify that the pointer type's memory space allows loads.
   MemorySpaceAttrInterface ms = getPtr().getType().getMemorySpace();
-  DataLayout dataLayout = DataLayout::closest(*this);
-  if (!ms.isValidLoad(getResult().getType(), AtomicOrdering::not_atomic,
+  
+  if (DataLayout dataLayout = DataLayout::closest(*this); !ms.isValidLoad(getResult().getType(), AtomicOrdering::not_atomic,
                       getAlignment(), &dataLayout, emitDiag))
     return failure();
 
@@ -248,8 +248,8 @@ LogicalResult MaskedStoreOp::verify() {
   auto emitDiag = [&]() -> InFlightDiagnostic { return emitError(); };
   // Verify that the pointer type's memory space allows stores.
   MemorySpaceAttrInterface ms = getPtr().getType().getMemorySpace();
-  DataLayout dataLayout = DataLayout::closest(*this);
-  if (!ms.isValidStore(getValue().getType(), AtomicOrdering::not_atomic,
+  
+  if (DataLayout dataLayout = DataLayout::closest(*this); !ms.isValidStore(getValue().getType(), AtomicOrdering::not_atomic,
                        getAlignment(), &dataLayout, emitDiag))
     return failure();
 
@@ -281,8 +281,8 @@ LogicalResult ScatterOp::verify() {
   // Verify that the pointer type's memory space allows stores.
   MemorySpaceAttrInterface ms =
       cast<PtrType>(getPtrs().getType().getElementType()).getMemorySpace();
-  DataLayout dataLayout = DataLayout::closest(*this);
-  if (!ms.isValidStore(getValue().getType(), AtomicOrdering::not_atomic,
+  
+  if (DataLayout dataLayout = DataLayout::closest(*this); !ms.isValidStore(getValue().getType(), AtomicOrdering::not_atomic,
                        getAlignment(), &dataLayout, emitDiag))
     return failure();
 
@@ -319,8 +319,8 @@ void StoreOp::getEffects(
 LogicalResult StoreOp::verify() {
   auto emitDiag = [&]() -> InFlightDiagnostic { return emitError(); };
   MemorySpaceAttrInterface ms = getPtr().getType().getMemorySpace();
-  DataLayout dataLayout = DataLayout::closest(*this);
-  if (!ms.isValidStore(getValue().getType(), getOrdering(), getAlignment(),
+  
+  if (DataLayout dataLayout = DataLayout::closest(*this); !ms.isValidStore(getValue().getType(), getOrdering(), getAlignment(),
                        &dataLayout, emitDiag))
     return failure();
   if (failed(verifyAlignment(getAlignment(), emitDiag)))

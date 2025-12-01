@@ -173,8 +173,8 @@ int main(int argc, char *argv[]) {
     StringRef Host, PortStr;
     std::tie(Host, PortStr) = Specifier.split(':');
 
-    int Port = 0;
-    if (PortStr.getAsInteger(10, Port))
+    
+    if (int Port = 0; PortStr.getAsInteger(10, Port))
       printErrorAndExit("port number '" + PortStr + "' is not a valid integer");
 
     InFD = OutFD = openListener(Host.str(), PortStr.str());

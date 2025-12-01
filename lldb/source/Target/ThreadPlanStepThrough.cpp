@@ -44,9 +44,9 @@ ThreadPlanStepThrough::ThreadPlanStepThrough(Thread &thread,
     // some inlined code that we're in the middle of by doing this, but it's
     // easier than trying to figure out where the inlined code might return to.
 
-    StackFrameSP return_frame_sp = thread.GetFrameWithStackID(m_stack_id);
+    
 
-    if (return_frame_sp) {
+    if (StackFrameSP return_frame_sp = thread.GetFrameWithStackID(m_stack_id); return_frame_sp) {
       m_backstop_addr = return_frame_sp->GetFrameCodeAddress().GetLoadAddress(
           thread.CalculateTarget().get());
       Breakpoint *return_bp =
@@ -228,9 +228,9 @@ void ThreadPlanStepThrough::ClearBackstopBreakpoint() {
 }
 
 bool ThreadPlanStepThrough::MischiefManaged() {
-  Log *log = GetLog(LLDBLog::Step);
+  
 
-  if (!IsPlanComplete()) {
+  if (Log *log = GetLog(LLDBLog::Step); !IsPlanComplete()) {
     return false;
   } else {
     LLDB_LOGF(log, "Completed step through step plan.");
@@ -246,15 +246,15 @@ bool ThreadPlanStepThrough::HitOurBackstopBreakpoint() {
   StopInfoSP stop_info_sp(thread.GetStopInfo());
   if (stop_info_sp && stop_info_sp->GetStopReason() == eStopReasonBreakpoint) {
     break_id_t stop_value = (break_id_t)stop_info_sp->GetValue();
-    BreakpointSiteSP cur_site_sp =
-        m_process.GetBreakpointSiteList().FindByID(stop_value);
-    if (cur_site_sp &&
+    
+    if (BreakpointSiteSP cur_site_sp =
+        m_process.GetBreakpointSiteList().FindByID(stop_value); cur_site_sp &&
         cur_site_sp->IsBreakpointAtThisSite(m_backstop_bkpt_id)) {
       StackID cur_frame_zero_id = thread.GetStackFrameAtIndex(0)->GetStackID();
 
       if (cur_frame_zero_id == m_return_stack_id) {
-        Log *log = GetLog(LLDBLog::Step);
-        if (log)
+        
+        if (Log *log = GetLog(LLDBLog::Step); log)
           log->PutCString("ThreadPlanStepThrough hit backstop breakpoint.");
         return true;
       }

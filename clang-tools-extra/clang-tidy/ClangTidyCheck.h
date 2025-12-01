@@ -193,8 +193,8 @@ public:
     std::enable_if_t<std::is_integral_v<T>, std::optional<T>>
     get(StringRef LocalName) const {
       if (std::optional<StringRef> Value = get(LocalName)) {
-        T Result{};
-        if (!StringRef(*Value).getAsInteger(10, Result))
+        
+        if (T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; !StringRef(*Value).getAsInteger(10, Result))
           return Result;
         diagnoseBadIntegerOption(NamePrefix + LocalName, *Value);
       }
@@ -218,8 +218,8 @@ public:
         if (Value == "" || Value == "none" || Value == "null" ||
             (std::is_unsigned_v<T> && Value == "-1"))
           return std::nullopt;
-        T Result{};
-        if (!StringRef(*Value).getAsInteger(10, Result))
+        
+        if (T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; T Result{}; !StringRef(*Value).getAsInteger(10, Result))
           return Result;
         diagnoseBadIntegerOption(NamePrefix + LocalName, *Value);
       }

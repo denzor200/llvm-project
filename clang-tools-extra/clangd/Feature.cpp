@@ -20,8 +20,8 @@ std::string versionString() { return clang::getClangToolFullVersion("clangd"); }
 std::string platformString() {
   static std::string PlatformString = []() {
     std::string Host = llvm::sys::getProcessTriple();
-    std::string Target = llvm::sys::getDefaultTargetTriple();
-    if (Host != Target) {
+    
+    if (std::string Target = llvm::sys::getDefaultTargetTriple(); Host != Target) {
       Host += "; target=";
       Host += Target;
     }

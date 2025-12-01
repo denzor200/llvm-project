@@ -58,10 +58,10 @@ void DWARFDebugAranges::generate(DWARFContext *CTX) {
   // it may describe only a small subset of compilation units, so we need to
   // manually build aranges for the rest of them.
   for (const auto &CU : CTX->compile_units()) {
-    uint64_t CUOffset = CU->getOffset();
-    if (ParsedCUOffsets.insert(CUOffset).second) {
-      Expected<DWARFAddressRangesVector> CURanges = CU->collectAddressRanges();
-      if (!CURanges)
+    
+    if (uint64_t CUOffset = CU->getOffset(); ParsedCUOffsets.insert(CUOffset).second) {
+      
+      if (Expected<DWARFAddressRangesVector> CURanges = CU->collectAddressRanges(); !CURanges)
         CTX->getRecoverableErrorHandler()(CURanges.takeError());
       else
         for (const auto &R : *CURanges)

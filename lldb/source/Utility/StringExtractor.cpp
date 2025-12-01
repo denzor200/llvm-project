@@ -95,9 +95,9 @@ uint32_t StringExtractor::GetU32(uint32_t fail_value, int base) {
     char *end = nullptr;
     const char *start = m_packet.c_str();
     const char *cstr = start + m_index;
-    uint32_t result = static_cast<uint32_t>(::strtoul(cstr, &end, base));
+    
 
-    if (end && end != cstr) {
+    if (uint32_t result = static_cast<uint32_t>(::strtoul(cstr, &end, base)); end && end != cstr) {
       m_index = end - start;
       return result;
     }
@@ -110,9 +110,9 @@ int32_t StringExtractor::GetS32(int32_t fail_value, int base) {
     char *end = nullptr;
     const char *start = m_packet.c_str();
     const char *cstr = start + m_index;
-    int32_t result = static_cast<int32_t>(::strtol(cstr, &end, base));
+    
 
-    if (end && end != cstr) {
+    if (int32_t result = static_cast<int32_t>(::strtol(cstr, &end, base)); end && end != cstr) {
       m_index = end - start;
       return result;
     }
@@ -125,9 +125,9 @@ uint64_t StringExtractor::GetU64(uint64_t fail_value, int base) {
     char *end = nullptr;
     const char *start = m_packet.c_str();
     const char *cstr = start + m_index;
-    uint64_t result = ::strtoull(cstr, &end, base);
+    
 
-    if (end && end != cstr) {
+    if (uint64_t result = ::strtoull(cstr, &end, base); end && end != cstr) {
       m_index = end - start;
       return result;
     }
@@ -140,9 +140,9 @@ int64_t StringExtractor::GetS64(int64_t fail_value, int base) {
     char *end = nullptr;
     const char *start = m_packet.c_str();
     const char *cstr = start + m_index;
-    int64_t result = ::strtoll(cstr, &end, base);
+    
 
-    if (end && end != cstr) {
+    if (int64_t result = ::strtoll(cstr, &end, base); end && end != cstr) {
       m_index = end - start;
       return result;
     }
@@ -253,8 +253,8 @@ uint64_t StringExtractor::GetHexMaxU64(bool little_endian,
 }
 
 bool StringExtractor::ConsumeFront(const llvm::StringRef &str) {
-  llvm::StringRef S = GetStringRef();
-  if (!S.starts_with(str))
+  
+  if (llvm::StringRef S = GetStringRef(); !S.starts_with(str))
     return false;
   else
     m_index += str.size();

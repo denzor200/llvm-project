@@ -35,8 +35,8 @@ static Value *replaceIntrinsic(Module &M, IntrinsicInst *II,
 }
 
 static Value *reduceIntrinsic(Oracle &O, Module &M, IntrinsicInst *II) {
-  IRBuilder<> B(II);
-  switch (II->getIntrinsicID()) {
+  
+  switch (IRBuilder<> B(II); II->getIntrinsicID()) {
   case Intrinsic::sqrt:
     if (O.shouldKeep())
       return nullptr;
@@ -245,9 +245,9 @@ void llvm::reduceOpcodesDeltaPass(Oracle &O, ReducerWorkItem &WorkItem) {
   for (Function &F : Mod) {
     for (BasicBlock &BB : F)
       for (Instruction &I : make_early_inc_range(BB)) {
-        Instruction *Replacement =
-            dyn_cast_or_null<Instruction>(reduceInstruction(O, Mod, I));
-        if (Replacement && Replacement != &I) {
+        
+        if (Instruction *Replacement =
+            dyn_cast_or_null<Instruction>(reduceInstruction(O, Mod, I)); Replacement && Replacement != &I) {
           if (isa<FPMathOperator>(Replacement))
             Replacement->copyFastMathFlags(&I);
 

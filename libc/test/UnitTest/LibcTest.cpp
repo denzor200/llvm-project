@@ -73,7 +73,9 @@ cpp::string_view describeValue(cpp::string_view Value) { return Value; }
 template <typename ValType>
 bool test(RunContext *Ctx, TestCond Cond, ValType LHS, ValType RHS,
           const char *LHSStr, const char *RHSStr, Location Loc) {
-  auto ExplainDifference = [=, &Ctx](bool Cond,
+  
+
+  switch (auto ExplainDifference = [=, &Ctx](bool Cond,
                                      cpp::string_view OpString) -> bool {
     if (Cond)
       return true;
@@ -86,9 +88,7 @@ bool test(RunContext *Ctx, TestCond Cond, ValType LHS, ValType RHS,
          << "To be " << OpString << ": " << RHSStr << '\n'
          << Offset << "Which is: " << describeValue(RHS) << '\n';
     return false;
-  };
-
-  switch (Cond) {
+  }; Cond) {
   case TestCond::EQ:
     return ExplainDifference(LHS == RHS, "equal to");
   case TestCond::NE:
@@ -164,8 +164,8 @@ int Test::runTests(const TestOptions &Options) {
     T->setContext(&Ctx);
     T->Run();
     T->TearDown();
-    [[maybe_unused]] const uint64_t end_time = static_cast<uint64_t>(clock());
-    switch (Ctx.status()) {
+    
+    switch ([[maybe_unused]] const uint64_t end_time = static_cast<uint64_t>(clock()); Ctx.status()) {
     case RunContext::RunResult::Fail:
       tlog << red << "[  FAILED  ] " << reset << TestName << '\n';
       ++FailCount;
@@ -180,9 +180,9 @@ int Test::runTests(const TestOptions &Options) {
         const auto duration = end_time - start_time;
         const uint64_t duration_ms = (duration * 1000) / CLOCKS_PER_SEC;
         const uint64_t duration_us = (duration * 1000 * 1000) / CLOCKS_PER_SEC;
-        const uint64_t duration_ns =
-            (duration * 1000 * 1000 * 1000) / CLOCKS_PER_SEC;
-        if (Options.TimeInMs || duration_ms != 0)
+        
+        if (const uint64_t duration_ns =
+            (duration * 1000 * 1000 * 1000) / CLOCKS_PER_SEC; Options.TimeInMs || duration_ms != 0)
           tlog << duration_ms << " ms)\n";
         else if (duration_us != 0)
           tlog << duration_us << " us)\n";

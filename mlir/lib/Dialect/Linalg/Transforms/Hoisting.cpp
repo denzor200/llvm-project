@@ -313,8 +313,8 @@ void mlir::linalg::hoistRedundantVectorTransfers(Operation *root,
       // Check 2. Note, since both xfer Ops share the source, we only need to
       // look at one of them.
       auto base = transferRead.getBase();
-      auto *source = base.getDefiningOp();
-      if (source) {
+      
+      if (auto *source = base.getDefiningOp(); source) {
         // NOTE: We treat `memref.assume_alignment` as a special case.
         //
         // The idea is that it is safe to look past AssumeAlignmemtOp (i.e.

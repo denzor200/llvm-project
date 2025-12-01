@@ -264,17 +264,17 @@ transform::LoopPeelOp::applyToOne(transform::TransformRewriter &rewriter,
                                   transform::TransformState &state) {
   scf::ForOp result;
   if (getPeelFront()) {
-    LogicalResult status =
-        scf::peelForLoopFirstIteration(rewriter, target, result);
-    if (failed(status)) {
+    
+    if (LogicalResult status =
+        scf::peelForLoopFirstIteration(rewriter, target, result); failed(status)) {
       DiagnosedSilenceableFailure diag =
           emitSilenceableError() << "failed to peel the first iteration";
       return diag;
     }
   } else {
-    LogicalResult status =
-        scf::peelForLoopAndSimplifyBounds(rewriter, target, result);
-    if (failed(status)) {
+    
+    if (LogicalResult status =
+        scf::peelForLoopAndSimplifyBounds(rewriter, target, result); failed(status)) {
       DiagnosedSilenceableFailure diag = emitSilenceableError()
                                          << "failed to peel the last iteration";
       return diag;
@@ -511,8 +511,8 @@ static DiagnosedSilenceableFailure isOpSibling(Operation *target,
            << "target and source are not in the same block";
 
   // Check if fusion will violate dominance.
-  DominanceInfo domInfo(source);
-  if (target->isBeforeInBlock(source)) {
+  
+  if (DominanceInfo domInfo(source); target->isBeforeInBlock(source)) {
     // Since `target` is before `source`, all users of results of `target`
     // need to be dominated by `source`.
     for (Operation *user : target->getUsers()) {

@@ -72,10 +72,10 @@ public:
     bool Res = AssignFn(ValNo, ValVT, LocVT, LocInfo, Flags, Info.Ty, State);
     StackSize = State.getStackSize();
 
-    static const MCPhysReg XMMArgRegs[] = {X86::XMM0, X86::XMM1, X86::XMM2,
+    
+    if (static const MCPhysReg XMMArgRegs[] = {X86::XMM0, X86::XMM1, X86::XMM2,
                                            X86::XMM3, X86::XMM4, X86::XMM5,
-                                           X86::XMM6, X86::XMM7};
-    if (Flags.isVarArg())
+                                           X86::XMM6, X86::XMM7}; Flags.isVarArg())
       NumXMMRegs = State.getFirstUnallocated(XMMArgRegs);
 
     return Res;
@@ -170,8 +170,8 @@ bool X86CallLowering::lowerReturn(MachineIRBuilder &MIRBuilder,
     splitToValueTypes(OrigRetInfo, SplitRetInfos, DL, F.getCallingConv());
 
     X86OutgoingValueAssigner Assigner(RetCC_X86);
-    X86OutgoingValueHandler Handler(MIRBuilder, MRI, MIB);
-    if (!determineAndHandleAssignments(Handler, Assigner, SplitRetInfos,
+    
+    if (X86OutgoingValueHandler Handler(MIRBuilder, MRI, MIB); !determineAndHandleAssignments(Handler, Assigner, SplitRetInfos,
                                        MIRBuilder, F.getCallingConv(),
                                        F.isVarArg()))
       return false;

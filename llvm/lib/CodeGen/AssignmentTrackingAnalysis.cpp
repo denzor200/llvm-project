@@ -234,9 +234,9 @@ void FunctionVarLocs::init(FunctionVarLocsBuilder &Builder) {
     }
     for (const VarLocInfo &VarLoc : P.second)
       VarLocRecords.emplace_back(VarLoc);
-    unsigned BlockEnd = VarLocRecords.size();
+    
     // Record the start and end indices.
-    if (BlockEnd != BlockStart)
+    if (unsigned BlockEnd = VarLocRecords.size(); BlockEnd != BlockStart)
       VarLocsBeforeInst[I] = {BlockStart, BlockEnd};
   }
 
@@ -1506,10 +1506,10 @@ void AssignmentTrackingLowering::emitDbgValue(
   // NOTE: This block can mutate Kind.
   if (Kind == LocKind::Mem) {
     assert(Source->isDbgAssign());
-    const DbgVariableRecord *Assign = Source;
+    
     // Check the address hasn't been dropped (e.g. the debug uses may not have
     // been replaced before deleting a Value).
-    if (Assign->isKillAddress()) {
+    if (const DbgVariableRecord *Assign = Source; Assign->isKillAddress()) {
       // The address isn't valid so treat this as a non-memory def.
       Kind = LocKind::Val;
     } else {
@@ -1717,8 +1717,8 @@ void AssignmentTrackingLowering::processTaggedInstruction(
     // see, so we cannot use emit a stack home location here. Now we will
     // look at the live LocKind for the variable and determine an appropriate
     // dbg.value to emit.
-    LocKind PrevLoc = getLocKind(LiveSet, Var);
-    switch (PrevLoc) {
+    
+    switch (LocKind PrevLoc = getLocKind(LiveSet, Var); PrevLoc) {
     case LocKind::Val: {
       // The value in memory in memory has changed but we're not currently
       // using the memory location. Do nothing.
@@ -1729,8 +1729,8 @@ void AssignmentTrackingLowering::processTaggedInstruction(
       // There's been an assignment to memory that we were using as a
       // location for this variable, and the Assignment doesn't match what
       // we'd expect to see in memory.
-      Assignment DbgAV = LiveSet->getAssignment(BlockInfo::Debug, Var);
-      if (DbgAV.Status == Assignment::NoneOrPhi) {
+      
+      if (Assignment DbgAV = LiveSet->getAssignment(BlockInfo::Debug, Var); DbgAV.Status == Assignment::NoneOrPhi) {
         // We need to terminate any previously open location now.
         LLVM_DEBUG(dbgs() << "None, No Debug value available\n";);
         setLocKind(LiveSet, Var, LocKind::None);
@@ -1902,7 +1902,7 @@ void AssignmentTrackingLowering::process(BasicBlock &BB, BlockInfo *LiveSet) {
     // We've processed everything in the "frame". Now determine which variables
     // cannot be represented by a dbg.declare.
     for (auto Var : VarsTouchedThisFrame) {
-      LocKind Loc = getLocKind(LiveSet, Var);
+      
       // If a variable's LocKind is anything other than LocKind::Mem then we
       // must note that it cannot be represented with a dbg.declare.
       // Note that this check is enough without having to check the result of
@@ -1910,7 +1910,7 @@ void AssignmentTrackingLowering::process(BasicBlock &BB, BlockInfo *LiveSet) {
       // we've already seen a Mem we'd be joining None or Val with Mem. In that
       // case, we've already hit this codepath when we set the LocKind to Val
       // or None in that block.
-      if (Loc != LocKind::Mem) {
+      if (LocKind Loc = getLocKind(LiveSet, Var); Loc != LocKind::Mem) {
         DebugVariable DbgVar = FnVarLocs->getVariable(Var);
         DebugAggregate Aggr{DbgVar.getVariable(), DbgVar.getInlinedAt()};
         NotAlwaysStackHomed.insert(Aggr);
@@ -2232,8 +2232,8 @@ static AssignmentTrackingLowering::OverlapMap buildOverlapMapAndRecordDeclares(
       VariableID ThisVar = FnVarLocs->insertVariable(*It);
       for (; OtherIt != IEnd; ++OtherIt) {
         DIExpression::FragmentInfo OtherFrag = OtherIt->getFragmentOrDefault();
-        VariableID OtherVar = FnVarLocs->insertVariable(*OtherIt);
-        if (fullyContains(OtherFrag, Frag))
+        
+        if (VariableID OtherVar = FnVarLocs->insertVariable(*OtherIt); fullyContains(OtherFrag, Frag))
           Map[OtherVar].push_back(ThisVar);
       }
     }
@@ -2489,9 +2489,9 @@ removeRedundantDbgLocsUsingBackwardScan(const BasicBlock *BB,
         uint64_t SizeInBytes = divideCeil(SizeInBits, 8);
 
         // Cutoff for large variables to prevent expensive bitvector operations.
-        const uint64_t MaxSizeBytes = 2048;
+        
 
-        if (SizeInBytes == 0 || SizeInBytes > MaxSizeBytes) {
+        if (const uint64_t MaxSizeBytes = 2048; SizeInBytes == 0 || SizeInBytes > MaxSizeBytes) {
           // If the size is unknown (0) then keep this location def to be safe.
           // Do the same for defs of large variables, which would be expensive
           // to represent with a BitVector.

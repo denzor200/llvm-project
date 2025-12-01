@@ -48,8 +48,8 @@ void ReportMapRange(const char *descr, uptr beg, uptr size) {
 
 static bool CheckMemoryRangeAvailability(uptr beg, uptr size, bool verbose) {
   if (size > 0) {
-    uptr end = beg + size - 1;
-    if (!MemoryRangeIsAvailable(beg, end)) {
+    
+    if (uptr end = beg + size - 1; !MemoryRangeIsAvailable(beg, end)) {
       if (verbose)
         Printf("FATAL: MemorySanitizer: Shadow range %p-%p is not available.\n",
                (void *)beg, (void *)end);
@@ -181,10 +181,10 @@ bool InitShadowWithReExec(bool init_origins) {
 #  if SANITIZER_LINUX
     // Perhaps ASLR entropy is too high. If ASLR is enabled, re-exec without it.
     int old_personality = personality(0xffffffff);
-    bool aslr_on =
-        (old_personality != -1) && ((old_personality & ADDR_NO_RANDOMIZE) == 0);
+    
 
-    if (aslr_on) {
+    if (bool aslr_on =
+        (old_personality != -1) && ((old_personality & ADDR_NO_RANDOMIZE) == 0); aslr_on) {
       VReport(1,
               "WARNING: MemorySanitizer: memory layout is incompatible, "
               "possibly due to high-entropy ASLR.\n"
@@ -295,8 +295,8 @@ void SetCurrentThread(MsanThread *t) {
 }
 
 void MsanTSDDtor(void *tsd) {
-  MsanThread *t = (MsanThread*)tsd;
-  if (t->destructor_iterations_ > 1) {
+  
+  if (MsanThread *t = (MsanThread*)tsd; t->destructor_iterations_ > 1) {
     t->destructor_iterations_--;
     CHECK_EQ(0, pthread_setspecific(tsd_key, tsd));
     return;

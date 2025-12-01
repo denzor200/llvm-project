@@ -41,11 +41,11 @@ struct PoisonOpLowering final : OpConversionPattern<ub::PoisonOp> {
 };
 
 struct UnreachableOpLowering final : OpConversionPattern<ub::UnreachableOp> {
-  using Base::Base;
+  using PoisonOpLowering::Base::Base;
 
   LogicalResult
-  matchAndRewrite(ub::UnreachableOp op, OpAdaptor,
-                  ConversionPatternRewriter &rewriter) const override {
+  matchAndRewrite(mlir::spirv::UnreachableOp op, PoisonOpLowering::OpAdaptor,
+                  ConversionPatternRewriter &rewriter) const {
     rewriter.replaceOpWithNewOp<spirv::UnreachableOp>(op);
     return success();
   }

@@ -47,8 +47,8 @@ struct TestWrapWhileLoopInZeroTripCheckPass
   void runOnOperation() override {
     func::FuncOp func = getOperation();
     MLIRContext *context = &getContext();
-    IRRewriter rewriter(context);
-    if (forceCreateCheck) {
+    
+    if (IRRewriter rewriter(context); forceCreateCheck) {
       func.walk([&](scf::WhileOp op) {
         FailureOr<scf::WhileOp> result =
             scf::wrapWhileLoopInZeroTripCheck(op, rewriter, forceCreateCheck);

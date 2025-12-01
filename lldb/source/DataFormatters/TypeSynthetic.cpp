@@ -51,8 +51,8 @@ bool TypeFilterImpl::SetExpressionPathAtIndex(size_t i,
 
 llvm::Expected<size_t>
 TypeFilterImpl::FrontEnd::GetIndexOfChildWithName(ConstString name) {
-  const char *name_cstr = name.GetCString();
-  if (name_cstr) {
+  
+  if (const char *name_cstr = name.GetCString(); name_cstr) {
     for (size_t i = 0; i < filter->GetCount(); i++) {
       const char *expr_cstr = filter->GetExpressionPathAtIndex(i);
       if (expr_cstr) {

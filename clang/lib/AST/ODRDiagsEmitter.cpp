@@ -96,8 +96,8 @@ static bool diagnoseSubMismatchMethodParameters(DiagnosticsEngine &Diags,
   };
 
   const unsigned FirstNumParameters = FirstMethod->param_size();
-  const unsigned SecondNumParameters = SecondMethod->param_size();
-  if (FirstNumParameters != SecondNumParameters) {
+  
+  if (const unsigned SecondNumParameters = SecondMethod->param_size(); FirstNumParameters != SecondNumParameters) {
     DiagError(NumberParameters) << FirstNumParameters;
     DiagNote(NumberParameters) << SecondNumParameters;
     return true;
@@ -108,8 +108,8 @@ static bool diagnoseSubMismatchMethodParameters(DiagnosticsEngine &Diags,
     const ParmVarDecl *SecondParam = SecondMethod->getParamDecl(I);
 
     QualType FirstParamType = FirstParam->getType();
-    QualType SecondParamType = SecondParam->getType();
-    if (FirstParamType != SecondParamType &&
+    
+    if (QualType SecondParamType = SecondParam->getType(); FirstParamType != SecondParamType &&
         computeODRHash(FirstParamType) != computeODRHash(SecondParamType)) {
       if (const DecayedType *ParamDecayedType =
               FirstParamType->getAs<DecayedType>()) {
@@ -196,8 +196,8 @@ bool ODRDiagsEmitter::diagnoseSubMismatchField(
 
   if (IsFirstBitField && IsSecondBitField) {
     unsigned FirstBitWidthHash = computeODRHash(FirstField->getBitWidth());
-    unsigned SecondBitWidthHash = computeODRHash(SecondField->getBitWidth());
-    if (FirstBitWidthHash != SecondBitWidthHash) {
+    
+    if (unsigned SecondBitWidthHash = computeODRHash(SecondField->getBitWidth()); FirstBitWidthHash != SecondBitWidthHash) {
       DiagError(FieldDifferentWidthBitField)
           << FirstII << FirstField->getBitWidth()->getSourceRange();
       DiagNote(FieldDifferentWidthBitField)
@@ -230,8 +230,8 @@ bool ODRDiagsEmitter::diagnoseSubMismatchField(
 
   if (FirstInitializer && SecondInitializer) {
     unsigned FirstInitHash = computeODRHash(FirstInitializer);
-    unsigned SecondInitHash = computeODRHash(SecondInitializer);
-    if (FirstInitHash != SecondInitHash) {
+    
+    if (unsigned SecondInitHash = computeODRHash(SecondInitializer); FirstInitHash != SecondInitHash) {
       DiagError(FieldDifferentInitializers)
           << FirstII << FirstInitializer->getSourceRange();
       DiagNote(FieldDifferentInitializers)
@@ -401,8 +401,8 @@ bool ODRDiagsEmitter::diagnoseSubMismatchProtocols(
     const ObjCProtocolDecl *FirstProtocol = FirstProtocols[I];
     const ObjCProtocolDecl *SecondProtocol = SecondProtocols[I];
     DeclarationName FirstProtocolName = FirstProtocol->getDeclName();
-    DeclarationName SecondProtocolName = SecondProtocol->getDeclName();
-    if (FirstProtocolName != SecondProtocolName) {
+    
+    if (DeclarationName SecondProtocolName = SecondProtocol->getDeclName(); FirstProtocolName != SecondProtocolName) {
       SourceLocation FirstLoc = *(FirstProtocols.loc_begin() + I);
       SourceLocation SecondLoc = *(SecondProtocols.loc_begin() + I);
       SourceRange EmptyRange;
@@ -985,8 +985,8 @@ bool ODRDiagsEmitter::diagnoseMismatch(
     const Expr *FirstExpr = FirstSA->getAssertExpr();
     const Expr *SecondExpr = SecondSA->getAssertExpr();
     unsigned FirstODRHash = computeODRHash(FirstExpr);
-    unsigned SecondODRHash = computeODRHash(SecondExpr);
-    if (FirstODRHash != SecondODRHash) {
+    
+    if (unsigned SecondODRHash = computeODRHash(SecondExpr); FirstODRHash != SecondODRHash) {
       DiagError(FirstExpr->getBeginLoc(), FirstExpr->getSourceRange(),
                 StaticAssertCondition);
       DiagNote(SecondExpr->getBeginLoc(), SecondExpr->getSourceRange(),
@@ -1023,8 +1023,8 @@ bool ODRDiagsEmitter::diagnoseMismatch(
 
     if (FirstMessage && SecondMessage) {
       unsigned FirstMessageODRHash = computeODRHash(FirstMessage);
-      unsigned SecondMessageODRHash = computeODRHash(SecondMessage);
-      if (FirstMessageODRHash != SecondMessageODRHash) {
+      
+      if (unsigned SecondMessageODRHash = computeODRHash(SecondMessage); FirstMessageODRHash != SecondMessageODRHash) {
         DiagError(FirstMessage->getBeginLoc(), FirstMessage->getSourceRange(),
                   StaticAssertMessage);
         DiagNote(SecondMessage->getBeginLoc(), SecondMessage->getSourceRange(),
@@ -1409,9 +1409,9 @@ bool ODRDiagsEmitter::diagnoseMismatch(
         if (HasFirstDefaultArgument && HasSecondDefaultArgument) {
           TemplateArgument FirstTA =
               FirstTTPD->getDefaultArgument().getArgument();
-          TemplateArgument SecondTA =
-              SecondTTPD->getDefaultArgument().getArgument();
-          if (computeODRHash(FirstTA) != computeODRHash(SecondTA)) {
+          
+          if (TemplateArgument SecondTA =
+              SecondTTPD->getDefaultArgument().getArgument(); computeODRHash(FirstTA) != computeODRHash(SecondTA)) {
             DiagTemplateError(FunctionTemplateParameterDifferentDefaultArgument)
                 << (i + 1) << FirstTA;
             DiagTemplateNote(FunctionTemplateParameterDifferentDefaultArgument)
@@ -1471,9 +1471,9 @@ bool ODRDiagsEmitter::diagnoseMismatch(
         if (HasFirstDefaultArgument && HasSecondDefaultArgument) {
           TemplateArgument FirstTA =
               FirstTTPD->getDefaultArgument().getArgument();
-          TemplateArgument SecondTA =
-              SecondTTPD->getDefaultArgument().getArgument();
-          if (computeODRHash(FirstTA) != computeODRHash(SecondTA)) {
+          
+          if (TemplateArgument SecondTA =
+              SecondTTPD->getDefaultArgument().getArgument(); computeODRHash(FirstTA) != computeODRHash(SecondTA)) {
             DiagTemplateError(FunctionTemplateParameterDifferentDefaultArgument)
                 << (i + 1) << FirstTA;
             DiagTemplateNote(FunctionTemplateParameterDifferentDefaultArgument)
@@ -1499,8 +1499,8 @@ bool ODRDiagsEmitter::diagnoseMismatch(
             cast<NonTypeTemplateParmDecl>(SecondParam);
 
         QualType FirstType = FirstNTTPD->getType();
-        QualType SecondType = SecondNTTPD->getType();
-        if (computeODRHash(FirstType) != computeODRHash(SecondType)) {
+        
+        if (QualType SecondType = SecondNTTPD->getType(); computeODRHash(FirstType) != computeODRHash(SecondType)) {
           DiagTemplateError(FunctionTemplateParameterDifferentType) << (i + 1);
           DiagTemplateNote(FunctionTemplateParameterDifferentType) << (i + 1);
           return true;
@@ -1523,10 +1523,10 @@ bool ODRDiagsEmitter::diagnoseMismatch(
         if (HasFirstDefaultArgument && HasSecondDefaultArgument) {
           TemplateArgument FirstDefaultArgument =
               FirstNTTPD->getDefaultArgument().getArgument();
-          TemplateArgument SecondDefaultArgument =
-              SecondNTTPD->getDefaultArgument().getArgument();
+          
 
-          if (computeODRHash(FirstDefaultArgument) !=
+          if (TemplateArgument SecondDefaultArgument =
+              SecondNTTPD->getDefaultArgument().getArgument(); computeODRHash(FirstDefaultArgument) !=
               computeODRHash(SecondDefaultArgument)) {
             DiagTemplateError(FunctionTemplateParameterDifferentDefaultArgument)
                 << (i + 1) << FirstDefaultArgument;
@@ -1721,8 +1721,8 @@ bool ODRDiagsEmitter::diagnoseMismatch(
     };
 
     QualType FirstParamType = FirstParam->getType();
-    QualType SecondParamType = SecondParam->getType();
-    if (FirstParamType != SecondParamType &&
+    
+    if (QualType SecondParamType = SecondParam->getType(); FirstParamType != SecondParamType &&
         computeODRHash(FirstParamType) != computeODRHash(SecondParamType)) {
       if (const DecayedType *ParamDecayedType =
               FirstParamType->getAs<DecayedType>()) {
@@ -2074,8 +2074,8 @@ bool ODRDiagsEmitter::diagnoseMismatch(
 
     // Check if the access match.
     const ObjCIvarDecl *FirstIvar = cast<ObjCIvarDecl>(FirstDecl);
-    const ObjCIvarDecl *SecondIvar = cast<ObjCIvarDecl>(SecondDecl);
-    if (FirstIvar->getCanonicalAccessControl() !=
+    
+    if (const ObjCIvarDecl *SecondIvar = cast<ObjCIvarDecl>(SecondDecl); FirstIvar->getCanonicalAccessControl() !=
         SecondIvar->getCanonicalAccessControl()) {
       DiagError(FirstIvar->getLocation(), FirstIvar->getSourceRange(),
                 IVarAccess)
@@ -2126,8 +2126,8 @@ bool ODRDiagsEmitter::diagnoseMismatch(
     // Check both protocols reference the same protocols.
     const ObjCProtocolList &FirstProtocols =
         FirstProtocol->getReferencedProtocols();
-    const ObjCProtocolList &SecondProtocols = SecondDD->ReferencedProtocols;
-    if (diagnoseSubMismatchProtocols(FirstProtocols, FirstProtocol, FirstModule,
+    
+    if (const ObjCProtocolList &SecondProtocols = SecondDD->ReferencedProtocols; diagnoseSubMismatchProtocols(FirstProtocols, FirstProtocol, FirstModule,
                                      SecondProtocols, SecondProtocol,
                                      SecondModule))
       return true;

@@ -266,11 +266,11 @@ void Arm64RegisterFlagsDetector::UpdateRegisterInfo(
   // * c == c, patch c, patch list is empty, exit early without looking at d.
   for (uint32_t idx = 0; idx < num_regs && search_registers.size();
        ++idx, ++reg_info) {
-    auto reg_it = std::find_if(
-        search_registers.cbegin(), search_registers.cend(),
-        [reg_info](auto reg) { return reg.first == reg_info->name; });
+    
 
-    if (reg_it != search_registers.end()) {
+    if (auto reg_it = std::find_if(
+        search_registers.cbegin(), search_registers.cend(),
+        [reg_info](auto reg) { return reg.first == reg_info->name; }); reg_it != search_registers.end()) {
       // Attach the field information.
       reg_info->flags_type = reg_it->second;
       // We do not expect to see this name again so don't look for it again.

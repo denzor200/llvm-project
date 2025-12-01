@@ -92,10 +92,10 @@ IsSameInstructionSymbolContext(const TraceDumper::SymbolInfo &prev_insn,
 
   Block *inline_block_a =
       insn.sc.block ? insn.sc.block->GetContainingInlinedBlock() : nullptr;
-  Block *inline_block_b = prev_insn.sc.block
+  
+  if (Block *inline_block_b = prev_insn.sc.block
                               ? prev_insn.sc.block->GetContainingInlinedBlock()
-                              : nullptr;
-  if (inline_block_a != inline_block_b)
+                              : nullptr; inline_block_a != inline_block_b)
     return false;
 
   // line entry checks
@@ -133,8 +133,8 @@ public:
           !IsSameInstructionSymbolContext(*item.prev_symbol_info,
                                           *item.symbol_info)) {
         m_s << "  ";
-        const char *module_name = GetModuleName(item);
-        if (!module_name)
+        
+        if (const char *module_name = GetModuleName(item); !module_name)
           m_s << "(none)";
         else if (!item.symbol_info->sc.function && !item.symbol_info->sc.symbol)
           m_s.Format("{0}`(none)", module_name);
@@ -217,8 +217,8 @@ private:
         /*show_function_arguments=*/true,
         /*show_function_name=*/true);
     m_s << " to ";
-    const SymbolContext &last_sc = segment.GetLastInstructionSymbolInfo().sc;
-    if (IsLineEntryValid(first_sc.line_entry) &&
+    
+    if (const SymbolContext &last_sc = segment.GetLastInstructionSymbolInfo().sc; IsLineEntryValid(first_sc.line_entry) &&
         IsLineEntryValid(last_sc.line_entry)) {
       m_s.Format("{0}:{1}", last_sc.line_entry.line, last_sc.line_entry.column);
     } else {
@@ -238,8 +238,8 @@ private:
     }
     const SymbolContext &sc = function_call.GetSymbolInfo().sc;
 
-    const char *module_name = GetModuleName(sc);
-    if (!module_name)
+    
+    if (const char *module_name = GetModuleName(sc); !module_name)
       m_s << "(none)";
     else if (!sc.function && !sc.symbol)
       m_s << module_name << "`(none)";
@@ -472,8 +472,8 @@ TraceDumper::TraceItem TraceDumper::CreatRawTraceItem() {
 static SymbolContext
 CalculateSymbolContext(const Address &address,
                        const SymbolContext &prev_symbol_context) {
-  lldb_private::AddressRange range;
-  if (prev_symbol_context.GetAddressRange(eSymbolContextEverything, 0,
+  
+  if (lldb_private::AddressRange range; prev_symbol_context.GetAddressRange(eSymbolContextEverything, 0,
                                           /*inline_block_range*/ true, range) &&
       range.Contains(address))
     return prev_symbol_context;
@@ -546,9 +546,9 @@ std::optional<lldb::user_id_t> TraceDumper::DumpInstructions(size_t count) {
        m_cursor_sp->Next()) {
 
     last_id = m_cursor_sp->GetId();
-    TraceItem item = CreatRawTraceItem();
+    
 
-    if (m_cursor_sp->IsEvent() && m_options.show_events) {
+    if (TraceItem item = CreatRawTraceItem(); m_cursor_sp->IsEvent() && m_options.show_events) {
       item.event = m_cursor_sp->GetEventType();
       switch (*item.event) {
       case eTraceEventCPUChanged:
@@ -779,8 +779,8 @@ static TraceDumper::FunctionCall &AppendInstructionToFunctionCallForest(
     return *roots.back();
   }
 
-  lldb_private::AddressRange range;
-  if (symbol_info.sc.GetAddressRange(
+  
+  if (lldb_private::AddressRange range; symbol_info.sc.GetAddressRange(
           eSymbolContextBlock | eSymbolContextFunction | eSymbolContextSymbol,
           0, /*inline_block_range*/ true, range)) {
     if (range.GetBaseAddress() == symbol_info.address) {
@@ -804,11 +804,11 @@ static TraceDumper::FunctionCall &AppendInstructionToFunctionCallForest(
   const InstructionSP &insn = last_function_call->GetLastTracedSegment()
                                   .GetLastInstructionSymbolInfo()
                                   .instruction;
-  InstructionControlFlowKind insn_kind =
-      insn ? insn->GetControlFlowKind(&exe_ctx)
-           : eInstructionControlFlowKindOther;
+  
 
-  switch (insn_kind) {
+  switch (InstructionControlFlowKind insn_kind =
+      insn ? insn->GetControlFlowKind(&exe_ctx)
+           : eInstructionControlFlowKindOther; insn_kind) {
   case lldb::eInstructionControlFlowKindCall:
   case lldb::eInstructionControlFlowKindFarCall: {
     // This is a regular call

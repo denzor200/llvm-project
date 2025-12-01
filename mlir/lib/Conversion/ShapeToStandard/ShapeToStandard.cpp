@@ -572,8 +572,8 @@ LogicalResult ShapeOfOpConversion::matchAndRewrite(
   // For ranked tensor arguments, lower to `tensor.from_elements`.
   auto loc = op.getLoc();
   Value tensor = adaptor.getArg();
-  Type tensorTy = tensor.getType();
-  if (isa<RankedTensorType>(tensorTy)) {
+  
+  if (Type tensorTy = tensor.getType(); isa<RankedTensorType>(tensorTy)) {
 
     // Build values for individual extents.
     SmallVector<Value, 8> extentValues;
@@ -700,8 +700,8 @@ void ConvertShapeToStandardPass::runOnOperation() {
   populateShapeToStandardConversionPatterns(patterns);
 
   // Apply conversion.
-  auto module = getOperation();
-  if (failed(applyPartialConversion(module, target, std::move(patterns))))
+  
+  if (auto module = getOperation(); failed(applyPartialConversion(module, target, std::move(patterns))))
     signalPassFailure();
 }
 

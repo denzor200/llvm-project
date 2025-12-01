@@ -319,8 +319,8 @@ computeShapeInfoForInst(Instruction *I,
                         const DenseMap<Value *, ShapeInfo> &ShapeMap) {
   Value *M;
   Value *N;
-  Value *K;
-  if (match(I, m_Intrinsic<Intrinsic::matrix_multiply>(
+  
+  if (Value *K; match(I, m_Intrinsic<Intrinsic::matrix_multiply>(
                    m_Value(), m_Value(), m_Value(M), m_Value(N), m_Value(K))))
     return ShapeInfo(M, K);
   if (match(I, m_Intrinsic<Intrinsic::matrix_transpose>(m_Value(), m_Value(M),
@@ -337,8 +337,8 @@ computeShapeInfoForInst(Instruction *I,
     return ShapeInfo(M, N);
   Value *MatrixA;
   if (match(I, m_Store(m_Value(MatrixA), m_Value()))) {
-    auto OpShape = ShapeMap.find(MatrixA);
-    if (OpShape != ShapeMap.end())
+    
+    if (auto OpShape = ShapeMap.find(MatrixA); OpShape != ShapeMap.end())
       return OpShape->second;
   }
 
@@ -346,8 +346,8 @@ computeShapeInfoForInst(Instruction *I,
     auto ShapedOps = getShapedOperandsForInst(I);
     // Find the first operand that has a known shape and use that.
     for (auto &Op : ShapedOps) {
-      auto OpShape = ShapeMap.find(Op.get());
-      if (OpShape != ShapeMap.end())
+      
+      if (auto OpShape = ShapeMap.find(Op.get()); OpShape != ShapeMap.end())
         return OpShape->second;
     }
   }
@@ -765,8 +765,8 @@ public:
 
     auto pushInstruction = [](Value *V,
                               SmallVectorImpl<Instruction *> &WorkList) {
-      Instruction *I = dyn_cast<Instruction>(V);
-      if (I)
+      
+      if (Instruction *I = dyn_cast<Instruction>(V); I)
         WorkList.push_back(I);
     };
     // Pop an element with known shape.  Traverse the operands, if their shape
@@ -1002,9 +1002,9 @@ public:
     };
 
     Value *A, *B, *AT, *BT;
-    ConstantInt *R, *K, *C;
+    
     // A^t * B ^t -> (B * A)^t
-    if (match(&I, m_Intrinsic<Intrinsic::matrix_multiply>(
+    if (ConstantInt *R, *K, *C; match(&I, m_Intrinsic<Intrinsic::matrix_multiply>(
                       m_Value(A), m_Value(B), m_ConstantInt(R),
                       m_ConstantInt(K), m_ConstantInt(C))) &&
         match(A, m_Intrinsic<Intrinsic::matrix_transpose>(m_Value(AT))) &&
@@ -1684,8 +1684,8 @@ public:
         return;
 
       if (match(Op, m_BinOp())) {
-        auto It = ShapeMap.find(Op);
-        if (It != ShapeMap.end()) {
+        
+        if (auto It = ShapeMap.find(Op); It != ShapeMap.end()) {
           It->second = It->second.t();
           return;
         }
@@ -1693,8 +1693,8 @@ public:
 
       FusedInsts.insert(cast<Instruction>(Op));
       // If vector uses the builtin load, lower to a LoadInst
-      Value *Arg;
-      if (match(Op, m_Intrinsic<Intrinsic::matrix_column_major_load>(
+      
+      if (Value *Arg; match(Op, m_Intrinsic<Intrinsic::matrix_column_major_load>(
                         m_Value(Arg)))) {
         auto *NewLoad = Builder.CreateLoad(Op->getType(), Arg);
         Op->replaceAllUsesWith(NewLoad);
@@ -2055,9 +2055,9 @@ public:
 
     Value *APtr = getNonAliasingPointer(LoadOp0, Store, MatMul);
     Value *BPtr = getNonAliasingPointer(LoadOp1, Store, MatMul);
-    Value *CPtr = Store->getPointerOperand();
+    
 
-    if (TileUseLoops && (R % TileSize == 0 && C % TileSize == 0))
+    if (Value *CPtr = Store->getPointerOperand(); TileUseLoops && (R % TileSize == 0 && C % TileSize == 0))
       createTiledLoops(MatMul, APtr, LShape, BPtr, RShape, Store);
     else {
       IRBuilder<> Builder(Store);
@@ -2117,8 +2117,8 @@ public:
     Value *B = MatMul->getArgOperand(1);
 
     // We can fold the transpose into the operand that is used to fetch scalars.
-    Value *T;
-    if (MatrixLayout == MatrixLayoutTy::ColumnMajor
+    
+    if (Value *T; MatrixLayout == MatrixLayoutTy::ColumnMajor
             ? match(B, m_Intrinsic<Intrinsic::matrix_transpose>(m_Value(T)))
             : match(A, m_Intrinsic<Intrinsic::matrix_transpose>(m_Value(T)))) {
       IRBuilder<> Builder(MatMul);
@@ -2524,8 +2524,8 @@ public:
     /// If \p V is a matrix value, print its shape as NumRows x NumColumns to
     /// \p SS.
     void prettyPrintMatrixType(Value *V, raw_string_ostream &SS) {
-      auto M = Inst2Matrix.find(V);
-      if (M == Inst2Matrix.end())
+      
+      if (auto M = Inst2Matrix.find(V); M == Inst2Matrix.end())
         SS << "unknown";
       else {
         SS << M->second.getNumRows();
@@ -2541,8 +2541,8 @@ public:
       if (!CI->getCalledFunction())
         write("<no called fn>");
       else {
-        StringRef Name = CI->getCalledFunction()->getName();
-        if (!Name.starts_with("llvm.matrix")) {
+        
+        if (StringRef Name = CI->getCalledFunction()->getName(); !Name.starts_with("llvm.matrix")) {
           write(Name);
           return;
         }
@@ -2779,8 +2779,8 @@ public:
       OpInfoTy Count;
 
       auto I = Shared.find(Root);
-      auto CM = Inst2Matrix.find(Root);
-      if (I->second.size() == 1)
+      
+      if (auto CM = Inst2Matrix.find(Root); I->second.size() == 1)
         Count = CM->second.getOpInfo();
       else
         SharedCount = CM->second.getOpInfo();

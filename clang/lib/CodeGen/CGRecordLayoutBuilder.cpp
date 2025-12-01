@@ -428,10 +428,10 @@ CGRecordLowering::accumulateBitFields(bool isNonVirtualBaseType,
         continue;
       }
       uint64_t BitOffset = getFieldBitOffset(*Field);
-      llvm::Type *Type = Types.ConvertTypeForMem(Field->getType());
+      
       // If we don't have a run yet, or don't live within the previous run's
       // allocated storage then we allocate some storage and start a new run.
-      if (Run == FieldEnd || BitOffset >= Tail) {
+      if (llvm::Type *Type = Types.ConvertTypeForMem(Field->getType()); Run == FieldEnd || BitOffset >= Tail) {
         Run = Field;
         StartBitOffset = BitOffset;
         Tail = StartBitOffset + DataLayout.getTypeAllocSizeInBits(Type);
@@ -537,8 +537,8 @@ CGRecordLowering::accumulateBitFields(bool isNonVirtualBaseType,
     bool Barrier = false;
 
     if (Field != FieldEnd && Field->isBitField()) {
-      uint64_t BitOffset = getFieldBitOffset(*Field);
-      if (Begin == FieldEnd) {
+      
+      if (uint64_t BitOffset = getFieldBitOffset(*Field); Begin == FieldEnd) {
         // Beginning a new span.
         Begin = Field;
         BestEnd = Begin;
@@ -610,8 +610,8 @@ CGRecordLowering::accumulateBitFields(bool isNonVirtualBaseType,
           // either the initial access unit (can't do better), or a naturally
           // aligned accumulation (since we would have already installed it if
           // it wasn't naturally aligned).
-          CharUnits Align = getAlignment(Type);
-          if (Align > Layout.getAlignment())
+          
+          if (CharUnits Align = getAlignment(Type); Align > Layout.getAlignment())
             // The alignment required is greater than the containing structure
             // itself.
             InstallBest = true;
@@ -651,8 +651,8 @@ CGRecordLowering::accumulateBitFields(bool isNonVirtualBaseType,
           LimitOffset = ScissorOffset;
         FoundLimit:;
 
-          CharUnits TypeSize = getSize(Type);
-          if (BeginOffset + TypeSize <= LimitOffset) {
+          
+          if (CharUnits TypeSize = getSize(Type); BeginOffset + TypeSize <= LimitOffset) {
             // There is space before LimitOffset to create a naturally-sized
             // access unit.
             BestEndOffset = BeginOffset + TypeSize;
@@ -679,8 +679,8 @@ CGRecordLowering::accumulateBitFields(bool isNonVirtualBaseType,
       assert((Field == FieldEnd || !Field->isBitField() ||
               (getFieldBitOffset(*Field) % CharBits) == 0) &&
              "Installing but not at an aligned bitfield or limit");
-      CharUnits AccessSize = BestEndOffset - BeginOffset;
-      if (!AccessSize.isZero()) {
+      
+      if (CharUnits AccessSize = BestEndOffset - BeginOffset; !AccessSize.isZero()) {
         // Add the storage member for the access unit to the record. The
         // bitfields get the offset of their storage but come afterward and
         // remain there after a stable sort.
@@ -919,8 +919,8 @@ void CGRecordLowering::accumulateVBases() {
 
 bool CGRecordLowering::hasOwnStorage(const CXXRecordDecl *Decl,
                                      const CXXRecordDecl *Query) const {
-  const ASTRecordLayout &DeclLayout = Context.getASTRecordLayout(Decl);
-  if (DeclLayout.isPrimaryBaseVirtual() && DeclLayout.getPrimaryBase() == Query)
+  
+  if (const ASTRecordLayout &DeclLayout = Context.getASTRecordLayout(Decl); DeclLayout.isPrimaryBaseVirtual() && DeclLayout.getPrimaryBase() == Query)
     return false;
   for (const auto &Base : Decl->bases())
     if (!hasOwnStorage(Base.getType()->getAsCXXRecordDecl(), Query))

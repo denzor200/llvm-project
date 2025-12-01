@@ -195,8 +195,8 @@ public:
     switch (Reason) {
     case EnterFile: {
       SourceManager &SM = S->getSourceManager();
-      SourceLocation IncludeLoc = SM.getIncludeLoc(SM.getFileID(Loc));
-      if (IncludeLoc.isValid()) {
+      
+      if (SourceLocation IncludeLoc = SM.getIncludeLoc(SM.getFileID(Loc)); IncludeLoc.isValid()) {
         if (llvm::timeTraceProfilerEnabled()) {
           OptionalFileEntryRef FE = SM.getFileEntryRefForID(SM.getFileID(Loc));
           ProfilerStack.push_back(llvm::timeTraceAsyncProfilerBegin(
@@ -233,18 +233,18 @@ public:
     SmallVector<diag::kind, 256> GroupDiags;
     diag::Flavor Flavor =
         Str[1] == 'W' ? diag::Flavor::WarningOrError : diag::Flavor::Remark;
-    StringRef Group = Str.substr(2);
+    
 
-    if (S->PP.getDiagnostics().getDiagnosticIDs()->getDiagnosticsInGroup(
+    if (StringRef Group = Str.substr(2); S->PP.getDiagnostics().getDiagnosticIDs()->getDiagnosticsInGroup(
             Flavor, Group, GroupDiags))
       return;
 
     for (diag::kind K : GroupDiags) {
       // Note: the cases in this switch should be kept in sync with the
       // diagnostics in AnalysisBasedWarnings::getPolicyInEffectAt().
-      AnalysisBasedWarnings::Policy &Override =
-          S->AnalysisWarnings.getPolicyOverrides();
-      switch (K) {
+      
+      switch (AnalysisBasedWarnings::Policy &Override =
+          S->AnalysisWarnings.getPolicyOverrides(); K) {
       default: break;
       case diag::warn_unreachable:
       case diag::warn_unreachable_break:
@@ -363,8 +363,8 @@ Sema::Sema(Preprocessor &pp, ASTContext &ctxt, ASTConsumer &consumer,
 void Sema::anchor() {}
 
 void Sema::addImplicitTypedef(StringRef Name, QualType T) {
-  DeclarationName DN = &Context.Idents.get(Name);
-  if (IdResolver.begin(DN) == IdResolver.end())
+  
+  if (DeclarationName DN = &Context.Idents.get(Name); IdResolver.begin(DN) == IdResolver.end())
     PushOnScopeChains(Context.buildImplicitTypedef(T, Name), TUScope);
 }
 
@@ -397,8 +397,8 @@ void Sema::Initialize() {
        Context.getAuxTargetInfo()->hasInt128Type())) {
     // If either of the 128-bit integer types are unavailable to name lookup,
     // define them now.
-    DeclarationName Int128 = &Context.Idents.get("__int128_t");
-    if (IdResolver.begin(Int128) == IdResolver.end())
+    
+    if (DeclarationName Int128 = &Context.Idents.get("__int128_t"); IdResolver.begin(Int128) == IdResolver.end())
       PushOnScopeChains(Context.getInt128Decl(), TUScope);
 
     DeclarationName UInt128 = &Context.Idents.get("__uint128_t");
@@ -411,8 +411,8 @@ void Sema::Initialize() {
   if (getLangOpts().ObjC) {
     // If 'SEL' does not yet refer to any declarations, make it refer to the
     // predefined 'SEL'.
-    DeclarationName SEL = &Context.Idents.get("SEL");
-    if (IdResolver.begin(SEL) == IdResolver.end())
+    
+    if (DeclarationName SEL = &Context.Idents.get("SEL"); IdResolver.begin(SEL) == IdResolver.end())
       PushOnScopeChains(Context.getObjCSelDecl(), TUScope);
 
     // If 'id' does not yet refer to any declarations, make it refer to the
@@ -433,8 +433,8 @@ void Sema::Initialize() {
   }
 
   // Create the internal type for the *StringMakeConstantString builtins.
-  DeclarationName ConstantString = &Context.Idents.get("__NSConstantString");
-  if (IdResolver.begin(ConstantString) == IdResolver.end())
+  
+  if (DeclarationName ConstantString = &Context.Idents.get("__NSConstantString"); IdResolver.begin(ConstantString) == IdResolver.end())
     PushOnScopeChains(Context.getCFConstantStringDecl(), TUScope);
 
   // Initialize Microsoft "predefined C++ types".
@@ -453,8 +453,8 @@ void Sema::Initialize() {
         Context.getTargetInfo().getSupportedOpenCLOpts(), getLangOpts());
     addImplicitTypedef("sampler_t", Context.OCLSamplerTy);
     addImplicitTypedef("event_t", Context.OCLEventTy);
-    auto OCLCompatibleVersion = getLangOpts().getOpenCLCompatibleVersion();
-    if (OCLCompatibleVersion >= 200) {
+    
+    if (auto OCLCompatibleVersion = getLangOpts().getOpenCLCompatibleVersion(); OCLCompatibleVersion >= 200) {
       if (getLangOpts().OpenCLCPlusPlus || getLangOpts().Blocks) {
         addImplicitTypedef("clk_event_t", Context.OCLClkEventTy);
         addImplicitTypedef("queue_t", Context.OCLQueueTy);
@@ -575,8 +575,8 @@ void Sema::Initialize() {
   }
 
   if (Context.getTargetInfo().hasBuiltinMSVaList()) {
-    DeclarationName MSVaList = &Context.Idents.get("__builtin_ms_va_list");
-    if (IdResolver.begin(MSVaList) == IdResolver.end())
+    
+    if (DeclarationName MSVaList = &Context.Idents.get("__builtin_ms_va_list"); IdResolver.begin(MSVaList) == IdResolver.end())
       PushOnScopeChains(Context.getBuiltinMSVaListDecl(), TUScope);
   }
 
@@ -696,8 +696,8 @@ void Sema::diagnoseNullableToNonnullConversion(QualType DstType,
 void Sema::diagnoseFunctionEffectConversion(QualType DstType, QualType SrcType,
                                             SourceLocation Loc) {
   const auto SrcFX = FunctionEffectsRef::get(SrcType);
-  const auto DstFX = FunctionEffectsRef::get(DstType);
-  if (SrcFX != DstFX) {
+  
+  if (const auto DstFX = FunctionEffectsRef::get(DstType); SrcFX != DstFX) {
     for (const auto &Diff : FunctionEffectDiffVector(SrcFX, DstFX)) {
       if (Diff.shouldDiagnoseConversion(SrcType, SrcFX, DstType, DstFX))
         Diag(Loc, diag::warn_invalid_add_func_effects) << Diff.effectName();
@@ -1029,8 +1029,8 @@ static void checkUndefinedButUsed(Sema &S) {
       // one definition rule.
       bool IsImplicitBase = false;
       if (const auto *BaseD = dyn_cast<FunctionDecl>(VD)) {
-        auto *DVAttr = BaseD->getAttr<OMPDeclareVariantAttr>();
-        if (DVAttr && !DVAttr->getTraitInfo().isExtensionActive(
+        
+        if (auto *DVAttr = BaseD->getAttr<OMPDeclareVariantAttr>(); DVAttr && !DVAttr->getTraitInfo().isExtensionActive(
                           llvm::omp::TraitProperty::
                               implementation_extension_disable_implicit_base)) {
           const auto *Func = cast<FunctionDecl>(
@@ -1302,9 +1302,9 @@ void Sema::ActOnEndOfTranslationUnit() {
     if (WeakIDs.second.empty())
       continue;
 
-    Decl *PrevDecl = LookupSingleName(TUScope, WeakIDs.first, SourceLocation(),
-                                      LookupOrdinaryName);
-    if (PrevDecl != nullptr &&
+    
+    if (Decl *PrevDecl = LookupSingleName(TUScope, WeakIDs.first, SourceLocation(),
+                                      LookupOrdinaryName); PrevDecl != nullptr &&
         !(isa<FunctionDecl>(PrevDecl) || isa<VarDecl>(PrevDecl)))
       for (const auto &WI : WeakIDs.second)
         Diag(WI.getLocation(), diag::warn_attribute_wrong_decl_type)
@@ -1565,8 +1565,8 @@ void Sema::ActOnEndOfTranslationUnit() {
           Diag(DiagD->getLocation(), diag::warn_unused_template)
               << /*variable=*/1 << DiagD << DiagRange;
         } else if (DiagD->getType().isConstQualified()) {
-          const SourceManager &SM = SourceMgr;
-          if (SM.getMainFileID() != SM.getFileID(DiagD->getLocation()) ||
+          
+          if (const SourceManager &SM = SourceMgr; SM.getMainFileID() != SM.getFileID(DiagD->getLocation()) ||
               !PP.getLangOpts().IsHeaderFile)
             Diag(DiagD->getLocation(), diag::warn_unused_const_variable)
                 << DiagD << DiagRange;
@@ -1586,8 +1586,8 @@ void Sema::ActOnEndOfTranslationUnit() {
     RecordCompleteMap RecordsComplete;
     RecordCompleteMap MNCComplete;
     for (const NamedDecl *D : UnusedPrivateFields) {
-      const CXXRecordDecl *RD = dyn_cast<CXXRecordDecl>(D->getDeclContext());
-      if (RD && !RD->isUnion() &&
+      
+      if (const CXXRecordDecl *RD = dyn_cast<CXXRecordDecl>(D->getDeclContext()); RD && !RD->isUnion() &&
           IsRecordFullyDefined(RD, RecordsComplete, MNCComplete)) {
         Diag(D->getLocation(), diag::warn_unused_private_field)
               << D->getDeclName();
@@ -1661,8 +1661,8 @@ ObjCMethodDecl *Sema::getCurMethodDecl() {
 }
 
 NamedDecl *Sema::getCurFunctionOrMethodDecl() const {
-  DeclContext *DC = getFunctionLevelDeclContext();
-  if (isa<ObjCMethodDecl>(DC) || isa<FunctionDecl>(DC))
+  
+  if (DeclContext *DC = getFunctionLevelDeclContext(); isa<ObjCMethodDecl>(DC) || isa<FunctionDecl>(DC))
     return cast<NamedDecl>(DC);
   return nullptr;
 }
@@ -1681,10 +1681,10 @@ void Sema::EmitDiagnostic(unsigned DiagID, const DiagnosticBuilder &DB) {
   // eliminated. If it truly cannot be (for example, there is some reentrancy
   // issue I am not seeing yet), then there should at least be a clarifying
   // comment somewhere.
-  Diagnostic DiagInfo(&Diags, DB);
-  if (SFINAETrap *Trap = getSFINAEContext()) {
-    sema::TemplateDeductionInfo *Info = Trap->getDeductionInfo();
-    switch (DiagnosticIDs::getDiagnosticSFINAEResponse(DiagInfo.getID())) {
+  
+  if (SFINAETrap *Diagnostic DiagInfo(&Diags, DB); Trap = getSFINAEContext()) {
+    
+    switch (sema::TemplateDeductionInfo *Info = Trap->getDeductionInfo(); DiagnosticIDs::getDiagnosticSFINAEResponse(DiagInfo.getID())) {
     case DiagnosticIDs::SFINAE_Report:
       // We'll report the diagnostic below.
       break;
@@ -2086,9 +2086,9 @@ Sema::SemaDiagnosticBuilder::~SemaDiagnosticBuilder() {
     ImmediateDiag.reset(); // Emit the immediate diag.
 
     if (ShowCallStack) {
-      bool IsWarningOrError = S.getDiagnostics().getDiagnosticLevel(
-                                  DiagID, Loc) >= DiagnosticsEngine::Warning;
-      if (IsWarningOrError)
+      
+      if (bool IsWarningOrError = S.getDiagnostics().getDiagnosticLevel(
+                                  DiagID, Loc) >= DiagnosticsEngine::Warning; IsWarningOrError)
         emitCallStackNotes(S, Fn);
     }
   } else {
@@ -2170,8 +2170,8 @@ void Sema::checkTypeSupport(QualType Ty, SourceLocation Loc, ValueDecl *D) {
     // semantics.
     bool LongDoubleMismatched = false;
     if (Ty->isRealFloatingType() && Context.getTypeSize(Ty) == 128) {
-      const llvm::fltSemantics &Sem = Context.getFloatTypeSemantics(Ty);
-      if ((&Sem != &llvm::APFloat::PPCDoubleDouble() &&
+      
+      if (const llvm::fltSemantics &Sem = Context.getFloatTypeSemantics(Ty); (&Sem != &llvm::APFloat::PPCDoubleDouble() &&
            !Context.getTargetInfo().hasFloat128Type()) ||
           (&Sem == &llvm::APFloat::PPCDoubleDouble() &&
            !Context.getTargetInfo().hasIbm128Type()))
@@ -2372,8 +2372,8 @@ static void checkEscapingByref(VarDecl *VD, Sema &S) {
   Expr *VarRef =
       new (S.Context) DeclRefExpr(S.Context, VD, false, T, VK_LValue, Loc);
   ExprResult Result;
-  auto IE = InitializedEntity::InitializeBlock(Loc, T);
-  if (S.getLangOpts().CPlusPlus23) {
+  
+  if (auto IE = InitializedEntity::InitializeBlock(Loc, T); S.getLangOpts().CPlusPlus23) {
     auto *E = ImplicitCastExpr::Create(S.Context, T, CK_NoOp, VarRef, nullptr,
                                        VK_XValue, FPOptionsOverride());
     Result = S.PerformCopyInitialization(IE, SourceLocation(), E);
@@ -2403,8 +2403,8 @@ static void markEscapingByrefs(const FunctionScopeInfo &FSI, Sema &S) {
   // escaping blocks.
   for (const BlockDecl *BD : FSI.Blocks) {
     for (const BlockDecl::Capture &BC : BD->captures()) {
-      VarDecl *VD = BC.getVariable();
-      if (VD->hasAttr<BlocksAttr>()) {
+      
+      if (VarDecl *VD = BC.getVariable(); VD->hasAttr<BlocksAttr>()) {
         // Nothing to do if this is a __block variable captured by a
         // non-escaping block.
         if (BD->doesNotEscape())
@@ -2537,8 +2537,8 @@ FunctionScopeInfo *Sema::getEnclosingFunction() const {
 CapturingScopeInfo *Sema::getEnclosingLambdaOrBlock() const {
   for (auto *Scope : llvm::reverse(FunctionScopes)) {
     if (auto *CSI = dyn_cast<CapturingScopeInfo>(Scope)) {
-      auto *LSI = dyn_cast<LambdaScopeInfo>(CSI);
-      if (LSI && LSI->Lambda && !LSI->Lambda->Encloses(CurContext) &&
+      
+      if (auto *LSI = dyn_cast<LambdaScopeInfo>(CSI); LSI && LSI->Lambda && !LSI->Lambda->Encloses(CurContext) &&
           LSI->AfterParameterList) {
         // We have switched contexts due to template instantiation.
         // FIXME: We should swap out the FunctionScopes during code synthesis
@@ -2782,8 +2782,8 @@ static void notePlausibleOverloads(Sema &S, SourceLocation Loc,
   for (OverloadExpr::decls_iterator It = Overloads.begin(),
          DeclsEnd = Overloads.end(); It != DeclsEnd; ++It) {
     const auto *OverloadDecl = cast<FunctionDecl>(*It);
-    QualType OverloadResultTy = OverloadDecl->getReturnType();
-    if (IsPlausibleResult(OverloadResultTy))
+    
+    if (QualType OverloadResultTy = OverloadDecl->getReturnType(); IsPlausibleResult(OverloadResultTy))
       PlausibleOverloads.addDecl(It.getDecl());
   }
   noteOverloads(S, PlausibleOverloads, Loc);
@@ -2826,8 +2826,8 @@ bool Sema::tryToRecoverWithCall(ExprResult &E, const PartialDiagnostic &PD,
   // If this is a SFINAE context, don't try anything that might trigger ADL
   // prematurely.
   if (!isSFINAEContext()) {
-    QualType ZeroArgCallTy;
-    if (tryExprAsCall(*E.get(), ZeroArgCallTy, Overloads) &&
+    
+    if (QualType ZeroArgCallTy; tryExprAsCall(*E.get(), ZeroArgCallTy, Overloads) &&
         !ZeroArgCallTy.isNull() &&
         (!IsPlausibleResult || IsPlausibleResult(ZeroArgCallTy))) {
       // At this point, we know E is potentially callable with 0

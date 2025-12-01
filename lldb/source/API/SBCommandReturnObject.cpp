@@ -133,8 +133,8 @@ size_t SBCommandReturnObject::GetErrorSize() {
 size_t SBCommandReturnObject::PutOutput(FILE *fh) {
   LLDB_INSTRUMENT_VA(this, fh);
   if (fh) {
-    size_t num_bytes = GetOutputSize();
-    if (num_bytes)
+    
+    if (size_t num_bytes = GetOutputSize(); num_bytes)
       return ::fprintf(fh, "%s", GetOutput());
   }
   return 0;
@@ -157,8 +157,8 @@ size_t SBCommandReturnObject::PutOutput(SBFile file) {
 size_t SBCommandReturnObject::PutError(FILE *fh) {
   LLDB_INSTRUMENT_VA(this, fh);
   if (fh) {
-    size_t num_bytes = GetErrorSize();
-    if (num_bytes)
+    
+    if (size_t num_bytes = GetErrorSize(); num_bytes)
       return ::fprintf(fh, "%s", GetError());
   }
   return 0;
@@ -242,8 +242,8 @@ bool SBCommandReturnObject::GetDescription(SBStream &description) {
   Stream &strm = description.ref();
 
   description.Printf("Error:  ");
-  lldb::ReturnStatus status = ref().GetStatus();
-  if (status == lldb::eReturnStatusStarted)
+  
+  if (lldb::ReturnStatus status = ref().GetStatus(); status == lldb::eReturnStatusStarted)
     strm.PutCString("Started");
   else if (status == lldb::eReturnStatusInvalid)
     strm.PutCString("Invalid");

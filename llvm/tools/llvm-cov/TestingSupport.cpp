@@ -66,8 +66,8 @@ int convertForTestingMain(int argc, const char *argv[]) {
     // the dollar and everything after it in the final binary. Do the same to
     // match.
     auto Strip = [](std::string &Str) {
-      auto Pos = Str.find('$');
-      if (Pos != std::string::npos)
+      
+      if (auto Pos = Str.find('$'); Pos != std::string::npos)
         Str.resize(Pos);
     };
     Strip(ProfileNamesSection);

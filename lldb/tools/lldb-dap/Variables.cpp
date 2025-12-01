@@ -43,12 +43,12 @@ bool Variables::IsPermanentVariableReference(int64_t var_ref) {
 
 lldb::SBValue Variables::GetVariable(int64_t var_ref) const {
   if (IsPermanentVariableReference(var_ref)) {
-    auto pos = m_referencedpermanent_variables.find(var_ref);
-    if (pos != m_referencedpermanent_variables.end())
+    
+    if (auto pos = m_referencedpermanent_variables.find(var_ref); pos != m_referencedpermanent_variables.end())
       return pos->second;
   } else {
-    auto pos = m_referencedvariables.find(var_ref);
-    if (pos != m_referencedvariables.end())
+    
+    if (auto pos = m_referencedvariables.find(var_ref); pos != m_referencedvariables.end())
       return pos->second;
   }
   return lldb::SBValue();
@@ -75,9 +75,9 @@ lldb::SBValue Variables::FindVariable(uint64_t variablesReference,
     // among variables of the same name.
     for (int64_t i = end_idx - 1; i >= 0; --i) {
       lldb::SBValue curr_variable = top_scope->GetValueAtIndex(i);
-      std::string variable_name = CreateUniqueVariableNameForDisplay(
-          curr_variable, is_duplicated_variable_name);
-      if (variable_name == name) {
+      
+      if (std::string variable_name = CreateUniqueVariableNameForDisplay(
+          curr_variable, is_duplicated_variable_name); variable_name == name) {
         variable = curr_variable;
         break;
       }
@@ -93,8 +93,8 @@ lldb::SBValue Variables::FindVariable(uint64_t variablesReference,
     if (!variable.IsValid()) {
       if (name.starts_with("[")) {
         llvm::StringRef index_str(name.drop_front(1));
-        uint64_t index = 0;
-        if (!index_str.consumeInteger(0, index)) {
+        
+        if (uint64_t index = 0; !index_str.consumeInteger(0, index)) {
           if (index_str == "]")
             variable = container.GetChildAtIndex(index);
         }

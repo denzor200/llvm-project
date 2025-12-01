@@ -197,8 +197,8 @@ void PlainPrinterBase::print(const Request &Request, const DILineInfo &Info) {
 void PlainPrinterBase::print(const Request &Request,
                              const DIInliningInfo &Info) {
   printHeader(*Request.Address);
-  uint32_t FramesNum = Info.getNumberOfFrames();
-  if (FramesNum == 0)
+  
+  if (uint32_t FramesNum = Info.getNumberOfFrames(); FramesNum == 0)
     print(DILineInfo(), false);
   else
     for (uint32_t I = 0; I < FramesNum; ++I)

@@ -178,8 +178,8 @@ PreservedAnalyses
 AMDGPURewriteUndefForPHIPass::run(Function &F, FunctionAnalysisManager &AM) {
   UniformityInfo &UA = AM.getResult<UniformityInfoAnalysis>(F);
   DominatorTree *DT = &AM.getResult<DominatorTreeAnalysis>(F);
-  bool Changed = rewritePHIs(F, UA, DT);
-  if (Changed) {
+  
+  if (bool Changed = rewritePHIs(F, UA, DT); Changed) {
     PreservedAnalyses PA;
     PA.preserveSet<CFGAnalyses>();
     return PA;

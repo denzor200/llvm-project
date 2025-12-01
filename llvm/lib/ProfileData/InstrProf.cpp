@@ -855,8 +855,8 @@ void InstrProfRecord::overlap(InstrProfRecord &Other, OverlapStats &Overlap,
   if (!Mismatch) {
     for (uint32_t Kind = IPVK_First; Kind <= IPVK_Last; ++Kind) {
       uint32_t ThisNumValueSites = getNumValueSites(Kind);
-      uint32_t OtherNumValueSites = Other.getNumValueSites(Kind);
-      if (ThisNumValueSites != OtherNumValueSites) {
+      
+      if (uint32_t OtherNumValueSites = Other.getNumValueSites(Kind); ThisNumValueSites != OtherNumValueSites) {
         Mismatch = true;
         break;
       }
@@ -939,8 +939,8 @@ void InstrProfRecord::mergeValueProfData(
     uint32_t ValueKind, InstrProfRecord &Src, uint64_t Weight,
     function_ref<void(instrprof_error)> Warn) {
   uint32_t ThisNumValueSites = getNumValueSites(ValueKind);
-  uint32_t OtherNumValueSites = Src.getNumValueSites(ValueKind);
-  if (ThisNumValueSites != OtherNumValueSites) {
+  
+  if (uint32_t OtherNumValueSites = Src.getNumValueSites(ValueKind); ThisNumValueSites != OtherNumValueSites) {
     Warn(instrprof_error::value_site_count_mismatch);
     return;
   }
@@ -965,8 +965,8 @@ void InstrProfRecord::merge(InstrProfRecord &Other, uint64_t Weight,
 
   // Special handling of the first count as the PseudoCount.
   CountPseudoKind OtherKind = Other.getCountPseudoKind();
-  CountPseudoKind ThisKind = getCountPseudoKind();
-  if (OtherKind != NotPseudo || ThisKind != NotPseudo) {
+  
+  if (CountPseudoKind ThisKind = getCountPseudoKind(); OtherKind != NotPseudo || ThisKind != NotPseudo) {
     // We don't allow the merge of a profile with pseudo counts and
     // a normal profile (i.e. without pesudo counts).
     // Profile supplimenation should be done after the profile merge.
@@ -1482,8 +1482,8 @@ bool needsComdatForCounter(const GlobalObject &GO, const Module &M) {
   // available_externally functions will end up being duplicated in raw profile
   // data. This can result in distorted profile as the counts of those dups
   // will be accumulated by the profile merger.
-  GlobalValue::LinkageTypes Linkage = GO.getLinkage();
-  if (Linkage != GlobalValue::ExternalWeakLinkage &&
+  
+  if (GlobalValue::LinkageTypes Linkage = GO.getLinkage(); Linkage != GlobalValue::ExternalWeakLinkage &&
       Linkage != GlobalValue::AvailableExternallyLinkage)
     return false;
 
@@ -1545,8 +1545,8 @@ void createProfileFileNameVar(Module &M, StringRef InstrProfileOutput) {
       M, ProfileNameConst->getType(), true, GlobalValue::WeakAnyLinkage,
       ProfileNameConst, INSTR_PROF_QUOTE(INSTR_PROF_PROFILE_NAME_VAR));
   ProfileNameVar->setVisibility(GlobalValue::HiddenVisibility);
-  Triple TT(M.getTargetTriple());
-  if (TT.supportsCOMDAT()) {
+  
+  if (Triple TT(M.getTargetTriple()); TT.supportsCOMDAT()) {
     ProfileNameVar->setLinkage(GlobalValue::ExternalLinkage);
     ProfileNameVar->setComdat(M.getOrInsertComdat(
         StringRef(INSTR_PROF_QUOTE(INSTR_PROF_PROFILE_NAME_VAR))));

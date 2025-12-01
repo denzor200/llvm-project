@@ -364,8 +364,8 @@ public:
     addConversion([](Type t) { return t; });
     addConversion([ctx](BaseMemRefType memRefType) -> std::optional<Type> {
       // Attach global addr space attribute to memrefs with no addr space attr
-      Attribute memSpaceAttr = memRefType.getMemorySpace();
-      if (memSpaceAttr)
+      
+      if (Attribute memSpaceAttr = memRefType.getMemorySpace(); memSpaceAttr)
         return std::nullopt;
 
       unsigned globalAddrspace = storageClassToAddressSpace(
@@ -424,8 +424,8 @@ struct GPUSubgroupOpConversion final : ConvertOpToLLVMPattern<SubgroupOp> {
     Location loc = op->getLoc();
     Value result = createSPIRVBuiltinCall(loc, rewriter, func, {}).getResult();
 
-    Type indexTy = getTypeConverter()->getIndexType();
-    if (resultTy != indexTy) {
+    
+    if (Type indexTy = getTypeConverter()->getIndexType(); resultTy != indexTy) {
       if (indexTy.getIntOrFloatBitWidth() < resultTy.getIntOrFloatBitWidth()) {
         return failure();
       }

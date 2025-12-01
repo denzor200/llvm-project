@@ -296,9 +296,9 @@ std::vector<LocatedSymbol> findImplementors(llvm::DenseSet<SymbolID> IDs,
                                             llvm::StringRef MainFilePath) {
   if (IDs.empty() || !Index)
     return {};
-  static constexpr trace::Metric FindImplementorsMetric(
-      "find_implementors", trace::Metric::Counter, "case");
-  switch (Predicate) {
+  
+  switch (static constexpr trace::Metric FindImplementorsMetric(
+      "find_implementors", trace::Metric::Counter, "case"); Predicate) {
   case RelationKind::BaseOf:
     FindImplementorsMetric.record(1, "find-base");
     break;
@@ -348,9 +348,9 @@ void enhanceLocatedSymbolsFromIndex(llvm::MutableArrayRef<LocatedSymbol> Result,
     return;
   std::string Scratch;
   Index->lookup(QueryRequest, [&](const Symbol &Sym) {
-    auto &R = Result[ResultIndex.lookup(Sym.ID)];
+    
 
-    if (R.Definition) { // from AST
+    if (auto &R = Result[ResultIndex.lookup(Sym.ID)]; R.Definition) { // from AST
       // Special case: if the AST yielded a definition, then it may not be
       // the right *declaration*. Prefer the one from the index.
       if (auto Loc = toLSPLocation(Sym.CanonicalDeclaration, MainFilePath))
@@ -812,8 +812,8 @@ std::vector<LocatedSymbol> locateSymbolAt(ParsedAST &AST, Position Pos,
       if (auto Deduced =
               getDeducedType(AST.getASTContext(), AST.getHeuristicResolver(),
                              Tok.location())) {
-        auto LocSym = locateSymbolForType(AST, *Deduced, Index);
-        if (!LocSym.empty())
+        
+        if (auto LocSym = locateSymbolForType(AST, *Deduced, Index); !LocSym.empty())
           return LocSym;
       }
     }
@@ -848,9 +848,9 @@ std::vector<LocatedSymbol> locateSymbolAt(ParsedAST &AST, Position Pos,
            Word->Location.printToString(SM));
     }
     // No nearby word, or it didn't refer to anything either. Try the index.
-    auto TextualResults =
-        locateSymbolTextually(*Word, AST, Index, MainFilePath, NodeKind);
-    if (!TextualResults.empty())
+    
+    if (auto TextualResults =
+        locateSymbolTextually(*Word, AST, Index, MainFilePath, NodeKind); !TextualResults.empty())
       return TextualResults;
   }
 
@@ -1066,9 +1066,9 @@ class FindControlFlow : public RecursiveASTVisitor<FindControlFlow> {
   // Traverses the subtree using Delegate() if any targets remain.
   template <typename Func>
   bool filterAndTraverse(DynTypedNode D, const Func &Delegate) {
-    auto RestoreIgnore = llvm::make_scope_exit(
-        [OldIgnore(Ignore), this] { Ignore = OldIgnore; });
-    if (getFunctionBody(D))
+    
+    if (auto RestoreIgnore = llvm::make_scope_exit(
+        [OldIgnore(Ignore), this] { Ignore = OldIgnore; }); getFunctionBody(D))
       Ignore = All;
     else if (getLoopBody(D))
       Ignore |= Continue | Break;
@@ -2208,8 +2208,8 @@ std::vector<const CXXRecordDecl *> typeParents(const CXXRecordDecl *CXXRD) {
       // template.
       if (const TemplateSpecializationType *TS =
               Type->getAs<TemplateSpecializationType>()) {
-        TemplateName TN = TS->getTemplateName();
-        if (TemplateDecl *TD = TN.getAsTemplateDecl()) {
+        
+        if (TemplateDecl *TemplateName TN = TS->getTemplateName(); TD = TN.getAsTemplateDecl()) {
           ParentDecl = dyn_cast<CXXRecordDecl>(TD->getTemplatedDecl());
         }
       }

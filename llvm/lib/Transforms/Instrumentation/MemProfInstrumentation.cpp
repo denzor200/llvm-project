@@ -243,8 +243,8 @@ PreservedAnalyses MemProfilerPass::run(Function &F,
   assert((!ClHistogram || ClMappingGranularity == DefaultMemGranularity) &&
          "Memprof with histogram only supports default mapping granularity");
   Module &M = *F.getParent();
-  MemProfiler Profiler(M);
-  if (Profiler.instrumentFunction(F))
+  
+  if (MemProfiler Profiler(M); Profiler.instrumentFunction(F))
     return PreservedAnalyses::none();
   return PreservedAnalyses::all();
 }
@@ -319,8 +319,8 @@ MemProfiler::isInterestingMemoryAccess(Instruction *I) const {
     Access.AccessTy = XCHG->getCompareOperand()->getType();
     Access.Addr = XCHG->getPointerOperand();
   } else if (auto *CI = dyn_cast<CallInst>(I)) {
-    auto *F = CI->getCalledFunction();
-    if (F && (F->getIntrinsicID() == Intrinsic::masked_load ||
+    
+    if (auto *F = CI->getCalledFunction(); F && (F->getIntrinsicID() == Intrinsic::masked_load ||
               F->getIntrinsicID() == Intrinsic::masked_store)) {
       unsigned OpOffset = 0;
       if (F->getIntrinsicID() == Intrinsic::masked_store) {
@@ -367,8 +367,8 @@ MemProfiler::isInterestingMemoryAccess(Instruction *I) const {
     if (GV->hasSection()) {
       StringRef SectionName = GV->getSection();
       // Check if the global is in the PGO counters section.
-      auto OF = I->getModule()->getTargetTriple().getObjectFormat();
-      if (SectionName.ends_with(
+      
+      if (auto OF = I->getModule()->getTargetTriple().getObjectFormat(); SectionName.ends_with(
               getInstrProfSectionName(IPSK_cnts, OF, /*AddSegmentInfo=*/false)))
         return std::nullopt;
     }
@@ -498,8 +498,8 @@ void createMemprofHistogramFlagVar(Module &M) {
   auto MemprofHistogramFlag = new GlobalVariable(
       M, IntTy1, true, GlobalValue::WeakAnyLinkage,
       Constant::getIntegerValue(IntTy1, APInt(1, ClHistogram)), VarName);
-  const Triple &TT = M.getTargetTriple();
-  if (TT.supportsCOMDAT()) {
+  
+  if (const Triple &TT = M.getTargetTriple(); TT.supportsCOMDAT()) {
     MemprofHistogramFlag->setLinkage(GlobalValue::ExternalLinkage);
     MemprofHistogramFlag->setComdat(M.getOrInsertComdat(VarName));
   }
@@ -513,8 +513,8 @@ void createMemprofDefaultOptionsVar(Module &M) {
       new GlobalVariable(M, OptionsConst->getType(), /*isConstant=*/true,
                          GlobalValue::WeakAnyLinkage, OptionsConst,
                          memprof::getMemprofOptionsSymbolName());
-  const Triple &TT = M.getTargetTriple();
-  if (TT.supportsCOMDAT()) {
+  
+  if (const Triple &TT = M.getTargetTriple(); TT.supportsCOMDAT()) {
     OptionsVar->setLinkage(GlobalValue::ExternalLinkage);
     OptionsVar->setComdat(M.getOrInsertComdat(OptionsVar->getName()));
   }
@@ -636,9 +636,9 @@ bool MemProfiler::instrumentFunction(Function &F) {
   for (auto *Inst : ToInstrument) {
     if (ClDebugMin < 0 || ClDebugMax < 0 ||
         (NumInstrumented >= ClDebugMin && NumInstrumented <= ClDebugMax)) {
-      std::optional<InterestingMemoryAccess> Access =
-          isInterestingMemoryAccess(Inst);
-      if (Access)
+      
+      if (std::optional<InterestingMemoryAccess> Access =
+          isInterestingMemoryAccess(Inst); Access)
         instrumentMop(Inst, F.getDataLayout(), *Access);
       else
         instrumentMemIntrinsic(cast<MemIntrinsic>(Inst));

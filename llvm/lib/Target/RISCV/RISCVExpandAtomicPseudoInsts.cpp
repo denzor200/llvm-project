@@ -851,10 +851,10 @@ bool RISCVExpandAtomicPseudo::expandAtomicCmpXchg(
   DoneMBB->transferSuccessors(&MBB);
   MBB.addSuccessor(LoopHeadMBB);
 
-  AtomicOrdering Ordering =
-      static_cast<AtomicOrdering>(MI.getOperand(IsMasked ? 6 : 5).getImm());
+  
 
-  if (!IsMasked) {
+  if (AtomicOrdering Ordering =
+      static_cast<AtomicOrdering>(MI.getOperand(IsMasked ? 6 : 5).getImm()); !IsMasked) {
     // .loophead:
     //   lr.[w|d] dest, (addr)
     //   bne dest, cmpval, done

@@ -23,8 +23,8 @@ using namespace sema;
 
 static Attr *handleFallThroughAttr(Sema &S, Stmt *St, const ParsedAttr &A,
                                    SourceRange Range) {
-  FallThroughAttr Attr(S.Context, A);
-  if (isa<SwitchCase>(St)) {
+  
+  if (FallThroughAttr Attr(S.Context, A); isa<SwitchCase>(St)) {
     S.Diag(A.getRange().getBegin(), diag::err_fallthrough_attr_wrong_target)
         << A << St->getBeginLoc();
     SourceLocation L = S.getLocForEndOfToken(Range.getEnd());
@@ -109,8 +109,8 @@ static Attr *handleLoopHintAttr(Sema &S, Stmt *St, const ParsedAttr &A,
     // #pragma unroll N
     if (ValueExpr) {
       if (!ValueExpr->isValueDependent()) {
-        auto Value = ValueExpr->EvaluateKnownConstInt(S.getASTContext());
-        if (Value.isZero() || Value.isOne())
+        
+        if (auto Value = ValueExpr->EvaluateKnownConstInt(S.getASTContext()); Value.isZero() || Value.isOne())
           SetHints(LoopHintAttr::Unroll, LoopHintAttr::Disable);
         else
           SetHints(LoopHintAttr::UnrollCount, LoopHintAttr::Numeric);
@@ -270,8 +270,8 @@ static bool CheckStmtInlineAttr(Sema &SemaRef, const Stmt *OrigSt,
     // diagnosed this, so skip it here. We can't skip if there isn't a 1:1
     // relationship between the two lists of call expressions.
     if (!CanSuppressDiag || !(*std::get<0>(Tup))->getCalleeDecl()) {
-      const Decl *Callee = (*std::get<1>(Tup))->getCalleeDecl();
-      if (Callee &&
+      
+      if (const Decl *Callee = (*std::get<1>(Tup))->getCalleeDecl(); Callee &&
           (Callee->hasAttr<OtherAttr>() || Callee->hasAttr<FlattenAttr>())) {
         SemaRef.Diag(CurSt->getBeginLoc(),
                      diag::warn_function_stmt_attribute_precedence)
@@ -296,8 +296,8 @@ bool Sema::CheckAlwaysInlineAttr(const Stmt *OrigSt, const Stmt *CurSt,
 
 static Attr *handleNoInlineAttr(Sema &S, Stmt *St, const ParsedAttr &A,
                                 SourceRange Range) {
-  NoInlineAttr NIA(S.Context, A);
-  if (!NIA.isStmtNoInline()) {
+  
+  if (NoInlineAttr NIA(S.Context, A); !NIA.isStmtNoInline()) {
     S.Diag(St->getBeginLoc(), diag::warn_function_attribute_ignored_in_stmt)
         << "[[clang::noinline]]";
     return nullptr;
@@ -311,8 +311,8 @@ static Attr *handleNoInlineAttr(Sema &S, Stmt *St, const ParsedAttr &A,
 
 static Attr *handleAlwaysInlineAttr(Sema &S, Stmt *St, const ParsedAttr &A,
                                     SourceRange Range) {
-  AlwaysInlineAttr AIA(S.Context, A);
-  if (!AIA.isClangAlwaysInline()) {
+  
+  if (AlwaysInlineAttr AIA(S.Context, A); !AIA.isClangAlwaysInline()) {
     S.Diag(St->getBeginLoc(), diag::warn_function_attribute_ignored_in_stmt)
         << "[[clang::always_inline]]";
     return nullptr;
@@ -667,8 +667,8 @@ static Attr *ProcessStmtAttribute(Sema &S, Stmt *St, const ParsedAttr &A,
   // Unknown attributes are automatically warned on. Target-specific attributes
   // which do not apply to the current target architecture are treated as
   // though they were unknown attributes.
-  const TargetInfo *Aux = S.Context.getAuxTargetInfo();
-  if (A.getKind() == ParsedAttr::UnknownAttribute ||
+  
+  if (const TargetInfo *Aux = S.Context.getAuxTargetInfo(); A.getKind() == ParsedAttr::UnknownAttribute ||
       !(A.existsInTarget(S.Context.getTargetInfo()) ||
         (S.Context.getLangOpts().SYCLIsDevice && Aux &&
          A.existsInTarget(*Aux)))) {

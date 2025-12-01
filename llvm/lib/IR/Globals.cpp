@@ -372,8 +372,8 @@ bool GlobalObject::canIncreaseAlignment() const {
   // alignment will be incorrect.
 
   // Conservatively assume ELF if there's no parent pointer.
-  bool isELF = (!Parent || Parent->getTargetTriple().isOSBinFormatELF());
-  if (isELF && !isDSOLocal())
+  
+  if (bool isELF = (!Parent || Parent->getTargetTriple().isOSBinFormatELF()); isELF && !isDSOLocal())
     return false;
 
   // GV with toc-data attribute is defined in a TOC entry. To mitigate TOC

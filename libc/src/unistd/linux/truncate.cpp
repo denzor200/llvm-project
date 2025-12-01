@@ -21,7 +21,7 @@ namespace LIBC_NAMESPACE_DECL {
 
 LLVM_LIBC_FUNCTION(int, truncate, (const char *path, off_t len)) {
 #ifdef SYS_truncate
-  int ret = LIBC_NAMESPACE::syscall_impl<int>(SYS_truncate, path, len);
+  
 #elif defined(SYS_truncate64)
   // Same as truncate but can handle large offsets
   static_assert(sizeof(off_t) == 8);
@@ -30,7 +30,7 @@ LLVM_LIBC_FUNCTION(int, truncate, (const char *path, off_t len)) {
 #else
 #error "truncate and truncate64 syscalls not available."
 #endif
-  if (ret < 0) {
+  if (int ret = LIBC_NAMESPACE::syscall_impl<int>(SYS_truncate, path, len); ret < 0) {
     libc_errno = -ret;
     return -1;
   }

@@ -244,8 +244,8 @@ bool X86WinEHUnwindV2::runOnMachineFunction(MachineFunction &MF) {
 
       case X86::POP64r:
         if (State == FunctionState::InEpilog) {
-          Register Reg = MI.getOperand(0).getReg();
-          if (HasStackAlloc && (PoppedRegCount == 0) &&
+          
+          if (Register Reg = MI.getOperand(0).getReg(); HasStackAlloc && (PoppedRegCount == 0) &&
               !llvm::is_contained(PushedRegs, Reg)) {
             // If this is a pop that doesn't correspond to the set of pushed
             // registers, then assume it was used to adjust the stack pointer.

@@ -1390,16 +1390,16 @@ LogicalResult Parser::parseUserConstraintOrRewriteSignature(
   // Parse the results of the decl.
   pushDeclScope();
   if (consumeIf(Token::arrow)) {
-    auto parseResultFn = [&]() -> LogicalResult {
+    
+
+    // Check for a list of results.
+    if (auto parseResultFn = [&]() -> LogicalResult {
       FailureOr<ast::VariableDecl *> result = parseResultDecl(results.size());
       if (failed(result))
         return failure();
       results.emplace_back(*result);
       return success();
-    };
-
-    // Check for a list of results.
-    if (consumeIf(Token::l_paren)) {
+    }; consumeIf(Token::l_paren)) {
       do {
         if (failed(parseResultFn()))
           return failure();
@@ -2527,12 +2527,12 @@ FailureOr<T *> Parser::createUserPDLLConstraintOrRewriteDecl(
     ast::CompoundStmt *body) {
   if (!body->getChildren().empty()) {
     if (auto *retStmt = dyn_cast<ast::ReturnStmt>(body->getChildren().back())) {
-      ast::Expr *resultExpr = retStmt->getResultExpr();
+      
 
       // Process the result of the decl. If no explicit signature results
       // were provided, check for return type inference. Otherwise, check that
       // the return expression can be converted to the expected type.
-      if (results.empty())
+      if (ast::Expr *resultExpr = retStmt->getResultExpr(); results.empty())
         resultType = resultExpr->getType();
       else if (failed(convertExpressionTo(resultExpr, resultType)))
         return failure();
@@ -2796,8 +2796,8 @@ FailureOr<ast::Type> Parser::validateMemberAccess(ast::Expr *parentExpr,
       auto results = odsOp->getResults();
 
       // Handle indexed results.
-      unsigned index = 0;
-      if (llvm::isDigit(name[0]) && !name.getAsInteger(/*Radix=*/10, index) &&
+      
+      if (unsigned index = 0; llvm::isDigit(name[0]) && !name.getAsInteger(/*Radix=*/10, index) &&
           index < results.size()) {
         return results[index].isVariadic() ? valueRangeTy : valueTy;
       }
@@ -2815,8 +2815,8 @@ FailureOr<ast::Type> Parser::validateMemberAccess(ast::Expr *parentExpr,
     }
   } else if (auto tupleType = dyn_cast<ast::TupleType>(parentType)) {
     // Handle indexed results.
-    unsigned index = 0;
-    if (llvm::isDigit(name[0]) && !name.getAsInteger(/*Radix=*/10, index) &&
+    
+    if (unsigned index = 0; llvm::isDigit(name[0]) && !name.getAsInteger(/*Radix=*/10, index) &&
         index < tupleType.size()) {
       return tupleType.getElementTypes()[index];
     }
@@ -2849,8 +2849,8 @@ FailureOr<ast::OperationExpr *> Parser::createOperationExpr(
   // Verify the attribute list.
   for (ast::NamedAttributeDecl *attr : attributes) {
     // Check for an attribute type, or a type awaiting resolution.
-    ast::Type attrType = attr->getValue()->getType();
-    if (!isa<ast::AttributeType>(attrType)) {
+    
+    if (ast::Type attrType = attr->getValue()->getType(); !isa<ast::AttributeType>(attrType)) {
       return emitError(
           attr->getValue()->getLoc(),
           llvm::formatv("expected `Attr` expression, but got `{0}`", attrType));
@@ -3012,8 +3012,8 @@ LogicalResult Parser::validateOperationOperandsOrResults(
                       *odsOpLoc);
     };
     for (unsigned i = 0, e = values.size(); i < e; ++i) {
-      ast::Type expectedType = odsValues[i].isVariadic() ? rangeTy : singleTy;
-      if (failed(convertExpressionTo(values[i], expectedType, diagFn)))
+      
+      if (ast::Type expectedType = odsValues[i].isVariadic() ? rangeTy : singleTy; failed(convertExpressionTo(values[i], expectedType, diagFn)))
         return failure();
     }
     return success();
@@ -3055,8 +3055,8 @@ FailureOr<ast::TupleExpr *>
 Parser::createTupleExpr(SMRange loc, ArrayRef<ast::Expr *> elements,
                         ArrayRef<StringRef> elementNames) {
   for (const ast::Expr *element : elements) {
-    ast::Type eleTy = element->getType();
-    if (isa<ast::ConstraintType, ast::RewriteType, ast::TupleType>(eleTy)) {
+    
+    if (ast::Type eleTy = element->getType(); isa<ast::ConstraintType, ast::RewriteType, ast::TupleType>(eleTy)) {
       return emitError(
           element->getLoc(),
           llvm::formatv("unable to build a tuple with `{0}` element", eleTy));

@@ -88,9 +88,9 @@ struct PassTiming : public PassInstrumentation {
   void runBeforePass(Pass *pass, Operation *) override {
     auto tid = llvm::get_threadid();
     auto &activeTimers = activeThreadTimers[tid];
-    auto &parentScope = activeTimers.empty() ? rootScope : activeTimers.back();
+    
 
-    if (auto *adaptor = dyn_cast<OpToOpPassAdaptor>(pass)) {
+    if (auto *auto &parentScope = activeTimers.empty() ? rootScope : activeTimers.back(); adaptor = dyn_cast<OpToOpPassAdaptor>(pass)) {
       parentTimerIndices[{tid, pass}] = activeTimers.size();
       auto scope =
           parentScope.nest(pass->getThreadingSiblingOrThis(),

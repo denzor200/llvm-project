@@ -175,8 +175,8 @@ std::string summarizeExpr(const Expr *E) {
       if (E->containsNonAscii()) {
         Result += "...";
       } else {
-        llvm::raw_string_ostream OS(Result);
-        if (E->getLength() > 10) {
+        
+        if (llvm::raw_string_ostream OS(Result); E->getLength() > 10) {
           llvm::printEscapedString(E->getString().take_front(7), OS);
           Result += "...";
         } else {
@@ -296,8 +296,8 @@ bool isSugaredTemplateParameter(QualType QT) {
   while (true) {
     if (QT->getAs<SubstTemplateTypeParmType>())
       return true;
-    QualType Desugared = QT->getLocallyUnqualifiedSingleStepDesugaredType();
-    if (Desugared != QT)
+    
+    if (QualType Desugared = QT->getLocallyUnqualifiedSingleStepDesugaredType(); Desugared != QT)
       QT = Desugared;
     else if (auto Peeled = PeelWrapper(Desugared); Peeled != QT)
       QT = Peeled;
@@ -596,8 +596,8 @@ public:
   }
 
   bool VisitLambdaExpr(LambdaExpr *E) {
-    FunctionDecl *D = E->getCallOperator();
-    if (!E->hasExplicitResultType()) {
+    
+    if (FunctionDecl *D = E->getCallOperator(); !E->hasExplicitResultType()) {
       SourceLocation TypeHintLoc;
       if (!E->hasExplicitParameters())
         TypeHintLoc = E->getIntroducerRange().getEnd();
@@ -641,8 +641,8 @@ public:
         // as "<dependent type>", in which case don't hint it at all.
         if (D->getType()->isDependentType()) {
           if (D->hasInit()) {
-            QualType Resolved = Resolver->resolveExprToType(D->getInit());
-            if (Resolved != AST.DependentTy) {
+            
+            if (QualType Resolved = Resolver->resolveExprToType(D->getInit()); Resolved != AST.DependentTy) {
               T = Resolved;
             }
           }
@@ -790,12 +790,12 @@ private:
           const auto SourceText = Lexer::getSourceText(
               CharSourceRange::getTokenRange(Params[I]->getDefaultArgRange()),
               AST.getSourceManager(), AST.getLangOpts());
-          const auto Abbrev =
+          
+          if (const auto Abbrev =
               (SourceText.size() > Cfg.InlayHints.TypeNameLimit ||
                SourceText.contains("\n"))
                   ? "..."
-                  : SourceText;
-          if (NameHint)
+                  : SourceText; NameHint)
             FormattedDefaultArgs.emplace_back(
                 llvm::formatv("{0}: {1}", Name, Abbrev));
           else

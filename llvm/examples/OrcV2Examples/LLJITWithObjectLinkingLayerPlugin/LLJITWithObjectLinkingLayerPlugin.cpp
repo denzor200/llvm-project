@@ -161,8 +161,8 @@ private:
                    << ": kind = " << formatv("{0:d}", E.getKind())
                    << ", addend = " << formatv("{0:x}", E.getAddend())
                    << ", target = ";
-            jitlink::Symbol &TargetSym = E.getTarget();
-            if (TargetSym.hasName())
+            
+            if (jitlink::Symbol &TargetSym = E.getTarget(); TargetSym.hasName())
               outs() << TargetSym.getName() << "\n";
             else
               outs() << "<anonymous target>\n";

@@ -82,8 +82,8 @@ void BackgroundIndexRebuilder::maybeRebuild(const char *Reason,
                                             std::function<bool()> Check) {
   unsigned BuildVersion = 0;
   {
-    std::lock_guard<std::mutex> Lock(Mu);
-    if (!ShouldStop && Check()) {
+    
+    if (std::lock_guard<std::mutex> Lock(Mu); !ShouldStop && Check()) {
       BuildVersion = ++StartedVersion;
       IndexedTUsAtLastRebuild = IndexedTUs;
     }
@@ -97,9 +97,9 @@ void BackgroundIndexRebuilder::maybeRebuild(const char *Reason,
       NewIndex = Source->buildIndex(IndexType::Heavy, DuplicateHandling::Merge);
     }
     {
-      std::lock_guard<std::mutex> Lock(Mu);
+      
       // Guard against rebuild finishing in the wrong order.
-      if (BuildVersion > ActiveVersion) {
+      if (std::lock_guard<std::mutex> Lock(Mu); BuildVersion > ActiveVersion) {
         ActiveVersion = BuildVersion;
         vlog("BackgroundIndex: serving version {0} ({1} bytes)", BuildVersion,
              NewIndex->estimateMemoryUsage());

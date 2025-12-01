@@ -233,8 +233,8 @@ static_assert((std::size(BuiltinInfos) + std::size(PrefixedBuiltinInfos)) ==
               NumBuiltins);
 
 bool HexagonTargetInfo::hasFeature(StringRef Feature) const {
-  std::string VS = "hvxv" + HVXVersion;
-  if (Feature == VS)
+  
+  if (std::string VS = "hvxv" + HVXVersion; Feature == VS)
     return true;
 
   return llvm::StringSwitch<bool>(Feature)
@@ -267,8 +267,8 @@ std::optional<unsigned> HexagonTargetInfo::getHexagonCPURev(StringRef Name) {
   Arch.consume_front("hexagonv");
   Arch.consume_back("t");
 
-  unsigned Val;
-  if (!Arch.getAsInteger(0, Val))
+  
+  if (unsigned Val; !Arch.getAsInteger(0, Val))
     return Val;
 
   return std::nullopt;

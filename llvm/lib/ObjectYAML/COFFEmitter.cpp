@@ -62,9 +62,9 @@ struct COFFParser {
     for (COFFYAML::Section &Sec : Obj.Sections) {
       // If the name is less than 8 bytes, store it in place, otherwise
       // store it in the string table.
-      StringRef Name = Sec.Name;
+      
 
-      if (Name.size() <= COFF::NameSize) {
+      if (StringRef Name = Sec.Name; Name.size() <= COFF::NameSize) {
         llvm::copy(Name, Sec.Header.Name);
       } else {
         // Add string to the string table and format the index for output.
@@ -97,8 +97,8 @@ struct COFFParser {
     for (COFFYAML::Symbol &Sym : Obj.Symbols) {
       // If the name is less than 8 bytes, store it in place, otherwise
       // store it in the string table.
-      StringRef Name = Sym.Name;
-      if (Name.size() <= COFF::NameSize) {
+      
+      if (StringRef Name = Sym.Name; Name.size() <= COFF::NameSize) {
         llvm::copy(Name, Sym.Header.Name);
       } else {
         // Add string to the string table and format the index for output.
@@ -449,8 +449,8 @@ static bool writeCOFF(COFFParser &CP, raw_ostream &OS) {
          ++I) {
       const std::optional<COFF::DataDirectory> *DataDirectories =
           CP.Obj.OptionalHeader->DataDirectories;
-      uint32_t NumDataDir = std::size(CP.Obj.OptionalHeader->DataDirectories);
-      if (I >= NumDataDir || !DataDirectories[I]) {
+      
+      if (uint32_t NumDataDir = std::size(CP.Obj.OptionalHeader->DataDirectories); I >= NumDataDir || !DataDirectories[I]) {
         OS << zeros(uint32_t(0));
         OS << zeros(uint32_t(0));
       } else {

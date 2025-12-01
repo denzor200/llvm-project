@@ -34,8 +34,8 @@ static Operation *findPayloadRoot(Operation *passRoot, StringRef tag) {
   auto tagAttrName = StringAttr::get(
       passRoot->getContext(), transform::TransformDialect::kTargetTagAttrName);
   WalkResult walkResult = passRoot->walk([&](Operation *op) {
-    auto attr = op->getAttrOfType<StringAttr>(tagAttrName);
-    if (!attr || attr.getValue() != tag)
+    
+    if (auto attr = op->getAttrOfType<StringAttr>(tagAttrName); !attr || attr.getValue() != tag)
       return WalkResult::advance();
 
     if (!target) {
@@ -76,10 +76,10 @@ class InterpreterPass
     debugBindNames.reserve(debugBindTrailingArgs.size());
     for (auto &&[position, nameString] :
          llvm::enumerate(debugBindTrailingArgs)) {
-      StringRef name = nameString;
+      
 
       // Parse the integer literals.
-      if (name.starts_with("#")) {
+      if (StringRef name = nameString; name.starts_with("#")) {
         debugBindNames.push_back(std::nullopt);
         StringRef lhs = "";
         StringRef rhs = name.drop_front();

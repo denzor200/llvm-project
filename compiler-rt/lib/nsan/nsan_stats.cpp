@@ -44,8 +44,8 @@ static void UpdateEntry(CheckTypeT check_ty, uptr pc, uptr bp, MapT *map,
   Stack.Unwind(pc, bp, nullptr, false);
   u32 stack_id = StackDepotPut(Stack);
   typename MapT::Handle Handle(map, Key(check_ty, stack_id));
-  Lock L(mutex);
-  if (Handle.created()) {
+  
+  if (Lock L(mutex); Handle.created()) {
     typename VectorT::value_type entry;
     entry.stack_id = stack_id;
     entry.check_ty = check_ty;

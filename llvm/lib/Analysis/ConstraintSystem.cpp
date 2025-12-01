@@ -35,8 +35,8 @@ bool ConstraintSystem::eliminateUsingFM() {
   // RemainingRows and remove it from the system.
   SmallVector<SmallVector<Entry, 8>, 4> RemainingRows;
   for (unsigned R1 = 0; R1 < Constraints.size();) {
-    SmallVector<Entry, 8> &Row1 = Constraints[R1];
-    if (getLastCoefficient(Row1, LastIdx) == 0) {
+    
+    if (SmallVector<Entry, 8> &Row1 = Constraints[R1]; getLastCoefficient(Row1, LastIdx) == 0) {
       if (Row1.size() > 0 && Row1.back().Id == LastIdx)
         Row1.pop_back();
       R1++;

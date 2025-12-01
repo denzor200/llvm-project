@@ -70,8 +70,8 @@ Node *postfix::ParseOneExpression(llvm::StringRef expr,
       continue;
     }
 
-    int64_t value;
-    if (to_integer(token, value, 10)) {
+    
+    if (int64_t value; to_integer(token, value, 10)) {
       // token is integer literal
       stack.push_back(MakeNode<IntegerNode>(alloc, value));
       continue;

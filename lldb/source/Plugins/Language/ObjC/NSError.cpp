@@ -29,16 +29,16 @@ using namespace lldb_private::formatters;
 
 static lldb::addr_t DerefToNSErrorPointer(ValueObject &valobj) {
   CompilerType valobj_type(valobj.GetCompilerType());
-  Flags type_flags(valobj_type.GetTypeInfo());
-  if (type_flags.AllClear(eTypeHasValue)) {
+  
+  if (Flags type_flags(valobj_type.GetTypeInfo()); type_flags.AllClear(eTypeHasValue)) {
     if (valobj.IsBaseClass() && valobj.GetParent())
       return valobj.GetParent()->GetValueAsUnsigned(LLDB_INVALID_ADDRESS);
   } else {
     lldb::addr_t ptr_value = valobj.GetValueAsUnsigned(LLDB_INVALID_ADDRESS);
     if (type_flags.AllSet(eTypeIsPointer)) {
       CompilerType pointee_type(valobj_type.GetPointeeType());
-      Flags pointee_flags(pointee_type.GetTypeInfo());
-      if (pointee_flags.AllSet(eTypeIsPointer)) {
+      
+      if (Flags pointee_flags(pointee_type.GetTypeInfo()); pointee_flags.AllSet(eTypeIsPointer)) {
         if (ProcessSP process_sp = valobj.GetProcessSP()) {
           Status error;
           ptr_value = process_sp->ReadPointerFromMemory(ptr_value, error);
@@ -166,8 +166,8 @@ public:
   }
 
   llvm::Expected<size_t> GetIndexOfChildWithName(ConstString name) override {
-    static ConstString g_userInfo("_userInfo");
-    if (name == g_userInfo)
+    
+    if (static ConstString g_userInfo("_userInfo"); name == g_userInfo)
       return 0;
     return llvm::createStringError("Type has no child named '%s'",
                                    name.AsCString());

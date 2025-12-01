@@ -67,9 +67,9 @@ static cl::opt<bool> enableOpt("opt", cl::desc("Enable optimizations"));
 /// Returns a Toy AST resulting from parsing the file or a nullptr on error.
 static std::unique_ptr<toy::ModuleAST>
 parseInputFile(llvm::StringRef filename) {
-  llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>> fileOrErr =
-      llvm::MemoryBuffer::getFileOrSTDIN(filename);
-  if (std::error_code ec = fileOrErr.getError()) {
+  
+  if (std::error_code llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>> fileOrErr =
+      llvm::MemoryBuffer::getFileOrSTDIN(filename); ec = fileOrErr.getError()) {
     llvm::errs() << "Could not open input file: " << ec.message() << "\n";
     return nullptr;
   }
@@ -84,17 +84,17 @@ static int loadMLIR(llvm::SourceMgr &sourceMgr, mlir::MLIRContext &context,
   // Handle '.toy' input to the compiler.
   if (inputType != InputType::MLIR &&
       !llvm::StringRef(inputFilename).ends_with(".mlir")) {
-    auto moduleAST = parseInputFile(inputFilename);
-    if (!moduleAST)
+    
+    if (auto moduleAST = parseInputFile(inputFilename); !moduleAST)
       return 6;
     module = mlirGen(context, *moduleAST);
     return !module ? 1 : 0;
   }
 
   // Otherwise, the input is '.mlir'.
-  llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>> fileOrErr =
-      llvm::MemoryBuffer::getFileOrSTDIN(inputFilename);
-  if (std::error_code ec = fileOrErr.getError()) {
+  
+  if (std::error_code llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>> fileOrErr =
+      llvm::MemoryBuffer::getFileOrSTDIN(inputFilename); ec = fileOrErr.getError()) {
     llvm::errs() << "Could not open input file: " << ec.message() << "\n";
     return -1;
   }
@@ -150,8 +150,8 @@ static int dumpAST() {
     return 5;
   }
 
-  auto moduleAST = parseInputFile(inputFilename);
-  if (!moduleAST)
+  
+  if (auto moduleAST = parseInputFile(inputFilename); !moduleAST)
     return 1;
 
   dump(*moduleAST);

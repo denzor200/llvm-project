@@ -975,8 +975,8 @@ void Verifier::visitAliaseeSubExpr(SmallPtrSetImpl<const GlobalAlias*> &Visited,
     visitConstantExprsRecursively(CE);
 
   for (const Use &U : C.operands()) {
-    Value *V = &*U;
-    if (const auto *GA2 = dyn_cast<GlobalAlias>(V))
+    
+    if (const auto *Value *V = &*U; GA2 = dyn_cast<GlobalAlias>(V))
       visitAliaseeSubExpr(Visited, GA, *GA2->getAliasee());
     else if (const auto *C2 = dyn_cast<Constant>(V))
       visitAliaseeSubExpr(Visited, GA, *C2);
@@ -1491,8 +1491,8 @@ void Verifier::visitDISubroutineType(const DISubroutineType &N) {
 
 void Verifier::visitDIFile(const DIFile &N) {
   CheckDI(N.getTag() == dwarf::DW_TAG_file_type, "invalid tag", &N);
-  std::optional<DIFile::ChecksumInfo<StringRef>> Checksum = N.getChecksum();
-  if (Checksum) {
+  
+  if (std::optional<DIFile::ChecksumInfo<StringRef>> Checksum = N.getChecksum(); Checksum) {
     CheckDI(Checksum->Kind <= DIFile::ChecksumKind::CSK_Last,
             "invalid checksum kind", &N);
     size_t Size;
@@ -1613,16 +1613,16 @@ void Verifier::visitDISubprogram(const DISubprogram &N) {
   CheckDI(!hasConflictingReferenceFlags(N.getFlags()),
           "invalid reference flags", &N);
 
-  auto *Unit = N.getRawUnit();
-  if (N.isDefinition()) {
+  
+  if (auto *Unit = N.getRawUnit(); N.isDefinition()) {
     // Subprogram definitions (not part of the type hierarchy).
     CheckDI(N.isDistinct(), "subprogram definitions must be distinct", &N);
     CheckDI(Unit, "subprogram definitions must have a compile unit", &N);
     CheckDI(isa<DICompileUnit>(Unit), "invalid unit type", &N, Unit);
     // There's no good way to cross the CU boundary to insert a nested
     // DISubprogram definition in one CU into a type defined in another CU.
-    auto *CT = dyn_cast_or_null<DICompositeType>(N.getRawScope());
-    if (CT && CT->getRawIdentifier() &&
+    
+    if (auto *CT = dyn_cast_or_null<DICompositeType>(N.getRawScope()); CT && CT->getRawIdentifier() &&
         M.getContext().isODRUniquingDebugTypes())
       CheckDI(N.getDeclaration(),
               "definition subprograms cannot be nested within DICompositeType "
@@ -2244,8 +2244,8 @@ void Verifier::checkUnsignedBaseTenFuncAttr(AttributeList Attrs, StringRef Attr,
                                             const Value *V) {
   if (Attrs.hasFnAttr(Attr)) {
     StringRef S = Attrs.getFnAttr(Attr).getValueAsString();
-    unsigned N;
-    if (S.getAsInteger(10, N))
+    
+    if (unsigned N; S.getAsInteger(10, N))
       CheckFailed("\"" + Attr + "\" takes an unsigned integer: " + S, V);
   }
 }
@@ -2487,8 +2487,8 @@ void Verifier::verifyFunctionAttrs(FunctionType *FT, AttributeList Attrs,
   if (Attribute A = Attrs.getFnAttr("alloc-variant-zeroed"); A.isValid()) {
     StringRef S = A.getValueAsString();
     Check(!S.empty(), "'alloc-variant-zeroed' must not be empty");
-    Function *Variant = M.getFunction(S);
-    if (Variant) {
+    
+    if (Function *Variant = M.getFunction(S); Variant) {
       Attribute Family = Attrs.getFnAttr("alloc-family");
       Attribute VariantFamily = Variant->getFnAttribute("alloc-family");
       if (Family.isValid())
@@ -2523,8 +2523,8 @@ void Verifier::verifyFunctionAttrs(FunctionType *FT, AttributeList Attrs,
   }
 
   if (Attribute FPAttr = Attrs.getFnAttr("frame-pointer"); FPAttr.isValid()) {
-    StringRef FP = FPAttr.getValueAsString();
-    if (FP != "all" && FP != "non-leaf" && FP != "none" && FP != "reserved" &&
+    
+    if (StringRef FP = FPAttr.getValueAsString(); FP != "all" && FP != "non-leaf" && FP != "none" && FP != "reserved" &&
         FP != "non-leaf-no-reserve")
       CheckFailed("invalid value for 'frame-pointer' attribute: " + FP, V);
   }
@@ -2539,14 +2539,14 @@ void Verifier::verifyFunctionAttrs(FunctionType *FT, AttributeList Attrs,
   checkUnsignedBaseTenFuncAttr(Attrs, "warn-stack-size", V);
 
   if (auto A = Attrs.getFnAttr("sign-return-address"); A.isValid()) {
-    StringRef S = A.getValueAsString();
-    if (S != "none" && S != "all" && S != "non-leaf")
+    
+    if (StringRef S = A.getValueAsString(); S != "none" && S != "all" && S != "non-leaf")
       CheckFailed("invalid value for 'sign-return-address' attribute: " + S, V);
   }
 
   if (auto A = Attrs.getFnAttr("sign-return-address-key"); A.isValid()) {
-    StringRef S = A.getValueAsString();
-    if (S != "a_key" && S != "b_key")
+    
+    if (StringRef S = A.getValueAsString(); S != "a_key" && S != "b_key")
       CheckFailed("invalid value for 'sign-return-address-key' attribute: " + S,
                   V);
     if (auto AA = Attrs.getFnAttr("sign-return-address"); !AA.isValid()) {
@@ -2556,42 +2556,42 @@ void Verifier::verifyFunctionAttrs(FunctionType *FT, AttributeList Attrs,
   }
 
   if (auto A = Attrs.getFnAttr("branch-target-enforcement"); A.isValid()) {
-    StringRef S = A.getValueAsString();
-    if (S != "" && S != "true" && S != "false")
+    
+    if (StringRef S = A.getValueAsString(); S != "" && S != "true" && S != "false")
       CheckFailed(
           "invalid value for 'branch-target-enforcement' attribute: " + S, V);
   }
 
   if (auto A = Attrs.getFnAttr("branch-protection-pauth-lr"); A.isValid()) {
-    StringRef S = A.getValueAsString();
-    if (S != "" && S != "true" && S != "false")
+    
+    if (StringRef S = A.getValueAsString(); S != "" && S != "true" && S != "false")
       CheckFailed(
           "invalid value for 'branch-protection-pauth-lr' attribute: " + S, V);
   }
 
   if (auto A = Attrs.getFnAttr("guarded-control-stack"); A.isValid()) {
-    StringRef S = A.getValueAsString();
-    if (S != "" && S != "true" && S != "false")
+    
+    if (StringRef S = A.getValueAsString(); S != "" && S != "true" && S != "false")
       CheckFailed("invalid value for 'guarded-control-stack' attribute: " + S,
                   V);
   }
 
   if (auto A = Attrs.getFnAttr("vector-function-abi-variant"); A.isValid()) {
     StringRef S = A.getValueAsString();
-    const std::optional<VFInfo> Info = VFABI::tryDemangleForVFABI(S, FT);
-    if (!Info)
+    
+    if (const std::optional<VFInfo> Info = VFABI::tryDemangleForVFABI(S, FT); !Info)
       CheckFailed("invalid name for a VFABI variant: " + S, V);
   }
 
   if (auto A = Attrs.getFnAttr("denormal-fp-math"); A.isValid()) {
-    StringRef S = A.getValueAsString();
-    if (!parseDenormalFPAttribute(S).isValid())
+    
+    if (StringRef S = A.getValueAsString(); !parseDenormalFPAttribute(S).isValid())
       CheckFailed("invalid value for 'denormal-fp-math' attribute: " + S, V);
   }
 
   if (auto A = Attrs.getFnAttr("denormal-fp-math-f32"); A.isValid()) {
-    StringRef S = A.getValueAsString();
-    if (!parseDenormalFPAttribute(S).isValid())
+    
+    if (StringRef S = A.getValueAsString(); !parseDenormalFPAttribute(S).isValid())
       CheckFailed("invalid value for 'denormal-fp-math-f32' attribute: " + S,
                   V);
   }
@@ -3144,8 +3144,8 @@ void Verifier::visitFunction(const Function &F) {
 
   // Check validity of the personality function
   if (F.hasPersonalityFn()) {
-    auto *Per = dyn_cast<Function>(F.getPersonalityFn()->stripPointerCasts());
-    if (Per)
+    
+    if (auto *Per = dyn_cast<Function>(F.getPersonalityFn()->stripPointerCasts()); Per)
       Check(Per->getParent() == F.getParent(),
             "Referencing personality function in another module!", &F,
             F.getParent(), Per, Per->getParent());
@@ -3239,8 +3239,8 @@ void Verifier::visitFunction(const Function &F) {
   // Only do this if the module is materialized, otherwise we don't have all the
   // uses.
   if (F.isIntrinsic() && F.getParent()->isMaterialized()) {
-    const User *U;
-    if (F.hasAddressTaken(&U, false, true, false,
+    
+    if (const User *U; F.hasAddressTaken(&U, false, true, false,
                           /*IgnoreARCAttachedCall=*/true))
       Check(false, "Invalid user of intrinsic instruction!", U);
   }
@@ -3396,8 +3396,8 @@ void Verifier::visitBranchInst(BranchInst &BI) {
 
 void Verifier::visitReturnInst(ReturnInst &RI) {
   Function *F = RI.getParent()->getParent();
-  unsigned N = RI.getNumOperands();
-  if (F->getReturnType()->isVoidTy())
+  
+  if (unsigned N = RI.getNumOperands(); F->getReturnType()->isVoidTy())
     Check(N == 0,
           "Found return instr that returns non-void in Function of void "
           "return type!",
@@ -3833,8 +3833,8 @@ void Verifier::visitCallBase(CallBase &Call) {
   // We have a bug if we can find that there is an underlying alloca without
   // inalloca.
   if (Call.hasInAllocaArgument()) {
-    Value *InAllocaArg = Call.getArgOperand(FTy->getNumParams() - 1);
-    if (auto AI = dyn_cast<AllocaInst>(InAllocaArg->stripInBoundsOffsets()))
+    
+    if (auto Value *InAllocaArg = Call.getArgOperand(FTy->getNumParams() - 1); AI = dyn_cast<AllocaInst>(InAllocaArg->stripInBoundsOffsets()))
       Check(AI->isUsedWithInAlloca(),
             "inalloca argument for call has mismatched alloca", AI, Call);
   }
@@ -3975,8 +3975,8 @@ void Verifier::visitCallBase(CallBase &Call) {
        FoundAttachedCallBundle = false;
   for (unsigned i = 0, e = Call.getNumOperandBundles(); i < e; ++i) {
     OperandBundleUse BU = Call.getOperandBundleAt(i);
-    uint32_t Tag = BU.getTagID();
-    if (Tag == LLVMContext::OB_deopt) {
+    
+    if (uint32_t Tag = BU.getTagID(); Tag == LLVMContext::OB_deopt) {
       Check(!FoundDeoptBundle, "Multiple deopt operand bundles", Call);
       FoundDeoptBundle = true;
     } else if (Tag == LLVMContext::OB_gc_transition) {
@@ -4729,9 +4729,9 @@ void Verifier::visitEHPadPredecessors(Instruction &I) {
     if (auto *II = dyn_cast<InvokeInst>(TI)) {
       Check(II->getUnwindDest() == BB && II->getNormalDest() != BB,
             "EH pad must be jumped to via an unwind edge", ToPad, II);
-      auto *CalledFn =
-          dyn_cast<Function>(II->getCalledOperand()->stripPointerCasts());
-      if (CalledFn && CalledFn->isIntrinsic() && II->doesNotThrow() &&
+      
+      if (auto *CalledFn =
+          dyn_cast<Function>(II->getCalledOperand()->stripPointerCasts()); CalledFn && CalledFn->isIntrinsic() && II->doesNotThrow() &&
           !IntrinsicInst::mayLowerToFunctionCall(CalledFn->getIntrinsicID()))
         continue;
       if (auto Bundle = II->getOperandBundle(LLVMContext::OB_funclet))
@@ -4795,8 +4795,8 @@ void Verifier::visitLandingPadInst(LandingPadInst &LPI) {
         "LandingPadInst not the first non-PHI instruction in the block.", &LPI);
 
   for (unsigned i = 0, e = LPI.getNumClauses(); i < e; ++i) {
-    Constant *Clause = LPI.getClause(i);
-    if (LPI.isCatch(i)) {
+    
+    if (Constant *Clause = LPI.getClause(i); LPI.isCatch(i)) {
       Check(isa<PointerType>(Clause->getType()),
             "Catch operand does not have pointer type!", &LPI);
     } else {
@@ -5181,8 +5181,8 @@ void Verifier::visitProfMetadata(Instruction &I, MDNode *MD) {
 
   // Check consistency of !prof branch_weights metadata.
   if (ProfName == MDProfLabels::BranchWeights) {
-    unsigned NumBranchWeights = getNumBranchWeights(*MD);
-    if (isa<InvokeInst>(&I)) {
+    
+    if (unsigned NumBranchWeights = getNumBranchWeights(*MD); isa<InvokeInst>(&I)) {
       Check(NumBranchWeights == 1 || NumBranchWeights == 2,
             "Wrong number of InvokeInst branch_weights operands", MD);
     } else {
@@ -5897,8 +5897,8 @@ void Verifier::visitIntrinsicCall(Intrinsic::ID ID, CallBase &Call) {
   case Intrinsic::fptrunc_round: {
     // Check the rounding mode
     Metadata *MD = nullptr;
-    auto *MAV = dyn_cast<MetadataAsValue>(Call.getOperand(1));
-    if (MAV)
+    
+    if (auto *MAV = dyn_cast<MetadataAsValue>(Call.getOperand(1)); MAV)
       MD = MAV->getMetadata();
 
     Check(MD != nullptr, "missing rounding mode argument", Call);
@@ -5978,8 +5978,8 @@ void Verifier::visitIntrinsicCall(Intrinsic::ID ID, CallBase &Call) {
       auto *UseCall = dyn_cast<CallBase>(U);
       Check(UseCall != nullptr,
             "Uses of llvm.call.preallocated.setup must be calls");
-      Intrinsic::ID IID = UseCall->getIntrinsicID();
-      if (IID == Intrinsic::call_preallocated_arg) {
+      
+      if (Intrinsic::ID IID = UseCall->getIntrinsicID(); IID == Intrinsic::call_preallocated_arg) {
         auto *AllocArgIndex = dyn_cast<ConstantInt>(UseCall->getArgOperand(1));
         Check(AllocArgIndex != nullptr,
               "llvm.call.preallocated.alloc arg index must be a constant");
@@ -6544,8 +6544,8 @@ void Verifier::visitIntrinsicCall(Intrinsic::ID ID, CallBase &Call) {
     int64_t Idx = cast<ConstantInt>(Call.getArgOperand(2))->getSExtValue();
     int64_t KnownMinNumElements = VecTy->getElementCount().getKnownMinValue();
     if (Call.getParent() && Call.getParent()->getParent()) {
-      AttributeList Attrs = Call.getParent()->getParent()->getAttributes();
-      if (Attrs.hasFnAttr(Attribute::VScaleRange))
+      
+      if (AttributeList Attrs = Call.getParent()->getParent()->getAttributes(); Attrs.hasFnAttr(Attribute::VScaleRange))
         KnownMinNumElements *= Attrs.getFnAttrs().getVScaleRangeMin();
     }
     Check((Idx < 0 && std::abs(Idx) <= KnownMinNumElements) ||
@@ -6728,8 +6728,8 @@ void Verifier::visitIntrinsicCall(Intrinsic::ID ID, CallBase &Call) {
     break;
   }
   case Intrinsic::amdgcn_cs_chain: {
-    auto CallerCC = Call.getCaller()->getCallingConv();
-    switch (CallerCC) {
+    
+    switch (auto CallerCC = Call.getCaller()->getCallingConv(); CallerCC) {
     case CallingConv::AMDGPU_CS:
     case CallingConv::AMDGPU_CS_Chain:
     case CallingConv::AMDGPU_CS_ChainPreserve:
@@ -6764,8 +6764,8 @@ void Verifier::visitIntrinsicCall(Intrinsic::ID ID, CallBase &Call) {
     break;
   }
   case Intrinsic::amdgcn_set_inactive_chain_arg: {
-    auto CallerCC = Call.getCaller()->getCallingConv();
-    switch (CallerCC) {
+    
+    switch (auto CallerCC = Call.getCaller()->getCallingConv(); CallerCC) {
     case CallingConv::AMDGPU_CS_Chain:
     case CallingConv::AMDGPU_CS_ChainPreserve:
       break;
@@ -7009,8 +7009,8 @@ void Verifier::visitIntrinsicCall(Intrinsic::ID ID, CallBase &Call) {
 
   // Verify that there aren't any unmediated control transfers between funclets.
   if (IntrinsicInst::mayLowerToFunctionCall(ID)) {
-    Function *F = Call.getParent()->getParent();
-    if (F->hasPersonalityFn() &&
+    
+    if (Function *F = Call.getParent()->getParent(); F->hasPersonalityFn() &&
         isScopedEHPersonality(classifyEHPersonality(F->getPersonalityFn()))) {
       // Run EH funclet coloring on-demand and cache results for other intrinsic
       // calls in this function
@@ -7290,8 +7290,8 @@ void Verifier::visitVPIntrinsic(VPIntrinsic &VPI) {
     int64_t Idx = cast<ConstantInt>(VPI.getArgOperand(2))->getSExtValue();
     int64_t KnownMinNumElements = VecTy->getElementCount().getKnownMinValue();
     if (VPI.getParent() && VPI.getParent()->getParent()) {
-      AttributeList Attrs = VPI.getParent()->getParent()->getAttributes();
-      if (Attrs.hasFnAttr(Attribute::VScaleRange))
+      
+      if (AttributeList Attrs = VPI.getParent()->getParent()->getAttributes(); Attrs.hasFnAttr(Attribute::VScaleRange))
         KnownMinNumElements *= Attrs.getFnAttrs().getVScaleRangeMin();
     }
     Check((Idx < 0 && std::abs(Idx) <= KnownMinNumElements) ||
@@ -7580,9 +7580,9 @@ void Verifier::verifyAttachedCallBundle(const CallBase &Call,
         Call);
 
   auto *Fn = cast<Function>(BU.Inputs.front());
-  Intrinsic::ID IID = Fn->getIntrinsicID();
+  
 
-  if (IID) {
+  if (Intrinsic::ID IID = Fn->getIntrinsicID(); IID) {
     Check((IID == Intrinsic::objc_retainAutoreleasedReturnValue ||
            IID == Intrinsic::objc_claimAutoreleasedReturnValue ||
            IID == Intrinsic::objc_unsafeClaimAutoreleasedReturnValue),
@@ -7811,9 +7811,9 @@ TBAAVerifier::verifyTBAABaseNodeImpl(const Instruction *I,
 
   // Check the type size field.
   if (IsNewFormat) {
-    auto *TypeSizeNode = mdconst::dyn_extract_or_null<ConstantInt>(
-        BaseNode->getOperand(1));
-    if (!TypeSizeNode) {
+    
+    if (auto *TypeSizeNode = mdconst::dyn_extract_or_null<ConstantInt>(
+        BaseNode->getOperand(1)); !TypeSizeNode) {
       CheckFailed("Type size nodes must be constants!", I, BaseNode);
       return InvalidNode;
     }
@@ -7880,9 +7880,9 @@ TBAAVerifier::verifyTBAABaseNodeImpl(const Instruction *I,
     PrevOffset = OffsetEntryCI->getValue();
 
     if (IsNewFormat) {
-      auto *MemberSizeNode = mdconst::dyn_extract_or_null<ConstantInt>(
-          BaseNode->getOperand(Idx + 2));
-      if (!MemberSizeNode) {
+      
+      if (auto *MemberSizeNode = mdconst::dyn_extract_or_null<ConstantInt>(
+          BaseNode->getOperand(Idx + 2)); !MemberSizeNode) {
         CheckFailed("Member size entries must be constants!", I, BaseNode);
         Failed = true;
         continue;
@@ -7907,8 +7907,8 @@ static bool IsScalarTBAANodeImpl(const MDNode *MD,
     return false;
 
   if (MD->getNumOperands() == 3) {
-    auto *Offset = mdconst::dyn_extract<ConstantInt>(MD->getOperand(2));
-    if (!(Offset && Offset->isZero() && isa<MDString>(MD->getOperand(0))))
+    
+    if (auto *Offset = mdconst::dyn_extract<ConstantInt>(MD->getOperand(2)); !(Offset && Offset->isZero() && isa<MDString>(MD->getOperand(0))))
       return false;
   }
 
@@ -7951,9 +7951,9 @@ MDNode *TBAAVerifier::getFieldNodeFromTBAABaseNode(const Instruction *I,
   unsigned NumOpsPerField = IsNewFormat ? 3 : 2;
   for (unsigned Idx = FirstFieldOpNo; Idx < BaseNode->getNumOperands();
            Idx += NumOpsPerField) {
-    auto *OffsetEntryCI =
-        mdconst::extract<ConstantInt>(BaseNode->getOperand(Idx + 1));
-    if (OffsetEntryCI->getValue().ugt(Offset)) {
+    
+    if (auto *OffsetEntryCI =
+        mdconst::extract<ConstantInt>(BaseNode->getOperand(Idx + 1)); OffsetEntryCI->getValue().ugt(Offset)) {
       if (Idx == FirstFieldOpNo) {
         CheckFailed("Could not find TBAA parent in struct type node", I,
                     BaseNode, &Offset);

@@ -48,8 +48,8 @@ static Error checkMachORelocatableObject(MemoryBufferRef Obj,
                                        " is not a MachO relocatable object",
                                    inconvertibleErrorCode());
 
-  auto ObjArch = object::MachOObjectFile::getArch(Hdr.cputype, Hdr.cpusubtype);
-  if (ObjArch != TT.getArch())
+  
+  if (auto ObjArch = object::MachOObjectFile::getArch(Hdr.cputype, Hdr.cpusubtype); ObjArch != TT.getArch())
     return make_error<StringError>(
         objDesc(Obj, TT, ObjIsSlice) + Triple::getArchTypeName(ObjArch) +
             ", cannot be loaded into " + TT.str() + " process",
@@ -206,8 +206,8 @@ getMachOSliceRangeForTriple(object::MachOUniversalBinary &UB,
                             const Triple &TT) {
 
   for (const auto &Obj : UB.objects()) {
-    auto ObjTT = Obj.getTriple();
-    if (ObjTT.getArch() == TT.getArch() &&
+    
+    if (auto ObjTT = Obj.getTriple(); ObjTT.getArch() == TT.getArch() &&
         ObjTT.getSubArch() == TT.getSubArch() &&
         (TT.getVendor() == Triple::UnknownVendor ||
          ObjTT.getVendor() == TT.getVendor())) {
@@ -260,9 +260,9 @@ Expected<bool> ForceLoadMachOArchiveMembers::operator()(
   if (auto *MachOObj = dyn_cast<object::MachOObjectFile>(&**Obj)) {
     // Load the object if any recognized special section is present.
     for (auto Sec : MachOObj->sections()) {
-      auto SegName =
-          MachOObj->getSectionFinalSegmentName(Sec.getRawDataRefImpl());
-      if (auto SecName = Sec.getName()) {
+      
+      if (auto auto SegName =
+          MachOObj->getSectionFinalSegmentName(Sec.getRawDataRefImpl()); SecName = Sec.getName()) {
         if (*SecName == "__objc_classlist" || *SecName == "__objc_protolist" ||
             *SecName == "__objc_clsrolist" || *SecName == "__objc_catlist" ||
             *SecName == "__objc_catlist2" || *SecName == "__objc_nlcatlist" ||
@@ -417,8 +417,8 @@ getDylibInterfaceFromTapiFile(ExecutionSession &ES, Twine Path,
 
   auto ArchSet = IF.getArchitectures();
   for (auto [CPUType, CPUSubType] : ArchsToTry) {
-    auto A = MachO::getArchitectureFromCpuType(CPUType, CPUSubType);
-    if (ArchSet.has(A)) {
+    
+    if (auto A = MachO::getArchitectureFromCpuType(CPUType, CPUSubType); ArchSet.has(A)) {
       if (auto Interface = IF.extract(A)) {
         for (auto *Sym : (*Interface)->exports())
           Symbols.insert(ES.intern(Sym->getName()));

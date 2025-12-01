@@ -54,8 +54,8 @@ bool llvm::parseWidenableBranch(const User *U, Value *&Condition,
                                 Value *&WidenableCondition,
                                 BasicBlock *&IfTrueBB, BasicBlock *&IfFalseBB) {
 
-  Use *C, *WC;
-  if (parseWidenableBranch(const_cast<User*>(U), C, WC, IfTrueBB, IfFalseBB)) {
+  
+  if (Use *C, *WC; parseWidenableBranch(const_cast<User*>(U), C, WC, IfTrueBB, IfFalseBB)) {
     if (C)
       Condition = C->get();
     else
@@ -122,8 +122,8 @@ static void parseCondition(Value *Condition,
   Visited.insert(Condition);
   do {
     Value *Check = Worklist.pop_back_val();
-    Value *LHS, *RHS;
-    if (match(Check, m_And(m_Value(LHS), m_Value(RHS)))) {
+    
+    if (Value *LHS, *RHS; match(Check, m_And(m_Value(LHS), m_Value(RHS)))) {
       if (Visited.insert(LHS).second)
         Worklist.push_back(LHS);
       if (Visited.insert(RHS).second)

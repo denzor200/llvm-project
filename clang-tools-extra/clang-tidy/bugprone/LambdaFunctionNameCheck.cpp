@@ -40,8 +40,8 @@ public:
     bool HasLine = false;
     for (const Token &T : MD.getMacroInfo()->tokens()) {
       if (T.is(tok::identifier)) {
-        const StringRef IdentName = T.getIdentifierInfo()->getName();
-        if (IdentName == "__FILE__") {
+        
+        if (const StringRef IdentName = T.getIdentifierInfo()->getName(); IdentName == "__FILE__") {
           HasFile = true;
         } else if (IdentName == "__LINE__") {
           HasLine = true;
@@ -97,9 +97,9 @@ void LambdaFunctionNameCheck::check(const MatchFinder::MatchResult &Result) {
     if (IgnoreMacros)
       return;
 
-    auto ER =
-        Result.SourceManager->getImmediateExpansionRange(E->getLocation());
-    if (SuppressMacroExpansions.find(ER.getAsRange()) !=
+    
+    if (auto ER =
+        Result.SourceManager->getImmediateExpansionRange(E->getLocation()); SuppressMacroExpansions.find(ER.getAsRange()) !=
         SuppressMacroExpansions.end()) {
       // This is a macro expansion for which we should not warn.
       return;

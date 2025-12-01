@@ -53,8 +53,8 @@ AllocaInst *llvm::DemoteRegToStack(Instruction &I, bool VolatileLoads,
     }
   } else if (CallBrInst *CBI = dyn_cast<CallBrInst>(&I)) {
     for (unsigned i = 0; i < CBI->getNumSuccessors(); i++) {
-      auto *Succ = CBI->getSuccessor(i);
-      if (!Succ->getSinglePredecessor()) {
+      
+      if (auto *Succ = CBI->getSuccessor(i); !Succ->getSinglePredecessor()) {
         assert(isCriticalEdge(CBI, i) && "Expected a critical edge!");
         [[maybe_unused]] BasicBlock *BB = SplitCriticalEdge(CBI, i);
         assert(BB && "Unable to split critical edge.");
@@ -64,8 +64,8 @@ AllocaInst *llvm::DemoteRegToStack(Instruction &I, bool VolatileLoads,
 
   // Change all of the users of the instruction to read from the stack slot.
   while (!I.use_empty()) {
-    Instruction *U = cast<Instruction>(I.user_back());
-    if (PHINode *PN = dyn_cast<PHINode>(U)) {
+    
+    if (PHINode *Instruction *U = cast<Instruction>(I.user_back()); PN = dyn_cast<PHINode>(U)) {
       // If this is a PHI node, we can't insert a load of the value before the
       // use.  Instead insert the load in the predecessor block corresponding
       // to the incoming value.

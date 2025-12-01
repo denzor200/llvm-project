@@ -214,8 +214,8 @@ void SSAUpdater::UpdateDebugValues(
 }
 
 void SSAUpdater::UpdateDebugValue(Instruction *I, DbgVariableRecord *DVR) {
-  BasicBlock *UserBB = DVR->getParent();
-  if (HasValueForBlock(UserBB)) {
+  
+  if (BasicBlock *UserBB = DVR->getParent(); HasValueForBlock(UserBB)) {
     Value *NewVal = GetValueAtEndOfBlock(UserBB);
     DVR->replaceVariableLocationOp(I, NewVal);
   } else
@@ -319,8 +319,8 @@ public:
   /// ValueIsNewPHI - Like ValueIsPHI but also check if the PHI has no source
   /// operands, i.e., it was just added.
   static PHINode *ValueIsNewPHI(Value *Val, SSAUpdater *Updater) {
-    PHINode *PHI = ValueIsPHI(Val, Updater);
-    if (PHI && PHI->getNumIncomingValues() == 0)
+    
+    if (PHINode *PHI = ValueIsPHI(Val, Updater); PHI && PHI->getNumIncomingValues() == 0)
       return PHI;
     return nullptr;
   }

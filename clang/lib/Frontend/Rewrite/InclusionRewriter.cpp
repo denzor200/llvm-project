@@ -462,8 +462,8 @@ void InclusionRewriter::Process(FileID FileId,
             break;
           }
           case tok::pp_pragma: {
-            StringRef Identifier = NextIdentifierName(RawLex, RawToken);
-            if (Identifier == "clang" || Identifier == "GCC") {
+            
+            if (StringRef Identifier = NextIdentifierName(RawLex, RawToken); Identifier == "clang" || Identifier == "GCC") {
               if (NextIdentifierName(RawLex, RawToken) == "system_header") {
                 // keep the directive in, commented out
                 CommentOutDirective(RawLex, HashToken, FromFile, LocalEOL,

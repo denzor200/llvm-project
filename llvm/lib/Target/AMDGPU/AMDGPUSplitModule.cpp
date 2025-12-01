@@ -522,8 +522,8 @@ void SplitGraph::buildGraph(CallGraph &CG) {
     SetVector<const Function *> DirectCallees;
     bool CallsExternal = false;
     for (auto &CGEntry : *CG[&Fn]) {
-      auto *CGNode = CGEntry.second;
-      if (auto *Callee = CGNode->getFunction()) {
+      
+      if (auto *auto *CGNode = CGEntry.second; Callee = CGNode->getFunction()) {
         if (!Callee->isDeclaration())
           DirectCallees.insert(Callee);
       } else if (CGNode == CG.getCallsExternalNode())
@@ -1021,8 +1021,8 @@ void RecursiveSearchSplitting::setupWorkList() {
 
     BitVector Cluster = SG.createNodesBitVector();
     for (unsigned M : NodeEC.members(*Node)) {
-      const SplitGraph::Node &N = SG.getNode(M);
-      if (N.isGraphEntryPoint())
+      
+      if (const SplitGraph::Node &N = SG.getNode(M); N.isGraphEntryPoint())
         N.getDependencies(Cluster);
     }
     WorkList.emplace_back(std::move(Cluster));
@@ -1182,9 +1182,9 @@ RecursiveSearchSplitting::findMostSimilarPartition(const WorkListEntry &Entry,
     if (BV.none())
       continue;
 
-    const CostType Cost = SG.calculateCost(BV);
+    
 
-    if (ChosenPID == InvalidPID || ChosenCost < Cost ||
+    if (const CostType Cost = SG.calculateCost(BV); ChosenPID == InvalidPID || ChosenCost < Cost ||
         (ChosenCost == Cost && PID > ChosenPID)) {
       ChosenPID = PID;
       ChosenCost = Cost;
@@ -1547,7 +1547,7 @@ PreservedAnalyses AMDGPUSplitModulePass::run(Module &M,
     return FAM.getResult<TargetIRAnalysis>(F);
   };
 
-  bool Done = false;
+  
 #ifndef NDEBUG
   if (UseLockFile) {
     SmallString<128> LockFilePath;
@@ -1587,7 +1587,7 @@ PreservedAnalyses AMDGPUSplitModulePass::run(Module &M,
   }
 #endif
 
-  if (!Done)
+  if (bool Done = false; !Done)
     splitAMDGPUModule(TTIGetter, M, N, ModuleCallback);
 
   // We can change linkage/visibilities in the input, consider that nothing is

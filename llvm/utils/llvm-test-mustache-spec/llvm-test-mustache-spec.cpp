@@ -184,8 +184,8 @@ static bool isTestXFail(StringRef FileName, StringRef TestName) {
 static bool evaluateTest(StringRef &InputFile, TestData &TestData,
                          std::string &ActualStr) {
   bool IsXFail = isTestXFail(InputFile, TestData.Name);
-  bool Matches = TestData.ExpectedStr == ActualStr;
-  if ((Matches && IsXFail) || (!Matches && !IsXFail)) {
+  
+  if (bool Matches = TestData.ExpectedStr == ActualStr; (Matches && IsXFail) || (!Matches && !IsXFail)) {
     reportTestFailure(TestData, ActualStr, IsXFail);
     return false;
   }

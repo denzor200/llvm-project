@@ -605,8 +605,8 @@ void FileManager::GetUniqueIDMapping(
     FileEntryRef FE(Entry);
     // Add this file if it's the first one with the UID, or if its name is
     // better than the existing one.
-    OptionalFileEntryRef &ExistingFE = UIDToFiles[FE.getUID()];
-    if (!ExistingFE || FE.getName() < ExistingFE->getName())
+    
+    if (OptionalFileEntryRef &ExistingFE = UIDToFiles[FE.getUID()]; !ExistingFE || FE.getName() < ExistingFE->getName())
       ExistingFE = FE;
   }
 }

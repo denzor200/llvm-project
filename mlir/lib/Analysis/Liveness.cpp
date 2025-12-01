@@ -191,8 +191,8 @@ Liveness::OperationListT Liveness::resolveLiveness(Value value) const {
 
   // Start with all associated blocks
   for (OpOperand &use : value.getUses()) {
-    Block *useBlock = use.getOwner()->getBlock();
-    if (visited.insert(useBlock).second)
+    
+    if (Block *useBlock = use.getOwner()->getBlock(); visited.insert(useBlock).second)
       toProcess.push_back(useBlock);
   }
 

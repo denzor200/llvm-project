@@ -155,13 +155,13 @@ namespace llvm {
     }
 
     OS << " [" << Start;
-    unsigned Count = n - Start;
-    if (n-Start == 1) {
+    
+    if (unsigned Count = n - Start; n-Start == 1) {
       OS << "]:" << RC[Start];
     } else {
       OS << '-' << n-1 << "]:";
-      const BT::BitValue &SV = RC[Start];
-      if (SV.Type == BT::BitValue::Ref && SeqRef)
+      
+      if (const BT::BitValue &SV = RC[Start]; SV.Type == BT::BitValue::Ref && SeqRef)
         OS << printv(SV.RefI.Reg) << '[' << SV.RefI.Pos << '-'
            << SV.RefI.Pos+(Count-1) << ']';
       else
@@ -314,8 +314,8 @@ bool BT::RegisterCell::operator== (const RegisterCell &RC) const {
 
 BT::RegisterCell &BT::RegisterCell::regify(unsigned R) {
   for (unsigned i = 0, n = width(); i < n; ++i) {
-    const BitValue &V = Bits[i];
-    if (V.Type == BitValue::Ref && V.RefI.Reg == 0)
+    
+    if (const BitValue &V = Bits[i]; V.Type == BitValue::Ref && V.RefI.Reg == 0)
       Bits[i].RefI = BitRef(R, i);
   }
   return *this;
@@ -442,10 +442,10 @@ BT::RegisterCell BT::MachineEvaluator::eADD(const RegisterCell &A1,
   }
   for (; I < W; ++I) {
     const BitValue &V1 = A1[I];
-    const BitValue &V2 = A2[I];
+    
     // If the next bit is same as Carry, the result will be 0 plus the
     // other bit. The Carry bit will remain unchanged.
-    if (V1.is(Carry))
+    if (const BitValue &V2 = A2[I]; V1.is(Carry))
       Res[I] = BitValue::ref(V2);
     else if (V2.is(Carry))
       Res[I] = BitValue::ref(V1);
@@ -547,8 +547,8 @@ BT::RegisterCell BT::MachineEvaluator::eAND(const RegisterCell &A1,
   RegisterCell Res(W);
   for (uint16_t i = 0; i < W; ++i) {
     const BitValue &V1 = A1[i];
-    const BitValue &V2 = A2[i];
-    if (V1.is(1))
+    
+    if (const BitValue &V2 = A2[i]; V1.is(1))
       Res[i] = BitValue::ref(V2);
     else if (V2.is(1))
       Res[i] = BitValue::ref(V1);
@@ -569,8 +569,8 @@ BT::RegisterCell BT::MachineEvaluator::eORL(const RegisterCell &A1,
   RegisterCell Res(W);
   for (uint16_t i = 0; i < W; ++i) {
     const BitValue &V1 = A1[i];
-    const BitValue &V2 = A2[i];
-    if (V1.is(1) || V2.is(1))
+    
+    if (const BitValue &V2 = A2[i]; V1.is(1) || V2.is(1))
       Res[i] = BitValue::One;
     else if (V1.is(0))
       Res[i] = BitValue::ref(V2);
@@ -591,8 +591,8 @@ BT::RegisterCell BT::MachineEvaluator::eXOR(const RegisterCell &A1,
   RegisterCell Res(W);
   for (uint16_t i = 0; i < W; ++i) {
     const BitValue &V1 = A1[i];
-    const BitValue &V2 = A2[i];
-    if (V1.is(0))
+    
+    if (const BitValue &V2 = A2[i]; V1.is(0))
       Res[i] = BitValue::ref(V2);
     else if (V2.is(0))
       Res[i] = BitValue::ref(V1);
@@ -608,8 +608,8 @@ BT::RegisterCell BT::MachineEvaluator::eNOT(const RegisterCell &A1) const {
   uint16_t W = A1.width();
   RegisterCell Res(W);
   for (uint16_t i = 0; i < W; ++i) {
-    const BitValue &V = A1[i];
-    if (V.is(0))
+    
+    if (const BitValue &V = A1[i]; V.is(0))
       Res[i] = BitValue::One;
     else if (V.is(1))
       Res[i] = BitValue::Zero;
@@ -637,20 +637,20 @@ BT::RegisterCell BT::MachineEvaluator::eCLR(const RegisterCell &A1,
 
 BT::RegisterCell BT::MachineEvaluator::eCLB(const RegisterCell &A1, bool B,
       uint16_t W) const {
-  uint16_t C = A1.cl(B), AW = A1.width();
+  
   // If the last leading non-B bit is not a constant, then we don't know
   // the real count.
-  if ((C < AW && A1[AW-1-C].num()) || C == AW)
+  if (uint16_t C = A1.cl(B), AW = A1.width(); (C < AW && A1[AW-1-C].num()) || C == AW)
     return eIMM(C, W);
   return RegisterCell::self(0, W);
 }
 
 BT::RegisterCell BT::MachineEvaluator::eCTB(const RegisterCell &A1, bool B,
       uint16_t W) const {
-  uint16_t C = A1.ct(B), AW = A1.width();
+  
   // If the last trailing non-B bit is not a constant, then we don't know
   // the real count.
-  if ((C < AW && A1[C].num()) || C == AW)
+  if (uint16_t C = A1.ct(B), AW = A1.width(); (C < AW && A1[C].num()) || C == AW)
     return eIMM(C, W);
   return RegisterCell::self(0, W);
 }
@@ -714,8 +714,8 @@ uint16_t BT::MachineEvaluator::getPhysRegBitWidth(MCRegister Reg) const {
 bool BT::MachineEvaluator::evaluate(const MachineInstr &MI,
                                     const CellMapType &Inputs,
                                     CellMapType &Outputs) const {
-  unsigned Opc = MI.getOpcode();
-  switch (Opc) {
+  
+  switch (unsigned Opc = MI.getOpcode(); Opc) {
     case TargetOpcode::REG_SEQUENCE: {
       RegisterRef RD = MI.getOperand(0);
       assert(RD.Sub == 0);
@@ -766,8 +766,8 @@ bool BT::UseQueueType::Cmp::operator()(const MachineInstr *InstA,
   if (InstA == InstB)
     return false;
   const MachineBasicBlock *BA = InstA->getParent();
-  const MachineBasicBlock *BB = InstB->getParent();
-  if (BA != BB) {
+  
+  if (const MachineBasicBlock *BB = InstB->getParent(); BA != BB) {
     // If the blocks are different, ideally the dominating block would
     // have a higher priority, but it may be too expensive to check.
     return BA->getNumber() > BB->getNumber();
@@ -875,8 +875,8 @@ void BT::visitNonBranch(const MachineInstr &MI) {
     if (!Eval || ResMap.count(RD.Reg) == 0) {
       // Set to "ref" (aka "bottom").
       uint16_t DefBW = ME.getRegBitWidth(RD);
-      RegisterCell RefC = RegisterCell::self(RD.Reg, DefBW);
-      if (RefC != ME.getCell(RD, Map)) {
+      
+      if (RegisterCell RefC = RegisterCell::self(RD.Reg, DefBW); RefC != ME.getCell(RD, Map)) {
         ME.putCell(RD, RefC, Map);
         Changed = true;
       }
@@ -960,8 +960,8 @@ void BT::visitBranchesFrom(const MachineInstr &BI) {
     }
     if (FallsThrough) {
       MachineFunction::const_iterator BIt = B.getIterator();
-      MachineFunction::const_iterator Next = std::next(BIt);
-      if (Next != MF.end())
+      
+      if (MachineFunction::const_iterator Next = std::next(BIt); Next != MF.end())
         Targets.insert(&*Next);
     }
   } else {
@@ -1079,8 +1079,8 @@ void BT::runEdgeQueue(BitVector &BlockScanned) {
     // If block end has been reached, add the fall-through edge to the queue.
     if (It == End) {
       MachineFunction::const_iterator BIt = B.getIterator();
-      MachineFunction::const_iterator Next = std::next(BIt);
-      if (Next != MF.end() && B.isSuccessor(&*Next)) {
+      
+      if (MachineFunction::const_iterator Next = std::next(BIt); Next != MF.end() && B.isSuccessor(&*Next)) {
         int ThisN = B.getNumber();
         int NextN = Next->getNumber();
         FlowQ.push(CFGEdge(ThisN, NextN));
@@ -1119,8 +1119,8 @@ void BT::run() {
   unsigned MaxBN = 0;
   for (const MachineBasicBlock &B : MF) {
     assert(B.getNumber() >= 0 && "Disconnected block");
-    unsigned BN = B.getNumber();
-    if (BN > MaxBN)
+    
+    if (unsigned BN = B.getNumber(); BN > MaxBN)
       MaxBN = BN;
   }
 

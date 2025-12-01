@@ -542,13 +542,13 @@ static SDValue performANDCombine(SDNode *N, SelectionDAG &DAG,
 
   SDValue Op0 = N->getOperand(0);
   SDValue Op1 = N->getOperand(1);
-  unsigned Op0Opcode = Op0->getOpcode();
+  
 
   // (and (MipsVExtract[SZ]Ext $a, $b, $c), imm:$d)
   // where $d + 1 == 2^n and n == 32
   // or    $d + 1 == 2^n and n <= 32 and ZExt
   // -> (MipsVExtractZExt $a, $b, $c)
-  if (Op0Opcode == MipsISD::VEXTRACT_SEXT_ELT ||
+  if (unsigned Op0Opcode = Op0->getOpcode(); Op0Opcode == MipsISD::VEXTRACT_SEXT_ELT ||
       Op0Opcode == MipsISD::VEXTRACT_ZEXT_ELT) {
     ConstantSDNode *Mask = dyn_cast<ConstantSDNode>(Op1);
 
@@ -952,13 +952,13 @@ static SDValue performSRACombine(SDNode *N, SelectionDAG &DAG,
 
   if (Subtarget.hasMSA()) {
     SDValue Op0 = N->getOperand(0);
-    SDValue Op1 = N->getOperand(1);
+    
 
     // (sra (shl (MipsVExtract[SZ]Ext $a, $b, $c), imm:$d), imm:$d)
     // where $d + sizeof($c) == 32
     // or    $d + sizeof($c) <= 32 and SExt
     // -> (MipsVExtractSExt $a, $b, $c)
-    if (Op0->getOpcode() == ISD::SHL && Op1 == Op0->getOperand(1)) {
+    if (SDValue Op1 = N->getOperand(1); Op0->getOpcode() == ISD::SHL && Op1 == Op0->getOperand(1)) {
       SDValue Op0Op0 = Op0->getOperand(0);
       ConstantSDNode *ShAmount = dyn_cast<ConstantSDNode>(Op1);
 
@@ -1003,9 +1003,9 @@ static SDValue performSRLCombine(SDNode *N, SelectionDAG &DAG,
 }
 
 static bool isLegalDSPCondCode(EVT Ty, ISD::CondCode CC) {
-  bool IsV216 = (Ty == MVT::v2i16);
+  
 
-  switch (CC) {
+  switch (bool IsV216 = (Ty == MVT::v2i16); CC) {
   case ISD::SETEQ:
   case ISD::SETNE:  return true;
   case ISD::SETLT:
@@ -1596,8 +1596,8 @@ static SDValue lowerMSABitClearImm(SDValue Op, SelectionDAG &DAG) {
 SDValue MipsSETargetLowering::lowerINTRINSIC_WO_CHAIN(SDValue Op,
                                                       SelectionDAG &DAG) const {
   SDLoc DL(Op);
-  unsigned Intrinsic = Op->getConstantOperandVal(0);
-  switch (Intrinsic) {
+  
+  switch (unsigned Intrinsic = Op->getConstantOperandVal(0); Intrinsic) {
   default:
     return SDValue();
   case Intrinsic::mips_shilo:
@@ -2030,8 +2030,8 @@ SDValue MipsSETargetLowering::lowerINTRINSIC_WO_CHAIN(SDValue Op,
     case Intrinsic::mips_insve_d: Max = 1; break;
     default: llvm_unreachable("Unmatched intrinsic");
     }
-    int64_t Value = cast<ConstantSDNode>(Op->getOperand(2))->getSExtValue();
-    if (Value < 0 || Value > Max)
+    
+    if (int64_t Value = cast<ConstantSDNode>(Op->getOperand(2))->getSExtValue(); Value < 0 || Value > Max)
       report_fatal_error("Immediate out of range");
     return DAG.getNode(MipsISD::INSVE, DL, Op->getValueType(0),
                        Op->getOperand(1), Op->getOperand(2), Op->getOperand(3),
@@ -2193,16 +2193,16 @@ SDValue MipsSETargetLowering::lowerINTRINSIC_WO_CHAIN(SDValue Op,
     case Intrinsic::mips_sat_u_d: Max = 63; break;
     default: llvm_unreachable("Unmatched intrinsic");
     }
-    int64_t Value = cast<ConstantSDNode>(Op->getOperand(2))->getSExtValue();
-    if (Value < 0 || Value > Max)
+    
+    if (int64_t Value = cast<ConstantSDNode>(Op->getOperand(2))->getSExtValue(); Value < 0 || Value > Max)
       report_fatal_error("Immediate out of range");
     return SDValue();
   }
   case Intrinsic::mips_shf_b:
   case Intrinsic::mips_shf_h:
   case Intrinsic::mips_shf_w: {
-    int64_t Value = cast<ConstantSDNode>(Op->getOperand(2))->getSExtValue();
-    if (Value < 0 || Value > 255)
+    
+    if (int64_t Value = cast<ConstantSDNode>(Op->getOperand(2))->getSExtValue(); Value < 0 || Value > 255)
       report_fatal_error("Immediate out of range");
     return DAG.getNode(MipsISD::SHF, DL, Op->getValueType(0),
                        Op->getOperand(2), Op->getOperand(1));
@@ -2220,8 +2220,8 @@ SDValue MipsSETargetLowering::lowerINTRINSIC_WO_CHAIN(SDValue Op,
     case Intrinsic::mips_sldi_d: Max = 1; break;
     default: llvm_unreachable("Unmatched intrinsic");
     }
-    int64_t Value = cast<ConstantSDNode>(Op->getOperand(3))->getSExtValue();
-    if (Value < 0 || Value > Max)
+    
+    if (int64_t Value = cast<ConstantSDNode>(Op->getOperand(3))->getSExtValue(); Value < 0 || Value > Max)
       report_fatal_error("Immediate out of range");
     return SDValue();
   }
@@ -2280,8 +2280,8 @@ SDValue MipsSETargetLowering::lowerINTRINSIC_WO_CHAIN(SDValue Op,
     case Intrinsic::mips_srari_d: Max = 63; break;
     default: llvm_unreachable("Unmatched intrinsic");
     }
-    int64_t Value = cast<ConstantSDNode>(Op->getOperand(2))->getSExtValue();
-    if (Value < 0 || Value > Max)
+    
+    if (int64_t Value = cast<ConstantSDNode>(Op->getOperand(2))->getSExtValue(); Value < 0 || Value > Max)
       report_fatal_error("Immediate out of range");
     return SDValue();
   }
@@ -2310,8 +2310,8 @@ SDValue MipsSETargetLowering::lowerINTRINSIC_WO_CHAIN(SDValue Op,
     case Intrinsic::mips_srlri_d: Max = 63; break;
     default: llvm_unreachable("Unmatched intrinsic");
     }
-    int64_t Value = cast<ConstantSDNode>(Op->getOperand(2))->getSExtValue();
-    if (Value < 0 || Value > Max)
+    
+    if (int64_t Value = cast<ConstantSDNode>(Op->getOperand(2))->getSExtValue(); Value < 0 || Value > Max)
       report_fatal_error("Immediate out of range");
     return SDValue();
   }
@@ -2368,8 +2368,8 @@ static SDValue lowerMSALoadIntr(SDValue Op, SelectionDAG &DAG, unsigned Intr,
 
 SDValue MipsSETargetLowering::lowerINTRINSIC_W_CHAIN(SDValue Op,
                                                      SelectionDAG &DAG) const {
-  unsigned Intr = Op->getConstantOperandVal(1);
-  switch (Intr) {
+  
+  switch (unsigned Intr = Op->getConstantOperandVal(1); Intr) {
   default:
     return SDValue();
   case Intrinsic::mips_extp:
@@ -2443,8 +2443,8 @@ static SDValue lowerMSAStoreIntr(SDValue Op, SelectionDAG &DAG, unsigned Intr,
 
 SDValue MipsSETargetLowering::lowerINTRINSIC_VOID(SDValue Op,
                                                   SelectionDAG &DAG) const {
-  unsigned Intr = Op->getConstantOperandVal(1);
-  switch (Intr) {
+  
+  switch (unsigned Intr = Op->getConstantOperandVal(1); Intr) {
   default:
     return SDValue();
   case Intrinsic::mips_st_b:
@@ -3245,9 +3245,9 @@ MipsSETargetLowering::emitCOPY_FW(MachineInstr &MI,
   DebugLoc DL = MI.getDebugLoc();
   Register Fd = MI.getOperand(0).getReg();
   Register Ws = MI.getOperand(1).getReg();
-  unsigned Lane = MI.getOperand(2).getImm();
+  
 
-  if (Lane == 0) {
+  if (unsigned Lane = MI.getOperand(2).getImm(); Lane == 0) {
     unsigned Wt = Ws;
     if (!Subtarget.useOddSPReg()) {
       // We must copy to an even-numbered MSA register so that the

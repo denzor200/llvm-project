@@ -47,10 +47,10 @@ mlir::inferExpandShapeOutputShape(OpBuilder &b, Location loc,
     int64_t indexGroupStaticSizesProductInt = 1;
     bool foundDynamicShape = false;
     for (int64_t index : indexGroup) {
-      int64_t outputDimSize = expandedType.getDimSize(index);
+      
       // Cannot infer expanded shape with multiple dynamic dims in the
       // same reassociation group!
-      if (ShapedType::isDynamic(outputDimSize)) {
+      if (int64_t outputDimSize = expandedType.getDimSize(index); ShapedType::isDynamic(outputDimSize)) {
         if (foundDynamicShape)
           return std::nullopt;
         foundDynamicShape = true;
@@ -191,8 +191,8 @@ static Value convertScalarToComplexDtype(ImplicitLocOpBuilder &b, Value operand,
         isa<FloatType>(fromComplexType.getElementType())) {
       Value real = complex::ReOp::create(b, operand);
       Value imag = complex::ImOp::create(b, operand);
-      Type targetETy = targetType.getElementType();
-      if (targetType.getElementType().getIntOrFloatBitWidth() <
+      
+      if (Type targetETy = targetType.getElementType(); targetType.getElementType().getIntOrFloatBitWidth() <
           fromComplexType.getElementType().getIntOrFloatBitWidth()) {
         real = arith::TruncFOp::create(b, targetETy, real);
         imag = arith::TruncFOp::create(b, targetETy, imag);

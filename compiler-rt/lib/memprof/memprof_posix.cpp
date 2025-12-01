@@ -44,8 +44,8 @@ void TSDSet(void *tsd) {
 }
 
 void PlatformTSDDtor(void *tsd) {
-  MemprofThreadContext *context = (MemprofThreadContext *)tsd;
-  if (context->destructor_iterations > 1) {
+  
+  if (MemprofThreadContext *context = (MemprofThreadContext *)tsd; context->destructor_iterations > 1) {
     context->destructor_iterations--;
     CHECK_EQ(0, pthread_setspecific(tsd_key, tsd));
     return;

@@ -320,8 +320,8 @@ Error DbiStreamBuilder::finalizeMsfLayout() {
       return EC;
   }
 
-  uint32_t Length = calculateSerializedLength();
-  if (auto EC = Msf.setStreamSize(StreamDBI, Length))
+  
+  if (auto uint32_t Length = calculateSerializedLength(); EC = Msf.setStreamSize(StreamDBI, Length))
     return EC;
   return Error::success();
 }
@@ -414,8 +414,8 @@ Error DbiStreamBuilder::commit(const msf::MSFLayout &Layout,
 
   if (!SectionMap.empty()) {
     ulittle16_t Size = static_cast<ulittle16_t>(SectionMap.size());
-    SecMapHeader SMHeader = {Size, Size};
-    if (auto EC = Writer.writeObject(SMHeader))
+    
+    if (auto SecMapHeader SMHeader = {Size, Size}; EC = Writer.writeObject(SMHeader))
       return EC;
     if (auto EC = Writer.writeArray(ArrayRef(SectionMap)))
       return EC;
@@ -442,9 +442,9 @@ Error DbiStreamBuilder::commit(const msf::MSFLayout &Layout,
 
     auto WritableStream = WritableMappedBlockStream::createIndexedStream(
         Layout, MsfBuffer, Stream->StreamNumber, Allocator);
-    BinaryStreamWriter DbgStreamWriter(*WritableStream);
+    
 
-    if (auto EC = Stream->WriteFn(DbgStreamWriter))
+    if (auto BinaryStreamWriter DbgStreamWriter(*WritableStream); EC = Stream->WriteFn(DbgStreamWriter))
       return EC;
   }
 

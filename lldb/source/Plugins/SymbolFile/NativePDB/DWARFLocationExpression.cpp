@@ -43,8 +43,8 @@ static uint32_t GetRegisterNumber(llvm::Triple::ArchType arch_type,
                                   llvm::codeview::RegisterId register_id,
                                   RegisterKind &register_kind) {
   register_kind = eRegisterKindLLDB;
-  uint32_t reg_num = GetLLDBRegisterNumber(arch_type, register_id);
-  if (reg_num != LLDB_INVALID_REGNUM)
+  
+  if (uint32_t reg_num = GetLLDBRegisterNumber(arch_type, register_id); reg_num != LLDB_INVALID_REGNUM)
     return reg_num;
 
   register_kind = eRegisterKindGeneric;
@@ -81,8 +81,8 @@ static std::pair<size_t, bool> GetIntegralTypeInfo(TypeIndex ti,
     return {GetTypeSizeForSimpleKind(stk), IsSimpleTypeSignedInteger(stk)};
   }
 
-  CVType cvt = tpi.getType(ti);
-  switch (cvt.kind()) {
+  
+  switch (CVType cvt = tpi.getType(ti); cvt.kind()) {
   case LF_MODIFIER: {
     ModifierRecord mfr;
     llvm::cantFail(TypeDeserializer::deserializeAs<ModifierRecord>(cvt, mfr));
@@ -185,9 +185,9 @@ DWARFExpression lldb_private::npdb::MakeVFrameRelLocationExpression(
     llvm::StringRef fpo_program, int32_t offset, lldb::ModuleSP module) {
   return MakeLocationExpressionInternal(
       module, [&](Stream &stream, RegisterKind &register_kind) -> bool {
-        const ArchSpec &architecture = module->GetArchitecture();
+        
 
-        if (!EmitVFrameEvaluationDWARFExpression(fpo_program, architecture.GetMachine(),
+        if (const ArchSpec &architecture = module->GetArchitecture(); !EmitVFrameEvaluationDWARFExpression(fpo_program, architecture.GetMachine(),
                                                  stream))
           return false;
 

@@ -200,9 +200,9 @@ static MCInst *getCompoundInsn(MCContext &Context, MCInst const &L,
   unsigned compoundOpcode;
   MCOperand Rs, Rt;
   int64_t Value;
-  bool Success;
+  
 
-  switch (L.getOpcode()) {
+  switch (bool Success; L.getOpcode()) {
   default:
     LLVM_DEBUG(dbgs() << "Possible compound ignored\n");
     return CompoundInsn;
@@ -338,8 +338,8 @@ static bool isOrderedCompoundPair(MCInst const &MIa, bool IsExtendedA,
   unsigned MIbG = getCompoundCandidateGroup(MIb, IsExtendedB);
   // We have two candidates - check that this is the same register
   // we are talking about.
-  unsigned Opca = MIa.getOpcode();
-  if (MIaG == HexagonII::HCG_A && MIbG == HexagonII::HCG_C &&
+  
+  if (unsigned Opca = MIa.getOpcode(); MIaG == HexagonII::HCG_A && MIbG == HexagonII::HCG_C &&
       (Opca == Hexagon::A2_tfr || Opca == Hexagon::A2_tfrsi))
     return true;
   return ((MIaG == HexagonII::HCG_A && MIbG == HexagonII::HCG_B) &&
@@ -376,8 +376,8 @@ static bool lookForCompound(MCInstrInfo const &MCII, MCContext &Context,
         LLVM_DEBUG(dbgs() << "J,B: " << JumpInst->getOpcode() << ","
                           << Inst->getOpcode() << "\n");
         if (isOrderedCompoundPair(*Inst, BExtended, *JumpInst, JExtended)) {
-          MCInst *CompoundInsn = getCompoundInsn(Context, *Inst, *JumpInst);
-          if (CompoundInsn) {
+          
+          if (MCInst *CompoundInsn = getCompoundInsn(Context, *Inst, *JumpInst); CompoundInsn) {
             LLVM_DEBUG(dbgs() << "B: " << Inst->getOpcode() << ","
                               << JumpInst->getOpcode() << " Compounds to "
                               << CompoundInsn->getOpcode() << "\n");
@@ -421,8 +421,8 @@ void HexagonMCInstrInfo::tryCompound(MCInstrInfo const &MCII, MCSubtargetInfo co
     // Need to update the bundle.
     MCI = CheckList;
 
-    const bool IsValid = llvm::HexagonMCShuffle(Context, false, MCII, STI, MCI);
-    if (PreviouslyValid && !IsValid) {
+    
+    if (const bool IsValid = llvm::HexagonMCShuffle(Context, false, MCII, STI, MCI); PreviouslyValid && !IsValid) {
       LLVM_DEBUG(dbgs() << "Found ERROR\n");
       MCI = LastValidBundle;
     } else if (IsValid) {

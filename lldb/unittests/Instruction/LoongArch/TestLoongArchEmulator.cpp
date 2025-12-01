@@ -63,8 +63,8 @@ struct LoongArch64EmulatorTester : public EmulateInstructionLoongArch,
                                    RegisterValue &reg_value) {
     LoongArch64EmulatorTester *tester =
         (LoongArch64EmulatorTester *)instruction;
-    uint32_t reg = reg_info->kinds[eRegisterKindLLDB];
-    if (reg >= gpr_r0_loongarch && reg <= gpr_r31_loongarch)
+    
+    if (uint32_t reg = reg_info->kinds[eRegisterKindLLDB]; reg >= gpr_r0_loongarch && reg <= gpr_r31_loongarch)
       reg_value.SetUInt(tester->gpr.gpr[reg], reg_info->byte_size);
     else if (reg == gpr_orig_a0_loongarch)
       reg_value.SetUInt(tester->gpr.orig_a0, reg_info->byte_size);
@@ -84,8 +84,8 @@ struct LoongArch64EmulatorTester : public EmulateInstructionLoongArch,
                                     const RegisterValue &reg_value) {
     LoongArch64EmulatorTester *tester =
         (LoongArch64EmulatorTester *)instruction;
-    uint32_t reg = reg_info->kinds[eRegisterKindLLDB];
-    if (reg >= gpr_r0_loongarch && reg <= gpr_r31_loongarch)
+    
+    if (uint32_t reg = reg_info->kinds[eRegisterKindLLDB]; reg >= gpr_r0_loongarch && reg <= gpr_r31_loongarch)
       tester->gpr.gpr[reg] = reg_value.GetAsUInt64();
     else if (reg == gpr_orig_a0_loongarch)
       tester->gpr.orig_a0 = reg_value.GetAsUInt64();

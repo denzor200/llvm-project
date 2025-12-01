@@ -51,8 +51,8 @@ ThreadLauncher::LaunchThread(llvm::StringRef name,
   if (min_stack_byte_size > 0) {
     if (::pthread_attr_init(&thread_attr) == 0) {
       destroy_attr = true;
-      size_t default_min_stack_byte_size = 0;
-      if (::pthread_attr_getstacksize(&thread_attr,
+      
+      if (size_t default_min_stack_byte_size = 0; ::pthread_attr_getstacksize(&thread_attr,
                                       &default_min_stack_byte_size) == 0) {
         if (default_min_stack_byte_size < min_stack_byte_size) {
           if (::pthread_attr_setstacksize(&thread_attr, min_stack_byte_size) ==

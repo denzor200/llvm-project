@@ -117,9 +117,9 @@ StateType ThreadPlanStepOverBreakpoint::GetPlanRunState() {
 bool ThreadPlanStepOverBreakpoint::DoWillResume(StateType resume_state,
                                                 bool current_plan) {
   if (current_plan) {
-    BreakpointSiteSP bp_site_sp(
-        m_process.GetBreakpointSiteList().FindByAddress(m_breakpoint_addr));
-    if (bp_site_sp && bp_site_sp->IsEnabled()) {
+    
+    if (BreakpointSiteSP bp_site_sp(
+        m_process.GetBreakpointSiteList().FindByAddress(m_breakpoint_addr)); bp_site_sp && bp_site_sp->IsEnabled()) {
       m_process.DisableBreakpointSite(bp_site_sp.get());
       m_reenabled_breakpoint_site = false;
     }
@@ -155,9 +155,9 @@ bool ThreadPlanStepOverBreakpoint::MischiefManaged() {
 void ThreadPlanStepOverBreakpoint::ReenableBreakpointSite() {
   if (!m_reenabled_breakpoint_site) {
     m_reenabled_breakpoint_site = true;
-    BreakpointSiteSP bp_site_sp(
-        m_process.GetBreakpointSiteList().FindByAddress(m_breakpoint_addr));
-    if (bp_site_sp) {
+    
+    if (BreakpointSiteSP bp_site_sp(
+        m_process.GetBreakpointSiteList().FindByAddress(m_breakpoint_addr)); bp_site_sp) {
       m_process.EnableBreakpointSite(bp_site_sp.get());
     }
   }

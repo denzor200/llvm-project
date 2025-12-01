@@ -143,8 +143,8 @@ void __dfsan::dfsan_deallocate(void *p) {
   meta->requested_size = 0;
   if (flags().zero_in_free)
     dfsan_set_label(0, p, size);
-  DFsanThread *t = GetCurrentThread();
-  if (t) {
+  
+  if (DFsanThread *t = GetCurrentThread(); t) {
     AllocatorCache *cache = GetAllocatorCache(&t->malloc_storage());
     allocator.Deallocate(cache, p);
   } else {
@@ -157,8 +157,8 @@ void __dfsan::dfsan_deallocate(void *p) {
 static void *DFsanReallocate(void *old_p, uptr new_size, uptr alignment) {
   Metadata *meta = reinterpret_cast<Metadata *>(allocator.GetMetaData(old_p));
   uptr old_size = meta->requested_size;
-  uptr actually_allocated_size = allocator.GetActuallyAllocatedSize(old_p);
-  if (new_size <= actually_allocated_size) {
+  
+  if (uptr actually_allocated_size = allocator.GetActuallyAllocatedSize(old_p); new_size <= actually_allocated_size) {
     // We are not reallocating here.
     meta->requested_size = new_size;
     if (new_size > old_size && flags().zero_in_malloc)
@@ -201,8 +201,8 @@ static const void *AllocationBegin(const void *p) {
 static uptr AllocationSize(const void *p) {
   if (!p)
     return 0;
-  const void *beg = allocator.GetBlockBegin(p);
-  if (beg != p)
+  
+  if (const void *beg = allocator.GetBlockBegin(p); beg != p)
     return 0;
   Metadata *b = (Metadata *)allocator.GetMetaData(p);
   return b->requested_size;

@@ -67,10 +67,10 @@ RootSignatureToken RootSignatureLexer::lexToken() {
   }
 
   // Peek at the next character to deteremine token type
-  char NextC = Buffer[1];
+  
 
   // Registers: [tsub][0-9+]
-  if ((C == 't' || C == 's' || C == 'u' || C == 'b') && isdigit(NextC)) {
+  if (char NextC = Buffer[1]; (C == 't' || C == 's' || C == 'u' || C == 'b') && isdigit(NextC)) {
     // Convert character to the register type.
     switch (C) {
     case 'b':

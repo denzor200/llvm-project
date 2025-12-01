@@ -30,8 +30,8 @@ private:
 ABIArgInfo VEABIInfo::classifyReturnType(QualType Ty) const {
   if (Ty->isAnyComplexType())
     return ABIArgInfo::getDirect();
-  uint64_t Size = getContext().getTypeSize(Ty);
-  if (Size < 64 && Ty->isIntegerType())
+  
+  if (uint64_t Size = getContext().getTypeSize(Ty); Size < 64 && Ty->isIntegerType())
     return ABIArgInfo::getExtend(Ty);
   return DefaultABIInfo::classifyReturnType(Ty);
 }
@@ -39,8 +39,8 @@ ABIArgInfo VEABIInfo::classifyReturnType(QualType Ty) const {
 ABIArgInfo VEABIInfo::classifyArgumentType(QualType Ty) const {
   if (Ty->isAnyComplexType())
     return ABIArgInfo::getDirect();
-  uint64_t Size = getContext().getTypeSize(Ty);
-  if (Size < 64 && Ty->isIntegerType())
+  
+  if (uint64_t Size = getContext().getTypeSize(Ty); Size < 64 && Ty->isIntegerType())
     return ABIArgInfo::getExtend(Ty);
   return DefaultABIInfo::classifyArgumentType(Ty);
 }

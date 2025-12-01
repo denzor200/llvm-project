@@ -144,8 +144,8 @@ uptr *StackStore::BlockInfo::Create(StackStore *store) {
 }
 
 uptr *StackStore::BlockInfo::GetOrCreate(StackStore *store) {
-  uptr *ptr = Get();
-  if (LIKELY(ptr))
+  
+  if (uptr *ptr = Get(); LIKELY(ptr))
     return ptr;
   return Create(store);
 }

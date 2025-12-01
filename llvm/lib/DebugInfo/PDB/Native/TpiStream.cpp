@@ -166,8 +166,8 @@ std::vector<TypeIndex> TpiStream::findRecordsByName(StringRef Name) const {
 
   std::vector<TypeIndex> Result;
   for (TypeIndex TI : HashMap[Bucket]) {
-    std::string ThisName = computeTypeName(*Types, TI);
-    if (ThisName == Name)
+    
+    if (std::string ThisName = computeTypeName(*Types, TI); ThisName == Name)
       Result.push_back(TI);
   }
   return Result;

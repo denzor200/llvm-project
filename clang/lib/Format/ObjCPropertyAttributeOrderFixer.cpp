@@ -143,8 +143,8 @@ void ObjCPropertyAttributeOrderFixer::sortPropertyAttributes(
   auto Range = CharSourceRange::getCharRange(
       BeginTok->getStartOfNonWhitespace(), EndTok->Previous->Tok.getEndLoc());
   auto Replacement = tooling::Replacement(SourceMgr, Range, NewText);
-  auto Err = Fixes.add(Replacement);
-  if (Err) {
+  
+  if (auto Err = Fixes.add(Replacement); Err) {
     llvm::errs() << "Error while reodering ObjC property attributes : "
                  << llvm::toString(std::move(Err)) << "\n";
   }

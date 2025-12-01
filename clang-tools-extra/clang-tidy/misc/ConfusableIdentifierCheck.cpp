@@ -55,10 +55,10 @@ static llvm::SmallString<64U> skeleton(StringRef Name) {
   while (Curr < End) {
     const char *Prev = Curr;
     UTF32 CodePoint = 0;
-    const ConversionResult Result = convertUTF8Sequence(
+    
+    if (const ConversionResult Result = convertUTF8Sequence(
         reinterpret_cast<const UTF8 **>(&Curr),
-        reinterpret_cast<const UTF8 *>(End), &CodePoint, strictConversion);
-    if (Result != conversionOK) {
+        reinterpret_cast<const UTF8 *>(End), &CodePoint, strictConversion); Result != conversionOK) {
       errs() << "Unicode conversion issue\n";
       break;
     }

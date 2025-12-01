@@ -146,8 +146,8 @@ bool XCOFFWriter::initSectionHeaders(uint64_t &CurrentOffset) {
   for (uint16_t I = 0, E = InitSections.size(); I < E; ++I) {
     // Assign indices for sections.
     if (InitSections[I].SectionName.size()) {
-      int16_t &SectionIndex = SectionIndexMap[InitSections[I].SectionName];
-      if (!SectionIndex) {
+      
+      if (int16_t &SectionIndex = SectionIndexMap[InitSections[I].SectionName]; !SectionIndex) {
         // The section index starts from 1.
         SectionIndex = I + 1;
         if ((I + 1) > MaxSectionIndex) {
@@ -293,8 +293,8 @@ bool XCOFFWriter::initStringTable() {
 
   StrTblBuilder.finalize();
 
-  size_t StrTblSize = StrTblBuilder.getSize();
-  if (Obj.StrTbl.ContentSize && *Obj.StrTbl.ContentSize < StrTblSize) {
+  
+  if (size_t StrTblSize = StrTblBuilder.getSize(); Obj.StrTbl.ContentSize && *Obj.StrTbl.ContentSize < StrTblSize) {
     ErrHandler("specified ContentSize (" + Twine(*Obj.StrTbl.ContentSize) +
                ") is less than the size of the data that would otherwise be "
                "written (" +
@@ -558,8 +558,8 @@ void XCOFFWriter::writeSectionHeaders() {
 
 bool XCOFFWriter::writeSectionData() {
   for (uint16_t I = 0, E = Obj.Sections.size(); I < E; ++I) {
-    XCOFFYAML::Section YamlSec = Obj.Sections[I];
-    if (YamlSec.SectionData.binary_size()) {
+    
+    if (XCOFFYAML::Section YamlSec = Obj.Sections[I]; YamlSec.SectionData.binary_size()) {
       // Fill the padding size with zeros.
       int64_t PaddingSize = (uint64_t)InitSections[I].FileOffsetToData -
                             (W.OS.tell() - StartOffset);
@@ -576,8 +576,8 @@ bool XCOFFWriter::writeSectionData() {
 
 bool XCOFFWriter::writeRelocations() {
   for (uint16_t I = 0, E = Obj.Sections.size(); I < E; ++I) {
-    XCOFFYAML::Section YamlSec = Obj.Sections[I];
-    if (!YamlSec.Relocations.empty()) {
+    
+    if (XCOFFYAML::Section YamlSec = Obj.Sections[I]; !YamlSec.Relocations.empty()) {
       int64_t PaddingSize =
           InitSections[I].FileOffsetToRelocations - (W.OS.tell() - StartOffset);
       if (PaddingSize < 0) {
@@ -619,11 +619,11 @@ bool XCOFFWriter::writeAuxSymbol(const XCOFFYAML::CsectAuxEnt &AuxSym) {
       SymAlignAndType = SymbolType;
     }
     if (AuxSym.SymbolAlignment) {
-      const uint8_t ShiftedSymbolAlignmentMask =
-          XCOFFCsectAuxRef::SymbolAlignmentMask >>
-          XCOFFCsectAuxRef::SymbolAlignmentBitOffset;
+      
 
-      if (*AuxSym.SymbolAlignment & ~ShiftedSymbolAlignmentMask) {
+      if (const uint8_t ShiftedSymbolAlignmentMask =
+          XCOFFCsectAuxRef::SymbolAlignmentMask >>
+          XCOFFCsectAuxRef::SymbolAlignmentBitOffset; *AuxSym.SymbolAlignment & ~ShiftedSymbolAlignmentMask) {
         ErrHandler("symbol alignment must be less than " +
                    Twine(1 + ShiftedSymbolAlignmentMask));
         return false;
@@ -681,8 +681,8 @@ bool XCOFFWriter::writeAuxSymbol(const XCOFFYAML::FunctionAuxEnt &AuxSym) {
 }
 
 bool XCOFFWriter::writeAuxSymbol(const XCOFFYAML::FileAuxEnt &AuxSym) {
-  StringRef FileName = AuxSym.FileNameOrString.value_or("");
-  if (nameShouldBeInStringTable(FileName)) {
+  
+  if (StringRef FileName = AuxSym.FileNameOrString.value_or(""); nameShouldBeInStringTable(FileName)) {
     W.write<int32_t>(0);
     W.write<uint32_t>(StrTblBuilder.getOffset(FileName));
   } else {

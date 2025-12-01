@@ -353,8 +353,8 @@ DecomposeLinalgOp::matchAndRewrite(GenericOp genericOp,
   /// the peeled operation.
   SmallVector<Value> replacements;
   for (const auto &yieldValue : llvm::enumerate(yieldOp->getOperands())) {
-    OpResult opr = dyn_cast<OpResult>(yieldValue.value());
-    if (!opr || opr.getOwner() != peeledScalarOperation)
+    
+    if (OpResult opr = dyn_cast<OpResult>(yieldValue.value()); !opr || opr.getOwner() != peeledScalarOperation)
       replacements.push_back(residualGenericOp.getResult(yieldValue.index()));
     else
       replacements.push_back(peeledGenericOp->getResult(yieldValue.index()));

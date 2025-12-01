@@ -318,8 +318,8 @@ private:
   void visitLoad(LoadInst &I,
                  SmallDenseMap<CVPLatticeKey, CVPLatticeVal, 16> &ChangedValues,
                  SparseSolver<CVPLatticeKey, CVPLatticeVal> &SS) {
-    auto RegI = CVPLatticeKey(&I, IPOGrouping::Register);
-    if (auto *GV = dyn_cast<GlobalVariable>(I.getPointerOperand())) {
+    
+    if (auto *auto RegI = CVPLatticeKey(&I, IPOGrouping::Register); GV = dyn_cast<GlobalVariable>(I.getPointerOperand())) {
       auto MemGV = CVPLatticeKey(GV, IPOGrouping::Memory);
       ChangedValues[RegI] =
           MergeValues(SS.getValueState(RegI), SS.getValueState(MemGV));

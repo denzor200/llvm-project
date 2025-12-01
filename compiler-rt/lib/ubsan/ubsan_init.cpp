@@ -56,8 +56,8 @@ static void CommonStandaloneInit() {
 }
 
 void __ubsan::InitAsStandalone() {
-  SpinMutexLock l(&ubsan_init_mu);
-  if (!ubsan_initialized) {
+  
+  if (SpinMutexLock l(&ubsan_init_mu); !ubsan_initialized) {
     CommonStandaloneInit();
     ubsan_initialized = true;
   }
@@ -66,8 +66,8 @@ void __ubsan::InitAsStandalone() {
 void __ubsan::InitAsStandaloneIfNecessary() { return InitAsStandalone(); }
 
 void __ubsan::InitAsPlugin() {
-  SpinMutexLock l(&ubsan_init_mu);
-  if (!ubsan_initialized) {
+  
+  if (SpinMutexLock l(&ubsan_init_mu); !ubsan_initialized) {
     CommonInit();
     ubsan_initialized = true;
   }

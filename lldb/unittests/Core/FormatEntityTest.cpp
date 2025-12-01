@@ -23,8 +23,8 @@ using Entry = FormatEntity::Entry;
 static Expected<std::string> Format(StringRef format_str) {
   StreamString stream;
   FormatEntity::Entry format;
-  Status status = FormatEntity::Parse(format_str, format);
-  if (status.Fail())
+  
+  if (Status status = FormatEntity::Parse(format_str, format); status.Fail())
     return status.ToError();
 
   FormatEntity::Format(format, stream, nullptr, nullptr, nullptr, nullptr,

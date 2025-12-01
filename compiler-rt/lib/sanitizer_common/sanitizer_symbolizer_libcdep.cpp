@@ -93,8 +93,8 @@ SymbolizedStack *Symbolizer::SymbolizePC(uptr addr) {
   // Always fill data about module name and offset.
   res->info.FillModuleInfo(*mod);
   for (auto &tool : tools_) {
-    SymbolizerScope sym_scope(this);
-    if (tool.SymbolizePC(addr, res)) {
+    
+    if (SymbolizerScope sym_scope(this); tool.SymbolizePC(addr, res)) {
       return res;
     }
   }
@@ -114,8 +114,8 @@ bool Symbolizer::SymbolizeData(uptr addr, DataInfo *info) {
   info->module_offset = module_offset;
   info->module_arch = arch;
   for (auto &tool : tools_) {
-    SymbolizerScope sym_scope(this);
-    if (tool.SymbolizeData(addr, info)) {
+    
+    if (SymbolizerScope sym_scope(this); tool.SymbolizeData(addr, info)) {
       return true;
     }
   }
@@ -130,8 +130,8 @@ bool Symbolizer::SymbolizeFrame(uptr addr, FrameInfo *info) {
     return false;
   info->module = internal_strdup(module_name);
   for (auto &tool : tools_) {
-    SymbolizerScope sym_scope(this);
-    if (tool.SymbolizeFrame(addr, info)) {
+    
+    if (SymbolizerScope sym_scope(this); tool.SymbolizeFrame(addr, info)) {
       return true;
     }
   }
@@ -142,8 +142,8 @@ bool Symbolizer::GetModuleNameAndOffsetForPC(uptr pc, const char **module_name,
                                              uptr *module_address) {
   Lock l(&mu_);
   const char *internal_module_name = nullptr;
-  ModuleArch arch;
-  if (!FindModuleNameAndOffsetForAddress(pc, &internal_module_name,
+  
+  if (ModuleArch arch; !FindModuleNameAndOffsetForAddress(pc, &internal_module_name,
                                          module_address, &arch))
     return false;
 
@@ -164,8 +164,8 @@ const char *Symbolizer::Demangle(const char *name) {
   CHECK(name);
   Lock l(&mu_);
   for (auto &tool : tools_) {
-    SymbolizerScope sym_scope(this);
-    if (const char *demangled = tool.Demangle(name))
+    
+    if (const char *SymbolizerScope sym_scope(this); demangled = tool.Demangle(name))
       return demangled;
   }
   if (const char *demangled = PlatformDemangle(name))
@@ -569,8 +569,8 @@ bool SymbolizerProcess::WriteToSymbolizer(const char *buffer, uptr length) {
   if (length == 0)
     return true;
   uptr write_len = 0;
-  bool success = WriteToFile(output_fd_, buffer, length, &write_len);
-  if (!success || write_len != length) {
+  
+  if (bool success = WriteToFile(output_fd_, buffer, length, &write_len); !success || write_len != length) {
     Report("WARNING: Can't write to symbolizer at fd %d\n", output_fd_);
     return false;
   }

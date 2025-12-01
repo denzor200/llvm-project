@@ -136,8 +136,8 @@ void SocketAddress::SetFamily(sa_family_t family) {
 }
 
 std::string SocketAddress::GetIPAddress() const {
-  char str[INET6_ADDRSTRLEN] = {0};
-  switch (GetFamily()) {
+  
+  switch (char str[INET6_ADDRSTRLEN] = {0}; GetFamily()) {
   case AF_INET:
     if (inet_ntop(GetFamily(), &m_socket_addr.sa_ipv4.sin_addr, str,
                   sizeof(str)))
@@ -233,8 +233,8 @@ SocketAddress::GetAddressInfo(const char *hostname, const char *servname,
   hints.ai_flags = ai_flags;
 
   struct addrinfo *service_info_list = nullptr;
-  int err = ::getaddrinfo(hostname, servname, &hints, &service_info_list);
-  if (err == 0 && service_info_list) {
+  
+  if (int err = ::getaddrinfo(hostname, servname, &hints, &service_info_list); err == 0 && service_info_list) {
     for (struct addrinfo *service_ptr = service_info_list;
          service_ptr != nullptr; service_ptr = service_ptr->ai_next) {
       addr_list.emplace_back(SocketAddress(service_ptr));

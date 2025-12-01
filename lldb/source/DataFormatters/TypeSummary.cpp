@@ -92,8 +92,8 @@ bool StringSummaryFormat::FormatObject(ValueObject *valobj, std::string &retval,
   StreamString s;
   ExecutionContext exe_ctx(valobj->GetExecutionContextRef());
   SymbolContext sc;
-  StackFrame *frame = exe_ctx.GetFramePtr();
-  if (frame)
+  
+  if (StackFrame *frame = exe_ctx.GetFramePtr(); frame)
     sc = frame->GetSymbolContext(lldb::eSymbolContextEverything);
 
   if (IsOneLiner()) {

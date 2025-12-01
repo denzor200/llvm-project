@@ -124,10 +124,10 @@ static bool hasRTLCharacters(StringRef Buffer) {
   const char *EndPtr = Buffer.end();
   while (CurPtr < EndPtr) {
     llvm::UTF32 CodePoint = 0;
-    const llvm::ConversionResult Result = llvm::convertUTF8Sequence(
+    
+    if (const llvm::ConversionResult Result = llvm::convertUTF8Sequence(
         (const llvm::UTF8 **)&CurPtr, (const llvm::UTF8 *)EndPtr, &CodePoint,
-        llvm::strictConversion);
-    if (Result != llvm::conversionOK)
+        llvm::strictConversion); Result != llvm::conversionOK)
       break;
     if (isUnassignedAL(CodePoint) || isUnassignedR(CodePoint) || isR(CodePoint))
       return true;
@@ -144,10 +144,10 @@ MisleadingIdentifierCheck::~MisleadingIdentifierCheck() = default;
 void MisleadingIdentifierCheck::check(
     const ast_matchers::MatchFinder::MatchResult &Result) {
   if (const auto *ND = Result.Nodes.getNodeAs<NamedDecl>("nameddecl")) {
-    const IdentifierInfo *II = ND->getIdentifier();
-    if (II) {
-      const StringRef NDName = II->getName();
-      if (hasRTLCharacters(NDName))
+    
+    if (const IdentifierInfo *II = ND->getIdentifier(); II) {
+      
+      if (const StringRef NDName = II->getName(); hasRTLCharacters(NDName))
         diag(ND->getBeginLoc(), "identifier has right-to-left codepoints");
     }
   }

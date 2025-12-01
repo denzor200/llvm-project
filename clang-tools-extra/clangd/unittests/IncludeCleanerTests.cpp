@@ -199,8 +199,8 @@ TEST(IncludeCleaner, ComputeMissingHeaders) {
   const NamedDecl *BDecl = nullptr;
   for (Decl *D : AST.getASTContext().getTranslationUnitDecl()->decls()) {
     const NamedDecl *CandidateDecl = llvm::dyn_cast<NamedDecl>(D);
-    std::string Name = CandidateDecl->getQualifiedNameAsString();
-    if (Name != "b")
+    
+    if (std::string Name = CandidateDecl->getQualifiedNameAsString(); Name != "b")
       continue;
     BDecl = CandidateDecl;
   }

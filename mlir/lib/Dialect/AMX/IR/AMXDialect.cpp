@@ -57,8 +57,8 @@ static LogicalResult verifyMultShape(Operation *op, amx::TileType atp,
                                      unsigned scale) {
   unsigned am = atp.getDimSize(0), ak = atp.getDimSize(1) >> scale;
   unsigned bk = btp.getDimSize(0), bn = btp.getDimSize(1) >> scale;
-  unsigned cm = ctp.getDimSize(0), cn = ctp.getDimSize(1);
-  if (cm != am || cn != bn || ak != bk)
+  
+  if (unsigned cm = ctp.getDimSize(0), cn = ctp.getDimSize(1); cm != am || cn != bn || ak != bk)
     return op->emitOpError("bad mult shape: ")
            << cm << " x " << cn << " x " << ak;
   return success();
@@ -143,8 +143,8 @@ static LogicalResult tileTransferVerifier(OpTy op) {
     if (rank < 2)
       return op.emitOpError("requires at least 2D memref");
     SmallVector<int64_t> strides;
-    int64_t offset;
-    if (failed(memrefTy.getStridesAndOffset(strides, offset)) ||
+    
+    if (int64_t offset; failed(memrefTy.getStridesAndOffset(strides, offset)) ||
         strides.back() != 1)
       return op.emitOpError("requires memref with unit innermost stride");
   }

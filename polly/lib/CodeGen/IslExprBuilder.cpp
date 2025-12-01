@@ -101,8 +101,8 @@ bool IslExprBuilder::hasLargeInts(isl::ast_expr Expr) {
   int NumArgs = isl_ast_expr_get_op_n_arg(Expr.get());
 
   for (int i = 0; i < NumArgs; i++) {
-    isl::ast_expr Operand = Expr.get_op_arg(i);
-    if (hasLargeInts(Operand))
+    
+    if (isl::ast_expr Operand = Expr.get_op_arg(i); hasLargeInts(Operand))
       return true;
   }
 
@@ -126,8 +126,8 @@ Value *IslExprBuilder::createBinOp(BinaryOperator::BinaryOps Opc, Value *LHS,
   }
 
   Function *F = nullptr;
-  Module *M = Builder.GetInsertBlock()->getModule();
-  switch (Opc) {
+  
+  switch (Module *M = Builder.GetInsertBlock()->getModule(); Opc) {
   case Instruction::Add:
     F = Intrinsic::getOrInsertDeclaration(M, Intrinsic::sadd_with_overflow,
                                           {LHS->getType()});
@@ -424,8 +424,8 @@ Value *IslExprBuilder::createOpBin(__isl_take isl_ast_expr *Expr) {
     break;
   case isl_ast_op_fdiv_q: { // Round towards -infty
     if (auto *Const = dyn_cast<ConstantInt>(RHS)) {
-      auto &Val = Const->getValue();
-      if (Val.isPowerOf2() && Val.isNonNegative()) {
+      
+      if (auto &Val = Const->getValue(); Val.isPowerOf2() && Val.isNonNegative()) {
         Res = Builder.CreateAShr(LHS, Val.ceilLogBase2(), "polly.fdiv_q.shr");
         break;
       }
@@ -763,8 +763,8 @@ Value *IslExprBuilder::createInt(__isl_take isl_ast_expr *Expr) {
   Val = isl_ast_expr_get_val(Expr);
   APValue = APIntFromVal(Val);
 
-  auto BitWidth = APValue.getBitWidth();
-  if (BitWidth <= 64)
+  
+  if (auto BitWidth = APValue.getBitWidth(); BitWidth <= 64)
     T = getType(Expr);
   else
     T = Builder.getIntNTy(BitWidth);

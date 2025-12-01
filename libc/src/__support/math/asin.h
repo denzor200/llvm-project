@@ -91,9 +91,9 @@ LIBC_INLINE static constexpr double asin(double x) {
     // Ziv's accuracy test.
 
     double r_upper = r0.hi + (r_lo + err);
-    double r_lower = r0.hi + (r_lo - err);
+    
 
-    if (LIBC_LIKELY(r_upper == r_lower))
+    if (double r_lower = r0.hi + (r_lo - err); LIBC_LIKELY(r_upper == r_lower))
       return r_upper;
 
     // Ziv's accuracy test failed, perform 128-bit calculation.

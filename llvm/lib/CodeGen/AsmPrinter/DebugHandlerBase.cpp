@@ -119,8 +119,8 @@ void DebugHandlerBase::identifyScopeMarkers() {
   while (!WorkList.empty()) {
     LexicalScope *S = WorkList.pop_back_val();
 
-    const SmallVectorImpl<LexicalScope *> &Children = S->getChildren();
-    if (!Children.empty())
+    
+    if (const SmallVectorImpl<LexicalScope *> &Children = S->getChildren(); !Children.empty())
       WorkList.append(Children.begin(), Children.end());
 
     if (S->isAbstractScope())
@@ -151,9 +151,9 @@ MCSymbol *DebugHandlerBase::getLabelAfterInsn(const MachineInstr *MI) {
 uint64_t DebugHandlerBase::getBaseTypeSize(const DIType *Ty) {
   assert(Ty);
 
-  unsigned Tag = Ty->getTag();
+  
 
-  if (Tag != dwarf::DW_TAG_member && Tag != dwarf::DW_TAG_typedef &&
+  if (unsigned Tag = Ty->getTag(); Tag != dwarf::DW_TAG_member && Tag != dwarf::DW_TAG_typedef &&
       Tag != dwarf::DW_TAG_const_type && Tag != dwarf::DW_TAG_volatile_type &&
       Tag != dwarf::DW_TAG_restrict_type && Tag != dwarf::DW_TAG_atomic_type &&
       Tag != dwarf::DW_TAG_immutable_type &&
@@ -209,13 +209,13 @@ bool DebugHandlerBase::isUnsignedDIType(const DIType *Ty) {
   }
 
   if (auto *DTy = dyn_cast<DIDerivedType>(Ty)) {
-    dwarf::Tag T = (dwarf::Tag)Ty->getTag();
+    
     // Encode pointer constants as unsigned bytes. This is used at least for
     // null pointer constant emission.
     // FIXME: reference and rvalue_reference /probably/ shouldn't be allowed
     // here, but accept them for now due to a bug in SROA producing bogus
     // dbg.values.
-    if (T == dwarf::DW_TAG_pointer_type ||
+    if (dwarf::Tag T = (dwarf::Tag)Ty->getTag(); T == dwarf::DW_TAG_pointer_type ||
         T == dwarf::DW_TAG_ptr_to_member_type ||
         T == dwarf::DW_TAG_reference_type ||
         T == dwarf::DW_TAG_rvalue_reference_type)
@@ -323,8 +323,8 @@ void DebugHandlerBase::beginFunction(const MachineFunction *MF) {
         for (const auto *I = Entries.begin(); I != Entries.end(); ++I) {
           if (!I->isDbgValue())
             continue;
-          const DIExpression *Fragment = I->getInstr()->getDebugExpression();
-          if (std::any_of(Entries.begin(), I,
+          
+          if (const DIExpression *Fragment = I->getInstr()->getDebugExpression(); std::any_of(Entries.begin(), I,
                           [&](DbgValueHistoryMap::Entry Pred) {
                             return Pred.isDbgValue() &&
                                    Fragment->fragmentsOverlap(

@@ -131,10 +131,10 @@ ArrayRef<MCPhysReg> RISCV::getArgGPRs(const RISCVABI::ABI ABI) {
                                        RISCV::X13, RISCV::X14, RISCV::X15,
                                        RISCV::X16, RISCV::X17};
   // The GPRs used for passing arguments in the ILP32E/LP64E ABI.
-  static const MCPhysReg ArgEGPRs[] = {RISCV::X10, RISCV::X11, RISCV::X12,
-                                       RISCV::X13, RISCV::X14, RISCV::X15};
+  
 
-  if (ABI == RISCVABI::ABI_ILP32E || ABI == RISCVABI::ABI_LP64E)
+  if (static const MCPhysReg ArgEGPRs[] = {RISCV::X10, RISCV::X11, RISCV::X12,
+                                       RISCV::X13, RISCV::X14, RISCV::X15}; ABI == RISCVABI::ABI_ILP32E || ABI == RISCVABI::ABI_LP64E)
     return ArrayRef(ArgEGPRs);
 
   return ArrayRef(ArgIGPRs);
@@ -147,11 +147,11 @@ static ArrayRef<MCPhysReg> getArgGPR16s(const RISCVABI::ABI ABI) {
                                        RISCV::X13_H, RISCV::X14_H, RISCV::X15_H,
                                        RISCV::X16_H, RISCV::X17_H};
   // The GPRs used for passing arguments in the ILP32E/LP64E ABI.
-  static const MCPhysReg ArgEGPRs[] = {RISCV::X10_H, RISCV::X11_H,
-                                       RISCV::X12_H, RISCV::X13_H,
-                                       RISCV::X14_H, RISCV::X15_H};
+  
 
-  if (ABI == RISCVABI::ABI_ILP32E || ABI == RISCVABI::ABI_LP64E)
+  if (static const MCPhysReg ArgEGPRs[] = {RISCV::X10_H, RISCV::X11_H,
+                                       RISCV::X12_H, RISCV::X13_H,
+                                       RISCV::X14_H, RISCV::X15_H}; ABI == RISCVABI::ABI_ILP32E || ABI == RISCVABI::ABI_LP64E)
     return ArrayRef(ArgEGPRs);
 
   return ArrayRef(ArgIGPRs);
@@ -164,11 +164,11 @@ static ArrayRef<MCPhysReg> getArgGPR32s(const RISCVABI::ABI ABI) {
                                        RISCV::X13_W, RISCV::X14_W, RISCV::X15_W,
                                        RISCV::X16_W, RISCV::X17_W};
   // The GPRs used for passing arguments in the ILP32E/LP64E ABI.
-  static const MCPhysReg ArgEGPRs[] = {RISCV::X10_W, RISCV::X11_W,
-                                       RISCV::X12_W, RISCV::X13_W,
-                                       RISCV::X14_W, RISCV::X15_W};
+  
 
-  if (ABI == RISCVABI::ABI_ILP32E || ABI == RISCVABI::ABI_LP64E)
+  if (static const MCPhysReg ArgEGPRs[] = {RISCV::X10_W, RISCV::X11_W,
+                                       RISCV::X12_W, RISCV::X13_W,
+                                       RISCV::X14_W, RISCV::X15_W}; ABI == RISCVABI::ABI_ILP32E || ABI == RISCVABI::ABI_LP64E)
     return ArrayRef(ArgEGPRs);
 
   return ArrayRef(ArgIGPRs);
@@ -183,10 +183,10 @@ static ArrayRef<MCPhysReg> getFastCCArgGPRs(const RISCVABI::ABI ABI) {
       RISCV::X16, RISCV::X17, RISCV::X28, RISCV::X29, RISCV::X30, RISCV::X31};
 
   // The GPRs used for passing arguments in the FastCC when using ILP32E/LP64E.
-  static const MCPhysReg FastCCEGPRs[] = {RISCV::X10, RISCV::X11, RISCV::X12,
-                                          RISCV::X13, RISCV::X14, RISCV::X15};
+  
 
-  if (ABI == RISCVABI::ABI_ILP32E || ABI == RISCVABI::ABI_LP64E)
+  if (static const MCPhysReg FastCCEGPRs[] = {RISCV::X10, RISCV::X11, RISCV::X12,
+                                          RISCV::X13, RISCV::X14, RISCV::X15}; ABI == RISCVABI::ABI_ILP32E || ABI == RISCVABI::ABI_LP64E)
     return ArrayRef(FastCCEGPRs);
 
   return ArrayRef(FastCCIGPRs);
@@ -202,11 +202,11 @@ static ArrayRef<MCPhysReg> getFastCCArgGPRF16s(const RISCVABI::ABI ABI) {
       RISCV::X28_H, RISCV::X29_H, RISCV::X30_H, RISCV::X31_H};
 
   // The GPRs used for passing arguments in the FastCC when using ILP32E/LP64E.
-  static const MCPhysReg FastCCEGPRs[] = {RISCV::X10_H, RISCV::X11_H,
-                                          RISCV::X12_H, RISCV::X13_H,
-                                          RISCV::X14_H, RISCV::X15_H};
+  
 
-  if (ABI == RISCVABI::ABI_ILP32E || ABI == RISCVABI::ABI_LP64E)
+  if (static const MCPhysReg FastCCEGPRs[] = {RISCV::X10_H, RISCV::X11_H,
+                                          RISCV::X12_H, RISCV::X13_H,
+                                          RISCV::X14_H, RISCV::X15_H}; ABI == RISCVABI::ABI_ILP32E || ABI == RISCVABI::ABI_LP64E)
     return ArrayRef(FastCCEGPRs);
 
   return ArrayRef(FastCCIGPRs);
@@ -222,11 +222,11 @@ static ArrayRef<MCPhysReg> getFastCCArgGPRF32s(const RISCVABI::ABI ABI) {
       RISCV::X28_W, RISCV::X29_W, RISCV::X30_W, RISCV::X31_W};
 
   // The GPRs used for passing arguments in the FastCC when using ILP32E/LP64E.
-  static const MCPhysReg FastCCEGPRs[] = {RISCV::X10_W, RISCV::X11_W,
-                                          RISCV::X12_W, RISCV::X13_W,
-                                          RISCV::X14_W, RISCV::X15_W};
+  
 
-  if (ABI == RISCVABI::ABI_ILP32E || ABI == RISCVABI::ABI_LP64E)
+  if (static const MCPhysReg FastCCEGPRs[] = {RISCV::X10_W, RISCV::X11_W,
+                                          RISCV::X12_W, RISCV::X13_W,
+                                          RISCV::X14_W, RISCV::X15_W}; ABI == RISCVABI::ABI_ILP32E || ABI == RISCVABI::ABI_LP64E)
     return ArrayRef(FastCCEGPRs);
 
   return ArrayRef(FastCCIGPRs);
@@ -344,8 +344,8 @@ bool llvm::CC_RISCV(unsigned ValNo, MVT ValVT, MVT LocVT,
     // Normal: t2, Branch control flow protection: t3
     const auto StaticChainReg = HasCFBranch ? RISCV::X28 : RISCV::X7;
 
-    RISCVABI::ABI ABI = Subtarget.getTargetABI();
-    if (HasCFBranch &&
+    
+    if (RISCVABI::ABI ABI = Subtarget.getTargetABI(); HasCFBranch &&
         (ABI == RISCVABI::ABI_ILP32E || ABI == RISCVABI::ABI_LP64E))
       reportFatalUsageError(
           "Nested functions with control flow protection are not "
@@ -468,9 +468,9 @@ bool llvm::CC_RISCV(unsigned ValNo, MVT ValVT, MVT LocVT,
   if (ArgFlags.isVarArg() && ArgFlags.getNonZeroOrigAlign() == TwoXLenInBytes &&
       DL.getTypeAllocSize(OrigTy) == TwoXLenInBytes &&
       ABI != RISCVABI::ABI_ILP32E) {
-    unsigned RegIdx = State.getFirstUnallocated(ArgGPRs);
+    
     // Skip 'odd' register if necessary.
-    if (RegIdx != std::size(ArgGPRs) && RegIdx % 2 == 1)
+    if (unsigned RegIdx = State.getFirstUnallocated(ArgGPRs); RegIdx != std::size(ArgGPRs) && RegIdx % 2 == 1)
       State.AllocateReg(ArgGPRs);
   }
 
@@ -629,36 +629,36 @@ bool llvm::CC_RISCV_FastCC(unsigned ValNo, MVT ValVT, MVT LocVT,
 
   if ((LocVT == MVT::f16 && Subtarget.hasStdExtZfhmin()) ||
       (LocVT == MVT::bf16 && Subtarget.hasStdExtZfbfmin())) {
-    static const MCPhysReg FPR16List[] = {
+    
+    if (MCRegister static const MCPhysReg FPR16List[] = {
         RISCV::F10_H, RISCV::F11_H, RISCV::F12_H, RISCV::F13_H, RISCV::F14_H,
         RISCV::F15_H, RISCV::F16_H, RISCV::F17_H, RISCV::F0_H,  RISCV::F1_H,
         RISCV::F2_H,  RISCV::F3_H,  RISCV::F4_H,  RISCV::F5_H,  RISCV::F6_H,
-        RISCV::F7_H,  RISCV::F28_H, RISCV::F29_H, RISCV::F30_H, RISCV::F31_H};
-    if (MCRegister Reg = State.AllocateReg(FPR16List)) {
+        RISCV::F7_H,  RISCV::F28_H, RISCV::F29_H, RISCV::F30_H, RISCV::F31_H}; Reg = State.AllocateReg(FPR16List)) {
       State.addLoc(CCValAssign::getReg(ValNo, ValVT, Reg, LocVT, LocInfo));
       return false;
     }
   }
 
   if (LocVT == MVT::f32 && Subtarget.hasStdExtF()) {
-    static const MCPhysReg FPR32List[] = {
+    
+    if (MCRegister static const MCPhysReg FPR32List[] = {
         RISCV::F10_F, RISCV::F11_F, RISCV::F12_F, RISCV::F13_F, RISCV::F14_F,
         RISCV::F15_F, RISCV::F16_F, RISCV::F17_F, RISCV::F0_F,  RISCV::F1_F,
         RISCV::F2_F,  RISCV::F3_F,  RISCV::F4_F,  RISCV::F5_F,  RISCV::F6_F,
-        RISCV::F7_F,  RISCV::F28_F, RISCV::F29_F, RISCV::F30_F, RISCV::F31_F};
-    if (MCRegister Reg = State.AllocateReg(FPR32List)) {
+        RISCV::F7_F,  RISCV::F28_F, RISCV::F29_F, RISCV::F30_F, RISCV::F31_F}; Reg = State.AllocateReg(FPR32List)) {
       State.addLoc(CCValAssign::getReg(ValNo, ValVT, Reg, LocVT, LocInfo));
       return false;
     }
   }
 
   if (LocVT == MVT::f64 && Subtarget.hasStdExtD()) {
-    static const MCPhysReg FPR64List[] = {
+    
+    if (MCRegister static const MCPhysReg FPR64List[] = {
         RISCV::F10_D, RISCV::F11_D, RISCV::F12_D, RISCV::F13_D, RISCV::F14_D,
         RISCV::F15_D, RISCV::F16_D, RISCV::F17_D, RISCV::F0_D,  RISCV::F1_D,
         RISCV::F2_D,  RISCV::F3_D,  RISCV::F4_D,  RISCV::F5_D,  RISCV::F6_D,
-        RISCV::F7_D,  RISCV::F28_D, RISCV::F29_D, RISCV::F30_D, RISCV::F31_D};
-    if (MCRegister Reg = State.AllocateReg(FPR64List)) {
+        RISCV::F7_D,  RISCV::F28_D, RISCV::F29_D, RISCV::F30_D, RISCV::F31_D}; Reg = State.AllocateReg(FPR64List)) {
       State.addLoc(CCValAssign::getReg(ValNo, ValVT, Reg, LocVT, LocInfo));
       return false;
     }
@@ -766,10 +766,10 @@ bool llvm::CC_RISCV_GHC(unsigned ValNo, MVT ValVT, MVT LocVT,
   if (LocVT == MVT::f32 && Subtarget.hasStdExtF()) {
     // Pass in STG registers: F1, ..., F6
     //                        fs0 ... fs5
-    static const MCPhysReg FPR32List[] = {RISCV::F8_F,  RISCV::F9_F,
+    
+    if (MCRegister static const MCPhysReg FPR32List[] = {RISCV::F8_F,  RISCV::F9_F,
                                           RISCV::F18_F, RISCV::F19_F,
-                                          RISCV::F20_F, RISCV::F21_F};
-    if (MCRegister Reg = State.AllocateReg(FPR32List)) {
+                                          RISCV::F20_F, RISCV::F21_F}; Reg = State.AllocateReg(FPR32List)) {
       State.addLoc(CCValAssign::getReg(ValNo, ValVT, Reg, LocVT, LocInfo));
       return false;
     }
@@ -778,21 +778,21 @@ bool llvm::CC_RISCV_GHC(unsigned ValNo, MVT ValVT, MVT LocVT,
   if (LocVT == MVT::f64 && Subtarget.hasStdExtD()) {
     // Pass in STG registers: D1, ..., D6
     //                        fs6 ... fs11
-    static const MCPhysReg FPR64List[] = {RISCV::F22_D, RISCV::F23_D,
+    
+    if (MCRegister static const MCPhysReg FPR64List[] = {RISCV::F22_D, RISCV::F23_D,
                                           RISCV::F24_D, RISCV::F25_D,
-                                          RISCV::F26_D, RISCV::F27_D};
-    if (MCRegister Reg = State.AllocateReg(FPR64List)) {
+                                          RISCV::F26_D, RISCV::F27_D}; Reg = State.AllocateReg(FPR64List)) {
       State.addLoc(CCValAssign::getReg(ValNo, ValVT, Reg, LocVT, LocInfo));
       return false;
     }
   }
 
   if (LocVT == MVT::f32 && Subtarget.hasStdExtZfinx()) {
-    static const MCPhysReg GPR32List[] = {
+    
+    if (MCRegister static const MCPhysReg GPR32List[] = {
         RISCV::X9_W,  RISCV::X18_W, RISCV::X19_W, RISCV::X20_W,
         RISCV::X21_W, RISCV::X22_W, RISCV::X23_W, RISCV::X24_W,
-        RISCV::X25_W, RISCV::X26_W, RISCV::X27_W};
-    if (MCRegister Reg = State.AllocateReg(GPR32List)) {
+        RISCV::X25_W, RISCV::X26_W, RISCV::X27_W}; Reg = State.AllocateReg(GPR32List)) {
       State.addLoc(CCValAssign::getReg(ValNo, ValVT, Reg, LocVT, LocInfo));
       return false;
     }

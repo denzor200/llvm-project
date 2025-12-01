@@ -116,8 +116,8 @@ std::string genGlobAtBothSidesAndMid(const std::vector<std::string> &Files) {
     std::uniform_int_distribution<> PosDistrib(0, F.size() - 1);
     F[PosDistrib(Rng)] = '*';
 
-    std::uniform_int_distribution<> Ends(0, 1);
-    if (Ends(Rng)) {
+    
+    if (std::uniform_int_distribution<> Ends(0, 1); Ends(Rng)) {
       F.back() = '*';
       F.front() = '*';
     }

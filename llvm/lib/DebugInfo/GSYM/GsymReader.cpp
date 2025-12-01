@@ -33,8 +33,8 @@ llvm::Expected<GsymReader> GsymReader::openFile(StringRef Filename) {
   // Open the input file and return an appropriate error if needed.
   ErrorOr<std::unique_ptr<MemoryBuffer>> BuffOrErr =
       MemoryBuffer::getFileOrSTDIN(Filename);
-  auto Err = BuffOrErr.getError();
-  if (Err)
+  
+  if (auto Err = BuffOrErr.getError(); Err)
     return llvm::errorCodeToError(Err);
   return create(BuffOrErr.get());
 }
@@ -50,8 +50,8 @@ GsymReader::create(std::unique_ptr<MemoryBuffer> &MemBuffer) {
     return createStringError(std::errc::invalid_argument,
                              "invalid memory buffer");
   GsymReader GR(std::move(MemBuffer));
-  llvm::Error Err = GR.parse();
-  if (Err)
+  
+  if (llvm::Error Err = GR.parse(); Err)
     return std::move(Err);
   return std::move(GR);
 }
@@ -85,8 +85,8 @@ GsymReader::parse() {
   bool DataIsLittleEndian = HostByteOrder != llvm::endianness::little;
   // Read a correctly byte swapped header if we need to.
   if (Swap) {
-    DataExtractor Data(MemBuffer->getBuffer(), DataIsLittleEndian, 4);
-    if (auto ExpectedHdr = Header::decode(Data))
+    
+    if (auto DataExtractor Data(MemBuffer->getBuffer(), DataIsLittleEndian, 4); ExpectedHdr = Header::decode(Data))
       Swap->Hdr = ExpectedHdr.get();
     else
       return ExpectedHdr.takeError();
@@ -118,8 +118,8 @@ GsymReader::parse() {
                               "failed to read address info offsets table");
 
     // Read the file table.
-    uint32_t NumFiles = 0;
-    if (FileData.readInteger(NumFiles) || FileData.readArray(Files, NumFiles))
+    
+    if (uint32_t NumFiles = 0; FileData.readInteger(NumFiles) || FileData.readArray(Files, NumFiles))
       return createStringError(std::errc::invalid_argument,
                               "failed to read file table");
 
@@ -176,8 +176,8 @@ GsymReader::parse() {
       return createStringError(std::errc::invalid_argument,
                                "failed to read address table");
     // Read the file table.
-    const uint32_t NumFiles = Data.getU32(&Offset);
-    if (NumFiles > 0) {
+    
+    if (const uint32_t NumFiles = Data.getU32(&Offset); NumFiles > 0) {
       Swap->Files.resize(NumFiles);
       if (Data.getU32(&Offset, &Swap->Files[0].Dir, NumFiles*2))
         Files = ArrayRef<FileEntry>(Swap->Files);
@@ -215,8 +215,8 @@ std::optional<uint64_t> GsymReader::getAddress(size_t Index) const {
 }
 
 std::optional<uint64_t> GsymReader::getAddressInfoOffset(size_t Index) const {
-  const auto NumAddrInfoOffsets = AddrInfoOffsets.size();
-  if (Index < NumAddrInfoOffsets)
+  
+  if (const auto NumAddrInfoOffsets = AddrInfoOffsets.size(); Index < NumAddrInfoOffsets)
     return AddrInfoOffsets[Index];
   return std::nullopt;
 }
@@ -318,8 +318,8 @@ GsymReader::getFunctionInfoDataAtIndex(uint64_t AddrIdx,
 }
 
 llvm::Expected<FunctionInfo> GsymReader::getFunctionInfo(uint64_t Addr) const {
-  uint64_t FuncStartAddr = 0;
-  if (auto ExpectedData = getFunctionInfoDataForAddress(Addr, FuncStartAddr))
+  
+  if (auto uint64_t FuncStartAddr = 0; ExpectedData = getFunctionInfoDataForAddress(Addr, FuncStartAddr))
     return FunctionInfo::decode(*ExpectedData, FuncStartAddr);
   else
     return ExpectedData.takeError();
@@ -327,8 +327,8 @@ llvm::Expected<FunctionInfo> GsymReader::getFunctionInfo(uint64_t Addr) const {
 
 llvm::Expected<FunctionInfo>
 GsymReader::getFunctionInfoAtIndex(uint64_t Idx) const {
-  uint64_t FuncStartAddr = 0;
-  if (auto ExpectedData = getFunctionInfoDataAtIndex(Idx, FuncStartAddr))
+  
+  if (auto uint64_t FuncStartAddr = 0; ExpectedData = getFunctionInfoDataAtIndex(Idx, FuncStartAddr))
     return FunctionInfo::decode(*ExpectedData, FuncStartAddr);
   else
     return ExpectedData.takeError();
@@ -337,8 +337,8 @@ GsymReader::getFunctionInfoAtIndex(uint64_t Idx) const {
 llvm::Expected<LookupResult>
 GsymReader::lookup(uint64_t Addr,
                    std::optional<DataExtractor> *MergedFunctionsData) const {
-  uint64_t FuncStartAddr = 0;
-  if (auto ExpectedData = getFunctionInfoDataForAddress(Addr, FuncStartAddr))
+  
+  if (auto uint64_t FuncStartAddr = 0; ExpectedData = getFunctionInfoDataForAddress(Addr, FuncStartAddr))
     return FunctionInfo::lookup(*ExpectedData, *this, FuncStartAddr, Addr,
                                 MergedFunctionsData);
   else

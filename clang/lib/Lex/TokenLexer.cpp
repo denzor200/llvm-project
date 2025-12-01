@@ -451,8 +451,8 @@ void TokenLexer::ExpandFunctionArguments() {
 
       // Only preexpand the argument if it could possibly need it.  This
       // avoids some work in common cases.
-      const Token *ArgTok = ActualArgs->getUnexpArgument(ArgNo);
-      if (ActualArgs->ArgNeedsPreexpansion(ArgTok, PP))
+      
+      if (const Token *ArgTok = ActualArgs->getUnexpArgument(ArgNo); ActualArgs->ArgNeedsPreexpansion(ArgTok, PP))
         ResultArgToks = &ActualArgs->getPreExpArgument(ArgNo, PP)[0];
       else
         ResultArgToks = ArgTok;  // Use non-preexpanded tokens.

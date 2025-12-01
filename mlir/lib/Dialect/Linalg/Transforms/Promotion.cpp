@@ -363,8 +363,8 @@ promoteSubViews(ImplicitLocOpBuilder &b, LinalgOp op,
   SmallVector<std::pair<Value, Value>, 8> writebackViews;
   writebackViews.reserve(promotedBuffersAndViews->size());
   for (OpOperand &opOperand : op->getOpOperands()) {
-    int64_t operandNumber = opOperand.getOperandNumber();
-    if (options.subViews.count(operandNumber) != 0) {
+    
+    if (int64_t operandNumber = opOperand.getOperandNumber(); options.subViews.count(operandNumber) != 0) {
       if (options.useFullTileBuffers[opOperand.get()])
         opViews.push_back(
             (*promotedBuffersAndViews)[operandNumber].fullLocalView);

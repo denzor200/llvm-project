@@ -76,8 +76,8 @@ void dwarfgen::DIE::addAttribute(uint16_t A, dwarf::Form Form, const MCExpr &Exp
 
 void dwarfgen::DIE::addAttribute(uint16_t A, dwarf::Form Form,
                                  StringRef String) {
-  auto &DG = CU->getGenerator();
-  switch (Form) {
+  
+  switch (auto &DG = CU->getGenerator(); Form) {
   case DW_FORM_string:
     Die->addValue(DG.getAllocator(), static_cast<dwarf::Attribute>(A), Form,
                   new (DG.getAllocator())
@@ -434,8 +434,8 @@ dwarfgen::Generator::~Generator() = default;
 llvm::Expected<std::unique_ptr<dwarfgen::Generator>>
 dwarfgen::Generator::create(Triple TheTriple, uint16_t DwarfVersion) {
   std::unique_ptr<dwarfgen::Generator> GenUP(new dwarfgen::Generator());
-  llvm::Error error = GenUP->init(TheTriple, DwarfVersion);
-  if (error)
+  
+  if (llvm::Error error = GenUP->init(TheTriple, DwarfVersion); error)
     return Expected<std::unique_ptr<dwarfgen::Generator>>(std::move(error));
   return Expected<std::unique_ptr<dwarfgen::Generator>>(std::move(GenUP));
 }

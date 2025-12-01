@@ -947,11 +947,11 @@ bool EmulateInstructionMIPS64::EvaluateInstruction(uint32_t evaluate_options) {
   bool success = false;
   llvm::MCInst mc_insn;
   uint64_t insn_size;
-  DataExtractor data;
+  
 
   /* Keep the complexity of the decode logic with the llvm::MCDisassembler
    * class. */
-  if (m_opcode.GetData(data)) {
+  if (DataExtractor data; m_opcode.GetData(data)) {
     llvm::MCDisassembler::DecodeStatus decode_status;
     llvm::ArrayRef<uint8_t> raw_insn(data.GetDataStart(), data.GetByteSize());
     decode_status = m_disasm->getInstruction(mc_insn, insn_size, raw_insn,
@@ -1000,8 +1000,8 @@ bool EmulateInstructionMIPS64::EvaluateInstruction(uint32_t evaluate_options) {
     /* If we haven't changed the PC, change it here */
     if (old_pc == new_pc) {
       new_pc += 4;
-      Context context;
-      if (!WriteRegisterUnsigned(context, eRegisterKindDWARF, dwarf_pc_mips64,
+      
+      if (Context context; !WriteRegisterUnsigned(context, eRegisterKindDWARF, dwarf_pc_mips64,
                                  new_pc))
         return false;
     }

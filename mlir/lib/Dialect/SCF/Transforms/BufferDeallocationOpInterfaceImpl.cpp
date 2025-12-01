@@ -45,8 +45,8 @@ struct InParallelDeallocOpInterface
           InParallelDeallocOpInterface, scf::InParallelOp> {
   FailureOr<Operation *> process(Operation *op, DeallocationState &state,
                                  const DeallocationOptions &options) const {
-    auto inParallelOp = cast<scf::InParallelOp>(op);
-    if (!inParallelOp.getBody()->empty())
+    
+    if (auto inParallelOp = cast<scf::InParallelOp>(op); !inParallelOp.getBody()->empty())
       return op->emitError("only supported when nested region is empty");
 
     SmallVector<Value> updatedOperandOwnership;
@@ -60,8 +60,8 @@ struct ReduceReturnOpInterface
           ReduceReturnOpInterface, scf::ReduceReturnOp> {
   FailureOr<Operation *> process(Operation *op, DeallocationState &state,
                                  const DeallocationOptions &options) const {
-    auto reduceReturnOp = cast<scf::ReduceReturnOp>(op);
-    if (isa<BaseMemRefType>(reduceReturnOp.getOperand().getType()))
+    
+    if (auto reduceReturnOp = cast<scf::ReduceReturnOp>(op); isa<BaseMemRefType>(reduceReturnOp.getOperand().getType()))
       return op->emitError("only supported when operand is not a MemRef");
 
     SmallVector<Value> updatedOperandOwnership;

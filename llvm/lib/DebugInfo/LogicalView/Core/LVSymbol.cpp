@@ -197,9 +197,9 @@ void LVSymbol::calculateCoverage() {
       // The symbol can have a set of non-contiguous locations. We are using
       // only the first location entry to get the outermost parent.
       // If no scope contains the location, assume its enclosing parent.
-      LVScope *Scope =
-          Parent->outermostParent(Locations->front()->getLowerAddress());
-      if (Scope)
+      
+      if (LVScope *Scope =
+          Parent->outermostParent(Locations->front()->getLowerAddress()); Scope)
         Parent = Scope;
     }
     unsigned CoverageParent = Parent->getCoverageFactor();

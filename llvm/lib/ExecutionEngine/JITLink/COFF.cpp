@@ -57,9 +57,9 @@ createLinkGraphFromCOFFObject(MemoryBufferRef ObjectBuffer,
 
   // Check if this is a PE/COFF file.
   if (Data.size() >= sizeof(object::dos_header) + sizeof(COFF::PEMagic)) {
-    const auto *DH =
-        reinterpret_cast<const object::dos_header *>(Data.data() + CurPtr);
-    if (DH->Magic[0] == 'M' && DH->Magic[1] == 'Z') {
+    
+    if (const auto *DH =
+        reinterpret_cast<const object::dos_header *>(Data.data() + CurPtr); DH->Magic[0] == 'M' && DH->Magic[1] == 'Z') {
       // Check the PE magic bytes. ("PE\0\0")
       CurPtr = DH->AddressOfNewExeHeader;
       if (memcmp(Data.data() + CurPtr, COFF::PEMagic, sizeof(COFF::PEMagic)) !=

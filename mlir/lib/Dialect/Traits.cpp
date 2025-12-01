@@ -250,8 +250,8 @@ LogicalResult OpTrait::impl::verifyCompatibleOperandBroadcast(Operation *op) {
   (void)util::getBroadcastedShape(getShape(*rankedOperands.begin()), {},
                                   resultShape);
   for (auto other : make_early_inc_range(rankedOperands)) {
-    SmallVector<int64_t, 4> temp = resultShape;
-    if (!util::getBroadcastedShape(temp, getShape(other), resultShape))
+    
+    if (SmallVector<int64_t, 4> temp = resultShape; !util::getBroadcastedShape(temp, getShape(other), resultShape))
       return op->emitOpError("operands don't have broadcast-compatible shapes");
   }
 

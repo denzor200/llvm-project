@@ -358,10 +358,10 @@ addInlineIfInHeader(const FunctionDecl *FD) {
     return std::nullopt;
 
   const SourceManager &SM = FD->getASTContext().getSourceManager();
-  llvm::StringRef FileName = SM.getFilename(FD->getLocation());
+  
 
   // If it is not a header we don't need to mark function as "inline".
-  if (!isHeaderFile(FileName, FD->getASTContext().getLangOpts()))
+  if (llvm::StringRef FileName = SM.getFilename(FD->getLocation()); !isHeaderFile(FileName, FD->getASTContext().getLangOpts()))
     return std::nullopt;
 
   return tooling::Replacement(SM, FD->getInnerLocStart(), 0, "inline ");

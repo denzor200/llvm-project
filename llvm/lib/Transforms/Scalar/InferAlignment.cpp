@@ -30,8 +30,8 @@ static bool tryToImproveAlign(
     Align OldAlign = getLoadStoreAlignment(I);
     Align PrefAlign = DL.getPrefTypeAlign(getLoadStoreType(I));
 
-    Align NewAlign = Fn(PtrOp, OldAlign, PrefAlign);
-    if (NewAlign > OldAlign) {
+    
+    if (Align NewAlign = Fn(PtrOp, OldAlign, PrefAlign); NewAlign > OldAlign) {
       setLoadStoreAlignment(I, NewAlign);
       return true;
     }

@@ -293,8 +293,8 @@ Parser::ParseConstraintLogicalOrExpression(bool IsTrailingRequiresClause) {
 }
 
 bool Parser::isNotExpressionStart() {
-  tok::TokenKind K = Tok.getKind();
-  if (K == tok::l_brace || K == tok::r_brace  ||
+  
+  if (tok::TokenKind K = Tok.getKind(); K == tok::l_brace || K == tok::r_brace  ||
       K == tok::kw_for  || K == tok::kw_while ||
       K == tok::kw_if   || K == tok::kw_else  ||
       K == tok::kw_goto || K == tok::kw_try)
@@ -415,13 +415,13 @@ Parser::ParseRHSOfBinaryExpression(ExprResult LHS, prec::Level MinPrec) {
         // suggest inserting the colon in between them, otherwise insert ": ".
         SourceLocation FILoc = Tok.getLocation();
         const char *FIText = ": ";
-        const SourceManager &SM = PP.getSourceManager();
-        if (FILoc.isFileID() || PP.isAtStartOfMacroExpansion(FILoc, &FILoc)) {
+        
+        if (const SourceManager &SM = PP.getSourceManager(); FILoc.isFileID() || PP.isAtStartOfMacroExpansion(FILoc, &FILoc)) {
           assert(FILoc.isFileID());
           bool IsInvalid = false;
-          const char *SourcePtr =
-            SM.getCharacterData(FILoc.getLocWithOffset(-1), &IsInvalid);
-          if (!IsInvalid && *SourcePtr == ' ') {
+          
+          if (const char *SourcePtr =
+            SM.getCharacterData(FILoc.getLocWithOffset(-1), &IsInvalid); !IsInvalid && *SourcePtr == ' ') {
             SourcePtr =
               SM.getCharacterData(FILoc.getLocWithOffset(-2), &IsInvalid);
             if (!IsInvalid && *SourcePtr == ' ') {
@@ -599,8 +599,8 @@ public:
       return true;
 
     for (auto *C : candidate) {
-      NamedDecl *ND = C->getUnderlyingDecl();
-      if (isa<ValueDecl>(ND) && !isa<FunctionDecl>(ND))
+      
+      if (NamedDecl *ND = C->getUnderlyingDecl(); isa<ValueDecl>(ND) && !isa<FunctionDecl>(ND))
         return true;
     }
     return false;
@@ -869,9 +869,9 @@ Parser::ParseCastExpression(CastParseKind ParseKind, bool isAddressOfOperand,
     if (getLangOpts().CPlusPlus) {
       // Avoid the unnecessary parse-time lookup in the common case
       // where the syntax forbids a type.
-      Token Next = NextToken();
+      
 
-      if (Next.is(tok::ellipsis) && Tok.is(tok::identifier) &&
+      if (Token Next = NextToken(); Next.is(tok::ellipsis) && Tok.is(tok::identifier) &&
           GetLookAheadToken(2).is(tok::l_square)) {
         // Annotate the token and tail recurse.
         // If the token is not annotated, then it might be an expression pack
@@ -889,8 +889,8 @@ Parser::ParseCastExpression(CastParseKind ParseKind, bool isAddressOfOperand,
       else if (Next.is(tok::l_paren) && Tok.is(tok::identifier) &&
                Tok.getIdentifierInfo()->hasRevertedTokenIDToIdentifier()) {
         IdentifierInfo *II = Tok.getIdentifierInfo();
-        tok::TokenKind Kind;
-        if (isRevertibleTypeTrait(II, &Kind)) {
+        
+        if (tok::TokenKind Kind; isRevertibleTypeTrait(II, &Kind)) {
           Tok.setKind(Kind);
           return ParseCastExpression(ParseKind, isAddressOfOperand, NotCastExpr,
                                      CorrectionBehavior, isVectorLiteral,
@@ -965,8 +965,8 @@ Parser::ParseCastExpression(CastParseKind ParseKind, bool isAddressOfOperand,
     if (getLangOpts().ObjC &&
         ((Tok.is(tok::identifier) && !InMessageExpression) ||
          Tok.is(tok::code_completion))) {
-      const Token& Next = NextToken();
-      if (Tok.is(tok::code_completion) ||
+      
+      if (const Token& Next = NextToken(); Tok.is(tok::code_completion) ||
           Next.is(tok::colon) || Next.is(tok::r_square))
         if (ParsedType Typ = Actions.getTypeName(II, ILoc, getCurScope()))
           if (Typ.get()->isObjCObjectOrInterfaceType()) {
@@ -1371,10 +1371,10 @@ Parser::ParseCastExpression(CastParseKind ParseKind, bool isAddressOfOperand,
                                  CorrectionBehavior, isVectorLiteral,
                                  NotPrimaryExpression);
 
-    Token Next = NextToken();
-    if (Next.is(tok::annot_template_id)) {
-      TemplateIdAnnotation *TemplateId = takeTemplateIdAnnotation(Next);
-      if (TemplateId->Kind == TNK_Type_template) {
+    
+    if (Token Next = NextToken(); Next.is(tok::annot_template_id)) {
+      
+      if (TemplateIdAnnotation *TemplateId = takeTemplateIdAnnotation(Next); TemplateId->Kind == TNK_Type_template) {
         // We have a qualified template-id that we know refers to a
         // type, translate it into a type and continue parsing as a
         // cast expression.
@@ -1395,8 +1395,8 @@ Parser::ParseCastExpression(CastParseKind ParseKind, bool isAddressOfOperand,
   }
 
   case tok::annot_template_id: { // [C++]          template-id
-    TemplateIdAnnotation *TemplateId = takeTemplateIdAnnotation(Tok);
-    if (TemplateId->Kind == TNK_Type_template) {
+    
+    if (TemplateIdAnnotation *TemplateId = takeTemplateIdAnnotation(Tok); TemplateId->Kind == TNK_Type_template) {
       // We have a template-id that we know refers to a type,
       // translate it into a type and continue parsing as a cast
       // expression.
@@ -1624,8 +1624,8 @@ Parser::ParseCastExpression(CastParseKind ParseKind, bool isAddressOfOperand,
       !getActions().getOpenCLOptions().isAvailableOption(
           "__cl_clang_function_pointers", getLangOpts()))
     if (Expr *PostfixExpr = Res.get()) {
-      QualType Ty = PostfixExpr->getType();
-      if (!Ty.isNull() && Ty->isFunctionType()) {
+      
+      if (QualType Ty = PostfixExpr->getType(); !Ty.isNull() && Ty->isFunctionType()) {
         Diag(PostfixExpr->getExprLoc(),
              diag::err_opencl_taking_function_address_parser);
         return ExprError();
@@ -1725,16 +1725,16 @@ Parser::ParsePostfixExpressionSuffix(ExprResult LHS) {
       // parsing, so it is the most specific, and best allows us to handle
       // OpenACC and OpenMP at the same time.
       if (ArgExprs.size() <= 1 && AllowOpenACCArraySections) {
-        ColonProtectionRAIIObject RAII(*this);
-        if (Tok.is(tok::colon)) {
+        
+        if (ColonProtectionRAIIObject RAII(*this); Tok.is(tok::colon)) {
           // Consume ':'
           ColonLocFirst = ConsumeToken();
           if (Tok.isNot(tok::r_square))
             Length = ParseExpression();
         }
       } else if (ArgExprs.size() <= 1 && getLangOpts().OpenMP) {
-        ColonProtectionRAIIObject RAII(*this);
-        if (Tok.is(tok::colon)) {
+        
+        if (ColonProtectionRAIIObject RAII(*this); Tok.is(tok::colon)) {
           // Consume ':'
           ColonLocFirst = ConsumeToken();
           if (Tok.isNot(tok::r_square) &&
@@ -1755,8 +1755,8 @@ Parser::ParsePostfixExpressionSuffix(ExprResult LHS) {
         }
       }
 
-      SourceLocation RLoc = Tok.getLocation();
-      if (!LHS.isInvalid() && !HasError && !Length.isInvalid() &&
+      
+      if (SourceLocation RLoc = Tok.getLocation(); !LHS.isInvalid() && !HasError && !Length.isInvalid() &&
           !Stride.isInvalid() && Tok.is(tok::r_square)) {
         if (ColonLocFirst.isValid() || ColonLocSecond.isValid()) {
           // Like above, AllowOpenACCArraySections is 'more specific' and only
@@ -1826,9 +1826,9 @@ Parser::ParsePostfixExpressionSuffix(ExprResult LHS) {
         }
 
         if (!LHS.isInvalid()) {
-          ExprResult ECResult = Actions.CUDA().ActOnExecConfigExpr(
-              getCurScope(), OpenLoc, ExecConfigExprs, CloseLoc);
-          if (ECResult.isInvalid())
+          
+          if (ExprResult ECResult = Actions.CUDA().ActOnExecConfigExpr(
+              getCurScope(), OpenLoc, ExecConfigExprs, CloseLoc); ECResult.isInvalid())
             LHS = ExprError();
           else
             ExecConfig = ECResult.get();
@@ -2073,8 +2073,8 @@ Parser::ParseExprAfterUnaryExprOrTypeTrait(const Token &OpTok,
         ParseDeclarator(DeclaratorInfo);
 
         SourceLocation LParenLoc = PP.getLocForEndOfToken(OpTok.getLocation());
-        SourceLocation RParenLoc = PP.getLocForEndOfToken(PrevTokLocation);
-        if (LParenLoc.isInvalid() || RParenLoc.isInvalid()) {
+        
+        if (SourceLocation RParenLoc = PP.getLocForEndOfToken(PrevTokLocation); LParenLoc.isInvalid() || RParenLoc.isInvalid()) {
           Diag(OpTok.getLocation(),
                diag::err_expected_parentheses_around_typename)
               << OpTok.getName();
@@ -2356,9 +2356,9 @@ ExprResult Parser::ParseBuiltinPrimaryExpression() {
     SourceLocation TypeLoc = Tok.getLocation();
     auto OOK = OffsetOfKind::Builtin;
     if (Tok.getLocation().isMacroID()) {
-      StringRef MacroName = Lexer::getImmediateMacroNameForDiagnostics(
-          Tok.getLocation(), PP.getSourceManager(), getLangOpts());
-      if (MacroName == "offsetof")
+      
+      if (StringRef MacroName = Lexer::getImmediateMacroNameForDiagnostics(
+          Tok.getLocation(), PP.getSourceManager(), getLangOpts()); MacroName == "offsetof")
         OOK = OffsetOfKind::Macro;
     }
     TypeResult Ty;
@@ -2642,8 +2642,8 @@ Parser::ParseParenExpression(ParenParseOption &ExprType, bool StopIfCastExpr,
   if (BridgeCast && !getLangOpts().ObjCAutoRefCount) {
     if (!TryConsumeToken(tok::kw___bridge)) {
       StringRef BridgeCastName = Tok.getName();
-      SourceLocation BridgeKeywordLoc = ConsumeToken();
-      if (!PP.getSourceManager().isInSystemHeader(BridgeKeywordLoc))
+      
+      if (SourceLocation BridgeKeywordLoc = ConsumeToken(); !PP.getSourceManager().isInSystemHeader(BridgeKeywordLoc))
         Diag(BridgeKeywordLoc, diag::warn_arc_bridge_cast_nonarc)
           << BridgeCastName
           << FixItHint::CreateReplacement(BridgeKeywordLoc, "");
@@ -2873,9 +2873,9 @@ Parser::ParseParenExpression(ParenParseOption &ExprType, bool StopIfCastExpr,
     // FIXME: This should not be predicated on typo correction behavior.
     // Parse the expression-list.
     InMessageExpressionRAIIObject InMessage(*this, false);
-    ExprVector ArgExprs;
+    
 
-    if (!ParseSimpleExpressionList(ArgExprs)) {
+    if (ExprVector ArgExprs; !ParseSimpleExpressionList(ArgExprs)) {
       // FIXME: If we ever support comma expressions as operands to
       // fold-expressions, we'll need to allow multiple ArgExprs here.
       if (ExprType >= ParenParseOption::FoldExpr && ArgExprs.size() == 1 &&

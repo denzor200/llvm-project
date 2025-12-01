@@ -562,8 +562,8 @@ public:
 
   static bool MorphToQuadReg(SparcOperand &Op) {
     MCRegister Reg = Op.getReg();
-    unsigned regIdx = 0;
-    switch (Op.Reg.Kind) {
+    
+    switch (unsigned regIdx = 0; Op.Reg.Kind) {
     default: llvm_unreachable("Unexpected register kind!");
     case rk_FloatReg:
       regIdx = Reg - Sparc::F0;
@@ -661,9 +661,9 @@ SparcAsmParser::mnemonicIsValid(StringRef Mnemonic, unsigned VariantID) {
 
   for (const MatchEntry *it = MnemonicRange.first, *ie = MnemonicRange.second;
        it != ie; ++it) {
-    const FeatureBitset &RequiredFeatures =
-        FeatureBitsets[it->RequiredFeaturesIdx];
-    if ((getAvailableFeatures() & RequiredFeatures) == RequiredFeatures)
+    
+    if (const FeatureBitset &RequiredFeatures =
+        FeatureBitsets[it->RequiredFeaturesIdx]; (getAvailableFeatures() & RequiredFeatures) == RequiredFeatures)
       return Match_Success;
   }
   return Match_MissingFeature;
@@ -884,9 +884,9 @@ bool SparcAsmParser::matchAndEmitInstruction(SMLoc IDLoc, unsigned &Opcode,
                                              bool MatchingInlineAsm) {
   MCInst Inst;
   SmallVector<MCInst, 8> Instructions;
-  unsigned MatchResult = MatchInstructionImpl(Operands, Inst, ErrorInfo,
-                                              MatchingInlineAsm);
-  switch (MatchResult) {
+  
+  switch (unsigned MatchResult = MatchInstructionImpl(Operands, Inst, ErrorInfo,
+                                              MatchingInlineAsm); MatchResult) {
   case Match_Success: {
     switch (Inst.getOpcode()) {
     default:
@@ -975,8 +975,8 @@ bool SparcAsmParser::parseInstruction(ParseInstructionInfo &Info,
   // once again just before emission).
   // As a nice side effect this also allows us to reject unknown
   // instructions and suggest replacements.
-  MatchResultTy MS = mnemonicIsValid(Name, 0);
-  switch (MS) {
+  
+  switch (MatchResultTy MS = mnemonicIsValid(Name, 0); MS) {
   case Match_Success:
     break;
   case Match_MissingFeature:
@@ -1397,8 +1397,8 @@ ParseStatus SparcAsmParser::parseOperand(OperandVector &Operands,
         // to use immediate offset. We need to do this because Reg addressing
         // will be parsed as Reg+G0 initially.
         // This allows forms such as `ldxa [%o0] %asi, %o0` to parse correctly.
-        SparcOperand &OldMemOp = (SparcOperand &)*Operands[Operands.size() - 2];
-        if (OldMemOp.isMEMrr()) {
+        
+        if (SparcOperand &OldMemOp = (SparcOperand &)*Operands[Operands.size() - 2]; OldMemOp.isMEMrr()) {
           if (OldMemOp.getMemOffsetReg() != Sparc::G0) {
             return Error(S, "invalid operand for instruction");
           }
@@ -1453,8 +1453,8 @@ SparcAsmParser::parseSparcAsmOperand(std::unique_ptr<SparcOperand> &Op) {
 
   case AsmToken::Percent: {
     Parser.Lex(); // Eat the '%'.
-    unsigned RegKind;
-    if (MCRegister Reg = matchRegisterName(Parser.getTok(), RegKind)) {
+    
+    if (MCRegister unsigned RegKind; Reg = matchRegisterName(Parser.getTok(), RegKind)) {
       StringRef Name = Parser.getTok().getString();
       Parser.Lex(); // Eat the identifier token.
       E = SMLoc::getFromPointer(Parser.getTok().getLoc().getPointer() - 1);
@@ -1494,8 +1494,8 @@ ParseStatus SparcAsmParser::parseBranchModifiers(OperandVector &Operands) {
 
     if (!getLexer().is(AsmToken::Identifier))
       return ParseStatus::Failure;
-    StringRef modName = Parser.getTok().getString();
-    if (modName == "a" || modName == "pn" || modName == "pt") {
+    
+    if (StringRef modName = Parser.getTok().getString(); modName == "a" || modName == "pn" || modName == "pt") {
       Operands.push_back(SparcOperand::CreateToken(modName,
                                                    Parser.getTok().getLoc()));
       Parser.Lex(); // eat the identifier.

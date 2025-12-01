@@ -266,9 +266,9 @@ unsigned RISCVInstrumentManager::getSchedClassID(
   if (const auto *VXMO = RISCV::getVXMemOpInfo(Opcode)) {
     // Calculate the expected index EMUL. For indexed operations,
     // the DataEEW and DataEMUL are equal to SEW and LMUL, respectively.
-    unsigned IndexEMUL = ((1 << VXMO->Log2IdxEEW) * LMUL) / SEW;
+    
 
-    if (!VXMO->NF) {
+    if (unsigned IndexEMUL = ((1 << VXMO->Log2IdxEEW) * LMUL) / SEW; !VXMO->NF) {
       // Indexed Load / Store.
       if (VXMO->IsStore) {
         if (const auto *VXP = RISCV::getVSXPseudo(
@@ -297,8 +297,8 @@ unsigned RISCVInstrumentManager::getSchedClassID(
     }
   } else if (opcodeHasEEWAndEMULInfo(Opcode)) {
     RISCVVType::VLMUL VLMUL = static_cast<RISCVVType::VLMUL>(LMUL);
-    auto [EEW, EMUL] = getEEWAndEMUL(Opcode, VLMUL, SEW);
-    if (const auto *RVV =
+    
+    if (const auto *auto [EEW, EMUL] = getEEWAndEMUL(Opcode, VLMUL, SEW); RVV =
             RISCVVInversePseudosTable::getBaseInfo(Opcode, EMUL, EEW))
       VPOpcode = RVV->Pseudo;
   } else {

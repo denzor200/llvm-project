@@ -102,8 +102,8 @@ bool AMDGPUMIRFormatter::parseSDelayAluImmMnemonic(
     return ErrorCallback(Src.begin(), "Expected .id0_");
 
   auto ExpectInt = [&](StringRef &Src, int64_t Offset) -> int64_t {
-    int64_t Dep;
-    if (!Src.consumeInteger(10, Dep))
+    
+    if (int64_t Dep; !Src.consumeInteger(10, Dep))
       return Dep + Offset;
 
     return -1;
@@ -171,9 +171,9 @@ bool AMDGPUMIRFormatter::parseCustomPseudoSourceValue(
     StringRef Src, MachineFunction &MF, PerFunctionMIParsingState &PFS,
     const PseudoSourceValue *&PSV, ErrorCallbackType ErrorCallback) const {
   SIMachineFunctionInfo *MFI = MF.getInfo<SIMachineFunctionInfo>();
-  const AMDGPUTargetMachine &TM =
-      static_cast<const AMDGPUTargetMachine &>(MF.getTarget());
-  if (Src == "GWSResource") {
+  
+  if (const AMDGPUTargetMachine &TM =
+      static_cast<const AMDGPUTargetMachine &>(MF.getTarget()); Src == "GWSResource") {
     PSV = MFI->getGWSPSV(TM);
     return false;
   }

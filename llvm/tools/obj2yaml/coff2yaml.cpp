@@ -292,8 +292,8 @@ void COFFDumper::dumpSymbols(unsigned NumSymbols) {
     Sym.Header.NumberOfAuxSymbols = Symbol.getNumberOfAuxSymbols();
 
     if (Symbol.getNumberOfAuxSymbols() > 0) {
-      ArrayRef<uint8_t> AuxData = Obj.getSymbolAuxData(Symbol);
-      if (Symbol.isFunctionDefinition()) {
+      
+      if (ArrayRef<uint8_t> AuxData = Obj.getSymbolAuxData(Symbol); Symbol.isFunctionDefinition()) {
         // This symbol represents a function definition.
         assert(Symbol.getNumberOfAuxSymbols() == 1 &&
                "Expected a single aux symbol to describe this function!");

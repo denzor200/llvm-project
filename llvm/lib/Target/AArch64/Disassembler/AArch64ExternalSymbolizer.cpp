@@ -71,14 +71,14 @@ bool AArch64ExternalSymbolizer::tryAddingSymbolicOperand(
   memset(&SymbolicOp, '\0', sizeof(struct LLVMOpInfo1));
   SymbolicOp.Value = Value;
   uint64_t ReferenceType;
-  const char *ReferenceName;
-  if (!GetOpInfo || !GetOpInfo(DisInfo, Address, /*Offset=*/0, OpSize, InstSize,
+  
+  if (const char *ReferenceName; !GetOpInfo || !GetOpInfo(DisInfo, Address, /*Offset=*/0, OpSize, InstSize,
                                1, &SymbolicOp)) {
     if (IsBranch) {
       ReferenceType = LLVMDisassembler_ReferenceType_In_Branch;
-      const char *Name = SymbolLookUp(DisInfo, Address + Value, &ReferenceType,
-                                      Address, &ReferenceName);
-      if (Name) {
+      
+      if (const char *Name = SymbolLookUp(DisInfo, Address + Value, &ReferenceType,
+                                      Address, &ReferenceName); Name) {
         SymbolicOp.AddSymbol.Name = Name;
         SymbolicOp.AddSymbol.Present = true;
         SymbolicOp.Value = 0;
@@ -170,8 +170,8 @@ bool AArch64ExternalSymbolizer::tryAddingSymbolicOperand(
     if (SymbolicOp.AddSymbol.Name) {
       StringRef Name(SymbolicOp.AddSymbol.Name);
       MCSymbol *Sym = Ctx.getOrCreateSymbol(Name);
-      auto Spec = getMachOSpecifier(SymbolicOp.VariantKind);
-      if (Spec != AArch64::S_None)
+      
+      if (auto Spec = getMachOSpecifier(SymbolicOp.VariantKind); Spec != AArch64::S_None)
         Add = MCSymbolRefExpr::create(Sym, Spec, Ctx);
       else
         Add = MCSymbolRefExpr::create(Sym, Ctx);

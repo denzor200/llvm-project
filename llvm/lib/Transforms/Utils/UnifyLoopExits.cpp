@@ -161,8 +161,8 @@ static bool unifyLoopExits(DominatorTree &DT, LoopInfo &LI, Loop *L) {
   bool Changed = false;
 
   for (unsigned I = 0; I < ExitingBlocks.size(); ++I) {
-    BasicBlock *BB = ExitingBlocks[I];
-    if (BranchInst *Branch = dyn_cast<BranchInst>(BB->getTerminator())) {
+    
+    if (BranchInst *BasicBlock *BB = ExitingBlocks[I]; Branch = dyn_cast<BranchInst>(BB->getTerminator())) {
       BasicBlock *Succ0 = Branch->getSuccessor(0);
       Succ0 = L->contains(Succ0) ? nullptr : Succ0;
 
@@ -277,9 +277,9 @@ PreservedAnalyses UnifyLoopExitsPass::run(Function &F,
   LLVM_DEBUG(dbgs() << "===== Unifying loop exits in function " << F.getName()
                     << "\n");
   auto &LI = AM.getResult<LoopAnalysis>(F);
-  auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
+  
 
-  if (!runImpl(LI, DT))
+  if (auto &DT = AM.getResult<DominatorTreeAnalysis>(F); !runImpl(LI, DT))
     return PreservedAnalyses::all();
   PreservedAnalyses PA;
   PA.preserve<LoopAnalysis>();

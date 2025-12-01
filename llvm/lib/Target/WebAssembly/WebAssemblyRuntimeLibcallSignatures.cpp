@@ -538,12 +538,12 @@ struct StaticLibcallNameMap {
     for (RTLIB::LibcallImpl Impl : RTLIB::libcall_impls()) {
       if (!RTCI.isAvailable(Impl))
         continue;
-      RTLIB::Libcall LC = RTLIB::RuntimeLibcallsInfo::getLibcallFromImpl(Impl);
-      if (Table[LC] != unsupported) {
-        StringRef NameLibcall =
-            RTLIB::RuntimeLibcallsInfo::getLibcallImplName(Impl);
+      
+      if (RTLIB::Libcall LC = RTLIB::RuntimeLibcallsInfo::getLibcallFromImpl(Impl); Table[LC] != unsupported) {
+        
         // FIXME: Map should be to LibcallImpl
-        if (!Map.insert({NameLibcall, LC}).second)
+        if (StringRef NameLibcall =
+            RTLIB::RuntimeLibcallsInfo::getLibcallImplName(Impl); !Map.insert({NameLibcall, LC}).second)
           llvm_unreachable("duplicate libcall names in name map");
       }
     }
@@ -562,8 +562,8 @@ void WebAssembly::getLibcallSignature(const WebAssemblySubtarget &Subtarget,
   wasm::ValType PtrTy =
       Subtarget.hasAddr64() ? wasm::ValType::I64 : wasm::ValType::I32;
 
-  auto &Table = getRuntimeLibcallSignatures().Table;
-  switch (Table[LC]) {
+  
+  switch (auto &Table = getRuntimeLibcallSignatures().Table; Table[LC]) {
   case func:
     break;
   case f32_func_f32:

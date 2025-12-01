@@ -52,8 +52,8 @@ void DIBuilder::trackIfUnresolved(MDNode *N) {
 }
 
 void DIBuilder::finalizeSubprogram(DISubprogram *SP) {
-  auto PN = SubprogramTrackedNodes.find(SP);
-  if (PN != SubprogramTrackedNodes.end())
+  
+  if (auto PN = SubprogramTrackedNodes.find(SP); PN != SubprogramTrackedNodes.end())
     SP->replaceRetainedNodes(
         MDTuple::get(VMContext, SmallVector<Metadata *, 16>(PN->second.begin(),
                                                             PN->second.end())));

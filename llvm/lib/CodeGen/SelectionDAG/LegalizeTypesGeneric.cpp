@@ -314,9 +314,9 @@ void DAGTypeLegalizer::IntegerToVector(SDValue Op, unsigned NumElements,
                                        EVT EltVT) {
   assert(Op.getValueType().isInteger());
   SDLoc DL(Op);
-  SDValue Parts[2];
+  
 
-  if (NumElements > 1) {
+  if (SDValue Parts[2]; NumElements > 1) {
     NumElements >>= 1;
     SplitInteger(Op, Parts[0], Parts[1]);
     if (DAG.getDataLayout().isBigEndian())
@@ -545,8 +545,8 @@ void DAGTypeLegalizer::SplitRes_Select(SDNode *N, SDValue &Lo, SDValue &Hi) {
       // If the condition is a vXi1 vector, and the LHS of the setcc is a legal
       // type and the setcc result type is the same vXi1, then leave the setcc
       // alone.
-      EVT CondLHSVT = Cond.getOperand(0).getValueType();
-      if (Cond.getValueType().getVectorElementType() == MVT::i1 &&
+      
+      if (EVT CondLHSVT = Cond.getOperand(0).getValueType(); Cond.getValueType().getVectorElementType() == MVT::i1 &&
           isTypeLegal(CondLHSVT) &&
           getSetCCResultType(CondLHSVT) == Cond.getValueType())
         std::tie(CL, CH) = DAG.SplitVector(Cond, dl);

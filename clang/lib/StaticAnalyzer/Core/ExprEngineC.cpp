@@ -341,9 +341,9 @@ void ExprEngine::VisitCast(const CastExpr *CastE, const Expr *Ex,
   StmtNodeBuilder Bldr(DstPreStmt, Dst, *currBldrCtx);
   for (ExplodedNode *Pred : DstPreStmt) {
     ProgramStateRef state = Pred->getState();
-    const LocationContext *LCtx = Pred->getLocationContext();
+    
 
-    switch (CastE->getCastKind()) {
+    switch (const LocationContext *LCtx = Pred->getLocationContext(); CastE->getCastKind()) {
       case CK_LValueToRValue:
       case CK_LValueToRValueBitCast:
         llvm_unreachable("LValueToRValue casts handled earlier.");
@@ -542,8 +542,8 @@ void ExprEngine::VisitCast(const CastExpr *CastE, const Expr *Ex,
       case CK_DerivedToBaseMemberPointer:
       case CK_BaseToDerivedMemberPointer:
       case CK_ReinterpretMemberPointer: {
-        SVal V = state->getSVal(Ex, LCtx);
-        if (auto PTMSV = V.getAs<nonloc::PointerToMember>()) {
+        
+        if (auto SVal V = state->getSVal(Ex, LCtx); PTMSV = V.getAs<nonloc::PointerToMember>()) {
           SVal CastedPTMSV =
               svalBuilder.makePointerToMember(getBasicVals().accumCXXBase(
                   CastE->path(), *PTMSV, CastE->getCastKind()));
@@ -633,10 +633,10 @@ void ExprEngine::VisitDeclStmt(const DeclStmt *DS, ExplodedNode *Pred,
        I!=E; ++I) {
     ExplodedNode *N = *I;
     ProgramStateRef state = N->getState();
-    const LocationContext *LC = N->getLocationContext();
+    
 
     // Decls without InitExpr are not initialized explicitly.
-    if (const Expr *InitEx = VD->getInit()) {
+    if (const Expr *const LocationContext *LC = N->getLocationContext(); InitEx = VD->getInit()) {
 
       // Note in the state that the initialization has occurred.
       ExplodedNode *UpdatedN = N;
@@ -754,9 +754,9 @@ void ExprEngine::VisitLogicalExpr(const BinaryOperator* B, ExplodedNode *Pred,
     assert(!SrcBlock->empty());
     CFGStmt Elem = SrcBlock->rbegin()->castAs<CFGStmt>();
     const Expr *RHS = cast<Expr>(Elem.getStmt());
-    SVal RHSVal = N->getState()->getSVal(RHS, Pred->getLocationContext());
+    
 
-    if (RHSVal.isUndef()) {
+    if (SVal RHSVal = N->getState()->getSVal(RHS, Pred->getLocationContext()); RHSVal.isUndef()) {
       X = RHSVal;
     } else {
       // We evaluate "RHSVal != 0" expression which result in 0 if the value is
@@ -839,8 +839,8 @@ void ExprEngine::
 VisitOffsetOfExpr(const OffsetOfExpr *OOE,
                   ExplodedNode *Pred, ExplodedNodeSet &Dst) {
   StmtNodeBuilder B(Pred, Dst, *currBldrCtx);
-  Expr::EvalResult Result;
-  if (OOE->EvaluateAsInt(Result, getContext())) {
+  
+  if (Expr::EvalResult Result; OOE->EvaluateAsInt(Result, getContext())) {
     APSInt IV = Result.Val.getInt();
     assert(IV.getBitWidth() == getContext().getTypeSize(OOE->getType()));
     assert(OOE->getType()->castAs<BuiltinType>()->isInteger());
@@ -965,11 +965,11 @@ void ExprEngine::VisitUnaryOperator(const UnaryOperator* U, ExplodedNode *Pred,
 
     case UO_AddrOf: {
       // Process pointer-to-member address operation.
-      const Expr *Ex = U->getSubExpr()->IgnoreParens();
-      if (const DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(Ex)) {
-        const ValueDecl *VD = DRE->getDecl();
+      
+      if (const DeclRefExpr *const Expr *Ex = U->getSubExpr()->IgnoreParens(); DRE = dyn_cast<DeclRefExpr>(Ex)) {
+        
 
-        if (isa<CXXMethodDecl, FieldDecl, IndirectFieldDecl>(VD)) {
+        if (const ValueDecl *VD = DRE->getDecl(); isa<CXXMethodDecl, FieldDecl, IndirectFieldDecl>(VD)) {
           ProgramStateRef State = N->getState();
           const LocationContext *LCtx = N->getLocationContext();
           SVal SV = svalBuilder.getMemberPointer(cast<NamedDecl>(VD));
@@ -1120,10 +1120,10 @@ void ExprEngine::VisitIncrementDecrementOperator(const UnaryOperator* U,
       // non-nullness.  Check if the original value was non-null, and if so
       // propagate that constraint.
       if (Loc::isLocType(U->getType())) {
-        DefinedOrUnknownSVal Constraint =
-        svalBuilder.evalEQ(state, V2,svalBuilder.makeZeroVal(U->getType()));
+        
 
-        if (!state->assume(Constraint, true)) {
+        if (DefinedOrUnknownSVal Constraint =
+        svalBuilder.evalEQ(state, V2,svalBuilder.makeZeroVal(U->getType())); !state->assume(Constraint, true)) {
           // It isn't feasible for the original value to be null.
           // Propagate this constraint.
           Constraint = svalBuilder.evalEQ(state, SymVal,

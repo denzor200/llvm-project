@@ -95,8 +95,8 @@ private:
       return true;
 
     // Skip decls that have no body, i.e. are just declarations.
-    Stmt *Body = Decl->getBody();
-    if (!Body)
+    
+    if (Stmt *Body = Decl->getBody(); !Body)
       return true;
 
     // Skip non-public methods.

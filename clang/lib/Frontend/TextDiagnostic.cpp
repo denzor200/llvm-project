@@ -817,8 +817,8 @@ void TextDiagnostic::emitFilename(StringRef Filename, const SourceManager &SM) {
   SmallString<4096> TmpFilename;
 #endif
   if (DiagOpts.AbsolutePath) {
-    auto File = SM.getFileManager().getOptionalFileRef(Filename);
-    if (File) {
+    
+    if (auto File = SM.getFileManager().getOptionalFileRef(Filename); File) {
       // We want to print a simplified absolute path, i. e. without "dots".
       //
       // The hardest part here are the paths like "<part1>/<link>/../<part2>".
@@ -1086,9 +1086,9 @@ static std::string buildFixItInsertionLine(FileID FID, unsigned LineNo,
 
     // We have an insertion hint. Determine whether the inserted
     // code contains no newlines and is on the same line as the caret.
-    FileIDAndOffset HintLocInfo =
-        SM.getDecomposedExpansionLoc(H.RemoveRange.getBegin());
-    if (FID == HintLocInfo.first &&
+    
+    if (FileIDAndOffset HintLocInfo =
+        SM.getDecomposedExpansionLoc(H.RemoveRange.getBegin()); FID == HintLocInfo.first &&
         LineNo == SM.getLineNumber(HintLocInfo.first, HintLocInfo.second) &&
         StringRef(H.CodeToInsert).find_first_of("\n\r") == StringRef::npos) {
       // Insert the new code into the line just below the code
@@ -1240,12 +1240,12 @@ highlightLines(StringRef FileData, unsigned StartLineNumber,
       [PP, &LangOpts](SmallVector<TextDiagnostic::StyleRange> &Vec,
                       const Token &T, unsigned Start, unsigned Length) -> void {
     if (T.is(tok::raw_identifier)) {
-      StringRef RawIdent = T.getRawIdentifier();
+      
       // Special case true/false/nullptr/... literals, since they will otherwise
       // be treated as keywords.
       // FIXME: It would be good to have a programmatic way of getting this
       // list.
-      if (llvm::StringSwitch<bool>(RawIdent)
+      if (StringRef RawIdent = T.getRawIdentifier(); llvm::StringSwitch<bool>(RawIdent)
               .Case("true", true)
               .Case("false", true)
               .Case("nullptr", true)
@@ -1327,10 +1327,10 @@ highlightLines(StringRef FileData, unsigned StartLineNumber,
       // This line is done.
       if (I == Spelling.size() || isVerticalWhitespace(Spelling[I])) {
         if (L >= StartLineNumber) {
-          SmallVector<TextDiagnostic::StyleRange> &LineRanges =
-              SnippetRanges[L - StartLineNumber];
+          
 
-          if (L == TokenStartLine) // First line
+          if (SmallVector<TextDiagnostic::StyleRange> &LineRanges =
+              SnippetRanges[L - StartLineNumber]; L == TokenStartLine) // First line
             appendStyle(LineRanges, T, StartCol.V, LineLength);
           else if (L == TokenEndLine) // Last line
             appendStyle(LineRanges, T, 0, EndCol.V);
@@ -1564,11 +1564,11 @@ void TextDiagnostic::emitSnippet(StringRef SourceLine,
       }
 
       // Apply syntax highlighting information.
-      const auto *CharStyle = llvm::find_if(Styles, [I](const StyleRange &R) {
-        return (R.Start < I && R.End >= I);
-      });
+      
 
-      if (CharStyle != Styles.end()) {
+      if (const auto *CharStyle = llvm::find_if(Styles, [I](const StyleRange &R) {
+        return (R.Start < I && R.End >= I);
+      }); CharStyle != Styles.end()) {
         if (!CurrentColor ||
             (CurrentColor && *CurrentColor != CharStyle->Color)) {
           OS.changeColor(CharStyle->Color);

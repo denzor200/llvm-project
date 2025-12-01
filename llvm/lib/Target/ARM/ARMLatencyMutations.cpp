@@ -532,9 +532,9 @@ unsigned ARMOverrideBypasses::makeBundleAssumptions(SUnit &ISU, SDep &Dep) {
   const MachineInstr *SrcMI = ISU.getInstr();
   unsigned SrcOpcode = SrcMI->getOpcode();
   const MachineInstr *DstMI = DepSU.getInstr();
-  unsigned DstOpcode = DstMI->getOpcode();
+  
 
-  if (DstOpcode == ARM::BUNDLE && TII->isPredicated(*DstMI)) {
+  if (unsigned DstOpcode = DstMI->getOpcode(); DstOpcode == ARM::BUNDLE && TII->isPredicated(*DstMI)) {
     setBidirLatencies(
         ISU, Dep,
         (Dep.isAssignedRegDep() && Dep.getReg() == ARM::CPSR) ? 0 : 1);
@@ -574,8 +574,8 @@ bool ARMOverrideBypasses::memoryRAWHazard(SUnit &ISU, SDep &Dep,
              SrcPseudoVal->kind() == PseudoSourceValue::FixedStack) {
     // Spills/fills
     auto FS0 = cast<FixedStackPseudoSourceValue>(SrcPseudoVal);
-    auto FS1 = cast<FixedStackPseudoSourceValue>(DstPseudoVal);
-    if (FS0 == FS1) {
+    
+    if (auto FS1 = cast<FixedStackPseudoSourceValue>(DstPseudoVal); FS0 == FS1) {
       setBidirLatencies(ISU, Dep, latency);
       return true;
     }
@@ -724,13 +724,13 @@ private:
 
 unsigned M85Overrides::computeBypassStage(const MCSchedClassDesc *SCDesc) {
   auto SM = DAG->getSchedModel();
-  unsigned DefIdx = 0; // just look for the first output's timing
-  if (DefIdx < SCDesc->NumWriteLatencyEntries) {
+  // just look for the first output's timing
+  if (unsigned DefIdx = 0; DefIdx < SCDesc->NumWriteLatencyEntries) {
     // Lookup the definition's write latency in SubtargetInfo.
     const MCWriteLatencyEntry *WLEntry =
         SM->getSubtargetInfo()->getWriteLatencyEntry(SCDesc, DefIdx);
-    unsigned Latency = WLEntry->Cycles >= 0 ? WLEntry->Cycles : 1000;
-    if (Latency == 4)
+    
+    if (unsigned Latency = WLEntry->Cycles >= 0 ? WLEntry->Cycles : 1000; Latency == 4)
       return 2;
     else if (Latency == 5)
       return 3;
@@ -930,8 +930,8 @@ public:
       : ARMOverrideBypasses(TII, AA) {}
 
   void modifyBypasses(SUnit &SU) override {
-    MachineInstr *SrcMI = SU.getInstr();
-    if (!(SrcMI->getDesc().TSFlags & ARMII::HorizontalReduction))
+    
+    if (MachineInstr *SrcMI = SU.getInstr(); !(SrcMI->getDesc().TSFlags & ARMII::HorizontalReduction))
       return;
 
     for (SDep &Dep : SU.Succs) {

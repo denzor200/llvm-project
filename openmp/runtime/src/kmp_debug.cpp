@@ -43,8 +43,8 @@ int __kmp_debug_assert(char const *msg, char const *file, int line) {
   } else {
     // Remove directories from path, leave only file name. File name is enough,
     // there is no need in bothering developers and customers with full paths.
-    char const *slash = strrchr(file, '/');
-    if (slash != NULL) {
+    
+    if (char const *slash = strrchr(file, '/'); slash != NULL) {
       file = slash + 1;
     }
   }

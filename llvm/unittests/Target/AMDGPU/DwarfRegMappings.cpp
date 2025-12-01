@@ -19,8 +19,8 @@ TEST(AMDGPU, TestWave64DwarfRegMapping) {
     if (TM) {
       GCNSubtarget ST(TM->getTargetTriple(), std::string(TM->getTargetCPU()),
                       std::string(TM->getTargetFeatureString()), *TM);
-      auto MRI = ST.getRegisterInfo();
-      if (MRI) {
+      
+      if (auto MRI = ST.getRegisterInfo(); MRI) {
         // Wave64 Dwarf register mapping test numbers
         // PC_64 => 16, EXEC_MASK_64 => 17, S0 => 32, S63 => 95,
         // S64 => 1088, S105 => 1129, V0 => 2560, V255 => 2815,
@@ -59,8 +59,8 @@ TEST(AMDGPU, TestWave32DwarfRegMapping) {
     if (TM) {
       GCNSubtarget ST(TM->getTargetTriple(), std::string(TM->getTargetCPU()),
                       std::string(TM->getTargetFeatureString()), *TM);
-      auto MRI = ST.getRegisterInfo();
-      if (MRI) {
+      
+      if (auto MRI = ST.getRegisterInfo(); MRI) {
         // Wave32 Dwarf register mapping test numbers
         // PC_64 => 16, EXEC_MASK_32 => 1, S0 => 32, S63 => 95,
         // S64 => 1088, S105 => 1129, V0 => 1536, V255 => 1791,

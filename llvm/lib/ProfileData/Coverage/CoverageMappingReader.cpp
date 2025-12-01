@@ -134,10 +134,10 @@ Error RawCoverageFilenamesReader::read(CovMapVersion Version) {
     // Read compressed filenames.
     StringRef CompressedFilenames = Data.substr(0, CompressedLen);
     Data = Data.substr(CompressedLen);
-    auto Err = compression::zlib::decompress(
+    
+    if (auto Err = compression::zlib::decompress(
         arrayRefFromStringRef(CompressedFilenames), StorageBuf,
-        UncompressedLen);
-    if (Err) {
+        UncompressedLen); Err) {
       consumeError(std::move(Err));
       return make_error<CoverageMapError>(
           coveragemap_error::decompression_failed);
@@ -494,12 +494,12 @@ Expected<bool> RawCoverageMappingDummyChecker::isDummy() {
 
 /// Determine if we should skip the first byte of the section content
 static bool shouldSkipSectionFirstByte(SectionRef &Section) {
-  const ObjectFile *Obj = Section.getObject();
+  
   // If this is a linked PE/COFF file, then we have to skip over the null byte
   // that is allocated in the .lprfn$A section in the LLVM profiling runtime.
   // If the name section is .lprfcovnames, it doesn't have the null byte at the
   // beginning.
-  if (isa<COFFObjectFile>(Obj) && !Obj->isRelocatableObject())
+  if (const ObjectFile *Obj = Section.getObject(); isa<COFFObjectFile>(Obj) && !Obj->isRelocatableObject())
     if (Expected<StringRef> NameOrErr = Section.getName())
       if (*NameOrErr != getInstrProfSectionName(IPSK_covname, Triple::COFF))
         return true;
@@ -522,8 +522,8 @@ Error InstrProfSymtab::create(SectionRef &Section) {
 StringRef InstrProfSymtab::getFuncName(uint64_t Pointer, size_t Size) const {
   if (Pointer < Address)
     return StringRef();
-  auto Offset = Pointer - Address;
-  if (Offset + Size > Data.size())
+  
+  if (auto Offset = Pointer - Address; Offset + Size > Data.size())
     return StringRef();
   return Data.substr(Pointer - Address, Size);
 }
@@ -717,8 +717,8 @@ public:
         // The same filenames ref was encountered twice. It's possible that
         // the associated filenames are the same.
         auto It = Filenames.begin();
-        FilenameRange &OrigRange = Insert.first->getSecond();
-        if (std::equal(It + OrigRange.StartingIndex,
+        
+        if (FilenameRange &OrigRange = Insert.first->getSecond(); std::equal(It + OrigRange.StartingIndex,
                        It + OrigRange.StartingIndex + OrigRange.Length,
                        It + FileRange.StartingIndex,
                        It + FileRange.StartingIndex + FileRange.Length))
@@ -782,8 +782,8 @@ public:
         FileRange = OutOfLineFileRange;
       } else {
         uint64_t FilenamesRef = CFR->template getFilenamesRef<Endian>();
-        auto It = FileRangeMap.find(FilenamesRef);
-        if (It == FileRangeMap.end())
+        
+        if (auto It = FileRangeMap.find(FilenamesRef); It == FileRangeMap.end())
           return make_error<CoverageMapError>(
               coveragemap_error::malformed,
               "no filename found for function with hash=0x" +
@@ -911,8 +911,8 @@ BinaryCoverageReader::createCoverageReaderFromBuffer(
       new BinaryCoverageReader(std::move(ProfileNamesPtr),
                                std::move(FuncRecords), std::move(CoverageMap)));
   InstrProfSymtab &ProfileNames = *Reader->ProfileNames;
-  StringRef FuncRecordsRef = Reader->FuncRecords->getBuffer();
-  if (BytesInAddress == 4 && Endian == llvm::endianness::little) {
+  
+  if (StringRef FuncRecordsRef = Reader->FuncRecords->getBuffer(); BytesInAddress == 4 && Endian == llvm::endianness::little) {
     if (Error E = readCoverageMappingData<uint32_t, llvm::endianness::little>(
             ProfileNames, Coverage, FuncRecordsRef, Reader->MappingRecords,
             CompilationDir, Reader->Filenames))
@@ -1273,10 +1273,10 @@ BinaryCoverageReader::create(
   std::vector<std::unique_ptr<BinaryCoverageReader>> Readers;
 
   if (ObjectBuffer.getBuffer().size() > sizeof(TestingFormatMagic)) {
-    uint64_t Magic = support::endian::byte_swap<uint64_t>(
+    
+    if (uint64_t Magic = support::endian::byte_swap<uint64_t>(
         *reinterpret_cast<const uint64_t *>(ObjectBuffer.getBufferStart()),
-        llvm::endianness::little);
-    if (Magic == TestingFormatMagic) {
+        llvm::endianness::little); Magic == TestingFormatMagic) {
       // This is a special format used for testing.
       auto ReaderOrErr =
           loadTestingFormat(ObjectBuffer.getBuffer(), CompilationDir);
@@ -1301,8 +1301,8 @@ BinaryCoverageReader::create(
   if (auto *Universal = dyn_cast<MachOUniversalBinary>(Bin.get())) {
     for (auto &ObjForArch : Universal->objects()) {
       // Skip slices within the universal binary which target the wrong arch.
-      std::string ObjArch = ObjForArch.getArchFlagName();
-      if (Arch != ObjArch)
+      
+      if (std::string ObjArch = ObjForArch.getArchFlagName(); Arch != ObjArch)
         continue;
 
       auto ArchiveOrErr = ObjForArch.getAsArchive();
@@ -1367,9 +1367,9 @@ Error BinaryCoverageReader::readNextRecord(CoverageMappingRecord &Record) {
   MappingRegions.clear();
   auto &R = MappingRecords[CurrentRecord];
   auto F = ArrayRef(Filenames).slice(R.FilenamesBegin, R.FilenamesSize);
-  RawCoverageMappingReader Reader(R.CoverageMapping, F, FunctionsFilenames,
-                                  Expressions, MappingRegions);
-  if (auto Err = Reader.read())
+  
+  if (auto RawCoverageMappingReader Reader(R.CoverageMapping, F, FunctionsFilenames,
+                                  Expressions, MappingRegions); Err = Reader.read())
     return Err;
 
   Record.FunctionName = R.FunctionName;

@@ -92,8 +92,8 @@ static bool CheckIPSupport(llvm::StringRef Proto, llvm::StringRef Addr) {
                              .str();
   bool HasProtocolError = false;
   handleAllErrors(std::move(Err), [&](std::unique_ptr<llvm::ECError> ECErr) {
-    std::error_code ec = ECErr->convertToErrorCode();
-    if (ec == std::make_error_code(std::errc::address_family_not_supported) ||
+    
+    if (std::error_code ec = ECErr->convertToErrorCode(); ec == std::make_error_code(std::errc::address_family_not_supported) ||
         ec == std::make_error_code(std::errc::address_not_available))
       HasProtocolError = true;
   });

@@ -53,8 +53,8 @@ public:
   LogicalResult matchAndRewrite(vector::CreateMaskOp op,
                                 PatternRewriter &rewriter) const override {
     auto dstType = cast<VectorType>(op.getResult().getType());
-    int64_t rank = dstType.getRank();
-    if (rank <= 1)
+    
+    if (int64_t rank = dstType.getRank(); rank <= 1)
       return rewriter.notifyMatchFailure(
           op, "0-D and 1-D vectors are handled separately");
 

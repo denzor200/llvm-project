@@ -323,8 +323,8 @@ OMPT_NOINLINE
 static void __ompt_implicit_task_end(kmp_info_t *this_thr,
                                      ompt_state_t ompt_state,
                                      ompt_data_t *tId) {
-  int ds_tid = this_thr->th.th_info.ds.ds_tid;
-  if (ompt_state == ompt_state_wait_barrier_implicit_parallel ||
+  
+  if (int ds_tid = this_thr->th.th_info.ds.ds_tid; ompt_state == ompt_state_wait_barrier_implicit_parallel ||
       ompt_state == ompt_state_wait_barrier_teams) {
     this_thr->th.ompt_thread_info.state = ompt_state_overhead;
 #if OMPT_OPTIONAL
@@ -389,8 +389,8 @@ __kmp_wait_template(kmp_info_t *this_thr,
   }
   th_gtid = this_thr->th.th_info.ds.ds_gtid;
   if (Cancellable) {
-    kmp_team_t *team = this_thr->th.th_team;
-    if (team && team->t.t_cancel_request == cancel_parallel)
+    
+    if (kmp_team_t *team = this_thr->th.th_team; team && team->t.t_cancel_request == cancel_parallel)
       return true;
   }
 #if KMP_OS_UNIX
@@ -583,8 +583,8 @@ final_spin=FALSE)
 #endif
     // Check if the barrier surrounding this wait loop has been cancelled
     if (Cancellable) {
-      kmp_team_t *team = this_thr->th.th_team;
-      if (team && team->t.t_cancel_request == cancel_parallel)
+      
+      if (kmp_team_t *team = this_thr->th.th_team; team && team->t.t_cancel_request == cancel_parallel)
         break;
     }
 
@@ -691,8 +691,8 @@ final_spin=FALSE)
 #endif
   KMP_FSYNC_SPIN_ACQUIRED(CCAST(void *, spin));
   if (Cancellable) {
-    kmp_team_t *team = this_thr->th.th_team;
-    if (team && team->t.t_cancel_request == cancel_parallel) {
+    
+    if (kmp_team_t *team = this_thr->th.th_team; team && team->t.t_cancel_request == cancel_parallel) {
       if (tasks_completed) {
         // undo the previous decrement of unfinished_threads so that the
         // thread can decrement at the join barrier with no problem
@@ -725,9 +725,9 @@ static inline void __kmp_mwait_template(int th_gtid, C *flag) {
   __kmp_lock_suspend_mx(th);
 
   volatile void *spin = flag->get();
-  void *cacheline = (void *)(kmp_uintptr_t(spin) & ~(CACHE_LINE - 1));
+  
 
-  if (!flag->done_check()) {
+  if (void *cacheline = (void *)(kmp_uintptr_t(spin) & ~(CACHE_LINE - 1)); !flag->done_check()) {
     // Mark thread as no longer active
     th->th.th_active = FALSE;
     if (th->th.th_active_in_pool) {
@@ -809,8 +809,8 @@ template <class C> static inline void __kmp_release_template(C *flag) {
     if (flag->is_any_sleeping()) {
       for (unsigned int i = 0; i < flag->get_num_waiters(); ++i) {
         // if sleeping waiter exists at i, sets current_waiter to i inside flag
-        kmp_info_t *waiter = flag->get_waiter(i);
-        if (waiter) {
+        
+        if (kmp_info_t *waiter = flag->get_waiter(i); waiter) {
           int wait_gtid = waiter->th.th_info.ds.ds_gtid;
           // Wake up thread if needed
           KF_TRACE(50, ("__kmp_release: T#%d waking up thread T#%d since sleep "

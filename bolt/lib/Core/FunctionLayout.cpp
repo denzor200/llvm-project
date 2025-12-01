@@ -182,8 +182,8 @@ void FunctionLayout::updateLayoutIndices(
 }
 
 bool FunctionLayout::update(const ArrayRef<BinaryBasicBlock *> NewLayout) {
-  const bool EqualBlockOrder = llvm::equal(Blocks, NewLayout);
-  if (EqualBlockOrder) {
+  
+  if (const bool EqualBlockOrder = llvm::equal(Blocks, NewLayout); EqualBlockOrder) {
     const bool EqualPartitioning =
         llvm::all_of(fragments(), [](const FunctionFragment &FF) {
           return llvm::all_of(FF, [&](const BinaryBasicBlock *const BB) {

@@ -78,11 +78,11 @@ static Instruction *lookThroughAnd(PHINode *Phi, Type *&RT,
     return Phi;
 
   const APInt *M = nullptr;
-  Instruction *I, *J = cast<Instruction>(Phi->use_begin()->getUser());
+  
 
   // Matches either I & 2^x-1 or 2^x-1 & I. If we find a match, we update RT
   // with a new integer type of the corresponding bit width.
-  if (match(J, m_And(m_Instruction(I), m_APInt(M)))) {
+  if (Instruction *I, *J = cast<Instruction>(Phi->use_begin()->getUser()); match(J, m_And(m_Instruction(I), m_APInt(M)))) {
     int32_t Bits = (*M + 1).exactLogBase2();
     if (Bits > 0) {
       RT = IntegerType::get(Phi->getContext(), Bits);
@@ -121,8 +121,8 @@ static std::pair<Type *, bool> computeRecurrenceType(Instruction *Exit,
     auto NumSignBits = ComputeNumSignBits(Exit, DL, AC, nullptr, DT);
     auto NumTypeBits = DL.getTypeSizeInBits(Exit->getType());
     MaxBitWidth = NumTypeBits - NumSignBits;
-    KnownBits Bits = computeKnownBits(Exit, DL);
-    if (!Bits.isNonNegative()) {
+    
+    if (KnownBits Bits = computeKnownBits(Exit, DL); !Bits.isNonNegative()) {
       // If the value is not known to be non-negative, we set IsSigned to true,
       // meaning that we will use sext instructions instead of zext
       // instructions to restore the original type.
@@ -204,8 +204,8 @@ static bool checkOrderedReduction(RecurKind Kind, Instruction *ExactFPMathInst,
   // The only pattern accepted is the one in which the reduction PHI
   // is used as one of the operands of the exit instruction
   auto *Op0 = Exit->getOperand(0);
-  auto *Op1 = Exit->getOperand(1);
-  if (Kind == RecurKind::FAdd && Op0 != Phi && Op1 != Phi)
+  
+  if (auto *Op1 = Exit->getOperand(1); Kind == RecurKind::FAdd && Op0 != Phi && Op1 != Phi)
     return false;
   if (Kind == RecurKind::FMulAdd && Exit->getOperand(2) != Phi)
     return false;
@@ -273,8 +273,8 @@ bool RecurrenceDescriptor::AddReductionVar(
   // operations are not limited to the legal integer widths, so we may be able
   // to evaluate the reduction in the narrower width.
   // Check the scalar type to handle both scalar and vector types.
-  Type *ScalarTy = RecurrenceType->getScalarType();
-  if (ScalarTy->isFloatingPointTy()) {
+  
+  if (Type *ScalarTy = RecurrenceType->getScalarType(); ScalarTy->isFloatingPointTy()) {
     if (!isFloatingPointRecurrenceKind(Kind))
       return false;
   } else if (ScalarTy->isIntegerTy()) {
@@ -332,10 +332,10 @@ bool RecurrenceDescriptor::AddReductionVar(
       const SCEV *PtrScev = SE->getSCEV(SI->getPointerOperand());
       // Check it is the same address as previous stores
       if (IntermediateStore) {
-        const SCEV *OtherScev =
-            SE->getSCEV(IntermediateStore->getPointerOperand());
+        
 
-        if (OtherScev != PtrScev) {
+        if (const SCEV *OtherScev =
+            SE->getSCEV(IntermediateStore->getPointerOperand()); OtherScev != PtrScev) {
           LLVM_DEBUG(dbgs() << "Storing reduction value to different addresses "
                             << "inside the loop: " << *SI->getPointerOperand()
                             << " and "
@@ -481,8 +481,8 @@ bool RecurrenceDescriptor::AddReductionVar(
         if (isa<PHINode>(UI)) {
           PHIs.push_back(UI);
         } else {
-          StoreInst *SI = dyn_cast<StoreInst>(UI);
-          if (SI && SI->getPointerOperand() == Cur) {
+          
+          if (StoreInst *SI = dyn_cast<StoreInst>(UI); SI && SI->getPointerOperand() == Cur) {
             // Reduction variable chain can only be stored somewhere but it
             // can't be used as an address.
             return false;
@@ -1544,8 +1544,8 @@ static bool getCastsForInductionPHI(PredicatedScalarEvolution &PSE,
     if (!Inst || !L->contains(Inst)) {
       return false;
     }
-    auto *AddRec = dyn_cast<SCEVAddRecExpr>(PSE.getSCEV(Val));
-    if (AddRec && PSE.areAddRecsEqualWithPreds(AddRec, AR))
+    
+    if (auto *AddRec = dyn_cast<SCEVAddRecExpr>(PSE.getSCEV(Val)); AddRec && PSE.areAddRecsEqualWithPreds(AddRec, AR))
       InCastSequence = true;
     if (InCastSequence) {
       // Only the last instruction in the cast sequence is expected to have
@@ -1600,8 +1600,8 @@ bool InductionDescriptor::isInductionPHI(PHINode *Phi, const Loop *TheLoop,
   // guarantee the correctness of the AddRecurrence respresentation of the
   // induction.
   if (PhiScev != AR && SymbolicPhi) {
-    SmallVector<Instruction *, 2> Casts;
-    if (getCastsForInductionPHI(PSE, SymbolicPhi, AR, Casts))
+    
+    if (SmallVector<Instruction *, 2> Casts; getCastsForInductionPHI(PSE, SymbolicPhi, AR, Casts))
       return isInductionPHI(Phi, TheLoop, PSE.getSE(), D, AR, &Casts);
   }
 

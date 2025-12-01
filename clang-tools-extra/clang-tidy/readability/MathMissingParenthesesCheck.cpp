@@ -57,9 +57,9 @@ static void addParentheses(const BinaryOperator *BinOp,
     return;
 
   const int Precedence1 = getPrecedence(BinOp);
-  const int Precedence2 = getPrecedence(ParentBinOp);
+  
 
-  if (ParentBinOp != nullptr && Precedence1 != Precedence2 && Precedence1 > 0 &&
+  if (const int Precedence2 = getPrecedence(ParentBinOp); ParentBinOp != nullptr && Precedence1 != Precedence2 && Precedence1 > 0 &&
       Precedence2 > 0) {
     const clang::SourceLocation StartLoc = BinOp->getBeginLoc();
     const clang::SourceLocation EndLoc =

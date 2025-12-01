@@ -385,8 +385,8 @@ void DWARFFormValue::dump(raw_ostream &OS, DIDumpOptions DumpOpts) const {
   raw_ostream &AddrOS = DumpOpts.ShowAddresses
                             ? WithColor(OS, HighlightColor::Address).get()
                             : nulls();
-  int OffsetDumpWidth = 2 * dwarf::getDwarfOffsetByteSize(Format);
-  switch (Form) {
+  
+  switch (int OffsetDumpWidth = 2 * dwarf::getDwarfOffsetByteSize(Format); Form) {
   case DW_FORM_addr:
     dumpSectionedAddress(AddrOS, DumpOpts, {Value.uval, Value.SectionIndex});
     break;
@@ -467,8 +467,8 @@ void DWARFFormValue::dump(raw_ostream &OS, DIDumpOptions DumpOpts) const {
         break;
       }
 
-      const uint8_t *DataPtr = Value.data;
-      if (DataPtr) {
+      
+      if (const uint8_t *DataPtr = Value.data; DataPtr) {
         // UValue contains size of block
         const uint8_t *EndDataPtr = DataPtr + UValue;
         while (DataPtr < EndDataPtr) {
@@ -641,8 +641,8 @@ std::optional<object::SectionedAddress> DWARFFormValue::getAsSectionedAddress(
     const ValueType &Value, const dwarf::Form Form, const DWARFUnit *U) {
   if (!doesFormBelongToClass(Form, FC_Address, U ? U->getVersion() : 3))
     return std::nullopt;
-  bool AddrOffset = Form == dwarf::DW_FORM_LLVM_addrx_offset;
-  if (Form == DW_FORM_GNU_addr_index || Form == DW_FORM_addrx ||
+  
+  if (bool AddrOffset = Form == dwarf::DW_FORM_LLVM_addrx_offset; Form == DW_FORM_GNU_addr_index || Form == DW_FORM_addrx ||
       Form == DW_FORM_addrx1 || Form == DW_FORM_addrx2 ||
       Form == DW_FORM_addrx3 || Form == DW_FORM_addrx4 || AddrOffset) {
 
@@ -758,10 +758,10 @@ std::optional<std::string>
 DWARFFormValue::getAsFile(DILineInfoSpecifier::FileLineInfoKind Kind) const {
   if (U == nullptr || !isFormClass(FC_Constant))
     return std::nullopt;
-  DWARFUnit *DLU = const_cast<DWARFUnit *>(U)->getLinkedUnit();
-  if (auto *LT = DLU->getContext().getLineTableForUnit(DLU)) {
-    std::string FileName;
-    if (LT->getFileNameByIndex(Value.uval, DLU->getCompilationDir(), Kind,
+  
+  if (auto *DWARFUnit *DLU = const_cast<DWARFUnit *>(U)->getLinkedUnit(); LT = DLU->getContext().getLineTableForUnit(DLU)) {
+    
+    if (std::string FileName; LT->getFileNameByIndex(Value.uval, DLU->getCompilationDir(), Kind,
                                FileName))
       return FileName;
   }

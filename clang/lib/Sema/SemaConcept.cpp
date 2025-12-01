@@ -1265,9 +1265,9 @@ SubstituteConceptsInConstraintExpression(Sema &S, const NamedDecl *D,
   ConceptDecl *Concept = CSE->getNamedConcept()->getCanonicalDecl();
   Sema::ArgPackSubstIndexRAII _(S, SubstIndex);
 
-  const ASTTemplateArgumentListInfo *ArgsAsWritten =
-      CSE->getTemplateArgsAsWritten();
-  if (llvm::none_of(
+  
+  if (const ASTTemplateArgumentListInfo *ArgsAsWritten =
+      CSE->getTemplateArgsAsWritten(); llvm::none_of(
           ArgsAsWritten->arguments(), [&](const TemplateArgumentLoc &ArgLoc) {
             return !ArgLoc.getArgument().isDependent() &&
                    ArgLoc.getArgument().isConceptOrConceptTemplateParameter();
@@ -1330,9 +1330,9 @@ bool Sema::SetupConstraintScope(
     // the list of current template arguments to the list so that they also can
     // be picked out of the map.
     if (auto *SpecArgs = FD->getTemplateSpecializationArgs()) {
-      MultiLevelTemplateArgumentList JustTemplArgs(FD, SpecArgs->asArray(),
-                                                   /*Final=*/false);
-      if (addInstantiatedParametersToScope(
+      
+      if (MultiLevelTemplateArgumentList JustTemplArgs(FD, SpecArgs->asArray(),
+                                                   /*Final=*/false); addInstantiatedParametersToScope(
               FD, PrimaryTemplate->getTemplatedDecl(), Scope, JustTemplArgs))
         return true;
     }
@@ -1732,8 +1732,8 @@ static void diagnoseUnsatisfiedRequirement(Sema &S,
     llvm_unreachable("Diagnosing a dependent requirement");
     break;
   case concepts::ExprRequirement::SS_ExprSubstitutionFailure: {
-    auto *SubstDiag = Req->getExprSubstitutionDiagnostic();
-    if (!SubstDiag->DiagMessage.empty())
+    
+    if (auto *SubstDiag = Req->getExprSubstitutionDiagnostic(); !SubstDiag->DiagMessage.empty())
       S.Diag(SubstDiag->DiagLoc,
              diag::note_expr_requirement_expr_substitution_error)
           << (int)First << SubstDiag->SubstitutedEntity
@@ -1749,9 +1749,9 @@ static void diagnoseUnsatisfiedRequirement(Sema &S,
         << (int)First << Req->getExpr();
     break;
   case concepts::ExprRequirement::SS_TypeRequirementSubstitutionFailure: {
-    auto *SubstDiag =
-        Req->getReturnTypeRequirement().getSubstitutionDiagnostic();
-    if (!SubstDiag->DiagMessage.empty())
+    
+    if (auto *SubstDiag =
+        Req->getReturnTypeRequirement().getSubstitutionDiagnostic(); !SubstDiag->DiagMessage.empty())
       S.Diag(SubstDiag->DiagLoc,
              diag::note_expr_requirement_type_requirement_substitution_error)
           << (int)First << SubstDiag->SubstitutedEntity
@@ -1785,8 +1785,8 @@ static void diagnoseUnsatisfiedRequirement(Sema &S,
     llvm_unreachable("Diagnosing a dependent requirement");
     return;
   case concepts::TypeRequirement::SS_SubstitutionFailure: {
-    auto *SubstDiag = Req->getSubstitutionDiagnostic();
-    if (!SubstDiag->DiagMessage.empty())
+    
+    if (auto *SubstDiag = Req->getSubstitutionDiagnostic(); !SubstDiag->DiagMessage.empty())
       S.Diag(SubstDiag->DiagLoc, diag::note_type_requirement_substitution_error)
           << (int)First << SubstDiag->SubstitutedEntity
           << SubstDiag->DiagMessage;
@@ -2043,10 +2043,10 @@ void SubstituteParameterMappings::buildParameterMapping(
         /*OnlyDeduced=*/false,
         /*Depth=*/0, OccurringIndices);
   } else if (N.getKind() == NormalizedConstraint::ConstraintKind::ConceptId) {
-    auto *Args = static_cast<ConceptIdConstraint &>(N)
+    
+    if (auto *Args = static_cast<ConceptIdConstraint &>(N)
                      .getConceptId()
-                     ->getTemplateArgsAsWritten();
-    if (Args)
+                     ->getTemplateArgsAsWritten(); Args)
       SemaRef.MarkUsedTemplateParameters(Args->arguments(),
                                          /*Depth=*/0, OccurringIndices);
   }
@@ -2676,14 +2676,14 @@ template <typename FormulaType>
 FormulaType SubsumptionChecker::Normalize(const NormalizedConstraint &NC) {
   FormulaType Res;
 
-  auto Add = [&, this](Clause C) {
+  
+
+  switch (auto Add = [&, this](Clause C) {
     // Sort each clause and remove duplicates for faster comparisons.
     llvm::sort(C);
     C.erase(llvm::unique(C), C.end());
     AddUniqueClauseToFormula(Res, std::move(C));
-  };
-
-  switch (NC.getKind()) {
+  }; NC.getKind()) {
   case NormalizedConstraint::ConstraintKind::Atomic:
     return {{find(&static_cast<const AtomicConstraint &>(NC))}};
 

@@ -100,12 +100,12 @@ bool SIShrinkInstructions::foldImmediates(MachineInstr &MI,
   int Src0Idx = AMDGPU::getNamedOperandIdx(MI.getOpcode(), AMDGPU::OpName::src0);
 
   // Try to fold Src0
-  MachineOperand &Src0 = MI.getOperand(Src0Idx);
-  if (Src0.isReg()) {
-    Register Reg = Src0.getReg();
-    if (Reg.isVirtual()) {
-      MachineInstr *Def = MRI->getUniqueVRegDef(Reg);
-      if (Def && Def->isMoveImmediate()) {
+  
+  if (MachineOperand &Src0 = MI.getOperand(Src0Idx); Src0.isReg()) {
+    
+    if (Register Reg = Src0.getReg(); Reg.isVirtual()) {
+      
+      if (MachineInstr *Def = MRI->getUniqueVRegDef(Reg); Def && Def->isMoveImmediate()) {
         MachineOperand &MovSrc = Def->getOperand(1);
         bool ConstantFolded = false;
 
@@ -151,8 +151,8 @@ bool SIShrinkInstructions::foldImmediates(MachineInstr &MI,
 /// shrunk encoding.
 bool SIShrinkInstructions::shouldShrinkTrue16(MachineInstr &MI) const {
   for (unsigned I = 0, E = MI.getNumExplicitOperands(); I != E; ++I) {
-    const MachineOperand &MO = MI.getOperand(I);
-    if (MO.isReg()) {
+    
+    if (const MachineOperand &MO = MI.getOperand(I); MO.isReg()) {
       Register Reg = MO.getReg();
       assert(!Reg.isVirtual() && "Prior checks should ensure we only shrink "
                                  "True16 Instructions post-RA");
@@ -235,8 +235,8 @@ void SIShrinkInstructions::copyExtraImplicitOps(MachineInstr &NewMI,
                     MI.getDesc().implicit_defs().size(),
                 e = MI.getNumOperands();
        i != e; ++i) {
-    const MachineOperand &MO = MI.getOperand(i);
-    if ((MO.isReg() && MO.isImplicit()) || MO.isRegMask())
+    
+    if (const MachineOperand &MO = MI.getOperand(i); (MO.isReg() && MO.isImplicit()) || MO.isRegMask())
       NewMI.addOperand(MF, MO);
   }
 }
@@ -251,8 +251,8 @@ void SIShrinkInstructions::shrinkScalarCompare(MachineInstr &MI) const {
     TII->commuteInstruction(MI, false, 0, 1);
 
   // cmpk requires src0 to be a register
-  const MachineOperand &Src0 = MI.getOperand(0);
-  if (!Src0.isReg())
+  
+  if (const MachineOperand &Src0 = MI.getOperand(0); !Src0.isReg())
     return;
 
   MachineOperand &Src1 = MI.getOperand(1);
@@ -266,8 +266,8 @@ void SIShrinkInstructions::shrinkScalarCompare(MachineInstr &MI) const {
   // eq/ne is special because the imm16 can be treated as signed or unsigned,
   // and initially selected to the unsigned versions.
   if (SOPKOpc == AMDGPU::S_CMPK_EQ_U32 || SOPKOpc == AMDGPU::S_CMPK_LG_U32) {
-    bool HasUImm;
-    if (isKImmOrKUImmOperand(Src1, HasUImm)) {
+    
+    if (bool HasUImm; isKImmOrKUImmOperand(Src1, HasUImm)) {
       if (!HasUImm) {
         SOPKOpc = (SOPKOpc == AMDGPU::S_CMPK_EQ_U32) ?
           AMDGPU::S_CMPK_EQ_I32 : AMDGPU::S_CMPK_LG_I32;
@@ -818,8 +818,8 @@ MachineInstr *SIShrinkInstructions::matchSwap(MachineInstr &MovT) const {
       Xop.setIsKill(false);
       for (int I = MovT.getNumImplicitOperands() - 1; I >= 0; --I ) {
         unsigned OpNo = MovT.getNumExplicitOperands() + I;
-        const MachineOperand &Op = MovT.getOperand(OpNo);
-        if (Op.isKill() && TRI->regsOverlap(X, Op.getReg()))
+        
+        if (const MachineOperand &Op = MovT.getOperand(OpNo); Op.isKill() && TRI->regsOverlap(X, Op.getReg()))
           MovT.removeOperand(OpNo);
       }
     }
@@ -871,12 +871,12 @@ bool SIShrinkInstructions::run(MachineFunction &MF) {
 
         // Test if we are after regalloc. We only want to do this after any
         // optimizations happen because this will confuse them.
-        MachineOperand &Src = MI.getOperand(1);
-        if (Src.isImm() && IsPostRA) {
+        
+        if (MachineOperand &Src = MI.getOperand(1); Src.isImm() && IsPostRA) {
           int32_t ModImm;
-          unsigned ModOpcode =
-              canModifyToInlineImmOp32(TII, Src, ModImm, /*Scalar=*/false);
-          if (ModOpcode != 0) {
+          
+          if (unsigned ModOpcode =
+              canModifyToInlineImmOp32(TII, Src, ModImm, /*Scalar=*/false); ModOpcode != 0) {
             MI.setDesc(TII->get(ModOpcode));
             Src.setImm(static_cast<int64_t>(ModImm));
             continue;
@@ -935,12 +935,12 @@ bool SIShrinkInstructions::run(MachineFunction &MF) {
       // Try to use S_MOVK_I32, which will save 4 bytes for small immediates.
       if (MI.getOpcode() == AMDGPU::S_MOV_B32) {
         const MachineOperand &Dst = MI.getOperand(0);
-        MachineOperand &Src = MI.getOperand(1);
+        
 
-        if (Src.isImm() && Dst.getReg().isPhysical()) {
+        if (MachineOperand &Src = MI.getOperand(1); Src.isImm() && Dst.getReg().isPhysical()) {
           unsigned ModOpc;
-          int32_t ModImm;
-          if (isKImmOperand(Src)) {
+          
+          if (int32_t ModImm; isKImmOperand(Src)) {
             MI.setDesc(TII->get(AMDGPU::S_MOVK_I32));
             Src.setImm(SignExtend64(Src.getImm(), 32));
           } else if ((ModOpc = canModifyToInlineImmOp32(TII, Src, ModImm,
@@ -1005,8 +1005,8 @@ bool SIShrinkInstructions::run(MachineFunction &MF) {
       int Op32 = AMDGPU::getVOPe32(MI.getOpcode());
 
       if (TII->isVOPC(Op32)) {
-        MachineOperand &Op0 = MI.getOperand(0);
-        if (Op0.isReg()) {
+        
+        if (MachineOperand &Op0 = MI.getOperand(0); Op0.isReg()) {
           // Exclude VOPCX instructions as these don't explicitly write a
           // dst.
           Register DstReg = Op0.getReg();

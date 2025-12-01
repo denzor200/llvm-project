@@ -316,8 +316,8 @@ class ScanningDependencyDirectivesGetter : public DependencyDirectivesGetter {
 public:
   ScanningDependencyDirectivesGetter(FileManager &FileMgr) : DepFS(nullptr) {
     FileMgr.getVirtualFileSystem().visit([&](llvm::vfs::FileSystem &FS) {
-      auto *DFS = llvm::dyn_cast<DependencyScanningWorkerFilesystem>(&FS);
-      if (DFS) {
+      
+      if (auto *DFS = llvm::dyn_cast<DependencyScanningWorkerFilesystem>(&FS); DFS) {
         assert(!DepFS && "Found multiple scanning VFSs");
         DepFS = DFS;
       }
@@ -565,8 +565,8 @@ dependencies::getInitialStableDirs(const CompilerInstance &ScanInstance) {
   // for determining whether module dependencies would fully resolve from
   // those directories.
   llvm::SmallVector<StringRef> StableDirs;
-  const StringRef Sysroot = ScanInstance.getHeaderSearchOpts().Sysroot;
-  if (!Sysroot.empty() && (llvm::sys::path::root_directory(Sysroot) != Sysroot))
+  
+  if (const StringRef Sysroot = ScanInstance.getHeaderSearchOpts().Sysroot; !Sysroot.empty() && (llvm::sys::path::root_directory(Sysroot) != Sysroot))
     StableDirs = {Sysroot, ScanInstance.getHeaderSearchOpts().ResourceDir};
   return StableDirs;
 }

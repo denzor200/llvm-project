@@ -157,8 +157,8 @@ size_t SBThread::GetStopReasonDataCount() {
       GetStoppedExecutionContext(m_opaque_sp);
   if (exe_ctx) {
     if (exe_ctx->HasThreadScope()) {
-      StopInfoSP stop_info_sp = exe_ctx->GetThreadPtr()->GetStopInfo();
-      if (stop_info_sp)
+      
+      if (StopInfoSP stop_info_sp = exe_ctx->GetThreadPtr()->GetStopInfo(); stop_info_sp)
         return stop_info_sp->GetStopReasonDataCount();
     }
   } else {
@@ -176,8 +176,8 @@ uint64_t SBThread::GetStopReasonDataAtIndex(uint32_t idx) {
   if (exe_ctx) {
     if (exe_ctx->HasThreadScope()) {
       Thread *thread = exe_ctx->GetThreadPtr();
-      StopInfoSP stop_info_sp = thread->GetStopInfo();
-      if (stop_info_sp)
+      
+      if (StopInfoSP stop_info_sp = thread->GetStopInfo(); stop_info_sp)
         return stop_info_sp->GetStopReasonDataAtIndex(idx);
     }
   } else {
@@ -303,8 +303,8 @@ SBValue SBThread::GetStopReturnValue() {
   }
 
   if (exe_ctx->HasThreadScope()) {
-    StopInfoSP stop_info_sp = exe_ctx->GetThreadPtr()->GetStopInfo();
-    if (stop_info_sp) {
+    
+    if (StopInfoSP stop_info_sp = exe_ctx->GetThreadPtr()->GetStopInfo(); stop_info_sp) {
       return_valobj_sp = StopInfo::GetReturnValueObject(stop_info_sp);
     }
   }
@@ -393,11 +393,11 @@ bool SBThread::GetInfoItemByPathAsString(const char *path, SBStream &strm) {
   if (exe_ctx) {
     if (exe_ctx->HasThreadScope()) {
       Thread *thread = exe_ctx->GetThreadPtr();
-      StructuredData::ObjectSP info_root_sp = thread->GetExtendedInfo();
-      if (info_root_sp) {
-        StructuredData::ObjectSP node =
-            info_root_sp->GetObjectForDotSeparatedPath(path);
-        if (node) {
+      
+      if (StructuredData::ObjectSP info_root_sp = thread->GetExtendedInfo(); info_root_sp) {
+        
+        if (StructuredData::ObjectSP node =
+            info_root_sp->GetObjectForDotSeparatedPath(path); node) {
           if (node->GetType() == eStructuredDataTypeString) {
             strm.ref() << node->GetAsString()->GetValue();
             success = true;
@@ -542,8 +542,8 @@ void SBThread::StepInto(const char *target_name, uint32_t end_line,
     if (end_line == LLDB_INVALID_LINE_NUMBER)
       range = sc.line_entry.range;
     else {
-      llvm::Error err = sc.GetAddressRangeFromHereToEndLine(end_line, range);
-      if (err) {
+      
+      if (llvm::Error err = sc.GetAddressRangeFromHereToEndLine(end_line, range); err) {
         error = Status::FromErrorString(llvm::toString(std::move(err)).c_str());
         return;
       }
@@ -810,11 +810,11 @@ SBError SBThread::StepOverUntil(lldb::SBFrame &sb_frame,
     frame_sc.comp_unit->ResolveSymbolContext(location_spec,
                                              eSymbolContextLineEntry, sc_list);
     for (const SymbolContext &sc : sc_list) {
-      addr_t step_addr =
-          sc.line_entry.range.GetBaseAddress().GetLoadAddress(target);
-      if (step_addr != LLDB_INVALID_ADDRESS) {
-        AddressRange unused_range;
-        if (frame_sc.function->GetRangeContainingLoadAddress(step_addr, *target,
+      
+      if (addr_t step_addr =
+          sc.line_entry.range.GetBaseAddress().GetLoadAddress(target); step_addr != LLDB_INVALID_ADDRESS) {
+        
+        if (AddressRange unused_range; frame_sc.function->GetRangeContainingLoadAddress(step_addr, *target,
                                                              unused_range))
           step_over_until_addrs.push_back(step_addr);
         else
@@ -832,12 +832,12 @@ SBError SBThread::StepOverUntil(lldb::SBFrame &sb_frame,
             "step until target not in current function");
     } else {
       Status new_plan_status;
-      ThreadPlanSP new_plan_sp(thread->QueueThreadPlanForStepUntil(
+      
+
+      if (ThreadPlanSP new_plan_sp(thread->QueueThreadPlanForStepUntil(
           abort_other_plans, &step_over_until_addrs[0],
           step_over_until_addrs.size(), stop_other_threads,
-          frame_sp->GetFrameIndex(), new_plan_status));
-
-      if (new_plan_status.Success())
+          frame_sp->GetFrameIndex(), new_plan_status)); new_plan_status.Success())
         sb_error = ResumeNewPlan(std::move(*exe_ctx), new_plan_sp.get());
       else
         sb_error = Status::FromErrorString(new_plan_status.AsCString());
@@ -1286,16 +1286,16 @@ SBThread SBThread::GetExtendedBacktraceThread(const char *type) {
   SBThread sb_origin_thread;
   if (exe_ctx) {
     if (exe_ctx->HasThreadScope()) {
-      ThreadSP real_thread(exe_ctx->GetThreadSP());
-      if (real_thread) {
+      
+      if (ThreadSP real_thread(exe_ctx->GetThreadSP()); real_thread) {
         ConstString type_const(type);
-        Process *process = exe_ctx->GetProcessPtr();
-        if (process) {
-          SystemRuntime *runtime = process->GetSystemRuntime();
-          if (runtime) {
-            ThreadSP new_thread_sp(
-                runtime->GetExtendedBacktraceThread(real_thread, type_const));
-            if (new_thread_sp) {
+        
+        if (Process *process = exe_ctx->GetProcessPtr(); process) {
+          
+          if (SystemRuntime *runtime = process->GetSystemRuntime(); runtime) {
+            
+            if (ThreadSP new_thread_sp(
+                runtime->GetExtendedBacktraceThread(real_thread, type_const)); new_thread_sp) {
               // Save this in the Process' ExtendedThreadList so a strong
               // pointer retains the object.
               process->GetExtendedThreadList().AddThread(new_thread_sp);

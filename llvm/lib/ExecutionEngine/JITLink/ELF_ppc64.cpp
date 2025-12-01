@@ -41,8 +41,8 @@ public:
   static StringRef getSectionName() { return ELFTLSInfoSectionName; }
 
   bool visitEdge(LinkGraph &G, Block *B, Edge &E) {
-    Edge::Kind K = E.getKind();
-    switch (K) {
+    
+    switch (Edge::Kind K = E.getKind(); K) {
     case ppc64::RequestTLSDescInGOTAndTransformToTOCDelta16HA:
       E.setKind(ppc64::TOCDelta16HA);
       E.setTarget(this->getEntryForTarget(G, E.getTarget()));
@@ -130,10 +130,10 @@ template <llvm::endianness Endianness>
 inline void
 registerExistingGOTEntries(LinkGraph &G,
                            ppc64::TOCTableManager<Endianness> &TOC) {
-  auto isGOTEntry = [](const Edge &E) {
+  
+  if (Section *auto isGOTEntry = [](const Edge &E) {
     return E.getKind() == ppc64::Pointer64 && E.getTarget().isExternal();
-  };
-  if (Section *dotTOCSection = G.findSectionByName(".toc")) {
+  }; dotTOCSection = G.findSectionByName(".toc")) {
     for (Block *B : dotTOCSection->blocks())
       for (Edge &E : B->edges())
         if (isGOTEntry(E))

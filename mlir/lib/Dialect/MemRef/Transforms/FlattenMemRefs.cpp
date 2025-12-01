@@ -212,8 +212,8 @@ static LogicalResult canBeFlattened(T op, PatternRewriter &rewriter) {
             // For vector.transfer_read/write, must make sure:
             // 1. all accesses are inbound, and
             // 2. has an identity or minor identity permutation map.
-            auto permutationMap = oper.getPermutationMap();
-            if (!permutationMap.isIdentity() &&
+            
+            if (auto permutationMap = oper.getPermutationMap(); !permutationMap.isIdentity() &&
                 !permutationMap.isMinorIdentity()) {
               return rewriter.notifyMatchFailure(
                   oper, "only identity permutation map is supported");

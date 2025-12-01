@@ -271,8 +271,8 @@ ValueObjectSP AbstractListFrontEnd<Stl>::GetItem(size_t idx) {
   size_t advance = idx;
   ListIterator<Stl> current(m_head);
   if (idx > 0) {
-    auto cached_iterator = m_iterators.find(idx - 1);
-    if (cached_iterator != m_iterators.end()) {
+    
+    if (auto cached_iterator = m_iterators.find(idx - 1); cached_iterator != m_iterators.end()) {
       current = cached_iterator->second;
       advance = 1;
     }

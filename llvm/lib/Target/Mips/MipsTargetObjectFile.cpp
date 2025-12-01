@@ -92,11 +92,11 @@ IsGlobalInSmallSection(const GlobalObject *GO, const TargetMachine &TM,
 bool MipsTargetObjectFile::
 IsGlobalInSmallSectionImpl(const GlobalObject *GO,
                            const TargetMachine &TM) const {
-  const MipsSubtarget &Subtarget =
-      *static_cast<const MipsTargetMachine &>(TM).getSubtargetImpl();
+  
 
   // Return if small section is not available.
-  if (!Subtarget.useSmallSection())
+  if (const MipsSubtarget &Subtarget =
+      *static_cast<const MipsTargetMachine &>(TM).getSubtargetImpl(); !Subtarget.useSmallSection())
     return false;
 
   // Only global variables, not functions.
@@ -107,11 +107,11 @@ IsGlobalInSmallSectionImpl(const GlobalObject *GO,
   // If the variable has an explicit section, it is placed in that section but
   // it's addressing mode may change.
   if (GVA->hasSection()) {
-    StringRef Section = GVA->getSection();
+    
 
     // Explicitly placing any variable in the small data section overrides
     // the global -G value.
-    if (Section == ".sdata" || Section == ".sbss")
+    if (StringRef Section = GVA->getSection(); Section == ".sdata" || Section == ".sbss")
       return true;
 
     // Otherwise reject accessing it through the gp pointer. There are some

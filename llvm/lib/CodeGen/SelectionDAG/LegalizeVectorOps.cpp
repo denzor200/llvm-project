@@ -344,8 +344,8 @@ SDValue VectorLegalizer::LegalizeOp(SDValue Op) {
     if (Action == TargetLowering::Expand && !TLI.isStrictFPEnabled() &&
         TLI.getStrictFPOperationAction(Node->getOpcode(), ValVT) ==
             TargetLowering::Legal) {
-      EVT EltVT = ValVT.getVectorElementType();
-      if (TLI.getOperationAction(Node->getOpcode(), EltVT)
+      
+      if (EVT EltVT = ValVT.getVectorElementType(); TLI.getOperationAction(Node->getOpcode(), EltVT)
           == TargetLowering::Expand &&
           TLI.getStrictFPOperationAction(Node->getOpcode(), EltVT)
           == TargetLowering::Legal)
@@ -1271,10 +1271,10 @@ void VectorLegalizer::Expand(SDNode *Node, SmallVectorImpl<SDValue> &Results) {
   case ISD::FSINCOS:
   case ISD::FSINCOSPI: {
     EVT VT = Node->getValueType(0);
-    RTLIB::Libcall LC = Node->getOpcode() == ISD::FSINCOS
+    
+    if (RTLIB::Libcall LC = Node->getOpcode() == ISD::FSINCOS
                             ? RTLIB::getSINCOS(VT)
-                            : RTLIB::getSINCOSPI(VT);
-    if (LC != RTLIB::UNKNOWN_LIBCALL &&
+                            : RTLIB::getSINCOSPI(VT); LC != RTLIB::UNKNOWN_LIBCALL &&
         TLI.expandMultipleResultFPLibCall(DAG, LC, Node, Results))
       return;
 
@@ -1284,8 +1284,8 @@ void VectorLegalizer::Expand(SDNode *Node, SmallVectorImpl<SDValue> &Results) {
   }
   case ISD::FMODF: {
     EVT VT = Node->getValueType(0);
-    RTLIB::Libcall LC = RTLIB::getMODF(VT);
-    if (LC != RTLIB::UNKNOWN_LIBCALL &&
+    
+    if (RTLIB::Libcall LC = RTLIB::getMODF(VT); LC != RTLIB::UNKNOWN_LIBCALL &&
         TLI.expandMultipleResultFPLibCall(DAG, LC, Node, Results,
                                           /*CallRetResNo=*/0))
       return;
@@ -1325,8 +1325,8 @@ void VectorLegalizer::Expand(SDNode *Node, SmallVectorImpl<SDValue> &Results) {
     break;
   }
 
-  SDValue Unrolled = DAG.UnrollVectorOp(Node);
-  if (Node->getNumValues() == 1) {
+  
+  if (SDValue Unrolled = DAG.UnrollVectorOp(Node); Node->getNumValues() == 1) {
     Results.push_back(Unrolled);
   } else {
     assert(Node->getNumValues() == Unrolled->getNumValues() &&
@@ -1564,8 +1564,8 @@ SDValue VectorLegalizer::ExpandBITREVERSE(SDNode *Node) {
     SmallVector<int, 16> BSWAPMask;
     createBSWAPShuffleMask(VT, BSWAPMask);
 
-    EVT ByteVT = EVT::getVectorVT(*DAG.getContext(), MVT::i8, BSWAPMask.size());
-    if (TLI.isShuffleMaskLegal(BSWAPMask, ByteVT) &&
+    
+    if (EVT ByteVT = EVT::getVectorVT(*DAG.getContext(), MVT::i8, BSWAPMask.size()); TLI.isShuffleMaskLegal(BSWAPMask, ByteVT) &&
         (TLI.isOperationLegalOrCustom(ISD::BITREVERSE, ByteVT) ||
          (TLI.isOperationLegalOrCustom(ISD::SHL, ByteVT) &&
           TLI.isOperationLegalOrCustom(ISD::SRL, ByteVT) &&
@@ -2092,9 +2092,9 @@ void VectorLegalizer::ExpandSETCC(SDNode *Node,
   SDValue CC = Node->getOperand(2 + Offset);
 
   MVT OpVT = LHS.getSimpleValueType();
-  ISD::CondCode CCCode = cast<CondCodeSDNode>(CC)->get();
+  
 
-  if (TLI.getCondCodeAction(CCCode, OpVT) != TargetLowering::Expand) {
+  if (ISD::CondCode CCCode = cast<CondCodeSDNode>(CC)->get(); TLI.getCondCodeAction(CCCode, OpVT) != TargetLowering::Expand) {
     if (IsStrict) {
       UnrollStrictFPOp(Node, Results);
       return;
@@ -2184,8 +2184,8 @@ void VectorLegalizer::ExpandMULO(SDNode *Node,
 
 void VectorLegalizer::ExpandFixedPointDiv(SDNode *Node,
                                           SmallVectorImpl<SDValue> &Results) {
-  SDNode *N = Node;
-  if (SDValue Expanded = TLI.expandFixedPointDiv(N->getOpcode(), SDLoc(N),
+  
+  if (SDValue SDNode *N = Node; Expanded = TLI.expandFixedPointDiv(N->getOpcode(), SDLoc(N),
           N->getOperand(0), N->getOperand(1), N->getConstantOperandVal(2), DAG))
     Results.push_back(Expanded);
 }

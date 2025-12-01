@@ -67,8 +67,8 @@ static void PopTag(ThreadState *thr) { FuncExit(thr); }
 static void ExternalAccess(void *addr, uptr caller_pc, uptr tsan_caller_pc,
                            void *tag, AccessType typ) {
   CHECK_LT(tag, atomic_load(&used_tags, memory_order_relaxed));
-  bool in_ignored_lib;
-  if (caller_pc && libignore()->IsIgnored(caller_pc, &in_ignored_lib))
+  
+  if (bool in_ignored_lib; caller_pc && libignore()->IsIgnored(caller_pc, &in_ignored_lib))
     return;
 
   ThreadState *thr = cur_thread();
@@ -109,8 +109,8 @@ void __tsan_external_assign_tag(void *addr, void *tag) {
   Allocator *a = allocator();
   MBlock *b = nullptr;
   if (a->PointerIsMine((void *)addr)) {
-    void *block_begin = a->GetBlockBegin((void *)addr);
-    if (block_begin) b = ctx->metamap.GetBlock((uptr)block_begin);
+    
+    if (void *block_begin = a->GetBlockBegin((void *)addr); block_begin) b = ctx->metamap.GetBlock((uptr)block_begin);
   }
   if (b) {
     b->tag = (uptr)tag;

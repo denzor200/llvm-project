@@ -17,10 +17,10 @@ using namespace llvm::object;
 
 static Expected<ArrayRef<uint8_t>>
 getDataSlice(ArrayRef<uint8_t> Data, uint64_t Offset, uint64_t Size) {
-  uint64_t End = SaturatingAdd(Offset, Size);
+  
   // Data.size() cannot be UINT64_MAX, as it would occupy the whole address
   // space.
-  if (End > Data.size()) {
+  if (uint64_t End = SaturatingAdd(Offset, Size); End > Data.size()) {
     return createStringError(
         formatv("unexpected end of data at offset {0:x} while reading [{1:x}, "
                 "{2:x})",

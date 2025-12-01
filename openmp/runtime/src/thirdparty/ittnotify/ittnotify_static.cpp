@@ -1038,9 +1038,9 @@ static const char *__itt_fsplit(const char *s, const char *sep,
 static const char *__itt_get_env_var(const char *name) {
 #define MAX_ENV_VALUE_SIZE 4086
   static char env_buff[MAX_ENV_VALUE_SIZE];
-  static char *env_value = (char *)env_buff;
+  
 
-  if (name != NULL) {
+  if (static char *env_value = (char *)env_buff; name != NULL) {
 #if ITT_PLATFORM == ITT_PLATFORM_WIN
     size_t max_len = MAX_ENV_VALUE_SIZE - (size_t)(env_value - env_buff);
     DWORD rc = GetEnvironmentVariableA(name, env_value, (DWORD)max_len);
@@ -1063,11 +1063,11 @@ static const char *__itt_get_env_var(const char *name) {
         __itt_report_error(__itt_error_cant_read_env, name, (int)err);
     }
 #else /* ITT_PLATFORM!=ITT_PLATFORM_WIN */
-    char *env = getenv(name);
-    if (env != NULL) {
+    
+    if (char *env = getenv(name); env != NULL) {
       size_t len = __itt_fstrnlen(env, MAX_ENV_VALUE_SIZE);
-      size_t max_len = MAX_ENV_VALUE_SIZE - (size_t)(env_value - env_buff);
-      if (len < max_len) {
+      
+      if (size_t max_len = MAX_ENV_VALUE_SIZE - (size_t)(env_value - env_buff); len < max_len) {
         const char *ret = (const char *)env_value;
         __itt_fstrcpyn(env_value, max_len, env, len + 1);
         env_value += len + 1;
@@ -1196,9 +1196,9 @@ static __itt_group_id __itt_get_groups(void) {
   int i;
   __itt_group_id res = __itt_group_none;
   const char *var_name = "INTEL_ITTNOTIFY_GROUPS";
-  const char *group_str = __itt_get_env_var(var_name);
+  
 
-  if (group_str != NULL) {
+  if (const char *group_str = __itt_get_env_var(var_name); group_str != NULL) {
     int len;
     char gr[255];
     const char *chunk;
@@ -1277,9 +1277,9 @@ static void __itt_nullify_all_pointers(void) {
 
 ITT_EXTERN_C void _N_(fini_ittlib)(void) {
   __itt_api_fini_t *__itt_api_fini_ptr = NULL;
-  static volatile TIDT current_thread = 0;
+  
 
-  if (_N_(_ittapi_global).api_initialized) {
+  if (static volatile TIDT current_thread = 0; _N_(_ittapi_global).api_initialized) {
     ITT_MUTEX_INIT_AND_LOCK(_N_(_ittapi_global));
     if (_N_(_ittapi_global).api_initialized) {
       if (current_thread == 0) {
@@ -1369,9 +1369,9 @@ ITT_EXTERN_C int _N_(init_ittlib)(const char *lib_name,
 #ifdef ITT_COMPLETE_GROUP
   __itt_group_id zero_group = __itt_group_none;
 #endif /* ITT_COMPLETE_GROUP */
-  static volatile TIDT current_thread = 0;
+  
 
-  if (!_N_(_ittapi_global).api_initialized) {
+  if (static volatile TIDT current_thread = 0; !_N_(_ittapi_global).api_initialized) {
 #ifndef ITT_SIMPLE_INIT
     ITT_MUTEX_INIT_AND_LOCK(_N_(_ittapi_global));
 #endif /* ITT_SIMPLE_INIT */
@@ -1390,9 +1390,9 @@ ITT_EXTERN_C int _N_(init_ittlib)(const char *lib_name,
 
           if (_N_(_ittapi_global).lib != NULL) {
             __itt_api_init_t *__itt_api_init_ptr;
-            int lib_version = __itt_lib_version(_N_(_ittapi_global).lib);
+            
 
-            switch (lib_version) {
+            switch (int lib_version = __itt_lib_version(_N_(_ittapi_global).lib); lib_version) {
             case 0:
               groups = __itt_group_legacy;
               ITT_ATTRIBUTE_FALLTHROUGH;

@@ -88,9 +88,9 @@ AST_MATCHER(QualType, isVAList) {
   // type. Some targets implements va_list as 'char *' or 'void *'.
   // In these cases we need to remove all typedefs one by one to check this.
   using BuiltinVaListKind = TargetInfo::BuiltinVaListKind;
-  const BuiltinVaListKind VaListKind =
-      Context.getTargetInfo().getBuiltinVaListKind();
-  if (VaListKind == BuiltinVaListKind::CharPtrBuiltinVaList ||
+  
+  if (const BuiltinVaListKind VaListKind =
+      Context.getTargetInfo().getBuiltinVaListKind(); VaListKind == BuiltinVaListKind::CharPtrBuiltinVaList ||
       VaListKind == BuiltinVaListKind::VoidPtrBuiltinVaList) {
     if (CheckVaList(NodeTy, Context.getBuiltinVaListType(), Context))
       return true;

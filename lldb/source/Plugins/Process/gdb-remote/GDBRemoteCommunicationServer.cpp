@@ -47,9 +47,9 @@ GDBRemoteCommunicationServer::GetPacketAndSendResponse(
 
   PacketResult packet_result = ReadPacket(packet, timeout, false);
   if (packet_result == PacketResult::Success) {
-    const StringExtractorGDBRemote::ServerPacketType packet_type =
-        packet.GetServerPacketType();
-    switch (packet_type) {
+    
+    switch (const StringExtractorGDBRemote::ServerPacketType packet_type =
+        packet.GetServerPacketType(); packet_type) {
     case StringExtractorGDBRemote::eServerPacketType_nack:
     case StringExtractorGDBRemote::eServerPacketType_ack:
       break;

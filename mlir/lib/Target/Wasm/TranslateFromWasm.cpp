@@ -915,8 +915,8 @@ parsed_inst_t ValueStack::popOperands(TypeRange operandTypes, Location *opLoc) {
   res.reserve(operandTypes.size());
   for (size_t i{0}; i < operandTypes.size(); ++i) {
     Value operand = values[i + stackIdxOffset];
-    Type stackType = operand.getType();
-    if (stackType != operandTypes[i])
+    
+    if (Type stackType = operand.getType(); stackType != operandTypes[i])
       return emitError(*opLoc, "invalid operand type on stack. expecting ")
              << operandTypes[i] << ", value on stack is of type " << stackType;
     LDBG() << "    POP: " << operand;
@@ -1060,9 +1060,9 @@ inline parsed_inst_t ExpressionParser::parseSpecificInstruction<
   if (*parseIfRes == WasmBinaryEncoding::OpCode::elseOpCode) {
     LDBG() << "  else block is present.";
     Block *elseEntryBlock = ifOp.createElseBlock();
-    auto parseElseRes =
-        parseBlockContent(builder, elseEntryBlock, resTypes, *opLoc, ifOp);
-    if (failed(parseElseRes))
+    
+    if (auto parseElseRes =
+        parseBlockContent(builder, elseEntryBlock, resTypes, *opLoc, ifOp); failed(parseElseRes))
       return failure();
   }
   builder.setInsertionPointToStart(successor);
@@ -1490,8 +1490,8 @@ private:
                        std::optional<section_location_t>,
                        ArrayRef<section_location_t>>
     getContentForSection() const {
-      constexpr auto idx = static_cast<size_t>(SecType);
-      if constexpr (sectionShouldBeUnique(SecType)) {
+      
+      if constexpr (constexpr auto idx = static_cast<size_t>(SecType); sectionShouldBeUnique(SecType)) {
         return registry[idx].empty() ? std::nullopt
                                      : std::make_optional(registry[idx][0]);
       } else {
@@ -1954,8 +1954,8 @@ namespace mlir::wasm {
 OwningOpRef<ModuleOp> importWebAssemblyToModule(llvm::SourceMgr &source,
                                                 MLIRContext *context) {
   WasmBinaryParser wBN{source, context};
-  ModuleOp mOp = wBN.getModule();
-  if (mOp)
+  
+  if (ModuleOp mOp = wBN.getModule(); mOp)
     return {mOp};
 
   return {nullptr};

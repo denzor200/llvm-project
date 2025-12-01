@@ -105,10 +105,10 @@ bool StaticDataSplitter::runOnMachineFunction(MachineFunction &MF) {
   SDPI = &getAnalysis<StaticDataProfileInfoWrapperPass>()
               .getStaticDataProfileInfo();
 
-  const bool ProfileAvailable = PSI && PSI->hasProfileSummary() && MBFI &&
-                                MF.getFunction().hasProfileData();
+  
 
-  if (!ProfileAvailable) {
+  if (const bool ProfileAvailable = PSI && PSI->hasProfileSummary() && MBFI &&
+                                MF.getFunction().hasProfileData(); !ProfileAvailable) {
     annotateStaticDataWithoutProfiles(MF);
     updateStatsWithoutProfiles(MF);
     return false;

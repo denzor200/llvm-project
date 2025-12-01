@@ -192,11 +192,11 @@ bool X86TTIImpl::hasConditionalLoadStoreForType(Type *Ty, bool IsStore) const {
   // 16/32/64-bit operands.
   // TODO: Support f32/f64 with VMOVSS/VMOVSD with zero mask when it's
   // profitable.
-  auto *VTy = dyn_cast<FixedVectorType>(Ty);
-  if (!Ty->isIntegerTy() && (!VTy || VTy->getNumElements() != 1))
+  
+  if (auto *VTy = dyn_cast<FixedVectorType>(Ty); !Ty->isIntegerTy() && (!VTy || VTy->getNumElements() != 1))
     return false;
-  auto *ScalarTy = Ty->getScalarType();
-  switch (cast<IntegerType>(ScalarTy)->getBitWidth()) {
+  
+  switch (auto *ScalarTy = Ty->getScalarType(); cast<IntegerType>(ScalarTy)->getBitWidth()) {
   default:
     return false;
   case 16:
@@ -208,8 +208,8 @@ bool X86TTIImpl::hasConditionalLoadStoreForType(Type *Ty, bool IsStore) const {
 
 TypeSize
 X86TTIImpl::getRegisterBitWidth(TargetTransformInfo::RegisterKind K) const {
-  unsigned PreferVectorWidth = ST->getPreferVectorWidth();
-  switch (K) {
+  
+  switch (unsigned PreferVectorWidth = ST->getPreferVectorWidth(); K) {
   case TargetTransformInfo::RGK_Scalar:
     return TypeSize::getFixed(ST->is64Bit() ? 64 : 32);
   case TargetTransformInfo::RGK_FixedWidthVector:
@@ -302,8 +302,8 @@ InstructionCost X86TTIImpl::getArithmeticInstrCost(
 
       bool IsZeroExtended = !Op1Signed || !Op2Signed;
       bool IsConstant = Op1Constant || Op2Constant;
-      bool IsSext = Op1Sext || Op2Sext;
-      if (IsConstant || IsZeroExtended || IsSext)
+      
+      if (bool IsSext = Op1Sext || Op2Sext; IsConstant || IsZeroExtended || IsSext)
         LT.second =
             MVT::getVectorVT(MVT::i16, 2 * LT.second.getVectorNumElements());
     }
@@ -1071,10 +1071,10 @@ InstructionCost X86TTIImpl::getArithmeticInstrCost(
   }
 
   if (ISD == ISD::SHL && !Op2Info.isUniform() && Op2Info.isConstant()) {
-    MVT VT = LT.second;
+    
     // Vector shift left by non uniform constant can be lowered
     // into vector multiply.
-    if (((VT == MVT::v8i16 || VT == MVT::v4i32) && ST->hasSSE2()) ||
+    if (MVT VT = LT.second; ((VT == MVT::v8i16 || VT == MVT::v4i32) && ST->hasSSE2()) ||
         ((VT == MVT::v16i16 || VT == MVT::v8i32) && ST->hasAVX()))
       ISD = ISD::MUL;
   }
@@ -1592,8 +1592,8 @@ InstructionCost X86TTIImpl::getShuffleCost(TTI::ShuffleKind Kind,
       SrcTy->getScalarSizeInBits() == LT.second.getScalarSizeInBits() &&
       Mask.size() == SrcTy->getElementCount().getKnownMinValue()) {
     unsigned NumLanes = SrcTy->getPrimitiveSizeInBits() / 128;
-    unsigned NumEltsPerLane = Mask.size() / NumLanes;
-    if ((Mask.size() % NumLanes) == 0) {
+    
+    if (unsigned NumEltsPerLane = Mask.size() / NumLanes; (Mask.size() % NumLanes) == 0) {
       IsInLaneShuffle = all_of(enumerate(Mask), [&](const auto &P) {
         return P.value() == PoisonMaskElem ||
                ((P.value() % Mask.size()) / NumEltsPerLane) ==
@@ -1696,7 +1696,9 @@ InstructionCost X86TTIImpl::getShuffleCost(TTI::ShuffleKind Kind,
   EVT VT = TLI->getValueType(DL, SrcTy);
   if (VT.isSimple() && VT.isVector() && VT.getSizeInBits() < 128 &&
       !ST->hasSSSE3()) {
-     static const CostKindTblEntry SSE2SubVectorShuffleTbl[] = {
+     
+
+    if (static const CostKindTblEntry SSE2SubVectorShuffleTbl[] = {
       {TTI::SK_Broadcast,        MVT::v4i16, {1,1,1,1}}, // pshuflw
       {TTI::SK_Broadcast,        MVT::v2i16, {1,1,1,1}}, // pshuflw
       {TTI::SK_Broadcast,        MVT::v8i8,  {2,2,2,2}}, // punpck/pshuflw
@@ -1724,9 +1726,7 @@ InstructionCost X86TTIImpl::getShuffleCost(TTI::ShuffleKind Kind,
       {TTI::SK_PermuteSingleSrc, MVT::v8i8,  {5,5,5,5}}, // punpck/pshuflw
       {TTI::SK_PermuteSingleSrc, MVT::v4i8,  {3,3,3,3}}, // punpck/pshuflw
       {TTI::SK_PermuteSingleSrc, MVT::v2i8,  {1,1,1,1}}, // punpck
-    };
-
-    if (ST->hasSSE2())
+    }; ST->hasSSE2())
       if (const auto *Entry =
               CostTableLookup(SSE2SubVectorShuffleTbl, Kind, VT.getSimpleVT()))
         if (auto KindCost = Entry->Cost[CostKind])
@@ -2261,9 +2261,9 @@ InstructionCost X86TTIImpl::getShuffleCost(TTI::ShuffleKind Kind,
   };
 
   if (ST->hasSSE2()) {
-    bool IsLoad =
-        llvm::any_of(Args, [](const auto &V) { return isa<LoadInst>(V); });
-    if (ST->hasSSE3() && IsLoad)
+    
+    if (bool IsLoad =
+        llvm::any_of(Args, [](const auto &V) { return isa<LoadInst>(V); }); ST->hasSSE3() && IsLoad)
       if (const auto *Entry =
               CostTableLookup(SSE3BroadcastLoadTbl, Kind, LT.second)) {
         assert(isLegalBroadcastLoad(SrcTy->getElementType(),
@@ -2289,10 +2289,10 @@ InstructionCost X86TTIImpl::getShuffleCost(TTI::ShuffleKind Kind,
   if (ST->hasSSE1()) {
     if (LT.first == 1 && LT.second == MVT::v4f32 && Mask.size() == 4) {
       // SHUFPS: both pairs must come from the same source register.
-      auto MatchSHUFPS = [](int X, int Y) {
+      
+      if (auto MatchSHUFPS = [](int X, int Y) {
         return X < 0 || Y < 0 || ((X & 4) == (Y & 4));
-      };
-      if (MatchSHUFPS(Mask[0], Mask[1]) && MatchSHUFPS(Mask[2], Mask[3]))
+      }; MatchSHUFPS(Mask[0], Mask[1]) && MatchSHUFPS(Mask[2], Mask[3]))
         return 1;
     }
     if (const auto *Entry = CostTableLookup(SSE1ShuffleTbl, Kind, LT.second))
@@ -4514,13 +4514,13 @@ X86TTIImpl::getIntrinsicInstrCost(const IntrinsicCostAttributes &ICA,
   case Intrinsic::fshl:
     ISD = ISD::FSHL;
     if (!ICA.isTypeBasedOnly()) {
-      const SmallVectorImpl<const Value *> &Args = ICA.getArgs();
-      if (Args[0] == Args[1]) {
+      
+      if (const SmallVectorImpl<const Value *> &Args = ICA.getArgs(); Args[0] == Args[1]) {
         ISD = ISD::ROTL;
         // Handle uniform constant rotation amounts.
         // TODO: Handle funnel-shift cases.
-        const APInt *Amt;
-        if (Args[2] &&
+        
+        if (const APInt *Amt; Args[2] &&
             PatternMatch::match(Args[2], PatternMatch::m_APIntAllowPoison(Amt)))
           ISD = X86ISD::VROTLI;
       }
@@ -4530,13 +4530,13 @@ X86TTIImpl::getIntrinsicInstrCost(const IntrinsicCostAttributes &ICA,
     // FSHR has same costs so don't duplicate.
     ISD = ISD::FSHL;
     if (!ICA.isTypeBasedOnly()) {
-      const SmallVectorImpl<const Value *> &Args = ICA.getArgs();
-      if (Args[0] == Args[1]) {
+      
+      if (const SmallVectorImpl<const Value *> &Args = ICA.getArgs(); Args[0] == Args[1]) {
         ISD = ISD::ROTR;
         // Handle uniform constant rotation amount.
         // TODO: Handle funnel-shift cases.
-        const APInt *Amt;
-        if (Args[2] &&
+        
+        if (const APInt *Amt; Args[2] &&
             PatternMatch::match(Args[2], PatternMatch::m_APIntAllowPoison(Amt)))
           ISD = X86ISD::VROTLI;
       }
@@ -4644,8 +4644,8 @@ X86TTIImpl::getIntrinsicInstrCost(const IntrinsicCostAttributes &ICA,
     if (((ISD == ISD::CTTZ && !ST->hasBMI()) ||
          (ISD == ISD::CTLZ && !ST->hasLZCNT())) &&
         !MTy.isVector() && !ICA.isTypeBasedOnly()) {
-      const SmallVectorImpl<const Value *> &Args = ICA.getArgs();
-      if (auto *Cst = dyn_cast<ConstantInt>(Args[1]))
+      
+      if (auto *const SmallVectorImpl<const Value *> &Args = ICA.getArgs(); Cst = dyn_cast<ConstantInt>(Args[1]))
         if (Cst->isAllOnesValue())
           ISD = ISD == ISD::CTTZ ? ISD::CTTZ_ZERO_UNDEF : ISD::CTLZ_ZERO_UNDEF;
     }
@@ -5510,7 +5510,7 @@ X86TTIImpl::getAddressComputationCost(Type *PtrTy, ScalarEvolution *SE,
   // likely result in more instructions compared to scalar code where the
   // computation can more often be merged into the index mode. The resulting
   // extra micro-ops can significantly decrease throughput.
-  const unsigned NumVectorInstToHideOverhead = 10;
+  
 
   // Cost modeling of Strided Access Computation is hidden by the indexing
   // modes of X86 regardless of the stride value. We dont believe that there
@@ -5519,7 +5519,7 @@ X86TTIImpl::getAddressComputationCost(Type *PtrTy, ScalarEvolution *SE,
   // Even in the case of (loop invariant) stride whose value is not known at
   // compile time, the address computation will not incur more than one extra
   // ADD instruction.
-  if (PtrTy->isVectorTy() && SE && !ST->hasAVX2()) {
+  if (const unsigned NumVectorInstToHideOverhead = 10; PtrTy->isVectorTy() && SE && !ST->hasAVX2()) {
     // TODO: AVX2 is the current cut-off because we don't have correct
     //       interleaving costs for prior ISA's.
     if (!BaseT::isStridedAccess(Ptr))
@@ -6042,14 +6042,14 @@ InstructionCost X86TTIImpl::getIntImmCostInst(unsigned Opcode, unsigned Idx,
     // 32-bits. The backend can optimize these cases using a right shift by 32.
     // There are other predicates and immediates the backend can use shifts for.
     if (Idx == 1 && ImmBitWidth == 64) {
-      uint64_t ImmVal = Imm.getZExtValue();
-      if (ImmVal == 0x100000000ULL || ImmVal == 0xffffffff)
+      
+      if (uint64_t ImmVal = Imm.getZExtValue(); ImmVal == 0x100000000ULL || ImmVal == 0xffffffff)
         return TTI::TCC_Free;
 
       if (auto *Cmp = dyn_cast_or_null<CmpInst>(Inst)) {
         if (Cmp->isEquality()) {
-          KnownBits Known = computeKnownBits(Cmp->getOperand(0), DL);
-          if (Known.countMinTrailingZeros() >= 32)
+          
+          if (KnownBits Known = computeKnownBits(Cmp->getOperand(0), DL); Known.countMinTrailingZeros() >= 32)
             return TTI::TCC_Free;
         }
       }
@@ -6235,9 +6235,9 @@ InstructionCost X86TTIImpl::getGSVectorCost(unsigned Opcode,
       IntegerType::get(SrcVTy->getContext(), IndexSize), VF);
   std::pair<InstructionCost, MVT> IdxsLT = getTypeLegalizationCost(IndexVTy);
   std::pair<InstructionCost, MVT> SrcLT = getTypeLegalizationCost(SrcVTy);
-  InstructionCost::CostType SplitFactor =
-      std::max(IdxsLT.first, SrcLT.first).getValue();
-  if (SplitFactor > 1) {
+  
+  if (InstructionCost::CostType SplitFactor =
+      std::max(IdxsLT.first, SrcLT.first).getValue(); SplitFactor > 1) {
     // Handle splitting of vector of pointers
     auto *SplitSrcTy =
         FixedVectorType::get(SrcVTy->getScalarType(), VF / SplitFactor);
@@ -6576,9 +6576,9 @@ bool X86TTIImpl::areTypesABICompatible(const Function *Caller,
   // If we get here, we know the target features match. If one function
   // considers 512-bit vectors legal and the other does not, consider them
   // incompatible.
-  const TargetMachine &TM = getTLI()->getTargetMachine();
+  
 
-  if (TM.getSubtarget<X86Subtarget>(*Caller).useAVX512Regs() ==
+  if (const TargetMachine &TM = getTLI()->getTargetMachine(); TM.getSubtarget<X86Subtarget>(*Caller).useAVX512Regs() ==
       TM.getSubtarget<X86Subtarget>(*Callee).useAVX512Regs())
     return true;
 

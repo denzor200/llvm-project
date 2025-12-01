@@ -367,8 +367,8 @@ public:
     if (adaptor.getMemrefs().size() == 1)
       return rewriteOneMemrefMultipleRetainCase(op, adaptor, rewriter);
 
-    Operation *symtableOp = op->getParentWithTrait<OpTrait::SymbolTable>();
-    if (!deallocHelperFuncMap.contains(symtableOp))
+    
+    if (Operation *symtableOp = op->getParentWithTrait<OpTrait::SymbolTable>(); !deallocHelperFuncMap.contains(symtableOp))
       return op->emitError(
           "library function required for generic lowering, but cannot be "
           "automatically inserted when operating on functions");
@@ -399,9 +399,9 @@ struct LowerDeallocationsPass
 
       // Build dealloc helper function if there are deallocs.
       getOperation()->walk([&](bufferization::DeallocOp deallocOp) {
-        Operation *symtableOp =
-            deallocOp->getParentWithTrait<OpTrait::SymbolTable>();
-        if (deallocOp.getMemrefs().size() > 1 &&
+        
+        if (Operation *symtableOp =
+            deallocOp->getParentWithTrait<OpTrait::SymbolTable>(); deallocOp.getMemrefs().size() > 1 &&
             !deallocHelperFuncMap.contains(symtableOp)) {
           SymbolTable symbolTable(symtableOp);
           func::FuncOp helperFuncOp =

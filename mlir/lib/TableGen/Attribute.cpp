@@ -46,8 +46,8 @@ bool Attribute::isDerivedAttr() const { return isSubClassOf("DerivedAttr"); }
 bool Attribute::isTypeAttr() const { return isSubClassOf("TypeAttrBase"); }
 
 bool Attribute::isSymbolRefAttr() const {
-  StringRef defName = def->getName();
-  if (defName == "SymbolRefAttr" || defName == "FlatSymbolRefAttr")
+  
+  if (StringRef defName = def->getName(); defName == "SymbolRefAttr" || defName == "FlatSymbolRefAttr")
     return true;
   return isSubClassOf("SymbolRefAttr") || isSubClassOf("FlatSymbolRefAttr");
 }
@@ -122,8 +122,8 @@ StringRef Attribute::getDerivedCodeBody() const {
 }
 
 Dialect Attribute::getDialect() const {
-  const llvm::RecordVal *record = def->getValue("dialect");
-  if (record && record->getValue()) {
+  
+  if (const llvm::RecordVal *record = def->getValue("dialect"); record && record->getValue()) {
     if (const DefInit *init = dyn_cast<DefInit>(record->getValue()))
       return Dialect(init->getDef());
   }

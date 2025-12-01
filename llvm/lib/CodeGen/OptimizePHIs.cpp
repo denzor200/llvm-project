@@ -80,8 +80,8 @@ INITIALIZE_PASS(OptimizePHIsLegacy, DEBUG_TYPE,
 
 PreservedAnalyses OptimizePHIsPass::run(MachineFunction &MF,
                                         MachineFunctionAnalysisManager &MFAM) {
-  OptimizePHIs OP;
-  if (!OP.run(MF))
+  
+  if (OptimizePHIs OP; !OP.run(MF))
     return PreservedAnalyses::all();
   auto PA = getMachineFunctionPassPreservedAnalyses();
   PA.preserveSet<CFGAnalyses>();

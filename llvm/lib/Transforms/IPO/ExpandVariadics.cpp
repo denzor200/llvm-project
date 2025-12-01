@@ -179,8 +179,8 @@ public:
   bool expandIntrinsicUsers(Module &M, IRBuilder<> &Builder,
                             PointerType *IntrinsicArgType) {
     bool Changed = false;
-    const DataLayout &DL = M.getDataLayout();
-    if (Function *Intrinsic =
+    
+    if (Function *const DataLayout &DL = M.getDataLayout(); Intrinsic =
             Intrinsic::getDeclarationIfExists(&M, ID, {IntrinsicArgType})) {
       for (User *U : make_early_inc_range(Intrinsic->users()))
         if (auto *I = dyn_cast<InstructionType>(U))
@@ -378,8 +378,8 @@ bool ExpandVariadics::runOnModule(Module &M) {
       for (Instruction &I : make_early_inc_range(BB)) {
         if (CallBase *CB = dyn_cast<CallBase>(&I)) {
           if (CB->isIndirectCall()) {
-            FunctionType *FTy = CB->getFunctionType();
-            if (FTy->isVarArg())
+            
+            if (FunctionType *FTy = CB->getFunctionType(); FTy->isVarArg())
               Changed |= expandCall(M, Builder, CB, FTy, /*NF=*/nullptr);
           }
         }
@@ -437,8 +437,8 @@ bool ExpandVariadics::runOnFunction(Module &M, IRBuilder<> &Builder,
   // Replace known calls to the variadic with calls to the va_list equivalent
   for (User *U : make_early_inc_range(VariadicWrapper->users())) {
     if (CallBase *CB = dyn_cast<CallBase>(U)) {
-      Value *CalledOperand = CB->getCalledOperand();
-      if (VariadicWrapper == CalledOperand)
+      
+      if (Value *CalledOperand = CB->getCalledOperand(); VariadicWrapper == CalledOperand)
         Changed |=
             expandCall(M, Builder, CB, VariadicWrapper->getFunctionType(),
                        FixedArityReplacement);
@@ -583,8 +583,8 @@ ExpandVariadics::defineVariadicWrapper(Module &M, IRBuilder<> &Builder,
 
   SmallVector<Value *> Args(llvm::make_pointer_range(F.args()));
 
-  Type *ParameterType = ABI->vaListParameterType(M);
-  if (ABI->vaListPassedInSSARegister())
+  
+  if (Type *ParameterType = ABI->vaListParameterType(M); ABI->vaListPassedInSSARegister())
     Args.push_back(Builder.CreateLoad(ParameterType, VaListInstance));
   else
     Args.push_back(Builder.CreateAddrSpaceCast(VaListInstance, ParameterType));

@@ -143,9 +143,9 @@ void CommandObjectDWIMPrint::DoExecute(StringRef command,
       maybe_add_hint(output);
       result.GetOutputStream() << output;
     } else {
-      llvm::Error error =
-        valobj.Dump(result.GetOutputStream(), dump_options);
-      if (error) {
+      
+      if (llvm::Error error =
+        valobj.Dump(result.GetOutputStream(), dump_options); error) {
         result.AppendError(toString(std::move(error)));
         return;
       }
@@ -168,11 +168,11 @@ void CommandObjectDWIMPrint::DoExecute(StringRef command,
   if (frame && try_variable_path) {
     VariableSP var_sp;
     Status status;
-    auto valobj_sp = frame->GetValueForVariableExpressionPath(
+    
+    if (auto valobj_sp = frame->GetValueForVariableExpressionPath(
         expr, eval_options.GetUseDynamic(),
         StackFrame::eExpressionPathOptionsAllowDirectIVarAccess, var_sp,
-        status);
-    if (valobj_sp && status.Success() && valobj_sp->GetError().Success()) {
+        status); valobj_sp && status.Success() && valobj_sp->GetError().Success()) {
       if (!suppress_result) {
         if (auto persisted_valobj = valobj_sp->Persist())
           valobj_sp = persisted_valobj;
@@ -216,8 +216,8 @@ void CommandObjectDWIMPrint::DoExecute(StringRef command,
     // Record the position of the expression in the command.
     std::optional<uint16_t> indent;
     if (fixed_expression.empty()) {
-      size_t pos = m_original_command.rfind(expr);
-      if (pos != llvm::StringRef::npos)
+      
+      if (size_t pos = m_original_command.rfind(expr); pos != llvm::StringRef::npos)
         indent = pos;
     }
     // Previously the indent was set up for diagnosing command line
@@ -257,8 +257,8 @@ void CommandObjectDWIMPrint::DoExecute(StringRef command,
     if (suppress_result)
       if (auto result_var_sp =
               target.GetPersistentVariable(valobj_sp->GetName())) {
-        auto language = valobj_sp->GetPreferredDisplayLanguage();
-        if (auto *persistent_state =
+        
+        if (auto *auto language = valobj_sp->GetPreferredDisplayLanguage(); persistent_state =
                 target.GetPersistentExpressionStateForLanguage(language))
           persistent_state->RemovePersistentVariable(result_var_sp);
       }

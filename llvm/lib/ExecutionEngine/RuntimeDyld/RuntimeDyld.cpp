@@ -415,8 +415,8 @@ RuntimeDyldImpl::loadObjectImpl(const object::ObjectFile &Obj) {
         // Otherwise we will have to try a reverse lookup on the globla symbol table.
         for (auto &GSTMapEntry : GlobalSymbolTable) {
           StringRef SymbolName = GSTMapEntry.first();
-          auto &GSTEntry = GSTMapEntry.second;
-          if (GSTEntry.getSectionID() == VR.SectionID &&
+          
+          if (auto &GSTEntry = GSTMapEntry.second; GSTEntry.getSectionID() == VR.SectionID &&
               GSTEntry.getOffset() == VR.Offset) {
             NotifyStubEmitted(FileName, SectionName, SymbolName, SectionID,
                               StubAddr);
@@ -437,8 +437,8 @@ RuntimeDyldImpl::loadObjectImpl(const object::ObjectFile &Obj) {
       if (LocalSections.find(*SI) != LocalSections.end())
         continue;
 
-      bool IsCode = SI->isText();
-      if (auto SectionIDOrErr =
+      
+      if (auto bool IsCode = SI->isText(); SectionIDOrErr =
               findOrEmitSection(Obj, *SI, IsCode, LocalSections))
         LLVM_DEBUG(dbgs() << "\tSectionID: " << (*SectionIDOrErr) << "\n");
       else
@@ -524,8 +524,8 @@ static bool isZeroInit(const SectionRef Section) {
 }
 
 static bool isTLS(const SectionRef Section) {
-  const ObjectFile *Obj = Section.getObject();
-  if (isa<object::ELFObjectFileBase>(Obj))
+  
+  if (const ObjectFile *Obj = Section.getObject(); isa<object::ELFObjectFileBase>(Obj))
     return ELFSectionRef(Section).getFlags() & ELF::SHF_TLS;
   return false;
 }
@@ -547,10 +547,10 @@ Error RuntimeDyldImpl::computeTotalAllocSize(
        SI != SE; ++SI) {
     const SectionRef &Section = *SI;
 
-    bool IsRequired = isRequiredForExecution(Section) || ProcessAllSections;
+    
 
     // Consider only the sections that are required to be loaded for execution
-    if (IsRequired) {
+    if (bool IsRequired = isRequiredForExecution(Section) || ProcessAllSections; IsRequired) {
       uint64_t DataSize = Section.getSize();
       Align Alignment = Section.getAlignment();
       bool IsCode = Section.isText();
@@ -1125,8 +1125,8 @@ void RuntimeDyldImpl::applyExternalSymbolRelocations(
     const StringMap<JITEvaluatedSymbol> ExternalSymbolMap) {
   for (auto &RelocKV : ExternalSymbolRelocations) {
     StringRef Name = RelocKV.first();
-    RelocationList &Relocs = RelocKV.second;
-    if (Name.size() == 0) {
+    
+    if (RelocationList &Relocs = RelocKV.second; Name.size() == 0) {
       // This is an absolute symbol, use an address of zero.
       LLVM_DEBUG(dbgs() << "Resolving absolute relocations."
                         << "\n");
@@ -1184,8 +1184,8 @@ Error RuntimeDyldImpl::resolveExternalSymbols() {
       JITSymbolResolver::LookupSet NewSymbols;
 
       for (auto &RelocKV : ExternalSymbolRelocations) {
-        StringRef Name = RelocKV.first();
-        if (!Name.empty() && !GlobalSymbolTable.count(Name) &&
+        
+        if (StringRef Name = RelocKV.first(); !Name.empty() && !GlobalSymbolTable.count(Name) &&
             !ResolvedSymbols.count(Name))
           NewSymbols.insert(Name);
       }
@@ -1254,8 +1254,8 @@ void RuntimeDyldImpl::finalizeAsync(
         SharedThis->applyExternalSymbolRelocations(Resolved);
         SharedThis->resolveLocalRelocations();
         SharedThis->registerEHFrames();
-        std::string ErrMsg;
-        if (SharedThis->MemMgr.finalizeMemory(&ErrMsg))
+        
+        if (std::string ErrMsg; SharedThis->MemMgr.finalizeMemory(&ErrMsg))
           OnEmitted(std::move(O), std::move(Info),
                     make_error<StringError>(std::move(ErrMsg),
                                             inconvertibleErrorCode()));

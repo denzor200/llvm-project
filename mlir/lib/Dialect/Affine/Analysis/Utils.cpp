@@ -49,8 +49,8 @@ void LoopNestStateCollector::collect(Operation *opToWalk) {
     } else if (isa<AffineWriteOpInterface>(op)) {
       storeOpInsts.push_back(op);
     } else {
-      auto memInterface = dyn_cast<MemoryEffectOpInterface>(op);
-      if (!memInterface) {
+      
+      if (auto memInterface = dyn_cast<MemoryEffectOpInterface>(op); !memInterface) {
         if (op->hasTrait<OpTrait::HasRecursiveMemoryEffects>())
           // This op itself is memory-effect free.
           return;
@@ -178,8 +178,8 @@ static void getEffectedValues(Operation *op, SmallVectorImpl<Value> &values) {
   SmallVector<SideEffects::EffectInstance<MemoryEffects::Effect>, 4> effects;
   memOp.getEffects(effects);
   for (auto &effect : effects) {
-    Value effectVal = effect.getValue();
-    if (isa<EffectTys...>(effect.getEffect()) && effectVal &&
+    
+    if (Value effectVal = effect.getValue(); isa<EffectTys...>(effect.getEffect()) && effectVal &&
         isa<MemRefType>(effectVal.getType()))
       values.push_back(effectVal);
   };
@@ -364,8 +364,8 @@ bool MemRefDependenceGraph::init(bool fullAffineDependences) {
     } else if (op.getNumResults() > 0 && !op.use_empty()) {
       // Create graph node for top-level producer of SSA values, which
       // could be used by loop nest nodes.
-      Node *node = addNodeToMDG(&op, *this, memrefAccesses);
-      if (!node)
+      
+      if (Node *node = addNodeToMDG(&op, *this, memrefAccesses); !node)
         return false;
     } else if (!isMemoryEffectFree(&op) &&
                (op.getNumRegions() == 0 || isa<RegionBranchOpInterface>(op))) {
@@ -374,8 +374,8 @@ bool MemRefDependenceGraph::init(bool fullAffineDependences) {
       // non-affine ops with memory effects, and region-holding ops with a
       // well-defined control flow. During the fusion validity checks, edges
       // to/from these ops get looked at.
-      Node *node = addNodeToMDG(&op, *this, memrefAccesses);
-      if (!node)
+      
+      if (Node *node = addNodeToMDG(&op, *this, memrefAccesses); !node)
         return false;
     } else if (op.getNumRegions() != 0 && !isa<RegionBranchOpInterface>(op)) {
       // Return false if non-handled/unknown region-holding ops are found. We
@@ -434,9 +434,9 @@ bool MemRefDependenceGraph::init(bool fullAffineDependences) {
       for (unsigned j = i + 1; j < n; ++j) {
         unsigned dstId = memrefAndList.second[j];
         Node *dstNode = getNode(dstId);
-        bool dstHasStoreOrFree =
-            dstNode->hasStore(srcMemRef) || dstNode->hasFree(srcMemRef);
-        if ((srcHasStoreOrFree || dstHasStoreOrFree)) {
+        
+        if (bool dstHasStoreOrFree =
+            dstNode->hasStore(srcMemRef) || dstNode->hasFree(srcMemRef); (srcHasStoreOrFree || dstHasStoreOrFree)) {
           // Check precise affine deps if asked for; otherwise, conservative.
           if (!fullAffineDependences ||
               mayDependence(*srcNode, *dstNode, srcMemRef))
@@ -498,9 +498,9 @@ bool MemRefDependenceGraph::writesToLiveInOrEscapingMemrefs(unsigned id) const {
   const Node *node = getNode(id);
   for (auto *storeOpInst : node->stores) {
     auto memref = cast<AffineWriteOpInterface>(storeOpInst).getMemRef();
-    auto *op = memref.getDefiningOp();
+    
     // Return true if 'memref' is a block argument.
-    if (!op)
+    if (auto *op = memref.getDefiningOp(); !op)
       return true;
     // Return true if any use of 'memref' does not deference it in an affine
     // way.
@@ -607,9 +607,9 @@ unsigned MemRefDependenceGraph::getIncomingMemRefAccesses(unsigned id,
   unsigned inEdgeCount = 0;
   for (const Edge &inEdge : inEdges.lookup(id)) {
     if (inEdge.value == memref) {
-      const Node *srcNode = getNode(inEdge.id);
+      
       // Only count in edges from 'srcNode' if 'srcNode' accesses 'memref'
-      if (srcNode->getStoreOpCount(memref) > 0)
+      if (const Node *srcNode = getNode(inEdge.id); srcNode->getStoreOpCount(memref) > 0)
         ++inEdgeCount;
     }
   }
@@ -971,10 +971,10 @@ std::optional<bool> ComputationSliceState::isSliceMaximalFastCheck() const {
 
   for (unsigned i = 0, end = lbs.size(); i < end; ++i) {
     AffineMap lbMap = lbs[i];
-    AffineMap ubMap = ubs[i];
+    
 
     // Check if this slice is just an equality along this dimension.
-    if (!lbMap || !ubMap || lbMap.getNumResults() != 1 ||
+    if (AffineMap ubMap = ubs[i]; !lbMap || !ubMap || lbMap.getNumResults() != 1 ||
         ubMap.getNumResults() != 1 ||
         lbMap.getResult(0) + 1 != ubMap.getResult(0) ||
         // The condition above will be true for maps describing a single
@@ -1313,8 +1313,8 @@ LogicalResult MemRefRegion::compute(Operation *op, unsigned loopDepth,
   // Add equality constraints.
   // Add inequalities for loop lower/upper bounds.
   for (unsigned i = 0; i < numDims + numSymbols; ++i) {
-    auto operand = operands[i];
-    if (auto affineFor = getForInductionVarOwner(operand)) {
+    
+    if (auto auto operand = operands[i]; affineFor = getForInductionVarOwner(operand)) {
       // Note that cst can now have more dimensions than accessMap if the
       // bounds expressions involve outer loops or other symbols.
       // TODO: rewrite this to use getInstIndexSet; this way
@@ -1326,8 +1326,8 @@ LogicalResult MemRefRegion::compute(Operation *op, unsigned loopDepth,
         return failure();
     } else if (isValidSymbol(operand)) {
       // Check if the symbol is a constant.
-      Value symbol = operand;
-      if (auto constVal = getConstantIntValue(symbol))
+      
+      if (auto Value symbol = operand; constVal = getConstantIntValue(symbol))
         cst.addBound(BoundType::EQ, symbol, constVal.value());
     } else {
       LDBG() << "unknown affine dimensional value";
@@ -1463,8 +1463,8 @@ std::optional<uint64_t>
 mlir::affine::getIntOrFloatMemRefSizeInBytes(MemRefType memRefType) {
   if (!memRefType.hasStaticShape())
     return std::nullopt;
-  auto elementType = memRefType.getElementType();
-  if (!elementType.isIntOrFloat() && !isa<VectorType>(elementType))
+  
+  if (auto elementType = memRefType.getElementType(); !elementType.isIntOrFloat() && !isa<VectorType>(elementType))
     return std::nullopt;
 
   auto sizeInBytes = getMemRefIntOrFloatEltSizeInBytes(memRefType);
@@ -1585,11 +1585,11 @@ static Operation *getInstAtPosition(ArrayRef<unsigned> positions,
 static LogicalResult addMissingLoopIVBounds(SmallPtrSet<Value, 8> &ivs,
                                             FlatAffineValueConstraints *cst) {
   for (unsigned i = 0, e = cst->getNumDimVars(); i < e; ++i) {
-    auto value = cst->getValue(i);
-    if (ivs.count(value) == 0) {
+    
+    if (auto value = cst->getValue(i); ivs.count(value) == 0) {
       assert(isAffineForInductionVar(value));
-      auto loop = getForInductionVarOwner(value);
-      if (failed(cst->addAffineForOpDomain(loop)))
+      
+      if (auto loop = getForInductionVarOwner(value); failed(cst->addAffineForOpDomain(loop)))
         return failure();
     }
   }
@@ -1738,9 +1738,9 @@ mlir::affine::computeSliceUnion(ArrayRef<Operation *> opsA,
     ops.push_back(isBackwardSlice ? dep.second : dep.first);
   }
   SmallVector<AffineForOp, 4> surroundingLoops;
-  unsigned innermostCommonLoopDepth =
-      getInnermostCommonLoopDepth(ops, &surroundingLoops);
-  if (loopDepth > innermostCommonLoopDepth) {
+  
+  if (unsigned innermostCommonLoopDepth =
+      getInnermostCommonLoopDepth(ops, &surroundingLoops); loopDepth > innermostCommonLoopDepth) {
     LDBG() << "Exceeds max loop depth";
     return SliceComputationResult::GenericFailure;
   }
@@ -1990,8 +1990,8 @@ AffineForOp mlir::affine::insertBackwardComputationSlice(
   // Get loop nest surrounding dst operation.
   SmallVector<AffineForOp, 4> dstLoopIVs;
   getAffineForIVs(*dstOpInst, &dstLoopIVs);
-  unsigned dstLoopIVsSize = dstLoopIVs.size();
-  if (dstLoopDepth > dstLoopIVsSize) {
+  
+  if (unsigned dstLoopIVsSize = dstLoopIVs.size(); dstLoopDepth > dstLoopIVsSize) {
     dstOpInst->emitError("invalid destination loop depth");
     return AffineForOp();
   }
@@ -2303,8 +2303,8 @@ FailureOr<AffineValueMap> mlir::affine::simplifyConstrainedMinMaxOp(
   // isMin: op <= expr_i, !isMin: op >= expr_i
   auto boundType = isMin ? BoundType::UB : BoundType::LB;
   // Upper bounds are exclusive, so add 1. (`affine.min` ops are inclusive.)
-  AffineMap mapLbUb = isMin ? addConstToResults(map, 1) : map;
-  if (failed(
+  
+  if (AffineMap mapLbUb = isMin ? addConstToResults(map, 1) : map; failed(
           alignAndAddBound(constraints, boundType, dimOp, mapLbUb, operands)))
     return failure();
 
@@ -2391,8 +2391,8 @@ FailureOr<AffineValueMap> mlir::affine::simplifyConstrainedMinMaxOp(
 Block *mlir::affine::findInnermostCommonBlockInScope(Operation *a,
                                                      Operation *b) {
   Region *aScope = getAffineAnalysisScope(a);
-  Region *bScope = getAffineAnalysisScope(b);
-  if (aScope != bScope)
+  
+  if (Region *bScope = getAffineAnalysisScope(b); aScope != bScope)
     return nullptr;
 
   // Get the block ancestry of `op` while stopping at the affine scope `aScope`

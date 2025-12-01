@@ -665,11 +665,11 @@ static void destructureIndices(Type currType, ArrayRef<GEPArg> indices,
     // any integer constants into constant indices. If this is not possible
     // we don't do anything here. The verifier will catch it and emit a proper
     // error. All other canonicalization is done in the fold method.
-    bool requiresConst = !rawConstantIndices.empty() &&
-                         isa_and_nonnull<LLVMStructType>(currType);
-    if (Value val = llvm::dyn_cast_if_present<Value>(iter)) {
-      APInt intC;
-      if (requiresConst && matchPattern(val, m_ConstantInt(&intC)) &&
+    
+    if (Value bool requiresConst = !rawConstantIndices.empty() &&
+                         isa_and_nonnull<LLVMStructType>(currType); val = llvm::dyn_cast_if_present<Value>(iter)) {
+      
+      if (APInt intC; requiresConst && matchPattern(val, m_ConstantInt(&intC)) &&
           intC.isSignedIntN(kGEPConstantBitWidth)) {
         rawConstantIndices.push_back(intC.getSExtValue());
       } else {
@@ -690,8 +690,8 @@ static void destructureIndices(Type currType, ArrayRef<GEPArg> indices,
                      return containerType.getElementType();
                    })
                    .Case([&](LLVMStructType structType) -> Type {
-                     int64_t memberIndex = rawConstantIndices.back();
-                     if (memberIndex >= 0 && static_cast<size_t>(memberIndex) <
+                     
+                     if (int64_t memberIndex = rawConstantIndices.back(); memberIndex >= 0 && static_cast<size_t>(memberIndex) <
                                                  structType.getBody().size())
                        return structType.getBody()[memberIndex];
                      return nullptr;
@@ -872,8 +872,8 @@ static LogicalResult
 verifyAtomicMemOp(OpTy memOp, Type valueType,
                   ArrayRef<AtomicOrdering> unsupportedOrderings) {
   if (memOp.getOrdering() != AtomicOrdering::not_atomic) {
-    DataLayout dataLayout = DataLayout::closest(memOp);
-    if (!isTypeCompatibleWithAtomicOp(valueType, dataLayout))
+    
+    if (DataLayout dataLayout = DataLayout::closest(memOp); !isTypeCompatibleWithAtomicOp(valueType, dataLayout))
       return memOp.emitOpError("unsupported type ")
              << valueType << " for atomic access";
     if (llvm::is_contained(unsupportedOrderings, memOp.getOrdering()))
@@ -954,8 +954,8 @@ void StoreOp::build(OpBuilder &builder, OperationState &state, Value value,
 /// Gets the MLIR Op-like result types of a LLVMFunctionType.
 static SmallVector<Type, 1> getCallOpResultTypes(LLVMFunctionType calleeType) {
   SmallVector<Type, 1> results;
-  Type resultType = calleeType.getReturnType();
-  if (!isa<LLVM::LLVMVoidType>(resultType))
+  
+  if (Type resultType = calleeType.getReturnType(); !isa<LLVM::LLVMVoidType>(resultType))
     results.push_back(resultType);
   return results;
 }
@@ -1162,10 +1162,10 @@ static LogicalResult verifyOperandBundles(OpType &op) {
   OperandRangeRange opBundleOperands = op.getOpBundleOperands();
   std::optional<ArrayAttr> opBundleTags = op.getOpBundleTags();
 
-  auto isStringAttr = [](Attribute tagAttr) {
+  
+  if (auto isStringAttr = [](Attribute tagAttr) {
     return isa<StringAttr>(tagAttr);
-  };
-  if (opBundleTags && !llvm::all_of(*opBundleTags, isStringAttr))
+  }; opBundleTags && !llvm::all_of(*opBundleTags, isStringAttr))
     return op.emitError("operand bundle tag must be a StringAttr");
 
   size_t numOpBundles = opBundleOperands.size();
@@ -1191,8 +1191,8 @@ LogicalResult CallOp::verifySymbolUses(SymbolTableCollection &symbolTable) {
   bool isIndirect = false;
 
   // If this is an indirect call, the callee attribute is missing.
-  FlatSymbolRefAttr calleeName = getCalleeAttr();
-  if (!calleeName) {
+  
+  if (FlatSymbolRefAttr calleeName = getCalleeAttr(); !calleeName) {
     isIndirect = true;
     if (!getNumOperands())
       return emitOpError(
@@ -1458,9 +1458,9 @@ ParseResult CallOp::parse(OpAsmParser &parser, OperationState &result) {
 
   bool isVarArg = parser.parseOptionalKeyword("vararg").succeeded();
   if (isVarArg) {
-    StringAttr varCalleeTypeAttrName =
-        CallOp::getVarCalleeTypeAttrName(result.name);
-    if (parser.parseLParen().failed() ||
+    
+    if (StringAttr varCalleeTypeAttrName =
+        CallOp::getVarCalleeTypeAttrName(result.name); parser.parseLParen().failed() ||
         parser
             .parseAttribute(varCalleeType, varCalleeTypeAttrName,
                             result.attributes)
@@ -1690,9 +1690,9 @@ ParseResult InvokeOp::parse(OpAsmParser &parser, OperationState &result) {
 
   bool isVarArg = parser.parseOptionalKeyword("vararg").succeeded();
   if (isVarArg) {
-    StringAttr varCalleeTypeAttrName =
-        InvokeOp::getVarCalleeTypeAttrName(result.name);
-    if (parser.parseLParen().failed() ||
+    
+    if (StringAttr varCalleeTypeAttrName =
+        InvokeOp::getVarCalleeTypeAttrName(result.name); parser.parseLParen().failed() ||
         parser
             .parseAttribute(varCalleeType, varCalleeTypeAttrName,
                             result.attributes)
@@ -1827,8 +1827,8 @@ ParseResult LandingpadOp::parse(OpAsmParser &parser, OperationState &result) {
          (succeeded(parser.parseOptionalKeyword("filter")) ||
           succeeded(parser.parseOptionalKeyword("catch")))) {
     OpAsmParser::UnresolvedOperand operand;
-    Type ty;
-    if (parser.parseOperand(operand) || parser.parseColon() ||
+    
+    if (Type ty; parser.parseOperand(operand) || parser.parseColon() ||
         parser.parseType(ty) ||
         parser.resolveOperand(operand, ty, result.operands) ||
         parser.parseRParen())
@@ -2104,9 +2104,9 @@ AddressOfOp::verifySymbolUses(SymbolTableCollection &symbolTable) {
   auto global = dyn_cast_or_null<GlobalOp>(symbol);
   auto function = dyn_cast_or_null<LLVMFuncOp>(symbol);
   auto alias = dyn_cast_or_null<AliasOp>(symbol);
-  auto ifunc = dyn_cast_or_null<IFuncOp>(symbol);
+  
 
-  if (!global && !function && !alias && !ifunc)
+  if (auto ifunc = dyn_cast_or_null<IFuncOp>(symbol); !global && !function && !alias && !ifunc)
     return emitOpError("must reference a global defined by 'llvm.mlir.global', "
                        "'llvm.mlir.alias' or 'llvm.func' or 'llvm.mlir.ifunc'");
 
@@ -2248,14 +2248,14 @@ void GlobalOp::build(OpBuilder &builder, OperationState &result, Type type,
 template <typename OpType>
 static void printCommonGlobalAndAlias(OpAsmPrinter &p, OpType op) {
   p << ' ' << stringifyLinkage(op.getLinkage()) << ' ';
-  StringRef visibility = stringifyVisibility(op.getVisibility_());
-  if (!visibility.empty())
+  
+  if (StringRef visibility = stringifyVisibility(op.getVisibility_()); !visibility.empty())
     p << visibility << ' ';
   if (op.getThreadLocal_())
     p << "thread_local ";
   if (auto unnamedAddr = op.getUnnamedAddr()) {
-    StringRef str = stringifyUnnamedAddr(*unnamedAddr);
-    if (!str.empty())
+    
+    if (StringRef str = stringifyUnnamedAddr(*unnamedAddr); !str.empty())
       p << str << ' ';
   }
 }
@@ -2287,8 +2287,8 @@ void GlobalOp::print(OpAsmPrinter &p) {
     return;
   p << " : " << getType();
 
-  Region &initializer = getInitializerRegion();
-  if (!initializer.empty()) {
+  
+  if (Region &initializer = getInitializerRegion(); !initializer.empty()) {
     p << ' ';
     p.printRegion(initializer, /*printEntryBlockArgs=*/false);
   }
@@ -2299,8 +2299,8 @@ static LogicalResult verifyComdat(Operation *op,
   if (!attr)
     return success();
 
-  auto *comdatSelector = SymbolTable::lookupNearestSymbolFrom(op, *attr);
-  if (!isa_and_nonnull<ComdatSelectorOp>(comdatSelector))
+  
+  if (auto *comdatSelector = SymbolTable::lookupNearestSymbolFrom(op, *attr); !isa_and_nonnull<ComdatSelectorOp>(comdatSelector))
     return op->emitError() << "expected comdat symbol";
 
   return success();
@@ -2373,8 +2373,8 @@ ParseResult GlobalOp::parse(OpAsmParser &parser, OperationState &result) {
     result.addAttribute(getConstantAttrName(result.name),
                         parser.getBuilder().getUnitAttr());
 
-  StringAttr name;
-  if (parser.parseSymbolName(name, getSymNameAttrName(result.name),
+  
+  if (StringAttr name; parser.parseSymbolName(name, getSymNameAttrName(result.name),
                              result.attributes) ||
       parser.parseLParen())
     return failure();
@@ -2416,10 +2416,10 @@ ParseResult GlobalOp::parse(OpAsmParser &parser, OperationState &result) {
                               "type can only be omitted for string globals");
     }
   } else {
-    OptionalParseResult parseResult =
+    
+    if (OptionalParseResult parseResult =
         parser.parseOptionalRegion(initRegion, /*arguments=*/{},
-                                   /*argTypes=*/{});
-    if (parseResult.has_value() && failed(*parseResult))
+                                   /*argTypes=*/{}); parseResult.has_value() && failed(*parseResult))
       return failure();
   }
 
@@ -2497,8 +2497,8 @@ LogicalResult GlobalOp::verify() {
 
   std::optional<uint64_t> alignAttr = getAlignment();
   if (alignAttr.has_value()) {
-    uint64_t value = alignAttr.value();
-    if (!llvm::isPowerOf2_64(value))
+    
+    if (uint64_t value = alignAttr.value(); !llvm::isPowerOf2_64(value))
       return emitError() << "alignment attribute is not a power of 2";
   }
 
@@ -2516,8 +2516,8 @@ LogicalResult GlobalOp::verifyRegions() {
              << getType();
 
     for (Operation &op : *b) {
-      auto iface = dyn_cast<MemoryEffectOpInterface>(op);
-      if (!iface || !iface.hasNoEffect())
+      
+      if (auto iface = dyn_cast<MemoryEffectOpInterface>(op); !iface || !iface.hasNoEffect())
         return op.emitError()
                << "ops with side effects not allowed in global initializers";
     }
@@ -2641,8 +2641,8 @@ ParseResult AliasOp::parse(OpAsmParser &parser, OperationState &result) {
   if (parseCommonGlobalAndAlias<AliasOp>(parser, result).failed())
     return failure();
 
-  StringAttr name;
-  if (parser.parseSymbolName(name, getSymNameAttrName(result.name),
+  
+  if (StringAttr name; parser.parseSymbolName(name, getSymNameAttrName(result.name),
                              result.attributes))
     return failure();
 
@@ -2696,14 +2696,14 @@ LogicalResult AliasOp::verify() {
 
 LogicalResult AliasOp::verifyRegions() {
   Block &b = getInitializerBlock();
-  auto ret = cast<ReturnOp>(b.getTerminator());
-  if (ret.getNumOperands() == 0 ||
+  
+  if (auto ret = cast<ReturnOp>(b.getTerminator()); ret.getNumOperands() == 0 ||
       !isa<LLVM::LLVMPointerType>(ret.getOperand(0).getType()))
     return emitOpError("initializer region must always return a pointer");
 
   for (Operation &op : b) {
-    auto iface = dyn_cast<MemoryEffectOpInterface>(op);
-    if (!iface || !iface.hasNoEffect())
+    
+    if (auto iface = dyn_cast<MemoryEffectOpInterface>(op); !iface || !iface.hasNoEffect())
       return op.emitError()
              << "ops with side effects are not allowed in alias initializers";
   }
@@ -2751,8 +2751,8 @@ LogicalResult IFuncOp::verifySymbolUses(SymbolTableCollection &symbolTable) {
   }
   if (!resolver)
     return emitOpError("must have a function resolver");
-  Linkage linkage = resolver.getLinkage();
-  if (resolver.isExternal() || linkage == Linkage::AvailableExternally)
+  
+  if (Linkage linkage = resolver.getLinkage(); resolver.isExternal() || linkage == Linkage::AvailableExternally)
     return emitOpError("resolver must be a definition");
   if (!isa<LLVMPointerType>(resolver.getFunctionType().getReturnType()))
     return emitOpError("resolver must return a pointer");
@@ -3026,12 +3026,12 @@ void LLVMFuncOp::print(OpAsmPrinter &p) {
   p << ' ';
   if (getLinkage() != LLVM::Linkage::External)
     p << stringifyLinkage(getLinkage()) << ' ';
-  StringRef visibility = stringifyVisibility(getVisibility_());
-  if (!visibility.empty())
+  
+  if (StringRef visibility = stringifyVisibility(getVisibility_()); !visibility.empty())
     p << visibility << ' ';
   if (auto unnamedAddr = getUnnamedAddr()) {
-    StringRef str = stringifyUnnamedAddr(*unnamedAddr);
-    if (!str.empty())
+    
+    if (StringRef str = stringifyUnnamedAddr(*unnamedAddr); !str.empty())
       p << str << ' ';
   }
   if (getCConv() != LLVM::CConv::C)
@@ -3386,8 +3386,8 @@ LogicalResult LLVM::ConstantOp::verify() {
       }
       return success();
     }
-    unsigned floatWidth = APFloat::getSizeInBits(attributeFloatSemantics);
-    if (isa<IntegerType>(constantElementType)) {
+    
+    if (unsigned floatWidth = APFloat::getSizeInBits(attributeFloatSemantics); isa<IntegerType>(constantElementType)) {
       if (!constantElementType.isInteger(floatWidth))
         return emitOpError() << "expected integer type of width " << floatWidth;
 
@@ -3416,8 +3416,8 @@ LogicalResult LLVM::ConstantOp::verify() {
       return emitOpError() << "expected vector or array type";
 
     // The number of elements of the attribute and the type must match.
-    int64_t attrNumElements = elementsAttr.getNumElements();
-    if (getNumElements(getType()) != attrNumElements) {
+    
+    if (int64_t attrNumElements = elementsAttr.getNumElements(); getNumElements(getType()) != attrNumElements) {
       return emitOpError()
              << "type and attribute have a different number of elements: "
              << getNumElements(getType()) << " vs. " << attrNumElements;
@@ -3453,8 +3453,8 @@ LogicalResult LLVM::ConstantOp::verify() {
 
 bool LLVM::ConstantOp::isBuildableWith(Attribute value, Type type) {
   // The value's type must be the same as the provided type.
-  auto typedAttr = dyn_cast<TypedAttr>(value);
-  if (!typedAttr || typedAttr.getType() != type || !isCompatibleType(type))
+  
+  if (auto typedAttr = dyn_cast<TypedAttr>(value); !typedAttr || typedAttr.getType() != type || !isCompatibleType(type))
     return false;
   // The value's type must be an LLVM compatible type.
   if (!isCompatibleType(type))
@@ -3505,13 +3505,13 @@ LogicalResult AtomicRMWOp::verify() {
       return emitOpError("expected LLVM IR floating point type");
     }
   } else if (getBinOp() == AtomicBinOp::xchg) {
-    DataLayout dataLayout = DataLayout::closest(*this);
-    if (!isTypeCompatibleWithAtomicOp(valType, dataLayout))
+    
+    if (DataLayout dataLayout = DataLayout::closest(*this); !isTypeCompatibleWithAtomicOp(valType, dataLayout))
       return emitOpError("unexpected LLVM IR type for 'xchg' bin_op");
   } else {
     auto intType = llvm::dyn_cast<IntegerType>(valType);
-    unsigned intBitWidth = intType ? intType.getWidth() : 0;
-    if (intBitWidth != 8 && intBitWidth != 16 && intBitWidth != 32 &&
+    
+    if (unsigned intBitWidth = intType ? intType.getWidth() : 0; intBitWidth != 8 && intBitWidth != 16 && intBitWidth != 32 &&
         intBitWidth != 64)
       return emitOpError("expected LLVM IR integer type");
   }
@@ -3985,9 +3985,9 @@ LogicalResult
 BlockAddressOp::verifySymbolUses(SymbolTableCollection &symbolTable) {
   Operation *symbol = symbolTable.lookupSymbolIn(parentLLVMModule(*this),
                                                  getBlockAddr().getFunction());
-  auto function = dyn_cast_or_null<LLVMFuncOp>(symbol);
+  
 
-  if (!function)
+  if (auto function = dyn_cast_or_null<LLVMFuncOp>(symbol); !function)
     return emitOpError("must reference a function defined by 'llvm.func'");
 
   return success();
@@ -4106,9 +4106,9 @@ printIndirectBrOpSucessors(OpAsmPrinter &p, IndirectBrOp op, Type flagType,
 LogicalResult LLVM::SincosOp::verify() {
   auto operandType = getOperand().getType();
   auto resultType = getResult().getType();
-  auto resultStructType =
-      mlir::dyn_cast<mlir::LLVM::LLVMStructType>(resultType);
-  if (!resultStructType || resultStructType.getBody().size() != 2 ||
+  
+  if (auto resultStructType =
+      mlir::dyn_cast<mlir::LLVM::LLVMStructType>(resultType); !resultStructType || resultStructType.getBody().size() != 2 ||
       resultStructType.getBody()[0] != operandType ||
       resultStructType.getBody()[1] != operandType) {
     return emitOpError("expected result type to be an homogeneous struct with "
@@ -4228,8 +4228,8 @@ LogicalResult InlineAsmOp::verify() {
 //===----------------------------------------------------------------------===//
 Speculation::Speculatability UDivOp::getSpeculatability() {
   // X / 0 => UB
-  Value divisor = getRhs();
-  if (matchPattern(divisor, m_IntRangeWithoutZeroU()))
+  
+  if (Value divisor = getRhs(); matchPattern(divisor, m_IntRangeWithoutZeroU()))
     return Speculation::Speculatable;
 
   return Speculation::NotSpeculatable;
@@ -4243,8 +4243,8 @@ Speculation::Speculatability SDivOp::getSpeculatability() {
   // not speculatable.
   // X / 0 => UB
   // INT_MIN / -1 => UB
-  Value divisor = getRhs();
-  if (matchPattern(divisor, m_IntRangeWithoutZeroS()) &&
+  
+  if (Value divisor = getRhs(); matchPattern(divisor, m_IntRangeWithoutZeroS()) &&
       matchPattern(divisor, m_IntRangeWithoutNegOneS()))
     return Speculation::Speculatable;
 

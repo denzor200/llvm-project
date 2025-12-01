@@ -22,10 +22,10 @@ getLastTemplateParameterList(const FunctionDecl *FuncDecl) {
       FuncDecl->getDescribedTemplateParams();
 
   if (!ReturnList) {
-    const unsigned NumberOfTemplateParameterLists =
-        FuncDecl->getNumTemplateParameterLists();
+    
 
-    if (NumberOfTemplateParameterLists > 0)
+    if (const unsigned NumberOfTemplateParameterLists =
+        FuncDecl->getNumTemplateParameterLists(); NumberOfTemplateParameterLists > 0)
       ReturnList = FuncDecl->getTemplateParameterList(
           NumberOfTemplateParameterLists - 1);
   }
@@ -58,10 +58,10 @@ void InlineFunctionDeclCheck::check(const MatchFinder::MatchResult &Result) {
   if (const TemplateParameterList *TemplateParams =
           getLastTemplateParameterList(FuncDecl)) {
     SrcBegin = TemplateParams->getRAngleLoc();
-    std::optional<Token> NextToken =
+    
+    if (std::optional<Token> NextToken =
         utils::lexer::findNextTokenSkippingComments(
-            SrcBegin, *Result.SourceManager, Result.Context->getLangOpts());
-    if (NextToken)
+            SrcBegin, *Result.SourceManager, Result.Context->getLangOpts()); NextToken)
       SrcBegin = NextToken->getLocation();
   }
 

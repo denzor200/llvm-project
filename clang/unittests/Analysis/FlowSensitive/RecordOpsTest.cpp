@@ -64,8 +64,8 @@ TEST(RecordOpsTest, CopyRecord) {
   runDataflow(
       Code,
       [](QualType Ty) -> llvm::StringMap<QualType> {
-        std::string TypeAsString = Ty.getAsString();
-        if (TypeAsString != "S" && TypeAsString != "struct S")
+        
+        if (std::string TypeAsString = Ty.getAsString(); TypeAsString != "S" && TypeAsString != "struct S")
           return {};
         QualType IntTy =
             getFieldNamed(Ty->getAsRecordDecl(), "outer_int")->getType();
@@ -124,8 +124,8 @@ TEST(RecordOpsTest, RecordsEqual) {
   runDataflow(
       Code,
       [](QualType Ty) -> llvm::StringMap<QualType> {
-        std::string TypeAsString = Ty.getAsString();
-        if (TypeAsString != "S" && TypeAsString != "struct S")
+        
+        if (std::string TypeAsString = Ty.getAsString(); TypeAsString != "S" && TypeAsString != "struct S")
           return {};
         QualType IntTy =
             getFieldNamed(Ty->getAsRecordDecl(), "outer_int")->getType();
@@ -215,8 +215,8 @@ TEST(RecordOpsTest, CopyRecordBetweenDerivedAndBase) {
   )";
   auto SyntheticFieldCallback = [](QualType Ty) -> llvm::StringMap<QualType> {
     CXXRecordDecl *ADecl = nullptr;
-    std::string TypeAsString = Ty.getAsString();
-    if (TypeAsString == "A" || TypeAsString == "struct A")
+    
+    if (std::string TypeAsString = Ty.getAsString(); TypeAsString == "A" || TypeAsString == "struct A")
       ADecl = Ty->getAsCXXRecordDecl();
     else if (TypeAsString == "B" || TypeAsString == "struct B")
       ADecl = Ty->getAsCXXRecordDecl()
@@ -298,8 +298,8 @@ TEST(RecordOpsTest, CopyRecordWithExplicitSharedBaseTypeToCopy) {
   )";
   auto SyntheticFieldCallback = [](QualType Ty) -> llvm::StringMap<QualType> {
     CXXRecordDecl *BaseDecl = nullptr;
-    std::string TypeAsString = Ty.getAsString();
-    if (TypeAsString == "Base")
+    
+    if (std::string TypeAsString = Ty.getAsString(); TypeAsString == "Base")
       BaseDecl = Ty->getAsCXXRecordDecl();
     else if (TypeAsString == "DerivedOne" || TypeAsString == "DerivedTwo")
       BaseDecl = Ty->getAsCXXRecordDecl()

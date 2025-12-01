@@ -58,11 +58,11 @@ bool RegisterContextCorePOSIX_x86_64::ReadRegister(const RegisterInfo *reg_info,
                                                    RegisterValue &value) {
   const uint8_t *src;
   size_t offset;
-  const size_t fxsave_offset = reg_info->byte_offset - GetFXSAVEOffset();
+  
   // make the offset relative to the beginning of the FXSAVE structure because
   // this is the data that we have (not the entire UserArea)
 
-  if (m_gpregset && reg_info->byte_offset < GetGPRSize()) {
+  if (const size_t fxsave_offset = reg_info->byte_offset - GetFXSAVEOffset(); m_gpregset && reg_info->byte_offset < GetGPRSize()) {
     src = m_gpregset.get();
     offset = reg_info->byte_offset;
   } else if (m_fpregset && fxsave_offset < sizeof(FXSAVE)) {

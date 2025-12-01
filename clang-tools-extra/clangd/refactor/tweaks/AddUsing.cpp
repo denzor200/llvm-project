@@ -235,8 +235,8 @@ bool isNamespaceForbidden(const Tweak::Selection &Inputs,
   std::string NamespaceStr = printNamespaceScope(*NS);
 
   for (StringRef Banned : Config::current().Style.FullyQualifiedNamespaces) {
-    StringRef PrefixMatch = NamespaceStr;
-    if (PrefixMatch.consume_front(Banned) && PrefixMatch.consume_front("::"))
+    
+    if (StringRef PrefixMatch = NamespaceStr; PrefixMatch.consume_front(Banned) && PrefixMatch.consume_front("::"))
       return true;
   }
 

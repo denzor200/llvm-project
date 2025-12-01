@@ -247,8 +247,8 @@ static Error createDirectoriesOnDemand(StringRef OutputPath,
         Config.getNoImplyCreateDirectories())
       return Error(std::move(EC));
 
-    StringRef ParentPath = sys::path::parent_path(OutputPath);
-    if (std::error_code EC = sys::fs::create_directories(ParentPath))
+    
+    if (std::error_code StringRef ParentPath = sys::path::parent_path(OutputPath); EC = sys::fs::create_directories(ParentPath))
       return make_error<OutputError>(ParentPath, EC);
     return CreateFile();
   });
@@ -283,8 +283,8 @@ Error OnDiskOutputFile::tryToCreateTemporary(std::optional<int> &FD) {
   return createDirectoriesOnDemand(OutputPath, Config, [&]() -> Error {
     int NewFD;
     SmallString<128> UniquePath;
-    sys::fs::OpenFlags OF = generateFlagsFromConfig(Config);
-    if (std::error_code EC =
+    
+    if (std::error_code sys::fs::OpenFlags OF = generateFlagsFromConfig(Config); EC =
             sys::fs::createUniqueFile(ModelPath, NewFD, UniquePath, OF))
       return make_error<TempFileOutputError>(ModelPath, OutputPath, EC);
 
@@ -327,8 +327,8 @@ Error OnDiskOutputFile::initializeFile(std::optional<int> &FD) {
   // Not using a temporary file. Open the final output file.
   return createDirectoriesOnDemand(OutputPath, Config, [&]() -> Error {
     int NewFD;
-    sys::fs::OpenFlags OF = generateFlagsFromConfig(Config);
-    if (std::error_code EC = sys::fs::openFileForWrite(
+    
+    if (std::error_code sys::fs::OpenFlags OF = generateFlagsFromConfig(Config); EC = sys::fs::openFileForWrite(
             OutputPath, NewFD, sys::fs::CD_CreateAlways, OF))
       return convertToOutputError(OutputPath, EC);
     FD.emplace(NewFD);

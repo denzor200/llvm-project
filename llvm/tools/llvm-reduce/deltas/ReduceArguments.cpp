@@ -54,8 +54,8 @@ static void replaceFunctionCalls(Function &OldF, Function &NewF,
       SmallVector<AttrBuilder, 8> ArgAttrs;
 
       for (auto ArgI = CI->arg_begin(), E = CI->arg_end(); ArgI != E; ++ArgI) {
-        unsigned ArgIdx = ArgI - CI->arg_begin();
-        if (ArgIndexesToKeep.count(ArgIdx)) {
+        
+        if (unsigned ArgIdx = ArgI - CI->arg_begin(); ArgIndexesToKeep.count(ArgIdx)) {
           Args.push_back(*ArgI);
           ArgAttrs.emplace_back(Ctx, CI->getParamAttributes(ArgIdx));
         }

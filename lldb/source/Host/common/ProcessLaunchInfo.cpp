@@ -44,22 +44,22 @@ ProcessLaunchInfo::ProcessLaunchInfo(const FileSpec &stdin_file_spec,
   if (stdin_file_spec) {
     FileAction file_action;
     const bool read = true;
-    const bool write = false;
-    if (file_action.Open(STDIN_FILENO, stdin_file_spec, read, write))
+    
+    if (const bool write = false; file_action.Open(STDIN_FILENO, stdin_file_spec, read, write))
       AppendFileAction(file_action);
   }
   if (stdout_file_spec) {
     FileAction file_action;
     const bool read = false;
-    const bool write = true;
-    if (file_action.Open(STDOUT_FILENO, stdout_file_spec, read, write))
+    
+    if (const bool write = true; file_action.Open(STDOUT_FILENO, stdout_file_spec, read, write))
       AppendFileAction(file_action);
   }
   if (stderr_file_spec) {
     FileAction file_action;
     const bool read = false;
-    const bool write = true;
-    if (file_action.Open(STDERR_FILENO, stderr_file_spec, read, write))
+    
+    if (const bool write = true; file_action.Open(STDERR_FILENO, stderr_file_spec, read, write))
       AppendFileAction(file_action);
   }
   if (working_directory)
@@ -202,8 +202,8 @@ llvm::Error ProcessLaunchInfo::SetUpPtyRedirection() {
   bool stdin_free = GetFileActionForFD(STDIN_FILENO) == nullptr;
   bool stdout_free = GetFileActionForFD(STDOUT_FILENO) == nullptr;
   bool stderr_free = GetFileActionForFD(STDERR_FILENO) == nullptr;
-  bool any_free = stdin_free || stdout_free || stderr_free;
-  if (!any_free)
+  
+  if (bool any_free = stdin_free || stdout_free || stderr_free; !any_free)
     return llvm::Error::success();
 
   LLDB_LOG(log, "Generating a pty to use for stdin/out/err");
@@ -270,8 +270,8 @@ bool ProcessLaunchInfo::ConvertArgumentsForLaunchingInShell(
           if (working_dir) {
             new_path += working_dir.GetPath();
           } else {
-            llvm::SmallString<64> cwd;
-            if (! llvm::sys::fs::current_path(cwd))
+            
+            if (llvm::SmallString<64> cwd; ! llvm::sys::fs::current_path(cwd))
               new_path += cwd;
           }
           std::string curr_path;

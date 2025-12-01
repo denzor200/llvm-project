@@ -242,10 +242,10 @@ bool isTokenIdentifierOrKeyword(Parser &P, Token Tok) {
 template <typename DirOrClauseTy>
 bool tryParseAndConsumeSpecialTokenKind(Parser &P, OpenACCSpecialTokenKind Kind,
                                         DirOrClauseTy DirOrClause) {
-  Token IdentTok = P.getCurToken();
+  
   // If this is an identifier-like thing followed by ':', it is one of the
   // OpenACC 'special' name tags, so consume it.
-  if (isTokenIdentifierOrKeyword(P, IdentTok) && P.NextToken().is(tok::colon)) {
+  if (Token IdentTok = P.getCurToken(); isTokenIdentifierOrKeyword(P, IdentTok) && P.NextToken().is(tok::colon)) {
     P.ConsumeToken();
     P.ConsumeToken();
 
@@ -355,9 +355,9 @@ OpenACCReductionOperator ParseReductionOperator(Parser &P) {
 /// Used for cases where we expect an identifier-like token, but don't want to
 /// give awkward error messages in cases where it is accidentially a keyword.
 bool expectIdentifierOrKeyword(Parser &P) {
-  Token Tok = P.getCurToken();
+  
 
-  if (isTokenIdentifierOrKeyword(P, Tok))
+  if (Token Tok = P.getCurToken(); isTokenIdentifierOrKeyword(P, Tok))
     return false;
 
   P.Diag(P.getCurToken(), diag::err_expected) << tok::identifier;
@@ -704,9 +704,9 @@ OpenACCModifierKind Parser::tryParseModifierList(OpenACCClauseKind CK) {
   OpenACCModifierKind CurModList = OpenACCModifierKind::Invalid;
   auto ConsumeModKind = [&]() {
     Token IdentToken = getCurToken();
-    OpenACCModifierKind NewKind = GetModKind(IdentToken);
+    
 
-    if (NewKind == OpenACCModifierKind::Invalid)
+    if (OpenACCModifierKind NewKind = GetModKind(IdentToken); NewKind == OpenACCModifierKind::Invalid)
       Diag(IdentToken.getLocation(), diag::err_acc_modifier)
           << diag::ACCModifier::Unknown << IdentToken.getIdentifierInfo() << CK;
     else if ((NewKind & CurModList) != OpenACCModifierKind::Invalid)
@@ -744,8 +744,8 @@ Parser::ParseOpenACCClauseList(OpenACCDirectiveKind DirKind) {
       ConsumeToken();
     FirstClause = false;
 
-    OpenACCClauseParseResult Result = ParseOpenACCClause(Clauses, DirKind);
-    if (OpenACCClause *Clause = Result.getPointer()) {
+    
+    if (OpenACCClause *OpenACCClauseParseResult Result = ParseOpenACCClause(Clauses, DirKind); Clause = Result.getPointer()) {
       Clauses.push_back(Clause);
     } else if (Result.getInt() == OpenACCParseCanContinue::Cannot) {
       // Recovering from a bad clause is really difficult, so we just give up on
@@ -964,10 +964,10 @@ Parser::ParseOpenACCClause(ArrayRef<const OpenACCClause *> ExistingClauses,
     // Extension methods optionally contain balanced token sequences, so we are
     // going to parse this.
     ConsumeToken(); // Consume the clause name.
-    BalancedDelimiterTracker Parens(*this, tok::l_paren,
-                                    tok::annot_pragma_openacc_end);
+    
     // Consume the optional parens and tokens inside of them.
-    if (!Parens.consumeOpen())
+    if (BalancedDelimiterTracker Parens(*this, tok::l_paren,
+                                    tok::annot_pragma_openacc_end); !Parens.consumeOpen())
       Parens.skipToEnd();
 
     return OpenACCCanContinue();
@@ -1449,9 +1449,9 @@ llvm::SmallVector<Expr *> Parser::ParseOpenACCVarList(OpenACCDirectiveKind DK,
   while (!getCurToken().isOneOf(tok::r_paren, tok::annot_pragma_openacc_end)) {
     ExpectAndConsume(tok::comma);
 
-    auto [Res, CanContinue] = ParseOpenACCVar(DK, CK);
+    
 
-    if (Res.isUsable()) {
+    if (auto [Res, CanContinue] = ParseOpenACCVar(DK, CK); Res.isUsable()) {
       Vars.push_back(Res.get());
     } else if (CanContinue == OpenACCParseCanContinue::Cannot) {
       SkipUntil(tok::r_paren, tok::annot_pragma_openacc_end, StopBeforeMatch);
@@ -1469,11 +1469,11 @@ Parser::OpenACCCacheParseInfo Parser::ParseOpenACCCacheVarList() {
 
   OpenACCCacheParseInfo CacheInfo;
 
-  SourceLocation ReadOnlyLoc = getCurToken().getLocation();
+  
   // The VarList is an optional `readonly:` followed by a list of a variable
   // specifications. Consume something that looks like a 'tag', and diagnose if
   // it isn't 'readonly'.
-  if (tryParseAndConsumeSpecialTokenKind(*this,
+  if (SourceLocation ReadOnlyLoc = getCurToken().getLocation(); tryParseAndConsumeSpecialTokenKind(*this,
                                          OpenACCSpecialTokenKind::ReadOnly,
                                          OpenACCDirectiveKind::Cache))
     CacheInfo.ReadOnlyLoc = ReadOnlyLoc;

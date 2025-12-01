@@ -241,8 +241,8 @@ static void on_ompt_callback_device_initialize(int device_num, const char *type,
            "callbacks\n");
   }
 
-  static bool IsDeviceMapInitialized = false;
-  if (!IsDeviceMapInitialized) {
+  
+  if (static bool IsDeviceMapInitialized = false; !IsDeviceMapInitialized) {
     TracedDevices = std::make_unique<OmptDeviceSetTy>();
     IsDeviceMapInitialized = true;
   }

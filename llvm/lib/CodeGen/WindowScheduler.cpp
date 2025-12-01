@@ -388,8 +388,8 @@ void WindowScheduler::restoreTripleMBB() {
     auto *MI = TriMIs[I];
     auto OldPos = MBB->begin();
     std::advance(OldPos, I);
-    auto CurPos = MI->getIterator();
-    if (CurPos != OldPos) {
+    
+    if (auto CurPos = MI->getIterator(); CurPos != OldPos) {
       MBB->splice(OldPos, MBB, CurPos);
       Context->LIS->handleMove(*MI, /*UpdateFlags=*/false);
     }
@@ -542,17 +542,17 @@ void WindowScheduler::schedulePhi(int Offset, unsigned &II) {
       // Phi is scheduled before the successor of stage 0. The issue cycle of
       // phi is the latest cycle in this interval.
       auto *SuccMI = Succ.getSUnit()->getInstr();
-      int Cycle = getOriCycle(SuccMI);
-      if (getOriStage(getOriMI(SuccMI), Offset) == 0)
+      
+      if (int Cycle = getOriCycle(SuccMI); getOriStage(getOriMI(SuccMI), Offset) == 0)
         LateCycle = std::min(LateCycle, Cycle);
     }
     // The anti-dependency of phi need to be handled separately in the same way.
     if (Register AntiReg = getAntiRegister(&Phi)) {
-      auto *AntiMI = MRI->getVRegDef(AntiReg);
+      
       // AntiReg may be defined outside the kernel MBB.
-      if (AntiMI->getParent() == MBB) {
-        auto AntiCycle = getOriCycle(AntiMI);
-        if (getOriStage(getOriMI(AntiMI), Offset) == 0)
+      if (auto *AntiMI = MRI->getVRegDef(AntiReg); AntiMI->getParent() == MBB) {
+        
+        if (auto AntiCycle = getOriCycle(AntiMI); getOriStage(getOriMI(AntiMI), Offset) == 0)
           LateCycle = std::min(LateCycle, AntiCycle);
       }
     }
@@ -650,8 +650,8 @@ void WindowScheduler::updateLiveIntervals() {
     for (const MachineOperand &MO : MI.operands()) {
       if (!MO.isReg() || MO.getReg() == 0)
         continue;
-      Register Reg = MO.getReg();
-      if (!is_contained(UsedRegs, Reg))
+      
+      if (Register Reg = MO.getReg(); !is_contained(UsedRegs, Reg))
         UsedRegs.push_back(Reg);
     }
   Context->LIS->repairIntervalsInRange(MBB, MBB->begin(), MBB->end(), UsedRegs);

@@ -120,11 +120,11 @@ FileIOResult File::write_unlocked_fbf(const uint8_t *data, size_t len) {
 
     FileIOResult result =
         platform_write(this, remainder.data(), remainder.size());
-    size_t bytes_written = result.value;
+    
 
     // If less bytes were written than expected, then an error occurred. Return
     // the number of bytes that have been written from |data|.
-    if (result.has_error() || bytes_written < remainder.size()) {
+    if (size_t bytes_written = result.value; result.has_error() || bytes_written < remainder.size()) {
       err = true;
       return {primary.size() + bytes_written, result.error};
     }
@@ -234,8 +234,8 @@ FileIOResult File::read_unlocked_fbf(uint8_t *data, size_t len) {
 
   if (to_fetch > bufsize) {
     FileIOResult result = platform_read(this, dataref.data(), to_fetch);
-    size_t fetched_size = result.value;
-    if (result.has_error() || fetched_size < to_fetch) {
+    
+    if (size_t fetched_size = result.value; result.has_error() || fetched_size < to_fetch) {
       if (!result.has_error())
         eof = true;
       else
@@ -323,8 +323,8 @@ ErrorOr<int> File::seek(off_t offset, int whence) {
   FileLock lock(this);
   if (prev_op == FileOp::WRITE && pos > 0) {
 
-    FileIOResult buf_result = platform_write(this, buf, pos);
-    if (buf_result.has_error() || buf_result.value < pos) {
+    
+    if (FileIOResult buf_result = platform_write(this, buf, pos); buf_result.has_error() || buf_result.value < pos) {
       err = true;
       return Error(buf_result.error);
     }

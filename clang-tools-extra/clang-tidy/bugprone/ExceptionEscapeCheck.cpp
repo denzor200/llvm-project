@@ -127,8 +127,8 @@ void ExceptionEscapeCheck::check(const MatchFinder::MatchResult &Result) {
        CurrIt != Stack.rend(); ++CurrIt, ++PrevIt) {
     const FunctionDecl *CurrFunction = CurrIt->first;
     const FunctionDecl *PrevFunction = PrevIt->first;
-    const SourceLocation PrevLocation = PrevIt->second;
-    if (PrevLocation.isValid()) {
+    
+    if (const SourceLocation PrevLocation = PrevIt->second; PrevLocation.isValid()) {
       diag(PrevLocation, "frame #%0: function %1 calls function %2 here",
            DiagnosticIDs::Note)
           << FrameNo << CurrFunction << PrevFunction;

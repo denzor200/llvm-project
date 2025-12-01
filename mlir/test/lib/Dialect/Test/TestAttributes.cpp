@@ -270,8 +270,8 @@ llvm::hash_code hash_value(const test::CopyCount &copyCount) {
 /// Attempt to parse the conditionally-aliased string attribute as a keyword or
 /// string, else try to parse an alias.
 static ParseResult parseConditionalAlias(AsmParser &p, StringAttr &value) {
-  std::string str;
-  if (succeeded(p.parseOptionalKeywordOrString(&str))) {
+  
+  if (std::string str; succeeded(p.parseOptionalKeywordOrString(&str))) {
     value = StringAttr::get(p.getContext(), str);
     return success();
   }

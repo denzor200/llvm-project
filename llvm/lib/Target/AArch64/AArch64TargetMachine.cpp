@@ -740,8 +740,8 @@ bool AArch64PassConfig::addLegalizeMachineIR() {
 }
 
 void AArch64PassConfig::addPreRegBankSelect() {
-  bool IsOptNone = getOptLevel() == CodeGenOptLevel::None;
-  if (!IsOptNone) {
+  
+  if (bool IsOptNone = getOptLevel() == CodeGenOptLevel::None; !IsOptNone) {
     addPass(createAArch64PostLegalizerCombiner(IsOptNone));
     if (EnableGISelLoadStoreOptPostLegal)
       addPass(new LoadStoreOpt());

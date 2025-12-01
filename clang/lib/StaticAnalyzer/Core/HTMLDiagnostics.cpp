@@ -651,8 +651,8 @@ void HTMLDiagnostics::FinalizeHTML(const PathDiagnostic &D, Rewriter &R,
     std::string s;
     llvm::raw_string_ostream os(s);
 
-    StringRef BugDesc = D.getVerboseDescription();
-    if (!BugDesc.empty())
+    
+    if (StringRef BugDesc = D.getVerboseDescription(); !BugDesc.empty())
       os << "\n<!-- BUGDESC " << BugDesc << " -->\n";
 
     StringRef BugType = D.getBugType();
@@ -806,9 +806,9 @@ void HTMLDiagnostics::RewriteFile(Rewriter &R, const PathPieces &path,
   // Stores the different ranges where we have reported something.
   std::vector<SourceRange> PopUpRanges;
   for (const PathDiagnosticPieceRef &I : llvm::reverse(path)) {
-    const auto &Piece = *I.get();
+    
 
-    if (isa<PathDiagnosticPopUpPiece>(Piece)) {
+    if (const auto &Piece = *I.get(); isa<PathDiagnosticPopUpPiece>(Piece)) {
       ++IndexMap[NumRegularPieces];
     } else if (isa<PathDiagnosticNotePiece>(Piece)) {
       // This adds diagnostic bubbles, but not navigation.
@@ -849,9 +849,9 @@ void HTMLDiagnostics::RewriteFile(Rewriter &R, const PathPieces &path,
   // (e.g. [(13) 'a' is 'true'];  [(13.1) 'b' is 'false'];  [(13.2) 'c' is...)
   NumRegularPieces = TotalRegularPieces;
   for (const PathDiagnosticPieceRef &I : llvm::reverse(path)) {
-    const auto &Piece = *I.get();
+    
 
-    if (const auto *PopUpP = dyn_cast<PathDiagnosticPopUpPiece>(&Piece)) {
+    if (const auto *const auto &Piece = *I.get(); PopUpP = dyn_cast<PathDiagnosticPopUpPiece>(&Piece)) {
       int PopUpPieceIndex = IndexMap[NumRegularPieces];
 
       // Pop-up pieces needs the index of the last reported piece and its count
@@ -992,9 +992,9 @@ void HTMLDiagnostics::HandlePiece(Rewriter &R, FileID BugFileID,
       em = max_token / 2;
     else {
       unsigned characters = max_line;
-      unsigned lines = len / max_line;
+      
 
-      if (lines > 0) {
+      if (unsigned lines = len / max_line; lines > 0) {
         for (; characters > max_token; --characters)
           if (len / characters > lines) {
             ++characters;
@@ -1254,9 +1254,9 @@ void HTMLDiagnostics::HighlightRange(Rewriter& R, FileID BugFileID,
   unsigned StartLineNo = SM.getExpansionLineNumber(InstantiationStart);
 
   SourceLocation InstantiationEnd = SM.getExpansionLoc(Range.getEnd());
-  unsigned EndLineNo = SM.getExpansionLineNumber(InstantiationEnd);
+  
 
-  if (EndLineNo < StartLineNo)
+  if (unsigned EndLineNo = SM.getExpansionLineNumber(InstantiationEnd); EndLineNo < StartLineNo)
     return;
 
   if (SM.getFileID(InstantiationStart) != BugFileID ||

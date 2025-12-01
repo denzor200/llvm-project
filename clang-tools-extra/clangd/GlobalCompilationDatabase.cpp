@@ -60,8 +60,8 @@ GlobalCompilationDatabase::getFallbackCommand(PathRef File) const {
   // Clang treats .h files as C by default and files without extension as linker
   // input, resulting in unhelpful diagnostics.
   // Parsing as Objective C++ is friendly to more cases.
-  auto FileExtension = llvm::sys::path::extension(File);
-  if (FileExtension.empty() || FileExtension == ".h")
+  
+  if (auto FileExtension = llvm::sys::path::extension(File); FileExtension.empty() || FileExtension == ".h")
     Argv.push_back("-xobjective-c++-header");
   Argv.push_back(std::string(File));
   tooling::CompileCommand Cmd(llvm::sys::path::parent_path(File),
@@ -289,8 +289,8 @@ bool DirectoryBasedGlobalCompilationDatabase::DirectoryCache::load(
                             CDBFile{&BuildCompileCommandsJson, parseJSON},
                             CDBFile{&CompileFlagsTxt, parseFixed}}) {
     bool Active = ActiveCachedFile == Entry.File;
-    auto Loaded = Entry.File->load(FS, Active);
-    switch (Loaded.Result) {
+    
+    switch (auto Loaded = Entry.File->load(FS, Active); Loaded.Result) {
     case CachedFile::LoadResult::FileNotFound:
       if (Active) {
         log("Unloaded compilation database from {0}", Entry.File->Path);
@@ -334,8 +334,8 @@ bool DirectoryBasedGlobalCompilationDatabase::DirectoryCache::load(
     if (Entry.getName() == "fixed-compilation-database" ||
         Entry.getName() == "json-compilation-database")
       continue;
-    auto Plugin = Entry.instantiate();
-    if (auto CDB = Plugin->loadFromDirectory(Path, Error)) {
+    
+    if (auto auto Plugin = Entry.instantiate(); CDB = Plugin->loadFromDirectory(Path, Error)) {
       log("Loaded compilation database from {0} with plugin {1}", Path,
           Entry.getName());
       this->CDB = std::move(CDB);
@@ -415,8 +415,8 @@ DirectoryBasedGlobalCompilationDatabase::lookupCDB(
     SearchDirs = {*Opts.CompileCommandsDir};
   else {
     WithContext WithProvidedContext(Opts.ContextProvider(Request.FileName));
-    const auto &Spec = Config::current().CompileFlags.CDBSearch;
-    switch (Spec.Policy) {
+    
+    switch (const auto &Spec = Config::current().CompileFlags.CDBSearch; Spec.Policy) {
     case Config::CDBSearchSpec::NoCDBSearch:
       return std::nullopt;
     case Config::CDBSearchSpec::FixedDir:
@@ -439,8 +439,8 @@ DirectoryBasedGlobalCompilationDatabase::lookupCDB(
   bool ShouldBroadcast = false;
   DirectoryCache *DirCache = nullptr;
   for (DirectoryCache *Candidate : getDirectoryCaches(SearchDirs)) {
-    bool CandidateShouldBroadcast = Request.ShouldBroadcast;
-    if ((CDB = Candidate->get(Opts.TFS, CandidateShouldBroadcast,
+    
+    if (bool CandidateShouldBroadcast = Request.ShouldBroadcast; (CDB = Candidate->get(Opts.TFS, CandidateShouldBroadcast,
                               Request.FreshTime, Request.FreshTimeMissing))) {
       DirCache = Candidate;
       ShouldBroadcast = CandidateShouldBroadcast;
@@ -683,9 +683,9 @@ public:
       if (ExitEarly()) // loading config may be slow
         return Filtered;
       WithContext WithProvidedContent(Parent.Opts.ContextProvider(AllFiles[I]));
-      const Config::CDBSearchSpec &Spec =
-          Config::current().CompileFlags.CDBSearch;
-      switch (Spec.Policy) {
+      
+      switch (const Config::CDBSearchSpec &Spec =
+          Config::current().CompileFlags.CDBSearch; Spec.Policy) {
       case Config::CDBSearchSpec::NoCDBSearch:
         break;
       case Config::CDBSearchSpec::Ancestors:
@@ -814,8 +814,8 @@ bool OverlayCDB::setCompileCommand(PathRef File,
   // doesn't receive different names for the same file.
   std::string CanonPath = removeDots(File);
   {
-    std::unique_lock<std::mutex> Lock(Mutex);
-    if (Cmd) {
+    
+    if (std::unique_lock<std::mutex> Lock(Mutex); Cmd) {
       if (auto [It, Inserted] =
               Commands.try_emplace(CanonPath, std::move(*Cmd));
           !Inserted) {

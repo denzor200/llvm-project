@@ -32,9 +32,9 @@ static const char *makeArgString(const ArgList &Args, const char *Prefix,
 void tools::PScpu::addProfileRTArgs(const ToolChain &TC, const ArgList &Args,
                                     ArgStringList &CmdArgs) {
   assert(TC.getTriple().isPS());
-  auto &PSTC = static_cast<const toolchains::PS4PS5Base &>(TC);
+  
 
-  if ((Args.hasFlag(options::OPT_fprofile_arcs, options::OPT_fno_profile_arcs,
+  if (auto &PSTC = static_cast<const toolchains::PS4PS5Base &>(TC); (Args.hasFlag(options::OPT_fprofile_arcs, options::OPT_fno_profile_arcs,
                     false) ||
        Args.hasFlag(options::OPT_fprofile_generate,
                     options::OPT_fno_profile_generate, false) ||
@@ -595,10 +595,10 @@ void toolchains::PS4PS5Base::addClangTargetOptions(
                          options::OPT_fvisibility_global_new_delete_hidden))
     CC1Args.push_back("-fvisibility-global-new-delete=source");
 
-  const Arg *A =
+  
+  if (const Arg *A =
       DriverArgs.getLastArg(options::OPT_fvisibility_from_dllstorageclass,
-                            options::OPT_fno_visibility_from_dllstorageclass);
-  if (!A ||
+                            options::OPT_fno_visibility_from_dllstorageclass); !A ||
       A->getOption().matches(options::OPT_fvisibility_from_dllstorageclass)) {
     CC1Args.push_back("-fvisibility-from-dllstorageclass");
 

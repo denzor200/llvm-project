@@ -182,9 +182,9 @@ void LastModifiedAnalysis::visitCallControlFlowTransfer(
       result |= after->set(operand, call);
     return propagateIfChanged(after, result);
   }
-  auto testCallAndStore =
-      dyn_cast<::test::TestCallAndStoreOp>(call.getOperation());
-  if (testCallAndStore && ((action == CallControlFlowAction::EnterCallee &&
+  
+  if (auto testCallAndStore =
+      dyn_cast<::test::TestCallAndStoreOp>(call.getOperation()); testCallAndStore && ((action == CallControlFlowAction::EnterCallee &&
                             testCallAndStore.getStoreBeforeCall()) ||
                            (action == CallControlFlowAction::ExitCallee &&
                             !testCallAndStore.getStoreBeforeCall()))) {

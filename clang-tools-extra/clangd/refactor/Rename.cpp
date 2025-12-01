@@ -185,9 +185,9 @@ void filterRenameTargets(llvm::DenseSet<const NamedDecl *> &Decls) {
   // For renaming, we're only interested in foo's declaration, so drop the other
   // one. There should never be more than one UsingDecl here, otherwise the
   // rename would be ambiguos anyway.
-  auto UD = llvm::find_if(
-      Decls, [](const NamedDecl *D) { return llvm::isa<UsingDecl>(D); });
-  if (UD != Decls.end()) {
+  
+  if (auto UD = llvm::find_if(
+      Decls, [](const NamedDecl *D) { return llvm::isa<UsingDecl>(D); }); UD != Decls.end()) {
     Decls.erase(UD);
   }
 }
@@ -548,8 +548,8 @@ llvm::Error checkName(const NamedDecl &RenameDecl, llvm::StringRef NewName,
     return makeError(ReasonToReject::SameName);
 
   if (const auto *MD = dyn_cast<ObjCMethodDecl>(&RenameDecl)) {
-    const auto Sel = MD->getSelector();
-    if (Sel.getNumArgs() != NewName.count(':') &&
+    
+    if (const auto Sel = MD->getSelector(); Sel.getNumArgs() != NewName.count(':') &&
         NewName != "__clangd_rename_placeholder")
       return makeError(InvalidName{InvalidName::BadIdentifier, NewName.str()});
   }
@@ -610,8 +610,8 @@ findAllSelectorPieces(llvm::ArrayRef<syntax::Token> Tokens,
     const auto &Tok = Tokens[Index];
 
     if (Closes.empty()) {
-      auto PieceCount = SelectorPieces.size();
-      if (PieceCount < NumArgs &&
+      
+      if (auto PieceCount = SelectorPieces.size(); PieceCount < NumArgs &&
           isMatchingSelectorName(Tok, Tokens[Index + 1], SM,
                                  NamePieces[PieceCount])) {
         // If 'foo:' instead of ':' (empty selector), we need to skip the ':'
@@ -1260,8 +1260,8 @@ llvm::Expected<Edit> buildRenameEdit(llvm::StringRef AbsFilePath,
 
   tooling::Replacements RenameEdit;
   for (const auto &R : OccurrencesOffsets) {
-    auto ByteLength = R.End - R.Start;
-    if (auto Err = RenameEdit.add(
+    
+    if (auto auto ByteLength = R.End - R.Start; Err = RenameEdit.add(
             tooling::Replacement(AbsFilePath, R.Start, ByteLength, R.NewName)))
       return std::move(Err);
   }

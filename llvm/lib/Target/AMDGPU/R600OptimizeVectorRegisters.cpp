@@ -56,8 +56,8 @@ public:
     assert(MI->getOpcode() == R600::REG_SEQUENCE);
     for (unsigned i = 1, e = Instr->getNumOperands(); i < e; i+=2) {
       MachineOperand &MO = Instr->getOperand(i);
-      unsigned Chan = Instr->getOperand(i + 1).getImm();
-      if (isImplicitlyDef(MRI, MO.getReg()))
+      
+      if (unsigned Chan = Instr->getOperand(i + 1).getImm(); isImplicitlyDef(MRI, MO.getReg()))
         UndefReg.emplace_back(Chan);
       else
         RegToChan[MO.getReg()] = Chan;

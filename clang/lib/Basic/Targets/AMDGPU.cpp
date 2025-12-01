@@ -329,8 +329,8 @@ void AMDGPUTargetInfo::getTargetDefines(const LangOptions &Opts,
     Builder.defineMacro("__amdgcn_target_id__",
                         Twine("\"") + Twine(*getTargetID()) + Twine("\""));
     for (auto F : getAllPossibleTargetIDFeatures(getTriple(), CanonName)) {
-      auto Loc = OffloadArchFeatures.find(F);
-      if (Loc != OffloadArchFeatures.end()) {
+      
+      if (auto Loc = OffloadArchFeatures.find(F); Loc != OffloadArchFeatures.end()) {
         std::string NewF = F.str();
         llvm::replace(NewF, '-', '_');
         Builder.defineMacro(Twine("__amdgcn_feature_") + Twine(NewF) +

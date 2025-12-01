@@ -100,8 +100,8 @@ struct ConditionOpInterface
 
     SmallVector<Value> newArgs;
     for (const auto &it : llvm::enumerate(conditionOp.getArgs())) {
-      Value value = it.value();
-      if (isa<TensorType>(value.getType())) {
+      
+      if (Value value = it.value(); isa<TensorType>(value.getType())) {
         FailureOr<Value> maybeBuffer =
             getBuffer(rewriter, value, options, state);
         if (failed(maybeBuffer))
@@ -152,9 +152,9 @@ struct ExecuteRegionOpInterface
 
   LogicalResult verifyAnalysis(Operation *op,
                                const AnalysisState &state) const {
-    auto executeRegionOp = cast<scf::ExecuteRegionOp>(op);
+    
     // TODO: scf.execute_region with multiple yields are not supported.
-    if (!getUniqueYieldOp(executeRegionOp))
+    if (auto executeRegionOp = cast<scf::ExecuteRegionOp>(op); !getUniqueYieldOp(executeRegionOp))
       return op->emitOpError("op without unique scf.yield is not supported");
     return success();
   }
@@ -495,8 +495,8 @@ getBbArgReplacements(RewriterBase &rewriter, Block::BlockArgListType bbArgs,
   SmallVector<Value> result;
   for (const auto &it : llvm::enumerate(bbArgs)) {
     size_t idx = it.index();
-    Value val = it.value();
-    if (tensorIndices.contains(idx)) {
+    
+    if (Value val = it.value(); tensorIndices.contains(idx)) {
       result.push_back(
           bufferization::ToTensorOp::create(rewriter, val.getLoc(),
                                             oldBbArgs[idx].getType(), val)
@@ -655,8 +655,8 @@ struct ForOpInterface
   resolveConflicts(Operation *op, RewriterBase &rewriter,
                    const AnalysisState &analysisState,
                    const BufferizationState &bufferizationState) const {
-    auto bufferizableOp = cast<BufferizableOpInterface>(op);
-    if (failed(bufferizableOp.resolveTensorOpOperandConflicts(
+    
+    if (auto bufferizableOp = cast<BufferizableOpInterface>(op); failed(bufferizableOp.resolveTensorOpOperandConflicts(
             rewriter, analysisState, bufferizationState)))
       return failure();
 
@@ -800,9 +800,9 @@ struct ForOpInterface
   /// activated with `alloc-return-allocs`.
   LogicalResult verifyAnalysis(Operation *op,
                                const AnalysisState &state) const {
-    const auto &options =
-        static_cast<const OneShotBufferizationOptions &>(state.getOptions());
-    if (options.allowReturnAllocsFromLoops)
+    
+    if (const auto &options =
+        static_cast<const OneShotBufferizationOptions &>(state.getOptions()); options.allowReturnAllocsFromLoops)
       return success();
 
     auto forOp = cast<scf::ForOp>(op);
@@ -904,8 +904,8 @@ struct WhileOpInterface
   resolveConflicts(Operation *op, RewriterBase &rewriter,
                    const AnalysisState &analysisState,
                    const BufferizationState &bufferizationState) const {
-    auto bufferizableOp = cast<BufferizableOpInterface>(op);
-    if (failed(bufferizableOp.resolveTensorOpOperandConflicts(
+    
+    if (auto bufferizableOp = cast<BufferizableOpInterface>(op); failed(bufferizableOp.resolveTensorOpOperandConflicts(
             rewriter, analysisState, bufferizationState)))
       return failure();
 
@@ -1094,9 +1094,9 @@ struct WhileOpInterface
   LogicalResult verifyAnalysis(Operation *op,
                                const AnalysisState &state) const {
     auto whileOp = cast<scf::WhileOp>(op);
-    const auto &options =
-        static_cast<const OneShotBufferizationOptions &>(state.getOptions());
-    if (options.allowReturnAllocsFromLoops)
+    
+    if (const auto &options =
+        static_cast<const OneShotBufferizationOptions &>(state.getOptions()); options.allowReturnAllocsFromLoops)
       return success();
 
     auto conditionOp = whileOp.getConditionOp();
@@ -1174,8 +1174,8 @@ struct YieldOpInterface
 
     SmallVector<Value> newResults;
     for (const auto &it : llvm::enumerate(yieldOp.getResults())) {
-      Value value = it.value();
-      if (isa<TensorType>(value.getType())) {
+      
+      if (Value value = it.value(); isa<TensorType>(value.getType())) {
         FailureOr<Value> maybeBuffer =
             getBuffer(rewriter, value, options, state);
         if (failed(maybeBuffer))

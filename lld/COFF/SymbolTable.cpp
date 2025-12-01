@@ -96,8 +96,8 @@ static Symbol *getSymbol(SectionChunk *sc, uint32_t addr) {
 
 static std::vector<std::string> getSymbolLocations(BitcodeFile *file) {
   std::string res("\n>>> referenced by ");
-  StringRef source = file->obj->getSourceFileName();
-  if (!source.empty())
+  
+  if (StringRef source = file->obj->getSourceFileName(); !source.empty())
     res += source.str() + "\n>>>               ";
   res += toString(file);
   return {res};
@@ -154,8 +154,8 @@ getSymbolLocations(ObjFile *file, uint32_t symIndex, size_t maxStrings) {
 
       std::optional<std::pair<StringRef, uint32_t>> fileLine =
           getFileLine(sc, r.VirtualAddress);
-      Symbol *sym = getSymbol(sc, r.VirtualAddress);
-      if (fileLine)
+      
+      if (Symbol *sym = getSymbol(sc, r.VirtualAddress); fileLine)
         locations.push_back({sym, *fileLine});
       else if (sym)
         locations.push_back({sym, {"", 0}});
@@ -233,10 +233,10 @@ void SymbolTable::reportUndefinedSymbol(const UndefinedDiag &undefDiag) {
     diag << "\n>>> referenced " << numRefs - numDisplayedRefs << " more times";
 
   // Hints
-  StringRef name = undefDiag.sym->getName();
-  if (name.consume_front("__imp_")) {
-    Symbol *imp = find(name);
-    if (imp && imp->isLazy()) {
+  
+  if (StringRef name = undefDiag.sym->getName(); name.consume_front("__imp_")) {
+    
+    if (Symbol *imp = find(name); imp && imp->isLazy()) {
       diag << "\nNOTE: a relevant symbol '" << imp->getName()
            << "' is available in " << toString(imp->getFile())
            << " but cannot be used because it is not an import library.";
@@ -275,8 +275,8 @@ void SymbolTable::loadMinGWSymbols() {
       baseName = baseName.substr(0, baseName.find('@'));
       // Add a leading underscore, as it would be in cdecl form.
       std::string newName = ("_" + baseName).str();
-      Symbol *l;
-      if (newName != origName && (l = find(newName)) != nullptr) {
+      
+      if (Symbol *l; newName != origName && (l = find(newName)) != nullptr) {
         // If we found a symbol and it is lazy; load it.
         if (l->isLazy() && !l->pendingArchiveLoad) {
           Log(ctx) << "Loading lazy " << l->getName() << " from "
@@ -356,8 +356,8 @@ bool SymbolTable::handleMinGWAutomaticImport(Symbol *sym, StringRef name) {
   DefinedRegular *refptr =
       dyn_cast_or_null<DefinedRegular>(find((".refptr." + name).str()));
   if (refptr && refptr->getChunk()->getSize() == ctx.config.wordsize) {
-    SectionChunk *sc = dyn_cast_or_null<SectionChunk>(refptr->getChunk());
-    if (sc && sc->getRelocs().size() == 1 && *sc->symbols().begin() == sym) {
+    
+    if (SectionChunk *sc = dyn_cast_or_null<SectionChunk>(refptr->getChunk()); sc && sc->getRelocs().size() == 1 && *sc->symbols().begin() == sym) {
       Log(ctx) << "Replacing .refptr." << name << " with " << imp->getName();
       refptr->getChunk()->live = false;
       refptr->replaceKeepingName(imp, impSize);
@@ -436,8 +436,8 @@ void SymbolTable::reportUnresolvable() {
       continue;
     StringRef name = undef->getName();
     if (name.starts_with("__imp_")) {
-      Symbol *imp = find(name.substr(strlen("__imp_")));
-      if (Defined *def = dyn_cast_or_null<Defined>(imp)) {
+      
+      if (Defined *Symbol *imp = find(name.substr(strlen("__imp_"))); def = dyn_cast_or_null<Defined>(imp)) {
         def->isUsedInRegularObj = true;
         continue;
       }
@@ -648,8 +648,8 @@ void SymbolTable::initializeECThunks() {
     if (file->getMachineType() != AMD64)
       return;
     for (auto &sym : file->getMutableSymbols()) {
-      auto impSym = dyn_cast_or_null<DefinedImportData>(sym);
-      if (impSym && impSym->file->impchkThunk && sym == impSym->file->impECSym)
+      
+      if (auto impSym = dyn_cast_or_null<DefinedImportData>(sym); impSym && impSym->file->impchkThunk && sym == impSym->file->impECSym)
         sym = impSym->file->impSym;
     }
   });
@@ -709,16 +709,16 @@ Symbol *SymbolTable::addGCRoot(StringRef name, bool aliasEC) {
   if (aliasEC && isEC()) {
     if (std::optional<std::string> mangledName =
             getArm64ECMangledFunctionName(name)) {
-      auto u = dyn_cast<Undefined>(b);
-      if (u && !u->weakAlias) {
+      
+      if (auto u = dyn_cast<Undefined>(b); u && !u->weakAlias) {
         Symbol *t = addUndefined(saver().save(*mangledName));
         u->setWeakAlias(t, true);
       }
     } else if (std::optional<std::string> demangledName =
                    getArm64ECDemangledFunctionName(name)) {
       Symbol *us = addUndefined(saver().save(*demangledName));
-      auto u = dyn_cast<Undefined>(us);
-      if (u && !u->weakAlias)
+      
+      if (auto u = dyn_cast<Undefined>(us); u && !u->weakAlias)
         u->setWeakAlias(b, true);
     }
   }
@@ -813,8 +813,8 @@ void SymbolTable::addLazyDLLSymbol(DLLFile *f, DLLFile::Symbol *sym,
 
 static std::string getSourceLocationBitcode(BitcodeFile *file) {
   std::string res("\n>>> defined at ");
-  StringRef source = file->obj->getSourceFileName();
-  if (!source.empty())
+  
+  if (StringRef source = file->obj->getSourceFileName(); !source.empty())
     res += source.str() + "\n>>>            ";
   res += toString(file);
   return res;
@@ -862,8 +862,8 @@ void SymbolTable::reportDuplicate(Symbol *existing, InputFile *newFile,
                                                     : DiagLevel::Err);
   diag << "duplicate symbol: " << printSymbol(existing);
 
-  DefinedRegular *d = dyn_cast<DefinedRegular>(existing);
-  if (d && isa<ObjFile>(d->getFile())) {
+  
+  if (DefinedRegular *d = dyn_cast<DefinedRegular>(existing); d && isa<ObjFile>(d->getFile())) {
     diag << getSourceLocation(d->getFile(), d->getChunk(), d->getValue(),
                               existing->getName());
   } else {
@@ -979,8 +979,8 @@ void SymbolTable::addLibcall(StringRef name) {
     return;
 
   if (auto *l = dyn_cast<LazyArchive>(sym)) {
-    MemoryBufferRef mb = l->getMemberBuffer();
-    if (isBitcode(mb))
+    
+    if (MemoryBufferRef mb = l->getMemberBuffer(); isBitcode(mb))
       addUndefined(sym->getName());
   } else if (LazyObject *o = dyn_cast<LazyObject>(sym)) {
     if (isBitcode(o->file->mb))
@@ -1003,8 +1003,8 @@ Symbol *SymbolTable::findUnderscore(StringRef name) const {
 std::vector<Symbol *> SymbolTable::getSymsWithPrefix(StringRef prefix) {
   std::vector<Symbol *> syms;
   for (auto pair : symMap) {
-    StringRef name = pair.first.val();
-    if (name.starts_with(prefix) || name.starts_with(prefix.drop_front()) ||
+    
+    if (StringRef name = pair.first.val(); name.starts_with(prefix) || name.starts_with(prefix.drop_front()) ||
         name.drop_front().starts_with(prefix) ||
         name.drop_front().starts_with(prefix.drop_front())) {
       syms.push_back(pair.second);
@@ -1250,8 +1250,8 @@ void SymbolTable::fixupExports() {
   std::vector<Export> v;
   for (Export &e : exports) {
     auto pair = map.insert(std::make_pair(e.exportName, std::make_pair(&e, 0)));
-    bool inserted = pair.second;
-    if (inserted) {
+    
+    if (bool inserted = pair.second; inserted) {
       pair.first->second.second = v.size();
       v.push_back(e);
       continue;

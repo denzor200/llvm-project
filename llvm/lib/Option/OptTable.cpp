@@ -89,8 +89,8 @@ OptTable::OptTable(const StringTable &StrTable,
 
   // Find start of normal options.
   for (unsigned i = 0, e = getNumOptions(); i != e; ++i) {
-    unsigned Kind = getInfo(i + 1).Kind;
-    if (Kind == Option::InputClass) {
+    
+    if (unsigned Kind = getInfo(i + 1).Kind; Kind == Option::InputClass) {
       assert(!InputOptionID && "Cannot have multiple input options!");
       InputOptionID = getInfo(i + 1).ID;
     } else if (Kind == Option::UnknownClass) {
@@ -161,12 +161,12 @@ static unsigned matchOption(const StringTable &StrTable,
                             bool IgnoreCase) {
   StringRef Name = I->getName(StrTable, PrefixesTable);
   for (auto PrefixOffset : I->getPrefixOffsets(PrefixesTable)) {
-    StringRef Prefix = StrTable[PrefixOffset];
-    if (Str.starts_with(Prefix)) {
+    
+    if (StringRef Prefix = StrTable[PrefixOffset]; Str.starts_with(Prefix)) {
       StringRef Rest = Str.substr(Prefix.size());
-      bool Matched = IgnoreCase ? Rest.starts_with_insensitive(Name)
-                                : Rest.starts_with(Name);
-      if (Matched)
+      
+      if (bool Matched = IgnoreCase ? Rest.starts_with_insensitive(Name)
+                                : Rest.starts_with(Name); Matched)
         return Prefix.size() + Name.size();
     }
   }
@@ -177,8 +177,8 @@ static unsigned matchOption(const StringTable &StrTable,
 static bool optionMatches(const StringTable &StrTable,
                           ArrayRef<StringTable::Offset> PrefixesTable,
                           const OptTable::Info &In, StringRef Option) {
-  StringRef Name = In.getName(StrTable, PrefixesTable);
-  if (Option.consume_back(Name))
+  
+  if (StringRef Name = In.getName(StrTable, PrefixesTable); Option.consume_back(Name))
     for (auto PrefixOffset : In.getPrefixOffsets(PrefixesTable))
       if (Option == StrTable[PrefixOffset])
         return true;
@@ -317,10 +317,10 @@ unsigned OptTable::internalFindNearest(
       // at all.
       size_t CandidateSize = CandidatePrefix.size() + CandidateName.size(),
              NormalizedSize = NormalizedName.size();
-      size_t AbsDiff = CandidateSize > NormalizedSize
+      
+      if (size_t AbsDiff = CandidateSize > NormalizedSize
                            ? CandidateSize - NormalizedSize
-                           : NormalizedSize - CandidateSize;
-      if (AbsDiff > BestDistance) {
+                           : NormalizedSize - CandidateSize; AbsDiff > BestDistance) {
         continue;
       }
       Candidate = CandidatePrefix;
@@ -598,8 +598,8 @@ InputArgList OptTable::parseArgs(int Argc, char *const *Argv,
   // message includes a suggested alternative option spelling if available.
   std::string Nearest;
   for (const opt::Arg *A : Args.filtered(Unknown)) {
-    std::string Spelling = A->getAsString(Args);
-    if (findNearest(Spelling, Nearest) > 1)
+    
+    if (std::string Spelling = A->getAsString(Args); findNearest(Spelling, Nearest) > 1)
       ErrorFn("unknown argument '" + Spelling + "'");
     else
       ErrorFn("unknown argument '" + Spelling + "', did you mean '" + Nearest +
@@ -668,8 +668,8 @@ static void PrintHelpOptionList(raw_ostream &OS, StringRef Title,
   unsigned OptionFieldWidth = 0;
   for (const OptionInfo &Opt : OptionHelp) {
     // Limit the amount of padding we are willing to give up for alignment.
-    unsigned Length = Opt.Name.size();
-    if (Length <= 23)
+    
+    if (unsigned Length = Opt.Name.size(); Length <= 23)
       OptionFieldWidth = std::max(OptionFieldWidth, Length);
   }
 

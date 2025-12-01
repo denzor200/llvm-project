@@ -134,12 +134,12 @@ void FunctionLoweringInfo::set(const Function &fn, MachineFunction &mf,
     for (const Instruction &I : BB) {
       if (const AllocaInst *AI = dyn_cast<AllocaInst>(&I)) {
         Type *Ty = AI->getAllocatedType();
-        Align Alignment = AI->getAlign();
+        
 
         // Static allocas can be folded into the initial stack frame
         // adjustment. For targets that don't realign the stack, don't
         // do this if there is an extra alignment requirement.
-        if (AI->isStaticAlloca() &&
+        if (Align Alignment = AI->getAlign(); AI->isStaticAlloca() &&
             (TFI->isStackRealignable() || (Alignment <= StackAlign))) {
           const ConstantInt *CUI = cast<ConstantInt>(AI->getArraySize());
           uint64_t TySize =
@@ -191,10 +191,10 @@ void FunctionLoweringInfo::set(const Function &fn, MachineFunction &mf,
             if (Op.Type == InlineAsm::isClobber) {
               // Clobbers don't have SDValue operands, hence SDValue().
               TLI->ComputeConstraintToUse(Op, SDValue(), DAG);
-              std::pair<unsigned, const TargetRegisterClass *> PhysReg =
+              
+              if (std::pair<unsigned, const TargetRegisterClass *> PhysReg =
                   TLI->getRegForInlineAsmConstraint(TRI, Op.ConstraintCode,
-                                                    Op.ConstraintVT);
-              if (PhysReg.first == SP)
+                                                    Op.ConstraintVT); PhysReg.first == SP)
                 MF->getFrameInfo().setHasOpaqueSPAdjustment(true);
             }
           }
@@ -394,8 +394,8 @@ Register FunctionLoweringInfo::CreateRegs(Type *Ty, bool isDivergent) {
 
     unsigned NumRegs = TLI->getNumRegisters(Ty->getContext(), ValueVT);
     for (unsigned i = 0; i != NumRegs; ++i) {
-      Register R = CreateReg(RegisterVT, isDivergent);
-      if (!FirstReg) FirstReg = R;
+      
+      if (Register R = CreateReg(RegisterVT, isDivergent); !FirstReg) FirstReg = R;
     }
   }
   return FirstReg;

@@ -90,8 +90,8 @@ const EocdRecord *FindEocdRecord(lldb::DataBufferSP zip_data) {
   const uint8_t *find_limit = zip_data_end - kEocdRecordFindLimit;
   const uint8_t *p = zip_data_end - sizeof(EocdRecord);
   for (; p >= zip_data->GetBytes() && p >= find_limit; p--) {
-    auto eocd = reinterpret_cast<const EocdRecord *>(p);
-    if (::memcmp(eocd->signature, EocdRecord::kSignature,
+    
+    if (auto eocd = reinterpret_cast<const EocdRecord *>(p); ::memcmp(eocd->signature, EocdRecord::kSignature,
                  sizeof(EocdRecord::kSignature)) == 0) {
       // Found the end of central directory. Sanity check the values.
       if (eocd->cd_records * sizeof(CdRecord) > eocd->cd_size ||

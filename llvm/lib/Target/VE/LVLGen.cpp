@@ -36,10 +36,10 @@ char LVLGen::ID = 0;
 FunctionPass *llvm::createLVLGenPass() { return new LVLGen; }
 
 int LVLGen::getVLIndex(unsigned Opcode) {
-  const MCInstrDesc &MCID = TII->get(Opcode);
+  
 
   // If an instruction has VLIndex information, return it.
-  if (HAS_VLINDEX(MCID.TSFlags))
+  if (const MCInstrDesc &MCID = TII->get(Opcode); HAS_VLINDEX(MCID.TSFlags))
     return GET_VLINDEX(MCID.TSFlags);
 
   return -1;
@@ -48,8 +48,8 @@ int LVLGen::getVLIndex(unsigned Opcode) {
 // returns a register holding a vector length. NoRegister is returned when
 // this MI does not have a vector length.
 unsigned LVLGen::getVL(const MachineInstr &MI) {
-  int Index = getVLIndex(MI.getOpcode());
-  if (Index >= 0)
+  
+  if (int Index = getVLIndex(MI.getOpcode()); Index >= 0)
     return MI.getOperand(Index).getReg();
 
   return VE::NoRegister;
@@ -72,8 +72,8 @@ bool LVLGen::runOnMachineBasicBlock(MachineBasicBlock &MBB) {
     // possible.  Therefore, we use a regular scalar register to hold immediate
     // values to load VL register.  And try to reuse identical scalar registers
     // to avoid new LVLr instructions as much as possible.
-    unsigned Reg = getVL(*MI);
-    if (Reg != VE::NoRegister) {
+    
+    if (unsigned Reg = getVL(*MI); Reg != VE::NoRegister) {
       LLVM_DEBUG(dbgs() << "Vector instruction found: ");
       LLVM_DEBUG(MI->dump());
       LLVM_DEBUG(dbgs() << "Vector length is " << RegName(Reg) << ". ");

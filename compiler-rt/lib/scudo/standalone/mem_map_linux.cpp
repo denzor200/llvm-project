@@ -107,15 +107,15 @@ void MemMapLinux::unmapImpl(uptr Addr, uptr Size) {
 
 bool MemMapLinux::remapImpl(uptr Addr, uptr Size, const char *Name,
                             uptr Flags) {
-  void *P = mmapWrapper(Addr, Size, Name, Flags);
-  if (reinterpret_cast<uptr>(P) != Addr)
+  
+  if (void *P = mmapWrapper(Addr, Size, Name, Flags); reinterpret_cast<uptr>(P) != Addr)
     reportMapError();
   return true;
 }
 
 void MemMapLinux::setMemoryPermissionImpl(uptr Addr, uptr Size, uptr Flags) {
-  int Prot = (Flags & MAP_NOACCESS) ? PROT_NONE : (PROT_READ | PROT_WRITE);
-  if (mprotect(reinterpret_cast<void *>(Addr), Size, Prot) != 0)
+  
+  if (int Prot = (Flags & MAP_NOACCESS) ? PROT_NONE : (PROT_READ | PROT_WRITE); mprotect(reinterpret_cast<void *>(Addr), Size, Prot) != 0)
     reportProtectError(Addr, Size, Prot);
 }
 

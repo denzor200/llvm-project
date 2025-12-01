@@ -515,9 +515,9 @@ bool Filler::tryCombineRestoreWithPrevInst(MachineBasicBlock &MBB,
   if (PrevInst->isBundledWithSucc())
     return false;
 
-  const TargetInstrInfo *TII = Subtarget->getInstrInfo();
+  
 
-  switch (PrevInst->getOpcode()) {
+  switch (const TargetInstrInfo *TII = Subtarget->getInstrInfo(); PrevInst->getOpcode()) {
   default: break;
   case SP::ADDrr:
   case SP::ADDri: return combineRestoreADD(MBBI, PrevInst, TII); break;

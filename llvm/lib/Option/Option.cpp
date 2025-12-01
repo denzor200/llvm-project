@@ -69,8 +69,8 @@ void Option::print(raw_ostream &O, bool AddNewLine) const {
 
   O << " Name:\"" << getName() << '"';
 
-  const Option Group = getGroup();
-  if (Group.isValid()) {
+  
+  if (const Option Group = getGroup(); Group.isValid()) {
     O << " Group:";
     Group.print(O, /*AddNewLine=*/false);
   }
@@ -95,8 +95,8 @@ LLVM_DUMP_METHOD void Option::dump() const { print(dbgs()); }
 
 bool Option::matches(OptSpecifier Opt) const {
   // Aliases are never considered in matching, look through them.
-  const Option Alias = getAlias();
-  if (Alias.isValid())
+  
+  if (const Option Alias = getAlias(); Alias.isValid())
     return Alias.matches(Opt);
 
   // Check exact match.
@@ -132,9 +132,9 @@ std::unique_ptr<Arg> Option::acceptInternal(const ArgList &Args,
     // Parse out the comma separated values.
     const char *Prev = Str;
     for (;; ++Str) {
-      char c = *Str;
+      
 
-      if (!c || c == ',') {
+      if (char c = *Str; !c || c == ',') {
         if (Prev != Str) {
           char *Value = new char[Str - Prev + 1];
           memcpy(Value, Prev, Str - Prev);

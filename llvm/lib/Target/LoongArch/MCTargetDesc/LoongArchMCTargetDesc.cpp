@@ -112,9 +112,9 @@ class LoongArchMCInstrAnalysis : public MCInstrAnalysis {
     if (Reg == LoongArch::R0)
       return;
 
-    auto Index = getRegIndex(Reg);
+    
 
-    if (Value) {
+    if (auto Index = getRegIndex(Reg); Value) {
       GPRState[Index] = *Value;
       GPRValidMask.set(Index);
     } else {
@@ -126,9 +126,9 @@ class LoongArchMCInstrAnalysis : public MCInstrAnalysis {
     if (Reg == LoongArch::R0)
       return 0;
 
-    auto Index = getRegIndex(Reg);
+    
 
-    if (GPRValidMask.test(Index))
+    if (auto Index = getRegIndex(Reg); GPRValidMask.test(Index))
       return GPRState[Index];
     return std::nullopt;
   }
@@ -156,8 +156,8 @@ public:
       // explicitly support.
       auto NumDefs = Info->get(Inst.getOpcode()).getNumDefs();
       for (unsigned I = 0; I < NumDefs; ++I) {
-        auto DefReg = Inst.getOperand(I).getReg();
-        if (isGPR(DefReg))
+        
+        if (auto DefReg = Inst.getOperand(I).getReg(); isGPR(DefReg))
           setGPRState(DefReg, std::nullopt);
       }
       break;
@@ -173,8 +173,8 @@ public:
 
   bool evaluateBranch(const MCInst &Inst, uint64_t Addr, uint64_t Size,
                       uint64_t &Target) const override {
-    unsigned NumOps = Inst.getNumOperands();
-    if ((isBranch(Inst) && !isIndirectBranch(Inst)) ||
+    
+    if (unsigned NumOps = Inst.getNumOperands(); (isBranch(Inst) && !isIndirectBranch(Inst)) ||
         Inst.getOpcode() == LoongArch::BL) {
       Target = Addr + Inst.getOperand(NumOps - 1).getImm();
       return true;

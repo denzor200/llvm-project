@@ -325,9 +325,9 @@ bool ABISysV_riscv::PrepareTrivialCall(
       if (reg_size > end)
         memset(reg_value + end, 0, reg_size - end);
 
-      RegisterValue reg_val_obj(llvm::ArrayRef(reg_value, reg_size),
-                                eByteOrderLittle);
-      if (!reg_ctx->WriteRegister(
+      
+      if (RegisterValue reg_val_obj(llvm::ArrayRef(reg_value, reg_size),
+                                eByteOrderLittle); !reg_ctx->WriteRegister(
               reg_ctx->GetRegisterInfo(eRegisterKindGeneric, reg_index),
               reg_val_obj))
         return false;
@@ -524,11 +524,11 @@ static ValueObjectSP GetValObjFromIntRegs(Thread &thread,
     std::unique_ptr<DataBufferHeap> heap_data_up(
         new DataBufferHeap(byte_size, 0));
     const ByteOrder byte_order = thread.GetProcess()->GetByteOrder();
-    RegisterValue reg_value_a0, reg_value_a1;
-    if (reg_ctx->ReadRegister(reg_info_a0, reg_value_a0) &&
+    
+    if (RegisterValue reg_value_a0, reg_value_a1; reg_ctx->ReadRegister(reg_info_a0, reg_value_a0) &&
         reg_ctx->ReadRegister(reg_info_a1, reg_value_a1)) {
-      Status error;
-      if (reg_value_a0.GetAsMemoryData(*reg_info_a0,
+      
+      if (Status error; reg_value_a0.GetAsMemoryData(*reg_info_a0,
                                        heap_data_up->GetBytes() + 0, 8,
                                        byte_order, error) &&
           reg_value_a1.GetAsMemoryData(*reg_info_a1,
@@ -546,8 +546,8 @@ static ValueObjectSP GetValObjFromIntRegs(Thread &thread,
   }
 
   if (type_flags & eTypeIsInteger) {
-    const bool is_signed = (type_flags & eTypeIsSigned) != 0;
-    if (!SetSizedInteger(value.GetScalar(), raw_value, byte_size, is_signed))
+    
+    if (const bool is_signed = (type_flags & eTypeIsSigned) != 0; !SetSizedInteger(value.GetScalar(), raw_value, byte_size, is_signed))
       return return_valobj_sp;
   } else if (type_flags & eTypeIsFloat) {
     if (!SetSizedFloat(value.GetScalar(), raw_value, byte_size))
@@ -643,9 +643,9 @@ ABISysV_riscv::GetReturnValueObjectSimple(Thread &thread,
   }
   // Floating point return type.
   else if (type_flags & eTypeIsFloat) {
-    bool is_complex = false;
+    
 
-    if (compiler_type.IsFloatingPointType(is_complex) &&
+    if (bool is_complex = false; compiler_type.IsFloatingPointType(is_complex) &&
         !(type_flags & eTypeIsVector) && !is_complex) {
       const uint32_t arch_fp_flags =
           arch.GetFlags() & ArchSpec::eRISCV_float_abi_mask;

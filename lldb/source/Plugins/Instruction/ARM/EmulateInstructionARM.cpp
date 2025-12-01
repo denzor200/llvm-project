@@ -724,16 +724,16 @@ EmulateInstructionARM::CreateInstance(const ArchSpec &arch,
   if (EmulateInstructionARM::SupportsEmulatingInstructionsOfTypeStatic(
           inst_type)) {
     if (arch.GetTriple().getArch() == llvm::Triple::arm) {
-      std::unique_ptr<EmulateInstructionARM> emulate_insn_up(
-          new EmulateInstructionARM(arch));
+      
 
-      if (emulate_insn_up)
+      if (std::unique_ptr<EmulateInstructionARM> emulate_insn_up(
+          new EmulateInstructionARM(arch)); emulate_insn_up)
         return emulate_insn_up.release();
     } else if (arch.GetTriple().getArch() == llvm::Triple::thumb) {
-      std::unique_ptr<EmulateInstructionARM> emulate_insn_up(
-          new EmulateInstructionARM(arch));
+      
 
-      if (emulate_insn_up)
+      if (std::unique_ptr<EmulateInstructionARM> emulate_insn_up(
+          new EmulateInstructionARM(arch)); emulate_insn_up)
         return emulate_insn_up.release();
     }
   }
@@ -917,15 +917,15 @@ bool EmulateInstructionARM::EmulatePUSH(const uint32_t opcode,
     }
 #endif
 
-  bool success = false;
-  if (ConditionPassed(opcode)) {
+  
+  if (bool success = false; ConditionPassed(opcode)) {
     const uint32_t addr_byte_size = GetAddressByteSize();
     const addr_t sp = ReadCoreReg(SP_REG, &success);
     if (!success)
       return false;
     uint32_t registers = 0;
-    uint32_t Rt; // the source register
-    switch (encoding) {
+    // the source register
+    switch (uint32_t Rt; encoding) {
     case eEncodingT1:
       registers = Bits32(opcode, 7, 0);
       // The M bit represents LR.
@@ -1032,16 +1032,16 @@ bool EmulateInstructionARM::EmulatePOP(const uint32_t opcode,
     }
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     const uint32_t addr_byte_size = GetAddressByteSize();
     const addr_t sp = ReadCoreReg(SP_REG, &success);
     if (!success)
       return false;
     uint32_t registers = 0;
-    uint32_t Rt; // the destination register
-    switch (encoding) {
+    // the destination register
+    switch (uint32_t Rt; encoding) {
     case eEncodingT1:
       registers = Bits32(opcode, 7, 0);
       // The P bit represents PC.
@@ -1159,9 +1159,9 @@ bool EmulateInstructionARM::EmulateADDRdSPImm(const uint32_t opcode,
     }
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     const addr_t sp = ReadCoreReg(SP_REG, &success);
     if (!success)
       return false;
@@ -1220,9 +1220,9 @@ bool EmulateInstructionARM::EmulateMOVRdSP(const uint32_t opcode,
     }
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     const addr_t sp = ReadCoreReg(SP_REG, &success);
     if (!success)
       return false;
@@ -1282,9 +1282,9 @@ bool EmulateInstructionARM::EmulateMOVRdRm(const uint32_t opcode,
     }
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t Rm; // the source register
     uint32_t Rd; // the destination register
     bool setflags;
@@ -1844,9 +1844,9 @@ bool EmulateInstructionARM::EmulateADDSPImm(const uint32_t opcode,
     }
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     const addr_t sp = ReadCoreReg(SP_REG, &success);
     if (!success)
       return false;
@@ -1956,9 +1956,9 @@ bool EmulateInstructionARM::EmulateADDSPRm(const uint32_t opcode,
     }
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     const addr_t sp = ReadCoreReg(SP_REG, &success);
     if (!success)
       return false;
@@ -2015,9 +2015,9 @@ bool EmulateInstructionARM::EmulateBLXImmediate(const uint32_t opcode,
     }
 #endif
 
-  bool success = true;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = true; ConditionPassed(opcode)) {
     EmulateInstruction::Context context;
     context.type = EmulateInstruction::eContextRelativeBranchImmediate;
     const uint32_t pc = ReadCoreReg(PC_REG, &success);
@@ -2025,8 +2025,8 @@ bool EmulateInstructionARM::EmulateBLXImmediate(const uint32_t opcode,
       return false;
     addr_t lr;     // next instruction address
     addr_t target; // target address
-    int32_t imm32; // PC-relative offset
-    switch (encoding) {
+    // PC-relative offset
+    switch (int32_t imm32; encoding) {
     case eEncodingT1: {
       lr = pc | 1u; // return address
       uint32_t S = Bit32(opcode, 26);
@@ -2117,9 +2117,9 @@ bool EmulateInstructionARM::EmulateBLXRm(const uint32_t opcode,
     }
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     EmulateInstruction::Context context;
     context.type = EmulateInstruction::eContextAbsoluteBranchRegister;
     const uint32_t pc = ReadCoreReg(PC_REG, &success);
@@ -2388,8 +2388,8 @@ bool EmulateInstructionARM::EmulateSUBSPImm(const uint32_t opcode,
     }
 #endif
 
-  bool success = false;
-  if (ConditionPassed(opcode)) {
+  
+  if (bool success = false; ConditionPassed(opcode)) {
     const addr_t sp = ReadCoreReg(SP_REG, &success);
     if (!success)
       return false;
@@ -2468,8 +2468,8 @@ bool EmulateInstructionARM::EmulateSTRRtSP(const uint32_t opcode,
     }
 #endif
 
-  bool success = false;
-  if (ConditionPassed(opcode)) {
+  
+  if (bool success = false; ConditionPassed(opcode)) {
     const uint32_t addr_byte_size = GetAddressByteSize();
     const addr_t sp = ReadCoreReg(SP_REG, &success);
     if (!success)
@@ -2570,8 +2570,8 @@ bool EmulateInstructionARM::EmulateVPUSH(const uint32_t opcode,
     }
 #endif
 
-  bool success = false;
-  if (ConditionPassed(opcode)) {
+  
+  if (bool success = false; ConditionPassed(opcode)) {
     const uint32_t addr_byte_size = GetAddressByteSize();
     const addr_t sp = ReadCoreReg(SP_REG, &success);
     if (!success)
@@ -2662,8 +2662,8 @@ bool EmulateInstructionARM::EmulateVPOP(const uint32_t opcode,
     }
 #endif
 
-  bool success = false;
-  if (ConditionPassed(opcode)) {
+  
+  if (bool success = false; ConditionPassed(opcode)) {
     const uint32_t addr_byte_size = GetAddressByteSize();
     const addr_t sp = ReadCoreReg(SP_REG, &success);
     if (!success)
@@ -2741,9 +2741,9 @@ bool EmulateInstructionARM::EmulateSVC(const uint32_t opcode,
     }
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     const uint32_t pc = ReadCoreReg(PC_REG, &success);
     addr_t lr; // next instruction address
     if (!success)
@@ -2806,17 +2806,17 @@ bool EmulateInstructionARM::EmulateB(const uint32_t opcode,
     }
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     EmulateInstruction::Context context;
     context.type = EmulateInstruction::eContextRelativeBranchImmediate;
     const uint32_t pc = ReadCoreReg(PC_REG, &success);
     if (!success)
       return false;
     addr_t target; // target address
-    int32_t imm32; // PC-relative offset
-    switch (encoding) {
+    // PC-relative offset
+    switch (int32_t imm32; encoding) {
     case eEncodingT1:
       // The 'cond' field is handled in EmulateInstructionARM::CurrentCond().
       imm32 = llvm::SignExtend32<9>(Bits32(opcode, 7, 0) << 1);
@@ -2945,9 +2945,9 @@ bool EmulateInstructionARM::EmulateTB(const uint32_t opcode,
     BranchWritePC(PC + 2*halfwords);
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t Rn; // the base register which contains the address of the table of
                  // branch lengths
     uint32_t Rm; // the index register which contains an integer pointing to a
@@ -3021,17 +3021,17 @@ bool EmulateInstructionARM::EmulateADDImmThumb(const uint32_t opcode,
             APSR.V = overflow;
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t d;
     uint32_t n;
     bool setflags;
     uint32_t imm32;
-    uint32_t carry_out;
+    
 
     // EncodingSpecificOperations();
-    switch (encoding) {
+    switch (uint32_t carry_out; encoding) {
     case eEncodingT1:
       // d = UInt(Rd); n = UInt(Rn); setflags = !InITBlock(); imm32 =
       // ZeroExtend(imm3, 32);
@@ -3146,9 +3146,9 @@ bool EmulateInstructionARM::EmulateADDImmARM(const uint32_t opcode,
                 APSR.V = overflow;
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t Rd, Rn;
     uint32_t
         imm32; // the immediate value to be added to the value obtained from Rn
@@ -3212,9 +3212,9 @@ bool EmulateInstructionARM::EmulateADDReg(const uint32_t opcode,
                 APSR.V = overflow;
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t Rd, Rn, Rm;
     ARM_ShifterType shift_t;
     uint32_t shift_n; // the shift applied to the value read from Rm
@@ -3747,9 +3747,9 @@ bool EmulateInstructionARM::EmulateShiftImm(const uint32_t opcode,
   //           || shift_type == SRType_ROR
   //           || shift_type == SRType_RRX);
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t Rd;    // the destination register
     uint32_t Rm;    // the first operand register
     uint32_t imm5;  // encoding for the shift amount
@@ -3832,9 +3832,9 @@ bool EmulateInstructionARM::EmulateShiftReg(const uint32_t opcode,
   //        || shift_type == SRType_LSR
   //        || shift_type == SRType_ROR);
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t Rd; // the destination register
     uint32_t Rn; // the first operand register
     uint32_t
@@ -3917,8 +3917,8 @@ bool EmulateInstructionARM::EmulateLDM(const uint32_t opcode,
 
 #endif
 
-  bool success = false;
-  if (ConditionPassed(opcode)) {
+  
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t n;
     uint32_t registers = 0;
     bool wback;
@@ -4060,9 +4060,9 @@ bool EmulateInstructionARM::EmulateLDMDA(const uint32_t opcode,
         if wback && registers<n> == '1' then R[n] = bits(32) UNKNOWN;
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t n;
     uint32_t registers = 0;
     bool wback;
@@ -4138,8 +4138,8 @@ bool EmulateInstructionARM::EmulateLDMDA(const uint32_t opcode,
       offset = (addr_byte_size * BitCount(registers)) * -1;
       context.type = EmulateInstruction::eContextAdjustBaseRegister;
       context.SetImmediateSigned(offset);
-      addr_t addr = Rn + offset;
-      if (!WriteRegisterUnsigned(context, eRegisterKindDWARF, dwarf_r0 + n,
+      
+      if (addr_t addr = Rn + offset; !WriteRegisterUnsigned(context, eRegisterKindDWARF, dwarf_r0 + n,
                                  addr))
         return false;
     }
@@ -4174,9 +4174,9 @@ bool EmulateInstructionARM::EmulateLDMDB(const uint32_t opcode,
         if wback && registers<n> == '1' then R[n] = bits(32) UNKNOWN; // Only possible for encoding A1
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t n;
     uint32_t registers = 0;
     bool wback;
@@ -4274,8 +4274,8 @@ bool EmulateInstructionARM::EmulateLDMDB(const uint32_t opcode,
       offset = (addr_byte_size * BitCount(registers)) * -1;
       context.type = EmulateInstruction::eContextAdjustBaseRegister;
       context.SetImmediateSigned(offset);
-      addr_t addr = Rn + offset;
-      if (!WriteRegisterUnsigned(context, eRegisterKindDWARF, dwarf_r0 + n,
+      
+      if (addr_t addr = Rn + offset; !WriteRegisterUnsigned(context, eRegisterKindDWARF, dwarf_r0 + n,
                                  addr))
         return false;
     }
@@ -4310,9 +4310,9 @@ bool EmulateInstructionARM::EmulateLDMIB(const uint32_t opcode,
         if wback && registers<n> == '1' then R[n] = bits(32) UNKNOWN;
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t n;
     uint32_t registers = 0;
     bool wback;
@@ -4386,8 +4386,8 @@ bool EmulateInstructionARM::EmulateLDMIB(const uint32_t opcode,
       offset = addr_byte_size * BitCount(registers);
       context.type = EmulateInstruction::eContextAdjustBaseRegister;
       context.SetImmediateSigned(offset);
-      addr_t addr = Rn + offset;
-      if (!WriteRegisterUnsigned(context, eRegisterKindDWARF, dwarf_r0 + n,
+      
+      if (addr_t addr = Rn + offset; !WriteRegisterUnsigned(context, eRegisterKindDWARF, dwarf_r0 + n,
                                  addr))
         return false;
     }
@@ -4422,9 +4422,9 @@ bool EmulateInstructionARM::EmulateLDRRtRnImm(const uint32_t opcode,
     }
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t Rt;        // the destination register
     uint32_t Rn;        // the base register
     uint32_t imm32;     // the immediate offset used to form the address
@@ -4586,9 +4586,9 @@ bool EmulateInstructionARM::EmulateSTM(const uint32_t opcode,
         if wback then R[n] = R[n] + 4*BitCount(registers);
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t n;
     uint32_t registers = 0;
     bool wback;
@@ -4704,8 +4704,8 @@ bool EmulateInstructionARM::EmulateSTM(const uint32_t opcode,
       offset = addr_byte_size * BitCount(registers);
       context.type = EmulateInstruction::eContextAdjustBaseRegister;
       context.SetImmediateSigned(offset);
-      addr_t data = address + offset;
-      if (!WriteRegisterUnsigned(context, eRegisterKindDWARF, dwarf_r0 + n,
+      
+      if (addr_t data = address + offset; !WriteRegisterUnsigned(context, eRegisterKindDWARF, dwarf_r0 + n,
                                  data))
         return false;
     }
@@ -4739,9 +4739,9 @@ bool EmulateInstructionARM::EmulateSTMDA(const uint32_t opcode,
         if wback then R[n] = R[n] - 4*BitCount(registers);
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t n;
     uint32_t registers = 0;
     bool wback;
@@ -4826,8 +4826,8 @@ bool EmulateInstructionARM::EmulateSTMDA(const uint32_t opcode,
       offset = (addr_byte_size * BitCount(registers)) * -1;
       context.type = EmulateInstruction::eContextAdjustBaseRegister;
       context.SetImmediateSigned(offset);
-      addr_t data = Rn + offset;
-      if (!WriteRegisterUnsigned(context, eRegisterKindDWARF, dwarf_r0 + n,
+      
+      if (addr_t data = Rn + offset; !WriteRegisterUnsigned(context, eRegisterKindDWARF, dwarf_r0 + n,
                                  data))
         return false;
     }
@@ -4861,9 +4861,9 @@ bool EmulateInstructionARM::EmulateSTMDB(const uint32_t opcode,
         if wback then R[n] = R[n] - 4*BitCount(registers);
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t n;
     uint32_t registers = 0;
     bool wback;
@@ -4975,8 +4975,8 @@ bool EmulateInstructionARM::EmulateSTMDB(const uint32_t opcode,
       offset = (addr_byte_size * BitCount(registers)) * -1;
       context.type = EmulateInstruction::eContextAdjustBaseRegister;
       context.SetImmediateSigned(offset);
-      addr_t data = Rn + offset;
-      if (!WriteRegisterUnsigned(context, eRegisterKindDWARF, dwarf_r0 + n,
+      
+      if (addr_t data = Rn + offset; !WriteRegisterUnsigned(context, eRegisterKindDWARF, dwarf_r0 + n,
                                  data))
         return false;
     }
@@ -5010,9 +5010,9 @@ bool EmulateInstructionARM::EmulateSTMIB(const uint32_t opcode,
         if wback then R[n] = R[n] + 4*BitCount(registers);
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t n;
     uint32_t registers = 0;
     bool wback;
@@ -5098,8 +5098,8 @@ bool EmulateInstructionARM::EmulateSTMIB(const uint32_t opcode,
       offset = addr_byte_size * BitCount(registers);
       context.type = EmulateInstruction::eContextAdjustBaseRegister;
       context.SetImmediateSigned(offset);
-      addr_t data = Rn + offset;
-      if (!WriteRegisterUnsigned(context, eRegisterKindDWARF, dwarf_r0 + n,
+      
+      if (addr_t data = Rn + offset; !WriteRegisterUnsigned(context, eRegisterKindDWARF, dwarf_r0 + n,
                                  data))
         return false;
     }
@@ -5125,9 +5125,9 @@ bool EmulateInstructionARM::EmulateSTRThumb(const uint32_t opcode,
         if wback then R[n] = offset_addr;
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     const uint32_t addr_byte_size = GetAddressByteSize();
 
     uint32_t t;
@@ -5297,9 +5297,9 @@ bool EmulateInstructionARM::EmulateSTRRegister(const uint32_t opcode,
         if wback then R[n] = offset_addr;
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     const uint32_t addr_byte_size = GetAddressByteSize();
 
     uint32_t t;
@@ -5478,9 +5478,9 @@ bool EmulateInstructionARM::EmulateSTRBThumb(const uint32_t opcode,
         if wback then R[n] = offset_addr;
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t t;
     uint32_t n;
     uint32_t imm32;
@@ -5618,9 +5618,9 @@ bool EmulateInstructionARM::EmulateSTRHRegister(const uint32_t opcode,
         if wback then R[n] = offset_addr;
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t t;
     uint32_t n;
     uint32_t m;
@@ -5795,9 +5795,9 @@ bool EmulateInstructionARM::EmulateADCImm(const uint32_t opcode,
                 APSR.V = overflow;
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t Rd, Rn;
     uint32_t
         imm32; // the immediate value to be added to the value obtained from Rn
@@ -5865,9 +5865,9 @@ bool EmulateInstructionARM::EmulateADCReg(const uint32_t opcode,
                 APSR.V = overflow;
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t Rd, Rn, Rm;
     ARM_ShifterType shift_t;
     uint32_t shift_n; // the shift applied to the value read from Rm
@@ -5944,9 +5944,9 @@ bool EmulateInstructionARM::EmulateADR(const uint32_t opcode,
             R[d] = result;
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t Rd;
     uint32_t imm32; // the immediate value to be added/subtracted to/from the PC
     bool add;
@@ -6012,9 +6012,9 @@ bool EmulateInstructionARM::EmulateANDImm(const uint32_t opcode,
                 // APSR.V unchanged
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t Rd, Rn;
     uint32_t
         imm32; // the immediate value to be ANDed to the value obtained from Rn
@@ -6088,9 +6088,9 @@ bool EmulateInstructionARM::EmulateANDReg(const uint32_t opcode,
                 // APSR.V unchanged
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t Rd, Rn, Rm;
     ARM_ShifterType shift_t;
     uint32_t shift_n; // the shift applied to the value read from Rm
@@ -6177,9 +6177,9 @@ bool EmulateInstructionARM::EmulateBICImm(const uint32_t opcode,
                 // APSR.V unchanged
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t Rd, Rn;
     uint32_t imm32; // the immediate value to be bitwise inverted and ANDed to
                     // the value obtained from Rn
@@ -6253,9 +6253,9 @@ bool EmulateInstructionARM::EmulateBICReg(const uint32_t opcode,
                 // APSR.V unchanged
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t Rd, Rn, Rm;
     ARM_ShifterType shift_t;
     uint32_t shift_n; // the shift applied to the value read from Rm
@@ -6340,9 +6340,9 @@ bool EmulateInstructionARM::EmulateLDRImmediateARM(const uint32_t opcode,
             R[t] = ROR(data, 8*UInt(address<1:0>));
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     const uint32_t addr_byte_size = GetAddressByteSize();
 
     uint32_t t;
@@ -6480,9 +6480,9 @@ bool EmulateInstructionARM::EmulateLDRRegister(const uint32_t opcode,
                 R[t] = bits(32) UNKNOWN;
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     const uint32_t addr_byte_size = GetAddressByteSize();
 
     uint32_t t;
@@ -6676,9 +6676,9 @@ bool EmulateInstructionARM::EmulateLDRBImmediate(const uint32_t opcode,
         if wback then R[n] = offset_addr;
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t t;
     uint32_t n;
     uint32_t imm32;
@@ -6822,9 +6822,9 @@ bool EmulateInstructionARM::EmulateLDRBLiteral(const uint32_t opcode,
         R[t] = ZeroExtend(MemU[address,1], 32);
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t t;
     uint32_t imm32;
     bool add;
@@ -6905,9 +6905,9 @@ bool EmulateInstructionARM::EmulateLDRBRegister(const uint32_t opcode,
         if wback then R[n] = offset_addr;
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t t;
     uint32_t n;
     uint32_t m;
@@ -7070,9 +7070,9 @@ bool EmulateInstructionARM::EmulateLDRHImmediate(const uint32_t opcode,
             R[t] = bits(32) UNKNOWN;
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t t;
     uint32_t n;
     uint32_t imm32;
@@ -7216,9 +7216,9 @@ bool EmulateInstructionARM::EmulateLDRHLiteral(const uint32_t opcode,
             R[t] = bits(32) UNKNOWN;
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t t;
     uint32_t imm32;
     bool add;
@@ -7322,9 +7322,9 @@ bool EmulateInstructionARM::EmulateLDRHRegister(const uint32_t opcode,
             R[t] = bits(32) UNKNOWN;
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t t;
     uint32_t n;
     uint32_t m;
@@ -7493,9 +7493,9 @@ bool EmulateInstructionARM::EmulateLDRSBImmediate(const uint32_t opcode,
         if wback then R[n] = offset_addr;
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t t;
     uint32_t n;
     uint32_t imm32;
@@ -7641,9 +7641,9 @@ bool EmulateInstructionARM::EmulateLDRSBLiteral(const uint32_t opcode,
         R[t] = SignExtend(MemU[address,1], 32);
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t t;
     uint32_t imm32;
     bool add;
@@ -7731,9 +7731,9 @@ bool EmulateInstructionARM::EmulateLDRSBRegister(const uint32_t opcode,
         if wback then R[n] = offset_addr;
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t t;
     uint32_t n;
     uint32_t m;
@@ -7894,9 +7894,9 @@ bool EmulateInstructionARM::EmulateLDRSHImmediate(const uint32_t opcode,
             R[t] = bits(32) UNKNOWN;
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t t;
     uint32_t n;
     uint32_t imm32;
@@ -8052,9 +8052,9 @@ bool EmulateInstructionARM::EmulateLDRSHLiteral(const uint32_t opcode,
             R[t] = bits(32) UNKNOWN;
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t t;
     uint32_t imm32;
     bool add;
@@ -8121,8 +8121,8 @@ bool EmulateInstructionARM::EmulateLDRSHLiteral(const uint32_t opcode,
     // if UnalignedSupport() || address<0> = '0' then
     if (UnalignedSupport() || BitIsClear(address, 0)) {
       // R[t] = SignExtend(data, 32);
-      int64_t signed_data = llvm::SignExtend64<16>(data);
-      if (!WriteRegisterUnsigned(context, eRegisterKindDWARF, dwarf_r0 + t,
+      
+      if (int64_t signed_data = llvm::SignExtend64<16>(data); !WriteRegisterUnsigned(context, eRegisterKindDWARF, dwarf_r0 + t,
                                  (uint64_t)signed_data))
         return false;
     } else // Can only apply before ARMv7
@@ -8155,9 +8155,9 @@ bool EmulateInstructionARM::EmulateLDRSHRegister(const uint32_t opcode,
             R[t] = bits(32) UNKNOWN;
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t t;
     uint32_t n;
     uint32_t m;
@@ -8301,8 +8301,8 @@ bool EmulateInstructionARM::EmulateLDRSHRegister(const uint32_t opcode,
       context.type = eContextRegisterLoad;
       context.SetRegisterPlusIndirectOffset(*base_reg, *offset_reg);
 
-      int64_t signed_data = llvm::SignExtend64<16>(data);
-      if (!WriteRegisterUnsigned(context, eRegisterKindDWARF, dwarf_r0 + t,
+      
+      if (int64_t signed_data = llvm::SignExtend64<16>(data); !WriteRegisterUnsigned(context, eRegisterKindDWARF, dwarf_r0 + t,
                                  (uint64_t)signed_data))
         return false;
     } else // Can only apply before ARMv7
@@ -8327,9 +8327,9 @@ bool EmulateInstructionARM::EmulateSXTB(const uint32_t opcode,
         R[d] = SignExtend(rotated<7:0>, 32);
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t d;
     uint32_t m;
     uint32_t rotation;
@@ -8412,9 +8412,9 @@ bool EmulateInstructionARM::EmulateSXTH(const uint32_t opcode,
         R[d] = SignExtend(rotated<15:0>, 32);
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t d;
     uint32_t m;
     uint32_t rotation;
@@ -8497,9 +8497,9 @@ bool EmulateInstructionARM::EmulateUXTB(const uint32_t opcode,
         R[d] = ZeroExtend(rotated<7:0>, 32);
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t d;
     uint32_t m;
     uint32_t rotation;
@@ -8580,9 +8580,9 @@ bool EmulateInstructionARM::EmulateUXTH(const uint32_t opcode,
         R[d] = ZeroExtend(rotated<15:0>, 32);
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t d;
     uint32_t m;
     uint32_t rotation;
@@ -8667,9 +8667,9 @@ bool EmulateInstructionARM::EmulateRFE(const uint32_t opcode,
             if wback then R[n] = if increment then R[n]+8 else R[n]-8;
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t n;
     bool wback;
     bool increment;
@@ -8816,9 +8816,9 @@ bool EmulateInstructionARM::EmulateEORImm(const uint32_t opcode,
                 // APSR.V unchanged
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t Rd, Rn;
     uint32_t
         imm32; // the immediate value to be ORed to the value obtained from Rn
@@ -8895,9 +8895,9 @@ bool EmulateInstructionARM::EmulateEORReg(const uint32_t opcode,
                 // APSR.V unchanged
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t Rd, Rn, Rm;
     ARM_ShifterType shift_t;
     uint32_t shift_n; // the shift applied to the value read from Rm
@@ -8985,9 +8985,9 @@ bool EmulateInstructionARM::EmulateORRImm(const uint32_t opcode,
                 // APSR.V unchanged
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t Rd, Rn;
     uint32_t
         imm32; // the immediate value to be ORed to the value obtained from Rn
@@ -9062,9 +9062,9 @@ bool EmulateInstructionARM::EmulateORRReg(const uint32_t opcode,
                 // APSR.V unchanged
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t Rd, Rn, Rm;
     ARM_ShifterType shift_t;
     uint32_t shift_n; // the shift applied to the value read from Rm
@@ -9672,9 +9672,9 @@ bool EmulateInstructionARM::EmulateSUBImmARM(const uint32_t opcode,
                 APSR.V = overflow;
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t Rd; // the destination register
     uint32_t Rn; // the first operand
     bool setflags;
@@ -9744,9 +9744,9 @@ bool EmulateInstructionARM::EmulateTEQImm(const uint32_t opcode,
         // APSR.V unchanged
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t Rn;
     uint32_t
         imm32; // the immediate value to be ANDed to the value obtained from Rn
@@ -9804,9 +9804,9 @@ bool EmulateInstructionARM::EmulateTEQReg(const uint32_t opcode,
         // APSR.V unchanged
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t Rn, Rm;
     ARM_ShifterType shift_t;
     uint32_t shift_n; // the shift applied to the value read from Rm
@@ -9869,9 +9869,9 @@ bool EmulateInstructionARM::EmulateTSTImm(const uint32_t opcode,
         // APSR.V unchanged
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t Rn;
     uint32_t
         imm32; // the immediate value to be ANDed to the value obtained from Rn
@@ -9929,9 +9929,9 @@ bool EmulateInstructionARM::EmulateTSTReg(const uint32_t opcode,
         // APSR.V unchanged
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t Rn, Rm;
     ARM_ShifterType shift_t;
     uint32_t shift_n; // the shift applied to the value read from Rm
@@ -10003,9 +10003,9 @@ bool EmulateInstructionARM::EmulateSUBSPReg(const uint32_t opcode,
                 APSR.V = overflow;
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t d;
     uint32_t m;
     bool setflags;
@@ -10099,9 +10099,9 @@ bool EmulateInstructionARM::EmulateADDRegShift(const uint32_t opcode,
             APSR.V = overflow;
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t d;
     uint32_t n;
     uint32_t m;
@@ -10197,9 +10197,9 @@ bool EmulateInstructionARM::EmulateSUBReg(const uint32_t opcode,
                 APSR.V = overflow;
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t d;
     uint32_t n;
     uint32_t m;
@@ -10326,9 +10326,9 @@ bool EmulateInstructionARM::EmulateSTREX(const uint32_t opcode,
             R[d] = 1;
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t d;
     uint32_t t;
     uint32_t n;
@@ -10435,9 +10435,9 @@ bool EmulateInstructionARM::EmulateSTRBImmARM(const uint32_t opcode,
         if wback then R[n] = offset_addr;
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t t;
     uint32_t n;
     uint32_t imm32;
@@ -10528,9 +10528,9 @@ bool EmulateInstructionARM::EmulateSTRImmARM(const uint32_t opcode,
         if wback then R[n] = offset_addr;
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t t;
     uint32_t n;
     uint32_t imm32;
@@ -10638,9 +10638,9 @@ bool EmulateInstructionARM::EmulateLDRDImmediate(const uint32_t opcode,
         if wback then R[n] = offset_addr;
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t t;
     uint32_t t2;
     uint32_t n;
@@ -10784,9 +10784,9 @@ bool EmulateInstructionARM::EmulateLDRDRegister(const uint32_t opcode,
         if wback then R[n] = offset_addr;
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t t;
     uint32_t t2;
     uint32_t n;
@@ -10909,9 +10909,9 @@ bool EmulateInstructionARM::EmulateSTRDImm(const uint32_t opcode,
         if wback then R[n] = offset_addr;
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t t;
     uint32_t t2;
     uint32_t n;
@@ -11062,9 +11062,9 @@ bool EmulateInstructionARM::EmulateSTRDReg(const uint32_t opcode,
         if wback then R[n] = offset_addr;
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t t;
     uint32_t t2;
     uint32_t n;
@@ -11204,9 +11204,9 @@ bool EmulateInstructionARM::EmulateVLDM(const uint32_t opcode,
                 D[d+r] = if BigEndian() then word1:word2 else word2:word1;
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     bool single_regs;
     bool add;
     bool wback;
@@ -11398,9 +11398,9 @@ bool EmulateInstructionARM::EmulateVSTM(const uint32_t opcode,
                 address = address+8;
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     bool single_regs;
     bool add;
     bool wback;
@@ -11601,9 +11601,9 @@ bool EmulateInstructionARM::EmulateVLDR(const uint32_t opcode,
             D[d] = if BigEndian() then word1:word2 else word2:word1;
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     bool single_reg;
     bool add;
     uint32_t imm32;
@@ -11727,9 +11727,9 @@ bool EmulateInstructionARM::EmulateVSTR(const uint32_t opcode,
             MemA[address+4,4] = if BigEndian() then D[d]<31:0> else D[d]<63:32>;
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     bool single_reg;
     bool add;
     uint32_t imm32;
@@ -11857,9 +11857,9 @@ bool EmulateInstructionARM::EmulateVLD1Multiple(const uint32_t opcode,
                 address = address + ebytes;
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t regs;
     uint32_t alignment;
     uint32_t ebytes;
@@ -12012,9 +12012,9 @@ bool EmulateInstructionARM::EmulateVLD1Single(const uint32_t opcode,
         Elem[D[d],index,esize] = MemU[address,ebytes];
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t ebytes;
     uint32_t esize;
     uint32_t index;
@@ -12191,9 +12191,9 @@ bool EmulateInstructionARM::EmulateVST1Multiple(const uint32_t opcode,
                 address = address + ebytes;
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t regs;
     uint32_t alignment;
     uint32_t ebytes;
@@ -12344,9 +12344,9 @@ bool EmulateInstructionARM::EmulateVST1Single(const uint32_t opcode,
         MemU[address,ebytes] = Elem[D[d],index,esize];
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t ebytes;
     uint32_t esize;
     uint32_t index;
@@ -12505,9 +12505,9 @@ bool EmulateInstructionARM::EmulateVLD1SingleAll(const uint32_t opcode,
             D[d+r] = replicated_element;
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t ebytes;
     uint32_t elements;
     uint32_t regs;
@@ -12648,9 +12648,9 @@ bool EmulateInstructionARM::EmulateSUBSPcLrEtc(const uint32_t opcode,
         BranchWritePC(result);
 #endif
 
-  bool success = false;
+  
 
-  if (ConditionPassed(opcode)) {
+  if (bool success = false; ConditionPassed(opcode)) {
     uint32_t n;
     uint32_t m;
     uint32_t imm32;
@@ -13731,8 +13731,8 @@ EmulateInstructionARM::GetThumbOpcodeForInstruction(const uint32_t opcode,
 bool EmulateInstructionARM::SetArchitecture(const ArchSpec &arch) {
   m_arch = arch;
   m_arm_isa = 0;
-  llvm::StringRef arch_cstr = arch.GetArchitectureName();
-  if (arch_cstr.equals_insensitive("armv4t"))
+  
+  if (llvm::StringRef arch_cstr = arch.GetArchitectureName(); arch_cstr.equals_insensitive("armv4t"))
     m_arm_isa = ARMv4T;
   else if (arch_cstr.equals_insensitive("armv5tej"))
     m_arm_isa = ARMv5TEJ;
@@ -13769,9 +13769,9 @@ bool EmulateInstructionARM::SetInstruction(const Opcode &insn_opcode,
         m_arch.IsAlwaysThumbInstructions())
       m_opcode_mode = eModeThumb;
     else {
-      AddressClass addr_class = inst_addr.GetAddressClass();
+      
 
-      if ((addr_class == AddressClass::eCode) ||
+      if (AddressClass addr_class = inst_addr.GetAddressClass(); (addr_class == AddressClass::eCode) ||
           (addr_class == AddressClass::eUnknown))
         m_opcode_mode = eModeARM;
       else if (addr_class == AddressClass::eCodeAlternateISA)
@@ -13793,19 +13793,19 @@ bool EmulateInstructionARM::ReadInstruction() {
   m_opcode_cpsr = ReadRegisterUnsigned(eRegisterKindGeneric,
                                        LLDB_REGNUM_GENERIC_FLAGS, 0, &success);
   if (success) {
-    addr_t pc =
+    
+    if (addr_t pc =
         ReadRegisterUnsigned(eRegisterKindGeneric, LLDB_REGNUM_GENERIC_PC,
-                             LLDB_INVALID_ADDRESS, &success);
-    if (success) {
+                             LLDB_INVALID_ADDRESS, &success); success) {
       Context read_inst_context;
       read_inst_context.type = eContextReadOpcode;
       read_inst_context.SetNoArgs();
 
       if ((m_opcode_cpsr & MASK_CPSR_T) || m_arch.IsAlwaysThumbInstructions()) {
         m_opcode_mode = eModeThumb;
-        uint32_t thumb_opcode = MemARead(read_inst_context, pc, 2, 0, &success);
+        
 
-        if (success) {
+        if (uint32_t thumb_opcode = MemARead(read_inst_context, pc, 2, 0, &success); success) {
           if ((thumb_opcode & 0xe000) != 0xe000 ||
               ((thumb_opcode & 0x1800u) == 0)) {
             m_opcode.SetOpcode16(thumb_opcode, GetByteOrder());
@@ -13825,9 +13825,9 @@ bool EmulateInstructionARM::ReadInstruction() {
       if (!m_ignore_conditions) {
         // If we are not ignoreing the conditions then init the it session from
         // the current value of cpsr.
-        uint32_t it = (Bits32(m_opcode_cpsr, 15, 10) << 2) |
-                      Bits32(m_opcode_cpsr, 26, 25);
-        if (it != 0)
+        
+        if (uint32_t it = (Bits32(m_opcode_cpsr, 15, 10) << 2) |
+                      Bits32(m_opcode_cpsr, 26, 25); it != 0)
           m_it_session.InitIT(it);
       }
     }
@@ -13926,8 +13926,8 @@ uint32_t EmulateInstructionARM::CurrentCond(const uint32_t opcode) {
     // For T1 and T3 encodings of the Branch instruction, it returns the 4-bit
     // 'cond' field of the encoding.
     {
-      const uint32_t byte_size = m_opcode.GetByteSize();
-      if (byte_size == 2) {
+      
+      if (const uint32_t byte_size = m_opcode.GetByteSize(); byte_size == 2) {
         if (Bits32(opcode, 15, 12) == 0x0d && Bits32(opcode, 11, 8) != 0x0f)
           return Bits32(opcode, 11, 8);
       } else if (byte_size == 4) {

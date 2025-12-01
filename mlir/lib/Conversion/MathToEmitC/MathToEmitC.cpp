@@ -44,8 +44,8 @@ LogicalResult LowerToEmitCCallOpaque<OpType>::matchAndRewrite(
   if (languageTarget == emitc::LanguageTarget::cpp11) {
     modifiedCalleeStr = "std::" + calleeStr;
   } else if (languageTarget == emitc::LanguageTarget::c99) {
-    auto operandType = op->getOperandTypes()[0];
-    if (operandType.isF32())
+    
+    if (auto operandType = op->getOperandTypes()[0]; operandType.isF32())
       modifiedCalleeStr = calleeStr + "f";
   }
   rewriter.replaceOpWithNewOp<emitc::CallOpaqueOp>(

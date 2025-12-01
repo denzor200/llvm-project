@@ -1531,8 +1531,8 @@ TEST_F(TUSchedulerTests, PreambleThrottle) {
       if (Invoke)
         Invoke();
       {
-        std::lock_guard<std::mutex> Lock(Mu);
-        if (Notify && ID == Notify->first) {
+        
+        if (std::lock_guard<std::mutex> Lock(Mu); Notify && ID == Notify->first) {
           Notify->second->notify();
           Notify.reset();
         }

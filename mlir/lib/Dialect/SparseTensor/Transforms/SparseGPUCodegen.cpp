@@ -356,8 +356,8 @@ static bool matchMulOfArgs(Block *block, Value val) {
 
 /// Helper to detect x = x + a * b
 static bool matchSumOfMultOfArgs(linalg::GenericOp op) {
-  auto yieldOp = cast<linalg::YieldOp>(op.getRegion().front().getTerminator());
-  if (auto *def = yieldOp.getOperand(0).getDefiningOp()) {
+  
+  if (auto *auto yieldOp = cast<linalg::YieldOp>(op.getRegion().front().getTerminator()); def = yieldOp.getOperand(0).getDefiningOp()) {
     if (isa<arith::AddFOp, arith::AddIOp>(def)) {
       Value x = op.getBlock()->getArguments()[2];
       return (def->getOperand(0) == x &&
@@ -506,8 +506,8 @@ static Value genFirstPosOrCrds(OpBuilder &builder, Location loc, Value a,
 /// Generates the second coordinates of a sparse matrix.
 static Value genSecondCrds(OpBuilder &builder, Location loc, Value a,
                            CuSparseFormat format, bool enableRT) {
-  bool isCOO = format == CuSparseFormat::kCOO;
-  if (isCOO && !enableRT)
+  
+  if (bool isCOO = format == CuSparseFormat::kCOO; isCOO && !enableRT)
     return Value(); // nothing needed
   // Formats CSR/CSC and BSR use coordinates at 1.
   return ToCoordinatesOp::create(builder, loc, a, 1);
@@ -1203,8 +1203,8 @@ struct ForallRewriter : public OpRewritePattern<scf::ParallelOp> {
     SmallVector<Value> scalars;
     SmallVector<Value> buffers;
     for (Value val : invariants) {
-      Type tp = val.getType();
-      if (val.getDefiningOp<arith::ConstantOp>())
+      
+      if (Type tp = val.getType(); val.getDefiningOp<arith::ConstantOp>())
         constants.push_back(val);
       else if (isa<FloatType>(tp) || tp.isIntOrIndex())
         scalars.push_back(val);

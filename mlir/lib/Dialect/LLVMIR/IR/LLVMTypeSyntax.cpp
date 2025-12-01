@@ -151,8 +151,8 @@ Type LLVMStructType::parse(AsmParser &parser) {
   std::string name;
   bool isIdentified = succeeded(parser.parseOptionalString(&name));
   if (isIdentified) {
-    SMLoc greaterLoc = parser.getCurrentLocation();
-    if (succeeded(parser.parseOptionalGreater())) {
+    
+    if (SMLoc greaterLoc = parser.getCurrentLocation(); succeeded(parser.parseOptionalGreater())) {
       auto type = LLVMStructType::getIdentifiedChecked(
           [loc] { return emitError(loc); }, loc.getContext(), name);
       if (succeeded(parser.tryStartCyclicParse(type))) {

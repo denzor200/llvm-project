@@ -42,9 +42,9 @@ void ClangExternalASTSourceCallbacks::FindExternalLexicalDecls(
     llvm::function_ref<bool(clang::Decl::Kind)> IsKindWeWant,
     llvm::SmallVectorImpl<clang::Decl *> &decls) {
   if (decl_ctx) {
-    clang::TagDecl *tag_decl = llvm::dyn_cast<clang::TagDecl>(
-        const_cast<clang::DeclContext *>(decl_ctx));
-    if (tag_decl)
+    
+    if (clang::TagDecl *tag_decl = llvm::dyn_cast<clang::TagDecl>(
+        const_cast<clang::DeclContext *>(decl_ctx)); tag_decl)
       CompleteType(tag_decl);
   }
 }

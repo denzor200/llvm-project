@@ -148,10 +148,10 @@ void CallStackRadixTreeBuilder<FrameIdTy>::build(
         L.second.rbegin(), L.second.rend(), R.second.rbegin(), R.second.rend(),
         [&](FrameIdTy F1, FrameIdTy F2) {
           uint64_t H1 = FrameHistogram[F1].Count;
-          uint64_t H2 = FrameHistogram[F2].Count;
+          
           // Popular frames should come later because we encode call stacks from
           // the last one in the list.
-          if (H1 != H2)
+          if (uint64_t H2 = FrameHistogram[F2].Count; H1 != H2)
             return H1 < H2;
           // For sort stability.
           return F1 < F2;

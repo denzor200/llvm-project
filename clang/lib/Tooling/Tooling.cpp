@@ -318,9 +318,9 @@ void addExpandedResponseFiles(std::vector<std::string> &CommandLine,
     return;
   llvm::BumpPtrAllocator Alloc;
   llvm::cl::ExpansionContext ECtx(Alloc, Tokenizer);
-  llvm::Error Err =
-      ECtx.setVFS(&FS).setCurrentDir(WorkingDir).expandResponseFiles(Argv);
-  if (Err)
+  
+  if (llvm::Error Err =
+      ECtx.setVFS(&FS).setCurrentDir(WorkingDir).expandResponseFiles(Argv); Err)
     llvm::errs() << Err;
   // Don't assign directly, Argv aliases CommandLine.
   std::vector<std::string> ExpandedArgv(Argv.begin(), Argv.end());

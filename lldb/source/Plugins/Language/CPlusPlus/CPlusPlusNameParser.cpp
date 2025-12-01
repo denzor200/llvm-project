@@ -175,8 +175,8 @@ CPlusPlusNameParser::ParseFuncPtr(bool expect_return_type) {
   // of the function name.
   {
     Bookmark before_inner_function_pos = SetBookmark();
-    auto maybe_inner_function_name = ParseFunctionImpl(false);
-    if (maybe_inner_function_name)
+    
+    if (auto maybe_inner_function_name = ParseFunctionImpl(false); maybe_inner_function_name)
       if (ConsumeToken(tok::r_paren))
         if (ConsumeArguments()) {
           SkipFunctionQualifiers();
@@ -237,8 +237,8 @@ bool CPlusPlusNameParser::ConsumeTemplateArgs() {
   int template_counter = 1;
   bool can_open_template = false;
   while (HasMoreTokens() && template_counter > 0) {
-    tok::TokenKind kind = Peek().getKind();
-    switch (kind) {
+    
+    switch (tok::TokenKind kind = Peek().getKind(); kind) {
     case tok::greatergreater:
       template_counter -= 2;
       can_open_template = false;
@@ -380,8 +380,8 @@ bool CPlusPlusNameParser::ConsumeBrackets(tok::TokenKind left,
 
   int counter = 1;
   while (HasMoreTokens() && counter > 0) {
-    tok::TokenKind kind = Peek().getKind();
-    if (kind == right)
+    
+    if (tok::TokenKind kind = Peek().getKind(); kind == right)
       --counter;
     else if (kind == left)
       ++counter;
@@ -420,9 +420,9 @@ bool CPlusPlusNameParser::ConsumeOperator() {
     // Make sure we have more tokens before attempting to look ahead one more.
     if (m_next_token_index + 1 < m_tokens.size()) {
       // Look ahead two tokens.
-      clang::Token n_token = m_tokens[m_next_token_index + 1];
+      
       // If we find ( or < then this is indeed operator<< no need for fix.
-      if (n_token.getKind() != tok::l_paren && n_token.getKind() != tok::less) {
+      if (clang::Token n_token = m_tokens[m_next_token_index + 1]; n_token.getKind() != tok::l_paren && n_token.getKind() != tok::less) {
         clang::Token tmp_tok;
         tmp_tok.startToken();
         tmp_tok.setLength(1);
@@ -585,8 +585,8 @@ CPlusPlusNameParser::ParseFullNameImpl() {
   std::optional<size_t> last_coloncolon_position;
 
   while (continue_parsing && HasMoreTokens()) {
-    const auto &token = Peek();
-    switch (token.getKind()) {
+    
+    switch (const auto &token = Peek(); token.getKind()) {
     case tok::raw_identifier: // Just a name.
       if (state != State::Beginning && state != State::AfterTwoColons) {
         continue_parsing = false;
@@ -603,9 +603,9 @@ CPlusPlusNameParser::ParseFullNameImpl() {
       //   func[abi:tag1][abi:tag2]()
 
       // ABI tags only appear after a method or type name
-      const bool valid_state =
-          state == State::AfterIdentifier || state == State::AfterOperator;
-      if (!valid_state || !ConsumeAbiTag()) {
+      
+      if (const bool valid_state =
+          state == State::AfterIdentifier || state == State::AfterOperator; !valid_state || !ConsumeAbiTag()) {
         continue_parsing = false;
       }
 
@@ -774,8 +774,8 @@ void CPlusPlusNameParser::ExtractTokens() {
   for (lexer.LexFromRawLexer(token); !token.is(clang::tok::eof);
        lexer.LexFromRawLexer(token)) {
     if (token.is(clang::tok::raw_identifier)) {
-      auto it = kw_map.find(token.getRawIdentifier());
-      if (it != kw_map.end()) {
+      
+      if (auto it = kw_map.find(token.getRawIdentifier()); it != kw_map.end()) {
         token.setKind(it->getValue());
       }
     }

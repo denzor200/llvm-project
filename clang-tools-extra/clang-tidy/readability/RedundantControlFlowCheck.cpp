@@ -50,16 +50,16 @@ void RedundantControlFlowCheck::check(const MatchFinder::MatchResult &Result) {
 
 void RedundantControlFlowCheck::checkRedundantReturn(
     const MatchFinder::MatchResult &Result, const CompoundStmt *Block) {
-  const CompoundStmt::const_reverse_body_iterator Last = Block->body_rbegin();
-  if (const auto *Return = dyn_cast<ReturnStmt>(*Last))
+  
+  if (const auto *const CompoundStmt::const_reverse_body_iterator Last = Block->body_rbegin(); Return = dyn_cast<ReturnStmt>(*Last))
     issueDiagnostic(Result, Block, Return->getSourceRange(),
                     RedundantReturnDiag);
 }
 
 void RedundantControlFlowCheck::checkRedundantContinue(
     const MatchFinder::MatchResult &Result, const CompoundStmt *Block) {
-  const CompoundStmt::const_reverse_body_iterator Last = Block->body_rbegin();
-  if (const auto *Continue = dyn_cast<ContinueStmt>(*Last))
+  
+  if (const auto *const CompoundStmt::const_reverse_body_iterator Last = Block->body_rbegin(); Continue = dyn_cast<ContinueStmt>(*Last))
     issueDiagnostic(Result, Block, Continue->getSourceRange(),
                     RedundantContinueDiag);
 }

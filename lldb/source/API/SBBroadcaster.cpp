@@ -63,8 +63,8 @@ void SBBroadcaster::BroadcastEvent(const SBEvent &event, bool unique) {
   if (m_opaque_ptr == nullptr)
     return;
 
-  EventSP event_sp = event.GetSP();
-  if (unique)
+  
+  if (EventSP event_sp = event.GetSP(); unique)
     m_opaque_ptr->BroadcastEventIfUnique(event_sp);
   else
     m_opaque_ptr->BroadcastEvent(event_sp);

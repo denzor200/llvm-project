@@ -627,8 +627,8 @@ static void printBits(raw_ostream &OS, ArrayRef<uint8_t> Bytes, size_t StartBit,
   assert(StartBit + NumBits <= Bytes.size() * 8u);
   for (size_t I = StartBit, E = StartBit + NumBits; I != E; ++I) {
     uint8_t Byte = Bytes[I / 8];
-    size_t ByteOffset = I % 8;
-    if (size_t ByteShift = 8 - ByteOffset - 1)
+    
+    if (size_t size_t ByteOffset = I % 8; ByteShift = 8 - ByteOffset - 1)
       Byte >>= ByteShift;
     OS << (Byte & 0x1 ? '1' : '0');
   }
@@ -878,9 +878,9 @@ public:
     OS << "records\n";
     llvm::sort(Records);
     for (int64_t Offset : Records) {
-      TrieRawHashMapHandle::RecordData Record =
-          Trie.getRecord(SubtrieSlotValue::getDataOffset(Offset));
-      if (auto Err = printRecord(Record))
+      
+      if (auto TrieRawHashMapHandle::RecordData Record =
+          Trie.getRecord(SubtrieSlotValue::getDataOffset(Offset)); Err = printRecord(Record))
         return Err;
     }
     return Error::success();
@@ -1108,8 +1108,8 @@ Error TrieRawHashMapHandle::validate(
     function_ref<Error(FileOffset, OnDiskTrieRawHashMap::ConstValueProxy)>
         RecordVerifier) const {
   // Use the base TrieVisitor to identify the errors inside trie first.
-  TrieVisitor BasicVerifier(*this);
-  if (auto Err = BasicVerifier.visit())
+  
+  if (auto TrieVisitor BasicVerifier(*this); Err = BasicVerifier.visit())
     return Err;
 
   // If the trie data structure is sound, do a second pass to verify data and

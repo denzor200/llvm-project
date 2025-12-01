@@ -97,8 +97,8 @@ BreakpointResolverSP BreakpointResolverScripted::CreateFromStructuredData(
   lldb::SearchDepth depth = lldb::eSearchDepthTarget;
 
   StructuredDataImpl args_data_impl;
-  StructuredData::Dictionary *args_dict = nullptr;
-  if (options_dict.GetValueForKeyAsDictionary(GetKey(OptionNames::ScriptArgs),
+  
+  if (StructuredData::Dictionary *args_dict = nullptr; options_dict.GetValueForKeyAsDictionary(GetKey(OptionNames::ScriptArgs),
                                               args_dict))
     args_data_impl.SetObjectSP(args_dict->shared_from_this());
   return std::make_shared<BreakpointResolverScripted>(nullptr, class_name,

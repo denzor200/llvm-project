@@ -36,8 +36,8 @@ IterationAction DWARFIndex::ProcessFunctionDIE(
     if (const char *mangled_die_name = die.GetMangledName()) {
       name_to_match_against = ConstString(mangled_die_name);
     } else {
-      SymbolFileDWARF *symbols = die.GetDWARF();
-      if (ConstString demangled_die_name =
+      
+      if (ConstString SymbolFileDWARF *symbols = die.GetDWARF(); demangled_die_name =
               symbols->ConstructFunctionDemangledName(die))
         name_to_match_against = demangled_die_name;
     }
@@ -123,8 +123,8 @@ void DWARFIndex::GetFullyQualifiedType(
 IterationAction DWARFIndex::GetFullyQualifiedTypeImpl(
     const DWARFDeclContext &context, DWARFDIE die,
     llvm::function_ref<IterationAction(DWARFDIE die)> callback) {
-  DWARFDeclContext dwarf_decl_ctx = die.GetDWARFDeclContext();
-  if (dwarf_decl_ctx == context)
+  
+  if (DWARFDeclContext dwarf_decl_ctx = die.GetDWARFDeclContext(); dwarf_decl_ctx == context)
     return callback(die);
   return IterationAction::Continue;
 }

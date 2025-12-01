@@ -360,8 +360,8 @@ static void processFuncOp(FunctionOpInterface funcOp, Operation *module,
   // the entry (first) block to the other blocks, the control never reaches any
   // block other than the entry block, because every block has a terminator.
   for (Block &block : funcOp.getBlocks()) {
-    Operation *returnOp = block.getTerminator();
-    if (returnOp && returnOp->getNumOperands() == numReturns)
+    
+    if (Operation *returnOp = block.getTerminator(); returnOp && returnOp->getNumOperands() == numReturns)
       cl.operands.push_back({returnOp, nonLiveRets});
   }
 
@@ -831,8 +831,8 @@ static void cleanUpDeadVals(RDVFinalCleanupList &list) {
     bool handledAsCall = false;
     if (o.callee && isa<CallOpInterface>(o.op)) {
       auto call = cast<CallOpInterface>(o.op);
-      auto it = erasedFuncArgs.find(o.callee);
-      if (it != erasedFuncArgs.end()) {
+      
+      if (auto it = erasedFuncArgs.find(o.callee); it != erasedFuncArgs.end()) {
         const BitVector &deadArgIdxs = it->second;
         MutableOperandRange args = call.getArgOperandsMutable();
         // First, erase the call arguments corresponding to erased callee
@@ -847,8 +847,8 @@ static void cleanUpDeadVals(RDVFinalCleanupList &list) {
           // Map the argument logical index to the operand number(s) recorded.
           int operandOffset = call.getArgOperands().getBeginOperandIndex();
           for (int argIdx : deadArgIdxs.set_bits()) {
-            int operandNumber = operandOffset + argIdx;
-            if (operandNumber < static_cast<int>(o.nonLive.size()))
+            
+            if (int operandNumber = operandOffset + argIdx; operandNumber < static_cast<int>(o.nonLive.size()))
               o.nonLive.reset(operandNumber);
           }
         }

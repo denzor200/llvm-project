@@ -48,8 +48,8 @@ void computeProcResourceMasks(const MCSchedModel &SM,
 
   // Create a unique bitmask for every processor resource unit.
   for (unsigned I = 1, E = SM.getNumProcResourceKinds(); I < E; ++I) {
-    const MCProcResourceDesc &Desc = *SM.getProcResource(I);
-    if (Desc.SubUnitsIdxBegin)
+    
+    if (const MCProcResourceDesc &Desc = *SM.getProcResource(I); Desc.SubUnitsIdxBegin)
       continue;
     Masks[I] = 1ULL << ProcResourceID;
     ProcResourceID++;

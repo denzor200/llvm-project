@@ -21,8 +21,8 @@ static SourceLocation getStandardSelLoc(unsigned Index,
                                         bool WithArgSpace,
                                         SourceLocation ArgLoc,
                                         SourceLocation EndLoc) {
-  unsigned NumSelArgs = Sel.getNumArgs();
-  if (NumSelArgs == 0) {
+  
+  if (unsigned NumSelArgs = Sel.getNumArgs(); NumSelArgs == 0) {
     assert(Index == 0);
     if (EndLoc.isInvalid())
       return SourceLocation();

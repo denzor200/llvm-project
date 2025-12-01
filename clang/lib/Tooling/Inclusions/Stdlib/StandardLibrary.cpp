@@ -229,8 +229,8 @@ std::optional<Symbol> Symbol::named(llvm::StringRef Scope, llvm::StringRef Name,
 
   if (NSSymbolMap *NSSymbols =
           getMappingPerLang(L)->NamespaceSymbols->lookup(Scope)) {
-    auto It = NSSymbols->find(Name);
-    if (It != NSSymbols->end())
+    
+    if (auto It = NSSymbols->find(Name); It != NSSymbols->end())
       return Symbol(It->second, L);
   }
   return std::nullopt;

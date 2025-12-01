@@ -67,14 +67,14 @@ template <> LIBC_INLINE float fma<float>(float x, float y, float z) {
     // occurs when computing the sum, we just need to use t to adjust (any) last
     // bit of sum, so that the sticky bits used when rounding sum to float are
     // correct (when it matters).
-    fputil::FPBits<double> t(
-        (bit_prod.get_biased_exponent() >= bitz.get_biased_exponent())
-            ? ((bit_sum.get_val() - bit_prod.get_val()) - bitz.get_val())
-            : ((bit_sum.get_val() - bitz.get_val()) - bit_prod.get_val()));
+    
 
     // Update sticky bits if t != 0.0 and the least (52 - 23 - 1 = 28) bits are
     // zero.
-    if (!t.is_zero() && ((bit_sum.get_mantissa() & 0xfff'ffffULL) == 0)) {
+    if (fputil::FPBits<double> t(
+        (bit_prod.get_biased_exponent() >= bitz.get_biased_exponent())
+            ? ((bit_sum.get_val() - bit_prod.get_val()) - bitz.get_val())
+            : ((bit_sum.get_val() - bitz.get_val()) - bit_prod.get_val())); !t.is_zero() && ((bit_sum.get_mantissa() & 0xfff'ffffULL) == 0)) {
       if (bit_sum.sign() != t.sign())
         bit_sum.set_mantissa(bit_sum.get_mantissa() + 1);
       else if (bit_sum.get_mantissa())

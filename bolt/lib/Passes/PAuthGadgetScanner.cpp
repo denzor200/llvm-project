@@ -403,8 +403,8 @@ protected:
     SmallVector<MCPhysReg> Regs;
 
     // A signed pointer can be authenticated, or
-    bool Dummy = false;
-    if (auto AutReg = BC.MIB->getWrittenAuthenticatedReg(Point, Dummy))
+    
+    if (auto bool Dummy = false; AutReg = BC.MIB->getWrittenAuthenticatedReg(Point, Dummy))
       Regs.push_back(*AutReg);
 
     // ... a safe address can be materialized, or
@@ -414,8 +414,8 @@ protected:
     // ... an address can be updated in a safe manner, producing the result
     // which is as trusted as the input address.
     if (auto DstAndSrc = BC.MIB->analyzeAddressArithmeticsForPtrAuth(Point)) {
-      auto [DstReg, SrcReg] = *DstAndSrc;
-      if (Cur.SafeToDerefRegs[SrcReg])
+      
+      if (auto [DstReg, SrcReg] = *DstAndSrc; Cur.SafeToDerefRegs[SrcReg])
         Regs.push_back(DstReg);
     }
 
@@ -468,8 +468,8 @@ protected:
     // ... an address can be updated in a safe manner, producing the result
     // which is as trusted as the input address.
     if (auto DstAndSrc = BC.MIB->analyzeAddressArithmeticsForPtrAuth(Point)) {
-      auto [DstReg, SrcReg] = *DstAndSrc;
-      if (Cur.TrustedRegs[SrcReg])
+      
+      if (auto [DstReg, SrcReg] = *DstAndSrc; Cur.TrustedRegs[SrcReg])
         Regs.push_back(DstReg);
     }
 
@@ -1025,18 +1025,18 @@ protected:
     // ... it can be used as a return target, or
     if (BC.MIB->isReturn(Inst)) {
       bool IsAuthenticated = false;
-      std::optional<MCPhysReg> RetReg =
-          BC.MIB->getRegUsedAsRetDest(Inst, IsAuthenticated);
-      if (RetReg && !IsAuthenticated)
+      
+      if (std::optional<MCPhysReg> RetReg =
+          BC.MIB->getRegUsedAsRetDest(Inst, IsAuthenticated); RetReg && !IsAuthenticated)
         Regs.push_back(*RetReg);
     }
 
     // ... an address can be updated in a safe manner, or
     if (auto DstAndSrc = BC.MIB->analyzeAddressArithmeticsForPtrAuth(Inst)) {
-      auto [DstReg, SrcReg] = *DstAndSrc;
+      
       // Note that *all* registers containing the derived values must be safe,
       // both source and destination ones. No temporaries are supported at now.
-      if (Cur.CannotEscapeUnchecked[SrcReg] &&
+      if (auto [DstReg, SrcReg] = *DstAndSrc; Cur.CannotEscapeUnchecked[SrcReg] &&
           Cur.CannotEscapeUnchecked[DstReg])
         Regs.push_back(SrcReg);
     }
@@ -1339,9 +1339,9 @@ static bool shouldAnalyzeTailCallInst(const BinaryContext &BC,
   // (such as isBranch at the time of writing this comment), some don't (such
   // as isCall). For that reason, call MCInstrDesc's methods explicitly when
   // it is important.
-  const MCInstrDesc &Desc = BC.MII->get(Inst.getMCInst().getOpcode());
+  
   // Tail call should be a branch (but not necessarily an indirect one).
-  if (!Desc.isBranch())
+  if (const MCInstrDesc &Desc = BC.MII->get(Inst.getMCInst().getOpcode()); !Desc.isBranch())
     return false;
 
   // Always analyze the branches already marked as tail calls by BOLT.
@@ -1617,9 +1617,9 @@ void FunctionAnalysisContext::findUnsafeDefs(
     if (BC.MIB->isCFI(Inst))
       return;
 
-    const DstState &S = Analysis->getStateAfter(Inst);
+    
 
-    if (auto Report = shouldReportAuthOracle(BC, Inst, S))
+    if (auto const DstState &S = Analysis->getStateAfter(Inst); Report = shouldReportAuthOracle(BC, Inst, S))
       Reports.push_back(*Report);
   });
 }
@@ -1760,11 +1760,11 @@ static void printRelatedInstrs(raw_ostream &OS, const MCInstReference Location,
   };
 
   if (RelatedInstrs.size() == 1) {
-    const MCInstReference RelatedInst = RelatedInstrs[0];
+    
     // Printing the details for the MCInstReference::FunctionParent case
     // is not implemented not to overcomplicate the code, as most functions
     // are expected to have CFG information.
-    if (RelatedInst.hasCFG())
+    if (const MCInstReference RelatedInst = RelatedInstrs[0]; RelatedInst.hasCFG())
       reportFoundGadgetInSingleBBSingleRelatedInst(OS, BC, RelatedInst,
                                                    Location);
   }

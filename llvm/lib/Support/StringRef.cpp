@@ -22,8 +22,8 @@ using namespace llvm;
 static int ascii_strncasecmp(StringRef LHS, StringRef RHS) {
   for (auto [LC, RC] : zip_equal(LHS, RHS)) {
     unsigned char LHC = toLower(LC);
-    unsigned char RHC = toLower(RC);
-    if (LHC != RHC)
+    
+    if (unsigned char RHC = toLower(RC); LHC != RHC)
       return LHC < RHC ? -1 : 1;
   }
   return 0;

@@ -656,8 +656,8 @@ bool BuiltinNameEmitter::CanReuseSignature(
       SignatureListMap.find(Candidate)->second.Signatures;
   for (unsigned Index = 0; Index < Candidate->size(); Index++) {
     const Record *Rec = SignatureList[Index].first;
-    const Record *Rec2 = CandidateSigs[Index].first;
-    if (Rec->getValueAsBit("IsPure") == Rec2->getValueAsBit("IsPure") &&
+    
+    if (const Record *Rec2 = CandidateSigs[Index].first; Rec->getValueAsBit("IsPure") == Rec2->getValueAsBit("IsPure") &&
         Rec->getValueAsBit("IsConst") == Rec2->getValueAsBit("IsConst") &&
         Rec->getValueAsBit("IsConv") == Rec2->getValueAsBit("IsConv") &&
         Rec->getValueAsDef("MinVersion")->getValueAsInt("ID") ==
@@ -1024,8 +1024,8 @@ std::string OpenCLBuiltinFileEmitterBase::getTypeString(const Record *Type,
 void OpenCLBuiltinFileEmitterBase::getTypeLists(
     const Record *Type, TypeFlags &Flags, std::vector<const Record *> &TypeList,
     std::vector<int64_t> &VectorList) const {
-  bool isGenType = Type->isSubClassOf("GenericType");
-  if (isGenType) {
+  
+  if (bool isGenType = Type->isSubClassOf("GenericType"); isGenType) {
     TypeList = Type->getValueAsDef("TypeList")->getValueAsListOfDefs("List");
     VectorList =
         Type->getValueAsDef("VectorList")->getValueAsListOfInts("List");
@@ -1035,8 +1035,8 @@ void OpenCLBuiltinFileEmitterBase::getTypeLists(
   if (Type->isSubClassOf("PointerType") || Type->isSubClassOf("ConstType") ||
       Type->isSubClassOf("VolatileType")) {
     StringRef SubTypeName = Type->getValueAsString("Name");
-    const Record *PossibleGenType = Records.getDef(SubTypeName);
-    if (PossibleGenType && PossibleGenType->isSubClassOf("GenericType")) {
+    
+    if (const Record *PossibleGenType = Records.getDef(SubTypeName); PossibleGenType && PossibleGenType->isSubClassOf("GenericType")) {
       // When PointerType, ConstType, or VolatileType is applied to a
       // GenericType, the flags need to be taken from the subtype, not from the
       // GenericType.
@@ -1077,9 +1077,9 @@ void OpenCLBuiltinFileEmitterBase::expandTypesInSignature(
 
         // If the type requires an extension, add a TypeExtMap entry mapping
         // the full type name to the extension.
-        StringRef Ext =
-            Type->getValueAsDef("Extension")->getValueAsString("ExtName");
-        if (!Ext.empty())
+        
+        if (StringRef Ext =
+            Type->getValueAsDef("Extension")->getValueAsString("ExtName"); !Ext.empty())
           TypeExtMap.try_emplace(FullType, Ext);
       }
     }
@@ -1146,8 +1146,8 @@ OpenCLBuiltinFileEmitterBase::emitVersionGuard(const Record *Builtin) {
   auto PrintOpenCLVersion = [this](int Version) {
     OS << "CL_VERSION_" << (Version / 100) << "_" << ((Version % 100) / 10);
   };
-  int MinVersion = Builtin->getValueAsDef("MinVersion")->getValueAsInt("ID");
-  if (MinVersion != 100) {
+  
+  if (int MinVersion = Builtin->getValueAsDef("MinVersion")->getValueAsInt("ID"); MinVersion != 100) {
     // OpenCL 1.0 is the default minimum version.
     OS << "#if __OPENCL_C_VERSION__ >= ";
     PrintOpenCLVersion(MinVersion);
@@ -1170,8 +1170,8 @@ StringRef OpenCLBuiltinFileEmitterBase::emitTypeExtensionGuards(
 
   // Iterate over all types to gather the set of required TypeExtensions.
   for (const auto &Ty : Signature) {
-    StringRef TypeExt = TypeExtMap.lookup(Ty);
-    if (!TypeExt.empty()) {
+    
+    if (StringRef TypeExt = TypeExtMap.lookup(Ty); !TypeExt.empty()) {
       // The TypeExtensions are space-separated in the .td file.
       SmallVector<StringRef, 2> ExtVec;
       TypeExt.split(ExtVec, " ");

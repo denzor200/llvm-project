@@ -177,8 +177,8 @@ static SPIRVType *deduceTypeFromUses(Register Reg, MachineFunction &MF,
 static SPIRVType *deduceResultTypeFromOperands(MachineInstr *I,
                                                SPIRVGlobalRegistry *GR,
                                                MachineIRBuilder &MIB) {
-  Register ResVReg = I->getOperand(0).getReg();
-  switch (I->getOpcode()) {
+  
+  switch (Register ResVReg = I->getOperand(0).getReg(); I->getOpcode()) {
   case TargetOpcode::G_CONSTANT:
   case TargetOpcode::G_ANYEXT:
     return deduceIntTypeFromResult(ResVReg, MIB, GR);
@@ -281,8 +281,8 @@ static void registerSpirvTypeForNewInstructions(MachineFunction &MF,
     SmallVector<MachineInstr *, 8> NextWorklist;
 
     for (MachineInstr *I : Worklist) {
-      MachineIRBuilder MIB(*I);
-      if (deduceAndAssignSpirvType(I, MF, GR, MIB)) {
+      
+      if (MachineIRBuilder MIB(*I); deduceAndAssignSpirvType(I, MF, GR, MIB)) {
         Changed = true;
       } else {
         NextWorklist.push_back(I);

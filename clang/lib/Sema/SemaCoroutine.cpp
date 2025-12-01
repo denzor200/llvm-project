@@ -318,8 +318,8 @@ static Expr *maybeTailCall(Sema &S, QualType RetType, Expr *E,
                            SourceLocation Loc) {
   if (RetType->isReferenceType())
     return nullptr;
-  Type const *T = RetType.getTypePtr();
-  if (!T->isClassType() && !T->isStructureType())
+  
+  if (Type const *T = RetType.getTypePtr(); !T->isClassType() && !T->isStructureType())
     return nullptr;
 
   // FIXME: Add convertability check to coroutine_handle<>. Possibly via
@@ -385,8 +385,8 @@ static ReadySuspendResumeResult buildCoawaitCalls(Sema &S, VarDecl *CoroPromise,
     // [expr.await]p3 [...]
     // — await-ready is the expression e.await_ready(), contextually converted
     // to bool.
-    ExprResult Conv = S.PerformContextuallyConvertToBool(AwaitReady);
-    if (Conv.isInvalid()) {
+    
+    if (ExprResult Conv = S.PerformContextuallyConvertToBool(AwaitReady); Conv.isInvalid()) {
       S.Diag(AwaitReady->getDirectCallee()->getBeginLoc(),
              diag::note_await_ready_no_bool_conversion);
       S.Diag(Loc, diag::note_coroutine_promise_call_implicitly_required)
@@ -412,10 +412,10 @@ static ReadySuspendResumeResult buildCoawaitCalls(Sema &S, VarDecl *CoroPromise,
     //   - await-suspend is the expression e.await_suspend(h), which shall be
     //     a prvalue of type void, bool, or std::coroutine_handle<Z> for some
     //     type Z.
-    QualType RetType = AwaitSuspend->getCallReturnType(S.Context);
+    
 
     // Support for coroutine_handle returning await_suspend.
-    if (Expr *TailCallSuspend =
+    if (Expr *QualType RetType = AwaitSuspend->getCallReturnType(S.Context); TailCallSuspend =
             maybeTailCall(S, RetType, AwaitSuspend, Loc))
       // Note that we don't wrap the expression with ExprWithCleanups here
       // because that might interfere with tailcall contract (e.g. inserting
@@ -535,9 +535,7 @@ VarDecl *Sema::buildCoroutinePromise(SourceLocation Loc) {
     InitializedEntity Entity = InitializedEntity::InitializeVariable(VD);
     InitializationKind Kind = InitializationKind::CreateForInit(
         VD->getLocation(), /*DirectInit=*/true, PLE);
-    InitializationSequence InitSeq(*this, Entity, Kind, CtorArgExprs,
-                                   /*TopLevelOfInitList=*/false,
-                                   /*TreatUnavailableAsInvalid=*/false);
+    
 
     // [dcl.fct.def.coroutine]5.7
     // promise-constructor-arguments is determined as follows: overload
@@ -545,9 +543,11 @@ VarDecl *Sema::buildCoroutinePromise(SourceLocation Loc) {
     // assembling an argument list  q_1 ... q_n . If a viable constructor is
     // found ([over.match.viable]), then promise-constructor-arguments is ( q_1
     // , ...,  q_n ), otherwise promise-constructor-arguments is empty.
-    if (InitSeq) {
-      ExprResult Result = InitSeq.Perform(*this, Entity, Kind, CtorArgExprs);
-      if (Result.isInvalid()) {
+    if (InitializationSequence InitSeq(*this, Entity, Kind, CtorArgExprs,
+                                   /*TopLevelOfInitList=*/false,
+                                   /*TreatUnavailableAsInvalid=*/false); InitSeq) {
+      
+      if (ExprResult Result = InitSeq.Perform(*this, Entity, Kind, CtorArgExprs); Result.isInvalid()) {
         VD->setInvalidDecl();
       } else if (Result.get()) {
         VD->setInit(MaybeCreateExprWithCleanups(Result.get()));
@@ -596,7 +596,9 @@ static FunctionScopeInfo *checkCoroutineContext(Sema &S, SourceLocation Loc,
 /// from the call has a noexcept destructor.
 static void checkNoThrow(Sema &S, const Stmt *E,
                          llvm::SmallPtrSetImpl<const Decl *> &ThrowingDecls) {
-  auto checkDeclNoexcept = [&](const Decl *D, bool IsDtor = false) {
+  
+
+  if (auto *auto checkDeclNoexcept = [&](const Decl *D, bool IsDtor = false) {
     // In the case of dtor, the call to dtor is implicit and hence we should
     // pass nullptr to canCalleeThrow.
     if (Sema::canCalleeThrow(S, IsDtor ? nullptr : cast<Expr>(E), D)) {
@@ -622,9 +624,7 @@ static void checkNoThrow(Sema &S, const Stmt *E,
       }
       ThrowingDecls.insert(D);
     }
-  };
-
-  if (auto *CE = dyn_cast<CXXConstructExpr>(E)) {
+  }; CE = dyn_cast<CXXConstructExpr>(E)) {
     CXXConstructorDecl *Ctor = CE->getConstructor();
     checkDeclNoexcept(Ctor);
     // Check the corresponding destructor of the constructor.
@@ -634,9 +634,9 @@ static void checkNoThrow(Sema &S, const Stmt *E,
       return;
 
     checkDeclNoexcept(CE->getCalleeDecl());
-    QualType ReturnType = CE->getCallReturnType(S.getASTContext());
+    
     // Check the destructor of the call return type, if any.
-    if (ReturnType.isDestructedType() ==
+    if (QualType ReturnType = CE->getCallReturnType(S.getASTContext()); ReturnType.isDestructedType() ==
         QualType::DestructionKind::DK_cxx_destructor) {
       const auto *T =
           cast<RecordType>(ReturnType.getCanonicalType().getTypePtr());
@@ -779,11 +779,11 @@ static bool checkSuspensionContext(Sema &S, SourceLocation Loc,
   // That is, 'co_await' and 'co_yield' cannot appear in subexpressions of
   // \c sizeof.
   const auto ExprContext = S.currentEvaluationContext().ExprContext;
-  const bool BadContext =
+  
+  if (const bool BadContext =
       S.isUnevaluatedContext() ||
       (ExprContext != Sema::ExpressionEvaluationContextRecord::EK_Other &&
-       ExprContext != Sema::ExpressionEvaluationContextRecord::EK_VariableInit);
-  if (BadContext) {
+       ExprContext != Sema::ExpressionEvaluationContextRecord::EK_VariableInit); BadContext) {
     S.Diag(Loc, diag::err_coroutine_unevaluated_context) << Keyword;
     return false;
   }
@@ -1282,8 +1282,8 @@ static bool diagReturnOnAllocFailure(Sema &S, Expr *E,
                                      FunctionScopeInfo &Fn) {
   auto Loc = E->getExprLoc();
   if (auto *DeclRef = dyn_cast_or_null<DeclRefExpr>(E)) {
-    auto *Decl = DeclRef->getDecl();
-    if (CXXMethodDecl *Method = dyn_cast_or_null<CXXMethodDecl>(Decl)) {
+    
+    if (CXXMethodDecl *auto *Decl = DeclRef->getDecl(); Method = dyn_cast_or_null<CXXMethodDecl>(Decl)) {
       if (Method->isStatic())
         return true;
       else
@@ -1756,9 +1756,9 @@ bool CoroutineStmtBuilder::makeOnException() {
   assert(!IsPromiseDependentType &&
          "cannot make statement while the promise type is dependent");
 
-  const bool RequireUnhandledException = S.getLangOpts().CXXExceptions;
+  
 
-  if (!lookupMember(S, "unhandled_exception", PromiseRecordDecl, Loc)) {
+  if (const bool RequireUnhandledException = S.getLangOpts().CXXExceptions; !lookupMember(S, "unhandled_exception", PromiseRecordDecl, Loc)) {
     auto DiagID =
         RequireUnhandledException
             ? diag::err_coroutine_promise_unhandled_exception_required
@@ -2014,9 +2014,9 @@ ClassTemplateDecl *Sema::lookupCoroutineTraits(SourceLocation KwLoc,
 
   NamespaceDecl *StdSpace = getStdNamespace();
   LookupResult Result(*this, &TraitIdent, FuncLoc, LookupOrdinaryName);
-  bool Found = StdSpace && LookupQualifiedName(Result, StdSpace);
+  
 
-  if (!Found) {
+  if (bool Found = StdSpace && LookupQualifiedName(Result, StdSpace); !Found) {
     // The goggles, we found nothing!
     Diag(KwLoc, diag::err_implied_coroutine_type_not_found)
         << "std::coroutine_traits";

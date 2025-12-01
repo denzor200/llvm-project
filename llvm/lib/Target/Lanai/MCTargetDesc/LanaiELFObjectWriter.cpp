@@ -38,8 +38,8 @@ LanaiELFObjectWriter::LanaiELFObjectWriter(uint8_t OSABI)
 unsigned LanaiELFObjectWriter::getRelocType(const MCFixup &Fixup,
                                             const MCValue &, bool) const {
   unsigned Type;
-  unsigned Kind = static_cast<unsigned>(Fixup.getKind());
-  switch (Kind) {
+  
+  switch (unsigned Kind = static_cast<unsigned>(Fixup.getKind()); Kind) {
   case Lanai::FIXUP_LANAI_21:
     Type = ELF::R_LANAI_21;
     break;

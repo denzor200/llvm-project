@@ -51,8 +51,8 @@ ProgramStateRef taint::addTaint(ProgramStateRef State, const Stmt *S,
 
 ProgramStateRef taint::addTaint(ProgramStateRef State, SVal V,
                                 TaintTagType Kind) {
-  SymbolRef Sym = V.getAsSymbol();
-  if (Sym)
+  
+  if (SymbolRef Sym = V.getAsSymbol(); Sym)
     return addTaint(State, Sym, Kind);
 
   // If the SVal represents a structure, try to mass-taint all values within the
@@ -97,8 +97,8 @@ ProgramStateRef taint::addTaint(ProgramStateRef State, SymbolRef Sym,
 }
 
 ProgramStateRef taint::removeTaint(ProgramStateRef State, SVal V) {
-  SymbolRef Sym = V.getAsSymbol();
-  if (Sym)
+  
+  if (SymbolRef Sym = V.getAsSymbol(); Sym)
     return removeTaint(State, Sym);
 
   const MemRegion *R = V.getAsRegion();
@@ -209,8 +209,8 @@ std::vector<SymbolRef> taint::getTaintedSymbolsImpl(ProgramStateRef State,
     return getTaintedSymbolsImpl(State, Reg, Kind, returnFirstOnly);
 
   if (auto LCV = V.getAs<nonloc::LazyCompoundVal>()) {
-    StoreManager &StoreMgr = State->getStateManager().getStoreManager();
-    if (auto DefaultVal = StoreMgr.getDefaultBinding(*LCV)) {
+    
+    if (auto StoreManager &StoreMgr = State->getStateManager().getStoreManager(); DefaultVal = StoreMgr.getDefaultBinding(*LCV)) {
       return getTaintedSymbolsImpl(State, *DefaultVal, Kind, returnFirstOnly);
     }
   }

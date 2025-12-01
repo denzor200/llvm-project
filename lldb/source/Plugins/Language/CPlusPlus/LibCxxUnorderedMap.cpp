@@ -121,8 +121,8 @@ CompilerType lldb_private::formatters::LibcxxStdUnorderedMapSyntheticFrontEnd::
     std::string name;
     CompilerType field_type =
         element_type.GetFieldAtIndex(0, name, nullptr, nullptr, nullptr);
-    CompilerType actual_type = field_type.GetTypedefedType();
-    if (isStdTemplate(actual_type.GetTypeName(), "pair"))
+    
+    if (CompilerType actual_type = field_type.GetTypedefedType(); isStdTemplate(actual_type.GetTypeName(), "pair"))
       return actual_type;
   }
 

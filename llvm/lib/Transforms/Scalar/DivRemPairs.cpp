@@ -423,8 +423,8 @@ static bool optimizeDivRem(Function &F, const TargetTransformInfo &TTI,
 PreservedAnalyses DivRemPairsPass::run(Function &F,
                                        FunctionAnalysisManager &FAM) {
   TargetTransformInfo &TTI = FAM.getResult<TargetIRAnalysis>(F);
-  DominatorTree &DT = FAM.getResult<DominatorTreeAnalysis>(F);
-  if (!optimizeDivRem(F, TTI, DT))
+  
+  if (DominatorTree &DT = FAM.getResult<DominatorTreeAnalysis>(F); !optimizeDivRem(F, TTI, DT))
     return PreservedAnalyses::all();
   // TODO: This pass just hoists/replaces math ops - all analyses are preserved?
   PreservedAnalyses PA;

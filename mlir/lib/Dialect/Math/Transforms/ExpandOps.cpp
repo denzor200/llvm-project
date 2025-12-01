@@ -415,9 +415,9 @@ static LogicalResult convertRoundOp(math::RoundOp op,
   ImplicitLocOpBuilder b(loc, rewriter);
   Value operand = op.getOperand();
   Type opType = operand.getType();
-  Type opEType = getElementTypeOrSelf(opType);
+  
 
-  if (!opEType.isF32()) {
+  if (Type opEType = getElementTypeOrSelf(opType); !opEType.isF32()) {
     return rewriter.notifyMatchFailure(op, "not a round of f32.");
   }
 
@@ -520,9 +520,9 @@ static LogicalResult convertRoundEvenOp(math::RoundEvenOp op,
   Type operandTy = operand.getType();
   Type resultTy = op.getType();
   Type operandETy = getElementTypeOrSelf(operandTy);
-  Type resultETy = getElementTypeOrSelf(resultTy);
+  
 
-  if (!isa<FloatType>(operandETy) || !isa<FloatType>(resultETy)) {
+  if (Type resultETy = getElementTypeOrSelf(resultTy); !isa<FloatType>(operandETy) || !isa<FloatType>(resultETy)) {
     return rewriter.notifyMatchFailure(op, "not a roundeven of f16 or f32.");
   }
 
@@ -650,8 +650,8 @@ static LogicalResult convertRsqrtOp(math::RsqrtOp op,
   auto operand = op.getOperand();
   auto operandTy = operand.getType();
   // Operand type must be shatic shaped type to create const float.
-  auto shapedOperandType = dyn_cast<ShapedType>(operandTy);
-  if (shapedOperandType && !shapedOperandType.hasStaticShape())
+  
+  if (auto shapedOperandType = dyn_cast<ShapedType>(operandTy); shapedOperandType && !shapedOperandType.hasStaticShape())
     return failure();
 
   auto eTy = getElementTypeOrSelf(operandTy);

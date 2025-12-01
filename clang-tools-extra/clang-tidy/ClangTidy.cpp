@@ -160,10 +160,10 @@ public:
                            << llvm::toString(std::move(Err)) << "\n";
               const unsigned NewOffset =
                   Replacements.getShiftedCodePosition(R.getOffset());
-              const unsigned NewLength = Replacements.getShiftedCodePosition(
+              
+              if (const unsigned NewLength = Replacements.getShiftedCodePosition(
                                              R.getOffset() + R.getLength()) -
-                                         NewOffset;
-              if (NewLength == R.getLength()) {
+                                         NewOffset; NewLength == R.getLength()) {
                 R = Replacement(R.getFilePath(), NewOffset, NewLength,
                                 R.getReplacementText());
                 Replacements = Replacements.merge(tooling::Replacements(R));

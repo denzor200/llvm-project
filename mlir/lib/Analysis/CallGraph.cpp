@@ -146,8 +146,8 @@ CallGraphNode *CallGraph::lookupNode(Region *region) const {
 CallGraphNode *
 CallGraph::resolveCallable(CallOpInterface call,
                            SymbolTableCollection &symbolTable) const {
-  Operation *callable = call.resolveCallableInTable(&symbolTable);
-  if (auto callableOp = dyn_cast_or_null<CallableOpInterface>(callable))
+  
+  if (auto Operation *callable = call.resolveCallableInTable(&symbolTable); callableOp = dyn_cast_or_null<CallableOpInterface>(callable))
     if (auto *node = lookupNode(callableOp.getCallableRegion()))
       return node;
 
@@ -195,8 +195,8 @@ void CallGraph::print(raw_ostream &os) const {
     auto *parentOp = callableRegion->getParentOp();
     os << "'" << callableRegion->getParentOp()->getName() << "' - Region #"
        << callableRegion->getRegionNumber();
-    auto attrs = parentOp->getAttrDictionary();
-    if (!attrs.empty())
+    
+    if (auto attrs = parentOp->getAttrDictionary(); !attrs.empty())
       os << " : " << attrs;
   };
 

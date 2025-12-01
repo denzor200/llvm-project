@@ -138,8 +138,8 @@ void TargetLibraryInfoEmitter::emitTargetLibraryInfoSignatureTable(
     const auto *Tys = R->getValueAsListInit("ArgumentTypes");
     Signature Sig;
     Sig.reserve(Tys->size() + 1);
-    const Record *RetType = R->getValueAsOptionalDef("ReturnType");
-    if (RetType)
+    
+    if (const Record *RetType = R->getValueAsOptionalDef("ReturnType"); RetType)
       Sig.push_back(RetType->getName());
     for (unsigned I = 0, E = Tys->size(); I < E; ++I) {
       Sig.push_back(Tys->getElementAsRecord(I)->getName());

@@ -148,8 +148,8 @@ bool NVPTXPeephole::runOnMachineFunction(MachineFunction &MF) {
       MF.getSubtarget<NVPTXSubtarget>().getRegisterInfo();
 
   // Remove unnecessary %VRFrame = cvta.local %VRFrameLocal
-  const auto &MRI = MF.getRegInfo();
-  if (MRI.use_empty(NRI->getFrameRegister(MF))) {
+  
+  if (const auto &MRI = MF.getRegInfo(); MRI.use_empty(NRI->getFrameRegister(MF))) {
     if (auto MI = MRI.getUniqueVRegDef(NRI->getFrameRegister(MF))) {
       MI->eraseFromParent();
     }

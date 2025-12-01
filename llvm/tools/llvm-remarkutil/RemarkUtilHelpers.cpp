@@ -81,8 +81,8 @@ FilterMatcher::createRE(StringRef Filter, const cl::list<std::string> &Arg) {
 Expected<FilterMatcher> FilterMatcher::createRE(StringRef Arg,
                                                 StringRef Value) {
   FilterMatcher FM(Value, true);
-  std::string Error;
-  if (!FM.FilterRE.isValid(Error))
+  
+  if (std::string Error; !FM.FilterRE.isValid(Error))
     return createStringError(make_error_code(std::errc::invalid_argument),
                              "invalid argument '--" + Arg + "=" + Value +
                                  "': " + Error);

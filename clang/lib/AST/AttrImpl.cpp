@@ -19,10 +19,10 @@ using namespace clang;
 
 void LoopHintAttr::printPrettyPragma(raw_ostream &OS,
                                      const PrintingPolicy &Policy) const {
-  unsigned SpellingIndex = getAttributeSpellingListIndex();
+  
   // For "#pragma unroll" and "#pragma nounroll" the string "unroll" or
   // "nounroll" is already emitted as the pragma name.
-  if (SpellingIndex == Pragma_nounroll ||
+  if (unsigned SpellingIndex = getAttributeSpellingListIndex(); SpellingIndex == Pragma_nounroll ||
       SpellingIndex == Pragma_nounroll_and_jam)
     return;
   else if (SpellingIndex == Pragma_unroll ||
@@ -67,8 +67,8 @@ std::string LoopHintAttr::getValueString(const PrintingPolicy &Policy) const {
 // Return a string suitable for identifying this attribute in diagnostics.
 std::string
 LoopHintAttr::getDiagnosticName(const PrintingPolicy &Policy) const {
-  unsigned SpellingIndex = getAttributeSpellingListIndex();
-  if (SpellingIndex == Pragma_nounroll)
+  
+  if (unsigned SpellingIndex = getAttributeSpellingListIndex(); SpellingIndex == Pragma_nounroll)
     return "#pragma nounroll";
   else if (SpellingIndex == Pragma_unroll)
     return "#pragma unroll" +

@@ -360,12 +360,12 @@ void RISCVMCCodeEmitter::expandQCLongCondBrImm(const MCInst &MI,
   MCOperand SrcSymbol = MI.getOperand(2);
   unsigned Opcode = MI.getOpcode();
   uint32_t Offset;
-  unsigned InvOpc = getInvertedBranchOp(Opcode);
+  
   // Emit inverted conditional branch with offset:
   // 8 (QC.BXXX(4) + JAL(4))
   // or
   // 10 (QC.E.BXXX(6) + JAL(4)).
-  if (Size == 4) {
+  if (unsigned InvOpc = getInvertedBranchOp(Opcode); Size == 4) {
     MCInst TmpBr =
         MCInstBuilder(InvOpc).addReg(SrcReg1).addImm(BrImm).addImm(8);
     uint32_t BrBinary = getBinaryCodeForInstr(TmpBr, Fixups, STI);
@@ -506,9 +506,9 @@ uint64_t
 RISCVMCCodeEmitter::getImmOpValueMinus1(const MCInst &MI, unsigned OpNo,
                                         SmallVectorImpl<MCFixup> &Fixups,
                                         const MCSubtargetInfo &STI) const {
-  const MCOperand &MO = MI.getOperand(OpNo);
+  
 
-  if (MO.isImm()) {
+  if (const MCOperand &MO = MI.getOperand(OpNo); MO.isImm()) {
     uint64_t Res = MO.getImm();
     return (Res - 1);
   }
@@ -524,8 +524,8 @@ RISCVMCCodeEmitter::getImmOpValueSlist(const MCInst &MI, unsigned OpNo,
   const MCOperand &MO = MI.getOperand(OpNo);
   assert(MO.isImm() && "Slist operand must be immediate");
 
-  uint64_t Res = MO.getImm();
-  switch (Res) {
+  
+  switch (uint64_t Res = MO.getImm(); Res) {
   case 0:
     return 0;
   case 1:
@@ -552,9 +552,9 @@ unsigned
 RISCVMCCodeEmitter::getImmOpValueAsrN(const MCInst &MI, unsigned OpNo,
                                       SmallVectorImpl<MCFixup> &Fixups,
                                       const MCSubtargetInfo &STI) const {
-  const MCOperand &MO = MI.getOperand(OpNo);
+  
 
-  if (MO.isImm()) {
+  if (const MCOperand &MO = MI.getOperand(OpNo); MO.isImm()) {
     uint64_t Res = MO.getImm();
     assert((Res & ((1 << N) - 1)) == 0 && "LSB is non-zero");
     return Res >> N;

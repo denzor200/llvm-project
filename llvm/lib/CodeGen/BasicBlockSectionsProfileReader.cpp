@@ -434,8 +434,8 @@ Error BasicBlockSectionsProfileReader::ReadProfile() {
   assert(MBuf);
 
   unsigned long long Version = 0;
-  StringRef FirstLine(*LineIt);
-  if (FirstLine.consume_front("v")) {
+  
+  if (StringRef FirstLine(*LineIt); FirstLine.consume_front("v")) {
     if (getAsUnsignedInteger(FirstLine, 10, Version)) {
       return createProfileParseError(Twine("version number expected: '") +
                                      FirstLine + "'");
@@ -469,8 +469,8 @@ bool BasicBlockSectionsProfileReaderWrapperPass::doInitialization(Module &M) {
       continue;
     DISubprogram *Subprogram = F.getSubprogram();
     if (Subprogram) {
-      llvm::DICompileUnit *CU = Subprogram->getUnit();
-      if (CU)
+      
+      if (llvm::DICompileUnit *CU = Subprogram->getUnit(); CU)
         DIFilename = sys::path::remove_leading_dotslash(CU->getFilename());
     }
     [[maybe_unused]] bool inserted =

@@ -138,9 +138,9 @@ template <typename T, size_t N, size_t Offset, size_t Head, size_t... Tail>
 LIBC_INLINE constexpr static auto split(cpp::simd<T, N> x) {
   // Recursively splits the input vector by walking the variadic template list,
   // increasing our current head each call.
-  auto result = cpp::make_tuple(
-      slice<T, N, Head, Offset>(x, cpp::make_index_sequence<Head>{}));
-  if constexpr (sizeof...(Tail) > 0)
+  
+  if constexpr (auto result = cpp::make_tuple(
+      slice<T, N, Head, Offset>(x, cpp::make_index_sequence<Head>{})); sizeof...(Tail) > 0)
     return cpp::tuple_cat(result, split<T, N, Offset + Head, Tail...>(x));
   else
     return result;
@@ -390,8 +390,8 @@ LIBC_INLINE constexpr static auto concat(cpp::simd<T, N> x, cpp::simd<T, M> y) {
 template <typename T, size_t N, size_t M, typename... Rest>
 LIBC_INLINE constexpr static auto concat(cpp::simd<T, N> x, cpp::simd<T, M> y,
                                          Rest... rest) {
-  auto xy = concat(x, y);
-  if constexpr (sizeof...(Rest))
+  
+  if constexpr (auto xy = concat(x, y); sizeof...(Rest))
     return concat(xy, rest...);
   else
     return xy;

@@ -211,8 +211,8 @@ CompUnitSP SymbolFileBreakpad::ParseCompileUnitAtIndex(uint32_t index) {
     ++It;
 
   if (It != End) {
-    auto record = LineRecord::parse(*It);
-    if (record && record->FileNum < m_files->size())
+    
+    if (auto record = LineRecord::parse(*It); record && record->FileNum < m_files->size())
       spec = (*m_files)[record->FileNum];
   }
 
@@ -249,8 +249,8 @@ FunctionSP SymbolFileBreakpad::GetOrCreateFunction(CompileUnit &comp_unit) {
     Mangled func_name;
     func_name.SetValue(ConstString(record->Name));
     addr_t address = record->Address + base;
-    SectionSP section_sp = list->FindSectionContainingFileAddress(address);
-    if (section_sp) {
+    
+    if (SectionSP section_sp = list->FindSectionContainingFileAddress(address); section_sp) {
       Address func_addr(section_sp, address - section_sp->GetFileAddress());
       // Use the CU's id because every CU has only one function inside.
       func_sp = std::make_shared<Function>(
@@ -388,8 +388,8 @@ SymbolFileBreakpad::ResolveSymbolContext(const Address &so_addr,
   }
 
   if (resolve_scope & (eSymbolContextFunction | eSymbolContextBlock)) {
-    FunctionSP func_sp = GetOrCreateFunction(*sc.comp_unit);
-    if (func_sp) {
+    
+    if (FunctionSP func_sp = GetOrCreateFunction(*sc.comp_unit); func_sp) {
       sc.function = func_sp.get();
       result |= eSymbolContextFunction;
       if (resolve_scope & eSymbolContextBlock) {
@@ -431,8 +431,8 @@ void SymbolFileBreakpad::FindFunctions(
   ConstString name = lookup_info.GetLookupName();
   for (uint32_t i = 0; i < GetNumCompileUnits(); ++i) {
     CompUnitSP cu_sp = GetCompileUnitAtIndex(i);
-    FunctionSP func_sp = GetOrCreateFunction(*cu_sp);
-    if (func_sp && name == func_sp->GetNameNoArguments()) {
+    
+    if (FunctionSP func_sp = GetOrCreateFunction(*cu_sp); func_sp && name == func_sp->GetNameNoArguments()) {
       SymbolContext sc;
       sc.comp_unit = cu_sp.get();
       sc.function = func_sp.get();

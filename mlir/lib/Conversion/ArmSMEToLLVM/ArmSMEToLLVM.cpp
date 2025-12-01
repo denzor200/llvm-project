@@ -607,11 +607,11 @@ struct InsertTileSliceConversion
         rewriter.getIntegerAttr(rewriter.getI1Type(), 1));
     auto predTy = VectorType::get(tileType.getShape()[0], rewriter.getI1Type(),
                                   /*scalableDims=*/{true});
-    auto allActiveMask =
-        vector::BroadcastOp::create(rewriter, loc, predTy, one);
+    
 
     // Create 'arm_sme.intr.write.(horiz|vert)' to write vector to tile slice.
-    switch (insertTileSliceOp.getLayout()) {
+    switch (auto allActiveMask =
+        vector::BroadcastOp::create(rewriter, loc, predTy, one); insertTileSliceOp.getLayout()) {
     case arm_sme::TileSliceLayout::Horizontal:
       arm_sme::aarch64_sme_write_horiz::create(rewriter, loc, tileId,
                                                tileSliceI32, allActiveMask,
@@ -722,9 +722,9 @@ struct OuterProductOpConversion
       if ((vectorType.getRank() != 2) || !vectorType.allDimsScalable())
         return false;
 
-      auto elementType = vectorType.getElementType();
+      
 
-      if (!elementType.isF16() && !elementType.isBF16() &&
+      if (auto elementType = vectorType.getElementType(); !elementType.isF16() && !elementType.isBF16() &&
           !elementType.isF32() && !elementType.isF64())
         return false;
 
@@ -920,10 +920,10 @@ struct ConvertArmSMEToLLVMPass
       if (isa<arm_sme::CopyTileOp, arm_sme::GetTileOp, cf::BranchOp>(op) ||
           !op->isRegistered())
         return;
-      auto isSMETileType = [](Type type) {
+      
+      if (auto isSMETileType = [](Type type) {
         return arm_sme::isValidSMETileVectorType(type);
-      };
-      if (llvm::any_of(op->getResultTypes(), isSMETileType) ||
+      }; llvm::any_of(op->getResultTypes(), isSMETileType) ||
           llvm::any_of(op->getOperandTypes(), isSMETileType)) {
         op->emitOpError("unexpected operation with SME tile type after "
                         "conversion to LLVM");

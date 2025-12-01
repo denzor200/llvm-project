@@ -801,8 +801,8 @@ getSplitReductionIvs(RewriterBase &rewriter, Location loc,
   AffineExpr s0, s1;
   bindSymbols(rewriter.getContext(), s0, s1);
   AffineExpr divExpr = s0.floorDiv(s1);
-  int ivIndex = 0;
-  if (reductionStrategy ==
+  
+  if (int ivIndex = 0; reductionStrategy ==
       ReductionTilingStrategy::PartialReductionOuterParallel) {
     for (auto [index, reductionDim] : llvm::enumerate(reductionDims)) {
       if (!numThreads.empty()) {
@@ -1467,9 +1467,9 @@ FailureOr<SmallVector<Operation *>> mlir::scf::yieldReplacementForFusedProducer(
                                 : llvm::to_vector(yieldResultNumber);
   SmallVector<Value> initValueList;
   for (const auto &resultNumber : initNumberList) {
-    FailureOr<Value> initValue = tensor::getOrCreateDestination(
-        rewriter, loc, originalOwner->getResult(resultNumber));
-    if (succeeded(initValue)) {
+    
+    if (FailureOr<Value> initValue = tensor::getOrCreateDestination(
+        rewriter, loc, originalOwner->getResult(resultNumber)); succeeded(initValue)) {
       initValueList.push_back(initValue.value());
     } else {
       return failure();
@@ -2052,8 +2052,8 @@ getUntiledConsumerFromSlice(RewriterBase &rewriter,
                             MutableArrayRef<LoopLikeOpInterface> loops) {
   assert(!loops.empty() && "unexpected loops to be empty");
   // 1. Expect slice to be part of the body of the inner most loop.
-  Operation *containingOp = candidateSliceOp->getParentOp();
-  if (containingOp != loops.back()) {
+  
+  if (Operation *containingOp = candidateSliceOp->getParentOp(); containingOp != loops.back()) {
     return rewriter.notifyMatchFailure(
         candidateSliceOp,
         "expected slice to be within body of inner-most loop");
@@ -2462,8 +2462,8 @@ static std::optional<Operation *>
 getProducingInsertSliceLikeOp(OpResult result,
                               ArrayRef<LoopLikeOpInterface> loops) {
   assert(!loops.empty() && "Expected loops to be not empty");
-  LoopLikeOpInterface outerMostLoop = loops.front();
-  if (auto forallOp = dyn_cast<scf::ForallOp>(outerMostLoop.getOperation())) {
+  
+  if (auto LoopLikeOpInterface outerMostLoop = loops.front(); forallOp = dyn_cast<scf::ForallOp>(outerMostLoop.getOperation())) {
     assert(loops.size() == 1 &&
            "expected only a single loop when tiling using scf.forall");
     return getProducingParallelInsertSlice(forallOp, result);

@@ -69,9 +69,9 @@ mlir::LLVM::detail::verifyAliasAnalysisOpInterface(Operation *op) {
 
 LogicalResult
 mlir::LLVM::detail::verifyDereferenceableOpInterface(Operation *op) {
-  auto iface = cast<DereferenceableOpInterface>(op);
+  
 
-  if (auto derefAttr = iface.getDereferenceableOrNull())
+  if (auto auto iface = cast<DereferenceableOpInterface>(op); derefAttr = iface.getDereferenceableOrNull())
     if (op->getNumResults() != 1 ||
         !mlir::isa<LLVMPointerType>(op->getResult(0).getType()))
       return op->emitOpError(

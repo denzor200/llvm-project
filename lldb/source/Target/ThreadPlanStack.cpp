@@ -414,8 +414,8 @@ void ThreadPlanStackMap::Update(ThreadList &current_threads,
   // Now find all the new threads and add them to the map:
   if (check_for_new) {
     for (auto thread : current_threads.Threads()) {
-      lldb::tid_t cur_tid = thread->GetID();
-      if (!Find(cur_tid)) {
+      
+      if (lldb::tid_t cur_tid = thread->GetID(); !Find(cur_tid)) {
         AddThread(*thread);
         thread->QueueBasePlan(true);
       }
@@ -432,8 +432,8 @@ void ThreadPlanStackMap::Update(ThreadList &current_threads,
   // then scan for absent TID's:
   for (auto &thread_plans : m_plans_list) {
     lldb::tid_t cur_tid = thread_plans.first;
-    ThreadSP thread_sp = current_threads.FindThreadByID(cur_tid);
-    if (!thread_sp)
+    
+    if (ThreadSP thread_sp = current_threads.FindThreadByID(cur_tid); !thread_sp)
       missing_threads.push_back(cur_tid);
   }
   for (lldb::tid_t tid : missing_threads) {

@@ -112,8 +112,8 @@ llvm::Error BreakpointIDList::FindAndReplaceIDRanges(
     } else {
       // See if user has specified id.*
       llvm::StringRef tmp_str = old_args[i].ref();
-      auto [prefix, suffix] = tmp_str.split('.');
-      if (suffix == "*" && BreakpointID::IsValidIDExpression(prefix)) {
+      
+      if (auto [prefix, suffix] = tmp_str.split('.'); suffix == "*" && BreakpointID::IsValidIDExpression(prefix)) {
 
         BreakpointSP breakpoint_sp;
         auto bp_id = BreakpointID::ParseCanonicalReference(prefix);
@@ -248,10 +248,10 @@ llvm::Error BreakpointIDList::FindAndReplaceIDRanges(
     // Remove any names that aren't visible for this purpose:
     auto iter = names_found.begin();
     while (iter != names_found.end()) {
-      BreakpointName *bp_name = target->FindBreakpointName(ConstString(*iter),
+      
+      if (BreakpointName *bp_name = target->FindBreakpointName(ConstString(*iter),
                                                            true,
-                                                           error);
-      if (bp_name && !bp_name->GetPermission(purpose))
+                                                           error); bp_name && !bp_name->GetPermission(purpose))
         iter = names_found.erase(iter);
       else
         iter++;

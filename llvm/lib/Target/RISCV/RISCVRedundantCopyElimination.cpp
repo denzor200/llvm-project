@@ -116,9 +116,9 @@ bool RISCVRedundantCopyElimination::optimizeBlock(MachineBasicBlock &MBB) {
     if (MI->isCopy() && MI->getOperand(0).isReg() &&
         MI->getOperand(1).isReg()) {
       Register DefReg = MI->getOperand(0).getReg();
-      Register SrcReg = MI->getOperand(1).getReg();
+      
 
-      if (SrcReg == RISCV::X0 && !MRI->isReserved(DefReg) &&
+      if (Register SrcReg = MI->getOperand(1).getReg(); SrcReg == RISCV::X0 && !MRI->isReserved(DefReg) &&
           TargetReg == DefReg) {
         LLVM_DEBUG(dbgs() << "Remove redundant Copy : ");
         LLVM_DEBUG(MI->print(dbgs()));

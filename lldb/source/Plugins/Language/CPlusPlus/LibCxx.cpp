@@ -39,8 +39,8 @@ using namespace lldb_private::formatters;
 
 static void consumeInlineNamespace(llvm::StringRef &name) {
   // Delete past an inline namespace, if any: __[a-zA-Z0-9_]+::
-  auto scratch = name;
-  if (scratch.consume_front("__") &&
+  
+  if (auto scratch = name; scratch.consume_front("__") &&
       std::isalnum(static_cast<unsigned char>(scratch[0]))) {
     scratch = scratch.drop_while(
         [](char c) { return std::isalnum(static_cast<unsigned char>(c)); });
@@ -63,9 +63,9 @@ bool lldb_private::formatters::isStdTemplate(ConstString type_name,
 lldb::ValueObjectSP lldb_private::formatters::GetChildMemberWithName(
     ValueObject &obj, llvm::ArrayRef<ConstString> alternative_names) {
   for (ConstString name : alternative_names) {
-    lldb::ValueObjectSP child_sp = obj.GetChildMemberWithName(name);
+    
 
-    if (child_sp)
+    if (lldb::ValueObjectSP child_sp = obj.GetChildMemberWithName(name); child_sp)
       return child_sp;
   }
   return {};
@@ -90,8 +90,8 @@ lldb_private::formatters::GetSecondValueOfLibCXXCompressedPair(
     ValueObject &pair) {
   ValueObjectSP value;
   if (pair.GetNumChildrenIgnoringErrors() > 1) {
-    ValueObjectSP second_child = pair.GetChildAtIndex(1);
-    if (second_child) {
+    
+    if (ValueObjectSP second_child = pair.GetChildAtIndex(1); second_child) {
       value = second_child->GetChildMemberWithName("__value_");
     }
   }
@@ -112,8 +112,8 @@ lldb_private::formatters::GetValueOrOldCompressedPair(
 
   // Try searching the child member in an anonymous structure first.
   if (auto unwrapped = obj.GetChildAtIndex(anon_struct_idx)) {
-    ValueObjectSP node_sp(obj.GetChildMemberWithName(child_name));
-    if (node_sp)
+    
+    if (ValueObjectSP node_sp(obj.GetChildMemberWithName(child_name)); node_sp)
       return {node_sp, is_old_compressed_pair(*node_sp)};
   }
 
@@ -301,8 +301,8 @@ lldb_private::formatters::LibcxxSharedPtrSyntheticFrontEnd::GetChildAtIndex(
 
   if (idx == 1) {
     Status status;
-    ValueObjectSP value_sp = m_ptr_obj->Dereference(status);
-    if (status.Success())
+    
+    if (ValueObjectSP value_sp = m_ptr_obj->Dereference(status); status.Success())
       return value_sp;
   }
 
@@ -400,8 +400,8 @@ lldb_private::formatters::LibcxxUniquePtrSyntheticFrontEnd::GetChildAtIndex(
 
   if (idx == 2) {
     Status status;
-    auto value_sp = m_value_ptr_sp->Dereference(status);
-    if (status.Success()) {
+    
+    if (auto value_sp = m_value_ptr_sp->Dereference(status); status.Success()) {
       return value_sp;
     }
   }
@@ -608,9 +608,9 @@ static bool formatStringImpl(ValueObject &valobj, Stream &stream,
                              const TypeSummaryOptions &summary_options,
                              std::string prefix_token) {
   StreamString scratch_stream;
-  const bool success = LibcxxStringSummaryProvider<element_type>(
-      valobj, scratch_stream, summary_options, prefix_token);
-  if (success)
+  
+  if (const bool success = LibcxxStringSummaryProvider<element_type>(
+      valobj, scratch_stream, summary_options, prefix_token); success)
     stream << scratch_stream.GetData();
   else
     stream << "Summary Unavailable";
@@ -762,9 +762,9 @@ LibcxxChronoTimePointSecondsSummaryProvider(ValueObject &valobj, Stream &stream,
     stream.Printf("timestamp=%" PRId64 " s", static_cast<int64_t>(seconds));
   else {
     std::array<char, 128> str;
-    std::size_t size =
-        std::strftime(str.data(), str.size(), fmt, gmtime(&seconds));
-    if (size == 0)
+    
+    if (std::size_t size =
+        std::strftime(str.data(), str.size(), fmt, gmtime(&seconds)); size == 0)
       return false;
 
     stream.Printf("date/time=%s timestamp=%" PRId64 " s", str.data(),
@@ -817,9 +817,9 @@ LibcxxChronoTimepointDaysSummaryProvider(ValueObject &valobj, Stream &stream,
     const std::time_t seconds = std::time_t(86400) * days;
 
     std::array<char, 128> str;
-    std::size_t size =
-        std::strftime(str.data(), str.size(), fmt, gmtime(&seconds));
-    if (size == 0)
+    
+    if (std::size_t size =
+        std::strftime(str.data(), str.size(), fmt, gmtime(&seconds)); size == 0)
       return false;
 
     stream.Printf("date=%s timestamp=%d days", str.data(), days);

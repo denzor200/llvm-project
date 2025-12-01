@@ -159,8 +159,8 @@ APInt BoltAddressTranslation::calculateBranchEntriesBitMask(
   for (std::pair<const uint32_t, uint32_t> &KeyVal : Map) {
     if (Index == EqualElems)
       break;
-    const uint32_t OutputOffset = KeyVal.second;
-    if (OutputOffset & BRANCHENTRY)
+    
+    if (const uint32_t OutputOffset = KeyVal.second; OutputOffset & BRANCHENTRY)
       BitMask.setBit(Index);
     ++Index;
   }
@@ -172,8 +172,8 @@ size_t BoltAddressTranslation::getNumEqualOffsets(const MapTy &Map,
   size_t EqualOffsets = 0;
   for (const std::pair<const uint32_t, uint32_t> &KeyVal : Map) {
     const uint32_t OutputOffset = KeyVal.first;
-    const uint32_t InputOffset = KeyVal.second >> 1;
-    if (OutputOffset == InputOffset - Skew)
+    
+    if (const uint32_t InputOffset = KeyVal.second >> 1; OutputOffset == InputOffset - Skew)
       ++EqualOffsets;
     else
       break;
@@ -387,8 +387,8 @@ void BoltAddressTranslation::parseMaps(uint64_t &PrevAddress, DataExtractor &DE,
       const uint64_t OutputAddress = PrevAddress + OutputDelta;
       const uint64_t OutputOffset = OutputAddress - Address;
       PrevAddress = OutputAddress;
-      int64_t InputDelta = 0;
-      if (J < EqualElems) {
+      
+      if (int64_t InputDelta = 0; J < EqualElems) {
         InputOffset = ((OutputOffset + ColdInputSkew) << 1) | BEBitMask[J];
       } else {
         InputDelta = DE.getSLEB128(&Offset, &Err);

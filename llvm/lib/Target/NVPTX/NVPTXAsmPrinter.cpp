@@ -179,9 +179,9 @@ MCOperand NVPTXAsmPrinter::lowerOperand(const MachineOperand &MO) {
     return GetSymbolRef(getSymbol(MO.getGlobal()));
   case MachineOperand::MO_FPImmediate: {
     const ConstantFP *Cnt = MO.getFPImm();
-    const APFloat &Val = Cnt->getValueAPF();
+    
 
-    switch (Cnt->getType()->getTypeID()) {
+    switch (const APFloat &Val = Cnt->getValueAPF(); Cnt->getType()->getTypeID()) {
     default:
       report_fatal_error("Unsupported FP type");
       break;
@@ -456,8 +456,8 @@ void NVPTXAsmPrinter::emitKernelFunctionDirectives(const Function &F,
     }
 
     if (BlocksAreClusters) {
-      LLVMContext &Ctx = F.getContext();
-      if (ReqNTID.empty() || ClusterDim.empty())
+      
+      if (LLVMContext &Ctx = F.getContext(); ReqNTID.empty() || ClusterDim.empty())
         Ctx.diagnose(DiagnosticInfoUnsupported(
             F, "blocksareclusters requires reqntid and cluster_dim attributes",
             F.getSubprogram()));
@@ -585,8 +585,8 @@ static bool canDemoteGlobalVar(const GlobalVariable *GV, Function const *&f) {
 
   const Function *oneFunc = nullptr;
 
-  bool flag = usedInOneFunc(GV, oneFunc);
-  if (!flag)
+  
+  if (bool flag = usedInOneFunc(GV, oneFunc); !flag)
     return false;
   if (!oneFunc)
     return false;
@@ -678,8 +678,8 @@ void NVPTXAsmPrinter::emitStartOfAsmFile(Module &M) {
 
 bool NVPTXAsmPrinter::doInitialization(Module &M) {
   const NVPTXTargetMachine &NTM = static_cast<const NVPTXTargetMachine &>(TM);
-  const NVPTXSubtarget &STI = *NTM.getSubtargetImpl();
-  if (M.alias_size() && (STI.getPTXVersion() < 63 || STI.getSmVersion() < 30))
+  
+  if (const NVPTXSubtarget &STI = *NTM.getSubtargetImpl(); M.alias_size() && (STI.getPTXVersion() < 63 || STI.getSmVersion() < 30))
     report_fatal_error(".alias requires PTX version >= 6.3 and sm_30");
 
   // We need to call the parent's one explicitly.
@@ -992,9 +992,9 @@ void NVPTXAsmPrinter::printModuleLevelGV(const GlobalVariable *GVar,
     if (GVar->hasInitializer()) {
       if ((GVar->getAddressSpace() == ADDRESS_SPACE_GLOBAL) ||
           (GVar->getAddressSpace() == ADDRESS_SPACE_CONST)) {
-        const Constant *Initializer = GVar->getInitializer();
+        
         // 'undef' is treated as there is no value specified.
-        if (!Initializer->isNullValue() && !isa<UndefValue>(Initializer)) {
+        if (const Constant *Initializer = GVar->getInitializer(); !Initializer->isNullValue() && !isa<UndefValue>(Initializer)) {
           O << " = ";
           printScalarConstant(Initializer, O);
         }
@@ -1027,13 +1027,13 @@ void NVPTXAsmPrinter::printModuleLevelGV(const GlobalVariable *GVar,
       if (((GVar->getAddressSpace() == ADDRESS_SPACE_GLOBAL) ||
            (GVar->getAddressSpace() == ADDRESS_SPACE_CONST)) &&
           GVar->hasInitializer()) {
-        const Constant *Initializer = GVar->getInitializer();
-        if (!isa<UndefValue>(Initializer) && !Initializer->isNullValue()) {
+        
+        if (const Constant *Initializer = GVar->getInitializer(); !isa<UndefValue>(Initializer) && !Initializer->isNullValue()) {
           AggBuffer aggBuffer(ElementSize, *this);
           bufferAggregateConstant(Initializer, &aggBuffer);
           if (aggBuffer.numSymbols()) {
-            const unsigned int ptrSize = MAI->getCodePointerSize();
-            if (ElementSize % ptrSize ||
+            
+            if (const unsigned int ptrSize = MAI->getCodePointerSize(); ElementSize % ptrSize ||
                 !aggBuffer.allSymbolsAligned(ptrSize)) {
               // Print in bytes and use the mask() operator for pointers.
               if (!STI.hasMaskOperator())
@@ -1083,13 +1083,13 @@ void NVPTXAsmPrinter::printModuleLevelGV(const GlobalVariable *GVar,
 
 void NVPTXAsmPrinter::AggBuffer::printSymbol(unsigned nSym, raw_ostream &os) {
   const Value *v = Symbols[nSym];
-  const Value *v0 = SymbolsBeforeStripping[nSym];
-  if (const GlobalValue *GVar = dyn_cast<GlobalValue>(v)) {
+  
+  if (const GlobalValue *const Value *v0 = SymbolsBeforeStripping[nSym]; GVar = dyn_cast<GlobalValue>(v)) {
     MCSymbol *Name = AP.getSymbol(GVar);
     PointerType *PTy = dyn_cast<PointerType>(v0->getType());
     // Is v0 a generic pointer?
-    bool isGenericPointer = PTy && PTy->getAddressSpace() == 0;
-    if (EmitGeneric && isGenericPointer && !isa<Function>(v)) {
+    
+    if (bool isGenericPointer = PTy && PTy->getAddressSpace() == 0; EmitGeneric && isGenericPointer && !isa<Function>(v)) {
       os << "generic(";
       Name->print(os, AP.MAI);
       os << ")";
@@ -1281,13 +1281,13 @@ void NVPTXAsmPrinter::emitPTXGlobalVariable(const GlobalVariable *GVar,
     return;
   }
 
-  int64_t ElementSize = 0;
+  
 
   // Although PTX has direct support for struct type and array type and LLVM IR
   // is very similar to PTX, the LLVM CodeGen does not support for targets that
   // support these high level field accesses. Structs and arrays are lowered
   // into arrays of bytes.
-  switch (ETy->getTypeID()) {
+  switch (int64_t ElementSize = 0; ETy->getTypeID()) {
   case Type::StructTyID:
   case Type::ArrayTyID:
   case Type::FixedVectorTyID:
@@ -1335,9 +1335,9 @@ void NVPTXAsmPrinter::emitFunctionParamList(const Function *F, raw_ostream &O) {
     if (IsKernelFunc) {
       const bool IsSampler = isSampler(Arg);
       const bool IsTexture = !IsSampler && isImageReadOnly(Arg);
-      const bool IsSurface = !IsSampler && !IsTexture &&
-                             (isImageReadWrite(Arg) || isImageWriteOnly(Arg));
-      if (IsSampler || IsTexture || IsSurface) {
+      
+      if (const bool IsSurface = !IsSampler && !IsTexture &&
+                             (isImageReadWrite(Arg) || isImageWriteOnly(Arg)); IsSampler || IsTexture || IsSurface) {
         const bool EmitImgPtr = !MFI || !MFI->checkImageHandleSymbol(ParamSym);
         O << "\t.param ";
         if (EmitImgPtr)
@@ -1475,8 +1475,8 @@ void NVPTXAsmPrinter::setAndEmitFunctionVirtualRegisters(
 
   // Emit the Fake Stack Object
   const MachineFrameInfo &MFI = MF.getFrameInfo();
-  int64_t NumBytes = MFI.getStackSize();
-  if (NumBytes) {
+  
+  if (int64_t NumBytes = MFI.getStackSize(); NumBytes) {
     O << "\t.local .align " << MFI.getMaxAlign().value() << " .b8 \t"
       << DEPOTNAME << getFunctionNumber() << "[" << NumBytes << "];\n";
     if (static_cast<const NVPTXTargetMachine &>(MF.getTarget()).is64Bit()) {
@@ -1503,10 +1503,10 @@ void NVPTXAsmPrinter::setAndEmitFunctionVirtualRegisters(
   // Emit declaration of the virtual registers or 'physical' registers for
   // each register class
   for (const TargetRegisterClass *RC : TRI->regclasses()) {
-    const unsigned N = VRegMapping[RC].size();
+    
 
     // Only declare those registers that may be used.
-    if (N) {
+    if (const unsigned N = VRegMapping[RC].size(); N) {
       const StringRef RCName = getNVPTXRegClassName(RC);
       const StringRef RCStr = getNVPTXRegClassStr(RC);
       O << "\t.reg " << RCName << " \t" << RCStr << "<" << (N + 1) << ">;\n";
@@ -1572,8 +1572,8 @@ void NVPTXAsmPrinter::printScalarConstant(const Constant *CPV, raw_ostream &O) {
     return;
   }
   if (const GlobalValue *GVar = dyn_cast<GlobalValue>(CPV)) {
-    const bool IsNonGenericPointer = GVar->getAddressSpace() != 0;
-    if (EmitGeneric && !isa<Function>(CPV) && !IsNonGenericPointer) {
+    
+    if (const bool IsNonGenericPointer = GVar->getAddressSpace() != 0; EmitGeneric && !isa<Function>(CPV) && !IsNonGenericPointer) {
       O << "generic(";
       getSymbol(GVar)->print(O, MAI);
       O << ")";
@@ -1602,7 +1602,9 @@ void NVPTXAsmPrinter::bufferLEByte(const Constant *CPV, int Bytes,
   }
 
   // Helper for filling AggBuffer with APInts.
-  auto AddIntToBuffer = [AggBuffer, Bytes](const APInt &Val) {
+  
+
+  switch (auto AddIntToBuffer = [AggBuffer, Bytes](const APInt &Val) {
     size_t NumBytes = (Val.getBitWidth() + 7) / 8;
     SmallVector<unsigned char, 16> Buf(NumBytes);
     // `extractBitsAsZExtValue` does not allow the extraction of bits beyond the
@@ -1617,9 +1619,7 @@ void NVPTXAsmPrinter::bufferLEByte(const Constant *CPV, int Bytes,
     Buf[NumBytes - 1] =
         Val.extractBitsAsZExtValue(LastByteBits, LastBytePosition);
     AggBuffer->addBytes(Buf.data(), NumBytes, Bytes);
-  };
-
-  switch (CPV->getType()->getTypeID()) {
+  }; CPV->getType()->getTypeID()) {
   case Type::IntegerTyID:
     if (const auto *CI = dyn_cast<ConstantInt>(CPV)) {
       AddIntToBuffer(CI->getValue());
@@ -1764,8 +1764,8 @@ NVPTXAsmPrinter::lowerConstantForGV(const Constant *CV,
 
   case Instruction::AddrSpaceCast: {
     // Strip the addrspacecast and pass along the operand
-    PointerType *DstTy = cast<PointerType>(CE->getType());
-    if (DstTy->getAddressSpace() == 0)
+    
+    if (PointerType *DstTy = cast<PointerType>(CE->getType()); DstTy->getAddressSpace() == 0)
       return lowerConstantForGV(cast<const Constant>(CE->getOperand(0)), true);
 
     break; // Error
@@ -1838,8 +1838,8 @@ NVPTXAsmPrinter::lowerConstantForGV(const Constant *CV,
   // signed or unsigned between different targets.
   case Instruction::Add: {
     const MCExpr *LHS = lowerConstantForGV(CE->getOperand(0), ProcessingGeneric);
-    const MCExpr *RHS = lowerConstantForGV(CE->getOperand(1), ProcessingGeneric);
-    switch (CE->getOpcode()) {
+    
+    switch (const MCExpr *RHS = lowerConstantForGV(CE->getOperand(1), ProcessingGeneric); CE->getOpcode()) {
     default: llvm_unreachable("Unknown binary operator constant cast expr");
     case Instruction::Add: return MCBinaryExpr::createAdd(LHS, RHS, Ctx);
     }
@@ -1904,8 +1904,8 @@ bool NVPTXAsmPrinter::PrintAsmMemoryOperand(const MachineInstr *MI,
 
 void NVPTXAsmPrinter::printOperand(const MachineInstr *MI, unsigned OpNum,
                                    raw_ostream &O) {
-  const MachineOperand &MO = MI->getOperand(OpNum);
-  switch (MO.getType()) {
+  
+  switch (const MachineOperand &MO = MI->getOperand(OpNum); MO.getType()) {
   case MachineOperand::MO_Register:
     if (MO.getReg().isPhysical()) {
       if (MO.getReg() == NVPTX::VRDepot)

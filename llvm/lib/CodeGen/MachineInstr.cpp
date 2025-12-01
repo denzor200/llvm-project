@@ -279,8 +279,8 @@ void MachineInstr::addOperand(MachineFunction &MF, const MachineOperand &Op) {
     if (!isImpReg) {
       // Tie uses to defs as indicated in MCInstrDesc.
       if (NewMO->isUse()) {
-        int DefIdx = MCID->getOperandConstraint(OpNo, MCOI::TIED_TO);
-        if (DefIdx != -1)
+        
+        if (int DefIdx = MCID->getOperandConstraint(OpNo, MCOI::TIED_TO); DefIdx != -1)
           tieOperands(DefIdx, OpNo);
       }
       // If the register operand is flagged as early, mark the operand as such.
@@ -330,12 +330,12 @@ void MachineInstr::setExtraInfo(MachineFunction &MF,
   bool HasCFIType = CFIType != 0;
   bool HasMMRAs = MMRAs != nullptr;
   bool HasDS = DS != nullptr;
-  int NumPointers = MMOs.size() + HasPreInstrSymbol + HasPostInstrSymbol +
-                    HasHeapAllocMarker + HasPCSections + HasCFIType + HasMMRAs +
-                    HasDS;
+  
 
   // Drop all extra info if there is none.
-  if (NumPointers <= 0) {
+  if (int NumPointers = MMOs.size() + HasPreInstrSymbol + HasPostInstrSymbol +
+                    HasHeapAllocMarker + HasPCSections + HasCFIType + HasMMRAs +
+                    HasDS; NumPointers <= 0) {
     Info.clear();
     return;
   }
@@ -904,8 +904,8 @@ void MachineInstr::unbundleFromSucc() {
 
 bool MachineInstr::isStackAligningInlineAsm() const {
   if (isInlineAsm()) {
-    unsigned ExtraInfo = getOperand(InlineAsm::MIOp_ExtraInfo).getImm();
-    if (ExtraInfo & InlineAsm::Extra_IsAlignStack)
+    
+    if (unsigned ExtraInfo = getOperand(InlineAsm::MIOp_ExtraInfo).getImm(); ExtraInfo & InlineAsm::Extra_IsAlignStack)
       return true;
   }
   return false;
@@ -1001,8 +1001,8 @@ MachineInstr::getRegClassConstraint(unsigned OpIdx,
     return nullptr;
 
   // For tied uses on inline asm, get the constraint from the def.
-  unsigned DefIdx;
-  if (getOperand(OpIdx).isUse() && isRegTiedToDefOperand(OpIdx, &DefIdx))
+  
+  if (unsigned DefIdx; getOperand(OpIdx).isUse() && isRegTiedToDefOperand(OpIdx, &DefIdx))
     OpIdx = DefIdx;
 
   // Inline asm stores register class constraints in the flag word.
@@ -1045,8 +1045,8 @@ const TargetRegisterClass *MachineInstr::getRegClassConstraintEffectForVRegImpl(
     const TargetInstrInfo *TII, const TargetRegisterInfo *TRI) const {
   assert(CurRC && "Invalid initial register class");
   // Check if Reg is constrained by some of its use/def from MI.
-  const MachineOperand &MO = getOperand(OpIdx);
-  if (!MO.isReg() || MO.getReg() != Reg)
+  
+  if (const MachineOperand &MO = getOperand(OpIdx); !MO.isReg() || MO.getReg() != Reg)
     return CurRC;
   // If yes, accumulate the constraints through the operand.
   return getRegClassConstraintEffect(OpIdx, CurRC, TII, TRI);
@@ -1178,8 +1178,8 @@ int MachineInstr::findFirstPredOperandIdx() const {
   // is sometimes called on an instruction that's not yet complete, and
   // so the number of operands is less than the MCID indicates. In
   // particular, the PTX target does this.
-  const MCInstrDesc &MCID = getDesc();
-  if (MCID.isPredicable()) {
+  
+  if (const MCInstrDesc &MCID = getDesc(); MCID.isPredicable()) {
     for (unsigned i = 0, e = getNumOperands(); i != e; ++i)
       if (MCID.operands()[i].isPredicate())
         return i;
@@ -1245,8 +1245,8 @@ unsigned MachineInstr::findTiedOperandIdx(unsigned OpIdx) const {
       return TiedMax - 1;
     // MO is a def. Search for the tied use.
     for (unsigned i = TiedMax - 1, e = getNumOperands(); i != e; ++i) {
-      const MachineOperand &UseMO = getOperand(i);
-      if (UseMO.isReg() && UseMO.isUse() && UseMO.TiedTo == OpIdx + 1)
+      
+      if (const MachineOperand &UseMO = getOperand(i); UseMO.isReg() && UseMO.isUse() && UseMO.TiedTo == OpIdx + 1)
         return i;
     }
     llvm_unreachable("Can't find tied use");
@@ -1412,8 +1412,8 @@ bool MachineInstr::isDead(const MachineRegisterInfo &MRI,
   // This function is hot and this loop returns early in the common case,
   // so only perform additional checks before this if absolutely necessary.
   for (const MachineOperand &MO : all_defs()) {
-    Register Reg = MO.getReg();
-    if (Reg.isPhysical()) {
+    
+    if (Register Reg = MO.getReg(); Reg.isPhysical()) {
       // Don't delete live physreg defs, or any reserved register defs.
       if (!LivePhysRegs || !LivePhysRegs->available(Reg) || MRI.isReserved(Reg))
         return false;
@@ -1664,8 +1664,8 @@ bool MachineInstr::hasUnmodeledSideEffects() const {
   if (hasProperty(MCID::UnmodeledSideEffects))
     return true;
   if (isInlineAsm()) {
-    unsigned ExtraInfo = getOperand(InlineAsm::MIOp_ExtraInfo).getImm();
-    if (ExtraInfo & InlineAsm::Extra_HasSideEffects)
+    
+    if (unsigned ExtraInfo = getOperand(InlineAsm::MIOp_ExtraInfo).getImm(); ExtraInfo & InlineAsm::Extra_HasSideEffects)
       return true;
   }
 
@@ -1822,8 +1822,8 @@ void MachineInstr::print(raw_ostream &OS, ModuleSlotTracker &MST,
   auto getTiedOperandIdx = [&](unsigned OpIdx) {
     if (!ShouldPrintRegisterTies)
       return 0U;
-    const MachineOperand &MO = getOperand(OpIdx);
-    if (MO.isReg() && MO.isTied() && !MO.isDef())
+    
+    if (const MachineOperand &MO = getOperand(OpIdx); MO.isReg() && MO.isTied() && !MO.isDef())
       return findTiedOperandIdx(OpIdx);
     return 0U;
   };
@@ -1941,8 +1941,8 @@ void MachineInstr::print(raw_ostream &OS, ModuleSlotTracker &MST,
 
     if (isDebugValueLike() && MO.isMetadata()) {
       // Pretty print DBG_VALUE* instructions.
-      auto *DIV = dyn_cast<DILocalVariable>(MO.getMetadata());
-      if (DIV && !DIV->getName().empty())
+      
+      if (auto *DIV = dyn_cast<DILocalVariable>(MO.getMetadata()); DIV && !DIV->getName().empty())
         OS << "!\"" << DIV->getName() << '\"';
       else {
         LLT TypeToPrint = MRI ? getTypeToPrint(i, PrintedTypes, *MRI) : LLT{};
@@ -1952,8 +1952,8 @@ void MachineInstr::print(raw_ostream &OS, ModuleSlotTracker &MST,
       }
     } else if (isDebugLabel() && MO.isMetadata()) {
       // Pretty print DBG_LABEL instructions.
-      auto *DIL = dyn_cast<DILabel>(MO.getMetadata());
-      if (DIL && !DIL->getName().empty())
+      
+      if (auto *DIL = dyn_cast<DILabel>(MO.getMetadata()); DIL && !DIL->getName().empty())
         OS << "\"" << DIL->getName() << '\"';
       else {
         LLT TypeToPrint = MRI ? getTypeToPrint(i, PrintedTypes, *MRI) : LLT{};
@@ -1969,8 +1969,8 @@ void MachineInstr::print(raw_ostream &OS, ModuleSlotTracker &MST,
       OS << ":[";
       OS << F.getKindName();
 
-      unsigned RCID;
-      if (!F.isImmKind() && !F.isMemKind() && F.hasRegClassConstraint(RCID)) {
+      
+      if (unsigned RCID; !F.isImmKind() && !F.isMemKind() && F.hasRegClassConstraint(RCID)) {
         if (TRI) {
           OS << ':' << TRI->getRegClassName(TRI->getRegClass(RCID));
         } else
@@ -1998,8 +1998,8 @@ void MachineInstr::print(raw_ostream &OS, ModuleSlotTracker &MST,
       AsmDescOp += 1 + F.getNumOperandRegisters();
     } else {
       LLT TypeToPrint = MRI ? getTypeToPrint(i, PrintedTypes, *MRI) : LLT{};
-      unsigned TiedOperandIdx = getTiedOperandIdx(i);
-      if (MO.isImm() && isOperandSubregIdx(i))
+      
+      if (unsigned TiedOperandIdx = getTiedOperandIdx(i); MO.isImm() && isOperandSubregIdx(i))
         MachineOperand::printSubRegIdx(OS, MO.getImm(), TRI);
       else
         MO.print(OS, MST, TypeToPrint, i, /*PrintDef=*/true, IsStandalone,
@@ -2179,8 +2179,8 @@ bool MachineInstr::addRegisterKilled(Register IncomingReg,
 
   // Trim unneeded kill operands.
   while (!DeadOps.empty()) {
-    unsigned OpIdx = DeadOps.back();
-    if (getOperand(OpIdx).isImplicit() &&
+    
+    if (unsigned OpIdx = DeadOps.back(); getOperand(OpIdx).isImplicit() &&
         (!isInlineAsm() || findInlineAsmFlagIdx(OpIdx) < 0))
       removeOperand(OpIdx);
     else
@@ -2207,8 +2207,8 @@ void MachineInstr::clearRegisterKills(Register Reg,
   for (MachineOperand &MO : operands()) {
     if (!MO.isReg() || !MO.isUse() || !MO.isKill())
       continue;
-    Register OpReg = MO.getReg();
-    if ((RegInfo && RegInfo->regsOverlap(Reg, OpReg)) || Reg == OpReg)
+    
+    if (Register OpReg = MO.getReg(); (RegInfo && RegInfo->regsOverlap(Reg, OpReg)) || Reg == OpReg)
       MO.setIsKill(false);
   }
 }
@@ -2243,8 +2243,8 @@ bool MachineInstr::addRegisterDead(Register Reg,
 
   // Trim unneeded dead operands.
   while (!DeadOps.empty()) {
-    unsigned OpIdx = DeadOps.back();
-    if (getOperand(OpIdx).isImplicit() &&
+    
+    if (unsigned OpIdx = DeadOps.back(); getOperand(OpIdx).isImplicit() &&
         (!isInlineAsm() || findInlineAsmFlagIdx(OpIdx) < 0))
       removeOperand(OpIdx);
     else
@@ -2280,8 +2280,8 @@ void MachineInstr::setRegisterDefReadUndef(Register Reg, bool IsUndef) {
 void MachineInstr::addRegisterDefined(Register Reg,
                                       const TargetRegisterInfo *RegInfo) {
   if (Reg.isPhysical()) {
-    MachineOperand *MO = findRegisterDefOperand(Reg, RegInfo, false, false);
-    if (MO)
+    
+    if (MachineOperand *MO = findRegisterDefOperand(Reg, RegInfo, false, false); MO)
       return;
   } else {
     for (const MachineOperand &MO : all_defs()) {
@@ -2592,10 +2592,10 @@ static LocationSize getSpillSlotSize(const MMOList &Accesses,
 
 std::optional<LocationSize>
 MachineInstr::getSpillSize(const TargetInstrInfo *TII) const {
-  int FI;
-  if (TII->isStoreToStackSlotPostFE(*this, FI)) {
-    const MachineFrameInfo &MFI = getMF()->getFrameInfo();
-    if (MFI.isSpillSlotObjectIndex(FI))
+  
+  if (int FI; TII->isStoreToStackSlotPostFE(*this, FI)) {
+    
+    if (const MachineFrameInfo &MFI = getMF()->getFrameInfo(); MFI.isSpillSlotObjectIndex(FI))
       return (*memoperands_begin())->getSize();
   }
   return std::nullopt;
@@ -2611,10 +2611,10 @@ MachineInstr::getFoldedSpillSize(const TargetInstrInfo *TII) const {
 
 std::optional<LocationSize>
 MachineInstr::getRestoreSize(const TargetInstrInfo *TII) const {
-  int FI;
-  if (TII->isLoadFromStackSlotPostFE(*this, FI)) {
-    const MachineFrameInfo &MFI = getMF()->getFrameInfo();
-    if (MFI.isSpillSlotObjectIndex(FI))
+  
+  if (int FI; TII->isLoadFromStackSlotPostFE(*this, FI)) {
+    
+    if (const MachineFrameInfo &MFI = getMF()->getFrameInfo(); MFI.isSpillSlotObjectIndex(FI))
       return (*memoperands_begin())->getSize();
   }
   return std::nullopt;

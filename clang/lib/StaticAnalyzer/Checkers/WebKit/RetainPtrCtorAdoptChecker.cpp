@@ -252,8 +252,8 @@ public:
       if (FnDecl && ArgIndex < FnDecl->getNumParams()) {
         // Manually check attributes on argumenet since RetainSummaryManager
         // basically ignores CF_RETRUNS_RETAINED on out arguments.
-        auto *ParamDecl = FnDecl->getParamDecl(ArgIndex);
-        if (ParamDecl->hasAttr<CFReturnsRetainedAttr>())
+        
+        if (auto *ParamDecl = FnDecl->getParamDecl(ArgIndex); ParamDecl->hasAttr<CFReturnsRetainedAttr>())
           CreateOrCopyOutArguments.insert(Decl);
       } else {
         // No callee or a variadic argument.
@@ -262,8 +262,8 @@ public:
           CreateOrCopyOutArguments.insert(Decl);
       }
     }
-    auto Summary = Summaries->getSummary(AnyCall(CE));
-    switch (Summary->getRetEffect().getKind()) {
+    
+    switch (auto Summary = Summaries->getSummary(AnyCall(CE)); Summary->getRetEffect().getKind()) {
     case RetEffect::OwnedSymbol:
     case RetEffect::OwnedWhenTrackedReceiver:
       if (!CreateOrCopyFnCall.contains(CE))
@@ -358,8 +358,8 @@ public:
     if (!isa<ObjCIvarRefExpr>(BO->getLHS()))
       return;
     auto *RHS = BO->getRHS()->IgnoreParenCasts();
-    const Expr *Inner = nullptr;
-    if (isAllocInit(RHS, &Inner)) {
+    
+    if (const Expr *Inner = nullptr; isAllocInit(RHS, &Inner)) {
       CreateOrCopyFnCall.insert(RHS);
       if (Inner)
         CreateOrCopyFnCall.insert(Inner);
@@ -390,8 +390,8 @@ public:
       return;
     }
     if (auto *CE = dyn_cast<CallExpr>(RetValue)) {
-      auto *Callee = CE->getDirectCallee();
-      if (!Callee || !isCreateOrCopyFunction(Callee))
+      
+      if (auto *Callee = CE->getDirectCallee(); !Callee || !isCreateOrCopyFunction(Callee))
         return;
       CreateOrCopyFnCall.insert(CE);
       return;
@@ -511,8 +511,8 @@ public:
       }
       if (auto *ObjCMsgExpr = dyn_cast<ObjCMessageExpr>(E)) {
         auto Summary = Summaries->getSummary(AnyCall(ObjCMsgExpr));
-        auto RetEffect = Summary->getRetEffect();
-        switch (RetEffect.getKind()) {
+        
+        switch (auto RetEffect = Summary->getRetEffect(); RetEffect.getKind()) {
         case RetEffect::NoRet:
           return IsOwnedResult::Unknown;
         case RetEffect::OwnedSymbol:
@@ -534,8 +534,8 @@ public:
           auto *Cls = MD->getParent();
           if (auto *CD = dyn_cast<CXXConversionDecl>(MD)) {
             auto QT = CD->getConversionType().getCanonicalType();
-            auto *ResultType = QT.getTypePtrOrNull();
-            if (isRetainPtrOrOSPtr(safeGetName(Cls)) && ResultType &&
+            
+            if (auto *ResultType = QT.getTypePtrOrNull(); isRetainPtrOrOSPtr(safeGetName(Cls)) && ResultType &&
                 (ResultType->isPointerType() || ResultType->isReferenceType() ||
                  ResultType->isObjCObjectPointerType()))
               return IsOwnedResult::NotOwned;
@@ -572,8 +572,8 @@ public:
             return IsOwnedResult::Skip; // Wait for instantiation.
         }
         auto Summary = Summaries->getSummary(AnyCall(CE));
-        auto RetEffect = Summary->getRetEffect();
-        switch (RetEffect.getKind()) {
+        
+        switch (auto RetEffect = Summary->getRetEffect(); RetEffect.getKind()) {
         case RetEffect::NoRet:
           return IsOwnedResult::Unknown;
         case RetEffect::OwnedSymbol:

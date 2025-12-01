@@ -78,8 +78,8 @@ LogicalResult OperationFolder::tryToFold(Operation *op, bool *inPlaceUpdate,
   if (isFolderOwnedConstant(op)) {
     // Check to see if we should rehoist, i.e. if a non-constant operation was
     // inserted before this one.
-    Block *opBlock = op->getBlock();
-    if (&opBlock->front() != op && !isFolderOwnedConstant(op->getPrevNode())) {
+    
+    if (Block *opBlock = op->getBlock(); &opBlock->front() != op && !isFolderOwnedConstant(op->getPrevNode())) {
       op->moveBefore(&opBlock->front());
       op->setLoc(erasedFoldedLocation);
     }
@@ -274,15 +274,15 @@ OperationFolder::processFoldResults(Operation *op,
 
     // Check to see if there is a canonicalized version of this constant.
     auto res = op->getResult(i);
-    Attribute attrRepl = cast<Attribute>(foldResults[i]);
-    if (auto *constOp =
+    
+    if (auto *Attribute attrRepl = cast<Attribute>(foldResults[i]); constOp =
             tryGetOrCreateConstant(uniquedConstants, dialect, attrRepl,
                                    res.getType(), erasedFoldedLocation)) {
       // Ensure that this constant dominates the operation we are replacing it
       // with. This may not automatically happen if the operation being folded
       // was inserted before the constant within the insertion block.
-      Block *opBlock = op->getBlock();
-      if (opBlock == constOp->getBlock() && &opBlock->front() != constOp)
+      
+      if (Block *opBlock = op->getBlock(); opBlock == constOp->getBlock() && &opBlock->front() != constOp)
         constOp->moveBefore(&opBlock->front());
 
       results.push_back(constOp->getResult(0));

@@ -239,8 +239,8 @@ void preprocess(StringRef Src, StringRef Dst, const RcOptions &Opts,
   if (Opts.PrintCmdAndExit || Opts.Preprocessor) {
     Clang = "clang";
   } else {
-    ErrorOr<std::string> ClangOrErr = findClang(Argv0, Opts.Triple);
-    if (ClangOrErr) {
+    
+    if (ErrorOr<std::string> ClangOrErr = findClang(Argv0, Opts.Triple); ClangOrErr) {
       Clang = *ClangOrErr;
     } else {
       errs() << "llvm-rc: Unable to find clang for preprocessing."
@@ -421,8 +421,8 @@ RcOptions parseWindresOptions(ArrayRef<const char *> ArgsArr,
   Opts.Preprocess = !InputArgs.hasArg(WINDRES_no_preprocess);
   Triple TT(Prefix);
   if (InputArgs.hasArg(WINDRES_target)) {
-    StringRef Value = InputArgs.getLastArgValue(WINDRES_target);
-    if (Value == "pe-i386")
+    
+    if (StringRef Value = InputArgs.getLastArgValue(WINDRES_target); Value == "pe-i386")
       Opts.Triple = "i686-w64-mingw32";
     else if (Value == "pe-x86-64")
       Opts.Triple = "x86_64-w64-mingw32";

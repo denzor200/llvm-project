@@ -261,8 +261,8 @@ struct NMSymbol {
     bool Undefined = SymFlags & SymbolRef::SF_Undefined;
     bool Global = SymFlags & SymbolRef::SF_Global;
     bool Weak = SymFlags & SymbolRef::SF_Weak;
-    bool FormatSpecific = SymFlags & SymbolRef::SF_FormatSpecific;
-    if ((!Undefined && UndefinedOnly) || (Undefined && DefinedOnly) ||
+    
+    if (bool FormatSpecific = SymFlags & SymbolRef::SF_FormatSpecific; (!Undefined && UndefinedOnly) || (Undefined && DefinedOnly) ||
         (!Global && ExternalOnly) || (Weak && NoWeakSymbols) ||
         (FormatSpecific && !(SpecialSyms || DebugSyms)))
       return false;
@@ -336,8 +336,8 @@ static void darwinPrintSymbol(SymbolicFile &Obj, const NMSymbol &S,
     if (SymFlags & SymbolRef::SF_Weak)
       NDesc |= MachO::N_WEAK_DEF;
   } else {
-    DataRefImpl SymDRI = S.Sym.getRawDataRefImpl();
-    if (MachO->is64Bit()) {
+    
+    if (DataRefImpl SymDRI = S.Sym.getRawDataRefImpl(); MachO->is64Bit()) {
       H_64 = MachO->MachOObjectFile::getHeader64();
       Filetype = H_64.filetype;
       Flags = H_64.flags;
@@ -384,8 +384,8 @@ static void darwinPrintSymbol(SymbolicFile &Obj, const NMSymbol &S,
     if ((NType & MachO::N_TYPE) == MachO::N_INDR) {
       outs() << " (indirect for ";
       outs() << format(printFormat, NValue) << ' ';
-      StringRef IndirectName;
-      if (S.Sym.getRawDataRefImpl().p) {
+      
+      if (StringRef IndirectName; S.Sym.getRawDataRefImpl().p) {
         if (MachO->getIndirectName(S.Sym.getRawDataRefImpl(), IndirectName))
           outs() << "?)";
         else
@@ -522,8 +522,8 @@ static void darwinPrintSymbol(SymbolicFile &Obj, const NMSymbol &S,
 
   if ((NType & MachO::N_TYPE) == MachO::N_INDR) {
     outs() << S.Name << " (for ";
-    StringRef IndirectName;
-    if (MachO) {
+    
+    if (StringRef IndirectName; MachO) {
       if (S.Sym.getRawDataRefImpl().p) {
         if (MachO->getIndirectName(S.Sym.getRawDataRefImpl(), IndirectName))
           outs() << "?)";
@@ -539,15 +539,15 @@ static void darwinPrintSymbol(SymbolicFile &Obj, const NMSymbol &S,
   if ((Flags & MachO::MH_TWOLEVEL) == MachO::MH_TWOLEVEL &&
       (((NType & MachO::N_TYPE) == MachO::N_UNDF && NValue == 0) ||
        (NType & MachO::N_TYPE) == MachO::N_PBUD)) {
-    uint32_t LibraryOrdinal = MachO::GET_LIBRARY_ORDINAL(NDesc);
-    if (LibraryOrdinal != 0) {
+    
+    if (uint32_t LibraryOrdinal = MachO::GET_LIBRARY_ORDINAL(NDesc); LibraryOrdinal != 0) {
       if (LibraryOrdinal == MachO::EXECUTABLE_ORDINAL)
         outs() << " (from executable)";
       else if (LibraryOrdinal == MachO::DYNAMIC_LOOKUP_ORDINAL)
         outs() << " (dynamically looked up)";
       else {
-        StringRef LibraryName;
-        if (!MachO ||
+        
+        if (StringRef LibraryName; !MachO ||
             MachO->getLibraryShortNameByIndex(LibraryOrdinal - 1, LibraryName))
           outs() << " (from bad library ordinal " << LibraryOrdinal << ")";
         else
@@ -846,8 +846,8 @@ static void printSymbolList(SymbolicFile &Obj,
       if (S.TypeChar == 'I' && MachO) {
         outs() << " (indirect for ";
         if (S.Sym.getRawDataRefImpl().p) {
-          StringRef IndirectName;
-          if (MachO->getIndirectName(S.Sym.getRawDataRefImpl(), IndirectName))
+          
+          if (StringRef IndirectName; MachO->getIndirectName(S.Sym.getRawDataRefImpl(), IndirectName))
             outs() << "?)";
           else
             outs() << IndirectName << ")";
@@ -1058,8 +1058,8 @@ static char getSymbolNMTypeChar(MachOObjectFile &Obj, basic_symbol_iterator I) {
 }
 
 static char getSymbolNMTypeChar(TapiFile &Obj, basic_symbol_iterator I) {
-  auto Type = cantFail(Obj.getSymbolType(I->getRawDataRefImpl()));
-  switch (Type) {
+  
+  switch (auto Type = cantFail(Obj.getSymbolType(I->getRawDataRefImpl())); Type) {
   case SymbolRef::ST_Function:
     return 't';
   case SymbolRef::ST_Data:
@@ -1072,17 +1072,17 @@ static char getSymbolNMTypeChar(TapiFile &Obj, basic_symbol_iterator I) {
 }
 
 static char getSymbolNMTypeChar(WasmObjectFile &Obj, basic_symbol_iterator I) {
-  uint32_t Flags = cantFail(I->getFlags());
-  if (Flags & SymbolRef::SF_Executable)
+  
+  if (uint32_t Flags = cantFail(I->getFlags()); Flags & SymbolRef::SF_Executable)
     return 't';
   return 'd';
 }
 
 static char getSymbolNMTypeChar(IRObjectFile &Obj, basic_symbol_iterator I) {
-  uint32_t Flags = cantFail(I->getFlags());
+  
   // FIXME: should we print 'b'? At the IR level we cannot be sure if this
   // will be in bss or not, but we could approximate.
-  if (Flags & SymbolRef::SF_Executable)
+  if (uint32_t Flags = cantFail(I->getFlags()); Flags & SymbolRef::SF_Executable)
     return 't';
   else if (Triple(Obj.getTargetTriple()).isOSDarwin() &&
            (Flags & SymbolRef::SF_Const))
@@ -1246,14 +1246,14 @@ static void dumpSymbolsFromDLInfoMachO(MachOObjectFile &MachO,
   uint64_t BaseSegmentAddress = 0;
   for (const auto &Command : MachO.load_commands()) {
     if (Command.C.cmd == MachO::LC_SEGMENT) {
-      MachO::segment_command Seg = MachO.getSegmentLoadCommand(Command);
-      if (Seg.fileoff == 0 && Seg.filesize != 0) {
+      
+      if (MachO::segment_command Seg = MachO.getSegmentLoadCommand(Command); Seg.fileoff == 0 && Seg.filesize != 0) {
         BaseSegmentAddress = Seg.vmaddr;
         break;
       }
     } else if (Command.C.cmd == MachO::LC_SEGMENT_64) {
-      MachO::segment_command_64 Seg = MachO.getSegment64LoadCommand(Command);
-      if (Seg.fileoff == 0 && Seg.filesize != 0) {
+      
+      if (MachO::segment_command_64 Seg = MachO.getSegment64LoadCommand(Command); Seg.fileoff == 0 && Seg.filesize != 0) {
         BaseSegmentAddress = Seg.vmaddr;
         break;
       }
@@ -1295,8 +1295,8 @@ static void dumpSymbolsFromDLInfoMachO(MachOObjectFile &MachO,
                     MachO::EXPORT_SYMBOL_FLAGS_KIND_ABSOLUTE);
         bool Resolver = (EFlags & MachO::EXPORT_SYMBOL_FLAGS_STUB_AND_RESOLVER);
         ReExport = (EFlags & MachO::EXPORT_SYMBOL_FLAGS_REEXPORT);
-        bool WeakDef = (EFlags & MachO::EXPORT_SYMBOL_FLAGS_WEAK_DEFINITION);
-        if (WeakDef)
+        
+        if (bool WeakDef = (EFlags & MachO::EXPORT_SYMBOL_FLAGS_WEAK_DEFINITION); WeakDef)
           S.NDesc |= MachO::N_WEAK_DEF;
         if (Abs) {
           S.NType = MachO::N_EXT | MachO::N_ABS;
@@ -1768,8 +1768,8 @@ static void getXCOFFExports(XCOFFObjectFile *XCOFFObj,
 
     if (HasVisibilityAttr) {
       XCOFFSymbolRef XCOFFSym = XCOFFObj->toSymbolRef(Sym.getRawDataRefImpl());
-      uint16_t SymType = XCOFFSym.getSymbolType();
-      if ((SymType & XCOFF::VISIBILITY_MASK) == XCOFF::SYM_V_PROTECTED)
+      
+      if (uint16_t SymType = XCOFFSym.getSymbolType(); (SymType & XCOFF::VISIBILITY_MASK) == XCOFF::SYM_V_PROTECTED)
         S.Visibility = "protected";
       else if ((SymType & XCOFF::VISIBILITY_MASK) == XCOFF::SYM_V_EXPORTED)
         S.Visibility = "export";
@@ -2203,8 +2203,8 @@ static bool dumpMachOUniversalBinaryMatchHost(MachOUniversalBinary *UB,
        I != E; ++I) {
     if (HostArchName == I->getArchFlagName()) {
       Expected<std::unique_ptr<ObjectFile>> ObjOrErr = I->getAsObjectFile();
-      std::string ArchiveName;
-      if (ObjOrErr) {
+      
+      if (std::string ArchiveName; ObjOrErr) {
         ObjectFile &Obj = *ObjOrErr.get();
         dumpSymbolNamesFromObject(Obj, SymbolList, /*PrintSymbolObject=*/false,
                                   /*PrintObjectLabel=*/false);
@@ -2324,9 +2324,9 @@ static void dumpTapiUniversal(TapiUniversal *TU,
                               StringRef Filename) {
   for (const TapiUniversal::ObjectForArch &I : TU->objects()) {
     StringRef ArchName = I.getArchFlagName();
-    const bool ShowArch =
-        ArchFlags.empty() || llvm::is_contained(ArchFlags, ArchName);
-    if (!ShowArch)
+    
+    if (const bool ShowArch =
+        ArchFlags.empty() || llvm::is_contained(ArchFlags, ArchName); !ShowArch)
       continue;
     if (!AddInlinedInfo && !I.isTopLevelLib())
       continue;
@@ -2495,8 +2495,8 @@ int llvm_nm_main(int argc, char **argv, const llvm::ToolContext &) {
     BitMode = BitModeTy::Any;
 
   if (Arg *A = Args.getLastArg(OPT_X)) {
-    StringRef Mode = A->getValue();
-    if (Mode == "32")
+    
+    if (StringRef Mode = A->getValue(); Mode == "32")
       BitMode = BitModeTy::Bit32;
     else if (Mode == "64")
       BitMode = BitModeTy::Bit64;

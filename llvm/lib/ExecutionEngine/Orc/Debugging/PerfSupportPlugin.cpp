@@ -217,8 +217,8 @@ static PerfJITRecordBatch getRecords(ExecutionSession &ES, LinkGraph &G,
   std::unique_ptr<DWARFContext> DC;
   StringMap<std::unique_ptr<MemoryBuffer>> DCBacking;
   if (EmitDebugInfo) {
-    auto EDC = createDWARFContext(G);
-    if (!EDC) {
+    
+    if (auto EDC = createDWARFContext(G); !EDC) {
       ES.reportError(EDC.takeError());
       EmitDebugInfo = false;
     } else {
@@ -231,15 +231,15 @@ static PerfJITRecordBatch getRecords(ExecutionSession &ES, LinkGraph &G,
     if (!Sym->hasName() || !Sym->isCallable())
       continue;
     if (EmitDebugInfo) {
-      auto DebugInfo = getDebugInfoRecord(*Sym, *DC);
-      if (DebugInfo)
+      
+      if (auto DebugInfo = getDebugInfoRecord(*Sym, *DC); DebugInfo)
         Batch.DebugInfoRecords.push_back(std::move(*DebugInfo));
     }
     Batch.CodeLoadRecords.push_back(getCodeLoadRecord(*Sym, CodeIndex));
   }
   if (EmitUnwindInfo) {
-    auto UWR = getUnwindingRecord(G);
-    if (!UWR) {
+    
+    if (auto UWR = getUnwindingRecord(G); !UWR) {
       ES.reportError(UWR.takeError());
     } else {
       Batch.UnwindingRecord = std::move(*UWR);

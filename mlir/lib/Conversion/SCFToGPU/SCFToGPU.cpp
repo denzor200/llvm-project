@@ -261,8 +261,8 @@ void AffineLoopToGpuConverter::createLaunch(AffineForOp rootForOp,
         en.index() < numBlockDims
             ? getDim3Value(launchOp.getBlockIds(), en.index())
             : getDim3Value(launchOp.getThreadIds(), en.index() - numBlockDims);
-    Value step = steps[en.index()];
-    if (getConstantIntValue(step) != static_cast<int64_t>(1))
+    
+    if (Value step = steps[en.index()]; getConstantIntValue(step) != static_cast<int64_t>(1))
       id = arith::MulIOp::create(builder, rootForOp.getLoc(), step, id);
 
     Value ivReplacement =
@@ -644,13 +644,13 @@ ParallelToGpuLaunchLowering::matchAndRewrite(ParallelOp parallelOp,
   LocalAliasAnalysis aliasAnalysis;
   llvm::DenseSet<Value> writtenBuffer;
   while (!worklist.empty()) {
-    Operation *op = worklist.pop_back_val();
+    
     // Now walk over the body and clone it.
     // TODO: This is only correct if there either is no further scf.parallel
     //       nested or this code has side-effect but the memory buffer is not
     //       alias to inner loop access buffer. Otherwise we might need
     //       predication.
-    if (auto nestedParallel = dyn_cast<ParallelOp>(op)) {
+    if (auto Operation *op = worklist.pop_back_val(); nestedParallel = dyn_cast<ParallelOp>(op)) {
       // Before entering a nested scope, make sure there have been no
       // sideeffects until now or the nested operations do not access the
       // buffer written by outer scope.

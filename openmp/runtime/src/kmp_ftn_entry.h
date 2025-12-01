@@ -215,8 +215,8 @@ void FTN_STDCALL FTN_SET_DISP_NUM_BUFFERS(int KMP_DEREF arg) {
 #else
   // ignore after initialization because some teams have already
   // allocated dispatch buffers
-  int num_buffers = KMP_DEREF arg;
-  if (__kmp_init_serial == FALSE && num_buffers >= KMP_MIN_DISP_NUM_BUFF &&
+  
+  if (int num_buffers = KMP_DEREF arg; __kmp_init_serial == FALSE && num_buffers >= KMP_MIN_DISP_NUM_BUFF &&
       num_buffers <= KMP_MAX_DISP_NUM_BUFF) {
     __kmp_dispatch_num_buffers = num_buffers;
   }
@@ -243,8 +243,8 @@ int FTN_STDCALL FTN_GET_AFFINITY(void **mask) {
     __kmp_middle_initialize();
   }
   __kmp_assign_root_init_mask();
-  int gtid = __kmp_get_gtid();
-  if (__kmp_threads[gtid]->th.th_team->t.t_level == 0 &&
+  
+  if (int gtid = __kmp_get_gtid(); __kmp_threads[gtid]->th.th_team->t.t_level == 0 &&
       __kmp_affinity.flags.reset) {
     __kmp_reset_root_init_mask(gtid);
   }
@@ -764,8 +764,8 @@ int FTN_STDCALL KMP_EXPAND_NAME(FTN_GET_NUM_PROCS)(void) {
   if (!__kmp_affinity.flags.reset) {
     // only bind root here if its affinity reset is not requested
     int gtid = __kmp_entry_gtid();
-    kmp_info_t *thread = __kmp_threads[gtid];
-    if (thread->th.th_team->t.t_level == 0) {
+    
+    if (kmp_info_t *thread = __kmp_threads[gtid]; thread->th.th_team->t.t_level == 0) {
       __kmp_assign_root_init_mask();
     }
   }
@@ -829,8 +829,8 @@ int FTN_STDCALL KMP_EXPAND_NAME(FTN_IN_PARALLEL)(void) {
 #ifdef KMP_STUB
   return 0;
 #else
-  kmp_info_t *th = __kmp_entry_thread();
-  if (th->th.th_teams_microtask) {
+  
+  if (kmp_info_t *th = __kmp_entry_thread(); th->th.th_teams_microtask) {
     // AC: r_in_parallel does not work inside teams construct where real
     // parallel is inactive, but all threads have same root, so setting it in
     // one team affects other teams.
@@ -968,8 +968,8 @@ int FTN_STDCALL KMP_EXPAND_NAME(FTN_GET_NUM_PLACES)(void) {
   if (!__kmp_affinity.flags.reset) {
     // only bind root here if its affinity reset is not requested
     int gtid = __kmp_entry_gtid();
-    kmp_info_t *thread = __kmp_threads[gtid];
-    if (thread->th.th_team->t.t_level == 0) {
+    
+    if (kmp_info_t *thread = __kmp_threads[gtid]; thread->th.th_team->t.t_level == 0) {
       __kmp_assign_root_init_mask();
     }
   }
@@ -991,8 +991,8 @@ int FTN_STDCALL KMP_EXPAND_NAME(FTN_GET_PLACE_NUM_PROCS)(int place_num) {
   if (!__kmp_affinity.flags.reset) {
     // only bind root here if its affinity reset is not requested
     int gtid = __kmp_entry_gtid();
-    kmp_info_t *thread = __kmp_threads[gtid];
-    if (thread->th.th_team->t.t_level == 0) {
+    
+    if (kmp_info_t *thread = __kmp_threads[gtid]; thread->th.th_team->t.t_level == 0) {
       __kmp_assign_root_init_mask();
     }
   }
@@ -1024,8 +1024,8 @@ void FTN_STDCALL KMP_EXPAND_NAME(FTN_GET_PLACE_PROC_IDS)(int place_num,
   if (!__kmp_affinity.flags.reset) {
     // only bind root here if its affinity reset is not requested
     int gtid = __kmp_entry_gtid();
-    kmp_info_t *thread = __kmp_threads[gtid];
-    if (thread->th.th_team->t.t_level == 0) {
+    
+    if (kmp_info_t *thread = __kmp_threads[gtid]; thread->th.th_team->t.t_level == 0) {
       __kmp_assign_root_init_mask();
     }
   }
@@ -1168,8 +1168,8 @@ int FTN_STDCALL KMP_EXPAND_NAME(FTN_GET_NUM_DEVICES)(void) {
 #if KMP_MIC || KMP_OS_DARWIN || KMP_OS_WASI || defined(KMP_STUB)
   return 0;
 #else
-  int (*fptr)();
-  if ((*(void **)(&fptr) = KMP_DLSYM("__tgt_get_num_devices"))) {
+  
+  if (int (*fptr)(); (*(void **)(&fptr) = KMP_DLSYM("__tgt_get_num_devices"))) {
     return (*fptr)();
   } else if ((*(void **)(&fptr) = KMP_DLSYM_NEXT("omp_get_num_devices"))) {
     return (*fptr)();
@@ -1562,8 +1562,8 @@ int FTN_STDCALL KMP_EXPAND_NAME(FTN_PAUSE_RESOURCE)(kmp_pause_status_t kind,
   if (device_num == KMP_EXPAND_NAME(FTN_GET_INITIAL_DEVICE)())
     return __kmpc_pause_resource(kind);
   else {
-    int (*fptr)(kmp_pause_status_t, int);
-    if ((*(void **)(&fptr) = KMP_DLSYM("tgt_pause_resource")))
+    
+    if (int (*fptr)(kmp_pause_status_t, int); (*(void **)(&fptr) = KMP_DLSYM("tgt_pause_resource")))
       return (*fptr)(kind, device_num);
     else
       return 1; // just fail if there is no libomptarget
@@ -1578,8 +1578,8 @@ int FTN_STDCALL
   return 1; // just fail
 #else
   int fails = 0;
-  int (*fptr)(kmp_pause_status_t, int);
-  if ((*(void **)(&fptr) = KMP_DLSYM("tgt_pause_resource")))
+  
+  if (int (*fptr)(kmp_pause_status_t, int); (*(void **)(&fptr) = KMP_DLSYM("tgt_pause_resource")))
     fails = (*fptr)(kind, KMP_DEVICE_ALL); // pause devices
   fails += __kmpc_pause_resource(kind); // pause host
   return fails;
@@ -1693,8 +1693,8 @@ int FTN_STDCALL FTN_GET_NUM_INTEROP_PROPERTIES(const omp_interop_t interop) {
 #if KMP_OS_DARWIN || KMP_OS_WASI || defined(KMP_STUB)
   return 0;
 #else
-  int (*fptr)(const omp_interop_t);
-  if ((*(void **)(&fptr) = KMP_DLSYM_NEXT("omp_get_num_interop_properties")))
+  
+  if (int (*fptr)(const omp_interop_t); (*(void **)(&fptr) = KMP_DLSYM_NEXT("omp_get_num_interop_properties")))
     return (*fptr)(interop);
   return 0;
 #endif
@@ -1708,8 +1708,8 @@ intptr_t FTN_STDCALL FTN_GET_INTEROP_INT(const omp_interop_t interop,
 #if KMP_OS_DARWIN || KMP_OS_WASI || defined(KMP_STUB)
   return 0;
 #else
-  intptr_t (*fptr)(const omp_interop_t, omp_interop_property_t, int *);
-  if ((*(void **)(&fptr) = KMP_DLSYM_NEXT("omp_get_interop_int")))
+  
+  if (intptr_t (*fptr)(const omp_interop_t, omp_interop_property_t, int *); (*(void **)(&fptr) = KMP_DLSYM_NEXT("omp_get_interop_int")))
     return (*fptr)(interop, property_id, err);
   return 0;
 #endif
@@ -1722,8 +1722,8 @@ void *FTN_STDCALL FTN_GET_INTEROP_PTR(const omp_interop_t interop,
 #if KMP_OS_DARWIN || KMP_OS_WASI || defined(KMP_STUB)
   return nullptr;
 #else
-  void *(*fptr)(const omp_interop_t, omp_interop_property_t, int *);
-  if ((*(void **)(&fptr) = KMP_DLSYM_NEXT("omp_get_interop_ptr")))
+  
+  if (void *(*fptr)(const omp_interop_t, omp_interop_property_t, int *); (*(void **)(&fptr) = KMP_DLSYM_NEXT("omp_get_interop_ptr")))
     return (*fptr)(interop, property_id, err);
   return nullptr;
 #endif
@@ -1736,8 +1736,8 @@ const char *FTN_STDCALL FTN_GET_INTEROP_STR(const omp_interop_t interop,
 #if KMP_OS_DARWIN || KMP_OS_WASI || defined(KMP_STUB)
   return nullptr;
 #else
-  const char *(*fptr)(const omp_interop_t, omp_interop_property_t, int *);
-  if ((*(void **)(&fptr) = KMP_DLSYM_NEXT("omp_get_interop_str")))
+  
+  if (const char *(*fptr)(const omp_interop_t, omp_interop_property_t, int *); (*(void **)(&fptr) = KMP_DLSYM_NEXT("omp_get_interop_str")))
     return (*fptr)(interop, property_id, err);
   return nullptr;
 #endif
@@ -1749,8 +1749,8 @@ const char *FTN_STDCALL FTN_GET_INTEROP_NAME(
 #if KMP_OS_DARWIN || KMP_OS_WASI || defined(KMP_STUB)
   return nullptr;
 #else
-  const char *(*fptr)(const omp_interop_t, omp_interop_property_t);
-  if ((*(void **)(&fptr) = KMP_DLSYM_NEXT("omp_get_interop_name")))
+  
+  if (const char *(*fptr)(const omp_interop_t, omp_interop_property_t); (*(void **)(&fptr) = KMP_DLSYM_NEXT("omp_get_interop_name")))
     return (*fptr)(interop, property_id);
   return nullptr;
 #endif
@@ -1762,8 +1762,8 @@ const char *FTN_STDCALL FTN_GET_INTEROP_TYPE_DESC(
 #if KMP_OS_DARWIN || KMP_OS_WASI || defined(KMP_STUB)
   return nullptr;
 #else
-  const char *(*fptr)(const omp_interop_t, omp_interop_property_t);
-  if ((*(void **)(&fptr) = KMP_DLSYM_NEXT("omp_get_interop_type_desc")))
+  
+  if (const char *(*fptr)(const omp_interop_t, omp_interop_property_t); (*(void **)(&fptr) = KMP_DLSYM_NEXT("omp_get_interop_type_desc")))
     return (*fptr)(interop, property_id);
   return nullptr;
 #endif
@@ -1775,8 +1775,8 @@ const char *FTN_STDCALL FTN_GET_INTEROP_RC_DESC(
 #if KMP_OS_DARWIN || KMP_OS_WASI || defined(KMP_STUB)
   return nullptr;
 #else
-  const char *(*fptr)(const omp_interop_t, omp_interop_property_t);
-  if ((*(void **)(&fptr) = KMP_DLSYM_NEXT("omp_get_interop_rec_desc")))
+  
+  if (const char *(*fptr)(const omp_interop_t, omp_interop_property_t); (*(void **)(&fptr) = KMP_DLSYM_NEXT("omp_get_interop_rec_desc")))
     return (*fptr)(interop, property_id);
   return nullptr;
 #endif

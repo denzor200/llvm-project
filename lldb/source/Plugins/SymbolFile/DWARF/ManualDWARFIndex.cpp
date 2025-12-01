@@ -55,8 +55,8 @@ void ManualDWARFIndex::IndexImpl() {
   // file. Type units in dwo files are handled when we reach the dwo file in
   // IndexUnit.
   for (size_t U = 0; U < main_info.GetNumUnits(); ++U) {
-    DWARFUnit *unit = main_info.GetUnitAtIndex(U);
-    if (unit && m_units_to_avoid.count(unit->GetOffset()) == 0)
+    
+    if (DWARFUnit *unit = main_info.GetUnitAtIndex(U); unit && m_units_to_avoid.count(unit->GetOffset()) == 0)
       units_to_index.push_back(unit);
   }
   if (dwp_info && dwp_info->ContainsTypeUnits()) {
@@ -148,9 +148,9 @@ void ManualDWARFIndex::IndexImpl() {
 
 void ManualDWARFIndex::IndexUnit(DWARFUnit &unit, SymbolFileDWARFDwo *dwp,
                                  IndexSet<NameToDIE> &set) {
-  Log *log = GetLog(DWARFLog::Lookups);
+  
 
-  if (log) {
+  if (Log *log = GetLog(DWARFLog::Lookups); log) {
     m_module.LogMessage(
         log, "ManualDWARFIndex::IndexUnit for unit at .debug_info[{0:x16}]",
         unit.GetOffset());
@@ -250,8 +250,8 @@ void ManualDWARFIndex::IndexUnitImpl(DWARFUnit &unit,
     DWARFAttributes attributes = die.GetAttributes(&unit);
     for (size_t i = 0; i < attributes.Size(); ++i) {
       dw_attr_t attr = attributes.AttributeAtIndex(i);
-      DWARFFormValue form_value;
-      switch (attr) {
+      
+      switch (DWARFFormValue form_value; attr) {
       default:
         break;
       case DW_AT_name:
@@ -303,9 +303,9 @@ void ManualDWARFIndex::IndexUnitImpl(DWARFUnit &unit,
           bool is_objc_method = false;
           if (cu_language == eLanguageTypeObjC ||
               cu_language == eLanguageTypeObjC_plus_plus) {
-            std::optional<const ObjCLanguage::ObjCMethodName> objc_method =
-                ObjCLanguage::ObjCMethodName::Create(name, true);
-            if (objc_method) {
+            
+            if (std::optional<const ObjCLanguage::ObjCMethodName> objc_method =
+                ObjCLanguage::ObjCMethodName::Create(name, true); objc_method) {
               is_objc_method = true;
               ConstString class_name_with_category(
                   objc_method->GetClassNameWithCategory());
@@ -574,8 +574,8 @@ bool ManualDWARFIndex::Decode(const DataExtractor &data,
 }
 
 bool ManualDWARFIndex::Encode(DataEncoder &encoder) const {
-  CacheSignature signature(m_dwarf->GetObjectFile());
-  if (!signature.Encode(encoder))
+  
+  if (CacheSignature signature(m_dwarf->GetObjectFile()); !signature.Encode(encoder))
     return false;
   EncodeIndexSet(m_set, encoder);
   return true;

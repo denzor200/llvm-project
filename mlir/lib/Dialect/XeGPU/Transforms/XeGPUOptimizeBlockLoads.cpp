@@ -439,8 +439,8 @@ struct XeGPUOptimizeBlockLoadsPass final
     // is found, exit early.
     bool isTargetSupported = false;
     getOperation()->walk([&](gpu::GPUFuncOp funcOp) {
-      auto chipStr = xegpu::getChipStr(funcOp);
-      if (chipStr && (chipStr.value() == "pvc" || chipStr.value() == "bmg"))
+      
+      if (auto chipStr = xegpu::getChipStr(funcOp); chipStr && (chipStr.value() == "pvc" || chipStr.value() == "bmg"))
         isTargetSupported = true;
     });
 

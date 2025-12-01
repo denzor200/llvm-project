@@ -40,9 +40,9 @@ struct TestAffineLoopParametricTiling
 /// arguments are passed, where 'n' is the number of loops in the loop nest.
 static LogicalResult checkIfTilingParametersExist(ArrayRef<AffineForOp> band) {
   assert(!band.empty() && "no loops in input band");
-  AffineForOp topLoop = band[0];
+  
 
-  if (func::FuncOp funcOp = dyn_cast<func::FuncOp>(topLoop->getParentOp()))
+  if (func::FuncOp AffineForOp topLoop = band[0]; funcOp = dyn_cast<func::FuncOp>(topLoop->getParentOp()))
     if (funcOp.getNumArguments() < band.size())
       return topLoop->emitError(
           "too few tile sizes provided in the argument list of the function "

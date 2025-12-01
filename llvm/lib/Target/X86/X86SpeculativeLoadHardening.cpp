@@ -1414,12 +1414,12 @@ void X86SpeculativeLoadHardeningPass::tracePredStateThroughBlocksAndHarden(
           if (X86InstrInfo::isDataInvariantLoad(MI) && !isEFLAGSDefLive(MI)) {
             // Sink the instruction we'll need to harden as far as we can down
             // the graph.
-            MachineInstr *SunkMI = sinkPostLoadHardenedInst(MI, HardenPostLoad);
+            
 
             // If we managed to sink this instruction, update everything so we
             // harden that instruction when we reach it in the instruction
             // sequence.
-            if (SunkMI != &MI) {
+            if (MachineInstr *SunkMI = sinkPostLoadHardenedInst(MI, HardenPostLoad); SunkMI != &MI) {
               // If in sinking there was no instruction needing to be hardened,
               // we're done.
               if (!SunkMI)
@@ -1797,9 +1797,9 @@ MachineInstr *X86SpeculativeLoadHardeningPass::sinkPostLoadHardenedInst(
 
         MachineOperand &BaseMO =
             UseMI.getOperand(MemRefBeginIdx + X86::AddrBaseReg);
-        MachineOperand &IndexMO =
-            UseMI.getOperand(MemRefBeginIdx + X86::AddrIndexReg);
-        if ((BaseMO.isReg() && BaseMO.getReg() == DefReg) ||
+        
+        if (MachineOperand &IndexMO =
+            UseMI.getOperand(MemRefBeginIdx + X86::AddrIndexReg); (BaseMO.isReg() && BaseMO.getReg() == DefReg) ||
             (IndexMO.isReg() && IndexMO.getReg() == DefReg))
           // The load uses the register as part of its address making it not
           // invariant.

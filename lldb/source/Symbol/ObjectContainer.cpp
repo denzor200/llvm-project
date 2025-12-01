@@ -49,9 +49,9 @@ ObjectContainerSP ObjectContainer::FindPlugin(const lldb::ModuleSP &module_sp,
             PluginManager::GetObjectContainerCreateMemoryCallbackAtIndex(
                 idx)) != nullptr;
        ++idx) {
-    ObjectContainerSP object_container_sp(
-        create_callback(module_sp, data_sp, process_sp, header_addr));
-    if (object_container_sp)
+    
+    if (ObjectContainerSP object_container_sp(
+        create_callback(module_sp, data_sp, process_sp, header_addr)); object_container_sp)
       return object_container_sp;
   }
 

@@ -47,8 +47,8 @@ struct DataForTest {
     Ehdr.e_flags = Flags;
     Ehdr.e_ehsize = sizeof(T);
 
-    bool IsLittleEndian = Encoding == ELF::ELFDATA2LSB;
-    if (sys::IsLittleEndianHost != IsLittleEndian) {
+    
+    if (bool IsLittleEndian = Encoding == ELF::ELFDATA2LSB; sys::IsLittleEndianHost != IsLittleEndian) {
       sys::swapByteOrder(Ehdr.e_type);
       sys::swapByteOrder(Ehdr.e_machine);
       sys::swapByteOrder(Ehdr.e_version);
@@ -323,8 +323,8 @@ template <class ELFT>
 static Expected<ELFObjectFile<ELFT>> toBinary(SmallVectorImpl<char> &Storage,
                                               StringRef Yaml) {
   raw_svector_ostream OS(Storage);
-  yaml::Input YIn(Yaml);
-  if (!yaml::convertYAML(YIn, OS, [](const Twine &Msg) {}))
+  
+  if (yaml::Input YIn(Yaml); !yaml::convertYAML(YIn, OS, [](const Twine &Msg) {}))
     return createStringError(std::errc::invalid_argument,
                              "unable to convert YAML");
   return ELFObjectFile<ELFT>::create(MemoryBufferRef(OS.str(), "dummyELF"));
@@ -1516,8 +1516,8 @@ Sections:
     for (SectionRef Sec : Obj.sections()) {
       Expected<StringRef> SecNameOrErr = Sec.getName();
       ASSERT_THAT_EXPECTED(SecNameOrErr, Succeeded());
-      StringRef SecName = *SecNameOrErr;
-      if (SecName != ".rela.text")
+      
+      if (StringRef SecName = *SecNameOrErr; SecName != ".rela.text")
         continue;
       FoundRela = true;
       Expected<section_iterator> RelSecOrErr = Sec.getRelocatedSection();

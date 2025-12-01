@@ -25,8 +25,8 @@ static void reportNodeError(const SelectionDAG &DAG, const SDNode *N,
 
 static void checkResultType(const SelectionDAG &DAG, const SDNode *N,
                             unsigned ResIdx, EVT ExpectedVT) {
-  EVT ActualVT = N->getValueType(ResIdx);
-  if (ActualVT != ExpectedVT)
+  
+  if (EVT ActualVT = N->getValueType(ResIdx); ActualVT != ExpectedVT)
     reportNodeError(
         DAG, N,
         "result #" + Twine(ResIdx) + " has invalid type; expected " +
@@ -35,8 +35,8 @@ static void checkResultType(const SelectionDAG &DAG, const SDNode *N,
 
 static void checkOperandType(const SelectionDAG &DAG, const SDNode *N,
                              unsigned OpIdx, EVT ExpectedVT) {
-  EVT ActualVT = N->getOperand(OpIdx).getValueType();
-  if (ActualVT != ExpectedVT)
+  
+  if (EVT ActualVT = N->getOperand(OpIdx).getValueType(); ActualVT != ExpectedVT)
     reportNodeError(
         DAG, N,
         "operand #" + Twine(OpIdx) + " has invalid type; expected " +
@@ -78,9 +78,9 @@ void SDNodeInfo::verifyNode(const SelectionDAG &DAG, const SDNode *N) const {
   bool IsVariadic = Desc.hasProperty(SDNPVariadic);
 
   unsigned ActualNumResults = N->getNumValues();
-  unsigned ExpectedNumResults = Desc.NumResults + HasChain + HasOutGlue;
+  
 
-  if (ActualNumResults != ExpectedNumResults)
+  if (unsigned ExpectedNumResults = Desc.NumResults + HasChain + HasOutGlue; ActualNumResults != ExpectedNumResults)
     reportNodeError(DAG, N,
                     "invalid number of results; expected " +
                         Twine(ExpectedNumResults) + ", got " +
@@ -121,8 +121,8 @@ void SDNodeInfo::verifyNode(const SelectionDAG &DAG, const SDNode *N) const {
   // is known and there are no variadic operands.
   if (Desc.NumOperands >= 0 && !IsVariadic) {
     // Account for optional input glue.
-    unsigned ExpectedMaxNumOperands = ExpectedMinNumOperands + HasOptInGlue;
-    if (ActualNumOperands > ExpectedMaxNumOperands) {
+    
+    if (unsigned ExpectedMaxNumOperands = ExpectedMinNumOperands + HasOptInGlue; ActualNumOperands > ExpectedMaxNumOperands) {
       StringRef How = HasOptInGlue ? "at most " : "";
       reportNodeError(DAG, N,
                       "invalid number of operands; expected " + How +
@@ -147,8 +147,8 @@ void SDNodeInfo::verifyNode(const SelectionDAG &DAG, const SDNode *N) const {
     unsigned VarOpStart = HasChain + Desc.NumOperands;
     unsigned VarOpEnd = ActualNumOperands - HasInGlue;
     for (unsigned OpIdx = VarOpStart; OpIdx != VarOpEnd; ++OpIdx) {
-      unsigned OpOpcode = N->getOperand(OpIdx).getOpcode();
-      if (OpOpcode != ISD::Register && OpOpcode != ISD::RegisterMask)
+      
+      if (unsigned OpOpcode = N->getOperand(OpIdx).getOpcode(); OpOpcode != ISD::Register && OpOpcode != ISD::RegisterMask)
         reportNodeError(DAG, N,
                         "variadic operand #" + Twine(OpIdx) +
                             " must be Register or RegisterMask");
@@ -183,9 +183,9 @@ void SDNodeInfo::verifyNode(const SelectionDAG &DAG, const SDNode *N) const {
 
   for (const SDTypeConstraint &C : getConstraints(N->getOpcode())) {
     SDNodeValue Val = GetConstraintValue(C.ConstrainedValIdx);
-    EVT VT = Val.getValueType();
+    
 
-    switch (C.Kind) {
+    switch (EVT VT = Val.getValueType(); C.Kind) {
     case SDTCisVT: {
       EVT ExpectedVT = GetConstraintVT(C);
 

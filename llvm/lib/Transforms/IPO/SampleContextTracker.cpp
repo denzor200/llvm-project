@@ -85,9 +85,9 @@ SampleContextTracker::moveContextSamples(ContextTrieNode &ToNodeParent,
   while (!NodeToUpdate.empty()) {
     ContextTrieNode *Node = NodeToUpdate.front();
     NodeToUpdate.pop();
-    FunctionSamples *FSamples = Node->getFunctionSamples();
+    
 
-    if (FSamples) {
+    if (FunctionSamples *FSamples = Node->getFunctionSamples(); FSamples) {
       setContextNode(FSamples, Node);
       FSamples->getContext().setState(SyntheticContext);
     }
@@ -214,8 +214,8 @@ SampleContextTracker::SampleContextTracker(
 
 void SampleContextTracker::populateFuncToCtxtMap() {
   for (auto *Node : *this) {
-    FunctionSamples *FSamples = Node->getFunctionSamples();
-    if (FSamples) {
+    
+    if (FunctionSamples *FSamples = Node->getFunctionSamples(); FSamples) {
       FSamples->getContext().setState(RawContext);
       setContextNode(FSamples, Node);
       FuncToCtxtProfiles[Node->getFuncName()].push_back(FSamples);
@@ -334,9 +334,9 @@ FunctionSamples *SampleContextTracker::getBaseSamplesFor(FunctionId Name,
     // create synthetic base profile and merge context profiles
     // into base profile.
     for (auto *CSamples : FuncToCtxtProfiles[Name]) {
-      SampleContext &Context = CSamples->getContext();
+      
       // Skip inlined context profile and also don't re-merge any context
-      if (Context.hasState(InlinedContext) || Context.hasState(MergedContext))
+      if (SampleContext &Context = CSamples->getContext(); Context.hasState(InlinedContext) || Context.hasState(MergedContext))
         continue;
 
       ContextTrieNode *FromNode = getContextNodeForProfile(CSamples);
@@ -553,8 +553,8 @@ SampleContextTracker::addTopLevelContextNode(FunctionId FName) {
 void SampleContextTracker::mergeContextNode(ContextTrieNode &FromNode,
                                             ContextTrieNode &ToNode) {
   FunctionSamples *FromSamples = FromNode.getFunctionSamples();
-  FunctionSamples *ToSamples = ToNode.getFunctionSamples();
-  if (FromSamples && ToSamples) {
+  
+  if (FunctionSamples *ToSamples = ToNode.getFunctionSamples(); FromSamples && ToSamples) {
     // Merge/duplicate FromSamples into ToSamples
     ToSamples->merge(*FromSamples);
     ToSamples->getContext().setState(SyntheticContext);
@@ -622,9 +622,9 @@ ContextTrieNode &SampleContextTracker::promoteMergeContextSamplesTree(
 void SampleContextTracker::createContextLessProfileMap(
     SampleProfileMap &ContextLessProfiles) {
   for (auto *Node : *this) {
-    FunctionSamples *FProfile = Node->getFunctionSamples();
+    
     // Profile's context can be empty, use ContextNode's func name.
-    if (FProfile)
+    if (FunctionSamples *FProfile = Node->getFunctionSamples(); FProfile)
       ContextLessProfiles.create(Node->getFuncName()).merge(*FProfile);
   }
 }

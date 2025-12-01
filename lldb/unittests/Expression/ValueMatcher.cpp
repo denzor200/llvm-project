@@ -101,8 +101,8 @@ bool ValueMatcher::MatchAndExplainImpl(const Value &val,
     }
   } else {
     // For Scalar, FileAddress, and LoadAddress compare m_value.
-    const Scalar &actual_scalar = val.GetScalar();
-    if (actual_scalar != m_expected_scalar) {
+    
+    if (const Scalar &actual_scalar = val.GetScalar(); actual_scalar != m_expected_scalar) {
       os << "scalar value mismatch: expected " << m_expected_scalar << ", got "
          << actual_scalar;
       return false;

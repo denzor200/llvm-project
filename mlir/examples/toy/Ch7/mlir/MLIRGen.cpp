@@ -248,16 +248,16 @@ private:
   StructAST *getStructFor(ExprAST *expr) {
     llvm::StringRef structName;
     if (auto *decl = llvm::dyn_cast<VariableExprAST>(expr)) {
-      auto varIt = symbolTable.lookup(decl->getName());
-      if (!varIt.first)
+      
+      if (auto varIt = symbolTable.lookup(decl->getName()); !varIt.first)
         return nullptr;
       structName = varIt.second->getType().name;
     } else if (auto *access = llvm::dyn_cast<BinaryExprAST>(expr)) {
       if (access->getOp() != '.')
         return nullptr;
       // The name being accessed should be in the RHS.
-      auto *name = llvm::dyn_cast<VariableExprAST>(access->getRHS());
-      if (!name)
+      
+      if (auto *name = llvm::dyn_cast<VariableExprAST>(access->getRHS()); !name)
         return nullptr;
       StructAST *parentStruct = getStructFor(access->getLHS());
       if (!parentStruct)
@@ -321,15 +321,15 @@ private:
     //    and the result value is returned. If an error occurs we get a nullptr
     //    and propagate.
     //
-    mlir::Value lhs = mlirGen(*binop.getLHS());
-    if (!lhs)
+    
+    if (mlir::Value lhs = mlirGen(*binop.getLHS()); !lhs)
       return nullptr;
     auto location = loc(binop.loc());
 
     // If this is an access operation, handle it immediately.
     if (binop.getOp() == '.') {
-      std::optional<size_t> accessIndex = getMemberIndex(binop);
-      if (!accessIndex) {
+      
+      if (std::optional<size_t> accessIndex = getMemberIndex(binop); !accessIndex) {
         emitError(location, "invalid access into struct expression");
         return nullptr;
       }
@@ -371,8 +371,8 @@ private:
     auto location = loc(ret.loc());
 
     // 'return' takes an optional expression, handle that case here.
-    mlir::Value expr = nullptr;
-    if (ret.getExpr().has_value()) {
+    
+    if (mlir::Value expr = nullptr; ret.getExpr().has_value()) {
       if (!(expr = mlirGen(**ret.getExpr())))
         return mlir::failure();
     }
@@ -528,8 +528,8 @@ private:
     // Otherwise this is a call to a user-defined function. Calls to
     // user-defined functions are mapped to a custom call that takes the callee
     // name as an attribute.
-    auto calledFuncIt = functionMap.find(callee);
-    if (calledFuncIt == functionMap.end()) {
+    
+    if (auto calledFuncIt = functionMap.find(callee); calledFuncIt == functionMap.end()) {
       emitError(location) << "no defined function found for '" << callee << "'";
       return nullptr;
     }
@@ -542,8 +542,8 @@ private:
   /// Emit a print expression. It emits specific operations for two builtins:
   /// transpose(x) and print(x).
   llvm::LogicalResult mlirGen(PrintExprAST &call) {
-    auto arg = mlirGen(*call.getArg());
-    if (!arg)
+    
+    if (auto arg = mlirGen(*call.getArg()); !arg)
       return mlir::failure();
 
     PrintOp::create(builder, loc(call.loc()), arg);
@@ -665,8 +665,8 @@ private:
   /// getType above for non-struct types).
   mlir::Type getType(const VarType &type, const Location &location) {
     if (!type.name.empty()) {
-      auto it = structMap.find(type.name);
-      if (it == structMap.end()) {
+      
+      if (auto it = structMap.find(type.name); it == structMap.end()) {
         emitError(loc(location))
             << "error: unknown struct type '" << type.name << "'";
         return nullptr;

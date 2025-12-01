@@ -1022,8 +1022,8 @@ AttributeSet::intersectWith(LLVMContext &C, AttributeSet Other) const {
     else if (ItBegin0 == ItEnd0)
       Attr0 = *ItBegin1++;
     else {
-      int Cmp = ItBegin0->cmpKind(*ItBegin1);
-      if (Cmp == 0) {
+      
+      if (int Cmp = ItBegin0->cmpKind(*ItBegin1); Cmp == 0) {
         Attr0 = *ItBegin0++;
         Attr1 = *ItBegin1++;
       } else if (Cmp < 0)
@@ -1104,8 +1104,8 @@ AttributeSet::intersectWith(LLVMContext &C, AttributeSet Other) const {
       case Attribute::Range: {
         ConstantRange Range0 = Attr0.getRange();
         ConstantRange Range1 = Attr1.getRange();
-        ConstantRange NewRange = Range0.unionWith(Range1);
-        if (!NewRange.isFullSet())
+        
+        if (ConstantRange NewRange = Range0.unionWith(Range1); !NewRange.isFullSet())
           Intersected.addRangeAttr(NewRange);
       } break;
       default:
@@ -1759,8 +1759,8 @@ AttributeList AttributeList::addParamAttribute(LLVMContext &C,
   assert(llvm::is_sorted(ArgNos));
 
   SmallVector<AttributeSet, 4> AttrSets(this->begin(), this->end());
-  unsigned MaxIndex = attrIdxToArrayIdx(ArgNos.back() + FirstArgIndex);
-  if (MaxIndex >= AttrSets.size())
+  
+  if (unsigned MaxIndex = attrIdxToArrayIdx(ArgNos.back() + FirstArgIndex); MaxIndex >= AttrSets.size())
     AttrSets.resize(MaxIndex + 1);
 
   for (unsigned ArgNo : ArgNos) {
@@ -2120,8 +2120,8 @@ struct AttributeComparator {
 template <typename K>
 static void addAttributeImpl(SmallVectorImpl<Attribute> &Attrs, K Kind,
                              Attribute Attr) {
-  auto It = lower_bound(Attrs, Kind, AttributeComparator());
-  if (It != Attrs.end() && It->hasAttribute(Kind))
+  
+  if (auto It = lower_bound(Attrs, Kind, AttributeComparator()); It != Attrs.end() && It->hasAttribute(Kind))
     std::swap(*It, Attr);
   else
     Attrs.insert(It, Attr);
@@ -2147,15 +2147,15 @@ AttrBuilder &AttrBuilder::addAttribute(StringRef A, StringRef V) {
 
 AttrBuilder &AttrBuilder::removeAttribute(Attribute::AttrKind Val) {
   assert((unsigned)Val < Attribute::EndAttrKinds && "Attribute out of range!");
-  auto It = lower_bound(Attrs, Val, AttributeComparator());
-  if (It != Attrs.end() && It->hasAttribute(Val))
+  
+  if (auto It = lower_bound(Attrs, Val, AttributeComparator()); It != Attrs.end() && It->hasAttribute(Val))
     Attrs.erase(It);
   return *this;
 }
 
 AttrBuilder &AttrBuilder::removeAttribute(StringRef A) {
-  auto It = lower_bound(Attrs, A, AttributeComparator());
-  if (It != Attrs.end() && It->hasAttribute(A))
+  
+  if (auto It = lower_bound(Attrs, A, AttributeComparator()); It != Attrs.end() && It->hasAttribute(A))
     Attrs.erase(It);
   return *this;
 }
@@ -2365,15 +2365,15 @@ bool AttrBuilder::overlaps(const AttributeMask &AM) const {
 
 Attribute AttrBuilder::getAttribute(Attribute::AttrKind A) const {
   assert((unsigned)A < Attribute::EndAttrKinds && "Attribute out of range!");
-  auto It = lower_bound(Attrs, A, AttributeComparator());
-  if (It != Attrs.end() && It->hasAttribute(A))
+  
+  if (auto It = lower_bound(Attrs, A, AttributeComparator()); It != Attrs.end() && It->hasAttribute(A))
     return *It;
   return {};
 }
 
 Attribute AttrBuilder::getAttribute(StringRef A) const {
-  auto It = lower_bound(Attrs, A, AttributeComparator());
-  if (It != Attrs.end() && It->hasAttribute(A))
+  
+  if (auto It = lower_bound(Attrs, A, AttributeComparator()); It != Attrs.end() && It->hasAttribute(A))
     return *It;
   return {};
 }
@@ -2425,8 +2425,8 @@ AttributeMask AttributeFuncs::typeIncompatible(Type *Ty, AttributeSet AS,
     if (ASK & ASK_SAFE_TO_DROP)
       Incompatible.addAttribute(Attribute::Range);
   } else {
-    Attribute RangeAttr = AS.getAttribute(Attribute::Range);
-    if (RangeAttr.isValid() &&
+    
+    if (Attribute RangeAttr = AS.getAttribute(Attribute::Range); RangeAttr.isValid() &&
         RangeAttr.getRange().getBitWidth() != Ty->getScalarSizeInBits())
       Incompatible.addAttribute(Attribute::Range);
   }
@@ -2505,9 +2505,9 @@ static bool denormModeCompatible(DenormalMode CallerMode,
 
 static bool checkDenormMode(const Function &Caller, const Function &Callee) {
   DenormalMode CallerMode = Caller.getDenormalModeRaw();
-  DenormalMode CalleeMode = Callee.getDenormalModeRaw();
+  
 
-  if (denormModeCompatible(CallerMode, CalleeMode)) {
+  if (DenormalMode CalleeMode = Callee.getDenormalModeRaw(); denormModeCompatible(CallerMode, CalleeMode)) {
     DenormalMode CallerModeF32 = Caller.getDenormalModeF32Raw();
     DenormalMode CalleeModeF32 = Callee.getDenormalModeF32Raw();
     if (CallerModeF32 == DenormalMode::getInvalid())
@@ -2606,10 +2606,10 @@ static void adjustCallerStackProbes(Function &Caller, const Function &Callee) {
 /// that is no larger.
 static void
 adjustCallerStackProbeSize(Function &Caller, const Function &Callee) {
-  Attribute CalleeAttr = Callee.getFnAttribute("stack-probe-size");
-  if (CalleeAttr.isValid()) {
-    Attribute CallerAttr = Caller.getFnAttribute("stack-probe-size");
-    if (CallerAttr.isValid()) {
+  
+  if (Attribute CalleeAttr = Callee.getFnAttribute("stack-probe-size"); CalleeAttr.isValid()) {
+    
+    if (Attribute CallerAttr = Caller.getFnAttribute("stack-probe-size"); CallerAttr.isValid()) {
       uint64_t CallerStackProbeSize, CalleeStackProbeSize;
       CallerAttr.getValueAsString().getAsInteger(0, CallerStackProbeSize);
       CalleeAttr.getValueAsString().getAsInteger(0, CalleeStackProbeSize);
@@ -2634,10 +2634,10 @@ adjustCallerStackProbeSize(Function &Caller, const Function &Callee) {
 /// handled as part of inline cost analysis.
 static void
 adjustMinLegalVectorWidth(Function &Caller, const Function &Callee) {
-  Attribute CallerAttr = Caller.getFnAttribute("min-legal-vector-width");
-  if (CallerAttr.isValid()) {
-    Attribute CalleeAttr = Callee.getFnAttribute("min-legal-vector-width");
-    if (CalleeAttr.isValid()) {
+  
+  if (Attribute CallerAttr = Caller.getFnAttribute("min-legal-vector-width"); CallerAttr.isValid()) {
+    
+    if (Attribute CalleeAttr = Callee.getFnAttribute("min-legal-vector-width"); CalleeAttr.isValid()) {
       uint64_t CallerVectorWidth, CalleeVectorWidth;
       CallerAttr.getValueAsString().getAsInteger(0, CallerVectorWidth);
       CalleeAttr.getValueAsString().getAsInteger(0, CalleeVectorWidth);
@@ -2734,8 +2734,8 @@ void AttributeFuncs::mergeAttributesForOutlining(Function &Base,
 
 void AttributeFuncs::updateMinLegalVectorWidthAttr(Function &Fn,
                                                    uint64_t Width) {
-  Attribute Attr = Fn.getFnAttribute("min-legal-vector-width");
-  if (Attr.isValid()) {
+  
+  if (Attribute Attr = Fn.getFnAttribute("min-legal-vector-width"); Attr.isValid()) {
     uint64_t OldWidth;
     Attr.getValueAsString().getAsInteger(0, OldWidth);
     if (Width > OldWidth)

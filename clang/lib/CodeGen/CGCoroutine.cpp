@@ -160,8 +160,8 @@ static bool StmtCanThrow(const Stmt *S) {
     // temporary is not part of `children()` as covered in the fall through.
     // We need to mark entire statement as throwing if the destructor of the
     // temporary throws.
-    const auto *Dtor = TE->getTemporary()->getDestructor();
-    if (FunctionCanThrow(Dtor))
+    
+    if (const auto *Dtor = TE->getTemporary()->getDestructor(); FunctionCanThrow(Dtor))
       return true;
 
     // Fall through to visit the children.
@@ -388,8 +388,8 @@ RValue CodeGenFunction::EmitCoyieldExpr(const CoyieldExpr &E,
 
 void CodeGenFunction::EmitCoreturnStmt(CoreturnStmt const &S) {
   ++CurCoro.Data->CoreturnCount;
-  const Expr *RV = S.getOperand();
-  if (RV && RV->getType()->isVoidType() && !isa<InitListExpr>(RV)) {
+  
+  if (const Expr *RV = S.getOperand(); RV && RV->getType()->isVoidType() && !isa<InitListExpr>(RV)) {
     // Make sure to evaluate the non initlist expression of a co_return
     // with a void expression for side effects.
     RunCleanupsScope cleanupScope(*this);
@@ -774,8 +774,8 @@ struct GetReturnObjectManager {
 static void emitBodyAndFallthrough(CodeGenFunction &CGF,
                                    const CoroutineBodyStmt &S, Stmt *Body) {
   CGF.EmitStmt(Body);
-  const bool CanFallthrough = CGF.Builder.GetInsertBlock();
-  if (CanFallthrough)
+  
+  if (const bool CanFallthrough = CGF.Builder.GetInsertBlock(); CanFallthrough)
     if (Stmt *OnFallthrough = S.getFallthroughHandler())
       CGF.EmitStmt(OnFallthrough);
 }
@@ -869,8 +869,8 @@ void CodeGenFunction::EmitCoroutineBody(const CoroutineBodyStmt &S) {
       // ensure that parameters destroyed in callees, as with `trivial_abi` or
       // in the MSVC C++ ABI, are appropriately destroyed after setting up the
       // coroutine.
-      Address ParmAddr = GetAddrOfLocalVar(Parm);
-      if (auto *ParmAlloca =
+      
+      if (auto *Address ParmAddr = GetAddrOfLocalVar(Parm); ParmAlloca =
               dyn_cast<llvm::AllocaInst>(ParmAddr.getBasePointer())) {
         ParmAlloca->setMetadata(llvm::LLVMContext::MD_coro_outside_frame,
                                 llvm::MDNode::get(CGM.getLLVMContext(), {}));
@@ -941,8 +941,8 @@ void CodeGenFunction::EmitCoroutineBody(const CoroutineBodyStmt &S) {
 
     // See if we need to generate final suspend.
     const bool CanFallthrough = Builder.GetInsertBlock();
-    const bool HasCoreturns = CurCoro.Data->CoreturnCount > 0;
-    if (CanFallthrough || HasCoreturns) {
+    
+    if (const bool HasCoreturns = CurCoro.Data->CoreturnCount > 0; CanFallthrough || HasCoreturns) {
       EmitBlock(FinalBB);
       CurCoro.Data->CurrentAwaitKind = AwaitKind::Final;
       EmitStmt(S.getFinalSuspendStmt());

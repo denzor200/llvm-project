@@ -166,8 +166,8 @@ std::vector<Fix> IncludeFixer::fix(DiagnosticsEngine::Level DiagLevel,
     // incomplete type.
     for (unsigned Idx = 0; Idx < Info.getNumArgs(); ++Idx) {
       if (Info.getArgKind(Idx) == DiagnosticsEngine::ak_qualtype) {
-        auto QT = QualType::getFromOpaquePtr((void *)Info.getRawArg(Idx));
-        if (const Type *T = QT.getTypePtrOrNull()) {
+        
+        if (const Type *auto QT = QualType::getFromOpaquePtr((void *)Info.getRawArg(Idx)); T = QT.getTypePtrOrNull()) {
           if (T->isIncompleteType())
             return fixIncompleteType(*T);
           // `enum x : int;' is not formally an incomplete type.
@@ -400,14 +400,14 @@ std::optional<CheapUnresolvedName> extractUnresolvedNameCheaply(
   CheapUnresolvedName Result;
   Result.Name = Unresolved.getAsString();
   if (SS && SS->isNotEmpty()) { // "::" or "ns::"
-    NestedNameSpecifier Nested = SS->getScopeRep();
-    if (Nested.getKind() == NestedNameSpecifier::Kind::Global) {
+    
+    if (NestedNameSpecifier Nested = SS->getScopeRep(); Nested.getKind() == NestedNameSpecifier::Kind::Global) {
       Result.ResolvedScope = "";
     } else if (Nested.getKind() == NestedNameSpecifier::Kind::Namespace) {
       const NamespaceBaseDecl *NSB = Nested.getAsNamespaceAndPrefix().Namespace;
       if (const auto *NS = dyn_cast<NamespaceDecl>(NSB)) {
         std::string SpecifiedNS = printNamespaceScope(*NS);
-        std::optional<std::string> Spelling = getSpelledSpecifier(*SS, SM);
+        
 
         // Check the specifier spelled in the source.
         // If the resolved scope doesn't end with the spelled scope, the
@@ -417,7 +417,7 @@ std::optional<CheapUnresolvedName> extractUnresolvedNameCheaply(
         //     namespace clang { clangd::X; }
         // In this case, we use the "typo" specifier as extra scope instead
         // of using the scope assumed by sema.
-        if (!Spelling || llvm::StringRef(SpecifiedNS).ends_with(*Spelling)) {
+        if (std::optional<std::string> Spelling = getSpelledSpecifier(*SS, SM); !Spelling || llvm::StringRef(SpecifiedNS).ends_with(*Spelling)) {
           Result.ResolvedScope = std::move(SpecifiedNS);
         } else {
           Result.UnresolvedScope = std::move(*Spelling);

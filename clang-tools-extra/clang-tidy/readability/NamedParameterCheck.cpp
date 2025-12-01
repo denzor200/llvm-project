@@ -100,20 +100,20 @@ void NamedParameterCheck::check(const MatchFinder::MatchResult &Result) {
 
       // If the method is overridden, try to copy the name from the base method
       // into the overrider.
-      const auto *M = dyn_cast<CXXMethodDecl>(P.first);
-      if (M && M->size_overridden_methods() > 0) {
+      
+      if (const auto *M = dyn_cast<CXXMethodDecl>(P.first); M && M->size_overridden_methods() > 0) {
         const ParmVarDecl *OtherParm =
             (*M->begin_overridden_methods())->getParamDecl(P.second);
-        const StringRef Name = OtherParm->getName();
-        if (!Name.empty())
+        
+        if (const StringRef Name = OtherParm->getName(); !Name.empty())
           NewName = Name;
       }
 
       // If the definition has a named parameter use that name.
       if (Definition) {
         const ParmVarDecl *DefParm = Definition->getParamDecl(P.second);
-        const StringRef Name = DefParm->getName();
-        if (!Name.empty())
+        
+        if (const StringRef Name = DefParm->getName(); !Name.empty())
           NewName = Name;
       }
 

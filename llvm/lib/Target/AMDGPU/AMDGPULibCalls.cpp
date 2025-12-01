@@ -440,9 +440,9 @@ void AMDGPULibCalls::initNativeFuncs() {
 
 bool AMDGPULibCalls::sincosUseNative(CallInst *aCI, const FuncInfo &FInfo) {
   bool native_sin = useNativeFunc("sin");
-  bool native_cos = useNativeFunc("cos");
+  
 
-  if (native_sin && native_cos) {
+  if (bool native_cos = useNativeFunc("cos"); native_sin && native_cos) {
     Module *M = aCI->getModule();
     Value *opr0 = aCI->getArgOperand(0);
 
@@ -456,8 +456,8 @@ bool AMDGPULibCalls::sincosUseNative(CallInst *aCI, const FuncInfo &FInfo) {
 
     nf.setPrefix(AMDGPULibFunc::NATIVE);
     nf.setId(AMDGPULibFunc::EI_COS);
-    FunctionCallee cosExpr = getFunction(M, nf);
-    if (sinExpr && cosExpr) {
+    
+    if (FunctionCallee cosExpr = getFunction(M, nf); sinExpr && cosExpr) {
       Value *sinval =
           CallInst::Create(sinExpr, opr0, "splitsin", aCI->getIterator());
       Value *cosval =
@@ -574,8 +574,8 @@ static bool isKnownIntegral(const Value *V, const DataLayout &DL,
     return CF->getValueAPF().isInteger();
 
   auto *VFVTy = dyn_cast<FixedVectorType>(V->getType());
-  const Constant *CV = dyn_cast<Constant>(V);
-  if (VFVTy && CV) {
+  
+  if (const Constant *CV = dyn_cast<Constant>(V); VFVTy && CV) {
     unsigned NumElts = VFVTy->getNumElements();
     for (unsigned i = 0; i != NumElts; ++i) {
       Constant *Elt = CV->getAggregateElement(i);
@@ -607,8 +607,8 @@ static bool isKnownIntegral(const Value *V, const DataLayout &DL,
     // knows how to do already.
     return isKnownNeverInfinity(I, SimplifyQuery(DL));
   case Instruction::Call: {
-    const CallInst *CI = cast<CallInst>(I);
-    switch (CI->getIntrinsicID()) {
+    
+    switch (const CallInst *CI = cast<CallInst>(I); CI->getIntrinsicID()) {
     case Intrinsic::trunc:
     case Intrinsic::floor:
     case Intrinsic::ceil:
@@ -766,8 +766,8 @@ bool AMDGPULibCalls::fold(CallInst *CI) {
                           FPOp->getFastMathFlags())) {
         FunctionType *PownType = getPownType(CI->getFunctionType());
         AMDGPULibFunc PownInfo(AMDGPULibFunc::EI_POWN, PownType, true);
-        FunctionCallee PownFunc = getFunction(M, PownInfo);
-        if (PownFunc) {
+        
+        if (FunctionCallee PownFunc = getFunction(M, PownInfo); PownFunc) {
           // TODO: If the incoming integral value is an sitofp/uitofp, it won't
           // fold out without a known range. We can probably take the source
           // value directly.
@@ -946,8 +946,8 @@ bool AMDGPULibCalls::fold_pow(FPMathOperator *FPOp, IRBuilder<> &B,
 
   if (CF && (CF->isExactlyValue(0.5) || CF->isExactlyValue(-0.5))) {
     // pow[r](x, [-]0.5) = sqrt(x)
-    bool issqrt = CF->isExactlyValue(0.5);
-    if (FunctionCallee FPExpr =
+    
+    if (FunctionCallee bool issqrt = CF->isExactlyValue(0.5); FPExpr =
             getFunction(M, AMDGPULibFunc(issqrt ? AMDGPULibFunc::EI_SQRT
                                                 : AMDGPULibFunc::EI_RSQRT,
                                          FInfo))) {
@@ -970,8 +970,8 @@ bool AMDGPULibCalls::fold_pow(FPMathOperator *FPOp, IRBuilder<> &B,
     double dval = (getArgType(FInfo) == AMDGPULibFunc::F32)
                       ? (double)CF->convertToFloat()
                       : CF->convertToDouble();
-    int ival = (int)dval;
-    if ((double)ival == dval) {
+    
+    if (int ival = (int)dval; (double)ival == dval) {
       ci_opr1 = ival;
     } else
       ci_opr1 = 0x11111111;
@@ -1052,9 +1052,9 @@ bool AMDGPULibCalls::fold_pow(FPMathOperator *FPOp, IRBuilder<> &B,
       needcopysign = needabs = FInfo.getId() != AMDGPULibFunc::EI_POWR;
     }
   } else {
-    ConstantDataVector *CDV = dyn_cast<ConstantDataVector>(opr0);
+    
 
-    if (!CDV) {
+    if (ConstantDataVector *CDV = dyn_cast<ConstantDataVector>(opr0); !CDV) {
       needlog = true;
       needcopysign = needabs = FInfo.getId() != AMDGPULibFunc::EI_POWR;
     } else {
@@ -1277,8 +1277,8 @@ void AMDGPULibCalls::replaceLibCallWithSimpleIntrinsic(IRBuilder<> &B,
     Value *Arg0 = CI->getArgOperand(0);
     Value *Arg1 = CI->getArgOperand(1);
     VectorType *Arg0VecTy = dyn_cast<VectorType>(Arg0->getType());
-    VectorType *Arg1VecTy = dyn_cast<VectorType>(Arg1->getType());
-    if (Arg0VecTy && !Arg1VecTy) {
+    
+    if (VectorType *Arg1VecTy = dyn_cast<VectorType>(Arg1->getType()); Arg0VecTy && !Arg1VecTy) {
       Value *SplatRHS = B.CreateVectorSplat(Arg0VecTy->getElementCount(), Arg1);
       CI->setArgOperand(1, SplatRHS);
     } else if (!Arg0VecTy && Arg1VecTy) {
@@ -1650,8 +1650,8 @@ bool AMDGPULibCalls::evaluateCall(CallInst *aCI, const FuncInfo &FInfo) {
     ConstantDataVector *CDV1 = dyn_cast_or_null<ConstantDataVector>(copr1);
     for (int i = 0; i < FuncVecSize; ++i) {
       Constant *celt0 = CDV0 ? CDV0->getElementAsConstant(i) : nullptr;
-      Constant *celt1 = CDV1 ? CDV1->getElementAsConstant(i) : nullptr;
-      if (!evaluateScalarMathFunc(FInfo, DVal0[i], DVal1[i], celt0, celt1)) {
+      
+      if (Constant *celt1 = CDV1 ? CDV1->getElementAsConstant(i) : nullptr; !evaluateScalarMathFunc(FInfo, DVal0[i], DVal1[i], celt0, celt1)) {
         return false;
       }
     }

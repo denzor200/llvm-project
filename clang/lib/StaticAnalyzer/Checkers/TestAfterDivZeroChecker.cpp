@@ -100,8 +100,8 @@ DivisionBRVisitor::VisitNode(const ExplodedNode *Succ, BugReporterContext &BRC,
 
   if (std::optional<PostStmt> P = Succ->getLocationAs<PostStmt>())
     if (const BinaryOperator *BO = P->getStmtAs<BinaryOperator>()) {
-      BinaryOperator::Opcode Op = BO->getOpcode();
-      if (Op == BO_Div || Op == BO_Rem || Op == BO_DivAssign ||
+      
+      if (BinaryOperator::Opcode Op = BO->getOpcode(); Op == BO_Div || Op == BO_Rem || Op == BO_DivAssign ||
           Op == BO_RemAssign) {
         E = BO->getRHS();
       }
@@ -192,12 +192,12 @@ void TestAfterDivZeroChecker::checkEndFunction(const ReturnStmt *,
 
 void TestAfterDivZeroChecker::checkPreStmt(const BinaryOperator *B,
                                            CheckerContext &C) const {
-  BinaryOperator::Opcode Op = B->getOpcode();
-  if (Op == BO_Div || Op == BO_Rem || Op == BO_DivAssign ||
+  
+  if (BinaryOperator::Opcode Op = B->getOpcode(); Op == BO_Div || Op == BO_Rem || Op == BO_DivAssign ||
       Op == BO_RemAssign) {
-    SVal S = C.getSVal(B->getRHS());
+    
 
-    if (!isZero(S, C))
+    if (SVal S = C.getSVal(B->getRHS()); !isZero(S, C))
       setDivZeroMap(S, C);
   }
 }
@@ -237,14 +237,14 @@ void TestAfterDivZeroChecker::checkBranchCondition(const Stmt *Condition,
     }
   } else if (const ImplicitCastExpr *IE =
                  dyn_cast<ImplicitCastExpr>(Condition)) {
-    SVal Val = C.getSVal(IE->getSubExpr());
+    
 
-    if (hasDivZeroMap(Val, C))
+    if (SVal Val = C.getSVal(IE->getSubExpr()); hasDivZeroMap(Val, C))
       reportBug(Val, C);
     else {
-      SVal Val = C.getSVal(Condition);
+      
 
-      if (hasDivZeroMap(Val, C))
+      if (SVal Val = C.getSVal(Condition); hasDivZeroMap(Val, C))
         reportBug(Val, C);
     }
   }

@@ -155,11 +155,11 @@ XeGPUBlockingPass::getTileShape(const T &operandOrResult) const {
       // upstream vector remove leading unit dims patterns,
       // populateCastAwayVectorLeadingOneDimPatterns.
       Operation *definingOp = value.getDefiningOp();
-      bool skipLeadingUnitDimRemoval =
+      
+      if (bool skipLeadingUnitDimRemoval =
           definingOp &&
           (isa<xegpu::CreateNdDescOp, xegpu::LoadNdOp, xegpu::DpasOp,
-               xegpu::StoreNdOp, xegpu::PrefetchNdOp>(definingOp));
-      if (!skipLeadingUnitDimRemoval) {
+               xegpu::StoreNdOp, xegpu::PrefetchNdOp>(definingOp)); !skipLeadingUnitDimRemoval) {
         auto it = llvm::find_if(instData, [](auto val) { return val != 1; });
         instData.erase(instData.begin(), it);
       }
@@ -214,8 +214,8 @@ XeGPUBlockingPass::getTileShape(Operation *op) const {
     if (op->getNumOperands() == 3) {
       std::optional<SmallVector<int64_t>> cTile =
           getTileShape(op->getOpOperand(2));
-      int64_t expectedCTile[2] = {(*aTile)[0], (*bTile)[1]};
-      if (!cTile || !llvm::equal(*cTile, expectedCTile))
+      
+      if (int64_t expectedCTile[2] = {(*aTile)[0], (*bTile)[1]}; !cTile || !llvm::equal(*cTile, expectedCTile))
         return std::nullopt;
     }
 
@@ -368,9 +368,9 @@ void XeGPUBlockingPass::runOnOperation() {
       // If the encoding is a ScatterTensorDescAttr, we need to
       // potentially adjust the chunk size based on the inst_data.
       if (tdescTy.isScattered()) {
-        int64_t chunkSize = tdescTy.getChunkSizeAsInt();
+        
 
-        if (chunkSize > 1) {
+        if (int64_t chunkSize = tdescTy.getChunkSizeAsInt(); chunkSize > 1) {
           int64_t blockedChunkSize = chunkSize;
           auto instData = tdescTy.getLayoutAttr().getInstData();
           if (!instData.empty())
@@ -412,15 +412,15 @@ void XeGPUBlockingPass::runOnOperation() {
   op->walk([](Operation *op) {
     // Remove the layout attributes cached per operands.
     for (OpOperand &opr : op->getOpOperands()) {
-      std::string name = xegpu::getLayoutName(opr);
-      if (op->hasAttrOfType<xegpu::LayoutAttr>(name))
+      
+      if (std::string name = xegpu::getLayoutName(opr); op->hasAttrOfType<xegpu::LayoutAttr>(name))
         op->removeAttr(name);
     }
 
     // Update the layout attributes per result.
     for (OpResult result : op->getOpResults()) {
-      std::string name = xegpu::getLayoutName(result);
-      if (auto layout = op->getAttrOfType<xegpu::LayoutAttr>(name)) {
+      
+      if (auto std::string name = xegpu::getLayoutName(result); layout = op->getAttrOfType<xegpu::LayoutAttr>(name)) {
         op->removeAttr(name);
         if (!isa<LoopLikeOpInterface>(op))
           xegpu::setDistributeLayoutAttr(result, layout.dropInstData());

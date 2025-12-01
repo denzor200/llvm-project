@@ -202,8 +202,8 @@ ErrorOr<std::string> llvm::FindProgramByName(const std::string &ExeName,
   // this if ProgramPath contains at least one / character, indicating that it
   // is a relative path to the executable itself.
   std::string Main = sys::fs::getMainExecutable(Argv0, MainAddr);
-  StringRef Result = sys::path::parent_path(Main);
-  if (ErrorOr<std::string> Path = sys::findProgramByName(ExeName, Result))
+  
+  if (ErrorOr<std::string> StringRef Result = sys::path::parent_path(Main); Path = sys::findProgramByName(ExeName, Result))
     return *Path;
 
   // Check the user PATH.

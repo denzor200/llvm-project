@@ -148,8 +148,8 @@ line_entry_helper(Target &target, const SymbolContext &sc, Symbol *symbol,
 
   Address address = sc.GetFunctionOrSymbolAddress();
 
-  Address addr;
-  if (target.ResolveLoadAddress(address.GetCallableLoadAddress(&target),
+  
+  if (Address addr; target.ResolveLoadAddress(address.GetCallableLoadAddress(&target),
                                 addr)) {
     LineEntry line_entry;
     addr.CalculateSymbolContextLineEntry(line_entry);
@@ -217,9 +217,9 @@ CPPLanguageRuntime::FindLibCppStdFunctionCallableInfo(
   ValueObjectSP member_f_(valobj_sp->GetChildMemberWithName("__f_"));
 
   if (member_f_) {
-    ValueObjectSP sub_member_f_(member_f_->GetChildMemberWithName("__f_"));
+    
 
-    if (sub_member_f_)
+    if (ValueObjectSP sub_member_f_(member_f_->GetChildMemberWithName("__f_")); sub_member_f_)
       member_f_ = sub_member_f_;
   }
 
@@ -457,10 +457,10 @@ CPPLanguageRuntime::GetStepThroughTrampolinePlan(Thread &thread,
   if (frame) {
     ValueObjectSP value_sp = frame->FindVariable(g_this);
 
-    CPPLanguageRuntime::LibCppStdFunctionCallableInfo callable_info =
-        FindLibCppStdFunctionCallableInfo(value_sp);
+    
 
-    if (callable_info.callable_case != LibCppStdFunctionCallableCase::Invalid &&
+    if (CPPLanguageRuntime::LibCppStdFunctionCallableInfo callable_info =
+        FindLibCppStdFunctionCallableInfo(value_sp); callable_info.callable_case != LibCppStdFunctionCallableCase::Invalid &&
         value_sp->GetValueIsValid()) {
       // We found the std::function wrapped callable and we have its address.
       // We now create a ThreadPlan to run to the callable.

@@ -293,8 +293,7 @@ public:
         Ctx.GetHigherPrecisionFPType(ElementType);
     const llvm::fltSemantics &ElementTypeSemantics =
         Ctx.getFloatTypeSemantics(ElementType);
-    const llvm::fltSemantics &HigherElementTypeSemantics =
-        Ctx.getFloatTypeSemantics(HigherElementType);
+    
     // Check that the promoted type can handle the intermediate values without
     // overflowing. This can be interpreted as:
     // (SmallerType.LargestFiniteVal * SmallerType.LargestFiniteVal) * 2 <=
@@ -302,7 +301,8 @@ public:
     // In terms of exponent it gives this formula:
     // (SmallerType.LargestFiniteVal * SmallerType.LargestFiniteVal
     // doubles the exponent of SmallerType.LargestFiniteVal)
-    if (llvm::APFloat::semanticsMaxExponent(ElementTypeSemantics) * 2 + 1 <=
+    if (const llvm::fltSemantics &HigherElementTypeSemantics =
+        Ctx.getFloatTypeSemantics(HigherElementType); llvm::APFloat::semanticsMaxExponent(ElementTypeSemantics) * 2 + 1 <=
         llvm::APFloat::semanticsMaxExponent(HigherElementTypeSemantics)) {
       if (!Ctx.getTargetInfo().hasLongDoubleType() &&
           HigherElementType.getCanonicalType().getUnqualifiedType() ==
@@ -325,11 +325,11 @@ public:
       bool IsComplexRangePromoted = CGF.getLangOpts().getComplexRange() ==
                                     LangOptions::ComplexRangeKind::CX_Promoted;
       bool HasNoComplexRangeOverride = !Features.hasComplexRangeOverride();
-      bool HasMatchingComplexRange = Features.hasComplexRangeOverride() &&
-                                     Features.getComplexRangeOverride() ==
-                                         CGF.getLangOpts().getComplexRange();
+      
 
-      if (IsComplexDivisor && IsFloatingType && IsComplexRangePromoted &&
+      if (bool HasMatchingComplexRange = Features.hasComplexRangeOverride() &&
+                                     Features.getComplexRangeOverride() ==
+                                         CGF.getLangOpts().getComplexRange(); IsComplexDivisor && IsFloatingType && IsComplexRangePromoted &&
           (HasNoComplexRangeOverride || HasMatchingComplexRange))
         return HigherPrecisionTypeForComplexArithmetic(ElementType);
       if (ElementType.UseExcessPrecision(CGF.getContext()))
@@ -822,9 +822,9 @@ static StringRef getComplexMultiplyLibCallName(llvm::Type *Ty) {
 ComplexPairTy ComplexExprEmitter::EmitBinMul(const BinOpInfo &Op) {
   using llvm::Value;
   Value *ResR, *ResI;
-  llvm::MDBuilder MDHelper(CGF.getLLVMContext());
+  
 
-  if (Op.LHS.first->getType()->isFloatingPointTy()) {
+  if (llvm::MDBuilder MDHelper(CGF.getLLVMContext()); Op.LHS.first->getType()->isFloatingPointTy()) {
     // The general formulation is:
     // (a + ib) * (c + id) = (a * c - b * d) + i(a * d + b * c)
     //
@@ -1163,8 +1163,8 @@ ComplexPairTy ComplexExprEmitter::EmitPromoted(const Expr *E,
       break;
     }
   }
-  auto result = Visit(const_cast<Expr *>(E));
-  if (!PromotionType.isNull())
+  
+  if (auto result = Visit(const_cast<Expr *>(E)); !PromotionType.isNull())
     return CGF.EmitPromotedValue(result, PromotionType);
   else
     return result;
@@ -1276,8 +1276,8 @@ EmitCompoundAssignLValue(const CompoundAssignOperator *E,
       getPromotionType(E->getStoredFPFeaturesOrDefault(),
                        E->getComputationLHSType(), IsComplexDivisor);
   if (LHSTy->isAnyComplexType()) {
-    ComplexPairTy LHSVal = EmitLoadOfLValue(LHS, Loc);
-    if (!PromotionTypeLHS.isNull())
+    
+    if (ComplexPairTy LHSVal = EmitLoadOfLValue(LHS, Loc); !PromotionTypeLHS.isNull())
       OpInfo.LHS =
           EmitComplexToComplexCast(LHSVal, LHSTy, PromotionTypeLHS, Loc);
     else
@@ -1287,8 +1287,8 @@ EmitCompoundAssignLValue(const CompoundAssignOperator *E,
     // For floating point real operands we can directly pass the scalar form
     // to the binary operator emission and potentially get more efficient code.
     if (LHSTy->isRealFloatingType()) {
-      QualType PromotedComplexElementTy;
-      if (!PromotionTypeLHS.isNull()) {
+      
+      if (QualType PromotedComplexElementTy; !PromotionTypeLHS.isNull()) {
         PromotedComplexElementTy =
             cast<ComplexType>(PromotionTypeLHS)->getElementType();
         if (!CGF.getContext().hasSameUnqualifiedType(PromotedComplexElementTy,

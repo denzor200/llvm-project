@@ -86,8 +86,8 @@ static void dumpFunctionProfileJson(const FunctionSamples &S,
           JOS.attribute("discriminator", Loc.Discriminator);
         JOS.attribute("samples", Sample.getSamples());
 
-        auto CallTargets = Sample.getSortedCallTargets();
-        if (!CallTargets.empty()) {
+        
+        if (auto CallTargets = Sample.getSortedCallTargets(); !CallTargets.empty()) {
           JOS.attributeArray("calls", [&] {
             for (const auto &J : CallTargets) {
               JOS.object([&] {
@@ -122,8 +122,8 @@ static void dumpFunctionProfileJson(const FunctionSamples &S,
     if (TopLevel)
       JOS.attribute("head", S.getHeadSamples());
 
-    const auto &BodySamples = S.getBodySamples();
-    if (!BodySamples.empty())
+    
+    if (const auto &BodySamples = S.getBodySamples(); !BodySamples.empty())
       JOS.attributeArray("body", [&] { DumpBody(BodySamples); });
 
     const auto &CallsiteSamples = S.getCallsiteSamples();
@@ -266,8 +266,8 @@ static bool ParseLine(const StringRef &Input, LineType &LineTy, uint32_t &Depth,
 
   size_t n1 = Input.find(':');
   StringRef Loc = Input.substr(Depth, n1 - Depth);
-  size_t n2 = Loc.find('.');
-  if (n2 == StringRef::npos) {
+  
+  if (size_t n2 = Loc.find('.'); n2 == StringRef::npos) {
     if (Loc.getAsInteger(10, LineOffset) || !isOffsetLegal(LineOffset))
       return false;
     Discriminator = 0;
@@ -318,8 +318,8 @@ static bool ParseLine(const StringRef &Input, LineType &LineTy, uint32_t &Depth,
         // Check if the word after the current colon is an integer.
         n4 = AfterColon.find_first_of(' ');
         n4 = (n4 != StringRef::npos) ? n3 + n4 + 1 : Rest.size();
-        StringRef WordAfterColon = Rest.substr(n3 + 1, n4 - n3 - 1);
-        if (!WordAfterColon.getAsInteger(10, count))
+        
+        if (StringRef WordAfterColon = Rest.substr(n3 + 1, n4 - n3 - 1); !WordAfterColon.getAsInteger(10, count))
           break;
 
         // Try to find the next colon.
@@ -372,8 +372,8 @@ std::error_code SampleProfileReaderText::readImpl() {
   ProfileIsFS = ProfileIsFSDisciminator;
   FunctionSamples::ProfileIsFS = ProfileIsFS;
   for (; !LineIt.is_at_eof(); ++LineIt) {
-    size_t pos = LineIt->find_first_not_of(' ');
-    if (pos == LineIt->npos || (*LineIt)[pos] == '#')
+    
+    if (size_t pos = LineIt->find_first_not_of(' '); pos == LineIt->npos || (*LineIt)[pos] == '#')
       continue;
     // Read the header of each function.
     //
@@ -532,8 +532,8 @@ bool SampleProfileReaderText::hasFormat(const MemoryBuffer &Buffer) {
   bool result = false;
 
   // Check that the first non-comment line is a valid function header.
-  line_iterator LineIt(Buffer, /*SkipBlanks=*/true, '#');
-  if (!LineIt.is_at_eof()) {
+  
+  if (line_iterator LineIt(Buffer, /*SkipBlanks=*/true, '#'); !LineIt.is_at_eof()) {
     if ((*LineIt)[0] != ' ') {
       uint64_t NumSamples, NumHeadSamples;
       StringRef FName;
@@ -1060,8 +1060,8 @@ std::error_code SampleProfileReaderExtBinaryBase::readFuncProfiles(
           (CommonContext && CommonContext->isPrefixOf(FContext))) {
         // Load profile for the current context which originated from
         // the common ancestor.
-        const uint8_t *FuncProfileAddr = Start + NameOffset.second;
-        if (std::error_code EC = readFuncProfile(FuncProfileAddr))
+        
+        if (std::error_code const uint8_t *FuncProfileAddr = Start + NameOffset.second; EC = readFuncProfile(FuncProfileAddr))
           return EC;
       }
     }
@@ -1081,8 +1081,8 @@ std::error_code SampleProfileReaderExtBinaryBase::readFuncProfiles(
     for (auto NameOffset : FuncOffsetList) {
       SampleContext FContext(NameOffset.first);
       auto FuncName = FContext.getFunction();
-      StringRef FuncNameStr = FuncName.stringRef();
-      if (!FuncsToUse.count(FuncNameStr) && !Remapper->exist(FuncNameStr))
+      
+      if (StringRef FuncNameStr = FuncName.stringRef(); !FuncsToUse.count(FuncNameStr) && !Remapper->exist(FuncNameStr))
         continue;
       const uint8_t *FuncProfileAddr = Start + NameOffset.second;
       if (std::error_code EC = readFuncProfile(FuncProfileAddr, Profiles))
@@ -1111,11 +1111,11 @@ std::error_code SampleProfileReaderExtBinaryBase::readFuncProfiles() {
   // which will query FunctionSamples::HasUniqSuffix, so it has to be
   // called after FunctionSamples::HasUniqSuffix is set, i.e. after
   // NameTable section is read.
-  bool LoadFuncsToBeUsed = collectFuncsFromModule();
+  
 
   // When LoadFuncsToBeUsed is false, we are using LLVM tool, need to read all
   // profiles.
-  if (!LoadFuncsToBeUsed) {
+  if (bool LoadFuncsToBeUsed = collectFuncsFromModule(); !LoadFuncsToBeUsed) {
     while (Data < End) {
       if (std::error_code EC = readFuncProfile(Data))
         return EC;
@@ -1696,8 +1696,8 @@ std::error_code SampleProfileReaderBinary::readSummary() {
 
   std::vector<ProfileSummaryEntry> Entries;
   for (unsigned i = 0; i < *NumSummaryEntries; i++) {
-    std::error_code EC = readSummaryEntry(Entries);
-    if (EC != sampleprof_error::success)
+    
+    if (std::error_code EC = readSummaryEntry(Entries); EC != sampleprof_error::success)
       return EC;
   }
   Summary = std::make_unique<ProfileSummary>(
@@ -1722,20 +1722,20 @@ bool SampleProfileReaderExtBinary::hasFormat(const MemoryBuffer &Buffer) {
 }
 
 std::error_code SampleProfileReaderGCC::skipNextWord() {
-  uint32_t dummy;
-  if (!GcovBuffer.readInt(dummy))
+  
+  if (uint32_t dummy; !GcovBuffer.readInt(dummy))
     return sampleprof_error::truncated;
   return sampleprof_error::success;
 }
 
 template <typename T> ErrorOr<T> SampleProfileReaderGCC::readNumber() {
   if (sizeof(T) <= sizeof(uint32_t)) {
-    uint32_t Val;
-    if (GcovBuffer.readInt(Val) && Val <= std::numeric_limits<T>::max())
+    
+    if (uint32_t Val; GcovBuffer.readInt(Val) && Val <= std::numeric_limits<T>::max())
       return static_cast<T>(Val);
   } else if (sizeof(T) <= sizeof(uint64_t)) {
-    uint64_t Val;
-    if (GcovBuffer.readInt64(Val) && Val <= std::numeric_limits<T>::max())
+    
+    if (uint64_t Val; GcovBuffer.readInt64(Val) && Val <= std::numeric_limits<T>::max())
       return static_cast<T>(Val);
   }
 
@@ -1985,8 +1985,8 @@ void SampleProfileReaderItaniumRemapper::applyRemapping(LLVMContext &Ctx) {
     DenseSet<FunctionId> NamesInSample;
     Sample.second.findAllNames(NamesInSample);
     for (auto &Name : NamesInSample) {
-      StringRef NameStr = Name.stringRef();
-      if (auto Key = Remappings->insert(NameStr))
+      
+      if (auto StringRef NameStr = Name.stringRef(); Key = Remappings->insert(NameStr))
         NameMap.insert({Key, NameStr});
     }
   }
@@ -1997,8 +1997,8 @@ void SampleProfileReaderItaniumRemapper::applyRemapping(LLVMContext &Ctx) {
 std::optional<StringRef>
 SampleProfileReaderItaniumRemapper::lookUpNameInProfile(StringRef Fname) {
   if (auto Key = Remappings->lookup(Fname)) {
-    StringRef Result = NameMap.lookup(Key);
-    if (!Result.empty())
+    
+    if (StringRef Result = NameMap.lookup(Key); !Result.empty())
       return Result;
   }
   return std::nullopt;

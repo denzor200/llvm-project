@@ -65,8 +65,8 @@ Error NamedStreamMap::commit(BinaryStreamWriter &Writer) const {
     return EC;
 
   // Then the actual string data.
-  StringRef Data(NamesBuffer.data(), NamesBuffer.size());
-  if (auto EC = Writer.writeFixedString(Data))
+  
+  if (auto StringRef Data(NamesBuffer.data(), NamesBuffer.size()); EC = Writer.writeFixedString(Data))
     return EC;
 
   // And finally the Offset Index map.

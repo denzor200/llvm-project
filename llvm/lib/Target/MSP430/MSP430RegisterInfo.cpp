@@ -51,14 +51,14 @@ MSP430RegisterInfo::getCalleeSavedRegs(const MachineFunction *MF) const {
     MSP430::R12, MSP430::R13, MSP430::R14, MSP430::R15,
     0
   };
-  static const MCPhysReg CalleeSavedRegsIntrFP[] = {
+  
+
+  if (static const MCPhysReg CalleeSavedRegsIntrFP[] = {
     MSP430::R5,  MSP430::R6,  MSP430::R7,
     MSP430::R8,  MSP430::R9,  MSP430::R10, MSP430::R11,
     MSP430::R12, MSP430::R13, MSP430::R14, MSP430::R15,
     0
-  };
-
-  if (TFI->hasFP(*MF))
+  }; TFI->hasFP(*MF))
     return (F->getCallingConv() == CallingConv::MSP430_INTR ?
             CalleeSavedRegsIntrFP : CalleeSavedRegsFP);
   else

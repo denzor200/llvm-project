@@ -192,8 +192,8 @@ static Expected<SmallVector<std::string, 4>> getAllGarbageDirs(StringRef Path) {
   // out how to handle the leftover sub-directories of the previous version.
 
   for (unsigned Keep = 2; Keep > 0 && !DBDirs->empty(); --Keep) {
-    StringRef Back(DBDirs->back());
-    if (Back.starts_with(CorruptPrefix))
+    
+    if (StringRef Back(DBDirs->back()); Back.starts_with(CorruptPrefix))
       break;
     DBDirs->pop_back();
   }

@@ -266,11 +266,11 @@ bool ThreadElfCore::CalculateStopInfo() {
 
   PlatformSP platform_sp = process_sp->GetTarget().GetPlatform();
   if (platform_sp) {
-    lldb::StopInfoSP stopinfo_sp = platform_sp->GetStopInfoFromSiginfo(*this);
+    
     // The platform SP can optionally handle creating the stop info from the
     // siginfo value however it's not guaraunteed to be implemented on every
     // platform, so if we fall through this case, we create from just the signo.
-    if (stopinfo_sp) {
+    if (lldb::StopInfoSP stopinfo_sp = platform_sp->GetStopInfoFromSiginfo(*this); stopinfo_sp) {
       SetStopInfo(std::move(stopinfo_sp));
       return true;
     }
@@ -386,10 +386,10 @@ ELFLinuxPrPsInfo::ELFLinuxPrPsInfo() {
 }
 
 size_t ELFLinuxPrPsInfo::GetSize(const lldb_private::ArchSpec &arch) {
-  constexpr size_t mips_linux_pr_psinfo_size_o32_n32 = 128;
-  if (arch.IsMIPS()) {
-    uint8_t address_byte_size = arch.GetAddressByteSize();
-    if (address_byte_size == 8)
+  
+  if (constexpr size_t mips_linux_pr_psinfo_size_o32_n32 = 128; arch.IsMIPS()) {
+    
+    if (uint8_t address_byte_size = arch.GetAddressByteSize(); address_byte_size == 8)
       return sizeof(ELFLinuxPrPsInfo);
     return mips_linux_pr_psinfo_size_o32_n32;
   }

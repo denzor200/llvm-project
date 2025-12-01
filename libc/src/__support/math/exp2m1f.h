@@ -67,10 +67,10 @@ LIBC_INLINE static constexpr float exp2m1f(float x) {
   FPBits xbits(x);
 
   uint32_t x_u = xbits.uintval();
-  uint32_t x_abs = x_u & 0x7fff'ffffU;
+  
 
   // When |x| >= 128, or x is nan, or |x| <= 2^-5
-  if (LIBC_UNLIKELY(x_abs >= 0x4300'0000U || x_abs <= 0x3d00'0000U)) {
+  if (uint32_t x_abs = x_u & 0x7fff'ffffU; LIBC_UNLIKELY(x_abs >= 0x4300'0000U || x_abs <= 0x3d00'0000U)) {
     // |x| <= 2^-5
     if (x_abs <= 0x3d00'0000U) {
 #ifndef LIBC_MATH_HAS_SKIP_ACCURATE_PASS
@@ -96,8 +96,8 @@ LIBC_INLINE static constexpr float exp2m1f(float x) {
     // x >= 128, or x is nan
     if (xbits.is_pos()) {
       if (xbits.is_finite()) {
-        int rounding = fputil::quick_get_round();
-        if (rounding == FE_DOWNWARD || rounding == FE_TOWARDZERO)
+        
+        if (int rounding = fputil::quick_get_round(); rounding == FE_DOWNWARD || rounding == FE_TOWARDZERO)
           return FPBits::max_normal().get_val();
 
         fputil::set_errno_if_required(ERANGE);
@@ -117,8 +117,8 @@ LIBC_INLINE static constexpr float exp2m1f(float x) {
     if (xbits.is_nan())
       return x;
 
-    int rounding = fputil::quick_get_round();
-    if (rounding == FE_UPWARD || rounding == FE_TOWARDZERO)
+    
+    if (int rounding = fputil::quick_get_round(); rounding == FE_UPWARD || rounding == FE_TOWARDZERO)
       return -0x1.ffff'fep-1f; // -1.0f + 0x1.0p-24f
 
     fputil::set_errno_if_required(ERANGE);

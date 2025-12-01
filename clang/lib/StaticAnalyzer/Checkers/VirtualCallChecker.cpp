@@ -184,8 +184,8 @@ void VirtualCallChecker::registerCtorDtorCallInState(bool IsBeginFunction,
   if (isa<CXXConstructorDecl>(MD)) {
     auto ThiSVal =
         State->getSVal(SVB.getCXXThis(MD, LCtx->getStackFrame()));
-    const MemRegion *Reg = ThiSVal.getAsRegion();
-    if (IsBeginFunction)
+    
+    if (const MemRegion *Reg = ThiSVal.getAsRegion(); IsBeginFunction)
       State = State->set<CtorDtorMap>(Reg, ObjectState::CtorCalled);
     else
       State = State->remove<CtorDtorMap>(Reg);
@@ -198,8 +198,8 @@ void VirtualCallChecker::registerCtorDtorCallInState(bool IsBeginFunction,
   if (isa<CXXDestructorDecl>(MD)) {
     auto ThiSVal =
         State->getSVal(SVB.getCXXThis(MD, LCtx->getStackFrame()));
-    const MemRegion *Reg = ThiSVal.getAsRegion();
-    if (IsBeginFunction)
+    
+    if (const MemRegion *Reg = ThiSVal.getAsRegion(); IsBeginFunction)
       State = State->set<CtorDtorMap>(Reg, ObjectState::DtorCalled);
     else
       State = State->remove<CtorDtorMap>(Reg);

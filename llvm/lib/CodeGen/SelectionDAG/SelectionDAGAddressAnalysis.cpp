@@ -77,8 +77,8 @@ bool BaseIndexOffset::equalBaseIndex(const BaseIndexOffset &Other,
         // Non-equal FrameIndexes - If both frame indices are fixed
         // we know their relative offsets and can compare them. Otherwise
         // we must be conservative.
-        const MachineFrameInfo &MFI = DAG.getMachineFunction().getFrameInfo();
-        if (MFI.isFixedObjectIndex(A->getIndex()) &&
+        
+        if (const MachineFrameInfo &MFI = DAG.getMachineFunction().getFrameInfo(); MFI.isFixedObjectIndex(A->getIndex()) &&
             MFI.isFixedObjectIndex(B->getIndex())) {
           Off += MFI.getObjectOffset(B->getIndex()) -
                  MFI.getObjectOffset(A->getIndex());
@@ -132,10 +132,10 @@ bool BaseIndexOffset::computeAliasing(const SDNode *Op0,
   // can infer there is no alias.
   if (auto *A = dyn_cast<FrameIndexSDNode>(BasePtr0.getBase()))
     if (auto *B = dyn_cast<FrameIndexSDNode>(BasePtr1.getBase())) {
-      MachineFrameInfo &MFI = DAG.getMachineFunction().getFrameInfo();
+      
       // If the base are the same frame index but the we couldn't find a
       // constant offset, (indices are different) be conservative.
-      if (A->getIndex() != B->getIndex() && (!MFI.isFixedObjectIndex(A->getIndex()) ||
+      if (MachineFrameInfo &MFI = DAG.getMachineFunction().getFrameInfo(); A->getIndex() != B->getIndex() && (!MFI.isFixedObjectIndex(A->getIndex()) ||
                      !MFI.isFixedObjectIndex(B->getIndex()))) {
         IsAlias = false;
         return true;
@@ -241,11 +241,11 @@ static BaseIndexOffset matchLSNode(const LSBaseSDNode *N,
     case ISD::LOAD:
     case ISD::STORE: {
       auto *LSBase = cast<LSBaseSDNode>(Base.getNode());
-      unsigned int IndexResNo = (Base->getOpcode() == ISD::LOAD) ? 1 : 0;
-      if (LSBase->isIndexed() && Base.getResNo() == IndexResNo)
+      
+      if (unsigned int IndexResNo = (Base->getOpcode() == ISD::LOAD) ? 1 : 0; LSBase->isIndexed() && Base.getResNo() == IndexResNo)
         if (auto *C = dyn_cast<ConstantSDNode>(LSBase->getOffset())) {
-          auto Off = C->getSExtValue();
-          if (LSBase->getAddressingMode() == ISD::PRE_DEC ||
+          
+          if (auto Off = C->getSExtValue(); LSBase->getAddressingMode() == ISD::PRE_DEC ||
               LSBase->getAddressingMode() == ISD::POST_DEC)
             Offset -= Off;
           else

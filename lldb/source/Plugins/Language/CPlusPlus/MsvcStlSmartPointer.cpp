@@ -131,8 +131,8 @@ lldb_private::formatters::MsvcStlSmartPointerSyntheticFrontEnd::GetChildAtIndex(
 
   if (idx == 1) {
     Status status;
-    ValueObjectSP value_sp = m_ptr_obj->Dereference(status);
-    if (status.Success())
+    
+    if (ValueObjectSP value_sp = m_ptr_obj->Dereference(status); status.Success())
       return value_sp;
   }
 
@@ -231,8 +231,8 @@ lldb_private::formatters::MsvcStlUniquePtrSyntheticFrontEnd::GetChildAtIndex(
 
   if (idx == 2) {
     Status status;
-    auto value_sp = m_value_ptr_sp->Dereference(status);
-    if (status.Success()) {
+    
+    if (auto value_sp = m_value_ptr_sp->Dereference(status); status.Success()) {
       return value_sp;
     }
   }

@@ -187,8 +187,8 @@ void DWARFDebugLoc::dump(raw_ostream &OS, const DWARFObject &Obj,
                          DIDumpOptions DumpOpts,
                          std::optional<uint64_t> DumpOffset) const {
   auto BaseAddr = std::nullopt;
-  unsigned Indent = 12;
-  if (DumpOffset) {
+  
+  if (unsigned Indent = 12; DumpOffset) {
     dumpLocationList(&*DumpOffset, OS, BaseAddr, Obj, nullptr, DumpOpts,
                      Indent);
   } else {
@@ -355,8 +355,8 @@ void DWARFDebugLoclists::dumpRawEntry(const DWARFLocationEntry &Entry,
   // Unsupported encodings should have been reported during parsing.
   assert(!EncodingString.empty() && "Unknown loclist entry encoding");
   OS << format("%-*s(", MaxEncodingStringLength, EncodingString.data());
-  unsigned FieldSize = 2 + 2 * Data.getAddressSize();
-  switch (Entry.Kind) {
+  
+  switch (unsigned FieldSize = 2 + 2 * Data.getAddressSize(); Entry.Kind) {
   case dwarf::DW_LLE_end_of_list:
   case dwarf::DW_LLE_default_location:
     break;

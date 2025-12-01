@@ -53,8 +53,8 @@ namespace {
         ++Self.HandlingTopLevelDecls;
       }
       ~HandlingTopLevelDeclRAII() {
-        unsigned Level = --Self.HandlingTopLevelDecls;
-        if (Level == 0 && EmitDeferred)
+        
+        if (unsigned Level = --Self.HandlingTopLevelDecls; Level == 0 && EmitDeferred)
           Self.EmitDeferredDecls();
       }
     };
@@ -156,8 +156,8 @@ namespace {
 
       M->setTargetTriple(Ctx->getTargetInfo().getTriple());
       M->setDataLayout(Ctx->getTargetInfo().getDataLayoutString());
-      const auto &SDKVersion = Ctx->getTargetInfo().getSDKVersion();
-      if (!SDKVersion.empty())
+      
+      if (const auto &SDKVersion = Ctx->getTargetInfo().getSDKVersion(); !SDKVersion.empty())
         M->setSDKVersion(SDKVersion);
       if (const auto *TVT = Ctx->getTargetInfo().getDarwinTargetVariantTriple())
         M->setDarwinTargetVariantTriple(TVT->getTriple());
@@ -281,9 +281,9 @@ namespace {
 
       // Don't allow re-entrant calls to CodeGen triggered by PCH
       // deserialization to emit deferred decls.
-      HandlingTopLevelDeclRAII HandlingDecl(*this, /*EmitDeferred=*/false);
+      
 
-      if (CodeGen::CGDebugInfo *DI = Builder->getModuleDebugInfo())
+      if (CodeGen::CGDebugInfo *HandlingTopLevelDeclRAII HandlingDecl(*this, /*EmitDeferred=*/false); DI = Builder->getModuleDebugInfo())
         if (const RecordDecl *RD = dyn_cast<RecordDecl>(D))
           DI->completeRequiredType(RD);
     }
@@ -387,12 +387,12 @@ DemangleTrapReasonInDebugInfo(StringRef FuncName) {
   static auto TrapRegex =
       llvm::Regex(llvm::formatv("^{0}\\$(.*)\\$(.*)$", ClangTrapPrefix).str());
   llvm::SmallVector<llvm::StringRef, 3> Matches;
-  std::string *ErrorPtr = nullptr;
+  
 #ifndef NDEBUG
   std::string Error;
   ErrorPtr = &Error;
 #endif
-  if (!TrapRegex.match(FuncName, &Matches, ErrorPtr)) {
+  if (std::string *ErrorPtr = nullptr; !TrapRegex.match(FuncName, &Matches, ErrorPtr)) {
     assert(ErrorPtr && ErrorPtr->empty() && "Invalid regex pattern");
     return {};
   }

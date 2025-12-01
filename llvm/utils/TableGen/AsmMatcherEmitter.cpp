@@ -927,8 +927,8 @@ static void extractSingletonRegisterForAsmOperand(MatchableInfo::AsmOperand &Op,
     return;
 
   if (RegisterPrefix.empty()) {
-    std::string LoweredTok = Tok.lower();
-    if (const CodeGenRegister *Reg = Info.Target.getRegisterByName(LoweredTok))
+    
+    if (const CodeGenRegister *std::string LoweredTok = Tok.lower(); Reg = Info.Target.getRegisterByName(LoweredTok))
       Op.SingletonReg = Reg->TheDef;
     return;
   }
@@ -1216,8 +1216,8 @@ ClassInfo *AsmMatcherInfo::getOperandClass(const Record *Rec, int SubOpIdx) {
                           "' does not have a ParserMatchClass!\n");
 
     if (const DefInit *DI = dyn_cast<DefInit>(R->getValue())) {
-      const Record *MatchClass = DI->getDef();
-      if (ClassInfo *CI = AsmOperandClasses[MatchClass])
+      
+      if (ClassInfo *const Record *MatchClass = DI->getDef(); CI = AsmOperandClasses[MatchClass])
         return CI;
     }
 
@@ -1243,8 +1243,8 @@ ClassInfo *AsmMatcherInfo::getOperandClass(const Record *Rec, int SubOpIdx) {
   }
 
   if (Rec->isSubClassOf("Operand")) {
-    const Record *MatchClass = Rec->getValueAsDef("ParserMatchClass");
-    if (ClassInfo *CI = AsmOperandClasses[MatchClass])
+    
+    if (ClassInfo *const Record *MatchClass = Rec->getValueAsDef("ParserMatchClass"); CI = AsmOperandClasses[MatchClass])
       return CI;
   } else if (Rec->isSubClassOf("RegisterClassLike")) {
     if (ClassInfo *CI = RegisterClassClasses[Rec])
@@ -1454,8 +1454,8 @@ void AsmMatcherInfo::buildOperandClasses() {
     CI->ValueName = Rec->getName().str();
 
     // Get or construct the predicate method name.
-    const Init *PMName = Rec->getValueInit("PredicateMethod");
-    if (const StringInit *SI = dyn_cast<StringInit>(PMName)) {
+    
+    if (const StringInit *const Init *PMName = Rec->getValueInit("PredicateMethod"); SI = dyn_cast<StringInit>(PMName)) {
       CI->PredicateMethod = SI->getValue().str();
     } else {
       assert(isa<UnsetInit>(PMName) && "Unexpected PredicateMethod field!");
@@ -1588,8 +1588,8 @@ void AsmMatcherInfo::buildInfo() {
         continue;
 
       // Ignore instructions for different instructions
-      StringRef V = CGI->TheDef->getValueAsString("AsmVariantName");
-      if (!V.empty() && V != Variant.Name)
+      
+      if (StringRef V = CGI->TheDef->getValueAsString("AsmVariantName"); !V.empty() && V != Variant.Name)
         continue;
 
       auto II = std::make_unique<MatchableInfo>(*CGI);
@@ -1685,9 +1685,9 @@ void AsmMatcherInfo::buildInfo() {
       // If the instruction has a two-operand alias, build up the
       // matchable here. We'll add them in bulk at the end to avoid
       // confusing this loop.
-      StringRef Constraint =
-          II->TheDef->getValueAsString("TwoOperandAliasConstraint");
-      if (Constraint != "") {
+      
+      if (StringRef Constraint =
+          II->TheDef->getValueAsString("TwoOperandAliasConstraint"); Constraint != "") {
         // Start by making a copy of the original matchable.
         auto AliasII = std::make_unique<MatchableInfo>(*II);
 
@@ -1756,8 +1756,8 @@ void AsmMatcherInfo::buildInstructionOperandReference(MatchableInfo *II,
   if (Op->SubOpIdx == -1 && Operands[*Idx].MINumOperands > 1) {
     const Record *Rec = Operands[*Idx].Rec;
     assert(Rec->isSubClassOf("Operand") && "Unexpected operand!");
-    const Record *MatchClass = Rec->getValueAsDef("ParserMatchClass");
-    if (MatchClass && MatchClass->getValueAsString("Name") == "Imm") {
+    
+    if (const Record *MatchClass = Rec->getValueAsDef("ParserMatchClass"); MatchClass && MatchClass->getValueAsString("Name") == "Imm") {
       // Insert remaining suboperands after AsmOpIdx in II->AsmOperands.
       StringRef Token = Op->Token; // save this in case Op gets moved
       for (unsigned SI = 1, SE = Operands[*Idx].MINumOperands; SI != SE; ++SI) {
@@ -1838,8 +1838,8 @@ void MatchableInfo::buildInstructionResultOperands() {
     if (OpInfo.MINumOperands == 1)
       TiedOp = OpInfo.getTiedRegister();
     if (TiedOp != -1) {
-      int TiedSrcOperand = findAsmOperandOriginallyNamed(OpInfo.Name);
-      if (TiedSrcOperand != -1 &&
+      
+      if (int TiedSrcOperand = findAsmOperandOriginallyNamed(OpInfo.Name); TiedSrcOperand != -1 &&
           ResOperands[TiedOp].Kind == ResOperand::RenderAsmOperand)
         ResOperands.push_back(ResOperand::getTiedOp(
             TiedOp, ResOperands[TiedOp].AsmOperandNum, TiedSrcOperand));
@@ -1943,11 +1943,11 @@ void MatchableInfo::buildAliasResultOperands(bool AliasConstraintsAreChecked) {
     for (; AliasOpNo < LastOpNo &&
            CGA.ResultInstOperandIndex[AliasOpNo].first == Idx;
          ++AliasOpNo) {
-      int SubIdx = CGA.ResultInstOperandIndex[AliasOpNo].second;
+      
 
       // Find out what operand from the asmparser that this MCInst operand
       // comes from.
-      switch (CGA.ResultOperands[AliasOpNo].Kind) {
+      switch (int SubIdx = CGA.ResultInstOperandIndex[AliasOpNo].second; CGA.ResultOperands[AliasOpNo].Kind) {
       case CodeGenInstAlias::ResultOperand::K_Record: {
         StringRef Name = CGA.ResultOperands[AliasOpNo].getName();
         int SrcOperand = findAsmOperand(Name, SubIdx);
@@ -2098,9 +2098,9 @@ emitConvertFuncs(CodeGenTarget &Target, StringRef ClassName,
 
   for (auto &II : Infos) {
     // Check if we have a custom match function.
-    StringRef AsmMatchConverter =
-        II->getResultInst()->TheDef->getValueAsString("AsmMatchConverter");
-    if (!AsmMatchConverter.empty() && II->UseInstAsmMatchConverter) {
+    
+    if (StringRef AsmMatchConverter =
+        II->getResultInst()->TheDef->getValueAsString("AsmMatchConverter"); !AsmMatchConverter.empty() && II->UseInstAsmMatchConverter) {
       std::string Signature = ("ConvertCustom_" + AsmMatchConverter).str();
       II->ConversionFnKind = Signature;
 
@@ -2553,9 +2553,9 @@ static void emitValidateOperandClass(const CodeGenTarget &Target,
 
   const CodeGenRegBank &RegBank = Target.getRegBank();
   ArrayRef<const Record *> RegClassesByHwMode = Target.getAllRegClassByHwMode();
-  unsigned NumClassesByHwMode = RegClassesByHwMode.size();
+  
 
-  if (!RegClassesByHwMode.empty()) {
+  if (unsigned NumClassesByHwMode = RegClassesByHwMode.size(); !RegClassesByHwMode.empty()) {
     OS << "  if (Operand.isReg() && Kind > MCK_LAST_REGISTER &&"
           " Kind <= MCK_LAST_REGCLASS_BY_HWMODE) {\n";
 
@@ -2575,12 +2575,12 @@ static void emitValidateOperandClass(const CodeGenTarget &Target,
         const Record *Class = RegClassesByHwMode[I];
         const HwModeSelect &ModeSelect = CGH.getHwModeSelect(Class);
 
-        auto FoundMode =
+        
+
+        if (auto FoundMode =
             find_if(ModeSelect.Items, [=](const HwModeSelect::PairType P) {
               return P.first == M;
-            });
-
-        if (FoundMode == ModeSelect.Items.end()) {
+            }); FoundMode == ModeSelect.Items.end()) {
           OS << indent(8) << "InvalidMatchClass, // Missing mode\n";
         } else {
           const CodeGenRegisterClass *RegClass =
@@ -2856,8 +2856,8 @@ emitMnemonicAliasVariant(raw_ostream &OS, const AsmMatcherInfo &Info,
 
   for (const Record *R : Aliases) {
     // FIXME: Allow AssemblerVariantName to be a comma separated list.
-    StringRef AsmVariantName = R->getValueAsString("AsmVariantName");
-    if (AsmVariantName != AsmParserVariantName)
+    
+    if (StringRef AsmVariantName = R->getValueAsString("AsmVariantName"); AsmVariantName != AsmParserVariantName)
       continue;
     AliasesFromMnemonic[R->getValueAsString("FromMnemonic").lower()].push_back(
         R);
@@ -4152,8 +4152,8 @@ void AsmMatcherEmitter::run(raw_ostream &OS) {
   }
 
   // Call the post-processing function, if used.
-  StringRef InsnCleanupFn = AsmParser->getValueAsString("AsmParserInstCleanup");
-  if (!InsnCleanupFn.empty())
+  
+  if (StringRef InsnCleanupFn = AsmParser->getValueAsString("AsmParserInstCleanup"); !InsnCleanupFn.empty())
     OS << "    " << InsnCleanupFn << "(Inst);\n";
 
   if (HasDeprecation) {

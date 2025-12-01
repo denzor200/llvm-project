@@ -33,8 +33,8 @@ int Barrier::init(Barrier *b,
   if (err != 0)
     return err;
 
-  auto mutex_err = Mutex::init(&b->m, false, false, false, false);
-  if (mutex_err != MutexError::NONE)
+  
+  if (auto mutex_err = Mutex::init(&b->m, false, false, false, false); mutex_err != MutexError::NONE)
     return EAGAIN;
 
   return 0;

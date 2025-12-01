@@ -78,8 +78,8 @@ public:
              MutableArrayRef<Dialect *> dialects) const final {
     LLVM_DEBUG(llvm::dbgs() << "Convert to EmitC extension load\n");
     for (Dialect *dialect : dialects) {
-      auto *iface = dyn_cast<ConvertToEmitCPatternInterface>(dialect);
-      if (!iface)
+      
+      if (auto *iface = dyn_cast<ConvertToEmitCPatternInterface>(dialect); !iface)
         continue;
       LLVM_DEBUG(llvm::dbgs() << "Convert to EmitC found dialect interface for "
                               << dialect->getNamespace() << "\n");

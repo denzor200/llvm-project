@@ -17,8 +17,8 @@
 namespace LIBC_NAMESPACE_DECL {
 
 LLVM_LIBC_FUNCTION(wint_t, btowc, (int c)) {
-  auto result = internal::btowc(c);
-  if (result.has_value()) {
+  
+  if (auto result = internal::btowc(c); result.has_value()) {
     return result.value();
   } else {
     return WEOF;

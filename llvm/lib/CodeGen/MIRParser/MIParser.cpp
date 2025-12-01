@@ -1257,8 +1257,8 @@ bool MIParser::parseStandaloneRegister(Register &Reg) {
       Token.isNot(MIToken::VirtualRegister))
     return error("expected either a named or virtual register");
 
-  VRegInfo *Info;
-  if (parseRegister(Reg, Info))
+  
+  if (VRegInfo *Info; parseRegister(Reg, Info))
     return true;
 
   lex();
@@ -1539,8 +1539,8 @@ bool MIParser::parseInstruction(unsigned &OpCode, unsigned &Flags) {
   }
   if (Token.isNot(MIToken::Identifier))
     return error("expected a machine instruction");
-  StringRef InstrName = Token.stringValue();
-  if (PFS.Target.parseInstrName(InstrName, OpCode))
+  
+  if (StringRef InstrName = Token.stringValue(); PFS.Target.parseInstrName(InstrName, OpCode))
     return error(Twine("unknown machine instruction name '") + InstrName + "'");
   lex();
   return false;
@@ -1548,8 +1548,8 @@ bool MIParser::parseInstruction(unsigned &OpCode, unsigned &Flags) {
 
 bool MIParser::parseNamedRegister(Register &Reg) {
   assert(Token.is(MIToken::NamedRegister) && "Needs NamedRegister token");
-  StringRef Name = Token.stringValue();
-  if (PFS.Target.getRegisterByName(Name, Reg))
+  
+  if (StringRef Name = Token.stringValue(); PFS.Target.getRegisterByName(Name, Reg))
     return error(Twine("unknown register name '") + Name + "'");
   return false;
 }
@@ -1600,8 +1600,8 @@ bool MIParser::parseRegisterClassOrBank(VRegInfo &RegInfo) {
   StringRef Name = Token.stringValue();
 
   // Was it a register class?
-  const TargetRegisterClass *RC = PFS.Target.getRegClass(Name);
-  if (RC) {
+  
+  if (const TargetRegisterClass *RC = PFS.Target.getRegClass(Name); RC) {
     lex();
 
     switch (RegInfo.Kind) {
@@ -1790,8 +1790,8 @@ bool MIParser::parseRegisterOperand(MachineOperand &Dest,
   MachineRegisterInfo &MRI = MF.getRegInfo();
   if ((Flags & RegState::Define) == 0) {
     if (consumeIfPresent(MIToken::lparen)) {
-      unsigned Idx;
-      if (!parseRegisterTiedDefIndex(Idx))
+      
+      if (unsigned Idx; !parseRegisterTiedDefIndex(Idx))
         TiedDefIdx = Idx;
       else {
         // Try a redundant low-level type.
@@ -2038,8 +2038,8 @@ bool MIParser::parseLowLevelType(StringRef::iterator Loc, LLT &Ty) {
 
 bool MIParser::parseTypedImmediateOperand(MachineOperand &Dest) {
   assert(Token.is(MIToken::Identifier));
-  StringRef TypeStr = Token.range();
-  if (TypeStr.front() != 'i' && TypeStr.front() != 's' &&
+  
+  if (StringRef TypeStr = Token.range(); TypeStr.front() != 'i' && TypeStr.front() != 's' &&
       TypeStr.front() != 'p')
     return error(
         "a typed immediate operand should start with one of 'i', 's', or 'p'");
@@ -3007,8 +3007,8 @@ bool MIParser::parseMachineOperand(const unsigned OpCode, const unsigned OpIdx,
     } else
       return parseTypedImmediateOperand(Dest);
   case MIToken::dot: {
-    const auto *TII = MF.getSubtarget().getInstrInfo();
-    if (const auto *Formatter = TII->getMIRFormatter()) {
+    
+    if (const auto *const auto *TII = MF.getSubtarget().getInstrInfo(); Formatter = TII->getMIRFormatter()) {
       return parseTargetImmMnemonic(OpCode, OpIdx, Dest, *Formatter);
     }
     [[fallthrough]];
@@ -3284,8 +3284,8 @@ bool MIParser::parseMemoryPseudoSourceValue(const PseudoSourceValue *&PSV) {
     break;
   case MIToken::kw_custom: {
     lex();
-    const auto *TII = MF.getSubtarget().getInstrInfo();
-    if (const auto *Formatter = TII->getMIRFormatter()) {
+    
+    if (const auto *const auto *TII = MF.getSubtarget().getInstrInfo(); Formatter = TII->getMIRFormatter()) {
       if (Formatter->parseCustomPseudoSourceValue(
               Token.stringValue(), MF, PFS, PSV,
               [this](StringRef::iterator Loc, const Twine &Msg) -> bool {
@@ -3442,12 +3442,12 @@ bool MIParser::parseMachineMemoryOperand(MachineMemOperand *&Dest) {
 
   MachinePointerInfo Ptr = MachinePointerInfo();
   if (Token.is(MIToken::Identifier)) {
-    const char *Word =
+    
+    if (const char *Word =
         ((Flags & MachineMemOperand::MOLoad) &&
          (Flags & MachineMemOperand::MOStore))
             ? "on"
-            : Flags & MachineMemOperand::MOLoad ? "from" : "into";
-    if (Token.stringValue() != Word)
+            : Flags & MachineMemOperand::MOLoad ? "from" : "into"; Token.stringValue() != Word)
       return error(Twine("expected '") + Word + "'");
     lex();
 

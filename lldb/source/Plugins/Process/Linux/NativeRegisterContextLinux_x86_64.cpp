@@ -29,9 +29,9 @@ static inline int get_cpuid_count(unsigned int __leaf,
                                   unsigned int *__eax, unsigned int *__ebx,
                                   unsigned int *__ecx, unsigned int *__edx)
 {
-  unsigned int __max_leaf = __get_cpuid_max(__leaf & 0x80000000, nullptr);
+  
 
-  if (__max_leaf == 0 || __max_leaf < __leaf)
+  if (unsigned int __max_leaf = __get_cpuid_max(__leaf & 0x80000000, nullptr); __max_leaf == 0 || __max_leaf < __leaf)
     return 0;
 
   __cpuid_count(__leaf, __subleaf, *__eax, *__ebx, *__ecx, *__edx);
@@ -388,8 +388,8 @@ uint32_t NativeRegisterContextLinux_x86_64::GetRegisterSetCount() const {
 uint32_t NativeRegisterContextLinux_x86_64::GetUserRegisterCount() const {
   uint32_t count = 0;
   for (uint32_t set_index = 0; set_index < k_num_register_sets; ++set_index) {
-    const RegisterSet *set = GetRegisterSet(set_index);
-    if (set)
+    
+    if (const RegisterSet *set = GetRegisterSet(set_index); set)
       count += set->num_registers;
   }
   return count;
@@ -466,9 +466,9 @@ NativeRegisterContextLinux_x86_64::ReadRegister(const RegisterInfo *reg_info,
   }
 
   if (reg_info->encoding == lldb::eEncodingVector) {
-    lldb::ByteOrder byte_order = GetByteOrder();
+    
 
-    if (byte_order != lldb::eByteOrderInvalid) {
+    if (lldb::ByteOrder byte_order = GetByteOrder(); byte_order != lldb::eByteOrderInvalid) {
       if (reg >= m_reg_info.first_st && reg <= m_reg_info.last_st)
         reg_value.SetBytes(
             m_xstate->fxsave.stmm[reg - m_reg_info.first_st].bytes,
@@ -568,8 +568,8 @@ NativeRegisterContextLinux_x86_64::ReadRegister(const RegisterInfo *reg_info,
 
 void NativeRegisterContextLinux_x86_64::UpdateXSTATEforWrite(
     uint32_t reg_index) {
-  XSAVE_HDR::XFeature &xstate_bv = m_xstate->xsave.header.xstate_bv;
-  if (IsFPR(reg_index)) {
+  
+  if (XSAVE_HDR::XFeature &xstate_bv = m_xstate->xsave.header.xstate_bv; IsFPR(reg_index)) {
     // IsFPR considers both %st and %xmm registers as floating point, but these
     // map to two features. Set both flags, just in case.
     xstate_bv |= XSAVE_HDR::XFeature::FP | XSAVE_HDR::XFeature::SSE;
@@ -650,10 +650,10 @@ Status NativeRegisterContextLinux_x86_64::WriteRegister(
       // byte_offset(fctrl wrt UserArea)
       assert((reg_info->byte_offset - m_fctrl_offset_in_userarea) <
              sizeof(FPR));
-      uint8_t *dst = (uint8_t *)m_xstate.get() + reg_info->byte_offset -
-                     m_fctrl_offset_in_userarea;
+      
 
-      if (dst == reinterpret_cast<uint8_t *>(&m_xstate->fxsave.ftag))
+      if (uint8_t *dst = (uint8_t *)m_xstate.get() + reg_info->byte_offset -
+                     m_fctrl_offset_in_userarea; dst == reinterpret_cast<uint8_t *>(&m_xstate->fxsave.ftag))
         m_xstate->fxsave.ftag = FullToAbridgedTagWord(reg_value.GetAsUInt16());
       else {
         switch (reg_info->byte_size) {
@@ -677,8 +677,8 @@ Status NativeRegisterContextLinux_x86_64::WriteRegister(
       }
     }
 
-    Status error = WriteFPR();
-    if (error.Fail())
+    
+    if (Status error = WriteFPR(); error.Fail())
       return error;
 
     if (IsAVX(reg_index)) {
@@ -716,9 +716,9 @@ Status NativeRegisterContextLinux_x86_64::ReadAllRegisterValues(
   if (m_xstate_type == XStateType::FXSAVE)
     ::memcpy(dst, &m_xstate->fxsave, sizeof(m_xstate->fxsave));
   else if (m_xstate_type == XStateType::XSAVE) {
-    lldb::ByteOrder byte_order = GetByteOrder();
+    
 
-    if (IsCPUFeatureAvailable(RegSet::avx)) {
+    if (lldb::ByteOrder byte_order = GetByteOrder(); IsCPUFeatureAvailable(RegSet::avx)) {
       // Assemble the YMM register content from the register halves.
       for (uint32_t reg = m_reg_info.first_ymm; reg <= m_reg_info.last_ymm;
            ++reg) {
@@ -811,9 +811,9 @@ Status NativeRegisterContextLinux_x86_64::WriteAllRegisterValues(
     return error;
 
   if (m_xstate_type == XStateType::XSAVE) {
-    lldb::ByteOrder byte_order = GetByteOrder();
+    
 
-    if (IsCPUFeatureAvailable(RegSet::avx)) {
+    if (lldb::ByteOrder byte_order = GetByteOrder(); IsCPUFeatureAvailable(RegSet::avx)) {
       // Parse the YMM register content from the register halves.
       for (uint32_t reg = m_reg_info.first_ymm; reg <= m_reg_info.last_ymm;
            ++reg) {
@@ -872,9 +872,9 @@ bool NativeRegisterContextLinux_x86_64::IsCPUFeatureAvailable(
 
 bool NativeRegisterContextLinux_x86_64::IsRegisterSetAvailable(
     uint32_t set_index) const {
-  uint32_t num_sets = k_num_register_sets - k_num_extended_register_sets;
+  
 
-  switch (static_cast<RegSet>(set_index)) {
+  switch (uint32_t num_sets = k_num_register_sets - k_num_extended_register_sets; static_cast<RegSet>(set_index)) {
   case RegSet::gpr:
   case RegSet::fpu:
     return (set_index < num_sets);

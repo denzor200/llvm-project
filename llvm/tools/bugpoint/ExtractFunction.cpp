@@ -62,14 +62,14 @@ static Function *globalInitUsesExternalBA(GlobalVariable *GV) {
     Done.insert(V);
 
     if (BlockAddress *BA = dyn_cast<BlockAddress>(V)) {
-      Function *F = BA->getFunction();
-      if (F->isDeclaration())
+      
+      if (Function *F = BA->getFunction(); F->isDeclaration())
         return F;
     }
 
     for (User::op_iterator i = V->op_begin(), e = V->op_end(); i != e; ++i) {
-      Constant *C = dyn_cast<Constant>(*i);
-      if (C && !isa<GlobalValue>(C) && !Done.count(C))
+      
+      if (Constant *C = dyn_cast<Constant>(*i); C && !isa<GlobalValue>(C) && !Done.count(C))
         Todo.push_back(C);
     }
   }

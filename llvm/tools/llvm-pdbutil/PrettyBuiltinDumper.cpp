@@ -26,8 +26,8 @@ void BuiltinDumper::start(const PDBSymbolTypeBuiltin &Symbol) {
 }
 
 StringRef BuiltinDumper::getTypeName(const PDBSymbolTypeBuiltin &Symbol) {
-  PDB_BuiltinType Type = Symbol.getBuiltinType();
-  switch (Type) {
+  
+  switch (PDB_BuiltinType Type = Symbol.getBuiltinType(); Type) {
   case PDB_BuiltinType::Float:
     if (Symbol.getLength() == 4)
       return "float";

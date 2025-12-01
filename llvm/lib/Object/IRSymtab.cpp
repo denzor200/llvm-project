@@ -414,8 +414,8 @@ Expected<FileContents> irsymtab::readBitcode(const BitcodeFileContents &BFC) {
     // the first struct elements.
     auto *Hdr = reinterpret_cast<const storage::Header *>(BFC.Symtab.data());
     unsigned Version = Hdr->Version;
-    StringRef Producer = Hdr->Producer.get(BFC.StrtabForSymtab);
-    if (Version != storage::Header::kCurrentVersion ||
+    
+    if (StringRef Producer = Hdr->Producer.get(BFC.StrtabForSymtab); Version != storage::Header::kCurrentVersion ||
         Producer != kExpectedProducerName)
       return upgrade(BFC.Mods);
   }

@@ -58,8 +58,8 @@ public:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
-      switch (short_option) {
+      
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'r':
         reg = ConstString(option_arg);
         break;
@@ -219,11 +219,11 @@ public:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
-      switch (short_option) {
+      
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'r': {
-        int32_t offset = 0;
-        if (option_arg.getAsInteger(0, offset) || offset == INT32_MIN) {
+        
+        if (int32_t offset = 0; option_arg.getAsInteger(0, offset) || offset == INT32_MIN) {
           error = Status::FromErrorStringWithFormat(
               "invalid frame offset argument '%s'", option_arg.str().c_str());
         } else
@@ -330,13 +330,13 @@ protected:
         // counting the stack here...
         const uint32_t frame_requested =
             frame_idx + *m_options.relative_frame_offset;
-        StackFrameSP frame_sp = thread->GetStackFrameAtIndex(frame_requested);
-        if (frame_sp)
+        
+        if (StackFrameSP frame_sp = thread->GetStackFrameAtIndex(frame_requested); frame_sp)
           frame_idx = frame_requested;
         else {
           // The request went past the stack, so handle that case:
-          const uint32_t num_frames = thread->GetStackFrameCount();
-          if (static_cast<int32_t>(num_frames - frame_idx) >
+          
+          if (const uint32_t num_frames = thread->GetStackFrameCount(); static_cast<int32_t>(num_frames - frame_idx) >
               *m_options.relative_frame_offset)
           frame_idx += *m_options.relative_frame_offset;
           else {
@@ -560,8 +560,8 @@ protected:
         for (auto &entry : command) {
           if (m_option_variable.use_regex) {
             llvm::StringRef name_str = entry.ref();
-            RegularExpression regex(name_str);
-            if (regex.IsValid()) {
+            
+            if (RegularExpression regex(name_str); regex.IsValid()) {
               std::optional<llvm::ArrayRef<VariableSP>> results =
                   findUniqueRegexMatches(regex, regex_var_list, *variable_list);
               if (!results) {
@@ -586,8 +586,8 @@ protected:
                   if (m_option_variable.show_decl &&
                       var_sp->GetDeclaration().GetFile()) {
                     bool show_fullpaths = false;
-                    bool show_module = true;
-                    if (var_sp->DumpDeclaration(&s, show_fullpaths,
+                    
+                    if (bool show_module = true; var_sp->DumpDeclaration(&s, show_fullpaths,
                                                 show_module))
                       s.PutCString(": ");
                   }
@@ -652,8 +652,8 @@ protected:
         }
       } else // No command arg specified.  Use variable_list, instead.
       {
-        const size_t num_variables = variable_list->GetSize();
-        if (num_variables > 0) {
+        
+        if (const size_t num_variables = variable_list->GetSize(); num_variables > 0) {
           for (size_t i = 0; i < num_variables; i++) {
             VariableSP var_sp = variable_list->GetVariableAtIndex(i);
             if (!ScopeRequested(var_sp->GetScope()))
@@ -704,11 +704,11 @@ protected:
     }
 
     if (m_option_variable.show_recognized_args) {
-      auto recognized_frame = frame->GetRecognizedFrame();
-      if (recognized_frame) {
-        ValueObjectListSP recognized_arg_list =
-            recognized_frame->GetRecognizedArguments();
-        if (recognized_arg_list) {
+      
+      if (auto recognized_frame = frame->GetRecognizedFrame(); recognized_frame) {
+        
+        if (ValueObjectListSP recognized_arg_list =
+            recognized_frame->GetRecognizedArguments(); recognized_arg_list) {
           for (auto &rec_value_sp : recognized_arg_list->GetObjects()) {
             result.GetValueObjectList().Append(rec_value_sp);
             options.SetFormat(m_option_format.GetFormat());
@@ -755,9 +755,9 @@ private:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'f': {
         bool value, success;
         value = OptionArgParser::ToBoolean(option_arg, true, &success);
@@ -1040,8 +1040,8 @@ public:
 protected:
   void DoExecuteWithId(CommandReturnObject &result,
                        uint32_t recognizer_id) override {
-    auto &recognizer_mgr = GetTarget().GetFrameRecognizerManager();
-    if (!recognizer_mgr.SetEnabledForID(recognizer_id, true)) {
+    
+    if (auto &recognizer_mgr = GetTarget().GetFrameRecognizerManager(); !recognizer_mgr.SetEnabledForID(recognizer_id, true)) {
       result.AppendErrorWithFormat("'%u' is not a valid recognizer id.\n",
                                    recognizer_id);
       return;
@@ -1065,8 +1065,8 @@ public:
 protected:
   void DoExecuteWithId(CommandReturnObject &result,
                        uint32_t recognizer_id) override {
-    auto &recognizer_mgr = GetTarget().GetFrameRecognizerManager();
-    if (!recognizer_mgr.SetEnabledForID(recognizer_id, false)) {
+    
+    if (auto &recognizer_mgr = GetTarget().GetFrameRecognizerManager(); !recognizer_mgr.SetEnabledForID(recognizer_id, false)) {
       result.AppendErrorWithFormat("'%u' is not a valid recognizer id.\n",
                                    recognizer_id);
       return;
@@ -1090,8 +1090,8 @@ public:
 protected:
   void DoExecuteWithId(CommandReturnObject &result,
                        uint32_t recognizer_id) override {
-    auto &recognizer_mgr = GetTarget().GetFrameRecognizerManager();
-    if (!recognizer_mgr.RemoveRecognizerWithID(recognizer_id)) {
+    
+    if (auto &recognizer_mgr = GetTarget().GetFrameRecognizerManager(); !recognizer_mgr.RemoveRecognizerWithID(recognizer_id)) {
       result.AppendErrorWithFormat("'%u' is not a valid recognizer id.\n",
                                    recognizer_id);
       return;

@@ -195,10 +195,10 @@ bool mergeAndDeduplicate(const TUReplacements &TUs, const TUDiagnostics &TUDs,
         SM.getLocForStartOfFile(SM.getOrCreateFileID(Entry, SrcMgr::C_User));
     tooling::AtomicChange FileChange(Entry.getName(), Entry.getName());
     for (const auto &R : FileAndReplacements.second) {
-      llvm::Error Err =
+      
+      if (llvm::Error Err =
           FileChange.replace(SM, BeginLoc.getLocWithOffset(R.getOffset()),
-                             R.getLength(), R.getReplacementText());
-      if (Err) {
+                             R.getLength(), R.getReplacementText()); Err) {
         // FIXME: This will report conflicts by pair using a file+offset format
         // which is not so much human readable.
         // A first improvement could be to translate offset to line+col. For
@@ -216,10 +216,10 @@ bool mergeAndDeduplicate(const TUReplacements &TUs, const TUDiagnostics &TUDs,
           tooling::Replacements &Replacements = FileChange.getReplacements();
           unsigned NewOffset =
               Replacements.getShiftedCodePosition(R.getOffset());
-          unsigned NewLength = Replacements.getShiftedCodePosition(
+          
+          if (unsigned NewLength = Replacements.getShiftedCodePosition(
                                    R.getOffset() + R.getLength()) -
-                               NewOffset;
-          if (NewLength == R.getLength()) {
+                               NewOffset; NewLength == R.getLength()) {
             tooling::Replacement RR = tooling::Replacement(
                 R.getFilePath(), NewOffset, NewLength, R.getReplacementText());
             Replacements = Replacements.merge(tooling::Replacements(RR));

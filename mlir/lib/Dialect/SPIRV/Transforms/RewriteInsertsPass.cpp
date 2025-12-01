@@ -49,8 +49,8 @@ private:
 void RewriteInsertsPass::runOnOperation() {
   SmallVector<SmallVector<spirv::CompositeInsertOp, 4>, 4> workList;
   getOperation().walk([this, &workList](spirv::CompositeInsertOp op) {
-    SmallVector<spirv::CompositeInsertOp, 4> insertions;
-    if (succeeded(collectInsertionChain(op, insertions)))
+    
+    if (SmallVector<spirv::CompositeInsertOp, 4> insertions; succeeded(collectInsertionChain(op, insertions)))
       workList.push_back(insertions);
   });
 
@@ -73,8 +73,8 @@ void RewriteInsertsPass::runOnOperation() {
 
     // Erase ops.
     for (auto insertOp : llvm::reverse(insertions)) {
-      auto *op = insertOp.getOperation();
-      if (op->use_empty())
+      
+      if (auto *op = insertOp.getOperation(); op->use_empty())
         insertOp.erase();
     }
   }

@@ -737,9 +737,9 @@ void SCFToControlFlowPass::runOnOperation() {
   target.addIllegalOp<scf::ForallOp, scf::ForOp, scf::IfOp, scf::IndexSwitchOp,
                       scf::ParallelOp, scf::WhileOp, scf::ExecuteRegionOp>();
   target.markUnknownOpDynamicallyLegal([](Operation *) { return true; });
-  ConversionConfig config;
+  
   config.allowPatternRollback = allowPatternRollback;
-  if (failed(applyPartialConversion(getOperation(), target, std::move(patterns),
+  if (ConversionConfig config; failed(applyPartialConversion(getOperation(), target, std::move(patterns),
                                     config)))
     signalPassFailure();
 }

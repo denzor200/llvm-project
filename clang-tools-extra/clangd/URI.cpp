@@ -59,8 +59,8 @@ public:
   uriFromAbsolutePath(llvm::StringRef AbsolutePath) const override {
     std::string Body;
     llvm::StringRef Authority;
-    llvm::StringRef Root = llvm::sys::path::root_name(AbsolutePath);
-    if (isNetworkPath(Root)) {
+    
+    if (llvm::StringRef Root = llvm::sys::path::root_name(AbsolutePath); isNetworkPath(Root)) {
       // Windows UNC paths e.g. \\server\share => file://server/share
       Authority = Root.drop_front(2);
       AbsolutePath.consume_front(Root);

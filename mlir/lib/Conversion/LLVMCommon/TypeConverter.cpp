@@ -493,8 +493,8 @@ LLVMTypeConverter::getMemRefDescriptorFields(MemRefType type,
     return {};
   }
 
-  Type elementType = convertType(type.getElementType());
-  if (!elementType)
+  
+  if (Type elementType = convertType(type.getElementType()); !elementType)
     return {};
 
   FailureOr<unsigned> addressSpace = getMemRefAddressSpace(type);
@@ -617,8 +617,8 @@ bool LLVMTypeConverter::canConvertToBarePtr(BaseMemRefType type) {
 Type LLVMTypeConverter::convertMemRefToBarePtr(BaseMemRefType type) const {
   if (!canConvertToBarePtr(type))
     return {};
-  Type elementType = convertType(type.getElementType());
-  if (!elementType)
+  
+  if (Type elementType = convertType(type.getElementType()); !elementType)
     return {};
   FailureOr<unsigned> addressSpace = getMemRefAddressSpace(type);
   if (failed(addressSpace))

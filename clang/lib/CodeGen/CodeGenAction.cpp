@@ -453,9 +453,9 @@ void BackendConsumer::SrcMgrDiagHandler(const llvm::DiagnosticInfoSrcMgr &DI) {
   // issue in the source with a note showing the instantiated
   // code.
   if (DI.isInlineAsmDiag()) {
-    SourceLocation LocCookie =
-        SourceLocation::getFromRawEncoding(DI.getLocCookie());
-    if (LocCookie.isValid()) {
+    
+    if (SourceLocation LocCookie =
+        SourceLocation::getFromRawEncoding(DI.getLocCookie()); LocCookie.isValid()) {
       Diags.Report(LocCookie, DiagID).AddString(Message);
 
       if (D.getLoc().isValid()) {
@@ -487,9 +487,9 @@ BackendConsumer::InlineAsmDiagHandler(const llvm::DiagnosticInfoInlineAsm &D) {
   // If this problem has clang-level source location information, report the
   // issue as being a problem in the source with a note showing the instantiated
   // code.
-  SourceLocation LocCookie =
-      SourceLocation::getFromRawEncoding(D.getLocCookie());
-  if (LocCookie.isValid())
+  
+  if (SourceLocation LocCookie =
+      SourceLocation::getFromRawEncoding(D.getLocCookie()); LocCookie.isValid())
     Diags.Report(LocCookie, DiagID).AddString(Message);
   else {
     // Otherwise, report the backend diagnostic as occurring in the generated
@@ -759,9 +759,9 @@ void BackendConsumer::MisExpectDiagHandler(
 /// to report something to the user.
 void BackendConsumer::DiagnosticHandlerImpl(const DiagnosticInfo &DI) {
   unsigned DiagID = diag::err_fe_inline_asm;
-  llvm::DiagnosticSeverity Severity = DI.getSeverity();
+  
   // Get the diagnostic ID based.
-  switch (DI.getKind()) {
+  switch (llvm::DiagnosticSeverity Severity = DI.getSeverity(); DI.getKind()) {
   case llvm::DK_InlineAsm:
     if (InlineAsmDiagHandler(cast<DiagnosticInfoInlineAsm>(DI)))
       return;

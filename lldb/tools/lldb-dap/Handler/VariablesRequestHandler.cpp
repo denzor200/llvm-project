@@ -49,8 +49,8 @@ VariablesRequestHandler::Run(const VariablesArguments &arguments) const {
       const uint32_t num_regs = reg_set.GetNumChildren();
       for (uint32_t reg_idx = 0; reg_idx < num_regs; ++reg_idx) {
         lldb::SBValue reg = reg_set.GetChildAtIndex(reg_idx);
-        const lldb::Format format = reg.GetFormat();
-        if (format == lldb::eFormatDefault || format == lldb::eFormatHex) {
+        
+        if (const lldb::Format format = reg.GetFormat(); format == lldb::eFormatDefault || format == lldb::eFormatHex) {
           if (reg.GetByteSize() == addr_size)
             reg.SetFormat(lldb::eFormatAddressInfo);
         }
@@ -66,8 +66,8 @@ VariablesRequestHandler::Run(const VariablesArguments &arguments) const {
       // "error" owns the error string so we must keep it alive as long as we
       // want to use the returns "const char *"
       lldb::SBError error = top_scope->GetError();
-      const char *var_err = error.GetCString();
-      if (var_err) {
+      
+      if (const char *var_err = error.GetCString(); var_err) {
         // Create a fake variable named "error" to explain why variables were
         // not available. This new error will help let users know when there was
         // a problem that kept variables from being available for display and
@@ -97,9 +97,9 @@ VariablesRequestHandler::Run(const VariablesArguments &arguments) const {
     if (var_ref == VARREF_LOCALS) {
       auto process = dap.target.GetProcess();
       auto selected_thread = process.GetSelectedThread();
-      lldb::SBValue stop_return_value = selected_thread.GetStopReturnValue();
+      
 
-      if (stop_return_value.IsValid() &&
+      if (lldb::SBValue stop_return_value = selected_thread.GetStopReturnValue(); stop_return_value.IsValid() &&
           (selected_thread.GetSelectedFrame().GetFrameID() == 0)) {
         auto renamed_return_value = stop_return_value.Clone("(Return Value)");
         int64_t return_var_ref = 0;
@@ -134,8 +134,8 @@ VariablesRequestHandler::Run(const VariablesArguments &arguments) const {
   } else {
     // We are expanding a variable that has children, so we will return its
     // children.
-    lldb::SBValue variable = dap.variables.GetVariable(var_ref);
-    if (variable.IsValid()) {
+    
+    if (lldb::SBValue variable = dap.variables.GetVariable(var_ref); variable.IsValid()) {
       const bool is_permanent =
           dap.variables.IsPermanentVariableReference(var_ref);
       auto addChild = [&](lldb::SBValue child,

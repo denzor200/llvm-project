@@ -463,17 +463,17 @@ bool SIPreEmitPeephole::canUnpackingClobberRegister(const MachineInstr &MI) {
   // op_sel_hi modifiers.
   Register UnpackedDstReg = TRI->getSubReg(DstReg, AMDGPU::sub0);
 
-  const MachineOperand *Src0MO = TII->getNamedOperand(MI, AMDGPU::OpName::src0);
-  if (Src0MO && Src0MO->isReg()) {
+  
+  if (const MachineOperand *Src0MO = TII->getNamedOperand(MI, AMDGPU::OpName::src0); Src0MO && Src0MO->isReg()) {
     Register SrcReg0 = Src0MO->getReg();
     unsigned Src0Mods =
         TII->getNamedOperand(MI, AMDGPU::OpName::src0_modifiers)->getImm();
-    Register HiSrc0Reg = (Src0Mods & SISrcMods::OP_SEL_1)
-                             ? TRI->getSubReg(SrcReg0, AMDGPU::sub1)
-                             : TRI->getSubReg(SrcReg0, AMDGPU::sub0);
+    
     // Check if the register selected by op_sel_hi is the same as the first
     // register in the destination register pair.
-    if (TRI->regsOverlap(UnpackedDstReg, HiSrc0Reg))
+    if (Register HiSrc0Reg = (Src0Mods & SISrcMods::OP_SEL_1)
+                             ? TRI->getSubReg(SrcReg0, AMDGPU::sub1)
+                             : TRI->getSubReg(SrcReg0, AMDGPU::sub0); TRI->regsOverlap(UnpackedDstReg, HiSrc0Reg))
       return true;
   }
 
@@ -482,26 +482,26 @@ bool SIPreEmitPeephole::canUnpackingClobberRegister(const MachineInstr &MI) {
     Register SrcReg1 = Src1MO->getReg();
     unsigned Src1Mods =
         TII->getNamedOperand(MI, AMDGPU::OpName::src1_modifiers)->getImm();
-    Register HiSrc1Reg = (Src1Mods & SISrcMods::OP_SEL_1)
+    
+    if (Register HiSrc1Reg = (Src1Mods & SISrcMods::OP_SEL_1)
                              ? TRI->getSubReg(SrcReg1, AMDGPU::sub1)
-                             : TRI->getSubReg(SrcReg1, AMDGPU::sub0);
-    if (TRI->regsOverlap(UnpackedDstReg, HiSrc1Reg))
+                             : TRI->getSubReg(SrcReg1, AMDGPU::sub0); TRI->regsOverlap(UnpackedDstReg, HiSrc1Reg))
       return true;
   }
 
   // Applicable for packed instructions with 3 source operands, such as
   // V_PK_FMA.
   if (AMDGPU::hasNamedOperand(OpCode, AMDGPU::OpName::src2)) {
-    const MachineOperand *Src2MO =
-        TII->getNamedOperand(MI, AMDGPU::OpName::src2);
-    if (Src2MO && Src2MO->isReg()) {
+    
+    if (const MachineOperand *Src2MO =
+        TII->getNamedOperand(MI, AMDGPU::OpName::src2); Src2MO && Src2MO->isReg()) {
       Register SrcReg2 = Src2MO->getReg();
       unsigned Src2Mods =
           TII->getNamedOperand(MI, AMDGPU::OpName::src2_modifiers)->getImm();
-      Register HiSrc2Reg = (Src2Mods & SISrcMods::OP_SEL_1)
+      
+      if (Register HiSrc2Reg = (Src2Mods & SISrcMods::OP_SEL_1)
                                ? TRI->getSubReg(SrcReg2, AMDGPU::sub1)
-                               : TRI->getSubReg(SrcReg2, AMDGPU::sub0);
-      if (TRI->regsOverlap(UnpackedDstReg, HiSrc2Reg))
+                               : TRI->getSubReg(SrcReg2, AMDGPU::sub0); TRI->regsOverlap(UnpackedDstReg, HiSrc2Reg))
         return true;
     }
   }
@@ -509,11 +509,11 @@ bool SIPreEmitPeephole::canUnpackingClobberRegister(const MachineInstr &MI) {
 }
 
 uint16_t SIPreEmitPeephole::mapToUnpackedOpcode(MachineInstr &I) {
-  unsigned Opcode = I.getOpcode();
+  
   // Use 64 bit encoding to allow use of VOP3 instructions.
   // VOP3 e64 instructions allow source modifiers
   // e32 instructions don't allow source modifiers.
-  switch (Opcode) {
+  switch (unsigned Opcode = I.getOpcode(); Opcode) {
   case AMDGPU::V_PK_ADD_F32:
     return AMDGPU::V_ADD_F32_e64;
   case AMDGPU::V_PK_MUL_F32:
@@ -723,8 +723,8 @@ bool SIPreEmitPeephole::run(MachineFunction &MF) {
     MachineBasicBlock::iterator TermI = MBB.getFirstTerminator();
     // Check first terminator for branches to optimize
     if (TermI != MBB.end()) {
-      MachineInstr &MI = *TermI;
-      switch (MI.getOpcode()) {
+      
+      switch (MachineInstr &MI = *TermI; MI.getOpcode()) {
       case AMDGPU::S_CBRANCH_VCCZ:
       case AMDGPU::S_CBRANCH_VCCNZ:
         Changed |= optimizeVccBranch(MI);

@@ -702,12 +702,12 @@ static Error removeNotes(Object &Obj, endianness Endianness,
     size_t Align = std::max<size_t>(4, Sec.Align);
     // Note: notes for both 32-bit and 64-bit ELF files use 4-byte words in the
     // header, so the parsers are the same.
-    auto ToRemove = (Endianness == endianness::little)
+    
+    if (auto ToRemove = (Endianness == endianness::little)
                         ? RemoveNoteDetail::findNotesToRemove<ELF64LE>(
                               OldData, Align, NotesToRemove)
                         : RemoveNoteDetail::findNotesToRemove<ELF64BE>(
-                              OldData, Align, NotesToRemove);
-    if (!ToRemove.empty()) {
+                              OldData, Align, NotesToRemove); !ToRemove.empty()) {
       if (Error E = Obj.updateSectionData(
               Sec, RemoveNoteDetail::updateData(OldData, ToRemove)))
         return E;
@@ -759,8 +759,8 @@ static Error verifyNoteSection(StringRef Name, endianness Endianness,
       /*NameSize=*/4 + /*DescSize=*/4 + /*Type=*/4 +
       /*Name=*/alignTo(NameSizeValue, 4) +
       /*Desc=*/alignTo(DescSizeValue, 4);
-  uint64_t ActualDataSize = Data.size();
-  if (ActualDataSize != ExpectedDataSize) {
+  
+  if (uint64_t ActualDataSize = Data.size(); ActualDataSize != ExpectedDataSize) {
     std::string msg;
     raw_string_ostream(msg)
         << Name
@@ -815,8 +815,8 @@ static Error handleArgs(const CommonConfig &Config, const ELFConfig &ELFConfig,
 
   if (!Config.SetSectionAlignment.empty()) {
     for (SectionBase &Sec : Obj.sections()) {
-      auto I = Config.SetSectionAlignment.find(Sec.Name);
-      if (I != Config.SetSectionAlignment.end())
+      
+      if (auto I = Config.SetSectionAlignment.find(Sec.Name); I != Config.SetSectionAlignment.end())
         Sec.Align = I->second;
     }
   }
@@ -913,9 +913,9 @@ static Error handleArgs(const CommonConfig &Config, const ELFConfig &ELFConfig,
 
   for (const NewSectionInfo &AddedSection : Config.AddSection) {
     auto AddSection = [&](StringRef Name, ArrayRef<uint8_t> Data) -> Error {
-      OwnedDataSection &NewSection =
-          Obj.addSection<OwnedDataSection>(Name, Data);
-      if (Name.starts_with(".note") && Name != ".note.GNU-stack") {
+      
+      if (OwnedDataSection &NewSection =
+          Obj.addSection<OwnedDataSection>(Name, Data); Name.starts_with(".note") && Name != ".note.GNU-stack") {
         NewSection.Type = SHT_NOTE;
         if (ELFConfig.VerifyNoteSections)
           return verifyNoteSection(Name, E, Data);
@@ -927,10 +927,10 @@ static Error handleArgs(const CommonConfig &Config, const ELFConfig &ELFConfig,
   }
 
   for (const NewSectionInfo &NewSection : Config.UpdateSection) {
-    auto UpdateSection = [&](StringRef Name, ArrayRef<uint8_t> Data) {
+    
+    if (Error auto UpdateSection = [&](StringRef Name, ArrayRef<uint8_t> Data) {
       return Obj.updateSection(Name, Data);
-    };
-    if (Error E = handleUserSection(NewSection, UpdateSection))
+    }; E = handleUserSection(NewSection, UpdateSection))
       return createFileError(Config.InputFilename, std::move(E));
   }
 
@@ -952,8 +952,8 @@ static Error handleArgs(const CommonConfig &Config, const ELFConfig &ELFConfig,
     for (auto &Sec : Obj.sections()) {
       const auto Iter = Config.SetSectionFlags.find(Sec.Name);
       if (Iter != Config.SetSectionFlags.end()) {
-        const SectionFlagsUpdate &SFU = Iter->second;
-        if (Error E = setSectionFlagsAndType(Sec, SFU.NewFlags, Obj.Machine))
+        
+        if (Error const SectionFlagsUpdate &SFU = Iter->second; E = setSectionFlagsAndType(Sec, SFU.NewFlags, Obj.Machine))
           return createFileError(Config.InputFilename, std::move(E));
       }
       auto It2 = Config.SetSectionType.find(Sec.Name);
@@ -967,8 +967,8 @@ static Error handleArgs(const CommonConfig &Config, const ELFConfig &ELFConfig,
     DenseSet<SectionBase *> RenamedSections;
     for (SectionBase &Sec : Obj.sections()) {
       auto *RelocSec = dyn_cast<RelocationSectionBase>(&Sec);
-      const auto Iter = Config.SectionsToRename.find(Sec.Name);
-      if (Iter != Config.SectionsToRename.end()) {
+      
+      if (const auto Iter = Config.SectionsToRename.find(Sec.Name); Iter != Config.SectionsToRename.end()) {
         const SectionRename &SR = Iter->second;
         Sec.Name = std::string(SR.NewName);
         if (SR.NewFlags) {
@@ -988,8 +988,8 @@ static Error handleArgs(const CommonConfig &Config, const ELFConfig &ELFConfig,
 
     // Rename relocation sections according to their target sections.
     for (RelocationSectionBase *RelocSec : RelocSections) {
-      auto Iter = RenamedSections.find(RelocSec->getSection());
-      if (Iter != RenamedSections.end())
+      
+      if (auto Iter = RenamedSections.find(RelocSec->getSection()); Iter != RenamedSections.end())
         RelocSec->Name = (RelocSec->getNamePrefix() + (*Iter)->Name).str();
     }
   }
@@ -1011,8 +1011,8 @@ static Error handleArgs(const CommonConfig &Config, const ELFConfig &ELFConfig,
         // Dynamic relocation sections (SHT_REL[A] with SHF_ALLOC) are handled
         // above, e.g., .rela.plt is renamed to .prefix.rela.plt, not
         // .rela.prefix.plt since GNU objcopy does so.
-        const SectionBase *TargetSec = RelocSec->getSection();
-        if (TargetSec && (TargetSec->Flags & SHF_ALLOC)) {
+        
+        if (const SectionBase *TargetSec = RelocSec->getSection(); TargetSec && (TargetSec->Flags & SHF_ALLOC)) {
           // If the relocation section comes *after* the target section, we
           // don't add Config.AllocSectionsPrefix because we've already added
           // the prefix to TargetSec->Name. Otherwise, if the relocation

@@ -180,10 +180,10 @@ struct SpillPlacement::Node {
   void getDissentingNeighbors(SparseSet<unsigned> &List,
                               const Node nodes[]) const {
     for (const auto &Elt : Links) {
-      unsigned n = Elt.second;
+      
       // Neighbors that already have the same value are not going to
       // change because of this node changing.
-      if (Value != nodes[n].Value)
+      if (unsigned n = Elt.second; Value != nodes[n].Value)
         List.insert(n);
     }
   }

@@ -144,8 +144,8 @@ private:
         return;
 
       // Finish the current 64-bit word.
-      uint64_t Aligned = llvm::alignTo(Size, 64);
-      if (Aligned > Size && Aligned <= ToSize) {
+      
+      if (uint64_t Aligned = llvm::alignTo(Size, 64); Aligned > Size && Aligned <= ToSize) {
         Elems.push_back(llvm::IntegerType::get(Context, Aligned - Size));
         Size = Aligned;
       }

@@ -297,8 +297,8 @@ getUnused(ParsedAST &AST,
   for (const Inclusion &MFI : AST.getIncludeStructure().MainFileIncludes) {
     if (!MFI.HeaderID)
       continue;
-    auto IncludeID = static_cast<IncludeStructure::HeaderID>(*MFI.HeaderID);
-    if (ReferencedFiles.contains(IncludeID))
+    
+    if (auto IncludeID = static_cast<IncludeStructure::HeaderID>(*MFI.HeaderID); ReferencedFiles.contains(IncludeID))
       continue;
     if (!mayConsiderUnused(MFI, AST, &AST.getPragmaIncludes(),
                            AnalyzeAngledIncludes)) {

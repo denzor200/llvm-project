@@ -145,8 +145,8 @@ struct ExpressionFormatParameterisedFixture
     ASSERT_TRUE(TrailExtendTo == 0 || AllowHex);
     SmallVector<StringRef, 4> Matches;
     std::string ExtendedInput = Input.str();
-    size_t PrefixSize = AlternateForm ? 2 : 0;
-    if (TrailExtendTo > Input.size() - PrefixSize) {
+    
+    if (size_t PrefixSize = AlternateForm ? 2 : 0; TrailExtendTo > Input.size() - PrefixSize) {
       size_t ExtensionSize = PrefixSize + TrailExtendTo - Input.size();
       ExtendedInput.append(ExtensionSize, Input[PrefixSize]);
     }
@@ -227,8 +227,8 @@ TEST_P(ExpressionFormatParameterisedFixture, FormatGetWildcardRegex) {
   // Matches all decimal digits, matches several of them and match 0x prefix
   // if and only if AlternateForm is true.
   StringRef LongNumber = "12345678901234567890";
-  StringRef PrefixedLongNumber = "0x12345678901234567890";
-  if (AlternateForm) {
+  
+  if (StringRef PrefixedLongNumber = "0x12345678901234567890"; AlternateForm) {
     checkWildcardRegexMatch(PrefixedLongNumber);
     checkWildcardRegexMatchFailure(LongNumber);
   } else {

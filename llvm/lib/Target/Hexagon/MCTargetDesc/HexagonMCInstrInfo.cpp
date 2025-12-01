@@ -59,8 +59,8 @@ Hexagon::PacketIterator &Hexagon::PacketIterator::operator++() {
   }
   ++BundleCurrent;
   if (BundleCurrent != BundleEnd) {
-    MCInst const &Inst = *BundleCurrent->getInst();
-    if (HexagonMCInstrInfo::isDuplex(MCII, Inst)) {
+    
+    if (MCInst const &Inst = *BundleCurrent->getInst(); HexagonMCInstrInfo::isDuplex(MCII, Inst)) {
       DuplexCurrent = Inst.begin();
       DuplexEnd = Inst.end();
     }
@@ -224,9 +224,9 @@ MCInst const *HexagonMCInstrInfo::extenderForIndex(MCInst const &MCB,
   assert(Index <= bundleSize(MCB));
   if (Index == 0)
     return nullptr;
-  MCInst const *Inst =
-      MCB.getOperand(Index + bundleInstructionsOffset - 1).getInst();
-  if (isImmext(*Inst))
+  
+  if (MCInst const *Inst =
+      MCB.getOperand(Index + bundleInstructionsOffset - 1).getInst(); isImmext(*Inst))
     return Inst;
   return nullptr;
 }

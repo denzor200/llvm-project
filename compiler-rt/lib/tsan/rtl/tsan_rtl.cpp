@@ -511,9 +511,9 @@ static void *BackgroundThread(void *arg) {
 
     // Flush symbolizer cache if requested.
     if (flags()->flush_symbolizer_ms > 0) {
-      u64 last = atomic_load(&ctx->last_symbolize_time_ns,
-                             memory_order_relaxed);
-      if (last != 0 && last + flags()->flush_symbolizer_ms * kMs2Ns < now) {
+      
+      if (u64 last = atomic_load(&ctx->last_symbolize_time_ns,
+                             memory_order_relaxed); last != 0 && last + flags()->flush_symbolizer_ms * kMs2Ns < now) {
         Lock l(&ctx->report_mtx);
         ScopedErrorReportLock l2;
         SymbolizeFlush();
@@ -610,8 +610,8 @@ void MapShadow(uptr addr, uptr size) {
   // CHECK_EQ(addr, addr & ~((64 << 10) - 1));  // windows wants 64K alignment
   const uptr kPageSize = GetPageSizeCached();
   uptr shadow_begin = RoundDownTo((uptr)MemToShadow(addr), kPageSize);
-  uptr shadow_end = RoundUpTo((uptr)MemToShadow(addr + size), kPageSize);
-  if (!MmapFixedNoReserve(shadow_begin, shadow_end - shadow_begin, "shadow"))
+  
+  if (uptr shadow_end = RoundUpTo((uptr)MemToShadow(addr + size), kPageSize); !MmapFixedNoReserve(shadow_begin, shadow_end - shadow_begin, "shadow"))
     Die();
 #else
   uptr shadow_begin = RoundDownTo((uptr)MemToShadow(addr), (64 << 10));
@@ -783,8 +783,8 @@ void MaybeSpawnBackgroundThread() {
   // __pthread_initialize_minimal_internal() is finished, so we can not spawn
   // new threads.
 #if !SANITIZER_GO && !defined(__mips__)
-  static atomic_uint32_t bg_thread = {};
-  if (atomic_load(&bg_thread, memory_order_relaxed) == 0 &&
+  
+  if (static atomic_uint32_t bg_thread = {}; atomic_load(&bg_thread, memory_order_relaxed) == 0 &&
       atomic_exchange(&bg_thread, 1, memory_order_relaxed) == 0) {
     StartBackgroundThread();
     SetSandboxingCallback(StopBackgroundThread);
@@ -983,8 +983,8 @@ void TraceSwitchPart(ThreadState* thr) {
 #if !SANITIZER_GO
   if (ctx->after_multithreaded_fork) {
     // We just need to survive till exec.
-    TracePart* part = thr->tctx->trace.parts.Back();
-    if (part) {
+    
+    if (TracePart* part = thr->tctx->trace.parts.Back(); part) {
       atomic_store_relaxed(&thr->trace_pos,
                            reinterpret_cast<uptr>(&part->events[0]));
       return;
@@ -1043,8 +1043,8 @@ void TraceSwitchPartImpl(ThreadState* thr) {
   // after the call. It's possible that TryTraceFunc/TraceMutexLock above
   // filled the trace part exactly up to the TracePart::kAlignment gap
   // and the next TraceAcquire won't succeed. Skip the gap to avoid that.
-  EventFunc *ev;
-  if (!TraceAcquire(thr, &ev)) {
+  
+  if (EventFunc *ev; !TraceAcquire(thr, &ev)) {
     CHECK(TraceSkipGap(thr));
     CHECK(TraceAcquire(thr, &ev));
   }

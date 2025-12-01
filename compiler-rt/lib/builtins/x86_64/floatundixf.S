@@ -19,7 +19,7 @@ twop64:
 	.text
 
 	.balign 4
-DEFINE_COMPILERRT_FUNCTION(__floatundixf)
+DEFINE_COMPILERRT_FUNCTION(int__floatundixf)
 	movq	%rdi,	 -8(%rsp)
 	fildq	-8(%rsp)
 	test	%rdi,		%rdi

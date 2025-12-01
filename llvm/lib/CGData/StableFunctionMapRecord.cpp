@@ -232,9 +232,9 @@ void StableFunctionMapRecord::deserialize(const unsigned char *&Ptr,
       // Relative offset to IndexOperandHashes
       sizeof(uint64_t);
   for (unsigned I = 0; I < NumFuncs; ++I) {
-    auto Hash =
-        endian::readNext<stable_hash, endianness::little, unaligned>(Ptr);
-    if (Lazy) {
+    
+    if (auto Hash =
+        endian::readNext<stable_hash, endianness::little, unaligned>(Ptr); Lazy) {
       auto It = FunctionMap->HashToFuncs.try_emplace(Hash).first;
       StableFunctionMap::EntryStorage &Storage = It->second;
       Storage.Offsets.push_back(FixedSizeFieldsOffset);

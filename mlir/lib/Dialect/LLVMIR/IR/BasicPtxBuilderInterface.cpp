@@ -264,8 +264,8 @@ static std::string canonicalizeRegisterConstraints(llvm::StringRef csv) {
   out.reserve(toks.size() + 8);
 
   for (unsigned i = 0, e = toks.size(); i < e; ++i) {
-    StringRef t = toks[i].trim();
-    if (t.consume_front("+")) {
+    
+    if (StringRef t = toks[i].trim(); t.consume_front("+")) {
       plusIdx.push_back(i);
       out.push_back(("=" + t).str());
     } else {

@@ -26,10 +26,10 @@ LLVM_LIBC_FUNCTION(float, tanhf, (float x)) {
   FPBits xbits(x);
   uint32_t x_abs = xbits.abs().uintval();
 
-  const int sign_index = xbits.is_neg() ? 1 : 0;
+  
 
   // When |x| >= 15, or x is inf or nan, or |x| <= 0.078125
-  if (LIBC_UNLIKELY((x_abs >= 0x4170'0000U) || (x_abs <= 0x3da0'0000U))) {
+  if (const int sign_index = xbits.is_neg() ? 1 : 0; LIBC_UNLIKELY((x_abs >= 0x4170'0000U) || (x_abs <= 0x3da0'0000U))) {
     if (x_abs <= 0x3da0'0000U) {
       // |x| <= 0.078125
       if (LIBC_UNLIKELY(x_abs <= 0x3280'0000U)) {

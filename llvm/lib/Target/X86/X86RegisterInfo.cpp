@@ -220,8 +220,8 @@ X86RegisterInfo::getRegPressureLimit(const TargetRegisterClass *RC,
                                      MachineFunction &MF) const {
   const X86FrameLowering *TFI = getFrameLowering(MF);
 
-  unsigned FPDiff = TFI->hasFP(MF) ? 1 : 0;
-  switch (RC->getID()) {
+  
+  switch (unsigned FPDiff = TFI->hasFP(MF) ? 1 : 0; RC->getID()) {
   default:
     return 0;
   case X86::GR32RegClassID:
@@ -385,9 +385,9 @@ X86RegisterInfo::getCallPreservedMask(const MachineFunction &MF,
   const X86Subtarget &Subtarget = MF.getSubtarget<X86Subtarget>();
   bool HasSSE = Subtarget.hasSSE1();
   bool HasAVX = Subtarget.hasAVX();
-  bool HasAVX512 = Subtarget.hasAVX512();
+  
 
-  switch (CC) {
+  switch (bool HasAVX512 = Subtarget.hasAVX512(); CC) {
   case CallingConv::GHC:
   case CallingConv::HiPE:
     return CSR_NoRegs_RegMask;
@@ -1034,8 +1034,8 @@ static ShapeT getTileShape(Register VirtReg, VirtRegMap *VRM,
 
   const MachineOperand &Def = *MRI->def_begin(VirtReg);
   MachineInstr *MI = const_cast<MachineInstr *>(Def.getParent());
-  unsigned OpCode = MI->getOpcode();
-  switch (OpCode) {
+  
+  switch (unsigned OpCode = MI->getOpcode(); OpCode) {
   default:
     llvm_unreachable("Unexpected machine instruction on tile register!");
     break;
@@ -1101,8 +1101,8 @@ bool X86RegisterInfo::getRegAllocationHints(Register VirtReg,
 
     auto TryAddNDDHint = [&](const MachineOperand &MO) {
       Register Reg = MO.getReg();
-      Register PhysReg = Reg.isPhysical() ? Reg : Register(VRM->getPhys(Reg));
-      if (PhysReg && !MRI->isReserved(PhysReg) && !is_contained(Hints, PhysReg))
+      
+      if (Register PhysReg = Reg.isPhysical() ? Reg : Register(VRM->getPhys(Reg)); PhysReg && !MRI->isReserved(PhysReg) && !is_contained(Hints, PhysReg))
         TwoAddrHints.insert(PhysReg);
     };
 

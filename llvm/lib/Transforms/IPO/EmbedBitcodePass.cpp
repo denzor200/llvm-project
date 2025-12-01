@@ -26,8 +26,8 @@ PreservedAnalyses EmbedBitcodePass::run(Module &M, ModuleAnalysisManager &AM) {
   if (M.getGlobalVariable("llvm.embedded.module", /*AllowInternal=*/true))
     reportFatalUsageError("Can only embed the module once");
 
-  Triple T(M.getTargetTriple());
-  if (T.getObjectFormat() != Triple::ELF)
+  
+  if (Triple T(M.getTargetTriple()); T.getObjectFormat() != Triple::ELF)
     reportFatalUsageError(
         "EmbedBitcode pass currently only supports ELF object format");
 

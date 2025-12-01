@@ -482,9 +482,9 @@ static void populateNegativeRISCVFeatures(std::vector<std::string> &Features) {
 
 static void handleFullArchString(StringRef FullArchStr,
                                  std::vector<std::string> &Features) {
-  auto RII = llvm::RISCVISAInfo::parseArchString(
-      FullArchStr, /* EnableExperimentalExtension */ true);
-  if (llvm::errorToBool(RII.takeError())) {
+  
+  if (auto RII = llvm::RISCVISAInfo::parseArchString(
+      FullArchStr, /* EnableExperimentalExtension */ true); llvm::errorToBool(RII.takeError())) {
     // Forward the invalid FullArchStr.
     Features.push_back(FullArchStr.str());
   } else {
@@ -514,9 +514,9 @@ ParsedTargetAttr RISCVTargetInfo::parseTargetAttr(StringRef Features) const {
         continue;
 
       StringRef ExtName = Ext.substr(1);
-      std::string TargetFeature =
-          llvm::RISCVISAInfo::getTargetFeatureForExtension(ExtName);
-      if (!TargetFeature.empty())
+      
+      if (std::string TargetFeature =
+          llvm::RISCVISAInfo::getTargetFeatureForExtension(ExtName); !TargetFeature.empty())
         Features.push_back(Ext.front() + TargetFeature);
       else
         Features.push_back(Ext.str());
@@ -549,8 +549,8 @@ ParsedTargetAttr RISCVTargetInfo::parseTargetAttr(StringRef Features) const {
 
       if (!FoundArch) {
         // Update Features with CPU's features
-        StringRef MarchFromCPU = llvm::RISCV::getMArchFromMcpu(Ret.CPU);
-        if (MarchFromCPU != "") {
+        
+        if (StringRef MarchFromCPU = llvm::RISCV::getMArchFromMcpu(Ret.CPU); MarchFromCPU != "") {
           Ret.Features.clear();
           handleFullArchString(MarchFromCPU, Ret.Features);
         }

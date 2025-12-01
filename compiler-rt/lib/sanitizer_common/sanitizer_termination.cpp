@@ -71,8 +71,8 @@ void NORETURN CheckFailed(const char *file, int line, const char *cond,
          SanitizerToolName, StripModuleName(file), line, cond, (uptr)v1,
          (uptr)v2, tid);
   static atomic_uint32_t first_tid;
-  u32 cmp = 0;
-  if (!atomic_compare_exchange_strong(&first_tid, &cmp, tid,
+  
+  if (u32 cmp = 0; !atomic_compare_exchange_strong(&first_tid, &cmp, tid,
                                       memory_order_relaxed)) {
     if (cmp == tid) {
       // Recursing into CheckFailed.

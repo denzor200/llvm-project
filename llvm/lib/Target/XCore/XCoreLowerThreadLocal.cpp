@@ -96,8 +96,8 @@ static bool replaceConstantExprOp(ConstantExpr *CE, Pass *P) {
           NewInst->insertBefore(*Instr->getParent(), Instr->getIterator());
           Instr->replaceUsesOfWith(CE, NewInst);
         } else {
-          ConstantExpr *CExpr = dyn_cast<ConstantExpr>(WU);
-          if (!CExpr || !replaceConstantExprOp(CExpr, P))
+          
+          if (ConstantExpr *CExpr = dyn_cast<ConstantExpr>(WU); !CExpr || !replaceConstantExprOp(CExpr, P))
             return false;
         }
       }
@@ -114,8 +114,8 @@ static bool rewriteNonInstructionUses(GlobalVariable *GV, Pass *P) {
       WUsers.push_back(WeakTrackingVH(U));
   while (!WUsers.empty())
     if (WeakTrackingVH WU = WUsers.pop_back_val()) {
-      ConstantExpr *CE = dyn_cast<ConstantExpr>(WU);
-      if (!CE || !replaceConstantExprOp(CE, P))
+      
+      if (ConstantExpr *CE = dyn_cast<ConstantExpr>(WU); !CE || !replaceConstantExprOp(CE, P))
         return false;
     }
   return true;

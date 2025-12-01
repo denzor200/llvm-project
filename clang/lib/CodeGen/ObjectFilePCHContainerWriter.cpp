@@ -84,15 +84,15 @@ class PCHContainerGenerator : public ASTConsumer {
       if (D->hasAttr<NoDebugAttr>())
         return true;
 
-      QualType QualTy = Ctx.getTypeDeclType(D);
-      if (!QualTy.isNull() && CanRepresent(QualTy.getTypePtr()))
+      
+      if (QualType QualTy = Ctx.getTypeDeclType(D); !QualTy.isNull() && CanRepresent(QualTy.getTypePtr()))
         DI.getOrCreateStandaloneType(QualTy, D->getLocation());
       return true;
     }
 
     bool VisitObjCInterfaceDecl(ObjCInterfaceDecl *D) {
-      QualType QualTy(D->getTypeForDecl(), 0);
-      if (!QualTy.isNull() && CanRepresent(QualTy.getTypePtr()))
+      
+      if (QualType QualTy(D->getTypeForDecl(), 0); !QualTy.isNull() && CanRepresent(QualTy.getTypePtr()))
         DI.getOrCreateStandaloneType(QualTy, D->getLocation());
       return true;
     }

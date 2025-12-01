@@ -836,8 +836,8 @@ public:
 
     // Cast from i8* to the LLVM pointer type.
     auto valueType = op.getValue().getType();
-    auto llvmValueType = getTypeConverter()->convertType(valueType);
-    if (!llvmValueType)
+    
+    if (auto llvmValueType = getTypeConverter()->convertType(valueType); !llvmValueType)
       return rewriter.notifyMatchFailure(
           op, "failed to convert stored value type to LLVM type");
 

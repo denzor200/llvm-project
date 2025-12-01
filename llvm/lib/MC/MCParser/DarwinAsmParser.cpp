@@ -546,8 +546,8 @@ bool DarwinAsmParser::parseDirectiveDesc(StringRef, SMLoc) {
 bool DarwinAsmParser::parseDirectiveIndirectSymbol(StringRef, SMLoc Loc) {
   const MCSectionMachO *Current = static_cast<const MCSectionMachO *>(
       getStreamer().getCurrentSectionOnly());
-  MachO::SectionType SectionType = Current->getType();
-  if (SectionType != MachO::S_NON_LAZY_SYMBOL_POINTERS &&
+  
+  if (MachO::SectionType SectionType = Current->getType(); SectionType != MachO::S_NON_LAZY_SYMBOL_POINTERS &&
       SectionType != MachO::S_LAZY_SYMBOL_POINTERS &&
       SectionType != MachO::S_THREAD_LOCAL_VARIABLE_POINTERS &&
       SectionType != MachO::S_SYMBOL_STUBS)
@@ -1074,8 +1074,8 @@ bool DarwinAsmParser::parseSDKVersion(VersionTuple &SDKVersion) {
 
 void DarwinAsmParser::checkVersion(StringRef Directive, StringRef Arg,
                                    SMLoc Loc, Triple::OSType ExpectedOS) {
-  const Triple &Target = getContext().getTargetTriple();
-  if (Target.getOS() != ExpectedOS)
+  
+  if (const Triple &Target = getContext().getTargetTriple(); Target.getOS() != ExpectedOS)
     Warning(Loc, Twine(Directive) +
             (Arg.empty() ? Twine() : Twine(' ') + Arg) +
             " used while targeting " + Target.getOSName());

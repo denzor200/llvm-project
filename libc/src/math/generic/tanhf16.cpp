@@ -39,11 +39,11 @@ LLVM_LIBC_FUNCTION(float16, tanhf16, (float16 x)) {
   FPBits x_bits(x);
 
   uint16_t x_u = x_bits.uintval();
-  uint16_t x_abs = x_u & 0x7fffU;
+  
 
   // When -2^(-14) <= x <= -2^(-9), or |x| <= 0x1.d2p-4,
   // or |x| >= atanh(1 - 2^(-11)), or x is NaN.
-  if (LIBC_UNLIKELY(x_abs <= 0x2f48U || x_abs >= 0x4429U)) {
+  if (uint16_t x_abs = x_u & 0x7fffU; LIBC_UNLIKELY(x_abs <= 0x2f48U || x_abs >= 0x4429U)) {
     // tanh(NaN) = NaN
     if (x_bits.is_nan()) {
       if (x_bits.is_signaling_nan()) {
@@ -90,8 +90,8 @@ LLVM_LIBC_FUNCTION(float16, tanhf16, (float16 x)) {
     // When |x| >= atanh(1 - 2^(-11)).
     fputil::raise_except_if_required(FE_INEXACT);
 
-    int rounding_mode = fputil::quick_get_round();
-    if ((rounding_mode == FE_TONEAREST && x_abs >= 0x4482U) ||
+    
+    if (int rounding_mode = fputil::quick_get_round(); (rounding_mode == FE_TONEAREST && x_abs >= 0x4482U) ||
         (rounding_mode == FE_UPWARD && x_bits.is_pos()) ||
         (rounding_mode == FE_DOWNWARD && x_bits.is_neg())) {
       return FPBits::one(x_bits.sign()).get_val();

@@ -182,8 +182,8 @@ void VforkChecker::checkPostCall(const CallEvent &Call,
 // allowed.
 void VforkChecker::checkPreCall(const CallEvent &Call,
                                 CheckerContext &C) const {
-  ProgramStateRef State = C.getState();
-  if (isChildProcess(State) &&
+  
+  if (ProgramStateRef State = C.getState(); isChildProcess(State) &&
       !isCallExplicitelyAllowed(Call.getCalleeIdentifier(), C))
     reportBug("This function call", C);
 }
@@ -208,8 +208,8 @@ void VforkChecker::checkBind(SVal L, SVal V, const Stmt *S, bool AtDeclInit,
 
 // Prohibit return from function in child process.
 void VforkChecker::checkPreStmt(const ReturnStmt *RS, CheckerContext &C) const {
-  ProgramStateRef State = C.getState();
-  if (isChildProcess(State))
+  
+  if (ProgramStateRef State = C.getState(); isChildProcess(State))
     reportBug("Return", C, "call _exit() instead");
 }
 

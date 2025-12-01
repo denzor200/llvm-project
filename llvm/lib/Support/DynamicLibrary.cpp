@@ -72,8 +72,8 @@ public:
 
   void CloseLibrary(void *Handle) {
     DLClose(Handle);
-    HandleList::iterator it = Find(Handle);
-    if (it != Handles.end()) {
+    
+    if (HandleList::iterator it = Find(Handle); it != Handles.end()) {
       Handles.erase(it);
     }
   }
@@ -202,8 +202,8 @@ DynamicLibrary DynamicLibrary::getLibrary(const char *FileName,
 
 void DynamicLibrary::closeLibrary(DynamicLibrary &Lib) {
   auto &G = getGlobals();
-  SmartScopedLock<true> Lock(G.SymbolsMutex);
-  if (Lib.isValid()) {
+  
+  if (SmartScopedLock<true> Lock(G.SymbolsMutex); Lib.isValid()) {
     G.OpenedTemporaryHandles.CloseLibrary(Lib.Data);
     Lib.Data = &Invalid;
   }

@@ -167,9 +167,9 @@ ompt_start_tool(unsigned int omp_version, const char *runtime_version) {
   // runtime library is linked before the tool. Since glibc 2.2 strong symbols
   // don't override weak symbols that have been found before unless the user
   // sets the environment variable LD_DYNAMIC_WEAK.
-  ompt_start_tool_t next_tool =
-      (ompt_start_tool_t)dlsym(RTLD_NEXT, "ompt_start_tool");
-  if (next_tool) {
+  
+  if (ompt_start_tool_t next_tool =
+      (ompt_start_tool_t)dlsym(RTLD_NEXT, "ompt_start_tool"); next_tool) {
     ret = next_tool(omp_version, runtime_version);
   }
   return ret;
@@ -294,8 +294,8 @@ ompt_try_start_tool(unsigned int omp_version, const char *runtime_version) {
     while (fname) {
 #if KMP_OS_UNIX
       OMPT_VERBOSE_INIT_PRINT("Opening %s... ", fname);
-      void *h = dlopen(fname, RTLD_LAZY);
-      if (!h) {
+      
+      if (void *h = dlopen(fname, RTLD_LAZY); !h) {
         OMPT_VERBOSE_INIT_CONTINUED_PRINT("Failed: %s\n", dlerror());
       } else {
         OMPT_VERBOSE_INIT_CONTINUED_PRINT("Success. \n");
@@ -304,8 +304,8 @@ ompt_try_start_tool(unsigned int omp_version, const char *runtime_version) {
         dlerror(); // Clear any existing error
         start_tool = (ompt_start_tool_t)dlsym(h, "ompt_start_tool");
         if (!start_tool) {
-          char *error = dlerror();
-          if (error != NULL) {
+          
+          if (char *error = dlerror(); error != NULL) {
             OMPT_VERBOSE_INIT_CONTINUED_PRINT("Failed: %s\n", error);
           } else {
             OMPT_VERBOSE_INIT_CONTINUED_PRINT("Failed: %s\n",

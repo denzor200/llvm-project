@@ -147,9 +147,9 @@ const lldb_private::Declaration &SBDeclaration::ref() const {
 bool SBDeclaration::GetDescription(SBStream &description) {
   LLDB_INSTRUMENT_VA(this, description);
 
-  Stream &strm = description.ref();
+  
 
-  if (m_opaque_up) {
+  if (Stream &strm = description.ref(); m_opaque_up) {
     char file_path[PATH_MAX * 2];
     m_opaque_up->GetFile().GetPath(file_path, sizeof(file_path));
     strm.Printf("%s:%u", file_path, GetLine());

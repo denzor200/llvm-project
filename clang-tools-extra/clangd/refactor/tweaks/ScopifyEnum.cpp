@@ -111,11 +111,11 @@ llvm::Error ScopifyEnum::addClassKeywordToDeclarations() {
     if (!(Ref.Attributes & ReferencesResult::Declaration))
       continue;
 
-    static const auto MakeReplacement = [](StringRef FilePath,
+    
+    if (auto static const auto MakeReplacement = [](StringRef FilePath,
                                            StringRef Content, unsigned Offset) {
       return tooling::Replacement(FilePath, Offset, 0, "class ");
-    };
-    if (auto Err = addReplacementForReference(Ref, MakeReplacement))
+    }; Err = addReplacementForReference(Ref, MakeReplacement))
       return Err;
   }
   return llvm::Error::success();
@@ -146,15 +146,15 @@ llvm::Error ScopifyEnum::scopifyEnumValue(const EnumConstantDecl &CD,
            .References) {
     if (Ref.Attributes & ReferencesResult::Declaration) {
       if (StripPrefix) {
-        const auto MakeReplacement = [&EnumName](StringRef FilePath,
+        
+        if (auto const auto MakeReplacement = [&EnumName](StringRef FilePath,
                                                  StringRef Content,
                                                  unsigned Offset) {
           unsigned Length = EnumName.size();
           if (Content[Offset + Length] == '_')
             ++Length;
           return tooling::Replacement(FilePath, Offset, Length, {});
-        };
-        if (auto Err = addReplacementForReference(Ref, MakeReplacement))
+        }; Err = addReplacementForReference(Ref, MakeReplacement))
           return Err;
       }
       continue;

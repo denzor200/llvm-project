@@ -252,8 +252,8 @@ namespace {
 
     OS << " PTy:";
     if (GN.PTy->isStructTy()) {
-      StructType *STy = cast<StructType>(GN.PTy);
-      if (!STy->isLiteral())
+      
+      if (StructType *STy = cast<StructType>(GN.PTy); !STy->isLiteral())
         OS << GN.PTy->getStructName();
       else
         OS << "<anon-struct>:" << *STy;
@@ -285,8 +285,8 @@ namespace {
       const UseSet &Us = I.second;
       OS << I.first << " -> #" << Us.size() << '{';
       for (const Use *U : Us) {
-        User *R = U->getUser();
-        if (R->hasName())
+        
+        if (User *R = U->getUser(); R->hasName())
           OS << ' ' << R->getName();
         else
           OS << " <?>(" << *R << ')';
@@ -362,8 +362,8 @@ void HexagonCommonGEP::processGepInst(GetElementPtrInst *GepI,
     // Check if this gep is used by anything other than other geps that
     // we will process.
     if (isa<GetElementPtrInst>(*UI)) {
-      GetElementPtrInst *UserG = cast<GetElementPtrInst>(*UI);
-      if (isHandledGepForm(UserG))
+      
+      if (GetElementPtrInst *UserG = cast<GetElementPtrInst>(*UI); isHandledGepForm(UserG))
         continue;
     }
     Us.insert(&UI.getUse());
@@ -442,8 +442,8 @@ static void nodes_for_root(GepNode *Root, NodeChildrenMap &NCM,
       NodeVect::iterator First = Work.begin();
       GepNode *N = *First;
       Work.erase(First);
-      NodeChildrenMap::iterator CF = NCM.find(N);
-      if (CF != NCM.end()) {
+      
+      if (NodeChildrenMap::iterator CF = NCM.find(N); CF != NCM.end()) {
         llvm::append_range(Work, CF->second);
         Nodes.insert(CF->second.begin(), CF->second.end());
       }
@@ -470,8 +470,8 @@ static const NodeSet *node_class(GepNode *N, NodeSymRel &Rel) {
   // duplication due to the commutativity of equality/non-equality.
 static NodePair node_pair(GepNode *N1, GepNode *N2) {
   uintptr_t P1 = reinterpret_cast<uintptr_t>(N1);
-  uintptr_t P2 = reinterpret_cast<uintptr_t>(N2);
-  if (P1 <= P2)
+  
+  if (uintptr_t P2 = reinterpret_cast<uintptr_t>(N2); P1 <= P2)
     return std::make_pair(N1, N2);
   return std::make_pair(N2, N1);
 }
@@ -1001,17 +1001,17 @@ void HexagonCommonGEP::separateConstantChains(GepNode *Node,
     // Loads/stores that use the node N.
     UseSet LSs;
     for (Use *U : Us) {
-      User *R = U->getUser();
+      
       // We're interested in uses that provide the address. It can happen
       // that the value may also be provided via GEP, but we won't handle
       // those cases here for now.
-      if (LoadInst *Ld = dyn_cast<LoadInst>(R)) {
-        unsigned PtrX = LoadInst::getPointerOperandIndex();
-        if (&Ld->getOperandUse(PtrX) == U)
+      if (LoadInst *User *R = U->getUser(); Ld = dyn_cast<LoadInst>(R)) {
+        
+        if (unsigned PtrX = LoadInst::getPointerOperandIndex(); &Ld->getOperandUse(PtrX) == U)
           LSs.insert(U);
       } else if (StoreInst *St = dyn_cast<StoreInst>(R)) {
-        unsigned PtrX = StoreInst::getPointerOperandIndex();
-        if (&St->getOperandUse(PtrX) == U)
+        
+        if (unsigned PtrX = StoreInst::getPointerOperandIndex(); &St->getOperandUse(PtrX) == U)
           LSs.insert(U);
       }
     }
@@ -1130,8 +1130,8 @@ void HexagonCommonGEP::getAllUsersForNode(GepNode *Node, ValueVect &Values,
       for (const auto &U : Us)
         Values.push_back(U->getUser());
     }
-    NodeChildrenMap::iterator CF = NCM.find(N);
-    if (CF != NCM.end()) {
+    
+    if (NodeChildrenMap::iterator CF = NCM.find(N); CF != NCM.end()) {
       NodeVect &Cs = CF->second;
       llvm::append_range(Work, Cs);
     }
@@ -1175,8 +1175,8 @@ void HexagonCommonGEP::materialize(NodeToValueMap &Loc) {
       if (LastCN != 1)
         break;
       GepNode *Child = CF->second.front();
-      BasicBlock *ChildB = cast_or_null<BasicBlock>(Loc[Child]);
-      if (ChildB != nullptr && LastB != ChildB)
+      
+      if (BasicBlock *ChildB = cast_or_null<BasicBlock>(Loc[Child]); ChildB != nullptr && LastB != ChildB)
         break;
       Last = Child;
     } while (true);
@@ -1185,8 +1185,8 @@ void HexagonCommonGEP::materialize(NodeToValueMap &Loc) {
     if (LastUsed || LastCN > 0) {
       ValueVect Urs;
       getAllUsersForNode(Root, Urs, NCM);
-      BasicBlock::iterator FirstUse = first_use_of_in_block(Urs, LastB);
-      if (FirstUse != LastB->end())
+      
+      if (BasicBlock::iterator FirstUse = first_use_of_in_block(Urs, LastB); FirstUse != LastB->end())
         InsertAt = FirstUse;
     }
 
@@ -1233,8 +1233,8 @@ void HexagonCommonGEP::removeDeadCode() {
     for (Instruction &I : llvm::reverse(*B))
       Ins.push_back(&I);
     for (Value *I : Ins) {
-      Instruction *In = cast<Instruction>(I);
-      if (isInstructionTriviallyDead(In))
+      
+      if (Instruction *In = cast<Instruction>(I); isInstructionTriviallyDead(In))
         In->eraseFromParent();
     }
   }

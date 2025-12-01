@@ -194,8 +194,8 @@ static bool areExclusiveRanges(BinaryOperatorKind OpcodeLHS,
     return true;
 
   // Handle the case where constants are off by one: x > 5 && x < 6.
-  APSInt ValueLhsPlus1;
-  if (OpcodeLHS == BO_GT && OpcodeRHS == BO_LT &&
+  
+  if (APSInt ValueLhsPlus1; OpcodeLHS == BO_GT && OpcodeRHS == BO_LT &&
       incrementWithoutOverflow(ValueLHS, ValueLhsPlus1) &&
       APSInt::compareValues(ValueLhsPlus1, ValueRHS) == 0)
     return true;
@@ -233,8 +233,8 @@ static bool rangesFullyCoverDomain(BinaryOperatorKind OpcodeLHS,
   }
 
   // Handle the case where constants are off by one: x <= 4 || x >= 5.
-  APSInt ValueLhsPlus1;
-  if (OpcodeLHS == BO_LE && OpcodeRHS == BO_GE &&
+  
+  if (APSInt ValueLhsPlus1; OpcodeLHS == BO_LE && OpcodeRHS == BO_GE &&
       incrementWithoutOverflow(ValueLHS, ValueLhsPlus1) &&
       APSInt::compareValues(ValueLhsPlus1, ValueRHS) == 0)
     return true;
@@ -256,8 +256,8 @@ static bool rangeSubsumesRange(BinaryOperatorKind OpcodeLHS,
                                const APSInt &ValueLHS,
                                BinaryOperatorKind OpcodeRHS,
                                const APSInt &ValueRHS) {
-  const int Comparison = APSInt::compareValues(ValueLHS, ValueRHS);
-  switch (OpcodeLHS) {
+  
+  switch (const int Comparison = APSInt::compareValues(ValueLHS, ValueRHS); OpcodeLHS) {
   case BO_EQ:
     return OpcodeRHS == BO_EQ && Comparison == 0;
   case BO_NE:
@@ -321,8 +321,8 @@ getOperands(const CXXOperatorCallExpr *Op) {
 template <typename TExpr>
 static const TExpr *checkOpKind(const Expr *TheExpr,
                                 OverloadedOperatorKind OpKind) {
-  const auto *AsTExpr = dyn_cast_or_null<TExpr>(TheExpr);
-  if (AsTExpr && getOp(AsTExpr) == OpKind)
+  
+  if (const auto *AsTExpr = dyn_cast_or_null<TExpr>(TheExpr); AsTExpr && getOp(AsTExpr) == OpKind)
     return AsTExpr;
 
   return nullptr;
@@ -354,10 +354,10 @@ static bool hasSameOperatorParent(const Expr *TheExpr,
   const DynTypedNodeList Parents = Context.getParents(*TheExpr);
   for (const DynTypedNode DynParent : Parents) {
     if (const auto *Parent = DynParent.get<Expr>()) {
-      const bool Skip =
+      
+      if (const bool Skip =
           isa<ParenExpr>(Parent) || isa<ImplicitCastExpr>(Parent) ||
-          isa<FullExpr>(Parent) || isa<MaterializeTemporaryExpr>(Parent);
-      if (Skip && hasSameOperatorParent<TExpr>(Parent, OpKind, Context))
+          isa<FullExpr>(Parent) || isa<MaterializeTemporaryExpr>(Parent); Skip && hasSameOperatorParent<TExpr>(Parent, OpKind, Context))
         return true;
       if (checkOpKind<TExpr>(Parent, OpKind))
         return true;
@@ -463,8 +463,8 @@ AST_MATCHER_P(Expr, expandedByMacro, ArrayRef<llvm::StringLiteral>, Names) {
   const LangOptions &LO = Finder->getASTContext().getLangOpts();
   SourceLocation Loc = Node.getExprLoc();
   while (Loc.isMacroID()) {
-    const StringRef MacroName = Lexer::getImmediateMacroName(Loc, SM, LO);
-    if (llvm::is_contained(Names, MacroName))
+    
+    if (const StringRef MacroName = Lexer::getImmediateMacroName(Loc, SM, LO); llvm::is_contained(Names, MacroName))
       return true;
     Loc = SM.getImmediateMacroCallerLoc(Loc);
   }
@@ -1092,9 +1092,9 @@ void RedundantExpressionCheck::checkArithmeticExpr(
     const MatchFinder::MatchResult &Result) {
   APSInt LhsValue, RhsValue;
   const Expr *LhsSymbol = nullptr, *RhsSymbol = nullptr;
-  BinaryOperatorKind LhsOpcode{}, RhsOpcode{};
+  
 
-  if (const auto *ComparisonOperator = Result.Nodes.getNodeAs<BinaryOperator>(
+  if (const auto *BinaryOperatorKind LhsOpcode{}, RhsOpcode{}; ComparisonOperator = Result.Nodes.getNodeAs<BinaryOperator>(
           "binop-const-compare-to-sym")) {
     const BinaryOperatorKind Opcode = ComparisonOperator->getOpcode();
     if (!retrieveBinOpIntegerConstantExpr(Result, "lhs", LhsOpcode, LhsSymbol,
@@ -1351,8 +1351,8 @@ void RedundantExpressionCheck::check(const MatchFinder::MatchResult &Result) {
     if (areSidesBinaryConstExpressionsOrDefinesOrIntegerConstant(
             BinOp, Result.Context)) {
       const Expr *LhsConst = nullptr, *RhsConst = nullptr;
-      BinaryOperatorKind MainOpcode{}, SideOpcode{};
-      if (areSidesBinaryConstExpressions(BinOp, Result.Context)) {
+      
+      if (BinaryOperatorKind MainOpcode{}, SideOpcode{}; areSidesBinaryConstExpressions(BinOp, Result.Context)) {
         if (!retrieveConstExprFromBothSides(BinOp, MainOpcode, SideOpcode,
                                             LhsConst, RhsConst, Result.Context))
           return;
@@ -1371,9 +1371,9 @@ void RedundantExpressionCheck::check(const MatchFinder::MatchResult &Result) {
   if (const auto *CondOp =
           Result.Nodes.getNodeAs<ConditionalOperator>("cond")) {
     const Expr *TrueExpr = CondOp->getTrueExpr();
-    const Expr *FalseExpr = CondOp->getFalseExpr();
+    
 
-    if (areExprsFromDifferentMacros(TrueExpr, FalseExpr, Result.Context) ||
+    if (const Expr *FalseExpr = CondOp->getFalseExpr(); areExprsFromDifferentMacros(TrueExpr, FalseExpr, Result.Context) ||
         areExprsMacroAndNonMacro(TrueExpr, FalseExpr))
       return;
     diag(CondOp->getColonLoc(),
@@ -1411,9 +1411,9 @@ void RedundantExpressionCheck::check(const MatchFinder::MatchResult &Result) {
     auto Diag =
         diag(OperatorLoc,
              "ineffective logical negation operator used; did you mean '~'?");
-    const SourceLocation LogicalNotLocation = OperatorLoc.getLocWithOffset(1);
+    
 
-    if (!LogicalNotLocation.isMacroID())
+    if (const SourceLocation LogicalNotLocation = OperatorLoc.getLocWithOffset(1); !LogicalNotLocation.isMacroID())
       Diag << FixItHint::CreateReplacement(
           CharSourceRange::getCharRange(OperatorLoc, LogicalNotLocation), "~");
   }

@@ -402,8 +402,8 @@ static bool eachOfVariadicOperator(const DynTypedNode &DynNode,
   BoundNodesTreeBuilder Result;
   bool Matched = false;
   for (const DynTypedMatcher &InnerMatcher : InnerMatchers) {
-    BoundNodesTreeBuilder BuilderInner(*Builder);
-    if (InnerMatcher.matches(DynNode, Finder, &BuilderInner)) {
+    
+    if (BoundNodesTreeBuilder BuilderInner(*Builder); InnerMatcher.matches(DynNode, Finder, &BuilderInner)) {
       Matched = true;
       Result.addMatch(BuilderInner);
     }
@@ -417,8 +417,8 @@ static bool anyOfVariadicOperator(const DynTypedNode &DynNode,
                                   BoundNodesTreeBuilder *Builder,
                                   ArrayRef<DynTypedMatcher> InnerMatchers) {
   for (const DynTypedMatcher &InnerMatcher : InnerMatchers) {
-    BoundNodesTreeBuilder Result = *Builder;
-    if (InnerMatcher.matches(DynNode, Finder, &Result)) {
+    
+    if (BoundNodesTreeBuilder Result = *Builder; InnerMatcher.matches(DynNode, Finder, &Result)) {
       *Builder = std::move(Result);
       return true;
     }
@@ -544,8 +544,8 @@ public:
       // To do this, any patterns that match should be duplicated in our set,
       // one of them with the tail removed.
       for (size_t I = 0, E = Patterns.size(); I != E; ++I) {
-        StringRef Pattern = Patterns[I].P;
-        if (ast_matchers::internal::consumeNameSuffix(Patterns[I].P, NodeName))
+        
+        if (StringRef Pattern = Patterns[I].P; ast_matchers::internal::consumeNameSuffix(Patterns[I].P, NodeName))
           Patterns.push_back({Pattern, Patterns[I].IsFullyQualified});
       }
     } else {
@@ -737,8 +737,8 @@ std::shared_ptr<llvm::Regex> createAndVerifyRegex(StringRef Regex,
                                                   StringRef MatcherID) {
   assert(!Regex.empty() && "Empty regex string");
   auto SharedRegex = std::make_shared<llvm::Regex>(Regex, Flags);
-  std::string Error;
-  if (!SharedRegex->isValid(Error)) {
+  
+  if (std::string Error; !SharedRegex->isValid(Error)) {
     llvm::WithColor::error()
         << "building matcher '" << MatcherID << "': " << Error << "\n";
     llvm::WithColor::note() << " input was '" << Regex << "'\n";

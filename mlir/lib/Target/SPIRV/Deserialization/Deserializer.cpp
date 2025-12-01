@@ -124,8 +124,8 @@ LogicalResult spirv::Deserializer::processHeader() {
 
   // Version number bytes: 0 | major number | minor number | 0
   uint32_t majorVersion = (binary[1] << 8) >> 24;
-  uint32_t minorVersion = (binary[1] << 16) >> 24;
-  if (majorVersion == 1) {
+  
+  if (uint32_t minorVersion = (binary[1] << 16) >> 24; majorVersion == 1) {
     switch (minorVersion) {
 #define MIN_VERSION_CASE(v)                                                    \
   case v:                                                                      \
@@ -263,8 +263,8 @@ LogicalResult spirv::Deserializer::processDecoration(ArrayRef<uint32_t> words) {
   if (decorationName.empty()) {
     return emitError(unknownLoc, "invalid Decoration code : ") << words[1];
   }
-  auto symbol = getSymbolDecoration(decorationName);
-  switch (static_cast<spirv::Decoration>(words[1])) {
+  
+  switch (auto symbol = getSymbolDecoration(decorationName); static_cast<spirv::Decoration>(words[1])) {
   case spirv::Decoration::FPFastMathMode:
     if (words.size() != 3) {
       return emitError(unknownLoc, "OpDecorate with ")
@@ -1373,9 +1373,9 @@ spirv::Deserializer::processStructType(ArrayRef<uint32_t> operands) {
 
   for (auto op : llvm::drop_begin(operands, 1)) {
     Type memberType = getType(op);
-    bool typeForwardPtr = (typeForwardPointerIDs.count(op) != 0);
+    
 
-    if (!memberType && !typeForwardPtr)
+    if (bool typeForwardPtr = (typeForwardPointerIDs.count(op) != 0); !memberType && !typeForwardPtr)
       return emitError(unknownLoc, "OpTypeStruct references undefined <id> ")
              << op;
 
@@ -1400,8 +1400,8 @@ spirv::Deserializer::processStructType(ArrayRef<uint32_t> operands) {
             }
             offsetInfo[memberIndex] = memberDecoration.second[0];
           } else {
-            auto intType = mlir::IntegerType::get(context, 32);
-            if (!memberDecoration.second.empty()) {
+            
+            if (auto intType = mlir::IntegerType::get(context, 32); !memberDecoration.second.empty()) {
               memberDecorationsInfo.emplace_back(
                   memberIndex, memberDecoration.first,
                   IntegerAttr::get(intType, memberDecoration.second[0]));
@@ -1709,8 +1709,8 @@ LogicalResult spirv::Deserializer::processConstant(ArrayRef<uint32_t> operands,
   }
 
   if (auto floatType = dyn_cast<FloatType>(resultType)) {
-    auto bitwidth = floatType.getWidth();
-    if (failed(checkOperandSizeForBitwidth(bitwidth))) {
+    
+    if (auto bitwidth = floatType.getWidth(); failed(checkOperandSizeForBitwidth(bitwidth))) {
       return failure();
     }
 
@@ -1760,8 +1760,8 @@ LogicalResult spirv::Deserializer::processConstantBool(
   }
 
   auto attr = opBuilder.getBoolAttr(isTrue);
-  auto resultID = operands[1];
-  if (isSpec) {
+  
+  if (auto resultID = operands[1]; isSpec) {
     createSpecConstant(unknownLoc, resultID, attr);
   } else {
     // For normal constants, we just record the attribute (and its type) for
@@ -2221,9 +2221,9 @@ spirv::Deserializer::processSelectionMerge(ArrayRef<uint32_t> operands) {
 
   auto *mergeBlock = getOrCreateBlock(operands[0]);
   auto loc = createFileLineColLoc(opBuilder);
-  auto selectionControl = operands[1];
+  
 
-  if (!blockMergeInfo.try_emplace(curBlock, loc, selectionControl, mergeBlock)
+  if (auto selectionControl = operands[1]; !blockMergeInfo.try_emplace(curBlock, loc, selectionControl, mergeBlock)
            .second) {
     return emitError(
         unknownLoc,
@@ -2247,9 +2247,9 @@ spirv::Deserializer::processLoopMerge(ArrayRef<uint32_t> operands) {
   auto *mergeBlock = getOrCreateBlock(operands[0]);
   auto *continueBlock = getOrCreateBlock(operands[1]);
   auto loc = createFileLineColLoc(opBuilder);
-  uint32_t loopControl = operands[2];
+  
 
-  if (!blockMergeInfo
+  if (uint32_t loopControl = operands[2]; !blockMergeInfo
            .try_emplace(curBlock, loc, loopControl, mergeBlock, continueBlock)
            .second) {
     return emitError(
@@ -2955,15 +2955,15 @@ LogicalResult spirv::Deserializer::structurizeControlFlow() {
     // Erase this case before calling into structurizer, who will update
     // blockMergeInfo.
     blockMergeInfo.erase(blockMergeInfo.begin());
-    ControlFlowStructurizer structurizer(mergeInfo.loc, mergeInfo.control,
+    
+    if (ControlFlowStructurizer structurizer(mergeInfo.loc, mergeInfo.control,
                                          blockMergeInfo, headerBlock,
                                          mergeBlock, continueBlock
 #ifndef NDEBUG
                                          ,
                                          logger
 #endif
-    );
-    if (failed(structurizer.structurize()))
+    ); failed(structurizer.structurize()))
       return failure();
   }
 

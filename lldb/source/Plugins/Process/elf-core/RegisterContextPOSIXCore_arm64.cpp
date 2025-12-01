@@ -26,9 +26,9 @@ RegisterContextCorePOSIX_arm64::Create(Thread &thread, const ArchSpec &arch,
                                        llvm::ArrayRef<CoreNote> notes) {
   Flags opt_regsets = RegisterInfoPOSIX_arm64::eRegsetMaskDefault;
 
-  DataExtractor ssve_data =
-      getRegset(notes, arch.GetTriple(), AARCH64_SSVE_Desc);
-  if (ssve_data.GetByteSize() >= sizeof(sve::user_sve_header))
+  
+  if (DataExtractor ssve_data =
+      getRegset(notes, arch.GetTriple(), AARCH64_SSVE_Desc); ssve_data.GetByteSize() >= sizeof(sve::user_sve_header))
     opt_regsets.Set(RegisterInfoPOSIX_arm64::eRegsetMaskSSVE);
 
   DataExtractor sve_data = getRegset(notes, arch.GetTriple(), AARCH64_SVE_Desc);
@@ -124,8 +124,8 @@ RegisterContextCorePOSIX_arm64::RegisterContextCorePOSIX_arm64(
   if (m_register_info_up->IsSSVEPresent()) {
     m_sve_data = getRegset(notes, target_triple, AARCH64_SSVE_Desc);
     lldb::offset_t flags_offset = 12;
-    uint16_t flags = m_sve_data.GetU32(&flags_offset);
-    if ((flags & sve::ptrace_regs_mask) == sve::ptrace_regs_sve)
+    
+    if (uint16_t flags = m_sve_data.GetU32(&flags_offset); (flags & sve::ptrace_regs_mask) == sve::ptrace_regs_sve)
       m_sve_state = SVEState::Streaming;
   }
 
@@ -183,9 +183,9 @@ void RegisterContextCorePOSIX_arm64::ConfigureRegisterContext() {
 
     if (m_sve_state != SVEState::Streaming) {
       sve_header_field_offset = 12;
-      uint16_t sve_header_flags_field =
-          m_sve_data.GetU16(&sve_header_field_offset);
-      if ((sve_header_flags_field & sve::ptrace_regs_mask) ==
+      
+      if (uint16_t sve_header_flags_field =
+          m_sve_data.GetU16(&sve_header_field_offset); (sve_header_flags_field & sve::ptrace_regs_mask) ==
           sve::ptrace_regs_fpsimd)
         m_sve_state = SVEState::FPSIMD;
       else if ((sve_header_flags_field & sve::ptrace_regs_mask) ==
@@ -216,8 +216,8 @@ void RegisterContextCorePOSIX_arm64::ConfigureRegisterContext() {
     // If there is register data then ZA is active. The size of the note may be
     // misleading here so we use the size field of the embedded header.
     lldb::offset_t size_offset = 0;
-    uint32_t size = m_za_data.GetU32(&size_offset);
-    if (size > sizeof(sve::user_za_header))
+    
+    if (uint32_t size = m_za_data.GetU32(&size_offset); size > sizeof(sve::user_za_header))
       m_sme_pseudo_regs.ctrl_reg |= 1 << 1;
   }
 }
@@ -270,8 +270,8 @@ bool RegisterContextCorePOSIX_arm64::ReadRegister(const RegisterInfo *reg_info,
       // SVEState::FPSIMD while in SVEState::Full/SVEState::Streaming they will
       // be located at the end of register data after an alignment correction
       // based on currently selected vector length.
-      uint32_t sve_reg_num = LLDB_INVALID_REGNUM;
-      if (reg == GetRegNumFPSR()) {
+      
+      if (uint32_t sve_reg_num = LLDB_INVALID_REGNUM; reg == GetRegNumFPSR()) {
         sve_reg_num = reg;
         if (m_sve_state == SVEState::Full || m_sve_state == SVEState::Streaming)
           offset = sve::PTraceFPSROffset(sve::vq_from_vl(m_sve_vector_length));

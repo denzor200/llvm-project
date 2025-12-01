@@ -302,8 +302,8 @@ llvm::Error Terminal::SetStopBits(unsigned int stop_bits) {
   if (!data)
     return data.takeError();
 
-  struct termios &fd_termios = data->m_termios;
-  switch (stop_bits) {
+  
+  switch (struct termios &fd_termios = data->m_termios; stop_bits) {
   case 1:
     fd_termios.c_cflag &= ~CSTOPB;
     break;

@@ -131,8 +131,8 @@ bool CoreEngine::ExecuteWorkList(const LocationContext *L, unsigned MaxSteps,
 
   // Cap our pre-reservation in the event that the user specifies
   // a very large number of maximum steps.
-  const unsigned PreReservationCap = 4000000;
-  if(!UnlimitedSteps)
+  
+  if(const unsigned PreReservationCap = 4000000; !UnlimitedSteps)
     G.reserve(std::min(MaxSteps, PreReservationCap));
 
   auto ProcessWList = [this, UnlimitedSteps](unsigned MaxSteps) {
@@ -215,9 +215,9 @@ void CoreEngine::dispatchWorkItem(ExplodedNode *Pred, ProgramPoint Loc,
   llvm::TimeTraceScope tcs{timeTraceScopeName(Loc), [Loc, Pred]() {
                              return timeTraceMetadata(Pred, Loc);
                            }};
-  PrettyStackTraceLocationContext CrashInfo(Pred->getLocationContext());
+  
   // Dispatch on the location type.
-  switch (Loc.getKind()) {
+  switch (PrettyStackTraceLocationContext CrashInfo(Pred->getLocationContext()); Loc.getKind()) {
     case ProgramPoint::BlockEdgeKind:
       HandleBlockEdge(Loc.castAs<BlockEdge>(), Pred);
       break;
@@ -295,8 +295,8 @@ void CoreEngine::HandleBlockEdge(const BlockEdge &L, ExplodedNode *Pred) {
     // Get return statement..
     const ReturnStmt *RS = nullptr;
     if (!L.getSrc()->empty()) {
-      CFGElement LastElement = L.getSrc()->back();
-      if (std::optional<CFGStmt> LastStmt = LastElement.getAs<CFGStmt>()) {
+      
+      if (std::optional<CFGStmt> CFGElement LastElement = L.getSrc()->back(); LastStmt = LastElement.getAs<CFGStmt>()) {
         RS = dyn_cast<ReturnStmt>(LastStmt->getStmt());
       } else if (std::optional<CFGAutomaticObjDtor> AutoDtor =
                      LastElement.getAs<CFGAutomaticObjDtor>()) {

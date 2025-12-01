@@ -199,8 +199,8 @@ void ImportSection::addImport(Symbol *sym) {
     const WasmSignature *sig = f->getSignature();
     assert(sig && "imported functions must have a signature");
     ImportKey<WasmSignature> key(*sig, module, name);
-    auto entry = importedFunctions.try_emplace(key, numImportedFunctions);
-    if (entry.second) {
+    
+    if (auto entry = importedFunctions.try_emplace(key, numImportedFunctions); entry.second) {
       importedSymbols.emplace_back(sym);
       f->setFunctionIndex(numImportedFunctions++);
     } else {
@@ -208,8 +208,8 @@ void ImportSection::addImport(Symbol *sym) {
     }
   } else if (auto *g = dyn_cast<GlobalSymbol>(sym)) {
     ImportKey<WasmGlobalType> key(*(g->getGlobalType()), module, name);
-    auto entry = importedGlobals.try_emplace(key, numImportedGlobals);
-    if (entry.second) {
+    
+    if (auto entry = importedGlobals.try_emplace(key, numImportedGlobals); entry.second) {
       importedSymbols.emplace_back(sym);
       g->setGlobalIndex(numImportedGlobals++);
     } else {
@@ -217,8 +217,8 @@ void ImportSection::addImport(Symbol *sym) {
     }
   } else if (auto *t = dyn_cast<TagSymbol>(sym)) {
     ImportKey<WasmSignature> key(*(t->getSignature()), module, name);
-    auto entry = importedTags.try_emplace(key, numImportedTags);
-    if (entry.second) {
+    
+    if (auto entry = importedTags.try_emplace(key, numImportedTags); entry.second) {
       importedSymbols.emplace_back(sym);
       t->setTagIndex(numImportedTags++);
     } else {
@@ -228,8 +228,8 @@ void ImportSection::addImport(Symbol *sym) {
     assert(TableSymbol::classof(sym));
     auto *table = cast<TableSymbol>(sym);
     ImportKey<WasmTableType> key(*(table->getTableType()), module, name);
-    auto entry = importedTables.try_emplace(key, numImportedTables);
-    if (entry.second) {
+    
+    if (auto entry = importedTables.try_emplace(key, numImportedTables); entry.second) {
       importedSymbols.emplace_back(sym);
       table->setTableNumber(numImportedTables++);
     } else {
@@ -723,8 +723,8 @@ void LinkingSection::writeBody() {
   std::map<StringRef, std::vector<ComdatEntry>> comdats;
 
   for (const InputFunction *f : out.functionSec->inputFunctions) {
-    StringRef comdat = f->getComdatName();
-    if (!comdat.empty())
+    
+    if (StringRef comdat = f->getComdatName(); !comdat.empty())
       comdats[comdat].emplace_back(
           ComdatEntry{WASM_COMDAT_FUNCTION, f->getFunctionIndex()});
   }

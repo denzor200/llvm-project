@@ -86,8 +86,8 @@ char *__kmp_env_get(char const *name) {
   char *result = NULL;
 
 #if KMP_OS_UNIX
-  char const *value = getenv(name);
-  if (value != NULL) {
+  
+  if (char const *value = getenv(name); value != NULL) {
     size_t len = KMP_STRLEN(value) + 1;
     result = (char *)KMP_INTERNAL_MALLOC(len);
     if (result == NULL) {
@@ -173,8 +173,8 @@ int __kmp_env_exists(char const *name) {
 void __kmp_env_set(char const *name, char const *value, int overwrite) {
 
 #if KMP_OS_UNIX
-  int rc = setenv(name, value, overwrite);
-  if (rc != 0) {
+  
+  if (int rc = setenv(name, value, overwrite); rc != 0) {
     // Dead code. I tried to put too many variables into Linux* OS
     // environment on IA-32 architecture. When application consumes
     // more than ~2.5 GB of memory, entire system feels bad. Sometimes

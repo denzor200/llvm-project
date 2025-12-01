@@ -97,9 +97,9 @@ llvm::Error ValueObjectPrinter::PrintValueObject() {
     // value/summary. Calling GetObjectDescription at the outset of printing
     // allows for early discovery of errors. In the case of an error, the value
     // object is printed normally.
-    llvm::Expected<std::string> object_desc_or_err =
-        GetMostSpecializedValue().GetObjectDescription();
-    if (!object_desc_or_err) {
+    
+    if (llvm::Expected<std::string> object_desc_or_err =
+        GetMostSpecializedValue().GetObjectDescription(); !object_desc_or_err) {
       auto error_msg = toString(object_desc_or_err.takeError());
       *m_stream << "error: " << error_msg << maybeNewline(error_msg);
 
@@ -309,11 +309,11 @@ void ValueObjectPrinter::PrintDecl() {
     // if the user didn't give us a custom helper, pick one based upon the
     // language, either the one that this printer is bound to, or the preferred
     // one for the ValueObject
-    lldb::LanguageType lang_type =
+    
+    if (Language *lldb::LanguageType lang_type =
         (m_options.m_varformat_language == lldb::eLanguageTypeUnknown)
             ? valobj.GetPreferredDisplayLanguage()
-            : m_options.m_varformat_language;
-    if (Language *lang_plugin = Language::FindPlugin(lang_type)) {
+            : m_options.m_varformat_language; lang_plugin = Language::FindPlugin(lang_type)) {
       m_options.m_decl_printing_helper = lang_plugin->GetDeclPrintingHelper();
     }
   }
@@ -327,8 +327,8 @@ void ValueObjectPrinter::PrintDecl() {
     // should be shown or hidden.
     decl_print_options.SetHideName(!ShouldShowName());
 
-    StreamString dest_stream;
-    if (m_options.m_decl_printing_helper(type_name_cstr, var_name_cstr,
+    
+    if (StreamString dest_stream; m_options.m_decl_printing_helper(type_name_cstr, var_name_cstr,
                                          decl_print_options, dest_stream)) {
       decl_printed = true;
       m_stream->PutCString(dest_stream.GetString());
@@ -370,8 +370,8 @@ TypeSummaryImpl *ValueObjectPrinter::GetSummaryFormatter(bool null_if_omitted) {
 }
 
 static bool IsPointerValue(const CompilerType &type) {
-  Flags type_flags(type.GetTypeInfo());
-  if (type_flags.AnySet(eTypeInstanceIsPointer | eTypeIsPointer))
+  
+  if (Flags type_flags(type.GetTypeInfo()); type_flags.AnySet(eTypeInstanceIsPointer | eTypeIsPointer))
     return type_flags.AllClear(eTypeIsBuiltIn);
   return false;
 }
@@ -388,8 +388,8 @@ void ValueObjectPrinter::GetValueSummaryError(std::string &value,
   else if (format != eFormatDefault && format != valobj.GetFormat())
     valobj.GetValueAsCString(format, value);
   else {
-    const char *val_cstr = valobj.GetValueAsCString();
-    if (val_cstr)
+    
+    if (const char *val_cstr = valobj.GetValueAsCString(); val_cstr)
       value.assign(val_cstr);
   }
   const char *err_cstr = valobj.GetError().AsCString();
@@ -400,11 +400,11 @@ void ValueObjectPrinter::GetValueSummaryError(std::string &value,
     return;
 
   if (IsNil()) {
-    lldb::LanguageType lang_type =
+    
+    if (Language *lldb::LanguageType lang_type =
         (m_options.m_varformat_language == lldb::eLanguageTypeUnknown)
             ? valobj.GetPreferredDisplayLanguage()
-            : m_options.m_varformat_language;
-    if (Language *lang_plugin = Language::FindPlugin(lang_type)) {
+            : m_options.m_varformat_language; lang_plugin = Language::FindPlugin(lang_type)) {
       summary.assign(lang_plugin->GetNilReferenceSummaryString().str());
     } else {
       // We treat C as the fallback language rather than as a separate Language
@@ -414,14 +414,14 @@ void ValueObjectPrinter::GetValueSummaryError(std::string &value,
   } else if (IsUninitialized()) {
     summary.assign("<uninitialized>");
   } else if (m_options.m_omit_summary_depth == 0) {
-    TypeSummaryImpl *entry = GetSummaryFormatter();
-    if (entry) {
+    
+    if (TypeSummaryImpl *entry = GetSummaryFormatter(); entry) {
       valobj.GetSummaryAsCString(entry, summary,
                                  m_options.m_varformat_language);
     } else {
-      const char *sum_cstr =
-          valobj.GetSummaryAsCString(m_options.m_varformat_language);
-      if (sum_cstr)
+      
+      if (const char *sum_cstr =
+          valobj.GetSummaryAsCString(m_options.m_varformat_language); sum_cstr)
         summary.assign(sum_cstr);
     }
   }
@@ -456,9 +456,9 @@ bool ValueObjectPrinter::PrintValueAndSummaryIfNeeded(bool &value_printed,
       // explicitly)
       TypeSummaryImpl *entry = GetSummaryFormatter();
       ValueObject &valobj = GetMostSpecializedValue();
-      const bool has_nil_or_uninitialized_summary =
-          (IsNil() || IsUninitialized()) && !m_summary.empty();
-      if (!has_nil_or_uninitialized_summary && !m_value.empty() &&
+      
+      if (const bool has_nil_or_uninitialized_summary =
+          (IsNil() || IsUninitialized()) && !m_summary.empty(); !has_nil_or_uninitialized_summary && !m_value.empty() &&
           (entry == nullptr ||
            (entry->DoesPrintValue(&valobj) ||
             m_options.m_format != eFormatDefault) ||
@@ -503,9 +503,9 @@ bool ValueObjectPrinter::ShouldPrintChildren(
     DumpValueObjectOptions::PointerDepth &curr_ptr_depth) {
   const bool is_ref = IsRef();
   const bool is_ptr = IsPtr();
-  const bool is_uninit = IsUninitialized();
+  
 
-  if (is_uninit)
+  if (const bool is_uninit = IsUninitialized(); is_uninit)
     return false;
 
   // If we have reached the maximum depth we shouldn't print any more children.
@@ -539,10 +539,10 @@ bool ValueObjectPrinter::ShouldPrintChildren(
       return false;
 
     const bool is_root_level = m_curr_depth == 0;
-    const bool is_expanded_ptr =
-        is_ptr && m_type_flags.Test(m_options.m_expand_ptr_type_flags);
+    
 
-    if ((is_ref || is_expanded_ptr) && is_root_level && print_children) {
+    if (const bool is_expanded_ptr =
+        is_ptr && m_type_flags.Test(m_options.m_expand_ptr_type_flags); (is_ref || is_expanded_ptr) && is_root_level && print_children) {
       // If this is the root object (depth is zero) that we are showing and it
       // is either a reference or a preferred type of pointer, then print it.
       // Don't do this at deeper depths otherwise we can end up with infinite
@@ -824,8 +824,8 @@ llvm::Error ValueObjectPrinter::PrintChildrenIfNeeded(bool value_printed,
           ? false
           : DataVisualization::ShouldPrintAsOneLiner(valobj);
   if (print_children && IsInstancePointer()) {
-    uint64_t instance_ptr_value = valobj.GetValueAsUnsigned(0);
-    if (m_printed_instance_pointers->count(instance_ptr_value)) {
+    
+    if (uint64_t instance_ptr_value = valobj.GetValueAsUnsigned(0); m_printed_instance_pointers->count(instance_ptr_value)) {
       // We already printed this instance-is-pointer thing, so don't expand it.
       m_stream->PutCString(" {...}\n");
       return llvm::Error::success();

@@ -20,14 +20,14 @@ namespace LIBC_NAMESPACE_DECL {
 
 LLVM_LIBC_FUNCTION(int, unlink, (const char *path)) {
 #ifdef SYS_unlink
-  int ret = LIBC_NAMESPACE::syscall_impl<int>(SYS_unlink, path);
+  
 #elif defined(SYS_unlinkat)
   int ret = LIBC_NAMESPACE::syscall_impl<int>(SYS_unlinkat, AT_FDCWD, path, 0);
 #else
 #error "unlink and unlinkat syscalls not available."
 #endif
 
-  if (ret < 0) {
+  if (int ret = LIBC_NAMESPACE::syscall_impl<int>(SYS_unlink, path); ret < 0) {
     libc_errno = -ret;
     return -1;
   }

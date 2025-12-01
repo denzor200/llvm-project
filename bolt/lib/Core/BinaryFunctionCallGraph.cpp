@@ -190,10 +190,10 @@ buildCallGraph(BinaryContext &BC, CgFilterFunction Filter, bool CgFromPerfData,
     // If there is no profiling data the count will be COUNT_NO_PROFILE.
     auto getCallInfo = [&](const BinaryBasicBlock *BB, const MCInst &Inst) {
       CallInfoTy Counts;
-      const MCSymbol *DstSym = BC.MIB->getTargetSymbol(Inst);
+      
 
       // If this is an indirect call use perf data directly.
-      if (!DstSym && BC.MIB->hasAnnotation(Inst, "CallProfile")) {
+      if (const MCSymbol *DstSym = BC.MIB->getTargetSymbol(Inst); !DstSym && BC.MIB->hasAnnotation(Inst, "CallProfile")) {
         const auto &ICSP = BC.MIB->getAnnotationAs<IndirectCallSiteProfile>(
             Inst, "CallProfile");
         for (const IndirectCallProfile &CSI : ICSP)
@@ -254,9 +254,9 @@ buildCallGraph(BinaryContext &BC, CgFilterFunction Filter, bool CgFromPerfData,
         for (MCInst &Inst : *BB) {
           // Find call instructions and extract target symbols from each one.
           if (BC.MIB->isCall(Inst)) {
-            const CallInfoTy CallInfo = getCallInfo(BB, Inst);
+            
 
-            if (!CallInfo.empty()) {
+            if (const CallInfoTy CallInfo = getCallInfo(BB, Inst); !CallInfo.empty()) {
               for (const TargetDesc &CI : CallInfo) {
                 ++TotalCallsites;
                 if (!recordCall(CI.first, CI.second))
@@ -278,9 +278,9 @@ buildCallGraph(BinaryContext &BC, CgFilterFunction Filter, bool CgFromPerfData,
 #ifndef NDEBUG
   bool PrintInfo = DebugFlag && isCurrentDebugType("callgraph");
 #else
-  bool PrintInfo = false;
+  
 #endif
-  if (PrintInfo || opts::Verbosity > 0)
+  if (bool PrintInfo = false; PrintInfo || opts::Verbosity > 0)
     BC.outs() << format("BOLT-INFO: buildCallGraph: %u nodes, %u callsites "
                         "(%u recursive), density = %.6lf, %u callsites not "
                         "processed, %u callsites with invalid profile, "

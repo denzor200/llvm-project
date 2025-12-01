@@ -670,9 +670,9 @@ struct GenDefaultInitialize
 
     ASTContext &Ctx = getContext();
     CharUnits Size = Ctx.getTypeSizeInChars(QualType(AT, 0));
-    QualType EltTy = Ctx.getBaseElementType(QualType(AT, 0));
+    
 
-    if (Size < CharUnits::fromQuantity(16) ||
+    if (QualType EltTy = Ctx.getBaseElementType(QualType(AT, 0)); Size < CharUnits::fromQuantity(16) ||
         EltTy->getAsCanonical<RecordType>()) {
       GenFuncBaseTy::visitArray(FK, AT, IsVolatile, FD, CurStructOffset, Addrs);
       return;

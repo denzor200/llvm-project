@@ -113,8 +113,8 @@ PerfEvent::DoMmap(void *addr, size_t length, int prot, int flags,
 
 llvm::Error PerfEvent::MmapMetadataAndDataBuffer(size_t num_data_pages,
                                                  bool data_buffer_write) {
-  size_t mmap_size = (num_data_pages + 1) * getpagesize();
-  if (Expected<resource_handle::MmapUP> mmap_metadata_data = DoMmap(
+  
+  if (Expected<resource_handle::MmapUP> size_t mmap_size = (num_data_pages + 1) * getpagesize(); mmap_metadata_data = DoMmap(
           nullptr, mmap_size, PROT_READ | (data_buffer_write ? PROT_WRITE : 0),
           MAP_SHARED, 0, "metadata and data buffer")) {
     m_metadata_data_base = std::move(mmap_metadata_data.get());
@@ -320,8 +320,8 @@ size_t PerfEvent::GetEffectiveDataBufferSize() const {
 #ifndef PERF_ATTR_SIZE_VER5
   llvm_unreachable("Intel PT Linux perf event not supported");
 #else
-  perf_event_mmap_page &mmap_metadata = GetMetadataPage();
-  if (mmap_metadata.data_head < mmap_metadata.data_size)
+  
+  if (perf_event_mmap_page &mmap_metadata = GetMetadataPage(); mmap_metadata.data_head < mmap_metadata.data_size)
     return mmap_metadata.data_head;
   else
     return mmap_metadata.data_size; // The buffer has wrapped.

@@ -303,8 +303,8 @@ bool Rewriter::IncreaseIndentation(CharSourceRange range,
     unsigned i = offs;
     while (isWhitespaceExceptNL(MB[i]))
       ++i;
-    StringRef origIndent = MB.substr(offs, i-offs);
-    if (origIndent.starts_with(startSpace))
+    
+    if (StringRef origIndent = MB.substr(offs, i-offs); origIndent.starts_with(startSpace))
       RB.InsertText(offs, indent, /*InsertAfter=*/false);
   }
 

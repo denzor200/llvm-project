@@ -103,16 +103,16 @@ static unsigned getLoopSparsityRank(unsigned loop, ArrayRef<Value> allTensors,
     }
 
     if (loopAccessesTensor) {
-      const auto enc = getSparseTensorEncoding(tensor.getType());
-      if (!enc) {
+      
+      if (const auto enc = getSparseTensorEncoding(tensor.getType()); !enc) {
         // Dense tensor - lowest rank.
         return 0;
       } else {
         // Sparse tensor - check the level type for this dimension.
-        auto lvlTypes = enc.getLvlTypes();
-        if (tensorDim < lvlTypes.size()) {
-          auto lvlType = lvlTypes[tensorDim];
-          if (isDenseLT(lvlType)) {
+        
+        if (auto lvlTypes = enc.getLvlTypes(); tensorDim < lvlTypes.size()) {
+          
+          if (auto lvlType = lvlTypes[tensorDim]; isDenseLT(lvlType)) {
             return 0; // Dense level.
           } else if (isCompressedLT(lvlType)) {
             minRank = std::min(minRank, 1u); // Compressed level.
@@ -167,8 +167,8 @@ AffineMap IterationGraphSorter::topoSort() {
       unsigned minRank = getLoopSparsityRank(minLoop, allTensors, allMaps);
 
       for (auto candidateLoop : it) {
-        unsigned rank = getLoopSparsityRank(candidateLoop, allTensors, allMaps);
-        if (rank < minRank || (rank == minRank && candidateLoop < minLoop)) {
+        
+        if (unsigned rank = getLoopSparsityRank(candidateLoop, allTensors, allMaps); rank < minRank || (rank == minRank && candidateLoop < minLoop)) {
           minLoop = candidateLoop;
           minRank = rank;
         }
@@ -263,16 +263,16 @@ AffineMap IterationGraphSorter::sort(SortMask mask, Value ignored) {
   // Add the constraints for the loop to level map.
   for (auto [in, map] : llvm::zip(ins, loop2InsLvl)) {
     // Get map and encoding.
-    const auto enc = getSparseTensorEncoding(in.getType());
+    
     // Skip dense inputs when not requested.
-    if ((!enc && !includesDenseInput(mask)) || in == ignored)
+    if (const auto enc = getSparseTensorEncoding(in.getType()); (!enc && !includesDenseInput(mask)) || in == ignored)
       continue;
     addConstraints(in, map);
   }
 
   // Add the constraints for the output map.
-  const auto enc = getSparseTensorEncoding(out.getType());
-  if ((enc || includesDenseOutput(mask)) && out != ignored)
+  
+  if (const auto enc = getSparseTensorEncoding(out.getType()); (enc || includesDenseOutput(mask)) && out != ignored)
     addConstraints(out, loop2OutLvl);
 
   // Return the topological sort (empty for cyclic).

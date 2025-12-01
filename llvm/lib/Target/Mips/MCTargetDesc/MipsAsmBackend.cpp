@@ -34,10 +34,10 @@ using namespace llvm;
 static unsigned adjustFixupValue(const MCFixup &Fixup, uint64_t Value,
                                  MCContext &Ctx) {
 
-  unsigned Kind = Fixup.getKind();
+  
 
   // Add/subtract and shift
-  switch (Kind) {
+  switch (unsigned Kind = Fixup.getKind(); Kind) {
   default:
     return 0;
   case FK_Data_2:
@@ -239,8 +239,8 @@ static unsigned calculateMMLEIndex(unsigned i) {
 }
 
 static bool shouldForceRelocation(const MCFixup &Fixup) {
-  const unsigned FixupKind = Fixup.getKind();
-  switch (FixupKind) {
+  
+  switch (const unsigned FixupKind = Fixup.getKind(); FixupKind) {
   default:
     return false;
   // All these relocations require special processing
@@ -614,8 +614,8 @@ MCAsmBackend *llvm::createMipsAsmBackend(const Target &T,
                                          const MCSubtargetInfo &STI,
                                          const MCRegisterInfo &MRI,
                                          const MCTargetOptions &Options) {
-  const Triple &TheTriple = STI.getTargetTriple();
-  if (TheTriple.isOSWindows() && TheTriple.isOSBinFormatCOFF())
+  
+  if (const Triple &TheTriple = STI.getTargetTriple(); TheTriple.isOSWindows() && TheTriple.isOSBinFormatCOFF())
     return new WindowsMipsAsmBackend(T, MRI, STI);
 
   MipsABIInfo ABI = MipsABIInfo::computeTargetABI(STI.getTargetTriple(),

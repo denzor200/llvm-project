@@ -301,9 +301,9 @@ parseCommonStructuredOpParts(OpAsmParser &parser, OperationState &result,
     }
   }
   if (!result.propertiesAttr) {
-    std::optional<RegisteredOperationName> info =
-        result.name.getRegisteredInfo();
-    if (info) {
+    
+    if (std::optional<RegisteredOperationName> info =
+        result.name.getRegisteredInfo(); info) {
       if (failed(info->verifyInherentAttrs(result.attributes, [&]() {
             return parser.emitError(attrsLoc)
                    << "'" << result.name.getStringRef() << "' op ";
@@ -843,9 +843,9 @@ struct FoldInsertPadIntoFill : public OpRewritePattern<tensor::InsertSliceOp> {
         int64_t prevEnd = prevStart + (prevOp.getStaticSize(i) - 1) *
                                           prevOp.getStaticStride(i);
         int64_t nextStart = insertOp.getStaticOffset(i);
-        int64_t nextEnd = nextStart + (insertOp.getStaticSize(i) - 1) *
-                                          insertOp.getStaticStride(i);
-        if (prevEnd < nextStart || nextEnd < prevStart) {
+        
+        if (int64_t nextEnd = nextStart + (insertOp.getStaticSize(i) - 1) *
+                                          insertOp.getStaticStride(i); prevEnd < nextStart || nextEnd < prevStart) {
           disjoint = true;
           break;
         }
@@ -1489,8 +1489,8 @@ void MapOp::build(
   result.addAttributes(attributes);
 
   // Add output types for `RankedTensorType` output arguments.
-  Type initType = init.getType();
-  if (llvm::isa<RankedTensorType>(initType))
+  
+  if (Type initType = init.getType(); llvm::isa<RankedTensorType>(initType))
     result.addTypes(initType);
 
   if (bodyBuild)
@@ -1749,8 +1749,8 @@ void ReduceOp::build(
 
   // Add output types for `RankedTensorType` output arguments.
   for (Value init : inits) {
-    Type initType = init.getType();
-    if (llvm::isa<RankedTensorType>(initType))
+    
+    if (Type initType = init.getType(); llvm::isa<RankedTensorType>(initType))
       result.addTypes(initType);
   }
 
@@ -1980,8 +1980,8 @@ void TransposeOp::build(::mlir::OpBuilder &builder,
   result.addAttributes(attributes);
 
   // Add output types for `RankedTensorType` output arguments.
-  Type initType = init.getType();
-  if (llvm::isa<RankedTensorType>(initType))
+  
+  if (Type initType = init.getType(); llvm::isa<RankedTensorType>(initType))
     result.addTypes(initType);
 
   buildIdentityRegion(builder, result.location, *result.addRegion(), input,
@@ -2046,9 +2046,9 @@ LogicalResult TransposeOp::verify() {
 
   for (int64_t i = 0; i < rank; ++i) {
     int64_t inputDim = inputDims[permutationRef[i]];
-    int64_t initDim = initDims[i];
+    
 
-    if (inputDim != initDim) {
+    if (int64_t initDim = initDims[i]; inputDim != initDim) {
       return emitOpError() << "dim(result, " << i << ") = " << initDim
                            << " doesn't match dim(input, permutation[" << i
                            << "]) = " << inputDim;
@@ -2202,8 +2202,8 @@ void BroadcastOp::build(::mlir::OpBuilder &builder,
   result.addAttributes(attributes);
 
   // Add output types for `RankedTensorType` output arguments.
-  Type initType = init.getType();
-  if (llvm::isa<RankedTensorType>(initType))
+  
+  if (Type initType = init.getType(); llvm::isa<RankedTensorType>(initType))
     result.addTypes(initType);
 
   buildIdentityRegion(builder, result.location, *result.addRegion(), input,
@@ -3652,13 +3652,13 @@ static LogicalResult verifyInputMaps(OpTy batchVariantMatmulOp,
     return batchVariantMatmulOp->emitOpError()
            << "no. of result dim expressions exceeds 3.";
 
-  auto hasValidBatchDim = [](AffineMap map) {
-    AffineExpr batchDim = map.getResult(0);
-    return batchDim.isFunctionOfDim(0);
-  };
+  
 
   // Check if the requested broadcast is valid.
-  if (isBroadcasted(opIndexingMap, defaultIndexingMap)) {
+  if (auto hasValidBatchDim = [](AffineMap map) {
+    AffineExpr batchDim = map.getResult(0);
+    return batchDim.isFunctionOfDim(0);
+  }; isBroadcasted(opIndexingMap, defaultIndexingMap)) {
     if (!batchVariantMatmulOp.isValidLhsRhsBroadcastMap(opIndexingMap, isLHS))
       return batchVariantMatmulOp->emitOpError()
              << "Invalid broadcast requested.";
@@ -3852,10 +3852,10 @@ void MatmulOp::regionBuilder(ImplicitLocOpBuilder &b, Block &block,
   SmallVector<Value> yields;
 
   TypeFn castVal = TypeFn::cast_signed;
-  const auto *castIter = llvm::find_if(attrs, [&](const NamedAttribute &attr) {
+  
+  if (const auto *castIter = llvm::find_if(attrs, [&](const NamedAttribute &attr) {
     return attr.getName() == "cast";
-  });
-  if (castIter != attrs.end()) {
+  }); castIter != attrs.end()) {
     if (auto attr = llvm::dyn_cast<TypeFnAttr>(castIter->getValue()))
       castVal = attr.getValue();
   }
@@ -4384,10 +4384,10 @@ void ContractOp::regionBuilder(ImplicitLocOpBuilder &b, Block &block,
   RegionBuilderHelper helper(b, block);
 
   TypeFn castSignedness = TypeFn::cast_signed;
-  auto castIter = llvm::find_if(attrs, [&](const NamedAttribute &attr) {
+  
+  if (auto castIter = llvm::find_if(attrs, [&](const NamedAttribute &attr) {
     return attr.getName() == "cast";
-  });
-  if (castIter != attrs.end()) {
+  }); castIter != attrs.end()) {
     if (auto attr = llvm::dyn_cast<TypeFnAttr>(castIter->getValue()))
       castSignedness = attr.getValue();
   }
@@ -4625,10 +4625,10 @@ void BatchMatmulOp::regionBuilder(
   SmallVector<Value> yields;
 
   TypeFn castVal = TypeFn::cast_signed;
-  auto castIter = llvm::find_if(attrs, [&](const NamedAttribute &attr) {
+  
+  if (auto castIter = llvm::find_if(attrs, [&](const NamedAttribute &attr) {
     return attr.getName() == "cast";
-  });
-  if (castIter != attrs.end()) {
+  }); castIter != attrs.end()) {
     if (auto attr = llvm::dyn_cast<TypeFnAttr>(castIter->getValue()))
       castVal = attr.getValue();
   }
@@ -4645,8 +4645,8 @@ void BatchMatmulOp::regionBuilder(
 
 ParseResult BatchMatmulOp::parse(OpAsmParser &parser, OperationState &result) {
   SmallVector<Attribute, 3> indexingMapsAttr;
-  Attribute mapAttr;
-  if (succeeded(parser.parseOptionalKeyword("indexing_maps"))) {
+  
+  if (Attribute mapAttr; succeeded(parser.parseOptionalKeyword("indexing_maps"))) {
     if (parser.parseEqual())
       return failure();
 
@@ -5306,9 +5306,9 @@ bool PackOp::requirePaddingValue(ArrayRef<int64_t> inputShape,
   for (auto [pos, tileSize] : llvm::zip_equal(innerDimsPos, innerTiles)) {
     if (ShapedType::isDynamic(inputShape[pos]))
       continue;
-    std::optional<int64_t> constantTile = getConstantIntValue(tileSize);
+    
 
-    if (!constantTile) {
+    if (std::optional<int64_t> constantTile = getConstantIntValue(tileSize); !constantTile) {
       if (ShapedType::isStatic(outputTileSizes[pos]) &&
           (inputShape[pos] % outputTileSizes[pos] != 0))
         return true;
@@ -5518,8 +5518,8 @@ static bool areTilesAndTiledDimsAllConstant(OpTy op) {
   SmallVector<OpFoldResult> mixedTiles = op.getMixedTiles();
   for (auto [dimDest, tile] : llvm::zip(
            packedType.getShape().take_back(mixedTiles.size()), mixedTiles)) {
-    std::optional<int64_t> constTileSize = getConstantIntValue(tile);
-    if (!constTileSize || ShapedType::isDynamic(dimDest))
+    
+    if (std::optional<int64_t> constTileSize = getConstantIntValue(tile); !constTileSize || ShapedType::isDynamic(dimDest))
       return false;
   }
   return true;
@@ -6023,9 +6023,9 @@ bool UnPackOp::canFoldSliceOp(tensor::ExtractSliceOp sliceOp) {
       return false;
     if (ShapedType::isDynamic(tileSize))
       return false;
-    int64_t paddingSize = outerShapeWithoutTranspose[pos] * tileSize -
-                          unpackedTypeAfterFold.getDimSize(pos);
-    if (paddingSize >= tileSize)
+    
+    if (int64_t paddingSize = outerShapeWithoutTranspose[pos] * tileSize -
+                          unpackedTypeAfterFold.getDimSize(pos); paddingSize >= tileSize)
       return false;
   }
   return true;
@@ -6205,8 +6205,8 @@ void BatchReduceMatmulOp::regionBuilder(
 ParseResult BatchReduceMatmulOp::parse(OpAsmParser &parser,
                                        OperationState &result) {
   SmallVector<Attribute, 3> indexingMapsAttr;
-  Attribute mapAttr;
-  if (succeeded(parser.parseOptionalKeyword("indexing_maps"))) {
+  
+  if (Attribute mapAttr; succeeded(parser.parseOptionalKeyword("indexing_maps"))) {
     if (parser.parseEqual())
       return failure();
     if (parser.parseLSquare())

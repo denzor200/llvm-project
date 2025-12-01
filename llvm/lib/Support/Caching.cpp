@@ -119,8 +119,8 @@ Expected<FileCache> llvm::localCache(const Twine &CacheNameRef,
         // delete the file before we get a chance to use it.
         E = TempFile.keep(ObjectPathName);
         E = handleErrors(std::move(E), [&](const ECError &E) -> Error {
-          std::error_code EC = E.convertToErrorCode();
-          if (EC != errc::permission_denied)
+          
+          if (std::error_code EC = E.convertToErrorCode(); EC != errc::permission_denied)
             return createStringError(
                 EC, Twine("Failed to rename temporary file ") +
                         TempFile.TmpName + " to " + ObjectPathName + ": " +

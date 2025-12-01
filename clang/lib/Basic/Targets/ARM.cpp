@@ -31,8 +31,8 @@ void ARMTargetInfo::setABIAAPCS() {
   const llvm::Triple &T = getTriple();
 
   bool IsNetBSD = T.isOSNetBSD();
-  bool IsOpenBSD = T.isOSOpenBSD();
-  if (!T.isOSWindows() && !IsNetBSD && !IsOpenBSD)
+  
+  if (bool IsOpenBSD = T.isOSOpenBSD(); !T.isOSWindows() && !IsNetBSD && !IsOpenBSD)
     WCharType = UnsignedInt;
 
   UseBitFieldTypeAlignment = true;
@@ -112,8 +112,8 @@ void ARMTargetInfo::setArchInfo() {
 
   ArchISA = llvm::ARM::parseArchISA(ArchName);
   CPU = std::string(llvm::ARM::getDefaultCPU(ArchName));
-  llvm::ARM::ArchKind AK = llvm::ARM::parseArch(ArchName);
-  if (AK != llvm::ARM::ArchKind::INVALID)
+  
+  if (llvm::ARM::ArchKind AK = llvm::ARM::parseArch(ArchName); AK != llvm::ARM::ArchKind::INVALID)
     ArchKind = AK;
   setArchInfo(ArchKind);
 }

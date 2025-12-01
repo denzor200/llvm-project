@@ -309,9 +309,9 @@ static void annotateNonNullNoUndefBasedOnAccess(CallInst *CI,
       CI->addParamAttr(ArgNo, Attribute::NoUndef);
 
     if (!CI->paramHasAttr(ArgNo, Attribute::NonNull)) {
-      unsigned AS =
-          CI->getArgOperand(ArgNo)->getType()->getPointerAddressSpace();
-      if (llvm::NullPointerIsDefined(F, AS))
+      
+      if (unsigned AS =
+          CI->getArgOperand(ArgNo)->getType()->getPointerAddressSpace(); llvm::NullPointerIsDefined(F, AS))
         continue;
       CI->addParamAttr(ArgNo, Attribute::NonNull);
     }
@@ -328,8 +328,8 @@ static void annotateNonNullAndDereferenceable(CallInst *CI, ArrayRef<unsigned> A
   } else if (isKnownNonZero(Size, DL)) {
     annotateNonNullNoUndefBasedOnAccess(CI, ArgNos);
     uint64_t X, Y;
-    uint64_t DerefMin = 1;
-    if (match(Size, m_Select(m_Value(), m_ConstantInt(X), m_ConstantInt(Y)))) {
+    
+    if (uint64_t DerefMin = 1; match(Size, m_Select(m_Value(), m_ConstantInt(X), m_ConstantInt(Y)))) {
       DerefMin = std::min(X, Y);
       annotateDereferenceableBytes(CI, ArgNos, DerefMin);
     }
@@ -423,8 +423,8 @@ Value *LibCallSimplifier::optimizeStrNCat(CallInst *CI, IRBuilderBase &B) {
     annotateNonNullNoUndefBasedOnAccess(CI, 1);
 
   // We don't do anything if length is not constant.
-  ConstantInt *LengthArg = dyn_cast<ConstantInt>(Size);
-  if (LengthArg) {
+  
+  if (ConstantInt *LengthArg = dyn_cast<ConstantInt>(Size); LengthArg) {
     Len = LengthArg->getZExtValue();
     // strncat(x, c, 0) -> x
     if (!Len)
@@ -513,8 +513,8 @@ Value *LibCallSimplifier::optimizeStrChr(CallInst *CI, IRBuilderBase &B) {
   }
 
   if (CharC->isZero()) {
-    Value *NullPtr = Constant::getNullValue(CI->getType());
-    if (isOnlyUsedInEqualityComparison(CI, NullPtr))
+    
+    if (Value *NullPtr = Constant::getNullValue(CI->getType()); isOnlyUsedInEqualityComparison(CI, NullPtr))
       // Pre-empt the transformation to strlen below and fold
       // strchr(A, '\0') == null to false.
       return B.CreateIntToPtr(B.getTrue(), CI->getType());
@@ -697,8 +697,8 @@ Value *LibCallSimplifier::optimizeStrNCmp(CallInst *CI, IRBuilderBase &B) {
 Value *LibCallSimplifier::optimizeStrNDup(CallInst *CI, IRBuilderBase &B) {
   Value *Src = CI->getArgOperand(0);
   ConstantInt *Size = dyn_cast<ConstantInt>(CI->getArgOperand(1));
-  uint64_t SrcLen = GetStringLength(Src);
-  if (SrcLen && Size) {
+  
+  if (uint64_t SrcLen = GetStringLength(Src); SrcLen && Size) {
     annotateDereferenceableBytes(CI, 0, SrcLen);
     if (SrcLen <= Size->getZExtValue() + 1)
       return copyFlags(*CI, emitStrDup(Src, B, TLI));
@@ -995,8 +995,8 @@ Value *LibCallSimplifier::optimizeStringLength(CallInst *CI, IRBuilderBase &B,
         VarOffsets.begin()->second != CharSize / 8)
       return nullptr;
 
-    ConstantDataArraySlice Slice;
-    if (getConstantDataArrayInfo(GEP->getOperand(0), Slice, CharSize)) {
+    
+    if (ConstantDataArraySlice Slice; getConstantDataArrayInfo(GEP->getOperand(0), Slice, CharSize)) {
       uint64_t NullTermIdx;
       if (Slice.Array == nullptr) {
         NullTermIdx = 0;
@@ -1034,8 +1034,8 @@ Value *LibCallSimplifier::optimizeStringLength(CallInst *CI, IRBuilderBase &B,
   // strlen(x?"foo":"bars") --> x ? 3 : 4
   if (SelectInst *SI = dyn_cast<SelectInst>(Src)) {
     uint64_t LenTrue = GetStringLength(SI->getTrueValue(), CharSize);
-    uint64_t LenFalse = GetStringLength(SI->getFalseValue(), CharSize);
-    if (LenTrue && LenFalse) {
+    
+    if (uint64_t LenFalse = GetStringLength(SI->getFalseValue(), CharSize); LenTrue && LenFalse) {
       ORE.emit([&]() {
         return OptimizationRemark("instcombine", "simplify-libcalls", CI)
                << "folded strlen(select) to select of constants";
@@ -1104,8 +1104,8 @@ Value *LibCallSimplifier::optimizeStrPBrk(CallInst *CI, IRBuilderBase &B) {
 }
 
 Value *LibCallSimplifier::optimizeStrTo(CallInst *CI, IRBuilderBase &B) {
-  Value *EndPtr = CI->getArgOperand(1);
-  if (isa<ConstantPointerNull>(EndPtr)) {
+  
+  if (Value *EndPtr = CI->getArgOperand(1); isa<ConstantPointerNull>(EndPtr)) {
     // With a null EndPtr, this function won't capture the main argument.
     // It would be readonly too, except that it still may write to errno.
     CI->addParamAttr(0, Attribute::getWithCaptureInfo(CI->getContext(),
@@ -1945,8 +1945,8 @@ static Value *replaceUnaryCall(CallInst *CI, IRBuilderBase &B,
 /// loss of precision do so.
 static Value *valueHasFloatPrecision(Value *Val) {
   if (FPExtInst *Cast = dyn_cast<FPExtInst>(Val)) {
-    Value *Op = Cast->getOperand(0);
-    if (Op->getType()->isFloatTy())
+    
+    if (Value *Op = Cast->getOperand(0); Op->getType()->isFloatTy())
       return Op;
   }
   if (ConstantFP *Const = dyn_cast<ConstantFP>(Val)) {
@@ -1973,8 +1973,8 @@ static Value *optimizeDoubleFP(CallInst *CI, IRBuilderBase &B,
   // precision of the arguments.
   if (isPrecise)
     for (User *U : CI->users()) {
-      FPTruncInst *Cast = dyn_cast<FPTruncInst>(U);
-      if (!Cast || !Cast->getType()->isFloatTy())
+      
+      if (FPTruncInst *Cast = dyn_cast<FPTruncInst>(U); !Cast || !Cast->getType()->isFloatTy())
         return nullptr;
     }
 
@@ -1993,8 +1993,8 @@ static Value *optimizeDoubleFP(CallInst *CI, IRBuilderBase &B,
   StringRef CalleeName = CalleeFn->getName();
   bool IsIntrinsic = CalleeFn->isIntrinsic();
   if (!IsIntrinsic) {
-    StringRef CallerName = CI->getFunction()->getName();
-    if (CallerName.ends_with('f') &&
+    
+    if (StringRef CallerName = CI->getFunction()->getName(); CallerName.ends_with('f') &&
         CallerName.size() == (CalleeName.size() + 1) &&
         CallerName.starts_with(CalleeName))
       return nullptr;
@@ -2090,8 +2090,8 @@ static Value *getIntToFPVal(Value *I2F, IRBuilderBase &B, unsigned DstWidth) {
     Value *Op = cast<Instruction>(I2F)->getOperand(0);
     // Make sure that the exponent fits inside an "int" of size DstWidth,
     // thus avoiding any range issues that FP has not.
-    unsigned BitWidth = Op->getType()->getScalarSizeInBits();
-    if (BitWidth < DstWidth || (BitWidth == DstWidth && isa<SIToFPInst>(I2F))) {
+    
+    if (unsigned BitWidth = Op->getType()->getScalarSizeInBits(); BitWidth < DstWidth || (BitWidth == DstWidth && isa<SIToFPInst>(I2F))) {
       Type *IntTy = Op->getType()->getWithNewBitWidth(DstWidth);
       return isa<SIToFPInst>(I2F) ? B.CreateSExt(Op, IntTy)
                                   : B.CreateZExt(Op, IntTy);
@@ -2125,12 +2125,12 @@ Value *LibCallSimplifier::replacePowWithExp(CallInst *Pow, IRBuilderBase &B) {
   //   exp(1000 * 0.001) = exp(1)
   // TODO: Loosen the requirement for fully relaxed math semantics.
   // TODO: Handle exp10() when more targets have it available.
-  CallInst *BaseFn = dyn_cast<CallInst>(Base);
-  if (BaseFn && BaseFn->hasOneUse() && BaseFn->isFast() && Pow->isFast()) {
+  
+  if (CallInst *BaseFn = dyn_cast<CallInst>(Base); BaseFn && BaseFn->hasOneUse() && BaseFn->isFast() && Pow->isFast()) {
     LibFunc LibFn;
 
-    Function *CalleeFn = BaseFn->getCalledFunction();
-    if (CalleeFn && TLI->getLibFunc(CalleeFn->getName(), LibFn) &&
+    
+    if (Function *CalleeFn = BaseFn->getCalledFunction(); CalleeFn && TLI->getLibFunc(CalleeFn->getName(), LibFn) &&
         isLibFuncEmittable(M, TLI, LibFn)) {
       StringRef ExpName;
       Intrinsic::ID ID;
@@ -2217,8 +2217,8 @@ Value *LibCallSimplifier::replacePowWithExp(CallInst *Pow, IRBuilderBase &B) {
     BaseR = BaseR / *BaseF;
     bool IsInteger = BaseF->isInteger(), IsReciprocal = BaseR.isInteger();
     const APFloat *NF = IsReciprocal ? &BaseR : BaseF;
-    APSInt NI(64, false);
-    if ((IsInteger || IsReciprocal) &&
+    
+    if (APSInt NI(64, false); (IsInteger || IsReciprocal) &&
         NF->convertToInteger(NI, APFloat::rmTowardZero, &Ignored) ==
             APFloat::opOK &&
         NI > 1 && NI.isPowerOf2()) {
@@ -2403,8 +2403,8 @@ Value *LibCallSimplifier::optimizePow(CallInst *Pow, IRBuilderBase &B) {
   // If we can approximate pow:
   // pow(x, n) -> powi(x, n) * sqrt(x) if n has exactly a 0.5 fraction
   // pow(x, n) -> powi(x, n) if n is a constant signed integer value
-  const APFloat *ExpoF;
-  if (AllowApprox && match(Expo, m_APFloat(ExpoF)) &&
+  
+  if (const APFloat *ExpoF; AllowApprox && match(Expo, m_APFloat(ExpoF)) &&
       !ExpoF->isExactlyValue(0.5) && !ExpoF->isExactlyValue(-0.5)) {
     APFloat ExpoA(abs(*ExpoF));
     APFloat ExpoI(*ExpoF);
@@ -2522,8 +2522,8 @@ Value *LibCallSimplifier::optimizeFMinFMax(CallInst *CI, IRBuilderBase &B) {
   // If we can shrink the call to a float function rather than a double
   // function, do that first.
   Function *Callee = CI->getCalledFunction();
-  StringRef Name = Callee->getName();
-  if ((Name == "fmin" || Name == "fmax") && hasFloatVersion(M, Name))
+  
+  if (StringRef Name = Callee->getName(); (Name == "fmin" || Name == "fmax") && hasFloatVersion(M, Name))
     if (Value *Ret = optimizeBinaryDoubleFP(CI, B, TLI))
       return Ret;
 
@@ -2818,8 +2818,8 @@ Value *LibCallSimplifier::optimizeSqrt(CallInst *CI, IRBuilderBase &B) {
     // Note: We don't bother looking any deeper than this first level or for
     // variations of this pattern because instcombine's visitFMUL and/or the
     // reassociation pass should give us this form.
-    Value *MulOp;
-    if (match(Op0, m_FMul(m_Value(MulOp), m_Deferred(MulOp))) &&
+    
+    if (Value *MulOp; match(Op0, m_FMul(m_Value(MulOp), m_Deferred(MulOp))) &&
         cast<Instruction>(Op0)->isFast()) {
       // Pattern: sqrt((x * x) * z)
       RepeatOp = MulOp;
@@ -2860,8 +2860,8 @@ Value *LibCallSimplifier::optimizeFMod(CallInst *CI, IRBuilderBase &B) {
   bool IsNoNan = CI->hasNoNaNs();
   if (!IsNoNan) {
     SimplifyQuery SQ(DL, TLI, DT, AC, CI, true, true, DC);
-    KnownFPClass Known0 = computeKnownFPClass(CI->getOperand(0), fcInf, SQ);
-    if (Known0.isKnownNeverInfinity()) {
+    
+    if (KnownFPClass Known0 = computeKnownFPClass(CI->getOperand(0), fcInf, SQ); Known0.isKnownNeverInfinity()) {
       KnownFPClass Known1 =
           computeKnownFPClass(CI->getOperand(1), fcZero | fcSubnormal, SQ);
       Function *F = CI->getParent()->getParent();
@@ -2885,8 +2885,8 @@ Value *LibCallSimplifier::optimizeTrigInversionPairs(CallInst *CI,
   Module *M = CI->getModule();
   Function *Callee = CI->getCalledFunction();
   Value *Ret = nullptr;
-  StringRef Name = Callee->getName();
-  if (UnsafeFPShrink &&
+  
+  if (StringRef Name = Callee->getName(); UnsafeFPShrink &&
       (Name == "tan" || Name == "atanh" || Name == "sinh" || Name == "cosh" ||
        Name == "asinh") &&
       hasFloatVersion(M, Name))
@@ -2948,8 +2948,8 @@ static bool insertSinCosCall(IRBuilderBase &B, Function *OrigCallee, Value *Arg,
   Type *ResTy;
   StringRef Name;
 
-  Triple T(OrigCallee->getParent()->getTargetTriple());
-  if (UseFloat) {
+  
+  if (Triple T(OrigCallee->getParent()->getTargetTriple()); UseFloat) {
     Name = "__sincospif_stret";
 
     assert(T.getArch() != Triple::x86 && "x86 messy and unsupported for now");
@@ -3295,7 +3295,7 @@ static bool isReportingError(Function *Callee, CallInst *CI, int StreamArg);
 
 Value *LibCallSimplifier::optimizeErrorReporting(CallInst *CI, IRBuilderBase &B,
                                                  int StreamArg) {
-  Function *Callee = CI->getCalledFunction();
+  
   // Error reporting calls should be cold, mark them as such.
   // This applies even to non-builtin calls: it is only a hint and applies to
   // functions that the frontend might not understand as builtins.
@@ -3304,7 +3304,7 @@ Value *LibCallSimplifier::optimizeErrorReporting(CallInst *CI, IRBuilderBase &B,
   // Improving Static Branch Prediction in a Compiler
   // Brian L. Deitrich, Ben-Chung Cheng, Wen-mei W. Hwu
   // Proceedings of PACT'98, Oct. 1998, IEEE
-  if (!CI->hasFnAttr(Attribute::Cold) &&
+  if (Function *Callee = CI->getCalledFunction(); !CI->hasFnAttr(Attribute::Cold) &&
       isReportingError(Callee, CI, StreamArg)) {
     CI->addFnAttr(Attribute::Cold);
   }
@@ -3500,8 +3500,8 @@ Value *LibCallSimplifier::optimizeSPrintFString(CallInst *CI,
       // sprintf(dest, "%s", str) -> strcpy(dest, str)
       return copyFlags(*CI, emitStrCpy(Dest, CI->getArgOperand(2), B, TLI));
 
-    uint64_t SrcLen = GetStringLength(CI->getArgOperand(2));
-    if (SrcLen) {
+    
+    if (uint64_t SrcLen = GetStringLength(CI->getArgOperand(2)); SrcLen) {
       B.CreateMemCpy(Dest, Align(1), CI->getArgOperand(2), Align(1),
                      TLI->getAsSizeT(SrcLen, *CI->getModule()));
       // Returns total number of characters written without null-character.
@@ -3577,8 +3577,8 @@ Value *LibCallSimplifier::emitSnPrintfMemCpy(CallInst *CI, Value *StrArg,
   assert(StrArg || (N < 2 && Str.size() == 1));
 
   unsigned IntBits = TLI->getIntSize();
-  uint64_t IntMax = maxIntN(IntBits);
-  if (Str.size() > IntMax)
+  
+  if (uint64_t IntMax = maxIntN(IntBits); Str.size() > IntMax)
     // Bail if the string is longer than INT_MAX.  POSIX requires
     // implementations to set errno to EOVERFLOW in this case, in
     // addition to when N is larger than that (checked by the caller).
@@ -3791,8 +3791,8 @@ Value *LibCallSimplifier::optimizeFWrite(CallInst *CI, IRBuilderBase &B) {
 
   // Get the element size and count.
   ConstantInt *SizeC = dyn_cast<ConstantInt>(CI->getArgOperand(1));
-  ConstantInt *CountC = dyn_cast<ConstantInt>(CI->getArgOperand(2));
-  if (SizeC && CountC) {
+  
+  if (ConstantInt *CountC = dyn_cast<ConstantInt>(CI->getArgOperand(2)); SizeC && CountC) {
     uint64_t Bytes = SizeC->getZExtValue() * CountC->getZExtValue();
 
     // If this is writing zero records, remove the call (it's a noop).
@@ -3848,8 +3848,8 @@ Value *LibCallSimplifier::optimizePuts(CallInst *CI, IRBuilderBase &B) {
 
   // Check for a constant string.
   // puts("") -> putchar('\n')
-  StringRef Str;
-  if (getConstantStringInfo(CI->getArgOperand(0), Str) && Str.empty()) {
+  
+  if (StringRef Str; getConstantStringInfo(CI->getArgOperand(0), Str) && Str.empty()) {
     // putchar takes an argument of the same type as puts returns, i.e.,
     // int, which need not be 32 bits wide.
     Type *IntTy = CI->getType();
@@ -3862,8 +3862,8 @@ Value *LibCallSimplifier::optimizePuts(CallInst *CI, IRBuilderBase &B) {
 Value *LibCallSimplifier::optimizeExit(CallInst *CI) {
 
   // Mark 'exit' as cold if its not exit(0) (success).
-  const APInt *C;
-  if (!CI->hasFnAttr(Attribute::Cold) &&
+  
+  if (const APInt *C; !CI->hasFnAttr(Attribute::Cold) &&
       match(CI->getArgOperand(0), m_APInt(C)) && !C->isZero()) {
     CI->addFnAttr(Attribute::Cold);
   }
@@ -3887,10 +3887,10 @@ Value *LibCallSimplifier::optimizeStringMemoryLibCall(CallInst *CI,
                                                       IRBuilderBase &Builder) {
   Module *M = CI->getModule();
   LibFunc Func;
-  Function *Callee = CI->getCalledFunction();
+  
 
   // Check for string/memory library functions.
-  if (TLI->getLibFunc(*Callee, Func) && isLibFuncEmittable(M, TLI, Func)) {
+  if (Function *Callee = CI->getCalledFunction(); TLI->getLibFunc(*Callee, Func) && isLibFuncEmittable(M, TLI, Func)) {
     // Make sure we never change the calling convention.
     assert(
         (ignoreCallingConv(Func) ||
@@ -4334,8 +4334,8 @@ bool FortifiedLibCallSimplifier::isFortifiedCallFoldable(
   // If this function takes a flag argument, the implementation may use it to
   // perform extra checks. Don't fold into the non-checking variant.
   if (FlagOp) {
-    ConstantInt *Flag = dyn_cast<ConstantInt>(CI->getArgOperand(*FlagOp));
-    if (!Flag || !Flag->isZero())
+    
+    if (ConstantInt *Flag = dyn_cast<ConstantInt>(CI->getArgOperand(*FlagOp)); !Flag || !Flag->isZero())
       return false;
   }
 
@@ -4407,8 +4407,8 @@ Value *FortifiedLibCallSimplifier::optimizeMemSetChk(CallInst *CI,
 
 Value *FortifiedLibCallSimplifier::optimizeMemPCpyChk(CallInst *CI,
                                                       IRBuilderBase &B) {
-  const DataLayout &DL = CI->getDataLayout();
-  if (isFortifiedCallFoldable(CI, 3, 2))
+  
+  if (const DataLayout &DL = CI->getDataLayout(); isFortifiedCallFoldable(CI, 3, 2))
     if (Value *Call = emitMemPCpy(CI->getArgOperand(0), CI->getArgOperand(1),
                                   CI->getArgOperand(2), B, DL, TLI)) {
       return mergeAttributesAndFlags(cast<CallInst>(Call), *CI);

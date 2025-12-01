@@ -133,8 +133,8 @@ std::vector<RegisterValue> SnippetGenerator::computeRegisterInitialValues(
     // Collect used registers that have never been def'ed.
     for (const Operand &Op : IT.getInstr().Operands) {
       if (Op.isUse()) {
-        const MCRegister Reg = GetOpReg(Op);
-        if (Reg && !DefinedRegs.test(Reg.id())) {
+        
+        if (const MCRegister Reg = GetOpReg(Op); Reg && !DefinedRegs.test(Reg.id())) {
           RIV.push_back(RegisterValue::zero(Reg));
           DefinedRegs.set(Reg.id());
         }
@@ -143,8 +143,8 @@ std::vector<RegisterValue> SnippetGenerator::computeRegisterInitialValues(
     // Mark defs as having been def'ed.
     for (const Operand &Op : IT.getInstr().Operands) {
       if (Op.isDef()) {
-        const MCRegister Reg = GetOpReg(Op);
-        if (Reg)
+        
+        if (const MCRegister Reg = GetOpReg(Op); Reg)
           DefinedRegs.set(Reg.id());
       }
     }
@@ -231,8 +231,8 @@ size_t randomBit(const BitVector &Vector) {
 std::optional<int> getFirstCommonBit(const BitVector &A, const BitVector &B) {
   BitVector Intersect = A;
   Intersect &= B;
-  int idx = Intersect.find_first();
-  if (idx != -1)
+  
+  if (int idx = Intersect.find_first(); idx != -1)
     return idx;
   return {};
 }
@@ -290,8 +290,8 @@ Error randomizeUnsetVariables(const LLVMState &State,
                               const BitVector &ForbiddenRegs,
                               InstructionTemplate &IT) {
   for (const Variable &Var : IT.getInstr().Variables) {
-    MCOperand &AssignedValue = IT.getValueFor(Var);
-    if (!AssignedValue.isValid())
+    
+    if (MCOperand &AssignedValue = IT.getValueFor(Var); !AssignedValue.isValid())
       if (auto Err = randomizeMCOperand(State, IT.getInstr(), Var,
                                         AssignedValue, ForbiddenRegs))
         return Err;

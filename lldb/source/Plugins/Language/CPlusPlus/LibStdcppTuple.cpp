@@ -70,9 +70,9 @@ lldb::ChildCacheState LibStdcppTupleSyntheticFrontEnd::Update() {
       if (name_str.starts_with("std::_Tuple_impl<")) {
         next_child_sp = child_sp;
       } else if (name_str.starts_with("std::_Head_base<")) {
-        ValueObjectSP value_sp =
-            child_sp->GetChildMemberWithName("_M_head_impl");
-        if (value_sp) {
+        
+        if (ValueObjectSP value_sp =
+            child_sp->GetChildMemberWithName("_M_head_impl"); value_sp) {
           StreamString name;
           name.Printf("[%zd]", m_members.size());
           m_members.push_back(value_sp->Clone(ConstString(name.GetString())).get());

@@ -79,9 +79,9 @@ protected:
         continue;
 
       MachineOperand &DstMO = MI.getOperand(0);
-      MachineOperand &SrcMO = MI.getOperand(1);
+      
 
-      if (IsVSReg(DstMO.getReg(), MRI) && !IsVSReg(SrcMO.getReg(), MRI)) {
+      if (MachineOperand &SrcMO = MI.getOperand(1); IsVSReg(DstMO.getReg(), MRI) && !IsVSReg(SrcMO.getReg(), MRI)) {
         // This is a copy *to* a VSX register from a non-VSX register.
         Changed = true;
 

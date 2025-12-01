@@ -366,8 +366,8 @@ buildModuleFile(llvm::StringRef ModuleName, PathRef ModuleUnitFileName,
     clangd::vlog("Failed to compile {0} with command: {1}", ModuleUnitFileName,
                  Cmds);
 
-    std::string BuiltModuleFilesStr = BuiltModuleFiles.getAsString();
-    if (!BuiltModuleFilesStr.empty())
+    
+    if (std::string BuiltModuleFilesStr = BuiltModuleFiles.getAsString(); !BuiltModuleFilesStr.empty())
       clangd::vlog("The actual used module files built by clangd is {0}",
                    BuiltModuleFilesStr);
 
@@ -483,14 +483,14 @@ public:
 
   std::string getSourceForModuleName(llvm::StringRef ModuleName,
                                      PathRef RequiredSrcFile) override {
-    std::string CachedResult = Cache.getSourceForModuleName(ModuleName);
+    
 
     // Verify Cached Result by seeing if the source declaring the same module
     // as we query.
-    if (!CachedResult.empty()) {
-      std::string ModuleNameOfCachedSource =
-          MDB->getModuleNameForSource(CachedResult);
-      if (ModuleNameOfCachedSource == ModuleName)
+    if (std::string CachedResult = Cache.getSourceForModuleName(ModuleName); !CachedResult.empty()) {
+      
+      if (std::string ModuleNameOfCachedSource =
+          MDB->getModuleNameForSource(CachedResult); ModuleNameOfCachedSource == ModuleName)
         return CachedResult;
 
       // Cached Result is invalid. Clear it.

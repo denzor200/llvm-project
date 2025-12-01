@@ -227,8 +227,8 @@ void InstrProfWriter::addMemProfRecord(
       // maximum value and the lifetime to 0.
       uint64_t NewTLAD = std::numeric_limits<uint64_t>::max();
       uint64_t NewTL = 0;
-      bool IsCold = std::rand() % 2;
-      if (IsCold) {
+      
+      if (bool IsCold = std::rand() % 2; IsCold) {
         // To get a cold context, set the lifetime access density to 0 and the
         // lifetime to the maximum value.
         NewTLAD = 0;
@@ -353,8 +353,8 @@ void InstrProfWriter::addTemporalProfileTraces(
   for (uint64_t I = TemporalProfTraces.size();
        I < SrcStreamSize && SrcTraceIt < SrcTraces.end(); I++) {
     std::uniform_int_distribution<uint64_t> Distribution(0, I);
-    uint64_t RandomIndex = Distribution(RNG);
-    if (RandomIndex < TemporalProfTraces.size())
+    
+    if (uint64_t RandomIndex = Distribution(RNG); RandomIndex < TemporalProfTraces.size())
       TemporalProfTraces[RandomIndex] = *SrcTraceIt++;
   }
   TemporalProfTraceStreamSize += SrcStreamSize;
@@ -727,8 +727,8 @@ void InstrProfWriter::writeRecordInText(StringRef Name, uint64_t Hash,
     OS << "\n";
   }
 
-  uint32_t NumValueKinds = Func.getNumValueKinds();
-  if (!NumValueKinds) {
+  
+  if (uint32_t NumValueKinds = Func.getNumValueKinds(); !NumValueKinds) {
     OS << "\n";
     return;
   }
@@ -806,8 +806,8 @@ Error InstrProfWriter::writeText(raw_fd_ostream &OS) {
   }
 
   for (const auto &record : OrderedFuncData) {
-    const FuncPair &Func = record.second;
-    if (Error E = validateRecord(Func.second))
+    
+    if (Error const FuncPair &Func = record.second; E = validateRecord(Func.second))
       return E;
   }
 

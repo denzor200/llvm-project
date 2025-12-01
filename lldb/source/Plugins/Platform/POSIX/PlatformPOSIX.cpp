@@ -92,9 +92,9 @@ lldb_private::Status
 PlatformPOSIX::PutFile(const lldb_private::FileSpec &source,
                        const lldb_private::FileSpec &destination, uint32_t uid,
                        uint32_t gid) {
-  Log *log = GetLog(LLDBLog::Platform);
+  
 
-  if (IsHost()) {
+  if (Log *log = GetLog(LLDBLog::Platform); IsHost()) {
     if (source == destination)
       return Status();
     // cp src dst
@@ -370,9 +370,9 @@ lldb::ProcessSP PlatformPOSIX::Attach(ProcessAttachInfo &attach_info,
                                       Debugger &debugger, Target *target,
                                       Status &error) {
   lldb::ProcessSP process_sp;
-  Log *log = GetLog(LLDBLog::Platform);
+  
 
-  if (IsHost()) {
+  if (Log *log = GetLog(LLDBLog::Platform); IsHost()) {
     if (target == nullptr) {
       TargetSP new_target_sp;
 
@@ -488,8 +488,8 @@ lldb::ProcessSP PlatformPOSIX::DebugProcess(ProcessLaunchInfo &launch_info,
   if (error.Success()) {
     // Hook up process PTY if we have one (which we should for local debugging
     // with llgs).
-    int pty_fd = launch_info.GetPTY().ReleasePrimaryFileDescriptor();
-    if (pty_fd != PseudoTerminal::invalid_fd) {
+    
+    if (int pty_fd = launch_info.GetPTY().ReleasePrimaryFileDescriptor(); pty_fd != PseudoTerminal::invalid_fd) {
       process_sp->SetSTDIOFileDescriptor(pty_fd);
       LLDB_LOG(log, "hooked up STDIO pty to process");
     } else
@@ -510,10 +510,10 @@ void PlatformPOSIX::CalculateTrapHandlerSymbolNames() {
 Status PlatformPOSIX::EvaluateLibdlExpression(
     lldb_private::Process *process, const char *expr_cstr,
     llvm::StringRef expr_prefix, lldb::ValueObjectSP &result_valobj_sp) {
-  DynamicLoader *loader = process->GetDynamicLoader();
-  if (loader) {
-    Status error = loader->CanLoadImage();
-    if (error.Fail())
+  
+  if (DynamicLoader *loader = process->GetDynamicLoader(); loader) {
+    
+    if (Status error = loader->CanLoadImage(); error.Fail())
       return error;
   }
 

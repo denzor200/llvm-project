@@ -168,12 +168,12 @@ static void TestRange(const ConstantRange &CR, const SmallBitVector &Elems,
     if (Elem < 0)
       Elem = FirstElem; // Wrap around to first element.
 
-    ConstantRange PossibleCR =
-        ConstantRange::getNonEmpty(APInt(BitWidth, Elem),
-                                   APInt(BitWidth, PrevElem) + 1);
+    
     // We get a full range any time PrevElem and Elem are adjacent. Avoid
     // repeated checks by skipping here, and explicitly checking below instead.
-    if (!PossibleCR.isFullSet()) {
+    if (ConstantRange PossibleCR =
+        ConstantRange::getNonEmpty(APInt(BitWidth, Elem),
+                                   APInt(BitWidth, PrevElem) + 1); !PossibleCR.isFullSet()) {
       EXPECT_TRUE(NotPreferred(PossibleCR));
     }
 
@@ -630,8 +630,8 @@ void testBinarySetOperationExhaustive(Fn1 OpFn, Fn2 ExactOpFn, Fn3 InResultFn) {
         ConstantRange SignedCR = OpFn(CR1, CR2, ConstantRange::Signed);
         TestRange(SignedCR, Elems, PreferSmallestNonFullSigned, {CR1, CR2});
 
-        std::optional<ConstantRange> ExactCR = ExactOpFn(CR1, CR2);
-        if (SmallestCR.isSizeLargerThan(Elems.count())) {
+        
+        if (std::optional<ConstantRange> ExactCR = ExactOpFn(CR1, CR2); SmallestCR.isSizeLargerThan(Elems.count())) {
           EXPECT_TRUE(!ExactCR);
         } else {
           EXPECT_EQ(SmallestCR, *ExactCR);
@@ -948,8 +948,8 @@ TEST_F(ConstantRangeTest, AddWithNoWrap) {
       [](const APInt &N1, const APInt &N2) -> std::optional<APInt> {
         bool IsOverflow1, IsOverflow2;
         APInt Res1 = N1.uadd_ov(N2, IsOverflow1);
-        APInt Res2 = N1.sadd_ov(N2, IsOverflow2);
-        if (IsOverflow1 || IsOverflow2)
+        
+        if (APInt Res2 = N1.sadd_ov(N2, IsOverflow2); IsOverflow1 || IsOverflow2)
           return std::nullopt;
         assert(Res1 == Res2 && "Addition results differ?");
         return Res1;
@@ -1020,8 +1020,8 @@ TEST_F(ConstantRangeTest, SubWithNoWrap) {
       [](const APInt &N1, const APInt &N2) -> std::optional<APInt> {
         bool IsOverflow1, IsOverflow2;
         APInt Res1 = N1.usub_ov(N2, IsOverflow1);
-        APInt Res2 = N1.ssub_ov(N2, IsOverflow2);
-        if (IsOverflow1 || IsOverflow2)
+        
+        if (APInt Res2 = N1.ssub_ov(N2, IsOverflow2); IsOverflow1 || IsOverflow2)
           return std::nullopt;
         assert(Res1 == Res2 && "Subtraction results differ?");
         return Res1;
@@ -1192,8 +1192,8 @@ TEST_F(ConstantRangeTest, MultiplyWithNoWrap) {
       [](const APInt &N1, const APInt &N2) -> std::optional<APInt> {
         bool IsOverflow1, IsOverflow2;
         APInt Res1 = N1.umul_ov(N2, IsOverflow1);
-        APInt Res2 = N1.smul_ov(N2, IsOverflow2);
-        if (IsOverflow1 || IsOverflow2)
+        
+        if (APInt Res2 = N1.smul_ov(N2, IsOverflow2); IsOverflow1 || IsOverflow2)
           return std::nullopt;
         assert(Res1 == Res2 && "Multiplication results differ?");
         return Res1;
@@ -1608,8 +1608,8 @@ TEST_F(ConstantRangeTest, ShlWithNoWrap) {
       [](const APInt &N1, const APInt &N2) -> std::optional<APInt> {
         bool IsOverflow1, IsOverflow2;
         APInt Res1 = N1.ushl_ov(N2, IsOverflow1);
-        APInt Res2 = N1.sshl_ov(N2, IsOverflow2);
-        if (IsOverflow1 || IsOverflow2)
+        
+        if (APInt Res2 = N1.sshl_ov(N2, IsOverflow2); IsOverflow1 || IsOverflow2)
           return std::nullopt;
         assert(Res1 == Res2 && "Left shift results differ?");
         return Res1;
@@ -2427,8 +2427,8 @@ static void TestOverflowExhaustive(Fn1 OverflowFn, Fn2 MayOverflowFn) {
       });
     });
 
-    ConstantRange::OverflowResult OR = MayOverflowFn(CR1, CR2);
-    switch (OR) {
+    
+    switch (ConstantRange::OverflowResult OR = MayOverflowFn(CR1, CR2); OR) {
     case ConstantRange::OverflowResult::AlwaysOverflowsLow:
       EXPECT_TRUE(RangeHasOverflowLow);
       EXPECT_FALSE(RangeHasOverflowHigh);

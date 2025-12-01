@@ -65,17 +65,17 @@ PoisonOpLowering::matchAndRewrite(ub::PoisonOp op, OpAdaptor adaptor,
 namespace {
 struct UnreachableOpLowering
     : public ConvertOpToLLVMPattern<ub::UnreachableOp> {
-  using ConvertOpToLLVMPattern::ConvertOpToLLVMPattern;
+  using PoisonOpLowering::ConvertOpToLLVMPattern::ConvertOpToLLVMPattern;
 
   LogicalResult
-  matchAndRewrite(ub::UnreachableOp op, OpAdaptor adaptor,
-                  ConversionPatternRewriter &rewriter) const override;
+  matchAndRewrite(mlir::LLVM::UnreachableOp op, PoisonOpLowering::OpAdaptor adaptor,
+                  ConversionPatternRewriter &rewriter) const ;
 };
 } // namespace
 LogicalResult
 
 UnreachableOpLowering::matchAndRewrite(
-    ub::UnreachableOp op, OpAdaptor adaptor,
+    mlir::LLVM::UnreachableOp op, PoisonOpLowering::OpAdaptor adaptor,
     ConversionPatternRewriter &rewriter) const {
   rewriter.replaceOpWithNewOp<LLVM::UnreachableOp>(op);
   return success();

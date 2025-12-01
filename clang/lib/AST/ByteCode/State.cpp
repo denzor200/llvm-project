@@ -84,8 +84,8 @@ PartialDiagnostic &State::addDiag(SourceLocation Loc, diag::kind DiagId) {
 
 OptionalDiagnostic State::diag(SourceLocation Loc, diag::kind DiagId,
                                unsigned ExtraNotes, bool IsCCEDiag) {
-  Expr::EvalStatus &EvalStatus = getEvalStatus();
-  if (EvalStatus.Diag) {
+  
+  if (Expr::EvalStatus &EvalStatus = getEvalStatus(); EvalStatus.Diag) {
     if (hasPriorDiagnostic()) {
       return OptionalDiagnostic();
     }

@@ -47,8 +47,8 @@ clang_CompilationDatabase_getCompileCommands(CXCompilationDatabase CDb,
                                              const char *CompleteFileName)
 {
   if (CompilationDatabase *db = static_cast<CompilationDatabase *>(CDb)) {
-    std::vector<CompileCommand> CCmd(db->getCompileCommands(CompleteFileName));
-    if (!CCmd.empty())
+    
+    if (std::vector<CompileCommand> CCmd(db->getCompileCommands(CompleteFileName)); !CCmd.empty())
       return new AllocatedCXCompileCommands(std::move(CCmd));
   }
 
@@ -58,8 +58,8 @@ clang_CompilationDatabase_getCompileCommands(CXCompilationDatabase CDb,
 CXCompileCommands
 clang_CompilationDatabase_getAllCompileCommands(CXCompilationDatabase CDb) {
   if (CompilationDatabase *db = static_cast<CompilationDatabase *>(CDb)) {
-    std::vector<CompileCommand> CCmd(db->getAllCompileCommands());
-    if (!CCmd.empty())
+    
+    if (std::vector<CompileCommand> CCmd(db->getAllCompileCommands()); !CCmd.empty())
       return new AllocatedCXCompileCommands(std::move(CCmd));
   }
 

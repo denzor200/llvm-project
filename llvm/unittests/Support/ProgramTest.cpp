@@ -96,8 +96,8 @@ protected:
     };
 
     while (*EnvP != nullptr) {
-      auto S = prepareEnvVar(*EnvP);
-      if (!StringRef(S).starts_with("GTEST_"))
+      
+      if (auto S = prepareEnvVar(*EnvP); !StringRef(S).starts_with("GTEST_"))
         EnvTable.emplace_back(S);
       ++EnvP;
     }
@@ -435,10 +435,10 @@ TEST(ProgramTest, TestExecuteNegative) {
   {
     std::string Error;
     bool ExecutionFailed;
-    ProcessInfo PI = ExecuteNoWait(Executable, argv, std::nullopt, {}, 0,
-                                   &Error, &ExecutionFailed);
+    
 
-    if (ExecutionFailed) {
+    if (ProcessInfo PI = ExecuteNoWait(Executable, argv, std::nullopt, {}, 0,
+                                   &Error, &ExecutionFailed); ExecutionFailed) {
       EXPECT_EQ(PI.Pid, ProcessInfo::InvalidPid)
           << "On error ExecuteNoWait should return an invalid ProcessInfo";
       EXPECT_FALSE(Error.empty());

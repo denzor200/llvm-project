@@ -42,8 +42,8 @@ Sections:
 static Expected<std::unique_ptr<ObjectFile>>
 toBinary(SmallVectorImpl<char> &Storage, StringRef Yaml) {
   raw_svector_ostream OS(Storage);
-  yaml::Input YIn(Yaml);
-  if (!yaml::convertYAML(YIn, OS, [](const Twine &Msg) {}))
+  
+  if (yaml::Input YIn(Yaml); !yaml::convertYAML(YIn, OS, [](const Twine &Msg) {}))
     return createStringError(std::errc::invalid_argument,
                              "unable to convert YAML");
   return object::ObjectFile::createELFObjectFile(

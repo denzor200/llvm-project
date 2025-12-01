@@ -399,9 +399,9 @@ DeadArgumentEliminationPass::surveyUse(const Use *U, UseVector &MaybeLiveUses,
       // We might be live, depending on the liveness of Use. If any
       // sub-value is live, then the entire value is considered live. This
       // is a conservative choice, and better tracking is possible.
-      DeadArgumentEliminationPass::Liveness SubResult =
-          markIfNotLive(Use, MaybeLiveUses);
-      if (Result != Live)
+      
+      if (DeadArgumentEliminationPass::Liveness SubResult =
+          markIfNotLive(Use, MaybeLiveUses); Result != Live)
         Result = SubResult;
     }
     return Result;
@@ -428,8 +428,8 @@ DeadArgumentEliminationPass::surveyUse(const Use *U, UseVector &MaybeLiveUses,
   }
 
   if (const auto *CB = dyn_cast<CallBase>(V)) {
-    const Function *F = CB->getCalledFunction();
-    if (F) {
+    
+    if (const Function *F = CB->getCalledFunction(); F) {
       // Used in a direct call.
 
       // The function argument is live if it is used as a bundle operand.
@@ -567,8 +567,8 @@ void DeadArgumentEliminationPass::surveyFunction(const Function &F) {
       if (ExtractValueInst *Ext = dyn_cast<ExtractValueInst>(UU.getUser())) {
         // This use uses a part of our return value, survey the uses of
         // that part and store the results for this index only.
-        unsigned Idx = *Ext->idx_begin();
-        if (RetValLiveness[Idx] != Live) {
+        
+        if (unsigned Idx = *Ext->idx_begin(); RetValLiveness[Idx] != Live) {
           RetValLiveness[Idx] = surveyUses(Ext, MaybeLiveRetUses[Idx]);
           if (RetValLiveness[Idx] == Live)
             NumLiveRetVals++;
@@ -751,8 +751,8 @@ bool DeadArgumentEliminationPass::removeDeadStuffFromFunction(Function *F) {
   unsigned ArgI = 0;
   for (Function::arg_iterator I = F->arg_begin(), E = F->arg_end(); I != E;
        ++I, ++ArgI) {
-    RetOrArg Arg = createArg(F, ArgI);
-    if (LiveValues.erase(Arg)) {
+    
+    if (RetOrArg Arg = createArg(F, ArgI); LiveValues.erase(Arg)) {
       Params.push_back(I->getType());
       ArgAlive[ArgI] = true;
       ArgAttrVec.push_back(PAL.getParamAttrs(ArgI));
@@ -805,8 +805,8 @@ bool DeadArgumentEliminationPass::removeDeadStuffFromFunction(Function *F) {
   } else {
     // Look at each of the original return values individually.
     for (unsigned Ri = 0; Ri != RetCount; ++Ri) {
-      RetOrArg Ret = createRet(F, Ri);
-      if (LiveValues.erase(Ret)) {
+      
+      if (RetOrArg Ret = createRet(F, Ri); LiveValues.erase(Ret)) {
         RetTypes.push_back(getRetComponentType(F, Ri));
         NewRetIdxs[Ri] = RetTypes.size() - 1;
       } else {
@@ -910,8 +910,8 @@ bool DeadArgumentEliminationPass::removeDeadStuffFromFunction(Function *F) {
       if (ArgAlive[Pi]) {
         Args.push_back(*I);
         // Get original parameter attributes, but skip return attributes.
-        AttributeSet Attrs = CallPAL.getParamAttrs(Pi);
-        if (NRetTy != RetTy && Attrs.hasAttribute(Attribute::Returned)) {
+        
+        if (AttributeSet Attrs = CallPAL.getParamAttrs(Pi); NRetTy != RetTy && Attrs.hasAttribute(Attribute::Returned)) {
           // If the return type has changed, then get rid of 'returned' on the
           // call site. The alternative is to make all 'returned' attributes on
           // call sites keep the return value alive just like 'returned'

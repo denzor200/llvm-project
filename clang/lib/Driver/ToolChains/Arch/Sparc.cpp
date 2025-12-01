@@ -142,8 +142,8 @@ std::string sparc::getSparcTargetCPU(const Driver &D, const ArgList &Args,
 void sparc::getSparcTargetFeatures(const Driver &D, const llvm::Triple &Triple,
                                    const ArgList &Args,
                                    std::vector<StringRef> &Features) {
-  sparc::FloatABI FloatABI = sparc::getSparcFloatABI(D, Args);
-  if (FloatABI == sparc::FloatABI::Soft)
+  
+  if (sparc::FloatABI FloatABI = sparc::getSparcFloatABI(D, Args); FloatABI == sparc::FloatABI::Soft)
     Features.push_back("+soft-float");
 
   if (Arg *A = Args.getLastArg(options::OPT_mfsmuld, options::OPT_mno_fsmuld)) {

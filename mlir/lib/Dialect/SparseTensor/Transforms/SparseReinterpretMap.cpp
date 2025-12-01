@@ -246,8 +246,8 @@ translateMap(linalg::GenericOp op, PatternRewriter &rewriter) {
   SmallVector<utils::IteratorType> itTps = op.getIteratorTypesArray();
   for (unsigned i = 0, e = idxMapArray.size(); i < e; i++) {
     Value tensor = op->getOpOperand(i).get();
-    auto stt = tryGetSparseTensorType(tensor);
-    if (stt && !stt->isIdentity()) {
+    
+    if (auto stt = tryGetSparseTensorType(tensor); stt && !stt->isIdentity()) {
       AffineMap dim2Lvl = stt->getDimToLvl();
       // By composing the idx2dim(dim2lvl), we got a idx2lvl Map
       idxMapArray[i] = dim2Lvl.compose(idxMapArray[i]);

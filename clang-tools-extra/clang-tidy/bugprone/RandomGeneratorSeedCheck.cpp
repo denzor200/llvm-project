@@ -75,8 +75,8 @@ void RandomGeneratorSeedCheck::registerMatchers(MatchFinder *Finder) {
 }
 
 void RandomGeneratorSeedCheck::check(const MatchFinder::MatchResult &Result) {
-  const auto *Ctor = Result.Nodes.getNodeAs<CXXConstructExpr>("ctor");
-  if (Ctor)
+  
+  if (const auto *Ctor = Result.Nodes.getNodeAs<CXXConstructExpr>("ctor"); Ctor)
     checkSeed(Result, Ctor);
 
   const auto *Func = Result.Nodes.getNodeAs<CXXMemberCallExpr>("seed");

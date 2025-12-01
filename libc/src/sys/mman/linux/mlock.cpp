@@ -17,8 +17,8 @@
 namespace LIBC_NAMESPACE_DECL {
 
 LLVM_LIBC_FUNCTION(int, mlock, (const void *addr, size_t len)) {
-  long ret = syscall_impl(SYS_mlock, cpp::bit_cast<long>(addr), len);
-  if (ret < 0) {
+  
+  if (long ret = syscall_impl(SYS_mlock, cpp::bit_cast<long>(addr), len); ret < 0) {
     libc_errno = static_cast<int>(-ret);
     return -1;
   }

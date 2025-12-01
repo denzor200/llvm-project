@@ -119,9 +119,9 @@ public:
       llvm::PointerUnion<const UseFact *, const OriginEscapesFact *>
           CausingFact = Warning.CausingFact;
       Confidence Confidence = Warning.ConfidenceLevel;
-      SourceLocation ExpiryLoc = Warning.ExpiryLoc;
+      
 
-      if (const auto *UF = CausingFact.dyn_cast<const UseFact *>())
+      if (const auto *SourceLocation ExpiryLoc = Warning.ExpiryLoc; UF = CausingFact.dyn_cast<const UseFact *>())
         Reporter->reportUseAfterFree(IssueExpr, UF->getUseExpr(), ExpiryLoc,
                                      Confidence);
       else if (const auto *OEF =

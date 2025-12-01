@@ -254,8 +254,8 @@ bool ObjectFileJSON::SetLoadAddress(Target &target, lldb::addr_t value,
 
   // Apply slide to each section's file address.
   for (const SectionSP &section_sp : *m_sections_up) {
-    addr_t section_load_addr = section_sp->GetFileAddress();
-    if (section_load_addr != LLDB_INVALID_ADDRESS) {
+    
+    if (addr_t section_load_addr = section_sp->GetFileAddress(); section_load_addr != LLDB_INVALID_ADDRESS) {
       LLDB_LOGF(
           log,
           "ObjectFileJSON::SetLoadAddress section %s to load addr 0x%" PRIx64,

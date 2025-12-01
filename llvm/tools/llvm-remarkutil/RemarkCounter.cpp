@@ -181,8 +181,8 @@ Error useCollectRemark(StringRef Buffer, Counter &Counter, Filters &Filter) {
   auto &Parser = **MaybeParser;
   auto MaybeRemark = Parser.next();
   for (; MaybeRemark; MaybeRemark = Parser.next()) {
-    const Remark &Remark = **MaybeRemark;
-    if (Filter.filterRemark(Remark))
+    
+    if (const Remark &Remark = **MaybeRemark; Filter.filterRemark(Remark))
       Counter.collect(Remark);
   }
 
@@ -206,8 +206,8 @@ static Error collectRemarks() {
     return MaybeFilter.takeError();
   auto &Filter = *MaybeFilter;
   if (CountByOpt == CountBy::REMARK) {
-    RemarkCounter RC(GroupByOpt);
-    if (auto E = useCollectRemark(Buffer, RC, Filter))
+    
+    if (auto RemarkCounter RC(GroupByOpt); E = useCollectRemark(Buffer, RC, Filter))
       return E;
   } else if (CountByOpt == CountBy::ARGUMENT) {
     SmallVector<FilterMatcher, 4> ArgumentsVector;

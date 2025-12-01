@@ -44,8 +44,8 @@ NativeRegisterContextDBReg_arm::AdjustWatchpoint(
   // hack to recalculate address and size in order to make sure we can watch
   // non 4-byte aligned addresses as well.
   if (addr & 0x03) {
-    uint8_t watch_mask = (addr & 0x03) + size;
-    if (watch_mask > 0x04)
+    
+    if (uint8_t watch_mask = (addr & 0x03) + size; watch_mask > 0x04)
       return {};
     else if (watch_mask <= 0x02)
       size = 2;

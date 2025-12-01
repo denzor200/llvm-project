@@ -150,8 +150,8 @@ bool SemaARM::BuiltinARMMemoryTaggingCall(unsigned BuiltinID,
     if (ArgTypeA->isAnyPointerType() && !isNull(ArgA) &&
         ArgTypeB->isAnyPointerType() && !isNull(ArgB)) {
       QualType pointeeA = ArgTypeA->getPointeeType();
-      QualType pointeeB = ArgTypeB->getPointeeType();
-      if (!Context.typesAreCompatible(
+      
+      if (QualType pointeeB = ArgTypeB->getPointeeType(); !Context.typesAreCompatible(
               Context.getCanonicalType(pointeeA).getUnqualifiedType(),
               Context.getCanonicalType(pointeeB).getUnqualifiedType())) {
         return Diag(TheCall->getBeginLoc(),
@@ -600,10 +600,10 @@ static bool checkArmStreamingBuiltin(Sema &S, CallExpr *TheCall,
 
     bool SatisfiesSVE = Builtin::evaluateRequiredTargetFeatures(
         NonStreamingBuiltinGuard, CallerFeatures);
-    bool SatisfiesSME = Builtin::evaluateRequiredTargetFeatures(
-        StreamingBuiltinGuard, CallerFeatures);
+    
 
-    if (SatisfiesSVE && SatisfiesSME)
+    if (bool SatisfiesSME = Builtin::evaluateRequiredTargetFeatures(
+        StreamingBuiltinGuard, CallerFeatures); SatisfiesSVE && SatisfiesSME)
       // Function type is irrelevant for streaming-agnostic builtins.
       return false;
     else if (SatisfiesSVE)
@@ -742,8 +742,8 @@ bool SemaARM::CheckNeonBuiltinFunctionCall(const TargetInfo &TI,
 
   // For NEON intrinsics which are overloaded on vector element type, validate
   // the immediate which specifies which variant to emit.
-  unsigned ImmArg = TheCall->getNumArgs() - 1;
-  if (mask) {
+  
+  if (unsigned ImmArg = TheCall->getNumArgs() - 1; mask) {
     if (SemaRef.BuiltinConstantArg(TheCall, ImmArg, Result))
       return true;
 
@@ -1325,9 +1325,9 @@ void SemaARM::handleNewAttr(Decl *D, const ParsedAttr &AL) {
   }
 
   if (auto *FPT = dyn_cast<FunctionProtoType>(D->getFunctionType())) {
-    FunctionType::ArmStateValue ZAState =
-        FunctionType::getArmZAState(FPT->getAArch64SMEAttributes());
-    if (HasZA && ZAState != FunctionType::ARM_None &&
+    
+    if (FunctionType::ArmStateValue ZAState =
+        FunctionType::getArmZAState(FPT->getAArch64SMEAttributes()); HasZA && ZAState != FunctionType::ARM_None &&
         checkNewAttrMutualExclusion(SemaRef, AL, FPT, ZAState, "za"))
       return;
     FunctionType::ArmStateValue ZT0State =
@@ -1348,8 +1348,8 @@ void SemaARM::handleCmseNSEntryAttr(Decl *D, const ParsedAttr &AL) {
     return;
   }
 
-  const auto *FD = cast<FunctionDecl>(D);
-  if (!FD->isExternallyVisible()) {
+  
+  if (const auto *FD = cast<FunctionDecl>(D); !FD->isExternallyVisible()) {
     Diag(AL.getLoc(), diag::warn_attribute_cmse_entry_static);
     return;
   }
@@ -1380,8 +1380,8 @@ void SemaARM::handleInterruptAttr(Decl *D, const ParsedAttr &AL) {
   }
 
   if (!D->hasAttr<ARMSaveFPAttr>()) {
-    const TargetInfo &TI = getASTContext().getTargetInfo();
-    if (TI.hasFeature("vfp"))
+    
+    if (const TargetInfo &TI = getASTContext().getTargetInfo(); TI.hasFeature("vfp"))
       Diag(D->getLocation(), diag::warn_arm_interrupt_vfp_clobber);
   }
 
@@ -1403,9 +1403,9 @@ void SemaARM::handleInterruptSaveFPAttr(Decl *D, const ParsedAttr &AL) {
   }
 
   // If VFP not enabled, remove ARMSaveFPAttr but leave ARMInterruptAttr.
-  bool VFP = SemaRef.Context.getTargetInfo().hasFeature("vfp");
+  
 
-  if (!VFP) {
+  if (bool VFP = SemaRef.Context.getTargetInfo().hasFeature("vfp"); !VFP) {
     SemaRef.Diag(D->getLocation(), diag::warn_arm_interrupt_save_fp_without_vfp_unit);
     D->dropAttr<ARMSaveFPAttr>();
   }
@@ -1422,8 +1422,8 @@ void SemaARM::CheckSMEFunctionDefAttributes(const FunctionDecl *FD) {
 
   if (UsesZA || UsesZT0) {
     if (const auto *FPT = FD->getType()->getAs<FunctionProtoType>()) {
-      FunctionProtoType::ExtProtoInfo EPI = FPT->getExtProtoInfo();
-      if (EPI.AArch64SMEAttributes & FunctionType::SME_AgnosticZAStateMask)
+      
+      if (FunctionProtoType::ExtProtoInfo EPI = FPT->getExtProtoInfo(); EPI.AArch64SMEAttributes & FunctionType::SME_AgnosticZAStateMask)
         Diag(FD->getLocation(), diag::err_sme_unsupported_agnostic_new);
     }
   }
@@ -1507,8 +1507,8 @@ bool SemaARM::areCompatibleSveTypes(QualType FirstType, QualType SecondType) {
       if (const auto *VT = SecondType->getAs<VectorType>()) {
         // Predicates have the same representation as uint8 so we also have to
         // check the kind to make these types incompatible.
-        ASTContext &Context = getASTContext();
-        if (VT->getVectorKind() == VectorKind::SveFixedLengthPredicate)
+        
+        if (ASTContext &Context = getASTContext(); VT->getVectorKind() == VectorKind::SveFixedLengthPredicate)
           return BT->getKind() == BuiltinType::SveBool;
         else if (VT->getVectorKind() == VectorKind::SveFixedLengthData)
           return VT->getElementType().getCanonicalType() ==

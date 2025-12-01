@@ -427,8 +427,8 @@ static bool containsOnlyMatrMultAcc(isl::map PartialSchedule,
 
   auto Accesses = getAccessesInOrder(*Stmt);
   for (auto *MemA = Accesses.begin(); MemA != Accesses.end() - 1; MemA++) {
-    auto *MemAccessPtr = *MemA;
-    if (MemAccessPtr->isLatestArrayKind() && MemAccessPtr != MMI.WriteToC &&
+    
+    if (auto *MemAccessPtr = *MemA; MemAccessPtr->isLatestArrayKind() && MemAccessPtr != MMI.WriteToC &&
         !isMatMulNonScalarReadAccess(MemAccessPtr, MMI) &&
         !(MemAccessPtr->isStrideZero(MapI) &&
           MemAccessPtr->isStrideZero(MapJ) && MemAccessPtr->isStrideZero(MapK)))
@@ -454,8 +454,8 @@ static bool containsOnlyMatrMultAcc(isl::map PartialSchedule,
 static bool containsOnlyMatMulDep(isl::map Schedule, const Dependences *D,
                                   int &Pos) {
   isl::union_map Dep = D->getDependences(Dependences::TYPE_RAW);
-  isl::union_map Red = D->getDependences(Dependences::TYPE_RED);
-  if (!Red.is_null())
+  
+  if (isl::union_map Red = D->getDependences(Dependences::TYPE_RED); !Red.is_null())
     Dep = Dep.unite(Red);
   auto DomainSpace = Schedule.get_space().domain();
   auto Space = DomainSpace.map_from_domain_and_range(DomainSpace);
@@ -1297,8 +1297,8 @@ static MemoryAccess *getWriteAccess(isl::set Domain, ScopStmt *Stmt,
     if (!MemA->isWrite())
       return nullptr;
 
-    isl::map AccMap = MemA->getLatestAccessRelation();
-    if (!isTCOperandAcc(Domain, AccMap, IandJIndexSet, TCI.DimensionSizes,
+    
+    if (isl::map AccMap = MemA->getLatestAccessRelation(); !isTCOperandAcc(Domain, AccMap, IandJIndexSet, TCI.DimensionSizes,
                         TCI.CDimensions))
       return nullptr;
 
@@ -1810,8 +1810,8 @@ static bool isTCPattern(isl::schedule_node Node, const Dependences *D,
     NodeType = isl_schedule_node_get_type(Node.get());
   }
 
-  isl::map PartialScheduleMap = isl::map::from_union_map(PartialSchedule);
-  if (containsTCInfoTy(PartialScheduleMap, D, TCI, isl::set(Domain)))
+  
+  if (isl::map PartialScheduleMap = isl::map::from_union_map(PartialSchedule); containsTCInfoTy(PartialScheduleMap, D, TCI, isl::set(Domain)))
     return true;
 
   return false;

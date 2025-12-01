@@ -108,8 +108,8 @@ namespace {
 
       S.Diag(L, diag) << R1 << R2;
 
-      SourceLocation Open = SilenceableCondVal.getBegin();
-      if (Open.isValid()) {
+      
+      if (SourceLocation Open = SilenceableCondVal.getBegin(); Open.isValid()) {
         SourceLocation Close = SilenceableCondVal.getEnd();
         Close = S.getLocForEndOfToken(Close);
         if (Close.isValid()) {
@@ -326,8 +326,8 @@ static bool throwEscapes(Sema &S, const CXXThrowExpr *E, CFGBlock &ThrowBlock,
 
       if (auto *Catch =
               dyn_cast_or_null<CXXCatchStmt>(Succ->getLabel())) {
-        QualType Caught = Catch->getCaughtType();
-        if (Caught.isNull() || // catch (...) catches everything
+        
+        if (QualType Caught = Catch->getCaughtType(); Caught.isNull() || // catch (...) catches everything
             !E->getSubExpr() || // throw; is considered cuaght by any handler
             S.handlerCanCatch(Caught, E->getSubExpr()->getType()))
           // Exception doesn't escape via this path.
@@ -459,8 +459,8 @@ struct TransferFunctions : public StmtVisitor<TransferFunctions> {
   void VisitCallExpr(CallExpr *CE) {
     for (CallExpr::arg_iterator I = CE->arg_begin(), E = CE->arg_end(); I != E;
          ++I) {
-      const Expr *Arg = *I;
-      if (Arg->isGLValue() && !Arg->getType().isConstQualified())
+      
+      if (const Expr *Arg = *I; Arg->isGLValue() && !Arg->getType().isConstQualified())
         if (auto *DRef = dyn_cast<DeclRefExpr>(Arg->IgnoreParenCasts()))
           if (auto VD = dyn_cast<VarDecl>(DRef->getDecl()))
             if (VD->getDefinition() == Var)
@@ -579,8 +579,8 @@ static ControlFlowKind CheckFallThrough(AnalysisDeclContext &AC) {
     for (const auto *B : *cfg) {
       if (!live[B->getBlockID()]) {
         if (B->preds().empty()) {
-          const Stmt *Term = B->getTerminatorStmt();
-          if (isa_and_nonnull<CXXTryStmt>(Term))
+          
+          if (const Stmt *Term = B->getTerminatorStmt(); isa_and_nonnull<CXXTryStmt>(Term))
             // When not adding EH edges from calls, catch clauses
             // can otherwise seem dead.  Avoid noting them as dead.
             count += reachable_code::ScanReachableFromBlock(B, live);
@@ -628,8 +628,8 @@ static ControlFlowKind CheckFallThrough(AnalysisDeclContext &AC) {
 
     // No more CFGElements in the block?
     if (ri == re) {
-      const Stmt *Term = B.getTerminatorStmt();
-      if (Term && (isa<CXXTryStmt>(Term) || isa<ObjCAtTryStmt>(Term))) {
+      
+      if (const Stmt *Term = B.getTerminatorStmt(); Term && (isa<CXXTryStmt>(Term) || isa<ObjCAtTryStmt>(Term))) {
         HasAbnormalEdge = true;
         continue;
       }
@@ -667,8 +667,8 @@ static ControlFlowKind CheckFallThrough(AnalysisDeclContext &AC) {
       continue;
     }
     if (auto *Call = dyn_cast<CallExpr>(S)) {
-      const Expr *Callee = Call->getCallee();
-      if (Callee->getType()->isPointerType())
+      
+      if (const Expr *Callee = Call->getCallee(); Callee->getType()->isPointerType())
         if (auto *DeclRef =
                 dyn_cast<DeclRefExpr>(Callee->IgnoreParenImpCasts()))
           if (auto *VD = dyn_cast<VarDecl>(DeclRef->getDecl()))
@@ -1186,8 +1186,8 @@ static bool DiagnoseUninitializedUse(Sema &S, const VarDecl *VD,
 
     DiagUninitUse(S, VD, Use, false);
   } else {
-    const BlockExpr *BE = cast<BlockExpr>(Use.getUser());
-    if (VD->getType()->isBlockPointerType() && !VD->hasAttr<BlocksAttr>())
+    
+    if (const BlockExpr *BE = cast<BlockExpr>(Use.getUser()); VD->getType()->isBlockPointerType() && !VD->hasAttr<BlocksAttr>())
       S.Diag(BE->getBeginLoc(),
              diag::warn_uninit_byref_blockvar_captured_by_block)
           << VD->getDeclName()
@@ -1236,8 +1236,8 @@ public:
     // These blocks can contain fall-through annotations, and we don't want to
     // issue a warn_fallthrough_attr_unreachable for them.
     for (const auto *B : *Cfg) {
-      const Stmt *L = B->getLabel();
-      if (isa_and_nonnull<SwitchCase>(L) && ReachableBlocks.insert(B).second)
+      
+      if (const Stmt *L = B->getLabel(); isa_and_nonnull<SwitchCase>(L) && ReachableBlocks.insert(B).second)
         BlockQueue.push_back(B);
     }
 
@@ -1265,8 +1265,8 @@ public:
       if (!P)
         continue;
 
-      const Stmt *Term = P->getTerminatorStmt();
-      if (isa_and_nonnull<SwitchStmt>(Term))
+      
+      if (const Stmt *Term = P->getTerminatorStmt(); isa_and_nonnull<SwitchStmt>(Term))
         continue; // Switch statement, good.
 
       const SwitchCase *SW = dyn_cast_or_null<SwitchCase>(P->getLabel());
@@ -1774,8 +1774,8 @@ private:
           return;
       } else {
         // If we have self-init, downgrade all uses to 'may be uninitialized'.
-        UninitUse Use = hasSelfInit ? UninitUse(U.getUser(), false) : U;
-        if (DiagnoseUninitializedUse(S, vd, Use))
+        
+        if (UninitUse Use = hasSelfInit ? UninitUse(U.getUser(), false) : U; DiagnoseUninitializedUse(S, vd, Use))
           return;
       }
     }
@@ -2140,8 +2140,8 @@ class ThreadSafetyReporter : public clang::threadSafety::ThreadSafetyHandler {
                           ProtectedOperationKind POK, Name LockName,
                           LockKind LK, SourceLocation Loc,
                           Name *PossibleMatch) override {
-    unsigned DiagID = 0;
-    if (PossibleMatch) {
+    
+    if (unsigned DiagID = 0; PossibleMatch) {
       switch (POK) {
         case POK_VarAccess:
           DiagID = diag::warn_variable_requires_lock_precise;
@@ -2436,8 +2436,8 @@ public:
       Range = ASE->getBase()->getSourceRange();
       MsgParam = 2;
     } else if (const auto *BO = dyn_cast<BinaryOperator>(Operation)) {
-      BinaryOperator::Opcode Op = BO->getOpcode();
-      if (Op == BO_Add || Op == BO_AddAssign || Op == BO_Sub ||
+      
+      if (BinaryOperator::Opcode Op = BO->getOpcode(); Op == BO_Add || Op == BO_AddAssign || Op == BO_Sub ||
           Op == BO_SubAssign) {
         if (BO->getRHS()->getType()->isIntegerType()) {
           Loc = BO->getLHS()->getExprLoc();
@@ -2449,8 +2449,8 @@ public:
         MsgParam = 1;
       }
     } else if (const auto *UO = dyn_cast<UnaryOperator>(Operation)) {
-      UnaryOperator::Opcode Op = UO->getOpcode();
-      if (Op == UO_PreInc || Op == UO_PreDec || Op == UO_PostInc ||
+      
+      if (UnaryOperator::Opcode Op = UO->getOpcode(); Op == UO_PreInc || Op == UO_PreDec || Op == UO_PostInc ||
           Op == UO_PostDec) {
         Loc = UO->getSubExpr()->getExprLoc();
         Range = UO->getSubExpr()->getSourceRange();
@@ -2485,10 +2485,10 @@ public:
 
           assert(srcType->isPointerType());
 
-          const uint64_t sSize =
-              Ctx.getTypeSize(srcType.getTypePtr()->getPointeeType());
+          
 
-          if (sSize >= dSize)
+          if (const uint64_t sSize =
+              Ctx.getTypeSize(srcType.getTypePtr()->getPointeeType()); sSize >= dSize)
             return;
         }
         if (const auto *CE = dyn_cast<CXXMemberCallExpr>(
@@ -2751,13 +2751,13 @@ static void emitPossiblyUnreachableDiags(Sema &S, AnalysisDeclContext &AC,
         AC.getCFGReachablityAnalysis();
 
     for (auto I = PUDs.first; I != PUDs.second; ++I) {
-      const auto &D = *I;
-      if (llvm::all_of(D.Stmts, [&](const Stmt *St) {
-            const CFGBlock *Block = AC.getBlockForRegisteredExpression(St);
+      
+      if (const auto &D = *I; llvm::all_of(D.Stmts, [&](const Stmt *St) {
+            
             // FIXME: We should be able to assert that block is non-null, but
             // the CFG analysis can skip potentially-evaluated expressions in
             // edge cases; see test/Sema/vla-2.c.
-            if (Block && Analysis)
+            if (const CFGBlock *Block = AC.getBlockForRegisteredExpression(St); Block && Analysis)
               if (!Analysis->isReachable(&AC.getCFG()->getEntry(), Block))
                 return false;
             return true;

@@ -76,8 +76,8 @@ void Callback::run(const MatchFinder::MatchResult &Result) {
     // to zero literals in non-pedantic mode.
     // FIXME: Introduce an AST matcher to implement the macro-related logic?
     bool MacroIndicatesWeShouldSkipTheCheck = false;
-    SourceLocation Loc = CheckIfNull->getBeginLoc();
-    if (Loc.isMacroID()) {
+    
+    if (SourceLocation Loc = CheckIfNull->getBeginLoc(); Loc.isMacroID()) {
       StringRef MacroName = Lexer::getImmediateMacroName(
           Loc, ACtx.getSourceManager(), ACtx.getLangOpts());
       if (MacroName == "NULL" || MacroName == "nil")
@@ -86,11 +86,11 @@ void Callback::run(const MatchFinder::MatchResult &Result) {
         MacroIndicatesWeShouldSkipTheCheck = true;
     }
     if (!MacroIndicatesWeShouldSkipTheCheck) {
-      Expr::EvalResult EVResult;
-      if (CheckIfNull->IgnoreParenCasts()->EvaluateAsInt(
+      
+      if (Expr::EvalResult EVResult; CheckIfNull->IgnoreParenCasts()->EvaluateAsInt(
               EVResult, ACtx, Expr::SE_AllowSideEffects)) {
-        llvm::APSInt Result = EVResult.Val.getInt();
-        if (Result == 0) {
+        
+        if (llvm::APSInt Result = EVResult.Val.getInt(); Result == 0) {
           if (!C->Pedantic)
             return;
           IsPedanticMatch = true;

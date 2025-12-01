@@ -39,8 +39,8 @@ ASTSignals ASTSignals::derive(const ParsedAST &AST) {
           if (const auto *NSD = dyn_cast<NamespaceDecl>(ND->getDeclContext())) {
             if (NSD->isAnonymousNamespace())
               continue;
-            std::string NS = printNamespaceScope(*NSD);
-            if (!NS.empty())
+            
+            if (std::string NS = printNamespaceScope(*NSD); !NS.empty())
               Signals.RelatedNamespaces[NS]++;
           }
         }

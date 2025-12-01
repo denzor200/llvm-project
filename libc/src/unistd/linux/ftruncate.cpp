@@ -21,7 +21,7 @@ namespace LIBC_NAMESPACE_DECL {
 
 LLVM_LIBC_FUNCTION(int, ftruncate, (int fd, off_t len)) {
 #ifdef SYS_ftruncate
-  int ret = LIBC_NAMESPACE::syscall_impl<int>(SYS_ftruncate, fd, len);
+  
 #elif defined(SYS_ftruncate64)
   // Same as ftruncate but can handle large offsets
   static_assert(sizeof(off_t) == 8);
@@ -31,7 +31,7 @@ LLVM_LIBC_FUNCTION(int, ftruncate, (int fd, off_t len)) {
 #error "ftruncate and ftruncate64 syscalls not available."
 #endif
 
-  if (ret < 0) {
+  if (int ret = LIBC_NAMESPACE::syscall_impl<int>(SYS_ftruncate, fd, len); ret < 0) {
     libc_errno = -ret;
     return -1;
   }

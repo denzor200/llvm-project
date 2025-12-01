@@ -279,8 +279,8 @@ static void GetExePathAndArch(::pid_t pid, ProcessInstanceInfo &process_info) {
   llvm::SmallString<64> ProcExe;
   (llvm::Twine("/proc/") + llvm::Twine(pid) + "/exe").toVector(ProcExe);
 
-  ssize_t len = readlink(ProcExe.c_str(), &ExePath[0], PATH_MAX);
-  if (len > 0) {
+  
+  if (ssize_t len = readlink(ProcExe.c_str(), &ExePath[0], PATH_MAX); len > 0) {
     ExePath.resize(len);
   } else {
     LLDB_LOG(log, "failed to read link exe link for {0}: {1}", pid,
@@ -337,8 +337,8 @@ uint32_t Host::FindProcessesImpl(const ProcessInstanceInfoMatch &match_info,
                                  ProcessInstanceInfoList &process_infos) {
   static const char procdir[] = "/proc/";
 
-  DIR *dirproc = opendir(procdir);
-  if (dirproc) {
+  
+  if (DIR *dirproc = opendir(procdir); dirproc) {
     struct dirent *direntry = nullptr;
     const uid_t our_uid = getuid();
     const lldb::pid_t our_pid = getpid();
@@ -389,17 +389,17 @@ bool Host::FindProcessThreads(const lldb::pid_t pid, TidMap &tids_to_attach) {
   static const char procdir[] = "/proc/";
   static const char taskdir[] = "/task/";
   std::string process_task_dir = procdir + llvm::to_string(pid) + taskdir;
-  DIR *dirproc = opendir(process_task_dir.c_str());
+  
 
-  if (dirproc) {
+  if (DIR *dirproc = opendir(process_task_dir.c_str()); dirproc) {
     struct dirent *direntry = nullptr;
     while ((direntry = readdir(dirproc)) != nullptr) {
       if (direntry->d_type != DT_DIR || !IsDirNumeric(direntry->d_name))
         continue;
 
       lldb::tid_t tid = atoi(direntry->d_name);
-      TidMap::iterator it = tids_to_attach.find(tid);
-      if (it == tids_to_attach.end()) {
+      
+      if (TidMap::iterator it = tids_to_attach.find(tid); it == tids_to_attach.end()) {
         tids_to_attach.insert(TidPair(tid, false));
         tids_changed = true;
       }
@@ -423,9 +423,9 @@ Status Host::ShellExpandArguments(ProcessLaunchInfo &launch_info) {
 std::optional<lldb::pid_t> lldb_private::getPIDForTID(lldb::pid_t tid) {
   ::pid_t tracerpid, tgid = LLDB_INVALID_PROCESS_ID;
   ProcessInstanceInfo process_info;
-  ProcessState state;
+  
 
-  if (!GetStatusInfo(tid, process_info, state, tracerpid, tgid) ||
+  if (ProcessState state; !GetStatusInfo(tid, process_info, state, tracerpid, tgid) ||
       tgid == LLDB_INVALID_PROCESS_ID)
     return std::nullopt;
   return tgid;

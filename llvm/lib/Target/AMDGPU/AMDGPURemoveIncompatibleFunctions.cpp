@@ -148,8 +148,8 @@ void reportFunctionRemoved(Function &F, unsigned Feature) {
 PreservedAnalyses
 AMDGPURemoveIncompatibleFunctionsPass::run(Module &M,
                                            ModuleAnalysisManager &MAM) {
-  AMDGPURemoveIncompatibleFunctions Impl(TM);
-  if (Impl.run(M))
+  
+  if (AMDGPURemoveIncompatibleFunctions Impl(TM); Impl.run(M))
     return PreservedAnalyses::none();
   return PreservedAnalyses::all();
 }

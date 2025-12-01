@@ -264,8 +264,8 @@ Operation *Worklist::pop() {
 
 void Worklist::remove(Operation *op) {
   assert(op && "cannot remove nullptr from worklist");
-  auto it = map.find(op);
-  if (it != map.end()) {
+  
+  if (auto it = map.find(op); it != map.end()) {
     assert(list[it->second] == op && "malformed worklist data structure");
     list[it->second] = nullptr;
     map.erase(it);
@@ -494,8 +494,8 @@ bool GreedyPatternRewriteDriver::processWorklist() {
     // Attribute and then immediately be rematerialized as a constant op, which
     // is then put on the worklist.
     if (config.isFoldingEnabled() && !op->hasTrait<OpTrait::ConstantLike>()) {
-      SmallVector<OpFoldResult> foldResults;
-      if (succeeded(op->fold(foldResults))) {
+      
+      if (SmallVector<OpFoldResult> foldResults; succeeded(op->fold(foldResults))) {
         LLVM_DEBUG(logResultWithLine("success", "operation was folded"));
 #ifndef NDEBUG
         Operation *dumpRootOp = getDumpRootOp(op);
@@ -847,8 +847,8 @@ LogicalResult RegionPatternRewriteDriver::simplify(bool *changed) && {
     auto insertKnownConstant = [&](Operation *op) {
       // Check for existing constants when populating the worklist. This avoids
       // accidentally reversing the constant order during processing.
-      Attribute constValue;
-      if (matchPattern(op, m_Constant(&constValue)))
+      
+      if (Attribute constValue; matchPattern(op, m_Constant(&constValue)))
         if (!folder.insertKnownConstant(op, constValue))
           return true;
       return false;
@@ -991,8 +991,8 @@ LogicalResult MultiOpPatternRewriteDriver::simplify(ArrayRef<Operation *> ops,
     addSingleOpToWorklist(op);
 
   // Process ops on the worklist.
-  bool result = processWorklist();
-  if (changed)
+  
+  if (bool result = processWorklist(); changed)
     *changed = result;
 
   return success(worklist.empty());

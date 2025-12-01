@@ -34,8 +34,8 @@ void Block::GetDescription(Stream *s, Function *function,
                            lldb::DescriptionLevel level, Target *target) const {
   *s << "id = " << ((const UserID &)*this);
 
-  size_t num_ranges = m_ranges.GetSize();
-  if (num_ranges > 0) {
+  
+  if (size_t num_ranges = m_ranges.GetSize(); num_ranges > 0) {
 
     addr_t base_addr = LLDB_INVALID_ADDRESS;
     if (target)
@@ -60,8 +60,8 @@ void Block::GetDescription(Stream *s, Function *function,
 void Block::Dump(Stream *s, addr_t base_addr, int32_t depth,
                  bool show_context) const {
   if (depth < 0) {
-    Block *parent = GetParent();
-    if (parent) {
+    
+    if (Block *parent = GetParent(); parent) {
       // We have a depth that is less than zero, print our parent blocks first
       parent->Dump(s, base_addr, depth + 1, show_context);
     }
@@ -210,8 +210,8 @@ Block *Block::GetContainingInlinedBlock() {
 }
 
 Block *Block::GetInlinedParent() {
-  Block *parent_block = GetParent();
-  if (parent_block) {
+  
+  if (Block *parent_block = GetParent(); parent_block) {
     if (parent_block->GetInlinedFunctionInfo())
       return parent_block;
     else
@@ -225,9 +225,9 @@ Block *Block::GetContainingInlinedBlockWithCallSite(
   Block *inlined_block = GetContainingInlinedBlock();
 
   while (inlined_block) {
-    const auto *function_info = inlined_block->GetInlinedFunctionInfo();
+    
 
-    if (function_info &&
+    if (const auto *function_info = inlined_block->GetInlinedFunctionInfo(); function_info &&
         function_info->GetCallSite().FileAndLineEqual(find_call_site, true))
       return inlined_block;
     inlined_block = inlined_block->GetInlinedParent();
@@ -236,8 +236,8 @@ Block *Block::GetContainingInlinedBlockWithCallSite(
 }
 
 bool Block::GetRangeContainingOffset(const addr_t offset, Range &range) {
-  const Range *range_ptr = m_ranges.FindEntryThatContains(offset);
-  if (range_ptr) {
+  
+  if (const Range *range_ptr = m_ranges.FindEntryThatContains(offset); range_ptr) {
     range = *range_ptr;
     return true;
   }
@@ -329,10 +329,10 @@ void Block::FinalizeRanges() {
 }
 
 void Block::AddRange(const Range &range) {
-  Block *parent_block = GetParent();
-  if (parent_block && !parent_block->Contains(range)) {
-    Log *log = GetLog(LLDBLog::Symbols);
-    if (log) {
+  
+  if (Block *parent_block = GetParent(); parent_block && !parent_block->Contains(range)) {
+    
+    if (Log *log = GetLog(LLDBLog::Symbols); log) {
       ModuleSP module_sp(m_parent_scope.CalculateSymbolContextModule());
       Function &function = GetFunction();
       const addr_t function_file_addr = function.GetAddress().GetFileAddress();
@@ -340,8 +340,8 @@ void Block::AddRange(const Range &range) {
       const addr_t block_end_addr = function_file_addr + range.GetRangeEnd();
       Type *func_type = function.GetType();
 
-      const Declaration &func_decl = func_type->GetDeclaration();
-      if (func_decl.GetLine()) {
+      
+      if (const Declaration &func_decl = func_type->GetDeclaration(); func_decl.GetLine()) {
         LLDB_LOGF(log,
                   "warning: %s:%u block {0x%8.8" PRIx64
                   "} has range[%u] [0x%" PRIx64 " - 0x%" PRIx64
@@ -421,8 +421,8 @@ Block::AppendBlockVariables(bool can_create, bool get_child_block_variables,
   if (get_child_block_variables) {
     collection::const_iterator pos, end = m_children.end();
     for (pos = m_children.begin(); pos != end; ++pos) {
-      Block *child_block = pos->get();
-      if (!stop_if_child_block_is_inlined_function ||
+      
+      if (Block *child_block = pos->get(); !stop_if_child_block_is_inlined_function ||
           child_block->GetInlinedFunctionInfo() == nullptr) {
         num_variables_added += child_block->AppendBlockVariables(
             can_create, get_child_block_variables,
@@ -443,8 +443,8 @@ uint32_t Block::AppendVariables(bool can_create, bool get_parent_variables,
   bool is_inlined_function = GetInlinedFunctionInfo() != nullptr;
   if (variable_list_sp) {
     for (size_t i = 0; i < variable_list_sp->GetSize(); ++i) {
-      VariableSP variable = variable_list_sp->GetVariableAtIndex(i);
-      if (filter(variable.get())) {
+      
+      if (VariableSP variable = variable_list_sp->GetVariableAtIndex(i); filter(variable.get())) {
         num_variables_added++;
         variable_list->AddVariable(variable);
       }
@@ -455,8 +455,8 @@ uint32_t Block::AppendVariables(bool can_create, bool get_parent_variables,
     if (stop_if_block_is_inlined_function && is_inlined_function)
       return num_variables_added;
 
-    Block *parent_block = GetParent();
-    if (parent_block)
+    
+    if (Block *parent_block = GetParent(); parent_block)
       num_variables_added += parent_block->AppendVariables(
           can_create, get_parent_variables, stop_if_block_is_inlined_function,
           filter, variable_list);

@@ -230,8 +230,8 @@ void FunctionDumper::dump(const PDBSymbolTypeFunctionArg &Symbol) {
   // PDBSymbolTypeFunctionArg is just a shim over the real argument.  Just drill
   // through to the real thing and dump it.
   uint32_t TypeId = Symbol.getTypeId();
-  auto Type = Symbol.getSession().getSymbolById(TypeId);
-  if (Type)
+  
+  if (auto Type = Symbol.getSession().getSymbolById(TypeId); Type)
     Type->dump(*this);
   else
     Printer << "<unknown-type>";

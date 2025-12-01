@@ -194,8 +194,8 @@ RegClassByHwMode::RegClassByHwMode(const Record *R, const CodeGenHwModes &CGH,
   for (auto [ModeID, RegClassRec] : MS.Items) {
     assert(RegClassRec && RegClassRec->isSubClassOf("RegisterClass") &&
            "Register class must subclass RegisterClass");
-    const CodeGenRegisterClass *RegClass = RegBank.getRegClass(RegClassRec);
-    if (!Map.try_emplace(ModeID, RegClass).second)
+    
+    if (const CodeGenRegisterClass *RegClass = RegBank.getRegClass(RegClassRec); !Map.try_emplace(ModeID, RegClass).second)
       llvm_unreachable("duplicate entry");
   }
 }

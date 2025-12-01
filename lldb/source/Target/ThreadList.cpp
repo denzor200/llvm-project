@@ -59,8 +59,8 @@ ThreadList::~ThreadList() {
 lldb::ThreadSP ThreadList::GetExpressionExecutionThread() {
   if (m_expression_tid_stack.empty())
     return GetSelectedThread();
-  ThreadSP expr_thread_sp = FindThreadByID(m_expression_tid_stack.back());
-  if (expr_thread_sp)
+  
+  if (ThreadSP expr_thread_sp = FindThreadByID(m_expression_tid_stack.back()); expr_thread_sp)
     return expr_thread_sp;
   else
     return GetSelectedThread();
@@ -383,8 +383,8 @@ Vote ThreadList::ShouldReportStop(Event *event_ptr) {
       break;
     }
 
-    const Vote vote = thread_sp->ShouldReportStop(event_ptr);
-    switch (vote) {
+    
+    switch (const Vote vote = thread_sp->ShouldReportStop(event_ptr); vote) {
     case eVoteNoOpinion:
       continue;
 
@@ -473,8 +473,8 @@ void ThreadList::RefreshStateAfterStop() {
 
   m_process.UpdateThreadListIfNeeded();
 
-  Log *log = GetLog(LLDBLog::Step);
-  if (log && log->GetVerbose())
+  
+  if (Log *log = GetLog(LLDBLog::Step); log && log->GetVerbose())
     LLDB_LOGF(log,
               "Turning off notification of new threads while single stepping "
               "a thread.");
@@ -519,8 +519,8 @@ bool ThreadList::WillResume(RunDirection &direction) {
   // we find one satisfying that critereon, put it here.
   ThreadSP thread_to_run;
   for (pos = m_threads.begin(); pos != end; ++pos) {
-    ThreadSP thread_sp(*pos);
-    if (thread_sp->GetResumeState() != eStateSuspended &&
+    
+    if (ThreadSP thread_sp(*pos); thread_sp->GetResumeState() != eStateSuspended &&
         thread_sp->GetCurrentPlan()->StopOthers()) {
       if (thread_sp->IsOperatingSystemPluginThread() &&
           !thread_sp->GetBackingThread())
@@ -577,8 +577,8 @@ bool ThreadList::WillResume(RunDirection &direction) {
     }
   } else {
     for (pos = m_threads.begin(); pos != end; ++pos) {
-      ThreadSP thread_sp(*pos);
-      if (thread_sp->GetResumeState() != eStateSuspended) {
+      
+      if (ThreadSP thread_sp(*pos); thread_sp->GetResumeState() != eStateSuspended) {
         if (thread_sp->IsOperatingSystemPluginThread() &&
             !thread_sp->GetBackingThread())
           continue;
@@ -600,14 +600,14 @@ bool ThreadList::WillResume(RunDirection &direction) {
   }
 
   if (thread_to_run != nullptr) {
-    Log *log = GetLog(LLDBLog::Step);
-    if (log && log->GetVerbose())
+    
+    if (Log *log = GetLog(LLDBLog::Step); log && log->GetVerbose())
       LLDB_LOGF(log, "Turning on notification of new threads while single "
                      "stepping a thread.");
     m_process.StartNoticingNewThreads();
   } else {
-    Log *log = GetLog(LLDBLog::Step);
-    if (log && log->GetVerbose())
+    
+    if (Log *log = GetLog(LLDBLog::Step); log && log->GetVerbose())
       LLDB_LOGF(log, "Turning off notification of new threads while single "
                      "stepping a thread.");
     m_process.StopNoticingNewThreads();
@@ -640,8 +640,8 @@ bool ThreadList::WillResume(RunDirection &direction) {
     }
   } else {
     for (pos = m_threads.begin(); pos != end; ++pos) {
-      ThreadSP thread_sp(*pos);
-      if (thread_sp == thread_to_run) {
+      
+      if (ThreadSP thread_sp(*pos); thread_sp == thread_to_run) {
         // Note, a thread might be able to fulfil it's plan w/o actually
         // resuming.  An example of this is a step that changes the current
         // inlined function depth w/o moving the PC.  Check that here:
@@ -661,8 +661,8 @@ void ThreadList::DidResume() {
   for (pos = m_threads.begin(); pos != end; ++pos) {
     // Don't clear out threads that aren't going to get a chance to run, rather
     // leave their state for the next time around.
-    ThreadSP thread_sp(*pos);
-    if (thread_sp->GetTemporaryResumeState() != eStateSuspended)
+    
+    if (ThreadSP thread_sp(*pos); thread_sp->GetTemporaryResumeState() != eStateSuspended)
       thread_sp->DidResume();
   }
 }
@@ -678,8 +678,8 @@ void ThreadList::DidStop() {
     // somehow here or create a special thread list containing only threads
     // which will stop in the code that calls this method (currently
     // Process::SetPrivateState).
-    ThreadSP thread_sp(*pos);
-    if (StateIsRunningState(thread_sp->GetState()))
+    
+    if (ThreadSP thread_sp(*pos); StateIsRunningState(thread_sp->GetState()))
       thread_sp->DidStop();
   }
 }
@@ -727,8 +727,8 @@ bool ThreadList::SetSelectedThreadByIndexID(uint32_t index_id, bool notify) {
 }
 
 void ThreadList::NotifySelectedThreadChanged(lldb::tid_t tid) {
-  ThreadSP selected_thread_sp(FindThreadByID(tid));
-  if (selected_thread_sp->EventTypeHasListeners(
+  
+  if (ThreadSP selected_thread_sp(FindThreadByID(tid)); selected_thread_sp->EventTypeHasListeners(
           Thread::eBroadcastBitThreadSelected)) {
     auto data_sp =
         std::make_shared<Thread::ThreadEventData>(selected_thread_sp);
@@ -767,8 +767,8 @@ void ThreadList::Update(ThreadList &rhs) {
       bool thread_is_alive = false;
       const uint32_t num_threads = m_threads.size();
       for (uint32_t idx = 0; idx < num_threads; ++idx) {
-        ThreadSP backing_thread = m_threads[idx]->GetBackingThread();
-        if (m_threads[idx]->GetID() == tid ||
+        
+        if (ThreadSP backing_thread = m_threads[idx]->GetBackingThread(); m_threads[idx]->GetID() == tid ||
             (backing_thread && backing_thread->GetID() == tid)) {
           thread_is_alive = true;
           break;

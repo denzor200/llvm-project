@@ -28,8 +28,8 @@ using namespace llvm::codeview;
 Error llvm::codeview::visitDebugSubsection(
     const DebugSubsectionRecord &R, DebugSubsectionVisitor &V,
     const StringsAndChecksumsRef &State) {
-  BinaryStreamReader Reader(R.getRecordData());
-  switch (R.kind()) {
+  
+  switch (BinaryStreamReader Reader(R.getRecordData()); R.kind()) {
   case DebugSubsectionKind::Lines: {
     DebugLinesSubsectionRef Fragment;
     if (auto EC = Fragment.initialize(Reader))

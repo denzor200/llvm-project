@@ -529,8 +529,8 @@ llvm::SmallVector<std::pair<const NamedDecl *, DeclRelationSet>, 1>
 allTargetDecls(const DynTypedNode &N, const HeuristicResolver *Resolver) {
   dlog("allTargetDecls({0})", nodeToString(N));
   TargetFinder Finder(Resolver);
-  DeclRelationSet Flags;
-  if (const Decl *D = N.get<Decl>())
+  
+  if (const Decl *DeclRelationSet Flags; D = N.get<Decl>())
     Finder.add(D, Flags);
   else if (const Stmt *S = N.get<Stmt>())
     Finder.add(S, Flags);

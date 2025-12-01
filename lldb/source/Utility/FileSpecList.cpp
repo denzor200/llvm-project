@@ -80,8 +80,8 @@ static size_t FindFileIndex(size_t start_idx, const FileSpec &file_spec,
   bool compare_filename_only = file_spec.GetDirectory().IsEmpty();
 
   for (size_t idx = start_idx; idx < num_files; ++idx) {
-    const FileSpec &ith = get_ith(idx);
-    if (compare_filename_only) {
+    
+    if (const FileSpec &ith = get_ith(idx); compare_filename_only) {
       if (ConstString::Equals(ith.GetFilename(), file_spec.GetFilename(),
                               file_spec.IsCaseSensitive() ||
                                   ith.IsCaseSensitive()))

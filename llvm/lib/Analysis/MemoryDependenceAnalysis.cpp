@@ -377,8 +377,8 @@ MemDepResult MemoryDependenceResults::getSimplePointerDependencyFrom(
   Align MemLocAlign =
       MemLoc.Ptr->getPointerAlignment(BB->getDataLayout());
 
-  unsigned DefaultLimit = getDefaultBlockScanLimit();
-  if (!Limit)
+  
+  if (unsigned DefaultLimit = getDefaultBlockScanLimit(); !Limit)
     Limit = &DefaultLimit;
 
   // We must be careful with atomic accesses, as they may allow another thread
@@ -446,8 +446,8 @@ MemDepResult MemoryDependenceResults::getSimplePointerDependencyFrom(
     if (IntrinsicInst *II = dyn_cast<IntrinsicInst>(Inst)) {
       // If we reach a lifetime begin or end marker, then the query ends here
       // because the value is undefined.
-      Intrinsic::ID ID = II->getIntrinsicID();
-      switch (ID) {
+      
+      switch (Intrinsic::ID ID = II->getIntrinsicID(); ID) {
       case Intrinsic::lifetime_start: {
         MemoryLocation ArgLoc = MemoryLocation::getAfter(II->getArgOperand(0));
         if (BatchAA.isMustAlias(ArgLoc, MemLoc))
@@ -592,8 +592,8 @@ MemDepResult MemoryDependenceResults::getSimplePointerDependencyFrom(
     // looking for a clobber in many cases; that's an alias property and is
     // handled by BasicAA.
     if (isa<AllocaInst>(Inst) || isNoAliasCall(Inst)) {
-      const Value *AccessPtr = getUnderlyingObject(MemLoc.Ptr);
-      if (AccessPtr == Inst || BatchAA.isMustAlias(Inst, AccessPtr))
+      
+      if (const Value *AccessPtr = getUnderlyingObject(MemLoc.Ptr); AccessPtr == Inst || BatchAA.isMustAlias(Inst, AccessPtr))
         return MemDepResult::getDef(Inst);
     }
 
@@ -672,8 +672,8 @@ MemDepResult MemoryDependenceResults::getDependency(Instruction *QueryInst) {
       LocalCache = MemDepResult::getNonFuncLocal();
   } else {
     MemoryLocation MemLoc;
-    ModRefInfo MR = GetLocation(QueryInst, MemLoc, TLI);
-    if (MemLoc.Ptr) {
+    
+    if (ModRefInfo MR = GetLocation(QueryInst, MemLoc, TLI); MemLoc.Ptr) {
       // If we can do a pointer scan, make it happen.
       bool isLoad = !isModSet(MR);
       if (auto *II = dyn_cast<IntrinsicInst>(QueryInst))
@@ -1210,11 +1210,11 @@ bool MemoryDependenceResults::getNonLocalPointerDepFromBB(
       // Get the dependency info for Pointer in BB.  If we have cached
       // information, we will use it, otherwise we compute it.
       LLVM_DEBUG(AssertSorted(*Cache, NumSortedEntries));
-      MemDepResult Dep = getNonLocalInfoForBlock(
-          QueryInst, Loc, isLoad, BB, Cache, NumSortedEntries, BatchAA);
+      
 
       // If we got a Def or Clobber, add this to the list of results.
-      if (!Dep.isNonLocal()) {
+      if (MemDepResult Dep = getNonLocalInfoForBlock(
+          QueryInst, Loc, isLoad, BB, Cache, NumSortedEntries, BatchAA); !Dep.isNonLocal()) {
         if (DT.isReachableFromEntry(BB)) {
           Result.push_back(NonLocalDepResult(BB, Dep, Pointer.getAddr()));
           continue;
@@ -1446,8 +1446,8 @@ void MemoryDependenceResults::removeCachedNonLocalPointerDependencies(
     }
 
     if (auto *I = dyn_cast<Instruction>(P.getPointer())) {
-      auto toRemoveIt = ReverseNonLocalDefsCache.find(I);
-      if (toRemoveIt != ReverseNonLocalDefsCache.end()) {
+      
+      if (auto toRemoveIt = ReverseNonLocalDefsCache.find(I); toRemoveIt != ReverseNonLocalDefsCache.end()) {
         for (const auto *entry : toRemoveIt->second)
           NonLocalDefsCache.erase(entry);
         ReverseNonLocalDefsCache.erase(toRemoveIt);

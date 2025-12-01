@@ -283,8 +283,8 @@ void SimplifyImpl::removeOverwrites() {
       }
 
       // If all of a write's elements are overwritten, remove it.
-      isl::union_map AccRelUnion = AccRel;
-      if (AccRelUnion.is_subset(WillBeOverwritten)) {
+      
+      if (isl::union_map AccRelUnion = AccRel; AccRelUnion.is_subset(WillBeOverwritten)) {
         POLLY_DEBUG(dbgs() << "Removing " << MA
                            << " which will be overwritten anyway\n");
 
@@ -534,9 +534,9 @@ void SimplifyImpl::removeRedundantWrites() {
 
         if (StoredVal) {
           // Lookup in the set of known values.
-          isl::map AccRelStoredVal = isl::map::from_domain_and_range(
-              AccRelWrapped, makeValueSet(StoredVal));
-          if (isl::union_map(AccRelStoredVal).is_subset(Known)) {
+          
+          if (isl::map AccRelStoredVal = isl::map::from_domain_and_range(
+              AccRelWrapped, makeValueSet(StoredVal)); isl::union_map(AccRelStoredVal).is_subset(Known)) {
             POLLY_DEBUG(dbgs() << "Cleanup of " << MA << ":\n");
             POLLY_DEBUG(dbgs() << "      Scalar: " << *StoredVal << "\n");
             POLLY_DEBUG(dbgs() << "      AccRel: " << AccRel << "\n");
@@ -553,8 +553,8 @@ void SimplifyImpl::removeRedundantWrites() {
       if (MA->isRead()) {
         // Loaded values are the currently known values of the array element
         // it was loaded from.
-        Value *LoadedVal = MA->getAccessValue();
-        if (LoadedVal && IsOrdered) {
+        
+        if (Value *LoadedVal = MA->getAccessValue(); LoadedVal && IsOrdered) {
           isl::map AccRelVal = isl::map::from_domain_and_range(
               AccRelWrapped, makeValueSet(LoadedVal));
 
@@ -596,8 +596,8 @@ void SimplifyImpl::removeEmptyPartialAccesses() {
       if (!MA->isWrite())
         continue;
 
-      isl::map AccRel = MA->getAccessRelation();
-      if (!AccRel.is_empty().is_true())
+      
+      if (isl::map AccRel = MA->getAccessRelation(); !AccRel.is_empty().is_true())
         continue;
 
       POLLY_DEBUG(

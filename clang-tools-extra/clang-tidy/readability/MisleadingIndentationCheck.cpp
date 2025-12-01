@@ -21,8 +21,8 @@ static const IfStmt *getPrecedingIf(const SourceManager &SM,
   if (Parents.size() != 1)
     return nullptr;
   if (const auto *PrecedingIf = Parents[0].get<IfStmt>()) {
-    const SourceLocation PreviousElseLoc = PrecedingIf->getElseLoc();
-    if (SM.getExpansionLineNumber(PreviousElseLoc) ==
+    
+    if (const SourceLocation PreviousElseLoc = PrecedingIf->getElseLoc(); SM.getExpansionLineNumber(PreviousElseLoc) ==
         SM.getExpansionLineNumber(If->getIfLoc()))
       return PrecedingIf;
   }

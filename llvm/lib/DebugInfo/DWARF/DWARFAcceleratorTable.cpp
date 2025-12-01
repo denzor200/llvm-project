@@ -29,8 +29,8 @@ struct Atom {
 };
 
 static raw_ostream &operator<<(raw_ostream &OS, const Atom &A) {
-  StringRef Str = dwarf::AtomTypeString(A.Value);
-  if (!Str.empty())
+  
+  if (StringRef Str = dwarf::AtomTypeString(A.Value); !Str.empty())
     return OS << Str;
   return OS << "DW_ATOM_unknown_" << format("%x", A.Value);
 }
@@ -106,8 +106,8 @@ AppleAcceleratorTable::getAtomsDesc() {
 
 bool AppleAcceleratorTable::validateForms() {
   for (auto Atom : getAtomsDesc()) {
-    DWARFFormValue FormValue(Atom.second);
-    switch (Atom.first) {
+    
+    switch (DWARFFormValue FormValue(Atom.second); Atom.first) {
     case dwarf::DW_ATOM_die_offset:
     case dwarf::DW_ATOM_die_tag:
     case dwarf::DW_ATOM_type_flags:
@@ -197,8 +197,8 @@ bool AppleAcceleratorTable::dumpName(ScopedPrinter &W,
       if (Atom.extractValue(AccelSection, DataOffset, FormParams)) {
         Atom.dump(W.getOStream());
         if (std::optional<uint64_t> Val = Atom.getAsUnsignedConstant()) {
-          StringRef Str = dwarf::AtomValueString(HdrData.Atoms[i].first, *Val);
-          if (!Str.empty())
+          
+          if (StringRef Str = dwarf::AtomValueString(HdrData.Atoms[i].first, *Val); !Str.empty())
             W.getOStream() << " (" << Str << ")";
         }
       } else
@@ -1097,8 +1097,8 @@ std::optional<ObjCSelectorNames> llvm::getObjCNamesIfSelector(StringRef Name) {
 
   // "-[Class(Category) selector :withArg ...]"
   if (Ans.ClassName.back() == ')') {
-    size_t OpenParens = Ans.ClassName.find('(');
-    if (OpenParens != StringRef::npos) {
+    
+    if (size_t OpenParens = Ans.ClassName.find('('); OpenParens != StringRef::npos) {
       Ans.ClassNameNoCategory = Ans.ClassName.take_front(OpenParens);
 
       Ans.MethodNameNoCategory = Name.take_front(OpenParens + 2);
@@ -1127,11 +1127,11 @@ std::optional<StringRef> llvm::StripTemplateParameters(StringRef Name) {
   NumLeftAnglesToSkip += Name.count("<=>");
 
   size_t RightAngleCount = Name.count('>');
-  size_t LeftAngleCount = Name.count('<');
+  
 
   // If we have more < than > we have operator< or operator<<
   // we to account for their < as well.
-  if (LeftAngleCount > RightAngleCount)
+  if (size_t LeftAngleCount = Name.count('<'); LeftAngleCount > RightAngleCount)
     NumLeftAnglesToSkip += LeftAngleCount - RightAngleCount;
 
   size_t StartOfTemplate = 0;

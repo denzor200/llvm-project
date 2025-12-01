@@ -133,9 +133,9 @@ TEST(VerifierTest, InvalidNoFPClassAttribute) {
     raw_string_ostream ErrorOS(Error);
     EXPECT_TRUE(verifyModule(M, &ErrorOS));
 
-    StringRef ErrMsg(Error);
+    
 
-    if (InvalidMask == 0) {
+    if (StringRef ErrMsg(Error); InvalidMask == 0) {
       EXPECT_TRUE(ErrMsg.starts_with(
           "Attribute 'nofpclass' must have at least one test bit set"))
           << ErrMsg;

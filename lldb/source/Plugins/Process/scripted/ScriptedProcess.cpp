@@ -539,8 +539,8 @@ ScriptedProcess::GetLoadedDynamicLibrariesInfos() {
 lldb_private::StructuredData::DictionarySP ScriptedProcess::GetMetadata() {
   StructuredData::DictionarySP metadata_sp = GetInterface().GetMetadata();
 
-  Status error;
-  if (!metadata_sp || !metadata_sp->GetSize())
+  
+  if (Status error; !metadata_sp || !metadata_sp->GetSize())
     return ScriptedInterface::ErrorWithMessage<StructuredData::DictionarySP>(
         LLVM_PRETTY_FUNCTION, "No metadata.", error);
 

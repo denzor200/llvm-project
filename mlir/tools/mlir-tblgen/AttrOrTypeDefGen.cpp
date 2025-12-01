@@ -39,9 +39,9 @@ static void collectAllDefs(StringRef selectedDialect,
   if (records.empty())
     return;
 
-  auto defs = llvm::map_range(
-      records, [&](const Record *rec) { return AttrOrTypeDef(rec); });
-  if (selectedDialect.empty()) {
+  
+  if (auto defs = llvm::map_range(
+      records, [&](const Record *rec) { return AttrOrTypeDef(rec); }); selectedDialect.empty()) {
     // If a dialect was not specified, ensure that all found defs belong to the
     // same dialect.
     if (!llvm::all_equal(llvm::map_range(
@@ -256,9 +256,9 @@ void DefGen::createParentWithTraits() {
 
   // Add OpAsmInterface::Trait if we automatically generate mnemonic alias
   // method.
-  std::string opAsmInterfaceTraitName =
-      strfmt("::mlir::OpAsm{0}Interface::Trait", defType);
-  if (def.genMnemonicAlias() &&
+  
+  if (std::string opAsmInterfaceTraitName =
+      strfmt("::mlir::OpAsm{0}Interface::Trait", defType); def.genMnemonicAlias() &&
       !llvm::is_contained(traitNames, opAsmInterfaceTraitName)) {
     defParent.addTemplateParam(opAsmInterfaceTraitName);
   }
@@ -1118,8 +1118,8 @@ bool DefGenerator::emitDefs(StringRef selectedDialect) {
 
   // Emit the default parser/printer for Attributes if the dialect asked for it.
   if (isAttrGenerator && firstDialect.useDefaultAttributePrinterParser()) {
-    DialectNamespaceEmitter nsEmitter(os, firstDialect);
-    if (firstDialect.isExtensible()) {
+    
+    if (DialectNamespaceEmitter nsEmitter(os, firstDialect); firstDialect.isExtensible()) {
       os << llvm::formatv(dialectDefaultAttrPrinterParserDispatch,
                           firstDialect.getCppClassName(),
                           dialectDynamicAttrParserDispatch,
@@ -1132,8 +1132,8 @@ bool DefGenerator::emitDefs(StringRef selectedDialect) {
 
   // Emit the default parser/printer for Types if the dialect asked for it.
   if (!isAttrGenerator && firstDialect.useDefaultTypePrinterParser()) {
-    DialectNamespaceEmitter nsEmitter(os, firstDialect);
-    if (firstDialect.isExtensible()) {
+    
+    if (DialectNamespaceEmitter nsEmitter(os, firstDialect); firstDialect.isExtensible()) {
       os << llvm::formatv(dialectDefaultTypePrinterParserDispatch,
                           firstDialect.getCppClassName(),
                           dialectDynamicTypeParserDispatch,

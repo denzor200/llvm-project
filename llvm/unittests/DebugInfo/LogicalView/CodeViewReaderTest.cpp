@@ -591,8 +591,8 @@ TEST(LogicalViewTest, CodeViewReader) {
   TT.setVendor(Triple::UnknownVendor);
   TT.setOS(Triple::UnknownOS);
 
-  std::string TargetLookupError;
-  if (!TargetRegistry::lookupTarget(TT, TargetLookupError))
+  
+  if (std::string TargetLookupError; !TargetRegistry::lookupTarget(TT, TargetLookupError))
     return;
 
   SmallString<128> InputsDir = unittest::getInputFileDirectory(TestMainArgv0);

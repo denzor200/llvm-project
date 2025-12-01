@@ -56,9 +56,9 @@ class PrepareForOMPOffloadPrivatizationPass
     // deferred target tasks by copying them to the heap. Once the target task
     // is done, this heap memory is freed. Since all of this happens on the host
     // we can skip device modules.
-    auto offloadModuleInterface =
-        dyn_cast<omp::OffloadModuleInterface>(mod.getOperation());
-    if (offloadModuleInterface && offloadModuleInterface.getIsTargetDevice())
+    
+    if (auto offloadModuleInterface =
+        dyn_cast<omp::OffloadModuleInterface>(mod.getOperation()); offloadModuleInterface && offloadModuleInterface.getIsTargetDevice())
       return;
 
     getOperation()->walk([&](omp::TargetOp targetOp) {

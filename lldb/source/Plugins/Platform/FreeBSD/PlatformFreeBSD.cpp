@@ -53,8 +53,8 @@ PlatformSP PlatformFreeBSD::CreateInstance(bool force, const ArchSpec *arch) {
 
   bool create = force;
   if (!create && arch && arch->IsValid()) {
-    const llvm::Triple &triple = arch->GetTriple();
-    switch (triple.getOS()) {
+    
+    switch (const llvm::Triple &triple = arch->GetTriple(); triple.getOS()) {
     case llvm::Triple::FreeBSD:
       create = true;
       break;
@@ -188,8 +188,8 @@ MmapArgList PlatformFreeBSD::GetMmapArgumentList(const ArchSpec &arch,
 
 CompilerType PlatformFreeBSD::GetSiginfoType(const llvm::Triple &triple) {
   {
-    std::lock_guard<std::mutex> guard(m_mutex);
-    if (!m_type_system)
+    
+    if (std::lock_guard<std::mutex> guard(m_mutex); !m_type_system)
       m_type_system = std::make_shared<TypeSystemClang>("siginfo", triple);
   }
   TypeSystemClang *ast = m_type_system.get();

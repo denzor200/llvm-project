@@ -195,8 +195,8 @@ void SymbolGroup::initializeForPdb(uint32_t Modi) {
   // PDB always uses the same string table, but each module has its own
   // checksums.  So we only set the strings if they're not already set.
   if (!SC.hasStrings()) {
-    auto StringTable = File->pdb().getStringTable();
-    if (StringTable)
+    
+    if (auto StringTable = File->pdb().getStringTable(); StringTable)
       SC.setStrings(StringTable->getStringTable());
     else
       consumeError(StringTable.takeError());
@@ -390,8 +390,8 @@ bool InputFile::hasTypes() const {
     return pdb().hasPDBTpiStream();
 
   for (const auto &Section : obj().sections()) {
-    CVTypeArray Types;
-    if (isDebugTSection(Section, Types))
+    
+    if (CVTypeArray Types; isDebugTSection(Section, Types))
       return true;
   }
   return false;
@@ -492,8 +492,8 @@ SymbolGroupIterator::SymbolGroupIterator(InputFile &File) : Value(&File) {
 
 bool SymbolGroupIterator::operator==(const SymbolGroupIterator &R) const {
   bool E = isEnd();
-  bool RE = R.isEnd();
-  if (E || RE)
+  
+  if (bool RE = R.isEnd(); E || RE)
     return E == RE;
 
   if (Value.File != R.Value.File)
@@ -533,8 +533,8 @@ void SymbolGroupIterator::scanToNextDebugS() {
 
   while (++Iter != End) {
     DebugSubsectionArray SS;
-    SectionRef SR = *Iter;
-    if (!isDebugSSection(SR, SS))
+    
+    if (SectionRef SR = *Iter; !isDebugSSection(SR, SS))
       continue;
 
     Value.updateDebugS(SS);

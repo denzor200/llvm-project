@@ -211,8 +211,8 @@ StorageLayout::getFieldIndexAndStride(SparseTensorFieldKind kind,
   if (kind == SparseTensorFieldKind::CrdMemRef) {
     assert(lvl.has_value());
     const Level cooStart = enc.getAoSCOOStart();
-    const Level lvlRank = enc.getLvlRank();
-    if (lvl.value() >= cooStart && lvl.value() < lvlRank) {
+    
+    if (const Level lvlRank = enc.getLvlRank(); lvl.value() >= cooStart && lvl.value() < lvlRank) {
       lvl = cooStart;
       stride = lvlRank - cooStart;
     }
@@ -527,10 +527,10 @@ SparseTensorEncodingAttr::translateShape(ArrayRef<int64_t> srcShape,
 
   for (AffineExpr exp : transMap.getResults()) {
     // Do constant propagation on the affine map.
-    AffineExpr evalExp =
-        simplifyAffineExpr(exp.replaceDims(dimRep), srcShape.size(), 0);
+    
     // use llvm namespace here to avoid ambiguity
-    if (auto c = llvm::dyn_cast<AffineConstantExpr>(evalExp)) {
+    if (auto AffineExpr evalExp =
+        simplifyAffineExpr(exp.replaceDims(dimRep), srcShape.size(), 0); c = llvm::dyn_cast<AffineConstantExpr>(evalExp)) {
       ret.push_back(c.getValue() + 1);
     } else {
       if (auto mod = llvm::dyn_cast<AffineBinaryOpExpr>(evalExp);
@@ -962,8 +962,8 @@ mlir::sparse_tensor::SparseTensorEncodingAttr::getCOOSegments() const {
   ArrayRef<LevelType> lts = getLvlTypes();
   Level l = 0;
   while (l < getLvlRank()) {
-    auto lt = lts[l];
-    if (lt.isa<LevelFormat::Compressed, LevelFormat::LooseCompressed>()) {
+    
+    if (auto lt = lts[l]; lt.isa<LevelFormat::Compressed, LevelFormat::LooseCompressed>()) {
       auto cur = lts.begin() + l;
       auto end = std::find_if(cur + 1, lts.end(), [](LevelType lt) {
         return !lt.isa<LevelFormat::Singleton>();
@@ -1062,8 +1062,8 @@ AffineMap mlir::sparse_tensor::inverseBlockSparsity(AffineMap dimToLvl,
   // applied to the same dimension, so as to build the lvlToDim map.
   std::map<unsigned, SmallVector<AffineExpr, 3>> lvlExprComponents;
   for (unsigned i = 0, n = numLvls; i < n; i++) {
-    auto result = dimToLvl.getResult(i);
-    if (auto binOp = dyn_cast<AffineBinaryOpExpr>(result)) {
+    
+    if (auto auto result = dimToLvl.getResult(i); binOp = dyn_cast<AffineBinaryOpExpr>(result)) {
       if (result.getKind() == AffineExprKind::FloorDiv) {
         // Position of the dimension in dimToLvl.
         auto pos = dyn_cast<AffineDimExpr>(binOp.getLHS()).getPosition();
@@ -1157,9 +1157,9 @@ bool mlir::sparse_tensor::isBlockSparsity(AffineMap dimToLvl) {
         return false;
       }
     } else if (auto dimOp = dyn_cast<AffineDimExpr>(result)) {
-      auto pos = dimOp.getPosition();
+      
       // Expect dim to be unset.
-      if (!coeffientMap.try_emplace(pos, 0).second)
+      if (auto pos = dimOp.getPosition(); !coeffientMap.try_emplace(pos, 0).second)
         return false;
     } else {
       return false;
@@ -1301,13 +1301,13 @@ static LogicalResult verifyPackUnPack(Operation *op, bool requiresStaticShape,
     return op->emitError("the sparse-tensor must have an encoding attribute");
 
   // Verifies the trailing COO.
-  Level cooStartLvl = stt.getAoSCOOStart();
-  if (cooStartLvl < stt.getLvlRank()) {
+  
+  if (Level cooStartLvl = stt.getAoSCOOStart(); cooStartLvl < stt.getLvlRank()) {
     // We only supports trailing COO for now, must be the last input.
     auto cooTp = llvm::cast<ShapedType>(lvlTps.back());
     // The coordinates should be in shape of <? x rank>
-    unsigned expCOORank = stt.getLvlRank() - cooStartLvl;
-    if (cooTp.getRank() != 2 || expCOORank != cooTp.getShape().back()) {
+    
+    if (unsigned expCOORank = stt.getLvlRank() - cooStartLvl; cooTp.getRank() != 2 || expCOORank != cooTp.getShape().back()) {
       return op->emitError("input/output trailing COO level-ranks don't match");
     }
   }
@@ -1735,8 +1735,8 @@ static LogicalResult verifyNumBlockArgs(T *op, Region &region,
                                         const char *regionName,
                                         TypeRange inputTypes, Type outputType) {
   unsigned numArgs = region.getNumArguments();
-  unsigned expectedNum = inputTypes.size();
-  if (numArgs != expectedNum)
+  
+  if (unsigned expectedNum = inputTypes.size(); numArgs != expectedNum)
     return op->emitError() << regionName << " region must have exactly "
                            << expectedNum << " arguments";
 
@@ -1801,8 +1801,8 @@ LogicalResult UnaryOp::verify() {
 
   // Check correct number of block arguments and return type for each
   // non-empty region.
-  Region &present = getPresentRegion();
-  if (!present.empty()) {
+  
+  if (Region &present = getPresentRegion(); !present.empty()) {
     if (failed(verifyNumBlockArgs(this, present, "present",
                                   TypeRange{inputType}, outputType)))
       return failure();
@@ -1911,8 +1911,8 @@ void PushBackOp::build(OpBuilder &builder, OperationState &result,
 
 LogicalResult PushBackOp::verify() {
   if (Value n = getN()) {
-    std::optional<int64_t> nValue = getConstantIntValue(n);
-    if (nValue && nValue.value() < 1)
+    
+    if (std::optional<int64_t> nValue = getConstantIntValue(n); nValue && nValue.value() < 1)
       return emitOpError("n must be not less than 1");
   }
   return success();

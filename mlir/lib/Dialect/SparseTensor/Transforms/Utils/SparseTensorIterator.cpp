@@ -702,8 +702,8 @@ public:
       : SparseIterator(IterKind::kNonEmptySubSect, 3, subSectMeta, *delegate),
         parent(parent), delegate(std::move(delegate)),
         tupleSz(this->delegate->serialize().size()), subSectSz(subSectSz) {
-    auto *p = dyn_cast_or_null<NonEmptySubSectIterator>(parent);
-    if (p == nullptr) {
+    
+    if (auto *p = dyn_cast_or_null<NonEmptySubSectIterator>(parent); p == nullptr) {
       // Extract subsections along the root level.
       maxTupleCnt = C_IDX(1);
     } else if (p->lvl == lvl) {
@@ -823,8 +823,8 @@ public:
   Value derefImpl(OpBuilder &b, Location l) override {
     // Use the relative offset to coiterate.
     Value crd;
-    auto *p = dyn_cast_or_null<NonEmptySubSectIterator>(parent);
-    if (p && p->lvl == lvl)
+    
+    if (auto *p = dyn_cast_or_null<NonEmptySubSectIterator>(parent); p && p->lvl == lvl)
       crd = SUBI(getAbsOff(), p->getAbsOff());
     crd = getAbsOff();
 
@@ -1509,8 +1509,8 @@ mlir::sparse_tensor::SparseIterationSpace::SparseIterationSpace(
     : lvls() {
   auto [lvlLo, lvlHi] = lvlRange;
 
-  Value c0 = C_IDX(0);
-  if (parentPos.empty())
+  
+  if (Value c0 = C_IDX(0); parentPos.empty())
     parentPos = c0;
 
   for (Level lvl = lvlLo; lvl < lvlHi; lvl++)
@@ -1670,8 +1670,8 @@ sparse_tensor::makePaddedIterator(std::unique_ptr<SparseIterator> &&sit,
 }
 
 static const SparseIterator *tryUnwrapFilter(const SparseIterator *it) {
-  auto *filter = llvm::dyn_cast_or_null<FilterIterator>(it);
-  if (filter)
+  
+  if (auto *filter = llvm::dyn_cast_or_null<FilterIterator>(it); filter)
     return &filter->getWrappedIterator();
   return it;
 }

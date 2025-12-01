@@ -208,8 +208,8 @@ Error BitstreamParserHelper::expectMagic() {
     else
       return R.takeError();
 
-  StringRef MagicNumber{Result.data(), Result.size()};
-  if (MagicNumber != remarks::ContainerMagic)
+  
+  if (StringRef MagicNumber{Result.data(), Result.size()}; MagicNumber != remarks::ContainerMagic)
     return error("Unknown magic number: expecting {}, got {}.",
                  remarks::ContainerMagic, MagicNumber);
   return Error::success();

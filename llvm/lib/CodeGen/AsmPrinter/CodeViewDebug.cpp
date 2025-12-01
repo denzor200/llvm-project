@@ -260,8 +260,8 @@ CodeViewDebug::getInlineSite(const DILocation *InlinedAt,
 }
 
 static StringRef getPrettyScopeName(const DIScope *Scope) {
-  StringRef ScopeName = Scope->getName();
-  if (!ScopeName.empty())
+  
+  if (StringRef ScopeName = Scope->getName(); !ScopeName.empty())
     return ScopeName;
 
   switch (Scope->getTag()) {
@@ -290,8 +290,8 @@ const DISubprogram *CodeViewDebug::collectParentScopeNames(
     if (const auto *Ty = dyn_cast<DICompositeType>(Scope))
       DeferredCompleteTypes.push_back(Ty);
 
-    StringRef ScopeName = getPrettyScopeName(Scope);
-    if (!ScopeName.empty())
+    
+    if (StringRef ScopeName = getPrettyScopeName(Scope); !ScopeName.empty())
       QualifiedNameComponents.push_back(ScopeName);
     Scope = Scope->getScope();
   }
@@ -513,8 +513,8 @@ void CodeViewDebug::maybeRecordLocation(const DebugLoc &DL,
   if (!DL || DL == PrevInstLoc)
     return;
 
-  const DIScope *Scope = DL->getScope();
-  if (!Scope)
+  
+  if (const DIScope *Scope = DL->getScope(); !Scope)
     return;
 
   // Skip this line if it is longer than the maximum we can record.
@@ -548,9 +548,9 @@ void CodeViewDebug::maybeRecordLocation(const DebugLoc &DL,
     // Ensure we have links in the tree of inline call sites.
     bool FirstLoc = true;
     while ((SiteLoc = Loc->getInlinedAt())) {
-      InlineSite &Site =
-          getInlineSite(SiteLoc, Loc->getScope()->getSubprogram());
-      if (!FirstLoc)
+      
+      if (InlineSite &Site =
+          getInlineSite(SiteLoc, Loc->getScope()->getSubprogram()); !FirstLoc)
         addLocIfNotPresent(Site.ChildSites, Loc);
       FirstLoc = false;
       Loc = SiteLoc;
@@ -766,9 +766,9 @@ void CodeViewDebug::emitTypeInformation() {
     // This will fail if the record data is invalid.
     CVType Record = Table.getType(*B);
 
-    Error E = codeview::visitTypeRecord(Record, *B, Pipeline);
+    
 
-    if (E) {
+    if (Error E = codeview::visitTypeRecord(Record, *B, Pipeline); E) {
       logAllUnhandledErrors(std::move(E), errs(), "error: ");
       llvm_unreachable("produced malformed type record");
     }
@@ -893,8 +893,8 @@ void CodeViewDebug::emitCompilerInformation() {
     Flags |= static_cast<uint32_t>(CompileSym3Flags::PGO);
   }
   using ArchType = llvm::Triple::ArchType;
-  ArchType Arch = MMI->getModule()->getTargetTriple().getArch();
-  if (CompilerInfoAsm->TM.Options.Hotpatch || Arch == ArchType::thumb ||
+  
+  if (ArchType Arch = MMI->getModule()->getTargetTriple().getArch(); CompilerInfoAsm->TM.Options.Hotpatch || Arch == ArchType::thumb ||
       Arch == ArchType::aarch64) {
     Flags |= static_cast<uint32_t>(CompileSym3Flags::HotPatch);
   }
@@ -1661,10 +1661,10 @@ void CodeViewDebug::addToUDTs(const DIType *Ty) {
   const DISubprogram *ClosestSubprogram =
       collectParentScopeNames(Ty->getScope(), ParentScopeNames);
 
-  std::string FullyQualifiedName =
-      formatNestedName(ParentScopeNames, getPrettyScopeName(Ty));
+  
 
-  if (ClosestSubprogram == nullptr) {
+  if (std::string FullyQualifiedName =
+      formatNestedName(ParentScopeNames, getPrettyScopeName(Ty)); ClosestSubprogram == nullptr) {
     GlobalUDTs.emplace_back(std::move(FullyQualifiedName), Ty);
   } else if (ClosestSubprogram == CurrentSubprogram) {
     LocalUDTs.emplace_back(std::move(FullyQualifiedName), Ty);
@@ -2778,19 +2778,19 @@ TypeIndex CodeViewDebug::getCompleteTypeIndex(const DIType *Ty) {
 
   const auto *CTy = cast<DICompositeType>(Ty);
 
-  TypeLoweringScope S(*this);
+  
 
   // Make sure the forward declaration is emitted first. It's unclear if this
   // is necessary, but MSVC does it, and we should follow suit until we can show
   // otherwise.
   // We only emit a forward declaration for named types.
-  if (!CTy->getName().empty() || !CTy->getIdentifier().empty()) {
-    TypeIndex FwdDeclTI = getTypeIndex(CTy);
+  if (TypeLoweringScope S(*this); !CTy->getName().empty() || !CTy->getIdentifier().empty()) {
+    
 
     // Just use the forward decl if we don't have complete type info. This
     // might happen if the frontend is using modules and expects the complete
     // definition to be emitted elsewhere.
-    if (CTy->isForwardDecl())
+    if (TypeIndex FwdDeclTI = getTypeIndex(CTy); CTy->isForwardDecl())
       return FwdDeclTI;
   }
 
@@ -3415,8 +3415,8 @@ static bool isFloatDIType(const DIType *Ty) {
     return false;
 
   if (auto *DTy = dyn_cast<DIDerivedType>(Ty)) {
-    dwarf::Tag T = (dwarf::Tag)Ty->getTag();
-    if (T == dwarf::DW_TAG_pointer_type ||
+    
+    if (dwarf::Tag T = (dwarf::Tag)Ty->getTag(); T == dwarf::DW_TAG_pointer_type ||
         T == dwarf::DW_TAG_ptr_to_member_type ||
         T == dwarf::DW_TAG_reference_type ||
         T == dwarf::DW_TAG_rvalue_reference_type)
@@ -3488,15 +3488,15 @@ void forEachJumpTableBranch(
     const MachineFunction *MF, bool isThumb,
     const std::function<void(const MachineJumpTableInfo &, const MachineInstr &,
                              int64_t)> &Callback) {
-  auto JTI = MF->getJumpTableInfo();
-  if (JTI && !JTI->isEmpty()) {
+  
+  if (auto JTI = MF->getJumpTableInfo(); JTI && !JTI->isEmpty()) {
 #ifndef NDEBUG
     auto UsedJTs = llvm::SmallBitVector(JTI->getJumpTables().size());
 #endif
     for (const auto &MBB : *MF) {
       // Search for indirect branches...
-      const auto LastMI = MBB.getFirstTerminator();
-      if (LastMI != MBB.end() && LastMI->isIndirectBranch()) {
+      
+      if (const auto LastMI = MBB.getFirstTerminator(); LastMI != MBB.end() && LastMI->isIndirectBranch()) {
         if (isThumb) {
           // ... that directly use jump table operands.
           // NOTE: ARM uses pattern matching to lower its BR_JT SDNode to

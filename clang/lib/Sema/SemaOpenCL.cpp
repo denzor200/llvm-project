@@ -59,12 +59,12 @@ void SemaOpenCL::handleAccessAttr(Decl *D, const ParsedAttr &AL) {
   if (const auto *PDecl = dyn_cast<ParmVarDecl>(D)) {
     const Type *DeclTy = PDecl->getType().getCanonicalType().getTypePtr();
     if (AL.getAttrName()->getName().contains("read_write")) {
-      bool ReadWriteImagesUnsupported =
+      
+      if (bool ReadWriteImagesUnsupported =
           (getLangOpts().getOpenCLCompatibleVersion() < 200) ||
           (getLangOpts().getOpenCLCompatibleVersion() == 300 &&
            !SemaRef.getOpenCLOptions().isSupported(
-               "__opencl_c_read_write_images", getLangOpts()));
-      if (ReadWriteImagesUnsupported || DeclTy->isPipeType()) {
+               "__opencl_c_read_write_images", getLangOpts())); ReadWriteImagesUnsupported || DeclTy->isPipeType()) {
         Diag(AL.getLoc(), diag::err_opencl_invalid_read_write)
             << AL << PDecl->getType() << DeclTy->isImageType();
         D->setInvalidDecl(true);
@@ -159,8 +159,8 @@ bool SemaOpenCL::checkBuiltinNDRangeAndBlock(CallExpr *TheCall) {
     return true;
 
   // First argument is an ndrange_t type.
-  Expr *NDRangeArg = TheCall->getArg(0);
-  if (NDRangeArg->getType().getUnqualifiedType().getAsString() != "ndrange_t") {
+  
+  if (Expr *NDRangeArg = TheCall->getArg(0); NDRangeArg->getType().getUnqualifiedType().getAsString() != "ndrange_t") {
     Diag(NDRangeArg->getBeginLoc(), diag::err_opencl_builtin_expected_type)
         << TheCall->getDirectCallee() << "'ndrange_t'";
     return true;
@@ -369,13 +369,13 @@ static bool checkPipeArg(Sema &S, CallExpr *Call) {
         << Call->getDirectCallee() << Arg0->getSourceRange();
     return true;
   }
-  OpenCLAccessAttr *AccessQual =
-      getOpenCLArgAccess(cast<DeclRefExpr>(Arg0)->getDecl());
+  
   // Validates the access qualifier is compatible with the call.
   // OpenCL v2.0 s6.13.16 - The access qualifiers for pipe should only be
   // read_only and write_only, and assumed to be read_only if no qualifier is
   // specified.
-  switch (Call->getDirectCallee()->getBuiltinID()) {
+  switch (OpenCLAccessAttr *AccessQual =
+      getOpenCLArgAccess(cast<DeclRefExpr>(Arg0)->getDecl()); Call->getDirectCallee()->getBuiltinID()) {
   case Builtin::BIread_pipe:
   case Builtin::BIreserve_read_pipe:
   case Builtin::BIcommit_read_pipe:
@@ -458,8 +458,8 @@ bool SemaOpenCL::checkBuiltinRWPipe(CallExpr *Call) {
     }
 
     // Check the index.
-    const Expr *Arg2 = Call->getArg(2);
-    if (!Arg2->getType()->isIntegerType() &&
+    
+    if (const Expr *Arg2 = Call->getArg(2); !Arg2->getType()->isIntegerType() &&
         !Arg2->getType()->isUnsignedIntegerType()) {
       Diag(Call->getBeginLoc(), diag::err_opencl_builtin_pipe_invalid_arg)
           << Call->getDirectCallee() << getASTContext().UnsignedIntTy

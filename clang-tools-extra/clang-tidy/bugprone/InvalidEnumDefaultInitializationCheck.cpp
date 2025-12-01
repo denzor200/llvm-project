@@ -59,8 +59,8 @@ public:
   const EnumType *FoundEnum = nullptr;
 
   bool VisitType(const Type *T) {
-    const Type *DesT = T->getUnqualifiedDesugaredType();
-    if (DesT != T)
+    
+    if (const Type *DesT = T->getUnqualifiedDesugaredType(); DesT != T)
       return Visit(DesT);
     return false;
   }

@@ -30,8 +30,8 @@ public:
   }
 
   void check(const ast_matchers::MatchFinder::MatchResult &Result) override {
-    auto S = Result.Nodes.getNodeAs<TranslationUnitDecl>("tu");
-    if (S)
+    
+    if (auto S = Result.Nodes.getNodeAs<TranslationUnitDecl>("tu"); S)
       diag("mytest success");
   }
 

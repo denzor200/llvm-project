@@ -127,8 +127,8 @@ static arith::CmpIPredicateAttr invertPredicate(arith::CmpIPredicateAttr pred) {
 }
 
 static int64_t getScalarOrElementWidth(Type type) {
-  Type elemTy = getElementTypeOrSelf(type);
-  if (elemTy.isIntOrFloat())
+  
+  if (Type elemTy = getElementTypeOrSelf(type); elemTy.isIntOrFloat())
     return elemTy.getIntOrFloatBitWidth();
 
   return -1;
@@ -139,8 +139,8 @@ static int64_t getScalarOrElementWidth(Value value) {
 }
 
 static FailureOr<APInt> getIntOrSplatIntValue(Attribute attr) {
-  APInt value;
-  if (matchPattern(attr, m_ConstantInt(&value)))
+  
+  if (APInt value; matchPattern(attr, m_ConstantInt(&value)))
     return value;
 
   return failure();
@@ -182,8 +182,8 @@ static Type getI1SameShape(Type type) {
 
 void arith::ConstantOp::getAsmResultNames(
     function_ref<void(Value, StringRef)> setNameFn) {
-  auto type = getType();
-  if (auto intCst = dyn_cast<IntegerAttr>(getValue())) {
+  
+  if (auto auto type = getType(); intCst = dyn_cast<IntegerAttr>(getValue())) {
     auto intType = dyn_cast<IntegerType>(type);
 
     // Sugar i1 constants with 'true' and 'false'.
@@ -228,8 +228,8 @@ LogicalResult arith::ConstantOp::verify() {
 
 bool arith::ConstantOp::isBuildableWith(Attribute value, Type type) {
   // The value's type must be the same as the provided type.
-  auto typedAttr = dyn_cast<TypedAttr>(value);
-  if (!typedAttr || typedAttr.getType() != type)
+  
+  if (auto typedAttr = dyn_cast<TypedAttr>(value); !typedAttr || typedAttr.getType() != type)
     return false;
   // Integer values must be signless.
   if (llvm::isa<IntegerType>(type) &&
@@ -1397,9 +1397,9 @@ static bool areValidCastInputsAndOutputs(TypeRange inputs, TypeRange outputs) {
 template <typename ValType, typename Op>
 static LogicalResult verifyExtOp(Op op) {
   Type srcType = getElementTypeOrSelf(op.getIn().getType());
-  Type dstType = getElementTypeOrSelf(op.getType());
+  
 
-  if (llvm::cast<ValType>(srcType).getWidth() >=
+  if (Type dstType = getElementTypeOrSelf(op.getType()); llvm::cast<ValType>(srcType).getWidth() >=
       llvm::cast<ValType>(dstType).getWidth())
     return op.emitError("result type ")
            << dstType << " must be wider than operand type " << srcType;
@@ -1411,9 +1411,9 @@ static LogicalResult verifyExtOp(Op op) {
 template <typename ValType, typename Op>
 static LogicalResult verifyTruncateOp(Op op) {
   Type srcType = getElementTypeOrSelf(op.getIn().getType());
-  Type dstType = getElementTypeOrSelf(op.getType());
+  
 
-  if (llvm::cast<ValType>(srcType).getWidth() <=
+  if (Type dstType = getElementTypeOrSelf(op.getType()); llvm::cast<ValType>(srcType).getWidth() <=
       llvm::cast<ValType>(dstType).getWidth())
     return op.emitError("result type ")
            << dstType << " must be shorter than operand type " << srcType;
@@ -1442,8 +1442,8 @@ static FailureOr<APFloat> convertFloatValue(
     APFloat sourceValue, const llvm::fltSemantics &targetSemantics,
     llvm::RoundingMode roundingMode = llvm::RoundingMode::NearestTiesToEven) {
   bool losesInfo = false;
-  auto status = sourceValue.convert(targetSemantics, roundingMode, &losesInfo);
-  if (losesInfo || status != APFloat::opOK)
+  
+  if (auto status = sourceValue.convert(targetSemantics, roundingMode, &losesInfo); losesInfo || status != APFloat::opOK)
     return failure();
 
   return sourceValue;
@@ -1523,9 +1523,9 @@ OpFoldResult arith::ExtFOp::fold(FoldAdaptor adaptor) {
           bitEnumContainsAll(truncFMF, arith::FastMathFlags::contract);
       arith::FastMathFlags extFMF =
           getFastmath().value_or(arith::FastMathFlags::none);
-      bool isExtContract =
-          bitEnumContainsAll(extFMF, arith::FastMathFlags::contract);
-      if (isTruncContract && isExtContract) {
+      
+      if (bool isExtContract =
+          bitEnumContainsAll(extFMF, arith::FastMathFlags::contract); isTruncContract && isExtContract) {
         return truncFOp.getOperand();
       }
     }
@@ -2081,8 +2081,8 @@ void arith::CmpIOp::getCanonicalizationPatterns(RewritePatternSet &patterns,
 /// comparison predicates.
 bool mlir::arith::applyCmpPredicate(arith::CmpFPredicate predicate,
                                     const APFloat &lhs, const APFloat &rhs) {
-  auto cmpResult = lhs.compare(rhs);
-  switch (predicate) {
+  
+  switch (auto cmpResult = lhs.compare(rhs); predicate) {
   case arith::CmpFPredicate::AlwaysFalse:
     return false;
   case arith::CmpFPredicate::OEQ:
@@ -2218,8 +2218,8 @@ public:
     // to distinguish it from one less than that value.
     if ((int)intWidth > mantissaWidth) {
       // Conversion would lose accuracy. Check if loss can impact comparison.
-      int exponent = ilogb(rhs);
-      if (exponent == APFloat::IEK_Inf) {
+      
+      if (int exponent = ilogb(rhs); exponent == APFloat::IEK_Inf) {
         int maxExponent = ilogb(APFloat::getLargest(rhs.getSemantics()));
         if (maxExponent < (int)valueBits) {
           // Conversion could create infinity.
@@ -2337,8 +2337,8 @@ public:
                   APInt::getZero(floatTy.getWidth()));
       apf.convertFromAPInt(rhsInt, !isUnsigned, APFloat::rmNearestTiesToEven);
 
-      bool equal = apf == rhs;
-      if (!equal) {
+      
+      if (bool equal = apf == rhs; !equal) {
         // If we had a comparison against a fractional value, we have to adjust
         // the compare predicate and sometimes the value.  rhsInt is rounded
         // towards zero at this point.
@@ -2506,10 +2506,10 @@ OpFoldResult arith::SelectOp::fold(FoldAdaptor adaptor) {
     return condition;
 
   if (auto cmp = condition.getDefiningOp<arith::CmpIOp>()) {
-    auto pred = cmp.getPredicate();
-    if (pred == arith::CmpIPredicate::eq || pred == arith::CmpIPredicate::ne) {
+    
+    if (auto pred = cmp.getPredicate(); pred == arith::CmpIPredicate::eq || pred == arith::CmpIPredicate::ne) {
       auto cmpLhs = cmp.getLhs();
-      auto cmpRhs = cmp.getRhs();
+      
 
       // %0 = arith.cmpi eq, %arg0, %arg1
       // %1 = arith.select %0, %arg0, %arg1 => %arg1
@@ -2517,7 +2517,7 @@ OpFoldResult arith::SelectOp::fold(FoldAdaptor adaptor) {
       // %0 = arith.cmpi ne, %arg0, %arg1
       // %1 = arith.select %0, %arg0, %arg1 => %arg0
 
-      if ((cmpLhs == trueVal && cmpRhs == falseVal) ||
+      if (auto cmpRhs = cmp.getRhs(); (cmpLhs == trueVal && cmpRhs == falseVal) ||
           (cmpRhs == trueVal && cmpLhs == falseVal))
         return pred == arith::CmpIPredicate::ne ? trueVal : falseVal;
     }

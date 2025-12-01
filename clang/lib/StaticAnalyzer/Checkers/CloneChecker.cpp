@@ -134,7 +134,7 @@ void CloneChecker::reportSuspiciousClones(
       for (unsigned j = i + 1; j < Group.size(); ++j) {
         VariablePattern PatternB(Group[j]);
 
-        VariablePattern::SuspiciousClonePair ClonePair;
+        
         // For now, we only report clones which break the variable pattern just
         // once because multiple differences in a pattern are an indicator that
         // those differences are maybe intended (e.g. because it's actually a
@@ -143,7 +143,7 @@ void CloneChecker::reportSuspiciousClones(
         // so replacing this number with a percentage could better handle such
         // cases. On the other hand it could increase the false-positive rate
         // for all clones if the percentage is too high.
-        if (PatternA.countPatternDifferences(PatternB, &ClonePair) == 1) {
+        if (VariablePattern::SuspiciousClonePair ClonePair; PatternA.countPatternDifferences(PatternB, &ClonePair) == 1) {
           Pairs.push_back(ClonePair);
           break;
         }

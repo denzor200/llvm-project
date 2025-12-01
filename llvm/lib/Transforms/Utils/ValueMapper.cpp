@@ -365,8 +365,8 @@ Value *Mapper::mapValue(const Value *V) {
 
   if (const InlineAsm *IA = dyn_cast<InlineAsm>(V)) {
     // Inline asm may need *type* remapping.
-    FunctionType *NewTy = IA->getFunctionType();
-    if (TypeMapper) {
+    
+    if (FunctionType *NewTy = IA->getFunctionType(); TypeMapper) {
       NewTy = cast<FunctionType>(TypeMapper->remapType(NewTy));
 
       if (NewTy != IA->getFunctionType())
@@ -444,8 +444,8 @@ Value *Mapper::mapValue(const Value *V) {
 
   if (const auto *E = dyn_cast<DSOLocalEquivalent>(C)) {
     auto *Val = mapValue(E->getGlobalValue());
-    GlobalValue *GV = dyn_cast<GlobalValue>(Val);
-    if (GV)
+    
+    if (GlobalValue *GV = dyn_cast<GlobalValue>(Val); GV)
       return getVM()[E] = DSOLocalEquivalent::get(GV);
 
     auto *Func = cast<Function>(Val->stripPointerCastsAndAliases());
@@ -561,8 +561,8 @@ void Mapper::remapDbgRecord(DbgRecord &DR) {
   bool IgnoreMissingLocals = Flags & RF_IgnoreMissingLocals;
 
   if (V.isDbgAssign()) {
-    auto *NewAddr = mapValue(V.getAddress());
-    if (!IgnoreMissingLocals && !NewAddr)
+    
+    if (auto *NewAddr = mapValue(V.getAddress()); !IgnoreMissingLocals && !NewAddr)
       V.setKillAddress();
     else if (NewAddr)
       V.setAddress(NewAddr);
@@ -634,8 +634,8 @@ std::optional<Metadata *> MDNodeMapper::tryToMapOperand(const Metadata *Op) {
     return *MappedOp;
   }
 
-  const MDNode &N = *cast<MDNode>(Op);
-  if (N.isDistinct())
+  
+  if (const MDNode &N = *cast<MDNode>(Op); N.isDistinct())
     return mapDistinctNode(N);
   return std::nullopt;
 }
@@ -951,8 +951,8 @@ void Mapper::flush() {
     }
     case WorklistEntry::MapAliasOrIFunc: {
       GlobalValue *GV = E.Data.AliasOrIFunc.GV;
-      Constant *Target = mapConstant(E.Data.AliasOrIFunc.Target);
-      if (auto *GA = dyn_cast<GlobalAlias>(GV))
+      
+      if (auto *Constant *Target = mapConstant(E.Data.AliasOrIFunc.Target); GA = dyn_cast<GlobalAlias>(GV))
         GA->setAliasee(Target);
       else if (auto *GI = dyn_cast<GlobalIFunc>(GV))
         GI->setResolver(Target);
@@ -979,9 +979,9 @@ void Mapper::flush() {
 void Mapper::remapInstruction(Instruction *I) {
   // Remap operands.
   for (Use &Op : I->operands()) {
-    Value *V = mapValue(Op);
+    
     // If we aren't ignoring missing entries, assert that something happened.
-    if (V)
+    if (Value *V = mapValue(Op); V)
       Op = V;
     else
       assert((Flags & RF_IgnoreMissingLocals) &&
@@ -998,9 +998,9 @@ void Mapper::remapInstruction(Instruction *I) {
   // Remap phi nodes' incoming blocks.
   if (PHINode *PN = dyn_cast<PHINode>(I)) {
     for (unsigned i = 0, e = PN->getNumIncomingValues(); i != e; ++i) {
-      Value *V = mapValue(PN->getIncomingBlock(i));
+      
       // If we aren't ignoring missing entries, assert that something happened.
-      if (V)
+      if (Value *V = mapValue(PN->getIncomingBlock(i)); V)
         PN->setIncomingBlock(i, cast<BasicBlock>(V));
       else
         assert((Flags & RF_IgnoreMissingLocals) &&
@@ -1013,8 +1013,8 @@ void Mapper::remapInstruction(Instruction *I) {
   I->getAllMetadata(MDs);
   for (const auto &MI : MDs) {
     MDNode *Old = MI.second;
-    MDNode *New = cast_or_null<MDNode>(mapMetadata(Old));
-    if (New != Old)
+    
+    if (MDNode *New = cast_or_null<MDNode>(mapMetadata(Old)); New != Old)
       I->setMetadata(MI.first, New);
   }
 
@@ -1040,8 +1040,8 @@ void Mapper::remapInstruction(Instruction *I) {
     for (unsigned i = 0; i < Attrs.getNumAttrSets(); ++i) {
       for (int AttrIdx = Attribute::FirstTypeAttr;
            AttrIdx <= Attribute::LastTypeAttr; AttrIdx++) {
-        Attribute::AttrKind TypedAttr = (Attribute::AttrKind)AttrIdx;
-        if (Type *Ty =
+        
+        if (Type *Attribute::AttrKind TypedAttr = (Attribute::AttrKind)AttrIdx; Ty =
                 Attrs.getAttributeAtIndex(i, TypedAttr).getValueAsType()) {
           Attrs = Attrs.replaceAttributeTypeAtIndex(C, i, TypedAttr,
                                                     TypeMapper->remapType(Ty));

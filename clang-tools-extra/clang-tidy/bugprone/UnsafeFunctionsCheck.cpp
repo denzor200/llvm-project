@@ -301,11 +301,11 @@ void UnsafeFunctionsCheck::check(const MatchFinder::MatchResult &Result) {
   if (Custom) {
     for (const auto &Entry : CustomFunctions) {
       if (Entry.Pattern.match(*FuncDecl)) {
-        StringRef Reason =
-            Entry.Reason.empty() ? "is marked as unsafe" : Entry.Reason.c_str();
+        
 
         // Omit the replacement, when a fully-custom reason is given.
-        if (Reason.consume_front(">")) {
+        if (StringRef Reason =
+            Entry.Reason.empty() ? "is marked as unsafe" : Entry.Reason.c_str(); Reason.consume_front(">")) {
           diag(SourceExpr->getExprLoc(), "function %0 %1")
               << FuncDecl << Reason.trim() << SourceExpr->getSourceRange();
           // Do not recommend a replacement when it is not present.

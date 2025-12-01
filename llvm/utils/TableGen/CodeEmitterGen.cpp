@@ -200,8 +200,8 @@ bool CodeEmitterGen::addCodeToMergeInOperand(const Record *R,
     } else {
       uint64_t OpMask = maskTrailingOnes<uint64_t>(N) << LoBit;
       OS << Indent << "Value |= (op & " << format_hex(OpMask, 0) << ')';
-      int OpShift = BeginInstBit - BeginVarBit;
-      if (OpShift > 0)
+      
+      if (int OpShift = BeginInstBit - BeginVarBit; OpShift > 0)
         OS << " << " << OpShift;
       else if (OpShift < 0)
         OS << " >> " << -OpShift;
@@ -312,8 +312,8 @@ void CodeEmitterGen::addInstructionCasesForEncoding(
     PrintNote(E);
   }
 
-  StringRef PostEmitter = R->getValueAsString("PostEncoderMethod");
-  if (!PostEmitter.empty()) {
+  
+  if (StringRef PostEmitter = R->getValueAsString("PostEncoderMethod"); !PostEmitter.empty()) {
     Case += "      Value = ";
     Case += PostEmitter;
     Case += "(MI, Value";
@@ -340,8 +340,8 @@ void CodeEmitterGen::emitInstructionBaseValues(
     const Record *R = CGI->TheDef;
     const Record *EncodingDef = R;
     if (const Record *RV = R->getValueAsOptionalDef("EncodingInfos")) {
-      EncodingInfoByHwMode EBM(RV, CGH);
-      if (EBM.hasMode(HwMode)) {
+      
+      if (EncodingInfoByHwMode EBM(RV, CGH); EBM.hasMode(HwMode)) {
         EncodingDef = EBM.get(HwMode);
       } else {
         // If the HwMode does not match, then Encoding '0'

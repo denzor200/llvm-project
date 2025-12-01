@@ -43,8 +43,8 @@ MCInstReference MCInstReference::get(const MCInst &Inst,
 uint64_t MCInstReference::computeAddress(const MCCodeEmitter *Emitter) const {
   assert(!empty() && "Taking instruction address by empty reference");
 
-  const BinaryContext &BC = getFunction()->getBinaryContext();
-  if (auto *Ref = tryGetRefInBB()) {
+  
+  if (auto *const BinaryContext &BC = getFunction()->getBinaryContext(); Ref = tryGetRefInBB()) {
     const uint64_t AddressOfBB =
         getFunction()->getAddress() + Ref->BB->getOffset();
     const MCInst *FirstInstInBB = &*Ref->BB->begin();

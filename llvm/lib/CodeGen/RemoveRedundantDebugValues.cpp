@@ -132,8 +132,8 @@ static bool reduceDbgValsForwardScan(MachineBasicBlock &MBB) {
 
     // Stop tracking any location that is clobbered by this instruction.
     for (auto &Var : VariableMap) {
-      auto &LocOp = Var.second.first;
-      if (MI.modifiesRegister(LocOp->getReg(), TRI))
+      
+      if (auto &LocOp = Var.second.first; MI.modifiesRegister(LocOp->getReg(), TRI))
         VariableMap.erase(Var.first);
     }
   }
@@ -171,8 +171,8 @@ static bool reduceDbgValsBackwardScan(MachineBasicBlock &MBB) {
       // we just don't consider such instructions as candidates
       // for redundant removal.
       if (MI.isNonListDebugValue()) {
-        MachineOperand &Loc = MI.getDebugOperand(0);
-        if (!Loc.isReg()) {
+        
+        if (MachineOperand &Loc = MI.getDebugOperand(0); !Loc.isReg()) {
           // If we have already encountered this variable, just stop
           // tracking it.
           if (!R.second)

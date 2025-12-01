@@ -42,8 +42,8 @@ RemarkStreamer::~RemarkStreamer() {
 
 Error RemarkStreamer::setFilter(StringRef Filter) {
   Regex R = Regex(Filter);
-  std::string RegexError;
-  if (!R.isValid(RegexError))
+  
+  if (std::string RegexError; !R.isValid(RegexError))
     return createStringError(std::make_error_code(std::errc::invalid_argument),
                              RegexError.data());
   PassFilter = std::move(R);

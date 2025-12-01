@@ -93,8 +93,8 @@ static SourceLocation getMacroArgumentSpellingLoc(SourceLocation Loc,
                                                   const SourceManager &SM) {
   assert(Loc.isMacroID() && "Location must be in a macro");
   while (Loc.isMacroID()) {
-    const auto &Expansion = SM.getSLocEntry(SM.getFileID(Loc)).getExpansion();
-    if (Expansion.isMacroArgExpansion()) {
+    
+    if (const auto &Expansion = SM.getSLocEntry(SM.getFileID(Loc)).getExpansion(); Expansion.isMacroArgExpansion()) {
       // Check the spelling location of the macro arg, in case the arg itself is
       // in a macro expansion.
       Loc = Expansion.getSpellingLoc();
@@ -151,8 +151,8 @@ static CharSourceRange getRangeForSplitTokens(CharSourceRange Range,
                                               const LangOptions &LangOpts) {
   if (Range.isTokenRange()) {
     auto BeginToken = getExpansionForSplitToken(Range.getBegin(), SM, LangOpts);
-    auto EndToken = getExpansionForSplitToken(Range.getEnd(), SM, LangOpts);
-    if (EndToken) {
+    
+    if (auto EndToken = getExpansionForSplitToken(Range.getEnd(), SM, LangOpts); EndToken) {
       SourceLocation BeginLoc =
           BeginToken ? BeginToken->getBegin() : Range.getBegin();
       // We can't use the expansion location with a token-range, because that
@@ -196,8 +196,8 @@ std::optional<CharSourceRange> clang::tooling::getFileRangeForEdit(
     const LangOptions &LangOpts, bool IncludeMacroExpansion) {
   CharSourceRange Range =
       getRange(EditRange, SM, LangOpts, IncludeMacroExpansion);
-  bool IsInvalid = llvm::errorToBool(validateEditRange(Range, SM));
-  if (IsInvalid)
+  
+  if (bool IsInvalid = llvm::errorToBool(validateEditRange(Range, SM)); IsInvalid)
     return std::nullopt;
   return Range;
 }
@@ -207,9 +207,9 @@ std::optional<CharSourceRange> clang::tooling::getFileRange(
     const LangOptions &LangOpts, bool IncludeMacroExpansion) {
   CharSourceRange Range =
       getRange(EditRange, SM, LangOpts, IncludeMacroExpansion);
-  bool IsInvalid =
-      llvm::errorToBool(validateRange(Range, SM, /*AllowSystemHeaders=*/true));
-  if (IsInvalid)
+  
+  if (bool IsInvalid =
+      llvm::errorToBool(validateRange(Range, SM, /*AllowSystemHeaders=*/true)); IsInvalid)
     return std::nullopt;
   return Range;
 }
@@ -412,9 +412,9 @@ static bool atOrBeforeSeparation(const SourceManager &SM, SourceLocation Loc,
   // We didn't find an empty line, so lex the next token, skipping past any
   // whitespace we just scanned.
   Token Tok;
-  bool Failed = Lexer::getRawToken(Loc, Tok, SM, LangOpts,
-                                   /*IgnoreWhiteSpace=*/true);
-  if (Failed)
+  
+  if (bool Failed = Lexer::getRawToken(Loc, Tok, SM, LangOpts,
+                                   /*IgnoreWhiteSpace=*/true); Failed)
     // Any text that confuses the lexer seems fair to consider a separation.
     return true;
 
@@ -469,8 +469,8 @@ CharSourceRange tooling::getAssociatedRange(const Decl &Decl,
             SM, skipWhitespaceAndNewline(SM, Comment->getEndLoc(), LangOpts),
             LangOpts) &&
         atOrBeforeSeparation(SM, Range.getEnd(), LangOpts)) {
-      const StringRef CommentText = Comment->getRawText(SM);
-      if (!CommentText.contains("LINT.IfChange") &&
+      
+      if (const StringRef CommentText = Comment->getRawText(SM); !CommentText.contains("LINT.IfChange") &&
           !CommentText.contains("LINT.ThenChange"))
         Range.setBegin(Comment->getBeginLoc());
     }

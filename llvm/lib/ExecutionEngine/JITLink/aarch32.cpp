@@ -389,9 +389,9 @@ Expected<int64_t> readAddendData(LinkGraph &G, Block &B, Edge::OffsetT Offset,
                                  Edge::Kind Kind) {
   endianness Endian = G.getEndianness();
   const char *BlockWorkingMem = B.getContent().data();
-  const char *FixupPtr = BlockWorkingMem + Offset;
+  
 
-  switch (Kind) {
+  switch (const char *FixupPtr = BlockWorkingMem + Offset; Kind) {
   case Data_Delta32:
   case Data_Pointer32:
   case Data_RequestGOTAndTransformToDelta32:
@@ -556,8 +556,8 @@ Error applyFixupArm(LinkGraph &G, Block &B, const Edge &E) {
     // The call instruction itself is Arm. The call destination can either be
     // Thumb or Arm. We use BL to stay in Arm and BLX to change to Thumb.
     bool TargetIsThumb = hasTargetFlags(TargetSymbol, ThumbSymbol);
-    bool InstrIsBlx = (~R.Wd & FixupInfo<Arm_Call>::BitBlx) == 0;
-    if (TargetIsThumb != InstrIsBlx) {
+    
+    if (bool InstrIsBlx = (~R.Wd & FixupInfo<Arm_Call>::BitBlx) == 0; TargetIsThumb != InstrIsBlx) {
       if (LLVM_LIKELY(TargetIsThumb)) {
         // Change opcode BL -> BLX
         R.Wd = R.Wd | FixupInfo<Arm_Call>::BitBlx;
@@ -612,8 +612,8 @@ Error applyFixupThumb(LinkGraph &G, Block &B, const Edge &E,
                                       "stub when bridging to ARM: " +
                                       StringRef(G.getEdgeKindName(Kind)));
 
-    int64_t Value = TargetAddress - FixupAddress + Addend;
-    if (LLVM_LIKELY(ArmCfg.J1J2BranchEncoding)) {
+    
+    if (int64_t Value = TargetAddress - FixupAddress + Addend; LLVM_LIKELY(ArmCfg.J1J2BranchEncoding)) {
       if (!isInt<25>(Value))
         return makeTargetOutOfRangeError(G, B, E);
       writeImmediate<Thumb_Jump24>(R, encodeImmBT4BlT1BlxT2_J1J2(Value));
@@ -632,8 +632,8 @@ Error applyFixupThumb(LinkGraph &G, Block &B, const Edge &E,
     // The call instruction itself is Thumb. The call destination can either be
     // Thumb or Arm. We use BL to stay in Thumb and BLX to change to Arm.
     bool TargetIsArm = !hasTargetFlags(TargetSymbol, ThumbSymbol);
-    bool InstrIsBlx = (R.Lo & FixupInfo<Thumb_Call>::LoBitNoBlx) == 0;
-    if (TargetIsArm != InstrIsBlx) {
+    
+    if (bool InstrIsBlx = (R.Lo & FixupInfo<Thumb_Call>::LoBitNoBlx) == 0; TargetIsArm != InstrIsBlx) {
       if (LLVM_LIKELY(TargetIsArm)) {
         // Change opcode BL -> BLX and fix range value: account for 4-byte
         // aligned destination while instruction may only be 2-byte aligned
@@ -814,8 +814,8 @@ static bool needsStub(const Edge &E) {
 
   // For local targets, create interworking stubs if we switch Arm/Thumb with an
   // instruction that cannot switch the instruction set state natively.
-  bool TargetIsThumb = Target.getTargetFlags() & ThumbSymbol;
-  switch (E.getKind()) {
+  
+  switch (bool TargetIsThumb = Target.getTargetFlags() & ThumbSymbol; E.getKind()) {
   case Arm_Jump24:
     return TargetIsThumb; // Branch to Thumb needs interworking stub
   case Thumb_Jump24:

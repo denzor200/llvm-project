@@ -47,8 +47,8 @@ void *MmapOrDie(uptr size, const char *mem_type, bool raw_report) {
   size = RoundUpTo(size, GetPageSizeCached());
   uptr res = MmapNamed(nullptr, size, PROT_READ | PROT_WRITE,
                        MAP_PRIVATE | MAP_ANON, mem_type);
-  int reserrno;
-  if (UNLIKELY(internal_iserror(res, &reserrno)))
+  
+  if (int reserrno; UNLIKELY(internal_iserror(res, &reserrno)))
     ReportMmapFailureAndDie(size, mem_type, "allocate", reserrno, raw_report);
   IncreaseTotalMmap(size);
   return (void *)res;
@@ -57,8 +57,8 @@ void *MmapOrDie(uptr size, const char *mem_type, bool raw_report) {
 void UnmapOrDie(void *addr, uptr size, bool raw_report) {
   if (!addr || !size) return;
   uptr res = internal_munmap(addr, size);
-  int reserrno;
-  if (UNLIKELY(internal_iserror(res, &reserrno)))
+  
+  if (int reserrno; UNLIKELY(internal_iserror(res, &reserrno)))
     ReportMunmapFailureAndDie(addr, size, reserrno, raw_report);
   DecreaseTotalMmap(size);
 }
@@ -67,8 +67,8 @@ void *MmapOrDieOnFatalError(uptr size, const char *mem_type) {
   size = RoundUpTo(size, GetPageSizeCached());
   uptr res = MmapNamed(nullptr, size, PROT_READ | PROT_WRITE,
                        MAP_PRIVATE | MAP_ANON, mem_type);
-  int reserrno;
-  if (UNLIKELY(internal_iserror(res, &reserrno))) {
+  
+  if (int reserrno; UNLIKELY(internal_iserror(res, &reserrno))) {
     if (reserrno == ENOMEM)
       return nullptr;
     ReportMmapFailureAndDie(size, mem_type, "allocate", reserrno);
@@ -112,8 +112,8 @@ void *MmapNoReserveOrDie(uptr size, const char *mem_type) {
   size = RoundUpTo(size, GetPageSizeCached());
   uptr p = MmapNamed(nullptr, size, PROT_READ | PROT_WRITE,
                      MAP_PRIVATE | MAP_ANON | MAP_NORESERVE, mem_type);
-  int reserrno;
-  if (UNLIKELY(internal_iserror(p, &reserrno)))
+  
+  if (int reserrno; UNLIKELY(internal_iserror(p, &reserrno)))
     ReportMmapFailureAndDie(size, mem_type, "allocate noreserve", reserrno);
   IncreaseTotalMmap(size);
   return (void *)p;
@@ -125,8 +125,8 @@ static void *MmapFixedImpl(uptr fixed_addr, uptr size, bool tolerate_enomem,
   fixed_addr = RoundDownTo(fixed_addr, GetPageSizeCached());
   uptr p = MmapNamed((void *)fixed_addr, size, PROT_READ | PROT_WRITE,
                      MAP_PRIVATE | MAP_ANON | MAP_FIXED, name);
-  int reserrno;
-  if (UNLIKELY(internal_iserror(p, &reserrno))) {
+  
+  if (int reserrno; UNLIKELY(internal_iserror(p, &reserrno))) {
     if (tolerate_enomem && reserrno == ENOMEM)
       return nullptr;
     char mem_type[40];

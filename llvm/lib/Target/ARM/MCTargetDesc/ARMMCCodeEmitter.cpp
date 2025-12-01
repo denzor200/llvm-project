@@ -230,8 +230,8 @@ public:
   uint32_t getLdStmModeOpValue(const MCInst &MI, unsigned OpIdx,
                                SmallVectorImpl<MCFixup> &Fixups,
                                const MCSubtargetInfo &STI) const {
-    ARM_AM::AMSubMode Mode = (ARM_AM::AMSubMode)MI.getOperand(OpIdx).getImm();
-    switch (Mode) {
+    
+    switch (ARM_AM::AMSubMode Mode = (ARM_AM::AMSubMode)MI.getOperand(OpIdx).getImm(); Mode) {
     default: llvm_unreachable("Unknown addressing sub-mode!");
     case ARM_AM::da: return 0;
     case ARM_AM::ia: return 1;
@@ -711,12 +711,12 @@ getThumbCBTargetOpValue(const MCInst &MI, unsigned OpIdx,
 
 /// Return true if this branch has a non-always predication
 static bool HasConditionalBranch(const MCInst &MI) {
-  int NumOp = MI.getNumOperands();
-  if (NumOp >= 2) {
+  
+  if (int NumOp = MI.getNumOperands(); NumOp >= 2) {
     for (int i = 0; i < NumOp-1; ++i) {
       const MCOperand &MCOp1 = MI.getOperand(i);
-      const MCOperand &MCOp2 = MI.getOperand(i + 1);
-      if (MCOp1.isImm() && MCOp2.isReg() &&
+      
+      if (const MCOperand &MCOp2 = MI.getOperand(i + 1); MCOp1.isImm() && MCOp2.isReg() &&
           (!MCOp2.getReg() || MCOp2.getReg() == ARM::CPSR)) {
         if (ARMCC::CondCodes(MCOp1.getImm()) != ARMCC::AL)
           return true;
@@ -790,9 +790,9 @@ uint32_t ARMMCCodeEmitter::getThumbBranchTargetOpValue(
     const MCInst &MI, unsigned OpIdx, SmallVectorImpl<MCFixup> &Fixups,
     const MCSubtargetInfo &STI) const {
   unsigned Val = 0;
-  const MCOperand MO = MI.getOperand(OpIdx);
+  
 
-  if(MO.isExpr())
+  if(const MCOperand MO = MI.getOperand(OpIdx); MO.isExpr())
     return ::getBranchTargetOpValue(MI, OpIdx, ARM::fixup_t2_uncondbranch, Fixups, STI);
   else
     Val = MO.getImm() >> 1;
@@ -976,10 +976,10 @@ getAddrModeImm12OpValue(const MCInst &MI, unsigned OpIdx,
   unsigned Reg = 0, Imm12 = 0;
   bool isAdd = true;
   // If The first operand isn't a register, we have a label reference.
-  const MCOperand &MO = MI.getOperand(OpIdx);
-  if (MO.isReg()) {
-    const MCOperand &MO1 = MI.getOperand(OpIdx + 1);
-    if (MO1.isImm()) {
+  
+  if (const MCOperand &MO = MI.getOperand(OpIdx); MO.isReg()) {
+    
+    if (const MCOperand &MO1 = MI.getOperand(OpIdx + 1); MO1.isImm()) {
       isAdd = EncodeAddrModeOpValues(MI, OpIdx, Reg, Imm12, Fixups, STI);
     } else if (MO1.isExpr()) {
       assert(!isThumb(STI) && !isThumb2(STI) &&
@@ -1113,8 +1113,8 @@ getT2AddrModeImm8s4OpValue(const MCInst &MI, unsigned OpIdx,
   unsigned Reg, Imm8;
   bool isAdd = true;
   // If The first operand isn't a register, we have a label reference.
-  const MCOperand &MO = MI.getOperand(OpIdx);
-  if (!MO.isReg()) {
+  
+  if (const MCOperand &MO = MI.getOperand(OpIdx); !MO.isReg()) {
     Reg = CTX.getRegisterInfo()->getEncodingValue(ARM::PC);   // Rn is PC.
     Imm8 = 0;
     isAdd = false ; // 'U' bit is set as part of the fixup.
@@ -1450,8 +1450,8 @@ getAddrMode5OpValue(const MCInst &MI, unsigned OpIdx,
   unsigned Reg, Imm8;
   bool isAdd;
   // If The first operand isn't a register, we have a label reference.
-  const MCOperand &MO = MI.getOperand(OpIdx);
-  if (!MO.isReg()) {
+  
+  if (const MCOperand &MO = MI.getOperand(OpIdx); !MO.isReg()) {
     Reg = CTX.getRegisterInfo()->getEncodingValue(ARM::PC);   // Rn is PC.
     Imm8 = 0;
     isAdd = false; // 'U' bit is handled as part of the fixup.
@@ -1490,8 +1490,8 @@ getAddrMode5FP16OpValue(const MCInst &MI, unsigned OpIdx,
   unsigned Reg, Imm8;
   bool isAdd;
   // If The first operand isn't a register, we have a label reference.
-  const MCOperand &MO = MI.getOperand(OpIdx);
-  if (!MO.isReg()) {
+  
+  if (const MCOperand &MO = MI.getOperand(OpIdx); !MO.isReg()) {
     Reg = CTX.getRegisterInfo()->getEncodingValue(ARM::PC);   // Rn is PC.
     Imm8 = 0;
     isAdd = false; // 'U' bit is handled as part of the fixup.
@@ -1946,8 +1946,8 @@ void ARMMCCodeEmitter::encodeInstruction(const MCInst &MI,
                                          const MCSubtargetInfo &STI) const {
   // Pseudo instructions don't get encoded.
   const MCInstrDesc &Desc = MCII.get(MI.getOpcode());
-  uint64_t TSFlags = Desc.TSFlags;
-  if ((TSFlags & ARMII::FormMask) == ARMII::Pseudo)
+  
+  if (uint64_t TSFlags = Desc.TSFlags; (TSFlags & ARMII::FormMask) == ARMII::Pseudo)
     return;
 
   int Size;

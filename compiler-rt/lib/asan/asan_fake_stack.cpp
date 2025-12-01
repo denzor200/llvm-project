@@ -28,8 +28,8 @@ static const u64 kAllocaRedzoneMask = 31UL;
 // For small size classes inline PoisonShadow for better performance.
 ALWAYS_INLINE void SetShadow(uptr ptr, uptr size, uptr class_id, u64 magic) {
   CHECK(AddrIsAlignedByGranularity(ptr + size));
-  u64* shadow = reinterpret_cast<u64*>(MemToShadow(ptr));
-  if (ASAN_SHADOW_SCALE == 3 && class_id <= 6) {
+  
+  if (u64* shadow = reinterpret_cast<u64*>(MemToShadow(ptr)); ASAN_SHADOW_SCALE == 3 && class_id <= 6) {
     // This code expects ASAN_SHADOW_SCALE=3.
     for (uptr i = 0; i < (((uptr)1) << class_id); i++) {
       shadow[i] = magic;
@@ -141,8 +141,8 @@ ALWAYS_INLINE USED
 uptr FakeStack::AddrIsInFakeStack(uptr ptr, uptr* frame_beg, uptr* frame_end) {
   uptr stack_size_log = this->stack_size_log();
   uptr beg = reinterpret_cast<uptr>(GetFrame(stack_size_log, 0, 0));
-  uptr end = reinterpret_cast<uptr>(this) + RequiredSize(stack_size_log);
-  if (ptr < beg || ptr >= end)
+  
+  if (uptr end = reinterpret_cast<uptr>(this) + RequiredSize(stack_size_log); ptr < beg || ptr >= end)
     return 0;
   uptr class_id = (ptr - beg) >> stack_size_log;
   uptr base = beg + (class_id << stack_size_log);
@@ -184,10 +184,10 @@ NOINLINE void FakeStack::GC(uptr real_stack) {
          i++) {
       if (flags[i] == 0)
         continue;  // not allocated.
-      FakeFrame* ff =
-          reinterpret_cast<FakeFrame*>(GetFrame(stack_size_log(), class_id, i));
+      
       // GC only on the default stack.
-      if (bottom < ff->real_stack && ff->real_stack < real_stack) {
+      if (FakeFrame* ff =
+          reinterpret_cast<FakeFrame*>(GetFrame(stack_size_log(), class_id, i)); bottom < ff->real_stack && ff->real_stack < real_stack) {
         flags[i] = 0;
         // Poison the frame, so the any access will be reported as UAR.
         SetShadow(reinterpret_cast<uptr>(ff), BytesInSizeClass(class_id),

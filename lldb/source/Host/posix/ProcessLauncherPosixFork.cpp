@@ -149,8 +149,8 @@ struct ForkLaunchInfo {
 
   // Clear the signal mask to prevent the child from being affected by any
   // masking done by the parent.
-  sigset_t set;
-  if (sigemptyset(&set) != 0 ||
+  
+  if (sigset_t set; sigemptyset(&set) != 0 ||
       pthread_sigmask(SIG_SETMASK, &set, nullptr) != 0)
     ExitWithError(error_fd, "pthread_sigmask");
 

@@ -268,8 +268,8 @@ bool fromJSON(const llvm::json::Value &E, SymbolKindBitset &Out,
               llvm::json::Path P) {
   if (auto *A = E.getAsArray()) {
     for (size_t I = 0; I < A->size(); ++I) {
-      SymbolKind KindOut;
-      if (fromJSON((*A)[I], KindOut, P.index(I)))
+      
+      if (SymbolKind KindOut; fromJSON((*A)[I], KindOut, P.index(I)))
         Out.set(size_t(KindOut));
     }
     return true;
@@ -279,8 +279,8 @@ bool fromJSON(const llvm::json::Value &E, SymbolKindBitset &Out,
 
 SymbolKind adjustKindToCapability(SymbolKind Kind,
                                   SymbolKindBitset &SupportedSymbolKinds) {
-  auto KindVal = static_cast<size_t>(Kind);
-  if (KindVal >= SymbolKindMin && KindVal <= SupportedSymbolKinds.size() &&
+  
+  if (auto KindVal = static_cast<size_t>(Kind); KindVal >= SymbolKindMin && KindVal <= SupportedSymbolKinds.size() &&
       SupportedSymbolKinds[KindVal])
     return Kind;
 
@@ -828,8 +828,8 @@ bool fromJSON(const llvm::json::Value &Params, WorkspaceEdit &R,
 
 bool fromJSON(const llvm::json::Value &Params, ExecuteCommandParams &R,
               llvm::json::Path P) {
-  llvm::json::ObjectMapper O(Params, P);
-  if (!O || !O.map("command", R.command))
+  
+  if (llvm::json::ObjectMapper O(Params, P); !O || !O.map("command", R.command))
     return false;
 
   const auto *Args = Params.getAsObject()->get("arguments");
@@ -906,8 +906,8 @@ llvm::json::Value toJSON(const SymbolDetails &P) {
 llvm::raw_ostream &operator<<(llvm::raw_ostream &O, const SymbolDetails &S) {
   if (!S.containerName.empty()) {
     O << S.containerName;
-    llvm::StringRef ContNameRef;
-    if (!ContNameRef.ends_with("::")) {
+    
+    if (llvm::StringRef ContNameRef; !ContNameRef.ends_with("::")) {
       O << " ";
     }
   }
@@ -1103,8 +1103,8 @@ bool fromJSON(const llvm::json::Value &E, CompletionItemKind &Out,
 CompletionItemKind
 adjustKindToCapability(CompletionItemKind Kind,
                        CompletionItemKindBitset &SupportedCompletionItemKinds) {
-  auto KindVal = static_cast<size_t>(Kind);
-  if (KindVal >= CompletionItemKindMin &&
+  
+  if (auto KindVal = static_cast<size_t>(Kind); KindVal >= CompletionItemKindMin &&
       KindVal <= SupportedCompletionItemKinds.size() &&
       SupportedCompletionItemKinds[KindVal])
     return Kind;
@@ -1126,8 +1126,8 @@ bool fromJSON(const llvm::json::Value &E, CompletionItemKindBitset &Out,
               llvm::json::Path P) {
   if (auto *A = E.getAsArray()) {
     for (size_t I = 0; I < A->size(); ++I) {
-      CompletionItemKind KindOut;
-      if (fromJSON((*A)[I], KindOut, P.index(I)))
+      
+      if (CompletionItemKind KindOut; fromJSON((*A)[I], KindOut, P.index(I)))
         Out.set(size_t(KindOut));
     }
     return true;
@@ -1368,8 +1368,8 @@ bool fromJSON(const llvm::json::Value &Params, ClangdCompileCommand &CDbUpdate,
 
 bool fromJSON(const llvm::json::Value &Params, ConfigurationSettings &S,
               llvm::json::Path P) {
-  llvm::json::ObjectMapper O(Params, P);
-  if (!O)
+  
+  if (llvm::json::ObjectMapper O(Params, P); !O)
     return true; // 'any' type in LSP.
   return mapOptOrNull(Params, "compilationDatabaseChanges",
                       S.compilationDatabaseChanges, P);
@@ -1552,8 +1552,8 @@ llvm::json::Value toJSON(const InlayHint &H) {
                             {"label", H.label},
                             {"paddingLeft", H.paddingLeft},
                             {"paddingRight", H.paddingRight}};
-  auto K = toJSON(H.kind);
-  if (!K.getAsNull())
+  
+  if (auto K = toJSON(H.kind); !K.getAsNull())
     Result["kind"] = std::move(K);
   return std::move(Result);
 }

@@ -981,32 +981,32 @@ int RegisterContextDarwin_arm::GetSetForNativeRegNum(int reg) {
 }
 
 int RegisterContextDarwin_arm::ReadGPR(bool force) {
-  int set = GPRRegSet;
-  if (force || !RegisterSetIsCached(set)) {
+  
+  if (int set = GPRRegSet; force || !RegisterSetIsCached(set)) {
     SetError(set, Read, DoReadGPR(GetThreadID(), set, gpr));
   }
   return GetError(GPRRegSet, Read);
 }
 
 int RegisterContextDarwin_arm::ReadFPU(bool force) {
-  int set = FPURegSet;
-  if (force || !RegisterSetIsCached(set)) {
+  
+  if (int set = FPURegSet; force || !RegisterSetIsCached(set)) {
     SetError(set, Read, DoReadFPU(GetThreadID(), set, fpu));
   }
   return GetError(FPURegSet, Read);
 }
 
 int RegisterContextDarwin_arm::ReadEXC(bool force) {
-  int set = EXCRegSet;
-  if (force || !RegisterSetIsCached(set)) {
+  
+  if (int set = EXCRegSet; force || !RegisterSetIsCached(set)) {
     SetError(set, Read, DoReadEXC(GetThreadID(), set, exc));
   }
   return GetError(EXCRegSet, Read);
 }
 
 int RegisterContextDarwin_arm::ReadDBG(bool force) {
-  int set = DBGRegSet;
-  if (force || !RegisterSetIsCached(set)) {
+  
+  if (int set = DBGRegSet; force || !RegisterSetIsCached(set)) {
     SetError(set, Read, DoReadDBG(GetThreadID(), set, dbg));
   }
   return GetError(DBGRegSet, Read);
@@ -1517,9 +1517,9 @@ uint32_t RegisterContextDarwin_arm::SetHardwareBreakpoint(lldb::addr_t addr,
   if (addr & 1)
     return LLDB_INVALID_INDEX32;
 
-  int kret = ReadDBG(false);
+  
 
-  if (kret == KERN_SUCCESS) {
+  if (int kret = ReadDBG(false); kret == KERN_SUCCESS) {
     const uint32_t num_hw_breakpoints = NumSupportedHardwareBreakpoints();
     uint32_t i;
     for (i = 0; i < num_hw_breakpoints; ++i) {
@@ -1595,8 +1595,8 @@ uint32_t RegisterContextDarwin_arm::SetHardwareBreakpoint(lldb::addr_t addr,
 bool RegisterContextDarwin_arm::ClearHardwareBreakpoint(uint32_t hw_index) {
   int kret = ReadDBG(false);
 
-  const uint32_t num_hw_points = NumSupportedHardwareBreakpoints();
-  if (kret == KERN_SUCCESS) {
+  
+  if (const uint32_t num_hw_points = NumSupportedHardwareBreakpoints(); kret == KERN_SUCCESS) {
     if (hw_index < num_hw_points) {
       dbg.bcr[hw_index] = 0;
       //            if (log) log->Printf
@@ -1715,8 +1715,8 @@ uint32_t RegisterContextDarwin_arm::SetHardwareWatchpoint(lldb::addr_t addr,
 bool RegisterContextDarwin_arm::ClearHardwareWatchpoint(uint32_t hw_index) {
   int kret = ReadDBG(false);
 
-  const uint32_t num_hw_points = NumSupportedHardwareWatchpoints();
-  if (kret == KERN_SUCCESS) {
+  
+  if (const uint32_t num_hw_points = NumSupportedHardwareWatchpoints(); kret == KERN_SUCCESS) {
     if (hw_index < num_hw_points) {
       dbg.wcr[hw_index] = 0;
       //            if (log) log->Printf

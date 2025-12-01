@@ -43,8 +43,8 @@ void FunctionInfo::Dump(Stream *s, bool show_fullpaths) const {
 }
 
 int FunctionInfo::Compare(const FunctionInfo &a, const FunctionInfo &b) {
-  int result = ConstString::Compare(a.GetName(), b.GetName());
-  if (result)
+  
+  if (int result = ConstString::Compare(a.GetName(), b.GetName()); result)
     return result;
 
   return Declaration::Compare(a.m_declaration, b.m_declaration);
@@ -169,8 +169,8 @@ void DirectCallEdge::ParseSymbolFileAndResolve(ModuleList &images) {
     ConstString callee_name{lazy_callee.symbol_name};
     SymbolContextList sc_list;
     images.FindFunctionSymbols(callee_name, eFunctionNameTypeAuto, sc_list);
-    size_t num_matches = sc_list.GetSize();
-    if (num_matches == 0 || !sc_list[0].symbol) {
+    
+    if (size_t num_matches = sc_list.GetSize(); num_matches == 0 || !sc_list[0].symbol) {
       LLDB_LOG(log,
                "DirectCallEdge: Found no symbols for {0}, cannot resolve it",
                callee_name);
@@ -315,9 +315,9 @@ Function::GetSourceInfo() {
   for (const AddressRange &range : GetAddressRanges()) {
     for (auto [idx, end] = line_table->GetLineEntryIndexRange(range); idx < end;
          ++idx) {
-      LineEntry entry;
+      
       // Ignore entries belonging to inlined functions or #included files.
-      if (line_table->GetLineEntryAtIndex(idx, entry) &&
+      if (LineEntry entry; line_table->GetLineEntryAtIndex(idx, entry) &&
           source_file_sp->Equal(*entry.file_sp,
                                 SupportFile::eEqualFileSpecAndChecksumIfSet))
         end_line = std::max(end_line, entry.line);
@@ -569,8 +569,8 @@ Type *Function::GetType() {
 const Type *Function::GetType() const { return m_type; }
 
 CompilerType Function::GetCompilerType() {
-  Type *function_type = GetType();
-  if (function_type)
+  
+  if (Type *function_type = GetType(); function_type)
     return function_type->GetFullCompilerType();
   return CompilerType();
 }
@@ -580,12 +580,12 @@ uint32_t Function::GetPrologueByteSize() {
       m_flags.IsClear(flagsCalculatedPrologueSize)) {
     m_flags.Set(flagsCalculatedPrologueSize);
     LineTable *line_table = m_comp_unit->GetLineTable();
-    uint32_t prologue_end_line_idx = 0;
+    
 
-    if (line_table) {
+    if (uint32_t prologue_end_line_idx = 0; line_table) {
       LineEntry first_line_entry;
-      uint32_t first_line_entry_idx = UINT32_MAX;
-      if (line_table->FindLineEntryByAddress(GetAddress(), first_line_entry,
+      
+      if (uint32_t first_line_entry_idx = UINT32_MAX; line_table->FindLineEntryByAddress(GetAddress(), first_line_entry,
                                              &first_line_entry_idx)) {
         // Make sure the first line entry isn't already the end of the prologue
         addr_t prologue_end_file_addr = LLDB_INVALID_ADDRESS;
@@ -601,8 +601,8 @@ uint32_t Function::GetPrologueByteSize() {
           const uint32_t last_line_entry_idx = first_line_entry_idx + 6;
           for (uint32_t idx = first_line_entry_idx + 1;
                idx < last_line_entry_idx; ++idx) {
-            LineEntry line_entry;
-            if (line_table->GetLineEntryAtIndex(idx, line_entry)) {
+            
+            if (LineEntry line_entry; line_table->GetLineEntryAtIndex(idx, line_entry)) {
               if (line_entry.is_prologue_end) {
                 prologue_end_file_addr =
                     line_entry.range.GetBaseAddress().GetFileAddress();
@@ -621,8 +621,8 @@ uint32_t Function::GetPrologueByteSize() {
           uint32_t last_line_entry_idx = first_line_entry_idx + 6;
           for (uint32_t idx = first_line_entry_idx + 1;
                idx < last_line_entry_idx; ++idx) {
-            LineEntry line_entry;
-            if (line_table->GetLineEntryAtIndex(idx, line_entry)) {
+            
+            if (LineEntry line_entry; line_table->GetLineEntryAtIndex(idx, line_entry)) {
               if (line_entry.line != first_line_entry.line) {
                 prologue_end_file_addr =
                     line_entry.range.GetBaseAddress().GetFileAddress();
@@ -667,8 +667,8 @@ uint32_t Function::GetPrologueByteSize() {
         }
 
         if (first_non_zero_line > prologue_end_line_idx) {
-          LineEntry first_non_zero_entry;
-          if (line_table->GetLineEntryAtIndex(first_non_zero_line,
+          
+          if (LineEntry first_non_zero_entry; line_table->GetLineEntryAtIndex(first_non_zero_line,
                                               first_non_zero_entry)) {
             line_zero_end_file_addr =
                 first_non_zero_entry.range.GetBaseAddress().GetFileAddress();
@@ -695,8 +695,8 @@ uint32_t Function::GetPrologueByteSize() {
 }
 
 lldb::LanguageType Function::GetLanguage() const {
-  lldb::LanguageType lang = m_mangled.GuessLanguage();
-  if (lang != lldb::eLanguageTypeUnknown)
+  
+  if (lldb::LanguageType lang = m_mangled.GuessLanguage(); lang != lldb::eLanguageTypeUnknown)
     return lang;
 
   if (m_comp_unit)

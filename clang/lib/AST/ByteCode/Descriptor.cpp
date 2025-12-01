@@ -64,9 +64,9 @@ static void ctorArrayTy(Block *, std::byte *Ptr, bool, bool, bool, bool, bool,
 
 template <typename T>
 static void dtorArrayTy(Block *, std::byte *Ptr, const Descriptor *D) {
-  InitMapPtr &IMP = *reinterpret_cast<InitMapPtr *>(Ptr);
+  
 
-  if (IMP)
+  if (InitMapPtr &IMP = *reinterpret_cast<InitMapPtr *>(Ptr); IMP)
     IMP = std::nullopt;
 
   if constexpr (needsCtor<T>()) {
@@ -473,8 +473,8 @@ InitMap::InitMap(unsigned N)
 
 bool InitMap::initializeElement(unsigned I) {
   unsigned Bucket = I / PER_FIELD;
-  T Mask = T(1) << (I % PER_FIELD);
-  if (!(data()[Bucket] & Mask)) {
+  
+  if (T Mask = T(1) << (I % PER_FIELD); !(data()[Bucket] & Mask)) {
     data()[Bucket] |= Mask;
     UninitFields -= 1;
   }

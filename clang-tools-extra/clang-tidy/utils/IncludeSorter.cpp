@@ -83,8 +83,8 @@ determineIncludeKind(StringRef CanonicalFile, StringRef IncludeFile,
       (Style == IncludeSorter::IS_Google_ObjC)) {
     const std::pair<StringRef, StringRef> Parts =
         CanonicalInclude.split("/public/");
-    StringRef FileCopy = CanonicalFile;
-    if (FileCopy.consume_front(Parts.first) &&
+    
+    if (StringRef FileCopy = CanonicalFile; FileCopy.consume_front(Parts.first) &&
         FileCopy.consume_back(Parts.second)) {
       // Determine the kind of this inclusion.
       if (FileCopy == "/internal/" || FileCopy == "/proto/") {
@@ -140,9 +140,9 @@ void IncludeSorter::addInclude(StringRef FileName, bool IsAngled,
     return;
 
   // Add the included file's name to the appropriate bucket.
-  const IncludeKinds Kind =
-      determineIncludeKind(CanonicalFile, FileName, IsAngled, Style);
-  if (Kind != IK_InvalidInclude)
+  
+  if (const IncludeKinds Kind =
+      determineIncludeKind(CanonicalFile, FileName, IsAngled, Style); Kind != IK_InvalidInclude)
     IncludeBucket[Kind].push_back(FileName.str());
 }
 

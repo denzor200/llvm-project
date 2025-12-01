@@ -261,9 +261,9 @@ void HIPAMDToolChain::addClangTargetOptions(
       CC1Args.append({"-mllvm", "-amdgpu-enable-hipstdpar"});
   }
 
-  StringRef MaxThreadsPerBlock =
-      DriverArgs.getLastArgValue(options::OPT_gpu_max_threads_per_block_EQ);
-  if (!MaxThreadsPerBlock.empty()) {
+  
+  if (StringRef MaxThreadsPerBlock =
+      DriverArgs.getLastArgValue(options::OPT_gpu_max_threads_per_block_EQ); !MaxThreadsPerBlock.empty()) {
     std::string ArgStr =
         (Twine("--gpu-max-threads-per-block=") + MaxThreadsPerBlock).str();
     CC1Args.push_back(DriverArgs.MakeArgStringRef(ArgStr));
@@ -448,8 +448,8 @@ HIPAMDToolChain::getDeviceLibs(const llvm::opt::ArgList &DriverArgs,
 
 void HIPAMDToolChain::checkTargetID(
     const llvm::opt::ArgList &DriverArgs) const {
-  auto PTID = getParsedTargetID(DriverArgs);
-  if (PTID.OptionalTargetID && !PTID.OptionalGPUArch &&
+  
+  if (auto PTID = getParsedTargetID(DriverArgs); PTID.OptionalTargetID && !PTID.OptionalGPUArch &&
       PTID.OptionalTargetID != "amdgcnspirv")
     getDriver().Diag(clang::diag::err_drv_bad_target_id)
         << *PTID.OptionalTargetID;

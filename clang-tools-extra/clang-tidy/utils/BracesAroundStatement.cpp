@@ -78,8 +78,8 @@ static SourceLocation findEndLocation(const Stmt &S, const SourceManager &SM,
       // EOL, insert brace before.
       break;
     }
-    const tok::TokenKind TokKind = getTokenKind(Loc, SM, LangOpts);
-    if (TokKind != tok::comment) {
+    
+    if (const tok::TokenKind TokKind = getTokenKind(Loc, SM, LangOpts); TokKind != tok::comment) {
       // Non-comment token, insert brace before.
       break;
     }
@@ -120,8 +120,8 @@ BraceInsertionHints getBraceInsertionsHints(const Stmt *const S,
 
   // When TreeTransform, Stmt in constexpr IfStmt will be transform to NullStmt.
   // This NullStmt can be detected according to beginning token.
-  const SourceLocation StmtBeginLoc = S->getBeginLoc();
-  if (isa<NullStmt>(S) && StmtBeginLoc.isValid() &&
+  
+  if (const SourceLocation StmtBeginLoc = S->getBeginLoc(); isa<NullStmt>(S) && StmtBeginLoc.isValid() &&
       getTokenKind(StmtBeginLoc, SM, LangOpts) == tok::l_brace)
     return {};
 

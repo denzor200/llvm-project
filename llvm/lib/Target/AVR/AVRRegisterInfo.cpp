@@ -34,8 +34,8 @@ AVRRegisterInfo::AVRRegisterInfo() : AVRGenRegisterInfo(0) {}
 const uint16_t *
 AVRRegisterInfo::getCalleeSavedRegs(const MachineFunction *MF) const {
   const AVRMachineFunctionInfo *AFI = MF->getInfo<AVRMachineFunctionInfo>();
-  const AVRSubtarget &STI = MF->getSubtarget<AVRSubtarget>();
-  if (STI.hasTinyEncoding())
+  
+  if (const AVRSubtarget &STI = MF->getSubtarget<AVRSubtarget>(); STI.hasTinyEncoding())
     return AFI->isInterruptOrSignalHandler() ? CSR_InterruptsTiny_SaveList
                                              : CSR_NormalTiny_SaveList;
   else
@@ -229,13 +229,13 @@ bool AVRRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
   // "reduced tiny" cores don't support load/store with displacement. So for
   // them, we force an offset of 0 meaning that any positive offset will require
   // adjusting the frame pointer.
-  int MaxOffset = STI.hasTinyEncoding() ? 0 : 62;
+  
 
   // If the offset is too big we have to adjust and restore the frame pointer
   // to materialize a valid load/store with displacement.
   //: TODO: consider using only one adiw/sbiw chain for more than one frame
   //: index
-  if (Offset > MaxOffset) {
+  if (int MaxOffset = STI.hasTinyEncoding() ? 0 : 62; Offset > MaxOffset) {
     unsigned AddOpc = AVR::ADIWRdK, SubOpc = AVR::SBIWRdK;
     int AddOffset = Offset - MaxOffset;
 
@@ -279,8 +279,8 @@ bool AVRRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
 }
 
 Register AVRRegisterInfo::getFrameRegister(const MachineFunction &MF) const {
-  const TargetFrameLowering *TFI = MF.getSubtarget().getFrameLowering();
-  if (TFI->hasFP(MF)) {
+  
+  if (const TargetFrameLowering *TFI = MF.getSubtarget().getFrameLowering(); TFI->hasFP(MF)) {
     // The Y pointer register
     return AVR::R28;
   }

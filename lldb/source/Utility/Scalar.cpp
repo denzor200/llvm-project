@@ -436,8 +436,8 @@ long double Scalar::LongDouble(long double fail_value) const {
 }
 
 Scalar &Scalar::operator+=(Scalar rhs) {
-  Scalar copy = *this;
-  if ((m_type = PromoteToMaxType(copy, rhs)) != Scalar::e_void) {
+  
+  if (Scalar copy = *this; (m_type = PromoteToMaxType(copy, rhs)) != Scalar::e_void) {
     switch (m_type) {
     case e_void:
       break;
@@ -695,8 +695,8 @@ Status Scalar::SetValueFromCString(const char *value_str, Encoding encoding,
         byte_size <= 4 ? APFloat::IEEEsingle()
                        : byte_size <= 8 ? APFloat::IEEEdouble()
                                         : APFloat::x87DoubleExtended();
-    APFloat f(sem);
-    if (llvm::Expected<APFloat::opStatus> op =
+    
+    if (llvm::Expected<APFloat::opStatus> APFloat f(sem); op =
             f.convertFromString(value_str, APFloat::rmNearestTiesToEven)) {
       m_type = e_float;
       m_float = std::move(f);
@@ -742,9 +742,9 @@ Status Scalar::SetValueFromData(const DataExtractor &data,
     break;
   }
   case lldb::eEncodingIEEE754: {
-    lldb::offset_t offset = 0;
+    
 
-    if (byte_size == sizeof(float))
+    if (lldb::offset_t offset = 0; byte_size == sizeof(float))
       operator=(data.GetFloat(&offset));
     else if (byte_size == sizeof(double))
       operator=(data.GetDouble(&offset));
@@ -760,9 +760,9 @@ Status Scalar::SetValueFromData(const DataExtractor &data,
 }
 
 bool Scalar::SignExtend(uint32_t sign_bit_pos) {
-  const uint32_t max_bit_pos = GetByteSize() * 8;
+  
 
-  if (sign_bit_pos < max_bit_pos) {
+  if (const uint32_t max_bit_pos = GetByteSize() * 8; sign_bit_pos < max_bit_pos) {
     switch (m_type) {
     case Scalar::e_void:
     case Scalar::e_float:
@@ -771,8 +771,8 @@ bool Scalar::SignExtend(uint32_t sign_bit_pos) {
     case Scalar::e_int:
       if (sign_bit_pos < (max_bit_pos - 1)) {
         llvm::APInt sign_bit = llvm::APInt::getSignMask(sign_bit_pos + 1);
-        llvm::APInt bitwize_and = m_integer & sign_bit;
-        if (bitwize_and.getBoolValue()) {
+        
+        if (llvm::APInt bitwize_and = m_integer & sign_bit; bitwize_and.getBoolValue()) {
           llvm::APInt mask =
               ~(sign_bit) + llvm::APInt(m_integer.getBitWidth(), 1);
           m_integer |= APSInt(std::move(mask), m_integer.isUnsigned());
