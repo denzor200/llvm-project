@@ -368,8 +368,8 @@ void ModuleManager::visit(llvm::function_ref<bool(ModuleFile &M)> Visitor,
         // module we depend on. If we were the last unvisited module
         // that depends on this particular module, push it into the
         // queue to be visited.
-        unsigned &NumUnusedEdges = UnusedIncomingEdges[M->Index];
-        if (NumUnusedEdges && (--NumUnusedEdges == 0))
+        
+        if (unsigned &NumUnusedEdges = UnusedIncomingEdges[M->Index]; NumUnusedEdges && (--NumUnusedEdges == 0))
           Queue.push_back(M);
       }
     }
@@ -388,8 +388,8 @@ void ModuleManager::visit(llvm::function_ref<bool(ModuleFile &M)> Visitor,
   if (ModuleFilesHit && !ModulesInCommonWithGlobalIndex.empty()) {
     for (unsigned I = 0, N = ModulesInCommonWithGlobalIndex.size(); I != N; ++I)
     {
-      ModuleFile *M = ModulesInCommonWithGlobalIndex[I];
-      if (!ModuleFilesHit->count(M))
+      
+      if (ModuleFile *M = ModulesInCommonWithGlobalIndex[I]; !ModuleFilesHit->count(M))
         State->VisitNumber[M->Index] = VisitNumber;
     }
   }

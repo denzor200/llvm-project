@@ -227,10 +227,10 @@ unsigned LiveElementPrinter::moveToFirstVarColumn(formatted_raw_ostream &OS) {
       std::max((int)(OS.getColumn() - getIndentLevel() + 1) / 2, 0);
   // Physical column number: the actual column number in characters, with
   // zero being the left-most side of the screen.
-  unsigned FirstUnprintedPhysicalColumn =
-      getIndentLevel() + FirstUnprintedLogicalColumn * 2;
+  
 
-  if (FirstUnprintedPhysicalColumn > OS.getColumn())
+  if (unsigned FirstUnprintedPhysicalColumn =
+      getIndentLevel() + FirstUnprintedLogicalColumn * 2; FirstUnprintedPhysicalColumn > OS.getColumn())
     OS.PadToColumn(FirstUnprintedPhysicalColumn);
 
   return FirstUnprintedLogicalColumn;
@@ -428,8 +428,8 @@ enum class LineChar {
   LabelHoriz,
 };
 const char *LiveElementPrinter::getLineChar(LineChar C) const {
-  bool IsASCII = DbgVariables == DFASCII || DbgInlinedFunctions == DFASCII;
-  switch (C) {
+  
+  switch (bool IsASCII = DbgVariables == DFASCII || DbgInlinedFunctions == DFASCII; C) {
   case LineChar::RangeStart:
     return IsASCII ? "^" : (const char *)u8"\u2548";
   case LineChar::RangeMid:
@@ -490,8 +490,8 @@ void LiveElementPrinter::printBetweenInsts(formatted_raw_ostream &OS,
   for (unsigned ElementIdx : SortedElementIndices) {
     // Look up the physical column index (ColIdx) assigned to this
     // element. We use .at() because we are certain the element is active.
-    unsigned ColIdx = ElementToColumn.at(ElementIdx);
-    if (ActiveCols[ColIdx].isActive() && ActiveCols[ColIdx].MustDrawLabel) {
+    
+    if (unsigned ColIdx = ElementToColumn.at(ElementIdx); ActiveCols[ColIdx].isActive() && ActiveCols[ColIdx].MustDrawLabel) {
       // First we need to print the live range markers for any active
       // columns to the left of this one.
       OS.PadToColumn(getIndentLevel());
@@ -582,8 +582,8 @@ void LiveElementPrinter::printBoundaryLine(formatted_raw_ostream &OS,
 
   // Use the map to find all elements that start/end at the given address.
   std::vector<unsigned> ElementIndices;
-  auto It = AddressMap.find(Addr.Address);
-  if (It != AddressMap.end()) {
+  
+  if (auto It = AddressMap.find(Addr.Address); It != AddressMap.end()) {
     for (LiveElement *LE : It->second) {
       // Look up the element index from the pointer.
       auto IndexIt = ElementPtrToIndex.find(LE);
@@ -750,8 +750,8 @@ void SourcePrinter::printSources(formatted_raw_ostream &OS,
        OldLineInfo.FileName == LineInfo.FileName))
     return;
 
-  StringRef Line = getLine(LineInfo, ObjectFilename);
-  if (!Line.empty()) {
+  
+  if (StringRef Line = getLine(LineInfo, ObjectFilename); !Line.empty()) {
     OS << Delimiter << Line;
     LEP.printBetweenInsts(OS, true);
   }

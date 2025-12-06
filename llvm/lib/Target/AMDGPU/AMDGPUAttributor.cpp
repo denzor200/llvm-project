@@ -249,8 +249,8 @@ private:
     uint8_t Status = NONE;
 
     if (CE->getOpcode() == Instruction::AddrSpaceCast) {
-      unsigned SrcAS = CE->getOperand(0)->getType()->getPointerAddressSpace();
-      if (SrcAS == AMDGPUAS::PRIVATE_ADDRESS)
+      
+      if (unsigned SrcAS = CE->getOperand(0)->getType()->getPointerAddressSpace(); SrcAS == AMDGPUAS::PRIVATE_ADDRESS)
         Status |= ADDR_SPACE_CAST_PRIVATE_TO_FLAT;
       else if (SrcAS == AMDGPUAS::LOCAL_ADDRESS)
         Status |= ADDR_SPACE_CAST_LOCAL_TO_FLAT;
@@ -384,9 +384,9 @@ struct AAUniformWorkGroupSizeFunction : public AAUniformWorkGroupSize {
 
   void initialize(Attributor &A) override {
     Function *F = getAssociatedFunction();
-    CallingConv::ID CC = F->getCallingConv();
+    
 
-    if (CC != CallingConv::AMDGPU_KERNEL)
+    if (CallingConv::ID CC = F->getCallingConv(); CC != CallingConv::AMDGPU_KERNEL)
       return;
 
     bool InitialValue = false;
@@ -644,8 +644,8 @@ private:
     bool NeedsQueuePtr = false;
 
     auto CheckAddrSpaceCasts = [&](Instruction &I) {
-      unsigned SrcAS = static_cast<AddrSpaceCastInst &>(I).getSrcAddressSpace();
-      if (castRequiresQueuePtr(SrcAS)) {
+      
+      if (unsigned SrcAS = static_cast<AddrSpaceCastInst &>(I).getSrcAddressSpace(); castRequiresQueuePtr(SrcAS)) {
         NeedsQueuePtr = true;
         return false;
       }
@@ -1135,13 +1135,13 @@ struct AAAMDWavesPerEU : public AAAMDSizeRangeAttribute {
 
   void initialize(Attributor &A) override {
     Function *F = getAssociatedFunction();
-    auto &InfoCache = static_cast<AMDGPUInformationCache &>(A.getInfoCache());
+    
 
     // If the attribute exists, we will honor it if it is not the default.
-    if (auto Attr = InfoCache.getWavesPerEUAttr(*F)) {
-      std::pair<unsigned, unsigned> MaxWavesPerEURange{
-          1U, InfoCache.getMaxWavesPerEU(*F)};
-      if (*Attr != MaxWavesPerEURange) {
+    if (auto &InfoCache = static_cast<AMDGPUInformationCache &>(A.getInfoCache()); auto Attr = InfoCache.getWavesPerEUAttr(*F)) {
+      
+      if (std::pair<unsigned, unsigned> MaxWavesPerEURange{
+          1U, InfoCache.getMaxWavesPerEU(*F)}; *Attr != MaxWavesPerEURange) {
         auto [Min, Max] = *Attr;
         ConstantRange Range(APInt(32, Min), APInt(32, Max + 1));
         IntegerRangeState RangeState(Range);
@@ -1319,10 +1319,10 @@ struct AAAMDGPUMinAGPRAlloc
 
   void initialize(Attributor &A) override {
     Function *F = getAssociatedFunction();
-    auto [MinNumAGPR, MaxNumAGPR] =
+    
+    if (auto [MinNumAGPR, MaxNumAGPR] =
         AMDGPU::getIntegerPairAttribute(*F, "amdgpu-agpr-alloc", {~0u, ~0u},
-                                        /*OnlyFirstRequired=*/true);
-    if (MinNumAGPR == 0)
+                                        /*OnlyFirstRequired=*/true); MinNumAGPR == 0)
       indicateOptimisticFixpoint();
   }
 
@@ -1343,9 +1343,9 @@ struct AAAMDGPUMinAGPRAlloc
     // assembly and special intrinsics.
     auto CheckForMinAGPRAllocs = [&](Instruction &I) {
       const auto &CB = cast<CallBase>(I);
-      const Value *CalleeOp = CB.getCalledOperand();
+      
 
-      if (const InlineAsm *IA = dyn_cast<InlineAsm>(CalleeOp)) {
+      if (const Value *CalleeOp = CB.getCalledOperand(); const InlineAsm *IA = dyn_cast<InlineAsm>(CalleeOp)) {
         // Technically, the inline asm could be invoking a call to an unknown
         // external function that requires AGPRs, but ignore that.
         unsigned NumRegs = inlineAsmGetNumRequiredAGPRs(IA, CB);
@@ -1634,8 +1634,8 @@ static bool runImpl(Module &M, AnalysisGetter &AG, TargetMachine &TM,
     A.getOrCreateAAFor<AAAMDAttributes>(IRPosition::function(*F));
     A.getOrCreateAAFor<AAUniformWorkGroupSize>(IRPosition::function(*F));
     A.getOrCreateAAFor<AAAMDMaxNumWorkgroups>(IRPosition::function(*F));
-    CallingConv::ID CC = F->getCallingConv();
-    if (!AMDGPU::isEntryFunctionCC(CC)) {
+    
+    if (CallingConv::ID CC = F->getCallingConv(); !AMDGPU::isEntryFunctionCC(CC)) {
       A.getOrCreateAAFor<AAAMDFlatWorkGroupSize>(IRPosition::function(*F));
       A.getOrCreateAAFor<AAAMDWavesPerEU>(IRPosition::function(*F));
     }

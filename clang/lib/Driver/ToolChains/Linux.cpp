@@ -44,11 +44,11 @@ std::string Linux::getMultiarchTriple(const Driver &D,
       TargetTriple.getEnvironment();
   bool IsAndroid = TargetTriple.isAndroid();
   bool IsMipsR6 = TargetTriple.getSubArch() == llvm::Triple::MipsSubArch_r6;
-  bool IsMipsN32Abi = TargetTriple.getEnvironment() == llvm::Triple::GNUABIN32;
+  
 
   // For most architectures, just use whatever we have rather than trying to be
   // clever.
-  switch (TargetTriple.getArch()) {
+  switch (bool IsMipsN32Abi = TargetTriple.getEnvironment() == llvm::Triple::GNUABIN32; TargetTriple.getArch()) {
   default:
     break;
 
@@ -399,8 +399,8 @@ std::string Linux::computeSysRoot() const {
     // Android toolchains typically include a sysroot at ../sysroot relative to
     // the clang binary.
     const StringRef ClangDir = getDriver().Dir;
-    std::string AndroidSysRootPath = (ClangDir + "/../sysroot").str();
-    if (getVFS().exists(AndroidSysRootPath))
+    
+    if (std::string AndroidSysRootPath = (ClangDir + "/../sysroot").str(); getVFS().exists(AndroidSysRootPath))
       return AndroidSysRootPath;
   }
 
@@ -448,10 +448,10 @@ std::string Linux::computeSysRoot() const {
 static void setPAuthABIInTriple(const Driver &D, const ArgList &Args,
                                 llvm::Triple &Triple) {
   Arg *ABIArg = Args.getLastArg(options::OPT_mabi_EQ);
-  bool HasPAuthABI =
-      ABIArg ? (StringRef(ABIArg->getValue()) == "pauthtest") : false;
+  
 
-  switch (Triple.getEnvironment()) {
+  switch (bool HasPAuthABI =
+      ABIArg ? (StringRef(ABIArg->getValue()) == "pauthtest") : false; Triple.getEnvironment()) {
   case llvm::Triple::UnknownEnvironment:
     if (HasPAuthABI)
       Triple.setEnvironment(llvm::Triple::PAuthTest);
@@ -871,8 +871,8 @@ bool Linux::IsAArch64OutlineAtomicsDefault(const ArgList &Args) const {
   // Outline atomics for AArch64 are supported by compiler-rt
   // and libgcc since 9.3.1
   assert(getTriple().isAArch64() && "expected AArch64 target!");
-  ToolChain::RuntimeLibType RtLib = GetRuntimeLibType(Args);
-  if (RtLib == ToolChain::RLT_CompilerRT)
+  
+  if (ToolChain::RuntimeLibType RtLib = GetRuntimeLibType(Args); RtLib == ToolChain::RLT_CompilerRT)
     return true;
   assert(RtLib == ToolChain::RLT_Libgcc && "unexpected runtime library type!");
   if (GCCInstallation.getVersion().isOlderThan(9, 3, 1))

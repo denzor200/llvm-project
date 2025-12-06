@@ -89,7 +89,8 @@ static void assertAccessorInvariants(const Operator &op, StringRef name) {
   // renaming would be better (e.g., we can only guard in limited manner
   // against methods from traits and interfaces here, so avoiding these in op
   // definition is safer).
-  auto nameOverlapsWithOpAPI = [&](StringRef newName) {
+  
+  if (auto nameOverlapsWithOpAPI = [&](StringRef newName) {
     if (newName == "AttributeNames" || newName == "Attributes" ||
         newName == "Operation")
       return true;
@@ -100,8 +101,7 @@ static void assertAccessorInvariants(const Operator &op, StringRef name) {
     if (newName == "Type")
       return op.getNumResults() != 1;
     return false;
-  };
-  if (nameOverlapsWithOpAPI(accessorName)) {
+  }; nameOverlapsWithOpAPI(accessorName)) {
     // This error could be avoided in situations where the final function is
     // identical, but preferably the op definition should avoid using generic
     // names.
@@ -475,14 +475,14 @@ void Operator::populateTypeInferenceInfo(
       StringRef elementsArg = def.getValueAsString("elements");
 
       int shapedIndex = argumentsAndResultsIndex.lookup(shapedArg);
-      int elementsIndex = argumentsAndResultsIndex.lookup(elementsArg);
+      
 
       // Handle result type inference from shaped type to variadic elements.
-      if (InferredResultType::isResultIndex(elementsIndex) &&
+      if (int elementsIndex = argumentsAndResultsIndex.lookup(elementsArg); InferredResultType::isResultIndex(elementsIndex) &&
           InferredResultType::isArgIndex(shapedIndex)) {
         int resultIndex = InferredResultType::unmapResultIndex(elementsIndex);
-        ResultTypeInference &infer = inference[resultIndex];
-        if (!infer.inferred) {
+        
+        if (ResultTypeInference &infer = inference[resultIndex]; !infer.inferred) {
           infer.sources.emplace_back(
               shapedIndex,
               "::llvm::SmallVector<::mlir::Type>(::llvm::cast<::mlir::"
@@ -521,8 +521,8 @@ void Operator::populateTypeInferenceInfo(
       // Make the fully-inferred type the only source for all results that
       // aren't already inferred -- a 1 -> N fanout.
       for (int resultIndex : resultIndices) {
-        ResultTypeInference &infer = inference[resultIndex];
-        if (!infer.inferred) {
+        
+        if (ResultTypeInference &infer = inference[resultIndex]; !infer.inferred) {
           infer.sources.assign(1, {*fullyInferredIndex, "$_self"});
           infer.inferred = true;
         }
@@ -680,8 +680,8 @@ void Operator::populateOpStructure() {
   }
 
   auto *resultsDag = def.getValueAsDag("results");
-  auto *outsOp = dyn_cast<DefInit>(resultsDag->getOperator());
-  if (!outsOp || outsOp->getDef()->getName() != "outs") {
+  
+  if (auto *outsOp = dyn_cast<DefInit>(resultsDag->getOperator()); !outsOp || outsOp->getDef()->getName() != "outs") {
     PrintFatalError(def.getLoc(), "'results' must have 'outs' directive");
   }
 

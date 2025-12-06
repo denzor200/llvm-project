@@ -46,8 +46,8 @@ class ParentMapContext::ParentMap {
       return Dedup.contains(Identity);
     }
     void push_back(const DynTypedNode &Value) {
-      const void *Identity = Value.getMemoizationData();
-      if (!Identity || Dedup.insert(Identity).second) {
+      
+      if (const void *Identity = Value.getMemoizationData(); !Identity || Dedup.insert(Identity).second) {
         Items.push_back(Value);
       }
     }
@@ -152,40 +152,40 @@ public:
           }
         }
 
-        const auto *ParentExpr = ParentList[0].get<Expr>();
-        if (ParentExpr && ChildExpr)
+        
+        if (const auto *ParentExpr = ParentList[0].get<Expr>(); ParentExpr && ChildExpr)
           return AscendIgnoreUnlessSpelledInSource(ParentExpr, ChildExpr);
 
         {
-          auto AncestorNodes =
-              matchParents<DeclStmt, CXXForRangeStmt>(ParentList, this);
-          if (std::get<bool>(AncestorNodes) &&
+          
+          if (auto AncestorNodes =
+              matchParents<DeclStmt, CXXForRangeStmt>(ParentList, this); std::get<bool>(AncestorNodes) &&
               std::get<const CXXForRangeStmt *>(AncestorNodes)
                       ->getLoopVarStmt() ==
                   std::get<const DeclStmt *>(AncestorNodes))
             return std::get<DynTypedNodeList>(AncestorNodes);
         }
         {
-          auto AncestorNodes = matchParents<VarDecl, DeclStmt, CXXForRangeStmt>(
-              ParentList, this);
-          if (std::get<bool>(AncestorNodes) &&
+          
+          if (auto AncestorNodes = matchParents<VarDecl, DeclStmt, CXXForRangeStmt>(
+              ParentList, this); std::get<bool>(AncestorNodes) &&
               std::get<const CXXForRangeStmt *>(AncestorNodes)
                       ->getRangeStmt() ==
                   std::get<const DeclStmt *>(AncestorNodes))
             return std::get<DynTypedNodeList>(AncestorNodes);
         }
         {
-          auto AncestorNodes =
+          
+          if (auto AncestorNodes =
               matchParents<CXXMethodDecl, CXXRecordDecl, LambdaExpr>(ParentList,
-                                                                     this);
-          if (std::get<bool>(AncestorNodes))
+                                                                     this); std::get<bool>(AncestorNodes))
             return std::get<DynTypedNodeList>(AncestorNodes);
         }
         {
-          auto AncestorNodes =
+          
+          if (auto AncestorNodes =
               matchParents<FunctionTemplateDecl, CXXRecordDecl, LambdaExpr>(
-                  ParentList, this);
-          if (std::get<bool>(AncestorNodes))
+                  ParentList, this); std::get<bool>(AncestorNodes))
             return std::get<DynTypedNodeList>(AncestorNodes);
         }
       }
@@ -265,11 +265,11 @@ template <typename T, typename... U> struct MatchParents {
   match(const DynTypedNodeList &NodeList,
         ParentMapContext::ParentMap *ParentMap) {
     if (const auto *TypedNode = NodeList[0].get<T>()) {
-      auto NextParentList =
-          ParentMap->getDynNodeFromMap(TypedNode, ParentMap->PointerParents);
-      if (NextParentList.size() == 1) {
-        auto TailTuple = MatchParents<U...>::match(NextParentList, ParentMap);
-        if (std::get<bool>(TailTuple)) {
+      
+      if (auto NextParentList =
+          ParentMap->getDynNodeFromMap(TypedNode, ParentMap->PointerParents); NextParentList.size() == 1) {
+        
+        if (auto TailTuple = MatchParents<U...>::match(NextParentList, ParentMap); std::get<bool>(TailTuple)) {
           return std::apply(
               [TypedNode](bool, DynTypedNodeList NodeList, auto... TupleTail) {
                 return std::make_tuple(true, NodeList, TypedNode, TupleTail...);
@@ -288,9 +288,9 @@ template <typename T> struct MatchParents<T> {
   match(const DynTypedNodeList &NodeList,
         ParentMapContext::ParentMap *ParentMap) {
     if (const auto *TypedNode = NodeList[0].get<T>()) {
-      auto NextParentList =
-          ParentMap->getDynNodeFromMap(TypedNode, ParentMap->PointerParents);
-      if (NextParentList.size() == 1)
+      
+      if (auto NextParentList =
+          ParentMap->getDynNodeFromMap(TypedNode, ParentMap->PointerParents); NextParentList.size() == 1)
         return std::make_tuple(true, NodeList, TypedNode);
     }
     return std::make_tuple(false, NodeList, nullptr);
@@ -389,8 +389,8 @@ private:
     // map. The main problem there is to implement hash functions /
     // comparison operators for all types that DynTypedNode supports that
     // do not have pointer identity.
-    auto &NodeOrVector = (*Parents)[MapNode];
-    if (NodeOrVector.isNull()) {
+    
+    if (auto &NodeOrVector = (*Parents)[MapNode]; NodeOrVector.isNull()) {
       if (const auto *D = ParentStack.back().get<Decl>())
         NodeOrVector = D;
       else if (const auto *S = ParentStack.back().get<Stmt>())
@@ -410,9 +410,9 @@ private:
       // We must check that the type has memoization data before calling
       // llvm::is_contained() because DynTypedNode::operator== can't compare all
       // types.
-      bool Found = ParentStack.back().getMemoizationData() &&
-                   llvm::is_contained(*Vector, ParentStack.back());
-      if (!Found)
+      
+      if (bool Found = ParentStack.back().getMemoizationData() &&
+                   llvm::is_contained(*Vector, ParentStack.back()); !Found)
         Vector->push_back(ParentStack.back());
     }
   }

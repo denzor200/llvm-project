@@ -44,8 +44,8 @@ void ppc::getPPCTargetFeatures(const Driver &D, const llvm::Triple &Triple,
   handleTargetFeaturesGroup(D, Triple, Args, Features,
                             options::OPT_m_ppc_Features_Group);
 
-  ppc::FloatABI FloatABI = ppc::getPPCFloatABI(D, Args);
-  if (FloatABI == ppc::FloatABI::Soft)
+  
+  if (ppc::FloatABI FloatABI = ppc::getPPCFloatABI(D, Args); FloatABI == ppc::FloatABI::Soft)
     Features.push_back("-hard-float");
 
   ppc::ReadGOTPtrMode ReadGOT = ppc::getPPCReadGOTPtrMode(D, Triple, Args);

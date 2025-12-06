@@ -425,10 +425,10 @@ Error linkDebugInfoImpl(object::ObjectFile &File, const Options &Options,
     // removed. Display warning for such sections.
     for (SectionName Sec : CurFile->Dwarf->getDWARFObj().getSectionNames()) {
       if (isDebugSection(Sec.Name)) {
-        std::optional<typename Linker::AccelTableKind> SrcAccelTableKind =
-            getAcceleratorTableKind<typename Linker::AccelTableKind>(Sec.Name);
+        
 
-        if (SrcAccelTableKind) {
+        if (std::optional<typename Linker::AccelTableKind> SrcAccelTableKind =
+            getAcceleratorTableKind<typename Linker::AccelTableKind>(Sec.Name); SrcAccelTableKind) {
           assert(knownByDWARFUtil(Sec.Name));
 
           if (Options.AccelTableKind == DwarfUtilAccelKind::None)

@@ -25,12 +25,12 @@ using namespace llvm;
 Register SwiftErrorValueTracking::getOrCreateVReg(const MachineBasicBlock *MBB,
                                                   const Value *Val) {
   auto Key = std::make_pair(MBB, Val);
-  auto It = VRegDefMap.find(Key);
+  
   // If this is the first use of this swifterror value in this basic block,
   // create a new virtual register.
   // After we processed all basic blocks we will satisfy this "upwards exposed
   // use" by inserting a copy or phi at the beginning of this block.
-  if (It == VRegDefMap.end()) {
+  if (auto It = VRegDefMap.find(Key); It == VRegDefMap.end()) {
     auto &DL = MF->getDataLayout();
     const TargetRegisterClass *RC = TLI->getRegClassFor(TLI->getPointerTy(DL));
     auto VReg = MF->getRegInfo().createVirtualRegister(RC);
@@ -319,8 +319,8 @@ void SwiftErrorValueTracking::preassignVRegs(
 
       // A return in a swiferror returning function is a use.
     } else if (const ReturnInst *R = dyn_cast<const ReturnInst>(&*It)) {
-      const Function *F = R->getParent()->getParent();
-      if (!F->getAttributes().hasAttrSomewhere(Attribute::SwiftError))
+      
+      if (const Function *F = R->getParent()->getParent(); !F->getAttributes().hasAttrSomewhere(Attribute::SwiftError))
         continue;
 
       getOrCreateVRegUseAt(R, MBB, SwiftErrorArg);

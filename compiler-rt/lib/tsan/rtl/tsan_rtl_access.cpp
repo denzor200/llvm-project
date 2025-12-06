@@ -622,8 +622,8 @@ void MemoryRangeFreed(ThreadState* thr, uptr pc, uptr addr, uptr size) {
       static_cast<u32>(Shadow::FreedMarker()),
       static_cast<u32>(Shadow::FreedInfo(cur.sid(), cur.epoch())), 0, 0);
   for (; size; size -= kShadowCell, shadow_mem += kShadowCnt) {
-    const m128 shadow = _mm_load_si128((m128*)shadow_mem);
-    if (UNLIKELY(CheckRaces(thr, shadow_mem, cur, shadow, access, typ)))
+    
+    if (const m128 shadow = _mm_load_si128((m128*)shadow_mem); UNLIKELY(CheckRaces(thr, shadow_mem, cur, shadow, access, typ)))
       return;
     _mm_store_si128((m128*)shadow_mem, freed);
   }
@@ -742,8 +742,8 @@ void MemoryAccessRangeT(ThreadState* thr, uptr pc, uptr addr, uptr size) {
   }
   // Handle ending, if any.
   if (UNLIKELY(size)) {
-    Shadow cur(fast_state, 0, size, typ);
-    if (UNLIKELY(MemoryAccessRangeOne(thr, shadow_mem, cur, typ)))
+    
+    if (Shadow cur(fast_state, 0, size, typ); UNLIKELY(MemoryAccessRangeOne(thr, shadow_mem, cur, typ)))
       return;
   }
 }

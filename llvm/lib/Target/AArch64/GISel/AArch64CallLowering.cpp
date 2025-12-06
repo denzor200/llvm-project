@@ -189,11 +189,11 @@ struct IncomingArgHandler : public CallLowering::IncomingValueHandler {
       LocTy = MemTy;
     }
 
-    auto MMO = MF.getMachineMemOperand(
-        MPO, MachineMemOperand::MOLoad | MachineMemOperand::MOInvariant, LocTy,
-        inferAlignFromPtrInfo(MF, MPO));
+    
 
-    switch (VA.getLocInfo()) {
+    switch (auto MMO = MF.getMachineMemOperand(
+        MPO, MachineMemOperand::MOLoad | MachineMemOperand::MOInvariant, LocTy,
+        inferAlignFromPtrInfo(MF, MPO)); VA.getLocInfo()) {
     case CCValAssign::LocInfo::ZExt:
       MIRBuilder.buildLoadInstr(TargetOpcode::G_ZEXTLOAD, ValVReg, Addr, *MMO);
       return;
@@ -309,8 +309,8 @@ struct OutgoingArgHandler : public CallLowering::OutgoingValueHandler {
     assert(DefMI && "No defining instruction");
     for (;;) {
       // Look through nodes that don't alter the bits of the incoming value.
-      unsigned Op = DefMI->getOpcode();
-      if (Op == TargetOpcode::G_ZEXT || Op == TargetOpcode::G_ANYEXT ||
+      
+      if (unsigned Op = DefMI->getOpcode(); Op == TargetOpcode::G_ZEXT || Op == TargetOpcode::G_ANYEXT ||
           Op == TargetOpcode::G_BITCAST || isAssertMI(*DefMI)) {
         DefMI = MRI.getVRegDef(DefMI->getOperand(1).getReg());
         continue;
@@ -441,15 +441,15 @@ bool AArch64CallLowering::lowerReturn(MachineIRBuilder &MIRBuilder,
 
       // i1 is a special case because SDAG i1 true is naturally zero extended
       // when widened using ANYEXT. We need to do it explicitly here.
-      auto &Flags = CurArgInfo.Flags[0];
-      if (MRI.getType(CurVReg).getSizeInBits() == TypeSize::getFixed(1) &&
+      
+      if (auto &Flags = CurArgInfo.Flags[0]; MRI.getType(CurVReg).getSizeInBits() == TypeSize::getFixed(1) &&
           !Flags.isSExt() && !Flags.isZExt()) {
         CurVReg = MIRBuilder.buildZExt(LLT::scalar(8), CurVReg).getReg(0);
       } else if (TLI.getNumRegistersForCallingConv(Ctx, CC, SplitEVTs[i]) ==
                  1) {
         // Some types will need extending as specified by the CC.
-        MVT NewVT = TLI.getRegisterTypeForCallingConv(Ctx, CC, SplitEVTs[i]);
-        if (EVT(NewVT) != SplitEVTs[i]) {
+        
+        if (MVT NewVT = TLI.getRegisterTypeForCallingConv(Ctx, CC, SplitEVTs[i]); EVT(NewVT) != SplitEVTs[i]) {
           unsigned ExtendOp = TargetOpcode::G_ANYEXT;
           if (F.getAttributes().hasRetAttr(Attribute::SExt))
             ExtendOp = TargetOpcode::G_SEXT;
@@ -539,9 +539,9 @@ static void handleMustTailForwardedRegisters(MachineIRBuilder &MIRBuilder,
                                              CCAssignFn *AssignFn) {
   MachineBasicBlock &MBB = MIRBuilder.getMBB();
   MachineFunction &MF = MIRBuilder.getMF();
-  MachineFrameInfo &MFI = MF.getFrameInfo();
+  
 
-  if (!MFI.hasMustTailInVarArgFunc())
+  if (MachineFrameInfo &MFI = MF.getFrameInfo(); !MFI.hasMustTailInVarArgFunc())
     return;
 
   AArch64FunctionInfo *FuncInfo = MF.getInfo<AArch64FunctionInfo>();
@@ -576,8 +576,8 @@ static void handleMustTailForwardedRegisters(MachineIRBuilder &MIRBuilder,
 }
 
 bool AArch64CallLowering::fallBackToDAGISel(const MachineFunction &MF) const {
-  auto &F = MF.getFunction();
-  if (!EnableSVEGISel && (F.getReturnType()->isScalableTy() ||
+  
+  if (auto &F = MF.getFunction(); !EnableSVEGISel && (F.getReturnType()->isScalableTy() ||
                           llvm::any_of(F.args(), [](const Argument &A) {
                             return A.getType()->isScalableTy();
                           })))
@@ -731,8 +731,8 @@ bool AArch64CallLowering::lowerFormalArguments(
              MRI.getType(OrigArg.Regs[0]).getSizeInBits() == 1 &&
              "Unexpected registers used for i1 arg");
 
-      auto &Flags = OrigArg.Flags[0];
-      if (!Flags.isZExt() && !Flags.isSExt()) {
+      
+      if (auto &Flags = OrigArg.Flags[0]; !Flags.isZExt() && !Flags.isSExt()) {
         // Lower i1 argument as i8, and insert AssertZExt + Trunc later.
         Register OrigReg = OrigArg.Regs[0];
         Register WideReg = MRI.createGenericVirtualRegister(LLT::scalar(8));
@@ -932,8 +932,8 @@ bool AArch64CallLowering::areCalleeOutgoingArgsTailCallable(
   }
 
   // Make sure that they can fit on the caller's stack.
-  const AArch64FunctionInfo *FuncInfo = MF.getInfo<AArch64FunctionInfo>();
-  if (OutInfo.getStackSize() > FuncInfo->getBytesInStackArgArea()) {
+  
+  if (const AArch64FunctionInfo *FuncInfo = MF.getInfo<AArch64FunctionInfo>(); OutInfo.getStackSize() > FuncInfo->getBytesInStackArgArea()) {
     LLVM_DEBUG(dbgs() << "... Cannot fit call operands on caller's stack.\n");
     return false;
   }
@@ -952,8 +952,8 @@ bool AArch64CallLowering::areCalleeOutgoingArgsTailCallable(
     // potentially use its argument area. However, for cases like fastcc,
     // we can't do anything.
     for (unsigned i = 0; i < OutLocs.size(); ++i) {
-      auto &ArgLoc = OutLocs[i];
-      if (ArgLoc.isRegLoc())
+      
+      if (auto &ArgLoc = OutLocs[i]; ArgLoc.isRegLoc())
         continue;
 
       LLVM_DEBUG(
@@ -1029,8 +1029,8 @@ bool AArch64CallLowering::isEligibleForTailCallOptimization(
   // cannot rely on the linker replacing the tail call with a return.
   if (Info.Callee.isGlobal()) {
     const GlobalValue *GV = Info.Callee.getGlobal();
-    const Triple &TT = MF.getTarget().getTargetTriple();
-    if (GV->hasExternalWeakLinkage() &&
+    
+    if (const Triple &TT = MF.getTarget().getTargetTriple(); GV->hasExternalWeakLinkage() &&
         (!TT.isOSWindows() || TT.isOSBinFormatELF() ||
          TT.isOSBinFormatMachO())) {
       LLVM_DEBUG(dbgs() << "... Cannot tail call externally-defined function "
@@ -1331,8 +1331,8 @@ bool AArch64CallLowering::lowerCall(MachineIRBuilder &MIRBuilder,
   for (auto &OrigArg : Info.OrigArgs) {
     splitToValueTypes(OrigArg, OutArgs, DL, Info.CallConv);
     // AAPCS requires that we zero-extend i1 to 8 bits by the caller.
-    auto &Flags = OrigArg.Flags[0];
-    if (OrigArg.Ty->isIntegerTy(1) && !Flags.isSExt() && !Flags.isZExt()) {
+    
+    if (auto &Flags = OrigArg.Flags[0]; OrigArg.Ty->isIntegerTy(1) && !Flags.isSExt() && !Flags.isZExt()) {
       ArgInfo &OutArg = OutArgs.back();
       assert(OutArg.Regs.size() == 1 &&
              MRI.getType(OutArg.Regs[0]).getSizeInBits() == 1 &&
@@ -1501,8 +1501,8 @@ bool AArch64CallLowering::lowerCall(MachineIRBuilder &MIRBuilder,
 
     AArch64OutgoingValueAssigner Assigner(RetAssignFn, RetAssignFn, Subtarget,
                                           /*IsReturn*/ false);
-    ReturnedArgCallReturnHandler ReturnedArgHandler(MIRBuilder, MRI, MIB);
-    if (!determineAndHandleAssignments(
+    
+    if (ReturnedArgCallReturnHandler ReturnedArgHandler(MIRBuilder, MRI, MIB); !determineAndHandleAssignments(
             UsingReturnedArg ? ReturnedArgHandler : Handler, Assigner, InArgs,
             MIRBuilder, Info.CallConv, Info.IsVarArg,
             UsingReturnedArg ? ArrayRef(OutArgs[0].Regs)

@@ -21,8 +21,8 @@ bool PackReuse::runOnRegion(Region &Rgn, const Analyses &A) {
       PacksMap;
   // Go over the region and look for pack patterns.
   for (auto *I : Rgn) {
-    auto PackOpt = VecUtils::matchPack(I);
-    if (PackOpt) {
+    
+    if (auto PackOpt = VecUtils::matchPack(I); PackOpt) {
       // TODO: For now limit pack reuse within a BB.
       BasicBlock *BB = (*PackOpt->Instrs.front()).getParent();
       PacksMap[{BB, PackOpt->Operands}].push_back(PackOpt->Instrs);

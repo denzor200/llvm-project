@@ -295,8 +295,8 @@ void CoreEngine::HandleBlockEdge(const BlockEdge &L, ExplodedNode *Pred) {
     // Get return statement..
     const ReturnStmt *RS = nullptr;
     if (!L.getSrc()->empty()) {
-      CFGElement LastElement = L.getSrc()->back();
-      if (std::optional<CFGStmt> LastStmt = LastElement.getAs<CFGStmt>()) {
+      
+      if (CFGElement LastElement = L.getSrc()->back(); std::optional<CFGStmt> LastStmt = LastElement.getAs<CFGStmt>()) {
         RS = dyn_cast<ReturnStmt>(LastStmt->getStmt());
       } else if (std::optional<CFGAutomaticObjDtor> AutoDtor =
                      LastElement.getAs<CFGAutomaticObjDtor>()) {

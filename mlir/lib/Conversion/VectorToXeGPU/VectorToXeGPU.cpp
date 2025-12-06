@@ -53,8 +53,8 @@ static LogicalResult storeLoadPreconditions(PatternRewriter &rewriter,
                                             Operation *op, VectorType vecTy) {
   // Validate only vector as the basic vector store and load ops guarantee
   // XeGPU-compatible memref source.
-  unsigned vecRank = vecTy.getRank();
-  if (!(vecRank == 1 || vecRank == 2))
+  
+  if (unsigned vecRank = vecTy.getRank(); !(vecRank == 1 || vecRank == 2))
     return rewriter.notifyMatchFailure(op, "Expects 1D or 2D vector");
 
   return success();
@@ -88,8 +88,8 @@ static LogicalResult transferPreconditions(PatternRewriter &rewriter,
     return rewriter.notifyMatchFailure(xferOp, "Unsupported permutation map");
   unsigned numInputDims = map.getNumInputs();
   for (AffineExpr expr : map.getResults().take_back(vecRank)) {
-    auto dim = dyn_cast<AffineDimExpr>(expr);
-    if (dim.getPosition() < (numInputDims - vecRank))
+    
+    if (auto dim = dyn_cast<AffineDimExpr>(expr); dim.getPosition() < (numInputDims - vecRank))
       return rewriter.notifyMatchFailure(
           xferOp, "Only the innermost dimensions can be accessed");
   }

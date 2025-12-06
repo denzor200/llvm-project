@@ -61,8 +61,8 @@ LogicalResult mlir::verifyCompatibleShape(ArrayRef<int64_t> shape1,
     return failure();
   for (auto dims : llvm::zip(shape1, shape2)) {
     int64_t dim1 = std::get<0>(dims);
-    int64_t dim2 = std::get<1>(dims);
-    if (ShapedType::isStatic(dim1) && ShapedType::isStatic(dim2) &&
+    
+    if (int64_t dim2 = std::get<1>(dims); ShapedType::isStatic(dim1) && ShapedType::isStatic(dim2) &&
         dim1 != dim2)
       return failure();
   }
@@ -153,11 +153,11 @@ LogicalResult mlir::verifyCompatibleShapes(TypeRange types) {
 
   for (unsigned i = 0; i < firstRank; ++i) {
     // Retrieve all ranked dimensions
-    auto dims = llvm::map_to_vector<8>(
+    
+    if (auto dims = llvm::map_to_vector<8>(
         llvm::make_filter_range(
             shapes, [&](auto shape) { return shape.getRank() >= i; }),
-        [&](auto shape) { return shape.getDimSize(i); });
-    if (verifyCompatibleDims(dims).failed())
+        [&](auto shape) { return shape.getDimSize(i); }); verifyCompatibleDims(dims).failed())
       return failure();
   }
 

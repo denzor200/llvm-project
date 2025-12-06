@@ -170,8 +170,8 @@ bool X86CallLowering::lowerReturn(MachineIRBuilder &MIRBuilder,
     splitToValueTypes(OrigRetInfo, SplitRetInfos, DL, F.getCallingConv());
 
     X86OutgoingValueAssigner Assigner(RetCC_X86);
-    X86OutgoingValueHandler Handler(MIRBuilder, MRI, MIB);
-    if (!determineAndHandleAssignments(Handler, Assigner, SplitRetInfos,
+    
+    if (X86OutgoingValueHandler Handler(MIRBuilder, MRI, MIB); !determineAndHandleAssignments(Handler, Assigner, SplitRetInfos,
                                        MIRBuilder, F.getCallingConv(),
                                        F.isVarArg()))
       return false;

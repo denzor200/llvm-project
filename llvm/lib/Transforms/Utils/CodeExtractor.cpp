@@ -327,8 +327,8 @@ CodeExtractorAnalysisCache::CodeExtractorAnalysisCache(Function &F) {
 void CodeExtractorAnalysisCache::findSideEffectInfoForBlock(BasicBlock &BB) {
   for (Instruction &II : BB.instructionsWithoutDebug()) {
     unsigned Opcode = II.getOpcode();
-    Value *MemAddr = nullptr;
-    switch (Opcode) {
+    
+    switch (Value *MemAddr = nullptr; Opcode) {
     case Instruction::Store:
     case Instruction::Load: {
       if (Opcode == Instruction::Store) {
@@ -350,8 +350,8 @@ void CodeExtractorAnalysisCache::findSideEffectInfoForBlock(BasicBlock &BB) {
       break;
     }
     default: {
-      IntrinsicInst *IntrInst = dyn_cast<IntrinsicInst>(&II);
-      if (IntrInst) {
+      
+      if (IntrinsicInst *IntrInst = dyn_cast<IntrinsicInst>(&II); IntrInst) {
         if (IntrInst->isLifetimeStartOrEnd())
           break;
         SideEffectingBlocks.insert(&BB);
@@ -454,8 +454,8 @@ CodeExtractor::getLifetimeMarkers(const CodeExtractorAnalysisCache &CEAC,
   LifetimeMarkerInfo Info;
 
   for (User *U : Addr->users()) {
-    IntrinsicInst *IntrInst = dyn_cast<IntrinsicInst>(U);
-    if (IntrInst) {
+    
+    if (IntrinsicInst *IntrInst = dyn_cast<IntrinsicInst>(U); IntrInst) {
       // We don't model addresses with multiple start/end markers, but the
       // markers do not need to be in the region.
       if (IntrInst->getIntrinsicID() == Intrinsic::lifetime_start) {
@@ -579,8 +579,8 @@ void CodeExtractor::findAllocas(const CodeExtractorAnalysisCache &CEAC,
     for (User *U : AI->users()) {
       if (U->stripInBoundsConstantOffsets() == AI) {
         Instruction *Bitcast = cast<Instruction>(U);
-        LifetimeMarkerInfo LMI = getLifetimeMarkers(CEAC, Bitcast, ExitBlock);
-        if (LMI.LifeStart) {
+        
+        if (LifetimeMarkerInfo LMI = getLifetimeMarkers(CEAC, Bitcast, ExitBlock); LMI.LifeStart) {
           Bitcasts.push_back(Bitcast);
           BitcastLifetimeInfo.push_back(LMI);
           continue;
@@ -619,11 +619,11 @@ bool CodeExtractor::isEligible() const {
   if (Blocks.empty())
     return false;
   BasicBlock *Header = *Blocks.begin();
-  Function *F = Header->getParent();
+  
 
   // For functions with varargs, check that varargs handling is only done in the
   // outlined function, i.e vastart and vaend are only used in outlined blocks.
-  if (AllowVarArgs && F->getFunctionType()->isVarArg()) {
+  if (Function *F = Header->getParent(); AllowVarArgs && F->getFunctionType()->isVarArg()) {
     auto containsVarArgIntrinsic = [](const Instruction &I) {
       if (const CallInst *CI = dyn_cast<CallInst>(&I))
         if (const Function *Callee = CI->getCalledFunction())
@@ -668,8 +668,8 @@ void CodeExtractor::findInputsOutputs(ValueSet &Inputs, ValueSet &Outputs,
     // instruction is used outside the region, it's an output.
     for (Instruction &II : *BB) {
       for (auto &OI : II.operands()) {
-        Value *V = OI;
-        if (!SinkCands.count(V) &&
+        
+        if (Value *V = OI; !SinkCands.count(V) &&
             (definedInCaller(Blocks, V) ||
              (CollectGlobalInputs && llvm::isa<llvm::GlobalVariable>(V))))
           Inputs.insert(V);
@@ -689,9 +689,9 @@ void CodeExtractor::findInputsOutputs(ValueSet &Inputs, ValueSet &Outputs,
 /// PHI node is easier to deal with.
 void CodeExtractor::severSplitPHINodesOfEntry(BasicBlock *&Header) {
   unsigned NumPredsFromRegion = 0;
-  unsigned NumPredsOutsideRegion = 0;
+  
 
-  if (Header != &Header->getParent()->getEntryBlock()) {
+  if (unsigned NumPredsOutsideRegion = 0; Header != &Header->getParent()->getEntryBlock()) {
     PHINode *PN = dyn_cast<PHINode>(Header->begin());
     if (!PN) return;  // No PHI nodes.
 
@@ -811,9 +811,9 @@ void CodeExtractor::severSplitPHINodesOfExits() {
 void CodeExtractor::splitReturnBlocks() {
   for (BasicBlock *Block : Blocks)
     if (ReturnInst *RI = dyn_cast<ReturnInst>(Block->getTerminator())) {
-      BasicBlock *New =
-          Block->splitBasicBlock(RI->getIterator(), Block->getName() + ".ret");
-      if (DT) {
+      
+      if (BasicBlock *New =
+          Block->splitBasicBlock(RI->getIterator(), Block->getName() + ".ret"); DT) {
         // Old dominates New. New node dominates all other nodes dominated
         // by Old.
         DomTreeNode *OldNode = DT->getNode(Block);
@@ -1054,8 +1054,8 @@ Function *CodeExtractor::constructFunctionDeclaration(
 
   // Update the entry count of the function.
   if (BFI) {
-    auto Count = BFI->getProfileCountFromFreq(EntryFreq);
-    if (Count.has_value())
+    
+    if (auto Count = BFI->getProfileCountFromFreq(EntryFreq); Count.has_value())
       newFunction->setEntryCount(
           ProfileCount(*Count, Function::PCT_Real)); // FIXME
   }
@@ -1129,8 +1129,8 @@ static void insertLifetimeMarkersSurroundingCall(
 
       Function *Func =
           Intrinsic::getOrInsertDeclaration(M, MarkerFunc, Mem->getType());
-      auto Marker = CallInst::Create(Func, Mem);
-      if (InsertBefore)
+      
+      if (auto Marker = CallInst::Create(Func, Mem); InsertBefore)
         Marker->insertBefore(TheCall->getIterator());
       else
         Marker->insertBefore(Term->getIterator());
@@ -1183,8 +1183,8 @@ void CodeExtractor::calculateNewCallTerminatorWeights(
   // Add each of the frequencies of the successors.
   for (unsigned i = 0, e = TI->getNumSuccessors(); i < e; ++i) {
     BlockNode ExitNode(i);
-    uint64_t ExitFreq = ExitWeights.lookup(TI->getSuccessor(i)).getFrequency();
-    if (ExitFreq != 0)
+    
+    if (uint64_t ExitFreq = ExitWeights.lookup(TI->getSuccessor(i)).getFrequency(); ExitFreq != 0)
       BranchDist.addExit(ExitNode, ExitFreq);
     else
       EdgeProbabilities[i] = BranchProbability::getZero();
@@ -1556,8 +1556,8 @@ void CodeExtractor::computeExtractedFuncRetVals() {
       if (Blocks.count(Succ))
         continue;
 
-      bool IsNew = ExitBlocks.insert(Succ).second;
-      if (IsNew)
+      
+      if (bool IsNew = ExitBlocks.insert(Succ).second; IsNew)
         ExtractedFuncRetVals.push_back(Succ);
     }
   }
@@ -1641,11 +1641,11 @@ void CodeExtractor::emitFunctionBody(
         unsigned AlignmentValue;
         const Triple &TargetTriple =
             newFunction->getParent()->getTargetTriple();
-        const DataLayout &DL = header->getDataLayout();
+        
         // Pointers without casting can provide more information about
         // alignment. Use pointers without casts if given target preserves
         // alignment information for cast the operation.
-        if (isAlignmentPreservedForAddrCast(TargetTriple))
+        if (const DataLayout &DL = header->getDataLayout(); isAlignmentPreservedForAddrCast(TargetTriple))
           AlignmentValue =
               inputs[i]->stripPointerCasts()->getPointerAlignment(DL).value();
         else
@@ -1951,8 +1951,8 @@ CallInst *CodeExtractor::emitReplacerCall(
   }
 
   // Now that we've done the deed, simplify the switch instruction.
-  Type *OldFnRetTy = TheSwitch->getParent()->getParent()->getReturnType();
-  switch (ExtractedFuncRetVals.size()) {
+  
+  switch (Type *OldFnRetTy = TheSwitch->getParent()->getParent()->getReturnType(); ExtractedFuncRetVals.size()) {
   case 0:
     // There are no successors (the block containing the switch itself), which
     // means that previously this was the last part of the function, and hence
@@ -2058,8 +2058,8 @@ void CodeExtractor::insertReplacerCall(
     Value *load = Reloads[i];
     std::vector<User *> Users(outputs[i]->user_begin(), outputs[i]->user_end());
     for (User *U : Users) {
-      Instruction *inst = cast<Instruction>(U);
-      if (inst->getParent()->getParent() == oldFunction)
+      
+      if (Instruction *inst = cast<Instruction>(U); inst->getParent()->getParent() == oldFunction)
         inst->replaceUsesOfWith(outputs[i], load);
     }
   }

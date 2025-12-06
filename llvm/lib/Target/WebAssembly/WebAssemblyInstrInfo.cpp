@@ -77,9 +77,9 @@ void WebAssemblyInstrInfo::copyPhysReg(MachineBasicBlock &MBB,
 MachineInstr *WebAssemblyInstrInfo::commuteInstructionImpl(
     MachineInstr &MI, bool NewMI, unsigned OpIdx1, unsigned OpIdx2) const {
   // If the operands are stackified, we can't reorder them.
-  WebAssemblyFunctionInfo &MFI =
-      *MI.getParent()->getParent()->getInfo<WebAssemblyFunctionInfo>();
-  if (MFI.isVRegStackified(MI.getOperand(OpIdx1).getReg()) ||
+  
+  if (WebAssemblyFunctionInfo &MFI =
+      *MI.getParent()->getParent()->getInfo<WebAssemblyFunctionInfo>(); MFI.isVRegStackified(MI.getOperand(OpIdx1).getReg()) ||
       MFI.isVRegStackified(MI.getOperand(OpIdx2).getReg()))
     return nullptr;
 
@@ -93,11 +93,11 @@ bool WebAssemblyInstrInfo::analyzeBranch(MachineBasicBlock &MBB,
                                          MachineBasicBlock *&FBB,
                                          SmallVectorImpl<MachineOperand> &Cond,
                                          bool /*AllowModify*/) const {
-  const auto &MFI = *MBB.getParent()->getInfo<WebAssemblyFunctionInfo>();
+  
   // WebAssembly has control flow that doesn't have explicit branches or direct
   // fallthrough (e.g. try/catch), which can't be modeled by analyzeBranch. It
   // is created after CFGStackify.
-  if (MFI.isCFGStackified())
+  if (const auto &MFI = *MBB.getParent()->getInfo<WebAssemblyFunctionInfo>(); MFI.isCFGStackified())
     return true;
 
   bool HaveCond = false;
@@ -225,8 +225,8 @@ WebAssemblyInstrInfo::getCalleeOperand(const MachineInstr &MI) const {
 bool WebAssemblyInstrInfo::isExplicitTargetIndexDef(const MachineInstr &MI,
                                                     int &Index,
                                                     int64_t &Offset) const {
-  unsigned Opc = MI.getOpcode();
-  if (WebAssembly::isLocalSet(Opc) || WebAssembly::isLocalTee(Opc)) {
+  
+  if (unsigned Opc = MI.getOpcode(); WebAssembly::isLocalSet(Opc) || WebAssembly::isLocalTee(Opc)) {
     Index = WebAssembly::TI_LOCAL;
     Offset = MI.explicit_uses().begin()->getImm();
     return true;

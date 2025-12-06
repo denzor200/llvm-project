@@ -440,8 +440,8 @@ TypeLoc TypeLoc::IgnoreParensImpl(TypeLoc TL) {
 
 SourceLocation TypeLoc::findNullabilityLoc() const {
   if (auto ATL = getAs<AttributedTypeLoc>()) {
-    const Attr *A = ATL.getAttr();
-    if (A && (isa<TypeNullableAttr>(A) || isa<TypeNonNullAttr>(A) ||
+    
+    if (const Attr *A = ATL.getAttr(); A && (isa<TypeNullableAttr>(A) || isa<TypeNonNullAttr>(A) ||
               isa<TypeNullUnspecifiedAttr>(A)))
       return A->getLocation();
   }

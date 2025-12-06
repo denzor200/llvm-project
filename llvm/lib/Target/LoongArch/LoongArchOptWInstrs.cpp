@@ -122,9 +122,9 @@ static bool hasAllNBitUsers(const MachineInstr &OrigMI,
 
     for (auto &UserOp : MRI.use_nodbg_operands(DestReg)) {
       const MachineInstr *UserMI = UserOp.getParent();
-      unsigned OpIdx = UserOp.getOperandNo();
+      
 
-      switch (UserMI->getOpcode()) {
+      switch (unsigned OpIdx = UserOp.getOperandNo(); UserMI->getOpcode()) {
       default:
         return false;
 
@@ -217,8 +217,8 @@ static bool hasAllNBitUsers(const MachineInstr &OrigMI,
         // If we are shifting right by less than Bits, and users don't demand
         // any bits that were shifted into [Bits-1:0], then we can consider this
         // as an N-Bit user.
-        unsigned ShAmt = UserMI->getOperand(2).getImm();
-        if (Bits > ShAmt) {
+        
+        if (unsigned ShAmt = UserMI->getOperand(2).getImm(); Bits > ShAmt) {
           Worklist.push_back(std::make_pair(UserMI, Bits - ShAmt));
           break;
         }
@@ -233,15 +233,15 @@ static bool hasAllNBitUsers(const MachineInstr &OrigMI,
         Worklist.push_back(std::make_pair(UserMI, Bits));
         break;
       case LoongArch::ANDI: {
-        uint64_t Imm = UserMI->getOperand(2).getImm();
-        if (Bits >= (unsigned)llvm::bit_width(Imm))
+        
+        if (uint64_t Imm = UserMI->getOperand(2).getImm(); Bits >= (unsigned)llvm::bit_width(Imm))
           break;
         Worklist.push_back(std::make_pair(UserMI, Bits));
         break;
       }
       case LoongArch::ORI: {
-        uint64_t Imm = UserMI->getOperand(2).getImm();
-        if (Bits >= (unsigned)llvm::bit_width<uint64_t>(~Imm))
+        
+        if (uint64_t Imm = UserMI->getOperand(2).getImm(); Bits >= (unsigned)llvm::bit_width<uint64_t>(~Imm))
           break;
         Worklist.push_back(std::make_pair(UserMI, Bits));
         break;
@@ -546,14 +546,14 @@ static bool isSignExtendedW(Register SrcReg, const LoongArchSubtarget &ST,
       return false;
     case LoongArch::COPY: {
       const MachineFunction *MF = MI->getMF();
-      const LoongArchMachineFunctionInfo *LAFI =
-          MF->getInfo<LoongArchMachineFunctionInfo>();
+      
 
       // If this is the entry block and the register is livein, see if we know
       // it is sign extended.
-      if (MI->getParent() == &MF->front()) {
-        Register VReg = MI->getOperand(0).getReg();
-        if (MF->getRegInfo().isLiveIn(VReg) && LAFI->isSExt32Register(VReg))
+      if (const LoongArchMachineFunctionInfo *LAFI =
+          MF->getInfo<LoongArchMachineFunctionInfo>(); MI->getParent() == &MF->front()) {
+        
+        if (Register VReg = MI->getOperand(0).getReg(); MF->getRegInfo().isLiveIn(VReg) && LAFI->isSExt32Register(VReg))
           continue;
       }
 

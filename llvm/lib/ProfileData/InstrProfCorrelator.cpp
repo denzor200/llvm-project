@@ -320,8 +320,8 @@ DwarfInstrProfCorrelator<IntPtrT>::getLocation(const DWARFDie &Die) const {
       if (Op.getCode() == dwarf::DW_OP_addr)
         return Op.getRawOperand(0);
       if (Op.getCode() == dwarf::DW_OP_addrx) {
-        uint64_t Index = Op.getRawOperand(0);
-        if (auto SA = DU.getAddrOffsetSectionItem(Index))
+        
+        if (uint64_t Index = Op.getRawOperand(0); auto SA = DU.getAddrOffsetSectionItem(Index))
           return SA->Address;
       }
     }

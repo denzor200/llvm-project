@@ -71,10 +71,10 @@ std::pair<llvm::Value *, llvm::TypeSize>
 packArgsIntoNVPTXFormatBuffer(CodeGenFunction *CGF, const CallArgList &Args) {
   const llvm::DataLayout &DL = CGF->CGM.getDataLayout();
   llvm::LLVMContext &Ctx = CGF->CGM.getLLVMContext();
-  CGBuilderTy &Builder = CGF->Builder;
+  
 
   // Construct and fill the args buffer that we'll pass to vprintf.
-  if (Args.size() <= 1) {
+  if (CGBuilderTy &Builder = CGF->Builder; Args.size() <= 1) {
     // If there are no args, pass a null pointer and size 0
     llvm::Value *BufferPtr =
         llvm::ConstantPointerNull::get(llvm::PointerType::getUnqual(Ctx));

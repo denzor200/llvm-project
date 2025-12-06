@@ -733,8 +733,8 @@ struct CoveragePrinterHTMLDirectory::Reporter : public DirectoryCoverageReport {
 
     // Make directories at the top of the table.
     for (auto &&SubDir : SubDirs) {
-      auto &Report = SubDir.second.first;
-      if (!Report.FunctionCoverage.getNumFunctions())
+      
+      if (auto &Report = SubDir.second.first; !Report.FunctionCoverage.getNumFunctions())
         EmptyFiles.push_back(&Report);
       else
         emitTableRow(OSRef, Options, buildRelLinkToFile(Report.Name), Report,
@@ -742,8 +742,8 @@ struct CoveragePrinterHTMLDirectory::Reporter : public DirectoryCoverageReport {
     }
 
     for (auto &&SubFile : SubFiles) {
-      auto &Report = SubFile.second;
-      if (!Report.FunctionCoverage.getNumFunctions())
+      
+      if (auto &Report = SubFile.second; !Report.FunctionCoverage.getNumFunctions())
         EmptyFiles.push_back(&Report);
       else
         emitTableRow(OSRef, Options, buildRelLinkToFile(Report.Name), Report,

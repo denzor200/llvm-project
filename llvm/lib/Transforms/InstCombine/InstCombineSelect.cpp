@@ -382,8 +382,8 @@ Instruction *InstCombinerImpl::foldSelectOpOp(SelectInst &SI, Instruction *TI,
         Value *LdexpVal0 = TII->getArgOperand(0);
         Value *LdexpExp0 = TII->getArgOperand(1);
         Value *LdexpVal1 = FII->getArgOperand(0);
-        Value *LdexpExp1 = FII->getArgOperand(1);
-        if (LdexpExp0->getType() == LdexpExp1->getType()) {
+        
+        if (Value *LdexpExp1 = FII->getArgOperand(1); LdexpExp0->getType() == LdexpExp1->getType()) {
           FPMathOperator *SelectFPOp = cast<FPMathOperator>(&SI);
           FastMathFlags FMF = cast<FPMathOperator>(TII)->getFastMathFlags();
           FMF &= cast<FPMathOperator>(FII)->getFastMathFlags();
@@ -1961,18 +1961,18 @@ static Value *foldSelectInstWithICmpConst(SelectInst &SI, ICmpInst *ICI,
   ConstantRange InvDomCR = ConstantRange::makeExactICmpRegion(CPred, *CmpC);
   const APInt *OpC;
   if (match(Op, m_BinOp(m_Specific(V), m_APInt(OpC)))) {
-    ConstantRange R = InvDomCR.binaryOp(
-        static_cast<Instruction::BinaryOps>(Op->getOpcode()), *OpC);
-    if (R == *C) {
+    
+    if (ConstantRange R = InvDomCR.binaryOp(
+        static_cast<Instruction::BinaryOps>(Op->getOpcode()), *OpC); R == *C) {
       Op->dropPoisonGeneratingFlags();
       return Op;
     }
   }
   if (auto *MMI = dyn_cast<MinMaxIntrinsic>(Op);
       MMI && MMI->getLHS() == V && match(MMI->getRHS(), m_APInt(OpC))) {
-    ConstantRange R = ConstantRange::intrinsic(MMI->getIntrinsicID(),
-                                               {InvDomCR, ConstantRange(*OpC)});
-    if (R == *C) {
+    
+    if (ConstantRange R = ConstantRange::intrinsic(MMI->getIntrinsicID(),
+                                               {InvDomCR, ConstantRange(*OpC)}); R == *C) {
       MMI->dropPoisonGeneratingAnnotations();
       return MMI;
     }
@@ -2838,7 +2838,9 @@ Instruction *InstCombinerImpl::foldVectorSelect(SelectInst &Sel) {
   Value *C, *X, *Y;
 
   if (match(Cond, m_VecReverse(m_Value(C)))) {
-    auto createSelReverse = [&](Value *C, Value *X, Value *Y) {
+    
+
+    if (auto createSelReverse = [&](Value *C, Value *X, Value *Y) {
       Value *V = Builder.CreateSelect(C, X, Y, Sel.getName(), &Sel);
       if (auto *I = dyn_cast<Instruction>(V))
         I->copyIRFlags(&Sel);
@@ -2846,9 +2848,7 @@ Instruction *InstCombinerImpl::foldVectorSelect(SelectInst &Sel) {
       Function *F = Intrinsic::getOrInsertDeclaration(
           M, Intrinsic::vector_reverse, V->getType());
       return CallInst::Create(F, V);
-    };
-
-    if (match(TVal, m_VecReverse(m_Value(X)))) {
+    }; match(TVal, m_VecReverse(m_Value(X)))) {
       // select rev(C), rev(X), rev(Y) --> rev(select C, X, Y)
       if (match(FVal, m_VecReverse(m_Value(Y))) &&
           (Cond->hasOneUse() || TVal->hasOneUse() || FVal->hasOneUse()))
@@ -3408,8 +3408,8 @@ static bool impliesPoisonOrCond(const Value *ValAssumedPoison, const Value *V,
     Value *LHS = ICmp->getOperand(0);
     const APInt *RHSC1;
     const APInt *RHSC2;
-    CmpPredicate Pred;
-    if (ICmp->hasSameSign() &&
+    
+    if (CmpPredicate Pred; ICmp->hasSameSign() &&
         match(ICmp->getOperand(1), m_APIntForbidPoison(RHSC1)) &&
         match(V, m_ICmp(Pred, m_Specific(LHS), m_APIntAllowPoison(RHSC2)))) {
       unsigned BitWidth = RHSC1->getBitWidth();
@@ -3644,14 +3644,14 @@ Instruction *InstCombinerImpl::foldSelectOfBools(SelectInst &SI) {
   //   if c implies that b is false.
   if (match(CondVal, m_LogicalOr(m_Value(A), m_Value(B))) &&
       match(FalseVal, m_Zero())) {
-    std::optional<bool> Res = isImpliedCondition(TrueVal, B, DL);
-    if (Res && *Res == false)
+    
+    if (std::optional<bool> Res = isImpliedCondition(TrueVal, B, DL); Res && *Res == false)
       return replaceOperand(SI, 0, A);
   }
   if (match(TrueVal, m_LogicalOr(m_Value(A), m_Value(B))) &&
       match(FalseVal, m_Zero())) {
-    std::optional<bool> Res = isImpliedCondition(CondVal, B, DL);
-    if (Res && *Res == false)
+    
+    if (std::optional<bool> Res = isImpliedCondition(CondVal, B, DL); Res && *Res == false)
       return replaceOperand(SI, 1, A);
   }
   // select c, true, (a && b)  -> select c, true, a
@@ -3659,14 +3659,14 @@ Instruction *InstCombinerImpl::foldSelectOfBools(SelectInst &SI) {
   //   if c = false implies that b = true
   if (match(TrueVal, m_One()) &&
       match(FalseVal, m_LogicalAnd(m_Value(A), m_Value(B)))) {
-    std::optional<bool> Res = isImpliedCondition(CondVal, B, DL, false);
-    if (Res && *Res == true)
+    
+    if (std::optional<bool> Res = isImpliedCondition(CondVal, B, DL, false); Res && *Res == true)
       return replaceOperand(SI, 2, A);
   }
   if (match(CondVal, m_LogicalAnd(m_Value(A), m_Value(B))) &&
       match(TrueVal, m_One())) {
-    std::optional<bool> Res = isImpliedCondition(FalseVal, B, DL, false);
-    if (Res && *Res == true)
+    
+    if (std::optional<bool> Res = isImpliedCondition(FalseVal, B, DL, false); Res && *Res == true)
       return replaceOperand(SI, 0, A);
   }
 
@@ -3687,8 +3687,8 @@ Instruction *InstCombinerImpl::foldSelectOfBools(SelectInst &SI) {
       if (MayNeedFreeze)
         C = Builder.CreateFreeze(C);
       if (!ProfcheckDisableMetadataFixes) {
-        Value *C2 = nullptr, *A2 = nullptr, *B2 = nullptr;
-        if (match(CondVal, m_LogicalAnd(m_Specific(C), m_Value(A2))) &&
+        
+        if (Value *C2 = nullptr, *A2 = nullptr, *B2 = nullptr; match(CondVal, m_LogicalAnd(m_Specific(C), m_Value(A2))) &&
             SelCond) {
           return SelectInst::Create(C, A, B, "", nullptr, SelCond);
         } else if (match(FalseVal,
@@ -3718,8 +3718,8 @@ Instruction *InstCombinerImpl::foldSelectOfBools(SelectInst &SI) {
       if (MayNeedFreeze)
         C = Builder.CreateFreeze(C);
       if (!ProfcheckDisableMetadataFixes) {
-        Value *C2 = nullptr, *A2 = nullptr, *B2 = nullptr;
-        if (match(CondVal, m_LogicalAnd(m_Not(m_Value(C2)), m_Value(A2))) &&
+        
+        if (Value *C2 = nullptr, *A2 = nullptr, *B2 = nullptr; match(CondVal, m_LogicalAnd(m_Not(m_Value(C2)), m_Value(A2))) &&
             SelCond) {
           SelectInst *NewSI = SelectInst::Create(C, B, A, "", nullptr, SelCond);
           NewSI->swapProfMetadata();
@@ -3989,12 +3989,12 @@ Instruction *InstCombinerImpl::foldSelectToCmp(SelectInst &SI) {
 
   // Special cases with constants: x == C ? 0 : (x > C-1 ? 1 : -1)
   if (Pred == ICmpInst::ICMP_EQ && match(TV, m_Zero())) {
-    const APInt *C;
-    if (match(RHS, m_APInt(C))) {
+    
+    if (const APInt *C; match(RHS, m_APInt(C))) {
       CmpPredicate InnerPred;
       Value *InnerRHS;
-      const APInt *InnerTV, *InnerFV;
-      if (match(FV,
+      
+      if (const APInt *InnerTV, *InnerFV; match(FV,
                 m_Select(m_ICmp(InnerPred, m_Specific(LHS), m_Value(InnerRHS)),
                          m_APInt(InnerTV), m_APInt(InnerFV)))) {
 
@@ -4002,10 +4002,10 @@ Instruction *InstCombinerImpl::foldSelectToCmp(SelectInst &SI) {
         if (ICmpInst::isGT(InnerPred) && InnerTV->isOne() &&
             InnerFV->isAllOnes()) {
           IsSigned = ICmpInst::isSigned(InnerPred);
-          bool CanSubOne = IsSigned ? !C->isMinSignedValue() : !C->isMinValue();
-          if (CanSubOne) {
-            APInt Cminus1 = *C - 1;
-            if (match(InnerRHS, m_SpecificInt(Cminus1)))
+          
+          if (bool CanSubOne = IsSigned ? !C->isMinSignedValue() : !C->isMinValue(); CanSubOne) {
+            
+            if (APInt Cminus1 = *C - 1; match(InnerRHS, m_SpecificInt(Cminus1)))
               Replace = true;
           }
         }
@@ -4014,10 +4014,10 @@ Instruction *InstCombinerImpl::foldSelectToCmp(SelectInst &SI) {
         if (ICmpInst::isLT(InnerPred) && InnerTV->isAllOnes() &&
             InnerFV->isOne()) {
           IsSigned = ICmpInst::isSigned(InnerPred);
-          bool CanAddOne = IsSigned ? !C->isMaxSignedValue() : !C->isMaxValue();
-          if (CanAddOne) {
-            APInt Cplus1 = *C + 1;
-            if (match(InnerRHS, m_SpecificInt(Cplus1)))
+          
+          if (bool CanAddOne = IsSigned ? !C->isMaxSignedValue() : !C->isMaxValue(); CanAddOne) {
+            
+            if (APInt Cplus1 = *C + 1; match(InnerRHS, m_SpecificInt(Cplus1)))
               Replace = true;
           }
         }
@@ -4090,8 +4090,8 @@ static Value *foldSelectIntoAddConstant(SelectInst &SI,
                                         InstCombiner::BuilderTy &Builder) {
   // Do this transformation only when select instruction gives NaN and NSZ
   // guarantee.
-  auto *SIFOp = dyn_cast<FPMathOperator>(&SI);
-  if (!SIFOp || !SIFOp->hasNoSignedZeros() || !SIFOp->hasNoNaNs())
+  
+  if (auto *SIFOp = dyn_cast<FPMathOperator>(&SI); !SIFOp || !SIFOp->hasNoSignedZeros() || !SIFOp->hasNoNaNs())
     return nullptr;
 
   auto TryFoldIntoAddConstant =
@@ -4151,8 +4151,8 @@ static Value *foldSelectBitTest(SelectInst &Sel, Value *CondVal, Value *TrueVal,
                                 InstCombiner::BuilderTy &Builder,
                                 const SimplifyQuery &SQ) {
   // If this is a vector select, we need a vector compare.
-  Type *SelType = Sel.getType();
-  if (SelType->isVectorTy() != CondVal->getType()->isVectorTy())
+  
+  if (Type *SelType = Sel.getType(); SelType->isVectorTy() != CondVal->getType()->isVectorTy())
     return nullptr;
 
   Value *V;
@@ -4349,11 +4349,11 @@ Instruction *InstCombinerImpl::visitSelectInst(SelectInst &SI) {
   if (SIFPOp) {
     // TODO: Try to forward-propagate FMF from select arms to the select.
 
-    auto *FCmp = dyn_cast<FCmpInst>(CondVal);
+    
 
     // Canonicalize select of FP values where NaN and -0.0 are not valid as
     // minnum/maxnum intrinsics.
-    if (SIFPOp->hasNoNaNs() &&
+    if (auto *FCmp = dyn_cast<FCmpInst>(CondVal); SIFPOp->hasNoNaNs() &&
         (SIFPOp->hasNoSignedZeros() ||
          (SIFPOp->hasOneUse() &&
           canIgnoreSignBitOfZero(*SIFPOp->use_begin())))) {
@@ -4474,8 +4474,8 @@ Instruction *InstCombinerImpl::visitSelectInst(SelectInst &SI) {
 
       bool IsCastNeeded = LHS->getType() != SelType;
       Value *CmpLHS = cast<CmpInst>(CondVal)->getOperand(0);
-      Value *CmpRHS = cast<CmpInst>(CondVal)->getOperand(1);
-      if (IsCastNeeded ||
+      
+      if (Value *CmpRHS = cast<CmpInst>(CondVal)->getOperand(1); IsCastNeeded ||
           (LHS->getType()->isFPOrFPVectorTy() &&
            ((CmpLHS != LHS && CmpLHS != RHS) ||
             (CmpRHS != LHS && CmpRHS != RHS)))) {
@@ -4764,12 +4764,12 @@ Instruction *InstCombinerImpl::visitSelectInst(SelectInst &SI) {
     findValuesAffectedByCondition(CondVal, /*IsAssume=*/false, [&](Value *V) {
       CC.AffectedValues.insert(V);
     });
-    SimplifyQuery Q = SQ.getWithInstruction(&SI).getWithCondContext(CC);
-    if (!CC.AffectedValues.empty()) {
+    
+    if (SimplifyQuery Q = SQ.getWithInstruction(&SI).getWithCondContext(CC); !CC.AffectedValues.empty()) {
       if (!isa<Constant>(TrueVal) &&
           hasAffectedValue(TrueVal, CC.AffectedValues, /*Depth=*/0)) {
-        KnownBits Known = llvm::computeKnownBits(TrueVal, Q);
-        if (Known.isConstant())
+        
+        if (KnownBits Known = llvm::computeKnownBits(TrueVal, Q); Known.isConstant())
           return replaceOperand(SI, 1,
                                 ConstantInt::get(SelType, Known.getConstant()));
       }
@@ -4777,8 +4777,8 @@ Instruction *InstCombinerImpl::visitSelectInst(SelectInst &SI) {
       CC.Invert = true;
       if (!isa<Constant>(FalseVal) &&
           hasAffectedValue(FalseVal, CC.AffectedValues, /*Depth=*/0)) {
-        KnownBits Known = llvm::computeKnownBits(FalseVal, Q);
-        if (Known.isConstant())
+        
+        if (KnownBits Known = llvm::computeKnownBits(FalseVal, Q); Known.isConstant())
           return replaceOperand(SI, 2,
                                 ConstantInt::get(SelType, Known.getConstant()));
       }

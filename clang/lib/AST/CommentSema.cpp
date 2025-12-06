@@ -96,8 +96,8 @@ ParamCommandComment *Sema::actOnParamCommandStart(
 }
 
 void Sema::checkFunctionDeclVerbatimLine(const BlockCommandComment *Comment) {
-  const CommandInfo *Info = Traits.getCommandInfo(Comment->getCommandID());
-  if (!Info->IsFunctionDeclarationCommand)
+  
+  if (const CommandInfo *Info = Traits.getCommandInfo(Comment->getCommandID()); !Info->IsFunctionDeclarationCommand)
     return;
 
   unsigned DiagSelect;
@@ -129,8 +129,8 @@ void Sema::checkFunctionDeclVerbatimLine(const BlockCommandComment *Comment) {
 }
 
 void Sema::checkContainerDeclVerbatimLine(const BlockCommandComment *Comment) {
-  const CommandInfo *Info = Traits.getCommandInfo(Comment->getCommandID());
-  if (!Info->IsRecordLikeDeclarationCommand)
+  
+  if (const CommandInfo *Info = Traits.getCommandInfo(Comment->getCommandID()); !Info->IsRecordLikeDeclarationCommand)
     return;
   std::optional<unsigned> DiagSelect;
   switch (Comment->getCommandID()) {
@@ -171,8 +171,8 @@ void Sema::checkContainerDeclVerbatimLine(const BlockCommandComment *Comment) {
 }
 
 void Sema::checkContainerDecl(const BlockCommandComment *Comment) {
-  const CommandInfo *Info = Traits.getCommandInfo(Comment->getCommandID());
-  if (!Info->IsRecordLikeDetailCommand || isRecordLikeDecl())
+  
+  if (const CommandInfo *Info = Traits.getCommandInfo(Comment->getCommandID()); !Info->IsRecordLikeDetailCommand || isRecordLikeDecl())
     return;
   std::optional<unsigned> DiagSelect;
   switch (Comment->getCommandID()) {
@@ -241,8 +241,8 @@ void Sema::actOnParamCommandDirectionArg(ParamCommandComment *Command,
     llvm::erase_if(ArgLower, clang::isWhitespace);
     Direction = getParamPassDirection(ArgLower);
 
-    SourceRange ArgRange(ArgLocBegin, ArgLocEnd);
-    if (Direction != static_cast<ParamCommandPassDirection>(-1)) {
+    
+    if (SourceRange ArgRange(ArgLocBegin, ArgLocEnd); Direction != static_cast<ParamCommandPassDirection>(-1)) {
       const char *FixedName =
           ParamCommandComment::getDirectionAsString(Direction);
       Diag(ArgLocBegin, diag::warn_doc_param_spaces_in_direction)
@@ -340,8 +340,8 @@ void Sema::actOnTParamCommandParamNameArg(TParamCommandComment *Command,
   StringRef CorrectedName;
   if (TemplateParameters->size() == 1) {
     const NamedDecl *Param = TemplateParameters->getParam(0);
-    const IdentifierInfo *II = Param->getIdentifier();
-    if (II)
+    
+    if (const IdentifierInfo *II = Param->getIdentifier(); II)
       CorrectedName = II->getName();
   } else {
     CorrectedName = correctTypoInTParamReference(Arg, TemplateParameters);
@@ -540,8 +540,8 @@ void Sema::checkBlockCommandEmptyParagraph(BlockCommandComment *Command) {
   if (Traits.getCommandInfo(Command->getCommandID())->IsEmptyParagraphAllowed)
     return;
 
-  ParagraphComment *Paragraph = Command->getParagraph();
-  if (Paragraph->isWhitespace()) {
+  
+  if (ParagraphComment *Paragraph = Command->getParagraph(); Paragraph->isWhitespace()) {
     SourceLocation DiagLoc;
     if (Command->getNumArgs() > 0)
       DiagLoc = Command->getArgRange(Command->getNumArgs() - 1).getEnd();
@@ -660,8 +660,8 @@ void Sema::checkDeprecatedCommand(const BlockCommandComment *Command) {
   if (const FunctionDecl *FD = dyn_cast<FunctionDecl>(D)) {
     // Don't emit a Fix-It for non-member function definitions.  GCC does not
     // accept attributes on them.
-    const DeclContext *Ctx = FD->getDeclContext();
-    if ((!Ctx || !Ctx->isRecord()) &&
+    
+    if (const DeclContext *Ctx = FD->getDeclContext(); (!Ctx || !Ctx->isRecord()) &&
         FD->doesThisDeclarationHaveABody())
       return;
 
@@ -688,9 +688,9 @@ void Sema::checkDeprecatedCommand(const BlockCommandComment *Command) {
             tok::kw___attribute, tok::l_paren,
             tok::l_paren,        PP->getIdentifierInfo("deprecated"),
             tok::r_paren,        tok::r_paren};
-        StringRef MacroName =
-            PP->getLastMacroWithSpelling(FD->getLocation(), Tokens);
-        if (!MacroName.empty())
+        
+        if (StringRef MacroName =
+            PP->getLastMacroWithSpelling(FD->getLocation(), Tokens); !MacroName.empty())
           AttributeSpelling = MacroName;
       }
     }
@@ -783,8 +783,8 @@ void Sema::resolveParamCommandIndexes(const FullComment *FC) {
                                                           OrphanedParamDecls);
     }
     if (CorrectedParamIndex != ParamCommandComment::InvalidParamIndex) {
-      const ParmVarDecl *CorrectedPVD = OrphanedParamDecls[CorrectedParamIndex];
-      if (const IdentifierInfo *CorrectedII = CorrectedPVD->getIdentifier())
+      
+      if (const ParmVarDecl *CorrectedPVD = OrphanedParamDecls[CorrectedParamIndex]; const IdentifierInfo *CorrectedII = CorrectedPVD->getIdentifier())
         Diag(ArgRange.getBegin(), diag::note_doc_param_name_suggestion)
           << CorrectedII->getName()
           << FixItHint::CreateReplacement(ArgRange, CorrectedII->getName());
@@ -962,8 +962,8 @@ void Sema::inspectThisDecl() {
 unsigned Sema::resolveParmVarReference(StringRef Name,
                                        ArrayRef<const ParmVarDecl *> ParamVars) {
   for (unsigned i = 0, e = ParamVars.size(); i != e; ++i) {
-    const IdentifierInfo *II = ParamVars[i]->getIdentifier();
-    if (II && II->getName() == Name)
+    
+    if (const IdentifierInfo *II = ParamVars[i]->getIdentifier(); II && II->getName() == Name)
       return i;
   }
   if (Name == "..." && isFunctionOrMethodVariadic())
@@ -996,8 +996,8 @@ bool ResolveTParamReferenceHelper(
                             SmallVectorImpl<unsigned> *Position) {
   for (unsigned i = 0, e = TemplateParameters->size(); i != e; ++i) {
     const NamedDecl *Param = TemplateParameters->getParam(i);
-    const IdentifierInfo *II = Param->getIdentifier();
-    if (II && II->getName() == Name) {
+    
+    if (const IdentifierInfo *II = Param->getIdentifier(); II && II->getName() == Name) {
       Position->push_back(i);
       return true;
     }

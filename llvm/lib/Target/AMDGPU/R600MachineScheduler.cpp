@@ -66,10 +66,10 @@ SUnit* R600SchedStrategy::pickNode(bool &IsTopNode) {
     // OpenCL Programming Guide :
     // The approx. number of WF that allows TEX inst to hide ALU inst is :
     // 500 (cycles for TEX) / (AluFetchRatio * 8 (cycles for ALU))
-    float ALUFetchRationEstimate =
+    
+    if (float ALUFetchRationEstimate =
         (AluInstCount + AvailablesAluCount() + Pending[IDAlu].size()) /
-        (FetchInstCount + Available[IDFetch].size());
-    if (ALUFetchRationEstimate == 0) {
+        (FetchInstCount + Available[IDFetch].size()); ALUFetchRationEstimate == 0) {
       AllowSwitchFromAlu = true;
     } else {
       unsigned NeededWF = 62.5f / ALUFetchRationEstimate;
@@ -84,8 +84,8 @@ SUnit* R600SchedStrategy::pickNode(bool &IsTopNode) {
       // (TODO : use RegisterPressure)
       // If we are going too use too many GPR, we flush Fetch instruction to lower
       // register pressure on 128 bits regs.
-      unsigned NearRegisterRequirement = 2 * Available[IDFetch].size();
-      if (NeededWF > getWFCountLimitedByGPR(NearRegisterRequirement))
+      
+      if (unsigned NearRegisterRequirement = 2 * Available[IDFetch].size(); NeededWF > getWFCountLimitedByGPR(NearRegisterRequirement))
         AllowSwitchFromAlu = true;
     }
   }
@@ -153,8 +153,8 @@ void R600SchedStrategy::schedNode(SUnit *SU, bool IsTopNode) {
       ++CurEmitted;
       for (MachineInstr::mop_iterator It = SU->getInstr()->operands_begin(),
           E = SU->getInstr()->operands_end(); It != E; ++It) {
-        MachineOperand &MO = *It;
-        if (MO.isReg() && MO.getReg() == R600::ALU_LITERAL_X)
+        
+        if (MachineOperand &MO = *It; MO.isReg() && MO.getReg() == R600::ALU_LITERAL_X)
           ++CurEmitted;
       }
     }
@@ -190,10 +190,10 @@ void R600SchedStrategy::releaseBottomNode(SUnit *SU) {
     return;
   }
 
-  int IK = getInstKind(SU);
+  
 
   // There is no export clause, we can schedule one as soon as its ready
-  if (IK == IDOther)
+  if (int IK = getInstKind(SU); IK == IDOther)
     Available[IDOther].push_back(SU);
   else
     Pending[IK].push_back(SU);
@@ -246,8 +246,8 @@ R600SchedStrategy::AluKind R600SchedStrategy::getAluKind(SUnit *SU) const {
   }
 
   // Is the result already assigned to a channel ?
-  unsigned DestSubReg = MI->getOperand(0).getSubReg();
-  switch (DestSubReg) {
+  
+  switch (unsigned DestSubReg = MI->getOperand(0).getSubReg(); DestSubReg) {
   case R600::sub0:
     return AluT_X;
   case R600::sub1:
@@ -372,8 +372,8 @@ void R600SchedStrategy::AssignSlot(MachineInstr* MI, unsigned Slot) {
 
 SUnit *R600SchedStrategy::AttemptFillSlot(unsigned Slot, bool AnyAlu) {
   static const AluKind IndexToID[] = {AluT_X, AluT_Y, AluT_Z, AluT_W};
-  SUnit *SlotedSU = PopInst(AvailableAlus[IndexToID[Slot]], AnyAlu);
-  if (SlotedSU)
+  
+  if (SUnit *SlotedSU = PopInst(AvailableAlus[IndexToID[Slot]], AnyAlu); SlotedSU)
     return SlotedSU;
   SUnit *UnslotedSU = PopInst(AvailableAlus[AluAny], AnyAlu);
   if (UnslotedSU)
@@ -408,23 +408,23 @@ SUnit* R600SchedStrategy::pickAlu() {
         return PopInst(AvailableAlus[AluT_XYZW], false);
       }
     }
-    bool TransSlotOccupied = OccupiedSlotsMask & 16;
-    if (!TransSlotOccupied && VLIW5) {
+    
+    if (bool TransSlotOccupied = OccupiedSlotsMask & 16; !TransSlotOccupied && VLIW5) {
       if (!AvailableAlus[AluTrans].empty()) {
         OccupiedSlotsMask |= 16;
         return PopInst(AvailableAlus[AluTrans], false);
       }
-      SUnit *SU = AttemptFillSlot(3, true);
-      if (SU) {
+      
+      if (SUnit *SU = AttemptFillSlot(3, true); SU) {
         OccupiedSlotsMask |= 16;
         return SU;
       }
     }
     for (int Chan = 3; Chan > -1; --Chan) {
-      bool isOccupied = OccupiedSlotsMask & (1 << Chan);
-      if (!isOccupied) {
-        SUnit *SU = AttemptFillSlot(Chan, false);
-        if (SU) {
+      
+      if (bool isOccupied = OccupiedSlotsMask & (1 << Chan); !isOccupied) {
+        
+        if (SUnit *SU = AttemptFillSlot(Chan, false); SU) {
           OccupiedSlotsMask |= (1 << Chan);
           InstructionsGroupCandidate.push_back(SU->getInstr());
           return SU;

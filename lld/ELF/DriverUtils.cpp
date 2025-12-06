@@ -95,8 +95,8 @@ static void concatLTOPluginOptions(Ctx &ctx,
                                    SmallVectorImpl<const char *> &args) {
   SmallVector<const char *, 256> v;
   for (size_t i = 0, e = args.size(); i != e; ++i) {
-    StringRef s = args[i];
-    if ((s == "-plugin-opt" || s == "--plugin-opt") && i + 1 != e) {
+    
+    if (StringRef s = args[i]; (s == "-plugin-opt" || s == "--plugin-opt") && i + 1 != e) {
       v.push_back(ctx.saver.save(s + "=" + args[i + 1]).data());
       ++i;
     } else {
@@ -129,8 +129,8 @@ opt::InputArgList ELFOptTable::parse(Ctx &ctx, ArrayRef<const char *> argv) {
     ErrAlways(ctx) << args.getArgString(missingIndex) << ": missing argument";
 
   for (opt::Arg *arg : args.filtered(OPT_UNKNOWN)) {
-    std::string nearest;
-    if (findNearest(arg->getAsString(args), nearest) > 1)
+    
+    if (std::string nearest; findNearest(arg->getAsString(args), nearest) > 1)
       ErrAlways(ctx) << "unknown argument '" << arg->getAsString(args) << "'";
     else
       ErrAlways(ctx) << "unknown argument '" << arg->getAsString(args)

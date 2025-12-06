@@ -50,9 +50,9 @@ int main(int argc, char **argv) {
   Module *M = nullptr;
 
   {
-    ErrorOr<std::unique_ptr<MemoryBuffer>> BufferOrErr =
-      MemoryBuffer::getFile(InputFilename);
-    if (std::error_code  ec = BufferOrErr.getError()) {
+    
+    if (ErrorOr<std::unique_ptr<MemoryBuffer>> BufferOrErr =
+      MemoryBuffer::getFile(InputFilename); std::error_code  ec = BufferOrErr.getError()) {
       ErrorMessage = ec.message();
     } else {
       std::unique_ptr<MemoryBuffer> &BufferPtr = BufferOrErr.get();

@@ -81,8 +81,8 @@ void DivZeroChecker::reportTaintBug(
 
 void DivZeroChecker::checkPreStmt(const BinaryOperator *B,
                                   CheckerContext &C) const {
-  BinaryOperator::Opcode Op = B->getOpcode();
-  if (Op != BO_Div &&
+  
+  if (BinaryOperator::Opcode Op = B->getOpcode(); Op != BO_Div &&
       Op != BO_Rem &&
       Op != BO_DivAssign &&
       Op != BO_RemAssign)
@@ -111,8 +111,8 @@ void DivZeroChecker::checkPreStmt(const BinaryOperator *B,
   }
 
   if ((stateNotZero && stateZero)) {
-    std::vector<SymbolRef> taintedSyms = getTaintedSymbols(C.getState(), *DV);
-    if (!taintedSyms.empty()) {
+    
+    if (std::vector<SymbolRef> taintedSyms = getTaintedSymbols(C.getState(), *DV); !taintedSyms.empty()) {
       reportTaintBug("Division by a tainted value, possibly zero", stateZero, C,
                      taintedSyms);
       // Fallthrough to continue analysis in case of non-zero denominator.

@@ -912,9 +912,9 @@ uint64_t RuntimeDyldCheckerImpl::readMemoryAtAddr(uint64_t SrcAddr,
                                                   unsigned Size) const {
   uintptr_t PtrSizedAddr = static_cast<uintptr_t>(SrcAddr);
   assert(PtrSizedAddr == SrcAddr && "Linker memory pointer out-of-range.");
-  void *Ptr = reinterpret_cast<void*>(PtrSizedAddr);
+  
 
-  switch (Size) {
+  switch (void *Ptr = reinterpret_cast<void*>(PtrSizedAddr); Size) {
   case 1:
     return support::endian::read<uint8_t>(Ptr, Endianness);
   case 2:
@@ -947,9 +947,9 @@ TargetFlagsType RuntimeDyldCheckerImpl::getTargetFlag(StringRef Symbol) const {
 
 Triple
 RuntimeDyldCheckerImpl::getTripleForSymbol(TargetFlagsType Flag) const {
-  Triple TheTriple = TT;
+  
 
-  switch (TT.getArch()) {
+  switch (Triple TheTriple = TT; TT.getArch()) {
   case Triple::ArchType::arm:
     if (~Flag & 0x1)
       return TT;

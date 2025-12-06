@@ -168,9 +168,9 @@ PGOCtxProfileReader::readProfile(PGOCtxProfileBlockIDs Kind) {
   while (canEnterBlockWithID(PGOCtxProfileBlockIDs::ContextNodeBlockID)) {
     EXPECT_OR_RET(SC, readProfile(PGOCtxProfileBlockIDs::ContextNodeBlockID));
     auto &Targets = Ret.callsites()[*SC->first];
-    auto [_, Inserted] =
-        Targets.insert({SC->second.guid(), std::move(SC->second)});
-    if (!Inserted)
+    
+    if (auto [_, Inserted] =
+        Targets.insert({SC->second.guid(), std::move(SC->second)}); !Inserted)
       return wrongValue(
           "Unexpected duplicate target (callee) at the same callsite.");
   }

@@ -272,8 +272,8 @@ IfLowering::matchAndRewrite(IfOp ifOp, OpAdaptor adaptor,
 
   if (hasElseBlock) {
     Region &loweredElseRegion = loweredIf.getElseRegion();
-    auto result = lowerRegion(elseRegion, loweredElseRegion);
-    if (failed(result)) {
+    
+    if (auto result = lowerRegion(elseRegion, loweredElseRegion); failed(result)) {
       return result;
     }
   }

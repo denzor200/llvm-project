@@ -33,15 +33,15 @@ LIBC_NO_SANITIZE_OOB_ACCESS LIBC_INLINE size_t string_length(const char *src) {
 
   cpp::simd<char> chars = cpp::load<cpp::simd<char>>(aligned, /*aligned=*/true);
   cpp::simd_mask<char> mask = chars == null_byte;
-  size_t offset = src - reinterpret_cast<const char *>(aligned);
-  if (cpp::any_of(shift_mask(mask, offset)))
+  
+  if (size_t offset = src - reinterpret_cast<const char *>(aligned); cpp::any_of(shift_mask(mask, offset)))
     return cpp::find_first_set(shift_mask(mask, offset));
 
   for (;;) {
     cpp::simd<char> chars = cpp::load<cpp::simd<char>>(++aligned,
                                                        /*aligned=*/true);
-    cpp::simd_mask<char> mask = chars == null_byte;
-    if (cpp::any_of(mask))
+    
+    if (cpp::simd_mask<char> mask = chars == null_byte; cpp::any_of(mask))
       return (reinterpret_cast<const char *>(aligned) - src) +
              cpp::find_first_set(mask);
   }

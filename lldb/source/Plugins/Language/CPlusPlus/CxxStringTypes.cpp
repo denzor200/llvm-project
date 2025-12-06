@@ -224,9 +224,9 @@ bool lldb_private::formatters::StringBufferSummaryProvider(
   StringPrinter::ReadBufferAndDumpToStreamOptions options(*location_sp);
 
   if (summary_options.GetCapping() == TypeSummaryCapping::eTypeSummaryCapped) {
-    const auto max_size =
-        location_sp->GetTargetSP()->GetMaximumSizeOfStringSummary();
-    if (size > max_size) {
+    
+    if (const auto max_size =
+        location_sp->GetTargetSP()->GetMaximumSizeOfStringSummary(); size > max_size) {
       size = max_size;
       options.SetIsTruncated(true);
     }
@@ -234,8 +234,8 @@ bool lldb_private::formatters::StringBufferSummaryProvider(
 
   {
     DataExtractor extractor;
-    const size_t bytes_read = location_sp->GetPointeeData(extractor, 0, size);
-    if (bytes_read < size)
+    
+    if (const size_t bytes_read = location_sp->GetPointeeData(extractor, 0, size); bytes_read < size)
       return false;
 
     options.SetData(std::move(extractor));

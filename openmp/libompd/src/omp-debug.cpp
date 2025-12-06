@@ -229,8 +229,8 @@ ompd_rc_t ompd_rel_thread_handle(
 ) {
   if (!thread_handle)
     return ompd_rc_stale_handle;
-  ompd_rc_t ret = callbacks->free_memory((void *)(thread_handle));
-  if (ret != ompd_rc_ok)
+  
+  if (ompd_rc_t ret = callbacks->free_memory((void *)(thread_handle)); ret != ompd_rc_ok)
     return ret;
   return ompd_rc_ok;
 }
@@ -264,8 +264,8 @@ ompd_rc_t ompd_get_curr_parallel_handle(
   if (!thread_handle->ah)
     return ompd_rc_stale_handle;
   ompd_address_space_context_t *context = thread_handle->ah->context;
-  ompd_thread_context_t *thread_context = thread_handle->thread_context;
-  if (!context || !thread_context)
+  
+  if (ompd_thread_context_t *thread_context = thread_handle->thread_context; !context || !thread_context)
     return ompd_rc_stale_handle;
 
   if (!callbacks) {
@@ -418,8 +418,8 @@ ompd_rc_t ompd_rel_parallel_handle(
 ) {
   if (!parallel_handle)
     return ompd_rc_stale_handle;
-  ompd_rc_t ret = callbacks->free_memory((void *)(parallel_handle));
-  if (ret != ompd_rc_ok)
+  
+  if (ompd_rc_t ret = callbacks->free_memory((void *)(parallel_handle)); ret != ompd_rc_ok)
     return ret;
   return ompd_rc_ok;
 }
@@ -668,8 +668,8 @@ ompd_rc_t ompd_rel_task_handle(
 ) {
   if (!task_handle)
     return ompd_rc_stale_handle;
-  ompd_rc_t ret = callbacks->free_memory((void *)(task_handle));
-  if (ret != ompd_rc_ok)
+  
+  if (ompd_rc_t ret = callbacks->free_memory((void *)(task_handle)); ret != ompd_rc_ok)
     return ret;
   return ompd_rc_ok;
 }

@@ -114,8 +114,8 @@ launchLocalExecutor(StringRef ExecutablePath) {
 
     char *const Args[] = {ExecPath.get(), TestOutputFlag.get(),
                           FDSpecifier.get(), nullptr};
-    int RC = execvp(ExecPath.get(), Args);
-    if (RC != 0)
+    
+    if (int RC = execvp(ExecPath.get(), Args); RC != 0)
       return make_error<StringError>(
           "Unable to launch out-of-process executor '" + ExecutablePath + "'\n",
           inconvertibleErrorCode());

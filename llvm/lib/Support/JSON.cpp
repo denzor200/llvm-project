@@ -505,8 +505,8 @@ bool Parser::parseNumber(char First, Value &Out) {
   // We check for errno for out of bounds errors and for End == S.end()
   // to make sure that the numeric string is not malformed.
   errno = 0;
-  int64_t I = std::strtoll(S.c_str(), &End, 10);
-  if (End == S.end() && errno != ERANGE) {
+  
+  if (int64_t I = std::strtoll(S.c_str(), &End, 10); End == S.end() && errno != ERANGE) {
     Out = I;
     return true;
   }
@@ -515,8 +515,8 @@ bool Parser::parseNumber(char First, Value &Out) {
   // handled in the previous block.
   if (First != '-') {
     errno = 0;
-    uint64_t UI = std::strtoull(S.c_str(), &End, 10);
-    if (End == S.end() && errno != ERANGE) {
+    
+    if (uint64_t UI = std::strtoull(S.c_str(), &End, 10); End == S.end() && errno != ERANGE) {
       Out = UI;
       return true;
     }
@@ -804,8 +804,8 @@ void OStream::flushComment() {
   OS << (IndentSize ? "/* " : "/*");
   // Be sure not to accidentally emit "*/". Transform to "* /".
   while (!PendingComment.empty()) {
-    auto Pos = PendingComment.find("*/");
-    if (Pos == StringRef::npos) {
+    
+    if (auto Pos = PendingComment.find("*/"); Pos == StringRef::npos) {
       OS << PendingComment;
       PendingComment = "";
     } else {

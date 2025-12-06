@@ -226,8 +226,8 @@ void CallingConvEmitter::emitAction(const Record *Action, indent Indent,
              Action->isSubClassOf("CCAssignToRegAndStack")) {
     const ListInit *RegList = Action->getValueAsListInit("RegList");
     for (unsigned I = 0, E = RegList->size(); I != E; ++I) {
-      std::string Name = getQualifiedRegisterName(RegList->getElement(I));
-      if (SwiftAction)
+      
+      if (std::string Name = getQualifiedRegisterName(RegList->getElement(I)); SwiftAction)
         AssignedSwiftRegsMap[CurrentAction].insert(std::move(Name));
       else
         AssignedRegsMap[CurrentAction].insert(std::move(Name));
@@ -341,16 +341,16 @@ void CallingConvEmitter::emitArgRegisterLists(raw_ostream &O) {
       Worklist.pop_front();
 
       const std::string &CCName = Entry.first;
-      std::set<std::string> &Registers = Entry.second;
-      if (!Registers.empty())
+      
+      if (std::set<std::string> &Registers = Entry.second; !Registers.empty())
         continue;
 
       for (auto &InnerEntry : Worklist) {
         const std::string &InnerCCName = InnerEntry.first;
         std::set<std::string> &InnerRegisters = InnerEntry.second;
 
-        auto It = InnerRegisters.find(CCName);
-        if (It != InnerRegisters.end()) {
+        
+        if (auto It = InnerRegisters.find(CCName); It != InnerRegisters.end()) {
           const auto &Src = AssignedRegsMap[CCName];
           AssignedRegsMap[InnerCCName].insert(Src.begin(), Src.end());
           InnerRegisters.erase(It);

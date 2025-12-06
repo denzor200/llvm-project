@@ -669,8 +669,8 @@ void SSAIfConv::rewritePHIOperands() {
 
     // Rewrite PHI operands TPred -> (DstReg, Head), remove FPred.
     for (unsigned i = PI.PHI->getNumOperands(); i != 1; i -= 2) {
-      MachineBasicBlock *MBB = PI.PHI->getOperand(i-1).getMBB();
-      if (MBB == getTPred()) {
+      
+      if (MachineBasicBlock *MBB = PI.PHI->getOperand(i-1).getMBB(); MBB == getTPred()) {
         PI.PHI->getOperand(i-1).setMBB(Head);
         PI.PHI->getOperand(i-2).setReg(DstReg);
       } else if (MBB == getFPred()) {
@@ -1019,8 +1019,8 @@ bool EarlyIfConverter::shouldConvertIf() {
     LLVM_DEBUG(dbgs() << "Slack " << Slack << ":\t" << *PI.PHI);
 
     // The condition is pulled into the critical path.
-    unsigned CondDepth = adjCycles(BranchDepth, PI.CondCycles);
-    if (CondDepth > MaxDepth) {
+    
+    if (unsigned CondDepth = adjCycles(BranchDepth, PI.CondCycles); CondDepth > MaxDepth) {
       unsigned Extra = CondDepth - MaxDepth;
       LLVM_DEBUG(dbgs() << "Condition adds " << Extra << " cycles.\n");
       if (Extra > Cond.Extra)
@@ -1163,8 +1163,8 @@ EarlyIfConverterPass::run(MachineFunction &MF,
   MachineTraceMetrics &MTM = MFAM.getResult<MachineTraceMetricsAnalysis>(MF);
 
   EarlyIfConverter Impl(MDT, LI, MTM);
-  bool Changed = Impl.run(MF);
-  if (!Changed)
+  
+  if (bool Changed = Impl.run(MF); !Changed)
     return PreservedAnalyses::all();
 
   auto PA = getMachineFunctionPassPreservedAnalyses();
@@ -1247,8 +1247,8 @@ bool EarlyIfPredicator::shouldConvertIf() {
     unsigned ExtraPredCost = 0;
     unsigned Cycles = 0;
     for (MachineInstr &I : IfBlock) {
-      unsigned NumCycles = SchedModel.computeInstrLatency(&I, false);
-      if (NumCycles > 1)
+      
+      if (unsigned NumCycles = SchedModel.computeInstrLatency(&I, false); NumCycles > 1)
         Cycles += NumCycles - 1;
       ExtraPredCost += TII->getPredicationCost(I);
     }
@@ -1261,14 +1261,14 @@ bool EarlyIfPredicator::shouldConvertIf() {
   unsigned TCycle = 0;
   unsigned FCycle = 0;
   for (MachineInstr &I : *IfConv.TBB) {
-    unsigned NumCycles = SchedModel.computeInstrLatency(&I, false);
-    if (NumCycles > 1)
+    
+    if (unsigned NumCycles = SchedModel.computeInstrLatency(&I, false); NumCycles > 1)
       TCycle += NumCycles - 1;
     TExtra += TII->getPredicationCost(I);
   }
   for (MachineInstr &I : *IfConv.FBB) {
-    unsigned NumCycles = SchedModel.computeInstrLatency(&I, false);
-    if (NumCycles > 1)
+    
+    if (unsigned NumCycles = SchedModel.computeInstrLatency(&I, false); NumCycles > 1)
       FCycle += NumCycles - 1;
     FExtra += TII->getPredicationCost(I);
   }

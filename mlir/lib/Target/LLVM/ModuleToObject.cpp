@@ -159,15 +159,15 @@ ModuleToObject::linkFiles(llvm::Module &module,
     // symbols if they are referenced by the module or a previous library since
     // there will be no other source of references to those symbols in this
     // compilation and since we don't want to bloat the resulting code object.
-    bool err = linker.linkInModule(
+    
+    // True is linker failure
+    if (bool err = linker.linkInModule(
         std::move(libModule), llvm::Linker::Flags::LinkOnlyNeeded,
         [](llvm::Module &m, const StringSet<> &gvs) {
           llvm::internalizeModule(m, [&gvs](const llvm::GlobalValue &gv) {
             return !gv.hasName() || (gvs.count(gv.getName()) == 0);
           });
-        });
-    // True is linker failure
-    if (err) {
+        }); err) {
       getOperation().emitError("Unrecoverable failure during bitcode linking.");
       // We have no guaranties about the state of `ret`, so bail
       return failure();
@@ -226,9 +226,9 @@ ModuleToObject::translateToISA(llvm::Module &llvmModule,
 
 void ModuleToObject::setDataLayoutAndTriple(llvm::Module &module) {
   // Create the target machine.
-  std::optional<llvm::TargetMachine *> targetMachine =
-      getOrCreateTargetMachine();
-  if (targetMachine) {
+  
+  if (std::optional<llvm::TargetMachine *> targetMachine =
+      getOrCreateTargetMachine(); targetMachine) {
     // Set the data layout and target triple of the module.
     module.setDataLayout((*targetMachine)->createDataLayout());
     module.setTargetTriple((*targetMachine)->getTargetTriple());

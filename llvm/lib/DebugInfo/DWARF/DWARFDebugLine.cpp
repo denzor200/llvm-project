@@ -169,8 +169,8 @@ void DWARFDebugLine::Prologue::dump(raw_ostream &OS,
       if (ContentTypes.HasLength)
         OS << format("         length: 0x%8.8" PRIx64 "\n", FileEntry.Length);
       if (ContentTypes.HasSource) {
-        auto Source = FileEntry.Source.getAsCString();
-        if (!Source)
+        
+        if (auto Source = FileEntry.Source.getAsCString(); !Source)
           consumeError(Source.takeError());
         else if ((*Source)[0]) {
           OS << "         source: ";
@@ -285,8 +285,8 @@ parseV5DirFileTables(const DWARFDataExtractor &DebugLineData,
   uint64_t DirEntryCount = DebugLineData.getULEB128(OffsetPtr);
   for (uint64_t I = 0; I != DirEntryCount; ++I) {
     for (auto Descriptor : *DirDescriptors) {
-      DWARFFormValue Value(Descriptor.Form);
-      switch (Descriptor.Type) {
+      
+      switch (DWARFFormValue Value(Descriptor.Form); Descriptor.Type) {
       case DW_LNCT_path:
         if (!Value.extractValue(DebugLineData, OffsetPtr, FormParams, &Ctx, U))
           return createStringError(errc::invalid_argument,
@@ -1077,9 +1077,9 @@ Error DWARFDebugLine::LineTable::parse(
         // according to that.
         if (std::optional<uint64_t> Operand =
                 parseULEB128<uint64_t>(TableData, Cursor)) {
-          ParsingState::AddrOpIndexDelta Advance =
-              State.advanceAddrOpIndex(*Operand, Opcode, OpcodeOffset);
-          if (Verbose)
+          
+          if (ParsingState::AddrOpIndexDelta Advance =
+              State.advanceAddrOpIndex(*Operand, Opcode, OpcodeOffset); Verbose)
             *OS << " (addr += " << Advance.AddrOffset
                 << ", op-index += " << Advance.OpIndexDelta << ")";
         }
@@ -1089,8 +1089,8 @@ Error DWARFDebugLine::LineTable::parse(
         // Takes a single signed LEB128 operand and adds that value to
         // the line register of the state machine.
         {
-          int64_t LineDelta = TableData.getSLEB128(Cursor);
-          if (Cursor) {
+          
+          if (int64_t LineDelta = TableData.getSLEB128(Cursor); Cursor) {
             State.Row.Line += LineDelta;
             if (Verbose)
               *OS << " (" << State.Row.Line << ")";
@@ -1145,9 +1145,9 @@ Error DWARFDebugLine::LineTable::parse(
         // than twice that range will it need to use both DW_LNS_advance_pc
         // and a special opcode, requiring three or more bytes.
         {
-          ParsingState::OpcodeAdvanceResults Advance =
-              State.advanceForOpcode(Opcode, OpcodeOffset);
-          if (Verbose)
+          
+          if (ParsingState::OpcodeAdvanceResults Advance =
+              State.advanceForOpcode(Opcode, OpcodeOffset); Verbose)
             *OS << format(" (addr += 0x%16.16" PRIx64 ", op-index += %" PRIu8
                           ")",
                           Advance.AddrDelta, Advance.OpIndexDelta);
@@ -1166,8 +1166,8 @@ Error DWARFDebugLine::LineTable::parse(
         // DW_LNS_advance_pc. Such assemblers, however, can use
         // DW_LNS_fixed_advance_pc instead, sacrificing compression.
         {
-          uint16_t PCOffset = TableData.getRelocatedValue(Cursor, 2);
-          if (Cursor) {
+          
+          if (uint16_t PCOffset = TableData.getRelocatedValue(Cursor, 2); Cursor) {
             State.Row.Address.Address += PCOffset;
             State.Row.OpIndex = 0;
             if (Verbose)
@@ -1324,9 +1324,9 @@ DWARFDebugLine::LineTable::lookupAddress(object::SectionedAddress Address,
                                          bool *IsApproximateLine) const {
 
   // Search for relocatable addresses
-  uint32_t Result = lookupAddressImpl(Address, IsApproximateLine);
+  
 
-  if (Result != UnknownRowIndex ||
+  if (uint32_t Result = lookupAddressImpl(Address, IsApproximateLine); Result != UnknownRowIndex ||
       Address.SectionIndex == object::SectionedAddress::UndefSection)
     return Result;
 
@@ -1462,8 +1462,8 @@ DWARFDebugLine::LineTable::getSourceByIndex(uint64_t FileIndex,
                                             FileLineInfoKind Kind) const {
   if (Kind == FileLineInfoKind::None || !Prologue.hasFileAtIndex(FileIndex))
     return std::nullopt;
-  const FileNameEntry &Entry = Prologue.getFileNameEntry(FileIndex);
-  if (auto E = dwarf::toString(Entry.Source))
+  
+  if (const FileNameEntry &Entry = Prologue.getFileNameEntry(FileIndex); auto E = dwarf::toString(Entry.Source))
     return StringRef(*E);
   return std::nullopt;
 }

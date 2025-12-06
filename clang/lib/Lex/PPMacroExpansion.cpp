@@ -104,9 +104,9 @@ void Preprocessor::setLoadedMacroDirective(IdentifierInfo *II,
   // built-in.
 
   assert(II && MD);
-  MacroState &StoredMD = CurSubmoduleState->Macros[II];
+  
 
-  if (auto *OldMD = StoredMD.getLatest()) {
+  if (MacroState &StoredMD = CurSubmoduleState->Macros[II]; auto *OldMD = StoredMD.getLatest()) {
     // shouldIgnoreMacro() in ASTWriter also stops at macros from the
     // predefines buffer in module builds. However, in module builds, modules
     // are loaded completely before predefines are processed, so StoredMD
@@ -204,8 +204,8 @@ void Preprocessor::updateModuleMacroInfo(const IdentifierInfo *II,
       Worklist.push_back(LeafMM);
   }
   while (!Worklist.empty()) {
-    auto *MM = Worklist.pop_back_val();
-    if (CurSubmoduleState->VisibleModules.isVisible(MM->getOwningModule())) {
+    
+    if (auto *MM = Worklist.pop_back_val(); CurSubmoduleState->VisibleModules.isVisible(MM->getOwningModule())) {
       // We only care about collecting definitions; undefinitions only act
       // to override other definitions.
       if (MM->getMacroInfo())
@@ -1451,8 +1451,8 @@ already_lexed:
 static IdentifierInfo *ExpectFeatureIdentifierInfo(Token &Tok,
                                                    Preprocessor &PP,
                                                    signed DiagID) {
-  IdentifierInfo *II;
-  if (!Tok.isAnnotation() && (II = Tok.getIdentifierInfo()))
+  
+  if (IdentifierInfo *II; !Tok.isAnnotation() && (II = Tok.getIdentifierInfo()))
     return II;
 
   PP.Diag(Tok.getLocation(), DiagID);
@@ -1739,8 +1739,8 @@ void Preprocessor::ExpandBuiltinMacro(Token &Tok) {
          getLangOpts().C2y ? diag::warn_counter : diag::ext_counter);
     // __COUNTER__ expands to a simple numeric value that must be less than
     // 2147483647.
-    constexpr uint32_t MaxPosValue = std::numeric_limits<int32_t>::max();
-    if (CounterValue > MaxPosValue) {
+    
+    if (constexpr uint32_t MaxPosValue = std::numeric_limits<int32_t>::max(); CounterValue > MaxPosValue) {
       Diag(Tok.getLocation(), diag::err_counter_overflow);
       // Retain the maximal value so we don't issue conversion-related
       // diagnostics by overflowing into a long long. While this does produce
@@ -1846,9 +1846,9 @@ void Preprocessor::ExpandBuiltinMacro(Token &Tok) {
   } else if (II == Ident__has_declspec) {
     EvaluateFeatureLikeBuiltinMacro(OS, Tok, II, *this, true,
       [this](Token &Tok, bool &HasLexedNextToken) -> int {
-        IdentifierInfo *II = ExpectFeatureIdentifierInfo(Tok, *this,
-                                           diag::err_feature_check_malformed);
-        if (II) {
+        
+        if (IdentifierInfo *II = ExpectFeatureIdentifierInfo(Tok, *this,
+                                           diag::err_feature_check_malformed); II) {
           const LangOptions &LangOpts = getLangOpts();
           return LangOpts.DeclSpecKeyword &&
                  hasAttribute(AttributeCommonInfo::Syntax::AS_Declspec, nullptr,

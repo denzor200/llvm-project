@@ -153,8 +153,8 @@ void SymbolTable::remove(Operation *op) {
          "expected this operation to be inside of the operation with this "
          "SymbolTable");
 
-  auto it = symbolTable.find(name);
-  if (it != symbolTable.end() && it->second == op)
+  
+  if (auto it = symbolTable.find(name); it != symbolTable.end() && it->second == op)
     symbolTable.erase(it);
 }
 
@@ -267,8 +267,8 @@ SymbolTable::renameToUnique(StringAttr oldName,
     prefix.push_back('_');
     while (true) {
       newName = StringAttr::get(context, prefix + Twine(uniqueId++));
-      auto lookupNewName = [&](SymbolTable *st) { return st->lookup(newName); };
-      if (!lookupNewName(this) && llvm::none_of(others, lookupNewName)) {
+      
+      if (auto lookupNewName = [&](SymbolTable *st) { return st->lookup(newName); }; !lookupNewName(this) && llvm::none_of(others, lookupNewName)) {
         break;
       }
     }
@@ -909,11 +909,11 @@ replaceAllSymbolUsesImpl(SymbolT symbol, StringAttr newSymbol, IRUnitT *limit) {
           return {attr, WalkResult::skip()};
         });
 
-    auto walkFn = [&](Operation *op) -> std::optional<WalkResult> {
+    
+    if (auto walkFn = [&](Operation *op) -> std::optional<WalkResult> {
       replacer.replaceElementsIn(op);
       return WalkResult::advance();
-    };
-    if (!scope.walkSymbolTable(walkFn))
+    }; !scope.walkSymbolTable(walkFn))
       return failure();
   }
   return success();
@@ -1039,8 +1039,8 @@ LockedSymbolTableCollection::getSymbolTable(Operation *symbolTableOp) {
   // Try to find an existing symbol table.
   {
     llvm::sys::SmartScopedReader<true> lock(mutex);
-    auto it = collection.symbolTables.find(symbolTableOp);
-    if (it != collection.symbolTables.end())
+    
+    if (auto it = collection.symbolTables.find(symbolTableOp); it != collection.symbolTables.end())
       return *it->second;
   }
   // Create a symbol table for the operation. Perform construction outside of

@@ -197,8 +197,8 @@ bool CompactUnwindInfo::GetUnwindPlan(Target &target, Address addr,
 
       if (function_info.valid_range_offset_start != 0 &&
           function_info.valid_range_offset_end != 0) {
-        SectionList *sl = m_objfile.GetSectionList();
-        if (sl) {
+        
+        if (SectionList *sl = m_objfile.GetSectionList(); sl) {
           addr_t func_range_start_file_addr =
               function_info.valid_range_offset_start +
               m_objfile.GetBaseAddress().GetFileAddress();
@@ -252,8 +252,8 @@ void CompactUnwindInfo::ScanIndex(const ProcessSP &process_sp) {
     return;
   }
 
-  Log *log = GetLog(LLDBLog::Unwind);
-  if (log)
+  
+  if (Log *log = GetLog(LLDBLog::Unwind); log)
     m_objfile.GetModule()->LogMessage(
         log, "Reading compact unwind first-level indexes");
 
@@ -265,8 +265,8 @@ void CompactUnwindInfo::ScanIndex(const ProcessSP &process_sp) {
         return;
       m_section_contents_if_encrypted =
           std::make_shared<DataBufferHeap>(m_section_sp->GetByteSize(), 0);
-      Status error;
-      if (process_sp->ReadMemory(
+      
+      if (Status error; process_sp->ReadMemory(
               m_section_sp->GetLoadBaseAddress(&process_sp->GetTarget()),
               m_section_contents_if_encrypted->GetBytes(),
               m_section_sp->GetByteSize(),
@@ -395,8 +395,8 @@ uint32_t CompactUnwindInfo::GetLSDAForFunctionOffset(uint32_t lsda_offset,
     offset_t offset = first_entry + (mid * 8);
     uint32_t mid_func_offset =
         m_unwindinfo_data.GetU32(&offset); // functionOffset
-    uint32_t mid_lsda_offset = m_unwindinfo_data.GetU32(&offset); // lsdaOffset
-    if (mid_func_offset == function_offset) {
+    // lsdaOffset
+    if (uint32_t mid_lsda_offset = m_unwindinfo_data.GetU32(&offset); mid_func_offset == function_offset) {
       return mid_lsda_offset;
     }
     if (mid_func_offset < function_offset) {
@@ -498,10 +498,10 @@ bool CompactUnwindInfo::GetCompactUnwindInfoForFunction(
     return false;
 
   addr_t text_section_file_address = LLDB_INVALID_ADDRESS;
-  SectionList *sl = m_objfile.GetSectionList();
-  if (sl) {
-    SectionSP text_sect = sl->FindSectionByType(eSectionTypeCode, true);
-    if (text_sect.get()) {
+  
+  if (SectionList *sl = m_objfile.GetSectionList(); sl) {
+    
+    if (SectionSP text_sect = sl->FindSectionByType(eSectionTypeCode, true); text_sect.get()) {
       text_section_file_address = text_sect->GetFileAddress();
     }
   }
@@ -570,8 +570,8 @@ bool CompactUnwindInfo::GetCompactUnwindInfoForFunction(
     entry_offset += 4; // skip over functionOffset
     unwind_info.encoding = m_unwindinfo_data.GetU32(&entry_offset); // encoding
     if (unwind_info.encoding & UNWIND_HAS_LSDA) {
-      SectionList *sl = m_objfile.GetSectionList();
-      if (sl) {
+      
+      if (SectionList *sl = m_objfile.GetSectionList(); sl) {
         uint32_t lsda_offset = GetLSDAForFunctionOffset(
             lsda_array_start, lsda_array_count, function_offset);
         addr_t objfile_base_address =
@@ -581,16 +581,16 @@ bool CompactUnwindInfo::GetCompactUnwindInfoForFunction(
       }
     }
     if (unwind_info.encoding & UNWIND_PERSONALITY_MASK) {
-      uint32_t personality_index =
-          EXTRACT_BITS(unwind_info.encoding, UNWIND_PERSONALITY_MASK);
+      
 
-      if (personality_index > 0) {
+      if (uint32_t personality_index =
+          EXTRACT_BITS(unwind_info.encoding, UNWIND_PERSONALITY_MASK); personality_index > 0) {
         personality_index--;
         if (personality_index < m_unwind_header.personality_array_count) {
           offset_t offset = m_unwind_header.personality_array_offset;
           offset += 4 * personality_index;
-          SectionList *sl = m_objfile.GetSectionList();
-          if (sl) {
+          
+          if (SectionList *sl = m_objfile.GetSectionList(); sl) {
             uint32_t personality_offset = m_unwindinfo_data.GetU32(&offset);
             addr_t objfile_base_address =
                 m_objfile.GetBaseAddress().GetFileAddress();
@@ -654,8 +654,8 @@ bool CompactUnwindInfo::GetCompactUnwindInfoForFunction(
 
     unwind_info.encoding = encoding;
     if (unwind_info.encoding & UNWIND_HAS_LSDA) {
-      SectionList *sl = m_objfile.GetSectionList();
-      if (sl) {
+      
+      if (SectionList *sl = m_objfile.GetSectionList(); sl) {
         uint32_t lsda_offset = GetLSDAForFunctionOffset(
             lsda_array_start, lsda_array_count, function_offset);
         addr_t objfile_base_address =
@@ -665,16 +665,16 @@ bool CompactUnwindInfo::GetCompactUnwindInfoForFunction(
       }
     }
     if (unwind_info.encoding & UNWIND_PERSONALITY_MASK) {
-      uint32_t personality_index =
-          EXTRACT_BITS(unwind_info.encoding, UNWIND_PERSONALITY_MASK);
+      
 
-      if (personality_index > 0) {
+      if (uint32_t personality_index =
+          EXTRACT_BITS(unwind_info.encoding, UNWIND_PERSONALITY_MASK); personality_index > 0) {
         personality_index--;
         if (personality_index < m_unwind_header.personality_array_count) {
           offset_t offset = m_unwind_header.personality_array_offset;
           offset += 4 * personality_index;
-          SectionList *sl = m_objfile.GetSectionList();
-          if (sl) {
+          
+          if (SectionList *sl = m_objfile.GetSectionList(); sl) {
             uint32_t personality_offset = m_unwindinfo_data.GetU32(&offset);
             addr_t objfile_base_address =
                 m_objfile.GetBaseAddress().GetFileAddress();
@@ -744,8 +744,8 @@ bool CompactUnwindInfo::CreateUnwindPlan_x86_64(Target &target,
   UnwindPlan::Row row;
 
   const int wordsize = 8;
-  int mode = function_info.encoding & UNWIND_X86_64_MODE_MASK;
-  switch (mode) {
+  
+  switch (int mode = function_info.encoding & UNWIND_X86_64_MODE_MASK; mode) {
   case UNWIND_X86_64_MODE_RBP_FRAME: {
     row.GetCFAValue().SetIsRegisterPlusOffset(
         translate_to_eh_frame_regnum_x86_64(UNWIND_X86_64_REG_RBP),
@@ -765,8 +765,8 @@ bool CompactUnwindInfo::CreateUnwindPlan_x86_64(Target &target,
     saved_registers_offset += 2;
 
     for (int i = 0; i < 5; i++) {
-      uint32_t regnum = saved_registers_locations & 0x7;
-      switch (regnum) {
+      
+      switch (uint32_t regnum = saved_registers_locations & 0x7; regnum) {
       case UNWIND_X86_64_REG_NONE:
         break;
       case UNWIND_X86_64_REG_RBX:
@@ -811,16 +811,16 @@ bool CompactUnwindInfo::CreateUnwindPlan_x86_64(Target &target,
       uint32_t offset_to_subl_insn = EXTRACT_BITS(
           function_info.encoding, UNWIND_X86_64_FRAMELESS_STACK_SIZE);
 
-      SectionList *sl = m_objfile.GetSectionList();
-      if (sl) {
-        ProcessSP process_sp = target.GetProcessSP();
-        if (process_sp) {
+      
+      if (SectionList *sl = m_objfile.GetSectionList(); sl) {
+        
+        if (ProcessSP process_sp = target.GetProcessSP(); process_sp) {
           Address subl_payload_addr(function_info.valid_range_offset_start, sl);
           subl_payload_addr.Slide(offset_to_subl_insn);
           Status error;
-          uint64_t large_stack_size = process_sp->ReadUnsignedIntegerFromMemory(
-              subl_payload_addr.GetLoadAddress(&target), 4, 0, error);
-          if (large_stack_size != 0 && error.Success()) {
+          
+          if (uint64_t large_stack_size = process_sp->ReadUnsignedIntegerFromMemory(
+              subl_payload_addr.GetLoadAddress(&target), 4, 0, error); large_stack_size != 0 && error.Success()) {
             // Got the large stack frame size correctly - use it
             stack_size = large_stack_size + (stack_adjust * wordsize);
           } else {
@@ -1011,8 +1011,8 @@ bool CompactUnwindInfo::CreateUnwindPlan_i386(Target &target,
   UnwindPlan::Row row;
 
   const int wordsize = 4;
-  int mode = function_info.encoding & UNWIND_X86_MODE_MASK;
-  switch (mode) {
+  
+  switch (int mode = function_info.encoding & UNWIND_X86_MODE_MASK; mode) {
   case UNWIND_X86_MODE_EBP_FRAME: {
     row.GetCFAValue().SetIsRegisterPlusOffset(
         translate_to_eh_frame_regnum_i386(UNWIND_X86_REG_EBP), 2 * wordsize);
@@ -1031,8 +1031,8 @@ bool CompactUnwindInfo::CreateUnwindPlan_i386(Target &target,
     saved_registers_offset += 2;
 
     for (int i = 0; i < 5; i++) {
-      uint32_t regnum = saved_registers_locations & 0x7;
-      switch (regnum) {
+      
+      switch (uint32_t regnum = saved_registers_locations & 0x7; regnum) {
       case UNWIND_X86_REG_NONE:
         break;
       case UNWIND_X86_REG_EBX:
@@ -1071,16 +1071,16 @@ bool CompactUnwindInfo::CreateUnwindPlan_i386(Target &target,
       uint32_t offset_to_subl_insn =
           EXTRACT_BITS(function_info.encoding, UNWIND_X86_FRAMELESS_STACK_SIZE);
 
-      SectionList *sl = m_objfile.GetSectionList();
-      if (sl) {
-        ProcessSP process_sp = target.GetProcessSP();
-        if (process_sp) {
+      
+      if (SectionList *sl = m_objfile.GetSectionList(); sl) {
+        
+        if (ProcessSP process_sp = target.GetProcessSP(); process_sp) {
           Address subl_payload_addr(function_info.valid_range_offset_start, sl);
           subl_payload_addr.Slide(offset_to_subl_insn);
           Status error;
-          uint64_t large_stack_size = process_sp->ReadUnsignedIntegerFromMemory(
-              subl_payload_addr.GetLoadAddress(&target), 4, 0, error);
-          if (large_stack_size != 0 && error.Success()) {
+          
+          if (uint64_t large_stack_size = process_sp->ReadUnsignedIntegerFromMemory(
+              subl_payload_addr.GetLoadAddress(&target), 4, 0, error); large_stack_size != 0 && error.Success()) {
             // Got the large stack frame size correctly - use it
             stack_size = large_stack_size + (stack_adjust * wordsize);
           } else {
@@ -1493,9 +1493,9 @@ bool CompactUnwindInfo::CreateUnwindPlan_armv7(Target &target,
   }
 
   if (mode == UNWIND_ARM_MODE_FRAME_D) {
-    uint32_t d_reg_bits =
-        EXTRACT_BITS(function_info.encoding, UNWIND_ARM_FRAME_D_REG_COUNT_MASK);
-    switch (d_reg_bits) {
+    
+    switch (uint32_t d_reg_bits =
+        EXTRACT_BITS(function_info.encoding, UNWIND_ARM_FRAME_D_REG_COUNT_MASK); d_reg_bits) {
     case 0:
       // vpush {d8}
       cfa_offset -= 8;

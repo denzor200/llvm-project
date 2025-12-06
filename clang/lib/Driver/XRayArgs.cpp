@@ -77,8 +77,8 @@ XRayArgs::XRayArgs(const ToolChain &TC, const ArgList &Args) {
           << "-fxray-shared" << Triple.str();
     }
 
-    unsigned PICLvl = std::get<1>(tools::ParsePICArgs(TC, Args));
-    if (!PICLvl) {
+    
+    if (unsigned PICLvl = std::get<1>(tools::ParsePICArgs(TC, Args)); !PICLvl) {
       D.Diag(diag::err_opt_not_valid_without_opt) << "-fxray-shared"
                                                   << "-fPIC";
     }
@@ -206,8 +206,8 @@ void XRayArgs::addArgs(const ToolChain &TC, const ArgList &Args,
   if (const Arg *A =
           Args.getLastArg(options::OPT_fxray_instruction_threshold_EQ)) {
     int Value;
-    StringRef S = A->getValue();
-    if (S.getAsInteger(0, Value) || Value < 0)
+    
+    if (StringRef S = A->getValue(); S.getAsInteger(0, Value) || Value < 0)
       D.Diag(clang::diag::err_drv_invalid_value) << A->getAsString(Args) << S;
     else
       A->render(Args, CmdArgs);

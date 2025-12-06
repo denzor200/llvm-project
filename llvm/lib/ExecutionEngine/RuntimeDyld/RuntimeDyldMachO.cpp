@@ -103,8 +103,8 @@ RuntimeDyldMachO::getRelocationValueRef(
       Obj.getRelocation(RI->getRawDataRefImpl());
   RelocationValueRef Value;
 
-  bool IsExternal = Obj.getPlainRelocationExternal(RelInfo);
-  if (IsExternal) {
+  
+  if (bool IsExternal = Obj.getPlainRelocationExternal(RelInfo); IsExternal) {
     symbol_iterator Symbol = RI->getSymbol();
     StringRef TargetName;
     if (auto TargetNameOrErr = Symbol->getName())
@@ -123,8 +123,8 @@ RuntimeDyldMachO::getRelocationValueRef(
     }
   } else {
     SectionRef Sec = Obj.getAnyRelocationSection(RelInfo);
-    bool IsCode = Sec.isText();
-    if (auto SectionIDOrErr = findOrEmitSection(Obj, Sec, IsCode,
+    
+    if (bool IsCode = Sec.isText(); auto SectionIDOrErr = findOrEmitSection(Obj, Sec, IsCode,
                                                 ObjSectionToID))
       Value.SectionID = *SectionIDOrErr;
     else
@@ -166,8 +166,8 @@ RuntimeDyldMachO::getSectionByAddress(const MachOObjectFile &Obj,
 
   for (; SI != SE; ++SI) {
     uint64_t SAddr = SI->getAddress();
-    uint64_t SSize = SI->getSize();
-    if ((Addr >= SAddr) && (Addr < SAddr + SSize))
+    
+    if (uint64_t SSize = SI->getSize(); (Addr >= SAddr) && (Addr < SAddr + SSize))
       return SI;
   }
 
@@ -258,8 +258,8 @@ RuntimeDyldMachOCRTPBase<Impl>::finalizeLoad(const ObjectFile &Obj,
       else
         return ExceptTabSIDOrErr.takeError();
     } else {
-      auto I = SectionMap.find(Section);
-      if (I != SectionMap.end())
+      
+      if (auto I = SectionMap.find(Section); I != SectionMap.end())
         if (auto Err = impl().finalizeSection(Obj, I->second, Section))
           return Err;
     }
@@ -281,8 +281,8 @@ unsigned char *RuntimeDyldMachOCRTPBase<Impl>::processFDE(uint8_t *P,
   uint32_t Length = readBytesUnaligned(P, 4);
   P += 4;
   uint8_t *Ret = P + Length;
-  uint32_t Offset = readBytesUnaligned(P, 4);
-  if (Offset == 0) // is a CIE
+  
+  if (uint32_t Offset = readBytesUnaligned(P, 4); Offset == 0) // is a CIE
     return Ret;
 
   P += 4;

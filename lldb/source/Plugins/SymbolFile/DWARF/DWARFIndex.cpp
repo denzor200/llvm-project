@@ -36,8 +36,8 @@ IterationAction DWARFIndex::ProcessFunctionDIE(
     if (const char *mangled_die_name = die.GetMangledName()) {
       name_to_match_against = ConstString(mangled_die_name);
     } else {
-      SymbolFileDWARF *symbols = die.GetDWARF();
-      if (ConstString demangled_die_name =
+      
+      if (SymbolFileDWARF *symbols = die.GetDWARF(); ConstString demangled_die_name =
               symbols->ConstructFunctionDemangledName(die))
         name_to_match_against = demangled_die_name;
     }

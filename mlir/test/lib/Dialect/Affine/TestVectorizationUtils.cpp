@@ -125,9 +125,9 @@ void VectorizerTestPass::testVectorShapeRatio(llvm::raw_ostream &outs) {
     // purpose of this test. If we need to test more intricate behavior in the
     // future we can always extend.
     auto superVectorType = cast<VectorType>(opInst->getResult(0).getType());
-    auto ratio =
-        computeShapeRatio(superVectorType.getShape(), subVectorType.getShape());
-    if (!ratio) {
+    
+    if (auto ratio =
+        computeShapeRatio(superVectorType.getShape(), subVectorType.getShape()); !ratio) {
       opInst->emitRemark("NOT MATCHED");
     } else {
       outs << "\nmatched: " << *opInst << " with shape ratio: ";

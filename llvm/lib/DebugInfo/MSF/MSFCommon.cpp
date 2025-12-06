@@ -33,13 +33,13 @@ Error llvm::msf::validateSuperBlock(const SuperBlock &SB) {
 
   // The number of blocks which comprise the directory is a simple function of
   // the number of bytes it contains.
-  uint64_t NumDirectoryBlocks =
-      bytesToBlocks(SB.NumDirectoryBytes, SB.BlockSize);
+  
 
   // The directory, as we understand it, is a block which consists of a list of
   // block numbers.  It is unclear what would happen if the number of blocks
   // couldn't fit on a single block.
-  if (NumDirectoryBlocks > SB.BlockSize / sizeof(support::ulittle32_t))
+  if (uint64_t NumDirectoryBlocks =
+      bytesToBlocks(SB.NumDirectoryBytes, SB.BlockSize); NumDirectoryBlocks > SB.BlockSize / sizeof(support::ulittle32_t))
     return make_error<MSFError>(msf_error_code::invalid_format,
                                 "Too many directory blocks.");
 

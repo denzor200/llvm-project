@@ -138,8 +138,8 @@ void ExecutionEngine::addArchive(object::OwningBinary<object::Archive> A) {
 
 bool ExecutionEngine::removeModule(Module *M) {
   for (auto I = Modules.begin(), E = Modules.end(); I != E; ++I) {
-    Module *Found = I->get();
-    if (Found == M) {
+    
+    if (Module *Found = I->get(); Found == M) {
       I->release();
       Modules.erase(I);
       clearGlobalMappingsFromModule(M);
@@ -151,8 +151,8 @@ bool ExecutionEngine::removeModule(Module *M) {
 
 Function *ExecutionEngine::FindFunctionNamed(StringRef FnName) {
   for (const auto &M : Modules) {
-    Function *F = M->getFunction(FnName);
-    if (F && !F->isDeclaration())
+    
+    if (Function *F = M->getFunction(FnName); F && !F->isDeclaration())
       return F;
   }
   return nullptr;
@@ -160,8 +160,8 @@ Function *ExecutionEngine::FindFunctionNamed(StringRef FnName) {
 
 GlobalVariable *ExecutionEngine::FindGlobalVariableNamed(StringRef Name, bool AllowInternal) {
   for (const auto &M : Modules) {
-    GlobalVariable *GV = M->getGlobalVariable(Name, AllowInternal);
-    if (GV && !GV->isDeclaration())
+    
+    if (GlobalVariable *GV = M->getGlobalVariable(Name, AllowInternal); GV && !GV->isDeclaration())
       return GV;
   }
   return nullptr;
@@ -602,8 +602,8 @@ GenericValue ExecutionEngine::getConstantValue(const Constant *C) {
         unsigned int elemNum = STy->getNumElements();
         Result.AggregateVal.resize(elemNum);
         for (unsigned int i = 0; i < elemNum; ++i) {
-          Type *ElemTy = STy->getElementType(i);
-          if (ElemTy->isIntegerTy())
+          
+          if (Type *ElemTy = STy->getElementType(i); ElemTy->isIntegerTy())
             Result.AggregateVal[i].IntVal =
               APInt(ElemTy->getPrimitiveSizeInBits(), 0);
           else if (ElemTy->isAggregateType()) {
@@ -646,8 +646,8 @@ GenericValue ExecutionEngine::getConstantValue(const Constant *C) {
 
   // Otherwise, if the value is a ConstantExpr...
   if (const ConstantExpr *CE = dyn_cast<ConstantExpr>(C)) {
-    Constant *Op0 = CE->getOperand(0);
-    switch (CE->getOpcode()) {
+    
+    switch (Constant *Op0 = CE->getOperand(0); CE->getOpcode()) {
     case Instruction::GetElementPtr: {
       // Compute the index
       GenericValue Result = getConstantValue(Op0);
@@ -721,8 +721,8 @@ GenericValue ExecutionEngine::getConstantValue(const Constant *C) {
     case Instruction::FPToUI: // double->APInt conversion handles sign
     case Instruction::FPToSI: {
       GenericValue GV = getConstantValue(Op0);
-      uint32_t BitWidth = cast<IntegerType>(CE->getType())->getBitWidth();
-      if (Op0->getType()->isFloatTy())
+      
+      if (uint32_t BitWidth = cast<IntegerType>(CE->getType())->getBitWidth(); Op0->getType()->isFloatTy())
         GV.IntVal = APIntOps::RoundFloatToAPInt(GV.FloatVal, BitWidth);
       else if (Op0->getType()->isDoubleTy())
         GV.IntVal = APIntOps::RoundDoubleToAPInt(GV.DoubleVal, BitWidth);
@@ -756,8 +756,8 @@ GenericValue ExecutionEngine::getConstantValue(const Constant *C) {
     }
     case Instruction::BitCast: {
       GenericValue GV = getConstantValue(Op0);
-      Type* DestTy = CE->getType();
-      switch (Op0->getType()->getTypeID()) {
+      
+      switch (Type* DestTy = CE->getType(); Op0->getType()->getTypeID()) {
         default: llvm_unreachable("Invalid bitcast operand");
         case Type::IntegerTyID:
           assert(DestTy->isFloatingPointTy() && "invalid bitcast");
@@ -847,8 +847,8 @@ GenericValue ExecutionEngine::getConstantValue(const Constant *C) {
       case Type::PPC_FP128TyID:
       case Type::FP128TyID: {
         const fltSemantics &Sem = CE->getOperand(0)->getType()->getFltSemantics();
-        APFloat apfLHS = APFloat(Sem, LHS.IntVal);
-        switch (CE->getOpcode()) {
+        
+        switch (APFloat apfLHS = APFloat(Sem, LHS.IntVal); CE->getOpcode()) {
           default: llvm_unreachable("Invalid long double opcode");
           case Instruction::FAdd:
             apfLHS.add(APFloat(Sem, RHS.IntVal), APFloat::rmNearestTiesToEven);
@@ -1090,9 +1090,9 @@ void ExecutionEngine::LoadValueFromMemory(GenericValue &Result,
   if (auto *TETy = dyn_cast<TargetExtType>(Ty))
     Ty = TETy->getLayoutType();
 
-  const unsigned LoadBytes = getDataLayout().getTypeStoreSize(Ty);
+  
 
-  switch (Ty->getTypeID()) {
+  switch (const unsigned LoadBytes = getDataLayout().getTypeStoreSize(Ty); Ty->getTypeID()) {
   case Type::IntegerTyID:
     // An APInt with all words initially zero.
     Result.IntVal = APInt(cast<IntegerType>(Ty)->getBitWidth(), 0);

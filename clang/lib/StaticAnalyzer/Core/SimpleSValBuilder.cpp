@@ -201,9 +201,9 @@ SVal SimpleSValBuilder::MakeSymIntVal(const SymExpr *LHS,
     ASTContext &Ctx = getContext();
     QualType SymbolType = LHS->getType();
     uint64_t ValWidth = RHS.getBitWidth();
-    uint64_t TypeWidth = Ctx.getTypeSize(SymbolType);
+    
 
-    if (ValWidth < TypeWidth) {
+    if (uint64_t TypeWidth = Ctx.getTypeSize(SymbolType); ValWidth < TypeWidth) {
       // If the value is too small, extend it.
       ConvertedRHS = BasicVals.Convert(SymbolType, RHS);
     } else if (ValWidth == TypeWidth) {
@@ -217,8 +217,8 @@ SVal SimpleSValBuilder::MakeSymIntVal(const SymExpr *LHS,
     // Change a+(-N) into a-N, and a-(-N) into a+N
     // Adjust addition/subtraction of negative value, to
     // subtraction/addition of the negated value.
-    APSIntType resultIntTy = BasicVals.getAPSIntType(resultTy);
-    if (isNegationValuePreserving(RHS, resultIntTy)) {
+    
+    if (APSIntType resultIntTy = BasicVals.getAPSIntType(resultTy); isNegationValuePreserving(RHS, resultIntTy)) {
       ConvertedRHS = BasicVals.getValue(-resultIntTy.convert(RHS));
       op = (op == BO_Add) ? BO_Sub : BO_Add;
     } else {
@@ -469,8 +469,8 @@ SVal SimpleSValBuilder::evalBinOpNN(ProgramStateRef state,
              "Both SVals should have pointer-to-member-type");
       auto LPTM = lhs.castAs<nonloc::PointerToMember>(),
            RPTM = rhs.castAs<nonloc::PointerToMember>();
-      auto LPTMD = LPTM.getPTMData(), RPTMD = RPTM.getPTMData();
-      switch (op) {
+      
+      switch (auto LPTMD = LPTM.getPTMData(), RPTMD = RPTM.getPTMData(); op) {
         case BO_EQ:
           return makeTruthVal(LPTMD == RPTMD, resultTy);
         case BO_NE:
@@ -480,8 +480,8 @@ SVal SimpleSValBuilder::evalBinOpNN(ProgramStateRef state,
       }
     }
     case nonloc::LocAsIntegerKind: {
-      Loc lhsL = lhs.castAs<nonloc::LocAsInteger>().getLoc();
-      switch (rhs.getKind()) {
+      
+      switch (Loc lhsL = lhs.castAs<nonloc::LocAsInteger>().getLoc(); rhs.getKind()) {
       case nonloc::LocAsIntegerKind:
         // FIXME: at the moment the implementation
         // of modeling "pointers as integers" is not complete.
@@ -616,8 +616,8 @@ SVal SimpleSValBuilder::evalBinOpNN(ProgramStateRef state,
         if (op == BO_EQ && rhs.isZeroConstant()) {
           // We know how to negate certain expressions. Simplify them here.
 
-          BinaryOperator::Opcode opc = symIntExpr->getOpcode();
-          switch (opc) {
+          
+          switch (BinaryOperator::Opcode opc = symIntExpr->getOpcode(); opc) {
           default:
             // We don't know how to negate this operation.
             // Just handle it as if it were a normal comparison to 0.
@@ -664,8 +664,8 @@ SVal SimpleSValBuilder::evalBinOpNN(ProgramStateRef state,
           // If both the LHS and the current expression are additive,
           // fold their constants and try again.
           if (BinaryOperator::isAdditiveOp(op)) {
-            BinaryOperator::Opcode lop = symIntExpr->getOpcode();
-            if (BinaryOperator::isAdditiveOp(lop)) {
+            
+            if (BinaryOperator::Opcode lop = symIntExpr->getOpcode(); BinaryOperator::isAdditiveOp(lop)) {
               // Convert the two constants to a common type, then combine them.
 
               // resultTy may not be the best type to convert to, but it's
@@ -779,9 +779,9 @@ static void assertEqualBitWidths(ProgramStateRef State, Loc RhsLoc,
   ASTContext &Ctx = State->getStateManager().getContext();
   uint64_t RhsBitwidth =
       RhsLoc.getType(Ctx).isNull() ? 0 : Ctx.getTypeSize(RhsLoc.getType(Ctx));
-  uint64_t LhsBitwidth =
-      LhsLoc.getType(Ctx).isNull() ? 0 : Ctx.getTypeSize(LhsLoc.getType(Ctx));
-  if (RhsBitwidth && LhsBitwidth && (LhsLoc.getKind() == RhsLoc.getKind())) {
+  
+  if (uint64_t LhsBitwidth =
+      LhsLoc.getType(Ctx).isNull() ? 0 : Ctx.getTypeSize(LhsLoc.getType(Ctx)); RhsBitwidth && LhsBitwidth && (LhsLoc.getKind() == RhsLoc.getKind())) {
     assert(RhsBitwidth == LhsBitwidth &&
            "RhsLoc and LhsLoc bitwidth must be same!");
   }
@@ -1032,9 +1032,9 @@ SVal SimpleSValBuilder::evalBinOpLL(ProgramStateRef state,
     const FieldRegion *RightFR = dyn_cast<FieldRegion>(RightMR);
     const FieldRegion *LeftFR = dyn_cast<FieldRegion>(LeftMR);
     if (RightFR && LeftFR) {
-      SVal R = evalBinOpFieldRegionFieldRegion(LeftFR, RightFR, op, resultTy,
-                                               *this);
-      if (!R.isUnknown())
+      
+      if (SVal R = evalBinOpFieldRegionFieldRegion(LeftFR, RightFR, op, resultTy,
+                                               *this); !R.isUnknown())
         return R;
     }
 
@@ -1046,9 +1046,9 @@ SVal SimpleSValBuilder::evalBinOpLL(ProgramStateRef state,
         LeftOffset.getRegion() == RightOffset.getRegion() &&
         !LeftOffset.hasSymbolicOffset() && !RightOffset.hasSymbolicOffset()) {
       int64_t left = LeftOffset.getOffset();
-      int64_t right = RightOffset.getOffset();
+      
 
-      switch (op) {
+      switch (int64_t right = RightOffset.getOffset(); op) {
         default:
           return UnknownVal();
         case BO_LT:
@@ -1297,9 +1297,9 @@ SVal SimpleSValBuilder::simplifySValOnce(ProgramStateRef State, SVal V) {
     // Return the known const value for the Sym if available, or return Undef
     // otherwise.
     SVal getConst(SymbolRef Sym) {
-      const llvm::APSInt *Const =
-          State->getConstraintManager().getSymVal(State, Sym);
-      if (Const)
+      
+      if (const llvm::APSInt *Const =
+          State->getConstraintManager().getSymVal(State, Sym); Const)
         return Loc::isLocType(Sym->getType()) ? (SVal)SVB.makeIntLocVal(*Const)
                                               : (SVal)SVB.makeIntVal(*Const);
       return UndefinedVal();

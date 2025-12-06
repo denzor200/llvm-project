@@ -40,8 +40,8 @@ TEST_F(LlvmLibcIsATTYTest, BadFdTest) {
 TEST_F(LlvmLibcIsATTYTest, DevTTYTest) {
   constexpr const char *FILENAME = "/dev/tty";
   auto TTY_FILE = libc_make_test_file_path(FILENAME);
-  int fd = LIBC_NAMESPACE::open(TTY_FILE, O_RDONLY);
-  if (fd > 0) {
+  
+  if (int fd = LIBC_NAMESPACE::open(TTY_FILE, O_RDONLY); fd > 0) {
     ASSERT_ERRNO_SUCCESS();
     EXPECT_THAT(LIBC_NAMESPACE::isatty(fd), Succeeds(1));
     ASSERT_THAT(LIBC_NAMESPACE::close(fd), Succeeds(0));

@@ -268,8 +268,8 @@ bool X86FastISel::foldX86XALUIntrinsic(X86::CondCode &CC, const Instruction *I,
       return false;
 
     // Check that the extractvalue operand comes from the intrinsic.
-    const auto *EVI = cast<ExtractValueInst>(Itr);
-    if (EVI->getAggregateOperand() != II)
+    
+    if (const auto *EVI = cast<ExtractValueInst>(Itr); EVI->getAggregateOperand() != II)
       return false;
   }
 
@@ -885,9 +885,9 @@ redo_gep:
   case Instruction::Add: {
     // Adds of constants are common and easy enough.
     if (const ConstantInt *CI = dyn_cast<ConstantInt>(U->getOperand(1))) {
-      uint64_t Disp = (int32_t)AM.Disp + (uint64_t)CI->getSExtValue();
+      
       // They have to fit in the 32-bit signed displacement field though.
-      if (isInt<32>(Disp)) {
+      if (uint64_t Disp = (int32_t)AM.Disp + (uint64_t)CI->getSExtValue(); isInt<32>(Disp)) {
         AM.Disp = (uint32_t)Disp;
         return X86SelectAddress(U->getOperand(0), AM);
       }
@@ -1358,9 +1358,9 @@ static unsigned X86ChooseCmpOpcode(EVT VT, const X86Subtarget *Subtarget) {
   bool HasAVX512 = Subtarget->hasAVX512();
   bool HasAVX = Subtarget->hasAVX();
   bool HasSSE1 = Subtarget->hasSSE1();
-  bool HasSSE2 = Subtarget->hasSSE2();
+  
 
-  switch (VT.getSimpleVT().SimpleTy) {
+  switch (bool HasSSE2 = Subtarget->hasSSE2(); VT.getSimpleVT().SimpleTy) {
   default:       return 0;
   case MVT::i8:  return X86::CMP8rr;
   case MVT::i16: return X86::CMP16rr;
@@ -1479,8 +1479,8 @@ bool X86FastISel::X86SelectCmp(const Instruction *I) {
   // We don't have to materialize a zero constant for this case and can just use
   // %x again on the RHS.
   if (Predicate == CmpInst::FCMP_ORD || Predicate == CmpInst::FCMP_UNO) {
-    const auto *RHSC = dyn_cast<ConstantFP>(RHS);
-    if (RHSC && RHSC->isNullValue())
+    
+    if (const auto *RHSC = dyn_cast<ConstantFP>(RHS); RHSC && RHSC->isNullValue())
       RHS = LHS;
   }
 
@@ -1664,8 +1664,8 @@ bool X86FastISel::X86SelectBranch(const Instruction *I) {
       // We don't have to materialize a zero constant for this case and can just
       // use %x again on the RHS.
       if (Predicate == CmpInst::FCMP_ORD || Predicate == CmpInst::FCMP_UNO) {
-        const auto *CmpRHSC = dyn_cast<ConstantFP>(CmpRHS);
-        if (CmpRHSC && CmpRHSC->isNullValue())
+        
+        if (const auto *CmpRHSC = dyn_cast<ConstantFP>(CmpRHS); CmpRHSC && CmpRHSC->isNullValue())
           CmpRHS = CmpLHS;
       }
 
@@ -1719,8 +1719,8 @@ bool X86FastISel::X86SelectBranch(const Instruction *I) {
   } else if (TruncInst *TI = dyn_cast<TruncInst>(BI->getCondition())) {
     // Handle things like "%cond = trunc i32 %X to i1 / br i1 %cond", which
     // typically happen for _Bool and C++ bools.
-    MVT SourceVT;
-    if (TI->hasOneUse() && TI->getParent() == I->getParent() &&
+    
+    if (MVT SourceVT; TI->hasOneUse() && TI->getParent() == I->getParent() &&
         isTypeLegal(TI->getOperand(0)->getType(), SourceVT)) {
       unsigned TestOpc = 0;
       switch (SourceVT.SimpleTy) {
@@ -2044,8 +2044,8 @@ bool X86FastISel::X86FastEmitCMoveSelect(MVT RetVT, const Instruction *I) {
   // Optimize conditions coming from a compare if both instructions are in the
   // same basic block (values defined in other basic blocks may not have
   // initialized registers).
-  const auto *CI = dyn_cast<CmpInst>(Cond);
-  if (CI && (CI->getParent() == I->getParent())) {
+  
+  if (const auto *CI = dyn_cast<CmpInst>(Cond); CI && (CI->getParent() == I->getParent())) {
     CmpInst::Predicate Predicate = optimizeCmpPredicate(CI);
 
     // FCMP_OEQ and FCMP_UNE cannot be checked with a single instruction.
@@ -2087,8 +2087,8 @@ bool X86FastISel::X86FastEmitCMoveSelect(MVT RetVT, const Instruction *I) {
               FlagReg1).addImm(SETFOpc[0]);
       BuildMI(*FuncInfo.MBB, FuncInfo.InsertPt, MIMD, TII.get(X86::SETCCr),
               FlagReg2).addImm(SETFOpc[1]);
-      auto const &II = TII.get(SETFOpc[2]);
-      if (II.getNumDefs()) {
+      
+      if (auto const &II = TII.get(SETFOpc[2]); II.getNumDefs()) {
         Register TmpReg = createResultReg(&X86::GR8RegClass);
         BuildMI(*FuncInfo.MBB, FuncInfo.InsertPt, MIMD, II, TmpReg)
           .addReg(FlagReg2).addReg(FlagReg1);
@@ -2174,8 +2174,8 @@ bool X86FastISel::X86FastEmitSSESelect(MVT RetVT, const Instruction *I) {
   // We don't have to materialize a zero constant for this case and can just use
   // %x again on the RHS.
   if (Predicate == CmpInst::FCMP_ORD || Predicate == CmpInst::FCMP_UNO) {
-    const auto *CmpRHSC = dyn_cast<ConstantFP>(CmpRHS);
-    if (CmpRHSC && CmpRHSC->isNullValue())
+    
+    if (const auto *CmpRHSC = dyn_cast<ConstantFP>(CmpRHS); CmpRHSC && CmpRHSC->isNullValue())
       CmpRHS = CmpLHS;
   }
 
@@ -2298,8 +2298,8 @@ bool X86FastISel::X86FastEmitPseudoSelect(MVT RetVT, const Instruction *I) {
   // Optimize conditions coming from a compare if both instructions are in the
   // same basic block (values defined in other basic blocks may not have
   // initialized registers).
-  const auto *CI = dyn_cast<CmpInst>(Cond);
-  if (CI && (CI->getParent() == I->getParent())) {
+  
+  if (const auto *CI = dyn_cast<CmpInst>(Cond); CI && (CI->getParent() == I->getParent())) {
     bool NeedSwap;
     std::tie(CC, NeedSwap) = X86::getX86ConditionCode(CI->getPredicate());
     if (CC > X86::LAST_VALID_COND)
@@ -2753,8 +2753,8 @@ bool X86FastISel::fastLowerIntrinsicCall(const IntrinsicInst *II) {
     if (isa<ConstantInt>(MCI->getLength())) {
       // Small memcpy's are common enough that we want to do them
       // without a call if possible.
-      uint64_t Len = cast<ConstantInt>(MCI->getLength())->getZExtValue();
-      if (IsMemcpySmall(Len)) {
+      
+      if (uint64_t Len = cast<ConstantInt>(MCI->getLength())->getZExtValue(); IsMemcpySmall(Len)) {
         X86AddressMode DestAM, SrcAM;
         if (!X86SelectAddress(MCI->getRawDest(), DestAM) ||
             !X86SelectAddress(MCI->getRawSource(), SrcAM))
@@ -2930,12 +2930,12 @@ bool X86FastISel::fastLowerIntrinsicCall(const IntrinsicInst *II) {
     Register ResultReg;
     // Check if we have an immediate version.
     if (const auto *CI = dyn_cast<ConstantInt>(RHS)) {
-      static const uint16_t Opc[2][4] = {
+      
+
+      if (static const uint16_t Opc[2][4] = {
         { X86::INC8r, X86::INC16r, X86::INC32r, X86::INC64r },
         { X86::DEC8r, X86::DEC16r, X86::DEC32r, X86::DEC64r }
-      };
-
-      if (CI->isOne() && (BaseOpc == ISD::ADD || BaseOpc == ISD::SUB) &&
+      }; CI->isOne() && (BaseOpc == ISD::ADD || BaseOpc == ISD::SUB) &&
           CondCode == X86::COND_O) {
         // We can use INC/DEC.
         ResultReg = createResultReg(TLI.getRegClassFor(VT));
@@ -2969,9 +2969,9 @@ bool X86FastISel::fastLowerIntrinsicCall(const IntrinsicInst *II) {
       ResultReg = fastEmitInst_r(MULOpc[VT.SimpleTy-MVT::i8],
                                  TLI.getRegClassFor(VT), RHSReg);
     } else if (BaseOpc == X86ISD::SMUL && !ResultReg) {
-      static const uint16_t MULOpc[] =
-        { X86::IMUL8r, X86::IMUL16rr, X86::IMUL32rr, X86::IMUL64rr };
-      if (VT == MVT::i8) {
+      
+      if (static const uint16_t MULOpc[] =
+        { X86::IMUL8r, X86::IMUL16rr, X86::IMUL32rr, X86::IMUL64rr }; VT == MVT::i8) {
         // Copy the first operand into AL, which is an implicit input to the
         // X86::IMUL8r instruction.
         BuildMI(*FuncInfo.MBB, FuncInfo.InsertPt, MIMD,
@@ -3493,10 +3493,10 @@ bool X86FastISel::fastLowerCall(CallLoweringInfo &CLI) {
       AM.Disp = LocMemOffset;
       ISD::ArgFlagsTy Flags = OutFlags[VA.getValNo()];
       Align Alignment = DL.getABITypeAlign(ArgVal->getType());
-      MachineMemOperand *MMO = FuncInfo.MF->getMachineMemOperand(
+      
+      if (MachineMemOperand *MMO = FuncInfo.MF->getMachineMemOperand(
           MachinePointerInfo::getStack(*FuncInfo.MF, LocMemOffset),
-          MachineMemOperand::MOStore, ArgVT.getStoreSize(), Alignment);
-      if (Flags.isByVal()) {
+          MachineMemOperand::MOStore, ArgVT.getStoreSize(), Alignment); Flags.isByVal()) {
         X86AddressMode SrcAM;
         SrcAM.Base.Reg = ArgReg;
         if (!TryEmitSmallMemcpy(AM, SrcAM, Flags.getByValSize()))
@@ -3751,8 +3751,8 @@ Register X86FastISel::X86MaterializeInt(const ConstantInt *CI, MVT VT) {
 
   uint64_t Imm = CI->getZExtValue();
   if (Imm == 0) {
-    Register SrcReg = fastEmitInst_(X86::MOV32r0, &X86::GR32RegClass);
-    switch (VT.SimpleTy) {
+    
+    switch (Register SrcReg = fastEmitInst_(X86::MOV32r0, &X86::GR32RegClass); VT.SimpleTy) {
     default: llvm_unreachable("Unexpected value type");
     case MVT::i1:
     case MVT::i8:
@@ -3808,8 +3808,8 @@ Register X86FastISel::X86MaterializeFP(const ConstantFP *CFP, MVT VT) {
   bool HasSSE1 = Subtarget->hasSSE1();
   bool HasSSE2 = Subtarget->hasSSE2();
   bool HasAVX = Subtarget->hasAVX();
-  bool HasAVX512 = Subtarget->hasAVX512();
-  switch (VT.SimpleTy) {
+  
+  switch (bool HasAVX512 = Subtarget->hasAVX512(); VT.SimpleTy) {
   default:
     return Register();
   case MVT::f32:

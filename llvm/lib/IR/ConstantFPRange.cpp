@@ -594,8 +594,8 @@ ConstantFPRange ConstantFPRange::mul(const ConstantFPRange &Other) const {
     // Finite * Finite
     if (LHS->FinitePart && RHS->FinitePart) {
       APFloat NewLower = LHS->FinitePart->first * RHS->FinitePart->first;
-      APFloat NewUpper = LHS->FinitePart->second * RHS->FinitePart->second;
-      if (Negative) {
+      
+      if (APFloat NewUpper = LHS->FinitePart->second * RHS->FinitePart->second; Negative) {
         ResLower = minnum(ResLower, -NewUpper);
         ResUpper = maxnum(ResUpper, -NewLower);
       } else {
@@ -653,11 +653,11 @@ ConstantFPRange ConstantFPRange::div(const ConstantFPRange &Other) const {
       assert(!RHS->FinitePart->second.isZero() &&
              "Divisor should be non-zero.");
       APFloat NewLower = LHS->FinitePart->first / RHS->FinitePart->second;
-      APFloat NewUpper = LHS->FinitePart->second /
+      
+      if (APFloat NewUpper = LHS->FinitePart->second /
                          (RHS->FinitePart->first.isZero()
                               ? APFloat::getSmallest(Sem, /*Negative=*/false)
-                              : RHS->FinitePart->first);
-      if (Negative) {
+                              : RHS->FinitePart->first); Negative) {
         ResLower = minnum(ResLower, -NewUpper);
         ResUpper = maxnum(ResUpper, -NewLower);
       } else {

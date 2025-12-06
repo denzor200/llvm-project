@@ -234,8 +234,8 @@ static bool astScheduleDimIsParallel(const isl::ast_build &Build,
   for (const auto &MaRedPair : D->getReductionDependences()) {
     if (!MaRedPair.second)
       continue;
-    isl::union_map MaRedDeps = isl::manage_copy(MaRedPair.second);
-    if (!D->isParallel(Schedule.get(), MaRedDeps.release()))
+    
+    if (isl::union_map MaRedDeps = isl::manage_copy(MaRedPair.second); !D->isParallel(Schedule.get(), MaRedDeps.release()))
       NodeInfo->BrokenReductions.insert(MaRedPair.first);
   }
   return true;
@@ -302,8 +302,8 @@ static isl_stat astBuildBeforeMark(__isl_keep isl_id *MarkId,
   if (!MarkId)
     return isl_stat_error;
 
-  AstBuildUserInfo *BuildInfo = (AstBuildUserInfo *)User;
-  if (strcmp(isl_id_get_name(MarkId), "SIMD") == 0)
+  
+  if (AstBuildUserInfo *BuildInfo = (AstBuildUserInfo *)User; strcmp(isl_id_get_name(MarkId), "SIMD") == 0)
     BuildInfo->InSIMD = true;
 
   return isl_stat_ok;
@@ -355,9 +355,9 @@ static isl::ast_expr buildCondition(Scop &S, isl::ast_build Build,
 
   const ScopArrayInfo *BaseLeft =
       ScopArrayInfo::getFromId(Left)->getBasePtrOriginSAI();
-  const ScopArrayInfo *BaseRight =
-      ScopArrayInfo::getFromId(Right)->getBasePtrOriginSAI();
-  if (BaseLeft && BaseLeft == BaseRight)
+  
+  if (const ScopArrayInfo *BaseRight =
+      ScopArrayInfo::getFromId(Right)->getBasePtrOriginSAI(); BaseLeft && BaseLeft == BaseRight)
     return True;
 
   isl::set Params = S.getContext();
@@ -381,8 +381,8 @@ static isl::ast_expr buildCondition(Scop &S, isl::ast_build Build,
     MinExpr = Build.access_from(BFirst).address_of();
     MaxExpr = Build.access_from(ASecond).address_of();
 
-    isl::ast_expr Result = MaxExpr.le(MinExpr);
-    if (!NonAliasGroup.is_null())
+    
+    if (isl::ast_expr Result = MaxExpr.le(MinExpr); !NonAliasGroup.is_null())
       NonAliasGroup = isl::manage(
           isl_ast_expr_or(NonAliasGroup.release(), Result.release()));
     else

@@ -118,8 +118,8 @@ static void getXferIndices(OpBuilder &b, OpTy xferOp, Value iv,
   indices.append(prevIndices.begin(), prevIndices.end());
 
   Location loc = xferOp.getLoc();
-  bool isBroadcast = !dim.has_value();
-  if (!isBroadcast) {
+  
+  if (bool isBroadcast = !dim.has_value(); !isBroadcast) {
     AffineExpr d0, d1;
     bindDims(xferOp.getContext(), d0, d1);
     Value offset = adaptor.getIndices()[*dim];
@@ -925,8 +925,8 @@ struct TransferOpConversion : public VectorToSCFPattern<OpTy> {
     // If the xferOp has a mask: Find and cast mask buffer.
     Value castedMaskBuffer;
     if (xferOp.getMask()) {
-      Value maskBuffer = getMaskBuffer(xferOp);
-      if (xferOp.isBroadcastDim(0) || xferOp.getMaskType().getRank() == 1) {
+      
+      if (Value maskBuffer = getMaskBuffer(xferOp); xferOp.isBroadcastDim(0) || xferOp.getMaskType().getRank() == 1) {
         // Do not unpack a dimension of the mask, if:
         // * To-be-unpacked transfer op dimension is a broadcast.
         // * Mask is 1D, i.e., the mask cannot be further unpacked.
@@ -1273,8 +1273,8 @@ struct UnrollTransferReadConversion
   /// vector::InsertOp, return that operation.
   vector::InsertOp getInsertOp(TransferReadOp xferOp) const {
     if (xferOp->hasOneUse()) {
-      Operation *xferOpUser = *xferOp->getUsers().begin();
-      if (auto insertOp = dyn_cast<vector::InsertOp>(xferOpUser))
+      
+      if (Operation *xferOpUser = *xferOp->getUsers().begin(); auto insertOp = dyn_cast<vector::InsertOp>(xferOpUser))
         return insertOp;
     }
 
@@ -1466,7 +1466,9 @@ struct UnrollTransferWriteConversion
     for (int64_t i = 0; i < dimSize; ++i) {
       Value iv = arith::ConstantIndexOp::create(rewriter, loc, i);
 
-      auto updatedSource = generateInBoundsCheck(
+      
+
+      if (auto updatedSource = generateInBoundsCheck(
           rewriter, xferOp, iv, unpackedDim(xferOp),
           isTensorOp(xferOp) ? TypeRange(sourceType) : TypeRange(),
           /*inBoundsCase=*/
@@ -1505,9 +1507,7 @@ struct UnrollTransferWriteConversion
           /*outOfBoundsCase=*/
           [&](OpBuilder &b, Location loc) {
             return isTensorOp(xferOp) ? source : Value();
-          });
-
-      if (isTensorOp(xferOp))
+          }); isTensorOp(xferOp))
         source = updatedSource;
     }
 

@@ -85,9 +85,9 @@ std::optional<unsigned> getVVPOpcode(unsigned Opcode) {
 
 bool maySafelyIgnoreMask(SDValue Op) {
   auto VVPOpc = getVVPOpcode(Op->getOpcode());
-  auto Opc = VVPOpc.value_or(Op->getOpcode());
+  
 
-  switch (Opc) {
+  switch (auto Opc = VVPOpc.value_or(Op->getOpcode()); Opc) {
   case VEISD::VVP_SDIV:
   case VEISD::VVP_UDIV:
   case VEISD::VVP_FDIV:
@@ -570,15 +570,15 @@ SDValue VECustomDAG::getLegalReductionOpVVP(unsigned VVPOpcode, EVT ResVT,
   bool scalarizeStartParam = StartV && !hasReductionStartParam(VVPOpcode);
   bool IsMaskReduction = isMaskType(VectorV.getValueType());
   assert(!IsMaskReduction && "TODO Implement");
-  auto AttachStartValue = [&](SDValue ReductionResV) {
+  
+
+  // Fixup: Always Use sequential 'fmul' reduction.
+  if (auto AttachStartValue = [&](SDValue ReductionResV) {
     if (!scalarizeStartParam)
       return ReductionResV;
     auto ScalarOC = getScalarReductionOpcode(VVPOpcode, IsMaskReduction);
     return getNode(ScalarOC, ResVT, {StartV, ReductionResV});
-  };
-
-  // Fixup: Always Use sequential 'fmul' reduction.
-  if (!scalarizeStartParam && StartV) {
+  }; !scalarizeStartParam && StartV) {
     assert(hasReductionStartParam(VVPOpcode));
     return AttachStartValue(
         getNode(VVPOpcode, ResVT, {StartV, VectorV, Mask, AVL}, Flags));

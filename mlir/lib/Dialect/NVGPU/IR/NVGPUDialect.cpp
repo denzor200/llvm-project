@@ -101,8 +101,8 @@ LogicalResult DeviceAsyncCopyOp::verify() {
     return diag;
   }
   if (getBypassL1().has_value()) {
-    int64_t req = 16 * 8 / dstMemref.getElementTypeBitWidth();
-    if (getBypassL1().value() && sizeInBytes != 16) {
+    
+    if (int64_t req = 16 * 8 / dstMemref.getElementTypeBitWidth(); getBypassL1().value() && sizeInBytes != 16) {
       return emitOpError() << "bypassL1 does not satify alignment for "
                            << dstMemref << " with destination element "
                            << dstElements
@@ -278,8 +278,8 @@ void MmaSparseSyncOp::build(::mlir::OpBuilder &odsBuilder,
 }
 
 LogicalResult MmaSparseSyncOp::verify() {
-  unsigned sparsitySelector = getSparsitySelector();
-  if (sparsitySelector > 1)
+  
+  if (unsigned sparsitySelector = getSparsitySelector(); sparsitySelector > 1)
     return emitOpError() << "sparsity selector should be 0 or 1";
   return verifyMmaSyncOp(this->getOperation(), getMatrixA(), getMatrixB(),
                          getMatrixC(), getMmaShapeAsArray(),
@@ -384,8 +384,8 @@ std::optional<InFlightDiagnostic> verifyTmaDescriptorWithMemref(
       descType.getSwizzle() != TensorMapSwizzleKind::SWIZZLE_NONE) {
     unsigned lastDimensionByte =
         descMemref.getElementTypeBitWidth() * descMemref.getShape().back() / 8;
-    unsigned expectByte = getSwizzleBytes(descType.getSwizzle());
-    if (lastDimensionByte != expectByte)
+    
+    if (unsigned expectByte = getSwizzleBytes(descType.getSwizzle()); lastDimensionByte != expectByte)
       return op->emitError() << "the tensormap descriptor must have last "
                                 "dimension of "
                              << expectByte << " bytes but it is "
@@ -674,9 +674,9 @@ LogicalResult WarpgroupMmaInitAccumulatorOp::verify() {
 
 LogicalResult RcpOp::verify() {
   RcpRoundingModeAttr rounding = getRoundingAttr();
-  bool ftz = getFtz();
+  
   // Currently, only `rcp_approx` and `ftz` is supported.
-  if (rounding.getValue() != RcpRoundingMode::APPROX || !ftz) {
+  if (bool ftz = getFtz(); rounding.getValue() != RcpRoundingMode::APPROX || !ftz) {
     return emitOpError() << "has a limitation. " << rounding
                          << " or non-ftz is not supported yet.";
   }

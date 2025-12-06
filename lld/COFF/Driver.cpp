@@ -260,10 +260,10 @@ void LinkerDriver::addBuffer(std::unique_ptr<MemoryBuffer> mb,
                              bool wholeArchive, bool lazy) {
   StringRef filename = mb->getBufferIdentifier();
 
-  MemoryBufferRef mbref = takeBuffer(std::move(mb));
+  
 
   // File type is detected by contents, not by file extension.
-  switch (identify_magic(mbref.getBuffer())) {
+  switch (MemoryBufferRef mbref = takeBuffer(std::move(mb)); identify_magic(mbref.getBuffer())) {
   case file_magic::windows_resource:
     resources.push_back(mbref);
     break;
@@ -351,8 +351,8 @@ void LinkerDriver::enqueuePath(StringRef path, bool wholeArchive, bool lazy) {
       // filenames, but e.g. `/nodefaultlibs` is more likely a typo for
       // the option `/nodefaultlib` than a reference to a file in the root
       // directory.
-      std::string nearest;
-      if (ctx.optTable.findNearest(pathStr, nearest) > 1)
+      
+      if (std::string nearest; ctx.optTable.findNearest(pathStr, nearest) > 1)
         Err(ctx) << msg;
       else
         Err(ctx) << msg << "; did you mean '" << nearest << "'";
@@ -616,8 +616,8 @@ std::optional<StringRef> LinkerDriver::findFileIfNew(StringRef filename) {
   StringRef path = findFile(filename);
 
   if (std::optional<sys::fs::UniqueID> id = getUniqueID(path)) {
-    bool seen = !visitedFiles.insert(*id).second;
-    if (seen)
+    
+    if (bool seen = !visitedFiles.insert(*id).second; seen)
       return std::nullopt;
   }
 
@@ -641,8 +641,8 @@ StringRef LinkerDriver::findLibMinGW(StringRef filename) {
 // Find library file from search path.
 StringRef LinkerDriver::findLib(StringRef filename) {
   // Add ".lib" to Filename if that has no file extension.
-  bool hasExt = filename.contains('.');
-  if (!hasExt)
+  
+  if (bool hasExt = filename.contains('.'); !hasExt)
     filename = saver().save(filename + ".lib");
   StringRef ret = findFile(filename);
   // For MinGW, if the find above didn't turn up anything, try
@@ -737,8 +737,8 @@ void LinkerDriver::detectWinSysRoot(const opt::InputArgList &Args) {
 
     if (useUniversalCRT(vsLayout, vcToolChainPath, getArch(), *VFS)) {
       std::string UniversalCRTSdkPath;
-      std::string UCRTVersion;
-      if (getUniversalCRTSdkDir(*VFS, WinSdkDir, WinSdkVersion, WinSysRoot,
+      
+      if (std::string UCRTVersion; getUniversalCRTSdkDir(*VFS, WinSdkDir, WinSdkVersion, WinSysRoot,
                                 UniversalCRTSdkPath, UCRTVersion)) {
         universalCRTLibPath = UniversalCRTSdkPath;
         path::append(universalCRTLibPath, "Lib", UCRTVersion, "ucrt");
@@ -796,15 +796,15 @@ void LinkerDriver::addWinSysRootLibSearchPaths() {
                             getArch(), "atlmfc")));
   }
   if (!universalCRTLibPath.empty()) {
-    StringRef ArchName = archToWindowsSDKArch(getArch());
-    if (!ArchName.empty()) {
+    
+    if (StringRef ArchName = archToWindowsSDKArch(getArch()); !ArchName.empty()) {
       path::append(universalCRTLibPath, ArchName);
       searchPaths.push_back(saver().save(universalCRTLibPath.str()));
     }
   }
   if (!windowsSdkLibPath.empty()) {
-    std::string path;
-    if (appendArchToWindowsSDKLibPath(sdkMajor, windowsSdkLibPath, getArch(),
+    
+    if (std::string path; appendArchToWindowsSDKLibPath(sdkMajor, windowsSdkLibPath, getArch(),
                                       path))
       searchPaths.push_back(saver().save(path));
   }
@@ -1206,8 +1206,8 @@ static void findKeepUniqueSections(COFFLinkerContext &ctx) {
   // Visit the address-significance table in each object file and mark each
   // referenced symbol as address-significant.
   for (ObjFile *obj : ctx.objFileInstances) {
-    ArrayRef<Symbol *> syms = obj->getSymbols();
-    if (obj->addrsigSec) {
+    
+    if (ArrayRef<Symbol *> syms = obj->getSymbols(); obj->addrsigSec) {
       ArrayRef<uint8_t> contents;
       cantFail(
           obj->getCOFFObj()->getSectionContents(obj->addrsigSec, contents));
@@ -1596,10 +1596,10 @@ void LinkerDriver::linkerMain(ArrayRef<const char *> argsArr) {
   {
     llvm::TimeTraceScope timeScope2("Reproducer");
     if (std::optional<std::string> path = getReproduceFile(args)) {
-      Expected<std::unique_ptr<TarWriter>> errOrWriter =
-          TarWriter::create(*path, sys::path::stem(*path));
+      
 
-      if (errOrWriter) {
+      if (Expected<std::unique_ptr<TarWriter>> errOrWriter =
+          TarWriter::create(*path, sys::path::stem(*path)); errOrWriter) {
         tar = std::move(*errOrWriter);
       } else {
         Err(ctx) << "/linkrepro: failed to open " << *path << ": "
@@ -1892,8 +1892,8 @@ void LinkerDriver::linkerMain(ArrayRef<const char *> argsArr) {
       config->repro = true;
     } else {
       config->repro = false;
-      StringRef value(arg->getValue());
-      if (value.getAsInteger(0, config->timestamp))
+      
+      if (StringRef value(arg->getValue()); value.getAsInteger(0, config->timestamp))
         Fatal(ctx) << "invalid timestamp: " << value
                    << ".  Expected 32-bit integer";
     }
@@ -1901,8 +1901,8 @@ void LinkerDriver::linkerMain(ArrayRef<const char *> argsArr) {
     config->repro = false;
     if (std::optional<std::string> epoch =
             Process::GetEnv("SOURCE_DATE_EPOCH")) {
-      StringRef value(*epoch);
-      if (value.getAsInteger(0, config->timestamp))
+      
+      if (StringRef value(*epoch); value.getAsInteger(0, config->timestamp))
         Fatal(ctx) << "invalid SOURCE_DATE_EPOCH timestamp: " << value
                    << ".  Expected 32-bit integer";
     } else {
@@ -1989,8 +1989,8 @@ void LinkerDriver::linkerMain(ArrayRef<const char *> argsArr) {
     config->saveTempsArgs.insert_range(lldsaveTempsValues);
   } else {
     for (auto *arg : args.filtered(OPT_lldsavetemps_colon)) {
-      StringRef s = arg->getValue();
-      if (llvm::is_contained(lldsaveTempsValues, s))
+      
+      if (StringRef s = arg->getValue(); llvm::is_contained(lldsaveTempsValues, s))
         config->saveTempsArgs.insert(s);
       else
         Err(ctx) << "unknown /lldsavetemps value: " << s;
@@ -1999,8 +1999,8 @@ void LinkerDriver::linkerMain(ArrayRef<const char *> argsArr) {
 
   // Handle /lldemit
   if (auto *arg = args.getLastArg(OPT_lldemit)) {
-    StringRef s = arg->getValue();
-    if (s == "obj")
+    
+    if (StringRef s = arg->getValue(); s == "obj")
       config->emit = EmitKind::Obj;
     else if (s == "llvm")
       config->emit = EmitKind::LLVM;
@@ -2461,8 +2461,8 @@ void LinkerDriver::linkerMain(ArrayRef<const char *> argsArr) {
 
   if (config->mapFile != "" && args.hasArg(OPT_map_info)) {
     for (auto *arg : args.filtered(OPT_map_info)) {
-      std::string s = StringRef(arg->getValue()).lower();
-      if (s == "exports")
+      
+      if (std::string s = StringRef(arg->getValue()).lower(); s == "exports")
         config->mapInfo = true;
       else
         Err(ctx) << "unknown option: /mapinfo:" << s;
@@ -2730,8 +2730,8 @@ void LinkerDriver::linkerMain(ArrayRef<const char *> argsArr) {
       ctx.forEachSymtab([&](SymbolTable &symtab) {
         for (const char *n : {"__gxx_personality_v0", "__gcc_personality_v0",
                               "rust_eh_personality"}) {
-          Defined *d = dyn_cast_or_null<Defined>(symtab.findUnderscore(n));
-          if (d && !d->isGCRoot) {
+          
+          if (Defined *d = dyn_cast_or_null<Defined>(symtab.findUnderscore(n)); d && !d->isGCRoot) {
             d->isGCRoot = true;
             config->gcroot.push_back(d);
           }
@@ -2757,8 +2757,8 @@ void LinkerDriver::linkerMain(ArrayRef<const char *> argsArr) {
     // command line.
     for (auto i = ctx.objFileInstances.begin(), e = ctx.objFileInstances.end();
          i != e; i++) {
-      ObjFile *file = *i;
-      if (isCrtend(file->getName())) {
+      
+      if (ObjFile *file = *i; isCrtend(file->getName())) {
         ctx.objFileInstances.erase(i);
         ctx.objFileInstances.push_back(file);
         break;

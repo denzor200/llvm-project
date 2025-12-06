@@ -149,8 +149,8 @@ static void describeUninitializedArgumentInCall(const CallEvent &Call,
                                                 llvm::raw_svector_ostream &Os) {
   switch (Call.getKind()) {
   case CE_ObjCMessage: {
-    const ObjCMethodCall &Msg = cast<ObjCMethodCall>(Call);
-    switch (Msg.getMessageKind()) {
+    
+    switch (const ObjCMethodCall &Msg = cast<ObjCMethodCall>(Call); Msg.getMessageKind()) {
     case OCM_Message:
       Os << (ArgumentNumber + 1) << llvm::getOrdinalSuffix(ArgumentNumber + 1)
          << " argument in message expression is an uninitialized value";
@@ -212,8 +212,8 @@ bool CallAndMessageChecker::uninitRefOrPointer(
 
   if (const MemRegion *SValMemRegion = V.getAsRegion()) {
     const ProgramStateRef State = C.getState();
-    const SVal PSV = State->getSVal(SValMemRegion, C.getASTContext().CharTy);
-    if (PSV.isUndef()) {
+    
+    if (const SVal PSV = State->getSVal(SValMemRegion, C.getASTContext().CharTy); PSV.isUndef()) {
       if (ExplodedNode *N = C.generateErrorNode()) {
         auto R = std::make_unique<PathSensitiveBugReport>(BT, Os.str(), N);
         R->addRange(ArgRange);
@@ -258,8 +258,8 @@ public:
           if (Find(FR))
             return true;
         } else {
-          SVal V = StoreMgr.getBinding(store, loc::MemRegionVal(FR));
-          if (V.isUndef())
+          
+          if (SVal V = StoreMgr.getBinding(store, loc::MemRegionVal(FR)); V.isUndef())
             return true;
         }
         FieldChain.pop_back();
@@ -303,11 +303,11 @@ bool CallAndMessageChecker::PreVisitProcessArg(
 
   if (auto LV = V.getAs<nonloc::LazyCompoundVal>()) {
     const LazyCompoundValData *D = LV->getCVData();
-    FindUninitializedField F(C.getState()->getStateManager().getStoreManager(),
-                             C.getSValBuilder().getRegionManager(),
-                             D->getStore());
+    
 
-    if (F.Find(D->getRegion())) {
+    if (FindUninitializedField F(C.getState()->getStateManager().getStoreManager(),
+                             C.getSValBuilder().getRegionManager(),
+                             D->getStore()); F.Find(D->getRegion())) {
       if (!ChecksEnabled[CK_ArgInitializedness]) {
         C.addSink();
         return true;
@@ -534,8 +534,8 @@ void CallAndMessageChecker::checkPreCall(const CallEvent &Call,
 
 void CallAndMessageChecker::checkPreObjCMessage(const ObjCMethodCall &msg,
                                                 CheckerContext &C) const {
-  SVal recVal = msg.getReceiverSVal();
-  if (recVal.isUndef()) {
+  
+  if (SVal recVal = msg.getReceiverSVal(); recVal.isUndef()) {
     if (!ChecksEnabled[CK_UndefReceiver]) {
       C.addSink();
       return;
@@ -637,9 +637,9 @@ void CallAndMessageChecker::HandleNilReceiver(CheckerContext &C,
                                   .isConsumedExpr(Msg.getOriginExpr())) {
     // Compute: sizeof(void *) and sizeof(return type)
     const uint64_t voidPtrSize = Ctx.getTypeSize(Ctx.VoidPtrTy);
-    const uint64_t returnTypeSize = Ctx.getTypeSize(CanRetTy);
+    
 
-    if (CanRetTy.getTypePtr()->isReferenceType()||
+    if (const uint64_t returnTypeSize = Ctx.getTypeSize(CanRetTy); CanRetTy.getTypePtr()->isReferenceType()||
         (voidPtrSize < returnTypeSize &&
          !(supportsNilWithFloatRet(Ctx.getTargetInfo().getTriple()) &&
            (Ctx.FloatTy == CanRetTy ||

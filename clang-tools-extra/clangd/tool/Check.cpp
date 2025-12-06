@@ -430,8 +430,8 @@ public:
       Selection.FS =
           &AST->getSourceManager().getFileManager().getVirtualFileSystem();
       for (const auto &T : Tweaks) {
-        auto Result = T->apply(Selection);
-        if (!Result) {
+        
+        if (auto Result = T->apply(Selection); !Result) {
           elog("    tweak: {0} ==> FAIL: {1}", T->id(), Result.takeError());
           ++ErrCount;
         } else {

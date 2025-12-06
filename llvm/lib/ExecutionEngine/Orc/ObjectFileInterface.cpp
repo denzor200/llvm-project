@@ -77,8 +77,8 @@ getMachOObjectFileSymbolInfo(ExecutionSession &ES,
   }
 
   for (auto &Sec : Obj.sections()) {
-    auto SecType = Obj.getSectionType(Sec);
-    if ((SecType & MachO::SECTION_TYPE) == MachO::S_MOD_INIT_FUNC_POINTERS) {
+    
+    if (auto SecType = Obj.getSectionType(Sec); (SecType & MachO::SECTION_TYPE) == MachO::S_MOD_INIT_FUNC_POINTERS) {
       addInitSymbol(I, ES, Obj.getFileName());
       break;
     }

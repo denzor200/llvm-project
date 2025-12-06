@@ -26,9 +26,9 @@ Status OptionGroupUUID::SetOptionValue(uint32_t option_idx,
                                        llvm::StringRef option_arg,
                                        ExecutionContext *execution_context) {
   Status error;
-  const int short_option = g_option_table[option_idx].short_option;
+  
 
-  switch (short_option) {
+  switch (const int short_option = g_option_table[option_idx].short_option; short_option) {
   case 'u':
     error = m_uuid.SetValueFromString(option_arg);
     if (error.Success())

@@ -74,9 +74,9 @@ void HexagonMask::replaceConstExtTransferImmWithMask(MachineFunction &MF) {
 bool HexagonMask::runOnMachineFunction(MachineFunction &MF) {
   auto &HST = MF.getSubtarget<HexagonSubtarget>();
   HII = HST.getInstrInfo();
-  const Function &F = MF.getFunction();
+  
 
-  if (!F.hasOptSize())
+  if (const Function &F = MF.getFunction(); !F.hasOptSize())
     return false;
   // Mask instruction is available only from v66
   if (!HST.hasV66Ops())

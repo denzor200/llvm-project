@@ -53,9 +53,9 @@ static bool typesLogicallyMatch(const SPIRVType *Ty1, const SPIRVType *Ty2,
     for (unsigned I = 1; I < Ty1->getNumOperands(); I++) {
       SPIRVType *ElemType1 =
           GR.getSPIRVTypeForVReg(Ty1->getOperand(I).getReg());
-      SPIRVType *ElemType2 =
-          GR.getSPIRVTypeForVReg(Ty2->getOperand(I).getReg());
-      if (ElemType1 != ElemType2 &&
+      
+      if (SPIRVType *ElemType2 =
+          GR.getSPIRVTypeForVReg(Ty2->getOperand(I).getReg()); ElemType1 != ElemType2 &&
           !typesLogicallyMatch(ElemType1, ElemType2, GR))
         return false;
     }
@@ -97,8 +97,8 @@ bool SPIRVTargetLowering::getTgtMemIntrinsic(IntrinsicInfo &Info,
                                              const CallInst &I,
                                              MachineFunction &MF,
                                              unsigned Intrinsic) const {
-  unsigned AlignIdx = 3;
-  switch (Intrinsic) {
+  
+  switch (unsigned AlignIdx = 3; Intrinsic) {
   case Intrinsic::spv_load:
     AlignIdx = 2;
     [[fallthrough]];
@@ -242,8 +242,8 @@ static void validateLifetimeStart(const SPIRVSubtarget &STI,
   MachineFunction *MF = I.getParent()->getParent();
   Register PtrTypeReg = getTypeReg(MRI, PtrReg);
   SPIRVType *PtrType = GR.getSPIRVTypeForVReg(PtrTypeReg, MF);
-  SPIRVType *PonteeElemType = PtrType ? GR.getPointeeType(PtrType) : nullptr;
-  if (!PonteeElemType || PonteeElemType->getOpcode() == SPIRV::OpTypeVoid ||
+  
+  if (SPIRVType *PonteeElemType = PtrType ? GR.getPointeeType(PtrType) : nullptr; !PonteeElemType || PonteeElemType->getOpcode() == SPIRV::OpTypeVoid ||
       (PonteeElemType->getOpcode() == SPIRV::OpTypeInt &&
        PonteeElemType->getOperand(1).getImm() == 8))
     return;
@@ -312,12 +312,12 @@ void validateFunCallMachineDef(const SPIRVSubtarget &STI,
        OpIdx < FunCall.getNumOperands();
        FunDef = FunDef->getNextNode(), OpIdx++) {
     SPIRVType *DefPtrType = DefMRI->getVRegDef(FunDef->getOperand(1).getReg());
-    SPIRVType *DefElemType =
+    
+    if (SPIRVType *DefElemType =
         DefPtrType && DefPtrType->getOpcode() == SPIRV::OpTypePointer
             ? GR.getSPIRVTypeForVReg(DefPtrType->getOperand(2).getReg(),
                                      DefPtrType->getParent()->getParent())
-            : nullptr;
-    if (DefElemType) {
+            : nullptr; DefElemType) {
       const Type *DefElemTy = GR.getTypeForSPIRVType(DefElemType);
       // validatePtrTypes() works in the context if the call site
       // When we process historical records about forward calls
@@ -355,8 +355,8 @@ const Function *validateFunCall(const SPIRVSubtarget &STI,
 void validateForwardCalls(const SPIRVSubtarget &STI,
                           MachineRegisterInfo *DefMRI, SPIRVGlobalRegistry &GR,
                           MachineInstr &FunDef) {
-  const Function *F = GR.getFunctionByDefinition(&FunDef);
-  if (SmallPtrSet<MachineInstr *, 8> *FwdCalls = GR.getForwardCalls(F))
+  
+  if (const Function *F = GR.getFunctionByDefinition(&FunDef); SmallPtrSet<MachineInstr *, 8> *FwdCalls = GR.getForwardCalls(F))
     for (MachineInstr *FunCall : *FwdCalls) {
       MachineRegisterInfo *CallMRI =
           &FunCall->getParent()->getParent()->getRegInfo();
@@ -367,8 +367,8 @@ void validateForwardCalls(const SPIRVSubtarget &STI,
 // Validation of an access chain.
 void validateAccessChain(const SPIRVSubtarget &STI, MachineRegisterInfo *MRI,
                          SPIRVGlobalRegistry &GR, MachineInstr &I) {
-  SPIRVType *BaseTypeInst = GR.getSPIRVTypeForVReg(I.getOperand(0).getReg());
-  if (BaseTypeInst && BaseTypeInst->getOpcode() == SPIRV::OpTypePointer) {
+  
+  if (SPIRVType *BaseTypeInst = GR.getSPIRVTypeForVReg(I.getOperand(0).getReg()); BaseTypeInst && BaseTypeInst->getOpcode() == SPIRV::OpTypePointer) {
     SPIRVType *BaseElemType =
         GR.getSPIRVTypeForVReg(BaseTypeInst->getOperand(2).getReg());
     validatePtrTypes(STI, MRI, GR, I, 2, BaseElemType);
@@ -391,8 +391,8 @@ void SPIRVTargetLowering::finalizeLowering(MachineFunction &MF) const {
     SmallPtrSet<MachineInstr *, 8> ToMove;
     for (MachineBasicBlock::iterator MBBI = MBB->begin(), MBBE = MBB->end();
          MBBI != MBBE;) {
-      MachineInstr &MI = *MBBI++;
-      switch (MI.getOpcode()) {
+      
+      switch (MachineInstr &MI = *MBBI++; MI.getOpcode()) {
       case SPIRV::OpAtomicLoad:
       case SPIRV::OpAtomicExchange:
       case SPIRV::OpAtomicCompareExchange:
@@ -499,8 +499,8 @@ void SPIRVTargetLowering::finalizeLowering(MachineFunction &MF) const {
         validateGroupWaitEventsPtr(STI, MRI, GR, MI);
         break;
       case SPIRV::OpConstantI: {
-        SPIRVType *Type = GR.getSPIRVTypeForVReg(MI.getOperand(1).getReg());
-        if (Type->getOpcode() != SPIRV::OpTypeInt && MI.getOperand(2).isImm() &&
+        
+        if (SPIRVType *Type = GR.getSPIRVTypeForVReg(MI.getOperand(1).getReg()); Type->getOpcode() != SPIRV::OpTypeInt && MI.getOperand(2).isImm() &&
             MI.getOperand(2).getImm() == 0) {
           // Validate the null constant of a target extension type
           MI.setDesc(STI.getInstrInfo()->get(SPIRV::OpConstantNull));
@@ -514,8 +514,8 @@ void SPIRVTargetLowering::finalizeLowering(MachineFunction &MF) const {
         // doesn't dominate all uses. Let's place the type definition
         // instruction at the end of the predecessor.
         MachineBasicBlock *Curr = MI.getParent();
-        SPIRVType *Type = GR.getSPIRVTypeForVReg(MI.getOperand(1).getReg());
-        if (Type->getParent() == Curr && !Curr->pred_empty())
+        
+        if (SPIRVType *Type = GR.getSPIRVTypeForVReg(MI.getOperand(1).getReg()); Type->getParent() == Curr && !Curr->pred_empty())
           ToMove.insert(const_cast<MachineInstr *>(Type));
       } break;
       case SPIRV::OpExtInst: {

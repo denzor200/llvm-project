@@ -252,8 +252,8 @@ LoopVersioning::getNoAliasMetadataFor(const Instruction *OrigInst) const {
         MDNode::get(Context, GroupToScope.lookup(Group->second)));
 
     // Add the no-alias metadata.
-    auto NonAliasingScopeList = GroupToNonAliasingScopeList.find(Group->second);
-    if (NonAliasingScopeList != GroupToNonAliasingScopeList.end())
+    
+    if (auto NonAliasingScopeList = GroupToNonAliasingScopeList.find(Group->second); NonAliasingScopeList != GroupToNonAliasingScopeList.end())
       NoAlias =
           MDNode::concatenate(OrigInst->getMetadata(LLVMContext::MD_noalias),
                               NonAliasingScopeList->second);
@@ -291,8 +291,8 @@ bool runImpl(LoopInfo *LI, LoopAccessInfoManager &LAIs, DominatorTree *DT,
     if (!L->isLoopSimplifyForm() || !L->isRotatedForm() ||
         !L->getExitingBlock())
       continue;
-    const LoopAccessInfo &LAI = LAIs.getInfo(*L);
-    if (!LAI.hasConvergentOp() &&
+    
+    if (const LoopAccessInfo &LAI = LAIs.getInfo(*L); !LAI.hasConvergentOp() &&
         (LAI.getNumRuntimePointerChecks() ||
          !LAI.getPSE().getPredicate().isAlwaysTrue())) {
       if (!L->isLCSSAForm(*DT))
@@ -316,9 +316,9 @@ PreservedAnalyses LoopVersioningPass::run(Function &F,
   auto &SE = AM.getResult<ScalarEvolutionAnalysis>(F);
   auto &LI = AM.getResult<LoopAnalysis>(F);
   LoopAccessInfoManager &LAIs = AM.getResult<LoopAccessAnalysis>(F);
-  auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
+  
 
-  if (runImpl(&LI, LAIs, &DT, &SE))
+  if (auto &DT = AM.getResult<DominatorTreeAnalysis>(F); runImpl(&LI, LAIs, &DT, &SE))
     return PreservedAnalyses::none();
   return PreservedAnalyses::all();
 }

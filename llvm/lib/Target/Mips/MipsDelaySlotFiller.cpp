@@ -405,9 +405,9 @@ bool RegDefsUses::update(const MachineInstr &MI, unsigned Begin, unsigned End) {
   bool HasHazard = false;
 
   for (unsigned I = Begin; I != End; ++I) {
-    const MachineOperand &MO = MI.getOperand(I);
+    
 
-    if (MO.isReg() && MO.getReg()) {
+    if (const MachineOperand &MO = MI.getOperand(I); MO.isReg() && MO.getReg()) {
       if (checkRegDefsUses(NewDefs, NewUses, MO.getReg(), MO.isDef())) {
         LLVM_DEBUG(dbgs() << DEBUG_TYPE ": found register hazard for operand "
                           << I << ": ";

@@ -177,9 +177,9 @@ RISCVMoveMerge::findMatchingInst(MachineBasicBlock::iterator &MBBI,
       Register SourceReg = SecondPair->Source->getReg();
       Register DestReg = SecondPair->Destination->getReg();
 
-      bool IsCandidate = MoveFromSToA ? isCandidateToMergeMVA01S(*SecondPair)
-                                      : isCandidateToMergeMVSA01(*SecondPair);
-      if (IsCandidate) {
+      
+      if (bool IsCandidate = MoveFromSToA ? isCandidateToMergeMVA01S(*SecondPair)
+                                      : isCandidateToMergeMVSA01(*SecondPair); IsCandidate) {
         // Second destination must be different.
         if (RegPair.Destination->getReg() == DestReg)
           return E;

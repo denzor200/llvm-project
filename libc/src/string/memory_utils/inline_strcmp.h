@@ -33,8 +33,8 @@ LIBC_INLINE constexpr int inline_strncmp(const char *left, const char *right,
 
   // TODO: Look at benefits for comparing words at a time.
   for (; n > 1; --n, ++left, ++right) {
-    char lc = *left;
-    if (!comp(lc, '\0') || comp(lc, *right))
+    
+    if (char lc = *left; !comp(lc, '\0') || comp(lc, *right))
       break;
   }
   return comp(*reinterpret_cast<const unsigned char *>(left),

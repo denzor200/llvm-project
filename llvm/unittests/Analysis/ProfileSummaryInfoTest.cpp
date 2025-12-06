@@ -111,8 +111,8 @@ protected:
         "!14 = !{{i32 10000, i64 1000, i32 1}\n"
         "!15 = !{{i32 990000, i64 300, i32 {4}}\n"
         "!16 = !{{i32 999999, i64 5, i32 {5}}\n";
-    SMDiagnostic Err;
-    if (ProfKind) {
+    
+    if (SMDiagnostic Err; ProfKind) {
       auto Summary =
           formatv(SummaryString, ProfKind, NumCounts, IsPartialProfile,
                   PartialProfileRatio, HotNumCounts, ColdNumCounts)

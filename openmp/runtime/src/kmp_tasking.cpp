@@ -142,8 +142,8 @@ static kmp_task_pri_t *__kmp_alloc_task_pri_list() {
 static kmp_thread_data_t *
 __kmp_get_priority_deque_data(kmp_task_team_t *task_team, kmp_int32 pri) {
   kmp_thread_data_t *thread_data;
-  kmp_task_pri_t *lst = task_team->tt.tt_task_pri_list;
-  if (lst->priority == pri) {
+  
+  if (kmp_task_pri_t *lst = task_team->tt.tt_task_pri_list; lst->priority == pri) {
     // Found queue of tasks with given priority.
     thread_data = &lst->td;
   } else if (lst->priority < pri) {
@@ -194,8 +194,8 @@ static kmp_int32 __kmp_push_priority_task(kmp_int32 gtid, kmp_info_t *thread,
             gtid, taskdata, pri));
 
   // Find task queue specific to priority value
-  kmp_task_pri_t *lst = task_team->tt.tt_task_pri_list;
-  if (UNLIKELY(lst == NULL)) {
+  
+  if (kmp_task_pri_t *lst = task_team->tt.tt_task_pri_list; UNLIKELY(lst == NULL)) {
     __kmp_acquire_bootstrap_lock(&task_team->tt.tt_task_pri_lock);
     if (task_team->tt.tt_task_pri_list == NULL) {
       // List of queues is still empty, allocate one.
@@ -735,8 +735,8 @@ static void __kmp_free_task_and_ancestors(kmp_int32 gtid,
     if (taskdata->td_flags.tasktype == TASK_IMPLICIT) {
       if (taskdata->td_dephash) { // do we need to cleanup dephash?
         int children = KMP_ATOMIC_LD_ACQ(&taskdata->td_incomplete_child_tasks);
-        kmp_tasking_flags_t flags_old = taskdata->td_flags;
-        if (children == 0 && flags_old.complete == 1) {
+        
+        if (kmp_tasking_flags_t flags_old = taskdata->td_flags; children == 0 && flags_old.complete == 1) {
           kmp_tasking_flags_t flags_new = flags_old;
           flags_new.complete = 0;
           if (KMP_COMPARE_AND_STORE_ACQ32(
@@ -1163,8 +1163,8 @@ void __kmp_finish_implicit_task(kmp_info_t *thread) {
     task->td_flags.onced = 1;
 #endif
     children = KMP_ATOMIC_LD_ACQ(&task->td_incomplete_child_tasks);
-    kmp_tasking_flags_t flags_old = task->td_flags;
-    if (children == 0 && flags_old.complete == 1) {
+    
+    if (kmp_tasking_flags_t flags_old = task->td_flags; children == 0 && flags_old.complete == 1) {
       kmp_tasking_flags_t flags_new = flags_old;
       flags_new.complete = 0;
       if (KMP_COMPARE_AND_STORE_ACQ32(RCAST(kmp_int32 *, &task->td_flags),
@@ -1184,8 +1184,8 @@ void __kmp_finish_implicit_task(kmp_info_t *thread) {
 //
 // thread:  thread data structure corresponding to implicit task
 void __kmp_free_implicit_task(kmp_info_t *thread) {
-  kmp_taskdata_t *task = thread->th.th_current_task;
-  if (task && task->td_dephash) {
+  
+  if (kmp_taskdata_t *task = thread->th.th_current_task; task && task->td_dephash) {
     __kmp_dephash_free(thread, task->td_dephash);
     task->td_dephash = NULL;
   }
@@ -1288,9 +1288,9 @@ kmp_task_t *__kmp_task_alloc(ident_t *loc_ref, kmp_int32 gtid,
           ("T#%d enabling tasking in __kmp_task_alloc for proxy task\n", gtid));
       __kmp_enable_tasking(task_team, thread);
       kmp_int32 tid = thread->th.th_info.ds.ds_tid;
-      kmp_thread_data_t *thread_data = &task_team->tt.tt_threads_data[tid];
+      
       // No lock needed since only owner can allocate
-      if (thread_data->td.td_deque == NULL) {
+      if (kmp_thread_data_t *thread_data = &task_team->tt.tt_threads_data[tid]; thread_data->td.td_deque == NULL) {
         __kmp_alloc_task_deque(thread, thread_data);
       }
     }
@@ -2515,9 +2515,9 @@ static void __kmp_task_reduction_fini(kmp_info_t *th, kmp_taskgroup_t *tg) {
   for (int i = 0; i < num; ++i) {
     void *sh_data = arr[i].reduce_shar;
     void (*f_fini)(void *) = (void (*)(void *))(arr[i].reduce_fini);
-    void (*f_comb)(void *, void *) =
-        (void (*)(void *, void *))(arr[i].reduce_comb);
-    if (!arr[i].flags.lazy_priv) {
+    
+    if (void (*f_comb)(void *, void *) =
+        (void (*)(void *, void *))(arr[i].reduce_comb); !arr[i].flags.lazy_priv) {
       void *pr_data = arr[i].reduce_priv;
       size_t size = arr[i].reduce_size;
       for (int j = 0; j < nth; ++j) {
@@ -2777,8 +2777,8 @@ void __kmpc_end_taskgroup(ident_t *loc, int gtid) {
     kmp_team_t *t = thread->th.th_team;
     kmp_taskred_data_t *arr = (kmp_taskred_data_t *)taskgroup->reduce_data;
     // check if <priv> data of the first reduction variable shared for the team
-    void *priv0 = arr[0].reduce_priv;
-    if ((reduce_data = KMP_ATOMIC_LD_ACQ(&t->t.t_tg_reduce_data[0])) != NULL &&
+    
+    if (void *priv0 = arr[0].reduce_priv; (reduce_data = KMP_ATOMIC_LD_ACQ(&t->t.t_tg_reduce_data[0])) != NULL &&
         ((kmp_taskred_data_t *)reduce_data)[0].reduce_priv == priv0) {
       // finishing task reduction on parallel
       cnt = KMP_ATOMIC_INC(&t->t.t_tg_fini_counter[0]);
@@ -3718,9 +3718,9 @@ static void __kmp_free_task_pri_list(kmp_task_team_t *task_team) {
 
 static inline void __kmp_task_team_init(kmp_task_team_t *task_team,
                                         kmp_team_t *team) {
-  int team_nth = team->t.t_nproc;
+  
   // Only need to init if task team is isn't active or team size changed
-  if (!task_team->tt.tt_active || team_nth != task_team->tt.tt_nproc) {
+  if (int team_nth = team->t.t_nproc; !task_team->tt.tt_active || team_nth != task_team->tt.tt_nproc) {
     TCW_4(task_team->tt.tt_found_tasks, FALSE);
     TCW_4(task_team->tt.tt_found_proxy_tasks, FALSE);
     TCW_4(task_team->tt.tt_hidden_helper_task_encountered, FALSE);
@@ -3810,9 +3810,9 @@ void __kmp_free_task_team(kmp_info_t *thread, kmp_task_team_t *task_team) {
 // Cannot do anything that needs a thread structure or gtid since they are
 // already gone.
 void __kmp_reap_task_teams(void) {
-  kmp_task_team_t *task_team;
+  
 
-  if (TCR_PTR(__kmp_free_task_teams) != NULL) {
+  if (kmp_task_team_t *task_team; TCR_PTR(__kmp_free_task_teams) != NULL) {
     // Free all task_teams on the free list
     __kmp_acquire_bootstrap_lock(&__kmp_task_team_lock);
     while ((task_team = __kmp_free_task_teams) != NULL) {
@@ -3909,9 +3909,9 @@ void __kmp_wait_to_unref_task_teams(void) {
                     __kmp_gtid_from_thread(thread)));
 
       if (__kmp_dflt_blocktime != KMP_MAX_BLOCKTIME) {
-        void *sleep_loc;
+        
         // If the thread is sleeping, awaken it.
-        if ((sleep_loc = TCR_PTR(CCAST(void *, thread->th.th_sleep_loc))) !=
+        if (void *sleep_loc; (sleep_loc = TCR_PTR(CCAST(void *, thread->th.th_sleep_loc))) !=
             NULL) {
           KA_TRACE(
               10,
@@ -4005,8 +4005,8 @@ void __kmp_task_team_setup(kmp_info_t *this_thr, kmp_team_t *team) {
       }
       __kmp_enable_tasking(task_team, this_thr);
       for (int j = 0; j < task_team->tt.tt_nproc; ++j) {
-        kmp_thread_data_t *thread_data = &task_team->tt.tt_threads_data[j];
-        if (thread_data->td.td_deque == NULL) {
+        
+        if (kmp_thread_data_t *thread_data = &task_team->tt.tt_threads_data[j]; thread_data->td.td_deque == NULL) {
           __kmp_alloc_task_deque(__kmp_hidden_helper_threads[j], thread_data);
         }
       }
@@ -4409,8 +4409,8 @@ void __kmp_fulfill_event(kmp_event_t *event) {
       // If the task detached complete the proxy task
       if (gtid >= 0) {
         kmp_team_t *team = taskdata->td_team;
-        kmp_info_t *thread = __kmp_get_thread();
-        if (thread->th.th_team == team) {
+        
+        if (kmp_info_t *thread = __kmp_get_thread(); thread->th.th_team == team) {
           __kmpc_proxy_task_completed(gtid, ptask);
           return;
         }

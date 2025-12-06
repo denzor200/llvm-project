@@ -93,8 +93,8 @@ static void placeSplitBlockCarefully(BasicBlock *NewBB,
   // block that neighbors a BB actually in the loop.
   BasicBlock *FoundBB = nullptr;
   for (BasicBlock *Pred : SplitPreds) {
-    Function::iterator BBI = Pred->getIterator();
-    if (++BBI != NewBB->getParent()->end() && L->contains(&*BBI)) {
+    
+    if (Function::iterator BBI = Pred->getIterator(); ++BBI != NewBB->getParent()->end() && L->contains(&*BBI)) {
       FoundBB = Pred;
       break;
     }
@@ -157,8 +157,8 @@ static void addBlockAndPredsToSet(BasicBlock *InputBB, BasicBlock *StopBlock,
   SmallVector<BasicBlock *, 8> Worklist;
   Worklist.push_back(InputBB);
   do {
-    BasicBlock *BB = Worklist.pop_back_val();
-    if (Blocks.insert(BB).second && BB != StopBlock)
+    
+    if (BasicBlock *BB = Worklist.pop_back_val(); Blocks.insert(BB).second && BB != StopBlock)
       // If BB is not already processed and it is not a stop block then
       // insert its predecessor in the work list
       append_range(Worklist, predecessors(BB));
@@ -314,8 +314,8 @@ static Loop *separateNestedLoop(Loop *L, BasicBlock *Preheader,
   // Now that we know which blocks are in L and which need to be moved to
   // OuterLoop, move any blocks that need it.
   for (unsigned i = 0; i != L->getBlocks().size(); ++i) {
-    BasicBlock *BB = L->getBlocks()[i];
-    if (!BlocksInL.count(BB)) {
+    
+    if (BasicBlock *BB = L->getBlocks()[i]; !BlocksInL.count(BB)) {
       // Move this block to the parent, updating the exit blocks sets
       L->removeBlockFromLoop(BB);
       if ((*LI)[BB] == L) {
@@ -405,8 +405,8 @@ static BasicBlock *insertUniqueBackedgeBlock(Loop *L, BasicBlock *Preheader,
     Value *UniqueValue = nullptr;
     for (unsigned i = 0, e = PN->getNumIncomingValues(); i != e; ++i) {
       BasicBlock *IBB = PN->getIncomingBlock(i);
-      Value *IV = PN->getIncomingValue(i);
-      if (IBB == Preheader) {
+      
+      if (Value *IV = PN->getIncomingValue(i); IBB == Preheader) {
         PreheaderIdx = i;
       } else {
         NewPN->addIncoming(IV, IBB);

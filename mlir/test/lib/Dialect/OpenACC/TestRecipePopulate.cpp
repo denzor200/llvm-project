@@ -77,20 +77,20 @@ void TestRecipePopulatePass::runOnOperation() {
     Location loc = op->getLoc();
 
     std::string recipeName = recipeType.getValue() + "_" + varName;
-    ValueRange bounds; // No bounds for memref tests
+    // No bounds for memref tests
 
-    if (recipeType == "private") {
-      auto recipe = PrivateRecipeOp::createAndPopulate(
-          builder, loc, recipeName, var.getType(), varName, bounds);
+    if (ValueRange bounds; recipeType == "private") {
+      
 
-      if (!recipe) {
+      if (auto recipe = PrivateRecipeOp::createAndPopulate(
+          builder, loc, recipeName, var.getType(), varName, bounds); !recipe) {
         op->emitError("Failed to create private recipe for ") << varName;
       }
     } else if (recipeType == "firstprivate") {
-      auto recipe = FirstprivateRecipeOp::createAndPopulate(
-          builder, loc, recipeName, var.getType(), varName, bounds);
+      
 
-      if (!recipe) {
+      if (auto recipe = FirstprivateRecipeOp::createAndPopulate(
+          builder, loc, recipeName, var.getType(), varName, bounds); !recipe) {
         op->emitError("Failed to create firstprivate recipe for ") << varName;
       }
     }

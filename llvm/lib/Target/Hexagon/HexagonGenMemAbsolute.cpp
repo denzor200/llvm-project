@@ -83,8 +83,8 @@ bool HexagonGenMemAbsolute::runOnMachineFunction(MachineFunction &Fn) {
     for (MachineBasicBlock::iterator MII = MBB.begin(); MII != MBB.end();
          ++MII) {
       MachineInstr *MI = &*MII;
-      int Opc = MI->getOpcode();
-      if (Opc != Hexagon::CONST32 && Opc != Hexagon::A2_tfrsi)
+      
+      if (int Opc = MI->getOpcode(); Opc != Hexagon::CONST32 && Opc != Hexagon::A2_tfrsi)
         continue;
 
       const MachineOperand &MO = MI->getOperand(0);

@@ -37,9 +37,9 @@ TEST(ExecutionUtilsTest, JITTargetMachineBuilder) {
   Triple &TT = JTMB.getTargetTriple();
   (void)TT;
 
-  auto TM = JTMB.createTargetMachine();
+  
 
-  if (!TM)
+  if (auto TM = JTMB.createTargetMachine(); !TM)
     consumeError(TM.takeError());
   else {
     EXPECT_NE(TM.get(), nullptr)

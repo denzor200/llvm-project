@@ -20,8 +20,8 @@ using namespace lldb_private;
 /// Returns the name of the LLDB plugin for the given language or an empty
 /// string if there is no fitting plugin.
 static llvm::StringRef GetPluginName(lldb::LanguageType language) {
-  Language *language_plugin = Language::FindPlugin(language);
-  if (language_plugin)
+  
+  if (Language *language_plugin = Language::FindPlugin(language); language_plugin)
     return language_plugin->GetPluginName();
   return "";
 }

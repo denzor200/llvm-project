@@ -118,8 +118,8 @@ WasmDumper::dumpCustomSection(const WasmSection &WasmSec) {
     }
     uint32_t SectionIndex = 0;
     for (const auto &Sec : Obj.sections()) {
-      const WasmSection &WasmSec = Obj.getWasmSection(Sec);
-      if (WasmSec.Comdat != UINT32_MAX)
+      
+      if (const WasmSection &WasmSec = Obj.getWasmSection(Sec); WasmSec.Comdat != UINT32_MAX)
         LinkingSec->Comdats[WasmSec.Comdat].Entries.emplace_back(
             WasmYAML::ComdatEntry{wasm::WASM_COMDAT_SECTION, SectionIndex});
       SectionIndex++;

@@ -89,15 +89,15 @@ std::string Constraint::getUniqueDefName() const {
 std::optional<StringRef> Constraint::getBaseDefName() const {
   // Functor used to check a base def in the case where the current def is
   // anonymous.
-  auto checkBaseDefFn = [&](StringRef baseName) -> std::optional<StringRef> {
+  
+
+  switch (auto checkBaseDefFn = [&](StringRef baseName) -> std::optional<StringRef> {
     if (const auto *defValue = def->getValue(baseName)) {
       if (const auto *defInit = dyn_cast<llvm::DefInit>(defValue->getValue()))
         return Constraint(defInit->getDef(), kind).getDefName();
     }
     return std::nullopt;
-  };
-
-  switch (kind) {
+  }; kind) {
   case CK_Attr:
     if (def->isAnonymous())
       return checkBaseDefFn("baseAttr");

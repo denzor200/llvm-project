@@ -890,8 +890,8 @@ private:
     if (const auto *CDD = N.get<CXXDestructorDecl>())
       return CDD->getNameInfo().getNamedTypeInfo()->getTypeLoc().getBeginLoc();
     if (const auto *ME = N.get<MemberExpr>()) {
-      auto NameInfo = ME->getMemberNameInfo();
-      if (NameInfo.getName().getNameKind() ==
+      
+      if (auto NameInfo = ME->getMemberNameInfo(); NameInfo.getName().getNameKind() ==
           DeclarationName::CXXDestructorName)
         return NameInfo.getNamedTypeInfo()->getTypeLoc().getBeginLoc();
     }
@@ -1015,8 +1015,8 @@ llvm::SmallString<256> abbreviatedString(DynTypedNode N,
     llvm::raw_svector_ostream OS(Result);
     N.print(OS, PP);
   }
-  auto Pos = Result.find('\n');
-  if (Pos != llvm::StringRef::npos) {
+  
+  if (auto Pos = Result.find('\n'); Pos != llvm::StringRef::npos) {
     bool MoreText = !llvm::all_of(Result.str().drop_front(Pos), llvm::isSpace);
     Result.resize(Pos);
     if (MoreText)

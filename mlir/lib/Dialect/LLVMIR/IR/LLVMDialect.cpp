@@ -665,11 +665,11 @@ static void destructureIndices(Type currType, ArrayRef<GEPArg> indices,
     // any integer constants into constant indices. If this is not possible
     // we don't do anything here. The verifier will catch it and emit a proper
     // error. All other canonicalization is done in the fold method.
-    bool requiresConst = !rawConstantIndices.empty() &&
-                         isa_and_nonnull<LLVMStructType>(currType);
-    if (Value val = llvm::dyn_cast_if_present<Value>(iter)) {
-      APInt intC;
-      if (requiresConst && matchPattern(val, m_ConstantInt(&intC)) &&
+    
+    if (bool requiresConst = !rawConstantIndices.empty() &&
+                         isa_and_nonnull<LLVMStructType>(currType); Value val = llvm::dyn_cast_if_present<Value>(iter)) {
+      
+      if (APInt intC; requiresConst && matchPattern(val, m_ConstantInt(&intC)) &&
           intC.isSignedIntN(kGEPConstantBitWidth)) {
         rawConstantIndices.push_back(intC.getSExtValue());
       } else {
@@ -690,8 +690,8 @@ static void destructureIndices(Type currType, ArrayRef<GEPArg> indices,
                      return containerType.getElementType();
                    })
                    .Case([&](LLVMStructType structType) -> Type {
-                     int64_t memberIndex = rawConstantIndices.back();
-                     if (memberIndex >= 0 && static_cast<size_t>(memberIndex) <
+                     
+                     if (int64_t memberIndex = rawConstantIndices.back(); memberIndex >= 0 && static_cast<size_t>(memberIndex) <
                                                  structType.getBody().size())
                        return structType.getBody()[memberIndex];
                      return nullptr;
@@ -1458,9 +1458,9 @@ ParseResult CallOp::parse(OpAsmParser &parser, OperationState &result) {
 
   bool isVarArg = parser.parseOptionalKeyword("vararg").succeeded();
   if (isVarArg) {
-    StringAttr varCalleeTypeAttrName =
-        CallOp::getVarCalleeTypeAttrName(result.name);
-    if (parser.parseLParen().failed() ||
+    
+    if (StringAttr varCalleeTypeAttrName =
+        CallOp::getVarCalleeTypeAttrName(result.name); parser.parseLParen().failed() ||
         parser
             .parseAttribute(varCalleeType, varCalleeTypeAttrName,
                             result.attributes)
@@ -1690,9 +1690,9 @@ ParseResult InvokeOp::parse(OpAsmParser &parser, OperationState &result) {
 
   bool isVarArg = parser.parseOptionalKeyword("vararg").succeeded();
   if (isVarArg) {
-    StringAttr varCalleeTypeAttrName =
-        InvokeOp::getVarCalleeTypeAttrName(result.name);
-    if (parser.parseLParen().failed() ||
+    
+    if (StringAttr varCalleeTypeAttrName =
+        InvokeOp::getVarCalleeTypeAttrName(result.name); parser.parseLParen().failed() ||
         parser
             .parseAttribute(varCalleeType, varCalleeTypeAttrName,
                             result.attributes)
@@ -1773,8 +1773,8 @@ LogicalResult LandingpadOp::verify() {
 
   for (unsigned idx = 0, ie = getNumOperands(); idx < ie; idx++) {
     value = getOperand(idx);
-    bool isFilter = llvm::isa<LLVMArrayType>(value.getType());
-    if (isFilter) {
+    
+    if (bool isFilter = llvm::isa<LLVMArrayType>(value.getType()); isFilter) {
       // FIXME: Verify filter clauses when arrays are appropriately handled
     } else {
       // catch - global addresses only.
@@ -1827,8 +1827,8 @@ ParseResult LandingpadOp::parse(OpAsmParser &parser, OperationState &result) {
          (succeeded(parser.parseOptionalKeyword("filter")) ||
           succeeded(parser.parseOptionalKeyword("catch")))) {
     OpAsmParser::UnresolvedOperand operand;
-    Type ty;
-    if (parser.parseOperand(operand) || parser.parseColon() ||
+    
+    if (Type ty; parser.parseOperand(operand) || parser.parseColon() ||
         parser.parseType(ty) ||
         parser.resolveOperand(operand, ty, result.operands) ||
         parser.parseRParen())
@@ -2254,8 +2254,8 @@ static void printCommonGlobalAndAlias(OpAsmPrinter &p, OpType op) {
   if (op.getThreadLocal_())
     p << "thread_local ";
   if (auto unnamedAddr = op.getUnnamedAddr()) {
-    StringRef str = stringifyUnnamedAddr(*unnamedAddr);
-    if (!str.empty())
+    
+    if (StringRef str = stringifyUnnamedAddr(*unnamedAddr); !str.empty())
       p << str << ' ';
   }
 }
@@ -2287,8 +2287,8 @@ void GlobalOp::print(OpAsmPrinter &p) {
     return;
   p << " : " << getType();
 
-  Region &initializer = getInitializerRegion();
-  if (!initializer.empty()) {
+  
+  if (Region &initializer = getInitializerRegion(); !initializer.empty()) {
     p << ' ';
     p.printRegion(initializer, /*printEntryBlockArgs=*/false);
   }
@@ -2416,10 +2416,10 @@ ParseResult GlobalOp::parse(OpAsmParser &parser, OperationState &result) {
                               "type can only be omitted for string globals");
     }
   } else {
-    OptionalParseResult parseResult =
+    
+    if (OptionalParseResult parseResult =
         parser.parseOptionalRegion(initRegion, /*arguments=*/{},
-                                   /*argTypes=*/{});
-    if (parseResult.has_value() && failed(*parseResult))
+                                   /*argTypes=*/{}); parseResult.has_value() && failed(*parseResult))
       return failure();
   }
 
@@ -2455,9 +2455,9 @@ LogicalResult GlobalOp::verify() {
 
   if (auto strAttr = llvm::dyn_cast_or_null<StringAttr>(getValueOrNull())) {
     auto type = llvm::dyn_cast<LLVMArrayType>(getType());
-    IntegerType elementType =
-        type ? llvm::dyn_cast<IntegerType>(type.getElementType()) : nullptr;
-    if (!elementType || elementType.getWidth() != 8 ||
+    
+    if (IntegerType elementType =
+        type ? llvm::dyn_cast<IntegerType>(type.getElementType()) : nullptr; !elementType || elementType.getWidth() != 8 ||
         type.getNumElements() != strAttr.getValue().size())
       return emitOpError(
           "requires an i8 array type of the length equal to that of the string "
@@ -2497,8 +2497,8 @@ LogicalResult GlobalOp::verify() {
 
   std::optional<uint64_t> alignAttr = getAlignment();
   if (alignAttr.has_value()) {
-    uint64_t value = alignAttr.value();
-    if (!llvm::isPowerOf2_64(value))
+    
+    if (uint64_t value = alignAttr.value(); !llvm::isPowerOf2_64(value))
       return emitError() << "alignment attribute is not a power of 2";
   }
 
@@ -2516,8 +2516,8 @@ LogicalResult GlobalOp::verifyRegions() {
              << getType();
 
     for (Operation &op : *b) {
-      auto iface = dyn_cast<MemoryEffectOpInterface>(op);
-      if (!iface || !iface.hasNoEffect())
+      
+      if (auto iface = dyn_cast<MemoryEffectOpInterface>(op); !iface || !iface.hasNoEffect())
         return op.emitError()
                << "ops with side effects not allowed in global initializers";
     }
@@ -2702,8 +2702,8 @@ LogicalResult AliasOp::verifyRegions() {
     return emitOpError("initializer region must always return a pointer");
 
   for (Operation &op : b) {
-    auto iface = dyn_cast<MemoryEffectOpInterface>(op);
-    if (!iface || !iface.hasNoEffect())
+    
+    if (auto iface = dyn_cast<MemoryEffectOpInterface>(op); !iface || !iface.hasNoEffect())
       return op.emitError()
              << "ops with side effects are not allowed in alias initializers";
   }
@@ -2751,8 +2751,8 @@ LogicalResult IFuncOp::verifySymbolUses(SymbolTableCollection &symbolTable) {
   }
   if (!resolver)
     return emitOpError("must have a function resolver");
-  Linkage linkage = resolver.getLinkage();
-  if (resolver.isExternal() || linkage == Linkage::AvailableExternally)
+  
+  if (Linkage linkage = resolver.getLinkage(); resolver.isExternal() || linkage == Linkage::AvailableExternally)
     return emitOpError("resolver must be a definition");
   if (!isa<LLVMPointerType>(resolver.getFunctionType().getReturnType()))
     return emitOpError("resolver must return a pointer");
@@ -3030,8 +3030,8 @@ void LLVMFuncOp::print(OpAsmPrinter &p) {
   if (!visibility.empty())
     p << visibility << ' ';
   if (auto unnamedAddr = getUnnamedAddr()) {
-    StringRef str = stringifyUnnamedAddr(*unnamedAddr);
-    if (!str.empty())
+    
+    if (StringRef str = stringifyUnnamedAddr(*unnamedAddr); !str.empty())
       p << str << ' ';
   }
   if (getCConv() != LLVM::CConv::C)
@@ -3160,8 +3160,8 @@ LogicalResult LLVMFuncOp::verifyRegions() {
   unsigned numArguments = getFunctionType().getNumParams();
   Block &entryBlock = front();
   for (unsigned i = 0; i < numArguments; ++i) {
-    Type argType = entryBlock.getArgument(i).getType();
-    if (!isCompatibleType(argType))
+    
+    if (Type argType = entryBlock.getArgument(i).getType(); !isCompatibleType(argType))
       return emitOpError("entry block argument #")
              << i << " is not of LLVM type";
   }
@@ -3497,21 +3497,21 @@ LogicalResult AtomicRMWOp::verify() {
     if (isCompatibleVectorType(valType)) {
       if (isScalableVectorType(valType))
         return emitOpError("expected LLVM IR fixed vector type");
-      Type elemType = llvm::cast<VectorType>(valType).getElementType();
-      if (!isCompatibleFloatingPointType(elemType))
+      
+      if (Type elemType = llvm::cast<VectorType>(valType).getElementType(); !isCompatibleFloatingPointType(elemType))
         return emitOpError(
             "expected LLVM IR floating point type for vector element");
     } else if (!isCompatibleFloatingPointType(valType)) {
       return emitOpError("expected LLVM IR floating point type");
     }
   } else if (getBinOp() == AtomicBinOp::xchg) {
-    DataLayout dataLayout = DataLayout::closest(*this);
-    if (!isTypeCompatibleWithAtomicOp(valType, dataLayout))
+    
+    if (DataLayout dataLayout = DataLayout::closest(*this); !isTypeCompatibleWithAtomicOp(valType, dataLayout))
       return emitOpError("unexpected LLVM IR type for 'xchg' bin_op");
   } else {
     auto intType = llvm::dyn_cast<IntegerType>(valType);
-    unsigned intBitWidth = intType ? intType.getWidth() : 0;
-    if (intBitWidth != 8 && intBitWidth != 16 && intBitWidth != 32 &&
+    
+    if (unsigned intBitWidth = intType ? intType.getWidth() : 0; intBitWidth != 8 && intBitWidth != 16 && intBitWidth != 32 &&
         intBitWidth != 64)
       return emitOpError("expected LLVM IR integer type");
   }

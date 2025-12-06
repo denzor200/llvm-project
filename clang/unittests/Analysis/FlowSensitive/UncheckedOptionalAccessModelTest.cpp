@@ -112,7 +112,8 @@ protected:
     )");
     UncheckedOptionalAccessModelOptions Options{IgnoreSmartPointerDereference};
     std::vector<UncheckedOptionalAccessDiagnostic> Diagnostics;
-    llvm::Error Error = checkDataflow<UncheckedOptionalAccessModel>(
+    
+    if (llvm::Error Error = checkDataflow<UncheckedOptionalAccessModel>(
         AnalysisInputs<UncheckedOptionalAccessModel>(
             SourceCode, std::move(FuncMatcher),
             [](ASTContext &Ctx, Environment &Env) {
@@ -170,8 +171,7 @@ protected:
           }
 
           EXPECT_THAT(DiagnosticLines, ContainerEq(AnnotationLines));
-        });
-    if (Error)
+        }); Error)
       FAIL() << llvm::toString(std::move(Error));
   }
 };

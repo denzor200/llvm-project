@@ -177,9 +177,9 @@ PreservedAnalyses AlwaysInlinerPass::run(Module &M,
   };
   auto &PSI = MAM.getResult<ProfileSummaryAnalysis>(M);
 
-  bool Changed = AlwaysInlineImpl(M, InsertLifetime, PSI, &FAM,
-                                  GetAssumptionCache, GetAAR);
-  if (!Changed)
+  
+  if (bool Changed = AlwaysInlineImpl(M, InsertLifetime, PSI, &FAM,
+                                  GetAssumptionCache, GetAAR); !Changed)
     return PreservedAnalyses::all();
 
   PreservedAnalyses PA;

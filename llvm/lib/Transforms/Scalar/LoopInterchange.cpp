@@ -238,8 +238,8 @@ static bool populateDependencyMatrix(CharMatrix &DepMatrix, unsigned Level,
           // `DVEntry::GE`.
           // TODO: Use of fine-grained expressions allows for more accurate
           // analysis.
-          unsigned Dir = D->getDirection(II);
-          if (Dir == Dependence::DVEntry::LT)
+          
+          if (unsigned Dir = D->getDirection(II); Dir == Dependence::DVEntry::LT)
             Direction = '<';
           else if (Dir == Dependence::DVEntry::GT)
             Direction = '>';
@@ -289,8 +289,8 @@ static bool populateDependencyMatrix(CharMatrix &DepMatrix, unsigned Level,
           // If the Dependence object is reversed (due to normalization), it
           // represents the dependency from Dst to Src, meaning it is a backward
           // dependency. Otherwise it should be a forward dependency.
-          bool IsReversed = D->getSrc() != Src;
-          if (IsReversed)
+          
+          if (bool IsReversed = D->getSrc() != Src; IsReversed)
             IsKnownForward = false;
         }
 
@@ -401,8 +401,8 @@ static void populateWorklist(Loop &L, LoopVector &LoopList) {
 
 static bool hasSupportedLoopDepth(ArrayRef<Loop *> LoopList,
                                   OptimizationRemarkEmitter &ORE) {
-  unsigned LoopNestDepth = LoopList.size();
-  if (LoopNestDepth < MinLoopNestDepth || LoopNestDepth > MaxLoopNestDepth) {
+  
+  if (unsigned LoopNestDepth = LoopList.size(); LoopNestDepth < MinLoopNestDepth || LoopNestDepth > MaxLoopNestDepth) {
     LLVM_DEBUG(dbgs() << "Unsupported depth of loop nest " << LoopNestDepth
                       << ", the supported range is [" << MinLoopNestDepth
                       << ", " << MaxLoopNestDepth << "].\n");
@@ -878,8 +878,8 @@ bool LoopInterchangeLegality::isLoopStructureUnderstood() {
     if (Left == nullptr)
       return false;
 
-    const SCEV *S = SE->getSCEV(Right);
-    if (!SE->isLoopInvariant(S, OuterLoop))
+    
+    if (const SCEV *S = SE->getSCEV(Right); !SE->isLoopInvariant(S, OuterLoop))
       return false;
   }
 
@@ -916,8 +916,8 @@ findInnerReductionPhi(Loop *L, Value *V,
         if (RD.getExactFPMathInst() != nullptr)
           return nullptr;
 
-        RecurKind RK = RD.getRecurrenceKind();
-        switch (RK) {
+        
+        switch (RecurKind RK = RD.getRecurrenceKind(); RK) {
         case RecurKind::Or:
         case RecurKind::And:
         case RecurKind::Xor:
@@ -988,8 +988,8 @@ bool LoopInterchangeLegality::findInductionAndReductions(
   if (!L->getLoopLatch() || !L->getLoopPredecessor())
     return false;
   for (PHINode &PHI : L->getHeader()->phis()) {
-    InductionDescriptor ID;
-    if (InductionDescriptor::isInductionPHI(&PHI, L, SE, ID))
+    
+    if (InductionDescriptor ID; InductionDescriptor::isInductionPHI(&PHI, L, SE, ID))
       Inductions.push_back(&PHI);
     else {
       // PHIs in inner loops need to be part of a reduction in the outer loop,
@@ -1026,11 +1026,11 @@ bool LoopInterchangeLegality::findInductionAndReductions(
 // This function indicates the current limitations in the transform as a result
 // of which we do not proceed.
 bool LoopInterchangeLegality::currentLimitations() {
-  BasicBlock *InnerLoopLatch = InnerLoop->getLoopLatch();
+  
 
   // transform currently expects the loop latches to also be the exiting
   // blocks.
-  if (InnerLoop->getExitingBlock() != InnerLoopLatch ||
+  if (BasicBlock *InnerLoopLatch = InnerLoop->getLoopLatch(); InnerLoop->getExitingBlock() != InnerLoopLatch ||
       OuterLoop->getExitingBlock() != OuterLoop->getLoopLatch() ||
       !isa<BranchInst>(InnerLoopLatch->getTerminator()) ||
       !isa<BranchInst>(OuterLoop->getLoopLatch()->getTerminator())) {
@@ -1103,8 +1103,8 @@ bool LoopInterchangeLegality::currentLimitations() {
 bool LoopInterchangeLegality::findInductions(
     Loop *L, SmallVectorImpl<PHINode *> &Inductions) {
   for (PHINode &PHI : L->getHeader()->phis()) {
-    InductionDescriptor ID;
-    if (InductionDescriptor::isInductionPHI(&PHI, L, SE, ID))
+    
+    if (InductionDescriptor ID; InductionDescriptor::isInductionPHI(&PHI, L, SE, ID))
       Inductions.push_back(&PHI);
   }
   return !Inductions.empty();
@@ -1143,8 +1143,8 @@ static bool areOuterLoopExitPHIsSupported(Loop *OuterLoop, Loop *InnerLoop) {
   BasicBlock *LoopNestExit = OuterLoop->getUniqueExitBlock();
   for (PHINode &PHI : LoopNestExit->phis()) {
     for (Value *Incoming : PHI.incoming_values()) {
-      Instruction *IncomingI = dyn_cast<Instruction>(Incoming);
-      if (!IncomingI || IncomingI->getParent() != OuterLoop->getLoopLatch())
+      
+      if (Instruction *IncomingI = dyn_cast<Instruction>(Incoming); !IncomingI || IncomingI->getParent() != OuterLoop->getLoopLatch())
         continue;
 
       // The incoming value is defined in the outer loop latch. Currently we
@@ -1190,8 +1190,8 @@ static bool areInnerLoopLatchPHIsSupported(Loop *OuterLoop, Loop *InnerLoop) {
   BasicBlock *InnerLoopLatch = InnerLoop->getLoopLatch();
   for (PHINode &PHI : InnerLoopLatch->phis()) {
     for (auto *U : PHI.users()) {
-      Instruction *UI = cast<Instruction>(U);
-      if (InnerLoopLatch == UI->getParent())
+      
+      if (Instruction *UI = cast<Instruction>(U); InnerLoopLatch == UI->getParent())
         return false;
     }
   }
@@ -1676,8 +1676,8 @@ bool LoopInterchangeTransform::transform(
                "Moving instructions with side-effects may change behavior of "
                "the loop nest!");
         for (Use &U : llvm::make_early_inc_range(WorkList[i]->uses())) {
-          Instruction *UserI = cast<Instruction>(U.getUser());
-          if (!InnerLoop->contains(UserI->getParent()) ||
+          
+          if (Instruction *UserI = cast<Instruction>(U.getUser()); !InnerLoop->contains(UserI->getParent()) ||
               UserI->getParent() == NewLatch ||
               llvm::is_contained(InductionPHIs, UserI))
             U.set(NewI);
@@ -1817,10 +1817,10 @@ static void moveLCSSAPhis(BasicBlock *InnerExit, BasicBlock *InnerHeader,
     auto IncI = cast<Instruction>(P.getIncomingValueForBlock(InnerLatch));
     // In case of multi-level nested loops, follow LCSSA to find the incoming
     // value defined from the innermost loop.
-    auto IncIInnerMost = cast<Instruction>(followLCSSA(IncI));
+    
     // Skip phis with incoming values from the inner loop body, excluding the
     // header and latch.
-    if (IncIInnerMost->getParent() != InnerLatch &&
+    if (auto IncIInnerMost = cast<Instruction>(followLCSSA(IncI)); IncIInnerMost->getParent() != InnerLatch &&
         IncIInnerMost->getParent() != InnerHeader)
       continue;
 
@@ -1866,8 +1866,8 @@ static void moveLCSSAPhis(BasicBlock *InnerExit, BasicBlock *InnerHeader,
         continue;
       // Skip Phis with incoming values defined in the inner loop. Those should
       // already have been updated.
-      auto I = dyn_cast<Instruction>(P.getIncomingValue(0));
-      if (!I || LI->getLoopFor(I->getParent()) == InnerLoop)
+      
+      if (auto I = dyn_cast<Instruction>(P.getIncomingValue(0)); !I || LI->getLoopFor(I->getParent()) == InnerLoop)
         continue;
 
       PHINode *NewPhi = dyn_cast<PHINode>(P.clone());

@@ -283,9 +283,9 @@ bool EmulateInstructionPPC64::EmulateSTD(uint32_t opcode) {
   // cases, such as r0 being overwritten after mfspr)
   uint32_t rs_num = rs;
   if (rs == gpr_r0_ppc64le) {
-    uint64_t lr =
-        ReadRegisterUnsigned(eRegisterKindLLDB, gpr_lr_ppc64le, 0, &success);
-    if (!success || lr != rs_val)
+    
+    if (uint64_t lr =
+        ReadRegisterUnsigned(eRegisterKindLLDB, gpr_lr_ppc64le, 0, &success); !success || lr != rs_val)
       return false;
     rs_num = gpr_lr_ppc64le;
   }

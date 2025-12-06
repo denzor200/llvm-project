@@ -54,8 +54,8 @@ LLVMUserExpression::LLVMUserExpression(ExecutionContextScope &exe_scope,
 
 LLVMUserExpression::~LLVMUserExpression() {
   if (m_target) {
-    lldb::ModuleSP jit_module_sp(m_jit_module_wp.lock());
-    if (jit_module_sp)
+    
+    if (lldb::ModuleSP jit_module_sp(m_jit_module_wp.lock()); jit_module_sp)
       m_target->GetImages().Remove(jit_module_sp);
   }
 }
@@ -317,8 +317,8 @@ bool LLVMUserExpression::PrepareToExecuteJITExpression(
           m_can_interpret ? IRMemoryMap::eAllocationPolicyHostOnly
                           : IRMemoryMap::eAllocationPolicyMirror;
 
-      const bool zero_memory = false;
-      if (auto address_or_error = m_execution_unit_sp->Malloc(
+      
+      if (const bool zero_memory = false; auto address_or_error = m_execution_unit_sp->Malloc(
               m_materializer_up->GetStructByteSize(),
               m_materializer_up->GetStructAlignment(),
               lldb::ePermissionsReadable | lldb::ePermissionsWritable, policy,
@@ -338,8 +338,8 @@ bool LLVMUserExpression::PrepareToExecuteJITExpression(
     if (m_can_interpret && m_stack_frame_bottom == LLDB_INVALID_ADDRESS) {
       size_t stack_frame_size = target->GetExprAllocSize();
       if (stack_frame_size == 0) {
-        ABISP abi_sp;
-        if (process && (abi_sp = process->GetABI()))
+        
+        if (ABISP abi_sp; process && (abi_sp = process->GetABI()))
           stack_frame_size = abi_sp->GetStackFrameSize();
         else
           stack_frame_size = 512 * 1024;

@@ -126,8 +126,8 @@ bool UnwindAssembly_x86::AugmentUnwindPlanFromCallSite(
       // Get the register locations for eip/rip from the first & last rows. Are
       // they both CFA plus an offset?  Is it the same offset?
 
-      UnwindPlan::Row::AbstractRegisterLocation last_row_pc_loc;
-      if (last_row->GetRegisterInfo(
+      
+      if (UnwindPlan::Row::AbstractRegisterLocation last_row_pc_loc; last_row->GetRegisterInfo(
               pc_regnum.GetAsKind(unwind_plan.GetRegisterKind()),
               last_row_pc_loc)) {
         if (last_row_pc_loc.IsAtCFAPlusOffset() &&
@@ -153,8 +153,8 @@ bool UnwindAssembly_x86::AugmentUnwindPlanFromCallSite(
     if (m_assembly_inspection_engine == nullptr)
       return false;
     std::vector<uint8_t> function_text(func.GetByteSize());
-    Status error;
-    if (process_sp->GetTarget().ReadMemory(
+    
+    if (Status error; process_sp->GetTarget().ReadMemory(
             func.GetBaseAddress(), function_text.data(), func.GetByteSize(),
             error) == func.GetByteSize()) {
       RegisterContextSP reg_ctx(thread.GetRegisterContext());
@@ -183,13 +183,13 @@ bool UnwindAssembly_x86::GetFastUnwindPlan(AddressRange &func, Thread &thread,
   ProcessSP process_sp = thread.GetProcess();
   if (process_sp) {
     Target &target(process_sp->GetTarget());
-    Status error;
-    if (target.ReadMemory(func.GetBaseAddress(), opcode_data.data(), 4,
+    
+    if (Status error; target.ReadMemory(func.GetBaseAddress(), opcode_data.data(), 4,
                           error) == 4) {
       uint8_t i386_push_mov[] = {0x55, 0x89, 0xe5};
-      uint8_t x86_64_push_mov[] = {0x55, 0x48, 0x89, 0xe5};
+      
 
-      if (memcmp(opcode_data.data(), i386_push_mov, sizeof(i386_push_mov)) ==
+      if (uint8_t x86_64_push_mov[] = {0x55, 0x48, 0x89, 0xe5}; memcmp(opcode_data.data(), i386_push_mov, sizeof(i386_push_mov)) ==
               0 ||
           memcmp(opcode_data.data(), x86_64_push_mov,
                  sizeof(x86_64_push_mov)) == 0) {
@@ -235,8 +235,8 @@ bool UnwindAssembly_x86::FirstNonPrologueInsn(
 }
 
 UnwindAssembly *UnwindAssembly_x86::CreateInstance(const ArchSpec &arch) {
-  const llvm::Triple::ArchType cpu = arch.GetMachine();
-  if (cpu == llvm::Triple::x86 || cpu == llvm::Triple::x86_64)
+  
+  if (const llvm::Triple::ArchType cpu = arch.GetMachine(); cpu == llvm::Triple::x86 || cpu == llvm::Triple::x86_64)
     return new UnwindAssembly_x86(arch);
   return nullptr;
 }

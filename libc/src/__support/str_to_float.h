@@ -733,8 +733,8 @@ LIBC_INLINE FloatConvertReturn<T> decimal_exp_to_float(
     // If the mantissa is truncated, then the result may be off by the LSB, so
     // check if rounding the mantissa up changes the result. If not, then it's
     // safe, else use the fallback.
-    auto second_output = eisel_lemire<T>({mantissa + 1, exp10}, round);
-    if (second_output.has_value()) {
+    
+    if (auto second_output = eisel_lemire<T>({mantissa + 1, exp10}, round); second_output.has_value()) {
       if (opt_output->mantissa == second_output->mantissa &&
           opt_output->exponent == second_output->exponent) {
         return {opt_output.value(), 0};
@@ -951,8 +951,8 @@ decimal_string_to_float(const CharType *__restrict src, RoundDirection round) {
   // TODO: When adding max length argument, handle the case of a trailing
   // exponent marker, see scanf for more details.
   if (tolower(src[index]) == constants<CharType>::DECIMAL_EXPONENT_MARKER) {
-    int sign = get_sign(src + index + 1);
-    if (isdigit(src[index + 1 + static_cast<size_t>(sign != 0)])) {
+    
+    if (int sign = get_sign(src + index + 1); isdigit(src[index + 1 + static_cast<size_t>(sign != 0)])) {
       ++index;
       auto result = strtointeger<int32_t>(src + index, 10);
       if (result.has_error())
@@ -1055,8 +1055,8 @@ hexadecimal_string_to_float(const CharType *__restrict src,
   exponent *= 4;
 
   if (tolower(src[index]) == constants<CharType>::HEX_EXPONENT_MARKER) {
-    int sign = get_sign(src + index + 1);
-    if (isdigit(src[index + 1 + static_cast<size_t>(sign != 0)])) {
+    
+    if (int sign = get_sign(src + index + 1); isdigit(src[index + 1 + static_cast<size_t>(sign != 0)])) {
       ++index;
       auto result = strtointeger<int32_t>(src + index, 10);
       if (result.has_error())

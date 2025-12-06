@@ -497,8 +497,8 @@ Value *CodeGenFunction::EmitPPCBuiltinExpr(unsigned BuiltinID,
   case PPC::BI__builtin_vsx_xvsqrtsp:
   case PPC::BI__builtin_vsx_xvsqrtdp: {
     llvm::Type *ResultType = ConvertType(E->getType());
-    Value *X = EmitScalarExpr(E->getArg(0));
-    if (Builder.getIsFPConstrained()) {
+    
+    if (Value *X = EmitScalarExpr(E->getArg(0)); Builder.getIsFPConstrained()) {
       llvm::Function *F = CGM.getIntrinsic(
           Intrinsic::experimental_constrained_sqrt, ResultType);
       return Builder.CreateConstrainedFPCall(F, X);
@@ -952,9 +952,9 @@ Value *CodeGenFunction::EmitPPCBuiltinExpr(unsigned BuiltinID,
     assert(ArgCI &&
            "Second Arg to xxextractuw intrinsic must be a constant integer!");
     const int64_t MaxIndex = 12;
-    int64_t Index = std::clamp(ArgCI->getSExtValue(), (int64_t)0, MaxIndex);
+    
 
-    if (getTarget().isLittleEndian()) {
+    if (int64_t Index = std::clamp(ArgCI->getSExtValue(), (int64_t)0, MaxIndex); getTarget().isLittleEndian()) {
       // Reverse the index.
       Index = MaxIndex - Index;
       Op1 = ConstantInt::getSigned(Int32Ty, Index);

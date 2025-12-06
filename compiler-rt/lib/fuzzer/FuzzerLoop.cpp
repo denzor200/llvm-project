@@ -110,8 +110,8 @@ void MallocHook(const volatile void *ptr, size_t size) {
 
 ATTRIBUTE_NO_SANITIZE_MEMORY
 void FreeHook(const volatile void *ptr) {
-  size_t N = AllocTracer.Frees++;
-  if (int TraceLevel = AllocTracer.TraceLevel) {
+  
+  if (size_t N = AllocTracer.Frees++; int TraceLevel = AllocTracer.TraceLevel) {
     TraceLock Lock;
     if (Lock.IsDisabled())
       return;
@@ -394,8 +394,8 @@ void Fuzzer::CheckExitOnSrcPosOrItem() {
     auto HandlePC = [&](const TracePC::PCTableEntry *TE) {
       if (!PCsSet->insert(TE->PC).second)
         return;
-      std::string Descr = DescribePC("%F %L", TE->PC + 1);
-      if (Descr.find(Options.ExitOnSrcPos) != std::string::npos) {
+      
+      if (std::string Descr = DescribePC("%F %L", TE->PC + 1); Descr.find(Options.ExitOnSrcPos) != std::string::npos) {
         Printf("INFO: found line matching '%s', exiting.\n",
                Options.ExitOnSrcPos.c_str());
         _Exit(0);
@@ -532,8 +532,8 @@ bool Fuzzer::RunOne(const uint8_t *Data, size_t Size, bool MayDeleteFile,
   if (FoundUniqFeatures)
     *FoundUniqFeatures = FoundUniqFeaturesOfII;
   PrintPulseAndReportSlowInput(Data, Size);
-  size_t NumNewFeatures = Corpus.NumFeatureUpdates() - NumUpdatesBefore;
-  if (NumNewFeatures || ForceAddToCorpus) {
+  
+  if (size_t NumNewFeatures = Corpus.NumFeatureUpdates() - NumUpdatesBefore; NumNewFeatures || ForceAddToCorpus) {
     TPC.UpdateObservedPCs();
     auto NewII =
         Corpus.AddToCorpus({Data, Data + Size}, NumNewFeatures, MayDeleteFile,

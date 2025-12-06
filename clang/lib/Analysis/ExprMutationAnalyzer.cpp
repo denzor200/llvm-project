@@ -57,8 +57,8 @@ static bool canExprResolveTo(const Expr *Source, const Expr *Target) {
   // below.
   const auto ConditionalOperatorM = [Target](const Expr *E) {
     if (const auto *CO = dyn_cast<AbstractConditionalOperator>(E)) {
-      const auto *TE = CO->getTrueExpr()->IgnoreParens();
-      if (TE && canExprResolveTo(TE, Target))
+      
+      if (const auto *TE = CO->getTrueExpr()->IgnoreParens(); TE && canExprResolveTo(TE, Target))
         return true;
       const auto *FE = CO->getFalseExpr()->IgnoreParens();
       if (FE && canExprResolveTo(FE, Target))
@@ -138,8 +138,8 @@ class ExprPointeeResolve {
     if (const auto *ICE = dyn_cast<ImplicitCastExpr>(E)) {
       // only implicit cast needs to be treated as resolvable.
       // explicit cast will be checked in `findPointeeToNonConst`
-      const CastKind kind = ICE->getCastKind();
-      if (kind == CK_LValueToRValue || kind == CK_DerivedToBase ||
+      
+      if (const CastKind kind = ICE->getCastKind(); kind == CK_LValueToRValue || kind == CK_DerivedToBase ||
           kind == CK_UncheckedDerivedToBase ||
           (kind == CK_NoOp && (ICE->getType() == ICE->getSubExpr()->getType())))
         return resolveExpr(ICE->getSubExpr());
@@ -174,8 +174,8 @@ AST_MATCHER_P(InitListExpr, hasAnyInit, ast_matchers::internal::Matcher<Expr>,
   for (const Expr *Arg : Node.inits()) {
     if (Arg == nullptr)
       continue;
-    ast_matchers::internal::BoundNodesTreeBuilder Result(*Builder);
-    if (InnerMatcher.matches(*Arg, Finder, &Result)) {
+    
+    if (ast_matchers::internal::BoundNodesTreeBuilder Result(*Builder); InnerMatcher.matches(*Arg, Finder, &Result)) {
       *Builder = std::move(Result);
       return true;
     }
@@ -327,8 +327,8 @@ ExprMutationAnalyzer::Analyzer::tryEachDeclRef(const Decl *Dec,
               .bind(NodeID<Expr>::value)),
       Stm, Context);
   for (const auto &RefNodes : Refs) {
-    const auto *E = RefNodes.getNodeAs<Expr>(NodeID<Expr>::value);
-    if ((this->*Finder)(E))
+    
+    if (const auto *E = RefNodes.getNodeAs<Expr>(NodeID<Expr>::value); (this->*Finder)(E))
       return E;
   }
   return nullptr;
@@ -708,10 +708,10 @@ ExprMutationAnalyzer::Analyzer::findFunctionArgMutation(const Expr *Exp) {
       if (!RefType->getPointeeType().getQualifiers() &&
           isa<TemplateTypeParmType>(
               RefType->getPointeeType().getCanonicalType())) {
-        FunctionParmMutationAnalyzer *Analyzer =
+        
+        if (FunctionParmMutationAnalyzer *Analyzer =
             FunctionParmMutationAnalyzer::getFunctionParmMutationAnalyzer(
-                *Func, Context, Memorized);
-        if (Analyzer->findMutation(Parm))
+                *Func, Context, Memorized); Analyzer->findMutation(Parm))
           return Exp;
         continue;
       }

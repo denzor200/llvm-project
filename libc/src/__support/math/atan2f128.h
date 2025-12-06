@@ -139,15 +139,15 @@ LIBC_INLINE static constexpr float128 atan2f128(float128 y, float128 x) {
     //   0: zero
     //   1: finite, non-zero
     //   2: infinity
-    constexpr Float128 EXCEPTS[3][3][2] = {
+    
+
+    if (constexpr Float128 EXCEPTS[3][3][2] = {
         {{ZERO, PI}, {ZERO, PI}, {ZERO, PI}},
         {{PI_OVER_2, PI_OVER_2}, {ZERO, ZERO}, {ZERO, PI}},
         {{PI_OVER_2, PI_OVER_2},
          {PI_OVER_2, PI_OVER_2},
          {PI_OVER_4, THREE_PI_OVER_4}},
-    };
-
-    if ((x_except != 1) || (y_except != 1)) {
+    }; (x_except != 1) || (y_except != 1)) {
       Float128 r = EXCEPTS[y_except][x_except][x_sign];
       if (y_sign)
         r.sign = r.sign.negate();

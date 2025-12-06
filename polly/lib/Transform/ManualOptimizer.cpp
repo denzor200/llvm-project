@@ -75,8 +75,8 @@ static DebugLoc findFirstDebugLoc(MDNode *MD) {
 static DebugLoc findTransformationDebugLoc(MDNode *LoopMD, StringRef Name) {
   // First find dedicated transformation location
   // (such as the location of #pragma clang loop)
-  MDNode *MD = findOptionMDForLoopID(LoopMD, Name);
-  if (DebugLoc K = findFirstDebugLoc(MD))
+  
+  if (MDNode *MD = findOptionMDForLoopID(LoopMD, Name); DebugLoc K = findFirstDebugLoc(MD))
     return K;
 
   // Otherwise, fall back to the location of the loop itself
@@ -86,8 +86,8 @@ static DebugLoc findTransformationDebugLoc(MDNode *LoopMD, StringRef Name) {
 /// Apply full or partial unrolling.
 static isl::schedule applyLoopUnroll(MDNode *LoopMD,
                                      isl::schedule_node BandToUnroll) {
-  TransformationMode UnrollMode = ::hasUnrollTransformation(LoopMD);
-  if (UnrollMode & TM_Disable)
+  
+  if (TransformationMode UnrollMode = ::hasUnrollTransformation(LoopMD); UnrollMode & TM_Disable)
     return {};
 
   assert(!BandToUnroll.is_null());

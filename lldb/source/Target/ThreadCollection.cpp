@@ -29,8 +29,8 @@ void ThreadCollection::AddThread(const ThreadSP &thread_sp) {
 void ThreadCollection::AddThreadSortedByIndexID(const ThreadSP &thread_sp) {
   std::lock_guard<std::recursive_mutex> guard(GetMutex());
   // Make sure we always keep the threads sorted by thread index ID
-  const uint32_t thread_index_id = thread_sp->GetIndexID();
-  if (m_threads.empty() || m_threads.back()->GetIndexID() < thread_index_id)
+  
+  if (const uint32_t thread_index_id = thread_sp->GetIndexID(); m_threads.empty() || m_threads.back()->GetIndexID() < thread_index_id)
     m_threads.push_back(thread_sp);
   else {
     m_threads.insert(

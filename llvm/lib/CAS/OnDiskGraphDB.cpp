@@ -445,8 +445,8 @@ private:
 
 Expected<DataRecordHandle> DataRecordHandle::createWithError(
     function_ref<Expected<char *>(size_t Size)> Alloc, const Input &I) {
-  Layout L(I);
-  if (Expected<char *> Mem = Alloc(L.getTotalSize()))
+  
+  if (Layout L(I); Expected<char *> Mem = Alloc(L.getTotalSize()))
     return constructImpl(*Mem, I, L);
   else
     return Mem.takeError();
@@ -560,8 +560,8 @@ private:
 Error TempFile::discard() {
   Done = true;
   if (FD != -1) {
-    sys::fs::file_t File = sys::fs::convertFDToNativeFile(FD);
-    if (std::error_code EC = sys::fs::closeFile(File))
+    
+    if (sys::fs::file_t File = sys::fs::convertFDToNativeFile(FD); std::error_code EC = sys::fs::closeFile(File))
       return errorCodeToError(EC);
   }
   FD = -1;
@@ -569,8 +569,8 @@ Error TempFile::discard() {
   // Always try to close and remove.
   std::error_code RemoveEC;
   if (!TmpName.empty()) {
-    std::error_code EC = sys::fs::remove(TmpName);
-    if (EC)
+    
+    if (std::error_code EC = sys::fs::remove(TmpName); EC)
       return errorCodeToError(EC);
   }
   TmpName = "";
@@ -607,8 +607,8 @@ Expected<TempFile> TempFile::create(const Twine &Model) {
 
 bool TrieRecord::compare_exchange_strong(Data &Existing, Data New) {
   uint64_t ExistingPacked = pack(Existing);
-  uint64_t NewPacked = pack(New);
-  if (Storage.compare_exchange_strong(ExistingPacked, NewPacked))
+  
+  if (uint64_t NewPacked = pack(New); Storage.compare_exchange_strong(ExistingPacked, NewPacked))
     return true;
   Existing = unpack(ExistingPacked);
   return false;
@@ -813,8 +813,8 @@ DataRecordHandle::Layout::Layout(const Input &I) {
 
 uint64_t DataRecordHandle::getDataSize() const {
   int64_t RelOffset = sizeof(Header);
-  auto *DataSizePtr = reinterpret_cast<const char *>(H) + RelOffset;
-  switch (getLayoutFlags().DataSize) {
+  
+  switch (auto *DataSizePtr = reinterpret_cast<const char *>(H) + RelOffset; getLayoutFlags().DataSize) {
   case DataSizeFlags::Uses1B:
     return (H->Packed >> ((sizeof(Header::PackTy) - 2) * CHAR_BIT)) & UINT8_MAX;
   case DataSizeFlags::Uses2B:
@@ -839,8 +839,8 @@ uint32_t DataRecordHandle::getNumRefs() const {
   LayoutFlags LF = getLayoutFlags();
   int64_t RelOffset = sizeof(Header);
   skipDataSize(LF, RelOffset);
-  auto *NumRefsPtr = reinterpret_cast<const char *>(H) + RelOffset;
-  switch (LF.NumRefs) {
+  
+  switch (auto *NumRefsPtr = reinterpret_cast<const char *>(H) + RelOffset; LF.NumRefs) {
   case NumRefsFlags::Uses0B:
     return 0;
   case NumRefsFlags::Uses1B:
@@ -1381,8 +1381,8 @@ Error OnDiskGraphDB::createStandaloneLeaf(IndexProxy &I, ArrayRef<char> Data) {
   // Store the object reference.
   TrieRecord::Data Existing;
   {
-    TrieRecord::Data Leaf{SK, FileOffset()};
-    if (I.Ref.compare_exchange_strong(Existing, Leaf)) {
+    
+    if (TrieRecord::Data Leaf{SK, FileOffset()}; I.Ref.compare_exchange_strong(Existing, Leaf)) {
       recordStandaloneSizeIncrease(FileSize);
       return Error::success();
     }
@@ -1403,8 +1403,8 @@ Error OnDiskGraphDB::store(ObjectID ID, ArrayRef<ObjectID> Refs,
 
   // Early return in case the node exists.
   {
-    TrieRecord::Data Existing = I->Ref.load();
-    if (Existing.SK != TrieRecord::StorageKind::Unknown)
+    
+    if (TrieRecord::Data Existing = I->Ref.load(); Existing.SK != TrieRecord::StorageKind::Unknown)
       return Error::success();
   }
 

@@ -300,8 +300,8 @@ Error PDBFileBuilder::commit(StringRef Filename, codeview::GUID *Guid) {
 
       auto NS = WritableMappedBlockStream::createIndexedStream(
           Layout, Buffer, NSE.first, Allocator);
-      BinaryStreamWriter NSW(*NS);
-      if (auto EC = NSW.writeBytes(arrayRefFromStringRef(NSE.second)))
+      
+      if (BinaryStreamWriter NSW(*NS); auto EC = NSW.writeBytes(arrayRefFromStringRef(NSE.second)))
         return EC;
     }
   }

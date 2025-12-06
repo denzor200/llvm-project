@@ -58,8 +58,8 @@ ValueObjectSP ValueObjectList::FindValueObjectByValueName(const char *name) {
   ValueObjectSP val_obj_sp;
   collection::iterator pos, end = m_value_objects.end();
   for (pos = m_value_objects.begin(); pos != end; ++pos) {
-    ValueObject *valobj = (*pos).get();
-    if (valobj && valobj->GetName() == name_const_str) {
+    
+    if (ValueObject *valobj = (*pos).get(); valobj && valobj->GetName() == name_const_str) {
       val_obj_sp = *pos;
       break;
     }
@@ -74,8 +74,8 @@ ValueObjectSP ValueObjectList::FindValueObjectByUID(lldb::user_id_t uid) {
   for (pos = m_value_objects.begin(); pos != end; ++pos) {
     // Watch out for NULL objects in our list as the list might get resized to
     // a specific size and lazily filled in
-    ValueObject *valobj = (*pos).get();
-    if (valobj && valobj->GetID() == uid) {
+    
+    if (ValueObject *valobj = (*pos).get(); valobj && valobj->GetID() == uid) {
       valobj_sp = *pos;
       break;
     }
@@ -89,8 +89,8 @@ ValueObjectList::FindValueObjectByPointer(ValueObject *find_valobj) {
   collection::iterator pos, end = m_value_objects.end();
 
   for (pos = m_value_objects.begin(); pos != end; ++pos) {
-    ValueObject *valobj = (*pos).get();
-    if (valobj && valobj == find_valobj) {
+    
+    if (ValueObject *valobj = (*pos).get(); valobj && valobj == find_valobj) {
       valobj_sp = *pos;
       break;
     }

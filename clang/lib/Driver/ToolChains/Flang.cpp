@@ -194,10 +194,10 @@ void Flang::addDebugOptions(const llvm::opt::ArgList &Args, const JobAction &JA,
 
 void Flang::addCodegenOptions(const ArgList &Args,
                               ArgStringList &CmdArgs) const {
-  Arg *stackArrays =
+  
+  if (Arg *stackArrays =
       Args.getLastArg(options::OPT_Ofast, options::OPT_fstack_arrays,
-                      options::OPT_fno_stack_arrays);
-  if (stackArrays &&
+                      options::OPT_fno_stack_arrays); stackArrays &&
       !stackArrays->getOption().matches(options::OPT_fno_stack_arrays))
     CmdArgs.push_back("-fstack-arrays");
 
@@ -280,8 +280,8 @@ void Flang::AddAArch64TargetArgs(const ArgList &Args,
   // Handle -msve_vector_bits=<bits>
   if (Arg *A = Args.getLastArg(options::OPT_msve_vector_bits_EQ)) {
     StringRef Val = A->getValue();
-    const Driver &D = getToolChain().getDriver();
-    if (Val == "128" || Val == "256" || Val == "512" || Val == "1024" ||
+    
+    if (const Driver &D = getToolChain().getDriver(); Val == "128" || Val == "256" || Val == "512" || Val == "1024" ||
         Val == "2048" || Val == "128+" || Val == "256+" || Val == "512+" ||
         Val == "1024+" || Val == "2048+") {
       unsigned Bits = 0;
@@ -306,11 +306,11 @@ void Flang::AddAArch64TargetArgs(const ArgList &Args,
 
 void Flang::AddLoongArch64TargetArgs(const ArgList &Args,
                                      ArgStringList &CmdArgs) const {
-  const Driver &D = getToolChain().getDriver();
+  
   // Currently, flang only support `-mabi=lp64d` in LoongArch64.
-  if (const Arg *A = Args.getLastArg(options::OPT_mabi_EQ)) {
-    StringRef V = A->getValue();
-    if (V != "lp64d") {
+  if (const Driver &D = getToolChain().getDriver(); const Arg *A = Args.getLastArg(options::OPT_mabi_EQ)) {
+    
+    if (StringRef V = A->getValue(); V != "lp64d") {
       D.Diag(diag::err_drv_argument_not_allowed_with) << "-mabi" << V;
     }
   }
@@ -330,8 +330,8 @@ void Flang::AddPPCTargetArgs(const ArgList &Args,
   bool VecExtabi = false;
 
   if (const Arg *A = Args.getLastArg(options::OPT_mabi_EQ)) {
-    StringRef V = A->getValue();
-    if (V == "vec-extabi")
+    
+    if (StringRef V = A->getValue(); V == "vec-extabi")
       VecExtabi = true;
     else if (V == "vec-default")
       VecExtabi = false;
@@ -405,8 +405,8 @@ void Flang::AddRISCVTargetArgs(const ArgList &Args,
 void Flang::AddX86_64TargetArgs(const ArgList &Args,
                                 ArgStringList &CmdArgs) const {
   if (Arg *A = Args.getLastArg(options::OPT_masm_EQ)) {
-    StringRef Value = A->getValue();
-    if (Value == "intel" || Value == "att") {
+    
+    if (StringRef Value = A->getValue(); Value == "intel" || Value == "att") {
       CmdArgs.push_back(Args.MakeArgString("-mllvm"));
       CmdArgs.push_back(Args.MakeArgString("-x86-asm-syntax=" + Value));
     } else {
@@ -427,8 +427,8 @@ static void addVSDefines(const ToolChain &TC, const ArgList &Args,
   CmdArgs.push_back(Args.MakeArgString("-D_MSC_FULL_VER=" + Twine(ver)));
   CmdArgs.push_back(Args.MakeArgString("-D_WIN32"));
 
-  const llvm::Triple &triple = TC.getTriple();
-  if (triple.isAArch64()) {
+  
+  if (const llvm::Triple &triple = TC.getTriple(); triple.isAArch64()) {
     CmdArgs.push_back("-D_M_ARM64=1");
   } else if (triple.isX86() && triple.isArch32Bit()) {
     CmdArgs.push_back("-D_M_IX86=600");
@@ -698,8 +698,8 @@ static void addFloatingPointOptions(const Driver &D, const ArgList &Args,
   LangOptions::ComplexRangeKind Range = LangOptions::ComplexRangeKind::CX_None;
 
   if (const Arg *A = Args.getLastArg(options::OPT_ffp_contract)) {
-    const StringRef Val = A->getValue();
-    if (Val == "fast" || Val == "off") {
+    
+    if (const StringRef Val = A->getValue(); Val == "fast" || Val == "off") {
       FPContract = Val;
     } else if (Val == "on") {
       // Warn instead of error because users might have makefiles written for
@@ -715,8 +715,8 @@ static void addFloatingPointOptions(const Driver &D, const ArgList &Args,
   }
 
   for (const Arg *A : Args) {
-    auto optId = A->getOption().getID();
-    switch (optId) {
+    
+    switch (auto optId = A->getOption().getID(); optId) {
     // if this isn't an FP option, skip the claim below
     default:
       continue;

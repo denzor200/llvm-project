@@ -268,8 +268,8 @@ static bool tryAddingSymbolicOperand(int64_t Value, bool isBranch,
 
 static DecodeStatus DecodeCall(MCInst &MI, unsigned insn, uint64_t Address,
                                const MCDisassembler *Decoder) {
-  int64_t CallOffset = SignExtend64(fieldFromInstruction(insn, 0, 30), 30) * 4;
-  if (!tryAddingSymbolicOperand(Address + CallOffset, false, Address, 0, 30, MI,
+  
+  if (int64_t CallOffset = SignExtend64(fieldFromInstruction(insn, 0, 30), 30) * 4; !tryAddingSymbolicOperand(Address + CallOffset, false, Address, 0, 30, MI,
                                 Decoder))
     MI.addOperand(MCOperand::createImm(CallOffset));
   return MCDisassembler::Success;
@@ -292,8 +292,8 @@ static DecodeStatus DecodeSIMM13(MCInst &MI, unsigned insn, uint64_t Address,
 template <unsigned N>
 static DecodeStatus DecodeDisp(MCInst &MI, uint32_t ImmVal, uint64_t Address,
                                const MCDisassembler *Decoder) {
-  int64_t BranchOffset = SignExtend64(ImmVal, N) * 4;
-  if (!tryAddingSymbolicOperand(Address + BranchOffset, true, Address, 0, N, MI,
+  
+  if (int64_t BranchOffset = SignExtend64(ImmVal, N) * 4; !tryAddingSymbolicOperand(Address + BranchOffset, true, Address, 0, N, MI,
                                 Decoder))
     MI.addOperand(MCOperand::createImm(BranchOffset));
   return MCDisassembler::Success;

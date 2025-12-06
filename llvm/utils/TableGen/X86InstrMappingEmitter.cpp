@@ -220,8 +220,8 @@ void X86InstrMappingEmitter::emitCompressEVEXTable(
       // appropriate vector (instructions with the same opcode) using function
       // object IsMatch.
       const auto &Insts = CompressedInsts[Opcode];
-      auto Match = llvm::find_if(Insts, IsMatch(Inst));
-      if (Match != Insts.end())
+      
+      if (auto Match = llvm::find_if(Insts, IsMatch(Inst)); Match != Insts.end())
         NewInst = *Match;
     }
 

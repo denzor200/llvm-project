@@ -380,8 +380,8 @@ types::ID types::lookupTypeForExtension(llvm::StringRef Ext) {
 
 types::ID types::lookupTypeForTypeSpecifier(const char *Name) {
   for (unsigned i=0; i<numTypes; ++i) {
-    types::ID Id = (types::ID) (i + 1);
-    if (canTypeBeUserSpecified(Id) &&
+    
+    if (types::ID Id = (types::ID) (i + 1); canTypeBeUserSpecified(Id) &&
         strcmp(Name, getInfo(Id).Name) == 0)
       return Id;
   }

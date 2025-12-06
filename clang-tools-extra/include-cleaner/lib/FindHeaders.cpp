@@ -171,9 +171,9 @@ headersForSpecialSymbol(const Symbol &S, const SourceManager &SM,
   // Now check for builtin symbols, we shouldn't suggest any headers for ones
   // without any headers.
   if (auto ID = II->getBuiltinID()) {
-    const char *BuiltinHeader =
-        ND->getASTContext().BuiltinInfo.getHeaderName(ID);
-    if (!BuiltinHeader)
+    
+    if (const char *BuiltinHeader =
+        ND->getASTContext().BuiltinInfo.getHeaderName(ID); !BuiltinHeader)
       return llvm::SmallVector<Hinted<Header>>{};
     // FIXME: Use the header mapping for builtins with a known header.
   }

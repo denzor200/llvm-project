@@ -279,9 +279,9 @@ void WinEHStatePass::emitExceptionRegistrationRecord(Function *F) {
   IRBuilder<> Builder(&F->getEntryBlock(), F->getEntryBlock().begin());
   Type *Int8PtrType = Builder.getPtrTy();
   Type *Int32Ty = Builder.getInt32Ty();
-  Type *VoidTy = Builder.getVoidTy();
+  
 
-  if (Personality == EHPersonality::MSVC_CXX) {
+  if (Type *VoidTy = Builder.getVoidTy(); Personality == EHPersonality::MSVC_CXX) {
     RegNodeTy = getCXXEHRegistrationType();
     RegNode = Builder.CreateAlloca(RegNodeTy);
     // SavedESP = llvm.stacksave()
@@ -511,11 +511,11 @@ int WinEHStatePass::getBaseStateForBB(
   auto &BBColors = BlockColors[BB];
 
   assert(BBColors.size() == 1 && "multi-color BB not removed by preparation");
-  BasicBlock *FuncletEntryBB = BBColors.front();
-  if (auto *FuncletPad =
+  
+  if (BasicBlock *FuncletEntryBB = BBColors.front(); auto *FuncletPad =
           dyn_cast<FuncletPadInst>(FuncletEntryBB->getFirstNonPHIIt())) {
-    auto BaseStateI = FuncInfo.FuncletBaseStateMap.find(FuncletPad);
-    if (BaseStateI != FuncInfo.FuncletBaseStateMap.end())
+    
+    if (auto BaseStateI = FuncInfo.FuncletBaseStateMap.find(FuncletPad); BaseStateI != FuncInfo.FuncletBaseStateMap.end())
       BaseState = BaseStateI->second;
   }
 
@@ -740,8 +740,8 @@ void WinEHStatePass::addStateStores(Function &F, WinEHFuncInfo &FuncInfo) {
   // state.
   for (BasicBlock *BB : RPOT) {
     auto &BBColors = BlockColors[BB];
-    BasicBlock *FuncletEntryBB = BBColors.front();
-    if (isa<CleanupPadInst>(FuncletEntryBB->getFirstNonPHIIt()))
+    
+    if (BasicBlock *FuncletEntryBB = BBColors.front(); isa<CleanupPadInst>(FuncletEntryBB->getFirstNonPHIIt()))
       continue;
 
     int PrevState = getPredState(FinalStates, F, ParentBaseState, BB);

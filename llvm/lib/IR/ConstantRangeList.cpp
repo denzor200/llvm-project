@@ -19,8 +19,8 @@ bool ConstantRangeList::isOrderedRanges(ArrayRef<ConstantRange> RangesRef) {
     return false;
   for (unsigned i = 1; i < RangesRef.size(); i++) {
     auto CurRange = RangesRef[i];
-    auto PreRange = RangesRef[i - 1];
-    if (CurRange.getLower().sge(CurRange.getUpper()) ||
+    
+    if (auto PreRange = RangesRef[i - 1]; CurRange.getLower().sge(CurRange.getUpper()) ||
         CurRange.getLower().sle(PreRange.getUpper()))
       return false;
   }

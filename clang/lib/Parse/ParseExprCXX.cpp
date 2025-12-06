@@ -435,8 +435,8 @@ bool Parser::ParseOptionalCXXScopeSpecifier(
       }
 
       if (ColonIsSacred) {
-        const Token &Next2 = GetLookAheadToken(2);
-        if (Next2.is(tok::kw_private) || Next2.is(tok::kw_protected) ||
+        
+        if (const Token &Next2 = GetLookAheadToken(2); Next2.is(tok::kw_private) || Next2.is(tok::kw_protected) ||
             Next2.is(tok::kw_public) || Next2.is(tok::kw_virtual)) {
           Diag(Next2, diag::err_unexpected_token_in_nested_name_spec)
               << Next2.getName()
@@ -462,8 +462,8 @@ bool Parser::ParseOptionalCXXScopeSpecifier(
       SourceLocation CCLoc = ConsumeToken();
 
       bool IsCorrectedToColon = false;
-      bool *CorrectionFlagPtr = ColonIsSacred ? &IsCorrectedToColon : nullptr;
-      if (Actions.ActOnCXXNestedNameSpecifier(
+      
+      if (bool *CorrectionFlagPtr = ColonIsSacred ? &IsCorrectedToColon : nullptr; Actions.ActOnCXXNestedNameSpecifier(
               getCurScope(), IdInfo, EnteringContext, SS, CorrectionFlagPtr,
               OnlyNamespace)) {
         // Identifier is not recognized as a nested name, but we can have
@@ -538,11 +538,11 @@ bool Parser::ParseOptionalCXXScopeSpecifier(
         }
         ConsumeToken();
 
-        TemplateNameKind TNK = Actions.ActOnTemplateName(
+        
+        if (TemplateNameKind TNK = Actions.ActOnTemplateName(
             getCurScope(), SS, /*TemplateKWLoc=*/SourceLocation(), TemplateName,
             ObjectType, EnteringContext, Template,
-            /*AllowInjectedClassName=*/true);
-        if (AnnotateTemplateIdToken(Template, TNK, SS, SourceLocation(),
+            /*AllowInjectedClassName=*/true); AnnotateTemplateIdToken(Template, TNK, SS, SourceLocation(),
                                     TemplateName, false))
           return true;
 
@@ -919,8 +919,8 @@ bool Parser::ParseLambdaIntroducer(LambdaIntroducer &Intro,
 
         InitKind = LambdaCaptureInitKind::DirectInit;
 
-        ExprVector Exprs;
-        if (Tentative) {
+        
+        if (ExprVector Exprs; Tentative) {
           Parens.skipToEnd();
           *Tentative = LambdaIntroducerTentativeParse::Incomplete;
         } else if (ParseExpressionList(Exprs)) {
@@ -1025,10 +1025,10 @@ bool Parser::ParseLambdaIntroducer(LambdaIntroducer &Intro,
             EllipsisLoc = Loc;
         }
       } else {
-        unsigned NumEllipses = std::accumulate(
+        
+        if (unsigned NumEllipses = std::accumulate(
             std::begin(EllipsisLocs), std::end(EllipsisLocs), 0,
-            [](int N, SourceLocation Loc) { return N + Loc.isValid(); });
-        if (NumEllipses > 1)
+            [](int N, SourceLocation Loc) { return N + Loc.isValid(); }); NumEllipses > 1)
           DiagID = diag::err_lambda_capture_multiple_ellipses;
       }
       if (DiagID) {
@@ -1512,8 +1512,8 @@ ExprResult Parser::ParseCXXCasts() {
   // Check for "<::" which is parsed as "[:".  If found, fix token stream,
   // diagnose error, suggest fix, and recover parsing.
   if (Tok.is(tok::l_square) && Tok.getLength() == 2) {
-    Token Next = NextToken();
-    if (Next.is(tok::colon) && areTokensAdjacent(Tok, Next))
+    
+    if (Token Next = NextToken(); Next.is(tok::colon) && areTokensAdjacent(Tok, Next))
       FixDigraph(*this, PP, Tok, Next, Kind, /*AtDigraph*/true);
   }
 
@@ -1749,12 +1749,12 @@ ExprResult Parser::ParseCXXBoolLiteral() {
 
 ExprResult Parser::ParseThrowExpression() {
   assert(Tok.is(tok::kw_throw) && "Not throw!");
-  SourceLocation ThrowLoc = ConsumeToken();           // Eat the throw token.
+            // Eat the throw token.
 
   // If the current token isn't the start of an assignment-expression,
   // then the expression is not present.  This handles things like:
   //   "C ? throw : (void)42", which is crazy but legal.
-  switch (Tok.getKind()) {  // FIXME: move this predicate somewhere common.
+  switch (SourceLocation ThrowLoc = ConsumeToken(); Tok.getKind()) {  // FIXME: move this predicate somewhere common.
   case tok::semi:
   case tok::r_paren:
   case tok::r_square:
@@ -2947,7 +2947,8 @@ Parser::ParseCXXNewExpression(bool UseGlobal, SourceLocation Start) {
     T.consumeOpen();
     ConstructorLParen = T.getOpenLocation();
     if (Tok.isNot(tok::r_paren)) {
-      auto RunSignatureHelp = [&]() {
+      
+      if (auto RunSignatureHelp = [&]() {
         ParsedType TypeRep = Actions.ActOnTypeName(DeclaratorInfo).get();
         QualType PreferredType;
         // ActOnTypeName might adjust DeclaratorInfo and return a null type even
@@ -2962,8 +2963,7 @@ Parser::ParseCXXNewExpression(bool UseGlobal, SourceLocation Start) {
                   /*Braced=*/false);
         CalledSignatureHelp = true;
         return PreferredType;
-      };
-      if (ParseExpressionList(ConstructorArgs, [&] {
+      }; ParseExpressionList(ConstructorArgs, [&] {
             PreferredType.enterFunctionArgument(Tok.getLocation(),
                                                 RunSignatureHelp);
           })) {
@@ -3256,7 +3256,8 @@ ExprResult Parser::ParseRequiresExpression() {
       default: {
         bool PossibleRequiresExprInSimpleRequirement = false;
         if (Tok.is(tok::kw_requires)) {
-          auto IsNestedRequirement = [&] {
+          
+          if (auto IsNestedRequirement = [&] {
             RevertingTentativeParsingAction TPA(*this);
             ConsumeToken(); // 'requires'
             if (Tok.is(tok::l_brace))
@@ -3299,8 +3300,7 @@ ExprResult Parser::ParseRequiresExpression() {
               }
             }
             return true;
-          };
-          if (IsNestedRequirement()) {
+          }; IsNestedRequirement()) {
             ConsumeToken();
             // Nested requirement
             // C++ [expr.prim.req.nested]

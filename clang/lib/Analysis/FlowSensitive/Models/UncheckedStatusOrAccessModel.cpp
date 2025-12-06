@@ -233,9 +233,9 @@ buildDiagnoseMatchSwitch(const UncheckedStatusOrAccessModelOptions &Options) {
           [](const CXXOperatorCallExpr *E,
              const ast_matchers::MatchFinder::MatchResult &,
              const Environment &Env) {
-            RecordStorageLocation *StatusOrLoc =
-                Env.get<RecordStorageLocation>(*E->getArg(0));
-            if (!isSafeUnwrap(StatusOrLoc, Env))
+            
+            if (RecordStorageLocation *StatusOrLoc =
+                Env.get<RecordStorageLocation>(*E->getArg(0)); !isSafeUnwrap(StatusOrLoc, Env))
               return llvm::SmallVector<SourceLocation>({E->getOperatorLoc()});
             return llvm::SmallVector<SourceLocation>();
           })
@@ -588,18 +588,18 @@ static void transferStatusOrConstructor(const CXXConstructExpr *Expr,
                                         const MatchFinder::MatchResult &,
                                         LatticeTransferState &State) {
   RecordStorageLocation &StatusOrLoc = State.Env.getResultObjectLocation(*Expr);
-  RecordStorageLocation &StatusLoc = locForStatus(StatusOrLoc);
+  
 
-  if (State.Env.getValue(locForOk(StatusLoc)) == nullptr)
+  if (RecordStorageLocation &StatusLoc = locForStatus(StatusOrLoc); State.Env.getValue(locForOk(StatusLoc)) == nullptr)
     initializeStatusOr(StatusOrLoc, State.Env);
 }
 
 static void transferStatusConstructor(const CXXConstructExpr *Expr,
                                       const MatchFinder::MatchResult &,
                                       LatticeTransferState &State) {
-  RecordStorageLocation &StatusLoc = State.Env.getResultObjectLocation(*Expr);
+  
 
-  if (State.Env.getValue(locForOk(StatusLoc)) == nullptr)
+  if (RecordStorageLocation &StatusLoc = State.Env.getResultObjectLocation(*Expr); State.Env.getValue(locForOk(StatusLoc)) == nullptr)
     initializeStatus(StatusLoc, State.Env);
 }
 

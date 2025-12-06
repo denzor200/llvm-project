@@ -109,8 +109,8 @@ HexagonTTIImpl::getPreferredAddressingMode(const Loop *L,
 /// --- Vector TTI begin ---
 
 unsigned HexagonTTIImpl::getNumberOfRegisters(unsigned ClassID) const {
-  bool Vector = ClassID == 1;
-  if (Vector)
+  
+  if (bool Vector = ClassID == 1; Vector)
     return useHVX() ? 32 : 0;
   return 32;
 }
@@ -264,8 +264,8 @@ InstructionCost HexagonTTIImpl::getCmpSelInstrCost(
   if (ValTy->isVectorTy() && CostKind == TTI::TCK_RecipThroughput) {
     if (!isHVXVectorType(ValTy) && ValTy->isFPOrFPVectorTy())
       return InstructionCost::getMax();
-    std::pair<InstructionCost, MVT> LT = getTypeLegalizationCost(ValTy);
-    if (Opcode == Instruction::FCmp)
+    
+    if (std::pair<InstructionCost, MVT> LT = getTypeLegalizationCost(ValTy); Opcode == Instruction::FCmp)
       return LT.first + FloatFactor * getTypeNumElements(ValTy);
   }
   return BaseT::getCmpSelInstrCost(Opcode, ValTy, CondTy, VecPred, CostKind,
@@ -284,8 +284,8 @@ InstructionCost HexagonTTIImpl::getArithmeticInstrCost(
   if (Ty->isVectorTy()) {
     if (!isHVXVectorType(Ty) && Ty->isFPOrFPVectorTy())
       return InstructionCost::getMax();
-    std::pair<InstructionCost, MVT> LT = getTypeLegalizationCost(Ty);
-    if (LT.second.isFloatingPoint())
+    
+    if (std::pair<InstructionCost, MVT> LT = getTypeLegalizationCost(Ty); LT.second.isFloatingPoint())
       return LT.first + FloatFactor * getTypeNumElements(Ty);
   }
   return BaseT::getArithmeticInstrCost(Opcode, Ty, CostKind, Op1Info, Op2Info,
@@ -324,9 +324,9 @@ InstructionCost HexagonTTIImpl::getVectorInstrCost(unsigned Opcode, Type *Val,
                                                    unsigned Index,
                                                    const Value *Op0,
                                                    const Value *Op1) const {
-  Type *ElemTy = Val->isVectorTy() ? cast<VectorType>(Val)->getElementType()
-                                   : Val;
-  if (Opcode == Instruction::InsertElement) {
+  
+  if (Type *ElemTy = Val->isVectorTy() ? cast<VectorType>(Val)->getElementType()
+                                   : Val; Opcode == Instruction::InsertElement) {
     // Need two rotations for non-zero index.
     unsigned Cost = (Index != 0) ? 2 : 0;
     if (ElemTy->isIntegerTy(32))

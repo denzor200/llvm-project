@@ -19,8 +19,8 @@ using namespace lldb_private;
 OptionValueFormatEntity::OptionValueFormatEntity(const char *default_format) {
   if (default_format && default_format[0]) {
     llvm::StringRef default_format_str(default_format);
-    Status error = FormatEntity::Parse(default_format_str, m_default_entry);
-    if (error.Success()) {
+    
+    if (Status error = FormatEntity::Parse(default_format_str, m_default_entry); error.Success()) {
       m_default_format = default_format;
       m_current_format = default_format;
       m_current_entry = m_default_entry;
@@ -87,8 +87,8 @@ Status OptionValueFormatEntity::SetValueFromString(llvm::StringRef value_str,
     // the string alone and parse as is.
     llvm::StringRef trimmed_value_str = value_str.trim();
     if (!trimmed_value_str.empty()) {
-      const char first_char = trimmed_value_str[0];
-      if (first_char == '"' || first_char == '\'') {
+      
+      if (const char first_char = trimmed_value_str[0]; first_char == '"' || first_char == '\'') {
         const size_t trimmed_len = trimmed_value_str.size();
         if (trimmed_len == 1 || value_str[trimmed_len - 1] != first_char) {
           error = Status::FromErrorString("mismatched quotes");

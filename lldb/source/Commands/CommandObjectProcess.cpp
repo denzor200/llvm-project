@@ -84,8 +84,8 @@ protected:
         } else {
           if (process->GetShouldDetach()) {
             bool keep_stopped = false;
-            Status detach_error(process->Detach(keep_stopped));
-            if (detach_error.Success()) {
+            
+            if (Status detach_error(process->Detach(keep_stopped)); detach_error.Success()) {
               result.SetStatus(eReturnStatusSuccessFinishResult);
               process = nullptr;
             } else {
@@ -94,8 +94,8 @@ protected:
                   detach_error.AsCString());
             }
           } else {
-            Status destroy_error(process->Destroy(false));
-            if (destroy_error.Success()) {
+            
+            if (Status destroy_error(process->Destroy(false)); destroy_error.Success()) {
               result.SetStatus(eReturnStatusSuccessFinishResult);
               process = nullptr;
             } else {
@@ -246,8 +246,8 @@ protected:
     Status error = target->Launch(m_options.launch_info, &stream);
 
     if (error.Success()) {
-      ProcessSP process_sp(target->GetProcessSP());
-      if (process_sp) {
+      
+      if (ProcessSP process_sp(target->GetProcessSP()); process_sp) {
         // There is a race condition where this thread will return up the call
         // stack to the main command handler and show an (lldb) prompt before
         // HandlePrivateEvent (from PrivateStateThread) has a chance to call
@@ -322,9 +322,9 @@ protected:
     // for the stop ourselves here.
 
     StateType state = eStateInvalid;
-    Process *process = m_exe_ctx.GetProcessPtr();
+    
 
-    if (!StopProcessIfNecessary(process, state, result))
+    if (Process *process = m_exe_ctx.GetProcessPtr(); !StopProcessIfNecessary(process, state, result))
       return;
 
     if (target == nullptr) {
@@ -458,8 +458,8 @@ protected:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *exe_ctx) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
-      switch (short_option) {
+      
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'i':
         if (option_arg.getAsInteger(0, m_ignore))
           error = Status::FromErrorStringWithFormat(
@@ -502,24 +502,24 @@ protected:
   void DoExecute(Args &command, CommandReturnObject &result) override {
     Process *process = m_exe_ctx.GetProcessPtr();
     bool synchronous_execution = m_interpreter.GetSynchronous();
-    StateType state = process->GetState();
-    if (state == eStateStopped) {
+    
+    if (StateType state = process->GetState(); state == eStateStopped) {
       if (m_options.m_ignore > 0) {
-        ThreadSP sel_thread_sp(GetDefaultThread()->shared_from_this());
-        if (sel_thread_sp) {
-          StopInfoSP stop_info_sp = sel_thread_sp->GetStopInfo();
-          if (stop_info_sp &&
+        
+        if (ThreadSP sel_thread_sp(GetDefaultThread()->shared_from_this()); sel_thread_sp) {
+          
+          if (StopInfoSP stop_info_sp = sel_thread_sp->GetStopInfo(); stop_info_sp &&
               stop_info_sp->GetStopReason() == eStopReasonBreakpoint) {
             lldb::break_id_t bp_site_id =
                 (lldb::break_id_t)stop_info_sp->GetValue();
-            BreakpointSiteSP bp_site_sp(
-                process->GetBreakpointSiteList().FindByID(bp_site_id));
-            if (bp_site_sp) {
+            
+            if (BreakpointSiteSP bp_site_sp(
+                process->GetBreakpointSiteList().FindByID(bp_site_id)); bp_site_sp) {
               const size_t num_owners = bp_site_sp->GetNumberOfConstituents();
               for (size_t i = 0; i < num_owners; i++) {
-                Breakpoint &bp_ref =
-                    bp_site_sp->GetConstituentAtIndex(i)->GetBreakpoint();
-                if (!bp_ref.IsInternal()) {
+                
+                if (Breakpoint &bp_ref =
+                    bp_site_sp->GetConstituentAtIndex(i)->GetBreakpoint(); !bp_ref.IsInternal()) {
                   bp_ref.SetIgnoreCount(m_options.m_ignore);
                 }
               }
@@ -566,27 +566,27 @@ protected:
           BreakpointID bkpt_id = run_to_bkpt_ids.GetBreakpointIDAtIndex(idx);
           break_id_t bp_id = bkpt_id.GetBreakpointID();
           break_id_t loc_id = bkpt_id.GetLocationID();
-          BreakpointSP bp_sp
-              = bkpt_list.FindBreakpointByID(bp_id);
+          
           // Note, VerifyBreakpointOrLocationIDs checks for existence, so we
           // don't need to do it again here.
-          if (bp_sp->IsEnabled()) {
+          if (BreakpointSP bp_sp
+              = bkpt_list.FindBreakpointByID(bp_id); bp_sp->IsEnabled()) {
             if (loc_id == LLDB_INVALID_BREAK_ID) {
               // A breakpoint (without location) was specified.  Make sure that
               // at least one of the locations is enabled.
               size_t num_locations = bp_sp->GetNumLocations();
               for (size_t loc_idx = 0; loc_idx < num_locations; loc_idx++) {
-                BreakpointLocationSP loc_sp
-                    = bp_sp->GetLocationAtIndex(loc_idx);
-                if (loc_sp->IsEnabled()) {
+                
+                if (BreakpointLocationSP loc_sp
+                    = bp_sp->GetLocationAtIndex(loc_idx); loc_sp->IsEnabled()) {
                   any_enabled = true;
                   break;
                 }
               }
             } else {
               // A location was specified, check if it was enabled:
-              BreakpointLocationSP loc_sp = bp_sp->FindLocationByID(loc_id);
-              if (loc_sp->IsEnabled())
+              
+              if (BreakpointLocationSP loc_sp = bp_sp->FindLocationByID(loc_id); loc_sp->IsEnabled())
                 any_enabled = true;
             }
 
@@ -693,17 +693,17 @@ protected:
       // Now re-enable the breakpoints we disabled:
       BreakpointList &bkpt_list = target.GetBreakpointList();
       for (break_id_t bp_id : bkpts_disabled) {
-        BreakpointSP bp_sp = bkpt_list.FindBreakpointByID(bp_id);
-        if (bp_sp)
+        
+        if (BreakpointSP bp_sp = bkpt_list.FindBreakpointByID(bp_id); bp_sp)
           bp_sp->SetEnabled(true);
       }
       for (const BreakpointID &bkpt_id : locs_disabled) {
-        BreakpointSP bp_sp
-            = bkpt_list.FindBreakpointByID(bkpt_id.GetBreakpointID());
-        if (bp_sp) {
-          BreakpointLocationSP loc_sp
-              = bp_sp->FindLocationByID(bkpt_id.GetLocationID());
-          if (loc_sp) {
+        
+        if (BreakpointSP bp_sp
+            = bkpt_list.FindBreakpointByID(bkpt_id.GetBreakpointID()); bp_sp) {
+          
+          if (BreakpointLocationSP loc_sp
+              = bp_sp->FindLocationByID(bkpt_id.GetLocationID()); loc_sp) {
             if (llvm::Error error = loc_sp->SetEnabled(true))
               result.AppendErrorWithFormatv(
                   "failed to enable breakpoint location: {0}",
@@ -764,9 +764,9 @@ public:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 's':
         bool tmp_result;
         bool success;
@@ -855,9 +855,9 @@ public:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'p':
         plugin_name.assign(std::string(option_arg));
         break;
@@ -901,8 +901,8 @@ protected:
       return;
     }
 
-    Process *process = m_exe_ctx.GetProcessPtr();
-    if (process && process->IsAlive()) {
+    
+    if (Process *process = m_exe_ctx.GetProcessPtr(); process && process->IsAlive()) {
       result.AppendErrorWithFormat(
           "Process %" PRIu64
           " is currently being debugged, kill the process before connecting.\n",
@@ -1113,15 +1113,15 @@ protected:
     Process *process = m_exe_ctx.GetProcessPtr();
 
     for (auto &entry : command.entries()) {
-      uint32_t image_token;
-      if (entry.ref().getAsInteger(0, image_token)) {
+      
+      if (uint32_t image_token; entry.ref().getAsInteger(0, image_token)) {
         result.AppendErrorWithFormat("invalid image index argument '%s'",
                                      entry.ref().str().c_str());
         break;
       } else {
-        Status error(process->GetTarget().GetPlatform()->UnloadImage(
-            process, image_token));
-        if (error.Success()) {
+        
+        if (Status error(process->GetTarget().GetPlatform()->UnloadImage(
+            process, image_token)); error.Success()) {
           result.AppendMessageWithFormat(
               "Unloading shared library with index %u...ok\n", image_token);
           result.SetStatus(eReturnStatusSuccessFinishResult);
@@ -1166,13 +1166,13 @@ public:
 
 protected:
   void DoExecute(Args &command, CommandReturnObject &result) override {
-    Process *process = m_exe_ctx.GetProcessPtr();
+    
 
-    if (command.GetArgumentCount() == 1) {
+    if (Process *process = m_exe_ctx.GetProcessPtr(); command.GetArgumentCount() == 1) {
       int signo = LLDB_INVALID_SIGNAL_NUMBER;
 
-      const char *signal_name = command.GetArgumentAtIndex(0);
-      if (::isxdigit(signal_name[0])) {
+      
+      if (const char *signal_name = command.GetArgumentAtIndex(0); ::isxdigit(signal_name[0])) {
         if (!llvm::to_integer(signal_name, signo))
           signo = LLDB_INVALID_SIGNAL_NUMBER;
       } else
@@ -1182,8 +1182,8 @@ protected:
         result.AppendErrorWithFormat("Invalid signal argument '%s'.\n",
                                      command.GetArgumentAtIndex(0));
       } else {
-        Status error(process->Signal(signo));
-        if (error.Success()) {
+        
+        if (Status error(process->Signal(signo)); error.Success()) {
           result.SetStatus(eReturnStatusSuccessFinishResult);
         } else {
           result.AppendErrorWithFormat("Failed to send signal %i: %s\n", signo,
@@ -1347,16 +1347,16 @@ public:
 
 protected:
   void DoExecute(Args &command, CommandReturnObject &result) override {
-    ProcessSP process_sp = m_exe_ctx.GetProcessSP();
-    if (process_sp) {
+    
+    if (ProcessSP process_sp = m_exe_ctx.GetProcessSP(); process_sp) {
       if (command.GetArgumentCount() == 1) {
         FileSpec output_file(command.GetArgumentAtIndex(0));
         FileSystem::Instance().Resolve(output_file);
         auto &core_dump_options = m_options.m_core_dump_options;
         core_dump_options.SetOutputFile(output_file);
         core_dump_options.SetProcess(process_sp);
-        Status error = PluginManager::SaveCore(core_dump_options);
-        if (error.Success()) {
+        
+        if (Status error = PluginManager::SaveCore(core_dump_options); error.Success()) {
           if (core_dump_options.GetStyle() ==
                   SaveCoreStyle::eSaveCoreDirtyOnly ||
               core_dump_options.GetStyle() ==
@@ -1414,9 +1414,9 @@ public:
 
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'v':
         m_verbose = true;
         break;
@@ -1463,8 +1463,8 @@ protected:
 
     if (m_options.m_verbose) {
       addr_t code_mask = process->GetCodeAddressMask();
-      addr_t data_mask = process->GetDataAddressMask();
-      if (code_mask != LLDB_INVALID_ADDRESS_MASK) {
+      
+      if (addr_t data_mask = process->GetDataAddressMask(); code_mask != LLDB_INVALID_ADDRESS_MASK) {
         int bits = std::bitset<64>(~code_mask).count();
         result.AppendMessageWithFormat(
             "Addressable code address mask: 0x%" PRIx64 "\n", code_mask);
@@ -1498,8 +1498,8 @@ protected:
     }
 
     if (m_options.m_dump) {
-      StateType state = process->GetState();
-      if (state == eStateStopped) {
+      
+      if (StateType state = process->GetState(); state == eStateStopped) {
         ProcessModID process_mod_id = process->GetModID();
         process_mod_id.Dump(result.GetOutputStream());
       }
@@ -1527,9 +1527,9 @@ public:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'c':
         do_clear = true;
         break;
@@ -1619,9 +1619,9 @@ public:
       str.Printf("%s  %s  %s", (pass ? "true " : "false"),
                  (stop ? "true " : "false"), (notify ? "true " : "false"));
 
-      const llvm::StringRef sig_description =
-          signals_sp->GetSignalNumberDescription(signo);
-      if (!sig_description.empty()) {
+      
+      if (const llvm::StringRef sig_description =
+          signals_sp->GetSignalNumberDescription(signo); !sig_description.empty()) {
         str.PutCString("   ");
         str.PutCString(sig_description);
       }
@@ -1637,9 +1637,9 @@ public:
     if (num_valid_signals > 0) {
       size_t num_args = signal_args.GetArgumentCount();
       for (size_t i = 0; i < num_args; ++i) {
-        int32_t signo = signals_sp->GetSignalNumberFromName(
-            signal_args.GetArgumentAtIndex(i));
-        if (signo != LLDB_INVALID_SIGNAL_NUMBER)
+        
+        if (int32_t signo = signals_sp->GetSignalNumberFromName(
+            signal_args.GetArgumentAtIndex(i)); signo != LLDB_INVALID_SIGNAL_NUMBER)
           PrintSignal(str, signo, signal_args.GetArgumentAtIndex(i),
                       signals_sp);
       }
@@ -1745,8 +1745,8 @@ protected:
         // Do the process first.  If we have a process we can catch
         // invalid signal names, which we do here.
         if (signals_sp) {
-          int32_t signo = signals_sp->GetSignalNumberFromName(arg.c_str());
-          if (signo != LLDB_INVALID_SIGNAL_NUMBER) {
+          
+          if (int32_t signo = signals_sp->GetSignalNumberFromName(arg.c_str()); signo != LLDB_INVALID_SIGNAL_NUMBER) {
             if (stop_action.has_value())
               signals_sp->SetShouldStop(signo, *stop_action);
             if (pass_action.has_value()) {
@@ -1774,14 +1774,14 @@ protected:
           }
          num_signals_set = num_args;
         }
-        auto set_lazy_bool = [](std::optional<bool> action) -> LazyBool {
+        
+
+        // If there were no actions, we're just listing, don't add the dummy:
+        if (auto set_lazy_bool = [](std::optional<bool> action) -> LazyBool {
           if (!action.has_value())
             return eLazyBoolCalculate;
           return (*action) ? eLazyBoolYes : eLazyBoolNo;
-        };
-
-        // If there were no actions, we're just listing, don't add the dummy:
-        if (!no_actions)
+        }; !no_actions)
           target.AddDummySignal(arg.ref(), set_lazy_bool(pass_action),
                                 set_lazy_bool(notify_action),
                                 set_lazy_bool(stop_action));
@@ -1865,9 +1865,9 @@ public:
   void DoExecute(Args &command, CommandReturnObject &result) override {
     ProcessSP process_sp = m_exe_ctx.GetProcessSP();
 
-    TraceSP trace_sp = process_sp->GetTarget().GetTrace();
+    
 
-    if (llvm::Error err = trace_sp->Stop())
+    if (TraceSP trace_sp = process_sp->GetTarget().GetTrace(); llvm::Error err = trace_sp->Stop())
       result.AppendError(toString(std::move(err)));
     else
       result.SetStatus(eReturnStatusSuccessFinishResult);

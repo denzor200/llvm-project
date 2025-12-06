@@ -56,9 +56,9 @@ static void recordRemoval(const DeclStmt &Stmt, ASTContext &Context,
   // Attempt to remove trailing comments as well.
   auto Tok = utils::lexer::findNextTokenSkippingComments(Stmt.getEndLoc(), SM,
                                                          Context.getLangOpts());
-  std::optional<SourceLocation> PastNewLine =
-      firstLocAfterNewLine(Stmt.getEndLoc(), SM);
-  if (Tok && PastNewLine) {
+  
+  if (std::optional<SourceLocation> PastNewLine =
+      firstLocAfterNewLine(Stmt.getEndLoc(), SM); Tok && PastNewLine) {
     auto BeforeFirstTokenAfterComment = Tok->getLocation().getLocWithOffset(-1);
     // Remove until the end of the line or the end of a trailing comment which
     // ever comes first.

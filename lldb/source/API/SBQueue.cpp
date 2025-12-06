@@ -85,16 +85,16 @@ public:
 
   void FetchThreads() {
     if (!m_thread_list_fetched) {
-      lldb::QueueSP queue_sp = m_queue_wp.lock();
-      if (queue_sp) {
-        Process::StopLocker stop_locker;
-        if (stop_locker.TryLock(&queue_sp->GetProcess()->GetRunLock())) {
+      
+      if (lldb::QueueSP queue_sp = m_queue_wp.lock(); queue_sp) {
+        
+        if (Process::StopLocker stop_locker; stop_locker.TryLock(&queue_sp->GetProcess()->GetRunLock())) {
           const std::vector<ThreadSP> thread_list(queue_sp->GetThreads());
           m_thread_list_fetched = true;
           const uint32_t num_threads = thread_list.size();
           for (uint32_t idx = 0; idx < num_threads; ++idx) {
-            ThreadSP thread_sp = thread_list[idx];
-            if (thread_sp && thread_sp->IsValid()) {
+            
+            if (ThreadSP thread_sp = thread_list[idx]; thread_sp && thread_sp->IsValid()) {
               m_threads.push_back(thread_sp);
             }
           }
@@ -105,17 +105,17 @@ public:
 
   void FetchItems() {
     if (!m_pending_items_fetched) {
-      QueueSP queue_sp = m_queue_wp.lock();
-      if (queue_sp) {
-        Process::StopLocker stop_locker;
-        if (stop_locker.TryLock(&queue_sp->GetProcess()->GetRunLock())) {
+      
+      if (QueueSP queue_sp = m_queue_wp.lock(); queue_sp) {
+        
+        if (Process::StopLocker stop_locker; stop_locker.TryLock(&queue_sp->GetProcess()->GetRunLock())) {
           const std::vector<QueueItemSP> queue_items(
               queue_sp->GetPendingItems());
           m_pending_items_fetched = true;
           const uint32_t num_pending_items = queue_items.size();
           for (uint32_t idx = 0; idx < num_pending_items; ++idx) {
-            QueueItemSP item = queue_items[idx];
-            if (item && item->IsValid()) {
+            
+            if (QueueItemSP item = queue_items[idx]; item && item->IsValid()) {
               m_pending_items.push_back(item);
             }
           }
@@ -140,10 +140,10 @@ public:
     SBThread sb_thread;
     QueueSP queue_sp = m_queue_wp.lock();
     if (queue_sp && idx < m_threads.size()) {
-      ProcessSP process_sp = queue_sp->GetProcess();
-      if (process_sp) {
-        ThreadSP thread_sp = m_threads[idx].lock();
-        if (thread_sp) {
+      
+      if (ProcessSP process_sp = queue_sp->GetProcess(); process_sp) {
+        
+        if (ThreadSP thread_sp = m_threads[idx].lock(); thread_sp) {
           sb_thread.SetThread(thread_sp);
         }
       }

@@ -547,8 +547,8 @@ Type DynamicDialect::parseType(DialectAsmParser &parser) const {
 
   {
     Type dynType;
-    auto parseResult = parseOptionalDynamicType(typeTag, parser, dynType);
-    if (parseResult.has_value()) {
+    
+    if (auto parseResult = parseOptionalDynamicType(typeTag, parser, dynType); parseResult.has_value()) {
       if (succeeded(parseResult.value()))
         return dynType;
       return Type();
@@ -575,8 +575,8 @@ Attribute DynamicDialect::parseAttribute(DialectAsmParser &parser,
 
   {
     Attribute dynAttr;
-    auto parseResult = parseOptionalDynamicAttr(typeTag, parser, dynAttr);
-    if (parseResult.has_value()) {
+    
+    if (auto parseResult = parseOptionalDynamicAttr(typeTag, parser, dynAttr); parseResult.has_value()) {
       if (succeeded(parseResult.value()))
         return dynAttr;
       return Attribute();

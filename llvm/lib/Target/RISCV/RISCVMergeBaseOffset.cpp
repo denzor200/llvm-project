@@ -88,9 +88,9 @@ bool RISCVMergeBaseOffsetOpt::detectFoldable(MachineInstr &Hi,
     return false;
 
   const MachineOperand &HiOp1 = Hi.getOperand(1);
-  unsigned ExpectedFlags =
-      Hi.getOpcode() == RISCV::AUIPC ? RISCVII::MO_PCREL_HI : RISCVII::MO_HI;
-  if (HiOp1.getTargetFlags() != ExpectedFlags)
+  
+  if (unsigned ExpectedFlags =
+      Hi.getOpcode() == RISCV::AUIPC ? RISCVII::MO_PCREL_HI : RISCVII::MO_HI; HiOp1.getTargetFlags() != ExpectedFlags)
     return false;
 
   if (!(HiOp1.isGlobal() || HiOp1.isCPI() || HiOp1.isBlockAddress()) ||
@@ -150,8 +150,8 @@ bool RISCVMergeBaseOffsetOpt::foldOffset(MachineInstr &Hi, MachineInstr &Lo,
   // outside of the object might not be.
   if (Hi.getOpcode() == RISCV::AUIPC && Hi.getOperand(1).isGlobal()) {
     const GlobalValue *GV = Hi.getOperand(1).getGlobal();
-    Type *Ty = GV->getValueType();
-    if (!Ty->isSized() || Offset < 0 ||
+    
+    if (Type *Ty = GV->getValueType(); !Ty->isSized() || Offset < 0 ||
         (uint64_t)Offset > GV->getDataLayout().getTypeAllocSize(Ty))
       return false;
   }
@@ -248,8 +248,8 @@ bool RISCVMergeBaseOffsetOpt::foldLargeOffset(MachineInstr &Hi,
     // The offset value has all zero bits in the lower 12 bits. Only LUI
     // exists.
     LLVM_DEBUG(dbgs() << "  Offset Instr: " << OffsetTail);
-    int64_t Offset = SignExtend64<32>(OffsetTail.getOperand(1).getImm() << 12);
-    if (!foldOffset(Hi, Lo, TailAdd, Offset))
+    
+    if (int64_t Offset = SignExtend64<32>(OffsetTail.getOperand(1).getImm() << 12); !foldOffset(Hi, Lo, TailAdd, Offset))
       return false;
     OffsetTail.eraseFromParent();
     return true;
@@ -339,8 +339,8 @@ bool RISCVMergeBaseOffsetOpt::detectAndFoldOffset(MachineInstr &Hi,
     // We might have two ADDIs in a row.
     Register TailDestReg = Tail.getOperand(0).getReg();
     if (MRI->hasOneUse(TailDestReg)) {
-      MachineInstr &TailTail = *MRI->use_instr_begin(TailDestReg);
-      if (TailTail.getOpcode() == RISCV::ADDI) {
+      
+      if (MachineInstr &TailTail = *MRI->use_instr_begin(TailDestReg); TailTail.getOpcode() == RISCV::ADDI) {
         Offset += TailTail.getOperand(2).getImm();
         LLVM_DEBUG(dbgs() << "  Offset Instrs: " << Tail << TailTail);
         if (!foldOffset(Hi, Lo, TailTail, Offset))
@@ -455,8 +455,8 @@ bool RISCVMergeBaseOffsetOpt::foldIntoMemoryOps(MachineInstr &Hi,
           // If the register is used by something other than a memory
           // constraint, we should not fold.
           for (unsigned J = 0; J < NumOps; ++J) {
-            const MachineOperand &MO = UseMI.getOperand(I + 1 + J);
-            if (MO.isReg() && MO.getReg() == DestReg)
+            
+            if (const MachineOperand &MO = UseMI.getOperand(I + 1 + J); MO.isReg() && MO.getReg() == DestReg)
               return false;
           }
           continue;
@@ -520,8 +520,8 @@ bool RISCVMergeBaseOffsetOpt::foldIntoMemoryOps(MachineInstr &Hi,
         UseMI.getOpcode() == RISCV::INLINEASM_BR) {
       auto &InlineAsmMemoryOpIndexes = InlineAsmMemoryOpIndexesMap[&UseMI];
       for (unsigned I : InlineAsmMemoryOpIndexes) {
-        MachineOperand &MO = UseMI.getOperand(I + 1);
-        switch (ImmOp.getType()) {
+        
+        switch (MachineOperand &MO = UseMI.getOperand(I + 1); ImmOp.getType()) {
         case MachineOperand::MO_GlobalAddress:
           MO.ChangeToGA(ImmOp.getGlobal(), ImmOp.getOffset(),
                         ImmOp.getTargetFlags());

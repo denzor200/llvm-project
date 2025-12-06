@@ -46,7 +46,8 @@ public:
         [this](std::optional<llvm::StringRef> Data) {
           Value.reset();
           if (Data && !Data->empty()) {
-            auto Diagnostics = [](const llvm::SMDiagnostic &D) {
+            
+            if (auto Diagnostics = [](const llvm::SMDiagnostic &D) {
               switch (D.getKind()) {
               case llvm::SourceMgr::DK_Error:
                 elog("tidy-config error at {0}:{1}:{2}: {3}", D.getFilename(),
@@ -62,8 +63,7 @@ public:
                      D.getLineNo(), D.getColumnNo(), D.getMessage());
                 break;
               }
-            };
-            if (auto Parsed = tidy::parseConfigurationWithDiags(
+            }; auto Parsed = tidy::parseConfigurationWithDiags(
                     llvm::MemoryBufferRef(*Data, path()), Diagnostics))
               Value = std::make_shared<const tidy::ClangTidyOptions>(
                   std::move(*Parsed));

@@ -48,8 +48,8 @@ const DWARFDebugAranges &DWARFDebugInfo::GetCompileUnitAranges() {
   // Make a list of all CUs represented by the .debug_aranges data.
   std::set<dw_offset_t> cus_with_data;
   for (size_t n = 0; n < m_cu_aranges_up->GetNumRanges(); n++) {
-    dw_offset_t offset = m_cu_aranges_up->OffsetAtIndex(n);
-    if (offset != DW_INVALID_OFFSET)
+    
+    if (dw_offset_t offset = m_cu_aranges_up->OffsetAtIndex(n); offset != DW_INVALID_OFFSET)
       cus_with_data.insert(offset);
   }
 
@@ -59,14 +59,14 @@ const DWARFDebugAranges &DWARFDebugInfo::GetCompileUnitAranges() {
   // standard. Without that guarantee, we have to iterate over every CU in the
   // .debug_info and make sure there's a corresponding entry in the table and if
   // not, add one for every subprogram.
-  ObjectFile *OF = m_dwarf.GetObjectFile();
-  if (!OF || !OF->CanTrustAddressRanges()) {
+  
+  if (ObjectFile *OF = m_dwarf.GetObjectFile(); !OF || !OF->CanTrustAddressRanges()) {
     const size_t num_units = GetNumUnits();
     for (size_t idx = 0; idx < num_units; ++idx) {
       DWARFUnit *cu = GetUnitAtIndex(idx);
 
-      dw_offset_t offset = cu->GetOffset();
-      if (cus_with_data.find(offset) == cus_with_data.end())
+      
+      if (dw_offset_t offset = cu->GetOffset(); cus_with_data.find(offset) == cus_with_data.end())
         cu->BuildAddressRangeTable(m_cu_aranges_up.get());
     }
   }

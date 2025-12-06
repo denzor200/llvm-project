@@ -520,8 +520,8 @@ template <class ELFT>
 static IFSSymbol createELFSym(StringRef SymName,
                               const typename ELFT::Sym &RawSym) {
   IFSSymbol TargetSym{std::string(SymName)};
-  uint8_t Binding = RawSym.getBinding();
-  if (Binding == STB_WEAK)
+  
+  if (uint8_t Binding = RawSym.getBinding(); Binding == STB_WEAK)
     TargetSym.Weak = true;
   else
     TargetSym.Weak = false;
@@ -550,8 +550,8 @@ static Error populateSymbols(IFSStub &TargetStub,
   // Skips the first symbol since it's the NULL symbol.
   for (auto RawSym : DynSym.drop_front(1)) {
     // If a symbol does not have global or weak binding, ignore it.
-    uint8_t Binding = RawSym.getBinding();
-    if (!(Binding == STB_GLOBAL || Binding == STB_WEAK))
+    
+    if (uint8_t Binding = RawSym.getBinding(); !(Binding == STB_GLOBAL || Binding == STB_WEAK))
       continue;
     // If a symbol doesn't have default or protected visibility, ignore it.
     uint8_t Visibility = RawSym.getVisibility();

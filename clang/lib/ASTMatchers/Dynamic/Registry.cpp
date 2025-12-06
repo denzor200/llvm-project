@@ -717,8 +717,8 @@ Registry::getMatcherCompletions(ArrayRef<ArgKind> AcceptedTypes) {
       if (Kind.getArgKind() == Kind.AK_Node) {
         NodeArgs = true;
         unsigned Specificity;
-        ASTNodeKind LeastDerivedKind;
-        if (Matcher.isConvertibleTo(Kind.getNodeKind(), &Specificity,
+        
+        if (ASTNodeKind LeastDerivedKind; Matcher.isConvertibleTo(Kind.getNodeKind(), &Specificity,
                                     &LeastDerivedKind)) {
           if (MaxSpecificity < Specificity)
             MaxSpecificity = Specificity;
@@ -730,8 +730,8 @@ Registry::getMatcherCompletions(ArrayRef<ArgKind> AcceptedTypes) {
         }
       } else {
         unsigned Specificity;
-        ASTNodeKind LeastDerivedKind;
-        if (Matcher.isConvertibleTo(Kind.getMatcherKind(), &Specificity,
+        
+        if (ASTNodeKind LeastDerivedKind; Matcher.isConvertibleTo(Kind.getMatcherKind(), &Specificity,
                                     &LeastDerivedKind)) {
           if (MaxSpecificity < Specificity)
             MaxSpecificity = Specificity;
@@ -816,8 +816,8 @@ VariantMatcher Registry::constructBoundMatcher(MatcherCtor Ctor,
 
   std::optional<DynTypedMatcher> Result = Out.getSingleMatcher();
   if (Result) {
-    std::optional<DynTypedMatcher> Bound = Result->tryBind(BindID);
-    if (Bound) {
+    
+    if (std::optional<DynTypedMatcher> Bound = Result->tryBind(BindID); Bound) {
       return VariantMatcher::SingleMatcher(*Bound);
     }
   }

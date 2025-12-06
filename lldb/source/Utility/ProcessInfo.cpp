@@ -87,8 +87,8 @@ void ProcessInfo::SetArguments(char const **argv,
 
   // Is the first argument the executable?
   if (first_arg_is_executable) {
-    const char *first_arg = m_arguments.GetArgumentAtIndex(0);
-    if (first_arg) {
+    
+    if (const char *first_arg = m_arguments.GetArgumentAtIndex(0); first_arg) {
       // Yes the first argument is an executable, set it as the executable in
       // the launch options. Don't resolve the file path as the path could be a
       // remote platform path
@@ -103,8 +103,8 @@ void ProcessInfo::SetArguments(const Args &args, bool first_arg_is_executable) {
 
   // Is the first argument the executable?
   if (first_arg_is_executable) {
-    const char *first_arg = m_arguments.GetArgumentAtIndex(0);
-    if (first_arg) {
+    
+    if (const char *first_arg = m_arguments.GetArgumentAtIndex(0); first_arg) {
       // Yes the first argument is an executable, set it as the executable in
       // the launch options. Don't resolve the file path as the path could be a
       // remote platform path
@@ -130,11 +130,11 @@ void ProcessInstanceInfo::Dump(Stream &s, UserIDResolver &resolver) const {
     m_executable.Dump(s.AsRawOstream());
     s.EOL();
   }
-  const uint32_t argc = m_arguments.GetArgumentCount();
-  if (argc > 0) {
+  
+  if (const uint32_t argc = m_arguments.GetArgumentCount(); argc > 0) {
     for (uint32_t i = 0; i < argc; i++) {
-      const char *arg = m_arguments.GetArgumentAtIndex(i);
-      if (i < 10)
+      
+      if (const char *arg = m_arguments.GetArgumentAtIndex(i); i < 10)
         s.Printf(" arg[%u] = %s\n", i, arg);
       else
         s.Printf("arg[%u] = %s\n", i, arg);

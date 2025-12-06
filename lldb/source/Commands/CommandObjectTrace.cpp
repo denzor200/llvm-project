@@ -46,9 +46,9 @@ public:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'c': {
         m_compact = true;
         break;
@@ -114,9 +114,9 @@ protected:
 
     ProcessSP process_sp = m_exe_ctx.GetProcessSP();
 
-    TraceSP trace_sp = process_sp->GetTarget().GetTrace();
+    
 
-    if (llvm::Expected<FileSpec> desc_file =
+    if (TraceSP trace_sp = process_sp->GetTarget().GetTrace(); llvm::Expected<FileSpec> desc_file =
             trace_sp->SaveToDisk(bundle_dir, m_options.m_compact)) {
       result.AppendMessageWithFormatv(
           "Trace bundle description file written to: {0}", *desc_file);
@@ -146,9 +146,9 @@ public:
     Status SetOptionValue(uint32_t option_idx, StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'v': {
         m_verbose = true;
         break;
@@ -237,9 +237,9 @@ public:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'v': {
         m_verbose = true;
         break;
@@ -272,9 +272,9 @@ public:
 
 protected:
   void DoExecute(Args &command, CommandReturnObject &result) override {
-    Status error;
+    
     // TODO: fill in the dumping code here!
-    if (error.Success()) {
+    if (Status error; error.Success()) {
       result.SetStatus(eReturnStatusSuccessFinishResult);
     } else {
       result.AppendErrorWithFormat("%s\n", error.AsCString());
@@ -301,9 +301,9 @@ public:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'v': {
         m_verbose = true;
         break;

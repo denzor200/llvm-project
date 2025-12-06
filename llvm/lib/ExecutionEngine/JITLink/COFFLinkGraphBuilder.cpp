@@ -280,8 +280,8 @@ Error COFFLinkGraphBuilder::handleDirectiveSection(StringRef Str) {
   if (!Parsed)
     return Parsed.takeError();
   for (auto *Arg : *Parsed) {
-    StringRef S = Arg->getValue();
-    switch (Arg->getOption().getID()) {
+    
+    switch (StringRef S = Arg->getValue(); Arg->getOption().getID()) {
     case COFF_OPT_alternatename: {
       StringRef From, To;
       std::tie(From, To) = S.split('=');
@@ -350,8 +350,8 @@ Error COFFLinkGraphBuilder::flushWeakAliasRequests() {
 Error COFFLinkGraphBuilder::handleAlternateNames() {
   for (auto &KeyValue : AlternateNames) {
     auto DefinedSymbolName = KeyValue.second;
-    auto ExternalSymbolsName = KeyValue.first;
-    if (DefinedSymbols.count(DefinedSymbolName) &&
+    
+    if (auto ExternalSymbolsName = KeyValue.first; DefinedSymbols.count(DefinedSymbolName) &&
         ExternalSymbols.count(ExternalSymbolsName)) {
       auto *Target = DefinedSymbols[DefinedSymbolName];
       auto *Alias = ExternalSymbols[ExternalSymbolsName];

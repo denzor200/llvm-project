@@ -265,8 +265,8 @@ MappingTraits<dsymutil::DebugMapObject>::YamlDMO::denormalize(IO &IO) {
     WithColor::warning() << "Unable to open " << Path << " "
                          << toString(std::move(Err)) << '\n';
   } else {
-    auto Object = ObjectEntry->getObject(Ctxt.BinaryTriple);
-    if (!Object) {
+    
+    if (auto Object = ObjectEntry->getObject(Ctxt.BinaryTriple); !Object) {
       auto Err = Object.takeError();
       WithColor::warning() << "Unable to open " << Path << " "
                            << toString(std::move(Err)) << '\n';

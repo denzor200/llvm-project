@@ -88,8 +88,8 @@ void renderLineExecutionCounts(raw_ostream &OS,
   coverage::LineCoverageIterator LCI{FileCoverage, 1};
   coverage::LineCoverageIterator LCIEnd = LCI.getEnd();
   for (; LCI != LCIEnd; ++LCI) {
-    const coverage::LineCoverageStats &LCS = *LCI;
-    if (LCS.isMapped()) {
+    
+    if (const coverage::LineCoverageStats &LCS = *LCI; LCS.isMapped()) {
       OS << "DA:" << LCS.getLine() << ',' << LCS.getExecutionCount() << '\n';
     }
   }

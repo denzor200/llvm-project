@@ -46,8 +46,8 @@ StreamSP ThreadPlanTracer::GetLogStreamSP() {
   if (m_stream_sp)
     return m_stream_sp;
   else {
-    TargetSP target_sp(GetThread().CalculateTarget());
-    if (target_sp)
+    
+    if (TargetSP target_sp(GetThread().CalculateTarget()); target_sp)
       return target_sp->GetDebugger().GetAsyncOutputStream();
   }
   return nullptr;
@@ -64,9 +64,9 @@ Thread &ThreadPlanTracer::GetThread() {
 void ThreadPlanTracer::Log() {
   SymbolContext sc;
   bool show_frame_index = false;
-  bool show_fullpaths = false;
+  
 
-  if (StreamSP stream_sp = GetLogStreamSP()) {
+  if (bool show_fullpaths = false; StreamSP stream_sp = GetLogStreamSP()) {
     GetThread().GetStackFrameAtIndex(0)->Dump(stream_sp.get(), show_frame_index,
                                               show_fullpaths);
     stream_sp->Printf("\n");
@@ -104,9 +104,9 @@ Disassembler *ThreadPlanAssemblyTracer::GetDisassembler() {
 TypeFromUser ThreadPlanAssemblyTracer::GetIntPointerType() {
   if (!m_intptr_type.IsValid()) {
     if (auto target_sp = m_process.CalculateTarget()) {
-      auto type_system_or_err =
-          target_sp->GetScratchTypeSystemForLanguage(eLanguageTypeC);
-      if (auto err = type_system_or_err.takeError()) {
+      
+      if (auto type_system_or_err =
+          target_sp->GetScratchTypeSystemForLanguage(eLanguageTypeC); auto err = type_system_or_err.takeError()) {
         LLDB_LOG_ERROR(
             GetLog(LLDBLog::Types), std::move(err),
             "Unable to get integer pointer type from TypeSystem: {0}");
@@ -156,8 +156,8 @@ void ThreadPlanAssemblyTracer::Log() {
       DataExtractor extractor(buffer, sizeof(buffer), m_process.GetByteOrder(),
                               m_process.GetAddressByteSize());
 
-      bool data_from_file = false;
-      if (addr_valid)
+      
+      if (bool data_from_file = false; addr_valid)
         disassembler->DecodeInstructions(pc_addr, extractor, 0, 1, false,
                                          data_from_file);
       else
@@ -217,8 +217,8 @@ void ThreadPlanAssemblyTracer::Log() {
   RegisterValue reg_value;
   for (uint32_t reg_num = 0, num_registers = reg_ctx->GetRegisterCount();
        reg_num < num_registers; ++reg_num) {
-    const RegisterInfo *reg_info = reg_ctx->GetRegisterInfoAtIndex(reg_num);
-    if (reg_ctx->ReadRegister(reg_info, reg_value)) {
+    
+    if (const RegisterInfo *reg_info = reg_ctx->GetRegisterInfoAtIndex(reg_num); reg_ctx->ReadRegister(reg_info, reg_value)) {
       assert(reg_num < m_register_values.size());
       if (m_register_values[reg_num].GetType() == RegisterValue::eTypeInvalid ||
           reg_value != m_register_values[reg_num]) {

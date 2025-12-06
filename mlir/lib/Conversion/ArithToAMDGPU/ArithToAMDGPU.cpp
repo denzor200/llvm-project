@@ -423,7 +423,9 @@ LogicalResult TruncfToFloat16RewritePattern::matchAndRewrite(
 static Value getOriginalVectorValue(Value value) {
   Value current = value;
   while (Operation *definingOp = current.getDefiningOp()) {
-    bool skipOp = llvm::TypeSwitch<Operation *, bool>(definingOp)
+    
+
+    if (bool skipOp = llvm::TypeSwitch<Operation *, bool>(definingOp)
                       .Case<vector::ShapeCastOp>([&current](auto op) {
                         current = op.getSource();
                         return true;
@@ -432,9 +434,7 @@ static Value getOriginalVectorValue(Value value) {
                         current = op.getSource();
                         return false;
                       })
-                      .Default(false);
-
-    if (!skipOp) {
+                      .Default(false); !skipOp) {
       break;
     }
   }

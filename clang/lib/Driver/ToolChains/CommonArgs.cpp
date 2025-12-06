@@ -364,9 +364,9 @@ static bool shouldIgnoreUnsupportedTargetFeature(const Arg &TargetFeatureArg,
     return false;
   auto GPUKind = T.isAMDGCN() ? llvm::AMDGPU::parseArchAMDGCN(Processor)
                               : llvm::AMDGPU::parseArchR600(Processor);
-  auto GPUFeatures = T.isAMDGCN() ? llvm::AMDGPU::getArchAttrAMDGCN(GPUKind)
-                                  : llvm::AMDGPU::getArchAttrR600(GPUKind);
-  if (GPUFeatures & llvm::AMDGPU::FEATURE_WGP)
+  
+  if (auto GPUFeatures = T.isAMDGCN() ? llvm::AMDGPU::getArchAttrAMDGCN(GPUKind)
+                                  : llvm::AMDGPU::getArchAttrR600(GPUKind); GPUFeatures & llvm::AMDGPU::FEATURE_WGP)
     return false;
   return TargetFeatureArg.getOption().matches(options::OPT_mno_cumode);
 }
@@ -513,10 +513,10 @@ void tools::AddLinkerInputs(const ToolChain &TC, const InputInfoList &Inputs,
       continue;
 
     // Otherwise, this is a linker input argument.
-    const Arg &A = II.getInputArg();
+    
 
     // Handle reserved library options.
-    if (A.getOption().matches(options::OPT_Z_reserved_lib_stdcxx))
+    if (const Arg &A = II.getInputArg(); A.getOption().matches(options::OPT_Z_reserved_lib_stdcxx))
       TC.AddCXXStdlibLibArgs(Args, CmdArgs);
     else if (A.getOption().matches(options::OPT_Z_reserved_lib_cckext))
       TC.AddCCKextLibArgs(Args, CmdArgs);
@@ -529,8 +529,8 @@ void tools::AddLinkerInputs(const ToolChain &TC, const InputInfoList &Inputs,
   }
   if (const Arg *A = Args.getLastArg(options::OPT_fveclib)) {
     const llvm::Triple &Triple = TC.getTriple();
-    StringRef V = A->getValue();
-    if (V == "ArmPL" && (Triple.isOSLinux() || Triple.isOSDarwin())) {
+    
+    if (StringRef V = A->getValue(); V == "ArmPL" && (Triple.isOSLinux() || Triple.isOSDarwin())) {
       // To support -fveclib=ArmPL we need to link against libamath. Some of the
       // libamath functions depend on libm, at the same time, libamath exports
       // its own implementation of some of the libm functions. These are faster
@@ -652,8 +652,8 @@ void tools::addLinkerCompressDebugSectionsOption(
   // is not translated since ld --compress-debug-sections option requires an
   // argument.
   if (const Arg *A = Args.getLastArg(options::OPT_gz_EQ)) {
-    StringRef V = A->getValue();
-    if (V == "none" || V == "zlib" || V == "zstd")
+    
+    if (StringRef V = A->getValue(); V == "none" || V == "zlib" || V == "zstd")
       CmdArgs.push_back(Args.MakeArgString("--compress-debug-sections=" + V));
     else
       TC.getDriver().Diag(diag::err_drv_unsupported_option_argument)
@@ -1068,7 +1068,9 @@ void tools::addLTOOptions(const ToolChain &ToolChain, const ArgList &Args,
   if (ArgVecLib && ArgVecLib->getNumValues() == 1) {
     // Map the vector library names from clang front-end to opt front-end. The
     // values are taken from the TargetLibraryInfo class command line options.
-    std::optional<StringRef> OptVal =
+    
+
+    if (std::optional<StringRef> OptVal =
         llvm::StringSwitch<std::optional<StringRef>>(ArgVecLib->getValue())
             .Case("Accelerate", "Accelerate")
             .Case("libmvec", "LIBMVEC")
@@ -1079,9 +1081,7 @@ void tools::addLTOOptions(const ToolChain &ToolChain, const ArgList &Args,
             .Case("Darwin_libsystem_m", "Darwin_libsystem_m")
             .Case("ArmPL", "ArmPL")
             .Case("none", "none")
-            .Default(std::nullopt);
-
-    if (OptVal)
+            .Default(std::nullopt); OptVal)
       CmdArgs.push_back(Args.MakeArgString(
           Twine(PluginOptPrefix) + "-vector-library=" + OptVal.value()));
   }
@@ -1183,9 +1183,9 @@ void tools::addLTOOptions(const ToolChain &ToolChain, const ArgList &Args,
     // On AIX, clang assumes strict-dwarf is true if any debug option is
     // specified, unless it is told explicitly not to assume so.
     Arg *A = Args.getLastArg(options::OPT_g_Group);
-    bool EnableDebugInfo = A && !A->getOption().matches(options::OPT_g0) &&
-                           !A->getOption().matches(options::OPT_ggdb0);
-    if (EnableDebugInfo && Args.hasFlag(options::OPT_gstrict_dwarf,
+    
+    if (bool EnableDebugInfo = A && !A->getOption().matches(options::OPT_g0) &&
+                           !A->getOption().matches(options::OPT_ggdb0); EnableDebugInfo && Args.hasFlag(options::OPT_gstrict_dwarf,
                                         options::OPT_gno_strict_dwarf, true))
       CmdArgs.push_back(
           Args.MakeArgString(Twine(PluginOptPrefix) + "-strict-dwarf=true"));
@@ -1254,8 +1254,8 @@ void tools::addLTOOptions(const ToolChain &ToolChain, const ArgList &Args,
   }
 
   if (Arg *A = getLastProfileSampleUseArg(Args)) {
-    StringRef FName = A->getValue();
-    if (!llvm::sys::fs::exists(FName))
+    
+    if (StringRef FName = A->getValue(); !llvm::sys::fs::exists(FName))
       D.Diag(diag::err_drv_no_such_file) << FName;
     else
       CmdArgs.push_back(Args.MakeArgString(Twine(PluginOptPrefix) +
@@ -1511,11 +1511,11 @@ static void addSanitizerRuntime(const ToolChain &TC, const ArgList &Args,
 static bool addSanitizerDynamicList(const ToolChain &TC, const ArgList &Args,
                                     ArgStringList &CmdArgs,
                                     StringRef Sanitizer) {
-  bool LinkerIsGnuLd = solaris::isLinkerGnuLd(TC, Args);
+  
 
   // Solaris ld defaults to --export-dynamic behaviour but doesn't support
   // the option, so don't try to pass it.
-  if (TC.getTriple().isOSSolaris() && !LinkerIsGnuLd)
+  if (bool LinkerIsGnuLd = solaris::isLinkerGnuLd(TC, Args); TC.getTriple().isOSSolaris() && !LinkerIsGnuLd)
     return true;
   SmallString<128> SanRT(TC.getCompilerRT(Args, Sanitizer));
   if (llvm::sys::fs::exists(SanRT + ".syms")) {
@@ -1531,14 +1531,14 @@ void tools::addAsNeededOption(const ToolChain &TC,
                               bool as_needed) {
   assert(!TC.getTriple().isOSAIX() &&
          "AIX linker does not support any form of --as-needed option yet.");
-  bool LinkerIsGnuLd = solaris::isLinkerGnuLd(TC, Args);
+  
 
   // While the Solaris 11.2 ld added --as-needed/--no-as-needed as aliases
   // for the native forms -z ignore/-z record, they are missing in Illumos,
   // so always use the native form.
   // GNU ld doesn't support -z ignore/-z record, so don't use them even on
   // Solaris.
-  if (TC.getTriple().isOSSolaris() && !LinkerIsGnuLd) {
+  if (bool LinkerIsGnuLd = solaris::isLinkerGnuLd(TC, Args); TC.getTriple().isOSSolaris() && !LinkerIsGnuLd) {
     CmdArgs.push_back("-z");
     CmdArgs.push_back(as_needed ? "ignore" : "record");
   } else {
@@ -1858,8 +1858,8 @@ const char *tools::SplitDebugName(const JobAction &JA, const ArgList &Args,
   if (const Arg *A = Args.getLastArg(options::OPT_dumpdir)) {
     T = A->getValue();
   } else {
-    Arg *FinalOutput = Args.getLastArg(options::OPT_o, options::OPT__SLASH_o);
-    if (FinalOutput && Args.hasArg(options::OPT_c)) {
+    
+    if (Arg *FinalOutput = Args.getLastArg(options::OPT_o, options::OPT__SLASH_o); FinalOutput && Args.hasArg(options::OPT_c)) {
       T = FinalOutput->getValue();
       llvm::sys::path::remove_filename(T);
       llvm::sys::path::append(T,
@@ -1938,10 +1938,10 @@ Arg *tools::getLastProfileUseArg(const ArgList &Args) {
 }
 
 Arg *tools::getLastProfileSampleUseArg(const ArgList &Args) {
-  auto *ProfileSampleUseArg = Args.getLastArg(
-      options::OPT_fprofile_sample_use_EQ, options::OPT_fno_profile_sample_use);
+  
 
-  if (ProfileSampleUseArg && (ProfileSampleUseArg->getOption().matches(
+  if (auto *ProfileSampleUseArg = Args.getLastArg(
+      options::OPT_fprofile_sample_use_EQ, options::OPT_fno_profile_sample_use); ProfileSampleUseArg && (ProfileSampleUseArg->getOption().matches(
                                  options::OPT_fno_profile_sample_use)))
     return nullptr;
 
@@ -2048,8 +2048,8 @@ tools::ParsePICArgs(const ToolChain &ToolChain, const ArgList &Args) {
   // is forced, then neither PIC nor PIE flags will have no effect.
   if (!ToolChain.isPICDefaultForced()) {
     if (LastPICArg) {
-      Option O = LastPICArg->getOption();
-      if (O.matches(options::OPT_fPIC) || O.matches(options::OPT_fpic) ||
+      
+      if (Option O = LastPICArg->getOption(); O.matches(options::OPT_fPIC) || O.matches(options::OPT_fpic) ||
           O.matches(options::OPT_fPIE) || O.matches(options::OPT_fpie)) {
         PIE = O.matches(options::OPT_fPIE) || O.matches(options::OPT_fpie);
         PIC =
@@ -2060,8 +2060,8 @@ tools::ParsePICArgs(const ToolChain &ToolChain, const ArgList &Args) {
         PIE = PIC = false;
         if (EffectiveTriple.isPS()) {
           Arg *ModelArg = Args.getLastArg(options::OPT_mcmodel_EQ);
-          StringRef Model = ModelArg ? ModelArg->getValue() : "";
-          if (Model != "kernel") {
+          
+          if (StringRef Model = ModelArg ? ModelArg->getValue() : ""; Model != "kernel") {
             PIC = true;
             ToolChain.getDriver().Diag(diag::warn_drv_ps_force_pic)
                 << LastPICArg->getSpelling()
@@ -2457,9 +2457,9 @@ static void AddLibgcc(const ToolChain &TC, const Driver &D,
 void tools::AddRunTimeLibs(const ToolChain &TC, const Driver &D,
                            ArgStringList &CmdArgs, const ArgList &Args) {
   // Make use of compiler-rt if --rtlib option is used
-  ToolChain::RuntimeLibType RLT = TC.GetRuntimeLibType(Args);
+  
 
-  switch (RLT) {
+  switch (ToolChain::RuntimeLibType RLT = TC.GetRuntimeLibType(Args); RLT) {
   case ToolChain::RLT_CompilerRT:
     CmdArgs.push_back(TC.getCompilerRTArgString(Args, "builtins"));
     AddUnwindLibrary(TC, D, CmdArgs, Args);
@@ -2469,8 +2469,8 @@ void tools::AddRunTimeLibs(const ToolChain &TC, const Driver &D,
     if (TC.getTriple().isKnownWindowsMSVCEnvironment()) {
       // Issue error diagnostic if libgcc is explicitly specified
       // through command line as --rtlib option argument.
-      Arg *A = Args.getLastArg(options::OPT_rtlib_EQ);
-      if (A && A->getValue() != StringRef("platform")) {
+      
+      if (Arg *A = Args.getLastArg(options::OPT_rtlib_EQ); A && A->getValue() != StringRef("platform")) {
         TC.getDriver().Diag(diag::err_drv_unsupported_rtlib_for_platform)
             << A->getValue() << "MSVC";
       }
@@ -2546,8 +2546,8 @@ void tools::addX86AlignBranchArgs(const Driver &D, const ArgList &Args,
   }
   if (const Arg *A = Args.getLastArg(options::OPT_malign_branch_boundary_EQ)) {
     StringRef Value = A->getValue();
-    unsigned Boundary;
-    if (Value.getAsInteger(10, Boundary) || Boundary < 16 ||
+    
+    if (unsigned Boundary; Value.getAsInteger(10, Boundary) || Boundary < 16 ||
         !llvm::isPowerOf2_64(Boundary)) {
       D.Diag(diag::err_drv_invalid_argument_to_option)
           << Value << A->getOption().getName();
@@ -2570,8 +2570,8 @@ void tools::addX86AlignBranchArgs(const Driver &D, const ArgList &Args,
   }
   if (const Arg *A = Args.getLastArg(options::OPT_mpad_max_prefix_size_EQ)) {
     StringRef Value = A->getValue();
-    unsigned PrefixSize;
-    if (Value.getAsInteger(10, PrefixSize)) {
+    
+    if (unsigned PrefixSize; Value.getAsInteger(10, PrefixSize)) {
       D.Diag(diag::err_drv_invalid_argument_to_option)
           << Value << A->getOption().getName();
     } else {
@@ -2661,8 +2661,8 @@ static bool SDLSearch(const Driver &D, const llvm::opt::ArgList &DriverArgs,
   bool FoundSDL = false;
   for (auto LPath : LibraryPaths) {
     for (auto SDL : SDLs) {
-      auto FullName = Twine(LPath + SDL).str();
-      if (llvm::sys::fs::exists(FullName)) {
+      
+      if (auto FullName = Twine(LPath + SDL).str(); llvm::sys::fs::exists(FullName)) {
         CC1Args.push_back(DriverArgs.MakeArgString(FullName));
         FoundSDL = true;
         break;
@@ -2694,8 +2694,8 @@ static void GetSDLFromOffloadArchive(
 
   llvm::Triple Triple(D.getTargetTriple());
   bool IsMSVC = Triple.isWindowsMSVCEnvironment();
-  auto Ext = IsMSVC ? ".lib" : ".a";
-  if (!Lib.starts_with(":") && !Lib.starts_with("-l")) {
+  
+  if (auto Ext = IsMSVC ? ".lib" : ".a"; !Lib.starts_with(":") && !Lib.starts_with("-l")) {
     if (llvm::sys::fs::exists(Lib)) {
       ArchiveOfBundles = Lib;
       FoundAOB = true;
@@ -2709,8 +2709,8 @@ static void GetSDLFromOffloadArchive(
                                            : "lib" + Lib + Ext)
                          .str();
       for (auto Prefix : {"/libdevice/", "/"}) {
-        auto AOB = Twine(LPath + Prefix + LibFile).str();
-        if (llvm::sys::fs::exists(AOB)) {
+        
+        if (auto AOB = Twine(LPath + Prefix + LibFile).str(); llvm::sys::fs::exists(AOB)) {
           ArchiveOfBundles = AOB;
           FoundAOB = true;
           break;
@@ -2864,8 +2864,8 @@ void tools::AddStaticDeviceLibs(Compilation *C, const Tool *T,
     // but they are usually archives. It is OK if the file is not really an
     // archive since GetSDLFromOffloadArchive will check the magic of the file
     // and only unbundle it if it is really an archive.
-    const StringRef LibFileExt = ".lib";
-    if (!llvm::sys::path::has_extension(FileName) ||
+    
+    if (const StringRef LibFileExt = ".lib"; !llvm::sys::path::has_extension(FileName) ||
         types::lookupTypeForExtension(
             llvm::sys::path::extension(FileName).drop_front()) ==
             types::TY_INVALID ||
@@ -2896,15 +2896,15 @@ getAMDGPUCodeObjectArgument(const Driver &D, const llvm::opt::ArgList &Args) {
 void tools::checkAMDGPUCodeObjectVersion(const Driver &D,
                                          const llvm::opt::ArgList &Args) {
   const unsigned MinCodeObjVer = 4;
-  const unsigned MaxCodeObjVer = 6;
+  
 
-  if (auto *CodeObjArg = getAMDGPUCodeObjectArgument(D, Args)) {
+  if (const unsigned MaxCodeObjVer = 6; auto *CodeObjArg = getAMDGPUCodeObjectArgument(D, Args)) {
     if (CodeObjArg->getOption().getID() ==
         options::OPT_mcode_object_version_EQ) {
       unsigned CodeObjVer = MaxCodeObjVer;
-      auto Remnant =
-          StringRef(CodeObjArg->getValue()).getAsInteger(0, CodeObjVer);
-      if (Remnant || CodeObjVer < MinCodeObjVer || CodeObjVer > MaxCodeObjVer)
+      
+      if (auto Remnant =
+          StringRef(CodeObjArg->getValue()).getAsInteger(0, CodeObjVer); Remnant || CodeObjVer < MinCodeObjVer || CodeObjVer > MaxCodeObjVer)
         D.Diag(diag::err_drv_invalid_int_value)
             << CodeObjArg->getAsString(Args) << CodeObjArg->getValue();
     }
@@ -3234,8 +3234,8 @@ void tools::handleColorDiagnosticsArgs(const Driver &D, const ArgList &Args,
   Args.getLastArg(options::OPT_fcolor_diagnostics,
                   options::OPT_fno_color_diagnostics);
   if (const Arg *A = Args.getLastArg(options::OPT_fdiagnostics_color_EQ)) {
-    StringRef Value(A->getValue());
-    if (Value != "always" && Value != "never" && Value != "auto")
+    
+    if (StringRef Value(A->getValue()); Value != "always" && Value != "never" && Value != "auto")
       D.Diag(diag::err_drv_invalid_argument_to_option)
           << Value << A->getOption().getName();
   }
@@ -3377,16 +3377,16 @@ bool tools::shouldEnableVectorizerAtOLevel(const ArgList &Args, bool isSlpVec) {
 
 void tools::handleVectorizeLoopsArgs(const ArgList &Args,
                                      ArgStringList &CmdArgs) {
-  bool EnableVec = shouldEnableVectorizerAtOLevel(Args, false);
-  if (Args.hasFlag(options::OPT_fvectorize, options::OPT_fno_vectorize,
+  
+  if (bool EnableVec = shouldEnableVectorizerAtOLevel(Args, false); Args.hasFlag(options::OPT_fvectorize, options::OPT_fno_vectorize,
                    EnableVec))
     CmdArgs.push_back("-vectorize-loops");
 }
 
 void tools::handleVectorizeSLPArgs(const ArgList &Args,
                                    ArgStringList &CmdArgs) {
-  bool EnableSLPVec = shouldEnableVectorizerAtOLevel(Args, true);
-  if (Args.hasFlag(options::OPT_fslp_vectorize, options::OPT_fno_slp_vectorize,
+  
+  if (bool EnableSLPVec = shouldEnableVectorizerAtOLevel(Args, true); Args.hasFlag(options::OPT_fslp_vectorize, options::OPT_fno_slp_vectorize,
                    EnableSLPVec))
     CmdArgs.push_back("-vectorize-slp");
 }

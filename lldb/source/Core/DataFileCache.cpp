@@ -59,9 +59,9 @@ DataFileCache::DataFileCache(llvm::StringRef path, llvm::CachePruningPolicy poli
     if (m_take_ownership)
       m_mem_buff_up = std::move(m);
   };
-  llvm::Expected<llvm::FileCache> cache_or_err =
-      llvm::localCache("LLDBModuleCache", "lldb-module", path, add_buffer);
-  if (cache_or_err)
+  
+  if (llvm::Expected<llvm::FileCache> cache_or_err =
+      llvm::localCache("LLDBModuleCache", "lldb-module", path, add_buffer); cache_or_err)
     m_cache_callback = std::move(*cache_or_err);
   else {
     Log *log = GetLog(LLDBLog::Modules);
@@ -87,14 +87,14 @@ DataFileCache::GetCachedData(llvm::StringRef key) {
   // the data or we haven't. We can tell if we got the cached data by checking
   // the add_stream function pointer value below.
   if (add_stream_or_err) {
-    llvm::AddStreamFn &add_stream = *add_stream_or_err;
+    
     // If the "add_stream" is nullptr, then the data was cached and we already
     // called the "add_buffer" lambda. If it is valid, then if we were to call
     // the add_stream function it would cause a cache file to get generated
     // and we would be expected to fill in the data. In this function we only
     // want to check if the data was cached, so we don't want to call
     // "add_stream" in this function.
-    if (!add_stream)
+    if (llvm::AddStreamFn &add_stream = *add_stream_or_err; !add_stream)
       return std::move(m_mem_buff_up);
   } else {
     Log *log = GetLog(LLDBLog::Modules);
@@ -118,7 +118,7 @@ bool DataFileCache::SetCachedData(llvm::StringRef key,
   // the data or we haven't. We can tell if we had the cached data by checking
   // the CacheAddStream function pointer value below.
   if (add_stream_or_err) {
-    llvm::AddStreamFn &add_stream = *add_stream_or_err;
+    
     // If the "add_stream" is nullptr, then the data was cached. If it is
     // valid, then if we call the add_stream function with a task it will
     // cause the file to get generated, but we only want to check if the data
@@ -126,10 +126,10 @@ bool DataFileCache::SetCachedData(llvm::StringRef key,
     // add_buffer will also get called in this case after the data has been
     // provided, but we won't take ownership of the memory buffer as we just
     // want to write the data.
-    if (add_stream) {
-      llvm::Expected<std::unique_ptr<llvm::CachedFileStream>> file_or_err =
-          add_stream(task, "");
-      if (file_or_err) {
+    if (llvm::AddStreamFn &add_stream = *add_stream_or_err; add_stream) {
+      
+      if (llvm::Expected<std::unique_ptr<llvm::CachedFileStream>> file_or_err =
+          add_stream(task, ""); file_or_err) {
         llvm::CachedFileStream *cfs = file_or_err->get();
         cfs->OS->write((const char *)data.data(), data.size());
         if (llvm::Error err = cfs->commit()) {
@@ -241,18 +241,18 @@ bool CacheSignature::Decode(const lldb_private::DataExtractor &data,
     switch (sig_encoding) {
     case eSignatureUUID: {
       const uint8_t length = data.GetU8(offset_ptr);
-      const uint8_t *bytes = (const uint8_t *)data.GetData(offset_ptr, length);
-      if (bytes != nullptr && length > 0)
+      
+      if (const uint8_t *bytes = (const uint8_t *)data.GetData(offset_ptr, length); bytes != nullptr && length > 0)
         m_uuid = UUID(llvm::ArrayRef<uint8_t>(bytes, length));
     } break;
     case eSignatureModTime: {
-      uint32_t mod_time = data.GetU32(offset_ptr);
-      if (mod_time > 0)
+      
+      if (uint32_t mod_time = data.GetU32(offset_ptr); mod_time > 0)
         m_mod_time = mod_time;
     } break;
     case eSignatureObjectModTime: {
-      uint32_t mod_time = data.GetU32(offset_ptr);
-      if (mod_time > 0)
+      
+      if (uint32_t mod_time = data.GetU32(offset_ptr); mod_time > 0)
         m_obj_mod_time = mod_time;
     } break;
     case eSignatureEnd:

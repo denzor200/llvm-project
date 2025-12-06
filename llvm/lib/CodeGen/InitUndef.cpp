@@ -229,8 +229,8 @@ bool InitUndef::processBasicBlock(MachineFunction &MF, MachineBasicBlock &MBB,
     // an IMPLICIT_DEF before TwoAddressInstructions.
     unsigned UseOpIdx;
     if (MI.getNumDefs() != 0 && MI.isRegTiedToUseOperand(0, &UseOpIdx)) {
-      MachineOperand &UseMO = MI.getOperand(UseOpIdx);
-      if (UseMO.getReg() == MCRegister::NoRegister) {
+      
+      if (MachineOperand &UseMO = MI.getOperand(UseOpIdx); UseMO.getReg() == MCRegister::NoRegister) {
         const TargetRegisterClass *RC =
             TII->getRegClass(MI.getDesc(), UseOpIdx);
         Register NewDest = MRI->createVirtualRegister(RC);

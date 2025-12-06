@@ -109,8 +109,8 @@ void VEToolChain::addClangTargetOptions(const ArgList &DriverArgs,
                                         ArgStringList &CC1Args,
                                         Action::OffloadKind) const {
   CC1Args.push_back("-nostdsysteminc");
-  bool UseInitArrayDefault = true;
-  if (!DriverArgs.hasFlag(options::OPT_fuse_init_array,
+  
+  if (bool UseInitArrayDefault = true; !DriverArgs.hasFlag(options::OPT_fuse_init_array,
                           options::OPT_fno_use_init_array, UseInitArrayDefault))
     CC1Args.push_back("-fno-use-init-array");
 }

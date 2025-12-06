@@ -284,8 +284,8 @@ static bool runIPSCCP(
   for (auto *F : Solver.getMRVFunctionsTracked()) {
     assert(F->getReturnType()->isStructTy() &&
            "The return type should be a struct");
-    StructType *STy = cast<StructType>(F->getReturnType());
-    if (Solver.isStructLatticeConstant(F, STy))
+    
+    if (StructType *STy = cast<StructType>(F->getReturnType()); Solver.isStructLatticeConstant(F, STy))
       findReturnsToZap(*F, ReturnsToZap, Solver);
   }
 
@@ -349,8 +349,8 @@ static bool runIPSCCP(
     SmallVector<DIGlobalVariableExpression *, 1> GVEs;
     GV->getDebugInfo(GVEs);
     if (GVEs.size() == 1) {
-      DIBuilder DIB(M);
-      if (DIExpression *InitExpr = getExpressionForConstant(
+      
+      if (DIBuilder DIB(M); DIExpression *InitExpr = getExpressionForConstant(
               DIB, *GV->getInitializer(), *GV->getValueType()))
         GVEs[0]->replaceOperandWith(1, InitExpr);
     }

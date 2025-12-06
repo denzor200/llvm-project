@@ -179,8 +179,8 @@ Thumb2ITBlock::MoveCopyOutOfITBlock(MachineInstr *MI,
 
   if (I != E) {
     Register NPredReg;
-    ARMCC::CondCodes NCC = getITInstrPredicate(*I, NPredReg);
-    if (NCC == CC || NCC == OCC)
+    
+    if (ARMCC::CondCodes NCC = getITInstrPredicate(*I, NPredReg); NCC == CC || NCC == OCC)
       return true;
   }
   return false;
@@ -236,8 +236,8 @@ bool Thumb2ITBlock::InsertITInstructions(MachineBasicBlock &MBB) {
         MI = NMI;
 
         Register NPredReg;
-        ARMCC::CondCodes NCC = getITInstrPredicate(*NMI, NPredReg);
-        if (NCC == CC || NCC == OCC) {
+        
+        if (ARMCC::CondCodes NCC = getITInstrPredicate(*NMI, NPredReg); NCC == CC || NCC == OCC) {
           Mask |= ((NCC ^ CC) & 1) << Pos;
           // Add implicit use of ITSTATE.
           NMI->addOperand(MachineOperand::CreateReg(ARM::ITSTATE, false/*ifDef*/,

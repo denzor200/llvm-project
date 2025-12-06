@@ -96,10 +96,10 @@ void PhiValues::processPhi(const PHINode *Phi,
           // is guaranteed to have been completed before this one. Therefore we
           // can just add its reachable values to the reachable values of this
           // component.
-          unsigned int OpDepthNumber = DepthMap[PhiOp];
-          if (OpDepthNumber != RootDepthNumber) {
-            auto It = ReachableMap.find(OpDepthNumber);
-            if (It != ReachableMap.end())
+          
+          if (unsigned int OpDepthNumber = DepthMap[PhiOp]; OpDepthNumber != RootDepthNumber) {
+            
+            if (auto It = ReachableMap.find(OpDepthNumber); It != ReachableMap.end())
               Reachable.insert_range(It->second);
           }
         } else
@@ -151,8 +151,8 @@ void PhiValues::invalidateValue(const Value *V) {
     ReachableMap.erase(N);
   }
   // This value is no longer tracked
-  auto It = TrackedValues.find_as(V);
-  if (It != TrackedValues.end())
+  
+  if (auto It = TrackedValues.find_as(V); It != TrackedValues.end())
     TrackedValues.erase(It);
 }
 
@@ -171,8 +171,8 @@ void PhiValues::print(raw_ostream &OS) const {
       PN.printAsOperand(OS, false);
       OS << " has values:\n";
       unsigned int N = DepthMap.lookup(&PN);
-      auto It = NonPhiReachableMap.find(N);
-      if (It == NonPhiReachableMap.end())
+      
+      if (auto It = NonPhiReachableMap.find(N); It == NonPhiReachableMap.end())
         OS << "  UNKNOWN\n";
       else if (It->second.empty())
         OS << "  NONE\n";

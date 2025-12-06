@@ -78,8 +78,8 @@ std::vector<SymbolID> getSymbolIDsFromIndex(llvm::StringRef QualifiedName,
   Request.Query = std::string(Names.second);
   std::vector<SymbolID> SymIDs;
   Index->fuzzyFind(Request, [&](const Symbol &Sym) {
-    std::string SymQualifiedName = (Sym.Scope + Sym.Name).str();
-    if (QualifiedName == SymQualifiedName)
+    
+    if (std::string SymQualifiedName = (Sym.Scope + Sym.Name).str(); QualifiedName == SymQualifiedName)
       SymIDs.push_back(Sym.ID);
   });
   return SymIDs;

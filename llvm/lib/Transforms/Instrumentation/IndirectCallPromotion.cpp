@@ -746,15 +746,15 @@ void IndirectCallPromoter::updateFuncValueProfiles(
     return LHS.Count > RHS.Count;
   });
   // Drop the <target-value, count> pair if count is zero.
-  ArrayRef<InstrProfValueData> VDs(
+  
+
+  // Annotate the remaining value profiles if counter is not zero.
+  if (ArrayRef<InstrProfValueData> VDs(
       CallVDs.begin(),
       llvm::upper_bound(CallVDs, 0U,
                         [](uint64_t Count, const InstrProfValueData &ProfData) {
                           return ProfData.Count <= Count;
-                        }));
-
-  // Annotate the remaining value profiles if counter is not zero.
-  if (TotalCount != 0)
+                        })); TotalCount != 0)
     annotateValueSite(M, CB, VDs, TotalCount, IPVK_IndirectCallTarget,
                       MaxMDCount);
 }
@@ -1108,9 +1108,9 @@ static bool promoteIndirectCalls(Module &M, ProfileSummaryInfo *PSI, bool InLTO,
 
 PreservedAnalyses PGOIndirectCallPromotion::run(Module &M,
                                                 ModuleAnalysisManager &MAM) {
-  ProfileSummaryInfo *PSI = &MAM.getResult<ProfileSummaryAnalysis>(M);
+  
 
-  if (!promoteIndirectCalls(M, PSI, InLTO | ICPLTOMode,
+  if (ProfileSummaryInfo *PSI = &MAM.getResult<ProfileSummaryAnalysis>(M); !promoteIndirectCalls(M, PSI, InLTO | ICPLTOMode,
                             SamplePGO | ICPSamplePGOMode, MAM))
     return PreservedAnalyses::all();
 

@@ -81,11 +81,11 @@ public:
     EXPECT_TRUE(llvm::sys::fs::exists(ASTFileName));
 
     // Load the definition from the AST file.
-    llvm::Expected<const FunctionDecl *> NewFDorError = handleExpected(
-        CTU.getCrossTUDefinition(FD, "", IndexFileName, false),
-        []() { return nullptr; }, [](IndexError &) {});
+    
 
-    if (NewFDorError) {
+    if (llvm::Expected<const FunctionDecl *> NewFDorError = handleExpected(
+        CTU.getCrossTUDefinition(FD, "", IndexFileName, false),
+        []() { return nullptr; }, [](IndexError &) {}); NewFDorError) {
       const FunctionDecl *NewFD = *NewFDorError;
       *Success = NewFD && NewFD->hasBody() && !OrigFDHasBody;
 

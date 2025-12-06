@@ -264,8 +264,8 @@ Operation *Worklist::pop() {
 
 void Worklist::remove(Operation *op) {
   assert(op && "cannot remove nullptr from worklist");
-  auto it = map.find(op);
-  if (it != map.end()) {
+  
+  if (auto it = map.find(op); it != map.end()) {
     assert(list[it->second] == op && "malformed worklist data structure");
     list[it->second] = nullptr;
     map.erase(it);
@@ -991,8 +991,8 @@ LogicalResult MultiOpPatternRewriteDriver::simplify(ArrayRef<Operation *> ops,
     addSingleOpToWorklist(op);
 
   // Process ops on the worklist.
-  bool result = processWorklist();
-  if (changed)
+  
+  if (bool result = processWorklist(); changed)
     *changed = result;
 
   return success(worklist.empty());

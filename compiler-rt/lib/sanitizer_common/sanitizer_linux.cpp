@@ -707,8 +707,8 @@ const char *GetEnv(const char *name) {
   static bool inited;
   if (!inited) {
     inited = true;
-    uptr environ_size;
-    if (!ReadFileToBuffer("/proc/self/environ", &environ, &environ_size, &len))
+    
+    if (uptr environ_size; !ReadFileToBuffer("/proc/self/environ", &environ, &environ_size, &len))
       environ = nullptr;
   }
   if (!environ || len == 0)
@@ -1382,8 +1382,8 @@ void ForEachMappedRegion(link_map *map, void (*cb)(const void *, uptr)) {
   // objects have a non-zero base.
   uptr preferred_base = (uptr)-1;
   for (char *iter = phdrs; iter != phdrs_end; iter += ehdr->e_phentsize) {
-    Elf_Phdr *phdr = (Elf_Phdr *)iter;
-    if (phdr->p_type == PT_LOAD && preferred_base > (uptr)phdr->p_vaddr)
+    
+    if (Elf_Phdr *phdr = (Elf_Phdr *)iter; phdr->p_type == PT_LOAD && preferred_base > (uptr)phdr->p_vaddr)
       preferred_base = (uptr)phdr->p_vaddr;
   }
 
@@ -1391,8 +1391,8 @@ void ForEachMappedRegion(link_map *map, void (*cb)(const void *, uptr)) {
   sptr delta = (uptr)base - preferred_base;
   // Now we can figure out what the loader really mapped.
   for (char *iter = phdrs; iter != phdrs_end; iter += ehdr->e_phentsize) {
-    Elf_Phdr *phdr = (Elf_Phdr *)iter;
-    if (phdr->p_type == PT_LOAD) {
+    
+    if (Elf_Phdr *phdr = (Elf_Phdr *)iter; phdr->p_type == PT_LOAD) {
       uptr seg_start = phdr->p_vaddr + delta;
       uptr seg_end = seg_start + phdr->p_memsz;
       // None of these values are aligned.  We consider the ragged edges of the
@@ -2849,8 +2849,8 @@ bool GetRandom(void *buffer, uptr length, bool blocking) {
     // Up to 256 bytes, getrandom will not be interrupted.
     uptr res = internal_syscall(SYSCALL(getrandom), buffer, length,
                                 blocking ? 0 : GRND_NONBLOCK);
-    int rverrno = 0;
-    if (internal_iserror(res, &rverrno) && rverrno == ENOSYS)
+    
+    if (int rverrno = 0; internal_iserror(res, &rverrno) && rverrno == ENOSYS)
       atomic_store_relaxed(&skip_getrandom_syscall, 1);
     else if (res == length)
       return true;

@@ -358,8 +358,8 @@ void Platform::AddClangModuleCompilationOptions(
 
 FileSpec Platform::GetWorkingDirectory() {
   if (IsHost()) {
-    llvm::SmallString<64> cwd;
-    if (llvm::sys::fs::current_path(cwd))
+    
+    if (llvm::SmallString<64> cwd; llvm::sys::fs::current_path(cwd))
       return {};
     else {
       FileSpec file_spec(cwd);
@@ -482,16 +482,16 @@ Status Platform::Install(const FileSpec &src, const FileSpec &dst) {
 
   if (dst) {
     if (dst.GetDirectory()) {
-      const char first_dst_dir_char = dst.GetDirectory().GetCString()[0];
-      if (first_dst_dir_char == '/' || first_dst_dir_char == '\\') {
+      
+      if (const char first_dst_dir_char = dst.GetDirectory().GetCString()[0]; first_dst_dir_char == '/' || first_dst_dir_char == '\\') {
         fixed_dst.SetDirectory(dst.GetDirectory());
       }
       // If the fixed destination file doesn't have a directory yet, then we
       // must have a relative path. We will resolve this relative path against
       // the platform's working directory
       if (!fixed_dst.GetDirectory()) {
-        FileSpec relative_spec;
-        if (working_dir) {
+        
+        if (FileSpec relative_spec; working_dir) {
           relative_spec = working_dir;
           relative_spec.AppendPathComponent(dst.GetPath());
           fixed_dst.SetDirectory(relative_spec.GetDirectory());
@@ -1054,8 +1054,8 @@ lldb::ProcessSP Platform::DebugProcess(ProcessLaunchInfo &launch_info,
         // been used where the secondary side was given as the file to open for
         // stdin/out/err after we have already opened the primary so we can
         // read/write stdin/out/err.
-        int pty_fd = launch_info.GetPTY().ReleasePrimaryFileDescriptor();
-        if (pty_fd != PseudoTerminal::invalid_fd) {
+        
+        if (int pty_fd = launch_info.GetPTY().ReleasePrimaryFileDescriptor(); pty_fd != PseudoTerminal::invalid_fd) {
           process_sp->SetSTDIOFileDescriptor(pty_fd);
         }
       } else {
@@ -1135,9 +1135,9 @@ Status Platform::PutFile(const FileSpec &source, const FileSpec &destination,
     LLDB_LOG(log, "[PutFile] couldn't get md5 sum of destination: {0}",
              ec.message());
   } else {
-    llvm::ErrorOr<llvm::MD5::MD5Result> local_md5 =
-        llvm::sys::fs::md5_contents(source.GetPath());
-    if (std::error_code ec = local_md5.getError()) {
+    
+    if (llvm::ErrorOr<llvm::MD5::MD5Result> local_md5 =
+        llvm::sys::fs::md5_contents(source.GetPath()); std::error_code ec = local_md5.getError()) {
       LLDB_LOG(log, "[PutFile] couldn't get md5 sum of source: {0}",
                ec.message());
     } else {
@@ -2052,8 +2052,8 @@ size_t Platform::GetSoftwareBreakpointTrapOpcode(Target &target,
   case llvm::Triple::riscv32:
   case llvm::Triple::riscv64: {
     static const uint8_t g_riscv_opcode[] = {0x73, 0x00, 0x10, 0x00}; // ebreak
-    static const uint8_t g_riscv_opcode_c[] = {0x02, 0x90}; // c.ebreak
-    if (arch.GetFlags() & ArchSpec::eRISCV_rvc) {
+    // c.ebreak
+    if (static const uint8_t g_riscv_opcode_c[] = {0x02, 0x90}; arch.GetFlags() & ArchSpec::eRISCV_rvc) {
       trap_opcode = g_riscv_opcode_c;
       trap_opcode_size = sizeof(g_riscv_opcode_c);
     } else {
@@ -2139,8 +2139,8 @@ PlatformSP PlatformList::GetOrCreate(const ArchSpec &arch,
   for (idx = 0;
        (create_callback = PluginManager::GetPlatformCreateCallbackAtIndex(idx));
        ++idx) {
-    PlatformSP platform_sp = create_callback(false, &arch);
-    if (platform_sp &&
+    
+    if (PlatformSP platform_sp = create_callback(false, &arch); platform_sp &&
         platform_sp->IsCompatibleArchitecture(
             arch, process_host_arch, ArchSpec::ExactMatch, platform_arch_ptr)) {
       m_platforms.push_back(platform_sp);
@@ -2151,8 +2151,8 @@ PlatformSP PlatformList::GetOrCreate(const ArchSpec &arch,
   for (idx = 0;
        (create_callback = PluginManager::GetPlatformCreateCallbackAtIndex(idx));
        ++idx) {
-    PlatformSP platform_sp = create_callback(false, &arch);
-    if (platform_sp && platform_sp->IsCompatibleArchitecture(
+    
+    if (PlatformSP platform_sp = create_callback(false, &arch); platform_sp && platform_sp->IsCompatibleArchitecture(
                            arch, process_host_arch, ArchSpec::CompatibleMatch,
                            platform_arch_ptr)) {
       m_platforms.push_back(platform_sp);
@@ -2242,8 +2242,8 @@ bool PlatformList::LoadPlatformBinaryAndSetup(Process *process,
        (create_callback = PluginManager::GetPlatformCreateCallbackAtIndex(idx));
        ++idx) {
     ArchSpec arch;
-    PlatformSP platform_sp = create_callback(true, &arch);
-    if (platform_sp) {
+    
+    if (PlatformSP platform_sp = create_callback(true, &arch); platform_sp) {
       if (platform_sp->LoadPlatformBinaryAndSetup(process, addr, notify))
         return true;
     }

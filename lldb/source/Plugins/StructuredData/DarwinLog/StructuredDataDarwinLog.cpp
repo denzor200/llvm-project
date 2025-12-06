@@ -85,8 +85,8 @@ EnableOptionsSP GetGlobalEnableOptions(const DebuggerSP &debugger_sp) {
   std::lock_guard<std::mutex> locker(GetGlobalOptionsMapLock());
   OptionsMap &options_map = GetGlobalOptionsMap();
   DebuggerWP debugger_wp(debugger_sp);
-  auto find_it = options_map.find(debugger_wp);
-  if (find_it != options_map.end())
+  
+  if (auto find_it = options_map.find(debugger_wp); find_it != options_map.end())
     return find_it->second;
   else
     return EnableOptionsSP();
@@ -97,8 +97,8 @@ void SetGlobalEnableOptions(const DebuggerSP &debugger_sp,
   std::lock_guard<std::mutex> locker(GetGlobalOptionsMapLock());
   OptionsMap &options_map = GetGlobalOptionsMap();
   DebuggerWP debugger_wp(debugger_sp);
-  auto find_it = options_map.find(debugger_wp);
-  if (find_it != options_map.end())
+  
+  if (auto find_it = options_map.find(debugger_wp); find_it != options_map.end())
     find_it->second = options_sp;
   else
     options_map.insert(std::make_pair(debugger_wp, options_sp));
@@ -494,8 +494,8 @@ public:
                         ExecutionContext *execution_context) override {
     Status error;
 
-    const int short_option = m_getopt_table[option_idx].val;
-    switch (short_option) {
+    
+    switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
     case 'a':
       m_include_any_process = true;
       break;
@@ -993,8 +993,8 @@ EnableOptionsSP ParseAutoEnableOptions(Status &error, Debugger &debugger) {
   if (args.GetArgumentCount() > 0) {
     // Eliminate the initial '--' that would be required to set the settings
     // that themselves include '-' and/or '--'.
-    const char *first_arg = args.GetArgumentAtIndex(0);
-    if (first_arg && (strcmp(first_arg, "--") == 0))
+    
+    if (const char *first_arg = args.GetArgumentAtIndex(0); first_arg && (strcmp(first_arg, "--") == 0))
       args.Shift();
   }
 
@@ -1189,8 +1189,8 @@ Status StructuredDataDarwinLog::GetDescription(
         // If we haven't already grabbed the first timestamp value, do that
         // now.
         if (!m_recorded_first_timestamp) {
-          uint64_t timestamp = 0;
-          if (event->GetValueForKeyAsInteger("timestamp", timestamp)) {
+          
+          if (uint64_t timestamp = 0; event->GetValueForKeyAsInteger("timestamp", timestamp)) {
             m_first_timestamp_seen = timestamp;
             m_recorded_first_timestamp = true;
           }
@@ -1305,8 +1305,8 @@ void StructuredDataDarwinLog::ModulesDidLoad(Process &process,
 
 StructuredDataDarwinLog::~StructuredDataDarwinLog() {
   if (m_breakpoint_id != LLDB_INVALID_BREAK_ID) {
-    ProcessSP process_sp(GetProcess());
-    if (process_sp) {
+    
+    if (ProcessSP process_sp(GetProcess()); process_sp) {
       process_sp->GetTarget().RemoveBreakpointByID(m_breakpoint_id);
       m_breakpoint_id = LLDB_INVALID_BREAK_ID;
     }
@@ -1680,16 +1680,16 @@ StructuredDataDarwinLog::DumpHeader(Stream &output_stream,
 
   int header_count = 0;
   if (options_sp->GetDisplayTimestampRelative()) {
-    uint64_t timestamp = 0;
-    if (event.GetValueForKeyAsInteger("timestamp", timestamp)) {
+    
+    if (uint64_t timestamp = 0; event.GetValueForKeyAsInteger("timestamp", timestamp)) {
       DumpTimestamp(stream, timestamp);
       ++header_count;
     }
   }
 
   if (options_sp->GetDisplayActivityChain()) {
-    llvm::StringRef activity_chain;
-    if (event.GetValueForKeyAsString("activity-chain", activity_chain) &&
+    
+    if (llvm::StringRef activity_chain; event.GetValueForKeyAsString("activity-chain", activity_chain) &&
         !activity_chain.empty()) {
       if (header_count > 0)
         stream.PutChar(',');
@@ -1703,8 +1703,8 @@ StructuredDataDarwinLog::DumpHeader(Stream &output_stream,
   }
 
   if (options_sp->GetDisplaySubsystem()) {
-    llvm::StringRef subsystem;
-    if (event.GetValueForKeyAsString("subsystem", subsystem) &&
+    
+    if (llvm::StringRef subsystem; event.GetValueForKeyAsString("subsystem", subsystem) &&
         !subsystem.empty()) {
       if (header_count > 0)
         stream.PutChar(',');
@@ -1715,8 +1715,8 @@ StructuredDataDarwinLog::DumpHeader(Stream &output_stream,
   }
 
   if (options_sp->GetDisplayCategory()) {
-    llvm::StringRef category;
-    if (event.GetValueForKeyAsString("category", category) &&
+    
+    if (llvm::StringRef category; event.GetValueForKeyAsString("category", category) &&
         !category.empty()) {
       if (header_count > 0)
         stream.PutChar(',');
@@ -1803,8 +1803,8 @@ void StructuredDataDarwinLog::EnableNow() {
     // We haven't run the enable command yet.  Just do that now, it'll take
     // care of the rest.
     auto &interpreter = debugger_sp->GetCommandInterpreter();
-    const bool success = RunEnableCommand(interpreter);
-    if (log) {
+    
+    if (const bool success = RunEnableCommand(interpreter); log) {
       if (success)
         LLDB_LOGF(log,
                   "StructuredDataDarwinLog::%s() ran enable command "

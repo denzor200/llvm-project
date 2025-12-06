@@ -93,8 +93,8 @@ bool AMDGPUMCInstLower::lowerOperand(const MachineOperand &MO,
     MCSymbol *Sym = Ctx.getOrCreateSymbol(SymbolName);
     const MCExpr *Expr =
         MCSymbolRefExpr::create(Sym, getSpecifier(MO.getTargetFlags()), Ctx);
-    int64_t Offset = MO.getOffset();
-    if (Offset != 0) {
+    
+    if (int64_t Offset = MO.getOffset(); Offset != 0) {
       Expr = MCBinaryExpr::createAdd(Expr,
                                      MCConstantExpr::create(Offset, Ctx), Ctx);
     }

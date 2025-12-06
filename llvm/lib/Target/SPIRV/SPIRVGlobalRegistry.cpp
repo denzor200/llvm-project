@@ -153,8 +153,8 @@ SPIRVType *SPIRVGlobalRegistry::getOpTypeBool(MachineIRBuilder &MIRBuilder) {
 unsigned SPIRVGlobalRegistry::adjustOpTypeIntWidth(unsigned Width) const {
   if (Width > 64)
     report_fatal_error("Unsupported integer width!");
-  const SPIRVSubtarget &ST = cast<SPIRVSubtarget>(CurMF->getSubtarget());
-  if (ST.canUseExtension(
+  
+  if (const SPIRVSubtarget &ST = cast<SPIRVSubtarget>(CurMF->getSubtarget()); ST.canUseExtension(
           SPIRV::Extension::SPV_INTEL_arbitrary_precision_integers) ||
       ST.canUseExtension(SPIRV::Extension::SPV_INTEL_int4))
     return Width;
@@ -250,8 +250,8 @@ void SPIRVGlobalRegistry::invalidateMachineInstr(MachineInstr *MI) {
 
   if (MI->getOpcode() == SPIRV::OpFunctionCall) {
     if (const auto *F = dyn_cast<Function>(MI->getOperand(2).getGlobal())) {
-      auto It = ForwardCalls.find(F);
-      if (It != ForwardCalls.end()) {
+      
+      if (auto It = ForwardCalls.find(F); It != ForwardCalls.end()) {
         It->second.erase(MI);
         if (It->second.empty())
           ForwardCalls.erase(It);
@@ -329,8 +329,8 @@ Register SPIRVGlobalRegistry::getOrCreateConstFP(APFloat Val, MachineInstr &I,
                                                  bool ZeroAsNull) {
   LLVMContext &Ctx = CurMF->getFunction().getContext();
   auto *const CF = ConstantFP::get(Ctx, Val);
-  const MachineInstr *MI = findMI(CF, CurMF);
-  if (MI && (MI->getOpcode() == SPIRV::OpConstantNull ||
+  
+  if (const MachineInstr *MI = findMI(CF, CurMF); MI && (MI->getOpcode() == SPIRV::OpConstantNull ||
              MI->getOpcode() == SPIRV::OpConstantF))
     return MI->getOperand(0).getReg();
   return createConstFP(CF, I, SpvType, TII, ZeroAsNull);
@@ -380,8 +380,8 @@ Register SPIRVGlobalRegistry::getOrCreateConstInt(uint64_t Val, MachineInstr &I,
                                                   bool ZeroAsNull) {
   const IntegerType *Ty = cast<IntegerType>(getTypeForSPIRVType(SpvType));
   auto *const CI = ConstantInt::get(const_cast<IntegerType *>(Ty), Val);
-  const MachineInstr *MI = findMI(CI, CurMF);
-  if (MI && (MI->getOpcode() == SPIRV::OpConstantNull ||
+  
+  if (const MachineInstr *MI = findMI(CI, CurMF); MI && (MI->getOpcode() == SPIRV::OpConstantNull ||
              MI->getOpcode() == SPIRV::OpConstantI))
     return MI->getOperand(0).getReg();
   return createConstInt(CI, I, SpvType, TII, ZeroAsNull);
@@ -802,8 +802,8 @@ Register SPIRVGlobalRegistry::buildGlobalVariable(
     // Our knowledge about the type may be updated.
     // If that's the case, we need to update a type
     // associated with the register.
-    SPIRVType *DefType = getSPIRVTypeForVReg(ResVReg);
-    if (!DefType || DefType != BaseType)
+    
+    if (SPIRVType *DefType = getSPIRVTypeForVReg(ResVReg); !DefType || DefType != BaseType)
       assignSPIRVTypeToVReg(BaseType, Reg, MIRBuilder.getMF());
   }
 
@@ -871,9 +871,9 @@ SPIRVType *SPIRVGlobalRegistry::getOpTypeArray(uint32_t NumElems,
          "Invalid array element type");
   SPIRVType *SpvTypeInt32 = getOrCreateSPIRVIntegerType(32, MIRBuilder);
   SPIRVType *ArrayType = nullptr;
-  const SPIRVSubtarget &ST =
-      cast<SPIRVSubtarget>(MIRBuilder.getMF().getSubtarget());
-  if (NumElems != 0) {
+  
+  if (const SPIRVSubtarget &ST =
+      cast<SPIRVSubtarget>(MIRBuilder.getMF().getSubtarget()); NumElems != 0) {
     Register NumElementsVReg =
         buildConstantInt(NumElems, MIRBuilder, SpvTypeInt32, EmitIR);
     ArrayType = createOpType(MIRBuilder, [&](MachineIRBuilder &MIRBuilder) {
@@ -1076,11 +1076,11 @@ Register SPIRVGlobalRegistry::getSPIRVTypeID(const SPIRVType *SpirvType) const {
 // about uniqueness of type records.
 const Type *SPIRVGlobalRegistry::adjustIntTypeByWidth(const Type *Ty) const {
   if (auto IType = dyn_cast<IntegerType>(Ty)) {
-    unsigned SrcBitWidth = IType->getBitWidth();
-    if (SrcBitWidth > 1) {
-      unsigned BitWidth = adjustOpTypeIntWidth(SrcBitWidth);
+    
+    if (unsigned SrcBitWidth = IType->getBitWidth(); SrcBitWidth > 1) {
+      
       // Maybe change source LLVM type to keep DuplicateTracker consistent.
-      if (SrcBitWidth != BitWidth)
+      if (unsigned BitWidth = adjustOpTypeIntWidth(SrcBitWidth); SrcBitWidth != BitWidth)
         Ty = IntegerType::get(Ty->getContext(), BitWidth);
     }
   }
@@ -1219,8 +1219,8 @@ SPIRVGlobalRegistry::getSPIRVTypeForVReg(Register VReg,
                                          const MachineFunction *MF) const {
   auto t = VRegToTypeMap.find(MF ? MF : CurMF);
   if (t != VRegToTypeMap.end()) {
-    auto tt = t->second.find(VReg);
-    if (tt != t->second.end())
+    
+    if (auto tt = t->second.find(VReg); tt != t->second.end())
       return tt->second;
   }
   return nullptr;
@@ -1561,8 +1561,8 @@ SPIRVType *SPIRVGlobalRegistry::getOrCreateOpTypeImage(
 SPIRVType *
 SPIRVGlobalRegistry::getOrCreateOpTypeSampler(MachineIRBuilder &MIRBuilder) {
   auto Key = SPIRV::irhandle_sampler();
-  const MachineFunction *MF = &MIRBuilder.getMF();
-  if (const MachineInstr *MI = findMI(Key, MF))
+  
+  if (const MachineFunction *MF = &MIRBuilder.getMF(); const MachineInstr *MI = findMI(Key, MF))
     return MI;
   const MachineInstr *NewMI =
       createOpType(MIRBuilder, [&](MachineIRBuilder &MIRBuilder) {
@@ -1631,8 +1631,8 @@ SPIRVType *SPIRVGlobalRegistry::getOrCreateOpTypeCoopMatr(
   const MachineInstr *NewMI =
       createOpType(MIRBuilder, [&](MachineIRBuilder &MIRBuilder) {
         SPIRVType *SpvTypeInt32 = getOrCreateSPIRVIntegerType(32, MIRBuilder);
-        const Type *ET = getTypeForSPIRVType(ElemType);
-        if (ET->isIntegerTy() && ET->getIntegerBitWidth() == 4 &&
+        
+        if (const Type *ET = getTypeForSPIRVType(ElemType); ET->isIntegerTy() && ET->getIntegerBitWidth() == 4 &&
             cast<SPIRVSubtarget>(MIRBuilder.getMF().getSubtarget())
                 .canUseExtension(SPIRV::Extension::SPV_INTEL_int4)) {
           MIRBuilder.buildInstr(SPIRV::OpCapability)
@@ -1759,12 +1759,12 @@ SPIRVType *SPIRVGlobalRegistry::getOrCreateSPIRVType(unsigned BitWidth,
   MachineIRBuilder MIRBuilder(DepMBB, DepMBB.getFirstNonPHI());
   const MachineInstr *NewMI =
       createOpType(MIRBuilder, [&](MachineIRBuilder &MIRBuilder) {
-        auto NewTypeMI = BuildMI(MIRBuilder.getMBB(), *MIRBuilder.getInsertPt(),
+        
+        // Don't add Encoding to FP type
+        if (auto NewTypeMI = BuildMI(MIRBuilder.getMBB(), *MIRBuilder.getInsertPt(),
                                  MIRBuilder.getDL(), TII.get(SPIRVOPcode))
                              .addDef(createTypeVReg(CurMF->getRegInfo()))
-                             .addImm(BitWidth);
-        // Don't add Encoding to FP type
-        if (!Ty->isFloatTy()) {
+                             .addImm(BitWidth); !Ty->isFloatTy()) {
           return NewTypeMI.addImm(0);
         } else {
           return NewTypeMI;
@@ -1960,8 +1960,8 @@ Register SPIRVGlobalRegistry::getOrCreateUndef(MachineInstr &I,
 
 const TargetRegisterClass *
 SPIRVGlobalRegistry::getRegClass(SPIRVType *SpvType) const {
-  unsigned Opcode = SpvType->getOpcode();
-  switch (Opcode) {
+  
+  switch (unsigned Opcode = SpvType->getOpcode(); Opcode) {
   case SPIRV::OpTypeFloat:
     return &SPIRV::fIDRegClass;
   case SPIRV::OpTypePointer:
@@ -1986,8 +1986,8 @@ inline unsigned getAS(SPIRVType *SpvType) {
 }
 
 LLT SPIRVGlobalRegistry::getRegType(SPIRVType *SpvType) const {
-  unsigned Opcode = SpvType ? SpvType->getOpcode() : 0;
-  switch (Opcode) {
+  
+  switch (unsigned Opcode = SpvType ? SpvType->getOpcode() : 0; Opcode) {
   case SPIRV::OpTypeInt:
   case SPIRV::OpTypeFloat:
   case SPIRV::OpTypeBool:
@@ -2116,9 +2116,9 @@ void SPIRVGlobalRegistry::buildAssignPtr(IRBuilder<> &B, Type *ElemTy,
                                          Value *Arg) {
   Value *OfType = PoisonValue::get(ElemTy);
   CallInst *AssignPtrTyCI = findAssignPtrTypeInstr(Arg);
-  Function *CurrF =
-      B.GetInsertBlock() ? B.GetInsertBlock()->getParent() : nullptr;
-  if (AssignPtrTyCI == nullptr ||
+  
+  if (Function *CurrF =
+      B.GetInsertBlock() ? B.GetInsertBlock()->getParent() : nullptr; AssignPtrTyCI == nullptr ||
       AssignPtrTyCI->getParent()->getParent() != CurrF) {
     AssignPtrTyCI = buildIntrWithMD(
         Intrinsic::spv_assign_ptr_type, {Arg->getType()}, OfType, Arg,

@@ -315,8 +315,8 @@ static bool GetImm(MachineInstr *MI, unsigned Op, int64_t &Imm) {
 
 // Returns true if the value is a valid immediate for ADDIUSP.
 static bool AddiuspImmValue(int64_t Value) {
-  int64_t Value2 = Value >> 2;
-  if (((Value & (int64_t)maskTrailingZeros<uint64_t>(2)) == Value) &&
+  
+  if (int64_t Value2 = Value >> 2; ((Value & (int64_t)maskTrailingZeros<uint64_t>(2)) == Value) &&
       ((Value2 >= 2 && Value2 <= 257) || (Value2 >= -258 && Value2 <= -3)))
     return true;
   return false;
@@ -326,8 +326,8 @@ static bool AddiuspImmValue(int64_t Value) {
 // bits equal to Shift and if the shifted value is between the bounds.
 static bool InRange(int64_t Value, unsigned short Shift, int LBound,
                     int HBound) {
-  int64_t Value2 = Value >> Shift;
-  if (((Value & (int64_t)maskTrailingZeros<uint64_t>(Shift)) == Value) &&
+  
+  if (int64_t Value2 = Value >> Shift; ((Value & (int64_t)maskTrailingZeros<uint64_t>(Shift)) == Value) &&
       (Value2 >= LBound) && (Value2 < HBound))
     return true;
   return false;
@@ -430,8 +430,8 @@ bool MicroMipsSizeReduce::ReduceMI(const MachineBasicBlock::instr_iterator &MII,
 
   for (ReduceEntryVector::const_iterator Entry = Range.first;
        Entry != Range.second; ++Entry) {
-    ReduceEntryFunArgs Arguments(&(*MII), *Entry, NextMII);
-    if (((*Entry).ReduceFunction)(&Arguments))
+    
+    if (ReduceEntryFunArgs Arguments(&(*MII), *Entry, NextMII); ((*Entry).ReduceFunction)(&Arguments))
       return true;
   }
   return false;
@@ -677,10 +677,10 @@ bool MicroMipsSizeReduce::ReduceMBB(MachineBasicBlock &MBB) {
   // Iterate through the instructions in the basic block
   for (; MII != E; MII = NextMII) {
     NextMII = std::next(MII);
-    MachineInstr *MI = &*MII;
+    
 
     // Don't reduce bundled instructions or pseudo operations
-    if (MI->isBundle() || MI->isTransient())
+    if (MachineInstr *MI = &*MII; MI->isBundle() || MI->isTransient())
       continue;
 
     // Try to reduce 32-bit instruction into 16-bit instruction

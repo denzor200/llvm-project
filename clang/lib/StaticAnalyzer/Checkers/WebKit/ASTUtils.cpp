@@ -106,8 +106,8 @@ bool tryToFindPtrOrigin(
 
       if (auto *memberCall = dyn_cast<CXXMemberCallExpr>(call)) {
         if (auto *decl = memberCall->getMethodDecl()) {
-          std::optional<bool> IsGetterOfRefCt = isGetterOfSafePtr(decl);
-          if (IsGetterOfRefCt && *IsGetterOfRefCt) {
+          
+          if (std::optional<bool> IsGetterOfRefCt = isGetterOfSafePtr(decl); IsGetterOfRefCt && *IsGetterOfRefCt) {
             E = memberCall->getImplicitObjectArgument();
             if (StopAtFirstRefCountedObj) {
               return callback(E, true);
@@ -119,8 +119,8 @@ bool tryToFindPtrOrigin(
 
       if (auto *operatorCall = dyn_cast<CXXOperatorCallExpr>(E)) {
         if (auto *Callee = operatorCall->getDirectCallee()) {
-          auto ClsName = safeGetName(Callee->getParent());
-          if (isRefType(ClsName) || isCheckedPtr(ClsName) ||
+          
+          if (auto ClsName = safeGetName(Callee->getParent()); isRefType(ClsName) || isCheckedPtr(ClsName) ||
               isRetainPtrOrOSPtr(ClsName) || ClsName == "unique_ptr" ||
               ClsName == "UniqueRef" || ClsName == "WeakPtr" ||
               ClsName == "WeakRef") {
@@ -162,8 +162,8 @@ bool tryToFindPtrOrigin(
           continue;
         }
 
-        auto Name = safeGetName(callee);
-        if (Name == "__builtin___CFStringMakeConstantString" ||
+        
+        if (auto Name = safeGetName(callee); Name == "__builtin___CFStringMakeConstantString" ||
             Name == "NSStringFromSelector" || Name == "NSSelectorFromString" ||
             Name == "NSStringFromClass" || Name == "NSClassFromString" ||
             Name == "NSStringFromProtocol" || Name == "NSProtocolFromString")
@@ -177,8 +177,8 @@ bool tryToFindPtrOrigin(
         if (auto *MemberExpr = dyn_cast<CXXDependentScopeMemberExpr>(CalleeE)) {
           auto *Base = MemberExpr->getBase();
           auto MemberName = MemberExpr->getMember().getAsString();
-          bool IsGetter = MemberName == "get" || MemberName == "ptr";
-          if (Base && isSafePtrType(Base->getType()) && IsGetter)
+          
+          if (bool IsGetter = MemberName == "get" || MemberName == "ptr"; Base && isSafePtrType(Base->getType()) && IsGetter)
             return callback(E, true);
         }
       }
@@ -188,8 +188,8 @@ bool tryToFindPtrOrigin(
       // a SubstTemplateTypeParmType of a safe smart pointer type (e.g. Ref).
       if (auto *CalleeDecl = call->getCalleeDecl()) {
         if (auto *FD = dyn_cast<FunctionDecl>(CalleeDecl)) {
-          auto RetType = FD->getReturnType();
-          if (auto *Subst = dyn_cast<SubstTemplateTypeParmType>(RetType)) {
+          
+          if (auto RetType = FD->getReturnType(); auto *Subst = dyn_cast<SubstTemplateTypeParmType>(RetType)) {
             if (auto *SubstType = Subst->desugar().getTypePtr()) {
               if (auto *RD = dyn_cast<RecordType>(SubstType)) {
                 if (auto *CXX = dyn_cast<CXXRecordDecl>(RD->getDecl()))
@@ -207,8 +207,8 @@ bool tryToFindPtrOrigin(
           return callback(E, true);
       }
       auto Selector = ObjCMsgExpr->getSelector();
-      auto NameForFirstSlot = Selector.getNameForSlot(0);
-      if ((NameForFirstSlot == "class" || NameForFirstSlot == "superclass") &&
+      
+      if (auto NameForFirstSlot = Selector.getNameForSlot(0); (NameForFirstSlot == "class" || NameForFirstSlot == "superclass") &&
           !Selector.getNumArgs())
         return callback(E, true);
     }
@@ -240,21 +240,21 @@ bool tryToFindPtrOrigin(
 bool isASafeCallArg(const Expr *E) {
   assert(E);
   if (auto *Ref = dyn_cast<DeclRefExpr>(E)) {
-    auto *FoundDecl = Ref->getFoundDecl();
-    if (auto *D = dyn_cast_or_null<VarDecl>(FoundDecl)) {
+    
+    if (auto *FoundDecl = Ref->getFoundDecl(); auto *D = dyn_cast_or_null<VarDecl>(FoundDecl)) {
       if (isa<ParmVarDecl>(D) || D->isLocalVarDecl())
         return true;
       if (auto *ImplicitP = dyn_cast<ImplicitParamDecl>(D)) {
-        auto Kind = ImplicitP->getParameterKind();
-        if (Kind == ImplicitParamKind::ObjCSelf ||
+        
+        if (auto Kind = ImplicitP->getParameterKind(); Kind == ImplicitParamKind::ObjCSelf ||
             Kind == ImplicitParamKind::ObjCCmd ||
             Kind == ImplicitParamKind::CXXThis ||
             Kind == ImplicitParamKind::CXXVTT)
           return true;
       }
     } else if (auto *BD = dyn_cast_or_null<BindingDecl>(FoundDecl)) {
-      VarDecl *VD = BD->getHoldingVar();
-      if (VD && (isa<ParmVarDecl>(VD) || VD->isLocalVarDecl()))
+      
+      if (VarDecl *VD = BD->getHoldingVar(); VD && (isa<ParmVarDecl>(VD) || VD->isLocalVarDecl()))
         return true;
     }
   }

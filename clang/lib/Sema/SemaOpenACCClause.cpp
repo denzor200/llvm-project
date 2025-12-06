@@ -159,10 +159,10 @@ class SemaOpenACCClauseVisitor {
     assert(Clause.getClauseKind() == OpenACCClauseKind::Gang ||
            Clause.getClauseKind() == OpenACCClauseKind::Worker ||
            Clause.getClauseKind() == OpenACCClauseKind::Vector);
-    const auto *Itr =
-        llvm::find_if(ExistingClauses, llvm::IsaPred<OpenACCSeqClause>);
+    
 
-    if (Itr != ExistingClauses.end()) {
+    if (const auto *Itr =
+        llvm::find_if(ExistingClauses, llvm::IsaPred<OpenACCSeqClause>); Itr != ExistingClauses.end()) {
       SemaRef.Diag(Clause.getBeginLoc(), diag::err_acc_clause_cannot_combine)
           << Clause.getClauseKind() << (*Itr)->getClauseKind()
           << Clause.getDirectiveKind();
@@ -204,12 +204,12 @@ class SemaOpenACCClauseVisitor {
 
     // The 'capture' modifier is only valid on copyin, copyout, and create on
     // structured data or compute constructs (which also includes combined).
-    bool IsStructuredDataOrCompute =
+    
+
+    switch (bool IsStructuredDataOrCompute =
         Clause.getDirectiveKind() == OpenACCDirectiveKind::Data ||
         isOpenACCComputeDirectiveKind(Clause.getDirectiveKind()) ||
-        isOpenACCCombinedDirectiveKind(Clause.getDirectiveKind());
-
-    switch (Clause.getClauseKind()) {
+        isOpenACCCombinedDirectiveKind(Clause.getDirectiveKind()); Clause.getClauseKind()) {
     default:
       llvm_unreachable("Only for copy, copyin, copyout, create");
     case OpenACCClauseKind::Copy:
@@ -559,9 +559,9 @@ OpenACCClause *SemaOpenACCClauseVisitor::VisitIfClause(
   // If the 'if' clause is true, it makes the 'self' clause have no effect,
   // diagnose that here.  This only applies on compute/combined constructs.
   if (Clause.getDirectiveKind() != OpenACCDirectiveKind::Update) {
-    const auto *Itr =
-        llvm::find_if(ExistingClauses, llvm::IsaPred<OpenACCSelfClause>);
-    if (Itr != ExistingClauses.end()) {
+    
+    if (const auto *Itr =
+        llvm::find_if(ExistingClauses, llvm::IsaPred<OpenACCSelfClause>); Itr != ExistingClauses.end()) {
       SemaRef.Diag(Clause.getBeginLoc(), diag::warn_acc_if_self_conflict);
       SemaRef.Diag((*Itr)->getBeginLoc(), diag::note_acc_previous_clause_here)
           << (*Itr)->getClauseKind();
@@ -583,9 +583,9 @@ OpenACCClause *SemaOpenACCClauseVisitor::VisitSelfClause(
                                      Clause.getLParenLoc(), Clause.getVarList(),
                                      Clause.getEndLoc());
 
-  const auto *Itr =
-      llvm::find_if(ExistingClauses, llvm::IsaPred<OpenACCIfClause>);
-  if (Itr != ExistingClauses.end()) {
+  
+  if (const auto *Itr =
+      llvm::find_if(ExistingClauses, llvm::IsaPred<OpenACCIfClause>); Itr != ExistingClauses.end()) {
     SemaRef.Diag(Clause.getBeginLoc(), diag::warn_acc_if_self_conflict);
     SemaRef.Diag((*Itr)->getBeginLoc(), diag::note_acc_previous_clause_here)
         << (*Itr)->getClauseKind();
@@ -627,10 +627,10 @@ OpenACCClause *SemaOpenACCClauseVisitor::VisitNumGangsClause(
       isOpenACCCombinedDirectiveKind(Clause.getDirectiveKind())) {
     auto *GangClauseItr =
         llvm::find_if(ExistingClauses, llvm::IsaPred<OpenACCGangClause>);
-    auto *ReductionClauseItr =
-        llvm::find_if(ExistingClauses, llvm::IsaPred<OpenACCReductionClause>);
+    
 
-    if (GangClauseItr != ExistingClauses.end() &&
+    if (auto *ReductionClauseItr =
+        llvm::find_if(ExistingClauses, llvm::IsaPred<OpenACCReductionClause>); GangClauseItr != ExistingClauses.end() &&
         ReductionClauseItr != ExistingClauses.end()) {
       SemaRef.Diag(Clause.getBeginLoc(),
                    diag::err_acc_gang_reduction_numgangs_conflict)
@@ -652,10 +652,10 @@ OpenACCClause *SemaOpenACCClauseVisitor::VisitNumGangsClause(
   if ((Clause.getDirectiveKind() == OpenACCDirectiveKind::Parallel ||
        Clause.getDirectiveKind() == OpenACCDirectiveKind::ParallelLoop) &&
       Clause.getIntExprs().size() > 1) {
-    auto *Parallel =
-        llvm::find_if(ExistingClauses, llvm::IsaPred<OpenACCReductionClause>);
+    
 
-    if (Parallel != ExistingClauses.end()) {
+    if (auto *Parallel =
+        llvm::find_if(ExistingClauses, llvm::IsaPred<OpenACCReductionClause>); Parallel != ExistingClauses.end()) {
       SemaRef.Diag(Clause.getBeginLoc(),
                    diag::err_acc_reduction_num_gangs_conflict)
           << /*>1 arg in first loc=*/1 << Clause.getClauseKind()
@@ -878,12 +878,12 @@ OpenACCClause *SemaOpenACCClauseVisitor::VisitCopyClause(
   // really isn't anything to do here. GCC does some duplicate-finding, though
   // it isn't apparent in the standard where this is justified.
 
-  OpenACCModifierKind NewMods =
-      CheckModifierList(Clause, Clause.getModifierList());
+  
 
   // 'declare' has some restrictions that need to be enforced separately, so
   // check it here.
-  if (SemaRef.CheckDeclareClause(Clause, NewMods))
+  if (OpenACCModifierKind NewMods =
+      CheckModifierList(Clause, Clause.getModifierList()); SemaRef.CheckDeclareClause(Clause, NewMods))
     return nullptr;
 
   return OpenACCCopyClause::Create(
@@ -924,12 +924,12 @@ OpenACCClause *SemaOpenACCClauseVisitor::VisitCopyInClause(
   // really isn't anything to do here. GCC does some duplicate-finding, though
   // it isn't apparent in the standard where this is justified.
 
-  OpenACCModifierKind NewMods =
-      CheckModifierList(Clause, Clause.getModifierList());
+  
 
   // 'declare' has some restrictions that need to be enforced separately, so
   // check it here.
-  if (SemaRef.CheckDeclareClause(Clause, NewMods))
+  if (OpenACCModifierKind NewMods =
+      CheckModifierList(Clause, Clause.getModifierList()); SemaRef.CheckDeclareClause(Clause, NewMods))
     return nullptr;
 
   return OpenACCCopyInClause::Create(
@@ -943,12 +943,12 @@ OpenACCClause *SemaOpenACCClauseVisitor::VisitCopyOutClause(
   // really isn't anything to do here. GCC does some duplicate-finding, though
   // it isn't apparent in the standard where this is justified.
 
-  OpenACCModifierKind NewMods =
-      CheckModifierList(Clause, Clause.getModifierList());
+  
 
   // 'declare' has some restrictions that need to be enforced separately, so
   // check it here.
-  if (SemaRef.CheckDeclareClause(Clause, NewMods))
+  if (OpenACCModifierKind NewMods =
+      CheckModifierList(Clause, Clause.getModifierList()); SemaRef.CheckDeclareClause(Clause, NewMods))
     return nullptr;
 
   return OpenACCCopyOutClause::Create(
@@ -962,12 +962,12 @@ OpenACCClause *SemaOpenACCClauseVisitor::VisitCreateClause(
   // really isn't anything to do here. GCC does some duplicate-finding, though
   // it isn't apparent in the standard where this is justified.
 
-  OpenACCModifierKind NewMods =
-      CheckModifierList(Clause, Clause.getModifierList());
+  
 
   // 'declare' has some restrictions that need to be enforced separately, so
   // check it here.
-  if (SemaRef.CheckDeclareClause(Clause, NewMods))
+  if (OpenACCModifierKind NewMods =
+      CheckModifierList(Clause, Clause.getModifierList()); SemaRef.CheckDeclareClause(Clause, NewMods))
     return nullptr;
 
   return OpenACCCreateClause::Create(
@@ -1241,10 +1241,10 @@ ExprResult CheckGangKernelsExpr(SemaOpenACC &S,
                           ? ExistingClauses
                           : S.getActiveComputeConstructInfo().Clauses;
 
-    const auto *Itr =
-        llvm::find_if(Collection, llvm::IsaPred<OpenACCNumGangsClause>);
+    
 
-    if (Itr != Collection.end()) {
+    if (const auto *Itr =
+        llvm::find_if(Collection, llvm::IsaPred<OpenACCNumGangsClause>); Itr != Collection.end()) {
       S.Diag(E->getBeginLoc(), diag::err_acc_num_arg_conflict)
           << "num" << OpenACCClauseKind::Gang << DK
           << HasAssocKind(DK, AssocKind) << AssocKind
@@ -1320,10 +1320,10 @@ OpenACCClause *SemaOpenACCClauseVisitor::VisitVectorClause(
         break;
       case OpenACCDirectiveKind::Kernels:
       case OpenACCDirectiveKind::KernelsLoop: {
-        const auto *Itr =
+        
+        if (const auto *Itr =
             llvm::find_if(SemaRef.getActiveComputeConstructInfo().Clauses,
-                          llvm::IsaPred<OpenACCVectorLengthClause>);
-        if (Itr != SemaRef.getActiveComputeConstructInfo().Clauses.end()) {
+                          llvm::IsaPred<OpenACCVectorLengthClause>); Itr != SemaRef.getActiveComputeConstructInfo().Clauses.end()) {
           SemaRef.Diag(IntExpr->getBeginLoc(), diag::err_acc_num_arg_conflict)
               << "length" << OpenACCClauseKind::Vector
               << Clause.getDirectiveKind()
@@ -1344,9 +1344,9 @@ OpenACCClause *SemaOpenACCClauseVisitor::VisitVectorClause(
       }
       break;
     case OpenACCDirectiveKind::KernelsLoop: {
-      const auto *Itr = llvm::find_if(ExistingClauses,
-                                      llvm::IsaPred<OpenACCVectorLengthClause>);
-      if (Itr != ExistingClauses.end()) {
+      
+      if (const auto *Itr = llvm::find_if(ExistingClauses,
+                                      llvm::IsaPred<OpenACCVectorLengthClause>); Itr != ExistingClauses.end()) {
         SemaRef.Diag(IntExpr->getBeginLoc(), diag::err_acc_num_arg_conflict)
             << "length" << OpenACCClauseKind::Vector
             << Clause.getDirectiveKind()
@@ -1435,10 +1435,10 @@ OpenACCClause *SemaOpenACCClauseVisitor::VisitWorkerClause(
         break;
       case OpenACCDirectiveKind::KernelsLoop:
       case OpenACCDirectiveKind::Kernels: {
-        const auto *Itr =
+        
+        if (const auto *Itr =
             llvm::find_if(SemaRef.getActiveComputeConstructInfo().Clauses,
-                          llvm::IsaPred<OpenACCNumWorkersClause>);
-        if (Itr != SemaRef.getActiveComputeConstructInfo().Clauses.end()) {
+                          llvm::IsaPred<OpenACCNumWorkersClause>); Itr != SemaRef.getActiveComputeConstructInfo().Clauses.end()) {
           SemaRef.Diag(IntExpr->getBeginLoc(), diag::err_acc_num_arg_conflict)
               << "num" << OpenACCClauseKind::Worker << Clause.getDirectiveKind()
               << HasAssocKind(Clause.getDirectiveKind(),
@@ -1466,9 +1466,9 @@ OpenACCClause *SemaOpenACCClauseVisitor::VisitWorkerClause(
       IntExpr = nullptr;
       break;
     case OpenACCDirectiveKind::KernelsLoop: {
-      const auto *Itr = llvm::find_if(ExistingClauses,
-                                      llvm::IsaPred<OpenACCNumWorkersClause>);
-      if (Itr != ExistingClauses.end()) {
+      
+      if (const auto *Itr = llvm::find_if(ExistingClauses,
+                                      llvm::IsaPred<OpenACCNumWorkersClause>); Itr != ExistingClauses.end()) {
         SemaRef.Diag(IntExpr->getBeginLoc(), diag::err_acc_num_arg_conflict)
             << "num" << OpenACCClauseKind::Worker << Clause.getDirectiveKind()
             << HasAssocKind(Clause.getDirectiveKind(),
@@ -1539,16 +1539,16 @@ OpenACCClause *SemaOpenACCClauseVisitor::VisitGangClause(
         isOpenACCCombinedDirectiveKind(Clause.getDirectiveKind())
             ? ExistingClauses
             : SemaRef.getActiveComputeConstructInfo().Clauses;
-    auto *NumGangsClauseItr = llvm::find_if(
-        ActiveComputeConstructContainer, llvm::IsaPred<OpenACCNumGangsClause>);
+    
 
-    if (NumGangsClauseItr != ActiveComputeConstructContainer.end() &&
+    if (auto *NumGangsClauseItr = llvm::find_if(
+        ActiveComputeConstructContainer, llvm::IsaPred<OpenACCNumGangsClause>); NumGangsClauseItr != ActiveComputeConstructContainer.end() &&
         cast<OpenACCNumGangsClause>(*NumGangsClauseItr)->getIntExprs().size() >
             1) {
-      auto *ReductionClauseItr =
-          llvm::find_if(ExistingClauses, llvm::IsaPred<OpenACCReductionClause>);
+      
 
-      if (ReductionClauseItr != ExistingClauses.end()) {
+      if (auto *ReductionClauseItr =
+          llvm::find_if(ExistingClauses, llvm::IsaPred<OpenACCReductionClause>); ReductionClauseItr != ExistingClauses.end()) {
         SemaRef.Diag(Clause.getBeginLoc(),
                      diag::err_acc_gang_reduction_numgangs_conflict)
             << OpenACCClauseKind::Gang << OpenACCClauseKind::Reduction
@@ -1673,10 +1673,10 @@ OpenACCClause *SemaOpenACCClauseVisitor::VisitSeqClause(
   //  appears.
   if (Clause.getDirectiveKind() == OpenACCDirectiveKind::Loop ||
       isOpenACCCombinedDirectiveKind(Clause.getDirectiveKind())) {
-    const auto *Itr = llvm::find_if(
+    
+    if (const auto *Itr = llvm::find_if(
         ExistingClauses, llvm::IsaPred<OpenACCGangClause, OpenACCVectorClause,
-                                       OpenACCWorkerClause>);
-    if (Itr != ExistingClauses.end()) {
+                                       OpenACCWorkerClause>); Itr != ExistingClauses.end()) {
       SemaRef.Diag(Clause.getBeginLoc(), diag::err_acc_clause_cannot_combine)
           << Clause.getClauseKind() << (*Itr)->getClauseKind()
           << Clause.getDirectiveKind();
@@ -1704,16 +1704,16 @@ OpenACCClause *SemaOpenACCClauseVisitor::VisitReductionClause(
         isOpenACCCombinedDirectiveKind(Clause.getDirectiveKind())
             ? ExistingClauses
             : SemaRef.getActiveComputeConstructInfo().Clauses;
-    auto *NumGangsClauseItr = llvm::find_if(
-        ActiveComputeConstructContainer, llvm::IsaPred<OpenACCNumGangsClause>);
+    
 
-    if (NumGangsClauseItr != ActiveComputeConstructContainer.end() &&
+    if (auto *NumGangsClauseItr = llvm::find_if(
+        ActiveComputeConstructContainer, llvm::IsaPred<OpenACCNumGangsClause>); NumGangsClauseItr != ActiveComputeConstructContainer.end() &&
         cast<OpenACCNumGangsClause>(*NumGangsClauseItr)->getIntExprs().size() >
             1) {
-      auto *GangClauseItr =
-          llvm::find_if(ExistingClauses, llvm::IsaPred<OpenACCGangClause>);
+      
 
-      if (GangClauseItr != ExistingClauses.end()) {
+      if (auto *GangClauseItr =
+          llvm::find_if(ExistingClauses, llvm::IsaPred<OpenACCGangClause>); GangClauseItr != ExistingClauses.end()) {
         SemaRef.Diag(Clause.getBeginLoc(),
                      diag::err_acc_gang_reduction_numgangs_conflict)
             << OpenACCClauseKind::Reduction << OpenACCClauseKind::Gang
@@ -1756,10 +1756,10 @@ OpenACCClause *SemaOpenACCClauseVisitor::VisitReductionClause(
         ExistingClauses, llvm::IsaPred<OpenACCNumGangsClause>);
 
     for (auto *NGC : NumGangsClauses) {
-      unsigned NumExprs =
-          cast<OpenACCNumGangsClause>(NGC)->getIntExprs().size();
+      
 
-      if (NumExprs > 1) {
+      if (unsigned NumExprs =
+          cast<OpenACCNumGangsClause>(NGC)->getIntExprs().size(); NumExprs > 1) {
         SemaRef.Diag(Clause.getBeginLoc(),
                      diag::err_acc_reduction_num_gangs_conflict)
             << /*>1 arg in first loc=*/0 << Clause.getClauseKind()
@@ -1775,10 +1775,10 @@ OpenACCClause *SemaOpenACCClauseVisitor::VisitReductionClause(
   SmallVector<OpenACCReductionRecipeWithStorage> Recipes;
 
   for (Expr *Var : Clause.getVarList()) {
-    ExprResult Res = SemaRef.CheckReductionVar(Clause.getDirectiveKind(),
-                                               Clause.getReductionOp(), Var);
+    
 
-    if (Res.isUsable()) {
+    if (ExprResult Res = SemaRef.CheckReductionVar(Clause.getDirectiveKind(),
+                                               Clause.getReductionOp(), Var); Res.isUsable()) {
       ValidVars.push_back(Res.get());
 
       Recipes.push_back(SemaRef.CreateReductionInitRecipe(
@@ -2153,16 +2153,16 @@ SemaOpenACC::CheckGangClause(OpenACCDirectiveKind DirKind,
     // OpenACC 3.3 2.9.11: A reduction clause may not appear on a loop directive
     // that has a gang clause with a dim: argument whose value is greater
     // than 1.
-    const auto *ReductionItr =
-        llvm::find_if(ExistingClauses, llvm::IsaPred<OpenACCReductionClause>);
+    
 
-    if (ReductionItr != ExistingClauses.end()) {
+    if (const auto *ReductionItr =
+        llvm::find_if(ExistingClauses, llvm::IsaPred<OpenACCReductionClause>); ReductionItr != ExistingClauses.end()) {
       const auto GangZip = llvm::zip_equal(GangKinds, IntExprs);
-      const auto GangItr = llvm::find_if(GangZip, [](const auto &Tuple) {
-        return std::get<0>(Tuple) == OpenACCGangKind::Dim;
-      });
+      
 
-      if (GangItr != GangZip.end()) {
+      if (const auto GangItr = llvm::find_if(GangZip, [](const auto &Tuple) {
+        return std::get<0>(Tuple) == OpenACCGangKind::Dim;
+      }); GangItr != GangZip.end()) {
         const Expr *DimExpr = std::get<1>(*GangItr);
 
         assert((DimExpr->isInstantiationDependent() ||
@@ -2260,9 +2260,9 @@ SemaOpenACC::CheckLinkClauseVarList(ArrayRef<Expr *> VarExprs) {
     }
 
     const auto *DRE = cast<DeclRefExpr>(VarExpr);
-    const VarDecl *Var = dyn_cast<VarDecl>(DRE->getDecl());
+    
 
-    if (!Var || !Var->hasExternalStorage())
+    if (const VarDecl *Var = dyn_cast<VarDecl>(DRE->getDecl()); !Var || !Var->hasExternalStorage())
       Diag(VarExpr->getBeginLoc(), diag::err_acc_link_not_extern);
     else
       NewVarList.push_back(OrigExpr);
@@ -2320,8 +2320,8 @@ bool SemaOpenACC::CheckDeclareClause(SemaOpenACC::OpenACCParsedClause &Clause,
       while (const auto *ASE = dyn_cast<ArraySectionExpr>(VarExprTemp))
         VarExprTemp = ASE->getBase()->IgnoreParenImpCasts();
 
-      const auto *DRE = cast<DeclRefExpr>(VarExprTemp);
-      if (const auto *Var = dyn_cast<VarDecl>(DRE->getDecl())) {
+      
+      if (const auto *DRE = cast<DeclRefExpr>(VarExprTemp); const auto *Var = dyn_cast<VarDecl>(DRE->getDecl())) {
         CurDecl = Var->getCanonicalDecl();
 
         // OpenACC3.3 2.13:
@@ -2353,8 +2353,8 @@ bool SemaOpenACC::CheckDeclareClause(SemaOpenACC::OpenACCParsedClause &Clause,
       // directives for a function, subroutine, program, or module.
 
       if (CurDecl) {
-        auto [Itr, Inserted] = DeclareVarReferences.try_emplace(CurDecl);
-        if (!Inserted) {
+        
+        if (auto [Itr, Inserted] = DeclareVarReferences.try_emplace(CurDecl); !Inserted) {
           Diag(VarExpr->getBeginLoc(), diag::err_acc_multiple_references)
               << Clause.getClauseKind();
           Diag(Itr->second, diag::note_acc_previous_reference);

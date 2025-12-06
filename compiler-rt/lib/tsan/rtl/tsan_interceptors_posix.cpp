@@ -229,8 +229,8 @@ void InitializeLibIgnore() {
   const SuppressionContext &supp = *Suppressions();
   const uptr n = supp.SuppressionCount();
   for (uptr i = 0; i < n; i++) {
-    const Suppression *s = supp.SuppressionAt(i);
-    if (0 == internal_strcmp(s->type, kSuppressionLib))
+    
+    if (const Suppression *s = supp.SuppressionAt(i); 0 == internal_strcmp(s->type, kSuppressionLib))
       libignore()->AddIgnoredLibrary(s->templ);
   }
   if (flags()->ignore_noninstrumented_modules)
@@ -527,8 +527,8 @@ TSAN_INTERCEPTOR(int, on_exit, void(*f)(int, void*), void *arg) {
 // Cleanup old bufs.
 static void JmpBufGarbageCollect(ThreadState *thr, uptr sp) {
   for (uptr i = 0; i < thr->jmp_bufs.Size(); i++) {
-    JmpBuf *buf = &thr->jmp_bufs[i];
-    if (buf->sp <= sp) {
+    
+    if (JmpBuf *buf = &thr->jmp_bufs[i]; buf->sp <= sp) {
       uptr sz = thr->jmp_bufs.Size();
       internal_memcpy(buf, &thr->jmp_bufs[sz - 1], sizeof(*buf));
       thr->jmp_bufs.PopBack();
@@ -558,14 +558,14 @@ static void LongJmp(ThreadState *thr, uptr *env) {
   uptr sp = ExtractLongJmpSp(env);
   // Find the saved buf with matching sp.
   for (uptr i = 0; i < thr->jmp_bufs.Size(); i++) {
-    JmpBuf *buf = &thr->jmp_bufs[i];
-    if (buf->sp == sp) {
+    
+    if (JmpBuf *buf = &thr->jmp_bufs[i]; buf->sp == sp) {
       CHECK_GE(thr->shadow_stack_pos, buf->shadow_stack_pos);
       // Unwind the stack.
       while (thr->shadow_stack_pos > buf->shadow_stack_pos)
         FuncExit(thr);
-      ThreadSignalContext *sctx = SigCtx(thr);
-      if (sctx) {
+      
+      if (ThreadSignalContext *sctx = SigCtx(thr); sctx) {
         sctx->int_signal_send = buf->int_signal_send;
         while (sctx->oldset.Size() > buf->oldset_stack_size)
           sctx->oldset.PopBack();
@@ -931,8 +931,8 @@ static int guard_acquire(ThreadState *thr, uptr pc, atomic_uint32_t *g,
   });
 
   for (;;) {
-    u32 cmp = atomic_load(g, memory_order_acquire);
-    if (cmp == kGuardInit) {
+    
+    if (u32 cmp = atomic_load(g, memory_order_acquire); cmp == kGuardInit) {
       if (atomic_compare_exchange_strong(g, &cmp, kGuardRunning,
                                          memory_order_relaxed))
         return 1;
@@ -958,8 +958,8 @@ static void guard_release(ThreadState *thr, uptr pc, atomic_uint32_t *g,
                           u32 v) {
   if (!thr->in_ignored_lib)
     Release(thr, pc, (uptr)g);
-  u32 old = atomic_exchange(g, v, memory_order_release);
-  if (old & kGuardWaiter)
+  
+  if (u32 old = atomic_exchange(g, v, memory_order_release); old & kGuardWaiter)
     FutexWake(g, 1 << 30);
 }
 
@@ -1008,9 +1008,9 @@ void DestroyThreadState() {
 }
 
 void PlatformCleanUpThreadState(ThreadState *thr) {
-  ThreadSignalContext *sctx = (ThreadSignalContext *)atomic_load(
-      &thr->signal_ctx, memory_order_relaxed);
-  if (sctx) {
+  
+  if (ThreadSignalContext *sctx = (ThreadSignalContext *)atomic_load(
+      &thr->signal_ctx, memory_order_relaxed); sctx) {
     atomic_store(&thr->signal_ctx, 0, memory_order_relaxed);
     sctx->oldset.Reset();
     UnmapOrDie(sctx, sizeof(*sctx));
@@ -1020,8 +1020,8 @@ void PlatformCleanUpThreadState(ThreadState *thr) {
 
 #if !SANITIZER_APPLE && !SANITIZER_NETBSD && !SANITIZER_FREEBSD
 static void thread_finalize(void *v) {
-  uptr iter = (uptr)v;
-  if (iter > 1) {
+  
+  if (uptr iter = (uptr)v; iter > 1) {
     if (pthread_setspecific(interceptor_ctx()->finalize_key,
         (void*)(iter - 1))) {
       Printf("ThreadSanitizer: failed to set thread key\n");
@@ -1400,8 +1400,8 @@ TSAN_INTERCEPTOR(int, pthread_mutex_init, void *m, void *a) {
   if (res == 0) {
     u32 flagz = 0;
     if (a) {
-      int type = 0;
-      if (REAL(pthread_mutexattr_gettype)(a, &type) == 0)
+      
+      if (int type = 0; REAL(pthread_mutexattr_gettype)(a, &type) == 0)
         if (type == PTHREAD_MUTEX_RECURSIVE ||
             type == PTHREAD_MUTEX_RECURSIVE_NP)
           flagz |= MutexFlagWriteReentrant;
@@ -1985,8 +1985,8 @@ TSAN_INTERCEPTOR(void*, tmpfile, int fake) {
   SCOPED_TSAN_INTERCEPTOR(tmpfile, fake);
   void *res = REAL(tmpfile)(fake);
   if (res) {
-    int fd = fileno_unlocked(res);
-    if (fd >= 0)
+    
+    if (int fd = fileno_unlocked(res); fd >= 0)
       FdFileCreate(thr, pc, fd);
   }
   return res;
@@ -1997,8 +1997,8 @@ TSAN_INTERCEPTOR(void*, tmpfile64, int fake) {
   SCOPED_TSAN_INTERCEPTOR(tmpfile64, fake);
   void *res = REAL(tmpfile64)(fake);
   if (res) {
-    int fd = fileno_unlocked(res);
-    if (fd >= 0)
+    
+    if (int fd = fileno_unlocked(res); fd >= 0)
       FdFileCreate(thr, pc, fd);
   }
   return res;
@@ -2253,8 +2253,8 @@ void ProcessPendingSignalsImpl(ThreadState *thr) {
   int res = REAL(pthread_sigmask)(SIG_SETMASK, &sctx->emptyset, oldset);
   CHECK_EQ(res, 0);
   for (int sig = 0; sig < kSigCount; sig++) {
-    SignalDesc *signal = &sctx->pending_signals[sig];
-    if (signal->armed) {
+    
+    if (SignalDesc *signal = &sctx->pending_signals[sig]; signal->armed) {
       signal->armed = false;
       CallUserSignalHandler(thr, false, true, sig, &signal->siginfo,
                             &signal->ctx);
@@ -2733,8 +2733,8 @@ static __sanitizer_sighandler_ptr signal_impl(int sig,
   internal_memset(&act.sa_mask, -1, sizeof(act.sa_mask));
   act.sa_flags = 0;
   __sanitizer_sigaction old;
-  int res = sigaction_symname(sig, &act, &old);
-  if (res) return (__sanitizer_sighandler_ptr)sig_err;
+  
+  if (int res = sigaction_symname(sig, &act, &old); res) return (__sanitizer_sighandler_ptr)sig_err;
   return old.handler;
 }
 
@@ -2811,8 +2811,8 @@ static USED void sycall_blocking_end() {
 static void syscall_pre_fork(uptr pc) { ForkBefore(cur_thread(), pc); }
 
 static void syscall_post_fork(uptr pc, int pid) {
-  ThreadState *thr = cur_thread();
-  if (pid == 0) {
+  
+  if (ThreadState *thr = cur_thread(); pid == 0) {
     // child
     ForkChildAfter(thr, pc, true);
     FdOnFork(thr, pc);

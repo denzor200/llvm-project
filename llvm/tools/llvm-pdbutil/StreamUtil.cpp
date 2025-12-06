@@ -81,8 +81,8 @@ void llvm::pdb::discoverStreamPurposes(PDBFile &File,
       IndexedModuleDescriptor IMD;
       IMD.Modi = I;
       IMD.Descriptor = Modules.getModuleDescriptor(I);
-      uint16_t SN = IMD.Descriptor.getModuleStreamIndex();
-      if (SN != kInvalidStreamIndex)
+      
+      if (uint16_t SN = IMD.Descriptor.getModuleStreamIndex(); SN != kInvalidStreamIndex)
         ModStreams[SN] = IMD;
     }
   }
@@ -167,8 +167,8 @@ void llvm::pdb::discoverStreamPurposes(PDBFile &File,
       Streams[StreamIdx] = stream(StreamPurpose::Other, "Xdata", StreamIdx);
     else {
       auto ModIter = ModStreams.find(StreamIdx);
-      auto NSIter = NamedStreams.find(StreamIdx);
-      if (ModIter != ModStreams.end()) {
+      
+      if (auto NSIter = NamedStreams.find(StreamIdx); ModIter != ModStreams.end()) {
         Streams[StreamIdx] =
             moduleStream(ModIter->second.Descriptor.getModuleName(), StreamIdx,
                          ModIter->second.Modi);

@@ -403,8 +403,8 @@ bool llvm::isLegalToPromote(const CallBase &CB, Function *Callee,
   // Check the return type. The callee's return value type must be bitcast
   // compatible with the call site's type.
   Type *CallRetTy = CB.getType();
-  Type *FuncRetTy = Callee->getReturnType();
-  if (CallRetTy != FuncRetTy)
+  
+  if (Type *FuncRetTy = Callee->getReturnType(); CallRetTy != FuncRetTy)
     if (!CastInst::isBitOrNoopPointerCastable(FuncRetTy, CallRetTy, DL)) {
       if (FailureReason)
         *FailureReason = "Return type mismatch";
@@ -459,8 +459,8 @@ bool llvm::isLegalToPromote(const CallBase &CB, Function *Callee,
     // Verifier::verifyMustTailCall().
     if (CB.isMustTailCall()) {
       PointerType *PF = dyn_cast<PointerType>(FormalTy);
-      PointerType *PA = dyn_cast<PointerType>(ActualTy);
-      if (!PF || !PA || PF->getAddressSpace() != PA->getAddressSpace()) {
+      
+      if (PointerType *PA = dyn_cast<PointerType>(ActualTy); !PF || !PA || PF->getAddressSpace() != PA->getAddressSpace()) {
         if (FailureReason)
           *FailureReason = "Musttail call Argument type mismatch";
         return false;
@@ -521,8 +521,8 @@ CallBase &llvm::promoteCall(CallBase &CB, Function *Callee,
   for (unsigned ArgNo = 0; ArgNo < CalleeParamNum; ++ArgNo) {
     auto *Arg = CB.getArgOperand(ArgNo);
     Type *FormalTy = CalleeType->getParamType(ArgNo);
-    Type *ActualTy = Arg->getType();
-    if (FormalTy != ActualTy) {
+    
+    if (Type *ActualTy = Arg->getType(); FormalTy != ActualTy) {
       auto *Cast =
           CastInst::CreateBitOrPointerCast(Arg, FormalTy, "", CB.getIterator());
       CB.setArgOperand(ArgNo, Cast);

@@ -45,8 +45,8 @@ ThreadSP QueueItem::GetExtendedBacktraceThread(ConstString type) {
   ThreadSP return_thread;
   QueueSP queue_sp = m_queue_wp.lock();
   if (queue_sp) {
-    ProcessSP process_sp = queue_sp->GetProcess();
-    if (process_sp && process_sp->GetSystemRuntime()) {
+    
+    if (ProcessSP process_sp = queue_sp->GetProcess(); process_sp && process_sp->GetSystemRuntime()) {
       return_thread =
           process_sp->GetSystemRuntime()->GetExtendedBacktraceForQueueItem(
               this->shared_from_this(), type);
@@ -95,10 +95,10 @@ ProcessSP QueueItem::GetProcessSP() { return m_process_wp.lock(); }
 void QueueItem::FetchEntireItem() {
   if (m_have_fetched_entire_item)
     return;
-  ProcessSP process_sp = m_process_wp.lock();
-  if (process_sp) {
-    SystemRuntime *runtime = process_sp->GetSystemRuntime();
-    if (runtime) {
+  
+  if (ProcessSP process_sp = m_process_wp.lock(); process_sp) {
+    
+    if (SystemRuntime *runtime = process_sp->GetSystemRuntime(); runtime) {
       runtime->CompleteQueueItem(this, m_item_ref);
       m_have_fetched_entire_item = true;
     }

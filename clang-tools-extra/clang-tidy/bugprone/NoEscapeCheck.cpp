@@ -30,8 +30,8 @@ void NoEscapeCheck::check(const MatchFinder::MatchResult &Result) {
       Result.Nodes.getNodeAs<BlockExpr>("arg-block");
   const BlockDecl *EscapingBlockDecl = MatchedEscapingBlock->getBlockDecl();
   for (const BlockDecl::Capture &CapturedVar : EscapingBlockDecl->captures()) {
-    const VarDecl *Var = CapturedVar.getVariable();
-    if (Var && Var->hasAttr<NoEscapeAttr>()) {
+    
+    if (const VarDecl *Var = CapturedVar.getVariable(); Var && Var->hasAttr<NoEscapeAttr>()) {
       // FIXME: Add a method to get the location of the use of a CapturedVar so
       // that we can diagnose the use of the pointer instead of the block.
       diag(MatchedEscapingBlock->getBeginLoc(),

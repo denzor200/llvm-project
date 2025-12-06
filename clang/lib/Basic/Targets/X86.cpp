@@ -1324,8 +1324,8 @@ llvm::APInt X86TargetInfo::getFMVPriority(ArrayRef<StringRef> Features) const {
     // Valid CPUs have a 'key feature' that compares just better than its key
     // feature.
     using namespace llvm::X86;
-    CPUKind Kind = parseArchX86(Feature);
-    if (Kind != CK_None) {
+    
+    if (CPUKind Kind = parseArchX86(Feature); Kind != CK_None) {
       ProcessorFeatures KeyFeature = getKeyFeature(Kind);
       return (getFeaturePriority(KeyFeature) << 1) + 1;
     }

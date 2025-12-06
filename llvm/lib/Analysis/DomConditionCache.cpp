@@ -21,8 +21,8 @@ void DomConditionCache::registerBranch(BranchInst *BI) {
   SmallVector<Value *, 16> Affected;
   findAffectedValues(BI->getCondition(), Affected);
   for (Value *V : Affected) {
-    auto &AV = AffectedValues[V];
-    if (!is_contained(AV, BI))
+    
+    if (auto &AV = AffectedValues[V]; !is_contained(AV, BI))
       AV.push_back(BI);
   }
 }

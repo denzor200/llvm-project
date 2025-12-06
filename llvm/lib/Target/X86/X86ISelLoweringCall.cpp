@@ -225,8 +225,8 @@ EVT X86TargetLowering::getSetCCResultType(const DataLayout &DL,
       // If we legalized to less than a 512-bit vector, then we will use a vXi1
       // compare for vXi32/vXi64 for sure. If we have BWI we will also support
       // vXi16/vXi8.
-      MVT EltVT = LegalVT.getSimpleVT().getVectorElementType();
-      if (Subtarget.hasBWI() || EltVT.getSizeInBits() >= 32)
+      
+      if (MVT EltVT = LegalVT.getSimpleVT().getVectorElementType(); Subtarget.hasBWI() || EltVT.getSizeInBits() >= 32)
         return EVT::getVectorVT(Context, MVT::i1, VT.getVectorElementCount());
     }
   }
@@ -461,8 +461,8 @@ void X86TargetLowering::markLibCallAttributes(MachineFunction *MF, unsigned CC,
 
   // Mark the first N int arguments as having reg
   for (auto &Arg : Args) {
-    Type *T = Arg.Ty;
-    if (T->isIntOrPtrTy())
+    
+    if (Type *T = Arg.Ty; T->isIntOrPtrTy())
       if (MF->getDataLayout().getTypeAllocSize(T) <= 8) {
         unsigned numRegs = 1;
         if (MF->getDataLayout().getTypeAllocSize(T) > 4)
@@ -609,9 +609,9 @@ void X86TargetLowering::insertSSPDeclarations(Module &M) const {
   RTLIB::LibcallImpl SecurityCheckCookieLibcall =
       getLibcallImpl(RTLIB::SECURITY_CHECK_COOKIE);
 
-  RTLIB::LibcallImpl SecurityCookieVar =
-      getLibcallImpl(RTLIB::STACK_CHECK_GUARD);
-  if (SecurityCheckCookieLibcall != RTLIB::Unsupported &&
+  
+  if (RTLIB::LibcallImpl SecurityCookieVar =
+      getLibcallImpl(RTLIB::STACK_CHECK_GUARD); SecurityCheckCookieLibcall != RTLIB::Unsupported &&
       SecurityCookieVar != RTLIB::Unsupported) {
     // MSVC CRT provides functionalities for stack protection.
     // MSVC CRT has a global variable holding security cookie.
@@ -988,8 +988,8 @@ EVT X86TargetLowering::getTypeForExtReturn(LLVMContext &Context, EVT VT,
                                            ISD::NodeType ExtendKind) const {
   MVT ReturnMVT = MVT::i32;
 
-  bool Darwin = Subtarget.getTargetTriple().isOSDarwin();
-  if (VT == MVT::i1 || (!Darwin && (VT == MVT::i8 || VT == MVT::i16))) {
+  
+  if (bool Darwin = Subtarget.getTargetTriple().isOSDarwin(); VT == MVT::i1 || (!Darwin && (VT == MVT::i8 || VT == MVT::i16))) {
     // The ABI does not require i1, i8 or i16 to be extended.
     //
     // On Darwin, there is code in the wild relying on Clang's old behaviour of
@@ -1028,10 +1028,10 @@ static SDValue getv64i1Argument(CCValAssign &VA, CCValAssign &NextVA,
   SDValue ArgValueLo, ArgValueHi;
 
   MachineFunction &MF = DAG.getMachineFunction();
-  const TargetRegisterClass *RC = &X86::GR32RegClass;
+  
 
   // Read a 32 bit value from the registers.
-  if (nullptr == InGlue) {
+  if (const TargetRegisterClass *RC = &X86::GR32RegClass; nullptr == InGlue) {
     // When no physical register is present,
     // create an intermediate virtual register.
     Register Reg = MF.addLiveIn(VA.getLocReg(), RC);
@@ -1234,8 +1234,8 @@ static bool hasCalleePopSRet(const SmallVectorImpl<T> &Args,
     return false;
 
   // Most calls do not have an sret argument, check the arg next.
-  const ISD::ArgFlagsTy &Flags = Args[0].Flags;
-  if (!Flags.isSRet() || Flags.isInReg())
+  
+  if (const ISD::ArgFlagsTy &Flags = Args[0].Flags; !Flags.isSRet() || Flags.isInReg())
     return false;
 
   // The MSVCabi does not pop the sret.
@@ -1303,8 +1303,8 @@ bool X86TargetLowering::mayBeEmittedAsTailCall(const CallInst *CI) const {
   if (!CI->isTailCall())
     return false;
 
-  CallingConv::ID CalleeCC = CI->getCallingConv();
-  if (!mayTailCallThisCC(CalleeCC))
+  
+  if (CallingConv::ID CalleeCC = CI->getCallingConv(); !mayTailCallThisCC(CalleeCC))
     return false;
 
   return true;
@@ -1388,8 +1388,8 @@ X86TargetLowering::LowerMemArgument(SDValue Chain, CallingConv::ID CallConv,
     int FI = MFI.getObjectIndexBegin();
     for (; MFI.isFixedObjectIndex(FI); ++FI) {
       int64_t ObjBegin = MFI.getObjectOffset(FI);
-      int64_t ObjEnd = ObjBegin + MFI.getObjectSize(FI);
-      if (ObjBegin <= PartBegin && PartEnd <= ObjEnd)
+      
+      if (int64_t ObjEnd = ObjBegin + MFI.getObjectSize(FI); ObjBegin <= PartBegin && PartEnd <= ObjEnd)
         break;
     }
     if (MFI.isFixedObjectIndex(FI)) {
@@ -1459,8 +1459,8 @@ static ArrayRef<MCPhysReg> get64BitArgumentXMMs(MachineFunction &MF,
     return {};
   }
 
-  bool isSoftFloat = Subtarget.useSoftFloat();
-  if (isSoftFloat || !Subtarget.hasSSE1())
+  
+  if (bool isSoftFloat = Subtarget.useSoftFloat(); isSoftFloat || !Subtarget.hasSSE1())
     // Kernel mode asks for SSE to be disabled, so there are no XMM argument
     // registers.
     return {};
@@ -1834,8 +1834,8 @@ SDValue X86TargetLowering::LowerFormalArguments(
 
   for (unsigned I = 0, E = Ins.size(); I != E; ++I) {
     if (Ins[I].Flags.isSwiftAsync()) {
-      auto X86FI = MF.getInfo<X86MachineFunctionInfo>();
-      if (X86::isExtendedSwiftAsyncFrameSupported(Subtarget, MF))
+      
+      if (auto X86FI = MF.getInfo<X86MachineFunctionInfo>(); X86::isExtendedSwiftAsyncFrameSupported(Subtarget, MF))
         X86FI->setHasSwiftAsyncContext(true);
       else {
         int PtrSize = Subtarget.is64Bit() ? 8 : 4;
@@ -1905,8 +1905,8 @@ SDValue X86TargetLowering::LowerFormalArguments(
   FuncInfo->setArgumentStackSize(StackSize);
 
   if (WinEHFuncInfo *EHInfo = MF.getWinEHFuncInfo()) {
-    EHPersonality Personality = classifyEHPersonality(F.getPersonalityFn());
-    if (Personality == EHPersonality::CoreCLR) {
+    
+    if (EHPersonality Personality = classifyEHPersonality(F.getPersonalityFn()); Personality == EHPersonality::CoreCLR) {
       assert(Is64Bit);
       // TODO: Add a mechanism to frame lowering that will allow us to indicate
       // that we'd prefer this slot be allocated towards the bottom of the frame
@@ -2083,8 +2083,8 @@ X86TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
     // relocation, which forces early binding of the symbol. This breaks code
     // that require lazy function symbol resolution. Using musttail or
     // GuaranteedTailCallOpt will override this.
-    GlobalAddressSDNode *G = dyn_cast<GlobalAddressSDNode>(Callee);
-    if (!G || (!G->getGlobal()->hasLocalLinkage() &&
+    
+    if (GlobalAddressSDNode *G = dyn_cast<GlobalAddressSDNode>(Callee); !G || (!G->getGlobal()->hasLocalLinkage() &&
                G->getGlobal()->hasDefaultVisibility()))
       isTailCall = false;
   }
@@ -2260,8 +2260,8 @@ X86TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
       Passv64i1ArgInRegs(dl, DAG, Arg, RegsToPass, VA, ArgLocs[++I], Subtarget);
     } else if (VA.isRegLoc()) {
       RegsToPass.push_back(std::make_pair(VA.getLocReg(), Arg));
-      const TargetOptions &Options = DAG.getTarget().Options;
-      if (Options.EmitCallSiteInfo)
+      
+      if (const TargetOptions &Options = DAG.getTarget().Options; Options.EmitCallSiteInfo)
         CSInfo.ArgRegPairs.emplace_back(VA.getLocReg(), I);
       if (isVarArg && IsWin64) {
         // Win64 ABI requires argument XMM reg to be copied to the corresponding
@@ -2310,8 +2310,8 @@ X86TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
       // target@PLT.
 
       // Note: The actual moving to ECX is done further down.
-      GlobalAddressSDNode *G = dyn_cast<GlobalAddressSDNode>(Callee);
-      if (G && !G->getGlobal()->hasLocalLinkage() &&
+      
+      if (GlobalAddressSDNode *G = dyn_cast<GlobalAddressSDNode>(Callee); G && !G->getGlobal()->hasLocalLinkage() &&
           G->getGlobal()->hasDefaultVisibility())
         Callee = LowerGlobalAddress(Callee, DAG);
       else if (isa<ExternalSymbolSDNode>(Callee))
@@ -2502,11 +2502,11 @@ X86TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   // the normal edge and spill and fill across the exceptional edge.
   if (!Is64Bit && CLI.CB && isa<InvokeInst>(CLI.CB)) {
     const Function &CallerFn = MF.getFunction();
-    EHPersonality Pers =
+    
+    if (EHPersonality Pers =
         CallerFn.hasPersonalityFn()
             ? classifyEHPersonality(CallerFn.getPersonalityFn())
-            : EHPersonality::Unknown;
-    if (isFuncletEHPersonality(Pers))
+            : EHPersonality::Unknown; isFuncletEHPersonality(Pers))
       Mask = RegInfo->getNoPreservedMask();
   }
 
@@ -2692,8 +2692,8 @@ bool MatchingStackOffset(SDValue Arg, unsigned Offset, ISD::ArgFlagsTy Flags,
       continue;
     }
     if (Op == ISD::TRUNCATE) {
-      const SDValue &TruncInput = Arg.getOperand(0);
-      if (TruncInput.getOpcode() == ISD::AssertZext &&
+      
+      if (const SDValue &TruncInput = Arg.getOperand(0); TruncInput.getOpcode() == ISD::AssertZext &&
           cast<VTSDNode>(TruncInput.getOperand(1))->getVT() ==
               Arg.getValueType()) {
         Arg = TruncInput.getOperand(0);
@@ -2715,8 +2715,8 @@ bool MatchingStackOffset(SDValue Arg, unsigned Offset, ISD::ArgFlagsTy Flags,
       if (!TII->isLoadFromStackSlot(*Def, FI))
         return false;
     } else {
-      unsigned Opcode = Def->getOpcode();
-      if ((Opcode == X86::LEA32r || Opcode == X86::LEA64r ||
+      
+      if (unsigned Opcode = Def->getOpcode(); (Opcode == X86::LEA32r || Opcode == X86::LEA64r ||
            Opcode == X86::LEA64_32r) &&
           Def->getOperand(1).isFI()) {
         FI = Def->getOperand(1).getIndex();
@@ -2795,8 +2795,8 @@ mayBeSRetTailCallCompatible(const TargetLowering::CallLoweringInfo &CLI,
   for (SDNode *User : SRetArgVal->users()) {
     if (User->getOpcode() != ISD::CopyToReg)
       continue;
-    Register Reg = cast<RegisterSDNode>(User->getOperand(1))->getReg();
-    if (Reg == CallerSRetReg && User->getOperand(2) == SRetArgVal)
+    
+    if (Register Reg = cast<RegisterSDNode>(User->getOperand(1))->getReg(); Reg == CallerSRetReg && User->getOperand(2) == SRetArgVal)
       return true;
   }
 
@@ -2917,8 +2917,8 @@ bool X86TargetLowering::IsEligibleForTailCallOptimization(
   const X86RegisterInfo *TRI = Subtarget.getRegisterInfo();
   const uint32_t *CallerPreserved = TRI->getCallPreservedMask(MF, CallerCC);
   if (!CCMatch) {
-    const uint32_t *CalleePreserved = TRI->getCallPreservedMask(MF, CalleeCC);
-    if (!TRI->regmaskSubsetEqual(CallerPreserved, CalleePreserved))
+    
+    if (const uint32_t *CalleePreserved = TRI->getCallPreservedMask(MF, CalleeCC); !TRI->regmaskSubsetEqual(CallerPreserved, CalleePreserved))
       return false;
   }
 
@@ -2954,13 +2954,13 @@ bool X86TargetLowering::IsEligibleForTailCallOptimization(
       }
     }
 
-    bool PositionIndependent = isPositionIndependent();
+    
     // If the tailcall address may be in a register, then make sure it's
     // possible to register allocate for it. In 32-bit, the call address can
     // only target EAX, EDX, or ECX since the tail call must be scheduled after
     // callee-saved registers are restored. These happen to be the same
     // registers used to pass 'inreg' arguments so watch out for those.
-    if (!Subtarget.is64Bit() && ((!isa<GlobalAddressSDNode>(Callee) &&
+    if (bool PositionIndependent = isPositionIndependent(); !Subtarget.is64Bit() && ((!isa<GlobalAddressSDNode>(Callee) &&
                                   !isa<ExternalSymbolSDNode>(Callee)) ||
                                  PositionIndependent)) {
       unsigned NumInRegs = 0;
@@ -2971,8 +2971,8 @@ bool X86TargetLowering::IsEligibleForTailCallOptimization(
       for (const auto &VA : ArgLocs) {
         if (!VA.isRegLoc())
           continue;
-        Register Reg = VA.getLocReg();
-        switch (Reg) {
+        
+        switch (Register Reg = VA.getLocReg(); Reg) {
         default: break;
         case X86::EAX: case X86::EDX: case X86::ECX:
           if (++NumInRegs == MaxInRegs)
@@ -2993,8 +2993,8 @@ bool X86TargetLowering::IsEligibleForTailCallOptimization(
 
   if (unsigned BytesToPop = FuncInfo->getBytesToPopOnReturn()) {
     // If we have bytes to pop, the callee must pop them.
-    bool CalleePopMatches = CalleeWillPop && BytesToPop == StackArgsSize;
-    if (!CalleePopMatches)
+    
+    if (bool CalleePopMatches = CalleeWillPop && BytesToPop == StackArgsSize; !CalleePopMatches)
       return false;
   } else if (CalleeWillPop && StackArgsSize > 0) {
     // If we don't have bytes to pop, make sure the callee doesn't pop any.

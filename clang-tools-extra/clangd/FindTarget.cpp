@@ -146,9 +146,9 @@ private:
 
   void report(const NamedDecl *D, RelSet Flags) {
     dlog("--> [{0}] {1}", Flags, nodeToString(DynTypedNode::create(*D)));
-    auto It = Decls.try_emplace(D, std::make_pair(Flags, Decls.size()));
+    
     // If already exists, update the flags.
-    if (!It.second)
+    if (auto It = Decls.try_emplace(D, std::make_pair(Flags, Decls.size())); !It.second)
       It.first->second.first |= Flags;
   }
 

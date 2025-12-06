@@ -361,8 +361,8 @@ static std::optional<APInt> buildAttributeAPInt(Type type, bool isNegative,
                                                 StringRef spelling) {
   // Parse the integer value into an APInt that is big enough to hold the value.
   APInt result;
-  bool isHex = spelling.size() > 1 && spelling[1] == 'x';
-  if (spelling.getAsInteger(isHex ? 0 : 10, result))
+  
+  if (bool isHex = spelling.size() > 1 && spelling[1] == 'x'; spelling.getAsInteger(isHex ? 0 : 10, result))
     return std::nullopt;
 
   // Extend or truncate the bitwidth to the right size.
@@ -568,8 +568,8 @@ DenseElementsAttr TensorLiteralParser::getAttr(SMLoc loc, ShapedType type) {
     isComplex = true;
     // Complex types have N*2 elements or complex splat.
     // Empty shape may mean a splat or empty literal, only validate splats.
-    bool isSplat = shape.empty() && type.getNumElements() != 0;
-    if (isSplat && storage.size() != 2) {
+    
+    if (bool isSplat = shape.empty() && type.getNumElements() != 0; isSplat && storage.size() != 2) {
       p.emitError(loc) << "parsed " << storage.size() << " elements, but type ("
                        << complexTy << ") expected 2 elements";
       return nullptr;
@@ -1138,9 +1138,9 @@ Attribute Parser::parseStridedLayoutAttr() {
       return std::nullopt;
     };
 
-    bool negative = consumeIf(Token::minus);
+    
 
-    if (getToken().is(Token::integer)) {
+    if (bool negative = consumeIf(Token::minus); getToken().is(Token::integer)) {
       std::optional<uint64_t> value = getToken().getUInt64IntegerValue();
       if (!value ||
           *value > static_cast<uint64_t>(std::numeric_limits<int64_t>::max()))

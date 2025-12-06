@@ -187,8 +187,8 @@ static cl::opt<bool> InlineAllViableCalls(
 namespace llvm {
 std::optional<int> getStringFnAttrAsInt(const Attribute &Attr) {
   if (Attr.isValid()) {
-    int AttrValue = 0;
-    if (!Attr.getValueAsString().getAsInteger(10, AttrValue))
+    
+    if (int AttrValue = 0; !Attr.getValueAsString().getAsInteger(10, AttrValue))
       return AttrValue;
   }
   return std::nullopt;
@@ -745,10 +745,10 @@ class InlineCostCallAnalyzer final : public CallAnalyzer {
           InlineConstants::IndirectCallThreshold;
       /// FIXME: if InlineCostCallAnalyzer is derived from, this may need
       /// to instantiate the derived class.
-      InlineCostCallAnalyzer CA(*F, Call, IndirectCallParams, TTI,
+      
+      if (InlineCostCallAnalyzer CA(*F, Call, IndirectCallParams, TTI,
                                 GetAssumptionCache, GetBFI, GetTLI, PSI, ORE,
-                                false);
-      if (CA.analyze().isSuccess()) {
+                                false); CA.analyze().isSuccess()) {
         // We were able to inline the indirect call! Subtract the cost from the
         // threshold to get the bonus we want to apply, but don't go below zero.
         addCost(-std::max(0, CA.getThreshold() - CA.getCost()));
@@ -804,8 +804,8 @@ class InlineCostCallAnalyzer final : public CallAnalyzer {
     for (StringRef AsmStr : AsmStrs) {
       // Trim whitespaces and comments.
       StringRef Trimmed = AsmStr.trim();
-      size_t hashPos = Trimmed.find('#');
-      if (hashPos != StringRef::npos)
+      
+      if (size_t hashPos = Trimmed.find('#'); hashPos != StringRef::npos)
         Trimmed = Trimmed.substr(0, hashPos);
       // Ignore comments.
       if (Trimmed.empty())
@@ -859,17 +859,17 @@ class InlineCostCallAnalyzer final : public CallAnalyzer {
       assert(GetBFI && "GetBFI must be available");
       BlockFrequencyInfo *BFI = &(GetBFI(F));
       assert(BFI && "BFI must be available");
-      auto ProfileCount = BFI->getBlockProfileCount(BB);
-      if (*ProfileCount == 0)
+      
+      if (auto ProfileCount = BFI->getBlockProfileCount(BB); *ProfileCount == 0)
         ColdSize += Cost - CostAtBBStart;
     }
 
-    auto *TI = BB->getTerminator();
+    
     // If we had any successors at this point, than post-inlining is likely to
     // have them as well. Note that we assume any basic blocks which existed
     // due to branches or switches which folded above will also fold after
     // inlining.
-    if (SingleBB && TI->getNumSuccessors() > 1) {
+    if (auto *TI = BB->getTerminator(); SingleBB && TI->getNumSuccessors() > 1) {
       // Take off the bonus we applied to the threshold.
       Threshold -= SingleBBBonus;
       SingleBB = false;
@@ -1088,8 +1088,8 @@ class InlineCostCallAnalyzer final : public CallAnalyzer {
     // size, we penalise any call sites that perform loops. We do this after all
     // other costs here, so will likely only be dealing with relatively small
     // functions (and hence DT and LI will hopefully be cheap).
-    auto *Caller = CandidateCall.getFunction();
-    if (Caller->hasMinSize()) {
+    
+    if (auto *Caller = CandidateCall.getFunction(); Caller->hasMinSize()) {
       DominatorTree DT(F);
       LoopInfo LI(DT);
       int NumLoops = 0;
@@ -1333,10 +1333,10 @@ private:
       IndirectCallParams.DefaultThreshold =
           InlineConstants::IndirectCallThreshold;
 
-      InlineCostCallAnalyzer CA(*F, Call, IndirectCallParams, TTI,
+      
+      if (InlineCostCallAnalyzer CA(*F, Call, IndirectCallParams, TTI,
                                 GetAssumptionCache, GetBFI, GetTLI, PSI, ORE,
-                                false, true);
-      if (CA.analyze().isSuccess()) {
+                                false, true); CA.analyze().isSuccess()) {
         increment(InlineCostFeatureIndex::nested_inline_cost_estimate,
                   CA.getCost());
         increment(InlineCostFeatureIndex::nested_inlines, 1);
@@ -1396,8 +1396,8 @@ private:
   }
 
   InlineResult finalizeAnalysis() override {
-    auto *Caller = CandidateCall.getFunction();
-    if (Caller->hasMinSize()) {
+    
+    if (auto *Caller = CandidateCall.getFunction(); Caller->hasMinSize()) {
       DominatorTree DT(F);
       LoopInfo LI(DT);
       for (Loop *L : LI) {
@@ -1582,8 +1582,8 @@ bool CallAnalyzer::visitAlloca(AllocaInst &I) {
   // Check whether inlining will turn a dynamic alloca into a static
   // alloca and handle that case.
   if (I.isArrayAllocation()) {
-    Constant *Size = getSimplifiedValue<Constant>(I.getArraySize());
-    if (auto *AllocSize = dyn_cast_or_null<ConstantInt>(Size)) {
+    
+    if (Constant *Size = getSimplifiedValue<Constant>(I.getArraySize()); auto *AllocSize = dyn_cast_or_null<ConstantInt>(Size)) {
       // Sometimes a dynamic alloca could be converted into a static alloca
       // after this constant prop, and become a huge static alloca on an
       // unconditional CFG path. Avoid inlining if this is going to happen above
@@ -1896,11 +1896,11 @@ bool CallAnalyzer::visitPtrToInt(PtrToIntInst &I) {
   // Track base/offset pairs when converted to a plain integer provided the
   // integer is large enough to represent the pointer.
   unsigned IntegerSize = I.getType()->getScalarSizeInBits();
-  unsigned AS = I.getOperand(0)->getType()->getPointerAddressSpace();
-  if (IntegerSize == DL.getPointerSizeInBits(AS)) {
-    std::pair<Value *, APInt> BaseAndOffset =
-        ConstantOffsetPtrs.lookup(I.getOperand(0));
-    if (BaseAndOffset.first)
+  
+  if (unsigned AS = I.getOperand(0)->getType()->getPointerAddressSpace(); IntegerSize == DL.getPointerSizeInBits(AS)) {
+    
+    if (std::pair<Value *, APInt> BaseAndOffset =
+        ConstantOffsetPtrs.lookup(I.getOperand(0)); BaseAndOffset.first)
       ConstantOffsetPtrs[&I] = BaseAndOffset;
   }
 
@@ -1926,10 +1926,10 @@ bool CallAnalyzer::visitIntToPtr(IntToPtrInst &I) {
   // Track base/offset pairs when round-tripped through a pointer without
   // modifications provided the integer is not too large.
   Value *Op = I.getOperand(0);
-  unsigned IntegerSize = Op->getType()->getScalarSizeInBits();
-  if (IntegerSize <= DL.getPointerTypeSizeInBits(I.getType())) {
-    std::pair<Value *, APInt> BaseAndOffset = ConstantOffsetPtrs.lookup(Op);
-    if (BaseAndOffset.first)
+  
+  if (unsigned IntegerSize = Op->getType()->getScalarSizeInBits(); IntegerSize <= DL.getPointerTypeSizeInBits(I.getType())) {
+    
+    if (std::pair<Value *, APInt> BaseAndOffset = ConstantOffsetPtrs.lookup(Op); BaseAndOffset.first)
       ConstantOffsetPtrs[&I] = BaseAndOffset;
   }
 
@@ -2143,8 +2143,8 @@ void InlineCostCallAnalyzer::updateThreshold(CallBase &Call, Function &Callee) {
     // used (which adds hotness metadata to calls) or if caller's
     // BlockFrequencyInfo is available.
     BlockFrequencyInfo *CallerBFI = GetBFI ? &(GetBFI(*Caller)) : nullptr;
-    auto HotCallSiteThreshold = getHotCallSiteThreshold(Call, CallerBFI);
-    if (!Caller->hasOptSize() && HotCallSiteThreshold) {
+    
+    if (auto HotCallSiteThreshold = getHotCallSiteThreshold(Call, CallerBFI); !Caller->hasOptSize() && HotCallSiteThreshold) {
       LLVM_DEBUG(dbgs() << "Hot callsite.\n");
       // FIXME: This should update the threshold only if it exceeds the
       // current threshold, but AutoFDO + ThinLTO currently relies on this
@@ -2267,8 +2267,8 @@ bool CallAnalyzer::visitSub(BinaryOperator &I) {
       // We have common bases, fold the subtract to a constant based on the
       // offsets.
       Constant *CLHS = ConstantInt::get(LHS->getContext(), LHSOffset);
-      Constant *CRHS = ConstantInt::get(RHS->getContext(), RHSOffset);
-      if (Constant *C = ConstantExpr::getSub(CLHS, CRHS)) {
+      
+      if (Constant *CRHS = ConstantInt::get(RHS->getContext(), RHSOffset); Constant *C = ConstantExpr::getSub(CLHS, CRHS)) {
         SimplifiedValues[&I] = C;
         ++NumConstantPtrDiffs;
         return true;
@@ -2371,14 +2371,14 @@ bool CallAnalyzer::visitStore(StoreInst &I) {
 }
 
 bool CallAnalyzer::visitExtractValue(ExtractValueInst &I) {
-  Value *Op = I.getAggregateOperand();
+  
 
   // Special handling, because we want to simplify extractvalue with a
   // potential insertvalue from the caller.
-  if (Value *SimpleOp = getSimplifiedValueUnchecked(Op)) {
+  if (Value *Op = I.getAggregateOperand(); Value *SimpleOp = getSimplifiedValueUnchecked(Op)) {
     SimplifyQuery SQ(DL);
-    Value *SimpleV = simplifyExtractValueInst(SimpleOp, I.getIndices(), SQ);
-    if (SimpleV) {
+    
+    if (Value *SimpleV = simplifyExtractValueInst(SimpleOp, I.getIndices(), SQ); SimpleV) {
       SimplifiedValues[&I] = SimpleV;
       return true;
     }
@@ -2447,9 +2447,9 @@ bool CallAnalyzer::isLoweredToCall(Function *F, CallBase &Call) {
     // other platforms use memcpy intrinsics, which are already exempt from the
     // call penalty.
     auto *LenOp = getDirectOrSimplifiedValue<ConstantInt>(Call.getOperand(2));
-    auto *ObjSizeOp =
-        getDirectOrSimplifiedValue<ConstantInt>(Call.getOperand(3));
-    if (LenOp && ObjSizeOp &&
+    
+    if (auto *ObjSizeOp =
+        getDirectOrSimplifiedValue<ConstantInt>(Call.getOperand(3)); LenOp && ObjSizeOp &&
         LenOp->getLimitedValue() <= ObjSizeOp->getLimitedValue()) {
       return false;
     }
@@ -2886,8 +2886,8 @@ void CallAnalyzer::findDeadBlocks(BasicBlock *CurrBB, BasicBlock *NextBB) {
     SmallVector<BasicBlock *, 4> NewDead;
     NewDead.push_back(Succ);
     while (!NewDead.empty()) {
-      BasicBlock *Dead = NewDead.pop_back_val();
-      if (DeadBlocks.insert(Dead).second)
+      
+      if (BasicBlock *Dead = NewDead.pop_back_val(); DeadBlocks.insert(Dead).second)
         // Continue growing the dead block lists.
         for (BasicBlock *S : successors(Dead))
           if (IsNewlyDead(S))
@@ -2916,8 +2916,8 @@ InlineResult CallAnalyzer::analyze() {
   Function *Caller = CandidateCall.getFunction();
   // Check if the caller function is recursive itself.
   for (User *U : Caller->users()) {
-    CallBase *Call = dyn_cast<CallBase>(U);
-    if (Call && Call->getFunction() == Caller) {
+    
+    if (CallBase *Call = dyn_cast<CallBase>(U); Call && Call->getFunction() == Caller) {
       IsCallerRecursive = true;
       break;
     }
@@ -3005,8 +3005,8 @@ InlineResult CallAnalyzer::analyze() {
     // that may be simplified based on the values simplified by this call.
     if (BranchInst *BI = dyn_cast<BranchInst>(TI)) {
       if (BI->isConditional()) {
-        Value *Cond = BI->getCondition();
-        if (ConstantInt *SimpleCond = getSimplifiedValue<ConstantInt>(Cond)) {
+        
+        if (Value *Cond = BI->getCondition(); ConstantInt *SimpleCond = getSimplifiedValue<ConstantInt>(Cond)) {
           BasicBlock *NextBB = BI->getSuccessor(SimpleCond->isZero() ? 1 : 0);
           BBWorklist.insert(NextBB);
           KnownSuccessors[BB] = NextBB;
@@ -3015,8 +3015,8 @@ InlineResult CallAnalyzer::analyze() {
         }
       }
     } else if (SwitchInst *SI = dyn_cast<SwitchInst>(TI)) {
-      Value *Cond = SI->getCondition();
-      if (ConstantInt *SimpleCond = getSimplifiedValue<ConstantInt>(Cond)) {
+      
+      if (Value *Cond = SI->getCondition(); ConstantInt *SimpleCond = getSimplifiedValue<ConstantInt>(Cond)) {
         BasicBlock *NextBB = SI->findCaseValue(SimpleCond)->getCaseSuccessor();
         BBWorklist.insert(NextBB);
         KnownSuccessors[BB] = NextBB;
@@ -3206,8 +3206,8 @@ std::optional<InlineResult> llvm::getAttributeBasedInliningDecision(
   unsigned AllocaAS = Callee->getDataLayout().getAllocaAddrSpace();
   for (unsigned I = 0, E = Call.arg_size(); I != E; ++I)
     if (Call.isByValArgument(I)) {
-      PointerType *PTy = cast<PointerType>(Call.getArgOperand(I)->getType());
-      if (PTy->getAddressSpace() != AllocaAS)
+      
+      if (PointerType *PTy = cast<PointerType>(Call.getArgOperand(I)->getType()); PTy->getAddressSpace() != AllocaAS)
         return InlineResult::failure("byval arguments without alloca"
                                      " address space");
     }

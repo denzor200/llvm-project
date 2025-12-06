@@ -160,10 +160,10 @@ public:
                            << llvm::toString(std::move(Err)) << "\n";
               const unsigned NewOffset =
                   Replacements.getShiftedCodePosition(R.getOffset());
-              const unsigned NewLength = Replacements.getShiftedCodePosition(
+              
+              if (const unsigned NewLength = Replacements.getShiftedCodePosition(
                                              R.getOffset() + R.getLength()) -
-                                         NewOffset;
-              if (NewLength == R.getLength()) {
+                                         NewOffset; NewLength == R.getLength()) {
                 R = Replacement(R.getFilePath(), NewOffset, NewLength,
                                 R.getReplacementText());
                 Replacements = Replacements.merge(tooling::Replacements(R));
@@ -399,10 +399,10 @@ static CheckersList getAnalyzerCheckersAndPackages(ClangTidyContext &Context,
   // This is currently necessary, as other path sensitive checks rely on the
   // core checkers.
   for (const StringRef CheckName : RegisteredCheckers) {
-    const std::string ClangTidyCheckName(
-        (AnalyzerCheckNamePrefix + CheckName).str());
+    
 
-    if (CheckName.starts_with("core") ||
+    if (const std::string ClangTidyCheckName(
+        (AnalyzerCheckNamePrefix + CheckName).str()); CheckName.starts_with("core") ||
         Context.isCheckEnabled(ClangTidyCheckName)) {
       List.emplace_back(std::string(CheckName), true);
     }

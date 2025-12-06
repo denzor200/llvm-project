@@ -72,8 +72,8 @@ static Attribute opMTest(PatternRewriter &rewriter, Value val) {
 }
 
 static bool assertBinOpEqualArgsAndReturnTrue(Value v) {
-  Operation *operation = v.getDefiningOp();
-  if (operation->getOperand(0) != operation->getOperand(1)) {
+  
+  if (Operation *operation = v.getDefiningOp(); operation->getOperand(0) != operation->getOperand(1)) {
     // Name binding equality check must happen before user-defined constraints,
     // thus this must not be triggered.
     llvm::report_fatal_error("Arguments are not equal");
@@ -562,8 +562,8 @@ public:
         >(ctx);
     SmallVector<Operation *> ops;
     getOperation()->walk([&](Operation *op) {
-      StringRef opName = op->getName().getStringRef();
-      if (opName == "test.insert_same_op" || opName == "test.change_block_op" ||
+      
+      if (StringRef opName = op->getName().getStringRef(); opName == "test.insert_same_op" || opName == "test.change_block_op" ||
           opName == "test.replace_with_new_op" || opName == "test.erase_op" ||
           opName == "test.move_before_parent_op" ||
           opName == "test.inline_blocks_into_parent" ||
@@ -743,8 +743,8 @@ static void invokeCreateWithInferredReturnType(Operation *op) {
   for (int i = 0, e = fop.getNumArguments(); i < e; ++i) {
     for (int j = 0; j < e; ++j) {
       std::array<Value, 2> values = {{fop.getArgument(i), fop.getArgument(j)}};
-      SmallVector<Type, 2> inferredReturnTypes;
-      if (succeeded(OpTy::inferReturnTypes(
+      
+      if (SmallVector<Type, 2> inferredReturnTypes; succeeded(OpTy::inferReturnTypes(
               context, std::nullopt, values, op->getDiscardableAttrDictionary(),
               op->getPropertiesStorage(), op->getRegions(),
               inferredReturnTypes))) {

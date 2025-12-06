@@ -143,9 +143,9 @@ void propagateShapesToTosaIf(Operation &op, TypeModificationState &state) {
     for (unsigned int i = 1, s = op.getNumOperands(); i < s; i++) {
       auto inferredTy = cast<ShapedType>(op.getOperand(i).getType());
       auto blockArg = frontBlock.getArgument(i - 1);
-      auto oldType = cast<ShapedType>(blockArg.getType());
+      
 
-      if (inferredTy.hasRank()) {
+      if (auto oldType = cast<ShapedType>(blockArg.getType()); inferredTy.hasRank()) {
         Type newType = oldType.clone(inferredTy.getShape());
         state.setType(blockArg, newType);
       }
@@ -317,8 +317,8 @@ void validateSameOperandsAndResultRankTrait(Region &region) {
         }
       }
       WhileOp whileOp = dyn_cast<WhileOp>(op);
-      IfOp ifOp = dyn_cast<IfOp>(op);
-      if (whileOp || ifOp) {
+      
+      if (IfOp ifOp = dyn_cast<IfOp>(op); whileOp || ifOp) {
         // recurse into whileOp's regions
         for (auto &next : op.getRegions()) {
           validateSameOperandsAndResultRankTrait(next);

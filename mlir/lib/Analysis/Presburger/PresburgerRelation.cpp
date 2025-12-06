@@ -158,8 +158,8 @@ PresburgerRelation::intersect(const PresburgerRelation &set) const {
   PresburgerRelation result(getSpace());
   for (const IntegerRelation &csA : disjuncts) {
     for (const IntegerRelation &csB : set.disjuncts) {
-      IntegerRelation intersection = csA.intersect(csB);
-      if (!intersection.isEmpty())
+      
+      if (IntegerRelation intersection = csA.intersect(csB); !intersection.isEmpty())
         result.unionInPlace(intersection);
     }
   }
@@ -859,8 +859,8 @@ bool SetCoalescer::isFacetContained(ArrayRef<DynamicAPInt> ineq,
 void SetCoalescer::addCoalescedDisjunct(unsigned i, unsigned j,
                                         const IntegerRelation &disjunct) {
   assert(i != j && "The indices must refer to different disjuncts");
-  unsigned n = disjuncts.size();
-  if (j == n - 1) {
+  
+  if (unsigned n = disjuncts.size(); j == n - 1) {
     // This case needs special handling since position `n` - 1 is removed
     // from the vector, hence the `IntegerRelation` at position `n` - 2 is
     // lost otherwise.
@@ -931,8 +931,8 @@ LogicalResult SetCoalescer::coalescePairCutCase(unsigned i, unsigned j) {
 
 LogicalResult SetCoalescer::typeInequality(ArrayRef<DynamicAPInt> ineq,
                                            Simplex &simp) {
-  Simplex::IneqType type = simp.findIneqType(ineq);
-  if (type == Simplex::IneqType::Redundant)
+  
+  if (Simplex::IneqType type = simp.findIneqType(ineq); type == Simplex::IneqType::Redundant)
     redundantIneqsB.emplace_back(ineq);
   else if (type == Simplex::IneqType::Cut)
     cuttingIneqsB.emplace_back(ineq);

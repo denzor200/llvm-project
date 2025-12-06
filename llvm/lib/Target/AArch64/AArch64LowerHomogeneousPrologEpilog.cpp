@@ -306,8 +306,8 @@ static Function *getOrCreateFrameHelper(Module *M, MachineModuleInfo *MMI,
                                         unsigned FpOffset = 0) {
   assert(Regs.size() >= 2);
   auto Name = getFrameHelperName(Regs, Type, FpOffset);
-  auto *F = M->getFunction(Name);
-  if (F)
+  
+  if (auto *F = M->getFunction(Name); F)
     return F;
 
   auto &MF = createFrameHelperMachineFunction(M, MMI, Name);
@@ -315,8 +315,8 @@ static Function *getOrCreateFrameHelper(Module *M, MachineModuleInfo *MMI,
   const TargetSubtargetInfo &STI = MF.getSubtarget();
   const TargetInstrInfo &TII = *STI.getInstrInfo();
 
-  int Size = (int)Regs.size();
-  switch (Type) {
+  
+  switch (int Size = (int)Regs.size(); Type) {
   case FrameHelperType::Prolog:
   case FrameHelperType::PrologFrame: {
     // Compute the remaining SP adjust beyond FP/LR.
@@ -623,8 +623,8 @@ bool AArch64LowerHomogeneousPE::runOnMI(MachineBasicBlock &MBB,
                                         MachineBasicBlock::iterator MBBI,
                                         MachineBasicBlock::iterator &NextMBBI) {
   MachineInstr &MI = *MBBI;
-  unsigned Opcode = MI.getOpcode();
-  switch (Opcode) {
+  
+  switch (unsigned Opcode = MI.getOpcode(); Opcode) {
   default:
     break;
   case AArch64::HOM_Prolog:

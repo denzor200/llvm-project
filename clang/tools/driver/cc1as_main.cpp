@@ -267,8 +267,8 @@ bool AssemblerInvocation::CreateFromArgs(AssemblerInvocation &Opts,
   if (Arg *A = Args.getLastArg(options::OPT_darwin_target_variant_triple))
     Opts.DarwinTargetVariantTriple = llvm::Triple(A->getValue());
   if (Arg *A = Args.getLastArg(OPT_darwin_target_variant_sdk_version_EQ)) {
-    VersionTuple Version;
-    if (Version.tryParse(A->getValue()))
+    
+    if (VersionTuple Version; Version.tryParse(A->getValue()))
       Diags.Report(diag::err_drv_invalid_value)
           << A->getAsString(Args) << A->getValue();
     else
@@ -334,12 +334,12 @@ bool AssemblerInvocation::CreateFromArgs(AssemblerInvocation &Opts,
       std::string(Args.getLastArgValue(OPT_split_dwarf_output));
   if (Arg *A = Args.getLastArg(OPT_filetype)) {
     StringRef Name = A->getValue();
-    unsigned OutputType = StringSwitch<unsigned>(Name)
+    
+    if (unsigned OutputType = StringSwitch<unsigned>(Name)
       .Case("asm", FT_Asm)
       .Case("null", FT_Null)
       .Case("obj", FT_Obj)
-      .Default(~0U);
-    if (OutputType == ~0U) {
+      .Default(~0U); OutputType == ~0U) {
       Diags.Report(diag::err_drv_invalid_value) << A->getAsString(Args) << Name;
       Success = false;
     } else
@@ -516,8 +516,8 @@ static bool ExecuteAssemblerImpl(AssemblerInvocation &Opts,
     Ctx.setCompilationDir(Opts.DebugCompilationDir);
   else {
     // If no compilation dir is set, try to use the current directory.
-    SmallString<128> CWD;
-    if (!sys::fs::current_path(CWD))
+    
+    if (SmallString<128> CWD; !sys::fs::current_path(CWD))
       Ctx.setCompilationDir(CWD);
   }
   if (!Opts.DebugPrefixMap.empty())

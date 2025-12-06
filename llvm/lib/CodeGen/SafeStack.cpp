@@ -209,8 +209,8 @@ uint64_t SafeStack::getStaticAllocaAllocationSize(const AllocaInst* AI) {
 bool SafeStack::IsAccessSafe(Value *Addr, uint64_t AccessSize,
                              const Value *AllocaPtr, uint64_t AllocaSize) {
   const SCEV *AddrExpr = SE.getSCEV(Addr);
-  const auto *Base = dyn_cast<SCEVUnknown>(SE.getPointerBase(AddrExpr));
-  if (!Base || Base->getValue() != AllocaPtr) {
+  
+  if (const auto *Base = dyn_cast<SCEVUnknown>(SE.getPointerBase(AddrExpr)); !Base || Base->getValue() != AllocaPtr) {
     LLVM_DEBUG(
         dbgs() << "[SafeStack] "
                << (isa<AllocaInst>(AllocaPtr) ? "Alloca " : "ByValArgument ")
@@ -356,9 +356,9 @@ bool SafeStack::IsSafeStackAlloca(const Value *AllocaPtr, uint64_t AllocaSize) {
 
 Value *SafeStack::getStackGuard(IRBuilder<> &IRB, Function &F) {
   Value *StackGuardVar = TL.getIRStackGuard(IRB);
-  Module *M = F.getParent();
+  
 
-  if (!StackGuardVar) {
+  if (Module *M = F.getParent(); !StackGuardVar) {
     TL.insertSSPDeclarations(*M);
     return IRB.CreateIntrinsic(Intrinsic::stackguard, {});
   }
@@ -376,8 +376,8 @@ void SafeStack::findInsts(Function &F,
     if (auto AI = dyn_cast<AllocaInst>(&I)) {
       ++NumAllocas;
 
-      uint64_t Size = getStaticAllocaAllocationSize(AI);
-      if (IsSafeStackAlloca(AI, Size))
+      
+      if (uint64_t Size = getStaticAllocaAllocationSize(AI); IsSafeStackAlloca(AI, Size))
         continue;
 
       if (AI->isStaticAlloca()) {

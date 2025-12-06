@@ -80,14 +80,14 @@ void ErrnoModeling::checkASTDecl(const TranslationUnitDecl *D,
   ASTContext &ACtx = Mgr.getASTContext();
   IdentifierInfo &II = ACtx.Idents.get(ErrnoVarName);
   auto LookupRes = ACtx.getTranslationUnitDecl()->lookup(&II);
-  auto Found = llvm::find_if(LookupRes, [&ACtx](const Decl *D) {
+  
+  if (auto Found = llvm::find_if(LookupRes, [&ACtx](const Decl *D) {
     if (auto *VD = dyn_cast<VarDecl>(D))
       return ACtx.getSourceManager().isInSystemHeader(VD->getLocation()) &&
              VD->hasExternalStorage() &&
              VD->getType().getCanonicalType() == ACtx.IntTy;
     return false;
-  });
-  if (Found != LookupRes.end())
+  }); Found != LookupRes.end())
     ErrnoDecl = cast<VarDecl>(*Found);
 }
 
@@ -225,8 +225,8 @@ bool isErrnoLocationCall(const CallEvent &CE) {
 
 const NoteTag *getErrnoNoteTag(CheckerContext &C, const std::string &Message) {
   return C.getNoteTag([Message](PathSensitiveBugReport &BR) -> std::string {
-    const MemRegion *ErrnoR = BR.getErrorNode()->getState()->get<ErrnoRegion>();
-    if (ErrnoR && BR.isInteresting(ErrnoR)) {
+    
+    if (const MemRegion *ErrnoR = BR.getErrorNode()->getState()->get<ErrnoRegion>(); ErrnoR && BR.isInteresting(ErrnoR)) {
       BR.markNotInteresting(ErrnoR);
       return Message;
     }

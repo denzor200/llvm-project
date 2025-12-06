@@ -106,8 +106,8 @@ bool SBFunction::GetDescription(SBStream &s) {
   if (m_opaque_ptr) {
     s.Printf("SBFunction: id = 0x%8.8" PRIx64 ", name = %s",
              m_opaque_ptr->GetID(), m_opaque_ptr->GetName().AsCString());
-    Type *func_type = m_opaque_ptr->GetType();
-    if (func_type)
+    
+    if (Type *func_type = m_opaque_ptr->GetType(); func_type)
       s.Printf(", type = %s", func_type->GetName().AsCString());
     return true;
   }
@@ -129,8 +129,8 @@ SBInstructionList SBFunction::GetInstructions(SBTarget target,
   if (m_opaque_ptr) {
     TargetSP target_sp(target.GetSP());
     std::unique_lock<std::recursive_mutex> lock;
-    ModuleSP module_sp(m_opaque_ptr->GetAddress().GetModule());
-    if (target_sp && module_sp) {
+    
+    if (ModuleSP module_sp(m_opaque_ptr->GetAddress().GetModule()); target_sp && module_sp) {
       lock = std::unique_lock<std::recursive_mutex>(target_sp->GetAPIMutex());
       const bool force_live_memory = true;
       sb_instructions.SetDisassembler(Disassembler::DisassembleRange(
@@ -162,8 +162,8 @@ SBAddress SBFunction::GetEndAddress() {
 
   SBAddress addr;
   if (m_opaque_ptr) {
-    AddressRanges ranges = m_opaque_ptr->GetAddressRanges();
-    if (!ranges.empty()) {
+    
+    if (AddressRanges ranges = m_opaque_ptr->GetAddressRanges(); !ranges.empty()) {
       // Return the end of the first range, use GetRanges to get all ranges.
       addr.SetAddress(ranges.front().GetBaseAddress());
       addr->Slide(ranges.front().GetByteSize());
@@ -216,8 +216,8 @@ SBType SBFunction::GetType() {
 
   SBType sb_type;
   if (m_opaque_ptr) {
-    Type *function_type = m_opaque_ptr->GetType();
-    if (function_type)
+    
+    if (Type *function_type = m_opaque_ptr->GetType(); function_type)
       sb_type.ref().SetType(function_type->shared_from_this());
   }
   return sb_type;

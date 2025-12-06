@@ -302,9 +302,9 @@ void AggressiveDeadCodeElimination::initialize() {
   // program, and for all others, mark the subtree live.
   for (const auto &PDTChild : children<DomTreeNode *>(PDT.getRootNode())) {
     auto *BB = PDTChild->getBlock();
-    auto &Info = BlockInfo[BB];
+    
     // Real function return
-    if (isa<ReturnInst>(Info.Terminator)) {
+    if (auto &Info = BlockInfo[BB]; isa<ReturnInst>(Info.Terminator)) {
       LLVM_DEBUG(dbgs() << "post-dom root child is a return: " << BB->getName()
                         << '\n';);
       continue;
@@ -458,8 +458,8 @@ void AggressiveDeadCodeElimination::markPhiLive(PHINode *PN) {
   // which will trigger marking live branches upon which
   // that block is control dependent.
   for (auto *PredBB : predecessors(Info.BB)) {
-    auto &Info = BlockInfo[PredBB];
-    if (!Info.CFLive) {
+    
+    if (auto &Info = BlockInfo[PredBB]; !Info.CFLive) {
       Info.CFLive = true;
       NewLiveBlocks.insert(PredBB);
     }
@@ -597,8 +597,8 @@ bool AggressiveDeadCodeElimination::updateDeadRegions() {
   SmallVector<DominatorTree::UpdateType, 10> DeletedEdges;
 
   for (auto *BB : BlocksWithDeadTerminators) {
-    auto &Info = BlockInfo[BB];
-    if (Info.UnconditionalBranch) {
+    
+    if (auto &Info = BlockInfo[BB]; Info.UnconditionalBranch) {
       InstInfo[Info.Terminator].Live = true;
       continue;
     }
@@ -613,8 +613,8 @@ bool AggressiveDeadCodeElimination::updateDeadRegions() {
     // live edge.
     BlockInfoType *PreferredSucc = nullptr;
     for (auto *Succ : successors(BB)) {
-      auto *Info = &BlockInfo[Succ];
-      if (!PreferredSucc || PreferredSucc->PostOrder < Info->PostOrder)
+      
+      if (auto *Info = &BlockInfo[Succ]; !PreferredSucc || PreferredSucc->PostOrder < Info->PostOrder)
         PreferredSucc = Info;
     }
     assert((PreferredSucc && PreferredSucc->PostOrder > 0) &&

@@ -264,8 +264,8 @@ void MCObjectStreamer::emitLabel(MCSymbol *Symbol, SMLoc Loc) {
 }
 
 void MCObjectStreamer::emitPendingAssignments(MCSymbol *Symbol) {
-  auto Assignments = pendingAssignments.find(Symbol);
-  if (Assignments != pendingAssignments.end()) {
+  
+  if (auto Assignments = pendingAssignments.find(Symbol); Assignments != pendingAssignments.end()) {
     for (const PendingAssignment &A : Assignments->second)
       emitAssignment(A.Symbol, A.Value);
 
@@ -374,11 +374,11 @@ void MCObjectStreamer::emitAssignment(MCSymbol *Symbol, const MCExpr *Value) {
 
 void MCObjectStreamer::emitConditionalAssignment(MCSymbol *Symbol,
                                                  const MCExpr *Value) {
-  const MCSymbol *Target = &cast<MCSymbolRefExpr>(*Value).getSymbol();
+  
 
   // If the symbol already exists, emit the assignment. Otherwise, emit it
   // later only if the symbol is also emitted.
-  if (Target->isRegistered())
+  if (const MCSymbol *Target = &cast<MCSymbolRefExpr>(*Value).getSymbol(); Target->isRegistered())
     emitAssignment(Symbol, Value);
   else
     pendingAssignments[Target].push_back({Symbol, Value});
@@ -447,8 +447,8 @@ void MCObjectStreamer::emitInstToData(const MCInst &Inst,
     MarkedLinkerRelaxable = true;
     // Set the fragment's order within the subsection for use by
     // MCAssembler::relaxAlign.
-    auto *Sec = F->getParent();
-    if (!Sec->isLinkerRelaxable())
+    
+    if (auto *Sec = F->getParent(); !Sec->isLinkerRelaxable())
       Sec->setFirstLinkerRelaxable(F->getLayoutOrder());
     // Do not add data after a linker-relaxable instruction. The difference
     // between a new label and a label at or before the linker-relaxable
@@ -477,8 +477,8 @@ void MCObjectStreamer::emitInstToFragment(const MCInst &Inst,
     if (!Fixup.isLinkerRelaxable() || MarkedLinkerRelaxable)
       continue;
     MarkedLinkerRelaxable = true;
-    auto *Sec = F->getParent();
-    if (!Sec->isLinkerRelaxable())
+    
+    if (auto *Sec = F->getParent(); !Sec->isLinkerRelaxable())
       Sec->setFirstLinkerRelaxable(F->getLayoutOrder());
     F->setLinkerRelaxable();
   }

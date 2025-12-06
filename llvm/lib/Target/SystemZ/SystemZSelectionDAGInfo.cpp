@@ -120,8 +120,8 @@ SDValue SystemZSelectionDAGInfo::EmitTargetCodeForMemset(
       // MVI, MVHI, MVHHI and MVGHI.  The latter two can only be
       // used if ByteVal is all zeros or all ones; in other cases,
       // we can move at most 2 halfwords.
-      uint64_t ByteVal = CByte->getZExtValue();
-      if (ByteVal == 0 || ByteVal == 255
+      
+      if (uint64_t ByteVal = CByte->getZExtValue(); ByteVal == 0 || ByteVal == 255
               ? Bytes <= 16 && llvm::popcount(Bytes) <= 2
               : Bytes <= 4) {
         unsigned Size1 = Bytes == 16 ? 8 : llvm::bit_floor(Bytes);

@@ -284,8 +284,8 @@ void GlobalOp::print(OpAsmPrinter &printer) {
   if (getIsMutable())
     printer << " mutable";
   printer << " :";
-  Region &body = getRegion();
-  if (!body.empty()) {
+  
+  if (Region &body = getRegion(); !body.empty()) {
     printer << ' ';
     printer.printRegion(body, /*printEntryBlockArgs=*/false,
                         /*printBlockTerminators=*/true);

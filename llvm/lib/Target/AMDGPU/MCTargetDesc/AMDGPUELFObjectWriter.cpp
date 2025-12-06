@@ -68,8 +68,8 @@ unsigned AMDGPUELFObjectWriter::getRelocType(const MCFixup &Fixup,
     return ELF::R_AMDGPU_ABS64;
   }
 
-  MCFixupKind Kind = Fixup.getKind();
-  switch (Kind) {
+  
+  switch (MCFixupKind Kind = Fixup.getKind(); Kind) {
   default: break;
   case FK_Data_4:
   case FK_SecRel_4:

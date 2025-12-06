@@ -176,8 +176,8 @@ void BPFPassConfig::addMachineSSAOptimization() {
   // Peephole ran at last.
   TargetPassConfig::addMachineSSAOptimization();
 
-  const BPFSubtarget *Subtarget = getBPFTargetMachine().getSubtargetImpl();
-  if (!DisableMIPeephole) {
+  
+  if (const BPFSubtarget *Subtarget = getBPFTargetMachine().getSubtargetImpl(); !DisableMIPeephole) {
     if (Subtarget->getHasAlu32())
       addPass(createBPFMIPeepholePass());
   }

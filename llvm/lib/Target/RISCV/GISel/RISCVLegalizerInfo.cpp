@@ -211,8 +211,8 @@ RISCVLegalizerInfo::RISCVLegalizerInfo(const RISCVSubtarget &ST)
           LegalityPredicates::any(typeIsLegalIntOrFPVec(1, IntOrFPVecTys, ST),
                                   typeIsLegalBoolVec(1, BoolVecTys, ST))));
 
-  auto &BSWAPActions = getActionDefinitionsBuilder(G_BSWAP);
-  if (ST.hasStdExtZbb() || ST.hasStdExtZbkb())
+  
+  if (auto &BSWAPActions = getActionDefinitionsBuilder(G_BSWAP); ST.hasStdExtZbb() || ST.hasStdExtZbkb())
     BSWAPActions.legalFor({sXLen}).clampScalar(0, sXLen, sXLen);
   else
     BSWAPActions.maxScalar(0, sXLen).lower();
@@ -746,9 +746,9 @@ bool RISCVLegalizerInfo::legalizeIntrinsic(LegalizerHelper &Helper,
       MachineIRBuilder &MIRBuilder = Helper.MIRBuilder;
       MachineRegisterInfo &MRI = *MIRBuilder.getMRI();
 
-      auto OldScalar = MI.getOperand(II->ScalarOperand + 2).getReg();
+      
       // Legalize integer vx form intrinsic.
-      if (MRI.getType(OldScalar).isScalar()) {
+      if (auto OldScalar = MI.getOperand(II->ScalarOperand + 2).getReg(); MRI.getType(OldScalar).isScalar()) {
         if (MRI.getType(OldScalar).getSizeInBits() < sXLen.getSizeInBits()) {
           Helper.Observer.changingInstr(MI);
           Helper.widenScalarSrc(MI, sXLen, II->ScalarOperand + 2,
@@ -922,10 +922,10 @@ bool RISCVLegalizerInfo::legalizeVScale(MachineInstr &MI,
 
   // We assume VLENB is a multiple of 8. We manually choose the best shift
   // here because SimplifyDemandedBits isn't always able to simplify it.
-  uint64_t Val = MI.getOperand(1).getCImm()->getZExtValue();
-  if (isPowerOf2_64(Val)) {
-    uint64_t Log2 = Log2_64(Val);
-    if (Log2 < 3) {
+  
+  if (uint64_t Val = MI.getOperand(1).getCImm()->getZExtValue(); isPowerOf2_64(Val)) {
+    
+    if (uint64_t Log2 = Log2_64(Val); Log2 < 3) {
       auto VLENB = MIB.buildInstr(RISCV::G_READ_VLENB, {XLenTy}, {});
       MIB.buildLShr(Dst, VLENB, MIB.buildConstant(XLenTy, 3 - Log2));
     } else if (Log2 > 3) {
@@ -1389,8 +1389,8 @@ bool RISCVLegalizerInfo::legalizeCustom(
     LostDebugLocObserver &LocObserver) const {
   MachineIRBuilder &MIRBuilder = Helper.MIRBuilder;
   MachineRegisterInfo &MRI = *MIRBuilder.getMRI();
-  MachineFunction &MF = *MI.getParent()->getParent();
-  switch (MI.getOpcode()) {
+  
+  switch (MachineFunction &MF = *MI.getParent()->getParent(); MI.getOpcode()) {
   default:
     // No idea what to do.
     return false;
@@ -1411,8 +1411,8 @@ bool RISCVLegalizerInfo::legalizeCustom(
     // TODO: if PSI and BFI are present, add " ||
     // llvm::shouldOptForSize(*CurMBB, PSI, BFI)".
     bool ShouldOptForSize = F.hasOptSize();
-    const ConstantInt *ConstVal = MI.getOperand(1).getCImm();
-    if (!shouldBeInConstantPool(ConstVal->getValue(), ShouldOptForSize))
+    
+    if (const ConstantInt *ConstVal = MI.getOperand(1).getCImm(); !shouldBeInConstantPool(ConstVal->getValue(), ShouldOptForSize))
       return true;
     return Helper.lowerConstant(MI);
   }

@@ -213,8 +213,8 @@ bool PPC::needsThunk(RelExpr expr, RelType type, const InputFile *file,
 uint32_t PPC::getThunkSectionSpacing() const { return 0x2000000; }
 
 bool PPC::inBranchRange(RelType type, uint64_t src, uint64_t dst) const {
-  uint64_t offset = dst - src;
-  if (type == R_PPC_LOCAL24PC || type == R_PPC_REL24 || type == R_PPC_PLTREL24)
+  
+  if (uint64_t offset = dst - src; type == R_PPC_LOCAL24PC || type == R_PPC_REL24 || type == R_PPC_PLTREL24)
     return isInt<26>(offset);
   llvm_unreachable("unsupported relocation type used in branch");
 }
@@ -300,8 +300,8 @@ int64_t PPC::getImplicitAddend(const uint8_t *buf, RelType type) const {
 }
 
 static std::pair<RelType, uint64_t> fromDTPREL(RelType type, uint64_t val) {
-  uint64_t dtpBiasedVal = val - 0x8000;
-  switch (type) {
+  
+  switch (uint64_t dtpBiasedVal = val - 0x8000; type) {
   case R_PPC_DTPREL16:
     return {R_PPC64_ADDR16, dtpBiasedVal};
   case R_PPC_DTPREL16_HA:
@@ -500,9 +500,9 @@ void PPC::relocateAlloc(InputSection &sec, uint8_t *buf) const {
   uint64_t secAddr = sec.getOutputSection()->addr + sec.outSecOff;
   for (const Relocation &rel : sec.relocs()) {
     uint8_t *loc = buf + rel.offset;
-    const uint64_t val =
-        SignExtend64(sec.getRelocTargetVA(ctx, rel, secAddr + rel.offset), 32);
-    switch (rel.expr) {
+    
+    switch (const uint64_t val =
+        SignExtend64(sec.getRelocTargetVA(ctx, rel, secAddr + rel.offset), 32); rel.expr) {
     case R_RELAX_TLS_GD_TO_IE_GOT_OFF:
       relaxTlsGdToIe(loc, rel, val);
       break;

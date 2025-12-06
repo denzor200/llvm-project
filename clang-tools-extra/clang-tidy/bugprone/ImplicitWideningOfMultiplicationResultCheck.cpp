@@ -82,8 +82,8 @@ void ImplicitWideningOfMultiplicationResultCheck::handleImplicitCastExpr(
 
   // This must be a widening cast. Else we do not care.
   const unsigned SrcWidth = Context->getIntWidth(ETy);
-  const unsigned TgtWidth = Context->getIntWidth(Ty);
-  if (TgtWidth <= SrcWidth)
+  
+  if (const unsigned TgtWidth = Context->getIntWidth(Ty); TgtWidth <= SrcWidth)
     return;
 
   // Is the expression a compile-time constexpr that we know can fit in the
@@ -92,8 +92,8 @@ void ImplicitWideningOfMultiplicationResultCheck::handleImplicitCastExpr(
       !ETy->isUnsignedIntegerType()) {
     if (const auto ConstExprResult = E->getIntegerConstantExpr(*Context)) {
       const auto TypeSize = Context->getTypeSize(ETy);
-      const llvm::APSInt WidenedResult = ConstExprResult->extOrTrunc(TypeSize);
-      if (WidenedResult <= llvm::APSInt::getMaxValue(TypeSize, false) &&
+      
+      if (const llvm::APSInt WidenedResult = ConstExprResult->extOrTrunc(TypeSize); WidenedResult <= llvm::APSInt::getMaxValue(TypeSize, false) &&
           WidenedResult >= llvm::APSInt::getMinValue(TypeSize, false))
         return;
     }

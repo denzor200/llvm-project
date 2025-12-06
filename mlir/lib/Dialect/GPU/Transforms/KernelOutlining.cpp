@@ -105,8 +105,8 @@ static bool extractBeneficiaryOps(
       continue;
     // Else check whether it can be made available via sinking or already is a
     // dependency.
-    Operation *definingOp = operand.getDefiningOp();
-    if ((!definingOp || !extractBeneficiaryOps(definingOp, existingDependencies,
+    
+    if (Operation *definingOp = operand.getDefiningOp(); (!definingOp || !extractBeneficiaryOps(definingOp, existingDependencies,
                                                beneficiaryOps, availableValues,
                                                isSinkingBeneficiary)) &&
         !existingDependencies.count(operand))
@@ -305,8 +305,8 @@ class GpuLaunchSinkIndexComputationsPass
           GpuLaunchSinkIndexComputationsPass> {
 public:
   void runOnOperation() override {
-    Operation *op = getOperation();
-    if (op->walk([](gpu::LaunchOp launch) {
+    
+    if (Operation *op = getOperation(); op->walk([](gpu::LaunchOp launch) {
             // Pull in instructions that can be sunk
             if (failed(sinkOperationsIntoLaunchOp(launch,
                                                   isLikelyAnIndexComputation)))
@@ -353,7 +353,8 @@ public:
     for (auto func : getOperation().getOps<SymbolOpInterface>()) {
       // Insert just after the function.
       Block::iterator insertPt(func->getNextNode());
-      auto funcWalkResult = func.walk([&](gpu::LaunchOp op) {
+      
+      if (auto funcWalkResult = func.walk([&](gpu::LaunchOp op) {
         SetVector<Value> operands;
         std::string kernelFnName;
         if (op.getFunction()) {
@@ -378,8 +379,7 @@ public:
         convertToLaunchFuncOp(op, outlinedFunc, operands.getArrayRef());
         modified = true;
         return WalkResult::advance();
-      });
-      if (funcWalkResult.wasInterrupted())
+      }); funcWalkResult.wasInterrupted())
         return signalPassFailure();
     }
 

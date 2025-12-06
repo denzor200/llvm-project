@@ -178,12 +178,12 @@ static bool hasRValueOverload(const CXXConstructorDecl *Ctor,
           C->parameters()[I]->getType().getCanonicalType();
       const clang::QualType CtorParamType =
           Ctor->parameters()[I]->getType().getCanonicalType();
-      const bool IsLValueRValuePair =
+      
+      if (const bool IsLValueRValuePair =
           CtorParamType->isLValueReferenceType() &&
           CandidateParamType->isRValueReferenceType() &&
           CandidateParamType->getPointeeType()->getUnqualifiedDesugaredType() ==
-              CtorParamType->getPointeeType()->getUnqualifiedDesugaredType();
-      if (I == ParamIdx) {
+              CtorParamType->getPointeeType()->getUnqualifiedDesugaredType(); I == ParamIdx) {
         // The parameter of interest must be paired.
         if (!IsLValueRValuePair)
           return false;
@@ -301,8 +301,8 @@ void PassByValueCheck::check(const MatchFinder::MatchResult &Result) {
     // Check if we can succesfully rewrite all declarations of the constructor.
     for (const ParmVarDecl *ParmDecl : collectParamDecls(Ctor, ParamDecl)) {
       const TypeLoc ParamTL = ParmDecl->getTypeSourceInfo()->getTypeLoc();
-      auto RefTL = ParamTL.getAs<ReferenceTypeLoc>();
-      if (RefTL.isNull()) {
+      
+      if (auto RefTL = ParamTL.getAs<ReferenceTypeLoc>(); RefTL.isNull()) {
         // We cannot rewrite this instance. The type is probably hidden behind
         // some `typedef`. Do not offer a fix-it in this case.
         return;

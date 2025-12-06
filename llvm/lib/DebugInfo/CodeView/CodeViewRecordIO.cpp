@@ -70,8 +70,8 @@ uint32_t CodeViewRecordIO::maxFieldLength() const {
   uint32_t Offset = getCurrentOffset();
   std::optional<uint32_t> Min = Limits.front().bytesRemaining(Offset);
   for (auto X : ArrayRef(Limits).drop_front()) {
-    std::optional<uint32_t> ThisMin = X.bytesRemaining(Offset);
-    if (ThisMin)
+    
+    if (std::optional<uint32_t> ThisMin = X.bytesRemaining(Offset); ThisMin)
       Min = Min ? std::min(*Min, *ThisMin) : *ThisMin;
   }
   assert(Min && "Every field must have a maximum length!");
@@ -215,8 +215,8 @@ Error CodeViewRecordIO::mapStringZ(StringRef &Value, const Twine &Comment) {
     incrStreamedLen(NullTerminatedString.size());
   } else if (isWriting()) {
     // Truncate if we attempt to write too much.
-    StringRef S = Value.take_front(maxFieldLength() - 1);
-    if (auto EC = Writer->writeCString(S))
+    
+    if (StringRef S = Value.take_front(maxFieldLength() - 1); auto EC = Writer->writeCString(S))
       return EC;
   } else {
     if (auto EC = Reader->readCString(Value))
@@ -261,8 +261,8 @@ Error CodeViewRecordIO::mapStringZVectorZ(std::vector<StringRef> &Value,
       if (auto EC = mapStringZ(V))
         return EC;
     }
-    uint8_t FinalZero = 0;
-    if (auto EC = mapInteger(FinalZero))
+    
+    if (uint8_t FinalZero = 0; auto EC = mapInteger(FinalZero))
       return EC;
   } else {
     StringRef S;

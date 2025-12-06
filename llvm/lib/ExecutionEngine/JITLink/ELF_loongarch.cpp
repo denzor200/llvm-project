@@ -145,10 +145,10 @@ static void relaxAlign(orc::ExecutorAddr Loc, const Edge &E, uint32_t &Remove,
   const uint64_t Align = 1ULL << (Addend & 0xff);
   const uint64_t MaxBytes = Addend >> 8;
   const uint64_t Off = Loc.getValue() & (Align - 1);
-  const uint64_t CurBytes = Off == 0 ? 0 : Align - Off;
+  
   // All bytes beyond the alignment boundary should be removed.
   // If emit bytes more than max bytes to emit, remove all.
-  if (MaxBytes != 0 && CurBytes > MaxBytes)
+  if (const uint64_t CurBytes = Off == 0 ? 0 : Align - Off; MaxBytes != 0 && CurBytes > MaxBytes)
     Remove = AllBytes;
   else
     Remove = AllBytes - CurBytes;
@@ -472,8 +472,8 @@ Expected<std::unique_ptr<LinkGraph>> createLinkGraphFromELFObject_loongarch(
 void link_ELF_loongarch(std::unique_ptr<LinkGraph> G,
                         std::unique_ptr<JITLinkContext> Ctx) {
   PassConfiguration Config;
-  const Triple &TT = G->getTargetTriple();
-  if (Ctx->shouldAddDefaultTargetPasses(TT)) {
+  
+  if (const Triple &TT = G->getTargetTriple(); Ctx->shouldAddDefaultTargetPasses(TT)) {
     // Add eh-frame passes.
     Config.PrePrunePasses.push_back(DWARFRecordSectionSplitter(".eh_frame"));
     Config.PrePrunePasses.push_back(

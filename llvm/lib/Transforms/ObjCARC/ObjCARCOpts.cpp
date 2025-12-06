@@ -570,8 +570,8 @@ class ObjCARCOpt {
                                SmallVectorImpl<OperandBundleDef> &OpBundles,
                                PredicateT Predicate) {
     for (unsigned I = 0, E = CI->getNumOperandBundles(); I != E; ++I) {
-      OperandBundleUse B = CI->getOperandBundleAt(I);
-      if (Predicate(B))
+      
+      if (OperandBundleUse B = CI->getOperandBundleAt(I); Predicate(B))
         OpBundles.emplace_back(B);
     }
   }
@@ -606,8 +606,8 @@ class ObjCARCOpt {
 bool
 ObjCARCOpt::OptimizeRetainRVCall(Function &F, Instruction *RetainRV) {
   // Check for the argument being from an immediately preceding call or invoke.
-  const Value *Arg = GetArgRCIdentityRoot(RetainRV);
-  if (const Instruction *Call = dyn_cast<CallBase>(Arg)) {
+  
+  if (const Value *Arg = GetArgRCIdentityRoot(RetainRV); const Instruction *Call = dyn_cast<CallBase>(Arg)) {
     if (Call->getParent() == RetainRV->getParent()) {
       BasicBlock::const_iterator I(Call);
       ++I;
@@ -616,8 +616,8 @@ ObjCARCOpt::OptimizeRetainRVCall(Function &F, Instruction *RetainRV) {
       if (&*I == RetainRV)
         return false;
     } else if (const InvokeInst *II = dyn_cast<InvokeInst>(Call)) {
-      BasicBlock *RetainRVParent = RetainRV->getParent();
-      if (II->getNormalDest() == RetainRVParent) {
+      
+      if (BasicBlock *RetainRVParent = RetainRV->getParent(); II->getNormalDest() == RetainRVParent) {
         BasicBlock::const_iterator I = RetainRVParent->begin();
         while (IsNoopInstruction(&*I))
           ++I;
@@ -929,8 +929,8 @@ void ObjCARCOpt::OptimizeIndividualCallImpl(Function &F, Instruction *Inst,
   case ARCInstKind::LoadWeakRetained:
   case ARCInstKind::InitWeak:
   case ARCInstKind::DestroyWeak: {
-    CallInst *CI = cast<CallInst>(Inst);
-    if (IsNullOrUndef(CI->getArgOperand(0))) {
+    
+    if (CallInst *CI = cast<CallInst>(Inst); IsNullOrUndef(CI->getArgOperand(0))) {
       Changed = true;
       new StoreInst(ConstantInt::getTrue(CI->getContext()),
                     PoisonValue::get(PointerType::getUnqual(CI->getContext())),
@@ -948,8 +948,8 @@ void ObjCARCOpt::OptimizeIndividualCallImpl(Function &F, Instruction *Inst,
   }
   case ARCInstKind::CopyWeak:
   case ARCInstKind::MoveWeak: {
-    CallInst *CI = cast<CallInst>(Inst);
-    if (IsNullOrUndef(CI->getArgOperand(0)) ||
+    
+    if (CallInst *CI = cast<CallInst>(Inst); IsNullOrUndef(CI->getArgOperand(0)) ||
         IsNullOrUndef(CI->getArgOperand(1))) {
       Changed = true;
       new StoreInst(ConstantInt::getTrue(CI->getContext()),
@@ -1083,8 +1083,8 @@ void ObjCARCOpt::OptimizeIndividualCallImpl(Function &F, Instruction *Inst,
     bool HasNull = false;
     bool HasCriticalEdges = false;
     for (unsigned i = 0, e = PN->getNumIncomingValues(); i != e; ++i) {
-      Value *Incoming = GetRCIdentityRoot(PN->getIncomingValue(i));
-      if (IsNullOrUndef(Incoming))
+      
+      if (Value *Incoming = GetRCIdentityRoot(PN->getIncomingValue(i)); IsNullOrUndef(Incoming))
         HasNull = true;
       else if (PN->getIncomingBlock(i)->getTerminator()->getNumSuccessors() !=
                1) {
@@ -1243,10 +1243,10 @@ ObjCARCOpt::CheckForCFGHazards(const BasicBlock *BB,
   for (auto I = MyStates.top_down_ptr_begin(), E = MyStates.top_down_ptr_end();
        I != E; ++I) {
     TopDownPtrState &S = I->second;
-    const Sequence Seq = I->second.GetSeq();
+    
 
     // We only care about S_Retain, S_CanRelease, and S_Use.
-    if (Seq == S_None)
+    if (const Sequence Seq = I->second.GetSeq(); Seq == S_None)
       continue;
 
     // Make sure that if extra top down states are added in the future that this
@@ -1280,11 +1280,11 @@ ObjCARCOpt::CheckForCFGHazards(const BasicBlock *BB,
 
       // If we have S_Use or S_CanRelease, perform our check for cfg hazard
       // checks.
-      const bool SuccSRRIKnownSafe = SuccS.IsKnownSafe();
+      
 
       // *NOTE* We do not use Seq from above here since we are allowing for
       // S.GetSeq() to change while we are visiting basic blocks.
-      switch(S.GetSeq()) {
+      switch(const bool SuccSRRIKnownSafe = SuccS.IsKnownSafe(); S.GetSeq()) {
       case S_Use: {
         bool ShouldContinue = false;
         CheckForUseCFGHazard(SuccSSeq, SuccSRRIKnownSafe, S, SomeSuccHasSame,
@@ -1347,8 +1347,8 @@ bool ObjCARCOpt::VisitInstructionBottomUp(
   case ARCInstKind::Retain:
   case ARCInstKind::RetainRV: {
     Arg = GetArgRCIdentityRoot(Inst);
-    BottomUpPtrState &S = MyStates.getPtrBottomUpState(Arg);
-    if (S.MatchWithRetain()) {
+    
+    if (BottomUpPtrState &S = MyStates.getPtrBottomUpState(Arg); S.MatchWithRetain()) {
       // Don't do retain+release tracking for ARCInstKind::RetainRV, because
       // it's better to let it remain as the first instruction after a call.
       if (Class != ARCInstKind::RetainRV) {
@@ -1401,9 +1401,9 @@ bool ObjCARCOpt::VisitBottomUp(BasicBlock *BB,
 
   // Merge the states from each successor to compute the initial state
   // for the current block.
-  BBState::edge_iterator SI(MyStates.succ_begin()),
-                         SE(MyStates.succ_end());
-  if (SI != SE) {
+  
+  if (BBState::edge_iterator SI(MyStates.succ_begin()),
+                         SE(MyStates.succ_end()); SI != SE) {
     const BasicBlock *Succ = *SI;
     DenseMap<const BasicBlock *, BBState>::iterator I = BBStates.find(Succ);
     assert(I != BBStates.end());
@@ -1446,8 +1446,8 @@ bool ObjCARCOpt::VisitBottomUp(BasicBlock *BB,
   // block, and we don't want to split critical edges.
   for (BBState::edge_iterator PI(MyStates.pred_begin()),
        PE(MyStates.pred_end()); PI != PE; ++PI) {
-    BasicBlock *Pred = *PI;
-    if (InvokeInst *II = dyn_cast<InvokeInst>(&Pred->back()))
+    
+    if (BasicBlock *Pred = *PI; InvokeInst *II = dyn_cast<InvokeInst>(&Pred->back()))
       NestingDetected |= VisitInstructionBottomUp(II, BB, Retains, MyStates);
   }
 
@@ -1502,13 +1502,13 @@ bool ObjCARCOpt::VisitInstructionTopDown(
           getRCIdentityRootsFromReleaseInsertPt(
               Inst, ReleaseInsertPtToRCIdentityRoots))
     for (const auto *Root : *Roots) {
-      TopDownPtrState &S = MyStates.getPtrTopDownState(Root);
+      
       // Disable code motion if the current position is S_Retain to prevent
       // moving the objc_retain call past objc_release calls. If it's
       // S_CanRelease or larger, it's not necessary to disable code motion as
       // the insertion points that prevent the objc_retain call from moving down
       // should have been set already.
-      if (S.GetSeq() == S_Retain)
+      if (TopDownPtrState &S = MyStates.getPtrTopDownState(Root); S.GetSeq() == S_Retain)
         S.SetCFGHazardAfflicted(true);
     }
 
@@ -1532,10 +1532,10 @@ bool ObjCARCOpt::VisitInstructionTopDown(
   }
   case ARCInstKind::Release: {
     Arg = GetArgRCIdentityRoot(Inst);
-    TopDownPtrState &S = MyStates.getPtrTopDownState(Arg);
+    
     // Try to form a tentative pair in between this release instruction and the
     // top down pointers that we are tracking.
-    if (S.MatchWithRelease(MDKindCache, Inst)) {
+    if (TopDownPtrState &S = MyStates.getPtrTopDownState(Arg); S.MatchWithRelease(MDKindCache, Inst)) {
       // If we succeed, copy S's RRInfo into the Release -> {Retain Set
       // Map}. Then we clear S.
       LLVM_DEBUG(dbgs() << "        Matching with: " << *Inst << "\n");
@@ -1585,9 +1585,9 @@ bool ObjCARCOpt::VisitTopDown(
 
   // Merge the states from each predecessor to compute the initial state
   // for the current block.
-  BBState::edge_iterator PI(MyStates.pred_begin()),
-                         PE(MyStates.pred_end());
-  if (PI != PE) {
+  
+  if (BBState::edge_iterator PI(MyStates.pred_begin()),
+                         PE(MyStates.pred_end()); PI != PE) {
     const BasicBlock *Pred = *PI;
     DenseMap<const BasicBlock *, BBState>::iterator I = BBStates.find(Pred);
     assert(I != BBStates.end());
@@ -1704,8 +1704,8 @@ ComputePostOrders(Function &F,
     reverse_dfs_next_succ:
       BBState::edge_iterator PE = BBStates[PredStack.back().first].pred_end();
       while (PredStack.back().second != PE) {
-        BasicBlock *BB = *PredStack.back().second++;
-        if (Visited.insert(BB).second) {
+        
+        if (BasicBlock *BB = *PredStack.back().second++; Visited.insert(BB).second) {
           PredStack.push_back(std::make_pair(BB, BBStates[BB].pred_begin()));
           goto reverse_dfs_next_succ;
         }
@@ -1967,8 +1967,8 @@ bool ObjCARCOpt::PairUpRetainsAndReleases(
   }
 
   // We can only remove pointers if we are known safe in both directions.
-  bool UnconditionallySafe = KnownSafeTD && KnownSafeBU;
-  if (UnconditionallySafe) {
+  
+  if (bool UnconditionallySafe = KnownSafeTD && KnownSafeBU; UnconditionallySafe) {
     RetainsToMove.ReverseInsertPts.clear();
     ReleasesToMove.ReverseInsertPts.clear();
     NewCount = 0;
@@ -1983,10 +1983,10 @@ bool ObjCARCOpt::PairUpRetainsAndReleases(
     // At this point, we are not going to remove any RR pairs, but we still are
     // able to move RR pairs. If one of our pointers is afflicted with
     // CFGHazards, we cannot perform such code motion so exit early.
-    const bool WillPerformCodeMotion =
+    
+    if (const bool WillPerformCodeMotion =
         !RetainsToMove.ReverseInsertPts.empty() ||
-        !ReleasesToMove.ReverseInsertPts.empty();
-    if (CFGHazardAfflicted && WillPerformCodeMotion)
+        !ReleasesToMove.ReverseInsertPts.empty(); CFGHazardAfflicted && WillPerformCodeMotion)
       return false;
   }
 
@@ -2105,8 +2105,8 @@ void ObjCARCOpt::OptimizeWeakCalls(Function &F) {
                               J = Current.getInstructionIterator();
          J != B; --J) {
       Instruction *EarlierInst = &*std::prev(J);
-      ARCInstKind EarlierClass = GetARCInstKind(EarlierInst);
-      switch (EarlierClass) {
+      
+      switch (ARCInstKind EarlierClass = GetARCInstKind(EarlierInst); EarlierClass) {
       case ARCInstKind::LoadWeak:
       case ARCInstKind::LoadWeakRetained: {
         // If this is loading from the same pointer, replace this load's value
@@ -2114,8 +2114,8 @@ void ObjCARCOpt::OptimizeWeakCalls(Function &F) {
         CallInst *Call = cast<CallInst>(Inst);
         CallInst *EarlierCall = cast<CallInst>(EarlierInst);
         Value *Arg = Call->getArgOperand(0);
-        Value *EarlierArg = EarlierCall->getArgOperand(0);
-        switch (PA.getAA()->alias(Arg, EarlierArg)) {
+        
+        switch (Value *EarlierArg = EarlierCall->getArgOperand(0); PA.getAA()->alias(Arg, EarlierArg)) {
         case AliasResult::MustAlias:
           Changed = true;
           // If the load has a builtin retain, insert a plain retain for it.
@@ -2144,8 +2144,8 @@ void ObjCARCOpt::OptimizeWeakCalls(Function &F) {
         CallInst *Call = cast<CallInst>(Inst);
         CallInst *EarlierCall = cast<CallInst>(EarlierInst);
         Value *Arg = Call->getArgOperand(0);
-        Value *EarlierArg = EarlierCall->getArgOperand(0);
-        switch (PA.getAA()->alias(Arg, EarlierArg)) {
+        
+        switch (Value *EarlierArg = EarlierCall->getArgOperand(0); PA.getAA()->alias(Arg, EarlierArg)) {
         case AliasResult::MustAlias:
           Changed = true;
           // If the load has a builtin retain, insert a plain retain for it.
@@ -2189,16 +2189,16 @@ void ObjCARCOpt::OptimizeWeakCalls(Function &F) {
   // Then, for each destroyWeak with an alloca operand, check to see if
   // the alloca and all its users can be zapped.
   for (Instruction &Inst : llvm::make_early_inc_range(instructions(F))) {
-    ARCInstKind Class = GetBasicARCInstKind(&Inst);
-    if (Class != ARCInstKind::DestroyWeak)
+    
+    if (ARCInstKind Class = GetBasicARCInstKind(&Inst); Class != ARCInstKind::DestroyWeak)
       continue;
 
     CallInst *Call = cast<CallInst>(&Inst);
     Value *Arg = Call->getArgOperand(0);
     if (AllocaInst *Alloca = dyn_cast<AllocaInst>(Arg)) {
       for (User *U : Alloca->users()) {
-        const Instruction *UserInst = cast<Instruction>(U);
-        switch (GetBasicARCInstKind(UserInst)) {
+        
+        switch (const Instruction *UserInst = cast<Instruction>(U); GetBasicARCInstKind(UserInst)) {
         case ARCInstKind::InitWeak:
         case ARCInstKind::StoreWeak:
         case ARCInstKind::DestroyWeak:
@@ -2506,8 +2506,8 @@ bool MayAutorelease(const CallBase &CB, unsigned Depth = 0) {
     for (const BasicBlock &BB : *Callee) {
       for (const Instruction &I : BB) {
         // TODO: Ignore all instructions between autorelease pools
-        ARCInstKind InstKind = GetBasicARCInstKind(&I);
-        switch (InstKind) {
+        
+        switch (ARCInstKind InstKind = GetBasicARCInstKind(&I); InstKind) {
         case ARCInstKind::Autorelease:
         case ARCInstKind::AutoreleaseRV:
         case ARCInstKind::FusedRetainAutorelease:
@@ -2570,9 +2570,9 @@ void ObjCARCOpt::OptimizeAutoreleasePools(Function &F) {
         PoolStack; // {push_inst, has_autorelease_in_scope}
 
     for (Instruction &Inst : llvm::make_early_inc_range(BB)) {
-      ARCInstKind Class = GetBasicARCInstKind(&Inst);
+      
 
-      switch (Class) {
+      switch (ARCInstKind Class = GetBasicARCInstKind(&Inst); Class) {
       case ARCInstKind::AutoreleasepoolPush: {
         // Start tracking a new autorelease pool scope
         auto *Push = cast<CallInst>(&Inst);
@@ -2675,8 +2675,8 @@ PreservedAnalyses ObjCARCOptPass::run(Function &F,
   OCAO.init(F);
 
   bool Changed = OCAO.run(F, AM.getResult<AAManager>(F));
-  bool CFGChanged = OCAO.hasCFGChanged();
-  if (Changed) {
+  
+  if (bool CFGChanged = OCAO.hasCFGChanged(); Changed) {
     PreservedAnalyses PA;
     if (!CFGChanged)
       PA.preserveSet<CFGAnalyses>();

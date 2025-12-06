@@ -37,9 +37,9 @@ MipsSEInstrInfo::MipsSEInstrInfo(const MipsSubtarget &STI)
 /// any side effects other than loading from the stack slot.
 Register MipsSEInstrInfo::isLoadFromStackSlot(const MachineInstr &MI,
                                               int &FrameIndex) const {
-  unsigned Opc = MI.getOpcode();
+  
 
-  if ((Opc == Mips::LW)   || (Opc == Mips::LD)   ||
+  if (unsigned Opc = MI.getOpcode(); (Opc == Mips::LW)   || (Opc == Mips::LD)   ||
       (Opc == Mips::LWC1) || (Opc == Mips::LDC1) || (Opc == Mips::LDC164)) {
     if ((MI.getOperand(1).isFI()) &&  // is a stack slot
         (MI.getOperand(2).isImm()) && // the imm is zero
@@ -59,9 +59,9 @@ Register MipsSEInstrInfo::isLoadFromStackSlot(const MachineInstr &MI,
 /// any side effects other than storing to the stack slot.
 Register MipsSEInstrInfo::isStoreToStackSlot(const MachineInstr &MI,
                                              int &FrameIndex) const {
-  unsigned Opc = MI.getOpcode();
+  
 
-  if ((Opc == Mips::SW)   || (Opc == Mips::SD)   ||
+  if (unsigned Opc = MI.getOpcode(); (Opc == Mips::SW)   || (Opc == Mips::SD)   ||
       (Opc == Mips::SWC1) || (Opc == Mips::SDC1) || (Opc == Mips::SDC164)) {
     if ((MI.getOperand(1).isFI()) &&  // is a stack slot
         (MI.getOperand(2).isImm()) && // the imm is zero
@@ -79,9 +79,9 @@ void MipsSEInstrInfo::copyPhysReg(MachineBasicBlock &MBB,
                                   Register SrcReg, bool KillSrc,
                                   bool RenamableDest, bool RenamableSrc) const {
   unsigned Opc = 0, ZeroReg = 0;
-  bool isMicroMips = Subtarget.inMicroMipsMode();
+  
 
-  if (Mips::GPR32RegClass.contains(DestReg)) { // Copy to CPU Reg.
+  if (bool isMicroMips = Subtarget.inMicroMipsMode(); Mips::GPR32RegClass.contains(DestReg)) { // Copy to CPU Reg.
     if (Mips::GPR32RegClass.contains(SrcReg)) {
       if (isMicroMips)
         Opc = Mips::MOVE16_MM;
@@ -370,9 +370,9 @@ void MipsSEInstrInfo::loadRegFromStack(MachineBasicBlock &MBB,
 bool MipsSEInstrInfo::expandPostRAPseudo(MachineInstr &MI) const {
   MachineBasicBlock &MBB = *MI.getParent();
   bool isMicroMips = Subtarget.inMicroMipsMode();
-  unsigned Opc;
+  
 
-  switch (MI.getDesc().getOpcode()) {
+  switch (unsigned Opc; MI.getDesc().getOpcode()) {
   default:
     return false;
   case Mips::RetRA:
@@ -865,8 +865,8 @@ void MipsSEInstrInfo::expandEhReturn(MachineBasicBlock &MBB,
   // addu $ra, $v0, $zero
   // addu $sp, $sp, $v1
   // jr   $ra (via RetRA)
-  const TargetMachine &TM = MBB.getParent()->getTarget();
-  if (TM.isPositionIndependent())
+  
+  if (const TargetMachine &TM = MBB.getParent()->getTarget(); TM.isPositionIndependent())
     BuildMI(MBB, I, I->getDebugLoc(), get(ADDU), T9)
         .addReg(TargetReg)
         .addReg(ZERO);

@@ -120,8 +120,8 @@ static std::pair<Value *, Value *> matchStridedConstant(Constant *StartC) {
 static std::pair<Value *, Value *> matchStridedStart(Value *Start,
                                                      IRBuilderBase &Builder) {
   // Base case, start is a strided constant.
-  auto *StartC = dyn_cast<Constant>(Start);
-  if (StartC)
+  
+  if (auto *StartC = dyn_cast<Constant>(Start); StartC)
     return matchStridedConstant(StartC);
 
   // Base case, start is a stepvector
@@ -362,10 +362,10 @@ RISCVGatherScatterLowering::determineBaseAndStride(Instruction *Ptr,
   if (auto *BaseInst = dyn_cast<Instruction>(Base);
       BaseInst && BaseInst->getType()->isVectorTy()) {
     // If GEP's offset is scalar then we can add it to the base pointer's base.
-    auto IsScalar = [](Value *Idx) { return !Idx->getType()->isVectorTy(); };
-    if (all_of(GEP->indices(), IsScalar)) {
-      auto [BaseBase, Stride] = determineBaseAndStride(BaseInst, Builder);
-      if (BaseBase) {
+    
+    if (auto IsScalar = [](Value *Idx) { return !Idx->getType()->isVectorTy(); }; all_of(GEP->indices(), IsScalar)) {
+      
+      if (auto [BaseBase, Stride] = determineBaseAndStride(BaseInst, Builder); BaseBase) {
         Builder.SetInsertPoint(GEP);
         SmallVector<Value *> Indices(GEP->indices());
         Value *OffsetBase =

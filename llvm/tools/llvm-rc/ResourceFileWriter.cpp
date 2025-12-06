@@ -664,8 +664,8 @@ Error ResourceFileWriter::writeSingleAccelerator(
       return createAccError(
           "VIRTKEY accelerator events can't be preceded by '^'");
 
-    char Ch = Str[1];
-    if (Ch >= 'a' && Ch <= 'z')
+    
+    if (char Ch = Str[1]; Ch >= 'a' && Ch <= 'z')
       Entry.ANSICode = ulittle16_t(Ch - 'a' + 1);
     else if (Ch >= 'A' && Ch <= 'Z')
       Entry.ANSICode = ulittle16_t(Ch - 'A' + 1);
@@ -1244,8 +1244,8 @@ Error ResourceFileWriter::writeMenuDefinitionList(
   for (auto &Def : List.Definitions) {
     uint16_t Flags = Def->getResFlags();
     // Last element receives an additional 0x80 flag.
-    const uint16_t LastElementFlag = 0x0080;
-    if (&Def == &List.Definitions.back())
+    
+    if (const uint16_t LastElementFlag = 0x0080; &Def == &List.Definitions.back())
       Flags |= LastElementFlag;
 
     RETURN_IF_ERROR(writeMenuDefinition(Def, Flags));
@@ -1258,8 +1258,8 @@ Error ResourceFileWriter::writeMenuExDefinitionList(
   for (auto &Def : List.Definitions) {
     uint16_t Flags = Def->getResFlags();
     // Last element receives an additional 0x80 flag.
-    const uint16_t LastElementFlag = 0x0080;
-    if (&Def == &List.Definitions.back())
+    
+    if (const uint16_t LastElementFlag = 0x0080; &Def == &List.Definitions.back())
       Flags |= LastElementFlag;
 
     RETURN_IF_ERROR(writeMenuExDefinition(Def, Flags));

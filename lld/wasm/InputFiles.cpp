@@ -53,8 +53,8 @@ std::string replaceThinLTOSuffix(StringRef path) {
 }
 
 void InputFile::checkArch(Triple::ArchType arch) const {
-  bool is64 = arch == Triple::wasm64;
-  if (is64 && !ctx.arg.is64) {
+  
+  if (bool is64 = arch == Triple::wasm64; is64 && !ctx.arg.is64) {
     fatal(toString(this) +
           ": must specify -mwasm64 to process wasm64 object files");
   } else if (ctx.arg.is64.value_or(false) != is64) {
@@ -433,8 +433,8 @@ void SharedFile::parse() {
   assert(wasmObj->isSharedObject());
 
   for (const SymbolRef &sym : wasmObj->symbols()) {
-    const WasmSymbol &wasmSym = wasmObj->getWasmSymbol(sym.getRawDataRefImpl());
-    if (wasmSym.isDefined()) {
+    
+    if (const WasmSymbol &wasmSym = wasmObj->getWasmSymbol(sym.getRawDataRefImpl()); wasmSym.isDefined()) {
       StringRef name = wasmSym.Info.Name;
       // Certain shared library exports are known to be DSO-local so we
       // don't want to add them to the symbol table.
@@ -824,9 +824,9 @@ static Symbol *createBitcodeSymbol(const std::vector<bool> &keptComdats,
   flags |= mapVisibility(objSym.getVisibility());
 
   int c = objSym.getComdatIndex();
-  bool excludedByComdat = c != -1 && !keptComdats[c];
+  
 
-  if (objSym.isUndefined() || excludedByComdat) {
+  if (bool excludedByComdat = c != -1 && !keptComdats[c]; objSym.isUndefined() || excludedByComdat) {
     flags |= WASM_SYMBOL_UNDEFINED;
     if (objSym.isExecutable())
       return symtab->addUndefinedFunction(name, std::nullopt, std::nullopt,

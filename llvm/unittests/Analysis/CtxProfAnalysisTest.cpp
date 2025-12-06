@@ -167,8 +167,8 @@ TEST_F(CtxProfAnalysisTest, GetBBIDTest) {
   std::map<std::string, int> BBNameAndID;
 
   for (auto &BB : *F) {
-    auto *Ins = CtxProfAnalysis::getBBInstrumentation(BB);
-    if (Ins)
+    
+    if (auto *Ins = CtxProfAnalysis::getBBInstrumentation(BB); Ins)
       BBNameAndID[BB.getName().str()] =
           static_cast<int>(Ins->getIndex()->getZExtValue());
     else

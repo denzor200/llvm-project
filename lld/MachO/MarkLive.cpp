@@ -87,10 +87,10 @@ static void printWhyLive(const Symbol *s, const WhyLiveEntry *prev) {
   int indent = 2;
   for (const WhyLiveEntry *entry = prev; entry;
        entry = entry->prev, indent += 2) {
-    const TinyPtrVector<Defined *> &symbols = entry->isec->symbols;
+    
     // With .subsections_with_symbols set, most isecs will have exactly one
     // entry in their symbols vector, so we just print the first one.
-    if (!symbols.empty())
+    if (const TinyPtrVector<Defined *> &symbols = entry->isec->symbols; !symbols.empty())
       out += "\n" + std::string(indent, ' ') + toString(*symbols.front()) +
              " from " + toString(symbols.front()->getFile());
   }
@@ -181,8 +181,8 @@ void MarkLiveImpl<RecordWhyLive>::markTransitively() {
             enqueue(isec, 0, makeEntry(referentIsec, nullptr));
           }
         } else {
-          auto *referentIsec = cast<InputSection *>(r.referent);
-          if (referentIsec->isLive(r.addend))
+          
+          if (auto *referentIsec = cast<InputSection *>(r.referent); referentIsec->isLive(r.addend))
             enqueue(isec, 0, makeEntry(referentIsec, nullptr));
         }
       }
@@ -235,9 +235,9 @@ void markLive() {
 
       // In dylibs and bundles and in executables with -export_dynamic,
       // all external functions are GC roots.
-      bool externsAreRoots =
-          config->outputType != MH_EXECUTE || config->exportDynamic;
-      if (externsAreRoots && !defined->privateExtern) {
+      
+      if (bool externsAreRoots =
+          config->outputType != MH_EXECUTE || config->exportDynamic; externsAreRoots && !defined->privateExtern) {
         marker->addSym(defined);
         continue;
       }

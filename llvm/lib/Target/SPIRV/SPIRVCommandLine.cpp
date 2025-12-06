@@ -240,11 +240,11 @@ SPIRVExtensionsParser::getValidExtensions(const Triple &TT) {
     CurrentEnvironment = SPIRV::Environment::Environment::EnvVulkan;
 
   for (const auto &[ExtensionName, ExtensionEnum] : SPIRVExtensionMap) {
-    EnvironmentList AllowedEnv = getSymbolicOperandAllowedEnvironments(
-        SPIRV::OperandCategory::OperandCategory::ExtensionOperand,
-        ExtensionEnum);
+    
 
-    if (llvm::is_contained(AllowedEnv, CurrentEnvironment))
+    if (EnvironmentList AllowedEnv = getSymbolicOperandAllowedEnvironments(
+        SPIRV::OperandCategory::OperandCategory::ExtensionOperand,
+        ExtensionEnum); llvm::is_contained(AllowedEnv, CurrentEnvironment))
       R.insert(ExtensionEnum);
   }
 

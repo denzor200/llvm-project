@@ -21,8 +21,8 @@ namespace bolt {
 bool StackReachingUses::isLoadedInDifferentReg(const FrameIndexEntry &StoreFIE,
                                                ExprIterator Candidates) const {
   for (auto I = Candidates; I != expr_end(); ++I) {
-    const MCInst *ReachingInst = *I;
-    if (ErrorOr<const FrameIndexEntry &> FIEY = FA.getFIEFor(*ReachingInst)) {
+    
+    if (const MCInst *ReachingInst = *I; ErrorOr<const FrameIndexEntry &> FIEY = FA.getFIEFor(*ReachingInst)) {
       assert(FIEY->IsLoad == 1);
       if (StoreFIE.StackOffset + StoreFIE.Size > FIEY->StackOffset &&
           StoreFIE.StackOffset < FIEY->StackOffset + FIEY->Size &&
@@ -76,8 +76,8 @@ void StackReachingUses::preflight() {
           continue;
         }
       }
-      ErrorOr<const ArgAccesses &> AA = FA.getArgAccessesFor(Inst);
-      if (AA && (!AA->Set.empty() || AA->AssumeEverything)) {
+      
+      if (ErrorOr<const ArgAccesses &> AA = FA.getArgAccessesFor(Inst); AA && (!AA->Set.empty() || AA->AssumeEverything)) {
         Expressions.push_back(&Inst);
         ExprToIdx[&Inst] = NumInstrs++;
       }

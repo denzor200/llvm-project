@@ -137,8 +137,8 @@ static LogicalResult emitOneBuilder(const Record &record, raw_ostream &os) {
     // First, insert the non-matched part as is.
     bs << builderStrRef.substr(0, loc.pos);
     // Then, rewrite the name based on its kind.
-    bool isVariadicOperand = isVariadicOperandName(op, name);
-    if (isOperandName(op, name)) {
+    
+    if (bool isVariadicOperand = isVariadicOperandName(op, name); isOperandName(op, name)) {
       auto result =
           isVariadicOperand
               ? formatv("moduleTranslation.lookupValues(op.{0}())", getterName)

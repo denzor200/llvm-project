@@ -574,9 +574,9 @@ ScheduleTreeOptimizer::optimizeBand(__isl_take isl_schedule_node *NodeArg,
   isl::schedule_node Node = isl::manage(NodeArg);
 
   if (OAI->PatternOpts && isPMOptimizableBandNode(Node)) {
-    isl::schedule_node PatternOptimizedSchedule =
-        tryOptimizeMatMulPattern(Node, OAI->TTI, OAI->D);
-    if (!PatternOptimizedSchedule.is_null()) {
+    
+    if (isl::schedule_node PatternOptimizedSchedule =
+        tryOptimizeMatMulPattern(Node, OAI->TTI, OAI->D); !PatternOptimizedSchedule.is_null()) {
       MatMulOpts++;
       OAI->DepsChanged = true;
       return PatternOptimizedSchedule.release();
@@ -674,9 +674,9 @@ static void walkScheduleTreeForStatistics(isl::schedule Schedule, int Version) {
       Root.get(),
       [](__isl_keep isl_schedule_node *nodeptr, void *user) -> isl_bool {
         isl::schedule_node Node = isl::manage_copy(nodeptr);
-        int Version = *static_cast<int *>(user);
+        
 
-        switch (isl_schedule_node_get_type(Node.get())) {
+        switch (int Version = *static_cast<int *>(user); isl_schedule_node_get_type(Node.get())) {
         case isl_schedule_node_band: {
           NumBands[Version]++;
           if (isl_schedule_node_band_get_permutable(Node.get()) ==

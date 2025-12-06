@@ -276,10 +276,10 @@ static bool unwrapCommand(std::vector<std::string> &Args) {
     // We need to distinguish between the first and second case.
     // The wrappers themselves don't take flags, so Args[1] is a compiler flag,
     // an input file, or a compiler. Inputs have extensions, compilers don't.
-    bool HasCompiler =
+    
+    if (bool HasCompiler =
         (Args[1][0] != '-') &&
-        !llvm::sys::path::has_extension(stripExecutableExtension(Args[1]));
-    if (HasCompiler) {
+        !llvm::sys::path::has_extension(stripExecutableExtension(Args[1])); HasCompiler) {
       Args.erase(Args.begin());
       return true;
     }

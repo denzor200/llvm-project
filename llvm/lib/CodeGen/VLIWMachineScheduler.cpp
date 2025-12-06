@@ -358,8 +358,8 @@ bool ConvergingVLIWScheduler::VLIWSchedBoundary::checkHazard(SUnit *SU) {
   if (HazardRec->isEnabled())
     return HazardRec->getHazardType(SU) != ScheduleHazardRecognizer::NoHazard;
 
-  unsigned uops = SchedModel->getNumMicroOps(SU->getInstr());
-  if (IssueCount + uops > SchedModel->getIssueWidth())
+  
+  if (unsigned uops = SchedModel->getNumMicroOps(SU->getInstr()); IssueCount + uops > SchedModel->getIssueWidth())
     return true;
 
   return false;

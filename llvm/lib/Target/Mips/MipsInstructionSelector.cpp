@@ -394,12 +394,12 @@ bool MipsInstructionSelector::select(MachineInstr &I) {
     if (MF.getTarget().isPositionIndependent()) {
       Register DestTmp = MRI.createVirtualRegister(&Mips::GPR32RegClass);
       LW->getOperand(0).setReg(DestTmp);
-      MachineInstr *ADDu = BuildMI(MBB, I, I.getDebugLoc(), TII.get(Mips::ADDu))
+      
+      if (MachineInstr *ADDu = BuildMI(MBB, I, I.getDebugLoc(), TII.get(Mips::ADDu))
                                .addDef(Dest)
                                .addUse(DestTmp)
                                .addUse(MF.getInfo<MipsFunctionInfo>()
-                                           ->getGlobalBaseRegForGlobalISel(MF));
-      if (!constrainSelectedInstRegOperands(*ADDu, TII, TRI, RBI))
+                                           ->getGlobalBaseRegForGlobalISel(MF)); !constrainSelectedInstRegOperands(*ADDu, TII, TRI, RBI))
         return false;
     }
 
@@ -443,12 +443,12 @@ bool MipsInstructionSelector::select(MachineInstr &I) {
     // into:
     // %LoadResult/%StoreSrc = NewOpc %BaseAddr(p0), 16_bit_signed_immediate
 
-    MachineInstr *Addr = MRI.getVRegDef(I.getOperand(1).getReg());
-    if (Addr->getOpcode() == G_PTR_ADD) {
-      MachineInstr *Offset = MRI.getVRegDef(Addr->getOperand(2).getReg());
-      if (Offset->getOpcode() == G_CONSTANT) {
-        APInt OffsetValue = Offset->getOperand(1).getCImm()->getValue();
-        if (OffsetValue.isSignedIntN(16)) {
+    
+    if (MachineInstr *Addr = MRI.getVRegDef(I.getOperand(1).getReg()); Addr->getOpcode() == G_PTR_ADD) {
+      
+      if (MachineInstr *Offset = MRI.getVRegDef(Addr->getOperand(2).getReg()); Offset->getOpcode() == G_CONSTANT) {
+        
+        if (APInt OffsetValue = Offset->getOperand(1).getCImm()->getValue(); OffsetValue.isSignedIntN(16)) {
           BaseAddr = Addr->getOperand(1);
           SignedOffset = OffsetValue.getSExtValue();
         }
@@ -659,8 +659,8 @@ bool MipsInstructionSelector::select(MachineInstr &I) {
     return true;
   }
   case G_GLOBAL_VALUE: {
-    const llvm::GlobalValue *GVal = I.getOperand(1).getGlobal();
-    if (MF.getTarget().isPositionIndependent()) {
+    
+    if (const llvm::GlobalValue *GVal = I.getOperand(1).getGlobal(); MF.getTarget().isPositionIndependent()) {
       MachineInstr *LWGOT = BuildMI(MBB, I, I.getDebugLoc(), TII.get(Mips::LW))
                                 .addDef(I.getOperand(0).getReg())
                                 .addReg(MF.getInfo<MipsFunctionInfo>()
@@ -752,10 +752,10 @@ bool MipsInstructionSelector::select(MachineInstr &I) {
     Register Temp = MRI.createVirtualRegister(&Mips::GPR32RegClass);
     Register LHS = I.getOperand(2).getReg();
     Register RHS = I.getOperand(3).getReg();
-    CmpInst::Predicate Cond =
-        static_cast<CmpInst::Predicate>(I.getOperand(1).getPredicate());
+    
 
-    switch (Cond) {
+    switch (CmpInst::Predicate Cond =
+        static_cast<CmpInst::Predicate>(I.getOperand(1).getPredicate()); Cond) {
     case CmpInst::ICMP_EQ: // LHS == RHS -> (LHS ^ RHS) < 1
       Instructions.emplace_back(Mips::XOR, Temp, LHS, RHS);
       Instructions.emplace_back(Mips::SLTiu, ICMPReg, Temp, 1);

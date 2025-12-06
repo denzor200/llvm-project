@@ -351,9 +351,9 @@ bool BranchRelaxation::isBlockInRange(const MachineInstr &MI,
   int64_t BrOffset = getInstrOffset(MI);
   int64_t DestOffset = BlockInfo[DestBB.getNumber()].Offset;
 
-  const MachineBasicBlock *SrcBB = MI.getParent();
+  
 
-  if (TII->isBranchOffsetInRange(MI.getOpcode(),
+  if (const MachineBasicBlock *SrcBB = MI.getParent(); TII->isBranchOffsetInRange(MI.getOpcode(),
                                  SrcBB->getSectionID() != DestBB.getSectionID()
                                      ? TM->getMaxCodeSize()
                                      : DestOffset - BrOffset))
@@ -472,8 +472,8 @@ bool BranchRelaxation::fixupConditionalBranch(MachineInstr &MI) {
   // b   L1
   // L2:
 
-  bool ReversedCond = !TII->reverseBranchCondition(Cond);
-  if (ReversedCond) {
+  
+  if (bool ReversedCond = !TII->reverseBranchCondition(Cond); ReversedCond) {
     if (FBB && isBlockInRange(MI, *FBB)) {
       // Last MI in the BB is an unconditional branch. We can simply invert the
       // condition and swap destinations:

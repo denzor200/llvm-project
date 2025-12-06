@@ -68,8 +68,8 @@ Error ExecutorResolutionGenerator::tryToGenerate(
         SymbolNameSet MissingSymbols;
         SymbolMap NewSyms;
         for (auto &[Name, Flags] : LookupSymbols) {
-          const auto &Sym = *Syms++;
-          if (Sym && Sym->getAddress())
+          
+          if (const auto &Sym = *Syms++; Sym && Sym->getAddress())
             NewSyms[Name] = *Sym;
           else if (LLVM_UNLIKELY(!Sym &&
                                  Flags == SymbolLookupFlags::RequiredSymbol))

@@ -479,8 +479,8 @@ static void writeFragment(raw_ostream &OS, const MCAssembler &Asm,
       OS << Ref;
 
     // do remainder if needed.
-    unsigned TrailingCount = FragmentSize % ChunkSize;
-    if (TrailingCount)
+    
+    if (unsigned TrailingCount = FragmentSize % ChunkSize; TrailingCount)
       OS.write(Data, TrailingCount);
     break;
   }
@@ -527,8 +527,8 @@ static void writeFragment(raw_ostream &OS, const MCAssembler &Asm,
   }
 
   case MCFragment::FT_BoundaryAlign: {
-    const MCBoundaryAlignFragment &BF = cast<MCBoundaryAlignFragment>(F);
-    if (!Asm.getBackend().writeNopData(OS, FragmentSize, BF.getSubtargetInfo()))
+    
+    if (const MCBoundaryAlignFragment &BF = cast<MCBoundaryAlignFragment>(F); !Asm.getBackend().writeNopData(OS, FragmentSize, BF.getSubtargetInfo()))
       report_fatal_error("unable to write nop sequence of " +
                          Twine(FragmentSize) + " bytes");
     break;
@@ -791,10 +791,10 @@ void MCAssembler::relaxLEB(MCFragment &F) {
   // Use evaluateKnownAbsolute for Mach-O as a hack: .subsections_via_symbols
   // requires that .uleb128 A-B is foldable where A and B reside in different
   // fragments. This is used by __gcc_except_table.
-  bool Abs = getWriter().getSubsectionsViaSymbols()
+  
+  if (bool Abs = getWriter().getSubsectionsViaSymbols()
                  ? F.getLEBValue().evaluateKnownAbsolute(Value, *this)
-                 : F.getLEBValue().evaluateAsAbsolute(Value, *this);
-  if (!Abs) {
+                 : F.getLEBValue().evaluateAsAbsolute(Value, *this); !Abs) {
     bool Relaxed, UseZeroPad;
     std::tie(Relaxed, UseZeroPad) = getBackend().relaxLEB128(F, Value);
     if (!Relaxed) {
@@ -903,8 +903,8 @@ void MCAssembler::relaxDwarfCallFrameFragment(MCFragment &F) {
 
   MCContext &Context = getContext();
   int64_t Value;
-  bool Abs = F.getDwarfAddrDelta().evaluateAsAbsolute(Value, *this);
-  if (!Abs) {
+  
+  if (bool Abs = F.getDwarfAddrDelta().evaluateAsAbsolute(Value, *this); !Abs) {
     reportError(F.getDwarfAddrDelta().getLoc(),
                 "invalid CFI advance_loc expression");
     F.setDwarfAddrDelta(MCConstantExpr::create(0, Context));
@@ -921,8 +921,8 @@ void MCAssembler::relaxSFrameFragment(MCFragment &F) {
   assert(F.getKind() == MCFragment::FT_SFrame);
   MCContext &C = getContext();
   int64_t Value;
-  bool Abs = F.getSFrameAddrDelta().evaluateAsAbsolute(Value, *this);
-  if (!Abs) {
+  
+  if (bool Abs = F.getSFrameAddrDelta().evaluateAsAbsolute(Value, *this); !Abs) {
     C.reportError(F.getSFrameAddrDelta().getLoc(),
                   "invalid CFI advance_loc expression in sframe");
     F.setSFrameAddrDelta(MCConstantExpr::create(0, C));

@@ -896,8 +896,8 @@ void MCAsmStreamer::emitXCOFFLocalCommonSymbol(MCSymbol *LabelSym,
 
   // Print symbol's rename (original name contains invalid character(s)) if
   // there is one.
-  auto *XSym = static_cast<MCSymbolXCOFF *>(CsectSym);
-  if (XSym->hasRename())
+  
+  if (auto *XSym = static_cast<MCSymbolXCOFF *>(CsectSym); XSym->hasRename())
     emitXCOFFRenameDirective(XSym, XSym->getSymbolTableName());
 }
 
@@ -1069,8 +1069,8 @@ void MCAsmStreamer::emitCommonSymbol(MCSymbol *Symbol, uint64_t Size,
   // Print symbol's rename (original name contains invalid character(s)) if
   // there is one.
   if (getContext().isXCOFF()) {
-    auto *XSym = static_cast<MCSymbolXCOFF *>(Symbol);
-    if (XSym && XSym->hasRename())
+    
+    if (auto *XSym = static_cast<MCSymbolXCOFF *>(Symbol); XSym && XSym->hasRename())
       emitXCOFFRenameDirective(XSym, XSym->getSymbolTableName());
   }
 }
@@ -1566,8 +1566,8 @@ void MCAsmStreamer::emitFileDirective(StringRef Filename,
   PrintQuotedString(Filename, OS);
   bool useTimeStamp = !TimeStamp.empty();
   bool useCompilerVersion = !CompilerVersion.empty();
-  bool useDescription = !Description.empty();
-  if (useTimeStamp || useCompilerVersion || useDescription) {
+  
+  if (bool useDescription = !Description.empty(); useTimeStamp || useCompilerVersion || useDescription) {
     OS << ",";
     if (useTimeStamp)
       PrintQuotedString(TimeStamp, OS);
@@ -1700,8 +1700,8 @@ void MCAsmStreamer::emitDwarfLocDirective(unsigned FileNo, unsigned Line,
     if (Flags & DWARF2_FLAG_EPILOGUE_BEGIN)
       OS << " epilogue_begin";
 
-    unsigned OldFlags = getContext().getCurrentDwarfLoc().getFlags();
-    if ((Flags & DWARF2_FLAG_IS_STMT) != (OldFlags & DWARF2_FLAG_IS_STMT)) {
+    
+    if (unsigned OldFlags = getContext().getCurrentDwarfLoc().getFlags(); (Flags & DWARF2_FLAG_IS_STMT) != (OldFlags & DWARF2_FLAG_IS_STMT)) {
       OS << " is_stmt ";
 
       if (Flags & DWARF2_FLAG_IS_STMT)
@@ -1947,8 +1947,8 @@ void MCAsmStreamer::EmitRegisterName(int64_t Register) {
     // User .cfi_* directives can use arbitrary DWARF register numbers, not
     // just ones that map to LLVM register numbers and have known names.
     // Fall back to using the original number directly if no name is known.
-    const MCRegisterInfo *MRI = getContext().getRegisterInfo();
-    if (std::optional<MCRegister> LLVMRegister =
+    
+    if (const MCRegisterInfo *MRI = getContext().getRegisterInfo(); std::optional<MCRegister> LLVMRegister =
             MRI->getLLVMRegNum(Register, true)) {
       InstPrinter->printRegName(OS, *LLVMRegister);
       return;
@@ -2196,8 +2196,8 @@ void MCAsmStreamer::emitWinEHHandler(const MCSymbol *Sym, bool Unwind,
   OS << "\t.seh_handler ";
   Sym->print(OS, MAI);
   char Marker = '@';
-  const Triple &T = getContext().getTargetTriple();
-  if (T.getArch() == Triple::arm || T.getArch() == Triple::thumb)
+  
+  if (const Triple &T = getContext().getTargetTriple(); T.getArch() == Triple::arm || T.getArch() == Triple::thumb)
     Marker = '%';
   if (Unwind)
     OS << ", " << Marker << "unwind";
@@ -2420,13 +2420,13 @@ void MCAsmStreamer::AddEncodingComment(const MCInst &Inst,
     OS << "  fixup " << char('A' + i) << " - "
        << "offset: " << F.getOffset() << ", value: ";
     MAI->printExpr(OS, *F.getValue());
-    auto Kind = F.getKind();
-    if (mc::isRelocation(Kind))
+    
+    if (auto Kind = F.getKind(); mc::isRelocation(Kind))
       OS << ", relocation type: " << Kind;
     else {
       OS << ", kind: ";
-      auto Info = getAssembler().getBackend().getFixupKindInfo(Kind);
-      if (F.isPCRel() && StringRef(Info.Name).starts_with("FK_Data_"))
+      
+      if (auto Info = getAssembler().getBackend().getFixupKindInfo(Kind); F.isPCRel() && StringRef(Info.Name).starts_with("FK_Data_"))
         OS << "FK_PCRel_" << (Info.TargetSize / 8);
       else
         OS << Info.Name;
@@ -2534,8 +2534,8 @@ void MCAsmStreamer::finishImpl() {
   // Emit the label for the line table, if requested - since the rest of the
   // line table will be defined by .loc/.file directives, and not emitted
   // directly, the label is the only work required here.
-  const auto &Tables = getContext().getMCDwarfLineTables();
-  if (!Tables.empty()) {
+  
+  if (const auto &Tables = getContext().getMCDwarfLineTables(); !Tables.empty()) {
     assert(Tables.size() == 1 && "asm output only supports one line table");
     if (auto *Label = Tables.begin()->second.getLabel()) {
       switchSection(getContext().getObjectFileInfo()->getDwarfLineSection(), 0);
@@ -2576,8 +2576,8 @@ void MCAsmStreamer::emitDwarfLineStartLabel(MCSymbol *StartSym) {
   // the debug section headers. In such cases, any label we placed occurs
   // after the implied length field. We need to adjust the reference here
   // to account for the offset introduced by the inserted length field.
-  MCContext &Ctx = getContext();
-  if (MAI->isAIX()) {
+  
+  if (MCContext &Ctx = getContext(); MAI->isAIX()) {
     MCSymbol *DebugLineSymTmp = Ctx.createTempSymbol("debug_line_");
     // Emit the symbol which does not contain the unit length field.
     emitLabel(DebugLineSymTmp);

@@ -55,8 +55,8 @@ ProcessElementList(StringTableBuilder &StrTabBuilder,
     FinalElement.DynamicMask = El.DynamicMask;
     FinalElement.Stream = El.Stream;
 
-    size_t Idx = FindSequence(IndexBuffer, El.Indices);
-    if (Idx == npos) {
+    
+    if (size_t Idx = FindSequence(IndexBuffer, El.Indices); Idx == npos) {
       FinalElement.IndicesOffset = static_cast<uint32_t>(IndexBuffer.size());
       llvm::append_range(IndexBuffer, El.Indices);
     } else

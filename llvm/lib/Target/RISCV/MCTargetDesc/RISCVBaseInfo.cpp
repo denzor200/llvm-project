@@ -192,9 +192,9 @@ int RISCVLoadFPImm::getLoadFPImm(APFloat FPImm) {
 
   // Convert to single precision to use its lookup table.
   bool LosesInfo;
-  APFloat::opStatus Status = FPImm.convert(
-      APFloat::IEEEsingle(), APFloat::rmNearestTiesToEven, &LosesInfo);
-  if (Status != APFloat::opOK || LosesInfo)
+  
+  if (APFloat::opStatus Status = FPImm.convert(
+      APFloat::IEEEsingle(), APFloat::rmNearestTiesToEven, &LosesInfo); Status != APFloat::opOK || LosesInfo)
     return -1;
 
   APInt Imm = FPImm.bitcastToAPInt();

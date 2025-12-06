@@ -60,9 +60,9 @@ SDValue RISCVSelectionDAGInfo::EmitTargetCodeForMemset(
     SelectionDAG &DAG, const SDLoc &dl, SDValue Chain, SDValue Dst, SDValue Src,
     SDValue Size, Align Alignment, bool isVolatile, bool AlwaysInline,
     MachinePointerInfo DstPtrInfo) const {
-  const auto &Subtarget = DAG.getSubtarget<RISCVSubtarget>();
+  
   // We currently do this only for Xqcilsm
-  if (!Subtarget.hasVendorXqcilsm())
+  if (const auto &Subtarget = DAG.getSubtarget<RISCVSubtarget>(); !Subtarget.hasVendorXqcilsm())
     return SDValue();
 
   // Do this only if we know the size at compile time.

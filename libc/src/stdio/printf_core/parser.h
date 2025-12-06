@@ -428,8 +428,8 @@ private:
   // the arg list must be read in order and with the correct types.
   template <class T> LIBC_INLINE cpp::optional<T> get_arg_value(size_t index) {
     if (!(index == 0 || index == args_index)) {
-      bool success = args_to_index(index);
-      if (!success) {
+      
+      if (bool success = args_to_index(index); !success) {
         // If we can't get to this index, then the value of the arg can't be
         // found.
         return cpp::optional<T>();

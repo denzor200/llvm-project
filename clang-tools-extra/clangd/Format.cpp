@@ -63,8 +63,8 @@ void closeBrackets(std::string &Code, const format::FormatStyle &Style) {
 
 static StringRef commentMarker(llvm::StringRef Line) {
   for (StringRef Marker : {"///", "//"}){
-    auto I = Line.rfind(Marker);
-    if (I != StringRef::npos)
+    
+    if (auto I = Line.rfind(Marker); I != StringRef::npos)
       return Line.substr(I, Marker.size());
   }
   return "";
@@ -391,8 +391,8 @@ transformCursorPosition(unsigned Offset,
     } else if (R.getOffset() < OriginalOffset) {
       // Replacement overlaps cursor.
       // Preserve position within replacement text, as far as possible.
-      unsigned PositionWithinReplacement = Offset - R.getOffset();
-      if (PositionWithinReplacement > R.getReplacementText().size()) {
+      
+      if (unsigned PositionWithinReplacement = Offset - R.getOffset(); PositionWithinReplacement > R.getReplacementText().size()) {
         Offset += R.getReplacementText().size();
         Offset -= PositionWithinReplacement;
       }

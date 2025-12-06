@@ -53,8 +53,8 @@ HexagonDYLDRendezvous::HexagonDYLDRendezvous(Process *process)
 
   // Cache a copy of the executable path
   if (m_process) {
-    Module *exe_mod = m_process->GetTarget().GetExecutableModulePointer();
-    if (exe_mod)
+    
+    if (Module *exe_mod = m_process->GetTarget().GetExecutableModulePointer(); exe_mod)
       exe_mod->GetFileSpec().GetPath(m_exe_path, PATH_MAX);
   }
 }

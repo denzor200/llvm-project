@@ -168,14 +168,14 @@ public:
 
   static bool isLikelyForwardingFunction(FunctionTemplateDecl *FT) {
     const auto *FD = FT->getTemplatedDecl();
-    const auto NumParams = FD->getNumParams();
+    
     // Check whether its last parameter is a parameter pack...
-    if (NumParams > 0) {
-      const auto *LastParam = FD->getParamDecl(NumParams - 1);
-      if (const auto *PET = dyn_cast<PackExpansionType>(LastParam->getType())) {
+    if (const auto NumParams = FD->getNumParams(); NumParams > 0) {
+      
+      if (const auto *LastParam = FD->getParamDecl(NumParams - 1); const auto *PET = dyn_cast<PackExpansionType>(LastParam->getType())) {
         // ... of the type T&&... or T...
-        const auto BaseType = PET->getPattern().getNonReferenceType();
-        if (const auto *TTPT =
+        
+        if (const auto BaseType = PET->getPattern().getNonReferenceType(); const auto *TTPT =
                 dyn_cast<TemplateTypeParmType>(BaseType.getTypePtr())) {
           // ... whose template parameter comes from the function directly
           if (FT->getTemplateParameters()->getDepth() == TTPT->getDepth()) {
@@ -266,11 +266,11 @@ std::string spellDirective(llvm::StringRef Prefix,
   auto DecompLoc = SM.getDecomposedLoc(DirectiveRange.getBegin());
   DirectiveLine = SM.getLineNumber(DecompLoc.first, DecompLoc.second);
   Offset = DecompLoc.second;
-  auto TargetColumn = SM.getColumnNumber(DecompLoc.first, DecompLoc.second) - 1;
+  
 
   // Pad with spaces before DirectiveRange to make sure it will be on right
   // column when patched.
-  if (Prefix.size() <= TargetColumn) {
+  if (auto TargetColumn = SM.getColumnNumber(DecompLoc.first, DecompLoc.second) - 1; Prefix.size() <= TargetColumn) {
     // There is enough space for Prefix and space before directive, use it.
     // We try to squeeze the Prefix into the same line whenever we can, as
     // putting onto a separate line won't work at the beginning of the file.
@@ -525,8 +525,8 @@ class DiagPatcher {
       if (RangeContents !=
           CurrentLines.slice(AlternateLine).take_front(RangeLen))
         continue;
-      int Delta = AlternateLine - OldStart;
-      if (!Closest.has_value() || abs(Delta) < abs(*Closest))
+      
+      if (int Delta = AlternateLine - OldStart; !Closest.has_value() || abs(Delta) < abs(*Closest))
         Closest = Delta;
     }
     // Couldn't find any viable matches in the current contents.

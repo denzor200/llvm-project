@@ -319,8 +319,8 @@ bool SearchableTableEmitter::compareBy(const Record *LHS, const Record *RHS,
 
   for (const GenericField &Field : Index.Fields) {
     const Init *LHSI = LHS->getValueInit(Field.Name);
-    const Init *RHSI = RHS->getValueInit(Field.Name);
-    if (int Cmp = CmpLTField(LHSI, RHSI, Field))
+    
+    if (const Init *RHSI = RHS->getValueInit(Field.Name); int Cmp = CmpLTField(LHSI, RHSI, Field))
       return Cmp < 0;
   }
   return false;

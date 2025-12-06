@@ -103,8 +103,8 @@ void ThumbRegisterInfo::emitLoadConstPool(
     const DebugLoc &dl, Register DestReg, unsigned SubIdx, int Val,
     ARMCC::CondCodes Pred, Register PredReg, unsigned MIFlags) const {
   MachineFunction &MF = *MBB.getParent();
-  const ARMSubtarget &STI = MF.getSubtarget<ARMSubtarget>();
-  if (STI.isThumb1Only()) {
+  
+  if (const ARMSubtarget &STI = MF.getSubtarget<ARMSubtarget>(); STI.isThumb1Only()) {
     assert((DestReg.isVirtual() || isARMLowRegister(DestReg)) &&
            "Thumb1 does not have ldr to high register");
     return emitThumb1LoadConstPool(MBB, MBBI, dl, DestReg, SubIdx, Val, Pred,
@@ -432,9 +432,9 @@ bool ThumbRegisterInfo::rewriteFrameIndex(MachineBasicBlock::iterator II,
   MachineInstrBuilder MIB(*MBB.getParent(), &MI);
   unsigned Opcode = MI.getOpcode();
   const MCInstrDesc &Desc = MI.getDesc();
-  unsigned AddrMode = (Desc.TSFlags & ARMII::AddrModeMask);
+  
 
-  if (Opcode == ARM::tADDframe) {
+  if (unsigned AddrMode = (Desc.TSFlags & ARMII::AddrModeMask); Opcode == ARM::tADDframe) {
     Offset += MI.getOperand(FrameRegIdx+1).getImm();
     Register DestReg = MI.getOperand(0).getReg();
 
@@ -503,8 +503,8 @@ bool ThumbRegisterInfo::rewriteFrameIndex(MachineBasicBlock::iterator II,
       unsigned BottomBits = (Offset / Scale) & Mask;
       bool CanMakeBottomByteZero = ((Offset - BottomBits * Scale) & 0xff) == 0;
       bool TopHalfZero = (Offset & 0xffff0000) == 0;
-      bool CanMakeTopHalfZero = ((Offset - Mask * Scale) & 0xffff0000) == 0;
-      if (!TopHalfZero && CanMakeTopHalfZero)
+      
+      if (bool CanMakeTopHalfZero = ((Offset - Mask * Scale) & 0xffff0000) == 0; !TopHalfZero && CanMakeTopHalfZero)
         InstrOffs = Mask;
       else if (!ST.useMovt() && CanMakeBottomByteZero)
         InstrOffs = BottomBits;

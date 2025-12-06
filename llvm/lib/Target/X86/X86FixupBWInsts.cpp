@@ -185,13 +185,13 @@ Register FixupBWInstPass::getSuperRegDestIfDead(MachineInstr *OrigMI) const {
   Register SuperDestReg = getX86SubSuperRegister(OrigDestReg, 32);
   assert(SuperDestReg.isValid() && "Invalid Operand");
 
-  const auto SubRegIdx = TRI->getSubRegIndex(SuperDestReg, OrigDestReg);
+  
 
   // Make sure that the sub-register that this instruction has as its
   // destination is the lowest order sub-register of the super-register.
   // If it isn't, then the register isn't really dead even if the
   // super-register is considered dead.
-  if (SubRegIdx == X86::sub_8bit_hi)
+  if (const auto SubRegIdx = TRI->getSubRegIndex(SuperDestReg, OrigDestReg); SubRegIdx == X86::sub_8bit_hi)
     return Register();
 
   // Test all regunits of the super register that are not part of the

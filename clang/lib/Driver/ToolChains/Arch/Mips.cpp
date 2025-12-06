@@ -290,8 +290,8 @@ void mips::getMIPSTargetFeatures(const Driver &D, const llvm::Triple &Triple,
   }
 
   if (Arg *A = Args.getLastArg(options::OPT_mnan_EQ)) {
-    StringRef Val = StringRef(A->getValue());
-    if (Val == "2008") {
+    
+    if (StringRef Val = StringRef(A->getValue()); Val == "2008") {
       if (mips::getIEEE754Standard(CPUName) & mips::Std2008) {
         Features.push_back("+nan2008");
         HasNaN2008Opt = true;
@@ -312,8 +312,8 @@ void mips::getMIPSTargetFeatures(const Driver &D, const llvm::Triple &Triple,
   }
 
   if (Arg *A = Args.getLastArg(options::OPT_mabs_EQ)) {
-    StringRef Val = StringRef(A->getValue());
-    if (Val == "2008") {
+    
+    if (StringRef Val = StringRef(A->getValue()); Val == "2008") {
       if (mips::getIEEE754Standard(CPUName) & mips::Std2008) {
         Features.push_back("+abs2008");
       } else {
@@ -390,13 +390,13 @@ void mips::getMIPSTargetFeatures(const Driver &D, const llvm::Triple &Triple,
                    "ginv");
 
   if (Arg *A = Args.getLastArg(options::OPT_mindirect_jump_EQ)) {
-    StringRef Val = StringRef(A->getValue());
-    if (Val == "hazard") {
+    
+    if (StringRef Val = StringRef(A->getValue()); Val == "hazard") {
       Arg *B =
           Args.getLastArg(options::OPT_mmicromips, options::OPT_mno_micromips);
-      Arg *C = Args.getLastArg(options::OPT_mips16, options::OPT_mno_mips16);
+      
 
-      if (B && B->getOption().matches(options::OPT_mmicromips))
+      if (Arg *C = Args.getLastArg(options::OPT_mips16, options::OPT_mno_mips16); B && B->getOption().matches(options::OPT_mmicromips))
         D.Diag(diag::err_drv_unsupported_indirect_jump_opt)
             << "hazard" << "micromips";
       else if (C && C->getOption().matches(options::OPT_mips16))

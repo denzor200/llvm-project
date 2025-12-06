@@ -42,8 +42,8 @@ void DominanceInfoBase<IsPostDom>::invalidate() {
 
 template <bool IsPostDom>
 void DominanceInfoBase<IsPostDom>::invalidate(Region *region) {
-  auto it = dominanceInfos.find(region);
-  if (it != dominanceInfos.end()) {
+  
+  if (auto it = dominanceInfos.find(region); it != dominanceInfos.end()) {
     delete it->second.getPointer();
     dominanceInfos.erase(it);
   }

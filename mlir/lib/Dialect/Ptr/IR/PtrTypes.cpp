@@ -142,8 +142,8 @@ LogicalResult PtrType::verifyEntries(DataLayoutEntryListRef entries,
   for (DataLayoutEntryInterface entry : entries) {
     if (!entry.isTypeEntry())
       continue;
-    auto key = llvm::cast<Type>(entry.getKey());
-    if (!llvm::isa<SpecAttr>(entry.getValue())) {
+    
+    if (auto key = llvm::cast<Type>(entry.getKey()); !llvm::isa<SpecAttr>(entry.getValue())) {
       return emitError(loc) << "expected layout attribute for " << key
                             << " to be a #ptr.spec attribute";
     }

@@ -106,8 +106,8 @@ std::optional<std::string> getRelativeIncludeName(const CompilerInstance &CI,
       // located in `iPhoneSimulator.sdk` (the real folder).
       if (NI->ends_with(".sdk") && DI->ends_with(".sdk")) {
         StringRef NBasename = path::stem(*NI);
-        StringRef DBasename = path::stem(*DI);
-        if (DBasename.starts_with(NBasename))
+        
+        if (StringRef DBasename = path::stem(*DI); DBasename.starts_with(NBasename))
           continue;
       }
 
@@ -457,8 +457,8 @@ bool ExtractAPIAction::PrepareToExecuteAction(CompilerInstance &CI) {
     else
       HeaderContents += "#include";
 
-    StringRef FilePath = FIF.getFile();
-    if (auto RelativeName = getRelativeIncludeName(CI, FilePath, &IsQuoted)) {
+    
+    if (StringRef FilePath = FIF.getFile(); auto RelativeName = getRelativeIncludeName(CI, FilePath, &IsQuoted)) {
       if (IsQuoted)
         HeaderContents += " \"";
       else

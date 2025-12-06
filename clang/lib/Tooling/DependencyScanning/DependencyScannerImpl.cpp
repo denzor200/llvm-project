@@ -316,8 +316,8 @@ class ScanningDependencyDirectivesGetter : public DependencyDirectivesGetter {
 public:
   ScanningDependencyDirectivesGetter(FileManager &FileMgr) : DepFS(nullptr) {
     FileMgr.getVirtualFileSystem().visit([&](llvm::vfs::FileSystem &FS) {
-      auto *DFS = llvm::dyn_cast<DependencyScanningWorkerFilesystem>(&FS);
-      if (DFS) {
+      
+      if (auto *DFS = llvm::dyn_cast<DependencyScanningWorkerFilesystem>(&FS); DFS) {
         assert(!DepFS && "Found multiple scanning VFSs");
         DepFS = DFS;
       }

@@ -394,8 +394,8 @@ void ProfiledBinary::setPreferredTextSegmentAddresses(const COFFObjectFile *Obj,
   FirstLoadableAddress = ImageBase;
 
   for (SectionRef Section : Obj->sections()) {
-    const coff_section *Sec = Obj->getCOFFSection(Section);
-    if (Sec->Characteristics & COFF::IMAGE_SCN_CNT_CODE)
+    
+    if (const coff_section *Sec = Obj->getCOFFSection(Section); Sec->Characteristics & COFF::IMAGE_SCN_CNT_CODE)
       TextSegmentOffsets.push_back(Sec->VirtualAddress);
   }
 }
@@ -426,8 +426,8 @@ void ProfiledBinary::checkPseudoProbe(const ObjectFile *Obj) {
   for (section_iterator SI = Obj->section_begin(), SE = Obj->section_end();
        SI != SE; ++SI) {
     const SectionRef &Section = *SI;
-    StringRef SectionName = unwrapOrError(Section.getName(), FileName);
-    if (SectionName == ".pseudo_probe_desc") {
+    
+    if (StringRef SectionName = unwrapOrError(Section.getName(), FileName); SectionName == ".pseudo_probe_desc") {
       HasProbeDescSection = true;
     } else if (SectionName == ".pseudo_probe") {
       HasPseudoProbeSection = true;
@@ -449,8 +449,8 @@ void ProfiledBinary::decodePseudoProbe(const ObjectFile *Obj) {
       FuncStartAddresses = SymbolStartAddrs;
     } else {
       for (auto &F : DisassembleFunctionSet) {
-        auto GUID = Function::getGUIDAssumingExternalLinkage(F.first());
-        if (auto StartAddr = SymbolStartAddrs.lookup(GUID)) {
+        
+        if (auto GUID = Function::getGUIDAssumingExternalLinkage(F.first()); auto StartAddr = SymbolStartAddrs.lookup(GUID)) {
           FuncStartAddresses[GUID] = StartAddr;
           FuncRange &Range = StartAddrToFuncRangeMap[StartAddr];
           GuidFilter.insert(
@@ -473,18 +473,18 @@ void ProfiledBinary::decodePseudoProbe(const ObjectFile *Obj) {
   for (section_iterator SI = Obj->section_begin(), SE = Obj->section_end();
        SI != SE; ++SI) {
     const SectionRef &Section = *SI;
-    StringRef SectionName = unwrapOrError(Section.getName(), FileName);
+    
 
-    if (SectionName == ".pseudo_probe_desc") {
-      StringRef Contents = unwrapOrError(Section.getContents(), FileName);
-      if (!ProbeDecoder.buildGUID2FuncDescMap(
+    if (StringRef SectionName = unwrapOrError(Section.getName(), FileName); SectionName == ".pseudo_probe_desc") {
+      
+      if (StringRef Contents = unwrapOrError(Section.getContents(), FileName); !ProbeDecoder.buildGUID2FuncDescMap(
               reinterpret_cast<const uint8_t *>(Contents.data()),
               Contents.size()))
         exitWithError(
             "Pseudo Probe decoder fail in .pseudo_probe_desc section");
     } else if (SectionName == ".pseudo_probe") {
-      StringRef Contents = unwrapOrError(Section.getContents(), FileName);
-      if (!ProbeDecoder.buildAddress2ProbeMap(
+      
+      if (StringRef Contents = unwrapOrError(Section.getContents(), FileName); !ProbeDecoder.buildAddress2ProbeMap(
               reinterpret_cast<const uint8_t *>(Contents.data()),
               Contents.size(), GuidFilter, FuncStartAddresses))
         exitWithError("Pseudo Probe decoder fail in .pseudo_probe section");
@@ -571,8 +571,8 @@ bool ProfiledBinary::dissassembleSymbol(std::size_t SI, ArrayRef<uint8_t> Bytes,
       else
         outs() << "\t<unknown>";
       if (ShowSourceLocations) {
-        unsigned Cur = outs().tell() - Start;
-        if (Cur < 40)
+        
+        if (unsigned Cur = outs().tell() - Start; Cur < 40)
           outs().indent(40 - Cur);
         InstructionPointer IP(this, Address);
         outs() << getReversedLocWithContext(
@@ -615,8 +615,8 @@ bool ProfiledBinary::dissassembleSymbol(std::size_t SI, ArrayRef<uint8_t> Bytes,
           // Any inter-function unconditional jump is considered tail call at
           // this point. This is not 100% accurate and could further be
           // optimized based on some source annotation.
-          FuncRange *ToFRange = findFuncRange(Target);
-          if (ToFRange && ToFRange->Func != FRange->Func)
+          
+          if (FuncRange *ToFRange = findFuncRange(Target); ToFRange && ToFRange->Func != FRange->Func)
             MissingContextInferrer->TailCallEdges[Address].insert(Target);
           LLVM_DEBUG({
             dbgs() << "Direct Tail call: " << format("%8" PRIx64 ":", Address);
@@ -713,8 +713,8 @@ void ProfiledBinary::disassemble(const ObjectFile *Obj) {
   for (const SymbolRef &Symbol : Obj->symbols()) {
     const uint64_t Addr = unwrapOrError(Symbol.getAddress(), FileName);
     const StringRef Name = unwrapOrError(Symbol.getName(), FileName);
-    section_iterator SecI = unwrapOrError(Symbol.getSection(), FileName);
-    if (SecI != Obj->section_end())
+    
+    if (section_iterator SecI = unwrapOrError(Symbol.getSection(), FileName); SecI != Obj->section_end())
       AllSymbols[*SecI].push_back(SymbolInfoTy(Addr, Name, ELF::STT_NOTYPE));
   }
 
@@ -889,8 +889,8 @@ void ProfiledBinary::loadSymbolsFromDWARF(ObjectFile &Obj) {
   // Handles DWO sections that can either be in .o, .dwo or .dwp files.
   uint32_t NumOfDWOMissing = 0;
   for (const auto &CompilationUnit : DebugContext->compile_units()) {
-    DWARFUnit *const DwarfUnit = CompilationUnit.get();
-    if (DwarfUnit->getDWOId()) {
+    
+    if (DWARFUnit *const DwarfUnit = CompilationUnit.get(); DwarfUnit->getDWOId()) {
       DWARFUnit *DWOCU = DwarfUnit->getNonSkeletonUnitDIE(false).getDwarfUnit();
       if (!DWOCU->isDWOUnit()) {
         NumOfDWOMissing++;
@@ -1025,8 +1025,8 @@ void ProfiledBinary::computeInlinedContextSizeForFunc(
   // Track optimized-away inlinee for probed binary. A function inlined and then
   // optimized away should still have their probes left over in places.
   if (usePseudoProbes()) {
-    auto I = TopLevelProbeFrameMap.find(Func->FuncName);
-    if (I != TopLevelProbeFrameMap.end()) {
+    
+    if (auto I = TopLevelProbeFrameMap.find(Func->FuncName); I != TopLevelProbeFrameMap.end()) {
       BinarySizeContextTracker::ProbeFrameStack ProbeContext;
       FuncSizeTracker.trackInlineesOptimizedAway(ProbeDecoder, *I->second,
                                                  ProbeContext);

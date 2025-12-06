@@ -95,9 +95,9 @@ static bool isprint32(char32_t codepoint) {
 
 DecodedCharBuffer attemptASCIIEscape(llvm::UTF32 c,
                                      StringPrinter::EscapeStyle escape_style) {
-  const bool is_swift_escape_style =
-      escape_style == StringPrinter::EscapeStyle::Swift;
-  switch (c) {
+  
+  switch (const bool is_swift_escape_style =
+      escape_style == StringPrinter::EscapeStyle::Swift; c) {
   case 0:
     return {"\\0", 2};
   case '\a':

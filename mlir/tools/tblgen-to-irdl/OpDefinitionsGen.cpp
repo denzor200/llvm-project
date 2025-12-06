@@ -44,8 +44,8 @@ static Value createPredicate(OpBuilder &builder, tblgen::Pred pred) {
   MLIRContext *ctx = builder.getContext();
 
   if (pred.isCombined()) {
-    auto combiner = pred.getDef().getValueAsDef("kind")->getName();
-    if (combiner == "PredCombinerAnd" || combiner == "PredCombinerOr") {
+    
+    if (auto combiner = pred.getDef().getValueAsDef("kind")->getName(); combiner == "PredCombinerAnd" || combiner == "PredCombinerOr") {
       std::vector<Value> constraints;
       for (auto *child : pred.getDef().getValueAsListOfDefs("children")) {
         constraints.push_back(createPredicate(builder, tblgen::Pred(child)));
@@ -106,8 +106,8 @@ static std::optional<Type> recordToType(MLIRContext *ctx,
 
   // Float types
   if (predRec.isSubClassOf("F")) {
-    auto width = predRec.getValueAsInt("bitwidth");
-    switch (width) {
+    
+    switch (auto width = predRec.getValueAsInt("bitwidth"); width) {
     case 16:
       return Float16Type::get(ctx);
     case 32:
@@ -163,8 +163,8 @@ static std::optional<Type> recordToType(MLIRContext *ctx,
 
   if (predRec.isSubClassOf("Complex")) {
     const Record *elementRec = predRec.getValueAsDef("elementType");
-    auto elementType = recordToType(ctx, *elementRec);
-    if (elementType.has_value()) {
+    
+    if (auto elementType = recordToType(ctx, *elementRec); elementType.has_value()) {
       return ComplexType::get(elementType.value());
     }
   }

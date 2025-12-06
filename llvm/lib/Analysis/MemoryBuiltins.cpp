@@ -262,8 +262,8 @@ getAllocationSize(const CallBase *CB, const TargetLibraryInfo *TLI) {
 
 static AllocFnKind getAllocFnKind(const Value *V) {
   if (const auto *CB = dyn_cast<CallBase>(V)) {
-    Attribute Attr = CB->getFnAttr(Attribute::AllocKind);
-    if (Attr.isValid())
+    
+    if (Attribute Attr = CB->getFnAttr(Attribute::AllocKind); Attr.isValid())
       return AllocFnKind(Attr.getValueAsInt());
   }
   return AllocFnKind::Unknown;
@@ -502,8 +502,8 @@ std::optional<FreeFnsTy> getFreeFunctionDataForFunction(const Function *Callee,
 std::optional<StringRef>
 llvm::getAllocationFamily(const Value *I, const TargetLibraryInfo *TLI) {
   if (const Function *Callee = getCalledFunction(I)) {
-    LibFunc TLIFn;
-    if (TLI && TLI->getLibFunc(*Callee, TLIFn) && TLI->has(TLIFn)) {
+    
+    if (LibFunc TLIFn; TLI && TLI->getLibFunc(*Callee, TLIFn) && TLI->has(TLIFn)) {
       // Callee is some known library function.
       const auto AllocData =
           getAllocationDataForFunction(Callee, AnyAlloc, TLI);
@@ -518,8 +518,8 @@ llvm::getAllocationFamily(const Value *I, const TargetLibraryInfo *TLI) {
   // Callee isn't a known library function, still check attributes.
   if (checkFnAllocKind(I, AllocFnKind::Free | AllocFnKind::Alloc |
                               AllocFnKind::Realloc)) {
-    Attribute Attr = cast<CallBase>(I)->getFnAttr("alloc-family");
-    if (Attr.isValid())
+    
+    if (Attribute Attr = cast<CallBase>(I)->getFnAttr("alloc-family"); Attr.isValid())
       return Attr.getValueAsString();
   }
   return std::nullopt;
@@ -547,8 +547,8 @@ bool llvm::isLibFreeFunction(const Function *F, const LibFunc TLIFn) {
 
 Value *llvm::getFreedOperand(const CallBase *CB, const TargetLibraryInfo *TLI) {
   if (const Function *Callee = getCalledFunction(CB)) {
-    LibFunc TLIFn;
-    if (TLI && TLI->getLibFunc(*Callee, TLIFn) && TLI->has(TLIFn) &&
+    
+    if (LibFunc TLIFn; TLI && TLI->getLibFunc(*Callee, TLIFn) && TLI->has(TLIFn) &&
         isLibFreeFunction(Callee, TLIFn)) {
       // All currently supported free functions free the first argument.
       return CB->getArgOperand(0);
@@ -673,20 +673,20 @@ Value *llvm::lowerObjectSizeCall(
       cast<ConstantInt>(ObjectSize->getArgOperand(2))->isOne();
 
   auto *ResultType = cast<IntegerType>(ObjectSize->getType());
-  bool StaticOnly = cast<ConstantInt>(ObjectSize->getArgOperand(3))->isZero();
-  if (StaticOnly) {
+  
+  if (bool StaticOnly = cast<ConstantInt>(ObjectSize->getArgOperand(3))->isZero(); StaticOnly) {
     // FIXME: Does it make sense to just return a failure value if the size won't
     // fit in the output and `!MustSucceed`?
-    uint64_t Size;
-    if (getObjectSize(ObjectSize->getArgOperand(0), Size, DL, TLI, EvalOptions) &&
+    
+    if (uint64_t Size; getObjectSize(ObjectSize->getArgOperand(0), Size, DL, TLI, EvalOptions) &&
         isUIntN(ResultType->getBitWidth(), Size))
       return ConstantInt::get(ResultType, Size);
   } else {
     LLVMContext &Ctx = ObjectSize->getFunction()->getContext();
     ObjectSizeOffsetEvaluator Eval(DL, TLI, Ctx, EvalOptions);
-    SizeOffsetValue SizeOffsetPair = Eval.compute(ObjectSize->getArgOperand(0));
+    
 
-    if (SizeOffsetPair != ObjectSizeOffsetEvaluator::unknown()) {
+    if (SizeOffsetValue SizeOffsetPair = Eval.compute(ObjectSize->getArgOperand(0)); SizeOffsetPair != ObjectSizeOffsetEvaluator::unknown()) {
       IRBuilder<TargetFolder, IRBuilderCallbackInserter> Builder(
           Ctx, TargetFolder(DL), IRBuilderCallbackInserter([&](Instruction *I) {
             if (InsertedInstructions)
@@ -740,8 +740,8 @@ combinePossibleConstantValues(std::optional<APInt> LHS,
 
 static std::optional<APInt> aggregatePossibleConstantValuesImpl(
     const Value *V, ObjectSizeOpts::Mode EvalMode, unsigned recursionDepth) {
-  constexpr unsigned maxRecursionDepth = 4;
-  if (recursionDepth == maxRecursionDepth)
+  
+  if (constexpr unsigned maxRecursionDepth = 4; recursionDepth == maxRecursionDepth)
     return std::nullopt;
 
   if (const auto *CI = dyn_cast<ConstantInt>(V)) {
@@ -1079,9 +1079,9 @@ OffsetSpan ObjectSizeOffsetVisitor::findLoadOffsetRange(
       continue;
 
     if (auto *SI = dyn_cast<StoreInst>(&I)) {
-      AliasResult AR =
-          Options.AA->alias(SI->getPointerOperand(), Load.getPointerOperand());
-      switch ((AliasResult::Kind)AR) {
+      
+      switch (AliasResult AR =
+          Options.AA->alias(SI->getPointerOperand(), Load.getPointerOperand()); (AliasResult::Kind)AR) {
       case AliasResult::NoAlias:
         continue;
       case AliasResult::MustAlias:
@@ -1095,9 +1095,9 @@ OffsetSpan ObjectSizeOffsetVisitor::findLoadOffsetRange(
     }
 
     if (auto *CB = dyn_cast<CallBase>(&I)) {
-      Function *Callee = CB->getCalledFunction();
+      
       // Bail out on indirect call.
-      if (!Callee)
+      if (Function *Callee = CB->getCalledFunction(); !Callee)
         return Unknown();
 
       LibFunc TLIFn;
@@ -1254,9 +1254,9 @@ SizeOffsetValue ObjectSizeOffsetEvaluator::compute(Value *V) {
     // that no dangling references are left behind. We could be a bit smarter if
     // we kept a dependency graph. It's probably not worth the complexity.
     for (const Value *SeenVal : SeenVals) {
-      CacheMapTy::iterator CacheIt = CacheMap.find(SeenVal);
+      
       // non-computable results can be safely cached
-      if (CacheIt != CacheMap.end() && CacheIt->second.anyKnown())
+      if (CacheMapTy::iterator CacheIt = CacheMap.find(SeenVal); CacheIt != CacheMap.end() && CacheIt->second.anyKnown())
         CacheMap.erase(CacheIt);
     }
 

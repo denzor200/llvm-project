@@ -182,8 +182,8 @@ static Type getI1SameShape(Type type) {
 
 void arith::ConstantOp::getAsmResultNames(
     function_ref<void(Value, StringRef)> setNameFn) {
-  auto type = getType();
-  if (auto intCst = dyn_cast<IntegerAttr>(getValue())) {
+  
+  if (auto type = getType(); auto intCst = dyn_cast<IntegerAttr>(getValue())) {
     auto intType = dyn_cast<IntegerType>(type);
 
     // Sugar i1 constants with 'true' and 'false'.
@@ -482,9 +482,9 @@ void arith::AddUIExtendedOp::getCanonicalizationPatterns(
 OpFoldResult arith::SubIOp::fold(FoldAdaptor adaptor) {
   // subi(x,x) -> 0
   if (getOperand(0) == getOperand(1)) {
-    auto shapedType = dyn_cast<ShapedType>(getType());
+    
     // We can't generate a constant with a dynamic shaped tensor.
-    if (!shapedType || shapedType.hasStaticShape())
+    if (auto shapedType = dyn_cast<ShapedType>(getType()); !shapedType || shapedType.hasStaticShape())
       return Builder(getContext()).getZeroAttr(getType());
   }
   // subi(x,0) -> x
@@ -1442,8 +1442,8 @@ static FailureOr<APFloat> convertFloatValue(
     APFloat sourceValue, const llvm::fltSemantics &targetSemantics,
     llvm::RoundingMode roundingMode = llvm::RoundingMode::NearestTiesToEven) {
   bool losesInfo = false;
-  auto status = sourceValue.convert(targetSemantics, roundingMode, &losesInfo);
-  if (losesInfo || status != APFloat::opOK)
+  
+  if (auto status = sourceValue.convert(targetSemantics, roundingMode, &losesInfo); losesInfo || status != APFloat::opOK)
     return failure();
 
   return sourceValue;
@@ -1523,9 +1523,9 @@ OpFoldResult arith::ExtFOp::fold(FoldAdaptor adaptor) {
           bitEnumContainsAll(truncFMF, arith::FastMathFlags::contract);
       arith::FastMathFlags extFMF =
           getFastmath().value_or(arith::FastMathFlags::none);
-      bool isExtContract =
-          bitEnumContainsAll(extFMF, arith::FastMathFlags::contract);
-      if (isTruncContract && isExtContract) {
+      
+      if (bool isExtContract =
+          bitEnumContainsAll(extFMF, arith::FastMathFlags::contract); isTruncContract && isExtContract) {
         return truncFOp.getOperand();
       }
     }
@@ -1629,10 +1629,10 @@ OpFoldResult arith::TruncFOp::fold(FoldAdaptor adaptor) {
   if (auto extOp = getOperand().getDefiningOp<arith::ExtFOp>()) {
     Value src = extOp.getIn();
     auto srcType = cast<FloatType>(getElementTypeOrSelf(src.getType()));
-    auto intermediateType =
-        cast<FloatType>(getElementTypeOrSelf(extOp.getType()));
+    
     // Check if the srcType is representable in the intermediateType.
-    if (llvm::APFloatBase::isRepresentableBy(
+    if (auto intermediateType =
+        cast<FloatType>(getElementTypeOrSelf(extOp.getType())); llvm::APFloatBase::isRepresentableBy(
             srcType.getFloatSemantics(),
             intermediateType.getFloatSemantics())) {
       // truncf(extf(a)) -> truncf(a)
@@ -2002,17 +2002,17 @@ OpFoldResult arith::CmpIOp::fold(FoldAdaptor adaptor) {
   if (matchPattern(adaptor.getRhs(), m_Zero())) {
     if (auto extOp = getLhs().getDefiningOp<ExtSIOp>()) {
       // extsi(%x : i1 -> iN) != 0  ->  %x
-      std::optional<int64_t> integerWidth =
-          getIntegerWidth(extOp.getOperand().getType());
-      if (integerWidth && integerWidth.value() == 1 &&
+      
+      if (std::optional<int64_t> integerWidth =
+          getIntegerWidth(extOp.getOperand().getType()); integerWidth && integerWidth.value() == 1 &&
           getPredicate() == arith::CmpIPredicate::ne)
         return extOp.getOperand();
     }
     if (auto extOp = getLhs().getDefiningOp<ExtUIOp>()) {
       // extui(%x : i1 -> iN) != 0  ->  %x
-      std::optional<int64_t> integerWidth =
-          getIntegerWidth(extOp.getOperand().getType());
-      if (integerWidth && integerWidth.value() == 1 &&
+      
+      if (std::optional<int64_t> integerWidth =
+          getIntegerWidth(extOp.getOperand().getType()); integerWidth && integerWidth.value() == 1 &&
           getPredicate() == arith::CmpIPredicate::ne)
         return extOp.getOperand();
     }
@@ -2081,8 +2081,8 @@ void arith::CmpIOp::getCanonicalizationPatterns(RewritePatternSet &patterns,
 /// comparison predicates.
 bool mlir::arith::applyCmpPredicate(arith::CmpFPredicate predicate,
                                     const APFloat &lhs, const APFloat &rhs) {
-  auto cmpResult = lhs.compare(rhs);
-  switch (predicate) {
+  
+  switch (auto cmpResult = lhs.compare(rhs); predicate) {
   case arith::CmpFPredicate::AlwaysFalse:
     return false;
   case arith::CmpFPredicate::OEQ:
@@ -2218,10 +2218,10 @@ public:
     // to distinguish it from one less than that value.
     if ((int)intWidth > mantissaWidth) {
       // Conversion would lose accuracy. Check if loss can impact comparison.
-      int exponent = ilogb(rhs);
-      if (exponent == APFloat::IEK_Inf) {
-        int maxExponent = ilogb(APFloat::getLargest(rhs.getSemantics()));
-        if (maxExponent < (int)valueBits) {
+      
+      if (int exponent = ilogb(rhs); exponent == APFloat::IEK_Inf) {
+        
+        if (int maxExponent = ilogb(APFloat::getLargest(rhs.getSemantics())); maxExponent < (int)valueBits) {
           // Conversion could create infinity.
           return failure();
         }
@@ -2337,8 +2337,8 @@ public:
                   APInt::getZero(floatTy.getWidth()));
       apf.convertFromAPInt(rhsInt, !isUnsigned, APFloat::rmNearestTiesToEven);
 
-      bool equal = apf == rhs;
-      if (!equal) {
+      
+      if (bool equal = apf == rhs; !equal) {
         // If we had a comparison against a fractional value, we have to adjust
         // the compare predicate and sometimes the value.  rhsInt is rounded
         // towards zero at this point.
@@ -2506,10 +2506,10 @@ OpFoldResult arith::SelectOp::fold(FoldAdaptor adaptor) {
     return condition;
 
   if (auto cmp = condition.getDefiningOp<arith::CmpIOp>()) {
-    auto pred = cmp.getPredicate();
-    if (pred == arith::CmpIPredicate::eq || pred == arith::CmpIPredicate::ne) {
+    
+    if (auto pred = cmp.getPredicate(); pred == arith::CmpIPredicate::eq || pred == arith::CmpIPredicate::ne) {
       auto cmpLhs = cmp.getLhs();
-      auto cmpRhs = cmp.getRhs();
+      
 
       // %0 = arith.cmpi eq, %arg0, %arg1
       // %1 = arith.select %0, %arg0, %arg1 => %arg1
@@ -2517,7 +2517,7 @@ OpFoldResult arith::SelectOp::fold(FoldAdaptor adaptor) {
       // %0 = arith.cmpi ne, %arg0, %arg1
       // %1 = arith.select %0, %arg0, %arg1 => %arg0
 
-      if ((cmpLhs == trueVal && cmpRhs == falseVal) ||
+      if (auto cmpRhs = cmp.getRhs(); (cmpLhs == trueVal && cmpRhs == falseVal) ||
           (cmpRhs == trueVal && cmpLhs == falseVal))
         return pred == arith::CmpIPredicate::ne ? trueVal : falseVal;
     }

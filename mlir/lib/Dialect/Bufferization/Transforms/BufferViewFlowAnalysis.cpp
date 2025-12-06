@@ -31,10 +31,10 @@ resolveValues(const BufferViewFlowAnalysis::ValueMapT &map, Value value) {
   SmallVector<Value, 8> queue;
   queue.push_back(value);
   while (!queue.empty()) {
-    Value currentValue = queue.pop_back_val();
-    if (result.insert(currentValue).second) {
-      auto it = map.find(currentValue);
-      if (it != map.end()) {
+    
+    if (Value currentValue = queue.pop_back_val(); result.insert(currentValue).second) {
+      
+      if (auto it = map.find(currentValue); it != map.end()) {
         for (Value aliasValue : it->second)
           queue.push_back(aliasValue);
       }
@@ -317,8 +317,8 @@ std::optional<bool> BufferOriginAnalysis::isSameAllocation(Value v1, Value v2) {
   // `v1` and `v2` originate from different allocations. The same argument can
   // be made when swapping `v1` and `v2`.
   bool isolatedAlloc1 = allAllocs1 && (allAllocs2 || allAllocsOrFuncEntryArgs2);
-  bool isolatedAlloc2 = (allAllocs1 || allAllocsOrFuncEntryArgs1) && allAllocs2;
-  if (isolatedAlloc1 || isolatedAlloc2)
+  
+  if (bool isolatedAlloc2 = (allAllocs1 || allAllocsOrFuncEntryArgs1) && allAllocs2; isolatedAlloc1 || isolatedAlloc2)
     return false;
 
   // Otherwise: We do not know whether `v1` and `v2` originate from the same

@@ -1283,8 +1283,8 @@ void ODRHash::AddStructuralValue(const APValue &Value) {
             OnePastTheEnd |= CAT->getSize() == E.getAsArrayIndex();
           TypeSoFar = AT->getElementType();
         } else {
-          const Decl *D = E.getAsBaseOrMember().getPointer();
-          if (const auto *FD = dyn_cast<FieldDecl>(D)) {
+          
+          if (const Decl *D = E.getAsBaseOrMember().getPointer(); const auto *FD = dyn_cast<FieldDecl>(D)) {
             if (FD->getParent()->isUnion())
               ID.AddInteger(FD->getFieldIndex());
             TypeSoFar = FD->getType();

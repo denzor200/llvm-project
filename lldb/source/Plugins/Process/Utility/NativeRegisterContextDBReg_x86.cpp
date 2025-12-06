@@ -113,8 +113,8 @@ NativeRegisterContextDBReg_x86::GetWatchpointHitIndex(uint32_t &wp_index,
   uint32_t num_hw_wps = NumSupportedHardwareWatchpoints();
   for (wp_index = 0; wp_index < num_hw_wps; ++wp_index) {
     bool is_hit;
-    Status error = IsWatchpointHit(wp_index, is_hit);
-    if (error.Fail()) {
+    
+    if (Status error = IsWatchpointHit(wp_index, is_hit); error.Fail()) {
       wp_index = LLDB_INVALID_INDEX32;
       return error;
     } else if (is_hit) {

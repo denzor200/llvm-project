@@ -33,8 +33,8 @@ using clang::analyze_format_string::ConversionSpecifier;
 /// unsigned, rather than explicit signed char or unsigned char types.
 static bool isRealCharType(const clang::QualType &Ty) {
   using namespace clang;
-  const Type *DesugaredType = Ty->getUnqualifiedDesugaredType();
-  if (const auto *BT = llvm::dyn_cast<BuiltinType>(DesugaredType))
+  
+  if (const Type *DesugaredType = Ty->getUnqualifiedDesugaredType(); const auto *BT = llvm::dyn_cast<BuiltinType>(DesugaredType))
     return (BT->getKind() == BuiltinType::Char_U ||
             BT->getKind() == BuiltinType::Char_S);
   return false;
@@ -159,8 +159,8 @@ static bool isMatchingSignedness(ConversionSpecifier::Kind ArgKind,
   if (const auto *BT = llvm::dyn_cast<BuiltinType>(ArgType)) {
     // Unadorned char never matches any expected signedness since it
     // could be signed or unsigned.
-    const auto ArgTypeKind = BT->getKind();
-    if (ArgTypeKind == BuiltinType::Char_U ||
+    
+    if (const auto ArgTypeKind = BT->getKind(); ArgTypeKind == BuiltinType::Char_U ||
         ArgTypeKind == BuiltinType::Char_S)
       return false;
   }
@@ -252,12 +252,12 @@ FormatStringConverter::formatStringContainsUnreplaceableMacro(
 
   for (auto I = FormatExpr->tokloc_begin(), E = FormatExpr->tokloc_end();
        I != E; ++I) {
-    const SourceLocation &TokenLoc = *I;
-    if (TokenLoc.isMacroID()) {
-      const StringRef MacroName =
-          Lexer::getImmediateMacroName(TokenLoc, SM, PP.getLangOpts());
+    
+    if (const SourceLocation &TokenLoc = *I; TokenLoc.isMacroID()) {
+      
 
-      if (MaybeSurroundingMacroName != MacroName) {
+      if (const StringRef MacroName =
+          Lexer::getImmediateMacroName(TokenLoc, SM, PP.getLangOpts()); MaybeSurroundingMacroName != MacroName) {
         // glibc uses __PRI64_PREFIX and __PRIPTR_PREFIX to define the prefixes
         // for types that change size so we must look for multiple prefixes.
         if (!MacroName.starts_with("PRI") && !MacroName.starts_with("__PRI"))
@@ -283,11 +283,11 @@ FormatStringConverter::formatStringContainsUnreplaceableMacro(
 
 void FormatStringConverter::emitAlignment(const PrintfSpecifier &FS,
                                           std::string &FormatSpec) {
-  const ConversionSpecifier::Kind ArgKind =
-      FS.getConversionSpecifier().getKind();
+  
 
   // We only care about alignment if a field width is specified
-  if (FS.getFieldWidth().getHowSpecified() != OptionalAmount::NotSpecified) {
+  if (const ConversionSpecifier::Kind ArgKind =
+      FS.getConversionSpecifier().getKind(); FS.getFieldWidth().getHowSpecified() != OptionalAmount::NotSpecified) {
     if (ArgKind == ConversionSpecifier::sArg) {
       // Strings are left-aligned by default with std::format, so we only
       // need to emit an alignment if this one needs to be right aligned.
@@ -304,12 +304,12 @@ void FormatStringConverter::emitAlignment(const PrintfSpecifier &FS,
 
 void FormatStringConverter::emitSign(const PrintfSpecifier &FS,
                                      std::string &FormatSpec) {
-  const ConversionSpecifier Spec = FS.getConversionSpecifier();
+  
 
   // Ignore on something that isn't numeric. For printf it's would be a
   // compile-time warning but ignored at runtime, but for std::format it
   // ought to be a compile-time error.
-  if (Spec.isAnyIntArg() || Spec.isDoubleArg()) {
+  if (const ConversionSpecifier Spec = FS.getConversionSpecifier(); Spec.isAnyIntArg() || Spec.isDoubleArg()) {
     // + is preferred to ' '
     if (FS.hasPlusPrefix())
       FormatSpec.push_back('+');
@@ -345,8 +345,8 @@ void FormatStringConverter::emitAlternativeForm(const PrintfSpecifier &FS,
 void FormatStringConverter::emitFieldWidth(const PrintfSpecifier &FS,
                                            std::string &FormatSpec) {
   {
-    const OptionalAmount FieldWidth = FS.getFieldWidth();
-    switch (FieldWidth.getHowSpecified()) {
+    
+    switch (const OptionalAmount FieldWidth = FS.getFieldWidth(); FieldWidth.getHowSpecified()) {
     case OptionalAmount::NotSpecified:
       break;
     case OptionalAmount::Constant:
@@ -370,8 +370,8 @@ void FormatStringConverter::emitFieldWidth(const PrintfSpecifier &FS,
 
 void FormatStringConverter::emitPrecision(const PrintfSpecifier &FS,
                                           std::string &FormatSpec) {
-  const OptionalAmount FieldPrecision = FS.getPrecision();
-  switch (FieldPrecision.getHowSpecified()) {
+  
+  switch (const OptionalAmount FieldPrecision = FS.getPrecision(); FieldPrecision.getHowSpecified()) {
   case OptionalAmount::NotSpecified:
     break;
   case OptionalAmount::Constant:
@@ -434,14 +434,14 @@ void FormatStringConverter::emitStringArgument(unsigned ArgIndex,
             .bind("call");
   }
 
-  auto CStrMatches = match(*StringCStrCallExprMatcher, *Arg, *Context);
-  if (CStrMatches.size() == 1)
+  
+  if (auto CStrMatches = match(*StringCStrCallExprMatcher, *Arg, *Context); CStrMatches.size() == 1)
     ArgCStrRemovals.push_back(CStrMatches.front());
   else if (Arg->getType()->isPointerType()) {
-    const QualType Pointee = Arg->getType()->getPointeeType();
+    
     // printf is happy to print signed char and unsigned char strings, but
     // std::format only likes char strings.
-    if (Pointee->isCharType() && !isRealCharType(Pointee))
+    if (const QualType Pointee = Arg->getType()->getPointeeType(); Pointee->isCharType() && !isRealCharType(Pointee))
       ArgFixes.emplace_back(ArgIndex, "reinterpret_cast<const char *>(");
   }
 }
@@ -500,9 +500,9 @@ bool FormatStringConverter::emitIntegerArgument(
 /// @returns true on success, false on failure
 bool FormatStringConverter::emitType(const PrintfSpecifier &FS, const Expr *Arg,
                                      std::string &FormatSpec) {
-  const ConversionSpecifier::Kind ArgKind =
-      FS.getConversionSpecifier().getKind();
-  switch (ArgKind) {
+  
+  switch (const ConversionSpecifier::Kind ArgKind =
+      FS.getConversionSpecifier().getKind(); ArgKind) {
   case ConversionSpecifier::Kind::sArg:
     emitStringArgument(FS.getArgIndex() + ArgsOffset, Arg);
     break;
@@ -810,8 +810,8 @@ void FormatStringConverter::applyFixes(DiagnosticBuilder &Diag,
 
   for (const auto &Match : ArgCStrRemovals) {
     const auto *Call = Match.getNodeAs<CallExpr>("call");
-    const std::string ArgText = withoutCStrReplacement(Match, *Context);
-    if (!ArgText.empty())
+    
+    if (const std::string ArgText = withoutCStrReplacement(Match, *Context); !ArgText.empty())
       Diag << FixItHint::CreateReplacement(Call->getSourceRange(), ArgText);
   }
 }

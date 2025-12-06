@@ -335,8 +335,8 @@ static llvm::Error parseRecord(const Record &R, unsigned ID,
 
 static llvm::Error parseRecord(const Record &R, unsigned ID,
                                llvm::StringRef Blob, CommentInfo *I) {
-  llvm::SmallString<16> KindStr;
-  switch (ID) {
+  
+  switch (llvm::SmallString<16> KindStr; ID) {
   case COMMENT_KIND:
     if (llvm::Error Err = decodeRecord(R, KindStr, Blob))
       return Err;
@@ -846,9 +846,9 @@ llvm::Error ClangDocBitcodeReader::readBlock(unsigned ID, T I) {
 
   while (true) {
     unsigned BlockOrCode = 0;
-    Cursor Res = skipUntilRecordOrBlock(BlockOrCode);
+    
 
-    switch (Res) {
+    switch (Cursor Res = skipUntilRecordOrBlock(BlockOrCode); Res) {
     case Cursor::BadBlock:
       return llvm::createStringError(llvm::inconvertibleErrorCode(),
                                      "bad block found");
@@ -896,13 +896,13 @@ template <typename T>
 llvm::Error ClangDocBitcodeReader::readSubBlock(unsigned ID, T I) {
   llvm::TimeTraceScope("Reducing infos", "readSubBlock");
 
-  static auto CreateAddFunc = [](auto AddFunc) {
+  
+
+  switch (static auto CreateAddFunc = [](auto AddFunc) {
     return [AddFunc](auto Parent, auto Child) {
       return AddFunc(Parent, std::move(Child));
     };
-  };
-
-  switch (ID) {
+  }; ID) {
   // Blocks can only have certain types of sub blocks.
   case BI_COMMENT_BLOCK_ID: {
     auto Comment = getCommentInfo(I);
@@ -1115,8 +1115,8 @@ ClangDocBitcodeReader::readBitcode() {
     Expected<unsigned> MaybeID = Stream.ReadSubBlockID();
     if (!MaybeID)
       return MaybeID.takeError();
-    unsigned ID = MaybeID.get();
-    switch (ID) {
+    
+    switch (unsigned ID = MaybeID.get(); ID) {
     // NamedType and Comment blocks should not appear at the top level
     case BI_TYPE_BLOCK_ID:
     case BI_FIELD_TYPE_BLOCK_ID:

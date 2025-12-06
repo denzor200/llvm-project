@@ -112,8 +112,8 @@ llvm::Error BreakpointIDList::FindAndReplaceIDRanges(
     } else {
       // See if user has specified id.*
       llvm::StringRef tmp_str = old_args[i].ref();
-      auto [prefix, suffix] = tmp_str.split('.');
-      if (suffix == "*" && BreakpointID::IsValidIDExpression(prefix)) {
+      
+      if (auto [prefix, suffix] = tmp_str.split('.'); suffix == "*" && BreakpointID::IsValidIDExpression(prefix)) {
 
         BreakpointSP breakpoint_sp;
         auto bp_id = BreakpointID::ParseCanonicalReference(prefix);
@@ -213,8 +213,8 @@ llvm::Error BreakpointIDList::FindAndReplaceIDRanges(
       if ((cur_bp_id == start_bp_id) &&
           (start_loc_id != LLDB_INVALID_BREAK_ID)) {
         for (size_t k = 0; k < num_locations; ++k) {
-          BreakpointLocation *bp_loc = breakpoint->GetLocationAtIndex(k).get();
-          if ((bp_loc->GetID() >= start_loc_id) &&
+          
+          if (BreakpointLocation *bp_loc = breakpoint->GetLocationAtIndex(k).get(); (bp_loc->GetID() >= start_loc_id) &&
               (bp_loc->GetID() <= end_loc_id)) {
             StreamString canonical_id_str;
             BreakpointID::GetCanonicalReference(&canonical_id_str, cur_bp_id,
@@ -225,8 +225,8 @@ llvm::Error BreakpointIDList::FindAndReplaceIDRanges(
       } else if ((cur_bp_id == end_bp_id) &&
                  (end_loc_id != LLDB_INVALID_BREAK_ID)) {
         for (size_t k = 0; k < num_locations; ++k) {
-          BreakpointLocation *bp_loc = breakpoint->GetLocationAtIndex(k).get();
-          if (bp_loc->GetID() <= end_loc_id) {
+          
+          if (BreakpointLocation *bp_loc = breakpoint->GetLocationAtIndex(k).get(); bp_loc->GetID() <= end_loc_id) {
             StreamString canonical_id_str;
             BreakpointID::GetCanonicalReference(&canonical_id_str, cur_bp_id,
                                                 bp_loc->GetID());
@@ -248,10 +248,10 @@ llvm::Error BreakpointIDList::FindAndReplaceIDRanges(
     // Remove any names that aren't visible for this purpose:
     auto iter = names_found.begin();
     while (iter != names_found.end()) {
-      BreakpointName *bp_name = target->FindBreakpointName(ConstString(*iter),
+      
+      if (BreakpointName *bp_name = target->FindBreakpointName(ConstString(*iter),
                                                            true,
-                                                           error);
-      if (bp_name && !bp_name->GetPermission(purpose))
+                                                           error); bp_name && !bp_name->GetPermission(purpose))
         iter = names_found.erase(iter);
       else
         iter++;

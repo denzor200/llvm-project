@@ -722,9 +722,9 @@ void codegen::setFunctionAttributes(StringRef CPU, StringRef Features,
     NewAttrs.addAttribute("target-cpu", CPU);
   if (!Features.empty()) {
     // Append the command line features to any that are already on the function.
-    StringRef OldFeatures =
-        F.getFnAttribute("target-features").getValueAsString();
-    if (OldFeatures.empty())
+    
+    if (StringRef OldFeatures =
+        F.getFnAttribute("target-features").getValueAsString(); OldFeatures.empty())
       NewAttrs.addAttribute("target-features", Features);
     else {
       SmallString<256> Appended(OldFeatures);

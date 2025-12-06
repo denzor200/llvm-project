@@ -265,8 +265,8 @@ void SignContextStack(void *context) {
 }
 
 void ReadContextStack(void *context, uptr *stack, uptr *ssize) {
-  const ucontext_t *ucp = reinterpret_cast<const ucontext_t *>(context);
-  if (HashContextStack(*ucp) == ucp->uc_stack.ss_flags) {
+  
+  if (const ucontext_t *ucp = reinterpret_cast<const ucontext_t *>(context); HashContextStack(*ucp) == ucp->uc_stack.ss_flags) {
     *stack = reinterpret_cast<uptr>(ucp->uc_stack.ss_sp);
     *ssize = ucp->uc_stack.ss_size;
     return;

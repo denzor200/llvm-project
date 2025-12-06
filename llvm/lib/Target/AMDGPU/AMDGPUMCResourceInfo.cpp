@@ -123,8 +123,8 @@ const MCExpr *MCResourceInfo::flattenedCycleMax(MCSymbol *RecSym,
   WorkList.push_back(RecExpr);
 
   while (!WorkList.empty()) {
-    const MCExpr *CurExpr = WorkList.pop_back_val();
-    switch (CurExpr->getKind()) {
+    
+    switch (const MCExpr *CurExpr = WorkList.pop_back_val(); CurExpr->getKind()) {
     default: {
       // Assuming the recursion is of shape `max(<constant>, <callee_symbol>)`
       // where <callee_symbol> will eventually recurse. If this condition holds,
@@ -160,17 +160,17 @@ const MCExpr *MCResourceInfo::flattenedCycleMax(MCSymbol *RecSym,
     }
     case MCExpr::ExprKind::SymbolRef: {
       const MCSymbolRefExpr *SymExpr = cast<MCSymbolRefExpr>(CurExpr);
-      const MCSymbol &SymRef = SymExpr->getSymbol();
-      if (SymRef.isVariable()) {
-        const MCExpr *SymVal = SymRef.getVariableValue();
-        if (Seen.insert(SymVal).second)
+      
+      if (const MCSymbol &SymRef = SymExpr->getSymbol(); SymRef.isVariable()) {
+        
+        if (const MCExpr *SymVal = SymRef.getVariableValue(); Seen.insert(SymVal).second)
           WorkList.push_back(SymVal);
       }
       break;
     }
     case MCExpr::ExprKind::Target: {
-      const AMDGPUMCExpr *TargetExpr = cast<AMDGPUMCExpr>(CurExpr);
-      if (TargetExpr->getKind() == AMDGPUMCExpr::VariantKind::AGVK_Max) {
+      
+      if (const AMDGPUMCExpr *TargetExpr = cast<AMDGPUMCExpr>(CurExpr); TargetExpr->getKind() == AMDGPUMCExpr::VariantKind::AGVK_Max) {
         for (auto &Arg : TargetExpr->getArgs())
           WorkList.push_back(Arg);
       }
@@ -209,12 +209,12 @@ void MCResourceInfo::assignResourceInfoExpr(
 
       bool IsCalleeLocal = Callee->hasLocalLinkage();
       MCSymbol *CalleeFnSym = TM.getSymbol(&Callee->getFunction());
-      MCSymbol *CalleeValSym =
-          getSymbol(CalleeFnSym->getName(), RIK, OutContext, IsCalleeLocal);
+      
 
       // Avoid constructing recursive definitions by detecting whether `Sym` is
       // found transitively within any of its `CalleeValSym`.
-      if (!CalleeValSym->isVariable() ||
+      if (MCSymbol *CalleeValSym =
+          getSymbol(CalleeFnSym->getName(), RIK, OutContext, IsCalleeLocal); !CalleeValSym->isVariable() ||
           !AMDGPUMCExpr::isSymbolUsedInExpression(
               Sym, CalleeValSym->getVariableValue())) {
         LLVM_DEBUG(dbgs() << "MCResUse:   " << Sym->getName() << ": Adding "
@@ -326,13 +326,13 @@ void MCResourceInfo::gatherResourceInfo(
       if (!Callee->isDeclaration()) {
         bool IsCalleeLocal = Callee->hasLocalLinkage();
         MCSymbol *CalleeFnSym = TM.getSymbol(&Callee->getFunction());
-        MCSymbol *CalleeValSym =
-            getSymbol(CalleeFnSym->getName(), RIK_PrivateSegSize, OutContext,
-                      IsCalleeLocal);
+        
 
         // Avoid constructing recursive definitions by detecting whether `Sym`
         // is found transitively within any of its `CalleeValSym`.
-        if (!CalleeValSym->isVariable() ||
+        if (MCSymbol *CalleeValSym =
+            getSymbol(CalleeFnSym->getName(), RIK_PrivateSegSize, OutContext,
+                      IsCalleeLocal); !CalleeValSym->isVariable() ||
             !AMDGPUMCExpr::isSymbolUsedInExpression(
                 Sym, CalleeValSym->getVariableValue())) {
           LLVM_DEBUG(dbgs() << "MCResUse:   " << Sym->getName() << ": Adding "

@@ -1554,8 +1554,8 @@ void HandleRootSignatureTarget(Sema &S, StringRef EntryRootSig) {
   std::unique_ptr<Parser> P(new Parser(S.getPreprocessor(), S, true));
   S.getPreprocessor().EnterMainSourceFile();
 
-  bool HaveLexer = S.getPreprocessor().getCurrentLexer();
-  if (HaveLexer) {
+  
+  if (bool HaveLexer = S.getPreprocessor().getCurrentLexer(); HaveLexer) {
     P->Initialize();
     S.ActOnStartOfTranslationUnit();
 
@@ -1563,11 +1563,11 @@ void HandleRootSignatureTarget(Sema &S, StringRef EntryRootSig) {
     while (P->getCurToken().getKind() != tok::eof)
       P->ConsumeAnyToken();
 
-    HLSLRootSignatureDecl *SignatureDecl =
-        S.HLSL().lookupRootSignatureOverrideDecl(
-            S.getASTContext().getTranslationUnitDecl());
+    
 
-    if (SignatureDecl)
+    if (HLSLRootSignatureDecl *SignatureDecl =
+        S.HLSL().lookupRootSignatureOverrideDecl(
+            S.getASTContext().getTranslationUnitDecl()); SignatureDecl)
       Consumer->HandleTopLevelDecl(DeclGroupRef(SignatureDecl));
     else
       S.getDiagnostics().Report(diag::err_hlsl_rootsignature_entry)

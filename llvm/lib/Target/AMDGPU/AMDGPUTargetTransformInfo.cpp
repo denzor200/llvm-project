@@ -136,9 +136,9 @@ void AMDGPUTTIImpl::getUnrollingPreferences(
   if (MDNode *LoopUnrollThreshold =
           findOptionMDForLoop(L, "amdgpu.loop.unroll.threshold")) {
     if (LoopUnrollThreshold->getNumOperands() == 2) {
-      ConstantInt *MetaThresholdValue = mdconst::extract_or_null<ConstantInt>(
-          LoopUnrollThreshold->getOperand(1));
-      if (MetaThresholdValue) {
+      
+      if (ConstantInt *MetaThresholdValue = mdconst::extract_or_null<ConstantInt>(
+          LoopUnrollThreshold->getOperand(1)); MetaThresholdValue) {
         // We will also use the supplied value for PartialThreshold for now.
         // We may introduce additional metadata if it becomes necessary in the
         // future.
@@ -168,8 +168,8 @@ void AMDGPUTTIImpl::getUnrollingPreferences(
       if (const BranchInst *Br = dyn_cast<BranchInst>(&I)) {
         if (UP.Threshold < MaxBoost && Br->isConditional()) {
           BasicBlock *Succ0 = Br->getSuccessor(0);
-          BasicBlock *Succ1 = Br->getSuccessor(1);
-          if ((L->contains(Succ0) && L->isLoopExiting(Succ0)) ||
+          
+          if (BasicBlock *Succ1 = Br->getSuccessor(1); (L->contains(Succ0) && L->isLoopExiting(Succ0)) ||
               (L->contains(Succ1) && L->isLoopExiting(Succ1)))
             continue;
           if (dependsOnLocalPhi(L, Br->getCondition())) {
@@ -359,8 +359,8 @@ unsigned GCNTTIImpl::getMaximumVF(unsigned ElemWidth, unsigned Opcode) const {
 unsigned GCNTTIImpl::getLoadVectorFactor(unsigned VF, unsigned LoadSize,
                                          unsigned ChainSizeInBytes,
                                          VectorType *VecTy) const {
-  unsigned VecRegBitWidth = VF * LoadSize;
-  if (VecRegBitWidth > 128 && VecTy->getScalarSizeInBits() < 32)
+  
+  if (unsigned VecRegBitWidth = VF * LoadSize; VecRegBitWidth > 128 && VecTy->getScalarSizeInBits() < 32)
     // TODO: Support element-size less than 32bit?
     return 128 / LoadSize;
 
@@ -370,8 +370,8 @@ unsigned GCNTTIImpl::getLoadVectorFactor(unsigned VF, unsigned LoadSize,
 unsigned GCNTTIImpl::getStoreVectorFactor(unsigned VF, unsigned StoreSize,
                                              unsigned ChainSizeInBytes,
                                              VectorType *VecTy) const {
-  unsigned VecRegBitWidth = VF * StoreSize;
-  if (VecRegBitWidth > 128)
+  
+  if (unsigned VecRegBitWidth = VF * StoreSize; VecRegBitWidth > 128)
     return 128 / StoreSize;
 
   return VF;
@@ -588,16 +588,16 @@ InstructionCost GCNTTIImpl::getArithmeticInstrCost(
     // fused operation.
     if (CxtI && CxtI->hasOneUse())
       if (const auto *FAdd = dyn_cast<BinaryOperator>(*CxtI->user_begin())) {
-        const int OPC = TLI->InstructionOpcodeToISD(FAdd->getOpcode());
-        if (OPC == ISD::FADD || OPC == ISD::FSUB) {
+        
+        if (const int OPC = TLI->InstructionOpcodeToISD(FAdd->getOpcode()); OPC == ISD::FADD || OPC == ISD::FSUB) {
           if (ST->hasMadMacF32Insts() && SLT == MVT::f32 && !HasFP32Denormals)
             return TargetTransformInfo::TCC_Free;
           if (ST->has16BitInsts() && SLT == MVT::f16 && !HasFP64FP16Denormals)
             return TargetTransformInfo::TCC_Free;
 
           // Estimate all types may be fused with contract/unsafe flags
-          const TargetOptions &Options = TLI->getTargetMachine().Options;
-          if (Options.AllowFPOpFusion == FPOpFusion::Fast ||
+          
+          if (const TargetOptions &Options = TLI->getTargetMachine().Options; Options.AllowFPOpFusion == FPOpFusion::Fast ||
               (FAdd->hasAllowContract() && CxtI->hasAllowContract()))
             return TargetTransformInfo::TCC_Free;
         }
@@ -831,8 +831,8 @@ InstructionCost GCNTTIImpl::getCFInstrCost(unsigned Opcode,
   switch (Opcode) {
   case Instruction::Br: {
     // Branch instruction takes about 4 slots on gfx900.
-    const auto *BI = dyn_cast_or_null<BranchInst>(I);
-    if (BI && BI->isUnconditional())
+    
+    if (const auto *BI = dyn_cast_or_null<BranchInst>(I); BI && BI->isUnconditional())
       return SCost ? 1 : 4;
     // Suppose conditional branch takes additional 3 exec manipulations
     // instructions in average.
@@ -939,12 +939,12 @@ bool GCNTTIImpl::isInlineAsmSourceOfDivergence(
 
     TLI->ComputeConstraintToUse(TC, SDValue());
 
-    const TargetRegisterClass *RC = TLI->getRegForInlineAsmConstraint(
-        TRI, TC.ConstraintCode, TC.ConstraintVT).second;
+    
 
     // For AGPR constraints null is returned on subtargets without AGPRs, so
     // assume divergent for null.
-    if (!RC || !TRI->isSGPRClass(RC))
+    if (const TargetRegisterClass *RC = TLI->getRegForInlineAsmConstraint(
+        TRI, TC.ConstraintCode, TC.ConstraintVT).second; !RC || !TRI->isSGPRClass(RC))
       return true;
   }
 
@@ -996,8 +996,8 @@ bool GCNTTIImpl::isSourceOfDivergence(const Value *V) const {
     return true;
 
   if (const IntrinsicInst *Intrinsic = dyn_cast<IntrinsicInst>(V)) {
-    Intrinsic::ID IID = Intrinsic->getIntrinsicID();
-    switch (IID) {
+    
+    switch (Intrinsic::ID IID = Intrinsic->getIntrinsicID(); IID) {
     case Intrinsic::read_register:
       return isReadRegisterSourceOfDivergence(Intrinsic);
     case Intrinsic::amdgcn_addrspacecast_nonnull: {
@@ -1138,8 +1138,8 @@ bool GCNTTIImpl::collectFlatAddressOperands(SmallVectorImpl<int> &OpIndexes,
 Value *GCNTTIImpl::rewriteIntrinsicWithAddressSpace(IntrinsicInst *II,
                                                     Value *OldV,
                                                     Value *NewV) const {
-  auto IntrID = II->getIntrinsicID();
-  switch (IntrID) {
+  
+  switch (auto IntrID = II->getIntrinsicID(); IntrID) {
   case Intrinsic::amdgcn_is_shared:
   case Intrinsic::amdgcn_is_private: {
     unsigned TrueAS = IntrID == Intrinsic::amdgcn_is_shared ?
@@ -1158,9 +1158,9 @@ Value *GCNTTIImpl::rewriteIntrinsicWithAddressSpace(IntrinsicInst *II,
 
     bool DoTruncate = false;
 
-    const GCNTargetMachine &TM =
-        static_cast<const GCNTargetMachine &>(getTLI()->getTargetMachine());
-    if (!TM.isNoopAddrSpaceCast(OldAS, NewAS)) {
+    
+    if (const GCNTargetMachine &TM =
+        static_cast<const GCNTargetMachine &>(getTLI()->getTargetMachine()); !TM.isNoopAddrSpaceCast(OldAS, NewAS)) {
       // All valid 64-bit to 32-bit casts work by chopping off the high
       // bits. Any masking only clearing the low bits will also apply in the new
       // address space.
@@ -1189,8 +1189,8 @@ Value *GCNTTIImpl::rewriteIntrinsicWithAddressSpace(IntrinsicInst *II,
   case Intrinsic::amdgcn_flat_atomic_fmin_num: {
     Type *DestTy = II->getType();
     Type *SrcTy = NewV->getType();
-    unsigned NewAS = SrcTy->getPointerAddressSpace();
-    if (!AMDGPU::isExtendedGlobalAddrSpace(NewAS))
+    
+    if (unsigned NewAS = SrcTy->getPointerAddressSpace(); !AMDGPU::isExtendedGlobalAddrSpace(NewAS))
       return nullptr;
     Module *M = II->getModule();
     Function *NewDecl = Intrinsic::getOrInsertDeclaration(
@@ -1251,8 +1251,8 @@ InstructionCost GCNTTIImpl::getShuffleCost(TTI::ShuffleKind Kind,
     // With op_sel VOP3P instructions freely can access the low half or high
     // half of a register, so any swizzle of two elements is free.
     if (auto *SrcVecTy = dyn_cast<FixedVectorType>(SrcTy)) {
-      unsigned NumSrcElts = SrcVecTy->getNumElements();
-      if (ST->hasVOP3PInsts() && ScalarSize == 16 && NumSrcElts == 2 &&
+      
+      if (unsigned NumSrcElts = SrcVecTy->getNumElements(); ST->hasVOP3PInsts() && ScalarSize == 16 && NumSrcElts == 2 &&
           (Kind == TTI::SK_Broadcast || Kind == TTI::SK_Reverse ||
            Kind == TTI::SK_PermuteSingleSrc))
         return 0;
@@ -1437,9 +1437,9 @@ static unsigned adjustInliningThresholdUsingCallee(const CallBase *CB,
     SmallVector<EVT, 4> ValueVTs;
     ComputeValueVTs(*TLI, DL, A.get()->getType(), ValueVTs);
     for (auto ArgVT : ValueVTs) {
-      unsigned CCRegNum = TLI->getNumRegistersForCallingConv(
-          CB->getContext(), CB->getCallingConv(), ArgVT);
-      if (AMDGPU::isArgPassedInSGPR(CB, CB->getArgOperandNo(&A)))
+      
+      if (unsigned CCRegNum = TLI->getNumRegistersForCallingConv(
+          CB->getContext(), CB->getCallingConv(), ArgVT); AMDGPU::isArgPassedInSGPR(CB, CB->getArgOperandNo(&A)))
         SGPRsInUse += CCRegNum;
       else
         VGPRsInUse += CCRegNum;
@@ -1505,8 +1505,8 @@ unsigned GCNTTIImpl::adjustInliningThreshold(const CallBase *CB) const {
 
   // Private object passed as arguments may end up in scratch usage if the call
   // is not inlined. Increase the inline threshold to promote inlining.
-  unsigned AllocaSize = getCallArgsTotalAllocaSize(CB, DL);
-  if (AllocaSize > 0)
+  
+  if (unsigned AllocaSize = getCallArgsTotalAllocaSize(CB, DL); AllocaSize > 0)
     Threshold += ArgAllocaCost;
   return Threshold;
 }

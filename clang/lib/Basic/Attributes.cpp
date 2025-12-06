@@ -65,8 +65,8 @@ int clang::hasAttribute(AttributeCommonInfo::Syntax Syntax, StringRef ScopeName,
       (Name == "directive" || Name == "sequence"))
     return 1;
 
-  int res = hasAttributeImpl(Syntax, Name, ScopeName, Target, LangOpts);
-  if (res)
+  
+  if (int res = hasAttributeImpl(Syntax, Name, ScopeName, Target, LangOpts); res)
     return res;
 
   if (CheckPlugins) {
@@ -127,14 +127,14 @@ static StringRef normalizeAttrName(StringRef AttrName,
                                    AttributeCommonInfo::Syntax SyntaxUsed) {
   // Normalize the attribute name, __foo__ becomes foo. This is only allowable
   // for GNU attributes, and attributes using the double square bracket syntax.
-  bool ShouldNormalize =
+  
+
+  if (bool ShouldNormalize =
       SyntaxUsed == AttributeCommonInfo::AS_GNU ||
       ((SyntaxUsed == AttributeCommonInfo::AS_CXX11 ||
         SyntaxUsed == AttributeCommonInfo::AS_C23) &&
        (NormalizedScopeName.empty() || NormalizedScopeName == "gnu" ||
-        NormalizedScopeName == "clang"));
-
-  if (ShouldNormalize)
+        NormalizedScopeName == "clang")); ShouldNormalize)
     return canonicalizeAttrName(AttrName);
 
   return AttrName;

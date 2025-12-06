@@ -31,8 +31,8 @@ static uint64_t debugStrOffsetsHeaderSize(DataExtractor StrOffsetsData,
   if (DwarfVersion <= 4)
     return 0; // There is no header before dwarf 5.
   uint64_t Offset = 0;
-  uint64_t Length = StrOffsetsData.getU32(&Offset);
-  if (Length == llvm::dwarf::DW_LENGTH_DWARF64)
+  
+  if (uint64_t Length = StrOffsetsData.getU32(&Offset); Length == llvm::dwarf::DW_LENGTH_DWARF64)
     return 16; // unit length: 12 bytes, version: 2 bytes, padding: 2 bytes.
   return 8;    // unit length: 4 bytes, version: 2 bytes, padding: 2 bytes.
 }
@@ -301,8 +301,8 @@ static std::string buildDWODescription(StringRef Name, StringRef DWPName,
   Text += Name;
   Text += '\'';
   bool HasDWO = !DWOName.empty();
-  bool HasDWP = !DWPName.empty();
-  if (HasDWO || HasDWP) {
+  
+  if (bool HasDWP = !DWPName.empty(); HasDWO || HasDWP) {
     Text += " (from ";
     if (HasDWO) {
       Text += '\'';
@@ -467,8 +467,8 @@ void writeStringsAndOffsets(
   Out.switchSection(StrOffsetSection);
 
   uint64_t Offset = 0;
-  uint64_t Size = CurStrOffsetSection.size();
-  if (Version > 4) {
+  
+  if (uint64_t Size = CurStrOffsetSection.size(); Version > 4) {
     while (Offset < Size) {
       const uint64_t HeaderSize = debugStrOffsetsHeaderSize(Data, Version);
       assert(HeaderSize <= Size - Offset &&
@@ -852,9 +852,9 @@ Error write(MCStreamer &Out, ArrayRef<std::string> Inputs,
 
             FoundCUUnit = true;
           } else if (Header.UnitType == dwarf::DW_UT_split_type) {
-            auto P = TypeIndexEntries.insert(
-                std::make_pair(*Header.Signature, Entry));
-            if (!P.second)
+            
+            if (auto P = TypeIndexEntries.insert(
+                std::make_pair(*Header.Signature, Entry)); !P.second)
               continue;
           }
           Out.emitBytes(

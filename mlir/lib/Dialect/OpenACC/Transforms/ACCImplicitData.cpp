@@ -384,8 +384,8 @@ static void fillInBoundsForUnknownDimensions(Operation *dataClauseOp,
   // For types that have unknown dimensions, attempt to generate bounds by
   // relying on MappableType being able to extract it from the IR.
   auto var = acc::getVar(dataClauseOp);
-  auto type = var.getType();
-  if (auto mappableTy = dyn_cast<acc::MappableType>(type)) {
+  
+  if (auto type = var.getType(); auto mappableTy = dyn_cast<acc::MappableType>(type)) {
     if (mappableTy.hasUnknownDimensions()) {
       TypeSwitch<Operation *>(dataClauseOp)
           .Case<ACC_DATA_ENTRY_OPS, ACC_DATA_EXIT_OPS>([&](auto dataClauseOp) {
@@ -393,8 +393,8 @@ static void fillInBoundsForUnknownDimensions(Operation *dataClauseOp,
               return;
             OpBuilder::InsertionGuard guard(builder);
             builder.setInsertionPoint(dataClauseOp);
-            auto bounds = mappableTy.generateAccBounds(var, builder);
-            if (!bounds.empty())
+            
+            if (auto bounds = mappableTy.generateAccBounds(var, builder); !bounds.empty())
               dataClauseOp.getBoundsMutable().assign(bounds);
           });
     }
@@ -455,18 +455,18 @@ void ACCImplicitData::generateRecipes(ModuleOp &module, OpBuilder &builder,
                                       const SmallVector<Value> &newOperands) {
   auto &accSupport = this->getAnalysis<acc::OpenACCSupport>();
   for (auto var : newOperands) {
-    auto loc{var.getLoc()};
-    if (auto privateOp = dyn_cast<acc::PrivateOp>(var.getDefiningOp())) {
-      auto recipe = generatePrivateRecipe(
-          module, acc::getVar(var.getDefiningOp()), loc, builder, accSupport);
-      if (recipe)
+    
+    if (auto loc{var.getLoc()}; auto privateOp = dyn_cast<acc::PrivateOp>(var.getDefiningOp())) {
+      
+      if (auto recipe = generatePrivateRecipe(
+          module, acc::getVar(var.getDefiningOp()), loc, builder, accSupport); recipe)
         privateOp.setRecipeAttr(
             SymbolRefAttr::get(module->getContext(), recipe.getSymName()));
     } else if (auto firstprivateOp =
                    dyn_cast<acc::FirstprivateOp>(var.getDefiningOp())) {
-      auto recipe = generateFirstprivateRecipe(
-          module, acc::getVar(var.getDefiningOp()), loc, builder, accSupport);
-      if (recipe)
+      
+      if (auto recipe = generateFirstprivateRecipe(
+          module, acc::getVar(var.getDefiningOp()), loc, builder, accSupport); recipe)
         firstprivateOp.setRecipeAttr(SymbolRefAttr::get(
             module->getContext(), recipe.getSymName().str()));
     } else {
@@ -717,7 +717,9 @@ static SmallVector<Value> getBaseRefsChain(Value val) {
 
 static void insertInSortedOrder(SmallVector<Value> &sortedDataClauseOperands,
                                 Operation *newClause) {
-  auto *insertPos =
+  
+
+  if (auto *insertPos =
       std::find_if(sortedDataClauseOperands.begin(),
                    sortedDataClauseOperands.end(), [&](Value dataClauseVal) {
                      // Get the base refs for the current clause we are looking
@@ -731,9 +733,7 @@ static void insertInSortedOrder(SmallVector<Value> &sortedDataClauseOperands,
                      // case.
                      return std::find(baseRefs.begin(), baseRefs.end(),
                                       acc::getVar(newClause)) != baseRefs.end();
-                   });
-
-  if (insertPos != sortedDataClauseOperands.end()) {
+                   }); insertPos != sortedDataClauseOperands.end()) {
     newClause->moveBefore(insertPos->getDefiningOp());
     sortedDataClauseOperands.insert(insertPos, acc::getAccVar(newClause));
   } else {

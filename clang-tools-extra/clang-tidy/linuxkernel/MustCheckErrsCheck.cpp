@@ -29,8 +29,8 @@ void MustCheckErrsCheck::registerMatchers(MatchFinder *Finder) {
 }
 
 void MustCheckErrsCheck::check(const MatchFinder::MatchResult &Result) {
-  const auto *MatchedCallExpr = Result.Nodes.getNodeAs<CallExpr>("call");
-  if (MatchedCallExpr) {
+  
+  if (const auto *MatchedCallExpr = Result.Nodes.getNodeAs<CallExpr>("call"); MatchedCallExpr) {
     diag(MatchedCallExpr->getExprLoc(), "result from function %0 is unused")
         << MatchedCallExpr->getDirectCallee();
   }

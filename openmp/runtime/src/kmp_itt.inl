@@ -78,8 +78,8 @@ LINKAGE kmp_itthash_entry *__kmp_itthash_find(kmp_info_t *thread,
 
   if (entry == NULL) {
     // two foreign threads could report frames concurrently
-    int cnt = KMP_TEST_THEN_INC32(&h->count);
-    if (cnt >= KMP_MAX_FRAME_DOMAINS) {
+    
+    if (int cnt = KMP_TEST_THEN_INC32(&h->count); cnt >= KMP_MAX_FRAME_DOMAINS) {
       KMP_TEST_THEN_DEC32(&h->count); // revert the count
       return entry; // too many entries
     }
@@ -192,8 +192,8 @@ LINKAGE void __kmp_itt_frame_submit(int gtid, __itt_timestamp begin,
   kmp_info_t *th = __kmp_thread_from_gtid(gtid);
   if (region) {
     kmp_team_t *team = __kmp_team_from_gtid(gtid);
-    int serialized = (region == 2 ? 1 : 0);
-    if (team->t.t_active_level + serialized > 1) {
+    
+    if (int serialized = (region == 2 ? 1 : 0); team->t.t_active_level + serialized > 1) {
       // The frame notifications are only supported for the outermost teams.
       return;
     }
@@ -856,8 +856,8 @@ void __kmp_itt_ordered_init(int gtid) {
 void __kmp_itt_ordered_prep(int gtid) {
 #if USE_ITT_NOTIFY
   if (__itt_sync_create_ptr) {
-    kmp_team_t *t = __kmp_team_from_gtid(gtid);
-    if (!t->t.t_serialized) {
+    
+    if (kmp_team_t *t = __kmp_team_from_gtid(gtid); !t->t.t_serialized) {
       kmp_info_t *th = __kmp_thread_from_gtid(gtid);
       __itt_sync_prepare(th->th.th_dispatch->th_dispatch_sh_current);
     }
@@ -868,8 +868,8 @@ void __kmp_itt_ordered_prep(int gtid) {
 void __kmp_itt_ordered_start(int gtid) {
 #if USE_ITT_NOTIFY
   if (__itt_sync_create_ptr) {
-    kmp_team_t *t = __kmp_team_from_gtid(gtid);
-    if (!t->t.t_serialized) {
+    
+    if (kmp_team_t *t = __kmp_team_from_gtid(gtid); !t->t.t_serialized) {
       kmp_info_t *th = __kmp_thread_from_gtid(gtid);
       __itt_sync_acquired(th->th.th_dispatch->th_dispatch_sh_current);
     }
@@ -880,8 +880,8 @@ void __kmp_itt_ordered_start(int gtid) {
 void __kmp_itt_ordered_end(int gtid) {
 #if USE_ITT_NOTIFY
   if (__itt_sync_create_ptr) {
-    kmp_team_t *t = __kmp_team_from_gtid(gtid);
-    if (!t->t.t_serialized) {
+    
+    if (kmp_team_t *t = __kmp_team_from_gtid(gtid); !t->t.t_serialized) {
       kmp_info_t *th = __kmp_thread_from_gtid(gtid);
       __itt_sync_releasing(th->th.th_dispatch->th_dispatch_sh_current);
     }

@@ -157,9 +157,9 @@ Constant *InstCostVisitor::findConstantFor(Value *V) const {
 Cost InstCostVisitor::getCodeSizeSavingsFromPendingPHIs() {
   Cost CodeSize;
   while (!PendingPHIs.empty()) {
-    Instruction *Phi = PendingPHIs.pop_back_val();
+    
     // The pending PHIs could have been proven dead by now.
-    if (isBlockExecutable(Phi->getParent()))
+    if (Instruction *Phi = PendingPHIs.pop_back_val(); isBlockExecutable(Phi->getParent()))
       CodeSize += getCodeSizeSavingsForUser(Phi);
   }
   return CodeSize;
@@ -271,8 +271,8 @@ Cost InstCostVisitor::estimateSwitchInst(SwitchInst &I) {
   // to \p C. They should be executable and have a unique predecessor.
   SmallVector<BasicBlock *> WorkList;
   for (const auto &Case : I.cases()) {
-    BasicBlock *BB = Case.getCaseSuccessor();
-    if (BB != Succ && isBlockExecutable(BB) &&
+    
+    if (BasicBlock *BB = Case.getCaseSuccessor(); BB != Succ && isBlockExecutable(BB) &&
         canEliminateSuccessor(I.getParent(), BB))
       WorkList.push_back(BB);
   }
@@ -594,9 +594,9 @@ void FunctionSpecializer::promoteConstantStackValues(Function *F) {
     for (const Use &U : Call->args()) {
       unsigned Idx = Call->getArgOperandNo(&U);
       Value *ArgOp = Call->getArgOperand(Idx);
-      Type *ArgOpType = ArgOp->getType();
+      
 
-      if (!Call->onlyReadsMemory(Idx) || !ArgOpType->isPointerTy())
+      if (Type *ArgOpType = ArgOp->getType(); !Call->onlyReadsMemory(Idx) || !ArgOpType->isPointerTy())
         continue;
 
       auto *ConstVal = getConstantStackValue(Call, ArgOp);
@@ -796,18 +796,18 @@ bool FunctionSpecializer::run() {
                         << " to call " << Clone->getName() << "\n");
       Call->setCalledFunction(S.Clone);
       auto &BFI = GetBFI(*Call->getFunction());
-      std::optional<uint64_t> Count =
-          BFI.getBlockProfileCount(Call->getParent());
-      if (Count && !ProfcheckDisableMetadataFixes) {
-        std::optional<llvm::Function::ProfileCount> MaybeCloneCount =
-            Clone->getEntryCount();
-        if (MaybeCloneCount) {
+      
+      if (std::optional<uint64_t> Count =
+          BFI.getBlockProfileCount(Call->getParent()); Count && !ProfcheckDisableMetadataFixes) {
+        
+        if (std::optional<llvm::Function::ProfileCount> MaybeCloneCount =
+            Clone->getEntryCount(); MaybeCloneCount) {
           uint64_t CallCount = *Count + MaybeCloneCount->getCount();
           Clone->setEntryCount(CallCount);
           if (std::optional<llvm::Function::ProfileCount> MaybeOriginalCount =
                   S.F->getEntryCount()) {
-            uint64_t OriginalCount = MaybeOriginalCount->getCount();
-            if (OriginalCount >= *Count) {
+            
+            if (uint64_t OriginalCount = MaybeOriginalCount->getCount(); OriginalCount >= *Count) {
               S.F->setEntryCount(OriginalCount - *Count);
             } else {
               // This should generally not happen as that would mean there are
@@ -837,8 +837,8 @@ bool FunctionSpecializer::run() {
     if (F->getReturnType()->isVoidTy())
       continue;
     if (F->getReturnType()->isStructTy()) {
-      auto *STy = cast<StructType>(F->getReturnType());
-      if (!Solver.isStructLatticeConstant(F, STy))
+      
+      if (auto *STy = cast<StructType>(F->getReturnType()); !Solver.isStructLatticeConstant(F, STy))
         continue;
     } else {
       auto It = Solver.getTrackedRetVals().find(F);

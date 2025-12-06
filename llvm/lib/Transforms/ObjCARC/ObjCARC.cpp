@@ -32,8 +32,8 @@ CallInst *objcarc::createCallInstWithColors(
   if (!BlockColors.empty()) {
     const ColorVector &CV = BlockColors.find(InsertBefore->getParent())->second;
     assert(CV.size() == 1 && "non-unique color for block!");
-    BasicBlock::iterator EHPad = CV.front()->getFirstNonPHIIt();
-    if (EHPad->isEHPad())
+    
+    if (BasicBlock::iterator EHPad = CV.front()->getFirstNonPHIIt(); EHPad->isEHPad())
       OpBundles.emplace_back("funclet", &*EHPad);
   }
 
@@ -120,8 +120,8 @@ BundledRetainClaimRVs::~BundledRetainClaimRVs() {
       // Find the clang.arc.attachedcall bundle, and rewrite its operand.
       if (UseClaimRV) {
         for (auto OBI : CB->bundle_op_infos()) {
-          auto OBU = CB->operandBundleFromBundleOpInfo(OBI);
-          if (OBU.getTagID() == LLVMContext::OB_clang_arc_attachedcall &&
+          
+          if (auto OBU = CB->operandBundleFromBundleOpInfo(OBI); OBU.getTagID() == LLVMContext::OB_clang_arc_attachedcall &&
               OBU.Inputs[0] == EP.get(ARCRuntimeEntryPointKind::RetainRV)) {
             CB->setOperand(OBI.Begin,
                            EP.get(ARCRuntimeEntryPointKind::ClaimRV));

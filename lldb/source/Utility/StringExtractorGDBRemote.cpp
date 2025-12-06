@@ -22,8 +22,8 @@ StringExtractorGDBRemote::GetResponseType() const {
     if (isxdigit(m_packet[1]) && isxdigit(m_packet[2])) {
       if (m_packet.size() == 3)
         return eError;
-      llvm::StringRef packet_ref(m_packet);
-      if (packet_ref[3] == ';') {
+      
+      if (llvm::StringRef packet_ref(m_packet); packet_ref[3] == ';') {
         auto err_string = packet_ref.substr(4);
         for (auto e : err_string)
           if (!isxdigit(e))
@@ -500,8 +500,8 @@ lldb_private::Status StringExtractorGDBRemote::GetStatus() {
     SetFilePos(1);
     uint8_t errc = GetHexU8(255);
     error = lldb_private::Status::FromErrorStringWithFormat("Error %u", errc);
-    std::string error_messg;
-    if (GetChar() == ';') {
+    
+    if (std::string error_messg; GetChar() == ';') {
       GetHexByteString(error_messg);
       error = lldb_private::Status(error_messg);
     }
@@ -515,8 +515,8 @@ size_t StringExtractorGDBRemote::GetEscapedBinaryData(std::string &str) {
   // characters. If any 0x7d characters are left in the packet, then they are
   // supposed to be there...
   str.clear();
-  const size_t bytes_left = GetBytesLeft();
-  if (bytes_left > 0) {
+  
+  if (const size_t bytes_left = GetBytesLeft(); bytes_left > 0) {
     str.assign(m_packet, m_index, bytes_left);
     m_index += bytes_left;
   }

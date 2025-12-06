@@ -31,8 +31,8 @@ MCContext &MCAsmBackend::getContext() const { return Asm->getContext(); }
 std::unique_ptr<MCObjectWriter>
 MCAsmBackend::createObjectWriter(raw_pwrite_stream &OS) const {
   auto TW = createObjectTargetWriter();
-  bool IsLE = Endian == llvm::endianness::little;
-  switch (TW->getFormat()) {
+  
+  switch (bool IsLE = Endian == llvm::endianness::little; TW->getFormat()) {
   case Triple::MachO:
     return std::make_unique<MachObjectWriter>(
         cast<MCMachObjectTargetWriter>(std::move(TW)), OS, IsLE);
@@ -65,8 +65,8 @@ MCAsmBackend::createObjectWriter(raw_pwrite_stream &OS) const {
 std::unique_ptr<MCObjectWriter>
 MCAsmBackend::createDwoObjectWriter(raw_pwrite_stream &OS,
                                     raw_pwrite_stream &DwoOS) const {
-  auto TW = createObjectTargetWriter();
-  switch (TW->getFormat()) {
+  
+  switch (auto TW = createObjectTargetWriter(); TW->getFormat()) {
   case Triple::COFF:
     return createWinCOFFDwoObjectWriter(
         cast<MCWinCOFFObjectTargetWriter>(std::move(TW)), OS, DwoOS);

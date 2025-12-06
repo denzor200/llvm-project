@@ -301,9 +301,9 @@ parseCommonStructuredOpParts(OpAsmParser &parser, OperationState &result,
     }
   }
   if (!result.propertiesAttr) {
-    std::optional<RegisteredOperationName> info =
-        result.name.getRegisteredInfo();
-    if (info) {
+    
+    if (std::optional<RegisteredOperationName> info =
+        result.name.getRegisteredInfo(); info) {
       if (failed(info->verifyInherentAttrs(result.attributes, [&]() {
             return parser.emitError(attrsLoc)
                    << "'" << result.name.getStringRef() << "' op ";
@@ -843,9 +843,9 @@ struct FoldInsertPadIntoFill : public OpRewritePattern<tensor::InsertSliceOp> {
         int64_t prevEnd = prevStart + (prevOp.getStaticSize(i) - 1) *
                                           prevOp.getStaticStride(i);
         int64_t nextStart = insertOp.getStaticOffset(i);
-        int64_t nextEnd = nextStart + (insertOp.getStaticSize(i) - 1) *
-                                          insertOp.getStaticStride(i);
-        if (prevEnd < nextStart || nextEnd < prevStart) {
+        
+        if (int64_t nextEnd = nextStart + (insertOp.getStaticSize(i) - 1) *
+                                          insertOp.getStaticStride(i); prevEnd < nextStart || nextEnd < prevStart) {
           disjoint = true;
           break;
         }
@@ -1624,9 +1624,9 @@ static void printShortForm(OpAsmPrinter &p, Operation *payloadOp) {
   std::string attrToElide;
   p << " { " << payloadOp->getName().getStringRef();
   for (const auto &attr : payloadOp->getAttrs()) {
-    auto fastAttr =
-        llvm::dyn_cast<mlir::arith::FastMathFlagsAttr>(attr.getValue());
-    if (fastAttr && fastAttr.getValue() == mlir::arith::FastMathFlags::none) {
+    
+    if (auto fastAttr =
+        llvm::dyn_cast<mlir::arith::FastMathFlagsAttr>(attr.getValue()); fastAttr && fastAttr.getValue() == mlir::arith::FastMathFlags::none) {
       attrToElide = attr.getName().str();
       elidedAttrs.push_back(attrToElide);
       break;
@@ -1676,9 +1676,9 @@ LogicalResult MapOp::verify() {
   // The parameters of mapper should all match the element type of inputs.
   for (const auto &[bbArgType, inputArg] :
        llvm::zip(bodyBlock->getArgumentTypes(), getInputs())) {
-    auto inputElemType =
-        llvm::cast<ShapedType>(inputArg.getType()).getElementType();
-    if (bbArgType != inputElemType) {
+    
+    if (auto inputElemType =
+        llvm::cast<ShapedType>(inputArg.getType()).getElementType(); bbArgType != inputElemType) {
       return emitOpError() << "expected element type of input " << inputElemType
                            << " to match bbArg type " << bbArgType;
     }
@@ -1687,8 +1687,8 @@ LogicalResult MapOp::verify() {
   // The shape of each input must match the shape of the output.
   auto outputShape = getInit().getType().getShape();
   for (Type inputArgType : TypeRange{getInputs()}) {
-    auto inputElemShape = llvm::cast<ShapedType>(inputArgType).getShape();
-    if (inputElemShape != outputShape) {
+    
+    if (auto inputElemShape = llvm::cast<ShapedType>(inputArgType).getShape(); inputElemShape != outputShape) {
       return emitOpError() << "expected shape of input (" << inputElemShape
                            << ") to match shape of output (" << outputShape
                            << ")";
@@ -1749,8 +1749,8 @@ void ReduceOp::build(
 
   // Add output types for `RankedTensorType` output arguments.
   for (Value init : inits) {
-    Type initType = init.getType();
-    if (llvm::isa<RankedTensorType>(initType))
+    
+    if (Type initType = init.getType(); llvm::isa<RankedTensorType>(initType))
       result.addTypes(initType);
   }
 
@@ -1933,9 +1933,9 @@ LogicalResult ReduceOp::verify() {
 
   // Check that the first block arguments match the element type of the inputs.
   for (auto [input, bbArg] : llvm::zip(getInputs(), block->getArguments())) {
-    Type inputElementType =
-        llvm::cast<ShapedType>(input.getType()).getElementType();
-    if (inputElementType != bbArg.getType())
+    
+    if (Type inputElementType =
+        llvm::cast<ShapedType>(input.getType()).getElementType(); inputElementType != bbArg.getType())
       return emitOpError()
              << "input element type " << inputElementType
              << " does not match corresponding block argument type "
@@ -1945,9 +1945,9 @@ LogicalResult ReduceOp::verify() {
   // Check that the last block arguments match the element type of the outputs.
   for (auto [output, bbArg] : llvm::zip(
            getDpsInits(), block->getArguments().take_back(getNumDpsInits()))) {
-    auto outputElementType =
-        llvm::cast<ShapedType>(output.getType()).getElementType();
-    if (outputElementType != bbArg.getType())
+    
+    if (auto outputElementType =
+        llvm::cast<ShapedType>(output.getType()).getElementType(); outputElementType != bbArg.getType())
       return emitOpError()
              << "output element type " << outputElementType
              << " does not match corresponding block argument type "
@@ -2046,9 +2046,9 @@ LogicalResult TransposeOp::verify() {
 
   for (int64_t i = 0; i < rank; ++i) {
     int64_t inputDim = inputDims[permutationRef[i]];
-    int64_t initDim = initDims[i];
+    
 
-    if (inputDim != initDim) {
+    if (int64_t initDim = initDims[i]; inputDim != initDim) {
       return emitOpError() << "dim(result, " << i << ") = " << initDim
                            << " doesn't match dim(input, permutation[" << i
                            << "]) = " << inputDim;
@@ -2640,9 +2640,9 @@ static void populateMap(LinalgOp linalgOp, MutableArrayRef<OpOperand> operands,
     if (parentOp) {
       if (auto castOp = dyn_cast<tensor::CastOp>(parentOp)) {
         Value castSource = castOp.getSource();
-        auto castSourceType =
-            llvm::dyn_cast<RankedTensorType>(castSource.getType());
-        if (castSourceType && castSourceType.hasStaticShape())
+        
+        if (auto castSourceType =
+            llvm::dyn_cast<RankedTensorType>(castSource.getType()); castSourceType && castSourceType.hasStaticShape())
           sourceShape = castSourceType.getShape();
       }
     }
@@ -3852,10 +3852,10 @@ void MatmulOp::regionBuilder(ImplicitLocOpBuilder &b, Block &block,
   SmallVector<Value> yields;
 
   TypeFn castVal = TypeFn::cast_signed;
-  const auto *castIter = llvm::find_if(attrs, [&](const NamedAttribute &attr) {
+  
+  if (const auto *castIter = llvm::find_if(attrs, [&](const NamedAttribute &attr) {
     return attr.getName() == "cast";
-  });
-  if (castIter != attrs.end()) {
+  }); castIter != attrs.end()) {
     if (auto attr = llvm::dyn_cast<TypeFnAttr>(castIter->getValue()))
       castVal = attr.getValue();
   }
@@ -4384,10 +4384,10 @@ void ContractOp::regionBuilder(ImplicitLocOpBuilder &b, Block &block,
   RegionBuilderHelper helper(b, block);
 
   TypeFn castSignedness = TypeFn::cast_signed;
-  auto castIter = llvm::find_if(attrs, [&](const NamedAttribute &attr) {
+  
+  if (auto castIter = llvm::find_if(attrs, [&](const NamedAttribute &attr) {
     return attr.getName() == "cast";
-  });
-  if (castIter != attrs.end()) {
+  }); castIter != attrs.end()) {
     if (auto attr = llvm::dyn_cast<TypeFnAttr>(castIter->getValue()))
       castSignedness = attr.getValue();
   }
@@ -4625,10 +4625,10 @@ void BatchMatmulOp::regionBuilder(
   SmallVector<Value> yields;
 
   TypeFn castVal = TypeFn::cast_signed;
-  auto castIter = llvm::find_if(attrs, [&](const NamedAttribute &attr) {
+  
+  if (auto castIter = llvm::find_if(attrs, [&](const NamedAttribute &attr) {
     return attr.getName() == "cast";
-  });
-  if (castIter != attrs.end()) {
+  }); castIter != attrs.end()) {
     if (auto attr = llvm::dyn_cast<TypeFnAttr>(castIter->getValue()))
       castVal = attr.getValue();
   }
@@ -5306,9 +5306,9 @@ bool PackOp::requirePaddingValue(ArrayRef<int64_t> inputShape,
   for (auto [pos, tileSize] : llvm::zip_equal(innerDimsPos, innerTiles)) {
     if (ShapedType::isDynamic(inputShape[pos]))
       continue;
-    std::optional<int64_t> constantTile = getConstantIntValue(tileSize);
+    
 
-    if (!constantTile) {
+    if (std::optional<int64_t> constantTile = getConstantIntValue(tileSize); !constantTile) {
       if (ShapedType::isStatic(outputTileSizes[pos]) &&
           (inputShape[pos] % outputTileSizes[pos] != 0))
         return true;
@@ -5518,8 +5518,8 @@ static bool areTilesAndTiledDimsAllConstant(OpTy op) {
   SmallVector<OpFoldResult> mixedTiles = op.getMixedTiles();
   for (auto [dimDest, tile] : llvm::zip(
            packedType.getShape().take_back(mixedTiles.size()), mixedTiles)) {
-    std::optional<int64_t> constTileSize = getConstantIntValue(tile);
-    if (!constTileSize || ShapedType::isDynamic(dimDest))
+    
+    if (std::optional<int64_t> constTileSize = getConstantIntValue(tile); !constTileSize || ShapedType::isDynamic(dimDest))
       return false;
   }
   return true;
@@ -5960,9 +5960,9 @@ LogicalResult UnPackOp::canonicalize(UnPackOp unPackOp,
   }
   /// extract_slice(unpack(x into y)) -> unpack(x into extract_slice(y))
   if (unPackOp->hasOneUse()) {
-    auto extractSliceUser =
-        dyn_cast<tensor::ExtractSliceOp>(*unPackOp->getUsers().begin());
-    if (extractSliceUser && unPackOp.canFoldSliceOp(extractSliceUser)) {
+    
+    if (auto extractSliceUser =
+        dyn_cast<tensor::ExtractSliceOp>(*unPackOp->getUsers().begin()); extractSliceUser && unPackOp.canFoldSliceOp(extractSliceUser)) {
       OpBuilder::InsertionGuard g(rewriter);
       rewriter.setInsertionPoint(unPackOp);
       auto newDest = tensor::ExtractSliceOp::create(
@@ -6023,9 +6023,9 @@ bool UnPackOp::canFoldSliceOp(tensor::ExtractSliceOp sliceOp) {
       return false;
     if (ShapedType::isDynamic(tileSize))
       return false;
-    int64_t paddingSize = outerShapeWithoutTranspose[pos] * tileSize -
-                          unpackedTypeAfterFold.getDimSize(pos);
-    if (paddingSize >= tileSize)
+    
+    if (int64_t paddingSize = outerShapeWithoutTranspose[pos] * tileSize -
+                          unpackedTypeAfterFold.getDimSize(pos); paddingSize >= tileSize)
       return false;
   }
   return true;

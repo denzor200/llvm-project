@@ -275,8 +275,8 @@ void UseAfterMoveFinder::getDeclRefs(
                         DeclRefs](const ArrayRef<BoundNodes> Matches) {
       for (const auto &Match : Matches) {
         const auto *DeclRef = Match.getNodeAs<DeclRefExpr>("declref");
-        const auto *Operator = Match.getNodeAs<CXXOperatorCallExpr>("operator");
-        if (DeclRef && BlockMap->blockContainingStmt(DeclRef) == Block) {
+        
+        if (const auto *Operator = Match.getNodeAs<CXXOperatorCallExpr>("operator"); DeclRef && BlockMap->blockContainingStmt(DeclRef) == Block) {
           // Ignore uses of a standard smart pointer that don't dereference the
           // pointer.
           if (Operator || !isStandardSmartPointer(DeclRef->getDecl())) {
@@ -374,8 +374,8 @@ void UseAfterMoveFinder::getReinits(
 
     for (const auto &Match : Matches) {
       const auto *TheStmt = Match.getNodeAs<Stmt>("reinit");
-      const auto *TheDeclRef = Match.getNodeAs<DeclRefExpr>("declref");
-      if (TheStmt && BlockMap->blockContainingStmt(TheStmt) == Block) {
+      
+      if (const auto *TheDeclRef = Match.getNodeAs<DeclRefExpr>("declref"); TheStmt && BlockMap->blockContainingStmt(TheStmt) == Block) {
         Stmts->insert(TheStmt);
 
         // We count DeclStmts as reinitializations, but they don't have a
@@ -521,8 +521,8 @@ void UseAfterMoveCheck::check(const MatchFinder::MatchResult &Result) {
   }
 
   for (Stmt *CodeBlock : CodeBlocks) {
-    UseAfterMoveFinder Finder(Result.Context);
-    if (auto Use = Finder.find(CodeBlock, MovingCall, Arg))
+    
+    if (UseAfterMoveFinder Finder(Result.Context); auto Use = Finder.find(CodeBlock, MovingCall, Arg))
       emitDiagnostic(MovingCall, Arg, *Use, this, Result.Context,
                      determineMoveType(MoveDecl));
   }

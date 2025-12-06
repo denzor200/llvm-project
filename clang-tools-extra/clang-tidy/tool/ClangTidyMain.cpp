@@ -490,8 +490,8 @@ static StringRef closest(StringRef Value, const StringSet<> &Allowed) {
   unsigned MaxEdit = 5U;
   StringRef Closest;
   for (auto Item : Allowed.keys()) {
-    const unsigned Cur = Value.edit_distance_insensitive(Item, true, MaxEdit);
-    if (Cur < MaxEdit) {
+    
+    if (const unsigned Cur = Value.edit_distance_insensitive(Item, true, MaxEdit); Cur < MaxEdit) {
       Closest = Item;
       MaxEdit = Cur;
     }

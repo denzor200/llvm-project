@@ -346,22 +346,22 @@ void PDBLinker::translateIdSymbols(MutableArrayRef<uint8_t> &recordData,
     assert(refs.size() == 1);
     assert(refs.front().Count == 1);
 
-    TypeIndex *ti =
-        reinterpret_cast<TypeIndex *>(content.data() + refs[0].Offset);
+    
     // `ti` is the index of a FuncIdRecord or MemberFuncIdRecord which lives in
     // the IPI stream, whose `FunctionType` member refers to the TPI stream.
     // Note that LF_FUNC_ID and LF_MFUNC_ID have the same record layout, and
     // in both cases we just need the second type index.
-    if (!ti->isSimple() && !ti->isNoneType()) {
+    if (TypeIndex *ti =
+        reinterpret_cast<TypeIndex *>(content.data() + refs[0].Offset); !ti->isSimple() && !ti->isNoneType()) {
       TypeIndex newType = TypeIndex(SimpleTypeKind::NotTranslated);
       if (ctx.config.debugGHashes) {
-        auto idToType = tMerger.funcIdToType.find(*ti);
-        if (idToType != tMerger.funcIdToType.end())
+        
+        if (auto idToType = tMerger.funcIdToType.find(*ti); idToType != tMerger.funcIdToType.end())
           newType = idToType->second;
       } else {
         if (tMerger.getIDTable().contains(*ti)) {
-          CVType funcIdData = tMerger.getIDTable().getType(*ti);
-          if (funcIdData.length() >= 8 && (funcIdData.kind() == LF_FUNC_ID ||
+          
+          if (CVType funcIdData = tMerger.getIDTable().getType(*ti); funcIdData.length() >= 8 && (funcIdData.kind() == LF_FUNC_ID ||
                                            funcIdData.kind() == LF_MFUNC_ID)) {
             newType = *reinterpret_cast<const TypeIndex *>(&funcIdData.data()[8]);
           }
@@ -477,8 +477,8 @@ static bool symbolGoesInGlobalsStream(const CVSymbol &sym,
 static void addGlobalSymbol(pdb::GSIStreamBuilder &builder, uint16_t modIndex,
                             unsigned symOffset,
                             std::vector<uint8_t> &symStorage) {
-  CVSymbol sym{ArrayRef(symStorage)};
-  switch (sym.kind()) {
+  
+  switch (CVSymbol sym{ArrayRef(symStorage)}; sym.kind()) {
   case SymbolKind::S_CONSTANT:
   case SymbolKind::S_UDT:
   case SymbolKind::S_GDATA32:
@@ -582,7 +582,12 @@ void PDBLinker::analyzeSymbolSubsection(
   if (symsBuffer.empty())
     Warn(ctx) << "empty symbols subsection in " << file->getName();
 
-  Error ec = forEachCodeViewRecord<CVSymbol>(
+  
+
+  // If we encountered corrupt records, ignore the whole subsection. If we wrote
+  // any partial records, undo that. For globals, we just keep what we have and
+  // continue.
+  if (Error ec = forEachCodeViewRecord<CVSymbol>(
       symsBuffer, [&](CVSymbol sym) -> llvm::Error {
         // Track the current scope.
         if (symbolOpensScope(sym.kind()))
@@ -619,12 +624,7 @@ void PDBLinker::analyzeSymbolSubsection(
         }
 
         return Error::success();
-      });
-
-  // If we encountered corrupt records, ignore the whole subsection. If we wrote
-  // any partial records, undo that. For globals, we just keep what we have and
-  // continue.
-  if (ec) {
+      }); ec) {
     Warn(ctx) << "corrupt symbol records in " << file->getName();
     moduleSymOffset = moduleSymStart;
     consumeError(std::move(ec));
@@ -864,8 +864,8 @@ Error UnrelocatedDebugSubsection::commit(BinaryStreamWriter &writer) const {
     ExitOnError exitOnErr;
     exitOnErr(inlineeLines.initialize(storageReader));
     for (const InlineeSourceLine &line : inlineeLines) {
-      TypeIndex &inlinee = *const_cast<TypeIndex *>(&line.Header->Inlinee);
-      if (!source->remapTypeIndex(inlinee, TiRefKind::IndexRef)) {
+      
+      if (TypeIndex &inlinee = *const_cast<TypeIndex *>(&line.Header->Inlinee); !source->remapTypeIndex(inlinee, TiRefKind::IndexRef)) {
         log("bad inlinee line record in " + debugChunk->file->getName() +
             " with bad inlinee index 0x" + utohexstr(inlinee.getIndex()));
       }
@@ -1205,8 +1205,8 @@ void PDBLinker::addPublicsToPDB() {
   ctx.symtab.forEachSymbol([&publics, this](Symbol *s) {
     // Only emit external, defined, live symbols that have a chunk. Static,
     // non-external symbols do not appear in the symbol table.
-    auto *def = dyn_cast<Defined>(s);
-    if (def && def->isLive() && def->getChunk()) {
+    
+    if (auto *def = dyn_cast<Defined>(s); def && def->isLive() && def->getChunk()) {
       // Don't emit a public symbol for coverage data symbols. LLVM code
       // coverage (and PGO) create a __profd_ and __profc_ symbol for every
       // function. C++ mangled names are long, and tend to dominate symbol size.
@@ -1245,7 +1245,9 @@ void PDBLinker::collectStats() {
   SmallString<256> buffer;
   raw_svector_ostream stream(buffer);
 
-  auto printLargeInputTypeRecs = [&](StringRef name,
+  
+
+  if (auto printLargeInputTypeRecs = [&](StringRef name,
                                      ArrayRef<uint32_t> recCounts,
                                      TypeCollection &records) {
     // Figure out which type indices were responsible for the most duplicate
@@ -1289,9 +1291,7 @@ void PDBLinker::collectStats() {
                         (name == "TPI" ? "type" : "id"),
                         tsis.back().typeIndex.getIndex(), ctx.config.pdbPath);
     }
-  };
-
-  if (!ctx.config.debugGHashes) {
+  }; !ctx.config.debugGHashes) {
     // FIXME: Reimplement for ghash.
     printLargeInputTypeRecs("TPI", tMerger.tpiCounts, tMerger.getTypeTable());
     printLargeInputTypeRecs("IPI", tMerger.ipiCounts, tMerger.getIDTable());

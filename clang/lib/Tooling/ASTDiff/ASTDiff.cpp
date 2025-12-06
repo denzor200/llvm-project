@@ -612,8 +612,8 @@ public:
           --Col;
         } else {
           SNodeId LMD1 = S1.getLeftMostDescendant(Row);
-          SNodeId LMD2 = S2.getLeftMostDescendant(Col);
-          if (LMD1 == S1.getLeftMostDescendant(LastRow) &&
+          
+          if (SNodeId LMD2 = S2.getLeftMostDescendant(Col); LMD1 == S1.getLeftMostDescendant(LastRow) &&
               LMD2 == S2.getLeftMostDescendant(LastCol)) {
             NodeId Id1 = S1.getIdInRoot(Row);
             NodeId Id2 = S2.getIdInRoot(Col);
@@ -665,8 +665,8 @@ private:
       for (SNodeId D2 = LMD2 + 1; D2 <= Id2; ++D2) {
         ForestDist[LMD1][D2] = ForestDist[LMD1][D2 - 1] + InsertionCost;
         SNodeId DLMD1 = S1.getLeftMostDescendant(D1);
-        SNodeId DLMD2 = S2.getLeftMostDescendant(D2);
-        if (DLMD1 == LMD1 && DLMD2 == LMD2) {
+        
+        if (SNodeId DLMD2 = S2.getLeftMostDescendant(D2); DLMD1 == LMD1 && DLMD2 == LMD2) {
           double UpdateCost = getUpdateCost(D1, D2);
           ForestDist[D1][D2] =
               std::min({ForestDist[D1 - 1][D2] + DeletionCost,
@@ -788,8 +788,8 @@ void ASTDiff::Impl::addOptimalMapping(Mapping &M, NodeId Id1,
   std::vector<std::pair<NodeId, NodeId>> R = Matcher.getMatchingNodes();
   for (const auto &Tuple : R) {
     NodeId Src = Tuple.first;
-    NodeId Dst = Tuple.second;
-    if (!M.hasSrc(Src) && !M.hasDst(Dst))
+    
+    if (NodeId Dst = Tuple.second; !M.hasSrc(Src) && !M.hasDst(Dst))
       M.link(Src, Dst);
   }
 }
@@ -821,8 +821,8 @@ NodeId ASTDiff::Impl::findCandidate(const Mapping &M, NodeId Id1) const {
       continue;
     if (M.hasDst(Id2))
       continue;
-    double Similarity = getJaccardSimilarity(M, Id1, Id2);
-    if (Similarity >= Options.MinSimilarity && Similarity > HighestSimilarity) {
+    
+    if (double Similarity = getJaccardSimilarity(M, Id1, Id2); Similarity >= Options.MinSimilarity && Similarity > HighestSimilarity) {
       HighestSimilarity = Similarity;
       Candidate = Id2;
     }
@@ -843,9 +843,9 @@ void ASTDiff::Impl::matchBottomUp(Mapping &M) const {
     }
     bool Matched = M.hasSrc(Id1);
     const Node &N1 = T1.getNode(Id1);
-    bool MatchedChildren = llvm::any_of(
-        N1.Children, [&](NodeId Child) { return M.hasSrc(Child); });
-    if (Matched || !MatchedChildren)
+    
+    if (bool MatchedChildren = llvm::any_of(
+        N1.Children, [&](NodeId Child) { return M.hasSrc(Child); }); Matched || !MatchedChildren)
       continue;
     NodeId Id2 = findCandidate(M, Id1);
     if (Id2.isValid()) {

@@ -918,8 +918,8 @@ LogicalResult ConvertWaitAsyncOpToGpuRuntimeCallPattern::matchAndRewrite(
   SmallVector<Value, 1> events;
   for (auto pair :
        llvm::zip(waitOp.getAsyncDependencies(), adaptor.getOperands())) {
-    auto operand = std::get<1>(pair);
-    if (isDefinedByCallTo(operand, streamCreateCallBuilder.functionName)) {
+    
+    if (auto operand = std::get<1>(pair); isDefinedByCallTo(operand, streamCreateCallBuilder.functionName)) {
       // The converted operand's definition created a stream. Insert an event
       // into the stream just after the last use of the original token operand.
       auto *defOp = std::get<0>(pair).getDefiningOp();

@@ -336,8 +336,8 @@ int llvm::dlltoolDriverMain(llvm::ArrayRef<const char *> ArgsArr) {
 
   COFF::MachineTypes Machine = getDefaultMachine();
   if (std::optional<std::string> Prefix = getPrefix(ArgsArr[0])) {
-    Triple T(*Prefix);
-    if (T.getArch() != Triple::UnknownArch)
+    
+    if (Triple T(*Prefix); T.getArch() != Triple::UnknownArch)
       Machine = getMachine(T);
   }
   if (auto *Arg = Args.getLastArg(OPT_m))

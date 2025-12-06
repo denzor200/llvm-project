@@ -434,8 +434,8 @@ Error IndexedMemProfReader::deserializeRadixTreeBased(
          "Data access profile is either empty or after the record table");
   if (DataAccessProfOffset > RecordTableOffset) {
     DataAccessProfileData = std::make_unique<memprof::DataAccessProfData>();
-    const unsigned char *DAPPtr = Start + DataAccessProfOffset;
-    if (Error E = DataAccessProfileData->deserialize(DAPPtr))
+    
+    if (const unsigned char *DAPPtr = Start + DataAccessProfOffset; Error E = DataAccessProfileData->deserialize(DAPPtr))
       return E;
   }
 

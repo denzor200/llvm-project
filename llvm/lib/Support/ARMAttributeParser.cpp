@@ -418,12 +418,12 @@ Error ARMAttributeParser::also_compatible_with(AttrType tag) {
   cursor.seek(InitialOffset);
   uint64_t InnerTag = de.getULEB128(cursor);
 
-  bool ValidInnerTag =
+  
+
+  if (bool ValidInnerTag =
       any_of(tagToStringMap, [InnerTag](const TagNameItem &Item) {
         return Item.attr == InnerTag;
-      });
-
-  if (!ValidInnerTag) {
+      }); !ValidInnerTag) {
     returnValue =
         createStringError(errc::argument_out_of_domain,
                           Twine(InnerTag) + " is not a valid tag number");

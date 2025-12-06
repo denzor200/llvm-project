@@ -82,8 +82,8 @@ static radix Radix;
 template <typename T>
 static void parseIntArg(const opt::InputArgList &Args, int ID, T &Value) {
   if (const opt::Arg *A = Args.getLastArg(ID)) {
-    StringRef V(A->getValue());
-    if (!llvm::to_integer(V, Value, 0) || Value <= 0)
+    
+    if (StringRef V(A->getValue()); !llvm::to_integer(V, Value, 0) || Value <= 0)
       reportCmdLineError("expected a positive integer, but got '" + V + "'");
   }
 }
@@ -174,9 +174,9 @@ int main(int argc, char **argv) {
     InputFileNames.push_back("-");
 
   for (const auto &File : InputFileNames) {
-    ErrorOr<std::unique_ptr<MemoryBuffer>> Buffer =
-        MemoryBuffer::getFileOrSTDIN(File, /*IsText=*/true);
-    if (std::error_code EC = Buffer.getError())
+    
+    if (ErrorOr<std::unique_ptr<MemoryBuffer>> Buffer =
+        MemoryBuffer::getFileOrSTDIN(File, /*IsText=*/true); std::error_code EC = Buffer.getError())
       errs() << File << ": " << EC.message() << '\n';
     else
       strings(llvm::outs(), File == "-" ? "{standard input}" : File,

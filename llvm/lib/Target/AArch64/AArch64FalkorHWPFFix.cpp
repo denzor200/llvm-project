@@ -113,9 +113,9 @@ FunctionPass *llvm::createFalkorMarkStridedAccessesPass() {
 
 bool FalkorMarkStridedAccessesLegacy::runOnFunction(Function &F) {
   TargetPassConfig &TPC = getAnalysis<TargetPassConfig>();
-  const AArch64Subtarget *ST =
-      TPC.getTM<AArch64TargetMachine>().getSubtargetImpl(F);
-  if (ST->getProcFamily() != AArch64Subtarget::Falkor)
+  
+  if (const AArch64Subtarget *ST =
+      TPC.getTM<AArch64TargetMachine>().getSubtargetImpl(F); ST->getProcFamily() != AArch64Subtarget::Falkor)
     return false;
 
   if (skipFunction(F))
@@ -682,8 +682,8 @@ void FalkorHWPFFix::runOnLoop(MachineLoop &L, MachineFunction &Fn) {
 
   bool AnyCollisions = false;
   for (auto &P : TagMap) {
-    auto Size = P.second.size();
-    if (Size > 1) {
+    
+    if (auto Size = P.second.size(); Size > 1) {
       for (auto *MI : P.second) {
         if (TII->isStridedAccess(*MI)) {
           AnyCollisions = true;
@@ -735,8 +735,8 @@ void FalkorHWPFFix::runOnLoop(MachineLoop &L, MachineFunction &Fn) {
       for (unsigned OpI = 0, OpE = MI.getNumOperands(); OpI < OpE; ++OpI) {
         if (OpI == static_cast<unsigned>(LdI.BaseRegIdx))
           continue;
-        MachineOperand &MO = MI.getOperand(OpI);
-        if (MO.isReg() && MO.readsReg())
+        
+        if (MachineOperand &MO = MI.getOperand(OpI); MO.isReg() && MO.readsReg())
           LR.addReg(MO.getReg());
       }
 

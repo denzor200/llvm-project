@@ -359,8 +359,8 @@ static Value *matchAddReduction(const ExtractElementInst &EE,
                                 bool &ReduceInOneBB) {
   ReduceInOneBB = true;
   // Make sure we're extracting index 0.
-  auto *Index = dyn_cast<ConstantInt>(EE.getIndexOperand());
-  if (!Index || !Index->isNullValue())
+  
+  if (auto *Index = dyn_cast<ConstantInt>(EE.getIndexOperand()); !Index || !Index->isNullValue())
     return nullptr;
 
   const auto *BO = dyn_cast<BinaryOperator>(EE.getVectorOperand());

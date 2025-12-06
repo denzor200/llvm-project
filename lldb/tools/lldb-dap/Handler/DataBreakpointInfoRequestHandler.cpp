@@ -31,8 +31,8 @@ DataBreakpointInfoRequestHandler::Run(
   bool is_data_ok = true;
   if (variable.IsValid()) {
     lldb::addr_t load_addr = variable.GetLoadAddress();
-    size_t byte_size = variable.GetByteSize();
-    if (load_addr == LLDB_INVALID_ADDRESS) {
+    
+    if (size_t byte_size = variable.GetByteSize(); load_addr == LLDB_INVALID_ADDRESS) {
       is_data_ok = false;
       response.description = "does not exist in memory, its location is " +
                              std::string(variable.GetLocation());
@@ -44,8 +44,8 @@ DataBreakpointInfoRequestHandler::Run(
       size = llvm::utostr(byte_size);
     }
   } else if (args.variablesReference.value_or(0) == 0 && frame.IsValid()) {
-    lldb::SBValue value = frame.EvaluateExpression(args.name.c_str());
-    if (value.GetError().Fail()) {
+    
+    if (lldb::SBValue value = frame.EvaluateExpression(args.name.c_str()); value.GetError().Fail()) {
       lldb::SBError error = value.GetError();
       const char *error_cstr = error.GetCString();
       is_data_ok = false;
@@ -54,16 +54,16 @@ DataBreakpointInfoRequestHandler::Run(
                                  : "evaluation failed";
     } else {
       uint64_t load_addr = value.GetValueAsUnsigned();
-      lldb::SBData data = value.GetPointeeData();
-      if (data.IsValid()) {
+      
+      if (lldb::SBData data = value.GetPointeeData(); data.IsValid()) {
         size = llvm::utostr(data.GetByteSize());
         addr = llvm::utohexstr(load_addr);
         lldb::SBMemoryRegionInfo region;
-        lldb::SBError err =
-            dap.target.GetProcess().GetMemoryRegionInfo(load_addr, region);
+        
         // Only lldb-server supports "qMemoryRegionInfo". So, don't fail this
         // request if SBProcess::GetMemoryRegionInfo returns error.
-        if (err.Success()) {
+        if (lldb::SBError err =
+            dap.target.GetProcess().GetMemoryRegionInfo(load_addr, region); err.Success()) {
           if (!(region.IsReadable() || region.IsWritable())) {
             is_data_ok = false;
             response.description = "memory region for address " + addr +

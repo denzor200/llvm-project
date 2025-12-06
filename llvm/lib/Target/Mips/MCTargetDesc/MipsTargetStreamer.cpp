@@ -781,8 +781,8 @@ void MipsTargetAsmStreamer::emitDirectiveCpreturn(unsigned SaveLocation,
 }
 
 void MipsTargetAsmStreamer::emitDirectiveModuleFP() {
-  MipsABIFlagsSection::FpABIKind FpABI = ABIFlagsSection.getFpABI();
-  if (FpABI == MipsABIFlagsSection::FpABIKind::SOFT)
+  
+  if (MipsABIFlagsSection::FpABIKind FpABI = ABIFlagsSection.getFpABI(); FpABI == MipsABIFlagsSection::FpABIKind::SOFT)
     OS << "\t.module\tsoftfloat\n";
   else
     OS << "\t.module\tfp=" << ABIFlagsSection.getFpABIString(FpABI) << "\n";
@@ -932,8 +932,8 @@ MipsTargetELFStreamer::MipsTargetELFStreamer(MCStreamer &S,
 void MipsTargetELFStreamer::emitLabel(MCSymbol *S) {
   auto *Symbol = static_cast<MCSymbolELF *>(S);
   getStreamer().getAssembler().registerSymbol(*Symbol);
-  uint8_t Type = Symbol->getType();
-  if (Type != ELF::STT_FUNC)
+  
+  if (uint8_t Type = Symbol->getType(); Type != ELF::STT_FUNC)
     return;
 
   if (isMicroMipsEnabled())

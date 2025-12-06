@@ -36,8 +36,8 @@ static unsigned CpCount = 0;
 #endif
 
 bool CopyPropagation::interpretAsCopy(const MachineInstr *MI, EqualityMap &EM) {
-  unsigned Opc = MI->getOpcode();
-  switch (Opc) {
+  
+  switch (unsigned Opc = MI->getOpcode(); Opc) {
     case TargetOpcode::COPY: {
       const MachineOperand &Dst = MI->getOperand(0);
       const MachineOperand &Src = MI->getOperand(1);
@@ -45,8 +45,8 @@ bool CopyPropagation::interpretAsCopy(const MachineInstr *MI, EqualityMap &EM) {
       RegisterRef SrcR = DFG.makeRegRef(Src.getReg(), Src.getSubReg());
       assert(DstR.asMCReg().isPhysical());
       assert(SrcR.asMCReg().isPhysical());
-      const TargetRegisterInfo &TRI = DFG.getTRI();
-      if (TRI.getMinimalPhysRegClass(DstR.asMCReg()) !=
+      
+      if (const TargetRegisterInfo &TRI = DFG.getTRI(); TRI.getMinimalPhysRegClass(DstR.asMCReg()) !=
           TRI.getMinimalPhysRegClass(SrcR.asMCReg()))
         return false;
       if (!DFG.isTracked(SrcR) || !DFG.isTracked(DstR))
@@ -107,8 +107,8 @@ bool CopyPropagation::scanBlock(MachineBasicBlock *B) {
   for (NodeAddr<InstrNode*> IA : BA.Addr->members(DFG)) {
     if (DFG.IsCode<NodeAttrs::Stmt>(IA)) {
       NodeAddr<StmtNode*> SA = IA;
-      EqualityMap EM(RegisterRefLess(DFG.getPRI()));
-      if (interpretAsCopy(SA.Addr->getCode(), EM))
+      
+      if (EqualityMap EM(RegisterRefLess(DFG.getPRI())); interpretAsCopy(SA.Addr->getCode(), EM))
         recordCopy(SA, EM);
     }
 
@@ -156,8 +156,8 @@ bool CopyPropagation::run() {
 
   auto MinPhysReg = [this](RegisterRef RR) -> MCRegister {
     const TargetRegisterInfo &TRI = DFG.getTRI();
-    const TargetRegisterClass &RC = *TRI.getMinimalPhysRegClass(RR.asMCReg());
-    if ((RC.LaneMask & RR.Mask) == RC.LaneMask)
+    
+    if (const TargetRegisterClass &RC = *TRI.getMinimalPhysRegClass(RR.asMCReg()); (RC.LaneMask & RR.Mask) == RC.LaneMask)
       return RR.asMCReg();
     for (MCSubRegIndexIterator S(RR.asMCReg(), &TRI); S.isValid(); ++S)
       if (RR.Mask == TRI.getSubRegIndexLaneMask(S.getSubRegIndex()))

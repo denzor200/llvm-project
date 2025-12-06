@@ -121,8 +121,8 @@ void LegacyLegalizerInfo::computeTables() {
         const LLT Type = LLT2Action.first;
         const LegacyLegalizeAction Action = LLT2Action.second;
 
-        auto SizeAction = std::make_pair(Type.getSizeInBits(), Action);
-        if (Type.isPointer())
+        
+        if (auto SizeAction = std::make_pair(Type.getSizeInBits(), Action); Type.isPointer())
           AddressSpace2SpecifiedActions[Type.getAddressSpace()].push_back(
               SizeAction);
         else if (Type.isVector())
@@ -371,8 +371,8 @@ unsigned LegacyLegalizerInfo::getOpcodeIdxForOpcode(unsigned Opcode) const {
 LegacyLegalizeActionStep
 LegacyLegalizerInfo::getAction(const LegalityQuery &Query) const {
   for (unsigned i = 0; i < Query.Types.size(); ++i) {
-    auto Action = getAspectAction({Query.Opcode, i, Query.Types[i]});
-    if (Action.first != Legal) {
+    
+    if (auto Action = getAspectAction({Query.Opcode, i, Query.Types[i]}); Action.first != Legal) {
       LLVM_DEBUG(dbgs() << ".. (legacy) Type " << i << " Action="
                         << Action.first << ", " << Action.second << "\n");
       return {Action.first, i, Action.second};

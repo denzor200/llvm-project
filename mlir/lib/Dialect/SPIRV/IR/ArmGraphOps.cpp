@@ -87,8 +87,8 @@ void spirv::GraphARMOp::print(OpAsmPrinter &printer) {
                                                     getResAttrsAttrName()});
 
   // Print the body.
-  Region &body = this->getBody();
-  if (!body.empty()) {
+  
+  if (Region &body = this->getBody(); !body.empty()) {
     printer << ' ';
     printer.printRegion(body, /*printEntryBlockArgs=*/false,
                         /*printBlockTerminators=*/true);
@@ -244,8 +244,8 @@ ParseResult spirv::GraphEntryPointARMOp::parse(OpAsmParser &parser,
 void spirv::GraphEntryPointARMOp::print(OpAsmPrinter &printer) {
   printer << " ";
   printer.printSymbolName(getFn());
-  ArrayRef<Attribute> interfaceVars = getInterface().getValue();
-  if (!interfaceVars.empty()) {
+  
+  if (ArrayRef<Attribute> interfaceVars = getInterface().getValue(); !interfaceVars.empty()) {
     printer << ", " << llvm::interleaved(interfaceVars);
   }
 }

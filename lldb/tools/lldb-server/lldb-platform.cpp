@@ -176,9 +176,9 @@ static Status parse_listen_host_port(Socket::SocketProtocol &protocol,
       address = listen_host_port.substr(uri->scheme.size() + strlen("://"));
   } else {
     // Try to match socket name as $host:port - e.g., localhost:5555
-    llvm::Expected<Socket::HostAndPort> host_port =
-        Socket::DecodeHostAndPort(listen_host_port);
-    if (!llvm::errorToBool(host_port.takeError())) {
+    
+    if (llvm::Expected<Socket::HostAndPort> host_port =
+        Socket::DecodeHostAndPort(listen_host_port); !llvm::errorToBool(host_port.takeError())) {
       protocol = Socket::ProtocolTcp;
       hostname = host_port->hostname;
       platform_port = host_port->port;
@@ -285,9 +285,9 @@ static void client_handle(GDBRemoteCommunicationServerPlatform &platform,
   if (args.GetArgumentCount() > 0) {
     lldb::pid_t pid = LLDB_INVALID_PROCESS_ID;
     std::string socket_name;
-    Status error = platform.LaunchGDBServer(args, pid, socket_name,
-                                            SharedSocket::kInvalidFD);
-    if (error.Success())
+    
+    if (Status error = platform.LaunchGDBServer(args, pid, socket_name,
+                                            SharedSocket::kInvalidFD); error.Success())
       platform.SetPendingGdbServer(socket_name);
     else
       fprintf(stderr, "failed to start gdbserver: %s\n", error.AsCString());
@@ -398,8 +398,8 @@ static Status spawn_process(const char *progname, const FileSpec &prog,
 
 static FileSpec GetDebugserverPath() {
   if (const char *p = getenv("LLDB_DEBUGSERVER_PATH")) {
-    FileSpec candidate(p);
-    if (FileSystem::Instance().Exists(candidate))
+    
+    if (FileSpec candidate(p); FileSystem::Instance().Exists(candidate))
       return candidate;
   }
 #if defined(__APPLE__)

@@ -419,8 +419,8 @@ static void FactorScope(std::unique_ptr<Matcher> &MatcherPtr) {
       // sequence.  If so, and if we can move it up, it might be contradictory
       // or the same as what we're looking for.  If so, reorder it.
       if (Optn->isSimplePredicateOrRecordNode()) {
-        Matcher *M2 = FindNodeWithKind(ScanMatcher, Optn->getKind());
-        if (M2 && M2 != ScanMatcher && M2->canMoveBefore(ScanMatcher) &&
+        
+        if (Matcher *M2 = FindNodeWithKind(ScanMatcher, Optn->getKind()); M2 && M2 != ScanMatcher && M2->canMoveBefore(ScanMatcher) &&
             (M2->isEqual(Optn) || M2->isContradictory(Optn))) {
           Matcher *MatcherWithoutM2 = ScanMatcher->unlinkNode(M2);
           M2->setNext(MatcherWithoutM2);

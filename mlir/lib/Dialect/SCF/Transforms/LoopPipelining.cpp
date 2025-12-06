@@ -257,8 +257,8 @@ cloneAndUpdateOperands(RewriterBase &rewriter, Operation *op,
   clone->walk<WalkOrder::PreOrder>([&](Operation *nested) {
     // 'clone' itself will be visited first.
     for (OpOperand &operand : nested->getOpOperands()) {
-      Operation *def = operand.get().getDefiningOp();
-      if ((def && !clone->isAncestor(def)) || isa<BlockArgument>(operand.get()))
+      
+      if (Operation *def = operand.get().getDefiningOp(); (def && !clone->isAncestor(def)) || isa<BlockArgument>(operand.get()))
         callback(&operand);
     }
   });
@@ -303,8 +303,8 @@ LogicalResult LoopPipelinerInternal::emitPrologue(RewriterBase &rewriter) {
         continue;
       Operation *newOp =
           cloneAndUpdateOperands(rewriter, op, [&](OpOperand *newOperand) {
-            auto it = valueMapping.find(newOperand->get());
-            if (it != valueMapping.end()) {
+            
+            if (auto it = valueMapping.find(newOperand->get()); it != valueMapping.end()) {
               Value replacement = it->second[i - stages[op]];
               newOperand->set(replacement);
             }
@@ -410,8 +410,8 @@ scf::ForOp LoopPipelinerInternal::createKernelLoop(
     Operation *def = retVal.value().getDefiningOp();
     assert(def && "Only support loop carried dependencies of distance of 1 or "
                   "outside the loop");
-    auto defStage = stages.find(def);
-    if (defStage != stages.end()) {
+    
+    if (auto defStage = stages.find(def); defStage != stages.end()) {
       Value valueVersion =
           valueMapping[forOp.getRegionIterArgs()[retVal.index()]]
                       [maxStage - defStage->second];
@@ -589,10 +589,10 @@ LogicalResult LoopPipelinerInternal::createKernel(
     // defStage.
     if (!peelEpilogue &&
         !forOp.getResult(yieldOperand.getOperandNumber()).use_empty()) {
-      Operation *def = getDefiningOpAndDistance(yieldOperand.get()).first;
-      if (def) {
-        auto defStage = stages.find(def);
-        if (defStage != stages.end() && defStage->second < maxStage) {
+      
+      if (Operation *def = getDefiningOpAndDistance(yieldOperand.get()).first; def) {
+        
+        if (auto defStage = stages.find(def); defStage != stages.end() && defStage->second < maxStage) {
           Value pred = predicates[defStage->second];
           source = arith::SelectOp::create(
               rewriter, pred.getLoc(), pred, source,
@@ -627,8 +627,8 @@ LogicalResult LoopPipelinerInternal::createKernel(
     Operation *def = retVal.value().getDefiningOp();
     assert(def && "Only support loop carried dependencies of distance of 1 or "
                   "defined outside the loop");
-    auto defStage = stages.find(def);
-    if (defStage == stages.end()) {
+    
+    if (auto defStage = stages.find(def); defStage == stages.end()) {
       for (unsigned int stage = 1; stage <= maxStage; stage++)
         setValueMapping(forOp.getRegionIterArgs()[retVal.index()],
                         retVal.value(), stage);
@@ -713,8 +713,8 @@ LoopPipelinerInternal::emitEpilogue(RewriterBase &rewriter,
       unsigned nextVersion = currentVersion + 1;
       Operation *newOp =
           cloneAndUpdateOperands(rewriter, op, [&](OpOperand *newOperand) {
-            auto it = valueMapping.find(newOperand->get());
-            if (it != valueMapping.end()) {
+            
+            if (auto it = valueMapping.find(newOperand->get()); it != valueMapping.end()) {
               Value replacement = it->second[currentVersion];
               newOperand->set(replacement);
             }
@@ -755,8 +755,8 @@ LoopPipelinerInternal::emitEpilogue(RewriterBase &rewriter,
       // value.
       for (auto pair : llvm::enumerate(returnValues)) {
         unsigned ri = pair.index();
-        auto [mapVal, currentVersion] = returnMap[ri];
-        if (mapVal) {
+        
+        if (auto [mapVal, currentVersion] = returnMap[ri]; mapVal) {
           unsigned nextVersion = currentVersion + 1;
           Value pred = predicates[currentVersion];
           Value prevValue = valueMapping[mapVal][currentVersion];

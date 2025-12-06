@@ -588,10 +588,10 @@ bool ARMInstructionSelector::insertComparison(CmpConstants Helper, InsertInfo I,
 
   // Read the comparison flags (if necessary).
   if (Helper.ReadFlagsOpcode != ARM::INSTRUCTION_LIST_END) {
-    auto ReadI = BuildMI(I.MBB, I.InsertBefore, I.DbgLoc,
+    
+    if (auto ReadI = BuildMI(I.MBB, I.InsertBefore, I.DbgLoc,
                          TII.get(Helper.ReadFlagsOpcode))
-                     .add(predOps(ARMCC::AL));
-    if (!constrainSelectedInstRegOperands(*ReadI, TII, TRI, RBI))
+                     .add(predOps(ARMCC::AL)); !constrainSelectedInstRegOperands(*ReadI, TII, TRI, RBI))
       return false;
   }
 
@@ -867,9 +867,9 @@ bool ARMInstructionSelector::select(MachineInstr &I) {
     return true;
 
   MachineInstrBuilder MIB{MF, I};
-  bool isSExt = false;
+  
 
-  switch (I.getOpcode()) {
+  switch (bool isSExt = false; I.getOpcode()) {
   case G_SEXT:
     isSExt = true;
     [[fallthrough]];
@@ -893,14 +893,14 @@ bool ARMInstructionSelector::select(MachineInstr &I) {
         I.getOperand(0).setReg(AndResult);
 
         auto InsertBefore = std::next(I.getIterator());
-        auto SubI =
+        
+        if (auto SubI =
             BuildMI(MBB, InsertBefore, I.getDebugLoc(), TII.get(Opcodes.RSB))
                 .addDef(SExtResult)
                 .addUse(AndResult)
                 .addImm(0)
                 .add(predOps(ARMCC::AL))
-                .add(condCodeOp());
-        if (!constrainSelectedInstRegOperands(*SubI, TII, TRI, RBI))
+                .add(condCodeOp()); !constrainSelectedInstRegOperands(*SubI, TII, TRI, RBI))
           return false;
       }
       break;
@@ -976,8 +976,8 @@ bool ARMInstructionSelector::select(MachineInstr &I) {
       return false;
     }
 
-    auto &Val = I.getOperand(1);
-    if (Val.isCImm()) {
+    
+    if (auto &Val = I.getOperand(1); Val.isCImm()) {
       if (!Val.getCImm()->isZero()) {
         LLVM_DEBUG(dbgs() << "Unsupported pointer constant value\n");
         return false;
@@ -1023,9 +1023,9 @@ bool ARMInstructionSelector::select(MachineInstr &I) {
     auto DstReg = I.getOperand(0).getReg();
 
     const auto &SrcRegBank = *RBI.getRegBank(SrcReg, MRI, TRI);
-    const auto &DstRegBank = *RBI.getRegBank(DstReg, MRI, TRI);
+    
 
-    if (SrcRegBank.getID() != DstRegBank.getID()) {
+    if (const auto &DstRegBank = *RBI.getRegBank(DstReg, MRI, TRI); SrcRegBank.getID() != DstRegBank.getID()) {
       LLVM_DEBUG(
           dbgs()
           << "G_INTTOPTR/G_PTRTOINT operands on different register banks\n");
@@ -1105,8 +1105,8 @@ bool ARMInstructionSelector::select(MachineInstr &I) {
 
     if (auto *LoadMI = dyn_cast<GLoad>(&I)) {
       Register PtrReg = LoadMI->getPointerReg();
-      MachineInstr *Ptr = MRI.getVRegDef(PtrReg);
-      if (Ptr->getOpcode() == TargetOpcode::G_CONSTANT_POOL) {
+      
+      if (MachineInstr *Ptr = MRI.getVRegDef(PtrReg); Ptr->getOpcode() == TargetOpcode::G_CONSTANT_POOL) {
         const MachineOperand &Index = Ptr->getOperand(1);
         unsigned Opcode = Subtarget->isThumb() ? ARM::tLDRpci : ARM::LDRcp;
 
@@ -1174,8 +1174,8 @@ bool ARMInstructionSelector::select(MachineInstr &I) {
     I.setDesc(TII.get(PHI));
 
     Register DstReg = I.getOperand(0).getReg();
-    const TargetRegisterClass *RC = guessRegClass(DstReg, MRI, TRI, RBI);
-    if (!RBI.constrainGenericRegister(DstReg, *RC, MRI)) {
+    
+    if (const TargetRegisterClass *RC = guessRegClass(DstReg, MRI, TRI, RBI); !RBI.constrainGenericRegister(DstReg, *RC, MRI)) {
       break;
     }
 

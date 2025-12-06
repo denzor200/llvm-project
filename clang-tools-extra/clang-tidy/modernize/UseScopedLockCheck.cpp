@@ -46,9 +46,9 @@ getLockGuardsFromDecl(const DeclStmt *DS) {
 
   for (const Decl *Decl : DS->decls()) {
     if (const auto *VD = dyn_cast<VarDecl>(Decl)) {
-      const QualType Type =
-          VD->getType().getCanonicalType().getUnqualifiedType();
-      if (isLockGuard(Type))
+      
+      if (const QualType Type =
+          VD->getType().getCanonicalType().getUnqualifiedType(); isLockGuard(Type))
         LockGuards.push_back(VD);
     }
   }
@@ -74,10 +74,10 @@ findLocksInCompoundStmt(const CompoundStmt *Block,
 
   for (const Stmt *Stmt : Block->body()) {
     if (const auto *DS = dyn_cast<DeclStmt>(Stmt)) {
-      const llvm::SmallVector<const VarDecl *> LockGuards =
-          getLockGuardsFromDecl(DS);
+      
 
-      if (!LockGuards.empty()) {
+      if (const llvm::SmallVector<const VarDecl *> LockGuards =
+          getLockGuardsFromDecl(DS); !LockGuards.empty()) {
         CurrentLockGuardGroup.append(LockGuards);
         continue;
       }
@@ -275,9 +275,9 @@ void UseScopedLockCheck::diagOnMultipleLocks(
 void UseScopedLockCheck::diagOnSourceInfo(
     const TypeSourceInfo *LockGuardSourceInfo,
     const ast_matchers::MatchFinder::MatchResult &Result) {
-  const TypeLoc TL = LockGuardSourceInfo->getTypeLoc();
+  
 
-  if (const auto TTL = TL.getAs<TemplateSpecializationTypeLoc>()) {
+  if (const TypeLoc TL = LockGuardSourceInfo->getTypeLoc(); const auto TTL = TL.getAs<TemplateSpecializationTypeLoc>()) {
     auto Diag = diag(TTL.getBeginLoc(), UseScopedLockMessage);
 
     const SourceRange LockGuardRange =

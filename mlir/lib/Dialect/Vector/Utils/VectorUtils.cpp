@@ -184,8 +184,8 @@ AffineMap mlir::makePermutationMap(
   DenseMap<Operation *, unsigned> enclosingLoopToVectorDim;
   auto enclosingLoops = getEnclosingforOps(insertPoint);
   for (auto *forInst : enclosingLoops) {
-    auto it = loopToVectorDim.find(forInst);
-    if (it != loopToVectorDim.end()) {
+    
+    if (auto it = loopToVectorDim.find(forInst); it != loopToVectorDim.end()) {
       enclosingLoopToVectorDim.insert(*it);
     }
   }

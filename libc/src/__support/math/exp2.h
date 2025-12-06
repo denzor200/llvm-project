@@ -253,8 +253,8 @@ LIBC_INLINE static constexpr double set_exceptional(double x) {
   // x >= 1024 or +inf/nan
   // x is finite
   if (x_u < 0x7ff0'0000'0000'0000ULL) {
-    int rounding = fputil::quick_get_round();
-    if (rounding == FE_DOWNWARD || rounding == FE_TOWARDZERO)
+    
+    if (int rounding = fputil::quick_get_round(); rounding == FE_DOWNWARD || rounding == FE_TOWARDZERO)
       return FPBits::max_normal().get_val();
 
     fputil::set_errno_if_required(ERANGE);

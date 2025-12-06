@@ -59,7 +59,9 @@ static ErrorSuccess reportWarning(Error E) {
 
 static Expected<DriverConfig> getDriverConfig(ArrayRef<const char *> Args) {
   StringRef Stem = sys::path::stem(ToolName);
-  auto Is = [=](StringRef Tool) {
+  
+
+  if (auto Is = [=](StringRef Tool) {
     // We need to recognize the following filenames:
     //
     // llvm-objcopy -> objcopy
@@ -69,9 +71,7 @@ static Expected<DriverConfig> getDriverConfig(ArrayRef<const char *> Args) {
     auto I = Stem.rfind_insensitive(Tool);
     return I != StringRef::npos &&
            (I + Tool.size() == Stem.size() || !isAlnum(Stem[I + Tool.size()]));
-  };
-
-  if (Is("bitcode-strip") || Is("bitcode_strip"))
+  }; Is("bitcode-strip") || Is("bitcode_strip"))
     return parseBitcodeStripOptions(Args, reportWarning);
   else if (Is("strip"))
     return parseStripOptions(Args, reportWarning);
@@ -98,8 +98,8 @@ static Error executeObjcopyOnIHex(ConfigManager &ConfigMgr, MemoryBuffer &In,
 /// of the output specified by the command line options.
 static Error executeObjcopyOnRawBinary(ConfigManager &ConfigMgr,
                                        MemoryBuffer &In, raw_ostream &Out) {
-  const CommonConfig &Config = ConfigMgr.getCommonConfig();
-  switch (Config.OutputFormat) {
+  
+  switch (const CommonConfig &Config = ConfigMgr.getCommonConfig(); Config.OutputFormat) {
   case FileFormat::ELF:
   // FIXME: Currently, we call elf::executeObjcopyOnRawBinary even if the
   // output format is binary/ihex or it's not given. This behavior differs from

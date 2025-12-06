@@ -130,8 +130,8 @@ static QualType getDecayedType(QualType Type) {
 static bool checkParamTypes(const CXXMethodDecl *BaseMD,
                             const CXXMethodDecl *DerivedMD) {
   const unsigned NumParamA = BaseMD->getNumParams();
-  const unsigned NumParamB = DerivedMD->getNumParams();
-  if (NumParamA != NumParamB)
+  
+  if (const unsigned NumParamB = DerivedMD->getNumParams(); NumParamA != NumParamB)
     return false;
 
   for (unsigned I = 0; I < NumParamA; I++) {
@@ -170,8 +170,8 @@ static bool checkOverrideByDerivedMethod(const CXXMethodDecl *BaseMD,
   for (CXXMethodDecl::method_iterator I = DerivedMD->begin_overridden_methods(),
                                       E = DerivedMD->end_overridden_methods();
        I != E; ++I) {
-    const CXXMethodDecl *OverriddenMD = *I;
-    if (BaseMD->getCanonicalDecl() == OverriddenMD->getCanonicalDecl())
+    
+    if (const CXXMethodDecl *OverriddenMD = *I; BaseMD->getCanonicalDecl() == OverriddenMD->getCanonicalDecl())
       return true;
   }
 
@@ -241,9 +241,9 @@ void VirtualNearMissCheck::check(const MatchFinder::MatchResult &Result) {
         if (isOverriddenByDerivedClass(BaseMD, DerivedRD))
           continue;
 
-        const unsigned EditDistance = BaseMD->getName().edit_distance(
-            DerivedMD->getName(), EditDistanceThreshold);
-        if (EditDistance > 0 && EditDistance <= EditDistanceThreshold) {
+        
+        if (const unsigned EditDistance = BaseMD->getName().edit_distance(
+            DerivedMD->getName(), EditDistanceThreshold); EditDistance > 0 && EditDistance <= EditDistanceThreshold) {
           if (checkOverrideWithoutName(Context, BaseMD, DerivedMD)) {
             // A "virtual near miss" is found.
             auto Range = CharSourceRange::getTokenRange(
@@ -251,13 +251,13 @@ void VirtualNearMissCheck::check(const MatchFinder::MatchResult &Result) {
 
             const bool ApplyFix = !BaseMD->isTemplateInstantiation() &&
                                   !DerivedMD->isTemplateInstantiation();
-            auto Diag =
+            
+            if (auto Diag =
                 diag(DerivedMD->getBeginLoc(),
                      "method '%0' has a similar name and the same signature as "
                      "virtual method '%1'; did you mean to override it?")
                 << DerivedMD->getQualifiedNameAsString()
-                << BaseMD->getQualifiedNameAsString();
-            if (ApplyFix)
+                << BaseMD->getQualifiedNameAsString(); ApplyFix)
               Diag << FixItHint::CreateReplacement(Range, BaseMD->getName());
           }
         }

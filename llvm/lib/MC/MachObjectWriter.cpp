@@ -529,9 +529,9 @@ void MachObjectWriter::bindIndirectSymbols(MCAssembler &Asm) {
   // Report errors for use of .indirect_symbol not in a symbol pointer section
   // or stub section.
   for (IndirectSymbolData &ISD : IndirectSymbols) {
-    const MCSectionMachO &Section = static_cast<MCSectionMachO &>(*ISD.Section);
+    
 
-    if (Section.getType() != MachO::S_NON_LAZY_SYMBOL_POINTERS &&
+    if (const MCSectionMachO &Section = static_cast<MCSectionMachO &>(*ISD.Section); Section.getType() != MachO::S_NON_LAZY_SYMBOL_POINTERS &&
         Section.getType() != MachO::S_LAZY_SYMBOL_POINTERS &&
         Section.getType() != MachO::S_THREAD_LOCAL_VARIABLE_POINTERS &&
         Section.getType() != MachO::S_SYMBOL_STUBS) {
@@ -543,9 +543,9 @@ void MachObjectWriter::bindIndirectSymbols(MCAssembler &Asm) {
 
   // Bind non-lazy symbol pointers first.
   for (auto [IndirectIndex, ISD] : enumerate(IndirectSymbols)) {
-    const auto &Section = static_cast<MCSectionMachO &>(*ISD.Section);
+    
 
-    if (Section.getType() != MachO::S_NON_LAZY_SYMBOL_POINTERS &&
+    if (const auto &Section = static_cast<MCSectionMachO &>(*ISD.Section); Section.getType() != MachO::S_NON_LAZY_SYMBOL_POINTERS &&
         Section.getType() !=  MachO::S_THREAD_LOCAL_VARIABLE_POINTERS)
       continue;
 
@@ -557,9 +557,9 @@ void MachObjectWriter::bindIndirectSymbols(MCAssembler &Asm) {
 
   // Then lazy symbol pointers and symbol stubs.
   for (auto [IndirectIndex, ISD] : enumerate(IndirectSymbols)) {
-    const auto &Section = static_cast<MCSectionMachO &>(*ISD.Section);
+    
 
-    if (Section.getType() != MachO::S_LAZY_SYMBOL_POINTERS &&
+    if (const auto &Section = static_cast<MCSectionMachO &>(*ISD.Section); Section.getType() != MachO::S_LAZY_SYMBOL_POINTERS &&
         Section.getType() != MachO::S_SYMBOL_STUBS)
       continue;
 
@@ -750,8 +750,8 @@ bool MachObjectWriter::isSymbolRefDifferenceFullyResolvedImpl(
     // same assumptions about any symbol that we normally make about
     // assembler locals.
 
-    bool hasReliableSymbolDifference = isX86_64();
-    if (!hasReliableSymbolDifference) {
+    
+    if (bool hasReliableSymbolDifference = isX86_64(); !hasReliableSymbolDifference) {
       if (!SA.isInSection() || &SecA != &SecB ||
           (!SA.isTemporary() && FB.getAtom() != SA.getFragment()->getAtom() &&
            SubsectionsViaSymbols))
@@ -952,10 +952,10 @@ uint64_t MachObjectWriter::writeObject() {
         };
         uint32_t EncodedVersion = EncodeVersion(VersionTuple(
             VersionInfo.Major, VersionInfo.Minor, VersionInfo.Update));
-        uint32_t SDKVersion = !VersionInfo.SDKVersion.empty()
+        
+        if (uint32_t SDKVersion = !VersionInfo.SDKVersion.empty()
                                   ? EncodeVersion(VersionInfo.SDKVersion)
-                                  : 0;
-        if (VersionInfo.EmitBuildVersion) {
+                                  : 0; VersionInfo.EmitBuildVersion) {
           // FIXME: Currently empty tools. Add clang version in the future.
           W.write<uint32_t>(MachO::LC_BUILD_VERSION);
           W.write<uint32_t>(sizeof(MachO::build_version_command));
@@ -1089,9 +1089,9 @@ uint64_t MachObjectWriter::writeObject() {
     for (auto &ISD : IndirectSymbols) {
       // Indirect symbols in the non-lazy symbol pointer section have some
       // special handling.
-      const MCSectionMachO &Section =
-          static_cast<const MCSectionMachO &>(*ISD.Section);
-      if (Section.getType() == MachO::S_NON_LAZY_SYMBOL_POINTERS) {
+      
+      if (const MCSectionMachO &Section =
+          static_cast<const MCSectionMachO &>(*ISD.Section); Section.getType() == MachO::S_NON_LAZY_SYMBOL_POINTERS) {
         // If this symbol is defined and internal, mark it as such.
         if (ISD.Symbol->isDefined() && !ISD.Symbol->isExternal()) {
           uint32_t Flags = MachO::INDIRECT_SYMBOL_LOCAL;

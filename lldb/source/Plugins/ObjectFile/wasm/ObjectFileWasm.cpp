@@ -580,9 +580,9 @@ void ObjectFileWasm::CreateSections(SectionList &unified_section_list) {
   if (std::optional<section_info> info =
           GetSectionInfo(llvm::wasm::WASM_SEC_CODE)) {
     DataExtractor code_data = ReadImageData(info->offset, info->size);
-    llvm::Expected<std::vector<WasmFunction>> maybe_functions =
-        ParseFunctions(code_data);
-    if (!maybe_functions) {
+    
+    if (llvm::Expected<std::vector<WasmFunction>> maybe_functions =
+        ParseFunctions(code_data); !maybe_functions) {
       LLDB_LOG_ERROR(log, maybe_functions.takeError(),
                      "Failed to parse Wasm code section: {0}");
     } else {
@@ -595,9 +595,9 @@ void ObjectFileWasm::CreateSections(SectionList &unified_section_list) {
       GetSectionInfo(llvm::wasm::WASM_SEC_DATA);
   if (data_info) {
     DataExtractor data_data = ReadImageData(data_info->offset, data_info->size);
-    llvm::Expected<std::vector<WasmSegment>> maybe_segments =
-        ParseData(data_data);
-    if (!maybe_segments) {
+    
+    if (llvm::Expected<std::vector<WasmSegment>> maybe_segments =
+        ParseData(data_data); !maybe_segments) {
       LLDB_LOG_ERROR(log, maybe_segments.takeError(),
                      "Failed to parse Wasm data section: {0}");
     } else {
@@ -607,10 +607,10 @@ void ObjectFileWasm::CreateSections(SectionList &unified_section_list) {
 
   if (std::optional<section_info> info = GetSectionInfo("name")) {
     DataExtractor names_data = ReadImageData(info->offset, info->size);
-    llvm::Expected<std::vector<Symbol>> symbols = ParseNames(
+    
+    if (llvm::Expected<std::vector<Symbol>> symbols = ParseNames(
         m_sections_up->FindSectionByType(lldb::eSectionTypeCode, false),
-        names_data, functions, segments);
-    if (!symbols) {
+        names_data, functions, segments); !symbols) {
       LLDB_LOG_ERROR(log, symbols.takeError(),
                      "Failed to parse Wasm names: {0}");
     } else {
@@ -690,8 +690,8 @@ bool ObjectFileWasm::SetLoadAddress(Target &target, lldb::addr_t load_address,
 
   const size_t num_sections = section_list->GetSize();
   for (size_t sect_idx = 0; sect_idx < num_sections; ++sect_idx) {
-    SectionSP section_sp(section_list->GetSectionAtIndex(sect_idx));
-    if (target.SetSectionLoadAddress(
+    
+    if (SectionSP section_sp(section_list->GetSectionAtIndex(sect_idx)); target.SetSectionLoadAddress(
             section_sp, load_address | section_sp->GetFileOffset())) {
       ++num_loaded_sections;
     }
@@ -709,13 +709,13 @@ DataExtractor ObjectFileWasm::ReadImageData(offset_t offset, uint32_t size) {
       return DataExtractor(buffer_sp, GetByteOrder(), GetAddressByteSize());
     }
   } else {
-    ProcessSP process_sp(m_process_wp.lock());
-    if (process_sp) {
+    
+    if (ProcessSP process_sp(m_process_wp.lock()); process_sp) {
       auto data_up = std::make_unique<DataBufferHeap>(size, 0);
       Status readmem_error;
-      size_t bytes_read = process_sp->ReadMemory(
-          offset, data_up->GetBytes(), data_up->GetByteSize(), readmem_error);
-      if (bytes_read > 0) {
+      
+      if (size_t bytes_read = process_sp->ReadMemory(
+          offset, data_up->GetBytes(), data_up->GetByteSize(), readmem_error); bytes_read > 0) {
         DataBufferSP buffer_sp(data_up.release());
         data.SetData(buffer_sp, 0, buffer_sp->GetByteSize());
       }

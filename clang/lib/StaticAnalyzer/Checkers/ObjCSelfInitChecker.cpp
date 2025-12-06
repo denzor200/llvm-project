@@ -248,8 +248,8 @@ void ObjCSelfInitChecker::checkPreCall(const CallEvent &CE,
   // assume that the functions are going to continue initialization or will not
   // modify self.
   for (unsigned i = 0; i < NumArgs; ++i) {
-    SVal argV = CE.getArgSVal(i);
-    if (isSelfVar(argV, C)) {
+    
+    if (SVal argV = CE.getArgSVal(i); isSelfVar(argV, C)) {
       SelfFlagEnum selfFlags =
           getSelfFlags(state->getSVal(argV.castAs<Loc>()), C);
       C.addTransition(state->set<PreCallSelfFlags>(selfFlags));
@@ -277,8 +277,8 @@ void ObjCSelfInitChecker::checkPostCall(const CallEvent &CE,
 
   unsigned NumArgs = CE.getNumArgs();
   for (unsigned i = 0; i < NumArgs; ++i) {
-    SVal argV = CE.getArgSVal(i);
-    if (isSelfVar(argV, C)) {
+    
+    if (SVal argV = CE.getArgSVal(i); isSelfVar(argV, C)) {
       // If the address of 'self' is being passed to the call, assume that the
       // 'self' after the call will have the same flags.
       // EX: log(&self)
@@ -306,8 +306,8 @@ void ObjCSelfInitChecker::checkLocation(SVal location, bool isLoad,
 
   // Tag the result of a load from 'self' so that we can easily know that the
   // value is the object that 'self' points to.
-  ProgramStateRef state = C.getState();
-  if (isSelfVar(location, C))
+  
+  if (ProgramStateRef state = C.getState(); isSelfVar(location, C))
     addSelfFlag(state, state->getSVal(location.castAs<Loc>()), SelfFlag_Self,
                 C);
 }
@@ -396,9 +396,9 @@ static bool shouldRunOnFunctionOrMethod(const NamedDecl *ND) {
   IdentifierInfo* NSObjectII = &Ctx.Idents.get("NSObject");
   ObjCInterfaceDecl *ID = MD->getClassInterface()->getSuperClass();
   for ( ; ID ; ID = ID->getSuperClass()) {
-    IdentifierInfo *II = ID->getIdentifier();
+    
 
-    if (II == NSObjectII)
+    if (IdentifierInfo *II = ID->getIdentifier(); II == NSObjectII)
       break;
   }
   return ID != nullptr;

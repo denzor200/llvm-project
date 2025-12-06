@@ -68,8 +68,8 @@ lldb::SBSection SBSection::GetParent() {
   lldb::SBSection sb_section;
   SectionSP section_sp(GetSP());
   if (section_sp) {
-    SectionSP parent_section_sp(section_sp->GetParent());
-    if (parent_section_sp)
+    
+    if (SectionSP parent_section_sp(section_sp->GetParent()); parent_section_sp)
       sb_section.SetSP(parent_section_sp);
   }
   return sb_section;
@@ -80,8 +80,8 @@ lldb::SBSection SBSection::FindSubSection(const char *sect_name) {
 
   lldb::SBSection sb_section;
   if (sect_name) {
-    SectionSP section_sp(GetSP());
-    if (section_sp) {
+    
+    if (SectionSP section_sp(GetSP()); section_sp) {
       ConstString const_sect_name(sect_name);
       sb_section.SetSP(
           section_sp->GetChildren().FindSectionByName(const_sect_name));
@@ -130,8 +130,8 @@ lldb::addr_t SBSection::GetLoadAddress(lldb::SBTarget &sb_target) {
 
   TargetSP target_sp(sb_target.GetSP());
   if (target_sp) {
-    SectionSP section_sp(GetSP());
-    if (section_sp)
+    
+    if (SectionSP section_sp(GetSP()); section_sp)
       return section_sp->GetLoadBaseAddress(target_sp.get());
   }
   return LLDB_INVALID_ADDRESS;
@@ -151,10 +151,10 @@ uint64_t SBSection::GetFileOffset() {
 
   SectionSP section_sp(GetSP());
   if (section_sp) {
-    ModuleSP module_sp(section_sp->GetModule());
-    if (module_sp) {
-      ObjectFile *objfile = module_sp->GetObjectFile();
-      if (objfile)
+    
+    if (ModuleSP module_sp(section_sp->GetModule()); module_sp) {
+      
+      if (ObjectFile *objfile = module_sp->GetObjectFile(); objfile)
         return objfile->GetFileOffset() + section_sp->GetFileOffset();
     }
   }

@@ -443,11 +443,11 @@ void NativeSession::parseSectionContribs() {
         return;
 
       uint64_t VA = Session.getVAFromSectOffset(C.ISect, C.Off);
-      uint64_t End = VA + C.Size;
+      
 
       // Ignore overlapping sections based on the assumption that a valid
       // PDB file should not have overlaps.
-      if (!AddrMap.overlaps(VA, End))
+      if (uint64_t End = VA + C.Size; !AddrMap.overlaps(VA, End))
         AddrMap.insert(VA, End, C.Imod);
     }
     void visit(const SectionContrib2 &C) override { visit(C.Base); }

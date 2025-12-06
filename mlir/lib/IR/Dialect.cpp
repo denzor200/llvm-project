@@ -102,9 +102,9 @@ void Dialect::addInterface(std::unique_ptr<DialectInterface> interface) {
   // Handle the case where the models resolve a promised interface.
   handleAdditionOfUndefinedPromisedInterface(getTypeID(), interface->getID());
 
-  auto it = registeredInterfaces.try_emplace(interface->getID(),
-                                             std::move(interface));
-  if (!it.second)
+  
+  if (auto it = registeredInterfaces.try_emplace(interface->getID(),
+                                             std::move(interface)); !it.second)
     LDBG() << "repeated interface registration for dialect " << getNamespace();
 }
 
@@ -216,9 +216,9 @@ DialectRegistry::getDialectAllocator(StringRef name) const {
 
 void DialectRegistry::insert(TypeID typeID, StringRef name,
                              const DialectAllocatorFunction &ctor) {
-  auto inserted = registry.insert(
-      std::make_pair(std::string(name), std::make_pair(typeID, ctor)));
-  if (!inserted.second && inserted.first->second.first != typeID) {
+  
+  if (auto inserted = registry.insert(
+      std::make_pair(std::string(name), std::make_pair(typeID, ctor))); !inserted.second && inserted.first->second.first != typeID) {
     llvm::report_fatal_error(
         "Trying to register different dialects for the same namespace: " +
         name);

@@ -705,8 +705,8 @@ bool matchAdjustICmpImmAndPred(
     std::pair<uint64_t, CmpInst::Predicate> &MatchInfo) {
   assert(MI.getOpcode() == TargetOpcode::G_ICMP);
   Register RHS = MI.getOperand(3).getReg();
-  auto Pred = static_cast<CmpInst::Predicate>(MI.getOperand(1).getPredicate());
-  if (auto MaybeNewImmAndPred = tryAdjustICmpImmAndPred(RHS, Pred, MRI)) {
+  
+  if (auto Pred = static_cast<CmpInst::Predicate>(MI.getOperand(1).getPredicate()); auto MaybeNewImmAndPred = tryAdjustICmpImmAndPred(RHS, Pred, MRI)) {
     MatchInfo = *MaybeNewImmAndPred;
     return true;
   }
@@ -1069,10 +1069,10 @@ bool matchLowerBuildToInsertVecElt(MachineInstr &MI, MachineRegisterInfo &MRI) {
 
   // Check if the values are all constants
   for (unsigned I = 0; I < GBuildVec->getNumSources(); ++I) {
-    auto ConstVal =
-        getAnyConstantVRegValWithLookThrough(GBuildVec->getSourceReg(I), MRI);
+    
 
-    if (!ConstVal.has_value())
+    if (auto ConstVal =
+        getAnyConstantVRegValWithLookThrough(GBuildVec->getSourceReg(I), MRI); !ConstVal.has_value())
       return true;
   }
 

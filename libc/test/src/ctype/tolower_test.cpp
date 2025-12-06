@@ -51,8 +51,8 @@ TEST(LlvmLibcToLower, SimpleTest) {
 
 TEST(LlvmLibcToLower, DefaultLocale) {
   for (int ch = -255; ch < 255; ++ch) {
-    int char_index = span_index(ch, UPPER_ARR);
-    if (char_index != -1)
+    
+    if (int char_index = span_index(ch, UPPER_ARR); char_index != -1)
       EXPECT_EQ(LIBC_NAMESPACE::tolower(ch),
                 static_cast<int>(LOWER_ARR[char_index]));
     else

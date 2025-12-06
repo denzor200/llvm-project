@@ -282,8 +282,8 @@ static std::string mdToString(Metadata *MD) {
   } else if (auto *I = mdconst::dyn_extract<ConstantInt>(MD)) {
     S += std::to_string(I->getZExtValue());
   } else if (auto *P = mdconst::dyn_extract<PoisonValue>(MD)) {
-    auto *Ty = P->getType();
-    if (Ty->isIntegerTy()) {
+    
+    if (auto *Ty = P->getType(); Ty->isIntegerTy()) {
       S += "i";
       S += std::to_string(Ty->getIntegerBitWidth());
     } else if (Ty->isStructTy()) {
@@ -403,8 +403,8 @@ TEST(BitReaderTest, AccessMetadataTypeInfo) {
   Callbacks.MDType = [&](Metadata **Val, unsigned TypeID,
                          GetTypeByIDTy GetTypeByID,
                          GetContainedTypeIDTy GetContainedTypeID) {
-    auto *OrigVal = cast<ValueAsMetadata>(*Val);
-    if (OrigVal->getType()->isPointerTy()) {
+    
+    if (auto *OrigVal = cast<ValueAsMetadata>(*Val); OrigVal->getType()->isPointerTy()) {
       // Ignore function references, their signature can be saved like
       // in the test above
       if (!isa<Function>(OrigVal->getValue())) {

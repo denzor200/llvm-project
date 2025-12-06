@@ -216,8 +216,8 @@ bool CompositeType::hasCompileTimeKnownNumElements() const {
 void TypeCapabilityVisitor::addConcrete(VectorType type) {
   add(type.getElementType());
 
-  int64_t vecSize = type.getNumElements();
-  if (vecSize == 8 || vecSize == 16) {
+  
+  if (int64_t vecSize = type.getNumElements(); vecSize == 8 || vecSize == 16) {
     static constexpr auto cap = Capability::Vector16;
     capabilities.push_back(cap);
   }

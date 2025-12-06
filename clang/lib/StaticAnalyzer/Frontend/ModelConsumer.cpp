@@ -31,8 +31,8 @@ ModelConsumer::ModelConsumer(llvm::StringMap<Stmt *> &Bodies)
 bool ModelConsumer::HandleTopLevelDecl(DeclGroupRef DeclGroup) {
   for (const Decl *D : DeclGroup) {
     // Only interested in definitions.
-    const auto *func = llvm::dyn_cast<FunctionDecl>(D);
-    if (func && func->hasBody()) {
+    
+    if (const auto *func = llvm::dyn_cast<FunctionDecl>(D); func && func->hasBody()) {
       Bodies.insert(std::make_pair(func->getName(), func->getBody()));
     }
   }

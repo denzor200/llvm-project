@@ -668,8 +668,8 @@ AMDGPUCodeGenPrepareImpl::optimizeWithRcp(IRBuilder<> &Builder, Value *Num,
   assert(Den->getType()->isFloatTy());
 
   if (const ConstantFP *CLHS = dyn_cast<ConstantFP>(Num)) {
-    bool IsNegative = false;
-    if (CLHS->isExactlyValue(1.0) ||
+    
+    if (bool IsNegative = false; CLHS->isExactlyValue(1.0) ||
         (IsNegative = CLHS->isExactlyValue(-1.0))) {
       Value *Src = Den;
 
@@ -752,14 +752,14 @@ Value *AMDGPUCodeGenPrepareImpl::visitFDivElement(
     FastMathFlags SqrtFMF, Value *RsqOp, const Instruction *FDivInst,
     float ReqdDivAccuracy) const {
   if (RsqOp) {
-    Value *Rsq =
-        optimizeWithRsq(Builder, Num, RsqOp, DivFMF, SqrtFMF, FDivInst);
-    if (Rsq)
+    
+    if (Value *Rsq =
+        optimizeWithRsq(Builder, Num, RsqOp, DivFMF, SqrtFMF, FDivInst); Rsq)
       return Rsq;
   }
 
-  Value *Rcp = optimizeWithRcp(Builder, Num, Den, DivFMF, FDivInst);
-  if (Rcp)
+  
+  if (Value *Rcp = optimizeWithRcp(Builder, Num, Den, DivFMF, FDivInst); Rcp)
     return Rcp;
 
   // In the basic case fdiv_fast has the same instruction count as the frexp div
@@ -792,8 +792,8 @@ bool AMDGPUCodeGenPrepareImpl::visitFDiv(BinaryOperator &FDiv) {
   if (DisableFDivExpand)
     return false;
 
-  Type *Ty = FDiv.getType()->getScalarType();
-  if (!Ty->isFloatTy())
+  
+  if (Type *Ty = FDiv.getType()->getScalarType(); !Ty->isFloatTy())
     return false;
 
   // The f64 rcp/rsq approximations are pretty inaccurate. We can do an
@@ -1447,10 +1447,10 @@ bool AMDGPUCodeGenPrepareImpl::visitLoadInst(LoadInst &I) {
     // If we have range metadata, we need to convert the type, and not make
     // assumptions about the high bits.
     if (auto *Range = WidenLoad->getMetadata(LLVMContext::MD_range)) {
-      ConstantInt *Lower =
-        mdconst::extract<ConstantInt>(Range->getOperand(0));
+      
 
-      if (Lower->isNullValue()) {
+      if (ConstantInt *Lower =
+        mdconst::extract<ConstantInt>(Range->getOperand(0)); Lower->isNullValue()) {
         WidenLoad->setMetadata(LLVMContext::MD_range, nullptr);
       } else {
         Metadata *LowAndHigh[] = {
@@ -1791,8 +1791,8 @@ bool AMDGPUCodeGenPrepareImpl::visitPHINode(PHINode &I) {
   Value *Vec = PoisonValue::get(FVT);
   unsigned NameSuffix = 0;
   for (VectorSlice &S : Slices) {
-    const auto ValName = "largephi.insertslice" + std::to_string(NameSuffix++);
-    if (S.NumElts > 1)
+    
+    if (const auto ValName = "largephi.insertslice" + std::to_string(NameSuffix++); S.NumElts > 1)
       Vec = B.CreateInsertVector(FVT, Vec, S.NewPHI, S.Idx, ValName);
     else
       Vec = B.CreateInsertElement(Vec, S.NewPHI, S.Idx, ValName);
@@ -1908,11 +1908,11 @@ Value *AMDGPUCodeGenPrepareImpl::matchFractPat(IntrinsicInst &I) {
   if (ST.hasFractBug())
     return nullptr;
 
-  Intrinsic::ID IID = I.getIntrinsicID();
+  
 
   // The value is only used in contexts where we know the input isn't a nan, so
   // any of the fmin variants are fine.
-  if (IID != Intrinsic::minnum && IID != Intrinsic::minimum &&
+  if (Intrinsic::ID IID = I.getIntrinsicID(); IID != Intrinsic::minnum && IID != Intrinsic::minimum &&
       IID != Intrinsic::minimumnum)
     return nullptr;
 
@@ -1983,8 +1983,8 @@ bool AMDGPUCodeGenPrepareImpl::visitFMinLike(IntrinsicInst &I) {
 
 // Expand llvm.sqrt.f32 calls with !fpmath metadata in a semi-fast way.
 bool AMDGPUCodeGenPrepareImpl::visitSqrt(IntrinsicInst &Sqrt) {
-  Type *Ty = Sqrt.getType()->getScalarType();
-  if (!Ty->isFloatTy() && (!Ty->isHalfTy() || ST.has16BitInsts()))
+  
+  if (Type *Ty = Sqrt.getType()->getScalarType(); !Ty->isFloatTy() && (!Ty->isHalfTy() || ST.has16BitInsts()))
     return false;
 
   const FPMathOperator *FPOp = cast<const FPMathOperator>(&Sqrt);

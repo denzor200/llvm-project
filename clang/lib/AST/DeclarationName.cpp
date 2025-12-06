@@ -133,10 +133,10 @@ void DeclarationName::print(raw_ostream &OS,
   switch (getNameKind()) {
   case DeclarationName::Identifier:
     if (const IdentifierInfo *II = getAsIdentifierInfo()) {
-      StringRef Name = II->getName();
+      
       // If this is a mangled OpenMP variant name we strip off the mangling for
       // printing. It should not be visible to the user at all.
-      if (II->isMangledOpenMPVariantName()) {
+      if (StringRef Name = II->getName(); II->isMangledOpenMPVariantName()) {
         std::pair<StringRef, StringRef> NameContextPair =
             Name.split(getOpenMPVariantManglingSeparatorStr());
         OS << NameContextPair.first << "["

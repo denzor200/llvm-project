@@ -63,17 +63,17 @@ void PPCELFStreamer::emitPrefixedInstruction(const MCInst &Inst,
   // The above instruction is forced to start a new fragment because it
   // comes after a code alignment fragment. Get that new fragment.
   MCFragment *InstructionFragment = getCurrentFragment();
-  SMLoc InstLoc = Inst.getLoc();
+  
   // Check if there was a last label emitted.
-  if (LastLabel && LastLabel->isDefined() && LastLabelLoc.isValid() &&
+  if (SMLoc InstLoc = Inst.getLoc(); LastLabel && LastLabel->isDefined() && LastLabelLoc.isValid() &&
       InstLoc.isValid()) {
     const SourceMgr *SourceManager = getContext().getSourceManager();
     unsigned InstLine = SourceManager->FindLineNumber(InstLoc);
-    unsigned LabelLine = SourceManager->FindLineNumber(LastLabelLoc);
+    
     // If the Label and the Instruction are on the same line then move the
     // label to the top of the fragment containing the aligned instruction that
     // was just added.
-    if (InstLine == LabelLine) {
+    if (unsigned LabelLine = SourceManager->FindLineNumber(LastLabelLoc); InstLine == LabelLine) {
       LastLabel->setFragment(InstructionFragment);
       LastLabel->setOffset(0);
     }

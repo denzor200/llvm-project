@@ -65,8 +65,8 @@ AST_MATCHER_P(clang::Expr, anyOfExhaustive, std::vector<Matcher<clang::Stmt>>,
               Exprs) {
   bool FoundMatch = false;
   for (const auto &InnerMatcher : Exprs) {
-    clang::ast_matchers::internal::BoundNodesTreeBuilder Result = *Builder;
-    if (InnerMatcher.matches(Node, Finder, &Result)) {
+    
+    if (clang::ast_matchers::internal::BoundNodesTreeBuilder Result = *Builder; InnerMatcher.matches(Node, Finder, &Result)) {
       *Builder = std::move(Result);
       FoundMatch = true;
     }

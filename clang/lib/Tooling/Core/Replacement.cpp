@@ -197,8 +197,8 @@ Replacements Replacements::getCanonicalReplacements() const {
       continue;
     }
     auto &Prev = NewReplaces.back();
-    unsigned PrevEnd = Prev.getOffset() + Prev.getLength();
-    if (PrevEnd < R.getOffset()) {
+    
+    if (unsigned PrevEnd = Prev.getOffset() + Prev.getLength(); PrevEnd < R.getOffset()) {
       NewReplaces.push_back(R);
     } else {
       assert(PrevEnd == R.getOffset() &&
@@ -379,8 +379,8 @@ public:
   void merge(const Replacement &R) {
     if (MergeSecond) {
       unsigned REnd = R.getOffset() + Delta + R.getLength();
-      unsigned End = Offset + Text.size();
-      if (REnd > End) {
+      
+      if (unsigned End = Offset + Text.size(); REnd > End) {
         Length += REnd - End;
         MergeSecond = false;
       }
@@ -594,9 +594,9 @@ llvm::Expected<std::string> applyAllReplacements(StringRef Code,
                                      SourceLocation(),
                                      clang::SrcMgr::C_User);
   for (auto I = Replaces.rbegin(), E = Replaces.rend(); I != E; ++I) {
-    Replacement Replace("<stdin>", I->getOffset(), I->getLength(),
-                        I->getReplacementText());
-    if (!Replace.apply(Rewrite))
+    
+    if (Replacement Replace("<stdin>", I->getOffset(), I->getLength(),
+                        I->getReplacementText()); !Replace.apply(Rewrite))
       return llvm::make_error<ReplacementError>(
           replacement_error::fail_to_apply, Replace);
   }
@@ -612,8 +612,8 @@ std::map<std::string, Replacements> groupReplacementsByFile(
   std::map<std::string, Replacements> Result;
   llvm::SmallPtrSet<const FileEntry *, 16> ProcessedFileEntries;
   for (const auto &Entry : FileToReplaces) {
-    auto FE = FileMgr.getOptionalFileRef(Entry.first);
-    if (!FE)
+    
+    if (auto FE = FileMgr.getOptionalFileRef(Entry.first); !FE)
       llvm::errs() << "File path " << Entry.first << " is invalid.\n";
     else if (ProcessedFileEntries.insert(*FE).second)
       Result[Entry.first] = std::move(Entry.second);

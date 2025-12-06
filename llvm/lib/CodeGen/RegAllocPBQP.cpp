@@ -411,8 +411,8 @@ private:
     for (unsigned I = 0; I != NRegs.size(); ++I) {
       MCRegister PRegN = NRegs[I];
       for (unsigned J = 0; J != MRegs.size(); ++J) {
-        MCRegister PRegM = MRegs[J];
-        if (TRI.regsOverlap(PRegN, PRegM)) {
+        
+        if (MCRegister PRegM = MRegs[J]; TRI.regsOverlap(PRegN, PRegM)) {
           M[I + 1][J + 1] = std::numeric_limits<PBQP::PBQPNum>::infinity();
           NodesInterfere = true;
         }
@@ -447,9 +447,9 @@ public:
         Register DstReg = CP.getDstReg();
         Register SrcReg = CP.getSrcReg();
 
-        PBQP::PBQPNum CBenefit = MBFI.getBlockFreqRelativeToEntryBlock(&MBB);
+        
 
-        if (CP.isPhys()) {
+        if (PBQP::PBQPNum CBenefit = MBFI.getBlockFreqRelativeToEntryBlock(&MBB); CP.isPhys()) {
           if (!MF.getRegInfo().isAllocatable(DstReg))
             continue;
 
@@ -475,8 +475,8 @@ public:
           const PBQPRAGraph::NodeMetadata::AllowedRegVector *Allowed2 =
             &G.getNodeMetadata(N2Id).getAllowedRegs();
 
-          PBQPRAGraph::EdgeId EId = G.findEdge(N1Id, N2Id);
-          if (EId == G.invalidEdgeId()) {
+          
+          if (PBQPRAGraph::EdgeId EId = G.findEdge(N1Id, N2Id); EId == G.invalidEdgeId()) {
             PBQPRAGraph::RawMatrix Costs(Allowed1->size() + 1,
                                          Allowed2->size() + 1, 0);
             addVirtRegCoalesce(Costs, *Allowed1, *Allowed2, CBenefit);
@@ -506,8 +506,8 @@ private:
     for (unsigned I = 0; I != Allowed1.size(); ++I) {
       MCRegister PReg1 = Allowed1[I];
       for (unsigned J = 0; J != Allowed2.size(); ++J) {
-        MCRegister PReg2 = Allowed2[J];
-        if (PReg1 == PReg2)
+        
+        if (MCRegister PReg2 = Allowed2[J]; PReg1 == PReg2)
           CostMat[I + 1][J + 1] -= Benefit;
       }
     }
@@ -729,9 +729,9 @@ bool RegAllocPBQP::mapPBQPToRegAlloc(const PBQPRAGraph &G,
   // assignment.
   for (auto NId : G.nodeIds()) {
     Register VReg = G.getNodeMetadata(NId).getVReg();
-    unsigned AllocOpt = Solution.getSelection(NId);
+    
 
-    if (AllocOpt != PBQP::RegAlloc::getSpillOptionIdx()) {
+    if (unsigned AllocOpt = Solution.getSelection(NId); AllocOpt != PBQP::RegAlloc::getSpillOptionIdx()) {
       MCRegister PReg = G.getNodeMetadata(NId).getAllowedRegs()[AllocOpt - 1];
       LLVM_DEBUG(dbgs() << "VREG " << printReg(VReg, &TRI) << " -> "
                         << TRI.getName(PReg) << "\n");

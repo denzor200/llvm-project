@@ -93,9 +93,9 @@ static bool isCopyConstructorAndCanBeDefaulted(ASTContext *Context,
 
   // Ensure that all the members are copied.
   for (const auto *Field : FieldsToInit) {
-    auto AccessToFieldInParam = accessToFieldInVar(Field, Param);
+    
     // The initialization is a CXXConstructExpr for class types.
-    if (match(traverse(
+    if (auto AccessToFieldInParam = accessToFieldInVar(Field, Param); match(traverse(
                   TK_AsIs,
                   cxxConstructorDecl(
                       forEachConstructorInitializer(cxxCtorInitializer(
@@ -184,8 +184,8 @@ static bool isCopyAssignmentAndCanBeDefaulted(ASTContext *Context,
     // otherwise.
     auto LHS = memberExpr(hasObjectExpression(cxxThisExpr()),
                           member(fieldDecl(equalsNode(Field))));
-    auto RHS = accessToFieldInVar(Field, Param);
-    if (match(traverse(TK_AsIs,
+    
+    if (auto RHS = accessToFieldInVar(Field, Param); match(traverse(TK_AsIs,
                        compoundStmt(has(ignoringParenImpCasts(binaryOperation(
                            hasOperatorName("="), hasLHS(LHS), hasRHS(RHS)))))),
               *Compound, *Context)

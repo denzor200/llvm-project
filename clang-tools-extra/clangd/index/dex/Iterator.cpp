@@ -106,10 +106,10 @@ private:
           return;
         // Cache the result so that peek() is not called again as it may be
         // quite expensive in AND with large subtrees.
-        auto Candidate = Child->peek();
+        
         // If any child goes beyond given ID (i.e. ID is not the common item),
         // all children should be advanced to the next common item.
-        if (Candidate > SyncID) {
+        if (auto Candidate = Child->peek(); Candidate > SyncID) {
           SyncID = Candidate;
           NeedsAdvance = true;
           // Reset and try to sync again. Sync starts with the first child as

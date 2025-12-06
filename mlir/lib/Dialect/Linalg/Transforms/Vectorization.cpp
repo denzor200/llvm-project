@@ -811,10 +811,10 @@ vectorizeLinalgYield(RewriterBase &rewriter, Operation *op,
     // TODO: Scan for an opportunity for reuse.
     // TODO: use a map.
     Value vectorValue = bvm.lookup(output.value());
-    Value newResult =
+    
+    if (Value newResult =
         buildVectorWrite(rewriter, vectorValue,
-                         linalgOp.getDpsInitOperand(output.index()), state);
-    if (newResult)
+                         linalgOp.getDpsInitOperand(output.index()), state); newResult)
       newResults.push_back(newResult);
   }
 
@@ -1376,10 +1376,10 @@ vectorizeOneOp(RewriterBase &rewriter, VectorizationState &state,
   }
   if (!reductionOperands.empty()) {
     assert(reductionOperands.size() == 1);
-    Operation *reduceOp =
+    
+    if (Operation *reduceOp =
         reduceIfNeeded(rewriter, linalgOp, op, reductionOperands[0].first,
-                       reductionOperands[0].second, bvm);
-    if (reduceOp)
+                       reductionOperands[0].second, bvm); reduceOp)
       return VectorizationHookResult{VectorizationHookStatus::NewOp, reduceOp};
   }
 
@@ -1390,8 +1390,8 @@ vectorizeOneOp(RewriterBase &rewriter, VectorizationState &state,
     auto vecOperand = bvm.lookup(operand);
     assert(vecOperand && "Vector operand couldn't be found");
 
-    auto vecType = dyn_cast<VectorType>(vecOperand.getType());
-    if (vecType && (!firstMaxRankedType ||
+    
+    if (auto vecType = dyn_cast<VectorType>(vecOperand.getType()); vecType && (!firstMaxRankedType ||
                     firstMaxRankedType.getRank() < vecType.getRank()))
       firstMaxRankedType = vecType;
   }
@@ -1633,8 +1633,8 @@ static bool isMaskTriviallyFoldable(SmallVector<OpFoldResult> &maskSizes,
   // Collect all constant write indices.
   SmallVector<int64_t, 4> cstWriteIdxs;
   for (auto [i, idx] : llvm::enumerate(writeIdxs)) {
-    APSInt intVal;
-    if (matchPattern(idx, m_ConstantInt(&intVal))) {
+    
+    if (APSInt intVal; matchPattern(idx, m_ConstantInt(&intVal))) {
       cstWriteIdxs.push_back(intVal.getSExtValue());
     }
   }
@@ -2280,10 +2280,10 @@ static bool isCastOfBlockArgument(Operation *op) {
 // must be block arguments or extension of block arguments.
 static std::optional<ConvOperationKind>
 getConvOperationKind(Operation *reduceOp) {
-  int numBlockArguments =
-      llvm::count_if(reduceOp->getOperands(), llvm::IsaPred<BlockArgument>);
+  
 
-  switch (numBlockArguments) {
+  switch (int numBlockArguments =
+      llvm::count_if(reduceOp->getOperands(), llvm::IsaPred<BlockArgument>); numBlockArguments) {
   case 1: {
     // Will be convolution if feeder is a MulOp.
     // A strength reduced version of MulOp for i1 type is AndOp which is also

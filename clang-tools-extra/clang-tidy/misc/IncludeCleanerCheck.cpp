@@ -227,19 +227,19 @@ void IncludeCleanerCheck::check(const MatchFinder::MatchResult &Result) {
     for (const auto &Inc : Missing) {
       const std::string Spelling = include_cleaner::spellHeader(
           {Inc.Missing, PP->getHeaderSearchInfo(), MainFile});
-      const bool Angled = llvm::StringRef{Spelling}.starts_with("<");
+      
       // We might suggest insertion of an existing include in edge cases, e.g.,
       // include is present in a PP-disabled region, or spelling of the header
       // turns out to be the same as one of the unresolved includes in the
       // main file.
-      if (auto Replacement = HeaderIncludes.insert(
+      if (const bool Angled = llvm::StringRef{Spelling}.starts_with("<"); auto Replacement = HeaderIncludes.insert(
               llvm::StringRef{Spelling}.trim("\"<>"), Angled,
               tooling::IncludeDirective::Include)) {
-        const DiagnosticBuilder DB =
+        
+        if (const DiagnosticBuilder DB =
             diag(SM->getSpellingLoc(Inc.SymRef.RefLocation),
                  "no header providing \"%0\" is directly included")
-            << Inc.SymRef.Target.name();
-        if (areDiagsSelfContained() ||
+            << Inc.SymRef.Target.name(); areDiagsSelfContained() ||
             InsertedHeaders.insert(Replacement->getReplacementText()).second) {
           DB << FixItHint::CreateInsertion(
               SM->getComposedLoc(SM->getMainFileID(), Replacement->getOffset()),

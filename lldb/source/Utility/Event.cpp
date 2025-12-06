@@ -56,8 +56,8 @@ void Event::Dump(Stream *s) const {
     broadcaster = nullptr;
 
   if (broadcaster) {
-    StreamString event_name;
-    if (broadcaster->GetEventNames(event_name, m_type, false))
+    
+    if (StreamString event_name; broadcaster->GetEventNames(event_name, m_type, false))
       s->Printf("%p Event: broadcaster = %p (%s), type = 0x%8.8x (%s), data = ",
                 static_cast<const void *>(this),
                 static_cast<void *>(broadcaster),
@@ -91,8 +91,8 @@ void Event::DoOnRemoval() {
   // Now that the event has been handled by the primary event Listener, forward
   // it to the other Listeners.
 
-  EventSP me_sp = shared_from_this();
-  if (m_data_sp->ForwardEventToPendingListeners(this)) {
+  
+  if (EventSP me_sp = shared_from_this(); m_data_sp->ForwardEventToPendingListeners(this)) {
     for (auto listener_sp : m_pending_listeners)
       listener_sp->AddEvent(me_sp);
     m_pending_listeners.clear();
@@ -144,15 +144,15 @@ const void *EventDataBytes::GetBytes() const {
 size_t EventDataBytes::GetByteSize() const { return m_bytes.size(); }
 
 const void *EventDataBytes::GetBytesFromEvent(const Event *event_ptr) {
-  const EventDataBytes *e = GetEventDataFromEvent(event_ptr);
-  if (e != nullptr)
+  
+  if (const EventDataBytes *e = GetEventDataFromEvent(event_ptr); e != nullptr)
     return e->GetBytes();
   return nullptr;
 }
 
 size_t EventDataBytes::GetByteSizeFromEvent(const Event *event_ptr) {
-  const EventDataBytes *e = GetEventDataFromEvent(event_ptr);
-  if (e != nullptr)
+  
+  if (const EventDataBytes *e = GetEventDataFromEvent(event_ptr); e != nullptr)
     return e->GetByteSize();
   return 0;
 }
@@ -160,8 +160,8 @@ size_t EventDataBytes::GetByteSizeFromEvent(const Event *event_ptr) {
 const EventDataBytes *
 EventDataBytes::GetEventDataFromEvent(const Event *event_ptr) {
   if (event_ptr != nullptr) {
-    const EventData *event_data = event_ptr->GetData();
-    if (event_data &&
+    
+    if (const EventData *event_data = event_ptr->GetData(); event_data &&
         event_data->GetFlavor() == EventDataBytes::GetFlavorString())
       return static_cast<const EventDataBytes *>(event_data);
   }
@@ -245,8 +245,8 @@ EventDataStructuredData::GetEventDataFromEvent(const Event *event_ptr) {
 }
 
 ProcessSP EventDataStructuredData::GetProcessFromEvent(const Event *event_ptr) {
-  auto event_data = EventDataStructuredData::GetEventDataFromEvent(event_ptr);
-  if (event_data)
+  
+  if (auto event_data = EventDataStructuredData::GetEventDataFromEvent(event_ptr); event_data)
     return event_data->GetProcess();
   else
     return ProcessSP();
@@ -254,8 +254,8 @@ ProcessSP EventDataStructuredData::GetProcessFromEvent(const Event *event_ptr) {
 
 StructuredData::ObjectSP
 EventDataStructuredData::GetObjectFromEvent(const Event *event_ptr) {
-  auto event_data = EventDataStructuredData::GetEventDataFromEvent(event_ptr);
-  if (event_data)
+  
+  if (auto event_data = EventDataStructuredData::GetEventDataFromEvent(event_ptr); event_data)
     return event_data->GetObject();
   else
     return StructuredData::ObjectSP();
@@ -263,8 +263,8 @@ EventDataStructuredData::GetObjectFromEvent(const Event *event_ptr) {
 
 lldb::StructuredDataPluginSP
 EventDataStructuredData::GetPluginFromEvent(const Event *event_ptr) {
-  auto event_data = EventDataStructuredData::GetEventDataFromEvent(event_ptr);
-  if (event_data)
+  
+  if (auto event_data = EventDataStructuredData::GetEventDataFromEvent(event_ptr); event_data)
     return event_data->GetStructuredDataPlugin();
   else
     return StructuredDataPluginSP();

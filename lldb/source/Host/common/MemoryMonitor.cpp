@@ -50,8 +50,8 @@ public:
       return {};
 
     while (!m_done) {
-      int n = poll(&fds, 1, g_timeout);
-      if (n > 0) {
+      
+      if (int n = poll(&fds, 1, g_timeout); n > 0) {
         if (fds.revents & POLLERR)
           return {};
         if (fds.revents & POLLPRI)
@@ -78,10 +78,10 @@ public:
   }
 
   void Start() override {
-    llvm::Expected<HostThread> memory_monitor_thread =
+    
+    if (llvm::Expected<HostThread> memory_monitor_thread =
         ThreadLauncher::LaunchThread("lldb.debugger.memory-monitor",
-                                     [this] { return MonitorThread(); });
-    if (memory_monitor_thread) {
+                                     [this] { return MonitorThread(); }); memory_monitor_thread) {
       m_memory_monitor_thread = *memory_monitor_thread;
     } else {
       LLDB_LOG_ERROR(GetLog(LLDBLog::Host), memory_monitor_thread.takeError(),

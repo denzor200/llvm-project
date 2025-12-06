@@ -119,9 +119,9 @@ static bool replaceWithCallToVeclib(const TargetLibraryInfo &TLI,
   SmallVector<Type *, 8> ScalarArgTypes;
   for (auto Arg : enumerate(II->args())) {
     auto *ArgTy = Arg.value()->getType();
-    bool IsOloadTy = isVectorIntrinsicWithOverloadTypeAtArg(IID, Arg.index(),
-                                                            /*TTI=*/nullptr);
-    if (isVectorIntrinsicWithScalarOpAtArg(IID, Arg.index(), /*TTI=*/nullptr)) {
+    
+    if (bool IsOloadTy = isVectorIntrinsicWithOverloadTypeAtArg(IID, Arg.index(),
+                                                            /*TTI=*/nullptr); isVectorIntrinsicWithScalarOpAtArg(IID, Arg.index(), /*TTI=*/nullptr)) {
       ScalarArgTypes.push_back(ArgTy);
       if (IsOloadTy)
         OloadTys.push_back(ArgTy);
@@ -180,8 +180,8 @@ static bool replaceWithCallToVeclib(const TargetLibraryInfo &TLI,
     // tryDemangleForVFABI must return valid ParamPos, otherwise it could be
     // a bug in the VFABI parser.
     assert(VFParam.ParamPos < II->arg_size() && "ParamPos has invalid range");
-    Type *OrigTy = II->getArgOperand(VFParam.ParamPos)->getType();
-    if (OrigTy->isVectorTy() != (VFParam.ParamKind == VFParamKind::Vector)) {
+    
+    if (Type *OrigTy = II->getArgOperand(VFParam.ParamPos)->getType(); OrigTy->isVectorTy() != (VFParam.ParamKind == VFParamKind::Vector)) {
       LLVM_DEBUG(dbgs() << DEBUG_TYPE << ": Will not replace: " << ScalarName
                         << ". Wrong type at index " << VFParam.ParamPos << ": "
                         << *OrigTy << "\n");
@@ -229,8 +229,8 @@ static bool runImpl(const TargetLibraryInfo &TLI, Function &F) {
 PreservedAnalyses ReplaceWithVeclib::run(Function &F,
                                          FunctionAnalysisManager &AM) {
   const TargetLibraryInfo &TLI = AM.getResult<TargetLibraryAnalysis>(F);
-  auto Changed = runImpl(TLI, F);
-  if (Changed) {
+  
+  if (auto Changed = runImpl(TLI, F); Changed) {
     LLVM_DEBUG(dbgs() << "Intrinsic calls replaced with vector libraries: "
                       << NumCallsReplaced << "\n");
 

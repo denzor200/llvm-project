@@ -125,8 +125,8 @@ static bool hasUnrollAndJamEnablePragma(const Loop *L) {
 // If loop has an unroll_and_jam_count pragma return the (necessarily
 // positive) value from the pragma.  Otherwise return 0.
 static unsigned unrollAndJamCountPragmaValue(const Loop *L) {
-  MDNode *MD = getUnrollMetadataForLoop(L, "llvm.loop.unroll_and_jam.count");
-  if (MD) {
+  
+  if (MDNode *MD = getUnrollMetadataForLoop(L, "llvm.loop.unroll_and_jam.count"); MD) {
     assert(MD->getNumOperands() == 2 &&
            "Unroll count hint metadata should have two operands.");
     unsigned Count =
@@ -164,11 +164,11 @@ static bool computeUnrollAndJamCount(
   // We have already checked that the loop has no unroll.* pragmas.
   unsigned MaxTripCount = 0;
   bool UseUpperBound = false;
-  bool ExplicitUnroll = computeUnrollCount(
+  
+  if (bool ExplicitUnroll = computeUnrollCount(
     L, TTI, DT, LI, AC, SE, EphValues, ORE, OuterTripCount, MaxTripCount,
       /*MaxOrZero*/ false, OuterTripMultiple, OuterUCE, UP, PP,
-      UseUpperBound);
-  if (ExplicitUnroll || UseUpperBound) {
+      UseUpperBound); ExplicitUnroll || UseUpperBound) {
     // If the user explicitly set the loop as unrolled, dont UnJ it. Leave it
     // for the unroller instead.
     LLVM_DEBUG(dbgs() << "Won't unroll-and-jam; explicit count set by "
@@ -259,8 +259,8 @@ static bool computeUnrollAndJamCount(
     for (Instruction &I : *BB) {
       if (auto *Ld = dyn_cast<LoadInst>(&I)) {
         Value *V = Ld->getPointerOperand();
-        const SCEV *LSCEV = SE.getSCEVAtScope(V, L);
-        if (SE.isLoopInvariant(LSCEV, L))
+        
+        if (const SCEV *LSCEV = SE.getSCEVAtScope(V, L); SE.isLoopInvariant(LSCEV, L))
           NumInvariant++;
       }
     }
@@ -385,10 +385,10 @@ tryToUnrollAndJamLoop(Loop *L, DominatorTree &DT, LoopInfo *LI,
 
   // Assign new loop attributes.
   if (EpilogueOuterLoop) {
-    std::optional<MDNode *> NewOuterEpilogueLoopID = makeFollowupLoopID(
+    
+    if (std::optional<MDNode *> NewOuterEpilogueLoopID = makeFollowupLoopID(
         OrigOuterLoopID, {LLVMLoopUnrollAndJamFollowupAll,
-                          LLVMLoopUnrollAndJamFollowupRemainderOuter});
-    if (NewOuterEpilogueLoopID)
+                          LLVMLoopUnrollAndJamFollowupRemainderOuter}); NewOuterEpilogueLoopID)
       EpilogueOuterLoop->setLoopID(*NewOuterEpilogueLoopID);
   }
 
@@ -401,10 +401,10 @@ tryToUnrollAndJamLoop(Loop *L, DominatorTree &DT, LoopInfo *LI,
     SubLoop->setLoopID(OrigSubLoopID);
 
   if (UnrollResult == LoopUnrollResult::PartiallyUnrolled) {
-    std::optional<MDNode *> NewOuterLoopID = makeFollowupLoopID(
+    
+    if (std::optional<MDNode *> NewOuterLoopID = makeFollowupLoopID(
         OrigOuterLoopID,
-        {LLVMLoopUnrollAndJamFollowupAll, LLVMLoopUnrollAndJamFollowupOuter});
-    if (NewOuterLoopID) {
+        {LLVMLoopUnrollAndJamFollowupAll, LLVMLoopUnrollAndJamFollowupOuter}); NewOuterLoopID) {
       L->setLoopID(*NewOuterLoopID);
 
       // Do not setLoopAlreadyUnrolled if a followup was given.

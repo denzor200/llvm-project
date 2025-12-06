@@ -182,8 +182,8 @@ static void *mmap_interceptor(Mmap real_mmap, void *addr, SIZE_T length,
     addr = UntagPtr(addr);
   }
   SIZE_T rounded_length = RoundUpTo(length, GetPageSize());
-  void *end_addr = (char *)addr + (rounded_length - 1);
-  if (addr && length &&
+  
+  if (void *end_addr = (char *)addr + (rounded_length - 1); addr && length &&
       (!MemIsApp(reinterpret_cast<uptr>(addr)) ||
        !MemIsApp(reinterpret_cast<uptr>(end_addr)))) {
     // User requested an address that is incompatible with HWASan's
@@ -216,8 +216,8 @@ template <class Munmap>
 static int munmap_interceptor(Munmap real_munmap, void *addr, SIZE_T length) {
   // We should not tag if munmap fail, but it's to late to tag after
   // real_munmap, as the pages could be mmaped by another thread.
-  uptr beg = reinterpret_cast<uptr>(addr);
-  if (length && IsAligned(beg, GetPageSize())) {
+  
+  if (uptr beg = reinterpret_cast<uptr>(addr); length && IsAligned(beg, GetPageSize())) {
     SIZE_T rounded_length = RoundUpTo(length, GetPageSize());
     // Protect from unmapping the shadow.
     if (!MemIsApp(beg) || !MemIsApp(beg + rounded_length - 1)) {

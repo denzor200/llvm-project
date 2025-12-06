@@ -66,9 +66,9 @@ void ThreadPlanCallUserExpression::DidPop() {
 }
 
 bool ThreadPlanCallUserExpression::MischiefManaged() {
-  Log *log = GetLog(LLDBLog::Step);
+  
 
-  if (IsPlanComplete()) {
+  if (Log *log = GetLog(LLDBLog::Step); IsPlanComplete()) {
     LLDB_LOGF(log, "ThreadPlanCallFunction(%p): Completed call function plan.",
               static_cast<void *>(this));
 
@@ -102,9 +102,9 @@ StopInfoSP ThreadPlanCallUserExpression::GetRealStopInfo() {
   if (stop_info_sp) {
     lldb::addr_t addr = GetStopAddress();
     DynamicCheckerFunctions *checkers = m_process.GetDynamicCheckers();
-    StreamString s;
+    
 
-    if (checkers && checkers->DoCheckersExplainStop(addr, s))
+    if (StreamString s; checkers && checkers->DoCheckersExplainStop(addr, s))
       stop_info_sp->SetDescription(s.GetData());
   }
 

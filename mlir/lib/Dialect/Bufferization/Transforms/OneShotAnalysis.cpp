@@ -199,8 +199,8 @@ void OneShotAnalysisState::gatherUndefinedTensorUses(Operation *op) {
         continue;
       // It does not really matter which use to take to search about
       // the value's definitions.
-      OpOperand *opOperand = &(*opResult.getUses().begin());
-      if (findDefinitionsCached(opOperand).empty())
+      
+      if (OpOperand *opOperand = &(*opResult.getUses().begin()); findDefinitionsCached(opOperand).empty())
         for (OpOperand &use : opResult.getUses())
           undefinedTensorUses.insert(&use);
     }
@@ -411,8 +411,8 @@ static bool canUseOpDominanceDueToBlocks(OpOperand *uRead, OpOperand *uWrite,
   Block *readBlock = uRead->getOwner()->getBlock();
   Block *writeBlock = uWrite->getOwner()->getBlock();
   for (Value def : definitions) {
-    Block *defBlock = def.getParentBlock();
-    if (readBlock->isReachable(writeBlock, {defBlock}) &&
+    
+    if (Block *defBlock = def.getParentBlock(); readBlock->isReachable(writeBlock, {defBlock}) &&
         writeBlock->isReachable(readBlock, {defBlock}))
       return false;
   }
@@ -769,8 +769,8 @@ hasReadAfterWriteInterference(const DenseSet<OpOperand *> &usesRead,
           }
         } else {
           auto bbArg = cast<BlockArgument>(definition);
-          Block *block = bbArg.getOwner();
-          if (!block->findAncestorOpInBlock(*conflictingWritingOp)) {
+          
+          if (Block *block = bbArg.getOwner(); !block->findAncestorOpInBlock(*conflictingWritingOp)) {
             LDBG() << "    no conflict: definition is bbArg "
                       "and write happens outside of block";
             // conflictingWritingOp happens outside of the block. No
@@ -839,8 +839,8 @@ static void getAliasingReads(DenseSet<OpOperand *> &res, Value root,
       // there would then be no flow of data from the extract_slice operand to
       // its result's uses.)
       if (!state.bufferizesToMemoryWrite(use)) {
-        AliasingValueList aliases = state.getAliasingValues(use);
-        if (llvm::any_of(aliases, [&](AliasingValue a) {
+        
+        if (AliasingValueList aliases = state.getAliasingValues(use); llvm::any_of(aliases, [&](AliasingValue a) {
               return state.isValueRead(a.value);
             }))
           res.insert(&use);
@@ -899,8 +899,8 @@ static bool wouldCreateReadAfterWriteInterference(
 static void annotateNonWritableTensor(Value value) {
   static int64_t counter = 0;
   OpBuilder b(value.getContext());
-  std::string id = "W_" + std::to_string(counter++);
-  if (auto opResult = dyn_cast<OpResult>(value)) {
+  
+  if (std::string id = "W_" + std::to_string(counter++); auto opResult = dyn_cast<OpResult>(value)) {
     std::string attr = id + "[NOT-WRITABLE: result " +
                        std::to_string(opResult.getResultNumber()) + "]";
     opResult.getDefiningOp()->setAttr(attr, b.getUnitAttr());
@@ -979,11 +979,11 @@ bufferizableInPlaceAnalysisImpl(OpOperand &operand, OneShotAnalysisState &state,
          << "Analyzing operand #" << operand.getOperandNumber() << " of "
          << OpWithFlags(operand.getOwner(), OpPrintingFlags().skipRegions());
 
-  bool foundInterference =
-      wouldCreateWriteToNonWritableBuffer(operand, state) ||
-      wouldCreateReadAfterWriteInterference(operand, domInfo, state);
+  
 
-  if (foundInterference)
+  if (bool foundInterference =
+      wouldCreateWriteToNonWritableBuffer(operand, state) ||
+      wouldCreateReadAfterWriteInterference(operand, domInfo, state); foundInterference)
     state.bufferizeOutOfPlace(operand);
   else
     state.bufferizeInPlace(operand);

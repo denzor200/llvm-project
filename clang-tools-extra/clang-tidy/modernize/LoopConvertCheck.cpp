@@ -636,10 +636,10 @@ void LoopConvertCheck::doConversion(
   bool CanCopy = true;
   std::vector<FixItHint> FixIts;
   if (VarNameFromAlias) {
-    const auto *AliasVar = cast<VarDecl>(AliasDecl->getSingleDecl());
+    
 
     // Handle structured bindings
-    if (const auto *AliasDecompositionDecl =
+    if (const auto *AliasVar = cast<VarDecl>(AliasDecl->getSingleDecl()); const auto *AliasDecompositionDecl =
             dyn_cast<DecompositionDecl>(AliasDecl->getSingleDecl())) {
       VarNameOrStructuredBinding = "[";
 
@@ -703,14 +703,14 @@ void LoopConvertCheck::doConversion(
         ReplaceText = Usage.Kind == Usage::UK_MemberThroughArrow
                           ? VarNameOrStructuredBinding + "."
                           : VarNameOrStructuredBinding;
-        const DynTypedNodeList Parents = Context->getParents(*Usage.Expression);
-        if (Parents.size() == 1) {
+        
+        if (const DynTypedNodeList Parents = Context->getParents(*Usage.Expression); Parents.size() == 1) {
           if (const auto *Paren = Parents[0].get<ParenExpr>()) {
             // Usage.Expression will be replaced with the new index variable,
             // and parenthesis around a simple DeclRefExpr can always be
             // removed except in case of a `sizeof` operator call.
-            const DynTypedNodeList GrandParents = Context->getParents(*Paren);
-            if (GrandParents.size() != 1 ||
+            
+            if (const DynTypedNodeList GrandParents = Context->getParents(*Paren); GrandParents.size() != 1 ||
                 GrandParents[0].get<UnaryExprOrTypeTraitExpr>() == nullptr) {
               Range = Paren->getSourceRange();
             }
@@ -929,10 +929,10 @@ bool LoopConvertCheck::isConvertible(ASTContext *Context,
     return false;
 
   // Check that we have exactly one index variable and at most one end variable.
-  const auto *InitVar = Nodes.getNodeAs<VarDecl>(InitVarName);
+  
 
   // FIXME: Try to put most of this logic inside a matcher.
-  if (FixerKind == LFK_Iterator || FixerKind == LFK_ReverseIterator) {
+  if (const auto *InitVar = Nodes.getNodeAs<VarDecl>(InitVarName); FixerKind == LFK_Iterator || FixerKind == LFK_ReverseIterator) {
     const QualType InitVarType = InitVar->getType();
     const QualType CanonicalInitVarType = InitVarType.getCanonicalType();
 
@@ -1012,8 +1012,8 @@ void LoopConvertCheck::check(const MatchFinder::MatchResult &Result) {
         &Descriptor.ContainerNeedsDereference,
         /*IsReverse=*/FixerKind == LFK_ReverseIterator);
   } else if (FixerKind == LFK_PseudoArray) {
-    std::optional<ContainerCall> Call = getContainerExpr(EndCall);
-    if (Call) {
+    
+    if (std::optional<ContainerCall> Call = getContainerExpr(EndCall); Call) {
       ContainerExpr = Call->Container;
       Descriptor.ContainerNeedsDereference = Call->IsArrow;
     }

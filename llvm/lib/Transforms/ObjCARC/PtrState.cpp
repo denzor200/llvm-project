@@ -203,8 +203,8 @@ bool BottomUpPtrState::InitBottomUp(ARCMDKindCache &Cache, Instruction *I) {
 bool BottomUpPtrState::MatchWithRetain() {
   SetKnownPositiveRefCount();
 
-  Sequence OldSeq = GetSeq();
-  switch (OldSeq) {
+  
+  switch (Sequence OldSeq = GetSeq(); OldSeq) {
   case S_Stop:
   case S_MovableRelease:
   case S_Use:
@@ -254,7 +254,10 @@ void BottomUpPtrState::HandlePotentialUse(BasicBlock *BB, Instruction *Inst,
                                           const Value *Ptr,
                                           ProvenanceAnalysis &PA,
                                           ARCInstKind Class) {
-  auto SetSeqAndInsertReverseInsertPt = [&](Sequence NewSeq){
+  
+
+  // Check for possible direct uses.
+  switch (auto SetSeqAndInsertReverseInsertPt = [&](Sequence NewSeq){
     assert(!HasReverseInsertPts());
     SetSeq(NewSeq);
     // If this is an invoke instruction, we're scanning it as part of
@@ -284,10 +287,7 @@ void BottomUpPtrState::HandlePotentialUse(BasicBlock *BB, Instruction *Inst,
     if (auto *CB = dyn_cast<CallBase>(Inst))
       if (objcarc::hasAttachedCallOpBundle(CB))
         SetCFGHazardAfflicted(true);
-  };
-
-  // Check for possible direct uses.
-  switch (GetSeq()) {
+  }; GetSeq()) {
   case S_MovableRelease:
     if (CanUse(Inst, Ptr, PA, Class)) {
       LLVM_DEBUG(dbgs() << "            CanUse: Seq: " << GetSeq() << "; "
@@ -352,10 +352,10 @@ bool TopDownPtrState::MatchWithRelease(ARCMDKindCache &Cache,
 
   Sequence OldSeq = GetSeq();
 
-  MDNode *ReleaseMetadata =
-      Release->getMetadata(Cache.get(ARCMDKindID::ImpreciseRelease));
+  
 
-  switch (OldSeq) {
+  switch (MDNode *ReleaseMetadata =
+      Release->getMetadata(Cache.get(ARCMDKindID::ImpreciseRelease)); OldSeq) {
   case S_Retain:
   case S_CanRelease:
     if (OldSeq == S_Retain || ReleaseMetadata != nullptr)

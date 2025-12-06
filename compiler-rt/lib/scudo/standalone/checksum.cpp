@@ -49,10 +49,10 @@ bool hasHardwareCRC32() {
                        (Ecx == signature_INTEL_ecx);
   const bool IsAMD = (Ebx == signature_AMD_ebx) && (Edx == signature_AMD_edx) &&
                      (Ecx == signature_AMD_ecx);
-  const bool IsHygon = (Ebx == signature_HYGON_ebx) &&
+  
+  if (const bool IsHygon = (Ebx == signature_HYGON_ebx) &&
                        (Edx == signature_HYGON_edx) &&
-                       (Ecx == signature_HYGON_ecx);
-  if (!IsIntel && !IsAMD && !IsHygon)
+                       (Ecx == signature_HYGON_ecx); !IsIntel && !IsAMD && !IsHygon)
     return false;
   __get_cpuid(1, &Eax, &Ebx, &Ecx, &Edx);
   return !!(Ecx & bit_SSE4_2);

@@ -1373,9 +1373,9 @@ spirv::Deserializer::processStructType(ArrayRef<uint32_t> operands) {
 
   for (auto op : llvm::drop_begin(operands, 1)) {
     Type memberType = getType(op);
-    bool typeForwardPtr = (typeForwardPointerIDs.count(op) != 0);
+    
 
-    if (!memberType && !typeForwardPtr)
+    if (bool typeForwardPtr = (typeForwardPointerIDs.count(op) != 0); !memberType && !typeForwardPtr)
       return emitError(unknownLoc, "OpTypeStruct references undefined <id> ")
              << op;
 
@@ -1400,8 +1400,8 @@ spirv::Deserializer::processStructType(ArrayRef<uint32_t> operands) {
             }
             offsetInfo[memberIndex] = memberDecoration.second[0];
           } else {
-            auto intType = mlir::IntegerType::get(context, 32);
-            if (!memberDecoration.second.empty()) {
+            
+            if (auto intType = mlir::IntegerType::get(context, 32); !memberDecoration.second.empty()) {
               memberDecorationsInfo.emplace_back(
                   memberIndex, memberDecoration.first,
                   IntegerAttr::get(intType, memberDecoration.second[0]));
@@ -1709,8 +1709,8 @@ LogicalResult spirv::Deserializer::processConstant(ArrayRef<uint32_t> operands,
   }
 
   if (auto floatType = dyn_cast<FloatType>(resultType)) {
-    auto bitwidth = floatType.getWidth();
-    if (failed(checkOperandSizeForBitwidth(bitwidth))) {
+    
+    if (auto bitwidth = floatType.getWidth(); failed(checkOperandSizeForBitwidth(bitwidth))) {
       return failure();
     }
 

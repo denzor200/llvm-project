@@ -33,8 +33,8 @@ void BPFInstPrinter::printInst(const MCInst *MI, uint64_t Address,
 
 void BPFInstPrinter::printOperand(const MCInst *MI, unsigned OpNo,
                                   raw_ostream &O) {
-  const MCOperand &Op = MI->getOperand(OpNo);
-  if (Op.isReg()) {
+  
+  if (const MCOperand &Op = MI->getOperand(OpNo); Op.isReg()) {
     O << getRegisterName(Op.getReg());
   } else if (Op.isImm()) {
     O << formatImm((int32_t)Op.getImm());
@@ -55,8 +55,8 @@ void BPFInstPrinter::printMemOperand(const MCInst *MI, int OpNo,
 
   // offset
   if (OffsetOp.isImm()) {
-    auto Imm = OffsetOp.getImm();
-    if (Imm >= 0)
+    
+    if (auto Imm = OffsetOp.getImm(); Imm >= 0)
       O << " + " << formatImm(Imm);
     else
       O << " - " << formatImm(-Imm);
@@ -67,8 +67,8 @@ void BPFInstPrinter::printMemOperand(const MCInst *MI, int OpNo,
 
 void BPFInstPrinter::printImm64Operand(const MCInst *MI, unsigned OpNo,
                                        raw_ostream &O) {
-  const MCOperand &Op = MI->getOperand(OpNo);
-  if (Op.isImm())
+  
+  if (const MCOperand &Op = MI->getOperand(OpNo); Op.isImm())
     O << formatImm(Op.getImm());
   else if (Op.isExpr())
     MAI.printExpr(O, *Op.getExpr());
@@ -78,8 +78,8 @@ void BPFInstPrinter::printImm64Operand(const MCInst *MI, unsigned OpNo,
 
 void BPFInstPrinter::printBrTargetOperand(const MCInst *MI, unsigned OpNo,
                                        raw_ostream &O) {
-  const MCOperand &Op = MI->getOperand(OpNo);
-  if (Op.isImm()) {
+  
+  if (const MCOperand &Op = MI->getOperand(OpNo); Op.isImm()) {
     if (MI->getOpcode() == BPF::JMPL) {
       int32_t Imm = Op.getImm();
       O << ((Imm >= 0) ? "+" : "") << formatImm(Imm);

@@ -66,8 +66,8 @@ static void forEachFieldWithFilter(const RecordDecl &Record, const T &Fields,
 static void
 removeFieldInitialized(const FieldDecl *M,
                        SmallPtrSetImpl<const FieldDecl *> &FieldDecls) {
-  const RecordDecl *R = M->getParent();
-  if (R && R->isUnion()) {
+  
+  if (const RecordDecl *R = M->getParent(); R && R->isUnion()) {
     // Erase all members in a union if any member of it is initialized.
     for (const auto *F : R->fields())
       FieldDecls.erase(F);
@@ -571,12 +571,12 @@ void ProTypeMemberInitCheck::checkMissingBaseClassInitializer(
   if (BasesToInit.empty())
     return;
 
-  DiagnosticBuilder Diag =
+  
+
+  if (DiagnosticBuilder Diag =
       diag(Ctor ? Ctor->getBeginLoc() : ClassDecl.getLocation(),
            "constructor does not initialize these bases: %0")
-      << toCommaSeparatedString(AllBases, BasesToInit);
-
-  if (Ctor)
+      << toCommaSeparatedString(AllBases, BasesToInit); Ctor)
     fixInitializerList(Context, Diag, Ctor, BasesToInit);
 }
 

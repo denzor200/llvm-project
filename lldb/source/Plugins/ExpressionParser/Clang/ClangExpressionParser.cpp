@@ -187,8 +187,8 @@ public:
       return nullptr;
     auto &diags = m_manager->Diagnostics();
     for (auto it = diags.rbegin(); it != diags.rend(); it++) {
-      lldb_private::Diagnostic *diag = it->get();
-      if (ClangDiagnostic *clang_diag = dyn_cast<ClangDiagnostic>(diag)) {
+      
+      if (lldb_private::Diagnostic *diag = it->get(); ClangDiagnostic *clang_diag = dyn_cast<ClangDiagnostic>(diag)) {
         if (clang_diag->GetSeverity() == lldb::eSeverityWarning)
           return nullptr;
         if (clang_diag->GetSeverity() == lldb::eSeverityError)
@@ -264,8 +264,8 @@ public:
       if (Info.hasSourceManager()) {
         DiagnosticDetail::SourceLocation loc;
         clang::SourceManager &sm = Info.getSourceManager();
-        const clang::SourceLocation sloc = Info.getLocation();
-        if (sloc.isValid()) {
+        
+        if (const clang::SourceLocation sloc = Info.getLocation(); sloc.isValid()) {
           const clang::FullSourceLoc fsloc(sloc, sm);
           clang::PresumedLoc PLoc = fsloc.getPresumedLoc(true);
           StringRef filename =
@@ -280,8 +280,8 @@ public:
           for (const auto &range : Info.getRanges()) {
             if (range.getBegin() == sloc) {
               // FIXME: This is probably not handling wide characters correctly.
-              unsigned end_col = sm.getSpellingColumnNumber(range.getEnd());
-              if (end_col > loc.column)
+              
+              if (unsigned end_col = sm.getSpellingColumnNumber(range.getEnd()); end_col > loc.column)
                 loc.length = end_col - loc.column;
               break;
             }
@@ -1227,8 +1227,8 @@ ClangExpressionParser::ParseInternal(DiagnosticManager &diagnostic_manager,
     if (temp_fd != -1) {
       lldb_private::NativeFile file(temp_fd, File::eOpenOptionWriteOnly, true);
       const size_t expr_text_len = strlen(expr_text);
-      size_t bytes_written = expr_text_len;
-      if (file.Write(expr_text, bytes_written).Success()) {
+      
+      if (size_t bytes_written = expr_text_len; file.Write(expr_text, bytes_written).Success()) {
         if (bytes_written == expr_text_len) {
           file.Close();
           if (auto fileEntry = m_compiler->getFileManager().getOptionalFileRef(
@@ -1409,8 +1409,8 @@ bool ClangExpressionParser::RewriteExpression(
   RewritesReceiver rewrites_receiver(rewriter);
 
   const DiagnosticList &diagnostics = diagnostic_manager.Diagnostics();
-  size_t num_diags = diagnostics.size();
-  if (num_diags == 0)
+  
+  if (size_t num_diags = diagnostics.size(); num_diags == 0)
     return false;
 
   for (const auto &diag : diagnostic_manager.Diagnostics()) {
@@ -1446,8 +1446,8 @@ bool ClangExpressionParser::RewriteExpression(
 static bool FindFunctionInModule(ConstString &mangled_name,
                                  llvm::Module *module, const char *orig_name) {
   for (const auto &func : module->getFunctionList()) {
-    const StringRef &name = func.getName();
-    if (name.contains(orig_name)) {
+    
+    if (const StringRef &name = func.getName(); name.contains(orig_name)) {
       mangled_name.SetString(name);
       return true;
     }
@@ -1503,10 +1503,10 @@ lldb_private::Status ClangExpressionParser::DoPrepareForExecution(
     auto lang = m_expr.Language();
     LLDB_LOGF(log, "%s - Current expression language is %s\n", __FUNCTION__,
               lang.GetDescription().data());
-    lldb::ProcessSP process_sp = exe_ctx.GetProcessSP();
-    if (process_sp && lang) {
-      auto runtime = process_sp->GetLanguageRuntime(lang.AsLanguageType());
-      if (runtime)
+    
+    if (lldb::ProcessSP process_sp = exe_ctx.GetProcessSP(); process_sp && lang) {
+      
+      if (auto runtime = process_sp->GetLanguageRuntime(lang.AsLanguageType()); runtime)
         runtime->GetIRPasses(custom_passes);
     }
   }

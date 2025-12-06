@@ -79,9 +79,9 @@ void llvm::LowerVEMachineInstrToMCInst(const MachineInstr *MI, MCInst &OutMI,
   OutMI.setOpcode(MI->getOpcode());
 
   for (const MachineOperand &MO : MI->operands()) {
-    MCOperand MCOp = LowerOperand(MI, MO, AP);
+    
 
-    if (MCOp.isValid())
+    if (MCOperand MCOp = LowerOperand(MI, MO, AP); MCOp.isValid())
       OutMI.addOperand(MCOp);
   }
 }

@@ -292,12 +292,12 @@ static void printDarwinSegmentSizes(MachOObjectFile *MachO) {
   HasMachOFiles = true;
   for (const auto &Load : MachO->load_commands()) {
     if (Load.C.cmd == MachO::LC_SEGMENT_64) {
-      MachO::segment_command_64 Seg = MachO->getSegment64LoadCommand(Load);
-      if (MachO->getHeader().filetype == MachO::MH_OBJECT) {
+      
+      if (MachO::segment_command_64 Seg = MachO->getSegment64LoadCommand(Load); MachO->getHeader().filetype == MachO::MH_OBJECT) {
         for (unsigned J = 0; J < Seg.nsects; ++J) {
           MachO::section_64 Sec = MachO->getSection64(Load, J);
-          StringRef SegmentName = StringRef(Sec.segname);
-          if (SegmentName == "__TEXT")
+          
+          if (StringRef SegmentName = StringRef(Sec.segname); SegmentName == "__TEXT")
             total_text += Sec.size;
           else if (SegmentName == "__DATA")
             total_data += Sec.size;
@@ -307,8 +307,8 @@ static void printDarwinSegmentSizes(MachOObjectFile *MachO) {
             total_others += Sec.size;
         }
       } else {
-        StringRef SegmentName = StringRef(Seg.segname);
-        if (SegmentName == "__TEXT")
+        
+        if (StringRef SegmentName = StringRef(Seg.segname); SegmentName == "__TEXT")
           total_text += Seg.vmsize;
         else if (SegmentName == "__DATA")
           total_data += Seg.vmsize;
@@ -318,12 +318,12 @@ static void printDarwinSegmentSizes(MachOObjectFile *MachO) {
           total_others += Seg.vmsize;
       }
     } else if (Load.C.cmd == MachO::LC_SEGMENT) {
-      MachO::segment_command Seg = MachO->getSegmentLoadCommand(Load);
-      if (MachO->getHeader().filetype == MachO::MH_OBJECT) {
+      
+      if (MachO::segment_command Seg = MachO->getSegmentLoadCommand(Load); MachO->getHeader().filetype == MachO::MH_OBJECT) {
         for (unsigned J = 0; J < Seg.nsects; ++J) {
           MachO::section Sec = MachO->getSection(Load, J);
-          StringRef SegmentName = StringRef(Sec.segname);
-          if (SegmentName == "__TEXT")
+          
+          if (StringRef SegmentName = StringRef(Sec.segname); SegmentName == "__TEXT")
             total_text += Sec.size;
           else if (SegmentName == "__DATA")
             total_data += Sec.size;
@@ -333,8 +333,8 @@ static void printDarwinSegmentSizes(MachOObjectFile *MachO) {
             total_others += Sec.size;
         }
       } else {
-        StringRef SegmentName = StringRef(Seg.segname);
-        if (SegmentName == "__TEXT")
+        
+        if (StringRef SegmentName = StringRef(Seg.segname); SegmentName == "__TEXT")
           total_text += Seg.vmsize;
         else if (SegmentName == "__DATA")
           total_data += Seg.vmsize;
@@ -376,8 +376,8 @@ static void printObjectSectionSizes(ObjectFile *Obj) {
   // If OutputFormat is darwin and we have a MachOObjectFile print as darwin's
   // size(1) -m output, else if OutputFormat is darwin and not a Mach-O object
   // let it fall through to OutputFormat berkeley.
-  MachOObjectFile *MachO = dyn_cast<MachOObjectFile>(Obj);
-  if (OutputFormat == darwin && MachO)
+  
+  if (MachOObjectFile *MachO = dyn_cast<MachOObjectFile>(Obj); OutputFormat == darwin && MachO)
     printDarwinSectionSizes(MachO);
   // If we have a MachOObjectFile and the OutputFormat is berkeley print as
   // darwin's default berkeley format for Mach-O files.
@@ -473,8 +473,8 @@ static void printObjectSectionSizes(ObjectFile *Obj) {
       uint64_t size = Section.getSize();
       bool isText = Section.isBerkeleyText();
       bool isData = Section.isBerkeleyData();
-      bool isBSS = Section.isBSS();
-      if (isText)
+      
+      if (bool isBSS = Section.isBSS(); isText)
         total_text += size;
       else if (isData)
         total_data += size;
@@ -608,8 +608,8 @@ static void printFileSectionSizes(StringRef file) {
              I != E; ++I) {
           if (ArchFlags[i] == I->getArchFlagName()) {
             ArchFound = true;
-            Expected<std::unique_ptr<ObjectFile>> UO = I->getAsObjectFile();
-            if (UO) {
+            
+            if (Expected<std::unique_ptr<ObjectFile>> UO = I->getAsObjectFile(); UO) {
               if (ObjectFile *o = dyn_cast<ObjectFile>(&*UO.get())) {
                 MachOObjectFile *MachO = dyn_cast<MachOObjectFile>(o);
                 if (OutputFormat == sysv)
@@ -774,8 +774,8 @@ static void printFileSectionSizes(StringRef file) {
     for (MachOUniversalBinary::object_iterator I = UB->begin_objects(),
                                                E = UB->end_objects();
          I != E; ++I) {
-      Expected<std::unique_ptr<ObjectFile>> UO = I->getAsObjectFile();
-      if (UO) {
+      
+      if (Expected<std::unique_ptr<ObjectFile>> UO = I->getAsObjectFile(); UO) {
         if (ObjectFile *o = dyn_cast<ObjectFile>(&*UO.get())) {
           MachOObjectFile *MachO = dyn_cast<MachOObjectFile>(o);
           if (OutputFormat == sysv)
@@ -866,9 +866,9 @@ static void printFileSectionSizes(StringRef file) {
 static void printBerkeleyTotals() {
   std::string fmtbuf;
   raw_string_ostream fmt(fmtbuf);
-  const char *radix_fmt = getRadixFmt();
+  
 
-  if (HasMachOFiles) {
+  if (const char *radix_fmt = getRadixFmt(); HasMachOFiles) {
     // Darwin format totals: __TEXT __DATA __OBJC others dec hex
     outs() << TotalObjectText << "\t" << TotalObjectData << "\t"
            << TotalObjectObjc << "\t" << TotalObjectOthers << "\t"

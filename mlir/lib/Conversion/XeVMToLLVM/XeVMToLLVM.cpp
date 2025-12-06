@@ -80,8 +80,8 @@ std::string mangle(StringRef baseName, ArrayRef<Type> types,
   llvm::SmallDenseMap<Type, unsigned> substitutions;
   os << "_Z" << baseName.size() << baseName;
   for (auto [idx, type] : llvm::enumerate(types)) {
-    auto it = substitutions.find(type);
-    if (it != substitutions.end()) {
+    
+    if (auto it = substitutions.find(type); it != substitutions.end()) {
       os << "S";
       // First substitution is `S_`, second is `S0_`, and so on.
       if (unsigned firstIdx = it->getSecond(); firstIdx > 0)

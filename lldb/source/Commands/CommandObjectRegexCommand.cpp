@@ -58,8 +58,8 @@ void CommandObjectRegexCommand::DoExecute(llvm::StringRef command,
                                           CommandReturnObject &result) {
   EntryCollection::const_iterator pos, end = m_entries.end();
   for (pos = m_entries.begin(); pos != end; ++pos) {
-    llvm::SmallVector<llvm::StringRef, 4> matches;
-    if (pos->regex.Execute(command, &matches)) {
+    
+    if (llvm::SmallVector<llvm::StringRef, 4> matches; pos->regex.Execute(command, &matches)) {
       llvm::Expected<std::string> new_command =
           SubstituteVariables(pos->command, matches);
       if (!new_command) {

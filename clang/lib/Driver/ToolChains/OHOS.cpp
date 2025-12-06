@@ -175,8 +175,8 @@ OHOS::OHOS(const Driver &D, const llvm::Triple &Triple, const ArgList &Args)
 ToolChain::RuntimeLibType OHOS::GetRuntimeLibType(
     const ArgList &Args) const {
   if (Arg *A = Args.getLastArg(options::OPT_rtlib_EQ)) {
-    StringRef Value = A->getValue();
-    if (Value != "compiler-rt")
+    
+    if (StringRef Value = A->getValue(); Value != "compiler-rt")
       getDriver().Diag(clang::diag::err_drv_invalid_rtlib_name)
           << A->getAsString(Args);
   }
@@ -187,8 +187,8 @@ ToolChain::RuntimeLibType OHOS::GetRuntimeLibType(
 ToolChain::CXXStdlibType
 OHOS::GetCXXStdlibType(const ArgList &Args) const {
   if (Arg *A = Args.getLastArg(options::OPT_stdlib_EQ)) {
-    StringRef Value = A->getValue();
-    if (Value != "libc++")
+    
+    if (StringRef Value = A->getValue(); Value != "libc++")
       getDriver().Diag(diag::err_drv_invalid_stdlib_name)
         << A->getAsString(Args);
   }

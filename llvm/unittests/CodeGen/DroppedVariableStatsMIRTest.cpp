@@ -199,8 +199,8 @@ body:             |
       }
     }
     for (auto &MI : MBB) {
-      auto *DbgLoc = MI.getDebugLoc().get();
-      if (DbgLoc) {
+      
+      if (auto *DbgLoc = MI.getDebugLoc().get(); DbgLoc) {
         MI.eraseFromParent();
         break;
       }

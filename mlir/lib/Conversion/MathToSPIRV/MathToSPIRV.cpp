@@ -326,9 +326,9 @@ struct Log2Log10OpPattern final : public OpConversionPattern<MathLogOp> {
             rewriter, loc, type, rewriter.getFloatAttr(floatType, value));
       }
       if (auto vectorType = dyn_cast<VectorType>(type)) {
-        Type elemType = vectorType.getElementType();
+        
 
-        if (isa<FloatType>(elemType)) {
+        if (Type elemType = vectorType.getElementType(); isa<FloatType>(elemType)) {
           return spirv::ConstantOp::create(
               rewriter, loc, type,
               DenseFPElementsAttr::get(

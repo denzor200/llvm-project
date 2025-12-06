@@ -369,8 +369,8 @@ static Register convertPtrToInt(Register Reg, LLT ConvTy, SPIRVType *SpvType,
 bool SPIRVLegalizerInfo::legalizeCustom(
     LegalizerHelper &Helper, MachineInstr &MI,
     LostDebugLocObserver &LocObserver) const {
-  MachineRegisterInfo &MRI = MI.getMF()->getRegInfo();
-  switch (MI.getOpcode()) {
+  
+  switch (MachineRegisterInfo &MRI = MI.getMF()->getRegInfo(); MI.getOpcode()) {
   default:
     // TODO: implement legalization for other opcodes.
     return true;
@@ -382,9 +382,9 @@ bool SPIRVLegalizerInfo::legalizeCustom(
     auto &Op1 = MI.getOperand(3);
     Register Reg0 = Op0.getReg();
     Register Reg1 = Op1.getReg();
-    CmpInst::Predicate Cond =
-        static_cast<CmpInst::Predicate>(MI.getOperand(1).getPredicate());
-    if ((!ST->canDirectlyComparePointers() ||
+    
+    if (CmpInst::Predicate Cond =
+        static_cast<CmpInst::Predicate>(MI.getOperand(1).getPredicate()); (!ST->canDirectlyComparePointers() ||
          (Cond != CmpInst::ICMP_EQ && Cond != CmpInst::ICMP_NE)) &&
         MRI.getType(Reg0).isPointer() && MRI.getType(Reg1).isPointer()) {
       LLT ConvT = LLT::scalar(ST->getPointerSize());
@@ -588,9 +588,9 @@ bool SPIRVLegalizerInfo::legalizeIsFPClass(
   }
 
   if (FPClassTest PartialCheck = Mask & fcNan) {
-    auto InfWithQnanBitC =
-        buildSPIRVConstant(IntTy, std::move(Inf) | QNaNBitMask);
-    if (PartialCheck == fcNan) {
+    
+    if (auto InfWithQnanBitC =
+        buildSPIRVConstant(IntTy, std::move(Inf) | QNaNBitMask); PartialCheck == fcNan) {
       // isnan(V) ==> abs(V) u> int(inf)
       appendToRes(
           MIRBuilder.buildICmp(CmpInst::Predicate::ICMP_UGT, DstTy, Abs, InfC));

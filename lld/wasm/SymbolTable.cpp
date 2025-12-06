@@ -173,8 +173,8 @@ static void checkGlobalType(const Symbol *existing, const InputFile *file,
     return;
   }
 
-  const WasmGlobalType *oldType = cast<GlobalSymbol>(existing)->getGlobalType();
-  if (*newType != *oldType) {
+  
+  if (const WasmGlobalType *oldType = cast<GlobalSymbol>(existing)->getGlobalType(); *newType != *oldType) {
     error("Global type mismatch: " + existing->getName() + "\n>>> defined as " +
           toString(*oldType) + " in " + toString(existing->getFile()) +
           "\n>>> defined as " + toString(*newType) + " in " + toString(file));
@@ -204,8 +204,8 @@ static void checkTableType(const Symbol *existing, const InputFile *file,
     return;
   }
 
-  const WasmTableType *oldType = cast<TableSymbol>(existing)->getTableType();
-  if (newType->ElemType != oldType->ElemType) {
+  
+  if (const WasmTableType *oldType = cast<TableSymbol>(existing)->getTableType(); newType->ElemType != oldType->ElemType) {
     error("Table type mismatch: " + existing->getName() + "\n>>> defined as " +
           toString(*oldType) + " in " + toString(existing->getFile()) +
           "\n>>> defined as " + toString(*newType) + " in " + toString(file));
@@ -331,12 +331,12 @@ static void reportFunctionSignatureMismatch(StringRef symName,
                                             const WasmSignature *signature,
                                             InputFile *file,
                                             bool isError = true) {
-  std::string msg =
+  
+  if (std::string msg =
       ("function signature mismatch: " + symName + "\n>>> defined as " +
        toString(*sym->signature) + " in " + toString(sym->getFile()) +
        "\n>>> defined as " + toString(*signature) + " in " + toString(file))
-          .str();
-  if (isError)
+          .str(); isError)
     error(msg);
   else
     warn(msg);
@@ -437,8 +437,8 @@ Symbol *SymbolTable::addDefinedFunction(StringRef name, uint32_t flags,
     // If the new defined function doesn't have signature (i.e. bitcode
     // functions) but the old symbol does, then preserve the old signature
     const WasmSignature *oldSig = s->getSignature();
-    auto* newSym = replaceSymbol<DefinedFunction>(sym, name, flags, file, function);
-    if (!newSym->signature)
+    
+    if (auto* newSym = replaceSymbol<DefinedFunction>(sym, name, flags, file, function); !newSym->signature)
       newSym->signature = oldSig;
   };
 
@@ -608,8 +608,8 @@ static void setImportAttributes(T *existing,
   }
 
   // Update symbol binding, if the existing symbol is weak
-  uint32_t binding = flags & WASM_SYMBOL_BINDING_MASK;
-  if (existing->isWeak() && binding != WASM_SYMBOL_BINDING_WEAK) {
+  
+  if (uint32_t binding = flags & WASM_SYMBOL_BINDING_MASK; existing->isWeak() && binding != WASM_SYMBOL_BINDING_WEAK) {
     existing->flags = (existing->flags & ~WASM_SYMBOL_BINDING_MASK) | binding;
   }
 }

@@ -1038,10 +1038,10 @@ TEST(RenameTest, ObjCWithinFileRename) {
     auto AST = TU.build();
     auto Index = TU.index();
     for (const auto &RenamePos : Code.points()) {
-      auto RenameResult =
+      
+      if (auto RenameResult =
           rename({RenamePos, T.NewName, AST, testPath(TU.Filename),
-                  getVFSFromAST(AST), Index.get()});
-      if (std::optional<StringRef> Expected = T.Expected) {
+                  getVFSFromAST(AST), Index.get()}); std::optional<StringRef> Expected = T.Expected) {
         ASSERT_TRUE(bool(RenameResult)) << RenameResult.takeError();
         ASSERT_EQ(1u, RenameResult->GlobalChanges.size());
         EXPECT_EQ(
@@ -2254,10 +2254,10 @@ TEST(CrossFileRenameTests, adjustRenameRanges) {
   for (const auto &T : Tests) {
     SCOPED_TRACE(T.DraftCode);
     Annotations Draft(T.DraftCode);
-    auto ActualRanges = adjustRenameRanges(
+    
+    if (auto ActualRanges = adjustRenameRanges(
         Draft.code(), RenameSymbolName(ArrayRef<std::string>{"x"}),
-        Annotations(T.IndexedCode).ranges(), LangOpts);
-    if (!ActualRanges)
+        Annotations(T.IndexedCode).ranges(), LangOpts); !ActualRanges)
        EXPECT_THAT(Draft.ranges(), testing::IsEmpty());
     else
       EXPECT_THAT(Draft.ranges(),
@@ -2380,9 +2380,9 @@ TEST(RangePatchingHeuristic, GetMappedRanges) {
       ExpectedMatches.push_back(*Match);
     }
 
-    auto Mapped =
-        getMappedRanges(Annotations(T.IndexedCode).ranges(), LexedRanges);
-    if (!Mapped)
+    
+    if (auto Mapped =
+        getMappedRanges(Annotations(T.IndexedCode).ranges(), LexedRanges); !Mapped)
       EXPECT_THAT(ExpectedMatches, IsEmpty());
     else
       EXPECT_THAT(ExpectedMatches, UnorderedElementsAreArray(*Mapped));

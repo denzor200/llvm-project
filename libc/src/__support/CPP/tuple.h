@@ -102,10 +102,10 @@ tuple_cat(const tuple<As...> &a, const tuple<Bs...> &b,
 template <typename First, typename Second, typename... Rest>
 LIBC_INLINE constexpr auto tuple_cat(const First &f, const Second &s,
                                      const Rest &...rest) {
-  auto concat =
+  
+  if constexpr (auto concat =
       tuple_cat(f, s, cpp::make_index_sequence<tuple_size<First>::value>{},
-                cpp::make_index_sequence<tuple_size<Second>::value>{});
-  if constexpr (sizeof...(Rest))
+                cpp::make_index_sequence<tuple_size<Second>::value>{}); sizeof...(Rest))
     return tuple_cat(concat, rest...);
   else
     return concat;

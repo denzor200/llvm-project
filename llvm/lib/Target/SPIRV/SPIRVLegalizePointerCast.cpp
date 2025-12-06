@@ -262,10 +262,10 @@ class SPIRVLegalizePointerCast : public FunctionPass {
     FixedVectorType *DstType =
         cast<FixedVectorType>(GR->findDeducedElementType(Dst));
     auto dstNumElements = DstType->getNumElements();
-    auto srcNumElements = SrcType->getNumElements();
+    
 
     // if the element type differs, it is a bitcast.
-    if (DstType->getElementType() != SrcType->getElementType()) {
+    if (auto srcNumElements = SrcType->getNumElements(); DstType->getElementType() != SrcType->getElementType()) {
       // Support bitcast between vectors of different sizes only if
       // the total bitwidth is the same.
       [[maybe_unused]] auto dstBitWidth =
@@ -432,8 +432,8 @@ public:
     std::vector<IntrinsicInst *> WorkList;
     for (auto &BB : F) {
       for (auto &I : BB) {
-        auto *II = dyn_cast<IntrinsicInst>(&I);
-        if (II && II->getIntrinsicID() == Intrinsic::spv_ptrcast)
+        
+        if (auto *II = dyn_cast<IntrinsicInst>(&I); II && II->getIntrinsicID() == Intrinsic::spv_ptrcast)
           WorkList.push_back(II);
       }
     }

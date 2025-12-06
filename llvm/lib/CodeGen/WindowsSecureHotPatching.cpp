@@ -219,8 +219,8 @@ bool WindowsSecureHotPatching::doInitialization(Module &M) {
     std::vector<std::string> HotPatchFunctionsList;
 
     if (!LLVMMSSecureHotPatchFunctionsFile.empty()) {
-      auto BufOrErr = MemoryBuffer::getFile(LLVMMSSecureHotPatchFunctionsFile);
-      if (BufOrErr) {
+      
+      if (auto BufOrErr = MemoryBuffer::getFile(LLVMMSSecureHotPatchFunctionsFile); BufOrErr) {
         const MemoryBuffer &FileBuffer = **BufOrErr;
         for (line_iterator I(FileBuffer.getMemBufferRef(), true), E; I != E;
              ++I)
@@ -410,8 +410,8 @@ static Value *rewriteGlobalVariablesInConstant(
     Constant *C, SmallDenseMap<GlobalVariable *, Value *> &GVLoadMap,
     IRBuilder<> &IRBuilderAtEntry) {
   if (C->getValueID() == Value::GlobalVariableVal) {
-    GlobalVariable *GV = cast<GlobalVariable>(C);
-    if (globalVariableNeedsRedirect(GV)) {
+    
+    if (GlobalVariable *GV = cast<GlobalVariable>(C); globalVariableNeedsRedirect(GV)) {
       return GVLoadMap.at(GV);
     } else {
       return nullptr;
@@ -445,8 +445,8 @@ static Value *rewriteGlobalVariablesInConstant(
   // to an instruction, then replace any operands as needed.
   Instruction *NewInst = cast<ConstantExpr>(C)->getAsInstruction();
   for (unsigned OpIndex = 0; OpIndex < NumOperands; ++OpIndex) {
-    Value *ReplacedValue = ReplacedValues[OpIndex];
-    if (ReplacedValue != nullptr) {
+    
+    if (Value *ReplacedValue = ReplacedValues[OpIndex]; ReplacedValue != nullptr) {
       NewInst->setOperand(OpIndex, ReplacedValue);
     }
   }
@@ -536,8 +536,8 @@ bool WindowsSecureHotPatching::runOnFunction(
       }
 
       case Value::ConstantExprVal: {
-        ConstantExpr *CE = cast<ConstantExpr>(V);
-        if (searchConstantExprForGlobalVariables(CE, GVLoadMap, GVUses)) {
+        
+        if (ConstantExpr *CE = cast<ConstantExpr>(V); searchConstantExprForGlobalVariables(CE, GVLoadMap, GVUses)) {
           FoundAnyGVUses = true;
         }
         break;

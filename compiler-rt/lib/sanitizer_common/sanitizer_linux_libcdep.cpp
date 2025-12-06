@@ -748,9 +748,9 @@ static int AddModuleSegments(const char *module_name, dl_phdr_info *info,
             // arbitrary memory.
             break;
           }
-          const char *name =
-              reinterpret_cast<const char *>(nhdr) + sizeof(*nhdr);
-          if (internal_memcmp(name, "GNU", 3) == 0) {
+          
+          if (const char *name =
+              reinterpret_cast<const char *>(nhdr) + sizeof(*nhdr); internal_memcmp(name, "GNU", 3) == 0) {
             const char *value = reinterpret_cast<const char *>(nhdr) +
                                 sizeof(*nhdr) + kGnuNamesz;
             cur_module.setUuid(value, nhdr->n_descsz);
@@ -994,8 +994,8 @@ void UnmapFromTo(uptr from, uptr to) {
   if (to == from)
     return;
   CHECK(to >= from);
-  uptr res = internal_munmap(reinterpret_cast<void *>(from), to - from);
-  if (UNLIKELY(internal_iserror(res))) {
+  
+  if (uptr res = internal_munmap(reinterpret_cast<void *>(from), to - from); UNLIKELY(internal_iserror(res))) {
     Report("ERROR: %s failed to unmap 0x%zx (%zd) bytes at address %p\n",
            SanitizerToolName, to - from, to - from, (void *)from);
     CHECK("unable to unmap" && 0);

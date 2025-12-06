@@ -861,8 +861,8 @@ static std::function<void(MemoryBuffer &)> createObjDebugDumper() {
 
 static Error loadDylibs() {
   for (const auto &Dylib : Dylibs) {
-    std::string ErrMsg;
-    if (sys::DynamicLibrary::LoadLibraryPermanently(Dylib.c_str(), &ErrMsg))
+    
+    if (std::string ErrMsg; sys::DynamicLibrary::LoadLibraryPermanently(Dylib.c_str(), &ErrMsg))
       return make_error<StringError>(ErrMsg, inconvertibleErrorCode());
   }
 
@@ -1240,8 +1240,8 @@ static Expected<std::unique_ptr<orc::ExecutorProcessControl>> launchRemote() {
     }
 
     char * const args[] = { &ChildPath[0], &ChildIn[0], &ChildOut[0], nullptr };
-    int rc = execv(ChildExecPath.c_str(), args);
-    if (rc != 0)
+    
+    if (int rc = execv(ChildExecPath.c_str(), args); rc != 0)
       perror("Error executing child process: ");
     llvm_unreachable("Error executing child process");
   }

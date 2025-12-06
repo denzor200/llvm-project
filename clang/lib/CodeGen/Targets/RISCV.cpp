@@ -188,9 +188,9 @@ bool RISCVABIInfo::detectFPCCEligibleStructHelper(QualType Ty, CharUnits CurOff,
                                                   llvm::Type *&Field2Ty,
                                                   CharUnits &Field2Off) const {
   bool IsInt = Ty->isIntegralOrEnumerationType();
-  bool IsFloat = Ty->isRealFloatingType();
+  
 
-  if (IsInt || IsFloat) {
+  if (bool IsFloat = Ty->isRealFloatingType(); IsInt || IsFloat) {
     uint64_t Size = getContext().getTypeSize(Ty);
     if (IsInt && Size > XLen)
       return false;
@@ -240,9 +240,9 @@ bool RISCVABIInfo::detectFPCCEligibleStructHelper(QualType Ty, CharUnits CurOff,
     }
     CharUnits EltSize = getContext().getTypeSizeInChars(EltTy);
     for (uint64_t i = 0; i < ArraySize; ++i) {
-      bool Ret = detectFPCCEligibleStructHelper(EltTy, CurOff, Field1Ty,
-                                                Field1Off, Field2Ty, Field2Off);
-      if (!Ret)
+      
+      if (bool Ret = detectFPCCEligibleStructHelper(EltTy, CurOff, Field1Ty,
+                                                Field1Off, Field2Ty, Field2Off); !Ret)
         return false;
       CurOff += EltSize;
     }
@@ -266,10 +266,10 @@ bool RISCVABIInfo::detectFPCCEligibleStructHelper(QualType Ty, CharUnits CurOff,
       for (const CXXBaseSpecifier &B : CXXRD->bases()) {
         const auto *BDecl = B.getType()->castAsCXXRecordDecl();
         CharUnits BaseOff = Layout.getBaseClassOffset(BDecl);
-        bool Ret = detectFPCCEligibleStructHelper(B.getType(), CurOff + BaseOff,
+        
+        if (bool Ret = detectFPCCEligibleStructHelper(B.getType(), CurOff + BaseOff,
                                                   Field1Ty, Field1Off, Field2Ty,
-                                                  Field2Off);
-        if (!Ret)
+                                                  Field2Off); !Ret)
           return false;
       }
     }
@@ -571,8 +571,8 @@ ABIArgInfo RISCVABIInfo::coerceVLSVector(QualType Ty, unsigned ABIVLen) const {
 
     // If the corresponding extension is not supported, just make it an i8
     // vector with same LMUL.
-    const TargetInfo &TI = getContext().getTargetInfo();
-    if ((EltType->isHalfTy() && !TI.hasFeature("zvfhmin")) ||
+    
+    if (const TargetInfo &TI = getContext().getTargetInfo(); (EltType->isHalfTy() && !TI.hasFeature("zvfhmin")) ||
         (EltType->isBFloatTy() && !TI.hasFeature("zvfbfmin")) ||
         (EltType->isFloatTy() && !TI.hasFeature("zve32f")) ||
         (EltType->isDoubleTy() && !TI.hasFeature("zve64d")) ||
@@ -624,8 +624,8 @@ ABIArgInfo RISCVABIInfo::classifyArgumentType(QualType Ty, bool IsFixed,
   // Complex types for the hard float ABI must be passed direct rather than
   // using CoerceAndExpand.
   if (IsFixed && Ty->isComplexType() && FLen && ArgFPRsLeft >= 2) {
-    QualType EltTy = Ty->castAs<ComplexType>()->getElementType();
-    if (getContext().getTypeSize(EltTy) <= FLen) {
+    
+    if (QualType EltTy = Ty->castAs<ComplexType>()->getElementType(); getContext().getTypeSize(EltTy) <= FLen) {
       ArgFPRsLeft -= 2;
       return ABIArgInfo::getDirect();
     }
@@ -638,10 +638,10 @@ ABIArgInfo RISCVABIInfo::classifyArgumentType(QualType Ty, bool IsFixed,
     CharUnits Field2Off = CharUnits::Zero();
     int NeededArgGPRs = 0;
     int NeededArgFPRs = 0;
-    bool IsCandidate =
+    
+    if (bool IsCandidate =
         detectFPCCEligibleStruct(Ty, Field1Ty, Field1Off, Field2Ty, Field2Off,
-                                 NeededArgGPRs, NeededArgFPRs);
-    if (IsCandidate && NeededArgGPRs <= ArgGPRsLeft &&
+                                 NeededArgGPRs, NeededArgFPRs); IsCandidate && NeededArgGPRs <= ArgGPRsLeft &&
         NeededArgFPRs <= ArgFPRsLeft) {
       ArgGPRsLeft -= NeededArgGPRs;
       ArgFPRsLeft -= NeededArgFPRs;
@@ -651,8 +651,8 @@ ABIArgInfo RISCVABIInfo::classifyArgumentType(QualType Ty, bool IsFixed,
   }
 
   if (IsFixed && Ty->isStructureOrClassType()) {
-    llvm::Type *VLSType = nullptr;
-    if (detectVLSCCEligibleStruct(Ty, ABIVLen, VLSType))
+    
+    if (llvm::Type *VLSType = nullptr; detectVLSCCEligibleStruct(Ty, ABIVLen, VLSType))
       return ABIArgInfo::getTargetSpecific(VLSType);
   }
 
@@ -719,11 +719,11 @@ ABIArgInfo RISCVABIInfo::classifyArgumentType(QualType Ty, bool IsFixed,
   // Aggregates which are <= 2*XLen will be passed in registers if possible,
   // so coerce to integers.
   if (Size <= 2 * XLen) {
-    unsigned Alignment = getContext().getTypeAlign(Ty);
+    
 
     // Use a single XLen int if possible, 2*XLen if 2*XLen alignment is
     // required, and a 2-element XLen array if only XLen alignment is required.
-    if (Size <= XLen) {
+    if (unsigned Alignment = getContext().getTypeAlign(Ty); Size <= XLen) {
       return ABIArgInfo::getDirect(
           llvm::IntegerType::get(getVMContext(), XLen));
     } else if (Alignment == 2 * XLen) {
@@ -778,9 +778,9 @@ RValue RISCVABIInfo::EmitVAArg(CodeGenFunction &CGF, Address VAListAddr,
 }
 
 ABIArgInfo RISCVABIInfo::extendType(QualType Ty, llvm::Type *CoerceTy) const {
-  int TySize = getContext().getTypeSize(Ty);
+  
   // RV64 ABI requires unsigned 32 bit integers to be sign extended.
-  if (XLen == 64 && Ty->isUnsignedIntegerOrEnumerationType() && TySize == 32)
+  if (int TySize = getContext().getTypeSize(Ty); XLen == 64 && Ty->isUnsignedIntegerOrEnumerationType() && TySize == 32)
     return ABIArgInfo::getSignExtend(Ty, CoerceTy);
   return ABIArgInfo::getExtend(Ty, CoerceTy);
 }

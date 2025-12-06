@@ -111,8 +111,8 @@ TypeLoc TypeLocBuilder::pushImpl(QualType T, size_t LocalSize, unsigned LocalAli
     if (!AtAlign8) {
       NumBytesAtAlign4 += LocalSize;
     } else {
-      unsigned Padding = NumBytesAtAlign4 % 8;
-      if (Padding == 0) {
+      
+      if (unsigned Padding = NumBytesAtAlign4 % 8; Padding == 0) {
         if (LocalSize % 8 == 0) {
           // Everything is set: there's no padding and we don't need to add
           // any.
@@ -145,8 +145,8 @@ TypeLoc TypeLocBuilder::pushImpl(QualType T, size_t LocalSize, unsigned LocalAli
         Index -= 4;
       }
     } else {
-      unsigned Padding = NumBytesAtAlign4 % 8;
-      if (Padding == 0) {
+      
+      if (unsigned Padding = NumBytesAtAlign4 % 8; Padding == 0) {
         if (LocalSize % 8 == 0) {
           // Everything is set: there's no padding and we don't need to add
           // any.

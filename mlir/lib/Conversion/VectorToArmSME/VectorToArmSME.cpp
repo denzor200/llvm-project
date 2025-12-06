@@ -388,8 +388,8 @@ struct VectorOuterProductToArmSMELowering
       return rewriter.notifyMatchFailure(
           outerProductOp, "outer product does not fit into SME tile");
 
-    auto kind = outerProductOp.getKind();
-    if (kind != vector::CombiningKind::ADD)
+    
+    if (auto kind = outerProductOp.getKind(); kind != vector::CombiningKind::ADD)
       return rewriter.notifyMatchFailure(
           outerProductOp,
           "unsupported kind (lowering to SME only supports ADD at the moment)");

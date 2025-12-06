@@ -89,8 +89,8 @@ static void formatErrorString(llvm::StringRef formatString,
     const char next = pieces.second.front();
     formatString = pieces.second.drop_front();
     if (next >= '0' && next <= '9') {
-      const unsigned index = next - '0';
-      if (index < args.size()) {
+      
+      if (const unsigned index = next - '0'; index < args.size()) {
         os << args[index];
       } else {
         os << "<Argument_Not_Provided>";

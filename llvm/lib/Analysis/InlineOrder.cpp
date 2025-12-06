@@ -93,8 +93,8 @@ public:
   CostPriority() = default;
   CostPriority(const CallBase *CB, FunctionAnalysisManager &FAM,
                const InlineParams &Params) {
-    auto IC = getInlineCostWrapper(const_cast<CallBase &>(*CB), FAM, Params);
-    if (IC.isVariable())
+    
+    if (auto IC = getInlineCostWrapper(const_cast<CallBase &>(*CB), FAM, Params); IC.isVariable())
       Cost = IC.getCost();
     else
       Cost = IC.isNever() ? INT_MAX : INT_MIN;
@@ -141,9 +141,9 @@ public:
     // to shrink (even if we don't delete the callee).
     bool P1ReducesCallerSize =
         P1.Cost + P1.StaticBonusApplied < ModuleInlinerTopPriorityThreshold;
-    bool P2ReducesCallerSize =
-        P2.Cost + P2.StaticBonusApplied < ModuleInlinerTopPriorityThreshold;
-    if (P1ReducesCallerSize || P2ReducesCallerSize) {
+    
+    if (bool P2ReducesCallerSize =
+        P2.Cost + P2.StaticBonusApplied < ModuleInlinerTopPriorityThreshold; P1ReducesCallerSize || P2ReducesCallerSize) {
       // If one reduces the caller size while the other doesn't, then return
       // true iff P1 reduces the caller size.
       if (P1ReducesCallerSize != P2ReducesCallerSize)
@@ -184,8 +184,8 @@ public:
   MLPriority() = default;
   MLPriority(const CallBase *CB, FunctionAnalysisManager &FAM,
              const InlineParams &Params) {
-    auto IC = getInlineCostWrapper(const_cast<CallBase &>(*CB), FAM, Params);
-    if (IC.isVariable())
+    
+    if (auto IC = getInlineCostWrapper(const_cast<CallBase &>(*CB), FAM, Params); IC.isVariable())
       Cost = IC.getCost();
     else
       Cost = IC.isNever() ? INT_MAX : INT_MIN;

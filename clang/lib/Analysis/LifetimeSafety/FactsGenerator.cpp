@@ -48,8 +48,8 @@ void FactsGenerator::run() {
     CurrentBlockFacts.clear();
     EscapesInCurrentBlock.clear();
     for (unsigned I = 0; I < Block->size(); ++I) {
-      const CFGElement &Element = Block->Elements[I];
-      if (std::optional<CFGStmt> CS = Element.getAs<CFGStmt>())
+      
+      if (const CFGElement &Element = Block->Elements[I]; std::optional<CFGStmt> CS = Element.getAs<CFGStmt>())
         Visit(CS->getStmt());
       else if (std::optional<CFGLifetimeEnds> LifetimeEnds =
                    Element.getAs<CFGLifetimeEnds>())
@@ -224,10 +224,10 @@ void FactsGenerator::handleLifetimeEnds(const CFGLifetimeEnds &LifetimeEnds) {
     return;
   // Iterate through all loans to see if any expire.
   for (const auto &Loan : FactMgr.getLoanMgr().getLoans()) {
-    const AccessPath &LoanPath = Loan.Path;
+    
     // Check if the loan is for a stack variable and if that variable
     // is the one being destructed.
-    if (LoanPath.D == LifetimeEndsVD)
+    if (const AccessPath &LoanPath = Loan.Path; LoanPath.D == LifetimeEndsVD)
       CurrentBlockFacts.push_back(FactMgr.createFact<ExpireFact>(
           Loan.ID, LifetimeEnds.getTriggerStmt()->getEndLoc()));
   }
@@ -292,12 +292,12 @@ bool FactsGenerator::handleTestPoint(const CXXFunctionalCastExpr *FCE) {
   if (!FCE->getType()->isVoidType())
     return false;
 
-  const auto *SubExpr = FCE->getSubExpr()->IgnoreParenImpCasts();
-  if (const auto *SL = dyn_cast<StringLiteral>(SubExpr)) {
+  
+  if (const auto *SubExpr = FCE->getSubExpr()->IgnoreParenImpCasts(); const auto *SL = dyn_cast<StringLiteral>(SubExpr)) {
     llvm::StringRef LiteralValue = SL->getString();
-    const std::string Prefix = "__lifetime_test_point_";
+    
 
-    if (LiteralValue.starts_with(Prefix)) {
+    if (const std::string Prefix = "__lifetime_test_point_"; LiteralValue.starts_with(Prefix)) {
       StringRef Annotation = LiteralValue.drop_front(Prefix.length());
       CurrentBlockFacts.push_back(
           FactMgr.createFact<TestPointFact>(Annotation));

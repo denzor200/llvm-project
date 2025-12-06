@@ -217,9 +217,9 @@ bool RISCVFoldMemOffset::foldOffset(
       // If the offset is new or changed, add the destination register to the
       // work list.
       int64_t OffsetVal = Offset.getValue();
-      auto P =
-          RegToOffsetMap.try_emplace(User.getOperand(0).getReg(), OffsetVal);
-      if (P.second) {
+      
+      if (auto P =
+          RegToOffsetMap.try_emplace(User.getOperand(0).getReg(), OffsetVal); P.second) {
         Worklist.push(User.getOperand(0).getReg());
       } else if (P.first->second != OffsetVal) {
         P.first->second = OffsetVal;

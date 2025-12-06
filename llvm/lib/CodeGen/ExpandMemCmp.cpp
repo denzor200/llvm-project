@@ -284,9 +284,9 @@ MemCmpExpansion::MemCmpExpansion(
   if (Options.AllowOverlappingLoads &&
       (LoadSequence.empty() || LoadSequence.size() > 2)) {
     unsigned OverlappingNumLoadsNonOneByte = 0;
-    auto OverlappingLoads = computeOverlappingLoadSequence(
-        Size, MaxLoadSize, Options.MaxNumLoads, OverlappingNumLoadsNonOneByte);
-    if (!OverlappingLoads.empty() &&
+    
+    if (auto OverlappingLoads = computeOverlappingLoadSequence(
+        Size, MaxLoadSize, Options.MaxNumLoads, OverlappingNumLoadsNonOneByte); !OverlappingLoads.empty() &&
         (LoadSequence.empty() ||
          OverlappingLoads.size() < LoadSequence.size())) {
       LoadSequence = OverlappingLoads;
@@ -434,11 +434,11 @@ Value *MemCmpExpansion::getCompareLoadPairs(unsigned BlockIndex,
 
   for (unsigned i = 0; i < NumLoads; ++i, ++LoadIndex) {
     const LoadEntry &CurLoadEntry = LoadSequence[LoadIndex];
-    const LoadPair Loads = getLoadPair(
-        IntegerType::get(CI->getContext(), CurLoadEntry.LoadSize * 8), nullptr,
-        MaxLoadType, CurLoadEntry.Offset);
+    
 
-    if (NumLoads != 1) {
+    if (const LoadPair Loads = getLoadPair(
+        IntegerType::get(CI->getContext(), CurLoadEntry.LoadSize * 8), nullptr,
+        MaxLoadType, CurLoadEntry.Offset); NumLoads != 1) {
       // If we have multiple loads per block, we need to generate a composite
       // comparison using xor+or.
       Diff = Builder.CreateXor(Loads.Lhs, Loads.Rhs);

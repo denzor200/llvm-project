@@ -32,8 +32,8 @@ Watchpoint::Watchpoint(DAP &d, const protocol::DataBreakpoint &breakpoint)
 void Watchpoint::SetCondition() { m_wp.SetCondition(m_condition.c_str()); }
 
 void Watchpoint::SetHitCondition() {
-  uint64_t hitCount = 0;
-  if (llvm::to_integer(m_hit_condition, hitCount))
+  
+  if (uint64_t hitCount = 0; llvm::to_integer(m_hit_condition, hitCount))
     m_wp.SetIgnoreCount(hitCount - 1);
 }
 

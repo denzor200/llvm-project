@@ -60,9 +60,9 @@ void TestCFGLoopInfo::runOnOperation() {
 
   llvm::DominatorTreeBase<mlir::Block, false> &domTree =
       domInfo.getDomTree(&region);
-  mlir::CFGLoopInfo loopInfo(domTree);
+  
 
-  if (loopInfo.getTopLevelLoops().empty())
+  if (mlir::CFGLoopInfo loopInfo(domTree); loopInfo.getTopLevelLoops().empty())
     llvm::errs() << "no loops\n";
   else
     loopInfo.print(llvm::errs());

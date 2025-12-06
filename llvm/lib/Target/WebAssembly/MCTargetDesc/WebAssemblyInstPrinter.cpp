@@ -62,8 +62,8 @@ void WebAssemblyInstPrinter::printInst(const MCInst *MI, uint64_t Address,
 
     assert(MI->getNumOperands() == 2);
     const unsigned TypeOperand = 0;
-    const unsigned TableOperand = 1;
-    if (MI->getOperand(TableOperand).isExpr()) {
+    
+    if (const unsigned TableOperand = 1; MI->getOperand(TableOperand).isExpr()) {
       printOperand(MI, TableOperand, OS);
       OS << ", ";
     } else {
@@ -126,8 +126,8 @@ void WebAssemblyInstPrinter::printInst(const MCInst *MI, uint64_t Address,
   if (CommentStream) {
     // Observe any effects on the control flow stack, for use in annotating
     // control flow label references.
-    unsigned Opc = MI->getOpcode();
-    switch (Opc) {
+    
+    switch (unsigned Opc = MI->getOpcode(); Opc) {
     default:
       break;
 
@@ -156,8 +156,8 @@ void WebAssemblyInstPrinter::printInst(const MCInst *MI, uint64_t Address,
       const MCOperand &Op = MI->getOperand(OpIdx++);
       unsigned NumCatches = Op.getImm();
       for (unsigned I = 0; I < NumCatches; I++) {
-        int64_t CatchOpcode = MI->getOperand(OpIdx++).getImm();
-        if (CatchOpcode == wasm::WASM_OPCODE_CATCH ||
+        
+        if (int64_t CatchOpcode = MI->getOperand(OpIdx++).getImm(); CatchOpcode == wasm::WASM_OPCODE_CATCH ||
             CatchOpcode == wasm::WASM_OPCODE_CATCH_REF)
           OpIdx++; // Skip tag
         PrintBranchAnnotation(MI->getOperand(OpIdx++), Printed);
@@ -250,12 +250,12 @@ void WebAssemblyInstPrinter::printInst(const MCInst *MI, uint64_t Address,
                             ": ";
         TryStack.pop_back();
         EHInstStack.pop_back();
-        uint64_t Depth = MI->getOperand(0).getImm();
-        if (Depth >= ControlFlowStack.size()) {
+        
+        if (uint64_t Depth = MI->getOperand(0).getImm(); Depth >= ControlFlowStack.size()) {
           Label += "to caller";
         } else {
-          const auto &Pair = ControlFlowStack.rbegin()[Depth];
-          if (Pair.second)
+          
+          if (const auto &Pair = ControlFlowStack.rbegin()[Depth]; Pair.second)
             printAnnotation(OS, "delegate cannot target a loop");
           else
             Label += "down to catch" + utostr(Pair.first);
@@ -314,8 +314,8 @@ static std::string toString(const APFloat &FP) {
 
 void WebAssemblyInstPrinter::printOperand(const MCInst *MI, unsigned OpNo,
                                           raw_ostream &O, bool IsVariadicDef) {
-  const MCOperand &Op = MI->getOperand(OpNo);
-  if (Op.isReg()) {
+  
+  if (const MCOperand &Op = MI->getOperand(OpNo); Op.isReg()) {
     const MCInstrDesc &Desc = MII.get(MI->getOpcode());
     MCRegister WAReg = Op.getReg();
     if (int(WAReg.id()) >= 0)
@@ -340,8 +340,8 @@ void WebAssemblyInstPrinter::printOperand(const MCInst *MI, unsigned OpNo,
     // call_indirect instructions have a TYPEINDEX operand that we print
     // as a signature here, such that the assembler can recover this
     // information.
-    auto SRE = static_cast<const MCSymbolRefExpr *>(Op.getExpr());
-    if (SRE->getSpecifier() == WebAssembly::S_TYPEINDEX) {
+    
+    if (auto SRE = static_cast<const MCSymbolRefExpr *>(Op.getExpr()); SRE->getSpecifier() == WebAssembly::S_TYPEINDEX) {
       auto &Sym = static_cast<const MCSymbolWasm &>(SRE->getSymbol());
       O << WebAssembly::signatureToString(Sym.getSignature());
     } else {
@@ -373,15 +373,15 @@ void WebAssemblyInstPrinter::printWebAssemblyP2AlignOperand(const MCInst *MI,
 void WebAssemblyInstPrinter::printWebAssemblySignatureOperand(const MCInst *MI,
                                                               unsigned OpNo,
                                                               raw_ostream &O) {
-  const MCOperand &Op = MI->getOperand(OpNo);
-  if (Op.isImm()) {
-    auto Imm = static_cast<unsigned>(Op.getImm());
-    if (Imm != wasm::WASM_TYPE_NORESULT)
+  
+  if (const MCOperand &Op = MI->getOperand(OpNo); Op.isImm()) {
+    
+    if (auto Imm = static_cast<unsigned>(Op.getImm()); Imm != wasm::WASM_TYPE_NORESULT)
       O << WebAssembly::anyTypeToString(Imm);
   } else {
     auto Expr = cast<MCSymbolRefExpr>(Op.getExpr());
-    auto *Sym = static_cast<const MCSymbolWasm *>(&Expr->getSymbol());
-    if (Sym->getSignature()) {
+    
+    if (auto *Sym = static_cast<const MCSymbolWasm *>(&Expr->getSymbol()); Sym->getSignature()) {
       O << WebAssembly::signatureToString(Sym->getSignature());
     } else {
       // Disassembler does not currently produce a signature
@@ -398,8 +398,8 @@ void WebAssemblyInstPrinter::printCatchList(const MCInst *MI, unsigned OpNo,
 
   auto PrintTagOp = [&](const MCOperand &Op) {
     const MCSymbolRefExpr *TagExpr = nullptr;
-    const MCSymbol *TagSym = nullptr;
-    if (Op.isExpr()) {
+    
+    if (const MCSymbol *TagSym = nullptr; Op.isExpr()) {
       TagExpr = cast<MCSymbolRefExpr>(Op.getExpr());
       TagSym = &TagExpr->getSymbol();
       O << TagSym->getName() << " ";

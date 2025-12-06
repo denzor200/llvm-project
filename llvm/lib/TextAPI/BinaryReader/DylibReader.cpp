@@ -63,8 +63,8 @@ static TripleVec constructTriples(MachOObjectFile *Obj,
   auto Arch = getArchitectureName(ArchT);
 
   for (const auto &cmd : Obj->load_commands()) {
-    std::string OSVersion;
-    switch (cmd.C.cmd) {
+    
+    switch (std::string OSVersion; cmd.C.cmd) {
     case MachO::LC_VERSION_MIN_MACOSX:
       OSVersion = getOSVersion(cmd);
       emplace(Triples, {Arch, "apple", "macos" + OSVersion});
@@ -301,11 +301,11 @@ static Error readSymbols(MachOObjectFile *Obj, RecordsSlice &Slice,
       if (Flags & SymbolRef::SF_Weak)
         RecordFlags |= SymbolFlags::WeakReferenced;
     } else if (Flags & SymbolRef::SF_Exported) {
-      auto Exp = Exports.find(Name);
+      
       // This should never be possible when binaries are produced with Apple
       // linkers. However it is possible to craft dylibs where the export trie
       // is either malformed or has conflicting symbols compared to n_list.
-      if (Exp != Exports.end())
+      if (auto Exp = Exports.find(Name); Exp != Exports.end())
         std::tie(RecordFlags, Linkage) = Exp->second;
       else
         Linkage = RecordLinkage::Exported;
@@ -401,8 +401,8 @@ Expected<Records> DylibReader::readFile(MemoryBufferRef Buffer,
       continue;
     }
 
-    auto &Obj = *ObjOrErr.get();
-    switch (Obj.getHeader().filetype) {
+    
+    switch (auto &Obj = *ObjOrErr.get(); Obj.getHeader().filetype) {
     default:
       break;
     case MachO::MH_BUNDLE:

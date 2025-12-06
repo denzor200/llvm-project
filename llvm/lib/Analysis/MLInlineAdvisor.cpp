@@ -185,8 +185,8 @@ MLInlineAdvisor::MLInlineAdvisor(
       }
     }
     for (auto *CGNode : CGNodes) {
-      Function *F = CGNode->getFunction();
-      if (F && !F->isDeclaration())
+      
+      if (Function *F = CGNode->getFunction(); F && !F->isDeclaration())
         FunctionLevels[&CG.get(*F)] = Level;
     }
   }
@@ -254,9 +254,9 @@ void MLInlineAdvisor::onPassEntry(LazyCallGraph::SCC *CurSCC) {
     for (const auto &E : *(*N)) {
       const auto *AdjNode = &E.getNode();
       assert(!AdjNode->isDead() && !AdjNode->getFunction().isDeclaration());
-      auto I = AllNodes.insert(AdjNode);
+      
       // We've discovered a new function.
-      if (I.second) {
+      if (auto I = AllNodes.insert(AdjNode); I.second) {
         ++NodeCount;
         NodesInLastSCC.insert(AdjNode);
         FunctionLevels[AdjNode] = NLevel;
@@ -294,8 +294,8 @@ void MLInlineAdvisor::onPassExit(LazyCallGraph::SCC *CurSCC) {
   // Check on nodes that may have got added to SCC
   for (const auto &N : *CurSCC) {
     assert(!N.isDead());
-    auto I = NodesInLastSCC.insert(&N);
-    if (I.second)
+    
+    if (auto I = NodesInLastSCC.insert(&N); I.second)
       EdgesOfLastSeenNodes += getLocalCalls(N.getFunction());
   }
   assert(NodeCount >= NodesInLastSCC.size());

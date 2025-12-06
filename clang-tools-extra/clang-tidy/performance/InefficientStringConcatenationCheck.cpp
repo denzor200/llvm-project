@@ -40,16 +40,16 @@ void InefficientStringConcatenationCheck::registerMatchers(
           hasDescendant(BasicStringPlusOperator))
           .bind("plusOperator");
 
-  const auto AssignOperator = cxxOperatorCallExpr(
+  
+
+  if (const auto AssignOperator = cxxOperatorCallExpr(
       hasOverloadedOperatorName("="),
       hasArgument(0, declRefExpr(BasicStringType,
                                  hasDeclaration(decl().bind("lhsStrT")))
                          .bind("lhsStr")),
       hasArgument(1, stmt(hasDescendant(declRefExpr(
                          hasDeclaration(decl(equalsBoundNode("lhsStrT"))))))),
-      hasDescendant(BasicStringPlusOperator));
-
-  if (StrictMode) {
+      hasDescendant(BasicStringPlusOperator)); StrictMode) {
     Finder->addMatcher(cxxOperatorCallExpr(anyOf(AssignOperator, PlusOperator)),
                        this);
   } else {
@@ -66,11 +66,11 @@ void InefficientStringConcatenationCheck::check(
   const auto *LhsStr = Result.Nodes.getNodeAs<DeclRefExpr>("lhsStr");
   const auto *PlusOperator =
       Result.Nodes.getNodeAs<CXXOperatorCallExpr>("plusOperator");
-  const char *DiagMsg =
-      "string concatenation results in allocation of unnecessary temporary "
-      "strings; consider using 'operator+=' or 'string::append()' instead";
+  
 
-  if (LhsStr)
+  if (const char *DiagMsg =
+      "string concatenation results in allocation of unnecessary temporary "
+      "strings; consider using 'operator+=' or 'string::append()' instead"; LhsStr)
     diag(LhsStr->getExprLoc(), DiagMsg);
   else if (PlusOperator)
     diag(PlusOperator->getExprLoc(), DiagMsg);

@@ -43,16 +43,16 @@ const MCExpr *ConstantPool::addEntry(const MCExpr *Value, MCContext &Context,
 
   // Check if there is existing entry for the same constant. If so, reuse it.
   if (C) {
-    auto CItr = CachedConstantEntries.find(std::make_pair(C->getValue(), Size));
-    if (CItr != CachedConstantEntries.end())
+    
+    if (auto CItr = CachedConstantEntries.find(std::make_pair(C->getValue(), Size)); CItr != CachedConstantEntries.end())
       return CItr->second;
   }
 
   // Check if there is existing entry for the same symbol. If so, reuse it.
   if (S) {
-    auto SItr =
-        CachedSymbolEntries.find(std::make_pair(&(S->getSymbol()), Size));
-    if (SItr != CachedSymbolEntries.end())
+    
+    if (auto SItr =
+        CachedSymbolEntries.find(std::make_pair(&(S->getSymbol()), Size)); SItr != CachedSymbolEntries.end())
       return SItr->second;
   }
 
@@ -109,14 +109,14 @@ void AssemblerConstantPools::emitAll(MCStreamer &Streamer) {
 }
 
 void AssemblerConstantPools::emitForCurrentSection(MCStreamer &Streamer) {
-  MCSection *Section = Streamer.getCurrentSectionOnly();
-  if (ConstantPool *CP = getConstantPool(Section))
+  
+  if (MCSection *Section = Streamer.getCurrentSectionOnly(); ConstantPool *CP = getConstantPool(Section))
     emitConstantPool(Streamer, Section, *CP);
 }
 
 void AssemblerConstantPools::clearCacheForCurrentSection(MCStreamer &Streamer) {
-  MCSection *Section = Streamer.getCurrentSectionOnly();
-  if (ConstantPool *CP = getConstantPool(Section))
+  
+  if (MCSection *Section = Streamer.getCurrentSectionOnly(); ConstantPool *CP = getConstantPool(Section))
     CP->clearCache();
 }
 

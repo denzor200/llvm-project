@@ -719,9 +719,9 @@ Error lto::thinBackend(const Config &Conf, unsigned Task, AddStreamFn AddStream,
 
   {
     llvm::TimeTraceScope importScope("Import functions");
-    FunctionImporter Importer(CombinedIndex, ModuleLoader,
-                              ClearDSOLocalOnDeclarations);
-    if (Error Err = Importer.importFunctions(Mod, ImportList).takeError())
+    
+    if (FunctionImporter Importer(CombinedIndex, ModuleLoader,
+                              ClearDSOLocalOnDeclarations); Error Err = Importer.importFunctions(Mod, ImportList).takeError())
       return Err;
   }
 
@@ -739,8 +739,8 @@ BitcodeModule *lto::findThinLTOModule(MutableArrayRef<BitcodeModule> BMs) {
     return BMs.begin();
 
   for (BitcodeModule &BM : BMs) {
-    Expected<BitcodeLTOInfo> LTOInfo = BM.getLTOInfo();
-    if (LTOInfo && LTOInfo->IsThinLTO)
+    
+    if (Expected<BitcodeLTOInfo> LTOInfo = BM.getLTOInfo(); LTOInfo && LTOInfo->IsThinLTO)
       return &BM;
   }
   return nullptr;

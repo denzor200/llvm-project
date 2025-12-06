@@ -98,8 +98,8 @@ public:
 
   bool HandleTopLevelDecl(DeclGroupRef DG) override {
     for (Decl *D : DG) {
-      auto &SM = D->getASTContext().getSourceManager();
-      if (!isInsideMainFile(D->getLocation(), SM))
+      
+      if (auto &SM = D->getASTContext().getSourceManager(); !isInsideMainFile(D->getLocation(), SM))
         continue;
       if (const NamedDecl *ND = dyn_cast<NamedDecl>(D))
         if (isImplicitTemplateInstantiation(ND))
@@ -286,8 +286,8 @@ public:
         continue;
 
       bool Enable = !Check.consume_front("-");
-      bool Glob = Check.consume_back("*");
-      if (Glob) {
+      
+      if (bool Glob = Check.consume_back("*"); Glob) {
         // Is this clang-diagnostic-*, or *, or so?
         // (We ignore all other types of globs).
         if (CDPrefix.starts_with(Check)) {
@@ -418,8 +418,8 @@ ParsedAST::build(llvm::StringRef Filename, const ParseInputs &Inputs,
   assert(CI);
 
   if (CI->getFrontendOpts().Inputs.size() > 0) {
-    auto Lang = CI->getFrontendOpts().Inputs[0].getKind().getLanguage();
-    if (Lang == Language::Asm || Lang == Language::LLVM_IR) {
+    
+    if (auto Lang = CI->getFrontendOpts().Inputs[0].getKind().getLanguage(); Lang == Language::Asm || Lang == Language::LLVM_IR) {
       elog("Clangd does not support assembly or IR source files");
       return std::nullopt;
     }
@@ -597,8 +597,8 @@ ParsedAST::build(llvm::StringRef Filename, const ParseInputs &Inputs,
 
       if (!CTChecks.empty()) {
         std::string CheckName = CTContext->getCheckName(Info.getID());
-        bool IsClangTidyDiag = !CheckName.empty();
-        if (IsClangTidyDiag) {
+        
+        if (bool IsClangTidyDiag = !CheckName.empty(); IsClangTidyDiag) {
           if (Cfg.Diagnostics.Suppress.contains(CheckName))
             return DiagnosticsEngine::Ignored;
           // Check for suppression comment. Skip the check for diagnostics not

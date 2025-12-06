@@ -601,8 +601,8 @@ TEST_F(LibclangParseTest, EvaluateChildExpression) {
               cursor,
               [](CXCursor cursor, CXCursor parent,
                  CXClientData client_data) -> CXChildVisitResult {
-                int &numberedStmt = *((int *)client_data);
-                if (clang_getCursorKind(cursor) == CXCursor_CompoundStmt) {
+                
+                if (int &numberedStmt = *((int *)client_data); clang_getCursorKind(cursor) == CXCursor_CompoundStmt) {
                   if (numberedStmt) {
                     CXEvalResult RE = clang_Cursor_Evaluate(cursor);
                     EXPECT_NE(RE, nullptr);
@@ -869,8 +869,8 @@ TEST_F(LibclangReparseTest, PreprocessorSkippedRanges) {
 class LibclangSerializationTest : public LibclangParseTest {
 public:
   bool SaveAndLoadTU(const std::string &Filename) {
-    unsigned options = clang_defaultSaveOptions(ClangTU);
-    if (clang_saveTranslationUnit(ClangTU, Filename.c_str(), options) !=
+    
+    if (unsigned options = clang_defaultSaveOptions(ClangTU); clang_saveTranslationUnit(ClangTU, Filename.c_str(), options) !=
         CXSaveError_None) {
       LLVM_DEBUG(llvm::dbgs() << "Saving failed\n");
       return false;

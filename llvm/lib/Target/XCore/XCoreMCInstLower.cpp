@@ -74,9 +74,9 @@ MCOperand XCoreMCInstLower::LowerSymbolOperand(const MachineOperand &MO,
 
 MCOperand XCoreMCInstLower::LowerOperand(const MachineOperand &MO,
                                          unsigned offset) const {
-  MachineOperandType MOTy = MO.getType();
+  
 
-  switch (MOTy) {
+  switch (MachineOperandType MOTy = MO.getType(); MOTy) {
     default: llvm_unreachable("unknown operand type");
     case MachineOperand::MO_Register:
       // Ignore all implicit register operands.
@@ -102,9 +102,9 @@ void XCoreMCInstLower::Lower(const MachineInstr *MI, MCInst &OutMI) const {
   OutMI.setOpcode(MI->getOpcode());
 
   for (const MachineOperand &MO : MI->operands()) {
-    MCOperand MCOp = LowerOperand(MO);
+    
 
-    if (MCOp.isValid())
+    if (MCOperand MCOp = LowerOperand(MO); MCOp.isValid())
       OutMI.addOperand(MCOp);
   }
 }

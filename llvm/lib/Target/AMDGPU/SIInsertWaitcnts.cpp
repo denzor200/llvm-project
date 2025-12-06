@@ -1016,8 +1016,8 @@ void WaitcntBrackets::updateByEvent(WaitEventType E, MachineInstr &Inst) {
       }
     }
   } else if (T == X_CNT) {
-    WaitEventType OtherEvent = E == SMEM_GROUP ? VMEM_GROUP : SMEM_GROUP;
-    if (PendingEvents & (1 << OtherEvent)) {
+    
+    if (WaitEventType OtherEvent = E == SMEM_GROUP ? VMEM_GROUP : SMEM_GROUP; PendingEvents & (1 << OtherEvent)) {
       // Hardware inserts an implicit xcnt between interleaved
       // SMEM and VMEM operations. So there will never be
       // outstanding address translations for both SMEM and
@@ -1220,11 +1220,11 @@ void WaitcntBrackets::determineWait(InstCounterType T, RegInterval Interval,
   const unsigned LB = getScoreLB(T);
   const unsigned UB = getScoreUB(T);
   for (int RegNo = Interval.first; RegNo < Interval.second; ++RegNo) {
-    unsigned ScoreToWait = getRegScore(RegNo, T);
+    
 
     // If the score of src_operand falls within the bracket, we need an
     // s_waitcnt instruction.
-    if ((UB >= ScoreToWait) && (ScoreToWait > LB)) {
+    if (unsigned ScoreToWait = getRegScore(RegNo, T); (UB >= ScoreToWait) && (ScoreToWait > LB)) {
       if ((T == LOAD_CNT || T == DS_CNT) && hasPendingFlat() &&
           !Context->ST->hasFlatLgkmVMemCountInOrder()) {
         // If there is a pending FLAT operation, and this is a VMem or LGKM
@@ -1433,11 +1433,11 @@ bool WaitcntGeneratorPreGFX12::applyPreexistingWaitcnt(
     }
 
     unsigned Opcode = SIInstrInfo::getNonSoftWaitcntOpcode(II.getOpcode());
-    bool TrySimplify = Opcode != II.getOpcode() && !OptNone;
+    
 
     // Update required wait count. If this is a soft waitcnt (= it was added
     // by an earlier pass), it may be entirely removed.
-    if (Opcode == AMDGPU::S_WAITCNT) {
+    if (bool TrySimplify = Opcode != II.getOpcode() && !OptNone; Opcode == AMDGPU::S_WAITCNT) {
       unsigned IEnc = II.getOperand(0).getImm();
       AMDGPU::Waitcnt OldWait = AMDGPU::decodeWaitcnt(IV, IEnc);
       if (TrySimplify)
@@ -1762,8 +1762,8 @@ bool WaitcntGeneratorGFX12Plus::applyPreexistingWaitcnt(
     if (!WaitInstrs[CT])
       continue;
 
-    unsigned NewCnt = getWait(Wait, CT);
-    if (NewCnt != ~0u) {
+    
+    if (unsigned NewCnt = getWait(Wait, CT); NewCnt != ~0u) {
       Modified |= updateOperandIfDifferent(*WaitInstrs[CT],
                                            AMDGPU::OpName::simm16, NewCnt);
       Modified |= promoteSoftWaitCnt(WaitInstrs[CT]);
@@ -1957,8 +1957,8 @@ bool SIInsertWaitcnts::generateWaitcntInstBefore(MachineInstr &MI,
       // load). We also need to check WAW dependency with saved PC.
       Wait = AMDGPU::Waitcnt();
 
-      const auto &CallAddrOp = *TII->getNamedOperand(MI, AMDGPU::OpName::src0);
-      if (CallAddrOp.isReg()) {
+      
+      if (const auto &CallAddrOp = *TII->getNamedOperand(MI, AMDGPU::OpName::src0); CallAddrOp.isReg()) {
         RegInterval CallAddrOpInterval =
             ScoreBrackets.getRegInterval(&MI, CallAddrOp);
 
@@ -2034,8 +2034,8 @@ bool SIInsertWaitcnts::generateWaitcntInstBefore(MachineInstr &MI,
 
         RegInterval Interval = ScoreBrackets.getRegInterval(&MI, Op);
 
-        const bool IsVGPR = TRI->isVectorRegister(*MRI, Op.getReg());
-        if (IsVGPR) {
+        
+        if (const bool IsVGPR = TRI->isVectorRegister(*MRI, Op.getReg()); IsVGPR) {
           // Implicit VGPR defs and uses are never a part of the memory
           // instructions description and usually present to account for
           // super-register liveness.
@@ -2169,9 +2169,9 @@ bool SIInsertWaitcnts::generateWaitcnt(AMDGPU::Waitcnt Wait,
   // ExpCnt can be merged into VINTERP.
   if (Wait.ExpCnt != ~0u && It != Block.instr_end() &&
       SIInstrInfo::isVINTERP(*It)) {
-    MachineOperand *WaitExp =
-        TII->getNamedOperand(*It, AMDGPU::OpName::waitexp);
-    if (Wait.ExpCnt < WaitExp->getImm()) {
+    
+    if (MachineOperand *WaitExp =
+        TII->getNamedOperand(*It, AMDGPU::OpName::waitexp); Wait.ExpCnt < WaitExp->getImm()) {
       WaitExp->setImm(Wait.ExpCnt);
       Modified = true;
     }
@@ -2324,8 +2324,8 @@ void SIInsertWaitcnts::updateEventWaitcntAfter(MachineInstr &Inst,
     int64_t Imm = TII->getNamedOperand(Inst, AMDGPU::OpName::waitexp)->getImm();
     ScoreBrackets->applyWaitcnt(EXP_CNT, Imm);
   } else if (SIInstrInfo::isEXP(Inst)) {
-    unsigned Imm = TII->getNamedOperand(Inst, AMDGPU::OpName::tgt)->getImm();
-    if (Imm >= AMDGPU::Exp::ET_PARAM0 && Imm <= AMDGPU::Exp::ET_PARAM31)
+    
+    if (unsigned Imm = TII->getNamedOperand(Inst, AMDGPU::OpName::tgt)->getImm(); Imm >= AMDGPU::Exp::ET_PARAM0 && Imm <= AMDGPU::Exp::ET_PARAM31)
       ScoreBrackets->updateByEvent(EXP_PARAM_ACCESS, Inst);
     else if (Imm >= AMDGPU::Exp::ET_POS0 && Imm <= AMDGPU::Exp::ET_POS_LAST)
       ScoreBrackets->updateByEvent(EXP_POS_ACCESS, Inst);
@@ -2412,8 +2412,8 @@ bool WaitcntBrackets::merge(const WaitcntBrackets &Other) {
     if (T == KM_CNT) {
       StrictDom |= mergeScore(M, SCCScore, Other.SCCScore);
       if (Other.hasPendingEvent(SCC_WRITE)) {
-        unsigned OldEventsHasSCCWrite = OldEvents & (1 << SCC_WRITE);
-        if (!OldEventsHasSCCWrite) {
+        
+        if (unsigned OldEventsHasSCCWrite = OldEvents & (1 << SCC_WRITE); !OldEventsHasSCCWrite) {
           PendingSCCWrite = Other.PendingSCCWrite;
         } else if (PendingSCCWrite != Other.PendingSCCWrite) {
           PendingSCCWrite = nullptr;
@@ -2719,11 +2719,11 @@ SIInsertWaitcntsPass::run(MachineFunction &MF,
                           MachineFunctionAnalysisManager &MFAM) {
   auto *MLI = &MFAM.getResult<MachineLoopAnalysis>(MF);
   auto *PDT = &MFAM.getResult<MachinePostDominatorTreeAnalysis>(MF);
-  auto *AA = MFAM.getResult<FunctionAnalysisManagerMachineFunctionProxy>(MF)
-                 .getManager()
-                 .getCachedResult<AAManager>(MF.getFunction());
+  
 
-  if (!SIInsertWaitcnts(MLI, PDT, AA).run(MF))
+  if (auto *AA = MFAM.getResult<FunctionAnalysisManagerMachineFunctionProxy>(MF)
+                 .getManager()
+                 .getCachedResult<AAManager>(MF.getFunction()); !SIInsertWaitcnts(MLI, PDT, AA).run(MF))
     return PreservedAnalyses::all();
 
   return getMachineFunctionPassPreservedAnalyses()
@@ -2861,8 +2861,8 @@ bool SIInsertWaitcnts::run(MachineFunction &MF) {
         BlockInfo *MoveBracketsToSucc = nullptr;
         for (MachineBasicBlock *Succ : MBB->successors()) {
           auto *SuccBII = BlockInfos.find(Succ);
-          BlockInfo &SuccBI = SuccBII->second;
-          if (!SuccBI.Incoming) {
+          
+          if (BlockInfo &SuccBI = SuccBII->second; !SuccBI.Incoming) {
             SuccBI.Dirty = true;
             if (SuccBII <= BII) {
               LLVM_DEBUG(dbgs() << "repeat on backedge\n");

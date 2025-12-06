@@ -527,8 +527,8 @@ struct SalvageDebugInfoTest : ::testing::Test {
   bool doesDebugValueDescribeX(const DbgVariableRecord &DVR) {
     if (DVR.getNumVariableLocationOps() != 1u)
       return false;
-    const auto &CI = *cast<ConstantInt>(DVR.getValue(0));
-    if (CI.isZero())
+    
+    if (const auto &CI = *cast<ConstantInt>(DVR.getValue(0)); CI.isZero())
       return DVR.getExpression()->getElements().equals(
           {dwarf::DW_OP_plus_uconst, 1, dwarf::DW_OP_stack_value});
     else if (CI.isOneValue())
@@ -539,8 +539,8 @@ struct SalvageDebugInfoTest : ::testing::Test {
   bool doesDebugValueDescribeY(const DbgVariableRecord &DVR) {
     if (DVR.getNumVariableLocationOps() != 1u)
       return false;
-    const auto &CI = *cast<ConstantInt>(DVR.getVariableLocationOp(0));
-    if (CI.isZero())
+    
+    if (const auto &CI = *cast<ConstantInt>(DVR.getVariableLocationOp(0)); CI.isZero())
       return DVR.getExpression()->getElements().equals(
           {dwarf::DW_OP_plus_uconst, 3, dwarf::DW_OP_stack_value});
     else if (CI.isOneValue())

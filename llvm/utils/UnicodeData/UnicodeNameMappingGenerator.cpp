@@ -61,8 +61,8 @@ loadDataFiles(const std::string &NamesFile, const std::string &AliasesFile) {
 
       // Some aliases are ignored for compatibility with C++
       if (IsAliasFile) {
-        std::string Kind = Line.substr(SecondSemiPos + 1);
-        if (Kind != "control" && Kind != "correction" && Kind != "alternate")
+        
+        if (std::string Kind = Line.substr(SecondSemiPos + 1); Kind != "control" && Kind != "correction" && Kind != "alternate")
           continue;
       }
 

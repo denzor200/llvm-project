@@ -165,9 +165,9 @@ bool PathMappingList::Remove(size_t index, bool notify) {
 // to only dump the indicated pair.
 void PathMappingList::Dump(Stream *s, int pair_index) {
   std::lock_guard<std::mutex> lock(m_pairs_mutex);
-  unsigned int numPairs = m_pairs.size();
+  
 
-  if (pair_index < 0) {
+  if (unsigned int numPairs = m_pairs.size(); pair_index < 0) {
     unsigned int index;
     for (index = 0; index < numPairs; ++index)
       s->Printf("[%d] \"%s\" -> \"%s\"\n", index,

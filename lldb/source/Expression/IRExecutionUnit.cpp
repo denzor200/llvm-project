@@ -214,8 +214,8 @@ struct IRExecDiagnosticHandler : public llvm::DiagnosticHandler {
   IRExecDiagnosticHandler(Status *err) : err(err) {}
   bool handleDiagnostics(const llvm::DiagnosticInfo &DI) override {
     if (DI.getSeverity() == llvm::DS_Error) {
-      const auto &DISM = llvm::cast<llvm::DiagnosticInfoSrcMgr>(DI);
-      if (err && err->Success()) {
+      
+      if (const auto &DISM = llvm::cast<llvm::DiagnosticInfoSrcMgr>(DI); err && err->Success()) {
         *err = Status::FromErrorStringWithFormat(
             "IRExecution error: %s",
             DISM.getSMDiag().getMessage().str().c_str());
@@ -324,9 +324,9 @@ void IRExecutionUnit::GetRunnableInfo(Status &error, lldb::addr_t &func_addr,
           = m_out_dir.CopyByAppendingPathComponent(object_name_model);
       std::string model_path = model_spec.GetPath();
 
-      std::error_code result 
-        = llvm::sys::fs::createUniqueFile(model_path, fd, result_path);
-      if (!result) {
+      
+      if (std::error_code result 
+        = llvm::sys::fs::createUniqueFile(model_path, fd, result_path); !result) {
           llvm::raw_fd_ostream fds(fd, true);
           fds.write(object.getBufferStart(), object.getBufferSize());
       }
@@ -690,10 +690,10 @@ public:
       // We found a load address.
       if (load_address != LLDB_INVALID_ADDRESS) {
         // If the load address is external, we're done.
-        const bool is_external =
+        
+        if (const bool is_external =
             (candidate_sc.function) ||
-            (candidate_sc.symbol && candidate_sc.symbol->IsExternal());
-        if (is_external)
+            (candidate_sc.symbol && candidate_sc.symbol->IsExternal()); is_external)
           return load_address;
 
         // Otherwise, remember the best internal load address.
@@ -841,9 +841,9 @@ IRExecutionUnit::FindInSymbols(const std::vector<ConstString> &names,
         return *load_addr;
     }
 
-    lldb::addr_t best_internal_load_address =
-        resolver.GetBestInternalLoadAddress();
-    if (best_internal_load_address != LLDB_INVALID_ADDRESS)
+    
+    if (lldb::addr_t best_internal_load_address =
+        resolver.GetBestInternalLoadAddress(); best_internal_load_address != LLDB_INVALID_ADDRESS)
       return best_internal_load_address;
   }
 
@@ -867,9 +867,9 @@ IRExecutionUnit::FindInRuntimes(const std::vector<ConstString> &names,
 
   for (const ConstString &name : names) {
     for (LanguageRuntime *runtime : process_sp->GetLanguageRuntimes()) {
-      lldb::addr_t symbol_load_addr = runtime->LookupRuntimeSymbol(name);
+      
 
-      if (symbol_load_addr != LLDB_INVALID_ADDRESS)
+      if (lldb::addr_t symbol_load_addr = runtime->LookupRuntimeSymbol(name); symbol_load_addr != LLDB_INVALID_ADDRESS)
         return symbol_load_addr;
     }
   }
@@ -883,9 +883,9 @@ lldb::addr_t IRExecutionUnit::FindInUserDefinedSymbols(
   lldb::TargetSP target_sp = sc.target_sp;
 
   for (const ConstString &name : names) {
-    lldb::addr_t symbol_load_addr = target_sp->GetPersistentSymbol(name);
+    
 
-    if (symbol_load_addr != LLDB_INVALID_ADDRESS)
+    if (lldb::addr_t symbol_load_addr = target_sp->GetPersistentSymbol(name); symbol_load_addr != LLDB_INVALID_ADDRESS)
       return symbol_load_addr;
   }
 
@@ -1000,9 +1000,9 @@ void IRExecutionUnit::GetStaticInitializers(
 llvm::JITSymbol 
 IRExecutionUnit::MemoryManager::findSymbol(const std::string &Name) {
     bool missing_weak = false;
-    uint64_t addr = GetSymbolAddressAndPresence(Name, missing_weak);
+    
     // This is a weak symbol:
-    if (missing_weak) 
+    if (uint64_t addr = GetSymbolAddressAndPresence(Name, missing_weak); missing_weak) 
       return llvm::JITSymbol(addr, 
           llvm::JITSymbolFlags::Exported | llvm::JITSymbolFlags::Weak);
     else
@@ -1022,9 +1022,9 @@ IRExecutionUnit::MemoryManager::GetSymbolAddressAndPresence(
 
   ConstString name_cs(Name.c_str());
 
-  lldb::addr_t ret = m_parent.FindSymbol(name_cs, missing_weak);
+  
 
-  if (ret == LLDB_INVALID_ADDRESS) {
+  if (lldb::addr_t ret = m_parent.FindSymbol(name_cs, missing_weak); ret == LLDB_INVALID_ADDRESS) {
     LLDB_LOGF(log,
               "IRExecutionUnit::getSymbolAddress(Name=\"%s\") = <not found>",
               Name.c_str());

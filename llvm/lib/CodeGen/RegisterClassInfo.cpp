@@ -131,9 +131,9 @@ void RegisterClassInfo::compute(const TargetRegisterClass *RC) const {
   auto &STI = MF->getSubtarget();
 
   // Raw register count, including all reserved regs.
-  unsigned NumRegs = RC->getNumRegs();
+  
 
-  if (!RCI.Order)
+  if (unsigned NumRegs = RC->getNumRegs(); !RCI.Order)
     RCI.Order.reset(new MCPhysReg[NumRegs]);
 
   unsigned N = 0;
@@ -221,8 +221,8 @@ unsigned RegisterClassInfo::computePSetLimit(unsigned Idx) const {
 
     // Found a register class that counts against this pressure set.
     // For efficiency, only compute the set order for the largest set.
-    unsigned NUnits = TRI->getRegClassWeight(C).WeightLimit;
-    if (!RC || NUnits > NumRCUnits) {
+    
+    if (unsigned NUnits = TRI->getRegClassWeight(C).WeightLimit; !RC || NUnits > NumRCUnits) {
       RC = C;
       NumRCUnits = NUnits;
     }

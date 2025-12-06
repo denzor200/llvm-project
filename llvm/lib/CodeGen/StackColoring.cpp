@@ -573,8 +573,8 @@ static inline int getStartOrEndSlot(const MachineInstr &MI)
           MI.getOpcode() == TargetOpcode::LIFETIME_END) &&
          "Expected LIFETIME_START or LIFETIME_END op");
   const MachineOperand &MO = MI.getOperand(0);
-  int Slot = MO.getIndex();
-  if (Slot >= 0)
+  
+  if (int Slot = MO.getIndex(); Slot >= 0)
     return Slot;
   return -1;
 }
@@ -646,8 +646,8 @@ unsigned StackColoring::collectMarkers(unsigned NumSlot) {
     BitVector BetweenStartEnd;
     BetweenStartEnd.resize(NumSlot);
     for (const MachineBasicBlock *Pred : MBB->predecessors()) {
-      BlockBitVecMap::const_iterator I = SeenStartMap.find(Pred);
-      if (I != SeenStartMap.end()) {
+      
+      if (BlockBitVecMap::const_iterator I = SeenStartMap.find(Pred); I != SeenStartMap.end()) {
         BetweenStartEnd |= I->second;
       }
     }
@@ -754,8 +754,8 @@ unsigned StackColoring::collectMarkers(unsigned NumSlot) {
             LLVM_DEBUG(dbgs()
                        << " at " << printMBBReference(*MBB) << " index ");
             LLVM_DEBUG(Indexes->getInstructionIndex(MI).print(dbgs()));
-            const AllocaInst *Allocation = MFI->getObjectAllocation(Slot);
-            if (Allocation) {
+            
+            if (const AllocaInst *Allocation = MFI->getObjectAllocation(Slot); Allocation) {
               LLVM_DEBUG(dbgs()
                          << " with allocation: " << Allocation->getName());
             }
@@ -795,11 +795,11 @@ void StackColoring::calculateLocalLiveness() {
       // Compute LiveIn by unioning together the LiveOut sets of all preds.
       LocalLiveIn.clear();
       for (MachineBasicBlock *Pred : BB->predecessors()) {
-        LivenessMap::const_iterator I = BlockLiveness.find(Pred);
+        
         // PR37130: transformations prior to stack coloring can
         // sometimes leave behind statically unreachable blocks; these
         // can be safely skipped here.
-        if (I != BlockLiveness.end())
+        if (LivenessMap::const_iterator I = BlockLiveness.find(Pred); I != BlockLiveness.end())
           LocalLiveIn |= I->second.LiveOut;
       }
 
@@ -1060,8 +1060,8 @@ void StackColoring::remapInstructions(DenseMap<int, int> &SlotRemap) {
         if (const auto *FSV = dyn_cast_or_null<FixedStackPseudoSourceValue>(
                 MMO->getPseudoValue())) {
           int FI = FSV->getFrameIndex();
-          auto To = SlotRemap.find(FI);
-          if (To != SlotRemap.end())
+          
+          if (auto To = SlotRemap.find(FI); To != SlotRemap.end())
             SSRefs[FI].push_back(MMO);
         }
 
@@ -1080,8 +1080,8 @@ void StackColoring::remapInstructions(DenseMap<int, int> &SlotRemap) {
                 // If this memory location comes from a known stack slot
                 // that is not remapped, we continue checking.
                 // Otherwise, we need to invalidate AA infomation.
-                const AllocaInst *AI = dyn_cast_or_null<AllocaInst>(V);
-                if (AI && MergedAllocas.count(AI)) {
+                
+                if (const AllocaInst *AI = dyn_cast_or_null<AllocaInst>(V); AI && MergedAllocas.count(AI)) {
                   MayHaveConflictingAAMD = true;
                   break;
                 }

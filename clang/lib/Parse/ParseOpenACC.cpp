@@ -704,9 +704,9 @@ OpenACCModifierKind Parser::tryParseModifierList(OpenACCClauseKind CK) {
   OpenACCModifierKind CurModList = OpenACCModifierKind::Invalid;
   auto ConsumeModKind = [&]() {
     Token IdentToken = getCurToken();
-    OpenACCModifierKind NewKind = GetModKind(IdentToken);
+    
 
-    if (NewKind == OpenACCModifierKind::Invalid)
+    if (OpenACCModifierKind NewKind = GetModKind(IdentToken); NewKind == OpenACCModifierKind::Invalid)
       Diag(IdentToken.getLocation(), diag::err_acc_modifier)
           << diag::ACCModifier::Unknown << IdentToken.getIdentifierInfo() << CK;
     else if ((NewKind & CurModList) != OpenACCModifierKind::Invalid)
@@ -744,8 +744,8 @@ Parser::ParseOpenACCClauseList(OpenACCDirectiveKind DirKind) {
       ConsumeToken();
     FirstClause = false;
 
-    OpenACCClauseParseResult Result = ParseOpenACCClause(Clauses, DirKind);
-    if (OpenACCClause *Clause = Result.getPointer()) {
+    
+    if (OpenACCClauseParseResult Result = ParseOpenACCClause(Clauses, DirKind); OpenACCClause *Clause = Result.getPointer()) {
       Clauses.push_back(Clause);
     } else if (Result.getInt() == OpenACCParseCanContinue::Cannot) {
       // Recovering from a bad clause is really difficult, so we just give up on
@@ -1449,9 +1449,9 @@ llvm::SmallVector<Expr *> Parser::ParseOpenACCVarList(OpenACCDirectiveKind DK,
   while (!getCurToken().isOneOf(tok::r_paren, tok::annot_pragma_openacc_end)) {
     ExpectAndConsume(tok::comma);
 
-    auto [Res, CanContinue] = ParseOpenACCVar(DK, CK);
+    
 
-    if (Res.isUsable()) {
+    if (auto [Res, CanContinue] = ParseOpenACCVar(DK, CK); Res.isUsable()) {
       Vars.push_back(Res.get());
     } else if (CanContinue == OpenACCParseCanContinue::Cannot) {
       SkipUntil(tok::r_paren, tok::annot_pragma_openacc_end, StopBeforeMatch);

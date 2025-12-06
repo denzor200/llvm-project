@@ -87,8 +87,8 @@ JITLinkReentryTrampolines::Create(ObjectLinkingLayer &ObjLinkingLayer) {
 
   EmitTrampolineFn EmitTrampoline;
 
-  const auto &TT = ObjLinkingLayer.getExecutionSession().getTargetTriple();
-  switch (TT.getArch()) {
+  
+  switch (const auto &TT = ObjLinkingLayer.getExecutionSession().getTargetTriple(); TT.getArch()) {
   case Triple::aarch64:
     EmitTrampoline = aarch64::createAnonymousReentryTrampoline;
     break;

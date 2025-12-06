@@ -94,8 +94,8 @@ public:
     std::string Path;
     bool isInPath(StringRef S) {
       if (Path.size() < S.size() && S.starts_with(Path)) {
-        auto LastSep = S.find_last_of('/');
-        if (LastSep == Path.size() || LastSep == Path.size() - 1)
+        
+        if (auto LastSep = S.find_last_of('/'); LastSep == Path.size() || LastSep == Path.size() - 1)
           return true;
       }
       return false;

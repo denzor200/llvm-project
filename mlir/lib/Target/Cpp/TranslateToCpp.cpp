@@ -878,9 +878,9 @@ static LogicalResult printOperation(CppEmitter &emitter,
 static LogicalResult printOperation(CppEmitter &emitter,
                                     emitc::ApplyOp applyOp) {
   raw_ostream &os = emitter.ostream();
-  Operation &op = *applyOp.getOperation();
+  
 
-  if (failed(emitter.emitAssignPrefix(op)))
+  if (Operation &op = *applyOp.getOperation(); failed(emitter.emitAssignPrefix(op)))
     return failure();
   os << applyOp.getApplicableOperator();
   return emitter.emitOperand(applyOp.getOperand());
@@ -954,9 +954,9 @@ static LogicalResult printOperation(CppEmitter &emitter,
   if (shouldBeInlined(expressionOp))
     return success();
 
-  Operation &op = *expressionOp.getOperation();
+  
 
-  if (failed(emitter.emitAssignPrefix(op)))
+  if (Operation &op = *expressionOp.getOperation(); failed(emitter.emitAssignPrefix(op)))
     return failure();
 
   return emitter.emitExpression(expressionOp);
@@ -1075,8 +1075,8 @@ static LogicalResult printOperation(CppEmitter &emitter, emitc::IfOp ifOp) {
     return failure();
   os.unindent() << "}";
 
-  Region &elseRegion = ifOp.getElseRegion();
-  if (!elseRegion.empty()) {
+  
+  if (Region &elseRegion = ifOp.getElseRegion(); !elseRegion.empty()) {
     os << " else {\n";
     os.indent();
     if (failed(emitAllExceptLast(elseRegion)))
@@ -1206,7 +1206,8 @@ static LogicalResult printFunctionBody(CppEmitter &emitter,
   if (emitter.shouldDeclareVariablesAtTop()) {
     // Declare all variables that hold op results including those from nested
     // regions.
-    WalkResult result =
+    
+    if (WalkResult result =
         functionOp->walk<WalkOrder::PreOrder>([&](Operation *op) -> WalkResult {
           if (isa<emitc::ExpressionOp>(op->getParentOp()) ||
               (isa<emitc::ExpressionOp>(op) &&
@@ -1220,8 +1221,7 @@ static LogicalResult printFunctionBody(CppEmitter &emitter,
             }
           }
           return WalkResult::advance();
-        });
-    if (result.wasInterrupted())
+        }); result.wasInterrupted())
       return failure();
   }
 
@@ -1403,9 +1403,9 @@ StringRef CppEmitter::getOrCreateName(Value val) {
 StringRef CppEmitter::getOrCreateInductionVarName(Value val) {
   if (!valueMapper.count(val)) {
 
-    int64_t identifier = 'i' + loopNestingLevel;
+    
 
-    if (identifier >= 'i' && identifier <= 't') {
+    if (int64_t identifier = 'i' + loopNestingLevel; identifier >= 'i' && identifier <= 't') {
       valueMapper.insert(val,
                          formatv("{0}{1}", (char)identifier, ++valueCount));
     } else {
@@ -1616,8 +1616,8 @@ LogicalResult CppEmitter::emitOperand(Value value, bool isInBrackets) {
   if (BlockArgument arg = dyn_cast<BlockArgument>(value)) {
     // If this operand is a block argument of an expression, emit instead the
     // matching expression parameter.
-    Operation *argOp = arg.getParentBlock()->getParentOp();
-    if (auto expressionOp = dyn_cast<ExpressionOp>(argOp)) {
+    
+    if (Operation *argOp = arg.getParentBlock()->getParentOp(); auto expressionOp = dyn_cast<ExpressionOp>(argOp)) {
       // This scenario is only expected when one of the operations within the
       // expression being emitted references one of the expression's block
       // arguments.

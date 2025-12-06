@@ -293,8 +293,8 @@ Expected<std::unique_ptr<LinkGraph>> createLinkGraphFromCOFFObject_x86_64(
 void link_COFF_x86_64(std::unique_ptr<LinkGraph> G,
                       std::unique_ptr<JITLinkContext> Ctx) {
   PassConfiguration Config;
-  const Triple &TT = G->getTargetTriple();
-  if (Ctx->shouldAddDefaultTargetPasses(TT)) {
+  
+  if (const Triple &TT = G->getTargetTriple(); Ctx->shouldAddDefaultTargetPasses(TT)) {
     // Add a mark-live pass.
     if (auto MarkLive = Ctx->getMarkLivePass(TT)) {
       Config.PrePrunePasses.push_back(std::move(MarkLive));

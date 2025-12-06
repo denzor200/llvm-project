@@ -52,8 +52,8 @@ CompileUnit::CompileUnit(LinkingGlobalData &GlobalData, DWARFUnit &OrigUnit,
     return;
 
   if (std::optional<DWARFFormValue> Val = CUDie.find(dwarf::DW_AT_language)) {
-    uint16_t LangVal = dwarf::toUnsigned(Val, 0);
-    if (isODRLanguage(LangVal))
+    
+    if (uint16_t LangVal = dwarf::toUnsigned(Val, 0); isODRLanguage(LangVal))
       Language = LangVal;
   }
 
@@ -311,8 +311,8 @@ Error CompileUnit::assignTypeNamesRec(const DWARFDebugInfoEntry *DieEntry,
   for (const DWARFDebugInfoEntry *CurChild = getFirstChildEntry(DieEntry);
        CurChild && CurChild->getAbbreviationDeclarationPtr();
        CurChild = getSiblingEntry(CurChild)) {
-    CompileUnit::DIEInfo &ChildInfo = getDIEInfo(CurChild);
-    if (!ChildInfo.needToPlaceInTypeTable())
+    
+    if (CompileUnit::DIEInfo &ChildInfo = getDIEInfo(CurChild); !ChildInfo.needToPlaceInTypeTable())
       continue;
 
     assert(ChildInfo.getODRAvailable());
@@ -398,8 +398,8 @@ std::optional<UnitEntryPairTy> CompileUnit::resolveDIEReference(
     // Referenced DIE is in other compile unit.
 
     // Check whether DIEs are loaded for that compile unit.
-    enum Stage ReferredCUStage = RefCU->getStage();
-    if (ReferredCUStage < Stage::Loaded || ReferredCUStage > Stage::Cloned)
+    
+    if (enum Stage ReferredCUStage = RefCU->getStage(); ReferredCUStage < Stage::Loaded || ReferredCUStage > Stage::Cloned)
       return UnitEntryPairTy{RefCU, nullptr};
 
     if (std::optional<uint32_t> RefDieIdx =
@@ -451,10 +451,10 @@ Error CompileUnit::cloneAndEmitDebugLocations() {
 }
 
 void CompileUnit::emitLocations(DebugSectionKind LocationSectionKind) {
-  SectionDescriptor &DebugInfoSection =
-      getOrCreateSectionDescriptor(DebugSectionKind::DebugInfo);
+  
 
-  if (!DebugInfoSection.ListDebugLocPatch.empty()) {
+  if (SectionDescriptor &DebugInfoSection =
+      getOrCreateSectionDescriptor(DebugSectionKind::DebugInfo); !DebugInfoSection.ListDebugLocPatch.empty()) {
     SectionDescriptor &OutLocationSection =
         getOrCreateSectionDescriptor(LocationSectionKind);
     DWARFUnit &OrigUnit = getOrigUnit();
@@ -693,10 +693,10 @@ void CompileUnit::cloneAndEmitRangeList(DebugSectionKind RngSectionKind,
                                         AddressRanges &LinkedFunctionRanges) {
   SectionDescriptor &DebugInfoSection =
       getOrCreateSectionDescriptor(DebugSectionKind::DebugInfo);
-  SectionDescriptor &OutRangeSection =
-      getOrCreateSectionDescriptor(RngSectionKind);
+  
 
-  if (!DebugInfoSection.ListDebugRangePatch.empty()) {
+  if (SectionDescriptor &OutRangeSection =
+      getOrCreateSectionDescriptor(RngSectionKind); !DebugInfoSection.ListDebugRangePatch.empty()) {
     std::optional<AddressRangeValuePair> CachedRange;
     uint64_t OffsetAfterUnitLength = emitRangeListHeader(OutRangeSection);
 
@@ -983,16 +983,16 @@ void CompileUnit::emitMacroTableImpl(const DWARFDebugMacro *MacroTable,
           continue;
         }
 
-        uint8_t MacroType = MacroEntry.Type;
-        switch (MacroType) {
+        
+        switch (uint8_t MacroType = MacroEntry.Type; MacroType) {
         default: {
-          bool HasVendorSpecificExtension =
+          
+
+          if (bool HasVendorSpecificExtension =
               (!hasDWARFv5Header &&
                MacroType == dwarf::DW_MACINFO_vendor_ext) ||
               (hasDWARFv5Header && (MacroType >= dwarf::DW_MACRO_lo_user &&
-                                    MacroType <= dwarf::DW_MACRO_hi_user));
-
-          if (HasVendorSpecificExtension) {
+                                    MacroType <= dwarf::DW_MACRO_hi_user)); HasVendorSpecificExtension) {
             // Write macinfo type.
             OutSection.emitIntVal(MacroType, 1);
 
@@ -1331,11 +1331,11 @@ std::pair<DIE *, TypeEntry *> CompileUnit::cloneDIE(
              getFirstChildEntry(InputDieEntry);
          CurChild && CurChild->getAbbreviationDeclarationPtr();
          CurChild = getSiblingEntry(CurChild)) {
-      std::pair<DIE *, TypeEntry *> ClonedChild = cloneDIE(
-          CurChild, TypeParentForChild, OutOffset, FuncAddressAdjustment,
-          VarAddressAdjustment, Allocator, ArtificialTypeUnit);
+      
 
-      if (ClonedChild.first) {
+      if (std::pair<DIE *, TypeEntry *> ClonedChild = cloneDIE(
+          CurChild, TypeParentForChild, OutOffset, FuncAddressAdjustment,
+          VarAddressAdjustment, Allocator, ArtificialTypeUnit); ClonedChild.first) {
         OutOffset =
             ClonedChild.first->getOffset() + ClonedChild.first->getSize();
         PlainDIEGenerator.addChild(ClonedChild.first);
@@ -1371,11 +1371,11 @@ DIE *CompileUnit::createPlainDIEandCloneAttributes(
             getDIE(InputDieEntry), false);
   } else if (InputDieEntry->getTag() == dwarf::DW_TAG_label) {
     // Get relocation adjustment value for the current label.
-    std::optional<uint64_t> lowPC =
-        dwarf::toAddress(find(InputDieEntry, dwarf::DW_AT_low_pc));
-    if (lowPC) {
-      LabelMapTy::iterator It = Labels.find(*lowPC);
-      if (It != Labels.end())
+    
+    if (std::optional<uint64_t> lowPC =
+        dwarf::toAddress(find(InputDieEntry, dwarf::DW_AT_low_pc)); lowPC) {
+      
+      if (LabelMapTy::iterator It = Labels.find(*lowPC); It != Labels.end())
         FuncAddressAdjustment = It->second;
     }
   } else if (InputDieEntry->getTag() == dwarf::DW_TAG_variable) {
@@ -1429,8 +1429,8 @@ DIE *CompileUnit::allocateTypeDie(TypeEntryBody *TypeDescriptor,
 
   if (IsDeclaration && !DeclarationDie) {
     // Alocate declaration DIE.
-    DIE *NewDie = TypeDIEGenerator.createDIE(DieTag, 0);
-    if (TypeDescriptor->DeclarationDie.compare_exchange_strong(DeclarationDie,
+    
+    if (DIE *NewDie = TypeDIEGenerator.createDIE(DieTag, 0); TypeDescriptor->DeclarationDie.compare_exchange_strong(DeclarationDie,
                                                                NewDie))
       return NewDie;
   } else if (IsDeclaration && !IsParentDeclaration && OldParentIsDeclaration) {
@@ -1445,14 +1445,14 @@ DIE *CompileUnit::allocateTypeDie(TypeEntryBody *TypeDescriptor,
   } else if (!IsDeclaration && IsParentDeclaration && !DeclarationDie) {
     // Alocate declaration DIE since parent of current DIE is marked as
     // declaration.
-    DIE *NewDie = TypeDIEGenerator.createDIE(DieTag, 0);
-    if (TypeDescriptor->DeclarationDie.compare_exchange_strong(DeclarationDie,
+    
+    if (DIE *NewDie = TypeDIEGenerator.createDIE(DieTag, 0); TypeDescriptor->DeclarationDie.compare_exchange_strong(DeclarationDie,
                                                                NewDie))
       return NewDie;
   } else if (!IsDeclaration && !IsParentDeclaration) {
     // Allocate definition DIE.
-    DIE *NewDie = TypeDIEGenerator.createDIE(DieTag, 0);
-    if (TypeDescriptor->Die.compare_exchange_strong(DefinitionDie, NewDie)) {
+    
+    if (DIE *NewDie = TypeDIEGenerator.createDIE(DieTag, 0); TypeDescriptor->Die.compare_exchange_strong(DefinitionDie, NewDie)) {
       TypeDescriptor->ParentIsDeclaration = false;
       return NewDie;
     }
@@ -1721,10 +1721,10 @@ CompileUnit::getDirAndFilenameFromLineTable(uint64_t FileIdx) {
         // relative names.
         if ((Entry.DirIdx != 0) &&
             Entry.DirIdx < LineTable->Prologue.IncludeDirectories.size()) {
-          Expected<const char *> DirName =
+          
+          if (Expected<const char *> DirName =
               LineTable->Prologue.IncludeDirectories[Entry.DirIdx]
-                  .getAsCString();
-          if (DirName)
+                  .getAsCString(); DirName)
             IncludeDir = *DirName;
           else {
             warn(DirName.takeError());
@@ -1734,10 +1734,10 @@ CompileUnit::getDirAndFilenameFromLineTable(uint64_t FileIdx) {
       } else {
         if (0 < Entry.DirIdx &&
             Entry.DirIdx <= LineTable->Prologue.IncludeDirectories.size()) {
-          Expected<const char *> DirName =
+          
+          if (Expected<const char *> DirName =
               LineTable->Prologue.IncludeDirectories[Entry.DirIdx - 1]
-                  .getAsCString();
-          if (DirName)
+                  .getAsCString(); DirName)
             IncludeDir = *DirName;
           else {
             warn(DirName.takeError());

@@ -273,8 +273,8 @@ void JSONNodeDumper::writeIncludeStack(PresumedLoc Loc, bool JustFirst) {
 }
 
 void JSONNodeDumper::writeBareSourceLocation(SourceLocation Loc) {
-  PresumedLoc Presumed = SM.getPresumedLoc(Loc);
-  if (Presumed.isValid()) {
+  
+  if (PresumedLoc Presumed = SM.getPresumedLoc(Loc); Presumed.isValid()) {
     StringRef ActualFile = SM.getBufferName(Loc);
     auto [FID, FilePos] = SM.getDecomposedLoc(Loc);
     unsigned ActualLine = SM.getLineNumber(FID, FilePos);
@@ -311,9 +311,9 @@ void JSONNodeDumper::writeBareSourceLocation(SourceLocation Loc) {
 
 void JSONNodeDumper::writeSourceLocation(SourceLocation Loc) {
   SourceLocation Spelling = SM.getSpellingLoc(Loc);
-  SourceLocation Expansion = SM.getExpansionLoc(Loc);
+  
 
-  if (Expansion != Spelling) {
+  if (SourceLocation Expansion = SM.getExpansionLoc(Loc); Expansion != Spelling) {
     // If the expansion and the spelling are different, output subobjects
     // describing both locations.
     JOS.attributeObject(
@@ -350,8 +350,8 @@ llvm::json::Object JSONNodeDumper::createQualType(QualType QT, bool Desugar) {
   if (Desugar && !QT.isNull()) {
     SplitQualType DSQT = QT.getSplitDesugaredType();
     if (DSQT != SQT) {
-      std::string DSQTS = QualType::getAsString(DSQT, PrintPolicy);
-      if (DSQTS != SQTS)
+      
+      if (std::string DSQTS = QualType::getAsString(DSQT, PrintPolicy); DSQTS != SQTS)
         Ret["desugaredQualType"] = DSQTS;
     }
     if (const auto *TT = QT->getAs<TypedefType>())
@@ -684,8 +684,8 @@ void JSONNodeDumper::VisitArrayType(const ArrayType *AT) {
     break;
   }
 
-  std::string Str = AT->getIndexTypeQualifiers().getAsString();
-  if (!Str.empty())
+  
+  if (std::string Str = AT->getIndexTypeQualifiers().getAsString(); !Str.empty())
     JOS.attribute("indexTypeQualifiers", Str);
 }
 
@@ -850,8 +850,8 @@ void JSONNodeDumper::VisitNamedDecl(const NamedDecl *ND) {
 
     // Mangled names are not meaningful for locals, and may not be well-defined
     // in the case of VLAs.
-    auto *VD = dyn_cast<VarDecl>(ND);
-    if (VD && VD->hasLocalStorage())
+    
+    if (auto *VD = dyn_cast<VarDecl>(ND); VD && VD->hasLocalStorage())
       return;
 
     // Do not mangle template deduction guides.
@@ -918,8 +918,8 @@ void JSONNodeDumper::VisitVarDecl(const VarDecl *VD) {
     attributeOnlyIfTrue("explicitObjectParameter",
                         P->isExplicitObjectParameter());
 
-  StorageClass SC = VD->getStorageClass();
-  if (SC != SC_None)
+  
+  if (StorageClass SC = VD->getStorageClass(); SC != SC_None)
     JOS.attribute("storageClass", VarDecl::getStorageClassSpecifierString(SC));
   switch (VD->getTLSKind()) {
   case VarDecl::TLS_Dynamic: JOS.attribute("tls", "dynamic"); break;
@@ -958,8 +958,8 @@ void JSONNodeDumper::VisitFieldDecl(const FieldDecl *FD) {
 void JSONNodeDumper::VisitFunctionDecl(const FunctionDecl *FD) {
   VisitNamedDecl(FD);
   JOS.attribute("type", createQualType(FD->getType()));
-  StorageClass SC = FD->getStorageClass();
-  if (SC != SC_None)
+  
+  if (StorageClass SC = FD->getStorageClass(); SC != SC_None)
     JOS.attribute("storageClass", VarDecl::getStorageClassSpecifierString(SC));
   attributeOnlyIfTrue("inline", FD->isInlineSpecified());
   attributeOnlyIfTrue("virtual", FD->isVirtualAsWritten());
@@ -1203,8 +1203,8 @@ void JSONNodeDumper::VisitObjCPropertyDecl(const ObjCPropertyDecl *D) {
   case ObjCPropertyDecl::Optional: JOS.attribute("control", "optional"); break;
   }
 
-  ObjCPropertyAttribute::Kind Attrs = D->getPropertyAttributes();
-  if (Attrs != ObjCPropertyAttribute::kind_noattr) {
+  
+  if (ObjCPropertyAttribute::Kind Attrs = D->getPropertyAttributes(); Attrs != ObjCPropertyAttribute::kind_noattr) {
     if (Attrs & ObjCPropertyAttribute::kind_getter)
       JOS.attribute("getter", createBareDeclRef(D->getGetterMethodDecl()));
     if (Attrs & ObjCPropertyAttribute::kind_setter)
@@ -1280,8 +1280,8 @@ void JSONNodeDumper::VisitObjCMessageExpr(const ObjCMessageExpr *OME) {
     break;
   }
 
-  QualType CallReturnTy = OME->getCallReturnType(Ctx);
-  if (OME->getType() != CallReturnTy)
+  
+  if (QualType CallReturnTy = OME->getCallReturnType(Ctx); OME->getType() != CallReturnTy)
     JOS.attribute("callReturnType", createQualType(CallReturnTy));
 }
 

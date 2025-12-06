@@ -171,9 +171,9 @@ bool AMDGPUMIRFormatter::parseCustomPseudoSourceValue(
     StringRef Src, MachineFunction &MF, PerFunctionMIParsingState &PFS,
     const PseudoSourceValue *&PSV, ErrorCallbackType ErrorCallback) const {
   SIMachineFunctionInfo *MFI = MF.getInfo<SIMachineFunctionInfo>();
-  const AMDGPUTargetMachine &TM =
-      static_cast<const AMDGPUTargetMachine &>(MF.getTarget());
-  if (Src == "GWSResource") {
+  
+  if (const AMDGPUTargetMachine &TM =
+      static_cast<const AMDGPUTargetMachine &>(MF.getTarget()); Src == "GWSResource") {
     PSV = MFI->getGWSPSV(TM);
     return false;
   }

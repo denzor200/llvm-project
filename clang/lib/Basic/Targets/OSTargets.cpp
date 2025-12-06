@@ -185,17 +185,17 @@ static void addVisualCDefines(const LangOptions &Opts, MacroBuilder &Builder) {
   // "Under /fp:precise and /fp:strict, the compiler doesn't do any mathematical
   // transformation unless the transformation is guaranteed to produce a bitwise
   // identical result."
-  const bool any_imprecise_flags = Opts.FastMath || Opts.UnsafeFPMath ||
-                                   Opts.AllowFPReassoc || Opts.NoHonorNaNs ||
-                                   Opts.NoHonorInfs || Opts.NoSignedZero ||
-                                   Opts.AllowRecip || Opts.ApproxFunc;
+  
 
   // "Under both /fp:precise and /fp:fast, the compiler generates code intended
   // to run in the default floating-point environment."
   //
   // "[The] default floating point environment [...] sets the rounding mode
   // to round to nearest."
-  if (Opts.getDefaultRoundingMode() ==
+  if (const bool any_imprecise_flags = Opts.FastMath || Opts.UnsafeFPMath ||
+                                   Opts.AllowFPReassoc || Opts.NoHonorNaNs ||
+                                   Opts.NoHonorInfs || Opts.NoSignedZero ||
+                                   Opts.AllowRecip || Opts.ApproxFunc; Opts.getDefaultRoundingMode() ==
       LangOptions::RoundingMode::NearestTiesToEven) {
     if (any_imprecise_flags) {
       Builder.defineMacro("_M_FP_FAST");

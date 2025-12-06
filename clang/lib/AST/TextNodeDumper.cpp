@@ -35,15 +35,15 @@ static void dumpPreviousDeclImpl(raw_ostream &OS, ...) {}
 
 template <typename T>
 static void dumpPreviousDeclImpl(raw_ostream &OS, const Mergeable<T> *D) {
-  const T *First = D->getFirstDecl();
-  if (First != D)
+  
+  if (const T *First = D->getFirstDecl(); First != D)
     OS << " first " << First;
 }
 
 template <typename T>
 static void dumpPreviousDeclImpl(raw_ostream &OS, const Redeclarable<T> *D) {
-  const T *Prev = D->getPreviousDecl();
-  if (Prev)
+  
+  if (const T *Prev = D->getPreviousDecl(); Prev)
     OS << " prev " << Prev;
 }
 
@@ -314,10 +314,10 @@ void TextNodeDumper::Visit(const Decl *D) {
   }
 
   if (!isa<FunctionDecl>(*D)) {
-    const auto *MD = dyn_cast<ObjCMethodDecl>(D);
-    if (!MD || !MD->isThisDeclarationADefinition()) {
-      const auto *DC = dyn_cast<DeclContext>(D);
-      if (DC && DC->hasExternalLexicalStorage()) {
+    
+    if (const auto *MD = dyn_cast<ObjCMethodDecl>(D); !MD || !MD->isThisDeclarationADefinition()) {
+      
+      if (const auto *DC = dyn_cast<DeclContext>(D); DC && DC->hasExternalLexicalStorage()) {
         ColorScope Color(OS, ShowColors, UndeserializedColor);
         OS << " <undeserialized declarations>";
       }
@@ -529,8 +529,8 @@ void TextNodeDumper::Visit(const OpenACCClause *C) {
 }
 
 void TextNodeDumper::Visit(const GenericSelectionExpr::ConstAssociation &A) {
-  const TypeSourceInfo *TSI = A.getTypeSourceInfo();
-  if (TSI) {
+  
+  if (const TypeSourceInfo *TSI = A.getTypeSourceInfo(); TSI) {
     OS << "case ";
     dumpType(TSI->getType());
   } else {
@@ -821,8 +821,8 @@ void TextNodeDumper::Visit(const APValue &Value, QualType Ty) {
     }
     // If the union value is considered to be simple, fold it into the
     // current line to save some vertical space.
-    const APValue &UnionValue = Value.getUnionValue();
-    if (isSimpleAPValue(UnionValue)) {
+    
+    if (const APValue &UnionValue = Value.getUnionValue(); isSimpleAPValue(UnionValue)) {
       OS << ' ';
       Visit(UnionValue, Ty);
     } else {
@@ -919,10 +919,10 @@ void TextNodeDumper::dumpBareType(QualType T, bool Desugar) {
   if (Desugar && !T.isNull()) {
     // If the type is sugared, also dump a (shallow) desugared type when
     // it is visibly different.
-    SplitQualType D_split = T.getSplitDesugaredType();
-    if (T_split != D_split) {
-      std::string D_str = QualType::getAsString(D_split, PrintPolicy);
-      if (T_str != D_str)
+    
+    if (SplitQualType D_split = T.getSplitDesugaredType(); T_split != D_split) {
+      
+      if (std::string D_str = QualType::getAsString(D_split, PrintPolicy); T_str != D_str)
         OS << ":'" << QualType::getAsString(D_split, PrintPolicy) << "'";
     }
   }
@@ -1108,9 +1108,9 @@ void TextNodeDumper::dumpTemplateArgument(const TemplateArgument &TA) {
 const char *TextNodeDumper::getCommandName(unsigned CommandID) {
   if (Traits)
     return Traits->getCommandInfo(CommandID)->Name;
-  const comments::CommandInfo *Info =
-      comments::CommandTraits::getBuiltinCommandInfo(CommandID);
-  if (Info)
+  
+  if (const comments::CommandInfo *Info =
+      comments::CommandTraits::getBuiltinCommandInfo(CommandID); Info)
     return Info->Name;
   return "<not a builtin command>";
 }
@@ -1421,8 +1421,8 @@ void TextNodeDumper::VisitLoopControlStmt(const LoopControlStmt *Node) {
 
   OS << " '" << Node->getLabelDecl()->getIdentifier()->getName() << "' (";
 
-  auto *Target = Node->getNamedLoopOrSwitch();
-  if (!Target) {
+  
+  if (auto *Target = Node->getNamedLoopOrSwitch(); !Target) {
     ColorScope Color(OS, ShowColors, NullColor);
     OS << "<<<NULL>>>";
   } else {
@@ -1512,8 +1512,8 @@ void TextNodeDumper::VisitCallExpr(const CallExpr *Node) {
 }
 
 void TextNodeDumper::VisitCXXOperatorCallExpr(const CXXOperatorCallExpr *Node) {
-  const char *OperatorSpelling = clang::getOperatorSpelling(Node->getOperator());
-  if (OperatorSpelling)
+  
+  if (const char *OperatorSpelling = clang::getOperatorSpelling(Node->getOperator()); OperatorSpelling)
     OS << " '" << OperatorSpelling << "'";
 
   VisitCallExpr(Node);
@@ -2309,8 +2309,8 @@ void TextNodeDumper::VisitFunctionDecl(const FunctionDecl *D) {
   dumpType(D->getType());
   dumpTemplateSpecializationKind(D->getTemplateSpecializationKind());
 
-  StorageClass SC = D->getStorageClass();
-  if (SC != SC_None)
+  
+  if (StorageClass SC = D->getStorageClass(); SC != SC_None)
     OS << ' ' << VarDecl::getStorageClassSpecifierString(SC);
   if (D->isInlineSpecified())
     OS << " inline";
@@ -2338,8 +2338,8 @@ void TextNodeDumper::VisitFunctionDecl(const FunctionDecl *D) {
     OS << (isa<CXXDestructorDecl>(D) ? " not_selected" : " ineligible");
 
   if (const auto *FPT = D->getType()->getAs<FunctionProtoType>()) {
-    FunctionProtoType::ExtProtoInfo EPI = FPT->getExtProtoInfo();
-    switch (EPI.ExceptionSpec.Type) {
+    
+    switch (FunctionProtoType::ExtProtoInfo EPI = FPT->getExtProtoInfo(); EPI.ExceptionSpec.Type) {
     default:
       break;
     case EST_Unevaluated:
@@ -2430,8 +2430,8 @@ void TextNodeDumper::VisitVarDecl(const VarDecl *D) {
 
   dumpType(D->getType());
   dumpTemplateSpecializationKind(D->getTemplateSpecializationKind());
-  StorageClass SC = D->getStorageClass();
-  if (SC != SC_None)
+  
+  if (StorageClass SC = D->getStorageClass(); SC != SC_None)
     OS << ' ' << VarDecl::getStorageClassSpecifierString(SC);
   switch (D->getTLSKind()) {
   case VarDecl::TLS_None:
@@ -2477,12 +2477,12 @@ void TextNodeDumper::VisitVarDecl(const VarDecl *D) {
   }
 
   if (D->hasInit()) {
-    const Expr *E = D->getInit();
+    
     // Only dump the value of constexpr VarDecls for now.
-    if (E && !E->isValueDependent() && D->isConstexpr() &&
+    if (const Expr *E = D->getInit(); E && !E->isValueDependent() && D->isConstexpr() &&
         !D->getType()->isDependentType()) {
-      const APValue *Value = D->evaluateValue();
-      if (Value)
+      
+      if (const APValue *Value = D->evaluateValue(); Value)
         AddChild("value", [=] { Visit(*Value, E->getType()); });
     }
   }
@@ -2527,8 +2527,8 @@ void TextNodeDumper::VisitPragmaCommentDecl(const PragmaCommentDecl *D) {
     OS << "user";
     break;
   }
-  StringRef Arg = D->getArg();
-  if (!Arg.empty())
+  
+  if (StringRef Arg = D->getArg(); !Arg.empty())
     OS << " \"" << Arg << "\"";
 }
 
@@ -3018,8 +3018,8 @@ void TextNodeDumper::VisitObjCPropertyDecl(const ObjCPropertyDecl *D) {
   else if (D->getPropertyImplementation() == ObjCPropertyDecl::Optional)
     OS << " optional";
 
-  ObjCPropertyAttribute::Kind Attrs = D->getPropertyAttributes();
-  if (Attrs != ObjCPropertyAttribute::kind_noattr) {
+  
+  if (ObjCPropertyAttribute::Kind Attrs = D->getPropertyAttributes(); Attrs != ObjCPropertyAttribute::kind_noattr) {
     if (Attrs & ObjCPropertyAttribute::kind_readonly)
       OS << " readonly";
     if (Attrs & ObjCPropertyAttribute::kind_assign)

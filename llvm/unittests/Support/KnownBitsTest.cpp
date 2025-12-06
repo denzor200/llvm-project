@@ -136,9 +136,9 @@ TEST(KnownBitsTest, AddCarryExhaustive) {
           });
         });
 
-        KnownBits Computed =
-            KnownBits::computeForAddCarry(Known1, Known2, KnownCarry);
-        if (!Exact.hasConflict()) {
+        
+        if (KnownBits Computed =
+            KnownBits::computeForAddCarry(Known1, Known2, KnownCarry); !Exact.hasConflict()) {
           EXPECT_EQ(Exact, Computed);
         }
       });
@@ -249,9 +249,9 @@ TEST(KnownBitsTest, SubBorrowExhaustive) {
           });
         });
 
-        KnownBits Computed =
-            KnownBits::computeForSubBorrow(Known1, Known2, KnownBorrow);
-        if (!Exact.hasConflict()) {
+        
+        if (KnownBits Computed =
+            KnownBits::computeForSubBorrow(Known1, Known2, KnownBorrow); !Exact.hasConflict()) {
           EXPECT_EQ(Exact, Computed);
         }
       });
@@ -759,8 +759,8 @@ TEST(KnownBitsTest, SExtInReg) {
         CommonOne &= Ext;
         CommonZero &= ~Ext;
       });
-      KnownBits KnownSExtInReg = Known.sextInReg(FromBits);
-      if (!Known.hasConflict()) {
+      
+      if (KnownBits KnownSExtInReg = Known.sextInReg(FromBits); !Known.hasConflict()) {
         EXPECT_EQ(CommonOne, KnownSExtInReg.One);
         EXPECT_EQ(CommonZero, KnownSExtInReg.Zero);
       }

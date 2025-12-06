@@ -254,9 +254,9 @@ buildCallGraph(BinaryContext &BC, CgFilterFunction Filter, bool CgFromPerfData,
         for (MCInst &Inst : *BB) {
           // Find call instructions and extract target symbols from each one.
           if (BC.MIB->isCall(Inst)) {
-            const CallInfoTy CallInfo = getCallInfo(BB, Inst);
+            
 
-            if (!CallInfo.empty()) {
+            if (const CallInfoTy CallInfo = getCallInfo(BB, Inst); !CallInfo.empty()) {
               for (const TargetDesc &CI : CallInfo) {
                 ++TotalCallsites;
                 if (!recordCall(CI.first, CI.second))

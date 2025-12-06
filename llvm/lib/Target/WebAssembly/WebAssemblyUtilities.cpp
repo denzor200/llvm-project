@@ -62,8 +62,8 @@ bool WebAssembly::mayThrow(const MachineInstr &MI) {
     // we only list some of them here now.
     // TODO Consider adding 'nounwind' info in TargetLowering::CallLoweringInfo
     // instead for more accurate info.
-    const char *Name = MO.getSymbolName();
-    if (strcmp(Name, "memcpy") == 0 || strcmp(Name, "memmove") == 0 ||
+    
+    if (const char *Name = MO.getSymbolName(); strcmp(Name, "memcpy") == 0 || strcmp(Name, "memmove") == 0 ||
         strcmp(Name, "memset") == 0)
       return false;
     return true;

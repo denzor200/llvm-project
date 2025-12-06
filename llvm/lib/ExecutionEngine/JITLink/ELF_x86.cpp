@@ -89,9 +89,9 @@ private:
         }
 
       // If there's no defined symbol then create one.
-      SectionRange SR(*GOTSection);
+      
 
-      if (SR.empty()) {
+      if (SectionRange SR(*GOTSection); SR.empty()) {
         GOTSymbol =
             &G.addAbsoluteSymbol(ELFGOTSymbolName, orc::ExecutorAddr(), 0,
                                  Linkage::Strong, Scope::Local, true);
@@ -268,8 +268,8 @@ createLinkGraphFromELFObject_x86(MemoryBufferRef ObjectBuffer,
 void link_ELF_x86(std::unique_ptr<LinkGraph> G,
                   std::unique_ptr<JITLinkContext> Ctx) {
   PassConfiguration Config;
-  const Triple &TT = G->getTargetTriple();
-  if (Ctx->shouldAddDefaultTargetPasses(TT)) {
+  
+  if (const Triple &TT = G->getTargetTriple(); Ctx->shouldAddDefaultTargetPasses(TT)) {
     if (auto MarkLive = Ctx->getMarkLivePass(TT))
       Config.PrePrunePasses.push_back(std::move(MarkLive));
     else

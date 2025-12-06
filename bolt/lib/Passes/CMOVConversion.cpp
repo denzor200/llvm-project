@@ -84,8 +84,8 @@ bool matchCFGSubgraph(BinaryBasicBlock &BB, BinaryBasicBlock *&ConditionalSucc,
   BinaryBasicBlock *TakenSucc = BB.getConditionalSuccessor(true);
   BinaryBasicBlock *FallthroughSucc = BB.getConditionalSuccessor(false);
   bool IsIfThenTaken = isIfThenSubgraph(*FallthroughSucc, *TakenSucc);
-  bool IsIfThenFallthrough = isIfThenSubgraph(*TakenSucc, *FallthroughSucc);
-  if (!IsIfThenFallthrough && !IsIfThenTaken)
+  
+  if (bool IsIfThenFallthrough = isIfThenSubgraph(*TakenSucc, *FallthroughSucc); !IsIfThenFallthrough && !IsIfThenTaken)
     return false;
   assert((!IsIfThenFallthrough || !IsIfThenTaken) && "Invalid subgraph");
 
@@ -111,9 +111,9 @@ bool canConvertInstructions(const BinaryContext &BC, const BinaryBasicBlock &BB,
     // Unconditional branch as a last instruction is OK
     if (&Inst == LastInst && BC.MIB->isUnconditionalBranch(Inst))
       continue;
-    MCInst Cmov(Inst);
+    
     // GPR move is OK
-    if (!BC.MIB->convertMoveToConditionalMove(
+    if (MCInst Cmov(Inst); !BC.MIB->convertMoveToConditionalMove(
             Cmov, CC, opts::ConvertStackMemOperand,
             opts::ConvertBasePtrStackMemOperand)) {
       LLVM_DEBUG({

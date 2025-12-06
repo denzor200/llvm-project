@@ -284,8 +284,8 @@ private:
 
     // If the new waitOp is at the end of an async.execute region, add it to the
     // worklist. 'operator()(executeOp)' would do the same, but this is faster.
-    auto executeOp = dyn_cast<async::ExecuteOp>(it->getParentOp());
-    if (executeOp && areAllUsersExecuteOrAwait(executeOp.getToken()) &&
+    
+    if (auto executeOp = dyn_cast<async::ExecuteOp>(it->getParentOp()); executeOp && areAllUsersExecuteOrAwait(executeOp.getToken()) &&
         !it->getNextNode())
       worklist.push_back(waitOp);
   }

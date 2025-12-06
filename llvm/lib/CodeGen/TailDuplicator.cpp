@@ -118,8 +118,8 @@ static void VerifyPHIs(MachineFunction &MF, bool CheckExtra) {
       for (MachineBasicBlock *PredBB : Preds) {
         bool Found = false;
         for (unsigned i = 1, e = MI->getNumOperands(); i != e; i += 2) {
-          MachineBasicBlock *PHIBB = MI->getOperand(i + 1).getMBB();
-          if (PHIBB == PredBB) {
+          
+          if (MachineBasicBlock *PHIBB = MI->getOperand(i + 1).getMBB(); PHIBB == PredBB) {
             Found = true;
             break;
           }
@@ -254,8 +254,8 @@ bool TailDuplicator::tailDuplicateAndUpdate(
     if (!Copy->isCopy())
       continue;
     Register Dst = Copy->getOperand(0).getReg();
-    Register Src = Copy->getOperand(1).getReg();
-    if (MRI->hasOneNonDBGUse(Src) &&
+    
+    if (Register Src = Copy->getOperand(1).getReg(); MRI->hasOneNonDBGUse(Src) &&
         MRI->constrainRegClass(Src, MRI->getRegClass(Dst))) {
       // Copy is the only use. Do trivial copy propagation here.
       MRI->replaceRegWith(Dst, Src);
@@ -338,9 +338,9 @@ static void getRegsUsedByPHIs(const MachineBasicBlock &BB,
 /// Add a definition and source virtual registers pair for SSA update.
 void TailDuplicator::addSSAUpdateEntry(Register OrigReg, Register NewReg,
                                        MachineBasicBlock *BB) {
-  DenseMap<Register, AvailableValsTy>::iterator LI =
-      SSAUpdateVals.find(OrigReg);
-  if (LI != SSAUpdateVals.end())
+  
+  if (DenseMap<Register, AvailableValsTy>::iterator LI =
+      SSAUpdateVals.find(OrigReg); LI != SSAUpdateVals.end())
     LI->second.push_back(std::make_pair(BB, NewReg));
   else {
     AvailableValsTy Vals;
@@ -490,8 +490,8 @@ void TailDuplicator::updateSuccessorsPHIs(
       MachineInstrBuilder MIB(*FromBB->getParent(), MI);
       unsigned Idx = 0;
       for (unsigned i = 1, e = MI.getNumOperands(); i != e; i += 2) {
-        MachineOperand &MO = MI.getOperand(i + 1);
-        if (MO.getMBB() == FromBB) {
+        
+        if (MachineOperand &MO = MI.getOperand(i + 1); MO.getMBB() == FromBB) {
           Idx = i;
           break;
         }
@@ -505,8 +505,8 @@ void TailDuplicator::updateSuccessorsPHIs(
         // There could be duplicate phi source entries. FIXME: Should sdisel
         // or earlier pass fixed this?
         for (unsigned i = MI.getNumOperands() - 2; i != Idx; i -= 2) {
-          MachineOperand &MO = MI.getOperand(i + 1);
-          if (MO.getMBB() == FromBB) {
+          
+          if (MachineOperand &MO = MI.getOperand(i + 1); MO.getMBB() == FromBB) {
             MI.removeOperand(i + 1);
             MI.removeOperand(i);
           }
@@ -696,8 +696,8 @@ bool TailDuplicator::shouldTailDuplicate(bool IsSimple,
         break;
       unsigned Idx = getPHISrcRegOpIdx(&I, &TailBB);
       assert(Idx != 0);
-      MachineOperand &PU = I.getOperand(Idx);
-      if (PU.getSubReg() != 0)
+      
+      if (MachineOperand &PU = I.getOperand(Idx); PU.getSubReg() != 0)
         return false;
     }
   }

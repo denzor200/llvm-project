@@ -458,8 +458,8 @@ static void rewriteUses(Instruction *Insn,
                         SmallVector<Instruction *> &Visited, bool AllowPatial,
                         bool &StillUsed) {
   for (User *U : Insn->users()) {
-    auto *UI = dyn_cast<Instruction>(U);
-    if (UI && (isPointerOperand(Insn, UI) || isPreserveStaticOffsetCall(UI) ||
+    
+    if (auto *UI = dyn_cast<Instruction>(U); UI && (isPointerOperand(Insn, UI) || isPreserveStaticOffsetCall(UI) ||
                isInlineableCall(UI)))
       rewriteAccessChain(UI, GEPs, Visited, AllowPatial, StillUsed);
     else
@@ -502,7 +502,8 @@ static void rewriteAccessChain(Instruction *Insn,
     Visited.push_back(Insn);
     rewriteUses(Insn, GEPs, Visited, AllowPatial, StillUsed);
   };
-  auto TryToReplace = [&](Instruction *LoadOrStore) {
+  
+  if (auto TryToReplace = [&](Instruction *LoadOrStore) {
     // Do nothing for (preserve.static.offset (load/store ..)) or for
     // GEPs with zero indices. Such constructs lead to zero offset and
     // are simplified by other passes.
@@ -515,8 +516,7 @@ static void rewriteAccessChain(Instruction *Insn,
     if (!AllowPatial)
       reportNonStaticGEPChain(Insn);
     StillUsed = true;
-  };
-  if (isa<LoadInst>(Insn) || isa<StoreInst>(Insn)) {
+  }; isa<LoadInst>(Insn) || isa<StoreInst>(Insn)) {
     TryToReplace(Insn);
   } else if (isGEPAndLoad(Insn)) {
     auto [GEP, Load] =
@@ -660,8 +660,8 @@ static bool rewriteFunction(Function &F, bool AllowPartial) {
   for (auto *Call : MarkerCalls) {
     if (RemovedMarkers.contains(Call))
       continue;
-    bool StillUsed = rewriteAccessChain(Call, AllowPartial, RemovedMarkers);
-    if (!StillUsed || !AllowPartial)
+    
+    if (bool StillUsed = rewriteAccessChain(Call, AllowPartial, RemovedMarkers); !StillUsed || !AllowPartial)
       removeMarkerCall(Call);
   }
 

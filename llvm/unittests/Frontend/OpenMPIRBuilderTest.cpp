@@ -166,8 +166,8 @@ static void findCalls(Function *F, omp::RuntimeFunction FnID,
   Function *Fn = OMPBuilder.getOrCreateRuntimeFunctionPtr(FnID);
   for (BasicBlock &BB : *F) {
     for (Instruction &I : BB) {
-      auto *Call = dyn_cast<CallInst>(&I);
-      if (Call && Call->getCalledFunction() == Fn)
+      
+      if (auto *Call = dyn_cast<CallInst>(&I); Call && Call->getCalledFunction() == Fn)
         Calls.push_back(Call);
     }
   }
@@ -2057,10 +2057,10 @@ TEST_F(OpenMPIRBuilderTest, ApplySimdCustomAligned) {
   for (Instruction &Instr : *sourceBlock) {
     if (!isa<AssumeInst>(Instr))
       continue;
-    AssumeInst *AssumeInstruction = cast<AssumeInst>(&Instr);
-    if (AssumeInstruction->getNumTotalBundleOperands()) {
-      auto Bundle = AssumeInstruction->getOperandBundleAt(0);
-      if (Bundle.getTagName() == "align") {
+    
+    if (AssumeInst *AssumeInstruction = cast<AssumeInst>(&Instr); AssumeInstruction->getNumTotalBundleOperands()) {
+      
+      if (auto Bundle = AssumeInstruction->getOperandBundleAt(0); Bundle.getTagName() == "align") {
         EXPECT_TRUE(isa<ConstantInt>(Bundle.Inputs[1]));
         auto ConstIntVal = dyn_cast<ConstantInt>(Bundle.Inputs[1]);
         EXPECT_EQ(ConstIntVal->getSExtValue(), AlignmentValue);
@@ -2712,8 +2712,8 @@ TEST_P(OpenMPIRBuilderTestWithParams, DynamicWorkShareLoop) {
             "__kmpc_dispatch_init_4u");
   EXPECT_EQ(InitCall->arg_size(), 7U);
   EXPECT_EQ(InitCall->getArgOperand(6), ConstantInt::get(LCTy, ChunkSize));
-  ConstantInt *SchedVal = cast<ConstantInt>(InitCall->getArgOperand(2));
-  if ((SchedType & OMPScheduleType::MonotonicityMask) ==
+  
+  if (ConstantInt *SchedVal = cast<ConstantInt>(InitCall->getArgOperand(2)); (SchedType & OMPScheduleType::MonotonicityMask) ==
       OMPScheduleType::None) {
     // Implementation is allowed to add default nonmonotonicity flag
     EXPECT_EQ(
@@ -2828,8 +2828,8 @@ TEST_F(OpenMPIRBuilderTest, DynamicWorkShareLoopOrdered) {
 
   CallInst *InitCall = nullptr;
   for (Instruction &EI : *Preheader) {
-    Instruction *Cur = &EI;
-    if (isa<CallInst>(Cur)) {
+    
+    if (Instruction *Cur = &EI; isa<CallInst>(Cur)) {
       InitCall = cast<CallInst>(Cur);
       if (InitCall->getCalledFunction()->getName() == "__kmpc_dispatch_init_4u")
         break;
@@ -2929,8 +2929,8 @@ TEST_F(OpenMPIRBuilderTest, MasterDirective) {
 
   CallInst *MasterEndCI = nullptr;
   for (auto &FI : *ThenBB) {
-    Instruction *cur = &FI;
-    if (isa<CallInst>(cur)) {
+    
+    if (Instruction *cur = &FI; isa<CallInst>(cur)) {
       MasterEndCI = cast<CallInst>(cur);
       if (MasterEndCI->getCalledFunction()->getName() == "__kmpc_end_master")
         break;
@@ -3011,8 +3011,8 @@ TEST_F(OpenMPIRBuilderTest, MaskedDirective) {
 
   CallInst *MaskedEndCI = nullptr;
   for (auto &FI : *ThenBB) {
-    Instruction *cur = &FI;
-    if (isa<CallInst>(cur)) {
+    
+    if (Instruction *cur = &FI; isa<CallInst>(cur)) {
       MaskedEndCI = cast<CallInst>(cur);
       if (MaskedEndCI->getCalledFunction()->getName() == "__kmpc_end_masked")
         break;
@@ -3064,8 +3064,8 @@ TEST_F(OpenMPIRBuilderTest, CriticalDirective) {
 
   CallInst *CriticalEntryCI = nullptr;
   for (auto &EI : *EntryBB) {
-    Instruction *cur = &EI;
-    if (isa<CallInst>(cur)) {
+    
+    if (Instruction *cur = &EI; isa<CallInst>(cur)) {
       CriticalEntryCI = cast<CallInst>(cur);
       if (CriticalEntryCI->getCalledFunction()->getName() == "__kmpc_critical")
         break;
@@ -3079,8 +3079,8 @@ TEST_F(OpenMPIRBuilderTest, CriticalDirective) {
 
   CallInst *CriticalEndCI = nullptr;
   for (auto &FI : *EntryBB) {
-    Instruction *cur = &FI;
-    if (isa<CallInst>(cur)) {
+    
+    if (Instruction *cur = &FI; isa<CallInst>(cur)) {
       CriticalEndCI = cast<CallInst>(cur);
       if (CriticalEndCI->getCalledFunction()->getName() ==
           "__kmpc_end_critical")
@@ -3100,8 +3100,8 @@ TEST_F(OpenMPIRBuilderTest, CriticalDirective) {
   EXPECT_EQ(GV->getType(), CriticalNamePtrTy);
   const DataLayout &DL = M->getDataLayout();
   const llvm::Align TypeAlign = DL.getABITypeAlign(CriticalNamePtrTy);
-  const llvm::Align PtrAlign = DL.getPointerABIAlignment(GV->getAddressSpace());
-  if (const llvm::MaybeAlign Alignment = GV->getAlign())
+  
+  if (const llvm::Align PtrAlign = DL.getPointerABIAlignment(GV->getAddressSpace()); const llvm::MaybeAlign Alignment = GV->getAlign())
     EXPECT_EQ(*Alignment, std::max(TypeAlign, PtrAlign));
 }
 
@@ -3320,8 +3320,8 @@ TEST_F(OpenMPIRBuilderTest, OrderedDirectiveThreads) {
 
   CallInst *OrderedEntryCI = nullptr;
   for (auto &EI : *EntryBB) {
-    Instruction *Cur = &EI;
-    if (isa<CallInst>(Cur)) {
+    
+    if (Instruction *Cur = &EI; isa<CallInst>(Cur)) {
       OrderedEntryCI = cast<CallInst>(Cur);
       if (OrderedEntryCI->getCalledFunction()->getName() == "__kmpc_ordered")
         break;
@@ -3335,8 +3335,8 @@ TEST_F(OpenMPIRBuilderTest, OrderedDirectiveThreads) {
 
   CallInst *OrderedEndCI = nullptr;
   for (auto &FI : *EntryBB) {
-    Instruction *Cur = &FI;
-    if (isa<CallInst>(Cur)) {
+    
+    if (Instruction *Cur = &FI; isa<CallInst>(Cur)) {
       OrderedEndCI = cast<CallInst>(Cur);
       if (OrderedEndCI->getCalledFunction()->getName() == "__kmpc_end_ordered")
         break;
@@ -3394,8 +3394,8 @@ TEST_F(OpenMPIRBuilderTest, OrderedDirectiveSimd) {
 
   CallInst *OrderedEntryCI = nullptr;
   for (auto &EI : *EntryBB) {
-    Instruction *Cur = &EI;
-    if (isa<CallInst>(Cur)) {
+    
+    if (Instruction *Cur = &EI; isa<CallInst>(Cur)) {
       OrderedEntryCI = cast<CallInst>(Cur);
       if (OrderedEntryCI->getCalledFunction()->getName() == "__kmpc_ordered")
         break;
@@ -3406,8 +3406,8 @@ TEST_F(OpenMPIRBuilderTest, OrderedDirectiveSimd) {
 
   CallInst *OrderedEndCI = nullptr;
   for (auto &FI : *EntryBB) {
-    Instruction *Cur = &FI;
-    if (isa<CallInst>(Cur)) {
+    
+    if (Instruction *Cur = &FI; isa<CallInst>(Cur)) {
       OrderedEndCI = cast<CallInst>(Cur);
       if (OrderedEndCI->getCalledFunction()->getName() == "__kmpc_end_ordered")
         break;
@@ -3521,8 +3521,8 @@ TEST_F(OpenMPIRBuilderTest, SingleDirective) {
 
   CallInst *SingleEndCI = nullptr;
   for (auto &FI : *ThenBB) {
-    Instruction *cur = &FI;
-    if (isa<CallInst>(cur)) {
+    
+    if (Instruction *cur = &FI; isa<CallInst>(cur)) {
       SingleEndCI = cast<CallInst>(cur);
       if (SingleEndCI->getCalledFunction()->getName() == "__kmpc_end_single")
         break;
@@ -3536,8 +3536,8 @@ TEST_F(OpenMPIRBuilderTest, SingleDirective) {
 
   bool FoundBarrier = false;
   for (auto &FI : *ExitBB) {
-    Instruction *cur = &FI;
-    if (auto CI = dyn_cast<CallInst>(cur)) {
+    
+    if (Instruction *cur = &FI; auto CI = dyn_cast<CallInst>(cur)) {
       if (CI->getCalledFunction()->getName() == "__kmpc_barrier") {
         FoundBarrier = true;
         break;
@@ -3614,8 +3614,8 @@ TEST_F(OpenMPIRBuilderTest, SingleDirectiveNowait) {
 
   CallInst *SingleEndCI = nullptr;
   for (auto &FI : *ThenBB) {
-    Instruction *cur = &FI;
-    if (isa<CallInst>(cur)) {
+    
+    if (Instruction *cur = &FI; isa<CallInst>(cur)) {
       SingleEndCI = cast<CallInst>(cur);
       if (SingleEndCI->getCalledFunction()->getName() == "__kmpc_end_single")
         break;
@@ -3629,8 +3629,8 @@ TEST_F(OpenMPIRBuilderTest, SingleDirectiveNowait) {
 
   CallInst *ExitBarrier = nullptr;
   for (auto &FI : *ExitBB) {
-    Instruction *cur = &FI;
-    if (auto CI = dyn_cast<CallInst>(cur)) {
+    
+    if (Instruction *cur = &FI; auto CI = dyn_cast<CallInst>(cur)) {
       if (CI->getCalledFunction()->getName() == "__kmpc_barrier") {
         ExitBarrier = CI;
         break;
@@ -5558,8 +5558,8 @@ TEST_F(OpenMPIRBuilderTest, ScanReduction) {
     if (!isa<CallInst>(I))
       continue;
     CallInst *Call = dyn_cast<CallInst>(&I);
-    StringRef Name = Call->getCalledFunction()->getName();
-    if (Name.equals_insensitive("malloc")) {
+    
+    if (StringRef Name = Call->getCalledFunction()->getName(); Name.equals_insensitive("malloc")) {
       NumMallocs += 1;
     } else if (Name.equals_insensitive("free")) {
       NumFrees += 1;

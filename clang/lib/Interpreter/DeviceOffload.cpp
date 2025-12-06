@@ -34,8 +34,8 @@ IncrementalCUDADeviceParser::IncrementalCUDADeviceParser(
       TargetOpts(DeviceInstance.getTargetOpts()) {
   if (Err)
     return;
-  StringRef Arch = TargetOpts.CPU;
-  if (!Arch.starts_with("sm_") || Arch.substr(3).getAsInteger(10, SMVersion)) {
+  
+  if (StringRef Arch = TargetOpts.CPU; !Arch.starts_with("sm_") || Arch.substr(3).getAsInteger(10, SMVersion)) {
     Err = llvm::joinErrors(std::move(Err), llvm::make_error<llvm::StringError>(
                                                "Invalid CUDA architecture",
                                                llvm::inconvertibleErrorCode()));

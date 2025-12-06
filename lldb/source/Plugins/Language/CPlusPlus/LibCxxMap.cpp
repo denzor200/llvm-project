@@ -295,8 +295,8 @@ lldb_private::formatters::LibcxxStdMapSyntheticFrontEnd::GetKeyValuePair(
   if (idx > 0) {
     // If we have already created the iterator for the previous
     // index, we can start from there and advance by 1.
-    auto cached_iterator = m_iterators.find(idx - 1);
-    if (cached_iterator != m_iterators.end()) {
+    
+    if (auto cached_iterator = m_iterators.find(idx - 1); cached_iterator != m_iterators.end()) {
       iterator = cached_iterator->second;
       advance_by = 1;
     }
@@ -465,8 +465,8 @@ lldb_private::formatters::LibCxxMapIteratorSyntheticFrontEnd::Update() {
   // previously __cc).
   key_value_sp = key_value_sp->Clone(ConstString("pair"));
   if (key_value_sp->GetNumChildrenIgnoringErrors() == 1) {
-    auto child0_sp = key_value_sp->GetChildAtIndex(0);
-    if (child0_sp &&
+    
+    if (auto child0_sp = key_value_sp->GetChildAtIndex(0); child0_sp &&
         (child0_sp->GetName() == "__cc_" || child0_sp->GetName() == "__cc"))
       key_value_sp = child0_sp->Clone(ConstString("pair"));
   }

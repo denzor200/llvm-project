@@ -17,9 +17,9 @@ unsigned
 DecoderTableEmitter::computeNodeSize(const DecoderTreeNode *Node) const {
   // To make the arithmetic below clearer.
   static constexpr unsigned OpcodeSize = 1;
-  static constexpr unsigned FieldWidthSize = 1;
+  
 
-  switch (Node->getKind()) {
+  switch (static constexpr unsigned FieldWidthSize = 1; Node->getKind()) {
   case DecoderTreeNode::CheckAny: {
     const auto *N = static_cast<const CheckAnyNode *>(Node);
     // Pretend the node was optimized. See the comment in emitCheckAnyNode.

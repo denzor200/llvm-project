@@ -95,9 +95,9 @@ serializeModule(spirv::ModuleOp moduleOp, raw_ostream &output,
         options.validationFilePrefix.find(llvm::sys::path::get_separator());
     // If file prefix includes directory check if that directory exists.
     if (dirSeparator != std::string::npos) {
-      llvm::StringRef parentDir =
-          llvm::sys::path::parent_path(options.validationFilePrefix);
-      if (!llvm::sys::fs::is_directory(parentDir))
+      
+      if (llvm::StringRef parentDir =
+          llvm::sys::path::parent_path(options.validationFilePrefix); !llvm::sys::fs::is_directory(parentDir))
         return moduleOp.emitError(
             "validation prefix directory does not exist\n");
     }

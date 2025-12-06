@@ -50,8 +50,8 @@ public:
     if (const auto *ED = Ty->getAsEnumDecl())
       Ty = ED->getIntegerType();
 
-    ASTContext &Context = getContext();
-    if (const auto *EIT = Ty->getAs<BitIntType>())
+    
+    if (ASTContext &Context = getContext(); const auto *EIT = Ty->getAs<BitIntType>())
       if (EIT->getNumBits() > Context.getTypeSize(Context.Int128Ty))
         return getNaturalAlignIndirect(Ty,
                                        getDataLayout().getAllocaAddrSpace());
@@ -72,8 +72,8 @@ public:
     if (const auto *ED = RetTy->getAsEnumDecl())
       RetTy = ED->getIntegerType();
 
-    ASTContext &Context = getContext();
-    if (const auto *EIT = RetTy->getAs<BitIntType>())
+    
+    if (ASTContext &Context = getContext(); const auto *EIT = RetTy->getAs<BitIntType>())
       if (EIT->getNumBits() > Context.getTypeSize(Context.Int128Ty))
         return getNaturalAlignIndirect(RetTy,
                                        getDataLayout().getAllocaAddrSpace());

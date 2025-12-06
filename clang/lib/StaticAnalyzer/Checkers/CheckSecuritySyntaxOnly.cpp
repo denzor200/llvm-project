@@ -604,8 +604,8 @@ void WalkAST::checkCall_mkstemp(const CallExpr *CE, const FunctionDecl *FD) {
   assert(ArgSuffix.first >= 0 && "Unsupported function");
 
   // Check if the number of arguments is consistent with out expectations.
-  unsigned numArgs = CE->getNumArgs();
-  if ((signed) numArgs <= ArgSuffix.first)
+  
+  if (unsigned numArgs = CE->getNumArgs(); (signed) numArgs <= ArgSuffix.first)
     return;
 
   const StringLiteral *strArg =
@@ -680,12 +680,12 @@ void WalkAST::checkCall_strcpy(const CallExpr *CE, const FunctionDecl *FD) {
   if (!checkCall_strCommon(CE, FD))
     return;
 
-  const auto *Target = CE->getArg(0)->IgnoreImpCasts(),
-             *Source = CE->getArg(1)->IgnoreImpCasts();
+  
 
-  if (const auto *Array = dyn_cast<ConstantArrayType>(Target->getType())) {
-    uint64_t ArraySize = BR.getContext().getTypeSize(Array) / 8;
-    if (const auto *String = dyn_cast<StringLiteral>(Source)) {
+  if (const auto *Target = CE->getArg(0)->IgnoreImpCasts(),
+             *Source = CE->getArg(1)->IgnoreImpCasts(); const auto *Array = dyn_cast<ConstantArrayType>(Target->getType())) {
+    
+    if (uint64_t ArraySize = BR.getContext().getTypeSize(Array) / 8; const auto *String = dyn_cast<StringLiteral>(Source)) {
       if (ArraySize >= String->getLength() + 1)
         return;
     }
@@ -783,9 +783,9 @@ void WalkAST::checkDeprecatedOrUnsafeBufferHandling(const CallExpr *CE,
     // Currently we only handle (not wide) string literals. It is possible to do
     // better, either by looking at references to const variables, or by doing
     // real flow analysis.
-    auto FormatString =
-        dyn_cast<StringLiteral>(CE->getArg(ArgIndex)->IgnoreParenImpCasts());
-    if (FormatString && !FormatString->getString().contains("%s") &&
+    
+    if (auto FormatString =
+        dyn_cast<StringLiteral>(CE->getArg(ArgIndex)->IgnoreParenImpCasts()); FormatString && !FormatString->getString().contains("%s") &&
         !FormatString->getString().contains("%["))
       BoundsProvided = true;
   }

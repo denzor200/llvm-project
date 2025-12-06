@@ -157,8 +157,8 @@ MapOpcodeIntoControlFlowKind(InstructionOpcodeAndModrm opcode_and_modrm) {
     break;
   case 0xFF:
     if (opcode_len == 1) {
-      uint8_t modrm_reg = (modrm >> 3) & 7;
-      if (modrm_reg == 2)
+      
+      if (uint8_t modrm_reg = (modrm >> 3) & 7; modrm_reg == 2)
         return lldb::eInstructionControlFlowKindCall;
       else if (modrm_reg == 3)
         return lldb::eInstructionControlFlowKindFarCall;
@@ -458,8 +458,8 @@ public:
       const lldb::ByteOrder byte_order = data.GetByteOrder();
 
       const uint32_t min_op_byte_size = arch.GetMinimumOpcodeByteSize();
-      const uint32_t max_op_byte_size = arch.GetMaximumOpcodeByteSize();
-      if (min_op_byte_size == max_op_byte_size) {
+      
+      if (const uint32_t max_op_byte_size = arch.GetMaximumOpcodeByteSize(); min_op_byte_size == max_op_byte_size) {
         // Fixed size instructions, just read that amount of data.
         if (!data.ValidOffsetForDataOfSize(data_offset, min_op_byte_size))
           return false;
@@ -502,11 +502,11 @@ public:
         DisassemblerLLVMC::MCDisasmInstance *mc_disasm_ptr =
             GetDisasmToUse(is_alternate_isa, disasm);
 
-        const llvm::Triple::ArchType machine = arch.GetMachine();
-        if (machine == llvm::Triple::arm || machine == llvm::Triple::thumb) {
+        
+        if (const llvm::Triple::ArchType machine = arch.GetMachine(); machine == llvm::Triple::arm || machine == llvm::Triple::thumb) {
           if (machine == llvm::Triple::thumb || is_alternate_isa) {
-            uint32_t thumb_opcode = data.GetU16(&data_offset);
-            if ((thumb_opcode & 0xe000) != 0xe000 ||
+            
+            if (uint32_t thumb_opcode = data.GetU16(&data_offset); (thumb_opcode & 0xe000) != 0xe000 ||
                 ((thumb_opcode & 0x1800u) == 0)) {
               m_opcode.SetOpcode16(thumb_opcode, byte_order);
               m_is_valid = true;
@@ -572,16 +572,16 @@ public:
   void CalculateMnemonicOperandsAndComment(
       const lldb_private::ExecutionContext *exe_ctx) override {
     DataExtractor data;
-    const AddressClass address_class = GetAddressClass();
+    
 
-    if (m_opcode.GetData(data)) {
+    if (const AddressClass address_class = GetAddressClass(); m_opcode.GetData(data)) {
       std::string out_string;
       std::string markup_out_string;
       std::string comment_string;
       std::string markup_comment_string;
 
-      DisassemblerScope disasm(*this, exe_ctx);
-      if (disasm) {
+      
+      if (DisassemblerScope disasm(*this, exe_ctx); disasm) {
         DisassemblerLLVMC::MCDisasmInstance *mc_disasm_ptr;
 
         if (address_class == AddressClass::eCodeAlternateISA)
@@ -596,13 +596,13 @@ public:
         Disassembler::HexImmediateStyle hex_style = Disassembler::eHexStyleC;
 
         if (exe_ctx) {
-          Target *target = exe_ctx->GetTargetPtr();
-          if (target) {
+          
+          if (Target *target = exe_ctx->GetTargetPtr(); target) {
             use_hex_immediates = target->GetUseHexImmediates();
             hex_style = target->GetHexImmediateStyle();
 
-            const lldb::addr_t load_addr = m_address.GetLoadAddress(target);
-            if (load_addr != LLDB_INVALID_ADDRESS) {
+            
+            if (const lldb::addr_t load_addr = m_address.GetLoadAddress(target); load_addr != LLDB_INVALID_ADDRESS) {
               pc = load_addr;
               m_using_file_addr = false;
             }
@@ -637,8 +637,8 @@ public:
           inst_size = m_opcode.GetByteSize();
           StreamString mnemonic_strm;
           lldb::offset_t offset = 0;
-          lldb::ByteOrder byte_order = data.GetByteOrder();
-          switch (inst_size) {
+          
+          switch (lldb::ByteOrder byte_order = data.GetByteOrder(); inst_size) {
           case 1: {
             const uint8_t uval8 = data.GetU8(&offset);
             m_opcode.SetOpcode8(uval8, byte_order);
@@ -1235,9 +1235,9 @@ private:
     is_alternate_isa = false;
     if (disasm) {
       if (disasm->m_alternate_disasm_up) {
-        const AddressClass address_class = GetAddressClass();
+        
 
-        if (address_class == AddressClass::eCodeAlternateISA) {
+        if (const AddressClass address_class = GetAddressClass(); address_class == AddressClass::eCodeAlternateISA) {
           is_alternate_isa = true;
           return disasm->m_alternate_disasm_up.get();
         }
@@ -1441,8 +1441,8 @@ bool DisassemblerLLVMC::MCDisasmInstance::IsAuthenticated(
   // addition to the standard authenticated instructions specified in ARMv8.3.
   bool IsBrkC47x = false;
   if (InstrDesc.isTrap() && mc_inst.getNumOperands() == 1) {
-    const llvm::MCOperand &Op0 = mc_inst.getOperand(0);
-    if (Op0.isImm() && Op0.getImm() >= 0xc470 && Op0.getImm() <= 0xc474)
+    
+    if (const llvm::MCOperand &Op0 = mc_inst.getOperand(0); Op0.isImm() && Op0.getImm() >= 0xc470 && Op0.getImm() <= 0xc474)
       IsBrkC47x = true;
   }
 
@@ -1615,8 +1615,8 @@ DisassemblerLLVMC::DisassemblerLLVMC(const ArchSpec &arch,
 
   } else if (arch.IsMIPS()) {
     /* Create alternate disassembler for MIPS16 and microMIPS */
-    uint32_t arch_flags = arch.GetFlags();
-    if (arch_flags & ArchSpec::eMIPSAse_mips16)
+    
+    if (uint32_t arch_flags = arch.GetFlags(); arch_flags & ArchSpec::eMIPSAse_mips16)
       features_str += "+mips16,";
     else if (arch_flags & ArchSpec::eMIPSAse_micromips)
       features_str += "+micromips,";
@@ -1635,9 +1635,9 @@ lldb::DisassemblerSP DisassemblerLLVMC::CreateInstance(const ArchSpec &arch,
                                                        const char *cpu,
                                                        const char *features) {
   if (arch.GetTriple().getArch() != llvm::Triple::UnknownArch) {
-    auto disasm_sp =
-        std::make_shared<DisassemblerLLVMC>(arch, flavor, cpu, features);
-    if (disasm_sp && disasm_sp->IsValid())
+    
+    if (auto disasm_sp =
+        std::make_shared<DisassemblerLLVMC>(arch, flavor, cpu, features); disasm_sp && disasm_sp->IsValid())
       return disasm_sp;
   }
   return lldb::DisassemblerSP();
@@ -1795,8 +1795,8 @@ const char *DisassemblerLLVMC::SymbolLookup(uint64_t value, uint64_t *type_ptr,
       }
 
       if (m_inst->UsingFileAddress()) {
-        ModuleSP module_sp(m_inst->GetAddress().GetModule());
-        if (module_sp) {
+        
+        if (ModuleSP module_sp(m_inst->GetAddress().GetModule()); module_sp) {
           module_sp->ResolveFileAddress(value, value_so_addr);
           module_sp->ResolveFileAddress(pc, pc_so_addr);
         }
@@ -1848,8 +1848,8 @@ const char *DisassemblerLLVMC::SymbolLookup(uint64_t value, uint64_t *type_ptr,
           // seen when we have multiple levels of inlined functions at an
           // address, only show the first line.
           std::string str = std::string(ss.GetString());
-          size_t first_eol_char = str.find_first_of("\r\n");
-          if (first_eol_char != std::string::npos) {
+          
+          if (size_t first_eol_char = str.find_first_of("\r\n"); first_eol_char != std::string::npos) {
             str.erase(first_eol_char);
           }
           m_inst->AppendComment(str);

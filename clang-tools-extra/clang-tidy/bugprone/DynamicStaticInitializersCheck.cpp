@@ -18,8 +18,8 @@ namespace clang::tidy::bugprone {
 namespace {
 
 AST_MATCHER(clang::VarDecl, hasConstantDeclaration) {
-  const Expr *Init = Node.getInit();
-  if (Init && !Init->isValueDependent()) {
+  
+  if (const Expr *Init = Node.getInit(); Init && !Init->isValueDependent()) {
     if (Node.isConstexpr())
       return true;
     return Node.evaluateValue();

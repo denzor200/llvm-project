@@ -53,11 +53,11 @@ void PPCXCOFFStreamer::emitPrefixedInstruction(const MCInst &Inst,
 
 void PPCXCOFFStreamer::emitInstruction(const MCInst &Inst,
                                        const MCSubtargetInfo &STI) {
-  PPCMCCodeEmitter *Emitter =
-      static_cast<PPCMCCodeEmitter *>(getAssembler().getEmitterPtr());
+  
 
   // Special handling is only for prefixed instructions.
-  if (!Emitter->isPrefixedInstruction(Inst)) {
+  if (PPCMCCodeEmitter *Emitter =
+      static_cast<PPCMCCodeEmitter *>(getAssembler().getEmitterPtr()); !Emitter->isPrefixedInstruction(Inst)) {
     MCXCOFFStreamer::emitInstruction(Inst, STI);
     return;
   }

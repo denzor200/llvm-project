@@ -236,12 +236,12 @@ public:
         if (m_match_set.size() >= m_request.GetMaxNumberOfCompletionsToAdd())
           break;
 
-        ConstString func_name = sc.GetFunctionName(Mangled::ePreferDemangled);
+        
         // Ensure that the function name matches the regex. This is more than
         // a sanity check. It is possible that the demangled function name
         // does not start with the prefix, for example when it's in an
         // anonymous namespace.
-        if (!func_name.IsEmpty() && m_regex.Execute(func_name.GetStringRef()))
+        if (ConstString func_name = sc.GetFunctionName(Mangled::ePreferDemangled); !func_name.IsEmpty() && m_regex.Execute(func_name.GetStringRef()))
           m_match_set.insert(func_name);
       }
     }
@@ -307,9 +307,9 @@ public:
 
       // And a file name match.
       if (m_file_name) {
-        llvm::StringRef cur_file_name =
-            context.module_sp->GetFileSpec().GetFilename().GetStringRef();
-        if (cur_file_name.starts_with(*m_file_name))
+        
+        if (llvm::StringRef cur_file_name =
+            context.module_sp->GetFileSpec().GetFilename().GetStringRef(); cur_file_name.starts_with(*m_file_name))
           m_request.AddCompletion(cur_file_name);
       }
     }
@@ -332,9 +332,9 @@ private:
 void CommandCompletions::SourceFiles(CommandInterpreter &interpreter,
                                      CompletionRequest &request,
                                      SearchFilter *searcher) {
-  SourceFileCompleter completer(interpreter, request);
+  
 
-  if (searcher == nullptr) {
+  if (SourceFileCompleter completer(interpreter, request); searcher == nullptr) {
     lldb::TargetSP target_sp = interpreter.GetDebugger().GetSelectedTarget();
     SearchFilterForUnconstrainedSearches null_searcher(target_sp);
     completer.DoCompletion(&null_searcher);
@@ -459,8 +459,8 @@ static void DiskFilesOrDirectories(const llvm::Twine &partial_name,
     if (Status->isSymlink()) {
       FileSpec symlink_filespec(Entry.path());
       FileSpec resolved_filespec;
-      auto error = fs.ResolveSymbolicLink(symlink_filespec, resolved_filespec);
-      if (error.Success())
+      
+      if (auto error = fs.ResolveSymbolicLink(symlink_filespec, resolved_filespec); error.Success())
         is_dir = fs.IsDirectory(symlink_filespec);
     }
 
@@ -528,27 +528,27 @@ void CommandCompletions::DiskDirectories(const llvm::Twine &partial_file_name,
 void CommandCompletions::RemoteDiskFiles(CommandInterpreter &interpreter,
                                          CompletionRequest &request,
                                          SearchFilter *searcher) {
-  lldb::PlatformSP platform_sp =
-      interpreter.GetDebugger().GetPlatformList().GetSelectedPlatform();
-  if (platform_sp)
+  
+  if (lldb::PlatformSP platform_sp =
+      interpreter.GetDebugger().GetPlatformList().GetSelectedPlatform(); platform_sp)
     platform_sp->AutoCompleteDiskFileOrDirectory(request, false);
 }
 
 void CommandCompletions::RemoteDiskDirectories(CommandInterpreter &interpreter,
                                                CompletionRequest &request,
                                                SearchFilter *searcher) {
-  lldb::PlatformSP platform_sp =
-      interpreter.GetDebugger().GetPlatformList().GetSelectedPlatform();
-  if (platform_sp)
+  
+  if (lldb::PlatformSP platform_sp =
+      interpreter.GetDebugger().GetPlatformList().GetSelectedPlatform(); platform_sp)
     platform_sp->AutoCompleteDiskFileOrDirectory(request, true);
 }
 
 void CommandCompletions::Modules(CommandInterpreter &interpreter,
                                  CompletionRequest &request,
                                  SearchFilter *searcher) {
-  ModuleCompleter completer(interpreter, request);
+  
 
-  if (searcher == nullptr) {
+  if (ModuleCompleter completer(interpreter, request); searcher == nullptr) {
     lldb::TargetSP target_sp = interpreter.GetDebugger().GetSelectedTarget();
     SearchFilterForUnconstrainedSearches null_searcher(target_sp);
     completer.DoCompletion(&null_searcher);
@@ -578,9 +578,9 @@ void CommandCompletions::ModuleUUIDs(CommandInterpreter &interpreter,
 void CommandCompletions::Symbols(CommandInterpreter &interpreter,
                                  CompletionRequest &request,
                                  SearchFilter *searcher) {
-  SymbolCompleter completer(interpreter, request);
+  
 
-  if (searcher == nullptr) {
+  if (SymbolCompleter completer(interpreter, request); searcher == nullptr) {
     lldb::TargetSP target_sp = interpreter.GetDebugger().GetSelectedTarget();
     SearchFilterForUnconstrainedSearches null_searcher(target_sp);
     completer.DoCompletion(&null_searcher);
@@ -596,9 +596,9 @@ void CommandCompletions::SettingsNames(CommandInterpreter &interpreter,
   static StringList g_property_names;
   if (g_property_names.GetSize() == 0) {
     // Generate the full setting name list on demand
-    lldb::OptionValuePropertiesSP properties_sp(
-        interpreter.GetDebugger().GetValueProperties());
-    if (properties_sp) {
+    
+    if (lldb::OptionValuePropertiesSP properties_sp(
+        interpreter.GetDebugger().GetValueProperties()); properties_sp) {
       StreamString strm;
       properties_sp->DumpValue(nullptr, strm, OptionValue::eDumpOptionName);
       const std::string &str = std::string(strm.GetString());
@@ -672,8 +672,8 @@ void CommandCompletions::Breakpoints(CommandInterpreter &interpreter,
     bp->GetDescription(&s, lldb::eDescriptionLevelBrief);
     llvm::StringRef bp_info = s.GetString();
 
-    const size_t colon_pos = bp_info.find_first_of(':');
-    if (colon_pos != llvm::StringRef::npos)
+    
+    if (const size_t colon_pos = bp_info.find_first_of(':'); colon_pos != llvm::StringRef::npos)
       bp_info = bp_info.drop_front(colon_pos + 2);
 
     request.TryCompleteCurrentArg(std::to_string(bp->GetID()), bp_info);

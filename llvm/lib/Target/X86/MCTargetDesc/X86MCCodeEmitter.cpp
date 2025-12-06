@@ -298,8 +298,8 @@ public:
   void emit(SmallVectorImpl<char> &CB) const {
     uint8_t FirstPayload =
         ((~R) & 0x1) << 7 | ((~X) & 0x1) << 6 | ((~B) & 0x1) << 5;
-    uint8_t LastPayload = ((~VEX_4V) & 0xf) << 3 | VEX_L << 2 | VEX_PP;
-    switch (Kind) {
+    
+    switch (uint8_t LastPayload = ((~VEX_4V) & 0xf) << 3 | VEX_L << 2 | VEX_PP; Kind) {
     case None:
       return;
     case REX:
@@ -564,8 +564,8 @@ void X86MCCodeEmitter::emitImmediate(const MCOperand &DispOp, SMLoc Loc,
   // If we have an immoffset, add it to the expression.
   if ((FixupKind == FK_Data_4 || FixupKind == FK_Data_8 ||
        FixupKind == X86::reloc_signed_4byte)) {
-    GlobalOffsetTableExprKind Kind = startsWithGlobalOffsetTable(Expr);
-    if (Kind != GOT_None) {
+    
+    if (GlobalOffsetTableExprKind Kind = startsWithGlobalOffsetTable(Expr); Kind != GOT_None) {
       assert(ImmOffset == 0);
 
       if (Size == 8) {
@@ -582,8 +582,8 @@ void X86MCCodeEmitter::emitImmediate(const MCOperand &DispOp, SMLoc Loc,
         FixupKind = FK_SecRel_4;
       }
     } else if (Expr->getKind() == MCExpr::Binary) {
-      const MCBinaryExpr *Bin = static_cast<const MCBinaryExpr *>(Expr);
-      if (hasSecRelSymbolRef(Bin->getLHS()) ||
+      
+      if (const MCBinaryExpr *Bin = static_cast<const MCBinaryExpr *>(Expr); hasSecRelSymbolRef(Bin->getLHS()) ||
           hasSecRelSymbolRef(Bin->getRHS())) {
         FixupKind = FK_SecRel_4;
       }
@@ -798,8 +798,8 @@ void X86MCCodeEmitter::emitMemModRMByte(
 
       // If the displacement is @tlscall, treat it as a zero.
       if (Disp.isExpr()) {
-        auto *Sym = dyn_cast<MCSymbolRefExpr>(Disp.getExpr());
-        if (Sym && Sym->getSpecifier() == X86::S_TLSCALL) {
+        
+        if (auto *Sym = dyn_cast<MCSymbolRefExpr>(Disp.getExpr()); Sym && Sym->getSpecifier() == X86::S_TLSCALL) {
           // This is exclusively used by call *a@tlscall(base). The relocation
           // (R_386_TLSCALL or R_X86_64_TLSCALL) applies to the beginning.
           Fixups.push_back(MCFixup::create(0, Sym, FK_NONE));
@@ -814,8 +814,8 @@ void X86MCCodeEmitter::emitMemModRMByte(
     // This also handles the 0 displacement for [EBP], [R13], [R21] or [R29]. We
     // can't use disp8 if the {disp32} pseudo prefix is present.
     if (Disp.isImm() && AllowDisp8) {
-      int ImmOffset = 0;
-      if (isDispOrCDisp8(TSFlags, Disp.getImm(), ImmOffset)) {
+      
+      if (int ImmOffset = 0; isDispOrCDisp8(TSFlags, Disp.getImm(), ImmOffset)) {
         emitByte(modRMByte(1, RegOpcodeField, BaseRegNo), CB);
         emitImmediate(Disp, MI.getLoc(), FK_Data_1, false, StartByte, CB,
                       Fixups, ImmOffset);
@@ -914,8 +914,8 @@ PrefixKind X86MCCodeEmitter::emitPrefixImpl(unsigned &CurOp, const MCInst &MI,
       Flags & X86::IP_HAS_AD_SIZE)
     emitByte(0x67, CB);
 
-  uint64_t Form = TSFlags & X86II::FormMask;
-  switch (Form) {
+  
+  switch (uint64_t Form = TSFlags & X86II::FormMask; Form) {
   default:
     break;
   case X86II::RawFrmDstSrc: {
@@ -1371,8 +1371,8 @@ PrefixKind X86MCCodeEmitter::emitREXPrefix(int MemOperand, const MCInst &MI,
       // any prefix, they may be replaced by instructions that do. This is
       // handled as a special case here so that it also works for hand-written
       // assembly without the user needing to write REX, as with GNU as.
-      const auto *Ref = dyn_cast<MCSymbolRefExpr>(MO.getExpr());
-      if (Ref && (Ref->getSpecifier() == X86::S_GOTTPOFF ||
+      
+      if (const auto *Ref = dyn_cast<MCSymbolRefExpr>(MO.getExpr()); Ref && (Ref->getSpecifier() == X86::S_GOTTPOFF ||
                   Ref->getSpecifier() == X86::S_TLSDESC)) {
         Prefix.setLowerBound(REX);
       }
@@ -1533,10 +1533,10 @@ void X86MCCodeEmitter::emitPrefix(const MCInst &MI, SmallVectorImpl<char> &CB,
                                   const MCSubtargetInfo &STI) const {
   unsigned Opcode = MI.getOpcode();
   const MCInstrDesc &Desc = MCII.get(Opcode);
-  uint64_t TSFlags = Desc.TSFlags;
+  
 
   // Pseudo instructions don't get encoded.
-  if (X86II::isPseudo(TSFlags))
+  if (uint64_t TSFlags = Desc.TSFlags; X86II::isPseudo(TSFlags))
     return;
 
   unsigned CurOp = X86II::getOperandBias(Desc);

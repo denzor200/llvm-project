@@ -23,9 +23,9 @@ public:
 
   bool verifyValue(const std::array<uint64_t, NumElts> &B) const {
     for (unsigned I = 0; I != NumBits; ++I) {
-      bool ReferenceVal =
-          (B[(I / 64)] & (static_cast<uint64_t>(1) << (I % 64))) != 0;
-      if (ReferenceVal != this->test(I))
+      
+      if (bool ReferenceVal =
+          (B[(I / 64)] & (static_cast<uint64_t>(1) << (I % 64))) != 0; ReferenceVal != this->test(I))
         return false;
     }
 

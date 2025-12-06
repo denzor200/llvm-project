@@ -675,17 +675,17 @@ InstrumentationRuntimeTSan::GenerateSummary(StructuredData::ObjectSP report) {
                  ->GetUnsignedIntegerValue();
 
     if (addr != 0) {
-      std::string global_name = GetSymbolNameFromAddress(process_sp, addr);
-      if (!global_name.empty()) {
+      
+      if (std::string global_name = GetSymbolNameFromAddress(process_sp, addr); !global_name.empty()) {
         summary = summary + " at " + global_name;
       } else {
         summary = summary + " at " + Sprintf("0x%llx", addr);
       }
     } else {
-      int fd = loc->GetAsDictionary()
+      
+      if (int fd = loc->GetAsDictionary()
                    ->GetValueForKey("file_descriptor")
-                   ->GetSignedIntegerValue();
-      if (fd != 0) {
+                   ->GetSignedIntegerValue(); fd != 0) {
         summary = summary + " on file descriptor " + Sprintf("%d", fd);
       }
     }
@@ -725,9 +725,9 @@ std::string InstrumentationRuntimeTSan::GetLocationDescription(
                                        ->GetValueForKey("locs")
                                        ->GetAsArray()
                                        ->GetItemAtIndex(0);
-    std::string type = std::string(
-        loc->GetAsDictionary()->GetValueForKey("type")->GetStringValue());
-    if (type == "global") {
+    
+    if (std::string type = std::string(
+        loc->GetAsDictionary()->GetValueForKey("type")->GetStringValue()); type == "global") {
       global_addr = loc->GetAsDictionary()
                         ->GetValueForKey("address")
                         ->GetUnsignedIntegerValue();
@@ -755,11 +755,11 @@ std::string InstrumentationRuntimeTSan::GetLocationDescription(
                         ->GetValueForKey("size")
                         ->GetUnsignedIntegerValue();
 
-      std::string object_type = std::string(loc->GetAsDictionary()
+      
+      if (std::string object_type = std::string(loc->GetAsDictionary()
                                                 ->GetValueForKey("object_type")
                                                 ->GetAsString()
-                                                ->GetValue());
-      if (!object_type.empty()) {
+                                                ->GetValue()); !object_type.empty()) {
         result = Sprintf("Location is a %ld-byte %s object at 0x%llx", size,
                          object_type.c_str(), addr);
       } else {
@@ -930,8 +930,8 @@ void InstrumentationRuntimeTSan::Activate() {
 
 void InstrumentationRuntimeTSan::Deactivate() {
   if (GetBreakpointID() != LLDB_INVALID_BREAK_ID) {
-    ProcessSP process_sp = GetProcessSP();
-    if (process_sp) {
+    
+    if (ProcessSP process_sp = GetProcessSP(); process_sp) {
       process_sp->GetTarget().RemoveBreakpointByID(GetBreakpointID());
       SetBreakpointID(LLDB_INVALID_BREAK_ID);
     }
@@ -987,9 +987,9 @@ static std::string GenerateThreadName(const std::string &path,
         o->GetAsDictionary()->GetValueForKey("type")->GetStringValue());
     lldb::tid_t thread_id =
         o->GetObjectForDotSeparatedPath("thread_id")->GetUnsignedIntegerValue();
-    int fd = o->GetObjectForDotSeparatedPath("file_descriptor")
-                 ->GetSignedIntegerValue();
-    if (type == "heap") {
+    
+    if (int fd = o->GetObjectForDotSeparatedPath("file_descriptor")
+                 ->GetSignedIntegerValue(); type == "heap") {
       result = Sprintf("Heap block allocated by thread %" PRIu64, thread_id);
     } else if (type == "fd") {
       result = Sprintf("File descriptor %d created by thread %" PRIu64, fd,

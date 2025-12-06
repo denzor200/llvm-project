@@ -360,8 +360,8 @@ Constant *llvm::ConstantFoldExtractElementInstruction(Constant *Val,
       SmallVector<Constant *, 8> Ops;
       Ops.reserve(CE->getNumOperands());
       for (unsigned i = 0, e = CE->getNumOperands(); i != e; ++i) {
-        Constant *Op = CE->getOperand(i);
-        if (Op->getType()->isVectorTy()) {
+        
+        if (Constant *Op = CE->getOperand(i); Op->getType()->isVectorTy()) {
           Constant *ScalarOp = ConstantExpr::getExtractElement(Op, Idx);
           if (!ScalarOp)
             return nullptr;
@@ -454,12 +454,12 @@ Constant *llvm::ConstantFoldShuffleVectorInstruction(Constant *V1, Constant *V2,
   // elements.
   if (all_of(Mask, [](int Elt) { return Elt == 0; })) {
     Type *Ty = IntegerType::get(V1->getContext(), 32);
-    Constant *Elt =
-        ConstantExpr::getExtractElement(V1, ConstantInt::get(Ty, 0));
+    
 
     // For scalable vectors, make sure this doesn't fold back into a
     // shufflevector.
-    if (!MaskEltCount.isScalable() || Elt->isNullValue() || isa<UndefValue>(Elt))
+    if (Constant *Elt =
+        ConstantExpr::getExtractElement(V1, ConstantInt::get(Ty, 0)); !MaskEltCount.isScalable() || Elt->isNullValue() || isa<UndefValue>(Elt))
       return ConstantVector::getSplat(MaskEltCount, Elt);
   }
 
@@ -543,10 +543,10 @@ Constant *llvm::ConstantFoldUnaryInstruction(unsigned Opcode, Constant *C) {
   // Handle scalar UndefValue and scalable vector UndefValue. Fixed-length
   // vectors are always evaluated per element.
   bool IsScalableVector = isa<ScalableVectorType>(C->getType());
-  bool HasScalarUndefOrScalableVectorUndef =
-      (!C->getType()->isVectorTy() || IsScalableVector) && isa<UndefValue>(C);
+  
 
-  if (HasScalarUndefOrScalableVectorUndef) {
+  if (bool HasScalarUndefOrScalableVectorUndef =
+      (!C->getType()->isVectorTy() || IsScalableVector) && isa<UndefValue>(C); HasScalarUndefOrScalableVectorUndef) {
     switch (static_cast<Instruction::UnaryOps>(Opcode)) {
     case Instruction::FNeg:
       return C; // -undef -> undef
@@ -561,8 +561,8 @@ Constant *llvm::ConstantFoldUnaryInstruction(unsigned Opcode, Constant *C) {
   assert(!isa<ConstantInt>(C) && "Unexpected Integer UnaryOp");
 
   if (ConstantFP *CFP = dyn_cast<ConstantFP>(C)) {
-    const APFloat &CV = CFP->getValueAPF();
-    switch (Opcode) {
+    
+    switch (const APFloat &CV = CFP->getValueAPF(); Opcode) {
     default:
       break;
     case Instruction::FNeg:
@@ -620,10 +620,10 @@ Constant *llvm::ConstantFoldBinaryInstruction(unsigned Opcode, Constant *C1,
   // Handle scalar UndefValue and scalable vector UndefValue. Fixed-length
   // vectors are always evaluated per element.
   bool IsScalableVector = isa<ScalableVectorType>(C1->getType());
-  bool HasScalarUndefOrScalableVectorUndef =
+  
+  if (bool HasScalarUndefOrScalableVectorUndef =
       (!C1->getType()->isVectorTy() || IsScalableVector) &&
-      (isa<UndefValue>(C1) || isa<UndefValue>(C2));
-  if (HasScalarUndefOrScalableVectorUndef) {
+      (isa<UndefValue>(C1) || isa<UndefValue>(C2)); HasScalarUndefOrScalableVectorUndef) {
     switch (static_cast<Instruction::BinaryOps>(Opcode)) {
     case Instruction::Xor:
       if (isa<UndefValue>(C1) && isa<UndefValue>(C2))
@@ -770,10 +770,10 @@ Constant *llvm::ConstantFoldBinaryInstruction(unsigned Opcode, Constant *C1,
           if (GVAlign > 1) {
             unsigned DstWidth = CI2->getBitWidth();
             unsigned SrcWidth = std::min(DstWidth, Log2(GVAlign));
-            APInt BitsNotSet(APInt::getLowBitsSet(DstWidth, SrcWidth));
+            
 
             // If checking bits we know are clear, return zero.
-            if ((CI2->getValue() & BitsNotSet) == CI2->getValue())
+            if (APInt BitsNotSet(APInt::getLowBitsSet(DstWidth, SrcWidth)); (CI2->getValue() & BitsNotSet) == CI2->getValue())
               return Constant::getNullValue(CI2->getType());
           }
         }
@@ -791,8 +791,8 @@ Constant *llvm::ConstantFoldBinaryInstruction(unsigned Opcode, Constant *C1,
   if (ConstantInt *CI1 = dyn_cast<ConstantInt>(C1)) {
     if (ConstantInt *CI2 = dyn_cast<ConstantInt>(C2)) {
       const APInt &C1V = CI1->getValue();
-      const APInt &C2V = CI2->getValue();
-      switch (Opcode) {
+      
+      switch (const APInt &C2V = CI2->getValue(); Opcode) {
       default:
         break;
       case Instruction::Add:
@@ -845,8 +845,8 @@ Constant *llvm::ConstantFoldBinaryInstruction(unsigned Opcode, Constant *C1,
     if (ConstantFP *CFP2 = dyn_cast<ConstantFP>(C2)) {
       const APFloat &C1V = CFP1->getValueAPF();
       const APFloat &C2V = CFP2->getValueAPF();
-      APFloat C3V = C1V;  // copy for modification
-      switch (Opcode) {
+       // copy for modification
+      switch (APFloat C3V = C1V; Opcode) {
       default:
         break;
       case Instruction::FAdd:
@@ -912,8 +912,8 @@ Constant *llvm::ConstantFoldBinaryInstruction(unsigned Opcode, Constant *C1,
     // Given ((a + b) + c), if (b + c) folds to something interesting, return
     // (a + (b + c)).
     if (Instruction::isAssociative(Opcode) && CE1->getOpcode() == Opcode) {
-      Constant *T = ConstantExpr::get(Opcode, CE1->getOperand(1), C2);
-      if (!isa<ConstantExpr>(T) || cast<ConstantExpr>(T)->getOpcode() != Opcode)
+      
+      if (Constant *T = ConstantExpr::get(Opcode, CE1->getOperand(1), C2); !isa<ConstantExpr>(T) || cast<ConstantExpr>(T)->getOpcode() != Opcode)
         return ConstantExpr::get(Opcode, CE1->getOperand(0), T);
     }
   } else if (isa<ConstantExpr>(C2)) {
@@ -1007,8 +1007,8 @@ static ICmpInst::Predicate evaluateICmpRelation(Constant *V1, Constant *V2) {
     return 0;
   };
   if (GetComplexity(V1) < GetComplexity(V2)) {
-    ICmpInst::Predicate SwappedRelation = evaluateICmpRelation(V2, V1);
-    if (SwappedRelation != ICmpInst::BAD_ICMP_PREDICATE)
+    
+    if (ICmpInst::Predicate SwappedRelation = evaluateICmpRelation(V2, V1); SwappedRelation != ICmpInst::BAD_ICMP_PREDICATE)
       return ICmpInst::getSwappedPredicate(SwappedRelation);
     return ICmpInst::BAD_ICMP_PREDICATE;
   }
@@ -1045,14 +1045,14 @@ static ICmpInst::Predicate evaluateICmpRelation(Constant *V1, Constant *V2) {
   } else if (auto *CE1 = dyn_cast<ConstantExpr>(V1)) {
     // Ok, the LHS is known to be a constantexpr.  The RHS can be any of a
     // constantexpr, a global, block address, or a simple constant.
-    Constant *CE1Op0 = CE1->getOperand(0);
+    
 
-    switch (CE1->getOpcode()) {
+    switch (Constant *CE1Op0 = CE1->getOperand(0); CE1->getOpcode()) {
     case Instruction::GetElementPtr: {
-      GEPOperator *CE1GEP = cast<GEPOperator>(CE1);
+      
       // Ok, since this is a getelementptr, we know that the constant has a
       // pointer type.  Check the various cases.
-      if (isa<ConstantPointerNull>(V2)) {
+      if (GEPOperator *CE1GEP = cast<GEPOperator>(CE1); isa<ConstantPointerNull>(V2)) {
         // If we are comparing a GEP to a null pointer, check to see if the base
         // of the GEP equals the null pointer.
         if (const GlobalValue *GV = dyn_cast<GlobalValue>(CE1Op0)) {
@@ -1072,8 +1072,8 @@ static ICmpInst::Predicate evaluateICmpRelation(Constant *V1, Constant *V2) {
       } else if (const auto *CE2GEP = dyn_cast<GEPOperator>(V2)) {
         // By far the most common case to handle is when the base pointers are
         // obviously to the same global.
-        const Constant *CE2Op0 = cast<Constant>(CE2GEP->getPointerOperand());
-        if (isa<GlobalValue>(CE1Op0) && isa<GlobalValue>(CE2Op0)) {
+        
+        if (const Constant *CE2Op0 = cast<Constant>(CE2GEP->getPointerOperand()); isa<GlobalValue>(CE1Op0) && isa<GlobalValue>(CE2Op0)) {
           // Don't know relative ordering, but check for inequality.
           if (CE1Op0 != CE2Op0) {
             if (CE1GEP->hasAllZeroIndices() && CE2GEP->hasAllZeroIndices())

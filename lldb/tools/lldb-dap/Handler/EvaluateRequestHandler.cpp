@@ -31,10 +31,10 @@ EvaluateRequestHandler::Run(const EvaluateArguments &arguments) const {
   EvaluateResponseBody body;
   lldb::SBFrame frame = dap.GetLLDBFrame(arguments.frameId);
   std::string expression = arguments.expression;
-  bool repeat_last_command =
-      expression.empty() && dap.last_nonempty_var_expression.empty();
+  
 
-  if (arguments.context == protocol::eEvaluateContextRepl &&
+  if (bool repeat_last_command =
+      expression.empty() && dap.last_nonempty_var_expression.empty(); arguments.context == protocol::eEvaluateContextRepl &&
       (repeat_last_command ||
        (!expression.empty() &&
         dap.DetectReplMode(frame, expression, false) == ReplMode::Command))) {

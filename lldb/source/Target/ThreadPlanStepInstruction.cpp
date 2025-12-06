@@ -45,20 +45,20 @@ void ThreadPlanStepInstruction::SetUpState() {
   m_start_has_symbol =
       start_frame_sp->GetSymbolContext(eSymbolContextSymbol).symbol != nullptr;
 
-  StackFrameSP parent_frame_sp = thread.GetStackFrameAtIndex(1);
-  if (parent_frame_sp)
+  
+  if (StackFrameSP parent_frame_sp = thread.GetStackFrameAtIndex(1); parent_frame_sp)
     m_parent_frame_id = parent_frame_sp->GetStackID();
 }
 
 void ThreadPlanStepInstruction::GetDescription(Stream *s,
                                                lldb::DescriptionLevel level) {
-  auto PrintFailureIfAny = [&]() {
+  
+
+  if (auto PrintFailureIfAny = [&]() {
     if (m_status.Success())
       return;
     s->Printf(" failed (%s)", m_status.AsCString());
-  };
-
-  if (level == lldb::eDescriptionLevelBrief) {
+  }; level == lldb::eDescriptionLevelBrief) {
     if (m_step_over)
       s->Printf("instruction step over");
     else
@@ -98,15 +98,15 @@ bool ThreadPlanStepInstruction::DoPlanExplainsStop(Event *event_ptr) {
 bool ThreadPlanStepInstruction::IsPlanStale() {
   Log *log = GetLog(LLDBLog::Step);
   Thread &thread = GetThread();
-  StackID cur_frame_id = thread.GetStackFrameAtIndex(0)->GetStackID();
-  if (cur_frame_id == m_stack_id) {
+  
+  if (StackID cur_frame_id = thread.GetStackFrameAtIndex(0)->GetStackID(); cur_frame_id == m_stack_id) {
     // Set plan Complete when we reach next instruction
     uint64_t pc = thread.GetRegisterContext()->GetPC(0);
     uint32_t max_opcode_size =
         GetTarget().GetArchitecture().GetMaximumOpcodeByteSize();
-    bool next_instruction_reached = (pc > m_instruction_addr) &&
-        (pc <= m_instruction_addr + max_opcode_size);
-    if (next_instruction_reached) {
+    
+    if (bool next_instruction_reached = (pc > m_instruction_addr) &&
+        (pc <= m_instruction_addr + max_opcode_size); next_instruction_reached) {
       SetPlanComplete();
     }
     return (thread.GetRegisterContext()->GetPC(0) != m_instruction_addr);
@@ -126,8 +126,8 @@ bool ThreadPlanStepInstruction::IsPlanStale() {
 }
 
 bool ThreadPlanStepInstruction::ShouldStop(Event *event_ptr) {
-  Thread &thread = GetThread();
-  if (m_step_over) {
+  
+  if (Thread &thread = GetThread(); m_step_over) {
     Log *log = GetLog(LLDBLog::Step);
     StackFrameSP cur_frame_sp = thread.GetStackFrameAtIndex(0);
     if (!cur_frame_sp) {
@@ -155,8 +155,8 @@ bool ThreadPlanStepInstruction::ShouldStop(Event *event_ptr) {
         return false;
     } else {
       // We've stepped in, step back out again:
-      StackFrame *return_frame = thread.GetStackFrameAtIndex(1).get();
-      if (return_frame) {
+      
+      if (StackFrame *return_frame = thread.GetStackFrameAtIndex(1).get(); return_frame) {
         if (return_frame->GetStackID() != m_parent_frame_id ||
             m_start_has_symbol) {
           // next-instruction shouldn't step out of inlined functions.  But we
@@ -164,10 +164,10 @@ bool ThreadPlanStepInstruction::ShouldStop(Event *event_ptr) {
           // function, and we do want to step out of that...
 
           if (cur_frame_sp->IsInlined()) {
-            StackFrameSP parent_frame_sp =
-                thread.GetFrameWithStackID(m_stack_id);
+            
 
-            if (parent_frame_sp &&
+            if (StackFrameSP parent_frame_sp =
+                thread.GetFrameWithStackID(m_stack_id); parent_frame_sp &&
                 parent_frame_sp->GetConcreteFrameIndex() ==
                     cur_frame_sp->GetConcreteFrameIndex()) {
               SetPlanComplete();
@@ -218,8 +218,8 @@ bool ThreadPlanStepInstruction::ShouldStop(Event *event_ptr) {
       }
     }
   } else {
-    lldb::addr_t pc_addr = thread.GetRegisterContext()->GetPC(0);
-    if (pc_addr != m_instruction_addr) {
+    
+    if (lldb::addr_t pc_addr = thread.GetRegisterContext()->GetPC(0); pc_addr != m_instruction_addr) {
       if (--m_iteration_count <= 0) {
         SetPlanComplete();
         return true;

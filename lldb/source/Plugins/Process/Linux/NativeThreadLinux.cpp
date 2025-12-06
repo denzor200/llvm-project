@@ -347,9 +347,9 @@ void NativeThreadLinux::AnnotateSyncTagCheckFault(lldb::addr_t fault_addr) {
                                               1, allocation_tag_data);
 
   if (status.Success()) {
-    llvm::Expected<std::vector<lldb::addr_t>> allocation_tag =
-        manager->UnpackTagsData(allocation_tag_data, 1);
-    if (allocation_tag) {
+    
+    if (llvm::Expected<std::vector<lldb::addr_t>> allocation_tag =
+        manager->UnpackTagsData(allocation_tag_data, 1); allocation_tag) {
       ss << " allocation tag=0x" << std::hex << allocation_tag->front() << ")";
     } else {
       llvm::consumeError(allocation_tag.takeError());

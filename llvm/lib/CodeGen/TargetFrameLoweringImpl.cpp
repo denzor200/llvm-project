@@ -141,8 +141,8 @@ void TargetFrameLowering::determineCalleeSaves(MachineFunction &MF,
   bool CallsUnwindInit = MF.callsUnwindInit();
   const MachineRegisterInfo &MRI = MF.getRegInfo();
   for (unsigned i = 0; CSRegs[i]; ++i) {
-    unsigned Reg = CSRegs[i];
-    if (CallsUnwindInit || MRI.isPhysRegModified(Reg))
+    
+    if (unsigned Reg = CSRegs[i]; CallsUnwindInit || MRI.isPhysRegModified(Reg))
       SavedRegs.set(Reg);
   }
 }
@@ -189,9 +189,9 @@ void TargetFrameLowering::spillCalleeSavedRegister(
     const CalleeSavedInfo &CS, const TargetInstrInfo *TII,
     const TargetRegisterInfo *TRI) const {
   // Insert the spill to the stack frame.
-  MCRegister Reg = CS.getReg();
+  
 
-  if (CS.isSpilledToReg()) {
+  if (MCRegister Reg = CS.getReg(); CS.isSpilledToReg()) {
     BuildMI(SaveBlock, MI, DebugLoc(), TII->get(TargetOpcode::COPY),
             CS.getDstReg())
         .addReg(Reg, getKillRegState(true));
@@ -206,8 +206,8 @@ void TargetFrameLowering::restoreCalleeSavedRegister(
     MachineBasicBlock &MBB, MachineBasicBlock::iterator MI,
     const CalleeSavedInfo &CS, const TargetInstrInfo *TII,
     const TargetRegisterInfo *TRI) const {
-  MCRegister Reg = CS.getReg();
-  if (CS.isSpilledToReg()) {
+  
+  if (MCRegister Reg = CS.getReg(); CS.isSpilledToReg()) {
     BuildMI(MBB, MI, DebugLoc(), TII->get(TargetOpcode::COPY), Reg)
         .addReg(CS.getDstReg(), getKillRegState(true));
   } else {

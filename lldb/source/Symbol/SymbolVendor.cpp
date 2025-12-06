@@ -62,8 +62,8 @@ SymbolVendor::SymbolVendor(const lldb::ModuleSP &module_sp)
 
 // Add a representation given an object file.
 void SymbolVendor::AddSymbolFileRepresentation(const ObjectFileSP &objfile_sp) {
-  ModuleSP module_sp(GetModule());
-  if (module_sp) {
+  
+  if (ModuleSP module_sp(GetModule()); module_sp) {
     std::lock_guard<std::recursive_mutex> guard(module_sp->GetMutex());
     if (objfile_sp)
       m_sym_file_up.reset(SymbolFile::FindPlugin(objfile_sp));

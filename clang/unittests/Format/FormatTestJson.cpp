@@ -28,9 +28,9 @@ protected:
     // Mock up what ClangFormat.cpp will do for JSON by adding a variable
     // to trick JSON into being JavaScript
     if (Style.isJson() && !Style.DisableFormat) {
-      auto Err = Replaces.add(
-          tooling::Replacement(tooling::Replacement("", 0, 0, "x = ")));
-      if (Err)
+      
+      if (auto Err = Replaces.add(
+          tooling::Replacement(tooling::Replacement("", 0, 0, "x = "))); Err)
         llvm::errs() << "Bad Json variable insertion\n";
     }
     auto ChangedCode = applyAllReplacements(Code, Replaces);

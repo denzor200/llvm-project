@@ -36,8 +36,8 @@ bool SPIRVCombinerHelper::matchLengthToDistance(MachineInstr &MI) const {
 
   // First operand of MI is `G_INTRINSIC` so start at operand 2.
   Register SubReg = MI.getOperand(2).getReg();
-  MachineInstr *SubInstr = MRI.getVRegDef(SubReg);
-  if (SubInstr->getOpcode() != TargetOpcode::G_FSUB)
+  
+  if (MachineInstr *SubInstr = MRI.getVRegDef(SubReg); SubInstr->getOpcode() != TargetOpcode::G_FSUB)
     return false;
 
   return true;
@@ -98,9 +98,9 @@ bool SPIRVCombinerHelper::matchSelectToFaceForward(MachineInstr &MI) const {
   MachineInstr *DotInstr = MRI.getVRegDef(DotReg);
   if (DotInstr->getOpcode() != TargetOpcode::G_INTRINSIC ||
       cast<GIntrinsic>(DotInstr)->getIntrinsicID() != Intrinsic::spv_fdot) {
-    Register DotOperand1, DotOperand2;
+    
     // Check for scalar dot product.
-    if (!mi_match(DotReg, MRI,
+    if (Register DotOperand1, DotOperand2; !mi_match(DotReg, MRI,
                   m_GFMul(m_Reg(DotOperand1), m_Reg(DotOperand2))) ||
         !MRI.getType(DotOperand1).isScalar() ||
         !MRI.getType(DotOperand2).isScalar())
@@ -126,8 +126,8 @@ bool SPIRVCombinerHelper::matchSelectToFaceForward(MachineInstr &MI) const {
       !mi_match(FalseReg, MRI, m_GFNeg(m_SpecificReg(TrueReg)))) {
     std::optional<FPValueAndVReg> MulConstant;
     MachineInstr *TrueInstr = MRI.getVRegDef(TrueReg);
-    MachineInstr *FalseInstr = MRI.getVRegDef(FalseReg);
-    if (TrueInstr->getOpcode() == TargetOpcode::G_BUILD_VECTOR &&
+    
+    if (MachineInstr *FalseInstr = MRI.getVRegDef(FalseReg); TrueInstr->getOpcode() == TargetOpcode::G_BUILD_VECTOR &&
         FalseInstr->getOpcode() == TargetOpcode::G_BUILD_VECTOR &&
         TrueInstr->getNumOperands() == FalseInstr->getNumOperands()) {
       for (unsigned I = 1; I < TrueInstr->getNumOperands(); ++I)
@@ -160,8 +160,8 @@ void SPIRVCombinerHelper::applySPIRVFaceForward(MachineInstr &MI) const {
   Register CondReg = MI.getOperand(1).getReg();
   MachineInstr *CondInstr = MRI.getVRegDef(CondReg);
   Register DotReg = CondInstr->getOperand(2).getReg();
-  CmpInst::Predicate Pred = cast<GFCmp>(CondInstr)->getCond();
-  if (Pred == CmpInst::FCMP_OGT || Pred == CmpInst::FCMP_UGT)
+  
+  if (CmpInst::Predicate Pred = cast<GFCmp>(CondInstr)->getCond(); Pred == CmpInst::FCMP_OGT || Pred == CmpInst::FCMP_UGT)
     DotReg = CondInstr->getOperand(3).getReg();
   MachineInstr *DotInstr = MRI.getVRegDef(DotReg);
   Register DotOperand1, DotOperand2;

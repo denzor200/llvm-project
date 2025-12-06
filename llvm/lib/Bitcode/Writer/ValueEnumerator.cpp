@@ -674,8 +674,8 @@ void ValueEnumerator::dropFunctionFromMetadata(
     for (const Metadata *Op : Worklist.pop_back_val()->operands()) {
       if (!Op)
         continue;
-      auto MD = MetadataMap.find(Op);
-      if (MD != MetadataMap.end())
+      
+      if (auto MD = MetadataMap.find(Op); MD != MetadataMap.end())
         push(*MD);
     }
 }
@@ -698,10 +698,10 @@ void ValueEnumerator::EnumerateMetadata(unsigned F, const Metadata *MD) {
 
     // Enumerate operands until we hit a new node.  We need to traverse these
     // nodes' operands before visiting the rest of N's operands.
-    MDNode::op_iterator I = std::find_if(
+    
+    if (MDNode::op_iterator I = std::find_if(
         Worklist.back().second, N->op_end(),
-        [&](const Metadata *MD) { return enumerateMetadataImpl(F, MD); });
-    if (I != N->op_end()) {
+        [&](const Metadata *MD) { return enumerateMetadataImpl(F, MD); }); I != N->op_end()) {
       auto *Op = cast<MDNode>(*I);
       Worklist.back().second = ++I;
 
@@ -877,8 +877,8 @@ void ValueEnumerator::organizeMetadata() {
   unsigned PrevF = 0;
   for (unsigned I = MDs.size(), E = Order.size(), ID = MDs.size(); I != E;
        ++I) {
-    unsigned F = Order[I].F;
-    if (!PrevF) {
+    
+    if (unsigned F = Order[I].F; !PrevF) {
       PrevF = F;
     } else if (PrevF != F) {
       R.Last = FunctionMDs.size();
@@ -1037,8 +1037,8 @@ void ValueEnumerator::EnumerateAttributes(AttributeList PAL) {
   if (PAL.isEmpty()) return;  // null is always 0.
 
   // Do a lookup.
-  unsigned &Entry = AttributeListMap[PAL];
-  if (Entry == 0) {
+  
+  if (unsigned &Entry = AttributeListMap[PAL]; Entry == 0) {
     // Never saw this before, add it.
     AttributeLists.push_back(PAL);
     Entry = AttributeLists.size();
@@ -1190,8 +1190,8 @@ static void IncorporateFunctionInfoGlobalBBIDs(const Function *F,
 /// specified basic block.  This is relatively expensive information, so it
 /// should only be used by rare constructs such as address-of-label.
 unsigned ValueEnumerator::getGlobalBasicBlockID(const BasicBlock *BB) const {
-  unsigned &Idx = GlobalBasicBlockIDs[BB];
-  if (Idx != 0)
+  
+  if (unsigned &Idx = GlobalBasicBlockIDs[BB]; Idx != 0)
     return Idx-1;
 
   IncorporateFunctionInfoGlobalBBIDs(BB->getParent(), GlobalBasicBlockIDs);

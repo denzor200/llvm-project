@@ -190,11 +190,11 @@ RuntimeType inferReceiverType(const ObjCMethodCall &Message,
         return {cast<ObjCObjectType>(DTI.getType()), !DTI.canBeASubClass()};
       }
 
-      SVal SelfSVal = State->getSelfSVal(C.getLocationContext());
+      
 
       // Another way we can guess what is in Class object, is when it is a
       // 'self' variable of the current class method.
-      if (ReceiverSVal == SelfSVal) {
+      if (SVal SelfSVal = State->getSelfSVal(C.getLocationContext()); ReceiverSVal == SelfSVal) {
         // In this case, we should return the type of the enclosing class
         // declaration.
         if (const ObjCMethodDecl *MD =
@@ -484,8 +484,8 @@ static const ObjCObjectPointerType *getMostInformativeDerivedClassImpl(
   assert(SuperOfTo);
   QualType SuperPtrOfToQual =
       C.getObjCObjectPointerType(QualType(SuperOfTo, 0));
-  const auto *SuperPtrOfTo = SuperPtrOfToQual->castAs<ObjCObjectPointerType>();
-  if (To->isUnspecialized())
+  
+  if (const auto *SuperPtrOfTo = SuperPtrOfToQual->castAs<ObjCObjectPointerType>(); To->isUnspecialized())
     return getMostInformativeDerivedClassImpl(From, SuperPtrOfTo, SuperPtrOfTo,
                                               C);
   else
@@ -590,9 +590,9 @@ storeWhenMoreInformative(ProgramStateRef &State, SymbolRef Sym,
   }
 
   // Case (2)
-  const ObjCObjectPointerType *WithMostInfo =
-      getMostInformativeDerivedClass(*Current, StaticLowerBound, C);
-  if (WithMostInfo != *Current) {
+  
+  if (const ObjCObjectPointerType *WithMostInfo =
+      getMostInformativeDerivedClass(*Current, StaticLowerBound, C); WithMostInfo != *Current) {
     State = State->set<MostSpecializedTypeArgsMap>(Sym, WithMostInfo);
     return true;
   }
@@ -676,9 +676,9 @@ void DynamicTypePropagation::checkPostStmt(const CastExpr *CE,
     // (instead of re-creating an already existing node).
     static SimpleProgramPointTag IllegalConv("DynamicTypePropagation",
                                              "IllegalConversion");
-    ExplodedNode *N =
-        C.generateNonFatalErrorNode(State, AfterTypeProp, &IllegalConv);
-    if (N)
+    
+    if (ExplodedNode *N =
+        C.generateNonFatalErrorNode(State, AfterTypeProp, &IllegalConv); N)
       reportGenericsBug(*TrackedType, DestObjectPtrType, N, Sym, C);
     return;
   }
@@ -877,9 +877,9 @@ void DynamicTypePropagation::checkPreObjCMessage(const ObjCMethodCall &M,
     SVal ArgSVal = M.getArgSVal(i);
     SymbolRef ArgSym = ArgSVal.getAsSymbol();
     if (ArgSym) {
-      const ObjCObjectPointerType *const *TrackedArgType =
-          State->get<MostSpecializedTypeArgsMap>(ArgSym);
-      if (TrackedArgType &&
+      
+      if (const ObjCObjectPointerType *const *TrackedArgType =
+          State->get<MostSpecializedTypeArgsMap>(ArgSym); TrackedArgType &&
           ASTCtxt.canAssignObjCInterfaces(ArgObjectPtrType, *TrackedArgType)) {
         ArgObjectPtrType = *TrackedArgType;
       }

@@ -269,10 +269,10 @@ bool IRForTarget::CreateResultVariable(llvm::Function &llvm_function) {
 
     const clang::PointerType *pointer_pointertype =
         pointer_type->getAs<clang::PointerType>();
-    const clang::ObjCObjectPointerType *pointer_objcobjpointertype =
-        pointer_type->getAs<clang::ObjCObjectPointerType>();
+    
 
-    if (pointer_pointertype) {
+    if (const clang::ObjCObjectPointerType *pointer_objcobjpointertype =
+        pointer_type->getAs<clang::ObjCObjectPointerType>(); pointer_pointertype) {
       clang::QualType element_qual_type = pointer_pointertype->getPointeeType();
 
       m_result_type = lldb_private::TypeFromParser(
@@ -541,9 +541,9 @@ bool IRForTarget::RewriteObjCConstStrings() {
   ValueSymbolTable &value_symbol_table = m_module->getValueSymbolTable();
 
   for (StringMapEntry<llvm::Value *> &value_symbol : value_symbol_table) {
-    llvm::StringRef value_name = value_symbol.first();
+    
 
-    if (value_name.contains("_unnamed_cfstring_")) {
+    if (llvm::StringRef value_name = value_symbol.first(); value_name.contains("_unnamed_cfstring_")) {
       Value *nsstring_value = value_symbol.second;
 
       GlobalVariable *nsstring_global =
@@ -692,9 +692,9 @@ bool IRForTarget::RewriteObjCConstStrings() {
   }
 
   for (StringMapEntry<llvm::Value *> &value_symbol : value_symbol_table) {
-    llvm::StringRef value_name = value_symbol.first();
+    
 
-    if (value_name == "__CFConstantStringClassReference") {
+    if (llvm::StringRef value_name = value_symbol.first(); value_name == "__CFConstantStringClassReference") {
       GlobalVariable *gv = dyn_cast<GlobalVariable>(value_symbol.second);
 
       if (!gv) {
@@ -940,9 +940,9 @@ bool IRForTarget::RewritePersistentAllocs(llvm::BasicBlock &basic_block) {
   for (Instruction &inst : basic_block) {
 
     if (AllocaInst *alloc = dyn_cast<AllocaInst>(&inst)) {
-      llvm::StringRef alloc_name = alloc->getName();
+      
 
-      if (alloc_name.starts_with("$") && !alloc_name.starts_with("$__lldb")) {
+      if (llvm::StringRef alloc_name = alloc->getName(); alloc_name.starts_with("$") && !alloc_name.starts_with("$__lldb")) {
         if (alloc_name.find_first_of("0123456789") == 1) {
           LLDB_LOG(log, "Rejecting a numeric persistent variable.");
 
@@ -1207,10 +1207,10 @@ bool IRForTarget::ResolveCalls(BasicBlock &basic_block) {
   // Prepare the current basic block for execution in the remote process
 
   for (Instruction &inst : basic_block) {
-    CallInst *call = dyn_cast<CallInst>(&inst);
+    
 
     // MaybeHandleCallArguments handles error reporting; we are silent here
-    if (call && !MaybeHandleCallArguments(call))
+    if (CallInst *call = dyn_cast<CallInst>(&inst); call && !MaybeHandleCallArguments(call))
       return false;
   }
 
@@ -1263,9 +1263,9 @@ bool IRForTarget::ResolveExternals(Function &llvm_function) {
 }
 
 static bool isGuardVariableRef(Value *V) {
-  GlobalVariable *GV = dyn_cast<GlobalVariable>(V);
+  
 
-  if (!GV || !GV->hasName() || !isGuardVariableSymbol(GV->getName()))
+  if (GlobalVariable *GV = dyn_cast<GlobalVariable>(V); !GV || !GV->hasName() || !isGuardVariableSymbol(GV->getName()))
     return false;
 
   return true;
@@ -1321,9 +1321,9 @@ bool IRForTarget::UnfoldConstant(Constant *old_constant,
     users.push_back(u);
 
   for (size_t i = 0; i < users.size(); ++i) {
-    User *user = users[i];
+    
 
-    if (Constant *constant = dyn_cast<Constant>(user)) {
+    if (User *user = users[i]; Constant *constant = dyn_cast<Constant>(user)) {
       // synthesize a new non-constant equivalent of the constant
 
       if (ConstantExpr *constant_expr = dyn_cast<ConstantExpr>(constant)) {
@@ -1334,7 +1334,9 @@ bool IRForTarget::UnfoldConstant(Constant *old_constant,
                               PrintValue(constant_expr).c_str());
           return false;
         case Instruction::BitCast: {
-          FunctionValueCache bit_cast_maker(
+          
+
+          if (FunctionValueCache bit_cast_maker(
               [&value_maker, &entry_instruction_finder, old_constant,
                constant_expr](llvm::Function *function) -> llvm::Value * {
                 // UnaryExpr
@@ -1349,9 +1351,7 @@ bool IRForTarget::UnfoldConstant(Constant *old_constant,
                     llvm::cast<Instruction>(
                         entry_instruction_finder.GetValue(function))
                         ->getIterator());
-              });
-
-          if (!UnfoldConstant(constant_expr, llvm_function, bit_cast_maker,
+              }); !UnfoldConstant(constant_expr, llvm_function, bit_cast_maker,
                               entry_instruction_finder, error_stream))
             return false;
         } break;
@@ -1360,7 +1360,9 @@ bool IRForTarget::UnfoldConstant(Constant *old_constant,
           //   OperandList[0] is base
           //   OperandList[1]... are indices
 
-          FunctionValueCache get_element_pointer_maker(
+          
+
+          if (FunctionValueCache get_element_pointer_maker(
               [&value_maker, &entry_instruction_finder, old_constant,
                constant_expr](llvm::Function *function) -> llvm::Value * {
                 auto *gep = cast<llvm::GEPOperator>(constant_expr);
@@ -1384,9 +1386,7 @@ bool IRForTarget::UnfoldConstant(Constant *old_constant,
                     llvm::cast<Instruction>(
                         entry_instruction_finder.GetValue(function))
                         ->getIterator());
-              });
-
-          if (!UnfoldConstant(constant_expr, llvm_function,
+              }); !UnfoldConstant(constant_expr, llvm_function,
                               get_element_pointer_maker,
                               entry_instruction_finder, error_stream))
             return false;
@@ -1563,11 +1563,11 @@ bool IRForTarget::ReplaceVariables(Function &llvm_function) {
             Type *int8Ty = Type::getInt8Ty(function->getContext());
             ConstantInt *offset_int(
                 ConstantInt::get(offset_type, offset, true));
-            GetElementPtrInst *get_element_ptr =
-                GetElementPtrInst::Create(int8Ty, argument, offset_int, "",
-                                          entry_instruction->getIterator());
+            
 
-            if (name == m_result_name && !m_result_is_pointer) {
+            if (GetElementPtrInst *get_element_ptr =
+                GetElementPtrInst::Create(int8Ty, argument, offset_int, "",
+                                          entry_instruction->getIterator()); name == m_result_name && !m_result_is_pointer) {
               LoadInst *load =
                   new LoadInst(value->getType(), get_element_ptr, "",
                                entry_instruction->getIterator());

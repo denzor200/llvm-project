@@ -776,8 +776,8 @@ static void parseAffineMapOrIntegerSet(StringRef inputStr, MLIRContext *context,
   if (parser.parseAffineMapOrIntegerSetReference(map, set))
     return;
 
-  Token endTok = parser.getToken();
-  if (endTok.isNot(Token::eof)) {
+  
+  if (Token endTok = parser.getToken(); endTok.isNot(Token::eof)) {
     parser.emitError(endTok.getLoc(), "encountered unexpected token");
     return;
   }

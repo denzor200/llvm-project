@@ -98,8 +98,8 @@ static inline unsigned getLoadStoreOffsetSizeInBits(const unsigned Opcode,
   case Mips::SC_MMR6:
     return 9;
   case Mips::INLINEASM: {
-    const InlineAsm::Flag F(MO.getImm());
-    switch (F.getMemoryConstraintID()) {
+    
+    switch (const InlineAsm::Flag F(MO.getImm()); F.getMemoryConstraintID()) {
     case InlineAsm::ConstraintCode::ZC: {
       const MipsSubtarget &Subtarget = MO.getParent()
                                            ->getParent()
@@ -209,8 +209,8 @@ void MipsSERegisterInfo::eliminateFI(MachineBasicBlock::iterator II,
     // element size), otherwise it is a 16-bit signed immediate.
     unsigned OffsetBitSize =
         getLoadStoreOffsetSizeInBits(MI.getOpcode(), MI.getOperand(OpNo - 1));
-    const Align OffsetAlign(getLoadStoreOffsetAlign(MI.getOpcode()));
-    if (OffsetBitSize < 16 && isInt<16>(Offset) &&
+    
+    if (const Align OffsetAlign(getLoadStoreOffsetAlign(MI.getOpcode())); OffsetBitSize < 16 && isInt<16>(Offset) &&
         (!isIntN(OffsetBitSize, Offset) || !isAligned(OffsetAlign, Offset))) {
       // If we have an offset that needs to fit into a signed n-bit immediate
       // (where n < 16) and doesn't, but does fit into 16-bits then use an ADDiu

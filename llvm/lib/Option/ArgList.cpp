@@ -57,8 +57,8 @@ ArgList::OptRange
 ArgList::getRange(std::initializer_list<OptSpecifier> Ids) const {
   OptRange R = emptyRange();
   for (auto Id : Ids) {
-    auto I = OptRanges.find(Id.getID());
-    if (I != OptRanges.end()) {
+    
+    if (auto I = OptRanges.find(Id.getID()); I != OptRanges.end()) {
       R.first = std::min(R.first, I->second.first);
       R.second = std::max(R.second, I->second.second);
     }

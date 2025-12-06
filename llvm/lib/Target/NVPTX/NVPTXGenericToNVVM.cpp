@@ -86,8 +86,8 @@ bool GenericToNVVM::runOnModule(Module &M) {
     for (BasicBlock &BB : F) {
       for (Instruction &II : BB) {
         for (unsigned i = 0, e = II.getNumOperands(); i < e; ++i) {
-          Value *Operand = II.getOperand(i);
-          if (isa<Constant>(Operand)) {
+          
+          if (Value *Operand = II.getOperand(i); isa<Constant>(Operand)) {
             II.setOperand(
                 i, remapConstant(&M, &F, cast<Constant>(Operand), Builder));
           }
@@ -146,8 +146,8 @@ Value *GenericToNVVM::remapConstant(Module *M, Function *F, Constant *C,
     //   addrspacecast GVMap[C] to addrspace(0)
     //
     // for our use of C.
-    GVMapTy::iterator I = GVMap.find(cast<GlobalVariable>(C));
-    if (I != GVMap.end()) {
+    
+    if (GVMapTy::iterator I = GVMap.find(cast<GlobalVariable>(C)); I != GVMap.end()) {
       GlobalVariable *GV = I->second;
       NewValue = Builder.CreateAddrSpaceCast(
           GV, PointerType::get(GV->getContext(), llvm::ADDRESS_SPACE_GENERIC));
@@ -229,8 +229,8 @@ Value *GenericToNVVM::remapConstantExpr(Module *M, Function *F, ConstantExpr *C,
 
   // If any of the operands has been modified, construct the instruction with
   // the converted operands.
-  unsigned Opcode = C->getOpcode();
-  switch (Opcode) {
+  
+  switch (unsigned Opcode = C->getOpcode(); Opcode) {
   case Instruction::ExtractElement:
     // ExtractElementConstantExpr
     return Builder.CreateExtractElement(NewOperands[0], NewOperands[1]);

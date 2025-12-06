@@ -363,8 +363,8 @@ void DiagnosticsEngine::setSeverity(diag::kind Diag, diag::Severity Map,
   // mapping, while a warning pragma can.
   bool WasUpgradedFromWarning = false;
   if (Map == diag::Severity::Warning && L.isInvalid()) {
-    DiagnosticMapping &Info = GetCurDiagState()->getOrAddMapping(Diag);
-    if (Info.getSeverity() == diag::Severity::Error ||
+    
+    if (DiagnosticMapping &Info = GetCurDiagState()->getOrAddMapping(Diag); Info.getSeverity() == diag::Severity::Error ||
         Info.getSeverity() == diag::Severity::Fatal) {
       Map = Info.getSeverity();
       WasUpgradedFromWarning = true;
@@ -930,15 +930,15 @@ static bool EvalPluralExpr(unsigned ValNo, const char *Start, const char *End) {
     return true;
 
   while (true) {
-    char C = *Start;
-    if (C == '%') {
+    
+    if (char C = *Start; C == '%') {
       // Modulo expression
       ++Start;
       unsigned Arg = PluralNumber(Start, End);
       assert(*Start == '=' && "Bad plural expression syntax: expected =");
       ++Start;
-      unsigned ValMod = ValNo % Arg;
-      if (TestPluralRange(ValMod, Start, End))
+      
+      if (unsigned ValMod = ValNo % Arg; TestPluralRange(ValMod, Start, End))
         return true;
     } else {
       assert((C == '[' || (C >= '0' && C <= '9')) &&
@@ -1167,8 +1167,8 @@ void Diagnostic::FormatDiagnostic(const char *DiagStr, const char *DiagEnd,
              "Invalid format for diff modifier");
       ++DiagStr; // Comma.
       ArgNo2 = *DiagStr++ - '0';
-      DiagnosticsEngine::ArgumentKind Kind2 = getArgKind(ArgNo2);
-      if (Kind == DiagnosticsEngine::ak_qualtype &&
+      
+      if (DiagnosticsEngine::ArgumentKind Kind2 = getArgKind(ArgNo2); Kind == DiagnosticsEngine::ak_qualtype &&
           Kind2 == DiagnosticsEngine::ak_qualtype)
         Kind = DiagnosticsEngine::ak_qualtype_pair;
       else {

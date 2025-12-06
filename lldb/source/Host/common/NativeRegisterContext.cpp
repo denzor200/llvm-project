@@ -58,19 +58,19 @@ NativeRegisterContext::GetRegisterInfoByName(llvm::StringRef reg_name,
   // Generic register names take precedence over specific register names.
   // For example, on x86 we want "sp" to refer to the complete RSP/ESP register
   // rather than the 16-bit SP pseudo-register.
-  uint32_t generic_reg = Args::StringToGenericRegister(reg_name);
-  if (generic_reg != LLDB_INVALID_REGNUM) {
-    const RegisterInfo *reg_info =
-        GetRegisterInfo(eRegisterKindGeneric, generic_reg);
-    if (reg_info)
+  
+  if (uint32_t generic_reg = Args::StringToGenericRegister(reg_name); generic_reg != LLDB_INVALID_REGNUM) {
+    
+    if (const RegisterInfo *reg_info =
+        GetRegisterInfo(eRegisterKindGeneric, generic_reg); reg_info)
       return reg_info;
   }
 
   const uint32_t num_registers = GetRegisterCount();
   for (uint32_t reg = start_idx; reg < num_registers; ++reg) {
-    const RegisterInfo *reg_info = GetRegisterInfoAtIndex(reg);
+    
 
-    if (reg_name.equals_insensitive(reg_info->name) ||
+    if (const RegisterInfo *reg_info = GetRegisterInfoAtIndex(reg); reg_name.equals_insensitive(reg_info->name) ||
         reg_name.equals_insensitive(reg_info->alt_name))
       return reg_info;
   }
@@ -87,8 +87,8 @@ const RegisterInfo *NativeRegisterContext::GetRegisterInfo(uint32_t kind,
 }
 
 const char *NativeRegisterContext::GetRegisterName(uint32_t reg) {
-  const RegisterInfo *reg_info = GetRegisterInfoAtIndex(reg);
-  if (reg_info)
+  
+  if (const RegisterInfo *reg_info = GetRegisterInfoAtIndex(reg); reg_info)
     return reg_info->name;
   return nullptr;
 }
@@ -106,9 +106,9 @@ const char *NativeRegisterContext::GetRegisterSetNameForRegisterAtIndex(
 
     for (uint32_t reg_num_index = 0; reg_num_index < reg_set->num_registers;
          ++reg_num_index) {
-      const uint32_t reg_num = reg_set->registers[reg_num_index];
+      
       // FIXME double check we're checking the right register kind here.
-      if (reg_info->kinds[RegisterKind::eRegisterKindLLDB] == reg_num) {
+      if (const uint32_t reg_num = reg_set->registers[reg_num_index]; reg_info->kinds[RegisterKind::eRegisterKindLLDB] == reg_num) {
         // The given register is a member of this register set.  Return the
         // register set name.
         return reg_set->name;
@@ -197,8 +197,8 @@ NativeRegisterContext::ReadRegisterAsUnsigned(const RegisterInfo *reg_info,
 
   if (reg_info) {
     RegisterValue value;
-    Status error = ReadRegister(reg_info, value);
-    if (error.Success()) {
+    
+    if (Status error = ReadRegister(reg_info, value); error.Success()) {
       LLDB_LOGF(log,
                 "Read register succeeded: value "
                 "%" PRIu64,
@@ -419,9 +419,9 @@ NativeRegisterContext::ConvertRegisterKindToRegisterNumber(uint32_t kind,
 
   assert(kind < kNumRegisterKinds);
   for (uint32_t reg_idx = 0; reg_idx < num_regs; ++reg_idx) {
-    const RegisterInfo *reg_info = GetRegisterInfoAtIndex(reg_idx);
+    
 
-    if (reg_info->kinds[kind] == num)
+    if (const RegisterInfo *reg_info = GetRegisterInfoAtIndex(reg_idx); reg_info->kinds[kind] == num)
       return reg_idx;
   }
 
@@ -438,9 +438,9 @@ NativeRegisterContext::GetExpeditedRegisters(ExpeditedRegs expType) const {
 
     std::vector<uint32_t> expedited_reg_nums;
     for (uint32_t gen_reg : k_expedited_registers) {
-      uint32_t reg_num =
-          ConvertRegisterKindToRegisterNumber(eRegisterKindGeneric, gen_reg);
-      if (reg_num == LLDB_INVALID_REGNUM)
+      
+      if (uint32_t reg_num =
+          ConvertRegisterKindToRegisterNumber(eRegisterKindGeneric, gen_reg); reg_num == LLDB_INVALID_REGNUM)
         continue; // Target does not support the given register.
       else
         expedited_reg_nums.push_back(reg_num);

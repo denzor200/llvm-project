@@ -113,8 +113,8 @@ void addInstToMergeableList(
     assert(IIList.front()->arg_size() == II->arg_size());
     for (int I = 1, E = II->arg_size(); AllEqual && I != E; ++I) {
       Value *ArgList = IIList.front()->getArgOperand(I);
-      Value *Arg = II->getArgOperand(I);
-      if (I == ImageDimIntr->VAddrEnd - 1) {
+      
+      if (Value *Arg = II->getArgOperand(I); I == ImageDimIntr->VAddrEnd - 1) {
         // Check FragId group.
         auto *FragIdList = cast<ConstantInt>(IIList.front()->getArgOperand(I));
         auto *FragId = cast<ConstantInt>(II->getArgOperand(I));
@@ -187,8 +187,8 @@ bool optimizeSection(ArrayRef<SmallVector<IntrinsicInst *, 4>> MergeableInsts) {
     // Validate function argument and return types, extracting overloaded
     // types along the way.
     SmallVector<Type *, 6> OverloadTys;
-    Function *F = IIList.front()->getCalledFunction();
-    if (!Intrinsic::getIntrinsicSignature(F, OverloadTys))
+    
+    if (Function *F = IIList.front()->getCalledFunction(); !Intrinsic::getIntrinsicSignature(F, OverloadTys))
       continue;
 
     Intrinsic::ID IntrinID = IIList.front()->getIntrinsicID();
@@ -285,8 +285,8 @@ static bool imageIntrinsicOptimizerImpl(Function &F, const TargetMachine *TM) {
     return false;
 
   // This optimization only applies to GFX11 and beyond.
-  const GCNSubtarget &ST = TM->getSubtarget<GCNSubtarget>(F);
-  if (!AMDGPU::isGFX11Plus(ST) || ST.hasMSAALoadDstSelBug())
+  
+  if (const GCNSubtarget &ST = TM->getSubtarget<GCNSubtarget>(F); !AMDGPU::isGFX11Plus(ST) || ST.hasMSAALoadDstSelBug())
     return false;
 
   Module *M = F.getParent();

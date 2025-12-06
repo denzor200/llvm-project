@@ -112,8 +112,8 @@ PreservedAnalyses ModuleInlinerPass::run(Module &M,
                                          ModuleAnalysisManager &MAM) {
   LLVM_DEBUG(dbgs() << "---- Module Inliner is Running ---- \n");
 
-  auto &IAA = MAM.getResult<InlineAdvisorAnalysis>(M);
-  if (!IAA.tryCreate(Params, Mode, {},
+  
+  if (auto &IAA = MAM.getResult<InlineAdvisorAnalysis>(M); !IAA.tryCreate(Params, Mode, {},
                      InlineContext{LTOPhase, InlinePass::ModuleInliner})) {
     M.getContext().emitError(
         "Could not setup Inlining Advisor for the requested "

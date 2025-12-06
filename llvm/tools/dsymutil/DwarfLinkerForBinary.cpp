@@ -370,9 +370,9 @@ calculateStartOfStrippableReflectionSections(const DebugMap &Map) {
           continue;
         }
         NameOrErr->consume_back("__TEXT");
-        auto ReflSectionKind =
-            MO->mapReflectionSectionNameToEnumValue(*NameOrErr);
-        switch (ReflSectionKind) {
+        
+        switch (auto ReflSectionKind =
+            MO->mapReflectionSectionNameToEnumValue(*NameOrErr); ReflSectionKind) {
         case Swift5ReflectionSectionKind::assocty:
           AssocTySize += Section.getSize();
           break;
@@ -457,8 +457,8 @@ void DwarfLinkerForBinary::collectRelocationsToApplyToSwiftReflectionSections(
     std::optional<int64_t> SecondSymbolAddress;
     auto Sym = It->getSymbol();
     if (Sym != MO->symbol_end()) {
-      Expected<StringRef> SymbolName = Sym->getName();
-      if (SymbolName) {
+      
+      if (Expected<StringRef> SymbolName = Sym->getName(); SymbolName) {
         if (const auto *Mapping = Obj->lookupSymbol(*SymbolName)) {
           // First possibility: the symbol exists in the binary, and exists in a
           // non-strippable section (for example, typeref, or __TEXT,__const),
@@ -706,11 +706,11 @@ bool DwarfLinkerForBinary::linkImpl(
       // Try and emit more helpful warnings by applying some heuristics.
       StringRef ObjFile = ContainerName;
       bool IsClangModule = sys::path::extension(Path) == ".pcm";
-      bool IsArchive = ObjFile.ends_with(")");
+      
 
-      if (IsClangModule) {
-        StringRef ModuleCacheDir = sys::path::parent_path(Path);
-        if (sys::fs::exists(ModuleCacheDir)) {
+      if (bool IsArchive = ObjFile.ends_with(")"); IsClangModule) {
+        
+        if (StringRef ModuleCacheDir = sys::path::parent_path(Path); sys::fs::exists(ModuleCacheDir)) {
           // If the module's parent directory exists, we assume that the
           // module cache has expired and was pruned by clang.  A more
           // adventurous dsymutil would invoke clang to rebuild the module
@@ -811,10 +811,10 @@ bool DwarfLinkerForBinary::linkImpl(
       if (!Options.NoTimestamp) {
         // The modification can have sub-second precision so we need to cast
         // away the extra precision that's not present in the debug map.
-        auto ModificationTime =
+        
+        if (auto ModificationTime =
             std::chrono::time_point_cast<std::chrono::seconds>(
-                Stat.getLastModificationTime());
-        if (Obj->getTimestamp() != sys::TimePoint<>() &&
+                Stat.getLastModificationTime()); Obj->getTimestamp() != sys::TimePoint<>() &&
             ModificationTime != Obj->getTimestamp()) {
           // Not using the helper here as we can easily stream TimePoint<>.
           WithColor::warning()
@@ -832,8 +832,8 @@ bool DwarfLinkerForBinary::linkImpl(
       continue;
     }
 
-    auto DLBRelocMap = std::make_shared<DwarfLinkerForBinaryRelocationMap>();
-    if (ErrorOr<std::unique_ptr<DWARFFile>> ErrorOrObj =
+    
+    if (auto DLBRelocMap = std::make_shared<DwarfLinkerForBinaryRelocationMap>(); ErrorOr<std::unique_ptr<DWARFFile>> ErrorOrObj =
             loadObject(*Obj, Map, RL, DLBRelocMap)) {
       ObjectsForLinking.emplace_back(std::move(*ErrorOrObj), DLBRelocMap);
       GeneralLinker->addObjectFile(*ObjectsForLinking.back().Object, Loader,
@@ -872,8 +872,8 @@ bool DwarfLinkerForBinary::linkImpl(
     return error(toString(std::move(E)));
 
   if (Options.ResourceDir && !ParseableSwiftInterfaces.empty()) {
-    StringRef ArchName = Triple::getArchTypeName(Map.getTriple().getArch());
-    if (auto E = copySwiftInterfaces(ArchName))
+    
+    if (StringRef ArchName = Triple::getArchTypeName(Map.getTriple().getArch()); auto E = copySwiftInterfaces(ArchName))
       return error(toString(std::move(E)));
   }
 
@@ -1128,9 +1128,9 @@ DwarfLinkerForBinary::AddressManager::getSubprogramRelocAdjustment(
   if (!LowPcIdx)
     return std::nullopt;
 
-  dwarf::Form Form = Abbrev->getFormByIndex(*LowPcIdx);
+  
 
-  switch (Form) {
+  switch (dwarf::Form Form = Abbrev->getFormByIndex(*LowPcIdx); Form) {
   case dwarf::DW_FORM_addr: {
     uint64_t Offset = DIE.getOffset() + getULEB128Size(Abbrev->getCode());
     uint64_t LowPcOffset, LowPcEndOffset;

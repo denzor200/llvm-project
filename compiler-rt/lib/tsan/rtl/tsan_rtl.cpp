@@ -511,9 +511,9 @@ static void *BackgroundThread(void *arg) {
 
     // Flush symbolizer cache if requested.
     if (flags()->flush_symbolizer_ms > 0) {
-      u64 last = atomic_load(&ctx->last_symbolize_time_ns,
-                             memory_order_relaxed);
-      if (last != 0 && last + flags()->flush_symbolizer_ms * kMs2Ns < now) {
+      
+      if (u64 last = atomic_load(&ctx->last_symbolize_time_ns,
+                             memory_order_relaxed); last != 0 && last + flags()->flush_symbolizer_ms * kMs2Ns < now) {
         Lock l(&ctx->report_mtx);
         ScopedErrorReportLock l2;
         SymbolizeFlush();
@@ -983,8 +983,8 @@ void TraceSwitchPart(ThreadState* thr) {
 #if !SANITIZER_GO
   if (ctx->after_multithreaded_fork) {
     // We just need to survive till exec.
-    TracePart* part = thr->tctx->trace.parts.Back();
-    if (part) {
+    
+    if (TracePart* part = thr->tctx->trace.parts.Back(); part) {
       atomic_store_relaxed(&thr->trace_pos,
                            reinterpret_cast<uptr>(&part->events[0]));
       return;

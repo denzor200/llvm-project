@@ -85,9 +85,9 @@ ThreadPlanRunToAddress::~ThreadPlanRunToAddress() {
 
 void ThreadPlanRunToAddress::GetDescription(Stream *s,
                                             lldb::DescriptionLevel level) {
-  size_t num_addresses = m_addresses.size();
+  
 
-  if (level == lldb::eDescriptionLevelBrief) {
+  if (size_t num_addresses = m_addresses.size(); level == lldb::eDescriptionLevelBrief) {
     if (num_addresses == 0) {
       s->Printf("run to address with no addresses given.");
       return;
@@ -118,9 +118,9 @@ void ThreadPlanRunToAddress::GetDescription(Stream *s,
 
       DumpAddress(s->AsRawOstream(), m_addresses[i], sizeof(addr_t));
       s->Printf(" using breakpoint: %d - ", m_break_ids[i]);
-      Breakpoint *breakpoint =
-          GetTarget().GetBreakpointByID(m_break_ids[i]).get();
-      if (breakpoint)
+      
+      if (Breakpoint *breakpoint =
+          GetTarget().GetBreakpointByID(m_break_ids[i]).get(); breakpoint)
         breakpoint->Dump(s);
       else
         s->Printf("but the breakpoint has been deleted.");
@@ -170,9 +170,9 @@ StateType ThreadPlanRunToAddress::GetPlanRunState() { return eStateRunning; }
 bool ThreadPlanRunToAddress::WillStop() { return true; }
 
 bool ThreadPlanRunToAddress::MischiefManaged() {
-  Log *log = GetLog(LLDBLog::Step);
+  
 
-  if (AtOurAddress()) {
+  if (Log *log = GetLog(LLDBLog::Step); AtOurAddress()) {
     // Remove the breakpoint
     size_t num_break_ids = m_break_ids.size();
 

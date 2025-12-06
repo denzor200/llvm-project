@@ -196,11 +196,11 @@ void StackTraceRequestHandler::operator()(
     const bool parameters = GetBoolean(format, "parameters").value_or(false);
     const bool parameter_names =
         GetBoolean(format, "parameterNames").value_or(false);
-    const bool parameter_values =
-        GetBoolean(format, "parameterValues").value_or(false);
+    
 
     // Only change the format string if we have to.
-    if (module || line || parameters || parameter_names || parameter_values) {
+    if (const bool parameter_values =
+        GetBoolean(format, "parameterValues").value_or(false); module || line || parameters || parameter_names || parameter_values) {
       std::string format_str;
       llvm::raw_string_ostream os(format_str);
 

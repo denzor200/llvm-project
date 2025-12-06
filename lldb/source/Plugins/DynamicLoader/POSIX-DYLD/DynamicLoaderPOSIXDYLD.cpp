@@ -52,9 +52,9 @@ DynamicLoader *DynamicLoaderPOSIXDYLD::CreateInstance(Process *process,
                                                       bool force) {
   bool create = force;
   if (!create) {
-    const llvm::Triple &triple_ref =
-        process->GetTarget().GetArchitecture().GetTriple();
-    if (triple_ref.getOS() == llvm::Triple::FreeBSD ||
+    
+    if (const llvm::Triple &triple_ref =
+        process->GetTarget().GetArchitecture().GetTriple(); triple_ref.getOS() == llvm::Triple::FreeBSD ||
         triple_ref.getOS() == llvm::Triple::Linux ||
         triple_ref.getOS() == llvm::Triple::NetBSD ||
         triple_ref.getOS() == llvm::Triple::OpenBSD)
@@ -109,10 +109,10 @@ void DynamicLoaderPOSIXDYLD::DidAttach() {
   EvalSpecialModulesStatus();
 
   // if we dont have a load address we cant re-base
-  bool rebase_exec = load_offset != LLDB_INVALID_ADDRESS;
+  
 
   // if the target executable should be re-based
-  if (rebase_exec) {
+  if (bool rebase_exec = load_offset != LLDB_INVALID_ADDRESS; rebase_exec) {
     ModuleList module_list;
 
     module_list.Append(executable_sp);
@@ -284,9 +284,9 @@ bool DynamicLoaderPOSIXDYLD::EntryBreakpointHit(
   // removal logic only happens after the breakpoint goes public, which wasn't
   // happening in our scenario).
   if (dyld_instance->m_process) {
-    BreakpointSP breakpoint_sp =
-        dyld_instance->m_process->GetTarget().GetBreakpointByID(break_id);
-    if (breakpoint_sp) {
+    
+    if (BreakpointSP breakpoint_sp =
+        dyld_instance->m_process->GetTarget().GetBreakpointByID(break_id); breakpoint_sp) {
       LLDB_LOGF(log,
                 "DynamicLoaderPOSIXDYLD::%s pid %" PRIu64
                 " disabling breakpoint id %" PRIu64,
@@ -481,8 +481,8 @@ void DynamicLoaderPOSIXDYLD::RefreshModules() {
             // Set the interpreter module, if this is the interpreter.
             if (module_sp->GetObjectFile()->GetBaseAddress().GetLoadAddress(
                     &m_process->GetTarget()) == m_interpreter_base) {
-              ModuleSP interpreter_sp = m_interpreter_module.lock();
-              if (m_interpreter_module.lock() == nullptr) {
+              
+              if (ModuleSP interpreter_sp = m_interpreter_module.lock(); m_interpreter_module.lock() == nullptr) {
                 m_interpreter_module = module_sp;
               } else if (module_sp == interpreter_sp) {
                 // Module already loaded.
@@ -520,9 +520,9 @@ void DynamicLoaderPOSIXDYLD::RefreshModules() {
     E = m_rendezvous.unloaded_end();
     for (I = m_rendezvous.unloaded_begin(); I != E; ++I) {
       ModuleSpec module_spec{I->file_spec};
-      ModuleSP module_sp = loaded_modules.FindFirstModule(module_spec);
+      
 
-      if (module_sp.get()) {
+      if (ModuleSP module_sp = loaded_modules.FindFirstModule(module_spec); module_sp.get()) {
         old_modules.Append(module_sp);
         UnloadSections(module_sp);
       }
@@ -572,8 +572,8 @@ DynamicLoaderPOSIXDYLD::GetStepThroughTrampolinePlan(Thread &thread,
   typedef std::vector<lldb::addr_t> AddressVector;
   AddressVector addrs;
   for (const SymbolContext &context : target_symbols) {
-    addr_t addr = context.GetFunctionOrSymbolAddress().GetLoadAddress(&target);
-    if (addr != LLDB_INVALID_ADDRESS)
+    
+    if (addr_t addr = context.GetFunctionOrSymbolAddress().GetLoadAddress(&target); addr != LLDB_INVALID_ADDRESS)
       addrs.push_back(addr);
   }
 
@@ -663,8 +663,8 @@ ModuleSP DynamicLoaderPOSIXDYLD::LoadModuleAtAddress(const FileSpec &file,
   // This should be removed after we drop support for android-23.
   if (m_process->GetTarget().GetArchitecture().GetTriple().isAndroid()) {
     MemoryRegionInfo memory_info;
-    Status error = m_process->GetMemoryRegionInfo(base_addr, memory_info);
-    if (error.Success() && memory_info.GetMapped() &&
+    
+    if (Status error = m_process->GetMemoryRegionInfo(base_addr, memory_info); error.Success() && memory_info.GetMapped() &&
         memory_info.GetRange().GetRangeBase() == base_addr &&
         !(memory_info.GetName().IsEmpty())) {
       if (ModuleSP module_sp = DynamicLoader::LoadModuleAtAddress(
@@ -706,9 +706,9 @@ void DynamicLoaderPOSIXDYLD::LoadAllCurrentModules() {
 
   auto load_module_fn = [this, &module_list,
                          &log](const DYLDRendezvous::SOEntry &so_entry) {
-    ModuleSP module_sp = LoadModuleAtAddress(
-        so_entry.file_spec, so_entry.link_addr, so_entry.base_addr, true);
-    if (module_sp.get()) {
+    
+    if (ModuleSP module_sp = LoadModuleAtAddress(
+        so_entry.file_spec, so_entry.link_addr, so_entry.base_addr, true); module_sp.get()) {
       LLDB_LOG(log, "LoadAllCurrentModules loading module: {0}",
                so_entry.file_spec.GetFilename());
       module_list.Append(module_sp);

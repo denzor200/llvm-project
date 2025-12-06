@@ -40,8 +40,8 @@ static Instruction *findInstructionByNameOrNull(Function *F, StringRef Name) {
 }
 
 static Instruction &findInstructionByName(Function *F, StringRef Name) {
-  auto *I = findInstructionByNameOrNull(F, Name);
-  if (I)
+  
+  if (auto *I = findInstructionByNameOrNull(F, Name); I)
     return *I;
 
   llvm_unreachable("Expected value not found");

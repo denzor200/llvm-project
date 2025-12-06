@@ -362,8 +362,8 @@ static SourceRange rangeInCommonFile(SourceRange R, const SourceManager &SM,
                             : toTokenRange(SM.getImmediateExpansionRange(End),
                                            SM, LangOpts)
                                   .getEnd()) {
-    auto It = BeginExpansions.find(SM.getFileID(End));
-    if (It != BeginExpansions.end()) {
+    
+    if (auto It = BeginExpansions.find(SM.getFileID(End)); It != BeginExpansions.end()) {
       if (SM.getFileOffset(It->second) > SM.getFileOffset(End))
         return SourceLocation();
       return {It->second, End};
@@ -827,8 +827,8 @@ std::vector<std::string> visibleNamespaces(llvm::StringRef Code,
   llvm::StringMap<llvm::StringSet<>> UsingDirectives;
 
   parseNamespaceEvents(Code, LangOpts, [&](NamespaceEvent Event) {
-    llvm::StringRef NS = Event.Payload;
-    switch (Event.Trigger) {
+    
+    switch (llvm::StringRef NS = Event.Payload; Event.Trigger) {
     case NamespaceEvent::BeginNamespace:
     case NamespaceEvent::EndNamespace:
       Current = std::move(Event.Payload);
@@ -851,8 +851,8 @@ std::vector<std::string> visibleNamespaces(llvm::StringRef Code,
   std::vector<std::string> Found;
   for (llvm::StringRef Enclosing : ancestorNamespaces(Current)) {
     Found.push_back(std::string(Enclosing));
-    auto It = UsingDirectives.find(Enclosing);
-    if (It != UsingDirectives.end())
+    
+    if (auto It = UsingDirectives.find(Enclosing); It != UsingDirectives.end())
       for (const auto &Used : It->second)
         Found.push_back(std::string(Used.getKey()));
   }
@@ -918,10 +918,10 @@ static bool isLikelyIdentifier(llvm::StringRef Word, llvm::StringRef Before,
   // Don't search too far back.
   // This duplicates clang's doxygen parser, revisit if it gets complicated.
   Before = Before.take_back(100); // Don't search too far back.
-  auto Pos = Before.find_last_of("\\@");
-  if (Pos != llvm::StringRef::npos) {
-    llvm::StringRef Tag = Before.substr(Pos + 1).rtrim(' ');
-    if (Tag == "p" || Tag == "c" || Tag == "class" || Tag == "tparam" ||
+  
+  if (auto Pos = Before.find_last_of("\\@"); Pos != llvm::StringRef::npos) {
+    
+    if (llvm::StringRef Tag = Before.substr(Pos + 1).rtrim(' '); Tag == "p" || Tag == "c" || Tag == "class" || Tag == "tparam" ||
         Tag == "param" || Tag == "param[in]" || Tag == "param[out]" ||
         Tag == "param[in,out]" || Tag == "retval" || Tag == "throw" ||
         Tag == "throws" || Tag == "link")
@@ -1265,13 +1265,13 @@ SourceLocation translatePreamblePatchLocation(SourceLocation Loc,
                                               const SourceManager &SM) {
   auto DefFile = SM.getFileID(Loc);
   if (auto FE = SM.getFileEntryRefForID(DefFile)) {
-    auto IncludeLoc = SM.getIncludeLoc(DefFile);
+    
     // Preamble patch is included inside the builtin file.
-    if (IncludeLoc.isValid() && SM.isWrittenInBuiltinFile(IncludeLoc) &&
+    if (auto IncludeLoc = SM.getIncludeLoc(DefFile); IncludeLoc.isValid() && SM.isWrittenInBuiltinFile(IncludeLoc) &&
         FE->getName().ends_with(PreamblePatch::HeaderName)) {
-      auto Presumed = SM.getPresumedLoc(Loc);
+      
       // Check that line directive is pointing at main file.
-      if (Presumed.isValid() && Presumed.getFileID().isInvalid() &&
+      if (auto Presumed = SM.getPresumedLoc(Loc); Presumed.isValid() && Presumed.getFileID().isInvalid() &&
           isMainFile(Presumed.getFilename(), SM)) {
         Loc = SM.translateLineCol(SM.getMainFileID(), Presumed.getLine(),
                                   Presumed.getColumn());

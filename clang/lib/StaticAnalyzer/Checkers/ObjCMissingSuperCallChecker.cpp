@@ -163,10 +163,10 @@ void ObjCSuperCallChecker::initializeSelectors(ASTContext &Ctx) const {
 void ObjCSuperCallChecker::checkASTDecl(const ObjCImplementationDecl *D,
                                         AnalysisManager &Mgr,
                                         BugReporter &BR) const {
-  ASTContext &Ctx = BR.getContext();
+  
 
   // We need to initialize the selector table once.
-  if (!IsInitialized)
+  if (ASTContext &Ctx = BR.getContext(); !IsInitialized)
     initializeSelectors(Ctx);
 
   // Find out whether this class has a superclass that we are supposed to check.

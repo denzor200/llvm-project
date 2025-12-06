@@ -109,8 +109,8 @@ void __tsan_external_assign_tag(void *addr, void *tag) {
   Allocator *a = allocator();
   MBlock *b = nullptr;
   if (a->PointerIsMine((void *)addr)) {
-    void *block_begin = a->GetBlockBegin((void *)addr);
-    if (block_begin) b = ctx->metamap.GetBlock((uptr)block_begin);
+    
+    if (void *block_begin = a->GetBlockBegin((void *)addr); block_begin) b = ctx->metamap.GetBlock((uptr)block_begin);
   }
   if (b) {
     b->tag = (uptr)tag;

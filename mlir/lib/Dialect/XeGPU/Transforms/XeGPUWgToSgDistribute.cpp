@@ -797,18 +797,18 @@ struct WgToSgArithConstantOp : public OpConversionPattern<arith::ConstantOp> {
           // Check column stride
           if (c > 0 && cols > 1) {
             int64_t prevIdx = r * cols + (c - 1);
-            int64_t diff = cast<IntegerAttr>(values[idx]).getInt() -
-                           cast<IntegerAttr>(values[prevIdx]).getInt();
-            if (diff != colStride)
+            
+            if (int64_t diff = cast<IntegerAttr>(values[idx]).getInt() -
+                           cast<IntegerAttr>(values[prevIdx]).getInt(); diff != colStride)
               return rewriter.notifyMatchFailure(
                   op, "Non-constant column stride in constant op.");
           }
           // Check row stride
           if (r > 0 && rows > 1) {
             int64_t prevIdx = (r - 1) * cols + c;
-            int64_t diff = cast<IntegerAttr>(values[idx]).getInt() -
-                           cast<IntegerAttr>(values[prevIdx]).getInt();
-            if (diff != rowStride)
+            
+            if (int64_t diff = cast<IntegerAttr>(values[idx]).getInt() -
+                           cast<IntegerAttr>(values[prevIdx]).getInt(); diff != rowStride)
               return rewriter.notifyMatchFailure(
                   op, "Non-constant row stride in constant op.");
           }
@@ -1525,8 +1525,8 @@ void XeGPUWgToSgDistributePass::runOnOperation() {
         // Check if all operands are vectors of the same shape
         // TODO: Support other types.
         for (Value operand : op->getOperands()) {
-          VectorType operandType = dyn_cast<VectorType>(operand.getType());
-          if (!operandType || operandType.getShape() != resultType.getShape()) {
+          
+          if (VectorType operandType = dyn_cast<VectorType>(operand.getType()); !operandType || operandType.getShape() != resultType.getShape()) {
             return true;
           }
         }
@@ -1557,8 +1557,8 @@ void XeGPUWgToSgDistributePass::runOnOperation() {
   // Layout propagation pass will activated.
   getOperation()->walk([](Operation *op) {
     for (OpResult result : op->getOpResults()) {
-      std::string name = xegpu::getLayoutName(result);
-      if (auto layout = op->getAttrOfType<xegpu::LayoutAttr>(name)) {
+      
+      if (std::string name = xegpu::getLayoutName(result); auto layout = op->getAttrOfType<xegpu::LayoutAttr>(name)) {
         op->removeAttr(name);
         if (!isa<scf::IfOp, scf::ForOp, scf::WhileOp, scf::ConditionOp>(op)) {
           if (auto newLayout = layout.dropSgLayoutAndData())

@@ -72,8 +72,8 @@ static void checkFlags(Ctx &ctx, ArrayRef<FileFlags> files) {
     if (ctx.arg.is64 && f.flags & EF_MIPS_MICROMIPS)
       Err(ctx) << f.file << ": microMIPS 64-bit is not supported";
 
-    uint32_t abi2 = f.flags & (EF_MIPS_ABI | EF_MIPS_ABI2);
-    if (abi != abi2)
+    
+    if (uint32_t abi2 = f.flags & (EF_MIPS_ABI | EF_MIPS_ABI2); abi != abi2)
       Err(ctx) << f.file << ": ABI '" << getAbiName(abi2)
                << "' is incompatible with target ABI '" << getAbiName(abi)
                << "'";

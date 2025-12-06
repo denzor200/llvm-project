@@ -583,8 +583,8 @@ static void dumpArchive(const Archive *Arc, ScopedPrinter &Writer) {
 static void dumpMachOUniversalBinary(const MachOUniversalBinary *UBinary,
                                      ScopedPrinter &Writer) {
   for (const MachOUniversalBinary::ObjectForArch &Obj : UBinary->objects()) {
-    Expected<std::unique_ptr<MachOObjectFile>> ObjOrErr = Obj.getAsObjectFile();
-    if (ObjOrErr)
+    
+    if (Expected<std::unique_ptr<MachOObjectFile>> ObjOrErr = Obj.getAsObjectFile(); ObjOrErr)
       dumpObject(*ObjOrErr.get(), Writer);
     else if (auto E = isNotObjectErrorInvalidFileType(ObjOrErr.takeError()))
       reportError(ObjOrErr.takeError(), UBinary->getFileName());
@@ -612,8 +612,8 @@ static void dumpCOFFObject(COFFObjectFile *Obj, ScopedPrinter &Writer) {
 /// Dumps \a WinRes, Windows Resource (.res) file;
 static void dumpWindowsResourceFile(WindowsResource *WinRes,
                                     ScopedPrinter &Printer) {
-  WindowsRes::Dumper Dumper(WinRes, Printer);
-  if (auto Err = Dumper.printData())
+  
+  if (WindowsRes::Dumper Dumper(WinRes, Printer); auto Err = Dumper.printData())
     reportError(std::move(Err), WinRes->getFileName());
 }
 

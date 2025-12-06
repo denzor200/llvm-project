@@ -94,14 +94,14 @@ public:
     }
 
     if (auto *VD = dyn_cast<VarDecl>(Result.Declaration)) {
-      auto ArgumentType = VD->getType();
-      if (PreferredType->isReferenceType()) {
+      
+      if (auto ArgumentType = VD->getType(); PreferredType->isReferenceType()) {
         QualType RT = PreferredType->castAs<ReferenceType>()->getPointeeType();
         Sema::ReferenceConversions RefConv;
-        Sema::ReferenceCompareResult RefRelationship =
+        
+        switch (Sema::ReferenceCompareResult RefRelationship =
             S.CompareReferenceRelationship(SourceLocation(), RT, ArgumentType,
-                                           &RefConv);
-        switch (RefRelationship) {
+                                           &RefConv); RefRelationship) {
         case Sema::Ref_Compatible:
         case Sema::Ref_Related:
           Results.push_back(VD->getName().str());
@@ -179,8 +179,8 @@ void ReplCompletionConsumer::ProcessCodeCompleteResults(
   };
 
   for (unsigned I = 0; I < NumResults; I++) {
-    auto &Result = InResults[I];
-    switch (Result.Kind) {
+    
+    switch (auto &Result = InResults[I]; Result.Kind) {
     case CodeCompletionResult::RK_Declaration:
       if (Result.Hidden) {
         break;

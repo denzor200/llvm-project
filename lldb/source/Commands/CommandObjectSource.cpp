@@ -205,8 +205,8 @@ protected:
       assert(file_spec.GetFilename().AsCString());
       bool has_path = (file_spec.GetDirectory().AsCString() != nullptr);
       const SupportFileList &cu_file_list = cu->GetSupportFiles();
-      size_t file_idx = cu_file_list.FindFileIndex(0, file_spec, has_path);
-      if (file_idx != UINT32_MAX) {
+      
+      if (size_t file_idx = cu_file_list.FindFileIndex(0, file_spec, has_path); file_idx != UINT32_MAX) {
         // Update the file to how it appears in the CU.
         const FileSpec &cu_file_spec =
             cu_file_list.GetFileSpecAtIndex(file_idx);
@@ -281,8 +281,8 @@ protected:
       // that contain lines of code from this source file.
       for (size_t i = 0; i < module->GetNumCompileUnits(); i++) {
         // Look for a matching source file in this CU.
-        CompUnitSP cu_sp(module->GetCompileUnitAtIndex(i));
-        if (cu_sp) {
+        
+        if (CompUnitSP cu_sp(module->GetCompileUnitAtIndex(i)); cu_sp) {
           num_matches +=
               DumpFileLinesInCompUnit(strm, module, cu_sp.get(), file_spec);
         }
@@ -301,8 +301,8 @@ protected:
     Address so_addr;
     size_t num_matches = 0;
     assert(module_list.GetSize() > 0);
-    Target &target = GetTarget();
-    if (!target.HasLoadedSections()) {
+    
+    if (Target &target = GetTarget(); !target.HasLoadedSections()) {
       // The target isn't loaded yet, we need to lookup the file address in all
       // modules.  Note: the module list option does not apply to addresses.
       const size_t num_modules = module_list.GetSize();
@@ -329,9 +329,9 @@ protected:
       // The target has some things loaded, resolve this address to a compile
       // unit + file + line and display
       if (target.ResolveLoadAddress(addr, so_addr)) {
-        ModuleSP module_sp(so_addr.GetModule());
+        
         // Check to make sure this module is in our list.
-        if (module_sp && module_list.GetIndexForModule(module_sp.get()) !=
+        if (ModuleSP module_sp(so_addr.GetModule()); module_sp && module_list.GetIndexForModule(module_sp.get()) !=
                              LLDB_INVALID_INDEX32) {
           SymbolContext sc;
           sc.Clear(true);
@@ -394,8 +394,8 @@ protected:
       for (const SymbolContext &sc : sc_list_symbols) {
         if (sc.symbol && sc.symbol->ValueIsAddress()) {
           const Address &base_address = sc.symbol->GetAddressRef();
-          Function *function = base_address.CalculateSymbolContextFunction();
-          if (function) {
+          
+          if (Function *function = base_address.CalculateSymbolContextFunction(); function) {
             sc_list_funcs.Append(SymbolContext(function));
             num_matches++;
           }
@@ -425,8 +425,8 @@ protected:
         lldb::addr_t end_addr = start_addr + size;
         for (lldb::addr_t addr = start_addr; addr < end_addr;
              addr += addr_byte_size) {
-          StreamString error_strm;
-          if (!GetSymbolContextsForAddress(module_list, addr, sc_list_lines,
+          
+          if (StreamString error_strm; !GetSymbolContextsForAddress(module_list, addr, sc_list_lines,
                                            error_strm))
             result.AppendWarningWithFormat("in symbol '%s': %s",
                                            sc.GetFunctionName().AsCString(),
@@ -507,8 +507,8 @@ protected:
 
   // Dump the line entries for the current frame.
   bool DumpLinesForFrame(CommandReturnObject &result) {
-    StackFrame *cur_frame = m_exe_ctx.GetFramePtr();
-    if (cur_frame == nullptr) {
+    
+    if (StackFrame *cur_frame = m_exe_ctx.GetFramePtr(); cur_frame == nullptr) {
       result.AppendError(
           "No selected frame to use to find the default source.");
       return false;
@@ -521,8 +521,8 @@ protected:
       SymbolContextList sc_list;
       sc_list.Append(sc);
       ModuleList module_list;
-      FileSpec file_spec;
-      if (!DumpLinesInSymbolContexts(result.GetOutputStream(), sc_list,
+      
+      if (FileSpec file_spec; !DumpLinesInSymbolContexts(result.GetOutputStream(), sc_list,
                                      module_list, file_spec)) {
         result.AppendError(
             "No source line info available for the selected frame.");
@@ -543,8 +543,8 @@ protected:
     m_module_list.Clear();
     if (!m_options.modules.empty()) {
       for (size_t i = 0, e = m_options.modules.size(); i < e; ++i) {
-        FileSpec module_file_spec(m_options.modules[i]);
-        if (module_file_spec) {
+        
+        if (FileSpec module_file_spec(m_options.modules[i]); module_file_spec) {
           ModuleSpec module_spec(module_file_spec);
           target.GetImages().FindModules(module_spec, m_module_list);
           if (m_module_list.IsEmpty())
@@ -647,8 +647,8 @@ class CommandObjectSourceList : public CommandObjectParsed {
       case 'y':
       {
         OptionValueFileColonLine value;
-        Status fcl_err = value.SetValueFromString(option_arg);
-        if (!fcl_err.Success()) {
+        
+        if (Status fcl_err = value.SetValueFromString(option_arg); !fcl_err.Success()) {
           error = Status::FromErrorStringWithFormat(
               "Invalid value for file:line specifier: %s", fcl_err.AsCString());
         } else {
@@ -864,12 +864,12 @@ protected:
     function_options.include_symbols = true;
     function_options.include_inlines = false;
 
-    const size_t num_modules = m_options.modules.size();
-    if (num_modules > 0) {
+    
+    if (const size_t num_modules = m_options.modules.size(); num_modules > 0) {
       ModuleList matching_modules;
       for (size_t i = 0; i < num_modules; ++i) {
-        FileSpec module_file_spec(m_options.modules[i]);
-        if (module_file_spec) {
+        
+        if (FileSpec module_file_spec(m_options.modules[i]); module_file_spec) {
           ModuleSpec module_spec(module_file_spec);
           matching_modules.Clear();
           target.GetImages().FindModules(module_spec, matching_modules);
@@ -886,12 +886,12 @@ protected:
 
   void FindMatchingFunctionSymbols(Target &target, ConstString name,
                                    SymbolContextList &sc_list) {
-    const size_t num_modules = m_options.modules.size();
-    if (num_modules > 0) {
+    
+    if (const size_t num_modules = m_options.modules.size(); num_modules > 0) {
       ModuleList matching_modules;
       for (size_t i = 0; i < num_modules; ++i) {
-        FileSpec module_file_spec(m_options.modules[i]);
-        if (module_file_spec) {
+        
+        if (FileSpec module_file_spec(m_options.modules[i]); module_file_spec) {
           ModuleSpec module_spec(module_file_spec);
           matching_modules.Clear();
           target.GetImages().FindModules(module_spec, matching_modules);
@@ -906,9 +906,9 @@ protected:
   }
 
   void DoExecute(Args &command, CommandReturnObject &result) override {
-    Target &target = GetTarget();
+    
 
-    if (!m_options.symbol_name.empty()) {
+    if (Target &target = GetTarget(); !m_options.symbol_name.empty()) {
       SymbolContextList sc_list;
       ConstString name(m_options.symbol_name.c_str());
 
@@ -922,8 +922,8 @@ protected:
         for (const SymbolContext &sc : sc_list_symbols) {
           if (sc.symbol && sc.symbol->ValueIsAddress()) {
             const Address &base_address = sc.symbol->GetAddressRef();
-            Function *function = base_address.CalculateSymbolContextFunction();
-            if (function) {
+            
+            if (Function *function = base_address.CalculateSymbolContextFunction(); function) {
               sc_list.Append(SymbolContext(function));
               break;
             }
@@ -940,9 +940,9 @@ protected:
       std::set<SourceInfo> source_match_set;
       bool displayed_something = false;
       for (const SymbolContext &sc : sc_list) {
-        SourceInfo source_info(sc.GetFunctionName(),
-                               sc.GetFunctionStartLineEntry());
-        if (source_info.IsValid() &&
+        
+        if (SourceInfo source_info(sc.GetFunctionName(),
+                               sc.GetFunctionStartLineEntry()); source_info.IsValid() &&
             source_match_set.find(source_info) == source_match_set.end()) {
           source_match_set.insert(source_info);
           if (DisplayFunctionSource(sc, source_info, result))
@@ -965,8 +965,8 @@ protected:
         const ModuleList &module_list = target.GetImages();
         const size_t num_modules = module_list.GetSize();
         for (size_t i = 0; i < num_modules; ++i) {
-          ModuleSP module_sp(module_list.GetModuleAtIndex(i));
-          if (module_sp &&
+          
+          if (ModuleSP module_sp(module_list.GetModuleAtIndex(i)); module_sp &&
               module_sp->ResolveFileAddress(m_options.address, so_addr)) {
             SymbolContext sc;
             sc.Clear(true);
@@ -988,8 +988,8 @@ protected:
         // The target has some things loaded, resolve this address to a compile
         // unit + file + line and display
         if (target.ResolveLoadAddress(m_options.address, so_addr)) {
-          ModuleSP module_sp(so_addr.GetModule());
-          if (module_sp) {
+          
+          if (ModuleSP module_sp(so_addr.GetModule()); module_sp) {
             SymbolContext sc;
             sc.Clear(true);
             if (module_sp->ResolveSymbolContextForAddress(
@@ -1082,9 +1082,9 @@ protected:
           m_options.num_lines = 10;
 
         if (m_options.show_bp_locs) {
-          SourceManager::FileSP last_file_sp(
-              target.GetSourceManager().GetLastFile());
-          if (last_file_sp) {
+          
+          if (SourceManager::FileSP last_file_sp(
+              target.GetSourceManager().GetLastFile()); last_file_sp) {
             const bool show_inlines = true;
             m_breakpoint_locations.Reset(
                 last_file_sp->GetSupportFile()->GetSpecOnly(), 0, show_inlines);
@@ -1095,8 +1095,8 @@ protected:
         } else
           m_breakpoint_locations.Clear();
 
-        const uint32_t column = 0;
-        if (target.GetSourceManager()
+        
+        if (const uint32_t column = 0; target.GetSourceManager()
                 .DisplaySourceLinesWithLineNumbersUsingLastFile(
                     m_options.start_line, // Line to display
                     m_options.num_lines,  // Lines after line to
@@ -1111,8 +1111,8 @@ protected:
       //      const char *filename = m_options.file_name.c_str();
       FileSpec file_spec(m_options.file_name);
       bool check_inlines = false;
-      const InlineStrategy inline_strategy = target.GetInlineStrategy();
-      if (inline_strategy == eInlineBreakpointsAlways ||
+      
+      if (const InlineStrategy inline_strategy = target.GetInlineStrategy(); inline_strategy == eInlineBreakpointsAlways ||
           (inline_strategy == eInlineBreakpointsHeaders &&
            !file_spec.IsSourceImplementationFile()))
         check_inlines = true;
@@ -1123,8 +1123,8 @@ protected:
       if (!m_options.modules.empty()) {
         ModuleList matching_modules;
         for (size_t i = 0, e = m_options.modules.size(); i < e; ++i) {
-          FileSpec module_file_spec(m_options.modules[i]);
-          if (module_file_spec) {
+          
+          if (FileSpec module_file_spec(m_options.modules[i]); module_file_spec) {
             ModuleSpec module_spec(module_file_spec);
             matching_modules.Clear();
             target.GetImages().FindModules(module_spec, matching_modules);

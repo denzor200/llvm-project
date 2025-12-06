@@ -223,8 +223,8 @@ public:
     // If the inserted segment starts in the middle or right at the end of
     // another segment, just extend that segment to contain the segment of S.
     if (I != segments().begin()) {
-      iterator B = std::prev(I);
-      if (S.valno == B->valno) {
+      
+      if (iterator B = std::prev(I); S.valno == B->valno) {
         if (B->start <= Start && B->end >= Start) {
           extendSegmentEndTo(B, End);
           return B;
@@ -449,9 +449,9 @@ bool LiveRange::overlaps(const LiveRange &Other, const CoalescerPair &CP,
     // Check for an overlap.
     if (J->start < I->end) {
       // I and J are overlapping. Find the later start.
-      SlotIndex Def = std::max(I->start, J->start);
+      
       // Allow the overlap if Def is a coalescable copy.
-      if (Def.isBlock() ||
+      if (SlotIndex Def = std::max(I->start, J->start); Def.isBlock() ||
           !CP.isCoalescable(Indexes.getInstructionFromIndex(Def)))
         return true;
     }
@@ -639,8 +639,8 @@ void LiveRange::join(LiveRange &Other,
   unsigned NumVals = getNumValNums();
   unsigned NumNewVals = NewVNInfo.size();
   for (unsigned i = 0; i != NumVals; ++i) {
-    unsigned LHSValID = LHSValNoAssignments[i];
-    if (i != LHSValID ||
+    
+    if (unsigned LHSValID = LHSValNoAssignments[i]; i != LHSValID ||
         (NewVNInfo[LHSValID] && NewVNInfo[LHSValID] != getValNumInfo(i))) {
       MustMapCurValNos = true;
       break;
@@ -688,8 +688,8 @@ void LiveRange::join(LiveRange &Other,
   // LiveRange now. Also remove dead val#'s.
   unsigned NumValNos = 0;
   for (unsigned i = 0; i < NumNewVals; ++i) {
-    VNInfo *VNI = NewVNInfo[i];
-    if (VNI) {
+    
+    if (VNInfo *VNI = NewVNInfo[i]; VNI) {
       if (NumValNos >= NumVals)
         valnos.push_back(VNI);
       else
@@ -757,8 +757,8 @@ VNInfo *LiveRange::MergeValueNumberInto(VNInfo *V1, VNInfo *V2) {
     // Okay, we found a V1 live range.  If it had a previous, touching, V2 live
     // range, extend it.
     if (S != begin()) {
-      iterator Prev = S-1;
-      if (Prev->valno == V2 && Prev->end == S->start) {
+      
+      if (iterator Prev = S-1; Prev->valno == V2 && Prev->end == S->start) {
         Prev->end = S->end;
 
         // Erase this live-range.
@@ -976,8 +976,8 @@ void LiveInterval::computeSubRangeUndefs(SmallVectorImpl<SlotIndex> &Undefs,
     unsigned SubReg = MO.getSubReg();
     assert(SubReg != 0 && "Undef should only be set on subreg defs");
     LaneBitmask DefMask = TRI.getSubRegIndexLaneMask(SubReg);
-    LaneBitmask UndefMask = VRegMask & ~DefMask;
-    if ((UndefMask & LaneMask).any()) {
+    
+    if (LaneBitmask UndefMask = VRegMask & ~DefMask; (UndefMask & LaneMask).any()) {
       const MachineInstr &MI = *MO.getParent();
       bool EarlyClobber = MO.isEarlyClobber();
       SlotIndex Pos = Indexes.getInstructionIndex(MI).getRegSlot(EarlyClobber);
@@ -1316,8 +1316,8 @@ void LiveRangeUpdater::flush() {
   }
 
   // Resize the WriteI - ReadI gap to match Spills.
-  size_t GapSize = ReadI - WriteI;
-  if (GapSize < Spills.size()) {
+  
+  if (size_t GapSize = ReadI - WriteI; GapSize < Spills.size()) {
     // The gap is too small. Make some room.
     size_t WritePos = WriteI - LR->begin();
     LR->segments.insert(ReadI, Spills.size() - GapSize, LiveRange::Segment());

@@ -185,9 +185,9 @@ PreservedAnalyses NaryReassociatePass::run(Function &F,
   auto *DT = &AM.getResult<DominatorTreeAnalysis>(F);
   auto *SE = &AM.getResult<ScalarEvolutionAnalysis>(F);
   auto *TLI = &AM.getResult<TargetLibraryAnalysis>(F);
-  auto *TTI = &AM.getResult<TargetIRAnalysis>(F);
+  
 
-  if (!runImpl(F, AC, DT, SE, TLI, TTI))
+  if (auto *TTI = &AM.getResult<TargetIRAnalysis>(F); !runImpl(F, AC, DT, SE, TLI, TTI))
     return PreservedAnalyses::all();
 
   PreservedAnalyses PA;
@@ -225,8 +225,8 @@ bool NaryReassociatePass::doOneIteration(Function &F) {
   for (const auto Node : depth_first(DT)) {
     BasicBlock *BB = Node->getBlock();
     for (Instruction &OrigI : *BB) {
-      const SCEV *OrigSCEV = nullptr;
-      if (Instruction *NewI = tryReassociate(&OrigI, OrigSCEV)) {
+      
+      if (const SCEV *OrigSCEV = nullptr; Instruction *NewI = tryReassociate(&OrigI, OrigSCEV)) {
         Changed = true;
         OrigI.replaceAllUsesWith(NewI);
 
@@ -311,11 +311,11 @@ Instruction *NaryReassociatePass::tryReassociate(Instruction * I,
   }
 
   // Try to match signed/unsigned Min/Max.
-  Instruction *ResI = nullptr;
+  
   // TODO: Currently min/max reassociation is restricted to integer types only
   // due to use of SCEVExpander which my introduce incompatible forms of min/max
   // for pointer types.
-  if (I->getType()->isIntegerTy())
+  if (Instruction *ResI = nullptr; I->getType()->isIntegerTy())
     if ((ResI = matchAndReassociateMinOrMax<umin_pred_ty>(I, OrigSCEV)) ||
         (ResI = matchAndReassociateMinOrMax<smin_pred_ty>(I, OrigSCEV)) ||
         (ResI = matchAndReassociateMinOrMax<umax_pred_ty>(I, OrigSCEV)) ||

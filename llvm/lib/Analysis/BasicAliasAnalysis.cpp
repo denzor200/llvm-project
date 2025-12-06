@@ -262,8 +262,8 @@ EarliestEscapeAnalysis::getCapturesBefore(const Value *Object,
 }
 
 void EarliestEscapeAnalysis::removeInstruction(Instruction *I) {
-  auto Iter = Inst2Obj.find(I);
-  if (Iter != Inst2Obj.end()) {
+  
+  if (auto Iter = Inst2Obj.find(I); Iter != Inst2Obj.end()) {
     for (const Value *Obj : Iter->second)
       EarliestEscapes.erase(Obj);
     Inst2Obj.erase(I);
@@ -964,9 +964,9 @@ ModRefInfo BasicAAResult::getModRefInfo(const CallBase *Call,
   // non-volatile stores for them.
   if (isModOrRefSet(OtherMR) && !isa<Constant>(Object) && Call != Object &&
       (isa<AllocaInst>(Object) || !Call->hasFnAttr(Attribute::ReturnsTwice))) {
-    CaptureComponents CC =
-        AAQI.CA->getCapturesBefore(Object, Call, /*OrAt=*/false);
-    if (capturesNothing(CC))
+    
+    if (CaptureComponents CC =
+        AAQI.CA->getCapturesBefore(Object, Call, /*OrAt=*/false); capturesNothing(CC))
       OtherMR = ModRefInfo::NoModRef;
     else if (capturesReadProvenanceOnly(CC))
       OtherMR = ModRefInfo::Ref;
@@ -1218,9 +1218,9 @@ AliasResult BasicAAResult::aliasGEP(
       // We can use the getVScaleRange to prove that Off >= (CR.upper * LSize).
       ConstantRange CR = getVScaleRange(&F, Off.getBitWidth());
       bool Overflow;
-      APInt UpperRange = CR.getUnsignedMax().umul_ov(
-          APInt(Off.getBitWidth(), LSize.getKnownMinValue()), Overflow);
-      if (!Overflow && Off.uge(UpperRange))
+      
+      if (APInt UpperRange = CR.getUnsignedMax().umul_ov(
+          APInt(Off.getBitWidth(), LSize.getKnownMinValue()), Overflow); !Overflow && Off.uge(UpperRange))
         return AliasResult::NoAlias;
     }
   }
@@ -1361,8 +1361,8 @@ AliasResult BasicAAResult::aliasGEP(
   std::optional<APInt> MinAbsVarIndex;
   if (DecompGEP1.VarIndices.size() == 1) {
     // VarIndex = Scale*V.
-    const VariableGEPIndex &Var = DecompGEP1.VarIndices[0];
-    if (Var.Val.TruncBits == 0 &&
+    
+    if (const VariableGEPIndex &Var = DecompGEP1.VarIndices[0]; Var.Val.TruncBits == 0 &&
         isKnownNonZero(Var.Val.V, SimplifyQuery(DL, DT, &AC, Var.CxtI))) {
       // Refine MinAbsVarIndex, if abs(Scale*V) >= abs(Scale) holds in the
       // presence of potentially wrapping math.
@@ -1377,8 +1377,8 @@ AliasResult BasicAAResult::aliasGEP(
     // Check that MayBeCrossIteration is false, to avoid reasoning about
     // inequality of values across loop iterations.
     const VariableGEPIndex &Var0 = DecompGEP1.VarIndices[0];
-    const VariableGEPIndex &Var1 = DecompGEP1.VarIndices[1];
-    if (Var0.hasNegatedScaleOf(Var1) && Var0.Val.TruncBits == 0 &&
+    
+    if (const VariableGEPIndex &Var1 = DecompGEP1.VarIndices[1]; Var0.hasNegatedScaleOf(Var1) && Var0.Val.TruncBits == 0 &&
         Var0.Val.hasSameCastsAs(Var1.Val) && !AAQI.MayBeCrossIteration &&
         MultiplyByScaleNoWrap(Var0) && MultiplyByScaleNoWrap(Var1) &&
         isKnownNonEqual(Var0.Val.V, Var1.Val.V,
@@ -1391,9 +1391,9 @@ AliasResult BasicAAResult::aliasGEP(
   if (MinAbsVarIndex) {
     // The constant offset will have added at least +/-MinAbsVarIndex to it.
     APInt OffsetLo = DecompGEP1.Offset - *MinAbsVarIndex;
-    APInt OffsetHi = DecompGEP1.Offset + *MinAbsVarIndex;
+    
     // We know that Offset <= OffsetLo || Offset >= OffsetHi
-    if (OffsetLo.isNegative() && (-OffsetLo).uge(V1Size.getValue()) &&
+    if (APInt OffsetHi = DecompGEP1.Offset + *MinAbsVarIndex; OffsetLo.isNegative() && (-OffsetLo).uge(V1Size.getValue()) &&
         OffsetHi.isNonNegative() && OffsetHi.uge(V2Size.getValue()))
       return AliasResult::NoAlias;
   }
@@ -1672,8 +1672,8 @@ AliasResult BasicAAResult::aliasCheck(const Value *V1, LocationSize V1Size,
         continue;
 
       AssumeInst *Assume = cast<AssumeInst>(Elem);
-      OperandBundleUse OBU = Assume->getOperandBundleAt(Elem.Index);
-      if (OBU.getTagName() == "separate_storage") {
+      
+      if (OperandBundleUse OBU = Assume->getOperandBundleAt(Elem.Index); OBU.getTagName() == "separate_storage") {
         assert(OBU.Inputs.size() == 2);
         const Value *Hint1 = OBU.Inputs[0].get();
         const Value *Hint2 = OBU.Inputs[1].get();
@@ -1683,7 +1683,9 @@ AliasResult BasicAAResult::aliasCheck(const Value *V1, LocationSize V1Size,
         const Value *HintO2 = getUnderlyingObject(Hint2);
 
         DominatorTree *DT = getDT(AAQI);
-        auto ValidAssumeForPtrContext = [&](const Value *Ptr) {
+        
+
+        if (auto ValidAssumeForPtrContext = [&](const Value *Ptr) {
           if (const Instruction *PtrI = dyn_cast<Instruction>(Ptr)) {
             return isValidAssumeForContext(Assume, PtrI, DT,
                                            /* AllowEphemerals */ true);
@@ -1695,9 +1697,7 @@ AliasResult BasicAAResult::aliasCheck(const Value *V1, LocationSize V1Size,
                                            /* AllowEphemerals */ true);
           }
           return false;
-        };
-
-        if ((O1 == HintO1 && O2 == HintO2) || (O1 == HintO2 && O2 == HintO1)) {
+        }; (O1 == HintO1 && O2 == HintO2) || (O1 == HintO2 && O2 == HintO1)) {
           // Note that we go back to V1 and V2 for the
           // ValidAssumeForPtrContext checks; they're dominated by O1 and O2,
           // so strictly more assumptions are valid for them.
@@ -1801,8 +1801,8 @@ AliasResult BasicAAResult::aliasCheck(const Value *V1, LocationSize V1Size,
     // Any remaining assumption based results must be based on proven
     // assumptions, so convert them to definitive results.
     for (const auto &Loc : AAQI.AssumptionBasedResults) {
-      auto It = AAQI.AliasCache.find(Loc);
-      if (It != AAQI.AliasCache.end())
+      
+      if (auto It = AAQI.AliasCache.find(Loc); It != AAQI.AliasCache.end())
         It->second.NumAssumptionUses = AAQueryInfo::CacheEntry::Definitive;
     }
     AAQI.AssumptionBasedResults.clear();
@@ -1816,8 +1816,8 @@ AliasResult BasicAAResult::aliasCheckRecursive(
     const Value *V2, LocationSize V2Size,
     AAQueryInfo &AAQI, const Value *O1, const Value *O2) {
   if (const GEPOperator *GV1 = dyn_cast<GEPOperator>(V1)) {
-    AliasResult Result = aliasGEP(GV1, V1Size, V2, V2Size, O1, O2, AAQI);
-    if (Result != AliasResult::MayAlias)
+    
+    if (AliasResult Result = aliasGEP(GV1, V1Size, V2, V2Size, O1, O2, AAQI); Result != AliasResult::MayAlias)
       return Result;
   } else if (const GEPOperator *GV2 = dyn_cast<GEPOperator>(V2)) {
     AliasResult Result = aliasGEP(GV2, V2Size, V1, V1Size, O2, O1, AAQI);
@@ -1827,8 +1827,8 @@ AliasResult BasicAAResult::aliasCheckRecursive(
   }
 
   if (const PHINode *PN = dyn_cast<PHINode>(V1)) {
-    AliasResult Result = aliasPHI(PN, V1Size, V2, V2Size, AAQI);
-    if (Result != AliasResult::MayAlias)
+    
+    if (AliasResult Result = aliasPHI(PN, V1Size, V2, V2Size, AAQI); Result != AliasResult::MayAlias)
       return Result;
   } else if (const PHINode *PN = dyn_cast<PHINode>(V2)) {
     AliasResult Result = aliasPHI(PN, V2Size, V1, V1Size, AAQI);
@@ -1838,8 +1838,8 @@ AliasResult BasicAAResult::aliasCheckRecursive(
   }
 
   if (const SelectInst *S1 = dyn_cast<SelectInst>(V1)) {
-    AliasResult Result = aliasSelect(S1, V1Size, V2, V2Size, AAQI);
-    if (Result != AliasResult::MayAlias)
+    
+    if (AliasResult Result = aliasSelect(S1, V1Size, V2, V2Size, AAQI); Result != AliasResult::MayAlias)
       return Result;
   } else if (const SelectInst *S2 = dyn_cast<SelectInst>(V2)) {
     AliasResult Result = aliasSelect(S2, V2Size, V1, V1Size, AAQI);
@@ -1851,8 +1851,8 @@ AliasResult BasicAAResult::aliasCheckRecursive(
   // If both pointers are pointing into the same object and one of them
   // accesses the entire object, then the accesses must overlap in some way.
   if (O1 == O2) {
-    bool NullIsValidLocation = NullPointerIsDefined(&F);
-    if (V1Size.isPrecise() && V2Size.isPrecise() &&
+    
+    if (bool NullIsValidLocation = NullPointerIsDefined(&F); V1Size.isPrecise() && V2Size.isPrecise() &&
         (isObjectSize(O1, V1Size.getValue(), DL, TLI, NullIsValidLocation) ||
          isObjectSize(O2, V2Size.getValue(), DL, TLI, NullIsValidLocation)))
       return AliasResult::PartialAlias;

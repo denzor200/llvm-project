@@ -359,8 +359,8 @@ mlir::vector::castAwayContractionLeadingOneDim(vector::ContractionOp contractOp,
     return failure();
 
   for (const auto &it : llvm::enumerate(oldIteratorTypes)) {
-    int64_t currDim = it.index();
-    if (currDim == dimToDrop)
+    
+    if (int64_t currDim = it.index(); currDim == dimToDrop)
       continue;
     newIteratorTypes.push_back(it.value());
   }
@@ -376,8 +376,8 @@ mlir::vector::castAwayContractionLeadingOneDim(vector::ContractionOp contractOp,
     bool validExtract = false;
     SmallVector<AffineExpr> results;
     auto map = it.value();
-    int64_t orginalZeroDim = it.value().getDimPosition(0);
-    if (orginalZeroDim != dimToDrop) {
+    
+    if (int64_t orginalZeroDim = it.value().getDimPosition(0); orginalZeroDim != dimToDrop) {
       // There are two reasons to be in this path, 1. We need to
       // transpose the operand to make the dim to be dropped
       // leading. 2. The dim to be dropped does not exist and in
@@ -388,8 +388,8 @@ mlir::vector::castAwayContractionLeadingOneDim(vector::ContractionOp contractOp,
       SmallVector<AffineExpr> transposeResults;
 
       for (int64_t i = 0, e = map.getNumResults(); i < e; ++i) {
-        int64_t currDim = map.getDimPosition(i);
-        if (currDim == dimToDrop) {
+        
+        if (int64_t currDim = map.getDimPosition(i); currDim == dimToDrop) {
           transposeNeeded = true;
           perm.insert(perm.begin(), i);
           auto targetExpr = rewriter.getAffineDimExpr(currDim);

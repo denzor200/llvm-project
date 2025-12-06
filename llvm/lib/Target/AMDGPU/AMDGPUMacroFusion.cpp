@@ -27,9 +27,9 @@ static bool shouldScheduleAdjacent(const TargetInstrInfo &TII_,
                                    const TargetSubtargetInfo &TSI,
                                    const MachineInstr *FirstMI,
                                    const MachineInstr &SecondMI) {
-  const SIInstrInfo &TII = static_cast<const SIInstrInfo&>(TII_);
+  
 
-  switch (SecondMI.getOpcode()) {
+  switch (const SIInstrInfo &TII = static_cast<const SIInstrInfo&>(TII_); SecondMI.getOpcode()) {
   case AMDGPU::V_ADDC_U32_e64:
   case AMDGPU::V_SUBB_U32_e64:
   case AMDGPU::V_SUBBREV_U32_e64:

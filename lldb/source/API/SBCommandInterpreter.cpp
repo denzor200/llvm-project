@@ -185,8 +185,8 @@ lldb::ReturnStatus SBCommandInterpreter::HandleCommand(
   result.Clear();
   if (command_line && IsValid()) {
     result.ref().SetInteractive(false);
-    auto do_add_to_history = add_to_history ? eLazyBoolYes : eLazyBoolNo;
-    if (override_context.get())
+    
+    if (auto do_add_to_history = add_to_history ? eLazyBoolYes : eLazyBoolNo; override_context.get())
       m_opaque_ptr->HandleCommand(command_line, do_add_to_history,
                                   override_context.get()->Lock(true),
                                   result.ref());
@@ -218,8 +218,8 @@ void SBCommandInterpreter::HandleCommandsFromFile(
     result->AppendErrorWithFormat("File is not valid: %s.", s.GetData());
   }
 
-  FileSpec tmp_spec = file.ref();
-  if (override_context.get())
+  
+  if (FileSpec tmp_spec = file.ref(); override_context.get())
     m_opaque_ptr->HandleCommandsFromFile(tmp_spec,
                                          override_context.get()->Lock(true),
                                          options.ref(), result.ref());
@@ -255,8 +255,8 @@ int SBCommandInterpreter::HandleCompletionWithDescriptions(
   if (cursor < current_line || last_char < current_line)
     return 0;
 
-  size_t current_line_size = strlen(current_line);
-  if (cursor - current_line > static_cast<ptrdiff_t>(current_line_size) ||
+  
+  if (size_t current_line_size = strlen(current_line); cursor - current_line > static_cast<ptrdiff_t>(current_line_size) ||
       last_char - current_line > static_cast<ptrdiff_t>(current_line_size))
     return 0;
 
@@ -377,8 +377,8 @@ SBProcess SBCommandInterpreter::GetProcess() {
   SBProcess sb_process;
   ProcessSP process_sp;
   if (IsValid()) {
-    TargetSP target_sp(m_opaque_ptr->GetDebugger().GetSelectedTarget());
-    if (target_sp) {
+    
+    if (TargetSP target_sp(m_opaque_ptr->GetDebugger().GetSelectedTarget()); target_sp) {
       std::lock_guard<std::recursive_mutex> guard(target_sp->GetAPIMutex());
       process_sp = target_sp->GetProcessSP();
       sb_process.SetSP(process_sp);
@@ -560,9 +560,9 @@ bool SBCommandInterpreter::SetCommandOverrideCallback(
 
   if (command_name && command_name[0] && IsValid()) {
     llvm::StringRef command_name_str = command_name;
-    CommandObject *cmd_obj =
-        m_opaque_ptr->GetCommandObjectForCommand(command_name_str);
-    if (cmd_obj) {
+    
+    if (CommandObject *cmd_obj =
+        m_opaque_ptr->GetCommandObjectForCommand(command_name_str); cmd_obj) {
       assert(command_name_str.empty());
       cmd_obj->SetOverrideCallback(callback, baton);
       return true;

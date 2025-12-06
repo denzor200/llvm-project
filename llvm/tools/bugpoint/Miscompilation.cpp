@@ -623,9 +623,9 @@ static Expected<std::vector<Function *>> DebugAMiscompilation(
 
   // Do the reduction...
   if (!BugpointIsInterrupted) {
-    Expected<bool> Ret = ReduceMiscompilingFunctions(BD, TestFn)
-                             .reduceList(MiscompiledFunctions);
-    if (Error E = Ret.takeError()) {
+    
+    if (Expected<bool> Ret = ReduceMiscompilingFunctions(BD, TestFn)
+                             .reduceList(MiscompiledFunctions); Error E = Ret.takeError()) {
       errs() << "\n***Cannot reduce functions: ";
       return std::move(E);
     }
@@ -833,10 +833,10 @@ CleanupAndPrepareModules(BugDriver &BD, std::unique_ptr<Module> Test,
     if (F->isDeclaration() && !F->use_empty() &&
         &*F != resolverFunc.getCallee() &&
         !F->isIntrinsic() /* ignore intrinsics */) {
-      Function *TestFn = Test->getFunction(F->getName());
+      
 
       // Don't forward functions which are external in the test module too.
-      if (TestFn && !TestFn->isDeclaration()) {
+      if (Function *TestFn = Test->getFunction(F->getName()); TestFn && !TestFn->isDeclaration()) {
         // 1. Add a string constant with its name to the global file
         Constant *InitArray =
             ConstantDataArray::getString(F->getContext(), F->getName());

@@ -537,9 +537,9 @@ MachineBasicBlock *SILowerControlFlow::emitEndCf(MachineInstr &MI) {
 
       for (unsigned i = 0, e = MRI->getNumVirtRegs(); i != e; ++i) {
         Register Reg = Register::index2VirtReg(i);
-        LiveVariables::VarInfo &VI = LV->getVarInfo(Reg);
+        
 
-        if (VI.AliveBlocks.test(MBB.getNumber()))
+        if (LiveVariables::VarInfo &VI = LV->getVarInfo(Reg); VI.AliveBlocks.test(MBB.getNumber()))
           VI.AliveBlocks.set(SplitBB->getNumber());
         else {
           for (MachineInstr *Kill : VI.Kills) {
@@ -692,8 +692,8 @@ MachineBasicBlock *SILowerControlFlow::process(MachineInstr &MI) {
   MachineBasicBlock::iterator Next;
   for (I = Prev ? Prev->getIterator() : MBB.begin(); I != MBB.end(); I = Next) {
     Next = std::next(I);
-    MachineInstr &MaskMI = *I;
-    switch (MaskMI.getOpcode()) {
+    
+    switch (MachineInstr &MaskMI = *I; MaskMI.getOpcode()) {
     case AMDGPU::S_AND_B64:
     case AMDGPU::S_OR_B64:
     case AMDGPU::S_AND_B32:
@@ -747,10 +747,10 @@ bool SILowerControlFlow::removeMBBifRedundant(MachineBasicBlock &MBB) {
   if (FallThrough && !FallThrough->isLayoutSuccessor(Succ)) {
     // Note: we cannot update block layout and preserve live intervals;
     // hence we must insert a branch.
-    MachineInstr *BranchMI = BuildMI(*FallThrough, FallThrough->end(),
+    
+    if (MachineInstr *BranchMI = BuildMI(*FallThrough, FallThrough->end(),
             FallThrough->findBranchDebugLoc(), TII->get(AMDGPU::S_BRANCH))
-        .addMBB(Succ);
-    if (LIS)
+        .addMBB(Succ); LIS)
       LIS->InsertMachineInstrInMaps(*BranchMI);
   }
 

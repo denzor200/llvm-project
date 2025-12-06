@@ -541,8 +541,8 @@ static void replaceWithTileLoad(Use &U, Value *Ptr, bool IsPHI = false) {
 
 static bool isIncomingOfPHI(Instruction *I) {
   for (Use &U : I->uses()) {
-    User *V = U.getUser();
-    if (isa<PHINode>(V))
+    
+    if (User *V = U.getUser(); isa<PHINode>(V))
       return true;
   }
   return false;
@@ -816,8 +816,8 @@ bool X86LowerAMXCast::optimizeAMXCastFromPhi(
       // TODO: currently, We ignore cases where it is a const. In the future, we
       // might support const.
       if (isa<Constant>(IncValue)) {
-        auto *IncConst = dyn_cast<Constant>(IncValue);
-        if (!isa<UndefValue>(IncValue) && !IncConst->isZeroValue())
+        
+        if (auto *IncConst = dyn_cast<Constant>(IncValue); !isa<UndefValue>(IncValue) && !IncConst->isZeroValue())
           return false;
         Value *Row = nullptr, *Col = nullptr;
         std::tie(Row, Col) = getShape(OldPN);
@@ -848,8 +848,8 @@ bool X86LowerAMXCast::optimizeAMXCastFromPhi(
       if (ACI && isAMXCast(ACI)) {
         // Verify it's a A->B cast.
         Type *TyA = ACI->getOperand(0)->getType();
-        Type *TyB = ACI->getType();
-        if (TyA != DestTy || TyB != SrcTy)
+        
+        if (Type *TyB = ACI->getType(); TyA != DestTy || TyB != SrcTy)
           return false;
         continue;
       }
@@ -861,12 +861,12 @@ bool X86LowerAMXCast::optimizeAMXCastFromPhi(
   // rewrite, so that all of the old PHI nodes can be cleaned up afterwards.
   for (auto *OldPN : OldPhiNodes) {
     for (User *V : OldPN->users()) {
-      Instruction *ACI = dyn_cast<Instruction>(V);
-      if (ACI && isAMXCast(ACI)) {
+      
+      if (Instruction *ACI = dyn_cast<Instruction>(V); ACI && isAMXCast(ACI)) {
         // Verify it's a B->A cast.
         Type *TyB = ACI->getOperand(0)->getType();
-        Type *TyA = ACI->getType();
-        if (TyA != DestTy || TyB != SrcTy)
+        
+        if (Type *TyA = ACI->getType(); TyA != DestTy || TyB != SrcTy)
           return false;
       } else if (auto *PHI = dyn_cast<PHINode>(V)) {
         // As long as the user is another old PHI node, then even if we don't
@@ -908,9 +908,9 @@ bool X86LowerAMXCast::optimizeAMXCastFromPhi(
     for (unsigned j = 0, e = OldPN->getNumOperands(); j != e; ++j) {
       Value *V = OldPN->getOperand(j);
       Value *NewV = nullptr;
-      Instruction *ACI = dyn_cast<Instruction>(V);
+      
       // There should not be a AMXcast from a const.
-      if (ACI && isAMXCast(ACI))
+      if (Instruction *ACI = dyn_cast<Instruction>(V); ACI && isAMXCast(ACI))
         NewV = ACI->getOperand(0);
       else if (auto *PrevPN = dyn_cast<PHINode>(V))
         NewV = NewPNodes[PrevPN];
@@ -930,8 +930,8 @@ bool X86LowerAMXCast::optimizeAMXCastFromPhi(
   for (auto *OldPN : OldPhiNodes) {
     PHINode *NewPN = NewPNodes[OldPN];
     for (User *V : make_early_inc_range(OldPN->users())) {
-      Instruction *ACI = dyn_cast<Instruction>(V);
-      if (ACI && isAMXCast(ACI)) {
+      
+      if (Instruction *ACI = dyn_cast<Instruction>(V); ACI && isAMXCast(ACI)) {
         Type *TyB = ACI->getOperand(0)->getType();
         Type *TyA = ACI->getType();
         assert(TyA == DestTy && TyB == SrcTy);
@@ -1051,13 +1051,13 @@ bool X86LowerAMXCast::combineTilezero(IntrinsicInst *Cast) {
 bool X86LowerAMXCast::combineLdSt(SmallVectorImpl<Instruction *> &Casts) {
   bool Change = false;
   for (auto *Cast : Casts) {
-    auto *II = cast<IntrinsicInst>(Cast);
+    
     // %43 = call <256 x i32> @llvm.x86.cast.tile.to.vector(x86_amx %42)
     // store <256 x i32> %43, <256 x i32>* %p, align 64
     // -->
     // call void @llvm.x86.tilestored64.internal(i16 %row, i16 %col, i8* %p,
     //                                           i64 64, x86_amx %42)
-    if (II->getIntrinsicID() == Intrinsic::x86_cast_tile_to_vector) {
+    if (auto *II = cast<IntrinsicInst>(Cast); II->getIntrinsicID() == Intrinsic::x86_cast_tile_to_vector) {
       SmallVector<Instruction *, 2> DeadStores;
       for (User *U : Cast->users()) {
         StoreInst *Store = dyn_cast<StoreInst>(U);
@@ -1107,8 +1107,8 @@ bool X86LowerAMXCast::combineAMXcast(TargetLibraryInfo *TLI) {
   SmallSetVector<Instruction *, 16> DeadInst;
   for (BasicBlock &BB : Func) {
     for (Instruction &I : BB) {
-      Value *Vec;
-      if (match(&I,
+      
+      if (Value *Vec; match(&I,
                 m_Intrinsic<Intrinsic::x86_cast_vector_to_tile>(m_Value(Vec))))
         Vec2TileInsts.push_back(&I);
       else if (match(&I, m_Intrinsic<Intrinsic::x86_cast_tile_to_vector>(
@@ -1175,8 +1175,8 @@ bool X86LowerAMXCast::combineAMXcast(TargetLibraryInfo *TLI) {
     // We skip the dead Amxcast.
     if (DeadInst.contains(I))
       continue;
-    PHINode *PN = cast<PHINode>(I->getOperand(0));
-    if (optimizeAMXCastFromPhi(cast<IntrinsicInst>(I), PN, DeadInst)) {
+    
+    if (PHINode *PN = cast<PHINode>(I->getOperand(0)); optimizeAMXCastFromPhi(cast<IntrinsicInst>(I), PN, DeadInst)) {
       DeadInst.insert(PN);
       Change = true;
     }
@@ -1326,8 +1326,8 @@ bool lowerAmxType(Function &F, const TargetMachine *TM,
 PreservedAnalyses X86LowerAMXTypePass::run(Function &F,
                                            FunctionAnalysisManager &FAM) {
   TargetLibraryInfo &TLI = FAM.getResult<TargetLibraryAnalysis>(F);
-  bool Changed = lowerAmxType(F, TM, &TLI);
-  if (!Changed)
+  
+  if (bool Changed = lowerAmxType(F, TM, &TLI); !Changed)
     return PreservedAnalyses::all();
 
   PreservedAnalyses PA = PreservedAnalyses::none();

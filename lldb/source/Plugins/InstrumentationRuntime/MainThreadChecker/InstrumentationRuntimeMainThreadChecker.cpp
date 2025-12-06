@@ -110,8 +110,8 @@ InstrumentationRuntimeMainThreadChecker::RetrieveReportData(
   std::string className;
   std::string selector;
   if (apiName.substr(0, 2) == "-[") {
-    size_t spacePos = apiName.find(' ');
-    if (spacePos != std::string::npos) {
+    
+    if (size_t spacePos = apiName.find(' '); spacePos != std::string::npos) {
       className = apiName.substr(2, spacePos - 2);
       selector = apiName.substr(spacePos + 1, apiName.length() - spacePos - 2);
     }

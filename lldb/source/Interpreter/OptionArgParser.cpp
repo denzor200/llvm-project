@@ -38,9 +38,9 @@ bool OptionArgParser::ToBoolean(llvm::StringRef ref, bool fail_value,
 llvm::Expected<bool> OptionArgParser::ToBoolean(llvm::StringRef option_name,
                                                 llvm::StringRef option_arg) {
   bool parse_success;
-  const bool option_value =
-      ToBoolean(option_arg, false /* doesn't matter */, &parse_success);
-  if (parse_success)
+  
+  if (const bool option_value =
+      ToBoolean(option_arg, false /* doesn't matter */, &parse_success); parse_success)
     return option_value;
   else
     return llvm::createStringError(
@@ -76,8 +76,8 @@ int64_t OptionArgParser::ToOptionEnum(llvm::StringRef s,
   }
 
   for (const auto &enum_value : enum_values) {
-    llvm::StringRef this_enum(enum_value.string_value);
-    if (this_enum.starts_with(s))
+    
+    if (llvm::StringRef this_enum(enum_value.string_value); this_enum.starts_with(s))
       return enum_value.value;
   }
 
@@ -101,8 +101,8 @@ Status OptionArgParser::ToFormat(const char *s, lldb::Format &format,
     if (byte_size_ptr) {
       if (isdigit(s[0])) {
         char *format_char = nullptr;
-        unsigned long byte_size = ::strtoul(s, &format_char, 0);
-        if (byte_size != ULONG_MAX)
+        
+        if (unsigned long byte_size = ::strtoul(s, &format_char, 0); byte_size != ULONG_MAX)
           *byte_size_ptr = byte_size;
         s = format_char;
       } else
@@ -114,8 +114,8 @@ Status OptionArgParser::ToFormat(const char *s, lldb::Format &format,
       error_strm.Printf(
           "Invalid format character or name '%s'. Valid values are:\n", s);
       for (Format f = eFormatDefault; f < kNumFormats; f = Format(f + 1)) {
-        char format_char = FormatManager::GetFormatAsFormatChar(f);
-        if (format_char)
+        
+        if (char format_char = FormatManager::GetFormatAsFormatChar(f); format_char)
           error_strm.Printf("'%c' or ", format_char);
 
         error_strm.Printf("\"%s\"", FormatManager::GetFormatAsCString(f));
@@ -284,13 +284,13 @@ OptionArgParser::DoToAddress(const ExecutionContext *exe_ctx, llvm::StringRef s,
     StackFrame *frame = exe_ctx->GetFramePtr();
     llvm::StringRef reg_name = name;
     if (frame && reg_name.consume_front("$")) {
-      RegisterContextSP reg_ctx_sp = frame->GetRegisterContext();
-      if (reg_ctx_sp) {
-        const RegisterInfo *reg_info = reg_ctx_sp->GetRegisterInfoByName(reg_name);
-        if (reg_info) {
+      
+      if (RegisterContextSP reg_ctx_sp = frame->GetRegisterContext(); reg_ctx_sp) {
+        
+        if (const RegisterInfo *reg_info = reg_ctx_sp->GetRegisterInfoByName(reg_name); reg_info) {
           RegisterValue reg_val;
-          bool success = reg_ctx_sp->ReadRegister(reg_info, reg_val);
-          if (success && reg_val.GetType() != RegisterValue::eTypeInvalid) {
+          
+          if (bool success = reg_ctx_sp->ReadRegister(reg_info, reg_val); success && reg_val.GetType() != RegisterValue::eTypeInvalid) {
             register_value = reg_val.GetAsUInt64(0, &success);
             if (!success)
               register_value.reset();

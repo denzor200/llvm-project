@@ -227,8 +227,8 @@ transform::detail::mergeSymbolsInto(Operation *target,
 
       // Do the actual merging.
       {
-        InFlightDiagnostic diag = mergeInto(funcOp, collidingFuncOp);
-        if (failed(diag))
+        
+        if (InFlightDiagnostic diag = mergeInto(funcOp, collidingFuncOp); failed(diag))
           return diag;
       }
     }

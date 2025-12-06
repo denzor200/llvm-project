@@ -65,8 +65,8 @@ static void ForEachFormatterInModule(
       llvm::DataExtractor::Cursor cursor(0);
       uint64_t type_size = record.getULEB128(cursor);
       llvm::StringRef type_name = record.getBytes(cursor, type_size);
-      llvm::Error error = cursor.takeError();
-      if (!error)
+      
+      if (llvm::Error error = cursor.takeError(); !error)
         fn(llvm::DataExtractor(record.getData().drop_front(cursor.tell()), le,
                                addr_size),
            type_name);

@@ -744,8 +744,8 @@ bool llvm::lsp::fromJSON(const llvm::json::Value &Value,
 CompletionItemKind llvm::lsp::adjustKindToCapability(
     CompletionItemKind Kind,
     CompletionItemKindBitset &SupportedCompletionItemKinds) {
-  size_t KindVal = static_cast<size_t>(Kind);
-  if (KindVal >= kCompletionItemKindMin &&
+  
+  if (size_t KindVal = static_cast<size_t>(Kind); KindVal >= kCompletionItemKindMin &&
       KindVal <= SupportedCompletionItemKinds.size() &&
       SupportedCompletionItemKinds[KindVal])
     return Kind;
@@ -768,8 +768,8 @@ bool llvm::lsp::fromJSON(const llvm::json::Value &Value,
                          llvm::json::Path Path) {
   if (const llvm::json::Array *ArrayValue = Value.getAsArray()) {
     for (size_t I = 0, E = ArrayValue->size(); I < E; ++I) {
-      CompletionItemKind KindOut;
-      if (fromJSON((*ArrayValue)[I], KindOut, Path.index(I)))
+      
+      if (CompletionItemKind KindOut; fromJSON((*ArrayValue)[I], KindOut, Path.index(I)))
         Result.set(size_t(KindOut));
     }
     return true;

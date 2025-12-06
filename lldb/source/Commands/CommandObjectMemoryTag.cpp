@@ -149,10 +149,10 @@ public:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_value,
                           ExecutionContext *execution_context) override {
       Status status;
-      const int short_option =
-          g_memory_tag_write_options[option_idx].short_option;
+      
 
-      switch (short_option) {
+      switch (const int short_option =
+          g_memory_tag_write_options[option_idx].short_option; short_option) {
       case 'e':
         m_end_addr = OptionArgParser::ToRawAddress(
             execution_context, option_value, LLDB_INVALID_ADDRESS, &status);

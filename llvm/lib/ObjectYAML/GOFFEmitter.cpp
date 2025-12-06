@@ -128,8 +128,8 @@ private:
   void fillRecord() {
     assert((GetNumBytesInBuffer() <= RemainingSize) &&
            "More bytes in buffer than expected");
-    size_t Remains = RemainingSize - GetNumBytesInBuffer();
-    if (Remains) {
+    
+    if (size_t Remains = RemainingSize - GetNumBytesInBuffer(); Remains) {
       assert((Remains < GOFF::RecordLength) &&
              "Attempting to fill more than one physical record");
       raw_ostream::write_zeros(Remains);

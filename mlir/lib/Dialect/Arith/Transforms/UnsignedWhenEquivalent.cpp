@@ -31,8 +31,8 @@ using namespace mlir::dataflow;
 /// operands are non-negative, indicating that the cmpi operation `op` can have
 /// its predicate changed to an unsigned equivalent.
 static LogicalResult isCmpIConvertable(DataFlowSolver &solver, CmpIOp op) {
-  CmpIPredicate pred = op.getPredicate();
-  switch (pred) {
+  
+  switch (CmpIPredicate pred = op.getPredicate(); pred) {
   case CmpIPredicate::sle:
   case CmpIPredicate::slt:
   case CmpIPredicate::sge:

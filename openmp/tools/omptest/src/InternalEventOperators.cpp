@@ -190,15 +190,15 @@ bool operator==(const BufferComplete &Expected,
 
 bool operator==(const BufferRecord &Expected, const BufferRecord &Observed) {
   bool isSameType = (Expected.Record.type == Observed.Record.type);
-  bool isSameTargetId =
+  
+  if (bool isSameTargetId =
       (Expected.Record.target_id == std::numeric_limits<ompt_id_t>::min()) ||
-      (Expected.Record.target_id == Observed.Record.target_id);
-  if (!(isSameType && isSameTargetId))
+      (Expected.Record.target_id == Observed.Record.target_id); !(isSameType && isSameTargetId))
     return false;
   bool isEqual = true;
-  ompt_device_time_t ObservedDurationNs =
-      Observed.Record.record.target_data_op.end_time - Observed.Record.time;
-  switch (Expected.Record.type) {
+  
+  switch (ompt_device_time_t ObservedDurationNs =
+      Observed.Record.record.target_data_op.end_time - Observed.Record.time; Expected.Record.type) {
   case ompt_callback_target:
     isEqual &= (Expected.Record.record.target.kind ==
                 std::numeric_limits<ompt_target_t>::min()) ||

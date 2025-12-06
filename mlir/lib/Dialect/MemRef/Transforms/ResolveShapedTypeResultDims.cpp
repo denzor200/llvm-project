@@ -196,8 +196,8 @@ void memref::populateResolveShapedTypeResultDimsPatterns(
 void ResolveRankedShapeTypeResultDimsPass::runOnOperation() {
   RewritePatternSet patterns(&getContext());
   memref::populateResolveRankedShapedTypeResultDimsPatterns(patterns);
-  auto result = applyPatternsGreedily(getOperation(), std::move(patterns));
-  if (errorOnPatternIterationLimit && failed(result)) {
+  
+  if (auto result = applyPatternsGreedily(getOperation(), std::move(patterns)); errorOnPatternIterationLimit && failed(result)) {
     getOperation()->emitOpError(
         "dim operation resolution hit pattern iteration limit");
     return signalPassFailure();
@@ -208,8 +208,8 @@ void ResolveShapedTypeResultDimsPass::runOnOperation() {
   RewritePatternSet patterns(&getContext());
   memref::populateResolveRankedShapedTypeResultDimsPatterns(patterns);
   memref::populateResolveShapedTypeResultDimsPatterns(patterns);
-  auto result = applyPatternsGreedily(getOperation(), std::move(patterns));
-  if (errorOnPatternIterationLimit && failed(result)) {
+  
+  if (auto result = applyPatternsGreedily(getOperation(), std::move(patterns)); errorOnPatternIterationLimit && failed(result)) {
     getOperation()->emitOpError(
         "dim operation resolution hit pattern iteration limit");
     return signalPassFailure();

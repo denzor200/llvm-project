@@ -820,8 +820,8 @@ protected:
     // Read up to the next new line.
     assert(FC[ReadChars] == '\n' && "The bundle should end with a new line.");
 
-    size_t TripleEnd = ReadChars = FC.find("\n", ReadChars + 1);
-    if (TripleEnd != FC.npos)
+    
+    if (size_t TripleEnd = ReadChars = FC.find("\n", ReadChars + 1); TripleEnd != FC.npos)
       // Next time we read after the new line.
       ++ReadChars;
 
@@ -969,8 +969,8 @@ OffloadBundlerConfig::OffloadBundlerConfig()
       llvm::sys::Process::GetEnv("OFFLOAD_BUNDLER_COMPRESSION_LEVEL");
   if (CompressionLevelEnvVarOpt.has_value()) {
     llvm::StringRef CompressionLevelStr = CompressionLevelEnvVarOpt.value();
-    int Level;
-    if (!CompressionLevelStr.getAsInteger(10, Level))
+    
+    if (int Level; !CompressionLevelStr.getAsInteger(10, Level))
       CompressionLevel = Level;
     else
       llvm::errs()
@@ -981,8 +981,8 @@ OffloadBundlerConfig::OffloadBundlerConfig()
       llvm::sys::Process::GetEnv("COMPRESSED_BUNDLE_FORMAT_VERSION");
   if (CompressedBundleFormatVersionOpt.has_value()) {
     llvm::StringRef VersionStr = CompressedBundleFormatVersionOpt.value();
-    uint16_t Version;
-    if (!VersionStr.getAsInteger(10, Version)) {
+    
+    if (uint16_t Version; !VersionStr.getAsInteger(10, Version)) {
       if (Version >= 2 && Version <= 3)
         CompressedBundleVersion = Version;
       else
@@ -1190,8 +1190,8 @@ CompressedOffloadBundle::CompressedBundleHeader::tryParse(StringRef Blob) {
   CompressedBundleHeader Normalized;
   Normalized.Version = Header.Common.Version;
 
-  size_t RequiredSize = getHeaderSize(Normalized.Version);
-  if (Blob.size() < RequiredSize)
+  
+  if (size_t RequiredSize = getHeaderSize(Normalized.Version); Blob.size() < RequiredSize)
     return createStringError(inconvertibleErrorCode(),
                              "Compressed bundle header size too small");
 
@@ -1418,8 +1418,8 @@ bool isCodeObjectCompatible(const OffloadTargetInfo &CodeObjectInfo,
   // code object does not specify it (meaning Any), or if it specifies it
   // with the same value (meaning On or Off).
   for (const auto &CodeObjectFeature : CodeObjectFeatureMap) {
-    auto TargetFeature = TargetFeatureMap.find(CodeObjectFeature.getKey());
-    if (TargetFeature == TargetFeatureMap.end()) {
+    
+    if (auto TargetFeature = TargetFeatureMap.find(CodeObjectFeature.getKey()); TargetFeature == TargetFeatureMap.end()) {
       DEBUG_WITH_TYPE(
           "CodeObjectCompatibility",
           dbgs()
@@ -1698,8 +1698,8 @@ getCompatibleOffloadTargets(OffloadTargetInfo &CodeObjectInfo,
     return false;
   }
   for (auto &Target : BundlerConfig.TargetNames) {
-    auto TargetInfo = OffloadTargetInfo(Target, BundlerConfig);
-    if (isCodeObjectCompatible(CodeObjectInfo, TargetInfo))
+    
+    if (auto TargetInfo = OffloadTargetInfo(Target, BundlerConfig); isCodeObjectCompatible(CodeObjectInfo, TargetInfo))
       CompatibleTargets.push_back(Target);
   }
   return !CompatibleTargets.empty();
@@ -1802,8 +1802,8 @@ Error OffloadBundler::UnbundleArchive() {
     // For a specific processor, a feature either shows up in all target IDs, or
     // does not show up in any target IDs. Otherwise the target ID combination
     // is invalid.
-    auto ArchiveError = CheckHeterogeneousArchive(IFName, BundlerConfig);
-    if (ArchiveError) {
+    
+    if (auto ArchiveError = CheckHeterogeneousArchive(IFName, BundlerConfig); ArchiveError) {
       return ArchiveError;
     }
   }
@@ -1936,8 +1936,8 @@ Error OffloadBundler::UnbundleArchive() {
   /// Write out an archive for each target
   for (auto &Target : BundlerConfig.TargetNames) {
     StringRef FileName = TargetOutputFileNameMap[Target];
-    auto CurArchiveMembers = OutputArchivesMap.find(Target);
-    if (CurArchiveMembers != OutputArchivesMap.end()) {
+    
+    if (auto CurArchiveMembers = OutputArchivesMap.find(Target); CurArchiveMembers != OutputArchivesMap.end()) {
       if (Error WriteErr = writeArchive(FileName, CurArchiveMembers->getValue(),
                                         SymtabWritingMode::NormalSymtab,
                                         getDefaultArchiveKindForHost(), true,

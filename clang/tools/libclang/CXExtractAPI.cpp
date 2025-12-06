@@ -127,9 +127,9 @@ enum CXErrorCode clang_createAPISet(CXTranslationUnit tu, CXAPISet *out_api) {
 void clang_disposeAPISet(CXAPISet api) { delete unwrap(api); }
 
 CXString clang_getSymbolGraphForUSR(const char *usr, CXAPISet api) {
-  auto *API = unwrap(api);
+  
 
-  if (auto SGF = SymbolGraphSerializer::serializeSingleSymbolSGF(usr, *API))
+  if (auto *API = unwrap(api); auto SGF = SymbolGraphSerializer::serializeSingleSymbolSGF(usr, *API))
     return GenerateCXStringFromSymbolGraphData(std::move(*SGF));
 
   return cxstring::createNull();
@@ -137,8 +137,8 @@ CXString clang_getSymbolGraphForUSR(const char *usr, CXAPISet api) {
 
 CXString clang_getSymbolGraphForCursor(CXCursor cursor) {
   cursor = clang_getCursorReferenced(cursor);
-  CXCursorKind Kind = clang_getCursorKind(cursor);
-  if (!clang_isDeclaration(Kind))
+  
+  if (CXCursorKind Kind = clang_getCursorKind(cursor); !clang_isDeclaration(Kind))
     return cxstring::createNull();
 
   const Decl *D = cxcursor::getCursorDecl(cursor);

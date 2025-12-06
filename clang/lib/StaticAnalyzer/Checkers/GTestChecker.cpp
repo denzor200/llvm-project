@@ -225,8 +225,8 @@ void GTestChecker::checkPostCall(const CallEvent &Call,
     return;
   }
   if (ParamCount == 2){
-    auto *RefTy = CtorDecl->getParamDecl(0)->getType()->getAs<ReferenceType>();
-    if (RefTy &&
+    
+    if (auto *RefTy = CtorDecl->getParamDecl(0)->getType()->getAs<ReferenceType>(); RefTy &&
         RefTy->getPointeeType()->getCanonicalTypeUnqualified() == BoolTy) {
       // We have AssertionResult(bool &, ...)
       modelAssertionResultBoolConstructor(CtorCall, /*IsRef=*/true, C);

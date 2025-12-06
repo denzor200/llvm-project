@@ -468,8 +468,8 @@ AbstractSparseBackwardDataFlowAnalysis::visitOperation(Operation *op) {
 
     for (auto [index, block] : llvm::enumerate(op->getSuccessors())) {
       SuccessorOperands successorOperands = branch.getSuccessorOperands(index);
-      OperandRange forwarded = successorOperands.getForwardedOperands();
-      if (!forwarded.empty()) {
+      
+      if (OperandRange forwarded = successorOperands.getForwardedOperands(); !forwarded.empty()) {
         MutableArrayRef<OpOperand> operands = op->getOpOperands().slice(
             forwarded.getBeginOperandIndex(), forwarded.size());
         for (OpOperand &operand : operands) {
@@ -496,8 +496,8 @@ AbstractSparseBackwardDataFlowAnalysis::visitOperation(Operation *op) {
   // operands of the call op that are forwarded to these arguments.
   if (auto call = dyn_cast<CallOpInterface>(op)) {
     LDBG() << "Processing CallOpInterface operation";
-    Operation *callableOp = call.resolveCallableInTable(&symbolTable);
-    if (auto callable = dyn_cast_or_null<CallableOpInterface>(callableOp)) {
+    
+    if (Operation *callableOp = call.resolveCallableInTable(&symbolTable); auto callable = dyn_cast_or_null<CallableOpInterface>(callableOp)) {
       // Not all operands of a call op forward to arguments. Such operands are
       // stored in `unaccounted`.
       BitVector unaccounted(op->getNumOperands(), true);
@@ -570,9 +570,9 @@ AbstractSparseBackwardDataFlowAnalysis::visitOperation(Operation *op) {
 LogicalResult AbstractSparseBackwardDataFlowAnalysis::visitCallableOperation(
     Operation *op, CallableOpInterface callable,
     ArrayRef<AbstractSparseLattice *> operandLattices) {
-  const PredecessorState *callsites = getOrCreateFor<PredecessorState>(
-      getProgramPointAfter(op), getProgramPointAfter(callable));
-  if (callsites->allPredecessorsKnown()) {
+  
+  if (const PredecessorState *callsites = getOrCreateFor<PredecessorState>(
+      getProgramPointAfter(op), getProgramPointAfter(callable)); callsites->allPredecessorsKnown()) {
     for (Operation *call : callsites->getKnownPredecessors()) {
       SmallVector<const AbstractSparseLattice *> callResultLattices =
           getLatticeElementsFor(getProgramPointAfter(op), call->getResults());

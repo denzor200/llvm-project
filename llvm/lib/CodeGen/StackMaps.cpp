@@ -123,8 +123,8 @@ unsigned StatepointOpers::getNumGCPtrIdx() {
 
 int StatepointOpers::getFirstGCPtrIdx() {
   unsigned NumGCPtrsIdx = getNumGCPtrIdx();
-  unsigned NumGCPtrs = getConstMetaVal(*MI, NumGCPtrsIdx - 1);
-  if (NumGCPtrs == 0)
+  
+  if (unsigned NumGCPtrs = getConstMetaVal(*MI, NumGCPtrsIdx - 1); NumGCPtrs == 0)
     return -1;
   ++NumGCPtrsIdx; // skip <num gc ptrs>
   assert(NumGCPtrsIdx < MI->getNumOperands());
@@ -169,8 +169,8 @@ StackMaps::StackMaps(AsmPrinter &AP) : AP(AP) {
 
 unsigned StackMaps::getNextMetaArgIdx(const MachineInstr *MI, unsigned CurIdx) {
   assert(CurIdx < MI->getNumOperands() && "Bad meta arg index");
-  const auto &MO = MI->getOperand(CurIdx);
-  if (MO.isImm()) {
+  
+  if (const auto &MO = MI->getOperand(CurIdx); MO.isImm()) {
     switch (MO.getImm()) {
     default:
       llvm_unreachable("Unrecognized operand type.");
@@ -521,8 +521,8 @@ void StackMaps::recordStackMapOpers(const MCSymbol &MILabel,
       MFI.hasVarSizedObjects() || RegInfo->hasStackRealignment(*(AP.MF));
   uint64_t FrameSize = HasDynamicFrameSize ? UINT64_MAX : MFI.getStackSize();
 
-  auto [CurrentIt, Inserted] = FnInfos.try_emplace(AP.CurrentFnSym, FrameSize);
-  if (!Inserted)
+  
+  if (auto [CurrentIt, Inserted] = FnInfos.try_emplace(AP.CurrentFnSym, FrameSize); !Inserted)
     CurrentIt->second.RecordCount++;
 }
 

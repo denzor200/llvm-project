@@ -51,29 +51,29 @@ void RefVal::print(raw_ostream &Out) const {
     default: llvm_unreachable("Invalid RefVal kind");
     case Owned: {
       Out << "Owned";
-      unsigned cnt = getCount();
-      if (cnt) Out << " (+ " << cnt << ")";
+      
+      if (unsigned cnt = getCount(); cnt) Out << " (+ " << cnt << ")";
       break;
     }
 
     case NotOwned: {
       Out << "NotOwned";
-      unsigned cnt = getCount();
-      if (cnt) Out << " (+ " << cnt << ")";
+      
+      if (unsigned cnt = getCount(); cnt) Out << " (+ " << cnt << ")";
       break;
     }
 
     case ReturnedOwned: {
       Out << "ReturnedOwned";
-      unsigned cnt = getCount();
-      if (cnt) Out << " (+ " << cnt << ")";
+      
+      if (unsigned cnt = getCount(); cnt) Out << " (+ " << cnt << ")";
       break;
     }
 
     case ReturnedNotOwned: {
       Out << "ReturnedNotOwned";
-      unsigned cnt = getCount();
-      if (cnt) Out << " (+ " << cnt << ")";
+      
+      if (unsigned cnt = getCount(); cnt) Out << " (+ " << cnt << ")";
       break;
     }
 
@@ -229,8 +229,8 @@ void RetainCountChecker::processObjCLiterals(CheckerContext &C,
   ProgramStateRef state = C.getState();
   const ExplodedNode *pred = C.getPredecessor();
   for (const Stmt *Child : Ex->children()) {
-    SVal V = pred->getSVal(Child);
-    if (SymbolRef sym = V.getAsSymbol())
+    
+    if (SVal V = pred->getSVal(Child); SymbolRef sym = V.getAsSymbol())
       if (const RefVal* T = getRefBinding(state, sym)) {
         RefVal::Kind hasErr = (RefVal::Kind) 0;
         state = updateSymbol(state, sym, *T,
@@ -366,8 +366,8 @@ void RetainCountChecker::checkPostCall(const CallEvent &Call,
   QualType ReceiverType;
   if (const auto *MC = dyn_cast<ObjCMethodCall>(&Call)) {
     if (MC->isInstanceMessage()) {
-      SVal ReceiverV = MC->getReceiverSVal();
-      if (SymbolRef Sym = ReceiverV.getAsLocSymbol())
+      
+      if (SVal ReceiverV = MC->getReceiverSVal(); SymbolRef Sym = ReceiverV.getAsLocSymbol())
         if (const RefVal *T = getRefBinding(C.getState(), Sym))
           ReceiverType = T->getType();
     }
@@ -450,9 +450,9 @@ void RetainCountChecker::processSummaryOfInlined(const RetainSummary &Summ,
 
   // Evaluate the effect of the arguments.
   for (unsigned idx = 0, e = CallOrMsg.getNumArgs(); idx != e; ++idx) {
-    SVal V = CallOrMsg.getArgSVal(idx);
+    
 
-    if (SymbolRef Sym = V.getAsLocSymbol()) {
+    if (SVal V = CallOrMsg.getArgSVal(idx); SymbolRef Sym = V.getAsLocSymbol()) {
       bool ShouldRemoveBinding = Summ.getArg(idx).getKind() == StopTrackingHard;
       if (const RefVal *T = getRefBinding(state, Sym))
         if (shouldEscapeOSArgumentOnCall(CallOrMsg, idx, T))
@@ -567,12 +567,12 @@ updateOutParameters(ProgramStateRef State, const RetainSummary &Summ,
       return setRefBinding(St, Pointee,
                            RefVal::makeNotOwned(AE.getObjKind(), PointeeTy));
     };
-    auto makeOwnedParameter = [&](ProgramStateRef St) {
+    
+
+    switch (auto makeOwnedParameter = [&](ProgramStateRef St) {
       return setRefBinding(St, Pointee,
                            RefVal::makeOwned(ObjKind::OS, PointeeTy));
-    };
-
-    switch (AE.getKind()) {
+    }; AE.getKind()) {
     case UnretainedOutParameter:
       AssumeNonZeroReturn = makeNotOwnedParameter(AssumeNonZeroReturn);
       AssumeZeroReturn = makeNotOwnedParameter(AssumeZeroReturn);
@@ -617,8 +617,8 @@ void RetainCountChecker::checkSummary(const RetainSummary &Summ,
   for (unsigned idx = 0, e = CallOrMsg.getNumArgs(); idx != e; ++idx) {
     SVal V = CallOrMsg.getArgSVal(idx);
 
-    ArgEffect Effect = Summ.getArg(idx);
-    if (SymbolRef Sym = V.getAsLocSymbol()) {
+    
+    if (ArgEffect Effect = Summ.getArg(idx); SymbolRef Sym = V.getAsLocSymbol()) {
       if (const RefVal *T = getRefBinding(state, Sym)) {
 
         if (shouldEscapeOSArgumentOnCall(CallOrMsg, idx, T))
@@ -711,8 +711,8 @@ ProgramStateRef RetainCountChecker::updateSymbol(ProgramStateRef state,
                                                  ArgEffect AE,
                                                  RefVal::Kind &hasErr,
                                                  CheckerContext &C) const {
-  bool IgnoreRetainMsg = (bool)C.getASTContext().getLangOpts().ObjCAutoRefCount;
-  if (AE.getObjKind() == ObjKind::ObjC && IgnoreRetainMsg) {
+  
+  if (bool IgnoreRetainMsg = (bool)C.getASTContext().getLangOpts().ObjCAutoRefCount; AE.getObjKind() == ObjKind::ObjC && IgnoreRetainMsg) {
     switch (AE.getKind()) {
     default:
       break;
@@ -840,9 +840,9 @@ ProgramStateRef RetainCountChecker::updateSymbol(ProgramStateRef state,
 const RefCountBug &
 RetainCountChecker::errorKindToBugKind(RefVal::Kind ErrorKind,
                                        SymbolRef Sym) const {
-  const RefCountFrontend &FE = getPreferredFrontend();
+  
 
-  switch (ErrorKind) {
+  switch (const RefCountFrontend &FE = getPreferredFrontend(); ErrorKind) {
     case RefVal::ErrorUseAfterRelease:
       return FE.UseAfterRelease;
     case RefVal::ErrorReleaseNotOwned:
@@ -1010,8 +1010,8 @@ ExplodedNode * RetainCountChecker::processReturn(const ReturnStmt *S,
     }
 
     case RefVal::NotOwned: {
-      unsigned cnt = X.getCount();
-      if (cnt) {
+      
+      if (unsigned cnt = X.getCount(); cnt) {
         X.setCount(cnt - 1);
         X = X ^ RefVal::ReturnedOwned;
       } else {
@@ -1138,11 +1138,11 @@ ExplodedNode * RetainCountChecker::checkReturnWithRetEffect(const ReturnStmt *S,
 void RetainCountChecker::checkBind(SVal loc, SVal val, const Stmt *S,
                                    bool AtDeclInit, CheckerContext &C) const {
   ProgramStateRef state = C.getState();
-  const MemRegion *MR = loc.getAsRegion();
+  
 
   // Find all symbols referenced by 'val' that we are tracking
   // and stop tracking them.
-  if (MR && shouldEscapeRegion(state, MR)) {
+  if (const MemRegion *MR = loc.getAsRegion(); MR && shouldEscapeRegion(state, MR)) {
     state = state->scanReachableSymbols<StopTrackingCallback>(val).getState();
     C.addTransition(state);
   }
@@ -1168,8 +1168,8 @@ ProgramStateRef RetainCountChecker::evalAssume(ProgramStateRef state,
 
   for (auto &I : B) {
     // Check if the symbol is null stop tracking the symbol.
-    ConditionTruthVal AllocFailed = CMgr.isNull(state, I.first);
-    if (AllocFailed.isConstrainedTrue()) {
+    
+    if (ConditionTruthVal AllocFailed = CMgr.isNull(state, I.first); AllocFailed.isConstrainedTrue()) {
       changed = true;
       B = RefBFactory.remove(B, I.first);
     }
@@ -1312,9 +1312,9 @@ RetainCountChecker::processLeaks(ProgramStateRef state,
                                  ExplodedNode *Pred) const {
   // Generate an intermediate node representing the leak point.
   ExplodedNode *N = Ctx.addTransition(state, Pred);
-  const LangOptions &LOpts = Ctx.getASTContext().getLangOpts();
+  
 
-  if (N) {
+  if (const LangOptions &LOpts = Ctx.getASTContext().getLangOpts(); N) {
     const RefCountFrontend &FE = getPreferredFrontend();
     const RefCountBug &BT = Pred ? FE.LeakWithinFunction : FE.LeakAtReturn;
 
@@ -1347,10 +1347,10 @@ void RetainCountChecker::checkBeginFunction(CheckerContext &Ctx) const {
     SymbolRef Sym = state->getSVal(state->getRegion(Param, LCtx)).getAsSymbol();
 
     QualType Ty = Param->getType();
-    const ArgEffect *AE = CalleeSideArgEffects.lookup(idx);
-    if (AE) {
-      ObjKind K = AE->getObjKind();
-      if (K == ObjKind::Generalized || K == ObjKind::OS ||
+    
+    if (const ArgEffect *AE = CalleeSideArgEffects.lookup(idx); AE) {
+      
+      if (ObjKind K = AE->getObjKind(); K == ObjKind::Generalized || K == ObjKind::OS ||
           (TrackNSCFStartParam && (K == ObjKind::ObjC || K == ObjKind::CF))) {
         RefVal NewVal = AE->getKind() == DecRef ? RefVal::makeOwned(K, Ty)
                                                 : RefVal::makeNotOwned(K, Ty);
@@ -1412,8 +1412,8 @@ void RetainCountChecker::checkDeadSymbols(SymbolReaper &SymReaper,
 
   // Update counts from autorelease pools
   for (const auto &I: state->get<RefBindings>()) {
-    SymbolRef Sym = I.first;
-    if (SymReaper.isDead(Sym)) {
+    
+    if (SymbolRef Sym = I.first; SymReaper.isDead(Sym)) {
       const RefVal &V = I.second;
       state = handleAutoreleaseCounts(state, Pred, C, Sym, V);
       if (!state)

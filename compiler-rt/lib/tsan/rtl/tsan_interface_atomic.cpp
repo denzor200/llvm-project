@@ -272,8 +272,8 @@ struct OpLoad {
     // Don't create sync object if it does not exist yet. For example, an atomic
     // pointer is initialized to nullptr and then periodically acquire-loaded.
     T v = NoTsanAtomic(mo, a);
-    SyncVar *s = ctx->metamap.GetSyncIfExists((uptr)a);
-    if (s) {
+    
+    if (SyncVar *s = ctx->metamap.GetSyncIfExists((uptr)a); s) {
       SlotLocker locker(thr);
       ReadLock lock(&s->mtx);
       thr->clock.Acquire(s->clock);

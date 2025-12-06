@@ -33,8 +33,8 @@ const char *_object_error_category::name() const noexcept {
 }
 
 std::string _object_error_category::message(int EV) const {
-  object_error E = static_cast<object_error>(EV);
-  switch (E) {
+  
+  switch (object_error E = static_cast<object_error>(EV); E) {
   case object_error::arch_not_found:
     return "No object file for requested architecture";
   case object_error::invalid_file_type:

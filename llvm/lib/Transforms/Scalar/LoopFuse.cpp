@@ -424,9 +424,9 @@ struct FusionCandidateCompare {
     // function is needed.
     bool WrongOrder =
         nonStrictlyPostDominate(LHSEntryBlock, RHSEntryBlock, DT, LHS.PDT);
-    bool RightOrder =
-        nonStrictlyPostDominate(RHSEntryBlock, LHSEntryBlock, DT, LHS.PDT);
-    if (WrongOrder && RightOrder) {
+    
+    if (bool RightOrder =
+        nonStrictlyPostDominate(RHSEntryBlock, LHSEntryBlock, DT, LHS.PDT); WrongOrder && RightOrder) {
       // If common predecessor of LHS and RHS post dominates both
       // FusionCandidates then, Order of FusionCandidate can be
       // identified by its level in post dominator tree.
@@ -818,9 +818,9 @@ private:
       // in the case of unguarded loops, or the succesors of the exit block of
       // the first loop otherwise. Doing this update will ensure that the entry
       // block of the first loop dominates the entry block of the second loop.
-      BasicBlock *BB =
-          FC0.GuardBranch ? FC0.ExitBlock->getUniqueSuccessor() : FC1.Preheader;
-      if (BB) {
+      
+      if (BasicBlock *BB =
+          FC0.GuardBranch ? FC0.ExitBlock->getUniqueSuccessor() : FC1.Preheader; BB) {
         SmallVector<DominatorTree::UpdateType, 8> TreeUpdates;
         SmallVector<Instruction *, 8> WorkList;
         for (BasicBlock *Pred : predecessors(BB)) {
@@ -1081,10 +1081,10 @@ private:
 
     for (Use &Op : I.operands()) {
       if (auto *OpInst = dyn_cast<Instruction>(Op)) {
-        bool OpHoisted = is_contained(SafeToHoist, OpInst);
+        
         // Check if we have already decided to hoist this operand. In this
         // case, it does not dominate FC0 *yet*, but will after we hoist it.
-        if (!(OpHoisted || DT.dominates(OpInst, FC0PreheaderTarget))) {
+        if (bool OpHoisted = is_contained(SafeToHoist, OpInst); !(OpHoisted || DT.dominates(OpInst, FC0PreheaderTarget))) {
           return false;
         }
       }
@@ -1269,8 +1269,8 @@ private:
       }
 
       if (OldL.contains(ExprL)) {
-        bool Pos = SE.isKnownPositive(Expr->getStepRecurrence(SE));
-        if (!UseMax || !Pos || !Expr->isAffine()) {
+        
+        if (bool Pos = SE.isKnownPositive(Expr->getStepRecurrence(SE)); !UseMax || !Pos || !Expr->isAffine()) {
           Valid = false;
           return Expr;
         }
@@ -1383,12 +1383,12 @@ private:
       // Iterating over the outer levels.
       for (unsigned Level = 1; Level <= std::min(CurLoopLevel - 1, Levels);
            ++Level) {
-        unsigned Direction = DepResult->getDirection(Level, false);
+        
 
         // Check if the direction vector does not include equality. If an outer
         // loop has a non-equal direction, outer indicies are different and it
         // is safe to fuse.
-        if (!(Direction & Dependence::DVEntry::EQ)) {
+        if (unsigned Direction = DepResult->getDirection(Level, false); !(Direction & Dependence::DVEntry::EQ)) {
           LLVM_DEBUG(dbgs() << "Safe to fuse due to non-equal acceses in the "
                                "outer loops\n");
           NumDA++;
@@ -1586,8 +1586,8 @@ private:
   /// Modify the latch branch of FC to be unconditional since successors of the
   /// branch are the same.
   void simplifyLatchBranch(const FusionCandidate &FC) const {
-    BranchInst *FCLatchBranch = dyn_cast<BranchInst>(FC.Latch->getTerminator());
-    if (FCLatchBranch) {
+    
+    if (BranchInst *FCLatchBranch = dyn_cast<BranchInst>(FC.Latch->getTerminator()); FCLatchBranch) {
       assert(FCLatchBranch->isConditional() &&
              FCLatchBranch->getSuccessor(0) == FCLatchBranch->getSuccessor(1) &&
              "Expecting the two successors of FCLatchBranch to be the same");

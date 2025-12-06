@@ -159,8 +159,8 @@ StringRef DataExtractor::getCStrRef(uint64_t *OffsetPtr, Error *Err) const {
     return StringRef();
 
   uint64_t Start = *OffsetPtr;
-  StringRef::size_type Pos = Data.find('\0', Start);
-  if (Pos != StringRef::npos) {
+  
+  if (StringRef::size_type Pos = Data.find('\0', Start); Pos != StringRef::npos) {
     *OffsetPtr = Pos + 1;
     return StringRef(Data.data() + Start, Pos - Start);
   }

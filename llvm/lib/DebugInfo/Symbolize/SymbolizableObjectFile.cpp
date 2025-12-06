@@ -155,8 +155,8 @@ Error SymbolizableObjectFile::addSymbol(const SymbolRef &Symbol,
   if (!Sec || Obj.section_end() == *Sec) {
     if (Obj.isELF()) {
       // Store the (index, filename) pair for a file symbol.
-      ELFSymbolRef ESym(Symbol);
-      if (ESym.getELFType() == ELF::STT_FILE)
+      
+      if (ELFSymbolRef ESym(Symbol); ESym.getELFType() == ELF::STT_FILE)
         FileSymbols.emplace_back(ELFSymIdx, SymbolName);
     }
     return Error::success();
@@ -204,8 +204,8 @@ Error SymbolizableObjectFile::addSymbol(const SymbolRef &Symbol,
     // the function's code.
     // For the purposes of symbolization, pretend the symbol's address is that
     // of the function's code, not the descriptor.
-    uint64_t OpdOffset = SymbolAddress - OpdAddress;
-    if (OpdExtractor->isValidOffsetForAddress(OpdOffset))
+    
+    if (uint64_t OpdOffset = SymbolAddress - OpdAddress; OpdExtractor->isValidOffsetForAddress(OpdOffset))
       SymbolAddress = OpdExtractor->getAddress(&OpdOffset);
   }
   // Mach-O symbol table names have leading underscore, skip it.
@@ -250,10 +250,10 @@ bool SymbolizableObjectFile::getNameFromSymbolTable(
     // SymbolIterator to get the filename. The ELF spec requires the STT_FILE
     // symbol (if present) precedes the other STB_LOCAL symbols for the file.
     assert(Module->isELF());
-    auto It = llvm::upper_bound(
+    
+    if (auto It = llvm::upper_bound(
         FileSymbols,
-        std::make_pair(SymbolIterator->ELFLocalSymIdx, StringRef()));
-    if (It != FileSymbols.begin())
+        std::make_pair(SymbolIterator->ELFLocalSymIdx, StringRef())); It != FileSymbols.begin())
       FileName = It[-1].second.str();
   }
   return true;
@@ -285,8 +285,8 @@ SymbolizableObjectFile::symbolizeCode(object::SectionedAddress ModuleOffset,
   // Override function name from symbol table if necessary.
   if (shouldOverrideWithSymbolTable(LineInfoSpecifier.FNKind, UseSymbolTable)) {
     std::string FunctionName, FileName;
-    uint64_t Start, Size;
-    if (getNameFromSymbolTable(ModuleOffset.Address, FunctionName, Start, Size,
+    
+    if (uint64_t Start, Size; getNameFromSymbolTable(ModuleOffset.Address, FunctionName, Start, Size,
                                FileName)) {
       LineInfo.FunctionName = FunctionName;
       LineInfo.StartAddress = Start;
@@ -318,8 +318,8 @@ DIInliningInfo SymbolizableObjectFile::symbolizeInlinedCode(
   // Override the function name in lower frame with name from symbol table.
   if (shouldOverrideWithSymbolTable(LineInfoSpecifier.FNKind, UseSymbolTable)) {
     std::string FunctionName, FileName;
-    uint64_t Start, Size;
-    if (getNameFromSymbolTable(ModuleOffset.Address, FunctionName, Start, Size,
+    
+    if (uint64_t Start, Size; getNameFromSymbolTable(ModuleOffset.Address, FunctionName, Start, Size,
                                FileName)) {
       DILineInfo *LI = InlinedContext.getMutableFrame(
           InlinedContext.getNumberOfFrames() - 1);

@@ -252,12 +252,12 @@ int printGPUsByHIP() {
   LoadSymbol("hipGetErrorString", hipGetErrorString);
 
   if (LoadSymbol("hipRuntimeGetVersion", hipRuntimeGetVersion)) {
-    int RuntimeVersion = 0;
-    if (hipRuntimeGetVersion(&RuntimeVersion) == hipSuccess) {
+    
+    if (int RuntimeVersion = 0; hipRuntimeGetVersion(&RuntimeVersion) == hipSuccess) {
       int Major = RuntimeVersion / 10000000;
       int Minor = (RuntimeVersion / 100000) % 100;
-      int Patch = RuntimeVersion % 100000;
-      if (Verbose)
+      
+      if (int Patch = RuntimeVersion % 100000; Verbose)
         outs() << "HIP Runtime Version: " << Major << "." << Minor << "."
                << Patch << '\n';
     }
@@ -343,8 +343,8 @@ int printGPUsByHIP() {
       return !ArchName.empty();
     };
 
-    [[maybe_unused]] bool OK;
-    switch (HipApi) {
+    
+    switch ([[maybe_unused]] bool OK; HipApi) {
     case HipApiVersion::Auto:
       OK = TryR0600(I) || TryR0000(I) || TryUnversioned(I);
       break;

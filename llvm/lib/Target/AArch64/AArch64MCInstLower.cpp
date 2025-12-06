@@ -128,10 +128,10 @@ MCSymbol *AArch64MCInstLower::GetGlobalValueSymbol(const GlobalValue *GV,
   if (TargetFlags & AArch64II::MO_COFFSTUB) {
     MachineModuleInfoCOFF &MMICOFF =
         Printer.MMI->getObjFileInfo<MachineModuleInfoCOFF>();
-    MachineModuleInfoImpl::StubValueTy &StubSym =
-        MMICOFF.getGVStubEntry(MCSym);
+    
 
-    if (!StubSym.getPointer())
+    if (MachineModuleInfoImpl::StubValueTy &StubSym =
+        MMICOFF.getGVStubEntry(MCSym); !StubSym.getPointer())
       StubSym = MachineModuleInfoImpl::StubValueTy(Printer.getSymbol(GV), true);
   }
 
@@ -191,8 +191,8 @@ MCOperand AArch64MCInstLower::lowerSymbolOperandELF(const MachineOperand &MO,
   } else if (MO.getTargetFlags() & AArch64II::MO_TLS) {
     TLSModel::Model Model;
     if (MO.isGlobal()) {
-      const MachineFunction *MF = MO.getParent()->getParent()->getParent();
-      if (MF->getInfo<AArch64FunctionInfo>()->hasELFSignedGOT()) {
+      
+      if (const MachineFunction *MF = MO.getParent()->getParent()->getParent(); MF->getInfo<AArch64FunctionInfo>()->hasELFSignedGOT()) {
         Model = TLSModel::GeneralDynamic;
       } else {
         const GlobalValue *GV = MO.getGlobal();
@@ -303,8 +303,8 @@ MCOperand AArch64MCInstLower::lowerSymbolOperandCOFF(const MachineOperand &MO,
   // because setting VK_NC for others would mean setting their respective
   // RefFlags correctly.  We should do this in a separate patch.
   if (MO.getTargetFlags() & AArch64II::MO_NC) {
-    auto MOFrag = (MO.getTargetFlags() & AArch64II::MO_FRAGMENT);
-    if (MOFrag == AArch64II::MO_G3 || MOFrag == AArch64II::MO_G2 ||
+    
+    if (auto MOFrag = (MO.getTargetFlags() & AArch64II::MO_FRAGMENT); MOFrag == AArch64II::MO_G3 || MOFrag == AArch64II::MO_G2 ||
         MOFrag == AArch64II::MO_G1 || MOFrag == AArch64II::MO_G0)
       RefFlags |= AArch64::S_NC;
   }
@@ -377,8 +377,8 @@ void AArch64MCInstLower::Lower(const MachineInstr *MI, MCInst &OutMI) const {
   OutMI.setOpcode(MI->getOpcode());
 
   for (const MachineOperand &MO : MI->operands()) {
-    MCOperand MCOp;
-    if (lowerOperand(MO, MCOp))
+    
+    if (MCOperand MCOp; lowerOperand(MO, MCOp))
       OutMI.addOperand(MCOp);
   }
 

@@ -169,8 +169,8 @@ std::vector<Cluster> clusterize(const CallGraph &Cg) {
     double BestProb = 0;
 
     for (const NodeId Src : Cg.predecessors(Fid)) {
-      const Arc &Arc = *Cg.findArc(Src, Fid);
-      if (BestPred == CallGraph::InvalidId ||
+      
+      if (const Arc &Arc = *Cg.findArc(Src, Fid); BestPred == CallGraph::InvalidId ||
           Arc.normalizedWeight() > BestProb) {
         BestPred = Arc.src();
         BestProb = Arc.normalizedWeight();
@@ -270,8 +270,8 @@ std::vector<Cluster> randomClusters(const CallGraph &Cg) {
 
   size_t Idx = 0;
   while (Idx < Clusters.size()) {
-    size_t MergeIdx = pickMergeCluster(Idx);
-    if (MergeIdx == Clusters.size()) {
+    
+    if (size_t MergeIdx = pickMergeCluster(Idx); MergeIdx == Clusters.size()) {
       ++Idx;
     } else {
       Clusters[Idx].merge(Clusters[MergeIdx]);

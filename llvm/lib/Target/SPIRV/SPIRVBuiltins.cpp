@@ -939,9 +939,9 @@ static bool buildBarrierInst(const SPIRV::IncomingCall *Call, unsigned Opcode,
                              MachineIRBuilder &MIRBuilder,
                              SPIRVGlobalRegistry *GR) {
   const SPIRV::DemangledBuiltin *Builtin = Call->Builtin;
-  const auto *ST =
-      static_cast<const SPIRVSubtarget *>(&MIRBuilder.getMF().getSubtarget());
-  if ((Opcode == SPIRV::OpControlBarrierArriveINTEL ||
+  
+  if (const auto *ST =
+      static_cast<const SPIRVSubtarget *>(&MIRBuilder.getMF().getSubtarget()); (Opcode == SPIRV::OpControlBarrierArriveINTEL ||
        Opcode == SPIRV::OpControlBarrierWaitINTEL) &&
       !ST->canUseExtension(SPIRV::Extension::SPV_INTEL_split_barrier)) {
     std::string DiagMsg = std::string(Builtin->Name) +
@@ -1017,9 +1017,9 @@ static bool buildExtendedBitOpsInst(const SPIRV::IncomingCall *Call,
                                     MachineIRBuilder &MIRBuilder,
                                     SPIRVGlobalRegistry *GR) {
   const SPIRV::DemangledBuiltin *Builtin = Call->Builtin;
-  const auto *ST =
-      static_cast<const SPIRVSubtarget *>(&MIRBuilder.getMF().getSubtarget());
-  if ((Opcode == SPIRV::OpBitFieldInsert ||
+  
+  if (const auto *ST =
+      static_cast<const SPIRVSubtarget *>(&MIRBuilder.getMF().getSubtarget()); (Opcode == SPIRV::OpBitFieldInsert ||
        Opcode == SPIRV::OpBitFieldSExtract ||
        Opcode == SPIRV::OpBitFieldUExtract || Opcode == SPIRV::OpBitReverse) &&
       !ST->canUseExtension(SPIRV::Extension::SPV_KHR_bit_instructions)) {
@@ -1172,9 +1172,9 @@ static bool generateExtInst(const SPIRV::IncomingCall *Call,
   // fmax with NotInf and NotNaN flags instead. Keep original number to add
   // later the NoNans and NoInfs flags.
   uint32_t OrigNumber = Number;
-  const SPIRVSubtarget &ST =
-      cast<SPIRVSubtarget>(MIRBuilder.getMF().getSubtarget());
-  if (ST.canUseExtension(SPIRV::Extension::SPV_KHR_float_controls2) &&
+  
+  if (const SPIRVSubtarget &ST =
+      cast<SPIRVSubtarget>(MIRBuilder.getMF().getSubtarget()); ST.canUseExtension(SPIRV::Extension::SPV_KHR_float_controls2) &&
       (Number == SPIRV::OpenCLExtInst::fmin_common ||
        Number == SPIRV::OpenCLExtInst::fmax_common)) {
     Number = (Number == SPIRV::OpenCLExtInst::fmin_common)
@@ -1445,8 +1445,8 @@ static bool generateGroupUniformInst(const SPIRV::IncomingCall *Call,
                                      SPIRVGlobalRegistry *GR) {
   const SPIRV::DemangledBuiltin *Builtin = Call->Builtin;
   MachineFunction &MF = MIRBuilder.getMF();
-  const auto *ST = static_cast<const SPIRVSubtarget *>(&MF.getSubtarget());
-  if (!ST->canUseExtension(
+  
+  if (const auto *ST = static_cast<const SPIRVSubtarget *>(&MF.getSubtarget()); !ST->canUseExtension(
           SPIRV::Extension::SPV_KHR_uniform_group_instructions)) {
     std::string DiagMsg = std::string(Builtin->Name) +
                           ": the builtin requires the following SPIR-V "
@@ -1489,8 +1489,8 @@ static bool generateKernelClockInst(const SPIRV::IncomingCall *Call,
                                     SPIRVGlobalRegistry *GR) {
   const SPIRV::DemangledBuiltin *Builtin = Call->Builtin;
   MachineFunction &MF = MIRBuilder.getMF();
-  const auto *ST = static_cast<const SPIRVSubtarget *>(&MF.getSubtarget());
-  if (!ST->canUseExtension(SPIRV::Extension::SPV_KHR_shader_clock)) {
+  
+  if (const auto *ST = static_cast<const SPIRVSubtarget *>(&MF.getSubtarget()); !ST->canUseExtension(SPIRV::Extension::SPV_KHR_shader_clock)) {
     std::string DiagMsg = std::string(Builtin->Name) +
                           ": the builtin requires the following SPIR-V "
                           "extension: SPV_KHR_shader_clock";
@@ -1565,12 +1565,12 @@ static bool genWorkgroupQuery(const SPIRV::IncomingCall *Call,
   Register ToTruncate = Call->ReturnRegister;
 
   // If the index is constant, we can statically determine if it is in range.
-  bool IsConstantIndex =
-      IndexInstruction->getOpcode() == TargetOpcode::G_CONSTANT;
+  
 
   // If it's out of range (max dimension is 3), we can just return the constant
   // default value (0 or 1 depending on which query function).
-  if (IsConstantIndex && getIConstVal(IndexRegister, MRI) >= 3) {
+  if (bool IsConstantIndex =
+      IndexInstruction->getOpcode() == TargetOpcode::G_CONSTANT; IsConstantIndex && getIConstVal(IndexRegister, MRI) >= 3) {
     Register DefaultReg = Call->ReturnRegister;
     if (PointerSize != ResultWidth) {
       DefaultReg = MRI->createGenericVirtualRegister(LLT::scalar(PointerSize));
@@ -1676,10 +1676,10 @@ static bool generateAtomicInst(const SPIRV::IncomingCall *Call,
                                SPIRVGlobalRegistry *GR) {
   // Lookup the instruction opcode in the TableGen records.
   const SPIRV::DemangledBuiltin *Builtin = Call->Builtin;
-  unsigned Opcode =
-      SPIRV::lookupNativeBuiltin(Builtin->Name, Builtin->Set)->Opcode;
+  
 
-  switch (Opcode) {
+  switch (unsigned Opcode =
+      SPIRV::lookupNativeBuiltin(Builtin->Name, Builtin->Set)->Opcode; Opcode) {
   case SPIRV::OpStore:
     return buildAtomicInitInst(Call, MIRBuilder);
   case SPIRV::OpAtomicLoad:
@@ -1715,9 +1715,9 @@ static bool generateAtomicFloatingInst(const SPIRV::IncomingCall *Call,
                                        SPIRVGlobalRegistry *GR) {
   // Lookup the instruction opcode in the TableGen records.
   const SPIRV::DemangledBuiltin *Builtin = Call->Builtin;
-  unsigned Opcode = SPIRV::lookupAtomicFloatingBuiltin(Builtin->Name)->Opcode;
+  
 
-  switch (Opcode) {
+  switch (unsigned Opcode = SPIRV::lookupAtomicFloatingBuiltin(Builtin->Name)->Opcode; Opcode) {
   case SPIRV::OpAtomicFAddEXT:
   case SPIRV::OpAtomicFMinEXT:
   case SPIRV::OpAtomicFMaxEXT:
@@ -1743,10 +1743,10 @@ static bool generateCastToPtrInst(const SPIRV::IncomingCall *Call,
                                   SPIRVGlobalRegistry *GR) {
   // Lookup the instruction opcode in the TableGen records.
   const SPIRV::DemangledBuiltin *Builtin = Call->Builtin;
-  unsigned Opcode =
-      SPIRV::lookupNativeBuiltin(Builtin->Name, Builtin->Set)->Opcode;
+  
 
-  if (Opcode == SPIRV::OpGenericCastToPtrExplicit) {
+  if (unsigned Opcode =
+      SPIRV::lookupNativeBuiltin(Builtin->Name, Builtin->Set)->Opcode; Opcode == SPIRV::OpGenericCastToPtrExplicit) {
     SPIRV::StorageClass::StorageClass ResSC =
         GR->getPointerStorageClass(Call->ReturnRegister);
     if (!isGenericCastablePtr(ResSC))
@@ -1779,15 +1779,15 @@ static bool generateDotOrFMulInst(const StringRef DemangledCall,
   uint32_t OC = IsVec ? SPIRV::OpDot : SPIRV::OpFMulS;
   bool IsSwapReq = false;
 
-  const auto *ST =
-      static_cast<const SPIRVSubtarget *>(&MIRBuilder.getMF().getSubtarget());
-  if (GR->isScalarOrVectorOfType(Call->ReturnRegister, SPIRV::OpTypeInt) &&
+  
+  if (const auto *ST =
+      static_cast<const SPIRVSubtarget *>(&MIRBuilder.getMF().getSubtarget()); GR->isScalarOrVectorOfType(Call->ReturnRegister, SPIRV::OpTypeInt) &&
       (ST->canUseExtension(SPIRV::Extension::SPV_KHR_integer_dot_product) ||
        ST->isAtLeastSPIRVVer(VersionTuple(1, 6)))) {
     const SPIRV::DemangledBuiltin *Builtin = Call->Builtin;
-    const SPIRV::IntegerDotProductBuiltin *IntDot =
-        SPIRV::lookupIntegerDotProductBuiltin(Builtin->Name);
-    if (IntDot) {
+    
+    if (const SPIRV::IntegerDotProductBuiltin *IntDot =
+        SPIRV::lookupIntegerDotProductBuiltin(Builtin->Name); IntDot) {
       OC = IntDot->Opcode;
       IsSwapReq = IntDot->IsSwapReq;
     } else if (IsVec) {
@@ -1797,9 +1797,9 @@ static bool generateDotOrFMulInst(const StringRef DemangledCall,
       SmallVector<StringRef, 10> TypeStrs;
       SPIRV::parseBuiltinTypeStr(TypeStrs, DemangledCall, Ctx);
       bool IsFirstSigned = TypeStrs[0].trim()[0] != 'u';
-      bool IsSecondSigned = TypeStrs[1].trim()[0] != 'u';
+      
 
-      if (Call->BuiltinName == "dot") {
+      if (bool IsSecondSigned = TypeStrs[1].trim()[0] != 'u'; Call->BuiltinName == "dot") {
         if (IsFirstSigned && IsSecondSigned)
           OC = SPIRV::OpSDot;
         else if (!IsFirstSigned && !IsSecondSigned)
@@ -1981,8 +1981,8 @@ static bool generateImageSizeQueryInst(const SPIRV::IncomingCall *Call,
     Register TypeReg = GR->getSPIRVTypeID(Call->ReturnType);
     SPIRVType *NewType = nullptr;
     if (QueryResultType->getOpcode() == SPIRV::OpTypeVector) {
-      Register NewTypeReg = QueryResultType->getOperand(1).getReg();
-      if (TypeReg != NewTypeReg &&
+      
+      if (Register NewTypeReg = QueryResultType->getOperand(1).getReg(); TypeReg != NewTypeReg &&
           (NewType = GR->getSPIRVTypeForVReg(NewTypeReg)) != nullptr)
         TypeReg = NewTypeReg;
     }
@@ -2086,8 +2086,8 @@ static bool generateReadImageInst(const StringRef DemangledCall,
   Register Image = Call->Arguments[0];
   MachineRegisterInfo *MRI = MIRBuilder.getMRI();
   bool HasOclSampler = DemangledCall.contains_insensitive("ocl_sampler");
-  bool HasMsaa = DemangledCall.contains_insensitive("msaa");
-  if (HasOclSampler) {
+  
+  if (bool HasMsaa = DemangledCall.contains_insensitive("msaa"); HasOclSampler) {
     Register Sampler = Call->Arguments[1];
 
     if (!GR->isScalarOfType(Sampler, SPIRV::OpTypeSampler) &&
@@ -2175,8 +2175,8 @@ static bool generateSampleImageInst(const StringRef DemangledCall,
                                     const SPIRV::IncomingCall *Call,
                                     MachineIRBuilder &MIRBuilder,
                                     SPIRVGlobalRegistry *GR) {
-  MachineRegisterInfo *MRI = MIRBuilder.getMRI();
-  if (Call->Builtin->Name.contains_insensitive(
+  
+  if (MachineRegisterInfo *MRI = MIRBuilder.getMRI(); Call->Builtin->Name.contains_insensitive(
           "__translate_sampler_initializer")) {
     // Build sampler literal.
     uint64_t Bitmask = getIConstVal(Call->Arguments[0], MRI);
@@ -2320,9 +2320,9 @@ static bool generateSpecConstantInst(const SPIRV::IncomingCall *Call,
   const SPIRV::DemangledBuiltin *Builtin = Call->Builtin;
   unsigned Opcode =
       SPIRV::lookupNativeBuiltin(Builtin->Name, Builtin->Set)->Opcode;
-  const MachineRegisterInfo *MRI = MIRBuilder.getMRI();
+  
 
-  switch (Opcode) {
+  switch (const MachineRegisterInfo *MRI = MIRBuilder.getMRI(); Opcode) {
   case SPIRV::OpSpecConstant: {
     // Build the SpecID decoration.
     unsigned SpecId =
@@ -2446,9 +2446,9 @@ static bool generatePredicatedLoadStoreInst(const SPIRV::IncomingCall *Call,
   bool IsSet = Opcode != SPIRV::OpPredicatedStoreINTEL;
   unsigned ArgSz = Call->Arguments.size();
   SmallVector<uint32_t, 1> ImmArgs;
-  MachineRegisterInfo *MRI = MIRBuilder.getMRI();
+  
   // Memory operand is optional and is literal.
-  if (ArgSz > 3)
+  if (MachineRegisterInfo *MRI = MIRBuilder.getMRI(); ArgSz > 3)
     ImmArgs.push_back(
         getConstFromIntrinsic(Call->Arguments[/*Literal index*/ 3], MRI));
 
@@ -2479,8 +2479,8 @@ static bool buildNDRange(const SPIRV::IncomingCall *Call,
   Register GlobalWorkOffset = NumArgs <= 3 ? Register(0) : Call->Arguments[1];
   if (NumArgs < 4) {
     Register Const;
-    SPIRVType *SpvTy = GR->getSPIRVTypeForVReg(GlobalWorkSize);
-    if (SpvTy->getOpcode() == SPIRV::OpTypePointer) {
+    
+    if (SPIRVType *SpvTy = GR->getSPIRVTypeForVReg(GlobalWorkSize); SpvTy->getOpcode() == SPIRV::OpTypePointer) {
       MachineInstr *DefInstr = MRI->getUniqueVRegDef(GlobalWorkSize);
       assert(DefInstr && isSpvIntrinsic(*DefInstr, Intrinsic::spv_gep) &&
              DefInstr->getOperand(3).isReg());
@@ -2623,10 +2623,10 @@ static bool generateEnqueueInst(const SPIRV::IncomingCall *Call,
                                 SPIRVGlobalRegistry *GR) {
   // Lookup the instruction opcode in the TableGen records.
   const SPIRV::DemangledBuiltin *Builtin = Call->Builtin;
-  unsigned Opcode =
-      SPIRV::lookupNativeBuiltin(Builtin->Name, Builtin->Set)->Opcode;
+  
 
-  switch (Opcode) {
+  switch (unsigned Opcode =
+      SPIRV::lookupNativeBuiltin(Builtin->Name, Builtin->Set)->Opcode; Opcode) {
   case SPIRV::OpRetainEvent:
   case SPIRV::OpReleaseEvent:
     return MIRBuilder.buildInstr(Opcode).addUse(Call->Arguments[0]);
@@ -2672,9 +2672,9 @@ static bool generateAsyncCopy(const SPIRV::IncomingCall *Call,
     return buildOpFromWrapper(MIRBuilder, Opcode, Call,
                               IsSet ? TypeReg : Register(0));
 
-  auto Scope = buildConstantIntReg32(SPIRV::Scope::Workgroup, MIRBuilder, GR);
+  
 
-  switch (Opcode) {
+  switch (auto Scope = buildConstantIntReg32(SPIRV::Scope::Workgroup, MIRBuilder, GR); Opcode) {
   case SPIRV::OpGroupAsyncCopy: {
     SPIRVType *NewType =
         Call->ReturnType->getOpcode() == SPIRV::OpTypeEvent
@@ -2751,9 +2751,9 @@ static bool generateConvertInst(const StringRef DemangledCall,
                                           SPIRV::OpTypeFloat)) {
       // Int -> Float
       if (Builtin->IsBfloat16) {
-        const auto *ST = static_cast<const SPIRVSubtarget *>(
-            &MIRBuilder.getMF().getSubtarget());
-        if (!ST->canUseExtension(
+        
+        if (const auto *ST = static_cast<const SPIRVSubtarget *>(
+            &MIRBuilder.getMF().getSubtarget()); !ST->canUseExtension(
                 SPIRV::Extension::SPV_INTEL_bfloat16_conversion))
           NeedExtMsg = "SPV_INTEL_bfloat16_conversion";
         IsRightComponentsNumber =
@@ -2772,9 +2772,9 @@ static bool generateConvertInst(const StringRef DemangledCall,
     if (GR->isScalarOrVectorOfType(Call->ReturnRegister, SPIRV::OpTypeInt)) {
       // Float -> Int
       if (Builtin->IsBfloat16) {
-        const auto *ST = static_cast<const SPIRVSubtarget *>(
-            &MIRBuilder.getMF().getSubtarget());
-        if (!ST->canUseExtension(
+        
+        if (const auto *ST = static_cast<const SPIRVSubtarget *>(
+            &MIRBuilder.getMF().getSubtarget()); !ST->canUseExtension(
                 SPIRV::Extension::SPV_INTEL_bfloat16_conversion))
           NeedExtMsg = "SPV_INTEL_bfloat16_conversion";
         IsRightComponentsNumber =
@@ -2788,9 +2788,9 @@ static bool generateConvertInst(const StringRef DemangledCall,
     } else if (GR->isScalarOrVectorOfType(Call->ReturnRegister,
                                           SPIRV::OpTypeFloat)) {
       if (Builtin->IsTF32) {
-        const auto *ST = static_cast<const SPIRVSubtarget *>(
-            &MIRBuilder.getMF().getSubtarget());
-        if (!ST->canUseExtension(
+        
+        if (const auto *ST = static_cast<const SPIRVSubtarget *>(
+            &MIRBuilder.getMF().getSubtarget()); !ST->canUseExtension(
                 SPIRV::Extension::SPV_INTEL_tensor_float32_conversion))
           NeedExtMsg = "SPV_INTEL_tensor_float32_conversion";
         IsRightComponentsNumber =

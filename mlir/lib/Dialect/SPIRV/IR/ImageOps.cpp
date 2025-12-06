@@ -249,8 +249,8 @@ LogicalResult spirv::ImageQuerySizeOp::verify() {
 
   spirv::Dim dim = imageType.getDim();
   spirv::ImageSamplingInfo samplingInfo = imageType.getSamplingInfo();
-  spirv::ImageSamplerUseInfo samplerInfo = imageType.getSamplerUseInfo();
-  switch (dim) {
+  
+  switch (spirv::ImageSamplerUseInfo samplerInfo = imageType.getSamplerUseInfo(); dim) {
   case spirv::Dim::Dim1D:
   case spirv::Dim::Dim2D:
   case spirv::Dim::Dim3D:

@@ -1207,10 +1207,10 @@ dumpFullTypeStream(LinePrinter &Printer, LazyRandomTypeCollection &Types,
   Printer.formatLine("Showing {0:N} records", NumTypeRecords);
   uint32_t Width = NumDigits(TypeIndex::FirstNonSimpleIndex + NumTypeRecords);
 
-  MinimalTypeDumpVisitor V(Printer, Width + 2, Bytes, Extras, Types, RefTracker,
-                           NumHashBuckets, HashValues, Stream);
+  
 
-  if (auto EC = codeview::visitTypeStream(Types, V)) {
+  if (MinimalTypeDumpVisitor V(Printer, Width + 2, Bytes, Extras, Types, RefTracker,
+                           NumHashBuckets, HashValues, Stream); auto EC = codeview::visitTypeStream(Types, V)) {
     Printer.formatLine("An error occurred dumping type records: {0}",
                        toString(std::move(EC)));
   }
@@ -1224,11 +1224,11 @@ static void dumpPartialTypeStream(LinePrinter &Printer,
   uint32_t Width =
       NumDigits(TypeIndex::FirstNonSimpleIndex + Stream.getNumTypeRecords());
 
-  MinimalTypeDumpVisitor V(Printer, Width + 2, Bytes, Extras, Types, RefTracker,
-                           Stream.getNumHashBuckets(), Stream.getHashValues(),
-                           &Stream);
+  
 
-  if (opts::dump::DumpTypeDependents) {
+  if (MinimalTypeDumpVisitor V(Printer, Width + 2, Bytes, Extras, Types, RefTracker,
+                           Stream.getNumHashBuckets(), Stream.getHashValues(),
+                           &Stream); opts::dump::DumpTypeDependents) {
     // If we need to dump all dependents, then iterate each index and find
     // all dependents, adding them to a map ordered by TypeIndex.
     std::map<TypeIndex, CVType> DepSet;
@@ -1247,8 +1247,8 @@ static void dumpPartialTypeStream(LinePrinter &Printer,
     Printer.formatLine("Showing {0:N} records.", TiList.size());
 
     for (const auto &I : TiList) {
-      TypeIndex TI(I);
-      if (TI.isSimple()) {
+      
+      if (TypeIndex TI(I); TI.isSimple()) {
         Printer.formatLine("{0} | {1}", fmt_align(I, AlignStyle::Right, Width),
                            Types.getTypeName(TI));
       } else if (std::optional<CVType> Type = Types.tryGetType(TI)) {
@@ -1410,8 +1410,8 @@ Error DumpOutputStyle::dumpTpiStream(uint32_t StreamIdx) {
       for (const auto &A : Adjusters) {
         AutoIndent Indent2(P);
         auto ExpectedStr = Strings.getStringForID(A.first);
-        TypeIndex TI(A.second);
-        if (ExpectedStr)
+        
+        if (TypeIndex TI(A.second); ExpectedStr)
           P.formatLine("`{0}` -> {1}", *ExpectedStr, TI);
         else {
           P.formatLine("unknown str id ({0}) -> {1}", A.first, TI);

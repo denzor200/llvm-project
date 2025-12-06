@@ -46,8 +46,8 @@ SymbolFile *SymbolFile::FindPlugin(ObjectFileSP objfile_sp) {
     lldb::ModuleSP module_sp(objfile_sp->GetModule());
     if (module_sp) {
       // Default to the main module section list.
-      ObjectFile *module_obj_file = module_sp->GetObjectFile();
-      if (module_obj_file != objfile_sp.get()) {
+      
+      if (ObjectFile *module_obj_file = module_sp->GetObjectFile(); module_obj_file != objfile_sp.get()) {
         // Make sure the main object file's sections are created
         module_obj_file->GetSectionList();
         objfile_sp->CreateSections(*module_sp->GetUnifiedSectionList());
@@ -64,11 +64,11 @@ SymbolFile *SymbolFile::FindPlugin(ObjectFileSP objfile_sp) {
          (create_callback = PluginManager::GetSymbolFileCreateCallbackAtIndex(
               idx)) != nullptr;
          ++idx) {
-      std::unique_ptr<SymbolFile> curr_symfile_up(create_callback(objfile_sp));
+      
 
-      if (curr_symfile_up) {
-        const uint32_t sym_file_abilities = curr_symfile_up->GetAbilities();
-        if (sym_file_abilities > best_symfile_abilities) {
+      if (std::unique_ptr<SymbolFile> curr_symfile_up(create_callback(objfile_sp)); curr_symfile_up) {
+        
+        if (const uint32_t sym_file_abilities = curr_symfile_up->GetAbilities(); sym_file_abilities > best_symfile_abilities) {
           best_symfile_abilities = sym_file_abilities;
           best_symfile_up.reset(curr_symfile_up.release());
           // If any symbol file parser has all of the abilities, then we should
@@ -88,8 +88,8 @@ SymbolFile *SymbolFile::FindPlugin(ObjectFileSP objfile_sp) {
       //
       // To reduce unnecessary wrapping files with zero debug abilities are
       // skipped.
-      ObjectFile::Type obj_file_type = objfile_sp->CalculateType();
-      if (ModuleList::GetGlobalModuleListProperties().GetLoadSymbolOnDemand() &&
+      
+      if (ObjectFile::Type obj_file_type = objfile_sp->CalculateType(); ModuleList::GetGlobalModuleListProperties().GetLoadSymbolOnDemand() &&
           best_symfile_abilities > 0 &&
           (obj_file_type == ObjectFile::eTypeExecutable ||
            obj_file_type == ObjectFile::eTypeSharedLibrary ||
@@ -155,8 +155,8 @@ SymbolFile::RegisterInfoResolver::~RegisterInfoResolver() = default;
 Symtab *SymbolFileCommon::GetSymtab(bool can_create) {
   std::lock_guard<std::recursive_mutex> guard(GetModuleMutex());
   // Fetch the symtab from the main object file.
-  auto *symtab = GetMainObjectFile()->GetSymtab(can_create);
-  if (m_symtab != symtab) {
+  
+  if (auto *symtab = GetMainObjectFile()->GetSymtab(can_create); m_symtab != symtab) {
     m_symtab = symtab;
 
     // Then add our symbols to it.
@@ -172,8 +172,8 @@ ObjectFile *SymbolFileCommon::GetMainObjectFile() {
 
 void SymbolFileCommon::SectionFileAddressesChanged() {
   ObjectFile *module_objfile = GetMainObjectFile();
-  ObjectFile *symfile_objfile = GetObjectFile();
-  if (symfile_objfile != module_objfile)
+  
+  if (ObjectFile *symfile_objfile = GetObjectFile(); symfile_objfile != module_objfile)
     symfile_objfile->SectionFileAddressesChanged();
   if (auto *symtab = GetSymtab())
     symtab->SectionFileAddressesChanged();
@@ -191,8 +191,8 @@ uint32_t SymbolFileCommon::GetNumCompileUnits() {
 
 CompUnitSP SymbolFileCommon::GetCompileUnitAtIndex(uint32_t idx) {
   std::lock_guard<std::recursive_mutex> guard(GetModuleMutex());
-  uint32_t num = GetNumCompileUnits();
-  if (idx >= num)
+  
+  if (uint32_t num = GetNumCompileUnits(); idx >= num)
     return nullptr;
   lldb::CompUnitSP &cu_sp = (*m_compile_units)[idx];
   if (!cu_sp)

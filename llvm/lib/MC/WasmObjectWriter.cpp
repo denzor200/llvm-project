@@ -455,19 +455,19 @@ void WasmObjectWriter::executePostLayoutBinding() {
   // WASM_SYMBOL_NO_STRIP attribute.  Here we make sure this symbol makes it to
   // the assembler, if needed.
   if (auto *Sym = Asm->getContext().lookupSymbol("__indirect_function_table")) {
-    const auto *WasmSym = static_cast<const MCSymbolWasm *>(Sym);
-    if (WasmSym->isNoStrip())
+    
+    if (const auto *WasmSym = static_cast<const MCSymbolWasm *>(Sym); WasmSym->isNoStrip())
       Asm->registerSymbol(*Sym);
   }
 
   // Build a map of sections to the function that defines them, for use
   // in recordRelocation.
   for (const MCSymbol &S : Asm->symbols()) {
-    const auto &WS = static_cast<const MCSymbolWasm &>(S);
-    if (WS.isDefined() && WS.isFunction() && !WS.isVariable()) {
+    
+    if (const auto &WS = static_cast<const MCSymbolWasm &>(S); WS.isDefined() && WS.isFunction() && !WS.isVariable()) {
       const auto &Sec = static_cast<const MCSectionWasm &>(S.getSection());
-      auto Pair = SectionFunctions.insert(std::make_pair(&Sec, &S));
-      if (!Pair.second)
+      
+      if (auto Pair = SectionFunctions.insert(std::make_pair(&Sec, &S)); !Pair.second)
         report_fatal_error("section already has a defining function: " +
                            Sec.getName());
     }
@@ -552,8 +552,8 @@ void WasmObjectWriter::recordRelocation(const MCFragment &F,
                          "only supported in metadata sections");
 
     const MCSymbol *SectionSymbol = nullptr;
-    const MCSection &SecA = SymA->getSection();
-    if (SecA.isText()) {
+    
+    if (const MCSection &SecA = SymA->getSection(); SecA.isText()) {
       auto SecSymIt = SectionFunctions.find(&SecA);
       if (SecSymIt == SectionFunctions.end())
         report_fatal_error("section doesn\'t have defining symbol");
@@ -577,8 +577,8 @@ void WasmObjectWriter::recordRelocation(const MCFragment &F,
     // TABLE_INDEX relocs implicitly use the default indirect function table.
     // We require the function table to have already been defined.
     auto TableName = "__indirect_function_table";
-    auto *Sym = static_cast<MCSymbolWasm *>(Ctx.lookupSymbol(TableName));
-    if (!Sym) {
+    
+    if (auto *Sym = static_cast<MCSymbolWasm *>(Ctx.lookupSymbol(TableName)); !Sym) {
       report_fatal_error("missing indirect function table symbol");
     } else {
       if (!Sym->isFunctionTable())
@@ -751,9 +751,9 @@ void WasmObjectWriter::applyRelocations(
                       RelEntry.Offset;
 
     LLVM_DEBUG(dbgs() << "applyRelocation: " << RelEntry << "\n");
-    uint64_t Value = getProvisionalValue(Asm, RelEntry);
+    
 
-    switch (RelEntry.Type) {
+    switch (uint64_t Value = getProvisionalValue(Asm, RelEntry); RelEntry.Type) {
     case wasm::R_WASM_FUNCTION_INDEX_LEB:
     case wasm::R_WASM_TYPE_INDEX_LEB:
     case wasm::R_WASM_GLOBAL_INDEX_LEB:
@@ -1312,10 +1312,10 @@ static bool isSectionReferenced(MCAssembler &Asm, MCSectionWasm &Section) {
   StringRef SectionName = Section.getName();
 
   for (const MCSymbol &S : Asm.symbols()) {
-    const auto &WS = static_cast<const MCSymbolWasm &>(S);
-    if (WS.isData() && WS.isInSection()) {
-      auto &RefSection = static_cast<MCSectionWasm &>(WS.getSection());
-      if (RefSection.getName() == SectionName) {
+    
+    if (const auto &WS = static_cast<const MCSymbolWasm &>(S); WS.isData() && WS.isInSection()) {
+      
+      if (auto &RefSection = static_cast<MCSectionWasm &>(WS.getSection()); RefSection.getName() == SectionName) {
         return true;
       }
     }
@@ -1412,8 +1412,8 @@ void WasmObjectWriter::prepareImports(
 
   // Add imports for GOT globals
   for (const MCSymbol &S : Asm.symbols()) {
-    const auto &WS = static_cast<const MCSymbolWasm &>(S);
-    if (WS.isUsedInGOT()) {
+    
+    if (const auto &WS = static_cast<const MCSymbolWasm &>(S); WS.isUsedInGOT()) {
       wasm::WasmImport Import;
       if (WS.isFunction())
         Import.Module = "GOT.func";
@@ -1575,8 +1575,8 @@ uint64_t WasmObjectWriter::writeOneObject(MCAssembler &Asm,
         continue;
 
       if (WS.isFunction()) {
-        unsigned Index;
-        if (WS.isDefined()) {
+        
+        if (unsigned Index; WS.isDefined()) {
           if (WS.getOffset() != 0)
             report_fatal_error(
                 "function sections must contain one function each");
@@ -1590,8 +1590,8 @@ uint64_t WasmObjectWriter::writeOneObject(MCAssembler &Asm,
           WasmIndices[&WS] = Index;
           Functions.push_back(Func);
 
-          auto &Section = static_cast<MCSectionWasm &>(WS.getSection());
-          if (const MCSymbolWasm *C = Section.getGroup()) {
+          
+          if (auto &Section = static_cast<MCSectionWasm &>(WS.getSection()); const MCSymbolWasm *C = Section.getGroup()) {
             Comdats[C->getName()].emplace_back(
                 WasmComdatEntry{wasm::WASM_COMDAT_FUNCTION, Index});
           }
@@ -1690,8 +1690,8 @@ uint64_t WasmObjectWriter::writeOneObject(MCAssembler &Asm,
       } else if (WS.isTag()) {
         // C++ exception symbol (__cpp_exception) or longjmp symbol
         // (__c_longjmp)
-        unsigned Index;
-        if (WS.isDefined()) {
+        
+        if (unsigned Index; WS.isDefined()) {
           Index = NumTagImports + TagTypes.size();
           uint32_t SigIndex = getTagType(WS);
           assert(WasmIndices.count(&WS) == 0);
@@ -1836,8 +1836,8 @@ uint64_t WasmObjectWriter::writeOneObject(MCAssembler &Asm,
       auto *Base =
           static_cast<const MCSymbolWasm *>(Asm.getBaseSymbol(*Rel.Symbol));
       uint32_t FunctionIndex = WasmIndices.find(Base)->second;
-      uint32_t TableIndex = TableElems.size() + InitialTableOffset;
-      if (TableIndices.try_emplace(Base, TableIndex).second) {
+      
+      if (uint32_t TableIndex = TableElems.size() + InitialTableOffset; TableIndices.try_emplace(Base, TableIndex).second) {
         LLVM_DEBUG(dbgs() << "  -> adding " << Base->getName()
                           << " to table: " << TableIndex << "\n");
         TableElems.push_back(FunctionIndex);
@@ -1867,8 +1867,8 @@ uint64_t WasmObjectWriter::writeOneObject(MCAssembler &Asm,
         report_fatal_error("only data supported in .init_array section");
 
       uint16_t Priority = UINT16_MAX;
-      unsigned PrefixLength = strlen(".init_array");
-      if (WS.getName().size() > PrefixLength) {
+      
+      if (unsigned PrefixLength = strlen(".init_array"); WS.getName().size() > PrefixLength) {
         if (WS.getName()[PrefixLength] != '.')
           report_fatal_error(
               ".init_array section priority should start with '.'");

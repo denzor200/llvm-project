@@ -144,8 +144,8 @@ static bool getMemOperands(unsigned Factor, VectorType *VTy, Type *XLenTy,
     return true;
   }
 
-  auto *II = cast<IntrinsicInst>(I);
-  switch (II->getIntrinsicID()) {
+  
+  switch (auto *II = cast<IntrinsicInst>(I); II->getIntrinsicID()) {
   default:
     llvm_unreachable("Unsupported intrinsic type");
   case Intrinsic::vp_load:
@@ -249,8 +249,8 @@ bool RISCVTargetLowering::lowerInterleavedLoad(
   }
 
   for (unsigned i = 0; i < Shuffles.size(); i++) {
-    unsigned FactorIdx = Indices[i];
-    if (FactorIdx >= MaskFactor) {
+    
+    if (unsigned FactorIdx = Indices[i]; FactorIdx >= MaskFactor) {
       // Replace masked-off factors (that are still extracted) with poison.
       Shuffles[i]->replaceAllUsesWith(PoisonValue::get(VTy));
     } else {

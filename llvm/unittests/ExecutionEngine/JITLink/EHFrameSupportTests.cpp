@@ -182,8 +182,8 @@ TEST(EHFrameCFIBlockInspector, BasicSuccessCase) {
 
   SmallVector<Block *, 2> CIEs;
   for (auto *B : EHFrame->blocks()) {
-    auto CFIBI = EHFrameCFIBlockInspector::FromEdgeScan(*B);
-    if (CFIBI.isCIE()) {
+    
+    if (auto CFIBI = EHFrameCFIBlockInspector::FromEdgeScan(*B); CFIBI.isCIE()) {
       CIEs.push_back(B);
       // If this CIE has an edge, check that getPersonalityEdge returns it.
       if (B->edges_size() != 0) {
@@ -202,8 +202,8 @@ TEST(EHFrameCFIBlockInspector, BasicSuccessCase) {
 
   std::set<StringRef> Targets;
   for (auto *B : EHFrame->blocks()) {
-    auto CFIBI = EHFrameCFIBlockInspector::FromEdgeScan(*B);
-    if (CFIBI.isFDE()) {
+    
+    if (auto CFIBI = EHFrameCFIBlockInspector::FromEdgeScan(*B); CFIBI.isFDE()) {
       ASSERT_TRUE(!!CFIBI.getCIEEdge());
       ASSERT_TRUE(CFIBI.getCIEEdge()->getTarget().isDefined());
       auto &CIE = CFIBI.getCIEEdge()->getTarget().getBlock();

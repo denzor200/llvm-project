@@ -286,9 +286,9 @@ void NVPTXDAGToDAGISel::SelectTcgen05Ld(SDNode *N, bool hasOffset) {
         "tcgen05.ld is not supported on this architecture variant");
 
   SDLoc DL(N);
-  unsigned IID = cast<ConstantSDNode>(N->getOperand(1))->getZExtValue();
+  
 
-  if (hasOffset) {
+  if (unsigned IID = cast<ConstantSDNode>(N->getOperand(1))->getZExtValue(); hasOffset) {
     bool enablePack = cast<ConstantSDNode>(N->getOperand(4))->getZExtValue();
     auto OffsetNode = CurDAG->getTargetConstant(
         cast<ConstantSDNode>(N->getOperand(3))->getZExtValue(), DL, MVT::i32);
@@ -304,8 +304,8 @@ void NVPTXDAGToDAGISel::SelectTcgen05Ld(SDNode *N, bool hasOffset) {
 }
 
 bool NVPTXDAGToDAGISel::tryIntrinsicChain(SDNode *N) {
-  unsigned IID = N->getConstantOperandVal(1);
-  switch (IID) {
+  
+  switch (unsigned IID = N->getConstantOperandVal(1); IID) {
   default:
     return false;
   case Intrinsic::nvvm_ldu_global_f:
@@ -523,8 +523,8 @@ NVPTX::Ordering NVPTXDAGToDAGISel::getMemOrder(const MemSDNode *N) const {
   // No "sem" orderings for SM/PTX versions which do not support memory ordering
   if (!Subtarget->hasMemoryOrdering())
     return NVPTX::Ordering::NotAtomic;
-  auto Ordering = N->getMergedOrdering();
-  switch (Ordering) {
+  
+  switch (auto Ordering = N->getMergedOrdering(); Ordering) {
   case AtomicOrdering::NotAtomic:
     return NVPTX::Ordering::NotAtomic;
   case AtomicOrdering::Unordered:
@@ -684,10 +684,10 @@ getOperationOrderings(MemSDNode *N, const NVPTXSubtarget *Subtarget) {
   if (!AddrGenericOrGlobalOrShared)
     return NVPTX::Ordering::NotAtomic;
 
-  bool UseRelaxedMMIO =
-      HasRelaxedMMIO && CodeAddrSpace == NVPTX::AddressSpace::Global;
+  
 
-  switch (Ordering) {
+  switch (bool UseRelaxedMMIO =
+      HasRelaxedMMIO && CodeAddrSpace == NVPTX::AddressSpace::Global; Ordering) {
   case AtomicOrdering::NotAtomic:
     return N->isVolatile() ? NVPTX::Ordering::Volatile
                            : NVPTX::Ordering::NotAtomic;
@@ -1537,8 +1537,8 @@ bool NVPTXDAGToDAGISel::tryBFE(SDNode *N) {
       // We have a 'srl/and' pair, extract the effective start bit and length
       Val = LHS.getNode()->getOperand(0);
       Start = LHS.getNode()->getOperand(1);
-      ConstantSDNode *StartConst = dyn_cast<ConstantSDNode>(Start);
-      if (StartConst) {
+      
+      if (ConstantSDNode *StartConst = dyn_cast<ConstantSDNode>(Start); StartConst) {
         uint64_t StartVal = StartConst->getZExtValue();
         // How many "good" bits do we have left?  "good" is defined here as bits
         // that exist in the original value, not shifted in.
@@ -2091,8 +2091,8 @@ void NVPTXDAGToDAGISel::SelectTcgen05St(SDNode *N, bool hasOffset) {
 bool NVPTXDAGToDAGISel::tryIntrinsicVoid(SDNode *N) {
   unsigned IID = N->getConstantOperandVal(1);
   using TMARedTy = llvm::nvvm::TMAReductionOp;
-  auto CastTy = [](TMARedTy Op) { return static_cast<unsigned>(Op); };
-  switch (IID) {
+  
+  switch (auto CastTy = [](TMARedTy Op) { return static_cast<unsigned>(Op); }; IID) {
   default:
     return false;
   case Intrinsic::nvvm_cp_async_bulk_tensor_reduce_add_tile_1d:

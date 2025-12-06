@@ -844,7 +844,7 @@ public:
     // We can't generate private memrefs if their size can't be computed.
     if (!getMemRefIntOrFloatEltSizeInBytes(cast<MemRefType>(memref.getType())))
       return false;
-    const Node *consumerNode = mdg->getNode(consumerId);
+    
     // If `memref` is an escaping one, do not create a private memref
     // for the below scenarios, since doing so will leave the escaping
     // memref unmodified as all the writes originally meant for the
@@ -852,7 +852,7 @@ public:
     // 1. The source is to be removed after fusion,
     // OR
     // 2. The destination writes to `memref`.
-    if (srcEscapingMemRefs.count(memref) > 0 &&
+    if (const Node *consumerNode = mdg->getNode(consumerId); srcEscapingMemRefs.count(memref) > 0 &&
         (removeSrcNode || consumerNode->getStoreOpCount(memref) > 0))
       return false;
 
@@ -991,11 +991,11 @@ public:
         depthSliceUnions.resize(dstLoopDepthTest);
         FusionStrategy strategy(FusionStrategy::ProducerConsumer);
         for (unsigned i = 1; i <= dstLoopDepthTest; ++i) {
-          FusionResult result =
+          
+          if (FusionResult result =
               affine::canFuseLoops(srcAffineForOp, dstAffineForOp,
                                    /*dstLoopDepth=*/i + numSurroundingLoops,
-                                   &depthSliceUnions[i - 1], strategy);
-          if (result.value == FusionResult::Success) {
+                                   &depthSliceUnions[i - 1], strategy); result.value == FusionResult::Success) {
             maxLegalFusionDepth = i;
             LDBG() << "Found valid slice for depth: " << i;
           }
@@ -1025,10 +1025,10 @@ public:
             auto dstForOp = cast<AffineForOp>(dstNode->op);
             int64_t sliceCost;
             int64_t fusedLoopNestComputeCost;
-            auto fraction = getAdditionalComputeFraction(
+            
+            if (auto fraction = getAdditionalComputeFraction(
                 srcForOp, dstForOp, maxLegalFusionDepth, depthSliceUnions,
-                sliceCost, fusedLoopNestComputeCost);
-            if (!fraction || fraction > 0) {
+                sliceCost, fusedLoopNestComputeCost); !fraction || fraction > 0) {
               LDBG() << "Can't perform maximal fusion with a cyclic dependence "
                      << "and non-zero additional compute.";
               return;
@@ -1111,8 +1111,8 @@ public:
           // Gather stores for all the private-to-be memrefs.
           DenseMap<Value, SmallVector<Operation *, 4>> privateMemRefToStores;
           dstAffineForOp.walk([&](AffineWriteOpInterface storeOp) {
-            Value storeMemRef = storeOp.getMemRef();
-            if (privateMemrefs.count(storeMemRef) > 0)
+            
+            if (Value storeMemRef = storeOp.getMemRef(); privateMemrefs.count(storeMemRef) > 0)
               privateMemRefToStores[storeMemRef].push_back(storeOp);
           });
 
@@ -1250,12 +1250,12 @@ public:
       unsigned maxLegalFusionDepth = 0;
       FusionStrategy strategy(memref);
       for (unsigned i = 1; i <= dstLoopDepthTest; ++i) {
-        FusionResult result =
+        
+
+        if (FusionResult result =
             affine::canFuseLoops(sibAffineForOp, dstAffineForOp,
                                  /*dstLoopDepth=*/i + numSurroundingLoops,
-                                 &depthSliceUnions[i - 1], strategy);
-
-        if (result.value == FusionResult::Success)
+                                 &depthSliceUnions[i - 1], strategy); result.value == FusionResult::Success)
           maxLegalFusionDepth = i;
       }
 
@@ -1281,10 +1281,10 @@ public:
           auto dstForOp = cast<AffineForOp>(dstNode->op);
           int64_t sliceCost;
           int64_t fusedLoopNestComputeCost;
-          auto fraction = getAdditionalComputeFraction(
+          
+          if (auto fraction = getAdditionalComputeFraction(
               sibAffineForOp, dstForOp, maxLegalFusionDepth, depthSliceUnions,
-              sliceCost, fusedLoopNestComputeCost);
-          if (!fraction || fraction > 0) {
+              sliceCost, fusedLoopNestComputeCost); !fraction || fraction > 0) {
             LDBG() << "Can't perform maximal fusion with a cyclic dependence "
                    << "and non-zero additional compute.";
             return;
@@ -1545,8 +1545,8 @@ void LoopFusion::runOnOperation() {
   getOperation()->walk([&](Operation *op) {
     for (Region &region : op->getRegions()) {
       for (Block &block : region.getBlocks()) {
-        auto affineFors = block.getOps<AffineForOp>();
-        if (!affineFors.empty() && !llvm::hasSingleElement(affineFors))
+        
+        if (auto affineFors = block.getOps<AffineForOp>(); !affineFors.empty() && !llvm::hasSingleElement(affineFors))
           runOnBlock(&block);
       }
     }

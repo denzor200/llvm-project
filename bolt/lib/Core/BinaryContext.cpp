@@ -100,9 +100,9 @@ BOLTError::BOLTError(bool IsFatal, const Twine &S)
 void BOLTError::log(raw_ostream &OS) const {
   if (IsFatal)
     OS << "FATAL ";
-  StringRef ErrMsg = StringRef(Msg);
+  
   // Prepend our error prefix if it is missing
-  if (ErrMsg.empty()) {
+  if (StringRef ErrMsg = StringRef(Msg); ErrMsg.empty()) {
     OS << "BOLT-ERROR\n";
   } else {
     if (!ErrMsg.starts_with("BOLT-ERROR"))
@@ -370,8 +370,8 @@ bool BinaryContext::validateHoles() const {
   for (BinarySection &Section : sections()) {
     for (const Relocation &Rel : Section.relocations()) {
       uint64_t RelAddr = Rel.Offset + Section.getAddress();
-      const BinaryData *BD = getBinaryDataContainingAddress(RelAddr);
-      if (!BD) {
+      
+      if (const BinaryData *BD = getBinaryDataContainingAddress(RelAddr); !BD) {
         this->errs()
             << "BOLT-WARNING: no BinaryData found for relocation at address"
             << " 0x" << Twine::utohexstr(RelAddr) << " in " << Section.getName()
@@ -468,9 +468,9 @@ BinaryContext::handleAddressRef(uint64_t Address, BinaryFunction &BF,
       // island we are referring would be emitted too far away.
       if (IslandIter->second->hasDynamicRelocationAtIsland() ||
           !opts::CloneConstantIsland) {
-        MCSymbol *IslandSym =
-            IslandIter->second->getOrCreateIslandAccess(Address);
-        if (IslandSym)
+        
+        if (MCSymbol *IslandSym =
+            IslandIter->second->getOrCreateIslandAccess(Address); IslandSym)
           return std::make_pair(IslandSym, 0);
       } else if (MCSymbol *IslandSym =
                      IslandIter->second->getOrCreateProxyIslandAccess(Address,
@@ -512,8 +512,8 @@ BinaryContext::handleAddressRef(uint64_t Address, BinaryFunction &BF,
   // With relocations, catch jump table references outside of the basic block
   // containing the indirect jump.
   if (HasRelocations) {
-    const MemoryContentsType MemType = analyzeMemoryAt(Address, BF);
-    if (MemType == MemoryContentsType::POSSIBLE_PIC_JUMP_TABLE && IsPCRel) {
+    
+    if (const MemoryContentsType MemType = analyzeMemoryAt(Address, BF); MemType == MemoryContentsType::POSSIBLE_PIC_JUMP_TABLE && IsPCRel) {
       const MCSymbol *Symbol =
           getOrCreateJumpTable(BF, Address, JumpTable::JTT_PIC);
 
@@ -1058,8 +1058,8 @@ bool BinaryContext::hasValidCodePadding(const BinaryFunction &BF) {
   auto skipAArch64Veneer = [&]() {
     if (!isAArch64() || Offset >= BF.getMaxSize())
       return false;
-    BinaryFunction *BFVeneer = getBinaryFunctionContainingAddress(InstrAddress);
-    if (BFVeneer) {
+    
+    if (BinaryFunction *BFVeneer = getBinaryFunctionContainingAddress(InstrAddress); BFVeneer) {
       // A binary function may have been created to point to this veneer.
       Offset += BFVeneer->getSize();
       assert(Offset <= BF.getMaxSize() &&
@@ -1251,10 +1251,10 @@ void BinaryContext::generateSymbolHashes() {
 
     // First check if a non-anonymous alias exists and move it to the front.
     if (BD.getSymbols().size() > 1) {
-      auto Itr = llvm::find_if(BD.getSymbols(), [&](const MCSymbol *Symbol) {
+      
+      if (auto Itr = llvm::find_if(BD.getSymbols(), [&](const MCSymbol *Symbol) {
         return !isInternalSymbolName(Symbol->getName());
-      });
-      if (Itr != BD.getSymbols().end()) {
+      }); Itr != BD.getSymbols().end()) {
         size_t Idx = std::distance(BD.getSymbols().begin(), Itr);
         std::swap(BD.getSymbols()[0], BD.getSymbols()[Idx]);
         continue;
@@ -1329,8 +1329,8 @@ void BinaryContext::addAdrpAddRelocAArch64(BinaryFunction &BF,
 }
 
 bool BinaryContext::handleAArch64Veneer(uint64_t Address, bool MatchOnly) {
-  BinaryFunction *TargetFunction = getBinaryFunctionContainingAddress(Address);
-  if (TargetFunction)
+  
+  if (BinaryFunction *TargetFunction = getBinaryFunctionContainingAddress(Address); TargetFunction)
     return false;
 
   ErrorOr<BinarySection &> Section = getSectionForAddress(Address);
@@ -1484,8 +1484,8 @@ void BinaryContext::postProcessSymbolTable() {
   fixBinaryDataHoles();
   bool Valid = true;
   for (auto &Entry : BinaryDataMap) {
-    BinaryData *BD = Entry.second;
-    if ((BD->getName().starts_with("SYMBOLat") ||
+    
+    if (BinaryData *BD = Entry.second; (BD->getName().starts_with("SYMBOLat") ||
          BD->getName().starts_with("DATAat")) &&
         !BD->getParent() && !BD->getSize() && !BD->isAbsolute() &&
         BD->getSection()) {
@@ -1609,8 +1609,8 @@ void BinaryContext::fixBinaryDataHoles() {
     // If there is already a symbol at the start of the hole, grow that symbol
     // to cover the rest.  Otherwise, create a new symbol to cover the hole.
     for (std::pair<uint64_t, uint64_t> &Hole : Holes) {
-      BinaryData *BD = getBinaryDataAtAddress(Hole.first);
-      if (BD) {
+      
+      if (BinaryData *BD = getBinaryDataAtAddress(Hole.first); BD) {
         // BD->getSection() can be != Section if there are sections that
         // overlap.  In this case it is probably safe to just skip the holes
         // since the overlapping section will not(?) have any symbols in it.
@@ -1632,8 +1632,8 @@ void BinaryContext::printGlobalSymbols(raw_ostream &OS) const {
 
   for (auto &Entry : BinaryDataMap) {
     const BinaryData *BD = Entry.second;
-    const BinarySection &Section = BD->getSection();
-    if (FirstSection || Section != *CurrentSection) {
+    
+    if (const BinarySection &Section = BD->getSection(); FirstSection || Section != *CurrentSection) {
       uint64_t Address, Size;
       StringRef Name = Section.getName();
       if (Section) {
@@ -1841,8 +1841,8 @@ void BinaryContext::preprocessDebugInfo() {
 
   // Discover units with debug info that needs to be updated.
   for (const auto &KV : BinaryFunctions) {
-    const BinaryFunction &BF = KV.second;
-    if (shouldEmit(BF) && !BF.getDWARFUnits().empty())
+    
+    if (const BinaryFunction &BF = KV.second; shouldEmit(BF) && !BF.getDWARFUnits().empty())
       for (const auto &[_, Unit] : BF.getDWARFUnits())
         ProcessedCUs.insert(Unit);
   }
@@ -1963,8 +1963,8 @@ void BinaryContext::dump(const MCInst &Inst) const {
 }
 
 void BinaryContext::printCFI(raw_ostream &OS, const MCCFIInstruction &Inst) {
-  uint32_t Operation = Inst.getOperation();
-  switch (Operation) {
+  
+  switch (uint32_t Operation = Inst.getOperation(); Operation) {
   case MCCFIInstruction::OpSameValue:
     OS << "OpSameValue Reg" << Inst.getRegister();
     break;
@@ -2162,8 +2162,8 @@ void BinaryContext::printInstruction(raw_ostream &OS, const MCInst &Instruction,
       else
         OS << '0';
       OS << "; action: " << EHInfo->second;
-      const int64_t GnuArgsSize = MIB->getGnuArgsSize(Instruction);
-      if (GnuArgsSize >= 0)
+      
+      if (const int64_t GnuArgsSize = MIB->getGnuArgsSize(Instruction); GnuArgsSize >= 0)
         OS << "; GNU_args_size = " << GnuArgsSize;
     }
   } else if (MIB->isIndirectBranch(Instruction)) {
@@ -2476,8 +2476,8 @@ void BinaryContext::markAmbiguousRelocations(BinaryData &BD,
     setImmovable(BD);
 
     // Set previous symbol as immovable
-    BinaryData *Prev = getBinaryDataContainingAddress(Address - 1);
-    if (Prev && Prev->getEndAddress() == BD.getAddress())
+    
+    if (BinaryData *Prev = getBinaryDataContainingAddress(Address - 1); Prev && Prev->getEndAddress() == BD.getAddress())
       setImmovable(*Prev);
   }
 
@@ -2485,8 +2485,8 @@ void BinaryContext::markAmbiguousRelocations(BinaryData &BD,
     setImmovable(BD);
 
     // Set next symbol as immovable
-    BinaryData *Next = getBinaryDataContainingAddress(BD.getEndAddress());
-    if (Next && Next->getAddress() == BD.getEndAddress())
+    
+    if (BinaryData *Next = getBinaryDataContainingAddress(BD.getEndAddress()); Next && Next->getAddress() == BD.getEndAddress())
       setImmovable(*Next);
   }
 }
@@ -2738,8 +2738,8 @@ BinaryFunction *BinaryContext::getBinaryFunctionAtAddress(uint64_t Address) {
   // original was folded into) will hold the symbol.
   if (const BinaryData *BD = getBinaryDataAtAddress(Address)) {
     uint64_t EntryID = 0;
-    BinaryFunction *BF = getFunctionForSymbol(BD->getSymbol(), &EntryID);
-    if (BF && EntryID == 0)
+    
+    if (BinaryFunction *BF = getFunctionForSymbol(BD->getSymbol(), &EntryID); BF && EntryID == 0)
       return BF;
   }
   return nullptr;

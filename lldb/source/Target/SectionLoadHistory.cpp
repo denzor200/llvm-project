@@ -48,9 +48,9 @@ SectionLoadHistory::GetSectionLoadListForStopID(uint32_t stop_id,
             m_stop_id_to_section_load_list.rbegin();
         return rpos->second.get();
       } else {
-        StopIDToSectionLoadList::iterator pos =
-            m_stop_id_to_section_load_list.lower_bound(stop_id);
-        if (pos != m_stop_id_to_section_load_list.end() &&
+        
+        if (StopIDToSectionLoadList::iterator pos =
+            m_stop_id_to_section_load_list.lower_bound(stop_id); pos != m_stop_id_to_section_load_list.end() &&
             pos->first == stop_id)
           return pos->second.get();
         else if (pos != m_stop_id_to_section_load_list.begin()) {

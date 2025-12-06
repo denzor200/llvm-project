@@ -375,9 +375,9 @@ bool PlaceSafepointsPass::runImpl(Function &F, const TargetLibraryInfo &TLI) {
 
 PreservedAnalyses PlaceSafepointsPass::run(Function &F,
                                            FunctionAnalysisManager &AM) {
-  auto &TLI = AM.getResult<TargetLibraryAnalysis>(F);
+  
 
-  if (!runImpl(F, TLI))
+  if (auto &TLI = AM.getResult<TargetLibraryAnalysis>(F); !runImpl(F, TLI))
     return PreservedAnalyses::all();
 
   // TODO: can we preserve more?
@@ -457,8 +457,8 @@ static bool mustBeFiniteCountedLoop(Loop *L, ScalarEvolution *SE,
   if (L->isLoopExiting(Pred)) {
     // This returns an exact expression only.  TODO: We really only need an
     // upper bound here, but SE doesn't expose that.
-    const SCEV *MaxExec = SE->getExitCount(L, Pred);
-    if (!isa<SCEVCouldNotCompute>(MaxExec) &&
+    
+    if (const SCEV *MaxExec = SE->getExitCount(L, Pred); !isa<SCEVCouldNotCompute>(MaxExec) &&
         SE->getUnsignedRange(MaxExec).getUnsignedMax().isIntN(
             CountedLoopTripWidth))
         return true;

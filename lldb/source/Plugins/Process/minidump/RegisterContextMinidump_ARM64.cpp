@@ -779,8 +779,8 @@ RegisterContextMinidump_ARM64::RegisterContextMinidump_ARM64(
   m_regs.cpsr = data.GetU32(&offset);
   m_regs.fpsr = data.GetU32(&offset);
   m_regs.fpcr = data.GetU32(&offset);
-  auto regs_data = data.GetData(&offset, sizeof(m_regs.v));
-  if (regs_data)
+  
+  if (auto regs_data = data.GetData(&offset, sizeof(m_regs.v)); regs_data)
     memcpy(m_regs.v, regs_data, sizeof(m_regs.v));
   static_assert(k_num_regs == k_num_reg_infos);
 }

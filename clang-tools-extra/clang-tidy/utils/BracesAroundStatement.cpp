@@ -78,8 +78,8 @@ static SourceLocation findEndLocation(const Stmt &S, const SourceManager &SM,
       // EOL, insert brace before.
       break;
     }
-    const tok::TokenKind TokKind = getTokenKind(Loc, SM, LangOpts);
-    if (TokKind != tok::comment) {
+    
+    if (const tok::TokenKind TokKind = getTokenKind(Loc, SM, LangOpts); TokKind != tok::comment) {
       // Non-comment token, insert brace before.
       break;
     }

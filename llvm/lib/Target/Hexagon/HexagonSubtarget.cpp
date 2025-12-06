@@ -123,8 +123,8 @@ HexagonSubtarget::initializeSubtargetDependencies(StringRef CPU, StringRef FS) {
     bool AddQFloat = false;
     StringRef HvxVer = getHvxVersion(FS);
     if (HvxVer.starts_with("+hvxv")) {
-      int Ver = 0;
-      if (!HvxVer.drop_front(5).consumeInteger(10, Ver) && Ver >= 68)
+      
+      if (int Ver = 0; !HvxVer.drop_front(5).consumeInteger(10, Ver) && Ver >= 68)
         AddQFloat = true;
     } else if (HvxVer == "+hvx") {
       if (hasV68Ops())
@@ -208,8 +208,8 @@ bool HexagonSubtarget::isTypeForHVX(Type *VecTy, bool IncludeBool) const {
   if (!VecTy->isVectorTy() || isa<ScalableVectorType>(VecTy))
     return false;
   // Avoid types like <2 x i32*>.
-  Type *ScalTy = VecTy->getScalarType();
-  if (!ScalTy->isIntegerTy() &&
+  
+  if (Type *ScalTy = VecTy->getScalarType(); !ScalTy->isIntegerTy() &&
       !(ScalTy->isFloatingPointTy() && useHVXFloatingPoint()))
     return false;
   // The given type may be something like <17 x i32>, which is not MVT,
@@ -342,8 +342,8 @@ void HexagonSubtarget::CallMutation::apply(ScheduleDAGInstrs *DAGInstrs) {
     // this.
     // The code below checks for all the physical registers, not just R0/D0/V0.
     else if (SchedRetvalOptimization) {
-      const MachineInstr *MI = DAG->SUnits[su].getInstr();
-      if (MI->isCopy() && MI->getOperand(1).getReg().isPhysical()) {
+      
+      if (const MachineInstr *MI = DAG->SUnits[su].getInstr(); MI->isCopy() && MI->getOperand(1).getReg().isPhysical()) {
         // %vregX = COPY %r0
         VRegHoldingReg[MI->getOperand(0).getReg()] = MI->getOperand(1).getReg();
         LastVRegUse.erase(MI->getOperand(1).getReg());
@@ -467,8 +467,8 @@ void HexagonSubtarget::adjustSchedDependency(
       MachineInstr *DDst = DDep.getSUnit()->getInstr();
       int UseIdx = -1;
       for (unsigned OpNum = 0; OpNum < DDst->getNumOperands(); OpNum++) {
-        const MachineOperand &MO = DDst->getOperand(OpNum);
-        if (MO.isReg() && MO.getReg() && MO.isUse() && MO.getReg() == DReg) {
+        
+        if (const MachineOperand &MO = DDst->getOperand(OpNum); MO.isReg() && MO.getReg() && MO.isUse() && MO.getReg() == DReg) {
           UseIdx = OpNum;
           break;
         }
@@ -542,9 +542,9 @@ int HexagonSubtarget::updateLatency(MachineInstr &SrcInst,
   if (!hasV60Ops())
     return Latency;
 
-  const HexagonInstrInfo &QII = *getInstrInfo();
+  
   // BSB scheduling.
-  if (QII.isHVXVec(SrcInst) || useBSBScheduling())
+  if (const HexagonInstrInfo &QII = *getInstrInfo(); QII.isHVXVec(SrcInst) || useBSBScheduling())
     Latency = (Latency + 1) >> 1;
   return Latency;
 }
@@ -558,8 +558,8 @@ void HexagonSubtarget::restoreLatency(SUnit *Src, SUnit *Dst) const {
     int DefIdx = -1;
     for (unsigned OpNum = 0; OpNum < SrcI->getNumOperands(); OpNum++) {
       const MachineOperand &MO = SrcI->getOperand(OpNum);
-      bool IsSameOrSubReg = false;
-      if (MO.isReg()) {
+      
+      if (bool IsSameOrSubReg = false; MO.isReg()) {
         Register MOReg = MO.getReg();
         if (DepR.isVirtual()) {
           IsSameOrSubReg = (MOReg == DepR);
@@ -574,8 +574,8 @@ void HexagonSubtarget::restoreLatency(SUnit *Src, SUnit *Dst) const {
     MachineInstr *DstI = Dst->getInstr();
     SDep T = I;
     for (unsigned OpNum = 0; OpNum < DstI->getNumOperands(); OpNum++) {
-      const MachineOperand &MO = DstI->getOperand(OpNum);
-      if (MO.isReg() && MO.isUse() && MO.getReg() == DepR) {
+      
+      if (const MachineOperand &MO = DstI->getOperand(OpNum); MO.isReg() && MO.isUse() && MO.getReg() == DepR) {
         std::optional<unsigned> Latency = InstrInfo.getOperandLatency(
             &InstrItins, *SrcI, DefIdx, *DstI, OpNum);
 

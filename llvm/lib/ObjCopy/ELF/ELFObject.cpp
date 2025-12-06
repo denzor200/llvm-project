@@ -982,8 +982,8 @@ static void writeRel(const RelRange &Relocations, T *Buf, bool IsMips64EL) {
 
 template <class ELFT>
 Error ELFSectionWriter<ELFT>::visit(const RelocationSection &Sec) {
-  uint8_t *Buf = reinterpret_cast<uint8_t *>(Out.getBufferStart()) + Sec.Offset;
-  if (Sec.Type == SHT_CREL) {
+  
+  if (uint8_t *Buf = reinterpret_cast<uint8_t *>(Out.getBufferStart()) + Sec.Offset; Sec.Type == SHT_CREL) {
     auto Content = encodeCrel<ELFT::Is64Bits>(Sec.Relocations);
     memcpy(Buf, Content.data(), Content.size());
   } else if (Sec.Type == SHT_REL) {
@@ -1229,8 +1229,8 @@ static bool sectionWithinSegment(const SectionBase &Sec, const Segment &Seg) {
       return false;
 
     bool SectionIsTLS = Sec.Flags & SHF_TLS;
-    bool SegmentIsTLS = Seg.Type == PT_TLS;
-    if (SectionIsTLS != SegmentIsTLS)
+    
+    if (bool SegmentIsTLS = Seg.Type == PT_TLS; SectionIsTLS != SegmentIsTLS)
       return false;
 
     return Seg.VAddr <= Sec.Addr &&
@@ -1355,8 +1355,8 @@ void IHexELFBuilder::addDataSections() {
   uint32_t SecNo = 1;
 
   for (const IHexRecord &R : Records) {
-    uint64_t RecAddr;
-    switch (R.Type) {
+    
+    switch (uint64_t RecAddr; R.Type) {
     case IHexRecord::Data:
       // Ignore empty data records
       if (R.HexData.empty())
@@ -2466,8 +2466,8 @@ static uint64_t layoutSegmentsForOnlyKeepDebug(std::vector<Segment *> &Segments,
                  : (Seg->ParentSegment ? Seg->ParentSegment->Offset : 0);
     uint64_t FileSize = 0;
     for (const SectionBase *Sec : Seg->Sections) {
-      uint64_t Size = Sec->Type == SHT_NOBITS ? 0 : Sec->Size;
-      if (Sec->Offset + Size > Offset)
+      
+      if (uint64_t Size = Sec->Type == SHT_NOBITS ? 0 : Sec->Size; Sec->Offset + Size > Offset)
         FileSize = std::max(FileSize, Sec->Offset + Size - Offset);
     }
 

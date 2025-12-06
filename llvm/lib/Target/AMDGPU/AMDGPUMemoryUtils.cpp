@@ -125,8 +125,8 @@ void getUsesOfLDSByFunction(const CallGraph &CG, Module &M,
       continue;
     for (User *V : GV.users()) {
       if (auto *I = dyn_cast<Instruction>(V)) {
-        Function *F = I->getFunction();
-        if (isKernel(*F))
+        
+        if (Function *F = I->getFunction(); isKernel(*F))
           kernels[F].insert(&GV);
         else
           Functions[F].insert(&GV);
@@ -200,8 +200,8 @@ LDSUsesInfoTy getTransitiveUsesOfLDS(const CallGraph &CG, Module &M) {
       set_union(TransitiveMapFunction[&Func], DirectMapFunction[F]);
 
       for (const CallGraphNode::CallRecord &R : *CG[F]) {
-        Function *Ith = R.second->getFunction();
-        if (Ith) {
+        
+        if (Function *Ith = R.second->getFunction(); Ith) {
           if (!seen.contains(Ith)) {
             seen.insert(Ith);
             wip.push_back(Ith);
@@ -227,15 +227,17 @@ LDSUsesInfoTy getTransitiveUsesOfLDS(const CallGraph &CG, Module &M) {
       continue;
 
     for (const CallGraphNode::CallRecord &R : *CG[&Func]) {
-      Function *Ith = R.second->getFunction();
-      if (Ith) {
+      
+      if (Function *Ith = R.second->getFunction(); Ith) {
         set_union(IndirectMapKernel[&Func], TransitiveMapFunction[Ith]);
       }
     }
 
     // Check if the kernel encounters unknows calls, wheher directly or
     // indirectly.
-    bool SeesUnknownCalls = [&]() {
+    
+
+    if (bool SeesUnknownCalls = [&]() {
       SmallVector<Function *> WorkList = {CG[&Func]->getFunction()};
       SmallPtrSet<Function *, 8> Visited;
 
@@ -255,9 +257,7 @@ LDSUsesInfoTy getTransitiveUsesOfLDS(const CallGraph &CG, Module &M) {
         }
       }
       return false;
-    }();
-
-    if (SeesUnknownCalls) {
+    }(); SeesUnknownCalls) {
       set_union(IndirectMapKernel[&Func],
                 VariablesReachableThroughFunctionPointer);
     }
@@ -277,9 +277,9 @@ LDSUsesInfoTy getTransitiveUsesOfLDS(const CallGraph &CG, Module &M) {
     for (auto &[Fn, GVs] : Map) {
       for (auto *GV : GVs) {
         bool IsAbsolute = GV->isAbsoluteSymbolRef();
-        bool IsDirectMapDynLDSGV =
-            AMDGPU::isDynamicLDS(*GV) && DirectMapKernel.contains(Fn);
-        if (IsDirectMapDynLDSGV)
+        
+        if (bool IsDirectMapDynLDSGV =
+            AMDGPU::isDynamicLDS(*GV) && DirectMapKernel.contains(Fn); IsDirectMapDynLDSGV)
           continue;
         if (isNamedBarrier(*GV)) {
           if (IsAbsolute) {
@@ -325,8 +325,8 @@ void removeFnAttrFromReachable(CallGraph &CG, Function *KernelRoot,
       if (!CallRecord.second)
         continue;
 
-      Function *Callee = CallRecord.second->getFunction();
-      if (!Callee) {
+      
+      if (Function *Callee = CallRecord.second->getFunction(); !Callee) {
         if (!SeenUnknownCall) {
           SeenUnknownCall = true;
 

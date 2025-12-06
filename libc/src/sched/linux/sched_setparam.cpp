@@ -19,8 +19,8 @@ namespace LIBC_NAMESPACE_DECL {
 
 LLVM_LIBC_FUNCTION(int, sched_setparam,
                    (pid_t tid, const struct sched_param *param)) {
-  int ret = LIBC_NAMESPACE::syscall_impl<int>(SYS_sched_setparam, tid, param);
-  if (ret < 0) {
+  
+  if (int ret = LIBC_NAMESPACE::syscall_impl<int>(SYS_sched_setparam, tid, param); ret < 0) {
     libc_errno = -ret;
     return -1;
   }

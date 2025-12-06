@@ -248,8 +248,8 @@ static unsigned calculateLegacyCbufferSize(const ASTContext &Context,
 
       // If the field crosses the row boundary after alignment it drops to the
       // next row
-      unsigned AlignSize = llvm::alignTo(Size, FieldAlign);
-      if ((AlignSize % CBufferAlign) + FieldSize > CBufferAlign) {
+      
+      if (unsigned AlignSize = llvm::alignTo(Size, FieldAlign); (AlignSize % CBufferAlign) + FieldSize > CBufferAlign) {
         FieldAlign = CBufferAlign;
       }
 
@@ -324,8 +324,8 @@ static void validatePackoffset(Sema &S, HLSLBufferDecl *BufDecl) {
     unsigned Size = calculateLegacyCbufferSize(Context, Var->getType());
     unsigned Begin = Attr->getOffsetInBytes();
     unsigned End = Begin + Size;
-    unsigned NextBegin = PackOffsetVec[i + 1].second->getOffsetInBytes();
-    if (End > NextBegin) {
+    
+    if (unsigned NextBegin = PackOffsetVec[i + 1].second->getOffsetInBytes(); End > NextBegin) {
       VarDecl *NextVar = PackOffsetVec[i + 1].first;
       S.Diag(NextVar->getLocation(), diag::err_hlsl_packoffset_overlap)
           << NextVar << Var;
@@ -530,8 +530,8 @@ static CXXRecordDecl *createHostLayoutStruct(Sema &S,
 
   // filter struct fields
   for (const FieldDecl *FD : StructDecl->fields()) {
-    const Type *Ty = FD->getType()->getUnqualifiedDesugaredType();
-    if (FieldDecl *NewFD =
+    
+    if (const Type *Ty = FD->getType()->getUnqualifiedDesugaredType(); FieldDecl *NewFD =
             createFieldForHostLayoutStruct(S, Ty, FD->getIdentifier(), LS))
       LS->addDecl(NewFD);
   }
@@ -607,8 +607,8 @@ void SemaHLSL::ActOnFinishBuffer(Decl *Dcl, SourceLocation RBrace) {
     SemaRef.Diag(Dcl->getLocation(), diag::warn_hlsl_implicit_binding);
     // Use HLSLResourceBindingAttr to transfer implicit binding order_ID
     // to codegen. If it does not exist, create an implicit attribute.
-    uint32_t OrderID = getNextImplicitBindingOrderID();
-    if (ResourceAttrs.hasBinding())
+    
+    if (uint32_t OrderID = getNextImplicitBindingOrderID(); ResourceAttrs.hasBinding())
       ResourceAttrs.setImplicitOrderID(OrderID);
     else
       addImplicitBindingAttrToDecl(SemaRef, BufDecl,
@@ -657,8 +657,8 @@ HLSLVkConstantIdAttr *
 SemaHLSL::mergeVkConstantIdAttr(Decl *D, const AttributeCommonInfo &AL,
                                 int Id) {
 
-  auto &TargetInfo = getASTContext().getTargetInfo();
-  if (TargetInfo.getTriple().getArch() != llvm::Triple::spirv) {
+  
+  if (auto &TargetInfo = getASTContext().getTargetInfo(); TargetInfo.getTriple().getArch() != llvm::Triple::spirv) {
     Diag(AL.getLoc(), diag::warn_attribute_ignored) << AL;
     return nullptr;
   }
@@ -808,8 +808,8 @@ bool SemaHLSL::determineActiveSemanticOnScalar(FunctionDecl *FD,
   for (unsigned I = 0; I < ElementCount; ++I) {
     Twine VariableName = BaseName.concat(Twine(Location + I));
 
-    auto [_, Inserted] = UsedSemantics.insert(VariableName.str());
-    if (!Inserted) {
+    
+    if (auto [_, Inserted] = UsedSemantics.insert(VariableName.str()); !Inserted) {
       Diag(D->getLocation(), diag::err_hlsl_semantic_index_overlap)
           << VariableName.str();
       return false;
@@ -1014,9 +1014,9 @@ static QualType handleFloatVectorBinOpConversion(
     Sema &SemaRef, ExprResult &LHS, ExprResult &RHS, QualType LHSType,
     QualType RHSType, QualType LElTy, QualType RElTy, bool IsCompAssign) {
   bool LHSFloat = LElTy->isRealFloatingType();
-  bool RHSFloat = RElTy->isRealFloatingType();
+  
 
-  if (LHSFloat && RHSFloat) {
+  if (bool RHSFloat = RElTy->isRealFloatingType(); LHSFloat && RHSFloat) {
     if (IsCompAssign ||
         SemaRef.getASTContext().getFloatingTypeOrder(LElTy, RElTy) > 0)
       return castElement<CK_FloatingCast>(SemaRef, RHS, LHSType);
@@ -1219,9 +1219,9 @@ void SemaHLSL::ActOnFinishRootSignatureDecl(
 HLSLRootSignatureDecl *
 SemaHLSL::lookupRootSignatureOverrideDecl(DeclContext *DC) const {
   if (RootSigOverrideIdent) {
-    LookupResult R(SemaRef, RootSigOverrideIdent, SourceLocation(),
-                   Sema::LookupOrdinaryName);
-    if (SemaRef.LookupQualifiedName(R, DC))
+    
+    if (LookupResult R(SemaRef, RootSigOverrideIdent, SourceLocation(),
+                   Sema::LookupOrdinaryName); SemaRef.LookupQualifiedName(R, DC))
       return dyn_cast<HLSLRootSignatureDecl>(R.getFoundDecl());
   }
 
@@ -1388,8 +1388,8 @@ bool SemaHLSL::handleRootSignatureElements(
   // Iterate through the elements and do basic validations
   for (const hlsl::RootSignatureElement &RootSigElem : Elements) {
     SourceLocation Loc = RootSigElem.getLocation();
-    const llvm::hlsl::rootsig::RootElement &Elem = RootSigElem.getElement();
-    if (const auto *Descriptor =
+    
+    if (const llvm::hlsl::rootsig::RootElement &Elem = RootSigElem.getElement(); const auto *Descriptor =
             std::get_if<llvm::hlsl::rootsig::RootDescriptor>(&Elem)) {
       VerifyRegister(Loc, Descriptor->Reg.Number);
       VerifySpace(Loc, Descriptor->Space);
@@ -1439,8 +1439,8 @@ bool SemaHLSL::handleRootSignatureElements(
       UnboundClauses;
 
   for (const hlsl::RootSignatureElement &RootSigElem : Elements) {
-    const llvm::hlsl::rootsig::RootElement &Elem = RootSigElem.getElement();
-    if (const auto *Descriptor =
+    
+    if (const llvm::hlsl::rootsig::RootElement &Elem = RootSigElem.getElement(); const auto *Descriptor =
             std::get_if<llvm::hlsl::rootsig::RootDescriptor>(&Elem)) {
       uint32_t LowerBound(Descriptor->Reg.Number);
       uint32_t UpperBound(LowerBound); // inclusive range
@@ -1708,9 +1708,9 @@ void SemaHLSL::handleVkBindingAttr(Decl *D, const ParsedAttr &AL) {
 }
 
 bool SemaHLSL::diagnoseInputIDType(QualType T, const ParsedAttr &AL) {
-  const auto *VT = T->getAs<VectorType>();
+  
 
-  if (!T->hasUnsignedIntegerRepresentation() ||
+  if (const auto *VT = T->getAs<VectorType>(); !T->hasUnsignedIntegerRepresentation() ||
       (VT && VT->getNumElements() > 3)) {
     Diag(AL.getLoc(), diag::err_hlsl_attr_invalid_type)
         << AL << "uint/uint2/uint3";
@@ -1721,8 +1721,8 @@ bool SemaHLSL::diagnoseInputIDType(QualType T, const ParsedAttr &AL) {
 }
 
 bool SemaHLSL::diagnosePositionType(QualType T, const ParsedAttr &AL) {
-  const auto *VT = T->getAs<VectorType>();
-  if (!T->hasFloatingRepresentation() || (VT && VT->getNumElements() > 4)) {
+  
+  if (const auto *VT = T->getAs<VectorType>(); !T->hasFloatingRepresentation() || (VT && VT->getNumElements() > 4)) {
     Diag(AL.getLoc(), diag::err_hlsl_attr_invalid_type)
         << AL << "float/float1/float2/float3/float4";
     return false;
@@ -1788,8 +1788,8 @@ void SemaHLSL::diagnoseSystemSemanticAttr(Decl *D, const ParsedAttr &AL,
   }
 
   if (SemanticName == "SV_POSITION") {
-    const auto *VT = ValueType->getAs<VectorType>();
-    if (!ValueType->hasFloatingRepresentation() ||
+    
+    if (const auto *VT = ValueType->getAs<VectorType>(); !ValueType->hasFloatingRepresentation() ||
         (VT && VT->getNumElements() > 4))
       Diag(AL.getLoc(), diag::err_hlsl_attr_invalid_type)
           << AL << "float/float1/float2/float3/float4";
@@ -1805,10 +1805,10 @@ void SemaHLSL::handleSemanticAttr(Decl *D, const ParsedAttr &AL) {
   SemaRef.checkUInt32Argument(AL, AL.getArgAsExpr(0), IndexValue);
   SemaRef.checkUInt32Argument(AL, AL.getArgAsExpr(1), ExplicitIndex);
   assert(IndexValue > 0 ? ExplicitIndex : true);
-  std::optional<unsigned> Index =
-      ExplicitIndex ? std::optional<unsigned>(IndexValue) : std::nullopt;
+  
 
-  if (AL.getAttrName()->getName().starts_with_insensitive("SV_"))
+  if (std::optional<unsigned> Index =
+      ExplicitIndex ? std::optional<unsigned>(IndexValue) : std::nullopt; AL.getAttrName()->getName().starts_with_insensitive("SV_"))
     diagnoseSystemSemanticAttr(D, AL, Index);
   else
     D->addAttr(createSemanticAttr<HLSLParsedSemanticAttr>(AL, Index));
@@ -1835,8 +1835,8 @@ void SemaHLSL::handlePackOffsetAttr(Decl *D, const ParsedAttr &AL) {
 
   // Check Component is valid for T.
   if (Component) {
-    unsigned Size = getASTContext().getTypeSize(T);
-    if (IsAggregateTy || Size > 128) {
+    
+    if (unsigned Size = getASTContext().getTypeSize(T); IsAggregateTy || Size > 128) {
       Diag(AL.getLoc(), diag::err_hlsl_packoffset_cross_reg_boundary);
       return;
     } else {
@@ -2115,8 +2115,8 @@ void SemaHLSL::collectResourceBindingsOnUserRecordDecl(const VarDecl *VD,
             HLSLAttributedResourceType::findHandleTypeOnResource(Ty)) {
       // Add a new DeclBindingInfo to Bindings if it does not already exist
       ResourceClass RC = AttrResType->getAttrs().ResourceClass;
-      DeclBindingInfo *DBI = Bindings.getDeclBindingInfo(VD, RC);
-      if (!DBI)
+      
+      if (DeclBindingInfo *DBI = Bindings.getDeclBindingInfo(VD, RC); !DBI)
         Bindings.addDeclBindingInfo(VD, RC);
     } else if (const RecordType *RT = dyn_cast<RecordType>(Ty)) {
       // Recursively scan embedded struct or class; it would be nice to do this
@@ -2147,9 +2147,9 @@ static bool DiagnoseLocalRegisterBinding(Sema &S, SourceLocation &ArgLoc,
 
   // Cbuffers and Tbuffers are HLSLBufferDecl types
   if (HLSLBufferDecl *CBufferOrTBuffer = dyn_cast<HLSLBufferDecl>(D)) {
-    ResourceClass RC = CBufferOrTBuffer->isCBuffer() ? ResourceClass::CBuffer
-                                                     : ResourceClass::SRV;
-    if (RegType == getRegisterType(RC))
+    
+    if (ResourceClass RC = CBufferOrTBuffer->isCBuffer() ? ResourceClass::CBuffer
+                                                     : ResourceClass::SRV; RegType == getRegisterType(RC))
       return true;
 
     S.Diag(D->getLocation(), diag::err_hlsl_binding_type_mismatch)
@@ -2285,8 +2285,8 @@ void SemaHLSL::handleResourceBindingAttr(Decl *TheDecl, const ParsedAttr &AL) {
     Space = Loc->getIdentifierInfo()->getName();
     SpaceLoc = Loc->getLoc();
   } else {
-    StringRef Str = Loc->getIdentifierInfo()->getName();
-    if (Str.starts_with("space")) {
+    
+    if (StringRef Str = Loc->getIdentifierInfo()->getName(); Str.starts_with("space")) {
       Space = Str;
       SpaceLoc = Loc->getLoc();
     } else {
@@ -2345,10 +2345,10 @@ void SemaHLSL::handleResourceBindingAttr(Decl *TheDecl, const ParsedAttr &AL) {
 }
 
 void SemaHLSL::handleParamModifierAttr(Decl *D, const ParsedAttr &AL) {
-  HLSLParamModifierAttr *NewAttr = mergeParamModifierAttr(
+  
+  if (HLSLParamModifierAttr *NewAttr = mergeParamModifierAttr(
       D, AL,
-      static_cast<HLSLParamModifierAttr::Spelling>(AL.getSemanticSpelling()));
-  if (NewAttr)
+      static_cast<HLSLParamModifierAttr::Spelling>(AL.getSemanticSpelling())); NewAttr)
     D->addAttr(NewAttr);
 }
 
@@ -2470,15 +2470,15 @@ public:
   void RunOnFunction(const FunctionDecl *FD);
 
   bool VisitDeclRefExpr(DeclRefExpr *DRE) override {
-    FunctionDecl *FD = llvm::dyn_cast<FunctionDecl>(DRE->getDecl());
-    if (FD)
+    
+    if (FunctionDecl *FD = llvm::dyn_cast<FunctionDecl>(DRE->getDecl()); FD)
       HandleFunctionOrMethodRef(FD, DRE);
     return true;
   }
 
   bool VisitMemberExpr(MemberExpr *ME) override {
-    FunctionDecl *FD = llvm::dyn_cast<FunctionDecl>(ME->getMemberDecl());
-    if (FD)
+    
+    if (FunctionDecl *FD = llvm::dyn_cast<FunctionDecl>(ME->getMemberDecl()); FD)
       HandleFunctionOrMethodRef(FD, ME);
     return true;
   }
@@ -2609,11 +2609,11 @@ DiagnoseHLSLAvailability::FindAvailabilityAttr(const Decl *D) {
   for (const auto *A : D->attrs()) {
     if (const auto *Avail = dyn_cast<AvailabilityAttr>(A)) {
       StringRef AttrPlatform = Avail->getPlatform()->getName();
-      StringRef TargetPlatform =
-          SemaRef.getASTContext().getTargetInfo().getPlatformName();
+      
 
       // Match the platform name.
-      if (AttrPlatform == TargetPlatform) {
+      if (StringRef TargetPlatform =
+          SemaRef.getASTContext().getTargetInfo().getPlatformName(); AttrPlatform == TargetPlatform) {
         // Find the best matching attribute for this environment
         if (HasMatchingEnvironmentOrNone(Avail))
           return Avail;
@@ -2630,9 +2630,9 @@ void DiagnoseHLSLAvailability::CheckDeclAvailability(NamedDecl *D,
                                                      const AvailabilityAttr *AA,
                                                      SourceRange Range) {
 
-  IdentifierInfo *IIEnv = AA->getEnvironment();
+  
 
-  if (!IIEnv) {
+  if (IdentifierInfo *IIEnv = AA->getEnvironment(); !IIEnv) {
     // The availability attribute does not have environment -> it depends only
     // on shader model version and not on specific the shader stage.
 
@@ -2707,9 +2707,9 @@ void SemaHLSL::ActOnEndOfTranslationUnit(TranslationUnitDecl *TU) {
 
     // Set HasValidPackoffset if any of the decls has a register(c#) annotation;
     for (const Decl *VD : DefaultCBufferDecls) {
-      const HLSLResourceBindingAttr *RBA =
-          VD->getAttr<HLSLResourceBindingAttr>();
-      if (RBA && RBA->hasRegisterSlot() &&
+      
+      if (const HLSLResourceBindingAttr *RBA =
+          VD->getAttr<HLSLResourceBindingAttr>(); RBA && RBA->hasRegisterSlot() &&
           RBA->getRegisterType() == HLSLResourceBindingAttr::RegisterType::C) {
         DefaultCBuffer->setHasValidPackoffset(true);
         break;
@@ -2727,8 +2727,8 @@ void SemaHLSL::diagnoseAvailabilityViolations(TranslationUnitDecl *TU) {
   // strict (-fhlsl-strict-availability) and the target shader stage is known
   // because all relevant diagnostics were already emitted in the
   // DiagnoseUnguardedAvailability scan (SemaAvailability.cpp).
-  const TargetInfo &TI = SemaRef.getASTContext().getTargetInfo();
-  if (SemaRef.getLangOpts().HLSLStrictAvailability &&
+  
+  if (const TargetInfo &TI = SemaRef.getASTContext().getTargetInfo(); SemaRef.getLangOpts().HLSLStrictAvailability &&
       TI.getTriple().getEnvironment() != llvm::Triple::EnvironmentType::Library)
     return;
 
@@ -2768,8 +2768,8 @@ static bool CheckAllArgTypesAreCorrect(
                             clang::QualType PassedType)>
         Check) {
   for (unsigned I = 0; I < TheCall->getNumArgs(); ++I) {
-    Expr *Arg = TheCall->getArg(I);
-    if (Check(S, Arg->getBeginLoc(), I + 1, Arg->getType()))
+    
+    if (Expr *Arg = TheCall->getArg(I); Check(S, Arg->getBeginLoc(), I + 1, Arg->getType()))
       return true;
   }
   return false;
@@ -2878,9 +2878,9 @@ static bool CheckScalarOrVector(Sema *S, CallExpr *TheCall, QualType Scalar,
                                 unsigned ArgIndex) {
   assert(TheCall->getNumArgs() >= ArgIndex);
   QualType ArgType = TheCall->getArg(ArgIndex)->getType();
-  auto *VTy = ArgType->getAs<VectorType>();
+  
   // not the scalar or vector<scalar>
-  if (!(S->Context.hasSameUnqualifiedType(ArgType, Scalar) ||
+  if (auto *VTy = ArgType->getAs<VectorType>(); !(S->Context.hasSameUnqualifiedType(ArgType, Scalar) ||
         (VTy &&
          S->Context.hasSameUnqualifiedType(VTy->getElementType(), Scalar)))) {
     S->Diag(TheCall->getArg(0)->getBeginLoc(),
@@ -2895,9 +2895,9 @@ static bool CheckAnyScalarOrVector(Sema *S, CallExpr *TheCall,
                                    unsigned ArgIndex) {
   assert(TheCall->getNumArgs() >= ArgIndex);
   QualType ArgType = TheCall->getArg(ArgIndex)->getType();
-  auto *VTy = ArgType->getAs<VectorType>();
+  
   // not the scalar or vector<scalar>
-  if (!(ArgType->isScalarType() ||
+  if (auto *VTy = ArgType->getAs<VectorType>(); !(ArgType->isScalarType() ||
         (VTy && VTy->getElementType()->isScalarType()))) {
     S->Diag(TheCall->getArg(0)->getBeginLoc(),
             diag::err_typecheck_expect_any_scalar_or_vector)
@@ -2911,9 +2911,9 @@ static bool CheckWaveActive(Sema *S, CallExpr *TheCall) {
   QualType BoolType = S->getASTContext().BoolTy;
   assert(TheCall->getNumArgs() >= 1);
   QualType ArgType = TheCall->getArg(0)->getType();
-  auto *VTy = ArgType->getAs<VectorType>();
+  
   // is the bool or vector<bool>
-  if (S->Context.hasSameUnqualifiedType(ArgType, BoolType) ||
+  if (auto *VTy = ArgType->getAs<VectorType>(); S->Context.hasSameUnqualifiedType(ArgType, BoolType) ||
       (VTy &&
        S->Context.hasSameUnqualifiedType(VTy->getElementType(), BoolType))) {
     S->Diag(TheCall->getArg(0)->getBeginLoc(),
@@ -2927,8 +2927,8 @@ static bool CheckWaveActive(Sema *S, CallExpr *TheCall) {
 static bool CheckBoolSelect(Sema *S, CallExpr *TheCall) {
   assert(TheCall->getNumArgs() == 3);
   Expr *Arg1 = TheCall->getArg(1);
-  Expr *Arg2 = TheCall->getArg(2);
-  if (!S->Context.hasSameUnqualifiedType(Arg1->getType(), Arg2->getType())) {
+  
+  if (Expr *Arg2 = TheCall->getArg(2); !S->Context.hasSameUnqualifiedType(Arg1->getType(), Arg2->getType())) {
     S->Diag(TheCall->getBeginLoc(),
             diag::err_typecheck_call_different_arg_types)
         << Arg1->getType() << Arg2->getType() << Arg1->getSourceRange()
@@ -3029,8 +3029,8 @@ bool SemaHLSL::CheckBuiltinFunctionCall(unsigned BuiltinID, CallExpr *TheCall) {
 
     // ensure both args are vectors of total bit size of a multiple of 64
     auto *VTy = TheCall->getArg(0)->getType()->getAs<VectorType>();
-    int NumElementsArg = VTy->getNumElements();
-    if (NumElementsArg != 2 && NumElementsArg != 4) {
+    
+    if (int NumElementsArg = VTy->getNumElements(); NumElementsArg != 2 && NumElementsArg != 4) {
       SemaRef.Diag(TheCall->getBeginLoc(), diag::err_vector_incorrect_bit_count)
           << 1 /*a multiple of*/ << 64 << NumElementsArg * 32;
       return true;
@@ -3548,9 +3548,9 @@ bool SemaHLSL::IsTypedResourceElementCompatible(clang::QualType QT) {
   }
 
   if (const VectorType *VT = QT->getAs<VectorType>()) {
-    int ArraySize = VT->getNumElements();
+    
 
-    if (ArraySize > 4)
+    if (int ArraySize = VT->getNumElements(); ArraySize > 4)
       return false;
 
     QualType ElTy = VT->getElementType();
@@ -3606,9 +3606,9 @@ bool SemaHLSL::CheckCompatibleParameterABI(FunctionDecl *New,
     const auto *NDAttr = NewParam->getAttr<HLSLParamModifierAttr>();
     unsigned NSpellingIdx = (NDAttr ? NDAttr->getSpellingListIndex() : 0);
     const auto *ODAttr = OldParam->getAttr<HLSLParamModifierAttr>();
-    unsigned OSpellingIdx = (ODAttr ? ODAttr->getSpellingListIndex() : 0);
+    
 
-    if (NSpellingIdx != OSpellingIdx) {
+    if (unsigned OSpellingIdx = (ODAttr ? ODAttr->getSpellingListIndex() : 0); NSpellingIdx != OSpellingIdx) {
       SemaRef.Diag(NewParam->getLocation(),
                    diag::err_hlsl_param_qualifier_mismatch)
           << NDAttr << NewParam;
@@ -3922,8 +3922,8 @@ void SemaHLSL::ActOnVariableDeclarator(VarDecl *VD) {
       // order_ID to codegen.
       ResourceBindingAttrs Binding(VD);
       if (!Binding.isExplicit()) {
-        uint32_t OrderID = getNextImplicitBindingOrderID();
-        if (Binding.hasBinding())
+        
+        if (uint32_t OrderID = getNextImplicitBindingOrderID(); Binding.hasBinding())
           Binding.setImplicitOrderID(OrderID);
         else {
           addImplicitBindingAttrToDecl(

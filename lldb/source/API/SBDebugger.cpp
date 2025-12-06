@@ -541,8 +541,8 @@ void SBDebugger::HandleCommand(const char *command) {
 
     if (!m_opaque_sp->GetAsyncExecution()) {
       SBProcess process(GetCommandInterpreter().GetProcess());
-      ProcessSP process_sp(process.GetSP());
-      if (process_sp) {
+      
+      if (ProcessSP process_sp(process.GetSP()); process_sp) {
         EventSP event_sp;
         ListenerSP lldb_listener_sp = m_opaque_sp->GetListener();
         while (lldb_listener_sp->GetEventForBroadcaster(
@@ -643,11 +643,11 @@ bool SBDebugger::GetDefaultArchitecture(char *arch_name, size_t arch_name_len) {
   LLDB_INSTRUMENT_VA(arch_name, arch_name_len);
 
   if (arch_name && arch_name_len) {
-    ArchSpec default_arch = Target::GetDefaultArchitecture();
+    
 
-    if (default_arch.IsValid()) {
-      const std::string &triple_str = default_arch.GetTriple().str();
-      if (!triple_str.empty())
+    if (ArchSpec default_arch = Target::GetDefaultArchitecture(); default_arch.IsValid()) {
+      
+      if (const std::string &triple_str = default_arch.GetTriple().str(); !triple_str.empty())
         ::snprintf(arch_name, arch_name_len, "%s", triple_str.c_str());
       else
         ::snprintf(arch_name, arch_name_len, "%s",
@@ -664,8 +664,8 @@ bool SBDebugger::SetDefaultArchitecture(const char *arch_name) {
   LLDB_INSTRUMENT_VA(arch_name);
 
   if (arch_name) {
-    ArchSpec arch(arch_name);
-    if (arch.IsValid()) {
+    
+    if (ArchSpec arch(arch_name); arch.IsValid()) {
       Target::SetDefaultArchitecture(arch);
       return true;
     }
@@ -688,9 +688,9 @@ SBDebugger::GetScriptInterpreterInfo(lldb::ScriptLanguage language) {
   LLDB_INSTRUMENT_VA(this, language);
   SBStructuredData data;
   if (m_opaque_sp) {
-    lldb_private::ScriptInterpreter *interp =
-        m_opaque_sp->GetScriptInterpreter(language);
-    if (interp) {
+    
+    if (lldb_private::ScriptInterpreter *interp =
+        m_opaque_sp->GetScriptInterpreter(language); interp) {
       data.m_impl_up->SetObjectSP(interp->GetInterpreterInfo());
     }
   }
@@ -867,9 +867,9 @@ SBTarget SBDebugger::CreateTargetWithFileAndArch(const char *filename,
     } else {
       PlatformSP platform_sp =
           m_opaque_sp->GetPlatformList().GetSelectedPlatform();
-      ArchSpec arch =
-          Platform::GetAugmentedArchSpec(platform_sp.get(), arch_cstr);
-      if (arch.IsValid())
+      
+      if (ArchSpec arch =
+          Platform::GetAugmentedArchSpec(platform_sp.get(), arch_cstr); arch.IsValid())
         error = m_opaque_sp->GetTargetList().CreateTarget(
             *m_opaque_sp, filename, arch, eLoadDependentsYes, platform_sp,
             target_sp);
@@ -946,8 +946,8 @@ bool SBDebugger::DeleteTarget(lldb::SBTarget &target) {
 
   bool result = false;
   if (m_opaque_sp) {
-    TargetSP target_sp(target.GetSP());
-    if (target_sp) {
+    
+    if (TargetSP target_sp(target.GetSP()); target_sp) {
       // No need to lock, the target list is thread safe
       result = m_opaque_sp->GetTargetList().DeleteTarget(target_sp);
       target_sp->Destroy();
@@ -1355,13 +1355,13 @@ SBDebugger::GetInternalVariableValue(const char *var_name,
   if (debugger_sp) {
     ExecutionContext exe_ctx(
         debugger_sp->GetCommandInterpreter().GetExecutionContext());
-    lldb::OptionValueSP value_sp(
-        debugger_sp->GetPropertyValue(&exe_ctx, var_name, error));
-    if (value_sp) {
+    
+    if (lldb::OptionValueSP value_sp(
+        debugger_sp->GetPropertyValue(&exe_ctx, var_name, error)); value_sp) {
       StreamString value_strm;
       value_sp->DumpValue(&exe_ctx, value_strm, OptionValue::eDumpOptionValue);
-      const std::string &value_str = std::string(value_strm.GetString());
-      if (!value_str.empty()) {
+      
+      if (const std::string &value_str = std::string(value_strm.GetString()); !value_str.empty()) {
         StringList string_list;
         string_list.SplitIntoLines(value_str);
         return SBStringList(&string_list);
@@ -1496,9 +1496,9 @@ bool SBDebugger::GetUseSourceCache() const {
 bool SBDebugger::GetDescription(SBStream &description) {
   LLDB_INSTRUMENT_VA(this, description);
 
-  Stream &strm = description.ref();
+  
 
-  if (m_opaque_sp) {
+  if (Stream &strm = description.ref(); m_opaque_sp) {
     const char *name = m_opaque_sp->GetInstanceName().c_str();
     user_id_t id = m_opaque_sp->GetID();
     strm.Printf("Debugger (instance: \"%s\", id: %" PRIu64 ")", name, id);
@@ -1520,8 +1520,8 @@ SBError SBDebugger::SetCurrentPlatform(const char *platform_name_cstr) {
   SBError sb_error;
   if (m_opaque_sp) {
     if (platform_name_cstr && platform_name_cstr[0]) {
-      PlatformList &platforms = m_opaque_sp->GetPlatformList();
-      if (PlatformSP platform_sp = platforms.GetOrCreate(platform_name_cstr))
+      
+      if (PlatformList &platforms = m_opaque_sp->GetPlatformList(); PlatformSP platform_sp = platforms.GetOrCreate(platform_name_cstr))
         platforms.SetSelectedPlatform(platform_sp);
       else
         sb_error.ref() = Status::FromErrorString("platform not found");
@@ -1560,9 +1560,9 @@ SBTypeCategory SBDebugger::GetCategory(const char *category_name) {
   if (!category_name || *category_name == 0)
     return SBTypeCategory();
 
-  TypeCategoryImplSP category_sp;
+  
 
-  if (DataVisualization::Categories::GetCategory(ConstString(category_name),
+  if (TypeCategoryImplSP category_sp; DataVisualization::Categories::GetCategory(ConstString(category_name),
                                                  category_sp, false)) {
     return SBTypeCategory(category_sp);
   } else {
@@ -1573,8 +1573,8 @@ SBTypeCategory SBDebugger::GetCategory(const char *category_name) {
 SBTypeCategory SBDebugger::GetCategory(lldb::LanguageType lang_type) {
   LLDB_INSTRUMENT_VA(this, lang_type);
 
-  TypeCategoryImplSP category_sp;
-  if (DataVisualization::Categories::GetCategory(lang_type, category_sp)) {
+  
+  if (TypeCategoryImplSP category_sp; DataVisualization::Categories::GetCategory(lang_type, category_sp)) {
     return SBTypeCategory(category_sp);
   } else {
     return SBTypeCategory();
@@ -1587,9 +1587,9 @@ SBTypeCategory SBDebugger::CreateCategory(const char *category_name) {
   if (!category_name || *category_name == 0)
     return SBTypeCategory();
 
-  TypeCategoryImplSP category_sp;
+  
 
-  if (DataVisualization::Categories::GetCategory(ConstString(category_name),
+  if (TypeCategoryImplSP category_sp; DataVisualization::Categories::GetCategory(ConstString(category_name),
                                                  category_sp, true)) {
     return SBTypeCategory(category_sp);
   } else {

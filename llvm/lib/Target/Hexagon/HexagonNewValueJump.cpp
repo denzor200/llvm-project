@@ -281,10 +281,10 @@ static bool canCompareBeNewValueJump(const HexagonInstrInfo *QII,
     // Make sure that the second register is not from COPY
     // at machine code level, we don't need this, but if we decide
     // to move new value jump prior to RA, we would be needing this.
-    MachineRegisterInfo &MRI = MF.getRegInfo();
-    if (!Register::isPhysicalRegister(cmpOp2)) {
-      MachineInstr *def = MRI.getVRegDef(cmpOp2);
-      if (def->getOpcode() == TargetOpcode::COPY)
+    
+    if (MachineRegisterInfo &MRI = MF.getRegInfo(); !Register::isPhysicalRegister(cmpOp2)) {
+      
+      if (MachineInstr *def = MRI.getVRegDef(cmpOp2); def->getOpcode() == TargetOpcode::COPY)
         return false;
     }
   }
@@ -585,8 +585,8 @@ bool HexagonNewValueJump::runOnMachineFunction(MachineFunction &MF) {
           break;
 
         bool foundFeeder = false;
-        MachineBasicBlock::iterator feederPos = MII;
-        if (MI.getOperand(0).isReg() && MI.getOperand(0).isDef() &&
+        
+        if (MachineBasicBlock::iterator feederPos = MII; MI.getOperand(0).isReg() && MI.getOperand(0).isDef() &&
             (MI.getOperand(0).getReg() == cmpReg1 ||
              (isSecondOpReg &&
               MI.getOperand(0).getReg() == (unsigned)cmpOp2))) {
@@ -616,8 +616,8 @@ bool HexagonNewValueJump::runOnMachineFunction(MachineFunction &MF) {
           if (isSecondOpReg) {
             // In case of CMPLT, or CMPLTU, or EQ with the second register
             // to newify, swap the operands.
-            unsigned COp = cmpInstr->getOpcode();
-            if ((COp == Hexagon::C2_cmpeq || COp == Hexagon::C4_cmpneq) &&
+            
+            if (unsigned COp = cmpInstr->getOpcode(); (COp == Hexagon::C2_cmpeq || COp == Hexagon::C4_cmpneq) &&
                 (feederReg == (unsigned)cmpOp2)) {
               unsigned tmp = cmpReg1;
               cmpReg1 = cmpOp2;

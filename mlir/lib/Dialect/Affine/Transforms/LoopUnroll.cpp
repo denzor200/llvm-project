@@ -100,8 +100,8 @@ void LoopUnroll::runOnOperation() {
     // so that loops are gathered from innermost to outermost (or else
     // unrolling an outer one may delete gathered inner ones).
     getOperation().walk([&](AffineForOp forOp) {
-      std::optional<uint64_t> tripCount = getConstantTripCount(forOp);
-      if (tripCount && *tripCount <= unrollFullThreshold)
+      
+      if (std::optional<uint64_t> tripCount = getConstantTripCount(forOp); tripCount && *tripCount <= unrollFullThreshold)
         loops.push_back(forOp);
     });
     for (auto forOp : loops)

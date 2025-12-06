@@ -370,8 +370,8 @@ public:
       // built in post-thin-link phase and var promotion has been done,
       // we need to add the substring of function name without the suffix
       // into the GUIDToFuncNameMap.
-      StringRef CanonName = FunctionSamples::getCanonicalFnName(F);
-      if (CanonName != OrigName)
+      
+      if (StringRef CanonName = FunctionSamples::getCanonicalFnName(F); CanonName != OrigName)
         CurrentGUIDToFuncNameMap.insert(
             {Function::getGUIDAssumingExternalLinkage(CanonName), CanonName});
     }
@@ -623,8 +623,8 @@ inline void SampleProfileInference<Function>::findUnlikelyJumps(
     const Instruction *TI = BB->getTerminator();
     // Check if a block ends with InvokeInst and mark non-taken branch unlikely.
     // In that case block Succ should be a landing pad
-    const auto &Succs = Successors[BB];
-    if (Succs.size() == 2 && Succs.back() == Succ) {
+    
+    if (const auto &Succs = Successors[BB]; Succs.size() == 2 && Succs.back() == Succ) {
       if (isa<InvokeInst>(TI)) {
         Jump.IsUnlikely = true;
       }
@@ -656,8 +656,8 @@ ErrorOr<uint64_t> SampleProfileLoader::getInstWeight(const Instruction &Inst) {
   if (FunctionSamples::ProfileIsProbeBased)
     return getProbeWeight(Inst);
 
-  const DebugLoc &DLoc = Inst.getDebugLoc();
-  if (!DLoc)
+  
+  if (const DebugLoc &DLoc = Inst.getDebugLoc(); !DLoc)
     return std::error_code();
 
   // Ignore all intrinsics, phinodes and branch instructions.
@@ -776,8 +776,8 @@ SampleProfileLoader::findIndirectCallFunctionSamples(
 const FunctionSamples *
 SampleProfileLoader::findFunctionSamples(const Instruction &Inst) const {
   if (FunctionSamples::ProfileIsProbeBased) {
-    std::optional<PseudoProbe> Probe = extractProbe(Inst);
-    if (!Probe)
+    
+    if (std::optional<PseudoProbe> Probe = extractProbe(Inst); !Probe)
       return nullptr;
   }
 
@@ -953,9 +953,9 @@ bool SampleProfileLoader::tryPromoteAndInlineCandidate(
         NOMORE_ICP_MAGICNUM}};
     updateIDTMetaData(CI, SortedCallTargets, 0);
 
-    auto *DI = &pgo::promoteIndirectCall(
-        CI, R->second, Candidate.CallsiteCount, Sum, false, ORE);
-    if (DI) {
+    
+    if (auto *DI = &pgo::promoteIndirectCall(
+        CI, R->second, Candidate.CallsiteCount, Sum, false, ORE); DI) {
       Sum -= Candidate.CallsiteCount;
       // Do not prorate the indirect callsite distribution since the original
       // distribution will be used to scale down non-promoted profile target
@@ -1014,8 +1014,8 @@ void SampleProfileLoader::emitOptimizationRemarksForInlineCandidates(
     const SmallVectorImpl<CallBase *> &Candidates, const Function &F,
     bool Hot) {
   for (auto *I : Candidates) {
-    Function *CalledFunction = I->getCalledFunction();
-    if (CalledFunction) {
+    
+    if (Function *CalledFunction = I->getCalledFunction(); CalledFunction) {
       ORE->emit(OptimizationRemarkAnalysis(getAnnotatedRemarkPassName(),
                                            "InlineAttempt", I->getDebugLoc(),
                                            I->getParent())
@@ -1093,8 +1093,8 @@ void SampleProfileLoader::findExternalInlineCandidate(
     for (const auto &BS : CalleeSample->getBodySamples())
       for (const auto &TS : BS.second.getCallTargets())
         if (TS.second > Threshold) {
-          const Function *Callee = SymbolMap.lookup(TS.first);
-          if (!Callee || Callee->isDeclaration())
+          
+          if (const Function *Callee = SymbolMap.lookup(TS.first); !Callee || Callee->isDeclaration())
             InlinedGUIDs.insert(TS.first.getHashCode());
         }
 
@@ -1152,8 +1152,8 @@ bool SampleProfileLoader::inlineHotFunctions(
       SmallVector<CallBase *, 10> AllCandidates;
       SmallVector<CallBase *, 10> ColdCandidates;
       for (auto &I : BB) {
-        const FunctionSamples *FS = nullptr;
-        if (auto *CB = dyn_cast<CallBase>(&I)) {
+        
+        if (const FunctionSamples *FS = nullptr; auto *CB = dyn_cast<CallBase>(&I)) {
           if (!isa<IntrinsicInst>(I)) {
             if ((FS = findCalleeFunctionSamples(*CB))) {
               assert((!FunctionSamples::UseMD5 || FS->GUIDToFuncNameMap) &&
@@ -1387,8 +1387,8 @@ SampleProfileLoader::shouldInlineCandidate(InlineCandidate &Candidate) {
     // Once two node are merged due to promotion, we're losing some context
     // so the original context-sensitive preinliner decision should be ignored
     // for SyntheticContext.
-    SampleContext &Context = Candidate.CalleeSamples->getContext();
-    if (!Context.hasState(SyntheticContext) &&
+    
+    if (SampleContext &Context = Candidate.CalleeSamples->getContext(); !Context.hasState(SyntheticContext) &&
         Context.hasAttribute(ContextShouldBeInlined))
       return InlineCost::getAlways("preinliner");
   }
@@ -1504,8 +1504,8 @@ bool SampleProfileLoader::inlineHotFunctionsWithPriority(
       }
     } else if (CalledFunction && CalledFunction->getSubprogram() &&
                !CalledFunction->isDeclaration()) {
-      SmallVector<CallBase *, 8> InlinedCallSites;
-      if (tryInlineCandidate(Candidate, &InlinedCallSites)) {
+      
+      if (SmallVector<CallBase *, 8> InlinedCallSites; tryInlineCandidate(Candidate, &InlinedCallSites)) {
         for (auto *CB : InlinedCallSites) {
           if (getInlineCandidate(&NewCandidate, CB))
             CQueue.emplace(NewCandidate);
@@ -1933,8 +1933,8 @@ SampleProfileLoader::buildFunctionOrder(Module &M, LazyCallGraph &CG) {
         Range = *SI;
       }
       for (auto *Node : Range) {
-        Function *F = SymbolMap.lookup(Node->Name);
-        if (F && !skipProfileForFunction(*F))
+        
+        if (Function *F = SymbolMap.lookup(Node->Name); F && !skipProfileForFunction(*F))
           FunctionOrderList.push_back(F);
       }
       ++CGI;
@@ -2146,8 +2146,8 @@ void SampleProfileLoader::removePseudoProbeInstsDiscriminator(Module &M) {
         else if (isa<CallBase>(&I))
           if (const DILocation *DIL = I.getDebugLoc().get()) {
             // Restore dwarf discriminator for call.
-            unsigned Discriminator = DIL->getDiscriminator();
-            if (DILocation::isPseudoProbeDiscriminator(Discriminator)) {
+            
+            if (unsigned Discriminator = DIL->getDiscriminator(); DILocation::isPseudoProbeDiscriminator(Discriminator)) {
               std::optional<uint32_t> DwarfDiscriminator =
                   PseudoProbeDwarfDiscriminator::extractDwarfBaseDiscriminator(
                       Discriminator);
@@ -2280,8 +2280,8 @@ bool SampleProfileLoader::runOnFunction(Function &F,
     // imprecise debug information, or the callsites are all cold individually
     // but not cold accumulatively...), so the outline function showing up as
     // cold in sampled binary will actually not be cold after current build.
-    StringRef CanonName = FunctionSamples::getCanonicalFnName(F);
-    if ((FunctionSamples::UseMD5 &&
+    
+    if (StringRef CanonName = FunctionSamples::getCanonicalFnName(F); (FunctionSamples::UseMD5 &&
          GUIDsInProfile.count(
              Function::getGUIDAssumingExternalLinkage(CanonName))) ||
         (!FunctionSamples::UseMD5 && NamesInProfile.count(CanonName)))
@@ -2304,8 +2304,8 @@ bool SampleProfileLoader::runOnFunction(Function &F,
     // into base.
     if (!Samples) {
       StringRef CanonName = FunctionSamples::getCanonicalFnName(F);
-      auto It = OutlineFunctionSamples.find(FunctionId(CanonName));
-      if (It != OutlineFunctionSamples.end()) {
+      
+      if (auto It = OutlineFunctionSamples.find(FunctionId(CanonName)); It != OutlineFunctionSamples.end()) {
         Samples = &It->second;
       } else if (auto Remapper = Reader->getRemapper()) {
         if (auto RemppedName = Remapper->lookUpNameInProfile(CanonName)) {

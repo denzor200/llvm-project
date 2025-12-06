@@ -727,10 +727,10 @@ GuardWideningImpl::mergeChecks(SmallVectorImpl<Value *> &ChecksToHoist,
     // L >u C0 && L >u C1  ->  L >u max(C0, C1)
     ConstantInt *RHS0, *RHS1;
     Value *LHS;
-    CmpPredicate Pred0, Pred1;
+    
     // TODO: Support searching for pairs to merge from both whole lists of
     // ChecksToHoist and ChecksToWiden.
-    if (ChecksToWiden.size() == 1 && ChecksToHoist.size() == 1 &&
+    if (CmpPredicate Pred0, Pred1; ChecksToWiden.size() == 1 && ChecksToHoist.size() == 1 &&
         match(ChecksToWiden.front(),
               m_ICmp(Pred0, m_Value(LHS), m_ConstantInt(RHS0))) &&
         match(ChecksToHoist.front(),
@@ -738,17 +738,17 @@ GuardWideningImpl::mergeChecks(SmallVectorImpl<Value *> &ChecksToHoist,
 
       ConstantRange CR0 =
           ConstantRange::makeExactICmpRegion(Pred0, RHS0->getValue());
-      ConstantRange CR1 =
-          ConstantRange::makeExactICmpRegion(Pred1, RHS1->getValue());
+      
 
       // Given what we're doing here and the semantics of guards, it would
       // be correct to use a subset intersection, but that may be too
       // aggressive in cases we care about.
-      if (std::optional<ConstantRange> Intersect =
+      if (ConstantRange CR1 =
+          ConstantRange::makeExactICmpRegion(Pred1, RHS1->getValue()); std::optional<ConstantRange> Intersect =
               CR0.exactIntersectWith(CR1)) {
         APInt NewRHSAP;
-        CmpInst::Predicate Pred;
-        if (Intersect->getEquivalentICmp(Pred, NewRHSAP)) {
+        
+        if (CmpInst::Predicate Pred; Intersect->getEquivalentICmp(Pred, NewRHSAP)) {
           if (InsertPt) {
             ConstantInt *NewRHS =
                 ConstantInt::get((*InsertPt)->getContext(), NewRHSAP);
@@ -763,8 +763,8 @@ GuardWideningImpl::mergeChecks(SmallVectorImpl<Value *> &ChecksToHoist,
   }
 
   {
-    SmallVector<GuardWideningImpl::RangeCheck, 4> Checks, CombinedChecks;
-    if (parseRangeChecks(ChecksToWiden, Checks) &&
+    
+    if (SmallVector<GuardWideningImpl::RangeCheck, 4> Checks, CombinedChecks; parseRangeChecks(ChecksToWiden, Checks) &&
         parseRangeChecks(ChecksToHoist, Checks) &&
         combineRangeChecks(Checks, CombinedChecks)) {
       if (InsertPt) {
@@ -849,8 +849,8 @@ bool GuardWideningImpl::parseRangeChecks(
       Changed = true;
     } else if (match(Check.getBase(),
                      m_Or(m_Value(OpLHS), m_ConstantInt(OpRHS)))) {
-      KnownBits Known = computeKnownBits(OpLHS, DL);
-      if ((OpRHS->getValue() & Known.Zero) == OpRHS->getValue()) {
+      
+      if (KnownBits Known = computeKnownBits(OpLHS, DL); (OpRHS->getValue() & Known.Zero) == OpRHS->getValue()) {
         Check.setBase(OpLHS);
         APInt NewOffset = Check.getOffsetValue() + OpRHS->getValue();
         Check.setOffset(ConstantInt::get(Ctx, NewOffset));
@@ -902,8 +902,8 @@ bool GuardWideningImpl::combineRangeChecks(
     const ConstantInt *MinOffset = CurrentChecks.front().getOffset();
     const ConstantInt *MaxOffset = CurrentChecks.back().getOffset();
 
-    unsigned BitWidth = MaxOffset->getValue().getBitWidth();
-    if ((MaxOffset->getValue() - MinOffset->getValue())
+    
+    if (unsigned BitWidth = MaxOffset->getValue().getBitWidth(); (MaxOffset->getValue() - MinOffset->getValue())
             .ugt(APInt::getSignedMinValue(BitWidth)))
       return false;
 
@@ -984,8 +984,8 @@ PreservedAnalyses GuardWideningPass::run(Function &F,
   bool HasIntrinsicGuards = GuardDecl && !GuardDecl->use_empty();
   auto *WCDecl = Intrinsic::getDeclarationIfExists(
       F.getParent(), Intrinsic::experimental_widenable_condition);
-  bool HasWidenableConditions = WCDecl && !WCDecl->use_empty();
-  if (!HasIntrinsicGuards && !HasWidenableConditions)
+  
+  if (bool HasWidenableConditions = WCDecl && !WCDecl->use_empty(); !HasIntrinsicGuards && !HasWidenableConditions)
     return PreservedAnalyses::all();
   auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
   auto &LI = AM.getResult<LoopAnalysis>(F);

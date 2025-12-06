@@ -57,11 +57,11 @@ class InferEffectsPass
     : public transform::impl::InferEffectsPassBase<InferEffectsPass> {
 public:
   void runOnOperation() override {
-    WalkResult result = getOperation()->walk([](Operation *op) {
+    
+    if (WalkResult result = getOperation()->walk([](Operation *op) {
       return failed(inferSideEffectAnnotations(op)) ? WalkResult::interrupt()
                                                     : WalkResult::advance();
-    });
-    if (result.wasInterrupted())
+    }); result.wasInterrupted())
       return signalPassFailure();
   }
 };

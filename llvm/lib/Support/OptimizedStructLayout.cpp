@@ -115,8 +115,8 @@ llvm::performOptimizedStructLayout(MutableArrayRef<Field> Fields) {
 
     // Original order.
     auto lhsNumber = reinterpret_cast<uintptr_t>(lhs->Scratch);
-    auto rhsNumber = reinterpret_cast<uintptr_t>(rhs->Scratch);
-    if (lhsNumber != rhsNumber)
+    
+    if (auto rhsNumber = reinterpret_cast<uintptr_t>(rhs->Scratch); lhsNumber != rhsNumber)
       return (lhsNumber < rhsNumber ? -1 : 1);
 
     return 0;

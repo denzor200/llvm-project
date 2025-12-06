@@ -86,8 +86,8 @@ static void generateInstSeqImpl(int64_t Val, const MCSubtargetInfo &STI,
     int16_t Bit31To16 = Bit31To0 >> 16;
     int16_t Bit15To0 = Bit31To0;
     int8_t Bit15To8 = Bit15To0 >> 8;
-    int8_t Bit7To0 = Bit15To0;
-    if (Bit63To32 == Bit31To0) {
+    
+    if (int8_t Bit7To0 = Bit15To0; Bit63To32 == Bit31To0) {
       if (IsRV64 && isInt<10>(Bit63To32)) {
         Res.emplace_back(RISCV::PLI_W, Bit63To32);
         return;
@@ -125,8 +125,8 @@ static void generateInstSeqImpl(int64_t Val, const MCSubtargetInfo &STI,
         // Use ADDIW rather than ADDI only when necessary for correctness. As
         // noted in RISCVOptWInstrs, this helps reduce test differences vs
         // RV32 without being a pessimization.
-        int64_t LuiRes = SignExtend64<32>(Hi20 << 12);
-        if (!isInt<32>(LuiRes + Lo12))
+        
+        if (int64_t LuiRes = SignExtend64<32>(Hi20 << 12); !isInt<32>(LuiRes + Lo12))
           AddiOpc = RISCV::ADDIW;
       }
       Res.emplace_back(AddiOpc, Lo12);
@@ -214,8 +214,8 @@ static void generateInstSeqImpl(int64_t Val, const MCSubtargetInfo &STI,
 static unsigned extractRotateInfo(int64_t Val) {
   // for case: 0b111..1..xxxxxx1..1..
   unsigned LeadingOnes = llvm::countl_one((uint64_t)Val);
-  unsigned TrailingOnes = llvm::countr_one((uint64_t)Val);
-  if (TrailingOnes > 0 && TrailingOnes < 64 &&
+  
+  if (unsigned TrailingOnes = llvm::countr_one((uint64_t)Val); TrailingOnes > 0 && TrailingOnes < 64 &&
       (LeadingOnes + TrailingOnes) > (64 - 12))
     return 64 - TrailingOnes;
 
@@ -357,8 +357,8 @@ InstSeq generateInstSeq(int64_t Val, const MCSubtargetInfo &STI) {
   // lower half and rs2 in the upper half.
   if (Res.size() > 2 && STI.hasFeature(RISCV::FeatureStdExtZbkb)) {
     int64_t LoVal = SignExtend64<32>(Val);
-    int64_t HiVal = SignExtend64<32>(Val >> 32);
-    if (LoVal == HiVal) {
+    
+    if (int64_t HiVal = SignExtend64<32>(Val >> 32); LoVal == HiVal) {
       RISCVMatInt::InstSeq TmpSeq;
       generateInstSeqImpl(LoVal, STI, TmpSeq);
       if ((TmpSeq.size() + 1) < Res.size()) {

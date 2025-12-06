@@ -168,8 +168,8 @@ bool ABIMacOSX_i386::GetArgumentValues(Thread &thread,
     std::optional<uint64_t> bit_size =
         llvm::expectedToOptional(compiler_type.GetBitSize(&thread));
     if (bit_size) {
-      bool is_signed;
-      if (compiler_type.IsIntegerOrEnumerationType(is_signed))
+      
+      if (bool is_signed; compiler_type.IsIntegerOrEnumerationType(is_signed))
         ReadIntegerArgument(value->GetScalar(), *bit_size, is_signed,
                             thread.GetProcess().get(), current_stack_argument);
       else if (compiler_type.IsPointerType())
@@ -216,11 +216,11 @@ Status ABIMacOSX_i386::SetReturnValueObject(lldb::StackFrameSP &frame_sp,
     }
     lldb::offset_t offset = 0;
     if (num_bytes <= 8) {
-      const RegisterInfo *eax_info = reg_ctx->GetRegisterInfoByName("eax", 0);
-      if (num_bytes <= 4) {
-        uint32_t raw_value = data.GetMaxU32(&offset, num_bytes);
+      
+      if (const RegisterInfo *eax_info = reg_ctx->GetRegisterInfoByName("eax", 0); num_bytes <= 4) {
+        
 
-        if (reg_ctx->WriteRegisterFromUnsigned(eax_info, raw_value))
+        if (uint32_t raw_value = data.GetMaxU32(&offset, num_bytes); reg_ctx->WriteRegisterFromUnsigned(eax_info, raw_value))
           set_it_simple = true;
       } else {
         uint32_t raw_value = data.GetMaxU32(&offset, 4);
@@ -228,9 +228,9 @@ Status ABIMacOSX_i386::SetReturnValueObject(lldb::StackFrameSP &frame_sp,
         if (reg_ctx->WriteRegisterFromUnsigned(eax_info, raw_value)) {
           const RegisterInfo *edx_info =
               reg_ctx->GetRegisterInfoByName("edx", 0);
-          uint32_t raw_value = data.GetMaxU32(&offset, num_bytes - offset);
+          
 
-          if (reg_ctx->WriteRegisterFromUnsigned(edx_info, raw_value))
+          if (uint32_t raw_value = data.GetMaxU32(&offset, num_bytes - offset); reg_ctx->WriteRegisterFromUnsigned(edx_info, raw_value))
             set_it_simple = true;
         }
       }
@@ -281,10 +281,10 @@ ABIMacOSX_i386::GetReturnValueObjectImpl(Thread &thread,
       return return_valobj_sp;
     unsigned eax_id =
         reg_ctx->GetRegisterInfoByName("eax", 0)->kinds[eRegisterKindLLDB];
-    unsigned edx_id =
-        reg_ctx->GetRegisterInfoByName("edx", 0)->kinds[eRegisterKindLLDB];
+    
 
-    switch (*bit_width) {
+    switch (unsigned edx_id =
+        reg_ctx->GetRegisterInfoByName("edx", 0)->kinds[eRegisterKindLLDB]; *bit_width) {
     default:
     case 128:
       // Scalar can't hold 128-bit literals, so we don't handle this

@@ -128,8 +128,8 @@ AffineMap DimLvlMap::getLvlToDimMap(MLIRContext *context) const {
   SmallVector<AffineExpr> dimAffines;
   dimAffines.reserve(getDimRank());
   for (const auto &dimSpec : dimSpecs) {
-    auto expr = dimSpec.getExpr().getAffineExpr();
-    if (expr) {
+    
+    if (auto expr = dimSpec.getExpr().getAffineExpr(); expr) {
       dimAffines.push_back(expr);
     }
   }

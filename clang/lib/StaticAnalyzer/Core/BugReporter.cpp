@@ -334,8 +334,8 @@ std::string StackHintGeneratorForSymbol::getMessage(const ExplodedNode *N){
     SVal SV = N->getSVal(ArgExpr);
 
     // Check if the variable corresponding to the symbol is passed by value.
-    SymbolRef AS = SV.getAsLocSymbol();
-    if (AS == Sym) {
+    
+    if (SymbolRef AS = SV.getAsLocSymbol(); AS == Sym) {
       return getMessageForArg(ArgExpr, Idx);
     }
 
@@ -345,8 +345,8 @@ std::string StackHintGeneratorForSymbol::getMessage(const ExplodedNode *N){
       if (ArgExpr->getType()->isVoidPointerType())
         continue;
       SVal PSV = N->getState()->getSVal(Reg->getRegion());
-      SymbolRef AS = PSV.getAsLocSymbol();
-      if (AS == Sym) {
+      
+      if (SymbolRef AS = PSV.getAsLocSymbol(); AS == Sym) {
         return getMessageForArg(ArgExpr, Idx);
       }
     }
@@ -427,11 +427,11 @@ static void removeRedundantMsgs(PathPieces &path) {
 
         if (auto *nextEvent =
             dyn_cast<PathDiagnosticEventPiece>(path.front().get())) {
-          auto *event = cast<PathDiagnosticEventPiece>(piece.get());
+          
           // Check to see if we should keep one of the two pieces.  If we
           // come up with a preference, record which piece to keep, and consume
           // another piece from the path.
-          if (auto *pieceToKeep =
+          if (auto *event = cast<PathDiagnosticEventPiece>(piece.get()); auto *pieceToKeep =
                   eventsDescribeSameCondition(event, nextEvent)) {
             piece = std::move(pieceToKeep == event ? piece : path.front());
             path.pop_front();
@@ -467,9 +467,9 @@ static bool removeUnneededCalls(const PathDiagnosticConstruct &C,
 
     switch (piece->getKind()) {
       case PathDiagnosticPiece::Call: {
-        auto &call = cast<PathDiagnosticCallPiece>(*piece);
+        
         // Check if the location context is interesting.
-        if (!removeUnneededCalls(
+        if (auto &call = cast<PathDiagnosticCallPiece>(*piece); !removeUnneededCalls(
                 C, call.path, R,
                 R->isInteresting(C.getLocationContextFor(&call.path))))
           continue;
@@ -478,8 +478,8 @@ static bool removeUnneededCalls(const PathDiagnosticConstruct &C,
         break;
       }
       case PathDiagnosticPiece::Macro: {
-        auto &macro = cast<PathDiagnosticMacroPiece>(*piece);
-        if (!removeUnneededCalls(C, macro.subPieces, R, IsInteresting))
+        
+        if (auto &macro = cast<PathDiagnosticMacroPiece>(*piece); !removeUnneededCalls(C, macro.subPieces, R, IsInteresting))
           continue;
         containsSomethingInteresting = true;
         break;
@@ -567,8 +567,8 @@ static void removeEdgesToDefaultInitializers(PathPieces &Pieces) {
 
     if (auto *CF = dyn_cast<PathDiagnosticControlFlowPiece>(I->get())) {
       const Stmt *Start = CF->getStartLocation().asStmt();
-      const Stmt *End = CF->getEndLocation().asStmt();
-      if (isa_and_nonnull<CXXDefaultInitExpr>(Start)) {
+      
+      if (const Stmt *End = CF->getEndLocation().asStmt(); isa_and_nonnull<CXXDefaultInitExpr>(Start)) {
         I = Pieces.erase(I);
         continue;
       } else if (isa_and_nonnull<CXXDefaultInitExpr>(End)) {
@@ -680,8 +680,8 @@ getEnclosingStmtLocation(const Stmt *S, const LocationContext *LC,
   while (const Stmt *Parent = getEnclosingParent(S, LC->getParentMap())) {
     switch (Parent->getStmtClass()) {
       case Stmt::BinaryOperatorClass: {
-        const auto *B = cast<BinaryOperator>(Parent);
-        if (B->isLogicalOp())
+        
+        if (const auto *B = cast<BinaryOperator>(Parent); B->isLogicalOp())
           return PathDiagnosticLocation(allowNestedContexts ? B : S, SMgr, LC);
         break;
       }
@@ -758,12 +758,12 @@ void PathDiagnosticBuilder::updateStackPiecesWithMessage(
     for (const auto &I : CallStack) {
       PathDiagnosticCallPiece *CP = I.first;
       const ExplodedNode *N = I.second;
-      std::string stackMsg = R->getCallStackMessage(P, N);
+      
 
       // The last message on the path to final bug is the most important
       // one. Since we traverse the path backwards, do not add the message
       // if one has been previously added.
-      if (!CP->hasCallStackMessage())
+      if (std::string stackMsg = R->getCallStackMessage(P, N); !CP->hasCallStackMessage())
         CP->setCallStackMessage(stackMsg);
     }
 }
@@ -806,9 +806,9 @@ PathDiagnosticPieceRef PathDiagnosticBuilder::generateDiagForSwitchOP(
       if (const auto *DR = dyn_cast<DeclRefExpr>(LHS)) {
         // FIXME: Maybe this should be an assertion.  Are there cases
         // were it is not an EnumConstantDecl?
-        const auto *D = dyn_cast<EnumConstantDecl>(DR->getDecl());
+        
 
-        if (D) {
+        if (const auto *D = dyn_cast<EnumConstantDecl>(DR->getDecl()); D) {
           GetRawInt = false;
           os << *D;
         }
@@ -896,8 +896,8 @@ void PathDiagnosticBuilder::generateMinimalDiagForBlockEdge(
   if (!T)
     return;
 
-  auto Start = PathDiagnosticLocation::createBegin(T, SM, LC);
-  switch (T->getStmtClass()) {
+  
+  switch (auto Start = PathDiagnosticLocation::createBegin(T, SM, LC); T->getStmtClass()) {
   default:
     break;
 
@@ -1062,8 +1062,8 @@ static const Stmt *getStmtBeforeCond(const ParentMap &PM, const Stmt *Term,
   while (N) {
     std::optional<StmtPoint> SP = N->getLocation().getAs<StmtPoint>();
     if (SP) {
-      const Stmt *S = SP->getStmt();
-      if (!isContainedByStmt(PM, Term, S))
+      
+      if (const Stmt *S = SP->getStmt(); !isContainedByStmt(PM, Term, S))
         return S;
     }
     N = N->getFirstPred();
@@ -1163,14 +1163,14 @@ void PathDiagnosticBuilder::generatePathDiagnosticsForNode(
     if (C.shouldAddPathEdges()) {
       // Add an edge to the start of the function.
       const StackFrameContext *CalleeLC = CE->getCalleeContext();
-      const Decl *D = CalleeLC->getDecl();
+      
       // Add the edge only when the callee has body. We jump to the beginning
       // of the *declaration*, however we expect it to be followed by the
       // body. This isn't the case for autosynthesized property accessors in
       // Objective-C. No need for a similar extra check for CallExit points
       // because the exit edge comes from a statement (i.e. return),
       // not from declaration.
-      if (D->hasBody())
+      if (const Decl *D = CalleeLC->getDecl(); D->hasBody())
         addEdgeToPath(C.getActivePath(), PrevLoc,
                       PathDiagnosticLocation::createBegin(D, SM));
     }
@@ -1303,9 +1303,9 @@ void PathDiagnosticBuilder::generatePathDiagnosticsForNode(
     }
 
     const CFGBlock *BSrc = BE->getSrc();
-    const ParentMap &PM = C.getParentMap();
+    
 
-    if (const Stmt *Term = BSrc->getTerminatorStmt()) {
+    if (const ParentMap &PM = C.getParentMap(); const Stmt *Term = BSrc->getTerminatorStmt()) {
       // Are we jumping past the loop body without ever executing the
       // loop (because the condition was false)?
       if (isLoop(Term)) {
@@ -1493,13 +1493,13 @@ static void addContextEdges(PathPieces &pieces, const LocationContext *LC) {
       // Try to extend the previous edge if it's at the same level as the source
       // context.
       if (Prev != E) {
-        auto *PrevPiece = dyn_cast<PathDiagnosticControlFlowPiece>(Prev->get());
+        
 
-        if (PrevPiece) {
+        if (auto *PrevPiece = dyn_cast<PathDiagnosticControlFlowPiece>(Prev->get()); PrevPiece) {
           if (const Stmt *PrevSrc =
                   PrevPiece->getStartLocation().getStmtOrNull()) {
-            const Stmt *PrevSrcParent = getStmtParent(PrevSrc, PM);
-            if (PrevSrcParent ==
+            
+            if (const Stmt *PrevSrcParent = getStmtParent(PrevSrc, PM); PrevSrcParent ==
                 getStmtParent(DstContext.getStmtOrNull(), PM)) {
               PrevPiece->setEndLocation(DstContext);
               break;
@@ -1552,8 +1552,8 @@ static void simplifySimpleBranches(PathPieces &pieces) {
       if (NextI == E)
         break;
 
-      const auto *EV = dyn_cast<PathDiagnosticEventPiece>(NextI->get());
-      if (EV) {
+      
+      if (const auto *EV = dyn_cast<PathDiagnosticEventPiece>(NextI->get()); EV) {
         StringRef S = EV->getString();
         if (S == StrEnteringLoop || S == StrLoopBodyZero ||
             S == StrLoopCollectionEmpty || S == StrLoopRangeEmpty) {
@@ -1688,10 +1688,10 @@ static void removeContextCycles(PathPieces &Path, const SourceManager &SM) {
 
     if (s1Start && s2Start && s1Start == s2End && s2Start == s1End) {
       const size_t MAX_SHORT_LINE_LENGTH = 80;
-      std::optional<size_t> s1Length = getLengthOnSingleLine(SM, s1Start);
-      if (s1Length && *s1Length <= MAX_SHORT_LINE_LENGTH) {
-        std::optional<size_t> s2Length = getLengthOnSingleLine(SM, s2Start);
-        if (s2Length && *s2Length <= MAX_SHORT_LINE_LENGTH) {
+      
+      if (std::optional<size_t> s1Length = getLengthOnSingleLine(SM, s1Start); s1Length && *s1Length <= MAX_SHORT_LINE_LENGTH) {
+        
+        if (std::optional<size_t> s2Length = getLengthOnSingleLine(SM, s2Start); s2Length && *s2Length <= MAX_SHORT_LINE_LENGTH) {
           Path.erase(I);
           I = Path.erase(NextI);
           continue;
@@ -1911,9 +1911,9 @@ static bool optimizeEdges(const PathDiagnosticConstruct &C, PathPieces &path,
         // These edges just look ugly and don't usually add anything.
         else if (s1Start && s2End &&
                  lexicalContains(PM, s1Start, s1End)) {
-          SourceRange EdgeRange(PieceI->getEndLocation().asLocation(),
-                                PieceI->getStartLocation().asLocation());
-          if (!getLengthOnSingleLine(SM, EdgeRange))
+          
+          if (SourceRange EdgeRange(PieceI->getEndLocation().asLocation(),
+                                PieceI->getStartLocation().asLocation()); !getLengthOnSingleLine(SM, EdgeRange))
             removeEdge = true;
         }
       }
@@ -1934,8 +1934,8 @@ static bool optimizeEdges(const PathDiagnosticConstruct &C, PathPieces &path,
     //
     // (X -> element)
     if (s1End == s2Start) {
-      const auto *FS = dyn_cast_or_null<ObjCForCollectionStmt>(level3);
-      if (FS && FS->getCollection()->IgnoreParens() == s2Start &&
+      
+      if (const auto *FS = dyn_cast_or_null<ObjCForCollectionStmt>(level3); FS && FS->getCollection()->IgnoreParens() == s2Start &&
           s2End == FS->getElement()) {
         PieceI->setEndLocation(PieceNextI->getEndLocation());
         path.erase(NextI);
@@ -2418,8 +2418,8 @@ const Stmt *PathSensitiveBugReport::getStmt() const {
   const Stmt *S = nullptr;
 
   if (std::optional<BlockEntrance> BE = ProgP.getAs<BlockEntrance>()) {
-    CFGBlock &Exit = ProgP.getLocationContext()->getCFG()->getExit();
-    if (BE->getBlock() == &Exit)
+    
+    if (CFGBlock &Exit = ProgP.getLocationContext()->getCFG()->getExit(); BE->getBlock() == &Exit)
       S = ErrorNode->getPreviousStmtForDiagnostics();
   }
   if (!S)
@@ -2870,8 +2870,8 @@ generateVisitorsDiagnostics(PathSensitiveBugReport *R,
     }
 
     for (auto &V : visitors) {
-      auto P = V->VisitNode(NextNode, BRC, *R);
-      if (P)
+      
+      if (auto P = V->VisitNode(NextNode, BRC, *R); P)
         (*Notes)[NextNode].push_back(std::move(P));
     }
 
@@ -2910,10 +2910,10 @@ std::optional<PathDiagnosticBuilder> PathDiagnosticBuilder::findValidReport(
     BugReporterContext BRC(Reporter);
 
     // Run all visitors on a given graph, once.
-    std::unique_ptr<VisitorsDiagnosticsTy> visitorNotes =
-        generateVisitorsDiagnostics(R, ErrorNode, BRC);
+    
 
-    if (R->isValid()) {
+    if (std::unique_ptr<VisitorsDiagnosticsTy> visitorNotes =
+        generateVisitorsDiagnostics(R, ErrorNode, BRC); R->isValid()) {
       if (Reporter.getAnalyzerOptions().ShouldCrosscheckWithZ3) {
         llvm::TimeTraceScope TCS{"Crosscheck with Z3"};
         // If crosscheck is enabled, remove all visitors, add the refutation
@@ -2991,9 +2991,9 @@ void BugReporter::emitReport(std::unique_ptr<BugReport> R) {
 
   // Lookup the equivance class.  If there isn't one, create it.
   void *InsertPos;
-  BugReportEquivClass* EQ = EQClasses.FindNodeOrInsertPos(ID, InsertPos);
+  
 
-  if (!EQ) {
+  if (BugReportEquivClass* EQ = EQClasses.FindNodeOrInsertPos(ID, InsertPos); !EQ) {
     EQ = new BugReportEquivClass(std::move(R));
     EQClasses.InsertNode(EQ, InsertPos);
     EQClassesVector.push_back(EQ);
@@ -3009,13 +3009,13 @@ void PathSensitiveBugReporter::emitReport(std::unique_ptr<BugReport> R) {
       assert((E->isSink() || E->getLocation().getTag()) &&
              "Error node must either be a sink or have a tag");
 
-      const AnalysisDeclContext *DeclCtx =
-          E->getLocationContext()->getAnalysisDeclContext();
+      
       // The source of autosynthesized body can be handcrafted AST or a model
       // file. The locations from handcrafted ASTs have no valid source
       // locations and have to be discarded. Locations from model files should
       // be preserved for processing and reporting.
-      if (DeclCtx->isBodyAutosynthesized() &&
+      if (const AnalysisDeclContext *DeclCtx =
+          E->getLocationContext()->getAnalysisDeclContext(); DeclCtx->isBodyAutosynthesized() &&
           !DeclCtx->isBodyAutosynthesizedFromModelFile())
         return;
     }
@@ -3339,19 +3339,19 @@ static void resetDiagnosticLocationToMainFile(PathDiagnostic &PD) {
 
   PathDiagnosticPiece *LastP = PD.path.back().get();
   assert(LastP);
-  const SourceManager &SMgr = LastP->getLocation().getManager();
+  
 
   // We only need to check if the report ends inside headers, if the last piece
   // is a call piece.
-  if (auto *CP = dyn_cast<PathDiagnosticCallPiece>(LastP)) {
+  if (const SourceManager &SMgr = LastP->getLocation().getManager(); auto *CP = dyn_cast<PathDiagnosticCallPiece>(LastP)) {
     CP = getFirstStackedCallToHeaderFile(CP, SMgr);
     if (CP) {
       // Mark the piece.
        CP->setAsLastInMainSourceFile();
 
       // Update the path diagnostic message.
-      const auto *ND = dyn_cast<NamedDecl>(CP->getCallee());
-      if (ND) {
+      
+      if (const auto *ND = dyn_cast<NamedDecl>(CP->getCallee()); ND) {
         SmallString<200> buf;
         llvm::raw_svector_ostream os(buf);
         os << " (within a call to '" << ND->getDeclName() << "')";

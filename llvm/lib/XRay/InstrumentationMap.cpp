@@ -156,8 +156,8 @@ loadObj(StringRef Filename, object::OwningBinary<object::ObjectFile> &ObjFile,
   auto RelocateOrElse = [&](uint64_t Offset, uint64_t Address) {
     if (!Address) {
       uint64_t A = I->getAddress() + C - Contents.bytes_begin() + Offset;
-      RelocMap::const_iterator R = Relocs.find(A);
-      if (R != Relocs.end())
+      
+      if (RelocMap::const_iterator R = Relocs.find(A); R != Relocs.end())
         return R->second;
     }
     return Address;
@@ -173,8 +173,8 @@ loadObj(StringRef Filename, object::OwningBinary<object::ObjectFile> &ObjFile,
     Sleds.push_back({});
     auto &Entry = Sleds.back();
     uint64_t OffsetPtr = 0;
-    uint64_t AddrOff = OffsetPtr;
-    if (Is32Bit)
+    
+    if (uint64_t AddrOff = OffsetPtr; Is32Bit)
       Entry.Address = RelocateOrElse(AddrOff, Extractor.getU32(&OffsetPtr));
     else
       Entry.Address = RelocateOrElse(AddrOff, Extractor.getU64(&OffsetPtr));

@@ -853,9 +853,9 @@ void ReductionCodeGen::emitInitialization(
   assert(SharedAddresses.size() > N && "No variable was generated");
   const auto *PrivateVD =
       cast<VarDecl>(cast<DeclRefExpr>(ClausesData[N].Private)->getDecl());
-  const OMPDeclareReductionDecl *DRD =
-      getReductionInit(ClausesData[N].ReductionOp);
-  if (CGF.getContext().getAsArrayType(PrivateVD->getType())) {
+  
+  if (const OMPDeclareReductionDecl *DRD =
+      getReductionInit(ClausesData[N].ReductionOp); CGF.getContext().getAsArrayType(PrivateVD->getType())) {
     if (DRD && DRD->getInitializer())
       (void)DefaultInit(CGF);
     emitAggregateInitialization(CGF, N, PrivateAddr, SharedAddr, DRD);
@@ -881,8 +881,8 @@ bool ReductionCodeGen::needCleanups(unsigned N) {
 void ReductionCodeGen::emitCleanups(CodeGenFunction &CGF, unsigned N,
                                     Address PrivateAddr) {
   QualType PrivateType = getPrivateType(N);
-  QualType::DestructionKind DTorKind = PrivateType.isDestructedType();
-  if (needCleanups(N)) {
+  
+  if (QualType::DestructionKind DTorKind = PrivateType.isDestructedType(); needCleanups(N)) {
     PrivateAddr =
         PrivateAddr.withElementType(CGF.ConvertTypeForMem(PrivateType));
     CGF.pushDestroy(DTorKind, PrivateAddr, PrivateType);
@@ -1332,8 +1332,8 @@ void CGOpenMPRuntime::setLocThreadIdInsertPt(CodeGenFunction &CGF,
   auto &Elem = OpenMPLocThreadIDMap[CGF.CurFn];
   assert(!Elem.ServiceInsertPt && "Insert point is set already.");
 
-  llvm::Value *Undef = llvm::UndefValue::get(CGF.Int32Ty);
-  if (AtCurrentPoint) {
+  
+  if (llvm::Value *Undef = llvm::UndefValue::get(CGF.Int32Ty); AtCurrentPoint) {
     Elem.ServiceInsertPt = new llvm::BitCastInst(Undef, CGF.Int32Ty, "svcpt",
                                                  CGF.Builder.GetInsertBlock());
   } else {
@@ -1343,8 +1343,8 @@ void CGOpenMPRuntime::setLocThreadIdInsertPt(CodeGenFunction &CGF,
 }
 
 void CGOpenMPRuntime::clearLocThreadIdInsertPt(CodeGenFunction &CGF) {
-  auto &Elem = OpenMPLocThreadIDMap[CGF.CurFn];
-  if (Elem.ServiceInsertPt) {
+  
+  if (auto &Elem = OpenMPLocThreadIDMap[CGF.CurFn]; Elem.ServiceInsertPt) {
     llvm::Instruction *Ptr = Elem.ServiceInsertPt;
     Elem.ServiceInsertPt = nullptr;
     Ptr->eraseFromParent();
@@ -1428,8 +1428,8 @@ llvm::Value *CGOpenMPRuntime::getThreadID(CodeGenFunction &CGF,
     if (OMPRegionInfo->getThreadIDVariable()) {
       // Check if this an outlined function with thread id passed as argument.
       LValue LVal = OMPRegionInfo->getThreadIDVariableLValue(CGF);
-      llvm::BasicBlock *TopBlock = CGF.AllocaInsertPt->getParent();
-      if (!CGF.EHStack.requiresLandingPad() || !CGF.getLangOpts().Exceptions ||
+      
+      if (llvm::BasicBlock *TopBlock = CGF.AllocaInsertPt->getParent(); !CGF.EHStack.requiresLandingPad() || !CGF.getLangOpts().Exceptions ||
           !CGF.getLangOpts().CXXExceptions ||
           CGF.Builder.GetInsertBlock() == TopBlock ||
           !isa<llvm::Instruction>(LVal.getPointer(CGF)) ||
@@ -1644,8 +1644,8 @@ llvm::Function *CGOpenMPRuntime::emitThreadPrivateVarDefinition(
     QualType ASTTy = VD->getType();
 
     llvm::Value *Ctor = nullptr, *CopyCtor = nullptr, *Dtor = nullptr;
-    const Expr *Init = VD->getAnyInitializer();
-    if (CGM.getLangOpts().CPlusPlus && PerformInit) {
+    
+    if (const Expr *Init = VD->getAnyInitializer(); CGM.getLangOpts().CPlusPlus && PerformInit) {
       // Generate function that re-emits the declaration's initializer into the
       // threadprivate copy of the variable VD
       CodeGenFunction CtorCGF(CGM);
@@ -1876,7 +1876,8 @@ void CGOpenMPRuntime::emitParallelCall(
         OMPBuilder.getOrCreateRuntimeFunction(M, OMPRTL___kmpc_fork_call);
     CGF.EmitRuntimeCall(RTLFn, RealArgs);
   };
-  auto &&ElseGen = [&M, OutlinedFn, CapturedVars, RTLoc, Loc,
+  
+  if (auto &&ElseGen = [&M, OutlinedFn, CapturedVars, RTLoc, Loc,
                     this](CodeGenFunction &CGF, PrePostActionTy &) {
     CGOpenMPRuntime &RT = CGF.CGM.getOpenMPRuntime();
     llvm::Value *ThreadID = RT.getThreadID(CGF, Loc);
@@ -1914,8 +1915,7 @@ void CGOpenMPRuntime::emitParallelCall(
     CGF.EmitRuntimeCall(OMPBuilder.getOrCreateRuntimeFunction(
                             M, OMPRTL___kmpc_end_serialized_parallel),
                         EndArgs);
-  };
-  if (IfCond) {
+  }; IfCond) {
     emitIfClause(CGF, IfCond, ThenGen, ElseGen);
   } else {
     RegionCodeGenTy ThenRCG(ThenGen);
@@ -1970,8 +1970,8 @@ public:
       : EnterCallee(EnterCallee), EnterArgs(EnterArgs), ExitCallee(ExitCallee),
         ExitArgs(ExitArgs), Conditional(Conditional) {}
   void Enter(CodeGenFunction &CGF) override {
-    llvm::Value *EnterRes = CGF.EmitRuntimeCall(EnterCallee, EnterArgs);
-    if (Conditional) {
+    
+    if (llvm::Value *EnterRes = CGF.EmitRuntimeCall(EnterCallee, EnterArgs); Conditional) {
       llvm::Value *CallBool = CGF.Builder.CreateIsNotNull(EnterRes);
       auto *ThenBlock = CGF.createBasicBlock("omp_if.then");
       ContBlock = CGF.createBasicBlock("omp_if.end");
@@ -2005,8 +2005,8 @@ void CGOpenMPRuntime::emitCriticalRegion(CodeGenFunction &CGF,
       CGM.getModule(),
       Hint ? OMPRTL___kmpc_critical_with_hint : OMPRTL___kmpc_critical);
   llvm::Value *LockVar = getCriticalRegionLock(CriticalName);
-  unsigned LockVarArgIdx = 2;
-  if (cast<llvm::GlobalVariable>(LockVar)->getAddressSpace() !=
+  
+  if (unsigned LockVarArgIdx = 2; cast<llvm::GlobalVariable>(LockVar)->getAddressSpace() !=
       RuntimeFcn.getFunctionType()
           ->getParamType(LockVarArgIdx)
           ->getPointerAddressSpace())
@@ -3308,15 +3308,15 @@ static void emitPrivatesInit(CodeGenFunction &CGF,
     const Expr *Init = VD->getAnyInitializer();
     if (Init && (!ForDup || (isa<CXXConstructExpr>(Init) &&
                              !CGF.isTrivialInitializer(Init)))) {
-      LValue PrivateLValue = CGF.EmitLValueForField(PrivatesBase, *FI);
-      if (const VarDecl *Elem = Pair.second.PrivateElemInit) {
+      
+      if (LValue PrivateLValue = CGF.EmitLValueForField(PrivatesBase, *FI); const VarDecl *Elem = Pair.second.PrivateElemInit) {
         const VarDecl *OriginalVD = Pair.second.Original;
         // Check if the variable is the target-based BasePointersArray,
         // PointersArray, SizesArray, or MappersArray.
         LValue SharedRefLValue;
         QualType Type = PrivateLValue.getType();
-        const FieldDecl *SharedField = CapturesInfo.lookup(OriginalVD);
-        if (IsTargetTask && !SharedField) {
+        
+        if (const FieldDecl *SharedField = CapturesInfo.lookup(OriginalVD); IsTargetTask && !SharedField) {
           assert(isa<ImplicitParamDecl>(OriginalVD) &&
                  isa<CapturedDecl>(OriginalVD->getDeclContext()) &&
                  cast<CapturedDecl>(OriginalVD->getDeclContext())
@@ -3490,8 +3490,8 @@ checkDestructorsRequired(const RecordDecl *KmpTaskTWithPrivatesQTyRD,
   for (const PrivateDataTy &P : Privates) {
     if (P.second.isLocalPrivate())
       continue;
-    QualType Ty = P.second.Original->getType().getNonReferenceType();
-    if (Ty.isDestructedType())
+    
+    if (QualType Ty = P.second.Original->getType().getNonReferenceType(); Ty.isDestructedType())
       return true;
   }
   return false;
@@ -3611,8 +3611,8 @@ getPointerAndSize(CodeGenFunction &CGF, const Expr *E) {
 
 /// Builds kmp_depend_info, if it is not built yet, and builds flags type.
 static void getKmpAffinityType(ASTContext &C, QualType &KmpTaskAffinityInfoTy) {
-  QualType FlagsTy = C.getIntTypeForBitwidth(32, /*Signed=*/false);
-  if (KmpTaskAffinityInfoTy.isNull()) {
+  
+  if (QualType FlagsTy = C.getIntTypeForBitwidth(32, /*Signed=*/false); KmpTaskAffinityInfoTy.isNull()) {
     RecordDecl *KmpAffinityInfoRD =
         C.buildImplicitRecord("kmp_task_affinity_info_t");
     KmpAffinityInfoRD->startDefinition();
@@ -3708,9 +3708,9 @@ CGOpenMPRuntime::emitTaskInit(CodeGenFunction &CGF, SourceLocation Loc,
 
   // Emit initial values for private copies (if any).
   llvm::Value *TaskPrivatesMap = nullptr;
-  llvm::Type *TaskPrivatesMapTy =
-      std::next(TaskFunction->arg_begin(), 3)->getType();
-  if (!Privates.empty()) {
+  
+  if (llvm::Type *TaskPrivatesMapTy =
+      std::next(TaskFunction->arg_begin(), 3)->getType(); !Privates.empty()) {
     auto FI = std::next(KmpTaskTWithPrivatesQTyRD->field_begin());
     TaskPrivatesMap =
         emitTaskPrivateMappingFunction(CGM, Loc, Data, FI->getType(), Privates);
@@ -3750,8 +3750,8 @@ CGOpenMPRuntime::emitTaskInit(CodeGenFunction &CGF, SourceLocation Loc,
       Flags = Flags | DestructorsFlag;
   }
   if (const auto *Clause = D.getSingleClause<OMPThreadsetClause>()) {
-    OpenMPThreadsetKind Kind = Clause->getThreadsetKind();
-    if (Kind == OMPC_THREADSET_omp_pool)
+    
+    if (OpenMPThreadsetKind Kind = Clause->getThreadsetKind(); Kind == OMPC_THREADSET_omp_pool)
       Flags = Flags | FreeAgentFlag;
   }
   if (Data.Priority.getInt())
@@ -4881,8 +4881,8 @@ llvm::Function *CGOpenMPRuntime::emitReductionFunction(
     const auto *LHSVar =
         cast<VarDecl>(cast<DeclRefExpr>(LHSExprs[I])->getDecl());
     Scope.addPrivate(LHSVar, emitAddrOfVarFromArray(CGF, LHS, Idx, LHSVar));
-    QualType PrivTy = (*IPriv)->getType();
-    if (PrivTy->isVariablyModifiedType()) {
+    
+    if (QualType PrivTy = (*IPriv)->getType(); PrivTy->isVariablyModifiedType()) {
       // Get array size and emit VLA type.
       ++Idx;
       Address Elem = CGF.Builder.CreateConstArrayGEP(LHS, Idx);
@@ -5011,8 +5011,8 @@ void CGOpenMPRuntime::emitPrivateReduction(
       if (const Expr *UDRInitExpr = UDR->getInitializer()) {
         std::pair<llvm::Function *, llvm::Function *> FnPair =
             getUserDefinedReduction(UDR);
-        llvm::Function *InitializerFn = FnPair.second;
-        if (InitializerFn) {
+        
+        if (llvm::Function *InitializerFn = FnPair.second; InitializerFn) {
           if (const auto *CE =
                   dyn_cast<CallExpr>(UDRInitExpr->IgnoreParenImpCasts())) {
             const auto *OutDRE = cast<DeclRefExpr>(
@@ -5084,9 +5084,9 @@ void CGOpenMPRuntime::emitPrivateReduction(
     // Handle user-defined reduction.
     auto ReductionGen = [&](CodeGenFunction &CGF, PrePostActionTy &Action) {
       Action.Enter(CGF);
-      std::pair<llvm::Function *, llvm::Function *> FnPair =
-          getUserDefinedReduction(CurrentUDR);
-      if (FnPair.first) {
+      
+      if (std::pair<llvm::Function *, llvm::Function *> FnPair =
+          getUserDefinedReduction(CurrentUDR); FnPair.first) {
         if (const auto *CE = dyn_cast<CallExpr>(ReductionOp)) {
           const auto *OutDRE = cast<DeclRefExpr>(
               cast<UnaryOperator>(CE->getArg(0)->IgnoreParenImpCasts())
@@ -5427,7 +5427,8 @@ void CGOpenMPRuntime::emitReduction(CodeGenFunction &CGF, SourceLocation Loc,
       }
       if (XExpr) {
         const auto *VD = cast<VarDecl>(cast<DeclRefExpr>(*ILHS)->getDecl());
-        auto &&AtomicRedGen = [BO, VD,
+        
+        if (auto &&AtomicRedGen = [BO, VD,
                                Loc](CodeGenFunction &CGF, const Expr *XExpr,
                                     const Expr *EExpr, const Expr *UpExpr) {
           LValue X = CGF.EmitLValue(XExpr);
@@ -5447,8 +5448,7 @@ void CGOpenMPRuntime::emitReduction(CodeGenFunction &CGF, SourceLocation Loc,
                 (void)PrivateScope.Privatize();
                 return CGF.EmitAnyExpr(UpExpr);
               });
-        };
-        if ((*IPriv)->getType()->isArrayType()) {
+        }; (*IPriv)->getType()->isArrayType()) {
           // Emit atomic reduction for array section.
           const auto *RHSVar =
               cast<VarDecl>(cast<DeclRefExpr>(*IRHS)->getDecl());
@@ -5460,7 +5460,8 @@ void CGOpenMPRuntime::emitReduction(CodeGenFunction &CGF, SourceLocation Loc,
         }
       } else {
         // Emit as a critical region.
-        auto &&CritRedGen = [E, Loc](CodeGenFunction &CGF, const Expr *,
+        
+        if (auto &&CritRedGen = [E, Loc](CodeGenFunction &CGF, const Expr *,
                                      const Expr *, const Expr *) {
           CGOpenMPRuntime &RT = CGF.CGM.getOpenMPRuntime();
           std::string Name = RT.getName({"atomic_reduction"});
@@ -5471,8 +5472,7 @@ void CGOpenMPRuntime::emitReduction(CodeGenFunction &CGF, SourceLocation Loc,
                 emitReductionCombiner(CGF, E);
               },
               Loc);
-        };
-        if ((*IPriv)->getType()->isArrayType()) {
+        }; (*IPriv)->getType()->isArrayType()) {
           const auto *LHSVar =
               cast<VarDecl>(cast<DeclRefExpr>(*ILHS)->getDecl());
           const auto *RHSVar =
@@ -5814,8 +5814,8 @@ llvm::Value *CGOpenMPRuntime::emitTaskReductionInit(
         RHSExprs[Cnt], Data.ReductionCopies[Cnt]);
     CGF.EmitStoreOfScalar(CombAddr, CombLVal);
     // ElemLVal.flags = 0;
-    LValue FlagsLVal = CGF.EmitLValueForField(ElemLVal, FlagsFD);
-    if (DelayedCreation) {
+    
+    if (LValue FlagsLVal = CGF.EmitLValueForField(ElemLVal, FlagsFD); DelayedCreation) {
       CGF.EmitStoreOfScalar(
           llvm::ConstantInt::get(CGM.Int32Ty, /*V=*/1, /*isSigned=*/true),
           FlagsLVal);
@@ -5874,10 +5874,10 @@ void CGOpenMPRuntime::emitTaskReductionFixups(CodeGenFunction &CGF,
                                               SourceLocation Loc,
                                               ReductionCodeGen &RCG,
                                               unsigned N) {
-  auto Sizes = RCG.getSizes(N);
+  
   // Emit threadprivate global variable if the type is non-constant
   // (Sizes.second = nullptr).
-  if (Sizes.second) {
+  if (auto Sizes = RCG.getSizes(N); Sizes.second) {
     llvm::Value *SizeVal = CGF.Builder.CreateIntCast(Sizes.second, CGM.SizeTy,
                                                      /*isSigned=*/false);
     Address SizeAddr = getAddrOfArtificialThreadPrivate(
@@ -6045,10 +6045,11 @@ void CGOpenMPRuntime::emitCancelCall(CodeGenFunction &CGF, SourceLocation Loc,
     return;
   // Build call kmp_int32 __kmpc_cancel(ident_t *loc, kmp_int32 global_tid,
   // kmp_int32 cncl_kind);
-  auto &M = CGM.getModule();
-  if (auto *OMPRegionInfo =
+  
+  if (auto &M = CGM.getModule(); auto *OMPRegionInfo =
           dyn_cast_or_null<CGOpenMPRegionInfo>(CGF.CapturedStmtInfo)) {
-    auto &&ThenGen = [this, &M, Loc, CancelRegion,
+    
+    if (auto &&ThenGen = [this, &M, Loc, CancelRegion,
                       OMPRegionInfo](CodeGenFunction &CGF, PrePostActionTy &) {
       CGOpenMPRuntime &RT = CGF.CGM.getOpenMPRuntime();
       llvm::Value *Args[] = {
@@ -6073,8 +6074,7 @@ void CGOpenMPRuntime::emitCancelCall(CodeGenFunction &CGF, SourceLocation Loc,
           CGF.getOMPCancelDestination(OMPRegionInfo->getDirectiveKind());
       CGF.EmitBranchThroughCleanup(CancelDest);
       CGF.EmitBlock(ContBB, /*IsFinished=*/true);
-    };
-    if (IfCond) {
+    }; IfCond) {
       emitIfClause(CGF, IfCond, ThenGen,
                    [](CodeGenFunction &, PrePostActionTy &) {});
     } else {
@@ -6321,9 +6321,9 @@ const Expr *CGOpenMPRuntime::getNumTeamsExprForTargetDirective(
     const auto *CS = D.getInnermostCapturedStmt();
     const auto *Body =
         CS->getCapturedStmt()->IgnoreContainers(/*IgnoreCaptured=*/true);
-    const Stmt *ChildStmt =
-        CGOpenMPRuntime::getSingleCompoundChild(CGF.getContext(), Body);
-    if (const auto *NestedDir =
+    
+    if (const Stmt *ChildStmt =
+        CGOpenMPRuntime::getSingleCompoundChild(CGF.getContext(), Body); const auto *NestedDir =
             dyn_cast_or_null<OMPExecutableDirective>(ChildStmt)) {
       if (isOpenMPTeamsDirective(NestedDir->getDirectiveKind())) {
         if (NestedDir->hasClausesOfKind<OMPNumTeamsClause>()) {
@@ -6444,12 +6444,12 @@ llvm::Value *CGOpenMPRuntime::emitNumTeamsForTargetDirective(
          "only for the host!");
   CGBuilderTy &Bld = CGF.Builder;
   int32_t MinNT = -1, MaxNT = -1;
-  const Expr *NumTeams =
-      getNumTeamsExprForTargetDirective(CGF, D, MinNT, MaxNT);
-  if (NumTeams != nullptr) {
-    OpenMPDirectiveKind DirectiveKind = D.getDirectiveKind();
+  
+  if (const Expr *NumTeams =
+      getNumTeamsExprForTargetDirective(CGF, D, MinNT, MaxNT); NumTeams != nullptr) {
+    
 
-    switch (DirectiveKind) {
+    switch (OpenMPDirectiveKind DirectiveKind = D.getDirectiveKind(); DirectiveKind) {
     case OMPD_target: {
       const auto *CS = D.getInnermostCapturedStmt();
       CGOpenMPInnerExprInfo CGInfo(CGF, *CS);
@@ -6508,8 +6508,8 @@ static void getNumThreads(CodeGenFunction &CGF, const CapturedStmt *CS,
       }
       if (IfClause) {
         const Expr *CondExpr = IfClause->getCondition();
-        bool Result;
-        if (CondExpr->EvaluateAsBooleanCondition(Result, CGF.getContext())) {
+        
+        if (bool Result; CondExpr->EvaluateAsBooleanCondition(Result, CGF.getContext())) {
           if (!Result) {
             UpperBound = 1;
             return;
@@ -6668,9 +6668,9 @@ const Expr *CGOpenMPRuntime::getNumThreadsExprForTargetDirective(
     }
     const CapturedStmt *CS = D.getInnermostCapturedStmt();
     getNumThreads(CGF, CS, NTPtr, UpperBound, UpperBoundOnly, CondVal);
-    const Stmt *Child = CGOpenMPRuntime::getSingleCompoundChild(
-        CGF.getContext(), CS->getCapturedStmt());
-    if (const auto *Dir = dyn_cast_or_null<OMPExecutableDirective>(Child)) {
+    
+    if (const Stmt *Child = CGOpenMPRuntime::getSingleCompoundChild(
+        CGF.getContext(), CS->getCapturedStmt()); const auto *Dir = dyn_cast_or_null<OMPExecutableDirective>(Child)) {
       if (Dir->getDirectiveKind() == OMPD_distribute) {
         CS = Dir->getInnermostCapturedStmt();
         getNumThreads(CGF, CS, NTPtr, UpperBound, UpperBoundOnly, CondVal);
@@ -6706,8 +6706,8 @@ const Expr *CGOpenMPRuntime::getNumThreadsExprForTargetDirective(
       }
       if (IfClause) {
         const Expr *Cond = IfClause->getCondition();
-        bool Result;
-        if (Cond->EvaluateAsBooleanCondition(Result, CGF.getContext())) {
+        
+        if (bool Result; Cond->EvaluateAsBooleanCondition(Result, CGF.getContext())) {
           if (!Result)
             return ReturnSequential();
         } else {
@@ -7498,9 +7498,9 @@ private:
 
     void copyUntilEnd(Address HB) {
       if (LastParent) {
-        const ASTRecordLayout &RL =
-            CGF.getContext().getASTRecordLayout(LastParent);
-        if ((uint64_t)CGF.getContext().toBits(RL.getSize()) <= Cursor)
+        
+        if (const ASTRecordLayout &RL =
+            CGF.getContext().getASTRecordLayout(LastParent); (uint64_t)CGF.getContext().toBits(RL.getSize()) <= Cursor)
           return;
       }
       llvm::Value *LBPtr = LB.emitRawPointer(CGF);
@@ -7781,14 +7781,14 @@ private:
       // If the variable is a pointer and is being dereferenced (i.e. is not
       // the last component), the base has to be the pointer itself, not its
       // reference. References are ignored for mapping purposes.
-      QualType Ty =
-          I->getAssociatedDeclaration()->getType().getNonReferenceType();
-      if (Ty->isAnyPointerType() && std::next(I) != CE) {
+      
+      if (QualType Ty =
+          I->getAssociatedDeclaration()->getType().getNonReferenceType(); Ty->isAnyPointerType() && std::next(I) != CE) {
         // No need to generate individual map information for the pointer, it
         // can be associated with the combined storage if shared memory mode is
         // active or the base declaration is not global variable.
-        const auto *VD = dyn_cast<VarDecl>(I->getAssociatedDeclaration());
-        if (!AreBothBasePtrAndPteeMapped &&
+        
+        if (const auto *VD = dyn_cast<VarDecl>(I->getAssociatedDeclaration()); !AreBothBasePtrAndPteeMapped &&
             (CGF.CGM.getOpenMPRuntime().hasRequiresUnifiedSharedMemory() ||
              !VD || VD->hasLocalStorage()))
           BP = CGF.EmitLoadOfPointer(BP, Ty->castAs<PointerType>());
@@ -7868,9 +7868,9 @@ private:
       IsMappingWholeStruct = false;
     } else {
       for (auto TempI = I; TempI != CE; ++TempI) {
-        const MemberExpr *PossibleME =
-            dyn_cast<MemberExpr>(TempI->getAssociatedExpression());
-        if (PossibleME) {
+        
+        if (const MemberExpr *PossibleME =
+            dyn_cast<MemberExpr>(TempI->getAssociatedExpression()); PossibleME) {
           IsMappingWholeStruct = false;
           break;
         }
@@ -8090,8 +8090,8 @@ private:
           }
 
           // If Mapper is valid, the last component inherits the mapper.
-          bool HasMapper = Mapper && Next == CE;
-          if (!IsMappingWholeStruct)
+          
+          if (bool HasMapper = Mapper && Next == CE; !IsMappingWholeStruct)
             CombinedInfo.Mappers.push_back(HasMapper ? Mapper : nullptr);
           else
             StructBaseCombinedInfo.Mappers.push_back(HasMapper ? Mapper
@@ -8140,10 +8140,10 @@ private:
         // is nullptr.
         if (EncounteredME) {
           const auto *FD = cast<FieldDecl>(EncounteredME->getMemberDecl());
-          unsigned FieldIndex = FD->getFieldIndex();
+          
 
           // Update info about the lowest and highest elements for this struct
-          if (!PartialStruct.Base.isValid()) {
+          if (unsigned FieldIndex = FD->getFieldIndex(); !PartialStruct.Base.isValid()) {
             PartialStruct.LowestElem = {FieldIndex, LowestElem};
             if (IsFinalArraySection && OASE) {
               Address HB =
@@ -8332,12 +8332,12 @@ private:
           // lower-bound)/stride⌉, where size is the size of the array
           // dimension.
           const Expr *StrideExpr = OASE->getStride();
-          llvm::Value *Stride =
+          
+          if (llvm::Value *Stride =
               StrideExpr
                   ? CGF.Builder.CreateIntCast(CGF.EmitScalarExpr(StrideExpr),
                                               CGF.Int64Ty, /*isSigned=*/false)
-                  : nullptr;
-          if (Stride)
+                  : nullptr; Stride)
             Count = CGF.Builder.CreateUDiv(
                 CGF.Builder.CreateNUWSub(*DI, Offset), Stride);
           else
@@ -8735,16 +8735,16 @@ private:
       if (It != Info.end()) {
         bool Found = false;
         for (auto &Data : It->second) {
-          auto *CI = llvm::find_if(Data, [VD](const MapInfo &MI) {
-            return MI.Components.back().getAssociatedDeclaration() == VD;
-          });
+          
           // If we found a map entry, signal that the pointer has to be
           // returned and move on to the next declaration. Exclude cases where
           // the base pointer is mapped as array subscript, array section or
           // array shaping. The base address is passed as a pointer to base in
           // this case and cannot be used as a base for use_device_ptr list
           // item.
-          if (CI != Data.end()) {
+          if (auto *CI = llvm::find_if(Data, [VD](const MapInfo &MI) {
+            return MI.Components.back().getAssociatedDeclaration() == VD;
+          }); CI != Data.end()) {
             if (IsDevAddr) {
               CI->ForDeviceAddr = IsDevAddr;
               CI->ReturnDevicePointer = true;
@@ -8752,8 +8752,8 @@ private:
               break;
             } else {
               auto PrevCI = std::next(CI->Components.rbegin());
-              const auto *VarD = dyn_cast<VarDecl>(VD);
-              if (CGF.CGM.getOpenMPRuntime().hasRequiresUnifiedSharedMemory() ||
+              
+              if (const auto *VarD = dyn_cast<VarDecl>(VD); CGF.CGM.getOpenMPRuntime().hasRequiresUnifiedSharedMemory() ||
                   isa<MemberExpr>(IE) ||
                   !VD->getType().getNonReferenceType()->isPointerType() ||
                   PrevCI == CI->Components.rend() ||
@@ -8979,8 +8979,8 @@ public:
     // Extract implicit firstprivates from uses_allocators clauses.
     for (const auto *C : Dir.getClausesOfKind<OMPUsesAllocatorsClause>()) {
       for (unsigned I = 0, E = C->getNumberOfAllocators(); I < E; ++I) {
-        OMPUsesAllocatorsClause::Data D = C->getAllocatorData(I);
-        if (const auto *DRE = dyn_cast_or_null<DeclRefExpr>(D.AllocatorTraits))
+        
+        if (OMPUsesAllocatorsClause::Data D = C->getAllocatorData(I); const auto *DRE = dyn_cast_or_null<DeclRefExpr>(D.AllocatorTraits))
           FirstPrivateDecls.try_emplace(cast<VarDecl>(DRE->getDecl()),
                                         /*Implicit=*/true);
         else if (const auto *VD = dyn_cast<VarDecl>(
@@ -9003,12 +9003,12 @@ public:
         continue;
       for (auto L : C->component_lists()) {
         const ValueDecl *VD = std::get<0>(L);
-        const auto *RD = VD ? VD->getType()
+        
+        if (const auto *RD = VD ? VD->getType()
                                   .getCanonicalType()
                                   .getNonReferenceType()
                                   ->getAsCXXRecordDecl()
-                            : nullptr;
-        if (RD && RD->isLambda())
+                            : nullptr; RD && RD->isLambda())
           LambdasMap.try_emplace(std::get<0>(L), C);
       }
     }
@@ -9606,8 +9606,8 @@ public:
         CombinedInfo.Types.push_back(OpenMPOffloadMappingFlags::OMP_MAP_NONE);
         CombinedInfo.Sizes.push_back(llvm::Constant::getNullValue(CGF.Int64Ty));
       }
-      auto I = FirstPrivateDecls.find(VD);
-      if (I != FirstPrivateDecls.end())
+      
+      if (auto I = FirstPrivateDecls.find(VD); I != FirstPrivateDecls.end())
         IsImplicit = I->getSecond();
     } else {
       assert(CI.capturesVariable() && "Expected captured reference.");
@@ -9741,13 +9741,13 @@ getNestedDistributeDirective(ASTContext &Ctx, const OMPExecutableDirective &D) {
   const auto *CS = D.getInnermostCapturedStmt();
   const auto *Body =
       CS->getCapturedStmt()->IgnoreContainers(/*IgnoreCaptured=*/true);
-  const Stmt *ChildStmt =
-      CGOpenMPSIMDRuntime::getSingleCompoundChild(Ctx, Body);
+  
 
-  if (const auto *NestedDir =
+  if (const Stmt *ChildStmt =
+      CGOpenMPSIMDRuntime::getSingleCompoundChild(Ctx, Body); const auto *NestedDir =
           dyn_cast_or_null<OMPExecutableDirective>(ChildStmt)) {
-    OpenMPDirectiveKind DKind = NestedDir->getDirectiveKind();
-    switch (D.getDirectiveKind()) {
+    
+    switch (OpenMPDirectiveKind DKind = NestedDir->getDirectiveKind(); D.getDirectiveKind()) {
     case OMPD_target:
       // For now, treat 'target' with nested 'teams loop' as if it's
       // distributed (target teams distribute).
@@ -10025,8 +10025,8 @@ emitDynCGroupMem(const OMPExecutableDirective &D, CodeGenFunction &CGF) {
         CGF.EmitScalarExpr(DynGPClause->getSize(), /*IgnoreResultAssign=*/true);
     DynGP = CGF.Builder.CreateIntCast(DynGPVal, CGF.Int32Ty,
                                       /*isSigned=*/false);
-    auto FallbackModifier = DynGPClause->getDynGroupprivateFallbackModifier();
-    switch (FallbackModifier) {
+    
+    switch (auto FallbackModifier = DynGPClause->getDynGroupprivateFallbackModifier(); FallbackModifier) {
     case OMPC_DYN_GROUPPRIVATE_FALLBACK_abort:
       DynGPFallback = OMPDynGroupprivateFallbackType::Abort;
       break;
@@ -10133,10 +10133,10 @@ genMapInfo(MappableExprsHandler &MEHandler, CodeGenFunction &CGF,
   // weren't referenced within the construct.
   MEHandler.generateAllInfo(CombinedInfo, OMPBuilder, SkippedVarSet);
 
-  auto FillInfoMap = [&](MappableExprsHandler::MappingExprInfo &MapExpr) {
+  
+  if (auto FillInfoMap = [&](MappableExprsHandler::MappingExprInfo &MapExpr) {
     return emitMappingInformation(CGF, OMPBuilder, MapExpr);
-  };
-  if (CGM.getCodeGenOpts().getDebugInfo() !=
+  }; CGM.getCodeGenOpts().getDebugInfo() !=
       llvm::codegenoptions::NoDebugInfo) {
     CombinedInfo.Names.resize(CombinedInfo.Exprs.size());
     llvm::transform(CombinedInfo.Exprs, CombinedInfo.Names.begin(),
@@ -10208,7 +10208,9 @@ static void emitTargetCallKernelLaunch(
   MapTypesArray = Info.RTArgs.MapTypesArray;
   MapNamesArray = Info.RTArgs.MapNamesArray;
 
-  auto &&ThenGen = [&OMPRuntime, OutlinedFn, &D, &CapturedVars,
+  
+
+  if (auto &&ThenGen = [&OMPRuntime, OutlinedFn, &D, &CapturedVars,
                     RequiresOuterTask, &CS, OffloadingMandatory, Device,
                     OutlinedFnID, &InputInfo, &MapTypesArray, &MapNamesArray,
                     SizeEmitter](CodeGenFunction &CGF, PrePostActionTy &) {
@@ -10277,9 +10279,7 @@ static void emitTargetCallKernelLaunch(
             CGF.Builder, OutlinedFnID, EmitTargetCallFallbackCB, Args, DeviceID,
             RTLoc, AllocaIP));
     CGF.Builder.restoreIP(AfterIP);
-  };
-
-  if (RequiresOuterTask)
+  }; RequiresOuterTask)
     CGF.EmitOMPTargetTaskBasedDirective(D, ThenGen, InputInfo);
   else
     OMPRuntime->emitInlinedDirective(CGF, D.getDirectiveKind(), ThenGen);
@@ -10293,14 +10293,14 @@ emitTargetCallElse(CGOpenMPRuntime *OMPRuntime, llvm::Function *OutlinedFn,
                    bool OffloadingMandatory, CodeGenFunction &CGF) {
 
   // Notify that the host version must be executed.
-  auto &&ElseGen =
+  
+
+  if (auto &&ElseGen =
       [&OMPRuntime, OutlinedFn, &D, &CapturedVars, RequiresOuterTask, &CS,
        OffloadingMandatory](CodeGenFunction &CGF, PrePostActionTy &) {
         emitTargetCallFallback(OMPRuntime, OutlinedFn, D, CapturedVars,
                                RequiresOuterTask, CS, OffloadingMandatory, CGF);
-      };
-
-  if (RequiresOuterTask) {
+      }; RequiresOuterTask) {
     CodeGenFunction::OMPTargetDataInfo InputInfo;
     CGF.EmitOMPTargetTaskBasedDirective(D, ElseGen, InputInfo);
   } else {
@@ -10353,18 +10353,18 @@ void CGOpenMPRuntime::emitTargetCall(
                                MapNamesArray, SizeEmitter, CGF, CGM);
   };
 
-  auto &&TargetElseGen =
-      [this, OutlinedFn, &D, &CapturedVars, RequiresOuterTask, &CS,
-       OffloadingMandatory](CodeGenFunction &CGF, PrePostActionTy &) {
-        emitTargetCallElse(this, OutlinedFn, D, CapturedVars, RequiresOuterTask,
-                           CS, OffloadingMandatory, CGF);
-      };
+  
 
   // If we have a target function ID it means that we need to support
   // offloading, otherwise, just execute on the host. We need to execute on host
   // regardless of the conditional in the if clause if, e.g., the user do not
   // specify target triples.
-  if (OutlinedFnID) {
+  if (auto &&TargetElseGen =
+      [this, OutlinedFn, &D, &CapturedVars, RequiresOuterTask, &CS,
+       OffloadingMandatory](CodeGenFunction &CGF, PrePostActionTy &) {
+        emitTargetCallElse(this, OutlinedFn, D, CapturedVars, RequiresOuterTask,
+                           CS, OffloadingMandatory, CGF);
+      }; OutlinedFnID) {
     if (IfCond) {
       emitIfClause(CGF, IfCond, TargetThenGen, TargetElseGen);
     } else {
@@ -10383,12 +10383,12 @@ void CGOpenMPRuntime::scanForTargetRegionsFunctions(const Stmt *S,
     return;
 
   // Codegen OMP target directives that offload compute to the device.
-  bool RequiresDeviceCodegen =
+  
+
+  if (bool RequiresDeviceCodegen =
       isa<OMPExecutableDirective>(S) &&
       isOpenMPTargetExecutionDirective(
-          cast<OMPExecutableDirective>(S)->getDirectiveKind());
-
-  if (RequiresDeviceCodegen) {
+          cast<OMPExecutableDirective>(S)->getDirectiveKind()); RequiresDeviceCodegen) {
     const auto &E = *cast<OMPExecutableDirective>(S);
 
     llvm::TargetRegionEntryInfo EntryInfo = getEntryInfoFromPresumedLoc(
@@ -10726,8 +10726,8 @@ bool CGOpenMPRuntime::hasAllocateAttributeForGlobalVar(const VarDecl *VD,
                                                        LangAS &AS) {
   if (!VD || !VD->hasAttr<OMPAllocateDeclAttr>())
     return false;
-  const auto *A = VD->getAttr<OMPAllocateDeclAttr>();
-  switch(A->getAllocatorType()) {
+  
+  switch(const auto *A = VD->getAttr<OMPAllocateDeclAttr>(); A->getAllocatorType()) {
   case OMPAllocateDeclAttr::OMPNullMemAlloc:
   case OMPAllocateDeclAttr::OMPDefaultMemAlloc:
   // Not supported, fallback to the default mem space.
@@ -11099,7 +11099,9 @@ void CGOpenMPRuntime::emitTargetDataStandAloneCall(
         OffloadingArgs);
   };
 
-  auto &&TargetThenGen = [this, &ThenGen, &D, &InputInfo, &MapTypesArray,
+  
+
+  if (auto &&TargetThenGen = [this, &ThenGen, &D, &InputInfo, &MapTypesArray,
                           &MapNamesArray](CodeGenFunction &CGF,
                                           PrePostActionTy &) {
     // Fill up the arrays with all the mapped variables.
@@ -11128,9 +11130,7 @@ void CGOpenMPRuntime::emitTargetDataStandAloneCall(
       CGF.EmitOMPTargetTaskBasedDirective(D, ThenGen, InputInfo);
     else
       emitInlinedDirective(CGF, D.getDirectiveKind(), ThenGen);
-  };
-
-  if (IfCond) {
+  }; IfCond) {
     emitIfClause(CGF, IfCond, TargetThenGen,
                  [](CodeGenFunction &CGF, PrePostActionTy &) {});
   } else {
@@ -11340,10 +11340,10 @@ static bool getAArch64MTV(QualType QT, ParamKindTy Kind) {
 /// Pass By Value (PBV), as defined in 3.1.2 of the AAVFABI.
 static bool getAArch64PBV(QualType QT, ASTContext &C) {
   QT = QT.getCanonicalType();
-  unsigned Size = C.getTypeSize(QT);
+  
 
   // Only scalars and complex within 16 bytes wide set PVB to true.
-  if (Size != 8 && Size != 16 && Size != 32 && Size != 64 && Size != 128)
+  if (unsigned Size = C.getTypeSize(QT); Size != 8 && Size != 16 && Size != 32 && Size != 64 && Size != 128)
     return false;
 
   if (QT->isFloatingType())
@@ -11365,8 +11365,8 @@ static bool getAArch64PBV(QualType QT, ASTContext &C) {
 /// TODO: Add support for references, section 3.2.1, item 1.
 static unsigned getAArch64LS(QualType QT, ParamKindTy Kind, ASTContext &C) {
   if (!getAArch64MTV(QT, Kind) && QT.getCanonicalType()->isPointerType()) {
-    QualType PTy = QT.getCanonicalType()->getPointeeType();
-    if (getAArch64PBV(PTy, C))
+    
+    if (QualType PTy = QT.getCanonicalType()->getPointeeType(); getAArch64PBV(PTy, C))
       return C.getTypeSize(PTy);
   }
   if (getAArch64PBV(QT, C))
@@ -11675,8 +11675,8 @@ void CGOpenMPRuntime::emitDeclareSimdFunction(const FunctionDecl *FD,
         // Assuming a stride of 1, for `linear` without modifiers.
         ParamAttr.StrideOrArg = llvm::APSInt::getUnsigned(1);
         if (*SI) {
-          Expr::EvalResult Result;
-          if (!(*SI)->EvaluateAsInt(Result, C, Expr::SE_AllowSideEffects)) {
+          
+          if (Expr::EvalResult Result; !(*SI)->EvaluateAsInt(Result, C, Expr::SE_AllowSideEffects)) {
             if (const auto *DRE =
                     cast<DeclRefExpr>((*SI)->IgnoreParenImpCasts())) {
               if (const auto *StridePVD =
@@ -11703,8 +11703,8 @@ void CGOpenMPRuntime::emitDeclareSimdFunction(const FunctionDecl *FD,
       }
       llvm::APSInt VLENVal;
       SourceLocation ExprLoc;
-      const Expr *VLENExpr = Attr->getSimdlen();
-      if (VLENExpr) {
+      
+      if (const Expr *VLENExpr = Attr->getSimdlen(); VLENExpr) {
         VLENVal = VLENExpr->EvaluateKnownConstInt(C);
         ExprLoc = VLENExpr->getExprLoc();
       }
@@ -11713,8 +11713,8 @@ void CGOpenMPRuntime::emitDeclareSimdFunction(const FunctionDecl *FD,
         emitX86DeclareSimdFunction(FD, Fn, VLENVal, ParamAttrs, State);
       } else if (CGM.getTriple().getArch() == llvm::Triple::aarch64) {
         unsigned VLEN = VLENVal.getExtValue();
-        StringRef MangledName = Fn->getName();
-        if (CGM.getTarget().hasFeature("sve"))
+        
+        if (StringRef MangledName = Fn->getName(); CGM.getTarget().hasFeature("sve"))
           emitAArch64DeclareSimdFunction(CGM, FD, VLEN, ParamAttrs, State,
                                          MangledName, 's', 128, Fn, ExprLoc);
         else if (CGM.getTarget().hasFeature("neon"))
@@ -11945,8 +11945,8 @@ Address CGOpenMPRuntime::getAddressOfLocalVariable(CodeGenFunction &CGF,
   if (It != FunctionToUntiedTaskStackMap.end()) {
     const UntiedLocalVarsAddressesMap &UntiedData =
         UntiedLocalVarsStack[It->second];
-    auto I = UntiedData.find(VD);
-    if (I != UntiedData.end()) {
+    
+    if (auto I = UntiedData.find(VD); I != UntiedData.end()) {
       UntiedAddr = I->second.first;
       UntiedRealAddr = I->second.second;
     }
@@ -12390,7 +12390,9 @@ void CGOpenMPRuntime::emitLastprivateConditionalUpdate(CodeGenFunction &CGF,
   //   last_iv = iv;
   //   last_a = priv_a;
   // }
-  auto &&CodeGen = [&LastIVLVal, &IVLVal, IVVal, &LVal, &LastLVal,
+  
+
+  if (auto &&CodeGen = [&LastIVLVal, &IVLVal, IVVal, &LVal, &LastLVal,
                     Loc](CodeGenFunction &CGF, PrePostActionTy &Action) {
     Action.Enter(CGF);
     llvm::Value *LastIVVal = CGF.EmitLoadOfScalar(LastIVLVal, Loc);
@@ -12434,9 +12436,7 @@ void CGOpenMPRuntime::emitLastprivateConditionalUpdate(CodeGenFunction &CGF,
     // There is no need to emit line number for unconditional branch.
     (void)ApplyDebugLocation::CreateEmpty(CGF);
     CGF.EmitBlock(ExitBB, /*IsFinished=*/true);
-  };
-
-  if (CGM.getLangOpts().OpenMPSimd) {
+  }; CGM.getLangOpts().OpenMPSimd) {
     // Do not emit as a critical region as no parallel region could be emitted.
     RegionCodeGenTy ThenRCG(CodeGen);
     ThenRCG(CGF);

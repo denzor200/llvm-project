@@ -138,8 +138,8 @@ void Timer::ResetCategoryTimes() {
 void Timer::DumpCategoryTimes(Stream &s) {
   std::vector<Stats> sorted;
   for (Category *i = g_categories; i; i = i->m_next) {
-    uint64_t nanos = i->m_nanos.load(std::memory_order_acquire);
-    if (nanos) {
+    
+    if (uint64_t nanos = i->m_nanos.load(std::memory_order_acquire); nanos) {
       uint64_t nanos_total = i->m_nanos_total.load(std::memory_order_acquire);
       uint64_t count = i->m_count.load(std::memory_order_acquire);
       Stats stats{i->m_name, nanos, nanos_total, count};

@@ -709,7 +709,9 @@ static std::optional<uint64_t> gepToByteOffset(const DataLayout &dataLayout,
   uint64_t offset = indices[0] * dataLayout.getTypeSize(currentType);
 
   for (uint64_t index : llvm::drop_begin(indices)) {
-    bool shouldCancel =
+    
+
+    if (bool shouldCancel =
         TypeSwitch<Type, bool>(currentType)
             .Case([&](LLVM::LLVMArrayType arrayType) {
               offset +=
@@ -738,9 +740,7 @@ static std::optional<uint64_t> gepToByteOffset(const DataLayout &dataLayout,
               LDBG() << "[sroa] Unsupported type for offset computations"
                      << type;
               return true;
-            });
-
-    if (shouldCancel)
+            }); shouldCancel)
       return std::nullopt;
   }
 
@@ -1605,8 +1605,8 @@ Type LLVM::LLVMStructType::getTypeAtIndex(Attribute index) const {
 
 std::optional<DenseMap<Attribute, Type>>
 LLVM::LLVMArrayType::getSubelementIndexMap() const {
-  constexpr size_t maxArraySizeForDestructuring = 16;
-  if (getNumElements() > maxArraySizeForDestructuring)
+  
+  if (constexpr size_t maxArraySizeForDestructuring = 16; getNumElements() > maxArraySizeForDestructuring)
     return {};
   int32_t numElements = getNumElements();
 

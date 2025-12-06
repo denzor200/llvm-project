@@ -139,8 +139,8 @@ void SampleProfileMatcher::findProfileAnchors(const FunctionSamples &FS,
 
   auto InsertAnchor = [](const LineLocation &Loc, const FunctionId &CalleeName,
                          AnchorMap &ProfileAnchors) {
-    auto Ret = ProfileAnchors.try_emplace(Loc, CalleeName);
-    if (!Ret.second) {
+    
+    if (auto Ret = ProfileAnchors.try_emplace(Loc, CalleeName); !Ret.second) {
       // For multiple callees, which indicates it's an indirect call, we use a
       // dummy name(UnknownIndirectCallee) as the indrect callee name.
       Ret.first->second = FunctionId(UnknownIndirectCallee);
@@ -343,15 +343,15 @@ void SampleProfileMatcher::runStaleProfileMatching(
   // appear on either side to reduce the matching scope. Note that we need to
   // use IR anchor as base(A side) to align with the order of
   // IRToProfileLocationMap.
-  LocToLocMap MatchedAnchors =
-      longestCommonSequence(FilteredIRAnchorsList, FilteredProfileAnchorList,
-                            RunCGMatching /* Match unused functions */);
+  
 
   // CFG level matching:
   // Apply the callsite matchings to infer matching for the basic
   // block(non-callsite) locations and write the result to
   // IRToProfileLocationMap.
-  if (RunCFGMatching)
+  if (LocToLocMap MatchedAnchors =
+      longestCommonSequence(FilteredIRAnchorsList, FilteredProfileAnchorList,
+                            RunCGMatching /* Match unused functions */); RunCFGMatching)
     matchNonCallsiteLocs(MatchedAnchors, IRAnchors, IRToProfileLocationMap);
 }
 
@@ -365,8 +365,8 @@ void SampleProfileMatcher::runOnFunction(Function &F) {
   const auto *FSForMatching = getFlattenedSamplesFor(F);
   if (SalvageUnusedProfile && !FSForMatching) {
     // Apply the matching in place to find the new function's matched profile.
-    auto R = FuncToProfileNameMap.find(&F);
-    if (R != FuncToProfileNameMap.end()) {
+    
+    if (auto R = FuncToProfileNameMap.find(&F); R != FuncToProfileNameMap.end()) {
       FSForMatching = getFlattenedSamplesFor(R->second);
       // Try to find the salvaged top-level profiles that are explicitly loaded
       // for the matching, see "functionMatchesProfileHelper" for the details.
@@ -430,8 +430,8 @@ void SampleProfileMatcher::recordCallsiteMatchStates(
     // IRToProfileLocationMap is null in pre-match phrase.
     if (!IRToProfileLocationMap)
       return IRLoc;
-    const auto &ProfileLoc = IRToProfileLocationMap->find(IRLoc);
-    if (ProfileLoc != IRToProfileLocationMap->end())
+    
+    if (const auto &ProfileLoc = IRToProfileLocationMap->find(IRLoc); ProfileLoc != IRToProfileLocationMap->end())
       return ProfileLoc->second;
     else
       return IRLoc;
@@ -447,8 +447,8 @@ void SampleProfileMatcher::recordCallsiteMatchStates(
       continue;
     const auto &ProfCalleeId = It->second;
     if (IRCalleeId == ProfCalleeId) {
-      auto It = CallsiteMatchStates.find(ProfileLoc);
-      if (It == CallsiteMatchStates.end())
+      
+      if (auto It = CallsiteMatchStates.find(ProfileLoc); It == CallsiteMatchStates.end())
         CallsiteMatchStates.emplace(ProfileLoc, MatchState::InitialMatch);
       else if (IsPostMatch) {
         if (It->second == MatchState::InitialMatch)
@@ -464,8 +464,8 @@ void SampleProfileMatcher::recordCallsiteMatchStates(
   for (const auto &I : ProfileAnchors) {
     const auto &Loc = I.first;
     assert(!I.second.stringRef().empty() && "Callees should not be empty");
-    auto It = CallsiteMatchStates.find(Loc);
-    if (It == CallsiteMatchStates.end())
+    
+    if (auto It = CallsiteMatchStates.find(Loc); It == CallsiteMatchStates.end())
       CallsiteMatchStates.emplace(Loc, MatchState::InitialMismatch);
     else if (IsPostMatch) {
       // Update the state if it's not matched(UnchangedMatch or
@@ -707,8 +707,8 @@ void SampleProfileMatcher::findFunctionsWithoutProfile() {
       continue;
 
     StringRef CanonFName = FunctionSamples::getCanonicalFnName(F.getName());
-    const auto *FS = getFlattenedSamplesFor(F);
-    if (FS)
+    
+    if (const auto *FS = getFlattenedSamplesFor(F); FS)
       continue;
 
     // For extended binary, functions fully inlined may not be loaded in the
@@ -792,8 +792,8 @@ bool SampleProfileMatcher::functionMatchesProfileHelper(
   // For probe-based function, we first trust the checksum info. If the checksum
   // doesn't match, we continue checking for similarity.
   if (FunctionSamples::ProfileIsProbeBased) {
-    const auto *FuncDesc = ProbeManager->getDesc(IRFunc);
-    if (FuncDesc &&
+    
+    if (const auto *FuncDesc = ProbeManager->getDesc(IRFunc); FuncDesc &&
         !ProbeManager->profileIsHashMismatched(*FuncDesc, *FSForMatching)) {
       LLVM_DEBUG(dbgs() << "The checksums for " << IRFunc.getName()
                         << "(IR) and " << ProfFunc << "(Profile) match.\n");

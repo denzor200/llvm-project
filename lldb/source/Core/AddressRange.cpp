@@ -189,8 +189,8 @@ bool AddressRange::Dump(Stream *s, Target *target, Address::DumpStyle style,
 
   if (vmaddr != LLDB_INVALID_ADDRESS) {
     if (show_module) {
-      ModuleSP module_sp(GetBaseAddress().GetModule());
-      if (module_sp)
+      
+      if (ModuleSP module_sp(GetBaseAddress().GetModule()); module_sp)
         s->Printf("%s", module_sp->GetFileSpec().GetFilename().AsCString(
                             "<Unknown>"));
     }

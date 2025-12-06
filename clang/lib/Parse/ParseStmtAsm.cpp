@@ -414,8 +414,8 @@ StmtResult Parser::ParseMicrosoftAsmStatement(SourceLocation AsmLoc) {
     } else if (SingleLineMode || InAsmComment) {
       // If end-of-line is significant, check whether this token is on a
       // new line.
-      FileIDAndOffset ExpLoc = SrcMgr.getDecomposedExpansionLoc(TokLoc);
-      if (ExpLoc.first != FID ||
+      
+      if (FileIDAndOffset ExpLoc = SrcMgr.getDecomposedExpansionLoc(TokLoc); ExpLoc.first != FID ||
           SrcMgr.getLineNumber(ExpLoc.first, ExpLoc.second) != LineNo) {
         // If this is a single-line __asm, we're done, except if the next
         // line is MS-style asm too, in which case we finish a comment
@@ -693,8 +693,8 @@ StmtResult Parser::ParseAsmStatement(bool &msAsm) {
   // Check if GNU-style InlineAsm is disabled.
   // Error on anything other than empty string.
   if (!(getLangOpts().GNUAsm || AsmString.isInvalid())) {
-    const auto *SL = cast<StringLiteral>(AsmString.get());
-    if (!SL->getString().trim().empty())
+    
+    if (const auto *SL = cast<StringLiteral>(AsmString.get()); !SL->getString().trim().empty())
       Diag(Loc, diag::err_gnu_inline_asm_disabled);
   }
 

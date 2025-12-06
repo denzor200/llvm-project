@@ -31,8 +31,8 @@ ABIArgInfo DefaultABIInfo::classifyArgumentType(QualType Ty) const {
   if (const auto *ED = Ty->getAsEnumDecl())
     Ty = ED->getIntegerType();
 
-  ASTContext &Context = getContext();
-  if (const auto *EIT = Ty->getAs<BitIntType>())
+  
+  if (ASTContext &Context = getContext(); const auto *EIT = Ty->getAs<BitIntType>())
     if (EIT->getNumBits() >
         Context.getTypeSize(Context.getTargetInfo().hasInt128Type()
                                 ? Context.Int128Ty
@@ -136,8 +136,8 @@ bool CodeGen::classifyReturnType(const CGCXXABI &CXXABI, CGFunctionInfo &FI,
 
 QualType CodeGen::useFirstFieldIfTransparentUnion(QualType Ty) {
   if (const RecordType *UT = Ty->getAsUnionType()) {
-    const RecordDecl *UD = UT->getDecl()->getDefinitionOrSelf();
-    if (UD->hasAttr<TransparentUnionAttr>()) {
+    
+    if (const RecordDecl *UD = UT->getDecl()->getDefinitionOrSelf(); UD->hasAttr<TransparentUnionAttr>()) {
       assert(!UD->field_empty() && "sema created an empty transparent union");
       return UD->field_begin()->getType();
     }
@@ -411,9 +411,9 @@ Address CodeGen::EmitVAArgInstr(CodeGenFunction &CGF, Address VAListAddr,
 
   // Only a few cases are covered here at the moment -- those needed
   // by the default abi.
-  llvm::Value *Val;
+  
 
-  if (AI.isIndirect()) {
+  if (llvm::Value *Val; AI.isIndirect()) {
     assert(!AI.getPaddingType() &&
            "Unexpected PaddingType seen in arginfo in generic VAArg emitter!");
     assert(

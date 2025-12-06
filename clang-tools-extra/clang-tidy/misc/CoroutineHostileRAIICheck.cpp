@@ -43,8 +43,8 @@ AST_MATCHER_P(Stmt, forEachPrevStmt, ast_matchers::internal::Matcher<Stmt>,
         break;
       // In case of a match, add the bindings as a separate match. Also don't
       // clear the bindings if a match is not found (unlike Matcher::matches).
-      BoundNodesTreeBuilder SiblingBuilder;
-      if (InnerMatcher.matches(*Sibling, Finder, &SiblingBuilder)) {
+      
+      if (BoundNodesTreeBuilder SiblingBuilder; InnerMatcher.matches(*Sibling, Finder, &SiblingBuilder)) {
         Builder->addMatch(SiblingBuilder);
         IsHostile = true;
       }

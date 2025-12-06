@@ -499,8 +499,8 @@ InstructionCost OutlinableRegion::getBenefit(TargetTransformInfo &TTI) {
   // To be overly conservative, we only add 1 to the number of instructions for
   // each division instruction.
   for (IRInstructionData &ID : *Candidate) {
-    Instruction *I = ID.Inst;
-    switch (I->getOpcode()) {
+    
+    switch (Instruction *I = ID.Inst; I->getOpcode()) {
     case Instruction::FDiv:
     case Instruction::FRem:
     case Instruction::SDiv:
@@ -640,8 +640,8 @@ Function *IROutliner::createFunction(Module &M, OutlinableGroup &Group,
   // possible that we will need to switch to using the most general case all of
   // the time.
   for (OutlinableRegion *R : Group.Regions) {
-    Type *ExtractedFuncType = R->ExtractedFunction->getReturnType();
-    if ((RetTy->isVoidTy() && !ExtractedFuncType->isVoidTy()) ||
+    
+    if (Type *ExtractedFuncType = R->ExtractedFunction->getReturnType(); (RetTy->isVoidTy() && !ExtractedFuncType->isVoidTy()) ||
         (RetTy->isIntegerTy(1) && ExtractedFuncType->isIntegerTy(16)))
       RetTy = ExtractedFuncType;
   }
@@ -705,12 +705,12 @@ static void moveFunctionData(Function &Old, Function &New,
   for (BasicBlock &CurrBB : llvm::make_early_inc_range(Old)) {
     CurrBB.removeFromParent();
     CurrBB.insertInto(&New);
-    Instruction *I = CurrBB.getTerminator();
+    
 
     // For each block we find a return instruction is, it is a potential exit
     // path for the function.  We keep track of each block based on the return
     // value here.
-    if (ReturnInst *RI = dyn_cast<ReturnInst>(I))
+    if (Instruction *I = CurrBB.getTerminator(); ReturnInst *RI = dyn_cast<ReturnInst>(I))
       NewEnds.insert(std::make_pair(RI->getReturnValue(), &CurrBB));
 
     for (Instruction &Val : CurrBB) {
@@ -768,8 +768,8 @@ static void findConstants(IRSimilarityCandidate &C, DenseSet<unsigned> &NotSame,
     for (Value *V : (*IDIt).OperVals) {
       // Since these are stored before any outlining, they will be in the
       // global value numbering.
-      unsigned GVN = *C.getGVN(V);
-      if (isa<Constant>(V))
+      
+      if (unsigned GVN = *C.getGVN(V); isa<Constant>(V))
         if (NotSame.contains(GVN) && Seen.insert(GVN).second)
           Inputs.push_back(GVN);
     }
@@ -2381,10 +2381,10 @@ void IROutliner::pruneIncompatibleRegions(
     return LHS.getStartIdx() < RHS.getStartIdx();
   });
 
-  IRSimilarityCandidate &FirstCandidate = CandidateVec[0];
+  
   // Since outlining a call and a branch instruction will be the same as only
   // outlinining a call instruction, we ignore it as a space saving.
-  if (FirstCandidate.getLength() == 2) {
+  if (IRSimilarityCandidate &FirstCandidate = CandidateVec[0]; FirstCandidate.getLength() == 2) {
     if (isa<CallInst>(FirstCandidate.front()->Inst) &&
         isa<BranchInst>(FirstCandidate.back()->Inst))
       return;
@@ -2408,11 +2408,11 @@ void IROutliner::pruneIncompatibleRegions(
 
     // Check over the instructions, and if the basic block has its address
     // taken for use somewhere else, we do not outline that block.
-    bool BBHasAddressTaken = any_of(IRSC, [](IRInstructionData &ID){
-      return ID.Inst->getParent()->hasAddressTaken();
-    });
+    
 
-    if (BBHasAddressTaken)
+    if (bool BBHasAddressTaken = any_of(IRSC, [](IRInstructionData &ID){
+      return ID.Inst->getParent()->hasAddressTaken();
+    }); BBHasAddressTaken)
       continue;
 
     if (FnForCurrCand.hasOptNone())
@@ -2478,11 +2478,11 @@ IROutliner::findBenefitFromAllRegions(OutlinableGroup &CurrentGroup) {
 /// Region.
 static Value *findOutputValueInRegion(OutlinableRegion &Region,
                                       unsigned OutputCanon) {
-  OutlinableGroup &CurrentGroup = *Region.Parent;
+  
   // If the value is greater than the value in the tracker, we have a
   // PHINode and will instead use one of the incoming values to find the
   // type.
-  if (OutputCanon > CurrentGroup.PHINodeGVNTracker) {
+  if (OutlinableGroup &CurrentGroup = *Region.Parent; OutputCanon > CurrentGroup.PHINodeGVNTracker) {
     auto It = CurrentGroup.PHINodeGVNToGVNs.find(OutputCanon);
     assert(It != CurrentGroup.PHINodeGVNToGVNs.end() &&
            "Could not find GVN set for PHINode number!");
@@ -2547,8 +2547,8 @@ static InstructionCost findCostForOutputBlocks(Module &M,
       continue;
 
     for (Value *V : ID.OperVals) {
-      BasicBlock *BB = static_cast<BasicBlock *>(V);
-      if (!CandidateBlocks.contains(BB) && FoundBlocks.insert(BB).second)
+      
+      if (BasicBlock *BB = static_cast<BasicBlock *>(V); !CandidateBlocks.contains(BB) && FoundBlocks.insert(BB).second)
         NumOutputBranches++;
     }
   }
@@ -2668,8 +2668,8 @@ void IROutliner::updateOutputMapping(OutlinableRegion &Region,
   if (!OutputIdx)
     return;
 
-  auto It = OutputMappings.find(Outputs[*OutputIdx]);
-  if (It == OutputMappings.end()) {
+  
+  if (auto It = OutputMappings.find(Outputs[*OutputIdx]); It == OutputMappings.end()) {
     LLVM_DEBUG(dbgs() << "Mapping extracted output " << *LI << " to "
                       << *Outputs[*OutputIdx] << "\n");
     OutputMappings.insert(std::make_pair(LI, Outputs[*OutputIdx]));
@@ -2937,8 +2937,8 @@ unsigned IROutliner::doOutline(Module &M) {
       OS->CE = new (ExtractorAllocator.Allocate())
           CodeExtractor(BE, nullptr, false, nullptr, nullptr, nullptr, false,
                         false, nullptr, "outlined");
-      bool FunctionOutlined = extractSection(*OS);
-      if (FunctionOutlined) {
+      
+      if (bool FunctionOutlined = extractSection(*OS); FunctionOutlined) {
         unsigned StartIdx = OS->Candidate->getStartIdx();
         unsigned EndIdx = OS->Candidate->getEndIdx();
         for (unsigned Idx = StartIdx; Idx <= EndIdx; Idx++)

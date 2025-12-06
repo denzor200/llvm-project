@@ -588,9 +588,9 @@ bool IntegerRelation::hasInvalidConstraint() const {
     for (unsigned i = 0, e = numRows; i < e; ++i) {
       unsigned j;
       for (j = 0; j < numCols - 1; ++j) {
-        DynamicAPInt v = isEq ? atEq(i, j) : atIneq(i, j);
+        
         // Skip rows with non-zero variable coefficients.
-        if (v != 0)
+        if (DynamicAPInt v = isEq ? atEq(i, j) : atIneq(i, j); v != 0)
           break;
       }
       if (j < numCols - 1) {
@@ -598,8 +598,8 @@ bool IntegerRelation::hasInvalidConstraint() const {
       }
       // Check validity of constant term at 'numCols - 1' w.r.t 'isEq'.
       // Example invalid constraints include: '1 == 0' or '-1 >= 0'
-      DynamicAPInt v = isEq ? atEq(i, numCols - 1) : atIneq(i, numCols - 1);
-      if ((isEq && v != 0) || (!isEq && v < 0)) {
+      
+      if (DynamicAPInt v = isEq ? atEq(i, numCols - 1) : atIneq(i, numCols - 1); (isEq && v != 0) || (!isEq && v < 0)) {
         return true;
       }
     }
@@ -670,8 +670,8 @@ static unsigned getBestVarToEliminate(const IntegerRelation &cst,
   unsigned minLoc = start;
   unsigned min = getProductOfNumLowerUpperBounds(start);
   for (unsigned c = start + 1; c < end; c++) {
-    unsigned numLbUbProduct = getProductOfNumLowerUpperBounds(c);
-    if (numLbUbProduct < min) {
+    
+    if (unsigned numLbUbProduct = getProductOfNumLowerUpperBounds(c); numLbUbProduct < min) {
       min = numLbUbProduct;
       minLoc = c;
     }
@@ -755,8 +755,8 @@ bool IntegerRelation::isEmptyByGCDTest() const {
     for (unsigned j = 1; j < numCols - 1; ++j) {
       gcd = llvm::gcd(gcd, abs(atEq(i, j)));
     }
-    DynamicAPInt v = abs(atEq(i, numCols - 1));
-    if (gcd > 0 && (v % gcd != 0)) {
+    
+    if (DynamicAPInt v = abs(atEq(i, numCols - 1)); gcd > 0 && (v % gcd != 0)) {
       return true;
     }
   }
@@ -937,8 +937,8 @@ IntegerRelation::findIntegerSample() const {
   // amount for the shrunken cone.
   for (unsigned i = 0, e = cone.getNumInequalities(); i < e; ++i) {
     for (unsigned j = 0; j < cone.getNumVars(); ++j) {
-      DynamicAPInt coeff = cone.atIneq(i, j);
-      if (coeff < 0)
+      
+      if (DynamicAPInt coeff = cone.atIneq(i, j); coeff < 0)
         cone.atIneq(i, cone.getNumVars()) += coeff;
     }
   }
@@ -1057,8 +1057,8 @@ void IntegerRelation::gcdTightenInequalities() {
   unsigned numCols = getNumCols();
   for (unsigned i = 0, e = getNumInequalities(); i < e; ++i) {
     // Normalize the constraint and tighten the constant term by the GCD.
-    DynamicAPInt gcd = inequalities.normalizeRow(i, getNumCols() - 1);
-    if (gcd > 1)
+    
+    if (DynamicAPInt gcd = inequalities.normalizeRow(i, getNumCols() - 1); gcd > 1)
       atIneq(i, numCols - 1) = floorDiv(atIneq(i, numCols - 1), gcd);
   }
 }
@@ -1312,8 +1312,8 @@ void IntegerRelation::mergeAndAlignSymbols(IntegerRelation &other) {
     const Identifier *findBegin =
         other.space.getIds(VarKind::Symbol).begin() + i;
     const Identifier *findEnd = other.space.getIds(VarKind::Symbol).end();
-    const Identifier *itr = std::find(findBegin, findEnd, identifier);
-    if (itr != findEnd) {
+    
+    if (const Identifier *itr = std::find(findBegin, findEnd, identifier); itr != findEnd) {
       other.swapVar(other.getVarKindOffset(VarKind::Symbol) + i,
                     other.getVarKindOffset(VarKind::Symbol) + i +
                         std::distance(findBegin, itr));
@@ -1605,8 +1605,8 @@ std::optional<DynamicAPInt> IntegerRelation::getConstantBoundOnDimSize(
 
   // Find an equality for 'pos'^th variable that equates it to some function
   // of the symbolic variables (+ constant).
-  int eqPos = findEqualityToConstant(pos, /*symbolic=*/true);
-  if (eqPos != -1) {
+  
+  if (int eqPos = findEqualityToConstant(pos, /*symbolic=*/true); eqPos != -1) {
     auto eq = getEquality(eqPos);
     // If the equality involves a local var, we do not handle it.
     // FlatLinearConstraints can instead be used to detect the local variable as
@@ -1732,8 +1732,8 @@ IntegerRelation::computeConstantLowerOrUpperBound(unsigned pos) {
   projectOut(0, pos);
   projectOut(1, getNumVars() - 1);
   // Check if there's an equality equating the '0'^th variable to a constant.
-  int eqRowIdx = findEqualityToConstant(/*pos=*/0, /*symbolic=*/false);
-  if (eqRowIdx != -1)
+  
+  if (int eqRowIdx = findEqualityToConstant(/*pos=*/0, /*symbolic=*/false); eqRowIdx != -1)
     // atEq(rowIdx, 0) is either -1 or 1.
     return -atEq(eqRowIdx, getNumCols() - 1) / atEq(eqRowIdx, 0);
 
@@ -1768,10 +1768,10 @@ IntegerRelation::computeConstantLowerOrUpperBound(unsigned pos) {
       // Not a constant bound.
       continue;
 
-    DynamicAPInt boundConst =
+    
+    if (DynamicAPInt boundConst =
         isLower ? ceilDiv(-atIneq(r, getNumCols() - 1), atIneq(r, 0))
-                : floorDiv(atIneq(r, getNumCols() - 1), -atIneq(r, 0));
-    if (isLower) {
+                : floorDiv(atIneq(r, getNumCols() - 1), -atIneq(r, 0)); isLower) {
       if (minOrMaxConst == std::nullopt || boundConst > minOrMaxConst)
         minOrMaxConst = boundConst;
     } else {
@@ -1872,8 +1872,8 @@ void IntegerRelation::removeTrivialRedundancy() {
         rowsWithoutConstTerm.insert({rowWithoutConstTerm, {r, constTerm}});
     if (!ret.second) {
       // Check if the other constraint has a higher constant term.
-      auto &val = ret.first->second;
-      if (val.second > constTerm) {
+      
+      if (auto &val = ret.first->second; val.second > constTerm) {
         // The stored row is redundant. Mark it so, and update with this one.
         redunIneq[val.first] = true;
         val = {r, constTerm};

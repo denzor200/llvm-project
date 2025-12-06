@@ -196,8 +196,8 @@ bool Thumb1InstrInfo::canCopyGluedNodeDuringSchedule(SDNode *N) const {
   // even if they have glue.
   // FIXME. Actually implement the cross-copy where it is possible (post v6)
   // because these copies entail more spilling.
-  unsigned Opcode = N->getMachineOpcode();
-  if (Opcode == ARM::tADCS || Opcode == ARM::tSBCS)
+  
+  if (unsigned Opcode = N->getMachineOpcode(); Opcode == ARM::tADCS || Opcode == ARM::tSBCS)
     return true;
 
   return false;

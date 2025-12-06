@@ -84,11 +84,11 @@ size_t MachOWriter::totalSize() const {
   }
 
   if (O.DySymTabCommandIndex) {
-    const MachO::dysymtab_command &DySymTabCommand =
-        O.LoadCommands[*O.DySymTabCommandIndex]
-            .MachOLoadCommand.dysymtab_command_data;
+    
 
-    if (DySymTabCommand.indirectsymoff)
+    if (const MachO::dysymtab_command &DySymTabCommand =
+        O.LoadCommands[*O.DySymTabCommandIndex]
+            .MachOLoadCommand.dysymtab_command_data; DySymTabCommand.indirectsymoff)
       Ends.push_back(DySymTabCommand.indirectsymoff +
                      sizeof(uint32_t) * O.IndirectSymTable.Symbols.size());
   }
@@ -99,10 +99,10 @@ size_t MachOWriter::totalSize() const {
         O.FunctionStartsCommandIndex, O.ChainedFixupsCommandIndex,
         O.ExportsTrieCommandIndex})
     if (LinkEditDataCommandIndex) {
-      const MachO::linkedit_data_command &LinkEditDataCommand =
+      
+      if (const MachO::linkedit_data_command &LinkEditDataCommand =
           O.LoadCommands[*LinkEditDataCommandIndex]
-              .MachOLoadCommand.linkedit_data_command_data;
-      if (LinkEditDataCommand.dataoff)
+              .MachOLoadCommand.linkedit_data_command_data; LinkEditDataCommand.dataoff)
         Ends.push_back(LinkEditDataCommand.dataoff +
                        LinkEditDataCommand.datasize);
     }
@@ -304,9 +304,9 @@ void MachOWriter::writeSymbolTable() {
   char *SymTable = Buf->getBufferStart() + SymTabCommand.symoff;
   for (auto &Symbol : O.SymTable.Symbols) {
     SymbolEntry *Sym = Symbol.get();
-    uint32_t Nstrx = LayoutBuilder.getStringTableBuilder().getOffset(Sym->Name);
+    
 
-    if (Is64Bit)
+    if (uint32_t Nstrx = LayoutBuilder.getStringTableBuilder().getOffset(Sym->Name); Is64Bit)
       writeNListEntry<MachO::nlist_64>(*Sym, IsLittleEndian, SymTable, Nstrx);
     else
       writeNListEntry<MachO::nlist>(*Sym, IsLittleEndian, SymTable, Nstrx);
@@ -405,9 +405,9 @@ void MachOWriter::writeLinkData(std::optional<size_t> LCIndex,
 
 static uint64_t
 getSegmentFileOffset(const LoadCommand &TextSegmentLoadCommand) {
-  const MachO::macho_load_command &MLC =
-      TextSegmentLoadCommand.MachOLoadCommand;
-  switch (MLC.load_command_data.cmd) {
+  
+  switch (const MachO::macho_load_command &MLC =
+      TextSegmentLoadCommand.MachOLoadCommand; MLC.load_command_data.cmd) {
   case MachO::LC_SEGMENT:
     return MLC.segment_command_data.fileoff;
   case MachO::LC_SEGMENT_64:
@@ -418,9 +418,9 @@ getSegmentFileOffset(const LoadCommand &TextSegmentLoadCommand) {
 }
 
 static uint64_t getSegmentFileSize(const LoadCommand &TextSegmentLoadCommand) {
-  const MachO::macho_load_command &MLC =
-      TextSegmentLoadCommand.MachOLoadCommand;
-  switch (MLC.load_command_data.cmd) {
+  
+  switch (const MachO::macho_load_command &MLC =
+      TextSegmentLoadCommand.MachOLoadCommand; MLC.load_command_data.cmd) {
   case MachO::LC_SEGMENT:
     return MLC.segment_command_data.filesize;
   case MachO::LC_SEGMENT_64:
@@ -616,11 +616,11 @@ void MachOWriter::writeTail() {
   }
 
   if (O.DySymTabCommandIndex) {
-    const MachO::dysymtab_command &DySymTabCommand =
-        O.LoadCommands[*O.DySymTabCommandIndex]
-            .MachOLoadCommand.dysymtab_command_data;
+    
 
-    if (DySymTabCommand.indirectsymoff)
+    if (const MachO::dysymtab_command &DySymTabCommand =
+        O.LoadCommands[*O.DySymTabCommandIndex]
+            .MachOLoadCommand.dysymtab_command_data; DySymTabCommand.indirectsymoff)
       Queue.emplace_back(DySymTabCommand.indirectsymoff,
                          &MachOWriter::writeIndirectSymbolTable);
   }
@@ -640,10 +640,10 @@ void MachOWriter::writeTail() {
     WriteHandlerType WriteHandler;
     std::tie(LinkEditDataCommandIndex, WriteHandler) = W;
     if (LinkEditDataCommandIndex) {
-      const MachO::linkedit_data_command &LinkEditDataCommand =
+      
+      if (const MachO::linkedit_data_command &LinkEditDataCommand =
           O.LoadCommands[*LinkEditDataCommandIndex]
-              .MachOLoadCommand.linkedit_data_command_data;
-      if (LinkEditDataCommand.dataoff)
+              .MachOLoadCommand.linkedit_data_command_data; LinkEditDataCommand.dataoff)
         Queue.emplace_back(LinkEditDataCommand.dataoff, WriteHandler);
     }
   }

@@ -277,8 +277,8 @@ Error TestClient::Continue(StringRef message) {
   m_stop_reply = std::move(*StopReplyOr);
   if (!isa<StopReplyStop>(m_stop_reply)) {
     StringExtractorGDBRemote R;
-    PacketResult result = ReadPacket(R, GetPacketTimeout(), false);
-    if (result != PacketResult::ErrorDisconnected) {
+    
+    if (PacketResult result = ReadPacket(R, GetPacketTimeout(), false); result != PacketResult::ErrorDisconnected) {
       return make_error<StringError>(
           formatv("Expected connection close after sending {0}. Got {1}/{2} "
                   "instead.",

@@ -232,9 +232,9 @@ static Value *simplifyX86immShift(const IntrinsicInst &II,
     APInt DemandedUpper = APInt::getBitsSet(NumAmtElts, 1, NumAmtElts / 2);
     KnownBits KnownLowerBits = llvm::computeKnownBits(
         Amt, DemandedLower, II.getDataLayout());
-    KnownBits KnownUpperBits = llvm::computeKnownBits(
-        Amt, DemandedUpper, II.getDataLayout());
-    if (KnownLowerBits.getMaxValue().ult(BitWidth) &&
+    
+    if (KnownBits KnownUpperBits = llvm::computeKnownBits(
+        Amt, DemandedUpper, II.getDataLayout()); KnownLowerBits.getMaxValue().ult(BitWidth) &&
         (DemandedUpper.isZero() || KnownUpperBits.isZero())) {
       SmallVector<int, 16> ZeroSplat(VWidth, 0);
       Amt = Builder.CreateShuffleVector(Amt, ZeroSplat);
@@ -718,8 +718,8 @@ static Value *simplifyTernarylogic(const IntrinsicInst &II,
   // handle creating ternary ops in the backend, so splitting them here may
   // cause regressions. As the backend improves, uncomment more cases.
 
-  uint8_t Imm = ArgImm->getValue().getZExtValue();
-  switch (Imm) {
+  
+  switch (uint8_t Imm = ArgImm->getValue().getZExtValue(); Imm) {
   case 0x0:
     Res = {Constant::getNullValue(Ty), 0};
     break;
@@ -1824,13 +1824,13 @@ static Value *simplifyX86extrq(IntrinsicInst &II, Value *Op0,
 
     // From AMD documentation: "If the sum of the bit index + length field
     // is greater than 64, the results are undefined".
-    unsigned End = Index + Length;
+    
 
     // Note that both field index and field length are 8-bit quantities.
     // Since variables 'Index' and 'Length' are unsigned values
     // obtained from zero-extending field index and field length
     // respectively, their sum should never wrap around.
-    if (End > 64)
+    if (unsigned End = Index + Length; End > 64)
       return UndefValue::get(II.getType());
 
     // If we are inserting whole bytes, we can convert this to a shuffle.
@@ -1899,13 +1899,13 @@ static Value *simplifyX86insertq(IntrinsicInst &II, Value *Op0, Value *Op1,
 
   // From AMD documentation: "If the sum of the bit index + length field
   // is greater than 64, the results are undefined".
-  unsigned End = Index + Length;
+  
 
   // Note that both field index and field length are 8-bit quantities.
   // Since variables 'Index' and 'Length' are unsigned values
   // obtained from zero-extending field index and field length
   // respectively, their sum should never wrap around.
-  if (End > 64)
+  if (unsigned End = Index + Length; End > 64)
     return UndefValue::get(II.getType());
 
   // If we are inserting whole bytes, we can convert this to a shuffle.
@@ -2159,8 +2159,8 @@ X86TTIImpl::instCombineIntrinsic(InstCombiner &IC, IntrinsicInst &II) const {
     return IC.SimplifyDemandedVectorElts(Op, DemandedElts, UndefElts);
   };
 
-  Intrinsic::ID IID = II.getIntrinsicID();
-  switch (IID) {
+  
+  switch (Intrinsic::ID IID = II.getIntrinsicID(); IID) {
   case Intrinsic::x86_bmi_bextr_32:
   case Intrinsic::x86_bmi_bextr_64:
   case Intrinsic::x86_tbm_bextri_u32:
@@ -2194,8 +2194,8 @@ X86TTIImpl::instCombineIntrinsic(InstCombiner &IC, IntrinsicInst &II) const {
     // If the RHS is a constant we can try some simplifications.
     if (auto *C = dyn_cast<ConstantInt>(II.getArgOperand(1))) {
       uint64_t Index = C->getZExtValue() & 0xff;
-      unsigned BitWidth = II.getType()->getIntegerBitWidth();
-      if (Index >= BitWidth) {
+      
+      if (unsigned BitWidth = II.getType()->getIntegerBitWidth(); Index >= BitWidth) {
         return IC.replaceInstUsesWith(II, II.getArgOperand(0));
       }
       if (Index == 0) {
@@ -2241,8 +2241,8 @@ X86TTIImpl::instCombineIntrinsic(InstCombiner &IC, IntrinsicInst &II) const {
 
         while (Mask) {
           // Isolate lowest set bit.
-          uint64_t BitToTest = Mask & -Mask;
-          if (BitToTest & Src)
+          
+          if (uint64_t BitToTest = Mask & -Mask; BitToTest & Src)
             Result |= BitToSet;
 
           BitToSet <<= 1;
@@ -2285,8 +2285,8 @@ X86TTIImpl::instCombineIntrinsic(InstCombiner &IC, IntrinsicInst &II) const {
 
         while (Mask) {
           // Isolate lowest set bit.
-          uint64_t BitToSet = Mask & -Mask;
-          if (BitToTest & Src)
+          
+          if (uint64_t BitToSet = Mask & -Mask; BitToTest & Src)
             Result |= BitToSet;
 
           BitToTest <<= 1;
@@ -2327,8 +2327,8 @@ X86TTIImpl::instCombineIntrinsic(InstCombiner &IC, IntrinsicInst &II) const {
     // These intrinsics only demand the 0th element of their input vectors. If
     // we can simplify the input based on that, do so now.
     Value *Arg = II.getArgOperand(0);
-    unsigned VWidth = cast<FixedVectorType>(Arg->getType())->getNumElements();
-    if (Value *V = SimplifyDemandedVectorEltsLow(Arg, VWidth, 1)) {
+    
+    if (unsigned VWidth = cast<FixedVectorType>(Arg->getType())->getNumElements(); Value *V = SimplifyDemandedVectorEltsLow(Arg, VWidth, 1)) {
       return IC.replaceOperand(II, 0, V);
     }
     break;
@@ -2478,9 +2478,9 @@ X86TTIImpl::instCombineIntrinsic(InstCombiner &IC, IntrinsicInst &II) const {
 
         // Handle the masking aspect of the intrinsic.
         Value *Mask = II.getArgOperand(3);
-        auto *C = dyn_cast<ConstantInt>(Mask);
+        
         // We don't need a select if we know the mask bit is a 1.
-        if (!C || !C->getValue()[0]) {
+        if (auto *C = dyn_cast<ConstantInt>(Mask); !C || !C->getValue()[0]) {
           // Cast the mask to an i1 vector and then extract the lowest element.
           auto *MaskTy = FixedVectorType::get(
               IC.Builder.getInt1Ty(),
@@ -2572,9 +2572,9 @@ X86TTIImpl::instCombineIntrinsic(InstCombiner &IC, IntrinsicInst &II) const {
     Value *Arg1 = II.getArgOperand(1);
     assert(Arg1->getType()->getPrimitiveSizeInBits() == 128 &&
            "Unexpected packed shift size");
-    unsigned VWidth = cast<FixedVectorType>(Arg1->getType())->getNumElements();
+    
 
-    if (Value *V = SimplifyDemandedVectorEltsLow(Arg1, VWidth, VWidth / 2)) {
+    if (unsigned VWidth = cast<FixedVectorType>(Arg1->getType())->getNumElements(); Value *V = SimplifyDemandedVectorEltsLow(Arg1, VWidth, VWidth / 2)) {
       return IC.replaceOperand(II, 1, V);
     }
     break;
@@ -2738,12 +2738,12 @@ X86TTIImpl::instCombineIntrinsic(InstCombiner &IC, IntrinsicInst &II) const {
     auto *CILength =
         C1 ? dyn_cast_or_null<ConstantInt>(C1->getAggregateElement((unsigned)0))
            : nullptr;
-    auto *CIIndex =
-        C1 ? dyn_cast_or_null<ConstantInt>(C1->getAggregateElement((unsigned)1))
-           : nullptr;
+    
 
     // Attempt to simplify to a constant, shuffle vector or EXTRQI call.
-    if (Value *V = simplifyX86extrq(II, Op0, CILength, CIIndex, IC.Builder)) {
+    if (auto *CIIndex =
+        C1 ? dyn_cast_or_null<ConstantInt>(C1->getAggregateElement((unsigned)1))
+           : nullptr; Value *V = simplifyX86extrq(II, Op0, CILength, CIIndex, IC.Builder)) {
       return IC.replaceInstUsesWith(II, V);
     }
 
@@ -2774,10 +2774,10 @@ X86TTIImpl::instCombineIntrinsic(InstCombiner &IC, IntrinsicInst &II) const {
 
     // See if we're dealing with constant values.
     auto *CILength = dyn_cast<ConstantInt>(II.getArgOperand(1));
-    auto *CIIndex = dyn_cast<ConstantInt>(II.getArgOperand(2));
+    
 
     // Attempt to simplify to a constant or shuffle vector.
-    if (Value *V = simplifyX86extrq(II, Op0, CILength, CIIndex, IC.Builder)) {
+    if (auto *CIIndex = dyn_cast<ConstantInt>(II.getArgOperand(2)); Value *V = simplifyX86extrq(II, Op0, CILength, CIIndex, IC.Builder)) {
       return IC.replaceInstUsesWith(II, V);
     }
 
@@ -2800,16 +2800,16 @@ X86TTIImpl::instCombineIntrinsic(InstCombiner &IC, IntrinsicInst &II) const {
 
     // See if we're dealing with constant values.
     auto *C1 = dyn_cast<Constant>(Op1);
-    auto *CI11 =
-        C1 ? dyn_cast_or_null<ConstantInt>(C1->getAggregateElement((unsigned)1))
-           : nullptr;
+    
 
     // Attempt to simplify to a constant, shuffle vector or INSERTQI call.
-    if (CI11) {
+    if (auto *CI11 =
+        C1 ? dyn_cast_or_null<ConstantInt>(C1->getAggregateElement((unsigned)1))
+           : nullptr; CI11) {
       const APInt &V11 = CI11->getValue();
       APInt Len = V11.zextOrTrunc(6);
-      APInt Idx = V11.lshr(8).zextOrTrunc(6);
-      if (Value *V = simplifyX86insertq(II, Op0, Op1, Len, Idx, IC.Builder)) {
+      
+      if (APInt Idx = V11.lshr(8).zextOrTrunc(6); Value *V = simplifyX86insertq(II, Op0, Op1, Len, Idx, IC.Builder)) {
         return IC.replaceInstUsesWith(II, V);
       }
     }
@@ -2836,13 +2836,13 @@ X86TTIImpl::instCombineIntrinsic(InstCombiner &IC, IntrinsicInst &II) const {
 
     // See if we're dealing with constant values.
     auto *CILength = dyn_cast<ConstantInt>(II.getArgOperand(2));
-    auto *CIIndex = dyn_cast<ConstantInt>(II.getArgOperand(3));
+    
 
     // Attempt to simplify to a constant or shuffle vector.
-    if (CILength && CIIndex) {
+    if (auto *CIIndex = dyn_cast<ConstantInt>(II.getArgOperand(3)); CILength && CIIndex) {
       APInt Len = CILength->getValue().zextOrTrunc(6);
-      APInt Idx = CIIndex->getValue().zextOrTrunc(6);
-      if (Value *V = simplifyX86insertq(II, Op0, Op1, Len, Idx, IC.Builder)) {
+      
+      if (APInt Idx = CIIndex->getValue().zextOrTrunc(6); Value *V = simplifyX86insertq(II, Op0, Op1, Len, Idx, IC.Builder)) {
         return IC.replaceInstUsesWith(II, V);
       }
     }
@@ -2900,8 +2900,8 @@ X86TTIImpl::instCombineIntrinsic(InstCombiner &IC, IntrinsicInst &II) const {
     if (match(Mask, m_OneUse(m_Shuffle(m_Value(MaskSrc), m_Undef(),
                                        m_Mask(ShuffleMask))))) {
       // Bail if the shuffle was irregular or contains undefs.
-      int NumElts = cast<FixedVectorType>(MaskSrc->getType())->getNumElements();
-      if (NumElts < (int)ShuffleMask.size() || !isPowerOf2_32(NumElts) ||
+      
+      if (int NumElts = cast<FixedVectorType>(MaskSrc->getType())->getNumElements(); NumElts < (int)ShuffleMask.size() || !isPowerOf2_32(NumElts) ||
           any_of(ShuffleMask,
                  [NumElts](int M) { return M < 0 || M >= NumElts; }))
         break;
@@ -3134,8 +3134,8 @@ std::optional<Value *> X86TTIImpl::simplifyDemandedVectorEltsIntrinsic(
     APInt &UndefElts2, APInt &UndefElts3,
     std::function<void(Instruction *, unsigned, APInt, APInt &)>
         simplifyAndSetOp) const {
-  unsigned VWidth = cast<FixedVectorType>(II.getType())->getNumElements();
-  switch (II.getIntrinsicID()) {
+  
+  switch (unsigned VWidth = cast<FixedVectorType>(II.getType())->getNumElements(); II.getIntrinsicID()) {
   default:
     break;
   case Intrinsic::x86_xop_vfrcz_ss:
@@ -3270,8 +3270,8 @@ std::optional<Value *> X86TTIImpl::simplifyDemandedVectorEltsIntrinsic(
     APInt SubMask = APInt::getSplat(VWidth, APInt(2, 0x1));
     APInt AddMask = APInt::getSplat(VWidth, APInt(2, 0x2));
     bool IsSubOnly = DemandedElts.isSubsetOf(SubMask);
-    bool IsAddOnly = DemandedElts.isSubsetOf(AddMask);
-    if (IsSubOnly || IsAddOnly) {
+    
+    if (bool IsAddOnly = DemandedElts.isSubsetOf(AddMask); IsSubOnly || IsAddOnly) {
       assert((IsSubOnly ^ IsAddOnly) && "Can't be both add-only and sub-only");
       IRBuilderBase::InsertPointGuard Guard(IC.Builder);
       IC.Builder.SetInsertPoint(&II);
@@ -3347,8 +3347,8 @@ std::optional<Value *> X86TTIImpl::simplifyDemandedVectorEltsIntrinsic(
       for (unsigned Lane = 0; Lane != NumLanes; ++Lane) {
         unsigned LaneIdx = Lane * VWidthPerLane;
         for (unsigned Elt = 0; Elt != InnerVWidthPerLane; ++Elt) {
-          unsigned Idx = LaneIdx + Elt + InnerVWidthPerLane * OpNum;
-          if (DemandedElts[Idx])
+          
+          if (unsigned Idx = LaneIdx + Elt + InnerVWidthPerLane * OpNum; DemandedElts[Idx])
             OpDemandedElts.setBit((Lane * InnerVWidthPerLane) + Elt);
         }
       }

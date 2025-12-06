@@ -419,8 +419,8 @@ static Error createPlistFile(StringRef Bin, StringRef BundleRoot,
   CFBundleInfo BI = getBundleInfo(Bin);
 
   if (BI.IDStr.empty()) {
-    StringRef BundleID = *sys::path::rbegin(BundleRoot);
-    if (sys::path::extension(BundleRoot) == ".dSYM")
+    
+    if (StringRef BundleID = *sys::path::rbegin(BundleRoot); sys::path::extension(BundleRoot) == ".dSYM")
       BI.IDStr = std::string(sys::path::stem(BundleID));
     else
       BI.IDStr = std::string(BundleID);

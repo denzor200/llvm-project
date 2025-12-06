@@ -134,8 +134,8 @@ void eraseTriviallyDeadTileOps(IRRewriter &rewriter,
                                FunctionOpInterface function) {
   SmallVector<Operation *> worklist;
   function->walk([&](Operation *op) {
-    auto armSMEOp = dyn_cast<arm_sme::ArmSMETileOpInterface>(op);
-    if (armSMEOp && isOpTriviallyDead(armSMEOp))
+    
+    if (auto armSMEOp = dyn_cast<arm_sme::ArmSMETileOpInterface>(op); armSMEOp && isOpTriviallyDead(armSMEOp))
       worklist.push_back(armSMEOp);
   });
   while (!worklist.empty()) {

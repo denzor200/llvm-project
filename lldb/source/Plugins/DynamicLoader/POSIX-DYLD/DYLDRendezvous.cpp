@@ -79,12 +79,12 @@ addr_t DYLDRendezvous::ResolveRendezvousAddress() {
   // If the process fails to return an address, fall back to seeing if the
   // local object file can help us find it.
   if (info_location == LLDB_INVALID_ADDRESS) {
-    Target *target = &m_process->GetTarget();
-    if (target) {
+    
+    if (Target *target = &m_process->GetTarget(); target) {
       ObjectFile *obj_file = target->GetExecutableModule()->GetObjectFile();
-      Address addr = obj_file->GetImageInfoAddress(target);
+      
 
-      if (addr.IsValid()) {
+      if (Address addr = obj_file->GetImageInfoAddress(target); addr.IsValid()) {
         info_location = addr.GetLoadAddress(target);
         LLDB_LOGF(log,
                   "%s resolved via direct object file approach to 0x%" PRIx64,
@@ -141,8 +141,8 @@ addr_t DYLDRendezvous::ResolveRendezvousAddress() {
 void DYLDRendezvous::UpdateExecutablePath() {
   if (m_process) {
     Log *log = GetLog(LLDBLog::DynamicLoader);
-    Module *exe_mod = m_process->GetTarget().GetExecutableModulePointer();
-    if (exe_mod) {
+    
+    if (Module *exe_mod = m_process->GetTarget().GetExecutableModulePointer(); exe_mod) {
       m_exe_file_spec = exe_mod->GetPlatformFileSpec();
       LLDB_LOGF(log, "DYLDRendezvous::%s exe module executable path set: '%s'",
                 __FUNCTION__, m_exe_file_spec.GetPath().c_str());
@@ -545,8 +545,8 @@ bool DYLDRendezvous::SOEntryIsMainExecutable(const SOEntry &entry) {
   // On some systes the executable is indicated by an empty path in the entry.
   // On others it is the full path to the executable.
 
-  auto triple = m_process->GetTarget().GetArchitecture().GetTriple();
-  switch (triple.getOS()) {
+  
+  switch (auto triple = m_process->GetTarget().GetArchitecture().GetTriple(); triple.getOS()) {
   case llvm::Triple::FreeBSD:
   case llvm::Triple::NetBSD:
   case llvm::Triple::OpenBSD:
@@ -641,9 +641,9 @@ void DYLDRendezvous::UpdateBaseAddrIfNecessary(SOEntry &entry,
   if (isLoadBiasIncorrect(m_process->GetTarget(), file_path)) {
     lldb::addr_t load_addr = LLDB_INVALID_ADDRESS;
     bool is_loaded = false;
-    Status error =
-        m_process->GetFileLoadAddress(entry.file_spec, is_loaded, load_addr);
-    if (error.Success() && is_loaded)
+    
+    if (Status error =
+        m_process->GetFileLoadAddress(entry.file_spec, is_loaded, load_addr); error.Success() && is_loaded)
       entry.base_addr = load_addr;
   }
 }
@@ -672,8 +672,8 @@ bool DYLDRendezvous::ReadSOEntryFromMemory(lldb::addr_t addr, SOEntry &entry) {
   // mips adds an extra load offset field to the link map struct on FreeBSD and
   // NetBSD (need to validate other OSes).
   // http://svnweb.freebsd.org/base/head/sys/sys/link_elf.h?revision=217153&view=markup#l57
-  const ArchSpec &arch = m_process->GetTarget().GetArchitecture();
-  if ((arch.GetTriple().getOS() == llvm::Triple::FreeBSD ||
+  
+  if (const ArchSpec &arch = m_process->GetTarget().GetArchitecture(); (arch.GetTriple().getOS() == llvm::Triple::FreeBSD ||
        arch.GetTriple().getOS() == llvm::Triple::NetBSD) &&
       arch.IsMIPS()) {
     addr_t mips_l_offs;

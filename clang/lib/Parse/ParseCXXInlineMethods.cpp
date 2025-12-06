@@ -29,8 +29,8 @@ StringLiteral *Parser::ParseCXXDeletedFunctionMessage() {
   BT.consumeOpen();
 
   if (isTokenStringLiteral()) {
-    ExprResult Res = ParseUnevaluatedStringLiteralExpression();
-    if (Res.isUsable()) {
+    
+    if (ExprResult Res = ParseUnevaluatedStringLiteralExpression(); Res.isUsable()) {
       Message = Res.getAs<StringLiteral>();
       Diag(Message->getBeginLoc(), getLangOpts().CPlusPlus26
                                        ? diag::warn_cxx23_delete_with_message
@@ -385,8 +385,8 @@ void Parser::ParseLexedMethodDeclaration(LateParsedMethodDeclaration &LM) {
     // Introduce the parameter into scope.
     bool HasUnparsed = Param->hasUnparsedDefaultArg();
     Actions.ActOnDelayedCXXMethodParameter(getCurScope(), Param);
-    std::unique_ptr<CachedTokens> Toks = std::move(LM.DefaultArgs[I].Toks);
-    if (Toks) {
+    
+    if (std::unique_ptr<CachedTokens> Toks = std::move(LM.DefaultArgs[I].Toks); Toks) {
       ParenBraceBracketBalancer BalancerRAIIObj(*this);
 
       // Mark the end of the default argument so that we know when to stop when
@@ -1058,8 +1058,8 @@ bool Parser::ConsumeAndStoreFunctionPrologue(CachedTokens &Toks) {
       if (!getLangOpts().CPlusPlus11)
         return false;
 
-      const Token &PreviousToken = Toks[Toks.size() - 2];
-      if (!MightBeTemplateArgument &&
+      
+      if (const Token &PreviousToken = Toks[Toks.size() - 2]; !MightBeTemplateArgument &&
           !PreviousToken.isOneOf(tok::identifier, tok::greater,
                                  tok::greatergreater)) {
         // If the opening brace is not preceded by one of these tokens, we are

@@ -222,8 +222,8 @@ bool ProfileGeneratorBase::filterAmbiguousProfile(FunctionSamples &FS) {
        const_cast<CallsiteSampleMap &>(FS.getCallsiteSamples())) {
     auto &CalleesMap = Callees.second;
     for (auto I = CalleesMap.begin(); I != CalleesMap.end();) {
-      auto FS = I++;
-      if (filterAmbiguousProfile(FS->second))
+      
+      if (auto FS = I++; filterAmbiguousProfile(FS->second))
         CalleesMap.erase(FS);
     }
   }
@@ -245,8 +245,8 @@ bool ProfileGeneratorBase::filterAmbiguousProfile(FunctionSamples &FS) {
 // cold functions, it won't have perf impact.
 void ProfileGeneratorBase::filterAmbiguousProfile(SampleProfileMap &Profiles) {
   for (auto I = ProfileMap.begin(); I != ProfileMap.end();) {
-    auto FS = I++;
-    if (filterAmbiguousProfile(FS->second))
+    
+    if (auto FS = I++; filterAmbiguousProfile(FS->second))
       ProfileMap.erase(FS);
   }
 }
@@ -404,8 +404,8 @@ void ProfileGeneratorBase::updateBodySamplesforFunctionProfile(
   ErrorOr<uint64_t> R =
       FunctionProfile.findSamplesAt(LeafLoc.Location.LineOffset, Discriminator);
 
-  uint64_t PreviousCount = R ? R.get() : 0;
-  if (PreviousCount <= Count) {
+  
+  if (uint64_t PreviousCount = R ? R.get() : 0; PreviousCount <= Count) {
     FunctionProfile.addBodySamples(LeafLoc.Location.LineOffset, Discriminator,
                                    Count - PreviousCount);
   }
@@ -433,8 +433,8 @@ void ProfileGeneratorBase::updateFunctionSamples() {
 }
 
 void ProfileGeneratorBase::collectProfiledFunctions() {
-  std::unordered_set<const BinaryFunction *> ProfiledFunctions;
-  if (collectFunctionsFromRawProfile(ProfiledFunctions))
+  
+  if (std::unordered_set<const BinaryFunction *> ProfiledFunctions; collectFunctionsFromRawProfile(ProfiledFunctions))
     Binary->setProfiledFunctions(ProfiledFunctions);
   else if (collectFunctionsFromLLVMProfile(ProfiledFunctions))
     Binary->setProfiledFunctions(ProfiledFunctions);
@@ -458,8 +458,8 @@ bool ProfileGeneratorBase::collectFunctionsFromRawProfile(
     }
 
     for (auto Item : CI.second.RangeCounter) {
-      uint64_t StartAddress = Item.first.first;
-      if (FuncRange *FRange = Binary->findFuncRange(StartAddress))
+      
+      if (uint64_t StartAddress = Item.first.first; FuncRange *FRange = Binary->findFuncRange(StartAddress))
         ProfiledFunctions.insert(FRange->Func);
     }
 
@@ -706,9 +706,9 @@ void ProfileGenerator::populateBodySamplesForAllFunctions(
       continue;
 
     do {
-      const SampleContextFrameVector FrameVec =
-          Binary->getFrameLocationStack(IP.Address);
-      if (!FrameVec.empty()) {
+      
+      if (const SampleContextFrameVector FrameVec =
+          Binary->getFrameLocationStack(IP.Address); !FrameVec.empty()) {
         // FIXME: As accumulating total count per instruction caused some
         // regression, we changed to accumulate total count per byte as a
         // workaround. Tuning hotness threshold on the compiler side might be
@@ -770,10 +770,10 @@ void ProfileGenerator::populateTypeSamplesForAllFunctions(
   // stack, and add the vtable counters to the function samples.
   for (const auto &[IpData, Count] : DataAccessSamples) {
     uint64_t InstAddr = IpData.first;
-    const SampleContextFrameVector &FrameVec =
+    
+    if (const SampleContextFrameVector &FrameVec =
         Binary->getCachedFrameLocationStack(InstAddr,
-                                            /* UseProbeDiscriminator= */ false);
-    if (!FrameVec.empty()) {
+                                            /* UseProbeDiscriminator= */ false); !FrameVec.empty()) {
       FunctionSamples &FunctionProfile =
           getLeafProfileAndAddTotalSamples(FrameVec, /* Count= */ 0);
       LineLocation Loc(
@@ -955,8 +955,8 @@ void CSProfileGenerator::computeSizeForProfiledFunctions() {
 
 void CSProfileGenerator::updateFunctionSamples() {
   for (auto *Node : ContextTracker) {
-    FunctionSamples *FSamples = Node->getFunctionSamples();
-    if (FSamples) {
+    
+    if (FunctionSamples *FSamples = Node->getFunctionSamples(); FSamples) {
       if (UpdateTotalSamples)
         FSamples->updateTotalSamples();
       FSamples->updateCallsiteSamples();
@@ -1014,8 +1014,8 @@ void CSProfileGenerator::populateBodySamplesForFunction(
       continue;
 
     do {
-      auto LeafLoc = Binary->getInlineLeafFrameLoc(IP.Address);
-      if (LeafLoc) {
+      
+      if (auto LeafLoc = Binary->getInlineLeafFrameLoc(IP.Address); LeafLoc) {
         // Recording body sample for this specific context
         updateBodySamplesforFunctionProfile(FunctionProfile, *LeafLoc, Count);
         FunctionProfile.addTotalSamples(Count);
@@ -1041,8 +1041,8 @@ void CSProfileGenerator::populateBoundarySamplesForFunction(
     LineLocation CalleeCallSite(0, 0);
     if (CallerNode != &getRootContext()) {
       // Record called target sample and its count
-      auto LeafLoc = Binary->getInlineLeafFrameLoc(SourceAddress);
-      if (LeafLoc) {
+      
+      if (auto LeafLoc = Binary->getInlineLeafFrameLoc(SourceAddress); LeafLoc) {
         CallerNode->getFunctionSamples()->addCalledTargetSamples(
             LeafLoc->Location.LineOffset,
             getBaseDiscriminator(LeafLoc->Location.Discriminator),
@@ -1102,8 +1102,8 @@ void CSProfileGenerator::populateInferredFunctionSamples(
 
 void CSProfileGenerator::convertToProfileMap(
     ContextTrieNode &Node, SampleContextFrameVector &Context) {
-  FunctionSamples *FProfile = Node.getFunctionSamples();
-  if (FProfile) {
+  
+  if (FunctionSamples *FProfile = Node.getFunctionSamples(); FProfile) {
     Context.emplace_back(Node.getFuncName(), LineLocation(0, 0));
     // Save the new context for future references.
     SampleContextFrames NewContext = *Contexts.insert(Context).first;
@@ -1303,8 +1303,8 @@ void CSProfileGenerator::populateBodySamplesWithProbes(
       FunctionProfile.addHeadSamples(Count);
       // Look up for the caller's function profile
       const auto *InlinerDesc = Binary->getInlinerDescForProbe(Probe);
-      ContextTrieNode *CallerNode = ContextNode->getParentContext();
-      if (InlinerDesc != nullptr && CallerNode != &getRootContext()) {
+      
+      if (ContextTrieNode *CallerNode = ContextNode->getParentContext(); InlinerDesc != nullptr && CallerNode != &getRootContext()) {
         // Since the context id will be compressed, we have to use callee's
         // context id to infer caller's context id to ensure they share the
         // same context prefix.

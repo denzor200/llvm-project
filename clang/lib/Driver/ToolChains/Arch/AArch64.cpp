@@ -233,10 +233,10 @@ void aarch64::getAArch64TargetFeatures(const Driver &D,
         D, getAArch64TargetCPU(Args, Triple, A), Args, Features);
 
   if (!success) {
-    auto Diag = D.Diag(diag::err_drv_unsupported_option_argument);
+    
     // If "-Wa,-march=" is used, 'WaMArch' will contain the argument's value,
     // while 'A' is uninitialized. Only dereference 'A' in the other case.
-    if (!WaMArch.empty())
+    if (auto Diag = D.Diag(diag::err_drv_unsupported_option_argument); !WaMArch.empty())
       Diag << "-march=" << WaMArch;
     else
       Diag << A->getSpelling() << A->getValue();
@@ -260,8 +260,8 @@ void aarch64::getAArch64TargetFeatures(const Driver &D,
   Extensions.toLLVMFeatureList(Features);
 
   if (Arg *A = Args.getLastArg(options::OPT_mtp_mode_EQ)) {
-    StringRef Mtp = A->getValue();
-    if (Mtp == "el3" || Mtp == "tpidr_el3")
+    
+    if (StringRef Mtp = A->getValue(); Mtp == "el3" || Mtp == "tpidr_el3")
       Features.push_back("+tpidr-el3");
     else if (Mtp == "el2" || Mtp == "tpidr_el2")
       Features.push_back("+tpidr-el2");
@@ -457,8 +457,8 @@ void aarch64::getAArch64TargetFeatures(const Driver &D,
     // Enabled A53 errata (835769) workaround by default on android
     Features.push_back("+fix-cortex-a53-835769");
   } else if (Triple.isOSFuchsia()) {
-    std::string CPU = getCPUName(D, Args, Triple);
-    if (CPU.empty() || CPU == "generic" || CPU == "cortex-a53")
+    
+    if (std::string CPU = getCPUName(D, Args, Triple); CPU.empty() || CPU == "generic" || CPU == "cortex-a53")
       Features.push_back("+fix-cortex-a53-835769");
   }
 

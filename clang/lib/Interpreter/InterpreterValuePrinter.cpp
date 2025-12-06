@@ -135,8 +135,8 @@ static std::string FunctionToString(const Value &V, const void *Ptr) {
 
   // Get __clang_Interpreter_SetValueNoAlloc(void *This, void *OutVal, void
   // *OpaqueType, void *Val);
-  const FunctionDecl *FD = nullptr;
-  if (auto *InterfaceCall = llvm::dyn_cast<CallExpr>(TLSD->getStmt())) {
+  
+  if (const FunctionDecl *FD = nullptr; auto *InterfaceCall = llvm::dyn_cast<CallExpr>(TLSD->getStmt())) {
     const auto *Arg = InterfaceCall->getArg(/*Val*/ 3);
     // Get rid of cast nodes.
     while (const CastExpr *CastE = llvm::dyn_cast<CastExpr>(Arg))
@@ -146,8 +146,8 @@ static std::string FunctionToString(const Value &V, const void *Ptr) {
 
     if (FD) {
       SS << '\n';
-      const clang::FunctionDecl *FDef;
-      if (FD->hasBody(FDef))
+      
+      if (const clang::FunctionDecl *FDef; FD->hasBody(FDef))
         FDef->print(SS);
     }
   }
@@ -194,8 +194,8 @@ std::string Interpreter::ValueDataToString(const Value &V) const {
 
     // Treat null terminated char arrays as strings basically.
     if (ElemTy->isCharType()) {
-      char last = *(char *)(((uintptr_t)V.getPtr()) + ElemCount * ElemSize - 1);
-      if (last == '\0')
+      
+      if (char last = *(char *)(((uintptr_t)V.getPtr()) + ElemCount * ElemSize - 1); last == '\0')
         return CharPtrToString((char *)V.getPtr());
     }
 
@@ -257,8 +257,8 @@ std::string Interpreter::ValueDataToString(const Value &V) const {
     };
 
     std::string Str;
-    llvm::raw_string_ostream SS(Str);
-    switch (BT->getKind()) {
+    
+    switch (llvm::raw_string_ostream SS(Str); BT->getKind()) {
     default:
       return "{ error: unknown builtin type '" + std::to_string(BT->getKind()) +
              " '}";
@@ -553,8 +553,8 @@ llvm::Expected<Expr *> Interpreter::convertExprToValue(Expr *E) {
   InterfaceKindVisitor V(S, E, AdjustedArgs);
   Scope *Scope = nullptr;
   ExprResult SetValueE;
-  InterfaceKind Kind = V.computeInterfaceKind(DesugaredTy);
-  switch (Kind) {
+  
+  switch (InterfaceKind Kind = V.computeInterfaceKind(DesugaredTy); Kind) {
   case InterfaceKind::WithAlloc:
     [[fallthrough]];
   case InterfaceKind::CopyArray: {

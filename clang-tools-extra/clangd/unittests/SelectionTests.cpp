@@ -26,8 +26,8 @@ using ::testing::UnorderedElementsAreArray;
 // This uses the precisely-defined createRight semantics. The fuzzier
 // createEach is tested separately.
 SelectionTree makeSelectionTree(const StringRef MarkedCode, ParsedAST &AST) {
-  Annotations Test(MarkedCode);
-  switch (Test.points().size()) {
+  
+  switch (Annotations Test(MarkedCode); Test.points().size()) {
   case 1: { // Point selection.
     unsigned Offset = cantFail(positionToOffset(Test.code(), Test.point()));
     return SelectionTree::createRight(AST.getASTContext(), AST.getTokens(),

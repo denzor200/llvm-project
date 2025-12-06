@@ -398,8 +398,8 @@ static void loadDylibs() {
   for (const std::string &Dylib : Dylibs) {
     if (!sys::fs::is_regular_file(Dylib))
       report_fatal_error(Twine("Dylib not found: '") + Dylib + "'.");
-    std::string ErrMsg;
-    if (sys::DynamicLibrary::LoadLibraryPermanently(Dylib.c_str(), &ErrMsg))
+    
+    if (std::string ErrMsg; sys::DynamicLibrary::LoadLibraryPermanently(Dylib.c_str(), &ErrMsg))
       report_fatal_error(Twine("Error loading '") + Dylib + "': " + ErrMsg);
   }
 }
@@ -599,11 +599,11 @@ static int executeInput() {
   // Invalidate the instruction cache for each loaded function.
   for (auto &FM : MemMgr.FunctionMemory) {
 
-    auto &FM_MB = FM.MB;
+    
 
     // Make sure the memory is executable.
     // setExecutable will call InvalidateInstructionCache.
-    if (auto EC = sys::Memory::protectMappedMemory(FM_MB,
+    if (auto &FM_MB = FM.MB; auto EC = sys::Memory::protectMappedMemory(FM_MB,
                                                    sys::Memory::MF_READ |
                                                    sys::Memory::MF_EXEC))
       ErrorAndExit("unable to mark function executable: '" + EC.message() +
@@ -712,9 +712,9 @@ static void remapSectionsAndSymbols(const llvm::Triple &TargetTriple,
     WorklistT::iterator Tmp = I;
     ++I;
 
-    auto LoadAddr = Dyld.getSectionLoadAddress((*Tmp)->SectionID);
+    
 
-    if (LoadAddr != static_cast<uint64_t>(
+    if (auto LoadAddr = Dyld.getSectionLoadAddress((*Tmp)->SectionID); LoadAddr != static_cast<uint64_t>(
           reinterpret_cast<uintptr_t>((*Tmp)->MB.base()))) {
       // A section will have a LoadAddr of 0 if it wasn't loaded for whatever
       // reason (e.g. zero byte COFF sections). Don't include those sections in
@@ -886,8 +886,8 @@ static int linkAndVerify() {
     // Now find the symbol content if possible (otherwise leave content as a
     // default-constructed StringRef).
     if (auto *SymAddr = Dyld.getSymbolLocalAddress(Symbol)) {
-      unsigned SectionID = Dyld.getSymbolSectionID(Symbol);
-      if (SectionID != ~0U) {
+      
+      if (unsigned SectionID = Dyld.getSymbolSectionID(Symbol); SectionID != ~0U) {
         char *CSymAddr = static_cast<char *>(SymAddr);
         StringRef SecContent = Dyld.getSectionContent(SectionID);
         uint64_t SymSize = SecContent.size() - (CSymAddr - SecContent.data());

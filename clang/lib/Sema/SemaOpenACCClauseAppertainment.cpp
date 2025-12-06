@@ -166,8 +166,8 @@ bool SemaOpenACC::DiagnoseAllowedOnceClauses(
 
   OpenACCClauseKind Dealiased = dealiasClauseKind(CK);
 
-  const LLVMClauseLists &Lists = getListsForDirective(DK);
-  if (!Lists.AllowedOnce.isSet(CK))
+  
+  if (const LLVMClauseLists &Lists = getListsForDirective(DK); !Lists.AllowedOnce.isSet(CK))
     return false;
 
   auto Res = llvm::find_if(Clauses, [=](const OpenACCClause *C) {
@@ -191,10 +191,10 @@ bool SemaOpenACC::DiagnoseExclusiveClauses(
     return false;
 
   const LLVMClauseLists &Lists = getListsForDirective(DK);
-  OpenACCClauseKind Dealiased = dealiasClauseKind(CK);
+  
 
   // If this isn't on the list, this is fine.
-  if (!Lists.AllowedExclusive.isSet(Dealiased))
+  if (OpenACCClauseKind Dealiased = dealiasClauseKind(CK); !Lists.AllowedExclusive.isSet(Dealiased))
     return false;
 
   for (const OpenACCClause *C : Clauses) {
@@ -218,9 +218,9 @@ bool SemaOpenACC::DiagnoseAllowedClauses(OpenACCDirectiveKind DK,
   if (DK == OpenACCDirectiveKind::Invalid || CK == OpenACCClauseKind::Invalid)
     return false;
   const LLVMClauseLists &Lists = getListsForDirective(DK);
-  OpenACCClauseKind Dealiased = dealiasClauseKind(CK);
+  
 
-  if (!Lists.Allowed.isSet(Dealiased) && !Lists.AllowedOnce.isSet(Dealiased) &&
+  if (OpenACCClauseKind Dealiased = dealiasClauseKind(CK); !Lists.Allowed.isSet(Dealiased) && !Lists.AllowedOnce.isSet(Dealiased) &&
       !Lists.AllowedExclusive.isSet(Dealiased) &&
       !Lists.Required.isSet(Dealiased))
     return Diag(ClauseLoc, diag::err_acc_clause_appertainment) << DK << CK;

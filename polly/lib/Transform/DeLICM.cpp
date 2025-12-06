@@ -576,9 +576,9 @@ private:
       for (auto User : Inst->users()) {
         if (!isa<Instruction>(User))
           return false;
-        auto UserInst = cast<Instruction>(User);
+        
 
-        if (!S->contains(UserInst)) {
+        if (auto UserInst = cast<Instruction>(User); !S->contains(UserInst)) {
           POLLY_DEBUG(dbgs() << "    Reject because value is escaping\n");
           return false;
         }
@@ -1052,8 +1052,8 @@ private:
       }
     };
 
-    auto *WrittenVal = TargetStoreMA->getAccessInstruction()->getOperand(0);
-    if (auto *WrittenValInputMA = TargetStmt->lookupInputAccessOf(WrittenVal))
+    
+    if (auto *WrittenVal = TargetStoreMA->getAccessInstruction()->getOperand(0); auto *WrittenValInputMA = TargetStmt->lookupInputAccessOf(WrittenVal))
       Worklist.push_back(WrittenValInputMA);
     else
       ProcessAllIncoming(TargetStmt);

@@ -135,11 +135,11 @@ static std::optional<StringRef> findFramework(StringRef name) {
     if (!suffix.empty()) {
       // NOTE: we must resolve the symlink before trying the suffixes, because
       // there are no symlinks for the suffixed paths.
-      SmallString<260> location;
-      if (!fs::real_path(symlink, location)) {
+      
+      if (SmallString<260> location; !fs::real_path(symlink, location)) {
         // only append suffix if realpath() succeeds
-        Twine suffixed = location + suffix;
-        if (fs::exists(suffixed))
+        
+        if (Twine suffixed = location + suffix; fs::exists(suffixed))
           return resolvedFrameworks[key] = saver().save(suffixed.str());
       }
       // Suffix lookup failed, fall through to the no-suffix case.
@@ -678,8 +678,8 @@ void macho::parseLCLinkerOption(
     if (config->ignoreAutoLinkOptions.contains(arg))
       return;
   } else if (arg == "-framework") {
-    StringRef name = argv[++i];
-    if (config->ignoreAutoLinkOptions.contains(name))
+    
+    if (StringRef name = argv[++i]; config->ignoreAutoLinkOptions.contains(name))
       return;
   } else {
     error(arg + " is not allowed in LC_LINKER_OPTION");
@@ -694,8 +694,8 @@ void macho::resolveLCLinkerOptions() {
     unprocessedLCLinkerOptions.clear();
 
     for (unsigned i = 0; i < LCLinkerOptions.size(); ++i) {
-      StringRef arg = LCLinkerOptions[i];
-      if (arg.consume_front("-l")) {
+      
+      if (StringRef arg = LCLinkerOptions[i]; arg.consume_front("-l")) {
         assert(!config->ignoreAutoLinkOptions.contains(arg));
         addLibrary(arg, /*isNeeded=*/false, /*isWeak=*/false,
                    /*isReexport=*/false, /*isHidden=*/false,
@@ -730,8 +730,8 @@ static void addFileList(StringRef path, bool isLazy,
 static bool markReexport(StringRef searchName, ArrayRef<StringRef> extensions) {
   for (InputFile *file : inputFiles) {
     if (auto *dylibFile = dyn_cast<DylibFile>(file)) {
-      StringRef filename = path::filename(dylibFile->getName());
-      if (filename.consume_front(searchName) &&
+      
+      if (StringRef filename = path::filename(dylibFile->getName()); filename.consume_front(searchName) &&
           (filename.empty() || llvm::is_contained(extensions, filename))) {
         dylibFile->reexport = true;
         return true;
@@ -947,8 +947,8 @@ static TargetInfo *createTargetInfo(InputArgList &args) {
   }
 
   setPlatformVersions(archName, args);
-  auto [cpuType, cpuSubtype] = getCPUTypeFromArchitecture(config->arch());
-  switch (cpuType) {
+  
+  switch (auto [cpuType, cpuSubtype] = getCPUTypeFromArchitecture(config->arch()); cpuType) {
   case CPU_TYPE_X86_64:
     return createX86_64TargetInfo();
   case CPU_TYPE_ARM64:
@@ -1455,9 +1455,9 @@ static void createFiles(const InputArgList &args) {
     DeferredFiles archiveContents;
     std::vector<ArchiveFile *> archives;
     for (auto &file : deferredFiles) {
-      auto inputFile = processFile(file.buffer, &archiveContents, file.path,
-                                   LoadType::CommandLine, file.isLazy);
-      if (ArchiveFile *archive = dyn_cast<ArchiveFile>(inputFile))
+      
+      if (auto inputFile = processFile(file.buffer, &archiveContents, file.path,
+                                   LoadType::CommandLine, file.isLazy); ArchiveFile *archive = dyn_cast<ArchiveFile>(inputFile))
         archives.push_back(archive);
     }
 
@@ -1577,10 +1577,10 @@ static void addSynthenticMethnames() {
 }
 
 static void referenceStubBinder() {
-  bool needsStubHelper = config->outputType == MH_DYLIB ||
+  
+  if (bool needsStubHelper = config->outputType == MH_DYLIB ||
                          config->outputType == MH_EXECUTE ||
-                         config->outputType == MH_BUNDLE;
-  if (!needsStubHelper || !symtab->find("dyld_stub_binder"))
+                         config->outputType == MH_BUNDLE; !needsStubHelper || !symtab->find("dyld_stub_binder"))
     return;
 
   // dyld_stub_binder is used by dyld to resolve lazy bindings. This code here
@@ -1636,8 +1636,8 @@ static void createAliases() {
 }
 
 static void handleExplicitExports() {
-  static constexpr int kMaxWarnings = 3;
-  if (config->hasExplicitExports) {
+  
+  if (static constexpr int kMaxWarnings = 3; config->hasExplicitExports) {
     std::atomic<uint64_t> warningsCount{0};
     parallelForEach(symtab->getSymbols(), [&warningsCount](Symbol *sym) {
       if (auto *defined = dyn_cast<Defined>(sym)) {
@@ -1687,8 +1687,8 @@ static SmallVector<StringRef, 0> getRuntimePaths(opt::InputArgList &args) {
   SmallVector<StringRef, 0> vals;
   DenseSet<StringRef> seen;
   for (const Arg *arg : args.filtered(OPT_rpath)) {
-    StringRef val = arg->getValue();
-    if (seen.insert(val).second)
+    
+    if (StringRef val = arg->getValue(); seen.insert(val).second)
       vals.push_back(val);
     else if (config->warnDuplicateRpath)
       warn("duplicate -rpath '" + val + "' ignored [--warn-duplicate-rpath]");
@@ -1700,8 +1700,8 @@ static SmallVector<StringRef, 0> getAllowableClients(opt::InputArgList &args) {
   SmallVector<StringRef, 0> vals;
   DenseSet<StringRef> seen;
   for (const Arg *arg : args.filtered(OPT_allowable_client)) {
-    StringRef val = arg->getValue();
-    if (seen.insert(val).second)
+    
+    if (StringRef val = arg->getValue(); seen.insert(val).second)
       vals.push_back(val);
   }
   return vals;
@@ -1844,9 +1844,9 @@ bool link(ArrayRef<const char *> argsArr, llvm::raw_ostream &stdoutOS,
   if (const char *path = getReproduceOption(args)) {
     // Note that --reproduce is a debug option so you can ignore it
     // if you are trying to understand the whole picture of the code.
-    Expected<std::unique_ptr<TarWriter>> errOrWriter =
-        TarWriter::create(path, path::stem(path));
-    if (errOrWriter) {
+    
+    if (Expected<std::unique_ptr<TarWriter>> errOrWriter =
+        TarWriter::create(path, path::stem(path)); errOrWriter) {
       tar = std::move(*errOrWriter);
       tar->append("response.txt", createResponseFile(args));
       tar->append("version.txt", getLLDVersion() + "\n");
@@ -2175,10 +2175,10 @@ bool link(ArrayRef<const char *> argsArr, llvm::raw_ostream &stdoutOS,
     uint32_t initProt = parseProtection(arg->getValue(2));
 
     // FIXME: Check if this works on more platforms.
-    bool allowsDifferentInitAndMaxProt =
+    
+    if (bool allowsDifferentInitAndMaxProt =
         config->platform() == PLATFORM_MACOS ||
-        config->platform() == PLATFORM_MACCATALYST;
-    if (allowsDifferentInitAndMaxProt) {
+        config->platform() == PLATFORM_MACCATALYST; allowsDifferentInitAndMaxProt) {
       if (initProt > maxProt)
         error("invalid argument '" + arg->getAsString(args) +
               "': init must not be more permissive than max");
@@ -2302,8 +2302,8 @@ bool link(ArrayRef<const char *> argsArr, llvm::raw_ostream &stdoutOS,
       auto reexportHandler = [](const Arg *arg,
                                 const std::vector<StringRef> &extensions) {
         config->hasReexports = true;
-        StringRef searchName = arg->getValue();
-        if (!markReexport(searchName, extensions))
+        
+        if (StringRef searchName = arg->getValue(); !markReexport(searchName, extensions))
           error(arg->getSpelling() + " " + searchName +
                 " does not match a supplied dylib");
       };
@@ -2371,8 +2371,8 @@ bool link(ArrayRef<const char *> argsArr, llvm::raw_ostream &stdoutOS,
       StringRef segName = arg->getValue(0);
       StringRef sectName = arg->getValue(1);
       StringRef fileName = arg->getValue(2);
-      std::optional<MemoryBufferRef> buffer = readFile(fileName);
-      if (buffer)
+      
+      if (std::optional<MemoryBufferRef> buffer = readFile(fileName); buffer)
         inputFiles.insert(make<OpaqueFile>(*buffer, segName, sectName));
     }
 

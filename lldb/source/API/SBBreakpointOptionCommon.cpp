@@ -55,17 +55,17 @@ bool SBBreakpointCallbackBaton::PrivateBreakpointHitCallback(
       exe_ctx.GetTargetRef().GetBreakpointList().FindBreakpointByID(break_id));
   if (baton && bp_sp) {
     CallbackData *data = (CallbackData *)baton;
-    lldb_private::Breakpoint *bp = bp_sp.get();
-    if (bp && data->callback) {
-      Process *process = exe_ctx.GetProcessPtr();
-      if (process) {
+    
+    if (lldb_private::Breakpoint *bp = bp_sp.get(); bp && data->callback) {
+      
+      if (Process *process = exe_ctx.GetProcessPtr(); process) {
         SBProcess sb_process(process->shared_from_this());
         SBThread sb_thread;
         SBBreakpointLocation sb_location;
         assert(bp_sp);
         sb_location.SetLocation(bp_sp->FindLocationByID(break_loc_id));
-        Thread *thread = exe_ctx.GetThreadPtr();
-        if (thread)
+        
+        if (Thread *thread = exe_ctx.GetThreadPtr(); thread)
           sb_thread.SetThread(thread->shared_from_this());
 
         return data->callback(data->callback_baton, sb_process, sb_thread,

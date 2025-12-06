@@ -358,9 +358,9 @@ class SparseCoIterateOpConverter : public OpConversionPattern<CoIterateOp> {
       assert(caseBits.count() > 0 && "Complement space not implemented");
 
       // Retrives a vector of pointers to the iterators used in the case.
-      SmallVector<SparseIterator *> validIters = getFilteredIters(caseBits);
+      
 
-      if (validIters.size() > 1) {
+      if (SmallVector<SparseIterator *> validIters = getFilteredIters(caseBits); validIters.size() > 1) {
         auto [loop, loopCrd] =
             genCoIteration(rewriter, loc, validIters, userReduc,
                            /*uniIdx=*/nullptr, /*userReducFirst=*/true);

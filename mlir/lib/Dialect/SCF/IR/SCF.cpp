@@ -164,8 +164,8 @@ ParseResult ExecuteRegionOp::parse(OpAsmParser &parser,
     result.addAttribute("no_inline", parser.getBuilder().getUnitAttr());
 
   // Introduce the body region and parse it.
-  Region *body = result.addRegion();
-  if (parser.parseRegion(*body, /*arguments=*/{}, /*argTypes=*/{}) ||
+  
+  if (Region *body = result.addRegion(); parser.parseRegion(*body, /*arguments=*/{}, /*argTypes=*/{}) ||
       parser.parseOptionalAttrDict(result.attributes))
     return failure();
 
@@ -770,9 +770,9 @@ SmallVector<Region *> ForallOp::getLoopRegions() { return {&getRegion()}; }
 LogicalResult scf::ForallOp::promoteIfSingleIteration(RewriterBase &rewriter) {
   for (auto [lb, ub, step] :
        llvm::zip(getMixedLowerBound(), getMixedUpperBound(), getMixedStep())) {
-    auto tripCount =
-        constantTripCount(lb, ub, step, /*isSigned=*/true, computeUbMinusLb);
-    if (!tripCount.has_value() || *tripCount != 1)
+    
+    if (auto tripCount =
+        constantTripCount(lb, ub, step, /*isSigned=*/true, computeUbMinusLb); !tripCount.has_value() || *tripCount != 1)
       return failure();
   }
 
@@ -1033,9 +1033,9 @@ struct ForOpIterArgsFolder : public OpRewritePattern<scf::ForOp> {
       // 2) The region `iter` argument the corresponding input is yielded.
       // 3) The region `iter` argument has no use, and the corresponding op
       // result has no use.
-      bool forwarded = (arg == yielded) || (init == yielded) ||
-                       (arg.use_empty() && result.use_empty());
-      if (forwarded) {
+      
+      if (bool forwarded = (arg == yielded) || (init == yielded) ||
+                       (arg.use_empty() && result.use_empty()); forwarded) {
         canonicalize = true;
         keepMask.push_back(false);
         newBlockTransferArgs.push_back(init);
@@ -1556,8 +1556,8 @@ SmallVector<DeviceMappingAttrInterface> ForallOp::getDeviceMappingAttrs() {
   if (!getMapping())
     return res;
   for (auto attr : getMapping()->getValue()) {
-    auto m = dyn_cast<DeviceMappingAttrInterface>(attr);
-    if (m)
+    
+    if (auto m = dyn_cast<DeviceMappingAttrInterface>(attr); m)
       res.push_back(m);
   }
   return res;
@@ -1773,8 +1773,8 @@ struct ForallOpIterArgsFolder : public OpRewritePattern<ForallOp> {
     SmallVector<Value> newOuts;
     for (OpResult result : forallOp.getResults()) {
       OpOperand *opOperand = forallOp.getTiedOpOperand(result);
-      BlockArgument blockArg = forallOp.getTiedBlockArgument(opOperand);
-      if (result.use_empty() || forallOp.getCombiningOps(blockArg).empty()) {
+      
+      if (BlockArgument blockArg = forallOp.getTiedBlockArgument(opOperand); result.use_empty() || forallOp.getCombiningOps(blockArg).empty()) {
         resultToDelete.insert(result);
       } else {
         resultToReplace.push_back(result);
@@ -2204,8 +2204,8 @@ void IfOp::build(OpBuilder &builder, OperationState &result,
 
   // Add regions and blocks.
   OpBuilder::InsertionGuard guard(builder);
-  Region *thenRegion = result.addRegion();
-  if (addThenBlock)
+  
+  if (Region *thenRegion = result.addRegion(); addThenBlock)
     builder.createBlock(thenRegion);
   Region *elseRegion = result.addRegion();
   if (addElseBlock)
@@ -2230,8 +2230,8 @@ void IfOp::build(OpBuilder &builder, OperationState &result,
     IfOp::ensureTerminator(*thenRegion, builder, result.location);
 
   // Build else region.
-  Region *elseRegion = result.addRegion();
-  if (withElseRegion) {
+  
+  if (Region *elseRegion = result.addRegion(); withElseRegion) {
     builder.createBlock(elseRegion);
     if (resultTypes.empty())
       IfOp::ensureTerminator(*elseRegion, builder, result.location);
@@ -2251,8 +2251,8 @@ void IfOp::build(OpBuilder &builder, OperationState &result, Value cond,
   thenBuilder(builder, result.location);
 
   // Build else region.
-  Region *elseRegion = result.addRegion();
-  if (elseBuilder) {
+  
+  if (Region *elseRegion = result.addRegion(); elseBuilder) {
     builder.createBlock(elseRegion);
     elseBuilder(builder, result.location);
   }
@@ -2322,8 +2322,8 @@ void IfOp::print(OpAsmPrinter &p) {
                 /*printBlockTerminators=*/printBlockTerminators);
 
   // Print the 'else' regions if it exists and has a block.
-  auto &elseRegion = getElseRegion();
-  if (!elseRegion.empty()) {
+  
+  if (auto &elseRegion = getElseRegion(); !elseRegion.empty()) {
     p << " else ";
     p.printRegion(elseRegion,
                   /*printEntryBlockArgs=*/false,
@@ -2345,8 +2345,8 @@ void IfOp::getSuccessorRegions(RegionBranchPoint point,
   regions.push_back(RegionSuccessor(&getThenRegion()));
 
   // Don't consider the else region if it is empty.
-  Region *elseRegion = &this->getElseRegion();
-  if (elseRegion->empty())
+  
+  if (Region *elseRegion = &this->getElseRegion(); elseRegion->empty())
     regions.push_back(
         RegionSuccessor(getOperation(), getOperation()->getResults()));
   else
@@ -2525,8 +2525,8 @@ struct ConvertTrivialIfToSelect : public OpRewritePattern<IfOp> {
     for (const auto &it :
          llvm::enumerate(llvm::zip(thenYieldArgs, elseYieldArgs))) {
       Value trueVal = std::get<0>(it.value());
-      Value falseVal = std::get<1>(it.value());
-      if (&replacement.getThenRegion() == trueVal.getParentRegion() ||
+      
+      if (Value falseVal = std::get<1>(it.value()); &replacement.getThenRegion() == trueVal.getParentRegion() ||
           &replacement.getElseRegion() == falseVal.getParentRegion()) {
         results[it.index()] = replacement.getResult(trueYields.size());
         trueYields.push_back(trueVal);
@@ -2772,8 +2772,8 @@ struct CombineIfs : public OpRewritePattern<IfOp> {
 
   LogicalResult matchAndRewrite(IfOp nextIf,
                                 PatternRewriter &rewriter) const override {
-    Block *parent = nextIf->getBlock();
-    if (nextIf == &parent->front())
+    
+    if (Block *parent = nextIf->getBlock(); nextIf == &parent->front())
       return failure();
 
     auto prevIf = dyn_cast<IfOp>(nextIf->getPrevNode());
@@ -2907,8 +2907,8 @@ struct RemoveEmptyElseBranch : public OpRewritePattern<IfOp> {
     // Cannot remove else region when there are operation results.
     if (ifOp.getNumResults())
       return failure();
-    Block *elseBlock = ifOp.elseBlock();
-    if (!elseBlock || !llvm::hasSingleElement(*elseBlock))
+    
+    if (Block *elseBlock = ifOp.elseBlock(); !elseBlock || !llvm::hasSingleElement(*elseBlock))
       return failure();
     auto newIfOp = rewriter.cloneWithoutRegions(ifOp);
     rewriter.inlineRegionBefore(ifOp.getThenRegion(), newIfOp.getThenRegion(),
@@ -3073,9 +3073,9 @@ void ParallelOp::build(
   SmallVector<Type, 8> argTypes(numIVs, builder.getIndexType());
   SmallVector<Location, 8> argLocs(numIVs, result.location);
   Region *bodyRegion = result.addRegion();
-  Block *bodyBlock = builder.createBlock(bodyRegion, {}, argTypes, argLocs);
+  
 
-  if (bodyBuilderFn) {
+  if (Block *bodyBlock = builder.createBlock(bodyRegion, {}, argTypes, argLocs); bodyBuilderFn) {
     builder.setInsertionPointToStart(bodyBlock);
     bodyBuilderFn(builder, result.location,
                   bodyBlock->getArguments().take_front(numIVs),
@@ -3155,8 +3155,8 @@ LogicalResult ParallelOp::verify() {
   // Check that the types of the results and reductions are the same.
   for (int64_t i = 0; i < static_cast<int64_t>(reductionsSize); ++i) {
     auto resultType = getOperation()->getResult(i).getType();
-    auto reductionOperandType = reduceOp.getOperands()[i].getType();
-    if (resultType != reductionOperandType)
+    
+    if (auto reductionOperandType = reduceOp.getOperands()[i].getType(); resultType != reductionOperandType)
       return reduceOp.emitOpError()
              << "expects type of " << i
              << "-th reduction operand: " << reductionOperandType
@@ -3520,9 +3520,9 @@ void WhileOp::build(::mlir::OpBuilder &odsBuilder,
   }
 
   Region *beforeRegion = odsState.addRegion();
-  Block *beforeBlock = odsBuilder.createBlock(beforeRegion, /*insertPt=*/{},
-                                              inits.getTypes(), beforeArgLocs);
-  if (beforeBuilder)
+  
+  if (Block *beforeBlock = odsBuilder.createBlock(beforeRegion, /*insertPt=*/{},
+                                              inits.getTypes(), beforeArgLocs); beforeBuilder)
     beforeBuilder(odsBuilder, odsState.location, beforeBlock->getArguments());
 
   // Build after region.
@@ -3816,8 +3816,8 @@ struct RemoveLoopInvariantArgsFromBeforeBlock
       // invariant.
       auto yieldOpBlockArg = llvm::dyn_cast<BlockArgument>(yieldOpArg);
       if (yieldOpBlockArg && yieldOpBlockArg.getOwner() == &afterBlock) {
-        Value condOpArg = condOpArgs[yieldOpBlockArg.getArgNumber()];
-        if (condOpArg == beforeBlockArgs[index] || condOpArg == initVal) {
+        
+        if (Value condOpArg = condOpArgs[yieldOpBlockArg.getArgNumber()]; condOpArg == beforeBlockArgs[index] || condOpArg == initVal) {
           canSimplify = true;
           break;
         }
@@ -3846,10 +3846,10 @@ struct RemoveLoopInvariantArgsFromBeforeBlock
         // before block argument or the initial value of i-th before block
         // argument. If the comparison results `true`, i-th before block
         // argument is a loop invariant.
-        auto yieldOpBlockArg = llvm::dyn_cast<BlockArgument>(yieldOpArg);
-        if (yieldOpBlockArg && yieldOpBlockArg.getOwner() == &afterBlock) {
-          Value condOpArg = condOpArgs[yieldOpBlockArg.getArgNumber()];
-          if (condOpArg == beforeBlockArgs[index] || condOpArg == initVal) {
+        
+        if (auto yieldOpBlockArg = llvm::dyn_cast<BlockArgument>(yieldOpArg); yieldOpBlockArg && yieldOpBlockArg.getOwner() == &afterBlock) {
+          
+          if (Value condOpArg = condOpArgs[yieldOpBlockArg.getArgNumber()]; condOpArg == beforeBlockArgs[index] || condOpArg == initVal) {
             beforeBlockInitValMap.insert({index, initVal});
             continue;
           }
@@ -3969,11 +3969,11 @@ struct RemoveLoopInvariantValueYielded : public OpRewritePattern<WhileOp> {
     SmallVector<Location> newAfterBlockArgLocs;
     for (const auto &it : llvm::enumerate(condOpArgs)) {
       auto index = static_cast<unsigned>(it.index());
-      Value condOpArg = it.value();
+      
       // Those values not defined within `before` block will be considered as
       // loop invariant values. We map the corresponding `index` with their
       // value.
-      if (condOpArg.getParentBlock() != &beforeBlock) {
+      if (Value condOpArg = it.value(); condOpArg.getParentBlock() != &beforeBlock) {
         condOpInitValMap.insert({index, condOpArg});
       } else {
         newCondOpArgs.emplace_back(condOpArg);
@@ -4074,8 +4074,8 @@ struct WhileUnusedResult : public OpRewritePattern<WhileOp> {
       auto i = static_cast<unsigned>(it.index());
       Value result = std::get<0>(it.value());
       Value afterArg = std::get<1>(it.value());
-      Value termArg = std::get<2>(it.value());
-      if (result.use_empty() && afterArg.use_empty()) {
+      
+      if (Value termArg = std::get<2>(it.value()); result.use_empty() && afterArg.use_empty()) {
         needUpdate = true;
       } else {
         newResultsIndices.emplace_back(i);

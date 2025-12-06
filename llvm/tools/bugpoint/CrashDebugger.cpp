@@ -244,8 +244,8 @@ static void RemoveFunctionReferences(Module *M, const char *Name) {
   auto *OldUsedVal = cast<ConstantArray>(UsedVar->getInitializer());
   std::vector<Constant *> Used;
   for (Value *V : OldUsedVal->operand_values()) {
-    Constant *Op = cast<Constant>(V->stripPointerCasts());
-    if (!Op->isNullValue()) {
+    
+    if (Constant *Op = cast<Constant>(V->stripPointerCasts()); !Op->isNullValue()) {
       Used.push_back(cast<Constant>(V));
     }
   }
@@ -543,8 +543,8 @@ bool ReduceCrashingBlocks::TestBlocks(std::vector<const BasicBlock *> &BBs) {
     const ValueSymbolTable &GST = BD.getProgram().getValueSymbolTable();
     for (const auto &BI : BlockInfo) {
       Function *F = cast<Function>(GST.lookup(BI.first));
-      Value *V = F->getValueSymbolTable()->lookup(BI.second);
-      if (V && V->getType() == Type::getLabelTy(V->getContext()))
+      
+      if (Value *V = F->getValueSymbolTable()->lookup(BI.second); V && V->getType() == Type::getLabelTy(V->getContext()))
         BBs.push_back(cast<BasicBlock>(V));
     }
     return true;
@@ -644,8 +644,8 @@ bool ReduceCrashingConditionals::TestBlocks(
     const ValueSymbolTable &GST = BD.getProgram().getValueSymbolTable();
     for (auto &BI : BlockInfo) {
       auto *F = cast<Function>(GST.lookup(BI.first));
-      Value *V = F->getValueSymbolTable()->lookup(BI.second);
-      if (V && V->getType() == Type::getLabelTy(V->getContext()))
+      
+      if (Value *V = F->getValueSymbolTable()->lookup(BI.second); V && V->getType() == Type::getLabelTy(V->getContext()))
         BBs.push_back(cast<BasicBlock>(V));
     }
     return true;
@@ -730,8 +730,8 @@ bool ReduceSimplifyCFG::TestBlocks(std::vector<const BasicBlock *> &BBs) {
     const ValueSymbolTable &GST = BD.getProgram().getValueSymbolTable();
     for (auto &BI : BlockInfo) {
       auto *F = cast<Function>(GST.lookup(BI.first));
-      Value *V = F->getValueSymbolTable()->lookup(BI.second);
-      if (V && V->getType() == Type::getLabelTy(V->getContext()))
+      
+      if (Value *V = F->getValueSymbolTable()->lookup(BI.second); V && V->getType() == Type::getLabelTy(V->getContext()))
         BBs.push_back(cast<BasicBlock>(V));
     }
     return true;
@@ -1080,9 +1080,9 @@ static Error ReduceInsts(BugDriver &BD, BugTester TestFn) {
           if (!I.isTerminator())
             Insts.push_back(&I);
 
-    Expected<bool> Result =
-        ReduceCrashingInstructions(BD, TestFn).reduceList(Insts);
-    if (Error E = Result.takeError())
+    
+    if (Expected<bool> Result =
+        ReduceCrashingInstructions(BD, TestFn).reduceList(Insts); Error E = Result.takeError())
       return E;
   }
 
@@ -1128,11 +1128,11 @@ static Error ReduceInsts(BugDriver &BD, BugTester TestFn) {
                 continue;
 
               outs() << "Checking instruction: " << *I;
-              std::unique_ptr<Module> M =
-                  BD.deleteInstructionFromProgram(&*I, Simplification);
+              
 
               // Find out if the pass still crashes on this pass...
-              if (TestFn(BD, M.get())) {
+              if (std::unique_ptr<Module> M =
+                  BD.deleteInstructionFromProgram(&*I, Simplification); TestFn(BD, M.get())) {
                 // Yup, it does, we delete the old module, and continue trying
                 // to reduce the testcase...
                 BD.setNewProgram(std::move(M));
@@ -1157,9 +1157,9 @@ static Error ReduceInsts(BugDriver &BD, BugTester TestFn) {
       for (Instruction &I : instructions(F))
         Insts.push_back(&I);
 
-    Expected<bool> Result =
-        ReduceCrashingMetadata(BD, TestFn).reduceList(Insts);
-    if (Error E = Result.takeError())
+    
+    if (Expected<bool> Result =
+        ReduceCrashingMetadata(BD, TestFn).reduceList(Insts); Error E = Result.takeError())
       return E;
   }
 
@@ -1310,9 +1310,9 @@ static Error DebugACrash(BugDriver &BD, BugTester TestFn) {
       std::vector<std::string> NamedMDNames;
       for (auto &NamedMD : BD.getProgram().named_metadata())
         NamedMDNames.push_back(NamedMD.getName().str());
-      Expected<bool> Result =
-          ReduceCrashingNamedMD(BD, TestFn).reduceList(NamedMDNames);
-      if (Error E = Result.takeError())
+      
+      if (Expected<bool> Result =
+          ReduceCrashingNamedMD(BD, TestFn).reduceList(NamedMDNames); Error E = Result.takeError())
         return E;
     }
 
@@ -1322,9 +1322,9 @@ static Error DebugACrash(BugDriver &BD, BugTester TestFn) {
       std::vector<const MDNode *> NamedMDOps;
       for (auto &NamedMD : BD.getProgram().named_metadata())
         llvm::append_range(NamedMDOps, NamedMD.operands());
-      Expected<bool> Result =
-          ReduceCrashingNamedMDOps(BD, TestFn).reduceList(NamedMDOps);
-      if (Error E = Result.takeError())
+      
+      if (Expected<bool> Result =
+          ReduceCrashingNamedMDOps(BD, TestFn).reduceList(NamedMDOps); Error E = Result.takeError())
         return E;
     }
     BD.emitProgressBitcode(BD.getProgram(), "reduced-named-md");
@@ -1360,8 +1360,8 @@ Error BugDriver::debugOptimizerCrash(const std::string &ID) {
 
   // Reduce the list of passes which causes the optimizer to crash...
   if (!BugpointIsInterrupted && !DontReducePassList) {
-    Expected<bool> Result = ReducePassList(*this).reduceList(PassesToRun);
-    if (Error E = Result.takeError())
+    
+    if (Expected<bool> Result = ReducePassList(*this).reduceList(PassesToRun); Error E = Result.takeError())
       return E;
   }
 

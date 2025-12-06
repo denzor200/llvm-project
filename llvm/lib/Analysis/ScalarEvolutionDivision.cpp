@@ -114,9 +114,9 @@ void SCEVDivision::visitConstant(const SCEVConstant *Numerator) {
     APInt NumeratorVal = Numerator->getAPInt();
     APInt DenominatorVal = D->getAPInt();
     uint32_t NumeratorBW = NumeratorVal.getBitWidth();
-    uint32_t DenominatorBW = DenominatorVal.getBitWidth();
+    
 
-    if (NumeratorBW > DenominatorBW)
+    if (uint32_t DenominatorBW = DenominatorVal.getBitWidth(); NumeratorBW > DenominatorBW)
       DenominatorVal = DenominatorVal.sext(NumeratorBW);
     else if (NumeratorBW < DenominatorBW)
       NumeratorVal = NumeratorVal.sext(DenominatorBW);

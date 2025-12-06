@@ -70,8 +70,8 @@ cpp::string_view get_error_string(int err_num) {
 }
 
 cpp::string_view get_error_string(int err_num, cpp::span<char> buffer) {
-  auto opt_str = ERROR_MAPPER.get_str(err_num);
-  if (opt_str)
+  
+  if (auto opt_str = ERROR_MAPPER.get_str(err_num); opt_str)
     return *opt_str;
   else
     return build_error_string(err_num, buffer);

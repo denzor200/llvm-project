@@ -347,8 +347,8 @@ ThunkArgInfo AArch64Arm64ECCallLowering::canonicalizeThunkType(
     Type *ElementTy = T->getArrayElementType();
     uint64_t ElementCnt = T->getArrayNumElements();
     uint64_t ElementSizePerBytes = DL.getTypeSizeInBits(ElementTy) / 8;
-    uint64_t TotalSizeBytes = ElementCnt * ElementSizePerBytes;
-    if (ElementTy->isHalfTy() || ElementTy->isFloatTy() ||
+    
+    if (uint64_t TotalSizeBytes = ElementCnt * ElementSizePerBytes; ElementTy->isHalfTy() || ElementTy->isFloatTy() ||
         ElementTy->isDoubleTy()) {
       if (ElementTy->isHalfTy())
         // Prefix with `llvm` since MSVC doesn't specify `_Float16`
@@ -423,8 +423,8 @@ Function *AArch64Arm64ECCallLowering::buildExitThunk(FunctionType *FT,
   // the ABI, so we can omit it. This avoids triggering a verifier assertion.
   if (FT->getNumParams()) {
     auto SRet = Attrs.getParamAttr(0, Attribute::StructRet);
-    auto InReg = Attrs.getParamAttr(0, Attribute::InReg);
-    if (SRet.isValid() && !InReg.isValid())
+    
+    if (auto InReg = Attrs.getParamAttr(0, Attribute::InReg); SRet.isValid() && !InReg.isValid())
       F->addParamAttr(1, SRet);
   }
   // FIXME: Copy anything other than sret?  Shouldn't be necessary for normal
@@ -548,8 +548,8 @@ Function *AArch64Arm64ECCallLowering::buildEntryThunk(Function *F) {
   for (unsigned i = 0; i != PassthroughArgSize; ++i) {
     Value *Arg = Thunk->getArg(i + ThunkArgOffset);
     Type *ArgTy = Arm64Ty->getParamType(i);
-    ThunkArgTranslation ArgTranslation = ArgTranslations[i];
-    if (ArgTranslation != ThunkArgTranslation::Direct) {
+    
+    if (ThunkArgTranslation ArgTranslation = ArgTranslations[i]; ArgTranslation != ThunkArgTranslation::Direct) {
       // Translate array/struct arguments to the expected type.
       if (ArgTranslation == ThunkArgTranslation::Bitcast) {
         Value *CastAlloca = IRB.CreateAlloca(ArgTy);
@@ -831,9 +831,9 @@ bool AArch64Arm64ECCallLowering::runOnModule(Module &Mod) {
 
   for (Function &F : Mod) {
     if (F.hasPersonalityFn()) {
-      GlobalValue *PersFn =
-          cast<GlobalValue>(F.getPersonalityFn()->stripPointerCasts());
-      if (PersFn->getValueType() && PersFn->getValueType()->isFunctionTy()) {
+      
+      if (GlobalValue *PersFn =
+          cast<GlobalValue>(F.getPersonalityFn()->stripPointerCasts()); PersFn->getValueType() && PersFn->getValueType()->isFunctionTy()) {
         if (std::optional<std::string> MangledName =
                 getArm64ECMangledFunctionName(*PersFn)) {
           PersFn->setName(MangledName.value());
@@ -997,8 +997,8 @@ bool AArch64Arm64ECCallLowering::processFunction(
 
       // Use mangled global alias for direct calls to patchable functions.
       if (GlobalAlias *A = dyn_cast<GlobalAlias>(CB->getCalledOperand())) {
-        auto I = FnsMap.find(A);
-        if (I != FnsMap.end()) {
+        
+        if (auto I = FnsMap.find(A); I != FnsMap.end()) {
           CB->setCalledOperand(I->second);
           DirectCalledFns.insert(I->first);
           continue;

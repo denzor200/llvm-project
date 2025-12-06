@@ -443,11 +443,11 @@ void MipsSEFrameLowering::emitPrologue(MachineFunction &MF,
     // directives.
     for (const CalleeSavedInfo &I : CSI) {
       int64_t Offset = MFI.getObjectOffset(I.getFrameIdx());
-      MCRegister Reg = I.getReg();
+      
 
       // If Reg is a double precision register, emit two cfa_offsets,
       // one for each of the paired single precision registers.
-      if (Mips::AFGR64RegClass.contains(Reg)) {
+      if (MCRegister Reg = I.getReg(); Mips::AFGR64RegClass.contains(Reg)) {
         MCRegister Reg0 = RegInfo.getSubReg(Reg, Mips::sub_lo);
         MCRegister Reg1 = RegInfo.getSubReg(Reg, Mips::sub_hi);
 
@@ -658,10 +658,10 @@ void MipsSEFrameLowering::emitEpilogue(MachineFunction &MF,
   unsigned SP = ABI.GetStackPtr();
   unsigned FP = ABI.GetFramePtr();
   unsigned ZERO = ABI.GetNullPtr();
-  unsigned MOVE = ABI.GetGPRMoveOp();
+  
 
   // if framepointer enabled, restore the stack pointer.
-  if (hasFP(MF)) {
+  if (unsigned MOVE = ABI.GetGPRMoveOp(); hasFP(MF)) {
     // Find the first instruction that restores a callee-saved register.
     MachineBasicBlock::iterator I = MBBI;
 

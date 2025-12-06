@@ -122,9 +122,9 @@ void SlicingCheck::check(const MatchFinder::MatchResult &Result) {
       BaseDecl->getASTContext().getASTRecordLayout(BaseDecl);
   const auto &DerivedLayout =
       DerivedDecl->getASTContext().getASTRecordLayout(DerivedDecl);
-  const CharUnits StateSize =
-      DerivedLayout.getDataSize() - BaseLayout.getDataSize();
-  if (StateSize.isPositive()) {
+  
+  if (const CharUnits StateSize =
+      DerivedLayout.getDataSize() - BaseLayout.getDataSize(); StateSize.isPositive()) {
     diag(Call->getExprLoc(), "slicing object from type %0 to %1 discards "
                              "%2 bytes of state")
         << DerivedDecl << BaseDecl << static_cast<int>(StateSize.getQuantity());

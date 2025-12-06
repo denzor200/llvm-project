@@ -204,8 +204,8 @@ void GlobalLayoutBuilder::addFragment(const std::set<uint64_t> &F) {
   uint64_t FragmentIndex = Fragments.size() - 1;
 
   for (auto ObjIndex : F) {
-    uint64_t OldFragmentIndex = FragmentMap[ObjIndex];
-    if (OldFragmentIndex == 0) {
+    
+    if (uint64_t OldFragmentIndex = FragmentMap[ObjIndex]; OldFragmentIndex == 0) {
       // We haven't seen this object index before, so just add it to the current
       // fragment.
       Fragment.push_back(ObjIndex);
@@ -700,11 +700,11 @@ static bool isKnownTypeIdMember(Metadata *TypeId, const DataLayout &DL,
     for (MDNode *Type : Types) {
       if (Type->getOperand(1) != TypeId)
         continue;
-      uint64_t Offset =
+      
+      if (uint64_t Offset =
           cast<ConstantInt>(
               cast<ConstantAsMetadata>(Type->getOperand(0))->getValue())
-              ->getZExtValue();
-      if (COffset == Offset)
+              ->getZExtValue(); COffset == Offset)
         return true;
     }
     return false;
@@ -712,8 +712,8 @@ static bool isKnownTypeIdMember(Metadata *TypeId, const DataLayout &DL,
 
   if (auto GEP = dyn_cast<GEPOperator>(V)) {
     APInt APOffset(DL.getIndexSizeInBits(0), 0);
-    bool Result = GEP->accumulateConstantOffset(DL, APOffset);
-    if (!Result)
+    
+    if (bool Result = GEP->accumulateConstantOffset(DL, APOffset); !Result)
       return false;
     COffset += APOffset.getZExtValue();
     return isKnownTypeIdMember(TypeId, DL, GEP->getPointerOperand(), COffset);
@@ -742,8 +742,8 @@ Value *LowerTypeTestsModule::lowerTypeTestCall(Metadata *TypeId, CallInst *CI,
     return ConstantInt::getFalse(M.getContext());
 
   Value *Ptr = CI->getArgOperand(0);
-  const DataLayout &DL = M.getDataLayout();
-  if (isKnownTypeIdMember(TypeId, DL, Ptr, 0))
+  
+  if (const DataLayout &DL = M.getDataLayout(); isKnownTypeIdMember(TypeId, DL, Ptr, 0))
     return ConstantInt::getTrue(M.getContext());
 
   BasicBlock *InitialBB = CI->getParent();
@@ -934,8 +934,8 @@ uint8_t *LowerTypeTestsModule::exportTypeId(StringRef TypeId,
     ExportConstant("align", TTRes.AlignLog2, TIL.AlignLog2);
     ExportConstant("size_m1", TTRes.SizeM1, TIL.SizeM1);
 
-    uint64_t BitSize = cast<ConstantInt>(TIL.SizeM1)->getZExtValue() + 1;
-    if (TIL.TheKind == TypeTestResolution::Inline)
+    
+    if (uint64_t BitSize = cast<ConstantInt>(TIL.SizeM1)->getZExtValue() + 1; TIL.TheKind == TypeTestResolution::Inline)
       TTRes.SizeM1BitWidth = (BitSize <= 32) ? 5 : 6;
     else
       TTRes.SizeM1BitWidth = (BitSize <= 128) ? 7 : 32;
@@ -1217,16 +1217,16 @@ void LowerTypeTestsModule::lowerTypeTestCalls(
     TypeIdUserInfo &TIUI = TypeIdUsers[TypeId];
 
     if (TIUI.IsExported) {
-      uint8_t *MaskPtr = exportTypeId(cast<MDString>(TypeId)->getString(), TIL);
-      if (BAI)
+      
+      if (uint8_t *MaskPtr = exportTypeId(cast<MDString>(TypeId)->getString(), TIL); BAI)
         BAI->MaskPtr = MaskPtr;
     }
 
     // Lower each call to llvm.type.test for this type identifier.
     for (CallInst *CI : TIUI.CallSites) {
       ++NumTypeTestCallsLowered;
-      Value *Lowered = lowerTypeTestCall(TypeId, CI, TIL);
-      if (Lowered) {
+      
+      if (Value *Lowered = lowerTypeTestCall(TypeId, CI, TIL); Lowered) {
         CI->replaceAllUsesWith(Lowered);
         CI->eraseFromParent();
       }
@@ -1725,10 +1725,10 @@ void LowerTypeTestsModule::buildBitSetsFromFunctionsNative(
     if (!IsJumpTableCanonical) {
       GlobalValue::LinkageTypes LT = IsExported ? GlobalValue::ExternalLinkage
                                                 : GlobalValue::InternalLinkage;
-      GlobalAlias *JtAlias = GlobalAlias::create(JumpTableEntryType, 0, LT,
+      
+      if (GlobalAlias *JtAlias = GlobalAlias::create(JumpTableEntryType, 0, LT,
                                                  F->getName() + ".cfi_jt",
-                                                 CombinedGlobalElemPtr, &M);
-      if (IsExported)
+                                                 CombinedGlobalElemPtr, &M); IsExported)
         JtAlias->setVisibility(GlobalValue::HiddenVisibility);
       else
         appendToUsed(M, {JtAlias});
@@ -1819,8 +1819,8 @@ void LowerTypeTestsModule::buildBitSetsFromDisjointSet(
   for (GlobalTypeMember *GTM : Globals) {
     for (MDNode *Type : GTM->types()) {
       // Type = { offset, type identifier }
-      auto I = TypeIdIndices.find(Type->getOperand(1));
-      if (I != TypeIdIndices.end())
+      
+      if (auto I = TypeIdIndices.find(Type->getOperand(1)); I != TypeIdIndices.end())
         TypeMembers[I->second].insert(GlobalIndex);
     }
     GlobalIndices[GTM] = GlobalIndex;
@@ -1947,10 +1947,10 @@ bool LowerTypeTestsModule::runForTesting(Module &M, ModuleAnalysisManager &AM) {
 }
 
 static bool isDirectCall(Use& U) {
-  auto *Usr = dyn_cast<CallInst>(U.getUser());
-  if (Usr) {
-    auto *CB = dyn_cast<CallBase>(Usr);
-    if (CB && CB->isCallee(&U))
+  
+  if (auto *Usr = dyn_cast<CallInst>(U.getUser()); Usr) {
+    
+    if (auto *CB = dyn_cast<CallBase>(Usr); CB && CB->isCallee(&U))
       return true;
   }
   return false;
@@ -2127,8 +2127,8 @@ bool LowerTypeTestsModule::lower() {
   };
   MapVector<StringRef, ExportedFunctionInfo> ExportedFunctions;
   if (ExportSummary) {
-    NamedMDNode *CfiFunctionsMD = M.getNamedMetadata("cfi.functions");
-    if (CfiFunctionsMD) {
+    
+    if (NamedMDNode *CfiFunctionsMD = M.getNamedMetadata("cfi.functions"); CfiFunctionsMD) {
       // A set of all functions that are address taken by a live global object.
       DenseSet<GlobalValue::GUID> AddressTaken;
       for (auto &I : *ExportSummary)
@@ -2570,8 +2570,8 @@ PreservedAnalyses SimplifyTypeTestsPass::run(Module &M,
       if (!CE || CE->getOpcode() != Instruction::PtrToInt)
         continue;
       for (Use &U : make_early_inc_range(CE->uses())) {
-        auto *CE = dyn_cast<ConstantExpr>(U.getUser());
-        if (U.getOperandNo() == 0 && CE &&
+        
+        if (auto *CE = dyn_cast<ConstantExpr>(U.getUser()); U.getOperandNo() == 0 && CE &&
             CE->getOpcode() == Instruction::Sub &&
             MaySimplifyInt(CE->getOperand(1))) {
           // This is a computation of PtrOffset as generated by

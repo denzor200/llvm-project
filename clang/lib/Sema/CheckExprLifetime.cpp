@@ -273,8 +273,8 @@ static bool isInStlNamespace(const Decl *D) {
     return false;
   if (const auto *ND = dyn_cast<NamespaceDecl>(DC))
     if (const IdentifierInfo *II = ND->getIdentifier()) {
-      StringRef Name = II->getName();
-      if (Name.size() >= 2 && Name.front() == '_' &&
+      
+      if (StringRef Name = II->getName(); Name.size() >= 2 && Name.front() == '_' &&
           (Name[1] == '_' || isUppercase(Name[1])))
         return true;
     }
@@ -653,8 +653,8 @@ static void visitLocalsRetainedByReferenceBinding(IndirectLocalPath &Path,
     // on array glvalues when performing lifetime extension.
     if (auto *ASE = dyn_cast<ArraySubscriptExpr>(Init)) {
       Init = ASE->getBase();
-      auto *ICE = dyn_cast<ImplicitCastExpr>(Init);
-      if (ICE && ICE->getCastKind() == CK_ArrayToPointerDecay)
+      
+      if (auto *ICE = dyn_cast<ImplicitCastExpr>(Init); ICE && ICE->getCastKind() == CK_ArrayToPointerDecay)
         Init = ICE->getSubExpr();
       else
         // We can't lifetime extend through this but we might still find some
@@ -691,8 +691,8 @@ static void visitLocalsRetainedByReferenceBinding(IndirectLocalPath &Path,
     // If we find the name of a local non-reference parameter, we could have a
     // lifetime problem.
     auto *DRE = cast<DeclRefExpr>(Init);
-    auto *VD = dyn_cast<VarDecl>(DRE->getDecl());
-    if (VD && VD->hasLocalStorage() &&
+    
+    if (auto *VD = dyn_cast<VarDecl>(DRE->getDecl()); VD && VD->hasLocalStorage() &&
         !DRE->refersToEnclosingVariableOrCapture()) {
       if (!VD->getType()->isReferenceType()) {
         Visit(Path, Local(DRE), RK);
@@ -713,8 +713,8 @@ static void visitLocalsRetainedByReferenceBinding(IndirectLocalPath &Path,
     // The only unary operator that make sense to handle here
     // is Deref.  All others don't resolve to a "name."  This includes
     // handling all sorts of rvalues passed to a unary operator.
-    const UnaryOperator *U = cast<UnaryOperator>(Init);
-    if (U->getOpcode() == UO_Deref)
+    
+    if (const UnaryOperator *U = cast<UnaryOperator>(Init); U->getOpcode() == UO_Deref)
       visitLocalsRetainedByInitializer(Path, U->getSubExpr(), Visit, true);
     break;
   }
@@ -791,8 +791,8 @@ static void visitLocalsRetainedByInitializer(IndirectLocalPath &Path,
             Path, Init, RK_ReferenceBinding,
             [&](IndirectLocalPath &Path, Local L, ReferenceKind RK) -> bool {
               if (auto *DRE = dyn_cast<DeclRefExpr>(L)) {
-                auto *VD = dyn_cast<VarDecl>(DRE->getDecl());
-                if (VD && VD->getType().isConstQualified() && VD->getInit() &&
+                
+                if (auto *VD = dyn_cast<VarDecl>(DRE->getDecl()); VD && VD->getType().isConstQualified() && VD->getInit() &&
                     !isVarOnPath(Path, VD)) {
                   Path.push_back({IndirectLocalPathEntry::VarInit, DRE, VD});
                   visitLocalsRetainedByInitializer(Path, VD->getInit(), Visit,
@@ -889,8 +889,8 @@ static void visitLocalsRetainedByInitializer(IndirectLocalPath &Path,
             break;
           if (I->isUnnamedBitField())
             continue;
-          Expr *SubInit = ILE->getInit(Index);
-          if (I->getType()->isReferenceType())
+          
+          if (Expr *SubInit = ILE->getInit(Index); I->getType()->isReferenceType())
             visitLocalsRetainedByReferenceBinding(Path, SubInit,
                                                   RK_ReferenceBinding, Visit);
           else
@@ -957,10 +957,10 @@ static void visitLocalsRetainedByInitializer(IndirectLocalPath &Path,
   }
   switch (Init->getStmtClass()) {
   case Stmt::UnaryOperatorClass: {
-    auto *UO = cast<UnaryOperator>(Init);
+    
     // If the initializer is the address of a local, we could have a lifetime
     // problem.
-    if (UO->getOpcode() == UO_AddrOf) {
+    if (auto *UO = cast<UnaryOperator>(Init); UO->getOpcode() == UO_AddrOf) {
       // If this is &rvalue, then it's ill-formed and we have already diagnosed
       // it. Don't produce a redundant warning about the lifetime of the
       // temporary.
@@ -977,8 +977,8 @@ static void visitLocalsRetainedByInitializer(IndirectLocalPath &Path,
   case Stmt::BinaryOperatorClass: {
     // Handle pointer arithmetic.
     auto *BO = cast<BinaryOperator>(Init);
-    BinaryOperatorKind BOK = BO->getOpcode();
-    if (!BO->getType()->isPointerType() || (BOK != BO_Add && BOK != BO_Sub))
+    
+    if (BinaryOperatorKind BOK = BO->getOpcode(); !BO->getType()->isPointerType() || (BOK != BO_Add && BOK != BO_Sub))
       break;
 
     if (BO->getLHS()->getType()->isPointerType())
@@ -1184,13 +1184,13 @@ static AnalysisResult analyzePathForGSLPointer(const IndirectLocalPath &Path,
   // The GSLPointer is from a temporary object.
   auto *MTE = dyn_cast<MaterializeTemporaryExpr>(L);
 
-  bool IsGslPtrValueFromGslTempOwner =
-      MTE && !MTE->getExtendingDecl() && isGslOwnerType(MTE->getType());
+  
   // Skipping a chain of initializing gsl::Pointer annotated objects.
   // We are looking only for the final source to find out if it was
   // a local or temporary owner or the address of a local
   // variable/param.
-  if (!IsGslPtrValueFromGslTempOwner)
+  if (bool IsGslPtrValueFromGslTempOwner =
+      MTE && !MTE->getExtendingDecl() && isGslOwnerType(MTE->getType()); !IsGslPtrValueFromGslTempOwner)
     return Skip;
   return Report;
 }
@@ -1455,9 +1455,9 @@ checkExprLifetimeImpl(Sema &SemaRef, const InitializedEntity *InitEntity,
     }
 
     for (unsigned I = 0; I != Path.size(); ++I) {
-      auto Elem = Path[I];
+      
 
-      switch (Elem.Kind) {
+      switch (auto Elem = Path[I]; Elem.Kind) {
       case IndirectLocalPathEntry::AddressOf:
       case IndirectLocalPathEntry::LValToRVal:
       case IndirectLocalPathEntry::ParenAggInit:

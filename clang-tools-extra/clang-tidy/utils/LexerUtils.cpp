@@ -177,12 +177,12 @@ static SourceLocation getSemicolonAfterStmtEndLoc(const SourceLocation &EndLoc,
     //  F     (      foo()               ;   )
     //  ^ EndLoc         ^ SpellingLoc   ^ next token of SpellingLoc
     const SourceLocation SpellingLoc = SM.getSpellingLoc(EndLoc);
-    std::optional<Token> NextTok =
-        findNextTokenSkippingComments(SpellingLoc, SM, LangOpts);
+    
 
     // Was the next token found successfully?
     // All macro issues are simply resolved by ensuring it's a semicolon.
-    if (NextTok && NextTok->is(tok::TokenKind::semi)) {
+    if (std::optional<Token> NextTok =
+        findNextTokenSkippingComments(SpellingLoc, SM, LangOpts); NextTok && NextTok->is(tok::TokenKind::semi)) {
       // Ideally this would return `F` with spelling location `;` (NextTok)
       // following the example above. For now simply return NextTok location.
       return NextTok->getLocation();

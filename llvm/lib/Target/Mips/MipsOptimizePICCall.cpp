@@ -167,8 +167,8 @@ static void eraseGPOpnd(MachineInstr &MI) {
   unsigned Reg = Ty == MVT::i32 ? Mips::GP : Mips::GP_64;
 
   for (unsigned I = 0; I < MI.getNumOperands(); ++I) {
-    MachineOperand &MO = MI.getOperand(I);
-    if (MO.isReg() && MO.getReg() == Reg) {
+    
+    if (MachineOperand &MO = MI.getOperand(I); MO.isReg() && MO.getReg() == Reg) {
       MI.removeOperand(I);
       return;
     }

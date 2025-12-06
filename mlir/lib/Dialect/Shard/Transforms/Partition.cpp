@@ -778,8 +778,8 @@ namespace {
 struct Partition : public impl::PartitionBase<Partition> {
   void runOnOperation() override {
     IRMapping partitionMap;
-    SymbolTableCollection symbolTableCollection;
-    if (failed(partitionFuncOp(getOperation(), partitionMap,
+    
+    if (SymbolTableCollection symbolTableCollection; failed(partitionFuncOp(getOperation(), partitionMap,
                                symbolTableCollection))) {
       return signalPassFailure();
     }

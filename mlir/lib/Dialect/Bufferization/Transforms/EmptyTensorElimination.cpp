@@ -35,12 +35,12 @@ neededValuesDominateInsertionPoint(const DominanceInfo &domInfo,
                                    const SmallVector<Value> &neededValues) {
   for (Value val : neededValues) {
     if (auto bbArg = dyn_cast<BlockArgument>(val)) {
-      Block *owner = bbArg.getOwner();
-      if (!owner->findAncestorOpInBlock(*insertionPoint))
+      
+      if (Block *owner = bbArg.getOwner(); !owner->findAncestorOpInBlock(*insertionPoint))
         return false;
     } else {
-      auto opResult = cast<OpResult>(val);
-      if (!domInfo.properlyDominates(opResult.getOwner(), insertionPoint))
+      
+      if (auto opResult = cast<OpResult>(val); !domInfo.properlyDominates(opResult.getOwner(), insertionPoint))
         return false;
     }
   }
@@ -222,7 +222,7 @@ LogicalResult mlir::bufferization::eliminateEmptyTensors(RewriterBase &rewriter,
 }
 
 void EmptyTensorElimination::runOnOperation() {
-  IRRewriter rewriter(getOperation()->getContext());
-  if (failed(bufferization::eliminateEmptyTensors(rewriter, getOperation())))
+  
+  if (IRRewriter rewriter(getOperation()->getContext()); failed(bufferization::eliminateEmptyTensors(rewriter, getOperation())))
     signalPassFailure();
 }

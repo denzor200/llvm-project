@@ -143,8 +143,8 @@ void ThreadSpec::GetDescription(Stream *s, lldb::DescriptionLevel level) const {
       if (GetIndex() != UINT32_MAX)
         s->Printf("index: %d ", GetIndex());
 
-      const char *name = GetName();
-      if (name)
+      
+      if (const char *name = GetName(); name)
         s->Printf("thread name: \"%s\" ", name);
 
       const char *queue_name = GetQueueName();

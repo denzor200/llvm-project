@@ -592,8 +592,8 @@ TEST_F(DWARFASTParserClangTests, TestDefaultTemplateParamParsing) {
 
   for (auto const &type_sp : types) {
     ASSERT_NE(type_sp, nullptr);
-    auto const *decl = ClangUtil::GetAsTagDecl(type_sp->GetFullCompilerType());
-    if (decl->getName() == "bar" || decl->getName() == "baz") {
+    
+    if (auto const *decl = ClangUtil::GetAsTagDecl(type_sp->GetFullCompilerType()); decl->getName() == "bar" || decl->getName() == "baz") {
       check_decl(decl);
     }
   }
@@ -622,8 +622,8 @@ TEST_F(DWARFASTParserClangTests, TestSpecDeclExistsError) {
     SymbolContext sc;
     bool new_type = false;
     auto type = ast_parser.ParseTypeFromDWARF(sc, die, &new_type);
-    llvm::StringRef die_name = llvm::StringRef(die.GetName());
-    if (die_name.starts_with("_Optional_payload")) {
+    
+    if (llvm::StringRef die_name = llvm::StringRef(die.GetName()); die_name.starts_with("_Optional_payload")) {
       specializations.push_back(std::move(type));
     }
   }

@@ -696,8 +696,8 @@ void DeclPrinter::VisitFunctionDecl(FunctionDecl *D) {
     if (D->isConsteval())        Out << "consteval ";
     else if (D->isImmediateFunction())
       Out << "immediate ";
-    ExplicitSpecifier ExplicitSpec = ExplicitSpecifier::getFromDecl(D);
-    if (ExplicitSpec.isSpecified())
+    
+    if (ExplicitSpecifier ExplicitSpec = ExplicitSpecifier::getFromDecl(D); ExplicitSpec.isSpecified())
       printExplicitSpecifier(ExplicitSpec, Out, Policy, Indentation, Context);
   }
 
@@ -719,8 +719,8 @@ void DeclPrinter::VisitFunctionDecl(FunctionDecl *D) {
   if (D->isFunctionTemplateSpecialization()) {
     llvm::raw_string_ostream POut(Proto);
     DeclPrinter TArgPrinter(POut, SubPolicy, Context, Indentation);
-    const auto *TArgAsWritten = D->getTemplateSpecializationArgsAsWritten();
-    if (TArgAsWritten && !Policy.PrintAsCanonical)
+    
+    if (const auto *TArgAsWritten = D->getTemplateSpecializationArgsAsWritten(); TArgAsWritten && !Policy.PrintAsCanonical)
       TArgPrinter.printTemplateArguments(TArgAsWritten->arguments(), nullptr);
     else if (const TemplateArgumentList *TArgs =
                  D->getTemplateSpecializationArgs())
@@ -920,8 +920,8 @@ void DeclPrinter::VisitFieldDecl(FieldDecl *D) {
                                   &Context);
   }
 
-  Expr *Init = D->getInClassInitializer();
-  if (!Policy.SuppressInitializers && Init) {
+  
+  if (Expr *Init = D->getInClassInitializer(); !Policy.SuppressInitializers && Init) {
     if (D->getInClassInitStyle() == ICIS_ListInit)
       Out << " ";
     else
@@ -949,8 +949,8 @@ void DeclPrinter::VisitVarDecl(VarDecl *D) {
     : D->getASTContext().getUnqualifiedObjCPointerType(D->getType());
 
   if (!Policy.SuppressSpecifiers) {
-    StorageClass SC = D->getStorageClass();
-    if (SC != SC_None)
+    
+    if (StorageClass SC = D->getStorageClass(); SC != SC_None)
       Out << VarDecl::getStorageClassSpecifierString(SC) << " ";
 
     switch (D->getTSCSpec()) {
@@ -1095,9 +1095,9 @@ void DeclPrinter::VisitCXXRecordDecl(CXXRecordDecl *D) {
     if (auto *S = dyn_cast<ClassTemplateSpecializationDecl>(D)) {
       const TemplateParameterList *TParams =
           S->getSpecializedTemplate()->getTemplateParameters();
-      const ASTTemplateArgumentListInfo *TArgAsWritten =
-          S->getTemplateArgsAsWritten();
-      if (TArgAsWritten && !Policy.PrintAsCanonical)
+      
+      if (const ASTTemplateArgumentListInfo *TArgAsWritten =
+          S->getTemplateArgsAsWritten(); TArgAsWritten && !Policy.PrintAsCanonical)
         printTemplateArguments(TArgAsWritten->arguments(), TParams);
       else
         printTemplateArguments(S->getTemplateArgs().asArray(), TParams);
@@ -1119,8 +1119,8 @@ void DeclPrinter::VisitCXXRecordDecl(CXXRecordDecl *D) {
         if (Base->isVirtual())
           Out << "virtual ";
 
-        AccessSpecifier AS = Base->getAccessSpecifierAsWritten();
-        if (AS != AS_none) {
+        
+        if (AccessSpecifier AS = Base->getAccessSpecifierAsWritten(); AS != AS_none) {
           Print(AS);
           Out << " ";
         }
@@ -1529,8 +1529,8 @@ void DeclPrinter::VisitObjCProtocolDecl(ObjCProtocolDecl *PID) {
     return;
   }
   // Protocols?
-  const ObjCList<ObjCProtocolDecl> &Protocols = PID->getReferencedProtocols();
-  if (!Protocols.empty()) {
+  
+  if (const ObjCList<ObjCProtocolDecl> &Protocols = PID->getReferencedProtocols(); !Protocols.empty()) {
     Out << "@protocol " << *PID;
     for (ObjCList<ObjCProtocolDecl>::iterator I = Protocols.begin(),
          E = Protocols.end(); I != E; ++I)

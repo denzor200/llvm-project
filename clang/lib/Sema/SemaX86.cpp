@@ -454,8 +454,8 @@ bool SemaX86::CheckBuiltinTileDuplicate(CallExpr *TheCall,
   // each bit to represent the usage of them in bitset.
   std::bitset<TileRegHigh + 1> ArgValues;
   for (int ArgNum : ArgNums) {
-    Expr *Arg = TheCall->getArg(ArgNum);
-    if (Arg->isTypeDependent() || Arg->isValueDependent())
+    
+    if (Expr *Arg = TheCall->getArg(ArgNum); Arg->isTypeDependent() || Arg->isValueDependent())
       continue;
 
     llvm::APSInt Result;
@@ -526,8 +526,8 @@ static bool isX86_32Builtin(unsigned BuiltinID) {
 bool SemaX86::CheckBuiltinFunctionCall(const TargetInfo &TI, unsigned BuiltinID,
                                        CallExpr *TheCall) {
   // Check for 32-bit only builtins on a 64-bit target.
-  const llvm::Triple &TT = TI.getTriple();
-  if (TT.getArch() != llvm::Triple::x86 && isX86_32Builtin(BuiltinID))
+  
+  if (const llvm::Triple &TT = TI.getTriple(); TT.getArch() != llvm::Triple::x86 && isX86_32Builtin(BuiltinID))
     return Diag(TheCall->getCallee()->getBeginLoc(),
                 diag::err_32_bit_builtin_64_bit_tgt);
 
@@ -1025,8 +1025,8 @@ void SemaX86::handleForceAlignArgPointerAttr(Decl *D, const ParsedAttr &AL) {
   // If we try to apply it to a function pointer, don't warn, but don't
   // do anything, either. It doesn't matter anyway, because there's nothing
   // special about calling a force_align_arg_pointer function.
-  const auto *VD = dyn_cast<ValueDecl>(D);
-  if (VD && VD->getType()->isFunctionPointerType())
+  
+  if (const auto *VD = dyn_cast<ValueDecl>(D); VD && VD->getType()->isFunctionPointerType())
     return;
   // Also don't warn on function pointer typedefs.
   const auto *TD = dyn_cast<TypedefNameDecl>(D);

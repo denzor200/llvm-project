@@ -147,8 +147,8 @@ getFlattenedAffineExprs(ArrayRef<AffineExpr> exprs, unsigned numDims,
     // Use the same flattener to simplify each expression successively. This way
     // local variables / expressions are shared.
     for (auto expr : exprs) {
-      auto flattenResult = flattener.walkPostOrder(expr);
-      if (failed(flattenResult))
+      
+      if (auto flattenResult = flattener.walkPostOrder(expr); failed(flattenResult))
         return failure();
     }
 
@@ -759,8 +759,8 @@ void FlatLinearConstraints::getSliceBounds(unsigned offset, unsigned num,
       if (!lbMap || lbMap.getNumResults() != 1) {
         LLVM_DEBUG(llvm::dbgs()
                    << "WARNING: Potentially over-approximating slice lb\n");
-        auto lbConst = getConstantBound64(BoundType::LB, pos + offset);
-        if (lbConst.has_value()) {
+        
+        if (auto lbConst = getConstantBound64(BoundType::LB, pos + offset); lbConst.has_value()) {
           lbMap = AffineMap::get(numMapDims, numMapSymbols,
                                  getAffineConstantExpr(*lbConst, context));
         }
@@ -768,8 +768,8 @@ void FlatLinearConstraints::getSliceBounds(unsigned offset, unsigned num,
       if (!ubMap || ubMap.getNumResults() != 1) {
         LLVM_DEBUG(llvm::dbgs()
                    << "WARNING: Potentially over-approximating slice ub\n");
-        auto ubConst = getConstantBound64(BoundType::UB, pos + offset);
-        if (ubConst.has_value()) {
+        
+        if (auto ubConst = getConstantBound64(BoundType::UB, pos + offset); ubConst.has_value()) {
           ubMap = AffineMap::get(
               numMapDims, numMapSymbols,
               getAffineConstantExpr(*ubConst + ubAdjustment, context));
@@ -967,10 +967,10 @@ std::optional<int64_t> FlatLinearConstraints::getConstantBoundOnDimSize(
 
   // Find an equality for 'pos'^th identifier that equates it to some function
   // of the symbolic identifiers (+ constant).
-  int eqPos = findEqualityToConstant(pos, /*symbolic=*/true);
+  
   // If the equality involves a local var that can not be expressed as a
   // symbolic or constant affine expression, we bail out.
-  if (eqPos != -1 && freeOfUnknownLocalVars(getEquality64(eqPos), memo)) {
+  if (int eqPos = findEqualityToConstant(pos, /*symbolic=*/true); eqPos != -1 && freeOfUnknownLocalVars(getEquality64(eqPos), memo)) {
     // This identifier can only take a single value.
     if (lb && detectAsExpr(*this, pos, eqPos, context, memo)) {
       AffineExpr equalityExpr =

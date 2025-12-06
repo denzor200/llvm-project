@@ -371,9 +371,9 @@ struct FragmentCompiler {
     }
 #endif
     // Make sure exactly one of the Sources is set.
-    unsigned SourceCount = External.File.has_value() +
-                           External.Server.has_value() + *External.IsNone;
-    if (SourceCount != 1) {
+    
+    if (unsigned SourceCount = External.File.has_value() +
+                           External.Server.has_value() + *External.IsNone; SourceCount != 1) {
       diag(Error, "Exactly one of File, Server or None must be set.",
            BlockRange);
       return;
@@ -561,8 +561,8 @@ struct FragmentCompiler {
              Arg.Range);
         return;
       }
-      auto Fast = isFastTidyCheck(Str);
-      if (!Fast.has_value()) {
+      
+      if (auto Fast = isFastTidyCheck(Str); !Fast.has_value()) {
         diag(Warning,
              llvm::formatv(
                  "Latency of clang-tidy check '{0}' is not known. "
@@ -778,8 +778,8 @@ struct FragmentCompiler {
       Out.Apply.push_back(
           [DisabledKinds(std::move(DisabledKinds))](const Params &, Config &C) {
             for (auto &Kind : DisabledKinds) {
-              auto It = llvm::find(C.SemanticTokens.DisabledKinds, Kind);
-              if (It == C.SemanticTokens.DisabledKinds.end())
+              
+              if (auto It = llvm::find(C.SemanticTokens.DisabledKinds, Kind); It == C.SemanticTokens.DisabledKinds.end())
                 C.SemanticTokens.DisabledKinds.push_back(std::move(Kind));
             }
           });
@@ -792,8 +792,8 @@ struct FragmentCompiler {
       Out.Apply.push_back([DisabledModifiers(std::move(DisabledModifiers))](
                               const Params &, Config &C) {
         for (auto &Kind : DisabledModifiers) {
-          auto It = llvm::find(C.SemanticTokens.DisabledModifiers, Kind);
-          if (It == C.SemanticTokens.DisabledModifiers.end())
+          
+          if (auto It = llvm::find(C.SemanticTokens.DisabledModifiers, Kind); It == C.SemanticTokens.DisabledModifiers.end())
             C.SemanticTokens.DisabledModifiers.push_back(std::move(Kind));
         }
       });

@@ -175,8 +175,8 @@ ConstString Symbol::GetReExportedSymbolName() const {
     // For eSymbolTypeReExported, the "const char *" from a ConstString is used
     // as the offset in the address range base address. We can then make this
     // back into a string that is the re-exported name.
-    intptr_t str_ptr = m_addr_range.GetBaseAddress().GetOffset();
-    if (str_ptr != 0)
+    
+    if (intptr_t str_ptr = m_addr_range.GetBaseAddress().GetOffset(); str_ptr != 0)
       return ConstString((const char *)str_ptr);
     else
       return GetName();
@@ -189,8 +189,8 @@ FileSpec Symbol::GetReExportedSymbolSharedLibrary() const {
     // For eSymbolTypeReExported, the "const char *" from a ConstString is used
     // as the offset in the address range base address. We can then make this
     // back into a string that is the re-exported name.
-    intptr_t str_ptr = m_addr_range.GetByteSize();
-    if (str_ptr != 0)
+    
+    if (intptr_t str_ptr = m_addr_range.GetByteSize(); str_ptr != 0)
       return FileSpec((const char *)str_ptr);
   }
   return FileSpec();
@@ -229,8 +229,8 @@ void Symbol::GetDescription(
 
   if (m_addr_range.GetBaseAddress().GetSection()) {
     if (ValueIsAddress()) {
-      const lldb::addr_t byte_size = GetByteSize();
-      if (byte_size > 0) {
+      
+      if (const lldb::addr_t byte_size = GetByteSize(); byte_size > 0) {
         s->PutCString(", range = ");
         m_addr_range.Dump(s, target, Address::DumpStyleLoadAddress,
                           Address::DumpStyleFileAddress);
@@ -272,8 +272,8 @@ void Symbol::Dump(Stream *s, Target *target, uint32_t index,
   // Make sure the size of the symbol is up to date before dumping
   GetByteSize();
 
-  ConstString name = GetMangled().GetName(name_preference);
-  if (ValueIsAddress()) {
+  
+  if (ConstString name = GetMangled().GetName(name_preference); ValueIsAddress()) {
     if (!m_addr_range.GetBaseAddress().Dump(s, nullptr,
                                             Address::DumpStyleFileAddress))
       s->Printf("%*s", 18, "");
@@ -293,8 +293,8 @@ void Symbol::Dump(Stream *s, Target *target, uint32_t index,
         m_flags, name.AsCString(""));
 
     ConstString reexport_name = GetReExportedSymbolName();
-    intptr_t shlib = m_addr_range.GetByteSize();
-    if (shlib)
+    
+    if (intptr_t shlib = m_addr_range.GetByteSize(); shlib)
       s->Printf(" -> %s`%s\n", (const char *)shlib, reexport_name.GetCString());
     else
       s->Printf(" -> %s\n", reexport_name.GetCString());
@@ -316,19 +316,19 @@ uint32_t Symbol::GetPrologueByteSize() {
       m_type_data_resolved = true;
 
       const Address &base_address = m_addr_range.GetBaseAddress();
-      Function *function = base_address.CalculateSymbolContextFunction();
-      if (function) {
+      
+      if (Function *function = base_address.CalculateSymbolContextFunction(); function) {
         // Functions have line entries which can also potentially have end of
         // prologue information. So if this symbol points to a function, use
         // the prologue information from there.
         m_type_data = function->GetPrologueByteSize();
       } else {
         ModuleSP module_sp(base_address.GetModule());
-        SymbolContext sc;
-        if (module_sp) {
-          uint32_t resolved_flags = module_sp->ResolveSymbolContextForAddress(
-              base_address, eSymbolContextLineEntry, sc);
-          if (resolved_flags & eSymbolContextLineEntry) {
+        
+        if (SymbolContext sc; module_sp) {
+          
+          if (uint32_t resolved_flags = module_sp->ResolveSymbolContextForAddress(
+              base_address, eSymbolContextLineEntry, sc); resolved_flags & eSymbolContextLineEntry) {
             // Default to the end of the first line entry.
             m_type_data = sc.line_entry.range.GetByteSize();
 
@@ -416,8 +416,8 @@ Symbol *Symbol::CalculateSymbolContextSymbol() { return this; }
 void Symbol::DumpSymbolContext(Stream *s) {
   bool dumped_module = false;
   if (ValueIsAddress()) {
-    ModuleSP module_sp(GetAddressRef().GetModule());
-    if (module_sp) {
+    
+    if (ModuleSP module_sp(GetAddressRef().GetModule()); module_sp) {
       dumped_module = true;
       module_sp->DumpSymbolContext(s);
     }
@@ -471,9 +471,9 @@ Symbol *Symbol::ResolveReExportedSymbolInModuleSpec(
       ModuleSpec reexported_module_spec;
       reexported_module_spec.GetFileSpec() =
           reexported_libraries.GetFileSpecAtIndex(idx);
-      Symbol *result_symbol = ResolveReExportedSymbolInModuleSpec(
-          target, reexport_name, reexported_module_spec, seen_modules);
-      if (result_symbol)
+      
+      if (Symbol *result_symbol = ResolveReExportedSymbolInModuleSpec(
+          target, reexport_name, reexported_module_spec, seen_modules); result_symbol)
         return result_symbol;
     }
   }
@@ -522,8 +522,8 @@ lldb::addr_t Symbol::ResolveCallableAddress(Target &target) const {
 
   bool is_indirect = IsIndirect();
   if (GetType() == eSymbolTypeReExported) {
-    Symbol *reexported_symbol = ResolveReExportedSymbol(target);
-    if (reexported_symbol) {
+    
+    if (Symbol *reexported_symbol = ResolveReExportedSymbol(target); reexported_symbol) {
       func_so_addr = reexported_symbol->GetAddress();
       is_indirect = reexported_symbol->IsIndirect();
     }
@@ -538,10 +538,10 @@ lldb::addr_t Symbol::ResolveCallableAddress(Target &target) const {
       return LLDB_INVALID_ADDRESS;
     }
 
-    lldb::addr_t load_addr =
-        func_so_addr.GetCallableLoadAddress(&target, is_indirect);
+    
 
-    if (load_addr != LLDB_INVALID_ADDRESS) {
+    if (lldb::addr_t load_addr =
+        func_so_addr.GetCallableLoadAddress(&target, is_indirect); load_addr != LLDB_INVALID_ADDRESS) {
       return load_addr;
     }
   }
@@ -633,8 +633,8 @@ bool Symbol::Decode(const DataExtractor &data, lldb::offset_t *offset_ptr,
   if (!data.ValidOffsetForDataOfSize(*offset_ptr, 20))
     return false;
   const bool is_addr = data.GetU8(offset_ptr) != 0;
-  const uint64_t value = data.GetU64(offset_ptr);
-  if (is_addr) {
+  
+  if (const uint64_t value = data.GetU64(offset_ptr); is_addr) {
     m_addr_range.GetBaseAddress().ResolveAddressUsingFileSections(value,
                                                                   section_list);
   } else {
@@ -816,12 +816,12 @@ namespace json {
 bool fromJSON(const llvm::json::Value &value, lldb_private::JSONSymbol &symbol,
               llvm::json::Path path) {
   llvm::json::ObjectMapper o(value, path);
-  const bool mapped = o && o.map("value", symbol.value) &&
+  
+
+  if (const bool mapped = o && o.map("value", symbol.value) &&
                       o.map("address", symbol.address) &&
                       o.map("size", symbol.size) && o.map("id", symbol.id) &&
-                      o.map("type", symbol.type) && o.map("name", symbol.name);
-
-  if (!mapped)
+                      o.map("type", symbol.type) && o.map("name", symbol.name); !mapped)
     return false;
 
   if (!symbol.value && !symbol.address) {

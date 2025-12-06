@@ -290,8 +290,8 @@ static void formatTypeName(SmallString<64> &Dest, StringRef Name,
 }
 
 static StructType *getOrCreateElementStruct(Type *ElemType, StringRef Name) {
-  StructType *Ty = StructType::getTypeByName(ElemType->getContext(), Name);
-  if (Ty && Ty->getNumElements() == 1 && Ty->getElementType(0) == ElemType)
+  
+  if (StructType *Ty = StructType::getTypeByName(ElemType->getContext(), Name); Ty && Ty->getNumElements() == 1 && Ty->getElementType(0) == ElemType)
     return Ty;
   return StructType::create(ElemType, Name);
 }
@@ -658,8 +658,8 @@ void ResourceTypeInfo::print(raw_ostream &OS, const DataLayout &DL) const {
 GlobalVariable *ResourceInfo::createSymbol(Module &M, StructType *Ty) {
   assert(!Symbol && "Symbol has already been created");
   Type *ResTy = Ty;
-  int64_t Size = Binding.Size;
-  if (Size != 1)
+  
+  if (int64_t Size = Binding.Size; Size != 1)
     // unbounded arrays are represented as zero-sized arrays in LLVM IR
     ResTy = ArrayType::get(Ty, Size == ~0u ? 0 : Size);
   Symbol = new GlobalVariable(M, ResTy, /*isConstant=*/true,
@@ -870,8 +870,8 @@ void DXILResourceMap::populateResourceInfos(Module &M,
     if (!F.isDeclaration())
       continue;
     LLVM_DEBUG(dbgs() << "Function: " << F.getName() << "\n");
-    Intrinsic::ID ID = F.getIntrinsicID();
-    switch (ID) {
+    
+    switch (Intrinsic::ID ID = F.getIntrinsicID(); ID) {
     default:
       continue;
     case Intrinsic::dx_resource_handlefrombinding: {
@@ -923,8 +923,8 @@ void DXILResourceMap::populateResourceInfos(Module &M,
   uint32_t NextID = 0;
   for (unsigned I = 0, E = Size; I != E; ++I) {
     ResourceInfo &RI = Infos[I];
-    ResourceTypeInfo &RTI = DRTM[RI.getHandleTy()];
-    if (RTI.isUAV() && FirstUAV == Size) {
+    
+    if (ResourceTypeInfo &RTI = DRTM[RI.getHandleTy()]; RTI.isUAV() && FirstUAV == Size) {
       FirstUAV = I;
       NextID = 0;
     } else if (RTI.isCBuffer() && FirstCBuffer == Size) {

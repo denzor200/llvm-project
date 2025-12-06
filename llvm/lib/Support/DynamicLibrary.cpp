@@ -72,8 +72,8 @@ public:
 
   void CloseLibrary(void *Handle) {
     DLClose(Handle);
-    HandleList::iterator it = Find(Handle);
-    if (it != Handles.end()) {
+    
+    if (HandleList::iterator it = Find(Handle); it != Handles.end()) {
       Handles.erase(it);
     }
   }

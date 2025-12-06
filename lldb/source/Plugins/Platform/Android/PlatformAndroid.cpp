@@ -400,8 +400,8 @@ Status PlatformAndroid::DownloadSymbolFile(const lldb::ModuleSP &module_sp,
         command.Printf("rm -rf %s", s->c_str());
         Status error = adb->Shell(command.GetData(), seconds(5), nullptr);
 
-        Log *log = GetLog(LLDBLog::Platform);
-        if (log && error.Fail())
+        
+        if (Log *log = GetLog(LLDBLog::Platform); log && error.Fail())
           LLDB_LOGF(log, "Failed to remove temp directory: %s",
                     error.AsCString());
       });
@@ -588,10 +588,10 @@ PlatformAndroid::FindProcesses(const ProcessInstanceInfoMatch &match_info,
   broad_match_info.SetNameMatchType(NameMatch::Ignore);
 
   ProcessInstanceInfoList all_procs;
-  uint32_t count =
-      m_remote_platform_sp->FindProcesses(broad_match_info, all_procs);
+  
 
-  if (count > 0) {
+  if (uint32_t count =
+      m_remote_platform_sp->FindProcesses(broad_match_info, all_procs); count > 0) {
     Status error;
     AdbClientUP adb(GetAdbClient(error));
     if (error.Success())

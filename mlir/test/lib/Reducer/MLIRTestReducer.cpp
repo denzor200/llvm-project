@@ -35,9 +35,9 @@ struct TestReducer : public PassWrapper<TestReducer, OperationPass<>> {
 
 void TestReducer::runOnOperation() {
   getOperation()->walk([&](Operation *op) {
-    StringRef opName = op->getName().getStringRef();
+    
 
-    if (opName.contains("op_crash")) {
+    if (StringRef opName = op->getName().getStringRef(); opName.contains("op_crash")) {
       llvm::errs() << "MLIR Reducer Test generated failure: Found "
                       "\"crashOp\" operation\n";
       exit(1);

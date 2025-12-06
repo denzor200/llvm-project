@@ -199,8 +199,8 @@ void thread_cleanup_handler(void *_iter) {
   // Free stacks for dead threads
   thread_stack_ll **stackp = &temp_stacks;
   while (*stackp) {
-    thread_stack_ll *stack = *stackp;
-    if (stack->pid != pid ||
+    
+    if (thread_stack_ll *stack = *stackp; stack->pid != pid ||
         (-1 == TgKill(stack->pid, stack->tid, 0) && errno == ESRCH)) {
       Munmap(stack->stack_base, stack->size);
       *stackp = stack->next;

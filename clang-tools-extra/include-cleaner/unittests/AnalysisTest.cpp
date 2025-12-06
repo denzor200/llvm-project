@@ -592,8 +592,8 @@ TEST(WalkUsed, FilterRefsNotSpelledInMainFile) {
                  RefLoc = Ref.RefLocation;
                }
              });
-    FileID MainFID = SM.getMainFileID();
-    if (RefLoc.isValid()) {
+    
+    if (FileID MainFID = SM.getMainFileID(); RefLoc.isValid()) {
       EXPECT_THAT(RefLoc, AllOf(expandedAt(MainFID, Main.point("expand"), &SM),
                                 spelledAt(MainFID, Main.point("spell"), &SM)))
           << T.Main.str();

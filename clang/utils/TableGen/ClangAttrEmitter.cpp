@@ -98,8 +98,8 @@ GetFlattenedSpellings(const Record &Attr) {
 
   for (const auto &Spelling : Attr.getValueAsListOfDefs("Spellings")) {
     StringRef Variety = Spelling->getValueAsString("Variety");
-    StringRef Name = Spelling->getValueAsString("Name");
-    if (Variety == "GCC") {
+    
+    if (StringRef Name = Spelling->getValueAsString("Name"); Variety == "GCC") {
       Ret.emplace_back("GNU", Name, "", true, *Spelling);
       Ret.emplace_back("CXX11", Name, "gnu", true, *Spelling);
       if (Spelling->getValueAsBit("AllowInC"))
@@ -1622,8 +1622,8 @@ writePrettyPrintFunction(const Record &R,
     } else if (Variety == "CXX11" || Variety == "C23") {
       Prefix = "[[";
       Suffix = "]]";
-      StringRef Namespace = S.nameSpace();
-      if (!Namespace.empty()) {
+      
+      if (StringRef Namespace = S.nameSpace(); !Namespace.empty()) {
         Spelling += Namespace;
         Spelling += "::";
       }
@@ -1639,8 +1639,8 @@ writePrettyPrintFunction(const Record &R,
     } else if (Variety == "Pragma") {
       Prefix = "#pragma ";
       Suffix = "\n";
-      StringRef Namespace = S.nameSpace();
-      if (!Namespace.empty()) {
+      
+      if (StringRef Namespace = S.nameSpace(); !Namespace.empty()) {
         Spelling += Namespace;
         Spelling += " ";
       }
@@ -1767,8 +1767,8 @@ SpellingNamesAreCommon(const std::vector<FlattenedSpelling>& Spellings) {
   StringRef FirstName =
       NormalizeNameForSpellingComparison(Spellings.front().name());
   for (const auto &Spelling : drop_begin(Spellings)) {
-    StringRef Name = NormalizeNameForSpellingComparison(Spelling.name());
-    if (Name != FirstName)
+    
+    if (StringRef Name = NormalizeNameForSpellingComparison(Spelling.name()); Name != FirstName)
       return false;
   }
   return true;
@@ -1960,9 +1960,9 @@ struct AttributeSubjectMatchRule {
     if (Constraint) {
       // Lookup the options in the sub-rule first, in case the sub-rule
       // overrides the rules options.
-      std::vector<const Record *> Opts =
-          Constraint->getValueAsListOfDefs("LangOpts");
-      if (!Opts.empty())
+      
+      if (std::vector<const Record *> Opts =
+          Constraint->getValueAsListOfDefs("LangOpts"); !Opts.empty())
         return Opts;
     }
     return MetaSubject->getValueAsListOfDefs("LangOpts");
@@ -2095,13 +2095,13 @@ PragmaClangAttributeSupport::PragmaClangAttributeSupport(
     Rules.emplace_back(MetaSubject, Constraint);
     for (const Record *Subject :
          SubjectContainer->getValueAsListOfDefs("Subjects")) {
-      bool Inserted =
+      
+      if (bool Inserted =
           SubjectsToRules
               .try_emplace(Subject, RuleOrAggregateRuleSet::getRule(
                                         AttributeSubjectMatchRule(MetaSubject,
                                                                   Constraint)))
-              .second;
-      if (!Inserted) {
+              .second; !Inserted) {
         PrintFatalError("Attribute subject match rules should not represent"
                         "same attribute subjects.");
       }
@@ -2135,12 +2135,12 @@ PragmaClangAttributeSupport::PragmaClangAttributeSupport(
       }
     }
 
-    bool Inserted =
+    
+    if (bool Inserted =
         SubjectsToRules
             .try_emplace(SubjectDecl,
                          RuleOrAggregateRuleSet::getAggregateRuleSet(Rules))
-            .second;
-    if (!Inserted) {
+            .second; !Inserted) {
       PrintFatalError("Attribute subject match rules should not represent"
                       "same attribute subjects.");
     }
@@ -2177,9 +2177,9 @@ bool PragmaClangAttributeSupport::isAttributedSupported(
   // If the attribute explicitly specified whether to support #pragma clang
   // attribute, use that setting.
   bool Unset;
-  bool SpecifiedResult =
-    Attribute.getValueAsBitOrUnset("PragmaAttributeSupport", Unset);
-  if (!Unset)
+  
+  if (bool SpecifiedResult =
+    Attribute.getValueAsBitOrUnset("PragmaAttributeSupport", Unset); !Unset)
     return SpecifiedResult;
 
   // Opt-out rules:
@@ -2224,8 +2224,8 @@ static std::string GenerateTestExpression(ArrayRef<const Record *> LangOpts) {
     if (!Test.empty())
       Test += " || ";
 
-    const StringRef Code = E->getValueAsString("CustomCode");
-    if (!Code.empty()) {
+    
+    if (const StringRef Code = E->getValueAsString("CustomCode"); !Code.empty()) {
       Test += "(";
       Test += Code;
       Test += ")";
@@ -2382,8 +2382,8 @@ static std::map<StringRef, std::vector<const Record *>> NameToAttrsMap;
 static void generateNameToAttrsMap(const RecordKeeper &Records) {
   for (const auto *A : Records.getAllDerivedDefinitions("Attr")) {
     for (const FlattenedSpelling &S : GetFlattenedSpellings(*A)) {
-      auto [It, Inserted] = NameToAttrsMap.try_emplace(S.name());
-      if (Inserted || !is_contained(It->second, A))
+      
+      if (auto [It, Inserted] = NameToAttrsMap.try_emplace(S.name()); Inserted || !is_contained(It->second, A))
         It->second.emplace_back(A);
     }
   }
@@ -2935,8 +2935,8 @@ static void emitAttributes(const RecordKeeper &Records, raw_ostream &OS,
         for (auto I = Spellings.begin(), E = Spellings.end(); I != E;
              ++I, ++Idx) {
           const FlattenedSpelling &S = *I;
-          const auto &Name = SemanticToSyntacticMap[Idx];
-          if (Uniques.insert(Name).second) {
+          
+          if (const auto &Name = SemanticToSyntacticMap[Idx]; Uniques.insert(Name).second) {
             OS << "    case " << Name << ":\n";
             OS << "      return AttributeCommonInfo::Form";
             emitFormInitializer(OS, S, Name);
@@ -3703,10 +3703,10 @@ static void GenerateHasAttrSpellingStringSwitch(
       // Verify that explicitly specified CXX11 and C23 spellings (i.e.
       // not inferred from Clang/GCC spellings) have a version that's
       // different from the default (1).
-      bool RequiresValidVersion =
+      
+      if (bool RequiresValidVersion =
           (Variety == "CXX11" || Variety == "C23") &&
-          Spelling.getSpellingRecord().getValueAsString("Variety") == Variety;
-      if (RequiresValidVersion && Scope.empty() && Version == 1)
+          Spelling.getSpellingRecord().getValueAsString("Variety") == Variety; RequiresValidVersion && Scope.empty() && Version == 1)
         PrintError(Spelling.getSpellingRecord().getLoc(),
                    "Standard attributes must have "
                    "valid version information.");
@@ -3829,8 +3829,8 @@ void EmitClangAttrHasAttrImpl(const RecordKeeper &Records, raw_ostream &OS) {
   // spelling variety.
   for (auto *R : Records.getAllDerivedDefinitions("Attr")) {
     for (const FlattenedSpelling &SI : GetFlattenedSpellings(*R)) {
-      StringRef Variety = SI.variety();
-      if (Variety == "GNU")
+      
+      if (StringRef Variety = SI.variety(); Variety == "GNU")
         GNU.emplace_back(R, SI);
       else if (Variety == "Declspec")
         Declspec.emplace_back(R, SI);
@@ -4215,8 +4215,8 @@ static std::string CalculateDiagnostic(const Record &S) {
   for (const auto *Subject : S.getValueAsListOfDefs("Subjects")) {
     const Record &R = *Subject;
     // Get the diagnostic text from the Decl or Stmt node given.
-    std::string V = GetDiagnosticSpelling(R);
-    if (V.empty()) {
+    
+    if (std::string V = GetDiagnosticSpelling(R); V.empty()) {
       PrintError(R.getLoc(),
                  "Could not determine diagnostic spelling for the node: " +
                      R.getName() + "; please add one to DeclNodes.td");
@@ -4440,10 +4440,10 @@ static void GenerateMutualExclusionsChecks(const Record &Attr,
        Records.getAllDerivedDefinitions("MutualExclusions")) {
     std::vector<const Record *> MutuallyExclusiveAttrs =
         Exclusion->getValueAsListOfDefs("Exclusions");
-    auto IsCurAttr = [Attr](const Record *R) {
+    
+    if (auto IsCurAttr = [Attr](const Record *R) {
       return R->getName() == Attr.getName();
-    };
-    if (any_of(MutuallyExclusiveAttrs, IsCurAttr)) {
+    }; any_of(MutuallyExclusiveAttrs, IsCurAttr)) {
       // This list of exclusions includes the attribute we're looking for, so
       // add the exclusive attributes to the proper list for checking.
       for (const Record *AttrToExclude : MutuallyExclusiveAttrs) {
@@ -4950,8 +4950,8 @@ void EmitClangAttrParsedAttrKinds(const RecordKeeper &Records,
     const Record &Attr = *A;
 
     bool SemaHandler = Attr.getValueAsBit("SemaHandler");
-    bool Ignored = Attr.getValueAsBit("Ignored");
-    if (SemaHandler || Ignored) {
+    
+    if (bool Ignored = Attr.getValueAsBit("Ignored"); SemaHandler || Ignored) {
       // Attribute spellings can be shared between target-specific attributes,
       // and can be shared between syntaxes for the same attribute. For
       // instance, an attribute can be spelled GNU<"interrupt"> for an ARM-

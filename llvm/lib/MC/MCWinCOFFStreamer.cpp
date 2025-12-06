@@ -125,8 +125,8 @@ MCWinCOFFStreamer::MCWinCOFFStreamer(MCContext &Context,
                                      std::unique_ptr<MCObjectWriter> OW)
     : MCObjectStreamer(Context, std::move(MAB), std::move(OW), std::move(CE)),
       CurSymbol(nullptr) {
-  auto *TO = Context.getTargetOptions();
-  if (TO && TO->MCIncrementalLinkerCompatible)
+  
+  if (auto *TO = Context.getTargetOptions(); TO && TO->MCIncrementalLinkerCompatible)
     getWriter().setIncrementalLinkerCompatible(true);
 }
 
@@ -411,8 +411,8 @@ void MCWinCOFFStreamer::emitCGProfileEntry(const MCSymbolRefExpr *From,
 }
 
 void MCWinCOFFStreamer::finalizeCGProfileEntry(const MCSymbolRefExpr *&SRE) {
-  const MCSymbol *S = &SRE->getSymbol();
-  if (getAssembler().registerSymbol(*S))
+  
+  if (const MCSymbol *S = &SRE->getSymbol(); getAssembler().registerSymbol(*S))
     static_cast<const MCSymbolCOFF *>(S)->setExternal(true);
 }
 

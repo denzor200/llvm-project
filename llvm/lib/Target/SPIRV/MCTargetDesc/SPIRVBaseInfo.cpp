@@ -65,10 +65,10 @@ using namespace InstructionSet;
 std::string
 getSymbolicOperandMnemonic(SPIRV::OperandCategory::OperandCategory Category,
                            int32_t Value) {
-  const SPIRV::SymbolicOperand *Lookup =
-      SPIRV::lookupSymbolicOperandByCategoryAndValue(Category, Value);
+  
   // Value that encodes just one enum value.
-  if (Lookup)
+  if (const SPIRV::SymbolicOperand *Lookup =
+      SPIRV::lookupSymbolicOperandByCategoryAndValue(Category, Value); Lookup)
     return Lookup->Mnemonic.str();
   if (Category != SPIRV::OperandCategory::ImageOperandOperand &&
       Category != SPIRV::OperandCategory::FPFastMathModeOperand &&
@@ -103,10 +103,10 @@ getSymbolicOperandMnemonic(SPIRV::OperandCategory::OperandCategory Category,
 VersionTuple
 getSymbolicOperandMinVersion(SPIRV::OperandCategory::OperandCategory Category,
                              uint32_t Value) {
-  const SPIRV::SymbolicOperand *Lookup =
-      SPIRV::lookupSymbolicOperandByCategoryAndValue(Category, Value);
+  
 
-  if (Lookup)
+  if (const SPIRV::SymbolicOperand *Lookup =
+      SPIRV::lookupSymbolicOperandByCategoryAndValue(Category, Value); Lookup)
     return VersionTuple(Lookup->MinVersion / 10, Lookup->MinVersion % 10);
 
   return VersionTuple(0);
@@ -115,10 +115,10 @@ getSymbolicOperandMinVersion(SPIRV::OperandCategory::OperandCategory Category,
 VersionTuple
 getSymbolicOperandMaxVersion(SPIRV::OperandCategory::OperandCategory Category,
                              uint32_t Value) {
-  const SPIRV::SymbolicOperand *Lookup =
-      SPIRV::lookupSymbolicOperandByCategoryAndValue(Category, Value);
+  
 
-  if (Lookup)
+  if (const SPIRV::SymbolicOperand *Lookup =
+      SPIRV::lookupSymbolicOperandByCategoryAndValue(Category, Value); Lookup)
     return VersionTuple(Lookup->MaxVersion / 10, Lookup->MaxVersion % 10);
 
   return VersionTuple();
@@ -200,11 +200,11 @@ getSymbolicOperandExtensions(SPIRV::OperandCategory::OperandCategory Category,
 }
 
 std::string getLinkStringForBuiltIn(SPIRV::BuiltIn::BuiltIn BuiltInValue) {
-  const SPIRV::SymbolicOperand *Lookup =
-      SPIRV::lookupSymbolicOperandByCategoryAndValue(
-          SPIRV::OperandCategory::BuiltInOperand, BuiltInValue);
+  
 
-  if (Lookup)
+  if (const SPIRV::SymbolicOperand *Lookup =
+      SPIRV::lookupSymbolicOperandByCategoryAndValue(
+          SPIRV::OperandCategory::BuiltInOperand, BuiltInValue); Lookup)
     return "__spirv_BuiltIn" + Lookup->Mnemonic.str();
   return "UNKNOWN_BUILTIN";
 }

@@ -120,8 +120,8 @@ public:
     // 1~6 (__flash, __flash1, __flash2, __flash3, __flash4, __flash5)
     // but not constant.
     if (D) {
-      LangAS AS = D->getType().getAddressSpace();
-      if (isTargetAddressSpace(AS) && 1 <= toTargetAddressSpace(AS) &&
+      
+      if (LangAS AS = D->getType().getAddressSpace(); isTargetAddressSpace(AS) && 1 <= toTargetAddressSpace(AS) &&
           toTargetAddressSpace(AS) <= 6 && !D->getType().isConstQualified())
         CGM.getDiags().Report(D->getLocation(),
                               diag::err_verify_nonconst_addrspace)

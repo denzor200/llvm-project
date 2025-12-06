@@ -133,9 +133,9 @@ InstrInfoEmitter::GetOperandInfo(const CodeGenInstruction &Inst) {
     // This might be a multiple operand thing. Targets like X86 have registers
     // in their multi-operand operands. It may also be an anonymous operand,
     // which has a single operand, but no declared class for the operand.
-    const DagInit *MIOI = Op.MIOperandInfo;
+    
 
-    if (!MIOI || MIOI->getNumArgs() == 0) {
+    if (const DagInit *MIOI = Op.MIOperandInfo; !MIOI || MIOI->getNumArgs() == 0) {
       // Single, anonymous, operand.
       OperandList.push_back(Op);
     } else {
@@ -487,8 +487,8 @@ void InstrInfoEmitter::emitOperandTypeMappings(
     for (const CodeGenInstruction *Inst : NumberedInstructions) {
       OperandOffsets.push_back(CurrentOffset);
       for (const auto &Op : Inst->Operands) {
-        const DagInit *MIOI = Op.MIOperandInfo;
-        if (!ExpandMIOperandInfo || !MIOI || MIOI->getNumArgs() == 0) {
+        
+        if (const DagInit *MIOI = Op.MIOperandInfo; !ExpandMIOperandInfo || !MIOI || MIOI->getNumArgs() == 0) {
           // Single, anonymous, operand.
           OperandRecords.push_back(Op.Rec);
           ++CurrentOffset;
@@ -729,8 +729,8 @@ void InstrInfoEmitter::emitFeatureVerifier(raw_ostream &OS,
       FeatureBitsets.emplace_back();
       for (const Record *Predicate :
            Inst->TheDef->getValueAsListOfDefs("Predicates")) {
-        const auto &I = SubtargetFeatures.find(Predicate);
-        if (I != SubtargetFeatures.end())
+        
+        if (const auto &I = SubtargetFeatures.find(Predicate); I != SubtargetFeatures.end())
           FeatureBitsets.back().push_back(I->second.TheDef);
       }
     }
@@ -782,8 +782,8 @@ void InstrInfoEmitter::emitFeatureVerifier(raw_ostream &OS,
       unsigned NumPredicates = 0;
       for (const Record *Predicate :
            Inst->TheDef->getValueAsListOfDefs("Predicates")) {
-        const auto &I = SubtargetFeatures.find(Predicate);
-        if (I != SubtargetFeatures.end()) {
+        
+        if (const auto &I = SubtargetFeatures.find(Predicate); I != SubtargetFeatures.end()) {
           OS << '_' << I->second.TheDef->getName();
           NumPredicates++;
         }
@@ -888,9 +888,9 @@ void InstrInfoEmitter::buildTargetSpecializedPseudoInstsMap() {
         Target.getInstruction(SpecializedRec);
     const Record *BaseInstRec = SpecializedRec->getValueAsDef("Instruction");
 
-    const CodeGenInstruction &BaseInst = Target.getInstruction(BaseInstRec);
+    
 
-    if (!TargetSpecializedPseudoInsts.insert({&BaseInst, &SpecializedInst})
+    if (const CodeGenInstruction &BaseInst = Target.getInstruction(BaseInstRec); !TargetSpecializedPseudoInsts.insert({&BaseInst, &SpecializedInst})
              .second)
       PrintFatalError(SpecializedRec, "multiple overrides of '" +
                                           BaseInst.getName() + "' defined");
@@ -1094,12 +1094,12 @@ void InstrInfoEmitter::run(raw_ostream &OS) {
           const Record *Class = RegClassByHwMode[I];
           const HwModeSelect &ModeSelect = CGH.getHwModeSelect(Class);
 
-          auto FoundMode =
+          
+
+          if (auto FoundMode =
               find_if(ModeSelect.Items, [=](const HwModeSelect::PairType P) {
                 return P.first == M;
-              });
-
-          if (FoundMode == ModeSelect.Items.end()) {
+              }); FoundMode == ModeSelect.Items.end()) {
             // If a RegClassByHwMode doesn't have an entry corresponding to a
             // mode, pad with default register class.
             OS << indent(4) << "-1, // Missing mode entry\n";
@@ -1428,9 +1428,9 @@ void InstrInfoEmitter::emitEnums(
     OS << "    INSTRUCTION_LIST_END = " << NumberedInstructions.size() << '\n';
     OS << "  };\n";
 
-    ArrayRef<const Record *> RegClassesByHwMode =
-        Target.getAllRegClassByHwMode();
-    if (!RegClassesByHwMode.empty()) {
+    
+    if (ArrayRef<const Record *> RegClassesByHwMode =
+        Target.getAllRegClassByHwMode(); !RegClassesByHwMode.empty()) {
       OS << "  enum RegClassByHwModeUses : uint16_t {\n";
       for (const Record *ClassByHwMode : RegClassesByHwMode)
         OS << indent(4) << ClassByHwMode->getName() << ",\n";

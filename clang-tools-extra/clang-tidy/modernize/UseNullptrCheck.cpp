@@ -22,8 +22,8 @@ namespace clang::tidy::modernize {
 namespace {
 
 AST_MATCHER(Type, sugaredNullptrType) {
-  const Type *DesugaredType = Node.getUnqualifiedDesugaredType();
-  if (const auto *BT = dyn_cast<BuiltinType>(DesugaredType))
+  
+  if (const Type *DesugaredType = Node.getUnqualifiedDesugaredType(); const auto *BT = dyn_cast<BuiltinType>(DesugaredType))
     return BT->getKind() == BuiltinType::NullPtr;
   return false;
 }
@@ -166,8 +166,8 @@ public:
       return true;
     Visited = true;
 
-    const ImplicitCastExpr *Cast = dyn_cast<ImplicitCastExpr>(S);
-    if (Cast && (Cast->getCastKind() == CK_NullToPointer ||
+    
+    if (const ImplicitCastExpr *Cast = dyn_cast<ImplicitCastExpr>(S); Cast && (Cast->getCastKind() == CK_NullToPointer ||
                  Cast->getCastKind() == CK_NullToMemberPointer))
       CastFound = true;
 
@@ -372,8 +372,8 @@ private:
 
       // If spelling location resides in the same FileID as macro expansion
       // location, it means there is no inner macro.
-      const FileID MacroFID = SM.getFileID(MacroLoc);
-      if (SM.isInFileID(ArgLoc, MacroFID)) {
+      
+      if (const FileID MacroFID = SM.getFileID(MacroLoc); SM.isInFileID(ArgLoc, MacroFID)) {
         // Don't transform this case. If the characters that caused the
         // null-conversion come from within a macro, they can't be changed.
         return false;

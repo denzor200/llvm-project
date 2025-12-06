@@ -103,8 +103,8 @@ BT::BitMask HexagonEvaluator::mask(Register Reg, unsigned Sub) const {
 
 uint16_t HexagonEvaluator::getPhysRegBitWidth(MCRegister Reg) const {
   using namespace Hexagon;
-  const auto &HST = MF.getSubtarget<HexagonSubtarget>();
-  if (HST.useHVXOps()) {
+  
+  if (const auto &HST = MF.getSubtarget<HexagonSubtarget>(); HST.useHVXOps()) {
     for (auto &RC : {HvxVRRegClass, HvxWRRegClass, HvxQRRegClass,
                      HvxVQRRegClass})
       if (RC.contains(Reg))
@@ -155,8 +155,8 @@ class RegisterRefs {
 public:
   RegisterRefs(const MachineInstr &MI) : Vector(MI.getNumOperands()) {
     for (unsigned i = 0, n = Vector.size(); i < n; ++i) {
-      const MachineOperand &MO = MI.getOperand(i);
-      if (MO.isReg())
+      
+      if (const MachineOperand &MO = MI.getOperand(i); MO.isReg())
         Vector[i] = BT::RegisterRef(MO);
       // For indices that don't correspond to registers, the entry will
       // remain constructed via the default constructor.

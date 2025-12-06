@@ -50,8 +50,8 @@ static SmallVector<IntType> extractVector(ArrayAttr arrayAttr) {
 // Helper to find an index in an affine map.
 static std::optional<int64_t> getResultIndex(AffineMap map, int64_t index) {
   for (int64_t i = 0, e = map.getNumResults(); i < e; ++i) {
-    int64_t idx = map.getDimPosition(i);
-    if (idx == index)
+    
+    if (int64_t idx = map.getDimPosition(i); idx == index)
       return i;
   }
   return std::nullopt;
@@ -499,8 +499,8 @@ struct ReorderElementwiseOpsOnTranspose final
     // Any type will do here as we will check all transpose maps are the same.
     VectorType srcType;
     for (Value operand : op->getOperands()) {
-      auto transposeOp = operand.getDefiningOp<vector::TransposeOp>();
-      if (transposeOp) {
+      
+      if (auto transposeOp = operand.getDefiningOp<vector::TransposeOp>(); transposeOp) {
         transposeMaps.push_back(transposeOp.getPermutation());
         srcType = transposeOp.getSourceVectorType();
       } else if (!matchPattern(operand, m_Constant())) {
@@ -526,8 +526,8 @@ struct ReorderElementwiseOpsOnTranspose final
       invOrder[order[i]] = i;
 
     for (Value operand : op->getOperands()) {
-      auto transposeOp = operand.getDefiningOp<vector::TransposeOp>();
-      if (transposeOp) {
+      
+      if (auto transposeOp = operand.getDefiningOp<vector::TransposeOp>(); transposeOp) {
         srcValues.push_back(transposeOp.getVector());
       } else {
         // This is a constant. Create a reverse transpose op for it.
@@ -1074,8 +1074,8 @@ struct ReorderElementwiseOpsOnBroadcast final
     SmallVector<Value> srcValues;
     srcValues.reserve(op->getNumOperands());
     for (Value operand : op->getOperands()) {
-      SplatElementsAttr splatConst;
-      if (matchPattern(operand, m_Constant(&splatConst))) {
+      
+      if (SplatElementsAttr splatConst; matchPattern(operand, m_Constant(&splatConst))) {
         Attribute newConst;
         Type elementType = getElementTypeOrSelf(operand.getType());
         Type newType = cloneOrReplace(unbroadcastResultType, elementType);
@@ -1541,8 +1541,8 @@ getTransferFoldableInnerUnitDims(MemRefType srcType, VectorType vectorType) {
   for (int64_t i = 0, e = vectorType.getRank(); i < e; ++i) {
     // Check that the inner dim size is 1 for both memref type and vector slice.
     // It can be folded only if they are 1 and the stride is 1.
-    int dim = vectorType.getRank() - i - 1;
-    if (srcStrides[dim + rankDiff] != 1 ||
+    
+    if (int dim = vectorType.getRank() - i - 1; srcStrides[dim + rankDiff] != 1 ||
         srcType.getDimSize(dim + rankDiff) != 1 || !isUnitDim(vectorType, dim))
       break;
     result++;

@@ -79,12 +79,12 @@ static BasicBlock *usersDominator(const MemoryLocation &ML, Instruction *I,
 
     bool FoundClobberingUser = false;
     if (auto *M = dyn_cast<MemoryUseOrDef>(MA)) {
-      Instruction *MI = M->getMemoryInst();
+      
 
       // If this memory instruction may not clobber `I`, we can skip it.
       // LifetimeEnd is a valid user, but we do not want it in the user
       // dominator.
-      if (AA.getModRefInfo(MI, ML) != ModRefInfo::NoModRef &&
+      if (Instruction *MI = M->getMemoryInst(); AA.getModRefInfo(MI, ML) != ModRefInfo::NoModRef &&
           !MI->isLifetimeStartOrEnd() && MI != I) {
         FoundClobberingUser = true;
         CurrentDominator = CurrentDominator
@@ -220,8 +220,8 @@ PreservedAnalyses MoveAutoInitPass::run(Function &F,
                                         FunctionAnalysisManager &AM) {
 
   auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
-  auto &MSSA = AM.getResult<MemorySSAAnalysis>(F).getMSSA();
-  if (!runMoveAutoInit(F, DT, MSSA))
+  
+  if (auto &MSSA = AM.getResult<MemorySSAAnalysis>(F).getMSSA(); !runMoveAutoInit(F, DT, MSSA))
     return PreservedAnalyses::all();
 
   PreservedAnalyses PA;

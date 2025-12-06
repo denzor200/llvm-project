@@ -250,9 +250,9 @@ public:
       return;
 
     SourceManager &SM = PP.getSourceManager();
-    SourceLocation MainFileLoc = SM.getLocForStartOfFile(SM.getMainFileID());
+    
 
-    if (Loc == MainFileLoc && Reason == PPCallbacks::EnterFile) {
+    if (SourceLocation MainFileLoc = SM.getLocForStartOfFile(SM.getMainFileID()); Loc == MainFileLoc && Reason == PPCallbacks::EnterFile) {
       IsMainFileEntered = true;
       DataConsumer.enteredMainFile(
           *SM.getFileEntryRefForID(SM.getMainFileID()));
@@ -349,9 +349,9 @@ public:
 
   std::unique_ptr<ASTConsumer> CreateASTConsumer(CompilerInstance &CI,
                                                  StringRef InFile) override {
-    PreprocessorOptions &PPOpts = CI.getPreprocessorOpts();
+    
 
-    if (!PPOpts.ImplicitPCHInclude.empty()) {
+    if (PreprocessorOptions &PPOpts = CI.getPreprocessorOpts(); !PPOpts.ImplicitPCHInclude.empty()) {
       if (auto File =
               CI.getFileManager().getOptionalFileRef(PPOpts.ImplicitPCHInclude))
         DataConsumer->importedPCH(*File);
@@ -642,8 +642,8 @@ static CXErrorCode clang_indexSourceFile_Impl(
 //===----------------------------------------------------------------------===//
 
 static void indexPreprocessingRecord(ASTUnit &Unit, CXIndexDataConsumer &IdxCtx) {
-  Preprocessor &PP = Unit.getPreprocessor();
-  if (!PP.getPreprocessingRecord())
+  
+  if (Preprocessor &PP = Unit.getPreprocessor(); !PP.getPreprocessingRecord())
     return;
 
   // FIXME: Only deserialize inclusion directives.
@@ -677,8 +677,8 @@ static CXErrorCode clang_indexTranslationUnit_Impl(
     return CXError_InvalidArguments;
   }
 
-  CIndexer *CXXIdx = TU->CIdx;
-  if (CXXIdx->isOptEnabled(CXGlobalOpt_ThreadBackgroundPriorityForIndexing))
+  
+  if (CIndexer *CXXIdx = TU->CIdx; CXXIdx->isOptEnabled(CXGlobalOpt_ThreadBackgroundPriorityForIndexing))
     setThreadBackgroundPriority();
 
   IndexerCallbacks CB;
@@ -731,8 +731,8 @@ clang_index_getObjCContainerDeclInfo(const CXIdxDeclInfo *DInfo) {
   if (!DInfo)
     return nullptr;
 
-  const DeclInfo *DI = static_cast<const DeclInfo *>(DInfo);
-  if (const ObjCContainerDeclInfo *
+  
+  if (const DeclInfo *DI = static_cast<const DeclInfo *>(DInfo); const ObjCContainerDeclInfo *
         ContInfo = dyn_cast<ObjCContainerDeclInfo>(DI))
     return &ContInfo->ObjCContDeclInfo;
 
@@ -744,8 +744,8 @@ clang_index_getObjCInterfaceDeclInfo(const CXIdxDeclInfo *DInfo) {
   if (!DInfo)
     return nullptr;
 
-  const DeclInfo *DI = static_cast<const DeclInfo *>(DInfo);
-  if (const ObjCInterfaceDeclInfo *
+  
+  if (const DeclInfo *DI = static_cast<const DeclInfo *>(DInfo); const ObjCInterfaceDeclInfo *
         InterInfo = dyn_cast<ObjCInterfaceDeclInfo>(DI))
     return &InterInfo->ObjCInterDeclInfo;
 
@@ -757,8 +757,8 @@ clang_index_getObjCCategoryDeclInfo(const CXIdxDeclInfo *DInfo){
   if (!DInfo)
     return nullptr;
 
-  const DeclInfo *DI = static_cast<const DeclInfo *>(DInfo);
-  if (const ObjCCategoryDeclInfo *
+  
+  if (const DeclInfo *DI = static_cast<const DeclInfo *>(DInfo); const ObjCCategoryDeclInfo *
         CatInfo = dyn_cast<ObjCCategoryDeclInfo>(DI))
     return &CatInfo->ObjCCatDeclInfo;
 
@@ -791,8 +791,8 @@ clang_index_getObjCPropertyDeclInfo(const CXIdxDeclInfo *DInfo) {
   if (!DInfo)
     return nullptr;
 
-  const DeclInfo *DI = static_cast<const DeclInfo *>(DInfo);
-  if (const ObjCPropertyDeclInfo *PropInfo = dyn_cast<ObjCPropertyDeclInfo>(DI))
+  
+  if (const DeclInfo *DI = static_cast<const DeclInfo *>(DInfo); const ObjCPropertyDeclInfo *PropInfo = dyn_cast<ObjCPropertyDeclInfo>(DI))
     return &PropInfo->ObjCPropDeclInfo;
 
   return nullptr;
@@ -803,8 +803,8 @@ clang_index_getIBOutletCollectionAttrInfo(const CXIdxAttrInfo *AInfo) {
   if (!AInfo)
     return nullptr;
 
-  const AttrInfo *DI = static_cast<const AttrInfo *>(AInfo);
-  if (const IBOutletCollectionInfo *
+  
+  if (const AttrInfo *DI = static_cast<const AttrInfo *>(AInfo); const IBOutletCollectionInfo *
         IBInfo = dyn_cast<IBOutletCollectionInfo>(DI))
     return &IBInfo->IBCollInfo;
 
@@ -816,8 +816,8 @@ clang_index_getCXXClassDeclInfo(const CXIdxDeclInfo *DInfo) {
   if (!DInfo)
     return nullptr;
 
-  const DeclInfo *DI = static_cast<const DeclInfo *>(DInfo);
-  if (const CXXClassDeclInfo *ClassInfo = dyn_cast<CXXClassDeclInfo>(DI))
+  
+  if (const DeclInfo *DI = static_cast<const DeclInfo *>(DInfo); const CXXClassDeclInfo *ClassInfo = dyn_cast<CXXClassDeclInfo>(DI))
     return &ClassInfo->CXXClassInfo;
 
   return nullptr;

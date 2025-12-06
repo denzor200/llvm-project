@@ -631,8 +631,8 @@ Error DirectoryCoverageReport::prepareSubDirectoryReports(
     auto E = sys::path::end(NativeSubPathRef);
     assert(I != E && "Such case should have been filtered out in the caller");
 
-    auto Name = SubPath.substr(0, I->size());
-    if (++I == E) {
+    
+    if (auto Name = SubPath.substr(0, I->size()); ++I == E) {
       auto Iter = SubFiles.insert_or_assign(Name, SubPath).first;
       // Makes files reporting overlap with subdir reporting.
       TPool->async(&CoverageReport::prepareSingleFileReport, File, &Coverage,
@@ -644,8 +644,8 @@ Error DirectoryCoverageReport::prepareSubDirectoryReports(
 
   // Call recursively on subdirectories.
   for (auto &&KV : SubDirs) {
-    auto &V = KV.second;
-    if (V.second.size() == 1) {
+    
+    if (auto &V = KV.second; V.second.size() == 1) {
       // If there's only one file in that subdirectory, we don't bother to
       // recurse on it further.
       V.first.Name = V.second.front().substr(LCP);

@@ -291,14 +291,14 @@ static void addMemoryAttrs(const SCCNodeSet &SCCNodes, AARGetterT &&AARGetter,
   }
 
   // If the SCC accesses argmem, add recursive accesses resulting from that.
-  ModRefInfo ArgMR = ME.getModRef(IRMemLocation::ArgMem);
-  if (ArgMR != ModRefInfo::NoModRef)
+  
+  if (ModRefInfo ArgMR = ME.getModRef(IRMemLocation::ArgMem); ArgMR != ModRefInfo::NoModRef)
     ME |= RecursiveArgME & MemoryEffects(ArgMR);
 
   for (Function *F : SCCNodes) {
     MemoryEffects OldME = F->getMemoryEffects();
-    MemoryEffects NewME = ME & OldME;
-    if (NewME != OldME) {
+    
+    if (MemoryEffects NewME = ME & OldME; NewME != OldME) {
       ++NumMemoryAttr;
       F->setMemoryEffects(NewME);
       // Remove conflicting writable attributes.
@@ -673,8 +673,8 @@ ArgumentAccessInfo getArgumentAccessInfo(const Instruction *I,
   auto GetConstantIntRange =
       [](Value *Length,
          std::optional<int64_t> Offset) -> std::optional<ConstantRange> {
-    auto *ConstantLength = dyn_cast<ConstantInt>(Length);
-    if (ConstantLength && Offset) {
+    
+    if (auto *ConstantLength = dyn_cast<ConstantInt>(Length); ConstantLength && Offset) {
       int64_t Len = ConstantLength->getSExtValue();
 
       // Reject zero or negative lengths
@@ -739,8 +739,8 @@ ArgumentAccessInfo getArgumentAccessInfo(const Instruction *I,
     if (CB->isArgOperand(ArgUse.U) &&
         !CB->isByValArgument(CB->getArgOperandNo(ArgUse.U))) {
       unsigned ArgNo = CB->getArgOperandNo(ArgUse.U);
-      bool IsInitialize = CB->paramHasAttr(ArgNo, Attribute::Initializes);
-      if (IsInitialize && ArgUse.Offset) {
+      
+      if (bool IsInitialize = CB->paramHasAttr(ArgNo, Attribute::Initializes); IsInitialize && ArgUse.Offset) {
         // Argument is a Write when parameter is writeonly/readnone
         // and nocapture. Otherwise, it's a WriteWithSideEffect.
         auto Access = CB->onlyWritesMemory(ArgNo) && CB->doesNotCapture(ArgNo)
@@ -810,8 +810,8 @@ ArgumentUsesSummary collectArgumentUsesPerBlock(Argument &A, Function &F) {
     if (auto *GEP = dyn_cast<GEPOperator>(U)) {
       std::optional<int64_t> NewOffset = std::nullopt;
       if (ArgUse.Offset) {
-        APInt Offset(PointerSize, 0);
-        if (GEP->accumulateConstantOffset(DL, Offset))
+        
+        if (APInt Offset(PointerSize, 0); GEP->accumulateConstantOffset(DL, Offset))
           NewOffset = *ArgUse.Offset + Offset.getSExtValue();
       }
       for (Use &U : GEP->uses())
@@ -881,9 +881,9 @@ determinePointerAccessAttrs(Argument *A,
       return Attribute::None;
 
     Use *U = Worklist.pop_back_val();
-    Instruction *I = cast<Instruction>(U->getUser());
+    
 
-    switch (I->getOpcode()) {
+    switch (Instruction *I = cast<Instruction>(U->getUser()); I->getOpcode()) {
     case Instruction::BitCast:
     case Instruction::GetElementPtr:
     case Instruction::PHI:
@@ -1017,7 +1017,9 @@ static void addArgumentReturnedAttrs(const SCCNodeSet &SCCNodes,
     if (F->getAttributes().hasAttrSomewhere(Attribute::Returned))
       continue;
 
-    auto FindRetArg = [&]() -> Argument * {
+    
+
+    if (auto FindRetArg = [&]() -> Argument * {
       Argument *RetArg = nullptr;
       for (BasicBlock &BB : *F)
         if (auto *Ret = dyn_cast<ReturnInst>(BB.getTerminator())) {
@@ -1035,9 +1037,7 @@ static void addArgumentReturnedAttrs(const SCCNodeSet &SCCNodes,
         }
 
       return RetArg;
-    };
-
-    if (Argument *RetArg = FindRetArg()) {
+    }; Argument *RetArg = FindRetArg()) {
       RetArg->addAttr(Attribute::Returned);
       ++NumReturned;
       Changed.insert(F);
@@ -1073,8 +1073,8 @@ static bool addArgumentAttrsFromCallsites(Function &F) {
           // If the non-null callsite argument operand is an argument to 'F'
           // (the caller) and the call is guaranteed to execute, then the value
           // must be non-null throughout 'F'.
-          auto *FArg = dyn_cast<Argument>(CB->getArgOperand(CSArg.getArgNo()));
-          if (FArg && !FArg->hasNonNullAttr()) {
+          
+          if (auto *FArg = dyn_cast<Argument>(CB->getArgOperand(CSArg.getArgNo())); FArg && !FArg->hasNonNullAttr()) {
             FArg->addAttr(Attribute::NonNull);
             Changed = true;
           }
@@ -1206,8 +1206,8 @@ static bool inferInitializes(Argument &A, Function &F) {
     // (transitive) successors. So visit successors before predecessors with a
     // post-order walk of the blocks and memorize the results in "Initialized".
     for (const BasicBlock *BB : post_order(&F)) {
-      ConstantRangeList CRL = VisitBlock(BB);
-      if (!CRL.empty())
+      
+      if (ConstantRangeList CRL = VisitBlock(BB); !CRL.empty())
         Initialized[BB] = CRL;
     }
 
@@ -1244,8 +1244,8 @@ static void addArgumentAttrs(const SCCNodeSet &SCCNodes,
   auto DetermineAccessAttrsForSingleton = [](Argument *A) {
     SmallPtrSet<Argument *, 8> Self;
     Self.insert(A);
-    Attribute::AttrKind R = determinePointerAccessAttrs(A, Self);
-    if (R != Attribute::None)
+    
+    if (Attribute::AttrKind R = determinePointerAccessAttrs(A, Self); R != Attribute::None)
       return addAccessAttr(A, R);
     return false;
   };
@@ -1285,8 +1285,8 @@ static void addArgumentAttrs(const SCCNodeSet &SCCNodes,
       if (!capturesNothing(OrigCI)) {
         ArgumentUsesTracker Tracker(SCCNodes);
         PointerMayBeCaptured(&A, &Tracker);
-        CaptureInfo NewCI = Tracker.CI & OrigCI;
-        if (NewCI != OrigCI) {
+        
+        if (CaptureInfo NewCI = Tracker.CI & OrigCI; NewCI != OrigCI) {
           if (Tracker.Uses.empty()) {
             // If the information is complete, add the attribute now.
             A.addAttr(Attribute::getWithCaptureInfo(A.getContext(), NewCI));
@@ -1367,8 +1367,8 @@ static void addArgumentAttrs(const SCCNodeSet &SCCNodes,
     CaptureComponents CC = CaptureComponents::None;
     for (ArgumentGraphNode *N : ArgumentSCC) {
       for (ArgumentGraphNode *Use : N->Uses) {
-        Argument *A = Use->Definition;
-        if (ArgumentSCCNodes.count(A))
+        
+        if (Argument *A = Use->Definition; ArgumentSCCNodes.count(A))
           CC |= Use->CC;
         else
           CC |= CaptureComponents(A->getAttributes().getCaptureInfo());
@@ -1382,8 +1382,8 @@ static void addArgumentAttrs(const SCCNodeSet &SCCNodes,
       for (ArgumentGraphNode *N : ArgumentSCC) {
         Argument *A = N->Definition;
         CaptureInfo OrigCI = A->getAttributes().getCaptureInfo();
-        CaptureInfo NewCI = CaptureInfo(N->CC | CC) & OrigCI;
-        if (NewCI != OrigCI) {
+        
+        if (CaptureInfo NewCI = CaptureInfo(N->CC | CC) & OrigCI; NewCI != OrigCI) {
           A->addAttr(Attribute::getWithCaptureInfo(A->getContext(), NewCI));
           addCapturesStat(NewCI);
           Changed.insert(A->getParent());
@@ -1433,8 +1433,8 @@ static void addArgumentAttrs(const SCCNodeSet &SCCNodes,
 
     if (AccessAttr != Attribute::None) {
       for (ArgumentGraphNode *N : ArgumentSCC) {
-        Argument *A = N->Definition;
-        if (addAccessAttr(A, AccessAttr))
+        
+        if (Argument *A = N->Definition; addAccessAttr(A, AccessAttr))
           Changed.insert(A->getParent());
       }
     }
@@ -2306,8 +2306,8 @@ PreservedAnalyses PostOrderFunctionAttrsPass::run(LazyCallGraph::SCC &C,
   // it can affect optimization behavior in conjunction with noalias.
   bool ArgAttrsOnly = false;
   if (C.size() == 1 && SkipNonRecursive) {
-    LazyCallGraph::Node &N = *C.begin();
-    if (!N->lookup(N))
+    
+    if (LazyCallGraph::Node &N = *C.begin(); !N->lookup(N))
       ArgAttrsOnly = true;
   }
 
@@ -2422,8 +2422,8 @@ static bool deduceFunctionAttributeInRPO(Module &M, LazyCallGraph &CG) {
     for (LazyCallGraph::SCC &SCC : RC) {
       if (SCC.size() != 1)
         continue;
-      Function &F = SCC.begin()->getFunction();
-      if (!F.isDeclaration() && !F.doesNotRecurse() && F.hasInternalLinkage())
+      
+      if (Function &F = SCC.begin()->getFunction(); !F.isDeclaration() && !F.doesNotRecurse() && F.hasInternalLinkage())
         Worklist.push_back(&F);
     }
   }
@@ -2436,9 +2436,9 @@ static bool deduceFunctionAttributeInRPO(Module &M, LazyCallGraph &CG) {
 
 PreservedAnalyses
 ReversePostOrderFunctionAttrsPass::run(Module &M, ModuleAnalysisManager &AM) {
-  auto &CG = AM.getResult<LazyCallGraphAnalysis>(M);
+  
 
-  if (!deduceFunctionAttributeInRPO(M, CG))
+  if (auto &CG = AM.getResult<LazyCallGraphAnalysis>(M); !deduceFunctionAttributeInRPO(M, CG))
     return PreservedAnalyses::all();
 
   PreservedAnalyses PA;

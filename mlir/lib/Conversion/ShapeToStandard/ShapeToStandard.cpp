@@ -700,8 +700,8 @@ void ConvertShapeToStandardPass::runOnOperation() {
   populateShapeToStandardConversionPatterns(patterns);
 
   // Apply conversion.
-  auto module = getOperation();
-  if (failed(applyPartialConversion(module, target, std::move(patterns))))
+  
+  if (auto module = getOperation(); failed(applyPartialConversion(module, target, std::move(patterns))))
     signalPassFailure();
 }
 

@@ -478,9 +478,9 @@ bool RegAllocFastImpl::isPhysRegFree(MCRegister PhysReg) const {
 /// stack.
 int RegAllocFastImpl::getStackSpaceFor(Register VirtReg) {
   // Find the location Reg would belong...
-  int SS = StackSlotForVirtReg[VirtReg];
+  
   // Already has space allocated?
-  if (SS != -1)
+  if (int SS = StackSlotForVirtReg[VirtReg]; SS != -1)
     return SS;
 
   // Allocate a new stack object for this spill location...
@@ -516,8 +516,8 @@ static bool dominates(InstrPosIndexes &PosIndexes, const MachineInstr &A,
 /// slot.
 bool RegAllocFastImpl::mayBeSpillFromInlineAsmBr(const MachineInstr &MI) const {
   int FI;
-  auto *MBB = MI.getParent();
-  if (MBB->isInlineAsmBrIndirectTarget() && TII->isStoreToStackSlot(MI, FI) &&
+  
+  if (auto *MBB = MI.getParent(); MBB->isInlineAsmBrIndirectTarget() && TII->isStoreToStackSlot(MI, FI) &&
       MFI->isSpillSlotObjectIndex(FI))
     for (const auto &Op : MI.operands())
       if (Op.isReg() && MBB->isLiveIn(Op.getReg()))
@@ -645,8 +645,8 @@ void RegAllocFastImpl::spill(MachineBasicBlock::iterator Before,
     // TODO We can potentially do this for list debug values as well if we know
     // how the dbg_values are getting unassigned.
     if (DBG.isNonListDebugValue()) {
-      MachineOperand &MO = DBG.getDebugOperand(0);
-      if (MO.isReg() && MO.getReg() == 0) {
+      
+      if (MachineOperand &MO = DBG.getDebugOperand(0); MO.isReg() && MO.getReg() == 0) {
         updateDbgValueForSpill(DBG, FI, 0);
       }
     }
@@ -793,8 +793,8 @@ bool RegAllocFastImpl::displacePhysReg(MachineInstr &MI, MCRegister PhysReg) {
 void RegAllocFastImpl::freePhysReg(MCRegister PhysReg) {
   LLVM_DEBUG(dbgs() << "Freeing " << printReg(PhysReg, TRI) << ':');
 
-  MCRegUnit FirstUnit = *TRI->regunits(PhysReg).begin();
-  switch (unsigned VirtReg = getRegUnitState(FirstUnit)) {
+  
+  switch (MCRegUnit FirstUnit = *TRI->regunits(PhysReg).begin(); unsigned VirtReg = getRegUnitState(FirstUnit)) {
   case regFree:
     LLVM_DEBUG(dbgs() << '\n');
     return;
@@ -1024,8 +1024,8 @@ void RegAllocFastImpl::allocVirtRegUndef(MachineOperand &MO) {
     PhysReg = LRI->PhysReg;
   } else {
     const TargetRegisterClass &RC = *MRI->getRegClass(VirtReg);
-    ArrayRef<MCPhysReg> AllocationOrder = RegClassInfo.getOrder(&RC);
-    if (AllocationOrder.empty()) {
+    
+    if (ArrayRef<MCPhysReg> AllocationOrder = RegClassInfo.getOrder(&RC); AllocationOrder.empty()) {
       // All registers in the class were reserved.
       //
       // It might be OK to take any entry from the class as this is an undef
@@ -1055,10 +1055,10 @@ bool RegAllocFastImpl::defineLiveThroughVirtReg(MachineInstr &MI,
                                                 Register VirtReg) {
   if (!shouldAllocateRegister(VirtReg))
     return false;
-  LiveRegMap::iterator LRI = findLiveVirtReg(VirtReg);
-  if (LRI != LiveVirtRegs.end()) {
-    MCPhysReg PrevReg = LRI->PhysReg;
-    if (PrevReg != 0 && isRegUsedInInstr(PrevReg, true)) {
+  
+  if (LiveRegMap::iterator LRI = findLiveVirtReg(VirtReg); LRI != LiveVirtRegs.end()) {
+    
+    if (MCPhysReg PrevReg = LRI->PhysReg; PrevReg != 0 && isRegUsedInInstr(PrevReg, true)) {
       LLVM_DEBUG(dbgs() << "Need new assignment for " << printReg(PrevReg, TRI)
                         << " (tied/earlyclobber resolution)\n");
       freePhysReg(PrevReg);
@@ -1221,8 +1221,8 @@ MCPhysReg RegAllocFastImpl::getErrorAssignment(const LiveReg &LR,
   // even if it's reserved.
   ArrayRef<MCPhysReg> AllocationOrder = RegClassInfo.getOrder(&RC);
   if (AllocationOrder.empty()) {
-    const Function &Fn = MF.getFunction();
-    if (EmitError) {
+    
+    if (const Function &Fn = MF.getFunction(); EmitError) {
       Fn.getContext().diagnose(DiagnosticInfoRegAllocFailure(
           "no registers from class available to allocate", Fn,
           MI.getDebugLoc()));
@@ -1357,9 +1357,9 @@ void RegAllocFastImpl::addRegClassDefCounts(
     const TargetRegisterClass *OpRC = MRI->getRegClass(Reg);
     for (unsigned RCIdx = 0, RCIdxEnd = TRI->getNumRegClasses();
          RCIdx != RCIdxEnd; ++RCIdx) {
-      const TargetRegisterClass *IdxRC = TRI->getRegClass(RCIdx);
+      
       // FIXME: Consider aliasing sub/super registers.
-      if (OpRC->hasSubClassEq(IdxRC))
+      if (const TargetRegisterClass *IdxRC = TRI->getRegClass(RCIdx); OpRC->hasSubClassEq(IdxRC))
         ++RegClassDefCounts[RCIdx];
     }
 
@@ -1493,8 +1493,8 @@ void RegAllocFastImpl::allocateInstruction(MachineInstr &MI) {
   bool NeedToAssignLiveThroughs = false;
   for (MachineOperand &MO : MI.operands()) {
     if (MO.isReg()) {
-      Register Reg = MO.getReg();
-      if (Reg.isVirtual()) {
+      
+      if (Register Reg = MO.getReg(); Reg.isVirtual()) {
         if (!shouldAllocateRegister(Reg))
           continue;
         if (MO.isDef()) {
@@ -1532,7 +1532,7 @@ void RegAllocFastImpl::allocateInstruction(MachineInstr &MI) {
     if (HasVRegDef) {
       // Note that Implicit MOs can get re-arranged by defineVirtReg(), so loop
       // multiple times to ensure no operand is missed.
-      bool ReArrangedImplicitOps = true;
+      
 
       // Special handling for early clobbers, tied operands or subregister defs:
       // Compared to "normal" defs these:
@@ -1540,7 +1540,7 @@ void RegAllocFastImpl::allocateInstruction(MachineInstr &MI) {
       // - In order to solve tricky inline assembly constraints we change the
       //   heuristic to figure out a good operand order before doing
       //   assignments.
-      if (NeedToAssignLiveThroughs) {
+      if (bool ReArrangedImplicitOps = true; NeedToAssignLiveThroughs) {
         while (ReArrangedImplicitOps) {
           ReArrangedImplicitOps = false;
           findAndSortDefOperandIndexes(MI);
@@ -1565,8 +1565,8 @@ void RegAllocFastImpl::allocateInstruction(MachineInstr &MI) {
         while (ReArrangedImplicitOps) {
           ReArrangedImplicitOps = false;
           for (MachineOperand &MO : MI.all_defs()) {
-            Register Reg = MO.getReg();
-            if (Reg.isVirtual()) {
+            
+            if (Register Reg = MO.getReg(); Reg.isVirtual()) {
               ReArrangedImplicitOps =
                   defineVirtReg(MI, MI.getOperandNo(&MO), Reg);
               if (ReArrangedImplicitOps)
@@ -1619,8 +1619,8 @@ void RegAllocFastImpl::allocateInstruction(MachineInstr &MI) {
 
     // Displace clobbered registers.
     for (const LiveReg &LR : LiveVirtRegs) {
-      MCPhysReg PhysReg = LR.PhysReg;
-      if (PhysReg != 0 && isClobberedByRegMasks(PhysReg))
+      
+      if (MCPhysReg PhysReg = LR.PhysReg; PhysReg != 0 && isClobberedByRegMasks(PhysReg))
         displacePhysReg(MI, PhysReg);
     }
   }
@@ -1888,8 +1888,8 @@ PreservedAnalyses RegAllocFastPass::run(MachineFunction &MF,
                                         MachineFunctionAnalysisManager &) {
   MFPropsModifier _(*this, MF);
   RegAllocFastImpl Impl(Opts.Filter, Opts.ClearVRegs);
-  bool Changed = Impl.runOnMachineFunction(MF);
-  if (!Changed)
+  
+  if (bool Changed = Impl.runOnMachineFunction(MF); !Changed)
     return PreservedAnalyses::all();
   auto PA = getMachineFunctionPassPreservedAnalyses();
   PA.preserveSet<CFGAnalyses>();

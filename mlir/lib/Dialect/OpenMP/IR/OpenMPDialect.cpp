@@ -556,8 +556,8 @@ verifyScheduleModifiers(OpAsmParser &parser,
   for (const auto &mod : modifiers) {
     // Translate the string. If it has no value, then it was not a valid
     // modifier!
-    auto symbol = symbolizeScheduleModifier(mod);
-    if (!symbol)
+    
+    if (auto symbol = symbolizeScheduleModifier(mod); !symbol)
       return parser.emitError(parser.getNameLoc())
              << " unknown modifier type: " << mod;
   }
@@ -2295,8 +2295,8 @@ findCapturedOmpOp(Operation *rootOp, bool checkSingleMandatoryExec,
     // because these will only be checked if they are siblings of an omp
     // operation that can potentially be captured.
     bool isOmpDialect = op->getDialect() == ompDialect;
-    bool hasRegions = op->getNumRegions() > 0;
-    if (!isOmpDialect || !hasRegions)
+    
+    if (bool hasRegions = op->getNumRegions() > 0; !isOmpDialect || !hasRegions)
       return WalkResult::skip();
 
     // This operation cannot be captured if it can be executed more than once
@@ -2635,8 +2635,8 @@ LogicalResult TeamsOp::verify() {
   // contain any statements, declarations or directives other than this
   // omp.teams construct. The issue is how to support the initialization of
   // this operation's own arguments (allow SSA values across omp.target?).
-  Operation *op = getOperation();
-  if (!isa<TargetOp>(op->getParentOp()) &&
+  
+  if (Operation *op = getOperation(); !isa<TargetOp>(op->getParentOp()) &&
       !opInGlobalImplicitParallelRegion(op))
     return emitError("expected to be nested inside of omp.target or not nested "
                      "in any OpenMP dialect operations");
@@ -2987,8 +2987,8 @@ LogicalResult DistributeOp::verifyRegions() {
     // Check for the allowed leaf constructs that may appear in a composite
     // construct directly after DISTRIBUTE.
     if (isa<WsloopOp>(nested)) {
-      Operation *parentOp = (*this)->getParentOp();
-      if (!llvm::dyn_cast_if_present<ParallelOp>(parentOp) ||
+      
+      if (Operation *parentOp = (*this)->getParentOp(); !llvm::dyn_cast_if_present<ParallelOp>(parentOp) ||
           !cast<ComposableOpInterface>(parentOp).isComposite()) {
         return emitError() << "an 'omp.wsloop' nested wrapper is only allowed "
                               "when a composite 'omp.parallel' is the direct "
@@ -3385,8 +3385,8 @@ mlir::omp ::decodeCli(Value cli) {
   for (OpOperand &use : cli.getUses()) {
     auto op = cast<LoopTransformationInterface>(use.getOwner());
 
-    unsigned opnum = use.getOperandNumber();
-    if (op.isGeneratee(opnum)) {
+    
+    if (unsigned opnum = use.getOperandNumber(); op.isGeneratee(opnum)) {
       assert(!gen && "Each CLI may have at most one def");
       gen = &use;
     } else if (op.isApplyee(opnum)) {
@@ -3466,8 +3466,8 @@ LogicalResult NewCliOp::verify() {
   for (mlir::OpOperand &use : cli.getUses()) {
     auto op = cast<mlir::omp::LoopTransformationInterface>(use.getOwner());
 
-    unsigned opnum = use.getOperandNumber();
-    if (op.isGeneratee(opnum)) {
+    
+    if (unsigned opnum = use.getOperandNumber(); op.isGeneratee(opnum)) {
       if (gen) {
         InFlightDiagnostic error =
             emitOpError("CLI must have at most one generator");
@@ -3593,8 +3593,8 @@ LogicalResult CanonicalLoopOp::verify() {
   // The region's entry must accept the induction variable
   // It can also be empty if just created
   if (!getRegion().empty()) {
-    Region &region = getRegion();
-    if (region.getNumArguments() != 1)
+    
+    if (Region &region = getRegion(); region.getNumArguments() != 1)
       return emitOpError(
           "Canonical loop region must have exactly one argument");
 
@@ -3821,9 +3821,9 @@ LogicalResult CriticalDeclareOp::verify() {
 LogicalResult CriticalOp::verifySymbolUses(SymbolTableCollection &symbolTable) {
   if (getNameAttr()) {
     SymbolRefAttr symbolRef = getNameAttr();
-    auto decl = symbolTable.lookupNearestSymbolFrom<CriticalDeclareOp>(
-        *this, symbolRef);
-    if (!decl) {
+    
+    if (auto decl = symbolTable.lookupNearestSymbolFrom<CriticalDeclareOp>(
+        *this, symbolRef); !decl) {
       return emitOpError() << "expected symbol reference " << symbolRef
                            << " to point to a critical declaration";
     }
@@ -4219,8 +4219,8 @@ LogicalResult PrivateClauseOp::verifyRegions() {
         return emitError() << "Region argument type mismatch: got " << ty
                            << " expected " << argType << ".";
 
-  mlir::Region &initRegion = getInitRegion();
-  if (!initRegion.empty() &&
+  
+  if (mlir::Region &initRegion = getInitRegion(); !initRegion.empty() &&
       failed(verifyRegion(getInitRegion(), /*expectedNumArgs=*/2, "init",
                           /*yieldsValue=*/true)))
     return failure();

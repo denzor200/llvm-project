@@ -29,8 +29,8 @@ protected:
     // Compute the ProxResIdx of ports uses in tests.
     const auto &SM = STI.getSchedModel();
     for (unsigned I = 0, E = SM.getNumProcResourceKinds(); I < E; ++I) {
-      const std::string Name = SM.getProcResource(I)->Name;
-      if (Name == "HWPort0") {
+      
+      if (const std::string Name = SM.getProcResource(I)->Name; Name == "HWPort0") {
         P0Idx = I;
       } else if (Name == "HWPort1") {
         P1Idx = I;

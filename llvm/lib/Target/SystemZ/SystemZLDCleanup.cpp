@@ -66,8 +66,8 @@ bool SystemZLDCleanup::runOnMachineFunction(MachineFunction &F) {
   TII = F.getSubtarget<SystemZSubtarget>().getInstrInfo();
   MF = &F;
 
-  SystemZMachineFunctionInfo* MFI = F.getInfo<SystemZMachineFunctionInfo>();
-  if (MFI->getNumLocalDynamicTLSAccesses() < 2) {
+  
+  if (SystemZMachineFunctionInfo* MFI = F.getInfo<SystemZMachineFunctionInfo>(); MFI->getNumLocalDynamicTLSAccesses() < 2) {
     // No point folding accesses if there isn't at least two.
     return false;
   }

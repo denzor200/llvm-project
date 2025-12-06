@@ -579,8 +579,8 @@ void Preprocessor::EnterMainSourceFile() {
       auto Tracer = std::make_unique<NoTrivialPPDirectiveTracer>(*this);
       DirTracer = Tracer.get();
       addPPCallbacks(std::move(Tracer));
-      std::optional<Token> FirstPPTok = CurLexer->peekNextPPToken();
-      if (FirstPPTok)
+      
+      if (std::optional<Token> FirstPPTok = CurLexer->peekNextPPToken(); FirstPPTok)
         FirstPPTokenLoc = FirstPPTok->getLocation();
     }
   }
@@ -723,9 +723,9 @@ IdentifierInfo *Preprocessor::LookUpIdentifierInfo(Token &Identifier) const {
   } else {
     // Cleaning needed, alloca a buffer, clean into it, then use the buffer.
     SmallString<64> IdentifierBuffer;
-    StringRef CleanedStr = getSpelling(Identifier, IdentifierBuffer);
+    
 
-    if (Identifier.hasUCN()) {
+    if (StringRef CleanedStr = getSpelling(Identifier, IdentifierBuffer); Identifier.hasUCN()) {
       SmallString<64> UCNIdentifierBuffer;
       expandUCNs(UCNIdentifierBuffer, CleanedStr);
       II = getIdentifierInfo(UCNIdentifierBuffer);
@@ -768,9 +768,9 @@ void Preprocessor::PoisonSEHIdentifiers(bool Poison) {
 void Preprocessor::HandlePoisonedIdentifier(Token & Identifier) {
   assert(Identifier.getIdentifierInfo() &&
          "Can't handle identifiers without identifier info!");
-  llvm::DenseMap<IdentifierInfo*,unsigned>::const_iterator it =
-    PoisonReasons.find(Identifier.getIdentifierInfo());
-  if(it == PoisonReasons.end())
+  
+  if(llvm::DenseMap<IdentifierInfo*,unsigned>::const_iterator it =
+    PoisonReasons.find(Identifier.getIdentifierInfo()); it == PoisonReasons.end())
     Diag(Identifier, diag::err_pp_used_poisoned_id);
   else
     Diag(Identifier,it->second) << Identifier.getIdentifierInfo();
@@ -1111,8 +1111,8 @@ bool Preprocessor::LexHeaderName(Token &FilenameTok, bool AllowMacroExpansion) {
     // A string-literal with a prefix or suffix is not translated into a
     // header-name. This could theoretically be observable via the C++20
     // context-sensitive header-name formation rules.
-    StringRef Str = getSpelling(FilenameTok, FilenameBuffer);
-    if (Str.size() >= 2 && Str.front() == '"' && Str.back() == '"')
+    
+    if (StringRef Str = getSpelling(FilenameTok, FilenameBuffer); Str.size() >= 2 && Str.front() == '"' && Str.back() == '"')
       FilenameTok.setKind(tok::header_name);
   }
 
@@ -1522,13 +1522,13 @@ bool Preprocessor::isSafeBufferOptOut(const SourceManager &SourceMgr,
   auto TestInMap = [&SourceMgr](const SafeBufferOptOutRegionsTy &Map,
                                 const SourceLocation &Loc) -> bool {
     // Try to find a region in `SafeBufferOptOutMap` where `Loc` is in:
-    auto FirstRegionEndingAfterLoc = llvm::partition_point(
+    
+
+    if (auto FirstRegionEndingAfterLoc = llvm::partition_point(
         Map, [&SourceMgr,
               &Loc](const std::pair<SourceLocation, SourceLocation> &Region) {
           return SourceMgr.isBeforeInTranslationUnit(Region.second, Loc);
-        });
-
-    if (FirstRegionEndingAfterLoc != Map.end()) {
+        }); FirstRegionEndingAfterLoc != Map.end()) {
       // To test if the start location of the found region precedes `Loc`:
       return SourceMgr.isBeforeInTranslationUnit(
           FirstRegionEndingAfterLoc->first, Loc);

@@ -95,9 +95,9 @@ std::string MakeAbsolutePath(const SourceManager &SM, StringRef Path) {
   auto Dir = SM.getFileManager().getOptionalDirectoryRef(
       llvm::sys::path::parent_path(AbsolutePath.str()));
   if (Dir) {
-    StringRef DirName = SM.getFileManager().getCanonicalName(*Dir);
+    
     // FIXME: getCanonicalName might fail to get real path on VFS.
-    if (llvm::sys::path::is_absolute(DirName)) {
+    if (StringRef DirName = SM.getFileManager().getCanonicalName(*Dir); llvm::sys::path::is_absolute(DirName)) {
       SmallString<128> AbsoluteFilename;
       llvm::sys::path::append(AbsoluteFilename, DirName,
                               llvm::sys::path::filename(AbsolutePath.str()));
@@ -228,8 +228,8 @@ public:
   explicit ClassDeclarationMatch(ClangMoveTool *MoveTool)
       : MoveTool(MoveTool) {}
   void run(const MatchFinder::MatchResult &Result) override {
-    SourceManager *SM = &Result.Context->getSourceManager();
-    if (const auto *CMD = Result.Nodes.getNodeAs<CXXMethodDecl>("class_method"))
+    
+    if (SourceManager *SM = &Result.Context->getSourceManager(); const auto *CMD = Result.Nodes.getNodeAs<CXXMethodDecl>("class_method"))
       MatchClassMethod(CMD, SM);
     else if (const auto *VD =
                  Result.Nodes.getNodeAs<VarDecl>("class_static_var_decl"))
@@ -701,8 +701,8 @@ void ClangMoveTool::addIncludes(llvm::StringRef IncludeHeader, bool IsAngled,
                : ("#include \"" + IncludeHeader + "\"\n").str();
 
   std::string AbsoluteOldHeader = makeAbsolutePath(Context->Spec.OldHeader);
-  std::string AbsoluteCurrentFile = MakeAbsolutePath(SM, FileName);
-  if (AbsoluteOldHeader == AbsoluteCurrentFile) {
+  
+  if (std::string AbsoluteCurrentFile = MakeAbsolutePath(SM, FileName); AbsoluteOldHeader == AbsoluteCurrentFile) {
     // Find old.h includes "old.h".
     if (AbsoluteOldHeader == AbsoluteIncludeHeader) {
       OldHeaderIncludeRangeInHeader = IncludeFilenameRange;
@@ -753,8 +753,8 @@ void ClangMoveTool::removeDeclsInOldFiles() {
         SM, CharSourceRange::getCharRange(Range.getBegin(), Range.getEnd()),
         "");
     std::string FilePath = RemoveReplacement.getFilePath().str();
-    auto Err = Context->FileToReplacements[FilePath].add(RemoveReplacement);
-    if (Err)
+    
+    if (auto Err = Context->FileToReplacements[FilePath].add(RemoveReplacement); Err)
       llvm::errs() << llvm::toString(std::move(Err)) << "\n";
   }
   const auto &SM = RemovedDecls[0]->getASTContext().getSourceManager();
@@ -770,9 +770,9 @@ void ClangMoveTool::removeDeclsInOldFiles() {
       std::string IncludeNewH =
           "#include \"" + Context->Spec.NewHeader + "\"\n";
       // This replacement for inserting header will be cleaned up at the end.
-      auto Err = FileAndReplacements.second.add(
-          tooling::Replacement(FilePath, UINT_MAX, 0, IncludeNewH));
-      if (Err)
+      
+      if (auto Err = FileAndReplacements.second.add(
+          tooling::Replacement(FilePath, UINT_MAX, 0, IncludeNewH)); Err)
         llvm::errs() << llvm::toString(std::move(Err)) << "\n";
     }
 
@@ -882,8 +882,8 @@ void ClangMoveTool::onEndOfTranslationUnit() {
     for (const auto *Decl : UnremovedDeclsInOldHeader) {
       auto Kind = Decl->getKind();
       bool Templated = Decl->isTemplated();
-      const std::string QualifiedName = Decl->getQualifiedNameAsString();
-      if (Kind == Decl::Kind::Var)
+      
+      if (const std::string QualifiedName = Decl->getQualifiedNameAsString(); Kind == Decl::Kind::Var)
         Reporter->reportDeclaration(QualifiedName, "Variable", Templated);
       else if (Kind == Decl::Kind::Function ||
                Kind == Decl::Kind::FunctionTemplate)

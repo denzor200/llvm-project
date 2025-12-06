@@ -27,8 +27,8 @@ std::string m68k::getM68kTargetCPU(const ArgList &Args) {
     StringRef CPUName = A->getValue();
 
     if (CPUName == "native") {
-      std::string CPU = std::string(llvm::sys::getHostCPUName());
-      if (!CPU.empty() && CPU != "generic")
+      
+      if (std::string CPU = std::string(llvm::sys::getHostCPUName()); !CPU.empty() && CPU != "generic")
         return CPU;
     }
 

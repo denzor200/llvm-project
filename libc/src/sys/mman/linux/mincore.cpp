@@ -17,9 +17,9 @@
 namespace LIBC_NAMESPACE_DECL {
 
 LLVM_LIBC_FUNCTION(int, mincore, (void *addr, size_t len, unsigned char *vec)) {
-  long ret = syscall_impl(SYS_mincore, reinterpret_cast<long>(addr), len,
-                          reinterpret_cast<long>(vec));
-  if (ret < 0) {
+  
+  if (long ret = syscall_impl(SYS_mincore, reinterpret_cast<long>(addr), len,
+                          reinterpret_cast<long>(vec)); ret < 0) {
     libc_errno = static_cast<int>(-ret);
     return -1;
   }

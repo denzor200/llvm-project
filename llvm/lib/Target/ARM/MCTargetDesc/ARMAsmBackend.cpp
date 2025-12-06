@@ -182,9 +182,9 @@ MCFixupKindInfo ARMAsmBackend::getFixupKindInfo(MCFixupKind Kind) const {
 unsigned ARMAsmBackend::getRelaxedOpcode(unsigned Op,
                                          const MCSubtargetInfo &STI) const {
   bool HasThumb2 = STI.hasFeature(ARM::FeatureThumb2);
-  bool HasV8MBaselineOps = STI.hasFeature(ARM::HasV8MBaselineOps);
+  
 
-  switch (Op) {
+  switch (bool HasV8MBaselineOps = STI.hasFeature(ARM::HasV8MBaselineOps); Op) {
   default:
     return Op;
   case ARM::tBcc:
@@ -208,8 +208,8 @@ bool ARMAsmBackend::mayNeedRelaxation(unsigned Opcode, ArrayRef<MCOperand>,
 }
 
 static const char *checkPCRelOffset(uint64_t Value, int64_t Min, int64_t Max) {
-  int64_t Offset = int64_t(Value) - 4;
-  if (Offset < Min || Offset > Max)
+  
+  if (int64_t Offset = int64_t(Value) - 4; Offset < Min || Offset > Max)
     return "out of range pc-relative fixup value";
   return nullptr;
 }
@@ -224,8 +224,8 @@ const char *ARMAsmBackend::reasonForFixupRelaxation(const MCFixup &Fixup,
     // encodable.
     //
     // Relax if the value is too big for a (signed) i8.
-    int64_t Offset = int64_t(Value) - 4;
-    if (Offset > 2046 || Offset < -2048)
+    
+    if (int64_t Offset = int64_t(Value) - 4; Offset > 2046 || Offset < -2048)
       return "out of range pc-relative fixup value";
     break;
   }
@@ -236,8 +236,8 @@ const char *ARMAsmBackend::reasonForFixupRelaxation(const MCFixup &Fixup,
     // encodable.
     //
     // Relax if the value is too big for a (signed) i8.
-    int64_t Offset = int64_t(Value) - 4;
-    if (Offset > 254 || Offset < -256)
+    
+    if (int64_t Offset = int64_t(Value) - 4; Offset > 254 || Offset < -256)
       return "out of range pc-relative fixup value";
     break;
   }
@@ -245,8 +245,8 @@ const char *ARMAsmBackend::reasonForFixupRelaxation(const MCFixup &Fixup,
   case ARM::fixup_arm_thumb_cp: {
     // If the immediate is negative, greater than 1020, or not a multiple
     // of four, the wide version of the instruction must be used.
-    int64_t Offset = int64_t(Value) - 4;
-    if (Offset & 3)
+    
+    if (int64_t Offset = int64_t(Value) - 4; Offset & 3)
       return "misaligned pc-relative fixup value";
     else if (Offset > 1020 || Offset < 0)
       return "out of range pc-relative fixup value";
@@ -256,8 +256,8 @@ const char *ARMAsmBackend::reasonForFixupRelaxation(const MCFixup &Fixup,
     // If we have a Thumb CBZ or CBNZ instruction and its target is the next
     // instruction it is actually out of range for the instruction.
     // It will be changed to a NOP.
-    int64_t Offset = (Value & ~1);
-    if (Offset == 2)
+    
+    if (int64_t Offset = (Value & ~1); Offset == 2)
       return "will be converted to nop";
     break;
   }
@@ -299,8 +299,8 @@ static bool needsInterworking(const MCAssembler &Asm, const MCSymbol *Sym,
   // different execution mode in ELF binaries.
   if (!Sym || !Asm.getContext().isELF())
     return false;
-  unsigned Type = static_cast<const MCSymbolELF *>(Sym)->getType();
-  if ((Type == ELF::STT_FUNC || Type == ELF::STT_GNU_IFUNC)) {
+  
+  if (unsigned Type = static_cast<const MCSymbolELF *>(Sym)->getType(); (Type == ELF::STT_FUNC || Type == ELF::STT_GNU_IFUNC)) {
     if (Asm.isThumbFunc(Sym) && (FixupKind == ARM::fixup_arm_uncondbranch))
       return true;
     if (!Asm.isThumbFunc(Sym) && (FixupKind == ARM::fixup_arm_thumb_br ||
@@ -317,8 +317,8 @@ bool ARMAsmBackend::fixupNeedsRelaxationAdvanced(const MCFragment &,
                                                  const MCValue &Target,
                                                  uint64_t Value,
                                                  bool Resolved) const {
-  const MCSymbol *Sym = Target.getAddSym();
-  if (needsInterworking(*Asm, Sym, Fixup.getKind()))
+  
+  if (const MCSymbol *Sym = Target.getAddSym(); needsInterworking(*Asm, Sym, Fixup.getKind()))
     return true;
 
   if (!Resolved)
@@ -422,11 +422,11 @@ unsigned ARMAsmBackend::adjustFixupValue(const MCAssembler &Asm,
                                          bool IsResolved, MCContext &Ctx,
                                          const MCSubtargetInfo* STI) const {
   unsigned Kind = Fixup.getKind();
-  int64_t Addend = Target.getConstant();
+  
 
   // For MOVW/MOVT Instructions, the fixup value must already be within a
   // signed 16bit range.
-  if ((Kind == ARM::fixup_arm_movw_lo16 || Kind == ARM::fixup_arm_movt_hi16 ||
+  if (int64_t Addend = Target.getConstant(); (Kind == ARM::fixup_arm_movw_lo16 || Kind == ARM::fixup_arm_movt_hi16 ||
        Kind == ARM::fixup_t2_movw_lo16 || Kind == ARM::fixup_t2_movt_hi16) &&
       !IsResolved && (Addend < minIntN(16) || Addend > maxIntN(16))) {
     Ctx.reportError(Fixup.getLoc(), "Relocation Not In Range");
@@ -734,8 +734,8 @@ unsigned ARMAsmBackend::adjustFixupValue(const MCAssembler &Asm,
     // could have an error on our hands.
     assert(STI != nullptr);
     if (!STI->hasFeature(ARM::FeatureThumb2) && IsResolved) {
-      const char *FixupDiagnostic = reasonForFixupRelaxation(Fixup, Value);
-      if (FixupDiagnostic) {
+      
+      if (const char *FixupDiagnostic = reasonForFixupRelaxation(Fixup, Value); FixupDiagnostic) {
         Ctx.reportError(Fixup.getLoc(), FixupDiagnostic);
         return 0;
       }
@@ -760,8 +760,8 @@ unsigned ARMAsmBackend::adjustFixupValue(const MCAssembler &Asm,
     assert(STI != nullptr);
     if (!STI->hasFeature(ARM::FeatureThumb2) &&
         !STI->hasFeature(ARM::HasV8MBaselineOps)) {
-      const char *FixupDiagnostic = reasonForFixupRelaxation(Fixup, Value);
-      if (FixupDiagnostic) {
+      
+      if (const char *FixupDiagnostic = reasonForFixupRelaxation(Fixup, Value); FixupDiagnostic) {
         Ctx.reportError(Fixup.getLoc(), FixupDiagnostic);
         return 0;
       }
@@ -771,8 +771,8 @@ unsigned ARMAsmBackend::adjustFixupValue(const MCAssembler &Asm,
     // Offset by 4 and don't encode the lower bit, which is always 0.
     assert(STI != nullptr);
     if (!STI->hasFeature(ARM::FeatureThumb2)) {
-      const char *FixupDiagnostic = reasonForFixupRelaxation(Fixup, Value);
-      if (FixupDiagnostic) {
+      
+      if (const char *FixupDiagnostic = reasonForFixupRelaxation(Fixup, Value); FixupDiagnostic) {
         Ctx.reportError(Fixup.getLoc(), FixupDiagnostic);
         return 0;
       }
@@ -877,8 +877,8 @@ unsigned ARMAsmBackend::adjustFixupValue(const MCAssembler &Asm,
     return swapHalfWords(EncValue, Endian == llvm::endianness::little);
   }
   case ARM::fixup_bf_branch: {
-    const char *FixupDiagnostic = reasonForFixupRelaxation(Fixup, Value);
-    if (FixupDiagnostic) {
+    
+    if (const char *FixupDiagnostic = reasonForFixupRelaxation(Fixup, Value); FixupDiagnostic) {
       Ctx.reportError(Fixup.getLoc(), FixupDiagnostic);
       return 0;
     }
@@ -888,8 +888,8 @@ unsigned ARMAsmBackend::adjustFixupValue(const MCAssembler &Asm,
   case ARM::fixup_bf_target:
   case ARM::fixup_bfl_target:
   case ARM::fixup_bfc_target: {
-    const char *FixupDiagnostic = reasonForFixupRelaxation(Fixup, Value);
-    if (FixupDiagnostic) {
+    
+    if (const char *FixupDiagnostic = reasonForFixupRelaxation(Fixup, Value); FixupDiagnostic) {
       Ctx.reportError(Fixup.getLoc(), FixupDiagnostic);
       return 0;
     }
@@ -907,8 +907,8 @@ unsigned ARMAsmBackend::adjustFixupValue(const MCAssembler &Asm,
     // and the instruction after that same branch.
     Value = Target.getConstant();
 
-    const char *FixupDiagnostic = reasonForFixupRelaxation(Fixup, Value);
-    if (FixupDiagnostic) {
+    
+    if (const char *FixupDiagnostic = reasonForFixupRelaxation(Fixup, Value); FixupDiagnostic) {
       Ctx.reportError(Fixup.getLoc(), FixupDiagnostic);
       return 0;
     }
@@ -917,8 +917,8 @@ unsigned ARMAsmBackend::adjustFixupValue(const MCAssembler &Asm,
   }
   case ARM::fixup_wls:
   case ARM::fixup_le: {
-    const char *FixupDiagnostic = reasonForFixupRelaxation(Fixup, Value);
-    if (FixupDiagnostic) {
+    
+    if (const char *FixupDiagnostic = reasonForFixupRelaxation(Fixup, Value); FixupDiagnostic) {
       Ctx.reportError(Fixup.getLoc(), FixupDiagnostic);
       return 0;
     }
@@ -1190,8 +1190,8 @@ uint64_t ARMAsmBackendDarwin::generateCompactUnwindEncoding(
   int FloatRegCount = 0;
   // Process each .cfi directive and build up compact unwind info.
   for (const MCCFIInstruction &Inst : Instrs) {
-    MCRegister Reg;
-    switch (Inst.getOperation()) {
+    
+    switch (MCRegister Reg; Inst.getOperation()) {
     case MCCFIInstruction::OpDefCfa: // DW_CFA_def_cfa
       CFARegisterOffset = Inst.getOffset();
       CFARegister = *MRI.getLLVMRegNum(Inst.getRegister(), true);
@@ -1359,8 +1359,8 @@ static MCAsmBackend *createARMAsmBackend(const Target &T,
                                          const MCRegisterInfo &MRI,
                                          const MCTargetOptions &Options,
                                          llvm::endianness Endian) {
-  const Triple &TheTriple = STI.getTargetTriple();
-  switch (TheTriple.getObjectFormat()) {
+  
+  switch (const Triple &TheTriple = STI.getTargetTriple(); TheTriple.getObjectFormat()) {
   default:
     llvm_unreachable("unsupported object format");
   case Triple::MachO:

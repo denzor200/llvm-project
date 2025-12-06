@@ -65,8 +65,8 @@ void MCSymbolELF::setBinding(unsigned Binding) const {
 
 unsigned MCSymbolELF::getBinding() const {
   if (isBindingSet()) {
-    uint32_t Val = (Flags >> ELF_STB_Shift) & 3;
-    switch (Val) {
+    
+    switch (uint32_t Val = (Flags >> ELF_STB_Shift) & 3; Val) {
     default:
       llvm_unreachable("Invalid value");
     case 0:
@@ -121,8 +121,8 @@ void MCSymbolELF::setType(unsigned Type) const {
 }
 
 unsigned MCSymbolELF::getType() const {
-  uint32_t Val = (Flags >> ELF_STT_Shift) & 7;
-  switch (Val) {
+  
+  switch (uint32_t Val = (Flags >> ELF_STT_Shift) & 7; Val) {
   default:
     llvm_unreachable("Invalid value");
   case 0:
@@ -200,8 +200,8 @@ bool MCSymbolELF::isMemtag() const {
 }
 
 void MCSymbolELF::setMemtag(bool Tagged) {
-  uint32_t OtherFlags = getFlags() & ~(1 << ELF_IsMemoryTagged_Shift);
-  if (Tagged)
+  
+  if (uint32_t OtherFlags = getFlags() & ~(1 << ELF_IsMemoryTagged_Shift); Tagged)
     setFlags(OtherFlags | (1 << ELF_IsMemoryTagged_Shift));
   else
     setFlags(OtherFlags);

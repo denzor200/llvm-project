@@ -129,9 +129,9 @@ QuasiPolynomial QuasiPolynomial::simplify() {
     newAffineTerm = {};
     newCoeff = coefficients[i];
     for (ArrayRef<Fraction> term : affine[i]) {
-      bool allCoeffsZero = llvm::all_of(
-          term.slice(0, numParam), [](const Fraction &c) { return c == 0; });
-      if (allCoeffsZero)
+      
+      if (bool allCoeffsZero = llvm::all_of(
+          term.slice(0, numParam), [](const Fraction &c) { return c == 0; }); allCoeffsZero)
         newCoeff *= term[numParam];
       else
         newAffineTerm.emplace_back(term);

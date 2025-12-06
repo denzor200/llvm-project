@@ -1122,9 +1122,9 @@ bool ABISysV_hexagon::PrepareTrivialCall(
   // pass arguments that are passed via registers
   for (int i = 0; i < nRegArgs; i++) {
     // get the parameter as a u32
-    uint32_t param = (uint32_t)args[i].value;
+    
     // write argument into register
-    if (!reg_ctx->WriteRegisterFromUnsigned(i, param))
+    if (uint32_t param = (uint32_t)args[i].value; !reg_ctx->WriteRegisterFromUnsigned(i, param))
       return false;
   }
 

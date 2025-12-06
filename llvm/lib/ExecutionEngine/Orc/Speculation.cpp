@@ -82,9 +82,9 @@ void IRSpeculationLayer::emit(std::unique_ptr<MaterializationResponsibility> R,
     for (auto &Fn : M.getFunctionList()) {
       if (!Fn.isDeclaration()) {
 
-        auto IRNames = QueryAnalysis(Fn);
+        
         // Instrument and register if Query has result
-        if (IRNames) {
+        if (auto IRNames = QueryAnalysis(Fn); IRNames) {
 
           // Emit globals for each function.
           auto LoadValueTy = Type::getInt8Ty(MContext);

@@ -394,9 +394,9 @@ static void saveFilteredNewMIBNodes(std::vector<Metadata *> &NewMIBNodes,
   // longer overlapping contexts;
   bool KeepFirstNewNotCold = !LongerNotColdContextKept;
   auto NewColdMIBNodes = make_filter_range(NewMIBNodes, [&](const Metadata *M) {
-    auto MIBMD = cast<MDNode>(M);
+    
     // Only keep cold contexts and first (longest non-cold context).
-    if (getMIBAllocType(MIBMD) != AllocationType::Cold) {
+    if (auto MIBMD = cast<MDNode>(M); getMIBAllocType(MIBMD) != AllocationType::Cold) {
       MDNode *StackMD = getMIBStackNode(MIBMD);
       assert(StackMD);
       // Keep any already kept for longer contexts.

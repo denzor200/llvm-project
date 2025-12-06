@@ -76,8 +76,8 @@ bool llvm::checkVOPDRegConstraints(const SIInstrInfo &TII,
 
   auto getVRegIdx = [&](unsigned OpcodeIdx, unsigned OperandIdx) {
     const MachineInstr &MI = (OpcodeIdx == VOPD::X) ? FirstMI : SecondMI;
-    const MachineOperand &Operand = MI.getOperand(OperandIdx);
-    if (Operand.isReg() && TRI->isVectorRegister(MRI, Operand.getReg()))
+    
+    if (const MachineOperand &Operand = MI.getOperand(OperandIdx); Operand.isReg() && TRI->isVectorRegister(MRI, Operand.getReg()))
       return Operand.getReg();
     return Register();
   };
@@ -88,8 +88,8 @@ bool llvm::checkVOPDRegConstraints(const SIInstrInfo &TII,
   for (auto CompIdx : VOPD::COMPONENTS) {
     const MachineInstr &MI = (CompIdx == VOPD::X) ? FirstMI : SecondMI;
 
-    const MachineOperand &Src0 = *TII.getNamedOperand(MI, AMDGPU::OpName::src0);
-    if (Src0.isReg()) {
+    
+    if (const MachineOperand &Src0 = *TII.getNamedOperand(MI, AMDGPU::OpName::src0); Src0.isReg()) {
       if (!TRI->isVectorRegister(MRI, Src0.getReg())) {
         if (!is_contained(UniqueScalarRegs, Src0.getReg()))
           UniqueScalarRegs.push_back(Src0.getReg());
@@ -138,8 +138,8 @@ bool llvm::checkVOPDRegConstraints(const SIInstrInfo &TII,
       for (auto OpName :
            {AMDGPU::OpName::src0_modifiers, AMDGPU::OpName::src1_modifiers,
             AMDGPU::OpName::src2_modifiers}) {
-        const MachineOperand *Mods = TII.getNamedOperand(MI, OpName);
-        if (Mods && (Mods->getImm() & ~SISrcMods::NEG))
+        
+        if (const MachineOperand *Mods = TII.getNamedOperand(MI, OpName); Mods && (Mods->getImm() & ~SISrcMods::NEG))
           return false;
       }
     }
@@ -164,15 +164,15 @@ bool llvm::checkVOPDRegConstraints(const SIInstrInfo &TII,
   if (IsVOPD3) {
     // BITOP3 can be converted to DUAL_BITOP2 only if src2 is zero.
     if (AMDGPU::hasNamedOperand(SecondMI.getOpcode(), AMDGPU::OpName::bitop3)) {
-      const MachineOperand &Src2 =
-          *TII.getNamedOperand(SecondMI, AMDGPU::OpName::src2);
-      if (!Src2.isImm() || Src2.getImm())
+      
+      if (const MachineOperand &Src2 =
+          *TII.getNamedOperand(SecondMI, AMDGPU::OpName::src2); !Src2.isImm() || Src2.getImm())
         return false;
     }
     if (AMDGPU::hasNamedOperand(FirstMI.getOpcode(), AMDGPU::OpName::bitop3)) {
-      const MachineOperand &Src2 =
-          *TII.getNamedOperand(FirstMI, AMDGPU::OpName::src2);
-      if (!Src2.isImm() || Src2.getImm())
+      
+      if (const MachineOperand &Src2 =
+          *TII.getNamedOperand(FirstMI, AMDGPU::OpName::src2); !Src2.isImm() || Src2.getImm())
         return false;
     }
   }
@@ -245,8 +245,8 @@ struct VOPDPairingMutation : ScheduleDAGMutation {
       for (JSUI = ISUI + 1; JSUI != DAG->SUnits.end(); ++JSUI) {
         if (JSUI->isBoundaryNode())
           continue;
-        const MachineInstr *JMI = JSUI->getInstr();
-        if (!hasLessThanNumFused(*JSUI, 2) ||
+        
+        if (const MachineInstr *JMI = JSUI->getInstr(); !hasLessThanNumFused(*JSUI, 2) ||
             !shouldScheduleAdjacent(TII, ST, IMI, *JMI))
           continue;
         if (fuseInstructionPair(*DAG, *ISUI, *JSUI))

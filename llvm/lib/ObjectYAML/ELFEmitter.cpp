@@ -806,8 +806,8 @@ void ELFState<ELFT>::initSectionHeaders(std::vector<Elf_Shdr> &SHeaders,
       SHeader.sh_link = toSectionIndex(*Sec->Link, Sec->Name);
     } else {
       StringRef LinkSec = getDefaultLinkSec(Sec->Type);
-      unsigned Link = 0;
-      if (!LinkSec.empty() && !ExcludedSectionHeaders.count(LinkSec) &&
+      
+      if (unsigned Link = 0; !LinkSec.empty() && !ExcludedSectionHeaders.count(LinkSec) &&
           SN2I.lookup(LinkSec, Link))
         SHeader.sh_link = Link;
     }
@@ -995,9 +995,9 @@ void ELFState<ELFT>::initSymtabSectionHeader(Elf_Shdr &SHeader,
   ELFYAML::RawContentSection *RawSec =
       dyn_cast_or_null<ELFYAML::RawContentSection>(YAMLSec);
   if (RawSec && (RawSec->Content || RawSec->Size)) {
-    bool HasSymbolsDescription =
-        (IsStatic && Doc.Symbols) || (!IsStatic && Doc.DynamicSymbols);
-    if (HasSymbolsDescription) {
+    
+    if (bool HasSymbolsDescription =
+        (IsStatic && Doc.Symbols) || (!IsStatic && Doc.DynamicSymbols); HasSymbolsDescription) {
       StringRef Property = (IsStatic ? "`Symbols`" : "`DynamicSymbols`");
       if (RawSec->Content)
         reportError("cannot specify both `Content` and " + Property +
@@ -1235,9 +1235,9 @@ void ELFState<ELFT>::setProgramHeaderLayout(std::vector<Elf_Phdr> &PHeaders,
 bool llvm::ELFYAML::shouldAllocateFileSpace(
     ArrayRef<ELFYAML::ProgramHeader> Phdrs, const ELFYAML::NoBitsSection &S) {
   for (const ELFYAML::ProgramHeader &PH : Phdrs) {
-    auto It = llvm::find_if(
-        PH.Chunks, [&](ELFYAML::Chunk *C) { return C->Name == S.Name; });
-    if (std::any_of(It, PH.Chunks.end(), [](ELFYAML::Chunk *C) {
+    
+    if (auto It = llvm::find_if(
+        PH.Chunks, [&](ELFYAML::Chunk *C) { return C->Name == S.Name; }); std::any_of(It, PH.Chunks.end(), [](ELFYAML::Chunk *C) {
           return (isa<ELFYAML::Fill>(C) ||
                   cast<ELFYAML::Section>(C)->Type != ELF::SHT_NOBITS);
         }))
@@ -1305,9 +1305,9 @@ void ELFState<ELFT>::writeSectionContent(
                      Shift);
   for (const ELFYAML::Relocation &Rel : *Section.Relocations) {
     const bool IsDynamic = Section.Link && (*Section.Link == ".dynsym");
-    uint32_t CurSymIdx =
-        Rel.Symbol ? toSymbolIndex(*Rel.Symbol, Section.Name, IsDynamic) : 0;
-    if (IsCrel) {
+    
+    if (uint32_t CurSymIdx =
+        Rel.Symbol ? toSymbolIndex(*Rel.Symbol, Section.Name, IsDynamic) : 0; IsCrel) {
       // The delta offset and flags member may be larger than uint64_t. Special
       // case the first byte (3 flag bits and 4 offset bits). Other ULEB128
       // bytes encode the remaining delta offset bits.
@@ -2028,8 +2028,8 @@ template <class ELFT> void ELFState<ELFT>::buildSectionIndex() {
   for (const ELFYAML::Section *S : Sections) {
     ++SecNdx;
 
-    size_t Index = ReorderMap.empty() ? SecNdx : ReorderMap.lookup(S->Name);
-    if (!SN2I.addName(S->Name, Index))
+    
+    if (size_t Index = ReorderMap.empty() ? SecNdx : ReorderMap.lookup(S->Name); !SN2I.addName(S->Name, Index))
       llvm_unreachable("buildSectionIndex() failed");
 
     if (!ExcludedSectionHeaders.count(S->Name))
@@ -2040,8 +2040,8 @@ template <class ELFT> void ELFState<ELFT>::buildSectionIndex() {
 template <class ELFT> void ELFState<ELFT>::buildSymbolIndexes() {
   auto Build = [this](ArrayRef<ELFYAML::Symbol> V, NameToIdxMap &Map) {
     for (size_t I = 0, S = V.size(); I < S; ++I) {
-      const ELFYAML::Symbol &Sym = V[I];
-      if (!Sym.Name.empty() && !Map.addName(Sym.Name, I + 1))
+      
+      if (const ELFYAML::Symbol &Sym = V[I]; !Sym.Name.empty() && !Map.addName(Sym.Name, I + 1))
         reportError("repeated symbol name: '" + Sym.Name + "'");
     }
   };

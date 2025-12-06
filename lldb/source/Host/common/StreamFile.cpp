@@ -34,8 +34,8 @@ StreamFile::StreamFile(FILE *fh, bool transfer_ownership) : Stream() {
 StreamFile::StreamFile(const char *path, File::OpenOptions options,
                        uint32_t permissions)
     : Stream() {
-  auto file = FileSystem::Instance().Open(FileSpec(path), options, permissions);
-  if (file)
+  
+  if (auto file = FileSystem::Instance().Open(FileSpec(path), options, permissions); file)
     m_file_sp = std::move(file.get());
   else {
     // TODO refactor this so the error gets popagated up instead of logged here.

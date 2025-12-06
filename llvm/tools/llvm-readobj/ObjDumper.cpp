@@ -149,9 +149,9 @@ ObjDumper::getSectionRefsByNameOrIndex(const object::ObjectFile &Obj,
 static void maybeDecompress(const object::ObjectFile &Obj,
                             StringRef SectionName, StringRef &SectionContent,
                             SmallString<0> &Out) {
-  Expected<object::Decompressor> Decompressor = object::Decompressor::create(
-      SectionName, SectionContent, Obj.isLittleEndian(), Obj.is64Bit());
-  if (!Decompressor)
+  
+  if (Expected<object::Decompressor> Decompressor = object::Decompressor::create(
+      SectionName, SectionContent, Obj.isLittleEndian(), Obj.is64Bit()); !Decompressor)
     reportWarning(Decompressor.takeError(), Obj.getFileName());
   else if (auto Err = Decompressor->resizeAndDecompress(Out))
     reportWarning(std::move(Err), Obj.getFileName());

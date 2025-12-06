@@ -188,8 +188,8 @@ void AArch64TargetWinCOFFStreamer::emitARM64WinCFIEpilogStart() {
 
 void AArch64TargetWinCOFFStreamer::emitARM64WinCFIEpilogEnd() {
   auto &S = getStreamer();
-  WinEH::FrameInfo *CurFrame = S.EnsureValidWinFrameInfo(SMLoc());
-  if (!CurFrame)
+  
+  if (WinEH::FrameInfo *CurFrame = S.EnsureValidWinFrameInfo(SMLoc()); !CurFrame)
     return;
 
   if (S.isInEpilogCFI()) {

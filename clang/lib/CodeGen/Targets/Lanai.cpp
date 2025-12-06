@@ -90,8 +90,8 @@ ABIArgInfo LanaiABIInfo::classifyArgumentType(QualType Ty,
   // Check with the C++ ABI first.
   const RecordType *RT = Ty->getAsCanonical<RecordType>();
   if (RT) {
-    CGCXXABI::RecordArgABI RAA = getRecordArgABI(RT, getCXXABI());
-    if (RAA == CGCXXABI::RAA_Indirect) {
+    
+    if (CGCXXABI::RecordArgABI RAA = getRecordArgABI(RT, getCXXABI()); RAA == CGCXXABI::RAA_Indirect) {
       return getIndirectResult(Ty, /*ByVal=*/false, State);
     } else if (RAA == CGCXXABI::RAA_DirectInMemory) {
       return getNaturalAlignIndirect(
@@ -110,8 +110,8 @@ ABIArgInfo LanaiABIInfo::classifyArgumentType(QualType Ty,
       return ABIArgInfo::getIgnore();
 
     llvm::LLVMContext &LLVMContext = getVMContext();
-    unsigned SizeInRegs = (getContext().getTypeSize(Ty) + 31) / 32;
-    if (SizeInRegs <= State.FreeRegs) {
+    
+    if (unsigned SizeInRegs = (getContext().getTypeSize(Ty) + 31) / 32; SizeInRegs <= State.FreeRegs) {
       llvm::IntegerType *Int32 = llvm::Type::getInt32Ty(LLVMContext);
       SmallVector<llvm::Type *, 3> Elements(SizeInRegs, Int32);
       llvm::Type *Result = llvm::StructType::get(LLVMContext, Elements);

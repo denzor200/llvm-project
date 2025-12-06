@@ -94,8 +94,8 @@ CFIProgram::Instruction::getOperandAsSigned(const CFIProgram &CFIP,
                              "operand index %" PRIu32 " is not valid",
                              OperandIdx);
   OperandType Type = CFIP.getOperandTypes()[Opcode][OperandIdx];
-  uint64_t Operand = Ops[OperandIdx];
-  switch (Type) {
+  
+  switch (uint64_t Operand = Ops[OperandIdx]; Type) {
   case OT_Unset:
   case OT_None:
   case OT_Expression:

@@ -227,8 +227,8 @@ void CompressInstEmitter::addDagOperandMapping(const Record *Rec,
   unsigned DAGOpNo = 0;
   unsigned OpNo = 0;
   for (const auto &Opnd : Inst.Operands) {
-    int TiedOpIdx = Opnd.getTiedRegister();
-    if (-1 != TiedOpIdx) {
+    
+    if (int TiedOpIdx = Opnd.getTiedRegister(); -1 != TiedOpIdx) {
       assert((unsigned)TiedOpIdx < OpNo);
       // Set the entry in OperandMap for the tied operand we're skipping.
       OperandMap[OpNo] = OperandMap[TiedOpIdx];
@@ -293,8 +293,8 @@ void CompressInstEmitter::addDagOperandMapping(const Record *Rec,
           continue;
 
         if (IsSourceInst) {
-          auto It = Operands.find(ArgName);
-          if (It != Operands.end()) {
+          
+          if (auto It = Operands.find(ArgName); It != Operands.end()) {
             OperandMap[OpNo].OpInfo.TiedOpIdx = It->getValue().MIOpNo;
             if (OperandMap[It->getValue().MIOpNo].OpInfo.DagRec != DI->getDef())
               PrintFatalError(Rec->getLoc(),
@@ -371,8 +371,8 @@ void CompressInstEmitter::createInstOperandMapping(
   LLVM_DEBUG(dbgs() << "  Operand mapping:\n  Source   Dest\n");
   unsigned OpNo = 0;
   for (const auto &Operand : DestInst.Operands) {
-    int TiedInstOpIdx = Operand.getTiedRegister();
-    if (TiedInstOpIdx != -1) {
+    
+    if (int TiedInstOpIdx = Operand.getTiedRegister(); TiedInstOpIdx != -1) {
       ++TiedCount;
       assert((unsigned)TiedInstOpIdx < OpNo);
       DestOperandMap[OpNo] = DestOperandMap[TiedInstOpIdx];
@@ -574,8 +574,8 @@ static void mergeCondAndCode(raw_ostream &CombinedStream, StringRef CondStr,
 
 void CompressInstEmitter::emitCompressInstEmitter(raw_ostream &OS,
                                                   EmitterType EType) {
-  const Record *AsmWriter = Target.getAsmWriter();
-  if (!AsmWriter->getValueAsInt("PassSubtarget"))
+  
+  if (const Record *AsmWriter = Target.getAsmWriter(); !AsmWriter->getValueAsInt("PassSubtarget"))
     PrintFatalError(AsmWriter->getLoc(),
                     "'PassSubtarget' is false. SubTargetInfo object is needed "
                     "for target features.");
@@ -783,18 +783,18 @@ void CompressInstEmitter::emitCompressInstEmitter(raw_ostream &OS,
         switch (DestOperandMap[OpNo].Kind) {
         case OpData::Operand: {
           unsigned OpIdx = DestOperandMap[OpNo].OpInfo.Idx;
-          const Record *DagRec = DestOperandMap[OpNo].OpInfo.DagRec;
+          
           // Check that the operand in the Source instruction fits
           // the type for the Dest instruction.
-          if (DagRec->isSubClassOf("RegisterClass") ||
+          if (const Record *DagRec = DestOperandMap[OpNo].OpInfo.DagRec; DagRec->isSubClassOf("RegisterClass") ||
               DagRec->isSubClassOf("RegisterOperand")) {
-            auto *ClassRec = DagRec->isSubClassOf("RegisterClass")
-                                 ? DagRec
-                                 : DagRec->getValueAsDef("RegClass");
+            
             // This is a register operand. Check the register class.
             // Don't check register class if this is a tied operand, it was done
             // for the operand it's tied to.
-            if (DestOperand.getTiedRegister() == -1) {
+            if (auto *ClassRec = DagRec->isSubClassOf("RegisterClass")
+                                 ? DagRec
+                                 : DagRec->getValueAsDef("RegClass"); DestOperand.getTiedRegister() == -1) {
               CondStream << CondSep << "MI.getOperand(" << OpIdx << ").isReg()";
               if (EType == EmitterType::CheckCompress)
                 CondStream << " && MI.getOperand(" << OpIdx

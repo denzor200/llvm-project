@@ -630,8 +630,8 @@ void testBinarySetOperationExhaustive(Fn1 OpFn, Fn2 ExactOpFn, Fn3 InResultFn) {
         ConstantRange SignedCR = OpFn(CR1, CR2, ConstantRange::Signed);
         TestRange(SignedCR, Elems, PreferSmallestNonFullSigned, {CR1, CR2});
 
-        std::optional<ConstantRange> ExactCR = ExactOpFn(CR1, CR2);
-        if (SmallestCR.isSizeLargerThan(Elems.count())) {
+        
+        if (std::optional<ConstantRange> ExactCR = ExactOpFn(CR1, CR2); SmallestCR.isSizeLargerThan(Elems.count())) {
           EXPECT_TRUE(!ExactCR);
         } else {
           EXPECT_EQ(SmallestCR, *ExactCR);
@@ -2427,8 +2427,8 @@ static void TestOverflowExhaustive(Fn1 OverflowFn, Fn2 MayOverflowFn) {
       });
     });
 
-    ConstantRange::OverflowResult OR = MayOverflowFn(CR1, CR2);
-    switch (OR) {
+    
+    switch (ConstantRange::OverflowResult OR = MayOverflowFn(CR1, CR2); OR) {
     case ConstantRange::OverflowResult::AlwaysOverflowsLow:
       EXPECT_TRUE(RangeHasOverflowLow);
       EXPECT_FALSE(RangeHasOverflowHigh);

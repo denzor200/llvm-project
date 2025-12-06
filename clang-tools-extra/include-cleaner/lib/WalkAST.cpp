@@ -365,10 +365,10 @@ public:
   }
 
   bool TraverseTemplateArgumentLoc(const TemplateArgumentLoc &TL) {
-    auto &Arg = TL.getArgument();
+    
     // Template-template parameters require special attention, as there's no
     // TemplateNameLoc.
-    if (Arg.getKind() == TemplateArgument::Template ||
+    if (auto &Arg = TL.getArgument(); Arg.getKind() == TemplateArgument::Template ||
         Arg.getKind() == TemplateArgument::TemplateExpansion) {
       report(TL.getLocation(),
              resolveTemplateName(Arg.getAsTemplateOrTemplatePattern()));

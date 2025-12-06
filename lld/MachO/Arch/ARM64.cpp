@@ -125,9 +125,9 @@ void ARM64::writeObjCMsgSendStub(uint8_t *buf, Symbol *sym, uint64_t stubsAddr,
                                  Symbol *objcMsgSend) const {
   uint64_t objcMsgSendAddr;
   uint64_t objcStubSize;
-  uint64_t objcMsgSendIndex;
+  
 
-  if (config->objcStubsMode == ObjCStubsMode::fast) {
+  if (uint64_t objcMsgSendIndex; config->objcStubsMode == ObjCStubsMode::fast) {
     objcStubSize = target->objcStubsFastSize;
     objcMsgSendAddr = in.got->addr;
     objcMsgSendIndex = objcMsgSend->gotIndex;

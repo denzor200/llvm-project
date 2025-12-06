@@ -3938,8 +3938,8 @@ extern int kmp_set_thread_affinity_mask_initial(void);
 #endif
 static inline void __kmp_assign_root_init_mask() {
   int gtid = __kmp_entry_gtid();
-  kmp_root_t *r = __kmp_threads[gtid]->th.th_root;
-  if (r->r.r_uber_thread == __kmp_threads[gtid] && !r->r.r_affinity_assigned) {
+  
+  if (kmp_root_t *r = __kmp_threads[gtid]->th.th_root; r->r.r_uber_thread == __kmp_threads[gtid] && !r->r.r_affinity_assigned) {
     __kmp_affinity_set_init_mask(gtid, /*isa_root=*/TRUE);
     __kmp_affinity_bind_init_mask(gtid);
     r->r.r_affinity_assigned = TRUE;
@@ -3949,8 +3949,8 @@ static inline void __kmp_reset_root_init_mask(int gtid) {
   if (!KMP_AFFINITY_CAPABLE())
     return;
   kmp_info_t *th = __kmp_threads[gtid];
-  kmp_root_t *r = th->th.th_root;
-  if (r->r.r_uber_thread == th && r->r.r_affinity_assigned) {
+  
+  if (kmp_root_t *r = th->th.th_root; r->r.r_uber_thread == th && r->r.r_affinity_assigned) {
     __kmp_set_system_affinity(__kmp_affin_origMask, FALSE);
     KMP_CPU_COPY(th->th.th_affin_mask, __kmp_affin_origMask);
     r->r.r_affinity_assigned = FALSE;
@@ -4747,8 +4747,8 @@ public:
     KMP_ASSERT(!f);
     f = fopen(filename, mode);
     if (!f) {
-      int code = errno;
-      if (env_var) {
+      
+      if (int code = errno; env_var) {
         __kmp_fatal(KMP_MSG(CantOpenFileForReading, filename), KMP_ERR(code),
                     KMP_HNT(CheckEnvVar, env_var, filename), __kmp_msg_null);
       } else {

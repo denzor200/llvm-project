@@ -75,10 +75,10 @@ findAlternativeAt(const CXXMethodDecl *MatchedOperator) {
       continue;
 
     for (unsigned ArgInd = 0; ArgInd < Method->getNumParams(); ArgInd++) {
-      const bool SameArgType =
+      
+      if (const bool SameArgType =
           Method->parameters()[ArgInd]->getOriginalType() ==
-          MatchedOperator->parameters()[ArgInd]->getOriginalType();
-      if (!SameArgType)
+          MatchedOperator->parameters()[ArgInd]->getOriginalType(); !SameArgType)
         continue;
     }
 
@@ -116,10 +116,10 @@ void ProBoundsAvoidUncheckedContainerAccessCheck::check(
     // Case: a[i]
     const auto LeftBracket = SourceRange(OCE->getCallee()->getBeginLoc(),
                                          OCE->getCallee()->getBeginLoc());
-    const auto RightBracket =
-        SourceRange(OCE->getOperatorLoc(), OCE->getOperatorLoc());
+    
 
-    if (FixMode == At) {
+    if (const auto RightBracket =
+        SourceRange(OCE->getOperatorLoc(), OCE->getOperatorLoc()); FixMode == At) {
       // Case: a[i] => a.at(i)
       const auto *MatchedOperator =
           Result.Nodes.getNodeAs<CXXMethodDecl>("operator");
@@ -149,16 +149,16 @@ void ProBoundsAvoidUncheckedContainerAccessCheck::check(
       //
       // Since C++23, the subscript operator may also be called without an
       // argument, which makes the following distinction necessary
-      const bool EmptySubscript =
-          MatchedExpr->getDirectCallee()->getNumParams() == 0;
+      
 
-      if (EmptySubscript) {
-        auto D = diag(MatchedExpr->getCallee()->getBeginLoc(),
+      if (const bool EmptySubscript =
+          MatchedExpr->getDirectCallee()->getNumParams() == 0; EmptySubscript) {
+        
+        if (auto D = diag(MatchedExpr->getCallee()->getBeginLoc(),
                       "possibly unsafe 'operator[]'%select{, use safe "
                       "function '%1() instead|}0")
                  << FixFunctionEmptyArgs.empty() << FixFunctionEmptyArgs.str()
-                 << MatchedExpr->getCallee()->getSourceRange();
-        if (!FixFunctionEmptyArgs.empty()) {
+                 << MatchedExpr->getCallee()->getSourceRange(); !FixFunctionEmptyArgs.empty()) {
           D << FixItHint::CreateInsertion(OCE->getArg(0)->getBeginLoc(),
                                           FixFunctionEmptyArgs.str() + "(")
             << FixItHint::CreateRemoval(LeftBracket)
@@ -219,13 +219,13 @@ void ProBoundsAvoidUncheckedContainerAccessCheck::check(
       // Since C++23, the subscript operator may also be called without an
       // argument, which makes the following distinction necessary
       if (EmptySubscript) {
-        auto D = diag(MatchedExpr->getCallee()->getBeginLoc(),
+        
+
+        if (auto D = diag(MatchedExpr->getCallee()->getBeginLoc(),
                       "possibly unsafe 'operator[]'%select{, use safe "
                       "function '%1()' instead|}0")
                  << FixFunctionEmptyArgs.empty() << FixFunctionEmptyArgs.str()
-                 << Callee->getSourceRange();
-
-        if (!FixFunctionEmptyArgs.empty()) {
+                 << Callee->getSourceRange(); !FixFunctionEmptyArgs.empty()) {
           D << FixItHint::CreateInsertion(MatchedExpr->getBeginLoc(),
                                           BeginInsertion)
             << FixItHint::CreateRemoval(

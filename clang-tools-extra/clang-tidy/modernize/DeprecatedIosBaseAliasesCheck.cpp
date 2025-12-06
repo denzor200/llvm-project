@@ -60,11 +60,11 @@ void DeprecatedIosBaseAliasesCheck::check(
 
   if (Replacement) {
     const char *FixName = *Replacement;
-    auto Builder = diag(IoStateLoc, "'std::ios_base::%0' is deprecated; use "
-                                    "'std::ios_base::%1' instead")
-                   << TypeName << FixName;
+    
 
-    if (Fix)
+    if (auto Builder = diag(IoStateLoc, "'std::ios_base::%0' is deprecated; use "
+                                    "'std::ios_base::%1' instead")
+                   << TypeName << FixName; Fix)
       Builder << FixItHint::CreateReplacement(SourceRange(IoStateLoc, EndLoc),
                                               FixName);
   } else

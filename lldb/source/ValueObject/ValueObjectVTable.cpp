@@ -107,9 +107,9 @@ protected:
       // Get the original type that this vtable is based off of so we can get
       // the language from it correctly.
       ValueObject *val = parent->GetParent();
-      auto type_system = target_sp->GetScratchTypeSystemForLanguage(
-          val ? val->GetObjectRuntimeLanguage() : eLanguageTypeC_plus_plus);
-      if (type_system) {
+      
+      if (auto type_system = target_sp->GetScratchTypeSystemForLanguage(
+          val ? val->GetObjectRuntimeLanguage() : eLanguageTypeC_plus_plus); type_system) {
         m_value.SetCompilerType(
             (*type_system)->CreateGenericFunctionPrototype().GetPointerType());
       } else {

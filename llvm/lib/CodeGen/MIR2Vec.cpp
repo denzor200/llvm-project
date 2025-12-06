@@ -385,8 +385,8 @@ Expected<MIRVocabulary> MIRVocabulary::createDummyVocabForTest(
 
   // Process opcodes directly without creating temporary vocabulary
   for (unsigned Opcode = 0; Opcode < TII.getNumOpcodes(); ++Opcode) {
-    std::string BaseOpcode = extractBaseOpcodeName(TII.getName(Opcode));
-    if (DummyOpcMap.count(BaseOpcode) == 0) { // Only add if not already present
+    
+    if (std::string BaseOpcode = extractBaseOpcodeName(TII.getName(Opcode)); DummyOpcMap.count(BaseOpcode) == 0) { // Only add if not already present
       DummyOpcMap[BaseOpcode] = Embedding(Dim, DummyVal);
       DummyVal += 0.1f;
     }
@@ -433,8 +433,8 @@ MIR2VecVocabProvider::getVocabulary(const Module &M) {
       continue;
 
     if (auto *MF = MMI.getMachineFunction(F)) {
-      auto &Subtarget = MF->getSubtarget();
-      if (const auto *TII = Subtarget.getInstrInfo())
+      
+      if (auto &Subtarget = MF->getSubtarget(); const auto *TII = Subtarget.getInstrInfo())
         if (const auto *TRI = Subtarget.getRegisterInfo())
           return mir2vec::MIRVocabulary::create(
               std::move(OpcVocab), std::move(CommonOperandVocab),
@@ -528,8 +528,8 @@ Embedding MIREmbedder::computeEmbeddings(const MachineBasicBlock &MBB) const {
 
   // Get instruction info for opcode name resolution
   const auto &Subtarget = MF.getSubtarget();
-  const auto *TII = Subtarget.getInstrInfo();
-  if (!TII) {
+  
+  if (const auto *TII = Subtarget.getInstrInfo(); !TII) {
     MF.getFunction().getContext().emitError(
         "MIR2Vec: No TargetInstrInfo available; cannot compute embeddings");
     return MBBVector;

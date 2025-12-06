@@ -124,10 +124,10 @@ void IntegerTypesCheck::check(const MatchFinder::MatchResult &Result) {
 
   bool IsSigned = false;
   unsigned Width = 0;
-  const TargetInfo &TargetInfo = Result.Context->getTargetInfo();
+  
 
   // Look for uses of short, long, long long and their unsigned versions.
-  switch (BuiltinLoc.getTypePtr()->getKind()) {
+  switch (const TargetInfo &TargetInfo = Result.Context->getTargetInfo(); BuiltinLoc.getTypePtr()->getKind()) {
   case BuiltinType::Short:
     Width = TargetInfo.getShortWidth();
     IsSigned = true;

@@ -512,17 +512,17 @@ static LogicalResult processParallelLoop(
               1, 2,
               ((rewriter.getAffineDimExpr(0) - rewriter.getAffineSymbolExpr(0))
                    .ceilDiv(rewriter.getAffineSymbolExpr(1))));
-          Value launchBound = AffineApplyOp::create(
+          
+          // todo(herhut,ravishankarm): Update the behavior of setMappingAttr
+          // when this condition is relaxed.
+          if (Value launchBound = AffineApplyOp::create(
               rewriter, loc, annotation.getBound().compose(stepMap),
               ValueRange{
                   ensureLaunchIndependent(
                       cloningMap.lookupOrDefault(upperBound)),
                   ensureLaunchIndependent(
                       cloningMap.lookupOrDefault(lowerBound)),
-                  ensureLaunchIndependent(cloningMap.lookupOrDefault(step))});
-          // todo(herhut,ravishankarm): Update the behavior of setMappingAttr
-          // when this condition is relaxed.
-          if (!bounds.try_emplace(processor, launchBound).second) {
+                  ensureLaunchIndependent(cloningMap.lookupOrDefault(step))}); !bounds.try_emplace(processor, launchBound).second) {
             return rewriter.notifyMatchFailure(
                 parallelOp, "cannot redefine the bound for processor " +
                                 Twine(static_cast<int64_t>(processor)));
@@ -644,18 +644,19 @@ ParallelToGpuLaunchLowering::matchAndRewrite(ParallelOp parallelOp,
   LocalAliasAnalysis aliasAnalysis;
   llvm::DenseSet<Value> writtenBuffer;
   while (!worklist.empty()) {
-    Operation *op = worklist.pop_back_val();
+    
     // Now walk over the body and clone it.
     // TODO: This is only correct if there either is no further scf.parallel
     //       nested or this code has side-effect but the memory buffer is not
     //       alias to inner loop access buffer. Otherwise we might need
     //       predication.
-    if (auto nestedParallel = dyn_cast<ParallelOp>(op)) {
+    if (Operation *op = worklist.pop_back_val(); auto nestedParallel = dyn_cast<ParallelOp>(op)) {
       // Before entering a nested scope, make sure there have been no
       // sideeffects until now or the nested operations do not access the
       // buffer written by outer scope.
       if (seenSideeffects) {
-        WalkResult walkRes = nestedParallel.walk([&](Operation *nestedOp) {
+        
+        if (WalkResult walkRes = nestedParallel.walk([&](Operation *nestedOp) {
           if (isMemoryEffectFree(nestedOp))
             return WalkResult::advance();
 
@@ -680,8 +681,7 @@ ParallelToGpuLaunchLowering::matchAndRewrite(ParallelOp parallelOp,
             }
           }
           return WalkResult::advance();
-        });
-        if (walkRes.wasInterrupted())
+        }); walkRes.wasInterrupted())
           return failure();
       }
       // A nested scf.parallel needs insertion of code to compute indices.

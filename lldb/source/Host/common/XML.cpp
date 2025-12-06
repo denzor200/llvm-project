@@ -65,10 +65,10 @@ bool XMLDocument::ParseMemory(const char *xml, size_t xml_length,
 XMLNode XMLDocument::GetRootElement(const char *required_name) {
 #if LLDB_ENABLE_LIBXML2
   if (IsValid()) {
-    XMLNode root_node(xmlDocGetRootElement(m_document));
-    if (required_name) {
-      llvm::StringRef actual_name = root_node.GetName();
-      if (actual_name == required_name)
+    
+    if (XMLNode root_node(xmlDocGetRootElement(m_document)); required_name) {
+      
+      if (llvm::StringRef actual_name = root_node.GetName(); actual_name == required_name)
         return root_node;
     } else {
       return root_node;
@@ -137,8 +137,8 @@ std::string XMLNode::GetAttributeValue(const char *name,
   std::string attr_value;
 #if LLDB_ENABLE_LIBXML2
   if (IsValid()) {
-    xmlChar *value = xmlGetProp(m_node, (const xmlChar *)name);
-    if (value) {
+    
+    if (xmlChar *value = xmlGetProp(m_node, (const xmlChar *)name); value) {
       attr_value = (const char *)value;
       xmlFree(value);
     }
@@ -192,8 +192,8 @@ void XMLNode::ForEachAttribute(AttributeCallback const &callback) const {
       // check if name matches
       if (attr->name) {
         // check child is a text node
-        xmlNodePtr child = attr->children;
-        if (child->type == XML_TEXT_NODE) {
+        
+        if (xmlNodePtr child = attr->children; child->type == XML_TEXT_NODE) {
           llvm::StringRef attr_value;
           if (child->content)
             attr_value = llvm::StringRef((const char *)child->content);
@@ -386,8 +386,8 @@ llvm::StringRef ApplePropertyList::GetErrors() const {
 
 bool ApplePropertyList::ParseFile(const char *path) {
   if (m_xml_doc.ParseFile(path)) {
-    XMLNode plist = m_xml_doc.GetRootElement("plist");
-    if (plist) {
+    
+    if (XMLNode plist = m_xml_doc.GetRootElement("plist"); plist) {
       plist.ForEachChildElementWithName("dict",
                                         [this](const XMLNode &dict) -> bool {
                                           this->m_dict_node = dict;
@@ -437,8 +437,8 @@ bool ApplePropertyList::ExtractStringFromValueNode(const XMLNode &node,
   value.clear();
 #if LLDB_ENABLE_LIBXML2
   if (node.IsValid()) {
-    llvm::StringRef element_name = node.GetName();
-    if (element_name == "true" || element_name == "false") {
+    
+    if (llvm::StringRef element_name = node.GetName(); element_name == "true" || element_name == "false") {
       // The text value _is_ the element name itself...
       value = element_name.str();
       return true;

@@ -90,8 +90,8 @@ GetGNUEHPointer(const DataExtractor &DE, lldb::offset_t *offset_ptr,
     assert(addr_size != 0);
     if (addr_size) {
       // Align to a address size boundary first
-      uint32_t alignOffset = *offset_ptr % addr_size;
-      if (alignOffset)
+      
+      if (uint32_t alignOffset = *offset_ptr % addr_size; alignOffset)
         offset_ptr += addr_size - alignOffset;
     }
   } break;
@@ -140,8 +140,8 @@ GetGNUEHPointer(const DataExtractor &DE, lldb::offset_t *offset_ptr,
 
   // Since we promote everything to 64 bit, we may need to sign extend
   if (signExtendValue && addr_size < sizeof(baseAddress)) {
-    uint64_t sign_bit = 1ull << ((addr_size * 8ull) - 1ull);
-    if (sign_bit & addressValue) {
+    
+    if (uint64_t sign_bit = 1ull << ((addr_size * 8ull) - 1ull); sign_bit & addressValue) {
       uint64_t mask = ~sign_bit + 1;
       addressValue |= mask;
     }
@@ -253,9 +253,9 @@ DWARFCallFrameInfo::GetFirstFDEEntryInRange(const AddressRange &range) {
   GetFDEIndex();
 
   addr_t start_file_addr = range.GetBaseAddress().GetFileAddress();
-  const FDEEntryMap::Entry *fde =
-      m_fde_index.FindEntryThatContainsOrFollows(start_file_addr);
-  if (fde && fde->DoesIntersect(
+  
+  if (const FDEEntryMap::Entry *fde =
+      m_fde_index.FindEntryThatContainsOrFollows(start_file_addr); fde && fde->DoesIntersect(
                  FDEEntryMap::Range(start_file_addr, range.GetByteSize())))
     return *fde;
 
@@ -270,9 +270,9 @@ void DWARFCallFrameInfo::GetFunctionAddressAndSizeVector(
   if (count > 0)
     function_info.Reserve(count);
   for (size_t i = 0; i < count; ++i) {
-    const FDEEntryMap::Entry *func_offset_data_entry =
-        m_fde_index.GetEntryAtIndex(i);
-    if (func_offset_data_entry) {
+    
+    if (const FDEEntryMap::Entry *func_offset_data_entry =
+        m_fde_index.GetEntryAtIndex(i); func_offset_data_entry) {
       FunctionAddressAndSizeVector::Entry function_offset_entry(
           func_offset_data_entry->base, func_offset_data_entry->size);
       function_info.Append(function_offset_entry);
@@ -367,17 +367,17 @@ DWARFCallFrameInfo::ParseCIE(const dw_offset_t cie_offset) {
       // ULEB128 length in bytes
       const size_t aug_data_len = (size_t)m_cfi_data.GetULEB128(&offset);
       const size_t aug_data_end = offset + aug_data_len;
-      const size_t aug_str_len = strlen(cie_sp->augmentation);
+      
       // A 'z' may be present as the first character of the string.
       // If present, the Augmentation Data field shall be present. The contents
       // of the Augmentation Data shall be interpreted according to other
       // characters in the Augmentation String.
-      if (cie_sp->augmentation[0] == 'z') {
+      if (const size_t aug_str_len = strlen(cie_sp->augmentation); cie_sp->augmentation[0] == 'z') {
         // Extract the Augmentation Data
         size_t aug_str_idx = 0;
         for (aug_str_idx = 1; aug_str_idx < aug_str_len; aug_str_idx++) {
-          char aug = cie_sp->augmentation[aug_str_idx];
-          switch (aug) {
+          
+          switch (char aug = cie_sp->augmentation[aug_str_idx]; aug) {
           case 'L':
             // Indicates the presence of one argument in the Augmentation Data
             // of the CIE, and a corresponding argument in the Augmentation
@@ -437,9 +437,9 @@ DWARFCallFrameInfo::ParseCIE(const dw_offset_t cie_offset) {
     while (offset < end_offset) {
       uint8_t inst = m_cfi_data.GetU8(&offset);
       uint8_t primary_opcode = inst & 0xC0;
-      uint8_t extended_opcode = inst & 0x3F;
+      
 
-      if (!HandleCommonDwarfOpcode(primary_opcode, extended_opcode,
+      if (uint8_t extended_opcode = inst & 0x3F; !HandleCommonDwarfOpcode(primary_opcode, extended_opcode,
                                    cie_sp->data_align, offset,
                                    cie_sp->initial_row))
         break; // Stop if we hit an unrecognized opcode
@@ -451,8 +451,8 @@ DWARFCallFrameInfo::ParseCIE(const dw_offset_t cie_offset) {
 
 void DWARFCallFrameInfo::GetCFIData() {
   if (!m_cfi_data_initialized) {
-    Log *log = GetLog(LLDBLog::Unwind);
-    if (log)
+    
+    if (Log *log = GetLog(LLDBLog::Unwind); log)
       m_objfile.GetModule()->LogMessage(log, "Reading EH frame info");
     m_objfile.ReadSectionData(m_section_sp.get(), m_cfi_data);
     m_cfi_data_initialized = true;
@@ -640,9 +640,9 @@ DWARFCallFrameInfo::ParseFDE(dw_offset_t dwarf_offset,
   while (m_cfi_data.ValidOffset(offset) && offset < end_offset) {
     uint8_t inst = m_cfi_data.GetU8(&offset);
     uint8_t primary_opcode = inst & 0xC0;
-    uint8_t extended_opcode = inst & 0x3F;
+    
 
-    if (!HandleCommonDwarfOpcode(primary_opcode, extended_opcode, data_align,
+    if (uint8_t extended_opcode = inst & 0x3F; !HandleCommonDwarfOpcode(primary_opcode, extended_opcode, data_align,
                                  offset, row)) {
       if (primary_opcode) {
         switch (primary_opcode) {
@@ -663,13 +663,13 @@ DWARFCallFrameInfo::ParseFDE(dw_offset_t dwarf_offset,
           // takes a single argument that represents a register number. The
           // required action is to change the rule for the indicated register
           // to the rule assigned it by the initial_instructions in the CIE.
-          uint32_t reg_num = extended_opcode;
+          
           // We only keep enough register locations around to unwind what is in
           // our thread, and these are organized by the register index in that
           // state, so we need to convert our eh_frame register number from the
           // EH frame info, to a register index
 
-          if (fde.rows[0].GetRegisterInfo(reg_num, reg_location))
+          if (uint32_t reg_num = extended_opcode; fde.rows[0].GetRegisterInfo(reg_num, reg_location))
             row.SetRegisterInfo(reg_num, reg_location);
           else {
             // If the register was not set in the first row, remove the
@@ -729,8 +729,8 @@ DWARFCallFrameInfo::ParseFDE(dw_offset_t dwarf_offset,
           // takes a single unsigned LEB128 argument that represents a register
           // number. This instruction is identical to DW_CFA_restore except for
           // the encoding and size of the register argument.
-          uint32_t reg_num = (uint32_t)m_cfi_data.GetULEB128(&offset);
-          if (fde.rows[0].GetRegisterInfo(reg_num, reg_location))
+          
+          if (uint32_t reg_num = (uint32_t)m_cfi_data.GetULEB128(&offset); fde.rows[0].GetRegisterInfo(reg_num, reg_location))
             row.SetRegisterInfo(reg_num, reg_location);
           break;
         }
@@ -1024,8 +1024,8 @@ void DWARFCallFrameInfo::ForEachFDEEntries(
   GetFDEIndex();
 
   for (size_t i = 0, c = m_fde_index.GetSize(); i < c; ++i) {
-    const FDEEntryMap::Entry &entry = m_fde_index.GetEntryRef(i);
-    if (!callback(entry.base, entry.size, entry.data))
+    
+    if (const FDEEntryMap::Entry &entry = m_fde_index.GetEntryRef(i); !callback(entry.base, entry.size, entry.data))
       break;
   }
 }

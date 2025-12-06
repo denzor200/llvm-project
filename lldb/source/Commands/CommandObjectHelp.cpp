@@ -66,12 +66,12 @@ CommandObjectHelp::CommandOptions::GetDefinitions() {
 void CommandObjectHelp::DoExecute(Args &command, CommandReturnObject &result) {
   CommandObject::CommandMap::iterator pos;
   CommandObject *cmd_obj;
-  const size_t argc = command.GetArgumentCount();
+  
 
   // 'help' doesn't take any arguments, other than command names.  If argc is
   // 0, we show the user all commands (aliases and user commands if asked for).
   // Otherwise every argument must be the name of a command or a sub-command.
-  if (argc == 0) {
+  if (const size_t argc = command.GetArgumentCount(); argc == 0) {
     uint32_t cmd_types = CommandInterpreter::eCommandTypesBuiltin;
     if (m_options.m_show_aliases)
       cmd_types |= CommandInterpreter::eCommandTypesAliases;
@@ -150,11 +150,11 @@ void CommandObjectHelp::DoExecute(Args &command, CommandReturnObject &result) {
       }
 
       sub_cmd_obj->GenerateHelpText(result);
-      std::string alias_full_name;
+      
       // Don't use AliasExists here, that only checks exact name matches.  If
       // the user typed a shorter unique alias name, we should still tell them
       // it was an alias.
-      if (m_interpreter.GetAliasFullName(command_name, alias_full_name)) {
+      if (std::string alias_full_name; m_interpreter.GetAliasFullName(command_name, alias_full_name)) {
         StreamString sstr;
         m_interpreter.GetAlias(alias_full_name)->GetAliasExpansion(sstr);
         result.GetOutputStream().Printf("\n'%s' is an abbreviation for %s\n",
@@ -171,9 +171,9 @@ void CommandObjectHelp::DoExecute(Args &command, CommandReturnObject &result) {
     } else {
       // Maybe the user is asking for help about a command argument rather than
       // a command.
-      const CommandArgumentType arg_type =
-          CommandObject::LookupArgumentName(command_name);
-      if (arg_type != eArgTypeLastArg) {
+      
+      if (const CommandArgumentType arg_type =
+          CommandObject::LookupArgumentName(command_name); arg_type != eArgTypeLastArg) {
         Stream &output_strm = result.GetOutputStream();
         CommandObject::GetArgumentHelp(output_strm, arg_type, m_interpreter);
         result.SetStatus(eReturnStatusSuccessFinishNoResult);
@@ -194,14 +194,14 @@ void CommandObjectHelp::HandleCompletion(CompletionRequest &request) {
     m_interpreter.HandleCompletionMatches(request);
     return;
   }
-  CommandObject *cmd_obj =
-      m_interpreter.GetCommandObject(request.GetParsedLine()[0].ref());
+  
 
   // The command that they are getting help on might be ambiguous, in which
   // case we should complete that, otherwise complete with the command the
   // user is getting help on...
 
-  if (cmd_obj) {
+  if (CommandObject *cmd_obj =
+      m_interpreter.GetCommandObject(request.GetParsedLine()[0].ref()); cmd_obj) {
     request.ShiftArguments();
     cmd_obj->HandleCompletion(request);
     return;

@@ -426,10 +426,10 @@ static OffsetResult collectOffsets(GEPOperator &GEP, const DataLayout &DL) {
   if (auto *InnerGEP = dyn_cast<GetElementPtrInst>(Result.BasePtr)) {
     SmallMapVector<Value *, APInt, 4> VariableOffsets2;
     APInt ConstantOffset2(BitWidth, 0);
-    bool CanCollectInner = InnerGEP->collectOffset(
-        DL, BitWidth, VariableOffsets2, ConstantOffset2);
+    
     // TODO: Support cases with more than 1 variable offset.
-    if (!CanCollectInner || Result.VariableOffsets.size() > 1 ||
+    if (bool CanCollectInner = InnerGEP->collectOffset(
+        DL, BitWidth, VariableOffsets2, ConstantOffset2); !CanCollectInner || Result.VariableOffsets.size() > 1 ||
         VariableOffsets2.size() > 1 ||
         (Result.VariableOffsets.size() >= 1 && VariableOffsets2.size() >= 1)) {
       // More than 1 variable index, use outer result.
@@ -568,8 +568,8 @@ static Decomposition decompose(Value *V,
     // (shl nsw x, shift) is (mul nsw x, (1<<shift)), with the exception of
     // shift == bw-1.
     if (match(V, m_NSWShl(m_Value(Op0), m_ConstantInt(CI)))) {
-      uint64_t Shift = CI->getValue().getLimitedValue();
-      if (Shift < Ty->getIntegerBitWidth() - 1) {
+      
+      if (uint64_t Shift = CI->getValue().getLimitedValue(); Shift < Ty->getIntegerBitWidth() - 1) {
         assert(Shift < 64 && "Would overflow");
         auto Result = decompose(Op0, Preconditions, IsSigned, DL);
         if (!Result.mul(int64_t(1) << Shift))
@@ -768,8 +768,8 @@ ConstraintInfo::getConstraint(CmpInst::Predicate Pred, Value *Op0, Value *Op1,
   }
 
   for (const auto &KV : VariablesB) {
-    auto &Coeff = R[GetOrAddIndex(KV.Variable)];
-    if (SubOverflow(Coeff, KV.Coefficient, Coeff))
+    
+    if (auto &Coeff = R[GetOrAddIndex(KV.Variable)]; SubOverflow(Coeff, KV.Coefficient, Coeff))
       return {};
     auto I =
         KnownNonNegativeVariables.insert({KV.Variable, KV.IsKnownNonNegative});
@@ -788,8 +788,8 @@ ConstraintInfo::getConstraint(CmpInst::Predicate Pred, Value *Op0, Value *Op1,
   // Remove any (Coefficient, Variable) entry where the Coefficient is 0 for new
   // variables.
   while (!NewVariables.empty()) {
-    int64_t Last = R.back();
-    if (Last != 0)
+    
+    if (int64_t Last = R.back(); Last != 0)
       break;
     R.pop_back();
     Value *RemovedV = NewVariables.pop_back_val();
@@ -811,10 +811,10 @@ ConstraintInfo::getConstraint(CmpInst::Predicate Pred, Value *Op0, Value *Op1,
 ConstraintTy ConstraintInfo::getConstraintForSolving(CmpInst::Predicate Pred,
                                                      Value *Op0,
                                                      Value *Op1) const {
-  Constant *NullC = Constant::getNullValue(Op0->getType());
+  
   // Handle trivially true compares directly to avoid adding V UGE 0 constraints
   // for all variables in the unsigned system.
-  if ((Pred == CmpInst::ICMP_ULE && Op0 == NullC) ||
+  if (Constant *NullC = Constant::getNullValue(Op0->getType()); (Pred == CmpInst::ICMP_ULE && Op0 == NullC) ||
       (Pred == CmpInst::ICMP_UGE && Op1 == NullC)) {
     auto &Value2Index = getValue2Index(false);
     // Return constraint that's trivially true.
@@ -850,13 +850,13 @@ ConstraintTy::isImpliedBy(const ConstraintSystem &CS) const {
 
   if (IsEq || IsNe) {
     auto NegatedOrEqual = ConstraintSystem::negateOrEqual(Coefficients);
-    bool IsNegatedOrEqualImplied =
-        !NegatedOrEqual.empty() && CS.isConditionImplied(NegatedOrEqual);
+    
 
     // In order to check that `%a == %b` is true (equality), both conditions `%a
     // >= %b` and `%a <= %b` must hold true. When checking for equality (`IsEq`
     // is true), we return true if they both hold, false in the other cases.
-    if (IsConditionImplied && IsNegatedOrEqualImplied)
+    if (bool IsNegatedOrEqualImplied =
+        !NegatedOrEqual.empty() && CS.isConditionImplied(NegatedOrEqual); IsConditionImplied && IsNegatedOrEqualImplied)
       return IsEq;
 
     auto Negated = ConstraintSystem::negate(Coefficients);
@@ -1070,8 +1070,8 @@ void State::addInfoForInductions(BasicBlock &BB) {
 
   if (!StepOffset.isOne()) {
     // Check whether B-Start is known to be a multiple of StepOffset.
-    const SCEV *BMinusStart = SE.getMinusSCEV(SE.getSCEV(B), StartSCEV);
-    if (isa<SCEVCouldNotCompute>(BMinusStart) ||
+    
+    if (const SCEV *BMinusStart = SE.getMinusSCEV(SE.getSCEV(B), StartSCEV); isa<SCEVCouldNotCompute>(BMinusStart) ||
         !SE.getConstantMultiple(BMinusStart).urem(StepOffset).isZero())
       return;
   }
@@ -1184,8 +1184,8 @@ void State::addInfoFor(BasicBlock &BB) {
         return;
       if (GuaranteedToExecute) {
         CmpPredicate Pred;
-        Value *A, *B;
-        if (getConstraintFromMemoryAccess(*GEP, AccessSize.getFixedValue(),
+        
+        if (Value *A, *B; getConstraintFromMemoryAccess(*GEP, AccessSize.getFixedValue(),
                                           Pred, A, B, DL, TLI)) {
           // The memory access is guaranteed to execute when BB is entered,
           // hence the constraint holds on entry to BB.
@@ -1208,8 +1208,8 @@ void State::addInfoFor(BasicBlock &BB) {
     }
 
     auto *II = dyn_cast<IntrinsicInst>(&I);
-    Intrinsic::ID ID = II ? II->getIntrinsicID() : Intrinsic::not_intrinsic;
-    switch (ID) {
+    
+    switch (Intrinsic::ID ID = II ? II->getIntrinsicID() : Intrinsic::not_intrinsic; ID) {
     case Intrinsic::assume: {
       Value *A, *B;
       CmpPredicate Pred;
@@ -1548,8 +1548,8 @@ static bool checkAndReplaceCondition(
     Cmp->replaceUsesWithIf(ConstantC, [&DT, NumIn, NumOut, ContextInst,
                                        &Changed](Use &U) {
       auto *UserI = getContextInstForUse(U);
-      auto *DTN = DT.getNode(UserI->getParent());
-      if (!DTN || DTN->getDFSNumIn() < NumIn || DTN->getDFSNumOut() > NumOut)
+      
+      if (auto *DTN = DT.getNode(UserI->getParent()); !DTN || DTN->getDFSNumIn() < NumIn || DTN->getDFSNumOut() > NumOut)
         return false;
       if (UserI->getParent() == ContextInst->getParent() &&
           UserI->comesBefore(ContextInst))
@@ -1570,8 +1570,8 @@ static bool checkAndReplaceCondition(
     findDbgUsers(Cmp, DVRUsers);
 
     for (auto *DVR : DVRUsers) {
-      auto *DTN = DT.getNode(DVR->getParent());
-      if (!DTN || DTN->getDFSNumIn() < NumIn || DTN->getDFSNumOut() > NumOut)
+      
+      if (auto *DTN = DT.getNode(DVR->getParent()); !DTN || DTN->getDFSNumIn() < NumIn || DTN->getDFSNumOut() > NumOut)
         continue;
 
       auto *MarkedI = DVR->getInstruction();
@@ -2045,8 +2045,8 @@ static bool eliminateConstraints(Function &F, DominatorTree &DT, LoopInfo &LI,
       auto &DL = F.getDataLayout();
       auto AddFactsAboutIndices = [&](Value *Ptr, Type *AccessType) {
         CmpPredicate Pred;
-        Value *A, *B;
-        if (getConstraintFromMemoryAccess(
+        
+        if (Value *A, *B; getConstraintFromMemoryAccess(
                 *cast<GetElementPtrInst>(Ptr),
                 DL.getTypeStoreSize(AccessType).getFixedValue(), Pred, A, B, DL,
                 TLI))
@@ -2119,8 +2119,8 @@ PreservedAnalyses ConstraintEliminationPass::run(Function &F,
   auto &LI = AM.getResult<LoopAnalysis>(F);
   auto &SE = AM.getResult<ScalarEvolutionAnalysis>(F);
   auto &ORE = AM.getResult<OptimizationRemarkEmitterAnalysis>(F);
-  auto &TLI = AM.getResult<TargetLibraryAnalysis>(F);
-  if (!eliminateConstraints(F, DT, LI, SE, ORE, TLI))
+  
+  if (auto &TLI = AM.getResult<TargetLibraryAnalysis>(F); !eliminateConstraints(F, DT, LI, SE, ORE, TLI))
     return PreservedAnalyses::all();
 
   PreservedAnalyses PA;

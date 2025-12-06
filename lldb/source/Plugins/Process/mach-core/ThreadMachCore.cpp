@@ -107,13 +107,13 @@ ThreadMachCore::CreateRegisterContextForFrame(StackFrame *frame) {
   StructuredData::ObjectSP thread_md_sp;
   if (process_md_sp && process_md_sp->GetAsDictionary() &&
       process_md_sp->GetAsDictionary()->HasKey("threads")) {
-    StructuredData::Array *threads = process_md_sp->GetAsDictionary()
+    
+    if (StructuredData::Array *threads = process_md_sp->GetAsDictionary()
                                          ->GetValueForKey("threads")
-                                         ->GetAsArray();
-    if (threads && threads->GetSize() == core_objfile->GetNumThreadContexts()) {
-      StructuredData::ObjectSP thread_sp =
-          threads->GetItemAtIndex(m_objfile_lc_thread_idx);
-      if (thread_sp && thread_sp->GetAsDictionary())
+                                         ->GetAsArray(); threads && threads->GetSize() == core_objfile->GetNumThreadContexts()) {
+      
+      if (StructuredData::ObjectSP thread_sp =
+          threads->GetItemAtIndex(m_objfile_lc_thread_idx); thread_sp && thread_sp->GetAsDictionary())
         thread_md_sp = thread_sp;
     }
   }
@@ -145,19 +145,19 @@ bool ThreadMachCore::CalculateStopInfo() {
     if (reg_ctx_sp) {
       Target &target = process_sp->GetTarget();
       const ArchSpec arch_spec = target.GetArchitecture();
-      const uint32_t cputype = arch_spec.GetMachOCPUType();
+      
 
-      if (cputype == llvm::MachO::CPU_TYPE_ARM64 ||
+      if (const uint32_t cputype = arch_spec.GetMachOCPUType(); cputype == llvm::MachO::CPU_TYPE_ARM64 ||
           cputype == llvm::MachO::CPU_TYPE_ARM64_32) {
         const RegisterInfo *esr_info = reg_ctx_sp->GetRegisterInfoByName("esr");
         const RegisterInfo *far_info = reg_ctx_sp->GetRegisterInfoByName("far");
-        RegisterValue esr, far;
-        if (reg_ctx_sp->ReadRegister(esr_info, esr) &&
+        
+        if (RegisterValue esr, far; reg_ctx_sp->ReadRegister(esr_info, esr) &&
             reg_ctx_sp->ReadRegister(far_info, far)) {
           const uint32_t esr_val = esr.GetAsUInt32();
-          const AppleArm64ExceptionClass exception_class =
-              getAppleArm64ExceptionClass(esr_val);
-          if (IsCrashExceptionClass(exception_class)) {
+          
+          if (const AppleArm64ExceptionClass exception_class =
+              getAppleArm64ExceptionClass(esr_val); IsCrashExceptionClass(exception_class)) {
             StreamString S;
             S.Printf("%s (fault address: 0x%" PRIx64 ")",
                      toString(exception_class), far.GetAsUInt64());

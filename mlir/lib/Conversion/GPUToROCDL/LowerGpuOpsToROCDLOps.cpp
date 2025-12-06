@@ -128,8 +128,8 @@ struct GPULaneIdOpToROCDL : ConvertOpToLLVMPattern<gpu::LaneIdOp> {
     Value laneId = getLaneId(rewriter, loc);
     // Truncate or extend the result depending on the index bitwidth specified
     // by the LLVMTypeConverter options.
-    const unsigned indexBitwidth = getTypeConverter()->getIndexTypeBitwidth();
-    if (indexBitwidth > 32) {
+    
+    if (const unsigned indexBitwidth = getTypeConverter()->getIndexTypeBitwidth(); indexBitwidth > 32) {
       laneId = LLVM::SExtOp::create(
           rewriter, loc, IntegerType::get(context, indexBitwidth), laneId);
     } else if (indexBitwidth < 32) {
@@ -153,8 +153,8 @@ struct GPUSubgroupSizeOpToROCDL : ConvertOpToLLVMPattern<gpu::SubgroupSizeOp> {
   matchAndRewrite(gpu::SubgroupSizeOp op, gpu::SubgroupSizeOp::Adaptor adaptor,
                   ConversionPatternRewriter &rewriter) const override {
     LLVM::ConstantRangeAttr bounds = nullptr;
-    bool isBeforeGfx10 = chipset.majorVersion < 10;
-    if (auto upperBoundAttr = op.getUpperBoundAttr()) {
+    
+    if (bool isBeforeGfx10 = chipset.majorVersion < 10; auto upperBoundAttr = op.getUpperBoundAttr()) {
       bounds = rewriter.getAttr<LLVM::ConstantRangeAttr>(
           /*bitWidth=*/32, /*lower=*/isBeforeGfx10 ? 64 : 32,
           /*upper=*/op.getUpperBoundAttr().getInt() + 1);
@@ -324,13 +324,13 @@ struct LowerGpuOpsToROCDLOpsPass final
 
     if (useBarePtrCallConv) {
       options.useBarePtrCallConv = true;
-      WalkResult canUseBarePointers =
+      
+      if (WalkResult canUseBarePointers =
           m.walk([](gpu::GPUFuncOp func) -> WalkResult {
             if (canBeCalledWithBarePointers(func))
               return WalkResult::advance();
             return WalkResult::interrupt();
-          });
-      if (canUseBarePointers.wasInterrupted()) {
+          }); canUseBarePointers.wasInterrupted()) {
         emitError(UnknownLoc::get(ctx),
                   "bare pointer calling convention requires all memrefs to "
                   "have static shape and use the identity map");

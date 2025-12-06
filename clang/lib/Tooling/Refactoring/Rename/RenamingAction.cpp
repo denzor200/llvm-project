@@ -143,10 +143,10 @@ createRenameReplacements(const SymbolOccurrences &Occurrences,
            "Mismatching number of ranges and name pieces");
     AtomicChange Change(SM, Ranges[0].getBegin());
     for (const auto &Range : llvm::enumerate(Ranges)) {
-      auto Error =
+      
+      if (auto Error =
           Change.replace(SM, CharSourceRange::getCharRange(Range.value()),
-                         NewName.getNamePieces()[Range.index()]);
-      if (Error)
+                         NewName.getNamePieces()[Range.index()]); Error)
         return std::move(Error);
     }
     Changes.push_back(std::move(Change));
@@ -161,9 +161,9 @@ static void convertChangesToFileReplacements(
     std::map<std::string, tooling::Replacements> *FileToReplaces) {
   for (const auto &AtomicChange : AtomicChanges) {
     for (const auto &Replace : AtomicChange.getReplacements()) {
-      llvm::Error Err =
-          (*FileToReplaces)[std::string(Replace.getFilePath())].add(Replace);
-      if (Err) {
+      
+      if (llvm::Error Err =
+          (*FileToReplaces)[std::string(Replace.getFilePath())].add(Replace); Err) {
         llvm::errs() << "Renaming failed in " << Replace.getFilePath() << "! "
                      << llvm::toString(std::move(Err)) << "\n";
       }

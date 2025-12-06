@@ -258,11 +258,11 @@ void MakeMemberFunctionConstCheck::check(
 
   const auto *Declaration = Definition->getCanonicalDecl();
 
-  auto Diag = diag(Definition->getLocation(), "method %0 can be made const")
+  
+  if (auto Diag = diag(Definition->getLocation(), "method %0 can be made const")
               << Definition
               << FixItHint::CreateInsertion(getConstInsertionPoint(Definition),
-                                            " const");
-  if (Declaration != Definition) {
+                                            " const"); Declaration != Definition) {
     Diag << FixItHint::CreateInsertion(getConstInsertionPoint(Declaration),
                                        " const");
   }

@@ -153,9 +153,9 @@ void ArchiveFile::parse() {
 
   // Try to read symbols from ECSYMBOLS section on ARM64EC.
   if (ctx.symtab.isEC()) {
-    iterator_range<Archive::symbol_iterator> symbols =
-        CHECK(file->ec_symbols(), this);
-    if (!symbols.empty()) {
+    
+    if (iterator_range<Archive::symbol_iterator> symbols =
+        CHECK(file->ec_symbols(), this); !symbols.empty()) {
       for (const Archive::Symbol &sym : symbols)
         ctx.symtab.addLazyArchive(this, sym);
 
@@ -166,8 +166,8 @@ void ArchiveFile::parse() {
       // be either a native-only ARM64 or x86_64 archive. Check the machine type
       // of the object containing a symbol to determine which symbol table to
       // use.
-      Archive::symbol_iterator sym = file->symbol_begin();
-      if (sym != file->symbol_end()) {
+      
+      if (Archive::symbol_iterator sym = file->symbol_begin(); sym != file->symbol_end()) {
         MachineTypes machine = IMAGE_FILE_MACHINE_UNKNOWN;
         Archive::Child child =
             CHECK(sym->getMember(),
@@ -321,8 +321,8 @@ void ObjFile::initializeECThunks() {
         chunk->getContents().data() + chunk->getContents().size();
     for (const uint8_t *iter = chunk->getContents().data(); iter != end;
          iter += sizeof(ECMapEntry)) {
-      auto entry = reinterpret_cast<const ECMapEntry *>(iter);
-      switch (entry->type) {
+      
+      switch (auto entry = reinterpret_cast<const ECMapEntry *>(iter); entry->type) {
       case Arm64ECThunkType::Entry:
         symtab.addEntryThunk(getSymbol(entry->src), getSymbol(entry->dst));
         break;
@@ -366,8 +366,8 @@ void ObjFile::initializeChunks() {
   uint32_t numSections = coffObj->getNumberOfSections();
   sparseChunks.resize(numSections + 1);
   for (uint32_t i = 1; i < numSections + 1; ++i) {
-    const coff_section *sec = getSection(i);
-    if (sec->Characteristics & IMAGE_SCN_LNK_COMDAT)
+    
+    if (const coff_section *sec = getSection(i); sec->Characteristics & IMAGE_SCN_LNK_COMDAT)
       sparseChunks[i] = pendingComdat;
     else
       sparseChunks[i] = readSection(i, nullptr, "");
@@ -481,8 +481,8 @@ void ObjFile::readAssociativeDefinition(COFFSymbolRef sym,
     StringRef name = check(coffObj->getSymbolName(sym));
 
     StringRef parentName;
-    const coff_section *parentSec = getSection(parentIndex);
-    if (Expected<StringRef> e = coffObj->getSectionName(parentSec))
+    
+    if (const coff_section *parentSec = getSection(parentIndex); Expected<StringRef> e = coffObj->getSectionName(parentSec))
       parentName = *e;
     Err(symtab.ctx) << toString(this) << ": associative comdat " << name
                     << " (sec " << sectionNumber
@@ -522,8 +522,8 @@ void ObjFile::recordPrevailingSymbolForMingw(
   // name, for cases where the names differ (i386 mangling/decorations,
   // cases where the leader is a weak symbol named .weak.func.default*).
   int32_t sectionNumber = sym.getSectionNumber();
-  SectionChunk *sc = sparseChunks[sectionNumber];
-  if (sc && sc->getOutputCharacteristics() & IMAGE_SCN_MEM_EXECUTE) {
+  
+  if (SectionChunk *sc = sparseChunks[sectionNumber]; sc && sc->getOutputCharacteristics() & IMAGE_SCN_MEM_EXECUTE) {
     StringRef name = sc->getSectionName().split('$').second;
     prevailingSectionMap[name] = sectionNumber;
   }
@@ -532,13 +532,13 @@ void ObjFile::recordPrevailingSymbolForMingw(
 void ObjFile::maybeAssociateSEHForMingw(
     COFFSymbolRef sym, const coff_aux_section_definition *def,
     const DenseMap<StringRef, uint32_t> &prevailingSectionMap) {
-  StringRef name = check(coffObj->getSymbolName(sym));
-  if (name.consume_front(".pdata$") || name.consume_front(".xdata$") ||
+  
+  if (StringRef name = check(coffObj->getSymbolName(sym)); name.consume_front(".pdata$") || name.consume_front(".xdata$") ||
       name.consume_front(".eh_frame$")) {
     // For MinGW, treat .[px]data$<func> and .eh_frame$<func> as implicitly
     // associative to the symbol <func>.
-    auto parentSym = prevailingSectionMap.find(name);
-    if (parentSym != prevailingSectionMap.end())
+    
+    if (auto parentSym = prevailingSectionMap.find(name); parentSym != prevailingSectionMap.end())
       readAssociativeDefinition(sym, def, parentSym->second);
   }
 }
@@ -602,8 +602,8 @@ void ObjFile::initializeSymbols() {
       // symbols, just as we would for undefined symbols.
       if (isArm64EC(getMachineType()) &&
           aux->Characteristics == IMAGE_WEAK_EXTERN_ANTI_DEPENDENCY) {
-        COFFSymbolRef targetSym = check(coffObj->getSymbol(aux->TagIndex));
-        if (!targetSym.isAnyUndefined()) {
+        
+        if (COFFSymbolRef targetSym = check(coffObj->getSymbol(aux->TagIndex)); !targetSym.isAnyUndefined()) {
           // If the target is defined, it may be either a guess exit thunk or
           // the actual implementation. If it's the latter, consider the alias
           // to be part of the implementation and override potential lazy
@@ -674,8 +674,8 @@ Symbol *ObjFile::createUndefined(COFFSymbolRef sym, bool overrideLazy) {
   // Add an anti-dependency alias for undefined AMD64 symbols on the ARM64EC
   // target.
   if (symtab.isEC() && getMachineType() == AMD64) {
-    auto u = dyn_cast<Undefined>(s);
-    if (u && !u->weakAlias) {
+    
+    if (auto u = dyn_cast<Undefined>(s); u && !u->weakAlias) {
       if (std::optional<std::string> mangledName =
               getArm64ECMangledFunctionName(name)) {
         Symbol *m = symtab.addUndefined(saver().save(*mangledName), this,
@@ -1004,9 +1004,9 @@ void ObjFile::initializeFlags() {
             (cs.Flags & CompileSym3Flags::HotPatch) != CompileSym3Flags::None;
       }
       if (sym->kind() == SymbolKind::S_OBJNAME) {
-        auto objName = cantFail(SymbolDeserializer::deserializeAs<ObjNameSym>(
-            sym.get()));
-        if (objName.Signature)
+        
+        if (auto objName = cantFail(SymbolDeserializer::deserializeAs<ObjNameSym>(
+            sym.get())); objName.Signature)
           pchSignature = objName.Signature;
       }
       offset += sym->length();
@@ -1459,8 +1459,8 @@ void BitcodeFile::parseLazy() {
 }
 
 MachineTypes BitcodeFile::getMachineType(const llvm::lto::InputFile *obj) {
-  Triple t(obj->getTargetTriple());
-  switch (t.getArch()) {
+  
+  switch (Triple t(obj->getTargetTriple()); t.getArch()) {
   case Triple::x86_64:
     return AMD64;
   case Triple::x86:
@@ -1484,8 +1484,8 @@ std::string lld::coff::replaceThinLTOSuffix(StringRef path, StringRef suffix,
 
 static bool isRVACode(COFFObjectFile *coffObj, uint64_t rva, InputFile *file) {
   for (size_t i = 1, e = coffObj->getNumberOfSections(); i <= e; i++) {
-    const coff_section *sec = CHECK(coffObj->getSection(i), file);
-    if (rva >= sec->VirtualAddress &&
+    
+    if (const coff_section *sec = CHECK(coffObj->getSection(i), file); rva >= sec->VirtualAddress &&
         rva <= sec->VirtualAddress + sec->VirtualSize) {
       return (sec->Characteristics & COFF::IMAGE_SCN_CNT_CODE) != 0;
     }
@@ -1542,9 +1542,9 @@ void DLLFile::parse() {
       symtab.addLazyDLLSymbol(this, s, impAuxName);
 
       if (code) {
-        std::optional<std::string> mangledName =
-            getArm64ECMangledFunctionName(symbolName);
-        if (mangledName)
+        
+        if (std::optional<std::string> mangledName =
+            getArm64ECMangledFunctionName(symbolName); mangledName)
           symtab.addLazyDLLSymbol(this, s, *mangledName);
       }
     }

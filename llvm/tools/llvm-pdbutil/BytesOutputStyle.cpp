@@ -363,9 +363,9 @@ static void iterateModules(PDBFile &File, LinePrinter &P, uint32_t IndentLevel,
 
   auto &Stream = Err(File.getPDBDbiStream());
 
-  const DbiModuleList &Modules = Stream.modules();
+  
 
-  if (opts::bytes::ModuleIndex.getNumOccurrences() > 0) {
+  if (const DbiModuleList &Modules = Stream.modules(); opts::bytes::ModuleIndex.getNumOccurrences() > 0) {
     iterateOneModule(File, P, Modules, opts::bytes::ModuleIndex, 1, IndentLevel,
                      Callback);
   } else {
@@ -413,8 +413,8 @@ void BytesOutputStyle::dumpModuleC13() {
       File, P, 2,
       [this](uint32_t Modi, const ModuleDebugStreamRef &Stream,
              const MSFStreamLayout &Layout) {
-        auto Chunks = Stream.getC13LinesSubstream();
-        if (opts::bytes::SplitChunks) {
+        
+        if (auto Chunks = Stream.getC13LinesSubstream(); opts::bytes::SplitChunks) {
           for (const auto &SS : Stream.subsections()) {
             BinarySubstreamRef ThisChunk;
             std::tie(ThisChunk, Chunks) = Chunks.split(SS.getRecordLength());

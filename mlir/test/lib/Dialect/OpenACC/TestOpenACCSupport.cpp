@@ -62,9 +62,9 @@ void TestOpenACCSupportPass::runOnOperation() {
     // the operations that need to be tested for getRecipeName.
     if (auto recipeAttr =
             op->getAttrOfType<RecipeKindAttr>("test.recipe_name")) {
-      RecipeKind kind = recipeAttr.getValue();
+      
       // Get the type from the first result if available
-      if (op->getNumResults() > 0) {
+      if (RecipeKind kind = recipeAttr.getValue(); op->getNumResults() > 0) {
         Type type = op->getResult(0).getType();
         std::string recipeName =
             support.getRecipeName(kind, type, op->getResult(0));

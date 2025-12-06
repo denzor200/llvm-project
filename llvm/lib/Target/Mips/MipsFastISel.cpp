@@ -411,9 +411,9 @@ unsigned MipsFastISel::materializeGV(const GlobalValue *GV, MVT VT) {
   const TargetRegisterClass *RC = &Mips::GPR32RegClass;
   Register DestReg = createResultReg(RC);
   const GlobalVariable *GVar = dyn_cast<GlobalVariable>(GV);
-  bool IsThreadLocal = GVar && GVar->isThreadLocal();
+  
   // TLS not supported at this time.
-  if (IsThreadLocal)
+  if (bool IsThreadLocal = GVar && GVar->isThreadLocal(); IsThreadLocal)
     return 0;
   emitInst(Mips::LW, DestReg)
       .addReg(MFI->getGlobalBaseReg(*MF))
@@ -487,8 +487,8 @@ bool MipsFastISel::computeAddress(const Value *Obj, Address &Addr) {
     gep_type_iterator GTI = gep_type_begin(U);
     for (User::const_op_iterator i = U->op_begin() + 1, e = U->op_end(); i != e;
          ++i, ++GTI) {
-      const Value *Op = *i;
-      if (StructType *STy = GTI.getStructTypeOrNull()) {
+      
+      if (const Value *Op = *i; StructType *STy = GTI.getStructTypeOrNull()) {
         const StructLayout *SL = DL.getStructLayout(STy);
         unsigned Idx = cast<ConstantInt>(Op)->getZExtValue();
         TmpOffset += SL->getElementOffset(Idx);
@@ -640,9 +640,9 @@ bool MipsFastISel::emitCmp(unsigned ResultReg, const CmpInst *CI) {
   unsigned RightReg = getRegEnsuringSimpleIntegerWidening(Right, IsUnsigned);
   if (RightReg == 0)
     return false;
-  CmpInst::Predicate P = CI->getPredicate();
+  
 
-  switch (P) {
+  switch (CmpInst::Predicate P = CI->getPredicate(); P) {
   default:
     return false;
   case CmpInst::ICMP_EQ: {
@@ -702,8 +702,8 @@ bool MipsFastISel::emitCmp(unsigned ResultReg, const CmpInst *CI) {
     if (UnsupportedFPMode)
       return false;
     bool IsFloat = Left->getType()->isFloatTy();
-    bool IsDouble = Left->getType()->isDoubleTy();
-    if (!IsFloat && !IsDouble)
+    
+    if (bool IsDouble = Left->getType()->isDoubleTy(); !IsFloat && !IsDouble)
       return false;
     unsigned Opc, CondMovOpc;
     switch (P) {

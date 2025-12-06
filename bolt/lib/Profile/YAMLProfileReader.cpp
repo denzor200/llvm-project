@@ -141,8 +141,8 @@ void YAMLProfileReader::buildNameMaps(BinaryContext &BC) {
 
   for (yaml::bolt::BinaryFunctionProfile &YamlBF : YamlBP.Functions) {
     StringRef Name = YamlBF.Name;
-    const size_t Pos = Name.find("(*");
-    if (Pos != StringRef::npos)
+    
+    if (const size_t Pos = Name.find("(*"); Pos != StringRef::npos)
       Name = Name.substr(0, Pos);
     ProfileFunctionNames.insert(Name);
     ProfileBFs.push_back(lookupFunction(Name));
@@ -150,8 +150,8 @@ void YAMLProfileReader::buildNameMaps(BinaryContext &BC) {
       LTOCommonNameMap[*CommonName].push_back(&YamlBF);
   }
   for (auto &[Symbol, BF] : BC.SymbolToFunctionMap) {
-    StringRef Name = Symbol->getName();
-    if (const std::optional<StringRef> CommonName = getLTOCommonName(Name))
+    
+    if (StringRef Name = Symbol->getName(); const std::optional<StringRef> CommonName = getLTOCommonName(Name))
       LTOCommonNameFunctionMap[*CommonName].insert(BF);
   }
 }
@@ -310,8 +310,8 @@ bool YAMLProfileReader::parseFunctionProfile(
       BinaryBasicBlock *ToBB = Order[YamlSI.Index];
       if (!BB.getSuccessor(ToBB->getLabel())) {
         // Allow passthrough blocks.
-        BinaryBasicBlock *FTSuccessor = BB.getConditionalSuccessor(false);
-        if (FTSuccessor && FTSuccessor->succ_size() == 1 &&
+        
+        if (BinaryBasicBlock *FTSuccessor = BB.getConditionalSuccessor(false); FTSuccessor && FTSuccessor->succ_size() == 1 &&
             FTSuccessor->getSuccessor(ToBB->getLabel())) {
           BinaryBasicBlock::BinaryBranchInfo &FTBI =
               FTSuccessor->getBranchInfo(*ToBB);
@@ -471,8 +471,8 @@ size_t YAMLProfileReader::matchWithHash(BinaryContext &BC) {
     for (yaml::bolt::BinaryFunctionProfile &YamlBF : YamlBP.Functions) {
       if (YamlBF.Used)
         continue;
-      auto It = StrictHashToBF.find(YamlBF.Hash);
-      if (It != StrictHashToBF.end() && !ProfiledFunctions.count(It->second)) {
+      
+      if (auto It = StrictHashToBF.find(YamlBF.Hash); It != StrictHashToBF.end() && !ProfiledFunctions.count(It->second)) {
         BinaryFunction *BF = It->second;
         matchProfileToFunction(YamlBF, *BF);
         ++MatchedWithHash;
@@ -504,11 +504,11 @@ size_t YAMLProfileReader::matchWithLTOCommonName() {
       }
       return false;
     };
-    bool ProfileMatched = llvm::any_of(LTOProfiles, matchProfile);
+    
 
     // If there's only one function with a given name, try to match it
     // partially.
-    if (!ProfileMatched && LTOProfiles.size() == 1 && Functions.size() == 1 &&
+    if (bool ProfileMatched = llvm::any_of(LTOProfiles, matchProfile); !ProfileMatched && LTOProfiles.size() == 1 && Functions.size() == 1 &&
         !LTOProfiles.front()->Used &&
         !ProfiledFunctions.count(*Functions.begin())) {
       matchProfileToFunction(*LTOProfiles.front(), **Functions.begin());
@@ -660,8 +660,8 @@ size_t YAMLProfileReader::matchWithPseudoProbes(BinaryContext &BC) {
   for (auto [YamlBF, BF] : llvm::zip_equal(YamlBP.Functions, ProfileBFs)) {
     // BF is preliminary name-matched function to YamlBF
     // MatchedBF is final matched function
-    BinaryFunction *MatchedBF = YamlProfileToFunction.lookup(YamlBF.Id);
-    if (!BF)
+    
+    if (BinaryFunction *MatchedBF = YamlProfileToFunction.lookup(YamlBF.Id); !BF)
       BF = MatchedBF;
     if (!BF)
       continue;
@@ -772,9 +772,9 @@ size_t YAMLProfileReader::matchWithNameSimilarity(BinaryContext &BC) {
       if (BF->size() != YamlBF.NumBasicBlocks)
         continue;
       std::string BFDemangledName = BF->getDemangledName();
-      unsigned BFEditDistance =
-          StringRef(BFDemangledName).edit_distance(YamlBFDemangledName);
-      if (BFEditDistance < MinEditDistance) {
+      
+      if (unsigned BFEditDistance =
+          StringRef(BFDemangledName).edit_distance(YamlBFDemangledName); BFEditDistance < MinEditDistance) {
         MinEditDistance = BFEditDistance;
         ClosestNameBF = BF;
       }

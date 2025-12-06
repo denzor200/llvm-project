@@ -260,8 +260,8 @@ static bool findSparseAnnotations(CodegenEnv &env, bool idxReducBased) {
     // to be sliced.
     for (Level l = 0; l < lvlRank; l++) {
       const AffineExpr a = map.getResult(l);
-      const LevelType lt = enc.getLvlType(l);
-      if (idxReducBased && needIdxReduc) {
+      
+      if (const LevelType lt = enc.getLvlType(l); idxReducBased && needIdxReduc) {
         if (!findDepIdxSet(env.merger(), tid, l, a, lt))
           return false; // inadmissible affine expression
       } else {
@@ -591,8 +591,8 @@ static Value relinkBranch(CodegenEnv &env, RewriterBase &rewriter, Block *block,
     // Direct arguments of the original linalg op must be converted
     // into dense tensor loads. Note that we should not encounter
     // anything else. This needs to be verified by semi-ring ops.
-    linalg::GenericOp op = env.op();
-    if (arg.getOwner()->getParentOp() == op) {
+    
+    if (linalg::GenericOp op = env.op(); arg.getOwner()->getParentOp() == op) {
       const TensorId tid = env.makeTensorId(arg.getArgNumber());
       OpOperand *t = &op->getOpOperand(tid);
       assert(!getSparseTensorType(t->get()).hasEncoding()); // dense!
@@ -692,8 +692,8 @@ static void genInvariants(CodegenEnv &env, OpBuilder &builder, ExprId exp,
     assert(static_cast<Level>(map.getNumResults()) == lvlRank);
     bool isCurrentLoop = curr == 0; // for scalar tensors
     for (Level l = 0; l < lvlRank; l++) {
-      const AffineExpr a = map.getResult(l);
-      if (!isInvariantAffine(a, curr, /*out*/ isCurrentLoop))
+      
+      if (const AffineExpr a = map.getResult(l); !isInvariantAffine(a, curr, /*out*/ isCurrentLoop))
         return; // still in play
     }
     // All exhausted at current level.
@@ -703,8 +703,8 @@ static void genInvariants(CodegenEnv &env, OpBuilder &builder, ExprId exp,
     // because custom reduction lhs may occur several times in the IR,
     // we have a built-in safety for only initializing and wrapping-up
     // the scalarized reduction once.
-    OpOperand *lhs = op.getDpsInitOperand(0);
-    if (lhs == &t) {
+    
+    if (OpOperand *lhs = op.getDpsInitOperand(0); lhs == &t) {
       // Start or end a scalarized reduction.
       if (isStart) {
         if (env.isCustomReduc()) {
@@ -862,9 +862,9 @@ static Operation *genLoop(CodegenEnv &env, OpBuilder &builder, LoopId curr,
 /// Generates the induction structure for a while-loop.
 static void finalizeWhileOp(CodegenEnv &env, OpBuilder &builder,
                             bool needsUniv) {
-  Location loc = env.op().getLoc();
+  
   // Finalize each else branch of all if statements.
-  if (env.isReduc() || env.isExpand() || env.getInsertionChain()) {
+  if (Location loc = env.op().getLoc(); env.isReduc() || env.isExpand() || env.getInsertionChain()) {
     while (auto ifOp = dyn_cast_or_null<scf::IfOp>(
                builder.getInsertionBlock()->getParentOp())) {
       // Break on IfOp for slicing filtering.
@@ -1082,13 +1082,13 @@ static bool getAllTidLvlsInLatPoints(
       });
 
   if (isDenseLT(env.lt(outTid, curr))) {
-    auto stt = getSparseTensorType(env.op().getOutputs().front());
+    
     // Note that we generate dense indices of the output tensor unconditionally,
     // since they may not appear in the lattice, but may be needed for
     // linearized env.
     // TODO: we should avoid introducing corner cases for all-dense sparse
     // tensors.
-    if (stt.hasEncoding() && stt.isAllDense())
+    if (auto stt = getSparseTensorType(env.op().getOutputs().front()); stt.hasEncoding() && stt.isAllDense())
       callback(env.makeTensorLevel(outTid, *outLvl), nullptr);
   }
 
@@ -1150,15 +1150,15 @@ static void genConstantDenseAddressFromLevel(CodegenEnv &env,
   assert(tid < op.getNumDpsInputs());
   OpOperand *input = op.getDpsInputOperands()[tid];
   const auto lvlExprs = op.getMatchingIndexingMap(input).getResults();
-  const auto enc = getSparseTensorEncoding(input->get().getType());
-  if (enc) {
+  
+  if (const auto enc = getSparseTensorEncoding(input->get().getType()); enc) {
     const Location loc = op.getLoc();
     const TensorId tid = env.makeTensorId(input->getOperandNumber());
     const Level lvlRank = enc.getLvlRank();
     assert(lvlExprs.size() == static_cast<size_t>(lvlRank));
     for (Level l = startLvl; l < lvlRank; l++) {
-      AffineExpr lvlExpr = lvlExprs[l];
-      if (enc.getLvlType(l).hasDenseSemantic() &&
+      
+      if (AffineExpr lvlExpr = lvlExprs[l]; enc.getLvlType(l).hasDenseSemantic() &&
           isa<AffineConstantExpr>(lvlExpr))
         env.emitter().locateLvlAtAffineAddress(
             builder, loc, env.makeTensorLevel(tid, l), lvlExpr);
@@ -1296,9 +1296,9 @@ static void genStmt(CodegenEnv &env, RewriterBase &rewriter, ExprId exp,
     // the iterator.
     for (unsigned j = 0; j < lsize; j++) {
       const LatPointId lj = env.set(lts)[j];
-      const ExprId ej = env.lat(lj).exp;
+      
       // Recurse into body of each branch.
-      if (!isSingleCond) {
+      if (const ExprId ej = env.lat(lj).exp; !isSingleCond) {
         env.genLoopBoundary([&, curr, j, li, lj](MutableArrayRef<Value> reduc) {
           genCoIterationCase(env, rewriter, /*caseIdx*/ j, li, lj, reduc);
           genStmt(env, rewriter, ej, curr + 1);
@@ -1333,8 +1333,8 @@ static void genStmt(CodegenEnv &env, RewriterBase &rewriter, ExprId exp,
       // iterator.
       for (unsigned j = 0; j < lsize; j++) {
         const LatPointId lj = env.set(lts)[j];
-        const ExprId ej = env.lat(lj).exp;
-        if (li == lj || env.merger().latGT(li, lj)) {
+        
+        if (const ExprId ej = env.lat(lj).exp; li == lj || env.merger().latGT(li, lj)) {
           // Recurse into body of each branch.
           if (!isSingleCond) {
             scf::IfOp ifOp = genIf(env, rewriter, curr, lj);
@@ -1361,8 +1361,8 @@ static void genResult(CodegenEnv &env, RewriterBase &rewriter) {
   linalg::GenericOp op = env.op();
   OpOperand *lhs = op.getDpsInitOperand(0);
   Value tensor = lhs->get();
-  Type resType = tensor.getType();
-  if (getSparseTensorEncoding(resType)) {
+  
+  if (Type resType = tensor.getType(); getSparseTensorEncoding(resType)) {
     // The sparse tensor rematerializes from the original sparse tensor's
     // underlying sparse storage format. For an insertion chain, the
     // tensor materializes from the chain with 'hasInserts' enabled.
@@ -1443,8 +1443,8 @@ public:
     if (op.getNumReductionLoops() > 0) {
       Operation *yield = op.getRegion().front().getTerminator();
       assert(isa<linalg::YieldOp>(yield));
-      Operation *redop = yield->getOperand(0).getDefiningOp();
-      if (!isa<arith::AddFOp>(redop) && !isa<complex::AddOp>(redop) &&
+      
+      if (Operation *redop = yield->getOperand(0).getDefiningOp(); !isa<arith::AddFOp>(redop) && !isa<complex::AddOp>(redop) &&
           !isa<arith::AddIOp>(redop) && !isa<arith::SubFOp>(redop) &&
           !isa<complex::SubOp>(redop) && !isa<arith::SubIOp>(redop) &&
           !isa<arith::OrIOp>(redop) && !isa<arith::XOrIOp>(redop) &&

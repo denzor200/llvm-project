@@ -88,8 +88,8 @@ public:
     llvm::StringRef Ext = IsMSVC ? ".lib" : ".a";
 
     for (const auto *Arg : Args.filtered(options::OPT_l)) {
-      llvm::StringRef Value = Arg->getValue();
-      if (Value.starts_with(":"))
+      
+      if (llvm::StringRef Value = Arg->getValue(); Value.starts_with(":"))
         ExactLibNames.push_back(Value.drop_front());
       else
         LibNames.push_back(Value);
@@ -208,8 +208,8 @@ private:
       llvm::Error Err = llvm::Error::success();
       llvm::object::Archive &Archive = *ArchiveOrErr.get();
       for (auto &Child : Archive.children(Err)) {
-        auto ChildBufOrErr = Child.getMemoryBufferRef();
-        if (ChildBufOrErr)
+        
+        if (auto ChildBufOrErr = Child.getMemoryBufferRef(); ChildBufOrErr)
           processInput(*ChildBufOrErr);
         else
           errorHandler(ChildBufOrErr.takeError());

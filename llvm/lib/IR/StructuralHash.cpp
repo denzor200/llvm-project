@@ -83,8 +83,8 @@ public:
 
     // Hash the contents of a string.
     if (GVar.getName().starts_with(".str")) {
-      auto *C = GVar.getInitializer();
-      if (const auto *Seq = dyn_cast<ConstantDataSequential>(C))
+      
+      if (auto *C = GVar.getInitializer(); const auto *Seq = dyn_cast<ConstantDataSequential>(C))
         if (Seq->isString())
           return stable_hash_name(Seq->getAsString());
     }
@@ -184,8 +184,8 @@ public:
 
   stable_hash hashValue(Value *V) {
     // Check constant and return its hash.
-    Constant *C = dyn_cast<Constant>(V);
-    if (C)
+    
+    if (Constant *C = dyn_cast<Constant>(V); C)
       return hashConstant(C);
 
     // Hash argument number.
@@ -228,8 +228,8 @@ public:
     }
 
     for (const auto [OpndIdx, Op] : enumerate(Inst.operands())) {
-      auto OpndHash = hashOperand(Op);
-      if (IgnoreOp && IgnoreOp(&Inst, OpndIdx)) {
+      
+      if (auto OpndHash = hashOperand(Op); IgnoreOp && IgnoreOp(&Inst, OpndIdx)) {
         assert(IndexOperandHashMap);
         IndexOperandHashMap->try_emplace({InstIdx, OpndIdx}, OpndHash);
       } else

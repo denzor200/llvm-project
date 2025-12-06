@@ -672,8 +672,8 @@ unsigned GCCAsmStmt::AnalyzeAsmString(SmallVectorImpl<AsmStringPiece>&Pieces,
       return 0;
     }
 
-    char CurChar = *CurPtr++;
-    switch (CurChar) {
+    
+    switch (char CurChar = *CurPtr++; CurChar) {
     case '$': CurStringPiece += "$$"; continue;
     case '{': CurStringPiece += (HasVariants ? "$(" : "{"); continue;
     case '|': CurStringPiece += (HasVariants ? "$|" : "|"); continue;
@@ -753,9 +753,9 @@ unsigned GCCAsmStmt::AnalyzeAsmString(SmallVectorImpl<AsmStringPiece>&Pieces,
       while (CurPtr != StrEnd && isDigit(*CurPtr))
         N = N*10 + ((*CurPtr++)-'0');
 
-      unsigned NumOperands = getNumOutputs() + getNumPlusOperands() +
-                             getNumInputs() + getNumLabels();
-      if (N >= NumOperands) {
+      
+      if (unsigned NumOperands = getNumOutputs() + getNumPlusOperands() +
+                             getNumInputs() + getNumLabels(); N >= NumOperands) {
         DiagOffs = CurPtr-StrStart-1;
         return diag::err_asm_invalid_operand_number;
       }

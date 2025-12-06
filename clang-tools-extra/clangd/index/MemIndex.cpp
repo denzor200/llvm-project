@@ -60,8 +60,8 @@ void MemIndex::lookup(const LookupRequest &Req,
                       llvm::function_ref<void(const Symbol &)> Callback) const {
   trace::Span Tracer("MemIndex lookup");
   for (const auto &ID : Req.IDs) {
-    auto I = Index.find(ID);
-    if (I != Index.end())
+    
+    if (auto I = Index.find(ID); I != Index.end())
       Callback(*I->second);
   }
 }

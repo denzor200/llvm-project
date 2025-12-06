@@ -127,8 +127,8 @@ StatepointLoweringState::allocateStackSlot(EVT ValueType,
 
   for (; NextSlotToAllocate < NumSlots; NextSlotToAllocate++) {
     if (!AllocatedStackSlots.test(NextSlotToAllocate)) {
-      const int FI = Builder.FuncInfo.StatepointStackSlots[NextSlotToAllocate];
-      if (MFI.getObjectSize(FI) == SpillSize) {
+      
+      if (const int FI = Builder.FuncInfo.StatepointStackSlots[NextSlotToAllocate]; MFI.getObjectSize(FI) == SpillSize) {
         AllocatedStackSlots.set(NextSlotToAllocate);
         // TODO: Is ValueType the right thing to use here?
         return Builder.DAG.getFrameIndex(FI, ValueType);
@@ -620,14 +620,14 @@ lowerStatepointMetaArgs(SmallVectorImpl<SDValue> &Ops,
   }
 
   for (const Value *V : SI.Ptrs) {
-    SDValue SDV = Builder.getValue(V);
-    if (!LowerAsVReg.count(SDV))
+    
+    if (SDValue SDV = Builder.getValue(V); !LowerAsVReg.count(SDV))
       reservePreviousStackSlotForValue(V, Builder);
   }
 
   for (const Value *V : SI.Bases) {
-    SDValue SDV = Builder.getValue(V);
-    if (!LowerAsVReg.count(SDV))
+    
+    if (SDValue SDV = Builder.getValue(V); !LowerAsVReg.count(SDV))
       reservePreviousStackSlotForValue(V, Builder);
   }
 
@@ -645,8 +645,8 @@ lowerStatepointMetaArgs(SmallVectorImpl<SDValue> &Ops,
     // If this is a function argument at a static frame index, generate it as
     // the frame index.
     if (const Argument *Arg = dyn_cast<Argument>(V)) {
-      int FI = Builder.FuncInfo.getArgumentFrameIndex(Arg);
-      if (FI != INT_MAX)
+      
+      if (int FI = Builder.FuncInfo.getArgumentFrameIndex(Arg); FI != INT_MAX)
         Incoming = Builder.DAG.getFrameIndex(FI, Builder.getFrameIndexTy());
     }
     if (!Incoming.getNode())
@@ -673,8 +673,8 @@ lowerStatepointMetaArgs(SmallVectorImpl<SDValue> &Ops,
   // the alloca
   SmallVector<SDValue, 4> Allocas;
   for (Value *V : SI.GCLives) {
-    SDValue Incoming = Builder.getValue(V);
-    if (FrameIndexSDNode *FI = dyn_cast<FrameIndexSDNode>(Incoming)) {
+    
+    if (SDValue Incoming = Builder.getValue(V); FrameIndexSDNode *FI = dyn_cast<FrameIndexSDNode>(Incoming)) {
       // This handles allocas as arguments to the statepoint
       assert(Incoming.getValueType() == Builder.getFrameIndexTy() &&
              "Incoming value is a frame index!");
@@ -1068,8 +1068,8 @@ SelectionDAGBuilder::LowerStatepoint(const GCStatepointInst &I,
   for (const GCRelocateInst *Relocate : I.getGCRelocates()) {
     SI.GCRelocates.push_back(Relocate);
 
-    SDValue DerivedSD = getValue(Relocate->getDerivedPtr());
-    if (Seen.insert(DerivedSD).second) {
+    
+    if (SDValue DerivedSD = getValue(Relocate->getDerivedPtr()); Seen.insert(DerivedSD).second) {
       SI.Bases.push_back(Relocate->getBasePtr());
       SI.Ptrs.push_back(Relocate->getDerivedPtr());
     }

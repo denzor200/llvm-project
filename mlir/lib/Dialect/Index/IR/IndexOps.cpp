@@ -665,9 +665,9 @@ OpFoldResult CmpOp::fold(FoldAdaptor adaptor) {
   if (lhs && rhs) {
     // Perform the comparison in 64-bit and 32-bit.
     bool result64 = compareIndices(lhs.getValue(), rhs.getValue(), getPred());
-    bool result32 = compareIndices(lhs.getValue().trunc(32),
-                                   rhs.getValue().trunc(32), getPred());
-    if (result64 == result32)
+    
+    if (bool result32 = compareIndices(lhs.getValue().trunc(32),
+                                   rhs.getValue().trunc(32), getPred()); result64 == result32)
       return BoolAttr::get(getContext(), result64);
   }
 
@@ -678,11 +678,11 @@ OpFoldResult CmpOp::fold(FoldAdaptor adaptor) {
       matchPattern(lhsOp->getOperand(1), m_Constant(&cstA)) && rhs) {
     std::optional<bool> result64 = foldCmpOfMaxOrMin(
         lhsOp, cstA.getValue(), rhs.getValue(), 64, getPred());
-    std::optional<bool> result32 =
-        foldCmpOfMaxOrMin(lhsOp, cstA.getValue().trunc(32),
-                          rhs.getValue().trunc(32), 32, getPred());
+    
     // Fold if the 32-bit and 64-bit results are the same.
-    if (result64 && result32 && *result64 == *result32)
+    if (std::optional<bool> result32 =
+        foldCmpOfMaxOrMin(lhsOp, cstA.getValue().trunc(32),
+                          rhs.getValue().trunc(32), 32, getPred()); result64 && result32 && *result64 == *result32)
       return BoolAttr::get(getContext(), *result64);
   }
 

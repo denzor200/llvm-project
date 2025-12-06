@@ -201,8 +201,8 @@ static ScopePair GetDiagForGotoScopeDecl(Sema &S, const Decl *D) {
       // initializer, we will have call-style initialization and the initializer
       // will be the CXXConstructExpr with no intervening nodes.
       if (const CXXConstructExpr *CCE = dyn_cast<CXXConstructExpr>(Init)) {
-        const CXXConstructorDecl *Ctor = CCE->getConstructor();
-        if (Ctor->isTrivial() && Ctor->isDefaultConstructor() &&
+        
+        if (const CXXConstructorDecl *Ctor = CCE->getConstructor(); Ctor->isTrivial() && Ctor->isDefaultConstructor() &&
             VD->getInitStyle() == VarDecl::CallInit) {
           if (OutDiag)
             InDiag = diag::note_protected_by_variable_nontriv_destructor;
@@ -254,8 +254,8 @@ void JumpScopeChecker::BuildScopeInformation(VarDecl *D,
   if (D->hasAttr<BlocksAttr>())
     return;
   QualType T = D->getType();
-  QualType::DestructionKind destructKind = T.isDestructedType();
-  if (destructKind != QualType::DK_none) {
+  
+  if (QualType::DestructionKind destructKind = T.isDestructedType(); destructKind != QualType::DK_none) {
     std::pair<unsigned,unsigned> Diags;
     switch (destructKind) {
       case QualType::DK_cxx_destructor:
@@ -576,11 +576,11 @@ void JumpScopeChecker::BuildScopeInformation(Stmt *S,
   case Stmt::MaterializeTemporaryExprClass: {
     // Disallow jumps out of scopes containing temporaries lifetime-extended to
     // automatic storage duration.
-    MaterializeTemporaryExpr *MTE = cast<MaterializeTemporaryExpr>(S);
-    if (MTE->getStorageDuration() == SD_Automatic) {
-      const Expr *ExtendedObject =
-          MTE->getSubExpr()->skipRValueSubobjectAdjustments();
-      if (ExtendedObject->getType().isDestructedType()) {
+    
+    if (MaterializeTemporaryExpr *MTE = cast<MaterializeTemporaryExpr>(S); MTE->getStorageDuration() == SD_Automatic) {
+      
+      if (const Expr *ExtendedObject =
+          MTE->getSubExpr()->skipRValueSubobjectAdjustments(); ExtendedObject->getType().isDestructedType()) {
         Scopes.push_back(GotoScope(ParentScope, 0,
                                    diag::note_exits_temporary_dtor,
                                    ExtendedObject->getExprLoc()));
@@ -702,8 +702,8 @@ void JumpScopeChecker::VerifyJumps() {
       for (AddrLabelExpr *L : G->labels()) {
         LabelDecl *LD = L->getLabel();
         unsigned JumpScope = LabelAndGotoScopes[G];
-        unsigned TargetScope = LabelAndGotoScopes[LD->getStmt()];
-        if (JumpScope != TargetScope)
+        
+        if (unsigned TargetScope = LabelAndGotoScopes[LD->getStmt()]; JumpScope != TargetScope)
           DiagnoseIndirectOrAsmJump(G, JumpScope, LD, TargetScope);
       }
       continue;
@@ -940,13 +940,13 @@ void JumpScopeChecker::DiagnoseIndirectOrAsmJump(Stmt *Jump, unsigned JumpScope,
   // Diagnose this jump if it would be ill-formed in C++[98].
   if (!Diagnosed) {
     bool IsAsmGoto = isa<GCCAsmStmt>(Jump);
-    auto Diag = [&](unsigned DiagId, const SmallVectorImpl<unsigned> &Notes) {
+    
+    if (auto Diag = [&](unsigned DiagId, const SmallVectorImpl<unsigned> &Notes) {
       S.Diag(Jump->getBeginLoc(), DiagId) << IsAsmGoto;
       S.Diag(Target->getStmt()->getIdentLoc(), diag::note_indirect_goto_target)
           << IsAsmGoto;
       NoteJumpIntoScopes(Notes);
-    };
-    if (!ToScopesCXX98Compat.empty())
+    }; !ToScopesCXX98Compat.empty())
       Diag(diag::warn_cxx98_compat_indirect_goto_in_protected_scope,
            ToScopesCXX98Compat);
     else if (!ToScopesCppCompat.empty())

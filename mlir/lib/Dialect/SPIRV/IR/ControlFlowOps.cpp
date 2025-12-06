@@ -325,8 +325,8 @@ ParseResult LoopOp::parse(OpAsmParser &parser, OperationState &result) {
 }
 
 void LoopOp::print(OpAsmPrinter &printer) {
-  auto control = getLoopControl();
-  if (control != spirv::LoopControl::None)
+  
+  if (auto control = getLoopControl(); control != spirv::LoopControl::None)
     printer << " control(" << spirv::stringifyLoopControl(control) << ")";
   if (getNumResults() > 0) {
     printer << " -> ";
@@ -556,8 +556,8 @@ ParseResult SelectionOp::parse(OpAsmParser &parser, OperationState &result) {
 }
 
 void SelectionOp::print(OpAsmPrinter &printer) {
-  auto control = getSelectionControl();
-  if (control != spirv::SelectionControl::None)
+  
+  if (auto control = getSelectionControl(); control != spirv::SelectionControl::None)
     printer << " control(" << spirv::stringifySelectionControl(control) << ")";
   if (getNumResults() > 0) {
     printer << " -> ";

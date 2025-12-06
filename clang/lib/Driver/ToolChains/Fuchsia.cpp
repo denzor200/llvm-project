@@ -90,8 +90,8 @@ void fuchsia::Linker::ConstructJob(Compilation &C, const JobAction &JA,
   if (ToolChain.getArch() == llvm::Triple::aarch64) {
     CmdArgs.push_back("--execute-only");
 
-    std::string CPU = getCPUName(D, Args, Triple);
-    if (Args.hasFlag(options::OPT_mfix_cortex_a53_843419,
+    
+    if (std::string CPU = getCPUName(D, Args, Triple); Args.hasFlag(options::OPT_mfix_cortex_a53_843419,
                      options::OPT_mno_fix_cortex_a53_843419, true) &&
         (CPU.empty() || CPU == "generic" || CPU == "cortex-a53"))
       CmdArgs.push_back("--fix-cortex-a53-843419");
@@ -228,8 +228,8 @@ void fuchsia::StaticLibTool::ConstructJob(Compilation &C, const JobAction &JA,
 
   // Delete old output archive file if it already exists before generating a new
   // archive file.
-  const char *OutputFileName = Output.getFilename();
-  if (Output.isFilename() && llvm::sys::fs::exists(OutputFileName)) {
+  
+  if (const char *OutputFileName = Output.getFilename(); Output.isFilename() && llvm::sys::fs::exists(OutputFileName)) {
     if (std::error_code EC = llvm::sys::fs::remove(OutputFileName)) {
       D.Diag(diag::err_drv_unable_to_remove_file) << EC.message();
       return;
@@ -345,8 +345,8 @@ Tool *Fuchsia::buildStaticLibTool() const {
 ToolChain::RuntimeLibType
 Fuchsia::GetRuntimeLibType(const ArgList &Args) const {
   if (Arg *A = Args.getLastArg(options::OPT_rtlib_EQ)) {
-    StringRef Value = A->getValue();
-    if (Value != "compiler-rt")
+    
+    if (StringRef Value = A->getValue(); Value != "compiler-rt")
       getDriver().Diag(clang::diag::err_drv_invalid_rtlib_name)
           << A->getAsString(Args);
   }
@@ -356,8 +356,8 @@ Fuchsia::GetRuntimeLibType(const ArgList &Args) const {
 
 ToolChain::CXXStdlibType Fuchsia::GetCXXStdlibType(const ArgList &Args) const {
   if (Arg *A = Args.getLastArg(options::OPT_stdlib_EQ)) {
-    StringRef Value = A->getValue();
-    if (Value != "libc++")
+    
+    if (StringRef Value = A->getValue(); Value != "libc++")
       getDriver().Diag(diag::err_drv_invalid_stdlib_name)
           << A->getAsString(Args);
   }
@@ -418,7 +418,9 @@ void Fuchsia::AddClangCXXStdlibIncludeArgs(const ArgList &DriverArgs,
   const Driver &D = getDriver();
   std::string Target = getTripleString();
 
-  auto AddCXXIncludePath = [&](StringRef Path) {
+  
+
+  switch (auto AddCXXIncludePath = [&](StringRef Path) {
     std::string Version = detectLibcxxVersion(Path);
     if (Version.empty())
       return;
@@ -443,9 +445,7 @@ void Fuchsia::AddClangCXXStdlibIncludeArgs(const ArgList &DriverArgs,
     SmallString<128> Dir(Path);
     llvm::sys::path::append(Dir, "c++", Version);
     addSystemInclude(DriverArgs, CC1Args, Dir);
-  };
-
-  switch (GetCXXStdlibType(DriverArgs)) {
+  }; GetCXXStdlibType(DriverArgs)) {
   case ToolChain::CST_Libcxx: {
     SmallString<128> P(D.Dir);
     llvm::sys::path::append(P, "..", "include");

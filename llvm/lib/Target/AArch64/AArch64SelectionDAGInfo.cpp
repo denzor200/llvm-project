@@ -201,10 +201,10 @@ SDValue AArch64SelectionDAGInfo::EmitTargetCodeForMemcpy(
     SelectionDAG &DAG, const SDLoc &DL, SDValue Chain, SDValue Dst, SDValue Src,
     SDValue Size, Align Alignment, bool isVolatile, bool AlwaysInline,
     MachinePointerInfo DstPtrInfo, MachinePointerInfo SrcPtrInfo) const {
-  const AArch64Subtarget &STI =
-      DAG.getMachineFunction().getSubtarget<AArch64Subtarget>();
+  
 
-  if (STI.hasMOPS())
+  if (const AArch64Subtarget &STI =
+      DAG.getMachineFunction().getSubtarget<AArch64Subtarget>(); STI.hasMOPS())
     return EmitMOPS(AArch64::MOPSMemoryCopyPseudo, DAG, DL, Chain, Dst, Src,
                     Size, Alignment, isVolatile, DstPtrInfo, SrcPtrInfo);
 
@@ -220,10 +220,10 @@ SDValue AArch64SelectionDAGInfo::EmitTargetCodeForMemset(
     SelectionDAG &DAG, const SDLoc &dl, SDValue Chain, SDValue Dst, SDValue Src,
     SDValue Size, Align Alignment, bool isVolatile, bool AlwaysInline,
     MachinePointerInfo DstPtrInfo) const {
-  const AArch64Subtarget &STI =
-      DAG.getMachineFunction().getSubtarget<AArch64Subtarget>();
+  
 
-  if (STI.hasMOPS())
+  if (const AArch64Subtarget &STI =
+      DAG.getMachineFunction().getSubtarget<AArch64Subtarget>(); STI.hasMOPS())
     return EmitMOPS(AArch64::MOPSMemorySetPseudo, DAG, dl, Chain, Dst, Src,
                     Size, Alignment, isVolatile, DstPtrInfo,
                     MachinePointerInfo{});
@@ -240,10 +240,10 @@ SDValue AArch64SelectionDAGInfo::EmitTargetCodeForMemmove(
     SelectionDAG &DAG, const SDLoc &dl, SDValue Chain, SDValue Dst, SDValue Src,
     SDValue Size, Align Alignment, bool isVolatile,
     MachinePointerInfo DstPtrInfo, MachinePointerInfo SrcPtrInfo) const {
-  const AArch64Subtarget &STI =
-      DAG.getMachineFunction().getSubtarget<AArch64Subtarget>();
+  
 
-  if (STI.hasMOPS())
+  if (const AArch64Subtarget &STI =
+      DAG.getMachineFunction().getSubtarget<AArch64Subtarget>(); STI.hasMOPS())
     return EmitMOPS(AArch64::MOPSMemoryMovePseudo, DAG, dl, Chain, Dst, Src,
                     Size, Alignment, isVolatile, DstPtrInfo, SrcPtrInfo);
 
@@ -319,9 +319,9 @@ SDValue AArch64SelectionDAGInfo::EmitTargetCodeForSetTag(
   MachineMemOperand *BaseMemOperand = MF.getMachineMemOperand(
       DstPtrInfo, MachineMemOperand::MOStore, ObjSize, Align(16));
 
-  bool UseSetTagRangeLoop =
-      kSetTagLoopThreshold >= 0 && (int)ObjSize >= kSetTagLoopThreshold;
-  if (!UseSetTagRangeLoop)
+  
+  if (bool UseSetTagRangeLoop =
+      kSetTagLoopThreshold >= 0 && (int)ObjSize >= kSetTagLoopThreshold; !UseSetTagRangeLoop)
     return EmitUnrolledSetTag(DAG, dl, Chain, Addr, ObjSize, BaseMemOperand,
                               ZeroData);
 

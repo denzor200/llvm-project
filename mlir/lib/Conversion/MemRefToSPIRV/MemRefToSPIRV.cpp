@@ -123,12 +123,12 @@ static Value shiftValue(Location loc, Value value, Value offset, Value mask,
 /// can be lowered to SPIR-V.
 static bool isAllocationSupported(Operation *allocOp, MemRefType type) {
   if (isa<memref::AllocOp, memref::DeallocOp>(allocOp)) {
-    auto sc = dyn_cast_or_null<spirv::StorageClassAttr>(type.getMemorySpace());
-    if (!sc || sc.getValue() != spirv::StorageClass::Workgroup)
+    
+    if (auto sc = dyn_cast_or_null<spirv::StorageClassAttr>(type.getMemorySpace()); !sc || sc.getValue() != spirv::StorageClass::Workgroup)
       return false;
   } else if (isa<memref::AllocaOp>(allocOp)) {
-    auto sc = dyn_cast_or_null<spirv::StorageClassAttr>(type.getMemorySpace());
-    if (!sc || sc.getValue() != spirv::StorageClass::Function)
+    
+    if (auto sc = dyn_cast_or_null<spirv::StorageClassAttr>(type.getMemorySpace()); !sc || sc.getValue() != spirv::StorageClass::Function)
       return false;
   } else {
     return false;
@@ -579,9 +579,9 @@ IntLoadOpPattern::matchAndRewrite(memref::LoadOp loadOp, OpAdaptor adaptor,
       dstType = pointeeType;
   } else {
     // For Vulkan we need to extract element from wrapping struct and array.
-    Type structElemType =
-        cast<spirv::StructType>(pointeeType).getElementType(0);
-    if (auto arrayType = dyn_cast<spirv::ArrayType>(structElemType))
+    
+    if (Type structElemType =
+        cast<spirv::StructType>(pointeeType).getElementType(0); auto arrayType = dyn_cast<spirv::ArrayType>(structElemType))
       dstType = arrayType.getElementType();
     else
       dstType = cast<spirv::RuntimeArrayType>(structElemType).getElementType();
@@ -851,9 +851,9 @@ IntStoreOpPattern::matchAndRewrite(memref::StoreOp storeOp, OpAdaptor adaptor,
       dstType = dyn_cast<IntegerType>(pointeeType);
   } else {
     // For Vulkan we need to extract element from wrapping struct and array.
-    Type structElemType =
-        cast<spirv::StructType>(pointeeType).getElementType(0);
-    if (auto arrayType = dyn_cast<spirv::ArrayType>(structElemType))
+    
+    if (Type structElemType =
+        cast<spirv::StructType>(pointeeType).getElementType(0); auto arrayType = dyn_cast<spirv::ArrayType>(structElemType))
       dstType = dyn_cast<IntegerType>(arrayType.getElementType());
     else
       dstType = dyn_cast<IntegerType>(

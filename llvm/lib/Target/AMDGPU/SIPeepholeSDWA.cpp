@@ -337,8 +337,8 @@ static std::optional<SdwaSel> combineSdwaSel(SdwaSel Sel, SdwaSel OperandSel) {
 uint64_t SDWASrcOperand::getSrcMods(const SIInstrInfo *TII,
                                     const MachineOperand *SrcOp) const {
   uint64_t Mods = 0;
-  const auto *MI = SrcOp->getParent();
-  if (TII->getNamedOperand(*MI, AMDGPU::OpName::src0) == SrcOp) {
+  
+  if (const auto *MI = SrcOp->getParent(); TII->getNamedOperand(*MI, AMDGPU::OpName::src0) == SrcOp) {
     if (auto *Mod = TII->getNamedOperand(*MI, AMDGPU::OpName::src0_modifiers)) {
       Mods = Mod->getImm();
     }
@@ -446,18 +446,18 @@ bool SDWASrcOperand::convertToSDWA(MachineInstr &MI, const SIInstrInfo *TII) {
       // if the preserve operation will effectively cause the same
       // result by overwriting the rest of the dst.
       MachineOperand *Dst = TII->getNamedOperand(MI, AMDGPU::OpName::vdst);
-      MachineOperand *DstUnused =
-        TII->getNamedOperand(MI, AMDGPU::OpName::dst_unused);
+      
 
-      if (Dst &&
+      if (MachineOperand *DstUnused =
+        TII->getNamedOperand(MI, AMDGPU::OpName::dst_unused); Dst &&
           DstUnused->getImm() == AMDGPU::SDWA::DstUnused::UNUSED_PRESERVE) {
         // This will work if the tied src is accessing WORD_0, and the dst is
         // writing WORD_1. Modifiers don't matter because all the bits that
         // would be impacted are being overwritten by the dst.
         // Any other case will not work.
-        SdwaSel DstSel = static_cast<SdwaSel>(
-            TII->getNamedImmOperand(MI, AMDGPU::OpName::dst_sel));
-        if (DstSel == AMDGPU::SDWA::SdwaSel::WORD_1 &&
+        
+        if (SdwaSel DstSel = static_cast<SdwaSel>(
+            TII->getNamedImmOperand(MI, AMDGPU::OpName::dst_sel)); DstSel == AMDGPU::SDWA::SdwaSel::WORD_1 &&
             getSrcSel() == AMDGPU::SDWA::SdwaSel::WORD_0) {
           IsPreserveSrc = true;
           auto DstIdx = AMDGPU::getNamedOperandIdx(MI.getOpcode(),
@@ -518,8 +518,8 @@ static bool canCombineOpSel(const MachineInstr &MI, const SIInstrInfo *TII,
                             SdwaSel OpSel) {
   assert(TII->isSDWA(MI.getOpcode()));
 
-  const MachineOperand *Src = TII->getNamedOperand(MI, SrcOpName);
-  if (!Src || !isSameReg(*Src, *Op))
+  
+  if (const MachineOperand *Src = TII->getNamedOperand(MI, SrcOpName); !Src || !isSameReg(*Src, *Op))
     return true;
 
   return canCombineOpSel(MI, TII, SrcSelOpName, OpSel);
@@ -665,8 +665,8 @@ SIPeepholeSDWA::foldToImm(const MachineOperand &Op) const {
 
 std::unique_ptr<SDWAOperand>
 SIPeepholeSDWA::matchSDWAOperand(MachineInstr &MI) {
-  unsigned Opcode = MI.getOpcode();
-  switch (Opcode) {
+  
+  switch (unsigned Opcode = MI.getOpcode(); Opcode) {
   case AMDGPU::V_LSHRREV_B32_e32:
   case AMDGPU::V_ASHRREV_I32_e32:
   case AMDGPU::V_LSHLREV_B32_e32:
@@ -1077,8 +1077,8 @@ void SIPeepholeSDWA::convertVcndmaskToVOP2(MachineInstr &MI,
   const MachineOperand &CarryIn =
       *TII->getNamedOperand(MI, AMDGPU::OpName::src2);
   Register CarryReg = CarryIn.getReg();
-  MachineInstr *CarryDef = MRI->getVRegDef(CarryReg);
-  if (!CarryDef) {
+  
+  if (MachineInstr *CarryDef = MRI->getVRegDef(CarryReg); !CarryDef) {
     LLVM_DEBUG(dbgs() << "Missing carry-in operand definition\n");
     return;
   }
@@ -1133,8 +1133,8 @@ bool isConvertibleToSDWA(MachineInstr &MI,
 
   if (TII->isVOPC(Opc)) {
     if (!ST.hasSDWASdst()) {
-      const MachineOperand *SDst = TII->getNamedOperand(MI, AMDGPU::OpName::sdst);
-      if (SDst && (SDst->getReg() != AMDGPU::VCC &&
+      
+      if (const MachineOperand *SDst = TII->getNamedOperand(MI, AMDGPU::OpName::sdst); SDst && (SDst->getReg() != AMDGPU::VCC &&
                    SDst->getReg() != AMDGPU::VCC_LO))
         return false;
     }
@@ -1246,8 +1246,8 @@ MachineInstr *SIPeepholeSDWA::createSDWAVersion(MachineInstr &MI) {
 
   // Copy omod if present, initialize otherwise if needed
   if (AMDGPU::hasNamedOperand(SDWAOpcode, AMDGPU::OpName::omod)) {
-    MachineOperand *OMod = TII->getNamedOperand(MI, AMDGPU::OpName::omod);
-    if (OMod) {
+    
+    if (MachineOperand *OMod = TII->getNamedOperand(MI, AMDGPU::OpName::omod); OMod) {
       SDWAInst.add(*OMod);
     } else {
       SDWAInst.addImm(0);
@@ -1346,8 +1346,8 @@ void SIPeepholeSDWA::legalizeScalarOperands(MachineInstr &MI,
       continue;
 
     unsigned I = Op.getOperandNo();
-    const TargetRegisterClass *OpRC = TII->getRegClass(Desc, I);
-    if (!OpRC || !TRI->isVSSuperClass(OpRC))
+    
+    if (const TargetRegisterClass *OpRC = TII->getRegClass(Desc, I); !OpRC || !TRI->isVSSuperClass(OpRC))
       continue;
 
     Register VGPR = MRI->createVirtualRegister(&AMDGPU::VGPR_32RegClass);
@@ -1412,10 +1412,10 @@ bool SIPeepholeSDWA::run(MachineFunction &MF) {
 
       for (const auto &OperandPair : SDWAOperands) {
         const auto &Operand = OperandPair.second;
-        MachineInstr *PotentialMI =
-            Operand->potentialToConvert(TII, ST, &PotentialMatches);
+        
 
-        if (PotentialMI && isConvertibleToSDWA(*PotentialMI, ST, TII))
+        if (MachineInstr *PotentialMI =
+            Operand->potentialToConvert(TII, ST, &PotentialMatches); PotentialMI && isConvertibleToSDWA(*PotentialMI, ST, TII))
           PotentialMatches[PotentialMI].push_back(Operand.get());
       }
 

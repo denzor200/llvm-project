@@ -40,9 +40,9 @@ template <class LP> static bool objectHasObjCSection(MemoryBufferRef mb) {
     for (const SectionHeader &secHead : sectionHeaders) {
       StringRef sectname(secHead.sectname,
                          strnlen(secHead.sectname, sizeof(secHead.sectname)));
-      StringRef segname(secHead.segname,
-                        strnlen(secHead.segname, sizeof(secHead.segname)));
-      if ((segname == segment_names::data &&
+      
+      if (StringRef segname(secHead.segname,
+                        strnlen(secHead.segname, sizeof(secHead.segname))); (segname == segment_names::data &&
            sectname == section_names::objcCatList) ||
           (segname == segment_names::text &&
            sectname.starts_with(section_names::swift))) {
@@ -241,8 +241,8 @@ void ObjcCategoryChecker::parseMethods(const ConcatInputSection *methodsIsec,
       lld::macho::InputFile *inputFile = section->getFile();
       std::string result = toString(inputFile);
 
-      auto objFile = dyn_cast_or_null<ObjFile>(inputFile);
-      if (objFile && objFile->compileUnit)
+      
+      if (auto objFile = dyn_cast_or_null<ObjFile>(inputFile); objFile && objFile->compileUnit)
         result += " (" + objFile->sourceFile() + ")";
 
       return result;

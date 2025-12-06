@@ -323,8 +323,8 @@ template <class ELFT> Expected<ELFYAML::Object *> ELFDumper<ELFT>::dump() {
       if (Expected<ArrayRef<Elf_Word>> TableOrErr = Obj.getSHNDXTable(Sec)) {
         // The `getSHNDXTable` calls the `getSection` internally when validates
         // the symbol table section linked to the SHT_SYMTAB_SHNDX section.
-        const Elf_Shdr *LinkedSymTab = cantFail(Obj.getSection(Sec.sh_link));
-        if (!ShndxTables.insert({LinkedSymTab, *TableOrErr}).second)
+        
+        if (const Elf_Shdr *LinkedSymTab = cantFail(Obj.getSection(Sec.sh_link)); !ShndxTables.insert({LinkedSymTab, *TableOrErr}).second)
           return createStringError(
               errc::invalid_argument,
               "multiple SHT_SYMTAB_SHNDX sections are "
@@ -495,8 +495,8 @@ ELFDumper<ELFT>::dumpProgramHeaders(
     // It is not possible to have a non-Section chunk, because
     // obj2yaml does not create Fill chunks.
     for (const std::unique_ptr<ELFYAML::Chunk> &C : Chunks) {
-      ELFYAML::Section &S = cast<ELFYAML::Section>(*C);
-      if (isInSegment<ELFT>(S, Sections[S.OriginalSecNdx], Phdr)) {
+      
+      if (ELFYAML::Section &S = cast<ELFYAML::Section>(*C); isInSegment<ELFT>(S, Sections[S.OriginalSecNdx], Phdr)) {
         if (!PH.FirstSec)
           PH.FirstSec = S.Name;
         PH.LastSec = S.Name;

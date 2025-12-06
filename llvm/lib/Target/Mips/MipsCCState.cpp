@@ -20,8 +20,8 @@ MipsCCState::getSpecialCallingConvForCallee(const SDNode *Callee,
     if (const GlobalAddressSDNode *G =
             dyn_cast<const GlobalAddressSDNode>(Callee)) {
       llvm::StringRef Sym = G->getGlobal()->getName();
-      Function *F = G->getGlobal()->getParent()->getFunction(Sym);
-      if (F && F->hasFnAttribute("__Mips16RetHelper")) {
+      
+      if (Function *F = G->getGlobal()->getParent()->getFunction(Sym); F && F->hasFnAttribute("__Mips16RetHelper")) {
         SpecialCallingConv = Mips16RetHelperConv;
       }
     }

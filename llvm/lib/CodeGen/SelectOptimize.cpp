@@ -189,8 +189,8 @@ public:
     Scaled64 getOpCostOnBranch(
         bool IsTrue, const DenseMap<const Instruction *, CostInfo> &InstCostMap,
         const TargetTransformInfo *TTI) {
-      auto *V = IsTrue ? getTrueValue() : getFalseValue();
-      if (V) {
+      
+      if (auto *V = IsTrue ? getTrueValue() : getFalseValue(); V) {
         if (auto *IV = dyn_cast<Instruction>(V)) {
           auto It = InstCostMap.find(IV);
           return It != InstCostMap.end() ? It->second.NonPredCost
@@ -208,8 +208,8 @@ public:
           {TTI::OK_UniformConstantValue, TTI::OP_PowerOf2});
       auto TotalCost = Scaled64::get(Cost.getValue());
       if (auto *OpI = dyn_cast<Instruction>(I->getOperand(1 - CondIdx))) {
-        auto It = InstCostMap.find(OpI);
-        if (It != InstCostMap.end())
+        
+        if (auto It = InstCostMap.find(OpI); It != InstCostMap.end())
           TotalCost += It->second.NonPredCost;
       }
       return TotalCost;
@@ -436,8 +436,8 @@ void SelectOptimizeImpl::optimizeSelectsBase(Function &F,
   SelectGroups SIGroups;
   for (BasicBlock &BB : F) {
     // Base heuristics apply only to non-loops and outer loops.
-    Loop *L = LI->getLoopFor(&BB);
-    if (L && L->isInnermost())
+    
+    if (Loop *L = LI->getLoopFor(&BB); L && L->isInnermost())
       continue;
     collectSelectGroups(BB, SIGroups);
   }
@@ -480,8 +480,8 @@ static Value *getTrueOrFalseValue(
     SelectOptimizeImpl::SelectLike &SI, bool isTrue,
     SmallDenseMap<Instruction *, std::pair<Value *, Value *>, 2> &OptSelects,
     BasicBlock *B) {
-  Value *V = isTrue ? SI.getTrueValue() : SI.getFalseValue();
-  if (V) {
+  
+  if (Value *V = isTrue ? SI.getTrueValue() : SI.getFalseValue(); V) {
     if (auto *IV = dyn_cast<Instruction>(V))
       if (auto It = OptSelects.find(IV); It != OptSelects.end())
         return isTrue ? It->second.first : It->second.second;
@@ -856,8 +856,8 @@ void SelectOptimizeImpl::collectSelectGroups(BasicBlock &BB,
       unsigned Idx = I->getOpcode() == Instruction::Sub ? 1 : 0;
       for (; Idx < 2; Idx++) {
         auto *Op = I->getOperand(Idx);
-        auto It = SelectInfo.find(Op);
-        if (It != SelectInfo.end() && It->second.IsAuxiliary) {
+        
+        if (auto It = SelectInfo.find(Op); It != SelectInfo.end() && It->second.IsAuxiliary) {
           Cond = It->second.Cond;
           bool Inverted = It->second.IsInverted;
           return SelectInfo.insert({I, {Cond, false, Inverted, Idx}}).first;
@@ -1114,9 +1114,9 @@ bool SelectOptimizeImpl::hasExpensiveColdOperand(const SelectGroup &ASI) {
       // the cmov becomes for computing the cold value operand every time. Thus,
       // the colder the cold operand is the more its cost counts.
       // Get nearest integer cost adjusted for coldness.
-      InstructionCost AdjSliceCost =
-          divideNearest(SliceCost * HotWeight, TotalWeight);
-      if (AdjSliceCost >=
+      
+      if (InstructionCost AdjSliceCost =
+          divideNearest(SliceCost * HotWeight, TotalWeight); AdjSliceCost >=
           ColdOperandMaxCostMultiplier * TargetTransformInfo::TCC_Expensive)
         return true;
     }
@@ -1197,10 +1197,10 @@ bool SelectOptimizeImpl::isSelectHighlyPredictable(const SelectLike SI) {
   uint64_t TrueWeight, FalseWeight;
   if (extractBranchWeights(SI, TrueWeight, FalseWeight)) {
     uint64_t Max = std::max(TrueWeight, FalseWeight);
-    uint64_t Sum = TrueWeight + FalseWeight;
-    if (Sum != 0) {
-      auto Probability = BranchProbability::getBranchProbability(Max, Sum);
-      if (Probability > TTI->getPredictableBranchThreshold())
+    
+    if (uint64_t Sum = TrueWeight + FalseWeight; Sum != 0) {
+      
+      if (auto Probability = BranchProbability::getBranchProbability(Max, Sum); Probability > TTI->getPredictableBranchThreshold())
         return true;
     }
   }
@@ -1249,9 +1249,9 @@ bool SelectOptimizeImpl::checkLoopHeuristics(const Loop *L,
   // keeps decreasing with sufficient rate beyond the two analyzed loop
   // iterations.
   if (Gain[1] > Gain[0]) {
-    Scaled64 GradientGain = Scaled64::get(100) * (Gain[1] - Gain[0]) /
-                            (LoopCost[1].PredCost - LoopCost[0].PredCost);
-    if (GradientGain < Scaled64::get(GainGradientThreshold)) {
+    
+    if (Scaled64 GradientGain = Scaled64::get(100) * (Gain[1] - Gain[0]) /
+                            (LoopCost[1].PredCost - LoopCost[0].PredCost); GradientGain < Scaled64::get(GainGradientThreshold)) {
       ORmissL << "No select conversion in the loop due to small gradient gain. "
                  "GradientGain="
               << GradientGain.toString() << "%. ";
@@ -1417,8 +1417,8 @@ SelectOptimizeImpl::getPredictedPathCost(Scaled64 TrueCost, Scaled64 FalseCost,
   Scaled64 PredPathCost;
   uint64_t TrueWeight, FalseWeight;
   if (extractBranchWeights(SI, TrueWeight, FalseWeight)) {
-    uint64_t SumWeight = TrueWeight + FalseWeight;
-    if (SumWeight != 0) {
+    
+    if (uint64_t SumWeight = TrueWeight + FalseWeight; SumWeight != 0) {
       PredPathCost = TrueCost * Scaled64::get(TrueWeight) +
                      FalseCost * Scaled64::get(FalseWeight);
       PredPathCost /= Scaled64::get(SumWeight);

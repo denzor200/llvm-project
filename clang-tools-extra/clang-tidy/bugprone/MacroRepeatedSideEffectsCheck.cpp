@@ -57,9 +57,9 @@ void MacroRepeatedPPCallbacks::MacroExpands(const Token &MacroNameTok,
 
   for (unsigned ArgNo = 0U; ArgNo < MI->getNumParams(); ++ArgNo) {
     const IdentifierInfo *Arg = *(MI->param_begin() + ArgNo);
-    const Token *ResultArgToks = Args->getUnexpArgument(ArgNo);
+    
 
-    if (hasSideEffects(ResultArgToks) &&
+    if (const Token *ResultArgToks = Args->getUnexpArgument(ArgNo); hasSideEffects(ResultArgToks) &&
         countArgumentExpansions(MI, Arg) >= 2) {
       Check.diag(ResultArgToks->getLocation(),
                  "side effects in the %ordinal0 macro argument %1 are "

@@ -157,8 +157,8 @@ MultilibSetBuilder::Either(ArrayRef<MultilibBuilder> MultilibSegments) {
   else {
     for (const auto &New : MultilibSegments) {
       for (const auto &Base : Multilibs) {
-        MultilibBuilder MO = compose(Base, New);
-        if (MO.isValid())
+        
+        if (MultilibBuilder MO = compose(Base, New); MO.isValid())
           Composed.push_back(MO);
       }
     }

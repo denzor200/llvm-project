@@ -104,10 +104,10 @@ static void DiagnoseUnclaimedMultilibCustomFlags(
     for (const auto &Decl : CustomFlagDecls) {
       for (const auto &Value : Decl.ValueList) {
         const std::string &FlagValueName = Value.Name;
-        unsigned EditDistance =
+        
+        if (unsigned EditDistance =
             Unclaimed.edit_distance(FlagValueName, /*AllowReplacements=*/true,
-                                    /*MaxEditDistance=*/MaxEditDistance);
-        if (!BestCandidate || (EditDistance <= MaxEditDistance &&
+                                    /*MaxEditDistance=*/MaxEditDistance); !BestCandidate || (EditDistance <= MaxEditDistance &&
                                EditDistance < BestCandidate->EditDistance)) {
           BestCandidate = {FlagValueName, EditDistance};
         }
@@ -170,9 +170,9 @@ MultilibSet::processCustomFlags(const Driver &D,
     }
 
     StringRef CustomFlagValueStr = Flag.substr(custom_flag::Prefix.size());
-    const custom_flag::ValueDetail *Detail =
-        ValueNameToValueDetail.get(CustomFlagValueStr);
-    if (Detail)
+    
+    if (const custom_flag::ValueDetail *Detail =
+        ValueNameToValueDetail.get(CustomFlagValueStr); Detail)
       ClaimedCustomFlagValues.push_back(Detail);
     else
       UnclaimedCustomFlagValueStrs.push_back(CustomFlagValueStr);
@@ -238,16 +238,16 @@ bool MultilibSet::select(
         }))
       continue;
 
-    const std::string &group = M.exclusiveGroup();
-    if (!group.empty()) {
+    
+    if (const std::string &group = M.exclusiveGroup(); !group.empty()) {
       // If this multilib has the same ExclusiveGroup as one we've already
       // selected, skip it. We're iterating in reverse order, so the group
       // member we've selected already is preferred.
       //
       // Otherwise, add the group name to the set of groups we've already
       // selected a member of.
-      auto [It, Inserted] = ExclusiveGroupsSelected.insert(group);
-      if (!Inserted)
+      
+      if (auto [It, Inserted] = ExclusiveGroupsSelected.insert(group); !Inserted)
         continue;
     }
 

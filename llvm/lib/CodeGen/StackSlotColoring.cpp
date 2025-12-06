@@ -238,8 +238,8 @@ void StackSlotColoring::ScanForSpillSlotRefs(MachineFunction &MF) {
         if (const FixedStackPseudoSourceValue *FSV =
                 dyn_cast_or_null<FixedStackPseudoSourceValue>(
                     MMO->getPseudoValue())) {
-          int FI = FSV->getFrameIndex();
-          if (FI >= 0)
+          
+          if (int FI = FSV->getFrameIndex(); FI >= 0)
             SSRefs[FI].push_back(MMO);
         }
       }
@@ -532,8 +532,8 @@ bool StackSlotColoring::run(MachineFunction &MF) {
 
   bool Changed = false;
 
-  unsigned NumSlots = LS->getNumIntervals();
-  if (NumSlots == 0)
+  
+  if (unsigned NumSlots = LS->getNumIntervals(); NumSlots == 0)
     // Nothing to do!
     return false;
 
@@ -584,8 +584,8 @@ StackSlotColoringPass::run(MachineFunction &MF,
       &MFAM.getResult<MachineBlockFrequencyAnalysis>(MF);
   SlotIndexes *Indexes = &MFAM.getResult<SlotIndexesAnalysis>(MF);
   StackSlotColoring Impl(MF, LS, MBFI, Indexes);
-  bool Changed = Impl.run(MF);
-  if (!Changed)
+  
+  if (bool Changed = Impl.run(MF); !Changed)
     return PreservedAnalyses::all();
 
   auto PA = getMachineFunctionPassPreservedAnalyses();

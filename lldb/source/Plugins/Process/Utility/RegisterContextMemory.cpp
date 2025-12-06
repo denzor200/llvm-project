@@ -74,8 +74,8 @@ uint32_t RegisterContextMemory::ConvertRegisterKindToRegisterNumber(
 
 bool RegisterContextMemory::ReadRegister(const RegisterInfo *reg_info,
                                          RegisterValue &reg_value) {
-  const uint32_t reg_num = reg_info->kinds[eRegisterKindLLDB];
-  if (!m_reg_valid[reg_num]) {
+  
+  if (const uint32_t reg_num = reg_info->kinds[eRegisterKindLLDB]; !m_reg_valid[reg_num]) {
     if (!ReadAllRegisterValues(m_data))
       return false;
   }
@@ -102,10 +102,10 @@ bool RegisterContextMemory::WriteRegister(const RegisterInfo *reg_info,
 bool RegisterContextMemory::ReadAllRegisterValues(
     WritableDataBufferSP &data_sp) {
   if (m_reg_data_addr != LLDB_INVALID_ADDRESS) {
-    ProcessSP process_sp(CalculateProcess());
-    if (process_sp) {
-      Status error;
-      if (process_sp->ReadMemory(m_reg_data_addr, data_sp->GetBytes(),
+    
+    if (ProcessSP process_sp(CalculateProcess()); process_sp) {
+      
+      if (Status error; process_sp->ReadMemory(m_reg_data_addr, data_sp->GetBytes(),
                                  data_sp->GetByteSize(),
                                  error) == data_sp->GetByteSize()) {
         SetAllRegisterValid(true);
@@ -119,8 +119,8 @@ bool RegisterContextMemory::ReadAllRegisterValues(
 bool RegisterContextMemory::WriteAllRegisterValues(
     const DataBufferSP &data_sp) {
   if (m_reg_data_addr != LLDB_INVALID_ADDRESS) {
-    ProcessSP process_sp(CalculateProcess());
-    if (process_sp) {
+    
+    if (ProcessSP process_sp(CalculateProcess()); process_sp) {
       Status error;
       SetAllRegisterValid(false);
       if (process_sp->WriteMemory(m_reg_data_addr, data_sp->GetBytes(),

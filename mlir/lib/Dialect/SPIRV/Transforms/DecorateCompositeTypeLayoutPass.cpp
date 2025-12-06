@@ -136,8 +136,8 @@ void DecorateSPIRVCompositeTypeLayoutPass::runOnOperation() {
   target.addDynamicallyLegalOp<spirv::AccessChainOp, spirv::LoadOp,
                                spirv::StoreOp>([&](Operation *op) {
     for (Value operand : op->getOperands()) {
-      auto addrOp = operand.getDefiningOp<spirv::AddressOfOp>();
-      if (addrOp &&
+      
+      if (auto addrOp = operand.getDefiningOp<spirv::AddressOfOp>(); addrOp &&
           !VulkanLayoutUtils::isLegalType(addrOp.getPointer().getType()))
         return false;
     }

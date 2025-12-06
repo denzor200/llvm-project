@@ -61,8 +61,8 @@ static void testSubtractAtPoints(const PresburgerSet &s, const PresburgerSet &t,
   for (const SmallVector<int64_t, 4> &point : points) {
     bool inS = s.containsPoint(point);
     bool inT = t.containsPoint(point);
-    bool inDiff = diff.containsPoint(point);
-    if (inT)
+    
+    if (bool inDiff = diff.containsPoint(point); inT)
       EXPECT_FALSE(inDiff);
     else
       EXPECT_EQ(inDiff, inS);
@@ -77,8 +77,8 @@ static void testComplementAtPoints(const PresburgerSet &s,
   complement.complement();
   for (const SmallVector<int64_t, 4> &point : points) {
     bool inS = s.containsPoint(point);
-    bool inComplement = complement.containsPoint(point);
-    if (inS)
+    
+    if (bool inComplement = complement.containsPoint(point); inS)
       EXPECT_FALSE(inComplement);
     else
       EXPECT_TRUE(inComplement);

@@ -287,8 +287,8 @@ clang::TypoCorrection IncludeFixerSemaSource::CorrectTypo(
     Correction.setCorrectionRange(SS, Typo);
     FileID FID = SM.getFileID(Typo.getLoc());
     StringRef Code = SM.getBufferData(FID);
-    SourceLocation StartOfFile = SM.getLocForStartOfFile(FID);
-    if (addDiagnosticsForContext(
+    
+    if (SourceLocation StartOfFile = SM.getLocForStartOfFile(FID); addDiagnosticsForContext(
             Correction, getIncludeFixerContext(
                             SM, CI->getPreprocessor().getHeaderSearchInfo(),
                             MatchedSymbols),
@@ -429,8 +429,8 @@ llvm::Expected<tooling::Replacements> createIncludeFixerReplacements(
         auto R = tooling::Replacement(
             {FilePath, Info.Range.getOffset(), Info.Range.getLength(),
              Context.getHeaderInfos().front().QualifiedName});
-        auto Err = Replaces.add(R);
-        if (Err) {
+        
+        if (auto Err = Replaces.add(R); Err) {
           llvm::consumeError(std::move(Err));
           R = tooling::Replacement(
               R.getFilePath(), Replaces.getShiftedCodePosition(R.getOffset()),

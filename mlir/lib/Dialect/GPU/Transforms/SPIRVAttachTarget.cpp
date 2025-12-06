@@ -65,14 +65,14 @@ void SPIRVAttachTarget::runOnOperation() {
   SmallVector<Capability, 4> capabilities;
   SmallVector<Extension, 8> extensions;
   for (const auto &cap : spirvCapabilities) {
-    auto capSymbol = symbolizeCapability(cap);
-    if (capSymbol)
+    
+    if (auto capSymbol = symbolizeCapability(cap); capSymbol)
       capabilities.push_back(capSymbol.value());
   }
   ArrayRef<Capability> caps(capabilities);
   for (const auto &ext : spirvExtensions) {
-    auto extSymbol = symbolizeExtension(ext);
-    if (extSymbol)
+    
+    if (auto extSymbol = symbolizeExtension(ext); extSymbol)
       extensions.push_back(extSymbol.value());
   }
   ArrayRef<Extension> exts(extensions);

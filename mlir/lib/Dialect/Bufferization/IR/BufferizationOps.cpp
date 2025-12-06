@@ -306,10 +306,10 @@ struct ReplaceStaticShapeDims : OpRewritePattern<AllocTensorOp> {
       if (!op.isDynamicDim(i))
         continue;
       Value value = op.getDynamicSizes()[dynValCounter++];
-      APInt intVal;
-      if (matchPattern(value, m_ConstantInt(&intVal))) {
-        int64_t dim = intVal.getSExtValue();
-        if (dim >= 0)
+      
+      if (APInt intVal; matchPattern(value, m_ConstantInt(&intVal))) {
+        
+        if (int64_t dim = intVal.getSExtValue(); dim >= 0)
           newShape[i] = intVal.getSExtValue();
         else
           newDynamicSizes.push_back(value);
@@ -417,8 +417,8 @@ void AllocTensorOp::print(OpAsmPrinter &p) {
   p.printOptionalAttrDict((*this)->getAttrs(), /*elidedAttrs=*/{
                               AllocTensorOp::getOperandSegmentSizeAttr()});
   p << " : ";
-  auto type = getResult().getType();
-  if (auto validType = llvm::dyn_cast<::mlir::TensorType>(type))
+  
+  if (auto type = getResult().getType(); auto validType = llvm::dyn_cast<::mlir::TensorType>(type))
     p.printStrippedAttrOrType(validType);
   else
     p << type;
@@ -967,8 +967,8 @@ struct DeallocRemoveDuplicateDeallocMemrefs
       if (memrefToCondition.count(memref)) {
         // If the dealloc conditions don't match, we need to make sure that the
         // dealloc happens on the union of cases.
-        Value &newCond = newConditions[memrefToCondition[memref]];
-        if (newCond != cond)
+        
+        if (Value &newCond = newConditions[memrefToCondition[memref]]; newCond != cond)
           newCond =
               arith::OrIOp::create(rewriter, deallocOp.getLoc(), newCond, cond);
       } else {

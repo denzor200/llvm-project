@@ -63,8 +63,8 @@ bool SBProcessInfoList::GetProcessInfoAtIndex(uint32_t idx,
   LLDB_INSTRUMENT_VA(this, idx, info);
 
   if (m_opaque_up) {
-    lldb_private::ProcessInstanceInfo process_instance_info;
-    if (m_opaque_up->GetProcessInfoAtIndex(idx, process_instance_info)) {
+    
+    if (lldb_private::ProcessInstanceInfo process_instance_info; m_opaque_up->GetProcessInfoAtIndex(idx, process_instance_info)) {
       info.SetProcessInfo(process_instance_info);
       return true;
     }

@@ -755,10 +755,10 @@ static AccessResult HasAccess(Sema &S,
          I = EC.Records.begin(), E = EC.Records.end(); I != E; ++I) {
     // All the declarations in EC have been canonicalized, so pointer
     // equality from this point on will work fine.
-    const CXXRecordDecl *ECRecord = *I;
+    
 
     // [B2] and [M2]
-    if (Access == AS_private) {
+    if (const CXXRecordDecl *ECRecord = *I; Access == AS_private) {
       if (ECRecord == NamingClass)
         return AR_accessible;
 
@@ -1177,9 +1177,9 @@ static void DiagnoseAccessPath(Sema &S,
   if (entity.isMemberAccess()) {
     NamedDecl *D = entity.getTargetDecl();
     accessSoFar = D->getAccess();
-    const CXXRecordDecl *declaringClass = entity.getDeclaringClass();
+    
 
-    switch (HasAccess(S, EC, declaringClass, accessSoFar, entity)) {
+    switch (const CXXRecordDecl *declaringClass = entity.getDeclaringClass(); HasAccess(S, EC, declaringClass, accessSoFar, entity)) {
     // If the declaration is accessible when named in its declaring
     // class, then we must be constrained by the path.
     case AR_accessible:
@@ -1216,8 +1216,8 @@ static void DiagnoseAccessPath(Sema &S,
 
     // If the access to this base is worse than the access we have to
     // the declaration, remember it.
-    AccessSpecifier baseAccess = base->getAccessSpecifier();
-    if (baseAccess > accessSoFar) {
+    
+    if (AccessSpecifier baseAccess = base->getAccessSpecifier(); baseAccess > accessSoFar) {
       constrainingBase = i;
       accessSoFar = baseAccess;
     }
@@ -1311,8 +1311,8 @@ static bool IsMicrosoftUsingDeclarationAccessBug(Sema& S,
   if (UsingShadowDecl *Shadow =
           dyn_cast<UsingShadowDecl>(Entity.getTargetDecl()))
     if (UsingDecl *UD = dyn_cast<UsingDecl>(Shadow->getIntroducer())) {
-      const NamedDecl *OrigDecl = Entity.getTargetDecl()->getUnderlyingDecl();
-      if (Entity.getTargetDecl()->getAccess() == AS_private &&
+      
+      if (const NamedDecl *OrigDecl = Entity.getTargetDecl()->getUnderlyingDecl(); Entity.getTargetDecl()->getAccess() == AS_private &&
           (OrigDecl->getAccess() == AS_public ||
            OrigDecl->getAccess() == AS_protected)) {
         S.Diag(AccessLoc, diag::ext_ms_using_declaration_inaccessible)

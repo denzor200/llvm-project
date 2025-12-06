@@ -83,8 +83,8 @@ static size_t getStringIndex(StringRef Name) {
   if (!options().getAttributePathname()) {
     // Get the basename by ignoring any prefix up to the last slash ('/').
     StringRef Basename = Pathname;
-    size_t Pos = Basename.rfind('/');
-    if (Pos != std::string::npos)
+    
+    if (size_t Pos = Basename.rfind('/'); Pos != std::string::npos)
       Basename = Basename.substr(Pos + 1);
     return getStringPool().getIndex(Basename);
   }
@@ -121,8 +121,8 @@ std::string LVElement::typeOffsetAsString() const {
 }
 
 StringRef LVElement::accessibilityString(uint32_t Access) const {
-  uint32_t Value = getAccessibilityCode();
-  switch (Value ? Value : Access) {
+  
+  switch (uint32_t Value = getAccessibilityCode(); Value ? Value : Access) {
   case dwarf::DW_ACCESS_public:
     return "public";
   case dwarf::DW_ACCESS_protected:
@@ -152,8 +152,8 @@ StringRef LVElement::externalString() const {
 }
 
 StringRef LVElement::inlineCodeString(uint32_t Code) const {
-  uint32_t Value = getInlineCode();
-  switch (Value ? Value : Code) {
+  
+  switch (uint32_t Value = getInlineCode(); Value ? Value : Code) {
   case dwarf::DW_INL_not_inlined:
     return "not_inlined";
   case dwarf::DW_INL_inlined:
@@ -168,8 +168,8 @@ StringRef LVElement::inlineCodeString(uint32_t Code) const {
 }
 
 StringRef LVElement::virtualityString(uint32_t Virtuality) const {
-  uint32_t Value = getVirtualityCode();
-  switch (Value ? Value : Virtuality) {
+  
+  switch (uint32_t Value = getVirtualityCode(); Value ? Value : Virtuality) {
   case dwarf::DW_VIRTUALITY_none:
     return StringRef();
   case dwarf::DW_VIRTUALITY_virtual:
@@ -234,8 +234,8 @@ void LVElement::resolveParents() {
   if (isRoot() || isCompileUnit())
     return;
 
-  LVScope *Parent = getParentScope();
-  if (Parent && !Parent->getIsCompileUnit())
+  
+  if (LVScope *Parent = getParentScope(); Parent && !Parent->getIsCompileUnit())
     Parent->resolve();
 }
 
@@ -439,8 +439,8 @@ void LVElement::resolveQualifiedName() {
   std::string Name;
 
   // Get the qualified name, excluding the Compile Unit.
-  LVScope *Parent = getParentScope();
-  if (Parent && !Parent->getIsRoot()) {
+  
+  if (LVScope *Parent = getParentScope(); Parent && !Parent->getIsRoot()) {
     while (Parent && !Parent->getIsCompileUnit()) {
       Name.insert(0, "::");
       if (Parent->isNamed())
@@ -521,8 +521,8 @@ void LVElement::printFileIndex(raw_ostream &OS, bool Full) const {
       getFilenameIndex()) {
 
     // Check if there is a change in the File ID sequence.
-    size_t Index = getFilenameIndex();
-    if (options().changeFilenameIndex(Index)) {
+    
+    if (size_t Index = getFilenameIndex(); options().changeFilenameIndex(Index)) {
       // Just to keep a nice layout.
       OS << "\n";
       printAttributes(OS, /*Full=*/false);

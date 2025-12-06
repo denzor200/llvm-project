@@ -52,8 +52,8 @@ ParseResult parseMemoryAccessAttributes(OpAsmParser &parser,
     // Parse integer attribute for alignment.
     Attribute alignmentAttr;
     StringAttr alignmentAttrName = MemoryOpTy::getAlignmentAttrName(state.name);
-    Type i32Type = parser.getBuilder().getIntegerType(32);
-    if (parser.parseComma() ||
+    
+    if (Type i32Type = parser.getBuilder().getIntegerType(32); parser.parseComma() ||
         parser.parseAttribute(alignmentAttr, i32Type, alignmentAttrName,
                               state.attributes)) {
       return failure();
@@ -88,8 +88,8 @@ static ParseResult parseSourceMemoryAccessAttributes(OpAsmParser &parser,
     Attribute alignmentAttr;
     StringAttr alignmentAttrName =
         MemoryOpTy::getSourceAlignmentAttrName(state.name);
-    Type i32Type = parser.getBuilder().getIntegerType(32);
-    if (parser.parseComma() ||
+    
+    if (Type i32Type = parser.getBuilder().getIntegerType(32); parser.parseComma() ||
         parser.parseAttribute(alignmentAttr, i32Type, alignmentAttrName,
                               state.attributes)) {
       return failure();
@@ -648,8 +648,8 @@ LogicalResult VariableOp::verify() {
   if (getNumOperands() != 0) {
     // SPIR-V spec: "Initializer must be an <id> from a constant instruction or
     // a global (module scope) OpVariable instruction".
-    auto *initOp = getOperand(0).getDefiningOp();
-    if (!initOp || !isa<spirv::ConstantOp,    // for normal constant
+    
+    if (auto *initOp = getOperand(0).getDefiningOp(); !initOp || !isa<spirv::ConstantOp,    // for normal constant
                         spirv::ReferenceOfOp, // for spec constant
                         spirv::AddressOfOp>(initOp))
       return emitOpError("initializer must be the result of a "

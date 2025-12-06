@@ -44,8 +44,8 @@ bool ThreadPlanShouldStopHere::InvokeShouldStopHereCallback(
   if (m_callbacks.should_stop_here_callback) {
     should_stop_here = m_callbacks.should_stop_here_callback(
         m_owner, m_flags, operation, status, m_baton);
-    Log *log = GetLog(LLDBLog::Step);
-    if (log) {
+    
+    if (Log *log = GetLog(LLDBLog::Step); log) {
       lldb::addr_t current_addr =
           m_owner->GetThread().GetRegisterContext()->GetPC(0);
 

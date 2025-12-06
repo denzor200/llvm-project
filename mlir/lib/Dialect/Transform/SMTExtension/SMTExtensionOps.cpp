@@ -75,15 +75,15 @@ LogicalResult transform::smt::ConstrainParamsOp::verify() {
                << " is !smt.int though the corresponding " << paramDesc
                << " type (" << paramType << ") is not wrapping an integer type";
     } else if (isa<mlir::smt::BoolType>(smtType)) {
-      auto wrappedIntType = dyn_cast<IntegerType>(typeWrappedByParam);
-      if (!wrappedIntType || wrappedIntType.getWidth() != 1)
+      
+      if (auto wrappedIntType = dyn_cast<IntegerType>(typeWrappedByParam); !wrappedIntType || wrappedIntType.getWidth() != 1)
         return atOp->emitOpError()
                << "the type of " << smtDesc << " #" << idx
                << " is !smt.bool though the corresponding " << paramDesc
                << " type (" << paramType << ") is not wrapping i1";
     } else if (auto bvSmtType = dyn_cast<mlir::smt::BitVectorType>(smtType)) {
-      auto wrappedIntType = dyn_cast<IntegerType>(typeWrappedByParam);
-      if (!wrappedIntType || wrappedIntType.getWidth() != bvSmtType.getWidth())
+      
+      if (auto wrappedIntType = dyn_cast<IntegerType>(typeWrappedByParam); !wrappedIntType || wrappedIntType.getWidth() != bvSmtType.getWidth())
         return atOp->emitOpError()
                << "the type of " << smtDesc << " #" << idx << " is " << smtType
                << " though the corresponding " << paramDesc << " type ("
@@ -100,10 +100,10 @@ LogicalResult transform::smt::ConstrainParamsOp::verify() {
 
   for (auto [idx, operandType, blockArgType] :
        llvm::enumerate(getOperandTypes(), getBody().getArgumentTypes())) {
-    InFlightDiagnostic typeCheckResult =
+    
+    if (InFlightDiagnostic typeCheckResult =
         checkTypes(idx, blockArgType, "block arg", operandType, "operand",
-                   /*atOp=*/this);
-    if (LogicalResult(typeCheckResult).failed())
+                   /*atOp=*/this); LogicalResult(typeCheckResult).failed())
       return typeCheckResult;
   }
 
@@ -120,11 +120,11 @@ LogicalResult transform::smt::ConstrainParamsOp::verify() {
 
   for (auto [idx, termOperandType, resultType] : llvm::enumerate(
            yieldTerminator->getOperands().getType(), getResultTypes())) {
-    InFlightDiagnostic typeCheckResult =
+    
+    if (InFlightDiagnostic typeCheckResult =
         checkTypes(idx, termOperandType, "terminator operand",
                    cast<transform::ParamType>(resultType), "result",
-                   /*atOp=*/&yieldTerminator);
-    if (LogicalResult(typeCheckResult).failed())
+                   /*atOp=*/&yieldTerminator); LogicalResult(typeCheckResult).failed())
       return typeCheckResult;
   }
 

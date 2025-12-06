@@ -147,11 +147,11 @@ void SuspiciousEnumUsageCheck::registerMatchers(MatchFinder *Finder) {
 void SuspiciousEnumUsageCheck::checkSuspiciousBitmaskUsage(
     const Expr *NodeExpr, const EnumDecl *EnumDec) {
   const auto *EnumExpr = dyn_cast<DeclRefExpr>(NodeExpr);
-  const auto *EnumConst =
-      EnumExpr ? dyn_cast<EnumConstantDecl>(EnumExpr->getDecl()) : nullptr;
+  
 
   // Report the parameter if necessary.
-  if (!EnumConst) {
+  if (const auto *EnumConst =
+      EnumExpr ? dyn_cast<EnumConstantDecl>(EnumExpr->getDecl()) : nullptr; !EnumConst) {
     diag(EnumDec->getInnerLocStart(), BitmaskVarErrorMessage)
         << countNonPowOfTwoLiteralNum(EnumDec);
     diag(EnumExpr->getExprLoc(), BitmaskNoteMessage, DiagnosticIDs::Note);

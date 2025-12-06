@@ -133,8 +133,8 @@ void ReorderFunctions::reorder(BinaryContext &BC,
 
   // Assign valid index for functions with valid profile.
   for (auto &It : BFs) {
-    BinaryFunction &BF = It.second;
-    if (!BF.hasValidIndex() && BF.hasValidProfile())
+    
+    if (BinaryFunction &BF = It.second; !BF.hasValidIndex() && BF.hasValidProfile())
       BF.setIndex(Index++);
   }
 
@@ -226,8 +226,8 @@ void ReorderFunctions::printStats(BinaryContext &BC,
           BC.outs() << format("BOLT-INFO: start = %6u : avgCallDist = %lu : ",
                               TotalSize, Calls ? Dist / Calls : 0)
                     << Cg.nodeIdToFunc(FuncId)->getPrintName() << '\n';
-          const uint64_t NewPage = TotalSize / HugePageSize;
-          if (NewPage != CurPage) {
+          
+          if (const uint64_t NewPage = TotalSize / HugePageSize; NewPage != CurPage) {
             CurPage = NewPage;
             BC.outs() << format(
                 "BOLT-INFO: ============== page %u ==============\n", CurPage);
@@ -307,9 +307,9 @@ Error ReorderFunctions::runOnFunctions(BinaryContext &BC) {
                           return true;
                         const size_t PadA = opts::padFunctionBefore(*A) +
                                             opts::padFunctionAfter(*A);
-                        const size_t PadB = opts::padFunctionBefore(*B) +
-                                            opts::padFunctionAfter(*B);
-                        if (!PadA || !PadB) {
+                        
+                        if (const size_t PadB = opts::padFunctionBefore(*B) +
+                                            opts::padFunctionAfter(*B); !PadA || !PadB) {
                           if (PadA)
                             return true;
                           if (PadB)
@@ -387,8 +387,8 @@ Error ReorderFunctions::runOnFunctions(BinaryContext &BC) {
     for (const std::string &Function : FunctionNames) {
       std::vector<uint64_t> FuncAddrs;
 
-      BinaryData *BD = BC.getBinaryDataByName(Function);
-      if (!BD) {
+      
+      if (BinaryData *BD = BC.getBinaryDataByName(Function); !BD) {
         // If we can't find the main symbol name, look for alternates.
         uint32_t LocalID = 1;
         while (true) {
@@ -492,8 +492,8 @@ Error ReorderFunctions::runOnFunctions(BinaryContext &BC) {
         std::vector<StringRef> AllNames = Func->getNames();
         llvm::sort(AllNames);
         for (StringRef Name : AllNames) {
-          const size_t SlashPos = Name.find('/');
-          if (SlashPos != std::string::npos) {
+          
+          if (const size_t SlashPos = Name.find('/'); SlashPos != std::string::npos) {
             // Avoid duplicates for local functions.
             if (Name.find('/', SlashPos + 1) != std::string::npos)
               continue;

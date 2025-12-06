@@ -58,8 +58,8 @@ symbols:         []
   SectionSP swiftast_section;
   size_t section_count = section_list->GetNumSections(0);
   for (size_t i = 0; i < section_count; ++i) {
-    SectionSP section_sp = section_list->GetSectionAtIndex(i);
-    if (section_sp->GetName() == "swiftast") {
+    
+    if (SectionSP section_sp = section_list->GetSectionAtIndex(i); section_sp->GetName() == "swiftast") {
       swiftast_section = section_sp;
       break;
     }

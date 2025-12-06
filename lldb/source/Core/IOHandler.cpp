@@ -581,10 +581,10 @@ bool IOHandlerEditline::GetLines(StringList &lines, bool &interrupted) {
 void IOHandlerEditline::Run() {
   std::string line;
   while (IsActive()) {
-    bool interrupted = false;
-    if (m_multi_line) {
-      StringList lines;
-      if (GetLines(lines, interrupted)) {
+    
+    if (bool interrupted = false; m_multi_line) {
+      
+      if (StringList lines; GetLines(lines, interrupted)) {
         if (interrupted) {
           m_done = m_interrupt_exits;
           m_delegate.IOHandlerInputInterrupted(*this, line);

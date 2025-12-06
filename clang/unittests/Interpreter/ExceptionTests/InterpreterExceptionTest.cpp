@@ -68,8 +68,8 @@ TEST(InterpreterExceptionTest, CatchException) {
   llvm::InitializeNativeTargetAsmPrinter();
 
   {
-    auto J = llvm::orc::LLJITBuilder().create();
-    if (!J) {
+    
+    if (auto J = llvm::orc::LLJITBuilder().create(); !J) {
       // The platform does not support JITs.
       // Using llvm::consumeError will require typeinfo for ErrorInfoBase, we
       // can avoid that by going via the C interface.

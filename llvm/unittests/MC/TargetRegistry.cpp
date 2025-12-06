@@ -26,14 +26,14 @@ TEST(TargetRegistry, TargetHasArchType) {
   llvm::InitializeAllTargetInfos();
 
   for (const Target &T : TargetRegistry::targets()) {
-    StringRef Name = T.getName();
+    
     // There is really no way (at present) to ask a Target whether it targets
     // a specific architecture, because the logic for that is buried in a
     // predicate.
     // We can't ask the predicate "Are you a function that always returns
     // false?"
     // So given that the cpp backend truly has no target arch, it is skipped.
-    if (Name != "cpp") {
+    if (StringRef Name = T.getName(); Name != "cpp") {
       Triple::ArchType Arch = Triple::getArchTypeForLLVMName(Name);
       EXPECT_NE(Arch, Triple::UnknownArch);
       ++Count;

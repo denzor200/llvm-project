@@ -353,8 +353,8 @@ unsigned AArch64ELFObjectWriter::getRelocType(const MCFixup &Fixup,
         return R_CLS(LDST64_ABS_LO12_NC);
       if ((SymLoc == AArch64::S_GOT || SymLoc == AArch64::S_GOT_AUTH) && IsNC) {
         AArch64::Specifier AddressLoc = AArch64::getAddressFrag(RefKind);
-        bool IsAuth = (SymLoc == AArch64::S_GOT_AUTH);
-        if (!IsILP32) {
+        
+        if (bool IsAuth = (SymLoc == AArch64::S_GOT_AUTH); !IsILP32) {
           if (AddressLoc == AArch64::S_LO15)
             return ELF::R_AARCH64_LD64_GOTPAGE_LO15;
           return (IsAuth ? ELF::R_AARCH64_AUTH_LD64_GOT_LO12_NC

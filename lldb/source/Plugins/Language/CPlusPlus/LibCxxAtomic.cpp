@@ -71,8 +71,8 @@ bool lldb_private::formatters::LibCxxAtomicSummaryProvider(
     ValueObject &valobj, Stream &stream, const TypeSummaryOptions &options) {
 
   if (ValueObjectSP atomic_value = GetLibCxxAtomicValue(valobj)) {
-    std::string summary;
-    if (atomic_value->GetSummaryAsCString(summary, options) &&
+    
+    if (std::string summary; atomic_value->GetSummaryAsCString(summary, options) &&
         summary.size() > 0) {
       stream.Printf("%s", summary.c_str());
       return true;

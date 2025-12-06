@@ -78,10 +78,10 @@ std::string MipsLLVMToolChain::computeSysRoot() const {
 
 ToolChain::CXXStdlibType
 MipsLLVMToolChain::GetCXXStdlibType(const ArgList &Args) const {
-  Arg *A = Args.getLastArg(options::OPT_stdlib_EQ);
-  if (A) {
-    StringRef Value = A->getValue();
-    if (Value != "libc++")
+  
+  if (Arg *A = Args.getLastArg(options::OPT_stdlib_EQ); A) {
+    
+    if (StringRef Value = A->getValue(); Value != "libc++")
       getDriver().Diag(clang::diag::err_drv_invalid_stdlib_name)
           << A->getAsString(Args);
   }

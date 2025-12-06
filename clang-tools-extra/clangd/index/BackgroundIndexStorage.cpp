@@ -41,8 +41,8 @@ public:
   // Creates `DiskShardRoot` and any parents during construction.
   DiskBackedIndexStorage(llvm::StringRef Directory) : DiskShardRoot(Directory) {
     std::error_code OK;
-    std::error_code EC = llvm::sys::fs::create_directories(DiskShardRoot);
-    if (EC != OK) {
+    
+    if (std::error_code EC = llvm::sys::fs::create_directories(DiskShardRoot); EC != OK) {
       elog("Failed to create directory {0} for index storage: {1}",
            DiskShardRoot, EC.message());
     }

@@ -26,8 +26,8 @@ TypeRange::TypeRange(ResultRange values)
 TypeRange::TypeRange(ValueRange values) : TypeRange(OwnerT(), values.size()) {
   if (count == 0)
     return;
-  ValueRange::OwnerT owner = values.begin().getBase();
-  if (auto *result = llvm::dyn_cast_if_present<detail::OpResultImpl *>(owner))
+  
+  if (ValueRange::OwnerT owner = values.begin().getBase(); auto *result = llvm::dyn_cast_if_present<detail::OpResultImpl *>(owner))
     this->base = result;
   else if (auto *operand = llvm::dyn_cast_if_present<OpOperand *>(owner))
     this->base = operand;

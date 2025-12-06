@@ -155,11 +155,11 @@ Expected<unsigned> BitstreamCursor::skipRecord(unsigned AbbrevID) {
 
       // Get the element encoding.
       assert(i+2 == e && "array op not second to last?");
-      const BitCodeAbbrevOp &EltEnc = Abbv->getOperandInfo(++i);
+      
 
       // Read all the elements.
       // Decode the value as we are commanded.
-      switch (EltEnc.getEncoding()) {
+      switch (const BitCodeAbbrevOp &EltEnc = Abbv->getOperandInfo(++i); EltEnc.getEncoding()) {
       default:
         return error("Array element type can't be an Array or a Blob");
       case BitCodeAbbrevOp::Fixed:

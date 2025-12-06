@@ -952,8 +952,8 @@ int opts::symtab::handleSymtabCommand(Debugger &Dbg) {
         RegularExpression(FindSymbolsByRegex), lldb::eSymbolTypeAny,
         Symtab::eDebugAny, Symtab::eVisibilityAny, Indexes, NamePreference);
     for (auto i : Indexes) {
-      auto *symbol = Symtab->SymbolAtIndex(i);
-      if (symbol) {
+      
+      if (auto *symbol = Symtab->SymbolAtIndex(i); symbol) {
         StreamString stream;
         symbol->Dump(&stream, nullptr, i, NamePreference);
         outs() << stream.GetString();
@@ -1094,8 +1094,8 @@ bool opts::irmemorymap::evalMalloc(StringRef Line,
   Line = Line.trim();
   size_t Size;
   uint8_t Alignment;
-  int Matches = sscanf(Line.data(), "malloc %zu %hhu", &Size, &Alignment);
-  if (Matches != 2)
+  
+  if (int Matches = sscanf(Line.data(), "malloc %zu %hhu", &Size, &Alignment); Matches != 2)
     return false;
 
   outs() << formatv("Command: {0} = malloc(size={1}, alignment={2})\n", Label,

@@ -37,8 +37,8 @@ ThreadPlanStepUntil::ThreadPlanStepUntil(Thread &thread,
   // Stash away our "until" addresses:
   TargetSP target_sp(thread.CalculateTarget());
 
-  StackFrameSP frame_sp(thread.GetStackFrameAtIndex(frame_idx));
-  if (frame_sp) {
+  
+  if (StackFrameSP frame_sp(thread.GetStackFrameAtIndex(frame_idx)); frame_sp) {
     m_step_from_insn = frame_sp->GetStackID().GetPC();
 
     // Find the return address and set a breakpoint there:
@@ -48,10 +48,10 @@ ThreadPlanStepUntil::ThreadPlanStepUntil(Thread &thread,
     if (return_frame_sp) {
       // TODO: add inline functionality
       m_return_addr = return_frame_sp->GetStackID().GetPC();
-      Breakpoint *return_bp =
-          target_sp->CreateBreakpoint(m_return_addr, true, false).get();
+      
 
-      if (return_bp != nullptr) {
+      if (Breakpoint *return_bp =
+          target_sp->CreateBreakpoint(m_return_addr, true, false).get(); return_bp != nullptr) {
         if (return_bp->IsHardware() && !return_bp->HasResolvedLocations())
           m_could_not_resolve_hw_bp = true;
         return_bp->SetThreadID(m_tid);
@@ -64,9 +64,9 @@ ThreadPlanStepUntil::ThreadPlanStepUntil(Thread &thread,
 
     // Now set breakpoints on all our return addresses:
     for (size_t i = 0; i < num_addresses; i++) {
-      Breakpoint *until_bp =
-          target_sp->CreateBreakpoint(address_list[i], true, false).get();
-      if (until_bp != nullptr) {
+      
+      if (Breakpoint *until_bp =
+          target_sp->CreateBreakpoint(address_list[i], true, false).get(); until_bp != nullptr) {
         until_bp->SetThreadID(m_tid);
         m_until_points[address_list[i]] = until_bp->GetID();
         until_bp->SetBreakpointKind("until-target");
@@ -150,9 +150,9 @@ void ThreadPlanStepUntil::AnalyzeStop() {
   m_explains_stop = false;
 
   if (stop_info_sp) {
-    StopReason reason = stop_info_sp->GetStopReason();
+    
 
-    if (reason == eStopReasonBreakpoint) {
+    if (StopReason reason = stop_info_sp->GetStopReason(); reason == eStopReasonBreakpoint) {
       // If this is OUR breakpoint, we're fine, otherwise we don't know why
       // this happened...
       BreakpointSiteSP this_site =
@@ -203,11 +203,11 @@ void ThreadPlanStepUntil::AnalyzeStop() {
             else if (frame_zero_id < m_stack_id)
               done = false;
             else {
-              StackFrameSP older_frame_sp = thread.GetStackFrameAtIndex(1);
+              
 
               // But if we can't even unwind one frame we should just get out
               // of here & stop...
-              if (older_frame_sp) {
+              if (StackFrameSP older_frame_sp = thread.GetStackFrameAtIndex(1); older_frame_sp) {
                 const SymbolContext &older_context =
                     older_frame_sp->GetSymbolContext(eSymbolContextEverything);
                 SymbolContext stack_context;
@@ -284,8 +284,8 @@ bool ThreadPlanStepUntil::DoWillResume(StateType resume_state,
 
     until_collection::iterator pos, end = m_until_points.end();
     for (pos = m_until_points.begin(); pos != end; pos++) {
-      Breakpoint *until_bp = target.GetBreakpointByID((*pos).second).get();
-      if (until_bp != nullptr)
+      
+      if (Breakpoint *until_bp = target.GetBreakpointByID((*pos).second).get(); until_bp != nullptr)
         until_bp->SetEnabled(true);
     }
   }
@@ -304,8 +304,8 @@ bool ThreadPlanStepUntil::WillStop() {
 
   until_collection::iterator pos, end = m_until_points.end();
   for (pos = m_until_points.begin(); pos != end; pos++) {
-    Breakpoint *until_bp = target.GetBreakpointByID((*pos).second).get();
-    if (until_bp != nullptr)
+    
+    if (Breakpoint *until_bp = target.GetBreakpointByID((*pos).second).get(); until_bp != nullptr)
       until_bp->SetEnabled(false);
   }
   return true;

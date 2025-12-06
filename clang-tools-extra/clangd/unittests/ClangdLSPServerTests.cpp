@@ -395,8 +395,8 @@ TEST_F(LSPTest, FeatureModulesThreadingTest) {
           CV.notify_all();
           return;
         }
-        Callback<int> &Task = Queue.front();
-        if (Task)
+        
+        if (Callback<int> &Task = Queue.front(); Task)
           Task(State);
         else
           ++State;

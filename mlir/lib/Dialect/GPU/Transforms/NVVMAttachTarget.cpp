@@ -56,8 +56,8 @@ DictionaryAttr NVVMAttachTarget::getFlags(OpBuilder &builder) const {
 
   // Tokenize and set the optional command line options.
   if (!cmdOptions.empty()) {
-    auto options = gpu::TargetOptions::tokenizeCmdOptions(cmdOptions);
-    if (!options.second.empty()) {
+    
+    if (auto options = gpu::TargetOptions::tokenizeCmdOptions(cmdOptions); !options.second.empty()) {
       llvm::SmallVector<mlir::Attribute> nvvmOptionAttrs;
       for (const char *opt : options.second) {
         nvvmOptionAttrs.emplace_back(

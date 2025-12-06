@@ -34,8 +34,8 @@ std::string Token::getStringValue() const {
   std::string result;
   result.reserve(bytes.size());
   for (unsigned i = 0, e = bytes.size(); i != e;) {
-    auto c = bytes[i++];
-    if (c != '\\') {
+    
+    if (auto c = bytes[i++]; c != '\\') {
       result.push_back(c);
       continue;
     }
@@ -132,8 +132,8 @@ Token Lexer::emitError(const char *loc, const Twine &msg) {
 }
 
 int Lexer::getNextChar() {
-  char curChar = *curPtr++;
-  switch (curChar) {
+  
+  switch (char curChar = *curPtr++; curChar) {
   default:
     return static_cast<unsigned char>(curChar);
   case 0: {
@@ -166,8 +166,8 @@ Token Lexer::lexToken() {
       return formToken(Token::code_complete, tokStart);
 
     // This always consumes at least one character.
-    int curChar = getNextChar();
-    switch (curChar) {
+    
+    switch (int curChar = getNextChar(); curChar) {
     default:
       // Handle identifiers: [a-zA-Z_]
       if (isalpha(curChar) || curChar == '_')

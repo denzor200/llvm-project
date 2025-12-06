@@ -74,9 +74,9 @@ LIBC_INLINE int statx(int dirfd, const char *__restrict path, int flags,
                       struct stat *__restrict statbuf) {
   // We make a statx syscall and copy out the result into the |statbuf|.
   ::statx_buf xbuf;
-  int ret = LIBC_NAMESPACE::syscall_impl<int>(SYS_statx, dirfd, path, flags,
-                                              ::STATX_BASIC_STATS_MASK, &xbuf);
-  if (ret < 0)
+  
+  if (int ret = LIBC_NAMESPACE::syscall_impl<int>(SYS_statx, dirfd, path, flags,
+                                              ::STATX_BASIC_STATS_MASK, &xbuf); ret < 0)
     return -ret;
 
   statbuf->st_dev = MKDEV(xbuf.stx_dev_major, xbuf.stx_dev_minor);

@@ -86,8 +86,8 @@ protected:
                                        builder.getIntegerAttr(type, val));
     }
     if (auto vectorType = dyn_cast<VectorType>(type)) {
-      Type elemType = vectorType.getElementType();
-      if (auto intType = dyn_cast<IntegerType>(elemType)) {
+      
+      if (Type elemType = vectorType.getElementType(); auto intType = dyn_cast<IntegerType>(elemType)) {
         return spirv::ConstantOp::create(
             builder, loc, type,
             DenseElementsAttr::get(vectorType,

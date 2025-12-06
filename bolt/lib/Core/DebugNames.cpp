@@ -68,13 +68,13 @@ void DWARF5AcceleratorTable::setCurrentUnit(DWARFUnit &Unit,
                                             const uint64_t UnitStartOffset) {
   CurrentUnit = nullptr;
   CurrentUnitOffset = UnitStartOffset;
-  std::optional<uint64_t> DWOID = Unit.getDWOId();
+  
   // We process skeleton CUs after DWO Units for it.
   // Patching offset in CU list to correct one.
-  if (!Unit.isDWOUnit() && DWOID) {
-    auto Iter = CUOffsetsToPatch.find(*DWOID);
+  if (std::optional<uint64_t> DWOID = Unit.getDWOId(); !Unit.isDWOUnit() && DWOID) {
+    
     // Check in case no entries were added from non skeleton DWO section.
-    if (Iter != CUOffsetsToPatch.end())
+    if (auto Iter = CUOffsetsToPatch.find(*DWOID); Iter != CUOffsetsToPatch.end())
       CUList[Iter->second] = UnitStartOffset;
   }
 }
@@ -104,8 +104,8 @@ void DWARF5AcceleratorTable::addUnit(DWARFUnit &Unit,
       // We process DWO Units before Skeleton CU. So at this point we don't know
       // the offset of Skeleton CU. Adding CULit index to a map to patch later
       // with the correct offset.
-      auto Iter = CUOffsetsToPatch.insert({*DWOID, CUList.size()});
-      if (Iter.second)
+      
+      if (auto Iter = CUOffsetsToPatch.insert({*DWOID, CUList.size()}); Iter.second)
         CUList.push_back(BADCUOFFSET);
     } else {
       CUList.push_back(CurrentUnitOffset);
@@ -262,8 +262,8 @@ std::optional<std::string> DWARF5AcceleratorTable::getName(
       // For DWO Unit the offset is in the .debug_str.dwo section.
       // Need to find offset for the name in the .debug_str section.
       llvm::hash_code Hash = llvm::hash_value(llvm::StringRef(Name));
-      auto ItCache = StrCacheToOffsetMap.find(Hash);
-      if (ItCache == StrCacheToOffsetMap.end())
+      
+      if (auto ItCache = StrCacheToOffsetMap.find(Hash); ItCache == StrCacheToOffsetMap.end())
         NameIndexOffset = MainBinaryStrWriter.addString(Name);
       else
         NameIndexOffset = ItCache->second;

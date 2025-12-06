@@ -230,8 +230,8 @@ Value *PHINode::hasConstantValue() const {
 bool PHINode::hasConstantOrUndefValue() const {
   Value *ConstantValue = nullptr;
   for (unsigned i = 0, e = getNumIncomingValues(); i != e; ++i) {
-    Value *Incoming = getIncomingValue(i);
-    if (Incoming != this && !isa<UndefValue>(Incoming)) {
+    
+    if (Value *Incoming = getIncomingValue(i); Incoming != this && !isa<UndefValue>(Incoming)) {
       if (ConstantValue && ConstantValue != Incoming)
         return false;
       ConstantValue = Incoming;
@@ -317,8 +317,8 @@ CallBase *CallBase::Create(CallBase *CI, OperandBundleDef OpB,
                            InsertPosition InsertPt) {
   SmallVector<OperandBundleDef, 2> OpDefs;
   for (unsigned i = 0, e = CI->getNumOperandBundles(); i < e; ++i) {
-    auto ChildOB = CI->getOperandBundleAt(i);
-    if (ChildOB.getTagName() != OpB.getTag())
+    
+    if (auto ChildOB = CI->getOperandBundleAt(i); ChildOB.getTagName() != OpB.getTag())
       OpDefs.emplace_back(ChildOB);
   }
   OpDefs.emplace_back(OpB);
@@ -494,9 +494,9 @@ CallBase::getFnAttrOnCalledFunction(StringRef Kind) const;
 template <typename AK>
 Attribute CallBase::getParamAttrOnCalledFunction(unsigned ArgNo,
                                                  AK Kind) const {
-  Value *V = getCalledOperand();
+  
 
-  if (auto *F = dyn_cast<Function>(V))
+  if (Value *V = getCalledOperand(); auto *F = dyn_cast<Function>(V))
     return F->getAttributes().getParamAttr(ArgNo, Kind);
 
   return Attribute();
@@ -2156,8 +2156,8 @@ bool ShuffleVectorInst::isInsertSubvectorMask(ArrayRef<int> Mask,
   // span.
   if (Src0Identity) {
     int NumSub1Elts = Src1Hi - Src1Lo;
-    ArrayRef<int> Sub1Mask = Mask.slice(Src1Lo, NumSub1Elts);
-    if (isIdentityMaskImpl(Sub1Mask, NumSrcElts)) {
+    
+    if (ArrayRef<int> Sub1Mask = Mask.slice(Src1Lo, NumSub1Elts); isIdentityMaskImpl(Sub1Mask, NumSrcElts)) {
       NumSubElts = NumSub1Elts;
       Index = Src1Lo;
       return true;
@@ -2168,8 +2168,8 @@ bool ShuffleVectorInst::isInsertSubvectorMask(ArrayRef<int> Mask,
   // span.
   if (Src1Identity) {
     int NumSub0Elts = Src0Hi - Src0Lo;
-    ArrayRef<int> Sub0Mask = Mask.slice(Src0Lo, NumSub0Elts);
-    if (isIdentityMaskImpl(Sub0Mask, NumSrcElts)) {
+    
+    if (ArrayRef<int> Sub0Mask = Mask.slice(Src0Lo, NumSub0Elts); isIdentityMaskImpl(Sub0Mask, NumSrcElts)) {
       NumSubElts = NumSub0Elts;
       Index = Src0Lo;
       return true;
@@ -2210,8 +2210,8 @@ bool ShuffleVectorInst::isIdentityWithExtract() const {
     return false;
 
   int NumOpElts = cast<FixedVectorType>(Op<0>()->getType())->getNumElements();
-  int NumMaskElts = cast<FixedVectorType>(getType())->getNumElements();
-  if (NumMaskElts >= NumOpElts)
+  
+  if (int NumMaskElts = cast<FixedVectorType>(getType())->getNumElements(); NumMaskElts >= NumOpElts)
     return false;
 
   return isIdentityMaskImpl(getShuffleMask(), NumOpElts);
@@ -2893,17 +2893,17 @@ unsigned CastInst::isEliminableCastPair(Instruction::CastOps firstOp,
   // merging. However, any pair of bitcasts are allowed.
   bool IsFirstBitcast  = (firstOp == Instruction::BitCast);
   bool IsSecondBitcast = (secondOp == Instruction::BitCast);
-  bool AreBothBitcasts = IsFirstBitcast && IsSecondBitcast;
+  
 
   // Check if any of the casts convert scalars <-> vectors.
-  if ((IsFirstBitcast  && isa<VectorType>(SrcTy) != isa<VectorType>(MidTy)) ||
+  if (bool AreBothBitcasts = IsFirstBitcast && IsSecondBitcast; (IsFirstBitcast  && isa<VectorType>(SrcTy) != isa<VectorType>(MidTy)) ||
       (IsSecondBitcast && isa<VectorType>(MidTy) != isa<VectorType>(DstTy)))
     if (!AreBothBitcasts)
       return 0;
 
-  int ElimCase = CastResults[firstOp-Instruction::CastOpsBegin]
-                            [secondOp-Instruction::CastOpsBegin];
-  switch (ElimCase) {
+  
+  switch (int ElimCase = CastResults[firstOp-Instruction::CastOpsBegin]
+                            [secondOp-Instruction::CastOpsBegin]; ElimCase) {
     case 0:
       // Categorically disallowed.
       return 0;
@@ -2943,8 +2943,8 @@ unsigned CastInst::isEliminableCastPair(Instruction::CastOps firstOp,
 
       // Cannot simplify if the intermediate integer size is smaller than the
       // pointer size.
-      unsigned MidSize = MidTy->getScalarSizeInBits();
-      if (!DL || MidSize < DL->getPointerTypeSizeInBits(SrcTy))
+      
+      if (unsigned MidSize = MidTy->getScalarSizeInBits(); !DL || MidSize < DL->getPointerTypeSizeInBits(SrcTy))
         return 0;
 
       return Instruction::BitCast;
@@ -3334,11 +3334,11 @@ CastInst::castIsValid(Instruction::CastOps op, Type *SrcTy, Type *DstTy) {
   // scalars are not being converted to vectors or vectors to scalars).
   ElementCount SrcEC = SrcIsVec ? cast<VectorType>(SrcTy)->getElementCount()
                                 : ElementCount::getFixed(0);
-  ElementCount DstEC = DstIsVec ? cast<VectorType>(DstTy)->getElementCount()
-                                : ElementCount::getFixed(0);
+  
 
   // Switch on the opcode provided
-  switch (op) {
+  switch (ElementCount DstEC = DstIsVec ? cast<VectorType>(DstTy)->getElementCount()
+                                : ElementCount::getFixed(0); op) {
   default: return false; // This is an input error
   case Instruction::Trunc:
     return SrcTy->isIntOrIntVectorTy() && DstTy->isIntOrIntVectorTy() &&
@@ -3859,8 +3859,8 @@ bool ICmpInst::compare(const APInt &LHS, const APInt &RHS,
 
 bool FCmpInst::compare(const APFloat &LHS, const APFloat &RHS,
                        FCmpInst::Predicate Pred) {
-  APFloat::cmpResult R = LHS.compare(RHS);
-  switch (Pred) {
+  
+  switch (APFloat::cmpResult R = LHS.compare(RHS); Pred) {
   default:
     llvm_unreachable("Invalid FCmp Predicate");
   case FCmpInst::FCMP_FALSE:
@@ -4226,8 +4226,8 @@ void SwitchInstProfUpdateWrapper::setSuccessorWeight(
     Weights = SmallVector<uint32_t, 8>(SI.getNumSuccessors(), 0);
 
   if (Weights) {
-    auto &OldW = (*Weights)[idx];
-    if (*W != OldW) {
+    
+    if (auto &OldW = (*Weights)[idx]; *W != OldW) {
       Changed = true;
       OldW = *W;
     }

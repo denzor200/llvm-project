@@ -374,8 +374,8 @@ bool BPFMIPreEmitPeephole::eliminateRedundantMov() {
       //   MOV_rr_32  wA, wA
       // as these two instructions having side effects, zeroing out
       // top 32 bits of rA.
-      unsigned Opcode = MI.getOpcode();
-      if (Opcode == BPF::MOV_rr) {
+      
+      if (unsigned Opcode = MI.getOpcode(); Opcode == BPF::MOV_rr) {
         Register dst = MI.getOperand(0).getReg();
         Register src = MI.getOperand(1).getReg();
 

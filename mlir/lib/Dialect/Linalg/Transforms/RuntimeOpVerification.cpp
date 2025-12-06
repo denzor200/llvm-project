@@ -50,10 +50,10 @@ struct StructuredOpInterface
       auto endValue = getValueOrCreateConstantIndexOp(builder, loc, end);
 
       // Loop Trip count > 0 iff start < end
-      Value dimensionHasNonZeroTripCount = index::CmpOp::create(
-          builder, loc, index::IndexCmpPredicate::SLT, startValue, endValue);
+      
 
-      if (!iterationDomainIsNonDegenerate) {
+      if (Value dimensionHasNonZeroTripCount = index::CmpOp::create(
+          builder, loc, index::IndexCmpPredicate::SLT, startValue, endValue); !iterationDomainIsNonDegenerate) {
         iterationDomainIsNonDegenerate = dimensionHasNonZeroTripCount;
       } else {
         // Iteration domain is non-degenerate iff all dimensions have loop trip

@@ -44,14 +44,14 @@ bool PlatformUnpoisonStacks() {
   stack_t signal_stack;
   CHECK_EQ(0, sigaltstack(nullptr, &signal_stack));
   uptr sigalt_bottom = (uptr)signal_stack.ss_sp;
-  uptr sigalt_top = (uptr)((char *)signal_stack.ss_sp + signal_stack.ss_size);
+  
   // If we're executing on the signal alternate stack AND the Linux flag
   // SS_AUTODISARM was used, then we cannot get the signal alternate stack
   // bounds from sigaltstack -- sigaltstack's output looks just as if no
   // alternate stack has ever been set up.
   // We're always unpoisoning the signal alternate stack to support jumping
   // between the default stack and signal alternate stack.
-  if (signal_stack.ss_flags != SS_DISABLE)
+  if (uptr sigalt_top = (uptr)((char *)signal_stack.ss_sp + signal_stack.ss_size); signal_stack.ss_flags != SS_DISABLE)
     UnpoisonStack(sigalt_bottom, sigalt_top, "sigalt");
 
   if (signal_stack.ss_flags != SS_ONSTACK)

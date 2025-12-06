@@ -378,9 +378,9 @@ bool MipsLegalizerInfo::legalizeCustom(
         Val = MIRBuilder.buildAnyExt(s64, Val).getReg(0);
 
       auto C_P2HalfMemSize = MIRBuilder.buildConstant(s32, P2HalfMemSize);
-      auto Addr = MIRBuilder.buildPtrAdd(PtrTy, BaseAddr, C_P2HalfMemSize);
+      
 
-      if (MI.getOpcode() == G_STORE && MemSize <= 4) {
+      if (auto Addr = MIRBuilder.buildPtrAdd(PtrTy, BaseAddr, C_P2HalfMemSize); MI.getOpcode() == G_STORE && MemSize <= 4) {
         MIRBuilder.buildStore(Val, BaseAddr, *P2HalfMemOp);
         auto C_P2Half_InBits = MIRBuilder.buildConstant(s32, P2HalfMemSize * 8);
         auto Shift = MIRBuilder.buildLShr(s32, Val, C_P2Half_InBits);
@@ -396,9 +396,9 @@ bool MipsLegalizerInfo::legalizeCustom(
 
       if (MemSize <= 4) {
         // This is anyextending load, use 4 byte lwr/lwl.
-        auto *Load4MMO = MF.getMachineMemOperand(MMOBase, 0, 4);
+        
 
-        if (Size == 32)
+        if (auto *Load4MMO = MF.getMachineMemOperand(MMOBase, 0, 4); Size == 32)
           MIRBuilder.buildLoad(Val, BaseAddr, *Load4MMO);
         else {
           auto Load = MIRBuilder.buildLoad(s32, BaseAddr, *Load4MMO);
@@ -410,9 +410,9 @@ bool MipsLegalizerInfo::legalizeCustom(
         auto Addr = MIRBuilder.buildPtrAdd(PtrTy, BaseAddr, C_P2HalfMemSize);
 
         auto Load_P2Half = MIRBuilder.buildLoad(s32, BaseAddr, *P2HalfMemOp);
-        auto Load_Rem = MIRBuilder.buildLoad(s32, Addr, *RemMemOp);
+        
 
-        if (Size == 64)
+        if (auto Load_Rem = MIRBuilder.buildLoad(s32, Addr, *RemMemOp); Size == 64)
           MIRBuilder.buildMergeLikeInstr(Val, {Load_P2Half, Load_Rem});
         else {
           auto Merge =
@@ -507,9 +507,9 @@ static bool MSA2OpIntrinsicToGeneric(MachineInstr &MI, unsigned Opcode,
 bool MipsLegalizerInfo::legalizeIntrinsic(LegalizerHelper &Helper,
                                           MachineInstr &MI) const {
   MachineIRBuilder &MIRBuilder = Helper.MIRBuilder;
-  const MipsSubtarget &ST = MI.getMF()->getSubtarget<MipsSubtarget>();
+  
 
-  switch (cast<GIntrinsic>(MI).getIntrinsicID()) {
+  switch (const MipsSubtarget &ST = MI.getMF()->getSubtarget<MipsSubtarget>(); cast<GIntrinsic>(MI).getIntrinsicID()) {
   case Intrinsic::vacopy: {
     MachinePointerInfo MPO;
     LLT PtrTy = LLT::pointer(0, 32);

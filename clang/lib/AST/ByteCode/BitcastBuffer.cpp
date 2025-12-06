@@ -20,8 +20,8 @@ static inline bool bitof(const std::byte *B, Bits BitIndex) {
 void BitcastBuffer::pushData(const std::byte *In, Bits BitOffset, Bits BitWidth,
                              Endian TargetEndianness) {
   for (unsigned It = 0; It != BitWidth.getQuantity(); ++It) {
-    bool BitValue = bitof(In, Bits(It));
-    if (!BitValue)
+    
+    if (bool BitValue = bitof(In, Bits(It)); !BitValue)
       continue;
 
     Bits DstBit;

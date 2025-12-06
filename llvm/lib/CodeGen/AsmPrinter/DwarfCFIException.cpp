@@ -42,9 +42,9 @@ void DwarfCFIException::endModule() {
 
   const TargetLoweringObjectFile &TLOF = Asm->getObjFileLowering();
 
-  unsigned PerEncoding = TLOF.getPersonalityEncoding();
+  
 
-  if ((PerEncoding & 0x80) != dwarf::DW_EH_PE_indirect)
+  if (unsigned PerEncoding = TLOF.getPersonalityEncoding(); (PerEncoding & 0x80) != dwarf::DW_EH_PE_indirect)
     return;
 
   // Emit indirect reference table for all used personality functions
@@ -104,11 +104,11 @@ void DwarfCFIException::beginBasicBlockSection(const MachineBasicBlock &MBB) {
     return;
 
   if (!hasEmittedCFISections) {
-    AsmPrinter::CFISection CFISecType = Asm->getModuleCFISectionType();
+    
     // If we don't say anything it implies `.cfi_sections .eh_frame`, so we
     // chose not to be verbose in that case. And with `ForceDwarfFrameSection`,
     // we should always emit .debug_frame.
-    if (CFISecType == AsmPrinter::CFISection::Debug ||
+    if (AsmPrinter::CFISection CFISecType = Asm->getModuleCFISectionType(); CFISecType == AsmPrinter::CFISection::Debug ||
         Asm->TM.Options.ForceDwarfFrameSection ||
         Asm->TM.Options.MCOptions.EmitSFrameUnwind)
       Asm->OutStreamer->emitCFISections(

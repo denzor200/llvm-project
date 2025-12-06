@@ -178,8 +178,8 @@ void MipsInstPrinter::printBranchOperand(const MCInst *MI, uint64_t Address,
 template <unsigned Bits, unsigned Offset>
 void MipsInstPrinter::printUImm(const MCInst *MI, int opNum,
                                 const MCSubtargetInfo &STI, raw_ostream &O) {
-  const MCOperand &MO = MI->getOperand(opNum);
-  if (MO.isImm()) {
+  
+  if (const MCOperand &MO = MI->getOperand(opNum); MO.isImm()) {
     uint64_t Imm = MO.getImm();
     Imm -= Offset;
     Imm &= (1 << Bits) - 1;

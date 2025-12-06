@@ -29,9 +29,9 @@ static void printAnalysisResults(DataFlowSolver &solver, Operation *op,
         os << "  ";
         block.printAsOperand(os);
         os << " = ";
-        auto *live = solver.lookupState<Executable>(
-            solver.getProgramPointBefore(&block));
-        if (live)
+        
+        if (auto *live = solver.lookupState<Executable>(
+            solver.getProgramPointBefore(&block)); live)
           os << *live;
         else
           os << "dead";
@@ -50,9 +50,9 @@ static void printAnalysisResults(DataFlowSolver &solver, Operation *op,
         }
       }
       if (!region.empty()) {
-        auto *preds = solver.lookupState<PredecessorState>(
-            solver.getProgramPointBefore(&region.front()));
-        if (preds)
+        
+        if (auto *preds = solver.lookupState<PredecessorState>(
+            solver.getProgramPointBefore(&region.front())); preds)
           os << "region_preds: " << *preds << "\n";
       }
     }

@@ -190,10 +190,10 @@ void UnwindInfoSection::addSymbol(const Defined *d) {
   // We don't yet know the final output address of this symbol, but we know that
   // they are uniquely determined by a combination of the isec and value, so
   // we use that as the key here.
-  auto p = symbols.insert({{d->isec(), d->value}, d});
+  
   // If we have multiple symbols at the same address, only one of them can have
   // an associated unwind entry.
-  if (!p.second && d->unwindEntry()) {
+  if (auto p = symbols.insert({{d->isec(), d->value}, d}); !p.second && d->unwindEntry()) {
     assert(p.first->second == d || !p.first->second->unwindEntry());
     p.first->second = d;
   }
@@ -304,12 +304,12 @@ void UnwindInfoSectionImpl::prepareRelocations(ConcatInputSection *isec) {
       // by this point.
       Symbol *&s = personalityTable[{referentIsec, r.addend}];
       if (s == nullptr) {
-        Defined *const *gotEntry =
+        
+        if (Defined *const *gotEntry =
             llvm::find_if(referentIsec->symbols, [&](Defined const *d) {
               return d->value == static_cast<uint64_t>(r.addend) &&
                      d->isInGot();
-            });
-        if (gotEntry != referentIsec->symbols.end()) {
+            }); gotEntry != referentIsec->symbols.end()) {
           s = *gotEntry;
         } else {
           // This runs after dead stripping, so the noDeadStrip argument does
@@ -333,8 +333,8 @@ void UnwindInfoSectionImpl::prepareRelocations(ConcatInputSection *isec) {
 Symbol *UnwindInfoSectionImpl::canonicalizePersonality(Symbol *personality) {
   if (auto *defined = dyn_cast_or_null<Defined>(personality)) {
     // Check if we have created a synthetic symbol at the same address.
-    Symbol *&synth = personalityTable[{defined->isec(), defined->value}];
-    if (synth == nullptr)
+    
+    if (Symbol *&synth = personalityTable[{defined->isec(), defined->value}]; synth == nullptr)
       synth = defined;
     else if (synth != defined)
       return synth;

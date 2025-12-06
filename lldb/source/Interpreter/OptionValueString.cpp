@@ -129,8 +129,8 @@ Status OptionValueString::SetValueFromString(llvm::StringRef value,
 
 Status OptionValueString::SetCurrentValue(llvm::StringRef value) {
   if (m_validator) {
-    Status error(m_validator(value.str().c_str(), m_validator_baton));
-    if (error.Fail())
+    
+    if (Status error(m_validator(value.str().c_str(), m_validator_baton)); error.Fail())
       return error;
   }
   m_current_value.assign(std::string(value));

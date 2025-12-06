@@ -134,8 +134,8 @@ doPromotion(Function *F, FunctionAnalysisManager &FAM,
   unsigned ArgNo = 0, NewArgNo = 0;
   for (Function::arg_iterator I = F->arg_begin(), E = F->arg_end(); I != E;
        ++I, ++ArgNo) {
-    auto It = ArgsToPromote.find(&*I);
-    if (It == ArgsToPromote.end()) {
+    
+    if (auto It = ArgsToPromote.find(&*I); It == ArgsToPromote.end()) {
       // Unchanged argument
       Params.push_back(I->getType());
       ArgAttrVec.push_back(PAL.getParamAttrs(ArgNo));
@@ -235,8 +235,8 @@ doPromotion(Function *F, FunctionAnalysisManager &FAM,
     ArgNo = 0;
     for (Function::arg_iterator I = F->arg_begin(), E = F->arg_end(); I != E;
          ++I, ++AI, ++ArgNo) {
-      auto ArgIt = ArgsToPromote.find(&*I);
-      if (ArgIt == ArgsToPromote.end()) {
+      
+      if (auto ArgIt = ArgsToPromote.find(&*I); ArgIt == ArgsToPromote.end()) {
         Args.push_back(*AI); // Unmodified argument
         ArgAttrVec.push_back(CallPAL.getParamAttrs(ArgNo));
       } else if (!I->use_empty()) {
@@ -495,9 +495,9 @@ static bool isArgUnmodifiedByAllCalls(Argument *Arg,
     MemoryLocation Loc =
         MemoryLocation::getForArgument(Call, Arg->getArgNo(), nullptr);
 
-    AAResults &AAR = FAM.getResult<AAManager>(*Call->getFunction());
+    
     // Bail as soon as we find a Call where Arg may be modified.
-    if (isModSet(AAR.getModRefInfo(Call, Loc)))
+    if (AAResults &AAR = FAM.getResult<AAManager>(*Call->getFunction()); isModSet(AAR.getModRefInfo(Call, Loc)))
       return false;
   }
 
@@ -680,8 +680,8 @@ static bool findArgParts(Argument *Arg, const DataLayout &DL, AAResults &AAR,
         return false;
       }
 
-      unsigned int ArgNo = Arg->getArgNo();
-      if (U->getOperandNo() != ArgNo) {
+      
+      if (unsigned int ArgNo = Arg->getArgNo(); U->getOperandNo() != ArgNo) {
         LLVM_DEBUG(dbgs() << "ArgPromotion of " << *Arg << " failed: "
                           << "arg position is different in callee\n");
         return false;
@@ -871,9 +871,9 @@ static Function *promoteArguments(Function *F, FunctionAnalysisManager &FAM,
     }
 
     // If we can promote the pointer to its value.
-    SmallVector<OffsetAndArgPart, 4> ArgParts;
+    
 
-    if (findArgParts(PtrArg, DL, AAR, MaxElements, IsRecursive, ArgParts,
+    if (SmallVector<OffsetAndArgPart, 4> ArgParts; findArgParts(PtrArg, DL, AAR, MaxElements, IsRecursive, ArgParts,
                      FAM)) {
       SmallVector<Type *, 4> Types;
       for (const auto &Pair : ArgParts)

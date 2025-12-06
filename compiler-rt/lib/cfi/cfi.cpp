@@ -118,8 +118,8 @@ public:
   // Load a shadow value for the given application memory address.
   static const ShadowValue load(uptr addr) {
     uptr shadow_base = GetShadow();
-    uptr shadow_offset = MemToShadowOffset(addr);
-    if (shadow_offset > GetShadowSize())
+    
+    if (uptr shadow_offset = MemToShadowOffset(addr); shadow_offset > GetShadowSize())
       return ShadowValue(addr, kInvalidShadow);
     else
       return ShadowValue(
@@ -242,11 +242,11 @@ uptr find_cfi_check_in_dso(dl_phdr_info *info) {
   // This excludes VDSO, which has (very high) bogus strtab and symtab pointers.
   int phdr_idx;
   for (phdr_idx = 0; phdr_idx < info->dlpi_phnum; phdr_idx++) {
-    const Elf_Phdr *phdr = &info->dlpi_phdr[phdr_idx];
-    if (phdr->p_type == PT_LOAD) {
+    
+    if (const Elf_Phdr *phdr = &info->dlpi_phdr[phdr_idx]; phdr->p_type == PT_LOAD) {
       uptr beg = info->dlpi_addr + phdr->p_vaddr;
-      uptr end = beg + phdr->p_memsz;
-      if (strtab >= beg && strtab + strsz < end && symtab >= beg &&
+      
+      if (uptr end = beg + phdr->p_memsz; strtab >= beg && strtab + strsz < end && symtab >= beg &&
           symtab < end)
         break;
     }
@@ -264,8 +264,8 @@ uptr find_cfi_check_in_dso(dl_phdr_info *info) {
     // lld-produces files, there are other sections between symtab and strtab.
     // Stop looking when the symbol name is not inside strtab.
     if (p->st_name >= strsz) break;
-    char *name = (char*)(strtab + p->st_name);
-    if (strcmp(name, "__cfi_check") == 0) {
+    
+    if (char *name = (char*)(strtab + p->st_name); strcmp(name, "__cfi_check") == 0) {
       assert(p->st_info == ELF32_ST_INFO(STB_GLOBAL, STT_FUNC) ||
              p->st_info == ELF32_ST_INFO(STB_WEAK, STT_FUNC));
       uptr addr = info->dlpi_addr + p->st_value;
@@ -283,16 +283,16 @@ int dl_iterate_phdr_cb(dl_phdr_info *info, size_t size, void *data) {
   ShadowBuilder *b = reinterpret_cast<ShadowBuilder *>(data);
 
   for (int i = 0; i < info->dlpi_phnum; i++) {
-    const Elf_Phdr *phdr = &info->dlpi_phdr[i];
-    if (phdr->p_type == PT_LOAD) {
+    
+    if (const Elf_Phdr *phdr = &info->dlpi_phdr[i]; phdr->p_type == PT_LOAD) {
       // Jump tables are in the executable segment.
       // VTables are in the non-executable one.
       // Need to fill shadow for both.
       // FIXME: reject writable if vtables are in the r/o segment. Depend on
       // PT_RELRO?
       uptr cur_beg = info->dlpi_addr + phdr->p_vaddr;
-      uptr cur_end = cur_beg + phdr->p_memsz;
-      if (cfi_check) {
+      
+      if (uptr cur_end = cur_beg + phdr->p_memsz; cfi_check) {
         VReport(1, "   %zx .. %zx\n", cur_beg, cur_end);
         b->Add(cur_beg, cur_end, cfi_check);
       } else {

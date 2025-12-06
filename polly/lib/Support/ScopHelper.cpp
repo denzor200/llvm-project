@@ -41,7 +41,7 @@ static cl::list<std::string> DebugFunctions(
 static void simplifyRegionEntry(Region *R, DominatorTree *DT, LoopInfo *LI,
                                 RegionInfo *RI) {
   BasicBlock *EnteringBB = R->getEnteringBlock();
-  BasicBlock *Entry = R->getEntry();
+  
 
   // Before (one of):
   //
@@ -54,7 +54,7 @@ static void simplifyRegionEntry(Region *R, DominatorTree *DT, LoopInfo *LI,
   //        ....               ....          //
 
   // Create single entry edge if the region has multiple entry edges.
-  if (!EnteringBB) {
+  if (BasicBlock *Entry = R->getEntry(); !EnteringBB) {
     SmallVector<BasicBlock *, 4> Preds;
     for (BasicBlock *P : predecessors(Entry))
       if (!R->contains(P))
@@ -105,7 +105,7 @@ static void simplifyRegionEntry(Region *R, DominatorTree *DT, LoopInfo *LI,
 static void simplifyRegionExit(Region *R, DominatorTree *DT, LoopInfo *LI,
                                RegionInfo *RI) {
   BasicBlock *ExitBB = R->getExit();
-  BasicBlock *ExitingBB = R->getExitingBlock();
+  
 
   // Before:
   //
@@ -114,7 +114,7 @@ static void simplifyRegionExit(Region *R, DominatorTree *DT, LoopInfo *LI,
   //       ExitBB          //
   //       /    \          //
 
-  if (!ExitingBB) {
+  if (BasicBlock *ExitingBB = R->getExitingBlock(); !ExitingBB) {
     SmallVector<BasicBlock *, 4> Preds;
     for (BasicBlock *P : predecessors(ExitBB))
       if (R->contains(P))
@@ -318,13 +318,13 @@ private:
     // If a value mapping was given try if the underlying value is remapped.
     Value *NewVal = VMap ? VMap->lookup(E->getValue()) : nullptr;
     if (NewVal) {
-      const SCEV *NewE = GenSE.getSCEV(NewVal);
+      
 
       // While the mapped value might be different the SCEV representation might
       // not be. To this end we will check before we go into recursion here.
       // FIXME: SCEVVisitor must only visit SCEVs that belong to the original
       // SE. This calls it on SCEVs that belong GenSE.
-      if (E != NewE)
+      if (const SCEV *NewE = GenSE.getSCEV(NewVal); E != NewE)
         return visit(NewE);
     }
 
@@ -552,8 +552,8 @@ static bool hasVariantIndex(GetElementPtrInst *Gep, Loop *L, Region &R,
                             ScalarEvolution &SE) {
   for (const Use &Val : llvm::drop_begin(Gep->operands(), 1)) {
     const SCEV *PtrSCEV = SE.getSCEVAtScope(Val, L);
-    Loop *OuterLoop = R.outermostLoopInRegion(L);
-    if (!SE.isLoopInvariant(PtrSCEV, OuterLoop))
+    
+    if (Loop *OuterLoop = R.outermostLoopInRegion(L); !SE.isLoopInvariant(PtrSCEV, OuterLoop))
       return true;
   }
   return false;
@@ -655,8 +655,8 @@ bool polly::canSynthesize(const Value *V, const Scop &S, ScalarEvolution *SE,
   if (!V || !SE->isSCEVable(V->getType()))
     return false;
 
-  const InvariantLoadsSetTy &ILS = S.getRequiredInvariantLoads();
-  if (const SCEV *Scev = SE->getSCEVAtScope(const_cast<Value *>(V), Scope))
+  
+  if (const InvariantLoadsSetTy &ILS = S.getRequiredInvariantLoads(); const SCEV *Scev = SE->getSCEVAtScope(const_cast<Value *>(V), Scope))
     if (!isa<SCEVCouldNotCompute>(Scev))
       if (!hasScalarDepsInsideRegion(Scev, &S.getRegion(), Scope, false, ILS))
         return true;
@@ -841,8 +841,8 @@ isl::id polly::createIslLoopAttr(isl::ctx Ctx, Loop *L) {
     return {};
 
   // A loop without metadata does not need to be annotated.
-  MDNode *LoopID = L->getLoopID();
-  if (!LoopID)
+  
+  if (MDNode *LoopID = L->getLoopID(); !LoopID)
     return {};
 
   BandAttr *Attr = new BandAttr();

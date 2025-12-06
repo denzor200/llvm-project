@@ -55,10 +55,10 @@ void ThreadPlanCallFunctionUsingABI::GetDescription(Stream *s,
 }
 
 void ThreadPlanCallFunctionUsingABI::SetReturnValue() {
-  const ABI *abi = m_process.GetABI().get();
+  
 
   // Ask the abi for the return value
-  if (abi) {
+  if (const ABI *abi = m_process.GetABI().get(); abi) {
     const bool persistent = false;
     m_return_valobj_sp =
         abi->GetReturnValueObject(GetThread(), m_return_type, persistent);

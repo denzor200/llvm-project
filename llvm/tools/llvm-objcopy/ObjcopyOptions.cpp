@@ -372,8 +372,8 @@ static Error addSymbolsFromFile(NameMatcher &Symbols, BumpPtrAllocator &Alloc,
   for (StringRef Line : Lines) {
     // Ignore everything after '#', trim whitespace, and only add the symbol if
     // it's not empty.
-    auto TrimmedLine = Line.split('#').first.trim();
-    if (!TrimmedLine.empty())
+    
+    if (auto TrimmedLine = Line.split('#').first.trim(); !TrimmedLine.empty())
       if (Error E = Symbols.addMatcher(NameOrPattern::create(
               Saver.save(TrimmedLine), MS, ErrorCallback)))
         return E;
@@ -524,10 +524,10 @@ static Expected<NewSymbolInfo> parseNewSymbolInfo(StringRef FlagValue) {
                        [&] { SI.Flags.push_back(SymbolFlag::UniqueObject); })
             .StartsWithLower("before=",
                              [&] {
-                               StringRef SymNamePart =
-                                   Flags[I].split('=').second;
+                               
 
-                               if (!SymNamePart.empty())
+                               if (StringRef SymNamePart =
+                                   Flags[I].split('=').second; !SymNamePart.empty())
                                  SI.BeforeSyms.push_back(SymNamePart);
                              })
             .Default([&] { UnsupportedFlags.push_back(Flags[I]); }))();
@@ -988,8 +988,8 @@ objcopy::parseObjcopyOptions(ArrayRef<const char *> ArgsArr,
     if (!StringRef(Arg->getValue()).contains('='))
       return createStringError(errc::invalid_argument,
                                "bad format for --redefine-sym");
-    auto Old2New = StringRef(Arg->getValue()).split('=');
-    if (!Config.SymbolsToRename.insert(Old2New).second)
+    
+    if (auto Old2New = StringRef(Arg->getValue()).split('='); !Config.SymbolsToRename.insert(Old2New).second)
       return createStringError(errc::invalid_argument,
                                "multiple redefinition of symbol '%s'",
                                Old2New.first.str().c_str());

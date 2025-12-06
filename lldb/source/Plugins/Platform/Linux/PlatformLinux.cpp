@@ -523,8 +523,8 @@ static std::string GetDescriptionFromSiginfo(lldb::ValueObjectSP siginfo_sp) {
   // invariants around kernel sent signals. Such as SIGSEGV won't have an
   // address.
   if (code < 0) {
-    auto sikill = sifields->GetChildMemberWithName("_kill");
-    if (sikill) {
+    
+    if (auto sikill = sifields->GetChildMemberWithName("_kill"); sikill) {
       auto pid_sp = sikill->GetChildMemberWithName("si_pid");
       if (pid_sp)
         pid = pid_sp->GetValueAsUnsigned(-1);

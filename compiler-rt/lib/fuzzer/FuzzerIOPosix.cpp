@@ -65,8 +65,8 @@ void ListFilesInDirRecursive(const std::string &Dir, long *Epoch,
     exit(1);
   }
   while (auto E = readdir(D)) {
-    std::string Path = DirPlusFile(Dir, E->d_name);
-    if (E->d_type == DT_REG || E->d_type == DT_LNK ||
+    
+    if (std::string Path = DirPlusFile(Dir, E->d_name); E->d_type == DT_REG || E->d_type == DT_LNK ||
         (E->d_type == DT_UNKNOWN && IsFile(Path)))
       V->push_back(Path);
     else if ((E->d_type == DT_DIR ||
@@ -87,8 +87,8 @@ void IterateDirRecursive(const std::string &Dir,
   DIR *D = opendir(Dir.c_str());
   if (!D) return;
   while (auto E = readdir(D)) {
-    std::string Path = DirPlusFile(Dir, E->d_name);
-    if (E->d_type == DT_REG || E->d_type == DT_LNK ||
+    
+    if (std::string Path = DirPlusFile(Dir, E->d_name); E->d_type == DT_REG || E->d_type == DT_LNK ||
         (E->d_type == DT_UNKNOWN && IsFile(Path)))
       FileCallback(Path);
     else if ((E->d_type == DT_DIR ||

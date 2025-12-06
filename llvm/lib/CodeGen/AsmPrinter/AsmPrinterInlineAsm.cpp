@@ -76,8 +76,8 @@ void AsmPrinter::emitInlineAsm(StringRef Str, const MCSubtargetInfo &STI,
   assert(!Str.empty() && "Can't emit empty inline asm block");
 
   // Remember if the buffer is nul terminated or not so we can avoid a copy.
-  bool isNullTerminated = Str.back() == 0;
-  if (isNullTerminated)
+  
+  if (bool isNullTerminated = Str.back() == 0; isNullTerminated)
     Str = Str.substr(0, Str.size()-1);
 
   // If the output streamer does not have mature MC support or the integrated
@@ -375,8 +375,8 @@ void AsmPrinter::emitInlineAsm(const MachineInstr *MI) const {
       continue;
     const InlineAsm::Flag F(MO.getImm());
     if (F.isClobberKind()) {
-      Register Reg = MI->getOperand(I + 1).getReg();
-      if (!TRI->isAsmClobberable(*MF, Reg))
+      
+      if (Register Reg = MI->getOperand(I + 1).getReg(); !TRI->isAsmClobberable(*MF, Reg))
         RestrRegs.push_back(Reg);
     }
     // Skip to one before the next operand descriptor, if it exists.
@@ -469,8 +469,8 @@ bool AsmPrinter::PrintAsmOperand(const MachineInstr *MI, unsigned OpNo,
     if (ExtraCode[1] != 0) return true; // Unknown modifier.
 
     // https://gcc.gnu.org/onlinedocs/gccint/Output-Template.html
-    const MachineOperand &MO = MI->getOperand(OpNo);
-    switch (ExtraCode[0]) {
+    
+    switch (const MachineOperand &MO = MI->getOperand(OpNo); ExtraCode[0]) {
     default:
       return true;  // Unknown modifier.
     case 'a': // Print as memory address.

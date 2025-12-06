@@ -29,8 +29,8 @@ ParseResult parseVariableDecorations(OpAsmParser &parser,
         stringifyDecoration(spirv::Decoration::DescriptorSet));
     auto bindingName = llvm::convertToSnakeFromCamelCase(
         stringifyDecoration(spirv::Decoration::Binding));
-    Type i32Type = parser.getBuilder().getIntegerType(32);
-    if (parser.parseLParen() ||
+    
+    if (Type i32Type = parser.getBuilder().getIntegerType(32); parser.parseLParen() ||
         parser.parseAttribute(set, i32Type, descriptorSetName,
                               state.attributes) ||
         parser.parseComma() ||
@@ -40,8 +40,8 @@ ParseResult parseVariableDecorations(OpAsmParser &parser,
       return failure();
     }
   } else if (succeeded(parser.parseOptionalKeyword(builtInName))) {
-    StringAttr builtIn;
-    if (parser.parseLParen() ||
+    
+    if (StringAttr builtIn; parser.parseLParen() ||
         parser.parseAttribute(builtIn, builtInName, state.attributes) ||
         parser.parseRParen()) {
       return failure();

@@ -62,8 +62,8 @@ LLVMComdatSelectionKind LLVMGetComdatSelectionKind(LLVMComdatRef C) {
 }
 
 void LLVMSetComdatSelectionKind(LLVMComdatRef C, LLVMComdatSelectionKind kind) {
-  Comdat *Cd = unwrap(C);
-  switch (kind) {
+  
+  switch (Comdat *Cd = unwrap(C); kind) {
   case LLVMAnyComdatSelectionKind:
     Cd->setSelectionKind(Comdat::Any);
     break;

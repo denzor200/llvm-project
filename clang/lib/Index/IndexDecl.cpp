@@ -50,8 +50,8 @@ public:
   void handleTemplateArgumentLoc(const TemplateArgumentLoc &TALoc,
                                  const NamedDecl *Parent,
                                  const DeclContext *DC) {
-    const TemplateArgumentLocInfo &LocInfo = TALoc.getLocInfo();
-    switch (TALoc.getArgument().getKind()) {
+    
+    switch (const TemplateArgumentLocInfo &LocInfo = TALoc.getLocInfo(); TALoc.getArgument().getKind()) {
     case TemplateArgument::Expression:
       IndexCtx.indexBody(LocInfo.getAsExpr(), Parent, DC);
       break;
@@ -102,8 +102,8 @@ public:
     };
     if (IndexCtx.shouldIndexFunctionLocalSymbols()) {
       if (const ParmVarDecl *Parm = dyn_cast<ParmVarDecl>(D)) {
-        auto *DC = Parm->getDeclContext();
-        if (auto *FD = dyn_cast<FunctionDecl>(DC)) {
+        
+        if (auto *DC = Parm->getDeclContext(); auto *FD = dyn_cast<FunctionDecl>(DC)) {
           if (IndexCtx.shouldIndexParametersInDeclarations() ||
               FD->isThisDeclarationADefinition())
             IndexCtx.handleDecl(Parm);
@@ -187,8 +187,8 @@ public:
     }
 
     if (D->isThisDeclarationADefinition()) {
-      const Stmt *Body = D->getBody();
-      if (Body) {
+      
+      if (const Stmt *Body = D->getBody(); Body) {
         IndexCtx.indexBody(Body, D, D);
       }
     }
@@ -228,9 +228,9 @@ public:
         } else if (!isa<TypeDecl>(ND))
           continue;
         if (const auto *FD = dyn_cast<FunctionDecl>(ND)) {
-          const auto *DFD = cast<FunctionDecl>(D);
+          
           // Function overrides are approximated using the number of parameters.
-          if (FD->getStorageClass() != DFD->getStorageClass() ||
+          if (const auto *DFD = cast<FunctionDecl>(D); FD->getStorageClass() != DFD->getStorageClass() ||
               FD->getNumParams() != DFD->getNumParams())
             continue;
         }
@@ -294,8 +294,8 @@ public:
     }
 
     if (D->isThisDeclarationADefinition()) {
-      const Stmt *Body = D->getBody();
-      if (Body) {
+      
+      if (const Stmt *Body = D->getBody(); Body) {
         IndexCtx.indexBody(Body, D, D);
       }
     }
@@ -495,8 +495,8 @@ public:
   }
 
   bool VisitObjCCategoryImplDecl(const ObjCCategoryImplDecl *D) {
-    const ObjCCategoryDecl *Cat = D->getCategoryDecl();
-    if (!Cat)
+    
+    if (const ObjCCategoryDecl *Cat = D->getCategoryDecl(); !Cat)
       return true;
     const ObjCInterfaceDecl *C = D->getClassInterface();
     if (C)
@@ -785,8 +785,8 @@ bool IndexingContext::indexDecl(const Decl *D) {
     return true;
 
   IndexingDeclVisitor Visitor(*this);
-  bool ShouldContinue = Visitor.Visit(D);
-  if (!ShouldContinue)
+  
+  if (bool ShouldContinue = Visitor.Visit(D); !ShouldContinue)
     return false;
 
   if (!Visitor.Handled && isa<DeclContext>(D))

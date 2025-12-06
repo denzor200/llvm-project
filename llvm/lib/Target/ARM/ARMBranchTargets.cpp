@@ -67,7 +67,7 @@ bool ARMBranchTargets::runOnMachineFunction(MachineFunction &MF) {
 
   bool MadeChange = false;
   for (MachineBasicBlock &MBB : MF) {
-    bool IsFirstBB = &MBB == &MF.front();
+    
 
     // Every function can potentially be called indirectly (even if it has
     // static linkage, due to linker-generated veneers).
@@ -77,7 +77,7 @@ bool ARMBranchTargets::runOnMachineFunction(MachineFunction &MF) {
     // modes. These modes do not support PACBTI. As a result, BTI instructions
     // are not added in the destination blocks.
 
-    if (IsFirstBB || MBB.isMachineBlockAddressTaken() ||
+    if (bool IsFirstBB = &MBB == &MF.front(); IsFirstBB || MBB.isMachineBlockAddressTaken() ||
         MBB.isIRBlockAddressTaken() || MBB.isEHPad()) {
       addBTI(TII, MBB, IsFirstBB);
       MadeChange = true;

@@ -103,16 +103,16 @@ static unsigned getLoopSparsityRank(unsigned loop, ArrayRef<Value> allTensors,
     }
 
     if (loopAccessesTensor) {
-      const auto enc = getSparseTensorEncoding(tensor.getType());
-      if (!enc) {
+      
+      if (const auto enc = getSparseTensorEncoding(tensor.getType()); !enc) {
         // Dense tensor - lowest rank.
         return 0;
       } else {
         // Sparse tensor - check the level type for this dimension.
-        auto lvlTypes = enc.getLvlTypes();
-        if (tensorDim < lvlTypes.size()) {
-          auto lvlType = lvlTypes[tensorDim];
-          if (isDenseLT(lvlType)) {
+        
+        if (auto lvlTypes = enc.getLvlTypes(); tensorDim < lvlTypes.size()) {
+          
+          if (auto lvlType = lvlTypes[tensorDim]; isDenseLT(lvlType)) {
             return 0; // Dense level.
           } else if (isCompressedLT(lvlType)) {
             minRank = std::min(minRank, 1u); // Compressed level.
@@ -167,8 +167,8 @@ AffineMap IterationGraphSorter::topoSort() {
       unsigned minRank = getLoopSparsityRank(minLoop, allTensors, allMaps);
 
       for (auto candidateLoop : it) {
-        unsigned rank = getLoopSparsityRank(candidateLoop, allTensors, allMaps);
-        if (rank < minRank || (rank == minRank && candidateLoop < minLoop)) {
+        
+        if (unsigned rank = getLoopSparsityRank(candidateLoop, allTensors, allMaps); rank < minRank || (rank == minRank && candidateLoop < minLoop)) {
           minLoop = candidateLoop;
           minRank = rank;
         }

@@ -130,9 +130,9 @@ LogicalResult KHRCooperativeMatrixMulAddOp::verify() {
   // Check that if Cooperative Matrix Operands are provided, the element type
   // is integer.
   if (getMatrixOperands()) {
-    Type elementTypes[] = {typeA.getElementType(), typeB.getElementType(),
-                           typeC.getElementType()};
-    if (!llvm::all_of(elementTypes, llvm::IsaPred<IntegerType>)) {
+    
+    if (Type elementTypes[] = {typeA.getElementType(), typeB.getElementType(),
+                           typeC.getElementType()}; !llvm::all_of(elementTypes, llvm::IsaPred<IntegerType>)) {
       return emitOpError("Matrix Operands require all matrix element types to "
                          "be Integer Types");
     }

@@ -115,8 +115,8 @@ static const Expr *ignoreTemporariesAndPointers(const Expr *E) {
   if (const auto *T = dyn_cast<UnaryOperator>(E))
     return ignoreTemporariesAndPointers(T->getSubExpr());
 
-  const Expr *F = E->IgnoreImplicit();
-  if (E != F)
+  
+  if (const Expr *F = E->IgnoreImplicit(); E != F)
     return ignoreTemporariesAndPointers(F);
 
   return E;
@@ -126,8 +126,8 @@ static const Expr *ignoreTemporariesAndConstructors(const Expr *E) {
   if (const auto *T = dyn_cast<CXXConstructExpr>(E))
     return ignoreTemporariesAndConstructors(T->getArg(0));
 
-  const Expr *F = E->IgnoreImplicit();
-  if (E != F)
+  
+  if (const Expr *F = E->IgnoreImplicit(); E != F)
     return ignoreTemporariesAndPointers(F);
 
   return E;
@@ -180,8 +180,8 @@ initializeBindArgumentForCallExpr(const MatchFinder::MatchResult &Result,
 
 static bool anyDescendantIsLocal(const Stmt *Statement) {
   if (const auto *DeclRef = dyn_cast<DeclRefExpr>(Statement)) {
-    const ValueDecl *Decl = DeclRef->getDecl();
-    if (const auto *Var = dyn_cast_or_null<VarDecl>(Decl)) {
+    
+    if (const ValueDecl *Decl = DeclRef->getDecl(); const auto *Var = dyn_cast_or_null<VarDecl>(Decl)) {
       if (Var->isLocalVarDeclOrParm())
         return true;
     }
@@ -344,9 +344,9 @@ static void addPlaceholderArgs(const LambdaProperties &LP,
   for (size_t I = 1; I <= PlaceholderCount; ++I) {
     Stream << Delimiter << "auto &&";
 
-    const int ArgIndex = findPositionOfPlaceholderUse(Args, I);
+    
 
-    if (ArgIndex != -1 && Args[ArgIndex].IsUsed)
+    if (const int ArgIndex = findPositionOfPlaceholderUse(Args, I); ArgIndex != -1 && Args[ArgIndex].IsUsed)
       Stream << " " << Args[ArgIndex].UsageIdentifier;
     Delimiter = ", ";
   }
@@ -390,9 +390,9 @@ findCandidateCallOperators(const CXXRecordDecl *RecordDecl, size_t NumArgs) {
   std::vector<const FunctionDecl *> Candidates;
 
   for (const clang::CXXMethodDecl *Method : RecordDecl->methods()) {
-    const OverloadedOperatorKind OOK = Method->getOverloadedOperator();
+    
 
-    if (OOK != OverloadedOperatorKind::OO_Call)
+    if (const OverloadedOperatorKind OOK = Method->getOverloadedOperator(); OOK != OverloadedOperatorKind::OO_Call)
       continue;
 
     if (Method->getNumParams() > NumArgs)
@@ -494,8 +494,8 @@ static CallableType getCallableType(const MatchFinder::MatchResult &Result) {
     return CT_Function;
 
   if (QT->isRecordType()) {
-    const CXXRecordDecl *Decl = QT->getAsCXXRecordDecl();
-    if (!Decl)
+    
+    if (const CXXRecordDecl *Decl = QT->getAsCXXRecordDecl(); !Decl)
       return CT_Other;
 
     return CT_Object;
@@ -511,8 +511,8 @@ getCallableMaterialization(const MatchFinder::MatchResult &Result) {
   const auto *NoTemporaries = ignoreTemporariesAndPointers(CallableExpr);
 
   const auto *CE = dyn_cast<CXXConstructExpr>(NoTemporaries);
-  const auto *FC = dyn_cast<CXXFunctionalCastExpr>(NoTemporaries);
-  if ((isa<CallExpr>(NoTemporaries)) || (CE && (CE->getNumArgs() > 0)) ||
+  
+  if (const auto *FC = dyn_cast<CXXFunctionalCastExpr>(NoTemporaries); (isa<CallExpr>(NoTemporaries)) || (CE && (CE->getNumArgs() > 0)) ||
       (FC && (FC->getCastKind() == CK_ConstructorConversion)))
     // CE is something that looks like a call, with arguments - either
     // a function call or a constructor invocation.
@@ -611,9 +611,9 @@ static void emitCaptureList(const LambdaProperties &LP,
     if (B.CM == CM_None || !B.IsUsed)
       continue;
 
-    const StringRef Delimiter = AnyCapturesEmitted ? ", " : "";
+    
 
-    if (emitCapture(CaptureSet, Delimiter, B.CM, B.CE, B.CaptureIdentifier,
+    if (const StringRef Delimiter = AnyCapturesEmitted ? ", " : ""; emitCapture(CaptureSet, Delimiter, B.CM, B.CE, B.CaptureIdentifier,
                     B.SourceTokens, Stream))
       AnyCapturesEmitted = true;
   }
@@ -682,9 +682,9 @@ void AvoidBindCheck::check(const MatchFinder::MatchResult &Result) {
     Stream << SourceTokens;
   } else if (LP.Callable.Type == CT_MemberFunction) {
     const auto *MethodDecl = dyn_cast<CXXMethodDecl>(LP.Callable.Decl);
-    const BindArgument &ObjPtr = FunctionCallArgs.front();
+    
 
-    if (MethodDecl->getOverloadedOperator() == OO_Call) {
+    if (const BindArgument &ObjPtr = FunctionCallArgs.front(); MethodDecl->getOverloadedOperator() == OO_Call) {
       Stream << "(*" << ObjPtr.UsageIdentifier << ')';
     } else {
       if (!isa<CXXThisExpr>(ignoreTemporariesAndPointers(ObjPtr.E))) {

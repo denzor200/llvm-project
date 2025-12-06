@@ -30,8 +30,8 @@ void MemProfSummaryBuilder::addRecord(uint64_t CSId,
   NumContexts++;
   auto AllocType = getAllocType(Info.getTotalLifetimeAccessDensity(),
                                 Info.getAllocCount(), Info.getTotalLifetime());
-  auto TotalSize = Info.getTotalSize();
-  switch (AllocType) {
+  
+  switch (auto TotalSize = Info.getTotalSize(); AllocType) {
   case AllocationType::Cold:
     NumColdContexts++;
     if (TotalSize > MaxColdTotalSize)

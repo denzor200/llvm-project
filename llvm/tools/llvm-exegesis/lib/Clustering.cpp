@@ -372,8 +372,8 @@ std::vector<BenchmarkMeasure> SchedClassClusterCentroid::getAsPoint() const {
 
 bool SchedClassClusterCentroid::validate(
     Benchmark::ModeE Mode) const {
-  size_t NumMeasurements = Representative.size();
-  switch (Mode) {
+  
+  switch (size_t NumMeasurements = Representative.size(); Mode) {
   case Benchmark::Latency:
     if (NumMeasurements != 1) {
       errs()

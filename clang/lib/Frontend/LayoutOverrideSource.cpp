@@ -71,8 +71,8 @@ LayoutOverrideSource::LayoutOverrideSource(StringRef Filename) {
     if (ExpectingType) {
       ExpectingType = false;
 
-      StringRef::size_type Pos;
-      if ((Pos = LineStr.find("struct ")) != StringRef::npos)
+      
+      if (StringRef::size_type Pos; (Pos = LineStr.find("struct ")) != StringRef::npos)
         LineStr = LineStr.substr(Pos + strlen("struct "));
       else if ((Pos = LineStr.find("class ")) != StringRef::npos)
         LineStr = LineStr.substr(Pos + strlen("class "));
@@ -129,8 +129,8 @@ LayoutOverrideSource::LayoutOverrideSource(StringRef Filename) {
         LineStr = LineStr.substr(Pos + strlen("align="));
 
         // Parse alignment.
-        unsigned long long Alignment = 0;
-        if (parseUnsigned(LineStr, Alignment))
+        
+        if (unsigned long long Alignment = 0; parseUnsigned(LineStr, Alignment))
           CurrentLayout.Align = Alignment * 8;
       }
 

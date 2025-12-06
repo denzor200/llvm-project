@@ -37,8 +37,8 @@ static lldb::addr_t DerefToNSErrorPointer(ValueObject &valobj) {
     lldb::addr_t ptr_value = valobj.GetValueAsUnsigned(LLDB_INVALID_ADDRESS);
     if (type_flags.AllSet(eTypeIsPointer)) {
       CompilerType pointee_type(valobj_type.GetPointeeType());
-      Flags pointee_flags(pointee_type.GetTypeInfo());
-      if (pointee_flags.AllSet(eTypeIsPointer)) {
+      
+      if (Flags pointee_flags(pointee_type.GetTypeInfo()); pointee_flags.AllSet(eTypeIsPointer)) {
         if (ProcessSP process_sp = valobj.GetProcessSP()) {
           Status error;
           ptr_value = process_sp->ReadPointerFromMemory(ptr_value, error);

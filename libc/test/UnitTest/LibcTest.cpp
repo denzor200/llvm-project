@@ -180,9 +180,9 @@ int Test::runTests(const TestOptions &Options) {
         const auto duration = end_time - start_time;
         const uint64_t duration_ms = (duration * 1000) / CLOCKS_PER_SEC;
         const uint64_t duration_us = (duration * 1000 * 1000) / CLOCKS_PER_SEC;
-        const uint64_t duration_ns =
-            (duration * 1000 * 1000 * 1000) / CLOCKS_PER_SEC;
-        if (Options.TimeInMs || duration_ms != 0)
+        
+        if (const uint64_t duration_ns =
+            (duration * 1000 * 1000 * 1000) / CLOCKS_PER_SEC; Options.TimeInMs || duration_ms != 0)
           tlog << duration_ms << " ms)\n";
         else if (duration_us != 0)
           tlog << duration_us << " us)\n";

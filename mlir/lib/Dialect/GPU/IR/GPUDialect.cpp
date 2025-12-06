@@ -627,8 +627,8 @@ LogicalResult gpu::AllReduceOp::verifyRegions() {
     if (yieldCount == 0)
       return emitError("expected gpu.yield op in region");
   } else {
-    gpu::AllReduceOperation opName = *getOp();
-    if (failed(verifyReduceOpAndType(opName, getType()))) {
+    
+    if (gpu::AllReduceOperation opName = *getOp(); failed(verifyReduceOpAndType(opName, getType()))) {
       return emitError() << '`' << gpu::stringifyAllReduceOperation(opName)
                          << "` reduction operation is not compatible with type "
                          << getType();
@@ -701,8 +701,8 @@ LogicalResult gpu::SubgroupReduceOp::verify() {
 
   auto clusterSize = getClusterSize();
   if (clusterSize) {
-    uint32_t size = *clusterSize;
-    if (!llvm::isPowerOf2_32(size)) {
+    
+    if (uint32_t size = *clusterSize; !llvm::isPowerOf2_32(size)) {
       return emitOpError() << "cluster size " << size
                            << " is not a power of two";
     }
@@ -1098,8 +1098,8 @@ ParseResult LaunchOp::parse(OpAsmParser &parser, OperationState &result) {
   // Parse optional module attribute.
   StringRef moduleAttrName = getModuleAttrName(result.name);
   if (succeeded(parser.parseOptionalKeyword(moduleAttrName))) {
-    FlatSymbolRefAttr moduleSymbol;
-    if (parser.parseLParen() ||
+    
+    if (FlatSymbolRefAttr moduleSymbol; parser.parseLParen() ||
         parser.parseAttribute(moduleSymbol, Type(), moduleAttrName,
                               result.attributes) ||
         parser.parseRParen())
@@ -1108,8 +1108,8 @@ ParseResult LaunchOp::parse(OpAsmParser &parser, OperationState &result) {
   // Parse optional function attribute.
   StringRef functionAttrName = getFunctionAttrName(result.name);
   if (succeeded(parser.parseOptionalKeyword(functionAttrName))) {
-    FlatSymbolRefAttr funcSymbol;
-    if (parser.parseLParen() ||
+    
+    if (FlatSymbolRefAttr funcSymbol; parser.parseLParen() ||
         parser.parseAttribute(funcSymbol, Type(), functionAttrName,
                               result.attributes) ||
         parser.parseRParen())
@@ -1815,16 +1815,16 @@ LogicalResult GPUFuncOp::verifyBody() {
     return emitOpError() << "expected body with at least one block";
   unsigned numFuncArguments = getNumArguments();
   unsigned numWorkgroupAttributions = getNumWorkgroupAttributions();
-  unsigned numBlockArguments = front().getNumArguments();
-  if (numBlockArguments < numFuncArguments + numWorkgroupAttributions)
+  
+  if (unsigned numBlockArguments = front().getNumArguments(); numBlockArguments < numFuncArguments + numWorkgroupAttributions)
     return emitOpError() << "expected at least "
                          << numFuncArguments + numWorkgroupAttributions
                          << " arguments to body region";
 
   ArrayRef<Type> funcArgTypes = getFunctionType().getInputs();
   for (unsigned i = 0; i < numFuncArguments; ++i) {
-    Type blockArgType = front().getArgument(i).getType();
-    if (funcArgTypes[i] != blockArgType)
+    
+    if (Type blockArgType = front().getArgument(i).getType(); funcArgTypes[i] != blockArgType)
       return emitOpError() << "expected body region argument #" << i
                            << " to be of type " << funcArgTypes[i] << ", got "
                            << blockArgType;
@@ -1856,8 +1856,8 @@ LogicalResult gpu::ReturnOp::verify() {
 
   for (const auto &pair : llvm::enumerate(
            llvm::zip(function.getFunctionType().getResults(), getOperands()))) {
-    auto [type, operand] = pair.value();
-    if (type != operand.getType())
+    
+    if (auto [type, operand] = pair.value(); type != operand.getType())
       return emitOpError() << "unexpected type `" << operand.getType()
                            << "' for operand #" << pair.index();
   }
@@ -1982,10 +1982,10 @@ struct EraseTrivialCopyOp : public OpRewritePattern<MemcpyOp> {
   LogicalResult matchAndRewrite(MemcpyOp op,
                                 PatternRewriter &rewriter) const override {
     Value dest = op.getDst();
-    Operation *destDefOp = dest.getDefiningOp();
+    
     // `dest` must be defined by an op having Allocate memory effect in order to
     // perform the folding.
-    if (!destDefOp ||
+    if (Operation *destDefOp = dest.getDefiningOp(); !destDefOp ||
         !hasSingleEffect<MemoryEffects::Allocate>(destDefOp, dest))
       return failure();
     // We can erase `op` iff `dest` has no other use apart from its

@@ -259,8 +259,8 @@ private:
       auto *name = llvm::dyn_cast<VariableExprAST>(access->getRHS());
       if (!name)
         return nullptr;
-      StructAST *parentStruct = getStructFor(access->getLHS());
-      if (!parentStruct)
+      
+      if (StructAST *parentStruct = getStructFor(access->getLHS()); !parentStruct)
         return nullptr;
 
       // Get the element within the struct corresponding to the name.
@@ -328,8 +328,8 @@ private:
 
     // If this is an access operation, handle it immediately.
     if (binop.getOp() == '.') {
-      std::optional<size_t> accessIndex = getMemberIndex(binop);
-      if (!accessIndex) {
+      
+      if (std::optional<size_t> accessIndex = getMemberIndex(binop); !accessIndex) {
         emitError(location, "invalid access into struct expression");
         return nullptr;
       }

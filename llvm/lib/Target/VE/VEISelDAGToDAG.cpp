@@ -232,8 +232,8 @@ bool VEDAGToDAGISel::matchADDRri(SDValue Addr, SDValue &Base, SDValue &Offset) {
     return false; // direct calls.
 
   if (CurDAG->isBaseWithConstantOffset(Addr)) {
-    ConstantSDNode *CN = cast<ConstantSDNode>(Addr.getOperand(1));
-    if (isInt<32>(CN->getSExtValue())) {
+    
+    if (ConstantSDNode *CN = cast<ConstantSDNode>(Addr.getOperand(1)); isInt<32>(CN->getSExtValue())) {
       if (FrameIndexSDNode *FIN =
               dyn_cast<FrameIndexSDNode>(Addr.getOperand(0))) {
         // Constant offset from frame ref.

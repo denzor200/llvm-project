@@ -53,8 +53,8 @@ void __ubsan::__ubsan_get_current_report_data(const char **OutIssueKind,
 
   // Ensure that the first character of the diagnostic text can't start with a
   // lowercase letter.
-  char FirstChar = *Buf.data();
-  if (FirstChar >= 'a' && FirstChar <= 'z')
+  
+  if (char FirstChar = *Buf.data(); FirstChar >= 'a' && FirstChar <= 'z')
     *Buf.data() += 'A' - 'a';
 
   *OutIssueKind = CurrentUBR->IssueKind;

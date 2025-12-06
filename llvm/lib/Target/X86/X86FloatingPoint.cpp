@@ -358,12 +358,12 @@ bool FPS::run(MachineFunction &MF, EdgeBundles *FunctionBundles) {
   df_iterator_default_set<MachineBasicBlock *> Processed;
   MachineBasicBlock *Entry = &MF.front();
 
-  LiveBundle &Bundle =
-      LiveBundles[Bundles->getBundle(Entry->getNumber(), false)];
+  
 
   // In regcall convention, some FP registers may not be passed through
   // the stack, so they will need to be assigned to the stack first
-  if ((Entry->getParent()->getFunction().getCallingConv() ==
+  if (LiveBundle &Bundle =
+      LiveBundles[Bundles->getBundle(Entry->getNumber(), false)]; (Entry->getParent()->getFunction().getCallingConv() ==
        CallingConv::X86_RegCall) &&
       (Bundle.Mask && !Bundle.FixCount)) {
     // In the register calling convention, up to one FP argument could be
@@ -450,8 +450,8 @@ bool FPS::processBasicBlock(MachineFunction &MF, MachineBasicBlock &BB) {
     // In this scenario we can safely remove the fake_use's operand
     // (it is live anyway).
     if (MI.isFakeUse()) {
-      const MachineOperand &MO = MI.getOperand(0);
-      if (MO.isReg() && X86::RFP80RegClass.contains(MO.getReg())) {
+      
+      if (const MachineOperand &MO = MI.getOperand(0); MO.isReg() && X86::RFP80RegClass.contains(MO.getReg())) {
         if (MO.isKill())
           FPInstClass = X86II::SpecialFP;
         else
@@ -633,8 +633,8 @@ struct TableEntry {
 } // namespace
 
 static int Lookup(ArrayRef<TableEntry> Table, unsigned Opcode) {
-  const TableEntry *I = llvm::lower_bound(Table, Opcode);
-  if (I != Table.end() && I->from == Opcode)
+  
+  if (const TableEntry *I = llvm::lower_bound(Table, Opcode); I != Table.end() && I->from == Opcode)
     return I->to;
   return -1;
 }
@@ -874,8 +874,8 @@ static MachineBasicBlock::iterator
 getNextFPInstruction(MachineBasicBlock::iterator I) {
   MachineBasicBlock &MBB = *I->getParent();
   while (++I != MBB.end()) {
-    MachineInstr &MI = *I;
-    if (X86::isX87Instruction(MI))
+    
+    if (MachineInstr &MI = *I; X86::isX87Instruction(MI))
       return I;
   }
   return MBB.end();
@@ -895,8 +895,8 @@ void FPS::popStackAfter(MachineBasicBlock::iterator &I) {
   popReg();
 
   // Check to see if there is a popping version of this instruction...
-  int Opcode = Lookup(PopTable, I->getOpcode());
-  if (Opcode != -1) {
+  
+  if (int Opcode = Lookup(PopTable, I->getOpcode()); Opcode != -1) {
     I->setDesc(TII->get(Opcode));
     if (Opcode == X86::FCOMPP || Opcode == X86::UCOM_FPPr)
       I->removeOperand(0);
@@ -906,8 +906,8 @@ void FPS::popStackAfter(MachineBasicBlock::iterator &I) {
     // insert pop after that reader.
     if (doesInstructionSetFPSW(MI)) {
       MachineBasicBlock &MBB = *MI.getParent();
-      MachineBasicBlock::iterator Next = getNextFPInstruction(I);
-      if (Next != MBB.end() && Next->readsRegister(X86::FPSW, /*TRI=*/nullptr))
+      
+      if (MachineBasicBlock::iterator Next = getNextFPInstruction(I); Next != MBB.end() && Next->readsRegister(X86::FPSW, /*TRI=*/nullptr))
         I = Next;
     }
     I = BuildMI(*MBB, ++I, dl, TII->get(X86::ST_FPrr)).addReg(X86::ST0);
@@ -952,8 +952,8 @@ void FPS::adjustLiveRegs(unsigned Mask, MachineBasicBlock::iterator I) {
   unsigned Defs = Mask;
   unsigned Kills = 0;
   for (unsigned i = 0; i < StackTop; ++i) {
-    unsigned RegNo = Stack[i];
-    if (!(Defs & (1 << RegNo)))
+    
+    if (unsigned RegNo = Stack[i]; !(Defs & (1 << RegNo)))
       // This register is live, but we don't want it.
       Kills |= (1 << RegNo);
     else
@@ -1278,9 +1278,9 @@ void FPS::handleOneArgFPRW(MachineBasicBlock::iterator &I) {
 
   // Is this the last use of the source register?
   unsigned Reg = getFPReg(MI.getOperand(1));
-  bool KillsSrc = MI.killsRegister(X86::FP0 + Reg, /*TRI=*/nullptr);
+  
 
-  if (KillsSrc) {
+  if (bool KillsSrc = MI.killsRegister(X86::FP0 + Reg, /*TRI=*/nullptr); KillsSrc) {
     // If this is the last use of the source register, just make sure it's on
     // the top of the stack.
     moveToTop(Reg, I);
@@ -1697,12 +1697,12 @@ void FPS::handleSpecialFP(MachineBasicBlock::iterator &Inst) {
     for (const MachineOperand &Op : MI.operands()) {
       if (!Op.isReg() || Op.getReg() < X86::FP0 || Op.getReg() > X86::FP6)
         continue;
-      unsigned FPReg = getFPReg(Op);
+      
 
       // If we kill this operand, make sure to pop it from the stack after the
       // asm.  We just remember it for now, and pop them all off at the end in
       // a batch.
-      if (Op.isUse() && Op.isKill())
+      if (unsigned FPReg = getFPReg(Op); Op.isUse() && Op.isKill())
         FPKills |= 1U << FPReg;
     }
 

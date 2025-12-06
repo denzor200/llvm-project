@@ -706,8 +706,8 @@ llvm::StringRef CanonicalIncludes::mapHeader(llvm::StringRef HeaderPath) const {
             End = llvm::sys::path::rend(HeaderPath);
        It != End && Components <= MaxSuffixComponents; ++It, ++Components) {
     auto SubPath = HeaderPath.substr(It->data() - HeaderPath.begin());
-    auto MappingIt = StdSuffixHeaderMapping->find(SubPath);
-    if (MappingIt != StdSuffixHeaderMapping->end())
+    
+    if (auto MappingIt = StdSuffixHeaderMapping->find(SubPath); MappingIt != StdSuffixHeaderMapping->end())
       return MappingIt->second;
   }
   return "";

@@ -322,8 +322,8 @@ static void printSymbolNameAndUSR(const Decl *D, ASTContext &Ctx,
   }
   OS << " | ";
 
-  SmallString<256> USRBuf;
-  if (generateUSRForDecl(D, USRBuf)) {
+  
+  if (SmallString<256> USRBuf; generateUSRForDecl(D, USRBuf)) {
     OS << "<no-usr>";
   } else {
     OS << USRBuf;

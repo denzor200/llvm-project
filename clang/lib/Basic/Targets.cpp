@@ -110,9 +110,9 @@ void addCygMingDefines(const LangOptions &Opts, MacroBuilder &Builder) {
 
 std::unique_ptr<TargetInfo> AllocateTarget(const llvm::Triple &Triple,
                                            const TargetOptions &Opts) {
-  llvm::Triple::OSType os = Triple.getOS();
+  
 
-  switch (Triple.getArch()) {
+  switch (llvm::Triple::OSType os = Triple.getOS(); Triple.getArch()) {
   default:
     return nullptr;
 

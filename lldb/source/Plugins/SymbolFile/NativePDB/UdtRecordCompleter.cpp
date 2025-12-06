@@ -44,8 +44,8 @@ UdtRecordCompleter::UdtRecordCompleter(
     : m_id(id), m_derived_ct(derived_ct), m_tag_decl(tag_decl),
       m_ast_builder(ast_builder), m_index(index),
       m_decl_to_status(decl_to_status), m_cxx_record_map(cxx_record_map) {
-  CVType cvt = m_index.tpi().getType(m_id.index);
-  switch (cvt.kind()) {
+  
+  switch (CVType cvt = m_index.tpi().getType(m_id.index); cvt.kind()) {
   case LF_ENUM:
     m_cvr.er.Options = ClassOptions::None;
     llvm::cantFail(TypeDeserializer::deserializeAs<EnumRecord>(cvt, m_cvr.er));
@@ -196,8 +196,8 @@ Error UdtRecordCompleter::visitKnownMember(
                      member_ct.GetTypeName(), type_width, constant_width);
           }
         } else {
-          lldb::BasicType basic_type_enum = member_ct.GetBasicTypeEnumeration();
-          switch (basic_type_enum) {
+          
+          switch (lldb::BasicType basic_type_enum = member_ct.GetBasicTypeEnumeration(); basic_type_enum) {
           case lldb::eBasicTypeFloat:
           case lldb::eBasicTypeDouble:
           case lldb::eBasicTypeLongDouble:
@@ -244,8 +244,8 @@ Error UdtRecordCompleter::visitKnownMember(CVMemberRecord &cvr,
 
   TypeIndex ti(data_member.Type);
   if (!ti.isSimple()) {
-    CVType cvt = m_index.tpi().getType(ti);
-    if (cvt.kind() == LF_BITFIELD) {
+    
+    if (CVType cvt = m_index.tpi().getType(ti); cvt.kind() == LF_BITFIELD) {
       BitFieldRecord bfr;
       llvm::cantFail(TypeDeserializer::deserializeAs<BitFieldRecord>(cvt, bfr));
       offset += bfr.BitOffset;
@@ -318,9 +318,9 @@ void UdtRecordCompleter::complete() {
   // declarations. If we don't do this, clang will crash with an
   // assertion in the call to clang_type.TransferBaseClasses()
   for (const auto &base_class : bases) {
-    clang::TypeSourceInfo *type_source_info =
-        base_class->getTypeSourceInfo();
-    if (type_source_info) {
+    
+    if (clang::TypeSourceInfo *type_source_info =
+        base_class->getTypeSourceInfo(); type_source_info) {
       TypeSystemClang::RequireCompleteType(
           clang.GetType(type_source_info->getType()));
     }
@@ -373,9 +373,9 @@ UdtRecordCompleter::AddMember(TypeSystemClang &clang, Member *field,
       uint64_t member_offset = field->kind == Member::Struct
                                    ? member->bit_offset - field->base_offset
                                    : 0;
-      uint64_t member_bit_size = AddMember(clang, member.get(), member_offset,
-                                          record_ct, layout, decl_ctx);
-      if (field->kind == Member::Struct)
+      
+      if (uint64_t member_bit_size = AddMember(clang, member.get(), member_offset,
+                                          record_ct, layout, decl_ctx); field->kind == Member::Struct)
         bit_size = std::max(bit_size, member_offset + member_bit_size);
       else
         bit_size = std::max(bit_size, member_bit_size);

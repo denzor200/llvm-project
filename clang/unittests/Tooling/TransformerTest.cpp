@@ -88,8 +88,8 @@ static void compareSnippets(StringRef Expected,
   ASSERT_TRUE(MaybeActual) << "Rewrite failed. Expecting: " << Expected;
   auto Actual = *MaybeActual;
   std::string HL = "#include \"header.h\"\n";
-  auto I = Actual.find(HL);
-  if (I != std::string::npos)
+  
+  if (auto I = Actual.find(HL); I != std::string::npos)
     Actual.erase(I, HL.size());
   EXPECT_EQ(format(Expected), format(Actual));
 }

@@ -273,9 +273,9 @@ uint32_t XCOFFObjectFile::getSymbolAlignment(DataRefImpl Symb) const {
   uint64_t Result = 0;
   XCOFFSymbolRef XCOFFSym = toSymbolRef(Symb);
   if (XCOFFSym.isCsectSymbol()) {
-    Expected<XCOFFCsectAuxRef> CsectAuxRefOrError =
-        XCOFFSym.getXCOFFCsectAuxRef();
-    if (!CsectAuxRefOrError)
+    
+    if (Expected<XCOFFCsectAuxRef> CsectAuxRefOrError =
+        XCOFFSym.getXCOFFCsectAuxRef(); !CsectAuxRefOrError)
       // TODO: report the error up the stack.
       consumeError(CsectAuxRefOrError.takeError());
     else
@@ -288,9 +288,9 @@ uint64_t XCOFFObjectFile::getCommonSymbolSizeImpl(DataRefImpl Symb) const {
   uint64_t Result = 0;
   XCOFFSymbolRef XCOFFSym = toSymbolRef(Symb);
   if (XCOFFSym.isCsectSymbol()) {
-    Expected<XCOFFCsectAuxRef> CsectAuxRefOrError =
-        XCOFFSym.getXCOFFCsectAuxRef();
-    if (!CsectAuxRefOrError)
+    
+    if (Expected<XCOFFCsectAuxRef> CsectAuxRefOrError =
+        XCOFFSym.getXCOFFCsectAuxRef(); !CsectAuxRefOrError)
       // TODO: report the error up the stack.
       consumeError(CsectAuxRefOrError.takeError());
     else {
@@ -666,9 +666,9 @@ Expected<uint32_t> XCOFFObjectFile::getSymbolFlags(DataRefImpl Symb) const {
     Result |= SymbolRef::SF_Weak;
 
   if (XCOFFSym.isCsectSymbol()) {
-    Expected<XCOFFCsectAuxRef> CsectAuxEntOrErr =
-        XCOFFSym.getXCOFFCsectAuxRef();
-    if (CsectAuxEntOrErr) {
+    
+    if (Expected<XCOFFCsectAuxRef> CsectAuxEntOrErr =
+        XCOFFSym.getXCOFFCsectAuxRef(); CsectAuxEntOrErr) {
       if (CsectAuxEntOrErr.get().getSymbolType() == XCOFF::XTY_CM)
         Result |= SymbolRef::SF_Common;
     } else
@@ -781,9 +781,9 @@ bool XCOFFObjectFile::is64Bit() const {
 Expected<StringRef> XCOFFObjectFile::getRawData(const char *Start,
                                                 uint64_t Size,
                                                 StringRef Name) const {
-  uintptr_t StartPtr = reinterpret_cast<uintptr_t>(Start);
+  
   // TODO: this path is untested.
-  if (Error E = Binary::checkOffset(Data, StartPtr, Size))
+  if (uintptr_t StartPtr = reinterpret_cast<uintptr_t>(Start); Error E = Binary::checkOffset(Data, StartPtr, Size))
     return createError(toString(std::move(E)) + ": " + Name.data() +
                        " data with offset 0x" + Twine::utohexstr(StartPtr) +
                        " and size 0x" + Twine::utohexstr(Size) +
@@ -825,9 +825,9 @@ XCOFFObjectFile::getSectionByType(XCOFF::SectionTypeFlags SectType) const {
 
 Expected<StringRef>
 XCOFFObjectFile::getSymbolSectionName(XCOFFSymbolRef SymEntPtr) const {
-  const int16_t SectionNum = SymEntPtr.getSectionNumber();
+  
 
-  switch (SectionNum) {
+  switch (const int16_t SectionNum = SymEntPtr.getSectionNumber(); SectionNum) {
   case XCOFF::N_DEBUG:
     return "N_DEBUG";
   case XCOFF::N_ABS:
@@ -909,10 +909,10 @@ void XCOFFObjectFile::checkSymbolEntryPointer(uintptr_t SymbolEntPtr) const {
   if (SymbolEntPtr >= getEndOfSymbolTableAddress())
     report_fatal_error("Symbol table entry is outside of symbol table.");
 
-  ptrdiff_t Offset = reinterpret_cast<const char *>(SymbolEntPtr) -
-                     reinterpret_cast<const char *>(SymbolTblPtr);
+  
 
-  if (Offset % XCOFF::SymbolTableEntrySize != 0)
+  if (ptrdiff_t Offset = reinterpret_cast<const char *>(SymbolEntPtr) -
+                     reinterpret_cast<const char *>(SymbolTblPtr); Offset % XCOFF::SymbolTableEntrySize != 0)
     report_fatal_error(
         "Symbol table entry position is not valid inside of symbol table.");
 }
@@ -927,15 +927,15 @@ uint64_t XCOFFObjectFile::getSymbolSize(DataRefImpl Symb) const {
   uint64_t Result = 0;
   XCOFFSymbolRef XCOFFSym = toSymbolRef(Symb);
   if (XCOFFSym.isCsectSymbol()) {
-    Expected<XCOFFCsectAuxRef> CsectAuxRefOrError =
-        XCOFFSym.getXCOFFCsectAuxRef();
-    if (!CsectAuxRefOrError)
+    
+    if (Expected<XCOFFCsectAuxRef> CsectAuxRefOrError =
+        XCOFFSym.getXCOFFCsectAuxRef(); !CsectAuxRefOrError)
       // TODO: report the error up the stack.
       consumeError(CsectAuxRefOrError.takeError());
     else {
       XCOFFCsectAuxRef CsectAuxRef = CsectAuxRefOrError.get();
-      uint8_t SymType = CsectAuxRef.getSymbolType();
-      if (SymType == XCOFF::XTY_SD || SymType == XCOFF::XTY_CM)
+      
+      if (uint8_t SymType = CsectAuxRef.getSymbolType(); SymType == XCOFF::XTY_SD || SymType == XCOFF::XTY_CM)
         Result = CsectAuxRef.getSectionOrLength();
     }
   }
@@ -949,9 +949,9 @@ uintptr_t XCOFFObjectFile::getSymbolEntryAddressByIndex(uint32_t Index) const {
 
 Expected<StringRef>
 XCOFFObjectFile::getSymbolNameByIndex(uint32_t Index) const {
-  const uint32_t NumberOfSymTableEntries = getNumberOfSymbolTableEntries();
+  
 
-  if (Index >= NumberOfSymTableEntries)
+  if (const uint32_t NumberOfSymTableEntries = getNumberOfSymbolTableEntries(); Index >= NumberOfSymTableEntries)
     return createError("symbol index " + Twine(Index) +
                        " exceeds symbol count " +
                        Twine(NumberOfSymTableEntries));
@@ -1419,9 +1419,9 @@ TBVectorExt::TBVectorExt(StringRef TBvectorStrRef, Error &Err) {
       GETVALUEWITHMASKSHIFT(NumberOfVectorParmsMask, NumberOfVectorParmsShift);
 
   ErrorAsOutParameter EAO(Err);
-  Expected<SmallString<32>> VecParmsTypeOrError =
-      parseVectorParmsType(VecParmsTypeValue, ParmsNum);
-  if (!VecParmsTypeOrError)
+  
+  if (Expected<SmallString<32>> VecParmsTypeOrError =
+      parseVectorParmsType(VecParmsTypeValue, ParmsNum); !VecParmsTypeOrError)
     Err = VecParmsTypeOrError.takeError();
   else
     VecParmsInfo = VecParmsTypeOrError.get();
@@ -1497,8 +1497,8 @@ XCOFFTracebackTable::XCOFFTracebackTable(const uint8_t *Ptr, uint64_t &Size,
   }
 
   if (Cur && isFuncNamePresent()) {
-    uint16_t FunctionNameLen = DE.getU16(Cur);
-    if (Cur)
+    
+    if (uint16_t FunctionNameLen = DE.getU16(Cur); Cur)
       FunctionName = DE.getBytes(Cur, FunctionNameLen);
   }
 
@@ -1507,8 +1507,8 @@ XCOFFTracebackTable::XCOFFTracebackTable(const uint8_t *Ptr, uint64_t &Size,
 
   unsigned VectorParmsNum = 0;
   if (Cur && hasVectorInfo()) {
-    StringRef VectorExtRef = DE.getBytes(Cur, 6);
-    if (Cur) {
+    
+    if (StringRef VectorExtRef = DE.getBytes(Cur, 6); Cur) {
       Expected<TBVectorExt> TBVecExtOrErr = TBVectorExt::create(VectorExtRef);
       if (!TBVecExtOrErr) {
         Err = TBVecExtOrErr.takeError();

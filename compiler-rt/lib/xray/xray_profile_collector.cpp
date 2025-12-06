@@ -400,8 +400,8 @@ XRayBuffer nextBuffer(XRayBuffer B) XRAY_NEVER_INSTRUMENT {
 
   BlockHeader Header;
   internal_memcpy(&Header, B.Data, sizeof(BlockHeader));
-  auto NextBlock = Header.BlockNum + 1;
-  if (NextBlock < ProfileBuffers->size())
+  
+  if (auto NextBlock = Header.BlockNum + 1; NextBlock < ProfileBuffers->size())
     return {(*ProfileBuffers)[NextBlock].Data,
             (*ProfileBuffers)[NextBlock].Size};
   return {nullptr, 0};

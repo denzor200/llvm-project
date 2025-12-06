@@ -74,8 +74,8 @@ void AMDGPUPromoteKernelArguments::enqueueUsers(Value *Ptr) {
     default:
       break;
     case Instruction::Load: {
-      LoadInst *LD = cast<LoadInst>(U);
-      if (LD->getPointerOperand()->stripInBoundsOffsets() == Ptr &&
+      
+      if (LoadInst *LD = cast<LoadInst>(U); LD->getPointerOperand()->stripInBoundsOffsets() == Ptr &&
           !AMDGPU::isClobberedInFunction(LD, MSSA, AA))
         Ptrs.push_back(LD);
 
@@ -139,11 +139,11 @@ bool AMDGPUPromoteKernelArguments::promoteLoad(LoadInst *LI) {
 static BasicBlock::iterator getInsertPt(BasicBlock &BB) {
   BasicBlock::iterator InsPt = BB.getFirstInsertionPt();
   for (BasicBlock::iterator E = BB.end(); InsPt != E; ++InsPt) {
-    AllocaInst *AI = dyn_cast<AllocaInst>(&*InsPt);
+    
 
     // If this is a dynamic alloca, the value may depend on the loaded kernargs,
     // so loads will need to be inserted before it.
-    if (!AI || !AI->isStaticAlloca())
+    if (AllocaInst *AI = dyn_cast<AllocaInst>(&*InsPt); !AI || !AI->isStaticAlloca())
       break;
   }
 
@@ -155,8 +155,8 @@ bool AMDGPUPromoteKernelArguments::run(Function &F, MemorySSA &MSSA,
   if (skipFunction(F))
     return false;
 
-  CallingConv::ID CC = F.getCallingConv();
-  if (CC != CallingConv::AMDGPU_KERNEL || F.arg_empty())
+  
+  if (CallingConv::ID CC = F.getCallingConv(); CC != CallingConv::AMDGPU_KERNEL || F.arg_empty())
     return false;
 
   ArgCastInsertPt = &*getInsertPt(*F.begin());
@@ -167,8 +167,8 @@ bool AMDGPUPromoteKernelArguments::run(Function &F, MemorySSA &MSSA,
     if (Arg.use_empty())
       continue;
 
-    PointerType *PT = dyn_cast<PointerType>(Arg.getType());
-    if (!PT || (PT->getAddressSpace() != AMDGPUAS::FLAT_ADDRESS &&
+    
+    if (PointerType *PT = dyn_cast<PointerType>(Arg.getType()); !PT || (PT->getAddressSpace() != AMDGPUAS::FLAT_ADDRESS &&
                 PT->getAddressSpace() != AMDGPUAS::GLOBAL_ADDRESS &&
                 PT->getAddressSpace() != AMDGPUAS::CONSTANT_ADDRESS))
       continue;
@@ -208,8 +208,8 @@ PreservedAnalyses
 AMDGPUPromoteKernelArgumentsPass::run(Function &F,
                                       FunctionAnalysisManager &AM) {
   MemorySSA &MSSA = AM.getResult<MemorySSAAnalysis>(F).getMSSA();
-  AliasAnalysis &AA = AM.getResult<AAManager>(F);
-  if (AMDGPUPromoteKernelArguments().run(F, MSSA, AA)) {
+  
+  if (AliasAnalysis &AA = AM.getResult<AAManager>(F); AMDGPUPromoteKernelArguments().run(F, MSSA, AA)) {
     PreservedAnalyses PA;
     PA.preserveSet<CFGAnalyses>();
     PA.preserve<MemorySSAAnalysis>();

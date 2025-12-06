@@ -267,8 +267,8 @@ class RealFileSystem : public FileSystem {
 public:
   explicit RealFileSystem(bool LinkCWDToProcess) {
     if (!LinkCWDToProcess) {
-      SmallString<128> PWD, RealPWD;
-      if (std::error_code EC = llvm::sys::fs::current_path(PWD))
+      
+      if (SmallString<128> PWD, RealPWD; std::error_code EC = llvm::sys::fs::current_path(PWD))
         WD = EC;
       else if (llvm::sys::fs::real_path(PWD, RealPWD))
         WD = WorkingDirectory{PWD, PWD};
@@ -454,8 +454,8 @@ void OverlayFileSystem::pushOverlay(IntrusiveRefCntPtr<FileSystem> FS) {
 ErrorOr<Status> OverlayFileSystem::status(const Twine &Path) {
   // FIXME: handle symlinks that cross file systems
   for (iterator I = overlays_begin(), E = overlays_end(); I != E; ++I) {
-    ErrorOr<Status> Status = (*I)->status(Path);
-    if (Status || Status.getError() != llvm::errc::no_such_file_or_directory)
+    
+    if (ErrorOr<Status> Status = (*I)->status(Path); Status || Status.getError() != llvm::errc::no_such_file_or_directory)
       return Status;
   }
   return make_error_code(llvm::errc::no_such_file_or_directory);
@@ -474,8 +474,8 @@ ErrorOr<std::unique_ptr<File>>
 OverlayFileSystem::openFileForRead(const llvm::Twine &Path) {
   // FIXME: handle symlinks that cross file systems
   for (iterator I = overlays_begin(), E = overlays_end(); I != E; ++I) {
-    auto Result = (*I)->openFileForRead(Path);
-    if (Result || Result.getError() != llvm::errc::no_such_file_or_directory)
+    
+    if (auto Result = (*I)->openFileForRead(Path); Result || Result.getError() != llvm::errc::no_such_file_or_directory)
       return Result;
   }
   return make_error_code(llvm::errc::no_such_file_or_directory);
@@ -1223,9 +1223,9 @@ namespace {
 static llvm::sys::path::Style getExistingStyle(llvm::StringRef Path) {
   // Detect the path style in use by checking the first separator.
   llvm::sys::path::Style style = llvm::sys::path::Style::native;
-  const size_t n = Path.find_first_of("/\\");
+  
   // Can't distinguish between posix and windows_slash here.
-  if (n != static_cast<size_t>(-1))
+  if (const size_t n = Path.find_first_of("/\\"); n != static_cast<size_t>(-1))
     style = (Path[n] == '/') ? llvm::sys::path::Style::posix
                              : llvm::sys::path::Style::windows_backslash;
   return style;
@@ -1749,9 +1749,9 @@ public:
       auto *DE = dyn_cast<RedirectingFileSystem::DirectoryEntry>(ParentEntry);
       for (std::unique_ptr<RedirectingFileSystem::Entry> &Content :
            llvm::make_range(DE->contents_begin(), DE->contents_end())) {
-        auto *DirContent =
-            dyn_cast<RedirectingFileSystem::DirectoryEntry>(Content.get());
-        if (DirContent && Name == Content->getName())
+        
+        if (auto *DirContent =
+            dyn_cast<RedirectingFileSystem::DirectoryEntry>(Content.get()); DirContent && Name == Content->getName())
           return DirContent;
       }
     }
@@ -1778,8 +1778,8 @@ private:
   void uniqueOverlayTree(RedirectingFileSystem *FS,
                          RedirectingFileSystem::Entry *SrcE,
                          RedirectingFileSystem::Entry *NewParentE = nullptr) {
-    StringRef Name = SrcE->getName();
-    switch (SrcE->getKind()) {
+    
+    switch (StringRef Name = SrcE->getName(); SrcE->getKind()) {
     case RedirectingFileSystem::EK_Directory: {
       auto *DE = cast<RedirectingFileSystem::DirectoryEntry>(SrcE);
       // Empty directories could be present in the YAML as a way to
@@ -2440,8 +2440,8 @@ ErrorOr<Status> RedirectingFileSystem::status(const Twine &OriginalPath) {
   if (Redirection == RedirectKind::Fallback) {
     // Attempt to find the original file first, only falling back to the
     // mapped file if that fails.
-    ErrorOr<Status> S = getExternalStatus(Path, OriginalPath);
-    if (S)
+    
+    if (ErrorOr<Status> S = getExternalStatus(Path, OriginalPath); S)
       return S;
   }
 
@@ -2566,8 +2566,8 @@ RedirectingFileSystem::openFileForRead(const Twine &OriginalPath) {
   if (Redirection == RedirectKind::Fallback) {
     // Attempt to find the original file first, only falling back to the
     // mapped file if that fails.
-    auto F = File::getWithPath(ExternalFS->openFileForRead(Path), OriginalPath);
-    if (F)
+    
+    if (auto F = File::getWithPath(ExternalFS->openFileForRead(Path), OriginalPath); F)
       return F;
   }
 
@@ -2628,8 +2628,8 @@ RedirectingFileSystem::getRealPath(const Twine &OriginalPath,
   if (Redirection == RedirectKind::Fallback) {
     // Attempt to find the original file first, only falling back to the
     // mapped file if that fails.
-    std::error_code EC = ExternalFS->getRealPath(Path, Output);
-    if (!EC)
+    
+    if (std::error_code EC = ExternalFS->getRealPath(Path, Output); !EC)
       return EC;
   }
 
@@ -2919,8 +2919,8 @@ void YAMLVFSWriter::write(llvm::raw_ostream &OS) {
 vfs::recursive_directory_iterator::recursive_directory_iterator(
     FileSystem &FS_, const Twine &Path, std::error_code &EC)
     : FS(&FS_) {
-  directory_iterator I = FS->dir_begin(Path, EC);
-  if (I != directory_iterator()) {
+  
+  if (directory_iterator I = FS->dir_begin(Path, EC); I != directory_iterator()) {
     State = std::make_shared<detail::RecDirIterState>();
     State->Stack.push_back(I);
   }
@@ -2936,9 +2936,9 @@ recursive_directory_iterator::increment(std::error_code &EC) {
     State->HasNoPushRequest = false;
   else {
     if (State->Stack.back()->type() == sys::fs::file_type::directory_file) {
-      vfs::directory_iterator I =
-          FS->dir_begin(State->Stack.back()->path(), EC);
-      if (I != End) {
+      
+      if (vfs::directory_iterator I =
+          FS->dir_begin(State->Stack.back()->path(), EC); I != End) {
         State->Stack.push_back(I);
         return *this;
       }

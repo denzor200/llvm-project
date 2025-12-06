@@ -73,9 +73,9 @@ public:
   }
 
   std::chrono::milliseconds GetTimeout() const {
-    std::optional<uint64_t> seconds =
-        m_collection_sp->GetPropertyAtIndexAs<uint64_t>(ePropertyTimeout);
-    if (seconds && *seconds != 0) {
+    
+    if (std::optional<uint64_t> seconds =
+        m_collection_sp->GetPropertyAtIndexAs<uint64_t>(ePropertyTimeout); seconds && *seconds != 0) {
       return std::chrono::duration_cast<std::chrono::milliseconds>(
           std::chrono::seconds(*seconds));
     } else {
@@ -143,15 +143,15 @@ SymbolLocator *SymbolLocatorDebuginfod::CreateInstance() {
 static llvm::StringRef getFileName(const ModuleSpec &module_spec,
                                    std::string url_path) {
   // Check if the URL path requests an executable file or a symbol file
-  bool is_executable = url_path.find("debuginfo") == std::string::npos;
-  if (is_executable)
+  
+  if (bool is_executable = url_path.find("debuginfo") == std::string::npos; is_executable)
     return module_spec.GetFileSpec().GetFilename().GetStringRef();
   llvm::StringRef symbol_file =
       module_spec.GetSymbolFileSpec().GetFilename().GetStringRef();
   // Remove llvmcache- prefix and hash, keep origin file name
   if (symbol_file.starts_with("llvmcache-")) {
-    size_t pos = symbol_file.rfind('-');
-    if (pos != llvm::StringRef::npos) {
+    
+    if (size_t pos = symbol_file.rfind('-'); pos != llvm::StringRef::npos) {
       symbol_file = symbol_file.substr(pos + 1);
     }
   }

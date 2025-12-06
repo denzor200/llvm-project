@@ -151,7 +151,8 @@ static ParseResult parseOperationOpAttributes(
   Builder &builder = p.getBuilder();
   SmallVector<Attribute, 4> attrNames;
   if (succeeded(p.parseOptionalLBrace())) {
-    auto parseOperands = [&]() {
+    
+    if (auto parseOperands = [&]() {
       StringAttr nameAttr;
       OpAsmParser::UnresolvedOperand operand;
       if (p.parseAttribute(nameAttr) || p.parseEqual() ||
@@ -160,8 +161,7 @@ static ParseResult parseOperationOpAttributes(
       attrNames.push_back(nameAttr);
       attrOperands.push_back(operand);
       return success();
-    };
-    if (p.parseCommaSeparatedList(parseOperands) || p.parseRBrace())
+    }; p.parseCommaSeparatedList(parseOperands) || p.parseRBrace())
       return failure();
   }
   attrNamesAttr = builder.getArrayAttr(attrNames);
@@ -356,8 +356,8 @@ LogicalResult PatternOp::verifyRegions() {
     // Determine if the operation has a user in `pdl.rewrite`.
     bool hasUserInRewrite = false;
     for (Operation *user : op.getUsers()) {
-      Region *region = user->getParentRegion();
-      if (isa<RewriteOp>(user) ||
+      
+      if (Region *region = user->getParentRegion(); isa<RewriteOp>(user) ||
           (region && isa<RewriteOp>(region->getParentOp()))) {
         hasUserInRewrite = true;
         break;
@@ -425,8 +425,8 @@ static void printRangeType(OpAsmPrinter &p, RangeOp op, TypeRange argumentTypes,
 LogicalResult RangeOp::verify() {
   Type elementType = getType().getElementType();
   for (Type operandType : getOperandTypes()) {
-    Type operandElementType = getRangeElementTypeOrSelf(operandType);
-    if (operandElementType != elementType) {
+    
+    if (Type operandElementType = getRangeElementTypeOrSelf(operandType); operandElementType != elementType) {
       return emitOpError("expected operand to have element type ")
              << elementType << ", but got " << operandElementType;
     }

@@ -400,8 +400,8 @@ static void printIndexStats() {
 /// Print the lto symbol attributes.
 static void printLTOSymbolAttributes(lto_symbol_attributes Attrs) {
   outs() << "{ ";
-  unsigned Permission = Attrs & LTO_SYMBOL_PERMISSIONS_MASK;
-  switch (Permission) {
+  
+  switch (unsigned Permission = Attrs & LTO_SYMBOL_PERMISSIONS_MASK; Permission) {
   case LTO_SYMBOL_PERMISSIONS_CODE:
     outs() << "function ";
     break;
@@ -1033,8 +1033,8 @@ int main(int argc, char **argv) {
                             Filename + "': ");
       std::unique_ptr<MemoryBuffer> BufferOrErr =
           ExitOnErr(errorOrToExpected(MemoryBuffer::getFile(Filename)));
-      auto Buffer = std::move(BufferOrErr.get());
-      if (ExitOnErr(isBitcodeContainingObjCCategory(*Buffer)))
+      
+      if (auto Buffer = std::move(BufferOrErr.get()); ExitOnErr(isBitcodeContainingObjCCategory(*Buffer)))
         outs() << "Bitcode " << Filename << " contains ObjC\n";
       else
         outs() << "Bitcode " << Filename << " does not contain ObjC\n";
@@ -1155,7 +1155,9 @@ int main(int argc, char **argv) {
         error("writing merged module failed.");
     }
 
-    auto AddStream =
+    
+
+    if (auto AddStream =
         [&](size_t Task,
             const Twine &ModuleName) -> std::unique_ptr<CachedFileStream> {
       std::string PartFilename = OutputFilename;
@@ -1168,9 +1170,7 @@ int main(int argc, char **argv) {
       if (EC)
         error("error opening the file '" + PartFilename + "': " + EC.message());
       return std::make_unique<CachedFileStream>(std::move(S));
-    };
-
-    if (!CodeGen.compileOptimized(AddStream, Parallelism))
+    }; !CodeGen.compileOptimized(AddStream, Parallelism))
       // Diagnostic messages should have been printed by the handler.
       error("error compiling the code");
 

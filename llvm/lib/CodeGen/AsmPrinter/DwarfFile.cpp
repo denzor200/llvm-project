@@ -104,8 +104,8 @@ void DwarfFile::emitStrings(MCSection *StrSection, MCSection *OffsetSection,
 
 void DwarfFile::addScopeVariable(LexicalScope *LS, DbgVariable *Var) {
   auto &ScopeVars = ScopeVariables[LS];
-  const DILocalVariable *DV = Var->getVariable();
-  if (unsigned ArgNum = DV->getArg()) {
+  
+  if (const DILocalVariable *DV = Var->getVariable(); unsigned ArgNum = DV->getArg()) {
     auto Ret = ScopeVars.Args.insert({ArgNum, Var});
     assert(Ret.second);
     (void)Ret;
@@ -124,8 +124,8 @@ DwarfFile::addRange(const DwarfCompileUnit &CU, SmallVector<RangeSpan, 2> R) {
   bool CanReuseLastRange = false;
 
   if (!CURangeLists.empty()) {
-    auto Last = CURangeLists.back();
-    if (Last.CU == &CU && Last.Ranges == R) {
+    
+    if (auto Last = CURangeLists.back(); Last.CU == &CU && Last.Ranges == R) {
       CanReuseLastRange = true;
     }
   }

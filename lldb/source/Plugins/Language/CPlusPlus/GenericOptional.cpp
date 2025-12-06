@@ -114,8 +114,8 @@ ValueObjectSP GenericOptionalFrontend::GetChildAtIndex(uint32_t _idx) {
 
     // In some implementations, _M_value contains the underlying value of an
     // optional, and in other versions, it's in the payload member.
-    ValueObjectSP candidate = val_sp->GetChildMemberWithName("_M_value");
-    if (candidate)
+    
+    if (ValueObjectSP candidate = val_sp->GetChildMemberWithName("_M_value"); candidate)
       val_sp = candidate;
   } else if (m_stdlib == StdLib::MsvcStl)
     // Same issue as with LibCxx

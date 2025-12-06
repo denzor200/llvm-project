@@ -131,9 +131,9 @@ static PrintfSpecifierResult ParsePrintfSpecifier(FormatStringHandler &H,
                           "(private|public|sensitive|mask\\.[^[:space:],}]*)"
                           "[[:space:]]*(,|})";
       llvm::Regex R(Match);
-      SmallVector<StringRef, 2> Matches;
+      
 
-      if (R.match(Str, &Matches)) {
+      if (SmallVector<StringRef, 2> Matches; R.match(Str, &Matches)) {
         MatchedStr = Matches[1];
         I += Matches[0].size();
 
@@ -142,8 +142,8 @@ static PrintfSpecifierResult ParsePrintfSpecifier(FormatStringHandler &H,
         // annotations in previous comma-delimited segments.
         if (MatchedStr.starts_with("mask")) {
           StringRef MaskType = MatchedStr.substr(sizeof("mask.") - 1);
-          unsigned Size = MaskType.size();
-          if (Warn && (Size == 0 || Size > 8))
+          
+          if (unsigned Size = MaskType.size(); Warn && (Size == 0 || Size > 8))
             H.handleInvalidMaskType(MaskType);
           FS.setMaskType(MaskType);
         } else if (MatchedStr == "sensitive")
@@ -735,9 +735,9 @@ ArgType PrintfSpecifier::getScalarArgType(ASTContext &Ctx,
 
 ArgType PrintfSpecifier::getArgType(ASTContext &Ctx,
                                     bool IsObjCLiteral) const {
-  const PrintfConversionSpecifier &CS = getConversionSpecifier();
+  
 
-  if (!CS.consumesDataArgument())
+  if (const PrintfConversionSpecifier &CS = getConversionSpecifier(); !CS.consumesDataArgument())
     return ArgType::Invalid();
 
   ArgType ScalarTy = getScalarArgType(Ctx, IsObjCLiteral);
@@ -798,8 +798,8 @@ bool PrintfSpecifier::fixType(QualType QT, const LangOptions &LangOpt,
 
   const BuiltinType *BT = QT->getAs<BuiltinType>();
   if (!BT) {
-    const VectorType *VT = QT->getAs<VectorType>();
-    if (VT) {
+    
+    if (const VectorType *VT = QT->getAs<VectorType>(); VT) {
       QT = VT->getElementType();
       BT = QT->getAs<BuiltinType>();
       VectorNumElts = OptionalAmount(VT->getNumElements());
@@ -942,8 +942,8 @@ bool PrintfSpecifier::fixType(QualType QT, const LangOptions &LangOpt,
       break;
     }
 
-    const analyze_printf::ArgType &ATR = getArgType(Ctx, IsObjCLiteral);
-    if (ATR.isValid() && ATR.matchesType(Ctx, QT))
+    
+    if (const analyze_printf::ArgType &ATR = getArgType(Ctx, IsObjCLiteral); ATR.isValid() && ATR.matchesType(Ctx, QT))
       return true;
   }
 

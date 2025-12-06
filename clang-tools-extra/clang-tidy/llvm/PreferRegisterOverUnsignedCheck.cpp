@@ -42,8 +42,8 @@ void PreferRegisterOverUnsignedCheck::check(
           Namespace->getName() == "llvm")
         NeedsQualification = false;
     for (const auto *UsingDirective : Context->using_directives()) {
-      const NamespaceDecl *Namespace = UsingDirective->getNominatedNamespace();
-      if (isa<TranslationUnitDecl>(Namespace->getDeclContext()) &&
+      
+      if (const NamespaceDecl *Namespace = UsingDirective->getNominatedNamespace(); isa<TranslationUnitDecl>(Namespace->getDeclContext()) &&
           Namespace->getName() == "llvm")
         NeedsQualification = false;
     }

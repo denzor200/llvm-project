@@ -69,9 +69,9 @@ void PreferIsaOrDynCastInConditionalsCheck::check(
   //         ^  ^
   //  StartLoc  EndLoc
   const SourceLocation StartLoc = Callee->getLocation();
-  const SourceLocation EndLoc = Callee->getNameInfo().getEndLoc();
+  
 
-  if (Result.Nodes.getNodeAs<VarDecl>("var")) {
+  if (const SourceLocation EndLoc = Callee->getNameInfo().getEndLoc(); Result.Nodes.getNodeAs<VarDecl>("var")) {
     diag(StartLoc,
          "cast<> in conditional will assert rather than return a null pointer")
         << FixItHint::CreateReplacement(SourceRange(StartLoc, EndLoc),

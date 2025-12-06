@@ -101,8 +101,8 @@ ModuleSP DynamicLoaderDarwin::FindTargetModuleForImageInfo(
 
   // macCatalyst support: Request matching os/environment.
   {
-    auto &target_triple = target.GetArchitecture().GetTriple();
-    if (target_triple.getOS() == llvm::Triple::IOS &&
+    
+    if (auto &target_triple = target.GetArchitecture().GetTriple(); target_triple.getOS() == llvm::Triple::IOS &&
         target_triple.getEnvironment() == llvm::Triple::MacABI) {
       // Request the macCatalyst variant of frameworks that have both
       // a PLATFORM_MACOS and a PLATFORM_MACCATALYST load command.
@@ -130,12 +130,12 @@ ModuleSP DynamicLoaderDarwin::FindTargetModuleForImageInfo(
     // exist on the filesystem, so let's use the images in our own memory
     // to create the modules.
     // Check if the requested image is in our shared cache.
-    SharedCacheImageInfo image_info =
-        HostInfo::GetSharedCacheImageInfo(module_spec.GetFileSpec().GetPath());
+    
 
     // If we found it and it has the correct UUID, let's proceed with
     // creating a module from the memory contents.
-    if (image_info.uuid &&
+    if (SharedCacheImageInfo image_info =
+        HostInfo::GetSharedCacheImageInfo(module_spec.GetFileSpec().GetPath()); image_info.uuid &&
         (!module_spec.GetUUID() || module_spec.GetUUID() == image_info.uuid)) {
       ModuleSpec shared_cache_spec(module_spec.GetFileSpec(), image_info.uuid,
                                    image_info.data_sp);
@@ -171,11 +171,11 @@ void DynamicLoaderDarwin::UnloadImages(
   ModuleList unloaded_module_list;
 
   for (addr_t solib_addr : solib_addresses) {
-    Address header;
-    if (header.SetLoadAddress(solib_addr, &target)) {
+    
+    if (Address header; header.SetLoadAddress(solib_addr, &target)) {
       if (header.GetOffset() == 0) {
-        ModuleSP module_to_remove(header.GetModule());
-        if (module_to_remove.get()) {
+        
+        if (ModuleSP module_to_remove(header.GetModule()); module_to_remove.get()) {
           LLDB_LOGF(log, "Removing module at address 0x%" PRIx64, solib_addr);
           // remove the sections from the Target
           UnloadSections(module_to_remove);
@@ -241,10 +241,10 @@ bool DynamicLoaderDarwin::UpdateImageLoadAddress(Module *module,
                                                  ImageInfo &info) {
   bool changed = false;
   if (module) {
-    ObjectFile *image_object_file = module->GetObjectFile();
-    if (image_object_file) {
-      SectionList *section_list = image_object_file->GetSectionList();
-      if (section_list) {
+    
+    if (ObjectFile *image_object_file = module->GetObjectFile(); image_object_file) {
+      
+      if (SectionList *section_list = image_object_file->GetSectionList(); section_list) {
         std::vector<uint32_t> inaccessible_segment_indexes;
         // We now know the slide amount, so go through all sections and update
         // the load addresses with the correct values.
@@ -252,17 +252,17 @@ bool DynamicLoaderDarwin::UpdateImageLoadAddress(Module *module,
         for (size_t i = 0; i < num_segments; ++i) {
           // Only load a segment if it has protections. Things like __PAGEZERO
           // don't have any protections, and they shouldn't be slid
-          SectionSP section_sp(
-              section_list->FindSectionByName(info.segments[i].name));
+          
 
-          if (info.segments[i].maxprot == 0) {
+          if (SectionSP section_sp(
+              section_list->FindSectionByName(info.segments[i].name)); info.segments[i].maxprot == 0) {
             inaccessible_segment_indexes.push_back(i);
           } else {
             const addr_t new_section_load_addr =
                 info.segments[i].vmaddr + info.slide;
-            static ConstString g_section_name_LINKEDIT("__LINKEDIT");
+            
 
-            if (section_sp) {
+            if (static ConstString g_section_name_LINKEDIT("__LINKEDIT"); section_sp) {
               // __LINKEDIT sections from files in the shared cache can overlap
               // so check to see what the segment name is and pass "false" so
               // we don't warn of overlapping "Section" objects, and "true" for
@@ -285,12 +285,12 @@ bool DynamicLoaderDarwin::UpdateImageLoadAddress(Module *module,
         if (changed && !inaccessible_segment_indexes.empty()) {
           for (uint32_t i = 0; i < inaccessible_segment_indexes.size(); ++i) {
             const uint32_t seg_idx = inaccessible_segment_indexes[i];
-            SectionSP section_sp(
-                section_list->FindSectionByName(info.segments[seg_idx].name));
+            
 
-            if (section_sp) {
-              static ConstString g_pagezero_section_name("__PAGEZERO");
-              if (g_pagezero_section_name == section_sp->GetName()) {
+            if (SectionSP section_sp(
+                section_list->FindSectionByName(info.segments[seg_idx].name)); section_sp) {
+              
+              if (static ConstString g_pagezero_section_name("__PAGEZERO"); g_pagezero_section_name == section_sp->GetName()) {
                 // __PAGEZERO never slides...
                 const lldb::addr_t vmaddr = info.segments[seg_idx].vmaddr;
                 const lldb::addr_t vmsize = info.segments[seg_idx].vmsize;
@@ -318,18 +318,18 @@ bool DynamicLoaderDarwin::UnloadModuleSections(Module *module,
                                                ImageInfo &info) {
   bool changed = false;
   if (module) {
-    ObjectFile *image_object_file = module->GetObjectFile();
-    if (image_object_file) {
-      SectionList *section_list = image_object_file->GetSectionList();
-      if (section_list) {
+    
+    if (ObjectFile *image_object_file = module->GetObjectFile(); image_object_file) {
+      
+      if (SectionList *section_list = image_object_file->GetSectionList(); section_list) {
         const size_t num_segments = info.segments.size();
         for (size_t i = 0; i < num_segments; ++i) {
-          SectionSP section_sp(
-              section_list->FindSectionByName(info.segments[i].name));
-          if (section_sp) {
-            const addr_t old_section_load_addr =
-                info.segments[i].vmaddr + info.slide;
-            if (m_process->GetTarget().SetSectionUnloaded(
+          
+          if (SectionSP section_sp(
+              section_list->FindSectionByName(info.segments[i].name)); section_sp) {
+            
+            if (const addr_t old_section_load_addr =
+                info.segments[i].vmaddr + info.slide; m_process->GetTarget().SetSectionUnloaded(
                     section_sp, old_section_load_addr))
               changed = true;
           } else {
@@ -394,11 +394,11 @@ bool DynamicLoaderDarwin::JSONImageInformationIntoImageInfo(
         mh->GetValueForKey("filetype")->GetUnsignedIntegerValue();
 
     if (image->HasKey("min_version_os_name")) {
-      std::string os_name =
+      
+      if (std::string os_name =
           std::string(image->GetValueForKey("min_version_os_name")
                           ->GetAsString()
-                          ->GetValue());
-      if (os_name == "macosx")
+                          ->GetValue()); os_name == "macosx")
         image_infos[i].os_type = llvm::Triple::MacOSX;
       else if (os_name == "ios" || os_name == "iphoneos")
         image_infos[i].os_type = llvm::Triple::IOS;
@@ -557,8 +557,8 @@ void DynamicLoaderDarwin::UpdateSpecialBinariesFromPreloadedModules(
 
   // Set the target executable if we haven't found one so far.
   if (exe_idx != UINT32_MAX && !target.GetExecutableModule()) {
-    ModuleSP exe_module_sp = images[exe_idx].second;
-    if (exe_module_sp) {
+    
+    if (ModuleSP exe_module_sp = images[exe_idx].second; exe_module_sp) {
       LLDB_LOGF(log, "Found executable module: %s",
                 exe_module_sp->GetFileSpec().GetPath().c_str());
       target.GetImages().AppendIfNeeded(exe_module_sp);
@@ -567,8 +567,8 @@ void DynamicLoaderDarwin::UpdateSpecialBinariesFromPreloadedModules(
         target.SetExecutableModule(exe_module_sp, eLoadDependentsNo);
 
       // Update the target executable's arch if necessary.
-      auto exe_triple = exe_module_sp->GetArchitecture().GetTriple();
-      if (target_arch.GetTriple().isArm64e() &&
+      
+      if (auto exe_triple = exe_module_sp->GetArchitecture().GetTriple(); target_arch.GetTriple().isArm64e() &&
           exe_triple.getArch() == llvm::Triple::aarch64 &&
           !exe_triple.isArm64e()) {
         // On arm64e-capable Apple platforms, the system libraries are
@@ -589,8 +589,8 @@ void DynamicLoaderDarwin::UpdateSpecialBinariesFromPreloadedModules(
   }
 
   if (dyld_idx != UINT32_MAX) {
-    ModuleSP dyld_sp = images[dyld_idx].second;
-    if (dyld_sp.get()) {
+    
+    if (ModuleSP dyld_sp = images[dyld_idx].second; dyld_sp.get()) {
       LLDB_LOGF(log, "Found dyld module: %s",
                 dyld_sp->GetFileSpec().GetPath().c_str());
       target.GetImages().AppendIfNeeded(dyld_sp);
@@ -604,9 +604,9 @@ bool DynamicLoaderDarwin::UpdateDYLDImageInfoFromNewImageInfo(
     ImageInfo &image_info) {
   if (image_info.header.filetype == llvm::MachO::MH_DYLINKER) {
     const bool can_create = true;
-    ModuleSP dyld_sp =
-        FindTargetModuleForImageInfo(image_info, can_create, nullptr);
-    if (dyld_sp.get()) {
+    
+    if (ModuleSP dyld_sp =
+        FindTargetModuleForImageInfo(image_info, can_create, nullptr); dyld_sp.get()) {
       Target &target = m_process->GetTarget();
       target.GetImages().AppendIfNeeded(dyld_sp);
       UpdateImageLoadAddress(dyld_sp.get(), image_info);
@@ -659,8 +659,8 @@ DynamicLoaderDarwin::PreloadModulesFromImageInfos(
         image_info, FindTargetModuleForImageInfo(image_info, true, nullptr));
   };
   auto it = image_infos.begin();
-  bool is_parallel_load = m_process->GetTarget().GetParallelModuleLoad();
-  if (is_parallel_load) {
+  
+  if (bool is_parallel_load = m_process->GetTarget().GetParallelModuleLoad(); is_parallel_load) {
     llvm::ThreadPoolTaskGroup taskGroup(Debugger::GetThreadPool());
     for (size_t i = 0; i < size; ++i, ++it) {
       taskGroup.async(LoadImage, i, it);
@@ -701,20 +701,20 @@ bool DynamicLoaderDarwin::AddModulesUsingPreloadedModules(
     m_dyld_image_infos.push_back(image_info);
 
     if (image_module_sp) {
-      ObjectFile *objfile = image_module_sp->GetObjectFile();
-      if (objfile) {
-        SectionList *sections = objfile->GetSectionList();
-        if (sections) {
+      
+      if (ObjectFile *objfile = image_module_sp->GetObjectFile(); objfile) {
+        
+        if (SectionList *sections = objfile->GetSectionList(); sections) {
           ConstString commpage_dbstr("__commpage");
-          Section *commpage_section =
-              sections->FindSectionByName(commpage_dbstr).get();
-          if (commpage_section) {
+          
+          if (Section *commpage_section =
+              sections->FindSectionByName(commpage_dbstr).get(); commpage_section) {
             ModuleSpec module_spec(objfile->GetFileSpec(),
                                    image_info.GetArchitecture());
             module_spec.GetObjectName() = commpage_dbstr;
-            ModuleSP commpage_image_module_sp(
-                target_images.FindFirstModule(module_spec));
-            if (!commpage_image_module_sp) {
+            
+            if (ModuleSP commpage_image_module_sp(
+                target_images.FindFirstModule(module_spec)); !commpage_image_module_sp) {
               module_spec.SetObjectOffset(objfile->GetFileOffset() +
                                           commpage_section->GetFileOffset());
               module_spec.SetObjectSize(objfile->GetByteSize());
@@ -825,8 +825,8 @@ lldb_private::ArchSpec DynamicLoaderDarwin::ImageInfo::GetArchitecture() const {
   if (os_env == llvm::Triple::MacABI && os_type == llvm::Triple::IOS) {
     llvm::Triple triple(llvm::Twine(arch_spec.GetArchitectureName()) +
                         "-apple-ios" + min_version_os_sdk + "-macabi");
-    ArchSpec maccatalyst_spec(triple);
-    if (arch_spec.IsCompatibleMatch(maccatalyst_spec))
+    
+    if (ArchSpec maccatalyst_spec(triple); arch_spec.IsCompatibleMatch(maccatalyst_spec))
       arch_spec.MergeFrom(maccatalyst_spec);
   }
   if (os_env == llvm::Triple::Simulator &&
@@ -835,8 +835,8 @@ lldb_private::ArchSpec DynamicLoaderDarwin::ImageInfo::GetArchitecture() const {
     llvm::Triple triple(llvm::Twine(arch_spec.GetArchitectureName()) +
                         "-apple-" + llvm::Triple::getOSTypeName(os_type) +
                         min_version_os_sdk + "-simulator");
-    ArchSpec sim_spec(triple);
-    if (arch_spec.IsCompatibleMatch(sim_spec))
+    
+    if (ArchSpec sim_spec(triple); arch_spec.IsCompatibleMatch(sim_spec))
       arch_spec.MergeFrom(sim_spec);
   }
   return arch_spec;
@@ -949,11 +949,11 @@ DynamicLoaderDarwin::GetStepThroughTrampolinePlan(Thread &thread,
                                           reexported_symbols);
         for (const SymbolContext &context : reexported_symbols) {
           if (context.symbol) {
-            Symbol *actual_symbol =
-                context.symbol->ResolveReExportedSymbol(*target_sp.get());
-            if (actual_symbol) {
-              const Address actual_symbol_addr = actual_symbol->GetAddress();
-              if (actual_symbol_addr.IsValid()) {
+            
+            if (Symbol *actual_symbol =
+                context.symbol->ResolveReExportedSymbol(*target_sp.get()); actual_symbol) {
+              
+              if (const Address actual_symbol_addr = actual_symbol->GetAddress(); actual_symbol_addr.IsValid()) {
                 addresses.push_back(actual_symbol_addr);
                 if (log) {
                   lldb::addr_t load_addr =
@@ -986,11 +986,11 @@ DynamicLoaderDarwin::GetStepThroughTrampolinePlan(Thread &thread,
       // I am not sure we could ever end up stopped AT a re-exported symbol.
       // But just in case:
 
-      const Symbol *actual_symbol =
-          current_symbol->ResolveReExportedSymbol(*(target_sp.get()));
-      if (actual_symbol) {
-        Address target_addr(actual_symbol->GetAddress());
-        if (target_addr.IsValid()) {
+      
+      if (const Symbol *actual_symbol =
+          current_symbol->ResolveReExportedSymbol(*(target_sp.get())); actual_symbol) {
+        
+        if (Address target_addr(actual_symbol->GetAddress()); target_addr.IsValid()) {
           LLDB_LOGF(
               log,
               "Found a re-exported symbol: %s pointing to: %s at 0x%" PRIx64
@@ -1008,13 +1008,13 @@ DynamicLoaderDarwin::GetStepThroughTrampolinePlan(Thread &thread,
       // and if they do, resolve them:
       std::vector<lldb::addr_t> load_addrs;
       for (Address address : addresses) {
-        Symbol *symbol = address.CalculateSymbolContextSymbol();
-        if (symbol && symbol->IsIndirect()) {
+        
+        if (Symbol *symbol = address.CalculateSymbolContextSymbol(); symbol && symbol->IsIndirect()) {
           Status error;
           Address symbol_address = symbol->GetAddress();
-          addr_t resolved_addr = thread.GetProcess()->ResolveIndirectFunction(
-              &symbol_address, error);
-          if (error.Success()) {
+          
+          if (addr_t resolved_addr = thread.GetProcess()->ResolveIndirectFunction(
+              &symbol_address, error); error.Success()) {
             load_addrs.push_back(resolved_addr);
             LLDB_LOGF(log,
                       "ResolveIndirectFunction found resolved target for "
@@ -1092,13 +1092,13 @@ lldb::ModuleSP DynamicLoaderDarwin::GetPThreadLibraryModule() {
 
 Address DynamicLoaderDarwin::GetPthreadSetSpecificAddress() {
   if (!m_pthread_getspecific_addr.IsValid()) {
-    ModuleSP module_sp = GetPThreadLibraryModule();
-    if (module_sp) {
+    
+    if (ModuleSP module_sp = GetPThreadLibraryModule(); module_sp) {
       lldb_private::SymbolContextList sc_list;
       module_sp->FindSymbolsWithNameAndType(ConstString("pthread_getspecific"),
                                             eSymbolTypeCode, sc_list);
-      SymbolContext sc;
-      if (sc_list.GetContextAtIndex(0, sc)) {
+      
+      if (SymbolContext sc; sc_list.GetContextAtIndex(0, sc)) {
         if (sc.symbol)
           m_pthread_getspecific_addr = sc.symbol->GetAddress();
       }
@@ -1139,10 +1139,10 @@ DynamicLoaderDarwin::GetThreadLocalData(const lldb::ModuleSP module_sp,
 
     DiagnosticManager execution_errors;
     ExecutionContext exe_ctx(thread_sp);
-    lldb::ExpressionResults results = m_process->RunThreadPlan(
-        exe_ctx, thread_plan_sp, options, execution_errors);
+    
 
-    if (results == lldb::eExpressionCompleted) {
+    if (lldb::ExpressionResults results = m_process->RunThreadPlan(
+        exe_ctx, thread_plan_sp, options, execution_errors); results == lldb::eExpressionCompleted) {
       if (lldb::ValueObjectSP result_valobj_sp =
               thread_plan_sp->GetReturnValueObject()) {
         return result_valobj_sp->GetValueAsUnsigned(LLDB_INVALID_ADDRESS);
@@ -1183,12 +1183,12 @@ DynamicLoaderDarwin::GetThreadLocalData(const lldb::ModuleSP module_sp,
 
   if (tls_thunk != 0) {
     const addr_t fixed_tls_thunk = m_process->FixCodeAddress(tls_thunk);
-    Address thunk_load_addr;
-    if (target.ResolveLoadAddress(fixed_tls_thunk, thunk_load_addr)) {
+    
+    if (Address thunk_load_addr; target.ResolveLoadAddress(fixed_tls_thunk, thunk_load_addr)) {
       const addr_t tls_load_addr = tls_addr.GetLoadAddress(&target);
-      const addr_t tls_data = evaluate_tls_address(
-          thunk_load_addr, llvm::ArrayRef<addr_t>(tls_load_addr));
-      if (tls_data != LLDB_INVALID_ADDRESS)
+      
+      if (const addr_t tls_data = evaluate_tls_address(
+          thunk_load_addr, llvm::ArrayRef<addr_t>(tls_load_addr)); tls_data != LLDB_INVALID_ADDRESS)
         return tls_data;
     }
   }
@@ -1201,16 +1201,16 @@ DynamicLoaderDarwin::GetThreadLocalData(const lldb::ModuleSP module_sp,
     const lldb::tid_t tid = thread_sp->GetID();
     auto tid_pos = m_tid_to_tls_map.find(tid);
     if (tid_pos != m_tid_to_tls_map.end()) {
-      auto tls_pos = tid_pos->second.find(key);
-      if (tls_pos != tid_pos->second.end()) {
+      
+      if (auto tls_pos = tid_pos->second.find(key); tls_pos != tid_pos->second.end()) {
         return tls_pos->second + tls_offset;
       }
     }
     Address pthread_getspecific_addr = GetPthreadSetSpecificAddress();
     if (pthread_getspecific_addr.IsValid()) {
-      const addr_t tls_data = evaluate_tls_address(pthread_getspecific_addr,
-                                                   llvm::ArrayRef<addr_t>(key));
-      if (tls_data != LLDB_INVALID_ADDRESS)
+      
+      if (const addr_t tls_data = evaluate_tls_address(pthread_getspecific_addr,
+                                                   llvm::ArrayRef<addr_t>(key)); tls_data != LLDB_INVALID_ADDRESS)
         return tls_data + tls_offset;
     }
   }

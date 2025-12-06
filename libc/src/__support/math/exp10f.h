@@ -47,8 +47,8 @@ LIBC_INLINE static constexpr float exp10f(float x) {
     if (xbits.is_pos() && (x_u >= 0x421a'209bU)) {
       // x is finite
       if (x_u < 0x7f80'0000U) {
-        int rounding = fputil::quick_get_round();
-        if (rounding == FE_DOWNWARD || rounding == FE_TOWARDZERO)
+        
+        if (int rounding = fputil::quick_get_round(); rounding == FE_DOWNWARD || rounding == FE_TOWARDZERO)
           return FPBits::max_normal().get_val();
 
         fputil::set_errno_if_required(ERANGE);

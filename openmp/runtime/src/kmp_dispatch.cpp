@@ -58,9 +58,9 @@ void __kmp_dispatch_deo_error(int *gtid_ref, int *cid_ref, ident_t *loc_ref) {
 }
 
 void __kmp_dispatch_dxo_error(int *gtid_ref, int *cid_ref, ident_t *loc_ref) {
-  kmp_info_t *th;
+  
 
-  if (__kmp_env_consistency_check) {
+  if (kmp_info_t *th; __kmp_env_consistency_check) {
     th = __kmp_threads[*gtid_ref];
     if (th->th.th_dispatch->th_dispatch_pr_current->pushed_ws != ct_none) {
       __kmp_pop_sync(*gtid_ref, ct_ordered_in_pdo, loc_ref);
@@ -471,8 +471,8 @@ void __kmp_dispatch_init_algorithm(ident_t *loc, int gtid,
           for (int i = 0; i < team->t.t_nproc; ++i) {
             kmp_hw_core_type_t type = (kmp_hw_core_type_t)team->t.t_threads[i]
                                           ->th.th_topology_attrs.core_type;
-            int id = team->t.t_threads[i]->th.th_topology_ids.os_id;
-            if (id == __kmp_first_osid_with_ecore) {
+            
+            if (int id = team->t.t_threads[i]->th.th_topology_ids.os_id; id == __kmp_first_osid_with_ecore) {
               first_thread_with_ecore =
                   team->t.t_threads[i]->th.th_info.ds.ds_tid;
             }
@@ -590,9 +590,9 @@ void __kmp_dispatch_init_algorithm(ident_t *loc, int gtid,
          gtid));
 
     if (nproc > 1) {
-      T id = tid;
+      
 
-      if (tc < nproc) {
+      if (T id = tid; tc < nproc) {
         if (id < tc) {
           init = id;
           limit = id;
@@ -1904,8 +1904,8 @@ int __kmp_dispatch_next_algorithm(int gtid,
       UT span;
       __kmp_type_convert((double)remaining * (*(double *)&pr->u.p.parm3),
                          &span);
-      UT rem = span % chunk;
-      if (rem) // adjust so that span%chunk == 0
+      
+      if (UT rem = span % chunk; rem) // adjust so that span%chunk == 0
         span += chunk - rem;
       limit = init + span;
       if (compare_and_swap<ST>(RCAST(volatile ST *, &sh->u.s.iteration),

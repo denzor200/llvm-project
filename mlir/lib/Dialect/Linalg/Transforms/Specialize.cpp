@@ -206,8 +206,8 @@ static FailureOr<LinalgOp> specializeLinalgContractions(RewriterBase &rewriter,
     // identity since separate maps are not specified.
     if (llvm::any_of(indexingMaps, [numOfBatchDims](AffineMap m) {
           for (unsigned i = 0; i < numOfBatchDims; ++i) {
-            auto expr = m.getResults()[i];
-            if (expr.getKind() != AffineExprKind::DimId ||
+            
+            if (auto expr = m.getResults()[i]; expr.getKind() != AffineExprKind::DimId ||
                 cast<AffineDimExpr>(expr).getPosition() != i)
               return true;
           }
@@ -346,8 +346,8 @@ FailureOr<LinalgOp> mlir::linalg::specializeGenericOp(RewriterBase &rewriter,
 
   // Elementwise Unary
   if (isaElemwiseSingleUnaryOpInterface(genericOp)) {
-    Operation *op = &genericOp.getBody()->front();
-    if (isa<math::ExpOp>(op)) {
+    
+    if (Operation *op = &genericOp.getBody()->front(); isa<math::ExpOp>(op)) {
       LinalgOp namedOp = REPLACE_UNARY_OP(ExpOp);
       return namedOp;
     }

@@ -58,8 +58,8 @@ void OptionValueDictionary::DumpValue(const ExecutionContext *exe_ctx,
 
       strm.Indent(value.first);
 
-      const uint32_t extra_dump_options = m_raw_value_dump ? eDumpOptionRaw : 0;
-      switch (dict_type) {
+      
+      switch (const uint32_t extra_dump_options = m_raw_value_dump ? eDumpOptionRaw : 0; dict_type) {
       default:
       case eTypeArray:
       case eTypeDictionary:
@@ -116,8 +116,8 @@ size_t OptionValueDictionary::GetArgs(Args &args) const {
 Status OptionValueDictionary::SetArgs(const Args &args,
                                       VarSetOperationType op) {
   Status error;
-  const size_t argc = args.GetArgumentCount();
-  switch (op) {
+  
+  switch (const size_t argc = args.GetArgumentCount(); op) {
   case eVarSetOperationClear:
     Clear();
     break;
@@ -155,8 +155,8 @@ Status OptionValueDictionary::SetArgs(const Args &args,
         if ((key.size() > 2) && (key.back() == ']')) {
           // Strip leading '[' and trailing ']'
           key = key.substr(1, key.size() - 2);
-          const char quote_char = key.front();
-          if ((quote_char == '\'') || (quote_char == '"')) {
+          
+          if (const char quote_char = key.front(); (quote_char == '\'') || (quote_char == '"')) {
             if ((key.size() > 2) && (key.back() == quote_char)) {
               // Strip the quotes
               key = key.substr(1, key.size() - 2);
@@ -189,9 +189,9 @@ Status OptionValueDictionary::SetArgs(const Args &args,
         m_value_was_set = true;
         SetValueForKey(key, enum_value, true);
       } else {
-        lldb::OptionValueSP value_sp(CreateValueFromCStringForTypeMask(
-            value.str().c_str(), m_type_mask, error));
-        if (value_sp) {
+        
+        if (lldb::OptionValueSP value_sp(CreateValueFromCStringForTypeMask(
+            value.str().c_str(), m_type_mask, error)); value_sp) {
           if (error.Fail())
             return error;
           m_value_was_set = true;
@@ -208,8 +208,8 @@ Status OptionValueDictionary::SetArgs(const Args &args,
   case eVarSetOperationRemove:
     if (argc > 0) {
       for (size_t i = 0; i < argc; ++i) {
-        llvm::StringRef key(args.GetArgumentAtIndex(i));
-        if (!DeleteValueForKey(key)) {
+        
+        if (llvm::StringRef key(args.GetArgumentAtIndex(i)); !DeleteValueForKey(key)) {
           error = Status::FromErrorStringWithFormat(
               "no value found named '%s', aborting remove operation",
               key.data());
@@ -325,8 +325,8 @@ bool OptionValueDictionary::SetValueForKey(llvm::StringRef key,
   // passed in...
   if (value_sp && (m_type_mask & value_sp->GetTypeAsMask())) {
     if (!can_replace) {
-      auto pos = m_values.find(key);
-      if (pos != m_values.end())
+      
+      if (auto pos = m_values.find(key); pos != m_values.end())
         return false;
     }
     m_values[key] = value_sp;

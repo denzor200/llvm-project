@@ -25,8 +25,8 @@ struct AvoidUnconditionalPreprocessorIfPPCallbacks : public PPCallbacks {
           ConditionValueKind ConditionValue) override {
     if (ConditionValue == CVK_NotEvaluated)
       return;
-    SourceManager &SM = PP.getSourceManager();
-    if (!isImmutable(SM, PP.getLangOpts(), ConditionRange))
+    
+    if (SourceManager &SM = PP.getSourceManager(); !isImmutable(SM, PP.getLangOpts(), ConditionRange))
       return;
 
     if (ConditionValue == CVK_True)

@@ -383,8 +383,8 @@ Function *Function::createWithDefaultAttr(FunctionType *Ty,
                                           Module *M) {
   auto *F = new (AllocMarker) Function(Ty, Linkage, AddrSpace, N, M);
   AttrBuilder B(F->getContext());
-  UWTableKind UWTable = M->getUwtable();
-  if (UWTable != UWTableKind::None)
+  
+  if (UWTableKind UWTable = M->getUwtable(); UWTable != UWTableKind::None)
     B.addUWTableAttr(UWTable);
   switch (M->getFramePointer()) {
   case FramePointerKind::None:
@@ -532,8 +532,8 @@ Function::~Function() {
 
 void Function::BuildLazyArguments() const {
   // Create the arguments vector, all arguments start out unnamed.
-  auto *FT = getFunctionType();
-  if (NumArgs > 0) {
+  
+  if (auto *FT = getFunctionType(); NumArgs > 0) {
     Arguments = std::allocator<Argument>().allocate(NumArgs);
     for (unsigned i = 0, e = NumArgs; i != e; ++i) {
       Type *ArgTy = FT->getParamType(i);
@@ -779,8 +779,8 @@ uint64_t Function::getFnAttributeAsParsedInteger(StringRef Name,
   Attribute A = getFnAttribute(Name);
   uint64_t Result = Default;
   if (A.isStringAttribute()) {
-    StringRef Str = A.getValueAsString();
-    if (Str.getAsInteger(0, Result))
+    
+    if (StringRef Str = A.getValueAsString(); Str.getAsInteger(0, Result))
       getContext().emitError("cannot parse integer attribute " + Name);
   }
 
@@ -805,10 +805,10 @@ void Function::addRangeRetAttr(const ConstantRange &CR) {
 
 DenormalMode Function::getDenormalMode(const fltSemantics &FPType) const {
   if (&FPType == &APFloat::IEEEsingle()) {
-    DenormalMode Mode = getDenormalModeF32Raw();
+    
     // If the f32 variant of the attribute isn't specified, try to use the
     // generic one.
-    if (Mode.isValid())
+    if (DenormalMode Mode = getDenormalModeF32Raw(); Mode.isValid())
       return Mode;
   }
 
@@ -959,8 +959,8 @@ bool Function::hasAddressTaken(const User **PutOffender,
   for (const Use &U : uses()) {
     const User *FU = U.getUser();
     if (IgnoreCallbackUses) {
-      AbstractCallSite ACS(&U);
-      if (ACS && ACS.isCallbackCall())
+      
+      if (AbstractCallSite ACS(&U); ACS && ACS.isCallbackCall())
         continue;
     }
 
@@ -1122,8 +1122,8 @@ void Function::setEntryCount(uint64_t Count, Function::ProfileCountType Type,
 }
 
 std::optional<ProfileCount> Function::getEntryCount(bool AllowSynthetic) const {
-  MDNode *MD = getMetadata(LLVMContext::MD_prof);
-  if (MD && MD->getOperand(0))
+  
+  if (MDNode *MD = getMetadata(LLVMContext::MD_prof); MD && MD->getOperand(0))
     if (MDString *MDS = dyn_cast<MDString>(MD->getOperand(0))) {
       if (MDS->getString() == MDProfLabels::FunctionEntryCount) {
         ConstantInt *CI = mdconst::extract<ConstantInt>(MD->getOperand(1));

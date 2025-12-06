@@ -74,8 +74,8 @@ void UseUsingCheck::check(const MatchFinder::MatchResult &Result) {
   const auto *ParentDecl = Result.Nodes.getNodeAs<Decl>(ParentDeclName);
 
   if (!ParentDecl) {
-    const auto *ParentDeclStmt = Result.Nodes.getNodeAs<DeclStmt>(DeclStmtName);
-    if (ParentDeclStmt) {
+    
+    if (const auto *ParentDeclStmt = Result.Nodes.getNodeAs<DeclStmt>(DeclStmtName); ParentDeclStmt) {
       if (ParentDeclStmt->isSingleDecl())
         ParentDecl = ParentDeclStmt->getSingleDecl();
       else

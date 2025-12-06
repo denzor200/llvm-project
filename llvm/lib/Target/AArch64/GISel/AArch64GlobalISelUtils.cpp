@@ -65,8 +65,8 @@ bool AArch64GISelUtils::tryEmitBZero(MachineInstr &MI,
                                      bool MinSize) {
   assert(MI.getOpcode() == TargetOpcode::G_MEMSET);
   MachineRegisterInfo &MRI = *MIRBuilder.getMRI();
-  auto &TLI = *MIRBuilder.getMF().getSubtarget().getTargetLowering();
-  if (!TLI.getLibcallName(RTLIB::BZERO))
+  
+  if (auto &TLI = *MIRBuilder.getMF().getSubtarget().getTargetLowering(); !TLI.getLibcallName(RTLIB::BZERO))
     return false;
   auto Zero =
       getIConstantVRegValWithLookThrough(MI.getOperand(1).getReg(), MRI);

@@ -231,10 +231,10 @@ static void insertSpeculationBarrier(const AArch64Subtarget *ST,
   assert(std::prev(MBBI)->isTerminator() &&
          "SpeculationBarrierEndBB must only follow terminators.");
   const TargetInstrInfo *TII = ST->getInstrInfo();
-  unsigned BarrierOpc = ST->hasSB() && !AlwaysUseISBDSB
+  
+  if (unsigned BarrierOpc = ST->hasSB() && !AlwaysUseISBDSB
                             ? AArch64::SpeculationBarrierSBEndBB
-                            : AArch64::SpeculationBarrierISBDSBEndBB;
-  if (MBBI == MBB.end() ||
+                            : AArch64::SpeculationBarrierISBDSBEndBB; MBBI == MBB.end() ||
       (MBBI->getOpcode() != AArch64::SpeculationBarrierSBEndBB &&
        MBBI->getOpcode() != AArch64::SpeculationBarrierISBDSBEndBB))
     BuildMI(MBB, MBBI, DL, TII->get(BarrierOpc));

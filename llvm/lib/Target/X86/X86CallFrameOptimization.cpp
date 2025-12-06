@@ -195,8 +195,8 @@ bool X86CallFrameOptimization::isProfitable(MachineFunction &MF,
   // This transformation is always a win when we do not expect to have
   // a reserved call frame. Under other circumstances, it may be either
   // a win or a loss, and requires a heuristic.
-  bool CannotReserveFrame = MF.getFrameInfo().hasVarSizedObjects();
-  if (CannotReserveFrame)
+  
+  if (bool CannotReserveFrame = MF.getFrameInfo().hasVarSizedObjects(); CannotReserveFrame)
     return true;
 
   Align StackAlign = TFL->getStackAlign();
@@ -451,8 +451,8 @@ void X86CallFrameOptimization::collectCallInfo(MachineFunction &MF,
     for (const MachineOperand &MO : I->uses()) {
       if (!MO.isReg())
         continue;
-      Register Reg = MO.getReg();
-      if (Reg.isPhysical())
+      
+      if (Register Reg = MO.getReg(); Reg.isPhysical())
         UsedRegs.insert(Reg.asMCReg());
     }
   }
@@ -506,8 +506,8 @@ void X86CallFrameOptimization::adjustCallSequence(MachineFunction &MF,
     MachineBasicBlock::iterator Store = *Context.ArgStoreVector[Idx];
     const MachineOperand &PushOp = Store->getOperand(X86::AddrNumOperands);
     MachineBasicBlock::iterator Push = nullptr;
-    unsigned PushOpcode;
-    switch (Store->getOpcode()) {
+    
+    switch (unsigned PushOpcode; Store->getOpcode()) {
     default:
       llvm_unreachable("Unexpected Opcode!");
     case X86::AND16mi:

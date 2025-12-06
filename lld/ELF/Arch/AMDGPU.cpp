@@ -129,11 +129,11 @@ uint32_t AMDGPU::calcEFlags() const {
   if (ctx.objectFiles.empty())
     return 0;
 
-  uint8_t abiVersion = cast<ObjFile<ELF64LE>>(ctx.objectFiles[0])
+  
+  switch (uint8_t abiVersion = cast<ObjFile<ELF64LE>>(ctx.objectFiles[0])
                            ->getObj()
                            .getHeader()
-                           .e_ident[EI_ABIVERSION];
-  switch (abiVersion) {
+                           .e_ident[EI_ABIVERSION]; abiVersion) {
   case ELFABIVERSION_AMDGPU_HSA_V2:
   case ELFABIVERSION_AMDGPU_HSA_V3:
     return calcEFlagsV3();

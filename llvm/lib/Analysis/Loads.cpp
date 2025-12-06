@@ -178,10 +178,10 @@ static bool isDereferenceableAndAlignedPointer(
     // inconsistent about that.  For the moment, be conservative.
     Opts.RoundToAlign = false;
     Opts.NullIsUnknownSize = true;
-    uint64_t ObjSize;
-    if (getObjectSize(V, ObjSize, DL, TLI, Opts)) {
-      APInt KnownDerefBytes(Size.getBitWidth(), ObjSize);
-      if (KnownDerefBytes.getBoolValue() && KnownDerefBytes.uge(Size) &&
+    
+    if (uint64_t ObjSize; getObjectSize(V, ObjSize, DL, TLI, Opts)) {
+      
+      if (APInt KnownDerefBytes(Size.getBitWidth(), ObjSize); KnownDerefBytes.getBoolValue() && KnownDerefBytes.uge(Size) &&
           isKnownNonZero(V, SimplifyQuery(DL, DT, AC, CtxI)) &&
           !V->canBeFreed()) {
         // As we recursed through GEPs to get here, we've incrementally
@@ -439,8 +439,8 @@ bool llvm::isSafeToLoadUnconditionally(Value *V, Align Alignment, const APInt &S
                                        const DominatorTree *DT,
                                        const TargetLibraryInfo *TLI) {
   // If DT is not specified we can't make context-sensitive query
-  const Instruction* CtxI = DT ? ScanFrom : nullptr;
-  if (isDereferenceableAndAlignedPointer(V, Alignment, Size, DL, CtxI, AC, DT,
+  
+  if (const Instruction* CtxI = DT ? ScanFrom : nullptr; isDereferenceableAndAlignedPointer(V, Alignment, Size, DL, CtxI, AC, DT,
                                          TLI)) {
     // With sanitizers `Dereferenceable` is not always enough for unconditional
     // load.
@@ -565,9 +565,9 @@ static bool areNonOverlapSameBaseLoadAndStore(const Value *LoadPtr,
   APInt StoreOffset(DL.getIndexTypeSizeInBits(StorePtr->getType()), 0);
   const Value *LoadBase = LoadPtr->stripAndAccumulateConstantOffsets(
       DL, LoadOffset, /* AllowNonInbounds */ false);
-  const Value *StoreBase = StorePtr->stripAndAccumulateConstantOffsets(
-      DL, StoreOffset, /* AllowNonInbounds */ false);
-  if (LoadBase != StoreBase)
+  
+  if (const Value *StoreBase = StorePtr->stripAndAccumulateConstantOffsets(
+      DL, StoreOffset, /* AllowNonInbounds */ false); LoadBase != StoreBase)
     return false;
   auto LoadAccessSize = LocationSize::precise(DL.getTypeStoreSize(LoadTy));
   auto StoreAccessSize = LocationSize::precise(DL.getTypeStoreSize(StoreTy));
@@ -590,8 +590,8 @@ static Value *getAvailableLoadStore(Instruction *Inst, const Value *Ptr,
     if (LI->isAtomic() < AtLeastAtomic)
       return nullptr;
 
-    Value *LoadPtr = LI->getPointerOperand()->stripPointerCasts();
-    if (!AreEquivalentAddressValues(LoadPtr, Ptr))
+    
+    if (Value *LoadPtr = LI->getPointerOperand()->stripPointerCasts(); !AreEquivalentAddressValues(LoadPtr, Ptr))
       return nullptr;
 
     if (CastInst::isBitOrNoopPointerCastable(LI->getType(), AccessTy, DL)) {
@@ -610,8 +610,8 @@ static Value *getAvailableLoadStore(Instruction *Inst, const Value *Ptr,
     if (SI->isAtomic() < AtLeastAtomic)
       return nullptr;
 
-    Value *StorePtr = SI->getPointerOperand()->stripPointerCasts();
-    if (!AreEquivalentAddressValues(StorePtr, Ptr))
+    
+    if (Value *StorePtr = SI->getPointerOperand()->stripPointerCasts(); !AreEquivalentAddressValues(StorePtr, Ptr))
       return nullptr;
 
     if (IsLoadCSE)

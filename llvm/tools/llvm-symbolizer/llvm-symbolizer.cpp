@@ -266,8 +266,8 @@ static Error parseCommand(StringRef BinaryName, bool IsAddr2Line,
   size_t Plus = AddrSpec.rfind('+');
   if (Plus != StringRef::npos) {
     StringRef SymbolStr = AddrSpec.take_front(Plus);
-    StringRef OffsetStr = AddrSpec.substr(Plus + 1);
-    if (!SymbolStr.empty() && !OffsetStr.empty() &&
+    
+    if (StringRef OffsetStr = AddrSpec.substr(Plus + 1); !SymbolStr.empty() && !OffsetStr.empty() &&
         !OffsetStr.getAsInteger(0, Offset)) {
       Symbol = SymbolStr;
       return Error::success();
@@ -414,8 +414,8 @@ static opt::InputArgList parseOptions(int Argc, char *Argv[], bool IsAddr2Line,
 template <typename T>
 static void parseIntArg(const opt::InputArgList &Args, int ID, T &Value) {
   if (const opt::Arg *A = Args.getLastArg(ID)) {
-    StringRef V(A->getValue());
-    if (!llvm::to_integer(V, Value, 0)) {
+    
+    if (StringRef V(A->getValue()); !llvm::to_integer(V, Value, 0)) {
       errs() << A->getSpelling() +
                     ": expected a non-negative integer, but got '" + V + "'";
       exit(1);
@@ -526,8 +526,8 @@ int llvm_symbolizer_main(int argc, char **argv, const llvm::ToolContext &) {
   Config.Verbose = Args.hasArg(OPT_verbose);
 
   for (const opt::Arg *A : Args.filtered(OPT_dsym_hint_EQ)) {
-    StringRef Hint(A->getValue());
-    if (sys::path::extension(Hint) == ".dSYM") {
+    
+    if (StringRef Hint(A->getValue()); sys::path::extension(Hint) == ".dSYM") {
       Opts.DsymHints.emplace_back(Hint);
     } else {
       errs() << "Warning: invalid dSYM hint: \"" << Hint
@@ -573,8 +573,8 @@ int llvm_symbolizer_main(int argc, char **argv, const llvm::ToolContext &) {
   // read. If getOrCreateModuleInfo succeeds, symbolizeInput will reuse the
   // cached file handle.
   if (auto *Arg = Args.getLastArg(OPT_obj_EQ); Arg) {
-    auto Status = Symbolizer.getOrCreateModuleInfo(Arg->getValue());
-    if (!Status) {
+    
+    if (auto Status = Symbolizer.getOrCreateModuleInfo(Arg->getValue()); !Status) {
       Request SymRequest = {Arg->getValue(), 0, StringRef()};
       handleAllErrors(Status.takeError(), [&](const ErrorInfoBase &EI) {
         Printer->printError(SymRequest, EI);

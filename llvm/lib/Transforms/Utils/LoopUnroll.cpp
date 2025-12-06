@@ -153,16 +153,16 @@ const Loop* llvm::addClonedBlockToLoopInfo(BasicBlock *OriginalBB,
   const Loop *OldLoop = LI->getLoopFor(OriginalBB);
   assert(OldLoop && "Should (at least) be in the loop being unrolled!");
 
-  Loop *&NewLoop = NewLoops[OldLoop];
-  if (!NewLoop) {
+  
+  if (Loop *&NewLoop = NewLoops[OldLoop]; !NewLoop) {
     // Found a new sub-loop.
     assert(OriginalBB == OldLoop->getHeader() &&
            "Header should be first in RPO");
 
     NewLoop = LI->AllocateLoop();
-    Loop *NewLoopParent = NewLoops.lookup(OldLoop->getParentLoop());
+    
 
-    if (NewLoopParent)
+    if (Loop *NewLoopParent = NewLoops.lookup(OldLoop->getParentLoop()); NewLoopParent)
       NewLoopParent->addChildLoop(NewLoop);
     else
       LI->addTopLevelLoop(NewLoop);
@@ -355,8 +355,8 @@ void llvm::simplifyLoopAfterUnroll(Loop *L, bool SimplifyIVs, LoopInfo *LI,
     // Aggressively clean up dead instructions that simplifyLoopIVs already
     // identified. Any remaining should be cleaned up below.
     while (!DeadInsts.empty()) {
-      Value *V = DeadInsts.pop_back_val();
-      if (Instruction *Inst = dyn_cast_or_null<Instruction>(V))
+      
+      if (Value *V = DeadInsts.pop_back_val(); Instruction *Inst = dyn_cast_or_null<Instruction>(V))
         RecursivelyDeleteTriviallyDeadInstructions(Inst);
     }
 
@@ -393,8 +393,8 @@ void llvm::simplifyLoopAfterUnroll(Loop *L, bool SimplifyIVs, LoopInfo *LI,
       // a long chain of adds.
       {
         Value *X;
-        const APInt *C1, *C2;
-        if (match(&Inst, m_Add(m_Add(m_Value(X), m_APInt(C1)), m_APInt(C2)))) {
+        
+        if (const APInt *C1, *C2; match(&Inst, m_Add(m_Add(m_Value(X), m_APInt(C1)), m_APInt(C2)))) {
           auto *InnerI = dyn_cast<Instruction>(Inst.getOperand(0));
           auto *InnerOBO = cast<OverflowingBinaryOperator>(Inst.getOperand(0));
           bool SignedOverflow;
@@ -730,8 +730,8 @@ llvm::UnrollLoop(Loop *L, UnrollLoopOptions ULO, LoopInfo *LI,
       for (Instruction &I : *BB)
         if (!I.isDebugOrPseudoInst())
           if (const DILocation *DIL = I.getDebugLoc()) {
-            auto NewDIL = DIL->cloneByMultiplyingDuplicationFactor(ULO.Count);
-            if (NewDIL)
+            
+            if (auto NewDIL = DIL->cloneByMultiplyingDuplicationFactor(ULO.Count); NewDIL)
               I.setDebugLoc(*NewDIL);
             else
               LLVM_DEBUG(dbgs()
@@ -927,8 +927,8 @@ llvm::UnrollLoop(Loop *L, UnrollLoopOptions ULO, LoopInfo *LI,
       auto *BBDomNode = DT->getNode(BB);
       SmallVector<BasicBlock *, 16> ChildrenToUpdate;
       for (auto *ChildDomNode : BBDomNode->children()) {
-        auto *ChildBB = ChildDomNode->getBlock();
-        if (!L->contains(ChildBB))
+        
+        if (auto *ChildBB = ChildDomNode->getBlock(); !L->contains(ChildBB))
           ChildrenToUpdate.push_back(ChildBB);
       }
       // The new idom of the block will be the nearest common dominator
@@ -1065,8 +1065,8 @@ llvm::UnrollLoop(Loop *L, UnrollLoopOptions ULO, LoopInfo *LI,
            "unconditional latch");
     if (Term && Term->isUnconditional()) {
       BasicBlock *Dest = Term->getSuccessor(0);
-      BasicBlock *Fold = Dest->getUniquePredecessor();
-      if (MergeBlockIntoPredecessor(Dest, /*DTU=*/DTUToUse, LI,
+      
+      if (BasicBlock *Fold = Dest->getUniquePredecessor(); MergeBlockIntoPredecessor(Dest, /*DTU=*/DTUToUse, LI,
                                     /*MSSAU=*/nullptr, /*MemDep=*/nullptr,
                                     /*PredecessorWithTwoSuccessors=*/false,
                                     DTUToUse ? nullptr : DT)) {

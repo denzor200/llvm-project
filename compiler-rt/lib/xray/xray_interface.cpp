@@ -207,8 +207,8 @@ findFunctionSleds(int32_t FuncId,
 
   for (std::size_t I = 0; I < InstrMap.Entries && CurFn <= FuncId; I++) {
     const auto &Sled = InstrMap.Sleds[I];
-    const auto Function = Sled.function();
-    if (Function != LastFnAddr) {
+    
+    if (const auto Function = Sled.function(); Function != LastFnAddr) {
       CurFn++;
       LastFnAddr = Function;
     }
@@ -396,8 +396,8 @@ XRayPatchingStatus controlPatching(bool Enable) XRAY_NEVER_INSTRUMENT {
   for (unsigned I = 0; I < NumObjects; ++I) {
     if (!isObjectLoaded(I))
       continue;
-    auto LastStatus = controlPatchingObjectUnchecked(Enable, I);
-    switch (LastStatus) {
+    
+    switch (auto LastStatus = controlPatchingObjectUnchecked(Enable, I); LastStatus) {
     case SUCCESS:
       if (CombinedStatus == NOT_INITIALIZED)
         CombinedStatus = SUCCESS;
@@ -636,8 +636,8 @@ uintptr_t __xray_function_address_in_object(int32_t FuncId, int32_t ObjId)
   XRaySledMap InstrMap;
   {
     SpinMutexLock Guard(&XRayInstrMapMutex);
-    auto count = atomic_load(&XRayNumObjects, memory_order_acquire);
-    if (ObjId < 0 || static_cast<uint32_t>(ObjId) >= count) {
+    
+    if (auto count = atomic_load(&XRayNumObjects, memory_order_acquire); ObjId < 0 || static_cast<uint32_t>(ObjId) >= count) {
       Report("Unable to determine function address: invalid sled map index %d "
              "(size is %d)\n",
              ObjId, (int)count);

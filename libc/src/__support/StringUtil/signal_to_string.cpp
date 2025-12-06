@@ -70,8 +70,8 @@ cpp::string_view get_signal_string(int sig_num) {
 }
 
 cpp::string_view get_signal_string(int sig_num, cpp::span<char> buffer) {
-  auto opt_str = signal_mapper.get_str(sig_num);
-  if (opt_str)
+  
+  if (auto opt_str = signal_mapper.get_str(sig_num); opt_str)
     return *opt_str;
   else
     return build_signal_string(sig_num, buffer);

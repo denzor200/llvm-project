@@ -72,9 +72,9 @@ Status OptionGroupFormat::SetOptionValue(uint32_t option_idx,
                                          llvm::StringRef option_arg,
                                          ExecutionContext *execution_context) {
   Status error;
-  const int short_option = m_option_definitions[option_idx].short_option;
+  
 
-  switch (short_option) {
+  switch (const int short_option = m_option_definitions[option_idx].short_option; short_option) {
   case 'f':
     error = m_format.SetValueFromString(option_arg);
     break;

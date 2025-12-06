@@ -212,8 +212,8 @@ protected:
   orc::ExecutorAddrDiff getRawOffset(const typename ELFT::Sym &Sym,
                                      TargetFlagsType Flags) override {
     assert((makeTargetFlags(Sym) & Flags) == Flags);
-    static constexpr uint64_t ThumbBit = 0x01;
-    if (Sym.getType() == ELF::STT_FUNC)
+    
+    if (static constexpr uint64_t ThumbBit = 0x01; Sym.getType() == ELF::STT_FUNC)
       return Sym.getValue() & ~ThumbBit;
     return Sym.getValue();
   }
@@ -268,10 +268,10 @@ Expected<std::unique_ptr<LinkGraph>> createLinkGraphFromELFObject_aarch32(
   // CPUArch alone becomes too unprecise, we can find more details in the
   // Tag_CPU_arch_profile.
   auto Arch = static_cast<ARMBuildAttrs::CPUArch>(ARM::getArchAttr(AK));
-  aarch32::ArmConfig ArmCfg = aarch32::getArmConfigForCPUArch(Arch);
+  
 
   // Populate the link-graph.
-  switch (TT.getArch()) {
+  switch (aarch32::ArmConfig ArmCfg = aarch32::getArmConfigForCPUArch(Arch); TT.getArch()) {
   case Triple::arm:
   case Triple::thumb: {
     auto &ELFFile = cast<ELFObjectFile<ELF32LE>>(**ELFObj).getELFFile();

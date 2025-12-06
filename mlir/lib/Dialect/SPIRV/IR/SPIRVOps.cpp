@@ -79,9 +79,9 @@ spirv::verifyMemorySemantics(Operation *op,
                         spirv::MemorySemantics::AcquireRelease |
                         spirv::MemorySemantics::SequentiallyConsistent;
 
-  auto bitCount =
-      llvm::popcount(static_cast<uint32_t>(memorySemantics & atMostOneInSet));
-  if (bitCount > 1) {
+  
+  if (auto bitCount =
+      llvm::popcount(static_cast<uint32_t>(memorySemantics & atMostOneInSet)); bitCount > 1) {
     return op->emitError(
         "expected at most one of these four memory constraints "
         "to be set: `Acquire`, `Release`,"
@@ -563,8 +563,8 @@ void spirv::ConstantOp::print(OpAsmPrinter &printer) {
 static LogicalResult verifyConstantType(spirv::ConstantOp op, Attribute value,
                                         Type opType) {
   if (isa<spirv::CooperativeMatrixType>(opType)) {
-    auto denseAttr = dyn_cast<DenseElementsAttr>(value);
-    if (!denseAttr || !denseAttr.isSplat())
+    
+    if (auto denseAttr = dyn_cast<DenseElementsAttr>(value); !denseAttr || !denseAttr.isSplat())
       return op.emitOpError("expected a splat dense attribute for cooperative "
                             "matrix constant, but found ")
              << denseAttr;
@@ -746,9 +746,9 @@ void mlir::spirv::ConstantOp::getAsmResultNames(
     specialName << "_vec_";
     specialName << vecType.getDimSize(0);
 
-    Type elementType = vecType.getElementType();
+    
 
-    if (llvm::isa<IntegerType>(elementType) ||
+    if (Type elementType = vecType.getElementType(); llvm::isa<IntegerType>(elementType) ||
         llvm::isa<FloatType>(elementType)) {
       specialName << "x" << elementType;
     }
@@ -862,8 +862,8 @@ ParseResult spirv::EntryPointOp::parse(OpAsmParser &parser,
 void spirv::EntryPointOp::print(OpAsmPrinter &printer) {
   printer << " \"" << stringifyExecutionModel(getExecutionModel()) << "\" ";
   printer.printSymbolName(getFn());
-  auto interfaceVars = getInterface().getValue();
-  if (!interfaceVars.empty())
+  
+  if (auto interfaceVars = getInterface().getValue(); !interfaceVars.empty())
     printer << ", " << llvm::interleaved(interfaceVars);
 }
 
@@ -916,8 +916,8 @@ void spirv::ExecutionModeOp::print(OpAsmPrinter &printer) {
   printer << " ";
   printer.printSymbolName(getFn());
   printer << " \"" << stringifyExecutionMode(getExecutionMode()) << "\"";
-  ArrayAttr values = this->getValues();
-  if (!values.empty())
+  
+  if (ArrayAttr values = this->getValues(); !values.empty())
     printer << ", " << llvm::interleaved(values.getAsValueRange<IntegerAttr>());
 }
 
@@ -990,8 +990,8 @@ void spirv::FuncOp::print(OpAsmPrinter &printer) {
        getFunctionControlAttrName()});
 
   // Print the body if this is not an external function.
-  Region &body = this->getBody();
-  if (!body.empty()) {
+  
+  if (Region &body = this->getBody(); !body.empty()) {
     printer << ' ';
     printer.printRegion(body, /*printEntryBlockArgs=*/false,
                         /*printBlockTerminators=*/true);
@@ -1035,9 +1035,9 @@ LogicalResult spirv::FuncOp::verifyType() {
 
       bool hasAliasedPtr =
           hasDecorationAttr(spirv::Decoration::AliasedPointer, i);
-      bool hasRestrictPtr =
-          hasDecorationAttr(spirv::Decoration::RestrictPointer, i);
-      if (!hasAliasedPtr && !hasRestrictPtr)
+      
+      if (bool hasRestrictPtr =
+          hasDecorationAttr(spirv::Decoration::RestrictPointer, i); !hasAliasedPtr && !hasRestrictPtr)
         return emitOpError()
                << "with a pointer points to a physical buffer pointer must "
                   "be decorated either 'AliasedPointer' or 'RestrictPointer'";
@@ -1101,8 +1101,8 @@ LogicalResult spirv::FuncOp::verifyBody() {
                << fnType.getNumResults() << " results";
 
       auto retOperandType = retOp.getValue().getType();
-      auto fnResultType = fnType.getResult(0);
-      if (retOperandType != fnResultType)
+      
+      if (auto fnResultType = fnType.getResult(0); retOperandType != fnResultType)
         return retOp.emitOpError(" return value's type (")
                << retOperandType << ") mismatch with function's result type ("
                << fnResultType << ")";
@@ -1205,8 +1205,8 @@ ParseResult spirv::GlobalVariableOp::parse(OpAsmParser &parser,
 
   // Parse optional initializer
   if (succeeded(parser.parseOptionalKeyword(initializerAttrName))) {
-    FlatSymbolRefAttr initSymbol;
-    if (parser.parseLParen() ||
+    
+    if (FlatSymbolRefAttr initSymbol; parser.parseLParen() ||
         parser.parseAttribute(initSymbol, Type(), initializerAttrName,
                               result.attributes) ||
         parser.parseRParen())
@@ -1264,8 +1264,8 @@ LogicalResult spirv::GlobalVariableOp::verify() {
   // object. It cannot be Generic. It must be the same as the Storage Class
   // operand of the Result Type."
   // Also, Function storage class is reserved by spirv.Variable.
-  auto storageClass = this->storageClass();
-  if (storageClass == spirv::StorageClass::Generic ||
+  
+  if (auto storageClass = this->storageClass(); storageClass == spirv::StorageClass::Generic ||
       storageClass == spirv::StorageClass::Function) {
     return emitOpError("storage class cannot be '")
            << stringifyStorageClass(storageClass) << "'";
@@ -1273,8 +1273,7 @@ LogicalResult spirv::GlobalVariableOp::verify() {
 
   if (auto init = (*this)->getAttrOfType<FlatSymbolRefAttr>(
           this->getInitializerAttrName())) {
-    Operation *initOp = SymbolTable::lookupNearestSymbolFrom(
-        (*this)->getParentOp(), init.getAttr());
+    
     // TODO: Currently only variable initialization with specialization
     // constants is supported. There could be normal constants in the module
     // scope as well.
@@ -1285,7 +1284,8 @@ LogicalResult spirv::GlobalVariableOp::verify() {
     // variable to be initialized to be type X, not pointer to X. Now
     // `spirv.GlobalVariable` only allows pointer type, so in the current design
     // we cannot initialize one `spirv.GlobalVariable` with another.
-    if (!initOp ||
+    if (Operation *initOp = SymbolTable::lookupNearestSymbolFrom(
+        (*this)->getParentOp(), init.getAttr()); !initOp ||
         !isa<spirv::SpecConstantOp, spirv::SpecConstantCompositeOp>(initOp)) {
       return emitOpError("initializer must be result of a "
                          "spirv.SpecConstant or "
@@ -1475,8 +1475,8 @@ ParseResult spirv::ModuleOp::parse(OpAsmParser &parser,
     return failure();
 
   if (succeeded(parser.parseOptionalKeyword("requires"))) {
-    spirv::VerCapExtAttr vceTriple;
-    if (parser.parseAttribute(vceTriple,
+    
+    if (spirv::VerCapExtAttr vceTriple; parser.parseAttribute(vceTriple,
                               spirv::ModuleOp::getVCETripleAttrName(),
                               result.attributes))
       return failure();
@@ -1632,8 +1632,8 @@ ParseResult spirv::SpecConstantOp::parse(OpAsmParser &parser,
 
   // Parse optional spec_id.
   if (succeeded(parser.parseOptionalKeyword(kSpecIdAttrName))) {
-    IntegerAttr specIdAttr;
-    if (parser.parseLParen() ||
+    
+    if (IntegerAttr specIdAttr; parser.parseLParen() ||
         parser.parseAttribute(specIdAttr, kSpecIdAttrName, result.attributes) ||
         parser.parseRParen())
       return failure();
@@ -1689,8 +1689,8 @@ LogicalResult spirv::VectorShuffleOp::verify() {
       llvm::cast<VectorType>(getVector2().getType()).getNumElements();
 
   for (const auto &selector : getComponents().getAsValueRange<IntegerAttr>()) {
-    uint32_t index = selector.getZExtValue();
-    if (index >= totalSrcElements &&
+    
+    if (uint32_t index = selector.getZExtValue(); index >= totalSrcElements &&
         index != std::numeric_limits<uint32_t>().max())
       return emitOpError("component selector ")
              << index << " out of range: expected to be in [0, "
@@ -1903,11 +1903,11 @@ LogicalResult spirv::SpecConstantCompositeOp::verify() {
   for (auto index : llvm::seq<uint32_t>(0, constituents.size())) {
     auto constituent = llvm::cast<FlatSymbolRefAttr>(constituents[index]);
 
-    auto constituentSpecConstOp =
-        dyn_cast<spirv::SpecConstantOp>(SymbolTable::lookupNearestSymbolFrom(
-            (*this)->getParentOp(), constituent.getAttr()));
+    
 
-    if (constituentSpecConstOp.getDefaultValue().getType() !=
+    if (auto constituentSpecConstOp =
+        dyn_cast<spirv::SpecConstantOp>(SymbolTable::lookupNearestSymbolFrom(
+            (*this)->getParentOp(), constituent.getAttr())); constituentSpecConstOp.getDefaultValue().getType() !=
         cType.getElementType(index))
       return emitError("has incorrect types of operands: expected ")
              << cType.getElementType(index) << ", but provided "
@@ -2061,9 +2061,9 @@ LogicalResult spirv::GLFrexpStructOp::verify() {
                      "same type as the operand");
 
   if (exponentVecTy) {
-    IntegerType componentIntTy =
-        llvm::dyn_cast<IntegerType>(exponentVecTy.getElementType());
-    if (!componentIntTy || componentIntTy.getWidth() != 32)
+    
+    if (IntegerType componentIntTy =
+        llvm::dyn_cast<IntegerType>(exponentVecTy.getElementType()); !componentIntTy || componentIntTy.getWidth() != 32)
       return emitError("member one of the resulting struct type must"
                        "be a scalar or vector of 32 bit integer type");
   } else if (!exponentIntTy || exponentIntTy.getWidth() != 32) {

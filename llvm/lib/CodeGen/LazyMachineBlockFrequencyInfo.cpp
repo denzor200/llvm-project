@@ -51,9 +51,9 @@ void LazyMachineBlockFrequencyInfoPass::releaseMemory() {
 
 MachineBlockFrequencyInfo &
 LazyMachineBlockFrequencyInfoPass::calculateIfNotAvailable() const {
-  auto *MBFIWrapper =
-      getAnalysisIfAvailable<MachineBlockFrequencyInfoWrapperPass>();
-  if (MBFIWrapper) {
+  
+  if (auto *MBFIWrapper =
+      getAnalysisIfAvailable<MachineBlockFrequencyInfoWrapperPass>(); MBFIWrapper) {
     LLVM_DEBUG(dbgs() << "MachineBlockFrequencyInfo is available\n");
     return MBFIWrapper->getMBFI();
   }

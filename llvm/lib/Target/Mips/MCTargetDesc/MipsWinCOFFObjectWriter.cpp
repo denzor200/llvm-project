@@ -35,9 +35,9 @@ unsigned MipsWinCOFFObjectWriter::getRelocType(MCContext &Ctx,
                                                const MCFixup &Fixup,
                                                bool IsCrossSection,
                                                const MCAsmBackend &MAB) const {
-  unsigned FixupKind = Fixup.getKind();
+  
 
-  switch (FixupKind) {
+  switch (unsigned FixupKind = Fixup.getKind(); FixupKind) {
   case FK_Data_4:
     return COFF::IMAGE_REL_MIPS_REFWORD;
   case FK_SecRel_2:

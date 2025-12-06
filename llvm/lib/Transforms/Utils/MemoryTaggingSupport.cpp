@@ -121,8 +121,8 @@ void StackInfoBuilder::visit(OptimizationRemarkEmitter &ORE,
             AllocaInterestingness::kInteresting)
           return;
         AllocaInfo &AInfo = Info.AllocasToInstrument[AI];
-        auto &DVRVec = AInfo.DbgVariableRecords;
-        if (DVRVec.empty() || DVRVec.back() != &DVR)
+        
+        if (auto &DVRVec = AInfo.DbgVariableRecords; DVRVec.empty() || DVRVec.back() != &DVR)
           DVRVec.push_back(&DVR);
       }
     };
@@ -166,8 +166,8 @@ void StackInfoBuilder::visit(OptimizationRemarkEmitter &ORE,
     return;
   }
 
-  Instruction *ExitUntag = getUntagLocationIfFunctionExit(Inst);
-  if (ExitUntag)
+  
+  if (Instruction *ExitUntag = getUntagLocationIfFunctionExit(Inst); ExitUntag)
     Info.RetVec.push_back(ExitUntag);
 }
 

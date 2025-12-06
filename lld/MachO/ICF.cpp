@@ -359,8 +359,8 @@ void ICF::applySafeThunksToRange(size_t begin, size_t end) {
 // with matching equivalence class
 void ICF::forEachClass(llvm::function_ref<void(size_t, size_t)> func) {
   // Only use threads when the benefits outweigh the overhead.
-  const size_t threadingThreshold = 1024;
-  if (icfInputs.size() < threadingThreshold) {
+  
+  if (const size_t threadingThreshold = 1024; icfInputs.size() < threadingThreshold) {
     forEachClassRange(0, icfInputs.size(), func);
     ++icfPass;
     return;
@@ -589,12 +589,12 @@ void macho::foldIdenticalSections(bool onlyCfStrings) {
         ((config->icfLevel == ICFLevel::safe_thunks) && isCodeSec);
 
     // FIXME: consider non-code __text sections as foldable?
-    bool isFoldable = (!onlyCfStrings || isCfStringSection(isec)) &&
+    
+    if (bool isFoldable = (!onlyCfStrings || isCfStringSection(isec)) &&
                       (isCodeSec || isFoldableWithAddendsRemoved ||
                        isGccExceptTabSection(isec)) &&
                       noUniqueRequirement && !isec->hasAltEntry &&
-                      !isec->shouldOmitFromOutput() && hasFoldableFlags;
-    if (isFoldable) {
+                      !isec->shouldOmitFromOutput() && hasFoldableFlags; isFoldable) {
       foldable.push_back(isec);
       for (Defined *d : isec->symbols)
         if (d->unwindEntry())

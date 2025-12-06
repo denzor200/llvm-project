@@ -59,11 +59,11 @@ void ReportShapeFnPass::runOnOperation() {
   SmallVector<shape::FunctionLibraryOp, 4> libraries;
   auto attr = module->getDiscardableAttr("shape.lib");
   if (attr) {
-    auto lookup = [&](Attribute attr) {
+    
+    if (auto lookup = [&](Attribute attr) {
       return cast<shape::FunctionLibraryOp>(
           SymbolTable::lookupSymbolIn(module, cast<SymbolRefAttr>(attr)));
-    };
-    if (auto arrayAttr = dyn_cast<ArrayAttr>(attr)) {
+    }; auto arrayAttr = dyn_cast<ArrayAttr>(attr)) {
       libraries.reserve(arrayAttr.size());
       for (auto attr : arrayAttr)
         libraries.push_back(lookup(attr));
@@ -79,10 +79,10 @@ void ReportShapeFnPass::runOnOperation() {
       return;
 
     func.walk([&](Operation *op) {
-      bool found = llvm::any_of(libraries, [&](shape::FunctionLibraryOp lib) {
+      
+      if (bool found = llvm::any_of(libraries, [&](shape::FunctionLibraryOp lib) {
         return remarkShapeFn(lib, op);
-      });
-      if (!found)
+      }); !found)
         op->emitRemark() << "no associated way to refine shape";
     });
   });

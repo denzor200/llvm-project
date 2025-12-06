@@ -212,8 +212,8 @@ void AMDGPUAsmPrinter::emitFunctionBodyStart() {
 }
 
 void AMDGPUAsmPrinter::emitFunctionBodyEnd() {
-  const SIMachineFunctionInfo &MFI = *MF->getInfo<SIMachineFunctionInfo>();
-  if (!MFI.isEntryFunction())
+  
+  if (const SIMachineFunctionInfo &MFI = *MF->getInfo<SIMachineFunctionInfo>(); !MFI.isEntryFunction())
     return;
 
   if (TM.getTargetTriple().getOS() != Triple::AMDHSA)
@@ -272,8 +272,8 @@ void AMDGPUAsmPrinter::emitFunctionEntryLabel() {
   }
 
   const SIMachineFunctionInfo *MFI = MF->getInfo<SIMachineFunctionInfo>();
-  const GCNSubtarget &STM = MF->getSubtarget<GCNSubtarget>();
-  if (MFI->isEntryFunction() && STM.isAmdHsaOrMesa(MF->getFunction())) {
+  
+  if (const GCNSubtarget &STM = MF->getSubtarget<GCNSubtarget>(); MFI->isEntryFunction() && STM.isAmdHsaOrMesa(MF->getFunction())) {
     SmallString<128> SymbolName;
     getNameWithPrefix(SymbolName, &MF->getFunction()),
     getTargetStreamer()->EmitAMDGPUSymbolType(
@@ -311,8 +311,8 @@ void AMDGPUAsmPrinter::emitGlobalVariable(const GlobalVariable *GV) {
     }
 
     // LDS variables aren't emitted in HSA or PAL yet.
-    const Triple::OSType OS = TM.getTargetTriple().getOS();
-    if (OS == Triple::AMDHSA || OS == Triple::AMDPAL)
+    
+    if (const Triple::OSType OS = TM.getTargetTriple().getOS(); OS == Triple::AMDHSA || OS == Triple::AMDPAL)
       return;
 
     MCSymbol *GVSym = getSymbol(GV);
@@ -422,8 +422,8 @@ void AMDGPUAsmPrinter::validateMCResourceInfo(Function &F) {
   if (STM.getGeneration() >= AMDGPUSubtarget::VOLCANIC_ISLANDS &&
       !STM.hasSGPRInitBug()) {
     unsigned MaxAddressableNumSGPRs = STM.getAddressableNumSGPRs();
-    uint64_t NumSgpr;
-    if (NumSGPRSymbol->isVariable() &&
+    
+    if (uint64_t NumSgpr; NumSGPRSymbol->isVariable() &&
         TryGetMCExprValue(NumSGPRSymbol->getVariableValue(), NumSgpr) &&
         NumSgpr > MaxAddressableNumSGPRs) {
       DiagnosticInfoResourceLimit Diag(F, "addressable scalar registers",
@@ -453,8 +453,8 @@ void AMDGPUAsmPrinter::validateMCResourceInfo(Function &F) {
         getTargetStreamer()->getTargetID()->isXnackOnOrAny());
     if (STM.getGeneration() <= AMDGPUSubtarget::SEA_ISLANDS ||
         STM.hasSGPRInitBug()) {
-      unsigned MaxAddressableNumSGPRs = STM.getAddressableNumSGPRs();
-      if (NumSgpr > MaxAddressableNumSGPRs) {
+      
+      if (unsigned MaxAddressableNumSGPRs = STM.getAddressableNumSGPRs(); NumSgpr > MaxAddressableNumSGPRs) {
         DiagnosticInfoResourceLimit Diag(F, "scalar registers", NumSgpr,
                                          MaxAddressableNumSGPRs, DS_Error,
                                          DK_ResourceLimit);
@@ -471,8 +471,8 @@ void AMDGPUAsmPrinter::validateMCResourceInfo(Function &F) {
 
     MachineModuleInfo &MMI =
         getAnalysis<MachineModuleInfoWrapperPass>().getMMI();
-    MachineFunction *MF = MMI.getMachineFunction(F);
-    if (MF && NumVgprSymbol->isVariable() && NumAgprSymbol->isVariable() &&
+    
+    if (MachineFunction *MF = MMI.getMachineFunction(F); MF && NumVgprSymbol->isVariable() && NumAgprSymbol->isVariable() &&
         TryGetMCExprValue(NumVgprSymbol->getVariableValue(), NumVgpr) &&
         TryGetMCExprValue(NumAgprSymbol->getVariableValue(), NumAgpr)) {
       const SIMachineFunctionInfo &MFI = *MF->getInfo<SIMachineFunctionInfo>();
@@ -492,10 +492,10 @@ void AMDGPUAsmPrinter::validateMCResourceInfo(Function &F) {
           MFI.getDynamicVGPRBlockSize(), STM, OutContext);
       uint64_t Occupancy;
 
-      const auto [MinWEU, MaxWEU] = AMDGPU::getIntegerPairAttribute(
-          F, "amdgpu-waves-per-eu", {0, 0}, true);
+      
 
-      if (TryGetMCExprValue(OccupancyExpr, Occupancy) && Occupancy < MinWEU) {
+      if (const auto [MinWEU, MaxWEU] = AMDGPU::getIntegerPairAttribute(
+          F, "amdgpu-waves-per-eu", {0, 0}, true); TryGetMCExprValue(OccupancyExpr, Occupancy) && Occupancy < MinWEU) {
         DiagnosticInfoOptimizationFailure Diag(
             F, F.getSubprogram(),
             "failed to meet occupancy target given by 'amdgpu-waves-per-eu' in "
@@ -514,12 +514,12 @@ bool AMDGPUAsmPrinter::doFinalization(Module &M) {
   // causing stale data in caches. Arguably this should be done by the linker,
   // which is why this isn't done for Mesa.
   // Don't do it if there is no code.
-  const MCSubtargetInfo &STI = *getGlobalSTI();
-  if ((AMDGPU::isGFX10Plus(STI) || AMDGPU::isGFX90A(STI)) &&
+  
+  if (const MCSubtargetInfo &STI = *getGlobalSTI(); (AMDGPU::isGFX10Plus(STI) || AMDGPU::isGFX90A(STI)) &&
       (STI.getTargetTriple().getOS() == Triple::AMDHSA ||
        STI.getTargetTriple().getOS() == Triple::AMDPAL)) {
-    MCSection *TextSect = getObjFileLowering().getTextSection();
-    if (TextSect->hasInstructions()) {
+    
+    if (MCSection *TextSect = getObjFileLowering().getTextSection(); TextSect->hasInstructions()) {
       OutStreamer->switchSection(TextSect);
       getTargetStreamer()->EmitCodeEnd(STI);
     }
@@ -719,8 +719,8 @@ bool AMDGPUAsmPrinter::runOnMachineFunction(MachineFunction &MF) {
   if (STM.dumpCode()) {
     // For -dumpcode, get the assembler out of the streamer. This only works
     // with -filetype=obj.
-    MCAssembler *Assembler = OutStreamer->getAssemblerPtr();
-    if (Assembler)
+    
+    if (MCAssembler *Assembler = OutStreamer->getAssemblerPtr(); Assembler)
       DumpCodeInstEmitter = Assembler->getEmitterPtr();
   }
 
@@ -916,8 +916,8 @@ bool AMDGPUAsmPrinter::runOnMachineFunction(MachineFunction &MF) {
 // and a dispatcher that dynamically resizes the VGPR count before dispatching
 // to a function.
 void AMDGPUAsmPrinter::emitDVgprSymbol(MachineFunction &MF) {
-  const SIMachineFunctionInfo &MFI = *MF.getInfo<SIMachineFunctionInfo>();
-  if (MFI.isDynamicVGPREnabled() &&
+  
+  if (const SIMachineFunctionInfo &MFI = *MF.getInfo<SIMachineFunctionInfo>(); MFI.isDynamicVGPREnabled() &&
       MF.getFunction().getCallingConv() == CallingConv::AMDGPU_CS_Chain) {
     MCContext &Ctx = MF.getContext();
     unsigned BlockSize = MFI.getDynamicVGPRBlockSize();
@@ -1059,8 +1059,8 @@ void AMDGPUAsmPrinter::getSIProgramInfo(SIProgramInfo &ProgInfo,
   if (STM.getGeneration() >= AMDGPUSubtarget::VOLCANIC_ISLANDS &&
       !STM.hasSGPRInitBug()) {
     unsigned MaxAddressableNumSGPRs = STM.getAddressableNumSGPRs();
-    uint64_t NumSgpr;
-    if (TryGetMCExprValue(ProgInfo.NumSGPR, NumSgpr) &&
+    
+    if (uint64_t NumSgpr; TryGetMCExprValue(ProgInfo.NumSGPR, NumSgpr) &&
         NumSgpr > MaxAddressableNumSGPRs) {
       // This can happen due to a compiler bug or when using inline asm.
       LLVMContext &Ctx = MF.getFunction().getContext();
@@ -1114,8 +1114,8 @@ void AMDGPUAsmPrinter::getSIProgramInfo(SIProgramInfo &ProgInfo,
   if (STM.getGeneration() <= AMDGPUSubtarget::SEA_ISLANDS ||
       STM.hasSGPRInitBug()) {
     unsigned MaxAddressableNumSGPRs = STM.getAddressableNumSGPRs();
-    uint64_t NumSgpr;
-    if (TryGetMCExprValue(ProgInfo.NumSGPR, NumSgpr) &&
+    
+    if (uint64_t NumSgpr; TryGetMCExprValue(ProgInfo.NumSGPR, NumSgpr) &&
         NumSgpr > MaxAddressableNumSGPRs) {
       // This can happen due to a compiler bug or when using inline asm to use
       // the registers which are usually reserved for vcc etc.
@@ -1363,8 +1363,8 @@ void AMDGPUAsmPrinter::EmitProgramInfoSI(const MachineFunction &MF,
   };
 
   auto EmitResolvedOrExpr = [this](const MCExpr *Value, unsigned Size) {
-    int64_t Val;
-    if (Value->evaluateAsAbsolute(Val))
+    
+    if (int64_t Val; Value->evaluateAsAbsolute(Val))
       OutStreamer->emitIntValue(static_cast<uint64_t>(Val), Size);
     else
       OutStreamer->emitValue(Value, Size);
@@ -1527,10 +1527,10 @@ void AMDGPUAsmPrinter::EmitPALMetadata(const MachineFunction &MF,
       Ctx);
 
   if (MF.getFunction().getCallingConv() == CallingConv::AMDGPU_PS) {
-    unsigned ExtraLDSSize = STM.getGeneration() >= AMDGPUSubtarget::GFX11
+    
+    if (unsigned ExtraLDSSize = STM.getGeneration() >= AMDGPUSubtarget::GFX11
                                 ? divideCeil(CurrentProgramInfo.LDSBlocks, 2)
-                                : CurrentProgramInfo.LDSBlocks;
-    if (MD->getPALMajorVersion() < 3) {
+                                : CurrentProgramInfo.LDSBlocks; MD->getPALMajorVersion() < 3) {
       MD->setRsrc2(
           CC,
           MCConstantExpr::create(S_00B02C_EXTRA_LDS_SIZE(ExtraLDSSize), Ctx),
@@ -1577,9 +1577,9 @@ void AMDGPUAsmPrinter::emitPALFunctionMetadata(const MachineFunction &MF) {
   StringRef FnName = MF.getFunction().getName();
   MD->setFunctionScratchSize(FnName, MFI.getStackSize());
   const GCNSubtarget &ST = MF.getSubtarget<GCNSubtarget>();
-  MCContext &Ctx = MF.getContext();
+  
 
-  if (MD->getPALMajorVersion() < 3) {
+  if (MCContext &Ctx = MF.getContext(); MD->getPALMajorVersion() < 3) {
     // Set compute registers
     MD->setRsrc1(
         CallingConv::AMDGPU_CS,
@@ -1701,8 +1701,8 @@ bool AMDGPUAsmPrinter::PrintAsmOperand(const MachineInstr *MI, unsigned OpNo,
     return false;
   }
   if (MO.isImm()) {
-    int64_t Val = MO.getImm();
-    if (AMDGPU::isInlinableIntLiteral(Val)) {
+    
+    if (int64_t Val = MO.getImm(); AMDGPU::isInlinableIntLiteral(Val)) {
       O << Val;
     } else if (isUInt<16>(Val)) {
       O << format("0x%" PRIx16, static_cast<uint16_t>(Val));
@@ -1734,8 +1734,8 @@ void AMDGPUAsmPrinter::emitResourceUsageRemarks(
   const char *Indent = "    ";
 
   // If the remark is not specifically enabled, do not output to yaml
-  LLVMContext &Ctx = MF.getFunction().getContext();
-  if (!Ctx.getDiagHandlerPtr()->isAnalysisRemarkEnabled(Name))
+  
+  if (LLVMContext &Ctx = MF.getFunction().getContext(); !Ctx.getDiagHandlerPtr()->isAnalysisRemarkEnabled(Name))
     return;
 
   // Currently non-kernel functions have no resources to emit.

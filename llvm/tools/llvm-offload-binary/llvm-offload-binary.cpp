@@ -64,8 +64,8 @@ static DenseMap<StringRef, StringRef> getImageArguments(StringRef Image,
   DenseMap<StringRef, StringRef> Args;
   for (StringRef Arg : llvm::split(Image, ",")) {
     auto [Key, Value] = Arg.split("=");
-    auto [It, Inserted] = Args.try_emplace(Key, Value);
-    if (!Inserted)
+    
+    if (auto [It, Inserted] = Args.try_emplace(Key, Value); !Inserted)
       It->second = Saver.save(It->second + "," + Value);
   }
 
@@ -162,15 +162,15 @@ static Error unbundleImages() {
     for (const OffloadFile &File : Binaries) {
       const auto *Binary = File.getBinary();
       // We handle the 'file' and 'kind' identifiers differently.
-      bool Match = llvm::all_of(Args, [&](auto &Arg) {
+      
+      if (bool Match = llvm::all_of(Args, [&](auto &Arg) {
         const auto [Key, Value] = Arg;
         if (Key == "file")
           return true;
         if (Key == "kind")
           return Binary->getOffloadKind() == getOffloadKind(Value);
         return Binary->getString(Key) == Value;
-      });
-      if (Match)
+      }); Match)
         Extracted.push_back(Binary);
     }
 
@@ -202,11 +202,11 @@ static Error unbundleImages() {
     } else {
       uint64_t Idx = 0;
       for (const OffloadBinary *Binary : Extracted) {
-        StringRef Filename =
+        
+        if (StringRef Filename =
             Saver.save(sys::path::stem(InputFile) + "-" + Binary->getTriple() +
                        "-" + Binary->getArch() + "." + std::to_string(Idx++) +
-                       "." + getImageKindName(Binary->getImageKind()));
-        if (Error E = writeFile(Filename, Binary->getImage()))
+                       "." + getImageKindName(Binary->getImageKind())); Error E = writeFile(Filename, Binary->getImage()))
           return E;
       }
     }

@@ -751,8 +751,8 @@ HCE::ExtValue::ExtValue(const MachineOperand &Op) : ExtRoot(Op) {
 }
 
 bool HCE::ExtValue::operator< (const HCE::ExtValue &EV) const {
-  const ExtRoot &ER = *this;
-  if (!(ER == ExtRoot(EV)))
+  
+  if (const ExtRoot &ER = *this; !(ER == ExtRoot(EV)))
     return ER < EV;
   return Offset < EV.Offset;
 }
@@ -859,11 +859,11 @@ unsigned HCE::getRegOffOpcode(unsigned ExtOpc) const {
     default:
       break;
   }
-  const MCInstrDesc &D = HII->get(ExtOpc);
-  if (D.mayLoad() || D.mayStore()) {
+  
+  if (const MCInstrDesc &D = HII->get(ExtOpc); D.mayLoad() || D.mayStore()) {
     uint64_t F = D.TSFlags;
-    unsigned AM = (F >> HexagonII::AddrModePos) & HexagonII::AddrModeMask;
-    switch (AM) {
+    
+    switch (unsigned AM = (F >> HexagonII::AddrModePos) & HexagonII::AddrModeMask; AM) {
       case HexagonII::Absolute:
       case HexagonII::AbsoluteSet:
       case HexagonII::BaseLongOffset:
@@ -1142,8 +1142,8 @@ void HCE::recordExtender(MachineInstr &MI, unsigned OpNum) {
       return;
 
   if (IsLoad || IsStore) {
-    unsigned AM = HII->getAddrMode(MI);
-    switch (AM) {
+    
+    switch (unsigned AM = HII->getAddrMode(MI); AM) {
       // (Re: ##Off + Rb<<S) = Rd: ##Val
       case HexagonII::Absolute:       // (__: ## + __<<_)
         break;
@@ -1222,8 +1222,8 @@ void HCE::collectInstr(MachineInstr &MI) {
     return;
 
   // Skip some non-convertible instructions.
-  unsigned Opc = MI.getOpcode();
-  switch (Opc) {
+  
+  switch (unsigned Opc = MI.getOpcode(); Opc) {
     case Hexagon::M2_macsin:  // There is no Rx -= mpyi(Rs,Rt).
     case Hexagon::C4_addipc:
     case Hexagon::S4_or_andi:

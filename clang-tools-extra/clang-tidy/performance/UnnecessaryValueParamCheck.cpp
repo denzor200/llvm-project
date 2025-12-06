@@ -75,10 +75,10 @@ void UnnecessaryValueParamCheck::check(const MatchFinder::MatchResult &Result) {
 
   const TraversalKindScope RAII(*Result.Context, TK_AsIs);
 
-  FunctionParmMutationAnalyzer *Analyzer =
+  
+  if (FunctionParmMutationAnalyzer *Analyzer =
       FunctionParmMutationAnalyzer::getFunctionParmMutationAnalyzer(
-          *Function, *Result.Context, MutationAnalyzerCache);
-  if (Analyzer->isMutated(Param))
+          *Function, *Result.Context, MutationAnalyzerCache); Analyzer->isMutated(Param))
     return;
 
   const bool IsConstQualified =
@@ -90,13 +90,13 @@ void UnnecessaryValueParamCheck::check(const MatchFinder::MatchResult &Result) {
   // In this case wrap DeclRefExpr with std::move() to avoid the unnecessary
   // copy.
   if (!IsConstQualified) {
-    auto AllDeclRefExprs = utils::decl_ref_expr::allDeclRefExprs(
-        *Param, *Function, *Result.Context);
-    if (AllDeclRefExprs.size() == 1) {
+    
+    if (auto AllDeclRefExprs = utils::decl_ref_expr::allDeclRefExprs(
+        *Param, *Function, *Result.Context); AllDeclRefExprs.size() == 1) {
       auto CanonicalType = Param->getType().getCanonicalType();
-      const auto &DeclRefExpr = **AllDeclRefExprs.begin();
+      
 
-      if (!hasLoopStmtAncestor(DeclRefExpr, *Function, *Result.Context) &&
+      if (const auto &DeclRefExpr = **AllDeclRefExprs.begin(); !hasLoopStmtAncestor(DeclRefExpr, *Function, *Result.Context) &&
           ((utils::type_traits::hasNonTrivialMoveConstructor(CanonicalType) &&
             utils::decl_ref_expr::isCopyConstructorArgument(
                 DeclRefExpr, *Function, *Result.Context)) ||
@@ -149,8 +149,8 @@ void UnnecessaryValueParamCheck::handleConstRefFix(const FunctionDecl &Function,
   // 1. the ParmVarDecl is in a macro, since we cannot place them correctly
   // 2. the function is virtual as it might break overrides
   // 3. the function is an explicit template/ specialization.
-  const auto *Method = llvm::dyn_cast<CXXMethodDecl>(&Function);
-  if (Param.getBeginLoc().isMacroID() || (Method && Method->isVirtual()) ||
+  
+  if (const auto *Method = llvm::dyn_cast<CXXMethodDecl>(&Function); Param.getBeginLoc().isMacroID() || (Method && Method->isVirtual()) ||
       Function.getTemplateSpecializationKind() == TSK_ExplicitSpecialization)
     return;
   for (const auto *FunctionDecl = &Function; FunctionDecl != nullptr;

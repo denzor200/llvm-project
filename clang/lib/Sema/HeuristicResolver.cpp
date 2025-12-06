@@ -252,8 +252,8 @@ QualType HeuristicResolverImpl::simplifyType(QualType Type, const Expr *E,
       // argument type.
       if (const auto *TTPD = TTPT->getDecl()) {
         if (TTPD->hasDefaultArgument()) {
-          const auto &DefaultArg = TTPD->getDefaultArgument().getArgument();
-          if (DefaultArg.getKind() == TemplateArgument::Type) {
+          
+          if (const auto &DefaultArg = TTPD->getDefaultArgument().getArgument(); DefaultArg.getKind() == TemplateArgument::Type) {
             return {DefaultArg.getAsType()};
           }
         }
@@ -267,8 +267,8 @@ QualType HeuristicResolverImpl::simplifyType(QualType Type, const Expr *E,
       if (const auto *TTPD = dyn_cast_if_present<TemplateTemplateParmDecl>(
               TST->getTemplateName().getAsTemplateDecl())) {
         if (TTPD->hasDefaultArgument()) {
-          const auto &DefaultArg = TTPD->getDefaultArgument().getArgument();
-          if (DefaultArg.getKind() == TemplateArgument::Template) {
+          
+          if (const auto &DefaultArg = TTPD->getDefaultArgument().getArgument(); DefaultArg.getKind() == TemplateArgument::Template) {
             if (const auto *CTD = dyn_cast_if_present<ClassTemplateDecl>(
                     DefaultArg.getAsTemplate().getAsTemplateDecl())) {
               return {Ctx.getCanonicalTagType(CTD->getTemplatedDecl())};
@@ -284,8 +284,8 @@ QualType HeuristicResolverImpl::simplifyType(QualType Type, const Expr *E,
     if (!T.Type.isNull() &&
         (T.Type->isUndeducedAutoType() || T.Type->isTemplateTypeParmType())) {
       if (auto *DRE = dyn_cast_if_present<DeclRefExpr>(T.E)) {
-        auto *PrDecl = dyn_cast<ParmVarDecl>(DRE->getDecl());
-        if (PrDecl && PrDecl->isExplicitObjectParameter()) {
+        
+        if (auto *PrDecl = dyn_cast<ParmVarDecl>(DRE->getDecl()); PrDecl && PrDecl->isExplicitObjectParameter()) {
           const auto *Parent =
               dyn_cast<TagDecl>(PrDecl->getDeclContext()->getParent());
           return {Ctx.getCanonicalTagType(Parent)};
@@ -326,9 +326,9 @@ std::vector<const NamedDecl *> HeuristicResolverImpl::resolveMemberExpr(
   if (NestedNameSpecifier NNS = ME->getQualifier()) {
     if (QualType QualifierType = resolveNestedNameSpecifierToType(NNS);
         !QualifierType.isNull()) {
-      auto Decls =
-          resolveDependentMember(QualifierType, ME->getMember(), NoFilter);
-      if (!Decls.empty())
+      
+      if (auto Decls =
+          resolveDependentMember(QualifierType, ME->getMember(), NoFilter); !Decls.empty())
         return Decls;
     }
 
@@ -517,8 +517,8 @@ bool findOrdinaryMember(const CXXRecordDecl *RD, CXXBasePath &Path,
 bool HeuristicResolverImpl::findOrdinaryMemberInDependentClasses(
     const CXXBaseSpecifier *Specifier, CXXBasePath &Path,
     DeclarationName Name) {
-  TagDecl *TD = resolveTypeToTagDecl(Specifier->getType());
-  if (const auto *RD = dyn_cast_if_present<CXXRecordDecl>(TD)) {
+  
+  if (TagDecl *TD = resolveTypeToTagDecl(Specifier->getType()); const auto *RD = dyn_cast_if_present<CXXRecordDecl>(TD)) {
     return findOrdinaryMember(RD, Path, Name);
   }
   return false;
@@ -588,17 +588,17 @@ std::vector<const NamedDecl *> HeuristicResolverImpl::resolveDependentMember(
 FunctionProtoTypeLoc
 HeuristicResolverImpl::getFunctionProtoTypeLoc(const Expr *Fn) {
   TypeLoc Target;
-  const Expr *NakedFn = Fn->IgnoreParenCasts();
-  if (const auto *T = NakedFn->getType().getTypePtr()->getAs<TypedefType>()) {
+  
+  if (const Expr *NakedFn = Fn->IgnoreParenCasts(); const auto *T = NakedFn->getType().getTypePtr()->getAs<TypedefType>()) {
     Target = T->getDecl()->getTypeSourceInfo()->getTypeLoc();
   } else if (const auto *DR = dyn_cast<DeclRefExpr>(NakedFn)) {
-    const auto *D = DR->getDecl();
-    if (const auto *const VD = dyn_cast<VarDecl>(D)) {
+    
+    if (const auto *D = DR->getDecl(); const auto *const VD = dyn_cast<VarDecl>(D)) {
       Target = VD->getTypeSourceInfo()->getTypeLoc();
     }
   } else if (const auto *ME = dyn_cast<MemberExpr>(NakedFn)) {
-    const auto *MD = ME->getMemberDecl();
-    if (const auto *FD = dyn_cast<FieldDecl>(MD)) {
+    
+    if (const auto *MD = ME->getMemberDecl(); const auto *FD = dyn_cast<FieldDecl>(MD)) {
       Target = FD->getTypeSourceInfo()->getTypeLoc();
     }
   }

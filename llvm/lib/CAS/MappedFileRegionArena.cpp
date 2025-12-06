@@ -322,8 +322,8 @@ void MappedFileRegionArena::initializeHeader(uint64_t HeaderOffset) {
          "Expected end offset to be aligned");
   H = reinterpret_cast<decltype(H)>(data() + HeaderOffset);
 
-  uint64_t ExistingValue = 0;
-  if (!H->BumpPtr.compare_exchange_strong(ExistingValue, HeaderEndOffset))
+  
+  if (uint64_t ExistingValue = 0; !H->BumpPtr.compare_exchange_strong(ExistingValue, HeaderEndOffset))
     assert(ExistingValue >= HeaderEndOffset &&
            "Expected 0, or past the end of the header itself");
 }
@@ -354,8 +354,8 @@ Expected<int64_t> MappedFileRegionArena::allocateOffset(uint64_t AllocSize) {
   if (LLVM_UNLIKELY(NewEnd > DiskSize)) {
     uint64_t NewSize;
     // The minimum increment is a page, but allocate more to amortize the cost.
-    constexpr uint64_t Increment = 1 * 1024 * 1024; // 1 MB
-    if (Error E = preallocateFileTail(*FD, DiskSize, DiskSize + Increment)
+    // 1 MB
+    if (constexpr uint64_t Increment = 1 * 1024 * 1024; Error E = preallocateFileTail(*FD, DiskSize, DiskSize + Increment)
                       .moveInto(NewSize))
       return std::move(E);
     assert(NewSize >= DiskSize + Increment);

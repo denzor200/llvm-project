@@ -91,9 +91,9 @@ void DomTreeUpdater::validateDeleteBB(BasicBlock *DelBB) {
   assert(pred_empty(DelBB) && "DelBB has one or more predecessors.");
   // DelBB is unreachable and all its instructions are dead.
   while (!DelBB->empty()) {
-    Instruction &I = DelBB->back();
+    
     // Replace used instructions with an arbitrary value (poison).
-    if (!I.use_empty())
+    if (Instruction &I = DelBB->back(); !I.use_empty())
       I.replaceAllUsesWith(PoisonValue::get(I.getType()));
     DelBB->back().eraseFromParent();
   }

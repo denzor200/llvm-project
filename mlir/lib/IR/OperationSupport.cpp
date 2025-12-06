@@ -749,8 +749,8 @@ llvm::hash_code OperationEquivalence::computeHash(
            llvm::zip(lOp.getSuccessors(), rOp.getSuccessors())) {
         Block *curSuccessor = std::get<0>(successorsPair);
         Block *otherSuccessor = std::get<1>(successorsPair);
-        auto insertion = blocksMap.insert({curSuccessor, otherSuccessor});
-        if (insertion.first->getSecond() != otherSuccessor)
+        
+        if (auto insertion = blocksMap.insert({curSuccessor, otherSuccessor}); insertion.first->getSecond() != otherSuccessor)
           return false;
       }
       return true;
@@ -857,8 +857,8 @@ OperationEquivalence::isRegionEquivalentTo(Region *lhs, Region *rhs,
   if (checkCommutativeEquivalent &&
       lhs->hasTrait<mlir::OpTrait::IsCommutative>()) {
     auto lhsRange = lhs->getOperands();
-    auto rhsRange = rhs->getOperands();
-    if (failed(checkCommutativeEquivalent(lhsRange, rhsRange)))
+    
+    if (auto rhsRange = rhs->getOperands(); failed(checkCommutativeEquivalent(lhsRange, rhsRange)))
       return false;
   } else {
     // Check pair wise for equivalence.

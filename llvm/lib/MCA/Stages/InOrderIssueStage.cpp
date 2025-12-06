@@ -64,8 +64,8 @@ bool InOrderIssueStage::isAvailable(const InstRef &IR) const {
   const Instruction &Inst = *IR.getInstruction();
   unsigned NumMicroOps = Inst.getNumMicroOps();
 
-  bool ShouldCarryOver = NumMicroOps > getIssueWidth();
-  if (Bandwidth < NumMicroOps && !ShouldCarryOver)
+  
+  if (bool ShouldCarryOver = NumMicroOps > getIssueWidth(); Bandwidth < NumMicroOps && !ShouldCarryOver)
     return false;
 
   // Instruction with BeginGroup must be the first instruction to be issued in a
@@ -104,8 +104,8 @@ static unsigned checkRegisterHazard(const RegisterFile &PRF,
                                     const MCSubtargetInfo &STI,
                                     const InstRef &IR) {
   for (const ReadState &RS : IR.getInstruction()->getUses()) {
-    RegisterFile::RAWHazard Hazard = PRF.checkRAWHazards(STI, RS);
-    if (Hazard.isValid())
+    
+    if (RegisterFile::RAWHazard Hazard = PRF.checkRAWHazards(STI, RS); Hazard.isValid())
       return Hazard.hasUnknownCycles() ? 1U : Hazard.CyclesLeft;
   }
 
@@ -140,9 +140,9 @@ bool InOrderIssueStage::canExecute(const InstRef &IR) {
 
   if (LastWriteBackCycle) {
     if (!IR.getInstruction()->getRetireOOO()) {
-      unsigned NextWriteBackCycle = findFirstWriteBackCycle(IR);
+      
       // Delay the instruction to ensure that writes happen in program order.
-      if (NextWriteBackCycle < LastWriteBackCycle) {
+      if (unsigned NextWriteBackCycle = findFirstWriteBackCycle(IR); NextWriteBackCycle < LastWriteBackCycle) {
         SI.update(IR, LastWriteBackCycle - NextWriteBackCycle,
                   StallInfo::StallKind::DELAY);
         return false;
@@ -196,8 +196,8 @@ void InOrderIssueStage::notifyInstructionRetired(const InstRef &IR,
 }
 
 llvm::Error InOrderIssueStage::execute(InstRef &IR) {
-  Instruction &IS = *IR.getInstruction();
-  if (IS.isMemOp())
+  
+  if (Instruction &IS = *IR.getInstruction(); IS.isMemOp())
     IS.setLSUTokenID(LSU.dispatch(IR));
 
   if (llvm::Error E = tryIssue(IR))
@@ -367,9 +367,9 @@ void InOrderIssueStage::notifyStallEvent() {
   assert(SI.getCyclesLeft() && "A zero cycles stall?");
   assert(SI.isValid() && "Invalid stall information found!");
 
-  const InstRef &IR = SI.getInstruction();
+  
 
-  switch (SI.getStallKind()) {
+  switch (const InstRef &IR = SI.getInstruction(); SI.getStallKind()) {
   default:
     break;
   case StallInfo::StallKind::REGISTER_DEPS: {

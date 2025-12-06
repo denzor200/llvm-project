@@ -139,15 +139,15 @@ static object::SymbolRef getPreferredSymbol(const COFFObjectFile &COFF,
       CoffSym.getSectionDefinition() == nullptr)
     return Sym;
   for (const auto &S : COFF.symbols()) {
-    COFFSymbolRef CS = COFF.getCOFFSymbol(S);
-    if (CS.getSectionNumber() == CoffSym.getSectionNumber() &&
+    
+    if (COFFSymbolRef CS = COFF.getCOFFSymbol(S); CS.getSectionNumber() == CoffSym.getSectionNumber() &&
         CS.getValue() <= CoffSym.getValue() + SymbolOffset &&
         CS.getStorageClass() != COFF::IMAGE_SYM_CLASS_LABEL &&
         CS.getSectionDefinition() == nullptr) {
-      uint32_t Offset = CoffSym.getValue() + SymbolOffset - CS.getValue();
+      
       // For the end of a range, don't pick a symbol with a zero offset;
       // prefer a symbol with a small positive offset.
-      if (Offset <= SymbolOffset && (!IsRangeEnd || Offset > 0)) {
+      if (uint32_t Offset = CoffSym.getValue() + SymbolOffset - CS.getValue(); Offset <= SymbolOffset && (!IsRangeEnd || Offset > 0)) {
         SymbolOffset = Offset;
         Sym = S;
         CoffSym = CS;
@@ -174,8 +174,8 @@ static std::string formatSymbol(const Dumper::Context &Ctx,
     // Try to resolve label/section symbols into function names.
     Symbol = getPreferredSymbol(Ctx.COFF, Symbol, Displacement, IsRangeEnd);
 
-    Expected<StringRef> Name = Symbol.getName();
-    if (Name) {
+    
+    if (Expected<StringRef> Name = Symbol.getName(); Name) {
       OS << *Name;
       if (Displacement > 0)
         OS << format(" +0x%X (0x%" PRIX64 ")", Displacement, Offset);
@@ -188,8 +188,8 @@ static std::string formatSymbol(const Dumper::Context &Ctx,
     }
   } else if (!getSymbol(Ctx.COFF, Ctx.COFF.getImageBase() + Displacement,
                         Symbol)) {
-    Expected<StringRef> Name = Symbol.getName();
-    if (Name) {
+    
+    if (Expected<StringRef> Name = Symbol.getName(); Name) {
       OS << *Name;
       OS << format(" (0x%" PRIX64 ")", Ctx.COFF.getImageBase() + Displacement);
       return OS.str();
@@ -231,9 +231,9 @@ static const object::coff_section *
 getSectionContaining(const COFFObjectFile &COFF, uint64_t VA) {
   for (const auto &Section : COFF.sections()) {
     uint64_t Address = Section.getAddress();
-    uint64_t Size = Section.getSize();
+    
 
-    if (VA >= Address && (VA - Address) <= Size)
+    if (uint64_t Size = Section.getSize(); VA >= Address && (VA - Address) <= Size)
       return COFF.getCOFFSection(Section);
   }
   return nullptr;
@@ -313,8 +313,8 @@ void Dumper::printUnwindCode(const UnwindInfo &UI, ArrayRef<UnwindCode> UC,
 
   case UOP_Epilog:
     if (SeenFirstEpilog) {
-      uint32_t Offset = UC[0].getEpilogOffset();
-      if (Offset == 0) {
+      
+      if (uint32_t Offset = UC[0].getEpilogOffset(); Offset == 0) {
         OS << " padding";
       } else {
         OS << " offset=" << format("0x%X", Offset);
@@ -364,8 +364,8 @@ void Dumper::printUnwindInfo(const Context &Ctx, const coff_section *Section,
     }
   }
 
-  uint64_t LSDAOffset = Offset + getOffsetOfLSDA(UI);
-  if (UI.getFlags() & (UNW_ExceptionHandler | UNW_TerminateHandler)) {
+  
+  if (uint64_t LSDAOffset = Offset + getOffsetOfLSDA(UI); UI.getFlags() & (UNW_ExceptionHandler | UNW_TerminateHandler)) {
     SW.printString("Handler",
                    formatSymbol(Ctx, Section, LSDAOffset,
                                 UI.getLanguageSpecificHandlerOffset()));

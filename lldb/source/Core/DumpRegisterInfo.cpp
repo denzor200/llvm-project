@@ -114,8 +114,8 @@ void lldb_private::DoDumpRegisterInfo(
   if (flags_type) {
     strm.Printf("\n\n%s", flags_type->AsTable(terminal_width).c_str());
 
-    std::string enumerators = flags_type->DumpEnums(terminal_width);
-    if (enumerators.size())
+    
+    if (std::string enumerators = flags_type->DumpEnums(terminal_width); enumerators.size())
       strm << "\n\n" << enumerators;
   }
 }

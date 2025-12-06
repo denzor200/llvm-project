@@ -128,9 +128,9 @@ void SpecialMemberFunctionsCheck::check(
                 std::string(MatchedDecl->getName()));
 
   auto StoreMember = [this, &ID](SpecialMemberFunctionData Data) {
-    llvm::SmallVectorImpl<SpecialMemberFunctionData> &Members =
-        ClassWithSpecialMembers[ID];
-    if (!llvm::is_contained(Members, Data))
+    
+    if (llvm::SmallVectorImpl<SpecialMemberFunctionData> &Members =
+        ClassWithSpecialMembers[ID]; !llvm::is_contained(Members, Data))
       Members.push_back(std::move(Data));
   };
 

@@ -134,13 +134,13 @@ size_t SBWatchpoint::GetWatchSize() {
 void SBWatchpoint::SetEnabled(bool enabled) {
   LLDB_INSTRUMENT_VA(this, enabled);
 
-  lldb::WatchpointSP watchpoint_sp(GetSP());
-  if (watchpoint_sp) {
+  
+  if (lldb::WatchpointSP watchpoint_sp(GetSP()); watchpoint_sp) {
     Target &target = watchpoint_sp->GetTarget();
     std::lock_guard<std::recursive_mutex> guard(target.GetAPIMutex());
     ProcessSP process_sp = target.GetProcessSP();
-    const bool notify = true;
-    if (process_sp) {
+    
+    if (const bool notify = true; process_sp) {
       if (enabled)
         process_sp->EnableWatchpoint(watchpoint_sp, notify);
       else
@@ -154,8 +154,8 @@ void SBWatchpoint::SetEnabled(bool enabled) {
 bool SBWatchpoint::IsEnabled() {
   LLDB_INSTRUMENT_VA(this);
 
-  lldb::WatchpointSP watchpoint_sp(GetSP());
-  if (watchpoint_sp) {
+  
+  if (lldb::WatchpointSP watchpoint_sp(GetSP()); watchpoint_sp) {
     std::lock_guard<std::recursive_mutex> guard(
         watchpoint_sp->GetTarget().GetAPIMutex());
     return watchpoint_sp->IsEnabled();
@@ -180,8 +180,8 @@ uint32_t SBWatchpoint::GetHitCount() {
 uint32_t SBWatchpoint::GetIgnoreCount() {
   LLDB_INSTRUMENT_VA(this);
 
-  lldb::WatchpointSP watchpoint_sp(GetSP());
-  if (watchpoint_sp) {
+  
+  if (lldb::WatchpointSP watchpoint_sp(GetSP()); watchpoint_sp) {
     std::lock_guard<std::recursive_mutex> guard(
         watchpoint_sp->GetTarget().GetAPIMutex());
     return watchpoint_sp->GetIgnoreCount();
@@ -192,8 +192,8 @@ uint32_t SBWatchpoint::GetIgnoreCount() {
 void SBWatchpoint::SetIgnoreCount(uint32_t n) {
   LLDB_INSTRUMENT_VA(this, n);
 
-  lldb::WatchpointSP watchpoint_sp(GetSP());
-  if (watchpoint_sp) {
+  
+  if (lldb::WatchpointSP watchpoint_sp(GetSP()); watchpoint_sp) {
     std::lock_guard<std::recursive_mutex> guard(
         watchpoint_sp->GetTarget().GetAPIMutex());
     watchpoint_sp->SetIgnoreCount(n);
@@ -215,8 +215,8 @@ const char *SBWatchpoint::GetCondition() {
 void SBWatchpoint::SetCondition(const char *condition) {
   LLDB_INSTRUMENT_VA(this, condition);
 
-  lldb::WatchpointSP watchpoint_sp(GetSP());
-  if (watchpoint_sp) {
+  
+  if (lldb::WatchpointSP watchpoint_sp(GetSP()); watchpoint_sp) {
     std::lock_guard<std::recursive_mutex> guard(
         watchpoint_sp->GetTarget().GetAPIMutex());
     watchpoint_sp->SetCondition(condition);

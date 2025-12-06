@@ -159,8 +159,8 @@ static bool resultIsNotRead(Operation *op, std::vector<Operation *> &uses) {
 void eraseDeadAllocAndStores(RewriterBase &rewriter, Operation *parentOp) {
   std::vector<Operation *> opToErase;
   parentOp->walk([&](Operation *op) {
-    std::vector<Operation *> candidates;
-    if (isa<memref::AllocOp, memref::AllocaOp>(op) &&
+    
+    if (std::vector<Operation *> candidates; isa<memref::AllocOp, memref::AllocaOp>(op) &&
         resultIsNotRead(op, candidates)) {
       llvm::append_range(opToErase, candidates);
       opToErase.push_back(op);
@@ -233,8 +233,8 @@ LogicalResult resolveSourceIndicesExpandShape(
   // corresponding to each one of them post op folding.
   for (ArrayRef<int64_t> group : expandShapeOp.getReassociationIndices()) {
     assert(!group.empty() && "association indices groups cannot be empty");
-    int64_t groupSize = group.size();
-    if (groupSize == 1) {
+    
+    if (int64_t groupSize = group.size(); groupSize == 1) {
       sourceIndices.push_back(indices[group[0]]);
       continue;
     }
@@ -261,9 +261,9 @@ resolveSourceIndicesCollapseShape(Location loc, PatternRewriter &rewriter,
   for (auto [index, group] :
        llvm::zip(indices, collapseShapeOp.getReassociationIndices())) {
     assert(!group.empty() && "association indices groups cannot be empty");
-    int64_t groupSize = group.size();
+    
 
-    if (groupSize == 1) {
+    if (int64_t groupSize = group.size(); groupSize == 1) {
       sourceIndices.push_back(index);
       continue;
     }

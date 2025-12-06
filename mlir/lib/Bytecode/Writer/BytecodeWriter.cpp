@@ -838,8 +838,8 @@ void BytecodeWriter::writeDialectSection(EncodingEmitter &emitter) {
 
   // Emit the referenced operation names grouped by dialect.
   auto emitOpName = [&](OpNameNumbering &name) {
-    size_t stringId = stringSection.insert(name.name.stripDialect());
-    if (config.bytecodeVersion < bytecode::kNativePropertiesEncoding)
+    
+    if (size_t stringId = stringSection.insert(name.name.stripDialect()); config.bytecodeVersion < bytecode::kNativePropertiesEncoding)
       dialectEmitter.emitVarInt(stringId, "dialect op name");
     else
       dialectEmitter.emitVarIntWithFlag(stringId, name.name.isRegistered(),
@@ -951,8 +951,8 @@ LogicalResult BytecodeWriter::writeBlock(EncodingEmitter &emitter,
   if (hasArgs) {
     emitter.emitVarInt(args.size(), "block args count");
     for (BlockArgument arg : args) {
-      Location argLoc = arg.getLoc();
-      if (config.bytecodeVersion >= bytecode::kElideUnknownBlockArgLocation) {
+      
+      if (Location argLoc = arg.getLoc(); config.bytecodeVersion >= bytecode::kElideUnknownBlockArgLocation) {
         emitter.emitVarIntWithFlag(numberingState.getNumber(arg.getType()),
                                    !isa<UnknownLoc>(argLoc), "block arg type");
         if (!isa<UnknownLoc>(argLoc))
@@ -1013,8 +1013,8 @@ LogicalResult BytecodeWriter::writeOp(EncodingEmitter &emitter, Operation *op) {
   // Emit the properties of this operation, for now we still support deployment
   // to version <kNativePropertiesEncoding.
   if (config.bytecodeVersion >= bytecode::kNativePropertiesEncoding) {
-    std::optional<ssize_t> propertiesId = propertiesSection.emit(op);
-    if (propertiesId.has_value()) {
+    
+    if (std::optional<ssize_t> propertiesId = propertiesSection.emit(op); propertiesId.has_value()) {
       opEncodingMask |= bytecode::OpEncodingMask::kHasProperties;
       emitter.emitVarInt(*propertiesId, "op properties ID");
     }

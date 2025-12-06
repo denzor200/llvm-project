@@ -348,7 +348,7 @@ void ToyToAffineLoweringPass::runOnOperation() {
 
   // Now that the conversion target has been defined, we just need to provide
   // the set of patterns that will lower the Toy operations.
-  RewritePatternSet patterns(&getContext());
+  
   patterns.add<AddOpLowering, ConstantOpLowering, FuncOpLowering, MulOpLowering,
                PrintOpLowering, ReturnOpLowering, TransposeOpLowering>(
       &getContext());
@@ -356,7 +356,7 @@ void ToyToAffineLoweringPass::runOnOperation() {
   // With the target and rewrite patterns defined, we can now attempt the
   // conversion. The conversion will signal failure if any of our `illegal`
   // operations were not converted successfully.
-  if (failed(
+  if (RewritePatternSet patterns(&getContext()); failed(
           applyPartialConversion(getOperation(), target, std::move(patterns))))
     signalPassFailure();
 }

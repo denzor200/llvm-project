@@ -28,8 +28,8 @@ struct PassRemarksOpt {
     // Create a regexp object to match pass names for emitOptimizationRemark.
     if (!Val.empty()) {
       Pattern = std::make_shared<Regex>(Val);
-      std::string RegexError;
-      if (!Pattern->isValid(RegexError))
+      
+      if (std::string RegexError; !Pattern->isValid(RegexError))
         report_fatal_error(Twine("Invalid regular expression '") + Val +
                                "' in -pass-remarks: " + RegexError,
                            false);

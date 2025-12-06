@@ -187,8 +187,8 @@ void SBLaunchInfo::SetEnvironmentEntries(const char **envp, bool append) {
 
 void SBLaunchInfo::SetEnvironment(const SBEnvironment &env, bool append) {
   LLDB_INSTRUMENT_VA(this, env, append);
-  Environment &refEnv = env.ref();
-  if (append) {
+  
+  if (Environment &refEnv = env.ref(); append) {
     for (auto &KV : refEnv)
       m_opaque_sp->GetEnvironment().insert_or_assign(KV.first(), KV.second);
   } else

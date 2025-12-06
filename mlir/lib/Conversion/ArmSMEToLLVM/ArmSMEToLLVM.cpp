@@ -920,10 +920,10 @@ struct ConvertArmSMEToLLVMPass
       if (isa<arm_sme::CopyTileOp, arm_sme::GetTileOp, cf::BranchOp>(op) ||
           !op->isRegistered())
         return;
-      auto isSMETileType = [](Type type) {
+      
+      if (auto isSMETileType = [](Type type) {
         return arm_sme::isValidSMETileVectorType(type);
-      };
-      if (llvm::any_of(op->getResultTypes(), isSMETileType) ||
+      }; llvm::any_of(op->getResultTypes(), isSMETileType) ||
           llvm::any_of(op->getOperandTypes(), isSMETileType)) {
         op->emitOpError("unexpected operation with SME tile type after "
                         "conversion to LLVM");

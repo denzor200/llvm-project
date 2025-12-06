@@ -78,9 +78,9 @@ static StringRef getDiagnosticCategory(const Record *R,
   // If the diagnostic is in a group, and that group has a category, use it.
   if (const auto *Group = dyn_cast<DefInit>(R->getValueInit("Group"))) {
     // Check the diagnostic's diag group for a category.
-    StringRef CatName =
-        getCategoryFromDiagGroup(Group->getDef(), DiagGroupParents);
-    if (!CatName.empty()) return CatName;
+    
+    if (StringRef CatName =
+        getCategoryFromDiagGroup(Group->getDef(), DiagGroupParents); !CatName.empty()) return CatName;
   }
 
   // If the diagnostic itself has a category, get it.
@@ -199,8 +199,8 @@ static void groupDiagnostics(ArrayRef<const Record *> Diags,
       if (IsImplicit)
         continue;
 
-      SMLoc Loc = Def->getLoc().front();
-      if (First) {
+      
+      if (SMLoc Loc = Def->getLoc().front(); First) {
         SrcMgr.PrintMessage(Loc, SourceMgr::DK_Error,
                             Twine("group '") + Group.first +
                                 "' is defined more than once");
@@ -214,8 +214,8 @@ static void groupDiagnostics(ArrayRef<const Record *> Diags,
       if (!cast<DefInit>(Diag->getValueInit("Group"))->getDef()->isAnonymous())
         continue;
 
-      SMLoc Loc = Diag->getLoc().front();
-      if (First) {
+      
+      if (SMLoc Loc = Diag->getLoc().front(); First) {
         SrcMgr.PrintMessage(Loc, SourceMgr::DK_Error,
                             Twine("group '") + Group.first +
                                 "' is implicitly defined more than once");
@@ -338,8 +338,8 @@ void InferPedantic::compute(VecOrSet DiagsInPedantic,
       continue;
     DiagsSet.insert(R);
     if (const auto *Group = dyn_cast<DefInit>(R->getValueInit("Group"))) {
-      const Record *GroupRec = Group->getDef();
-      if (!isSubGroupOfGroup(GroupRec, "pedantic")) {
+      
+      if (const Record *GroupRec = Group->getDef(); !isSubGroupOfGroup(GroupRec, "pedantic")) {
         markGroup(GroupRec);
       }
     }
@@ -378,13 +378,13 @@ void InferPedantic::compute(VecOrSet DiagsInPedantic,
 
     const std::vector<const Record *> &Parents =
         DiagGroupParents.getParents(Group);
-    bool AllParentsInPedantic =
-        all_of(Parents, [&](const Record *R) { return groupInPedantic(R); });
+    
     // If all the parents are in -Wpedantic, this means that this diagnostic
     // group will be indirectly included by -Wpedantic already.  In that
     // case, do not add it directly to -Wpedantic.  If the group has no
     // parents, obviously it should go into -Wpedantic.
-    if (Parents.size() > 0 && AllParentsInPedantic)
+    if (bool AllParentsInPedantic =
+        all_of(Parents, [&](const Record *R) { return groupInPedantic(R); }); Parents.size() > 0 && AllParentsInPedantic)
       continue;
 
     if (auto *V = dyn_cast<RecordVec *>(GroupsInPedantic))
@@ -590,8 +590,8 @@ struct DiagnosticTextBuilder {
     // Check that no diagnostic definitions have the same name as a
     // substitution.
     for (const Record *Diag : Records.getAllDerivedDefinitions("Diagnostic")) {
-      StringRef Name = Diag->getName();
-      if (Substitutions.count(Name))
+      
+      if (StringRef Name = Diag->getName(); Substitutions.count(Name))
         llvm::PrintFatalError(
             Diag->getLoc(),
             "Diagnostic '" + Name +
@@ -1399,8 +1399,8 @@ static void verifyDiagnosticWording(const Record &Diag) {
     auto Iter = std::find_first_of(
         Text.begin(), Text.end(), std::begin(Separators), std::end(Separators));
 
-    StringRef First = Text.substr(0, Iter - Text.begin());
-    if (!isExemptAtStart(First)) {
+    
+    if (StringRef First = Text.substr(0, Iter - Text.begin()); !isExemptAtStart(First)) {
       PrintError(&Diag,
                  "Diagnostics should not start with a capital letter; '" +
                      First + "' is invalid");
@@ -1425,8 +1425,8 @@ static void verifyDiagnosticWording(const Record &Diag) {
     constexpr size_t PercentSelectBraceLen = sizeof("%select{") - 1;
     auto Iter = FullDiagText.begin() + PercentSelectBraceLen;
     for (auto End = FullDiagText.end(); Iter != End; ++Iter) {
-      char Ch = *Iter;
-      if (Ch == '{')
+      
+      if (char Ch = *Iter; Ch == '{')
         ++BraceCount;
       else if (Ch == '}')
         --BraceCount;
@@ -1479,8 +1479,8 @@ static void verifyDiagnosticWording(const Record &Diag) {
     size_t BraceCount = 1;
     auto Iter = FullDiagText.end() - sizeof("}0");
     for (auto End = FullDiagText.begin(); Iter != End; --Iter) {
-      char Ch = *Iter;
-      if (Ch == '}')
+      
+      if (char Ch = *Iter; Ch == '}')
         ++BraceCount;
       else if (Ch == '{')
         --BraceCount;
@@ -1494,10 +1494,10 @@ static void verifyDiagnosticWording(const Record &Diag) {
     // Continue the backwards scan to find the word before the '{' to see if it
     // is 'select'.
     constexpr size_t SelectLen = sizeof("select") - 1;
-    bool IsSelect =
+    
+    if (bool IsSelect =
         (FullDiagText.substr(Iter - SelectLen - FullDiagText.begin(),
-                             SelectLen) == "select");
-    if (IsSelect) {
+                             SelectLen) == "select"); IsSelect) {
       // Gather the content between the {} for the select in question so we can
       // split it into pieces.
       StillNeedToDiagEnd = false; // No longer need to handle the end.
@@ -1639,11 +1639,11 @@ void clang::EmitClangDiagsEnums(const RecordKeeper &Records, raw_ostream &OS,
       bool ShouldPrint =
           Component.empty() || Component == R.getValueAsString("Component");
 
-      auto PreviousByName = llvm::find_if(EnumerationNames, [&](auto &Prev) {
-        return Prev.second == Enumeration.first;
-      });
+      
 
-      if (PreviousByName != EnumerationNames.end()) {
+      if (auto PreviousByName = llvm::find_if(EnumerationNames, [&](auto &Prev) {
+        return Prev.second == Enumeration.first;
+      }); PreviousByName != EnumerationNames.end()) {
         PrintError(&R,
                    "Duplicate enumeration name '" + Enumeration.first + "'");
         PrintNote(PreviousByName->first->getLoc(),
@@ -1818,8 +1818,8 @@ static void emitDiagSubGroups(DiagsInGroupTy &DiagsInGroup,
      << "  /* Empty */ -1,\n";
   for (auto const &[Name, Group] : DiagsInGroup) {
     const bool IsPedantic = Name == "pedantic";
-    const std::vector<StringRef> &SubGroups = Group.SubGroups;
-    if (!SubGroups.empty() || (IsPedantic && !GroupsInPedantic.empty())) {
+    
+    if (const std::vector<StringRef> &SubGroups = Group.SubGroups; !SubGroups.empty() || (IsPedantic && !GroupsInPedantic.empty())) {
       OS << "  /* DiagSubGroup" << Group.IDNo << " */ ";
       for (StringRef SubGroup : SubGroups) {
         auto RI = DiagsInGroup.find(SubGroup);
@@ -1867,8 +1867,8 @@ static void emitDiagArrays(DiagsInGroupTy &DiagsInGroup,
   for (const auto &[Name, Group] : DiagsInGroup) {
     const bool IsPedantic = Name == "pedantic";
 
-    const std::vector<const Record *> &V = Group.DiagsInGroup;
-    if (!V.empty() || (IsPedantic && !DiagsInPedantic.empty())) {
+    
+    if (const std::vector<const Record *> &V = Group.DiagsInGroup; !V.empty() || (IsPedantic && !DiagsInPedantic.empty())) {
       OS << "  /* DiagArray" << Group.IDNo << " */ ";
       for (auto *Record : V)
         OS << "diag::" << Record->getName() << ", ";
@@ -1960,9 +1960,9 @@ static void emitDiagTable(DiagsInGroupTy &DiagsInGroup,
 
     // Diagnostics in the group.
     const std::vector<const Record *> &V = GroupInfo.DiagsInGroup;
-    const bool hasDiags =
-        !V.empty() || (IsPedantic && !DiagsInPedantic.empty());
-    if (hasDiags) {
+    
+    if (const bool hasDiags =
+        !V.empty() || (IsPedantic && !DiagsInPedantic.empty()); hasDiags) {
       OS << "/* DiagArray" << GroupInfo.IDNo << " */ " << DiagArrayIndex
          << ", ";
       if (IsPedantic)
@@ -2122,8 +2122,8 @@ void writeHeader(StringRef Str, raw_ostream &OS, char Kind = '-') {
 
 void writeDiagnosticText(DiagnosticTextBuilder &Builder, const Record *R,
                          StringRef Role, raw_ostream &OS) {
-  StringRef Text = R->getValueAsString("Summary");
-  if (Text == "%0")
+  
+  if (StringRef Text = R->getValueAsString("Summary"); Text == "%0")
     OS << "The text of this diagnostic is not controlled by Clang.\n\n";
   else {
     std::vector<std::string> Out = Builder.buildForDocumentation(Role, R);
@@ -2200,11 +2200,11 @@ void clang::EmitClangDiagDocs(const RecordKeeper &Records, raw_ostream &OS) {
     if (!IsSynonym) {
       // FIXME: Ideally, all the diagnostics in a group should have the same
       // default state, but that is not currently the case.
-      auto DefaultSeverities = getDefaultSeverities(G, DiagsInGroup);
-      if (!DefaultSeverities.empty() && !DefaultSeverities.count("Ignored")) {
-        bool AnyNonErrors = DefaultSeverities.count("Warning") ||
-                            DefaultSeverities.count("Remark");
-        if (!AnyNonErrors)
+      
+      if (auto DefaultSeverities = getDefaultSeverities(G, DiagsInGroup); !DefaultSeverities.empty() && !DefaultSeverities.count("Ignored")) {
+        
+        if (bool AnyNonErrors = DefaultSeverities.count("Warning") ||
+                            DefaultSeverities.count("Remark"); !AnyNonErrors)
           OS << "This diagnostic is an error by default, but the flag ``-Wno-"
              << G->getValueAsString("GroupName") << "`` can be used to disable "
              << "the error.\n\n";

@@ -410,9 +410,9 @@ void IdentifierResolver::updatingIdentifier(IdentifierInfo &II) {
 /// It creates a new IdDeclInfo if one was not created before for this id.
 IdentifierResolver::IdDeclInfo &
 IdentifierResolver::IdDeclInfoMap::operator[](DeclarationName Name) {
-  void *Ptr = Name.getFETokenInfo();
+  
 
-  if (Ptr) return *toIdDeclInfo(Ptr);
+  if (void *Ptr = Name.getFETokenInfo(); Ptr) return *toIdDeclInfo(Ptr);
 
   if (CurIndex == POOL_SIZE) {
     CurPool = new IdDeclInfoPool(CurPool);
@@ -432,8 +432,8 @@ void IdentifierResolver::iterator::incrementSlowCase() {
   assert(!isDeclPtr(InfoPtr) && "Decl with wrong id ?");
   IdDeclInfo *Info = toIdDeclInfo(InfoPtr);
 
-  BaseIter I = getIterator();
-  if (I != Info->decls_begin())
+  
+  if (BaseIter I = getIterator(); I != Info->decls_begin())
     *this = iterator(I-1);
   else // No more decls.
     *this = iterator();

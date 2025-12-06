@@ -514,8 +514,8 @@ Expected<SmallVector<StringRef>> getInput(const ArgList &Args) {
     if (std::error_code EC = BufferOrErr.getError())
       return createFileError(*Filename, EC);
 
-    MemoryBufferRef Buffer = **BufferOrErr;
-    switch (identify_magic(Buffer.getBuffer())) {
+    
+    switch (MemoryBufferRef Buffer = **BufferOrErr; identify_magic(Buffer.getBuffer())) {
     case file_magic::bitcode:
     case file_magic::elf_relocatable:
       InputFiles.emplace_back(std::move(*BufferOrErr), /*IsLazy=*/false);

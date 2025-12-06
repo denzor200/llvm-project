@@ -34,8 +34,8 @@ private:
   llvm::Type *coerceKernelArgumentType(llvm::Type *Ty, unsigned FromAS,
                                        unsigned ToAS) const {
     // Single value types.
-    auto *PtrTy = llvm::dyn_cast<llvm::PointerType>(Ty);
-    if (PtrTy && PtrTy->getAddressSpace() == FromAS)
+    
+    if (auto *PtrTy = llvm::dyn_cast<llvm::PointerType>(Ty); PtrTy && PtrTy->getAddressSpace() == FromAS)
       return llvm::PointerType::get(Ty->getContext(), ToAS);
     return Ty;
   }
@@ -247,8 +247,8 @@ ABIArgInfo AMDGPUABIInfo::classifyArgumentType(QualType Ty, bool Variadic,
       return DefaultABIInfo::classifyArgumentType(Ty);
 
     // Pack aggregates <= 8 bytes into single VGPR or pair.
-    uint64_t Size = getContext().getTypeSize(Ty);
-    if (Size <= 64) {
+    
+    if (uint64_t Size = getContext().getTypeSize(Ty); Size <= 64) {
       unsigned NumRegs = (Size + 31) / 32;
       NumRegsLeft -= std::min(NumRegsLeft, NumRegs);
 
@@ -264,8 +264,8 @@ ABIArgInfo AMDGPUABIInfo::classifyArgumentType(QualType Ty, bool Variadic,
     }
 
     if (NumRegsLeft > 0) {
-      unsigned NumRegs = numRegsForType(Ty);
-      if (NumRegsLeft >= NumRegs) {
+      
+      if (unsigned NumRegs = numRegsForType(Ty); NumRegsLeft >= NumRegs) {
         NumRegsLeft -= NumRegs;
         return ABIArgInfo::getDirect();
       }
@@ -348,8 +348,8 @@ void AMDGPUTargetCodeGenInfo::setFunctionDeclAttributes(
       M.getLangOpts().OpenCL && FD->hasAttr<DeviceKernelAttr>();
   const bool IsHIPKernel = M.getLangOpts().HIP && FD->hasAttr<CUDAGlobalAttr>();
 
-  const auto *FlatWGS = FD->getAttr<AMDGPUFlatWorkGroupSizeAttr>();
-  if (ReqdWGS || FlatWGS) {
+  
+  if (const auto *FlatWGS = FD->getAttr<AMDGPUFlatWorkGroupSizeAttr>(); ReqdWGS || FlatWGS) {
     M.handleAMDGPUFlatWorkGroupSizeAttr(F, FlatWGS, ReqdWGS);
   } else if (IsOpenCLKernel || IsHIPKernel) {
     // By default, restrict the maximum size to a value specified by
@@ -367,16 +367,16 @@ void AMDGPUTargetCodeGenInfo::setFunctionDeclAttributes(
     M.handleAMDGPUWavesPerEUAttr(F, Attr);
 
   if (const auto *Attr = FD->getAttr<AMDGPUNumSGPRAttr>()) {
-    unsigned NumSGPR = Attr->getNumSGPR();
+    
 
-    if (NumSGPR != 0)
+    if (unsigned NumSGPR = Attr->getNumSGPR(); NumSGPR != 0)
       F->addFnAttr("amdgpu-num-sgpr", llvm::utostr(NumSGPR));
   }
 
   if (const auto *Attr = FD->getAttr<AMDGPUNumVGPRAttr>()) {
-    uint32_t NumVGPR = Attr->getNumVGPR();
+    
 
-    if (NumVGPR != 0)
+    if (uint32_t NumVGPR = Attr->getNumVGPR(); NumVGPR != 0)
       F->addFnAttr("amdgpu-num-vgpr", llvm::utostr(NumVGPR));
   }
 
@@ -549,14 +549,14 @@ void AMDGPUTargetCodeGenInfo::setTargetAtomicMetadata(
     CodeGenFunction &CGF, llvm::Instruction &AtomicInst,
     const AtomicExpr *AE) const {
   auto *RMW = dyn_cast<llvm::AtomicRMWInst>(&AtomicInst);
-  auto *CmpX = dyn_cast<llvm::AtomicCmpXchgInst>(&AtomicInst);
+  
 
   // OpenCL and old style HIP atomics consider atomics targeting thread private
   // memory to be undefined.
   //
   // TODO: This is probably undefined for atomic load/store, but there's not
   // much direct codegen benefit to knowing this.
-  if (((RMW && RMW->getPointerAddressSpace() == llvm::AMDGPUAS::FLAT_ADDRESS) ||
+  if (auto *CmpX = dyn_cast<llvm::AtomicCmpXchgInst>(&AtomicInst); ((RMW && RMW->getPointerAddressSpace() == llvm::AMDGPUAS::FLAT_ADDRESS) ||
        (CmpX &&
         CmpX->getPointerAddressSpace() == llvm::AMDGPUAS::FLAT_ADDRESS)) &&
       AE && AE->threadPrivateMemoryAtomicsAreUndefined()) {
@@ -753,8 +753,8 @@ void CodeGenModule::handleAMDGPUFlatWorkGroupSizeAttr(
       *MinThreadsVal = Min;
     if (MaxThreadsVal)
       *MaxThreadsVal = Max;
-    std::string AttrVal = llvm::utostr(Min) + "," + llvm::utostr(Max);
-    if (F)
+    
+    if (std::string AttrVal = llvm::utostr(Min) + "," + llvm::utostr(Max); F)
       F->addFnAttr("amdgpu-flat-work-group-size", AttrVal);
   } else
     assert(Max == 0 && "Max must be zero");
@@ -764,12 +764,12 @@ void CodeGenModule::handleAMDGPUWavesPerEUAttr(
     llvm::Function *F, const AMDGPUWavesPerEUAttr *Attr) {
   unsigned Min =
       Attr->getMin()->EvaluateKnownConstInt(getContext()).getExtValue();
-  unsigned Max =
+  
+
+  if (unsigned Max =
       Attr->getMax()
           ? Attr->getMax()->EvaluateKnownConstInt(getContext()).getExtValue()
-          : 0;
-
-  if (Min != 0) {
+          : 0; Min != 0) {
     assert((Max == 0 || Min <= Max) && "Min must be less than or equal Max");
 
     std::string AttrVal = llvm::utostr(Min);

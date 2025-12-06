@@ -191,8 +191,8 @@ mlir::TypedAttr mlir::sparse_tensor::getOneAttr(Builder &builder, Type tp) {
   if (auto intTp = dyn_cast<IntegerType>(tp))
     return builder.getIntegerAttr(tp, APInt(intTp.getWidth(), 1));
   if (isa<RankedTensorType, VectorType>(tp)) {
-    auto shapedTp = cast<ShapedType>(tp);
-    if (auto one = getOneAttr(builder, shapedTp.getElementType()))
+    
+    if (auto shapedTp = cast<ShapedType>(tp); auto one = getOneAttr(builder, shapedTp.getElementType()))
       return DenseElementsAttr::get(shapedTp, one);
   }
   llvm_unreachable("Unsupported attribute type");

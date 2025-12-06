@@ -115,8 +115,8 @@ public:
     // Check if all incoming edges are dead.
     for (const_pred_iterator PredIt(BB), End(BB, true); PredIt != End; ++PredIt) {
       auto &PU = PredIt.getUse();
-      const Use &U = PU.getUser()->getOperandUse(PU.getOperandNo());
-      if (!isDeadBlock(*PredIt) && !isDeadEdge(&U))
+      
+      if (const Use &U = PU.getUser()->getOperandUse(PU.getOperandNo()); !isDeadBlock(*PredIt) && !isDeadEdge(&U))
         return true; // Found a live edge.
     }
     return false;
@@ -625,8 +625,8 @@ void GCPtrTracker::recalculateBBsStates() {
     size_t OldInCount = BBS->AvailableIn.size();
     for (const_pred_iterator PredIt(BB), End(BB, true); PredIt != End; ++PredIt) {
       const BasicBlock *PBB = *PredIt;
-      BasicBlockState *PBBS = getBasicBlockState(PBB);
-      if (PBBS && !CD.isDeadEdge(&CFGDeadness::getEdge(PredIt)))
+      
+      if (BasicBlockState *PBBS = getBasicBlockState(PBB); PBBS && !CD.isDeadEdge(&CFGDeadness::getEdge(PredIt)))
         set_intersect(BBS->AvailableIn, PBBS->AvailableOut);
     }
 
@@ -763,9 +763,9 @@ void GCPtrTracker::gatherDominatingDefs(const BasicBlock *BB,
 void GCPtrTracker::transferBlock(const BasicBlock *BB, BasicBlockState &BBS,
                                  bool ContributionChanged) {
   const AvailableValueSet &AvailableIn = BBS.AvailableIn;
-  AvailableValueSet &AvailableOut = BBS.AvailableOut;
+  
 
-  if (BBS.Cleared) {
+  if (AvailableValueSet &AvailableOut = BBS.AvailableOut; BBS.Cleared) {
     // AvailableOut will change only when Contribution changed.
     if (ContributionChanged)
       AvailableOut = BBS.Contribution;
@@ -819,7 +819,8 @@ void InstructionVerifier::verifyInstruction(
 
     // Returns true if LHS and RHS are unrelocated pointers and they are
     // valid unrelocated uses.
-    auto hasValidUnrelocatedUse = [&AvailableSet, Tracker, baseTyLHS, baseTyRHS,
+    
+    if (auto hasValidUnrelocatedUse = [&AvailableSet, Tracker, baseTyLHS, baseTyRHS,
                                    &LHS, &RHS] () {
         // A cmp instruction has valid unrelocated pointer operands only if
         // both operands are unrelocated pointers.
@@ -858,8 +859,7 @@ void InstructionVerifier::verifyInstruction(
         // 4. Comparison between a pointer exclusively derived from null and a
         // non-constant poisoned pointer.
         return true;
-    };
-    if (!hasValidUnrelocatedUse()) {
+    }; !hasValidUnrelocatedUse()) {
       // Print out all non-constant derived pointers that are unrelocated
       // uses, which are invalid.
       if (baseTyLHS == BaseType::NonConstant && !AvailableSet.count(LHS))

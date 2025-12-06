@@ -27,8 +27,8 @@ int64_t ARM64Common::getEmbeddedAddend(MemoryBufferRef mb, uint64_t offset,
   }
 
   const auto *buf = reinterpret_cast<const uint8_t *>(mb.getBufferStart());
-  const uint8_t *loc = buf + offset + rel.r_address;
-  switch (rel.r_length) {
+  
+  switch (const uint8_t *loc = buf + offset + rel.r_address; rel.r_length) {
   case 2:
     return static_cast<int32_t>(read32le(loc));
   case 3:
@@ -60,8 +60,8 @@ static void writeValue(uint8_t *loc, const Reloc &r, uint64_t value) {
 void ARM64Common::relocateOne(uint8_t *loc, const Reloc &r, uint64_t value,
                               uint64_t pc) const {
   auto loc32 = reinterpret_cast<uint32_t *>(loc);
-  uint32_t base = ((r.length == 2) ? read32le(loc) : 0);
-  switch (r.type) {
+  
+  switch (uint32_t base = ((r.length == 2) ? read32le(loc) : 0); r.type) {
   case ARM64_RELOC_BRANCH26:
     encodeBranch26(loc32, r, base, value - pc);
     break;

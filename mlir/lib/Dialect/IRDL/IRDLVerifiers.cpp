@@ -244,8 +244,8 @@ LogicalResult RegionConstraint::verify(mlir::Region &region,
     }
 
     for (auto [arg, constraint] : llvm::zip(actualArgs, *argumentConstraints)) {
-      mlir::Attribute type = TypeAttr::get(arg.getType());
-      if (failed(constraintContext.verify(emitError(arg.getLoc()), type,
+      
+      if (mlir::Attribute type = TypeAttr::get(arg.getType()); failed(constraintContext.verify(emitError(arg.getLoc()), type,
                                           constraint))) {
         return failure();
       }

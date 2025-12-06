@@ -157,8 +157,8 @@ void __nsan::NsanDeallocate(void *p) {
 static void *NsanReallocate(void *ptr, uptr new_size, uptr alignment) {
   Metadata *meta = reinterpret_cast<Metadata *>(allocator.GetMetaData(ptr));
   uptr old_size = meta->requested_size;
-  uptr actually_allocated_size = allocator.GetActuallyAllocatedSize(ptr);
-  if (new_size <= actually_allocated_size) {
+  
+  if (uptr actually_allocated_size = allocator.GetActuallyAllocatedSize(ptr); new_size <= actually_allocated_size) {
     // We are not reallocating here.
     meta->requested_size = new_size;
     if (new_size > old_size)

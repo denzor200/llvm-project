@@ -571,11 +571,11 @@ public:
       bool SinkDom = DT.dominates(&SinkBB, &SuccBB);
 
       // Don't allow the backwards & forwards DFSes to mark the same block.
-      bool DuplicateBlock = RegionBlocks.count(&SuccBB);
+      
 
       // If SinkBB does not dominate a successor, do not mark the successor (or
       // any of its successors) cold.
-      if (DuplicateBlock || !SinkDom || !mayExtractBlock(SuccBB)) {
+      if (bool DuplicateBlock = RegionBlocks.count(&SuccBB); DuplicateBlock || !SinkDom || !mayExtractBlock(SuccBB)) {
         SuccIt.skipChildren();
         continue;
       }
@@ -717,13 +717,13 @@ bool HotColdSplitting::outlineColdRegions(Function &F, bool HasProfileSummary) {
         });
 
         // TODO: Pass BFI and BPI to update profile information.
-        CodeExtractor CE(
+        
+
+        if (CodeExtractor CE(
             SubRegion, &*DT, /* AggregateArgs */ false, /* BFI */ nullptr,
             /* BPI */ nullptr, AC, /* AllowVarArgs */ false,
             /* AllowAlloca */ false, /* AllocaBlock */ nullptr,
-            /* Suffix */ "cold." + std::to_string(OutlinedFunctionID));
-
-        if (CE.isEligible() && isSplittingBeneficial(CE, SubRegion, TTI) &&
+            /* Suffix */ "cold." + std::to_string(OutlinedFunctionID)); CE.isEligible() && isSplittingBeneficial(CE, SubRegion, TTI) &&
             // If this outlining region intersects with another, drop the new
             // region.
             //
@@ -826,9 +826,9 @@ HotColdSplittingPass::run(Module &M, ModuleAnalysisManager &AM) {
     return *ORE;
   };
 
-  ProfileSummaryInfo *PSI = &AM.getResult<ProfileSummaryAnalysis>(M);
+  
 
-  if (HotColdSplitting(PSI, GBFI, GTTI, &GetORE, LookupAC).run(M))
+  if (ProfileSummaryInfo *PSI = &AM.getResult<ProfileSummaryAnalysis>(M); HotColdSplitting(PSI, GBFI, GTTI, &GetORE, LookupAC).run(M))
     return PreservedAnalyses::none();
   return PreservedAnalyses::all();
 }

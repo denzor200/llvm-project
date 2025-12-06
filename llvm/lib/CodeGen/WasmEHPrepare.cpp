@@ -226,8 +226,8 @@ bool WasmEHPrepareImpl::prepareEHPads(Function &F) {
   for (BasicBlock &BB : F) {
     if (!BB.isEHPad())
       continue;
-    BasicBlock::iterator Pad = BB.getFirstNonPHIIt();
-    if (isa<CatchPadInst>(Pad))
+    
+    if (BasicBlock::iterator Pad = BB.getFirstNonPHIIt(); isa<CatchPadInst>(Pad))
       CatchPads.push_back(&BB);
     else if (isa<CleanupPadInst>(Pad))
       CleanupPads.push_back(&BB);
@@ -287,10 +287,10 @@ bool WasmEHPrepareImpl::prepareEHPads(Function &F) {
 
   unsigned Index = 0;
   for (auto *BB : CatchPads) {
-    auto *CPI = cast<CatchPadInst>(BB->getFirstNonPHIIt());
+    
     // In case of a single catch (...), we don't need to emit a personalify
     // function call
-    if (CPI->arg_size() == 1 &&
+    if (auto *CPI = cast<CatchPadInst>(BB->getFirstNonPHIIt()); CPI->arg_size() == 1 &&
         cast<Constant>(CPI->getArgOperand(0))->isNullValue())
       prepareEHPad(BB, false);
     else
@@ -391,9 +391,9 @@ void llvm::calculateWasmEHInfo(const Function *F, WasmEHFuncInfo &EHInfo) {
   for (const auto &BB : *F) {
     if (!BB.isEHPad())
       continue;
-    const Instruction *Pad = &*BB.getFirstNonPHIIt();
+    
 
-    if (const auto *CatchPad = dyn_cast<CatchPadInst>(Pad)) {
+    if (const Instruction *Pad = &*BB.getFirstNonPHIIt(); const auto *CatchPad = dyn_cast<CatchPadInst>(Pad)) {
       const auto *UnwindBB = CatchPad->getCatchSwitch()->getUnwindDest();
       if (!UnwindBB)
         continue;

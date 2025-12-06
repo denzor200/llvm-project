@@ -43,9 +43,9 @@ bool AttrOrTypeBuilder::hasInferredContextParameter() const {
 
 AttrOrTypeDef::AttrOrTypeDef(const Record *def) : def(def) {
   // Populate the builders.
-  const auto *builderList =
-      dyn_cast_or_null<ListInit>(def->getValueInit("builders"));
-  if (builderList && !builderList->empty()) {
+  
+  if (const auto *builderList =
+      dyn_cast_or_null<ListInit>(def->getValueInit("builders")); builderList && !builderList->empty()) {
     for (const Init *init : builderList->getElements()) {
       AttrOrTypeBuilder builder(cast<DefInit>(init)->getDef(), def->getLoc());
 
@@ -70,8 +70,8 @@ AttrOrTypeDef::AttrOrTypeDef(const Record *def) : def(def) {
               continue;
 
             // If this is an interface, add any bases to the trait list.
-            auto *traitDef = cast<DefInit>(traitInit)->getDef();
-            if (traitDef->isSubClassOf("Interface")) {
+            
+            if (auto *traitDef = cast<DefInit>(traitInit)->getDef(); traitDef->isSubClassOf("Interface")) {
               if (auto *bases = traitDef->getValueAsListInit("baseInterfaces"))
                 processTraitList(bases);
             }
@@ -359,8 +359,8 @@ std::optional<Constraint> AttrOrTypeParameter::getConstraint() const {
 //===----------------------------------------------------------------------===//
 
 bool AttributeSelfTypeParameter::classof(const AttrOrTypeParameter *param) {
-  const Init *paramDef = param->getDef();
-  if (const auto *paramDefInit = dyn_cast<DefInit>(paramDef))
+  
+  if (const Init *paramDef = param->getDef(); const auto *paramDefInit = dyn_cast<DefInit>(paramDef))
     return paramDefInit->getDef()->isSubClassOf("AttributeSelfTypeParameter");
   return false;
 }

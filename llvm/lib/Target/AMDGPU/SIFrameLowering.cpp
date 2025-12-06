@@ -92,10 +92,10 @@ static void getVGPRSpillLaneOrTempRegister(
     ScratchSGPR = findUnusedRegister(MF.getRegInfo(), LiveUnits, RC);
 
   if (!ScratchSGPR) {
-    int FI = FrameInfo.CreateStackObject(Size, Alignment, true, nullptr,
-                                         TargetStackID::SGPRSpill);
+    
 
-    if (TRI->spillSGPRToVGPR() &&
+    if (int FI = FrameInfo.CreateStackObject(Size, Alignment, true, nullptr,
+                                         TargetStackID::SGPRSpill); TRI->spillSGPRToVGPR() &&
         MFI->allocateSGPRSpillToVGPRLane(MF, FI, /*SpillToPhysVGPRLane=*/true,
                                          /*IsPrologEpilog=*/true)) {
       // 2: There's no free lane to spill, and no free register to save the
@@ -795,9 +795,9 @@ void SIFrameLowering::emitEntryFunctionScratchRsrcRegSetup(
   const SIInstrInfo *TII = ST.getInstrInfo();
   const SIRegisterInfo *TRI = &TII->getRegisterInfo();
   const SIMachineFunctionInfo *MFI = MF.getInfo<SIMachineFunctionInfo>();
-  const Function &Fn = MF.getFunction();
+  
 
-  if (ST.isAmdPalOS()) {
+  if (const Function &Fn = MF.getFunction(); ST.isAmdPalOS()) {
     // The pointer to the GIT is formed from the offset passed in and either
     // the amdgpu-git-ptr-high function attribute or the top part of the PC
     Register Rsrc01 = TRI->getSubReg(ScratchRsrcReg, AMDGPU::sub0_sub1);
@@ -848,9 +848,9 @@ void SIFrameLowering::emitEntryFunctionScratchRsrcRegSetup(
     uint64_t Rsrc23 = TII->getScratchRsrcWords23();
 
     if (MFI->getUserSGPRInfo().hasImplicitBufferPtr()) {
-      Register Rsrc01 = TRI->getSubReg(ScratchRsrcReg, AMDGPU::sub0_sub1);
+      
 
-      if (AMDGPU::isCompute(MF.getFunction().getCallingConv())) {
+      if (Register Rsrc01 = TRI->getSubReg(ScratchRsrcReg, AMDGPU::sub0_sub1); AMDGPU::isCompute(MF.getFunction().getCallingConv())) {
         const MCInstrDesc &Mov64 = TII->get(AMDGPU::S_MOV_B64);
 
         BuildMI(MBB, I, DL, Mov64, Rsrc01)
@@ -1226,8 +1226,8 @@ void SIFrameLowering::emitPrologue(MachineFunction &MF,
   if (FuncInfo->isChainFunction()) {
     // Functions with the amdgpu_cs_chain[_preserve] CC don't receive a SP, but
     // are free to set one up if they need it.
-    bool UseSP = requiresStackPointerReference(MF);
-    if (UseSP) {
+    
+    if (bool UseSP = requiresStackPointerReference(MF); UseSP) {
       assert(StackPtrReg != AMDGPU::SP_REG);
 
       BuildMI(MBB, MBBI, DL, TII->get(AMDGPU::S_MOV_B32), StackPtrReg)
@@ -1427,10 +1427,10 @@ void SIFrameLowering::emitEpilogue(MachineFunction &MF,
     // Insert the copy to restore FP.
     Register SrcReg = SGPRForFPSaveRestoreCopy ? SGPRForFPSaveRestoreCopy
                                                : FramePtrRegScratchCopy;
-    MachineInstrBuilder MIB =
+    
+    if (MachineInstrBuilder MIB =
         BuildMI(MBB, MBBI, DL, TII->get(AMDGPU::COPY), FramePtrReg)
-            .addReg(SrcReg);
-    if (SGPRForFPSaveRestoreCopy)
+            .addReg(SrcReg); SGPRForFPSaveRestoreCopy)
       MIB.setMIFlag(MachineInstr::FrameDestroy);
   } else {
     // Insert the CSR spill restores with SP as the base register.
@@ -1477,10 +1477,10 @@ void SIFrameLowering::processFunctionBeforeFrameFinalized(
   MachineRegisterInfo &MRI = MF.getRegInfo();
   SIMachineFunctionInfo *FuncInfo = MF.getInfo<SIMachineFunctionInfo>();
 
-  const bool SpillVGPRToAGPR = ST.hasMAIInsts() && FuncInfo->hasSpilledVGPRs()
-                               && EnableSpillVGPRToAGPR;
+  
 
-  if (SpillVGPRToAGPR) {
+  if (const bool SpillVGPRToAGPR = ST.hasMAIInsts() && FuncInfo->hasSpilledVGPRs()
+                               && EnableSpillVGPRToAGPR; SpillVGPRToAGPR) {
     // To track the spill frame indices handled in this pass.
     BitVector SpillFIs(MFI.getObjectIndexEnd(), false);
     BitVector NonVGPRSpillFIs(MFI.getObjectIndexEnd(), false);
@@ -1499,9 +1499,9 @@ void SIFrameLowering::processFunctionBeforeFrameFinalized(
           unsigned FIOp = AMDGPU::getNamedOperandIdx(MI.getOpcode(),
                                                      AMDGPU::OpName::vaddr);
           int FI = MI.getOperand(FIOp).getIndex();
-          Register VReg =
-            TII->getNamedOperand(MI, AMDGPU::OpName::vdata)->getReg();
-          if (FuncInfo->allocateVGPRSpillToAGPR(MF, FI,
+          
+          if (Register VReg =
+            TII->getNamedOperand(MI, AMDGPU::OpName::vdata)->getReg(); FuncInfo->allocateVGPRSpillToAGPR(MF, FI,
                                                 TRI->isAGPR(MRI, VReg))) {
             assert(RS != nullptr);
             RS->enterBasicBlockEnd(MBB);
@@ -1538,8 +1538,8 @@ void SIFrameLowering::processFunctionBeforeFrameFinalized(
         // correct register value. But not sure the register value alone is
         for (MachineInstr &MI : MBB) {
           if (MI.isDebugValue()) {
-            uint32_t StackOperandIdx = MI.isDebugValueList() ? 2 : 0;
-            if (MI.getOperand(StackOperandIdx).isFI() &&
+            
+            if (uint32_t StackOperandIdx = MI.isDebugValueList() ? 2 : 0; MI.getOperand(StackOperandIdx).isFI() &&
                 !MFI.isFixedObjectIndex(
                     MI.getOperand(StackOperandIdx).getIndex()) &&
                 SpillFIs[MI.getOperand(StackOperandIdx).getIndex()]) {
@@ -1591,9 +1591,9 @@ void SIFrameLowering::processFunctionBeforeFrameIndicesReplaced(
     // which is lower than the eariler reserved VGPR before RA. If one exist,
     // use it for AGPR copy instead of one reserved before RA.
     Register VGPRForAGPRCopy = FuncInfo->getVGPRForAGPRCopy();
-    Register UnusedLowVGPR =
-        TRI->findUnusedRegister(MRI, &AMDGPU::VGPR_32RegClass, MF);
-    if (UnusedLowVGPR && (TRI->getHWRegIndex(UnusedLowVGPR) <
+    
+    if (Register UnusedLowVGPR =
+        TRI->findUnusedRegister(MRI, &AMDGPU::VGPR_32RegClass, MF); UnusedLowVGPR && (TRI->getHWRegIndex(UnusedLowVGPR) <
                           TRI->getHWRegIndex(VGPRForAGPRCopy))) {
       // Reserve this newly identified VGPR (for AGPR copy)
       // reserved registers should already be frozen at this point
@@ -1643,8 +1643,8 @@ void SIFrameLowering::determinePrologEpilogSGPRSaves(
       (ReservedRegForExecCopy &&
        MRI.isPhysRegUsed(ReservedRegForExecCopy, /*SkipRegMaskTest=*/true))) {
     MRI.reserveReg(ReservedRegForExecCopy, TRI);
-    Register UnusedScratchReg = findUnusedRegister(MRI, LiveUnits, RC);
-    if (UnusedScratchReg) {
+    
+    if (Register UnusedScratchReg = findUnusedRegister(MRI, LiveUnits, RC); UnusedScratchReg) {
       // If found any unused scratch SGPR, reserve the register itself for Exec
       // copy and there is no need for any spills in that case.
       MFI->setSGPRForEXECCopy(UnusedScratchReg);
@@ -1735,8 +1735,8 @@ void SIFrameLowering::determineCalleeSaves(MachineFunction &MF,
     // The shift-back is needed only for the VGPRs used for SGPR spills and they
     // are of 32-bit size. SIPreAllocateWWMRegs pass can add tuples into WWM
     // reserved registers.
-    const TargetRegisterClass *RC = TRI->getPhysRegBaseClass(Reg);
-    if (TRI->getRegSizeInBits(*RC) != 32)
+    
+    if (const TargetRegisterClass *RC = TRI->getPhysRegBaseClass(Reg); TRI->getRegSizeInBits(*RC) != 32)
       continue;
     SortedWWMVGPRs.push_back(Reg);
   }
@@ -1990,7 +1990,7 @@ bool SIFrameLowering::allocateScavengingFrameIndexesNearIncomingSP(
   const MachineFrameInfo &MFI = MF.getFrameInfo();
   const SIInstrInfo *TII = ST.getInstrInfo();
   uint64_t EstStackSize = MFI.estimateStackSize(MF);
-  uint64_t MaxOffset = EstStackSize - 1;
+  
 
   // We need the emergency stack slots to be allocated in range of the
   // MUBUF/flat scratch immediate offset from the base register, so assign these
@@ -1999,7 +1999,7 @@ bool SIFrameLowering::allocateScavengingFrameIndexesNearIncomingSP(
   // TODO: We could try sorting the objects to find a hole in the first bytes
   // rather than allocating as close to possible. This could save a lot of space
   // on frames with alignment requirements.
-  if (ST.enableFlatScratch()) {
+  if (uint64_t MaxOffset = EstStackSize - 1; ST.enableFlatScratch()) {
     if (TII->isLegalFLATOffset(MaxOffset, AMDGPUAS::PRIVATE_ADDRESS,
                                SIInstrFlags::FlatScratch))
       return false;

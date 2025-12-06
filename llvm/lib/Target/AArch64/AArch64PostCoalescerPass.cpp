@@ -53,8 +53,8 @@ bool AArch64PostCoalescer::runOnMachineFunction(MachineFunction &MF) {
   if (skipFunction(MF.getFunction()))
     return false;
 
-  AArch64FunctionInfo *FuncInfo = MF.getInfo<AArch64FunctionInfo>();
-  if (!FuncInfo->hasStreamingModeChanges())
+  
+  if (AArch64FunctionInfo *FuncInfo = MF.getInfo<AArch64FunctionInfo>(); !FuncInfo->hasStreamingModeChanges())
     return false;
 
   MRI = &MF.getRegInfo();

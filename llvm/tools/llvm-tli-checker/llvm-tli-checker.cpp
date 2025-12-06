@@ -157,9 +157,9 @@ void SDKNameMap::maybeInsertSymbol(const SymbolRef &S, const ObjectFile &O) {
   bool IsRegularFunction = Type == SymbolRef::ST_Function &&
                            (Flags & SymbolRef::SF_Global) &&
                            Section != O.section_end();
-  bool IsIFunc =
-      Type == SymbolRef::ST_Other && (Flags & SymbolRef::SF_Indirect);
-  if (IsRegularFunction || IsIFunc) {
+  
+  if (bool IsIFunc =
+      Type == SymbolRef::ST_Other && (Flags & SymbolRef::SF_Indirect); IsRegularFunction || IsIFunc) {
     StringRef Name = unwrapIgnoreError(S.getName());
     insert({ Name, true });
   }
@@ -173,9 +173,9 @@ void SDKNameMap::populateFromObject(ObjectFile *O) {
                          << ": only ELF-format files are supported\n";
     return;
   }
-  const auto *ELF = cast<ELFObjectFileBase>(O);
+  
 
-  if (ELF->getEType() == ELF::ET_REL) {
+  if (const auto *ELF = cast<ELFObjectFileBase>(O); ELF->getEType() == ELF::ET_REL) {
     for (const auto &S : ELF->symbols())
       maybeInsertSymbol(S, *O);
   } else {
@@ -332,9 +332,9 @@ int main(int argc, char *argv[]) {
       case 3: ++TLIandSDKboth;    break;
       }
       // If the results match, report only if user requested a full report.
-      ReportKind Threshold =
-          TLIHas == SDKHas ? ReportKind::Full : ReportKind::Discrepancy;
-      if (Threshold <= ReportLevel) {
+      
+      if (ReportKind Threshold =
+          TLIHas == SDKHas ? ReportKind::Full : ReportKind::Discrepancy; Threshold <= ReportLevel) {
         constexpr char YesNo[2][4] = {"no ", "yes"};
         constexpr char Indicator[4][3] = {"!!", ">>", "<<", "=="};
         outs() << Indicator[Which] << " TLI " << YesNo[TLIHas] << " SDK "

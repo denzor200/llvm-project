@@ -56,9 +56,9 @@ Value::Value(const Value &v)
     : m_value(v.m_value), m_compiler_type(v.m_compiler_type),
       m_context(v.m_context), m_value_type(v.m_value_type),
       m_context_type(v.m_context_type), m_data_buffer() {
-  const uintptr_t rhs_value =
-      (uintptr_t)v.m_value.ULongLong(LLDB_INVALID_ADDRESS);
-  if ((rhs_value != 0) &&
+  
+  if (const uintptr_t rhs_value =
+      (uintptr_t)v.m_value.ULongLong(LLDB_INVALID_ADDRESS); (rhs_value != 0) &&
       (rhs_value == (uintptr_t)v.m_data_buffer.GetBytes())) {
     m_data_buffer.CopyData(v.m_data_buffer.GetBytes(),
                            v.m_data_buffer.GetByteSize());
@@ -74,9 +74,9 @@ Value &Value::operator=(const Value &rhs) {
     m_context = rhs.m_context;
     m_value_type = rhs.m_value_type;
     m_context_type = rhs.m_context_type;
-    const uintptr_t rhs_value =
-        (uintptr_t)rhs.m_value.ULongLong(LLDB_INVALID_ADDRESS);
-    if ((rhs_value != 0) &&
+    
+    if (const uintptr_t rhs_value =
+        (uintptr_t)rhs.m_value.ULongLong(LLDB_INVALID_ADDRESS); (rhs_value != 0) &&
         (rhs_value == (uintptr_t)rhs.m_data_buffer.GetBytes())) {
       m_data_buffer.CopyData(rhs.m_data_buffer.GetBytes(),
                              rhs.m_data_buffer.GetByteSize());
@@ -161,10 +161,10 @@ size_t Value::AppendDataToHostBuffer(const Value &rhs) {
   case ValueType::Invalid:
     return 0;
   case ValueType::Scalar: {
-    const size_t scalar_size = rhs.m_value.GetByteSize();
-    if (scalar_size > 0) {
-      const size_t new_size = curr_size + scalar_size;
-      if (ResizeData(new_size) == new_size) {
+    
+    if (const size_t scalar_size = rhs.m_value.GetByteSize(); scalar_size > 0) {
+      
+      if (const size_t new_size = curr_size + scalar_size; ResizeData(new_size) == new_size) {
         rhs.m_value.GetAsMemoryData(m_data_buffer.GetBytes() + curr_size,
                                     scalar_size, endian::InlHostByteOrder(),
                                     error);
@@ -176,10 +176,10 @@ size_t Value::AppendDataToHostBuffer(const Value &rhs) {
   case ValueType::LoadAddress:
   case ValueType::HostAddress: {
     const uint8_t *src = rhs.GetBuffer().GetBytes();
-    const size_t src_len = rhs.GetBuffer().GetByteSize();
-    if (src && src_len > 0) {
-      const size_t new_size = curr_size + src_len;
-      if (ResizeData(new_size) == new_size) {
+    
+    if (const size_t src_len = rhs.GetBuffer().GetByteSize(); src && src_len > 0) {
+      
+      if (const size_t new_size = curr_size + src_len; ResizeData(new_size) == new_size) {
         ::memcpy(m_data_buffer.GetBytes() + curr_size, src, src_len);
         return src_len;
       }
@@ -254,16 +254,16 @@ const CompilerType &Value::GetCompilerType() {
       break; // TODO: Eventually convert into a compiler type?
 
     case ContextType::LLDBType: {
-      Type *lldb_type = GetType();
-      if (lldb_type)
+      
+      if (Type *lldb_type = GetType(); lldb_type)
         m_compiler_type = lldb_type->GetForwardCompilerType();
     } break;
 
     case ContextType::Variable: {
-      Variable *variable = GetVariable();
-      if (variable) {
-        Type *variable_type = variable->GetType();
-        if (variable_type)
+      
+      if (Variable *variable = GetVariable(); variable) {
+        
+        if (Type *variable_type = variable->GetType(); variable_type)
           m_compiler_type = variable_type->GetForwardCompilerType();
       }
     } break;
@@ -287,8 +287,8 @@ lldb::Format Value::GetValueDefaultFormat() {
   case ContextType::Invalid:
   case ContextType::LLDBType:
   case ContextType::Variable: {
-    const CompilerType &ast_type = GetCompilerType();
-    if (ast_type.IsValid())
+    
+    if (const CompilerType &ast_type = GetCompilerType(); ast_type.IsValid())
       return ast_type.GetFormat();
   } break;
   }
@@ -350,8 +350,8 @@ Status Value::GetValueAsData(ExecutionContext *exe_ctx, DataExtractor &data,
     if (!type_size)
       return Status::FromErrorString("type does not have a size");
 
-    uint32_t result_byte_size = *type_size;
-    if (m_value.GetData(data, result_byte_size))
+    
+    if (uint32_t result_byte_size = *type_size; m_value.GetData(data, result_byte_size))
       return error; // Success;
 
     error = Status::FromErrorString("extracting data from value failed");
@@ -362,10 +362,10 @@ Status Value::GetValueAsData(ExecutionContext *exe_ctx, DataExtractor &data,
       error = Status::FromErrorString(
           "can't read load address (no execution context)");
     } else {
-      Process *process = exe_ctx->GetProcessPtr();
-      if (process == nullptr || !process->IsAlive()) {
-        Target *target = exe_ctx->GetTargetPtr();
-        if (target) {
+      
+      if (Process *process = exe_ctx->GetProcessPtr(); process == nullptr || !process->IsAlive()) {
+        
+        if (Target *target = exe_ctx->GetTargetPtr(); target) {
           // Allow expressions to run and evaluate things when the target has
           // memory sections loaded. This allows you to use "target modules
           // load" to load your executable and any shared libraries, then
@@ -410,8 +410,8 @@ Status Value::GetValueAsData(ExecutionContext *exe_ctx, DataExtractor &data,
         if (module == nullptr) {
           // The only thing we can currently lock down to a module so that we
           // can resolve a file address, is a variable.
-          Variable *variable = GetVariable();
-          if (variable) {
+          
+          if (Variable *variable = GetVariable(); variable) {
             SymbolContext var_sc;
             variable->CalculateSymbolContext(&var_sc);
             module = var_sc.module_sp.get();
@@ -420,18 +420,18 @@ Status Value::GetValueAsData(ExecutionContext *exe_ctx, DataExtractor &data,
 
         if (module) {
           bool resolved = false;
-          ObjectFile *objfile = module->GetObjectFile();
-          if (objfile) {
+          
+          if (ObjectFile *objfile = module->GetObjectFile(); objfile) {
             Address so_addr(address, objfile->GetSectionList());
             addr_t load_address =
                 so_addr.GetLoadAddress(exe_ctx->GetTargetPtr());
-            bool process_launched_and_stopped =
+            
+            // Don't use the load address if the process has exited.
+            if (bool process_launched_and_stopped =
                 exe_ctx->GetProcessPtr()
                     ? StateIsStoppedState(exe_ctx->GetProcessPtr()->GetState(),
                                           true /* must_exist */)
-                    : false;
-            // Don't use the load address if the process has exited.
-            if (load_address != LLDB_INVALID_ADDRESS &&
+                    : false; load_address != LLDB_INVALID_ADDRESS &&
                 process_launched_and_stopped) {
               resolved = true;
               address = load_address;
@@ -451,9 +451,9 @@ Status Value::GetValueAsData(ExecutionContext *exe_ctx, DataExtractor &data,
             }
           }
           if (!resolved) {
-            Variable *variable = GetVariable();
+            
 
-            if (module) {
+            if (Variable *variable = GetVariable(); module) {
               if (variable)
                 error = Status::FromErrorStringWithFormat(
                     "unable to resolve the module for file address 0x%" PRIx64
@@ -548,8 +548,8 @@ Status Value::GetValueAsData(ExecutionContext *exe_ctx, DataExtractor &data,
     } else if ((address_type == eAddressTypeLoad) ||
                (address_type == eAddressTypeFile)) {
       if (file_so_addr.IsValid()) {
-        const bool force_live_memory = true;
-        if (exe_ctx->GetTargetRef().ReadMemory(file_so_addr, dst, byte_size,
+        
+        if (const bool force_live_memory = true; exe_ctx->GetTargetRef().ReadMemory(file_so_addr, dst, byte_size,
                                                error, force_live_memory) !=
             byte_size) {
           error = Status::FromErrorStringWithFormat(
@@ -560,12 +560,12 @@ Status Value::GetValueAsData(ExecutionContext *exe_ctx, DataExtractor &data,
         // valid process in the exe_ctx->target, so use the
         // ExecutionContext::GetProcess accessor to ensure we get the process
         // if there is one.
-        Process *process = exe_ctx->GetProcessPtr();
+        
 
-        if (process) {
-          const size_t bytes_read =
-              process->ReadMemory(address, dst, byte_size, error);
-          if (bytes_read != byte_size)
+        if (Process *process = exe_ctx->GetProcessPtr(); process) {
+          
+          if (const size_t bytes_read =
+              process->ReadMemory(address, dst, byte_size, error); bytes_read != byte_size)
             error = Status::FromErrorStringWithFormat(
                 "read memory from 0x%" PRIx64 " failed (%u of %u bytes read)",
                 (uint64_t)address, (uint32_t)bytes_read, (uint32_t)byte_size);
@@ -587,8 +587,8 @@ Status Value::GetValueAsData(ExecutionContext *exe_ctx, DataExtractor &data,
 }
 
 Scalar &Value::ResolveValue(ExecutionContext *exe_ctx, Module *module) {
-  const CompilerType &compiler_type = GetCompilerType();
-  if (compiler_type.IsValid()) {
+  
+  if (const CompilerType &compiler_type = GetCompilerType(); compiler_type.IsValid()) {
     switch (m_value_type) {
     case ValueType::Invalid:
     case ValueType::Scalar: // raw scalar value
@@ -601,10 +601,10 @@ Scalar &Value::ResolveValue(ExecutionContext *exe_ctx, Module *module) {
     {
       DataExtractor data;
       lldb::addr_t addr = m_value.ULongLong(LLDB_INVALID_ADDRESS);
-      Status error(GetValueAsData(exe_ctx, data, module));
-      if (error.Success()) {
-        Scalar scalar;
-        if (compiler_type.GetValueAsScalar(
+      
+      if (Status error(GetValueAsData(exe_ctx, data, module)); error.Success()) {
+        
+        if (Scalar scalar; compiler_type.GetValueAsScalar(
                 data, 0, data.GetByteSize(), scalar,
                 exe_ctx ? exe_ctx->GetBestExecutionContextScope() : nullptr)) {
           m_value = scalar;

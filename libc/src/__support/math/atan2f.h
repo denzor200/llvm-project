@@ -170,8 +170,8 @@ atan2f_double_double(double num_d, double den_d, double q_d, int idx,
   uint64_t rr_bits = cpp::bit_cast<uint64_t>(rr.hi);
   if (LIBC_UNLIKELY(((rr_bits & 0xfff'ffff) == 0) && (rr.lo != 0.0))) {
     Sign hi_sign = fputil::FPBits<double>(rr.hi).sign();
-    Sign lo_sign = fputil::FPBits<double>(rr.lo).sign();
-    if (hi_sign == lo_sign) {
+    
+    if (Sign lo_sign = fputil::FPBits<double>(rr.lo).sign(); hi_sign == lo_sign) {
       ++rr_bits;
     } else if ((rr_bits & fputil::FPBits<double>::FRACTION_MASK) > 0) {
       --rr_bits;

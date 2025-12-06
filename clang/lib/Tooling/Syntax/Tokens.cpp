@@ -122,13 +122,13 @@ SourceRange spelledForExpandedSlow(SourceLocation First, SourceLocation Last,
     return SourceRange();
   // Check bounds, which may still be inside macros.
   if (Prev.isValid()) {
-    auto Dec = SM.getDecomposedLoc(SM.getExpansionRange(Prev).getBegin());
-    if (Dec.first != DecFirst.first || Dec.second >= DecFirst.second)
+    
+    if (auto Dec = SM.getDecomposedLoc(SM.getExpansionRange(Prev).getBegin()); Dec.first != DecFirst.first || Dec.second >= DecFirst.second)
       return SourceRange();
   }
   if (Next.isValid()) {
-    auto Dec = SM.getDecomposedLoc(SM.getExpansionRange(Next).getEnd());
-    if (Dec.first != DecLast.first || Dec.second <= DecLast.second)
+    
+    if (auto Dec = SM.getDecomposedLoc(SM.getExpansionRange(Next).getEnd()); Dec.first != DecLast.first || Dec.second <= DecLast.second)
       return SourceRange();
   }
   // Now we know that Candidate is a file range that covers [First, Last]
@@ -230,8 +230,8 @@ void TokenBuffer::indexExpandedTokens() {
   ExpandedTokIndex.reserve(ExpandedTokens.size());
   // Index ExpandedTokens for faster lookups by SourceLocation.
   for (size_t I = 0, E = ExpandedTokens.size(); I != E; ++I) {
-    SourceLocation Loc = ExpandedTokens[I].location();
-    if (Loc.isValid())
+    
+    if (SourceLocation Loc = ExpandedTokens[I].location(); Loc.isValid())
       ExpandedTokIndex[Loc] = I;
   }
 }
@@ -244,8 +244,8 @@ llvm::ArrayRef<syntax::Token> TokenBuffer::expandedTokens(SourceRange R) const {
     // This is a huge win since majority of the users use ranges provided by an
     // AST. Ranges in AST are token ranges from expanded token stream.
     const auto B = ExpandedTokIndex.find(R.getBegin());
-    const auto E = ExpandedTokIndex.find(R.getEnd());
-    if (B != ExpandedTokIndex.end() && E != ExpandedTokIndex.end()) {
+    
+    if (const auto E = ExpandedTokIndex.find(R.getEnd()); B != ExpandedTokIndex.end() && E != ExpandedTokIndex.end()) {
       const Token *L = ExpandedTokens.data() + B->getSecond();
       // Add 1 to End to make a half-open range.
       const Token *R = ExpandedTokens.data() + E->getSecond() + 1;
@@ -563,8 +563,8 @@ TokenBuffer::macroExpansions(FileID FID) const {
   std::vector<const syntax::Token *> Expansions;
   auto &Spelled = File.SpelledTokens;
   for (auto Mapping : File.Mappings) {
-    const syntax::Token *Token = &Spelled[Mapping.BeginSpelled];
-    if (Token->kind() == tok::TokenKind::identifier)
+    
+    if (const syntax::Token *Token = &Spelled[Mapping.BeginSpelled]; Token->kind() == tok::TokenKind::identifier)
       Expansions.push_back(Token);
   }
   return Expansions;
@@ -787,9 +787,9 @@ private:
       // If we know mapping bounds at [NextSpelled, KnownEnd] (macro expansion)
       // then we want to partition our (empty) mapping.
       //   [Start, NextSpelled) [NextSpelled, KnownEnd] (KnownEnd, Target)
-      SourceLocation KnownEnd =
-          CollectedExpansions.lookup(SpelledTokens[NextSpelled].location());
-      if (KnownEnd.isValid()) {
+      
+      if (SourceLocation KnownEnd =
+          CollectedExpansions.lookup(SpelledTokens[NextSpelled].location()); KnownEnd.isValid()) {
         FlushMapping(); // Emits [Start, NextSpelled)
         while (NextSpelled < SpelledTokens.size() &&
                SpelledTokens[NextSpelled].location() <= KnownEnd)
@@ -811,9 +811,9 @@ private:
     SourceLocation Expansion = SM.getExpansionLoc(Tok.location());
     FileID File = SM.getFileID(Expansion);
     const auto &SpelledTokens = Result.Files[File].SpelledTokens;
-    auto &NextSpelled = this->NextSpelled[File];
+    
 
-    if (Tok.location().isFileID()) {
+    if (auto &NextSpelled = this->NextSpelled[File]; Tok.location().isFileID()) {
       // A run of file tokens continues while the expanded/spelled tokens match.
       while (NextSpelled < SpelledTokens.size() &&
              NextExpanded < Result.ExpandedTokens.size() &&

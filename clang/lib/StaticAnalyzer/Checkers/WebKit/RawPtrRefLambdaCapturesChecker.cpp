@@ -116,8 +116,8 @@ public:
         if (auto *CE = dyn_cast<CallExpr>(Init)) {
           if (auto *Callee = CE->getDirectCallee()) {
             auto FnName = safeGetName(Callee);
-            unsigned ArgCnt = CE->getNumArgs();
-            if (FnName == "makeScopeExit" && ArgCnt == 1) {
+            
+            if (unsigned ArgCnt = CE->getNumArgs(); FnName == "makeScopeExit" && ArgCnt == 1) {
               auto *Arg = CE->getArg(0);
               if (auto *E = dyn_cast<MaterializeTemporaryExpr>(Arg))
                 Arg = E->getSubExpr();
@@ -143,8 +143,8 @@ public:
           if (auto *Ctor = CE->getConstructor()) {
             if (auto *Cls = Ctor->getParent()) {
               auto FnName = safeGetName(Cls);
-              unsigned ArgCnt = CE->getNumArgs();
-              if (FnName == "ScopeExit" && ArgCnt == 1) {
+              
+              if (unsigned ArgCnt = CE->getNumArgs(); FnName == "ScopeExit" && ArgCnt == 1) {
                 auto *Arg = CE->getArg(0);
                 if (auto *E = dyn_cast<MaterializeTemporaryExpr>(Arg))
                   Arg = E->getSubExpr();
@@ -211,8 +211,8 @@ public:
           for (auto *Param : Callee->parameters()) {
             if (ArgIndex >= CE->getNumArgs())
               return true;
-            auto *Arg = CE->getArg(ArgIndex)->IgnoreParenCasts();
-            if (auto *L = findLambdaInArg(Arg)) {
+            
+            if (auto *Arg = CE->getArg(ArgIndex)->IgnoreParenCasts(); auto *L = findLambdaInArg(Arg)) {
               LambdasToIgnore.insert(L);
               if (!Param->hasAttr<NoEscapeAttr>())
                 Checker->visitLambdaExpr(
@@ -275,8 +275,8 @@ public:
         for (auto *Param : Callee->parameters()) {
           if (ArgIndex >= CE->getNumArgs())
             return;
-          auto *Arg = CE->getArg(ArgIndex)->IgnoreParenCasts();
-          if (auto *L = findLambdaInArg(Arg)) {
+          
+          if (auto *Arg = CE->getArg(ArgIndex)->IgnoreParenCasts(); auto *L = findLambdaInArg(Arg)) {
             LambdasToIgnore.insert(L);
             if (!Param->hasAttr<NoEscapeAttr>() && !TreatAllArgsAsNoEscape)
               Checker->visitLambdaExpr(
@@ -428,8 +428,8 @@ public:
             }
           }
           if (auto *OpCE = dyn_cast<CXXOperatorCallExpr>(Arg)) {
-            auto OpCode = OpCE->getOperator();
-            if (OpCode == OO_Star || OpCode == OO_Amp) {
+            
+            if (auto OpCode = OpCE->getOperator(); OpCode == OO_Star || OpCode == OO_Amp) {
               auto *Callee = OpCE->getDirectCallee();
               if (!Callee)
                 return false;
@@ -441,8 +441,8 @@ public:
             }
           }
           if (auto *UO = dyn_cast<UnaryOperator>(Arg)) {
-            auto OpCode = UO->getOpcode();
-            if (OpCode == UO_Deref || OpCode == UO_AddrOf) {
+            
+            if (auto OpCode = UO->getOpcode(); OpCode == UO_Deref || OpCode == UO_AddrOf) {
               Arg = UO->getSubExpr()->IgnoreParenCasts();
               continue;
             }
@@ -479,8 +479,8 @@ public:
         if (ignoreParamVarDecl && isa<ParmVarDecl>(CapturedVar))
           continue;
         if (auto *ImplicitParam = dyn_cast<ImplicitParamDecl>(CapturedVar)) {
-          auto kind = ImplicitParam->getParameterKind();
-          if ((kind == ImplicitParamKind::ObjCSelf ||
+          
+          if (auto kind = ImplicitParam->getParameterKind(); (kind == ImplicitParamKind::ObjCSelf ||
                kind == ImplicitParamKind::CXXThis) &&
               !shouldCheckThis)
             continue;

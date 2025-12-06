@@ -344,10 +344,10 @@ bool X86_64::relaxOnce(int pass) const {
 
         Relocation rel1 = rel;
         rel1.addend = rel.expr == R_RELAX_GOT_PC_NOPIC ? 0 : -4;
-        uint64_t v = sec->getRelocTargetVA(ctx, rel1,
+        
+        if (uint64_t v = sec->getRelocTargetVA(ctx, rel1,
                                            sec->getOutputSection()->addr +
-                                               sec->outSecOff + rel.offset);
-        if (isInt<32>(v))
+                                               sec->outSecOff + rel.offset); isInt<32>(v))
           continue;
         if (rel.sym->auxIdx == 0) {
           rel.sym->allocateAux(ctx);
@@ -573,9 +573,9 @@ void X86_64::relaxTlsIeToLe(uint8_t *loc, const Relocation &rel,
                             uint64_t val) const {
   uint8_t *inst = loc - 3;
   uint8_t reg = loc[-1] >> 3;
-  uint8_t *regSlot = loc - 1;
+  
 
-  if (rel.type == R_X86_64_GOTTPOFF) {
+  if (uint8_t *regSlot = loc - 1; rel.type == R_X86_64_GOTTPOFF) {
     // Note that ADD with RSP or R12 is converted to ADD instead of LEA
     // because LEA with these registers needs 4 bytes to encode and thus
     // wouldn't fit the space.
@@ -1191,13 +1191,13 @@ static std::pair<Relocation *, uint64_t>
 getBranchInfoAtTarget(InputSection &is, uint64_t offset) {
   auto content = is.contentMaybeDecompress();
   if (content.size() > offset && content[offset] == 0xe9) { // JMP immediate
-    auto *i = llvm::partition_point(
-        is.relocations, [&](Relocation &r) { return r.offset < offset + 1; });
+    
     // Unlike with getControlTransferAddend() it is valid to accept a PC32
     // relocation here because we know that this is actually a JMP and not some
     // other reference, so the interpretation is that we add 4 to the addend and
     // use that as the effective addend.
-    if (i != is.relocations.end() && i->offset == offset + 1 &&
+    if (auto *i = llvm::partition_point(
+        is.relocations, [&](Relocation &r) { return r.offset < offset + 1; }); i != is.relocations.end() && i->offset == offset + 1 &&
         (i->type == R_X86_64_PC32 || i->type == R_X86_64_PLT32)) {
       return {i, i->addend + 4};
     }

@@ -228,8 +228,8 @@ static bool isIdenticalWith(const BinaryFunction &A, const BinaryFunction &B,
 
     auto SuccBBI = OtherBB->succ_begin();
     for (const BinaryBasicBlock *SuccBB : BB->successors()) {
-      const BinaryBasicBlock *SuccOtherBB = *SuccBBI;
-      if (SuccBB->getLayoutIndex() != SuccOtherBB->getLayoutIndex())
+      
+      if (const BinaryBasicBlock *SuccOtherBB = *SuccBBI; SuccBB->getLayoutIndex() != SuccOtherBB->getLayoutIndex())
         return false;
       ++SuccBBI;
     }
@@ -391,8 +391,8 @@ void IdenticalCodeFolding::analyzeDataRelocations(BinaryContext &BC) {
     if (!Sec.hasSectionRef() || !Sec.isData())
       continue;
     for (const auto &Rel : Sec.relocations()) {
-      const uint64_t RelAddr = Rel.Offset + Sec.getAddress();
-      if (isAddressInVTable(RelAddr))
+      
+      if (const uint64_t RelAddr = Rel.Offset + Sec.getAddress(); isAddressInVTable(RelAddr))
         continue;
       if (BinaryFunction *BF = BC.getFunctionForSymbol(Rel.Symbol))
         BF->setHasAddressTaken(true);
@@ -401,8 +401,8 @@ void IdenticalCodeFolding::analyzeDataRelocations(BinaryContext &BC) {
     // 1: No symbol and only addend.
     // 2: There is a symbol, but it does not references a function in a binary.
     for (const auto &Rel : Sec.dynamicRelocations()) {
-      const uint64_t RelAddr = Rel.Offset + Sec.getAddress();
-      if (isAddressInVTable(RelAddr))
+      
+      if (const uint64_t RelAddr = Rel.Offset + Sec.getAddress(); isAddressInVTable(RelAddr))
         continue;
       if (BinaryFunction *BF = BC.getBinaryFunctionAtAddress(Rel.Addend))
         BF->setHasAddressTaken(true);

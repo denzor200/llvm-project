@@ -46,9 +46,9 @@ std::string Filter::run() {
     size_t LineStart = Pos;
     Pos = Data.find_first_of("\r\n", Pos);
     Pos = Data.find_first_not_of("\r\n", Pos);
-    StringRef Line = Data.take_front(Pos).drop_front(LineStart);
+    
 
-    if (parseLine(Line))
+    if (StringRef Line = Data.take_front(Pos).drop_front(LineStart); parseLine(Line))
       Output.push_back(Line);
   }
 

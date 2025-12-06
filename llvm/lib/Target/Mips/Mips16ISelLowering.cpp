@@ -230,8 +230,8 @@ unsigned int Mips16TargetLowering::getMips16HelperFunctionStubNumber
   (ArgListTy &Args) const {
   unsigned int resultNum = 0;
   if (Args.size() >= 1) {
-    Type *t = Args[0].Ty;
-    if (t->isFloatTy()) {
+    
+    if (Type *t = Args[0].Ty; t->isFloatTy()) {
       resultNum = 1;
     }
     else if (t->isDoubleTy()) {
@@ -240,8 +240,8 @@ unsigned int Mips16TargetLowering::getMips16HelperFunctionStubNumber
   }
   if (resultNum) {
     if (Args.size() >=2) {
-      Type *t = Args[1].Ty;
-      if (t->isFloatTy()) {
+      
+      if (Type *t = Args[1].Ty; t->isFloatTy()) {
         resultNum += 4;
       }
       else if (t->isDoubleTy()) {
@@ -427,8 +427,8 @@ getOpndList(SmallVectorImpl<SDValue> &Ops,
   // T9 should contain the address of the callee function if
   // -relocation-model=pic or it is an indirect call.
   if (IsPICCall || !GlobalOrExternal) {
-    unsigned V0Reg = Mips::V0;
-    if (NeedMips16Helper) {
+    
+    if (unsigned V0Reg = Mips::V0; NeedMips16Helper) {
       RegsToPass.push_front(std::make_pair(V0Reg, Callee));
       JumpTarget = DAG.getExternalSymbol(Mips16HelperFunction,
                                          getPointerTy(DAG.getDataLayout()));

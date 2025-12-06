@@ -22,12 +22,12 @@ static void replaceCallWithArg(const CallExpr *Call, DiagnosticBuilder &Diag,
   const CharSourceRange BeforeArgumentsRange = Lexer::makeFileCharRange(
       CharSourceRange::getCharRange(Call->getBeginLoc(), Arg->getBeginLoc()),
       SM, LangOpts);
-  const CharSourceRange AfterArgumentsRange = Lexer::makeFileCharRange(
+  
+
+  if (const CharSourceRange AfterArgumentsRange = Lexer::makeFileCharRange(
       CharSourceRange::getCharRange(Call->getEndLoc(),
                                     Call->getEndLoc().getLocWithOffset(1)),
-      SM, LangOpts);
-
-  if (BeforeArgumentsRange.isValid() && AfterArgumentsRange.isValid()) {
+      SM, LangOpts); BeforeArgumentsRange.isValid() && AfterArgumentsRange.isValid()) {
     Diag << FixItHint::CreateRemoval(BeforeArgumentsRange)
          << FixItHint::CreateRemoval(AfterArgumentsRange);
   }
@@ -153,7 +153,8 @@ void MoveConstArgCheck::check(const MatchFinder::MatchResult &Result) {
         IsVariable ? dyn_cast<DeclRefExpr>(Arg)->getDecl() : nullptr;
 
     {
-      auto Diag = diag(FileMoveRange.getBegin(),
+      
+      if (auto Diag = diag(FileMoveRange.getBegin(),
                        "std::move of the %select{|const }0"
                        "%select{expression|variable %5}1 "
                        "%select{|of the trivially-copyable type %6 }2"
@@ -162,8 +163,7 @@ void MoveConstArgCheck::check(const MatchFinder::MatchResult &Result) {
                   << IsConstArg << IsVariable << IsTriviallyCopyable
                   << IsRVRefParam
                   << (IsConstArg && IsVariable && !IsTriviallyCopyable) << Var
-                  << Arg->getType();
-      if (!IsRVRefParam)
+                  << Arg->getType(); !IsRVRefParam)
         replaceCallWithArg(CallMove, Diag, SM, getLangOpts());
     }
     if (IsRVRefParam) {

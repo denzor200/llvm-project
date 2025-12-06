@@ -1091,8 +1091,8 @@ llvm::Value *CodeGenFunction::EmitBlockLiteral(const CGBlockInfo &blockInfo) {
     // cleanup objects, in which case its lifetime ends after the full
     // expression.
     auto IsBlockDeclInRetExpr = [&]() {
-      auto *EWC = llvm::dyn_cast_or_null<ExprWithCleanups>(RetExpr);
-      if (EWC)
+      
+      if (auto *EWC = llvm::dyn_cast_or_null<ExprWithCleanups>(RetExpr); EWC)
         for (auto &C : EWC->getObjects())
           if (auto *BD = C.dyn_cast<BlockDecl *>())
             if (BD == blockDecl)
@@ -1136,9 +1136,9 @@ llvm::Type *CodeGenModule::getGenericBlockLiteralType() {
   if (GenericBlockLiteralType)
     return GenericBlockLiteralType;
 
-  llvm::Type *BlockDescPtrTy = getBlockDescriptorType();
+  
 
-  if (getLangOpts().OpenCL) {
+  if (llvm::Type *BlockDescPtrTy = getBlockDescriptorType(); getLangOpts().OpenCL) {
     // struct __opencl_block_literal_generic {
     //   int __size;
     //   int __align;
@@ -1466,8 +1466,8 @@ llvm::Function *CodeGenFunction::GenerateBlockFunction(
   // to be local to this function as well, in case they're directly
   // referenced in a block.
   for (const auto &KV : ldm) {
-    const auto *var = dyn_cast<VarDecl>(KV.first);
-    if (var && !var->hasLocalStorage())
+    
+    if (const auto *var = dyn_cast<VarDecl>(KV.first); var && !var->hasLocalStorage())
       setAddrOfLocalVar(var, KV.second);
   }
 
@@ -1596,8 +1596,8 @@ llvm::Function *CodeGenFunction::GenerateBlockFunction(
       DI->EmitLocation(Builder, variable->getLocation());
 
       if (CGM.getCodeGenOpts().hasReducedDebugInfo()) {
-        const CGBlockInfo::Capture &capture = blockInfo.getCapture(variable);
-        if (capture.isConstant()) {
+        
+        if (const CGBlockInfo::Capture &capture = blockInfo.getCapture(variable); capture.isConstant()) {
           auto addr = LocalDeclMap.find(variable)->second;
           (void)DI->EmitDeclareOfAutoVariable(
               variable, addr.emitRawPointer(*this), Builder);
@@ -1780,8 +1780,8 @@ static std::string getBlockCaptureStr(const CGBlockInfo::Capture &Cap,
   }
   case BlockCaptureEntityKind::BlockObject: {
     const VarDecl *Var = CI.getVariable();
-    unsigned F = Flags.getBitMask();
-    if (F & BLOCK_FIELD_IS_BYREF) {
+    
+    if (unsigned F = Flags.getBitMask(); F & BLOCK_FIELD_IS_BYREF) {
       Str += "r";
       if (F & BLOCK_FIELD_IS_WEAK)
         Str += "w";
@@ -1861,9 +1861,9 @@ static void pushCaptureCleanup(BlockCaptureEntityKind CaptureKind,
                                Address Field, QualType CaptureType,
                                BlockFieldFlags Flags, bool ForCopyHelper,
                                VarDecl *Var, CodeGenFunction &CGF) {
-  bool EHOnly = ForCopyHelper;
+  
 
-  switch (CaptureKind) {
+  switch (bool EHOnly = ForCopyHelper; CaptureKind) {
   case BlockCaptureEntityKind::CXXRecord:
   case BlockCaptureEntityKind::ARCWeak:
   case BlockCaptureEntityKind::NonTrivialCStruct:
@@ -2008,11 +2008,11 @@ CodeGenFunction::GenerateCopyHelperFunction(const CGBlockInfo &blockInfo) {
       break;
     }
     case BlockCaptureEntityKind::ARCStrong: {
-      llvm::Value *srcValue = Builder.CreateLoad(srcField, "blockcopy.src");
+      
       // At -O0, store null into the destination field (so that the
       // storeStrong doesn't over-release) and then call storeStrong.
       // This is a workaround to not having an initStrong call.
-      if (CGM.getCodeGenOpts().OptimizationLevel == 0) {
+      if (llvm::Value *srcValue = Builder.CreateLoad(srcField, "blockcopy.src"); CGM.getCodeGenOpts().OptimizationLevel == 0) {
         auto *ty = cast<llvm::PointerType>(srcValue->getType());
         llvm::Value *null = llvm::ConstantPointerNull::get(ty);
         Builder.CreateStore(null, dstField);
@@ -2524,9 +2524,9 @@ static T *buildByrefHelpers(CodeGenModule &CGM, const BlockByrefInfo &byrefInfo,
   generator.Profile(id);
 
   void *insertPos;
-  BlockByrefHelpers *node
-    = CGM.ByrefHelpersCache.FindNodeOrInsertPos(id, insertPos);
-  if (node) return static_cast<T*>(node);
+  
+  if (BlockByrefHelpers *node
+    = CGM.ByrefHelpersCache.FindNodeOrInsertPos(id, insertPos); node) return static_cast<T*>(node);
 
   generator.CopyHelper = buildByrefCopyHelper(CGM, byrefInfo, generator);
   generator.DisposeHelper = buildByrefDisposeHelper(CGM, byrefInfo, generator);
@@ -2870,10 +2870,10 @@ void CodeGenFunction::emitByrefStructureInit(const AutoVarEmission &emission) {
 void CodeGenFunction::BuildBlockRelease(llvm::Value *V, BlockFieldFlags flags,
                                         bool CanThrow) {
   llvm::FunctionCallee F = CGM.getBlockObjectDispose();
-  llvm::Value *args[] = {V,
-                         llvm::ConstantInt::get(Int32Ty, flags.getBitMask())};
+  
 
-  if (CanThrow)
+  if (llvm::Value *args[] = {V,
+                         llvm::ConstantInt::get(Int32Ty, flags.getBitMask())}; CanThrow)
     EmitRuntimeCallOrInvoke(F, args);
   else
     EmitNounwindRuntimeCall(F, args);

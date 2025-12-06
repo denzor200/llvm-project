@@ -29,8 +29,8 @@ SymbolFileWasm::GetVendorDWARFOpcodeSize(const DataExtractor &data,
     return LLDB_INVALID_OFFSET;
 
   lldb::offset_t offset = data_offset;
-  const uint8_t wasm_op = data.GetU8(&offset);
-  switch (wasm_op) {
+  
+  switch (const uint8_t wasm_op = data.GetU8(&offset); wasm_op) {
   case 0: // LOCAL
   case 1: // GLOBAL_FIXED
   case 2: // OPERAND_STACK
@@ -63,8 +63,8 @@ bool SymbolFileWasm::ParseVendorDWARFOpcode(uint8_t op,
   /// |0                    | Local                 |
   /// |1 or 3               | Global                |
   /// |2                    | Operand Stack         |
-  const uint8_t wasm_op = opcodes.GetU8(&offset);
-  switch (wasm_op) {
+  
+  switch (const uint8_t wasm_op = opcodes.GetU8(&offset); wasm_op) {
   case 0: // LOCAL
     index = opcodes.GetULEB128(&offset);
     tag = eWasmTagLocal;

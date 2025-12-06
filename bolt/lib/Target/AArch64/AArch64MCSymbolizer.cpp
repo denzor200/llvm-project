@@ -137,9 +137,9 @@ AArch64MCSymbolizer::adjustRelocation(const Relocation &Rel,
   if (BC.MIB->isADRP(Inst) && Rel.Addend == 0 && !Relocation::isTLS(Rel.Type)) {
     ErrorOr<uint64_t> SymbolValue = BC.getSymbolValue(*Rel.Symbol);
     assert(SymbolValue && "Symbol value should be set");
-    const uint64_t SymbolPageAddr = *SymbolValue & ~0xfffULL;
+    
 
-    if (SymbolPageAddr == Rel.Value &&
+    if (const uint64_t SymbolPageAddr = *SymbolValue & ~0xfffULL; SymbolPageAddr == Rel.Value &&
         !isPageAddressValidForGOT(SymbolPageAddr)) {
       AdjustedRel.Type = ELF::R_AARCH64_ADR_PREL_PG_HI21;
       return AdjustedRel;

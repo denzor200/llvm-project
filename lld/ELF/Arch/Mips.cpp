@@ -389,8 +389,8 @@ bool MIPS<ELFT>::needsThunk(RelExpr expr, RelType type, const InputFile *file,
 
 template <class ELFT>
 int64_t MIPS<ELFT>::getImplicitAddend(const uint8_t *buf, RelType type) const {
-  const endianness e = ELFT::Endianness;
-  switch (type) {
+  
+  switch (const endianness e = ELFT::Endianness; type) {
   case R_MIPS_32:
   case R_MIPS_REL32:
   case R_MIPS_GPREL32:
@@ -532,23 +532,23 @@ static uint64_t fixupCrossModeJump(Ctx &ctx, uint8_t *loc, RelType type,
   // equivalents.
   const endianness e = ELFT::Endianness;
   bool isMicroTgt = val & 0x1;
-  bool isCrossJump = (isMicroTgt && isBranchReloc(type)) ||
-                     (!isMicroTgt && isMicroBranchReloc(type));
-  if (!isCrossJump)
+  
+  if (bool isCrossJump = (isMicroTgt && isBranchReloc(type)) ||
+                     (!isMicroTgt && isMicroBranchReloc(type)); !isCrossJump)
     return val;
 
   switch (type) {
   case R_MIPS_26: {
-    uint32_t inst = read32(ctx, loc) >> 26;
-    if (inst == 0x3 || inst == 0x1d) { // JAL or JALX
+    
+    if (uint32_t inst = read32(ctx, loc) >> 26; inst == 0x3 || inst == 0x1d) { // JAL or JALX
       writeValue(ctx, loc, 0x1d << 26, 32, 0);
       return val;
     }
     break;
   }
   case R_MICROMIPS_26_S1: {
-    uint32_t inst = readShuffle<e>(ctx, loc) >> 26;
-    if (inst == 0x3d || inst == 0x3c) { // JAL32 or JALX32
+    
+    if (uint32_t inst = readShuffle<e>(ctx, loc) >> 26; inst == 0x3d || inst == 0x3c) { // JAL32 or JALX32
       val >>= 1;
       writeShuffle<e>(ctx, loc, 0x3c << 26, 32, 0);
       return val;
@@ -648,8 +648,8 @@ void MIPS<ELFT>::scanSectionImpl(InputSectionBase &sec, Relocs<RelTy> rels) {
       // For example, if a relocation is of R_MIPS_HI16, there must be a
       // R_MIPS_LO16 relocation after that, and an addend is calculated using
       // the two relocations.
-      RelType pairTy = getMipsPairType(type, sym.isLocal());
-      if (pairTy != R_MIPS_NONE) {
+      
+      if (RelType pairTy = getMipsPairType(type, sym.isLocal()); pairTy != R_MIPS_NONE) {
         const uint8_t *buf = sec.content().data();
         // To make things worse, paired relocations might not be contiguous in
         // the relocation table, so we need to do linear search. *sigh*
@@ -684,8 +684,8 @@ void MIPS<ELFT>::scanSectionImpl(InputSectionBase &sec, Relocs<RelTy> rels) {
 }
 
 template <class ELFT> void MIPS<ELFT>::scanSection(InputSectionBase &sec) {
-  auto relocs = sec.template relsOrRelas<ELFT>();
-  if (relocs.areRelocsRel())
+  
+  if (auto relocs = sec.template relsOrRelas<ELFT>(); relocs.areRelocsRel())
     scanSectionImpl(sec, relocs.rels);
   else
     scanSectionImpl(sec, relocs.relas);

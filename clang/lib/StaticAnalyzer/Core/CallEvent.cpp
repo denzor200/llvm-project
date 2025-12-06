@@ -91,8 +91,8 @@ static bool isCallback(QualType T) {
   if (const RecordType *RT = T->getAsStructureType()) {
     const RecordDecl *RD = RT->getDecl()->getDefinitionOrSelf();
     for (const auto *I : RD->fields()) {
-      QualType FieldT = I->getType();
-      if (FieldT->isBlockPointerType() || FieldT->isFunctionPointerType())
+      
+      if (QualType FieldT = I->getType(); FieldT->isBlockPointerType() || FieldT->isFunctionPointerType())
         return true;
     }
   }
@@ -680,8 +680,8 @@ bool AnyFunctionCall::argumentsMayEscape() const {
 }
 
 const FunctionDecl *SimpleFunctionCall::getDecl() const {
-  const FunctionDecl *D = getOriginExpr()->getDirectCallee();
-  if (D)
+  
+  if (const FunctionDecl *D = getOriginExpr()->getDirectCallee(); D)
     return D;
 
   return getSVal(getOriginExpr()->getCallee()).getAsFunctionDecl();
@@ -829,8 +829,8 @@ void CXXInstanceCall::getInitialStackFrameContents(
   AnyFunctionCall::getInitialStackFrameContents(CalleeCtx, Bindings);
 
   // Handle the binding of 'this' in the new stack frame.
-  SVal ThisVal = getCXXThisVal();
-  if (!ThisVal.isUnknown()) {
+  
+  if (SVal ThisVal = getCXXThisVal(); !ThisVal.isUnknown()) {
     ProgramStateManager &StateMgr = getState()->getStateManager();
     SValBuilder &SVB = StateMgr.getSValBuilder();
 
@@ -845,9 +845,9 @@ void CXXInstanceCall::getInitialStackFrameContents(
       CanQualType Ty = Ctx.getPointerType(Ctx.getCanonicalTagType(Class));
 
       // FIXME: CallEvent maybe shouldn't be directly accessing StoreManager.
-      std::optional<SVal> V =
-          StateMgr.getStoreManager().evalBaseToDerived(ThisVal, Ty);
-      if (!V) {
+      
+      if (std::optional<SVal> V =
+          StateMgr.getStoreManager().evalBaseToDerived(ThisVal, Ty); !V) {
         // We might have suffered some sort of placement new earlier, so
         // we're constructing in a completely unexpected storage.
         // Fall back to a generic pointer cast for this-value.
@@ -957,8 +957,8 @@ void AnyCXXConstructorCall::getInitialStackFrameContents(
                                              BindingsTy &Bindings) const {
   AnyFunctionCall::getInitialStackFrameContents(CalleeCtx, Bindings);
 
-  SVal ThisVal = getCXXThisVal();
-  if (!ThisVal.isUnknown()) {
+  
+  if (SVal ThisVal = getCXXThisVal(); !ThisVal.isUnknown()) {
     SValBuilder &SVB = getState()->getStateManager().getSValBuilder();
     const auto *MD = cast<CXXMethodDecl>(CalleeCtx->getDecl());
     Loc ThisLoc = SVB.getCXXThis(MD, CalleeCtx);
@@ -1086,10 +1086,10 @@ ObjCMessageKind ObjCMethodCall::getMessageKind() const {
   if (!Data) {
     // Find the parent, ignoring implicit casts.
     const ParentMap &PM = getLocationContext()->getParentMap();
-    const Stmt *S = PM.getParentIgnoreParenCasts(getOriginExpr());
+    
 
     // Check if parent is a PseudoObjectExpr.
-    if (const auto *POE = dyn_cast_or_null<PseudoObjectExpr>(S)) {
+    if (const Stmt *S = PM.getParentIgnoreParenCasts(getOriginExpr()); const auto *POE = dyn_cast_or_null<PseudoObjectExpr>(S)) {
       const Expr *Syntactic = getSyntacticFromForPseudoObjectExpr(POE);
 
       ObjCMessageKind K;
@@ -1133,9 +1133,9 @@ const ObjCPropertyDecl *ObjCMethodCall::getAccessedProperty() const {
     assert(POE && "Property access without PseudoObjectExpr?");
 
     const Expr *Syntactic = getSyntacticFromForPseudoObjectExpr(POE);
-    auto *RefExpr = cast<ObjCPropertyRefExpr>(Syntactic);
+    
 
-    if (RefExpr->isExplicitProperty())
+    if (auto *RefExpr = cast<ObjCPropertyRefExpr>(Syntactic); RefExpr->isExplicitProperty())
       return RefExpr->getExplicitProperty();
   }
 
@@ -1337,9 +1337,9 @@ RuntimeDefinition ObjCMethodCall::getRuntimeDefinition() const {
           // Otherwise, let's check if we know something about the type
           // inside of this class object.
           if (SymbolRef ReceiverSym = getReceiverSVal().getAsSymbol()) {
-            DynamicTypeInfo DTI =
-                getClassObjectDynamicTypeInfo(getState(), ReceiverSym);
-            if (DTI.isValid()) {
+            
+            if (DynamicTypeInfo DTI =
+                getClassObjectDynamicTypeInfo(getState(), ReceiverSym); DTI.isValid()) {
               // Let's use this type for lookup.
               ReceiverT =
                   cast<ObjCObjectType>(DTI.getType().getCanonicalType());
@@ -1389,8 +1389,8 @@ RuntimeDefinition ObjCMethodCall::getRuntimeDefinition() const {
 
 bool ObjCMethodCall::argumentsMayEscape() const {
   if (isInSystemHeader() && !isInstanceMessage()) {
-    Selector Sel = getSelector();
-    if (Sel.getNumArgs() == 1 &&
+    
+    if (Selector Sel = getSelector(); Sel.getNumArgs() == 1 &&
         Sel.getIdentifierInfoForSlot(0)->isStr("valueWithPointer"))
       return true;
   }
@@ -1406,8 +1406,8 @@ void ObjCMethodCall::getInitialStackFrameContents(
   addParameterValuesToBindings(CalleeCtx, Bindings, SVB, *this,
                                D->parameters());
 
-  SVal SelfVal = getReceiverSVal();
-  if (!SelfVal.isUnknown()) {
+  
+  if (SVal SelfVal = getReceiverSVal(); !SelfVal.isUnknown()) {
     const VarDecl *SelfD = CalleeCtx->getAnalysisDeclContext()->getSelfDecl();
     MemRegionManager &MRMgr = SVB.getRegionManager();
     Loc SelfLoc = SVB.makeLoc(MRMgr.getVarRegion(SelfD, CalleeCtx));
@@ -1430,8 +1430,8 @@ CallEventManager::getSimpleCall(const CallExpr *CE, ProgramStateRef State,
     return create<CXXMemberCall>(MCE, State, LCtx, ElemRef);
 
   if (const auto *OpCE = dyn_cast<CXXOperatorCallExpr>(CE)) {
-    const FunctionDecl *DirectCallee = OpCE->getDirectCallee();
-    if (const auto *MD = dyn_cast<CXXMethodDecl>(DirectCallee)) {
+    
+    if (const FunctionDecl *DirectCallee = OpCE->getDirectCallee(); const auto *MD = dyn_cast<CXXMethodDecl>(DirectCallee)) {
       if (MD->isImplicitObjectMemberFunction())
         return create<CXXMemberOperatorCall>(OpCE, State, LCtx, ElemRef);
       if (MD->isStatic())
@@ -1456,18 +1456,18 @@ CallEventManager::getCaller(const StackFrameContext *CalleeCtx,
                                           CalleeCtx->getIndex()};
   assert(CallerCtx && "This should not be used for top-level stack frames");
 
-  const Stmt *CallSite = CalleeCtx->getCallSite();
+  
 
-  if (CallSite) {
+  if (const Stmt *CallSite = CalleeCtx->getCallSite(); CallSite) {
     if (CallEventRef<> Out = getCall(CallSite, State, CallerCtx, ElemRef))
       return Out;
 
     SValBuilder &SVB = State->getStateManager().getSValBuilder();
     const auto *Ctor = cast<CXXMethodDecl>(CalleeCtx->getDecl());
     Loc ThisPtr = SVB.getCXXThis(Ctor, CalleeCtx);
-    SVal ThisVal = State->getSVal(ThisPtr);
+    
 
-    if (const auto *CE = dyn_cast<CXXConstructExpr>(CallSite))
+    if (SVal ThisVal = State->getSVal(ThisPtr); const auto *CE = dyn_cast<CXXConstructExpr>(CallSite))
       return getCXXConstructorCall(CE, ThisVal.getAsRegion(), State, CallerCtx,
                                    ElemRef);
     else if (const auto *CIE = dyn_cast<CXXInheritedCtorInitExpr>(CallSite))

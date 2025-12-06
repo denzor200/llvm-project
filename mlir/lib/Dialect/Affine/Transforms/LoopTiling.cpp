@@ -214,9 +214,9 @@ void LoopTiling::runOnOperation() {
 
     // Separate full and partial tiles.
     if (separate) {
-      auto intraTileLoops =
-          MutableArrayRef<AffineForOp>(tiledNest).drop_front(band.size());
-      if (failed(separateFullTiles(intraTileLoops))) {
+      
+      if (auto intraTileLoops =
+          MutableArrayRef<AffineForOp>(tiledNest).drop_front(band.size()); failed(separateFullTiles(intraTileLoops))) {
         assert(!intraTileLoops.empty() &&
                "guaranteed to succeed on empty bands");
         LLVM_DEBUG(intraTileLoops.front()->emitRemark(

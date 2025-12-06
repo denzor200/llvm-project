@@ -52,8 +52,8 @@ public:
                            CodeGen::CodeGenModule &GCM) const override {
     if (GV->isDeclaration())
       return;
-    const FunctionDecl *FD = dyn_cast_or_null<FunctionDecl>(D);
-    if (!FD)
+    
+    if (const FunctionDecl *FD = dyn_cast_or_null<FunctionDecl>(D); !FD)
       return;
   }
 };
@@ -148,8 +148,8 @@ ABIArgInfo HexagonABIInfo::classifyReturnType(QualType RetTy) const {
     // HVX vectors are returned in vector registers or register pairs.
     if (T.hasFeature("hvx")) {
       assert(T.hasFeature("hvx-length64b") || T.hasFeature("hvx-length128b"));
-      uint64_t VecSize = T.hasFeature("hvx-length64b") ? 64*8 : 128*8;
-      if (Size == VecSize || Size == 2*VecSize)
+      
+      if (uint64_t VecSize = T.hasFeature("hvx-length64b") ? 64*8 : 128*8; Size == VecSize || Size == 2*VecSize)
         return ABIArgInfo::getDirectInReg();
     }
     // Large vector types should be returned via memory.

@@ -303,10 +303,10 @@ static bool accessedBetween(BatchAAResults &AA, MemoryLocation Loc,
   assert(Start->getBlock() == End->getBlock() && "Only local supported");
   for (const MemoryAccess &MA :
        make_range(++Start->getIterator(), End->getIterator())) {
-    Instruction *I = cast<MemoryUseOrDef>(MA).getMemoryInst();
-    if (isModOrRefSet(AA.getModRefInfo(I, Loc))) {
-      auto *II = dyn_cast<IntrinsicInst>(I);
-      if (II && II->getIntrinsicID() == Intrinsic::lifetime_start &&
+    
+    if (Instruction *I = cast<MemoryUseOrDef>(MA).getMemoryInst(); isModOrRefSet(AA.getModRefInfo(I, Loc))) {
+      
+      if (auto *II = dyn_cast<IntrinsicInst>(I); II && II->getIntrinsicID() == Intrinsic::lifetime_start &&
           SkippedLifetimeStart && !*SkippedLifetimeStart) {
         *SkippedLifetimeStart = I;
         continue;
@@ -372,9 +372,9 @@ Instruction *MemCpyOptPass::tryMergingIntoMemset(Instruction *StartInst,
   // after MemInsertPoint.
   MemoryUseOrDef *MemInsertPoint = nullptr;
   for (++BI; !BI->isTerminator(); ++BI) {
-    auto *CurrentAcc =
-        cast_or_null<MemoryUseOrDef>(MSSA->getMemoryAccess(&*BI));
-    if (CurrentAcc)
+    
+    if (auto *CurrentAcc =
+        cast_or_null<MemoryUseOrDef>(MSSA->getMemoryAccess(&*BI)); CurrentAcc)
       MemInsertPoint = CurrentAcc;
 
     // Calls that only access inaccessible memory do not block merging
@@ -915,9 +915,9 @@ bool MemCpyOptPass::performCallSlotOptzn(Instruction *cpyLoad,
   // actually do so. If the argument is bitcasted for example, we would have to
   // move the bitcast as well, which we don't handle.
   if (SkippedLifetimeStart) {
-    auto *LifetimeArg =
-        dyn_cast<Instruction>(SkippedLifetimeStart->getOperand(0));
-    if (LifetimeArg && LifetimeArg->getParent() == C->getParent() &&
+    
+    if (auto *LifetimeArg =
+        dyn_cast<Instruction>(SkippedLifetimeStart->getOperand(0)); LifetimeArg && LifetimeArg->getParent() == C->getParent() &&
         C->comesBefore(LifetimeArg))
       return false;
   }
@@ -998,8 +998,8 @@ bool MemCpyOptPass::performCallSlotOptzn(Instruction *cpyLoad,
     // checked that src is not captured before it. If either had been captured,
     // then the call might be comparing the argument against the captured dest
     // or src pointer.
-    Value *DestObj = getUnderlyingObject(cpyDest);
-    if (!isIdentifiedFunctionLocal(DestObj) ||
+    
+    if (Value *DestObj = getUnderlyingObject(cpyDest); !isIdentifiedFunctionLocal(DestObj) ||
         PointerMayBeCapturedBefore(DestObj, /* ReturnCaptures */ true, C, DT,
                                    /* IncludeI */ true))
       return false;
@@ -1037,8 +1037,8 @@ bool MemCpyOptPass::performCallSlotOptzn(Instruction *cpyLoad,
   bool NeedMoveGEP = false;
   if (!DT->dominates(cpyDest, C)) {
     // Support moving a constant index GEP before the call.
-    auto *GEP = dyn_cast<GetElementPtrInst>(cpyDest);
-    if (GEP && GEP->hasAllConstantIndices() &&
+    
+    if (auto *GEP = dyn_cast<GetElementPtrInst>(cpyDest); GEP && GEP->hasAllConstantIndices() &&
         DT->dominates(GEP->getPointerOperand(), C))
       NeedMoveGEP = true;
     else
@@ -1412,9 +1412,9 @@ static bool overreadUndefContents(MemorySSA *MSSA, MemCpyInst *MemCpy,
                                   MemIntrinsic *MemSrc, BatchAAResults &BAA) {
   MemoryLocation MemCpyLoc = MemoryLocation::getForSource(MemCpy);
   MemoryUseOrDef *MemSrcAccess = MSSA->getMemoryAccess(MemSrc);
-  MemoryAccess *Clobber = MSSA->getWalker()->getClobberingMemoryAccess(
-      MemSrcAccess->getDefiningAccess(), MemCpyLoc, BAA);
-  if (auto *MD = dyn_cast<MemoryDef>(Clobber))
+  
+  if (MemoryAccess *Clobber = MSSA->getWalker()->getClobberingMemoryAccess(
+      MemSrcAccess->getDefiningAccess(), MemCpyLoc, BAA); auto *MD = dyn_cast<MemoryDef>(Clobber))
     if (hasUndefContents(MSSA, BAA, MemCpy->getSource(), MD))
       return true;
   return false;
@@ -1439,10 +1439,10 @@ bool MemCpyOptPass::performMemCpyToMemSetOptzn(MemCpyInst *MemCpy,
   Value *CopySize = MemCpy->getLength();
 
   int64_t MOffset = 0;
-  const DataLayout &DL = MemCpy->getModule()->getDataLayout();
+  
   // We can only transforms memcpy's where the dest of one is the source of the
   // other, or they have a known offset.
-  if (MemCpy->getSource() != MemSet->getDest()) {
+  if (const DataLayout &DL = MemCpy->getModule()->getDataLayout(); MemCpy->getSource() != MemSet->getDest()) {
     std::optional<int64_t> Offset =
         MemCpy->getSource()->getPointerOffsetFrom(MemSet->getDest(), DL);
     if (!Offset || *Offset < 0)
@@ -1454,8 +1454,8 @@ bool MemCpyOptPass::performMemCpyToMemSetOptzn(MemCpyInst *MemCpy,
     // Make sure the memcpy doesn't read any more than what the memset wrote,
     // other than undef. Don't worry about sizes larger than i64.
     auto *CMemSetSize = dyn_cast<ConstantInt>(MemSetSize);
-    auto *CCopySize = dyn_cast<ConstantInt>(CopySize);
-    if (!CMemSetSize || !CCopySize ||
+    
+    if (auto *CCopySize = dyn_cast<ConstantInt>(CopySize); !CMemSetSize || !CCopySize ||
         CCopySize->getZExtValue() + MOffset > CMemSetSize->getZExtValue()) {
       if (!overreadUndefContents(MSSA, MemCpy, MemSet, BAA))
         return false;
@@ -2175,8 +2175,8 @@ PreservedAnalyses MemCpyOptPass::run(Function &F, FunctionAnalysisManager &AM) {
   auto *PDT = &AM.getResult<PostDominatorTreeAnalysis>(F);
   auto *MSSA = &AM.getResult<MemorySSAAnalysis>(F);
 
-  bool MadeChange = runImpl(F, &TLI, AA, AC, DT, PDT, &MSSA->getMSSA());
-  if (!MadeChange)
+  
+  if (bool MadeChange = runImpl(F, &TLI, AA, AC, DT, PDT, &MSSA->getMSSA()); !MadeChange)
     return PreservedAnalyses::all();
 
   PreservedAnalyses PA;

@@ -118,9 +118,9 @@ void Heatmap::print(raw_ostream &OS) const {
     finishLine(Start);
     Start = alignTo(Start, BytesPerLine);
 
-    uint64_t NumEmptyLines = (End - Start) / BytesPerLine;
+    
 
-    if (NumEmptyLines > 32) {
+    if (uint64_t NumEmptyLines = (End - Start) / BytesPerLine; NumEmptyLines > 32) {
       OS << '\n';
     } else {
       while (NumEmptyLines--) {
@@ -201,8 +201,8 @@ void Heatmap::print(raw_ostream &OS) const {
       OS << "        ";
     unsigned PrevValue = unsigned(-1);
     for (unsigned I = 0; I < BytesPerLine; I += BucketSize) {
-      const unsigned Value = (I & ((1 << Pos * 4) - 1)) >> (Pos - 1) * 4;
-      if (Value != PrevValue) {
+      
+      if (const unsigned Value = (I & ((1 << Pos * 4) - 1)) >> (Pos - 1) * 4; Value != PrevValue) {
         OS << Twine::utohexstr(Value);
         PrevValue = Value;
       } else {

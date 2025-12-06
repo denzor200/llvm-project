@@ -117,8 +117,8 @@ DependencyScanningFilesystemSharedCache::getOutOfDateEntries(
     std::lock_guard<std::mutex> LockGuard(Shard.CacheLock);
     for (const auto &[Path, CachedPair] : Shard.CacheByFilename) {
       const CachedFileSystemEntry *Entry = CachedPair.first;
-      llvm::ErrorOr<llvm::vfs::Status> Status = UnderlyingFS.status(Path);
-      if (Status) {
+      
+      if (llvm::ErrorOr<llvm::vfs::Status> Status = UnderlyingFS.status(Path); Status) {
         if (Entry->getError()) {
           // This is the case where we have cached the non-existence
           // of the file at Path first, and a file at the path is created
@@ -126,8 +126,8 @@ DependencyScanningFilesystemSharedCache::getOutOfDateEntries(
           // way to do it now), which may lead to missing file build errors.
           InvalidDiagInfo.emplace_back(Path.data());
         } else {
-          llvm::vfs::Status CachedStatus = Entry->getStatus();
-          if (Status->getType() == llvm::sys::fs::file_type::regular_file &&
+          
+          if (llvm::vfs::Status CachedStatus = Entry->getStatus(); Status->getType() == llvm::sys::fs::file_type::regular_file &&
               Status->getType() == CachedStatus.getType()) {
             // We only check regular files. Directory files sizes could change
             // due to content changes, and reporting directory size changes can
@@ -137,8 +137,8 @@ DependencyScanningFilesystemSharedCache::getOutOfDateEntries(
             // symlink size changes. We can also expand this to detect file
             // type changes.
             uint64_t CachedSize = CachedStatus.getSize();
-            uint64_t ActualSize = Status->getSize();
-            if (CachedSize != ActualSize) {
+            
+            if (uint64_t ActualSize = Status->getSize(); CachedSize != ActualSize) {
               // This is the case where the cached file has a different size
               // from the actual file that comes from the underlying FS.
               InvalidDiagInfo.emplace_back(Path.data(), CachedSize, ActualSize);
@@ -272,8 +272,8 @@ DependencyScanningWorkerFilesystem::findEntryByFilenameWithWriteThrough(
     StringRef Filename) {
   if (const auto *Entry = LocalCache.findEntryByFilename(Filename))
     return Entry;
-  auto &Shard = SharedCache.getShardForFilename(Filename);
-  if (const auto *Entry = Shard.findEntryByFilename(Filename))
+  
+  if (auto &Shard = SharedCache.getShardForFilename(Filename); const auto *Entry = Shard.findEntryByFilename(Filename))
     return &LocalCache.insertEntryForFilename(Filename, *Entry);
   return nullptr;
 }

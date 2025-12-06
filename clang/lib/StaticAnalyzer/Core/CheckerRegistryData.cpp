@@ -131,8 +131,8 @@ void CheckerRegistryData::printCheckerWithDescList(
   for (const auto &Checker : Checkers) {
     // Limit the amount of padding we are willing to give up for alignment.
     //   Package.Name     Description  [Hidden]
-    size_t NameLength = Checker.FullName.size();
-    if (NameLength <= MaxNameChars)
+    
+    if (size_t NameLength = Checker.FullName.size(); NameLength <= MaxNameChars)
       OptionFieldWidth = std::max(OptionFieldWidth, NameLength);
   }
 

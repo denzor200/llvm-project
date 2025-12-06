@@ -19,8 +19,8 @@ StringLexer::StringLexer(std::string s) : m_data(std::move(s)), m_position(0) {}
 StringLexer::Character StringLexer::Peek() { return m_data[m_position]; }
 
 bool StringLexer::NextIf(Character c) {
-  auto val = Peek();
-  if (val == c) {
+  
+  if (auto val = Peek(); val == c) {
     Next();
     return true;
   }

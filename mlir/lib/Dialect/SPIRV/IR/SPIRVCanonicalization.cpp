@@ -412,11 +412,11 @@ OpFoldResult spirv::CompositeExtractOp::fold(FoldAdaptor adaptor) {
 
   if (auto constructOp =
           compositeOp.getDefiningOp<spirv::CompositeConstructOp>()) {
-    auto type = llvm::cast<spirv::CompositeType>(constructOp.getType());
-    if (getIndices().size() == 1 &&
+    
+    if (auto type = llvm::cast<spirv::CompositeType>(constructOp.getType()); getIndices().size() == 1 &&
         constructOp.getConstituents().size() == type.getNumElements()) {
-      auto i = llvm::cast<IntegerAttr>(*getIndices().begin());
-      if (i.getValue().getSExtValue() <
+      
+      if (auto i = llvm::cast<IntegerAttr>(*getIndices().begin()); i.getValue().getSExtValue() <
           static_cast<int64_t>(constructOp.getConstituents().size()))
         return constructOp.getConstituents()[i.getValue().getSExtValue()];
     }
@@ -1167,9 +1167,9 @@ spirv::BitwiseAndOp::fold(spirv::BitwiseAndOp::FoldAdaptor adaptor) {
 
     // (UConvert x : iN to iK) & <mask with N low bits set> -> UConvert x
     if (auto zext = getOperand1().getDefiningOp<spirv::UConvertOp>()) {
-      int valueBits =
-          getElementTypeOrSelf(zext.getOperand()).getIntOrFloatBitWidth();
-      if (rhsMask.zextOrTrunc(valueBits).isAllOnes())
+      
+      if (int valueBits =
+          getElementTypeOrSelf(zext.getOperand()).getIntOrFloatBitWidth(); rhsMask.zextOrTrunc(valueBits).isAllOnes())
         return getOperand1();
     }
   }

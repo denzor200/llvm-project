@@ -147,8 +147,8 @@ void NonNullParamChecker::checkPreCall(const CallEvent &Call,
         continue;
 
       QualType T = ArgE->getType();
-      const RecordType *UT = T->getAsUnionType();
-      if (!UT ||
+      
+      if (const RecordType *UT = T->getAsUnionType(); !UT ||
           !UT->getDecl()->getMostRecentDecl()->hasAttr<TransparentUnionAttr>())
         continue;
 
@@ -264,11 +264,11 @@ void NonNullParamChecker::checkBeginFunction(CheckerContext &Context) const {
 
     Loc ParameterLoc = State->getLValue(Parameter, LocContext);
     // We never consider top-level function parameters undefined.
-    auto StoredVal =
-        State->getSVal(ParameterLoc).castAs<DefinedOrUnknownSVal>();
+    
 
     // 3. Assume that it is indeed non-null
-    if (ProgramStateRef NewState = State->assume(StoredVal, true)) {
+    if (auto StoredVal =
+        State->getSVal(ParameterLoc).castAs<DefinedOrUnknownSVal>(); ProgramStateRef NewState = State->assume(StoredVal, true)) {
       State = NewState;
     }
   }

@@ -233,11 +233,11 @@ public:
       if (MO.getReg().isPhysical())
         return 1;
 
-      RegDomain OpDomain = getDomain(MRI->getRegClass(MO.getReg()),
-                                     MRI->getTargetRegisterInfo());
+      
       // Converting a cross domain COPY to a same domain COPY should eliminate
       // an insturction
-      if (OpDomain == DstDomain)
+      if (RegDomain OpDomain = getDomain(MRI->getRegClass(MO.getReg()),
+                                     MRI->getTargetRegisterInfo()); OpDomain == DstDomain)
         return -1;
     }
     return 0;
@@ -466,8 +466,8 @@ bool X86DomainReassignment::encloseInstr(Closure &C, MachineInstr *MI) {
   // instruction.
   for (int i = 0; i != NumDomains; ++i) {
     if (C.isLegal((RegDomain)i)) {
-      auto I = Converters.find({i, MI->getOpcode()});
-      if (I == Converters.end() || !I->second->isLegal(MI, TII))
+      
+      if (auto I = Converters.find({i, MI->getOpcode()}); I == Converters.end() || !I->second->isLegal(MI, TII))
         C.setIllegal((RegDomain)i);
     }
   }
@@ -533,8 +533,8 @@ static bool usedAsAddr(const MachineInstr &MI, Register Reg,
   for (unsigned MemOpIdx = MemOpStart,
                 MemOpEnd = MemOpStart + X86::AddrNumOperands;
        MemOpIdx < MemOpEnd; ++MemOpIdx) {
-    const MachineOperand &Op = MI.getOperand(MemOpIdx);
-    if (Op.isReg() && Op.getReg() == Reg)
+    
+    if (const MachineOperand &Op = MI.getOperand(MemOpIdx); Op.isReg() && Op.getReg() == Reg)
       return true;
   }
   return false;

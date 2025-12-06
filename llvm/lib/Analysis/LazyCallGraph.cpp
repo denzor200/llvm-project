@@ -1407,9 +1407,9 @@ void LazyCallGraph::RefSCC::insertTrivialCallEdge(Node &SourceN,
 #endif
 
   // First insert it into the source or find the existing edge.
-  auto [Iterator, Inserted] =
-      SourceN->EdgeIndexMap.try_emplace(&TargetN, SourceN->Edges.size());
-  if (!Inserted) {
+  
+  if (auto [Iterator, Inserted] =
+      SourceN->EdgeIndexMap.try_emplace(&TargetN, SourceN->Edges.size()); !Inserted) {
     // Already an edge, just update it.
     Edge &E = SourceN->Edges[Iterator->second];
     if (E.isCall())
@@ -1640,8 +1640,8 @@ void LazyCallGraph::addSplitFunction(Function &OriginalFunction,
 
   SCC *NewC = nullptr;
   for (Edge &E : *NewN) {
-    Node &EN = E.getNode();
-    if (EK == Edge::Kind::Call && E.isCall() && lookupSCC(EN) == OriginalC) {
+    
+    if (Node &EN = E.getNode(); EK == Edge::Kind::Call && E.isCall() && lookupSCC(EN) == OriginalC) {
       // If the edge to the new function is a call edge and there is a call edge
       // from the new function to any function in the original function's SCC,
       // it is in the same SCC (and RefSCC) as the original function.
@@ -1653,8 +1653,8 @@ void LazyCallGraph::addSplitFunction(Function &OriginalFunction,
 
   if (!NewC) {
     for (Edge &E : *NewN) {
-      Node &EN = E.getNode();
-      if (lookupRefSCC(EN) == OriginalRC) {
+      
+      if (Node &EN = E.getNode(); lookupRefSCC(EN) == OriginalRC) {
         // If there is any edge from the new function to any function in the
         // original function's RefSCC, it is in the same RefSCC as the original
         // function but a new SCC.

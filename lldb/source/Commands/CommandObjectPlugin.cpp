@@ -28,9 +28,9 @@ public:
 
 protected:
   void DoExecute(Args &command, CommandReturnObject &result) override {
-    size_t argc = command.GetArgumentCount();
+    
 
-    if (argc != 1) {
+    if (size_t argc = command.GetArgumentCount(); argc != 1) {
       result.AppendError("'plugin load' requires one argument");
       return;
     }
@@ -124,9 +124,9 @@ public:
   Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                         ExecutionContext *execution_context) override {
     Status error;
-    const int short_option = m_getopt_table[option_idx].val;
+    
 
-    switch (short_option) {
+    switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
     case 'j':
       m_json_format = true;
       break;
@@ -248,7 +248,8 @@ private:
   void OutputTextFormat(const std::vector<llvm::StringRef> &patterns,
                         CommandReturnObject &result) {
     for (const llvm::StringRef pattern : patterns) {
-      int num_matching = ActOnMatchingPlugins(
+      
+      if (int num_matching = ActOnMatchingPlugins(
           pattern, [&](const PluginNamespace &plugin_namespace,
                        const std::vector<RegisteredPluginInfo> &plugins) {
             result.AppendMessage(plugin_namespace.name);
@@ -257,8 +258,7 @@ private:
                   "  %s %-30s %s\n", plugin.enabled ? "[+]" : "[-]",
                   plugin.name.data(), plugin.description.data());
             }
-          });
-      if (num_matching == 0) {
+          }); num_matching == 0) {
         result.AppendErrorWithFormat(
             "Found no matching plugins for pattern '%s'", pattern.data());
         break;
@@ -282,9 +282,9 @@ static void DoPluginEnableDisable(Args &command, CommandReturnObject &result,
 
   for (size_t i = 0; i < argc; ++i) {
     llvm::StringRef pattern = command[i].ref();
-    int num_matching = SetEnableOnMatchingPlugins(pattern, result, enable);
+    
 
-    if (num_matching == 0) {
+    if (int num_matching = SetEnableOnMatchingPlugins(pattern, result, enable); num_matching == 0) {
       result.AppendErrorWithFormat(
           "Found no matching plugins to %s for pattern '%s'", name,
           pattern.data());

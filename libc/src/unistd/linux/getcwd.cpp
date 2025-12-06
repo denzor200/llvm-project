@@ -22,8 +22,8 @@ namespace LIBC_NAMESPACE_DECL {
 namespace {
 
 bool getcwd_syscall(char *buf, size_t size) {
-  int ret = LIBC_NAMESPACE::syscall_impl<int>(SYS_getcwd, buf, size);
-  if (ret < 0) {
+  
+  if (int ret = LIBC_NAMESPACE::syscall_impl<int>(SYS_getcwd, buf, size); ret < 0) {
     libc_errno = -ret;
     return false;
   } else if (ret == 0 || buf[0] != '/') {

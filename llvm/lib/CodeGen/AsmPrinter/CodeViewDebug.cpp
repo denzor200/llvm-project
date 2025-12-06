@@ -513,8 +513,8 @@ void CodeViewDebug::maybeRecordLocation(const DebugLoc &DL,
   if (!DL || DL == PrevInstLoc)
     return;
 
-  const DIScope *Scope = DL->getScope();
-  if (!Scope)
+  
+  if (const DIScope *Scope = DL->getScope(); !Scope)
     return;
 
   // Skip this line if it is longer than the maximum we can record.
@@ -548,9 +548,9 @@ void CodeViewDebug::maybeRecordLocation(const DebugLoc &DL,
     // Ensure we have links in the tree of inline call sites.
     bool FirstLoc = true;
     while ((SiteLoc = Loc->getInlinedAt())) {
-      InlineSite &Site =
-          getInlineSite(SiteLoc, Loc->getScope()->getSubprogram());
-      if (!FirstLoc)
+      
+      if (InlineSite &Site =
+          getInlineSite(SiteLoc, Loc->getScope()->getSubprogram()); !FirstLoc)
         addLocIfNotPresent(Site.ChildSites, Loc);
       FirstLoc = false;
       Loc = SiteLoc;
@@ -893,8 +893,8 @@ void CodeViewDebug::emitCompilerInformation() {
     Flags |= static_cast<uint32_t>(CompileSym3Flags::PGO);
   }
   using ArchType = llvm::Triple::ArchType;
-  ArchType Arch = MMI->getModule()->getTargetTriple().getArch();
-  if (CompilerInfoAsm->TM.Options.Hotpatch || Arch == ArchType::thumb ||
+  
+  if (ArchType Arch = MMI->getModule()->getTargetTriple().getArch(); CompilerInfoAsm->TM.Options.Hotpatch || Arch == ArchType::thumb ||
       Arch == ArchType::aarch64) {
     Flags |= static_cast<uint32_t>(CompileSym3Flags::HotPatch);
   }
@@ -1661,10 +1661,10 @@ void CodeViewDebug::addToUDTs(const DIType *Ty) {
   const DISubprogram *ClosestSubprogram =
       collectParentScopeNames(Ty->getScope(), ParentScopeNames);
 
-  std::string FullyQualifiedName =
-      formatNestedName(ParentScopeNames, getPrettyScopeName(Ty));
+  
 
-  if (ClosestSubprogram == nullptr) {
+  if (std::string FullyQualifiedName =
+      formatNestedName(ParentScopeNames, getPrettyScopeName(Ty)); ClosestSubprogram == nullptr) {
     GlobalUDTs.emplace_back(std::move(FullyQualifiedName), Ty);
   } else if (ClosestSubprogram == CurrentSubprogram) {
     LocalUDTs.emplace_back(std::move(FullyQualifiedName), Ty);
@@ -2785,12 +2785,12 @@ TypeIndex CodeViewDebug::getCompleteTypeIndex(const DIType *Ty) {
   // otherwise.
   // We only emit a forward declaration for named types.
   if (!CTy->getName().empty() || !CTy->getIdentifier().empty()) {
-    TypeIndex FwdDeclTI = getTypeIndex(CTy);
+    
 
     // Just use the forward decl if we don't have complete type info. This
     // might happen if the frontend is using modules and expects the complete
     // definition to be emitted elsewhere.
-    if (CTy->isForwardDecl())
+    if (TypeIndex FwdDeclTI = getTypeIndex(CTy); CTy->isForwardDecl())
       return FwdDeclTI;
   }
 
@@ -3415,8 +3415,8 @@ static bool isFloatDIType(const DIType *Ty) {
     return false;
 
   if (auto *DTy = dyn_cast<DIDerivedType>(Ty)) {
-    dwarf::Tag T = (dwarf::Tag)Ty->getTag();
-    if (T == dwarf::DW_TAG_pointer_type ||
+    
+    if (dwarf::Tag T = (dwarf::Tag)Ty->getTag(); T == dwarf::DW_TAG_pointer_type ||
         T == dwarf::DW_TAG_ptr_to_member_type ||
         T == dwarf::DW_TAG_reference_type ||
         T == dwarf::DW_TAG_rvalue_reference_type)

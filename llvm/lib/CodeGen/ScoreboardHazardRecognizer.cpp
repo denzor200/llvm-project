@@ -46,8 +46,8 @@ ScoreboardHazardRecognizer::ScoreboardHazardRecognizer(
       unsigned CurCycle = 0;
       unsigned ItinDepth = 0;
       for (; IS != E; ++IS) {
-        unsigned StageDepth = CurCycle + IS->getCycles();
-        if (ItinDepth < StageDepth) ItinDepth = StageDepth;
+        
+        if (unsigned StageDepth = CurCycle + IS->getCycles(); ItinDepth < StageDepth) ItinDepth = StageDepth;
         CurCycle += IS->getNextCycles();
       }
 

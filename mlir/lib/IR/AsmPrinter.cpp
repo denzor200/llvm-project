@@ -936,8 +936,8 @@ private:
     // Don't print the type if we must elide it, or if it is a None type.
     if (!elideType) {
       if (auto typedAttr = llvm::dyn_cast<TypedAttr>(attr)) {
-        Type attrType = typedAttr.getType();
-        if (!llvm::isa<NoneType>(attrType))
+        
+        if (Type attrType = typedAttr.getType(); !llvm::isa<NoneType>(attrType))
           printType(attrType);
       }
     }
@@ -1328,8 +1328,8 @@ void AliasState::printAliases(AsmPrinter::Impl &p, NewLineCounter &newLine,
       alias.isPrinted = true;
     } else {
       // TODO: Support nested aliases in mutable attributes.
-      Attribute attr = Attribute::getFromOpaquePointer(opaqueSymbol);
-      if (attr.hasTrait<AttributeTrait::IsMutable>())
+      
+      if (Attribute attr = Attribute::getFromOpaquePointer(opaqueSymbol); attr.hasTrait<AttributeTrait::IsMutable>())
         p.getStream() << attr;
       else
         p.printAttributeImpl(attr);
@@ -1537,8 +1537,8 @@ void SSANameState::printValueID(Value value, bool printResultNo,
 }
 
 void SSANameState::printOperationID(Operation *op, raw_ostream &stream) const {
-  auto it = operationIDs.find(op);
-  if (it == operationIDs.end()) {
+  
+  if (auto it = operationIDs.find(op); it == operationIDs.end()) {
     stream << "<<UNKNOWN OPERATION>>";
   } else {
     stream << '%' << it->second;
@@ -1707,11 +1707,11 @@ void SSANameState::numberValuesInOp(Operation &op) {
     if (!opAsmOpInterfaceUsed) {
       // If the OpAsmOpInterface didn't set a name, and all results have
       // OpAsmTypeInterface, get names from types.
-      bool allHaveOpAsmTypeInterface =
+      
+      if (bool allHaveOpAsmTypeInterface =
           llvm::all_of(op.getResultTypes(), [&](Type type) {
             return isa<OpAsmTypeInterface>(type);
-          });
-      if (allHaveOpAsmTypeInterface) {
+          }); allHaveOpAsmTypeInterface) {
         for (OpResult result : op.getResults()) {
           auto interface = cast<OpAsmTypeInterface>(result.getType());
           interface.getAsmName(
@@ -2161,8 +2161,8 @@ void AsmPrinter::Impl::printLocationInternal(LocationAttr loc, bool pretty,
         printEscapedString(loc.getName());
 
         // Print the child if it isn't unknown.
-        auto childLoc = loc.getChildLoc();
-        if (!llvm::isa<UnknownLoc>(childLoc)) {
+        
+        if (auto childLoc = loc.getChildLoc(); !llvm::isa<UnknownLoc>(childLoc)) {
           os << '(';
           printLocationInternal(childLoc, pretty);
           os << ')';
@@ -2221,8 +2221,8 @@ static void printFloatValue(const APFloat &apValue, raw_ostream &os,
   // make sure that we only output it in exponential format if we can parse
   // the value back and get the same value.
   bool isInf = apValue.isInfinity();
-  bool isNaN = apValue.isNaN();
-  if (!isInf && !isNaN) {
+  
+  if (bool isNaN = apValue.isNaN(); !isInf && !isNaN) {
     SmallString<128> strValue;
     apValue.toString(strValue, /*FormatPrecision=*/6, /*FormatMaxPadding=*/0,
                      /*TruncateZero=*/false);
@@ -2531,8 +2531,8 @@ void AsmPrinter::Impl::printAttributeImpl(Attribute attr,
   // Don't print the type if we must elide it, or if it is a None type.
   if (typeElision != AttrTypeElision::Must) {
     if (auto typedAttr = llvm::dyn_cast<TypedAttr>(attr)) {
-      Type attrType = typedAttr.getType();
-      if (!llvm::isa<NoneType>(attrType)) {
+      
+      if (Type attrType = typedAttr.getType(); !llvm::isa<NoneType>(attrType)) {
         os << " : ";
         printType(attrType);
       }
@@ -2632,11 +2632,11 @@ void AsmPrinter::Impl::printDenseIntOrFPElementsAttr(
   }
 
   if (ComplexType complexTy = llvm::dyn_cast<ComplexType>(elementType)) {
-    Type complexElementType = complexTy.getElementType();
+    
     // Note: The if and else below had a common lambda function which invoked
     // printDenseElementsAttrImpl. This lambda was hitting a bug in gcc 9.1,9.2
     // and hence was replaced.
-    if (llvm::isa<IntegerType>(complexElementType)) {
+    if (Type complexElementType = complexTy.getElementType(); llvm::isa<IntegerType>(complexElementType)) {
       auto valueIt = attr.value_begin<std::complex<APInt>>();
       printDenseElementsAttrImpl(attr.isSplat(), type, os, [&](unsigned index) {
         auto complexValue = *(valueIt + index);
@@ -2751,8 +2751,8 @@ void AsmPrinter::Impl::printTypeImpl(Type type) {
         os << '(';
         interleaveComma(funcTy.getInputs(), [&](Type ty) { printType(ty); });
         os << ") -> ";
-        ArrayRef<Type> results = funcTy.getResults();
-        if (results.size() == 1 && !llvm::isa<FunctionType>(results[0])) {
+        
+        if (ArrayRef<Type> results = funcTy.getResults(); results.size() == 1 && !llvm::isa<FunctionType>(results[0])) {
           printType(results[0]);
         } else {
           os << '(';
@@ -2839,8 +2839,8 @@ void AsmPrinter::Impl::printTypeImpl(Type type) {
         os << '(';
         interleaveComma(graphTy.getInputs(), [&](Type ty) { printType(ty); });
         os << ") -> ";
-        ArrayRef<Type> results = graphTy.getResults();
-        if (results.size() == 1 && !isa<FunctionType, GraphType>(results[0])) {
+        
+        if (ArrayRef<Type> results = graphTy.getResults(); results.size() == 1 && !isa<FunctionType, GraphType>(results[0])) {
           printType(results[0]);
         } else {
           os << '(';
@@ -3115,8 +3115,8 @@ void AsmPrinter::Impl::printAffineExprInternal(
   // subtraction.
   if (auto rhs = dyn_cast<AffineBinaryOpExpr>(rhsExpr)) {
     if (rhs.getKind() == AffineExprKind::Mul) {
-      AffineExpr rrhsExpr = rhs.getRHS();
-      if (auto rrhs = dyn_cast<AffineConstantExpr>(rrhsExpr)) {
+      
+      if (AffineExpr rrhsExpr = rhs.getRHS(); auto rrhs = dyn_cast<AffineConstantExpr>(rrhsExpr)) {
         if (rrhs.getValue() == -1) {
           printAffineExprInternal(lhsExpr, BindingStrength::Weak,
                                   printValueName);
@@ -3530,8 +3530,8 @@ void OperationPrinter::printResourceFileMetadata(
   for (const OpAsmDialectInterface &interface : state.getDialectInterfaces()) {
     auto &dialectResources = state.getDialectResources();
     StringRef name = interface.getDialect()->getNamespace();
-    auto it = dialectResources.find(interface.getDialect());
-    if (it != dialectResources.end())
+    
+    if (auto it = dialectResources.find(interface.getDialect()); it != dialectResources.end())
       processProvider("dialect", name, interface, it->second);
     else
       processProvider("dialect", name, interface,
@@ -3611,8 +3611,8 @@ void OperationPrinter::printFullOp(Operation *op) {
 }
 
 void OperationPrinter::printUsersComment(Operation *op) {
-  unsigned numResults = op->getNumResults();
-  if (!numResults && op->getNumOperands()) {
+  
+  if (unsigned numResults = op->getNumResults(); !numResults && op->getNumOperands()) {
     os << " // id: ";
     printOperationID(op);
   } else if (numResults && op->use_empty()) {
@@ -4121,8 +4121,8 @@ void Operation::print(raw_ostream &os, const OpPrintingFlags &printerFlags) {
   print(os, state);
 }
 void Operation::print(raw_ostream &os, AsmState &state) {
-  OperationPrinter printer(os, state.getImpl());
-  if (!getParent() && !state.getPrinterFlags().shouldUseLocalScope()) {
+  
+  if (OperationPrinter printer(os, state.getImpl()); !getParent() && !state.getPrinterFlags().shouldUseLocalScope()) {
     state.getImpl().initializeAliases(this);
     printer.printTopLevelOperation(this);
   } else {

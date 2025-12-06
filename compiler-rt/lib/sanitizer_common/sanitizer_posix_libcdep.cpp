@@ -60,8 +60,8 @@ uptr GetThreadSelf() {
 void ReleaseMemoryPagesToOS(uptr beg, uptr end) {
   uptr page_size = GetPageSizeCached();
   uptr beg_aligned = RoundUpTo(beg, page_size);
-  uptr end_aligned = RoundDownTo(end, page_size);
-  if (beg_aligned < end_aligned)
+  
+  if (uptr end_aligned = RoundDownTo(end, page_size); beg_aligned < end_aligned)
     internal_madvise(beg_aligned, end_aligned - beg_aligned,
                      SANITIZER_MADVISE_DONTNEED);
 }
@@ -502,8 +502,8 @@ void AdjustStackSize(void *attr_) {
   // stacksize is set, but stackaddr is not.
   bool stack_set = (stackaddr != 0) && (stackaddr + stacksize != 0);
   // We place a lot of tool data into TLS, account for that.
-  const uptr minstacksize = GetTlsSize() + 128*1024;
-  if (stacksize < minstacksize) {
+  
+  if (const uptr minstacksize = GetTlsSize() + 128*1024; stacksize < minstacksize) {
     if (!stack_set) {
       if (stacksize != 0) {
         VPrintf(1, "Sanitizer: increasing stacksize %zu->%zu\n", stacksize,

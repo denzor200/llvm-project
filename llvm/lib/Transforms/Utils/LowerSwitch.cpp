@@ -270,8 +270,8 @@ BasicBlock *SwitchConvert(CaseItr Begin, CaseItr End, ConstantInt *LowerBound,
     // Check if the gap between LHS's highest and NewLowerBound is unreachable.
     APInt GapLow = LHS.back().High->getValue() + 1;
     APInt GapHigh = NewLowerBound->getValue() - 1;
-    IntRange Gap = {GapLow, GapHigh};
-    if (GapHigh.sge(GapLow) && IsInRanges(Gap, UnreachableRanges))
+    
+    if (IntRange Gap = {GapLow, GapHigh}; GapHigh.sge(GapLow) && IsInRanges(Gap, UnreachableRanges))
       NewUpperBound = LHS.back().High;
   }
 
@@ -442,8 +442,8 @@ void ProcessSwitchInst(SwitchInst *SI,
       const APInt &Low = I.Low->getValue();
       const APInt &High = I.High->getValue();
 
-      IntRange &LastRange = UnreachableRanges.back();
-      if (LastRange.Low.eq(Low)) {
+      
+      if (IntRange &LastRange = UnreachableRanges.back(); LastRange.Low.eq(Low)) {
         // There is nothing left of the previous range.
         UnreachableRanges.pop_back();
       } else {

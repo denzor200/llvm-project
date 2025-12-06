@@ -360,9 +360,9 @@ RelExpr RISCV::getRelExpr(const RelType type, const Symbol &s,
 }
 
 void RISCV::relocate(uint8_t *loc, const Relocation &rel, uint64_t val) const {
-  const unsigned bits = ctx.arg.wordsize * 8;
+  
 
-  switch (rel.type) {
+  switch (const unsigned bits = ctx.arg.wordsize * 8; rel.type) {
   case R_RISCV_32:
     write32le(loc, val);
     return;
@@ -677,8 +677,8 @@ void RISCV::relocateAlloc(InputSection &sec, uint8_t *buf) const {
       continue;
     case RE_RISCV_LEB128:
       if (i + 1 < size) {
-        const Relocation &rel1 = relocs[i + 1];
-        if (rel.type == R_RISCV_SET_ULEB128 &&
+        
+        if (const Relocation &rel1 = relocs[i + 1]; rel.type == R_RISCV_SET_ULEB128 &&
             rel1.type == R_RISCV_SUB_ULEB128 && rel.offset == rel1.offset) {
           auto val = rel.sym->getVA(ctx, rel.addend) -
                      rel1.sym->getVA(ctx, rel1.addend);
@@ -762,11 +762,11 @@ static void relaxCall(Ctx &ctx, const InputSection &sec, size_t i, uint64_t loc,
   const uint32_t rd = extractBits(insnPair, 32 + 11, 32 + 7);
   const uint64_t dest =
       (r.expr == R_PLT_PC ? sym.getPltVA(ctx) : sym.getVA(ctx)) + r.addend;
-  const int64_t displace = dest - loc;
+  
 
   // When the caller specifies the old value of `remove`, disallow its
   // increment.
-  if (remove >= 6 && rvc && isInt<12>(displace) && rd == X_X0) {
+  if (const int64_t displace = dest - loc; remove >= 6 && rvc && isInt<12>(displace) && rd == X_X0) {
     sec.relaxAux->relocTypes[i] = R_RISCV_RVC_JUMP;
     sec.relaxAux->writes.push_back(0xa001); // c.j
     remove = 6;
@@ -790,8 +790,8 @@ static void relaxTlsLe(Ctx &ctx, const InputSection &sec, size_t i,
   uint64_t val = r.sym->getVA(ctx, r.addend);
   if (hi20(val) != 0)
     return;
-  uint32_t insn = read32le(sec.content().data() + r.offset);
-  switch (r.type) {
+  
+  switch (uint32_t insn = read32le(sec.content().data() + r.offset); r.type) {
   case R_RISCV_TPREL_HI20:
   case R_RISCV_TPREL_ADD:
     // Remove lui rd, %tprel_hi(x) and add rd, rd, tp, %tprel_add(x).
@@ -997,10 +997,10 @@ bool RISCV::synthesizeAlignForInput(uint64_t &dot, InputSection *sec,
   } else if (sec->addralign >= 4) {
     // If the alignment is >= 4 and the section does not start with an ALIGN
     // relocation, synthesize one.
-    bool hasAlignRel = llvm::any_of(rels, [](const RelTy &rel) {
+    
+    if (bool hasAlignRel = llvm::any_of(rels, [](const RelTy &rel) {
       return rel.r_offset == 0 && rel.getType(false) == R_RISCV_ALIGN;
-    });
-    if (!hasAlignRel) {
+    }); !hasAlignRel) {
       synthesizedAligns.emplace_back(dot - baseSec->getVA(),
                                      sec->addralign - 2);
       dot += sec->addralign - 2;
@@ -1236,8 +1236,8 @@ static void mergeArch(Ctx &ctx, RISCVISAUtils::OrderedExtensionMap &mergedExts,
     mergedXlen = info.getXLen();
   } else {
     for (const auto &ext : info.getExtensions()) {
-      auto p = mergedExts.insert(ext);
-      if (!p.second) {
+      
+      if (auto p = mergedExts.insert(ext); !p.second) {
         if (std::tie(p.first->second.Major, p.first->second.Minor) <
             std::tie(ext.second.Major, ext.second.Minor))
           p.first->second = ext.second;
@@ -1353,8 +1353,8 @@ mergeAttributesSection(Ctx &ctx,
         // Integer attributes.
       case RISCVAttrs::STACK_ALIGN:
         if (auto i = parser.getAttributeValue(tag.attr)) {
-          auto r = merged.intAttr.try_emplace(tag.attr, *i);
-          if (r.second) {
+          
+          if (auto r = merged.intAttr.try_emplace(tag.attr, *i); r.second) {
             firstStackAlign = sec;
             firstStackAlignValue = *i;
           } else if (r.first->second != *i) {
@@ -1385,8 +1385,8 @@ mergeAttributesSection(Ctx &ctx,
 
       case RISCVAttrs::AttrType::ATOMIC_ABI:
         if (auto i = parser.getAttributeValue(tag.attr)) {
-          auto r = merged.intAttr.try_emplace(tag.attr, *i);
-          if (r.second)
+          
+          if (auto r = merged.intAttr.try_emplace(tag.attr, *i); r.second)
             firstAtomicAbi = sec;
           else
             mergeAtomic(ctx, r.first, firstAtomicAbi, sec,
@@ -1403,13 +1403,13 @@ mergeAttributesSection(Ctx &ctx,
       // https://github.com/riscv-non-isa/riscv-elf-psabi-doc/issues/352
       if (tag.attr % 2 == 0) {
         if (auto i = parser.getAttributeValue(tag.attr)) {
-          auto r = merged.intAttr.try_emplace(tag.attr, *i);
-          if (!r.second && r.first->second != *i)
+          
+          if (auto r = merged.intAttr.try_emplace(tag.attr, *i); !r.second && r.first->second != *i)
             r.first->second = 0;
         }
       } else if (auto s = parser.getAttributeString(tag.attr)) {
-        auto r = merged.strAttr.try_emplace(tag.attr, *s);
-        if (!r.second && r.first->second != *s)
+        
+        if (auto r = merged.strAttr.try_emplace(tag.attr, *s); !r.second && r.first->second != *s)
           r.first->second = {};
       }
     }
@@ -1538,8 +1538,8 @@ void RISCV::scanSectionImpl(InputSectionBase &sec, Relocs<RelTy> rels) {
 }
 
 template <class ELFT> void RISCV::scanSection1(InputSectionBase &sec) {
-  const RelsOrRelas<ELFT> rels = sec.template relsOrRelas<ELFT>();
-  if (rels.areRelocsCrel())
+  
+  if (const RelsOrRelas<ELFT> rels = sec.template relsOrRelas<ELFT>(); rels.areRelocsCrel())
     scanSectionImpl<ELFT>(sec, rels.crels);
   else
     scanSectionImpl<ELFT>(sec, rels.relas);

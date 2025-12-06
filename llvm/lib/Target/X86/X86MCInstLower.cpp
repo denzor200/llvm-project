@@ -154,8 +154,8 @@ MachineModuleInfoMachO &X86MCInstLower::getMachOMMI() const {
 /// GetSymbolFromOperand - Lower an MO_GlobalAddress or MO_ExternalSymbol
 /// operand to an MCSymbol.
 MCSymbol *X86MCInstLower::GetSymbolFromOperand(const MachineOperand &MO) const {
-  const Triple &TT = TM.getTargetTriple();
-  if (MO.isGlobal() && TT.isOSBinFormatELF())
+  
+  if (const Triple &TT = TM.getTargetTriple(); MO.isGlobal() && TT.isOSBinFormatELF())
     return AsmPrinter.getSymbolPreferLocal(*MO.getGlobal());
 
   const DataLayout &DL = MF.getDataLayout();
@@ -205,8 +205,8 @@ MCSymbol *X86MCInstLower::GetSymbolFromOperand(const MachineOperand &MO) const {
   case X86II::MO_COFFSTUB: {
     MachineModuleInfoCOFF &MMICOFF =
         AsmPrinter.MMI->getObjFileInfo<MachineModuleInfoCOFF>();
-    MachineModuleInfoImpl::StubValueTy &StubSym = MMICOFF.getGVStubEntry(Sym);
-    if (!StubSym.getPointer()) {
+    
+    if (MachineModuleInfoImpl::StubValueTy &StubSym = MMICOFF.getGVStubEntry(Sym); !StubSym.getPointer()) {
       assert(MO.isGlobal() && "Extern symbol not handled yet");
       StubSym = MachineModuleInfoImpl::StubValueTy(
           AsmPrinter.getSymbol(MO.getGlobal()), true);
@@ -215,9 +215,9 @@ MCSymbol *X86MCInstLower::GetSymbolFromOperand(const MachineOperand &MO) const {
   }
   case X86II::MO_DARWIN_NONLAZY:
   case X86II::MO_DARWIN_NONLAZY_PIC_BASE: {
-    MachineModuleInfoImpl::StubValueTy &StubSym =
-        getMachOMMI().getGVStubEntry(Sym);
-    if (!StubSym.getPointer()) {
+    
+    if (MachineModuleInfoImpl::StubValueTy &StubSym =
+        getMachOMMI().getGVStubEntry(Sym); !StubSym.getPointer()) {
       assert(MO.isGlobal() && "Extern symbol not handled yet");
       StubSym = MachineModuleInfoImpl::StubValueTy(
           AsmPrinter.getSymbol(MO.getGlobal()),
@@ -516,9 +516,9 @@ void X86MCInstLower::Lower(const MachineInstr *MI, MCInst &OutMI) const {
     // recognize as TZCNT, which has better performance than BSF.
     // BSF and TZCNT have different interpretations on ZF bit. So make sure
     // it won't be used later.
-    const MachineOperand *FlagDef =
-        MI->findRegisterDefOperand(X86::EFLAGS, /*TRI=*/nullptr);
-    if (!MF.getFunction().hasOptSize() && FlagDef && FlagDef->isDead())
+    
+    if (const MachineOperand *FlagDef =
+        MI->findRegisterDefOperand(X86::EFLAGS, /*TRI=*/nullptr); !MF.getFunction().hasOptSize() && FlagDef && FlagDef->isDead())
       OutMI.setFlags(X86::IP_HAS_REPEAT);
     break;
   }
@@ -564,10 +564,10 @@ void X86AsmPrinter::LowerTlsAddr(X86MCInstLower &MCInstLowering,
   // attempted to be relaxed to IE/LE (binutils PR24784). Work around the bug by
   // only using GOT when GOTPCRELX is enabled.
   // TODO Delete the workaround when rustc no longer relies on the hack
-  bool UseGot = MMI->getModule()->getRtLibUseGOT() &&
-                Ctx.getTargetOptions()->X86RelaxRelocations;
+  
 
-  if (Specifier == X86::S_TLSDESC) {
+  if (bool UseGot = MMI->getModule()->getRtLibUseGOT() &&
+                Ctx.getTargetOptions()->X86RelaxRelocations; Specifier == X86::S_TLSDESC) {
     const MCSymbolRefExpr *Expr = MCSymbolRefExpr::create(
         MCInstLowering.GetSymbolFromOperand(MI.getOperand(3)), X86::S_TLSCALL,
         Ctx);
@@ -637,8 +637,8 @@ void X86AsmPrinter::LowerTlsAddr(X86MCInstLower &MCInstLowering,
                                   .addReg(0));
     }
 
-    const MCSymbol *TlsGetAddr = Ctx.getOrCreateSymbol("___tls_get_addr");
-    if (UseGot) {
+    
+    if (const MCSymbol *TlsGetAddr = Ctx.getOrCreateSymbol("___tls_get_addr"); UseGot) {
       const MCExpr *Expr = MCSymbolRefExpr::create(TlsGetAddr, X86::S_GOT, Ctx);
       EmitAndCountInstruction(MCInstBuilder(X86::CALL32m)
                                   .addReg(X86::EBX)
@@ -1049,11 +1049,11 @@ void X86AsmPrinter::LowerPATCHPOINT(const MachineInstr &MI,
   PatchPointOpers opers(&MI);
   unsigned ScratchIdx = opers.getNextScratchIdx();
   unsigned EncodedBytes = 0;
-  const MachineOperand &CalleeMO = opers.getCallTarget();
+  
 
   // Check for null target. If target is non-null (i.e. is non-zero or is
   // symbolic) then emit a call.
-  if (!(CalleeMO.isImm() && !CalleeMO.getImm())) {
+  if (const MachineOperand &CalleeMO = opers.getCallTarget(); !(CalleeMO.isImm() && !CalleeMO.getImm())) {
     MCOperand CalleeMCOp;
     switch (CalleeMO.getType()) {
     default:
@@ -1301,8 +1301,8 @@ void X86AsmPrinter::LowerPATCHABLE_FUNCTION_ENTER(const MachineInstr &MI,
 
   NoAutoPaddingScope NoPadScope(*OutStreamer);
 
-  const Function &F = MF->getFunction();
-  if (F.hasFnAttribute("patchable-function-entry")) {
+  
+  if (const Function &F = MF->getFunction(); F.hasFnAttribute("patchable-function-entry")) {
     unsigned Num;
     if (F.getFnAttribute("patchable-function-entry")
             .getValueAsString()
@@ -1577,8 +1577,8 @@ static void printConstant(const Constant *COp, unsigned BitWidth,
     bool IsInteger = EltTy->isIntegerTy();
     bool IsFP = EltTy->isHalfTy() || EltTy->isFloatTy() || EltTy->isDoubleTy();
     unsigned EltBits = EltTy->getPrimitiveSizeInBits();
-    unsigned E = std::min(BitWidth / EltBits, (unsigned)CDS->getNumElements());
-    if ((BitWidth % EltBits) == 0) {
+    
+    if (unsigned E = std::min(BitWidth / EltBits, (unsigned)CDS->getNumElements()); (BitWidth % EltBits) == 0) {
       for (unsigned I = 0; I != E; ++I) {
         if (I != 0)
           CS << ",";
@@ -1594,8 +1594,8 @@ static void printConstant(const Constant *COp, unsigned BitWidth,
     }
   } else if (auto *CV = dyn_cast<ConstantVector>(COp)) {
     unsigned EltBits = CV->getType()->getScalarSizeInBits();
-    unsigned E = std::min(BitWidth / EltBits, CV->getNumOperands());
-    if ((BitWidth % EltBits) == 0) {
+    
+    if (unsigned E = std::min(BitWidth / EltBits, CV->getNumOperands()); (BitWidth % EltBits) == 0) {
       for (unsigned I = 0; I != E; ++I) {
         if (I != 0)
           CS << ",";
@@ -1638,8 +1638,8 @@ static void printZeroUpperMove(const MachineInstr *MI, MCStreamer &OutStreamer,
 
 static void printBroadcast(const MachineInstr *MI, MCStreamer &OutStreamer,
                            int Repeats, int BitWidth) {
-  unsigned SrcIdx = getSrcIdx(MI, 1);
-  if (auto *C = X86::getConstantFromPool(*MI, SrcIdx)) {
+  
+  if (unsigned SrcIdx = getSrcIdx(MI, 1); auto *C = X86::getConstantFromPool(*MI, SrcIdx)) {
     std::string Comment;
     raw_string_ostream CS(Comment);
     printDstRegisterName(CS, MI, SrcIdx);
@@ -1657,8 +1657,8 @@ static void printBroadcast(const MachineInstr *MI, MCStreamer &OutStreamer,
 static bool printExtend(const MachineInstr *MI, MCStreamer &OutStreamer,
                         int SrcEltBits, int DstEltBits, bool IsSext) {
   unsigned SrcIdx = getSrcIdx(MI, 1);
-  auto *C = X86::getConstantFromPool(*MI, SrcIdx);
-  if (C && C->getType()->getScalarSizeInBits() == unsigned(SrcEltBits)) {
+  
+  if (auto *C = X86::getConstantFromPool(*MI, SrcIdx); C && C->getType()->getScalarSizeInBits() == unsigned(SrcEltBits)) {
     if (auto *CDS = dyn_cast<ConstantDataSequential>(C)) {
       int NumElts = CDS->getNumElements();
       std::string Comment;
@@ -1715,9 +1715,9 @@ void X86AsmPrinter::EmitSEHInstruction(const MachineInstr *MI) {
 
   // Use the .cv_fpo directives if we're emitting CodeView on 32-bit x86.
   if (EmitFPOData) {
-    X86TargetStreamer *XTS =
-        static_cast<X86TargetStreamer *>(OutStreamer->getTargetStreamer());
-    switch (MI->getOpcode()) {
+    
+    switch (X86TargetStreamer *XTS =
+        static_cast<X86TargetStreamer *>(OutStreamer->getTargetStreamer()); MI->getOpcode()) {
     case X86::SEH_PushReg:
       XTS->emitFPOPushReg(MI->getOperand(0).getImm());
       break;
@@ -1818,8 +1818,8 @@ static void addConstantComments(const MachineInstr *MI,
   case X86::VPSHUFBZrm:
   case X86::VPSHUFBZrmk:
   case X86::VPSHUFBZrmkz: {
-    unsigned SrcIdx = getSrcIdx(MI, 1);
-    if (auto *C = X86::getConstantFromPool(*MI, SrcIdx + 1)) {
+    
+    if (unsigned SrcIdx = getSrcIdx(MI, 1); auto *C = X86::getConstantFromPool(*MI, SrcIdx + 1)) {
       unsigned Width = X86::getVectorRegisterWidth(MI->getDesc().operands()[0]);
       SmallVector<int, 64> Mask;
       DecodePSHUFBMask(C, Width, Mask);
@@ -1840,8 +1840,8 @@ static void addConstantComments(const MachineInstr *MI,
   case X86::VPERMILPSZrm:
   case X86::VPERMILPSZrmk:
   case X86::VPERMILPSZrmkz: {
-    unsigned SrcIdx = getSrcIdx(MI, 1);
-    if (auto *C = X86::getConstantFromPool(*MI, SrcIdx + 1)) {
+    
+    if (unsigned SrcIdx = getSrcIdx(MI, 1); auto *C = X86::getConstantFromPool(*MI, SrcIdx + 1)) {
       unsigned Width = X86::getVectorRegisterWidth(MI->getDesc().operands()[0]);
       SmallVector<int, 16> Mask;
       DecodeVPERMILPMask(C, 32, Width, Mask);
@@ -1861,8 +1861,8 @@ static void addConstantComments(const MachineInstr *MI,
   case X86::VPERMILPDZrm:
   case X86::VPERMILPDZrmk:
   case X86::VPERMILPDZrmkz: {
-    unsigned SrcIdx = getSrcIdx(MI, 1);
-    if (auto *C = X86::getConstantFromPool(*MI, SrcIdx + 1)) {
+    
+    if (unsigned SrcIdx = getSrcIdx(MI, 1); auto *C = X86::getConstantFromPool(*MI, SrcIdx + 1)) {
       unsigned Width = X86::getVectorRegisterWidth(MI->getDesc().operands()[0]);
       SmallVector<int, 16> Mask;
       DecodeVPERMILPMask(C, 64, Width, Mask);
@@ -1964,8 +1964,8 @@ static void addConstantComments(const MachineInstr *MI,
     CASE_ARITH_RM(PMULHW)
     CASE_ARITH_RM(PMULHUW)
     CASE_ARITH_RM(PMULHRSW) {
-      unsigned SrcIdx = getSrcIdx(MI, 1);
-      if (auto *C = X86::getConstantFromPool(*MI, SrcIdx + 1)) {
+      
+      if (unsigned SrcIdx = getSrcIdx(MI, 1); auto *C = X86::getConstantFromPool(*MI, SrcIdx + 1)) {
         std::string Comment;
         raw_string_ostream CS(Comment);
         unsigned VectorWidth =
@@ -2599,8 +2599,8 @@ void X86AsmPrinter::emitInstruction(const MachineInstr *MI) {
       MachineBasicBlock *DestBB = MI->getOperand(0).getMBB();
       BranchProbability EdgeProb =
           MBPI->getEdgeProbability(MI->getParent(), DestBB);
-      BranchProbability Threshold(BranchHintProbabilityThreshold, 100);
-      if (EdgeProb > Threshold)
+      
+      if (BranchProbability Threshold(BranchHintProbabilityThreshold, 100); EdgeProb > Threshold)
         EmitAndCountInstruction(MCInstBuilder(X86::DS_PREFIX));
     }
     break;

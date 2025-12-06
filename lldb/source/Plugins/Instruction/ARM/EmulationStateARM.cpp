@@ -34,8 +34,8 @@ bool EmulationStateARM::StorePseudoRegisterValue(uint32_t reg_num,
     uint32_t idx = reg_num - dwarf_s0;
     m_vfp_regs.s_regs[idx] = (uint32_t)value;
   } else if ((dwarf_d0 <= reg_num) && (reg_num <= dwarf_d31)) {
-    uint32_t idx = reg_num - dwarf_d0;
-    if (idx < 16) {
+    
+    if (uint32_t idx = reg_num - dwarf_d0; idx < 16) {
       m_vfp_regs.s_regs[idx * 2] = (uint32_t)value;
       m_vfp_regs.s_regs[idx * 2 + 1] = (uint32_t)(value >> 32);
     } else
@@ -57,8 +57,8 @@ uint64_t EmulationStateARM::ReadPseudoRegisterValue(uint32_t reg_num,
     uint32_t idx = reg_num - dwarf_s0;
     value = m_vfp_regs.s_regs[idx];
   } else if ((dwarf_d0 <= reg_num) && (reg_num <= dwarf_d31)) {
-    uint32_t idx = reg_num - dwarf_d0;
-    if (idx < 16)
+    
+    if (uint32_t idx = reg_num - dwarf_d0; idx < 16)
       value = (uint64_t)m_vfp_regs.s_regs[idx * 2] |
               ((uint64_t)m_vfp_regs.s_regs[idx * 2 + 1] << 32);
     else
@@ -111,8 +111,8 @@ size_t EmulationStateARM::ReadPseudoMemory(
     return 0;
 
   bool success = true;
-  EmulationStateARM *pseudo_state = (EmulationStateARM *)baton;
-  if (length <= 4) {
+  
+  if (EmulationStateARM *pseudo_state = (EmulationStateARM *)baton; length <= 4) {
     uint32_t value = pseudo_state->ReadFromPseudoAddress(addr, success);
     if (!success)
       return 0;
@@ -151,9 +151,9 @@ size_t EmulationStateARM::WritePseudoMemory(
   if (!baton)
     return 0;
 
-  EmulationStateARM *pseudo_state = (EmulationStateARM *)baton;
+  
 
-  if (length <= 4) {
+  if (EmulationStateARM *pseudo_state = (EmulationStateARM *)baton; length <= 4) {
     uint32_t value;
     memcpy (&value, dst, sizeof (uint32_t));
     if (endian::InlHostByteOrder() == lldb::eByteOrderBig)
@@ -191,10 +191,10 @@ bool EmulationStateARM::ReadPseudoRegister(
   EmulationStateARM *pseudo_state = (EmulationStateARM *)baton;
   const uint32_t dwarf_reg_num = reg_info->kinds[eRegisterKindDWARF];
   assert(dwarf_reg_num != LLDB_INVALID_REGNUM);
-  uint64_t reg_uval =
-      pseudo_state->ReadPseudoRegisterValue(dwarf_reg_num, success);
+  
 
-  if (success)
+  if (uint64_t reg_uval =
+      pseudo_state->ReadPseudoRegisterValue(dwarf_reg_num, success); success)
     success = reg_value.SetUInt(reg_uval, reg_info->byte_size);
   return success;
 }

@@ -95,8 +95,8 @@ ValueObject::ValueObject(ExecutionContextScope *exe_scope,
       m_address_type_of_ptr_or_ref_children(child_ptr_or_ref_addr_type),
       m_id(++g_value_obj_uid) {
   if (exe_scope) {
-    TargetSP target_sp(exe_scope->CalculateTarget());
-    if (target_sp) {
+    
+    if (TargetSP target_sp(exe_scope->CalculateTarget()); target_sp) {
       const ArchSpec &arch = target_sp->GetArchitecture();
       m_data.SetByteOrder(arch.GetByteOrder());
       m_data.SetAddressByteSize(arch.GetAddressByteSize());
@@ -287,16 +287,16 @@ const char *ValueObject::GetLocationAsCStringImpl(const Value &value,
     if (m_location_str.empty()) {
       StreamString sstr;
 
-      Value::ValueType value_type = value.GetValueType();
+      
 
-      switch (value_type) {
+      switch (Value::ValueType value_type = value.GetValueType(); value_type) {
       case Value::ValueType::Invalid:
         m_location_str = "invalid";
         break;
       case Value::ValueType::Scalar:
         if (value.GetContextType() == Value::ContextType::RegisterInfo) {
-          RegisterInfo *reg_info = value.GetRegisterInfo();
-          if (reg_info) {
+          
+          if (RegisterInfo *reg_info = value.GetRegisterInfo(); reg_info) {
             if (reg_info->name)
               m_location_str = reg_info->name;
             else if (reg_info->alt_name)
@@ -333,8 +333,8 @@ bool ValueObject::ResolveValue(Scalar &scalar) {
     Value tmp_value(m_value);
     scalar = tmp_value.ResolveValue(&exe_ctx, GetModule().get());
     if (scalar.IsValid()) {
-      const uint32_t bitfield_bit_size = GetBitfieldBitSize();
-      if (bitfield_bit_size)
+      
+      if (const uint32_t bitfield_bit_size = GetBitfieldBitSize(); bitfield_bit_size)
         return scalar.ExtractBitfield(bitfield_bit_size,
                                       GetBitfieldBitOffset());
       return true;
@@ -345,8 +345,8 @@ bool ValueObject::ResolveValue(Scalar &scalar) {
 
 bool ValueObject::IsLogicalTrue(Status &error) {
   if (Language *language = Language::FindPlugin(GetObjectRuntimeLanguage())) {
-    LazyBool is_logical_true = language->IsLogicalTrue(*this, error);
-    switch (is_logical_true) {
+    
+    switch (LazyBool is_logical_true = language->IsLogicalTrue(*this, error); is_logical_true) {
     case eLazyBoolYes:
     case eLazyBoolNo:
       return (is_logical_true == true);
@@ -381,8 +381,8 @@ ValueObjectSP ValueObject::GetChildAtIndex(uint32_t idx, bool can_create) {
       m_children.SetChildAtIndex(idx, CreateChildAtIndex(idx));
     }
 
-    ValueObject *child = m_children.GetChildAtIndex(idx);
-    if (child != nullptr)
+    
+    if (ValueObject *child = m_children.GetChildAtIndex(idx); child != nullptr)
       return child->GetSP();
   }
   return child_sp;
@@ -449,8 +449,8 @@ llvm::Expected<uint32_t> ValueObject::GetNumChildren(uint32_t max) {
   }
 
   if (!m_flags.m_children_count_valid) {
-    auto num_children_or_err = CalculateNumChildren();
-    if (num_children_or_err)
+    
+    if (auto num_children_or_err = CalculateNumChildren(); num_children_or_err)
       SetNumChildren(*num_children_or_err);
     else
       return num_children_or_err;
@@ -469,8 +469,8 @@ uint32_t ValueObject::GetNumChildrenIgnoringErrors(uint32_t max) {
 
 bool ValueObject::MightHaveChildren() {
   bool has_children = false;
-  const uint32_t type_info = GetTypeInfo();
-  if (type_info) {
+  
+  if (const uint32_t type_info = GetTypeInfo(); type_info) {
     if (type_info & (eTypeHasChildren | eTypeIsPointer | eTypeIsReference))
       has_children = true;
   } else {
@@ -648,9 +648,9 @@ bool ValueObject::GetSummaryAsCString(std::string &destination,
 bool ValueObject::IsCStringContainer(bool check_pointer) {
   CompilerType pointee_or_element_compiler_type;
   const Flags type_flags(GetTypeInfo(&pointee_or_element_compiler_type));
-  bool is_char_arr_ptr(type_flags.AnySet(eTypeIsArray | eTypeIsPointer) &&
-                       pointee_or_element_compiler_type.IsCharType());
-  if (!is_char_arr_ptr)
+  
+  if (bool is_char_arr_ptr(type_flags.AnySet(eTypeIsArray | eTypeIsPointer) &&
+                       pointee_or_element_compiler_type.IsCharType()); !is_char_arr_ptr)
     return false;
   if (!check_pointer)
     return true;
@@ -665,8 +665,8 @@ size_t ValueObject::GetPointeeData(DataExtractor &data, uint32_t item_idx,
   CompilerType pointee_or_element_compiler_type;
   const uint32_t type_info = GetTypeInfo(&pointee_or_element_compiler_type);
   const bool is_pointer_type = type_info & eTypeIsPointer;
-  const bool is_array_type = type_info & eTypeIsArray;
-  if (!(is_pointer_type || is_array_type))
+  
+  if (const bool is_array_type = type_info & eTypeIsArray; !(is_pointer_type || is_array_type))
     return 0;
 
   if (item_count == 0)
@@ -705,23 +705,23 @@ size_t ValueObject::GetPointeeData(DataExtractor &data, uint32_t item_idx,
     lldb::DataBufferSP data_sp(heap_buf_ptr =
                                    new lldb_private::DataBufferHeap());
 
-    auto [addr, addr_type] =
-        is_pointer_type ? GetPointerValue() : GetAddressOf(true);
+    
 
-    switch (addr_type) {
+    switch (auto [addr, addr_type] =
+        is_pointer_type ? GetPointerValue() : GetAddressOf(true); addr_type) {
     case eAddressTypeFile: {
-      ModuleSP module_sp(GetModule());
-      if (module_sp) {
+      
+      if (ModuleSP module_sp(GetModule()); module_sp) {
         addr = addr + offset;
         Address so_addr;
         module_sp->ResolveFileAddress(addr, so_addr);
         ExecutionContext exe_ctx(GetExecutionContextRef());
-        Target *target = exe_ctx.GetTargetPtr();
-        if (target) {
+        
+        if (Target *target = exe_ctx.GetTargetPtr(); target) {
           heap_buf_ptr->SetByteSize(bytes);
-          size_t bytes_read = target->ReadMemory(
-              so_addr, heap_buf_ptr->GetBytes(), bytes, error, true);
-          if (error.Success()) {
+          
+          if (size_t bytes_read = target->ReadMemory(
+              so_addr, heap_buf_ptr->GetBytes(), bytes, error, true); error.Success()) {
             data.SetData(data_sp);
             return bytes_read;
           }
@@ -729,24 +729,24 @@ size_t ValueObject::GetPointeeData(DataExtractor &data, uint32_t item_idx,
       }
     } break;
     case eAddressTypeLoad: {
-      ExecutionContext exe_ctx(GetExecutionContextRef());
-      if (Target *target = exe_ctx.GetTargetPtr()) {
+      
+      if (ExecutionContext exe_ctx(GetExecutionContextRef()); Target *target = exe_ctx.GetTargetPtr()) {
         heap_buf_ptr->SetByteSize(bytes);
         Address target_addr;
         target_addr.SetLoadAddress(addr + offset, target);
-        size_t bytes_read =
+        
+        if (size_t bytes_read =
             target->ReadMemory(target_addr, heap_buf_ptr->GetBytes(), bytes,
-                               error, /*force_live_memory=*/true);
-        if (error.Success() || bytes_read > 0) {
+                               error, /*force_live_memory=*/true); error.Success() || bytes_read > 0) {
           data.SetData(data_sp);
           return bytes_read;
         }
       }
     } break;
     case eAddressTypeHost: {
-      auto max_bytes =
-          GetCompilerType().GetByteSize(exe_ctx.GetBestExecutionContextScope());
-      if (max_bytes && *max_bytes > offset) {
+      
+      if (auto max_bytes =
+          GetCompilerType().GetByteSize(exe_ctx.GetBestExecutionContextScope()); max_bytes && *max_bytes > offset) {
         size_t bytes_read = std::min<uint64_t>(*max_bytes - offset, bytes);
         addr = m_value.GetScalar().ULongLong(LLDB_INVALID_ADDRESS);
         if (addr == 0 || addr == LLDB_INVALID_ADDRESS)
@@ -794,17 +794,17 @@ bool ValueObject::SetData(DataExtractor &data, Status &error) {
 
   const size_t byte_size = llvm::expectedToOptional(GetByteSize()).value_or(0);
 
-  Value::ValueType value_type = m_value.GetValueType();
+  
 
-  switch (value_type) {
+  switch (Value::ValueType value_type = m_value.GetValueType(); value_type) {
   case Value::ValueType::Invalid:
     error = Status::FromErrorString("invalid location");
     return false;
   case Value::ValueType::Scalar: {
-    Status set_error =
-        m_value.GetScalar().SetValueFromData(data, encoding, byte_size);
+    
 
-    if (!set_error.Success()) {
+    if (Status set_error =
+        m_value.GetScalar().SetValueFromData(data, encoding, byte_size); !set_error.Success()) {
       error = Status::FromErrorStringWithFormat(
           "unable to set scalar value: %s", set_error.AsCString());
       return false;
@@ -814,8 +814,8 @@ bool ValueObject::SetData(DataExtractor &data, Status &error) {
     // If it is a load address, then the scalar value is the storage location
     // of the data, and we have to shove this value down to that load location.
     ExecutionContext exe_ctx(GetExecutionContextRef());
-    Process *process = exe_ctx.GetProcessPtr();
-    if (process) {
+    
+    if (Process *process = exe_ctx.GetProcessPtr(); process) {
       addr_t target_addr = m_value.GetScalar().ULongLong(LLDB_INVALID_ADDRESS);
       size_t bytes_written = process->WriteMemory(
           target_addr, data.GetDataStart(), byte_size, error);
@@ -1077,8 +1077,8 @@ const char *ValueObject::GetValueAsCString() {
           my_format = eFormatUnsigned;
         else {
           if (m_value.GetContextType() == Value::ContextType::RegisterInfo) {
-            const RegisterInfo *reg_info = m_value.GetRegisterInfo();
-            if (reg_info)
+            
+            if (const RegisterInfo *reg_info = m_value.GetRegisterInfo(); reg_info)
               my_format = reg_info->format;
           } else {
             my_format = GetValue().GetCompilerType().GetFormat();
@@ -1109,8 +1109,8 @@ const char *ValueObject::GetValueAsCString() {
 uint64_t ValueObject::GetValueAsUnsigned(uint64_t fail_value, bool *success) {
   // If our byte size is zero this is an aggregate type that has children
   if (CanProvideValue()) {
-    Scalar scalar;
-    if (ResolveValue(scalar)) {
+    
+    if (Scalar scalar; ResolveValue(scalar)) {
       if (success)
         *success = true;
       scalar.MakeUnsigned();
@@ -1127,8 +1127,8 @@ uint64_t ValueObject::GetValueAsUnsigned(uint64_t fail_value, bool *success) {
 int64_t ValueObject::GetValueAsSigned(int64_t fail_value, bool *success) {
   // If our byte size is zero this is an aggregate type that has children
   if (CanProvideValue()) {
-    Scalar scalar;
-    if (ResolveValue(scalar)) {
+    
+    if (Scalar scalar; ResolveValue(scalar)) {
       if (success)
         *success = true;
       scalar.MakeSigned();
@@ -1154,8 +1154,8 @@ llvm::Expected<llvm::APSInt> ValueObject::GetValueAsAPSInt() {
         "type cannot be converted to APSInt", llvm::inconvertibleErrorCode());
 
   if (CanProvideValue()) {
-    Scalar scalar;
-    if (ResolveValue(scalar))
+    
+    if (Scalar scalar; ResolveValue(scalar))
       return scalar.GetAPSInt();
   }
 
@@ -1170,8 +1170,8 @@ llvm::Expected<llvm::APFloat> ValueObject::GetValueAsAPFloat() {
         "type cannot be converted to APFloat", llvm::inconvertibleErrorCode());
 
   if (CanProvideValue()) {
-    Scalar scalar;
-    if (ResolveValue(scalar))
+    
+    if (Scalar scalar; ResolveValue(scalar))
       return scalar.GetAPFloat();
   }
 
@@ -1184,13 +1184,13 @@ llvm::Expected<bool> ValueObject::GetValueAsBool() {
   CompilerType val_type = GetCompilerType();
   if (val_type.IsInteger() || val_type.IsUnscopedEnumerationType() ||
       val_type.IsPointerType()) {
-    auto value_or_err = GetValueAsAPSInt();
-    if (value_or_err)
+    
+    if (auto value_or_err = GetValueAsAPSInt(); value_or_err)
       return value_or_err->getBoolValue();
   }
   if (val_type.IsFloat()) {
-    auto value_or_err = GetValueAsAPFloat();
-    if (value_or_err)
+    
+    if (auto value_or_err = GetValueAsAPFloat(); value_or_err)
       return value_or_err->isNonZero();
   }
   if (val_type.IsArrayType())
@@ -1269,21 +1269,21 @@ void ValueObject::SetValueFromInteger(lldb::ValueObjectSP new_val_sp,
   }
 
   if (new_val_type.IsInteger()) {
-    auto value_or_err = new_val_sp->GetValueAsAPSInt();
-    if (value_or_err)
+    
+    if (auto value_or_err = new_val_sp->GetValueAsAPSInt(); value_or_err)
       SetValueFromInteger(*value_or_err, error);
     else
       error = Status::FromErrorString("error getting APSInt from new_val_sp");
   } else if (new_val_type.IsFloat()) {
-    auto value_or_err = new_val_sp->GetValueAsAPFloat();
-    if (value_or_err)
+    
+    if (auto value_or_err = new_val_sp->GetValueAsAPFloat(); value_or_err)
       SetValueFromInteger(value_or_err->bitcastToAPInt(), error);
     else
       error = Status::FromErrorString("error getting APFloat from new_val_sp");
   } else if (new_val_type.IsPointerType()) {
     bool success = true;
-    uint64_t int_val = new_val_sp->GetValueAsUnsigned(0, &success);
-    if (success) {
+    
+    if (uint64_t int_val = new_val_sp->GetValueAsUnsigned(0, &success); success) {
       lldb::TargetSP target = GetTargetSP();
       uint64_t num_bits = 0;
       if (auto temp = llvm::expectedToOptional(
@@ -1506,8 +1506,8 @@ bool ValueObject::DumpPrintableRepresentation(
       break;
 
     case eValueObjectRepresentationStyleLanguageSpecific: {
-      llvm::Expected<std::string> desc = GetObjectDescription();
-      if (!desc) {
+      
+      if (llvm::Expected<std::string> desc = GetObjectDescription(); !desc) {
         strm << "error: " << toString(desc.takeError());
         str = strm.GetString();
       } else {
@@ -1672,9 +1672,9 @@ bool ValueObject::SetValueFromCString(const char *value_str, Status &error) {
 
   const size_t byte_size = llvm::expectedToOptional(GetByteSize()).value_or(0);
 
-  Value::ValueType value_type = m_value.GetValueType();
+  
 
-  if (value_type == Value::ValueType::Scalar) {
+  if (Value::ValueType value_type = m_value.GetValueType(); value_type == Value::ValueType::Scalar) {
     // If the value is already a scalar, then let the scalar change itself:
     m_value.GetScalar().SetValueFromCString(value_str, encoding, byte_size);
   } else if (byte_size <= 16) {
@@ -1693,8 +1693,8 @@ bool ValueObject::SetValueFromCString(const char *value_str, Status &error) {
         // location of the data, and we have to shove this value down to that
         // load location.
         ExecutionContext exe_ctx(GetExecutionContextRef());
-        Process *process = exe_ctx.GetProcessPtr();
-        if (process) {
+        
+        if (Process *process = exe_ctx.GetProcessPtr(); process) {
           addr_t target_addr =
               m_value.GetScalar().ULongLong(LLDB_INVALID_ADDRESS);
           size_t bytes_written = process->WriteScalarToMemory(
@@ -1715,8 +1715,8 @@ bool ValueObject::SetValueFromCString(const char *value_str, Status &error) {
 
         DataBufferSP buffer_sp(new DataBufferHeap(byte_size, 0));
         m_data.SetData(buffer_sp, 0);
-        bool success = new_scalar.GetData(new_data);
-        if (success) {
+        
+        if (bool success = new_scalar.GetData(new_data); success) {
           new_data.CopyByteOrderedData(
               0, byte_size, const_cast<uint8_t *>(m_data.GetDataStart()),
               byte_size, m_data.GetByteOrder());
@@ -1766,8 +1766,8 @@ ValueObjectSP ValueObject::GetSyntheticChild(ConstString key) const {
 
 bool ValueObject::IsPossibleDynamicType() {
   ExecutionContext exe_ctx(GetExecutionContextRef());
-  Process *process = exe_ctx.GetProcessPtr();
-  if (process)
+  
+  if (Process *process = exe_ctx.GetProcessPtr(); process)
     return process->IsPossibleDynamicValue(*this);
   else
     return GetCompilerType().IsPossibleDynamicType(nullptr, true, true);
@@ -2024,8 +2024,8 @@ void ValueObject::CalculateDynamicValue(DynamicValueType use_dynamic) {
 
   if (!m_dynamic_value && !IsDynamic()) {
     ExecutionContext exe_ctx(GetExecutionContextRef());
-    Process *process = exe_ctx.GetProcessPtr();
-    if (process && process->IsPossibleDynamicValue(*this)) {
+    
+    if (Process *process = exe_ctx.GetProcessPtr(); process && process->IsPossibleDynamicValue(*this)) {
       ClearDynamicTypeInformation();
       m_dynamic_value = new ValueObjectDynamicValue(*this, use_dynamic);
     }
@@ -2105,9 +2105,9 @@ void ValueObject::GetExpressionPath(Stream &s,
                  GetValueAsUnsigned(0));
         return;
       } else {
-        uint64_t load_addr =
-            m_value.GetScalar().ULongLong(LLDB_INVALID_ADDRESS);
-        if (load_addr != LLDB_INVALID_ADDRESS) {
+        
+        if (uint64_t load_addr =
+            m_value.GetScalar().ULongLong(LLDB_INVALID_ADDRESS); load_addr != LLDB_INVALID_ADDRESS) {
           s.Printf("(*( (%s *)0x%" PRIx64 "))", GetTypeName().AsCString("void"),
                    load_addr);
           return;
@@ -2150,20 +2150,20 @@ void ValueObject::GetExpressionPath(Stream &s,
 
   if (!IsBaseClass()) {
     if (!is_deref_of_parent) {
-      ValueObject *non_base_class_parent = GetNonBaseClassParent();
-      if (non_base_class_parent &&
+      
+      if (ValueObject *non_base_class_parent = GetNonBaseClassParent(); non_base_class_parent &&
           !non_base_class_parent->GetName().IsEmpty()) {
-        CompilerType non_base_class_parent_compiler_type =
-            non_base_class_parent->GetCompilerType();
-        if (non_base_class_parent_compiler_type) {
+        
+        if (CompilerType non_base_class_parent_compiler_type =
+            non_base_class_parent->GetCompilerType(); non_base_class_parent_compiler_type) {
           if (parent && parent->IsDereferenceOfParent() &&
               epformat == eGetExpressionPathFormatHonorPointers) {
             s.PutCString("->");
           } else {
-            const uint32_t non_base_class_parent_type_info =
-                non_base_class_parent_compiler_type.GetTypeInfo();
+            
 
-            if (non_base_class_parent_type_info & eTypeIsPointer) {
+            if (const uint32_t non_base_class_parent_type_info =
+                non_base_class_parent_compiler_type.GetTypeInfo(); non_base_class_parent_type_info & eTypeIsPointer) {
               s.PutCString("->");
             } else if ((non_base_class_parent_type_info & eTypeHasChildren) &&
                        !(non_base_class_parent_type_info & eTypeIsArray)) {
@@ -2256,9 +2256,9 @@ ValueObjectSP ValueObject::GetValueForExpressionPath(
                               : dummy_final_task_on_target) ==
         ValueObject::eExpressionPathAftermathDereference) {
       Status error;
-      ValueObjectSP final_value = DereferenceValueOrAlternate(
-          *ret_val, options.m_synthetic_children_traversal, error);
-      if (error.Fail() || !final_value.get()) {
+      
+      if (ValueObjectSP final_value = DereferenceValueOrAlternate(
+          *ret_val, options.m_synthetic_children_traversal, error); error.Fail() || !final_value.get()) {
         if (reason_to_stop)
           *reason_to_stop =
               ValueObject::eExpressionPathScanEndReasonDereferencingFailed;
@@ -2274,8 +2274,8 @@ ValueObjectSP ValueObject::GetValueForExpressionPath(
     if (*final_task_on_target ==
         ValueObject::eExpressionPathAftermathTakeAddress) {
       Status error;
-      ValueObjectSP final_value = ret_val->AddressOf(error);
-      if (error.Fail() || !final_value.get()) {
+      
+      if (ValueObjectSP final_value = ret_val->AddressOf(error); error.Fail() || !final_value.get()) {
         if (reason_to_stop)
           *reason_to_stop =
               ValueObject::eExpressionPathScanEndReasonTakingAddressFailed;
@@ -2869,8 +2869,8 @@ ValueObjectSP ValueObject::AddressOf(Status &error) {
 
     case eAddressTypeFile:
     case eAddressTypeLoad: {
-      CompilerType compiler_type = GetCompilerType();
-      if (compiler_type) {
+      
+      if (CompilerType compiler_type = GetCompilerType(); compiler_type) {
         std::string name(1, '&');
         name.append(m_name.AsCString(""));
         ExecutionContext exe_ctx(GetExecutionContextRef());
@@ -2972,8 +2972,8 @@ lldb::addr_t ValueObject::GetLoadAddress() {
     const bool scalar_is_load_address = true;
     auto [addr_value, addr_type] = GetAddressOf(scalar_is_load_address);
     if (addr_type == eAddressTypeFile) {
-      lldb::ModuleSP module_sp(GetModule());
-      if (!module_sp)
+      
+      if (lldb::ModuleSP module_sp(GetModule()); !module_sp)
         addr_value = LLDB_INVALID_ADDRESS;
       else {
         Address tmp_addr;
@@ -3168,8 +3168,8 @@ lldb::ValueObjectSP ValueObject::CastToBasicType(CompilerType type) {
       return ValueObject::CreateValueObjectFromBool(
           target, GetValueAsUnsigned(0) != 0, "result");
     else if (is_scalar && is_float) {
-      auto float_value_or_err = GetValueAsAPFloat();
-      if (float_value_or_err)
+      
+      if (auto float_value_or_err = GetValueAsAPFloat(); float_value_or_err)
         return ValueObject::CreateValueObjectFromBool(
             target, !float_value_or_err->isZero(), "result");
       else
@@ -3183,8 +3183,8 @@ lldb::ValueObjectSP ValueObject::CastToBasicType(CompilerType type) {
 
   if (type.IsInteger()) {
     if (!is_scalar || is_integer) {
-      auto int_value_or_err = GetValueAsAPSInt();
-      if (int_value_or_err) {
+      
+      if (auto int_value_or_err = GetValueAsAPSInt(); int_value_or_err) {
         // Get the value as APSInt and extend or truncate it to the requested
         // size.
         llvm::APSInt ext =
@@ -3200,15 +3200,15 @@ lldb::ValueObjectSP ValueObject::CastToBasicType(CompilerType type) {
     } else if (is_scalar && is_float) {
       llvm::APSInt integer(type_byte_size * CHAR_BIT, !type.IsSigned());
       bool is_exact;
-      auto float_value_or_err = GetValueAsAPFloat();
-      if (float_value_or_err) {
-        llvm::APFloatBase::opStatus status =
-            float_value_or_err->convertToInteger(
-                integer, llvm::APFloat::rmTowardZero, &is_exact);
+      
+      if (auto float_value_or_err = GetValueAsAPFloat(); float_value_or_err) {
+        
 
         // Casting floating point values that are out of bounds of the target
         // type is undefined behaviour.
-        if (status & llvm::APFloatBase::opInvalidOp)
+        if (llvm::APFloatBase::opStatus status =
+            float_value_or_err->convertToInteger(
+                integer, llvm::APFloat::rmTowardZero, &is_exact); status & llvm::APFloatBase::opInvalidOp)
           return ValueObjectConstResult::Create(
               exe_ctx.GetBestExecutionContextScope(),
               Status::FromErrorStringWithFormat(
@@ -3222,8 +3222,8 @@ lldb::ValueObjectSP ValueObject::CastToBasicType(CompilerType type) {
 
   if (type.IsFloat()) {
     if (!is_scalar) {
-      auto int_value_or_err = GetValueAsAPSInt();
-      if (int_value_or_err) {
+      
+      if (auto int_value_or_err = GetValueAsAPSInt(); int_value_or_err) {
         llvm::APSInt ext =
             int_value_or_err->extOrTrunc(type_byte_size * CHAR_BIT);
         Scalar scalar_int(ext);
@@ -3240,8 +3240,8 @@ lldb::ValueObjectSP ValueObject::CastToBasicType(CompilerType type) {
       }
     } else {
       if (is_integer) {
-        auto int_value_or_err = GetValueAsAPSInt();
-        if (int_value_or_err) {
+        
+        if (auto int_value_or_err = GetValueAsAPSInt(); int_value_or_err) {
           Scalar scalar_int(*int_value_or_err);
           llvm::APFloat f = scalar_int.CreateAPFloatFromAPSInt(
               type.GetBasicTypeEnumeration());
@@ -3256,8 +3256,8 @@ lldb::ValueObjectSP ValueObject::CastToBasicType(CompilerType type) {
         }
       }
       if (is_float) {
-        auto float_value_or_err = GetValueAsAPFloat();
-        if (float_value_or_err) {
+        
+        if (auto float_value_or_err = GetValueAsAPFloat(); float_value_or_err) {
           Scalar scalar_float(*float_value_or_err);
           llvm::APFloat f = scalar_float.CreateAPFloatFromAPFloat(
               type.GetBasicTypeEnumeration());
@@ -3304,14 +3304,14 @@ lldb::ValueObjectSP ValueObject::CastToEnumType(CompilerType type) {
   if (is_float) {
     llvm::APSInt integer(byte_size * CHAR_BIT, !type.IsSigned());
     bool is_exact;
-    auto value_or_err = GetValueAsAPFloat();
-    if (value_or_err) {
-      llvm::APFloatBase::opStatus status = value_or_err->convertToInteger(
-          integer, llvm::APFloat::rmTowardZero, &is_exact);
+    
+    if (auto value_or_err = GetValueAsAPFloat(); value_or_err) {
+      
 
       // Casting floating point values that are out of bounds of the target
       // type is undefined behaviour.
-      if (status & llvm::APFloatBase::opInvalidOp)
+      if (llvm::APFloatBase::opStatus status = value_or_err->convertToInteger(
+          integer, llvm::APFloat::rmTowardZero, &is_exact); status & llvm::APFloatBase::opInvalidOp)
         return ValueObjectConstResult::Create(
             exe_ctx.GetBestExecutionContextScope(),
             Status::FromErrorStringWithFormat(
@@ -3325,8 +3325,8 @@ lldb::ValueObjectSP ValueObject::CastToEnumType(CompilerType type) {
           Status::FromErrorString("cannot get value as APFloat"));
   } else {
     // Get the value as APSInt and extend or truncate it to the requested size.
-    auto value_or_err = GetValueAsAPSInt();
-    if (value_or_err) {
+    
+    if (auto value_or_err = GetValueAsAPSInt(); value_or_err) {
       llvm::APSInt ext = value_or_err->extOrTrunc(byte_size * CHAR_BIT);
       return ValueObject::CreateValueObjectFromAPInt(target, ext, type,
                                                      "result");
@@ -3348,8 +3348,8 @@ ValueObject::EvaluationPoint::EvaluationPoint(ExecutionContextScope *exe_scope,
                                               bool use_selected)
     : m_mod_id(), m_exe_ctx_ref() {
   ExecutionContext exe_ctx(exe_scope);
-  TargetSP target_sp(exe_ctx.GetTargetSP());
-  if (target_sp) {
+  
+  if (TargetSP target_sp(exe_ctx.GetTargetSP()); target_sp) {
     m_exe_ctx_ref.SetTargetSP(target_sp);
     ProcessSP process_sp(exe_ctx.GetProcessSP());
     if (!process_sp)
@@ -3441,11 +3441,11 @@ bool ValueObject::EvaluationPoint::SyncWithProcessState(
 
   if (!accept_invalid_exe_ctx) {
     if (m_exe_ctx_ref.HasThreadRef()) {
-      ThreadSP thread_sp(m_exe_ctx_ref.GetThreadSP());
-      if (thread_sp) {
+      
+      if (ThreadSP thread_sp(m_exe_ctx_ref.GetThreadSP()); thread_sp) {
         if (m_exe_ctx_ref.HasFrameRef()) {
-          StackFrameSP frame_sp(m_exe_ctx_ref.GetFrameSP());
-          if (!frame_sp) {
+          
+          if (StackFrameSP frame_sp(m_exe_ctx_ref.GetFrameSP()); !frame_sp) {
             // We used to have a frame, but now it is gone
             SetInvalid();
             changed = was_valid;
@@ -3637,8 +3637,8 @@ lldb::ValueObjectSP ValueObject::CreateValueObjectFromNullptr(
 }
 
 ModuleSP ValueObject::GetModule() {
-  ValueObject *root(GetRoot());
-  if (root != this)
+  
+  if (ValueObject *root(GetRoot()); root != this)
     return root->GetModule();
   return lldb::ModuleSP();
 }
@@ -3664,8 +3664,8 @@ ValueObject::FollowParentChain(std::function<bool(ValueObject *)> f) {
 
 AddressType ValueObject::GetAddressTypeOfChildren() {
   if (m_address_type_of_ptr_or_ref_children == eAddressTypeInvalid) {
-    ValueObject *root(GetRoot());
-    if (root != this)
+    
+    if (ValueObject *root(GetRoot()); root != this)
       return root->GetAddressTypeOfChildren();
   }
   return m_address_type_of_ptr_or_ref_children;
@@ -3697,9 +3697,9 @@ lldb::LanguageType ValueObject::GetPreferredDisplayLanguage() {
     if (GetRoot()) {
       if (GetRoot() == this) {
         if (StackFrameSP frame_sp = GetFrameSP()) {
-          const SymbolContext &sc(
-              frame_sp->GetSymbolContext(eSymbolContextCompUnit));
-          if (CompileUnit *cu = sc.comp_unit)
+          
+          if (const SymbolContext &sc(
+              frame_sp->GetSymbolContext(eSymbolContextCompUnit)); CompileUnit *cu = sc.comp_unit)
             type = cu->GetLanguage();
         }
       } else {

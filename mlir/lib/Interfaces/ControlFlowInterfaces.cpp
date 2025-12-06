@@ -201,9 +201,9 @@ verifyTypesAlongAllEdges(RegionBranchOpInterface branchOp,
     for (const auto &typesIdx :
          llvm::enumerate(llvm::zip(*sourceTypes, succInputsTypes))) {
       Type sourceType = std::get<0>(typesIdx.value());
-      Type inputType = std::get<1>(typesIdx.value());
+      
 
-      if (!branchOp.areTypesCompatible(sourceType, inputType)) {
+      if (Type inputType = std::get<1>(typesIdx.value()); !branchOp.areTypesCompatible(sourceType, inputType)) {
         InFlightDiagnostic diag =
             branchOp->emitOpError("along control flow edge ");
         return printRegionEdgeName(diag, sourcePoint, succ)
@@ -249,13 +249,13 @@ LogicalResult detail::verifyTypesAlongControlFlowEdges(Operation *op) {
     // terminator.
     for (RegionBranchTerminatorOpInterface regionReturnOp : regionReturnOps) {
 
-      auto inputTypesForRegion =
+      
+      if (auto inputTypesForRegion =
           [&](RegionSuccessor successor) -> FailureOr<TypeRange> {
         OperandRange terminatorOperands =
             regionReturnOp.getSuccessorOperands(successor);
         return TypeRange(terminatorOperands.getTypes());
-      };
-      if (failed(verifyTypesAlongAllEdges(regionInterface, regionReturnOp,
+      }; failed(verifyTypesAlongAllEdges(regionInterface, regionReturnOp,
                                           inputTypesForRegion)))
         return failure();
     }
@@ -457,15 +457,15 @@ bool RegionBranchOpInterface::hasLoop() {
       LDBG() << "Checking entry region #"
              << successor.getSuccessor()->getRegionNumber() << " for loops";
 
-      bool hasLoop =
+      
+
+      if (bool hasLoop =
           traverseRegionGraph(successor.getSuccessor(),
                               [](Region *nextRegion, ArrayRef<bool> visited) {
                                 // Interrupt traversal if the region was already
                                 // visited.
                                 return visited[nextRegion->getRegionNumber()];
-                              });
-
-      if (hasLoop) {
+                              }); hasLoop) {
         LDBG() << "Found loop in entry region #"
                << successor.getSuccessor()->getRegionNumber();
         return true;

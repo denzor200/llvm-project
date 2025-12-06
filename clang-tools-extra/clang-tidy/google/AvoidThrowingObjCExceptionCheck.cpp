@@ -40,10 +40,10 @@ void AvoidThrowingObjCExceptionCheck::check(
   // header.
   if (SourceLoc.isMacroID()) {
     const SourceManager &SM = *Result.SourceManager;
-    auto MacroLoc = SM.getImmediateMacroCallerLoc(SourceLoc);
+    
 
     // Matches in system header macros should be ignored.
-    if (SM.isInSystemHeader(MacroLoc))
+    if (auto MacroLoc = SM.getImmediateMacroCallerLoc(SourceLoc); SM.isInSystemHeader(MacroLoc))
       return;
   }
 

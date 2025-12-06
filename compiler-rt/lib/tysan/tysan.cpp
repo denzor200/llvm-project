@@ -371,11 +371,11 @@ __tysan_instrument_with_shadow_update(void *ptr, tysan_type_descriptor *td,
                                       uint64_t accessSize, int flags) {
   tysan_type_descriptor **shadowData = shadow_for(ptr);
   tysan_type_descriptor *loadedTD = *shadowData;
-  bool shadowIsNull = loadedTD == nullptr;
+  
 
   // TODO, sanitizeFunction is known at compile time, so maybe this is split
   // into two different functions
-  if (sanitizeFunction) {
+  if (bool shadowIsNull = loadedTD == nullptr; sanitizeFunction) {
 
     if (td != loadedTD) {
 
@@ -384,8 +384,8 @@ __tysan_instrument_with_shadow_update(void *ptr, tysan_type_descriptor *td,
       if (shadowIsNull) {
         // We're about to set the type. Make sure that all bytes in the value
         // are also of unknown type.
-        bool isAllUnknownTD = GetNotAllUnkTD((uint64_t)shadowData, accessSize);
-        if (isAllUnknownTD) {
+        
+        if (bool isAllUnknownTD = GetNotAllUnkTD((uint64_t)shadowData, accessSize); isAllUnknownTD) {
           GET_CALLER_PC_BP_SP;
           __tysan_check_internal(ptr, accessSize, td, flags, pc, bp, sp);
         }
@@ -397,8 +397,8 @@ __tysan_instrument_with_shadow_update(void *ptr, tysan_type_descriptor *td,
     } else {
       // We appear to have the right type. Make sure that all other bytes in
       // the type are still marked as interior bytes. If not, call the runtime.
-      bool isNotAllBadTD = GetNotAllBadTD((uint64_t)shadowData, accessSize);
-      if (isNotAllBadTD) {
+      
+      if (bool isNotAllBadTD = GetNotAllBadTD((uint64_t)shadowData, accessSize); isNotAllBadTD) {
         GET_CALLER_PC_BP_SP;
         __tysan_check_internal(ptr, accessSize, td, flags, pc, bp, sp);
       }

@@ -65,8 +65,8 @@ void SuspiciousMemoryComparisonCheck::check(
     }
 
     if (!PointeeType->isIncompleteType()) {
-      const uint64_t PointeeSize = Ctx.getTypeSize(PointeeType);
-      if (ComparedBits && *ComparedBits >= PointeeSize &&
+      
+      if (const uint64_t PointeeSize = Ctx.getTypeSize(PointeeType); ComparedBits && *ComparedBits >= PointeeSize &&
           !Ctx.hasUniqueObjectRepresentations(PointeeQualifiedType)) {
         diag(CE->getBeginLoc(),
              "comparing object representation of type %0 which does not have a "

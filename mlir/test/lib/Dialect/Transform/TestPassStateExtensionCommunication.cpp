@@ -58,9 +58,9 @@ struct TestPassStateExtensionCommunication
 
     auto stateInitializer =
         [&opCollection](mlir::transform::TransformState &state) -> void {
-      TransformStateInitializerExtension *ext =
-          state.getExtension<TransformStateInitializerExtension>();
-      if (!ext)
+      
+      if (TransformStateInitializerExtension *ext =
+          state.getExtension<TransformStateInitializerExtension>(); !ext)
         state.addExtension<TransformStateInitializerExtension>(0, opCollection);
     };
 

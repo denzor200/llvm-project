@@ -166,8 +166,8 @@ void GOFFOstream::write_zeros(unsigned NumZeros) {
   assert(NumZeros <= 16 && "Range for zeros too large");
 
   // Handle the common case first: all fits in the buffer.
-  size_t RemainingSize = getRemainingSize();
-  if (LLVM_LIKELY(RemainingSize >= NumZeros)) {
+  
+  if (size_t RemainingSize = getRemainingSize(); LLVM_LIKELY(RemainingSize >= NumZeros)) {
     memset(BufferPtr, 0, NumZeros);
     BufferPtr += NumZeros;
     return;
@@ -344,8 +344,8 @@ void GOFFWriter::defineSymbols() {
   for (const MCSymbol &Sym : Asm.symbols()) {
     if (Sym.isTemporary())
       continue;
-    auto &Symbol = static_cast<const MCSymbolGOFF &>(Sym);
-    if (Symbol.hasLDAttributes()) {
+    
+    if (auto &Symbol = static_cast<const MCSymbolGOFF &>(Sym); Symbol.hasLDAttributes()) {
       Symbol.setIndex(++Ordinal);
       defineLabel(Symbol);
     }

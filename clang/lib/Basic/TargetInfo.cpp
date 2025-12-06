@@ -641,8 +641,8 @@ bool TargetInfo::areDefaultedSMFStillPOD(const LangOptions &LangOpts) const {
 }
 
 void TargetInfo::setDependentOpenCLOpts() {
-  auto &Opts = getSupportedOpenCLOpts();
-  if (!hasFeatureEnabled(Opts, "cl_khr_fp64") ||
+  
+  if (auto &Opts = getSupportedOpenCLOpts(); !hasFeatureEnabled(Opts, "cl_khr_fp64") ||
       !hasFeatureEnabled(Opts, "__opencl_c_fp64")) {
     setFeatureEnabled(Opts, "__opencl_c_ext_fp64_global_atomic_add", false);
     setFeatureEnabled(Opts, "__opencl_c_ext_fp64_local_atomic_add", false);
@@ -699,8 +699,8 @@ bool TargetInfo::isValidGCCRegisterName(StringRef Name) const {
 
   // If we have a number it maps to an entry in the register name array.
   if (isDigit(Name[0])) {
-    unsigned n;
-    if (!Name.getAsInteger(0, n))
+    
+    if (unsigned n; !Name.getAsInteger(0, n))
       return n < Names.size();
   }
 
@@ -742,8 +742,8 @@ StringRef TargetInfo::getNormalizedGCCRegisterName(StringRef Name,
 
   // First, check if we have a number.
   if (isDigit(Name[0])) {
-    unsigned n;
-    if (!Name.getAsInteger(0, n)) {
+    
+    if (unsigned n; !Name.getAsInteger(0, n)) {
       assert(n < Names.size() && "Out of bounds register number!");
       return Names[n];
     }

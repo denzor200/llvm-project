@@ -352,9 +352,9 @@ const SCEV *MVETailPredication::IsSafeActiveMask(IntrinsicInst *ActiveLaneMask,
       return SE->getMinusSCEV(EC, BaseC);
   } else if (auto *BaseV = dyn_cast<SCEVUnknown>(AddExpr->getStart())) {
     Type *Ty = BaseV->getType();
-    APInt Mask = APInt::getLowBitsSet(Ty->getPrimitiveSizeInBits(),
-                                      Log2_64(VectorWidth));
-    if (MaskedValueIsZero(BaseV->getValue(), Mask,
+    
+    if (APInt Mask = APInt::getLowBitsSet(Ty->getPrimitiveSizeInBits(),
+                                      Log2_64(VectorWidth)); MaskedValueIsZero(BaseV->getValue(), Mask,
                           L->getHeader()->getDataLayout()))
       return SE->getMinusSCEV(EC, BaseV);
   } else if (auto *BaseMul = dyn_cast<SCEVMulExpr>(AddExpr->getStart())) {

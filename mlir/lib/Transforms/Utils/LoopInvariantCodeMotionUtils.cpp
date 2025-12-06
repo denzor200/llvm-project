@@ -193,8 +193,8 @@ private:
     for (auto it : llvm::enumerate(insertions)) {
       if (!it.value())
         continue;
-      auto other = cast<SubsetOpInterface>(it.value().getOperation());
-      if (other.operatesOnEquivalentSubset(extractionOp, isEquivalent)) {
+      
+      if (auto other = cast<SubsetOpInterface>(it.value().getOperation()); other.operatesOnEquivalentSubset(extractionOp, isEquivalent)) {
         extractions[it.index()] = extractionOp;
         return;
       }
@@ -211,8 +211,8 @@ private:
     for (auto it : llvm::enumerate(extractions)) {
       if (!it.value())
         continue;
-      auto other = cast<SubsetOpInterface>(it.value().getOperation());
-      if (other.operatesOnEquivalentSubset(insertionOp, isEquivalent)) {
+      
+      if (auto other = cast<SubsetOpInterface>(it.value().getOperation()); other.operatesOnEquivalentSubset(insertionOp, isEquivalent)) {
         insertions[it.index()] = insertionOp;
         return;
       }

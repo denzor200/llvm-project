@@ -78,8 +78,8 @@ void Instruction::eraseFromParent() {
   std::unique_ptr<Value> Detached = Ctx.detach(this);
   auto LLVMInstrs = getLLVMInstrs();
 
-  auto &Tracker = Ctx.getTracker();
-  if (Tracker.isTracking()) {
+  
+  if (auto &Tracker = Ctx.getTracker(); Tracker.isTracking()) {
     Tracker.track(std::make_unique<EraseFromParent>(std::move(Detached)));
     // We don't actually delete the IR instruction, because then it would be
     // impossible to bring it back from the dead at the same memory location.
@@ -140,8 +140,8 @@ void Instruction::insertInto(BasicBlock *BB, const BBIterator &WhereIt) {
   llvm::BasicBlock *LLVMBB = cast<llvm::BasicBlock>(BB->Val);
   llvm::Instruction *LLVMBeforeI;
   llvm::BasicBlock::iterator LLVMBeforeIt;
-  Instruction *BeforeI;
-  if (WhereIt != BB->end()) {
+  
+  if (Instruction *BeforeI; WhereIt != BB->end()) {
     BeforeI = &*WhereIt;
     LLVMBeforeI = BeforeI->getTopmostLLVMInstruction();
     LLVMBeforeIt = LLVMBeforeI->getIterator();

@@ -41,9 +41,9 @@ static void AddWatchpointDescription(Stream &s, Watchpoint &wp,
 
 static bool CheckTargetForWatchpointOperations(Target &target,
                                                CommandReturnObject &result) {
-  bool process_is_valid =
-      target.GetProcessSP() && target.GetProcessSP()->IsAlive();
-  if (!process_is_valid) {
+  
+  if (bool process_is_valid =
+      target.GetProcessSP() && target.GetProcessSP()->IsAlive(); !process_is_valid) {
     result.AppendError("there's no process or it is not alive");
     return false;
   }
@@ -70,8 +70,8 @@ bool CommandObjectMultiwordWatchpoint::VerifyWatchpointIDs(
     Target &target, Args &args, std::vector<uint32_t> &wp_ids) {
   // Pre-condition: args.GetArgumentCount() > 0.
   if (args.GetArgumentCount() == 0) {
-    WatchpointSP watch_sp = target.GetLastCreatedWatchpoint();
-    if (watch_sp) {
+    
+    if (WatchpointSP watch_sp = target.GetLastCreatedWatchpoint(); watch_sp) {
       wp_ids.push_back(watch_sp->GetID());
       return true;
     } else
@@ -167,9 +167,9 @@ public:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'b':
         m_level = lldb::eDescriptionLevelBrief;
         break;
@@ -205,10 +205,10 @@ protected:
 
     if (ProcessSP process_sp = target.GetProcessSP()) {
       if (process_sp->IsAlive()) {
-        std::optional<uint32_t> num_supported_hardware_watchpoints =
-            process_sp->GetWatchpointSlotCount();
+        
 
-        if (num_supported_hardware_watchpoints)
+        if (std::optional<uint32_t> num_supported_hardware_watchpoints =
+            process_sp->GetWatchpointSlotCount(); num_supported_hardware_watchpoints)
           result.AppendMessageWithFormat(
               "Number of supported hardware watchpoints: %u\n",
               *num_supported_hardware_watchpoints);
@@ -437,9 +437,9 @@ public:
 
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'f':
         m_force = true;
         break;
@@ -554,9 +554,9 @@ public:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'i':
         if (option_arg.getAsInteger(0, m_ignore_count))
           error = Status::FromErrorStringWithFormat("invalid ignore count '%s'",
@@ -672,9 +672,9 @@ public:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'c':
         m_condition = std::string(option_arg);
         m_condition_passed = true;
@@ -735,8 +735,8 @@ protected:
       int count = 0;
       const size_t size = wp_ids.size();
       for (size_t i = 0; i < size; ++i) {
-        WatchpointSP watch_sp = watchpoints.FindByID(wp_ids[i]);
-        if (watch_sp) {
+        
+        if (WatchpointSP watch_sp = watchpoints.FindByID(wp_ids[i]); watch_sp) {
           watch_sp->SetCondition(m_options.m_condition.c_str());
           ++count;
         }
@@ -796,8 +796,8 @@ protected:
   static size_t GetVariableCallback(void *baton, const char *name,
                                     VariableList &variable_list) {
     size_t old_size = variable_list.GetSize();
-    Target *target = static_cast<Target *>(baton);
-    if (target)
+    
+    if (Target *target = static_cast<Target *>(baton); target)
       target->GetImages().FindGlobalVariables(ConstString(name), UINT32_MAX,
                                               variable_list);
     return variable_list.GetSize() - old_size;
@@ -861,8 +861,8 @@ protected:
     CompilerType compiler_type;
 
     if (!valobj_sp) {
-      const char *error_cstr = error.AsCString(nullptr);
-      if (error_cstr)
+      
+      if (const char *error_cstr = error.AsCString(nullptr); error_cstr)
         result.AppendError(error_cstr);
       else
         result.AppendErrorWithFormat("unable to find any variable "
@@ -1084,8 +1084,8 @@ protected:
     // larger than the ValueObject's size (which is probably the size
     // of a pointer).
     if (valobj_size && size > *valobj_size) {
-      auto type_system = compiler_type.GetTypeSystem();
-      if (type_system) {
+      
+      if (auto type_system = compiler_type.GetTypeSystem(); type_system) {
         CompilerType clang_uint8_type =
             type_system->GetBuiltinTypeForEncodingAndBitSize(eEncodingUint, 8);
         compiler_type = clang_uint8_type.GetArrayType(size);

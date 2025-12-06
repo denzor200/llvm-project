@@ -49,16 +49,16 @@ void NondeterministicPointerIterationOrderCheck::check(
       Result.Nodes.getNodeAs<CXXForRangeStmt>("cxxForRangeStmt");
 
   if ((ForRangePointers) && !(ForRangePointers->getBeginLoc().isMacroID())) {
-    const auto *RangeInit = Result.Nodes.getNodeAs<Stmt>("rangeinit");
-    if (const auto *ClassTemplate =
+    
+    if (const auto *RangeInit = Result.Nodes.getNodeAs<Stmt>("rangeinit"); const auto *ClassTemplate =
             Result.Nodes.getNodeAs<ClassTemplateSpecializationDecl>(
                 "recorddecl")) {
       const TemplateArgumentList &TemplateArgs =
           ClassTemplate->getTemplateArgs();
-      const bool IsAlgoArgPointer =
-          TemplateArgs[0].getAsType()->isPointerType();
+      
 
-      if (IsAlgoArgPointer) {
+      if (const bool IsAlgoArgPointer =
+          TemplateArgs[0].getAsType()->isPointerType(); IsAlgoArgPointer) {
         const SourceRange R = RangeInit->getSourceRange();
         diag(R.getBegin(), "iteration of pointers is nondeterministic") << R;
       }

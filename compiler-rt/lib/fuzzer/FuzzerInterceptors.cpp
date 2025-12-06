@@ -69,8 +69,8 @@ static int internal_strcmp_strncmp(const char *s1, const char *s2, bool strncmp,
       i++;
     }
     unsigned c1 = *s1;
-    unsigned c2 = *s2;
-    if (c1 != c2)
+    
+    if (unsigned c2 = *s2; c1 != c2)
       return (c1 < c2) ? -1 : 1;
     if (c1 == 0)
       break;

@@ -228,7 +228,9 @@ private:
   void ParseType(StringRef T) {
     T = T.trim();
 
-    auto ConsumeAddrSpace = [&]() -> std::optional<unsigned> {
+    
+
+    if (auto ConsumeAddrSpace = [&]() -> std::optional<unsigned> {
       T = T.trim();
       if (!T.consume_back(">"))
         return std::nullopt;
@@ -251,9 +253,7 @@ private:
       if (Number == 0)
         PrintFatalError(Loc, "No need for a qualifier for address space `0`");
       return Number;
-    };
-
-    if (T.consume_back("*")) {
+    }; T.consume_back("*")) {
       // Pointers may have an address space qualifier immediately before them.
       std::optional<unsigned> AS = ConsumeAddrSpace();
       ParseType(T);

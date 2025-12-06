@@ -31,8 +31,8 @@ find_by_name(std::vector<RegisterNameAndValue>::const_iterator first,
 void add_reg_value(CoreSpec &spec, std::vector<uint8_t> &buf,
                    const std::vector<RegisterNameAndValue> &registers,
                    const char *regname, int regsize) {
-  const auto it = find_by_name(registers.begin(), registers.end(), regname);
-  if (it != registers.end()) {
+  
+  if (const auto it = find_by_name(registers.begin(), registers.end(), regname); it != registers.end()) {
     if (regsize == 8)
       add_uint64(buf, it->value);
     else

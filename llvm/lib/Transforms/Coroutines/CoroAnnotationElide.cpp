@@ -103,8 +103,8 @@ static void processCall(CallBase *CB, Function *Caller, Function *NewCallee,
   CB->replaceAllUsesWith(NewCB);
 
   InlineFunctionInfo IFI;
-  InlineResult IR = InlineFunction(*NewCB, IFI);
-  if (IR.isSuccess()) {
+  
+  if (InlineResult IR = InlineFunction(*NewCB, IFI); IR.isSuccess()) {
     CB->eraseFromParent();
   } else {
     NewCB->replaceAllUsesWith(CB);

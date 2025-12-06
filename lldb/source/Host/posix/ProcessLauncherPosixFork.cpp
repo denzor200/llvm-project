@@ -175,11 +175,11 @@ struct ForkLaunchInfo {
       // Directory iterator doesn't ensure any sequence.
       for (llvm::sys::fs::directory_iterator iter(proc_fd_path, ec), file_end;
            iter != file_end && !ec; iter.increment(ec)) {
-        int fd = std::stoi(iter->path().substr(proc_fd_path.size() + 1));
+        
 
         // Don't close first three entries since they are stdin, stdout and
         // stderr.
-        if (fd > 2 && !info.has_action(fd) && fd != error_fd)
+        if (int fd = std::stoi(iter->path().substr(proc_fd_path.size() + 1)); fd > 2 && !info.has_action(fd) && fd != error_fd)
           files_to_close.push_back(fd);
       }
       for (int file_to_close : files_to_close)

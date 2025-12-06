@@ -173,9 +173,9 @@ void OptionGroupValueObjectDisplay::OptionParsingStarting(
   ignore_cap = false;
   run_validator = false;
 
-  TargetSP target_sp =
-      execution_context ? execution_context->GetTargetSP() : TargetSP();
-  if (target_sp) {
+  
+  if (TargetSP target_sp =
+      execution_context ? execution_context->GetTargetSP() : TargetSP(); target_sp) {
     use_dynamic = target_sp->GetPreferDynamicValue();
     auto max_depth_config = target_sp->GetMaximumDepthOfChildrenToDisplay();
     max_depth = std::get<uint32_t>(max_depth_config);

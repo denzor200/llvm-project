@@ -47,9 +47,9 @@ PPCLinuxToolChain::PPCLinuxToolChain(const Driver &D,
                                      const llvm::opt::ArgList &Args)
     : Linux(D, Triple, Args) {
   if (Arg *A = Args.getLastArg(options::OPT_mabi_EQ)) {
-    StringRef ABIName = A->getValue();
+    
 
-    if ((ABIName == "ieeelongdouble" &&
+    if (StringRef ABIName = A->getValue(); (ABIName == "ieeelongdouble" &&
          !SupportIEEEFloat128(D, Triple, Args)) ||
         (ABIName == "ibmlongdouble" && !supportIBMLongDouble(D, Args)))
       D.Diag(diag::warn_drv_unsupported_float_abi_by_lib) << ABIName;

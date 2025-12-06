@@ -578,10 +578,10 @@ Expected<SubtrieHandle> SubtrieHandle::sink(size_t I, SubtrieSlotValue V,
     NewS->reinitialize(getStartBit() + getNumBits(), NumSubtrieBits);
   } else {
     // Allocate a new, empty subtrie.
-    auto Err = SubtrieHandle::create(Alloc, getStartBit() + getNumBits(),
+    
+    if (auto Err = SubtrieHandle::create(Alloc, getStartBit() + getNumBits(),
                                      NumSubtrieBits)
-                   .moveInto(NewS);
-    if (LLVM_UNLIKELY(Err))
+                   .moveInto(NewS); LLVM_UNLIKELY(Err))
       return std::move(Err);
   }
 
@@ -627,8 +627,8 @@ static void printBits(raw_ostream &OS, ArrayRef<uint8_t> Bytes, size_t StartBit,
   assert(StartBit + NumBits <= Bytes.size() * 8u);
   for (size_t I = StartBit, E = StartBit + NumBits; I != E; ++I) {
     uint8_t Byte = Bytes[I / 8];
-    size_t ByteOffset = I % 8;
-    if (size_t ByteShift = 8 - ByteOffset - 1)
+    
+    if (size_t ByteOffset = I % 8; size_t ByteShift = 8 - ByteOffset - 1)
       Byte >>= ByteShift;
     OS << (Byte & 0x1 ? '1' : '0');
   }
@@ -878,9 +878,9 @@ public:
     OS << "records\n";
     llvm::sort(Records);
     for (int64_t Offset : Records) {
-      TrieRawHashMapHandle::RecordData Record =
-          Trie.getRecord(SubtrieSlotValue::getDataOffset(Offset));
-      if (auto Err = printRecord(Record))
+      
+      if (TrieRawHashMapHandle::RecordData Record =
+          Trie.getRecord(SubtrieSlotValue::getDataOffset(Offset)); auto Err = printRecord(Record))
         return Err;
     }
     return Error::success();

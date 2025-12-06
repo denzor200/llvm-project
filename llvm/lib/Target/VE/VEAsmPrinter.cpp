@@ -350,9 +350,9 @@ void VEAsmPrinter::emitInstruction(const MachineInstr *MI) {
 
 void VEAsmPrinter::printOperand(const MachineInstr *MI, int OpNum,
                                 raw_ostream &O) {
-  const MachineOperand &MO = MI->getOperand(OpNum);
+  
 
-  switch (MO.getType()) {
+  switch (const MachineOperand &MO = MI->getOperand(OpNum); MO.getType()) {
   case MachineOperand::MO_Register:
     O << "%" << StringRef(getRegisterName(MO.getReg())).lower();
     break;

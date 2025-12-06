@@ -307,8 +307,8 @@ bool llvm::stripDebugifyMetadata(Module &M) {
   bool Changed = false;
 
   // Remove the llvm.debugify and llvm.mir.debugify module-level named metadata.
-  NamedMDNode *DebugifyMD = M.getNamedMetadata("llvm.debugify");
-  if (DebugifyMD) {
+  
+  if (NamedMDNode *DebugifyMD = M.getNamedMetadata("llvm.debugify"); DebugifyMD) {
     M.eraseNamedMetadata(DebugifyMD);
     Changed = true;
   }
@@ -339,8 +339,8 @@ bool llvm::stripDebugifyMetadata(Module &M) {
   SmallVector<MDNode *, 4> Flags(NMD->operands());
   NMD->clearOperands();
   for (MDNode *Flag : Flags) {
-    auto *Key = cast<MDString>(Flag->getOperand(1));
-    if (Key->getString() == "Debug Info Version") {
+    
+    if (auto *Key = cast<MDString>(Flag->getOperand(1)); Key->getString() == "Debug Info Version") {
       Changed = true;
       continue;
     }
@@ -449,8 +449,8 @@ static bool checkFunctions(const DebugFnMap &DIFunctionsBefore,
   for (const auto &F : DIFunctionsAfter) {
     if (F.second)
       continue;
-    auto SPIt = DIFunctionsBefore.find(F.first);
-    if (SPIt == DIFunctionsBefore.end()) {
+    
+    if (auto SPIt = DIFunctionsBefore.find(F.first); SPIt == DIFunctionsBefore.end()) {
       if (ShouldWriteIntoJSON)
         Bugs.push_back(llvm::json::Object({{"metadata", "DISubprogram"},
                                            {"name", F.first->getName()},
@@ -461,8 +461,8 @@ static bool checkFunctions(const DebugFnMap &DIFunctionsBefore,
               << " from " << FileNameFromCU << '\n';
       Preserved = false;
     } else {
-      auto SP = SPIt->second;
-      if (!SP)
+      
+      if (auto SP = SPIt->second; !SP)
         continue;
       // If the function had the SP attached before the pass, consider it as
       // a debug info bug.
@@ -766,8 +766,8 @@ bool diagnoseMisSizedDbgValue(Module &M, DbgValTy *DbgVal) {
 
   bool HasBadSize = false;
   if (Ty->isIntegerTy()) {
-    auto Signedness = DbgVal->getVariable()->getSignedness();
-    if (Signedness == DIBasicType::Signedness::Signed)
+    
+    if (auto Signedness = DbgVal->getVariable()->getSignedness(); Signedness == DIBasicType::Signedness::Signed)
       HasBadSize = ValueOperandSize < *DbgVarSize;
   } else {
     HasBadSize = ValueOperandSize != *DbgVarSize;

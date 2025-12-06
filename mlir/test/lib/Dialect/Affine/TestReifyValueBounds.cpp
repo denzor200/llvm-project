@@ -131,16 +131,16 @@ static LogicalResult testReifyValueBounds(FunctionOpInterface funcOp,
     rewriter.setInsertionPointAfter(op);
     FailureOr<OpFoldResult> reified = failure();
     if (constant) {
-      auto reifiedConst = ValueBoundsConstraintSet::computeConstantBound(
-          boundType, {value, dim}, /*stopCondition=*/nullptr);
-      if (succeeded(reifiedConst))
+      
+      if (auto reifiedConst = ValueBoundsConstraintSet::computeConstantBound(
+          boundType, {value, dim}, /*stopCondition=*/nullptr); succeeded(reifiedConst))
         reified = FailureOr<OpFoldResult>(rewriter.getIndexAttr(*reifiedConst));
     } else if (scalable) {
       auto loc = op->getLoc();
-      auto reifiedScalable =
+      
+      if (auto reifiedScalable =
           vector::ScalableValueBoundsConstraintSet::computeScalableBound(
-              value, dim, *op.getVscaleMin(), *op.getVscaleMax(), boundType);
-      if (succeeded(reifiedScalable)) {
+              value, dim, *op.getVscaleMin(), *op.getVscaleMax(), boundType); succeeded(reifiedScalable)) {
         SmallVector<std::pair<Value, std::optional<int64_t>>, 1> vscaleOperand;
         if (reifiedScalable->map.getNumInputs() == 1) {
           // The only possible input to the bound is vscale.

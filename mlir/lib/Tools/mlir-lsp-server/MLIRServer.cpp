@@ -126,9 +126,9 @@ static bool isDefOrUse(const AsmParserState::SMDefinition &def, SMLoc loc,
   }
 
   // Check the uses.
-  const auto *useIt = llvm::find_if(
-      def.uses, [&](const SMRange &range) { return contains(range, loc); });
-  if (useIt != def.uses.end()) {
+  
+  if (const auto *useIt = llvm::find_if(
+      def.uses, [&](const SMRange &range) { return contains(range, loc); }); useIt != def.uses.end()) {
     if (overlappedRange)
       *overlappedRange = *useIt;
     return true;
@@ -1306,16 +1306,16 @@ std::optional<int64_t> lsp::MLIRServer::removeDocument(const URIForFile &uri) {
 void lsp::MLIRServer::getLocationsOf(
     const URIForFile &uri, const Position &defPos,
     std::vector<llvm::lsp::Location> &locations) {
-  auto fileIt = impl->files.find(uri.file());
-  if (fileIt != impl->files.end())
+  
+  if (auto fileIt = impl->files.find(uri.file()); fileIt != impl->files.end())
     fileIt->second->getLocationsOf(uri, defPos, locations);
 }
 
 void lsp::MLIRServer::findReferencesOf(
     const URIForFile &uri, const Position &pos,
     std::vector<llvm::lsp::Location> &references) {
-  auto fileIt = impl->files.find(uri.file());
-  if (fileIt != impl->files.end())
+  
+  if (auto fileIt = impl->files.find(uri.file()); fileIt != impl->files.end())
     fileIt->second->findReferencesOf(uri, pos, references);
 }
 
@@ -1329,8 +1329,8 @@ std::optional<lsp::Hover> lsp::MLIRServer::findHover(const URIForFile &uri,
 
 void lsp::MLIRServer::findDocumentSymbols(
     const URIForFile &uri, std::vector<DocumentSymbol> &symbols) {
-  auto fileIt = impl->files.find(uri.file());
-  if (fileIt != impl->files.end())
+  
+  if (auto fileIt = impl->files.find(uri.file()); fileIt != impl->files.end())
     fileIt->second->findDocumentSymbols(symbols);
 }
 
@@ -1346,8 +1346,8 @@ lsp::MLIRServer::getCodeCompletion(const URIForFile &uri,
 void lsp::MLIRServer::getCodeActions(const URIForFile &uri, const Range &pos,
                                      const CodeActionContext &context,
                                      std::vector<CodeAction> &actions) {
-  auto fileIt = impl->files.find(uri.file());
-  if (fileIt != impl->files.end())
+  
+  if (auto fileIt = impl->files.find(uri.file()); fileIt != impl->files.end())
     fileIt->second->getCodeActions(uri, pos, context, actions);
 }
 

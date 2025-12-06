@@ -223,9 +223,9 @@ public:
 
   void printBinaryBlockWithRelocs(StringRef Label,
                                   ArrayRef<uint8_t> Block) override {
-    StringRef SBlock(reinterpret_cast<const char *>(Block.data()),
-                     Block.size());
-    if (opts::CodeViewSubsectionBytes)
+    
+    if (StringRef SBlock(reinterpret_cast<const char *>(Block.data()),
+                     Block.size()); opts::CodeViewSubsectionBytes)
       CD.printBinaryBlockWithRelocs(Label, SR, SectionContents, SBlock);
   }
 
@@ -263,9 +263,9 @@ std::error_code COFFDumper::resolveSymbol(const coff_section *Section,
   const auto &Relocations = RelocMap[Section];
   auto SymI = Obj->symbol_end();
   for (const auto &Relocation : Relocations) {
-    uint64_t RelocationOffset = Relocation.getOffset();
+    
 
-    if (RelocationOffset == Offset) {
+    if (uint64_t RelocationOffset = Relocation.getOffset(); RelocationOffset == Offset) {
       SymI = Relocation.getSymbol();
       break;
     }
@@ -309,8 +309,8 @@ void COFFDumper::printRelocatedField(StringRef Label, const coff_section *Sec,
                                      uint32_t RelocOffset, uint32_t Offset,
                                      StringRef *RelocSym) {
   StringRef SymStorage;
-  StringRef &Symbol = RelocSym ? *RelocSym : SymStorage;
-  if (!resolveSymbolName(Sec, RelocOffset, Symbol))
+  
+  if (StringRef &Symbol = RelocSym ? *RelocSym : SymStorage; !resolveSymbolName(Sec, RelocOffset, Symbol))
     W.printSymbolOffset(Label, Symbol, Offset);
   else
     W.printHex(Label, RelocOffset);
@@ -334,8 +334,8 @@ void COFFDumper::printBinaryBlockWithRelocs(StringRef Label,
   const coff_section *Section = Obj->getCOFFSection(Sec);
   const auto &Relocations = RelocMap[Section];
   for (const auto &Relocation : Relocations) {
-    uint64_t RelocationOffset = Relocation.getOffset();
-    if (OffsetStart <= RelocationOffset && RelocationOffset < OffsetEnd)
+    
+    if (uint64_t RelocationOffset = Relocation.getOffset(); OffsetStart <= RelocationOffset && RelocationOffset < OffsetEnd)
       printRelocation(Sec, Relocation, OffsetStart);
   }
 }
@@ -956,8 +956,8 @@ void COFFDumper::printCOFFLoadConfig() {
   }
 
   auto PrintGuardFlags = [](raw_ostream &OS, const uint8_t *Entry) {
-    uint8_t Flags = *reinterpret_cast<const uint8_t *>(Entry + 4);
-    if (Flags)
+    
+    if (uint8_t Flags = *reinterpret_cast<const uint8_t *>(Entry + 4); Flags)
       OS << " flags " << utohexstr(Flags);
   };
 
@@ -1135,15 +1135,15 @@ void COFFDumper::printBaseOfDataField(const pe32plus_header *) {}
 void COFFDumper::printCodeViewDebugInfo() {
   // Print types first to build CVUDTNames, then print symbols.
   for (const SectionRef &S : Obj->sections()) {
-    StringRef SectionName = unwrapOrError(Obj->getFileName(), S.getName());
+    
     // .debug$T is a standard CodeView type section, while .debug$P is the same
     // format but used for MSVC precompiled header object files.
-    if (SectionName == ".debug$T" || SectionName == ".debug$P")
+    if (StringRef SectionName = unwrapOrError(Obj->getFileName(), S.getName()); SectionName == ".debug$T" || SectionName == ".debug$P")
       printCodeViewTypeSection(SectionName, S);
   }
   for (const SectionRef &S : Obj->sections()) {
-    StringRef SectionName = unwrapOrError(Obj->getFileName(), S.getName());
-    if (SectionName == ".debug$S")
+    
+    if (StringRef SectionName = unwrapOrError(Obj->getFileName(), S.getName()); SectionName == ".debug$S")
       printCodeViewSymbolSection(SectionName, S);
   }
 }
@@ -1497,8 +1497,8 @@ void COFFDumper::mergeCodeViewTypes(MergingTypeTableBuilder &CVIDs,
                                     GlobalTypeTableBuilder &GlobalCVTypes,
                                     bool GHash) {
   for (const SectionRef &S : Obj->sections()) {
-    StringRef SectionName = unwrapOrError(Obj->getFileName(), S.getName());
-    if (SectionName == ".debug$T") {
+    
+    if (StringRef SectionName = unwrapOrError(Obj->getFileName(), S.getName()); SectionName == ".debug$T") {
       StringRef Data = unwrapOrError(Obj->getFileName(), S.getContents());
       uint32_t Magic;
       if (Error E = consume(Data, Magic))
@@ -1519,9 +1519,9 @@ void COFFDumper::mergeCodeViewTypes(MergingTypeTableBuilder &CVIDs,
       SmallVector<TypeIndex, 128> SourceToDest;
       std::optional<PCHMergerInfo> PCHInfo;
       if (GHash) {
-        std::vector<GloballyHashedType> Hashes =
-            GloballyHashedType::hashTypes(Types);
-        if (Error E =
+        
+        if (std::vector<GloballyHashedType> Hashes =
+            GloballyHashedType::hashTypes(Types); Error E =
                 mergeTypeAndIdRecords(GlobalCVIDs, GlobalCVTypes, SourceToDest,
                                       Types, Hashes, PCHInfo))
           return reportError(std::move(E), Obj->getFileName());
@@ -1839,8 +1839,8 @@ void COFFDumper::printNeededLibraries() {
   LibsTy Libs;
 
   for (const ImportDirectoryEntryRef &DirRef : Obj->import_directories()) {
-    StringRef Name;
-    if (!DirRef.getName(Name))
+    
+    if (StringRef Name; !DirRef.getName(Name))
       Libs.push_back(Name);
   }
 
@@ -2293,8 +2293,8 @@ COFFDumper::countTotalTableEntries(ResourceSectionRef RSF,
   uint32_t TotalEntries = 0;
   for (int i = 0; i < Table.NumberOfNameEntries + Table.NumberOfIDEntries;
        i++) {
-    auto Entry = unwrapOrError(Obj->getFileName(), RSF.getTableEntry(Table, i));
-    if (Entry.Offset.isSubDir()) {
+    
+    if (auto Entry = unwrapOrError(Obj->getFileName(), RSF.getTableEntry(Table, i)); Entry.Offset.isSubDir()) {
       StringRef NextLevel;
       if (Level == "Name")
         NextLevel = "Language";
@@ -2403,10 +2403,10 @@ void COFFDumper::printStackMap() const {
 
   StringRef StackMapContents =
       unwrapOrError(Obj->getFileName(), StackMapSection.getContents());
-  ArrayRef<uint8_t> StackMapContentsArray =
-      arrayRefFromStringRef(StackMapContents);
+  
 
-  if (Obj->isLittleEndian())
+  if (ArrayRef<uint8_t> StackMapContentsArray =
+      arrayRefFromStringRef(StackMapContents); Obj->isLittleEndian())
     prettyPrintStackMap(
         W, StackMapParser<llvm::endianness::little>(StackMapContentsArray));
   else
@@ -2455,8 +2455,8 @@ void COFFDumper::printAddrsig() {
 void COFFDumper::printCGProfile() {
   SectionRef CGProfileSection;
   for (SectionRef Sec : Obj->sections()) {
-    StringRef Name = unwrapOrError(Obj->getFileName(), Sec.getName());
-    if (Name == ".llvm.call-graph-profile") {
+    
+    if (StringRef Name = unwrapOrError(Obj->getFileName(), Sec.getName()); Name == ".llvm.call-graph-profile") {
       CGProfileSection = Sec;
       break;
     }

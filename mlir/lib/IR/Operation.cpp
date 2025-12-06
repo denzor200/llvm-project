@@ -800,16 +800,16 @@ void OpState::genericPrintProperties(OpAsmPrinter &p, Attribute properties,
                                      ArrayRef<StringRef> elidedProps) {
   if (!properties)
     return;
-  auto dictAttr = dyn_cast_or_null<::mlir::DictionaryAttr>(properties);
-  if (dictAttr && !elidedProps.empty()) {
+  
+  if (auto dictAttr = dyn_cast_or_null<::mlir::DictionaryAttr>(properties); dictAttr && !elidedProps.empty()) {
     ArrayRef<NamedAttribute> attrs = dictAttr.getValue();
     llvm::SmallDenseSet<StringRef> elidedAttrsSet(elidedProps.begin(),
                                                   elidedProps.end());
-    auto filteredAttrs =
+    
+    if (auto filteredAttrs =
         llvm::make_filter_range(attrs, [&](NamedAttribute attr) {
           return !elidedAttrsSet.contains(attr.getName().strref());
-        });
-    if (!filteredAttrs.empty()) {
+        }); !filteredAttrs.empty()) {
       p << "<{";
       interleaveComma(filteredAttrs, p, [&](NamedAttribute attr) {
         p.printNamedAttribute(attr);
@@ -869,8 +869,8 @@ OpTrait::impl::foldCommutative(Operation *op, ArrayRef<Attribute> operands,
 
 OpFoldResult OpTrait::impl::foldIdempotent(Operation *op) {
   if (op->getNumOperands() == 1) {
-    auto *argumentOp = op->getOperand(0).getDefiningOp();
-    if (argumentOp && op->getName() == argumentOp->getName()) {
+    
+    if (auto *argumentOp = op->getOperand(0).getDefiningOp(); argumentOp && op->getName() == argumentOp->getName()) {
       // Replace the outer operation output with the inner operation.
       return op->getOperand(0);
     }
@@ -952,8 +952,8 @@ LogicalResult OpTrait::impl::verifyIsInvolution(Operation *op) {
 LogicalResult
 OpTrait::impl::verifyOperandsAreSignlessIntegerLike(Operation *op) {
   for (auto opType : op->getOperandTypes()) {
-    auto type = getTensorOrVectorElementType(opType);
-    if (!type.isSignlessIntOrIndex())
+    
+    if (auto type = getTensorOrVectorElementType(opType); !type.isSignlessIntOrIndex())
       return op->emitOpError() << "requires an integer or index type";
   }
   return success();
@@ -961,8 +961,8 @@ OpTrait::impl::verifyOperandsAreSignlessIntegerLike(Operation *op) {
 
 LogicalResult OpTrait::impl::verifyOperandsAreFloatLike(Operation *op) {
   for (auto opType : op->getOperandTypes()) {
-    auto type = getTensorOrVectorElementType(opType);
-    if (!llvm::isa<FloatType>(type))
+    
+    if (auto type = getTensorOrVectorElementType(opType); !llvm::isa<FloatType>(type))
       return op->emitOpError("requires a float type");
   }
   return success();
@@ -970,8 +970,8 @@ LogicalResult OpTrait::impl::verifyOperandsAreFloatLike(Operation *op) {
 
 LogicalResult OpTrait::impl::verifySameTypeOperands(Operation *op) {
   // Zero or one operand always have the "same" type.
-  unsigned nOperands = op->getNumOperands();
-  if (nOperands < 2)
+  
+  if (unsigned nOperands = op->getNumOperands(); nOperands < 2)
     return success();
 
   auto type = op->getOperand(0).getType();
@@ -1178,9 +1178,9 @@ LogicalResult OpTrait::impl::verifySameOperandsAndResultRank(Operation *op) {
 }
 
 LogicalResult OpTrait::impl::verifyIsTerminator(Operation *op) {
-  Block *block = op->getBlock();
+  
   // Verify that the operation is at the end of the respective parent block.
-  if (!block || &block->back() != op)
+  if (Block *block = op->getBlock(); !block || &block->back() != op)
     return op->emitOpError("must be the last operation in the parent block");
   return success();
 }
@@ -1232,8 +1232,8 @@ LogicalResult OpTrait::impl::verifyAtLeastNSuccessors(Operation *op,
 LogicalResult OpTrait::impl::verifyResultsAreBoolLike(Operation *op) {
   for (auto resultType : op->getResultTypes()) {
     auto elementType = getTensorOrVectorElementType(resultType);
-    bool isBoolType = elementType.isInteger(1);
-    if (!isBoolType)
+    
+    if (bool isBoolType = elementType.isInteger(1); !isBoolType)
       return op->emitOpError() << "requires a bool result type";
   }
 

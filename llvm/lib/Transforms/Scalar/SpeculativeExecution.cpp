@@ -300,8 +300,8 @@ bool SpeculativeExecutionPass::considerHoistingFromTo(
   InstructionCost TotalSpeculationCost = 0;
   unsigned NotHoistedInstCount = 0;
   for (const auto &I : FromBlock) {
-    const InstructionCost Cost = ComputeSpeculationCost(&I, *TTI);
-    if (Cost.isValid() && isSafeToSpeculativelyExecute(&I) &&
+    
+    if (const InstructionCost Cost = ComputeSpeculationCost(&I, *TTI); Cost.isValid() && isSafeToSpeculativelyExecute(&I) &&
         AllPrecedingUsesFromBlockHoisted(&I)) {
       TotalSpeculationCost += Cost;
       if (TotalSpeculationCost > SpecExecMaxSpeculationCost)
@@ -343,9 +343,9 @@ PreservedAnalyses SpeculativeExecutionPass::run(Function &F,
                                                 FunctionAnalysisManager &AM) {
   auto *TTI = &AM.getResult<TargetIRAnalysis>(F);
 
-  bool Changed = runImpl(F, TTI);
+  
 
-  if (!Changed)
+  if (bool Changed = runImpl(F, TTI); !Changed)
     return PreservedAnalyses::all();
   PreservedAnalyses PA;
   PA.preserveSet<CFGAnalyses>();

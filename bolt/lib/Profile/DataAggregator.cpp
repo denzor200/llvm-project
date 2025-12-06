@@ -384,8 +384,8 @@ void DataAggregator::parsePreAggregated() {
 
 void DataAggregator::filterBinaryMMapInfo() {
   if (opts::FilterPID) {
-    auto MMapInfoIter = BinaryMMapInfo.find(opts::FilterPID);
-    if (MMapInfoIter != BinaryMMapInfo.end()) {
+    
+    if (auto MMapInfoIter = BinaryMMapInfo.find(opts::FilterPID); MMapInfoIter != BinaryMMapInfo.end()) {
       MMapInfo MMap = MMapInfoIter->second;
       BinaryMMapInfo.clear();
       BinaryMMapInfo.insert(std::make_pair(MMap.PID, MMap));
@@ -472,9 +472,9 @@ void DataAggregator::parsePerfData(BinaryContext &BC) {
   };
 
   auto MemEventsErrorCallback = [&](int ReturnCode, StringRef ErrBuf) {
-    Regex NoData("Samples for '.*' event do not have ADDR attribute set. "
-                 "Cannot print 'addr' field.");
-    if (!NoData.match(ErrBuf))
+    
+    if (Regex NoData("Samples for '.*' event do not have ADDR attribute set. "
+                 "Cannot print 'addr' field."); !NoData.match(ErrBuf))
       ErrorCallback(ReturnCode, ErrBuf);
   };
 
@@ -658,8 +658,8 @@ void DataAggregator::processProfile(BinaryContext &BC) {
 
   // Mark all functions with registered events as having a valid profile.
   for (auto &BFI : BC.getBinaryFunctions()) {
-    BinaryFunction &BF = BFI.second;
-    if (FuncBranchData *FBD = getBranchData(BF)) {
+    
+    if (BinaryFunction &BF = BFI.second; FuncBranchData *FBD = getBranchData(BF)) {
       BF.markProfiled(BinaryFunction::PF_BRANCH);
       BF.RawSampleCount = FBD->getNumExecutedBranches();
     } else if (FuncBasicSampleData *FSD =
@@ -709,10 +709,10 @@ StringRef DataAggregator::getLocationName(const BinaryFunction &Func,
   // If it is a local function, prefer the name containing the file name where
   // the local function was declared
   for (StringRef AlternativeName : OrigFunc->getNames()) {
-    size_t FileNameIdx = AlternativeName.find('/');
+    
     // Confirm the alternative name has the pattern Symbol/FileName/1 before
     // using it
-    if (FileNameIdx == StringRef::npos ||
+    if (size_t FileNameIdx = AlternativeName.find('/'); FileNameIdx == StringRef::npos ||
         AlternativeName.find('/', FileNameIdx + 1) == StringRef::npos)
       continue;
     return AlternativeName;
@@ -931,11 +931,11 @@ DataAggregator::getFallthroughsInTrace(BinaryFunction &BF, const Trace &Trace,
   if (Trace.Branch != Trace::FT_ONLY && !BF.containsAddress(Trace.Branch) &&
       From == FromBB->getOffset() &&
       (IsReturn ? From : !(FromBB->isEntryPoint() || FromBB->isLandingPad()))) {
-    const BinaryBasicBlock *PrevBB =
-        BF.getLayout().getBlock(FromBB->getIndex() - 1);
-    if (PrevBB->getSuccessor(FromBB->getLabel())) {
-      const MCInst *Instr = PrevBB->getLastNonPseudoInstr();
-      if (Instr && BC.MIB->isCall(*Instr))
+    
+    if (const BinaryBasicBlock *PrevBB =
+        BF.getLayout().getBlock(FromBB->getIndex() - 1); PrevBB->getSuccessor(FromBB->getLabel())) {
+      
+      if (const MCInst *Instr = PrevBB->getLastNonPseudoInstr(); Instr && BC.MIB->isCall(*Instr))
         FromBB = PrevBB;
       else
         LLVM_DEBUG(dbgs() << "invalid trace (no call): " << Trace << '\n');
@@ -1358,8 +1358,8 @@ std::error_code DataAggregator::parseAggregatedLBREntry() {
   }
 
   const uint64_t FromOffset = Addr[0]->Offset;
-  BinaryFunction *FromFunc = getBinaryFunctionContainingAddress(FromOffset);
-  if (FromFunc)
+  
+  if (BinaryFunction *FromFunc = getBinaryFunctionContainingAddress(FromOffset); FromFunc)
     FromFunc->setHasProfileAvailable();
 
   int64_t Count = Counters[0];
@@ -1999,7 +1999,8 @@ std::error_code DataAggregator::parseMMapEvents() {
   for (MMapInfo &MMapInfo : llvm::make_second_range(make_range(Range))) {
     if (BC->HasFixedLoadAddress && MMapInfo.MMapAddress) {
       // Check that the binary mapping matches one of the segments.
-      bool MatchFound = llvm::any_of(
+      
+      if (bool MatchFound = llvm::any_of(
           llvm::make_second_range(BC->SegmentMapInfo),
           [&](SegmentInfo &SegInfo) {
             // The mapping is page-aligned and hence the MMapAddress could be
@@ -2009,8 +2010,7 @@ std::error_code DataAggregator::parseMMapEvents() {
             return SegInfo.Address >= MMapInfo.MMapAddress &&
                    SegInfo.Address - MMapInfo.MMapAddress < SegInfo.Alignment &&
                    SegInfo.IsExecutable;
-          });
-      if (!MatchFound) {
+          }); !MatchFound) {
         errs() << "PERF2BOLT-WARNING: ignoring mapping of " << NameToUse
                << " at 0x" << Twine::utohexstr(MMapInfo.MMapAddress) << '\n';
         continue;
@@ -2041,8 +2041,8 @@ std::error_code DataAggregator::parseMMapEvents() {
 
     // Update mapping size.
     const uint64_t EndAddress = MMapInfo.MMapAddress + MMapInfo.Size;
-    const uint64_t Size = EndAddress - BinaryMMapInfo[MMapInfo.PID].BaseAddress;
-    if (Size > BinaryMMapInfo[MMapInfo.PID].Size)
+    
+    if (const uint64_t Size = EndAddress - BinaryMMapInfo[MMapInfo.PID].BaseAddress; Size > BinaryMMapInfo[MMapInfo.PID].Size)
       BinaryMMapInfo[MMapInfo.PID].Size = Size;
   }
 
@@ -2355,8 +2355,8 @@ std::error_code DataAggregator::writeBATYAML(BinaryContext &BC,
       for (const BranchInfo &BI : Branches.Data) {
         using namespace yaml::bolt;
         const auto &[BlockOffset, BlockIndex] = getBlock(BI.From.Offset);
-        BinaryBasicBlockProfile &YamlBB = YamlBF.Blocks[BlockIndex];
-        if (BI.To.IsSymbol && BI.To.Name == BI.From.Name && BI.To.Offset != 0) {
+        
+        if (BinaryBasicBlockProfile &YamlBB = YamlBF.Blocks[BlockIndex]; BI.To.IsSymbol && BI.To.Name == BI.From.Name && BI.To.Offset != 0) {
           // Internal branch
           const unsigned SuccIndex = getBlock(BI.To.Offset).second;
           auto &SI = YamlBB.Successors.emplace_back(SuccessorInfo{SuccIndex});

@@ -57,15 +57,17 @@ static void addParentheses(const BinaryOperator *BinOp,
     return;
 
   const int Precedence1 = getPrecedence(BinOp);
-  const int Precedence2 = getPrecedence(ParentBinOp);
+  
 
-  if (ParentBinOp != nullptr && Precedence1 != Precedence2 && Precedence1 > 0 &&
+  if (const int Precedence2 = getPrecedence(ParentBinOp); ParentBinOp != nullptr && Precedence1 != Precedence2 && Precedence1 > 0 &&
       Precedence2 > 0) {
     const clang::SourceLocation StartLoc = BinOp->getBeginLoc();
     const clang::SourceLocation EndLoc =
         clang::Lexer::getLocForEndOfToken(BinOp->getEndLoc(), 0, SM, LangOpts);
 
-    auto Diag =
+    
+
+    if (auto Diag =
         Check->diag(StartLoc,
                     "'%0' has higher precedence than '%1'; add parentheses to "
                     "explicitly specify the order of operations")
@@ -73,9 +75,7 @@ static void addParentheses(const BinaryOperator *BinOp,
                                       : ParentBinOp->getOpcodeStr())
         << (Precedence1 > Precedence2 ? ParentBinOp->getOpcodeStr()
                                       : BinOp->getOpcodeStr())
-        << SourceRange(StartLoc, EndLoc);
-
-    if (EndLoc.isValid()) {
+        << SourceRange(StartLoc, EndLoc); EndLoc.isValid()) {
       Diag << FixItHint::CreateInsertion(StartLoc, "(")
            << FixItHint::CreateInsertion(EndLoc, ")");
     }

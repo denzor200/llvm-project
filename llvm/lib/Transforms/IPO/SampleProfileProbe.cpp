@@ -150,8 +150,8 @@ void PseudoProbeVerifier::verifyProbeFactors(
     float CurProbeFactor = I.second;
     auto [It, Inserted] = PrevProbeFactors.try_emplace(I.first);
     if (!Inserted) {
-      float PrevProbeFactor = It->second;
-      if (std::abs(CurProbeFactor - PrevProbeFactor) >
+      
+      if (float PrevProbeFactor = It->second; std::abs(CurProbeFactor - PrevProbeFactor) >
           DistributionFactorVariance) {
         if (!BannerPrinted) {
           dbgs() << "Function " << F->getName() << ":\n";
@@ -222,16 +222,16 @@ void SampleProfileProber::findUnreachableBlocks(
 void SampleProfileProber::findInvokeNormalDests(
     DenseSet<BasicBlock *> &InvokeNormalDests) {
   for (auto &BB : *F) {
-    auto *TI = BB.getTerminator();
-    if (auto *II = dyn_cast<InvokeInst>(TI)) {
+    
+    if (auto *TI = BB.getTerminator(); auto *II = dyn_cast<InvokeInst>(TI)) {
       auto *ND = II->getNormalDest();
       InvokeNormalDests.insert(ND);
 
       // The normal dest and the try/catch block are connected by an
       // unconditional branch.
       while (pred_size(ND) == 1) {
-        auto *Pred = *pred_begin(ND);
-        if (succ_size(Pred) == 1) {
+        
+        if (auto *Pred = *pred_begin(ND); succ_size(Pred) == 1) {
           InvokeNormalDests.insert(Pred);
           ND = Pred;
         } else
@@ -487,8 +487,8 @@ void PseudoProbeUpdatePass::runOnFunction(Function &F,
     for (auto &I : Block) {
       if (std::optional<PseudoProbe> Probe = extractProbe(I)) {
         uint64_t Hash = computeCallStackHash(I);
-        float Sum = ProbeFactors[{Probe->Id, Hash}];
-        if (Sum != 0)
+        
+        if (float Sum = ProbeFactors[{Probe->Id, Hash}]; Sum != 0)
           setProbeDistributionFactor(I, BBProfileCount(&Block) / Sum);
       }
     }

@@ -62,8 +62,8 @@ void addUnsignedStatTesterChecker(AnalysisASTConsumer &AnalysisConsumer,
 static std::optional<unsigned>
 findColumnIndex(llvm::ArrayRef<llvm::StringRef> Header,
                 llvm::StringRef ColumnName) {
-  auto Iter = llvm::find(Header, ColumnName);
-  if (Iter != Header.end())
+  
+  if (auto Iter = llvm::find(Header, ColumnName); Iter != Header.end())
     return std::distance(Header.begin(), Iter);
   return std::nullopt;
 }
@@ -100,9 +100,9 @@ parseCSVColumnMapping(llvm::StringRef CSVContent, llvm::StringRef KeyColumn,
       continue;
 
     llvm::StringRef KeyVal = Row[*KeyIdx].trim().trim('"');
-    llvm::StringRef ValueVal = Row[*ValueIdx].trim().trim('"');
+    
 
-    if (!KeyVal.empty())
+    if (llvm::StringRef ValueVal = Row[*ValueIdx].trim().trim('"'); !KeyVal.empty())
       Result[KeyVal] = ValueVal.str();
   }
 

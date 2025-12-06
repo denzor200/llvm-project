@@ -448,8 +448,8 @@ template <> struct MappingTraits<const InterfaceFile *> {
           if (SymArch.second != Architectures)
             continue;
 
-          const auto *Symbol = SymArch.first;
-          switch (Symbol->getKind()) {
+          
+          switch (const auto *Symbol = SymArch.first; Symbol->getKind()) {
           case EncodeKind::GlobalSymbol:
             if (Symbol->isWeakDefined())
               Section.WeakDefSymbols.emplace_back(Symbol->getName());
@@ -507,8 +507,8 @@ template <> struct MappingTraits<const InterfaceFile *> {
           if (SymArch.second != Architectures)
             continue;
 
-          const auto *Symbol = SymArch.first;
-          switch (Symbol->getKind()) {
+          
+          switch (const auto *Symbol = SymArch.first; Symbol->getKind()) {
           case EncodeKind::GlobalSymbol:
             if (Symbol->isWeakReferenced())
               Section.WeakRefSymbols.emplace_back(Symbol->getName());
@@ -822,8 +822,8 @@ template <> struct MappingTraits<const InterfaceFile *> {
                 if (IT.second != TargetIDs)
                   continue;
 
-                const auto *Symbol = IT.first;
-                switch (Symbol->getKind()) {
+                
+                switch (const auto *Symbol = IT.first; Symbol->getKind()) {
                 case EncodeKind::GlobalSymbol:
                   if (Symbol->isWeakDefined())
                     CurrentSection.WeakSymbols.emplace_back(Symbol->getName());

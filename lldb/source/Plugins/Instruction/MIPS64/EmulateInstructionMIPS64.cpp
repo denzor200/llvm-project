@@ -1000,8 +1000,8 @@ bool EmulateInstructionMIPS64::EvaluateInstruction(uint32_t evaluate_options) {
     /* If we haven't changed the PC, change it here */
     if (old_pc == new_pc) {
       new_pc += 4;
-      Context context;
-      if (!WriteRegisterUnsigned(context, eRegisterKindDWARF, dwarf_pc_mips64,
+      
+      if (Context context; !WriteRegisterUnsigned(context, eRegisterKindDWARF, dwarf_pc_mips64,
                                  new_pc))
         return false;
     }

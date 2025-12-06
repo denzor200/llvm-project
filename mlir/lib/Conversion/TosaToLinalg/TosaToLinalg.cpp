@@ -64,8 +64,8 @@ materializeBinaryNanCheckIfRequired(OpTy op, PatternRewriter &rewriter,
   if (!isa<FloatType>(getElementTypeOrSelf(lhs)))
     return result;
 
-  auto nanMode = op.getNanMode();
-  if (nanMode == NanPropagationMode::PROPAGATE)
+  
+  if (auto nanMode = op.getNanMode(); nanMode == NanPropagationMode::PROPAGATE)
     return result;
 
   // Unordered comparison of NaN against itself will always return true.
@@ -211,9 +211,9 @@ static Value createLinalgBodyCalculationForElementwiseOp(
       Type intermediateType;
       // Compute the maximum value that can occur in the intermediate buffer.
       const int32_t inputBitWidth = elementTy.getIntOrFloatBitWidth();
-      int intermediateBitWidth = 64;
+      
 
-      if (hasInZp && hasOutZp) {
+      if (int intermediateBitWidth = 64; hasInZp && hasOutZp) {
         // Compute the maximum value that can occur in the intermediate buffer.
         const int64_t zpAdd = inZp + outZp;
         const int64_t maxValue =
@@ -775,8 +775,8 @@ computeTargetSize(PatternRewriter &rewriter, Location loc, IndexPool &indexPool,
   // dimension, that is the target size. An occurrence of an additional static
   // dimension greater than 1 with a different value is undefined behavior.
   for (auto operand : operands) {
-    auto size = cast<RankedTensorType>(operand.getType()).getDimSize(dim);
-    if (ShapedType::isStatic(size) && size > 1)
+    
+    if (auto size = cast<RankedTensorType>(operand.getType()).getDimSize(dim); ShapedType::isStatic(size) && size > 1)
       return {rewriter.getIndexAttr(size), operand};
   }
 
@@ -933,8 +933,8 @@ broadcastDynamicDimensions(PatternRewriter &rewriter, Location loc,
   // No need to broadcast for static shape
   bool hasDynamic = false;
   for (auto op : operands) {
-    const auto tType = dyn_cast<RankedTensorType>(op.getType());
-    if (tType && !tType.hasStaticShape()) {
+    
+    if (const auto tType = dyn_cast<RankedTensorType>(op.getType()); tType && !tType.hasStaticShape()) {
       hasDynamic = true;
       break;
     }
@@ -1015,9 +1015,9 @@ static ValueRange getBroadcastableOperands(Operation *operation,
                                            ValueRange operands) {
   // Shift cannot broadcast
   if (isa<tosa::MulOp>(operation)) {
-    DenseElementsAttr shiftElems;
+    
     // Shift cannot broadcast when it is constant
-    if (matchPattern(operation->getOperand(2), m_Constant(&shiftElems)))
+    if (DenseElementsAttr shiftElems; matchPattern(operation->getOperand(2), m_Constant(&shiftElems)))
       return operands.take_front(2);
     else
       return operands.take_front(3);
@@ -1464,8 +1464,8 @@ static void setupLinalgGenericOpInputAndIndexingMap(
     // If we are not rescaling per-channel then we need to collapse 1xN to N
     // and push broadcastMap.
     auto operand = isShift ? op.getShift() : op.getMultiplier();
-    auto tensorType = dyn_cast<RankedTensorType>(operand.getType());
-    if (tensorType && tensorType.hasStaticShape() &&
+    
+    if (auto tensorType = dyn_cast<RankedTensorType>(operand.getType()); tensorType && tensorType.hasStaticShape() &&
         tensorType.getShape()[0] == 1) {
       // broadcastMap = affine_map<(d0, d1) -> ()>
       // It would affect as broadcast for scalar values in linalg::GenericOp.
@@ -1499,8 +1499,8 @@ static Value getExtendZp(OpBuilder &builder, Type valueTy,
   // be passed as an input to linalg::GenericOp.
   if (failed(maybeZp)) {
     result = blockArgs[zpArg];
-    auto zpTy = result.getType();
-    if (zpTy.getIntOrFloatBitWidth() < attrBitwidth) {
+    
+    if (auto zpTy = result.getType(); zpTy.getIntOrFloatBitWidth() < attrBitwidth) {
       // For ExtUIOp, the input must be signless.
       // UnrealizedConversionCastOp will cast the input to signless type.
       if (zpTy.isUnsignedInteger()) {
@@ -1762,9 +1762,9 @@ public:
     auto inputH = inputTy.getDimSize(1);
     auto inputW = inputTy.getDimSize(2);
     auto outputH = resultTy.getDimSize(1);
-    auto outputW = resultTy.getDimSize(2);
+    
 
-    if (inputH != 1 || inputW != 1 || outputH != 1 || outputW != 1)
+    if (auto outputW = resultTy.getDimSize(2); inputH != 1 || inputW != 1 || outputH != 1 || outputW != 1)
       return rewriter.notifyMatchFailure(
           op, "tosa.resize is not a pure 1x1->1x1 image operation");
 
@@ -2142,10 +2142,10 @@ public:
             b, input, ValueRange{batch, y0, x1, channel});
         Value y1x0 = tensor::ExtractOp::create(
             b, input, ValueRange{batch, y1, x0, channel});
-        Value y1x1 = tensor::ExtractOp::create(
-            b, input, ValueRange{batch, y1, x1, channel});
+        
 
-        if (floatingPointMode) {
+        if (Value y1x1 = tensor::ExtractOp::create(
+            b, input, ValueRange{batch, y1, x1, channel}); floatingPointMode) {
           auto oneVal =
               arith::ConstantOp::create(b, b.getFloatAttr(floatTy, 1.0f));
           auto interpolate = [&](Value val0, Value val1, Value delta,
@@ -2578,8 +2578,8 @@ public:
     llvm::SmallVector<Value> results;
 
     auto addDynamicDimension = [&](Value source, int64_t dim) {
-      auto sz = tensor::getMixedSize(builder, loc, source, dim);
-      if (auto dimValue = llvm::dyn_cast_if_present<Value>(sz))
+      
+      if (auto sz = tensor::getMixedSize(builder, loc, source, dim); auto dimValue = llvm::dyn_cast_if_present<Value>(sz))
         results.push_back(dimValue);
     };
 

@@ -38,8 +38,8 @@ NativeRegisterContextDBReg_loongarch::AdjustWatchpoint(
     const WatchpointDetails &details) {
   // LoongArch only needs to check the size; it does not need to check the
   // address.
-  size_t size = details.size;
-  if (size != 1 && size != 2 && size != 4 && size != 8)
+  
+  if (size_t size = details.size; size != 1 && size != 2 && size != 4 && size != 8)
     return std::nullopt;
 
   return details;

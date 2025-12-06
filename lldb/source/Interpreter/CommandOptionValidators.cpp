@@ -16,9 +16,9 @@ using namespace lldb_private;
 
 bool PosixPlatformCommandOptionValidator::IsValid(
     Platform &platform, const ExecutionContext &target) const {
-  llvm::Triple::OSType os =
-      platform.GetSystemArchitecture().GetTriple().getOS();
-  switch (os) {
+  
+  switch (llvm::Triple::OSType os =
+      platform.GetSystemArchitecture().GetTriple().getOS(); os) {
   // Are there any other platforms that are not POSIX-compatible?
   case llvm::Triple::Win32:
     return false;

@@ -53,8 +53,8 @@ ArchSpec ObjectFilePDB::GetArchitecture() {
     return ArchSpec();
   }
 
-  PDB_Machine machine = dbi_stream->getMachineType();
-  switch (machine) {
+  
+  switch (PDB_Machine machine = dbi_stream->getMachineType(); machine) {
   default:
     break;
   case PDB_Machine::Amd64:
@@ -133,8 +133,8 @@ size_t ObjectFilePDB::GetModuleSpecifications(
   lldb_private::UUID &uuid = module_spec.GetUUID();
   uuid = GetPDBUUID(*info_stream, *dbi_stream);
 
-  ArchSpec &module_arch = module_spec.GetArchitecture();
-  switch (dbi_stream->getMachineType()) {
+  
+  switch (ArchSpec &module_arch = module_spec.GetArchitecture(); dbi_stream->getMachineType()) {
   case PDB_Machine::Amd64:
     module_arch.SetTriple("x86_64-pc-windows");
     specs.Append(module_spec);

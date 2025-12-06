@@ -269,8 +269,8 @@ bool BPFTargetLowering::isZExtFree(SDValue Val, EVT VT2) const {
   EVT VT1 = Val.getValueType();
   if (Val.getOpcode() == ISD::LOAD && VT1.isSimple() && VT2.isSimple()) {
     MVT MT1 = VT1.getSimpleVT().SimpleTy;
-    MVT MT2 = VT2.getSimpleVT().SimpleTy;
-    if ((MT1 == MVT::i8 || MT1 == MVT::i16 || MT1 == MVT::i32) &&
+    
+    if (MVT MT2 = VT2.getSimpleVT().SimpleTy; (MT1 == MVT::i8 || MT1 == MVT::i16 || MT1 == MVT::i32) &&
         (MT2 == MVT::i32 || MT2 == MVT::i64))
       return true;
   }
@@ -319,8 +319,8 @@ BPFTargetLowering::getRegForInlineAsmConstraint(const TargetRegisterInfo *TRI,
 void BPFTargetLowering::ReplaceNodeResults(
   SDNode *N, SmallVectorImpl<SDValue> &Results, SelectionDAG &DAG) const {
   const char *Msg;
-  uint32_t Opcode = N->getOpcode();
-  switch (Opcode) {
+  
+  switch (uint32_t Opcode = N->getOpcode(); Opcode) {
   default:
     report_fatal_error("unhandled custom legalization: " + Twine(Opcode));
   case ISD::ATOMIC_LOAD_ADD:
@@ -399,13 +399,13 @@ SDValue BPFTargetLowering::LowerFormalArguments(
 
   bool HasMemArgs = false;
   for (size_t I = 0; I < ArgLocs.size(); ++I) {
-    auto &VA = ArgLocs[I];
+    
 
-    if (VA.isRegLoc()) {
+    if (auto &VA = ArgLocs[I]; VA.isRegLoc()) {
       // Arguments passed in registers
       EVT RegVT = VA.getLocVT();
-      MVT::SimpleValueType SimpleTy = RegVT.getSimpleVT().SimpleTy;
-      switch (SimpleTy) {
+      
+      switch (MVT::SimpleValueType SimpleTy = RegVT.getSimpleVT().SimpleTy; SimpleTy) {
       default: {
         std::string Str;
         {

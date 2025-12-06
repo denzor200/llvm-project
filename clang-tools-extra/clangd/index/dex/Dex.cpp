@@ -195,8 +195,8 @@ std::unique_ptr<Iterator> Dex::createFileProximityIterator(
   // Proximity Path: the closer processed path is, the higher boosting factor.
   for (const auto &ParentURI : ParentURIs.keys()) {
     // FIXME(kbobyrev): Append LIMIT on top of every BOOST iterator.
-    auto It = iterator(Token(Token::Kind::ProximityURI, ParentURI));
-    if (It->kind() != Iterator::Kind::False) {
+    
+    if (auto It = iterator(Token(Token::Kind::ProximityURI, ParentURI)); It->kind() != Iterator::Kind::False) {
       PathProximitySignals.SymbolURI = ParentURI;
       BoostingIterators.push_back(Corpus.boost(
           std::move(It), PathProximitySignals.evaluateHeuristics()));
@@ -306,8 +306,8 @@ void Dex::lookup(const LookupRequest &Req,
                  llvm::function_ref<void(const Symbol &)> Callback) const {
   trace::Span Tracer("Dex lookup");
   for (const auto &ID : Req.IDs) {
-    auto I = LookupTable.find(ID);
-    if (I != LookupTable.end())
+    
+    if (auto I = LookupTable.find(ID); I != LookupTable.end())
       Callback(*I->second);
   }
 }

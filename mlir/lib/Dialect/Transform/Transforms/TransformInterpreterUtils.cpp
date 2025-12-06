@@ -202,9 +202,9 @@ transform::detail::findTransformEntryPoint(Operation *root, ModuleOp module,
   if (module)
     l.push_back(module);
   for (Operation *op : l) {
-    TransformOpInterface transform =
-        findTransformEntryPointInOp(op, entryPoint);
-    if (transform)
+    
+    if (TransformOpInterface transform =
+        findTransformEntryPointInOp(op, entryPoint); transform)
       return transform;
   }
   auto diag = root->emitError()
@@ -284,8 +284,8 @@ LogicalResult transform::applyTransformNamedSequence(
 
   // `transformModule` may not be modified.
   if (transformModule && !transformModule->isAncestor(transformRoot)) {
-    OwningOpRef<Operation *> clonedTransformModule(transformModule->clone());
-    if (failed(detail::mergeSymbolsInto(
+    
+    if (OwningOpRef<Operation *> clonedTransformModule(transformModule->clone()); failed(detail::mergeSymbolsInto(
             SymbolTable::getNearestSymbolTable(transformRoot),
             std::move(clonedTransformModule)))) {
       return payloadRoot->emitError() << "failed to merge symbols";

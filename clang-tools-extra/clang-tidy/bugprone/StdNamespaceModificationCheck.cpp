@@ -25,8 +25,8 @@ AST_POLYMORPHIC_MATCHER_P(
   for (const auto &Arg : Args) {
     if (Arg.getKind() != TemplateArgument::Pack)
       continue;
-    const ArrayRef<TemplateArgument> PackArgs = Arg.getPackAsArray();
-    if (matchesFirstInRange(InnerMatcher, PackArgs.begin(), PackArgs.end(),
+    
+    if (const ArrayRef<TemplateArgument> PackArgs = Arg.getPackAsArray(); matchesFirstInRange(InnerMatcher, PackArgs.begin(), PackArgs.end(),
                             Finder, Builder) != PackArgs.end())
       return true;
   }

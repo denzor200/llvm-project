@@ -337,8 +337,8 @@ std::string llvm::computeLTOCacheKey(
     AddUint64(V);
 
   if (!Conf.SampleProfile.empty()) {
-    auto FileOrErr = MemoryBuffer::getFile(Conf.SampleProfile);
-    if (FileOrErr) {
+    
+    if (auto FileOrErr = MemoryBuffer::getFile(Conf.SampleProfile); FileOrErr) {
       Hasher.update(FileOrErr.get()->getBuffer());
 
       if (!Conf.ProfileRemapping.empty()) {
@@ -431,8 +431,8 @@ static void thinLTOResolvePrevailingGUID(
 
   if (C.VisibilityScheme == Config::FromPrevailing) {
     for (auto &S : VI.getSummaryList()) {
-      GlobalValue::LinkageTypes OriginalLinkage = S->linkage();
-      if (GlobalValue::isLocalLinkage(OriginalLinkage) ||
+      
+      if (GlobalValue::LinkageTypes OriginalLinkage = S->linkage(); GlobalValue::isLocalLinkage(OriginalLinkage) ||
           GlobalValue::isAppendingLinkage(S->linkage()))
         continue;
       S->setVisibility(Visibility);
@@ -927,8 +927,8 @@ LTO::addRegularLTO(InputFile &Input, ArrayRef<SymbolResolution> InputRes,
   auto MsymI = SymTab.symbols().begin(), MsymE = SymTab.symbols().end();
   auto Skip = [&]() {
     while (MsymI != MsymE) {
-      auto Flags = SymTab.getSymbolFlags(*MsymI);
-      if ((Flags & object::BasicSymbolRef::SF_Global) &&
+      
+      if (auto Flags = SymTab.getSymbolFlags(*MsymI); (Flags & object::BasicSymbolRef::SF_Global) &&
           !(Flags & object::BasicSymbolRef::SF_FormatSpecific))
         return;
       ++MsymI;
@@ -957,8 +957,8 @@ LTO::addRegularLTO(InputFile &Input, ArrayRef<SymbolResolution> InputRes,
         if (R.LinkerRedefined)
           GV->setLinkage(GlobalValue::WeakAnyLinkage);
 
-        GlobalValue::LinkageTypes OriginalLinkage = GV->getLinkage();
-        if (GlobalValue::isLinkOnceLinkage(OriginalLinkage))
+        
+        if (GlobalValue::LinkageTypes OriginalLinkage = GV->getLinkage(); GlobalValue::isLinkOnceLinkage(OriginalLinkage))
           GV->setLinkage(GlobalValue::getWeakLinkage(
               GlobalValue::isLinkOnceODRLinkage(OriginalLinkage)));
       } else if (isa<GlobalObject>(GV) &&
@@ -1060,9 +1060,9 @@ Error LTO::linkRegularLTO(RegularLTOState::AddedModule Mod,
 
     // Only link available_externally definitions if we don't already have a
     // definition.
-    GlobalValue *CombinedGV =
-        RegularLTO.CombinedModule->getNamedValue(GV->getName());
-    if (CombinedGV && !CombinedGV->isDeclaration())
+    
+    if (GlobalValue *CombinedGV =
+        RegularLTO.CombinedModule->getNamedValue(GV->getName()); CombinedGV && !CombinedGV->isDeclaration())
       continue;
 
     Keep.push_back(GV);
@@ -1081,9 +1081,9 @@ LTO::addThinLTO(BitcodeModule BM, ArrayRef<InputFile::Symbol> Syms,
   ArrayRef<SymbolResolution> ResTmp = Res;
   for (const InputFile::Symbol &Sym : Syms) {
     assert(!ResTmp.empty());
-    const SymbolResolution &R = ResTmp.consume_front();
+    
 
-    if (!Sym.getIRName().empty() && R.Prevailing) {
+    if (const SymbolResolution &R = ResTmp.consume_front(); !Sym.getIRName().empty() && R.Prevailing) {
       auto GUID = GlobalValue::getGUIDAssumingExternalLinkage(
           GlobalValue::getGlobalIdentifier(Sym.getIRName(),
                                            GlobalValue::ExternalLinkage, ""));
@@ -1100,9 +1100,9 @@ LTO::addThinLTO(BitcodeModule BM, ArrayRef<InputFile::Symbol> Syms,
 
   for (const InputFile::Symbol &Sym : Syms) {
     assert(!Res.empty());
-    const SymbolResolution &R = Res.consume_front();
+    
 
-    if (!Sym.getIRName().empty() &&
+    if (const SymbolResolution &R = Res.consume_front(); !Sym.getIRName().empty() &&
         (R.Prevailing || R.FinalDefinitionInLinkageUnit)) {
       auto GUID = GlobalValue::getGUIDAssumingExternalLinkage(
           GlobalValue::getGlobalIdentifier(Sym.getIRName(),
@@ -1169,12 +1169,12 @@ Error LTO::checkPartiallySplit() {
       Intrinsic::getDeclarationIfExists(Combined, Intrinsic::type_test);
   Function *TypeCheckedLoadFunc =
       Intrinsic::getDeclarationIfExists(Combined, Intrinsic::type_checked_load);
-  Function *TypeCheckedLoadRelativeFunc = Intrinsic::getDeclarationIfExists(
-      Combined, Intrinsic::type_checked_load_relative);
+  
 
   // First check if there are type tests / type checked loads in the
   // merged regular LTO module IR.
-  if ((TypeTestFunc && !TypeTestFunc->use_empty()) ||
+  if (Function *TypeCheckedLoadRelativeFunc = Intrinsic::getDeclarationIfExists(
+      Combined, Intrinsic::type_checked_load_relative); (TypeTestFunc && !TypeTestFunc->use_empty()) ||
       (TypeCheckedLoadFunc && !TypeCheckedLoadFunc->use_empty()) ||
       (TypeCheckedLoadRelativeFunc &&
        !TypeCheckedLoadRelativeFunc->use_empty()))
@@ -1436,9 +1436,9 @@ Error ThinBackendProc::emitFiles(
                    &DeclarationSummaries);
 
   if (ShouldEmitImportsFiles) {
-    Error ImportsFilesError = EmitImportsFiles(
-        ModulePath, NewModulePath + ".imports", ModuleToSummariesForIndex);
-    if (ImportsFilesError)
+    
+    if (Error ImportsFilesError = EmitImportsFiles(
+        ModulePath, NewModulePath + ".imports", ModuleToSummariesForIndex); ImportsFilesError)
       return ImportsFilesError;
   }
 
@@ -1852,8 +1852,8 @@ public:
                const std::string &OldPrefix, const std::string &NewPrefix) {
           std::string NewModulePath =
               getThinLTOOutputFile(ModulePath, OldPrefix, NewPrefix);
-          auto E = emitFiles(ImportList, ModulePath, NewModulePath);
-          if (E) {
+          
+          if (auto E = emitFiles(ImportList, ModulePath, NewModulePath); E) {
             std::unique_lock<std::mutex> L(ErrMu);
             if (Err)
               Err = joinErrors(std::move(*Err), std::move(E));
@@ -2001,10 +2001,10 @@ Error LTO::runThinLTO(AddStreamFn AddStream, FileCache Cache,
     if (Res.second.Partition != GlobalResolution::External ||
         !Res.second.isPrevailingIRSymbol())
       continue;
-    auto GUID = GlobalValue::getGUIDAssumingExternalLinkage(
-        GlobalValue::dropLLVMManglingEscape(Res.second.IRName));
+    
     // Mark exported unless index-based analysis determined it to be dead.
-    if (ThinLTO.CombinedIndex.isGUIDLive(GUID))
+    if (auto GUID = GlobalValue::getGUIDAssumingExternalLinkage(
+        GlobalValue::dropLLVMManglingEscape(Res.second.IRName)); ThinLTO.CombinedIndex.isGUIDLive(GUID))
       ExportedGUIDs.insert(GUID);
   }
 
@@ -2363,9 +2363,9 @@ public:
             const FunctionImporter::ExportSetTy &ExportList,
             const std::map<GlobalValue::GUID, GlobalValue::LinkageTypes>
                 &ResolvedODR) {
-          Error E =
-              runThinLTOBackendThread(J, ImportList, ExportList, ResolvedODR);
-          if (E) {
+          
+          if (Error E =
+              runThinLTOBackendThread(J, ImportList, ExportList, ResolvedODR); E) {
             std::unique_lock<std::mutex> L(ErrMu);
             if (Err)
               Err = joinErrors(std::move(*Err), std::move(E));
@@ -2506,8 +2506,8 @@ public:
   }
 
   void removeFile(StringRef FileName) {
-    std::error_code EC = sys::fs::remove(FileName, true);
-    if (EC && EC != std::make_error_code(std::errc::no_such_file_or_directory))
+    
+    if (std::error_code EC = sys::fs::remove(FileName, true); EC && EC != std::make_error_code(std::errc::no_such_file_or_directory))
       errs() << "warning: could not remove the file '" << FileName
              << "': " << EC.message() << "\n";
   }
@@ -2549,8 +2549,8 @@ public:
       SmallVector<StringRef, 3> Args = {DistributorPath};
       llvm::append_range(Args, DistributorArgs);
       Args.push_back(JsonFile);
-      std::string ErrMsg;
-      if (sys::ExecuteAndWait(Args[0], Args,
+      
+      if (std::string ErrMsg; sys::ExecuteAndWait(Args[0], Args,
                               /*Env=*/std::nullopt, /*Redirects=*/{},
                               /*SecondsToWait=*/0, /*MemoryLimit=*/0,
                               &ErrMsg)) {

@@ -135,8 +135,8 @@ void RISCVISAInfo::printEnabledExtensions(
   outs() << "\nExperimental extensions\n";
   ExtMap.clear();
   for (const auto &E : SupportedExperimentalExtensions) {
-    StringRef Name(E.Name);
-    if (EnabledFeatureNames.count("experimental-" + Name.str()) != 0) {
+    
+    if (StringRef Name(E.Name); EnabledFeatureNames.count("experimental-" + Name.str()) != 0) {
       FullExtMap[E.Name] = {E.Version.Major, E.Version.Minor};
       ExtMap[E.Name] = {E.Version.Major, E.Version.Minor};
     }
@@ -147,8 +147,8 @@ void RISCVISAInfo::printEnabledExtensions(
     PrintExtension(E.first, Version, DescMap["experimental-" + E.first]);
   }
 
-  unsigned XLen = IsRV64 ? 64 : 32;
-  if (auto ISAString = RISCVISAInfo::createFromExtMap(XLen, FullExtMap))
+  
+  if (unsigned XLen = IsRV64 ? 64 : 32; auto ISAString = RISCVISAInfo::createFromExtMap(XLen, FullExtMap))
     outs() << "\nISA String: " << ISAString.get()->toString() << "\n";
 }
 
@@ -251,8 +251,8 @@ bool RISCVISAInfo::isSupportedExtension(StringRef Ext) {
 
   for (auto ExtInfo : {ArrayRef(SupportedExtensions),
                        ArrayRef(SupportedExperimentalExtensions)}) {
-    auto I = llvm::lower_bound(ExtInfo, Ext, LessExtName());
-    if (I != ExtInfo.end() && I->Name == Ext)
+    
+    if (auto I = llvm::lower_bound(ExtInfo, Ext, LessExtName()); I != ExtInfo.end() && I->Name == Ext)
       return true;
   }
 
@@ -908,11 +908,11 @@ void RISCVISAInfo::updateCombination() {
       // depends on.
       auto Range = std::equal_range(std::begin(ImpliedExts),
                                     std::end(ImpliedExts), CombineExt);
-      bool HasAllRequiredFeatures = std::all_of(
+      
+      if (bool HasAllRequiredFeatures = std::all_of(
           Range.first, Range.second, [&](const ImpliedExtsEntry &Implied) {
             return Exts.count(Implied.ImpliedExt);
-          });
-      if (HasAllRequiredFeatures) {
+          }); HasAllRequiredFeatures) {
         auto Version = findDefaultVersion(CombineExt);
         Exts[CombineExt.str()] = *Version;
         MadeChange = true;

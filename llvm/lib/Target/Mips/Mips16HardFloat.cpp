@@ -108,8 +108,8 @@ static FPParamVariant whichFPParamVariantNeeded(Function &F) {
   case 0:
     return NoSig;
   case 1:{
-    TypeID ArgTypeID = F.getFunctionType()->getParamType(0)->getTypeID();
-    switch (ArgTypeID) {
+    
+    switch (TypeID ArgTypeID = F.getFunctionType()->getParamType(0)->getTypeID(); ArgTypeID) {
     case FloatTyID:
       return FSig;
     case DoubleTyID:
@@ -120,8 +120,8 @@ static FPParamVariant whichFPParamVariantNeeded(Function &F) {
   }
   default: {
     TypeID ArgTypeID0 = F.getFunctionType()->getParamType(0)->getTypeID();
-    TypeID ArgTypeID1 = F.getFunctionType()->getParamType(1)->getTypeID();
-    switch(ArgTypeID0) {
+    
+    switch(TypeID ArgTypeID1 = F.getFunctionType()->getParamType(1)->getTypeID(); ArgTypeID0) {
     case FloatTyID: {
       switch (ArgTypeID1) {
       case FloatTyID:
@@ -155,8 +155,8 @@ static FPParamVariant whichFPParamVariantNeeded(Function &F) {
 // registers because of the ABI
 static bool needsFPStubFromParams(Function &F) {
   if (F.arg_size() >=1) {
-    Type *ArgType = F.getFunctionType()->getParamType(0);
-    switch (ArgType->getTypeID()) {
+    
+    switch (Type *ArgType = F.getFunctionType()->getParamType(0); ArgType->getTypeID()) {
     case Type::FloatTyID:
     case Type::DoubleTyID:
       return true;
@@ -517,8 +517,8 @@ bool Mips16HardFloat::runOnModule(Module &M) {
     if (F->isDeclaration() || F->hasFnAttribute("mips16_fp_stub") ||
         F->hasFnAttribute("nomips16")) continue;
     Modified |= fixupFPReturnAndCall(*F, &M, TM);
-    FPParamVariant V = whichFPParamVariantNeeded(*F);
-    if (V != NoSig) {
+    
+    if (FPParamVariant V = whichFPParamVariantNeeded(*F); V != NoSig) {
       Modified = true;
       createFPFnStub(&*F, &M, V, TM);
     }

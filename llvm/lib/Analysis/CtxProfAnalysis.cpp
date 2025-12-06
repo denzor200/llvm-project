@@ -248,8 +248,8 @@ class ProfileAnnotatorImpl final {
       const auto &BBInfo = getBBInfo(*BB);
       bool HasAWayOut = false;
       for (auto I = 0U; I < BB->getTerminator()->getNumSuccessors(); ++I) {
-        const auto *Succ = BB->getTerminator()->getSuccessor(I);
-        if (!shouldExcludeEdge(*BB, *Succ)) {
+        
+        if (const auto *Succ = BB->getTerminator()->getSuccessor(I); !shouldExcludeEdge(*BB, *Succ)) {
           if (BBInfo.getEdgeCount(I) > 0) {
             HasAWayOut = true;
             Worklist.push_back(Succ);
@@ -345,8 +345,8 @@ public:
     for (const auto &BB : F) {
       auto &Info = getBBInfo(BB);
       for (auto I = 0U; I < BB.getTerminator()->getNumSuccessors(); ++I) {
-        const auto *Succ = BB.getTerminator()->getSuccessor(I);
-        if (!shouldExcludeEdge(BB, *Succ)) {
+        
+        if (const auto *Succ = BB.getTerminator()->getSuccessor(I); !shouldExcludeEdge(BB, *Succ)) {
           auto &EI = EdgeInfos.emplace_back(getBBInfo(BB), getBBInfo(*Succ));
           Info.addOutEdge(I, EI);
           getBBInfo(*Succ).addInEdge(EI);

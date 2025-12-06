@@ -51,8 +51,8 @@ AST_MATCHER(FunctionDecl, isPlacementOverload) {
     return true;
 
   const auto *FPT = Node.getType()->castAs<FunctionProtoType>();
-  const ASTContext &Ctx = Node.getASTContext();
-  if (Ctx.getLangOpts().SizedDeallocation &&
+  
+  if (const ASTContext &Ctx = Node.getASTContext(); Ctx.getLangOpts().SizedDeallocation &&
       ASTContext::hasSameType(FPT->getParamType(1), Ctx.getSizeType()))
     return false;
 
@@ -168,7 +168,9 @@ void NewDeleteOverloadsCheck::onEndOfTranslationUnit() {
     // to shard the overloads by declaration context to reduce the algorithmic
     // complexity when searching for corresponding free store functions.
     for (const auto *Overload : RP.second) {
-      const auto *Match =
+      
+
+      if (const auto *Match =
           llvm::find_if(RP.second, [&Overload](const FunctionDecl *FD) {
             if (FD == Overload)
               return false;
@@ -183,14 +185,12 @@ void NewDeleteOverloadsCheck::onEndOfTranslationUnit() {
               return false;
 
             return true;
-          });
-
-      if (Match == RP.second.end()) {
+          }); Match == RP.second.end()) {
         // Check to see if there is a corresponding overload in a base class
         // context. If there isn't, or if the overload is not a class member
         // function, then we should diagnose.
-        const auto *MD = dyn_cast<CXXMethodDecl>(Overload);
-        if (!MD || !hasCorrespondingOverloadInBaseClass(MD))
+        
+        if (const auto *MD = dyn_cast<CXXMethodDecl>(Overload); !MD || !hasCorrespondingOverloadInBaseClass(MD))
           Diagnose.push_back(Overload);
       }
     }

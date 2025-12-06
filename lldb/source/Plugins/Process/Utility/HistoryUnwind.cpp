@@ -40,9 +40,9 @@ lldb::RegisterContextSP
 HistoryUnwind::DoCreateRegisterContextForFrame(StackFrame *frame) {
   RegisterContextSP rctx;
   if (frame) {
-    addr_t pc = frame->GetFrameCodeAddress().GetLoadAddress(
-        &frame->GetThread()->GetProcess()->GetTarget());
-    if (pc != LLDB_INVALID_ADDRESS) {
+    
+    if (addr_t pc = frame->GetFrameCodeAddress().GetLoadAddress(
+        &frame->GetThread()->GetProcess()->GetTarget()); pc != LLDB_INVALID_ADDRESS) {
       rctx = std::make_shared<RegisterContextHistory>(
           *frame->GetThread().get(), frame->GetConcreteFrameIndex(),
           frame->GetThread()->GetProcess()->GetAddressByteSize(), pc);

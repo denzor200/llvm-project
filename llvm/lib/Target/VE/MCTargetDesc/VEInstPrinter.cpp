@@ -165,8 +165,8 @@ void VEInstPrinter::printMemASOperandHM(const MCInst *MI, int OpNum,
 void VEInstPrinter::printMImmOperand(const MCInst *MI, int OpNum,
                                      const MCSubtargetInfo &STI,
                                      raw_ostream &O) {
-  int MImm = (int)MI->getOperand(OpNum).getImm() & 0x7f;
-  if (MImm > 63)
+  
+  if (int MImm = (int)MI->getOperand(OpNum).getImm() & 0x7f; MImm > 63)
     O << "(" << MImm - 64 << ")0";
   else
     O << "(" << MImm << ")1";

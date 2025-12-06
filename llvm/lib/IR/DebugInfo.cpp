@@ -113,7 +113,9 @@ findDbgIntrinsics(Value *V,
   SmallPtrSet<DbgVariableRecord *, 4> EncounteredDbgVariableRecords;
 
   /// Append users of MetadataAsValue(MD).
-  auto AppendUsers = [&EncounteredDbgVariableRecords,
+  
+
+  if (auto AppendUsers = [&EncounteredDbgVariableRecords,
                       &DbgVariableRecords](Metadata *MD) {
     // Get DbgVariableRecords that use this as a single value.
     if (LocalAsMetadata *L = dyn_cast<LocalAsMetadata>(MD)) {
@@ -123,9 +125,7 @@ findDbgIntrinsics(Value *V,
             DbgVariableRecords.push_back(DVR);
       }
     }
-  };
-
-  if (auto *L = LocalAsMetadata::getIfExists(V)) {
+  }; auto *L = LocalAsMetadata::getIfExists(V)) {
     AppendUsers(L);
     for (Metadata *AL : L->getAllArgListUsers()) {
       AppendUsers(AL);
@@ -264,8 +264,8 @@ void DebugInfoFinder::processType(DIType *DT) {
 }
 
 void DebugInfoFinder::processImportedEntity(const DIImportedEntity *Import) {
-  auto *Entity = Import->getEntity();
-  if (auto *T = dyn_cast<DIType>(Entity))
+  
+  if (auto *Entity = Import->getEntity(); auto *T = dyn_cast<DIType>(Entity))
     processType(T);
   else if (auto *SP = dyn_cast<DISubprogram>(Entity))
     processSubprogram(SP);
@@ -467,8 +467,8 @@ static bool isDILocationReachable(SmallPtrSetImpl<Metadata *> &Visited,
   if (!Visited.insert(N).second)
     return false;
   for (auto &OpIt : N->operands()) {
-    Metadata *Op = OpIt.get();
-    if (isDILocationReachable(Visited, Reachable, Op)) {
+    
+    if (Metadata *Op = OpIt.get(); isDILocationReachable(Visited, Reachable, Op)) {
       // Don't return just yet as we want to visit all MD's children to
       // initialize DILocationReachable in stripDebugLocFromLoopID
       Reachable.insert(N);
@@ -518,8 +518,8 @@ stripLoopMDLoc(const SmallPtrSetImpl<Metadata *> &AllDILocation,
   SmallVector<Metadata *, 4> Args;
   bool HasSelfRef = false;
   for (unsigned i = 0; i < N->getNumOperands(); ++i) {
-    Metadata *A = N->getOperand(i);
-    if (!A) {
+    
+    if (Metadata *A = N->getOperand(i); !A) {
       Args.push_back(nullptr);
     } else if (A == MD) {
       assert(i == 0 && "expected i==0 for self-reference");
@@ -978,8 +978,8 @@ void Instruction::mergeDIAssignID(
 void Instruction::updateLocationAfterHoist() { dropLocation(); }
 
 void Instruction::dropLocation() {
-  const DebugLoc &DL = getDebugLoc();
-  if (!DL) {
+  
+  if (const DebugLoc &DL = getDebugLoc(); !DL) {
     setDebugLoc(DebugLoc::getDropped());
     return;
   }
@@ -2196,8 +2196,8 @@ void at::trackAssignments(Function::iterator Start, Function::iterator End,
         Info = getAssignmentInfo(DL, MI);
         // If we're zero-initing we can state the assigned value is zero,
         // otherwise use undef.
-        auto *ConstValue = dyn_cast<ConstantInt>(MI->getOperand(1));
-        if (ConstValue && ConstValue->isZero())
+        
+        if (auto *ConstValue = dyn_cast<ConstantInt>(MI->getOperand(1)); ConstValue && ConstValue->isZero())
           ValueComponent = ConstValue;
         else
           ValueComponent = Poison;

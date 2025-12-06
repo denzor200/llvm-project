@@ -219,8 +219,8 @@ Error GraphRenderer::accountRecord(const XRayRecord &Record) {
     return make_error<StringError>("Records not in order",
                                    make_error_code(errc::invalid_argument));
 
-  auto &ThreadStack = PerThreadFunctionStack[Record.TId];
-  switch (Record.Type) {
+  
+  switch (auto &ThreadStack = PerThreadFunctionStack[Record.TId]; Record.Type) {
   case RecordTypes::ENTER:
   case RecordTypes::ENTER_ARG: {
     if (Record.FuncId != 0 && G.count(Record.FuncId) == 0)

@@ -156,8 +156,8 @@ LiveIntervalUnion::Query::collectInterferingVRegs(unsigned MaxInterferingRegs) {
     // Check for overlapping interference.
     while (LRI->start < LiveUnionI.stop() && LRI->end > LiveUnionI.start()) {
       // This is an overlap, record the interfering register.
-      const LiveInterval *VReg = LiveUnionI.value();
-      if (VReg != RecentReg && !isSeenInterference(VReg)) {
+      
+      if (const LiveInterval *VReg = LiveUnionI.value(); VReg != RecentReg && !isSeenInterference(VReg)) {
         RecentReg = VReg;
         InterferingVRegs.push_back(VReg);
         if (InterferingVRegs.size() >= MaxInterferingRegs)

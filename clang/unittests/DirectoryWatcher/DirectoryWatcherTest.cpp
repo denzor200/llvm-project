@@ -77,9 +77,9 @@ struct DirectoryWatcherTestFixture {
   }
 
   void addFile(const std::string &testFile) {
-    Expected<file_t> ft = openNativeFileForWrite(getPathInWatched(testFile),
-                                                 CD_CreateNew, OF_None);
-    if (ft) {
+    
+    if (Expected<file_t> ft = openNativeFileForWrite(getPathInWatched(testFile),
+                                                 CD_CreateNew, OF_None); ft) {
       closeFile(*ft);
     } else {
       llvm::errs() << llvm::toString(ft.takeError()) << "\n";
@@ -154,8 +154,8 @@ struct VerifyingConsumer {
     std::unique_lock<std::mutex> L(Mtx);
     auto It = llvm::find(ExpectedNonInitial, E);
     if (It == ExpectedNonInitial.end()) {
-      auto OptIt = llvm::find(OptionalNonInitial, E);
-      if (OptIt != OptionalNonInitial.end()) {
+      
+      if (auto OptIt = llvm::find(OptionalNonInitial, E); OptIt != OptionalNonInitial.end()) {
         OptionalNonInitial.erase(OptIt);
       } else {
         UnexpectedNonInitial.push_back(E);

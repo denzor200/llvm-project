@@ -77,8 +77,8 @@ static ELFKind getELFKind(Ctx &ctx, MemoryBufferRef mb, StringRef archiveName) {
   std::tie(size, endian) = getElfArchType(mb.getBuffer());
 
   auto report = [&](StringRef msg) {
-    StringRef filename = mb.getBufferIdentifier();
-    if (archiveName.empty())
+    
+    if (StringRef filename = mb.getBufferIdentifier(); archiveName.empty())
       Fatal(ctx) << filename << ": " << msg;
     else
       Fatal(ctx) << archiveName << "(" << filename << "): " << msg;
@@ -1209,8 +1209,8 @@ void ObjFile<ELFT>::initializeSymbols(const object::ELFFile<ELFT> &obj) {
   SmallVector<unsigned, 32> undefineds;
   for (size_t i = firstGlobal, end = eSyms.size(); i != end; ++i) {
     const Elf_Sym &eSym = eSyms[i];
-    uint32_t secIdx = eSym.st_shndx;
-    if (secIdx == SHN_UNDEF) {
+    
+    if (uint32_t secIdx = eSym.st_shndx; secIdx == SHN_UNDEF) {
       undefineds.push_back(i);
       continue;
     }
@@ -1413,8 +1413,8 @@ static bool isNonCommonDef(Ctx &ctx, ELFKind ekind, MemoryBufferRef mb,
   StringRef stringtable = obj->getStringTable();
 
   for (auto sym : obj->template getGlobalELFSyms<ELFT>()) {
-    Expected<StringRef> name = sym.getName(stringtable);
-    if (name && name.get() == symName)
+    
+    if (Expected<StringRef> name = sym.getName(stringtable); name && name.get() == symName)
       return sym.isDefined() && sym.getBinding() == STB_GLOBAL &&
              !sym.isCommon();
   }

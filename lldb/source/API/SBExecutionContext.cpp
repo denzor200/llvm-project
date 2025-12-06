@@ -79,8 +79,8 @@ SBTarget SBExecutionContext::GetTarget() const {
 
   SBTarget sb_target;
   if (m_exe_ctx_sp) {
-    TargetSP target_sp(m_exe_ctx_sp->GetTargetSP());
-    if (target_sp)
+    
+    if (TargetSP target_sp(m_exe_ctx_sp->GetTargetSP()); target_sp)
       sb_target.SetSP(target_sp);
   }
   return sb_target;
@@ -91,8 +91,8 @@ SBProcess SBExecutionContext::GetProcess() const {
 
   SBProcess sb_process;
   if (m_exe_ctx_sp) {
-    ProcessSP process_sp(m_exe_ctx_sp->GetProcessSP());
-    if (process_sp)
+    
+    if (ProcessSP process_sp(m_exe_ctx_sp->GetProcessSP()); process_sp)
       sb_process.SetSP(process_sp);
   }
   return sb_process;
@@ -103,8 +103,8 @@ SBThread SBExecutionContext::GetThread() const {
 
   SBThread sb_thread;
   if (m_exe_ctx_sp) {
-    ThreadSP thread_sp(m_exe_ctx_sp->GetThreadSP());
-    if (thread_sp)
+    
+    if (ThreadSP thread_sp(m_exe_ctx_sp->GetThreadSP()); thread_sp)
       sb_thread.SetThread(thread_sp);
   }
   return sb_thread;
@@ -115,8 +115,8 @@ SBFrame SBExecutionContext::GetFrame() const {
 
   SBFrame sb_frame;
   if (m_exe_ctx_sp) {
-    StackFrameSP frame_sp(m_exe_ctx_sp->GetFrameSP());
-    if (frame_sp)
+    
+    if (StackFrameSP frame_sp(m_exe_ctx_sp->GetFrameSP()); frame_sp)
       sb_frame.SetFrameSP(frame_sp);
   }
   return sb_frame;

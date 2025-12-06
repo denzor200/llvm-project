@@ -336,9 +336,9 @@ bool LiveRegOptimizer::optimizeLiveType(
         continue;
       }
 
-      Instruction *UseInst = cast<Instruction>(V);
+      
       // Collect all uses of PHINodes and any use the crosses BB boundaries.
-      if (UseInst->getParent() != II->getParent() || isa<PHINode>(II)) {
+      if (Instruction *UseInst = cast<Instruction>(V); UseInst->getParent() != II->getParent() || isa<PHINode>(II)) {
         Uses.insert(UseInst);
         if (!isa<PHINode>(II))
           Defs.insert(II);
@@ -368,8 +368,8 @@ bool LiveRegOptimizer::optimizeLiveType(
     PHINode *NewPhi = cast<PHINode>(ValMap[Phi]);
     bool MissingIncVal = false;
     for (int I = 0, E = Phi->getNumIncomingValues(); I < E; I++) {
-      Value *IncVal = Phi->getIncomingValue(I);
-      if (isa<ConstantAggregateZero>(IncVal)) {
+      
+      if (Value *IncVal = Phi->getIncomingValue(I); isa<ConstantAggregateZero>(IncVal)) {
         Type *NewType = calculateConvertType(Phi->getType());
         NewPhi->addIncoming(ConstantInt::get(NewType, 0, false),
                             Phi->getIncomingBlock(I));
@@ -418,11 +418,11 @@ bool LiveRegOptimizer::optimizeLiveType(
             BBUseValMap[U->getParent()].contains(Val))
           NewVal = BBUseValMap[U->getParent()][Val];
         else {
-          BasicBlock::iterator InsertPt = U->getParent()->getFirstNonPHIIt();
+          
           // We may pick up ops that were previously converted for users in
           // other blocks. If there is an originally typed definition of the Op
           // already in this block, simply reuse it.
-          if (isa<Instruction>(Op) && !isa<PHINode>(Op) &&
+          if (BasicBlock::iterator InsertPt = U->getParent()->getFirstNonPHIIt(); isa<Instruction>(Op) && !isa<PHINode>(Op) &&
               U->getParent() == cast<Instruction>(Op)->getParent()) {
             NewVal = Op;
           } else {
@@ -442,9 +442,9 @@ bool LiveRegOptimizer::optimizeLiveType(
 }
 
 bool AMDGPULateCodeGenPrepare::canWidenScalarExtLoad(LoadInst &LI) const {
-  unsigned AS = LI.getPointerAddressSpace();
+  
   // Skip non-constant address space.
-  if (AS != AMDGPUAS::CONSTANT_ADDRESS &&
+  if (unsigned AS = LI.getPointerAddressSpace(); AS != AMDGPUAS::CONSTANT_ADDRESS &&
       AS != AMDGPUAS::CONSTANT_ADDRESS_32BIT)
     return false;
   // Skip non-simple loads.

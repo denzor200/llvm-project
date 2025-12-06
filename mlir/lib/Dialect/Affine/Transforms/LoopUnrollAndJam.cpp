@@ -83,7 +83,7 @@ void LoopUnrollAndJam::runOnOperation() {
   // Currently, just the outermost loop from the first loop nest is
   // unroll-and-jammed by this pass. However, runOnAffineForOp can be called on
   // any for operation.
-  auto &entryBlock = getOperation().front();
-  if (auto forOp = dyn_cast<AffineForOp>(entryBlock.front()))
+  
+  if (auto &entryBlock = getOperation().front(); auto forOp = dyn_cast<AffineForOp>(entryBlock.front()))
     (void)loopUnrollJamByFactor(forOp, unrollJamFactor);
 }

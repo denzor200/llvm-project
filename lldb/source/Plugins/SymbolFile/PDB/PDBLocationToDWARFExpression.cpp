@@ -107,8 +107,8 @@ DWARFExpression ConvertPDBLocationToDWARFExpression(
   }
   case PDB_LocType::RegRel: {
     uint32_t reg_num;
-    auto reg_id = symbol.getRegisterId();
-    if (reg_id == llvm::codeview::RegisterId::VFRAME) {
+    
+    if (auto reg_id = symbol.getRegisterId(); reg_id == llvm::codeview::RegisterId::VFRAME) {
       if (auto fd = GetCorrespondingFrameData(symbol.getSession(), ranges)) {
         if (EmitVFrameEvaluationDWARFExpression(fd->getProgram(), arch_type,
                                                 stream)) {

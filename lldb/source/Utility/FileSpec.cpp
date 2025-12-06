@@ -118,8 +118,8 @@ bool needsNormalization(const llvm::StringRef &path) {
     return true;
   for (auto i = path.find_first_of("\\/"); i != llvm::StringRef::npos;
        i = path.find_first_of("\\/", i + 1)) {
-    const auto next = safeCharAtIndex(path, i+1);
-    switch (next) {
+    
+    switch (const auto next = safeCharAtIndex(path, i+1); next) {
       case 0:
         // path separator char at the end of the string which should be
         // stripped unless it is the one and only character
@@ -134,16 +134,16 @@ bool needsNormalization(const llvm::StringRef &path) {
         break;
 
       case '.': {
-          const auto next_next = safeCharAtIndex(path, i+2);
-          switch (next_next) {
+          
+          switch (const auto next_next = safeCharAtIndex(path, i+2); next_next) {
             default: break;
             case 0: return true; // ends with "/."
             case '/':
             case '\\':
               return true; // contains "/./"
             case '.': {
-              const auto next_next_next = safeCharAtIndex(path, i+3);
-              switch (next_next_next) {
+              
+              switch (const auto next_next_next = safeCharAtIndex(path, i+3); next_next_next) {
                 default: break;
                 case 0: return true; // ends with "/.."
                 case '/':
@@ -325,8 +325,8 @@ FileSpec::GuessPathStyle(llvm::StringRef absolute_path) {
 void FileSpec::Dump(llvm::raw_ostream &s) const {
   std::string path{GetPath(true)};
   s << path;
-  char path_separator = GetPreferredPathSeparator(m_style);
-  if (!m_filename && !path.empty() && path.back() != path_separator)
+  
+  if (char path_separator = GetPreferredPathSeparator(m_style); !m_filename && !path.empty() && path.back() != path_separator)
     s << path_separator;
 }
 

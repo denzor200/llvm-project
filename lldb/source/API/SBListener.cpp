@@ -59,8 +59,8 @@ SBListener::operator bool() const {
 void SBListener::AddEvent(const SBEvent &event) {
   LLDB_INSTRUMENT_VA(this, event);
 
-  EventSP &event_sp = event.GetSP();
-  if (event_sp)
+  
+  if (EventSP &event_sp = event.GetSP(); event_sp)
     m_opaque_sp->AddEvent(event_sp);
 }
 
@@ -231,8 +231,8 @@ bool SBListener::GetNextEvent(SBEvent &event) {
   LLDB_INSTRUMENT_VA(this, event);
 
   if (m_opaque_sp) {
-    EventSP event_sp;
-    if (m_opaque_sp->GetEvent(event_sp, std::chrono::seconds(0))) {
+    
+    if (EventSP event_sp; m_opaque_sp->GetEvent(event_sp, std::chrono::seconds(0))) {
       event.reset(event_sp);
       return true;
     }
@@ -246,8 +246,8 @@ bool SBListener::GetNextEventForBroadcaster(const SBBroadcaster &broadcaster,
   LLDB_INSTRUMENT_VA(this, broadcaster, event);
 
   if (m_opaque_sp && broadcaster.IsValid()) {
-    EventSP event_sp;
-    if (m_opaque_sp->GetEventForBroadcaster(broadcaster.get(), event_sp,
+    
+    if (EventSP event_sp; m_opaque_sp->GetEventForBroadcaster(broadcaster.get(), event_sp,
                                             std::chrono::seconds(0))) {
       event.reset(event_sp);
       return true;
@@ -263,8 +263,8 @@ bool SBListener::GetNextEventForBroadcasterWithType(
   LLDB_INSTRUMENT_VA(this, broadcaster, event_type_mask, event);
 
   if (m_opaque_sp && broadcaster.IsValid()) {
-    EventSP event_sp;
-    if (m_opaque_sp->GetEventForBroadcasterWithType(broadcaster.get(),
+    
+    if (EventSP event_sp; m_opaque_sp->GetEventForBroadcasterWithType(broadcaster.get(),
                                                     event_type_mask, event_sp,
                                                     std::chrono::seconds(0))) {
       event.reset(event_sp);

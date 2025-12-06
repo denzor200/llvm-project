@@ -290,10 +290,10 @@ FailureOr<LowerPackResult> linalg::lowerPack(RewriterBase &rewriter,
     // Pack ops which operate as simple pads may not produce legal
     // tensor.insert_slice operations when the packed type does not rank reduce
     // to the padded type.
-    SliceVerificationResult rankReduces =
-        isRankReducedType(packedTensorType, padOp.getResultType());
+    
 
-    if (rankReduces == SliceVerificationResult::Success) {
+    if (SliceVerificationResult rankReduces =
+        isRankReducedType(packedTensorType, padOp.getResultType()); rankReduces == SliceVerificationResult::Success) {
       // This pack is just a plain pad.
       // Just insert the pad in the higher ranked tensor.
       // Offsets.
@@ -1456,8 +1456,8 @@ FailureOr<Conv1DOp> DownscaleSizeOneWindowed2DConvolution<Conv2DOp, Conv1DOp>::
   int64_t khSize = kernelShape[khIndex], kwSize = kernelShape[kwIndex];
   int64_t ohSize = outputShape[ohIndex], owSize = outputShape[owIndex];
   bool removeH = (khSize == 1 && ohSize == 1);
-  bool removeW = (kwSize == 1 && owSize == 1);
-  if (!removeH && !removeW)
+  
+  if (bool removeW = (kwSize == 1 && owSize == 1); !removeH && !removeW)
     return failure();
 
   // Get new shapes and types for all operands by removing the size-1
@@ -1544,8 +1544,8 @@ DownscaleDepthwiseConv2DNhwcHwcOp::returningMatchAndRewrite(
   int64_t khSize = kernelShape[0], kwSize = kernelShape[1];
   int64_t ohSize = outputShape[1], owSize = outputShape[2];
   bool removeH = (khSize == 1 && ohSize == 1);
-  bool removeW = (kwSize == 1 && owSize == 1);
-  if (!removeH && !removeW)
+  
+  if (bool removeW = (kwSize == 1 && owSize == 1); !removeH && !removeW)
     return failure();
 
   // Get new shapes and types for all operands by removing the size-1
@@ -1612,8 +1612,8 @@ DownscaleConv2DOp::returningMatchAndRewrite(Conv2DOp convOp,
   int64_t khSize = kernelShape[0], kwSize = kernelShape[1];
   int64_t ohSize = outputShape[0], owSize = outputShape[1];
   bool removeH = (khSize == 1 && ohSize == 1);
-  bool removeW = (kwSize == 1 && owSize == 1);
-  if (!removeH && !removeW)
+  
+  if (bool removeW = (kwSize == 1 && owSize == 1); !removeH && !removeW)
     return failure();
 
   // Get new shapes and types for all operands by removing the size-1

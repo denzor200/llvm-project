@@ -266,11 +266,11 @@ template <typename AccConstructT>
 static void hoistNonConstantDirectUses(AccConstructT accOp,
                                        acc::OpenACCSupport &accSupport) {
   accOp.walk([&](acc::AddressOfGlobalOpInterface addrOfOp) {
-    SymbolRefAttr symRef = addrOfOp.getSymbol();
-    if (symRef) {
-      Operation *globalOp =
-          SymbolTable::lookupNearestSymbolFrom(addrOfOp, symRef);
-      if (isGlobalUseCandidateForHoisting(globalOp, addrOfOp, symRef,
+    
+    if (SymbolRefAttr symRef = addrOfOp.getSymbol(); symRef) {
+      
+      if (Operation *globalOp =
+          SymbolTable::lookupNearestSymbolFrom(addrOfOp, symRef); isGlobalUseCandidateForHoisting(globalOp, addrOfOp, symRef,
                                           accSupport)) {
         addrOfOp->moveBefore(accOp);
         LLVM_DEBUG(
@@ -290,17 +290,17 @@ static void collectGlobalsFromDeviceRegion(Region &region,
                                            SymbolTable &symTab) {
   region.walk([&](Operation *op) {
     // 1) Only consider relevant operations which use symbols
-    auto addrOfOp = dyn_cast<acc::AddressOfGlobalOpInterface>(op);
-    if (addrOfOp) {
+    
+    if (auto addrOfOp = dyn_cast<acc::AddressOfGlobalOpInterface>(op); addrOfOp) {
       SymbolRefAttr symRef = addrOfOp.getSymbol();
       // 2) Found an operation which uses the symbol. Next determine if it
       //    is a candidate for `acc declare`. Some of the criteria considered
       //    is whether this symbol is not already a device one (either because
       //    acc declare is already used or this is a CUF global).
       Operation *globalOp = nullptr;
-      bool isCandidate = !accSupport.isValidSymbolUse(op, symRef, &globalOp);
+      
       // 3) Add the candidate to the set of globals to be `acc declare`d.
-      if (isCandidate && globalOp && isValidForAccDeclare(globalOp))
+      if (bool isCandidate = !accSupport.isValidSymbolUse(op, symRef, &globalOp); isCandidate && globalOp && isValidForAccDeclare(globalOp))
         globals.insert(globalOp);
     } else if (auto indirectAccessOp =
                    dyn_cast<acc::IndirectGlobalAccessOpInterface>(op)) {

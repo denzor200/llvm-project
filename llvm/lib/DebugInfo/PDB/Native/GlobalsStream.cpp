@@ -115,8 +115,8 @@ static Error readGSIHashRecords(FixedStreamArray<PSHashRecord> &HashRecords,
   if (HashHdr->HrSize % sizeof(PSHashRecord))
     return make_error<RawError>(raw_error_code::corrupt_file,
                                 "Invalid HR array size.");
-  uint32_t NumHashRecords = HashHdr->HrSize / sizeof(PSHashRecord);
-  if (auto EC = Reader.readArray(HashRecords, NumHashRecords))
+  
+  if (uint32_t NumHashRecords = HashHdr->HrSize / sizeof(PSHashRecord); auto EC = Reader.readArray(HashRecords, NumHashRecords))
     return joinErrors(std::move(EC),
                       make_error<RawError>(raw_error_code::corrupt_file,
                                            "Error reading hash records."));
@@ -136,8 +136,8 @@ readGSIHashBuckets(FixedStreamArray<support::ulittle32_t> &HashBuckets,
   // Before the actual hash buckets, there is a bitmap of length determined by
   // IPHR_HASH.
   size_t BitmapSizeInBits = alignTo(IPHR_HASH + 1, 32);
-  uint32_t NumBitmapEntries = BitmapSizeInBits / 32;
-  if (auto EC = Reader.readArray(HashBitmap, NumBitmapEntries))
+  
+  if (uint32_t NumBitmapEntries = BitmapSizeInBits / 32; auto EC = Reader.readArray(HashBitmap, NumBitmapEntries))
     return joinErrors(std::move(EC),
                       make_error<RawError>(raw_error_code::corrupt_file,
                                            "Could not read a bitmap."));
@@ -145,8 +145,8 @@ readGSIHashBuckets(FixedStreamArray<support::ulittle32_t> &HashBuckets,
   for (uint32_t I = 0; I <= IPHR_HASH; ++I) {
     uint8_t WordIdx = I / 32;
     uint8_t BitIdx = I % 32;
-    bool IsSet = HashBitmap[WordIdx] & (1U << BitIdx);
-    if (IsSet) {
+    
+    if (bool IsSet = HashBitmap[WordIdx] & (1U << BitIdx); IsSet) {
       BucketMap[I] = CompressedBucketIdx++;
     } else {
       BucketMap[I] = -1;

@@ -324,8 +324,8 @@ void MemoryOpRemark::visitVariable(const Value *V,
   auto FindDI = [&](const DbgVariableRecord *DVI) {
     if (DILocalVariable *DILV = DVI->getVariable()) {
       std::optional<uint64_t> DISize = getSizeInBytes(DILV->getSizeInBits());
-      VariableInfo Var{DILV->getName(), DISize};
-      if (!Var.isEmpty()) {
+      
+      if (VariableInfo Var{DILV->getName(), DISize}; !Var.isEmpty()) {
         Result.push_back(std::move(Var));
         FoundDI = true;
       }

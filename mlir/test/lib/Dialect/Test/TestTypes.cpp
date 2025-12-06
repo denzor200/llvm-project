@@ -323,8 +323,8 @@ uint64_t TestTypeWithLayoutType::extractKind(DataLayoutEntryListRef params,
   for (DataLayoutEntryInterface entry : params) {
     ArrayRef<Attribute> pair =
         llvm::cast<ArrayAttr>(entry.getValue()).getValue();
-    StringRef kind = llvm::cast<StringAttr>(pair.front()).getValue();
-    if (kind == expectedKind)
+    
+    if (StringRef kind = llvm::cast<StringAttr>(pair.front()).getValue(); kind == expectedKind)
       return llvm::cast<IntegerAttr>(pair.back()).getValue().getZExtValue();
   }
   return 1;
@@ -431,15 +431,15 @@ Type TestDialect::parseType(DialectAsmParser &parser) const {
   StringRef typeTag;
   {
     Type genType;
-    auto parseResult = generatedTypeParser(parser, &typeTag, genType);
-    if (parseResult.has_value())
+    
+    if (auto parseResult = generatedTypeParser(parser, &typeTag, genType); parseResult.has_value())
       return genType;
   }
 
   {
     Type dynType;
-    auto parseResult = parseOptionalDynamicType(typeTag, parser, dynType);
-    if (parseResult.has_value()) {
+    
+    if (auto parseResult = parseOptionalDynamicType(typeTag, parser, dynType); parseResult.has_value()) {
       if (succeeded(parseResult.value()))
         return dynType;
       return Type();

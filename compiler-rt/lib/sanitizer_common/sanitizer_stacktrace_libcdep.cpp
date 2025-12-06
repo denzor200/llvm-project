@@ -170,10 +170,10 @@ void BufferedStackTrace::Unwind(u32 max_depth, uptr pc, uptr bp, void *context,
 int GetModuleAndOffsetForPc(uptr pc, char *module_name, uptr module_name_len,
                             uptr *pc_offset) {
   const char *found_module_name = nullptr;
-  bool ok = Symbolizer::GetOrInit()->GetModuleNameAndOffsetForPC(
-      pc, &found_module_name, pc_offset);
+  
 
-  if (!ok) return false;
+  if (bool ok = Symbolizer::GetOrInit()->GetModuleNameAndOffsetForPC(
+      pc, &found_module_name, pc_offset); !ok) return false;
 
   if (module_name && module_name_len) {
     internal_strncpy(module_name, found_module_name, module_name_len);

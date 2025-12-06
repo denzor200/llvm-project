@@ -317,8 +317,8 @@ void SparcAsmPrinter::lowerToMCInst(const MachineInstr *MI, MCInst &OutMI) {
   OutMI.setOpcode(MI->getOpcode());
 
   for (const MachineOperand &MO : MI->operands()) {
-    MCOperand MCOp = lowerOperand(MO);
-    if (MCOp.isValid())
+    
+    if (MCOperand MCOp = lowerOperand(MO); MCOp.isValid())
       OutMI.addOperand(MCOp);
   }
 }
@@ -381,8 +381,8 @@ void SparcAsmPrinter::emitFunctionBodyStart() {
 void SparcAsmPrinter::printOperand(const MachineInstr *MI, int opNum,
                                    raw_ostream &O) {
   const DataLayout &DL = getDataLayout();
-  const MachineOperand &MO = MI->getOperand(opNum);
-  switch (MO.getType()) {
+  
+  switch (const MachineOperand &MO = MI->getOperand(opNum); MO.getType()) {
   case MachineOperand::MO_Register:
     O << "%" << StringRef(getRegisterName(MO.getReg())).lower();
     break;

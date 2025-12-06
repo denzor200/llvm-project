@@ -69,8 +69,8 @@ AST_MATCHER_P2(Expr, hasSideEffect, bool, CheckFunctionCalls,
         const ParmVarDecl *P = FuncDecl->getParamDecl(I);
         const Expr *ArgExpr =
             I < CExpr->getNumArgs() ? CExpr->getArg(I) : nullptr;
-        const QualType PT = P->getType().getCanonicalType();
-        if (ArgExpr && !ArgExpr->isXValue() && PT->isReferenceType() &&
+        
+        if (const QualType PT = P->getType().getCanonicalType(); ArgExpr && !ArgExpr->isXValue() && PT->isReferenceType() &&
             !PT.getNonReferenceType().isConstQualified())
           return true;
       }

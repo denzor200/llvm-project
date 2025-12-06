@@ -369,8 +369,8 @@ bool CheckOpcodeMatcher::isContradictoryImpl(const Matcher *M) const {
     if (CT->getResNo() >= getOpcode().getNumResults())
       return true;
 
-    MVT NodeType = getOpcode().getKnownType(CT->getResNo());
-    if (NodeType != MVT::Other)
+    
+    if (MVT NodeType = getOpcode().getKnownType(CT->getResNo()); NodeType != MVT::Other)
       return TypesAreContradictory(NodeType, CT->getType());
   }
 

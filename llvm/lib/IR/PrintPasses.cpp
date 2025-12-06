@@ -168,8 +168,8 @@ std::error_code cleanUpTempFilesImpl(ArrayRef<std::string> FileName,
                                      unsigned N) {
   std::error_code RC;
   for (unsigned I = 0; I < N; ++I) {
-    std::error_code EC = sys::fs::remove(FileName[I]);
-    if (EC)
+    
+    if (std::error_code EC = sys::fs::remove(FileName[I]); EC)
       RC = EC;
   }
   return RC;

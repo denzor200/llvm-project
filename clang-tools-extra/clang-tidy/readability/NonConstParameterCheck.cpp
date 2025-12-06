@@ -82,8 +82,8 @@ void NonConstParameterCheck::check(const MatchFinder::MatchResult &Result) {
         markCanNotBeConst(Arg->IgnoreParenCasts(), true);
       }
       // Data passed by nonconst reference should not be made const.
-      unsigned ArgNr = 0U;
-      if (const auto *CD = CE->getConstructor()) {
+      
+      if (unsigned ArgNr = 0U; const auto *CD = CE->getConstructor()) {
         for (const auto *Par : CD->parameters()) {
           if (ArgNr >= CE->getNumArgs())
             break;
@@ -101,8 +101,8 @@ void NonConstParameterCheck::check(const MatchFinder::MatchResult &Result) {
       markCanNotBeConst(U, true);
     }
   } else if (const auto *VD = Result.Nodes.getNodeAs<VarDecl>("Mark")) {
-    const QualType T = VD->getType();
-    if ((T->isPointerType() && !T->getPointeeType().isConstQualified()) ||
+    
+    if (const QualType T = VD->getType(); (T->isPointerType() && !T->getPointeeType().isConstQualified()) ||
         T->isArrayType() || T->isRecordType())
       markCanNotBeConst(VD->getInit(), true);
     else if (T->isLValueReferenceType() &&
@@ -128,8 +128,8 @@ void NonConstParameterCheck::addParm(const ParmVarDecl *Parm) {
 }
 
 void NonConstParameterCheck::setReferenced(const DeclRefExpr *Ref) {
-  auto It = Parameters.find(dyn_cast<ParmVarDecl>(Ref->getDecl()));
-  if (It != Parameters.end())
+  
+  if (auto It = Parameters.find(dyn_cast<ParmVarDecl>(Ref->getDecl())); It != Parameters.end())
     It->second.IsReferenced = true;
 }
 
@@ -175,8 +175,8 @@ void NonConstParameterCheck::markCanNotBeConst(const Expr *E,
 
   if (const auto *Cast = dyn_cast<ImplicitCastExpr>(E)) {
     // If expression is const then ignore usage.
-    const QualType T = Cast->getType();
-    if (T->isPointerType() && T->getPointeeType().isConstQualified())
+    
+    if (const QualType T = Cast->getType(); T->isPointerType() && T->getPointeeType().isConstQualified())
       return;
   }
 
@@ -191,8 +191,8 @@ void NonConstParameterCheck::markCanNotBeConst(const Expr *E,
       markCanNotBeConst(B->getLHS(), false);
 
       // If LHS is not const then RHS can't be const.
-      const QualType T = B->getLHS()->getType();
-      if (T->isPointerType() && !T->getPointeeType().isConstQualified())
+      
+      if (const QualType T = B->getLHS()->getType(); T->isPointerType() && !T->getPointeeType().isConstQualified())
         markCanNotBeConst(B->getRHS(), true);
     }
   } else if (const auto *C = dyn_cast<ConditionalOperator>(E)) {
@@ -226,8 +226,8 @@ void NonConstParameterCheck::markCanNotBeConst(const Expr *E,
   } else if (CanNotBeConst) {
     // Referencing parameter.
     if (const auto *D = dyn_cast<DeclRefExpr>(E)) {
-      auto It = Parameters.find(dyn_cast<ParmVarDecl>(D->getDecl()));
-      if (It != Parameters.end())
+      
+      if (auto It = Parameters.find(dyn_cast<ParmVarDecl>(D->getDecl())); It != Parameters.end())
         It->second.CanBeConst = false;
     }
   }

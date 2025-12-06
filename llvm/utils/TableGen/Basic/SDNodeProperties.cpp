@@ -16,7 +16,8 @@ using namespace llvm;
 unsigned llvm::parseSDPatternOperatorProperties(const Record *R) {
   unsigned Properties = 0;
   for (const Record *Property : R->getValueAsListOfDefs("Properties")) {
-    auto Offset = StringSwitch<unsigned>(Property->getName())
+    
+    if (auto Offset = StringSwitch<unsigned>(Property->getName())
                       .Case("SDNPCommutative", SDNPCommutative)
                       .Case("SDNPAssociative", SDNPAssociative)
                       .Case("SDNPHasChain", SDNPHasChain)
@@ -28,8 +29,7 @@ unsigned llvm::parseSDPatternOperatorProperties(const Record *R) {
                       .Case("SDNPSideEffect", SDNPSideEffect)
                       .Case("SDNPMemOperand", SDNPMemOperand)
                       .Case("SDNPVariadic", SDNPVariadic)
-                      .Default(-1u);
-    if (Offset != -1u)
+                      .Default(-1u); Offset != -1u)
       Properties |= 1 << Offset;
     else
       PrintFatalError(R->getLoc(), "Unknown SD Node property '" +

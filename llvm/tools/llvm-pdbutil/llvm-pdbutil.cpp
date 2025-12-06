@@ -1253,9 +1253,9 @@ static void dumpPretty(StringRef Path) {
     Printer.NewLine();
     WithColor(Printer, PDB_ColorItem::SectionHeader).get()
         << "---COMPILANDS---";
-    auto Compilands = GlobalScope->findAllChildren<PDBSymbolCompiland>();
+    
 
-    if (Compilands) {
+    if (auto Compilands = GlobalScope->findAllChildren<PDBSymbolCompiland>(); Compilands) {
       Printer.Indent();
       CompilandDumper Dumper(Printer);
       CompilandDumpFlags options = CompilandDumper::Flags::None;
@@ -1296,8 +1296,8 @@ static void dumpPretty(StringRef Path) {
     Printer.Indent();
     if (shouldDumpSymLevel(opts::pretty::SymLevel::Functions)) {
       if (auto Functions = GlobalScope->findAllChildren<PDBSymbolFunc>()) {
-        FunctionDumper Dumper(Printer);
-        if (opts::pretty::SymbolOrder == opts::pretty::SymbolSortMode::None) {
+        
+        if (FunctionDumper Dumper(Printer); opts::pretty::SymbolOrder == opts::pretty::SymbolSortMode::None) {
           while (auto Function = Functions->getNext()) {
             Printer.NewLine();
             Dumper.start(*Function, FunctionDumper::PointerType::None);
@@ -1316,8 +1316,8 @@ static void dumpPretty(StringRef Path) {
     }
     if (shouldDumpSymLevel(opts::pretty::SymLevel::Data)) {
       if (auto Vars = GlobalScope->findAllChildren<PDBSymbolData>()) {
-        VariableDumper Dumper(Printer);
-        if (opts::pretty::SymbolOrder == opts::pretty::SymbolSortMode::None) {
+        
+        if (VariableDumper Dumper(Printer); opts::pretty::SymbolOrder == opts::pretty::SymbolSortMode::None) {
           while (auto Var = Vars->getNext())
             Dumper.start(*Var);
         } else {

@@ -232,8 +232,8 @@ static void replaceFallthroughCoroEnd(AnyCoroEndInst *End,
 
   // In async lowering this returns.
   case coro::ABI::Async: {
-    bool CoroEndBlockNeedsCleanup = replaceCoroEndAsync(End);
-    if (!CoroEndBlockNeedsCleanup)
+    
+    if (bool CoroEndBlockNeedsCleanup = replaceCoroEndAsync(End); !CoroEndBlockNeedsCleanup)
       return;
     break;
   }
@@ -947,8 +947,8 @@ void coro::BaseCloner::create() {
                          Shape.FrameAlign, /*NoAlias=*/false);
     break;
   case coro::ABI::Async: {
-    auto *ActiveAsyncSuspend = cast<CoroSuspendAsyncInst>(ActiveSuspend);
-    if (OrigF.hasParamAttribute(Shape.AsyncLowering.ContextArgNo,
+    
+    if (auto *ActiveAsyncSuspend = cast<CoroSuspendAsyncInst>(ActiveSuspend); OrigF.hasParamAttribute(Shape.AsyncLowering.ContextArgNo,
                                 Attribute::SwiftAsync)) {
       uint32_t ArgAttributeIndices =
           ActiveAsyncSuspend->getStorageArgumentIndex();
@@ -957,8 +957,8 @@ void coro::BaseCloner::create() {
 
       // `swiftasync` must preceed `swiftself` so 0 is not a valid index for
       // `swiftself`.
-      auto SwiftSelfIndex = ArgAttributeIndices >> 8;
-      if (SwiftSelfIndex)
+      
+      if (auto SwiftSelfIndex = ArgAttributeIndices >> 8; SwiftSelfIndex)
         addSwiftSelfAttrs(NewAttrs, Context, SwiftSelfIndex);
     }
 
@@ -1336,10 +1336,10 @@ static void simplifySuspendPoints(coro::Shape &Shape) {
 
   size_t ChangedFinalIndex = std::numeric_limits<size_t>::max();
   while (true) {
-    auto SI = cast<CoroSuspendInst>(S[I]);
+    
     // Leave final.suspend to handleFinalSuspend since it is undefined behavior
     // to resume a coroutine suspended at the final suspend point.
-    if (!SI->isFinal() && simplifySuspendPoint(SI, Shape.CoroBegin)) {
+    if (auto SI = cast<CoroSuspendInst>(S[I]); !SI->isFinal() && simplifySuspendPoint(SI, Shape.CoroBegin)) {
       if (--N == I)
         break;
 
@@ -1615,8 +1615,8 @@ private:
 
     Value *DestroyOrCleanupFn = DestroyFn;
 
-    CoroIdInst *CoroId = Shape.getSwitchCoroId();
-    if (CoroAllocInst *CA = CoroId->getCoroAlloc()) {
+    
+    if (CoroIdInst *CoroId = Shape.getSwitchCoroId(); CoroAllocInst *CA = CoroId->getCoroAlloc()) {
       // If there is a CoroAlloc and it returns false (meaning we elide the
       // allocation, use CleanupFn instead of DestroyFn).
       DestroyOrCleanupFn = Builder.CreateSelect(CA, DestroyFn, CleanupFn);
@@ -1981,8 +1981,8 @@ static void removeCoroIsInRampFromRampFunction(const coro::Shape &Shape) {
 static bool hasSafeElideCaller(Function &F) {
   for (auto *U : F.users()) {
     if (auto *CB = dyn_cast<CallBase>(U)) {
-      auto *Caller = CB->getFunction();
-      if (Caller && Caller->isPresplitCoroutine() &&
+      
+      if (auto *Caller = CB->getFunction(); Caller && Caller->isPresplitCoroutine() &&
           CB->hasFnAttr(llvm::Attribute::CoroElideSafe))
         return true;
     }
@@ -2136,8 +2136,8 @@ static bool replaceAllPrepares(Function *PrepareFn, LazyCallGraph &CG,
 static void addPrepareFunction(const Module &M,
                                SmallVectorImpl<Function *> &Fns,
                                StringRef Name) {
-  auto *PrepareFn = M.getFunction(Name);
-  if (PrepareFn && !PrepareFn->use_empty())
+  
+  if (auto *PrepareFn = M.getFunction(Name); PrepareFn && !PrepareFn->use_empty())
     Fns.push_back(PrepareFn);
 }
 

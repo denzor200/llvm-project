@@ -22,8 +22,8 @@ RetireControlUnitStatistics::RetireControlUnitStatistics(const MCSchedModel &SM)
       SumOfUsedEntries(0) {
   TotalROBEntries = SM.MicroOpBufferSize;
   if (SM.hasExtraProcessorInfo()) {
-    const MCExtraProcessorInfo &EPI = SM.getExtraProcessorInfo();
-    if (EPI.ReorderBufferSize)
+    
+    if (const MCExtraProcessorInfo &EPI = SM.getExtraProcessorInfo(); EPI.ReorderBufferSize)
       TotalROBEntries = EPI.ReorderBufferSize;
   }
 }

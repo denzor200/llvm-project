@@ -127,9 +127,9 @@ void ClangOpcodesEmitter::EmitInterp(raw_ostream &OS, StringRef N,
               // Emit calls to read arguments.
               for (size_t I = 0, N = Args.size(); I < N; ++I) {
                 const auto *Arg = Args[I];
-                bool AsRef = Arg->getValueAsBit("AsRef");
+                
 
-                if (AsRef)
+                if (bool AsRef = Arg->getValueAsBit("AsRef"); AsRef)
                   OS << "  const auto &V" << I;
                 else
                   OS << "  const auto V" << I;
@@ -235,8 +235,8 @@ void ClangOpcodesEmitter::EmitProto(raw_ostream &OS, StringRef N,
   });
 
   // Emit a template method for custom emitters to have less to implement.
-  auto TypeCount = R->getValueAsListInit("Types")->size();
-  if (R->getValueAsBit("HasCustomEval") && TypeCount) {
+  
+  if (auto TypeCount = R->getValueAsListInit("Types")->size(); R->getValueAsBit("HasCustomEval") && TypeCount) {
     OS << "#if defined(GET_EVAL_PROTO)\n";
     OS << "template<";
     for (size_t I = 0; I < TypeCount; ++I) {

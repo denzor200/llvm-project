@@ -146,8 +146,8 @@ public:
     const DynTypedMatcher *Found = nullptr;
     int NumFound = 0;
     for (size_t i = 0, e = Matchers.size(); i != e; ++i) {
-      bool IsExactMatch;
-      if (Ops.canConstructFrom(Matchers[i], IsExactMatch)) {
+      
+      if (bool IsExactMatch; Ops.canConstructFrom(Matchers[i], IsExactMatch)) {
         if (Found) {
           if (FoundIsExact) {
             assert(!IsExactMatch && "We should not have two exact matches.");
@@ -168,8 +168,8 @@ public:
   bool isConvertibleTo(ASTNodeKind Kind, unsigned *Specificity) const override {
     unsigned MaxSpecificity = 0;
     for (const DynTypedMatcher &Matcher : Matchers) {
-      unsigned ThisSpecificity;
-      if (ArgKind::MakeMatcherArg(Matcher.getSupportedKind())
+      
+      if (unsigned ThisSpecificity; ArgKind::MakeMatcherArg(Matcher.getSupportedKind())
               .isConvertibleTo(ArgKind::MakeMatcherArg(Kind),
                                &ThisSpecificity)) {
         MaxSpecificity = std::max(MaxSpecificity, ThisSpecificity);

@@ -347,9 +347,9 @@ class BitwiseShiftChecker : public Checker<check::PreStmt<BinaryOperator>> {
 
 public:
   void checkPreStmt(const BinaryOperator *B, CheckerContext &Ctx) const {
-    BinaryOperator::Opcode Op = B->getOpcode();
+    
 
-    if (Op != BO_Shl && Op != BO_Shr)
+    if (BinaryOperator::Opcode Op = B->getOpcode(); Op != BO_Shl && Op != BO_Shr)
       return;
 
     BitwiseShiftValidator(B, Ctx, BT, Pedantic).run();

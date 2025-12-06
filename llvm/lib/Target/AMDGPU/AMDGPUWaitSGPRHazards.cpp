@@ -473,8 +473,8 @@ public:
     MRI = &MF.getRegInfo();
     DsNopCount = ST->isWave64() ? WAVE64_NOPS : WAVE32_NOPS;
 
-    auto CallingConv = MF.getFunction().getCallingConv();
-    if (!AMDGPU::isEntryFunctionCC(CallingConv) &&
+    
+    if (auto CallingConv = MF.getFunction().getCallingConv(); !AMDGPU::isEntryFunctionCC(CallingConv) &&
         !CullSGPRHazardsOnFunctionBoundary) {
       // Callee must consider all SGPRs as tracked.
       LLVM_DEBUG(dbgs() << "Is called function, track all SGPRs.\n");
@@ -495,15 +495,15 @@ public:
       Worklist.insert(&MBB);
     while (!Worklist.empty()) {
       auto &MBB = *Worklist.pop_back_val();
-      bool Changed = runOnMachineBasicBlock(MBB, false);
-      if (Changed) {
+      
+      if (bool Changed = runOnMachineBasicBlock(MBB, false); Changed) {
         // Note: take a copy of state here in case it is reallocated by map
         HazardState NewState = BlockState[&MBB].Out;
         // Propagate to all successor blocks
         for (auto Succ : MBB.successors()) {
           // We only need to merge hazards at CFG merge points.
-          auto &SuccState = BlockState[Succ];
-          if (Succ->getSinglePredecessor() && !Succ->isEntryBlock()) {
+          
+          if (auto &SuccState = BlockState[Succ]; Succ->getSinglePredecessor() && !Succ->isEntryBlock()) {
             if (SuccState.In != NewState) {
               SuccState.In = NewState;
               Worklist.insert(Succ);

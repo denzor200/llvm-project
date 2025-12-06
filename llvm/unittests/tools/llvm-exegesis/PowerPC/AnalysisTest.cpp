@@ -39,8 +39,8 @@ protected:
     // Compute the ProxResIdx of ports uses in tests.
     const auto &SM = STI->getSchedModel();
     for (unsigned I = 0, E = SM.getNumProcResourceKinds(); I < E; ++I) {
-      const std::string Name = SM.getProcResource(I)->Name;
-      if (Name == "ALU") {
+      
+      if (const std::string Name = SM.getProcResource(I)->Name; Name == "ALU") {
         ALUIdx = I;
       } else if (Name == "ALUE") {
         ALUEIdx = I;

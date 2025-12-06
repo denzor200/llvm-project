@@ -68,8 +68,8 @@ std::string SDNode::getOperationName(const SelectionDAG *G) const {
       return "<<Unknown Machine Node #" + utostr(getOpcode()) + ">>";
     }
     if (G) {
-      const SelectionDAGTargetInfo &TSI = G->getSelectionDAGInfo();
-      if (const char *Name = TSI.getTargetNodeName(getOpcode()))
+      
+      if (const SelectionDAGTargetInfo &TSI = G->getSelectionDAGInfo(); const char *Name = TSI.getTargetNodeName(getOpcode()))
         return Name;
       const TargetLowering &TLI = G->getTargetLoweringInfo();
       const char *Name = TLI.getTargetNodeName(getOpcode());
@@ -165,8 +165,8 @@ std::string SDNode::getOperationName(const SelectionDAG *G) const {
   case ISD::INTRINSIC_VOID:
   case ISD::INTRINSIC_W_CHAIN: {
     unsigned OpNo = getOpcode() == ISD::INTRINSIC_WO_CHAIN ? 0 : 1;
-    unsigned IID = getOperand(OpNo)->getAsZExtVal();
-    if (IID < Intrinsic::num_intrinsics)
+    
+    if (unsigned IID = getOperand(OpNo)->getAsZExtVal(); IID < Intrinsic::num_intrinsics)
       return Intrinsic::getBaseName((Intrinsic::ID)IID).str();
     if (!G)
       return "Unknown intrinsic";
@@ -795,8 +795,8 @@ void SDNode::print_details(raw_ostream &OS, const SelectionDAG *G) const {
       OS << " [TF=" << TF << ']';
   } else if (const BasicBlockSDNode *BBDN = dyn_cast<BasicBlockSDNode>(this)) {
     OS << "<";
-    const Value *LBB = (const Value*)BBDN->getBasicBlock()->getBasicBlock();
-    if (LBB)
+    
+    if (const Value *LBB = (const Value*)BBDN->getBasicBlock()->getBasicBlock(); LBB)
       OS << LBB->getName() << " ";
     OS << (const void*)BBDN->getBasicBlock() << ">";
   } else if (const RegisterSDNode *R = dyn_cast<RegisterSDNode>(this)) {
@@ -835,8 +835,8 @@ void SDNode::print_details(raw_ostream &OS, const SelectionDAG *G) const {
     if (doExt)
       OS << " from " << LD->getMemoryVT();
 
-    const char *AM = getIndexedModeName(LD->getAddressingMode());
-    if (*AM)
+    
+    if (const char *AM = getIndexedModeName(LD->getAddressingMode()); *AM)
       OS << ", " << AM;
 
     OS << ">";
@@ -847,8 +847,8 @@ void SDNode::print_details(raw_ostream &OS, const SelectionDAG *G) const {
     if (ST->isTruncatingStore())
       OS << ", trunc to " << ST->getMemoryVT();
 
-    const char *AM = getIndexedModeName(ST->getAddressingMode());
-    if (*AM)
+    
+    if (const char *AM = getIndexedModeName(ST->getAddressingMode()); *AM)
       OS << ", " << AM;
 
     OS << ">";
@@ -867,8 +867,8 @@ void SDNode::print_details(raw_ostream &OS, const SelectionDAG *G) const {
     if (doExt)
       OS << " from " << MLd->getMemoryVT();
 
-    const char *AM = getIndexedModeName(MLd->getAddressingMode());
-    if (*AM)
+    
+    if (const char *AM = getIndexedModeName(MLd->getAddressingMode()); *AM)
       OS << ", " << AM;
 
     if (MLd->isExpandingLoad())
@@ -882,8 +882,8 @@ void SDNode::print_details(raw_ostream &OS, const SelectionDAG *G) const {
     if (MSt->isTruncatingStore())
       OS << ", trunc to " << MSt->getMemoryVT();
 
-    const char *AM = getIndexedModeName(MSt->getAddressingMode());
-    if (*AM)
+    
+    if (const char *AM = getIndexedModeName(MSt->getAddressingMode()); *AM)
       OS << ", " << AM;
 
     if (MSt->isCompressingStore())

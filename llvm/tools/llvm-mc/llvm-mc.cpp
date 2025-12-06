@@ -535,8 +535,8 @@ int main(int argc, char **argv) {
     Ctx.setCompilationDir(DebugCompilationDir);
   else {
     // If no compilation dir is set, try to use the current directory.
-    SmallString<128> CWD;
-    if (!sys::fs::current_path(CWD))
+    
+    if (SmallString<128> CWD; !sys::fs::current_path(CWD))
       Ctx.setCompilationDir(CWD);
   }
   for (const auto &Arg : DebugPrefixMap) {

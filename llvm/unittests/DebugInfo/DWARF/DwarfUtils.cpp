@@ -16,8 +16,8 @@
 using namespace llvm;
 
 static void initLLVMIfNeeded() {
-  static bool gInitialized = false;
-  if (!gInitialized) {
+  
+  if (static bool gInitialized = false; !gInitialized) {
     gInitialized = true;
     InitializeAllTargets();
     InitializeAllTargetMCs();

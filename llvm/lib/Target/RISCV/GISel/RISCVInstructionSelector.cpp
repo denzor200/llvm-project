@@ -225,9 +225,9 @@ bool RISCVInstructionSelector::hasAllNBitUsers(const MachineInstr &MI,
   for (auto &UserOp : MRI->use_nodbg_operands(DestReg)) {
     assert(UserOp.getParent() && "UserOp must have a parent");
     const MachineInstr &UserMI = *UserOp.getParent();
-    unsigned OpIdx = UserOp.getOperandNo();
+    
 
-    switch (UserMI.getOpcode()) {
+    switch (unsigned OpIdx = UserOp.getOperandNo(); UserMI.getOpcode()) {
     default:
       return false;
     case RISCV::ADDW:
@@ -263,11 +263,11 @@ bool RISCVInstructionSelector::hasAllNBitUsers(const MachineInstr &MI,
         break;
       return false;
     case RISCV::SRLI: {
-      unsigned ShAmt = UserMI.getOperand(2).getImm();
+      
       // If we are shifting right by less than Bits, and users don't demand any
       // bits that were shifted into [Bits-1:0], then we can consider this as an
       // N-Bit user.
-      if (Bits > ShAmt && hasAllNBitUsers(UserMI, Bits - ShAmt, Depth + 1))
+      if (unsigned ShAmt = UserMI.getOperand(2).getImm(); Bits > ShAmt && hasAllNBitUsers(UserMI, Bits - ShAmt, Depth + 1))
         break;
       return false;
     }
@@ -308,14 +308,14 @@ RISCVInstructionSelector::selectShiftMask(MachineOperand &Root,
   // 1. the lowest log2(XLEN) bits of the and mask are all set
   // 2. the bits of the register being masked are already unset (zero set)
   if (mi_match(ShAmtReg, *MRI, m_GAnd(m_Reg(AndSrcReg), m_ICst(AndMask)))) {
-    APInt ShMask(AndMask.getBitWidth(), ShiftWidth - 1);
-    if (ShMask.isSubsetOf(AndMask)) {
+    
+    if (APInt ShMask(AndMask.getBitWidth(), ShiftWidth - 1); ShMask.isSubsetOf(AndMask)) {
       ShAmtReg = AndSrcReg;
     } else {
       // SimplifyDemandedBits may have optimized the mask so try restoring any
       // bits that are known zero.
-      KnownBits Known = VT->getKnownBits(AndSrcReg);
-      if (ShMask.isSubsetOf(AndMask | Known.Zero))
+      
+      if (KnownBits Known = VT->getKnownBits(AndSrcReg); ShMask.isSubsetOf(AndMask | Known.Zero))
         ShAmtReg = AndSrcReg;
     }
   }
@@ -361,9 +361,9 @@ RISCVInstructionSelector::selectSExtBits(MachineOperand &Root,
   if (!Root.isReg())
     return std::nullopt;
   Register RootReg = Root.getReg();
-  MachineInstr *RootDef = MRI->getVRegDef(RootReg);
+  
 
-  if (RootDef->getOpcode() == TargetOpcode::G_SEXT_INREG &&
+  if (MachineInstr *RootDef = MRI->getVRegDef(RootReg); RootDef->getOpcode() == TargetOpcode::G_SEXT_INREG &&
       RootDef->getOperand(2).getImm() == Bits) {
     return {
         {[=](MachineInstrBuilder &MIB) { MIB.add(RootDef->getOperand(1)); }}};
@@ -384,8 +384,8 @@ RISCVInstructionSelector::selectZExtBits(MachineOperand &Root,
   Register RootReg = Root.getReg();
 
   Register RegX;
-  uint64_t Mask = maskTrailingOnes<uint64_t>(Bits);
-  if (mi_match(RootReg, *MRI, m_GAnd(m_Reg(RegX), m_SpecificICst(Mask)))) {
+  
+  if (uint64_t Mask = maskTrailingOnes<uint64_t>(Bits); mi_match(RootReg, *MRI, m_GAnd(m_Reg(RegX), m_SpecificICst(Mask)))) {
     return {{[=](MachineInstrBuilder &MIB) { MIB.addReg(RegX); }}};
   }
 
@@ -520,8 +520,8 @@ RISCVInstructionSelector::selectSHXADD_UWOp(MachineOperand &Root,
 
     if (Mask.isShiftedMask()) {
       unsigned Leading = Mask.countl_zero();
-      unsigned Trailing = Mask.countr_zero();
-      if (Leading == 32 - ShAmt && C2 == Trailing && Trailing > ShAmt) {
+      
+      if (unsigned Trailing = Mask.countr_zero(); Leading == 32 - ShAmt && C2 == Trailing && Trailing > ShAmt) {
         Register DstReg = MRI->createVirtualRegister(&RISCV::GPRRegClass);
         return {{[=](MachineInstrBuilder &MIB) {
           MachineIRBuilder(*MIB.getInstr())
@@ -539,9 +539,9 @@ RISCVInstructionSelector::selectSHXADD_UWOp(MachineOperand &Root,
 InstructionSelector::ComplexRendererFns
 RISCVInstructionSelector::renderVLOp(MachineOperand &Root) const {
   assert(Root.isReg() && "Expected operand to be a Register");
-  MachineInstr *RootDef = MRI->getVRegDef(Root.getReg());
+  
 
-  if (RootDef->getOpcode() == TargetOpcode::G_CONSTANT) {
+  if (MachineInstr *RootDef = MRI->getVRegDef(Root.getReg()); RootDef->getOpcode() == TargetOpcode::G_CONSTANT) {
     auto C = RootDef->getOperand(1).getCImm();
     if (C->getValue().isAllOnes())
       // If the operand is a G_CONSTANT with value of all ones it is larger than
@@ -578,8 +578,8 @@ RISCVInstructionSelector::selectAddrRegImm(MachineOperand &Root) const {
     MachineInstr *LHSDef = MRI->getVRegDef(LHS.getReg());
     MachineInstr *RHSDef = MRI->getVRegDef(RHS.getReg());
 
-    int64_t RHSC = RHSDef->getOperand(1).getCImm()->getSExtValue();
-    if (isInt<12>(RHSC)) {
+    
+    if (int64_t RHSC = RHSDef->getOperand(1).getCImm()->getSExtValue(); isInt<12>(RHSC)) {
       if (LHSDef->getOpcode() == TargetOpcode::G_FRAME_INDEX)
         return {{
             [=](MachineInstrBuilder &MIB) { MIB.add(LHSDef->getOperand(1)); },
@@ -686,8 +686,8 @@ static void getOperandsForBranch(Register CondReg, RISCVCC::CondCode &CC,
 /// \p GenericOpc, appropriate for the GPR register bank and of memory access
 /// size \p OpSize.
 static unsigned selectZalasrLoadStoreOp(unsigned GenericOpc, unsigned OpSize) {
-  const bool IsStore = GenericOpc == TargetOpcode::G_STORE;
-  switch (OpSize) {
+  
+  switch (const bool IsStore = GenericOpc == TargetOpcode::G_STORE; OpSize) {
   default:
     llvm_unreachable("Unexpected memory size");
   case 8:
@@ -705,8 +705,8 @@ static unsigned selectZalasrLoadStoreOp(unsigned GenericOpc, unsigned OpSize) {
 /// \p GenericOpc, appropriate for the GPR register bank and of memory access
 /// size \p OpSize. \returns \p GenericOpc if the combination is unsupported.
 static unsigned selectRegImmLoadStoreOp(unsigned GenericOpc, unsigned OpSize) {
-  const bool IsStore = GenericOpc == TargetOpcode::G_STORE;
-  switch (OpSize) {
+  
+  switch (const bool IsStore = GenericOpc == TargetOpcode::G_STORE; OpSize) {
   case 8:
     // Prefer unsigned due to no c.lb in Zcb.
     return IsStore ? RISCV::SB : RISCV::LBU;
@@ -746,9 +746,9 @@ void RISCVInstructionSelector::addVectorLoadStoreOperands(
 bool RISCVInstructionSelector::selectIntrinsicWithSideEffects(
     MachineInstr &I, MachineIRBuilder &MIB) const {
   // Find the intrinsic ID.
-  unsigned IntrinID = cast<GIntrinsic>(I).getIntrinsicID();
+  
   // Select the instruction.
-  switch (IntrinID) {
+  switch (unsigned IntrinID = cast<GIntrinsic>(I).getIntrinsicID(); IntrinID) {
   default:
     return false;
   case Intrinsic::riscv_vlm:
@@ -1020,9 +1020,9 @@ bool RISCVInstructionSelector::select(MachineInstr &MI) {
     return selectCopy(MI);
   case TargetOpcode::G_CONSTANT: {
     Register DstReg = MI.getOperand(0).getReg();
-    int64_t Imm = MI.getOperand(1).getCImm()->getSExtValue();
+    
 
-    if (!materializeImm(DstReg, Imm, MIB))
+    if (int64_t Imm = MI.getOperand(1).getCImm()->getSExtValue(); !materializeImm(DstReg, Imm, MIB))
       return false;
 
     MI.eraseFromParent();
@@ -1095,8 +1095,8 @@ bool RISCVInstructionSelector::select(MachineInstr &MI) {
         GPRReg = RISCV::X0;
       } else {
         GPRReg = MRI->createVirtualRegister(&RISCV::GPRRegClass);
-        APInt Imm = FPimm.bitcastToAPInt();
-        if (!materializeImm(GPRReg, Imm.getSExtValue(), MIB))
+        
+        if (APInt Imm = FPimm.bitcastToAPInt(); !materializeImm(GPRReg, Imm.getSExtValue(), MIB))
           return false;
       }
 
@@ -1730,8 +1730,8 @@ bool RISCVInstructionSelector::selectFPCompare(MachineInstr &MI,
   if (legalizeFCmpPredicate(LHS, RHS, Pred, NeedInvert)) {
     if (NeedInvert)
       TmpReg = MRI->createVirtualRegister(&RISCV::GPRRegClass);
-    auto Cmp = MIB.buildInstr(getFCmpOpcode(Pred, Size), {TmpReg}, {LHS, RHS});
-    if (!Cmp.constrainAllUses(TII, TRI, RBI))
+    
+    if (auto Cmp = MIB.buildInstr(getFCmpOpcode(Pred, Size), {TmpReg}, {LHS, RHS}); !Cmp.constrainAllUses(TII, TRI, RBI))
       return false;
   } else if (Pred == CmpInst::FCMP_ONE || Pred == CmpInst::FCMP_UEQ) {
     // fcmp one LHS, RHS => (OR (FLT LHS, RHS), (FLT RHS, LHS))
@@ -1773,8 +1773,8 @@ bool RISCVInstructionSelector::selectFPCompare(MachineInstr &MI,
 
   // Emit an XORI to invert the result if needed.
   if (NeedInvert) {
-    auto Xor = MIB.buildInstr(RISCV::XORI, {DstReg}, {TmpReg}).addImm(1);
-    if (!Xor.constrainAllUses(TII, TRI, RBI))
+    
+    if (auto Xor = MIB.buildInstr(RISCV::XORI, {DstReg}, {TmpReg}).addImm(1); !Xor.constrainAllUses(TII, TRI, RBI))
       return false;
   }
 

@@ -330,8 +330,8 @@ void TypeDumper::dump(const PDBSymbolTypePointer &Symbol) {
   }
 
   if (auto Parent = Symbol.getClassParent()) {
-    auto UDT = llvm::unique_dyn_cast<PDBSymbolTypeUDT>(std::move(Parent));
-    if (UDT)
+    
+    if (auto UDT = llvm::unique_dyn_cast<PDBSymbolTypeUDT>(std::move(Parent)); UDT)
       Printer << " " << UDT->getName() << "::";
   }
 

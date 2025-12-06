@@ -48,11 +48,11 @@ static unsigned getResultPatternCost(const TreePatternNode &P,
     return 0;
 
   unsigned Cost = 0;
-  const Record *Op = P.getOperator();
-  if (Op->isSubClassOf("Instruction")) {
+  
+  if (const Record *Op = P.getOperator(); Op->isSubClassOf("Instruction")) {
     Cost++;
-    const CodeGenInstruction &II = CGP.getTargetInfo().getInstruction(Op);
-    if (II.usesCustomInserter)
+    
+    if (const CodeGenInstruction &II = CGP.getTargetInfo().getInstruction(Op); II.usesCustomInserter)
       Cost += 10;
   }
   for (const TreePatternNode &Child : P.children())
@@ -68,8 +68,8 @@ static unsigned getResultPatternSize(const TreePatternNode &P,
     return 0;
 
   unsigned Cost = 0;
-  const Record *Op = P.getOperator();
-  if (Op->isSubClassOf("Instruction")) {
+  
+  if (const Record *Op = P.getOperator(); Op->isSubClassOf("Instruction")) {
     Cost += Op->getValueAsInt("CodeSize");
   }
   for (const TreePatternNode &Child : P.children())

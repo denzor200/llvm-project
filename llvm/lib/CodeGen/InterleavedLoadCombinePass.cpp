@@ -184,8 +184,8 @@ class Polynomial {
 
 public:
   Polynomial(Value *V) : V(V) {
-    IntegerType *Ty = dyn_cast<IntegerType>(V->getType());
-    if (Ty) {
+    
+    if (IntegerType *Ty = dyn_cast<IntegerType>(V->getType()); Ty) {
       ErrorMSBs = 0;
       this->V = V;
       A = APInt(Ty->getBitWidth(), 0);
@@ -710,8 +710,8 @@ public:
   ///
   /// \returns false if no sensible information can be gathered.
   static bool compute(Value *V, VectorInfo &Result, const DataLayout &DL) {
-    ShuffleVectorInst *SVI = dyn_cast<ShuffleVectorInst>(V);
-    if (SVI)
+    
+    if (ShuffleVectorInst *SVI = dyn_cast<ShuffleVectorInst>(V); SVI)
       return computeFromSVI(SVI, Result, DL);
     LoadInst *LI = dyn_cast<LoadInst>(V);
     if (LI)
@@ -971,8 +971,8 @@ public:
 
     /// Skip pointer casts. Return Zero polynomial otherwise
     if (isa<CastInst>(&Ptr)) {
-      CastInst &CI = *cast<CastInst>(&Ptr);
-      switch (CI.getOpcode()) {
+      
+      switch (CastInst &CI = *cast<CastInst>(&Ptr); CI.getOpcode()) {
       case Instruction::BitCast:
         computePolynomialFromPointer(*CI.getOperand(0), Result, BasePtr, DL);
         break;
@@ -986,10 +986,10 @@ public:
     else if (isa<GetElementPtrInst>(&Ptr)) {
       GetElementPtrInst &GEP = *cast<GetElementPtrInst>(&Ptr);
 
-      APInt BaseOffset(PointerBits, 0);
+      
 
       // Check if we can compute the Offset with accumulateConstantOffset
-      if (GEP.accumulateConstantOffset(DL, BaseOffset)) {
+      if (APInt BaseOffset(PointerBits, 0); GEP.accumulateConstantOffset(DL, BaseOffset)) {
         Result = Polynomial(BaseOffset);
         BasePtr = GEP.getPointerOperand();
         return;
@@ -1188,8 +1188,8 @@ bool InterleavedLoadCombineImpl::combine(std::list<VectorInfo> &InterleavedLoad,
   // that there are no aliasing stores in between the loads.
   auto FMA = MSSA.getMemoryAccess(First);
   for (auto *LI : LIs) {
-    auto MADef = MSSA.getMemoryAccess(LI)->getDefiningAccess();
-    if (!MSSA.dominates(MADef, FMA))
+    
+    if (auto MADef = MSSA.getMemoryAccess(LI)->getDefiningAccess(); !MSSA.dominates(MADef, FMA))
       return false;
   }
   assert(!LIs.empty() && "There are no LoadInst to combine");

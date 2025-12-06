@@ -48,12 +48,12 @@ struct Builder : RecursiveASTVisitor<Builder> {
   // then can we add it to the lookup table.
   bool VisitFriendDecl(FriendDecl *D) {
     if (D->getFriendType()) {
-      QualType Ty = D->getFriendType()->getType();
+      
       // A FriendDecl with a dependent type (e.g. ClassTemplateSpecialization)
       // always has that decl as child node.
       // However, there are non-dependent cases which does not have the
       // type as a child node. We have to dig up that type now.
-      if (!Ty->isDependentType()) {
+      if (QualType Ty = D->getFriendType()->getType(); !Ty->isDependentType()) {
         if (const auto *RTy = dyn_cast<RecordType>(Ty))
           LT.add(RTy->getAsCXXRecordDecl());
         else if (const auto *SpecTy = dyn_cast<TemplateSpecializationType>(Ty))
@@ -128,8 +128,8 @@ void ASTImporterLookupTable::add(NamedDecl *ND) {
   assert(ND);
   DeclContext *DC = ND->getDeclContext();
   add(DC, ND);
-  DeclContext *ReDC = DC->getRedeclContext();
-  if (DC != ReDC)
+  
+  if (DeclContext *ReDC = DC->getRedeclContext(); DC != ReDC)
     add(ReDC, ND);
 }
 
@@ -137,8 +137,8 @@ void ASTImporterLookupTable::remove(NamedDecl *ND) {
   assert(ND);
   DeclContext *DC = ND->getDeclContext();
   remove(DC, ND);
-  DeclContext *ReDC = DC->getRedeclContext();
-  if (DC != ReDC)
+  
+  if (DeclContext *ReDC = DC->getRedeclContext(); DC != ReDC)
     remove(ReDC, ND);
 }
 

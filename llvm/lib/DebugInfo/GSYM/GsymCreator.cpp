@@ -212,8 +212,8 @@ void GsymCreator::prepareMergedFunctions(OutputAggregator &Out) {
   // level.
   for (size_t Idx = 1; Idx < Funcs.size(); ++Idx) {
     FunctionInfo &TopFunc = TopLevelFuncs.back();
-    FunctionInfo &MatchFunc = Funcs[Idx];
-    if (TopFunc.Range == MatchFunc.Range) {
+    
+    if (FunctionInfo &MatchFunc = Funcs[Idx]; TopFunc.Range == MatchFunc.Range) {
       // Both have the same range - add the 2nd func as a child of the 1st func
       if (!TopFunc.MergedFunctions)
         TopFunc.MergedFunctions = MergedFunctionsInfo();
@@ -268,12 +268,12 @@ llvm::Error GsymCreator::finalize(OutputAggregator &Out) {
   // we wouldn't find any function for range (end of Y, end of X)
   // with binary search
 
-  const auto NumBefore = Funcs.size();
+  
   // Only sort and unique if this isn't a segment. If this is a segment we
   // already finalized the main GsymCreator with all of the function infos
   // and then the already sorted and uniqued function infos were added to this
   // object.
-  if (!IsSegment) {
+  if (const auto NumBefore = Funcs.size(); !IsSegment) {
     if (NumBefore > 1) {
       // Sort function infos so we can emit sorted functions. Use stable sort to
       // ensure determinism.
@@ -287,8 +287,8 @@ llvm::Error GsymCreator::finalize(OutputAggregator &Out) {
         // Empty ranges won't intersect, but we still need to
         // catch the case where we have multiple symbols at the
         // same address and coalesce them.
-        const bool ranges_equal = Prev.Range == Curr.Range;
-        if (ranges_equal || Prev.Range.intersects(Curr.Range)) {
+        
+        if (const bool ranges_equal = Prev.Range == Curr.Range; ranges_equal || Prev.Range.intersects(Curr.Range)) {
           // Overlapping ranges or empty identical ranges.
           if (ranges_equal) {
             // Same address range. Check if one is from debug
@@ -467,8 +467,8 @@ uint8_t GsymCreator::getAddressOffsetSize() const {
   const std::optional<uint64_t> BaseAddress = getBaseAddress();
   const std::optional<uint64_t> LastFuncAddr = getLastFunctionAddress();
   if (BaseAddress && LastFuncAddr) {
-    const uint64_t AddrDelta = *LastFuncAddr - *BaseAddress;
-    if (AddrDelta <= UINT8_MAX)
+    
+    if (const uint64_t AddrDelta = *LastFuncAddr - *BaseAddress; AddrDelta <= UINT8_MAX)
       return 1;
     else if (AddrDelta <= UINT16_MAX)
       return 2;
@@ -548,9 +548,9 @@ llvm::Error GsymCreator::saveSegments(StringRef Path,
   size_t FuncIdx = 0;
   const size_t NumFuncs = Funcs.size();
   while (FuncIdx < NumFuncs) {
-    llvm::Expected<std::unique_ptr<GsymCreator>> ExpectedGC =
-        createSegment(SegmentSize, FuncIdx);
-    if (ExpectedGC) {
+    
+    if (llvm::Expected<std::unique_ptr<GsymCreator>> ExpectedGC =
+        createSegment(SegmentSize, FuncIdx); ExpectedGC) {
       GsymCreator *GC = ExpectedGC->get();
       if (!GC)
         break; // We had not more functions to encode.
@@ -598,8 +598,8 @@ GsymCreator::createSegment(uint64_t SegmentSize, size_t &FuncIdx) const {
   // determine the current header and tables sizes, so we can do that each loop.
   uint64_t SegmentFuncInfosSize = 0;
   for (; FuncIdx < NumFuncs; ++FuncIdx) {
-    const uint64_t HeaderAndTableSize = GC->calculateHeaderAndTableSize();
-    if (HeaderAndTableSize + SegmentFuncInfosSize >= SegmentSize) {
+    
+    if (const uint64_t HeaderAndTableSize = GC->calculateHeaderAndTableSize(); HeaderAndTableSize + SegmentFuncInfosSize >= SegmentSize) {
       if (SegmentFuncInfosSize == 0)
         return createStringError(std::errc::invalid_argument,
                                  "a segment size of %" PRIu64 " is to small to "

@@ -62,8 +62,8 @@ void
 Thumb2InstrInfo::ReplaceTailWithBranchTo(MachineBasicBlock::iterator Tail,
                                          MachineBasicBlock *NewDest) const {
   MachineBasicBlock *MBB = Tail->getParent();
-  ARMFunctionInfo *AFI = MBB->getParent()->getInfo<ARMFunctionInfo>();
-  if (!AFI->hasITBlocks() || Tail->isBranch()) {
+  
+  if (ARMFunctionInfo *AFI = MBB->getParent()->getInfo<ARMFunctionInfo>(); !AFI->hasITBlocks() || Tail->isBranch()) {
     TargetInstrInfo::ReplaceTailWithBranchTo(Tail, NewDest);
     return;
   }
@@ -90,8 +90,8 @@ Thumb2InstrInfo::ReplaceTailWithBranchTo(MachineBasicBlock::iterator Tail,
         continue;
       }
       if (MBBI->getOpcode() == ARM::t2IT) {
-        unsigned Mask = MBBI->getOperand(1).getImm();
-        if (Count == 4)
+        
+        if (unsigned Mask = MBBI->getOperand(1).getImm(); Count == 4)
           MBBI->eraseFromParent();
         else {
           unsigned MaskOn = 1 << Count;
@@ -254,9 +254,9 @@ void Thumb2InstrInfo::loadRegFromStackSlot(MachineBasicBlock &MBB,
 void Thumb2InstrInfo::expandLoadStackGuard(
     MachineBasicBlock::iterator MI) const {
   MachineFunction &MF = *MI->getParent()->getParent();
-  Module &M = *MF.getFunction().getParent();
+  
 
-  if (M.getStackProtectorGuard() == "tls") {
+  if (Module &M = *MF.getFunction().getParent(); M.getStackProtectorGuard() == "tls") {
     expandLoadStackGuardBase(MI, ARM::t2MRC, ARM::t2LDRi12);
     return;
   }
@@ -747,8 +747,8 @@ bool llvm::rewriteT2FrameIndex(MachineInstr &MI, unsigned FrameRegIdx,
         (FrameReg.isVirtual() || RegClass->contains(FrameReg))) {
       if (FrameReg.isVirtual()) {
         // Make sure the register class for the virtual register is correct
-        MachineRegisterInfo *MRI = &MF.getRegInfo();
-        if (!MRI->constrainRegClass(FrameReg, RegClass))
+        
+        if (MachineRegisterInfo *MRI = &MF.getRegInfo(); !MRI->constrainRegClass(FrameReg, RegClass))
           llvm_unreachable("Unable to constrain virtual register class.");
       }
 
@@ -789,8 +789,8 @@ bool llvm::rewriteT2FrameIndex(MachineInstr &MI, unsigned FrameRegIdx,
 
 ARMCC::CondCodes llvm::getITInstrPredicate(const MachineInstr &MI,
                                            Register &PredReg) {
-  unsigned Opc = MI.getOpcode();
-  if (Opc == ARM::tBcc || Opc == ARM::t2Bcc)
+  
+  if (unsigned Opc = MI.getOpcode(); Opc == ARM::tBcc || Opc == ARM::t2Bcc)
     return ARMCC::AL;
   return getInstrPredicate(MI, PredReg);
 }

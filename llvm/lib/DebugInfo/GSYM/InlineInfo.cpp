@@ -251,8 +251,8 @@ llvm::Error InlineInfo::encode(FileWriter &O, uint64_t BaseAddr) const {
           return createStringError(std::errc::invalid_argument,
                                    "child range not contained in parent");
       }
-      llvm::Error Err = Child.encode(O, ChildBaseAddr);
-      if (Err)
+      
+      if (llvm::Error Err = Child.encode(O, ChildBaseAddr); Err)
         return Err;
     }
 

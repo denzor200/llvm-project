@@ -47,11 +47,11 @@ static bool isCalleeOperand(const CallBase *CI, unsigned OpIdx) {
 static bool canParameterizeCallOperand(const CallBase *CI, unsigned OpIdx) {
   if (CI->isInlineAsm())
     return false;
-  Function *Callee = CI->getCalledOperand()
+  
+  if (Function *Callee = CI->getCalledOperand()
                          ? dyn_cast_or_null<Function>(
                                CI->getCalledOperand()->stripPointerCasts())
-                         : nullptr;
-  if (Callee) {
+                         : nullptr; Callee) {
     if (Callee->isIntrinsic())
       return false;
     auto Name = Callee->getName();
@@ -105,8 +105,8 @@ bool isEligibleFunction(Function *F) {
   // of the callsite will mismatch with the function itself.
   for (const BasicBlock &BB : *F) {
     for (const Instruction &I : BB) {
-      const auto *CB = dyn_cast<CallBase>(&I);
-      if (CB && CB->isMustTailCall())
+      
+      if (const auto *CB = dyn_cast<CallBase>(&I); CB && CB->isMustTailCall())
         return false;
     }
   }
@@ -232,8 +232,8 @@ static Function *createMergedFunction(FuncMergeInfo &FI,
     Argument *NewArg = NewFunction->getArg(NumOrigArgs + ParamIdx);
     for (auto [InstIndex, OpndIndex] : ParamLocsVec[ParamIdx]) {
       auto *Inst = FI.IndexInstruction->lookup(InstIndex);
-      auto *OrigC = Inst->getOperand(OpndIndex);
-      if (OrigC->getType() != NewArg->getType()) {
+      
+      if (auto *OrigC = Inst->getOperand(OpndIndex); OrigC->getType() != NewArg->getType()) {
         IRBuilder<> Builder(Inst->getParent(), Inst->getIterator());
         Inst->setOperand(OpndIndex,
                          Builder.CreateAggregateCast(NewArg, OrigC->getType()));
@@ -338,8 +338,8 @@ checkConstLocationCompatible(const StableFunctionMap::StableFunctionEntry &SF,
       auto [InstIndex, OpndIndex] = Loc;
       assert(InstIndex < IndexInstruction.size());
       const auto *Inst = IndexInstruction.lookup(InstIndex);
-      auto *CurrConst = cast<Constant>(Inst->getOperand(OpndIndex));
-      if (!OldHash) {
+      
+      if (auto *CurrConst = cast<Constant>(Inst->getOperand(OpndIndex)); !OldHash) {
         OldHash = CurrHash;
         OldConst = CurrConst;
       } else if (CurrConst != *OldConst || CurrHash != *OldHash) {
@@ -398,8 +398,8 @@ bool GlobalMergeFunc::merge(Module &M, const StableFunctionMap *FunctionMap) {
   for (auto &F : M) {
     if (!isEligibleFunction(&F))
       continue;
-    auto FI = llvm::StructuralHashWithDifferences(F, ignoreOp);
-    if (FunctionMap->contains(FI.FunctionHash))
+    
+    if (auto FI = llvm::StructuralHashWithDifferences(F, ignoreOp); FunctionMap->contains(FI.FunctionHash))
       HashToFuncs[FI.FunctionHash].emplace_back(&F, std::move(FI));
   }
 
@@ -422,8 +422,8 @@ bool GlobalMergeFunc::merge(Module &M, const StableFunctionMap *FunctionMap) {
         for (auto &[Index, Hash] : *SF->IndexOperandHashMap) {
           auto [InstIndex, OpndIndex] = Index;
           assert(InstIndex < FHI.IndexInstruction->size());
-          auto *Inst = FHI.IndexInstruction->lookup(InstIndex);
-          if (!ignoreOp(Inst, OpndIndex))
+          
+          if (auto *Inst = FHI.IndexInstruction->lookup(InstIndex); !ignoreOp(Inst, OpndIndex))
             return false;
         }
         return true;
@@ -454,8 +454,8 @@ bool GlobalMergeFunc::merge(Module &M, const StableFunctionMap *FunctionMap) {
         break;
       }
     }
-    unsigned FuncMergeInfoSize = FuncMergeInfos.size();
-    if (FuncMergeInfoSize == 0)
+    
+    if (unsigned FuncMergeInfoSize = FuncMergeInfos.size(); FuncMergeInfoSize == 0)
       continue;
 
     LLVM_DEBUG(dbgs() << "[GlobalMergeFunc] Merging function count "

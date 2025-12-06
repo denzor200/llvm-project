@@ -585,8 +585,8 @@ bool mlir::linalg::isaContractionOpInterface(LinalgOp linalgOp) {
 /// In the future, we may wish to allow more input arguments and elementwise and
 /// constant operations that do not involve the reduction dimension(s).
 LogicalResult mlir::linalg::detail::verifyContractionInterface(Operation *op) {
-  auto res = isContractionInterfaceImpl(op);
-  if (res != MatchContractionResult::Success)
+  
+  if (auto res = isContractionInterfaceImpl(op); res != MatchContractionResult::Success)
     return op->emitError(getMatchContractionMessage(res));
   return success();
 }
@@ -633,8 +633,8 @@ struct ConvAccessExprWalker
         unConvolvedDims.erase(dimPos);
         // If a duplicate dim is marked as convolved, the pair of the duplicate
         // dim must be removed from the map as well.
-        auto it = convolvedDimMapping.find(dimPos);
-        if (it != convolvedDimMapping.end()) {
+        
+        if (auto it = convolvedDimMapping.find(dimPos); it != convolvedDimMapping.end()) {
           int64_t pairedDim = it->second;
           convolvedDims.erase(pairedDim);
           unConvolvedDims.erase(pairedDim);
@@ -1047,8 +1047,8 @@ bool mlir::linalg::isaConvolutionOpInterface(LinalgOp linalgOp,
 }
 
 LogicalResult mlir::linalg::detail::verifyConvolutionInterface(Operation *op) {
-  MatchConvolutionResult res = isConvolutionInterfaceImpl(op);
-  if (res != MatchConvolutionResult::Success)
+  
+  if (MatchConvolutionResult res = isConvolutionInterfaceImpl(op); res != MatchConvolutionResult::Success)
     return op->emitError(getMatchConvolutionMessage(res));
   return success();
 }
@@ -1118,8 +1118,8 @@ SmallVector<Range, 4> LinalgOp::createLoopRanges(OpBuilder &b, Location loc) {
   auto viewSizes = createFlatListOfOperandDims(b, loc);
   SmallVector<Range, 4> res(numDims);
   for (unsigned idx = 0; idx < numRes; ++idx) {
-    auto result = map.getResult(idx);
-    if (auto d = dyn_cast<AffineDimExpr>(result)) {
+    
+    if (auto result = map.getResult(idx); auto d = dyn_cast<AffineDimExpr>(result)) {
       if (res[d.getPosition()].offset)
         continue;
       res[d.getPosition()] =
@@ -1261,8 +1261,8 @@ LogicalResult mlir::linalg::detail::verifyStructuredOpInterface(Operation *op) {
   for (OpOperand &opOperand : linalgOp->getOpOperands()) {
     AffineMap indexingMap = linalgOp.getMatchingIndexingMap(&opOperand);
     // Domain must be consistent.
-    unsigned numLoops = linalgOp.getNumLoops();
-    if (indexingMap.getNumDims() != numLoops)
+    
+    if (unsigned numLoops = linalgOp.getNumLoops(); indexingMap.getNumDims() != numLoops)
       return op->emitOpError("expected indexing_map #")
              << opOperand.getOperandNumber() << " to have " << numLoops
              << " dim(s) to match the number of loops";

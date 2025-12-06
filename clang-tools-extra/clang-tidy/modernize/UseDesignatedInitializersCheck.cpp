@@ -156,8 +156,8 @@ void UseDesignatedInitializersCheck::check(
                "use designated initializer list to initialize %0");
       Diag << InitList->getType() << InitList->getSourceRange();
       for (const Stmt *InitExpr : *SyntacticInitList) {
-        const auto Designator = Designators[InitExpr->getBeginLoc()];
-        if (Designator && !Designator->empty())
+        
+        if (const auto Designator = Designators[InitExpr->getBeginLoc()]; Designator && !Designator->empty())
           Diag << FixItHint::CreateInsertion(InitExpr->getBeginLoc(),
                                              ("." + *Designator + "=").str());
       }
@@ -174,8 +174,8 @@ void UseDesignatedInitializersCheck::check(
       continue;
     if (IgnoreMacros && InitExpr->getBeginLoc().isMacroID())
       continue;
-    const auto Designator = Designators[InitExpr->getBeginLoc()];
-    if (!Designator || Designator->empty()) {
+    
+    if (const auto Designator = Designators[InitExpr->getBeginLoc()]; !Designator || Designator->empty()) {
       // There should always be a designator. If there's unexpectedly none, we
       // at least report a generic diagnostic.
       diag(InitExpr->getBeginLoc(), "use designated init expression")

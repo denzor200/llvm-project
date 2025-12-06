@@ -226,15 +226,15 @@ static unsigned transferSymbols(const object::MachOObjectFile &Obj,
 
   if (Obj.is64Bit()) {
     for (const object::SymbolRef &Symbol : Obj.symbols()) {
-      object::DataRefImpl DRI = Symbol.getRawDataRefImpl();
-      if (transferSymbol(Obj.getSymbol64TableEntry(DRI), IsLittleEndian,
+      
+      if (object::DataRefImpl DRI = Symbol.getRawDataRefImpl(); transferSymbol(Obj.getSymbol64TableEntry(DRI), IsLittleEndian,
                          Strings, NewSymtab, NewStrings, InDebugNote))
         ++Syms;
     }
   } else {
     for (const object::SymbolRef &Symbol : Obj.symbols()) {
-      object::DataRefImpl DRI = Symbol.getRawDataRefImpl();
-      if (transferSymbol(Obj.getSymbolTableEntry(DRI), IsLittleEndian, Strings,
+      
+      if (object::DataRefImpl DRI = Symbol.getRawDataRefImpl(); transferSymbol(Obj.getSymbolTableEntry(DRI), IsLittleEndian, Strings,
                          NewSymtab, NewStrings, InDebugNote))
         ++Syms;
     }

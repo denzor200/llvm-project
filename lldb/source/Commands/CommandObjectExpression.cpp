@@ -71,8 +71,8 @@ Status CommandObjectExpression::CommandOptions::SetOptionValue(
 
   case 'i': {
     bool success;
-    bool tmp_value = OptionArgParser::ToBoolean(option_arg, true, &success);
-    if (success)
+    
+    if (bool tmp_value = OptionArgParser::ToBoolean(option_arg, true, &success); success)
       ignore_breakpoints = tmp_value;
     else
       error = Status::FromErrorStringWithFormat(
@@ -83,8 +83,8 @@ Status CommandObjectExpression::CommandOptions::SetOptionValue(
 
   case 'j': {
     bool success;
-    bool tmp_value = OptionArgParser::ToBoolean(option_arg, true, &success);
-    if (success)
+    
+    if (bool tmp_value = OptionArgParser::ToBoolean(option_arg, true, &success); success)
       allow_jit = tmp_value;
     else
       error = Status::FromErrorStringWithFormat(
@@ -103,8 +103,8 @@ Status CommandObjectExpression::CommandOptions::SetOptionValue(
 
   case 'u': {
     bool success;
-    bool tmp_value = OptionArgParser::ToBoolean(option_arg, true, &success);
-    if (success)
+    
+    if (bool tmp_value = OptionArgParser::ToBoolean(option_arg, true, &success); success)
       unwind_on_error = tmp_value;
     else
       error = Status::FromErrorStringWithFormat(
@@ -139,8 +139,8 @@ Status CommandObjectExpression::CommandOptions::SetOptionValue(
 
   case 'X': {
     bool success;
-    bool tmp_value = OptionArgParser::ToBoolean(option_arg, true, &success);
-    if (success)
+    
+    if (bool tmp_value = OptionArgParser::ToBoolean(option_arg, true, &success); success)
       auto_apply_fixits = tmp_value ? eLazyBoolYes : eLazyBoolNo;
     else
       error = Status::FromErrorStringWithFormat(
@@ -151,9 +151,9 @@ Status CommandObjectExpression::CommandOptions::SetOptionValue(
 
   case '\x01': {
     bool success;
-    bool persist_result =
-        OptionArgParser::ToBoolean(option_arg, true, &success);
-    if (success)
+    
+    if (bool persist_result =
+        OptionArgParser::ToBoolean(option_arg, true, &success); success)
       suppress_persistent_result = !persist_result ? eLazyBoolYes : eLazyBoolNo;
     else
       error = Status::FromErrorStringWithFormat(
@@ -438,16 +438,16 @@ bool CommandObjectExpression::EvaluateExpression(llvm::StringRef expr,
   if (result_valobj_sp) {
     result.GetValueObjectList().Append(result_valobj_sp);
 
-    Format format = m_format_options.GetFormat();
+    
 
-    if (result_valobj_sp->GetError().Success()) {
+    if (Format format = m_format_options.GetFormat(); result_valobj_sp->GetError().Success()) {
       if (format != eFormatVoid) {
         if (format != eFormatDefault)
           result_valobj_sp->SetFormat(format);
 
         if (m_varobj_options.elem_count > 0) {
-          Status error(CanBeUsedForElementCountPrinting(*result_valobj_sp));
-          if (error.Fail()) {
+          
+          if (Status error(CanBeUsedForElementCountPrinting(*result_valobj_sp)); error.Fail()) {
             result.AppendErrorWithFormat(
                 "expression cannot be used with --element-count %s\n",
                 error.AsCString(""));
@@ -476,8 +476,8 @@ bool CommandObjectExpression::EvaluateExpression(llvm::StringRef expr,
         if (suppress_result)
           if (auto result_var_sp =
                   target.GetPersistentVariable(result_valobj_sp->GetName())) {
-            auto language = result_valobj_sp->GetPreferredDisplayLanguage();
-            if (auto *persistent_state =
+            
+            if (auto language = result_valobj_sp->GetPreferredDisplayLanguage(); auto *persistent_state =
                     target.GetPersistentExpressionStateForLanguage(language))
               persistent_state->RemovePersistentVariable(result_var_sp);
           }
@@ -523,8 +523,8 @@ void CommandObjectExpression::IOHandlerInputComplete(IOHandler &io_handler,
 bool CommandObjectExpression::IOHandlerIsInputComplete(IOHandler &io_handler,
                                                        StringList &lines) {
   // An empty lines is used to indicate the end of input
-  const size_t num_lines = lines.GetSize();
-  if (num_lines > 0 && lines[num_lines - 1].empty()) {
+  
+  if (const size_t num_lines = lines.GetSize(); num_lines > 0 && lines[num_lines - 1].empty()) {
     // Remove the last empty line from "lines" so it doesn't appear in our
     // resulting input and return true to indicate we are done getting lines
     lines.PopBack();
@@ -604,11 +604,11 @@ void CommandObjectExpression::DoExecute(llvm::StringRef command,
       m_expr_lines.clear();
       m_expr_line_count = 0;
 
-      Debugger &debugger = target.GetDebugger();
+      
 
       // Check if the LLDB command interpreter is sitting on top of a REPL
       // that launched it...
-      if (debugger.CheckTopIOHandlerTypes(IOHandler::Type::CommandInterpreter,
+      if (Debugger &debugger = target.GetDebugger(); debugger.CheckTopIOHandlerTypes(IOHandler::Type::CommandInterpreter,
                                           IOHandler::Type::REPL)) {
         // the LLDB command interpreter is sitting on top of a REPL that
         // launched it, so just say the command interpreter is done and

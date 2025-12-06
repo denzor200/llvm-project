@@ -135,8 +135,8 @@ static std::optional<std::string> findMetaClassAlloc(const Expr *Callee) {
   if (const auto *ME = dyn_cast<MemberExpr>(Callee)) {
     if (ME->getMemberDecl()->getNameAsString() != "alloc")
       return std::nullopt;
-    const Expr *This = ME->getBase()->IgnoreParenImpCasts();
-    if (const auto *DRE = dyn_cast<DeclRefExpr>(This)) {
+    
+    if (const Expr *This = ME->getBase()->IgnoreParenImpCasts(); const auto *DRE = dyn_cast<DeclRefExpr>(This)) {
       const ValueDecl *VD = DRE->getDecl();
       if (VD->getNameAsString() != "metaClass")
         return std::nullopt;
@@ -183,10 +183,10 @@ static void generateDiagnosticsForCallLike(ProgramStateRef CurrSt,
     os << "Operator 'new'";
   } else {
     assert(isa<ObjCMessageExpr>(S));
-    CallEventRef<ObjCMethodCall> Call = Mgr.getObjCMethodCall(
-        cast<ObjCMessageExpr>(S), CurrSt, LCtx, {nullptr, 0});
+    
 
-    switch (Call->getMessageKind()) {
+    switch (CallEventRef<ObjCMethodCall> Call = Mgr.getObjCMethodCall(
+        cast<ObjCMessageExpr>(S), CurrSt, LCtx, {nullptr, 0}); Call->getMessageKind()) {
     case OCM_Message:
       os << "Method";
       break;
@@ -218,8 +218,8 @@ static void generateDiagnosticsForCallLike(ProgramStateRef CurrSt,
     os << "an object of type '" << Sym->getType() << "' with a ";
   } else {
     assert(CurrV.getObjKind() == ObjKind::ObjC);
-    QualType T = Sym->getType();
-    if (!isa<ObjCObjectPointerType>(T)) {
+    
+    if (QualType T = Sym->getType(); !isa<ObjCObjectPointerType>(T)) {
       os << "an Objective-C object with a ";
     } else {
       const ObjCObjectPointerType *PT = cast<ObjCObjectPointerType>(T);
@@ -241,10 +241,10 @@ static void generateDiagnosticsForCallLike(ProgramStateRef CurrSt,
                               /*Qualified=*/false);
     os << "'";
 
-    QualType RT = (*CE)->getResultType();
-    if (!RT.isNull() && !RT->isVoidType()) {
-      SVal RV = (*CE)->getReturnValue();
-      if (CurrSt->isNull(RV).isConstrainedTrue()) {
+    
+    if (QualType RT = (*CE)->getResultType(); !RT.isNull() && !RT->isVoidType()) {
+      
+      if (SVal RV = (*CE)->getReturnValue(); CurrSt->isNull(RV).isConstrainedTrue()) {
         os << " (assuming the call returns zero)";
       } else if (CurrSt->isNonNull(RV).isConstrainedTrue()) {
         os << " (assuming the call returns non-zero)";
@@ -405,8 +405,8 @@ PathDiagnosticPieceRef
 RefCountReportVisitor::VisitNode(const ExplodedNode *N, BugReporterContext &BRC,
                                  PathSensitiveBugReport &BR) {
   const SourceManager &SM = BRC.getSourceManager();
-  CallEventManager &CEMgr = BRC.getStateManager().getCallEventManager();
-  if (auto CE = N->getLocationAs<CallExitBegin>())
+  
+  if (CallEventManager &CEMgr = BRC.getStateManager().getCallEventManager(); auto CE = N->getLocationAs<CallExitBegin>())
     if (auto PD = annotateConsumedSummaryMismatch(N, *CE, SM, CEMgr))
       return PD;
 
@@ -497,9 +497,9 @@ RefCountReportVisitor::VisitNode(const ExplodedNode *N, BugReporterContext &BRC,
   if (Tag == &RetainCountChecker::getDeallocSentTag()) {
     // We only have summaries attached to nodes after evaluating CallExpr and
     // ObjCMessageExprs.
-    const Stmt *S = N->getLocation().castAs<StmtPoint>().getStmt();
+    
 
-    if (const CallExpr *CE = dyn_cast<CallExpr>(S)) {
+    if (const Stmt *S = N->getLocation().castAs<StmtPoint>().getStmt(); const CallExpr *CE = dyn_cast<CallExpr>(S)) {
       // Iterate through the parameter expressions and see if the symbol
       // was ever passed as an argument.
       unsigned i = 0;
@@ -569,8 +569,8 @@ public:
 
   bool HandleBinding(StoreManager &SMgr, Store Store, const MemRegion *R,
                      SVal Val) override {
-    SymbolRef SymV = Val.getAsLocSymbol();
-    if (!SymV || SymV != Sym)
+    
+    if (SymbolRef SymV = Val.getAsLocSymbol(); !SymV || SymV != Sym)
       return true;
 
     if (isa<NonParamVarRegion>(R))
@@ -633,10 +633,10 @@ static AllocationInfo GetAllocationSite(ProgramStateManager &StateMgr,
     StateMgr.iterBindings(St, FB);
 
     if (FB) {
-      const MemRegion *R = FB.getRegion();
+      
       // Do not show local variables belonging to a function other than
       // where the error is reported.
-      if (const auto *MR = R->getMemorySpaceAs<StackSpaceRegion>(St))
+      if (const MemRegion *R = FB.getRegion(); const auto *MR = R->getMemorySpaceAs<StackSpaceRegion>(St))
         if (MR->getStackFrame() == LeakContext->getStackFrame())
           FirstBinding = R;
     }
@@ -658,12 +658,12 @@ static AllocationInfo GetAllocationSite(ProgramStateManager &StateMgr,
     // init method's location context.
     if (!InitMethodContext)
       if (auto CEP = N->getLocation().getAs<CallEnter>()) {
-        const Stmt *CE = CEP->getCallExpr();
-        if (const auto *ME = dyn_cast_or_null<ObjCMessageExpr>(CE)) {
-          const Stmt *RecExpr = ME->getInstanceReceiver();
-          if (RecExpr) {
-            SVal RecV = St->getSVal(RecExpr, NContext);
-            if (ME->getMethodFamily() == OMF_init && RecV.getAsSymbol() == Sym)
+        
+        if (const Stmt *CE = CEP->getCallExpr(); const auto *ME = dyn_cast_or_null<ObjCMessageExpr>(CE)) {
+          
+          if (const Stmt *RecExpr = ME->getInstanceReceiver(); RecExpr) {
+            
+            if (SVal RecV = St->getSVal(RecExpr, NContext); ME->getMethodFamily() == OMF_init && RecV.getAsSymbol() == Sym)
               InitMethodContext = CEP->getCalleeContext();
           }
         }
@@ -676,8 +676,8 @@ static AllocationInfo GetAllocationSite(ProgramStateManager &StateMgr,
   // mark its init method as interesting.
   const LocationContext *InterestingMethodContext = nullptr;
   if (InitMethodContext) {
-    const ProgramPoint AllocPP = AllocationNode->getLocation();
-    if (std::optional<StmtPoint> SP = AllocPP.getAs<StmtPoint>())
+    
+    if (const ProgramPoint AllocPP = AllocationNode->getLocation(); std::optional<StmtPoint> SP = AllocPP.getAs<StmtPoint>())
       if (const ObjCMessageExpr *ME = SP->getStmtAs<ObjCMessageExpr>())
         if (ME->getMethodFamily() == OMF_alloc)
           InterestingMethodContext = InitMethodContext;
@@ -757,8 +757,8 @@ RefLeakReportVisitor::getEndPath(BugReporterContext &BRC,
         }
       } else {
         const FunctionDecl *FD = cast<FunctionDecl>(D);
-        ObjKind K = RV->getObjKind();
-        if (K == ObjKind::ObjC || K == ObjKind::CF) {
+        
+        if (ObjKind K = RV->getObjKind(); K == ObjKind::ObjC || K == ObjKind::CF) {
           os << "whose name ('" << *FD
              << "') does not contain 'Copy' or 'Create'.  This violates the "
                 "naming convention rules given in the Memory Management Guide "
@@ -804,8 +804,8 @@ void RefLeakReport::deriveParamLocation(CheckerContext &Ctx) {
 
   auto *Region = dyn_cast<DeclRegion>(Sym->getOriginRegion());
   if (Region) {
-    const Decl *PDecl = Region->getDecl();
-    if (isa_and_nonnull<ParmVarDecl>(PDecl)) {
+    
+    if (const Decl *PDecl = Region->getDecl(); isa_and_nonnull<ParmVarDecl>(PDecl)) {
       PathDiagnosticLocation ParamLocation =
           PathDiagnosticLocation::create(PDecl, SMgr);
       Location = ParamLocation;
@@ -862,9 +862,9 @@ void RefLeakReport::createDescription(CheckerContext &Ctx) {
   llvm::raw_string_ostream os(Description);
   os << "Potential leak of an object";
 
-  std::optional<std::string> RegionDescription =
-      describeRegion(AllocBindingToReport);
-  if (RegionDescription) {
+  
+  if (std::optional<std::string> RegionDescription =
+      describeRegion(AllocBindingToReport); RegionDescription) {
     os << " stored into '" << *RegionDescription << '\'';
   } else {
 
@@ -900,13 +900,13 @@ void RefLeakReport::findBindingToReport(CheckerContext &Ctx,
   // Complaining about a leaking object "stored into Original" might cause a
   // rightful confusion because 'Original' is actually released.
   // We should complain about 'New' instead.
-  Bindings AllVarBindings =
-      getAllVarBindingsForSymbol(Ctx.getStateManager(), Node, Sym);
+  
 
   // While looking for the last var bindings, we can still find
   // `AllocFirstBinding` to be one of them.  In situations like this,
   // it would still be the easiest case to explain to our users.
-  if (!AllVarBindings.empty() &&
+  if (Bindings AllVarBindings =
+      getAllVarBindingsForSymbol(Ctx.getStateManager(), Node, Sym); !AllVarBindings.empty() &&
       !llvm::is_contained(llvm::make_first_range(AllVarBindings),
                           AllocFirstBinding)) {
     // Let's pick one of them at random (if there is something to pick from).

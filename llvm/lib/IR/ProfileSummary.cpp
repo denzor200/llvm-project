@@ -149,8 +149,8 @@ static bool isKeyValuePair(MDTuple *MD, const char *Key, const char *Val) {
 static bool getSummaryFromMD(MDTuple *MD, SummaryEntryVector &Summary) {
   if (!MD || MD->getNumOperands() != 2)
     return false;
-  MDString *KeyMD = dyn_cast<MDString>(MD->getOperand(0));
-  if (!KeyMD || KeyMD->getString() != "DetailedSummary")
+  
+  if (MDString *KeyMD = dyn_cast<MDString>(MD->getOperand(0)); !KeyMD || KeyMD->getString() != "DetailedSummary")
     return false;
   MDTuple *EntriesMD = dyn_cast<MDTuple>(MD->getOperand(1));
   if (!EntriesMD)

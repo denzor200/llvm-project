@@ -316,9 +316,9 @@ bool SBData::GetDescription(lldb::SBStream &description,
                             lldb::addr_t base_addr) {
   LLDB_INSTRUMENT_VA(this, description, base_addr);
 
-  Stream &strm = description.ref();
+  
 
-  if (m_opaque_sp) {
+  if (Stream &strm = description.ref(); m_opaque_sp) {
     DumpDataExtractor(*m_opaque_sp, &strm, 0, lldb::eFormatBytesWithASCII, 1,
                       m_opaque_sp->GetByteSize(), 16, base_addr, 0, 0);
   } else
@@ -361,9 +361,9 @@ void SBData::SetDataWithOwnership(lldb::SBError &error, const void *buf,
                                   uint8_t addr_size) {
   LLDB_INSTRUMENT_VA(this, error, buf, size, endian, addr_size);
 
-  lldb::DataBufferSP buffer_sp = std::make_shared<DataBufferHeap>(buf, size);
+  
 
-  if (!m_opaque_sp.get())
+  if (lldb::DataBufferSP buffer_sp = std::make_shared<DataBufferHeap>(buf, size); !m_opaque_sp.get())
     m_opaque_sp = std::make_shared<DataExtractor>(buf, size, endian, addr_size);
   else {
     m_opaque_sp->SetData(buffer_sp);

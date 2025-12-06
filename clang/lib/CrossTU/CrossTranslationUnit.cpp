@@ -242,8 +242,8 @@ CrossTranslationUnitContext::CrossTranslationUnitContext(CompilerInstance &CI)
     : Context(CI.getASTContext()), ASTStorage(CI) {
   if (CI.getAnalyzerOpts().ShouldEmitErrorsOnInvalidConfigValue &&
       !CI.getAnalyzerOpts().CTUDir.empty()) {
-    auto S = CI.getVirtualFileSystem().status(CI.getAnalyzerOpts().CTUDir);
-    if (!S || S->getType() != llvm::sys::fs::file_type::directory_file)
+    
+    if (auto S = CI.getVirtualFileSystem().status(CI.getAnalyzerOpts().CTUDir); !S || S->getType() != llvm::sys::fs::file_type::directory_file)
       CI.getDiagnostics().Report(diag::err_analyzer_config_invalid_input)
           << "ctu-dir"
           << "a filename";
@@ -255,8 +255,8 @@ CrossTranslationUnitContext::~CrossTranslationUnitContext() {}
 std::optional<std::string>
 CrossTranslationUnitContext::getLookupName(const Decl *D) {
   SmallString<128> DeclUSR;
-  bool Ret = index::generateUSRForDecl(D, DeclUSR);
-  if (Ret)
+  
+  if (bool Ret = index::generateUSRForDecl(D, DeclUSR); Ret)
     return {};
   return std::string(DeclUSR);
 }
@@ -269,8 +269,8 @@ CrossTranslationUnitContext::findDefInDeclContext(const DeclContext *DC,
                                                   StringRef LookupName) {
   assert(DC && "Declaration Context must not be null");
   for (const Decl *D : DC->decls()) {
-    const auto *SubDC = dyn_cast<DeclContext>(D);
-    if (SubDC)
+    
+    if (const auto *SubDC = dyn_cast<DeclContext>(D); SubDC)
       if (const auto *ND = findDefInDeclContext<T>(SubDC, LookupName))
         return ND;
 
@@ -413,8 +413,8 @@ llvm::Expected<ASTUnit *>
 CrossTranslationUnitContext::ASTUnitStorage::getASTUnitForFile(
     StringRef FileName, bool DisplayCTUProgress) {
   // Try the cache first.
-  auto ASTCacheEntry = FileASTUnitMap.find(FileName);
-  if (ASTCacheEntry == FileASTUnitMap.end()) {
+  
+  if (auto ASTCacheEntry = FileASTUnitMap.find(FileName); ASTCacheEntry == FileASTUnitMap.end()) {
 
     // Do not load if the limit is reached.
     if (!LoadGuard) {
@@ -454,8 +454,8 @@ CrossTranslationUnitContext::ASTUnitStorage::getASTUnitForFunction(
     StringRef FunctionName, StringRef CrossTUDir, StringRef IndexName,
     bool DisplayCTUProgress) {
   // Try the cache first.
-  auto ASTCacheEntry = NameASTUnitMap.find(FunctionName);
-  if (ASTCacheEntry == NameASTUnitMap.end()) {
+  
+  if (auto ASTCacheEntry = NameASTUnitMap.find(FunctionName); ASTCacheEntry == NameASTUnitMap.end()) {
     // Load the ASTUnit from the pre-dumped AST file specified by ASTFileName.
 
     // Ensure that the Index is loaded, as we need to search in it.

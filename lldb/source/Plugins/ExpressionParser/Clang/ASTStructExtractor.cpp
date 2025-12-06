@@ -109,9 +109,9 @@ void ASTStructExtractor::ExtractFromFunctionDecl(FunctionDecl *F) {
 }
 
 void ASTStructExtractor::ExtractFromTopLevelDecl(Decl *D) {
-  LinkageSpecDecl *linkage_spec_decl = dyn_cast<LinkageSpecDecl>(D);
+  
 
-  if (linkage_spec_decl) {
+  if (LinkageSpecDecl *linkage_spec_decl = dyn_cast<LinkageSpecDecl>(D); linkage_spec_decl) {
     RecordDecl::decl_iterator decl_iterator;
 
     for (decl_iterator = linkage_spec_decl->decls_begin();

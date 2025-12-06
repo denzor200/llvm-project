@@ -53,9 +53,9 @@ protected:
         /*Group=*/std::nullopt, llvm::sys::fs::file_type::directory_file);
     auto DE = FileMgr.getOptionalDirectoryRef(Dir);
     assert(DE);
-    auto DL = DirectoryLookup(*DE, IsSystem ? SrcMgr::C_System : SrcMgr::C_User,
-                              /*isFramework=*/true);
-    if (IsSystem)
+    
+    if (auto DL = DirectoryLookup(*DE, IsSystem ? SrcMgr::C_System : SrcMgr::C_User,
+                              /*isFramework=*/true); IsSystem)
       Search.AddSystemSearchPath(DL);
     else
       Search.AddSearchPath(DL, /*isAngled=*/true);

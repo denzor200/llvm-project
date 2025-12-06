@@ -64,8 +64,8 @@ public:
 
   LogicalResult matchAndRewrite(tosa::ApplyScaleOp op,
                                 PatternRewriter &rewriter) const final {
-    RoundingMode roundingMode = op.getRoundingMode();
-    if (roundingMode != RoundingMode::DOUBLE_ROUND &&
+    
+    if (RoundingMode roundingMode = op.getRoundingMode(); roundingMode != RoundingMode::DOUBLE_ROUND &&
         roundingMode != RoundingMode::SINGLE_ROUND) {
       return failure();
     }
@@ -130,8 +130,8 @@ public:
 
   LogicalResult matchAndRewrite(tosa::ApplyScaleOp op,
                                 PatternRewriter &rewriter) const final {
-    RoundingMode roundingMode = op.getRoundingMode();
-    if (roundingMode != RoundingMode::DOUBLE_ROUND &&
+    
+    if (RoundingMode roundingMode = op.getRoundingMode(); roundingMode != RoundingMode::DOUBLE_ROUND &&
         roundingMode != RoundingMode::SINGLE_ROUND) {
       return failure();
     }

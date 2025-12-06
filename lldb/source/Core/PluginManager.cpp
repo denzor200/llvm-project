@@ -1582,9 +1582,9 @@ FileSpec PluginManager::FindSymbolFileInBundle(const FileSpec &symfile_bundle,
   auto instances = GetSymbolLocatorInstances().GetSnapshot();
   for (auto &instance : instances) {
     if (instance.find_symbol_file_in_bundle) {
-      std::optional<FileSpec> result =
-          instance.find_symbol_file_in_bundle(symfile_bundle, uuid, arch);
-      if (result)
+      
+      if (std::optional<FileSpec> result =
+          instance.find_symbol_file_in_bundle(symfile_bundle, uuid, arch); result)
         return *result;
     }
   }
@@ -2105,10 +2105,10 @@ CreateSettingForPlugin(Debugger &debugger, llvm::StringRef plugin_type_name,
                        GetDebuggerPropertyForPluginsPtr get_debugger_property =
                            GetDebuggerPropertyForPlugins) {
   if (properties_sp) {
-    lldb::OptionValuePropertiesSP plugin_type_properties_sp(
+    
+    if (lldb::OptionValuePropertiesSP plugin_type_properties_sp(
         get_debugger_property(debugger, plugin_type_name, plugin_type_desc,
-                              true));
-    if (plugin_type_properties_sp) {
+                              true)); plugin_type_properties_sp) {
       plugin_type_properties_sp->AppendProperty(properties_sp->GetName(),
                                                 description, is_global_property,
                                                 properties_sp);
@@ -2259,11 +2259,11 @@ bool PluginManager::CreateSettingForOperatingSystemPlugin(
     Debugger &debugger, const lldb::OptionValuePropertiesSP &properties_sp,
     llvm::StringRef description, bool is_global_property) {
   if (properties_sp) {
-    lldb::OptionValuePropertiesSP plugin_type_properties_sp(
+    
+    if (lldb::OptionValuePropertiesSP plugin_type_properties_sp(
         GetDebuggerPropertyForPlugins(debugger, kOperatingSystemPluginName,
                                       "Settings for operating system plug-ins",
-                                      true));
-    if (plugin_type_properties_sp) {
+                                      true)); plugin_type_properties_sp) {
       plugin_type_properties_sp->AppendProperty(properties_sp->GetName(),
                                                 description, is_global_property,
                                                 properties_sp);
@@ -2548,8 +2548,8 @@ void PluginManager::AutoCompletePluginName(llvm::StringRef name,
     // prefix of everything).
     if (plugin_ns.name == ns_name) {
       for (const RegisteredPluginInfo &plugin : plugin_ns.get_info()) {
-        llvm::SmallString<128> buf;
-        if (plugin.name.starts_with(plugin_prefix))
+        
+        if (llvm::SmallString<128> buf; plugin.name.starts_with(plugin_prefix))
           request.AddCompletion(
               (plugin_ns.name + "." + plugin.name).toStringRef(buf));
       }

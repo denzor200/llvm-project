@@ -83,9 +83,9 @@ unsigned LSUnit::dispatch(const InstRef &IR) {
     NewGroup.addInstruction();
 
     // A store may not pass a previous load or load barrier.
-    unsigned ImmediateLoadDominator =
-        std::max(CurrentLoadGroupID, CurrentLoadBarrierGroupID);
-    if (ImmediateLoadDominator) {
+    
+    if (unsigned ImmediateLoadDominator =
+        std::max(CurrentLoadGroupID, CurrentLoadBarrierGroupID); ImmediateLoadDominator) {
       MemoryGroup &IDom = getGroup(ImmediateLoadDominator);
       LLVM_DEBUG(dbgs() << "[LSUnit]: GROUP DEP: (" << ImmediateLoadDominator
                         << ") --> (" << NewGID << ")\n");
@@ -140,13 +140,13 @@ unsigned LSUnit::dispatch(const InstRef &IR) {
   // 5) There is no intervening store and there is an active load group.
   //    However that group has already started execution, so we cannot add
   //    this load to it.
-  bool ShouldCreateANewGroup =
+  
+
+  if (bool ShouldCreateANewGroup =
       IsLoadBarrier || !ImmediateLoadDominator ||
       CurrentLoadBarrierGroupID == ImmediateLoadDominator ||
       ImmediateLoadDominator <= CurrentStoreGroupID ||
-      getGroup(ImmediateLoadDominator).isExecuting();
-
-  if (ShouldCreateANewGroup) {
+      getGroup(ImmediateLoadDominator).isExecuting(); ShouldCreateANewGroup) {
     unsigned NewGID = createMemoryGroup();
     MemoryGroup &NewGroup = getGroup(NewGID);
     NewGroup.addInstruction();

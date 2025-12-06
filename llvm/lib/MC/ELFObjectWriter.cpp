@@ -474,9 +474,9 @@ bool ELFWriter::isInSymtab(const MCSymbolELF &Symbol) {
     return false;
 
   if (Symbol.isVariable()) {
-    const MCExpr *Expr = Symbol.getVariableValue();
+    
     // Target Expressions that are always inlined do not appear in the symtab
-    if (const auto *T = dyn_cast<MCTargetExpr>(Expr))
+    if (const MCExpr *Expr = Symbol.getVariableValue(); const auto *T = dyn_cast<MCTargetExpr>(Expr))
       if (T->inlineAssignedExpr())
         return false;
     // The .weakref alias does not appear in the symtab.
@@ -699,9 +699,9 @@ MCSectionELF *ELFWriter::createRelocationSection(MCContext &Ctx,
 bool ELFWriter::maybeWriteCompression(
     uint32_t ChType, uint64_t Size,
     SmallVectorImpl<uint8_t> &CompressedContents, Align Alignment) {
-  uint64_t HdrSize =
-      is64Bit() ? sizeof(ELF::Elf64_Chdr) : sizeof(ELF::Elf32_Chdr);
-  if (Size <= HdrSize + CompressedContents.size())
+  
+  if (uint64_t HdrSize =
+      is64Bit() ? sizeof(ELF::Elf64_Chdr) : sizeof(ELF::Elf32_Chdr); Size <= HdrSize + CompressedContents.size())
     return false;
   // Platform specific header is followed by compressed data.
   if (is64Bit()) {
@@ -804,8 +804,8 @@ void ELFWriter::writeRelocations(const MCSectionELF &Sec) {
 
   if (OWriter.TargetObjectWriter->getEMachine() == ELF::EM_MIPS) {
     for (const ELFRelocationEntry &Entry : Relocs) {
-      uint32_t SymIdx = Entry.Symbol ? Entry.Symbol->getIndex() : 0;
-      if (is64Bit()) {
+      
+      if (uint32_t SymIdx = Entry.Symbol ? Entry.Symbol->getIndex() : 0; is64Bit()) {
         write(Entry.Offset);
         write(uint32_t(SymIdx));
         write(OWriter.TargetObjectWriter->getRSsym(Entry.Type));
@@ -844,8 +844,8 @@ void ELFWriter::writeRelocations(const MCSectionELF &Sec) {
       encodeCrel<false>(Relocs, W.OS);
   } else {
     for (const ELFRelocationEntry &Entry : Relocs) {
-      uint32_t Symidx = Entry.Symbol ? Entry.Symbol->getIndex() : 0;
-      if (is64Bit()) {
+      
+      if (uint32_t Symidx = Entry.Symbol ? Entry.Symbol->getIndex() : 0; is64Bit()) {
         write(Entry.Offset);
         ELF::Elf64_Rela ERE;
         ERE.setSymbolAndType(Symidx, Entry.Type);
@@ -907,8 +907,8 @@ void ELFWriter::writeSectionHeader(uint32_t GroupSymbolIndex, uint64_t Offset,
   if (Section.getFlags() & ELF::SHF_LINK_ORDER) {
     // If the value in the associated metadata is not a definition, Sym will be
     // undefined. Represent this with sh_link=0.
-    const MCSymbol *Sym = Section.getLinkedToSymbol();
-    if (Sym && Sym->isInSection())
+    
+    if (const MCSymbol *Sym = Section.getLinkedToSymbol(); Sym && Sym->isInSection())
       sh_link = Sym->getSection().getOrdinal();
   }
 
@@ -1232,10 +1232,10 @@ void ELFObjectWriter::executePostLayoutBinding() {
   for (const MCSymbol *Alias : Weakrefs) {
     if (!Alias->isRegistered())
       continue;
-    auto *Expr = Alias->getVariableValue();
-    if (const auto *Inner = dyn_cast<MCSymbolRefExpr>(Expr)) {
-      auto &Sym = static_cast<const MCSymbolELF &>(Inner->getSymbol());
-      if (Asm->registerSymbol(Sym))
+    
+    if (auto *Expr = Alias->getVariableValue(); const auto *Inner = dyn_cast<MCSymbolRefExpr>(Expr)) {
+      
+      if (auto &Sym = static_cast<const MCSymbolELF &>(Inner->getSymbol()); Asm->registerSymbol(Sym))
         Sym.setBinding(ELF::STB_WEAK);
     }
   }

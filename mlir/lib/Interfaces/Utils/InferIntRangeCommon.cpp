@@ -341,9 +341,9 @@ static ConstantIntRanges inferDivSRange(const ConstantIntRanges &lhs,
                                         DivisionFixupFn fixup) {
   const APInt &lhsMin = lhs.smin(), &lhsMax = lhs.smax(), &rhsMin = rhs.smin(),
               &rhsMax = rhs.smax();
-  bool canDivide = rhsMin.isStrictlyPositive() || rhsMax.isNegative();
+  
 
-  if (canDivide) {
+  if (bool canDivide = rhsMin.isStrictlyPositive() || rhsMax.isNegative(); canDivide) {
     auto sdiv = [&fixup](const APInt &a,
                          const APInt &b) -> std::optional<APInt> {
       bool overflowed = false;
@@ -428,8 +428,8 @@ mlir::intrange::inferRemS(ArrayRef<ConstantIntRanges> argRanges) {
   APInt smin = APInt::getSignedMinValue(width);
   APInt smax = APInt::getSignedMaxValue(width);
   // No bounds if zero could be a divisor.
-  bool canBound = (rhsMin.isStrictlyPositive() || rhsMax.isNegative());
-  if (canBound) {
+  
+  if (bool canBound = (rhsMin.isStrictlyPositive() || rhsMax.isNegative()); canBound) {
     APInt maxDivisor = rhsMin.isStrictlyPositive() ? rhsMax : rhsMin.abs();
     bool canNegativeDividend = lhsMin.isNegative();
     bool canPositiveDividend = lhsMax.isStrictlyPositive();
@@ -442,8 +442,8 @@ mlir::intrange::inferRemS(ArrayRef<ConstantIntRanges> argRanges) {
     if (rhsMin == rhsMax) {
       if ((lhsMax - lhsMin).ult(maxDivisor)) {
         APInt minRem = lhsMin.srem(maxDivisor);
-        APInt maxRem = lhsMax.srem(maxDivisor);
-        if (minRem.sle(maxRem)) {
+        
+        if (APInt maxRem = lhsMax.srem(maxDivisor); minRem.sle(maxRem)) {
           smin = minRem;
           smax = maxRem;
         }
@@ -470,11 +470,11 @@ mlir::intrange::inferRemU(ArrayRef<ConstantIntRanges> argRanges) {
   if (!rhsMin.isZero()) {
     // Special case: sweeping out a contiguous range in N/[modulus]
     if (rhsMin == rhsMax) {
-      const APInt &lhsMin = lhs.umin(), &lhsMax = lhs.umax();
-      if ((lhsMax - lhsMin).ult(rhsMax)) {
+      
+      if (const APInt &lhsMin = lhs.umin(), &lhsMax = lhs.umax(); (lhsMax - lhsMin).ult(rhsMax)) {
         APInt minRem = lhsMin.urem(rhsMax);
-        APInt maxRem = lhsMax.urem(rhsMax);
-        if (minRem.ule(maxRem)) {
+        
+        if (APInt maxRem = lhsMax.urem(rhsMax); minRem.ule(maxRem)) {
           umin = minRem;
           umax = maxRem;
         }
@@ -759,9 +759,9 @@ mlir::intrange::inferShapedDimOpInterface(ShapedDimOpInterface op,
       result = result->rangeUnion(thisResult);
   };
   for (int64_t i = minDim; i <= maxDim; ++i) {
-    int64_t length = shapedTy.getDimSize(i);
+    
 
-    if (ShapedType::isDynamic(length))
+    if (int64_t length = shapedTy.getDimSize(i); ShapedType::isDynamic(length))
       joinResult(ConstantIntRanges::fromSigned(zero, typeMax));
     else
       joinResult(ConstantIntRanges::constant(APInt(width, length)));

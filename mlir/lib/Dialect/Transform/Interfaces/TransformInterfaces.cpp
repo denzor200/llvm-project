@@ -838,24 +838,24 @@ transform::TransformState::applyTransform(TransformOpInterface transform) {
       }
       FULL_LDBG() << "--handle is consumed";
 
-      Type operandType = operand.get().getType();
-      if (llvm::isa<TransformHandleTypeInterface>(operandType)) {
+      
+      if (Type operandType = operand.get().getType(); llvm::isa<TransformHandleTypeInterface>(operandType)) {
         FULL_LDBG() << "--checkRepeatedConsumptionInOperand for Operation*";
-        DiagnosedSilenceableFailure check =
+        
+        if (DiagnosedSilenceableFailure check =
             checkRepeatedConsumptionInOperand<Operation *>(
                 getPayloadOpsView(operand.get()), transform,
-                operand.getOperandNumber());
-        if (!check.succeeded()) {
+                operand.getOperandNumber()); !check.succeeded()) {
           FULL_LDBG() << "----FAILED";
           return check;
         }
       } else if (llvm::isa<TransformValueHandleTypeInterface>(operandType)) {
         FULL_LDBG() << "--checkRepeatedConsumptionInOperand For Value";
-        DiagnosedSilenceableFailure check =
+        
+        if (DiagnosedSilenceableFailure check =
             checkRepeatedConsumptionInOperand<Value>(
                 getPayloadValuesView(operand.get()), transform,
-                operand.getOperandNumber());
-        if (!check.succeeded()) {
+                operand.getOperandNumber()); !check.succeeded()) {
           FULL_LDBG() << "----FAILED";
           return check;
         }
@@ -968,8 +968,8 @@ transform::TransformState::applyTransform(TransformOpInterface transform) {
   // Remove the mapping for the operand if it is consumed by the operation. This
   // allows us to catch use-after-free with assertions later on.
   for (OpOperand *opOperand : consumedOperands) {
-    Value operand = opOperand->get();
-    if (llvm::isa<TransformHandleTypeInterface>(operand.getType())) {
+    
+    if (Value operand = opOperand->get(); llvm::isa<TransformHandleTypeInterface>(operand.getType())) {
       forgetMapping(operand, origOpFlatResults);
     } else if (llvm::isa<TransformValueHandleTypeInterface>(
                    operand.getType())) {
@@ -1305,9 +1305,9 @@ void transform::TrackingListener::notifyOperationReplaced(
   // Check if there are any handles that must be updated.
   Value aliveHandle;
   if (config.skipHandleFn) {
-    auto it = llvm::find_if(opHandles,
-                            [&](Value v) { return !config.skipHandleFn(v); });
-    if (it != opHandles.end())
+    
+    if (auto it = llvm::find_if(opHandles,
+                            [&](Value v) { return !config.skipHandleFn(v); }); it != opHandles.end())
       aliveHandle = *it;
   } else if (!opHandles.empty()) {
     aliveHandle = opHandles.front();
@@ -1514,8 +1514,8 @@ void transform::detail::setApplyToOneResults(
   }
 
   for (OpResult r : transformOp->getResults()) {
-    unsigned position = r.getResultNumber();
-    if (llvm::isa<TransformParamTypeInterface>(r.getType())) {
+    
+    if (unsigned position = r.getResultNumber(); llvm::isa<TransformParamTypeInterface>(r.getType())) {
       transformResults.setParams(r,
                                  castVector<Attribute>(transposed[position]));
     } else if (llvm::isa<TransformValueHandleTypeInterface>(r.getType())) {
@@ -1970,8 +1970,8 @@ LogicalResult transform::detail::verifyTransformOpInterface(Operation *op) {
   }
 
   for (OpResult result : op->getResults()) {
-    auto range = effectsOn(result);
-    if (!::hasEffect<MemoryEffects::Allocate, TransformMappingResource>(
+    
+    if (auto range = effectsOn(result); !::hasEffect<MemoryEffects::Allocate, TransformMappingResource>(
             range)) {
       InFlightDiagnostic diag =
           op->emitError() << "TransformOpInterface requires 'allocate' memory "

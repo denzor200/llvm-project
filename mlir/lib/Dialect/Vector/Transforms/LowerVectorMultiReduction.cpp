@@ -186,8 +186,8 @@ public:
     bool isReductionDimScalable = false;
     for (const auto &it : llvm::enumerate(reductionMask)) {
       int64_t i = it.index();
-      bool isReduction = it.value();
-      if (isReduction) {
+      
+      if (bool isReduction = it.value(); isReduction) {
         reductionDims.push_back(i);
         reductionShapes.push_back(srcShape[i]);
         isReductionDimScalable |= srcScalableDims[i];

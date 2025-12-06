@@ -965,8 +965,8 @@ TEST_F(FileSystemTest, TempFileCollisions) {
   std::vector<fs::TempFile> TempFiles;
 
   auto TryCreateTempFile = [&]() {
-    Expected<fs::TempFile> T = fs::TempFile::create(Model);
-    if (T) {
+    
+    if (Expected<fs::TempFile> T = fs::TempFile::create(Model); T) {
       TempFiles.push_back(std::move(*T));
       return true;
     } else {
@@ -1961,8 +1961,8 @@ TEST_F(FileSystemTest, AppendSetsCorrectFileOffset) {
 static void verifyRead(int FD, StringRef Data, bool ShouldSucceed) {
   std::vector<char> Buffer;
   Buffer.resize(Data.size());
-  int Result = ::read(FD, Buffer.data(), Buffer.size());
-  if (ShouldSucceed) {
+  
+  if (int Result = ::read(FD, Buffer.data(), Buffer.size()); ShouldSucceed) {
     ASSERT_EQ((size_t)Result, Data.size());
     ASSERT_EQ(Data, StringRef(Buffer.data(), Buffer.size()));
   } else {
@@ -1972,8 +1972,8 @@ static void verifyRead(int FD, StringRef Data, bool ShouldSucceed) {
 }
 
 static void verifyWrite(int FD, StringRef Data, bool ShouldSucceed) {
-  int Result = ::write(FD, Data.data(), Data.size());
-  if (ShouldSucceed)
+  
+  if (int Result = ::write(FD, Data.data(), Data.size()); ShouldSucceed)
     ASSERT_EQ((size_t)Result, Data.size());
   else {
     ASSERT_EQ(-1, Result);
@@ -2092,8 +2092,8 @@ TEST_F(FileSystemTest, readNativeFileSlice) {
   auto Close = make_scope_exit([&] { fs::closeFile(*FD); });
   const auto &Read = [&](size_t Offset,
                          size_t ToRead) -> Expected<std::string> {
-    std::string Buf(ToRead, '?');
-    if (Expected<size_t> BytesRead = fs::readNativeFileSlice(
+    
+    if (std::string Buf(ToRead, '?'); Expected<size_t> BytesRead = fs::readNativeFileSlice(
             *FD, MutableArrayRef(&*Buf.begin(), Buf.size()), Offset))
       return Buf.substr(0, *BytesRead);
     else

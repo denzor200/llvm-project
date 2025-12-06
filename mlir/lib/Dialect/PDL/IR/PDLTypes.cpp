@@ -37,8 +37,8 @@ static Type parsePDLType(AsmParser &parser) {
   StringRef typeTag;
   {
     Type genType;
-    auto parseResult = generatedTypeParser(parser, &typeTag, genType);
-    if (parseResult.has_value())
+    
+    if (auto parseResult = generatedTypeParser(parser, &typeTag, genType); parseResult.has_value())
       return genType;
   }
 

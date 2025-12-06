@@ -163,8 +163,8 @@ public:
                                        TypedefNameDecl *DD) override {
     TD = TD->getCanonicalDecl();
     DD = DD->getCanonicalDecl();
-    TypedefNameDecl *&I = UnnamedTagDeclToTypedefNameDecl[TD];
-    if (!I)
+    
+    if (TypedefNameDecl *&I = UnnamedTagDeclToTypedefNameDecl[TD]; !I)
       I = DD;
   }
 
@@ -177,8 +177,8 @@ public:
                                       DeclaratorDecl *DD) override {
     TD = TD->getCanonicalDecl();
     DD = cast<DeclaratorDecl>(DD->getCanonicalDecl());
-    DeclaratorDecl *&I = UnnamedTagDeclToDeclaratorDecl[TD];
-    if (!I)
+    
+    if (DeclaratorDecl *&I = UnnamedTagDeclToDeclaratorDecl[TD]; !I)
       I = DD;
   }
 

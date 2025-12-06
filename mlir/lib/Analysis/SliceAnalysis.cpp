@@ -131,11 +131,11 @@ static LogicalResult getBackwardSliceImpl(Operation *op,
         return success();
 
       Block *block = blockArg.getOwner();
-      Operation *parentOp = block->getParentOp();
+      
       // TODO: determine whether we want to recurse backward into the other
       // blocks of parentOp, which are not technically backward unless they flow
       // into us. For now, just bail.
-      if (parentOp && backwardSlice->count(parentOp) == 0) {
+      if (Operation *parentOp = block->getParentOp(); parentOp && backwardSlice->count(parentOp) == 0) {
         if (!parentOp->hasTrait<OpTrait::IsIsolatedFromAbove>() &&
             parentOp->getNumRegions() == 1 &&
             parentOp->getRegion(0).hasOneBlock()) {

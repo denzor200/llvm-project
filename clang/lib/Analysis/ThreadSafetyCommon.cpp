@@ -268,11 +268,11 @@ til::SExpr *SExprBuilder::translateVariable(const VarDecl *VD,
       // lookup. This will fail with complex control-flow graphs (where we
       // revert to no alias resolution to retain stable variable names).
       if (const Expr *E = LookupLocalVarExpr(VD)) {
-        til::SExpr *Result = translate(E, Ctx);
+        
         // Unsupported expression (such as heap allocations) will be undefined;
         // rather than failing here, we simply revert to the pointer being the
         // canonical variable.
-        if (Result && !isa<til::Undefined>(Result))
+        if (til::SExpr *Result = translate(E, Ctx); Result && !isa<til::Undefined>(Result))
           return Result;
       }
     }
@@ -369,8 +369,8 @@ til::SExpr *SExprBuilder::translateDeclRefExpr(const DeclRefExpr *DRE,
     unsigned I = PV->getFunctionScopeIndex();
     const DeclContext *D = PV->getDeclContext();
     if (Ctx && Ctx->FunArgs) {
-      const Decl *Canonical = Ctx->AttrDecl->getCanonicalDecl();
-      if (isa<FunctionDecl>(D)
+      
+      if (const Decl *Canonical = Ctx->AttrDecl->getCanonicalDecl(); isa<FunctionDecl>(D)
               ? (cast<FunctionDecl>(D)->getCanonicalDecl() == Canonical)
               : (cast<ObjCMethodDecl>(D)->getCanonicalDecl() == Canonical)) {
         // Substitute call arguments for references to function parameters
@@ -424,8 +424,8 @@ static const ValueDecl *getValueDeclFromSExpr(const til::SExpr *E) {
 }
 
 static bool hasAnyPointerType(const til::SExpr *E) {
-  auto *VD = getValueDeclFromSExpr(E);
-  if (VD && VD->getType()->isAnyPointerType())
+  
+  if (auto *VD = getValueDeclFromSExpr(E); VD && VD->getType()->isAnyPointerType())
     return true;
   if (const auto *C = dyn_cast<til::Cast>(E))
     return C->castOpcode() == til::CAST_objToPtr;
@@ -520,8 +520,8 @@ til::SExpr *SExprBuilder::translateCXXOperatorCallExpr(
     const CXXOperatorCallExpr *OCE, CallingContext *Ctx) {
   if (CapabilityExprMode) {
     // Ignore operator * and operator -> on smart pointers.
-    OverloadedOperatorKind k = OCE->getOperator();
-    if (k == OO_Star || k == OO_Arrow) {
+    
+    if (OverloadedOperatorKind k = OCE->getOperator(); k == OO_Star || k == OO_Arrow) {
       auto *E = translate(OCE->getArg(0), Ctx);
       return new (Arena) til::Cast(til::CAST_objToPtr, E);
       // return E;
@@ -583,8 +583,8 @@ til::SExpr *SExprBuilder::translateBinOp(til::TIL_BinaryOpcode Op,
                                          const BinaryOperator *BO,
                                          CallingContext *Ctx, bool Reverse) {
    til::SExpr *E0 = translate(BO->getLHS(), Ctx);
-   til::SExpr *E1 = translate(BO->getRHS(), Ctx);
-   if (Reverse)
+   
+   if (til::SExpr *E1 = translate(BO->getRHS(), Ctx); Reverse)
      return new (Arena) til::BinaryOp(Op, E1, E0);
    else
      return new (Arena) til::BinaryOp(Op, E0, E1);
@@ -664,12 +664,12 @@ til::SExpr *SExprBuilder::translateBinaryOperator(const BinaryOperator *BO,
 
 til::SExpr *SExprBuilder::translateCastExpr(const CastExpr *CE,
                                             CallingContext *Ctx) {
-  CastKind K = CE->getCastKind();
-  switch (K) {
+  
+  switch (CastKind K = CE->getCastKind(); K) {
   case CK_LValueToRValue: {
     if (const auto *DRE = dyn_cast<DeclRefExpr>(CE->getSubExpr())) {
-      til::SExpr *E0 = lookupVarDecl(DRE->getDecl());
-      if (E0)
+      
+      if (til::SExpr *E0 = lookupVarDecl(DRE->getDecl()); E0)
         return E0;
     }
     til::SExpr *E0 = translate(CE->getSubExpr(), Ctx);
@@ -721,8 +721,8 @@ SExprBuilder::translateDeclStmt(const DeclStmt *S, CallingContext *Ctx) {
       til::SExpr* SE = translate(E, Ctx);
 
       // Add local variables with trivial type to the variable map
-      QualType T = VD->getType();
-      if (T.isTrivialType(VD->getASTContext()))
+      
+      if (QualType T = VD->getType(); T.isTrivialType(VD->getASTContext()))
         return addVarDecl(VD, SE);
       else {
         // TODO: add alloca
@@ -1015,8 +1015,8 @@ void SExprBuilder::exitCFGBlockBody(const CFGBlock *B) {
 
   // Create an appropriate terminator
   unsigned N = B->succ_size();
-  auto It = B->succ_begin();
-  if (N == 1) {
+  
+  if (auto It = B->succ_begin(); N == 1) {
     til::BasicBlock *BB = *It ? lookupBlock(*It) : nullptr;
     // TODO: set index
     unsigned Idx = BB ? BB->findPredecessorIndex(CurrentBB) : 0;

@@ -260,8 +260,8 @@ static void stubifyDirectory(const StringRef InputPath, Context &Ctx) {
     // Skip header directories (include/Headers/PrivateHeaders).
     StringRef Path = IT->path();
     if (sys::fs::is_directory(Path)) {
-      const StringRef Stem = sys::path::stem(Path);
-      if ((Stem == "include") || (Stem == "Headers") ||
+      
+      if (const StringRef Stem = sys::path::stem(Path); (Stem == "include") || (Stem == "Headers") ||
           (Stem == "PrivateHeaders") || (Stem == "Modules")) {
         IT.no_push();
         continue;
@@ -391,8 +391,8 @@ static void stubifyDirectory(const StringRef InputPath, Context &Ctx) {
     // libraries to stubify.
     StringRef LibToCheck = Found->second;
     for (int i = 0; i < 20; ++i) {
-      auto LinkIt = SymLinks.find(LibToCheck);
-      if (LinkIt != SymLinks.end()) {
+      
+      if (auto LinkIt = SymLinks.find(LibToCheck); LinkIt != SymLinks.end()) {
         for (auto &SymInfo : LinkIt->second) {
           SmallString<PATH_MAX> LinkSrc(SymInfo.SrcPath);
           SmallString<PATH_MAX> LinkTarget(SymInfo.LinkContent);

@@ -175,8 +175,8 @@ PartiallyInlineLibCallsPass::run(Function &F, FunctionAnalysisManager &AM) {
   auto &TLI = AM.getResult<TargetLibraryAnalysis>(F);
   auto &TTI = AM.getResult<TargetIRAnalysis>(F);
   auto *DT = AM.getCachedResult<DominatorTreeAnalysis>(F);
-  auto &ORE = AM.getResult<OptimizationRemarkEmitterAnalysis>(F);
-  if (!runPartiallyInlineLibCalls(F, &TLI, &TTI, DT, &ORE))
+  
+  if (auto &ORE = AM.getResult<OptimizationRemarkEmitterAnalysis>(F); !runPartiallyInlineLibCalls(F, &TLI, &TTI, DT, &ORE))
     return PreservedAnalyses::all();
   PreservedAnalyses PA;
   PA.preserve<DominatorTreeAnalysis>();

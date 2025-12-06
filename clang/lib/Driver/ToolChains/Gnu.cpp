@@ -54,8 +54,8 @@ static bool forwardToGCC(const Option &O) {
 static void normalizeCPUNamesForAssembler(const ArgList &Args,
                                           ArgStringList &CmdArgs) {
   if (Arg *A = Args.getLastArg(options::OPT_mcpu_EQ)) {
-    StringRef CPUArg(A->getValue());
-    if (CPUArg.equals_insensitive("krait"))
+    
+    if (StringRef CPUArg(A->getValue()); CPUArg.equals_insensitive("krait"))
       CmdArgs.push_back("-mcpu=cortex-a15");
     else if (CPUArg.equals_insensitive("kryo"))
       CmdArgs.push_back("-mcpu=cortex-a57");
@@ -188,9 +188,9 @@ void tools::gcc::Preprocessor::RenderExtraToolArgs(
 
 void tools::gcc::Compiler::RenderExtraToolArgs(const JobAction &JA,
                                                ArgStringList &CmdArgs) const {
-  const Driver &D = getToolChain().getDriver();
+  
 
-  switch (JA.getType()) {
+  switch (const Driver &D = getToolChain().getDriver(); JA.getType()) {
   // If -flto, etc. are present then make sure not to force assembly output.
   case types::TY_LLVM_IR:
   case types::TY_LTO_IR:
@@ -254,8 +254,8 @@ void tools::gnutools::StaticLibTool::ConstructJob(
 
   // Delete old output archive file if it already exists before generating a new
   // archive file.
-  auto OutputFileName = Output.getFilename();
-  if (Output.isFilename() && llvm::sys::fs::exists(OutputFileName)) {
+  
+  if (auto OutputFileName = Output.getFilename(); Output.isFilename() && llvm::sys::fs::exists(OutputFileName)) {
     if (std::error_code EC = llvm::sys::fs::remove(OutputFileName)) {
       D.Diag(diag::err_drv_unable_to_remove_file) << EC.message();
       return;
@@ -323,8 +323,8 @@ void tools::gnutools::Linker::ConstructJob(Compilation &C, const JobAction &JA,
   if (Arch == llvm::Triple::aarch64 && (isAndroid || isOHOSFamily) &&
       Args.hasFlag(options::OPT_mfix_cortex_a53_843419,
                    options::OPT_mno_fix_cortex_a53_843419, true)) {
-    std::string CPU = getCPUName(D, Args, Triple);
-    if (CPU.empty() || CPU == "generic" || CPU == "cortex-a53")
+    
+    if (std::string CPU = getCPUName(D, Args, Triple); CPU.empty() || CPU == "generic" || CPU == "cortex-a53")
       CmdArgs.push_back("--fix-cortex-a53-843419");
   }
 
@@ -406,9 +406,9 @@ void tools::gnutools::Linker::ConstructJob(Compilation &C, const JobAction &JA,
       std::string P;
       if (ToolChain.GetRuntimeLibType(Args) == ToolChain::RLT_CompilerRT &&
           !isAndroid) {
-        std::string crtbegin = ToolChain.getCompilerRT(Args, "crtbegin",
-                                                       ToolChain::FT_Object);
-        if (ToolChain.getVFS().exists(crtbegin))
+        
+        if (std::string crtbegin = ToolChain.getCompilerRT(Args, "crtbegin",
+                                                       ToolChain::FT_Object); ToolChain.getVFS().exists(crtbegin))
           P = crtbegin;
       }
       if (P.empty()) {
@@ -500,12 +500,12 @@ void tools::gnutools::Linker::ConstructJob(Compilation &C, const JobAction &JA,
                          Args.hasArg(options::OPT_pthreads);
 
       // Use the static OpenMP runtime with -static-openmp
-      bool StaticOpenMP = Args.hasArg(options::OPT_static_openmp) &&
-                          !Args.hasArg(options::OPT_static);
+      
 
       // FIXME: Only pass GompNeedsRT = true for platforms with libgomp that
       // require librt. Most modern Linux platforms do, but some may not.
-      if (addOpenMPRuntime(C, CmdArgs, ToolChain, Args, StaticOpenMP,
+      if (bool StaticOpenMP = Args.hasArg(options::OPT_static_openmp) &&
+                          !Args.hasArg(options::OPT_static); addOpenMPRuntime(C, CmdArgs, ToolChain, Args, StaticOpenMP,
                            JA.isHostOffloading(Action::OFK_OpenMP),
                            /* GompNeedsRT= */ true))
         // OpenMP runtimes implies pthreads when using the GNU toolchain.
@@ -557,9 +557,9 @@ void tools::gnutools::Linker::ConstructJob(Compilation &C, const JobAction &JA,
         std::string P;
         if (ToolChain.GetRuntimeLibType(Args) == ToolChain::RLT_CompilerRT &&
             !isAndroid) {
-          std::string crtend = ToolChain.getCompilerRT(Args, "crtend",
-                                                       ToolChain::FT_Object);
-          if (ToolChain.getVFS().exists(crtend))
+          
+          if (std::string crtend = ToolChain.getCompilerRT(Args, "crtend",
+                                                       ToolChain::FT_Object); ToolChain.getVFS().exists(crtend))
             P = crtend;
         }
         if (P.empty()) {
@@ -614,8 +614,8 @@ void tools::gnutools::Assembler::ConstructJob(Compilation &C,
     if (A->getOption().getID() == options::OPT_gz) {
       CmdArgs.push_back("--compress-debug-sections");
     } else {
-      StringRef Value = A->getValue();
-      if (Value == "none" || Value == "zlib" || Value == "zstd") {
+      
+      if (StringRef Value = A->getValue(); Value == "none" || Value == "zlib" || Value == "zstd") {
         CmdArgs.push_back(
             Args.MakeArgString("--compress-debug-sections=" + Twine(Value)));
       } else {
@@ -2058,8 +2058,8 @@ Generic_GCC::GCCVersion Generic_GCC::GCCVersion::Parse(StringRef VersionText) {
 
 static llvm::StringRef getGCCToolchainDir(const ArgList &Args,
                                           llvm::StringRef SysRoot) {
-  const Arg *A = Args.getLastArg(options::OPT_gcc_toolchain);
-  if (A)
+  
+  if (const Arg *A = Args.getLastArg(options::OPT_gcc_toolchain); A)
     return A->getValue();
 
   // If we have a SysRoot, ignore GCC_INSTALL_PREFIX.
@@ -2965,8 +2965,8 @@ bool Generic_GCC::GCCInstallationDetector::ScanGentooGccConfig(
 
       // Scan all paths for GCC libraries.
       for (const auto &GentooScanPath : GentooScanPaths) {
-        std::string GentooPath = concat(D.SysRoot, GentooScanPath);
-        if (D.getVFS().exists(GentooPath + "/crtbegin.o")) {
+        
+        if (std::string GentooPath = concat(D.SysRoot, GentooScanPath); D.getVFS().exists(GentooPath + "/crtbegin.o")) {
           if (!ScanGCCForMultilibs(TargetTriple, Args, GentooPath,
                                    NeedsBiarchSuffix))
             continue;
@@ -3183,8 +3183,8 @@ void Generic_GCC::AddMultilibIncludeArgs(const ArgList &DriverArgs,
                               Twine(LibPath) + "/../" + GCCTriple.str() +
                                   "/include");
 
-  const auto &Callback = Multilibs.includeDirsCallback();
-  if (Callback) {
+  
+  if (const auto &Callback = Multilibs.includeDirsCallback(); Callback) {
     for (const auto &Path : Callback(GCCInstallation.getMultilib()))
       addExternCSystemIncludeIfExists(DriverArgs, CC1Args,
                                       GCCInstallation.getInstallPath() + Path);

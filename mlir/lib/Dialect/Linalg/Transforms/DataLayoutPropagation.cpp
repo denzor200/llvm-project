@@ -394,8 +394,8 @@ packGenericOp(RewriterBase &rewriter, GenericOp genericOp, Value dest,
   if (isFoldableUnpackPack) {
     inputOperands = inputOperandsFromUnpackedSource;
     if (auto destPack = dest.getDefiningOp<linalg::PackOp>()) {
-      auto destUnPack = destPack.getSource().getDefiningOp<linalg::UnPackOp>();
-      if (destUnPack && hasEquivalentTiles(destPack, destUnPack)) {
+      
+      if (auto destUnPack = destPack.getSource().getDefiningOp<linalg::UnPackOp>(); destUnPack && hasEquivalentTiles(destPack, destUnPack)) {
         dest = destUnPack.getSource();
       }
     }
@@ -526,8 +526,8 @@ bubbleUpPackOpThroughGenericOp(RewriterBase &rewriter, linalg::PackOp packOp,
                                          emptyOp.getMixedSizes(),
                                          emptyOp.getType().getElementType());
   } else {
-    DominanceInfo dom(genericOp);
-    if (!dom.properlyDominates(packOpDest, genericOp))
+    
+    if (DominanceInfo dom(genericOp); !dom.properlyDominates(packOpDest, genericOp))
       return failure();
   }
 
@@ -696,8 +696,8 @@ projectToInnerMostNonUnitDimsPos(ArrayRef<int64_t> dimsPos,
     // In the case all dims are unit, this will return the inner-most one.
     int64_t projectedPos = reassocIndices[pos].back();
     for (auto i : llvm::reverse(reassocIndices[pos])) {
-      int64_t dim = targetShape[i];
-      if (dim > 1 || ShapedType::isDynamic(dim)) {
+      
+      if (int64_t dim = targetShape[i]; dim > 1 || ShapedType::isDynamic(dim)) {
         projectedPos = i;
         break;
       }
@@ -712,8 +712,8 @@ static bool isDimsDivisibleByTileSizes(ArrayRef<int64_t> dimsPos,
                                        ArrayRef<int64_t> shape,
                                        ArrayRef<int64_t> tileSizes) {
   for (auto [pos, tileSize] : llvm::zip_equal(dimsPos, tileSizes)) {
-    int64_t dim = shape[pos];
-    if (ShapedType::isDynamic(dim) || (dim % tileSize) != 0)
+    
+    if (int64_t dim = shape[pos]; ShapedType::isDynamic(dim) || (dim % tileSize) != 0)
       return false;
   }
   return true;
@@ -1386,8 +1386,8 @@ getPartialSliceDimInfo(GenericOp genericOp, OpOperand *sliceOperand) {
     if (operand == *sliceOperand) {
       continue;
     }
-    AffineMap IndexingMap = genericOp.getMatchingIndexingMap(&operand);
-    if (llvm::any_of(IndexingMap.getResults(), [&](AffineExpr expr) {
+    
+    if (AffineMap IndexingMap = genericOp.getMatchingIndexingMap(&operand); llvm::any_of(IndexingMap.getResults(), [&](AffineExpr expr) {
           if (isa<AffineDimExpr>(expr)) {
             return false;
           }

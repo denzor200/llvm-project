@@ -44,8 +44,8 @@ using namespace ento;
 
 const FunctionDecl *SVal::getAsFunctionDecl() const {
   if (std::optional<loc::MemRegionVal> X = getAs<loc::MemRegionVal>()) {
-    const MemRegion* R = X->getRegion();
-    if (const FunctionCodeRegion *CTR = R->getAs<FunctionCodeRegion>())
+    
+    if (const MemRegion* R = X->getRegion(); const FunctionCodeRegion *CTR = R->getAs<FunctionCodeRegion>())
       if (const auto *FD = dyn_cast<FunctionDecl>(CTR->getDecl()))
         return FD;
   }

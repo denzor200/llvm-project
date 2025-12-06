@@ -76,8 +76,8 @@ void dwarfgen::DIE::addAttribute(uint16_t A, dwarf::Form Form, const MCExpr &Exp
 
 void dwarfgen::DIE::addAttribute(uint16_t A, dwarf::Form Form,
                                  StringRef String) {
-  auto &DG = CU->getGenerator();
-  switch (Form) {
+  
+  switch (auto &DG = CU->getGenerator(); Form) {
   case DW_FORM_string:
     Die->addValue(DG.getAllocator(), static_cast<dwarf::Attribute>(A), Form,
                   new (DG.getAllocator())

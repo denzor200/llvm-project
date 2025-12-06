@@ -276,9 +276,9 @@ public:
 
       // If this state immediately follows an Expr, show its built-in model.
       if (ElementIndex > 0) {
-        auto S =
-            Iters.back().Block->Elements[ElementIndex - 1].getAs<CFGStmt>();
-        if (const Expr *E = S ? llvm::dyn_cast<Expr>(S->getStmt()) : nullptr) {
+        
+        if (auto S =
+            Iters.back().Block->Elements[ElementIndex - 1].getAs<CFGStmt>(); const Expr *E = S ? llvm::dyn_cast<Expr>(S->getStmt()) : nullptr) {
           if (E->isPRValue()) {
             if (!E->getType()->isRecordType())
               if (auto *V = State.Env.getValue(*E))
@@ -500,8 +500,8 @@ private:
     for (unsigned I = 0; I < CFG.getNumBlockIDs(); ++I) {
       std::string Name = blockID(I);
       // Rightwards arrow, vertical line
-      const char *ConvergenceMarker = (const char *)u8"\\n\u2192\u007c";
-      if (BlockConverged[I])
+      
+      if (const char *ConvergenceMarker = (const char *)u8"\\n\u2192\u007c"; BlockConverged[I])
         Name += ConvergenceMarker;
       GraphS << "  " << blockID(I) << " [id=" << blockID(I) << " label=\""
              << Name << "\"]\n";

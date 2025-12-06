@@ -121,8 +121,8 @@ void DbiModuleSourceFilesIterator::setValue() {
   }
 
   uint32_t Off = Modules->ModuleInitialFileIndex[Modi] + Filei;
-  auto ExpectedValue = Modules->getFileName(Off);
-  if (!ExpectedValue) {
+  
+  if (auto ExpectedValue = Modules->getFileName(Off); !ExpectedValue) {
     consumeError(ExpectedValue.takeError());
     Filei = Modules->getSourceFileCount(Modi);
   } else

@@ -117,12 +117,12 @@ static void removeElseAndBrackets(DiagnosticBuilder &Diag, ASTContext &Context,
   auto Remap = [&](SourceLocation Loc) {
     return Context.getSourceManager().getExpansionLoc(Loc);
   };
-  auto TokLen = [&](SourceLocation Loc) {
+  
+
+  if (auto TokLen = [&](SourceLocation Loc) {
     return Lexer::MeasureTokenLength(Loc, Context.getSourceManager(),
                                      Context.getLangOpts());
-  };
-
-  if (const auto *CS = dyn_cast<CompoundStmt>(Else)) {
+  }; const auto *CS = dyn_cast<CompoundStmt>(Else)) {
     Diag << tooling::fixit::createRemoval(ElseLoc);
     const SourceLocation LBrace = CS->getLBracLoc();
     const SourceLocation RBrace = CS->getRBracLoc();

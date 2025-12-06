@@ -453,10 +453,10 @@ static Error applyLibraryLinkModifiers(Session &S, LinkGraph &G) {
   // If there are hidden archives and this graph is an archive
   // member then apply hidden modifier.
   if (!S.HiddenArchives.empty()) {
-    StringRef ObjName(G.getName());
-    if (ObjName.ends_with(')')) {
-      auto LibName = ObjName.split('[').first;
-      if (S.HiddenArchives.count(LibName)) {
+    
+    if (StringRef ObjName(G.getName()); ObjName.ends_with(')')) {
+      
+      if (auto LibName = ObjName.split('[').first; S.HiddenArchives.count(LibName)) {
         for (auto *Sym : G.defined_symbols())
           Sym->setScope(std::max(Sym->getScope(), Scope::Hidden));
       }
@@ -485,8 +485,8 @@ static Error applyHarnessPromotions(Session &S, LinkGraph &G) {
       continue;
 
     if (Sym->getLinkage() == Linkage::Weak) {
-      auto It = S.CanonicalWeakDefs.find(*Sym->getName());
-      if (It == S.CanonicalWeakDefs.end() || It->second != G.getName()) {
+      
+      if (auto It = S.CanonicalWeakDefs.find(*Sym->getName()); It == S.CanonicalWeakDefs.end() || It->second != G.getName()) {
         LLVM_DEBUG({
           dbgs() << "  Externalizing weak symbol " << Sym->getName() << "\n";
         });
@@ -872,8 +872,8 @@ static Error loadDylibs(Session &S) {
   LLVM_DEBUG(dbgs() << "Loading dylibs...\n");
   for (const auto &Dylib : Dylibs) {
     LLVM_DEBUG(dbgs() << "  " << Dylib << "\n");
-    auto DL = S.getOrLoadDynamicLibrary(Dylib);
-    if (!DL)
+    
+    if (auto DL = S.getOrLoadDynamicLibrary(Dylib); !DL)
       return DL.takeError();
   }
 
@@ -933,8 +933,8 @@ static Expected<std::unique_ptr<ExecutorProcessControl>> launchExecutor() {
     }
 
     char *const Args[] = {ExecutorPath.get(), FDSpecifier.get(), nullptr};
-    int RC = execvp(ExecutorPath.get(), Args);
-    if (RC != 0) {
+    
+    if (int RC = execvp(ExecutorPath.get(), Args); RC != 0) {
       errs() << "unable to launch out-of-process executor \""
              << ExecutorPath.get() << "\"\n";
       exit(1);
@@ -1255,15 +1255,15 @@ Session::Session(std::unique_ptr<ExecutorProcessControl> EPC, Error &Err)
         return;
       }
     } else if (TT.isOSBinFormatCOFF()) {
-      auto LoadDynLibrary = [&, this](JITDylib &JD,
+      
+
+      if (auto LoadDynLibrary = [&, this](JITDylib &JD,
                                       StringRef DLLName) -> Error {
         if (!DLLName.ends_with_insensitive(".dll"))
           return make_error<StringError>("DLLName not ending with .dll",
                                          inconvertibleErrorCode());
         return loadAndLinkDynamicLibrary(JD, DLLName);
-      };
-
-      if (auto P =
+      }; auto P =
               COFFPlatform::Create(ObjLayer, *PlatformJD, OrcRuntime.c_str(),
                                    std::move(LoadDynLibrary)))
         ES.setPlatform(std::move(*P));
@@ -1296,9 +1296,9 @@ Session::Session(std::unique_ptr<ExecutorProcessControl> EPC, Error &Err)
       ObjLayer.addPlugin(ExitOnErr(EHFrameRegistrationPlugin::Create(ES)));
     if (DebuggerSupport) {
       Error TargetSymErr = Error::success();
-      auto Plugin =
-          std::make_unique<ELFDebugObjectPlugin>(ES, true, true, TargetSymErr);
-      if (!TargetSymErr)
+      
+      if (auto Plugin =
+          std::make_unique<ELFDebugObjectPlugin>(ES, true, true, TargetSymErr); !TargetSymErr)
         ObjLayer.addPlugin(std::move(Plugin));
       else
         logAllUnhandledErrors(std::move(TargetSymErr), errs(),
@@ -1678,8 +1678,8 @@ static std::pair<Triple, SubtargetFeatures> getFirstFileTripleAndFeatures() {
 
     for (auto InputFile : InputFiles) {
       auto ObjBuffer = ExitOnErr(getFile(InputFile));
-      file_magic Magic = identify_magic(ObjBuffer->getBuffer());
-      switch (Magic) {
+      
+      switch (file_magic Magic = identify_magic(ObjBuffer->getBuffer()); Magic) {
       case file_magic::coff_object:
       case file_magic::elf_relocatable:
       case file_magic::macho_object: {
@@ -2026,8 +2026,8 @@ static Error addAliases(Session &S,
   }
 
   for (auto &[JDs, AliasMap] : Reexports) {
-    auto [DstJD, SrcJD] = JDs;
-    if (auto Err = DstJD->define(reexports(*SrcJD, std::move(AliasMap))))
+    
+    if (auto [DstJD, SrcJD] = JDs; auto Err = DstJD->define(reexports(*SrcJD, std::move(AliasMap))))
       return Err;
   }
 
@@ -2736,8 +2736,8 @@ static Error runChecks(Session &S, Triple TT, SubtargetFeatures Features) {
 
   std::string CheckLineStart = "# " + CheckName + ":";
   for (auto &CheckFile : CheckFiles) {
-    auto CheckerFileBuf = ExitOnErr(getFile(CheckFile));
-    if (!Checker.checkAllRulesInBuffer(CheckLineStart, &*CheckerFileBuf))
+    
+    if (auto CheckerFileBuf = ExitOnErr(getFile(CheckFile)); !Checker.checkAllRulesInBuffer(CheckLineStart, &*CheckerFileBuf))
       ExitOnErr(make_error<StringError>(
           "Some checks in " + CheckFile + " failed", inconvertibleErrorCode()));
   }

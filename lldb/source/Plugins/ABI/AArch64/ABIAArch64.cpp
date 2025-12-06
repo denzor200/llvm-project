@@ -179,10 +179,10 @@ void ABIAArch64::AugmentRegisterInfo(
 
   auto bool_predicate = [](const auto &reg_num) { return bool(reg_num); };
   bool saw_v_regs = llvm::any_of(v_regs, bool_predicate);
-  bool saw_z_regs = llvm::any_of(z_regs, bool_predicate);
+  
 
   // Sn/Dn for Vn.
-  if (saw_v_regs) {
+  if (bool saw_z_regs = llvm::any_of(z_regs, bool_predicate); saw_v_regs) {
     addPartialRegisters(regs, v_regs, 16, "s{0}", 4, lldb::eEncodingIEEE754,
                         lldb::eFormatFloat);
     addPartialRegisters(regs, v_regs, 16, "d{0}", 8, lldb::eEncodingIEEE754,

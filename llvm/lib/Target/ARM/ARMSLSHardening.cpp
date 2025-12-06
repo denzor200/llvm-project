@@ -82,12 +82,12 @@ static void insertSpeculationBarrier(const ARMSubtarget *ST,
   const TargetInstrInfo *TII = ST->getInstrInfo();
   assert(ST->hasDataBarrier() || ST->hasSB());
   bool ProduceSB = ST->hasSB() && !AlwaysUseISBDSB;
-  unsigned BarrierOpc =
+  
+  if (unsigned BarrierOpc =
       ProduceSB ? (ST->isThumb() ? ARM::t2SpeculationBarrierSBEndBB
                                  : ARM::SpeculationBarrierSBEndBB)
                 : (ST->isThumb() ? ARM::t2SpeculationBarrierISBDSBEndBB
-                                 : ARM::SpeculationBarrierISBDSBEndBB);
-  if (MBBI == MBB.end() || !isSpeculationBarrierEndBBOpcode(MBBI->getOpcode()))
+                                 : ARM::SpeculationBarrierISBDSBEndBB); MBBI == MBB.end() || !isSpeculationBarrierEndBBOpcode(MBBI->getOpcode()))
     BuildMI(MBB, MBBI, DL, TII->get(BarrierOpc));
 }
 

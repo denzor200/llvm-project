@@ -155,8 +155,8 @@ REGISTER_MAP_WITH_PROGRAMSTATE(AllocatedData,
 static bool isEnclosingFunctionParam(const Expr *E) {
   E = E->IgnoreParenCasts();
   if (const DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(E)) {
-    const ValueDecl *VD = DRE->getDecl();
-    if (isa<ImplicitParamDecl, ParmVarDecl>(VD))
+    
+    if (const ValueDecl *VD = DRE->getDecl(); isa<ImplicitParamDecl, ParmVarDecl>(VD))
       return true;
   }
   return false;
@@ -207,8 +207,8 @@ static SymbolRef getAsPointeeSymbol(const Expr *Expr,
 
   if (std::optional<loc::MemRegionVal> X = ArgV.getAs<loc::MemRegionVal>()) {
     StoreManager& SM = C.getStoreManager();
-    SymbolRef sym = SM.getBinding(State->getStore(), *X).getAsLocSymbol();
-    if (sym)
+    
+    if (SymbolRef sym = SM.getBinding(State->getStore(), *X).getAsLocSymbol(); sym)
       return sym;
   }
   return nullptr;
@@ -450,8 +450,8 @@ MacOSKeychainAPIChecker::getAllocationNode(const ExplodedNode *N,
       break;
     // Allocation node, is the last node in the current or parent context in
     // which the symbol was tracked.
-    const LocationContext *NContext = N->getLocationContext();
-    if (NContext == LeakContext ||
+    
+    if (const LocationContext *NContext = N->getLocationContext(); NContext == LeakContext ||
         NContext->isParentOf(LeakContext))
       AllocNode = N;
     N = N->pred_empty() ? nullptr : *(N->pred_begin());
@@ -474,9 +474,9 @@ MacOSKeychainAPIChecker::generateAllocatedDataNotReleasedReport(
   // allocated, and only report a single path.
   PathDiagnosticLocation LocUsedForUniqueing;
   const ExplodedNode *AllocNode = getAllocationNode(N, AP.first, C);
-  const Stmt *AllocStmt = AllocNode->getStmtForDiagnostics();
+  
 
-  if (AllocStmt)
+  if (const Stmt *AllocStmt = AllocNode->getStmtForDiagnostics(); AllocStmt)
     LocUsedForUniqueing = PathDiagnosticLocation::createBegin(AllocStmt,
                                               C.getSourceManager(),
                                               AllocNode->getLocationContext());
@@ -598,8 +598,8 @@ ProgramStateRef MacOSKeychainAPIChecker::checkPointerEscape(
     // symbol escapes.
     //
     if (const auto *SD = dyn_cast<SymbolDerived>(Sym)) {
-      SymbolRef ParentSym = SD->getParentSymbol();
-      if (Escaped.count(ParentSym))
+      
+      if (SymbolRef ParentSym = SD->getParentSymbol(); Escaped.count(ParentSym))
         State = State->remove<AllocatedData>(Sym);
     }
   }
@@ -610,8 +610,8 @@ PathDiagnosticPieceRef
 MacOSKeychainAPIChecker::SecKeychainBugVisitor::VisitNode(
     const ExplodedNode *N, BugReporterContext &BRC,
     PathSensitiveBugReport &BR) {
-  const AllocationState *AS = N->getState()->get<AllocatedData>(Sym);
-  if (!AS)
+  
+  if (const AllocationState *AS = N->getState()->get<AllocatedData>(Sym); !AS)
     return nullptr;
   const AllocationState *ASPrev =
       N->getFirstPred()->getState()->get<AllocatedData>(Sym);
@@ -641,9 +641,9 @@ void MacOSKeychainAPIChecker::printState(raw_ostream &Out,
                                          const char *NL,
                                          const char *Sep) const {
 
-  AllocatedDataTy AMap = State->get<AllocatedData>();
+  
 
-  if (!AMap.isEmpty()) {
+  if (AllocatedDataTy AMap = State->get<AllocatedData>(); !AMap.isEmpty()) {
     Out << Sep << "KeychainAPIChecker :" << NL;
     for (SymbolRef Sym : llvm::make_first_range(AMap)) {
       Sym->dumpToStream(Out);

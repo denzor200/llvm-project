@@ -144,8 +144,8 @@ void RISCVELFTargetObjectFile::getModuleMetadata(Module &M) {
   M.getModuleFlagsMetadata(ModuleFlags);
 
   for (const auto &MFE : ModuleFlags) {
-    StringRef Key = MFE.Key->getString();
-    if (Key == "SmallDataLimit") {
+    
+    if (StringRef Key = MFE.Key->getString(); Key == "SmallDataLimit") {
       SSThreshold = mdconst::extract<ConstantInt>(MFE.Val)->getZExtValue();
       break;
     }

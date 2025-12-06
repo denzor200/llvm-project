@@ -114,8 +114,8 @@ void EnumSizeCheck::check(const MatchFinder::MatchResult &Result) {
   std::uint64_t MaxV = 0U;
 
   for (const auto &It : MatchedDecl->enumerators()) {
-    const llvm::APSInt &InitVal = It->getInitVal();
-    if ((InitVal.isUnsigned() || InitVal.isNonNegative())) {
+    
+    if (const llvm::APSInt &InitVal = It->getInitVal(); (InitVal.isUnsigned() || InitVal.isNonNegative())) {
       MaxV = std::max<std::uint64_t>(MaxV, InitVal.getZExtValue());
     } else {
       MinV = std::max<std::uint64_t>(MinV, InitVal.abs().getZExtValue());

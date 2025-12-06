@@ -427,8 +427,8 @@ static bool containsOnlyMatrMultAcc(isl::map PartialSchedule,
 
   auto Accesses = getAccessesInOrder(*Stmt);
   for (auto *MemA = Accesses.begin(); MemA != Accesses.end() - 1; MemA++) {
-    auto *MemAccessPtr = *MemA;
-    if (MemAccessPtr->isLatestArrayKind() && MemAccessPtr != MMI.WriteToC &&
+    
+    if (auto *MemAccessPtr = *MemA; MemAccessPtr->isLatestArrayKind() && MemAccessPtr != MMI.WriteToC &&
         !isMatMulNonScalarReadAccess(MemAccessPtr, MMI) &&
         !(MemAccessPtr->isStrideZero(MapI) &&
           MemAccessPtr->isStrideZero(MapJ) && MemAccessPtr->isStrideZero(MapK)))

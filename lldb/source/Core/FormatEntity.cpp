@@ -303,16 +303,16 @@ std::vector<Entry> &FormatEntity::Entry::GetChildren() {
 }
 
 void FormatEntity::Entry::AppendChar(char ch) {
-  auto &entries = GetChildren();
-  if (entries.empty() || entries.back().type != Entry::Type::String)
+  
+  if (auto &entries = GetChildren(); entries.empty() || entries.back().type != Entry::Type::String)
     entries.push_back(Entry(ch));
   else
     entries.back().string.append(1, ch);
 }
 
 void FormatEntity::Entry::AppendText(const llvm::StringRef &s) {
-  auto &entries = GetChildren();
-  if (entries.empty() || entries.back().type != Entry::Type::String)
+  
+  if (auto &entries = GetChildren(); entries.empty() || entries.back().type != Entry::Type::String)
     entries.push_back(Entry(s));
   else
     entries.back().string.append(s.data(), s.size());
@@ -446,16 +446,16 @@ template <typename T>
 static bool RunScriptFormatKeyword(Stream &s, const SymbolContext *sc,
                                    const ExecutionContext *exe_ctx, T t,
                                    const char *script_function_name) {
-  Target *target = Target::GetTargetFromContexts(exe_ctx, sc);
+  
 
-  if (target) {
-    ScriptInterpreter *script_interpreter =
-        target->GetDebugger().GetScriptInterpreter();
-    if (script_interpreter) {
+  if (Target *target = Target::GetTargetFromContexts(exe_ctx, sc); target) {
+    
+    if (ScriptInterpreter *script_interpreter =
+        target->GetDebugger().GetScriptInterpreter(); script_interpreter) {
       Status error;
-      std::string script_output;
+      
 
-      if (script_interpreter->RunScriptFormatKeyword(script_function_name, t,
+      if (std::string script_output; script_interpreter->RunScriptFormatKeyword(script_function_name, t,
                                                      script_output, error) &&
           error.Success()) {
         s.Printf("%s", script_output.c_str());
@@ -514,8 +514,8 @@ static bool DumpAddressOffsetFromFunction(Stream &s, const SymbolContext *sc,
           // the inline block range that contains "format_addr" since blocks
           // can be discontiguous.
           Block *inline_block = sc->block->GetContainingInlinedBlock();
-          AddressRange inline_range;
-          if (inline_block && inline_block->GetRangeContainingAddress(
+          
+          if (AddressRange inline_range; inline_block && inline_block->GetRangeContainingAddress(
                                   format_addr, inline_range))
             func_addr = inline_range.GetBaseAddress();
         }
@@ -524,12 +524,12 @@ static bool DumpAddressOffsetFromFunction(Stream &s, const SymbolContext *sc,
     }
 
     if (func_addr.IsValid()) {
-      const char *addr_offset_padding = no_padding ? "" : " ";
+      
 
-      if (func_addr.GetModule() == format_addr.GetModule()) {
+      if (const char *addr_offset_padding = no_padding ? "" : " "; func_addr.GetModule() == format_addr.GetModule()) {
         addr_t func_file_addr = func_addr.GetFileAddress();
-        addr_t addr_file_addr = format_addr.GetFileAddress();
-        if (addr_file_addr > func_file_addr ||
+        
+        if (addr_t addr_file_addr = format_addr.GetFileAddress(); addr_file_addr > func_file_addr ||
             (addr_file_addr == func_file_addr && print_zero_offsets)) {
           s.Printf("%s+%s%" PRIu64, addr_offset_padding, addr_offset_padding,
                    addr_file_addr - func_file_addr);
@@ -539,11 +539,11 @@ static bool DumpAddressOffsetFromFunction(Stream &s, const SymbolContext *sc,
         }
         return true;
       } else {
-        Target *target = Target::GetTargetFromContexts(exe_ctx, sc);
-        if (target) {
+        
+        if (Target *target = Target::GetTargetFromContexts(exe_ctx, sc); target) {
           addr_t func_load_addr = func_addr.GetLoadAddress(target);
-          addr_t addr_load_addr = format_addr.GetLoadAddress(target);
-          if (addr_load_addr > func_load_addr ||
+          
+          if (addr_t addr_load_addr = format_addr.GetLoadAddress(target); addr_load_addr > func_load_addr ||
               (addr_load_addr == func_load_addr && print_zero_offsets)) {
             s.Printf("%s+%s%" PRIu64, addr_offset_padding, addr_offset_padding,
                      addr_load_addr - func_load_addr);
@@ -587,9 +587,9 @@ static bool ScanBracketedRange(llvm::StringRef subpath,
           "[ScanBracketedRange] '[]' detected.. going from 0 to end of data");
       index_lower = 0;
     } else {
-      const size_t separator_index = subpath.find('-', open_bracket_index + 1);
+      
 
-      if (separator_index == llvm::StringRef::npos) {
+      if (const size_t separator_index = subpath.find('-', open_bracket_index + 1); separator_index == llvm::StringRef::npos) {
         const char *index_lower_cstr = subpath.data() + open_bracket_index + 1;
         index_lower = ::strtoul(index_lower_cstr, nullptr, 0);
         index_higher = index_lower;
@@ -649,17 +649,17 @@ static bool DumpFile(Stream &s, const FileSpec &file, FileKind file_kind) {
 static bool DumpRegister(Stream &s, StackFrame *frame, RegisterKind reg_kind,
                          uint32_t reg_num, Format format) {
   if (frame) {
-    RegisterContext *reg_ctx = frame->GetRegisterContext().get();
+    
 
-    if (reg_ctx) {
-      const uint32_t lldb_reg_num =
-          reg_ctx->ConvertRegisterKindToRegisterNumber(reg_kind, reg_num);
-      if (lldb_reg_num != LLDB_INVALID_REGNUM) {
-        const RegisterInfo *reg_info =
-            reg_ctx->GetRegisterInfoAtIndex(lldb_reg_num);
-        if (reg_info) {
-          RegisterValue reg_value;
-          if (reg_ctx->ReadRegister(reg_info, reg_value)) {
+    if (RegisterContext *reg_ctx = frame->GetRegisterContext().get(); reg_ctx) {
+      
+      if (const uint32_t lldb_reg_num =
+          reg_ctx->ConvertRegisterKindToRegisterNumber(reg_kind, reg_num); lldb_reg_num != LLDB_INVALID_REGNUM) {
+        
+        if (const RegisterInfo *reg_info =
+            reg_ctx->GetRegisterInfoAtIndex(lldb_reg_num); reg_info) {
+          
+          if (RegisterValue reg_value; reg_ctx->ReadRegister(reg_info, reg_value)) {
             DumpRegisterValue(reg_value, s, *reg_info, false, false, format);
             return true;
           }
@@ -729,17 +729,17 @@ static bool DumpValueWithLLVMFormat(Stream &s, llvm::StringRef options,
   std::string formatted;
   std::string llvm_format = ("{0:" + options + "}").str();
 
-  auto type_info = valobj.GetTypeInfo();
-  if ((type_info & eTypeIsInteger) && LLVMFormatPattern.match(options)) {
+  
+  if (auto type_info = valobj.GetTypeInfo(); (type_info & eTypeIsInteger) && LLVMFormatPattern.match(options)) {
     if (type_info & eTypeIsSigned) {
       bool success = false;
-      int64_t integer = valobj.GetValueAsSigned(0, &success);
-      if (success)
+      
+      if (int64_t integer = valobj.GetValueAsSigned(0, &success); success)
         formatted = llvm::formatv(llvm_format.data(), integer);
     } else {
       bool success = false;
-      uint64_t integer = valobj.GetValueAsUnsigned(0, &success);
-      if (success)
+      
+      if (uint64_t integer = valobj.GetValueAsUnsigned(0, &success); success)
         formatted = llvm::formatv(llvm_format.data(), integer);
     }
   }
@@ -906,9 +906,9 @@ static bool DumpValue(Stream &s, const SymbolContext *sc,
     StreamString bitfield_name;
     bitfield_name.Printf("%s:%d", target->GetTypeName().AsCString(),
                          target->GetBitfieldBitSize());
-    auto type_sp = std::make_shared<TypeNameSpecifierImpl>(
-        bitfield_name.GetString(), lldb::eFormatterMatchExact);
-    if (val_obj_display ==
+    
+    if (auto type_sp = std::make_shared<TypeNameSpecifierImpl>(
+        bitfield_name.GetString(), lldb::eFormatterMatchExact); val_obj_display ==
             ValueObject::eValueObjectRepresentationStyleSummary &&
         !DataVisualization::GetSummaryForType(type_sp))
       val_obj_display = ValueObject::eValueObjectRepresentationStyleValue;
@@ -1005,9 +1005,9 @@ static bool DumpValue(Stream &s, const SymbolContext *sc,
                                        additional_data.GetCString());
 
       if (entry.fmt != eFormatDefault) {
-        const char format_char =
-            FormatManager::GetFormatAsFormatChar(entry.fmt);
-        if (format_char != '\0')
+        
+        if (const char format_char =
+            FormatManager::GetFormatAsFormatChar(entry.fmt); format_char != '\0')
           special_directions_stream.Printf("%%%c", format_char);
         else {
           const char *format_cstr =
@@ -1015,9 +1015,9 @@ static bool DumpValue(Stream &s, const SymbolContext *sc,
           special_directions_stream.Printf("%%%s", format_cstr);
         }
       } else if (entry.number != 0) {
-        const char style_char = ConvertValueObjectStyleToChar(
-            (ValueObject::ValueObjectRepresentationStyle)entry.number);
-        if (style_char)
+        
+        if (const char style_char = ConvertValueObjectStyleToChar(
+            (ValueObject::ValueObjectRepresentationStyle)entry.number); style_char)
           special_directions_stream.Printf("%%%c", style_char);
       }
       special_directions_stream.PutChar('}');
@@ -1074,13 +1074,13 @@ static bool DumpValue(Stream &s, const SymbolContext *sc,
 static bool DumpRegister(Stream &s, StackFrame *frame, const char *reg_name,
                          Format format) {
   if (frame) {
-    RegisterContext *reg_ctx = frame->GetRegisterContext().get();
+    
 
-    if (reg_ctx) {
-      const RegisterInfo *reg_info = reg_ctx->GetRegisterInfoByName(reg_name);
-      if (reg_info) {
-        RegisterValue reg_value;
-        if (reg_ctx->ReadRegister(reg_info, reg_value)) {
+    if (RegisterContext *reg_ctx = frame->GetRegisterContext().get(); reg_ctx) {
+      
+      if (const RegisterInfo *reg_info = reg_ctx->GetRegisterInfoByName(reg_name); reg_info) {
+        
+        if (RegisterValue reg_value; reg_ctx->ReadRegister(reg_info, reg_value)) {
           DumpRegisterValue(reg_value, s, *reg_info, false, false, format);
           return true;
         }
@@ -1142,11 +1142,11 @@ static std::pair<char const *, char const *>
 ParseBaseName(char const *full_name) {
   const char *open_paren = strchr(full_name, '(');
   const char *close_paren = nullptr;
-  const char *generic = strchr(full_name, '<');
+  
   // if before the arguments list begins there is a template sign
   // then scan to the end of the generic args before you try to find
   // the arguments list
-  if (generic && open_paren && generic < open_paren) {
+  if (const char *generic = strchr(full_name, '<'); generic && open_paren && generic < open_paren) {
     int generic_depth = 1;
     ++generic;
     for (; *generic && generic_depth > 0; generic++) {
@@ -1308,8 +1308,8 @@ bool FormatEntity::FormatStringRef(const llvm::StringRef &format_str, Stream &s,
                                    bool initial_function) {
   if (!format_str.empty()) {
     FormatEntity::Entry root;
-    Status error = FormatEntity::Parse(format_str, root);
-    if (error.Success()) {
+    
+    if (Status error = FormatEntity::Parse(format_str, root); error.Success()) {
       return FormatEntity::Format(root, s, sc, exe_ctx, addr, valobj,
                                   function_changed, initial_function);
     }
@@ -1331,8 +1331,8 @@ bool FormatEntity::Format(const Entry &entry, Stream &s,
     return false;
   case Entry::Type::EscapeCode:
     if (Target *target = Target::GetTargetFromContexts(exe_ctx, sc)) {
-      Debugger &debugger = target->GetDebugger();
-      if (debugger.GetUseColor()) {
+      
+      if (Debugger &debugger = target->GetDebugger(); debugger.GetUseColor()) {
         s.PutCString(entry.string);
       }
     }
@@ -1391,8 +1391,8 @@ bool FormatEntity::Format(const Entry &entry, Stream &s,
 
   case Entry::Type::ProcessID:
     if (exe_ctx) {
-      Process *process = exe_ctx->GetProcessPtr();
-      if (process) {
+      
+      if (Process *process = exe_ctx->GetProcessPtr(); process) {
         const char *format = "%" PRIu64;
         if (!entry.printf_format.empty())
           format = entry.printf_format.c_str();
@@ -1404,10 +1404,10 @@ bool FormatEntity::Format(const Entry &entry, Stream &s,
 
   case Entry::Type::ProcessFile:
     if (exe_ctx) {
-      Process *process = exe_ctx->GetProcessPtr();
-      if (process) {
-        Module *exe_module = process->GetTarget().GetExecutableModulePointer();
-        if (exe_module) {
+      
+      if (Process *process = exe_ctx->GetProcessPtr(); process) {
+        
+        if (Module *exe_module = process->GetTarget().GetExecutableModulePointer(); exe_module) {
           if (DumpFile(s, exe_module->GetFileSpec(), (FileKind)entry.number))
             return true;
         }
@@ -1417,8 +1417,8 @@ bool FormatEntity::Format(const Entry &entry, Stream &s,
 
   case Entry::Type::ScriptProcess:
     if (exe_ctx) {
-      Process *process = exe_ctx->GetProcessPtr();
-      if (process)
+      
+      if (Process *process = exe_ctx->GetProcessPtr(); process)
         return RunScriptFormatKeyword(s, sc, exe_ctx, process,
                                       entry.string.c_str());
     }
@@ -1426,8 +1426,8 @@ bool FormatEntity::Format(const Entry &entry, Stream &s,
 
   case Entry::Type::ThreadID:
     if (exe_ctx) {
-      Thread *thread = exe_ctx->GetThreadPtr();
-      if (thread) {
+      
+      if (Thread *thread = exe_ctx->GetThreadPtr(); thread) {
         const char *format = "0x%4.4" PRIx64;
         if (!entry.printf_format.empty()) {
           // Watch for the special "tid" format...
@@ -1437,10 +1437,10 @@ bool FormatEntity::Format(const Entry &entry, Stream &s,
             // value of the setting can be different depending on the platform.
             Target &target = thread->GetProcess()->GetTarget();
             ArchSpec arch(target.GetArchitecture());
-            llvm::Triple::OSType ostype = arch.IsValid()
+            
+            if (llvm::Triple::OSType ostype = arch.IsValid()
                                               ? arch.GetTriple().getOS()
-                                              : llvm::Triple::UnknownOS;
-            if (ostype == llvm::Triple::FreeBSD ||
+                                              : llvm::Triple::UnknownOS; ostype == llvm::Triple::FreeBSD ||
                 ostype == llvm::Triple::Linux ||
                 ostype == llvm::Triple::NetBSD ||
                 ostype == llvm::Triple::OpenBSD) {
@@ -1458,8 +1458,8 @@ bool FormatEntity::Format(const Entry &entry, Stream &s,
 
   case Entry::Type::ThreadProtocolID:
     if (exe_ctx) {
-      Thread *thread = exe_ctx->GetThreadPtr();
-      if (thread) {
+      
+      if (Thread *thread = exe_ctx->GetThreadPtr(); thread) {
         const char *format = "0x%4.4" PRIx64;
         if (!entry.printf_format.empty())
           format = entry.printf_format.c_str();
@@ -1471,8 +1471,8 @@ bool FormatEntity::Format(const Entry &entry, Stream &s,
 
   case Entry::Type::ThreadIndexID:
     if (exe_ctx) {
-      Thread *thread = exe_ctx->GetThreadPtr();
-      if (thread) {
+      
+      if (Thread *thread = exe_ctx->GetThreadPtr(); thread) {
         const char *format = "%" PRIu32;
         if (!entry.printf_format.empty())
           format = entry.printf_format.c_str();
@@ -1484,10 +1484,10 @@ bool FormatEntity::Format(const Entry &entry, Stream &s,
 
   case Entry::Type::ThreadName:
     if (exe_ctx) {
-      Thread *thread = exe_ctx->GetThreadPtr();
-      if (thread) {
-        const char *cstr = thread->GetName();
-        if (cstr && cstr[0]) {
+      
+      if (Thread *thread = exe_ctx->GetThreadPtr(); thread) {
+        
+        if (const char *cstr = thread->GetName(); cstr && cstr[0]) {
           s.PutCString(cstr);
           return true;
         }
@@ -1497,10 +1497,10 @@ bool FormatEntity::Format(const Entry &entry, Stream &s,
 
   case Entry::Type::ThreadQueue:
     if (exe_ctx) {
-      Thread *thread = exe_ctx->GetThreadPtr();
-      if (thread) {
-        const char *cstr = thread->GetQueueName();
-        if (cstr && cstr[0]) {
+      
+      if (Thread *thread = exe_ctx->GetThreadPtr(); thread) {
+        
+        if (const char *cstr = thread->GetQueueName(); cstr && cstr[0]) {
           s.PutCString(cstr);
           return true;
         }
@@ -1511,8 +1511,8 @@ bool FormatEntity::Format(const Entry &entry, Stream &s,
   case Entry::Type::ThreadStopReason:
     if (exe_ctx) {
       if (Thread *thread = exe_ctx->GetThreadPtr()) {
-        std::string stop_description = thread->GetStopDescription();
-        if (!stop_description.empty()) {
+        
+        if (std::string stop_description = thread->GetStopDescription(); !stop_description.empty()) {
           s.PutCString(stop_description);
           return true;
         }
@@ -1523,8 +1523,8 @@ bool FormatEntity::Format(const Entry &entry, Stream &s,
   case Entry::Type::ThreadStopReasonRaw:
     if (exe_ctx) {
       if (Thread *thread = exe_ctx->GetThreadPtr()) {
-        std::string stop_description = thread->GetStopDescriptionRaw();
-        if (!stop_description.empty()) {
+        
+        if (std::string stop_description = thread->GetStopDescriptionRaw(); !stop_description.empty()) {
           s.PutCString(stop_description);
           return true;
         }
@@ -1534,13 +1534,13 @@ bool FormatEntity::Format(const Entry &entry, Stream &s,
 
   case Entry::Type::ThreadReturnValue:
     if (exe_ctx) {
-      Thread *thread = exe_ctx->GetThreadPtr();
-      if (thread) {
-        StopInfoSP stop_info_sp = thread->GetStopInfo();
-        if (stop_info_sp && stop_info_sp->IsValid()) {
-          ValueObjectSP return_valobj_sp =
-              StopInfo::GetReturnValueObject(stop_info_sp);
-          if (return_valobj_sp) {
+      
+      if (Thread *thread = exe_ctx->GetThreadPtr(); thread) {
+        
+        if (StopInfoSP stop_info_sp = thread->GetStopInfo(); stop_info_sp && stop_info_sp->IsValid()) {
+          
+          if (ValueObjectSP return_valobj_sp =
+              StopInfo::GetReturnValueObject(stop_info_sp); return_valobj_sp) {
             if (llvm::Error error = return_valobj_sp->Dump(s)) {
               s << "error: " << toString(std::move(error));
               return false;
@@ -1554,13 +1554,13 @@ bool FormatEntity::Format(const Entry &entry, Stream &s,
 
   case Entry::Type::ThreadCompletedExpression:
     if (exe_ctx) {
-      Thread *thread = exe_ctx->GetThreadPtr();
-      if (thread) {
-        StopInfoSP stop_info_sp = thread->GetStopInfo();
-        if (stop_info_sp && stop_info_sp->IsValid()) {
-          ExpressionVariableSP expression_var_sp =
-              StopInfo::GetExpressionVariable(stop_info_sp);
-          if (expression_var_sp && expression_var_sp->GetValueObject()) {
+      
+      if (Thread *thread = exe_ctx->GetThreadPtr(); thread) {
+        
+        if (StopInfoSP stop_info_sp = thread->GetStopInfo(); stop_info_sp && stop_info_sp->IsValid()) {
+          
+          if (ExpressionVariableSP expression_var_sp =
+              StopInfo::GetExpressionVariable(stop_info_sp); expression_var_sp && expression_var_sp->GetValueObject()) {
             if (llvm::Error error =
                     expression_var_sp->GetValueObject()->Dump(s)) {
               s << "error: " << toString(std::move(error));
@@ -1575,8 +1575,8 @@ bool FormatEntity::Format(const Entry &entry, Stream &s,
 
   case Entry::Type::ScriptThread:
     if (exe_ctx) {
-      Thread *thread = exe_ctx->GetThreadPtr();
-      if (thread)
+      
+      if (Thread *thread = exe_ctx->GetThreadPtr(); thread)
         return RunScriptFormatKeyword(s, sc, exe_ctx, thread,
                                       entry.string.c_str());
     }
@@ -1584,10 +1584,10 @@ bool FormatEntity::Format(const Entry &entry, Stream &s,
 
   case Entry::Type::ThreadInfo:
     if (exe_ctx) {
-      Thread *thread = exe_ctx->GetThreadPtr();
-      if (thread) {
-        StructuredData::ObjectSP object_sp = thread->GetExtendedInfo();
-        if (object_sp &&
+      
+      if (Thread *thread = exe_ctx->GetThreadPtr(); thread) {
+        
+        if (StructuredData::ObjectSP object_sp = thread->GetExtendedInfo(); object_sp &&
             object_sp->GetType() == eStructuredDataTypeDictionary) {
           if (FormatThreadExtendedInfoRecurse(entry, object_sp, sc, exe_ctx, s))
             return true;
@@ -1598,10 +1598,10 @@ bool FormatEntity::Format(const Entry &entry, Stream &s,
 
   case Entry::Type::TargetArch:
     if (exe_ctx) {
-      Target *target = exe_ctx->GetTargetPtr();
-      if (target) {
-        const ArchSpec &arch = target->GetArchitecture();
-        if (arch.IsValid()) {
+      
+      if (Target *target = exe_ctx->GetTargetPtr(); target) {
+        
+        if (const ArchSpec &arch = target->GetArchitecture(); arch.IsValid()) {
           s.PutCString(arch.GetArchitectureName());
           return true;
         }
@@ -1622,8 +1622,8 @@ bool FormatEntity::Format(const Entry &entry, Stream &s,
 
   case Entry::Type::ScriptTarget:
     if (exe_ctx) {
-      Target *target = exe_ctx->GetTargetPtr();
-      if (target)
+      
+      if (Target *target = exe_ctx->GetTargetPtr(); target)
         return RunScriptFormatKeyword(s, sc, exe_ctx, target,
                                       entry.string.c_str());
     }
@@ -1631,8 +1631,8 @@ bool FormatEntity::Format(const Entry &entry, Stream &s,
 
   case Entry::Type::ModuleFile:
     if (sc) {
-      Module *module = sc->module_sp.get();
-      if (module) {
+      
+      if (Module *module = sc->module_sp.get(); module) {
         if (DumpFile(s, module->GetFileSpec(), (FileKind)entry.number))
           return true;
       }
@@ -1641,8 +1641,8 @@ bool FormatEntity::Format(const Entry &entry, Stream &s,
 
   case Entry::Type::File:
     if (sc) {
-      CompileUnit *cu = sc->comp_unit;
-      if (cu) {
+      
+      if (CompileUnit *cu = sc->comp_unit; cu) {
         if (DumpFile(s, cu->GetPrimaryFile(), (FileKind)entry.number))
           return true;
       }
@@ -1651,11 +1651,11 @@ bool FormatEntity::Format(const Entry &entry, Stream &s,
 
   case Entry::Type::Lang:
     if (sc) {
-      CompileUnit *cu = sc->comp_unit;
-      if (cu) {
-        const char *lang_name =
-            Language::GetNameForLanguageType(cu->GetLanguage());
-        if (lang_name) {
+      
+      if (CompileUnit *cu = sc->comp_unit; cu) {
+        
+        if (const char *lang_name =
+            Language::GetNameForLanguageType(cu->GetLanguage()); lang_name) {
           s.PutCString(lang_name);
           return true;
         }
@@ -1665,8 +1665,8 @@ bool FormatEntity::Format(const Entry &entry, Stream &s,
 
   case Entry::Type::FrameIndex:
     if (exe_ctx) {
-      StackFrame *frame = exe_ctx->GetFramePtr();
-      if (frame) {
+      
+      if (StackFrame *frame = exe_ctx->GetFramePtr(); frame) {
         const char *format = "%" PRIu32;
         if (!entry.printf_format.empty())
           format = entry.printf_format.c_str();
@@ -1678,10 +1678,10 @@ bool FormatEntity::Format(const Entry &entry, Stream &s,
 
   case Entry::Type::FrameRegisterPC:
     if (exe_ctx) {
-      StackFrame *frame = exe_ctx->GetFramePtr();
-      if (frame) {
-        const Address &pc_addr = frame->GetFrameCodeAddress();
-        if (pc_addr.IsValid() || frame->IsSynthetic()) {
+      
+      if (StackFrame *frame = exe_ctx->GetFramePtr(); frame) {
+        
+        if (const Address &pc_addr = frame->GetFrameCodeAddress(); pc_addr.IsValid() || frame->IsSynthetic()) {
           if (DumpAddressAndContent(s, sc, exe_ctx, pc_addr, false))
             return true;
         }
@@ -1691,8 +1691,8 @@ bool FormatEntity::Format(const Entry &entry, Stream &s,
 
   case Entry::Type::FrameRegisterSP:
     if (exe_ctx) {
-      StackFrame *frame = exe_ctx->GetFramePtr();
-      if (frame) {
+      
+      if (StackFrame *frame = exe_ctx->GetFramePtr(); frame) {
         if (DumpRegister(s, frame, eRegisterKindGeneric, LLDB_REGNUM_GENERIC_SP,
                          (lldb::Format)entry.number))
           return true;
@@ -1702,8 +1702,8 @@ bool FormatEntity::Format(const Entry &entry, Stream &s,
 
   case Entry::Type::FrameRegisterFP:
     if (exe_ctx) {
-      StackFrame *frame = exe_ctx->GetFramePtr();
-      if (frame) {
+      
+      if (StackFrame *frame = exe_ctx->GetFramePtr(); frame) {
         if (DumpRegister(s, frame, eRegisterKindGeneric, LLDB_REGNUM_GENERIC_FP,
                          (lldb::Format)entry.number))
           return true;
@@ -1713,8 +1713,8 @@ bool FormatEntity::Format(const Entry &entry, Stream &s,
 
   case Entry::Type::FrameRegisterFlags:
     if (exe_ctx) {
-      StackFrame *frame = exe_ctx->GetFramePtr();
-      if (frame) {
+      
+      if (StackFrame *frame = exe_ctx->GetFramePtr(); frame) {
         if (DumpRegister(s, frame, eRegisterKindGeneric,
                          LLDB_REGNUM_GENERIC_FLAGS, (lldb::Format)entry.number))
           return true;
@@ -1724,8 +1724,8 @@ bool FormatEntity::Format(const Entry &entry, Stream &s,
 
   case Entry::Type::FrameNoDebug:
     if (exe_ctx) {
-      StackFrame *frame = exe_ctx->GetFramePtr();
-      if (frame) {
+      
+      if (StackFrame *frame = exe_ctx->GetFramePtr(); frame) {
         return !frame->HasDebugInformation();
       }
     }
@@ -1733,8 +1733,8 @@ bool FormatEntity::Format(const Entry &entry, Stream &s,
 
   case Entry::Type::FrameRegisterByName:
     if (exe_ctx) {
-      StackFrame *frame = exe_ctx->GetFramePtr();
-      if (frame) {
+      
+      if (StackFrame *frame = exe_ctx->GetFramePtr(); frame) {
         if (DumpRegister(s, frame, entry.string.c_str(),
                          (lldb::Format)entry.number))
           return true;
@@ -1763,8 +1763,8 @@ bool FormatEntity::Format(const Entry &entry, Stream &s,
 
   case Entry::Type::ScriptFrame:
     if (exe_ctx) {
-      StackFrame *frame = exe_ctx->GetFramePtr();
-      if (frame)
+      
+      if (StackFrame *frame = exe_ctx->GetFramePtr(); frame)
         return RunScriptFormatKeyword(s, sc, exe_ctx, frame,
                                       entry.string.c_str());
     }
@@ -1926,8 +1926,8 @@ bool FormatEntity::Format(const Entry &entry, Stream &s,
 
   case Entry::Type::FunctionPCOffset:
     if (exe_ctx) {
-      StackFrame *frame = exe_ctx->GetFramePtr();
-      if (frame) {
+      
+      if (StackFrame *frame = exe_ctx->GetFramePtr(); frame) {
         if (DumpAddressOffsetFromFunction(s, sc, exe_ctx,
                                           frame->GetFrameCodeAddress(), false,
                                           false, false))
@@ -1956,8 +1956,8 @@ bool FormatEntity::Format(const Entry &entry, Stream &s,
 
   case Entry::Type::LineEntryFile:
     if (sc && sc->line_entry.IsValid()) {
-      Module *module = sc->module_sp.get();
-      if (module) {
+      
+      if (Module *module = sc->module_sp.get(); module) {
         if (DumpFile(s, sc->line_entry.GetFile(), (FileKind)entry.number))
           return true;
       }
@@ -2001,8 +2001,8 @@ bool FormatEntity::Format(const Entry &entry, Stream &s,
       RegisterContextSP reg_ctx =
           exe_ctx->GetFramePtr()->GetRegisterContextSP();
       if (reg_ctx) {
-        addr_t pc_loadaddr = reg_ctx->GetPC();
-        if (pc_loadaddr != LLDB_INVALID_ADDRESS) {
+        
+        if (addr_t pc_loadaddr = reg_ctx->GetPC(); pc_loadaddr != LLDB_INVALID_ADDRESS) {
           Address pc;
           pc.SetLoadAddress(pc_loadaddr, exe_ctx->GetTargetPtr());
           if (pc == *addr) {
@@ -2072,8 +2072,8 @@ static Status ParseEntry(const llvm::StringRef &format_str,
 
   const size_t n = parent->num_children;
   for (size_t i = 0; i < n; ++i) {
-    const Definition *entry_def = parent->children + i;
-    if (key == entry_def->name || entry_def->name[0] == '*') {
+    
+    if (const Definition *entry_def = parent->children + i; key == entry_def->name || entry_def->name[0] == '*') {
       llvm::StringRef value;
       if (sep_char)
         value =
@@ -2155,8 +2155,8 @@ static const Definition *FindEntry(const llvm::StringRef &format_str,
   std::pair<llvm::StringRef, llvm::StringRef> p = format_str.split('.');
   const size_t n = parent->num_children;
   for (size_t i = 0; i < n; ++i) {
-    const Definition *entry_def = parent->children + i;
-    if (p.first == entry_def->name || entry_def->name[0] == '*') {
+    
+    if (const Definition *entry_def = parent->children + i; p.first == entry_def->name || entry_def->name[0] == '*') {
       if (p.second.empty()) {
         if (format_str.back() == '.')
           remainder = format_str.drop_front(format_str.size() - 1);
@@ -2279,8 +2279,8 @@ static Status ParseInternal(llvm::StringRef &format, Entry &parent_entry,
           // for loop will do this for us, so we advance p by one less than i
           // (even if i is zero)
           format = format.drop_front(i);
-          unsigned long octal_value = ::strtoul(oct_str, nullptr, 8);
-          if (octal_value <= UINT8_MAX) {
+          
+          if (unsigned long octal_value = ::strtoul(oct_str, nullptr, 8); octal_value <= UINT8_MAX) {
             parent_entry.AppendChar((char)octal_value);
           } else {
             error = Status::FromErrorString(
@@ -2305,8 +2305,8 @@ static Status ParseInternal(llvm::StringRef &format, Entry &parent_entry,
             format = format.drop_front();
           }
 
-          unsigned long hex_value = strtoul(hex_str, nullptr, 16);
-          if (hex_value <= UINT8_MAX) {
+          
+          if (unsigned long hex_value = strtoul(hex_str, nullptr, 16); hex_value <= UINT8_MAX) {
             parent_entry.AppendChar((char)hex_value);
           } else {
             error = Status::FromErrorString(
@@ -2431,8 +2431,8 @@ static Status ParseInternal(llvm::StringRef &format, Entry &parent_entry,
 
         llvm::StringRef entry_string(entry.string);
         if (entry_string.contains(':')) {
-          auto [_, llvm_format] = entry_string.split(':');
-          if (!llvm_format.empty() && !LLVMFormatPattern.match(llvm_format)) {
+          
+          if (auto [_, llvm_format] = entry_string.split(':'); !llvm_format.empty() && !LLVMFormatPattern.match(llvm_format)) {
             error = Status::FromErrorStringWithFormat(
                 "invalid llvm format: '%s'", llvm_format.data());
             return error;
@@ -2484,10 +2484,10 @@ Status FormatEntity::ExtractVariableInfo(llvm::StringRef &format_str,
   variable_name = llvm::StringRef();
   variable_format = llvm::StringRef();
 
-  const size_t paren_pos = format_str.find('}');
-  if (paren_pos != llvm::StringRef::npos) {
-    const size_t percent_pos = format_str.find('%');
-    if (percent_pos < paren_pos) {
+  
+  if (const size_t paren_pos = format_str.find('}'); paren_pos != llvm::StringRef::npos) {
+    
+    if (const size_t percent_pos = format_str.find('%'); percent_pos < paren_pos) {
       if (percent_pos > 0) {
         if (percent_pos > 1)
           variable_name = format_str.substr(0, percent_pos);
@@ -2533,8 +2533,8 @@ static std::string MakeMatch(const llvm::StringRef &prefix,
 static void AddMatches(const Definition *def, const llvm::StringRef &prefix,
                        const llvm::StringRef &match_prefix,
                        StringList &matches) {
-  const size_t n = def->num_children;
-  if (n > 0) {
+  
+  if (const size_t n = def->num_children; n > 0) {
     for (size_t i = 0; i < n; ++i) {
       if (match_prefix.empty())
         matches.AppendString(MakeMatch(prefix, def->children[i].name));

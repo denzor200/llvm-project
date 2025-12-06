@@ -544,24 +544,24 @@ int RegisterContextDarwin_x86_64::GetSetForNativeRegNum(int reg_num) {
 }
 
 int RegisterContextDarwin_x86_64::ReadGPR(bool force) {
-  int set = GPRRegSet;
-  if (force || !RegisterSetIsCached(set)) {
+  
+  if (int set = GPRRegSet; force || !RegisterSetIsCached(set)) {
     SetError(set, Read, DoReadGPR(GetThreadID(), set, gpr));
   }
   return GetError(GPRRegSet, Read);
 }
 
 int RegisterContextDarwin_x86_64::ReadFPU(bool force) {
-  int set = FPURegSet;
-  if (force || !RegisterSetIsCached(set)) {
+  
+  if (int set = FPURegSet; force || !RegisterSetIsCached(set)) {
     SetError(set, Read, DoReadFPU(GetThreadID(), set, fpu));
   }
   return GetError(FPURegSet, Read);
 }
 
 int RegisterContextDarwin_x86_64::ReadEXC(bool force) {
-  int set = EXCRegSet;
-  if (force || !RegisterSetIsCached(set)) {
+  
+  if (int set = EXCRegSet; force || !RegisterSetIsCached(set)) {
     SetError(set, Read, DoReadEXC(GetThreadID(), set, exc));
   }
   return GetError(EXCRegSet, Read);
@@ -1033,8 +1033,8 @@ bool RegisterContextDarwin_x86_64::HardwareSingleStep(bool enable) {
   if (ReadGPR(true) != 0)
     return false;
 
-  const uint64_t trace_bit = 0x100ull;
-  if (enable) {
+  
+  if (const uint64_t trace_bit = 0x100ull; enable) {
 
     if (gpr.rflags & trace_bit)
       return true; // trace bit is already set, there is nothing to do

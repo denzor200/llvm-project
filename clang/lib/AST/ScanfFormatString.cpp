@@ -510,8 +510,8 @@ bool ScanfSpecifier::fixType(QualType QT, QualType RawQT,
 
   // If fixing the length modifier was enough, we are done.
   if (hasValidLengthModifier(Ctx.getTargetInfo(), LangOpt)) {
-    const analyze_scanf::ArgType &AT = getArgType(Ctx);
-    if (AT.isValid() && AT.matchesType(Ctx, QT))
+    
+    if (const analyze_scanf::ArgType &AT = getArgType(Ctx); AT.isValid() && AT.matchesType(Ctx, QT))
       return true;
   }
 

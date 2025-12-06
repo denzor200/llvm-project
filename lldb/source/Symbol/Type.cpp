@@ -267,8 +267,8 @@ SymbolFileType::SymbolFileType(SymbolFile &symbol_file,
 
 Type *SymbolFileType::GetType() {
   if (!m_type_sp) {
-    Type *resolved_type = m_symbol_file.ResolveTypeUID(GetID());
-    if (resolved_type)
+    
+    if (Type *resolved_type = m_symbol_file.ResolveTypeUID(GetID()); resolved_type)
       m_type_sp = resolved_type->shared_from_this();
   }
   return m_type_sp.get();
@@ -308,11 +308,11 @@ void Type::GetDescription(Stream *s, lldb::DescriptionLevel level,
 
   // Call the name accessor to make sure we resolve the type name
   if (show_name) {
-    ConstString type_name = GetName();
-    if (type_name) {
+    
+    if (ConstString type_name = GetName(); type_name) {
       *s << ", name = \"" << type_name << '"';
-      ConstString qualified_type_name(GetQualifiedName());
-      if (qualified_type_name != type_name) {
+      
+      if (ConstString qualified_type_name(GetQualifiedName()); qualified_type_name != type_name) {
         *s << ", qualified = \"" << qualified_type_name << '"';
       }
     }
@@ -474,8 +474,8 @@ llvm::Expected<uint64_t> Type::GetByteSize(ExecutionContextScope *exe_scope) {
   case eEncodingIsVolatileUID:
   case eEncodingIsAtomicUID:
   case eEncodingIsTypedefUID: {
-    Type *encoding_type = GetEncodingType();
-    if (encoding_type)
+    
+    if (Type *encoding_type = GetEncodingType(); encoding_type)
       if (std::optional<uint64_t> size =
               llvm::expectedToOptional(encoding_type->GetByteSize(exe_scope))) {
         m_byte_size = *size;
@@ -522,8 +522,8 @@ bool Type::IsTemplateType() {
 lldb::TypeSP Type::GetTypedefType() {
   lldb::TypeSP type_sp;
   if (IsTypedef()) {
-    Type *typedef_type = m_symbol_file->ResolveTypeUID(m_encoding_uid);
-    if (typedef_type)
+    
+    if (Type *typedef_type = m_symbol_file->ResolveTypeUID(m_encoding_uid); typedef_type)
       type_sp = typedef_type->shared_from_this();
   }
   return type_sp;
@@ -564,8 +564,8 @@ bool Type::ReadFromMemory(ExecutionContext *exe_ctx, lldb::addr_t addr,
       return true;
     } else {
       if (exe_ctx) {
-        Process *process = exe_ctx->GetProcessPtr();
-        if (process) {
+        
+        if (Process *process = exe_ctx->GetProcessPtr(); process) {
           Status error;
           return exe_ctx->GetProcessPtr()->ReadMemory(addr, dst, byte_size,
                                                       error) == byte_size;
@@ -591,9 +591,9 @@ bool Type::ResolveCompilerType(ResolveState compiler_type_resolve_state) {
     if (encoding_type) {
       switch (m_encoding_uid_type) {
       case eEncodingIsUID: {
-        CompilerType encoding_compiler_type =
-            encoding_type->GetForwardCompilerType();
-        if (encoding_compiler_type.IsValid()) {
+        
+        if (CompilerType encoding_compiler_type =
+            encoding_type->GetForwardCompilerType(); encoding_compiler_type.IsValid()) {
           m_compiler_type = encoding_compiler_type;
           m_compiler_type_resolve_state =
               encoding_type->m_compiler_type_resolve_state;
@@ -653,9 +653,9 @@ bool Type::ResolveCompilerType(ResolveState compiler_type_resolve_state) {
       }
     } else {
       // We have no encoding type, return void?
-      auto type_system_or_err =
-          m_symbol_file->GetTypeSystemForLanguage(eLanguageTypeC);
-      if (auto err = type_system_or_err.takeError()) {
+      
+      if (auto type_system_or_err =
+          m_symbol_file->GetTypeSystemForLanguage(eLanguageTypeC); auto err = type_system_or_err.takeError()) {
         LLDB_LOG_ERROR(
             GetLog(LLDBLog::Symbols), std::move(err),
             "Unable to construct void type from TypeSystemClang: {0}");
@@ -1010,13 +1010,13 @@ bool TypeImpl::CheckModuleCommon(const lldb::ModuleWP &input_module_wp,
   // least stay around long enough for the type query to succeed.
   module_sp = input_module_wp.lock();
   if (!module_sp) {
-    lldb::ModuleWP empty_module_wp;
+    
     // If either call to "std::weak_ptr::owner_before(...) value returns true,
     // this indicates that m_module_wp once contained (possibly still does) a
     // reference to a valid shared pointer. This helps us know if we had a
     // valid reference to a section which is now invalid because the module it
     // was in was deleted
-    if (empty_module_wp.owner_before(input_module_wp) ||
+    if (lldb::ModuleWP empty_module_wp; empty_module_wp.owner_before(input_module_wp) ||
         input_module_wp.owner_before(empty_module_wp)) {
       // input_module_wp had a valid reference to a module, but all strong
       // references have been released and the module has been deleted

@@ -110,9 +110,9 @@ void ExprEngine::performTrivialCopy(NodeBuilder &Bldr, ExplodedNode *Pred,
 SVal ExprEngine::makeElementRegion(ProgramStateRef State, SVal LValue,
                                    QualType &Ty, bool &IsArray, unsigned Idx) {
   SValBuilder &SVB = State->getStateManager().getSValBuilder();
-  ASTContext &Ctx = SVB.getContext();
+  
 
-  if (const ArrayType *AT = Ctx.getAsArrayType(Ty)) {
+  if (ASTContext &Ctx = SVB.getContext(); const ArrayType *AT = Ctx.getAsArrayType(Ty)) {
     while (AT) {
       Ty = AT->getElementType();
       AT = dyn_cast<ArrayType>(AT->getElementType());
@@ -135,10 +135,10 @@ SVal ExprEngine::computeObjectUnderConstruction(
 
   SValBuilder &SVB = getSValBuilder();
   MemRegionManager &MRMgr = SVB.getRegionManager();
-  ASTContext &ACtx = SVB.getContext();
+  
 
   // Compute the target region by exploring the construction context.
-  if (CC) {
+  if (ASTContext &ACtx = SVB.getContext(); CC) {
     switch (CC->getKind()) {
     case ConstructionContext::CXX17ElidedCopyVariableKind:
     case ConstructionContext::SimpleVariableKind: {
@@ -186,8 +186,8 @@ SVal ExprEngine::computeObjectUnderConstruction(
       if (AMgr.getAnalyzerOptions().MayInlineCXXAllocator) {
         const auto *NECC = cast<NewAllocatedObjectConstructionContext>(CC);
         const auto *NE = NECC->getCXXNewExpr();
-        SVal V = *getObjectUnderConstruction(State, NE, LCtx);
-        if (const SubRegion *MR =
+        
+        if (SVal V = *getObjectUnderConstruction(State, NE, LCtx); const SubRegion *MR =
                 dyn_cast_or_null<SubRegion>(V.getAsRegion())) {
           if (NE->isArray()) {
             CallOpts.IsArrayCtorOrDtor = true;
@@ -213,8 +213,8 @@ SVal ExprEngine::computeObjectUnderConstruction(
       // The temporary is to be managed by the parent stack frame.
       // So build it in the parent stack frame if we're not in the
       // top frame of the analysis.
-      const StackFrameContext *SFC = LCtx->getStackFrame();
-      if (const LocationContext *CallerLCtx = SFC->getParent()) {
+      
+      if (const StackFrameContext *SFC = LCtx->getStackFrame(); const LocationContext *CallerLCtx = SFC->getParent()) {
         auto RTC = (*SFC->getCallSiteBlock())[SFC->getIndex()]
                        .getAs<CFGCXXRecordTypedCall>();
         if (!RTC) {
@@ -326,8 +326,8 @@ SVal ExprEngine::computeObjectUnderConstruction(
       SVal Base = loc::MemRegionVal(
           MRMgr.getCXXTempObjectRegion(LCC->getInitializer(), LCtx));
 
-      const auto *CE = dyn_cast_or_null<CXXConstructExpr>(E);
-      if (getIndexOfElementToConstruct(State, CE, LCtx)) {
+      
+      if (const auto *CE = dyn_cast_or_null<CXXConstructExpr>(E); getIndexOfElementToConstruct(State, CE, LCtx)) {
         CallOpts.IsArrayCtorOrDtor = true;
         Base = State->getLValue(E->getType(), svalBuilder.makeArrayIndex(Idx),
                                 Base);
@@ -344,7 +344,9 @@ SVal ExprEngine::computeObjectUnderConstruction(
       unsigned Idx = ACC->getIndex();
 
       CallEventManager &CEMgr = getStateManager().getCallEventManager();
-      auto getArgLoc = [&](CallEventRef<> Caller) -> std::optional<SVal> {
+      
+
+      if (auto getArgLoc = [&](CallEventRef<> Caller) -> std::optional<SVal> {
         const LocationContext *FutureSFC =
             Caller->getCalleeStackFrame(BldrCtx->blockCount());
         // Return early if we are unable to reliably foresee
@@ -370,28 +372,26 @@ SVal ExprEngine::computeObjectUnderConstruction(
           return std::nullopt;
 
         return loc::MemRegionVal(TVR);
-      };
-
-      if (const auto *CE = dyn_cast<CallExpr>(E)) {
-        CallEventRef<> Caller =
-            CEMgr.getSimpleCall(CE, State, LCtx, getCFGElementRef());
-        if (std::optional<SVal> V = getArgLoc(Caller))
+      }; const auto *CE = dyn_cast<CallExpr>(E)) {
+        
+        if (CallEventRef<> Caller =
+            CEMgr.getSimpleCall(CE, State, LCtx, getCFGElementRef()); std::optional<SVal> V = getArgLoc(Caller))
           return *V;
         else
           break;
       } else if (const auto *CCE = dyn_cast<CXXConstructExpr>(E)) {
         // Don't bother figuring out the target region for the future
         // constructor because we won't need it.
-        CallEventRef<> Caller = CEMgr.getCXXConstructorCall(
-            CCE, /*Target=*/nullptr, State, LCtx, getCFGElementRef());
-        if (std::optional<SVal> V = getArgLoc(Caller))
+        
+        if (CallEventRef<> Caller = CEMgr.getCXXConstructorCall(
+            CCE, /*Target=*/nullptr, State, LCtx, getCFGElementRef()); std::optional<SVal> V = getArgLoc(Caller))
           return *V;
         else
           break;
       } else if (const auto *ME = dyn_cast<ObjCMessageExpr>(E)) {
-        CallEventRef<> Caller =
-            CEMgr.getObjCMethodCall(ME, State, LCtx, getCFGElementRef());
-        if (std::optional<SVal> V = getArgLoc(Caller))
+        
+        if (CallEventRef<> Caller =
+            CEMgr.getObjCMethodCall(ME, State, LCtx, getCFGElementRef()); std::optional<SVal> V = getArgLoc(Caller))
           return *V;
         else
           break;
@@ -577,9 +577,9 @@ void ExprEngine::handleConstructor(const Expr *E,
   assert(C || getCurrentCFGElement().getAs<CFGStmt>());
   const ConstructionContext *CC = C ? C->getConstructionContext() : nullptr;
 
-  const CXXConstructionKind CK =
-      CE ? CE->getConstructionKind() : CIE->getConstructionKind();
-  switch (CK) {
+  
+  switch (const CXXConstructionKind CK =
+      CE ? CE->getConstructionKind() : CIE->getConstructionKind(); CK) {
   case CXXConstructionKind::Complete: {
     // Inherited constructors are always base class constructors.
     assert(CE && !CIE && "A complete constructor is inherited?!");
@@ -726,10 +726,10 @@ void ExprEngine::handleConstructor(const Expr *E,
         // actually make things worse. Placement new makes this tricky as well,
         // since it's then possible to be initializing one part of a multi-
         // dimensional array.
-        const CXXRecordDecl *TargetHeldRecord =
-            dyn_cast_or_null<CXXRecordDecl>(CE->getType()->getAsRecordDecl());
+        
 
-        if (!TargetHeldRecord || !TargetHeldRecord->isEmpty())
+        if (const CXXRecordDecl *TargetHeldRecord =
+            dyn_cast_or_null<CXXRecordDecl>(CE->getType()->getAsRecordDecl()); !TargetHeldRecord || !TargetHeldRecord->isEmpty())
           State = State->bindDefaultZero(Target, LCtx);
       }
 
@@ -951,8 +951,8 @@ void ExprEngine::VisitCXXNewAllocatorCall(const CXXNewExpr *CNE,
     // consider adding a check for it here.
     // C++11 [basic.stc.dynamic.allocation]p3.
     if (const FunctionDecl *FD = CNE->getOperatorNew()) {
-      QualType Ty = FD->getType();
-      if (const auto *ProtoType = Ty->getAs<FunctionProtoType>())
+      
+      if (QualType Ty = FD->getType(); const auto *ProtoType = Ty->getAs<FunctionProtoType>())
         if (!ProtoType->isNothrow())
           State = State->assume(RetVal.castAs<DefinedOrUnknownSVal>(), true);
     }

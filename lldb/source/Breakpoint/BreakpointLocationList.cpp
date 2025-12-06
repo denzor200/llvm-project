@@ -86,8 +86,8 @@ size_t BreakpointLocationList::FindInModule(
 
   for (pos = m_locations.begin(); pos != end; ++pos) {
     BreakpointLocationSP break_loc = (*pos);
-    SectionSP section_sp(break_loc->GetAddress().GetSection());
-    if (section_sp && section_sp->GetModule().get() == module) {
+    
+    if (SectionSP section_sp(break_loc->GetAddress().GetSection()); section_sp && section_sp->GetModule().get() == module) {
       bp_loc_list.Add(break_loc);
     }
   }
@@ -286,8 +286,8 @@ void BreakpointLocationList::RemoveInvalidLocations(const ArchSpec &arch) {
       continue;
     }
     if (arch.IsValid()) {
-      ModuleSP module_sp(bp_loc->GetAddress().GetModule());
-      if (module_sp) {
+      
+      if (ModuleSP module_sp(bp_loc->GetAddress().GetModule()); module_sp) {
         if (!arch.IsCompatibleMatch(module_sp->GetArchitecture())) {
           // The breakpoint was in a module whose architecture is no longer
           // compatible with "arch", so we need to remove it
@@ -318,8 +318,8 @@ void BreakpointLocationList::Compact() {
   lldb::break_id_t highest_id = 0;
 
   for (BreakpointLocationSP loc_sp : m_locations) {
-    lldb::break_id_t cur_id = loc_sp->GetID();
-    if (cur_id > highest_id)
+    
+    if (lldb::break_id_t cur_id = loc_sp->GetID(); cur_id > highest_id)
       highest_id = cur_id;
   }
   m_next_id = highest_id;

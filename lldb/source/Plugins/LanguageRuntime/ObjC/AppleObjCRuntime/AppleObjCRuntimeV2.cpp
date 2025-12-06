@@ -794,8 +794,8 @@ AppleObjCRuntimeV2::GetPreferredLanguageRuntime(ValueObject &in_value) {
   if (auto process_sp = in_value.GetProcessSP()) {
     assert(process_sp.get() == m_process);
     if (auto descriptor_sp = GetNonKVOClassDescriptor(in_value)) {
-      LanguageType impl_lang = descriptor_sp->GetImplementationLanguage();
-      if (impl_lang != eLanguageTypeUnknown)
+      
+      if (LanguageType impl_lang = descriptor_sp->GetImplementationLanguage(); impl_lang != eLanguageTypeUnknown)
         return process_sp->GetLanguageRuntime(impl_lang);
     }
   }
@@ -827,15 +827,15 @@ bool AppleObjCRuntimeV2::GetDynamicTypeAndAddress(
   if (CouldHaveDynamicValue(in_value)) {
     // First job, pull out the address at 0 offset from the object  That will
     // be the ISA pointer.
-    ClassDescriptorSP objc_class_sp(GetNonKVOClassDescriptor(in_value));
-    if (objc_class_sp) {
+    
+    if (ClassDescriptorSP objc_class_sp(GetNonKVOClassDescriptor(in_value)); objc_class_sp) {
       const addr_t object_ptr = in_value.GetPointerValue().address;
       address.SetRawAddress(object_ptr);
 
       ConstString class_name(objc_class_sp->GetClassName());
       class_type_or_name.SetName(class_name);
-      TypeSP type_sp(objc_class_sp->GetType());
-      if (type_sp)
+      
+      if (TypeSP type_sp(objc_class_sp->GetType()); type_sp)
         class_type_or_name.SetTypeSP(type_sp);
       else {
         type_sp = LookupInCompleteClassCache(class_name);
@@ -845,8 +845,8 @@ bool AppleObjCRuntimeV2::GetDynamicTypeAndAddress(
         } else {
           // try to go for a CompilerType at least
           if (auto *vendor = GetDeclVendor()) {
-            auto types = vendor->FindTypes(class_name, /*max_matches*/ 1);
-            if (!types.empty())
+            
+            if (auto types = vendor->FindTypes(class_name, /*max_matches*/ 1); !types.empty())
               class_type_or_name.SetCompilerType(types.front());
           }
         }
@@ -896,8 +896,8 @@ public:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
-      switch (short_option) {
+      
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'v':
         m_verbose.SetCurrentValue(true);
         m_verbose.SetOptionWasSet();
@@ -964,8 +964,8 @@ protected:
     }
 
     Process *process = m_exe_ctx.GetProcessPtr();
-    ObjCLanguageRuntime *objc_runtime = ObjCLanguageRuntime::Get(*process);
-    if (objc_runtime) {
+    
+    if (ObjCLanguageRuntime *objc_runtime = ObjCLanguageRuntime::Get(*process); objc_runtime) {
       auto iterators_pair = objc_runtime->GetDescriptorIteratorPair();
       auto iterator = iterators_pair.first;
       auto &std_out = result.GetOutputStream();
@@ -1607,10 +1607,10 @@ lldb::addr_t AppleObjCRuntimeV2::GetTaggedPointerObfuscator() {
   const Symbol *symbol = objc_module_sp->FindFirstSymbolWithNameAndType(
       g_gdb_objc_obfuscator, lldb::eSymbolTypeAny);
   if (symbol) {
-    lldb::addr_t g_gdb_obj_obfuscator_ptr =
-        symbol->GetLoadAddress(&process->GetTarget());
+    
 
-    if (g_gdb_obj_obfuscator_ptr != LLDB_INVALID_ADDRESS) {
+    if (lldb::addr_t g_gdb_obj_obfuscator_ptr =
+        symbol->GetLoadAddress(&process->GetTarget()); g_gdb_obj_obfuscator_ptr != LLDB_INVALID_ADDRESS) {
       Status error;
       m_tagged_pointer_obfuscator =
           process->ReadPointerFromMemory(g_gdb_obj_obfuscator_ptr, error);
@@ -1638,10 +1638,10 @@ lldb::addr_t AppleObjCRuntimeV2::GetISAHashTablePointer() {
     const Symbol *symbol = objc_module_sp->FindFirstSymbolWithNameAndType(
         g_gdb_objc_realized_classes, lldb::eSymbolTypeAny);
     if (symbol) {
-      lldb::addr_t gdb_objc_realized_classes_ptr =
-          symbol->GetLoadAddress(&process->GetTarget());
+      
 
-      if (gdb_objc_realized_classes_ptr != LLDB_INVALID_ADDRESS) {
+      if (lldb::addr_t gdb_objc_realized_classes_ptr =
+          symbol->GetLoadAddress(&process->GetTarget()); gdb_objc_realized_classes_ptr != LLDB_INVALID_ADDRESS) {
         Status error;
         m_isa_hash_table_ptr = process->ReadPointerFromMemory(
             gdb_objc_realized_classes_ptr, error);
@@ -1751,12 +1751,12 @@ llvm::Error AppleObjCRuntimeV2::SharedCacheImageHeaders::UpdateIfNeeded() {
     cursor = 0;
     bool is_loaded = false;
     if (m_entsize == 4) {
-      uint32_t header = header_extractor.GetU32_unchecked(&cursor);
-      if (header & 1)
+      
+      if (uint32_t header = header_extractor.GetU32_unchecked(&cursor); header & 1)
         is_loaded = true;
     } else {
-      uint64_t header = header_extractor.GetU64_unchecked(&cursor);
-      if (header & 1)
+      
+      if (uint64_t header = header_extractor.GetU64_unchecked(&cursor); header & 1)
         is_loaded = true;
     }
 
@@ -2195,17 +2195,17 @@ AppleObjCRuntimeV2::DynamicClassInfoExtractor::UpdateISAToDescriptorMap(
     diagnostics.Clear();
 
     // Run the function
-    ExpressionResults results = get_class_info_function->ExecuteFunction(
-        exe_ctx, &GetClassInfoArgs(helper), options, diagnostics, return_value);
+    
 
-    if (results == eExpressionCompleted) {
+    if (ExpressionResults results = get_class_info_function->ExecuteFunction(
+        exe_ctx, &GetClassInfoArgs(helper), options, diagnostics, return_value); results == eExpressionCompleted) {
       // The result is the number of ClassInfo structures that were filled in
       num_class_infos = return_value.GetScalar().ULong();
       LLDB_LOG(log, "Discovered {0} Objective-C classes", num_class_infos);
       if (num_class_infos > 0) {
         // Read the ClassInfo structures
-        DataBufferHeap buffer(num_class_infos * class_info_byte_size, 0);
-        if (process->ReadMemory(class_infos_addr, buffer.GetBytes(),
+        
+        if (DataBufferHeap buffer(num_class_infos * class_info_byte_size, 0); process->ReadMemory(class_infos_addr, buffer.GetBytes(),
                                 buffer.GetByteSize(),
                                 err) == buffer.GetByteSize()) {
           DataExtractor class_infos_data(buffer.GetBytes(),
@@ -2453,11 +2453,11 @@ AppleObjCRuntimeV2::SharedCacheClassInfoExtractor::UpdateISAToDescriptorMap() {
 
     do {
       // Run the function.
-      ExpressionResults results =
-          get_shared_cache_class_info_function->ExecuteFunction(
-              exe_ctx, &m_args, options, diagnostics, return_value);
+      
 
-      if (results == eExpressionCompleted) {
+      if (ExpressionResults results =
+          get_shared_cache_class_info_function->ExecuteFunction(
+              exe_ctx, &m_args, options, diagnostics, return_value); results == eExpressionCompleted) {
         // The result is the number of ClassInfo structures that were filled in.
         num_class_infos_read = return_value.GetScalar().ULong();
         num_class_infos += num_class_infos_read;
@@ -2480,9 +2480,9 @@ AppleObjCRuntimeV2::SharedCacheClassInfoExtractor::UpdateISAToDescriptorMap() {
                   relative_selector_offset_buffer.GetByteSize(),
                   process->GetByteOrder(), addr_size);
               lldb::offset_t offset = 0;
-              uint64_t relative_selector_offset =
-                  relative_selector_offset_data.GetU64(&offset);
-              if (relative_selector_offset > 0) {
+              
+              if (uint64_t relative_selector_offset =
+                  relative_selector_offset_data.GetU64(&offset); relative_selector_offset > 0) {
                 // The offset is relative to the objc_opt struct.
                 m_runtime.SetRelativeSelectorBaseAddr(objc_opt_ptr +
                                                       relative_selector_offset);
@@ -2492,9 +2492,9 @@ AppleObjCRuntimeV2::SharedCacheClassInfoExtractor::UpdateISAToDescriptorMap() {
           }
 
           // Read the ClassInfo structures
-          DataBufferHeap class_infos_buffer(
-              num_class_infos_read * class_info_byte_size, 0);
-          if (process->ReadMemory(class_infos_addr,
+          
+          if (DataBufferHeap class_infos_buffer(
+              num_class_infos_read * class_info_byte_size, 0); process->ReadMemory(class_infos_addr,
                                   class_infos_buffer.GetBytes(),
                                   class_infos_buffer.GetByteSize(),
                                   err) == class_infos_buffer.GetByteSize()) {
@@ -2528,27 +2528,27 @@ AppleObjCRuntimeV2::SharedCacheClassInfoExtractor::UpdateISAToDescriptorMap() {
 }
 
 lldb::addr_t AppleObjCRuntimeV2::GetSharedCacheReadOnlyAddress() {
-  Process *process = GetProcess();
+  
 
-  if (process) {
-    ModuleSP objc_module_sp(GetObjCModule());
+  if (Process *process = GetProcess(); process) {
+    
 
-    if (objc_module_sp) {
-      ObjectFile *objc_object = objc_module_sp->GetObjectFile();
+    if (ModuleSP objc_module_sp(GetObjCModule()); objc_module_sp) {
+      
 
-      if (objc_object) {
-        SectionList *section_list = objc_module_sp->GetSectionList();
+      if (ObjectFile *objc_object = objc_module_sp->GetObjectFile(); objc_object) {
+        
 
-        if (section_list) {
-          SectionSP text_segment_sp(
-              section_list->FindSectionByName(ConstString("__TEXT")));
+        if (SectionList *section_list = objc_module_sp->GetSectionList(); section_list) {
+          
 
-          if (text_segment_sp) {
-            SectionSP objc_opt_section_sp(
+          if (SectionSP text_segment_sp(
+              section_list->FindSectionByName(ConstString("__TEXT"))); text_segment_sp) {
+            
+
+            if (SectionSP objc_opt_section_sp(
                 text_segment_sp->GetChildren().FindSectionByName(
-                    ConstString("__objc_opt_ro")));
-
-            if (objc_opt_section_sp) {
+                    ConstString("__objc_opt_ro"))); objc_opt_section_sp) {
               return objc_opt_section_sp->GetLoadBaseAddress(
                   &process->GetTarget());
             }
@@ -2583,9 +2583,9 @@ void AppleObjCRuntimeV2::UpdateISAToDescriptorMapIfNeeded() {
   Log *log = GetLog(LLDBLog::Process | LLDBLog::Types);
 
   // Else we need to check with our process to see when the map was updated.
-  Process *process = GetProcess();
+  
 
-  if (process) {
+  if (Process *process = GetProcess(); process) {
     RemoteNXMapTable hash_table;
 
     // Update the process stop ID that indicates the last time we updated the
@@ -2594,9 +2594,9 @@ void AppleObjCRuntimeV2::UpdateISAToDescriptorMapIfNeeded() {
 
     // Ask the runtime is the realized class generation count changed. Unlike
     // the hash table, this accounts for lazily named classes.
-    const bool class_count_changed = RealizedClassGenerationCountChanged();
+    
 
-    if (!m_hash_signature.NeedsUpdate(process, this, hash_table) &&
+    if (const bool class_count_changed = RealizedClassGenerationCountChanged(); !m_hash_signature.NeedsUpdate(process, this, hash_table) &&
         !class_count_changed)
       return;
 
@@ -2704,8 +2704,8 @@ void AppleObjCRuntimeV2::WarnIfNoClassesCached(
     return;
   }
 
-  Debugger &debugger(GetProcess()->GetTarget().GetDebugger());
-  switch (reason) {
+  
+  switch (Debugger &debugger(GetProcess()->GetTarget().GetDebugger()); reason) {
   case SharedCacheWarningReason::eNotEnoughClassesRead:
     Debugger::ReportWarning("could not find Objective-C class data in "
                             "the process. This may reduce the quality of type "
@@ -2775,26 +2775,26 @@ DeclVendor *AppleObjCRuntimeV2::GetDeclVendor() {
 lldb::addr_t AppleObjCRuntimeV2::LookupRuntimeSymbol(ConstString name) {
   lldb::addr_t ret = LLDB_INVALID_ADDRESS;
 
-  const char *name_cstr = name.AsCString();
+  
 
-  if (name_cstr) {
+  if (const char *name_cstr = name.AsCString(); name_cstr) {
     llvm::StringRef name_strref(name_cstr);
 
     llvm::StringRef ivar_prefix("OBJC_IVAR_$_");
-    llvm::StringRef class_prefix("OBJC_CLASS_$_");
+    
 
-    if (name_strref.starts_with(ivar_prefix)) {
+    if (llvm::StringRef class_prefix("OBJC_CLASS_$_"); name_strref.starts_with(ivar_prefix)) {
       llvm::StringRef ivar_skipped_prefix =
           name_strref.substr(ivar_prefix.size());
-      std::pair<llvm::StringRef, llvm::StringRef> class_and_ivar =
-          ivar_skipped_prefix.split('.');
+      
 
-      if (!class_and_ivar.first.empty() && !class_and_ivar.second.empty()) {
+      if (std::pair<llvm::StringRef, llvm::StringRef> class_and_ivar =
+          ivar_skipped_prefix.split('.'); !class_and_ivar.first.empty() && !class_and_ivar.second.empty()) {
         const ConstString class_name_cs(class_and_ivar.first);
-        ClassDescriptorSP descriptor =
-            ObjCLanguageRuntime::GetClassDescriptorFromClassName(class_name_cs);
+        
 
-        if (descriptor) {
+        if (ClassDescriptorSP descriptor =
+            ObjCLanguageRuntime::GetClassDescriptorFromClassName(class_name_cs); descriptor) {
           const ConstString ivar_name_cs(class_and_ivar.second);
           const char *ivar_name_cstr = ivar_name_cs.AsCString();
 
@@ -2820,10 +2820,10 @@ lldb::addr_t AppleObjCRuntimeV2::LookupRuntimeSymbol(ConstString name) {
       llvm::StringRef class_skipped_prefix =
           name_strref.substr(class_prefix.size());
       const ConstString class_name_cs(class_skipped_prefix);
-      ClassDescriptorSP descriptor =
-          GetClassDescriptorFromClassName(class_name_cs);
+      
 
-      if (descriptor)
+      if (ClassDescriptorSP descriptor =
+          GetClassDescriptorFromClassName(class_name_cs); descriptor)
         ret = descriptor->GetISA();
     }
   }
@@ -3334,9 +3334,9 @@ bool AppleObjCRuntimeV2::NonPointerISACache::EvaluateNonPointerISA(
 
           lldb::addr_t last_read_class =
               m_objc_indexed_classes + (m_indexed_isa_cache.size() * addr_size);
-          size_t bytes_read = process->ReadMemory(
-              last_read_class, buffer.GetBytes(), buffer.GetByteSize(), error);
-          if (error.Fail() || bytes_read != buffer.GetByteSize())
+          
+          if (size_t bytes_read = process->ReadMemory(
+              last_read_class, buffer.GetBytes(), buffer.GetByteSize(), error); error.Fail() || bytes_read != buffer.GetByteSize())
             return false;
 
           LLDB_LOGF(log, "AOCRT::NPI (read new classes count = %" PRIu64 ")",

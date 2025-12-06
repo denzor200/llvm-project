@@ -1405,15 +1405,15 @@ bool llvm::inferNonMandatoryLibFuncAttrs(Function &F,
 
 static void setArgExtAttr(Function &F, unsigned ArgNo,
                           const TargetLibraryInfo &TLI, bool Signed = true) {
-  Attribute::AttrKind ExtAttr = TLI.getExtAttrForI32Param(Signed);
-  if (ExtAttr != Attribute::None && !F.hasParamAttribute(ArgNo, ExtAttr))
+  
+  if (Attribute::AttrKind ExtAttr = TLI.getExtAttrForI32Param(Signed); ExtAttr != Attribute::None && !F.hasParamAttribute(ArgNo, ExtAttr))
     F.addParamAttr(ArgNo, ExtAttr);
 }
 
 static void setRetExtAttr(Function &F,
                           const TargetLibraryInfo &TLI, bool Signed = true) {
-  Attribute::AttrKind ExtAttr = TLI.getExtAttrForI32Return(Signed);
-  if (ExtAttr != Attribute::None && !F.hasRetAttribute(ExtAttr))
+  
+  if (Attribute::AttrKind ExtAttr = TLI.getExtAttrForI32Return(Signed); ExtAttr != Attribute::None && !F.hasRetAttribute(ExtAttr))
     F.addRetAttr(ExtAttr);
 }
 
@@ -1422,8 +1422,8 @@ void llvm::markRegisterParameterAttributes(Function *F) {
   if (!F->arg_size() || F->isVarArg())
     return;
 
-  const CallingConv::ID CC = F->getCallingConv();
-  if (CC != CallingConv::C && CC != CallingConv::X86_StdCall)
+  
+  if (const CallingConv::ID CC = F->getCallingConv(); CC != CallingConv::C && CC != CallingConv::X86_StdCall)
     return;
 
   const Module *M = F->getParent();

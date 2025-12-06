@@ -208,7 +208,9 @@ struct AllocaUseVisitor : PtrUseVisitor<AllocaUseVisitor> {
     //   ..
     // If %addr is only used by loading from it, we could simply treat %x as
     // another alias of %ptr, and not considering %ptr being escaped.
-    auto IsSimpleStoreThenLoad = [&]() {
+    
+
+    if (auto IsSimpleStoreThenLoad = [&]() {
       auto *AI = dyn_cast<AllocaInst>(SI.getPointerOperand());
       // If the memory location we are storing to is not an alloca, it
       // could be an alias of some other memory locations, which is difficult
@@ -245,9 +247,7 @@ struct AllocaUseVisitor : PtrUseVisitor<AllocaUseVisitor> {
       }
 
       return true;
-    };
-
-    if (!IsSimpleStoreThenLoad())
+    }; !IsSimpleStoreThenLoad())
       PI.setEscaped(&SI);
   }
 
@@ -404,8 +404,8 @@ private:
     if (!IsOffsetKnown) {
       AliasOffetMap[&I].reset();
     } else {
-      auto [Itr, Inserted] = AliasOffetMap.try_emplace(&I, Offset);
-      if (!Inserted && Itr->second && *Itr->second != Offset) {
+      
+      if (auto [Itr, Inserted] = AliasOffetMap.try_emplace(&I, Offset); !Inserted && Itr->second && *Itr->second != Offset) {
         // If we have seen two different possible values for this alias, we set
         // it to empty.
         Itr->second.reset();
@@ -593,8 +593,8 @@ BasicBlock::iterator coro::getSpillInsertionPt(const coro::Shape &Shape,
     // that the suspend will be followed by a branch.
     InsertPt = CSI->getParent()->getSingleSuccessor()->getFirstNonPHIIt();
   } else {
-    auto *I = cast<Instruction>(Def);
-    if (!DT.dominates(Shape.CoroBegin, I)) {
+    
+    if (auto *I = cast<Instruction>(Def); !DT.dominates(Shape.CoroBegin, I)) {
       // If it is not dominated by CoroBegin, then spill should be
       // inserted immediately after CoroFrame is computed.
       InsertPt = Shape.getInsertPtAfterFramePtr();
@@ -605,8 +605,8 @@ BasicBlock::iterator coro::getSpillInsertionPt(const coro::Shape &Shape,
       InsertPt = NewBB->getTerminator()->getIterator();
     } else if (isa<PHINode>(I)) {
       // Skip the PHINodes and EH pads instructions.
-      BasicBlock *DefBlock = I->getParent();
-      if (auto *CSI = dyn_cast<CatchSwitchInst>(DefBlock->getTerminator()))
+      
+      if (BasicBlock *DefBlock = I->getParent(); auto *CSI = dyn_cast<CatchSwitchInst>(DefBlock->getTerminator()))
         InsertPt = splitBeforeCatchSwitch(CSI)->getIterator();
       else
         InsertPt = DefBlock->getFirstInsertionPt();

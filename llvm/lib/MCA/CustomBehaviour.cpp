@@ -63,8 +63,8 @@ void InstrumentManager::customize(const ArrayRef<Instrument *> IVec,
                                   InstrDesc &ID) const {
   for (const auto I : IVec) {
     if (I->getDesc() == LatencyInstrument::DESC_NAME) {
-      auto LatInst = static_cast<LatencyInstrument *>(I);
-      if (LatInst->hasValue()) {
+      
+      if (auto LatInst = static_cast<LatencyInstrument *>(I); LatInst->hasValue()) {
         unsigned Latency = LatInst->getLatency();
         // TODO Allow to customize a subset of ID.Writes
         for (auto &W : ID.Writes)

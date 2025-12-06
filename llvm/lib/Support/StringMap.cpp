@@ -117,8 +117,8 @@ unsigned StringMapImpl::LookupBucketFor(StringRef Name,
 
       // Do the comparison like this because Name isn't necessarily
       // null-terminated!
-      char *ItemStr = (char *)BucketItem + ItemSize;
-      if (Name == StringRef(ItemStr, BucketItem->getKeyLength())) {
+      
+      if (char *ItemStr = (char *)BucketItem + ItemSize; Name == StringRef(ItemStr, BucketItem->getKeyLength())) {
         // We found a match!
         return BucketNo;
       }
@@ -164,8 +164,8 @@ int StringMapImpl::FindKey(StringRef Key, uint32_t FullHashValue) const {
 
       // Do the comparison like this because NameStart isn't necessarily
       // null-terminated!
-      char *ItemStr = (char *)BucketItem + ItemSize;
-      if (Key == StringRef(ItemStr, BucketItem->getKeyLength())) {
+      
+      if (char *ItemStr = (char *)BucketItem + ItemSize; Key == StringRef(ItemStr, BucketItem->getKeyLength())) {
         // We found a match!
         return BucketNo;
       }
@@ -229,8 +229,8 @@ unsigned StringMapImpl::RehashTable(unsigned BucketNo) {
   // Rehash all the items into their new buckets.  Luckily :) we already have
   // the hash values available, so we don't have to rehash any strings.
   for (unsigned I = 0, E = NumBuckets; I != E; ++I) {
-    StringMapEntryBase *Bucket = TheTable[I];
-    if (Bucket && Bucket != getTombstoneVal()) {
+    
+    if (StringMapEntryBase *Bucket = TheTable[I]; Bucket && Bucket != getTombstoneVal()) {
       // If the bucket is not available, probe for a spot.
       unsigned FullHash = HashTable[I];
       unsigned NewBucket = FullHash & (NewSize - 1);

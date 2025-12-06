@@ -253,9 +253,9 @@ void MachOReader::setSymbolInRelocationInfo(Object &O) const {
     for (std::unique_ptr<Section> &Sec : LC.Sections)
       for (auto &Reloc : Sec->Relocations)
         if (!Reloc.Scattered && !Reloc.IsAddend) {
-          const uint32_t SymbolNum =
-              Reloc.getPlainRelocationSymbolNum(MachOObj.isLittleEndian());
-          if (Reloc.Extern) {
+          
+          if (const uint32_t SymbolNum =
+              Reloc.getPlainRelocationSymbolNum(MachOObj.isLittleEndian()); Reloc.Extern) {
             Reloc.Symbol = O.SymTable.getSymbolByIndex(SymbolNum);
           } else {
             // FIXME: Refactor error handling in MachOReader and report an error
@@ -331,8 +331,8 @@ void MachOReader::readIndirectSymbolTable(Object &O) const {
   constexpr uint32_t AbsOrLocalMask =
       MachO::INDIRECT_SYMBOL_LOCAL | MachO::INDIRECT_SYMBOL_ABS;
   for (uint32_t i = 0; i < DySymTab.nindirectsyms; ++i) {
-    uint32_t Index = MachOObj.getIndirectSymbolTableEntry(DySymTab, i);
-    if ((Index & AbsOrLocalMask) != 0)
+    
+    if (uint32_t Index = MachOObj.getIndirectSymbolTableEntry(DySymTab, i); (Index & AbsOrLocalMask) != 0)
       O.IndirectSymTable.Symbols.emplace_back(Index, std::nullopt);
     else
       O.IndirectSymTable.Symbols.emplace_back(

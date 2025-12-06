@@ -152,8 +152,8 @@ static bool processHeaderPhiOperands(BasicBlock *Header, BasicBlock *Latch,
   };
 
   for (auto &Phi : Header->phis()) {
-    Value *V = Phi.getIncomingValueForBlock(Latch);
-    if (Instruction *I = dyn_cast<Instruction>(V))
+    
+    if (Value *V = Phi.getIncomingValueForBlock(Latch); Instruction *I = dyn_cast<Instruction>(V))
       if (!ProcessInstr(I))
         return false;
   }
@@ -348,8 +348,8 @@ llvm::UnrollAndJamLoop(Loop *L, unsigned Count, unsigned TripCount,
       for (Instruction &I : *BB)
         if (!I.isDebugOrPseudoInst())
           if (const DILocation *DIL = I.getDebugLoc()) {
-            auto NewDIL = DIL->cloneByMultiplyingDuplicationFactor(Count);
-            if (NewDIL)
+            
+            if (auto NewDIL = DIL->cloneByMultiplyingDuplicationFactor(Count); NewDIL)
               I.setDebugLoc(*NewDIL);
             else
               LLVM_DEBUG(dbgs()

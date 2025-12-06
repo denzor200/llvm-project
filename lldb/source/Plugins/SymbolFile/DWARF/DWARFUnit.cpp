@@ -47,8 +47,8 @@ DWARFUnit::~DWARFUnit() = default;
 // Parses first DIE of a compile unit, excluding DWO.
 void DWARFUnit::ExtractUnitDIENoDwoIfNeeded() {
   {
-    llvm::sys::ScopedReader lock(m_first_die_mutex);
-    if (m_first_die)
+    
+    if (llvm::sys::ScopedReader lock(m_first_die_mutex); m_first_die)
       return; // Already parsed
   }
   llvm::sys::ScopedWriter lock(m_first_die_mutex);
@@ -63,8 +63,8 @@ void DWARFUnit::ExtractUnitDIENoDwoIfNeeded() {
 
   // We are in our compile unit, parse starting at the offset we were told to
   // parse
-  const DWARFDataExtractor &data = GetData();
-  if (offset < GetNextUnitOffset() &&
+  
+  if (const DWARFDataExtractor &data = GetData(); offset < GetNextUnitOffset() &&
       m_first_die.Extract(data, *this, &offset)) {
     AddUnitDIE(m_first_die);
     return;
@@ -152,8 +152,8 @@ void DWARFUnit::ExtractDIEsIfNeeded() {
   m_cancel_scopes = true;
 
   {
-    llvm::sys::ScopedReader lock(m_die_array_mutex);
-    if (!m_die_array.empty())
+    
+    if (llvm::sys::ScopedReader lock(m_die_array_mutex); !m_die_array.empty())
       return; // Already parsed
   }
   llvm::sys::ScopedWriter lock(m_die_array_mutex);
@@ -172,8 +172,8 @@ DWARFUnit::ScopedExtractDIEs DWARFUnit::ExtractDIEsScoped() {
   ScopedExtractDIEs scoped(*this);
 
   {
-    llvm::sys::ScopedReader lock(m_die_array_mutex);
-    if (!m_die_array.empty())
+    
+    if (llvm::sys::ScopedReader lock(m_die_array_mutex); !m_die_array.empty())
       return scoped; // Already parsed
   }
   llvm::sys::ScopedWriter lock(m_die_array_mutex);
@@ -394,8 +394,8 @@ void DWARFUnit::AddUnitDIE(const DWARFDebugInfoEntry &cu_die) {
   for (size_t i = 0; i < attributes.Size(); ++i) {
     if (attributes.AttributeAtIndex(i) != DW_AT_addr_base)
       continue;
-    DWARFFormValue form_value;
-    if (attributes.ExtractFormValueAtIndex(i, form_value)) {
+    
+    if (DWARFFormValue form_value; attributes.ExtractFormValueAtIndex(i, form_value)) {
       SetAddrBase(form_value.Unsigned());
       break;
     }
@@ -632,9 +632,9 @@ dw_addr_t DWARFUnit::ReadAddressFromDebugAddrSection(uint32_t index) const {
   uint32_t index_size = GetAddressByteSize();
   dw_offset_t addr_base = GetAddrBase();
   dw_addr_t offset = addr_base + static_cast<dw_addr_t>(index) * index_size;
-  const DWARFDataExtractor &data =
-      m_dwarf.GetDWARFContext().getOrLoadAddrData();
-  if (data.ValidOffsetForDataOfSize(offset, index_size))
+  
+  if (const DWARFDataExtractor &data =
+      m_dwarf.GetDWARFContext().getOrLoadAddrData(); data.ValidOffsetForDataOfSize(offset, index_size))
     return data.GetMaxU64_unchecked(&offset, index_size);
   return LLDB_INVALID_ADDRESS;
 }
@@ -702,8 +702,8 @@ llvm::StringRef DWARFUnit::PeekDIEName(dw_offset_t die_offset) {
     DWARFFormValue form_value;
     if (!die.GetAttributeValue(this, attr, form_value))
       continue;
-    auto [unit, offset] = form_value.ReferencedUnitAndOffset();
-    if (unit)
+    
+    if (auto [unit, offset] = form_value.ReferencedUnitAndOffset(); unit)
       if (auto name = unit->PeekDIEName(offset); !name.empty())
         return name;
   }
@@ -815,9 +815,9 @@ DWARFCompileUnit *DWARFUnit::GetSkeletonUnit() {
     SymbolFileDWARFDwo *dwo =
         llvm::dyn_cast_or_null<SymbolFileDWARFDwo>(&GetSymbolFileDWARF());
     // Do a reverse lookup if the skeleton compile unit wasn't set.
-    DWARFUnit *candidate_skeleton_unit =
-        dwo ? dwo->GetBaseSymbolFile().GetSkeletonUnit(this) : nullptr;
-    if (candidate_skeleton_unit)
+    
+    if (DWARFUnit *candidate_skeleton_unit =
+        dwo ? dwo->GetBaseSymbolFile().GetSkeletonUnit(this) : nullptr; candidate_skeleton_unit)
       (void)LinkToSkeletonUnit(*candidate_skeleton_unit);
     // Linking may fail due to a race, so be sure to return the actual value.
   }
@@ -887,8 +887,8 @@ uint64_t DWARFUnit::GetDWARFLanguageType() {
   if (m_language_type)
     return *m_language_type;
 
-  const DWARFDebugInfoEntry *die = GetUnitDIEPtrOnly();
-  if (!die)
+  
+  if (const DWARFDebugInfoEntry *die = GetUnitDIEPtrOnly(); !die)
     m_language_type = 0;
   else
     m_language_type = die->GetAttributeValueAsUnsigned(this, DW_AT_language, 0);
@@ -897,8 +897,8 @@ uint64_t DWARFUnit::GetDWARFLanguageType() {
 
 bool DWARFUnit::GetIsOptimized() {
   if (m_is_optimized == eLazyBoolCalculate) {
-    const DWARFDebugInfoEntry *die = GetUnitDIEPtrOnly();
-    if (die) {
+    
+    if (const DWARFDebugInfoEntry *die = GetUnitDIEPtrOnly(); die) {
       m_is_optimized = eLazyBoolNo;
       if (die->GetAttributeValueAsUnsigned(this, DW_AT_APPLE_optimized, 0) ==
           1) {
@@ -999,13 +999,13 @@ SymbolFileDWARFDwo *DWARFUnit::GetDwoSymbolFile(bool load_all_debug_info) {
 const DWARFDebugAranges &DWARFUnit::GetFunctionAranges() {
   if (m_func_aranges_up == nullptr) {
     m_func_aranges_up = std::make_unique<DWARFDebugAranges>();
-    const DWARFDebugInfoEntry *die = DIEPtr();
-    if (die)
+    
+    if (const DWARFDebugInfoEntry *die = DIEPtr(); die)
       die->BuildFunctionAddressRangeTable(this, m_func_aranges_up.get());
 
     if (m_dwo) {
-      const DWARFDebugInfoEntry *dwo_die = m_dwo->DIEPtr();
-      if (dwo_die)
+      
+      if (const DWARFDebugInfoEntry *dwo_die = m_dwo->DIEPtr(); dwo_die)
         dwo_die->BuildFunctionAddressRangeTable(m_dwo.get(),
                                                 m_func_aranges_up.get());
     }

@@ -280,9 +280,9 @@ void AppleObjCTrampolineHandler::AppleObjCVTables::VTableRegion::SetUpRegion() {
   lldb::addr_t code_size = 0;
   bool all_the_same = true;
   for (size_t i = 0; i < num_descriptors - 1; i++) {
-    lldb::addr_t this_size =
-        m_descriptors[i + 1].code_start - m_descriptors[i].code_start;
-    if (code_size == 0)
+    
+    if (lldb::addr_t this_size =
+        m_descriptors[i + 1].code_start - m_descriptors[i].code_start; code_size == 0)
       code_size = this_size;
     else {
       if (this_size != code_size)
@@ -336,8 +336,8 @@ AppleObjCTrampolineHandler::AppleObjCVTables::AppleObjCVTables(
 }
 
 AppleObjCTrampolineHandler::AppleObjCVTables::~AppleObjCVTables() {
-  ProcessSP process_sp = GetProcessSP();
-  if (process_sp) {
+  
+  if (ProcessSP process_sp = GetProcessSP(); process_sp) {
     if (m_trampolines_changed_bp_id != LLDB_INVALID_BREAK_ID)
       process_sp->GetTarget().RemoveBreakpointByID(m_trampolines_changed_bp_id);
   }
@@ -363,20 +363,20 @@ bool AppleObjCTrampolineHandler::AppleObjCVTables::InitializeVTableSymbols() {
 
     if (m_objc_module_sp) {
       ConstString trampoline_name("gdb_objc_trampolines");
-      const Symbol *trampoline_symbol =
+      
+      if (const Symbol *trampoline_symbol =
           m_objc_module_sp->FindFirstSymbolWithNameAndType(trampoline_name,
-                                                           eSymbolTypeData);
-      if (trampoline_symbol != nullptr) {
+                                                           eSymbolTypeData); trampoline_symbol != nullptr) {
         m_trampoline_header = trampoline_symbol->GetLoadAddress(&target);
         if (m_trampoline_header == LLDB_INVALID_ADDRESS)
           return false;
 
         // Next look up the "changed" symbol and set a breakpoint on that...
         ConstString changed_name("gdb_objc_trampolines_changed");
-        const Symbol *changed_symbol =
+        
+        if (const Symbol *changed_symbol =
             m_objc_module_sp->FindFirstSymbolWithNameAndType(changed_name,
-                                                             eSymbolTypeCode);
-        if (changed_symbol != nullptr) {
+                                                             eSymbolTypeCode); changed_symbol != nullptr) {
           const Address changed_symbol_addr = changed_symbol->GetAddress();
           if (!changed_symbol_addr.IsValid())
             return false;
@@ -384,9 +384,9 @@ bool AppleObjCTrampolineHandler::AppleObjCVTables::InitializeVTableSymbols() {
           lldb::addr_t changed_addr =
               changed_symbol_addr.GetOpcodeLoadAddress(&target);
           if (changed_addr != LLDB_INVALID_ADDRESS) {
-            BreakpointSP trampolines_changed_bp_sp =
-                target.CreateBreakpoint(changed_addr, true, false);
-            if (trampolines_changed_bp_sp) {
+            
+            if (BreakpointSP trampolines_changed_bp_sp =
+                target.CreateBreakpoint(changed_addr, true, false); trampolines_changed_bp_sp) {
               m_trampolines_changed_bp_id = trampolines_changed_bp_sp->GetID();
               trampolines_changed_bp_sp->SetCallback(RefreshTrampolines, this,
                                                      true);
@@ -405,8 +405,8 @@ bool AppleObjCTrampolineHandler::AppleObjCVTables::InitializeVTableSymbols() {
 bool AppleObjCTrampolineHandler::AppleObjCVTables::RefreshTrampolines(
     void *baton, StoppointCallbackContext *context, lldb::user_id_t break_id,
     lldb::user_id_t break_loc_id) {
-  AppleObjCVTables *vtable_handler = (AppleObjCVTables *)baton;
-  if (vtable_handler->InitializeVTableSymbols()) {
+  
+  if (AppleObjCVTables *vtable_handler = (AppleObjCVTables *)baton; vtable_handler->InitializeVTableSymbols()) {
     // The Update function is called with the address of an added region.  So we
     // grab that address, and
     // feed it into ReadRegions.  Of course, our friend the ABI will get the
@@ -460,9 +460,9 @@ bool AppleObjCTrampolineHandler::AppleObjCVTables::ReadRegions() {
   Status error;
   ProcessSP process_sp = GetProcessSP();
   if (process_sp) {
-    lldb::addr_t region_addr =
-        process_sp->ReadPointerFromMemory(m_trampoline_header, error);
-    if (error.Success())
+    
+    if (lldb::addr_t region_addr =
+        process_sp->ReadPointerFromMemory(m_trampoline_header, error); error.Success())
       return ReadRegions(region_addr);
   }
   return false;
@@ -657,10 +657,10 @@ AppleObjCTrampolineHandler::AppleObjCTrampolineHandler(
 
   for (size_t i = 0; i != std::size(g_dispatch_functions); i++) {
     ConstString name_const_str(g_dispatch_functions[i].name);
-    const Symbol *msgSend_symbol =
+    
+    if (const Symbol *msgSend_symbol =
         m_objc_module_sp->FindFirstSymbolWithNameAndType(name_const_str,
-                                                         eSymbolTypeCode);
-    if (msgSend_symbol && msgSend_symbol->ValueIsAddress()) {
+                                                         eSymbolTypeCode); msgSend_symbol && msgSend_symbol->ValueIsAddress()) {
       // FIXME: Make g_dispatch_functions static table of
       // DispatchFunctions, and have the map be address->index.
       // Problem is we also need to lookup the dispatch function.  For
@@ -677,10 +677,10 @@ AppleObjCTrampolineHandler::AppleObjCTrampolineHandler(
   // Similarly, cache the addresses of the "optimized dispatch" function.
   for (size_t i = 0; i != std::size(g_opt_dispatch_names); i++) {
     ConstString name_const_str(g_opt_dispatch_names[i]);
-    const Symbol *msgSend_symbol =
+    
+    if (const Symbol *msgSend_symbol =
         m_objc_module_sp->FindFirstSymbolWithNameAndType(name_const_str,
-                                                         eSymbolTypeCode);
-    if (msgSend_symbol && msgSend_symbol->ValueIsAddress()) {
+                                                         eSymbolTypeCode); msgSend_symbol && msgSend_symbol->ValueIsAddress()) {
       lldb::addr_t sym_addr =
           msgSend_symbol->GetAddressRef().GetOpcodeLoadAddress(target);
 
@@ -815,8 +815,8 @@ AppleObjCTrampolineHandler::GetStepThroughDispatchPlan(Thread &thread,
   const DispatchFunction *this_dispatch = nullptr;
 
   if (target.ResolveLoadAddress(curr_pc, func_addr)) {
-    Symbol *curr_sym = func_addr.CalculateSymbolContextSymbol();
-    if (curr_sym)
+    
+    if (Symbol *curr_sym = func_addr.CalculateSymbolContextSymbol(); curr_sym)
       sym_name = curr_sym->GetName().GetStringRef();
 
     if (!sym_name.empty() && !sym_name.consume_front("objc_msgSend$"))
@@ -835,8 +835,8 @@ AppleObjCTrampolineHandler::GetStepThroughDispatchPlan(Thread &thread,
   // Next check to see if we are in a vtable region:
 
   if (!this_dispatch && m_vtables_up) {
-    uint32_t flags;
-    if (m_vtables_up->IsAddressInVTables(curr_pc, flags)) {
+    
+    if (uint32_t flags; m_vtables_up->IsAddressInVTables(curr_pc, flags)) {
       vtable_dispatch.stret_return =
           (flags & AppleObjCVTables::eOBJC_TRAMPOLINE_STRET) ==
           AppleObjCVTables::eOBJC_TRAMPOLINE_STRET;

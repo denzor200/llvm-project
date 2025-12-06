@@ -15,12 +15,12 @@ using namespace llvm;
 TEST(AMDGPU, TestWave64DwarfRegMapping) {
   for (auto Triple :
        {"amdgcn-amd-", "amdgcn-amd-amdhsa", "amdgcn-amd-amdpal"}) {
-    auto TM = createAMDGPUTargetMachine(Triple, "gfx1010", "+wavefrontsize64");
-    if (TM) {
+    
+    if (auto TM = createAMDGPUTargetMachine(Triple, "gfx1010", "+wavefrontsize64"); TM) {
       GCNSubtarget ST(TM->getTargetTriple(), std::string(TM->getTargetCPU()),
                       std::string(TM->getTargetFeatureString()), *TM);
-      auto MRI = ST.getRegisterInfo();
-      if (MRI) {
+      
+      if (auto MRI = ST.getRegisterInfo(); MRI) {
         // Wave64 Dwarf register mapping test numbers
         // PC_64 => 16, EXEC_MASK_64 => 17, S0 => 32, S63 => 95,
         // S64 => 1088, S105 => 1129, V0 => 2560, V255 => 2815,
@@ -55,12 +55,12 @@ TEST(AMDGPU, TestWave64DwarfRegMapping) {
 TEST(AMDGPU, TestWave32DwarfRegMapping) {
   for (auto Triple :
        {"amdgcn-amd-", "amdgcn-amd-amdhsa", "amdgcn-amd-amdpal"}) {
-    auto TM = createAMDGPUTargetMachine(Triple, "gfx1010", "+wavefrontsize32");
-    if (TM) {
+    
+    if (auto TM = createAMDGPUTargetMachine(Triple, "gfx1010", "+wavefrontsize32"); TM) {
       GCNSubtarget ST(TM->getTargetTriple(), std::string(TM->getTargetCPU()),
                       std::string(TM->getTargetFeatureString()), *TM);
-      auto MRI = ST.getRegisterInfo();
-      if (MRI) {
+      
+      if (auto MRI = ST.getRegisterInfo(); MRI) {
         // Wave32 Dwarf register mapping test numbers
         // PC_64 => 16, EXEC_MASK_32 => 1, S0 => 32, S63 => 95,
         // S64 => 1088, S105 => 1129, V0 => 1536, V255 => 1791,

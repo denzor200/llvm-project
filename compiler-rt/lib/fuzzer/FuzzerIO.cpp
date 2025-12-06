@@ -134,10 +134,10 @@ std::string DirPlusFile(const std::string &DirPath,
 }
 
 void DupAndCloseStderr() {
-  int OutputFd = DuplicateFile(2);
-  if (OutputFd >= 0) {
-    FILE *NewOutputFile = OpenFile(OutputFd, "w");
-    if (NewOutputFile) {
+  
+  if (int OutputFd = DuplicateFile(2); OutputFd >= 0) {
+    
+    if (FILE *NewOutputFile = OpenFile(OutputFd, "w"); NewOutputFile) {
       OutputFile = NewOutputFile;
       if (EF->__sanitizer_set_report_fd)
         EF->__sanitizer_set_report_fd(

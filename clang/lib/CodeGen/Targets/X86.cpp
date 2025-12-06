@@ -59,8 +59,8 @@ static bool isX86VectorTypeForVectorCall(ASTContext &Context, QualType Ty) {
   } else if (const VectorType *VT = Ty->getAs<VectorType>()) {
     // vectorcall can pass XMM, YMM, and ZMM vectors. We don't pass SSE1 MMX
     // registers specially.
-    unsigned VecSize = Context.getTypeSize(VT);
-    if (VecSize == 128 || VecSize == 256 || VecSize == 512)
+    
+    if (unsigned VecSize = Context.getTypeSize(VT); VecSize == 128 || VecSize == 256 || VecSize == 512)
       return true;
   }
   return false;
@@ -530,8 +530,8 @@ ABIArgInfo X86_32ABIInfo::classifyReturnType(QualType RetTy,
 
     // Return complex of _Float16 as <2 x half> so the backend will use xmm0.
     if (const ComplexType *CT = RetTy->getAs<ComplexType>()) {
-      QualType ET = getContext().getCanonicalType(CT->getElementType());
-      if (ET->isFloat16Type())
+      
+      if (QualType ET = getContext().getCanonicalType(CT->getElementType()); ET->isFloat16Type())
         return ABIArgInfo::getDirect(llvm::FixedVectorType::get(
             llvm::Type::getHalfTy(getVMContext()), 2));
     }
@@ -636,8 +636,8 @@ X86_32ABIInfo::Class X86_32ABIInfo::classify(QualType Ty) const {
     T = Ty.getTypePtr();
 
   if (const BuiltinType *BT = T->getAs<BuiltinType>()) {
-    BuiltinType::Kind K = BT->getKind();
-    if (K == BuiltinType::Float || K == BuiltinType::Double)
+    
+    if (BuiltinType::Kind K = BT->getKind(); K == BuiltinType::Float || K == BuiltinType::Double)
       return Float;
   }
   return Integer;
@@ -645,8 +645,8 @@ X86_32ABIInfo::Class X86_32ABIInfo::classify(QualType Ty) const {
 
 bool X86_32ABIInfo::updateFreeRegs(QualType Ty, CCState &State) const {
   if (!IsSoftFloatABI) {
-    Class C = classify(Ty);
-    if (C == Float)
+    
+    if (Class C = classify(Ty); C == Float)
       return false;
   }
 
@@ -737,8 +737,8 @@ void X86_32ABIInfo::runVectorCallFirstPass(CGFunctionInfo &FI, CCState &State) c
   for (int I = 0, E = Args.size(); I < E; ++I) {
     const Type *Base = nullptr;
     uint64_t NumElts = 0;
-    const QualType &Ty = Args[I].type;
-    if ((Ty->isVectorType() || Ty->isBuiltinType()) &&
+    
+    if (const QualType &Ty = Args[I].type; (Ty->isVectorType() || Ty->isBuiltinType()) &&
         isHomogeneousAggregate(Ty, Base, NumElts)) {
       if (State.FreeSSERegs >= NumElts) {
         State.FreeSSERegs -= NumElts;
@@ -762,8 +762,8 @@ ABIArgInfo X86_32ABIInfo::classifyArgumentType(QualType Ty, CCState &State,
   // Check with the C++ ABI first.
   const RecordType *RT = Ty->getAsCanonical<RecordType>();
   if (RT) {
-    CGCXXABI::RecordArgABI RAA = getRecordArgABI(RT, getCXXABI());
-    if (RAA == CGCXXABI::RAA_Indirect) {
+    
+    if (CGCXXABI::RecordArgABI RAA = getRecordArgABI(RT, getCXXABI()); RAA == CGCXXABI::RAA_Indirect) {
       return getIndirectResult(Ty, false, State);
     } else if (State.IsDelegateCall) {
       // Avoid having different alignments on delegate call args by always
@@ -821,8 +821,8 @@ ABIArgInfo X86_32ABIInfo::classifyArgumentType(QualType Ty, CCState &State,
     if (shouldAggregateUseDirect(Ty, State, InReg, NeedsPadding)) {
       unsigned SizeInRegs = (TI.Width + 31) / 32;
       SmallVector<llvm::Type*, 3> Elements(SizeInRegs, Int32);
-      llvm::Type *Result = llvm::StructType::get(LLVMContext, Elements);
-      if (InReg)
+      
+      if (llvm::Type *Result = llvm::StructType::get(LLVMContext, Elements); InReg)
         return ABIArgInfo::getDirectInReg(Result);
       else
         return ABIArgInfo::getDirect(Result);
@@ -1332,8 +1332,8 @@ class X86_64ABIInfo : public ABIInfo {
         LangOptions::ClangABI::Ver3_8)
       return false;
 
-    const llvm::Triple &Triple = getTarget().getTriple();
-    if (Triple.isOSDarwin() || Triple.isPS() || Triple.isOSFreeBSD())
+    
+    if (const llvm::Triple &Triple = getTarget().getTriple(); Triple.isOSDarwin() || Triple.isPS() || Triple.isOSFreeBSD())
       return false;
     return true;
   }
@@ -1375,8 +1375,8 @@ public:
     ABIArgInfo info = classifyArgumentType(type, 0, neededInt, neededSSE,
                                            /*isNamedArg*/true);
     if (info.isDirect()) {
-      llvm::Type *ty = info.getCoerceToType();
-      if (llvm::VectorType *vectorTy = dyn_cast_or_null<llvm::VectorType>(ty))
+      
+      if (llvm::Type *ty = info.getCoerceToType(); llvm::VectorType *vectorTy = dyn_cast_or_null<llvm::VectorType>(ty))
         return vectorTy->getPrimitiveSizeInBits().getFixedValue() > 128;
     }
     return false;
@@ -1814,9 +1814,9 @@ void X86_64ABIInfo::classify(QualType Ty, uint64_t OffsetBase, Class &Lo,
   Current = Memory;
 
   if (const BuiltinType *BT = Ty->getAs<BuiltinType>()) {
-    BuiltinType::Kind k = BT->getKind();
+    
 
-    if (k == BuiltinType::Void) {
+    if (BuiltinType::Kind k = BT->getKind(); k == BuiltinType::Void) {
       Current = NoClass;
     } else if (k == BuiltinType::Int128 || k == BuiltinType::UInt128) {
       Lo = Integer;
@@ -1830,8 +1830,8 @@ void X86_64ABIInfo::classify(QualType Ty, uint64_t OffsetBase, Class &Lo,
       Lo = SSE;
       Hi = SSEUp;
     } else if (k == BuiltinType::LongDouble) {
-      const llvm::fltSemantics *LDF = &getTarget().getLongDoubleFormat();
-      if (LDF == &llvm::APFloat::IEEEquad()) {
+      
+      if (const llvm::fltSemantics *LDF = &getTarget().getLongDoubleFormat(); LDF == &llvm::APFloat::IEEEquad()) {
         Lo = SSE;
         Hi = SSEUp;
       } else if (LDF == &llvm::APFloat::x87DoubleExtended()) {
@@ -1868,8 +1868,8 @@ void X86_64ABIInfo::classify(QualType Ty, uint64_t OffsetBase, Class &Lo,
         // Otherwise, with 32-bit pointers, this is an {i32, i32}. If that
         // straddles an eightbyte boundary, Hi should be classified as well.
         uint64_t EB_FuncPtr = (OffsetBase) / 64;
-        uint64_t EB_ThisAdj = (OffsetBase + 64 - 1) / 64;
-        if (EB_FuncPtr != EB_ThisAdj) {
+        
+        if (uint64_t EB_ThisAdj = (OffsetBase + 64 - 1) / 64; EB_FuncPtr != EB_ThisAdj) {
           Lo = Hi = Integer;
         } else {
           Current = Integer;
@@ -1882,8 +1882,8 @@ void X86_64ABIInfo::classify(QualType Ty, uint64_t OffsetBase, Class &Lo,
   }
 
   if (const VectorType *VT = Ty->getAs<VectorType>()) {
-    uint64_t Size = getContext().getTypeSize(VT);
-    if (Size == 1 || Size == 8 || Size == 16 || Size == 32) {
+    
+    if (uint64_t Size = getContext().getTypeSize(VT); Size == 1 || Size == 8 || Size == 16 || Size == 32) {
       // gcc passes the following as integer:
       // 4 bytes - <4 x char>, <2 x short>, <1 x int>, <1 x float>
       // 2 bytes - <2 x char>, <1 x short>
@@ -1893,8 +1893,8 @@ void X86_64ABIInfo::classify(QualType Ty, uint64_t OffsetBase, Class &Lo,
       // If this type crosses an eightbyte boundary, it should be
       // split.
       uint64_t EB_Lo = (OffsetBase) / 64;
-      uint64_t EB_Hi = (OffsetBase + Size - 1) / 64;
-      if (EB_Lo != EB_Hi)
+      
+      if (uint64_t EB_Hi = (OffsetBase + Size - 1) / 64; EB_Lo != EB_Hi)
         Hi = Lo;
     } else if (Size == 64) {
       QualType ElementType = VT->getElementType();
@@ -1952,8 +1952,8 @@ void X86_64ABIInfo::classify(QualType Ty, uint64_t OffsetBase, Class &Lo,
   if (const ComplexType *CT = Ty->getAs<ComplexType>()) {
     QualType ET = getContext().getCanonicalType(CT->getElementType());
 
-    uint64_t Size = getContext().getTypeSize(Ty);
-    if (ET->isIntegralOrEnumerationType()) {
+    
+    if (uint64_t Size = getContext().getTypeSize(Ty); ET->isIntegralOrEnumerationType()) {
       if (Size <= 64)
         Current = Integer;
       else if (Size <= 128)
@@ -1964,8 +1964,8 @@ void X86_64ABIInfo::classify(QualType Ty, uint64_t OffsetBase, Class &Lo,
     } else if (ET == getContext().DoubleTy) {
       Lo = Hi = SSE;
     } else if (ET == getContext().LongDoubleTy) {
-      const llvm::fltSemantics *LDF = &getTarget().getLongDoubleFormat();
-      if (LDF == &llvm::APFloat::IEEEquad())
+      
+      if (const llvm::fltSemantics *LDF = &getTarget().getLongDoubleFormat(); LDF == &llvm::APFloat::IEEEquad())
         Current = Memory;
       else if (LDF == &llvm::APFloat::x87DoubleExtended())
         Current = ComplexX87;
@@ -2156,9 +2156,9 @@ void X86_64ABIInfo::classify(QualType Ty, uint64_t OffsetBase, Class &Lo,
         uint64_t Size = i->getBitWidthValue();
 
         uint64_t EB_Lo = Offset / 64;
-        uint64_t EB_Hi = (Offset + Size - 1) / 64;
+        
 
-        if (EB_Lo) {
+        if (uint64_t EB_Hi = (Offset + Size - 1) / 64; EB_Lo) {
           assert(EB_Hi == EB_Lo && "Invalid classification, type > 16 bytes.");
           FieldLo = NoClass;
           FieldHi = Integer;
@@ -2199,8 +2199,8 @@ ABIArgInfo X86_64ABIInfo::getIndirectReturnResult(QualType Ty) const {
 bool X86_64ABIInfo::IsIllegalVectorType(QualType Ty) const {
   if (const VectorType *VecTy = Ty->getAs<VectorType>()) {
     uint64_t Size = getContext().getTypeSize(VecTy);
-    unsigned LargestVector = getNativeVectorSizeForAVXABI(AVXLevel);
-    if (Size <= 64 || Size > LargestVector)
+    
+    if (unsigned LargestVector = getNativeVectorSizeForAVXABI(AVXLevel); Size <= 64 || Size > LargestVector)
       return true;
     QualType EltTy = VecTy->getElementType();
     if (passInt128VectorsInMem() &&
@@ -2262,11 +2262,11 @@ ABIArgInfo X86_64ABIInfo::getIndirectResult(QualType Ty,
   // We can revisit this if the backend grows support for 'onstack' parameter
   // attributes. See PR12193.
   if (freeIntRegs == 0) {
-    uint64_t Size = getContext().getTypeSize(Ty);
+    
 
     // If this type fits in an eightbyte, coerce it into the matching integral
     // type, which will end up on the stack (with alignment 8).
-    if (Align == 8 && Size <= 64)
+    if (uint64_t Size = getContext().getTypeSize(Ty); Align == 8 && Size <= 64)
       return ABIArgInfo::getDirect(llvm::IntegerType::get(getVMContext(),
                                                           Size));
   }
@@ -2323,8 +2323,8 @@ static bool BitsContainNoUserData(QualType Ty, unsigned StartBit,
   // If the bytes being queried are off the end of the type, there is no user
   // data hiding here.  This handles analysis of builtins, vectors and other
   // types that don't contain interesting padding.
-  unsigned TySize = (unsigned)Context.getTypeSize(Ty);
-  if (TySize <= StartBit)
+  
+  if (unsigned TySize = (unsigned)Context.getTypeSize(Ty); TySize <= StartBit)
     return true;
 
   if (const ConstantArrayType *AT = Context.getAsConstantArrayType(Ty)) {
@@ -2502,10 +2502,10 @@ GetINTEGERTypeAtOffset(llvm::Type *IRType, unsigned IROffset,
     if (IRType->isIntegerTy(8) || IRType->isIntegerTy(16) ||
         IRType->isIntegerTy(32) ||
         (isa<llvm::PointerType>(IRType) && !Has64BitPointers)) {
-      unsigned BitWidth = isa<llvm::PointerType>(IRType) ? 32 :
-          cast<llvm::IntegerType>(IRType)->getBitWidth();
+      
 
-      if (BitsContainNoUserData(SourceTy, SourceOffset*8+BitWidth,
+      if (unsigned BitWidth = isa<llvm::PointerType>(IRType) ? 32 :
+          cast<llvm::IntegerType>(IRType)->getBitWidth(); BitsContainNoUserData(SourceTy, SourceOffset*8+BitWidth,
                                 SourceOffset*8+64, getContext()))
         return IRType;
     }
@@ -2513,8 +2513,8 @@ GetINTEGERTypeAtOffset(llvm::Type *IRType, unsigned IROffset,
 
   if (llvm::StructType *STy = dyn_cast<llvm::StructType>(IRType)) {
     // If this is a struct, recurse into the field at the specified offset.
-    const llvm::StructLayout *SL = getDataLayout().getStructLayout(STy);
-    if (IROffset < SL->getSizeInBytes()) {
+    
+    if (const llvm::StructLayout *SL = getDataLayout().getStructLayout(STy); IROffset < SL->getSizeInBytes()) {
       unsigned FieldIdx = SL->getElementContainingOffset(IROffset);
       IROffset -= SL->getElementOffset(FieldIdx);
 
@@ -2888,8 +2888,8 @@ X86_64ABIInfo::classifyRegCallStructTypeImpl(QualType Ty, unsigned &NeededInt,
 
   // Sum up members
   for (const auto *FD : RD->fields()) {
-    QualType MTy = FD->getType();
-    if (MTy->isRecordType() && !MTy->isUnionType()) {
+    
+    if (QualType MTy = FD->getType(); MTy->isRecordType() && !MTy->isUnionType()) {
       if (classifyRegCallStructTypeImpl(MTy, NeededInt, NeededSSE,
                                         MaxVectorWidth)
               .isIndirect()) {
@@ -2989,9 +2989,9 @@ void X86_64ABIInfo::computeInfo(CGFunctionInfo &FI) const {
   unsigned ArgNo = 0;
   for (CGFunctionInfo::arg_iterator it = FI.arg_begin(), ie = FI.arg_end();
        it != ie; ++it, ++ArgNo) {
-    bool IsNamedArg = ArgNo < NumRequiredArgs;
+    
 
-    if (IsRegCall && it->type->isStructureOrClassType())
+    if (bool IsNamedArg = ArgNo < NumRequiredArgs; IsRegCall && it->type->isStructureOrClassType())
       it->info = classifyRegCallStructType(it->type, NeededInt, NeededSSE,
                                            MaxVectorWidth);
     else
@@ -3365,8 +3365,8 @@ ABIArgInfo WinX86_64ABIInfo::classify(QualType Ty, unsigned &FreeSSERegs,
   if (Ty->isMemberPointerType()) {
     // If the member pointer is represented by an LLVM int or ptr, pass it
     // directly.
-    llvm::Type *LLTy = CGT.ConvertType(Ty);
-    if (LLTy->isPointerTy() || LLTy->isIntegerTy())
+    
+    if (llvm::Type *LLTy = CGT.ConvertType(Ty); LLTy->isPointerTy() || LLTy->isIntegerTy())
       return ABIArgInfo::getDirect();
   }
 
@@ -3392,8 +3392,8 @@ ABIArgInfo WinX86_64ABIInfo::classify(QualType Ty, unsigned &FreeSSERegs,
       // Mingw64 GCC uses the old 80 bit extended precision floating point
       // unit. It passes them indirectly through memory.
       if (IsMingw64) {
-        const llvm::fltSemantics *LDF = &getTarget().getLongDoubleFormat();
-        if (LDF == &llvm::APFloat::x87DoubleExtended())
+        
+        if (const llvm::fltSemantics *LDF = &getTarget().getLongDoubleFormat(); LDF == &llvm::APFloat::x87DoubleExtended())
           return ABIArgInfo::getIndirect(
               Align, /*AddrSpace=*/getDataLayout().getAllocaAddrSpace(),
               /*ByVal=*/false);

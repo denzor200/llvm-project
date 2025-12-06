@@ -622,9 +622,9 @@ DiagnosedSilenceableFailure mlir::transform::gpu::mapForallToBlocksImpl(
     // GPU-specific verifications. There is no better place to anchor
     // those right now: the ForallOp is target-independent and the transform
     // op does not apply to individual ForallOp.
-    DiagnosedSilenceableFailure diag =
-        verifyGpuMapping<BlockMappingKind>(transformOp, forallOp);
-    if (!diag.succeeded())
+    
+    if (DiagnosedSilenceableFailure diag =
+        verifyGpuMapping<BlockMappingKind>(transformOp, forallOp); !diag.succeeded())
       return diag;
   }
 
@@ -860,18 +860,18 @@ DiagnosedSilenceableFailure mlir::transform::gpu::mapOneForallToThreadsImpl(
     // GPU-specific verifications. There is no better place to anchor
     // those right now: the ForallOp is target-independent and the transform
     // op does not apply to individual ForallOp.
-    DiagnosedSilenceableFailure diag =
-        verifyGpuMapping<ThreadMappingKind>(transformOp, forallOp);
-    if (!diag.succeeded())
+    
+    if (DiagnosedSilenceableFailure diag =
+        verifyGpuMapping<ThreadMappingKind>(transformOp, forallOp); !diag.succeeded())
       return diag;
   }
 
   GpuIdBuilder gpuIdBuilder;
   {
     // Try to construct the id builder, if it fails, return.
-    DiagnosedSilenceableFailure diag = getThreadIdBuilder(
-        transformOp, forallOp, blockSizes, warpSize, gpuIdBuilder);
-    if (!diag.succeeded())
+    
+    if (DiagnosedSilenceableFailure diag = getThreadIdBuilder(
+        transformOp, forallOp, blockSizes, warpSize, gpuIdBuilder); !diag.succeeded())
       return diag;
   }
 

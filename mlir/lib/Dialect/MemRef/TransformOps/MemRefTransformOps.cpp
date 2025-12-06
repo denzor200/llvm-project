@@ -203,8 +203,8 @@ DiagnosedSilenceableFailure transform::MemRefMultiBufferOp::apply(
     for (Operation *user : target->getUsers()) {
       if (isa<memref::DeallocOp>(user))
         continue;
-      auto loop = user->getParentOfType<LoopLikeOpInterface>();
-      if (!loop) {
+      
+      if (auto loop = user->getParentOfType<LoopLikeOpInterface>(); !loop) {
         LLVM_DEBUG(DBGS() << "--allocation not used in a loop\n";
                    DBGS() << "----due to user: " << *user;);
         canApplyMultiBuffer = false;

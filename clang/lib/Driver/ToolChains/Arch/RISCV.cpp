@@ -268,8 +268,8 @@ std::string riscv::getRISCVArch(const llvm::opt::ArgList &Args,
 
   // 1. If `-march=` is specified, use it unless the value is "unset".
   if (const Arg *A = Args.getLastArg(options::OPT_march_EQ)) {
-    StringRef MArch = A->getValue();
-    if (MArch != "unset")
+    
+    if (StringRef MArch = A->getValue(); MArch != "unset")
       return MArch.str();
   }
 
@@ -280,15 +280,15 @@ std::string riscv::getRISCVArch(const llvm::opt::ArgList &Args,
       CPU = llvm::sys::getHostCPUName();
       // If the target cpu is unrecognized, use target features.
       if (CPU.starts_with("generic")) {
-        auto FeatureMap = llvm::sys::getHostCPUFeatures();
+        
         // hwprobe may be unavailable on older Linux versions.
-        if (!FeatureMap.empty()) {
+        if (auto FeatureMap = llvm::sys::getHostCPUFeatures(); !FeatureMap.empty()) {
           std::vector<std::string> Features;
           for (auto &F : FeatureMap)
             Features.push_back(((F.second ? "+" : "-") + F.first()).str());
-          auto ParseResult = llvm::RISCVISAInfo::parseFeatures(
-              Triple.isRISCV32() ? 32 : 64, Features);
-          if (ParseResult)
+          
+          if (auto ParseResult = llvm::RISCVISAInfo::parseFeatures(
+              Triple.isRISCV32() ? 32 : 64, Features); ParseResult)
             return (*ParseResult)->toString();
         }
       }

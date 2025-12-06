@@ -176,8 +176,8 @@ GsymReader::parse() {
       return createStringError(std::errc::invalid_argument,
                                "failed to read address table");
     // Read the file table.
-    const uint32_t NumFiles = Data.getU32(&Offset);
-    if (NumFiles > 0) {
+    
+    if (const uint32_t NumFiles = Data.getU32(&Offset); NumFiles > 0) {
       Swap->Files.resize(NumFiles);
       if (Data.getU32(&Offset, &Swap->Files[0].Dir, NumFiles*2))
         Files = ArrayRef<FileEntry>(Swap->Files);
@@ -215,8 +215,8 @@ std::optional<uint64_t> GsymReader::getAddress(size_t Index) const {
 }
 
 std::optional<uint64_t> GsymReader::getAddressInfoOffset(size_t Index) const {
-  const auto NumAddrInfoOffsets = AddrInfoOffsets.size();
-  if (Index < NumAddrInfoOffsets)
+  
+  if (const auto NumAddrInfoOffsets = AddrInfoOffsets.size(); Index < NumAddrInfoOffsets)
     return AddrInfoOffsets[Index];
   return std::nullopt;
 }
@@ -318,8 +318,8 @@ GsymReader::getFunctionInfoDataAtIndex(uint64_t AddrIdx,
 }
 
 llvm::Expected<FunctionInfo> GsymReader::getFunctionInfo(uint64_t Addr) const {
-  uint64_t FuncStartAddr = 0;
-  if (auto ExpectedData = getFunctionInfoDataForAddress(Addr, FuncStartAddr))
+  
+  if (uint64_t FuncStartAddr = 0; auto ExpectedData = getFunctionInfoDataForAddress(Addr, FuncStartAddr))
     return FunctionInfo::decode(*ExpectedData, FuncStartAddr);
   else
     return ExpectedData.takeError();
@@ -327,8 +327,8 @@ llvm::Expected<FunctionInfo> GsymReader::getFunctionInfo(uint64_t Addr) const {
 
 llvm::Expected<FunctionInfo>
 GsymReader::getFunctionInfoAtIndex(uint64_t Idx) const {
-  uint64_t FuncStartAddr = 0;
-  if (auto ExpectedData = getFunctionInfoDataAtIndex(Idx, FuncStartAddr))
+  
+  if (uint64_t FuncStartAddr = 0; auto ExpectedData = getFunctionInfoDataAtIndex(Idx, FuncStartAddr))
     return FunctionInfo::decode(*ExpectedData, FuncStartAddr);
   else
     return ExpectedData.takeError();
@@ -337,8 +337,8 @@ GsymReader::getFunctionInfoAtIndex(uint64_t Idx) const {
 llvm::Expected<LookupResult>
 GsymReader::lookup(uint64_t Addr,
                    std::optional<DataExtractor> *MergedFunctionsData) const {
-  uint64_t FuncStartAddr = 0;
-  if (auto ExpectedData = getFunctionInfoDataForAddress(Addr, FuncStartAddr))
+  
+  if (uint64_t FuncStartAddr = 0; auto ExpectedData = getFunctionInfoDataForAddress(Addr, FuncStartAddr))
     return FunctionInfo::lookup(*ExpectedData, *this, FuncStartAddr, Addr,
                                 MergedFunctionsData);
   else

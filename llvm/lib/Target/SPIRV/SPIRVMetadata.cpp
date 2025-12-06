@@ -22,8 +22,8 @@ static MDString *getOCLKernelArgAttribute(const Function &F, unsigned ArgIdx,
       "Kernel attributes are attached/belong only to OpenCL kernel functions");
 
   // Lookup the argument attribute in metadata attached to the kernel function.
-  MDNode *Node = F.getMetadata(AttributeName);
-  if (Node && ArgIdx < Node->getNumOperands())
+  
+  if (MDNode *Node = F.getMetadata(AttributeName); Node && ArgIdx < Node->getNumOperands())
     return cast<MDString>(Node->getOperand(ArgIdx));
 
   // Sometimes metadata containing kernel attributes is not attached to the

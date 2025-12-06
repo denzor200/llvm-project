@@ -158,9 +158,9 @@ TEST(AlignmentTest, isAligned_isAddrAligned) {
       {4, 0, true},  {4, 1, false}, {4, 4, true},  {4, 6, false},
   };
   for (const auto &T : kTests) {
-    MaybeAlign A(T.alignment);
+    
     // Test Align
-    if (A) {
+    if (MaybeAlign A(T.alignment); A) {
       EXPECT_EQ(isAligned(*A, T.offset), T.isAligned);
       EXPECT_EQ(isAddrAligned(*A, T.forgedAddr()), T.isAligned);
     }

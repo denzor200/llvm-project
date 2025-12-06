@@ -384,8 +384,8 @@ static void computeFunctionSummary(
           // (stored value) can't be treated either as read- or as write-only
           // so we add them to RefEdges as we do with all other instructions
           // except non-volatile load.
-          Value *Stored = I.getOperand(0);
-          if (auto *GV = dyn_cast<GlobalValue>(Stored))
+          
+          if (Value *Stored = I.getOperand(0); auto *GV = dyn_cast<GlobalValue>(Stored))
             // findRefEdges will try to examine GV operands, so instead
             // of calling it we should add GV to RefEdges directly.
             RefEdges.insert(Index.getOrInsertValueInfo(GV));
@@ -487,8 +487,8 @@ static void computeFunctionSummary(
         // inlining.
         if (auto *MD = I.getMetadata(LLVMContext::MD_callees)) {
           for (const auto &Op : MD->operands()) {
-            Function *Callee = mdconst::extract_or_null<Function>(Op);
-            if (Callee)
+            
+            if (Function *Callee = mdconst::extract_or_null<Function>(Op); Callee)
               CallGraphEdges[Index.getOrInsertValueInfo(Callee)];
           }
         }
@@ -536,11 +536,11 @@ static void computeFunctionSummary(
           for (auto ContextIter =
                    StackContext.beginAfterSharedPrefix(InstCallsite);
                ContextIter != StackContext.end(); ++ContextIter) {
-            unsigned StackIdIdx = Index.addOrGetStackIdIndex(*ContextIter);
+            
             // If this is a direct recursion, simply skip the duplicate
             // entries. If this is mutual recursion, handling is left to
             // the LTO link analysis client.
-            if (StackIdIndices.empty() || StackIdIndices.back() != StackIdIdx)
+            if (unsigned StackIdIdx = Index.addOrGetStackIdIndex(*ContextIter); StackIdIndices.empty() || StackIdIndices.back() != StackIdIdx)
               StackIdIndices.push_back(StackIdIdx);
           }
           // If we have context size information, collect it for inclusion in
@@ -743,8 +743,8 @@ static void findFuncPointers(const Constant *I, uint64_t StartingOffset,
   // First check if this is a function pointer.
   if (I->getType()->isPointerTy()) {
     auto C = I->stripPointerCasts();
-    auto A = dyn_cast<GlobalAlias>(C);
-    if (isa<Function>(C) || (A && isa<Function>(A->getAliasee()))) {
+    
+    if (auto A = dyn_cast<GlobalAlias>(C); isa<Function>(C) || (A && isa<Function>(A->getAliasee()))) {
       auto GV = dyn_cast<GlobalValue>(C);
       assert(GV);
       // We can disregard __cxa_pure_virtual as a possible call target, as
@@ -757,8 +757,8 @@ static void findFuncPointers(const Constant *I, uint64_t StartingOffset,
 
   // Walk through the elements in the constant struct or array and recursively
   // look for virtual function pointers.
-  const DataLayout &DL = M.getDataLayout();
-  if (auto *C = dyn_cast<ConstantStruct>(I)) {
+  
+  if (const DataLayout &DL = M.getDataLayout(); auto *C = dyn_cast<ConstantStruct>(I)) {
     StructType *STy = dyn_cast<StructType>(C->getType());
     assert(STy);
     const StructLayout *SL = DL.getStructLayout(C->getType());
@@ -789,8 +789,8 @@ static void findFuncPointers(const Constant *I, uint64_t StartingOffset,
     // original vtable we're scanning through.
     if (CE->getOpcode() == Instruction::Sub) {
       GlobalValue *LHS, *RHS;
-      APSInt LHSOffset, RHSOffset;
-      if (IsConstantOffsetFromGlobal(CE->getOperand(0), LHS, LHSOffset, DL) &&
+      
+      if (APSInt LHSOffset, RHSOffset; IsConstantOffsetFromGlobal(CE->getOperand(0), LHS, LHSOffset, DL) &&
           IsConstantOffsetFromGlobal(CE->getOperand(1), RHS, RHSOffset, DL) &&
           RHS == &OrigGV &&
 
@@ -838,12 +838,12 @@ recordTypeIdCompatibleVtableReferences(ModuleSummaryIndex &Index,
   for (MDNode *Type : Types) {
     auto TypeID = Type->getOperand(1).get();
 
-    uint64_t Offset =
+    
+
+    if (uint64_t Offset =
         cast<ConstantInt>(
             cast<ConstantAsMetadata>(Type->getOperand(0))->getValue())
-            ->getZExtValue();
-
-    if (auto *TypeId = dyn_cast<MDString>(TypeID))
+            ->getZExtValue(); auto *TypeId = dyn_cast<MDString>(TypeID))
       Index.getOrInsertTypeIdCompatibleVtableSummary(TypeId->getString())
           .push_back({Offset, Index.getOrInsertValueInfo(&V)});
   }
@@ -1121,11 +1121,11 @@ ModuleSummaryIndex llvm::buildModuleSummaryIndex(
     }
 
     if (auto *FuncSummary = dyn_cast<FunctionSummary>(Summary.get())) {
-      bool AllCallsCanBeExternallyReferenced = llvm::all_of(
+      
+      if (bool AllCallsCanBeExternallyReferenced = llvm::all_of(
           FuncSummary->calls(), [&](const FunctionSummary::EdgeTy &Edge) {
             return !CantBePromoted.count(Edge.first.getGUID());
-          });
-      if (!AllCallsCanBeExternallyReferenced)
+          }); !AllCallsCanBeExternallyReferenced)
         Summary->setNotEligibleToImport();
     }
   }

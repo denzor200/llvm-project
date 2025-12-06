@@ -119,9 +119,9 @@ void MipsMCCodeEmitter::LowerCompactBranch(MCInst& Inst) const {
   MCRegister RegOp1 = Inst.getOperand(1).getReg();
 
   unsigned Reg0 =  Ctx.getRegisterInfo()->getEncodingValue(RegOp0);
-  unsigned Reg1 =  Ctx.getRegisterInfo()->getEncodingValue(RegOp1);
+  
 
-  if (Inst.getOpcode() == Mips::BNEC || Inst.getOpcode() == Mips::BEQC ||
+  if (unsigned Reg1 =  Ctx.getRegisterInfo()->getEncodingValue(RegOp1); Inst.getOpcode() == Mips::BNEC || Inst.getOpcode() == Mips::BEQC ||
       Inst.getOpcode() == Mips::BNEC64 || Inst.getOpcode() == Mips::BEQC64) {
     assert(Reg0 != Reg1 && "Instruction has bad operands ($rs == $rt)!");
     if (Reg0 < Reg1)
@@ -532,8 +532,8 @@ unsigned MipsMCCodeEmitter::
 getUImm5Lsl2Encoding(const MCInst &MI, unsigned OpNo,
                      SmallVectorImpl<MCFixup> &Fixups,
                      const MCSubtargetInfo &STI) const {
-  const MCOperand &MO = MI.getOperand(OpNo);
-  if (MO.isImm()) {
+  
+  if (const MCOperand &MO = MI.getOperand(OpNo); MO.isImm()) {
     // The immediate is encoded as 'immediate << 2'.
     unsigned Res = getMachineOpValue(MI, MO, Fixups, STI);
     assert((Res & 3) == 0);
@@ -550,8 +550,8 @@ unsigned MipsMCCodeEmitter::
 getSImm3Lsa2Value(const MCInst &MI, unsigned OpNo,
                   SmallVectorImpl<MCFixup> &Fixups,
                   const MCSubtargetInfo &STI) const {
-  const MCOperand &MO = MI.getOperand(OpNo);
-  if (MO.isImm()) {
+  
+  if (const MCOperand &MO = MI.getOperand(OpNo); MO.isImm()) {
     int Value = MO.getImm();
     return Value >> 2;
   }
@@ -563,8 +563,8 @@ unsigned MipsMCCodeEmitter::
 getUImm6Lsl2Encoding(const MCInst &MI, unsigned OpNo,
                      SmallVectorImpl<MCFixup> &Fixups,
                      const MCSubtargetInfo &STI) const {
-  const MCOperand &MO = MI.getOperand(OpNo);
-  if (MO.isImm()) {
+  
+  if (const MCOperand &MO = MI.getOperand(OpNo); MO.isImm()) {
     unsigned Value = MO.getImm();
     return Value >> 2;
   }
@@ -576,8 +576,8 @@ unsigned MipsMCCodeEmitter::
 getSImm9AddiuspValue(const MCInst &MI, unsigned OpNo,
                      SmallVectorImpl<MCFixup> &Fixups,
                      const MCSubtargetInfo &STI) const {
-  const MCOperand &MO = MI.getOperand(OpNo);
-  if (MO.isImm()) {
+  
+  if (const MCOperand &MO = MI.getOperand(OpNo); MO.isImm()) {
     unsigned Binary = (MO.getImm() >> 2) & 0x0000ffff;
     return (((Binary & 0x8000) >> 7) | (Binary & 0x00ff));
   }
@@ -588,8 +588,8 @@ getSImm9AddiuspValue(const MCInst &MI, unsigned OpNo,
 unsigned MipsMCCodeEmitter::
 getExprOpValue(const MCExpr *Expr, SmallVectorImpl<MCFixup> &Fixups,
                const MCSubtargetInfo &STI) const {
-  MCExpr::ExprKind Kind = Expr->getKind();
-  if (Kind == MCExpr::Specifier) {
+  
+  if (MCExpr::ExprKind Kind = Expr->getKind(); Kind == MCExpr::Specifier) {
     const auto *MipsExpr = cast<MCSpecifierExpr>(Expr);
 
     Mips::Fixups FixupKind = Mips::Fixups(0);
@@ -1013,8 +1013,8 @@ MipsMCCodeEmitter::getUImm4AndValue(const MCInst &MI, unsigned OpNo,
                                     const MCSubtargetInfo &STI) const {
   assert(MI.getOperand(OpNo).isImm());
   const MCOperand &MO = MI.getOperand(OpNo);
-  unsigned Value = MO.getImm();
-  switch (Value) {
+  
+  switch (unsigned Value = MO.getImm(); Value) {
     case 128:   return 0x0;
     case 1:     return 0x1;
     case 2:     return 0x2;
@@ -1046,8 +1046,8 @@ MipsMCCodeEmitter::getRegisterListOpValue(const MCInst &MI, unsigned OpNo,
 
   for (unsigned I = OpNo, E = MI.getNumOperands() - 2; I < E; ++I) {
     MCRegister Reg = MI.getOperand(I).getReg();
-    unsigned RegNo = Ctx.getRegisterInfo()->getEncodingValue(Reg);
-    if (RegNo != 31)
+    
+    if (unsigned RegNo = Ctx.getRegisterInfo()->getEncodingValue(Reg); RegNo != 31)
       res++;
     else
       res |= 0x10;

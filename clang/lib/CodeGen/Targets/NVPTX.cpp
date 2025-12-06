@@ -238,8 +238,8 @@ void NVPTXTargetCodeGenInfo::setTargetAttributes(
     const Decl *D, llvm::GlobalValue *GV, CodeGen::CodeGenModule &M) const {
   if (GV->isDeclaration())
     return;
-  const VarDecl *VD = dyn_cast_or_null<VarDecl>(D);
-  if (VD) {
+  
+  if (const VarDecl *VD = dyn_cast_or_null<VarDecl>(D); VD) {
     if (M.getLangOpts().CUDA) {
       if (VD->getType()->isCUDADeviceBuiltinSurfaceType())
         addNVVMMetadata(GV, "surface", 1);

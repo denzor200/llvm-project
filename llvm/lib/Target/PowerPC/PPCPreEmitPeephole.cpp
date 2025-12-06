@@ -225,8 +225,8 @@ static bool hasPCRelativeForm(MachineInstr &Use) {
         return false;
 
       // The result must be a register.
-      const MachineOperand &LoadedAddressReg = Instr.getOperand(0);
-      if (!LoadedAddressReg.isReg())
+      
+      if (const MachineOperand &LoadedAddressReg = Instr.getOperand(0); !LoadedAddressReg.isReg())
         return false;
 
       // Make sure that this is a global symbol.
@@ -369,10 +369,10 @@ static bool hasPCRelativeForm(MachineInstr &Use) {
           PPC::UACCRCRegClass.getNumRegs(), nullptr);
 
       for (MachineInstr &BBI : MBB.instrs()) {
-        unsigned Opc = BBI.getOpcode();
+        
         // If we are visiting a xxmtacc instruction, we add it and its operand
         // register to the candidate set.
-        if (Opc == PPC::XXMTACC) {
+        if (unsigned Opc = BBI.getOpcode(); Opc == PPC::XXMTACC) {
           Register Acc = BBI.getOperand(0).getReg();
           assert(PPC::ACCRCRegClass.contains(Acc) &&
                  "Unexpected register for XXMTACC");
@@ -395,8 +395,8 @@ static bool hasPCRelativeForm(MachineInstr &Use) {
           for (MachineOperand &Operand : BBI.operands()) {
             if (!Operand.isReg())
               continue;
-            Register Reg = Operand.getReg();
-            if (PPC::ACCRCRegClass.contains(Reg))
+            
+            if (Register Reg = Operand.getReg(); PPC::ACCRCRegClass.contains(Reg))
               Candidates[Reg - PPC::ACC0] = nullptr;
           }
         }
@@ -418,8 +418,8 @@ static bool hasPCRelativeForm(MachineInstr &Use) {
         MachineBasicBlock &MBB = MF.front();
         // Find an unused GPR according to register liveness
         RS.enterBasicBlock(MBB);
-        unsigned InDSCR = RS.FindUnusedReg(&PPC::GPRCRegClass);
-        if (InDSCR) {
+        
+        if (unsigned InDSCR = RS.FindUnusedReg(&PPC::GPRCRegClass); InDSCR) {
           const PPCInstrInfo *TII =
               MF.getSubtarget<PPCSubtarget>().getInstrInfo();
           DebugLoc dl;
@@ -470,8 +470,8 @@ static bool hasPCRelativeForm(MachineInstr &Use) {
           }
           // Detect self copies - these can result from running AADB.
           if (PPCInstrInfo::isSameClassPhysRegCopy(Opc)) {
-            const MCInstrDesc &MCID = TII->get(Opc);
-            if (MCID.getNumOperands() == 3 &&
+            
+            if (const MCInstrDesc &MCID = TII->get(Opc); MCID.getNumOperands() == 3 &&
                 MI.getOperand(0).getReg() == MI.getOperand(1).getReg() &&
                 MI.getOperand(0).getReg() == MI.getOperand(2).getReg()) {
               NumberOfSelfCopies++;

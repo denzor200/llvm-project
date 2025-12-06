@@ -56,8 +56,8 @@ bool latency_sort::operator()(const SUnit *LHS, const SUnit *RHS) const {
 SUnit *LatencyPriorityQueue::getSingleUnscheduledPred(SUnit *SU) {
   SUnit *OnlyAvailablePred = nullptr;
   for (const SDep &P : SU->Preds) {
-    SUnit &Pred = *P.getSUnit();
-    if (!Pred.isScheduled) {
+    
+    if (SUnit &Pred = *P.getSUnit(); !Pred.isScheduled) {
       // We found an available, but not scheduled, predecessor.  If it's the
       // only one we have found, keep track of it... otherwise give up.
       if (OnlyAvailablePred && OnlyAvailablePred != &Pred)

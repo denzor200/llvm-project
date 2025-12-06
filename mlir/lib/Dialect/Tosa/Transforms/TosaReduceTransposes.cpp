@@ -516,8 +516,8 @@ bool TosaReduceTransposes::dependenciesAreValid(
       // same perms. For (2) it means the fan-in is a subset of our
       // dependentOps, so it is also a validTranspose that will eventually be
       // replaced.
-      Operation *user = use.getOwner();
-      if (auto otherTranspose = llvm::dyn_cast<TransposeOp>(user)) {
+      
+      if (Operation *user = use.getOwner(); auto otherTranspose = llvm::dyn_cast<TransposeOp>(user)) {
         // Can later think about cases where transpose -> transpose
         // or reshape -> transpose, where the transposes are not necessarily
         // the same perms as the hoisted, if implementing a more general

@@ -430,10 +430,10 @@ void CodeGenFunction::EmitStaticVarDecl(const VarDecl &D,
   // have any non-empty initializers. This is ensured by Sema.
   // Whatever initializer such variable may have when it gets here is
   // a no-op and should not be emitted.
-  bool isCudaSharedVar = getLangOpts().CUDA && getLangOpts().CUDAIsDevice &&
-                         D.hasAttr<CUDASharedAttr>();
+  
   // If this value has an initializer, emit it.
-  if (D.getInit() && !isCudaSharedVar) {
+  if (bool isCudaSharedVar = getLangOpts().CUDA && getLangOpts().CUDAIsDevice &&
+                         D.hasAttr<CUDASharedAttr>(); D.getInit() && !isCudaSharedVar) {
     ApplyAtomGroup Grp(getDebugInfo());
     var = AddInitializerToStaticVarDecl(D, var);
   }
@@ -923,8 +923,8 @@ static bool canEmitInitWithFewStoresAfterBZero(llvm::Constant *Init,
   // See if we can emit each element.
   if (isa<llvm::ConstantArray>(Init) || isa<llvm::ConstantStruct>(Init)) {
     for (unsigned i = 0, e = Init->getNumOperands(); i != e; ++i) {
-      llvm::Constant *Elt = cast<llvm::Constant>(Init->getOperand(i));
-      if (!canEmitInitWithFewStoresAfterBZero(Elt, NumStores))
+      
+      if (llvm::Constant *Elt = cast<llvm::Constant>(Init->getOperand(i)); !canEmitInitWithFewStoresAfterBZero(Elt, NumStores))
         return false;
     }
     return true;
@@ -933,8 +933,8 @@ static bool canEmitInitWithFewStoresAfterBZero(llvm::Constant *Init,
   if (llvm::ConstantDataSequential *CDS =
         dyn_cast<llvm::ConstantDataSequential>(Init)) {
     for (unsigned i = 0, e = CDS->getNumElements(); i != e; ++i) {
-      llvm::Constant *Elt = CDS->getElementAsConstant(i);
-      if (!canEmitInitWithFewStoresAfterBZero(Elt, NumStores))
+      
+      if (llvm::Constant *Elt = CDS->getElementAsConstant(i); !canEmitInitWithFewStoresAfterBZero(Elt, NumStores))
         return false;
     }
     return true;
@@ -965,10 +965,10 @@ void CodeGenFunction::emitStoresForInitAfterBZero(llvm::Constant *Init,
   if (llvm::ConstantDataSequential *CDS =
           dyn_cast<llvm::ConstantDataSequential>(Init)) {
     for (unsigned i = 0, e = CDS->getNumElements(); i != e; ++i) {
-      llvm::Constant *Elt = CDS->getElementAsConstant(i);
+      
 
       // If necessary, get a pointer to the element and emit it.
-      if (!Elt->isNullValue() && !isa<llvm::UndefValue>(Elt))
+      if (llvm::Constant *Elt = CDS->getElementAsConstant(i); !Elt->isNullValue() && !isa<llvm::UndefValue>(Elt))
         emitStoresForInitAfterBZero(
             Elt, Builder.CreateConstInBoundsGEP2_32(Loc, 0, i), isVolatile,
             IsAutoInit);
@@ -980,10 +980,10 @@ void CodeGenFunction::emitStoresForInitAfterBZero(llvm::Constant *Init,
          "Unknown value type!");
 
   for (unsigned i = 0, e = Init->getNumOperands(); i != e; ++i) {
-    llvm::Constant *Elt = cast<llvm::Constant>(Init->getOperand(i));
+    
 
     // If necessary, get a pointer to the element and emit it.
-    if (!Elt->isNullValue() && !isa<llvm::UndefValue>(Elt))
+    if (llvm::Constant *Elt = cast<llvm::Constant>(Init->getOperand(i)); !Elt->isNullValue() && !isa<llvm::UndefValue>(Elt))
       emitStoresForInitAfterBZero(Elt,
                                   Builder.CreateConstInBoundsGEP2_32(Loc, 0, i),
                                   isVolatile, IsAutoInit);
@@ -1017,8 +1017,8 @@ static bool shouldUseBZeroPlusStoresToInitialize(llvm::Constant *Init,
 static llvm::Value *shouldUseMemSetToInitialize(llvm::Constant *Init,
                                                 uint64_t GlobalSize,
                                                 const llvm::DataLayout &DL) {
-  uint64_t SizeLimit = 32;
-  if (GlobalSize <= SizeLimit)
+  
+  if (uint64_t SizeLimit = 32; GlobalSize <= SizeLimit)
     return nullptr;
   return llvm::isBytewiseValue(Init, DL);
 }
@@ -1218,9 +1218,9 @@ void CodeGenFunction::emitStoresForConstant(const VarDecl &D, Address Loc,
     if (IsAutoInit)
       I->addAnnotationMetadata("auto-init");
 
-    bool valueAlreadyCorrect =
-        constant->isNullValue() || isa<llvm::UndefValue>(constant);
-    if (!valueAlreadyCorrect) {
+    
+    if (bool valueAlreadyCorrect =
+        constant->isNullValue() || isa<llvm::UndefValue>(constant); !valueAlreadyCorrect) {
       Loc = Loc.withElementType(Ty);
       emitStoresForInitAfterBZero(constant, Loc, isVolatile, IsAutoInit);
     }
@@ -1535,9 +1535,9 @@ CodeGenFunction::EmitAutoVarAlloca(const VarDecl &D) {
       // emit it as a global instead.
       // Exception is if a variable is located in non-constant address space
       // in OpenCL.
-      bool NeedsDtor =
-          D.needsDestruction(getContext()) == QualType::DK_cxx_destructor;
-      if ((!getLangOpts().OpenCL ||
+      
+      if (bool NeedsDtor =
+          D.needsDestruction(getContext()) == QualType::DK_cxx_destructor; (!getLangOpts().OpenCL ||
            Ty.getAddressSpace() == LangAS::opencl_constant) &&
           (CGM.getCodeGenOpts().MergeAllConstants && !NRVO &&
            !isEscapingByRef &&
@@ -1645,8 +1645,8 @@ CodeGenFunction::EmitAutoVarAlloca(const VarDecl &D) {
     // deallocation call to __kmpc_free_shared() is emitted later.
     bool VarAllocated = false;
     if (getLangOpts().OpenMPIsTargetDevice) {
-      auto &RT = CGM.getOpenMPRuntime();
-      if (RT.isDelayedVariableLengthDecl(*this, &D)) {
+      
+      if (auto &RT = CGM.getOpenMPRuntime(); RT.isDelayedVariableLengthDecl(*this, &D)) {
         // Emit call to __kmpc_alloc_shared() instead of the alloca.
         std::pair<llvm::Value *, llvm::Value *> AddrSizePair =
             RT.getKmpcAllocShared(*this, &D);
@@ -1782,8 +1782,8 @@ static bool isCapturedBy(const VarDecl &Var, const Expr *E) {
           // special case declarations
           for (const auto *I : DS->decls()) {
               if (const auto *VD = dyn_cast<VarDecl>((I))) {
-                const Expr *Init = VD->getInit();
-                if (Init && isCapturedBy(Var, Init))
+                
+                if (const Expr *Init = VD->getInit(); Init && isCapturedBy(Var, Init))
                   return true;
               }
           }
@@ -1866,8 +1866,8 @@ void CodeGenFunction::emitZeroOrPatternForAutoVarInit(QualType type,
     return;
   auto VlaSize = getVLASize(VlaType);
   auto SizeVal = VlaSize.NumElts;
-  CharUnits EltSize = getContext().getTypeSizeInChars(VlaSize.Type);
-  switch (trivialAutoVarInit) {
+  
+  switch (CharUnits EltSize = getContext().getTypeSizeInChars(VlaSize.Type); trivialAutoVarInit) {
   case LangOptions::TrivialAutoVarInitKind::Uninitialized:
     llvm_unreachable("Uninitialized handled by caller");
 
@@ -2758,8 +2758,8 @@ void CodeGenFunction::EmitParmDecl(const VarDecl &D, ParamValue Arg,
 
   LValue lv = MakeAddrLValue(DeclPtr, Ty);
   if (IsScalar) {
-    Qualifiers qs = Ty.getQualifiers();
-    if (Qualifiers::ObjCLifetime lt = qs.getObjCLifetime()) {
+    
+    if (Qualifiers qs = Ty.getQualifiers(); Qualifiers::ObjCLifetime lt = qs.getObjCLifetime()) {
       // We honor __attribute__((ns_consumed)) for types with lifetime.
       // For __strong, it's handled by just skipping the initial retain;
       // otherwise we have to balance out the initial +1 with an extra
@@ -2837,9 +2837,9 @@ void CodeGenFunction::EmitParmDecl(const VarDecl &D, ParamValue Arg,
   if (CGDebugInfo *DI = getDebugInfo()) {
     if (CGM.getCodeGenOpts().hasReducedDebugInfo() && !CurFuncIsThunk &&
         !NoDebugInfo) {
-      llvm::DILocalVariable *DILocalVar = DI->EmitDeclareOfArgVariable(
-          &D, AllocaPtr.getPointer(), ArgNo, Builder, UseIndirectDebugAddress);
-      if (const auto *Var = dyn_cast_or_null<ParmVarDecl>(&D))
+      
+      if (llvm::DILocalVariable *DILocalVar = DI->EmitDeclareOfArgVariable(
+          &D, AllocaPtr.getPointer(), ArgNo, Builder, UseIndirectDebugAddress); const auto *Var = dyn_cast_or_null<ParmVarDecl>(&D))
         DI->getParamDbgMappings().insert({Var, DILocalVar});
     }
   }
@@ -2851,8 +2851,8 @@ void CodeGenFunction::EmitParmDecl(const VarDecl &D, ParamValue Arg,
   // function satisfy their nullability preconditions. This makes it necessary
   // to emit null checks for args in the function body itself.
   if (requiresReturnValueNullabilityCheck()) {
-    auto Nullability = Ty->getNullability();
-    if (Nullability && *Nullability == NullabilityKind::NonNull) {
+    
+    if (auto Nullability = Ty->getNullability(); Nullability && *Nullability == NullabilityKind::NonNull) {
       SanitizerScope SanScope(this);
       RetValNullabilityPrecondition =
           Builder.CreateAnd(RetValNullabilityPrecondition,

@@ -636,10 +636,10 @@ static KnownBits computeForSatAddSub(bool Add, bool Signed,
       UnsignedLHS.Zero.setSignBit();
       UnsignedRHS.One.clearSignBit();
       UnsignedRHS.Zero.setSignBit();
-      KnownBits Res =
+      
+      if (KnownBits Res =
           KnownBits::computeForAddSub(Add, /*NSW=*/false,
-                                      /*NUW=*/false, UnsignedLHS, UnsignedRHS);
-      if (Add) {
+                                      /*NUW=*/false, UnsignedLHS, UnsignedRHS); Add) {
         if (Res.isNegative()) {
           // Only overflow scenario is Pos + Pos.
           MayNegClamp = false;
@@ -893,8 +893,8 @@ KnownBits KnownBits::mul(const KnownBits &LHS, const KnownBits &RHS,
     // If X has exactly TZ trailing zeros, then bit (2 * TZ + 2) must also be
     // zero.
     if (TrailZero0 < BitWidth && LHS.One[TrailZero0]) {
-      unsigned TwoTZP2 = TwoTZP1 + 1;
-      if (TwoTZP2 < BitWidth)
+      
+      if (unsigned TwoTZP2 = TwoTZP1 + 1; TwoTZP2 < BitWidth)
         Res.Zero.setBit(TwoTZP2);
     }
   }
@@ -932,9 +932,9 @@ static KnownBits divComputeLowBit(KnownBits Known, const KnownBits &LHS,
 
   int MinTZ =
       (int)LHS.countMinTrailingZeros() - (int)RHS.countMaxTrailingZeros();
-  int MaxTZ =
-      (int)LHS.countMaxTrailingZeros() - (int)RHS.countMinTrailingZeros();
-  if (MinTZ >= 0) {
+  
+  if (int MaxTZ =
+      (int)LHS.countMaxTrailingZeros() - (int)RHS.countMinTrailingZeros(); MinTZ >= 0) {
     // Result has at least MinTZ trailing zeros.
     Known.Zero.setLowBits(MinTZ);
     if (MinTZ == MaxTZ) {
@@ -1126,8 +1126,8 @@ KnownBits KnownBits::blsi() const {
   KnownBits Known(Zero, APInt(BitWidth, 0));
   unsigned Max = countMaxTrailingZeros();
   Known.Zero.setBitsFrom(std::min(Max + 1, BitWidth));
-  unsigned Min = countMinTrailingZeros();
-  if (Max == Min && Max < BitWidth)
+  
+  if (unsigned Min = countMinTrailingZeros(); Max == Min && Max < BitWidth)
     Known.One.setBit(Max);
   return Known;
 }
@@ -1145,8 +1145,8 @@ KnownBits KnownBits::blsmsk() const {
 void KnownBits::print(raw_ostream &OS) const {
   unsigned BitWidth = getBitWidth();
   for (unsigned I = 0; I < BitWidth; ++I) {
-    unsigned N = BitWidth - I - 1;
-    if (Zero[N] && One[N])
+    
+    if (unsigned N = BitWidth - I - 1; Zero[N] && One[N])
       OS << "!";
     else if (Zero[N])
       OS << "0";

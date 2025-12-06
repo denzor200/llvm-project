@@ -672,8 +672,8 @@ void MachOPlatform::pushInitializersLoop(
     {
       std::lock_guard<std::mutex> Lock(PlatformMutex);
       for (auto &KV : JDDepMap) {
-        auto I = JITDylibToHeaderAddr.find(KV.first);
-        if (I != JITDylibToHeaderAddr.end())
+        
+        if (auto I = JITDylibToHeaderAddr.find(KV.first); I != JITDylibToHeaderAddr.end())
           HeaderAddrs[KV.first] = I->second;
       }
     }
@@ -689,8 +689,8 @@ void MachOPlatform::pushInitializersLoop(
       auto H = HI->second;
       MachOJITDylibDepInfo DepInfo;
       for (auto &Dep : KV.second) {
-        auto HJ = HeaderAddrs.find(Dep);
-        if (HJ != HeaderAddrs.end())
+        
+        if (auto HJ = HeaderAddrs.find(Dep); HJ != HeaderAddrs.end())
           DepInfo.DepHeaders.push_back(HJ->second);
       }
       DIM.push_back(std::make_pair(H, std::move(DepInfo)));
@@ -715,8 +715,8 @@ void MachOPlatform::rt_pushInitializers(PushInitializersSendResultFn SendResult,
   JITDylibSP JD;
   {
     std::lock_guard<std::mutex> Lock(PlatformMutex);
-    auto I = HeaderAddrToJITDylib.find(JDHeaderAddr);
-    if (I != HeaderAddrToJITDylib.end())
+    
+    if (auto I = HeaderAddrToJITDylib.find(JDHeaderAddr); I != HeaderAddrToJITDylib.end())
       JD = I->second;
   }
 
@@ -746,8 +746,8 @@ void MachOPlatform::rt_pushSymbols(
 
   {
     std::lock_guard<std::mutex> Lock(PlatformMutex);
-    auto I = HeaderAddrToJITDylib.find(Handle);
-    if (I != HeaderAddrToJITDylib.end())
+    
+    if (auto I = HeaderAddrToJITDylib.find(Handle); I != HeaderAddrToJITDylib.end())
       JD = I->second;
   }
   LLVM_DEBUG({
@@ -816,8 +816,8 @@ void MachOPlatform::MachOPlatformPlugin::modifyPassConfig(
     }
 
     // Get the dso-base address if available.
-    auto I = MP.JITDylibToHeaderAddr.find(&MR.getTargetJITDylib());
-    if (I != MP.JITDylibToHeaderAddr.end())
+    
+    if (auto I = MP.JITDylibToHeaderAddr.find(&MR.getTargetJITDylib()); I != MP.JITDylibToHeaderAddr.end())
       HeaderAddr = I->second;
   }
 
@@ -1222,8 +1222,8 @@ Error MachOPlatform::MachOPlatformPlugin::fixTLVSectionsAndEdges(
     std::optional<uint64_t> Key;
     {
       std::lock_guard<std::mutex> Lock(MP.PlatformMutex);
-      auto I = MP.JITDylibToPThreadKey.find(&JD);
-      if (I != MP.JITDylibToPThreadKey.end())
+      
+      if (auto I = MP.JITDylibToPThreadKey.find(&JD); I != MP.JITDylibToPThreadKey.end())
         Key = I->second;
     }
 
@@ -1376,8 +1376,8 @@ Error MachOPlatform::MachOPlatformPlugin::registerObjectPlatformSections(
                               MachOEHFrameSectionName};
   for (auto &SecName : DataSections) {
     if (auto *Sec = G.findSectionByName(SecName)) {
-      jitlink::SectionRange R(*Sec);
-      if (!R.empty())
+      
+      if (jitlink::SectionRange R(*Sec); !R.empty())
         MachOPlatformSecs.push_back({SecName, R.getRange()});
     }
   }
@@ -1385,8 +1385,8 @@ Error MachOPlatform::MachOPlatformPlugin::registerObjectPlatformSections(
   // Having merged thread BSS (if present) and thread data (if present),
   // record the resulting section range.
   if (ThreadDataSection) {
-    jitlink::SectionRange R(*ThreadDataSection);
-    if (!R.empty())
+    
+    if (jitlink::SectionRange R(*ThreadDataSection); !R.empty())
       MachOPlatformSecs.push_back({MachOThreadDataSectionName, R.getRange()});
   }
 
@@ -1428,7 +1428,9 @@ Error MachOPlatform::MachOPlatformPlugin::registerObjectPlatformSections(
                              SPSExecutorAddrRange, SPSExecutorAddrRange>>,
         SPSSequence<SPSTuple<SPSString, SPSExecutorAddrRange>>>;
 
-    AllocActionCallPair AllocActions = {
+    
+
+    if (AllocActionCallPair AllocActions = {
         cantFail(
             WrapperFunctionCall::Create<SPSRegisterObjectPlatformSectionsArgs>(
                 MP.RegisterObjectPlatformSections.Addr, HeaderAddr, UnwindInfo,
@@ -1436,9 +1438,7 @@ Error MachOPlatform::MachOPlatformPlugin::registerObjectPlatformSections(
         cantFail(
             WrapperFunctionCall::Create<SPSRegisterObjectPlatformSectionsArgs>(
                 MP.DeregisterObjectPlatformSections.Addr, HeaderAddr,
-                UnwindInfo, MachOPlatformSecs))};
-
-    if (LLVM_LIKELY(!InBootstrapPhase))
+                UnwindInfo, MachOPlatformSecs))}; LLVM_LIKELY(!InBootstrapPhase))
       G.allocActions().push_back(std::move(AllocActions));
     else {
       std::lock_guard<std::mutex> Lock(MP.PlatformMutex);
@@ -1548,8 +1548,8 @@ Error MachOPlatform::MachOPlatformPlugin::populateObjCRuntimeObject(
             std::optional<uint32_t> Flags;
             {
               std::lock_guard<std::mutex> Lock(PluginMutex);
-              auto It = ObjCImageInfos.find(&MR.getTargetJITDylib());
-              if (It != ObjCImageInfos.end()) {
+              
+              if (auto It = ObjCImageInfos.find(&MR.getTargetJITDylib()); It != ObjCImageInfos.end()) {
                 It->second.Finalized = true;
                 Flags = It->second.Flags;
               }
@@ -1683,8 +1683,8 @@ Error MachOPlatform::MachOPlatformPlugin::prepareSymbolTableRegistration(
       if (!Sym->hasName())
         continue;
 
-      auto I = ExistingStrings.find(*Sym->getName());
-      if (I == ExistingStrings.end()) {
+      
+      if (auto I = ExistingStrings.find(*Sym->getName()); I == ExistingStrings.end()) {
         auto &NameBlock = G.createMutableContentBlock(
             *CStringSec, G.allocateCString(*Sym->getName()),
             orc::ExecutorAddr(), 1, 0);

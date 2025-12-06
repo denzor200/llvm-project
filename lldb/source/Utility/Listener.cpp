@@ -35,8 +35,8 @@ void Listener::Clear() {
   std::lock_guard<std::mutex> broadcasters_guard(m_broadcasters_mutex);
   broadcaster_collection::iterator pos, end = m_broadcasters.end();
   for (pos = m_broadcasters.begin(); pos != end; ++pos) {
-    Broadcaster::BroadcasterImplSP broadcaster_sp(pos->first.lock());
-    if (broadcaster_sp)
+    
+    if (Broadcaster::BroadcasterImplSP broadcaster_sp(pos->first.lock()); broadcaster_sp)
       broadcaster_sp->RemoveListener(this, pos->second.event_mask);
   }
   m_broadcasters.clear();
@@ -46,8 +46,8 @@ void Listener::Clear() {
   size_t num_managers = m_broadcaster_managers.size();
 
   for (size_t i = 0; i < num_managers; i++) {
-    BroadcasterManagerSP manager_sp(m_broadcaster_managers[i].lock());
-    if (manager_sp)
+    
+    if (BroadcasterManagerSP manager_sp(m_broadcaster_managers[i].lock()); manager_sp)
       manager_sp->RemoveListener(this);
   }
 
@@ -321,8 +321,8 @@ size_t Listener::HandleBroadcastEvent(EventSP &event_sp) {
       broadcaster->GetBroadcasterImpl());
   for (pos = m_broadcasters.find(broadcaster_impl_sp);
        pos != end && pos->first.lock() == broadcaster_impl_sp; ++pos) {
-    BroadcasterInfo info = pos->second;
-    if (event_sp->GetType() & info.event_mask) {
+    
+    if (BroadcasterInfo info = pos->second; event_sp->GetType() & info.event_mask) {
       if (info.callback != nullptr) {
         info.callback(event_sp, info.callback_user_data);
         ++num_handled;
@@ -351,8 +351,8 @@ Listener::StartListeningForEventSpec(const BroadcasterManagerSP &manager_sp,
   uint32_t bits_acquired = manager_sp->RegisterListenerForEventsNoLock(
       this->shared_from_this(), event_spec);
   if (bits_acquired) {
-    BroadcasterManagerWP manager_wp(manager_sp);
-    if (llvm::none_of(m_broadcaster_managers, manager_matcher))
+    
+    if (BroadcasterManagerWP manager_wp(manager_sp); llvm::none_of(m_broadcaster_managers, manager_matcher))
       m_broadcaster_managers.push_back(manager_wp);
   }
 

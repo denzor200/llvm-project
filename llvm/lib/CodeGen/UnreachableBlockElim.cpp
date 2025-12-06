@@ -64,8 +64,8 @@ FunctionPass *llvm::createUnreachableBlockEliminationPass() {
 
 PreservedAnalyses UnreachableBlockElimPass::run(Function &F,
                                                 FunctionAnalysisManager &AM) {
-  bool Changed = llvm::EliminateUnreachableBlocks(F);
-  if (!Changed)
+  
+  if (bool Changed = llvm::EliminateUnreachableBlocks(F); !Changed)
     return PreservedAnalyses::all();
   PreservedAnalyses PA;
   PA.preserve<DominatorTreeAnalysis>();
@@ -113,9 +113,9 @@ PreservedAnalyses
 UnreachableMachineBlockElimPass::run(MachineFunction &MF,
                                      MachineFunctionAnalysisManager &AM) {
   auto *MDT = AM.getCachedResult<MachineDominatorTreeAnalysis>(MF);
-  auto *MLI = AM.getCachedResult<MachineLoopAnalysis>(MF);
+  
 
-  if (!UnreachableMachineBlockElim(MDT, MLI).run(MF))
+  if (auto *MLI = AM.getCachedResult<MachineLoopAnalysis>(MF); !UnreachableMachineBlockElim(MDT, MLI).run(MF))
     return PreservedAnalyses::all();
 
   return getMachineFunctionPassPreservedAnalyses()
@@ -196,8 +196,8 @@ bool UnreachableMachineBlockElim::run(MachineFunction &F) {
 
         if (InputReg != OutputReg) {
           MachineRegisterInfo &MRI = F.getRegInfo();
-          unsigned InputSub = Input.getSubReg();
-          if (InputSub == 0 &&
+          
+          if (unsigned InputSub = Input.getSubReg(); InputSub == 0 &&
               MRI.constrainRegClass(InputReg, MRI.getRegClass(OutputReg)) &&
               !Input.isUndef()) {
             MRI.replaceRegWith(OutputReg, InputReg);

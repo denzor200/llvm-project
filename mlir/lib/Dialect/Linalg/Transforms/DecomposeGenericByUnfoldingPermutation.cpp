@@ -154,8 +154,8 @@ LogicalResult DecomposeProjectedPermutation::matchAndRewrite(
   // over-restrictive but since we need to determine shape of the
   // iteration space as well, reject if any map violates assumption.
   for (auto &opOperand : op->getOpOperands()) {
-    auto map = op.getMatchingIndexingMap(&opOperand);
-    if (!map.isProjectedPermutation(false))
+    
+    if (auto map = op.getMatchingIndexingMap(&opOperand); !map.isProjectedPermutation(false))
       return failure();
   }
 

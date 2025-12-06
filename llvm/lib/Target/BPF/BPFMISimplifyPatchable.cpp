@@ -163,8 +163,8 @@ void BPFMISimplifyPatchable::checkADDrr(MachineRegisterInfo *MRI,
     //   %1 = ADD_rr %2, %3
     //   *(type *)(%2 + 0) = %1
     if (isStore64(Opcode) || isStore32(Opcode)) {
-      const MachineOperand &Opnd = DefInst->getOperand(0);
-      if (Opnd.isReg() && Opnd.getReg() == MO.getReg())
+      
+      if (const MachineOperand &Opnd = DefInst->getOperand(0); Opnd.isReg() && Opnd.getReg() == MO.getReg())
         continue;
     }
 
@@ -207,8 +207,8 @@ void BPFMISimplifyPatchable::processCandidate(MachineRegisterInfo *MRI,
         if (!MRI->getUniqueVRegDef(I->getReg()))
           continue;
 
-        unsigned Opcode = I->getParent()->getOpcode();
-        if (Opcode == BPF::SUBREG_TO_REG) {
+        
+        if (unsigned Opcode = I->getParent()->getOpcode(); Opcode == BPF::SUBREG_TO_REG) {
           Register TmpReg = I->getParent()->getOperand(0).getReg();
           processDstReg(MRI, TmpReg, DstReg, GVal, false, IsAma);
         }

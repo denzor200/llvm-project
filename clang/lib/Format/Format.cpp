@@ -946,8 +946,8 @@ template <> struct MappingTraits<FormatStyle> {
       StringRef Styles[] = {"LLVM",   "Google", "Chromium",  "Mozilla",
                             "WebKit", "GNU",    "Microsoft", "clang-format"};
       for (StringRef StyleName : Styles) {
-        FormatStyle PredefinedStyle;
-        if (getPredefinedStyle(StyleName, Style.Language, &PredefinedStyle) &&
+        
+        if (FormatStyle PredefinedStyle; getPredefinedStyle(StyleName, Style.Language, &PredefinedStyle) &&
             Style == PredefinedStyle) {
           BasedOnStyle = StyleName;
           break;
@@ -957,9 +957,9 @@ template <> struct MappingTraits<FormatStyle> {
       IO.mapOptional("BasedOnStyle", BasedOnStyle);
       if (!BasedOnStyle.empty()) {
         FormatStyle::LanguageKind OldLanguage = Style.Language;
-        FormatStyle::LanguageKind Language =
-            ((FormatStyle *)IO.getContext())->Language;
-        if (!getPredefinedStyle(BasedOnStyle, Language, &Style)) {
+        
+        if (FormatStyle::LanguageKind Language =
+            ((FormatStyle *)IO.getContext())->Language; !getPredefinedStyle(BasedOnStyle, Language, &Style)) {
           IO.setError(Twine("Unknown value for BasedOnStyle: ", BasedOnStyle));
           return;
         }
@@ -2243,9 +2243,9 @@ ParseError validateQualifierOrder(FormatStyle *Style) {
   for (const auto &Qualifier : Style->QualifierOrder) {
     if (Qualifier == "type")
       continue;
-    auto token =
-        LeftRightQualifierAlignmentFixer::getTokenFromQualifier(Qualifier);
-    if (token == tok::identifier)
+    
+    if (auto token =
+        LeftRightQualifierAlignmentFixer::getTokenFromQualifier(Qualifier); token == tok::identifier)
       return ParseError::InvalidQualifierSpecified;
   }
 
@@ -2695,11 +2695,11 @@ private:
         SourceLocation Start = FormatTok->Tok.getLocation();
         auto Replace = [&](SourceLocation Start, unsigned Length,
                            StringRef ReplacementText) {
-          auto Err = Result.add(tooling::Replacement(
-              Env.getSourceManager(), Start, Length, ReplacementText));
+          
           // FIXME: handle error. For now, print error message and skip the
           // replacement for release version.
-          if (Err) {
+          if (auto Err = Result.add(tooling::Replacement(
+              Env.getSourceManager(), Start, Length, ReplacementText)); Err) {
             llvm::errs() << toString(std::move(Err)) << "\n";
             assert(false);
           }
@@ -2865,8 +2865,8 @@ private:
       }
     }
     if (Style.DerivePointerAlignment) {
-      const auto NetRightCount = countVariableAlignments(AnnotatedLines);
-      if (NetRightCount > 0)
+      
+      if (const auto NetRightCount = countVariableAlignments(AnnotatedLines); NetRightCount > 0)
         Style.PointerAlignment = FormatStyle::PAS_Right;
       else if (NetRightCount < 0)
         Style.PointerAlignment = FormatStyle::PAS_Left;
@@ -3012,8 +3012,8 @@ private:
   void checkEmptyNamespace(SmallVectorImpl<AnnotatedLine *> &AnnotatedLines) {
     std::set<unsigned> DeletedLines;
     for (unsigned i = 0, e = AnnotatedLines.size(); i != e; ++i) {
-      auto &Line = *AnnotatedLines[i];
-      if (Line.startsWithNamespace())
+      
+      if (auto &Line = *AnnotatedLines[i]; Line.startsWithNamespace())
         checkEmptyNamespace(AnnotatedLines, i, i, DeletedLines);
     }
 
@@ -3648,8 +3648,8 @@ static unsigned findJavaImportGroup(const FormatStyle &Style,
   unsigned LongestMatchIndex = std::numeric_limits<unsigned>::max();
   unsigned LongestMatchLength = 0;
   for (unsigned I = 0; I < Style.JavaImportGroups.size(); I++) {
-    const std::string &GroupPrefix = Style.JavaImportGroups[I];
-    if (ImportIdentifier.starts_with(GroupPrefix) &&
+    
+    if (const std::string &GroupPrefix = Style.JavaImportGroups[I]; ImportIdentifier.starts_with(GroupPrefix) &&
         GroupPrefix.length() > LongestMatchLength) {
       LongestMatchIndex = I;
       LongestMatchLength = GroupPrefix.length();
@@ -3920,8 +3920,8 @@ fixCppIncludeInsertions(StringRef Code, const tooling::Replacements &Replaces,
     tooling::Replacements Replaces =
         Includes.remove(Header.trim("\"<>"), Header.starts_with("<"));
     for (const auto &R : Replaces) {
-      auto Err = Result.add(R);
-      if (Err) {
+      
+      if (auto Err = Result.add(R); Err) {
         // Ignore the deletion on conflict.
         llvm::errs() << "Failed to add header deletion replacement for "
                      << Header << ": " << toString(std::move(Err)) << "\n";
@@ -3938,12 +3938,12 @@ fixCppIncludeInsertions(StringRef Code, const tooling::Replacements &Replaces,
                       "'#include ...'");
     (void)Matched;
     auto IncludeName = Matches[2];
-    auto Replace =
+    
+    if (auto Replace =
         Includes.insert(IncludeName.trim("\"<>"), IncludeName.starts_with("<"),
-                        tooling::IncludeDirective::Include);
-    if (Replace) {
-      auto Err = Result.add(*Replace);
-      if (Err) {
+                        tooling::IncludeDirective::Include); Replace) {
+      
+      if (auto Err = Result.add(*Replace); Err) {
         consumeError(std::move(Err));
         unsigned NewOffset =
             Result.getShiftedCodePosition(Replace->getOffset());
@@ -4136,9 +4136,9 @@ reformat(const FormatStyle &Style, StringRef Code,
   unsigned Penalty = 0;
   for (size_t I = 0, E = Passes.size(); I < E; ++I) {
     std::pair<tooling::Replacements, unsigned> PassFixes = Passes[I](*Env);
-    auto NewCode = applyAllReplacements(
-        CurrentCode ? StringRef(*CurrentCode) : Code, PassFixes.first);
-    if (NewCode) {
+    
+    if (auto NewCode = applyAllReplacements(
+        CurrentCode ? StringRef(*CurrentCode) : Code, PassFixes.first); NewCode) {
       Fixes = Fixes.merge(PassFixes.first);
       Penalty += PassFixes.second;
       if (I + 1 < E) {
@@ -4159,10 +4159,10 @@ reformat(const FormatStyle &Style, StringRef Code,
     // `volatile const` and then a later pass changes it back again.
     tooling::Replacements NonNoOpFixes;
     for (const tooling::Replacement &Fix : Fixes) {
-      StringRef OriginalCode = Code.substr(Fix.getOffset(), Fix.getLength());
-      if (OriginalCode != Fix.getReplacementText()) {
-        auto Err = NonNoOpFixes.add(Fix);
-        if (Err) {
+      
+      if (StringRef OriginalCode = Code.substr(Fix.getOffset(), Fix.getLength()); OriginalCode != Fix.getReplacementText()) {
+        
+        if (auto Err = NonNoOpFixes.add(Fix); Err) {
           llvm::errs() << "Error adding replacements : "
                        << toString(std::move(Err)) << "\n";
         }
@@ -4362,10 +4362,10 @@ static FormatStyle::LanguageKind getLanguageByComment(const Environment &Env) {
 FormatStyle::LanguageKind guessLanguage(StringRef FileName, StringRef Code) {
   const auto GuessedLanguage = getLanguageByFileName(FileName);
   if (GuessedLanguage == FormatStyle::LK_Cpp) {
-    auto Extension = llvm::sys::path::extension(FileName);
+    
     // If there's no file extension (or it's .h), we need to check the contents
     // of the code to see if it contains Objective-C.
-    if (!Code.empty() && (Extension.empty() || Extension == ".h")) {
+    if (auto Extension = llvm::sys::path::extension(FileName); !Code.empty() && (Extension.empty() || Extension == ".h")) {
       auto NonEmptyFileName = FileName.empty() ? "guess.h" : FileName;
       Environment Env(Code, NonEmptyFileName, /*Ranges=*/{});
       if (const auto Language = getLanguageByComment(Env);

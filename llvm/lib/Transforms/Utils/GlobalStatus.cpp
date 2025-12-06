@@ -68,10 +68,10 @@ static bool analyzeGlobalAux(const Value *V, GlobalStatus &GS,
       GS.StoredType = GlobalStatus::StoredOnce;
 
   for (const Use &U : V->uses()) {
-    const User *UR = U.getUser();
-    if (const Constant *C = dyn_cast<Constant>(UR)) {
-      const ConstantExpr *CE = dyn_cast<ConstantExpr>(C);
-      if (CE && isa<PointerType>(CE->getType())) {
+    
+    if (const User *UR = U.getUser(); const Constant *C = dyn_cast<Constant>(UR)) {
+      
+      if (const ConstantExpr *CE = dyn_cast<ConstantExpr>(C); CE && isa<PointerType>(CE->getType())) {
         // Recursively analyze pointer-typed constant expressions.
         // FIXME: Do we need to add constexpr selects to VisitedUsers?
         if (analyzeGlobalAux(CE, GS, VisitedUsers))
@@ -83,8 +83,8 @@ static bool analyzeGlobalAux(const Value *V, GlobalStatus &GS,
       }
     } else if (const Instruction *I = dyn_cast<Instruction>(UR)) {
       if (!GS.HasMultipleAccessingFunctions) {
-        const Function *F = I->getParent()->getParent();
-        if (!GS.AccessingFunction)
+        
+        if (const Function *F = I->getParent()->getParent(); !GS.AccessingFunction)
           GS.AccessingFunction = F;
         else if (GS.AccessingFunction != F)
           GS.HasMultipleAccessingFunctions = true;
@@ -112,8 +112,8 @@ static bool analyzeGlobalAux(const Value *V, GlobalStatus &GS,
         // value, not an aggregate), keep more specific information about
         // stores.
         if (GS.StoredType != GlobalStatus::Stored) {
-          const Value *Ptr = SI->getPointerOperand()->stripPointerCasts();
-          if (const GlobalVariable *GV = dyn_cast<GlobalVariable>(Ptr)) {
+          
+          if (const Value *Ptr = SI->getPointerOperand()->stripPointerCasts(); const GlobalVariable *GV = dyn_cast<GlobalVariable>(Ptr)) {
             Value *StoredVal = SI->getOperand(0);
 
             if (Constant *C = dyn_cast<Constant>(StoredVal)) {

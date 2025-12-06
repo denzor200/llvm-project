@@ -34,16 +34,16 @@ FileLineResolver::~FileLineResolver() = default;
 Searcher::CallbackReturn
 FileLineResolver::SearchCallback(SearchFilter &filter, SymbolContext &context,
                                  Address *addr) {
-  CompileUnit *cu = context.comp_unit;
+  
 
-  if (m_inlines || m_file_spec.Compare(cu->GetPrimaryFile(), m_file_spec,
+  if (CompileUnit *cu = context.comp_unit; m_inlines || m_file_spec.Compare(cu->GetPrimaryFile(), m_file_spec,
                                        (bool)m_file_spec.GetDirectory())) {
     uint32_t start_file_idx = 0;
-    uint32_t file_idx =
-        cu->GetSupportFiles().FindFileIndex(start_file_idx, m_file_spec, false);
-    if (file_idx != UINT32_MAX) {
-      LineTable *line_table = cu->GetLineTable();
-      if (line_table) {
+    
+    if (uint32_t file_idx =
+        cu->GetSupportFiles().FindFileIndex(start_file_idx, m_file_spec, false); file_idx != UINT32_MAX) {
+      
+      if (LineTable *line_table = cu->GetLineTable(); line_table) {
         if (m_line_number == 0) {
           // Match all lines in a file...
           const bool append = true;

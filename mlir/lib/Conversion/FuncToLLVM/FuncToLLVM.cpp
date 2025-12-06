@@ -83,10 +83,10 @@ static void propagateArgResAttrs(OpBuilder &builder, bool resultStructType,
     if (argAttrs)
       wrapperFuncOp.setAllArgAttrs(argAttrs);
   } else {
-    SmallVector<Attribute> argAttributes;
+    
     // Only modify the argument and result attributes when the result is now
     // an argument.
-    if (argAttrs) {
+    if (SmallVector<Attribute> argAttributes; argAttrs) {
       argAttributes.push_back(builder.getDictionaryAttr({}));
       argAttributes.append(argAttrs.begin(), argAttrs.end());
       wrapperFuncOp.setAllArgAttrs(argAttributes);
@@ -144,9 +144,9 @@ static void wrapForExternalCallers(OpBuilder &rewriter, Location loc,
     args.push_back(arg);
   }
 
-  auto call = LLVM::CallOp::create(rewriter, loc, newFuncOp, args);
+  
 
-  if (resultStructType) {
+  if (auto call = LLVM::CallOp::create(rewriter, loc, newFuncOp, args); resultStructType) {
     LLVM::StoreOp::create(rewriter, loc, call.getResult(),
                           wrapperFuncOp.getArgument(0));
     LLVM::ReturnOp::create(rewriter, loc, ValueRange{});
@@ -338,8 +338,8 @@ FailureOr<LLVM::LLVMFuncOp> mlir::convertFuncOpToLLVMFuncOp(
   // Check for invalid attributes.
   StringRef readnoneAttrName = LLVM::LLVMDialect::getReadnoneAttrName();
   if (funcOp->hasAttr(readnoneAttrName)) {
-    auto attr = funcOp->getAttrOfType<UnitAttr>(readnoneAttrName);
-    if (!attr) {
+    
+    if (auto attr = funcOp->getAttrOfType<UnitAttr>(readnoneAttrName); !attr) {
       funcOp->emitError() << "Contains " << readnoneAttrName
                           << " attribute not of type UnitAttr";
       return rewriter.notifyMatchFailure(
@@ -401,11 +401,11 @@ FailureOr<LLVM::LLVMFuncOp> mlir::convertFuncOpToLLVMFuncOp(
       auto attrsDict = cast<DictionaryAttr>(argAttrDicts[i]);
       convertedAttrs.reserve(attrsDict.size());
       for (const NamedAttribute &attr : attrsDict) {
-        const auto convert = [&](const NamedAttribute &attr) {
+        
+        if (const auto convert = [&](const NamedAttribute &attr) {
           return TypeAttr::get(converter.convertType(
               cast<TypeAttr>(attr.getValue()).getValue()));
-        };
-        if (attr.getName().getValue() ==
+        }; attr.getName().getValue() ==
             LLVM::LLVMDialect::getByValAttrName()) {
           convertedAttrs.push_back(rewriter.getNamedAttr(
               LLVM::LLVMDialect::getByValAttrName(), convert(attr)));
@@ -550,8 +550,8 @@ struct CallOpInterfaceLowering : public ConvertOpToLLVMPattern<CallOpType> {
 
     if (useBarePtrCallConv) {
       for (auto it : callOp->getOperands()) {
-        Type operandType = it.getType();
-        if (isa<UnrankedMemRefType>(operandType)) {
+        
+        if (Type operandType = it.getType(); isa<UnrankedMemRefType>(operandType)) {
           // Unranked memref is not supported in the bare pointer calling
           // convention.
           return failure();

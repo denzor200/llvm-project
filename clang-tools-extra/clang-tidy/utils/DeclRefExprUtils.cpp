@@ -70,8 +70,8 @@ static const CXXMethodDecl *findConstOverload(const CXXMethodDecl &D) {
     return nullptr;
   }
   for (const Decl *Overload : LookupResult) {
-    const auto *O = dyn_cast<CXXMethodDecl>(Overload);
-    if (O && !O->isDeleted() && O->isConst() &&
+    
+    if (const auto *O = dyn_cast<CXXMethodDecl>(Overload); O && !O->isDeleted() && O->isConst() &&
         O->getRefQualifier() == D.getRefQualifier() &&
         hasSameParameterTypes(D, *O))
       return O;

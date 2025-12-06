@@ -181,8 +181,8 @@ static std::string generateRUOWIR(unsigned NumOperands) {
   auto GenOps = [&SS, NumOperands]() {
     for (auto Cnt : seq<unsigned>(0, NumOperands)) {
       SS << "i8 %arg" << Cnt;
-      bool IsLast = Cnt + 1 == NumOperands;
-      if (!IsLast)
+      
+      if (bool IsLast = Cnt + 1 == NumOperands; !IsLast)
         SS << ", ";
     }
   };

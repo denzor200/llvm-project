@@ -163,9 +163,9 @@ void UseOverrideCheck::check(const MatchFinder::MatchResult &Result) {
     if (Method->hasAttrs()) {
       for (const clang::Attr *A : Method->getAttrs()) {
         if (!A->isImplicit() && !A->isInherited()) {
-          const SourceLocation Loc =
-              Sources.getExpansionLoc(A->getRange().getBegin());
-          if ((!InsertLoc.isValid() ||
+          
+          if (const SourceLocation Loc =
+              Sources.getExpansionLoc(A->getRange().getBegin()); (!InsertLoc.isValid() ||
                Sources.isBeforeInTranslationUnit(Loc, InsertLoc)) &&
               !Sources.isBeforeInTranslationUnit(Loc, MethodLoc))
             InsertLoc = Loc;
@@ -229,10 +229,10 @@ void UseOverrideCheck::check(const MatchFinder::MatchResult &Result) {
   if (HasVirtual) {
     for (const Token Tok : Tokens) {
       if (Tok.is(tok::kw_virtual)) {
-        std::optional<Token> NextToken =
+        
+        if (std::optional<Token> NextToken =
             utils::lexer::findNextTokenIncludingComments(
-                Tok.getEndLoc(), Sources, getLangOpts());
-        if (NextToken.has_value()) {
+                Tok.getEndLoc(), Sources, getLangOpts()); NextToken.has_value()) {
           Diag << FixItHint::CreateRemoval(CharSourceRange::getCharRange(
               Tok.getLocation(), NextToken->getLocation()));
           break;

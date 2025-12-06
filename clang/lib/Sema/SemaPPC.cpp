@@ -43,9 +43,9 @@ void SemaPPC::checkAIXMemberAlignment(SourceLocation Loc, const Expr *Arg) {
   QualType ArgType = Arg->getType();
   for (const FieldDecl *FD : ArgType->castAsRecordDecl()->fields()) {
     if (const auto *AA = FD->getAttr<AlignedAttr>()) {
-      CharUnits Alignment = getASTContext().toCharUnitsFromBits(
-          AA->getAlignment(getASTContext()));
-      if (Alignment.getQuantity() == 16) {
+      
+      if (CharUnits Alignment = getASTContext().toCharUnitsFromBits(
+          AA->getAlignment(getASTContext())); Alignment.getQuantity() == 16) {
         Diag(FD->getLocation(), diag::warn_not_xl_compatible) << FD;
         Diag(Loc, diag::note_misaligned_member_used_here) << PD;
       }
@@ -401,8 +401,8 @@ bool SemaPPC::BuiltinPPCMMACall(CallExpr *TheCall, unsigned BuiltinID,
 }
 
 bool SemaPPC::BuiltinVSX(CallExpr *TheCall) {
-  unsigned ExpectedNumArgs = 3;
-  if (SemaRef.checkArgCount(TheCall, ExpectedNumArgs))
+  
+  if (unsigned ExpectedNumArgs = 3; SemaRef.checkArgCount(TheCall, ExpectedNumArgs))
     return true;
 
   // Check the third argument is a compile time constant

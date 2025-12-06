@@ -295,10 +295,10 @@ static ParseResult
 parseValueWithVariadicity(OpAsmParser &p,
                           OpAsmParser::UnresolvedOperand &operand,
                           VariadicityAttr &variadicityAttr) {
-  MLIRContext *ctx = p.getBuilder().getContext();
+  
 
   // Parse the variadicity, if present
-  if (p.parseOptionalKeyword("single").succeeded()) {
+  if (MLIRContext *ctx = p.getBuilder().getContext(); p.parseOptionalKeyword("single").succeeded()) {
     variadicityAttr = VariadicityAttr::get(ctx, Variadicity::single);
   } else if (p.parseOptionalKeyword("optional").succeeded()) {
     variadicityAttr = VariadicityAttr::get(ctx, Variadicity::optional);
@@ -385,8 +385,8 @@ static void printNamedValueListImpl(OpAsmPrinter &p, Operation *op,
   interleaveComma(llvm::seq<int>(0, operands.size()), p, [&](int i) {
     p << llvm::cast<StringAttr>(valueNamesAttr[i]).getValue() << ": ";
     if (variadicityAttr) {
-      Variadicity variadicity = variadicityAttr[i].getValue();
-      if (variadicity != Variadicity::single) {
+      
+      if (Variadicity variadicity = variadicityAttr[i].getValue(); variadicity != Variadicity::single) {
         p << stringifyVariadicity(variadicity) << " ";
       }
     }
@@ -426,13 +426,13 @@ parseAttributesOp(OpAsmParser &p,
   Builder &builder = p.getBuilder();
   SmallVector<Attribute> attrNames;
   if (succeeded(p.parseOptionalLBrace())) {
-    auto parseOperands = [&]() {
+    
+    if (auto parseOperands = [&]() {
       if (p.parseAttribute(attrNames.emplace_back()) || p.parseEqual() ||
           p.parseOperand(attrOperands.emplace_back()))
         return failure();
       return success();
-    };
-    if (p.parseCommaSeparatedList(parseOperands) || p.parseRBrace())
+    }; p.parseCommaSeparatedList(parseOperands) || p.parseRBrace())
       return failure();
   }
   attrNamesAttr = builder.getArrayAttr(attrNames);

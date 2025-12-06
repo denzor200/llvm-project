@@ -658,8 +658,8 @@ bool LoongArchMergeBaseOffsetOpt::foldIntoMemoryOps(MachineInstr &Hi20,
           // If the register is used by something other than a memory contraint,
           // we should not fold.
           for (unsigned J = 0; J < NumOps; ++J) {
-            const MachineOperand &MO = UseMI.getOperand(I + 1 + J);
-            if (MO.isReg() && MO.getReg() == DestReg)
+            
+            if (const MachineOperand &MO = UseMI.getOperand(I + 1 + J); MO.isReg() && MO.getReg() == DestReg)
               return false;
           }
           continue;
@@ -744,8 +744,8 @@ bool LoongArchMergeBaseOffsetOpt::foldIntoMemoryOps(MachineInstr &Hi20,
         UseMI.getOpcode() == LoongArch::INLINEASM_BR) {
       auto &InlineAsmMemoryOpIndexes = InlineAsmMemoryOpIndexesMap[&UseMI];
       for (unsigned I : InlineAsmMemoryOpIndexes) {
-        MachineOperand &MO = UseMI.getOperand(I + 1);
-        switch (ImmOp.getType()) {
+        
+        switch (MachineOperand &MO = UseMI.getOperand(I + 1); ImmOp.getType()) {
         case MachineOperand::MO_GlobalAddress:
           MO.ChangeToGA(ImmOp.getGlobal(), ImmOp.getOffset(),
                         LoongArchII::getDirectFlags(ImmOp));
@@ -821,9 +821,9 @@ bool LoongArchMergeBaseOffsetOpt::runOnMachineFunction(MachineFunction &Fn) {
         if (!detectFoldable(Hi20, Lo12, Lo20, Hi12, Last))
           continue;
       } else if (Hi20.getOpcode() == LoongArch::LU12I_W) {
-        MachineInstr *Add = nullptr;
+        
         // Detect foldable tls-le code sequence in small/medium code model.
-        if (!detectFoldable(Hi20, Add, Lo12))
+        if (MachineInstr *Add = nullptr; !detectFoldable(Hi20, Add, Lo12))
           continue;
       } else {
         continue;

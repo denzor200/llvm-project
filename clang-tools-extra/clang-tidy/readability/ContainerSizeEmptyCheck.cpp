@@ -40,8 +40,8 @@ AST_POLYMORPHIC_MATCHER_P2(hasAnyArgumentWithParam,
     ast_matchers::internal::BoundNodesTreeBuilder ArgMatches(*Builder);
     if (ArgMatcher.matches(*(Node.getArg(ArgIndex)->IgnoreParenCasts()), Finder,
                            &ArgMatches)) {
-      ast_matchers::internal::BoundNodesTreeBuilder ParamMatches(ArgMatches);
-      if (expr(anyOf(cxxConstructExpr(hasDeclaration(cxxConstructorDecl(
+      
+      if (ast_matchers::internal::BoundNodesTreeBuilder ParamMatches(ArgMatches); expr(anyOf(cxxConstructExpr(hasDeclaration(cxxConstructorDecl(
                          hasParameter(ParamIndex, ParamMatcher)))),
                      callExpr(callee(functionDecl(
                          hasParameter(ParamIndex, ParamMatcher))))))
@@ -95,9 +95,9 @@ AST_MATCHER(QualType, isIntegralType) {
 
 AST_MATCHER_P(UserDefinedLiteral, hasLiteral,
               clang::ast_matchers::internal::Matcher<Expr>, InnerMatcher) {
-  const UserDefinedLiteral::LiteralOperatorKind LOK =
-      Node.getLiteralOperatorKind();
-  if (LOK == UserDefinedLiteral::LOK_Template ||
+  
+  if (const UserDefinedLiteral::LiteralOperatorKind LOK =
+      Node.getLiteralOperatorKind(); LOK == UserDefinedLiteral::LOK_Template ||
       LOK == UserDefinedLiteral::LOK_Raw)
     return false;
 
@@ -348,10 +348,10 @@ void ContainerSizeEmptyCheck::check(const MatchFinder::MatchResult &Result) {
         (OpCode == BinaryOperatorKind::BO_GE && Value == 0 &&
          !ContainerIsLHS) ||
         (OpCode == BinaryOperatorKind::BO_LE && Value == 0 && ContainerIsLHS)) {
-      const Expr *Container = ContainerIsLHS
+      
+      if (const Expr *Container = ContainerIsLHS
                                   ? BinaryOp->getLHS()->IgnoreImpCasts()
-                                  : BinaryOp->getRHS()->IgnoreImpCasts();
-      if (Container->getType()
+                                  : BinaryOp->getRHS()->IgnoreImpCasts(); Container->getType()
               .getCanonicalType()
               .getNonReferenceType()
               ->isSignedIntegerType())

@@ -92,16 +92,16 @@ Expected<JobserverConfig> parseNativeMakeFlags(StringRef MakeFlags) {
   // Iterate through arguments to find jobserver flags.
   // Note that make may pass multiple --jobserver-auth flags; the last one wins.
   for (StringRef Arg : Args) {
-    StringRef Value;
-    if (getPrefixedValue(Arg, "--jobserver-auth=", Value)) {
+    
+    if (StringRef Value; getPrefixedValue(Arg, "--jobserver-auth=", Value)) {
       // Try to parse as a file descriptor pair first.
       if (auto FDPair = getFileDescriptorPair(Value)) {
         Config.TheMode = JobserverConfig::PosixPipe;
         Config.PipeFDs = *FDPair;
       } else {
-        StringRef FifoPath;
+        
         // If not FDs, try to parse as a named pipe (fifo).
-        if (getPrefixedValue(Value, "fifo:", FifoPath)) {
+        if (StringRef FifoPath; getPrefixedValue(Value, "fifo:", FifoPath)) {
           Config.TheMode = JobserverConfig::PosixFifo;
           Config.Path = FifoPath.str();
         } else {

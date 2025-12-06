@@ -1471,9 +1471,9 @@ convertLLVMAttributesToMLIR(Location loc, MLIRContext *context,
 /// to `globalOp` as target-specific attributes.
 static void processTargetSpecificAttrs(llvm::GlobalVariable *globalVar,
                                        GlobalOp globalOp) {
-  ArrayAttr targetSpecificAttrs = convertLLVMAttributesToMLIR(
-      globalOp.getLoc(), globalOp.getContext(), globalVar->getAttributes());
-  if (!targetSpecificAttrs.empty())
+  
+  if (ArrayAttr targetSpecificAttrs = convertLLVMAttributesToMLIR(
+      globalOp.getLoc(), globalOp.getContext(), globalVar->getAttributes()); !targetSpecificAttrs.empty())
     globalOp.setTargetSpecificAttrsAttr(targetSpecificAttrs);
 }
 
@@ -1553,9 +1553,9 @@ ModuleImport::convertGlobalCtorsAndDtors(llvm::GlobalVariable *globalVar) {
     return failure();
   llvm::Constant *initializer = globalVar->getInitializer();
 
-  bool knownInit = isa<llvm::ConstantArray>(initializer) ||
-                   isa<llvm::ConstantAggregateZero>(initializer);
-  if (!knownInit)
+  
+  if (bool knownInit = isa<llvm::ConstantArray>(initializer) ||
+                   isa<llvm::ConstantAggregateZero>(initializer); !knownInit)
     return failure();
 
   // ConstantAggregateZero does not engage with the operand initialization
@@ -2682,10 +2682,10 @@ static constexpr std::array kExplicitLLVMFuncOpAttributes{
 static void processPassthroughAttrs(llvm::Function *func, LLVMFuncOp funcOp) {
   llvm::AttributeSet funcAttrs = func->getAttributes().getAttributes(
       llvm::AttributeList::AttrIndex::FunctionIndex);
-  ArrayAttr passthroughAttr =
+  
+  if (ArrayAttr passthroughAttr =
       convertLLVMAttributesToMLIR(funcOp.getLoc(), funcOp.getContext(),
-                                  funcAttrs, kExplicitLLVMFuncOpAttributes);
-  if (!passthroughAttr.empty())
+                                  funcAttrs, kExplicitLLVMFuncOpAttributes); !passthroughAttr.empty())
     funcOp.setPassthroughAttr(passthroughAttr);
 }
 
@@ -3114,8 +3114,8 @@ static LogicalResult setDebugIntrinsicBuilderInsertionPoint(
       // which means the insertion point is set to the start of the block. If
       // this block is a target destination of an invoke, the insertion point
       // must happen after the landing pad operation.
-      Block *insertionBlock = argOperand.getParentBlock();
-      if (!insertionBlock->empty() &&
+      
+      if (Block *insertionBlock = argOperand.getParentBlock(); !insertionBlock->empty() &&
           isa<LandingpadOp>(insertionBlock->front()))
         insertPt = cast<LandingpadOp>(insertionBlock->front()).getRes();
     }
@@ -3271,8 +3271,8 @@ ModuleImport::processDebugRecord(llvm::DbgVariableRecord &dbgRecord,
 LogicalResult ModuleImport::processDebugIntrinsics() {
   DominanceInfo domInfo;
   for (llvm::Instruction *inst : debugIntrinsics) {
-    auto *intrCall = cast<llvm::DbgVariableIntrinsic>(inst);
-    if (failed(processDebugIntrinsic(intrCall, domInfo)))
+    
+    if (auto *intrCall = cast<llvm::DbgVariableIntrinsic>(inst); failed(processDebugIntrinsic(intrCall, domInfo)))
       return failure();
   }
   return success();

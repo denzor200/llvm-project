@@ -447,8 +447,8 @@ static bool isEqualImpl(SimpleValue LHS, SimpleValue RHS) {
     // select (and so still succeed at CSEing them).
     if (LHSA == RHSB && LHSB == RHSA) {
       CmpPredicate PredL, PredR;
-      Value *X, *Y;
-      if (match(CondL, m_Cmp(PredL, m_Value(X), m_Value(Y))) &&
+      
+      if (Value *X, *Y; match(CondL, m_Cmp(PredL, m_Value(X), m_Value(Y))) &&
           match(CondR, m_Cmp(PredR, m_Specific(X), m_Specific(Y))) &&
           CmpInst::getInversePredicate(PredL) == PredR)
         return true;
@@ -488,8 +488,8 @@ struct CallValue {
   }
 
   static bool canHandle(Instruction *Inst) {
-    CallInst *CI = dyn_cast<CallInst>(Inst);
-    if (!CI || (!CI->onlyReadsMemory() && !CI->onlyWritesMemory()) ||
+    
+    if (CallInst *CI = dyn_cast<CallInst>(Inst); !CI || (!CI->onlyReadsMemory() && !CI->onlyWritesMemory()) ||
         // FIXME: Currently the calls which may access the thread id may
         // be considered as not accessing the memory. But this is
         // problematic for coroutines, since coroutines may resume in a
@@ -994,8 +994,8 @@ private:
       for (int i = 0, e = Vec0->getNumOperands(); i != e; ++i) {
         Constant *Elem0 = Vec0->getOperand(i);
         Constant *Elem1 = Vec1->getOperand(i);
-        auto *Int0 = dyn_cast<ConstantInt>(Elem0);
-        if (Int0 && Int0->isZero())
+        
+        if (auto *Int0 = dyn_cast<ConstantInt>(Elem0); Int0 && Int0->isZero())
           continue;
         auto *Int1 = dyn_cast<ConstantInt>(Elem1);
         if (Int1 && !Int1->isZero())
@@ -1212,8 +1212,8 @@ bool EarlyCSE::handleBranchCondition(Instruction *CondInst,
       }
     }
 
-    Value *LHS, *RHS;
-    if (MatchBinOp(Curr, PropagateOpcode, LHS, RHS))
+    
+    if (Value *LHS, *RHS; MatchBinOp(Curr, PropagateOpcode, LHS, RHS))
       for (auto *Op : { LHS, RHS })
         if (Instruction *OPI = dyn_cast<Instruction>(Op))
           if (SimpleValue::canHandle(OPI) && Visited.insert(OPI).second)
@@ -1358,10 +1358,10 @@ bool EarlyCSE::processNode(DomTreeNode *Node) {
   // value.  Since we're adding this to the scoped hash table (like any other
   // def), it will have been popped if we encounter a future merge block.
   if (BasicBlock *Pred = BB->getSinglePredecessor()) {
-    auto *BI = dyn_cast<BranchInst>(Pred->getTerminator());
-    if (BI && BI->isConditional()) {
-      auto *CondInst = dyn_cast<Instruction>(BI->getCondition());
-      if (CondInst && SimpleValue::canHandle(CondInst))
+    
+    if (auto *BI = dyn_cast<BranchInst>(Pred->getTerminator()); BI && BI->isConditional()) {
+      
+      if (auto *CondInst = dyn_cast<Instruction>(BI->getCondition()); CondInst && SimpleValue::canHandle(CondInst))
         Changed |= handleBranchCondition(CondInst, BI, BB, Pred);
     }
   }
@@ -1397,8 +1397,8 @@ bool EarlyCSE::processNode(DomTreeNode *Node) {
     // and this pass will not bother with its removal. However, we should mark
     // its condition as true for all dominated blocks.
     if (auto *Assume = dyn_cast<AssumeInst>(&Inst)) {
-      auto *CondI = dyn_cast<Instruction>(Assume->getArgOperand(0));
-      if (CondI && SimpleValue::canHandle(CondI)) {
+      
+      if (auto *CondI = dyn_cast<Instruction>(Assume->getArgOperand(0)); CondI && SimpleValue::canHandle(CondI)) {
         LLVM_DEBUG(dbgs() << "EarlyCSE considering assumption: " << Inst
                           << '\n');
         AvailableValues.insert(CondI, ConstantInt::getTrue(BB->getContext()));
@@ -1565,8 +1565,8 @@ bool EarlyCSE::processNode(DomTreeNode *Node) {
         // We conservatively treat the invariant_load as that moment.  If we
         // pass a invariant load after already establishing a scope, don't
         // restart it since we want to preserve the earliest point seen.
-        auto MemLoc = MemoryLocation::get(&Inst);
-        if (!AvailableInvariants.count(MemLoc))
+        
+        if (auto MemLoc = MemoryLocation::get(&Inst); !AvailableInvariants.count(MemLoc))
           AvailableInvariants.insert(MemLoc, CurrentGeneration);
       }
 
@@ -1699,8 +1699,8 @@ bool EarlyCSE::processNode(DomTreeNode *Node) {
     // the available load table to remain valid and value forward past where
     // the store originally was.
     if (MemInst.isValid() && MemInst.isStore()) {
-      LoadValue InVal = AvailableLoads.lookup(MemInst.getPointerOperand());
-      if (InVal.DefInst &&
+      
+      if (LoadValue InVal = AvailableLoads.lookup(MemInst.getPointerOperand()); InVal.DefInst &&
           InVal.DefInst ==
               getMatchingValue(InVal, MemInst, CurrentGeneration)) {
         LLVM_DEBUG(dbgs() << "EarlyCSE DSE (writeback): " << Inst << '\n');

@@ -149,9 +149,9 @@ static void PtraceDisplayBytes(int &req, void *data, size_t data_size) {
   Log *log = GetLog(POSIXLog::Ptrace);
   if (!log)
     return;
-  StreamString buf;
+  
 
-  switch (req) {
+  switch (StreamString buf; req) {
   case PTRACE_POKETEXT: {
     DisplayBytes(buf, &data, 8);
     LLDB_LOGV(log, "PTRACE_POKETEXT {0}", buf.GetData());
@@ -911,8 +911,8 @@ void NativeProcessLinux::MonitorSignal(const siginfo_t &info,
       } else {
         // We can end up here if stop was initiated by LLGS but by this time a
         // thread stop has occurred - maybe initiated by another event.
-        Status error = ResumeThread(thread, thread.GetState(), 0);
-        if (error.Fail())
+        
+        if (Status error = ResumeThread(thread, thread.GetState(), 0); error.Fail())
           LLDB_LOG(log, "failed to resume thread {0}: {1}", thread.GetID(),
                    error);
       }
@@ -957,8 +957,8 @@ bool NativeProcessLinux::MonitorClone(NativeThreadLinux &parent,
     // Try to grab the new process' PGID to figure out which one it is.
     // If PGID is the same as the PID, then it's a new process.  Otherwise,
     // it's a thread.
-    auto tgid_ret = getPIDForTID(child_pid);
-    if (tgid_ret != child_pid) {
+    
+    if (auto tgid_ret = getPIDForTID(child_pid); tgid_ret != child_pid) {
       // A new thread should have PGID matching our process' PID.
       assert(!tgid_ret || *tgid_ret == GetID());
 
@@ -1012,9 +1012,9 @@ Status NativeProcessLinux::Resume(const ResumeActionList &resume_actions) {
 
   NotifyTracersProcessWillResume();
 
-  bool software_single_step = !SupportHardwareSingleStepping();
+  
 
-  if (software_single_step) {
+  if (bool software_single_step = !SupportHardwareSingleStepping(); software_single_step) {
     for (const auto &thread : m_threads) {
       assert(thread && "thread list should not contain NULL threads");
 
@@ -1024,9 +1024,9 @@ Status NativeProcessLinux::Resume(const ResumeActionList &resume_actions) {
         continue;
 
       if (action->state == eStateStepping) {
-        Status error = SetupSoftwareSingleStepping(
-            static_cast<NativeThreadLinux &>(*thread));
-        if (error.Fail())
+        
+        if (Status error = SetupSoftwareSingleStepping(
+            static_cast<NativeThreadLinux &>(*thread)); error.Fail())
           return error;
       }
     }
@@ -1100,9 +1100,9 @@ Status NativeProcessLinux::Detach() {
   kill(GetID(), SIGCONT);
 
   for (const auto &thread : m_threads) {
-    Status e = Detach(thread->GetID());
+    
      // Save the error, but still attempt to detach from other threads.
-    if (e.Fail())
+    if (Status e = Detach(thread->GetID()); e.Fail())
       error = e.Clone();
   }
 
@@ -1136,8 +1136,8 @@ Status NativeProcessLinux::Interrupt() {
   for (const auto &thread : m_threads) {
     // If we have a running or stepping thread, we'll call that the target of
     // the interrupt.
-    const auto thread_state = thread->GetState();
-    if (thread_state == eStateRunning || thread_state == eStateStepping) {
+    
+    if (const auto thread_state = thread->GetState(); thread_state == eStateRunning || thread_state == eStateStepping) {
       running_thread = thread.get();
       break;
     } else if (!stopped_thread && StateIsStoppedState(thread_state, true)) {
@@ -1626,9 +1626,9 @@ NativeProcessLinux::GetSoftwareBreakpointTrapOpcode(size_t size_hint) {
   // The ARM reference recommends the use of 0xe7fddefe and 0xdefe but the
   // linux kernel does otherwise.
   static const uint8_t g_arm_opcode[] = {0xf0, 0x01, 0xf0, 0xe7};
-  static const uint8_t g_thumb_opcode[] = {0x01, 0xde};
+  
 
-  switch (GetArchitecture().GetMachine()) {
+  switch (static const uint8_t g_thumb_opcode[] = {0x01, 0xde}; GetArchitecture().GetMachine()) {
   case llvm::Triple::arm:
     switch (size_hint) {
     case 2:
@@ -1963,8 +1963,8 @@ void NativeProcessLinux::SignalIfAllThreadsStopped() {
   // stepping.
   for (const auto &thread_info : m_threads_stepping_with_breakpoint) {
     for (auto &&bp_addr : thread_info.second) {
-      Status error = RemoveBreakpoint(bp_addr);
-      if (error.Fail())
+      
+      if (Status error = RemoveBreakpoint(bp_addr); error.Fail())
         LLDB_LOG(log, "pid = {0} remove stepping breakpoint: {1}",
                  thread_info.first, error);
     }

@@ -112,9 +112,9 @@ ObjCLanguageRuntime::LookupInCompleteClassCache(ConstString &name) {
 
   if (complete_class_iter != m_complete_class_cache.end()) {
     // Check the weak pointer to make sure the type hasn't been unloaded
-    TypeSP complete_type_sp(complete_class_iter->second.lock());
+    
 
-    if (complete_type_sp)
+    if (TypeSP complete_type_sp(complete_class_iter->second.lock()); complete_type_sp)
       return complete_type_sp;
     else
       m_complete_class_cache.erase(name);
@@ -204,9 +204,9 @@ ObjCLanguageRuntime::GetDescriptorIterator(ConstString name) {
           m_hash_to_isa_map.equal_range(name_hash);
       for (HashToISAIterator range_pos = range.first; range_pos != range.second;
            ++range_pos) {
-        ISAToDescriptorIterator pos =
-            m_isa_to_descriptor.find(range_pos->second);
-        if (pos != m_isa_to_descriptor.end()) {
+        
+        if (ISAToDescriptorIterator pos =
+            m_isa_to_descriptor.find(range_pos->second); pos != m_isa_to_descriptor.end()) {
           if (pos->second->GetClassName() == name)
             return pos;
         }
@@ -234,8 +234,8 @@ void ObjCLanguageRuntime::ReadObjCLibraryIfNeeded(
 
     size_t num_modules = module_list.GetSize();
     for (size_t i = 0; i < num_modules; i++) {
-      auto mod = module_list.GetModuleAtIndex(i);
-      if (IsModuleObjCLibrary(mod)) {
+      
+      if (auto mod = module_list.GetModuleAtIndex(i); IsModuleObjCLibrary(mod)) {
         ReadObjCLibrary(mod);
         break;
       }
@@ -247,8 +247,8 @@ ObjCLanguageRuntime::ObjCISA
 ObjCLanguageRuntime::GetParentClass(ObjCLanguageRuntime::ObjCISA isa) {
   ClassDescriptorSP objc_class_sp(GetClassDescriptorFromISA(isa));
   if (objc_class_sp) {
-    ClassDescriptorSP objc_super_class_sp(objc_class_sp->GetSuperclass());
-    if (objc_super_class_sp)
+    
+    if (ClassDescriptorSP objc_super_class_sp(objc_class_sp->GetSuperclass()); objc_super_class_sp)
       return objc_super_class_sp->GetISA();
   }
   return 0;
@@ -270,15 +270,15 @@ ObjCLanguageRuntime::GetClassDescriptor(ValueObject &valobj) {
   // pointers returned by the expression parser, don't consider this a valid
   // ObjC object)
   if (valobj.GetCompilerType().IsValid()) {
-    addr_t isa_pointer = valobj.GetPointerValue().address;
-    if (isa_pointer != LLDB_INVALID_ADDRESS) {
+    
+    if (addr_t isa_pointer = valobj.GetPointerValue().address; isa_pointer != LLDB_INVALID_ADDRESS) {
       ExecutionContext exe_ctx(valobj.GetExecutionContextRef());
 
-      Process *process = exe_ctx.GetProcessPtr();
-      if (process) {
+      
+      if (Process *process = exe_ctx.GetProcessPtr(); process) {
         Status error;
-        ObjCISA isa = process->ReadPointerFromMemory(isa_pointer, error);
-        if (isa != LLDB_INVALID_ADDRESS)
+        
+        if (ObjCISA isa = process->ReadPointerFromMemory(isa_pointer, error); isa != LLDB_INVALID_ADDRESS)
           objc_class_sp = GetClassDescriptorFromISA(isa);
       }
     }
@@ -294,8 +294,8 @@ ObjCLanguageRuntime::GetNonKVOClassDescriptor(ValueObject &valobj) {
     if (!objc_class_sp->IsKVO())
       return objc_class_sp;
 
-    ClassDescriptorSP non_kvo_objc_class_sp(objc_class_sp->GetSuperclass());
-    if (non_kvo_objc_class_sp && non_kvo_objc_class_sp->IsValid())
+    
+    if (ClassDescriptorSP non_kvo_objc_class_sp(objc_class_sp->GetSuperclass()); non_kvo_objc_class_sp && non_kvo_objc_class_sp->IsValid())
       return non_kvo_objc_class_sp;
   }
   return ClassDescriptorSP();
@@ -323,13 +323,13 @@ ObjCLanguageRuntime::GetClassDescriptorFromISA(ObjCISA isa) {
 ObjCLanguageRuntime::ClassDescriptorSP
 ObjCLanguageRuntime::GetNonKVOClassDescriptor(ObjCISA isa) {
   if (isa) {
-    ClassDescriptorSP objc_class_sp = GetClassDescriptorFromISA(isa);
-    if (objc_class_sp && objc_class_sp->IsValid()) {
+    
+    if (ClassDescriptorSP objc_class_sp = GetClassDescriptorFromISA(isa); objc_class_sp && objc_class_sp->IsValid()) {
       if (!objc_class_sp->IsKVO())
         return objc_class_sp;
 
-      ClassDescriptorSP non_kvo_objc_class_sp(objc_class_sp->GetSuperclass());
-      if (non_kvo_objc_class_sp && non_kvo_objc_class_sp->IsValid())
+      
+      if (ClassDescriptorSP non_kvo_objc_class_sp(objc_class_sp->GetSuperclass()); non_kvo_objc_class_sp && non_kvo_objc_class_sp->IsValid())
         return non_kvo_objc_class_sp;
     }
   }
@@ -368,8 +368,8 @@ ObjCLanguageRuntime::GetTypeBitSize(const CompilerType &compiler_type) {
 
   for (size_t idx = 0; idx < class_descriptor_sp->GetNumIVars(); idx++) {
     const auto &ivar = class_descriptor_sp->GetIVarAtIndex(idx);
-    int32_t cur_offset = ivar.m_offset;
-    if (cur_offset > max_offset) {
+    
+    if (int32_t cur_offset = ivar.m_offset; cur_offset > max_offset) {
       max_offset = cur_offset;
       sizeof_max = ivar.m_size;
       found = true;

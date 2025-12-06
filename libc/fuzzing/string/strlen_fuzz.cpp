@@ -25,8 +25,8 @@ extern "C" size_t LLVMFuzzerCustomMutator(uint8_t *data, size_t size,
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
   size_t ref = ::strlen(reinterpret_cast<const char *>(data));
-  size_t impl = LIBC_NAMESPACE::strlen(reinterpret_cast<const char *>(data));
-  if (ref != impl)
+  
+  if (size_t impl = LIBC_NAMESPACE::strlen(reinterpret_cast<const char *>(data)); ref != impl)
     __builtin_trap();
   return 0;
 }

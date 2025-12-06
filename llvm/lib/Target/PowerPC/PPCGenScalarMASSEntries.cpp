@@ -107,8 +107,8 @@ bool PPCGenScalarMASSEntries::createScalarMASSCall(StringRef MASSEntry,
 bool PPCGenScalarMASSEntries::runOnModule(Module &M) {
   bool Changed = false;
 
-  auto *TPC = getAnalysisIfAvailable<TargetPassConfig>();
-  if (!TPC || skipModule(M))
+  
+  if (auto *TPC = getAnalysisIfAvailable<TargetPassConfig>(); !TPC || skipModule(M))
     return false;
 
   for (Function &Func : M) {

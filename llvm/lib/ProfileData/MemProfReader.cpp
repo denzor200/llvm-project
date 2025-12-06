@@ -243,9 +243,9 @@ CallStackMap readStackInfo(const char *Ptr) {
 // addresses.
 bool mergeStackMap(const CallStackMap &From, CallStackMap &To) {
   for (const auto &[Id, Stack] : From) {
-    auto [It, Inserted] = To.try_emplace(Id, Stack);
+    
     // Check that the PCs are the same (in order).
-    if (!Inserted && Stack != It->second)
+    if (auto [It, Inserted] = To.try_emplace(Id, Stack); !Inserted && Stack != It->second)
       return true;
   }
   return false;
@@ -358,8 +358,8 @@ void RawMemProfReader::printYAML(raw_ostream &OS) {
   uint64_t NumAllocFunctions = 0, NumMibInfo = 0;
   for (const auto &KV : MemProfData.Records) {
     MemProfSumBuilder.addRecord(KV.second);
-    const size_t NumAllocSites = KV.second.AllocSites.size();
-    if (NumAllocSites > 0) {
+    
+    if (const size_t NumAllocSites = KV.second.AllocSites.size(); NumAllocSites > 0) {
       NumAllocFunctions++;
       NumMibInfo += NumAllocSites;
     }
@@ -486,8 +486,8 @@ Error RawMemProfReader::setupForSymbolization() {
 
   int NumMatched = 0;
   for (const auto &Entry : SegmentInfo) {
-    llvm::ArrayRef<uint8_t> SegmentId(Entry.BuildId, Entry.BuildIdSize);
-    if (BinaryId == SegmentId) {
+    
+    if (llvm::ArrayRef<uint8_t> SegmentId(Entry.BuildId, Entry.BuildIdSize); BinaryId == SegmentId) {
       // We assume only one text segment in the main binary for simplicity and
       // reduce the overhead of checking multiple ranges during symbolization.
       if (++NumMatched > 1) {

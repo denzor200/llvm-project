@@ -183,8 +183,8 @@ static bool isCandidate(const MachineInstr *MI, Register &DefedReg,
   if (!MI->isSafeToMove(SawStore) || MI->isImplicitDef() || MI->isInlineAsm())
     return false;
   for (unsigned i = 0, e = MI->getNumOperands(); i != e; ++i) {
-    const MachineOperand &MO = MI->getOperand(i);
-    if (MO.isReg()) {
+    
+    if (const MachineOperand &MO = MI->getOperand(i); MO.isReg()) {
       if (MO.isDef()) {
         if (i == 0 && !MO.isImplicit() && !MO.isDead())
           DefedReg = MO.getReg();
@@ -247,8 +247,8 @@ bool MachineLateInstrsCleanup::processBlock(MachineBasicBlock *MBB) {
 
     // Clear any entries in map that MI clobbers.
     for (auto DefI : llvm::make_early_inc_range(MBBDefs)) {
-      Register Reg = DefI.first;
-      if (MI.modifiesRegister(Reg, TRI)) {
+      
+      if (Register Reg = DefI.first; MI.modifiesRegister(Reg, TRI)) {
         MBBDefs.erase(Reg);
         MBBKills.erase(Reg);
       } else if (MI.findRegisterUseOperandIdx(Reg, TRI, true /*isKill*/) != -1)

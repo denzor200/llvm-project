@@ -137,8 +137,8 @@ SymbolReference APISet::createSymbolReference(StringRef Name, StringRef USR,
 }
 
 void APISet::removeRecord(StringRef USR) {
-  auto Result = USRBasedLookupTable.find(USR);
-  if (Result != USRBasedLookupTable.end()) {
+  
+  if (auto Result = USRBasedLookupTable.find(USR); Result != USRBasedLookupTable.end()) {
     auto *Record = Result->getSecond().get();
     auto &ParentReference = Record->Parent;
     auto *ParentRecord = const_cast<APIRecord *>(ParentReference.Record);
@@ -150,8 +150,8 @@ void APISet::removeRecord(StringRef USR) {
       if (auto *RecordAsCtx = llvm::dyn_cast<RecordContext>(Record))
         ParentCtx->stealRecordChain(*RecordAsCtx);
     } else {
-      auto *It = llvm::find(TopLevelRecords, Record);
-      if (It != TopLevelRecords.end())
+      
+      if (auto *It = llvm::find(TopLevelRecords, Record); It != TopLevelRecords.end())
         TopLevelRecords.erase(It);
       if (auto *RecordAsCtx = llvm::dyn_cast<RecordContext>(Record)) {
         for (const auto *Child = RecordAsCtx->First; Child != nullptr;

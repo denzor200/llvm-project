@@ -206,9 +206,9 @@ DynamicRegisterInfo::SetRegisterInfo(const StructuredData::Dictionary &dict,
   if (dict.GetValueForKeyAsArray("sets", sets)) {
     const uint32_t num_sets = sets->GetSize();
     for (uint32_t i = 0; i < num_sets; ++i) {
-      std::optional<llvm::StringRef> maybe_set_name =
-          sets->GetItemAtIndexAsString(i);
-      if (maybe_set_name && !maybe_set_name->empty()) {
+      
+      if (std::optional<llvm::StringRef> maybe_set_name =
+          sets->GetItemAtIndexAsString(i); maybe_set_name && !maybe_set_name->empty()) {
         m_sets.push_back(
             {ConstString(*maybe_set_name).AsCString(), nullptr, 0, nullptr});
       } else {
@@ -344,14 +344,14 @@ DynamicRegisterInfo::SetRegisterInfo(const StructuredData::Dictionary &dict,
     StructuredData::Array *invalidate_reg_list = nullptr;
     if (reg_info_dict->GetValueForKeyAsArray("invalidate-regs",
                                              invalidate_reg_list)) {
-      const size_t num_regs = invalidate_reg_list->GetSize();
-      if (num_regs > 0) {
+      
+      if (const size_t num_regs = invalidate_reg_list->GetSize(); num_regs > 0) {
         for (uint32_t idx = 0; idx < num_regs; ++idx) {
           if (auto maybe_invalidate_reg_name =
                   invalidate_reg_list->GetItemAtIndexAsString(idx)) {
-            const RegisterInfo *invalidate_reg_info =
-                GetRegisterInfo(*maybe_invalidate_reg_name);
-            if (invalidate_reg_info) {
+            
+            if (const RegisterInfo *invalidate_reg_info =
+                GetRegisterInfo(*maybe_invalidate_reg_name); invalidate_reg_info) {
               m_invalidate_regs_map[i].push_back(
                   invalidate_reg_info->kinds[eRegisterKindLLDB]);
             } else {
@@ -468,14 +468,14 @@ void DynamicRegisterInfo::Finalize(const ArchSpec &arch) {
   for (reg_to_regs_map::iterator pos = m_invalidate_regs_map.begin(),
                                  end = m_invalidate_regs_map.end();
        pos != end; ++pos) {
-    const uint32_t reg_num = pos->first;
+    
 
-    if (m_regs[reg_num].value_regs) {
+    if (const uint32_t reg_num = pos->first; m_regs[reg_num].value_regs) {
       reg_num_collection extra_invalid_regs;
       for (const uint32_t invalidate_reg_num : pos->second) {
-        reg_to_regs_map::iterator invalidate_pos =
-            m_invalidate_regs_map.find(invalidate_reg_num);
-        if (invalidate_pos != m_invalidate_regs_map.end()) {
+        
+        if (reg_to_regs_map::iterator invalidate_pos =
+            m_invalidate_regs_map.find(invalidate_reg_num); invalidate_pos != m_invalidate_regs_map.end()) {
           for (const uint32_t concrete_invalidate_reg_num :
                invalidate_pos->second) {
             if (concrete_invalidate_reg_num != reg_num)
@@ -656,13 +656,13 @@ void DynamicRegisterInfo::ConfigureOffsets() {
       // registers with value_regs list populated will share same offset as
       // that of their corresponding parent register.
       if (reg.byte_offset == LLDB_INVALID_INDEX32) {
-        uint32_t value_regnum = reg.value_regs[0];
-        if (value_regnum != LLDB_INVALID_INDEX32 &&
+        
+        if (uint32_t value_regnum = reg.value_regs[0]; value_regnum != LLDB_INVALID_INDEX32 &&
             reg.value_regs[1] == LLDB_INVALID_INDEX32) {
           reg.byte_offset =
               GetRegisterInfoAtIndex(value_regnum)->byte_offset;
-          auto it = m_value_reg_offset_map.find(reg.kinds[eRegisterKindLLDB]);
-          if (it != m_value_reg_offset_map.end())
+          
+          if (auto it = m_value_reg_offset_map.find(reg.kinds[eRegisterKindLLDB]); it != m_value_reg_offset_map.end())
             reg.byte_offset += it->second;
         }
       }
@@ -693,8 +693,8 @@ DynamicRegisterInfo::GetRegisterInfoAtIndex(uint32_t i) const {
 
 const RegisterInfo *DynamicRegisterInfo::GetRegisterInfo(uint32_t kind,
                                                          uint32_t num) const {
-  uint32_t reg_index = ConvertRegisterKindToRegisterNumber(kind, num);
-  if (reg_index != LLDB_INVALID_REGNUM)
+  
+  if (uint32_t reg_index = ConvertRegisterKindToRegisterNumber(kind, num); reg_index != LLDB_INVALID_REGNUM)
     return &m_regs[reg_index];
   return nullptr;
 }

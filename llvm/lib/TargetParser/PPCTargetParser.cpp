@@ -86,8 +86,8 @@ void fillValidTuneCPUList(SmallVectorImpl<StringRef> &Values) {
 }
 
 bool isValidCPU(StringRef CPU) {
-  const CPUInfo *Info = getCPUInfoByName(CPU);
-  if (!Info)
+  
+  if (const CPUInfo *Info = getCPUInfoByName(CPU); !Info)
     return false;
   return true;
 }
@@ -95,13 +95,13 @@ bool isValidCPU(StringRef CPU) {
 StringRef getNormalizedPPCTargetCPU(const Triple &T, StringRef CPUName) {
   if (!CPUName.empty()) {
     if (CPUName == "native") {
-      StringRef CPU = sys::getHostCPUName();
-      if (!CPU.empty() && CPU != "generic")
+      
+      if (StringRef CPU = sys::getHostCPUName(); !CPU.empty() && CPU != "generic")
         return CPU;
     }
 
-    StringRef CPU = normalizeCPUName(CPUName);
-    if (CPU != "generic" && CPU != "native")
+    
+    if (StringRef CPU = normalizeCPUName(CPUName); CPU != "generic" && CPU != "native")
       return CPU;
   }
 
@@ -139,8 +139,8 @@ std::optional<StringMap<bool>> getPPCDefaultTargetFeatures(const Triple &T,
   // The target feature `quadword-atomics` is only supported for 64-bit
   // POWER8 and above.
   if (!T.isArch64Bit()) {
-    auto It = Features.find("quadword-atomics");
-    if (It != Features.end())
+    
+    if (auto It = Features.find("quadword-atomics"); It != Features.end())
       It->second = false;
   }
   return Features;

@@ -57,9 +57,9 @@ llvm::DenseMap<unsigned, std::string> test::buildLineToAnnotationMapping(
   auto Code = AnnotatedCode.code();
   auto Annotations = AnnotatedCode.ranges();
   for (auto &AnnotationRange : Annotations) {
-    SourceLocation Loc = SM.getLocForStartOfFile(SM.getMainFileID())
-                             .getLocWithOffset(AnnotationRange.Begin);
-    if (SM.isPointWithin(Loc, CharBoundingRange.getBegin(),
+    
+    if (SourceLocation Loc = SM.getLocForStartOfFile(SM.getMainFileID())
+                             .getLocWithOffset(AnnotationRange.Begin); SM.isPointWithin(Loc, CharBoundingRange.getBegin(),
                          CharBoundingRange.getEnd())) {
       LineNumberToContent[SM.getPresumedLineNumber(Loc)] =
           Code.slice(AnnotationRange.Begin, AnnotationRange.End).str();
@@ -105,9 +105,9 @@ test::buildStatementToAnnotationMapping(const FunctionDecl *Func,
   for (auto OffsetAndStmt = Stmts.rbegin(); OffsetAndStmt != Stmts.rend();
        OffsetAndStmt++) {
     unsigned Offset = OffsetAndStmt->first;
-    const Stmt *Stmt = OffsetAndStmt->second;
+    
 
-    if (I < Annotations.size() && Annotations[I].Begin >= Offset) {
+    if (const Stmt *Stmt = OffsetAndStmt->second; I < Annotations.size() && Annotations[I].Begin >= Offset) {
       auto Range = Annotations[I];
 
       if (!isAnnotationDirectlyAfterStatement(Stmt, Range.Begin, SourceManager,

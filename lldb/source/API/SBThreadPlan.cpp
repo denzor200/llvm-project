@@ -64,8 +64,8 @@ SBThreadPlan::SBThreadPlan(const SBThreadPlan &rhs)
 SBThreadPlan::SBThreadPlan(lldb::SBThread &sb_thread, const char *class_name) {
   LLDB_INSTRUMENT_VA(this, sb_thread, class_name);
 
-  Thread *thread = sb_thread.get();
-  if (thread)
+  
+  if (Thread *thread = sb_thread.get(); thread)
     m_opaque_wp = std::make_shared<ScriptedThreadPlan>(*thread, class_name,
                                                        StructuredDataImpl());
 }
@@ -74,8 +74,8 @@ SBThreadPlan::SBThreadPlan(lldb::SBThread &sb_thread, const char *class_name,
                            lldb::SBStructuredData &args_data) {
   LLDB_INSTRUMENT_VA(this, sb_thread, class_name, args_data);
 
-  Thread *thread = sb_thread.get();
-  if (thread)
+  
+  if (Thread *thread = sb_thread.get(); thread)
     m_opaque_wp = std::make_shared<ScriptedThreadPlan>(*thread, class_name,
                                                        *args_data.m_impl_up);
 }
@@ -129,8 +129,8 @@ uint64_t SBThreadPlan::GetStopReasonDataAtIndex(uint32_t idx) {
 SBThread SBThreadPlan::GetThread() const {
   LLDB_INSTRUMENT_VA(this);
 
-  ThreadPlanSP thread_plan_sp(GetSP());
-  if (thread_plan_sp) {
+  
+  if (ThreadPlanSP thread_plan_sp(GetSP()); thread_plan_sp) {
     return SBThread(thread_plan_sp->GetThread().shared_from_this());
   } else
     return SBThread();
@@ -155,8 +155,8 @@ void SBThreadPlan::SetThreadPlan(const ThreadPlanSP &lldb_object_wp) {
 void SBThreadPlan::SetPlanComplete(bool success) {
   LLDB_INSTRUMENT_VA(this, success);
 
-  ThreadPlanSP thread_plan_sp(GetSP());
-  if (thread_plan_sp)
+  
+  if (ThreadPlanSP thread_plan_sp(GetSP()); thread_plan_sp)
     thread_plan_sp->SetPlanComplete(success);
 }
 
@@ -199,8 +199,8 @@ bool SBThreadPlan::GetStopOthers() {
 void SBThreadPlan::SetStopOthers(bool stop_others) {
   LLDB_INSTRUMENT_VA(this, stop_others);
 
-  ThreadPlanSP thread_plan_sp(GetSP());
-  if (thread_plan_sp)
+  
+  if (ThreadPlanSP thread_plan_sp(GetSP()); thread_plan_sp)
     thread_plan_sp->SetStopOthers(stop_others);
 }
 
@@ -418,8 +418,8 @@ SBThreadPlan::QueueThreadPlanForStepScripted(const char *script_class_name,
                                              SBError &error) {
   LLDB_INSTRUMENT_VA(this, script_class_name, args_data, error);
 
-  ThreadPlanSP thread_plan_sp(GetSP());
-  if (thread_plan_sp) {
+  
+  if (ThreadPlanSP thread_plan_sp(GetSP()); thread_plan_sp) {
     Status plan_status;
     StructuredData::ObjectSP args_obj = args_data.m_impl_up->GetObjectSP();
     SBThreadPlan plan =

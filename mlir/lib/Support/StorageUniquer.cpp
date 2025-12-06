@@ -148,8 +148,8 @@ public:
     // Check for an existing instance in read-only mode.
     {
       llvm::sys::SmartScopedReader<true> typeLock(shard.mutex);
-      auto it = shard.instances.find_as(lookupKey);
-      if (it != shard.instances.end())
+      
+      if (auto it = shard.instances.find_as(lookupKey); it != shard.instances.end())
         return localInst = it->storage;
     }
 

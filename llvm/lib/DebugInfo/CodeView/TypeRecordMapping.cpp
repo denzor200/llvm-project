@@ -182,10 +182,10 @@ static Error mapNameAndUniqueName(CodeViewRecordIO &IO, StringRef &Name,
     // Try to be smart about what we write here.  We can't write anything too
     // large, so if we're going to go over the limit, replace lengthy names with
     // a stringified hash value.
-    size_t BytesLeft = IO.maxFieldLength();
-    if (HasUniqueName) {
-      size_t BytesNeeded = Name.size() + UniqueName.size() + 2;
-      if (BytesNeeded > BytesLeft) {
+    
+    if (size_t BytesLeft = IO.maxFieldLength(); HasUniqueName) {
+      
+      if (size_t BytesNeeded = Name.size() + UniqueName.size() + 2; BytesNeeded > BytesLeft) {
         // The minimum space required for emitting hashes of both names.
         assert(BytesLeft >= 70);
 

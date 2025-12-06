@@ -394,8 +394,8 @@ TEST_F(CGSCCPassManagerTest, TestSCCPassInvalidatesModuleAnalysis) {
   CGPM1.addPass(LambdaSCCPass([&](LazyCallGraph::SCC &C,
                                   CGSCCAnalysisManager &AM, LazyCallGraph &CG,
                                   CGSCCUpdateResult &UR) {
-    const auto &MAMProxy = AM.getResult<ModuleAnalysisManagerCGSCCProxy>(C, CG);
-    if (MAMProxy.cachedResultExists<TestModuleAnalysis>(
+    
+    if (const auto &MAMProxy = AM.getResult<ModuleAnalysisManagerCGSCCProxy>(C, CG); MAMProxy.cachedResultExists<TestModuleAnalysis>(
             *C.begin()->getFunction().getParent()))
       ++CountFoundModuleAnalysis1;
 
@@ -410,9 +410,9 @@ TEST_F(CGSCCPassManagerTest, TestSCCPassInvalidatesModuleAnalysis) {
   CGPM2.addPass(
       LambdaSCCPass([&](LazyCallGraph::SCC &C, CGSCCAnalysisManager &AM,
                         LazyCallGraph &CG, CGSCCUpdateResult &UR) {
-        const auto &MAMProxy =
-            AM.getResult<ModuleAnalysisManagerCGSCCProxy>(C, CG);
-        if (MAMProxy.cachedResultExists<TestModuleAnalysis>(
+        
+        if (const auto &MAMProxy =
+            AM.getResult<ModuleAnalysisManagerCGSCCProxy>(C, CG); MAMProxy.cachedResultExists<TestModuleAnalysis>(
                 *C.begin()->getFunction().getParent()))
           ++CountFoundModuleAnalysis2;
 
@@ -430,8 +430,8 @@ TEST_F(CGSCCPassManagerTest, TestSCCPassInvalidatesModuleAnalysis) {
   CGPM3.addPass(LambdaSCCPass([&](LazyCallGraph::SCC &C,
                                   CGSCCAnalysisManager &AM, LazyCallGraph &CG,
                                   CGSCCUpdateResult &UR) {
-    const auto &MAMProxy = AM.getResult<ModuleAnalysisManagerCGSCCProxy>(C, CG);
-    if (MAMProxy.cachedResultExists<TestModuleAnalysis>(
+    
+    if (const auto &MAMProxy = AM.getResult<ModuleAnalysisManagerCGSCCProxy>(C, CG); MAMProxy.cachedResultExists<TestModuleAnalysis>(
             *C.begin()->getFunction().getParent()))
       ++CountFoundModuleAnalysis3;
 
@@ -465,8 +465,8 @@ TEST_F(CGSCCPassManagerTest, TestFunctionPassInsideCGSCCInvalidatesModuleAnalysi
   bool FoundModuleAnalysis1 = true;
   FPM1.addPass(LambdaFunctionPass([&](Function &F,
                                       FunctionAnalysisManager &AM) {
-    const auto &MAMProxy = AM.getResult<ModuleAnalysisManagerFunctionProxy>(F);
-    if (!MAMProxy.cachedResultExists<TestModuleAnalysis>(*F.getParent()))
+    
+    if (const auto &MAMProxy = AM.getResult<ModuleAnalysisManagerFunctionProxy>(F); !MAMProxy.cachedResultExists<TestModuleAnalysis>(*F.getParent()))
       FoundModuleAnalysis1 = false;
 
     return PreservedAnalyses::all();
@@ -483,8 +483,8 @@ TEST_F(CGSCCPassManagerTest, TestFunctionPassInsideCGSCCInvalidatesModuleAnalysi
   bool FoundModuleAnalysis2 = true;
   FPM2.addPass(LambdaFunctionPass([&](Function &F,
                                       FunctionAnalysisManager &AM) {
-    const auto &MAMProxy = AM.getResult<ModuleAnalysisManagerFunctionProxy>(F);
-    if (!MAMProxy.cachedResultExists<TestModuleAnalysis>(*F.getParent()))
+    
+    if (const auto &MAMProxy = AM.getResult<ModuleAnalysisManagerFunctionProxy>(F); !MAMProxy.cachedResultExists<TestModuleAnalysis>(*F.getParent()))
       FoundModuleAnalysis2 = false;
 
     // Only fail to preserve analyses on one SCC and make sure that gets
@@ -504,8 +504,8 @@ TEST_F(CGSCCPassManagerTest, TestFunctionPassInsideCGSCCInvalidatesModuleAnalysi
   bool FoundModuleAnalysis3 = false;
   FPM3.addPass(LambdaFunctionPass([&](Function &F,
                                       FunctionAnalysisManager &AM) {
-    const auto &MAMProxy = AM.getResult<ModuleAnalysisManagerFunctionProxy>(F);
-    if (MAMProxy.cachedResultExists<TestModuleAnalysis>(*F.getParent()))
+    
+    if (const auto &MAMProxy = AM.getResult<ModuleAnalysisManagerFunctionProxy>(F); MAMProxy.cachedResultExists<TestModuleAnalysis>(*F.getParent()))
       FoundModuleAnalysis3 = true;
 
     return PreservedAnalyses::none();

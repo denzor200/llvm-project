@@ -69,9 +69,9 @@ public:
         Inc.HeaderID = static_cast<unsigned>(HID);
         if (IsAngled)
           if (auto StdlibHeader = tooling::stdlib::Header::named(Inc.Written)) {
-            auto &IDs = Out->StdlibHeaders[*StdlibHeader];
+            
             // Few physical files for one stdlib header name, linear scan is ok.
-            if (!llvm::is_contained(IDs, HID))
+            if (auto &IDs = Out->StdlibHeaders[*StdlibHeader]; !llvm::is_contained(IDs, HID))
               IDs.push_back(HID);
           }
       }

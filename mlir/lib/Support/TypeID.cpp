@@ -55,8 +55,8 @@ struct ImplicitTypeIDRegistry {
 
     { // Try a read-only lookup first.
       llvm::sys::SmartScopedReader<true> guard(mutex);
-      auto it = typeNameToID.find(typeName);
-      if (it != typeNameToID.end())
+      
+      if (auto it = typeNameToID.find(typeName); it != typeNameToID.end())
         return it->second;
     }
     llvm::sys::SmartScopedWriter<true> guard(mutex);

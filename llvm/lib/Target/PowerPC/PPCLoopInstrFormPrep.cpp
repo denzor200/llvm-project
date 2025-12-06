@@ -833,8 +833,8 @@ void PPCLoopInstrFormPrep::addOneCandidate(
     if (cast<SCEVAddRecExpr>(B.BaseSCEV)->getStepRecurrence(*SE) !=
         cast<SCEVAddRecExpr>(LSCEV)->getStepRecurrence(*SE))
       continue;
-    const SCEV *Diff = SE->getMinusSCEV(LSCEV, B.BaseSCEV);
-    if (isValidDiff(Diff)) {
+    
+    if (const SCEV *Diff = SE->getMinusSCEV(LSCEV, B.BaseSCEV); isValidDiff(Diff)) {
       B.Elements.push_back(BucketElement(Diff, MemI));
       FoundBucket = true;
       break;
@@ -874,8 +874,8 @@ SmallVector<Bucket, 16> PPCLoopInstrFormPrep::collectCandidates(
         continue;
 
       const SCEV *LSCEV = SE->getSCEVAtScope(PtrValue, L);
-      const SCEVAddRecExpr *LARSCEV = dyn_cast<SCEVAddRecExpr>(LSCEV);
-      if (!LARSCEV || LARSCEV->getLoop() != L)
+      
+      if (const SCEVAddRecExpr *LARSCEV = dyn_cast<SCEVAddRecExpr>(LSCEV); !LARSCEV || LARSCEV->getLoop() != L)
         continue;
 
       // Mark that we have candidates for preparing.
@@ -901,10 +901,10 @@ bool PPCLoopInstrFormPrep::prepareBaseForDispFormChain(Bucket &BucketChain,
     if (!BucketChain.Elements[j].Offset)
       RemainderOffsetInfo[0] = std::make_pair(0, 1);
     else {
-      unsigned Remainder = cast<SCEVConstant>(BucketChain.Elements[j].Offset)
+      
+      if (unsigned Remainder = cast<SCEVConstant>(BucketChain.Elements[j].Offset)
                                ->getAPInt()
-                               .urem(Form);
-      if (!RemainderOffsetInfo.contains(Remainder))
+                               .urem(Form); !RemainderOffsetInfo.contains(Remainder))
         RemainderOffsetInfo[Remainder] = std::make_pair(j, 1);
       else
         RemainderOffsetInfo[Remainder].second++;
@@ -1253,9 +1253,9 @@ bool PPCLoopInstrFormPrep::alreadyPrepared(Loop *L, Instruction *MemI,
             return true;
           }
           if (Form == DSForm || Form == DQForm) {
-            const SCEVConstant *Diff = dyn_cast<SCEVConstant>(
-                SE->getMinusSCEV(PHIBasePtrSCEV->getStart(), BasePtrStartSCEV));
-            if (Diff && !Diff->getAPInt().urem(Form)) {
+            
+            if (const SCEVConstant *Diff = dyn_cast<SCEVConstant>(
+                SE->getMinusSCEV(PHIBasePtrSCEV->getStart(), BasePtrStartSCEV)); Diff && !Diff->getAPInt().urem(Form)) {
               if (Form == DSForm)
                 ++PHINodeAlreadyExistsDS;
               else
@@ -1306,8 +1306,8 @@ bool PPCLoopInstrFormPrep::runOnLoop(Loop *L) {
     if (ST && ST->hasAltivec() && PointerElementType->isVectorTy())
       return false;
     // There are no update forms for P10 lxvp/stxvp intrinsic.
-    auto *II = dyn_cast<IntrinsicInst>(I);
-    if (II && ((II->getIntrinsicID() == Intrinsic::ppc_vsx_lxvp) ||
+    
+    if (auto *II = dyn_cast<IntrinsicInst>(I); II && ((II->getIntrinsicID() == Intrinsic::ppc_vsx_lxvp) ||
                II->getIntrinsicID() == Intrinsic::ppc_vsx_stxvp))
       return false;
     // See getPreIndexedAddressParts, the displacement for LDU/STDU has to
@@ -1322,8 +1322,8 @@ bool PPCLoopInstrFormPrep::runOnLoop(Loop *L) {
         return false;
       if (const SCEVConstant *StepConst =
               dyn_cast<SCEVConstant>(LARSCEV->getStepRecurrence(*SE))) {
-        const APInt &ConstInt = StepConst->getValue()->getValue();
-        if (ConstInt.isSignedIntN(16) && ConstInt.srem(4) != 0)
+        
+        if (const APInt &ConstInt = StepConst->getValue()->getValue(); ConstInt.isSignedIntN(16) && ConstInt.srem(4) != 0)
           return false;
       }
     }
@@ -1349,8 +1349,8 @@ bool PPCLoopInstrFormPrep::runOnLoop(Loop *L) {
                                const Type *PointerElementType) {
     assert((PtrValue && I) && "Invalid parameter!");
     // Check if it is a P10 lxvp/stxvp intrinsic.
-    auto *II = dyn_cast<IntrinsicInst>(I);
-    if (II)
+    
+    if (auto *II = dyn_cast<IntrinsicInst>(I); II)
       return II->getIntrinsicID() == Intrinsic::ppc_vsx_lxvp ||
              II->getIntrinsicID() == Intrinsic::ppc_vsx_stxvp;
     // Check if it is a P9 vector load/store.

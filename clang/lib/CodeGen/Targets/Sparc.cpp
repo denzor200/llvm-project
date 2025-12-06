@@ -144,8 +144,8 @@ private:
         return;
 
       // Finish the current 64-bit word.
-      uint64_t Aligned = llvm::alignTo(Size, 64);
-      if (Aligned > Size && Aligned <= ToSize) {
+      
+      if (uint64_t Aligned = llvm::alignTo(Size, 64); Aligned > Size && Aligned <= ToSize) {
         Elems.push_back(llvm::IntegerType::get(Context, Aligned - Size));
         Size = Aligned;
       }
@@ -181,8 +181,8 @@ private:
       const llvm::StructLayout *Layout = DL.getStructLayout(StrTy);
       for (unsigned i = 0, e = StrTy->getNumElements(); i != e; ++i) {
         llvm::Type *ElemTy = StrTy->getElementType(i);
-        uint64_t ElemOffset = Offset + Layout->getElementOffsetInBits(i);
-        switch (ElemTy->getTypeID()) {
+        
+        switch (uint64_t ElemOffset = Offset + Layout->getElementOffsetInBits(i); ElemTy->getTypeID()) {
         case llvm::Type::StructTyID:
           addStruct(ElemOffset, cast<llvm::StructType>(ElemTy));
           break;

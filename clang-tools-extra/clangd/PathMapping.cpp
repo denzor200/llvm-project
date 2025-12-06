@@ -35,8 +35,8 @@ std::optional<std::string> doPathMapping(llvm::StringRef S,
     const std::string &To = Dir == PathMapping::Direction::ClientToServer
                                 ? Mapping.ServerPath
                                 : Mapping.ClientPath;
-    llvm::StringRef Body = Uri->body();
-    if (Body.consume_front(From) && (Body.empty() || Body.front() == '/')) {
+    
+    if (llvm::StringRef Body = Uri->body(); Body.consume_front(From) && (Body.empty() || Body.front() == '/')) {
       std::string MappedBody = (To + Body).str();
       return URI(Uri->scheme(), Uri->authority(), MappedBody)
           .toString();
@@ -48,8 +48,8 @@ std::optional<std::string> doPathMapping(llvm::StringRef S,
 void applyPathMappings(llvm::json::Value &V, PathMapping::Direction Dir,
                        const PathMappings &Mappings) {
   using Kind = llvm::json::Value::Kind;
-  Kind K = V.kind();
-  if (K == Kind::Object) {
+  
+  if (Kind K = V.kind(); K == Kind::Object) {
     llvm::json::Object *Obj = V.getAsObject();
     llvm::json::Object MappedObj;
     // 1. Map all the Keys

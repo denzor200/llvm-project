@@ -107,8 +107,8 @@ struct ScanToArithOps : public OpRewritePattern<vector::ScanOp> {
     VectorType destType = scanOp.getDestType();
     ArrayRef<int64_t> destShape = destType.getShape();
     auto elType = destType.getElementType();
-    bool isInt = elType.isIntOrIndex();
-    if (!isValidKind(isInt, scanOp.getKind()))
+    
+    if (bool isInt = elType.isIntOrIndex(); !isValidKind(isInt, scanOp.getKind()))
       return failure();
 
     VectorType resType = destType;

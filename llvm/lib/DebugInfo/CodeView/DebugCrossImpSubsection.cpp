@@ -53,8 +53,8 @@ void DebugCrossModuleImportsSubsection::addImport(StringRef Module,
                                                   uint32_t ImportId) {
   Strings.insert(Module);
   std::vector<support::ulittle32_t> Targets = {support::ulittle32_t(ImportId)};
-  auto Result = Mappings.insert(std::make_pair(Module, Targets));
-  if (!Result.second)
+  
+  if (auto Result = Mappings.insert(std::make_pair(Module, Targets)); !Result.second)
     Result.first->getValue().push_back(Targets[0]);
 }
 

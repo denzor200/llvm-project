@@ -119,10 +119,10 @@ public:
     llvm::StringMap<FileMatchTrieNode>::const_iterator MatchingChild =
         Children.find(Element);
     if (MatchingChild != Children.end()) {
-      StringRef Result = MatchingChild->getValue().findEquivalent(
+      
+      if (StringRef Result = MatchingChild->getValue().findEquivalent(
           Comparator, FileName, IsAmbiguous,
-          ConsumedLength + Element.size() + 1);
-      if (!Result.empty() || IsAmbiguous)
+          ConsumedLength + Element.size() + 1); !Result.empty() || IsAmbiguous)
         return Result;
     }
 

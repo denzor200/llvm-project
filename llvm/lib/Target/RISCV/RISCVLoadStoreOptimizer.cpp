@@ -279,9 +279,9 @@ RISCVLoadStoreOpt::findMatchingInsn(MachineBasicBlock::iterator I,
     if (MI.getOpcode() == FirstMI.getOpcode() &&
         TII->isLdStSafeToPair(MI, TRI)) {
       Register MIBaseReg = MI.getOperand(1).getReg();
-      int64_t MIOffset = MI.getOperand(2).getImm();
+      
 
-      if (BaseReg == MIBaseReg) {
+      if (int64_t MIOffset = MI.getOperand(2).getImm(); BaseReg == MIBaseReg) {
         if ((Offset != MIOffset + OffsetStride) &&
             (Offset + OffsetStride != MIOffset)) {
           LiveRegUnits::accumulateUsedDefed(MI, ModifiedRegUnits, UsedRegUnits,
@@ -384,8 +384,8 @@ RISCVLoadStoreOpt::mergePairedInsns(MachineBasicBlock::iterator I,
     if (!MergeForward) {
       // Check if the Paired store's source register has a kill flag and clear
       // it only if there are intermediate uses between I and Paired.
-      MachineOperand &PairedRegOp = Paired->getOperand(0);
-      if (PairedRegOp.isKill()) {
+      
+      if (MachineOperand &PairedRegOp = Paired->getOperand(0); PairedRegOp.isKill()) {
         for (auto It = std::next(I); It != Paired; ++It) {
           if (It->readsRegister(PairedRegOp.getReg(), TRI)) {
             PairedRegOp.setIsKill(false);

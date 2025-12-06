@@ -168,9 +168,9 @@ CXDiagnosticSetImpl *cxdiag::lazyCreateDiags(CXTranslationUnit TU,
     // We check here if a new diagnostic was appended since the last time the
     // diagnostic set was created, in which case we reset it.
 
-    CXDiagnosticSetImpl *
-      Set = static_cast<CXDiagnosticSetImpl*>(TU->Diagnostics);
-    if (AU->stored_diag_size() != Set->getNumDiagnostics()) {
+    
+    if (CXDiagnosticSetImpl *
+      Set = static_cast<CXDiagnosticSetImpl*>(TU->Diagnostics); AU->stored_diag_size() != Set->getNumDiagnostics()) {
       // Diagnostics in the ASTUnit were updated, reset the associated
       // diagnostics.
       delete Set;

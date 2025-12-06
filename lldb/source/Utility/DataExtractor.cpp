@@ -160,8 +160,8 @@ DataExtractor::DataExtractor(const DataExtractor &data, offset_t offset,
       m_data_sp(), m_target_byte_size(target_byte_size) {
   assert(m_addr_size >= 1 && m_addr_size <= 8);
   if (data.ValidOffset(offset)) {
-    offset_t bytes_available = data.GetByteSize() - offset;
-    if (length > bytes_available)
+    
+    if (offset_t bytes_available = data.GetByteSize() - offset; length > bytes_available)
       length = bytes_available;
     SetData(data, offset, length);
   }
@@ -202,10 +202,10 @@ void DataExtractor::Clear() {
 // that shared data. Else zero is returned.
 size_t DataExtractor::GetSharedDataOffset() const {
   if (m_start != nullptr) {
-    const DataBuffer *data = m_data_sp.get();
-    if (data != nullptr) {
-      const uint8_t *data_bytes = data->GetBytes();
-      if (data_bytes != nullptr) {
+    
+    if (const DataBuffer *data = m_data_sp.get(); data != nullptr) {
+      
+      if (const uint8_t *data_bytes = data->GetBytes(); data_bytes != nullptr) {
         assert(m_start >= data_bytes);
         return m_start - data_bytes;
       }
@@ -286,12 +286,12 @@ lldb::offset_t DataExtractor::SetData(const DataBufferSP &data_sp,
   if (data_length > 0) {
     m_data_sp = data_sp;
     if (data_sp) {
-      const size_t data_size = data_sp->GetByteSize();
-      if (data_offset < data_size) {
+      
+      if (const size_t data_size = data_sp->GetByteSize(); data_offset < data_size) {
         m_start = data_sp->GetBytes() + data_offset;
-        const size_t bytes_left = data_size - data_offset;
+        
         // Cap the length of we asked for too many
-        if (data_length <= bytes_left)
+        if (const size_t bytes_left = data_size - data_offset; data_length <= bytes_left)
           m_end = m_start + data_length; // We got all the bytes we wanted
         else
           m_end = m_start + bytes_left; // Not all the bytes requested were
@@ -315,8 +315,8 @@ lldb::offset_t DataExtractor::SetData(const DataBufferSP &data_sp,
 //
 // RETURNS the byte that was extracted, or zero on failure.
 uint8_t DataExtractor::GetU8(offset_t *offset_ptr) const {
-  const uint8_t *data = static_cast<const uint8_t *>(GetData(offset_ptr, 1));
-  if (data)
+  
+  if (const uint8_t *data = static_cast<const uint8_t *>(GetData(offset_ptr, 1)); data)
     return *data;
   return 0;
 }
@@ -329,9 +329,9 @@ uint8_t DataExtractor::GetU8(offset_t *offset_ptr) const {
 // buffer due to being out of bounds, or insufficient data.
 void *DataExtractor::GetU8(offset_t *offset_ptr, void *dst,
                            uint32_t count) const {
-  const uint8_t *data =
-      static_cast<const uint8_t *>(GetData(offset_ptr, count));
-  if (data) {
+  
+  if (const uint8_t *data =
+      static_cast<const uint8_t *>(GetData(offset_ptr, count)); data) {
     // Copy the data into the buffer
     memcpy(dst, data, count);
     // Return a non-nullptr pointer to the converted data as an indicator of
@@ -347,9 +347,9 @@ void *DataExtractor::GetU8(offset_t *offset_ptr, void *dst,
 // RETURNS the uint16_t that was extracted, or zero on failure.
 uint16_t DataExtractor::GetU16(offset_t *offset_ptr) const {
   uint16_t val = 0;
-  const uint8_t *data =
-      static_cast<const uint8_t *>(GetData(offset_ptr, sizeof(val)));
-  if (data) {
+  
+  if (const uint8_t *data =
+      static_cast<const uint8_t *>(GetData(offset_ptr, sizeof(val))); data) {
     if (m_byte_order != endian::InlHostByteOrder())
       val = ReadSwapInt16(data);
     else
@@ -397,9 +397,9 @@ uint64_t DataExtractor::GetU64_unchecked(offset_t *offset_ptr) const {
 void *DataExtractor::GetU16(offset_t *offset_ptr, void *void_dst,
                             uint32_t count) const {
   const size_t src_size = sizeof(uint16_t) * count;
-  const uint16_t *src =
-      static_cast<const uint16_t *>(GetData(offset_ptr, src_size));
-  if (src) {
+  
+  if (const uint16_t *src =
+      static_cast<const uint16_t *>(GetData(offset_ptr, src_size)); src) {
     if (m_byte_order != endian::InlHostByteOrder()) {
       uint16_t *dst_pos = static_cast<uint16_t *>(void_dst);
       uint16_t *dst_end = dst_pos + count;
@@ -425,9 +425,9 @@ void *DataExtractor::GetU16(offset_t *offset_ptr, void *void_dst,
 // RETURNS the uint32_t that was extracted, or zero on failure.
 uint32_t DataExtractor::GetU32(offset_t *offset_ptr) const {
   uint32_t val = 0;
-  const uint8_t *data =
-      static_cast<const uint8_t *>(GetData(offset_ptr, sizeof(val)));
-  if (data) {
+  
+  if (const uint8_t *data =
+      static_cast<const uint8_t *>(GetData(offset_ptr, sizeof(val))); data) {
     if (m_byte_order != endian::InlHostByteOrder()) {
       val = ReadSwapInt32(data);
     } else {
@@ -446,9 +446,9 @@ uint32_t DataExtractor::GetU32(offset_t *offset_ptr) const {
 void *DataExtractor::GetU32(offset_t *offset_ptr, void *void_dst,
                             uint32_t count) const {
   const size_t src_size = sizeof(uint32_t) * count;
-  const uint32_t *src =
-      static_cast<const uint32_t *>(GetData(offset_ptr, src_size));
-  if (src) {
+  
+  if (const uint32_t *src =
+      static_cast<const uint32_t *>(GetData(offset_ptr, src_size)); src) {
     if (m_byte_order != endian::InlHostByteOrder()) {
       uint32_t *dst_pos = static_cast<uint32_t *>(void_dst);
       uint32_t *dst_end = dst_pos + count;
@@ -474,9 +474,9 @@ void *DataExtractor::GetU32(offset_t *offset_ptr, void *void_dst,
 // RETURNS the uint64_t that was extracted, or zero on failure.
 uint64_t DataExtractor::GetU64(offset_t *offset_ptr) const {
   uint64_t val = 0;
-  const uint8_t *data =
-      static_cast<const uint8_t *>(GetData(offset_ptr, sizeof(val)));
-  if (data) {
+  
+  if (const uint8_t *data =
+      static_cast<const uint8_t *>(GetData(offset_ptr, sizeof(val))); data) {
     if (m_byte_order != endian::InlHostByteOrder()) {
       val = ReadSwapInt64(data);
     } else {
@@ -494,9 +494,9 @@ uint64_t DataExtractor::GetU64(offset_t *offset_ptr) const {
 void *DataExtractor::GetU64(offset_t *offset_ptr, void *void_dst,
                             uint32_t count) const {
   const size_t src_size = sizeof(uint64_t) * count;
-  const uint64_t *src =
-      static_cast<const uint64_t *>(GetData(offset_ptr, src_size));
-  if (src) {
+  
+  if (const uint64_t *src =
+      static_cast<const uint64_t *>(GetData(offset_ptr, src_size)); src) {
     if (m_byte_order != endian::InlHostByteOrder()) {
       uint64_t *dst_pos = static_cast<uint64_t *>(void_dst);
       uint64_t *dst_end = dst_pos + count;
@@ -659,8 +659,8 @@ uint64_t DataExtractor::GetAddress_unchecked(offset_t *offset_ptr) const {
 
 size_t DataExtractor::ExtractBytes(offset_t offset, offset_t length,
                                    ByteOrder dst_byte_order, void *dst) const {
-  const uint8_t *src = PeekData(offset, length);
-  if (src) {
+  
+  if (const uint8_t *src = PeekData(offset, length); src) {
     if (dst_byte_order != GetByteOrder()) {
       for (uint32_t i = 0; i < length; ++i)
         (static_cast<uint8_t *>(dst))[i] = src[length - i - 1];
@@ -674,8 +674,8 @@ size_t DataExtractor::ExtractBytes(offset_t offset, offset_t length,
 // Extract data as it exists in target memory
 lldb::offset_t DataExtractor::CopyData(offset_t offset, offset_t length,
                                        void *dst) const {
-  const uint8_t *src = PeekData(offset, length);
-  if (src) {
+  
+  if (const uint8_t *src = PeekData(offset, length); src) {
     ::memcpy(dst, src, length);
     return length;
   }
@@ -710,14 +710,14 @@ DataExtractor::CopyByteOrderedData(offset_t src_offset, offset_t src_len,
     return 0;
 
   uint8_t *dst = static_cast<uint8_t *>(dst_void_ptr);
-  const uint8_t *src = PeekData(src_offset, src_len);
-  if (src) {
+  
+  if (const uint8_t *src = PeekData(src_offset, src_len); src) {
     if (dst_len >= src_len) {
       // We are copying the entire value from src into dst. Calculate how many,
       // if any, zeroes we need for the most significant bytes if "dst_len" is
       // greater than "src_len"...
-      const size_t num_zeroes = dst_len - src_len;
-      if (dst_byte_order == eByteOrderBig) {
+      
+      if (const size_t num_zeroes = dst_len - src_len; dst_byte_order == eByteOrderBig) {
         // Big endian, so we lead with zeroes...
         if (num_zeroes > 0)
           ::memset(dst, 0, num_zeroes);
@@ -809,8 +809,8 @@ const char *DataExtractor::GetCStr(offset_t *offset_ptr) const {
 // contain a NULL terminator byte, nullptr will be returned and "offset_ptr"
 // will not be updated.
 const char *DataExtractor::GetCStr(offset_t *offset_ptr, offset_t len) const {
-  const char *cstr = reinterpret_cast<const char *>(PeekData(*offset_ptr, len));
-  if (cstr != nullptr) {
+  
+  if (const char *cstr = reinterpret_cast<const char *>(PeekData(*offset_ptr, len)); cstr != nullptr) {
     if (memchr(cstr, '\0', len) == nullptr) {
       return nullptr;
     }

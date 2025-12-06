@@ -17,10 +17,10 @@ void ScriptedInterfaceUsages::Dump(Stream &s, UsageKind kind) const {
   llvm::StringRef usage_kind =
       (kind == UsageKind::CommandInterpreter) ? "Command Interpreter" : "API";
   s << usage_kind << " Usages:";
-  const std::vector<llvm::StringRef> &usages =
+  
+  if (const std::vector<llvm::StringRef> &usages =
       (kind == UsageKind::CommandInterpreter) ? GetCommandInterpreterUsages()
-                                              : GetSBAPIUsages();
-  if (usages.empty())
+                                              : GetSBAPIUsages(); usages.empty())
     s << " None\n";
   else if (usages.size() == 1)
     s << " " << usages.front() << '\n';

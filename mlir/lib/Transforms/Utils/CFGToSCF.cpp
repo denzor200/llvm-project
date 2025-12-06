@@ -238,9 +238,9 @@ public:
     // offset is saved in the map for `redirectEdge` to transform the edges.
     llvm::SmallMapVector<Block *, unsigned, 4> blockArgMapping;
     for (Block *entryBlock : entryBlocks) {
-      auto [iter, inserted] = blockArgMapping.insert(
-          {entryBlock, multiplexerBlock->getNumArguments()});
-      if (inserted)
+      
+      if (auto [iter, inserted] = blockArgMapping.insert(
+          {entryBlock, multiplexerBlock->getNumArguments()}); inserted)
         addBlockArgumentsFromOther(multiplexerBlock, entryBlock);
     }
 
@@ -605,8 +605,8 @@ static FailureOr<StructuredLoopProperties> createSingleExitingLatch(
   }
 
   {
-    auto builder = OpBuilder::atBlockBegin(exitBlock);
-    if (!exitEdges.empty()) {
+    
+    if (auto builder = OpBuilder::atBlockBegin(exitBlock); !exitEdges.empty()) {
       // Create the switch dispatching to what were originally the multiple exit
       // blocks. The loop header has to explicitly be excluded in the below
       // switch as we would otherwise be creating a new loop again. All back
@@ -1164,10 +1164,10 @@ static FailureOr<SmallVector<Block *>> transformToStructuredCFBranches(
 
   for (auto &&[block, valueRange] : createdEmptyBlocks) {
     auto builder = OpBuilder::atBlockEnd(block);
-    LogicalResult result = interface.createStructuredBranchRegionTerminatorOp(
+    
+    if (LogicalResult result = interface.createStructuredBranchRegionTerminatorOp(
         structuredCondOp->getLoc(), builder, structuredCondOp, nullptr,
-        valueRange);
-    if (failed(result))
+        valueRange); failed(result))
       return failure();
   }
 

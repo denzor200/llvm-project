@@ -294,8 +294,8 @@ struct RawBufferOpLowering : public ConvertOpToLLVMPattern<GpuOp> {
     Value atomicCmpData = Value();
     // Operand index 1 of a load is the indices, trying to read them can crash.
     if (storeData) {
-      Value maybeCmpData = adaptor.getODSOperands(1)[0];
-      if (maybeCmpData != memref)
+      
+      if (Value maybeCmpData = adaptor.getODSOperands(1)[0]; maybeCmpData != memref)
         atomicCmpData = maybeCmpData;
     }
 
@@ -1142,10 +1142,10 @@ static std::optional<StringRef> wmmaOpToIntrinsic(WMMAOp wmma,
 
   const uint32_t k = wmma.getK();
   const bool isRDNA3 = chipset.majorVersion == 11;
-  const bool isRDNA4 = chipset.majorVersion == 12 && chipset.minorVersion == 0;
+  
 
   // Handle RDNA3 and RDNA4.
-  if (isRDNA3 || isRDNA4)
+  if (const bool isRDNA4 = chipset.majorVersion == 12 && chipset.minorVersion == 0; isRDNA3 || isRDNA4)
     return wmmaOpToIntrinsicRDNA(elemSourceType, elemBSourceType, elemDestType,
                                  k, isRDNA3);
 

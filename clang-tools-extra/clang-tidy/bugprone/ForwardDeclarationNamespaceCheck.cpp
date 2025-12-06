@@ -46,8 +46,8 @@ void ForwardDeclarationNamespaceCheck::check(
     const MatchFinder::MatchResult &Result) {
   if (const auto *RecordDecl =
           Result.Nodes.getNodeAs<CXXRecordDecl>("record_decl")) {
-    const StringRef DeclName = RecordDecl->getName();
-    if (RecordDecl->isThisDeclarationADefinition()) {
+    
+    if (const StringRef DeclName = RecordDecl->getName(); RecordDecl->isThisDeclarationADefinition()) {
       DeclNameToDefinitions[DeclName].push_back(RecordDecl);
     } else {
       // If a declaration has no definition, the definition could be in another

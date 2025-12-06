@@ -73,8 +73,8 @@ static uptr max_malloced_memory;
 
 static void MergeThreadStats(ThreadContextBase *tctx_base, void *arg) {
   MemprofStats *accumulated_stats = reinterpret_cast<MemprofStats *>(arg);
-  MemprofThreadContext *tctx = static_cast<MemprofThreadContext *>(tctx_base);
-  if (MemprofThread *t = tctx->thread)
+  
+  if (MemprofThreadContext *tctx = static_cast<MemprofThreadContext *>(tctx_base); MemprofThread *t = tctx->thread)
     accumulated_stats->MergeFrom(&t->stats());
 }
 

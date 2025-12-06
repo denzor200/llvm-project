@@ -36,8 +36,8 @@ bool lldb_private::formatters::CXXFunctionPointerSummaryProvider(
       ExecutionContext exe_ctx(valobj.GetExecutionContextRef());
 
       Address so_addr;
-      Target *target = exe_ctx.GetTargetPtr();
-      if (target && target->HasLoadedSections()) {
+      
+      if (Target *target = exe_ctx.GetTargetPtr(); target && target->HasLoadedSections()) {
         target->ResolveLoadAddress(func_ptr_address, so_addr);
         if (so_addr.GetSection() == nullptr) {
           // If we have an address that doesn't correspond to any symbol,
@@ -49,8 +49,8 @@ bool lldb_private::formatters::CXXFunctionPointerSummaryProvider(
           // one that points to a symbol for a fuller description.
           if (Process *process = exe_ctx.GetProcessPtr()) {
             if (ABISP abi_sp = process->GetABI()) {
-              addr_t fixed_addr = abi_sp->FixCodeAddress(func_ptr_address);
-              if (fixed_addr != func_ptr_address) {
+              
+              if (addr_t fixed_addr = abi_sp->FixCodeAddress(func_ptr_address); fixed_addr != func_ptr_address) {
                 Address test_address;
                 test_address.SetLoadAddress(fixed_addr, target);
                 if (test_address.GetSection() != nullptr) {

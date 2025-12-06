@@ -190,9 +190,9 @@ TEST(SuffixTreeTest, TestSubstringRepeats) {
     Len = RS.Length;
     bool IsExpectedLen = (Len == 3u || Len == 2u);
     ASSERT_TRUE(IsExpectedLen);
-    bool IsExpectedIndex;
+    
 
-    if (Len == 3u) { // {1, 2, 3}
+    if (bool IsExpectedIndex; Len == 3u) { // {1, 2, 3}
       EXPECT_EQ(RS.StartIndices.size(), 2u);
       for (unsigned StartIdx : RS.StartIndices) {
         IsExpectedIndex = (StartIdx == 6u || StartIdx == 10u);
@@ -241,9 +241,9 @@ TEST(SuffixTreeTest, TestSubstringRepeatsWithLeafDescendants) {
     Len = RS.Length;
     bool IsExpectedLen = (Len == 3u || Len == 2u);
     ASSERT_TRUE(IsExpectedLen);
-    bool IsExpectedIndex;
+    
 
-    if (Len == 3u) { // {1, 2, 3}
+    if (bool IsExpectedIndex; Len == 3u) { // {1, 2, 3}
       EXPECT_EQ(RS.StartIndices.size(), 2u);
       for (unsigned StartIdx : RS.StartIndices) {
         IsExpectedIndex = (StartIdx == 6u || StartIdx == 10u);

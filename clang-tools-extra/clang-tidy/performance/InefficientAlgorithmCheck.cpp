@@ -82,11 +82,11 @@ void InefficientAlgorithmCheck::check(const MatchFinder::MatchResult &Result) {
     const QualType AlgCmp =
         Arg->getType().getUnqualifiedType().getCanonicalType();
     const unsigned CmpPosition = IneffContName.contains("map") ? 2 : 1;
-    const QualType ContainerCmp = IneffCont->getTemplateArgs()[CmpPosition]
+    
+    if (const QualType ContainerCmp = IneffCont->getTemplateArgs()[CmpPosition]
                                       .getAsType()
                                       .getUnqualifiedType()
-                                      .getCanonicalType();
-    if (AlgCmp != ContainerCmp) {
+                                      .getCanonicalType(); AlgCmp != ContainerCmp) {
       diag(Arg->getBeginLoc(),
            "different comparers used in the algorithm and the container");
       return;

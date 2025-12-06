@@ -52,8 +52,8 @@ void TextDiagnosticBuffer::HandleDiagnostic(DiagnosticsEngine::Level Level,
 
 void TextDiagnosticBuffer::FlushDiagnostics(DiagnosticsEngine &Diags) const {
   for (const auto &I : All) {
-    auto Diag = Diags.Report(Diags.getCustomDiagID(I.first, "%0"));
-    switch (I.first) {
+    
+    switch (auto Diag = Diags.Report(Diags.getCustomDiagID(I.first, "%0")); I.first) {
     default: llvm_unreachable(
                            "Diagnostic not handled during diagnostic flushing!");
     case DiagnosticsEngine::Note:

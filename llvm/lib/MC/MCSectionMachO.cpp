@@ -286,8 +286,8 @@ Error MCSectionMachO::ParseSectionSpecifier(StringRef Spec,       // In.
 }
 
 void MCSectionMachO::allocAtoms() {
-  auto *L = curFragList();
-  if (L->Tail)
+  
+  if (auto *L = curFragList(); L->Tail)
     Atoms.resize(L->Tail->getLayoutOrder() + 1);
 }
 

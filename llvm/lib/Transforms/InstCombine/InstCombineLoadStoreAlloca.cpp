@@ -97,10 +97,10 @@ isOnlyCopiedFromConstantMemory(AAResults *AA, AllocaInst *V,
           continue;
 
         unsigned DataOpNo = Call->getDataOperandNo(&U);
-        bool IsArgOperand = Call->isArgOperand(&U);
+        
 
         // Inalloca arguments are clobbered by the call.
-        if (IsArgOperand && Call->isInAllocaArgument(DataOpNo))
+        if (bool IsArgOperand = Call->isArgOperand(&U); IsArgOperand && Call->isInAllocaArgument(DataOpNo))
           return false;
 
         // If this call site doesn't modify the memory, then we know it is just
@@ -213,8 +213,8 @@ static Instruction *simplifyAllocaArraySize(InstCombinerImpl &IC,
   // Ensure that the alloca array size argument has type equal to the offset
   // size of the alloca() pointer, which, in the tyical case, is intptr_t,
   // so that any casting is exposed early.
-  Type *PtrIdxTy = IC.getDataLayout().getIndexType(AI.getType());
-  if (AI.getArraySize()->getType() != PtrIdxTy) {
+  
+  if (Type *PtrIdxTy = IC.getDataLayout().getIndexType(AI.getType()); AI.getArraySize()->getType() != PtrIdxTy) {
     Value *V = IC.Builder.CreateIntCast(AI.getArraySize(), PtrIdxTy, false);
     return IC.replaceOperand(AI, 0, V);
   }
@@ -287,8 +287,8 @@ bool PointerReplacer::collectUsers() {
 
   PushUsersToWorklist(&Root);
   while (!Worklist.empty()) {
-    Instruction *Inst = Worklist.pop_back_val();
-    if (auto *Load = dyn_cast<LoadInst>(Inst)) {
+    
+    if (Instruction *Inst = Worklist.pop_back_val(); auto *Load = dyn_cast<LoadInst>(Inst)) {
       if (Load->isVolatile())
         return false;
       UsersToReplace.insert(Load);
@@ -381,14 +381,14 @@ void PointerReplacer::replacePointer(Value *V) {
   // Perform a postorder traversal of the users of Root.
   Worklist.push_back(&Root);
   while (!Worklist.empty()) {
-    Instruction *I = Worklist.back();
+    
 
     // If I has not been processed before, push each of its
     // replacable users into the worklist.
-    if (Visited.insert(I).second) {
+    if (Instruction *I = Worklist.back(); Visited.insert(I).second) {
       for (auto *U : I->users()) {
-        auto *UserInst = cast<Instruction>(U);
-        if (UsersToReplace.contains(UserInst) && !Visited.contains(UserInst))
+        
+        if (auto *UserInst = cast<Instruction>(U); UsersToReplace.contains(UserInst) && !Visited.contains(UserInst))
           Worklist.push_back(UserInst);
       }
       // Otherwise, users of I have already been pushed into
@@ -514,8 +514,8 @@ Instruction *InstCombinerImpl::visitAllocaInst(AllocaInst &AI) {
 
       // Get the first instruction in the entry block.
       BasicBlock &EntryBlock = AI.getParent()->getParent()->getEntryBlock();
-      BasicBlock::iterator FirstInst = EntryBlock.getFirstNonPHIOrDbg();
-      if (&*FirstInst != &AI) {
+      
+      if (BasicBlock::iterator FirstInst = EntryBlock.getFirstNonPHIOrDbg(); &*FirstInst != &AI) {
         // If the entry block doesn't start with a zero-size alloca then move
         // this one to the start of the entry block.  There is no problem with
         // dominance as the array size was forced to a constant earlier already.
@@ -547,9 +547,9 @@ Instruction *InstCombinerImpl::visitAllocaInst(AllocaInst &AI) {
   if (MemTransferInst *Copy = isOnlyCopiedFromConstantMemory(AA, &AI, ToDelete)) {
     Value *TheSrc = Copy->getSource();
     Align AllocaAlign = AI.getAlign();
-    Align SourceAlign = getOrEnforceKnownAlignment(
-      TheSrc, AllocaAlign, DL, &AI, &AC, &DT);
-    if (AllocaAlign <= SourceAlign &&
+    
+    if (Align SourceAlign = getOrEnforceKnownAlignment(
+      TheSrc, AllocaAlign, DL, &AI, &AC, &DT); AllocaAlign <= SourceAlign &&
         isDereferenceableForAllocaSize(TheSrc, &AI, DL) &&
         !isa<Instruction>(TheSrc)) {
       // FIXME: Can we sink instructions without violating dominance when TheSrc
@@ -627,7 +627,7 @@ static StoreInst *combineStoreToNewValue(InstCombinerImpl &IC, StoreInst &SI,
   NewStore->setAtomic(SI.getOrdering(), SI.getSyncScopeID());
   for (const auto &MDPair : MD) {
     unsigned ID = MDPair.first;
-    MDNode *N = MDPair.second;
+    
     // Note, essentially every kind of metadata should be preserved here! This
     // routine is supposed to clone a store instruction changing *only its
     // type*. The only metadata it makes sense to drop is metadata which is
@@ -636,7 +636,7 @@ static StoreInst *combineStoreToNewValue(InstCombinerImpl &IC, StoreInst &SI,
     // metadata to be conservatively correct. If you are adding metadata to
     // LLVM which pertains to stores, you almost certainly want to add it
     // here.
-    switch (ID) {
+    switch (MDNode *N = MDPair.second; ID) {
     case LLVMContext::MD_dbg:
     case LLVMContext::MD_DIAssignID:
     case LLVMContext::MD_tbaa:
@@ -711,8 +711,8 @@ static Instruction *combineLoadToOperationType(InstCombinerImpl &IC,
     }
 
     if (auto *CastUser = dyn_cast<CastInst>(Load.user_back())) {
-      Type *DestTy = CastUser->getDestTy();
-      if (CastUser->isNoopCast(IC.getDataLayout()) &&
+      
+      if (Type *DestTy = CastUser->getDestTy(); CastUser->isNoopCast(IC.getDataLayout()) &&
           LoadTy->isPtrOrPtrVectorTy() == DestTy->isPtrOrPtrVectorTy() &&
           (!Load.isAtomic() || isSupportedAtomicType(DestTy))) {
         LoadInst *NewLoad = IC.combineLoadToNewType(Load, DestTy);
@@ -933,8 +933,8 @@ static bool canReplaceGEPIdxWithZero(InstCombinerImpl &IC,
   auto FirstNZIdx = [](const GetElementPtrInst *GEPI) {
     unsigned I = 1;
     for (unsigned IE = GEPI->getNumOperands(); I != IE; ++I) {
-      Value *V = GEPI->getOperand(I);
-      if (const ConstantInt *CI = dyn_cast<ConstantInt>(V))
+      
+      if (Value *V = GEPI->getOperand(I); const ConstantInt *CI = dyn_cast<ConstantInt>(V))
         if (CI->isZero())
           continue;
 
@@ -1000,8 +1000,8 @@ static bool canReplaceGEPIdxWithZero(InstCombinerImpl &IC,
 static Instruction *replaceGEPIdxWithZero(InstCombinerImpl &IC, Value *Ptr,
                                           Instruction &MemI) {
   if (GetElementPtrInst *GEPI = dyn_cast<GetElementPtrInst>(Ptr)) {
-    unsigned Idx;
-    if (canReplaceGEPIdxWithZero(IC, GEPI, &MemI, Idx)) {
+    
+    if (unsigned Idx; canReplaceGEPIdxWithZero(IC, GEPI, &MemI, Idx)) {
       Instruction *NewGEPI = GEPI->clone();
       NewGEPI->setOperand(Idx,
         ConstantInt::get(GEPI->getOperand(Idx)->getType(), 0));
@@ -1026,8 +1026,8 @@ static bool canSimplifyNullStoreOrGEP(StoreInst &SI) {
 
 static bool canSimplifyNullLoadOrGEP(LoadInst &LI, Value *Op) {
   if (GetElementPtrInst *GEPI = dyn_cast<GetElementPtrInst>(Op)) {
-    const Value *GEPI0 = GEPI->getOperand(0);
-    if (isa<ConstantPointerNull>(GEPI0) &&
+    
+    if (const Value *GEPI0 = GEPI->getOperand(0); isa<ConstantPointerNull>(GEPI0) &&
         !NullPointerIsDefined(LI.getFunction(), GEPI->getPointerAddressSpace()))
       return true;
   }
@@ -1140,8 +1140,8 @@ Instruction *InstCombinerImpl::visitLoadInst(LoadInst &LI) {
     //
     if (SelectInst *SI = dyn_cast<SelectInst>(Op)) {
       // load (select (Cond, &V1, &V2))  --> select(Cond, load &V1, load &V2).
-      Align Alignment = LI.getAlign();
-      if (isSafeToLoadUnconditionally(SI->getOperand(1), LI.getType(),
+      
+      if (Align Alignment = LI.getAlign(); isSafeToLoadUnconditionally(SI->getOperand(1), LI.getType(),
                                       Alignment, DL, SI) &&
           isSafeToLoadUnconditionally(SI->getOperand(2), LI.getType(),
                                       Alignment, DL, SI)) {
@@ -1208,8 +1208,8 @@ static Value *likeBitCastFromVector(InstCombinerImpl &IC, Value *V) {
   auto *UT = cast<VectorType>(U->getType());
   auto *VT = V->getType();
   // Check that types UT and VT are bitwise isomorphic.
-  const auto &DL = IC.getDataLayout();
-  if (DL.getTypeStoreSizeInBits(UT) != DL.getTypeStoreSizeInBits(VT)) {
+  
+  if (const auto &DL = IC.getDataLayout(); DL.getTypeStoreSizeInBits(UT) != DL.getTypeStoreSizeInBits(VT)) {
     return nullptr;
   }
   if (auto *AT = dyn_cast<ArrayType>(VT)) {

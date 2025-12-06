@@ -452,12 +452,12 @@ void SimplifyImpl::coalesceWrites() {
       isl::union_map NewFutureWrites =
           isl::union_map::empty(FutureWrites.ctx());
       for (isl::map FutureWrite : FutureWrites.get_map_list()) {
-        MemoryAccess *MA = (MemoryAccess *)FutureWrite.get_space()
+        
+        if (MemoryAccess *MA = (MemoryAccess *)FutureWrite.get_space()
                                .range()
                                .unwrap()
                                .get_tuple_id(isl::dim::out)
-                               .get_user();
-        if (!TouchedAccesses.count(MA))
+                               .get_user(); !TouchedAccesses.count(MA))
           NewFutureWrites = NewFutureWrites.unite(FutureWrite);
       }
       FutureWrites = NewFutureWrites;
@@ -534,9 +534,9 @@ void SimplifyImpl::removeRedundantWrites() {
 
         if (StoredVal) {
           // Lookup in the set of known values.
-          isl::map AccRelStoredVal = isl::map::from_domain_and_range(
-              AccRelWrapped, makeValueSet(StoredVal));
-          if (isl::union_map(AccRelStoredVal).is_subset(Known)) {
+          
+          if (isl::map AccRelStoredVal = isl::map::from_domain_and_range(
+              AccRelWrapped, makeValueSet(StoredVal)); isl::union_map(AccRelStoredVal).is_subset(Known)) {
             POLLY_DEBUG(dbgs() << "Cleanup of " << MA << ":\n");
             POLLY_DEBUG(dbgs() << "      Scalar: " << *StoredVal << "\n");
             POLLY_DEBUG(dbgs() << "      AccRel: " << AccRel << "\n");
@@ -553,8 +553,8 @@ void SimplifyImpl::removeRedundantWrites() {
       if (MA->isRead()) {
         // Loaded values are the currently known values of the array element
         // it was loaded from.
-        Value *LoadedVal = MA->getAccessValue();
-        if (LoadedVal && IsOrdered) {
+        
+        if (Value *LoadedVal = MA->getAccessValue(); LoadedVal && IsOrdered) {
           isl::map AccRelVal = isl::map::from_domain_and_range(
               AccRelWrapped, makeValueSet(LoadedVal));
 

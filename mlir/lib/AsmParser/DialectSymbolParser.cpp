@@ -105,8 +105,8 @@ ParseResult Parser::parseDialectSymbolBody(StringRef &body,
       return emitError("unexpected nul or EOF in pretty dialect name");
     }
 
-    char c = *curPtr++;
-    switch (c) {
+    
+    switch (char c = *curPtr++; c) {
     case '\0':
       // This also handles the EOF case.
       if (!nestedPunctuation.empty())

@@ -43,10 +43,10 @@ ObjectContainer *ObjectContainerUniversalMachO::CreateInstance(
     DataExtractor data;
     data.SetData(data_sp, data_offset, length);
     if (ObjectContainerUniversalMachO::MagicBytesMatch(data)) {
-      std::unique_ptr<ObjectContainerUniversalMachO> container_up(
+      
+      if (std::unique_ptr<ObjectContainerUniversalMachO> container_up(
           new ObjectContainerUniversalMachO(module_sp, data_sp, data_offset,
-                                            file, file_offset, length));
-      if (container_up->ParseHeader()) {
+                                            file, file_offset, length)); container_up->ParseHeader()) {
         return container_up.release();
       }
     }
@@ -198,12 +198,12 @@ size_t ObjectContainerUniversalMachO::GetModuleSpecifications(
 
   if (ObjectContainerUniversalMachO::MagicBytesMatch(data)) {
     llvm::MachO::fat_header header;
-    std::vector<FatArch> fat_archs;
-    if (ParseHeader(data, header, fat_archs)) {
+    
+    if (std::vector<FatArch> fat_archs; ParseHeader(data, header, fat_archs)) {
       for (const FatArch &fat_arch : fat_archs) {
-        const lldb::offset_t slice_file_offset =
-            fat_arch.GetOffset() + file_offset;
-        if (fat_arch.GetOffset() < file_size && file_size > slice_file_offset) {
+        
+        if (const lldb::offset_t slice_file_offset =
+            fat_arch.GetOffset() + file_offset; fat_arch.GetOffset() < file_size && file_size > slice_file_offset) {
           ObjectFile::GetModuleSpecifications(
               file, slice_file_offset, file_size - slice_file_offset, specs);
         }

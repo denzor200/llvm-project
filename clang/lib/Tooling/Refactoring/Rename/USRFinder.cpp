@@ -44,8 +44,8 @@ public:
       return true;
     for (const auto &Range : NameRanges) {
       SourceLocation Start = Range.getBegin();
-      SourceLocation End = Range.getEnd();
-      if (!Start.isValid() || !Start.isFileID() || !End.isValid() ||
+      
+      if (SourceLocation End = Range.getEnd(); !Start.isValid() || !Start.isFileID() || !End.isValid() ||
           !End.isFileID() || !isPointWithin(Start, End))
         return true;
     }
@@ -82,8 +82,8 @@ const NamedDecl *getNamedDeclAt(const ASTContext &Context,
   // looking for the point cannot be inside of this decl. Don't even look at it.
   for (auto *CurrDecl : Context.getTranslationUnitDecl()->decls()) {
     SourceLocation StartLoc = CurrDecl->getBeginLoc();
-    SourceLocation EndLoc = CurrDecl->getEndLoc();
-    if (StartLoc.isValid() && EndLoc.isValid() &&
+    
+    if (SourceLocation EndLoc = CurrDecl->getEndLoc(); StartLoc.isValid() && EndLoc.isValid() &&
         SM.isBeforeInTranslationUnit(StartLoc, Point) !=
             SM.isBeforeInTranslationUnit(EndLoc, Point))
       Visitor.TraverseDecl(CurrDecl);

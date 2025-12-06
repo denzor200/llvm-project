@@ -204,8 +204,8 @@ Error ELFCompactAttrParser::parse(ArrayRef<uint8_t> section,
   } clear{cursor};
 
   // Unrecognized format-version.
-  uint8_t formatVersion = de.getU8(cursor);
-  if (formatVersion != ELFAttrs::Format_Version)
+  
+  if (uint8_t formatVersion = de.getU8(cursor); formatVersion != ELFAttrs::Format_Version)
     return createStringError(errc::invalid_argument,
                              "unrecognized format-version: 0x" +
                                  utohexstr(formatVersion));

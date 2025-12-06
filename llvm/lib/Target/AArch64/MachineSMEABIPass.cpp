@@ -484,25 +484,25 @@ void MachineSMEABI::propagateDesiredStates(FunctionInfo &FnInfo,
     for (MachineBasicBlock *PredOrSucc :
          Forwards ? predecessors(MBB) : successors(MBB)) {
       BlockInfo &PredOrSuccBlock = FnInfo.Blocks[PredOrSucc->getNumber()];
-      ZAState ZAState = GetBlockState(PredOrSuccBlock, !Forwards);
-      if (isLegalEdgeBundleZAState(ZAState))
+      
+      if (ZAState ZAState = GetBlockState(PredOrSuccBlock, !Forwards); isLegalEdgeBundleZAState(ZAState))
         StateCounts[ZAState]++;
     }
 
     ZAState PropagatedState = ZAState(max_element(StateCounts) - StateCounts);
-    ZAState &CurrentState = GetBlockState(Block, Forwards);
-    if (PropagatedState != CurrentState) {
+    
+    if (ZAState &CurrentState = GetBlockState(Block, Forwards); PropagatedState != CurrentState) {
       CurrentState = PropagatedState;
-      ZAState &OtherState = GetBlockState(Block, !Forwards);
+      
       // Propagate to the incoming/outgoing state if that is also "ANY".
-      if (OtherState == ZAState::ANY)
+      if (ZAState &OtherState = GetBlockState(Block, !Forwards); OtherState == ZAState::ANY)
         OtherState = PropagatedState;
       // Push any successors/predecessors that may need updating to the
       // worklist.
       for (MachineBasicBlock *SuccOrPred :
            Forwards ? successors(MBB) : predecessors(MBB)) {
-        BlockInfo &SuccOrPredBlock = FnInfo.Blocks[SuccOrPred->getNumber()];
-        if (!isLegalEdgeBundleZAState(GetBlockState(SuccOrPredBlock, Forwards)))
+        
+        if (BlockInfo &SuccOrPredBlock = FnInfo.Blocks[SuccOrPred->getNumber()]; !isLegalEdgeBundleZAState(GetBlockState(SuccOrPredBlock, Forwards)))
           Worklist.push_back(SuccOrPred);
       }
     }
@@ -831,8 +831,8 @@ void MachineSMEABI::emitSMEPrologue(MachineBasicBlock &MBB,
   DebugLoc DL = getDebugLoc(MBB, MBBI);
 
   bool ZeroZA = AFI->getSMEFnAttrs().isNewZA();
-  bool ZeroZT0 = AFI->getSMEFnAttrs().isNewZT0();
-  if (AFI->getSMEFnAttrs().hasPrivateZAInterface()) {
+  
+  if (bool ZeroZT0 = AFI->getSMEFnAttrs().isNewZT0(); AFI->getSMEFnAttrs().hasPrivateZAInterface()) {
     // Get current TPIDR2_EL0.
     Register TPIDR2EL0 = MRI->createVirtualRegister(&AArch64::GPR64RegClass);
     BuildMI(MBB, MBBI, DL, TII->get(AArch64::MRS))

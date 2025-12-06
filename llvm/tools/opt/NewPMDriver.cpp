@@ -548,8 +548,8 @@ bool llvm::runPassPipeline(
     if (!DisablePipelineVerification) {
       // Check that we can parse the returned pipeline string as an actual
       // pipeline.
-      ModulePassManager TempPM;
-      if (auto Err = PB.parsePassPipeline(TempPM, Pipeline)) {
+      
+      if (ModulePassManager TempPM; auto Err = PB.parsePassPipeline(TempPM, Pipeline)) {
         errs() << "Could not parse dumped pass pipeline: "
                << toString(std::move(Err)) << "\n";
         return false;

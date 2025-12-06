@@ -220,8 +220,8 @@ static void printModuleId(raw_ostream &OS, InputIter Begin, InputIter End,
     if (It != Begin)
       OS << ".";
 
-    StringRef Name = getModuleNameFromComponent(*It);
-    if (!AllowStringLiterals || isValidAsciiIdentifier(Name))
+    
+    if (StringRef Name = getModuleNameFromComponent(*It); !AllowStringLiterals || isValidAsciiIdentifier(Name))
       OS << Name;
     else {
       OS << '"';
@@ -385,8 +385,8 @@ void Module::getExportedModules(SmallVectorImpl<Module *> &Exported) const {
   for (std::vector<Module *>::const_iterator I = SubModules.begin(),
                                              E = SubModules.end();
        I != E; ++I) {
-    Module *Mod = *I;
-    if (!Mod->IsExplicit)
+    
+    if (Module *Mod = *I; !Mod->IsExplicit)
       Exported.push_back(Mod);
   }
 
@@ -395,8 +395,8 @@ void Module::getExportedModules(SmallVectorImpl<Module *> &Exported) const {
   bool UnrestrictedWildcard = false;
   SmallVector<Module *, 4> WildcardRestrictions;
   for (unsigned I = 0, N = Exports.size(); I != N; ++I) {
-    Module *Mod = Exports[I].getPointer();
-    if (!Exports[I].getInt()) {
+    
+    if (Module *Mod = Exports[I].getPointer(); !Exports[I].getInt()) {
       // Export a named module directly; no wildcards involved.
       Exported.push_back(Mod);
 
@@ -428,8 +428,8 @@ void Module::getExportedModules(SmallVectorImpl<Module *> &Exported) const {
     if (!Acceptable) {
       // Check whether this module meets one of the restrictions.
       for (unsigned R = 0, NR = WildcardRestrictions.size(); R != NR; ++R) {
-        Module *Restriction = WildcardRestrictions[R];
-        if (Mod == Restriction || Mod->isSubModuleOf(Restriction)) {
+        
+        if (Module *Restriction = WildcardRestrictions[R]; Mod == Restriction || Mod->isSubModuleOf(Restriction)) {
           Acceptable = true;
           break;
         }
@@ -452,10 +452,10 @@ void Module::buildVisibleModulesCache() const {
   // Every imported module is visible.
   SmallVector<Module *, 16> Stack(Imports.begin(), Imports.end());
   while (!Stack.empty()) {
-    Module *CurrModule = Stack.pop_back_val();
+    
 
     // Every module transitively exported by an imported module is visible.
-    if (VisibleModulesCache.insert(CurrModule).second)
+    if (Module *CurrModule = Stack.pop_back_val(); VisibleModulesCache.insert(CurrModule).second)
       CurrModule->getExportedModules(Stack);
   }
 }

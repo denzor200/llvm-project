@@ -403,8 +403,8 @@ bool CompilerType::IsVirtualBase(CompilerType target_base,
     uint32_t num_virtual_bases = GetNumVirtualBaseClasses();
     for (uint32_t i = 0; i < num_virtual_bases; ++i) {
       uint32_t bit_offset;
-      auto base = GetVirtualBaseClassAtIndex(i, &bit_offset);
-      if (base.IsVirtualBase(target_base, virtual_base,
+      
+      if (auto base = GetVirtualBaseClassAtIndex(i, &bit_offset); base.IsVirtualBase(target_base, virtual_base,
                              /*carry_virtual*/ true)) {
         if (virtual_base)
           *virtual_base = base;
@@ -417,8 +417,8 @@ bool CompilerType::IsVirtualBase(CompilerType target_base,
   uint32_t num_direct_bases = GetNumDirectBaseClasses();
   for (uint32_t i = 0; i < num_direct_bases; ++i) {
     uint32_t bit_offset;
-    auto base = GetDirectBaseClassAtIndex(i, &bit_offset);
-    if (base.IsVirtualBase(target_base, virtual_base, carry_virtual))
+    
+    if (auto base = GetDirectBaseClassAtIndex(i, &bit_offset); base.IsVirtualBase(target_base, virtual_base, carry_virtual))
       return true;
   }
 
@@ -478,8 +478,8 @@ uint32_t CompilerType::GetNumberOfNonEmptyBaseClasses() {
 
   for (uint32_t i = 0; i < num_direct_bases; ++i) {
     uint32_t bit_offset;
-    CompilerType base_type = GetDirectBaseClassAtIndex(i, &bit_offset);
-    if (base_type.GetNumFields() > 0 ||
+    
+    if (CompilerType base_type = GetDirectBaseClassAtIndex(i, &bit_offset); base_type.GetNumFields() > 0 ||
         base_type.GetNumberOfNonEmptyBaseClasses() > 0)
       ret += 1;
   }
@@ -1090,16 +1090,16 @@ bool CompilerType::GetValueAsScalar(const lldb_private::DataExtractor &data,
     if (byte_size == 0)
       return false;
 
-    lldb::offset_t offset = data_byte_offset;
-    switch (encoding) {
+    
+    switch (lldb::offset_t offset = data_byte_offset; encoding) {
     case lldb::eEncodingInvalid:
       break;
     case lldb::eEncodingVector:
       break;
     case lldb::eEncodingUint:
       if (byte_size <= sizeof(unsigned long long)) {
-        uint64_t uval64 = data.GetMaxU64(&offset, byte_size);
-        if (byte_size <= sizeof(unsigned int)) {
+        
+        if (uint64_t uval64 = data.GetMaxU64(&offset, byte_size); byte_size <= sizeof(unsigned int)) {
           value = (unsigned int)uval64;
           return true;
         } else if (byte_size <= sizeof(unsigned long)) {
@@ -1115,8 +1115,8 @@ bool CompilerType::GetValueAsScalar(const lldb_private::DataExtractor &data,
 
     case lldb::eEncodingSint:
       if (byte_size <= sizeof(long long)) {
-        int64_t sval64 = data.GetMaxS64(&offset, byte_size);
-        if (byte_size <= sizeof(int)) {
+        
+        if (int64_t sval64 = data.GetMaxS64(&offset, byte_size); byte_size <= sizeof(int)) {
           value = (int)sval64;
           return true;
         } else if (byte_size <= sizeof(long)) {
@@ -1133,8 +1133,8 @@ bool CompilerType::GetValueAsScalar(const lldb_private::DataExtractor &data,
     case lldb::eEncodingIEEE754:
       if (byte_size <= sizeof(long double)) {
         uint32_t u32;
-        uint64_t u64;
-        if (byte_size == sizeof(float)) {
+        
+        if (uint64_t u64; byte_size == sizeof(float)) {
           if (sizeof(float) == sizeof(uint32_t)) {
             u32 = data.GetU32(&offset);
             value = *((float *)&u32);

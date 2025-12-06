@@ -176,9 +176,9 @@ Error OffloadBundleFatBin::extractBundle(const ObjectFile &Source) {
 
     // create output file name. Which should be
     // <fileName>-offset<Offset>-size<Size>.co"
-    std::string Str = getFileName().str() + "-offset" + itostr(Entry.Offset) +
-                      "-size" + itostr(Entry.Size) + ".co";
-    if (Error Err = object::extractCodeObject(Source, Entry.Offset, Entry.Size,
+    
+    if (std::string Str = getFileName().str() + "-offset" + itostr(Entry.Offset) +
+                      "-size" + itostr(Entry.Size) + ".co"; Error Err = object::extractCodeObject(Source, Entry.Offset, Entry.Size,
                                               StringRef(Str)))
       return Err;
   }
@@ -467,9 +467,9 @@ CompressedOffloadBundle::CompressedBundleHeader::tryParse(StringRef Blob) {
   CompressedBundleHeader Normalized;
   Normalized.Version = Header.Common.Version;
 
-  size_t RequiredSize = getHeaderSize(Normalized.Version);
+  
 
-  if (Blob.size() < RequiredSize)
+  if (size_t RequiredSize = getHeaderSize(Normalized.Version); Blob.size() < RequiredSize)
     return createStringError("compressed bundle header size too small");
 
   switch (Normalized.Version) {

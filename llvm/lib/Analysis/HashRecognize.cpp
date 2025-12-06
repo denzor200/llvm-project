@@ -251,8 +251,8 @@ RecurrenceInfo::digRecurrence(Instruction *V,
     if (I->getOpcode() == BOWithConstOpToMatch) {
       if (ExtraConst)
         return nullptr;
-      const APInt *C = nullptr;
-      if (match(I, m_c_BinOp(m_APInt(C), m_Value())))
+      
+      if (const APInt *C = nullptr; match(I, m_c_BinOp(m_APInt(C), m_Value())))
         ExtraConst = *C;
     }
 

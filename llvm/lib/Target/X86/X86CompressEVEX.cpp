@@ -116,8 +116,8 @@ static bool usesExtendedRegister(const MachineInstr &MI) {
 // Do any custom cleanup needed to finalize the conversion.
 static bool performCustomAdjustments(MachineInstr &MI, unsigned NewOpc) {
   (void)NewOpc;
-  unsigned Opc = MI.getOpcode();
-  switch (Opc) {
+  
+  switch (unsigned Opc = MI.getOpcode(); Opc) {
   case X86::VALIGNDZ128rri:
   case X86::VALIGNDZ128rmi:
   case X86::VALIGNQZ128rri:
@@ -164,9 +164,9 @@ static bool performCustomAdjustments(MachineInstr &MI, unsigned NewOpc) {
   case X86::VRNDSCALESSZrri_Int:
   case X86::VRNDSCALESSZrmi_Int:
     const MachineOperand &Imm = MI.getOperand(MI.getNumExplicitOperands() - 1);
-    int64_t ImmVal = Imm.getImm();
+    
     // Ensure that only bits 3:0 of the immediate are used.
-    if ((ImmVal & 0xf) != ImmVal)
+    if (int64_t ImmVal = Imm.getImm(); (ImmVal & 0xf) != ImmVal)
       return false;
     break;
   }
@@ -250,8 +250,8 @@ static bool CompressEVEXImpl(MachineInstr &MI, MachineBasicBlock &MBB,
     // Both cases are indicated by an implicit def of the superregister.
     if (Dst &&
         (X86::GR16RegClass.contains(Dst) || X86::GR8RegClass.contains(Dst))) {
-      Register Super = getX86SubSuperRegister(Dst, 64);
-      if (MI.definesRegister(Super, /*TRI=*/nullptr))
+      
+      if (Register Super = getX86SubSuperRegister(Dst, 64); MI.definesRegister(Super, /*TRI=*/nullptr))
         IsRedundantNDD = false;
     }
 

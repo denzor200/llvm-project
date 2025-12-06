@@ -86,9 +86,9 @@ serializeLocation(const Location &Loc,
 
 static void insertComment(Object &Description, json::Value &Comment,
                           StringRef Key) {
-  auto DescriptionIt = Description.find(Key);
+  
 
-  if (DescriptionIt == Description.end()) {
+  if (auto DescriptionIt = Description.find(Key); DescriptionIt == Description.end()) {
     auto CommentsArray = json::Array();
     CommentsArray.push_back(Comment);
     Description[Key] = std::move(CommentsArray);
@@ -273,8 +273,8 @@ serializeCommonAttributes(const Info &I, json::Object &Obj,
 
   // Namespaces aren't SymbolInfos, so they dont have a DefLoc
   if (I.IT != InfoType::IT_namespace) {
-    const auto *Symbol = static_cast<const SymbolInfo *>(&I);
-    if (Symbol->DefLoc)
+    
+    if (const auto *Symbol = static_cast<const SymbolInfo *>(&I); Symbol->DefLoc)
       Obj["Location"] =
           serializeLocation(Symbol->DefLoc.value(), RepositoryUrl);
   }
@@ -490,8 +490,8 @@ static void serializeInfo(const RecordInfo &I, json::Object &Obj,
       json::Value FunctionVal = Object();
       auto &FunctionObj = *FunctionVal.getAsObject();
       serializeInfo(Function, FunctionObj, RepositoryUrl);
-      AccessSpecifier Access = Function.Access;
-      if (Access == AccessSpecifier::AS_public)
+      
+      if (AccessSpecifier Access = Function.Access; Access == AccessSpecifier::AS_public)
         PubFunctionsArrayRef.push_back(FunctionVal);
       else if (Access == AccessSpecifier::AS_protected)
         ProtFunctionsArrayRef.push_back(FunctionVal);

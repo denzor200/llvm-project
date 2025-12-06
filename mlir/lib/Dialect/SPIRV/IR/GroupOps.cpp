@@ -61,8 +61,8 @@ static LogicalResult verifyGroupNonUniformArithmeticOp(Operation *groupOp) {
 //===----------------------------------------------------------------------===//
 
 LogicalResult GroupBroadcastOp::verify() {
-  spirv::Scope scope = getExecutionScope();
-  if (scope != spirv::Scope::Workgroup && scope != spirv::Scope::Subgroup)
+  
+  if (spirv::Scope scope = getExecutionScope(); scope != spirv::Scope::Workgroup && scope != spirv::Scope::Subgroup)
     return emitOpError("execution scope must be 'Workgroup' or 'Subgroup'");
 
   if (auto localIdTy = llvm::dyn_cast<VectorType>(getLocalid().getType()))
@@ -79,8 +79,8 @@ LogicalResult GroupBroadcastOp::verify() {
 //===----------------------------------------------------------------------===//
 
 LogicalResult GroupNonUniformBallotOp::verify() {
-  spirv::Scope scope = getExecutionScope();
-  if (scope != spirv::Scope::Workgroup && scope != spirv::Scope::Subgroup)
+  
+  if (spirv::Scope scope = getExecutionScope(); scope != spirv::Scope::Workgroup && scope != spirv::Scope::Subgroup)
     return emitOpError("execution scope must be 'Workgroup' or 'Subgroup'");
 
   return success();
@@ -91,8 +91,8 @@ LogicalResult GroupNonUniformBallotOp::verify() {
 //===----------------------------------------------------------------------===//
 
 LogicalResult GroupNonUniformBallotFindLSBOp::verify() {
-  spirv::Scope scope = getExecutionScope();
-  if (scope != spirv::Scope::Workgroup && scope != spirv::Scope::Subgroup)
+  
+  if (spirv::Scope scope = getExecutionScope(); scope != spirv::Scope::Workgroup && scope != spirv::Scope::Subgroup)
     return emitOpError("execution scope must be 'Workgroup' or 'Subgroup'");
 
   return success();
@@ -103,8 +103,8 @@ LogicalResult GroupNonUniformBallotFindLSBOp::verify() {
 //===----------------------------------------------------------------------===//
 
 LogicalResult GroupNonUniformBallotFindMSBOp::verify() {
-  spirv::Scope scope = getExecutionScope();
-  if (scope != spirv::Scope::Workgroup && scope != spirv::Scope::Subgroup)
+  
+  if (spirv::Scope scope = getExecutionScope(); scope != spirv::Scope::Workgroup && scope != spirv::Scope::Subgroup)
     return emitOpError("execution scope must be 'Workgroup' or 'Subgroup'");
 
   return success();
@@ -115,8 +115,8 @@ LogicalResult GroupNonUniformBallotFindMSBOp::verify() {
 //===----------------------------------------------------------------------===//
 
 LogicalResult GroupNonUniformBroadcastOp::verify() {
-  spirv::Scope scope = getExecutionScope();
-  if (scope != spirv::Scope::Workgroup && scope != spirv::Scope::Subgroup)
+  
+  if (spirv::Scope scope = getExecutionScope(); scope != spirv::Scope::Workgroup && scope != spirv::Scope::Subgroup)
     return emitOpError("execution scope must be 'Workgroup' or 'Subgroup'");
 
   // SPIR-V spec: "Before version 1.5, Id must come from a
@@ -126,8 +126,8 @@ LogicalResult GroupNonUniformBroadcastOp::verify() {
     targetEnv = spirv::lookupTargetEnvOrDefault(spirvModule);
 
   if (targetEnv.getVersion() < spirv::Version::V_1_5) {
-    auto *idOp = getId().getDefiningOp();
-    if (!idOp || !isa<spirv::ConstantOp,           // for normal constant
+    
+    if (auto *idOp = getId().getDefiningOp(); !idOp || !isa<spirv::ConstantOp,           // for normal constant
                       spirv::ReferenceOfOp>(idOp)) // for spec constant
       return emitOpError("id must be the result of a constant op");
   }
@@ -141,8 +141,8 @@ LogicalResult GroupNonUniformBroadcastOp::verify() {
 
 template <typename OpTy>
 static LogicalResult verifyGroupNonUniformShuffleOp(OpTy op) {
-  spirv::Scope scope = op.getExecutionScope();
-  if (scope != spirv::Scope::Workgroup && scope != spirv::Scope::Subgroup)
+  
+  if (spirv::Scope scope = op.getExecutionScope(); scope != spirv::Scope::Workgroup && scope != spirv::Scope::Subgroup)
     return op.emitOpError("execution scope must be 'Workgroup' or 'Subgroup'");
 
   if (op.getOperands().back().getType().isSignedInteger())
@@ -169,8 +169,8 @@ LogicalResult GroupNonUniformShuffleXorOp::verify() {
 //===----------------------------------------------------------------------===//
 
 LogicalResult GroupNonUniformElectOp::verify() {
-  spirv::Scope scope = getExecutionScope();
-  if (scope != spirv::Scope::Workgroup && scope != spirv::Scope::Subgroup)
+  
+  if (spirv::Scope scope = getExecutionScope(); scope != spirv::Scope::Workgroup && scope != spirv::Scope::Subgroup)
     return emitOpError("execution scope must be 'Workgroup' or 'Subgroup'");
 
   return success();
@@ -309,8 +309,8 @@ LogicalResult GroupNonUniformLogicalXorOp::verify() {
 //===----------------------------------------------------------------------===//
 
 LogicalResult GroupNonUniformRotateKHROp::verify() {
-  spirv::Scope scope = getExecutionScope();
-  if (scope != spirv::Scope::Workgroup && scope != spirv::Scope::Subgroup)
+  
+  if (spirv::Scope scope = getExecutionScope(); scope != spirv::Scope::Workgroup && scope != spirv::Scope::Subgroup)
     return emitOpError("execution scope must be 'Workgroup' or 'Subgroup'");
 
   if (Value clusterSizeVal = getClusterSize()) {
@@ -333,8 +333,8 @@ LogicalResult GroupNonUniformRotateKHROp::verify() {
 
 template <typename Op>
 static LogicalResult verifyGroupOp(Op op) {
-  spirv::Scope scope = op.getExecutionScope();
-  if (scope != spirv::Scope::Workgroup && scope != spirv::Scope::Subgroup)
+  
+  if (spirv::Scope scope = op.getExecutionScope(); scope != spirv::Scope::Workgroup && scope != spirv::Scope::Subgroup)
     return op.emitOpError("execution scope must be 'Workgroup' or 'Subgroup'");
 
   return success();

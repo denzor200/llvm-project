@@ -117,8 +117,8 @@ const DILineInfoSpecifier specifier() {
 MATCHER_P4(FrameContains, FunctionName, LineOffset, Column, Inline, "") {
   const Frame &F = arg;
 
-  const uint64_t ExpectedHash = memprof::getGUID(FunctionName);
-  if (F.Function != ExpectedHash) {
+  
+  if (const uint64_t ExpectedHash = memprof::getGUID(FunctionName); F.Function != ExpectedHash) {
     *result_listener << "Hash mismatch";
     return false;
   }

@@ -777,8 +777,8 @@ void f2() {
         Expr->getSourceRange().getEnd());
     llvm::Annotations::Range R{Begin, End + 1};
 
-    QualType CalleeType = Expr->getCallee()->getType();
-    if (R == R1) {
+    
+    if (QualType CalleeType = Expr->getCallee()->getType(); R == R1) {
       ASSERT_TRUE(CalleeType->isDependentType());
       EXPECT_EQ(Expr->getCallReturnType(*Context), Context->DependentTy);
     } else if (R == R2) {

@@ -44,11 +44,11 @@ using llvm::Expected;
 
 Expected<const char *>
 File::GetStreamOpenModeFromOptions(File::OpenOptions options) {
-  File::OpenOptions rw =
-      options & (File::eOpenOptionReadOnly | File::eOpenOptionWriteOnly |
-                 File::eOpenOptionReadWrite);
+  
 
-  if (options & File::eOpenOptionAppend) {
+  if (File::OpenOptions rw =
+      options & (File::eOpenOptionReadOnly | File::eOpenOptionWriteOnly |
+                 File::eOpenOptionReadWrite); options & File::eOpenOptionAppend) {
     if (rw == File::eOpenOptionReadWrite) {
       if (options & File::eOpenOptionCanCreateNewOnly)
         return "a+x";
@@ -178,8 +178,8 @@ void File::CalculateInteractiveAndTerminal() {
 #else
   if (isatty(fd)) {
     m_is_interactive = eLazyBoolYes;
-    struct winsize window_size;
-    if (::ioctl(fd, TIOCGWINSZ, &window_size) == 0) {
+    
+    if (struct winsize window_size; ::ioctl(fd, TIOCGWINSZ, &window_size) == 0) {
       if (window_size.ws_col > 0) {
         m_is_real_terminal = eLazyBoolYes;
         if (llvm::sys::Process::FileDescriptorHasColors(fd))
@@ -374,11 +374,11 @@ Status NativeFile::Close() {
       if (::fclose(m_stream) == EOF)
         error = Status::FromErrno();
     } else {
-      File::OpenOptions rw =
-          m_options & (File::eOpenOptionReadOnly | File::eOpenOptionWriteOnly |
-                       File::eOpenOptionReadWrite);
+      
 
-      if (rw == eOpenOptionWriteOnly || rw == eOpenOptionReadWrite) {
+      if (File::OpenOptions rw =
+          m_options & (File::eOpenOptionReadOnly | File::eOpenOptionWriteOnly |
+                       File::eOpenOptionReadWrite); rw == eOpenOptionWriteOnly || rw == eOpenOptionReadWrite) {
         if (::fflush(m_stream) == EOF)
           error = Status::FromErrno();
       }
@@ -418,8 +418,8 @@ Status NativeFile::GetFileSpec(FileSpec &file_spec) const {
   if (::snprintf(proc, sizeof(proc), "/proc/self/fd/%d", GetDescriptor()) < 0)
     error = Status::FromErrorString("cannot resolve file descriptor");
   else {
-    ssize_t len;
-    if ((len = ::readlink(proc, path, sizeof(path) - 1)) == -1)
+    
+    if (ssize_t len; (len = ::readlink(proc, path, sizeof(path) - 1)) == -1)
       error = Status::FromErrno();
     else {
       path[len] = '\0';
@@ -537,8 +537,8 @@ Status NativeFile::Flush() {
   }
 
   {
-    ValueGuard descriptor_guard = DescriptorIsValid();
-    if (!descriptor_guard)
+    
+    if (ValueGuard descriptor_guard = DescriptorIsValid(); !descriptor_guard)
       error = Status::FromErrorString("invalid file handle");
   }
   return error;
@@ -746,9 +746,9 @@ Status NativeFile::Read(void *buf, size_t &num_bytes, off_t &offset) {
 #ifndef _WIN32
   int fd = GetDescriptor();
   if (fd != kInvalidDescriptor) {
-    ssize_t bytes_read =
-        llvm::sys::RetryAfterSignal(-1, ::pread, fd, buf, num_bytes, offset);
-    if (bytes_read < 0) {
+    
+    if (ssize_t bytes_read =
+        llvm::sys::RetryAfterSignal(-1, ::pread, fd, buf, num_bytes, offset); bytes_read < 0) {
       num_bytes = 0;
       error = Status::FromErrno();
     } else {
@@ -844,10 +844,10 @@ size_t NativeFile::PrintfVarArg(const char *format, va_list args) {
 
 mode_t File::ConvertOpenOptionsForPOSIXOpen(OpenOptions open_options) {
   mode_t mode = 0;
-  File::OpenOptions rw =
+  
+  if (File::OpenOptions rw =
       open_options & (File::eOpenOptionReadOnly | File::eOpenOptionWriteOnly |
-                      File::eOpenOptionReadWrite);
-  if (rw == eOpenOptionReadWrite)
+                      File::eOpenOptionReadWrite); rw == eOpenOptionReadWrite)
     mode |= O_RDWR;
   else if (rw == eOpenOptionWriteOnly)
     mode |= O_WRONLY;

@@ -519,8 +519,8 @@ static const char *inferFragType(Operation *op) {
   // We can have arith.ext ops before reaching contract ops. See through them
   // and other kinds of elementwise ops.
   if (op->hasOneUse()) {
-    Operation *userOp = *op->user_begin();
-    if (userOp->hasTrait<OpTrait::Elementwise>())
+    
+    if (Operation *userOp = *op->user_begin(); userOp->hasTrait<OpTrait::Elementwise>())
       return inferFragType(userOp);
   }
 
@@ -567,9 +567,9 @@ convertTransferReadOp(RewriterBase &rewriter, vector::TransferReadOp op,
   auto elType = op.getVectorType().getElementType();
   const char *fragType = inferFragType(op);
   if (op->hasOneUse()) {
-    auto *user = *op->user_begin();
+    
     // Infer the signedness of the mma type from the integer extend.
-    if (isa<arith::ExtSIOp, arith::ExtUIOp>(user)) {
+    if (auto *user = *op->user_begin(); isa<arith::ExtSIOp, arith::ExtUIOp>(user)) {
       elType = IntegerType::get(
           op.getContext(), cast<IntegerType>(elType).getWidth(),
           isa<arith::ExtSIOp>(user) ? IntegerType::Signed

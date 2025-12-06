@@ -251,8 +251,8 @@ InFlightDiagnostic Parser::emitWrongTokenError(const Twine &message) {
     // `//` is the start of a comment, which is mostly correct.
     // TODO: This will do the wrong thing for // in a string literal.
     auto prevLine = startOfBuffer;
-    size_t newLineIndex = prevLine.find_last_of("\n\r");
-    if (newLineIndex != StringRef::npos)
+    
+    if (size_t newLineIndex = prevLine.find_last_of("\n\r"); newLineIndex != StringRef::npos)
       prevLine = prevLine.drop_front(newLineIndex);
 
     // If we find a // in the current line, then emit the diagnostic before it.
@@ -1503,8 +1503,8 @@ Operation *OperationParser::parseGenericOperation() {
 
   // Lazy load dialects in the context as needed.
   if (!result.name.isRegistered()) {
-    StringRef dialectName = StringRef(name).split('.').first;
-    if (!getContext()->getLoadedDialect(dialectName) &&
+    
+    if (StringRef dialectName = StringRef(name).split('.').first; !getContext()->getLoadedDialect(dialectName) &&
         !getContext()->getOrLoadDialect(dialectName)) {
       if (!getContext()->allowsUnregisteredDialects()) {
         // Emit an error if the dialect couldn't be loaded (i.e., it was not
@@ -1548,9 +1548,9 @@ Operation *OperationParser::parseGenericOperation() {
   // would be "missing foo attribute" instead of something like "expects a 32
   // bits float attribute but got a 32 bits integer attribute".
   if (!properties && !result.getRawProperties()) {
-    std::optional<RegisteredOperationName> info =
-        result.name.getRegisteredInfo();
-    if (info) {
+    
+    if (std::optional<RegisteredOperationName> info =
+        result.name.getRegisteredInfo(); info) {
       if (failed(info->verifyInherentAttrs(result.attributes, [&]() {
             return mlir::emitError(srcLocation) << "'" << name << "' op ";
           })))
@@ -1566,11 +1566,11 @@ Operation *OperationParser::parseGenericOperation() {
   // Try setting the properties for the operation, using a diagnostic to print
   // errors.
   if (properties) {
-    auto emitError = [&]() {
+    
+    if (auto emitError = [&]() {
       return mlir::emitError(srcLocation, "invalid properties ")
              << properties << " for op " << name << ": ";
-    };
-    if (failed(op->setPropertiesFromAttribute(properties, emitError)))
+    }; failed(op->setPropertiesFromAttribute(properties, emitError)))
       return nullptr;
   }
 
@@ -1726,8 +1726,8 @@ public:
     if (delimiter == Delimiter::None) {
       // parseCommaSeparatedList doesn't handle the missing case for "none",
       // so we handle it custom here.
-      Token tok = parser.getToken();
-      if (!tok.isOrIsCodeCompletionFor(Token::percent_identifier)) {
+      
+      if (Token tok = parser.getToken(); !tok.isOrIsCodeCompletionFor(Token::percent_identifier)) {
         // If we didn't require any operands or required exactly zero (weird)
         // then this is success.
         if (requiredOperandCount == -1 || requiredOperandCount == 0)
@@ -2062,8 +2062,8 @@ OperationParser::parseCustomOperation(ArrayRef<ResultRecord> resultIDs) {
   if (auto opInfo = opNameInfo->getRegisteredInfo()) {
     parseAssemblyFn = opInfo->getParseAssemblyFn();
     isIsolatedFromAbove = opInfo->hasTrait<OpTrait::IsIsolatedFromAbove>();
-    auto *iface = opInfo->getInterface<OpAsmOpInterface>();
-    if (iface && !iface->getDefaultDialect().empty())
+    
+    if (auto *iface = opInfo->getInterface<OpAsmOpInterface>(); iface && !iface->getDefaultDialect().empty())
       defaultDialect = iface->getDefaultDialect();
   } else {
     std::optional<Dialect::ParseOpHook> dialectHook;
@@ -2088,8 +2088,8 @@ OperationParser::parseCustomOperation(ArrayRef<ResultRecord> resultIDs) {
       bool isOnlyLoaded = true;
       while (regIt != regEnd && loadIt != loadEnd) {
         StringRef reg = *regIt;
-        StringRef load = (*loadIt)->getNamespace();
-        if (load < reg) {
+        
+        if (StringRef load = (*loadIt)->getNamespace(); load < reg) {
           mergedDialects.emplace_back(load, isOnlyLoaded);
           ++loadIt;
         } else {
@@ -2168,12 +2168,12 @@ OperationParser::parseCustomOperation(ArrayRef<ResultRecord> resultIDs) {
 
   // Try setting the properties for the operation.
   if (properties) {
-    auto emitError = [&]() {
+    
+    if (auto emitError = [&]() {
       return mlir::emitError(srcLocation, "invalid properties ")
              << properties << " for op " << op->getName().getStringRef()
              << ": ";
-    };
-    if (failed(op->setPropertiesFromAttribute(properties, emitError)))
+    }; failed(op->setPropertiesFromAttribute(properties, emitError)))
       return nullptr;
   }
   return op;

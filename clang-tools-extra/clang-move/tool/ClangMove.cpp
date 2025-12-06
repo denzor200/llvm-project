@@ -160,16 +160,16 @@ int main(int argc, const char **argv) {
   }
 
   if (!NewCC.empty()) {
-    std::error_code EC = CreateNewFile(NewCC);
-    if (EC) {
+    
+    if (std::error_code EC = CreateNewFile(NewCC); EC) {
       llvm::errs() << "Failed to create " << NewCC << ": " << EC.message()
                    << "\n";
       return EC.value();
     }
   }
   if (!NewHeader.empty()) {
-    std::error_code EC = CreateNewFile(NewHeader);
-    if (EC) {
+    
+    if (std::error_code EC = CreateNewFile(NewHeader); EC) {
       llvm::errs() << "Failed to create " << NewHeader << ": " << EC.message()
                    << "\n";
       return EC.value();

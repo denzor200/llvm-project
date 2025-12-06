@@ -121,8 +121,8 @@ TargetStats::ToJSON(Target &target,
   json::Object target_metrics_json;
   ProcessSP process_sp = target.GetProcessSP();
   const bool summary_only = options.GetSummaryOnly();
-  const bool include_modules = options.GetIncludeModules();
-  if (!summary_only) {
+  
+  if (const bool include_modules = options.GetIncludeModules(); !summary_only) {
     CollectStats(target);
 
     json::Array json_module_uuid_array;
@@ -173,8 +173,8 @@ TargetStats::ToJSON(Target &target,
                                     totalBreakpointResolveTime);
 
     if (process_sp) {
-      UnixSignalsSP unix_signals_sp = process_sp->GetUnixSignals();
-      if (unix_signals_sp)
+      
+      if (UnixSignalsSP unix_signals_sp = process_sp->GetUnixSignals(); unix_signals_sp)
         target_metrics_json.try_emplace(
             "signals", unix_signals_sp->GetHitCountStatistics());
     }
@@ -190,8 +190,8 @@ TargetStats::ToJSON(Target &target,
     breakpoints.GetListMutex(lock);
     size_t num_breakpoints = breakpoints.GetSize();
     for (size_t i = 0; i < num_breakpoints; i++) {
-      Breakpoint *bp = breakpoints.GetBreakpointAtIndex(i).get();
-      if (strcmp(bp->GetBreakpointKind(), "shared-library-event") == 0)
+      
+      if (Breakpoint *bp = breakpoints.GetBreakpointAtIndex(i).get(); strcmp(bp->GetBreakpointKind(), "shared-library-event") == 0)
         shared_library_event_breakpoint_hit_count += bp->GetHitCount();
     }
 
@@ -340,8 +340,8 @@ llvm::json::Value DebuggerStats::ReportStatistics(
     module_stat.symtab_index_time = module->GetSymtabIndexTime().get().count();
     module_stat.symbol_locator_time = module->GetSymbolLocatorStatistics();
     symbol_locator_total_time.merge(module_stat.symbol_locator_time);
-    Symtab *symtab = module->GetSymtab(/*can_create=*/false);
-    if (symtab) {
+    
+    if (Symtab *symtab = module->GetSymtab(/*can_create=*/false); symtab) {
       module_stat.symtab_symbol_count = symtab->GetNumSymbols();
       symtab_symbol_count += module_stat.symtab_symbol_count;
       ++symtabs_loaded;
@@ -493,9 +493,9 @@ llvm::json::Value DebuggerStats::ReportStatistics(
     // "statistics dump" (A), with the latter having empty output. The output
     // of B will contain the trascnript of "version", "statistics dump" (A),
     // "statistics dump" (B), with A's output populated and B's output empty.
-    const StructuredData::Array &transcript =
-        debugger.GetCommandInterpreter().GetTranscript();
-    if (transcript.GetSize() != 0) {
+    
+    if (const StructuredData::Array &transcript =
+        debugger.GetCommandInterpreter().GetTranscript(); transcript.GetSize() != 0) {
       std::string buffer;
       llvm::raw_string_ostream ss(buffer);
       json::OStream json_os(ss);

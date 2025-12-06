@@ -1274,8 +1274,8 @@ TEST_F(ModuleCallbacksTest, ParseTopLevelPipeline) {
       [this](ModulePassManager &MPM,
              ArrayRef<PassBuilder::PipelineElement> Pipeline) {
         auto &FirstName = Pipeline.front().Name;
-        auto &InnerPipeline = Pipeline.front().InnerPipeline;
-        if (FirstName == "another-pipeline") {
+        
+        if (auto &InnerPipeline = Pipeline.front().InnerPipeline; FirstName == "another-pipeline") {
           for (auto &E : InnerPipeline) {
             if (parseAnalysisUtilityPasses<AnalysisT>("test-analysis", E.Name,
                                                       PM))

@@ -681,8 +681,8 @@ void llvm::guessSuccessors(const MachineBasicBlock &MBB,
       if (!MO.isMBB())
         continue;
       MachineBasicBlock *Succ = MO.getMBB();
-      auto RP = Seen.insert(Succ);
-      if (RP.second)
+      
+      if (auto RP = Seen.insert(Succ); RP.second)
         Result.push_back(Succ);
     }
   }
@@ -696,10 +696,10 @@ static bool canPredictSuccessors(const MachineBasicBlock &MBB) {
   guessSuccessors(MBB, GuessedSuccs, GuessedFallthrough);
   if (GuessedFallthrough) {
     const MachineFunction &MF = *MBB.getParent();
-    MachineFunction::const_iterator NextI = std::next(MBB.getIterator());
-    if (NextI != MF.end()) {
-      MachineBasicBlock *Next = const_cast<MachineBasicBlock*>(&*NextI);
-      if (!is_contained(GuessedSuccs, Next))
+    
+    if (MachineFunction::const_iterator NextI = std::next(MBB.getIterator()); NextI != MF.end()) {
+      
+      if (MachineBasicBlock *Next = const_cast<MachineBasicBlock*>(&*NextI); !is_contained(GuessedSuccs, Next))
         GuessedSuccs.push_back(Next);
     }
   }
@@ -730,14 +730,14 @@ void printMBB(raw_ostream &OS, MFPrintState &State,
 
   bool HasLineAttributes = false;
   // Print the successors
-  bool canPredictProbs = MBB.canPredictBranchProbabilities();
+  
   // Even if the list of successors is empty, if we cannot guess it,
   // we need to print it to tell the parser that the list is empty.
   // This is needed, because MI model unreachable as empty blocks
   // with an empty successor list. If the parser would see that
   // without the successor list, it would guess the code would
   // fallthrough.
-  if ((!MBB.succ_empty() && !SimplifyMIR) || !canPredictProbs ||
+  if (bool canPredictProbs = MBB.canPredictBranchProbabilities(); (!MBB.succ_empty() && !SimplifyMIR) || !canPredictProbs ||
       !canPredictSuccessors(MBB)) {
     OS.indent(2) << "successors:";
     if (!MBB.succ_empty())
@@ -938,9 +938,9 @@ static void printMIOperand(raw_ostream &OS, MFPrintState &State,
                            const MachineRegisterInfo &MRI, bool PrintDef) {
   LLT TypeToPrint = MI.getTypeToPrint(OpIdx, PrintedTypes, MRI);
   const MachineOperand &Op = MI.getOperand(OpIdx);
-  std::string MOComment = TII->createMIROperandComment(MI, Op, OpIdx, TRI);
+  
 
-  switch (Op.getType()) {
+  switch (std::string MOComment = TII->createMIROperandComment(MI, Op, OpIdx, TRI); Op.getType()) {
   case MachineOperand::MO_Immediate:
     if (MI.isOperandSubregIdx(OpIdx)) {
       MachineOperand::printTargetFlags(OS, Op);

@@ -203,8 +203,8 @@ void printVType(unsigned VType, raw_ostream &OS) {
   unsigned Sew = getSEW(VType);
   OS << "e" << Sew;
 
-  bool AltFmt = RISCVVType::isAltFmt(VType);
-  if (AltFmt)
+  
+  if (bool AltFmt = RISCVVType::isAltFmt(VType); AltFmt)
     OS << "alt";
 
   unsigned LMul;

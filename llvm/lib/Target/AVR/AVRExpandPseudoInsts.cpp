@@ -1090,9 +1090,9 @@ bool AVRExpandPseudo::expand<AVR::STSWKRr>(Block &MBB, BlockIt MBBI) {
   case MachineOperand::MO_GlobalAddress: {
     const GlobalValue *GV = MI.getOperand(0).getGlobal();
     int64_t Offs = MI.getOperand(0).getOffset();
-    unsigned TF = MI.getOperand(0).getTargetFlags();
+    
 
-    if (STI.hasLowByteFirst()) {
+    if (unsigned TF = MI.getOperand(0).getTargetFlags(); STI.hasLowByteFirst()) {
       // Write the low byte first for XMEGA devices.
       MIB0.addGlobalAddress(GV, Offs, TF);
       MIB1.addGlobalAddress(GV, Offs + 1, TF);
@@ -1105,9 +1105,9 @@ bool AVRExpandPseudo::expand<AVR::STSWKRr>(Block &MBB, BlockIt MBBI) {
     break;
   }
   case MachineOperand::MO_Immediate: {
-    unsigned Imm = MI.getOperand(0).getImm();
+    
 
-    if (STI.hasLowByteFirst()) {
+    if (unsigned Imm = MI.getOperand(0).getImm(); STI.hasLowByteFirst()) {
       // Write the low byte first for XMEGA devices.
       MIB0.addImm(Imm);
       MIB1.addImm(Imm + 1);
@@ -1149,11 +1149,11 @@ bool AVRExpandPseudo::expand<AVR::STWPtrRr>(Block &MBB, BlockIt MBBI) {
   bool DstIsKill = MI.getOperand(0).isKill();
   bool DstIsUndef = MI.getOperand(0).isUndef();
   bool SrcIsKill = MI.getOperand(1).isKill();
-  const AVRSubtarget &STI = MBB.getParent()->getSubtarget<AVRSubtarget>();
+  
 
   //: TODO: need to reverse this order like inw and stsw?
 
-  if (STI.hasTinyEncoding()) {
+  if (const AVRSubtarget &STI = MBB.getParent()->getSubtarget<AVRSubtarget>(); STI.hasTinyEncoding()) {
     // Handle this case in the expansion of STDWPtrQRr because it is very
     // similar.
     buildMI(MBB, MBBI, AVR::STDWPtrQRr)
@@ -1272,13 +1272,13 @@ bool AVRExpandPseudo::expand<AVR::STDWPtrQRr>(Block &MBB, BlockIt MBBI) {
   bool DstIsKill = MI.getOperand(0).isKill();
   unsigned Imm = MI.getOperand(1).getImm();
   Register SrcReg = MI.getOperand(2).getReg();
-  bool SrcIsKill = MI.getOperand(2).isKill();
+  
 
   // STD's maximum displacement is 63, so larger stores have to be split into a
   // set of operations.
   // For avrtiny chips, STD is not available at all so we always have to fall
   // back to manual pointer adjustments.
-  if (Imm >= 63 || STI.hasTinyEncoding()) {
+  if (bool SrcIsKill = MI.getOperand(2).isKill(); Imm >= 63 || STI.hasTinyEncoding()) {
     // Add offset. The offset can be 0 when expanding this instruction from the
     // more specific STWPtrRr instruction.
     if (Imm != 0) {
@@ -1742,8 +1742,8 @@ bool AVRExpandPseudo::expandLSLW12Rd(Block &MBB, BlockIt MBBI) {
 template <>
 bool AVRExpandPseudo::expand<AVR::LSLWNRd>(Block &MBB, BlockIt MBBI) {
   MachineInstr &MI = *MBBI;
-  unsigned Imm = MI.getOperand(2).getImm();
-  switch (Imm) {
+  
+  switch (unsigned Imm = MI.getOperand(2).getImm(); Imm) {
   case 4:
     return expandLSLW4Rd(MBB, MBBI);
   case 8:
@@ -1940,8 +1940,8 @@ bool AVRExpandPseudo::expandLSRW12Rd(Block &MBB, BlockIt MBBI) {
 template <>
 bool AVRExpandPseudo::expand<AVR::LSRWNRd>(Block &MBB, BlockIt MBBI) {
   MachineInstr &MI = *MBBI;
-  unsigned Imm = MI.getOperand(2).getImm();
-  switch (Imm) {
+  
+  switch (unsigned Imm = MI.getOperand(2).getImm(); Imm) {
   case 4:
     return expandLSRW4Rd(MBB, MBBI);
   case 8:
@@ -2198,8 +2198,8 @@ bool AVRExpandPseudo::expandASRW15Rd(Block &MBB, BlockIt MBBI) {
 template <>
 bool AVRExpandPseudo::expand<AVR::ASRWNRd>(Block &MBB, BlockIt MBBI) {
   MachineInstr &MI = *MBBI;
-  unsigned Imm = MI.getOperand(2).getImm();
-  switch (Imm) {
+  
+  switch (unsigned Imm = MI.getOperand(2).getImm(); Imm) {
   case 7:
     return expandASRW7Rd(MBB, MBBI);
   case 8:
@@ -2254,8 +2254,8 @@ bool AVRExpandPseudo::expandLSLB7Rd(Block &MBB, BlockIt MBBI) {
 template <>
 bool AVRExpandPseudo::expand<AVR::LSLBNRd>(Block &MBB, BlockIt MBBI) {
   MachineInstr &MI = *MBBI;
-  unsigned Imm = MI.getOperand(2).getImm();
-  switch (Imm) {
+  
+  switch (unsigned Imm = MI.getOperand(2).getImm(); Imm) {
   case 7:
     return expandLSLB7Rd(MBB, MBBI);
   default:
@@ -2306,8 +2306,8 @@ bool AVRExpandPseudo::expandLSRB7Rd(Block &MBB, BlockIt MBBI) {
 template <>
 bool AVRExpandPseudo::expand<AVR::LSRBNRd>(Block &MBB, BlockIt MBBI) {
   MachineInstr &MI = *MBBI;
-  unsigned Imm = MI.getOperand(2).getImm();
-  switch (Imm) {
+  
+  switch (unsigned Imm = MI.getOperand(2).getImm(); Imm) {
   case 7:
     return expandLSRB7Rd(MBB, MBBI);
   default:
@@ -2388,8 +2388,8 @@ bool AVRExpandPseudo::expandASRB7Rd(Block &MBB, BlockIt MBBI) {
 template <>
 bool AVRExpandPseudo::expand<AVR::ASRBNRd>(Block &MBB, BlockIt MBBI) {
   MachineInstr &MI = *MBBI;
-  unsigned Imm = MI.getOperand(2).getImm();
-  switch (Imm) {
+  
+  switch (unsigned Imm = MI.getOperand(2).getImm(); Imm) {
   case 6:
     return expandASRB6Rd(MBB, MBBI);
   case 7:
@@ -2429,10 +2429,10 @@ template <> bool AVRExpandPseudo::expand<AVR::SEXT>(Block &MBB, BlockIt MBBI) {
         .addReg(SrcReg);
 
   if (SrcReg != DstHiReg) {
-    auto MOV = buildMI(MBB, MBBI, AVR::MOVRdRr)
+    
+    if (auto MOV = buildMI(MBB, MBBI, AVR::MOVRdRr)
                    .addReg(DstHiReg, RegState::Define)
-                   .addReg(SrcReg);
-    if (SrcReg != DstLoReg && SrcIsKill)
+                   .addReg(SrcReg); SrcReg != DstLoReg && SrcIsKill)
       MOV->getOperand(1).setIsKill();
   }
 

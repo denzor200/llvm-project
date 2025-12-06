@@ -142,11 +142,11 @@ static SVal adjustReturnValue(SVal V, QualType ExpectedTy, QualType ActualTy,
 
   // C++ object pointers may need "derived-to-base" casts.
   const CXXRecordDecl *ExpectedClass = ExpectedTy->getPointeeCXXRecordDecl();
-  const CXXRecordDecl *ActualClass = ActualTy->getPointeeCXXRecordDecl();
-  if (ExpectedClass && ActualClass) {
-    CXXBasePaths Paths(/*FindAmbiguities=*/true, /*RecordPaths=*/true,
-                       /*DetectVirtual=*/false);
-    if (ActualClass->isDerivedFrom(ExpectedClass, Paths) &&
+  
+  if (const CXXRecordDecl *ActualClass = ActualTy->getPointeeCXXRecordDecl(); ExpectedClass && ActualClass) {
+    
+    if (CXXBasePaths Paths(/*FindAmbiguities=*/true, /*RecordPaths=*/true,
+                       /*DetectVirtual=*/false); ActualClass->isDerivedFrom(ExpectedClass, Paths) &&
         !Paths.isAmbiguous(ActualTy->getCanonicalTypeUnqualified())) {
       return StoreMgr.evalDerivedToBase(V, Paths.front());
     }
@@ -295,9 +295,9 @@ void ExprEngine::processCallExit(ExplodedNode *CEBNode) {
 
       // Ensure that the return type matches the type of the returned Expr.
       if (wasDifferentDeclUsedForInlining(Call, calleeCtx)) {
-        QualType ReturnedTy =
-          CallEvent::getDeclaredResultType(calleeCtx->getDecl());
-        if (!ReturnedTy.isNull()) {
+        
+        if (QualType ReturnedTy =
+          CallEvent::getDeclaredResultType(calleeCtx->getDecl()); !ReturnedTy.isNull()) {
           if (const Expr *Ex = dyn_cast<Expr>(CE)) {
             V = adjustReturnValue(V, Ex->getType(), ReturnedTy,
                                   getStoreManager());
@@ -505,10 +505,10 @@ void ExprEngine::ctuBifurcate(const CallEvent &Call, const Decl *D,
   ProgramStateRef ConservativeEvalState = nullptr;
   if (Call.isForeign() && !isSecondPhaseCTU()) {
     const auto IK = AMgr.options.getCTUPhase1Inlining();
-    const bool DoInline = IK == CTUPhase1InliningKind::All ||
+    
+    if (const bool DoInline = IK == CTUPhase1InliningKind::All ||
                           (IK == CTUPhase1InliningKind::Small &&
-                           isSmall(AMgr.getAnalysisDeclContext(D)));
-    if (DoInline) {
+                           isSmall(AMgr.getAnalysisDeclContext(D))); DoInline) {
       inlineCall(Engine.getWorkList(), Call, D, Bldr, Pred, State);
       return;
     }
@@ -589,8 +589,8 @@ void ExprEngine::inlineCall(WorkList *WList, const CallEvent &Call,
 
 static ProgramStateRef getInlineFailedState(ProgramStateRef State,
                                             const Stmt *CallE) {
-  const void *ReplayState = State->get<ReplayWithoutInlining>();
-  if (!ReplayState)
+  
+  if (const void *ReplayState = State->get<ReplayWithoutInlining>(); !ReplayState)
     return nullptr;
 
   assert(ReplayState == CallE && "Backtracked to the wrong call.");
@@ -638,8 +638,8 @@ ProgramStateRef ExprEngine::finishArgumentConstruction(ProgramStateRef State,
 
   const LocationContext *LC = Call.getLocationContext();
   for (unsigned CallI = 0, CallN = Call.getNumArgs(); CallI != CallN; ++CallI) {
-    unsigned I = Call.getASTArgumentIndex(CallI);
-    if (std::optional<SVal> V = getObjectUnderConstruction(State, {E, I}, LC)) {
+    
+    if (unsigned I = Call.getASTArgumentIndex(CallI); std::optional<SVal> V = getObjectUnderConstruction(State, {E, I}, LC)) {
       SVal VV = *V;
       (void)VV;
       assert(cast<VarRegion>(VV.castAs<loc::MemRegionVal>().getRegion())
@@ -797,8 +797,8 @@ ProgramStateRef ExprEngine::bindReturnValue(const CallEvent &Call,
 
     // See if we need to conjure a heap pointer instead of
     // a regular unknown pointer.
-    const auto *CNE = dyn_cast<CXXNewExpr>(E);
-    if (CNE && CNE->getOperatorNew()->isReplaceableGlobalAllocationFunction()) {
+    
+    if (const auto *CNE = dyn_cast<CXXNewExpr>(E); CNE && CNE->getOperatorNew()->isReplaceableGlobalAllocationFunction()) {
       R = svalBuilder.getConjuredHeapSymbolVal(Elem, LCtx, E->getType(), Count);
       const MemRegion *MR = R.getAsRegion()->StripCasts();
 
@@ -846,8 +846,8 @@ ExprEngine::mayInlineCallKind(const CallEvent &Call, const ExplodedNode *Pred,
                               AnalyzerOptions &Opts,
                               const EvalCallOptions &CallOpts) {
   const LocationContext *CurLC = Pred->getLocationContext();
-  const StackFrameContext *CallerSFC = CurLC->getStackFrame();
-  switch (Call.getKind()) {
+  
+  switch (const StackFrameContext *CallerSFC = CurLC->getStackFrame(); Call.getKind()) {
   case CE_Function:
   case CE_CXXStaticOperator:
   case CE_Block:
@@ -1238,8 +1238,8 @@ void ExprEngine::defaultEvalCall(NodeBuilder &Bldr, ExplodedNode *Pred,
   } else {
     RuntimeDefinition RD = Call.getRuntimeDefinition();
     Call.setForeign(RD.isForeign());
-    const Decl *D = RD.getDecl();
-    if (shouldInlineCall(Call, D, Pred, CallOpts)) {
+    
+    if (const Decl *D = RD.getDecl(); shouldInlineCall(Call, D, Pred, CallOpts)) {
       if (RD.mayHaveOtherDefinitions()) {
         AnalyzerOptions &Options = getAnalysisManager().options;
 
@@ -1278,9 +1278,9 @@ void ExprEngine::BifurcateCall(const MemRegion *BifurReg,
   // Check if we've performed the split already - note, we only want
   // to split the path once per memory region.
   ProgramStateRef State = Pred->getState();
-  const unsigned *BState =
-                        State->get<DynamicDispatchBifurcationMap>(BifurReg);
-  if (BState) {
+  
+  if (const unsigned *BState =
+                        State->get<DynamicDispatchBifurcationMap>(BifurReg); BState) {
     // If we are on "inline path", keep inlining if possible.
     if (*BState == DynamicDispatchModeInlined)
       ctuBifurcate(Call, D, Bldr, Pred, State);
@@ -1311,9 +1311,9 @@ void ExprEngine::VisitReturnStmt(const ReturnStmt *RS, ExplodedNode *Pred,
   ExplodedNodeSet dstPreVisit;
   getCheckerManager().runCheckersForPreStmt(dstPreVisit, Pred, RS, *this);
 
-  StmtNodeBuilder B(dstPreVisit, Dst, *currBldrCtx);
+  
 
-  if (RS->getRetValue()) {
+  if (StmtNodeBuilder B(dstPreVisit, Dst, *currBldrCtx); RS->getRetValue()) {
     for (ExplodedNodeSet::iterator it = dstPreVisit.begin(),
                                   ei = dstPreVisit.end(); it != ei; ++it) {
       B.generateNode(RS, *it, (*it)->getState());

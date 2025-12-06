@@ -44,8 +44,8 @@ std::error_code FileSystemStatCache::get(StringRef Path,
   else if (isForDir || !F) {
     // If this is a directory or a file descriptor is not needed and we have
     // no cache, just go to the file system.
-    llvm::ErrorOr<llvm::vfs::Status> StatusOrErr = FS.status(Path);
-    if (!StatusOrErr) {
+    
+    if (llvm::ErrorOr<llvm::vfs::Status> StatusOrErr = FS.status(Path); !StatusOrErr) {
       RetCode = StatusOrErr.getError();
     } else {
       Status = *StatusOrErr;
@@ -58,18 +58,18 @@ std::error_code FileSystemStatCache::get(StringRef Path,
     //
     // Because of this, check to see if the file exists with 'open'.  If the
     // open succeeds, use fstat to get the stat info.
-    auto OwnedFile =
-        IsText ? FS.openFileForRead(Path) : FS.openFileForReadBinary(Path);
+    
 
-    if (!OwnedFile) {
+    if (auto OwnedFile =
+        IsText ? FS.openFileForRead(Path) : FS.openFileForReadBinary(Path); !OwnedFile) {
       // If the open fails, our "stat" fails.
       RetCode = OwnedFile.getError();
     } else {
       // Otherwise, the open succeeded.  Do an fstat to get the information
       // about the file.  We'll end up returning the open file descriptor to the
       // client to do what they please with it.
-      llvm::ErrorOr<llvm::vfs::Status> StatusOrErr = (*OwnedFile)->status();
-      if (StatusOrErr) {
+      
+      if (llvm::ErrorOr<llvm::vfs::Status> StatusOrErr = (*OwnedFile)->status(); StatusOrErr) {
         Status = *StatusOrErr;
         *F = std::move(*OwnedFile);
       } else {

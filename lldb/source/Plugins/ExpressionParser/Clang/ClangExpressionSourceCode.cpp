@@ -155,9 +155,9 @@ static void AddMacros(const DebugMacros *dm, CompileUnit *comp_unit,
 
   for (size_t i = 0; i < dm->GetNumMacroEntries(); i++) {
     const DebugMacroEntry &entry = dm->GetMacroEntryAtIndex(i);
-    uint32_t line;
+    
 
-    switch (entry.GetType()) {
+    switch (uint32_t line; entry.GetType()) {
     case DebugMacroEntry::DEFINE:
       if (state.IsValidEntry(entry.GetLineNumber()))
         stream.Printf("#define %s\n", entry.GetMacroString().AsCString());
@@ -232,9 +232,9 @@ void AddLambdaCaptureDecls(StreamString &stream, StackFrame *frame,
     uint32_t numChildren = thisValSP->GetNumChildrenIgnoringErrors();
     for (uint32_t i = 0; i < numChildren; ++i) {
       auto childVal = thisValSP->GetChildAtIndex(i);
-      ConstString childName(childVal ? childVal->GetName() : ConstString(""));
+      
 
-      if (!childName.IsEmpty() && verifier.hasToken(childName.GetStringRef()) &&
+      if (ConstString childName(childVal ? childVal->GetName() : ConstString("")); !childName.IsEmpty() && verifier.hasToken(childName.GetStringRef()) &&
           childName != "this") {
         stream.Printf("using $__lldb_local_vars::%s;\n",
                       childName.GetCString());
@@ -364,9 +364,9 @@ bool ClangExpressionSourceCode::GetText(
 
     auto *persistent_vars = llvm::cast<ClangPersistentVariables>(
         target->GetPersistentExpressionStateForLanguage(lldb::eLanguageTypeC));
-    std::shared_ptr<ClangModulesDeclVendor> decl_vendor =
-        persistent_vars->GetClangModulesDeclVendor();
-    if (decl_vendor) {
+    
+    if (std::shared_ptr<ClangModulesDeclVendor> decl_vendor =
+        persistent_vars->GetClangModulesDeclVendor(); decl_vendor) {
       const ClangModulesDeclVendor::ModuleVector &hand_imported_modules =
           persistent_vars->GetHandLoadedClangModules();
       ClangModulesDeclVendor::ModuleVector modules_for_macros;
@@ -410,12 +410,12 @@ bool ClangExpressionSourceCode::GetText(
   StreamString debug_macros_stream;
   StreamString lldb_local_var_decls;
   if (StackFrame *frame = exe_ctx.GetFramePtr()) {
-    const SymbolContext &sc = frame->GetSymbolContext(
-        lldb::eSymbolContextCompUnit | lldb::eSymbolContextLineEntry);
+    
 
-    if (sc.comp_unit && sc.line_entry.IsValid()) {
-      DebugMacros *dm = sc.comp_unit->GetDebugMacros();
-      if (dm) {
+    if (const SymbolContext &sc = frame->GetSymbolContext(
+        lldb::eSymbolContextCompUnit | lldb::eSymbolContextLineEntry); sc.comp_unit && sc.line_entry.IsValid()) {
+      
+      if (DebugMacros *dm = sc.comp_unit->GetDebugMacros(); dm) {
         AddMacroState state(sc.line_entry.GetFile(), sc.line_entry.line);
         AddMacros(dm, sc.comp_unit, state, debug_macros_stream);
       }

@@ -151,10 +151,10 @@ xegpu::DistributeLayoutAttr xegpu::getDistributeLayoutAttr(const Value value) {
   }
 
   if (auto arg = dyn_cast<BlockArgument>(value)) {
-    auto *parentOp = arg.getOwner()->getParentOp();
-    if (auto loop = dyn_cast<LoopLikeOpInterface>(parentOp)) {
-      OpOperand *tiedInit = loop.getTiedLoopInit(arg);
-      if (tiedInit)
+    
+    if (auto *parentOp = arg.getOwner()->getParentOp(); auto loop = dyn_cast<LoopLikeOpInterface>(parentOp)) {
+      
+      if (OpOperand *tiedInit = loop.getTiedLoopInit(arg); tiedInit)
         return getDistributeLayoutAttr(tiedInit->get());
     }
   }
@@ -207,9 +207,9 @@ maybePickPermanentLayout(xegpu::DistributeLayoutAttr layout,
                          const OpOperand &operand, mlir::Operation *owner,
                          const std::string &name) {
   xegpu::DistributeLayoutAttr candidate = layout;
-  unsigned idx = const_cast<OpOperand &>(operand).getOperandNumber();
+  
 
-  if (auto storeOp = dyn_cast<xegpu::StoreScatterOp>(owner)) {
+  if (unsigned idx = const_cast<OpOperand &>(operand).getOperandNumber(); auto storeOp = dyn_cast<xegpu::StoreScatterOp>(owner)) {
     if (idx == 0) {
       if (auto perm = storeOp.getLayoutAttr())
         candidate = perm;
@@ -267,8 +267,8 @@ void xegpu::setDistributeLayoutAttrs(
 template <typename T, typename>
 void xegpu::removeLayoutAttr(const T &operandOrResult) {
   Operation *owner = operandOrResult.getOwner();
-  std::string name = xegpu::getLayoutName(operandOrResult);
-  if (owner->hasAttrOfType<DistributeLayoutAttr>(name))
+  
+  if (std::string name = xegpu::getLayoutName(operandOrResult); owner->hasAttrOfType<DistributeLayoutAttr>(name))
     owner->removeAttr(name);
 }
 
@@ -427,8 +427,8 @@ void xegpu::doSCFStructuralTypeConversionWithTensorType(
       for (OpResult r : parentOp->getOpResults()) {
         unsigned idx = r.getResultNumber();
         Type resultTy = r.getType();
-        Type yieldTy = yieldOp.getResults()[idx].getType();
-        if (isa<RankedTensorType>(resultTy) && yieldTy != resultTy)
+        
+        if (Type yieldTy = yieldOp.getResults()[idx].getType(); isa<RankedTensorType>(resultTy) && yieldTy != resultTy)
           r.setType(yieldTy);
       }
     });
@@ -508,8 +508,8 @@ std::optional<std::string> xegpu::getChipStr(Operation *op) {
   auto targetAttrs = gpuModuleOp.getTargets();
   if (targetAttrs) {
     for (auto &attr : *targetAttrs) {
-      auto xevmAttr = llvm::dyn_cast<xevm::XeVMTargetAttr>(attr);
-      if (xevmAttr)
+      
+      if (auto xevmAttr = llvm::dyn_cast<xevm::XeVMTargetAttr>(attr); xevmAttr)
         return xevmAttr.getChip().str();
     }
   }
@@ -566,8 +566,8 @@ int xegpu::getLargestDivisor(T dim, ArrayRef<T> candidates,
         SmallVector<T>(candidateMultiples.begin(), candidateMultiples.end());
   for (T candidate : candidates) {
     for (T multiple : multiples) {
-      int value = static_cast<int>(candidate * multiple);
-      if (value != 0 && dim % value == 0 && value > largest)
+      
+      if (int value = static_cast<int>(candidate * multiple); value != 0 && dim % value == 0 && value > largest)
         largest = value;
     }
   }

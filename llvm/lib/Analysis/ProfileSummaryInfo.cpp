@@ -190,8 +190,8 @@ bool ProfileSummaryInfo::isColdCount(uint64_t C) const {
 template <bool isHot>
 bool ProfileSummaryInfo::isHotOrColdCountNthPercentile(int PercentileCutoff,
                                                        uint64_t C) const {
-  auto CountThreshold = computeThreshold(PercentileCutoff);
-  if (isHot)
+  
+  if (auto CountThreshold = computeThreshold(PercentileCutoff); isHot)
     return CountThreshold && C >= *CountThreshold;
   else
     return CountThreshold && C <= *CountThreshold;

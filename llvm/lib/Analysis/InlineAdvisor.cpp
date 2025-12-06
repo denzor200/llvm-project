@@ -217,8 +217,8 @@ AnalysisKey PluginInlineAdvisorAnalysis::Key;
 bool InlineAdvisorAnalysis::initializeIR2VecVocabIfRequested(
     Module &M, ModuleAnalysisManager &MAM) {
   if (!IR2VecVocabFile.empty()) {
-    auto &IR2VecVocabResult = MAM.getResult<IR2VecVocabAnalysis>(M);
-    if (!IR2VecVocabResult.isValid()) {
+    
+    if (auto &IR2VecVocabResult = MAM.getResult<IR2VecVocabAnalysis>(M); !IR2VecVocabResult.isValid()) {
       M.getContext().emitError("Failed to load IR2Vec vocabulary");
       return false;
     }
@@ -663,8 +663,8 @@ OptimizationRemarkEmitter &InlineAdvisor::getCallerORE(CallBase &CB) {
 
 PreservedAnalyses
 InlineAdvisorAnalysisPrinterPass::run(Module &M, ModuleAnalysisManager &MAM) {
-  const auto *IA = MAM.getCachedResult<InlineAdvisorAnalysis>(M);
-  if (!IA)
+  
+  if (const auto *IA = MAM.getCachedResult<InlineAdvisorAnalysis>(M); !IA)
     OS << "No Inline Advisor\n";
   else
     IA->getAdvisor()->print(OS);

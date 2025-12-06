@@ -59,10 +59,10 @@ struct Canonicalizer : public impl::CanonicalizerBase<Canonicalizer> {
     return success();
   }
   void runOnOperation() override {
-    LogicalResult converged =
-        applyPatternsGreedily(getOperation(), *patterns, config);
+    
     // Canonicalization is best-effort. Non-convergence is not a pass failure.
-    if (testConvergence && failed(converged))
+    if (LogicalResult converged =
+        applyPatternsGreedily(getOperation(), *patterns, config); testConvergence && failed(converged))
       signalPassFailure();
   }
   GreedyRewriteConfig config;

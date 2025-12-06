@@ -271,8 +271,8 @@ Expected<uint32_t> GOFFObjectFile::getSymbolFlags(DataRefImpl Symb) const {
   ESDRecord::getBindingScope(Record, BindingScope);
 
   if (BindingScope != GOFF::ESD_BSC_Section) {
-    Expected<StringRef> Name = getSymbolName(Symb);
-    if (Name && *Name != " ") { // Blank name is local.
+    
+    if (Expected<StringRef> Name = getSymbolName(Symb); Name && *Name != " ") { // Blank name is local.
       Flags |= SymbolRef::SF_Global;
       if (BindingScope == GOFF::ESD_BSC_ImportExport)
         Flags |= SymbolRef::SF_Exported;
@@ -347,8 +347,8 @@ GOFFObjectFile::getSymbolSection(DataRefImpl Symb) const {
 
   for (size_t I = 0, E = SectionList.size(); I < E; ++I) {
     bool Found;
-    const uint8_t *SectionPrRecord = getSectionPrEsdRecord(I);
-    if (SectionPrRecord) {
+    
+    if (const uint8_t *SectionPrRecord = getSectionPrEsdRecord(I); SectionPrRecord) {
       Found = SymEsdRecord == SectionPrRecord;
     } else {
       const uint8_t *SectionEdRecord = getSectionEdEsdRecord(I);
@@ -408,8 +408,8 @@ uint32_t GOFFObjectFile::getSectionDefEsdId(DataRefImpl &Sec) const {
   uint32_t Length;
   ESDRecord::getLength(EsdRecord, Length);
   if (Length == 0) {
-    const uint8_t *PrEsdRecord = getSectionPrEsdRecord(Sec);
-    if (PrEsdRecord)
+    
+    if (const uint8_t *PrEsdRecord = getSectionPrEsdRecord(Sec); PrEsdRecord)
       EsdRecord = PrEsdRecord;
   }
 
@@ -570,10 +570,10 @@ void GOFFObjectFile::moveSymbolNext(DataRefImpl &Symb) const {
       ESDRecord::getSymbolType(EsdRecord, SymbolType);
       // Skip EDs - i.e. section symbols.
       bool IgnoreSpecialGOFFSymbols = true;
-      bool SkipSymbol = ((SymbolType == GOFF::ESD_ST_ElementDefinition) ||
+      
+      if (bool SkipSymbol = ((SymbolType == GOFF::ESD_ST_ElementDefinition) ||
                          (SymbolType == GOFF::ESD_ST_SectionDefinition)) &&
-                        IgnoreSpecialGOFFSymbols;
-      if (!SkipSymbol) {
+                        IgnoreSpecialGOFFSymbols; !SkipSymbol) {
         Symb.d.a = I;
         return;
       }

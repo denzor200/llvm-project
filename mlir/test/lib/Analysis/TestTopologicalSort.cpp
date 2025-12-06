@@ -30,7 +30,9 @@ struct TestTopologicalSortAnalysisPass
     Operation *op = getOperation();
     OpBuilder builder(op->getContext());
 
-    WalkResult result = op->walk([&](Operation *root) {
+    
+
+    if (WalkResult result = op->walk([&](Operation *root) {
       if (!root->hasAttr("root"))
         return WalkResult::advance();
 
@@ -68,9 +70,7 @@ struct TestTopologicalSortAnalysisPass
         it.value()->setAttr("pos", builder.getIndexAttr(it.index()));
 
       return WalkResult::advance();
-    });
-
-    if (result.wasSkipped())
+    }); result.wasSkipped())
       signalPassFailure();
   }
 };

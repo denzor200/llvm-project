@@ -22,8 +22,8 @@ void cleanupBrief(std::string &S) {
   std::string::iterator O = S.begin();
   for (std::string::iterator I = S.begin(), E = S.end();
        I != E; ++I) {
-    const char C = *I;
-    if (clang::isWhitespace(C)) {
+    
+    if (const char C = *I; clang::isWhitespace(C)) {
       if (!PrevWasSpace) {
         *O++ = ' ';
         PrevWasSpace = true;

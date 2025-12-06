@@ -275,9 +275,9 @@ Error DXContainerWriter::writeParts(raw_ostream &OS) {
            P.RootSignature->Parameters.Locations) {
 
         const dxbc::RootParameterType Type = L.Header.Type;
-        const dxbc::ShaderVisibility Visibility = L.Header.Visibility;
+        
 
-        switch (Type) {
+        switch (const dxbc::ShaderVisibility Visibility = L.Header.Visibility; Type) {
         case dxbc::RootParameterType::Constants32Bit: {
           const DXContainerYAML::RootConstantsYaml &ConstantYaml =
               P.RootSignature->Parameters.getOrInsertConstants(L);

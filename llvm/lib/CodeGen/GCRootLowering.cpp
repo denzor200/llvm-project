@@ -86,9 +86,9 @@ PreservedAnalyses GCLoweringPass::run(Function &F,
 
   auto &Info = FAM.getResult<GCFunctionAnalysis>(F);
 
-  bool Changed = DoLowering(F, Info.getStrategy());
+  
 
-  if (!Changed)
+  if (bool Changed = DoLowering(F, Info.getStrategy()); !Changed)
     return PreservedAnalyses::all();
   PreservedAnalyses PA;
   PA.preserve<DominatorTreeAnalysis>();
@@ -211,8 +211,8 @@ bool DoLowering(Function &F, GCStrategy &S) {
       if (!CI)
         continue;
 
-      Function *F = CI->getCalledFunction();
-      switch (F->getIntrinsicID()) {
+      
+      switch (Function *F = CI->getCalledFunction(); F->getIntrinsicID()) {
       default: break;
       case Intrinsic::gcwrite: {
         // Replace a write barrier with a simple store.

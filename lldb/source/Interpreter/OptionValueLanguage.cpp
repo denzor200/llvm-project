@@ -52,8 +52,8 @@ Status OptionValueLanguage::SetValueFromString(llvm::StringRef value,
   case eVarSetOperationReplace:
   case eVarSetOperationAssign: {
     LanguageSet languages_for_types = Language::GetLanguagesSupportingTypeSystems();
-    LanguageType new_type = Language::GetLanguageTypeFromString(value.trim());
-    if (new_type && languages_for_types[new_type]) {
+    
+    if (LanguageType new_type = Language::GetLanguageTypeFromString(value.trim()); new_type && languages_for_types[new_type]) {
       m_value_was_set = true;
       m_current_value = new_type;
     } else {

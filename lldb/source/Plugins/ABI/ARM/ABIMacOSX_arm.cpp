@@ -1300,9 +1300,9 @@ size_t ABIMacOSX_arm::GetRedZoneSize() const { return 0; }
 ABISP
 ABIMacOSX_arm::CreateInstance(ProcessSP process_sp, const ArchSpec &arch) {
   const llvm::Triple::ArchType arch_type = arch.GetTriple().getArch();
-  const llvm::Triple::VendorType vendor_type = arch.GetTriple().getVendor();
+  
 
-  if (vendor_type == llvm::Triple::Apple) {
+  if (const llvm::Triple::VendorType vendor_type = arch.GetTriple().getVendor(); vendor_type == llvm::Triple::Apple) {
     if ((arch_type == llvm::Triple::arm) ||
         (arch_type == llvm::Triple::thumb)) {
       return ABISP(
@@ -1464,9 +1464,9 @@ bool ABIMacOSX_arm::GetArgumentValues(Thread &thread, ValueList &values) const {
           // Arguments 1-4 are in r0-r3...
           const RegisterInfo *arg_reg_info = nullptr;
           // Search by generic ID first, then fall back to by name
-          uint32_t arg_reg_num = reg_ctx->ConvertRegisterKindToRegisterNumber(
-              eRegisterKindGeneric, LLDB_REGNUM_GENERIC_ARG1 + value_idx);
-          if (arg_reg_num != LLDB_INVALID_REGNUM) {
+          
+          if (uint32_t arg_reg_num = reg_ctx->ConvertRegisterKindToRegisterNumber(
+              eRegisterKindGeneric, LLDB_REGNUM_GENERIC_ARG1 + value_idx); arg_reg_num != LLDB_INVALID_REGNUM) {
             arg_reg_info = reg_ctx->GetRegisterInfoAtIndex(arg_reg_num);
           } else {
             switch (value_idx) {
@@ -1486,9 +1486,9 @@ bool ABIMacOSX_arm::GetArgumentValues(Thread &thread, ValueList &values) const {
           }
 
           if (arg_reg_info) {
-            RegisterValue reg_value;
+            
 
-            if (reg_ctx->ReadRegister(arg_reg_info, reg_value)) {
+            if (RegisterValue reg_value; reg_ctx->ReadRegister(arg_reg_info, reg_value)) {
               if (is_signed)
                 reg_value.SignExtend(bit_width);
               if (!reg_value.GetScalarValue(value->GetScalar()))
@@ -1525,8 +1525,8 @@ bool ABIMacOSX_arm::IsArmv7kProcess() const {
   ProcessSP process_sp(GetProcessSP());
   if (process_sp) {
     const ArchSpec &arch(process_sp->GetTarget().GetArchitecture());
-    const ArchSpec::Core system_core = arch.GetCore();
-    if (system_core == ArchSpec::eCore_arm_armv7k) {
+    
+    if (const ArchSpec::Core system_core = arch.GetCore(); system_core == ArchSpec::eCore_arm_armv7k) {
       is_armv7k = true;
     }
   }
@@ -1572,9 +1572,9 @@ ValueObjectSP ABIMacOSX_arm::GetReturnValueObjectImpl(
               reg_ctx->GetRegisterInfoByName("r1", 0);
           const RegisterInfo *r2_reg_info =
               reg_ctx->GetRegisterInfoByName("r2", 0);
-          const RegisterInfo *r3_reg_info =
-              reg_ctx->GetRegisterInfoByName("r3", 0);
-          if (r1_reg_info && r2_reg_info && r3_reg_info) {
+          
+          if (const RegisterInfo *r3_reg_info =
+              reg_ctx->GetRegisterInfoByName("r3", 0); r1_reg_info && r2_reg_info && r3_reg_info) {
             std::optional<uint64_t> byte_size =
                 llvm::expectedToOptional(compiler_type.GetByteSize(&thread));
             if (!byte_size)
@@ -1590,13 +1590,13 @@ ValueObjectSP ABIMacOSX_arm::GetReturnValueObjectImpl(
               RegisterValue r0_reg_value;
               RegisterValue r1_reg_value;
               RegisterValue r2_reg_value;
-              RegisterValue r3_reg_value;
-              if (reg_ctx->ReadRegister(r0_reg_info, r0_reg_value) &&
+              
+              if (RegisterValue r3_reg_value; reg_ctx->ReadRegister(r0_reg_info, r0_reg_value) &&
                   reg_ctx->ReadRegister(r1_reg_info, r1_reg_value) &&
                   reg_ctx->ReadRegister(r2_reg_info, r2_reg_value) &&
                   reg_ctx->ReadRegister(r3_reg_info, r3_reg_value)) {
-                Status error;
-                if (r0_reg_value.GetAsMemoryData(*r0_reg_info,
+                
+                if (Status error; r0_reg_value.GetAsMemoryData(*r0_reg_info,
                                                  heap_data_up->GetBytes() + 0,
                                                  4, byte_order, error) &&
                     r1_reg_value.GetAsMemoryData(*r1_reg_info,
@@ -1713,20 +1713,20 @@ Status ABIMacOSX_arm::SetReturnValueObject(lldb::StackFrameSP &frame_sp,
     }
     lldb::offset_t offset = 0;
     if (num_bytes <= 8) {
-      const RegisterInfo *r0_info = reg_ctx->GetRegisterInfoByName("r0", 0);
-      if (num_bytes <= 4) {
-        uint32_t raw_value = data.GetMaxU32(&offset, num_bytes);
+      
+      if (const RegisterInfo *r0_info = reg_ctx->GetRegisterInfoByName("r0", 0); num_bytes <= 4) {
+        
 
-        if (reg_ctx->WriteRegisterFromUnsigned(r0_info, raw_value))
+        if (uint32_t raw_value = data.GetMaxU32(&offset, num_bytes); reg_ctx->WriteRegisterFromUnsigned(r0_info, raw_value))
           set_it_simple = true;
       } else {
         uint32_t raw_value = data.GetMaxU32(&offset, 4);
 
         if (reg_ctx->WriteRegisterFromUnsigned(r0_info, raw_value)) {
           const RegisterInfo *r1_info = reg_ctx->GetRegisterInfoByName("r1", 0);
-          uint32_t raw_value = data.GetMaxU32(&offset, num_bytes - offset);
+          
 
-          if (reg_ctx->WriteRegisterFromUnsigned(r1_info, raw_value))
+          if (uint32_t raw_value = data.GetMaxU32(&offset, num_bytes - offset); reg_ctx->WriteRegisterFromUnsigned(r1_info, raw_value))
             set_it_simple = true;
         }
       }
@@ -1741,8 +1741,8 @@ Status ABIMacOSX_arm::SetReturnValueObject(lldb::StackFrameSP &frame_sp,
       const RegisterInfo *r3_info = reg_ctx->GetRegisterInfoByName("r3", 0);
       lldb::offset_t offset = 0;
       uint32_t bytes_written = 4;
-      uint32_t raw_value = data.GetMaxU64(&offset, 4);
-      if (reg_ctx->WriteRegisterFromUnsigned(r0_info, raw_value) &&
+      
+      if (uint32_t raw_value = data.GetMaxU64(&offset, 4); reg_ctx->WriteRegisterFromUnsigned(r0_info, raw_value) &&
           bytes_written <= num_bytes) {
         bytes_written += 4;
         raw_value = data.GetMaxU64(&offset, 4);
@@ -1852,8 +1852,8 @@ UnwindPlanSP ABIMacOSX_arm::CreateDefaultUnwindPlan() {
 bool ABIMacOSX_arm::RegisterIsVolatile(const RegisterInfo *reg_info) {
   if (reg_info) {
     // Volatile registers are: r0, r1, r2, r3, r9, r12, r13 (aka sp)
-    const char *name = reg_info->name;
-    if (name[0] == 'r') {
+    
+    if (const char *name = reg_info->name; name[0] == 'r') {
       switch (name[1]) {
       case '0':
         return name[2] == '\0'; // r0

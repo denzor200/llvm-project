@@ -336,8 +336,8 @@ void PointerArithChecker::checkPreStmt(const ArraySubscriptExpr *SubsExpr,
 
 void PointerArithChecker::checkPreStmt(const BinaryOperator *BOp,
                                        CheckerContext &C) const {
-  BinaryOperatorKind OpKind = BOp->getOpcode();
-  if (!BOp->isAdditiveOp() && OpKind != BO_AddAssign && OpKind != BO_SubAssign)
+  
+  if (BinaryOperatorKind OpKind = BOp->getOpcode(); !BOp->isAdditiveOp() && OpKind != BO_AddAssign && OpKind != BO_SubAssign)
     return;
 
   const Expr *Lhs = BOp->getLHS();

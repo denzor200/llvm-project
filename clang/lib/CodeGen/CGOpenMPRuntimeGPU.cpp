@@ -46,8 +46,8 @@ public:
       : EnterCallee(EnterCallee), EnterArgs(EnterArgs), ExitCallee(ExitCallee),
         ExitArgs(ExitArgs), Conditional(Conditional) {}
   void Enter(CodeGenFunction &CGF) override {
-    llvm::Value *EnterRes = CGF.EmitRuntimeCall(EnterCallee, EnterArgs);
-    if (Conditional) {
+    
+    if (llvm::Value *EnterRes = CGF.EmitRuntimeCall(EnterCallee, EnterArgs); Conditional) {
       llvm::Value *CallBool = CGF.Builder.CreateIsNotNull(EnterRes);
       auto *ThenBlock = CGF.createBasicBlock("omp_if.then");
       ContBlock = CGF.createBasicBlock("omp_if.end");
@@ -286,9 +286,9 @@ class CheckVarsEscapingDeclContext final
             else
               llvm_unreachable("Unexpected clause.");
             for (const auto *E : Vars) {
-              const Decl *D =
-                  cast<DeclRefExpr>(E)->getDecl()->getCanonicalDecl();
-              if (D == VD->getCanonicalDecl()) {
+              
+              if (const Decl *D =
+                  cast<DeclRefExpr>(E)->getDecl()->getCanonicalDecl(); D == VD->getCanonicalDecl()) {
                 IsForCombinedParallelRegion = true;
                 break;
               }
@@ -517,12 +517,12 @@ static bool hasNestedSPMDDirective(ASTContext &Ctx,
   const auto *CS = D.getInnermostCapturedStmt();
   const auto *Body =
       CS->getCapturedStmt()->IgnoreContainers(/*IgnoreCaptured=*/true);
-  const Stmt *ChildStmt = CGOpenMPRuntime::getSingleCompoundChild(Ctx, Body);
+  
 
-  if (const auto *NestedDir =
+  if (const Stmt *ChildStmt = CGOpenMPRuntime::getSingleCompoundChild(Ctx, Body); const auto *NestedDir =
           dyn_cast_or_null<OMPExecutableDirective>(ChildStmt)) {
-    OpenMPDirectiveKind DKind = NestedDir->getDirectiveKind();
-    switch (D.getDirectiveKind()) {
+    
+    switch (OpenMPDirectiveKind DKind = NestedDir->getDirectiveKind(); D.getDirectiveKind()) {
     case OMPD_target:
       if (isOpenMPParallelDirective(DKind))
         return true;
@@ -616,8 +616,8 @@ static bool hasNestedSPMDDirective(ASTContext &Ctx,
 
 static bool supportsSPMDExecutionMode(ASTContext &Ctx,
                                       const OMPExecutableDirective &D) {
-  OpenMPDirectiveKind DirectiveKind = D.getDirectiveKind();
-  switch (DirectiveKind) {
+  
+  switch (OpenMPDirectiveKind DirectiveKind = D.getDirectiveKind(); DirectiveKind) {
   case OMPD_target:
   case OMPD_target_teams:
     return hasNestedSPMDDirective(Ctx, D);
@@ -853,8 +853,8 @@ void CGOpenMPRuntimeGPU::emitTargetOutlinedFunction(
   assert(!ParentName.empty() && "Invalid target region parent name!");
 
   bool Mode = supportsSPMDExecutionMode(CGM.getContext(), D);
-  bool IsBareKernel = D.getSingleClause<OMPXBareClause>();
-  if (Mode || IsBareKernel)
+  
+  if (bool IsBareKernel = D.getSingleClause<OMPXBareClause>(); Mode || IsBareKernel)
     emitSPMDKernel(D, ParentName, OutlinedFn, OutlinedFnID, IsOffloadEntry,
                    CodeGen);
   else
@@ -1181,8 +1181,8 @@ void CGOpenMPRuntimeGPU::emitGenericVarsEpilog(CodeGenFunction &CGF) {
   if (getDataSharingMode() != CGOpenMPRuntimeGPU::DS_Generic)
     return;
 
-  const auto I = FunctionGlobalizedDecls.find(CGF.CurFn);
-  if (I != FunctionGlobalizedDecls.end()) {
+  
+  if (const auto I = FunctionGlobalizedDecls.find(CGF.CurFn); I != FunctionGlobalizedDecls.end()) {
     // Deallocate the memory for each globalized VLA object that was
     // globalized in the prolog (i.e. emitGenericVarsProlog).
     for (const auto &AddrSizePair :
@@ -2130,10 +2130,10 @@ Address CGOpenMPRuntimeGPU::getAddressOfLocalVariable(CodeGenFunction &CGF,
     for (specific_attr_iterator<OMPReferencedVarAttr> IT(VD->attr_begin()),
          E(VD->attr_end());
          IT != E; ++IT) {
-      auto VDI = I->getSecond().LocalVarData.find(
+      
+      if (auto VDI = I->getSecond().LocalVarData.find(
           cast<VarDecl>(cast<DeclRefExpr>(IT->getRef())->getDecl())
-              ->getCanonicalDecl());
-      if (VDI != I->getSecond().LocalVarData.end())
+              ->getCanonicalDecl()); VDI != I->getSecond().LocalVarData.end())
         return VDI->second.PrivateAddr;
     }
   }
@@ -2150,8 +2150,8 @@ void CGOpenMPRuntimeGPU::getDefaultDistScheduleAndChunk(
     CodeGenFunction &CGF, const OMPLoopDirective &S,
     OpenMPDistScheduleClauseKind &ScheduleKind,
     llvm::Value *&Chunk) const {
-  auto &RT = static_cast<CGOpenMPRuntimeGPU &>(CGF.CGM.getOpenMPRuntime());
-  if (getExecutionMode() == CGOpenMPRuntimeGPU::EM_SPMD) {
+  
+  if (auto &RT = static_cast<CGOpenMPRuntimeGPU &>(CGF.CGM.getOpenMPRuntime()); getExecutionMode() == CGOpenMPRuntimeGPU::EM_SPMD) {
     ScheduleKind = OMPC_DIST_SCHEDULE_static;
     Chunk = CGF.EmitScalarConversion(
         RT.getGPUNumThreads(CGF),
@@ -2233,8 +2233,8 @@ bool CGOpenMPRuntimeGPU::hasAllocateAttributeForGlobalVar(const VarDecl *VD,
                                                             LangAS &AS) {
   if (!VD || !VD->hasAttr<OMPAllocateDeclAttr>())
     return false;
-  const auto *A = VD->getAttr<OMPAllocateDeclAttr>();
-  switch(A->getAllocatorType()) {
+  
+  switch(const auto *A = VD->getAttr<OMPAllocateDeclAttr>(); A->getAllocatorType()) {
   case OMPAllocateDeclAttr::OMPNullMemAlloc:
   case OMPAllocateDeclAttr::OMPDefaultMemAlloc:
   // Not supported, fallback to the default mem space.
@@ -2264,8 +2264,8 @@ static OffloadArch getOffloadArch(CodeGenModule &CGM) {
     return OffloadArch::UNKNOWN;
   for (const auto &Feature : CGM.getTarget().getTargetOpts().FeatureMap) {
     if (Feature.getValue()) {
-      OffloadArch Arch = StringToOffloadArch(Feature.getKey());
-      if (Arch != OffloadArch::UNKNOWN)
+      
+      if (OffloadArch Arch = StringToOffloadArch(Feature.getKey()); Arch != OffloadArch::UNKNOWN)
         return Arch;
     }
   }
@@ -2277,8 +2277,8 @@ static OffloadArch getOffloadArch(CodeGenModule &CGM) {
 void CGOpenMPRuntimeGPU::processRequiresDirective(const OMPRequiresDecl *D) {
   for (const OMPClause *Clause : D->clauselists()) {
     if (Clause->getClauseKind() == OMPC_unified_shared_memory) {
-      OffloadArch Arch = getOffloadArch(CGM);
-      switch (Arch) {
+      
+      switch (OffloadArch Arch = getOffloadArch(CGM); Arch) {
       case OffloadArch::SM_20:
       case OffloadArch::SM_21:
       case OffloadArch::SM_30:

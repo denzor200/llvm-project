@@ -815,8 +815,8 @@ bool MVETPAndVPTOptimisations::ReduceOldVCCRValueUses(MachineBasicBlock &MBB) {
         // LastVPNOTResult/OppositeVCCRValue, we can act like we inserted it.
         if (Iter->getOpcode() == ARM::MVE_VPNOT &&
             getVPTInstrPredicate(*Iter) == ARMVCC::None) {
-          Register VPNOTOperand = Iter->getOperand(1).getReg();
-          if (VPNOTOperand == LastVPNOTResult ||
+          
+          if (Register VPNOTOperand = Iter->getOperand(1).getReg(); VPNOTOperand == LastVPNOTResult ||
               VPNOTOperand == OppositeVCCRValue) {
             IsInteresting = true;
 
@@ -945,8 +945,8 @@ bool MVETPAndVPTOptimisations::ReplaceConstByVPNOTs(MachineBasicBlock &MBB,
 
     // Find the Immediate used by the copy.
     auto getImm = [&](Register GPR) -> unsigned {
-      MachineInstr *Def = MRI->getVRegDef(GPR);
-      if (Def && (Def->getOpcode() == ARM::t2MOVi ||
+      
+      if (MachineInstr *Def = MRI->getVRegDef(GPR); Def && (Def->getOpcode() == ARM::t2MOVi ||
                   Def->getOpcode() == ARM::t2MOVi16))
         return Def->getOperand(1).getImm();
       return -1U;

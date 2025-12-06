@@ -398,10 +398,10 @@ bool Declarator::isStaticMember() {
 bool Declarator::isExplicitObjectMemberFunction() {
   if (!isFunctionDeclarator())
     return false;
-  DeclaratorChunk::FunctionTypeInfo &Fun = getFunctionTypeInfo();
-  if (Fun.NumParams) {
-    auto *P = dyn_cast_or_null<ParmVarDecl>(Fun.Params[0].Param);
-    if (P && P->isExplicitObjectParameter())
+  
+  if (DeclaratorChunk::FunctionTypeInfo &Fun = getFunctionTypeInfo(); Fun.NumParams) {
+    
+    if (auto *P = dyn_cast_or_null<ParmVarDecl>(Fun.Params[0].Param); P && P->isExplicitObjectParameter())
       return true;
   }
   return false;

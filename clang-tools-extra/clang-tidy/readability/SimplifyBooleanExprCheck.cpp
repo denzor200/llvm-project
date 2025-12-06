@@ -366,8 +366,8 @@ public:
      * if (false) ThenStmt(); -> <Empty>;
      * if (false) ThenStmt(); else ElseStmt() -> ElseStmt();
      */
-    const Expr *Cond = If->getCond()->IgnoreImplicit();
-    if (std::optional<bool> Bool = getAsBoolLiteral(Cond, true)) {
+    
+    if (const Expr *Cond = If->getCond()->IgnoreImplicit(); std::optional<bool> Bool = getAsBoolLiteral(Cond, true)) {
       if (*Bool)
         Check->replaceWithThenStatement(Context, If, Cond);
       else
@@ -381,9 +381,9 @@ public:
        */
       if (const ExprAndBool ThenReturnBool =
               checkSingleStatement(If->getThen(), parseReturnLiteralBool)) {
-        const ExprAndBool ElseReturnBool =
-            checkSingleStatement(If->getElse(), parseReturnLiteralBool);
-        if (ElseReturnBool && ThenReturnBool.Bool != ElseReturnBool.Bool) {
+        
+        if (const ExprAndBool ElseReturnBool =
+            checkSingleStatement(If->getElse(), parseReturnLiteralBool); ElseReturnBool && ThenReturnBool.Bool != ElseReturnBool.Bool) {
           if (Check->ChainedConditionalReturn ||
               !isa_and_nonnull<IfStmt>(parent())) {
             Check->replaceWithReturnCondition(Context, If, ThenReturnBool.Item,
@@ -397,7 +397,8 @@ public:
          */
         Expr *Var = nullptr;
         SourceLocation Loc;
-        auto VarBoolAssignmentMatcher = [&Var,
+        
+        if (auto VarBoolAssignmentMatcher = [&Var,
                                          &Loc](const Stmt *S) -> DeclAndBool {
           const auto *BO = dyn_cast<BinaryOperator>(S);
           if (!BO || BO->getOpcode() != BO_Assign)
@@ -417,12 +418,11 @@ public:
           if (auto *ME = dyn_cast<MemberExpr>(IgnImp))
             return {ME->getMemberDecl(), *RightasBool};
           return {};
-        };
-        if (const DeclAndBool ThenAssignment =
+        }; const DeclAndBool ThenAssignment =
                 checkSingleStatement(If->getThen(), VarBoolAssignmentMatcher)) {
-          const DeclAndBool ElseAssignment =
-              checkSingleStatement(If->getElse(), VarBoolAssignmentMatcher);
-          if (ElseAssignment.Item == ThenAssignment.Item &&
+          
+          if (const DeclAndBool ElseAssignment =
+              checkSingleStatement(If->getElse(), VarBoolAssignmentMatcher); ElseAssignment.Item == ThenAssignment.Item &&
               ElseAssignment.Bool != ThenAssignment.Bool) {
             if (Check->ChainedConditionalAssignment ||
                 !isa_and_nonnull<IfStmt>(parent())) {
@@ -470,12 +470,12 @@ public:
          * if (Cond) return true; return false; -> return Cond;
          * if (Cond) return false; return true; -> return !Cond;
          */
-        auto *If = cast<IfStmt>(*First);
-        if (!If->hasInitStorage() && !If->hasVarStorage() &&
+        
+        if (auto *If = cast<IfStmt>(*First); !If->hasInitStorage() && !If->hasVarStorage() &&
             !If->isConsteval()) {
-          const ExprAndBool ThenReturnBool =
-              checkSingleStatement(If->getThen(), parseReturnLiteralBool);
-          if (ThenReturnBool &&
+          
+          if (const ExprAndBool ThenReturnBool =
+              checkSingleStatement(If->getThen(), parseReturnLiteralBool); ThenReturnBool &&
               ThenReturnBool.Bool != TrailingReturnBool.Bool) {
             if ((Check->ChainedConditionalReturn || !PrevIf) &&
                 If->getElse() == nullptr) {
@@ -494,12 +494,12 @@ public:
             isa<LabelStmt>(*First)  ? cast<LabelStmt>(*First)->getSubStmt()
             : isa<CaseStmt>(*First) ? cast<CaseStmt>(*First)->getSubStmt()
                                     : cast<DefaultStmt>(*First)->getSubStmt();
-        auto *SubIf = dyn_cast<IfStmt>(SubStmt);
-        if (SubIf && !SubIf->getElse() && !SubIf->hasInitStorage() &&
+        
+        if (auto *SubIf = dyn_cast<IfStmt>(SubStmt); SubIf && !SubIf->getElse() && !SubIf->hasInitStorage() &&
             !SubIf->hasVarStorage() && !SubIf->isConsteval()) {
-          const ExprAndBool ThenReturnBool =
-              checkSingleStatement(SubIf->getThen(), parseReturnLiteralBool);
-          if (ThenReturnBool &&
+          
+          if (const ExprAndBool ThenReturnBool =
+              checkSingleStatement(SubIf->getThen(), parseReturnLiteralBool); ThenReturnBool &&
               ThenReturnBool.Bool != TrailingReturnBool.Bool) {
             Check->replaceCompoundReturnWithCondition(
                 Context, cast<ReturnStmt>(*Second), TrailingReturnBool.Bool,
@@ -640,16 +640,16 @@ void SimplifyBooleanExprCheck::reportBinOp(const ASTContext &Context,
 
   const bool BoolValue = Bool->getValue();
 
-  auto ReplaceWithExpression = [this, &Context, LHS, RHS,
+  
+
+  switch (auto ReplaceWithExpression = [this, &Context, LHS, RHS,
                                 Bool](const Expr *ReplaceWith, bool Negated) {
     const std::string Replacement =
         replacementExpression(Context, Negated, ReplaceWith);
     const SourceRange Range(LHS->getBeginLoc(), RHS->getEndLoc());
     issueDiag(Context, Bool->getBeginLoc(), SimplifyOperatorDiagnostic, Range,
               Replacement);
-  };
-
-  switch (Op->getOpcode()) {
+  }; Op->getOpcode()) {
   case BO_LAnd:
     if (BoolValue)
       // expr && true -> expr
@@ -753,13 +753,13 @@ void SimplifyBooleanExprCheck::replaceWithReturnCondition(
   const std::string Replacement = ("return " + Condition + Terminator).str();
   const SourceLocation Start = BoolLiteral->getBeginLoc();
 
-  const bool HasReplacement =
-      issueDiag(Context, Start, SimplifyConditionalReturnDiagnostic,
-                If->getSourceRange(), Replacement);
+  
 
-  if (!HasReplacement) {
-    const SourceRange ConditionRange = If->getCond()->getSourceRange();
-    if (ConditionRange.isValid())
+  if (const bool HasReplacement =
+      issueDiag(Context, Start, SimplifyConditionalReturnDiagnostic,
+                If->getSourceRange(), Replacement); !HasReplacement) {
+    
+    if (const SourceRange ConditionRange = If->getCond()->getSourceRange(); ConditionRange.isValid())
       diag(ConditionRange.getBegin(), "conditions that can be simplified",
            DiagnosticIDs::Note)
           << ConditionRange;
@@ -772,11 +772,11 @@ void SimplifyBooleanExprCheck::replaceCompoundReturnWithCondition(
   const std::string Replacement =
       "return " + replacementExpression(Context, Negated, If->getCond());
 
-  const bool HasReplacement = issueDiag(
-      Context, ThenReturn->getBeginLoc(), SimplifyConditionalReturnDiagnostic,
-      SourceRange(If->getBeginLoc(), Ret->getEndLoc()), Replacement);
+  
 
-  if (!HasReplacement) {
+  if (const bool HasReplacement = issueDiag(
+      Context, ThenReturn->getBeginLoc(), SimplifyConditionalReturnDiagnostic,
+      SourceRange(If->getBeginLoc(), Ret->getEndLoc()), Replacement); !HasReplacement) {
     const SourceRange ConditionRange = If->getCond()->getSourceRange();
     if (ConditionRange.isValid())
       diag(ConditionRange.getBegin(), "conditions that can be simplified",
@@ -849,8 +849,8 @@ flipDemorganBinaryOperator(SmallVectorImpl<FixItHint> &Fixes,
       // however this would trip the LogicalOpParentheses warning.
       // FIXME: Make this user configurable or detect if that warning is
       // enabled.
-      constexpr bool LogicalOpParentheses = true;
-      if (((*OuterBO == NewOp) || (!LogicalOpParentheses &&
+      
+      if (constexpr bool LogicalOpParentheses = true; ((*OuterBO == NewOp) || (!LogicalOpParentheses &&
                                    (*OuterBO == BO_LOr && NewOp == BO_LAnd))) &&
           Parens) {
         if (!Parens->getLParen().isMacroID() &&

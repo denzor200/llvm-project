@@ -400,8 +400,8 @@ bool MVELaneInterleaving::runOnFunction(Function &F) {
     return false;
   auto &TPC = getAnalysis<TargetPassConfig>();
   auto &TM = TPC.getTM<TargetMachine>();
-  auto *ST = &TM.getSubtarget<ARMSubtarget>(F);
-  if (!ST->hasMVEIntegerOps())
+  
+  if (auto *ST = &TM.getSubtarget<ARMSubtarget>(F); !ST->hasMVEIntegerOps())
     return false;
 
   bool Changed = false;

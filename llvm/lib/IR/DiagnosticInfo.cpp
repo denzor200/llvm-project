@@ -479,9 +479,9 @@ void llvm::diagnoseDontCall(const CallInst &CI) {
 
   for (int i = 0; i != 2; ++i) {
     auto AttrName = i == 0 ? "dontcall-error" : "dontcall-warn";
-    auto Sev = i == 0 ? DS_Error : DS_Warning;
+    
 
-    if (F->hasFnAttribute(AttrName)) {
+    if (auto Sev = i == 0 ? DS_Error : DS_Warning; F->hasFnAttribute(AttrName)) {
       uint64_t LocCookie = 0;
       auto A = F->getFnAttribute(AttrName);
       if (MDNode *MD = CI.getMetadata("srcloc"))

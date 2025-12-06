@@ -205,11 +205,11 @@ LiveRegMatrix::checkInterference(const LiveInterval &VirtReg,
     return IK_RegUnit;
 
   // Check the matrix for virtual register interference.
-  bool Interference = foreachUnit(TRI, VirtReg, PhysReg,
+  
+  if (bool Interference = foreachUnit(TRI, VirtReg, PhysReg,
                                   [&](MCRegUnit Unit, const LiveRange &LR) {
                                     return query(LR, Unit).checkInterference();
-                                  });
-  if (Interference)
+                                  }); Interference)
     return IK_VirtReg;
 
   return IK_Free;

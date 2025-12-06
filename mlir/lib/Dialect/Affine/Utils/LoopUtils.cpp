@@ -142,8 +142,8 @@ LogicalResult mlir::affine::promoteIfSingleIteration(AffineForOp forOp) {
     } else {
       auto lbOperands = forOp.getLowerBoundOperands();
       auto lbMap = forOp.getLowerBoundMap();
-      OpBuilder builder(forOp);
-      if (lbMap == builder.getDimIdentityMap()) {
+      
+      if (OpBuilder builder(forOp); lbMap == builder.getDimIdentityMap()) {
         // No need of generating an affine.apply.
         iv.replaceAllUsesWith(lbOperands[0]);
       } else {
@@ -940,8 +940,8 @@ static void generateUnrolledLoop(
     // the `lastYielded` value remains unchanged. Else, update the `lastYielded`
     // value with the clone corresponding to the yielded value.
     for (unsigned i = 0, e = lastYielded.size(); i < e; i++) {
-      Operation *defOp = yieldedValues[i].getDefiningOp();
-      if (defOp && defOp->getBlock() == loopBodyBlock)
+      
+      if (Operation *defOp = yieldedValues[i].getDefiningOp(); defOp && defOp->getBlock() == loopBodyBlock)
         lastYielded[i] = operandMap.lookup(yieldedValues[i]);
     }
   }
@@ -2054,8 +2054,8 @@ static LogicalResult generateCopy(
     // Set copy start location for this dimension in the lower memory space
     // memref.
     if (lbs[d].isSingleConstant()) {
-      auto indexVal = lbs[d].getSingleConstantResult();
-      if (indexVal == 0) {
+      
+      if (auto indexVal = lbs[d].getSingleConstantResult(); indexVal == 0) {
         memIndices.push_back(zeroIndex);
       } else {
         memIndices.push_back(
@@ -2177,13 +2177,13 @@ static LogicalResult generateCopy(
                                dmaStride, numEltPerDmaStride);
     } else {
       // DMA non-blocking write from fast buffer to the original memref.
-      auto op = AffineDmaStartOp::create(
-          b, loc, fastMemRef, bufAffineMap, bufIndices, memref, memAffineMap,
-          memIndices, tagMemRef, tagAffineMap, tagIndices, numElementsSSA,
-          dmaStride, numEltPerDmaStride);
+      
       // Since new ops may be appended at 'end' (for outgoing DMAs), adjust the
       // end to mark end of block range being processed.
-      if (isCopyOutAtEndOfBlock)
+      if (auto op = AffineDmaStartOp::create(
+          b, loc, fastMemRef, bufAffineMap, bufIndices, memref, memAffineMap,
+          memIndices, tagMemRef, tagAffineMap, tagIndices, numElementsSSA,
+          dmaStride, numEltPerDmaStride); isCopyOutAtEndOfBlock)
         *nEnd = Block::iterator(op.getOperation());
     }
 
@@ -2192,8 +2192,8 @@ static LogicalResult generateCopy(
                             numElementsSSA);
 
     // Generate dealloc for the tag.
-    auto tagDeallocOp = memref::DeallocOp::create(epilogue, loc, tagMemRef);
-    if (*nEnd == end && isCopyOutAtEndOfBlock)
+    
+    if (auto tagDeallocOp = memref::DeallocOp::create(epilogue, loc, tagMemRef); *nEnd == end && isCopyOutAtEndOfBlock)
       // Since new ops are being appended (for outgoing DMAs), adjust the end to
       // mark end of range of the original.
       *nEnd = Block::iterator(tagDeallocOp.getOperation());
@@ -2201,10 +2201,10 @@ static LogicalResult generateCopy(
 
   // Generate dealloc for the buffer.
   if (!existingBuf) {
-    auto bufDeallocOp = memref::DeallocOp::create(epilogue, loc, fastMemRef);
+    
     // When generating pointwise copies, `nEnd' has to be set to deallocOp on
     // the fast buffer (since it marks the new end insertion point).
-    if (!copyOptions.generateDma && *nEnd == end && isCopyOutAtEndOfBlock)
+    if (auto bufDeallocOp = memref::DeallocOp::create(epilogue, loc, fastMemRef); !copyOptions.generateDma && *nEnd == end && isCopyOutAtEndOfBlock)
       *nEnd = Block::iterator(bufDeallocOp.getOperation());
   }
 
@@ -2793,10 +2793,10 @@ LogicalResult affine::coalescePerfectlyNestedAffineLoops(AffineForOp op) {
   for (unsigned end = loops.size(); end > 0; --end) {
     unsigned start = 0;
     for (; start < end - 1; ++start) {
-      auto maxPos =
+      
+      if (auto maxPos =
           *std::max_element(std::next(operandsDefinedAbove.begin(), start),
-                            std::next(operandsDefinedAbove.begin(), end));
-      if (maxPos > start)
+                            std::next(operandsDefinedAbove.begin(), end)); maxPos > start)
         continue;
       assert(maxPos == start &&
              "expected loop bounds to be known at the start of the band");

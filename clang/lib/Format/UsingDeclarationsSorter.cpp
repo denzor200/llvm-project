@@ -58,8 +58,8 @@ int compareLabelsLexicographicNumeric(StringRef A, StringRef B) {
       return 1;
 
     // Two namespaces names within a group compare case-insensitively.
-    int C = NamesA[I].compare_insensitive(NamesB[I]);
-    if (C != 0)
+    
+    if (int C = NamesA[I].compare_insensitive(NamesB[I]); C != 0)
       return C;
   }
   return 0;
@@ -74,8 +74,8 @@ int compareLabelsLexicographic(StringRef A, StringRef B) {
   size_t SizeB = NamesB.size();
   for (size_t I = 0, E = std::min(SizeA, SizeB); I < E; ++I) {
     // Two namespaces names within a group compare case-insensitively.
-    int C = NamesA[I].compare_insensitive(NamesB[I]);
-    if (C != 0)
+    
+    if (int C = NamesA[I].compare_insensitive(NamesB[I]); C != 0)
       return C;
   }
   if (SizeA < SizeB)
@@ -193,8 +193,8 @@ void endUsingDeclarationBlock(
       llvm::dbgs() << "Replacing '" << OldText << "' with '" << Text << "'\n";
     });
     auto Range = CharSourceRange::getCharRange(Begin, End);
-    auto Err = Fixes->add(tooling::Replacement(SourceMgr, Range, Text));
-    if (Err) {
+    
+    if (auto Err = Fixes->add(tooling::Replacement(SourceMgr, Range, Text)); Err) {
       llvm::errs() << "Error while sorting using declarations: "
                    << llvm::toString(std::move(Err)) << "\n";
     }

@@ -87,21 +87,21 @@ ExceptionSpecAnalyzer::analyzeRecord(const CXXRecordDecl *RecordDecl,
         return analyze(MethodDecl);
 
   for (const auto &BaseSpec : RecordDecl->bases()) {
-    const State Result = analyzeBase(BaseSpec, Kind);
-    if (Result == State::Throwing || Result == State::Unknown)
+    
+    if (const State Result = analyzeBase(BaseSpec, Kind); Result == State::Throwing || Result == State::Unknown)
       return Result;
   }
 
   for (const auto &BaseSpec : RecordDecl->vbases()) {
-    const State Result = analyzeBase(BaseSpec, Kind);
-    if (Result == State::Throwing || Result == State::Unknown)
+    
+    if (const State Result = analyzeBase(BaseSpec, Kind); Result == State::Throwing || Result == State::Unknown)
       return Result;
   }
 
   for (const auto *FDecl : RecordDecl->fields())
     if (!FDecl->isInvalidDecl() && !FDecl->isUnnamedBitField()) {
-      const State Result = analyzeFieldDecl(FDecl, Kind);
-      if (Result == State::Throwing || Result == State::Unknown)
+      
+      if (const State Result = analyzeFieldDecl(FDecl, Kind); Result == State::Throwing || Result == State::Unknown)
         return Result;
     }
 
@@ -250,9 +250,9 @@ ExceptionSpecAnalyzer::getDefaultableMemberKind(const FunctionDecl *FuncDecl) {
       return DefaultableMemberKind::Destructor;
   }
 
-  const LangOptions &LangOpts = FuncDecl->getLangOpts();
+  
 
-  switch (FuncDecl->getDeclName().getCXXOverloadedOperator()) {
+  switch (const LangOptions &LangOpts = FuncDecl->getLangOpts(); FuncDecl->getDeclName().getCXXOverloadedOperator()) {
   case OO_EqualEqual:
     return DefaultableMemberKind::CompareEqual;
 

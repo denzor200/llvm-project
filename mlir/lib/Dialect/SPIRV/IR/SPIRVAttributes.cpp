@@ -174,9 +174,9 @@ LogicalResult spirv::InterfaceVarABIAttr::verifyInvariants(
 
   if (storageClass) {
     if (auto storageClassAttr = llvm::cast<IntegerAttr>(storageClass)) {
-      auto storageClassValue =
-          spirv::symbolizeStorageClass(storageClassAttr.getInt());
-      if (!storageClassValue)
+      
+      if (auto storageClassValue =
+          spirv::symbolizeStorageClass(storageClassAttr.getInt()); !storageClassValue)
         return emitError() << "unknown storage class";
     } else {
       return emitError() << "expected valid storage class";
@@ -553,8 +553,8 @@ static Attribute parseTargetEnvAttr(DialectAsmParser &parser) {
   uint32_t deviceID = spirv::TargetEnvAttr::kUnknownDeviceID;
   {
     auto loc = parser.getCurrentLocation();
-    StringRef vendorStr;
-    if (succeeded(parser.parseOptionalKeyword(&vendorStr))) {
+    
+    if (StringRef vendorStr; succeeded(parser.parseOptionalKeyword(&vendorStr))) {
       if (auto vendorSymbol = spirv::symbolizeVendor(vendorStr))
         vendorID = *vendorSymbol;
       else

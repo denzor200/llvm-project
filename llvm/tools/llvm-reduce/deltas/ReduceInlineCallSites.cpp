@@ -38,8 +38,8 @@ static bool functionHasMoreThanNonTerminatorInsts(const Function &F,
 static bool hasOnlyOneCallUse(const Function &F) {
   unsigned UseCount = 0;
   for (const Use &U : F.uses()) {
-    const CallBase *CB = dyn_cast<CallBase>(U.getUser());
-    if (!CB || !CB->isCallee(&U))
+    
+    if (const CallBase *CB = dyn_cast<CallBase>(U.getUser()); !CB || !CB->isCallee(&U))
       return false;
     if (UseCount++ > 1)
       return false;
@@ -82,8 +82,8 @@ static void reduceCallSites(Oracle &O, Function &F) {
       // correctness issues which we do need to worry about here.
 
       // TODO: Should we delete the function body?
-      InlineFunctionInfo IFI;
-      if (CanInlineCallSite(*CB, IFI).isSuccess() &&
+      
+      if (InlineFunctionInfo IFI; CanInlineCallSite(*CB, IFI).isSuccess() &&
           inlineWillReduceComplexity(*CB->getFunction(), F) && !O.shouldKeep())
         CallSitesToInline.emplace_back(CB, std::move(IFI));
     }

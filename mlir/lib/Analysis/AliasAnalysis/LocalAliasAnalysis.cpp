@@ -422,8 +422,8 @@ AliasResult LocalAliasAnalysis::aliasImpl(Value lhs, Value rhs) {
       return AliasResult::NoAlias;
     }
     if (rhsParentOp == lhsAllocScope) {
-      BlockArgument rhsArg = dyn_cast<BlockArgument>(rhs);
-      if (rhsArg && rhs.getParentBlock()->isEntryBlock()) {
+      
+      if (BlockArgument rhsArg = dyn_cast<BlockArgument>(rhs); rhsArg && rhs.getParentBlock()->isEntryBlock()) {
         LDBG() << "  rhs is entry block arg of alloc scope, no alias";
         return AliasResult::NoAlias;
       }

@@ -40,8 +40,8 @@ void CommandObjectIterateOverThreads::DoExecute(Args &command,
   m_unique_stacks = false;
 
   if (command.GetArgumentCount() == 0) {
-    Thread *thread = m_exe_ctx.GetThreadPtr();
-    if (thread)
+    
+    if (Thread *thread = m_exe_ctx.GetThreadPtr(); thread)
       HandleOneThread(thread->GetID(), result);
     return;
   } else if (command.GetArgumentCount() == 1) {
@@ -111,9 +111,9 @@ void CommandObjectIterateOverThreads::DoExecute(Args &command,
 
       // List the shared call stack for this set of threads
       uint32_t representative_thread_id = stack.GetRepresentativeThread();
-      ThreadSP thread = process->GetThreadList().FindThreadByIndexID(
-          representative_thread_id);
-      if (!HandleOneThread(thread->GetID(), result)) {
+      
+      if (ThreadSP thread = process->GetThreadList().FindThreadByIndexID(
+          representative_thread_id); !HandleOneThread(thread->GetID(), result)) {
         return;
       }
     }

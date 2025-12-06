@@ -49,8 +49,8 @@ json::Object PipelinePrinter::getJSONSimulationParameters() const {
                               {"-mtriple", STI.getTargetTriple().getTriple()},
                               {"-march", STI.getTargetTriple().getArchName()}});
 
-  const MCSchedModel &SM = STI.getSchedModel();
-  if (!SM.isOutOfOrder())
+  
+  if (const MCSchedModel &SM = STI.getSchedModel(); !SM.isOutOfOrder())
     return SimParameters;
 
   if (PO.RegisterFileSize)

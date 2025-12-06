@@ -148,11 +148,11 @@ bool isNonVolatileMemoryOp(const MachineInstr &MI) {
   if (mergedOpcode(MI.getOpcode(), false) == 0)
     return false;
 
-  const MachineMemOperand *MemOperand = *MI.memoperands_begin();
+  
 
   // Don't move volatile memory accesses
   // TODO: unclear if we need to be as conservative about atomics
-  if (MemOperand->isVolatile() || MemOperand->isAtomic())
+  if (const MachineMemOperand *MemOperand = *MI.memoperands_begin(); MemOperand->isVolatile() || MemOperand->isAtomic())
     return false;
 
   return true;
@@ -359,22 +359,22 @@ bool LanaiMemAluCombiner::combineMemAluInBasicBlock(MachineBasicBlock *BB) {
 
   MbbIterator MBBIter = BB->begin(), End = BB->end();
   while (MBBIter != End) {
-    bool IsMemOp = isNonVolatileMemoryOp(*MBBIter);
+    
 
-    if (IsMemOp) {
+    if (bool IsMemOp = isNonVolatileMemoryOp(*MBBIter); IsMemOp) {
       MachineOperand AluOperand = MBBIter->getOperand(3);
       unsigned int DestReg = MBBIter->getOperand(0).getReg(),
                    BaseReg = MBBIter->getOperand(1).getReg();
       assert(AluOperand.isImm() && "Unexpected memory operator type");
-      LPAC::AluCode AluOpcode = static_cast<LPAC::AluCode>(AluOperand.getImm());
+      
 
       // Skip memory operations that already modify the base register or if
       // the destination and base register are the same
-      if (!LPAC::modifiesOp(AluOpcode) && DestReg != BaseReg) {
+      if (LPAC::AluCode AluOpcode = static_cast<LPAC::AluCode>(AluOperand.getImm()); !LPAC::modifiesOp(AluOpcode) && DestReg != BaseReg) {
         for (int Inc = 0; Inc <= 1; ++Inc) {
-          MbbIterator AluIter =
-              findClosestSuitableAluInstr(BB, MBBIter, Inc == 0);
-          if (AluIter != MBBIter) {
+          
+          if (MbbIterator AluIter =
+              findClosestSuitableAluInstr(BB, MBBIter, Inc == 0); AluIter != MBBIter) {
             insertMergedInstruction(BB, MBBIter, AluIter, Inc == 0);
 
             ++NumLdStAluCombined;

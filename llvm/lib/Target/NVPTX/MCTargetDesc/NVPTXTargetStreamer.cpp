@@ -139,8 +139,8 @@ void NVPTXTargetStreamer::emitRawBytes(StringRef Data) {
 void NVPTXTargetStreamer::emitValue(const MCExpr *Value) {
   if (Value->getKind() == MCExpr::SymbolRef) {
     const MCSymbolRefExpr &SRE = cast<MCSymbolRefExpr>(*Value);
-    StringRef SymName = SRE.getSymbol().getName();
-    if (!SymName.starts_with(".debug")) {
+    
+    if (StringRef SymName = SRE.getSymbol().getName(); !SymName.starts_with(".debug")) {
       Streamer.emitRawText(NVPTX::getValidPTXIdentifier(SymName));
       return;
     }

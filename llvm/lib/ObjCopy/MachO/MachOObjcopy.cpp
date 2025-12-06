@@ -121,8 +121,8 @@ static void updateAndRemoveSymbols(const CommonConfig &Config,
         (Config.Weaken || Config.SymbolsToWeaken.matches(Sym.Name)))
       Sym.n_desc |= MachO::N_WEAK_DEF;
 
-    auto I = Config.SymbolsToRename.find(Sym.Name);
-    if (I != Config.SymbolsToRename.end())
+    
+    if (auto I = Config.SymbolsToRename.find(Sym.Name); I != Config.SymbolsToRename.end())
       Sym.Name = std::string(I->getValue());
   });
 
@@ -189,8 +189,8 @@ static Error processLoadCommands(const MachOConfig &MachOConfig, Object &Obj) {
       if (MachOConfig.RemoveAllRpaths)
         return true;
 
-      StringRef RPath = getPayloadString(LC);
-      if (RPathsToRemove.count(RPath)) {
+      
+      if (StringRef RPath = getPayloadString(LC); RPathsToRemove.count(RPath)) {
         RPathsToRemove.erase(RPath);
         return true;
       }
@@ -290,15 +290,15 @@ static Error processLoadCommands(const MachOConfig &MachOConfig, Object &Obj) {
 
   // Remove any empty segments if required.
   if (!MachOConfig.EmptySegmentsToRemove.empty()) {
-    auto RemovePred = [&MachOConfig](const LoadCommand &LC) {
+    
+    if (auto RemovePred = [&MachOConfig](const LoadCommand &LC) {
       if (LC.MachOLoadCommand.load_command_data.cmd == MachO::LC_SEGMENT_64 ||
           LC.MachOLoadCommand.load_command_data.cmd == MachO::LC_SEGMENT) {
         return LC.Sections.empty() &&
                MachOConfig.EmptySegmentsToRemove.contains(*LC.getSegmentName());
       }
       return false;
-    };
-    if (Error E = Obj.removeLoadCommands(RemovePred))
+    }; Error E = Obj.removeLoadCommands(RemovePred))
       return E;
   }
 
@@ -337,8 +337,8 @@ static Error addSection(const NewSectionInfo &NewSection, Object &Obj) {
 
   // Add the a section into an existing segment.
   for (LoadCommand &LC : Obj.LoadCommands) {
-    std::optional<StringRef> SegName = LC.getSegmentName();
-    if (SegName && SegName == TargetSegName) {
+    
+    if (std::optional<StringRef> SegName = LC.getSegmentName(); SegName && SegName == TargetSegName) {
       uint64_t Addr = *LC.getSegmentVMAddr();
       for (const std::unique_ptr<Section> &S : LC.Sections)
         Addr = std::max(Addr, S->Addr + S->Size);

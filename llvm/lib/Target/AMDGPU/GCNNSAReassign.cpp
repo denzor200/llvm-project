@@ -215,16 +215,16 @@ GCNNSAReassignImpl::CheckNSA(const MachineInstr &MI, bool Fast) const {
       if (VRM->getPreSplitReg(Reg))
         return NSA_Status::FIXED;
 
-      const MachineInstr *Def = MRI->getUniqueVRegDef(Reg);
+      
 
-      if (Def && Def->isCopy() && Def->getOperand(1).getReg() == PhysReg)
+      if (const MachineInstr *Def = MRI->getUniqueVRegDef(Reg); Def && Def->isCopy() && Def->getOperand(1).getReg() == PhysReg)
         return NSA_Status::FIXED;
 
       for (auto U : MRI->use_nodbg_operands(Reg)) {
         if (U.isImplicit())
           return NSA_Status::FIXED;
-        const MachineInstr *UseInst = U.getParent();
-        if (UseInst->isCopy() && UseInst->getOperand(0).getReg() == PhysReg)
+        
+        if (const MachineInstr *UseInst = U.getParent(); UseInst->isCopy() && UseInst->getOperand(0).getReg() == PhysReg)
           return NSA_Status::FIXED;
       }
 

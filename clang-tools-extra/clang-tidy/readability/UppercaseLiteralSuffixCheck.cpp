@@ -216,10 +216,10 @@ bool UppercaseLiteralSuffixCheck::checkBoundMatch(
           *Literal, NewSuffixes, *Result.SourceManager, getLangOpts())) {
     if (Details->LiteralLocation.getBegin().isMacroID() && IgnoreMacros)
       return true;
-    auto Complaint = diag(Details->LiteralLocation.getBegin(),
+    
+    if (auto Complaint = diag(Details->LiteralLocation.getBegin(),
                           "%0 literal has suffix '%1', which is not uppercase")
-                     << LiteralType::Name << Details->OldSuffix;
-    if (Details->FixIt) // Similarly, a fix-it is not always possible.
+                     << LiteralType::Name << Details->OldSuffix; Details->FixIt) // Similarly, a fix-it is not always possible.
       Complaint << *(Details->FixIt);
   }
 

@@ -323,8 +323,8 @@ public:
   // will be eligible for association with other files that get update()d.
   void remove(PathRef MainFile) {
     std::lock_guard<std::mutex> Lock(Mu);
-    Association *&First = MainToFirst[MainFile];
-    if (First) {
+    
+    if (Association *&First = MainToFirst[MainFile]; First) {
       invalidate(First);
       First = nullptr;
     }
@@ -873,10 +873,10 @@ void ASTWorker::update(ParseInputs Inputs, WantDiagnostics WantDiags,
     // If we don't have a reliable command for this file, it may be a header.
     // Try to find a file that includes it, to borrow its command.
     if (!Cmd || !isReliable(*Cmd)) {
-      std::string ProxyFile = HeaderIncluders.get(FileName);
-      if (!ProxyFile.empty()) {
-        auto ProxyCmd = CDB.getCompileCommand(ProxyFile);
-        if (!ProxyCmd || !isReliable(*ProxyCmd)) {
+      
+      if (std::string ProxyFile = HeaderIncluders.get(FileName); !ProxyFile.empty()) {
+        
+        if (auto ProxyCmd = CDB.getCompileCommand(ProxyFile); !ProxyCmd || !isReliable(*ProxyCmd)) {
           // This command is supposed to be reliable! It's probably gone.
           HeaderIncluders.remove(ProxyFile);
         } else {
@@ -1697,8 +1697,8 @@ bool TUScheduler::update(PathRef File, ParseInputs Inputs,
 }
 
 void TUScheduler::remove(PathRef File) {
-  bool Removed = Files.erase(File);
-  if (!Removed)
+  
+  if (bool Removed = Files.erase(File); !Removed)
     elog("Trying to remove file from TUScheduler that is not tracked: {0}",
          File);
   // We don't call HeaderIncluders.remove(File) here.

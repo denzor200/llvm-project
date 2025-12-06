@@ -373,8 +373,8 @@ static unsigned ProcessCharEscape(const char *ThisTokBegin,
 static void appendCodePoint(unsigned Codepoint,
                             llvm::SmallVectorImpl<char> &Str) {
   char ResultBuf[4];
-  char *ResultPtr = ResultBuf;
-  if (llvm::ConvertCodePointToUTF8(Codepoint, ResultPtr))
+  
+  if (char *ResultPtr = ResultBuf; llvm::ConvertCodePointToUTF8(Codepoint, ResultPtr))
     Str.append(ResultBuf, ResultPtr);
 }
 
@@ -616,8 +616,8 @@ static bool ProcessNamedUCNEscape(const char *ThisTokBegin,
     return C == '}' || isVerticalWhitespace(C);
   });
   bool Incomplete = ClosingBrace == ThisTokEnd;
-  bool Empty = ClosingBrace == ThisTokBuf;
-  if (Incomplete || Empty) {
+  
+  if (bool Empty = ClosingBrace == ThisTokBuf; Incomplete || Empty) {
     if (Diags) {
       Diag(Diags, Features, Loc, ThisTokBegin, UcnBegin, ThisTokBuf,
            Incomplete ? diag::err_ucn_escape_incomplete
@@ -684,8 +684,8 @@ static bool ProcessUCNEscape(const char *ThisTokBegin, const char *&ThisTokBuf,
     bool IsError =
         (!(Features.CPlusPlus11 || Features.C23) || !in_char_string_literal);
     if (Diags) {
-      char BasicSCSChar = UcnVal;
-      if (UcnVal >= 0x20 && UcnVal < 0x7f)
+      
+      if (char BasicSCSChar = UcnVal; UcnVal >= 0x20 && UcnVal < 0x7f)
         Diag(Diags, Features, Loc, ThisTokBegin, UcnBegin, ThisTokBuf,
              IsError ? diag::err_ucn_escape_basic_scs
              : Features.CPlusPlus
@@ -1245,8 +1245,8 @@ void NumericLiteralParser::ParseDecimalOrOctalCommon(SourceLocation TokLoc){
     radix = 10;
     saw_exponent = true;
     if (s != ThisTokEnd && (*s == '+' || *s == '-'))  s++; // sign
-    const char *first_non_digit = SkipDigits(s);
-    if (containsDigits(s, first_non_digit)) {
+    
+    if (const char *first_non_digit = SkipDigits(s); containsDigits(s, first_non_digit)) {
       checkSeparator(TokLoc, s, CSK_BeforeDigits);
       s = first_non_digit;
     } else {
@@ -1475,8 +1475,8 @@ void NumericLiteralParser::ParseNumberStartingWithZero(SourceLocation TokLoc) {
   // If we have some other non-octal digit that *is* a decimal digit, see if
   // this is part of a floating point number like 094.123 or 09e1.
   if (isDigit(*s)) {
-    const char *EndDecimal = SkipDigits(s);
-    if (EndDecimal[0] == '.' || EndDecimal[0] == 'e' || EndDecimal[0] == 'E') {
+    
+    if (const char *EndDecimal = SkipDigits(s); EndDecimal[0] == '.' || EndDecimal[0] == 'e' || EndDecimal[0] == 'E') {
       s = EndDecimal;
       radix = 10;
     }
@@ -1510,8 +1510,8 @@ bool NumericLiteralParser::GetIntegerValue(llvm::APInt &Val) {
   // integer. This avoids the expensive overflow checking below, and
   // handles the common cases that matter (small decimal integers and
   // hex/octal values which don't overflow).
-  const unsigned NumDigits = SuffixBegin - DigitsBegin;
-  if (alwaysFitsInto64Bits(radix, NumDigits)) {
+  
+  if (const unsigned NumDigits = SuffixBegin - DigitsBegin; alwaysFitsInto64Bits(radix, NumDigits)) {
     uint64_t N = 0;
     for (const char *Ptr = DigitsBegin; Ptr != SuffixBegin; ++Ptr)
       if (!isDigitSeparator(*Ptr))
@@ -1611,8 +1611,8 @@ bool NumericLiteralParser::GetFixedPointValue(llvm::APInt &StoreVal, unsigned Sc
     NegativeExponent = *Ptr == '-';
     if (NegativeExponent) ++Ptr;
 
-    unsigned NumExpDigits = SuffixBegin - Ptr;
-    if (alwaysFitsInto64Bits(radix, NumExpDigits)) {
+    
+    if (unsigned NumExpDigits = SuffixBegin - Ptr; alwaysFitsInto64Bits(radix, NumExpDigits)) {
       llvm::StringRef ExpStr(Ptr, NumExpDigits);
       llvm::APInt ExpInt(/*numBits=*/64, ExpStr, /*radix=*/10);
       Exponent = ExpInt.getZExtValue();
@@ -1827,11 +1827,11 @@ CharLiteralParser::CharLiteralParser(const char *begin, const char *end,
 
       char const *tmp_in_start = start;
       uint32_t *tmp_out_start = buffer_begin;
-      llvm::ConversionResult res =
+      
+      if (llvm::ConversionResult res =
           llvm::ConvertUTF8toUTF32(reinterpret_cast<llvm::UTF8 const **>(&start),
                              reinterpret_cast<llvm::UTF8 const *>(begin),
-                             &buffer_begin, buffer_end, llvm::strictConversion);
-      if (res != llvm::conversionOK) {
+                             &buffer_begin, buffer_end, llvm::strictConversion); res != llvm::conversionOK) {
         // If we see bad encoding for unprefixed character literals, warn and
         // simply copy the byte values, for compatibility with gcc and
         // older versions of clang.
@@ -2112,9 +2112,9 @@ void StringLiteralParser::init(ArrayRef<Token> StringToks){
         --ThisTokEnd;
       } while (ThisTokEnd[-1] != '"');
 
-      StringRef UDSuffix(ThisTokEnd, UDSuffixEnd - ThisTokEnd);
+      
 
-      if (UDSuffixBuf.empty()) {
+      if (StringRef UDSuffix(ThisTokEnd, UDSuffixEnd - ThisTokEnd); UDSuffixBuf.empty()) {
         if (StringToks[i].hasUCN())
           expandUCNs(UDSuffixBuf, UDSuffix);
         else
@@ -2136,8 +2136,8 @@ void StringLiteralParser::init(ArrayRef<Token> StringToks){
         bool UnevaluatedStringHasUDL = isUnevaluated() && !UDSuffix.empty();
         if (UDSuffixBuf != UDSuffix || UnevaluatedStringHasUDL) {
           if (Diags) {
-            SourceLocation TokLoc = StringToks[i].getLocation();
-            if (UnevaluatedStringHasUDL) {
+            
+            if (SourceLocation TokLoc = StringToks[i].getLocation(); UnevaluatedStringHasUDL) {
               Diags->Report(TokLoc, diag::err_unevaluated_string_udl)
                   << SourceRange(TokLoc, TokLoc);
             } else {
@@ -2253,12 +2253,12 @@ void StringLiteralParser::init(ArrayRef<Token> StringToks){
           continue;
         }
         // Otherwise, this is a non-UCN escape character.  Process it.
-        unsigned ResultChar =
+        
+
+        if (unsigned ResultChar =
             ProcessCharEscape(ThisTokBegin, ThisTokBuf, ThisTokEnd, hadError,
                               FullSourceLoc(StringToks[i].getLocation(), SM),
-                              CharByteWidth * 8, Diags, Features, EvalMethod);
-
-        if (CharByteWidth == 4) {
+                              CharByteWidth * 8, Diags, Features, EvalMethod); CharByteWidth == 4) {
           // FIXME: Make the type of the result buffer correct instead of
           // using reinterpret_cast.
           llvm::UTF32 *ResultWidePtr = reinterpret_cast<llvm::UTF32*>(ResultPtr);
@@ -2308,9 +2308,9 @@ void StringLiteralParser::init(ArrayRef<Token> StringToks){
     }
   } else if (Diags) {
     // Complain if this string literal has too many characters.
-    unsigned MaxChars = Features.CPlusPlus? 65536 : Features.C99 ? 4095 : 509;
+    
 
-    if (GetNumStringChars() > MaxChars)
+    if (unsigned MaxChars = Features.CPlusPlus? 65536 : Features.C99 ? 4095 : 509; GetNumStringChars() > MaxChars)
       Diags->Report(StringToks.front().getLocation(),
                     diag::ext_string_too_long)
         << GetNumStringChars() << MaxChars

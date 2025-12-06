@@ -903,10 +903,10 @@ void PromoteMem2Reg::run() {
              I = NewPhiNodes.begin(),
              E = NewPhiNodes.end();
          I != E;) {
-      PHINode *PN = I->second;
+      
 
       // If this PHI node merges one value and/or undefs, get the value.
-      if (Value *V = simplifyInstruction(PN, SQ)) {
+      if (PHINode *PN = I->second; Value *V = simplifyInstruction(PN, SQ)) {
         PN->replaceAllUsesWith(V);
         PN->eraseFromParent();
         NewPhiNodes.erase(I++);
@@ -1150,9 +1150,9 @@ void PromoteMem2Reg::RenamePass(BasicBlock *BB, BasicBlock *Pred) {
   Visited.set(BB->getNumber());
 
   for (BasicBlock::iterator II = BB->begin(); !II->isTerminator();) {
-    Instruction *I = &*II++; // get the instruction, increment iterator
+    // get the instruction, increment iterator
 
-    if (LoadInst *LI = dyn_cast<LoadInst>(I)) {
+    if (Instruction *I = &*II++; LoadInst *LI = dyn_cast<LoadInst>(I)) {
       AllocaInst *Src = dyn_cast<AllocaInst>(LI->getPointerOperand());
       if (!Src)
         continue;

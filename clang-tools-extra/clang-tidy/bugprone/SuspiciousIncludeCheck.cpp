@@ -81,10 +81,10 @@ void SuspiciousIncludePPCallbacks::InclusionDirective(
     llvm::sys::path::replace_extension(GuessedFileName,
                                        (!HFE.empty() ? "." : "") + HFE);
 
-    const OptionalFileEntryRef File =
+    
+    if (const OptionalFileEntryRef File =
         PP->LookupFile(DiagLoc, GuessedFileName, IsAngled, nullptr, nullptr,
-                       nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
-    if (File) {
+                       nullptr, nullptr, nullptr, nullptr, nullptr, nullptr); File) {
       Check.diag(DiagLoc, "did you mean to include '%0'?", DiagnosticIDs::Note)
           << GuessedFileName;
     }

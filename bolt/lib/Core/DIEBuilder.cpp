@@ -233,10 +233,10 @@ void DIEBuilder::constructFromUnit(DWARFUnit &DU) {
       DWARFDie DDie(&DU, &DIEEntry);
 
       DIE *CurDIE = constructDIEFast(DDie, DU, *UnitId);
-      DWARFUnitInfo &UI = getUnitInfo(*UnitId);
+      
       // Can't rely on first element in DieVector due to cross CU forward
       // references.
-      if (!UI.UnitDie)
+      if (DWARFUnitInfo &UI = getUnitInfo(*UnitId); !UI.UnitDie)
         UI.UnitDie = CurDIE;
       if (IsTypeDIE)
         getState().TypeDIEMap[&DU] = CurDIE;
@@ -274,8 +274,8 @@ void DIEBuilder::buildTypeUnits(DebugStrOffsetsWriter *StrOffsetWriter,
   if (Init)
     BuilderState.reset(new State());
 
-  const DWARFUnitIndex &TUIndex = DwarfContext->getTUIndex();
-  if (!TUIndex.getRows().empty()) {
+  
+  if (const DWARFUnitIndex &TUIndex = DwarfContext->getTUIndex(); !TUIndex.getRows().empty()) {
     for (auto &Row : TUIndex.getRows()) {
       uint64_t Signature = Row.getSignature();
       // manually populate TypeUnit to UnitVector
@@ -373,8 +373,8 @@ DIE *DIEBuilder::constructDIEFast(DWARFDie &DDie, DWARFUnit &U,
   std::optional<uint32_t> Idx = getAllocDIEId(U, DDie);
   if (Idx) {
     DWARFUnitInfo &DWARFUnitInfo = getUnitInfo(UnitId);
-    DIEInfo &DieInfo = getDIEInfo(UnitId, *Idx);
-    if (DWARFUnitInfo.IsConstructed && DieInfo.Die)
+    
+    if (DIEInfo &DieInfo = getDIEInfo(UnitId, *Idx); DWARFUnitInfo.IsConstructed && DieInfo.Die)
       return DieInfo.Die;
   } else {
     Idx = allocDIE(U, DDie, getState().DIEAlloc, UnitId);
@@ -586,8 +586,8 @@ DWARFDie DIEBuilder::resolveDIEReference(
     /// Trying to add to current working set in case it's cross CU reference.
     if (!registerUnit(*RefCU, true))
       return DWARFDie();
-    DWARFDataExtractor DebugInfoData = RefCU->getDebugInfoExtractor();
-    if (DwarfDebugInfoEntry.extractFast(*RefCU, &TmpRefOffset, DebugInfoData,
+    
+    if (DWARFDataExtractor DebugInfoData = RefCU->getDebugInfoExtractor(); DwarfDebugInfoEntry.extractFast(*RefCU, &TmpRefOffset, DebugInfoData,
                                         RefCU->getNextUnitOffset(), 0)) {
       // In a file with broken references, an attribute might point to a NULL
       // DIE.
@@ -738,10 +738,10 @@ bool DIEBuilder::cloneExpression(const DataExtractor &Data,
         DoesContainReference = true;
         std::optional<uint32_t> RefDieID =
             getAllocDIEId(U, U.getOffset() + RefOffset);
-        std::optional<uint32_t> RefUnitID = getUnitId(U);
-        if (RefDieID.has_value() && RefUnitID.has_value()) {
-          DIEInfo &RefDieInfo = getDIEInfo(*RefUnitID, *RefDieID);
-          if (DIE *Clone = RefDieInfo.Die)
+        
+        if (std::optional<uint32_t> RefUnitID = getUnitId(U); RefDieID.has_value() && RefUnitID.has_value()) {
+          
+          if (DIEInfo &RefDieInfo = getDIEInfo(*RefUnitID, *RefDieID); DIE *Clone = RefDieInfo.Die)
             Offset = Stage == CloneExpressionStage::INIT ? RefOffset
                                                          : Clone->getOffset();
           else
@@ -954,10 +954,10 @@ void DIEBuilder::assignAbbrev(DIEAbbrev &Abbrev) {
   FoldingSetNodeID ID;
   Abbrev.Profile(ID);
   void *InsertToken;
-  DIEAbbrev *InSet = AbbreviationsSet.FindNodeOrInsertPos(ID, InsertToken);
+  
 
   // If it's newly added.
-  if (InSet) {
+  if (DIEAbbrev *InSet = AbbreviationsSet.FindNodeOrInsertPos(ID, InsertToken); InSet) {
     // Assign existing abbreviation number.
     Abbrev.setNumber(InSet->getNumber());
   } else {

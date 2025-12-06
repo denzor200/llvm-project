@@ -295,10 +295,10 @@ checkDeducedTemplateArguments(ASTContext &Context,
   // for that now. The exception is that if either was deduced from an array
   // bound, the type is permitted to differ.
   if (!X.wasDeducedFromArrayBound() && !Y.wasDeducedFromArrayBound()) {
-    QualType XType = X.getNonTypeTemplateArgumentType();
-    if (!XType.isNull()) {
-      QualType YType = Y.getNonTypeTemplateArgumentType();
-      if (YType.isNull() || !Context.hasSameType(XType, YType))
+    
+    if (QualType XType = X.getNonTypeTemplateArgumentType(); !XType.isNull()) {
+      
+      if (QualType YType = Y.getNonTypeTemplateArgumentType(); YType.isNull() || !Context.hasSameType(XType, YType))
         return DeducedTemplateArgument();
     }
   }
@@ -1063,8 +1063,8 @@ public:
     // for that pack, then clear out the deduced argument.
     if (!FinishingDeduction) {
       for (auto &Pack : Packs) {
-        DeducedTemplateArgument &DeducedArg = Deduced[Pack.Index];
-        if (!Pack.New.empty() || !DeducedArg.isNull()) {
+        
+        if (DeducedTemplateArgument &DeducedArg = Deduced[Pack.Index]; !Pack.New.empty() || !DeducedArg.isNull()) {
           while (Pack.New.size() < PackElements)
             Pack.New.push_back(DeducedTemplateArgument());
           if (Pack.New.size() == PackElements)
@@ -1285,8 +1285,8 @@ static TemplateDeductionResult DeduceForEachType(
       // If the parameter type contains an explicitly-specified pack that we
       // could not expand, skip the number of parameters notionally created
       // by the expansion.
-      UnsignedOrNone NumExpansions = Expansion->getNumExpansions();
-      if (NumExpansions && !PackScope.isPartiallyExpanded()) {
+      
+      if (UnsignedOrNone NumExpansions = Expansion->getNumExpansions(); NumExpansions && !PackScope.isPartiallyExpanded()) {
         for (unsigned I = 0; I != *NumExpansions && ArgIdx < Args.size();
              ++I, ++ArgIdx)
           PackScope.nextPackElement();
@@ -1406,11 +1406,11 @@ static bool hasInconsistentOrSupersetQualifiersOf(QualType ParamType,
 }
 
 bool Sema::isSameOrCompatibleFunctionType(QualType P, QualType A) {
-  const FunctionType *PF = P->getAs<FunctionType>(),
-                     *AF = A->getAs<FunctionType>();
+  
 
   // Just compare if not functions.
-  if (!PF || !AF)
+  if (const FunctionType *PF = P->getAs<FunctionType>(),
+                     *AF = A->getAs<FunctionType>(); !PF || !AF)
     return Context.hasSameType(P, A);
 
   // Noreturn and noexcept adjustment.
@@ -1528,8 +1528,8 @@ DeduceTemplateBases(Sema &S, const CXXRecordDecl *RD,
 
     // If this was a successful deduction, add it to the list of matches,
     // otherwise we need to continue searching its bases.
-    const CXXRecordDecl *RD = NextT->getAsCXXRecordDecl();
-    if (BaseResult == TemplateDeductionResult::Success)
+    
+    if (const CXXRecordDecl *RD = NextT->getAsCXXRecordDecl(); BaseResult == TemplateDeductionResult::Success)
       Matches.insert({RD, {DeducedCopy, HasDeducedAnyParamCopy}});
     else
       AddBases(RD);
@@ -1649,8 +1649,8 @@ static TemplateDeductionResult DeduceTemplateArgumentsByTypeMatch(
       // succeeds, so we model this as a deduction failure. Note that
       // [the first type] is P and [the other type] is A here; the standard
       // gets this backwards.
-      Qualifiers PQuals = P.getQualifiers(), AQuals = A.getQualifiers();
-      if ((PRef->isLValueReferenceType() && !ARef->isLValueReferenceType()) ||
+      
+      if (Qualifiers PQuals = P.getQualifiers(), AQuals = A.getQualifiers(); (PRef->isLValueReferenceType() && !ARef->isLValueReferenceType()) ||
           PQuals.isStrictSupersetOf(AQuals) ||
           (PQuals.hasNonTrivialObjCLifetime() &&
            AQuals.getObjCLifetime() == Qualifiers::OCL_ExplicitNone &&
@@ -2083,8 +2083,8 @@ static TemplateDeductionResult DeduceTemplateArgumentsByTypeMatch(
         assert(NTTP.getDepth() == Info.getDeducedDepth() &&
                "saw non-type template parameter with wrong depth");
 
-        llvm::APSInt Noexcept(1);
-        switch (FPA->canThrow()) {
+        
+        switch (llvm::APSInt Noexcept(1); FPA->canThrow()) {
         case CT_Cannot:
           Noexcept = 1;
           [[fallthrough]];
@@ -2554,8 +2554,8 @@ static TemplateDeductionResult DeduceTemplateArgumentsByTypeMatch(
       return TemplateDeductionResult::Success;
 
     case Type::PackIndexing: {
-      const PackIndexingType *PIT = P->getAs<PackIndexingType>();
-      if (PIT->hasSelectedType()) {
+      
+      if (const PackIndexingType *PIT = P->getAs<PackIndexingType>(); PIT->hasSelectedType()) {
         return DeduceTemplateArgumentsByTypeMatch(
             S, TemplateParams, PIT->getSelectedType(), A, Info, Deduced, TDF,
             degradeCallPartialOrderingKind(POK),
@@ -3001,18 +3001,18 @@ ConvertDeducedTemplateArgument(Sema &S, NamedDecl *Param,
       Sema::ArgPackSubstIndexRAII OnlySubstNonPackExpansion(S, std::nullopt);
 
       if (auto *NTTP = dyn_cast<NonTypeTemplateParmDecl>(Param)) {
-        Sema::InstantiatingTemplate Inst(S, Template->getLocation(), Template,
+        
+        if (Sema::InstantiatingTemplate Inst(S, Template->getLocation(), Template,
                                          NTTP, CTAI.SugaredConverted,
-                                         Template->getSourceRange());
-        if (Inst.isInvalid() ||
+                                         Template->getSourceRange()); Inst.isInvalid() ||
             S.SubstType(NTTP->getType(), Args, NTTP->getLocation(),
                         NTTP->getDeclName()).isNull())
           return true;
       } else if (auto *TTP = dyn_cast<TemplateTemplateParmDecl>(Param)) {
-        Sema::InstantiatingTemplate Inst(S, Template->getLocation(), Template,
+        
+        if (Sema::InstantiatingTemplate Inst(S, Template->getLocation(), Template,
                                          TTP, CTAI.SugaredConverted,
-                                         Template->getSourceRange());
-        if (Inst.isInvalid() || !S.SubstDecl(TTP, S.CurContext, Args))
+                                         Template->getSourceRange()); Inst.isInvalid() || !S.SubstDecl(TTP, S.CurContext, Args))
           return true;
       }
       // For type parameters, no substitution is ever required.
@@ -3616,13 +3616,13 @@ TemplateDeductionResult Sema::SubstituteExplicitTemplateArguments(
   // for this template parameter pack.
   unsigned PartiallySubstitutedPackIndex = -1u;
   if (!CTAI.SugaredConverted.empty()) {
-    const TemplateArgument &Arg = CTAI.SugaredConverted.back();
-    if (Arg.getKind() == TemplateArgument::Pack) {
+    
+    if (const TemplateArgument &Arg = CTAI.SugaredConverted.back(); Arg.getKind() == TemplateArgument::Pack) {
       auto *Param = TemplateParams->getParam(CTAI.SugaredConverted.size() - 1);
       // If this is a fully-saturated fixed-size pack, it should be
       // fully-substituted, not partially-substituted.
-      UnsignedOrNone Expansions = getExpandedPackSize(Param);
-      if (!Expansions || Arg.pack_size() < *Expansions) {
+      
+      if (UnsignedOrNone Expansions = getExpandedPackSize(Param); !Expansions || Arg.pack_size() < *Expansions) {
         PartiallySubstitutedPackIndex = CTAI.SugaredConverted.size() - 1;
         CurrentInstantiationScope->SetPartiallySubstitutedPack(
             Param, Arg.pack_begin(), Arg.pack_size());
@@ -3718,8 +3718,8 @@ TemplateDeductionResult Sema::SubstituteExplicitTemplateArguments(
   // mechanism handles the partially-substituted argument pack directly.
   Deduced.reserve(TemplateParams->size());
   for (unsigned I = 0, N = SugaredExplicitArgumentList->size(); I != N; ++I) {
-    const TemplateArgument &Arg = SugaredExplicitArgumentList->get(I);
-    if (I == PartiallySubstitutedPackIndex)
+    
+    if (const TemplateArgument &Arg = SugaredExplicitArgumentList->get(I); I == PartiallySubstitutedPackIndex)
       Deduced.push_back(DeducedTemplateArgument());
     else
       Deduced.push_back(Arg);
@@ -4109,9 +4109,9 @@ TemplateDeductionResult Sema::FinishTemplateArgumentDeduction(
   // keep track of these diagnostics. They'll be emitted if this specialization
   // is actually used.
   if (Info.diag_begin() != Info.diag_end()) {
-    auto [Pos, Inserted] =
-        SuppressedDiagnostics.try_emplace(Specialization->getCanonicalDecl());
-    if (Inserted)
+    
+    if (auto [Pos, Inserted] =
+        SuppressedDiagnostics.try_emplace(Specialization->getCanonicalDecl()); Inserted)
       Pos->second.append(Info.diag_begin(), Info.diag_end());
   }
 
@@ -4523,8 +4523,8 @@ TemplateDeductionResult Sema::DeduceTemplateArguments(
     return TemplateDeductionResult::TooFewArguments;
   else if (TooManyArguments(NumParams, Args.size() + ExplicitObjectOffset,
                             PartialOverloading)) {
-    const auto *Proto = Function->getType()->castAs<FunctionProtoType>();
-    if (Proto->isTemplateVariadic())
+    
+    if (const auto *Proto = Function->getType()->castAs<FunctionProtoType>(); Proto->isTemplateVariadic())
       /* Do nothing */;
     else if (!Proto->isVariadic())
       return TemplateDeductionResult::TooManyArguments;
@@ -4661,8 +4661,8 @@ TemplateDeductionResult Sema::DeduceTemplateArguments(
       // If the parameter type contains an explicitly-specified pack that we
       // could not expand, skip the number of parameters notionally created
       // by the expansion.
-      UnsignedOrNone NumExpansions = ParamExpansion->getNumExpansions();
-      if (NumExpansions && !PackScope.isPartiallyExpanded()) {
+      
+      if (UnsignedOrNone NumExpansions = ParamExpansion->getNumExpansions(); NumExpansions && !PackScope.isPartiallyExpanded()) {
         for (unsigned I = 0; I != *NumExpansions && ArgIdx < Args.size();
              ++I, ++ArgIdx) {
           ParamTypesForArgChecking.push_back(ParamPattern);
@@ -4745,8 +4745,8 @@ QualType Sema::adjustCCAndNoReturn(QualType ArgFunctionType,
   FunctionProtoType::ExtProtoInfo EPI = ArgFunctionTypeP->getExtProtoInfo();
   bool Rebuild = false;
 
-  CallingConv CC = FunctionTypeP->getCallConv();
-  if (EPI.ExtInfo.getCC() != CC) {
+  
+  if (CallingConv CC = FunctionTypeP->getCallConv(); EPI.ExtInfo.getCC() != CC) {
     EPI.ExtInfo = EPI.ExtInfo.withCallingConv(CC);
     Rebuild = true;
   }
@@ -6111,9 +6111,9 @@ UnresolvedSetIterator Sema::getMostSpecialized(
   // of the others.
   bool Ambiguous = false;
   for (UnresolvedSetIterator I = SpecBegin; I != SpecEnd; ++I) {
-    FunctionTemplateDecl *Challenger
-      = cast<FunctionDecl>(*I)->getPrimaryTemplate();
-    if (I != Best &&
+    
+    if (FunctionTemplateDecl *Challenger
+      = cast<FunctionDecl>(*I)->getPrimaryTemplate(); I != Best &&
         !declaresSameEntity(getMoreSpecializedTemplate(BestTemplate, Challenger,
                                                        Loc, TPOC_Other, 0),
                             BestTemplate)) {
@@ -6926,8 +6926,8 @@ MarkUsedTemplateParameters(ASTContext &Ctx, QualType T,
   }
 
   case Type::TemplateTypeParm: {
-    const TemplateTypeParmType *TTP = cast<TemplateTypeParmType>(T);
-    if (TTP->getDepth() == Depth)
+    
+    if (const TemplateTypeParmType *TTP = cast<TemplateTypeParmType>(T); TTP->getDepth() == Depth)
       Used[TTP->getIndex()] = true;
     break;
   }

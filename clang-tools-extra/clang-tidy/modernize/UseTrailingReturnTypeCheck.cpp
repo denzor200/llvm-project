@@ -270,8 +270,8 @@ classifyTokensBeforeFunctionName(const FunctionDecl &F, const ASTContext &Ctx,
           StringRef(SM.getCharacterData(T.getLocation()), T.getLength()));
 
       if (Info.hasMacroDefinition()) {
-        const MacroInfo *MI = PP->getMacroInfo(&Info);
-        if (!MI || MI->isFunctionLike()) {
+        
+        if (const MacroInfo *MI = PP->getMacroInfo(&Info); !MI || MI->isFunctionLike()) {
           // Cannot handle function style macros.
           return std::nullopt;
         }
@@ -406,8 +406,8 @@ static void keepSpecifiers(std::string &ReturnType, std::string &Auto,
                            Preprocessor *PP) {
   // Check if there are specifiers inside the return type. E.g. unsigned
   // inline int.
-  const auto *M = dyn_cast<CXXMethodDecl>(&F);
-  if (!F.isConstexpr() && !F.isInlineSpecified() &&
+  
+  if (const auto *M = dyn_cast<CXXMethodDecl>(&F); !F.isConstexpr() && !F.isInlineSpecified() &&
       F.getStorageClass() != SC_Extern && F.getStorageClass() != SC_Static &&
       !Fr && !(M && M->isVirtualAsWritten()))
     return;

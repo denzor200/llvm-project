@@ -54,12 +54,12 @@ AssumptionCache::getOrInsertAffectedValues(Value *V) {
 
 void AssumptionCache::findValuesAffectedByOperandBundle(
     OperandBundleUse Bundle, function_ref<void(Value *)> InsertAffected) {
-  auto AddAffectedVal = [&](Value *V) {
+  
+
+  if (auto AddAffectedVal = [&](Value *V) {
     if (isa<Argument, GlobalValue, Instruction>(V))
       InsertAffected(V);
-  };
-
-  if (Bundle.getTagName() == "separate_storage") {
+  }; Bundle.getTagName() == "separate_storage") {
     assert(Bundle.Inputs.size() == 2 && "separate_storage must have two args");
     AddAffectedVal(getUnderlyingObject(Bundle.Inputs[0]));
     AddAffectedVal(getUnderlyingObject(Bundle.Inputs[1]));
@@ -107,8 +107,8 @@ void AssumptionCache::updateAffectedValues(AssumeInst *CI) {
   findAffectedValues(CI, TTI, Affected);
 
   for (auto &AV : Affected) {
-    auto &AVV = getOrInsertAffectedValues(AV.Assume);
-    if (llvm::none_of(AVV, [&](ResultElem &Elem) {
+    
+    if (auto &AVV = getOrInsertAffectedValues(AV.Assume); llvm::none_of(AVV, [&](ResultElem &Elem) {
           return Elem.Assume == CI && Elem.Index == AV.Index;
         }))
       AVV.push_back({CI, AV.Index});
@@ -245,8 +245,8 @@ PreservedAnalyses AssumptionPrinterPass::run(Function &F,
 }
 
 void AssumptionCacheTracker::FunctionCallbackVH::deleted() {
-  auto I = ACT->AssumptionCaches.find_as(cast<Function>(getValPtr()));
-  if (I != ACT->AssumptionCaches.end())
+  
+  if (auto I = ACT->AssumptionCaches.find_as(cast<Function>(getValPtr())); I != ACT->AssumptionCaches.end())
     ACT->AssumptionCaches.erase(I);
   // 'this' now dangles!
 }

@@ -188,11 +188,11 @@ bool DependencyGraph::alias(Instruction *SrcI, Instruction *DstI,
   assert((SrcI->mayReadFromMemory() || SrcI->mayWriteToMemory()) &&
          "Expected a mem instr");
   // TODO: Check AABudget
-  ModRefInfo SrcModRef =
+  
+  switch (ModRefInfo SrcModRef =
       isOrdered(SrcI)
           ? ModRefInfo::ModRef
-          : Utils::aliasAnalysisGetModRefInfo(*BatchAA, SrcI, *DstLocOpt);
-  switch (DepType) {
+          : Utils::aliasAnalysisGetModRefInfo(*BatchAA, SrcI, *DstLocOpt); DepType) {
   case DependencyType::ReadAfterWrite:
   case DependencyType::WriteAfterWrite:
     return isModSet(SrcModRef);
@@ -204,8 +204,8 @@ bool DependencyGraph::alias(Instruction *SrcI, Instruction *DstI,
 }
 
 bool DependencyGraph::hasDep(Instruction *SrcI, Instruction *DstI) {
-  DependencyType RoughDepType = getRoughDepType(SrcI, DstI);
-  switch (RoughDepType) {
+  
+  switch (DependencyType RoughDepType = getRoughDepType(SrcI, DstI); RoughDepType) {
   case DependencyType::ReadAfterWrite:
   case DependencyType::WriteAfterWrite:
   case DependencyType::WriteAfterRead:
@@ -232,8 +232,8 @@ void DependencyGraph::scanAndAddDeps(MemDGNode &DstN,
   // Walk up the instruction chain from ScanRange bottom to top, looking for
   // memory instrs that may alias.
   for (MemDGNode &SrcN : reverse(SrcScanRange)) {
-    Instruction *SrcI = SrcN.getInstruction();
-    if (hasDep(SrcI, DstI))
+    
+    if (Instruction *SrcI = SrcN.getInstruction(); hasDep(SrcI, DstI))
       DstN.addMemPred(&SrcN);
   }
 }
@@ -279,9 +279,9 @@ void DependencyGraph::setDefUseUnscheduledSuccs(
   // Walk over all instructions in "BotInterval" and update the counter
   // of operands that are in "TopInterval".
   for (Instruction &BotI : BotInterval) {
-    auto *BotN = getNode(&BotI);
+    
     // Skip scheduled nodes.
-    if (BotN->scheduled())
+    if (auto *BotN = getNode(&BotI); BotN->scheduled())
       continue;
     for (Value *Op : BotI.operands()) {
       auto *OpI = dyn_cast<Instruction>(Op);
@@ -302,9 +302,9 @@ void DependencyGraph::createNewNodes(const Interval<Instruction> &NewInterval) {
   DGNode *LastN = getOrCreateNode(NewInterval.top());
   MemDGNode *LastMemN = dyn_cast<MemDGNode>(LastN);
   for (Instruction &I : drop_begin(NewInterval)) {
-    auto *N = getOrCreateNode(&I);
+    
     // Build the Mem node chain.
-    if (auto *MemN = dyn_cast<MemDGNode>(N)) {
+    if (auto *N = getOrCreateNode(&I); auto *MemN = dyn_cast<MemDGNode>(N)) {
       MemN->setPrevNode(LastMemN);
       LastMemN = MemN;
     }
@@ -385,10 +385,10 @@ void DependencyGraph::notifyCreateInstr(Instruction *I) {
   // Include `I` into the interval.
   DAGInterval = DAGInterval.getUnionInterval({I, I});
   auto *N = getOrCreateNode(I);
-  auto *MemN = dyn_cast<MemDGNode>(N);
+  
 
   // Update the MemDGNode chain if this is a memory node.
-  if (MemN != nullptr) {
+  if (auto *MemN = dyn_cast<MemDGNode>(N); MemN != nullptr) {
     if (auto *PrevMemN = getMemDGNodeBefore(MemN, /*IncludingN=*/false)) {
       PrevMemN->NextMemN = MemN;
       MemN->PrevMemN = PrevMemN;
@@ -562,8 +562,8 @@ Interval<Instruction> DependencyGraph::extend(ArrayRef<Instruction *> Instrs) {
   // We are scanning for deps with destination in NewInterval and sources in
   // NewInterval until DstN, for each DstN.
   auto FullScan = [this](const Interval<Instruction> Intvl) {
-    auto DstRange = MemDGNodeIntervalBuilder::make(Intvl, *this);
-    if (!DstRange.empty()) {
+    
+    if (auto DstRange = MemDGNodeIntervalBuilder::make(Intvl, *this); !DstRange.empty()) {
       for (MemDGNode &DstN : drop_begin(DstRange)) {
         auto SrcRange = Interval<MemDGNode>(DstRange.top(), DstN.getPrevNode());
         scanAndAddDeps(DstN, SrcRange);

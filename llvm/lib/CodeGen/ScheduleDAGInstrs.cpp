@@ -220,8 +220,8 @@ void ScheduleDAGInstrs::addSchedBarrierDeps() {
     const MCInstrDesc &MIDesc = ExitMI->getDesc();
     for (const MachineOperand &MO : ExitMI->all_uses()) {
       unsigned OpIdx = MO.getOperandNo();
-      Register Reg = MO.getReg();
-      if (Reg.isPhysical()) {
+      
+      if (Register Reg = MO.getReg(); Reg.isPhysical()) {
         // addPhysRegDataDeps uses the provided operand index to retrieve
         // the operand use cycle from the scheduling model. If the operand
         // is "fake" (e.g., an operand of a call instruction used to pass
@@ -245,8 +245,8 @@ void ScheduleDAGInstrs::addSchedBarrierDeps() {
     for (const MachineBasicBlock *Succ : BB->successors()) {
       for (const auto &LI : Succ->liveins()) {
         for (MCRegUnitMaskIterator U(LI.PhysReg, TRI); U.isValid(); ++U) {
-          auto [Unit, Mask] = *U;
-          if ((Mask & LI.LaneMask).any() && !Uses.contains(Unit))
+          
+          if (auto [Unit, Mask] = *U; (Mask & LI.LaneMask).any() && !Uses.contains(Unit))
             Uses.insert(PhysRegSUOper(&ExitSU, -1, Unit));
         }
       }
@@ -661,8 +661,8 @@ public:
 
   /// Clears the list of SUs mapped to V.
   void inline clearList(ValueType V) {
-    iterator Itr = find(V);
-    if (Itr != end()) {
+    
+    if (iterator Itr = find(V); Itr != end()) {
       assert(NumNodes >= Itr->second.size());
       NumNodes -= Itr->second.size();
 
@@ -702,8 +702,8 @@ void ScheduleDAGInstrs::addChainDependencies(SUnit *SU,
 void ScheduleDAGInstrs::addChainDependencies(SUnit *SU,
                                              Value2SUsMap &Val2SUsMap,
                                              ValueType V) {
-  Value2SUsMap::iterator Itr = Val2SUsMap.find(V);
-  if (Itr != Val2SUsMap.end())
+  
+  if (Value2SUsMap::iterator Itr = Val2SUsMap.find(V); Itr != Val2SUsMap.end())
     addChainDependencies(SU, Itr->second,
                          Val2SUsMap.getTrueMemOrderLatency());
 }
@@ -758,9 +758,9 @@ void ScheduleDAGInstrs::buildSchedGraph(AAResults *AA,
                                         LiveIntervals *LIS,
                                         bool TrackLaneMasks) {
   const TargetSubtargetInfo &ST = MF.getSubtarget();
-  bool UseAA = EnableAASchedMI.getNumOccurrences() > 0 ? EnableAASchedMI
-                                                       : ST.useAA();
-  if (UseAA && AA)
+  
+  if (bool UseAA = EnableAASchedMI.getNumOccurrences() > 0 ? EnableAASchedMI
+                                                       : ST.useAA(); UseAA && AA)
     AAForDep.emplace(*AA);
 
   BarrierChain = nullptr;
@@ -1057,8 +1057,8 @@ raw_ostream &llvm::operator<<(raw_ostream &OS, const PseudoSourceValue* PSV) {
 void ScheduleDAGInstrs::Value2SUsMap::dump() {
   for (const auto &[ValType, SUs] : *this) {
     if (isa<const Value *>(ValType)) {
-      const Value *V = cast<const Value *>(ValType);
-      if (isa<UndefValue>(V))
+      
+      if (const Value *V = cast<const Value *>(ValType); isa<UndefValue>(V))
         dbgs() << "Unknown";
       else
         V->printAsOperand(dbgs());
@@ -1156,8 +1156,8 @@ void ScheduleDAGInstrs::fixupKills(MachineBasicBlock &MBB) {
     // instruction are now dead. Mark register and all subregs as they
     // are completely defined.
     for (ConstMIBundleOperands O(MI); O.isValid(); ++O) {
-      const MachineOperand &MO = *O;
-      if (MO.isReg()) {
+      
+      if (const MachineOperand &MO = *O; MO.isReg()) {
         if (!MO.isDef())
           continue;
         Register Reg = MO.getReg();

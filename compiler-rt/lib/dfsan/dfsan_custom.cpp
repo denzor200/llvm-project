@@ -198,8 +198,8 @@ SANITIZER_INTERFACE_ATTRIBUTE char *__dfso_strpbrk(
   } else {
     if (*ret_label) {
       size_t s_bytes_read = (ret ? ret - s : strlen(s)) + 1;
-      dfsan_origin o = dfsan_read_origin_of_first_taint(s, s_bytes_read);
-      if (o) {
+      
+      if (dfsan_origin o = dfsan_read_origin_of_first_taint(s, s_bytes_read); o) {
         *ret_origin = o;
       } else {
         o = dfsan_read_origin_of_first_taint(accept, strlen(accept) + 1);
@@ -407,9 +407,9 @@ static int dfsan_strncasecmp(const char *s1, const char *s2, size_t n,
                              size_t *bytes_read) {
   for (size_t i = 0;; ++i) {
     char s1_lower = tolower(s1[i]);
-    char s2_lower = tolower(s2[i]);
+    
 
-    if (s1_lower != s2_lower || s1[i] == 0 || s2[i] == 0 ||
+    if (char s2_lower = tolower(s2[i]); s1_lower != s2_lower || s1[i] == 0 || s2[i] == 0 ||
         (n > 0 && i == n - 1)) {
       *bytes_read = i + 1;
       return s1_lower - s2_lower;
@@ -744,8 +744,8 @@ SANITIZER_INTERFACE_ATTRIBUTE char *
 __dfsw_strncpy(char *s1, const char *s2, size_t n, dfsan_label s1_label,
                dfsan_label s2_label, dfsan_label n_label,
                dfsan_label *ret_label) {
-  size_t len = strlen(s2);
-  if (len < n) {
+  
+  if (size_t len = strlen(s2); len < n) {
     dfsan_memcpy(s1, s2, len+1);
     dfsan_memset(s1+len+1, 0, 0, n-len-1);
   } else {
@@ -761,8 +761,8 @@ SANITIZER_INTERFACE_ATTRIBUTE char *__dfso_strncpy(
     dfsan_label s2_label, dfsan_label n_label, dfsan_label *ret_label,
     dfsan_origin s1_origin, dfsan_origin s2_origin, dfsan_origin n_origin,
     dfsan_origin *ret_origin) {
-  size_t len = strlen(s2);
-  if (len < n) {
+  
+  if (size_t len = strlen(s2); len < n) {
     dfsan_memcpy_with_origin(s1, s2, len + 1);
     dfsan_memset_with_origin(s1 + len + 1, 0, 0, 0, n - len - 1);
   } else {
@@ -847,8 +847,8 @@ SANITIZER_INTERFACE_ATTRIBUTE void *
 __dfsw_dlopen(const char *filename, int flag, dfsan_label filename_label,
               dfsan_label flag_label, dfsan_label *ret_label) {
   void *handle = dlopen(filename, flag);
-  link_map *map = GET_LINK_MAP_BY_DLOPEN_HANDLE(handle);
-  if (filename && map)
+  
+  if (link_map *map = GET_LINK_MAP_BY_DLOPEN_HANDLE(handle); filename && map)
     ForEachMappedRegion(map, dfsan_set_zero_label);
   *ret_label = 0;
   return handle;
@@ -1649,14 +1649,14 @@ int __dfsw_sigaction(int signum, const struct sigaction *act,
   if (act) {
     internal_memcpy(pnew_act, act, sizeof(struct sigaction));
     if (pnew_act->sa_flags & SA_SIGINFO) {
-      uptr cb = (uptr)(pnew_act->sa_sigaction);
-      if (cb != (uptr)SIG_IGN && cb != (uptr)SIG_DFL) {
+      
+      if (uptr cb = (uptr)(pnew_act->sa_sigaction); cb != (uptr)SIG_IGN && cb != (uptr)SIG_DFL) {
         atomic_store(&sigactions[signum], cb, memory_order_relaxed);
         pnew_act->sa_sigaction = SignalAction;
       }
     } else {
-      uptr cb = (uptr)(pnew_act->sa_handler);
-      if (cb != (uptr)SIG_IGN && cb != (uptr)SIG_DFL) {
+      
+      if (uptr cb = (uptr)(pnew_act->sa_handler); cb != (uptr)SIG_IGN && cb != (uptr)SIG_DFL) {
         atomic_store(&sigactions[signum], cb, memory_order_relaxed);
         pnew_act->sa_handler = SignalHandler;
       }
@@ -1871,8 +1871,8 @@ SANITIZER_INTERFACE_ATTRIBUTE char *__dfso_strstr(char *haystack, char *needle,
   } else {
     size_t needle_len = strlen(needle);
     size_t len = ret ? ret + needle_len - haystack : strlen(haystack) + 1;
-    dfsan_origin o = dfsan_read_origin_of_first_taint(haystack, len);
-    if (o) {
+    
+    if (dfsan_origin o = dfsan_read_origin_of_first_taint(haystack, len); o) {
       *ret_origin = o;
     } else {
       o = dfsan_read_origin_of_first_taint(needle, needle_len + 1);

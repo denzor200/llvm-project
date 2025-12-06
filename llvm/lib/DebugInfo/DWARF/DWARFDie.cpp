@@ -222,8 +222,8 @@ static void dumpAttribute(raw_ostream &OS, const DWARFDie &Die,
              FormValue.getAsUnsignedConstant()) {
     if (DumpOpts.ShowAddresses) {
       // Print the actual address rather than the offset.
-      uint64_t LowPC, HighPC, Index;
-      if (Die.getLowAndHighPC(LowPC, HighPC, Index))
+      
+      if (uint64_t LowPC, HighPC, Index; Die.getLowAndHighPC(LowPC, HighPC, Index))
         DWARFFormValue::dumpAddress(OS, U->getAddressByteSize(), HighPC);
       else
         FormValue.dump(OS, DumpOpts);
@@ -252,8 +252,8 @@ static void dumpAttribute(raw_ostream &OS, const DWARFDie &Die,
                 DINameKind::LinkageName))
       OS << Space << "\"" << Name << '\"';
   } else if (Attr == DW_AT_APPLE_property) {
-    auto PropDIE = Die.getAttributeValueAsReferencedDie(FormValue);
-    if (auto PropNameOrErr = getApplePropertyName(PropDIE))
+    
+    if (auto PropDIE = Die.getAttributeValueAsReferencedDie(FormValue); auto PropNameOrErr = getApplePropertyName(PropDIE))
       OS << Space << "\"" << *PropNameOrErr << '\"';
     else
       DumpOpts.RecoverableErrorHandler(createStringError(
@@ -261,8 +261,8 @@ static void dumpAttribute(raw_ostream &OS, const DWARFDie &Die,
           llvm::formatv("decoding DW_AT_APPLE_property_name: {}",
                         toString(PropNameOrErr.takeError()))));
   } else if (Attr == DW_AT_type || Attr == DW_AT_containing_type) {
-    DWARFDie D = resolveReferencedType(Die, FormValue);
-    if (D && !D.isNULL()) {
+    
+    if (DWARFDie D = resolveReferencedType(Die, FormValue); D && !D.isNULL()) {
       OS << Space << "\"";
       dumpTypeQualifiedName(D, OS);
       OS << '"';
@@ -299,8 +299,8 @@ static void dumpAttribute(raw_ostream &OS, const DWARFDie &Die,
 
 void DWARFDie::getFullName(raw_string_ostream &OS,
                            std::string *OriginalFullName) const {
-  const char *NamePtr = getShortName();
-  if (!NamePtr)
+  
+  if (const char *NamePtr = getShortName(); !NamePtr)
     return;
   if (getTag() == DW_TAG_GNU_template_parameter_pack)
     return;
@@ -317,8 +317,8 @@ bool DWARFDie::isSubroutineDIE() const {
 std::optional<DWARFFormValue> DWARFDie::find(dwarf::Attribute Attr) const {
   if (!isValid())
     return std::nullopt;
-  auto AbbrevDecl = getAbbreviationDeclarationPtr();
-  if (AbbrevDecl)
+  
+  if (auto AbbrevDecl = getAbbreviationDeclarationPtr(); AbbrevDecl)
     return AbbrevDecl->getAttributeValue(getOffset(), Attr, *U);
   return std::nullopt;
 }
@@ -327,8 +327,8 @@ std::optional<DWARFFormValue>
 DWARFDie::find(ArrayRef<dwarf::Attribute> Attrs) const {
   if (!isValid())
     return std::nullopt;
-  auto AbbrevDecl = getAbbreviationDeclarationPtr();
-  if (AbbrevDecl) {
+  
+  if (auto AbbrevDecl = getAbbreviationDeclarationPtr(); AbbrevDecl) {
     for (auto Attr : Attrs) {
       if (auto Value = AbbrevDecl->getAttributeValue(getOffset(), Attr, *U))
         return Value;
@@ -420,8 +420,8 @@ std::optional<uint64_t> DWARFDie::getLocBaseAttribute() const {
 }
 
 std::optional<uint64_t> DWARFDie::getHighPC(uint64_t LowPC) const {
-  uint64_t Tombstone = dwarf::computeTombstoneAddress(U->getAddressByteSize());
-  if (LowPC == Tombstone)
+  
+  if (uint64_t Tombstone = dwarf::computeTombstoneAddress(U->getAddressByteSize()); LowPC == Tombstone)
     return std::nullopt;
   if (auto FormValue = find(DW_AT_high_pc)) {
     if (auto Address = FormValue->getAsAddress()) {
@@ -680,8 +680,8 @@ void DWARFDie::dump(raw_ostream &OS, unsigned Indent,
           << format("\n0x%8.8" PRIx64 ": ", Offset);
 
     if (abbrCode) {
-      auto AbbrevDecl = getAbbreviationDeclarationPtr();
-      if (AbbrevDecl) {
+      
+      if (auto AbbrevDecl = getAbbreviationDeclarationPtr(); AbbrevDecl) {
         WithColor(OS, HighlightColor::Tag).get().indent(Indent)
             << formatv("{0}", getTag());
         if (DumpOpts.Verbose) {
@@ -774,8 +774,8 @@ void DWARFDie::attribute_iterator::updateForIndex(
     const DWARFAbbreviationDeclaration &AbbrDecl, uint32_t I) {
   Index = I;
   // AbbrDecl must be valid before calling this function.
-  auto NumAttrs = AbbrDecl.getNumAttributes();
-  if (Index < NumAttrs) {
+  
+  if (auto NumAttrs = AbbrDecl.getNumAttributes(); Index < NumAttrs) {
     AttrValue.Attr = AbbrDecl.getAttrByIndex(Index);
     // Add the previous byte size of any previous attribute value.
     AttrValue.Offset += AttrValue.ByteSize;

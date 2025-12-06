@@ -99,9 +99,9 @@ bool OmptAsserter::verifyEventGroups(const OmptAssertEvent &ExpectedEvent,
     return true;
 
   // Get a pointer to the observed internal event
-  auto Event = ObservedEvent.getEvent();
+  
 
-  switch (Event->Type) {
+  switch (auto Event = ObservedEvent.getEvent(); Event->Type) {
   case EventTy::Target:
     if (auto E = static_cast<const internal::Target *>(Event)) {
       if (E->Endpoint == ompt_scope_begin) {
@@ -298,8 +298,8 @@ bool OmptSequencedAsserter::consumeRegularEvent(
     const omptest::OmptAssertEvent &AE) {
   // If we are actively asserting, increment the event counter.
   // Otherwise: If passively asserting, we will keep waiting for a match.
-  auto &E = Events[NextEvent];
-  if (E == AE && verifyEventGroups(E, AE)) {
+  
+  if (auto &E = Events[NextEvent]; E == AE && verifyEventGroups(E, AE)) {
     if (E.getEventExpectedState() == ObserveState::Always) {
       ++NumSuccessfulAsserts;
     } else if (E.getEventExpectedState() == ObserveState::Never) {
@@ -336,8 +336,8 @@ AssertState OmptSequencedAsserter::checkState() {
   // number of expected events. However, there may still be excluded as well as
   // special asserter events remaining in the sequence.
   for (size_t i = NextEvent; i < Events.size(); ++i) {
-    auto &E = Events[i];
-    if (E.getEventExpectedState() == ObserveState::Always) {
+    
+    if (auto &E = Events[i]; E.getEventExpectedState() == ObserveState::Always) {
       State = AssertState::Fail;
       Log->logEventMismatch("[OmptSequencedAsserter] Expected event was not "
                             "encountered (Remaining events: " +
@@ -381,8 +381,8 @@ void OmptEventAsserter::notifyImpl(OmptAssertEvent &&AE) {
   }
 
   for (size_t i = 0; i < Events.size(); ++i) {
-    auto &E = Events[i];
-    if (E == AE && verifyEventGroups(E, AE)) {
+    
+    if (auto &E = Events[i]; E == AE && verifyEventGroups(E, AE)) {
       if (E.getEventExpectedState() == ObserveState::Always) {
         Events.erase(Events.begin() + i);
         ++NumSuccessfulAsserts;

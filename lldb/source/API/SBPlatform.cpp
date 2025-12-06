@@ -398,8 +398,8 @@ SBError SBPlatform::ConnectRemote(SBPlatformConnectOptions &connect_options) {
 void SBPlatform::DisconnectRemote() {
   LLDB_INSTRUMENT_VA(this);
 
-  PlatformSP platform_sp(GetSP());
-  if (platform_sp)
+  
+  if (PlatformSP platform_sp(GetSP()); platform_sp)
     platform_sp->DisconnectRemote();
 }
 
@@ -417,8 +417,8 @@ const char *SBPlatform::GetTriple() {
 
   PlatformSP platform_sp(GetSP());
   if (platform_sp) {
-    ArchSpec arch(platform_sp->GetSystemArchitecture());
-    if (arch.IsValid()) {
+    
+    if (ArchSpec arch(platform_sp->GetSystemArchitecture()); arch.IsValid()) {
       // Const-ify the string so we don't need to worry about the lifetime of
       // the string
       return ConstString(arch.GetTriple().getTriple().c_str()).GetCString();
@@ -432,8 +432,8 @@ const char *SBPlatform::GetOSBuild() {
 
   PlatformSP platform_sp(GetSP());
   if (platform_sp) {
-    std::string s = platform_sp->GetOSBuildString().value_or("");
-    if (!s.empty()) {
+    
+    if (std::string s = platform_sp->GetOSBuildString().value_or(""); !s.empty()) {
       // Const-ify the string so we don't need to worry about the lifetime of
       // the string
       return ConstString(s).GetCString();
@@ -447,8 +447,8 @@ const char *SBPlatform::GetOSDescription() {
 
   PlatformSP platform_sp(GetSP());
   if (platform_sp) {
-    std::string s = platform_sp->GetOSKernelDescription().value_or("");
-    if (!s.empty()) {
+    
+    if (std::string s = platform_sp->GetOSKernelDescription().value_or(""); !s.empty()) {
       // Const-ify the string so we don't need to worry about the lifetime of
       // the string
       return ConstString(s.c_str()).GetCString();
@@ -554,9 +554,9 @@ SBError SBPlatform::Run(SBPlatformShellCommand &shell_command) {
           return Status::FromErrorString("invalid shell command (empty)");
 
         if (shell_command.GetWorkingDirectory() == nullptr) {
-          std::string platform_working_dir =
-              platform_sp->GetWorkingDirectory().GetPath();
-          if (!platform_working_dir.empty())
+          
+          if (std::string platform_working_dir =
+              platform_sp->GetWorkingDirectory().GetPath(); !platform_working_dir.empty())
             shell_command.SetWorkingDirectory(platform_working_dir.c_str());
         }
         return platform_sp->RunShellCommand(

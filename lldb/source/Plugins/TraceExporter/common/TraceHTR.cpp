@@ -29,8 +29,8 @@ HTRBlockMetadata::GetMostFrequentlyCalledFunction() const {
   std::optional<llvm::StringRef> max_name;
   for (const auto &it : m_func_calls) {
     ConstString name = it.first;
-    size_t ncalls = it.second;
-    if (ncalls > max_ncalls) {
+    
+    if (size_t ncalls = it.second; ncalls > max_ncalls) {
       max_ncalls = ncalls;
       max_name = name.GetStringRef();
     }
@@ -90,8 +90,8 @@ void HTRInstructionLayer::AppendInstruction(lldb::addr_t load_addr) {
 }
 
 HTRBlock const *HTRBlockLayer::GetBlockById(size_t block_id) const {
-  auto block_it = m_block_defs.find(block_id);
-  if (block_it == m_block_defs.end())
+  
+  if (auto block_it = m_block_defs.find(block_id); block_it == m_block_defs.end())
     return nullptr;
   else
     return &block_it->second;
@@ -279,8 +279,8 @@ HTRBlockLayerUP lldb_private::BasicSuperBlockMerge(IHTRLayer &layer) {
     for (const auto &it : head_map) {
       // ID of 0 represents an error - errors can't be heads or tails
       lldb::addr_t id = it.first;
-      const std::unordered_set<lldb::addr_t> predecessor_set = it.second;
-      if (id && predecessor_set.size() > 1)
+      
+      if (const std::unordered_set<lldb::addr_t> predecessor_set = it.second; id && predecessor_set.size() > 1)
         heads.insert(id);
     }
 
@@ -305,9 +305,9 @@ HTRBlockLayerUP lldb_private::BasicSuperBlockMerge(IHTRLayer &layer) {
     tails.insert(last_id);
     for (const auto &it : tail_map) {
       lldb::addr_t id = it.first;
-      const std::unordered_set<lldb::addr_t> successor_set = it.second;
+      
       // ID of 0 represents an error - errors can't be heads or tails
-      if (id && successor_set.size() > 1)
+      if (const std::unordered_set<lldb::addr_t> successor_set = it.second; id && successor_set.size() > 1)
         tails.insert(id);
     }
 
@@ -333,9 +333,9 @@ HTRBlockLayerUP lldb_private::BasicSuperBlockMerge(IHTRLayer &layer) {
       lldb::addr_t unit_id =
           layer.GetMetadataByIndex(i).GetFirstInstructionLoadAddress();
       auto isHead = heads.count(unit_id) > 0;
-      auto isTail = tails.count(unit_id) > 0;
+      
 
-      if (isHead && isTail) {
+      if (auto isTail = tails.count(unit_id) > 0; isHead && isTail) {
         // Head logic
         if (superblock_size) { // this handles (tail, head) adjacency -
                                // otherwise an empty

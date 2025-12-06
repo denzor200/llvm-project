@@ -102,11 +102,11 @@ Error CVSymbolVisitor::visitSymbolStreamFiltered(const CVSymbolArray &Symbols,
   for (auto Begin = Symbols.begin(), End = Symbols.end(); Begin != End;
        ++Begin) {
     uint32_t BeginOffset = Begin.offset();
-    CVSymbol BeginSym = *Begin;
-    if (BeginOffset < SymbolOffset) {
+    
+    if (CVSymbol BeginSym = *Begin; BeginOffset < SymbolOffset) {
       if (symbolOpensScope(Begin->kind())) {
-        uint32_t EndOffset = getScopeEndOffset(BeginSym);
-        if (SymbolOffset < EndOffset) {
+        
+        if (uint32_t EndOffset = getScopeEndOffset(BeginSym); SymbolOffset < EndOffset) {
           ParentOffsets.push_back(BeginOffset);
           ParentEndOffsets.push_back(EndOffset);
         }

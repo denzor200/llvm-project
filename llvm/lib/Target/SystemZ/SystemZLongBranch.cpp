@@ -332,8 +332,8 @@ bool SystemZLongBranch::mustRelaxBranch(const TerminatorInfo &Terminator,
   if (!Terminator.Branch || Terminator.ExtraRelaxSize == 0)
     return false;
 
-  const MBBInfo &Target = MBBs[Terminator.TargetBlock];
-  if (Address >= Target.Address) {
+  
+  if (const MBBInfo &Target = MBBs[Terminator.TargetBlock]; Address >= Target.Address) {
     if (Address - Target.Address <= MaxBackwardRange)
       return false;
   } else {
@@ -411,8 +411,8 @@ void SystemZLongBranch::splitCompareBranch(MachineInstr *MI,
 
 // Relax the branch described by Terminator.
 void SystemZLongBranch::relaxBranch(TerminatorInfo &Terminator) {
-  MachineInstr *Branch = Terminator.Branch;
-  switch (Branch->getOpcode()) {
+  
+  switch (MachineInstr *Branch = Terminator.Branch; Branch->getOpcode()) {
   case SystemZ::J:
     Branch->setDesc(TII->get(SystemZ::JG));
     break;
@@ -480,8 +480,8 @@ void SystemZLongBranch::relaxBranches() {
 bool SystemZLongBranch::runOnMachineFunction(MachineFunction &F) {
   TII = static_cast<const SystemZInstrInfo *>(F.getSubtarget().getInstrInfo());
   MF = &F;
-  uint64_t Size = initMBBInfo();
-  if (Size <= MaxForwardRange || !mustRelaxABranch())
+  
+  if (uint64_t Size = initMBBInfo(); Size <= MaxForwardRange || !mustRelaxABranch())
     return false;
 
   setWorstCaseAddresses();

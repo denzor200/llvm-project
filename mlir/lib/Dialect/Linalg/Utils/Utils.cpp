@@ -1349,9 +1349,9 @@ static void generateParallelLoopNest(
                      .size();
   }
 
-  auto remainderProcInfo =
-      procInfo.empty() ? procInfo : procInfo.drop_front(numProcessed);
-  switch (distributionMethod) {
+  
+  switch (auto remainderProcInfo =
+      procInfo.empty() ? procInfo : procInfo.drop_front(numProcessed); distributionMethod) {
   case DistributionMethod::None: {
     // Generate a single parallel loop-nest operation for all outermost
     // parallel loops and recurse.
@@ -1564,9 +1564,9 @@ computeSliceParameters(OpBuilder &builder, Location loc, Value valueToTile,
     int64_t shapeSize = shape[r];
     std::optional<int64_t> sizeCst = getConstantIntValue(size);
     auto hasTileSizeOne = sizeCst == 1;
-    auto dividesEvenly = sizeCst && ShapedType::isStatic(shapeSize) &&
-                         ((shapeSize % *sizeCst) == 0);
-    if (!hasTileSizeOne && !dividesEvenly) {
+    
+    if (auto dividesEvenly = sizeCst && ShapedType::isStatic(shapeSize) &&
+                         ((shapeSize % *sizeCst) == 0); !hasTileSizeOne && !dividesEvenly) {
       LLVM_DEBUG(llvm::dbgs() << "makeTiledShape: shapeSize=" << shapeSize
                               << ", size: " << size
                               << ": make sure in bound with affine.min\n");

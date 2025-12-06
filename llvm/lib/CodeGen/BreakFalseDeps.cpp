@@ -192,17 +192,17 @@ void BreakFalseDeps::processDefs(MachineInstr *MI) {
   // Break dependence on undef uses. Do this before updating LiveRegs below.
   // This can remove a false dependence with no additional instructions.
   for (unsigned i = MCID.getNumDefs(), e = MCID.getNumOperands(); i != e; ++i) {
-    MachineOperand &MO = MI->getOperand(i);
-    if (!MO.isReg() || !MO.getReg() || !MO.isUse() || !MO.isUndef())
+    
+    if (MachineOperand &MO = MI->getOperand(i); !MO.isReg() || !MO.getReg() || !MO.isUse() || !MO.isUndef())
       continue;
 
     unsigned Pref = TII->getUndefRegClearance(*MI, i, TRI);
     if (Pref) {
-      bool HadTrueDependency = pickBestRegisterForUndef(MI, i, Pref);
+      
       // We don't need to bother trying to break a dependency if this
       // instruction has a true dependency on that register through another
       // operand - we'll have to wait for it to be available regardless.
-      if (!HadTrueDependency && shouldBreakDependence(MI, i, Pref))
+      if (bool HadTrueDependency = pickBestRegisterForUndef(MI, i, Pref); !HadTrueDependency && shouldBreakDependence(MI, i, Pref))
         UndefReads.push_back(std::make_pair(MI, i));
     }
   }

@@ -122,8 +122,8 @@ bool HexagonTfrCleanup::updateImmMap(MachineInstr *MI, ImmediateMap &IMap) {
 
   // If this is an instruction that loads a constant into a register,
   // record this information in IMap.
-  unsigned Opc = MI->getOpcode();
-  if (Opc == A2_tfrsi || Opc == A2_tfrpi) {
+  
+  if (unsigned Opc = MI->getOpcode(); Opc == A2_tfrsi || Opc == A2_tfrpi) {
     unsigned DefR = MI->getOperand(0).getReg();
     bool Is32;
     if (!isIntReg(DefR, Is32))
@@ -171,8 +171,8 @@ bool HexagonTfrCleanup::updateImmMap(MachineInstr *MI, ImmediateMap &IMap) {
 bool HexagonTfrCleanup::rewriteIfImm(MachineInstr *MI, ImmediateMap &IMap,
                                      SlotIndexes *Indexes) {
   using namespace Hexagon;
-  unsigned Opc = MI->getOpcode();
-  switch (Opc) {
+  
+  switch (unsigned Opc = MI->getOpcode(); Opc) {
   case A2_tfr:
   case A2_tfrp:
   case COPY:

@@ -108,8 +108,8 @@ static DisassembledInstruction ConvertSBInstructionToDisassembledInstruction(
   llvm::raw_string_ostream sb(bytes);
   for (unsigned i = 0; i < inst.GetByteSize(); i++) {
     lldb::SBError error;
-    uint8_t b = d.GetUnsignedInt8(error, i);
-    if (error.Success())
+    
+    if (uint8_t b = d.GetUnsignedInt8(error, i); error.Success())
       sb << llvm::format("%2.2x ", b);
   }
 
@@ -161,13 +161,13 @@ static DisassembledInstruction ConvertSBInstructionToDisassembledInstruction(
     auto end_line_entry = GetLineEntryForAddress(target, end_addr);
     if (end_line_entry.IsValid() &&
         end_line_entry.GetFileSpec() == line_entry.GetFileSpec()) {
-      const auto end_line = end_line_entry.GetLine();
-      if (end_line != 0 && end_line != LLDB_INVALID_LINE_NUMBER &&
+      
+      if (const auto end_line = end_line_entry.GetLine(); end_line != 0 && end_line != LLDB_INVALID_LINE_NUMBER &&
           end_line != line) {
         disassembled_inst.endLine = end_line;
 
-        const auto end_column = end_line_entry.GetColumn();
-        if (end_column != 0 && end_column != LLDB_INVALID_COLUMN_NUMBER &&
+        
+        if (const auto end_column = end_line_entry.GetColumn(); end_column != 0 && end_column != LLDB_INVALID_COLUMN_NUMBER &&
             end_column != column)
           disassembled_inst.endColumn = end_column - 1;
       }
@@ -220,9 +220,9 @@ DisassembleRequestHandler::Run(const DisassembleArguments &args) const {
 
   // Check if we miss instructions at the beginning.
   if (instruction_offset < 0) {
-    const auto backwards_instructions_count =
-        static_cast<size_t>(std::abs(instruction_offset));
-    if (original_address_index < backwards_instructions_count) {
+    
+    if (const auto backwards_instructions_count =
+        static_cast<size_t>(std::abs(instruction_offset)); original_address_index < backwards_instructions_count) {
       // We don't have enough instructions before the main address as was
       // requested. Let's pad the start of the instructions with invalid
       // instructions.

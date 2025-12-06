@@ -241,12 +241,12 @@ bool ThreadPlanStepOverRange::ShouldStop(Event *event_ptr) {
               sc.comp_unit == m_addr_context.comp_unit &&
               sc.function == m_addr_context.function) {
             // Okay, find the next occurrence of this file in the line table:
-            LineTable *line_table = m_addr_context.comp_unit->GetLineTable();
-            if (line_table) {
+            
+            if (LineTable *line_table = m_addr_context.comp_unit->GetLineTable(); line_table) {
               Address cur_address = frame_sp->GetFrameCodeAddress();
               uint32_t entry_idx;
-              LineEntry line_entry;
-              if (line_table->FindLineEntryByAddress(cur_address, line_entry,
+              
+              if (LineEntry line_entry; line_table->FindLineEntryByAddress(cur_address, line_entry,
                                                      &entry_idx)) {
                 LineEntry next_line_entry;
                 bool step_past_remaining_inline = false;
@@ -257,8 +257,8 @@ bool ThreadPlanStepOverRange::ShouldStop(Event *event_ptr) {
                   // block, we don't want to step past cases where people have
                   // inlined some code fragment by using #include <source-
                   // fragment.c> directly.
-                  LineEntry prev_line_entry;
-                  if (line_table->GetLineEntryAtIndex(entry_idx - 1,
+                  
+                  if (LineEntry prev_line_entry; line_table->GetLineEntryAtIndex(entry_idx - 1,
                                                       prev_line_entry) &&
                       prev_line_entry.original_file_sp->Equal(
                           *line_entry.original_file_sp,
@@ -268,9 +268,9 @@ bool ThreadPlanStepOverRange::ShouldStop(Event *event_ptr) {
                         prev_line_entry.range.GetBaseAddress();
                     prev_address.CalculateSymbolContext(&prev_sc);
                     if (prev_sc.block) {
-                      Block *inlined_block =
-                          prev_sc.block->GetContainingInlinedBlock();
-                      if (inlined_block) {
+                      
+                      if (Block *inlined_block =
+                          prev_sc.block->GetContainingInlinedBlock(); inlined_block) {
                         AddressRange inline_range;
                         inlined_block->GetRangeContainingAddress(prev_address,
                                                                  inline_range);
@@ -291,9 +291,9 @@ bool ThreadPlanStepOverRange::ShouldStop(Event *event_ptr) {
                     // started from...
                     Address next_line_address =
                         next_line_entry.range.GetBaseAddress();
-                    Function *next_line_function =
-                        next_line_address.CalculateSymbolContextFunction();
-                    if (next_line_function != m_addr_context.function)
+                    
+                    if (Function *next_line_function =
+                        next_line_address.CalculateSymbolContextFunction(); next_line_function != m_addr_context.function)
                       break;
 
                     if (next_line_entry.original_file_sp->Equal(
@@ -371,9 +371,9 @@ bool ThreadPlanStepOverRange::DoPlanExplainsStop(Event *event_ptr) {
   bool return_value;
 
   if (stop_info_sp) {
-    StopReason reason = stop_info_sp->GetStopReason();
+    
 
-    if (reason == eStopReasonTrace) {
+    if (StopReason reason = stop_info_sp->GetStopReason(); reason == eStopReasonTrace) {
       return_value = true;
     } else if (reason == eStopReasonBreakpoint) {
       return_value = NextRangeBreakpointExplainsStop(stop_info_sp);
@@ -398,19 +398,19 @@ bool ThreadPlanStepOverRange::DoWillResume(lldb::StateType resume_state,
       // See if we are about to step over an inlined call in the middle of the
       // inlined stack, if so figure out its extents and reset our range to
       // step over that.
-      bool in_inlined_stack = thread.DecrementCurrentInlinedDepth();
-      if (in_inlined_stack) {
+      
+      if (bool in_inlined_stack = thread.DecrementCurrentInlinedDepth(); in_inlined_stack) {
         Log *log = GetLog(LLDBLog::Step);
         LLDB_LOGF(log,
                   "ThreadPlanStepOverRange::DoWillResume: adjusting range to "
                   "the frame at inlined depth %d.",
                   thread.GetCurrentInlinedDepth());
-        StackFrameSP stack_sp = thread.GetStackFrameAtIndex(0);
-        if (stack_sp) {
+        
+        if (StackFrameSP stack_sp = thread.GetStackFrameAtIndex(0); stack_sp) {
           Block *frame_block = stack_sp->GetFrameBlock();
           lldb::addr_t curr_pc = thread.GetRegisterContext()->GetPC();
-          AddressRange my_range;
-          if (frame_block->GetRangeContainingLoadAddress(
+          
+          if (AddressRange my_range; frame_block->GetRangeContainingLoadAddress(
                   curr_pc, m_process.GetTarget(), my_range)) {
             m_address_ranges.clear();
             m_address_ranges.push_back(my_range);

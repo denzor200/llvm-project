@@ -136,8 +136,8 @@ int main(int argc, char **argv) {
       if (!isStillInteresting(CurrChunks))
         CurrChunks.insert(CurrChunks.begin() + Idx, Testing);
     }
-    bool HasSplit = increaseGranularity(CurrChunks);
-    if (!HasSplit)
+    
+    if (bool HasSplit = increaseGranularity(CurrChunks); !HasSplit)
       break;
   }
 

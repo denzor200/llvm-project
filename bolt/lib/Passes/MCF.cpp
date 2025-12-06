@@ -135,8 +135,8 @@ void computeEdgeWeights(BinaryBasicBlock *BB, EdgeWeightMap &EdgeWeights) {
   for (typename GraphT::ChildIteratorType CI = GraphT::child_begin(BB),
                                           E = GraphT::child_end(BB);
        CI != E; ++CI) {
-    typename GraphT::NodeRef Child = *CI;
-    if (Child != BB) {
+    
+    if (typename GraphT::NodeRef Child = *CI; Child != BB) {
       ++ChildIndex;
       continue;
     }
@@ -204,8 +204,8 @@ void guessEdgeByRelHotness(BinaryFunction &BF, bool UseSucc,
     for (BinaryBasicBlock *Pred : BB.predecessors()) {
       double RelativeExec = PredEdgeWeights[std::make_pair(Pred, &BB)];
       RelativeExec *= BB.getExecutionCount();
-      BinaryBasicBlock::BinaryBranchInfo &BI = Pred->getBranchInfo(BB);
-      if (static_cast<uint64_t>(RelativeExec) > BI.Count)
+      
+      if (BinaryBasicBlock::BinaryBranchInfo &BI = Pred->getBranchInfo(BB); static_cast<uint64_t>(RelativeExec) > BI.Count)
         BI.Count = static_cast<uint64_t>(RelativeExec);
     }
 

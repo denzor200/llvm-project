@@ -124,8 +124,8 @@ static bool IsCVarArgsFunction(llvm::ArrayRef<TypeIndex> args) {
 static bool
 AnyScopesHaveTemplateParams(llvm::ArrayRef<llvm::ms_demangle::Node *> scopes) {
   for (llvm::ms_demangle::Node *n : scopes) {
-    auto *idn = static_cast<llvm::ms_demangle::IdentifierNode *>(n);
-    if (idn->TemplateParams)
+    
+    if (auto *idn = static_cast<llvm::ms_demangle::IdentifierNode *>(n); idn->TemplateParams)
       return true;
   }
   return false;
@@ -362,8 +362,8 @@ clang::DeclContext *PdbAstBuilder::GetParentDeclContext(PdbSymUid uid) {
   // that would be an infinite recursion.
   SymbolFileNativePDB *pdb = static_cast<SymbolFileNativePDB *>(
       m_clang.GetSymbolFile()->GetBackingSymbolFile());
-  PdbIndex& index = pdb->GetIndex();
-  switch (uid.kind()) {
+  
+  switch (PdbIndex& index = pdb->GetIndex(); uid.kind()) {
   case PdbSymUidKind::CompilandSym: {
     std::optional<PdbCompilandSymId> scope =
         pdb->FindSymbolScope(uid.asCompilandSym());
@@ -887,9 +887,9 @@ PdbAstBuilder::CreateFunctionDecl(PdbCompilandSymId func_id,
     TagRecord tag_record = CVTagRecord::create(parent_cvt).asTag();
     // If it's a forward reference, try to get the real TypeIndex.
     if (tag_record.isForwardRef()) {
-      llvm::Expected<TypeIndex> eti =
-          index.tpi().findFullDeclForForwardRef(class_index);
-      if (eti) {
+      
+      if (llvm::Expected<TypeIndex> eti =
+          index.tpi().findFullDeclForForwardRef(class_index); eti) {
         tag_record = CVTagRecord::create(index.tpi().getType(*eti)).asTag();
       }
     }
@@ -996,8 +996,8 @@ PdbAstBuilder::CreateFunctionDeclFromId(PdbTypeSymId func_tid,
     func_ti = fir.getFunctionType();
     parent = FromCompilerDeclContext(GetTranslationUnitDecl());
     if (!fir.ParentScope.isNoneType()) {
-      CVType parent_cvt = index.ipi().getType(fir.ParentScope);
-      if (parent_cvt.kind() == LF_STRING_ID) {
+      
+      if (CVType parent_cvt = index.ipi().getType(fir.ParentScope); parent_cvt.kind() == LF_STRING_ID) {
         StringIdRecord sir;
         cantFail(
             TypeDeserializer::deserializeAs<StringIdRecord>(parent_cvt, sir));
@@ -1273,8 +1273,8 @@ void PdbAstBuilder::ParseNamespace(clang::DeclContext &context) {
       continue;
 
     clang::NamespaceDecl *ns = llvm::cast<clang::NamespaceDecl>(context);
-    llvm::StringRef ns_name = ns->getName();
-    if (ns_name.starts_with(qname)) {
+    
+    if (llvm::StringRef ns_name = ns->getName(); ns_name.starts_with(qname)) {
       ns_name = ns_name.drop_front(qname.size());
       if (ns_name.starts_with("::"))
         GetOrCreateType(tid);
@@ -1313,9 +1313,9 @@ void PdbAstBuilder::ParseAllFunctionsAndNonLocalVars() {
       const CVSymbolArray &symbols = cii.m_debug_stream.getSymbolArray();
       auto iter = symbols.begin();
       while (iter != symbols.end()) {
-        PdbCompilandSymId sym_id{modi, iter.offset()};
+        
 
-        switch (iter->kind()) {
+        switch (PdbCompilandSymId sym_id{modi, iter.offset()}; iter->kind()) {
         case S_GPROC32:
         case S_LPROC32:
           GetOrCreateFunctionDecl(sym_id);

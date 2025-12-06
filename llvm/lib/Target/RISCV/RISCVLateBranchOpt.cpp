@@ -84,8 +84,8 @@ bool RISCVLateBranchOpt::runOnBasicBlock(MachineBasicBlock &MBB) const {
 
   // If it's a fallthrough, we need to figure out where MBB is going.
   if (!Folded) {
-    MachineFunction::iterator Fallthrough = ++MBB.getIterator();
-    if (Fallthrough != MBB.getParent()->end())
+    
+    if (MachineFunction::iterator Fallthrough = ++MBB.getIterator(); Fallthrough != MBB.getParent()->end())
       MBB.addSuccessor(&*Fallthrough);
   } else
     MBB.addSuccessor(Folded);

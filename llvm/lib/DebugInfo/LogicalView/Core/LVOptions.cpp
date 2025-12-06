@@ -458,8 +458,8 @@ void LVPatterns::addPatterns(StringSet<> &Patterns, LVMatchInfo &Filters) {
   bool IgnoreCase = options().getSelectIgnoreCase();
   bool UseRegex = options().getSelectUseRegex();
   for (const StringSet<>::value_type &Entry : Patterns) {
-    StringRef Pattern = Entry.first();
-    if (Error Err = createMatchEntry(Filters, Pattern, IgnoreCase, UseRegex))
+    
+    if (StringRef Pattern = Entry.first(); Error Err = createMatchEntry(Filters, Pattern, IgnoreCase, UseRegex))
       consumeError(std::move(Err));
   }
 

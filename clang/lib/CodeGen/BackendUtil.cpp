@@ -669,9 +669,9 @@ bool EmitAssemblyHelper::AddEmitPasses(legacy::PassManager &CodeGenPasses,
 
   // Normal mode, emit a .s or .o file by running the code generator. Note,
   // this also adds codegenerator level optimization passes.
-  CodeGenFileType CGFT = getCodeGenFileType(Action);
+  
 
-  if (TM->addPassesToEmitFile(CodeGenPasses, OS, DwoOS, CGFT,
+  if (CodeGenFileType CGFT = getCodeGenFileType(Action); TM->addPassesToEmitFile(CodeGenPasses, OS, DwoOS, CGFT,
                               /*DisableVerify=*/!CodeGenOpts.VerifyModule)) {
     Diags.Report(diag::err_fe_unable_to_interface_with_target);
     return false;
@@ -1042,8 +1042,8 @@ void EmitAssemblyHelper::RunOptimizationPipeline(
   }
   // Attempt to load pass plugins and register their callbacks with PB.
   for (auto &PluginFN : CodeGenOpts.PassPlugins) {
-    auto PassPlugin = PassPlugin::Load(PluginFN);
-    if (PassPlugin) {
+    
+    if (auto PassPlugin = PassPlugin::Load(PluginFN); PassPlugin) {
       PassPlugin->registerPassBuilderCallbacks(PB);
     } else {
       Diags.Report(diag::err_fe_unable_to_load_plugin)
@@ -1517,8 +1517,8 @@ void clang::emitBackendOutput(CompilerInstance &CI, CodeGenOptions &CGOpts,
   // Verify clang's TargetInfo DataLayout against the LLVM TargetMachine's
   // DataLayout.
   if (AsmHelper.TM) {
-    std::string DLDesc = M->getDataLayout().getStringRepresentation();
-    if (DLDesc != TDesc) {
+    
+    if (std::string DLDesc = M->getDataLayout().getStringRepresentation(); DLDesc != TDesc) {
       unsigned DiagID = Diags.getCustomDiagID(
           DiagnosticsEngine::Error, "backend data layout '%0' does not match "
                                     "expected target description '%1'");

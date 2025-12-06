@@ -49,10 +49,10 @@ static void warnAboutLeftoverTransformations(Loop *L,
     LLVM_DEBUG(dbgs() << "Leftover vectorization transformation\n");
     std::optional<ElementCount> VectorizeWidth =
         getOptionalElementCountLoopAttribute(L);
-    std::optional<int> InterleaveCount =
-        getOptionalIntLoopAttribute(L, "llvm.loop.interleave.count");
+    
 
-    if (!VectorizeWidth || VectorizeWidth->isVector())
+    if (std::optional<int> InterleaveCount =
+        getOptionalIntLoopAttribute(L, "llvm.loop.interleave.count"); !VectorizeWidth || VectorizeWidth->isVector())
       ORE->emit(
           DiagnosticInfoOptimizationFailure(DEBUG_TYPE,
                                             "FailedRequestedVectorization",

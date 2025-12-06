@@ -130,8 +130,8 @@ const RegisterBankInfo *ARMSubtarget::getRegBankInfo() const {
 }
 
 void ARMSubtarget::initLibcallLoweringInfo(LibcallLoweringInfo &Info) const {
-  const Triple &TT = getTargetTriple();
-  if (TT.isOSBinFormatMachO()) {
+  
+  if (const Triple &TT = getTargetTriple(); TT.isOSBinFormatMachO()) {
     // Uses VFP for Thumb libfuncs if available.
     if (isThumb() && hasVFP2Base() && hasARMOps() && !useSoftFloat()) {
       // clang-format off
@@ -210,8 +210,8 @@ void ARMSubtarget::initSubtargetFeatures(StringRef CPU, StringRef FS) {
 
     if (isTargetDarwin()) {
       StringRef ArchName = TargetTriple.getArchName();
-      ARM::ArchKind AK = ARM::parseArch(ArchName);
-      if (AK == ARM::ArchKind::ARMV7S)
+      
+      if (ARM::ArchKind AK = ARM::parseArch(ArchName); AK == ARM::ArchKind::ARMV7S)
         // Default to the Swift CPU when targeting armv7s/thumbv7s.
         CPUString = "swift";
       else if (AK == ARM::ArchKind::ARMV7K)

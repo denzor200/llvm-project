@@ -353,8 +353,8 @@ static Value *findBaseDefiningValueOfVector(Value *I, DefiningValueMapTy &Cache,
   // Each case parallels findBaseDefiningValue below, see that code for
   // detailed motivation.
 
-  auto Cached = Cache.find(I);
-  if (Cached != Cache.end())
+  
+  if (auto Cached = Cache.find(I); Cached != Cache.end())
     return Cached->second;
 
   if (isa<Argument>(I)) {
@@ -450,8 +450,8 @@ static Value *findBaseDefiningValue(Value *I, DefiningValueMapTy &Cache,
                                     IsKnownBaseMapTy &KnownBases) {
   assert(I->getType()->isPtrOrPtrVectorTy() &&
          "Illegal to ask for the base pointer of a non-pointer type");
-  auto Cached = Cache.find(I);
-  if (Cached != Cache.end())
+  
+  if (auto Cached = Cache.find(I); Cached != Cache.end())
     return Cached->second;
 
   if (I->getType()->isVectorTy())
@@ -647,8 +647,8 @@ static Value *findBaseDefiningValueCached(Value *I, DefiningValueMapTy &Cache,
 static Value *findBaseOrBDV(Value *I, DefiningValueMapTy &Cache,
                             IsKnownBaseMapTy &KnownBases) {
   Value *Def = findBaseDefiningValueCached(I, Cache, KnownBases);
-  auto Found = Cache.find(Def);
-  if (Found != Cache.end()) {
+  
+  if (auto Found = Cache.find(Def); Found != Cache.end()) {
     // Either a base-of relation, or a self reference.  Caller must check.
     return Found->second;
   }
@@ -965,8 +965,8 @@ static Value *findBasePointer(Value *I, DefiningValueMapTy &Cache,
   // Return a phi state for a base defining value.  We'll generate a new
   // base state for known bases and expect to find a cached state otherwise.
   auto GetStateForBDV = [&](Value *BaseValue, Value *Input) {
-    auto I = States.find(BaseValue);
-    if (I != States.end())
+    
+    if (auto I = States.find(BaseValue); I != States.end())
       return I->second;
     assert(areBothVectorOrScalar(BaseValue, Input));
     return BDVState(BaseValue, BDVState::Base, BaseValue);
@@ -1040,8 +1040,8 @@ static Value *findBasePointer(Value *I, DefiningValueMapTy &Cache,
       // conflict because of incompatible in/out types, we mark it as such
       // ensuring that it will propagate through the fixpoint iteration
       auto I = cast<Instruction>(BDV);
-      auto BV = NewState.getBaseValue();
-      if (BV && MarkConflict(I, BV))
+      
+      if (auto BV = NewState.getBaseValue(); BV && MarkConflict(I, BV))
         NewState = BDVState(I, BDVState::Conflict);
 
       BDVState OldState = Pair.second;
@@ -1629,8 +1629,8 @@ public:
 } // end anonymous namespace
 
 static StringRef getDeoptLowering(CallBase *Call) {
-  const char *DeoptLowering = "deopt-lowering";
-  if (Call->hasFnAttr(DeoptLowering)) {
+  
+  if (const char *DeoptLowering = "deopt-lowering"; Call->hasFnAttr(DeoptLowering)) {
     // FIXME: Calls have a *really* confusing interface around attributes
     // with values.
     const AttributeList &CSAS = Call->getAttributes();
@@ -2106,7 +2106,11 @@ static void relocationViaAlloca(
         ToClobber.push_back(Alloca);
       }
 
-      auto InsertClobbersAt = [&](BasicBlock::iterator IP) {
+      
+
+      // Insert the clobbering stores.  These may get intermixed with the
+      // gc.results and gc.relocates, but that's fine.
+      if (auto InsertClobbersAt = [&](BasicBlock::iterator IP) {
         for (auto *AI : ToClobber) {
           auto AT = AI->getAllocatedType();
           Constant *CPN;
@@ -2116,11 +2120,7 @@ static void relocationViaAlloca(
             CPN = ConstantPointerNull::get(cast<PointerType>(AT));
           new StoreInst(CPN, AI, IP);
         }
-      };
-
-      // Insert the clobbering stores.  These may get intermixed with the
-      // gc.results and gc.relocates, but that's fine.
-      if (auto II = dyn_cast<InvokeInst>(Statepoint)) {
+      }; auto II = dyn_cast<InvokeInst>(Statepoint)) {
         InsertClobbersAt(II->getNormalDest()->getFirstInsertionPt());
         InsertClobbersAt(II->getUnwindDest()->getFirstInsertionPt());
       } else {
@@ -2177,9 +2177,9 @@ static void relocationViaAlloca(
     // Emit store for the initial gc value.  Store must be inserted after load,
     // otherwise store will be in alloca's use list and an extra load will be
     // inserted before it.
-    StoreInst *Store = new StoreInst(Def, Alloca, /*volatile*/ false,
-                                     DL.getABITypeAlign(Def->getType()));
-    if (Instruction *Inst = dyn_cast<Instruction>(Def)) {
+    
+    if (StoreInst *Store = new StoreInst(Def, Alloca, /*volatile*/ false,
+                                     DL.getABITypeAlign(Def->getType())); Instruction *Inst = dyn_cast<Instruction>(Def)) {
       if (InvokeInst *Invoke = dyn_cast<InvokeInst>(Inst)) {
         // InvokeInst is a terminator so the store need to be inserted into its
         // normal destination block.
@@ -2354,9 +2354,9 @@ findRematerializationCandidates(PointerToBaseTy PointerToBase,
 
   for (auto P2B : PointerToBase) {
     auto *Derived = P2B.first;
-    auto *Base = P2B.second;
+    
     // Consider only derived pointers.
-    if (Derived == Base)
+    if (auto *Base = P2B.second; Derived == Base)
       continue;
 
     // For each live pointer find its defining chain.
@@ -2516,8 +2516,8 @@ static void rematerializeLiveValuesAtUses(
   // their sub-chains.
   if (!LiveValuesToBeDeleted.empty()) {
     for (auto &P : RematerizationCandidates) {
-      auto &R = P.second;
-      if (R.ChainToBase.size() > 1) {
+      
+      if (auto &R = P.second; R.ChainToBase.size() > 1) {
         R.ChainToBase.clear();
         findRematerializableChainToBasePointer(R.ChainToBase, P.first);
       }
@@ -2888,14 +2888,14 @@ static AttributeMask getParamAndReturnAttributesToRemove() {
 }
 
 static void stripNonValidAttributesFromPrototype(Function &F) {
-  LLVMContext &Ctx = F.getContext();
+  
 
   // Intrinsics are very delicate.  Lowering sometimes depends the presence
   // of certain attributes for correctness, but we may have also inferred
   // additional ones in the abstract machine model which need stripped.  This
   // assumes that the attributes defined in Intrinsic.td are conservatively
   // correct for both physical and abstract model.
-  if (Intrinsic::ID id = F.getIntrinsicID()) {
+  if (LLVMContext &Ctx = F.getContext(); Intrinsic::ID id = F.getIntrinsicID()) {
     F.setAttributes(Intrinsic::getAttributes(Ctx, id, F.getFunctionType()));
     return;
   }
@@ -2974,8 +2974,8 @@ static void stripNonValidDataFromBody(Function &F) {
 
     stripInvalidMetadataFromInstruction(I);
 
-    AttributeMask R = getParamAndReturnAttributesToRemove();
-    if (auto *Call = dyn_cast<CallBase>(&I)) {
+    
+    if (AttributeMask R = getParamAndReturnAttributesToRemove(); auto *Call = dyn_cast<CallBase>(&I)) {
       for (int i = 0, e = Call->arg_size(); i != e; i++)
         if (isa<PointerType>(Call->getArgOperand(i)->getType()))
           Call->removeParamAttrs(i, R);
@@ -3120,8 +3120,8 @@ bool RewriteStatepointsForGC::runOnFunction(Function &F, DominatorTree &DT,
     return nullptr;
   };
   for (BasicBlock &BB : F) {
-    Instruction *TI = BB.getTerminator();
-    if (auto *Cond = getConditionInst(TI))
+    
+    if (Instruction *TI = BB.getTerminator(); auto *Cond = getConditionInst(TI))
       // TODO: Handle more than just ICmps here.  We should be able to move
       // most instructions without side effects or memory access.
       if (isa<ICmpInst>(Cond) && Cond->hasOneUse()) {
@@ -3325,9 +3325,9 @@ static void computeLiveInValues(DominatorTree &DT, Function &F,
     LiveTmp.set_subtract(Data.KillSet[BB]);
 
     assert(Data.LiveIn.count(BB));
-    SetVector<Value *> &LiveIn = Data.LiveIn[BB];
+    
     // assert: LiveIn is a subset of LiveTmp
-    if (LiveIn.size() != LiveTmp.size()) {
+    if (SetVector<Value *> &LiveIn = Data.LiveIn[BB]; LiveIn.size() != LiveTmp.size()) {
       LiveIn = std::move(LiveTmp);
       Worklist.insert_range(predecessors(BB));
     }

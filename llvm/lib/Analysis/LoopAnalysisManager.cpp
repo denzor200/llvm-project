@@ -104,8 +104,8 @@ bool LoopAnalysisManagerFunctionProxy::Result::invalidate(
       for (const auto &OuterInvalidationPair :
            OuterProxy->getOuterInvalidations()) {
         AnalysisKey *OuterAnalysisID = OuterInvalidationPair.first;
-        const auto &InnerAnalysisIDs = OuterInvalidationPair.second;
-        if (Inv.invalidate(OuterAnalysisID, F, PA)) {
+        
+        if (const auto &InnerAnalysisIDs = OuterInvalidationPair.second; Inv.invalidate(OuterAnalysisID, F, PA)) {
           if (!InnerPA)
             InnerPA = PA;
           for (AnalysisKey *InnerAnalysisID : InnerAnalysisIDs)

@@ -209,8 +209,8 @@ MCSymbol *MCContext::getOrCreateSymbol(const Twine &Name) {
   MCSymbolTableEntry &Entry = getSymbolTableEntry(NameRef);
   if (!Entry.second.Symbol) {
     bool IsRenamable = NameRef.starts_with(MAI->getPrivateGlobalPrefix());
-    bool IsTemporary = IsRenamable && !SaveTempLabels;
-    if (!Entry.second.Used) {
+    
+    if (bool IsTemporary = IsRenamable && !SaveTempLabels; !Entry.second.Used) {
       Entry.second.Used = true;
       Entry.second.Symbol = createSymbolImpl(&Entry, IsTemporary);
     } else {
@@ -955,8 +955,8 @@ void MCContext::remapDebugPath(SmallVectorImpl<char> &Path) {
 }
 
 void MCContext::RemapDebugPaths() {
-  const auto &DebugPrefixMap = this->DebugPrefixMap;
-  if (DebugPrefixMap.empty())
+  
+  if (const auto &DebugPrefixMap = this->DebugPrefixMap; DebugPrefixMap.empty())
     return;
 
   // Remap compilation directory.

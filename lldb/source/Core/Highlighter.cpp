@@ -65,8 +65,8 @@ HighlightStyle HighlightStyle::MakeVimStyle() {
 const Highlighter &
 HighlighterManager::getHighlighterFor(lldb::LanguageType language_type,
                                       llvm::StringRef path) const {
-  Language *language = lldb_private::Language::FindPlugin(language_type, path);
-  if (language && language->GetHighlighter())
+  
+  if (Language *language = lldb_private::Language::FindPlugin(language_type, path); language && language->GetHighlighter())
     return *language->GetHighlighter();
   return m_default;
 }

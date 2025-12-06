@@ -133,8 +133,8 @@ bool UnrolledInstAnalyzer::visitCastInst(CastInst &I) {
   // analysis, which operates on integers (and, e.g., might convert i8* null to
   // i32 0).
   if (CastInst::castIsValid(I.getOpcode(), Op, I.getType())) {
-    const DataLayout &DL = I.getDataLayout();
-    if (Value *V = simplifyCastInst(I.getOpcode(), Op, I.getType(), DL)) {
+    
+    if (const DataLayout &DL = I.getDataLayout(); Value *V = simplifyCastInst(I.getOpcode(), Op, I.getType(), DL)) {
       SimplifiedValues[&I] = V;
       return true;
     }
@@ -156,13 +156,13 @@ bool UnrolledInstAnalyzer::visitCmpInst(CmpInst &I) {
       RHS = SimpleRHS;
 
   if (!isa<Constant>(LHS) && !isa<Constant>(RHS) && !I.isSigned()) {
-    auto SimplifiedLHS = SimplifiedAddresses.find(LHS);
-    if (SimplifiedLHS != SimplifiedAddresses.end()) {
-      auto SimplifiedRHS = SimplifiedAddresses.find(RHS);
-      if (SimplifiedRHS != SimplifiedAddresses.end()) {
+    
+    if (auto SimplifiedLHS = SimplifiedAddresses.find(LHS); SimplifiedLHS != SimplifiedAddresses.end()) {
+      
+      if (auto SimplifiedRHS = SimplifiedAddresses.find(RHS); SimplifiedRHS != SimplifiedAddresses.end()) {
         SimplifiedAddress &LHSAddr = SimplifiedLHS->second;
-        SimplifiedAddress &RHSAddr = SimplifiedRHS->second;
-        if (LHSAddr.Base == RHSAddr.Base) {
+        
+        if (SimplifiedAddress &RHSAddr = SimplifiedRHS->second; LHSAddr.Base == RHSAddr.Base) {
           // FIXME: This is only correct for equality predicates. For
           // unsigned predicates, this only holds if we have nowrap flags,
           // which we don't track (for nuw it's valid as-is, for nusw it

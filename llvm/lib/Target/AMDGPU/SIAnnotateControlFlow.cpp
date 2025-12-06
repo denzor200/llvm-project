@@ -322,8 +322,8 @@ bool SIAnnotateControlFlow::closeControlFlow(BasicBlock *BB) {
   BasicBlock::iterator FirstInsertionPt = BB->getFirstInsertionPt();
   if (!isa<UndefValue>(Exec) && !isa<UnreachableInst>(FirstInsertionPt)) {
     Instruction *ExecDef = cast<Instruction>(Exec);
-    BasicBlock *DefBB = ExecDef->getParent();
-    if (!DT->dominates(DefBB, BB)) {
+    
+    if (BasicBlock *DefBB = ExecDef->getParent(); !DT->dominates(DefBB, BB)) {
       // Split edge to make Def dominate Use
       FirstInsertionPt = SplitEdge(DefBB, BB, DT, LI)->getFirstInsertionPt();
     }
@@ -366,8 +366,8 @@ bool SIAnnotateControlFlow::run() {
     }
 
     if (isTopOfStack(BB)) {
-      PHINode *Phi = dyn_cast<PHINode>(Term->getCondition());
-      if (Phi && Phi->getParent() == BB && isElse(Phi) && !hasKill(BB)) {
+      
+      if (PHINode *Phi = dyn_cast<PHINode>(Term->getCondition()); Phi && Phi->getParent() == BB && isElse(Phi) && !hasKill(BB)) {
         Changed |= insertElse(Term);
         Changed |= eraseIfUnused(Phi);
         continue;
@@ -397,8 +397,8 @@ PreservedAnalyses SIAnnotateControlFlowPass::run(Function &F,
 
   SIAnnotateControlFlow Impl(F, ST, DT, LI, UI);
 
-  bool Changed = Impl.run();
-  if (!Changed)
+  
+  if (bool Changed = Impl.run(); !Changed)
     return PreservedAnalyses::all();
 
   // TODO: Is LoopInfo preserved?

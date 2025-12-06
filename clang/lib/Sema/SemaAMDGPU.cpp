@@ -306,8 +306,8 @@ bool SemaAMDGPU::checkCoopAtomicFunctionCall(CallExpr *TheCall, bool IsStore) {
   // First argument is a global or generic pointer.
   Expr *PtrArg = TheCall->getArg(0);
   QualType PtrTy = PtrArg->getType()->getPointeeType();
-  unsigned AS = getASTContext().getTargetAddressSpace(PtrTy.getAddressSpace());
-  if (AS != llvm::AMDGPUAS::FLAT_ADDRESS &&
+  
+  if (unsigned AS = getASTContext().getTargetAddressSpace(PtrTy.getAddressSpace()); AS != llvm::AMDGPUAS::FLAT_ADDRESS &&
       AS != llvm::AMDGPUAS::GLOBAL_ADDRESS) {
     Fail = true;
     Diag(TheCall->getBeginLoc(), diag::err_amdgcn_coop_atomic_invalid_as)
@@ -503,8 +503,8 @@ void SemaAMDGPU::handleAMDGPUWavesPerEUAttr(Decl *D, const ParsedAttr &AL) {
 
 void SemaAMDGPU::handleAMDGPUNumSGPRAttr(Decl *D, const ParsedAttr &AL) {
   uint32_t NumSGPR = 0;
-  Expr *NumSGPRExpr = AL.getArgAsExpr(0);
-  if (!SemaRef.checkUInt32Argument(AL, NumSGPRExpr, NumSGPR))
+  
+  if (Expr *NumSGPRExpr = AL.getArgAsExpr(0); !SemaRef.checkUInt32Argument(AL, NumSGPRExpr, NumSGPR))
     return;
 
   D->addAttr(::new (getASTContext())
@@ -513,8 +513,8 @@ void SemaAMDGPU::handleAMDGPUNumSGPRAttr(Decl *D, const ParsedAttr &AL) {
 
 void SemaAMDGPU::handleAMDGPUNumVGPRAttr(Decl *D, const ParsedAttr &AL) {
   uint32_t NumVGPR = 0;
-  Expr *NumVGPRExpr = AL.getArgAsExpr(0);
-  if (!SemaRef.checkUInt32Argument(AL, NumVGPRExpr, NumVGPR))
+  
+  if (Expr *NumVGPRExpr = AL.getArgAsExpr(0); !SemaRef.checkUInt32Argument(AL, NumVGPRExpr, NumVGPR))
     return;
 
   D->addAttr(::new (getASTContext())

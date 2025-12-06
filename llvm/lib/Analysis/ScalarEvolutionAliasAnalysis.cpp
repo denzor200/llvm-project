@@ -131,8 +131,8 @@ Value *SCEVAAResult::GetBaseValue(const SCEV *S) {
     return GetBaseValue(AR->getStart());
   } else if (const SCEVAddExpr *A = dyn_cast<SCEVAddExpr>(S)) {
     // If there's a pointer operand, it'll be sorted at the end of the list.
-    const SCEV *Last = A->getOperand(A->getNumOperands() - 1);
-    if (Last->getType()->isPointerTy())
+    
+    if (const SCEV *Last = A->getOperand(A->getNumOperands() - 1); Last->getType()->isPointerTy())
       return GetBaseValue(Last);
   } else if (const SCEVUnknown *U = dyn_cast<SCEVUnknown>(S)) {
     // This is a leaf node.

@@ -79,8 +79,8 @@ static Status AttachToProcess(ProcessAttachInfo &attach_info, Target &target) {
 
   auto process_sp = target.GetProcessSP();
   if (process_sp) {
-    const auto state = process_sp->GetState();
-    if (process_sp->IsAlive() && state == eStateConnected) {
+    
+    if (const auto state = process_sp->GetState(); process_sp->IsAlive() && state == eStateConnected) {
       // If we are already connected, then we have already specified the
       // listener, so if a valid listener is supplied, we need to error out to
       // let the client know.
@@ -258,9 +258,9 @@ SBProcess SBTarget::LoadCore(const char *core_file, lldb::SBError &error) {
   if (TargetSP target_sp = GetSP()) {
     FileSpec filespec(core_file);
     FileSystem::Instance().Resolve(filespec);
-    ProcessSP process_sp(target_sp->CreateProcess(
-        target_sp->GetDebugger().GetListener(), "", &filespec, false));
-    if (process_sp) {
+    
+    if (ProcessSP process_sp(target_sp->CreateProcess(
+        target_sp->GetDebugger().GetListener(), "", &filespec, false)); process_sp) {
       ElapsedTime load_core_time(target_sp->GetStatistics().GetLoadCoreTime());
       error.SetError(process_sp->LoadCore());
       if (error.Success())
@@ -362,8 +362,8 @@ SBProcess SBTarget::Launch(SBListener &listener, char const **argv,
                                   FileSpec(stderr_path),
                                   FileSpec(working_directory), launch_flags);
 
-    Module *exe_module = target_sp->GetExecutableModulePointer();
-    if (exe_module)
+    
+    if (Module *exe_module = target_sp->GetExecutableModulePointer(); exe_module)
       launch_info.SetExecutableFile(exe_module->GetPlatformFileSpec(), true);
     if (argv) {
       launch_info.GetArguments().AppendArguments(argv);
@@ -400,8 +400,8 @@ SBProcess SBTarget::Launch(SBLaunchInfo &sb_launch_info, SBError &error) {
     std::lock_guard<std::recursive_mutex> guard(target_sp->GetAPIMutex());
     StateType state = eStateInvalid;
     {
-      ProcessSP process_sp = target_sp->GetProcessSP();
-      if (process_sp) {
+      
+      if (ProcessSP process_sp = target_sp->GetProcessSP(); process_sp) {
         state = process_sp->GetState();
 
         if (process_sp->IsAlive() && state != eStateConnected) {
@@ -417,8 +417,8 @@ SBProcess SBTarget::Launch(SBLaunchInfo &sb_launch_info, SBError &error) {
     lldb_private::ProcessLaunchInfo launch_info = sb_launch_info.ref();
 
     if (!launch_info.GetExecutableFile()) {
-      Module *exe_module = target_sp->GetExecutableModulePointer();
-      if (exe_module)
+      
+      if (Module *exe_module = target_sp->GetExecutableModulePointer(); exe_module)
         launch_info.SetExecutableFile(exe_module->GetPlatformFileSpec(), true);
     }
 
@@ -444,12 +444,12 @@ lldb::SBProcess SBTarget::Attach(SBAttachInfo &sb_attach_info, SBError &error) {
     ProcessAttachInfo &attach_info = sb_attach_info.ref();
     if (attach_info.ProcessIDIsValid() && !attach_info.UserIDIsValid() &&
         !attach_info.IsScriptedProcess()) {
-      PlatformSP platform_sp = target_sp->GetPlatform();
+      
       // See if we can pre-verify if a process exists or not
-      if (platform_sp && platform_sp->IsConnected()) {
+      if (PlatformSP platform_sp = target_sp->GetPlatform(); platform_sp && platform_sp->IsConnected()) {
         lldb::pid_t attach_pid = attach_info.GetProcessID();
-        ProcessInstanceInfo instance_info;
-        if (platform_sp->GetProcessInfo(attach_pid, instance_info)) {
+        
+        if (ProcessInstanceInfo instance_info; platform_sp->GetProcessInfo(attach_pid, instance_info)) {
           attach_info.SetUserID(instance_info.GetEffectiveUserID());
         } else {
           error.ref() = Status::FromErrorStringWithFormat(
@@ -562,8 +562,8 @@ SBFileSpec SBTarget::GetExecutable() {
 
   SBFileSpec exe_file_spec;
   if (TargetSP target_sp = GetSP()) {
-    Module *exe_module = target_sp->GetExecutableModulePointer();
-    if (exe_module)
+    
+    if (Module *exe_module = target_sp->GetExecutableModulePointer(); exe_module)
       exe_file_spec.SetFileSpec(exe_module->GetFileSpec());
   }
 
@@ -644,8 +644,8 @@ SBTarget::ResolveSymbolContextForAddress(const SBAddress &addr,
   LLDB_INSTRUMENT_VA(this, addr, resolve_scope);
 
   SBSymbolContext sb_sc;
-  SymbolContextItem scope = static_cast<SymbolContextItem>(resolve_scope);
-  if (addr.IsValid()) {
+  
+  if (SymbolContextItem scope = static_cast<SymbolContextItem>(resolve_scope); addr.IsValid()) {
     if (TargetSP target_sp = GetSP()) {
       lldb_private::SymbolContext &sc = sb_sc.ref();
       sc.target_sp = target_sp;
@@ -773,8 +773,8 @@ SBBreakpoint SBTarget::BreakpointCreateByName(const char *symbol_name,
     const bool hardware = false;
     const LazyBool skip_prologue = eLazyBoolCalculate;
     const lldb::addr_t offset = 0;
-    const bool offset_is_insn_count = false;
-    if (module_name && module_name[0]) {
+    
+    if (const bool offset_is_insn_count = false; module_name && module_name[0]) {
       FileSpecList module_spec_list;
       module_spec_list.Append(FileSpec(module_name));
       sb_bp = target_sp->CreateBreakpoint(
@@ -1516,8 +1516,8 @@ lldb::SBModule SBTarget::AddModule(const SBModuleSpec &module_spec) {
     sb_module.SetSP(target_sp->GetOrCreateModule(*module_spec.m_opaque_up,
                                                  true /* notify */));
     if (!sb_module.IsValid() && module_spec.m_opaque_up->GetUUID().IsValid()) {
-      Status error;
-      if (PluginManager::DownloadObjectAndSymbolFile(*module_spec.m_opaque_up,
+      
+      if (Status error; PluginManager::DownloadObjectAndSymbolFile(*module_spec.m_opaque_up,
                                                      error,
                                                      /* force_lookup */ true)) {
         if (FileSystem::Instance().Exists(
@@ -1762,9 +1762,9 @@ bool SBTarget::GetDescription(SBStream &description,
                               lldb::DescriptionLevel description_level) {
   LLDB_INSTRUMENT_VA(this, description, description_level);
 
-  Stream &strm = description.ref();
+  
 
-  if (TargetSP target_sp = GetSP()) {
+  if (Stream &strm = description.ref(); TargetSP target_sp = GetSP()) {
     target_sp->Dump(&strm, description_level);
   } else
     strm.PutCString("No value");
@@ -1799,14 +1799,14 @@ lldb::SBSymbolContextList SBTarget::FindGlobalFunctions(const char *name,
 
   lldb::SBSymbolContextList sb_sc_list;
   if (name && name[0]) {
-    llvm::StringRef name_ref(name);
-    if (TargetSP target_sp = GetSP()) {
+    
+    if (llvm::StringRef name_ref(name); TargetSP target_sp = GetSP()) {
       ModuleFunctionSearchOptions function_options;
       function_options.include_symbols = true;
       function_options.include_inlines = true;
 
-      std::string regexstr;
-      switch (matchtype) {
+      
+      switch (std::string regexstr; matchtype) {
       case eMatchTypeRegex:
         target_sp->GetImages().FindFunctions(RegularExpression(name_ref),
                                              function_options, *sb_sc_list);
@@ -1848,8 +1848,8 @@ lldb::SBType SBTarget::FindFirstType(const char *typename_cstr) {
     if (auto process_sp = target_sp->GetProcessSP()) {
       for (auto *runtime : process_sp->GetLanguageRuntimes()) {
         if (auto vendor = runtime->GetDeclVendor()) {
-          auto types = vendor->FindTypes(const_typename, /*max_matches*/ 1);
-          if (!types.empty())
+          
+          if (auto types = vendor->FindTypes(const_typename, /*max_matches*/ 1); !types.empty())
             return SBType(types.front());
         }
       }
@@ -1927,9 +1927,9 @@ SBValueList SBTarget::FindGlobalVariables(const char *name,
       if (exe_scope == nullptr)
         exe_scope = target_sp.get();
       for (const VariableSP &var_sp : variable_list) {
-        lldb::ValueObjectSP valobj_sp(
-            ValueObjectVariable::Create(exe_scope, var_sp));
-        if (valobj_sp)
+        
+        if (lldb::ValueObjectSP valobj_sp(
+            ValueObjectVariable::Create(exe_scope, var_sp)); valobj_sp)
           sb_value_list.Append(SBValue(valobj_sp));
       }
     }
@@ -1975,9 +1975,9 @@ SBValueList SBTarget::FindGlobalVariables(const char *name,
       if (exe_scope == nullptr)
         exe_scope = target_sp.get();
       for (const VariableSP &var_sp : variable_list) {
-        lldb::ValueObjectSP valobj_sp(
-            ValueObjectVariable::Create(exe_scope, var_sp));
-        if (valobj_sp)
+        
+        if (lldb::ValueObjectSP valobj_sp(
+            ValueObjectVariable::Create(exe_scope, var_sp)); valobj_sp)
           sb_value_list.Append(SBValue(valobj_sp));
       }
     }
@@ -2037,8 +2037,8 @@ lldb::SBInstructionList SBTarget::ReadInstructions(lldb::SBAddress start_addr,
 
   if (TargetSP target_sp = GetSP()) {
     lldb::addr_t start_load_addr = start_addr.GetLoadAddress(*this);
-    lldb::addr_t end_load_addr = end_addr.GetLoadAddress(*this);
-    if (end_load_addr > start_load_addr) {
+    
+    if (lldb::addr_t end_load_addr = end_addr.GetLoadAddress(*this); end_load_addr > start_load_addr) {
       lldb::addr_t size = end_load_addr - start_load_addr;
 
       AddressRange range(start_load_addr, size);
@@ -2079,9 +2079,9 @@ SBTarget::GetInstructionsWithFlavor(lldb::SBAddress base_addr,
       // FIXME - we don't have the mechanism in place to do per-architecture
       // settings.  But since we know that for now we only support flavors on
       // x86 & x86_64,
-      const llvm::Triple::ArchType arch =
-          target_sp->GetArchitecture().GetTriple().getArch();
-      if (arch == llvm::Triple::x86 || arch == llvm::Triple::x86_64)
+      
+      if (const llvm::Triple::ArchType arch =
+          target_sp->GetArchitecture().GetTriple().getArch(); arch == llvm::Triple::x86 || arch == llvm::Triple::x86_64)
         flavor_string = target_sp->GetDisassemblyFlavor();
     }
 
@@ -2122,14 +2122,14 @@ SBError SBTarget::SetSectionLoadAddress(lldb::SBSection section,
     if (!section.IsValid()) {
       sb_error.SetErrorStringWithFormat("invalid section");
     } else {
-      SectionSP section_sp(section.GetSP());
-      if (section_sp) {
+      
+      if (SectionSP section_sp(section.GetSP()); section_sp) {
         if (section_sp->IsThreadSpecific()) {
           sb_error.SetErrorString(
               "thread specific sections are not yet supported");
         } else {
-          ProcessSP process_sp(target_sp->GetProcessSP());
-          if (target_sp->SetSectionLoadAddress(section_sp, section_base_addr)) {
+          
+          if (ProcessSP process_sp(target_sp->GetProcessSP()); target_sp->SetSectionLoadAddress(section_sp, section_base_addr)) {
             ModuleSP module_sp(section_sp->GetModule());
             if (module_sp) {
               ModuleList module_list;
@@ -2158,10 +2158,10 @@ SBError SBTarget::ClearSectionLoadAddress(lldb::SBSection section) {
     if (!section.IsValid()) {
       sb_error.SetErrorStringWithFormat("invalid section");
     } else {
-      SectionSP section_sp(section.GetSP());
-      if (section_sp) {
-        ProcessSP process_sp(target_sp->GetProcessSP());
-        if (target_sp->SetSectionUnloaded(section_sp)) {
+      
+      if (SectionSP section_sp(section.GetSP()); section_sp) {
+        
+        if (ProcessSP process_sp(target_sp->GetProcessSP()); target_sp->SetSectionUnloaded(section_sp)) {
           ModuleSP module_sp(section_sp->GetModule());
           if (module_sp) {
             ModuleList module_list;
@@ -2201,10 +2201,10 @@ SBError SBTarget::SetModuleLoadAddress(lldb::SBModule module,
   SBError sb_error;
 
   if (TargetSP target_sp = GetSP()) {
-    ModuleSP module_sp(module.GetSP());
-    if (module_sp) {
-      bool changed = false;
-      if (module_sp->SetLoadAddress(*target_sp, slide_offset, true, changed)) {
+    
+    if (ModuleSP module_sp(module.GetSP()); module_sp) {
+      
+      if (bool changed = false; module_sp->SetLoadAddress(*target_sp, slide_offset, true, changed)) {
         // The load was successful, make sure that at least some sections
         // changed before we notify that our module was loaded.
         if (changed) {
@@ -2212,8 +2212,8 @@ SBError SBTarget::SetModuleLoadAddress(lldb::SBModule module,
           module_list.Append(module_sp);
           target_sp->ModulesDidLoad(module_list);
           // Flush info in the process (stack frames, etc)
-          ProcessSP process_sp(target_sp->GetProcessSP());
-          if (process_sp)
+          
+          if (ProcessSP process_sp(target_sp->GetProcessSP()); process_sp)
             process_sp->Flush();
         }
       }
@@ -2234,19 +2234,19 @@ SBError SBTarget::ClearModuleLoadAddress(lldb::SBModule module) {
 
   char path[PATH_MAX];
   if (TargetSP target_sp = GetSP()) {
-    ModuleSP module_sp(module.GetSP());
-    if (module_sp) {
-      ObjectFile *objfile = module_sp->GetObjectFile();
-      if (objfile) {
-        SectionList *section_list = objfile->GetSectionList();
-        if (section_list) {
+    
+    if (ModuleSP module_sp(module.GetSP()); module_sp) {
+      
+      if (ObjectFile *objfile = module_sp->GetObjectFile(); objfile) {
+        
+        if (SectionList *section_list = objfile->GetSectionList(); section_list) {
           ProcessSP process_sp(target_sp->GetProcessSP());
 
           bool changed = false;
           const size_t num_sections = section_list->GetSize();
           for (size_t sect_idx = 0; sect_idx < num_sections; ++sect_idx) {
-            SectionSP section_sp(section_list->GetSectionAtIndex(sect_idx));
-            if (section_sp)
+            
+            if (SectionSP section_sp(section_list->GetSectionAtIndex(sect_idx)); section_sp)
               changed |= target_sp->SetSectionUnloaded(section_sp);
           }
           if (changed) {
@@ -2254,8 +2254,8 @@ SBError SBTarget::ClearModuleLoadAddress(lldb::SBModule module) {
             module_list.Append(module_sp);
             target_sp->ModulesDidUnload(module_list, false);
             // Flush info in the process (stack frames, etc)
-            ProcessSP process_sp(target_sp->GetProcessSP());
-            if (process_sp)
+            
+            if (ProcessSP process_sp(target_sp->GetProcessSP()); process_sp)
               process_sp->Flush();
           }
         } else {
@@ -2327,8 +2327,8 @@ lldb::SBValue SBTarget::EvaluateExpression(const char *expr,
     if (target) {
       // If we have a process, make sure to lock the runlock:
       if (process) {
-        Process::StopLocker stop_locker;
-        if (stop_locker.TryLock(&process->GetRunLock())) {
+        
+        if (Process::StopLocker stop_locker; stop_locker.TryLock(&process->GetRunLock())) {
           target->EvaluateExpression(expr, frame, expr_value_sp, options.ref());
         } else {
           Status error;
@@ -2371,8 +2371,8 @@ bool SBTarget::IsLoaded(const SBModule &module) const {
   LLDB_INSTRUMENT_VA(this, module);
 
   if (TargetSP target_sp = GetSP()) {
-    ModuleSP module_sp(module.GetSP());
-    if (module_sp)
+    
+    if (ModuleSP module_sp(module.GetSP()); module_sp)
       return module_sp->IsLoadedInTarget(target_sp.get());
   }
   return false;

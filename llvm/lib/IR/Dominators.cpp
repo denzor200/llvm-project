@@ -133,8 +133,8 @@ bool DominatorTree::invalidate(Function &F, const PreservedAnalyses &PA,
 }
 
 bool DominatorTree::dominates(const BasicBlock *BB, const Use &U) const {
-  Instruction *UserInst = cast<Instruction>(U.getUser());
-  if (auto *PN = dyn_cast<PHINode>(UserInst))
+  
+  if (Instruction *UserInst = cast<Instruction>(U.getUser()); auto *PN = dyn_cast<PHINode>(UserInst))
     // A phi use using a value from a block is dominated by the end of that
     // block.  Note that the phi's parent block may not be.
     return dominates(BB, PN->getIncomingBlock(U));

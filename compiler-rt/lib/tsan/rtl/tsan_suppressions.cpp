@@ -115,8 +115,8 @@ uptr IsSuppressed(ReportType typ, const ReportStack *stack, Suppression **sp) {
     return 0;
   for (const SymbolizedStack *frame = stack->frames; frame;
       frame = frame->next) {
-    uptr pc = IsSuppressed(stype, frame->info, sp);
-    if (pc != 0)
+    
+    if (uptr pc = IsSuppressed(stype, frame->info, sp); pc != 0)
       return pc;
   }
   if (0 == internal_strcmp(stype, kSuppressionRace) && stack->frames != nullptr)

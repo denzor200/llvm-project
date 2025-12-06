@@ -90,11 +90,11 @@ FuncUnwinders::GetCompactUnwindUnwindPlan(Target &target) {
   // Only continuous functions are supported.
   if (m_ranges.size() == 1) {
     Address current_pc(m_ranges[0].GetBaseAddress());
-    CompactUnwindInfo *compact_unwind = m_unwind_table.GetCompactUnwindInfo();
-    if (compact_unwind) {
-      auto unwind_plan_sp =
-          std::make_shared<UnwindPlan>(lldb::eRegisterKindGeneric);
-      if (compact_unwind->GetUnwindPlan(target, current_pc, *unwind_plan_sp)) {
+    
+    if (CompactUnwindInfo *compact_unwind = m_unwind_table.GetCompactUnwindInfo(); compact_unwind) {
+      
+      if (auto unwind_plan_sp =
+          std::make_shared<UnwindPlan>(lldb::eRegisterKindGeneric); compact_unwind->GetUnwindPlan(target, current_pc, *unwind_plan_sp)) {
         m_unwind_plan_compact_unwind.push_back(unwind_plan_sp);
         return m_unwind_plan_compact_unwind[0]; // FIXME support multiple
                                                 // compact unwind plans for one
@@ -159,10 +159,10 @@ FuncUnwinders::GetArmUnwindUnwindPlan(Target &target) {
   // Only continuous functions are supported.
   if (m_ranges.size() == 1) {
     Address current_pc = m_ranges[0].GetBaseAddress();
-    ArmUnwindInfo *arm_unwind_info = m_unwind_table.GetArmUnwindInfo();
-    if (arm_unwind_info) {
-      auto plan_sp = std::make_shared<UnwindPlan>(lldb::eRegisterKindGeneric);
-      if (arm_unwind_info->GetUnwindPlan(target, current_pc, *plan_sp))
+    
+    if (ArmUnwindInfo *arm_unwind_info = m_unwind_table.GetArmUnwindInfo(); arm_unwind_info) {
+      
+      if (auto plan_sp = std::make_shared<UnwindPlan>(lldb::eRegisterKindGeneric); arm_unwind_info->GetUnwindPlan(target, current_pc, *plan_sp))
         m_unwind_plan_arm_unwind_sp = std::move(plan_sp);
     }
   }
@@ -224,9 +224,9 @@ FuncUnwinders::GetObjectFileAugmentedUnwindPlan(Target &target,
   UnwindAssemblySP assembly_profiler_sp(GetUnwindAssemblyProfiler(target));
   // Only continuous functions are supported.
   if (assembly_profiler_sp && m_ranges.size() == 1) {
-    auto plan_sp = std::make_shared<UnwindPlan>(*object_file_unwind_plan);
+    
 
-    if (assembly_profiler_sp->AugmentUnwindPlanFromCallSite(m_ranges[0], thread,
+    if (auto plan_sp = std::make_shared<UnwindPlan>(*object_file_unwind_plan); assembly_profiler_sp->AugmentUnwindPlanFromCallSite(m_ranges[0], thread,
                                                             *plan_sp))
       m_unwind_plan_object_file_augmented_sp = std::move(plan_sp);
   }
@@ -263,8 +263,8 @@ FuncUnwinders::GetEHFrameAugmentedUnwindPlan(Target &target, Thread &thread) {
   UnwindAssemblySP assembly_profiler_sp(GetUnwindAssemblyProfiler(target));
   // Only continuous functions are supported.
   if (assembly_profiler_sp && m_ranges.size() == 1) {
-    auto plan_sp = std::make_shared<UnwindPlan>(*eh_frame_plan);
-    if (assembly_profiler_sp->AugmentUnwindPlanFromCallSite(m_ranges[0], thread,
+    
+    if (auto plan_sp = std::make_shared<UnwindPlan>(*eh_frame_plan); assembly_profiler_sp->AugmentUnwindPlanFromCallSite(m_ranges[0], thread,
                                                             *plan_sp))
       m_unwind_plan_eh_frame_augmented_sp = std::move(plan_sp);
   }
@@ -303,9 +303,9 @@ FuncUnwinders::GetDebugFrameAugmentedUnwindPlan(Target &target,
   UnwindAssemblySP assembly_profiler_sp(GetUnwindAssemblyProfiler(target));
   // Only continuous functions are supported.
   if (assembly_profiler_sp && m_ranges.size() == 1) {
-    auto plan_sp = std::make_shared<UnwindPlan>(*debug_frame_plan);
+    
 
-    if (assembly_profiler_sp->AugmentUnwindPlanFromCallSite(m_ranges[0], thread,
+    if (auto plan_sp = std::make_shared<UnwindPlan>(*debug_frame_plan); assembly_profiler_sp->AugmentUnwindPlanFromCallSite(m_ranges[0], thread,
                                                             *plan_sp))
       m_unwind_plan_debug_frame_augmented_sp = std::move(plan_sp);
   }
@@ -335,8 +335,8 @@ FuncUnwinders::GetAssemblyUnwindPlan(Target &target, Thread &thread) {
         std::min(range.GetByteSize(), (addr_t)1024 * 10 * 10);
     range.SetByteSize(func_size);
 
-    auto plan_sp = std::make_shared<UnwindPlan>(lldb::eRegisterKindGeneric);
-    if (assembly_profiler_sp->GetNonCallSiteUnwindPlanFromAssembly(
+    
+    if (auto plan_sp = std::make_shared<UnwindPlan>(lldb::eRegisterKindGeneric); assembly_profiler_sp->GetNonCallSiteUnwindPlanFromAssembly(
             range, thread, *plan_sp))
       m_unwind_plan_assembly_sp = std::move(plan_sp);
   }
@@ -442,8 +442,8 @@ FuncUnwinders::GetUnwindPlanFastUnwind(Target &target, Thread &thread) {
 
   UnwindAssemblySP assembly_profiler_sp(GetUnwindAssemblyProfiler(target));
   if (assembly_profiler_sp && m_ranges.size() == 1) {
-    auto plan_sp = std::make_shared<UnwindPlan>(lldb::eRegisterKindGeneric);
-    if (assembly_profiler_sp->GetFastUnwindPlan(m_ranges[0], thread, *plan_sp))
+    
+    if (auto plan_sp = std::make_shared<UnwindPlan>(lldb::eRegisterKindGeneric); assembly_profiler_sp->GetFastUnwindPlan(m_ranges[0], thread, *plan_sp))
       m_unwind_plan_fast_sp = std::move(plan_sp);
   }
   return m_unwind_plan_fast_sp;

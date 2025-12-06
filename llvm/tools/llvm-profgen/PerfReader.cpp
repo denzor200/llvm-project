@@ -64,14 +64,14 @@ namespace sampleprof {
 
 void VirtualUnwinder::unwindCall(UnwindState &State) {
   uint64_t Source = State.getCurrentLBRSource();
-  auto *ParentFrame = State.getParentFrame();
+  
   // The 2nd frame after leaf could be missing if stack sample is
   // taken when IP is within prolog/epilog, as frame chain isn't
   // setup yet. Fill in the missing frame in that case.
   // TODO: Currently we just assume all the addr that can't match the
   // 2nd frame is in prolog/epilog. In the future, we will switch to
   // pro/epi tracker(Dwarf CFI) for the precise check.
-  if (ParentFrame == State.getDummyRootPtr() ||
+  if (auto *ParentFrame = State.getParentFrame(); ParentFrame == State.getDummyRootPtr() ||
       ParentFrame->Address != Source) {
     State.switchToFrame(Source);
     if (ParentFrame != State.getDummyRootPtr()) {
@@ -142,8 +142,8 @@ void VirtualUnwinder::unwindLinear(UnwindState &State, uint64_t Repeat) {
       uint64_t PrevIP = IP.Address;
       IP.backward();
       // Break into segments for implicit call/return due to inlining
-      bool SameInlinee = Binary->inlineContextEqual(PrevIP, IP.Address);
-      if (!SameInlinee) {
+      
+      if (bool SameInlinee = Binary->inlineContextEqual(PrevIP, IP.Address); !SameInlinee) {
         State.switchToFrame(PrevIP);
         State.CurrentLeafFrame->recordRangeCount(PrevIP, End, Repeat);
         End = IP.Address;
@@ -483,8 +483,8 @@ PerfScriptReader::convertPerfDataToTrace(ProfiledBinary *Binary, bool SkipPID,
       MMapEvent MMap;
       if (isMMapEvent(TraceIt.getCurrentLine()) &&
           extractMMapEventForBinary(Binary, TraceIt.getCurrentLine(), MMap)) {
-        auto It = PIDSet.emplace(MMap.PID);
-        if (It.second && (!PIDFilter || MMap.PID == *PIDFilter)) {
+        
+        if (auto It = PIDSet.emplace(MMap.PID); It.second && (!PIDFilter || MMap.PID == *PIDFilter)) {
           if (!PIDs.empty()) {
             PIDs.append(",");
           }
@@ -561,12 +561,12 @@ void PerfScriptReader::updateBinaryAddress(const MMapEvent &Event) {
   } else {
     // Verify segments are loaded consecutively.
     const auto &Offsets = Binary->getTextSegmentOffsets();
-    auto It = llvm::lower_bound(Offsets, Event.Offset);
-    if (It != Offsets.end() && *It == Event.Offset) {
+    
+    if (auto It = llvm::lower_bound(Offsets, Event.Offset); It != Offsets.end() && *It == Event.Offset) {
       // The event is for loading a separate executable segment.
       auto I = std::distance(Offsets.begin(), It);
-      const auto &PreferredAddrs = Binary->getPreferredTextSegmentAddresses();
-      if (PreferredAddrs[I] - Binary->getPreferredBaseAddress() !=
+      
+      if (const auto &PreferredAddrs = Binary->getPreferredTextSegmentAddresses(); PreferredAddrs[I] - Binary->getPreferredBaseAddress() !=
           Event.Address - Binary->getBaseAddress())
         exitWithError("Executable segments not loaded consecutively");
     } else {
@@ -1020,9 +1020,9 @@ void PerfScriptReader::computeCounterFromLBR(const PerfSample *Sample,
 }
 
 void LBRPerfReader::parseSample(TraceStream &TraceIt, uint64_t Count) {
-  std::shared_ptr<PerfSample> Sample = std::make_shared<PerfSample>();
+  
   // Parsing LBR stack and populate into PerfSample.LBRStack
-  if (extractLBRStack(TraceIt, Sample->LBRStack)) {
+  if (std::shared_ptr<PerfSample> Sample = std::make_shared<PerfSample>(); extractLBRStack(TraceIt, Sample->LBRStack)) {
     warnIfMissingMMap();
     // Record LBR only samples by aggregation
     AggregatedSamples[Hashable<PerfSample>(Sample)] += Count;

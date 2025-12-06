@@ -103,9 +103,9 @@ bool SBSymbol::operator!=(const SBSymbol &rhs) const {
 bool SBSymbol::GetDescription(SBStream &description) {
   LLDB_INSTRUMENT_VA(this, description);
 
-  Stream &strm = description.ref();
+  
 
-  if (m_opaque_ptr) {
+  if (Stream &strm = description.ref(); m_opaque_ptr) {
     m_opaque_ptr->GetDescription(&strm, lldb::eDescriptionLevelFull, nullptr);
   } else
     strm.PutCString("No value");
@@ -126,12 +126,12 @@ SBInstructionList SBSymbol::GetInstructions(SBTarget target,
   SBInstructionList sb_instructions;
   if (m_opaque_ptr) {
     TargetSP target_sp(target.GetSP());
-    std::unique_lock<std::recursive_mutex> lock;
-    if (target_sp && m_opaque_ptr->ValueIsAddress()) {
+    
+    if (std::unique_lock<std::recursive_mutex> lock; target_sp && m_opaque_ptr->ValueIsAddress()) {
       lock = std::unique_lock<std::recursive_mutex>(target_sp->GetAPIMutex());
       const Address &symbol_addr = m_opaque_ptr->GetAddressRef();
-      ModuleSP module_sp = symbol_addr.GetModule();
-      if (module_sp) {
+      
+      if (ModuleSP module_sp = symbol_addr.GetModule(); module_sp) {
         AddressRange symbol_range(symbol_addr, m_opaque_ptr->GetByteSize());
         const bool force_live_memory = true;
         sb_instructions.SetDisassembler(Disassembler::DisassembleRange(
@@ -163,8 +163,8 @@ SBAddress SBSymbol::GetEndAddress() {
 
   SBAddress addr;
   if (m_opaque_ptr && m_opaque_ptr->ValueIsAddress()) {
-    lldb::addr_t range_size = m_opaque_ptr->GetByteSize();
-    if (range_size > 0) {
+    
+    if (lldb::addr_t range_size = m_opaque_ptr->GetByteSize(); range_size > 0) {
       addr.SetAddress(m_opaque_ptr->GetAddressRef());
       addr->Slide(m_opaque_ptr->GetByteSize());
     }

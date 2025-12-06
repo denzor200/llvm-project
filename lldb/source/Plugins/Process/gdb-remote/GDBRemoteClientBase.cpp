@@ -281,8 +281,8 @@ bool GDBRemoteClientBase::ShouldStop(const UnixSignals &signals,
 
   // Interrupting is typically done using SIGSTOP or SIGINT, so if the process
   // stops with some other signal, we definitely want to stop.
-  const uint8_t signo = response.GetHexU8(UINT8_MAX);
-  if (signo != signals.GetSignalNumberFromName("SIGSTOP") &&
+  
+  if (const uint8_t signo = response.GetHexU8(UINT8_MAX); signo != signals.GetSignalNumberFromName("SIGSTOP") &&
       signo != signals.GetSignalNumberFromName("SIGINT"))
     return true;
 
@@ -377,8 +377,8 @@ void GDBRemoteClientBase::Lock::SyncWithContinueThread() {
       // packet. Let's interrupt it.
       const char ctrl_c = '\x03';
       ConnectionStatus status = eConnectionStatusSuccess;
-      size_t bytes_written = m_comm.Write(&ctrl_c, 1, status, nullptr);
-      if (bytes_written == 0) {
+      
+      if (size_t bytes_written = m_comm.Write(&ctrl_c, 1, status, nullptr); bytes_written == 0) {
         --m_comm.m_async_count;
         LLDB_LOGF(log, "GDBRemoteClientBase::Lock::Lock failed to send "
                        "interrupt packet");

@@ -128,10 +128,10 @@ static void buildBlockMapping(Operation *operation,
   SetVector<Block *> toProcess;
 
   operation->walk<WalkOrder::PreOrder>([&](Block *block) {
-    BlockInfoBuilder &builder =
-        builders.try_emplace(block, block).first->second;
+    
 
-    if (builder.updateLiveIn())
+    if (BlockInfoBuilder &builder =
+        builders.try_emplace(block, block).first->second; builder.updateLiveIn())
       toProcess.insert(block->pred_begin(), block->pred_end());
   });
 
@@ -191,8 +191,8 @@ Liveness::OperationListT Liveness::resolveLiveness(Value value) const {
 
   // Start with all associated blocks
   for (OpOperand &use : value.getUses()) {
-    Block *useBlock = use.getOwner()->getBlock();
-    if (visited.insert(useBlock).second)
+    
+    if (Block *useBlock = use.getOwner()->getBlock(); visited.insert(useBlock).second)
       toProcess.push_back(useBlock);
   }
 

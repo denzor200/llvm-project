@@ -253,11 +253,11 @@ void __asan_storeN_noabort(uptr addr, uptr size) {
 // itself. This should help if the build system is removing dead code at link
 // time.
 static NOINLINE void force_interface_symbols() {
-  volatile int fake_condition = 0;  // prevent dead condition elimination.
+   // prevent dead condition elimination.
   // __asan_report_* functions are noreturn, so we need a switch to prevent
   // the compiler from removing any of them.
   // clang-format off
-  switch (fake_condition) {
+  switch (volatile int fake_condition = 0; fake_condition) {
     case 1: __asan_report_load1(0); break;
     case 2: __asan_report_load2(0); break;
     case 3: __asan_report_load4(0); break;
@@ -592,8 +592,8 @@ static AsanInitializer asan_initializer;
 #endif  // ASAN_DYNAMIC
 
 void UnpoisonStack(uptr bottom, uptr top, const char *type) {
-  static const uptr kMaxExpectedCleanupSize = 64 << 20;  // 64M
-  if (top - bottom > kMaxExpectedCleanupSize) {
+   // 64M
+  if (static const uptr kMaxExpectedCleanupSize = 64 << 20; top - bottom > kMaxExpectedCleanupSize) {
     static bool reported_warning = false;
     if (reported_warning)
       return;

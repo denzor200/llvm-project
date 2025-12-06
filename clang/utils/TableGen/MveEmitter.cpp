@@ -1122,8 +1122,8 @@ const Type *EmitterBase::getType(const DagInit *D, const Type *Param) {
   }
 
   if (Op->getName() == "CTO_Vec") {
-    const Type *Element = getType(D->getArg(0), Param);
-    if (D->getNumArgs() == 1) {
+    
+    if (const Type *Element = getType(D->getArg(0), Param); D->getNumArgs() == 1) {
       return getVectorType(cast<ScalarType>(Element));
     } else {
       const Type *ExistingVector = getType(D->getArg(1), Param);
@@ -1152,8 +1152,8 @@ const Type *EmitterBase::getType(const DagInit *D, const Type *Param) {
     const ScalarType *STSize = cast<ScalarType>(getType(D->getArg(0), Param));
     const ScalarType *STKind = cast<ScalarType>(getType(D->getArg(1), Param));
     for (const auto &kv : ScalarTypes) {
-      const ScalarType *RT = kv.second.get();
-      if (RT->kind() == STKind->kind() && RT->sizeInBits() == STSize->sizeInBits())
+      
+      if (const ScalarType *RT = kv.second.get(); RT->kind() == STKind->kind() && RT->sizeInBits() == STSize->sizeInBits())
         return RT;
     }
     PrintFatalError("Cannot find a type to satisfy CopyKind");
@@ -1164,8 +1164,8 @@ const Type *EmitterBase::getType(const DagInit *D, const Type *Param) {
     int Num = Op->getValueAsInt("num"), Denom = Op->getValueAsInt("denom");
     unsigned DesiredSize = STKind->sizeInBits() * Num / Denom;
     for (const auto &kv : ScalarTypes) {
-      const ScalarType *RT = kv.second.get();
-      if (RT->kind() == STKind->kind() && RT->sizeInBits() == DesiredSize)
+      
+      if (const ScalarType *RT = kv.second.get(); RT->kind() == STKind->kind() && RT->sizeInBits() == DesiredSize)
         return RT;
     }
     PrintFatalError("Cannot find a type to satisfy ScaleSize");
@@ -1264,8 +1264,8 @@ Result::Ptr EmitterBase::getCodeForDag(const DagInit *D,
       std::set<unsigned> AddressArgs;
       std::map<unsigned, std::string> IntegerArgs;
       for (const Record *sp : Op->getValueAsListOfDefs("special_params")) {
-        unsigned Index = sp->getValueAsInt("index");
-        if (sp->isSubClassOf("IRBuilderAddrParam")) {
+        
+        if (unsigned Index = sp->getValueAsInt("index"); sp->isSubClassOf("IRBuilderAddrParam")) {
           AddressArgs.insert(Index);
         } else if (sp->isSubClassOf("IRBuilderIntParam")) {
           IntegerArgs[Index] = std::string(sp->getValueAsString("type"));
@@ -1274,7 +1274,9 @@ Result::Ptr EmitterBase::getCodeForDag(const DagInit *D,
       return std::make_shared<IRBuilderResult>(Op->getValueAsString("prefix"),
                                                Args, AddressArgs, IntegerArgs);
     };
-    auto GenIRIntBase = [&](const Record *Op) {
+    
+
+    if (auto GenIRIntBase = [&](const Record *Op) {
       std::vector<const Type *> ParamTypes;
       for (const Record *RParam : Op->getValueAsListOfDefs("params"))
         ParamTypes.push_back(getType(RParam, Param));
@@ -1282,9 +1284,7 @@ Result::Ptr EmitterBase::getCodeForDag(const DagInit *D,
       if (Op->getValueAsBit("appendKind"))
         IntName += "_" + toLetter(cast<ScalarType>(Param)->kind());
       return std::make_shared<IRIntrinsicResult>(IntName, ParamTypes, Args);
-    };
-
-    if (Op->isSubClassOf("IRBuilderBase")) {
+    }; Op->isSubClassOf("IRBuilderBase")) {
       return GenIRBuilderBase(Op);
     } else if (Op->isSubClassOf("IRIntBase")) {
       return GenIRIntBase(Op);
@@ -1329,8 +1329,8 @@ Result::Ptr EmitterBase::getCodeForDagArg(const DagInit *D, unsigned ArgNum,
     return getCodeForDag(DI, Scope, Param);
 
   if (const auto *DI = dyn_cast<DefInit>(Arg)) {
-    const Record *Rec = DI->getDef();
-    if (Rec->isSubClassOf("Type")) {
+    
+    if (const Record *Rec = DI->getDef(); Rec->isSubClassOf("Type")) {
       const Type *T = getType(Rec, Param);
       return std::make_shared<TypeResult>(T);
     }
@@ -1429,8 +1429,8 @@ ACLEIntrinsic::ACLEIntrinsic(EmitterBase &ME, const Record *R,
     // what values it can take, for Sema checking.
     bool Immediate = false;
     if (const auto *TypeDI = dyn_cast<DefInit>(TypeInit)) {
-      const Record *TypeRec = TypeDI->getDef();
-      if (TypeRec->isSubClassOf("Immediate")) {
+      
+      if (const Record *TypeRec = TypeDI->getDef(); TypeRec->isSubClassOf("Immediate")) {
         Immediate = true;
 
         const Record *Bounds = TypeRec->getValueAsDef("bounds");
@@ -1476,16 +1476,16 @@ ACLEIntrinsic::ACLEIntrinsic(EmitterBase &ME, const Record *R,
   // Finally, go through the codegen dag and translate it into a Result object
   // (with an arbitrary DAG of depended-on Results hanging off it).
   const DagInit *CodeDag = R->getValueAsDag("codegen");
-  const Record *MainOp = cast<DefInit>(CodeDag->getOperator())->getDef();
-  if (MainOp->isSubClassOf("CustomCodegen")) {
+  
+  if (const Record *MainOp = cast<DefInit>(CodeDag->getOperator())->getDef(); MainOp->isSubClassOf("CustomCodegen")) {
     // Or, if it's the special case of CustomCodegen, just accumulate
     // a list of parameters we're going to assign to variables before
     // breaking from the loop.
     CustomCodeGenArgs["CustomCodeGenType"] =
         (Twine("CustomCodeGen::") + MainOp->getValueAsString("type")).str();
     for (unsigned i = 0, e = CodeDag->getNumArgs(); i < e; ++i) {
-      StringRef Name = CodeDag->getArgNameStr(i);
-      if (Name.empty()) {
+      
+      if (StringRef Name = CodeDag->getArgNameStr(i); Name.empty()) {
         PrintFatalError("Operands to CustomCodegen should have names");
       } else if (const auto *II = dyn_cast<IntInit>(CodeDag->getArg(i))) {
         CustomCodeGenArgs[std::string(Name)] = itostr(II->getValue());
@@ -1634,14 +1634,14 @@ void EmitterBase::EmitBuiltinCG(raw_ostream &OS) {
     for (size_t i = 0, e = MG.ParamTypes.size(); i < e; ++i) {
       // Is this parameter the same for all intrinsics in the group?
       const OutputIntrinsic &OI_first = *kv.second.begin();
-      bool Constant = all_of(kv.second, [&](const OutputIntrinsic &OI) {
-        return OI.ParamValues[i] == OI_first.ParamValues[i];
-      });
+      
 
       // If so, record it as -1, meaning 'no parameter variable needed'. Then
       // the corresponding call to allocParam in pass 2 will not generate a
       // variable at all, and just use the value inline.
-      if (Constant) {
+      if (bool Constant = all_of(kv.second, [&](const OutputIntrinsic &OI) {
+        return OI.ParamValues[i] == OI_first.ParamValues[i];
+      }); Constant) {
         ParamNumbers.push_back(-1);
         continue;
       }
@@ -1983,8 +1983,8 @@ void MveEmitter::EmitBuiltinDef(raw_ostream &OS) {
     if (!Int->polymorphic())
       continue;
 
-    StringRef Name = Int->shortName();
-    if (ShortNameIntrinsics.insert({Name.str(), Int.get()}).second)
+    
+    if (StringRef Name = Int->shortName(); ShortNameIntrinsics.insert({Name.str(), Int.get()}).second)
       Table.GetOrAddStringOffset(Name);
   }
 

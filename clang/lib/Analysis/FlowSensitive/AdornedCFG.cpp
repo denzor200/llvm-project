@@ -104,8 +104,8 @@ buildContainsExprConsumedInDifferentBlock(
     for (const Stmt *Child : S->children()) {
       if (!isa_and_nonnull<Expr>(Child))
         continue;
-      const CFGBlock *ChildBlock = StmtToBlock.lookup(*Child);
-      if (ChildBlock != Block)
+      
+      if (const CFGBlock *ChildBlock = StmtToBlock.lookup(*Child); ChildBlock != Block)
         Result.insert(ChildBlock);
     }
   };

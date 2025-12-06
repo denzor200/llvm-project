@@ -586,13 +586,13 @@ SDValue DAGTypeLegalizer::PromoteIntRes_BITCAST(SDNode *N) {
     // and handle the promotion after.
     if (NOutVT.isVector()) {
       TypeSize WidenInSize = NInVT.getSizeInBits();
-      TypeSize OutSize = OutVT.getSizeInBits();
-      if (WidenInSize.hasKnownScalarFactor(OutSize)) {
+      
+      if (TypeSize OutSize = OutVT.getSizeInBits(); WidenInSize.hasKnownScalarFactor(OutSize)) {
         unsigned Scale = WidenInSize.getKnownScalarFactor(OutSize);
-        EVT WideOutVT =
+        
+        if (EVT WideOutVT =
             EVT::getVectorVT(*DAG.getContext(), OutVT.getVectorElementType(),
-                             OutVT.getVectorElementCount() * Scale);
-        if (isTypeLegal(WideOutVT)) {
+                             OutVT.getVectorElementCount() * Scale); isTypeLegal(WideOutVT)) {
           InOp = DAG.getBitcast(WideOutVT, GetWidenedVector(InOp));
           InOp = DAG.getNode(ISD::EXTRACT_SUBVECTOR, dl, OutVT, InOp,
                              DAG.getVectorIdxConstant(0, dl));
@@ -608,14 +608,14 @@ SDValue DAGTypeLegalizer::PromoteIntRes_BITCAST(SDNode *N) {
     // Pad the vector operand with undef and cast to a wider integer.
     EVT EltVT = InOp.getValueType().getVectorElementType();
     TypeSize EltSize = EltVT.getSizeInBits();
-    TypeSize OutSize = NOutVT.getSizeInBits();
+    
 
-    if (OutSize.hasKnownScalarFactor(EltSize)) {
+    if (TypeSize OutSize = NOutVT.getSizeInBits(); OutSize.hasKnownScalarFactor(EltSize)) {
       unsigned NumEltsWithPadding = OutSize.getKnownScalarFactor(EltSize);
-      EVT WideVecVT =
-          EVT::getVectorVT(*DAG.getContext(), EltVT, NumEltsWithPadding);
+      
 
-      if (isTypeLegal(WideVecVT)) {
+      if (EVT WideVecVT =
+          EVT::getVectorVT(*DAG.getContext(), EltVT, NumEltsWithPadding); isTypeLegal(WideVecVT)) {
         SDValue Inserted = DAG.getNode(ISD::INSERT_SUBVECTOR, dl, WideVecVT,
                                        DAG.getUNDEF(WideVecVT), InOp,
                                        DAG.getVectorIdxConstant(0, dl));
@@ -829,9 +829,9 @@ SDValue DAGTypeLegalizer::PromoteIntRes_CTTZ(SDNode *N) {
     // The count is the same in the promoted type except if the original
     // value was zero.  This can be handled by setting the bit just off
     // the top of the original type.
-    auto TopBit = APInt::getOneBitSet(NVT.getScalarSizeInBits(),
-                                      OVT.getScalarSizeInBits());
-    if (NewOpc == ISD::CTTZ) {
+    
+    if (auto TopBit = APInt::getOneBitSet(NVT.getScalarSizeInBits(),
+                                      OVT.getScalarSizeInBits()); NewOpc == ISD::CTTZ) {
       Op = DAG.getNode(ISD::OR, dl, NVT, Op, DAG.getConstant(TopBit, dl, NVT));
       NewOpc = ISD::CTTZ_ZERO_UNDEF;
     } else {
@@ -867,8 +867,8 @@ SDValue DAGTypeLegalizer::PromoteIntRes_EXTRACT_VECTOR_ELT(SDNode *N) {
 
     // If the new type is larger than NVT, use it. We probably won't need to
     // promote it again.
-    EVT SVT = In.getValueType().getScalarType();
-    if (SVT.bitsGE(NVT)) {
+    
+    if (EVT SVT = In.getValueType().getScalarType(); SVT.bitsGE(NVT)) {
       SDValue Ext = DAG.getNode(ISD::EXTRACT_VECTOR_ELT, dl, SVT, In, Op1);
       return DAG.getAnyExtOrTrunc(Ext, dl, NVT);
     }
@@ -1313,9 +1313,9 @@ SDValue DAGTypeLegalizer::PromoteIntRes_DIVFIX(SDNode *N) {
   // If the type is already legal and the operation is legal in that type, we
   // should not early expand.
   if (TLI.isTypeLegal(PromotedType)) {
-    TargetLowering::LegalizeAction Action =
-        TLI.getFixedPointOperationAction(N->getOpcode(), PromotedType, Scale);
-    if (Action == TargetLowering::Legal || Action == TargetLowering::Custom) {
+    
+    if (TargetLowering::LegalizeAction Action =
+        TLI.getFixedPointOperationAction(N->getOpcode(), PromotedType, Scale); Action == TargetLowering::Legal || Action == TargetLowering::Custom) {
       unsigned Diff = PromotedType.getScalarSizeInBits() -
                       N->getValueType(0).getScalarSizeInBits();
       if (Saturating)
@@ -2247,14 +2247,14 @@ SDValue DAGTypeLegalizer::PromoteIntOp_BITCAST(SDNode *N) {
         DAG.getDataLayout().isLittleEndian()) {
       EVT EltVT = OutVT.getVectorElementType();
       TypeSize EltSize = EltVT.getSizeInBits();
-      TypeSize NInSize = NInVT.getSizeInBits();
+      
 
-      if (NInSize.hasKnownScalarFactor(EltSize)) {
+      if (TypeSize NInSize = NInVT.getSizeInBits(); NInSize.hasKnownScalarFactor(EltSize)) {
         unsigned NumEltsWithPadding = NInSize.getKnownScalarFactor(EltSize);
-        EVT WideVecVT =
-            EVT::getVectorVT(*DAG.getContext(), EltVT, NumEltsWithPadding);
+        
 
-        if (isTypeLegal(WideVecVT)) {
+        if (EVT WideVecVT =
+            EVT::getVectorVT(*DAG.getContext(), EltVT, NumEltsWithPadding); isTypeLegal(WideVecVT)) {
           SDValue Promoted = GetPromotedInteger(InOp);
           SDValue Cast = DAG.getNode(ISD::BITCAST, dl, WideVecVT, Promoted);
           return DAG.getNode(ISD::EXTRACT_SUBVECTOR, dl, OutVT, Cast,
@@ -2647,8 +2647,8 @@ SDValue DAGTypeLegalizer::PromoteIntOp_ZERO_EXTEND(SDNode *N) {
   // TODO: Should we have some way to set nneg on ISD::AND instead?
   if (N->getFlags().hasNonNeg() && Op.getValueType() == VT &&
       TLI.isSExtCheaperThanZExt(Src.getValueType(), VT)) {
-    unsigned OpEffectiveBits = DAG.ComputeMaxSignificantBits(Op);
-    if (OpEffectiveBits <= Src.getScalarValueSizeInBits())
+    
+    if (unsigned OpEffectiveBits = DAG.ComputeMaxSignificantBits(Op); OpEffectiveBits <= Src.getScalarValueSizeInBits())
       return Op;
   }
 
@@ -3408,8 +3408,8 @@ ExpandShiftWithUnknownAmountBit(SDNode *N, SDValue &Lo, SDValue &Hi) {
                                 Amt, DAG.getConstant(0, dl, ShTy),
                                 ISD::SETEQ);
 
-  SDValue LoS, HiS, LoL, HiL;
-  switch (N->getOpcode()) {
+  
+  switch (SDValue LoS, HiS, LoL, HiL; N->getOpcode()) {
   default: llvm_unreachable("Unknown shift");
   case ISD::SHL:
     // Short: ShAmt < NVTBits
@@ -3625,10 +3625,10 @@ void DAGTypeLegalizer::ExpandIntRes_ADDSUB(SDNode *N,
   SDValue LoOps[2] = { LHSL, RHSL };
   SDValue HiOps[3] = { LHSH, RHSH };
 
-  bool HasOpCarry = TLI.isOperationLegalOrCustom(
+  
+  if (bool HasOpCarry = TLI.isOperationLegalOrCustom(
       N->getOpcode() == ISD::ADD ? ISD::UADDO_CARRY : ISD::USUBO_CARRY,
-      TLI.getTypeToExpandTo(*DAG.getContext(), NVT));
-  if (HasOpCarry) {
+      TLI.getTypeToExpandTo(*DAG.getContext(), NVT)); HasOpCarry) {
     SDVTList VTList = DAG.getVTList(NVT, getSetCCResultType(NVT));
     if (N->getOpcode() == ISD::ADD) {
       Lo = DAG.getNode(ISD::UADDO, dl, VTList, LoOps);
@@ -3827,10 +3827,10 @@ void DAGTypeLegalizer::ExpandIntRes_UADDSUBO(SDNode *N,
       llvm_unreachable("Node has unexpected Opcode");
   }
 
-  bool HasCarryOp = TLI.isOperationLegalOrCustom(
-      CarryOp, TLI.getTypeToExpandTo(*DAG.getContext(), LHS.getValueType()));
+  
 
-  if (HasCarryOp) {
+  if (bool HasCarryOp = TLI.isOperationLegalOrCustom(
+      CarryOp, TLI.getTypeToExpandTo(*DAG.getContext(), LHS.getValueType())); HasCarryOp) {
     // Expand the subcomponents.
     SDValue LHSL, LHSH, RHSL, RHSH;
     GetExpandedInteger(LHS, LHSL, LHSH);
@@ -3917,8 +3917,8 @@ void DAGTypeLegalizer::ExpandIntRes_ANY_EXTEND(SDNode *N,
                                                SDValue &Lo, SDValue &Hi) {
   EVT NVT = TLI.getTypeToTransformTo(*DAG.getContext(), N->getValueType(0));
   SDLoc dl(N);
-  SDValue Op = N->getOperand(0);
-  if (Op.getValueType().bitsLE(NVT)) {
+  
+  if (SDValue Op = N->getOperand(0); Op.getValueType().bitsLE(NVT)) {
     // The low part is any extension of the input (which degenerates to a copy).
     Lo = DAG.getNode(ISD::ANY_EXTEND, dl, NVT, Op);
     Hi = DAG.getUNDEF(NVT);   // The high part is undefined.
@@ -3943,9 +3943,9 @@ void DAGTypeLegalizer::ExpandIntRes_AssertSext(SDNode *N,
   EVT NVT = Lo.getValueType();
   EVT EVT = cast<VTSDNode>(N->getOperand(1))->getVT();
   unsigned NVTBits = NVT.getSizeInBits();
-  unsigned EVTBits = EVT.getSizeInBits();
+  
 
-  if (NVTBits < EVTBits) {
+  if (unsigned EVTBits = EVT.getSizeInBits(); NVTBits < EVTBits) {
     Hi = DAG.getNode(ISD::AssertSext, dl, NVT, Hi,
                      DAG.getValueType(EVT::getIntegerVT(*DAG.getContext(),
                                                         EVTBits - NVTBits)));
@@ -3964,9 +3964,9 @@ void DAGTypeLegalizer::ExpandIntRes_AssertZext(SDNode *N,
   EVT NVT = Lo.getValueType();
   EVT EVT = cast<VTSDNode>(N->getOperand(1))->getVT();
   unsigned NVTBits = NVT.getSizeInBits();
-  unsigned EVTBits = EVT.getSizeInBits();
+  
 
-  if (NVTBits < EVTBits) {
+  if (unsigned EVTBits = EVT.getSizeInBits(); NVTBits < EVTBits) {
     Hi = DAG.getNode(ISD::AssertZext, dl, NVT, Hi,
                      DAG.getValueType(EVT::getIntegerVT(*DAG.getContext(),
                                                         EVTBits - NVTBits)));
@@ -4526,8 +4526,8 @@ void DAGTypeLegalizer::ExpandIntRes_MULFIX(SDNode *N, SDValue &Lo,
       unsigned MulOp = Signed ? ISD::SMULO : ISD::UMULO;
       Result = DAG.getNode(MulOp, dl, DAG.getVTList(VT, BoolVT), LHS, RHS);
       SDValue Product = Result.getValue(0);
-      SDValue Overflow = Result.getValue(1);
-      if (Signed) {
+      
+      if (SDValue Overflow = Result.getValue(1); Signed) {
         APInt MinVal = APInt::getSignedMinValue(VTSize);
         APInt MaxVal = APInt::getSignedMaxValue(VTSize);
         SDValue SatMin = DAG.getConstant(MinVal, dl, VT);
@@ -4752,10 +4752,10 @@ void DAGTypeLegalizer::ExpandIntRes_SADDSUBO(SDNode *Node,
   bool IsAdd = Node->getOpcode() == ISD::SADDO;
   unsigned CarryOp = IsAdd ? ISD::SADDO_CARRY : ISD::SSUBO_CARRY;
 
-  bool HasCarryOp = TLI.isOperationLegalOrCustom(
-      CarryOp, TLI.getTypeToExpandTo(*DAG.getContext(), LHS.getValueType()));
+  
 
-  if (HasCarryOp) {
+  if (bool HasCarryOp = TLI.isOperationLegalOrCustom(
+      CarryOp, TLI.getTypeToExpandTo(*DAG.getContext(), LHS.getValueType())); HasCarryOp) {
     // Expand the subcomponents.
     SDValue LHSL, LHSH, RHSL, RHSH;
     GetExpandedInteger(LHS, LHSL, LHSH);
@@ -5089,8 +5089,8 @@ void DAGTypeLegalizer::ExpandIntRes_SIGN_EXTEND(SDNode *N,
                                                 SDValue &Lo, SDValue &Hi) {
   EVT NVT = TLI.getTypeToTransformTo(*DAG.getContext(), N->getValueType(0));
   SDLoc dl(N);
-  SDValue Op = N->getOperand(0);
-  if (Op.getValueType().bitsLE(NVT)) {
+  
+  if (SDValue Op = N->getOperand(0); Op.getValueType().bitsLE(NVT)) {
     // The low part is sign extension of the input (degenerates to a copy).
     Lo = DAG.getNode(ISD::SIGN_EXTEND, dl, NVT, N->getOperand(0));
     // The high part is obtained by SRA'ing all but one of the bits of low part.
@@ -5119,9 +5119,9 @@ void DAGTypeLegalizer::
 ExpandIntRes_SIGN_EXTEND_INREG(SDNode *N, SDValue &Lo, SDValue &Hi) {
   SDLoc dl(N);
   GetExpandedInteger(N->getOperand(0), Lo, Hi);
-  EVT EVT = cast<VTSDNode>(N->getOperand(1))->getVT();
+  
 
-  if (EVT.bitsLE(Lo.getValueType())) {
+  if (EVT EVT = cast<VTSDNode>(N->getOperand(1))->getVT(); EVT.bitsLE(Lo.getValueType())) {
     // sext_inreg the low part if needed.
     Lo = DAG.getNode(ISD::SIGN_EXTEND_INREG, dl, Lo.getValueType(), Lo,
                      N->getOperand(1));
@@ -5327,13 +5327,13 @@ void DAGTypeLegalizer::ExpandIntRes_UDIV(SDNode *N,
 
   // Try to expand UDIV by constant.
   if (isa<ConstantSDNode>(N->getOperand(1))) {
-    EVT NVT = TLI.getTypeToTransformTo(*DAG.getContext(), N->getValueType(0));
+    
     // Only if the new type is legal.
-    if (isTypeLegal(NVT)) {
+    if (EVT NVT = TLI.getTypeToTransformTo(*DAG.getContext(), N->getValueType(0)); isTypeLegal(NVT)) {
       SDValue InL, InH;
       GetExpandedInteger(N->getOperand(0), InL, InH);
-      SmallVector<SDValue> Result;
-      if (TLI.expandDIVREMByConstant(N, Result, NVT, DAG, InL, InH)) {
+      
+      if (SmallVector<SDValue> Result; TLI.expandDIVREMByConstant(N, Result, NVT, DAG, InL, InH)) {
         Lo = Result[0];
         Hi = Result[1];
         return;
@@ -5370,13 +5370,13 @@ void DAGTypeLegalizer::ExpandIntRes_UREM(SDNode *N,
 
   // Try to expand UREM by constant.
   if (isa<ConstantSDNode>(N->getOperand(1))) {
-    EVT NVT = TLI.getTypeToTransformTo(*DAG.getContext(), N->getValueType(0));
+    
     // Only if the new type is legal.
-    if (isTypeLegal(NVT)) {
+    if (EVT NVT = TLI.getTypeToTransformTo(*DAG.getContext(), N->getValueType(0)); isTypeLegal(NVT)) {
       SDValue InL, InH;
       GetExpandedInteger(N->getOperand(0), InL, InH);
-      SmallVector<SDValue> Result;
-      if (TLI.expandDIVREMByConstant(N, Result, NVT, DAG, InL, InH)) {
+      
+      if (SmallVector<SDValue> Result; TLI.expandDIVREMByConstant(N, Result, NVT, DAG, InL, InH)) {
         Lo = Result[0];
         Hi = Result[1];
         return;
@@ -5403,8 +5403,8 @@ void DAGTypeLegalizer::ExpandIntRes_ZERO_EXTEND(SDNode *N,
                                                 SDValue &Lo, SDValue &Hi) {
   EVT NVT = TLI.getTypeToTransformTo(*DAG.getContext(), N->getValueType(0));
   SDLoc dl(N);
-  SDValue Op = N->getOperand(0);
-  if (Op.getValueType().bitsLE(NVT)) {
+  
+  if (SDValue Op = N->getOperand(0); Op.getValueType().bitsLE(NVT)) {
     // The low part is zero extension of the input (degenerates to a copy).
     Lo = DAG.getNode(ISD::ZERO_EXTEND, dl, NVT, N->getOperand(0));
     Hi = DAG.getConstant(0, dl, NVT);   // The high part is just a zero.

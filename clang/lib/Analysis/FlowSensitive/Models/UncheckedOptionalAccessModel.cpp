@@ -645,11 +645,11 @@ void handleNonConstMemberCall(const CallExpr *CE,
     // optional fields of the receiver. Const-qualified fields can't be
     // changed (at least, not without UB).
     for (const auto &[Field, FieldLoc] : RecordLoc->children()) {
-      QualType FieldType = Field->getType();
-      if (!FieldType.isConstQualified() &&
+      
+      if (QualType FieldType = Field->getType(); !FieldType.isConstQualified() &&
           isSupportedOptionalType(Field->getType())) {
-        auto *FieldRecordLoc = cast_or_null<RecordStorageLocation>(FieldLoc);
-        if (FieldRecordLoc) {
+        
+        if (auto *FieldRecordLoc = cast_or_null<RecordStorageLocation>(FieldLoc); FieldRecordLoc) {
           setHasValue(*FieldRecordLoc, State.Env.makeAtomicBoolValue(),
                       State.Env);
         }
@@ -842,10 +842,10 @@ void transferOptionalAndOptionalCmp(const clang::CXXOperatorCallExpr *CmpExpr,
   Environment &Env = State.Env;
   auto &A = Env.arena();
   auto *CmpValue = &forceBoolValue(Env, *CmpExpr);
-  auto *Arg0Loc = Env.get<RecordStorageLocation>(*CmpExpr->getArg(0));
-  if (auto *LHasVal = getHasValue(Env, Arg0Loc)) {
-    auto *Arg1Loc = Env.get<RecordStorageLocation>(*CmpExpr->getArg(1));
-    if (auto *RHasVal = getHasValue(Env, Arg1Loc)) {
+  
+  if (auto *Arg0Loc = Env.get<RecordStorageLocation>(*CmpExpr->getArg(0)); auto *LHasVal = getHasValue(Env, Arg0Loc)) {
+    
+    if (auto *Arg1Loc = Env.get<RecordStorageLocation>(*CmpExpr->getArg(1)); auto *RHasVal = getHasValue(Env, Arg1Loc)) {
       if (CmpExpr->getOperator() == clang::OO_ExclaimEqual)
         CmpValue = &A.makeNot(*CmpValue);
       Env.assume(evaluateEquality(A, *CmpValue, LHasVal->formula(),
@@ -858,8 +858,8 @@ void transferOptionalAndValueCmp(const clang::CXXOperatorCallExpr *CmpExpr,
                                  const clang::Expr *E, Environment &Env) {
   auto &A = Env.arena();
   auto *CmpValue = &forceBoolValue(Env, *CmpExpr);
-  auto *Loc = Env.get<RecordStorageLocation>(*E);
-  if (auto *HasVal = getHasValue(Env, Loc)) {
+  
+  if (auto *Loc = Env.get<RecordStorageLocation>(*E); auto *HasVal = getHasValue(Env, Loc)) {
     if (CmpExpr->getOperator() == clang::OO_ExclaimEqual)
       CmpValue = &A.makeNot(*CmpValue);
     Env.assume(
@@ -871,8 +871,8 @@ void transferOptionalAndNulloptCmp(const clang::CXXOperatorCallExpr *CmpExpr,
                                    const clang::Expr *E, Environment &Env) {
   auto &A = Env.arena();
   auto *CmpValue = &forceBoolValue(Env, *CmpExpr);
-  auto *Loc = Env.get<RecordStorageLocation>(*E);
-  if (auto *HasVal = getHasValue(Env, Loc)) {
+  
+  if (auto *Loc = Env.get<RecordStorageLocation>(*E); auto *HasVal = getHasValue(Env, Loc)) {
     if (CmpExpr->getOperator() == clang::OO_ExclaimEqual)
       CmpValue = &A.makeNot(*CmpValue);
     Env.assume(evaluateEquality(A, *CmpValue, HasVal->formula(),
@@ -1135,8 +1135,8 @@ llvm::SmallVector<UncheckedOptionalAccessDiagnostic>
 diagnoseUnwrapCall(const Expr *ObjectExpr, const Environment &Env) {
   if (auto *OptionalLoc = cast_or_null<RecordStorageLocation>(
           getLocBehindPossiblePointer(*ObjectExpr, Env))) {
-    auto *Prop = Env.getValue(locForHasValue(*OptionalLoc));
-    if (auto *HasValueVal = cast_or_null<BoolValue>(Prop)) {
+    
+    if (auto *Prop = Env.getValue(locForHasValue(*OptionalLoc)); auto *HasValueVal = cast_or_null<BoolValue>(Prop)) {
       if (Env.proves(HasValueVal->formula()))
         return {};
     }

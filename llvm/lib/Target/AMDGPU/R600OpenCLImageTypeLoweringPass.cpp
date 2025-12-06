@@ -79,8 +79,8 @@ GetFunctionFromMDNode(MDNode *Node) {
   if (!Node)
     return nullptr;
 
-  size_t NumOps = Node->getNumOperands();
-  if (NumOps != NumKernelArgMDNodes + 1)
+  
+  if (size_t NumOps = Node->getNumOperands(); NumOps != NumKernelArgMDNodes + 1)
     return nullptr;
 
   auto *F = mdconst::dyn_extract<Function>(Node->getOperand(0));
@@ -220,10 +220,10 @@ class R600OpenCLImageTypeLoweringPass : public ModulePass {
     InstsToErase.clear();
     for (auto *ArgI = F->arg_begin(); ArgI != F->arg_end(); ++ArgI) {
       Argument &Arg = *ArgI;
-      StringRef Type = ArgTypeFromMD(KernelMDNode, Arg.getArgNo());
+      
 
       // Handle image types.
-      if (IsImageType(Type)) {
+      if (StringRef Type = ArgTypeFromMD(KernelMDNode, Arg.getArgNo()); IsImageType(Type)) {
         StringRef AccessQual = AccessQualFromMD(KernelMDNode, Arg.getArgNo());
         uint32_t ResourceID;
         if (AccessQual == "read_only") {

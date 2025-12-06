@@ -26,8 +26,8 @@ void llvm::format_provider<MemoryRegionInfo::OptionalBool>::format(
     const MemoryRegionInfo::OptionalBool &B, raw_ostream &OS,
     StringRef Options) {
   assert(Options.size() <= 1);
-  bool Empty = Options.empty();
-  switch (B) {
+  
+  switch (bool Empty = Options.empty(); B) {
   case lldb_private::MemoryRegionInfo::eNo:
     OS << (Empty ? "no" : "-");
     return;

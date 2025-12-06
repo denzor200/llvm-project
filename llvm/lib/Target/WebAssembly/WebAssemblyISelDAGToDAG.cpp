@@ -228,8 +228,8 @@ void WebAssemblyDAGToDAGISel::Select(SDNode *Node) {
   }
 
   case ISD::INTRINSIC_WO_CHAIN: {
-    unsigned IntNo = Node->getConstantOperandVal(0);
-    switch (IntNo) {
+    
+    switch (unsigned IntNo = Node->getConstantOperandVal(0); IntNo) {
     case Intrinsic::wasm_tls_size: {
       MachineSDNode *TLSSize = CurDAG->getMachineNode(
           GlobalGetIns, DL, PtrVT,
@@ -339,8 +339,8 @@ void WebAssemblyDAGToDAGISel::Select(SDNode *Node) {
   }
 
   case ISD::INTRINSIC_VOID: {
-    unsigned IntNo = Node->getConstantOperandVal(1);
-    switch (IntNo) {
+    
+    switch (unsigned IntNo = Node->getConstantOperandVal(1); IntNo) {
     case Intrinsic::wasm_throw: {
       int Tag = Node->getConstantOperandVal(2);
       SDValue SymNode = getTagSymNode(Tag, CurDAG);
@@ -388,8 +388,8 @@ void WebAssemblyDAGToDAGISel::Select(SDNode *Node) {
       // instead we want it to be loaded with a CONST instruction and called
       // with a call_indirect later.
       if (i == 1 && Op->getOpcode() == WebAssemblyISD::Wrapper) {
-        SDValue NewOp = Op->getOperand(0);
-        if (auto *GlobalOp = dyn_cast<GlobalAddressSDNode>(NewOp.getNode())) {
+        
+        if (SDValue NewOp = Op->getOperand(0); auto *GlobalOp = dyn_cast<GlobalAddressSDNode>(NewOp.getNode())) {
           if (isa<Function>(
                   GlobalOp->getGlobal()->stripPointerCastsAndAliases()))
             Op = NewOp;

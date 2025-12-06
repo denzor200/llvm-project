@@ -97,8 +97,8 @@ static bool isConstantIntVector(Value *Mask) {
 
   unsigned NumElts = cast<FixedVectorType>(Mask->getType())->getNumElements();
   for (unsigned i = 0; i != NumElts; ++i) {
-    Constant *CElt = C->getAggregateElement(i);
-    if (!CElt || !isa<ConstantInt>(CElt))
+    
+    if (Constant *CElt = C->getAggregateElement(i); !CElt || !isa<ConstantInt>(CElt))
       return false;
   }
 
@@ -1069,8 +1069,8 @@ bool ScalarizeMaskedMemIntrinLegacyPass::runOnFunction(Function &F) {
 PreservedAnalyses
 ScalarizeMaskedMemIntrinPass::run(Function &F, FunctionAnalysisManager &AM) {
   auto &TTI = AM.getResult<TargetIRAnalysis>(F);
-  auto *DT = AM.getCachedResult<DominatorTreeAnalysis>(F);
-  if (!runImpl(F, TTI, DT))
+  
+  if (auto *DT = AM.getCachedResult<DominatorTreeAnalysis>(F); !runImpl(F, TTI, DT))
     return PreservedAnalyses::all();
   PreservedAnalyses PA;
   PA.preserve<TargetIRAnalysis>();
@@ -1099,8 +1099,8 @@ static bool optimizeCallInst(CallInst *CI, bool &ModifiedDT,
                              const TargetTransformInfo &TTI,
                              const DataLayout &DL, bool HasBranchDivergence,
                              DomTreeUpdater *DTU) {
-  IntrinsicInst *II = dyn_cast<IntrinsicInst>(CI);
-  if (II) {
+  
+  if (IntrinsicInst *II = dyn_cast<IntrinsicInst>(CI); II) {
     // The scalarization code below does not work for scalable vectors.
     if (isa<ScalableVectorType>(II->getType()) ||
         any_of(II->args(),
@@ -1144,8 +1144,8 @@ static bool optimizeCallInst(CallInst *CI, bool &ModifiedDT,
       return true;
     case Intrinsic::masked_gather: {
       Align Alignment = CI->getParamAlign(0).valueOrOne();
-      Type *LoadTy = CI->getType();
-      if (TTI.isLegalMaskedGather(LoadTy, Alignment) &&
+      
+      if (Type *LoadTy = CI->getType(); TTI.isLegalMaskedGather(LoadTy, Alignment) &&
           !TTI.forceScalarizeMaskedGather(cast<VectorType>(LoadTy), Alignment))
         return false;
       scalarizeMaskedGather(DL, HasBranchDivergence, CI, DTU, ModifiedDT);
@@ -1153,8 +1153,8 @@ static bool optimizeCallInst(CallInst *CI, bool &ModifiedDT,
     }
     case Intrinsic::masked_scatter: {
       Align Alignment = CI->getParamAlign(1).valueOrOne();
-      Type *StoreTy = CI->getArgOperand(0)->getType();
-      if (TTI.isLegalMaskedScatter(StoreTy, Alignment) &&
+      
+      if (Type *StoreTy = CI->getArgOperand(0)->getType(); TTI.isLegalMaskedScatter(StoreTy, Alignment) &&
           !TTI.forceScalarizeMaskedScatter(cast<VectorType>(StoreTy),
                                            Alignment))
         return false;

@@ -81,8 +81,8 @@ LogicalResult Serializer::processSpecConstantOp(spirv::SpecConstantOp op) {
                                             /*isSpec=*/true)) {
     // Emit the OpDecorate instruction for SpecId.
     if (auto specID = op->getAttrOfType<IntegerAttr>("spec_id")) {
-      auto val = static_cast<uint32_t>(specID.getInt());
-      if (failed(emitDecoration(resultID, spirv::Decoration::SpecId, {val})))
+      
+      if (auto val = static_cast<uint32_t>(specID.getInt()); failed(emitDecoration(resultID, spirv::Decoration::SpecId, {val})))
         return failure();
     }
 
@@ -366,10 +366,10 @@ LogicalResult Serializer::processFuncOp(spirv::FuncOp op) {
 
   for (auto attr : op->getAttrs()) {
     // Only generate OpDecorate op for spirv::Decoration attributes.
-    auto isValidDecoration = mlir::spirv::symbolizeEnum<spirv::Decoration>(
+    
+    if (auto isValidDecoration = mlir::spirv::symbolizeEnum<spirv::Decoration>(
         llvm::convertToCamelFromSnakeCase(attr.getName().strref(),
-                                          /*capitalizeFirst=*/true));
-    if (isValidDecoration != std::nullopt) {
+                                          /*capitalizeFirst=*/true)); isValidDecoration != std::nullopt) {
       if (failed(processDecoration(op.getLoc(), funcID, attr))) {
         return failure();
       }
@@ -459,8 +459,8 @@ Serializer::processGraphEntryPointARMOp(spirv::GraphEntryPointARMOp op) {
   // Add the interface values.
   if (ArrayAttr interface = op.getInterface()) {
     for (Attribute var : interface.getValue()) {
-      StringRef value = cast<FlatSymbolRefAttr>(var).getValue();
-      if (uint32_t id = getVariableID(value)) {
+      
+      if (StringRef value = cast<FlatSymbolRefAttr>(var).getValue(); uint32_t id = getVariableID(value)) {
         operands.push_back(id);
       } else {
         return op.emitError(

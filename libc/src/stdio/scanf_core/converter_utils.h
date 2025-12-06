@@ -31,8 +31,8 @@ LIBC_INLINE void write_int_with_length(uintmax_t output_val,
         reinterpret_cast<void *>(output_val);
     return;
   }
-  LengthModifier lm = to_conv.length_modifier;
-  switch (lm) {
+  
+  switch (LengthModifier lm = to_conv.length_modifier; lm) {
   case (LengthModifier::hh):
     *reinterpret_cast<unsigned char *>(output_ptr) =
         static_cast<unsigned char>(output_val);
@@ -76,8 +76,8 @@ LIBC_INLINE void write_float_with_length(char *str,
 
   void *output_ptr = to_conv.output_ptr;
 
-  LengthModifier lm = to_conv.length_modifier;
-  switch (lm) {
+  
+  switch (LengthModifier lm = to_conv.length_modifier; lm) {
   case (LengthModifier::l): {
     auto value = internal::strtofloatingpoint<double>(str);
     *reinterpret_cast<double *>(output_ptr) = value;

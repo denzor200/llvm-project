@@ -132,12 +132,12 @@ void transform::ApplyRewriteTensorOpsAsConstantPatternsOp::populatePatterns(
     return producer && producer->hasOneUse();
   };
 
-  ControlFoldFn aggressiveControlFn = [](OpOperand *fusedOperand) {
-    return true;
-  };
+  
 
   // Add folding with reshape by expansion patterns.
-  if (getAggressive())
+  if (ControlFoldFn aggressiveControlFn = [](OpOperand *fusedOperand) {
+    return true;
+  }; getAggressive())
     tensor::populateRewriteAsConstantPatterns(patterns, aggressiveControlFn);
   else
     tensor::populateRewriteAsConstantPatterns(patterns, defaultControlFn);

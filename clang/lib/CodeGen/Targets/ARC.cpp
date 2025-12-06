@@ -33,8 +33,8 @@ private:
     if (Info.isIndirect() && Info.getInReg())
       State.FreeRegs--;
     else if (Info.isDirect() && Info.getInReg()) {
-      unsigned sz = (getContext().getTypeSize(Ty) + 31) / 32;
-      if (sz < State.FreeRegs)
+      
+      if (unsigned sz = (getContext().getTypeSize(Ty) + 31) / 32; sz < State.FreeRegs)
         State.FreeRegs -= sz;
       else
         State.FreeRegs = 0;
@@ -146,8 +146,8 @@ ABIArgInfo ARCABIInfo::classifyReturnType(QualType RetTy) const {
     return ABIArgInfo::getDirectInReg();
 
   // Arguments of size > 4 registers are indirect.
-  auto RetSize = llvm::alignTo(getContext().getTypeSize(RetTy), 32) / 32;
-  if (RetSize > 4)
+  
+  if (auto RetSize = llvm::alignTo(getContext().getTypeSize(RetTy), 32) / 32; RetSize > 4)
     return getIndirectByRef(RetTy, /*HasFreeRegs*/ true);
 
   return DefaultABIInfo::classifyReturnType(RetTy);

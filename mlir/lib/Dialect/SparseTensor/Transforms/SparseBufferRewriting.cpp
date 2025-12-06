@@ -185,9 +185,9 @@ static Value createInlinedCompareImplementation(
   auto bodyBuilder = [&](uint64_t k, Value i, Value j, Value buffer) {
     bool isFirstDim = (k == 0);
     bool isLastDim = (k == xPerm.getNumResults() - 1);
-    Value val =
-        compareBuilder(builder, loc, i, j, buffer, isFirstDim, isLastDim);
-    if (isFirstDim) {
+    
+    if (Value val =
+        compareBuilder(builder, loc, i, j, buffer, isFirstDim, isLastDim); isFirstDim) {
       result = val;
     } else if (!isLastDim) {
       OpBuilder::InsertionGuard insertionGuard(builder);

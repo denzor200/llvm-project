@@ -404,8 +404,8 @@ EhFrameSection::EhFrameSection(Ctx &ctx)
 CieRecord *EhFrameSection::addCie(EhSectionPiece &cie,
                                   ArrayRef<Relocation> rels) {
   Symbol *personality = nullptr;
-  unsigned firstRelI = cie.firstRelocation;
-  if (firstRelI != (unsigned)-1)
+  
+  if (unsigned firstRelI = cie.firstRelocation; firstRelI != (unsigned)-1)
     personality = rels[firstRelI].sym;
 
   // Search for an existing CIE by CIE contents/relocation target pair.
@@ -751,8 +751,8 @@ MipsGotSection::MipsGotSection(Ctx &ctx)
 
 void MipsGotSection::addEntry(InputFile &file, Symbol &sym, int64_t addend,
                               RelExpr expr) {
-  FileGot &g = getGot(file);
-  if (expr == RE_MIPS_GOT_LOCAL_PAGE) {
+  
+  if (FileGot &g = getGot(file); expr == RE_MIPS_GOT_LOCAL_PAGE) {
     if (const OutputSection *os = sym.getOutputSection())
       g.pagesMap.insert({os, {&sym}});
     else
@@ -955,8 +955,8 @@ void MipsGotSection::build() {
   // is not possible, try to fill the last GOT in the list, and finally
   // create a new GOT if both attempts failed.
   for (FileGot &srcGot : gots) {
-    InputFile *file = srcGot.file;
-    if (tryMergeGots(mergedGots.front(), srcGot, true)) {
+    
+    if (InputFile *file = srcGot.file; tryMergeGots(mergedGots.front(), srcGot, true)) {
       file->mipsGotIndex = 0;
     } else {
       // If this is the first time we failed to merge with the primary GOT,
@@ -1028,18 +1028,18 @@ void MipsGotSection::build() {
     // Create dynamic relocations for TLS entries.
     for (std::pair<Symbol *, size_t> &p : got.tls) {
       Symbol *s = p.first;
-      uint64_t offset = p.second * ctx.arg.wordsize;
+      
       // When building a shared library we still need a dynamic relocation
       // for the TP-relative offset as we don't know how much other data will
       // be allocated before us in the static TLS block.
-      if (s->isPreemptible || ctx.arg.shared)
+      if (uint64_t offset = p.second * ctx.arg.wordsize; s->isPreemptible || ctx.arg.shared)
         ctx.mainPart->relaDyn->addReloc(
             {ctx.target->tlsGotRel, this, offset, true, *s, 0, R_ABS});
     }
     for (std::pair<Symbol *, size_t> &p : got.dynTlsSymbols) {
       Symbol *s = p.first;
-      uint64_t offset = p.second * ctx.arg.wordsize;
-      if (s == nullptr) {
+      
+      if (uint64_t offset = p.second * ctx.arg.wordsize; s == nullptr) {
         if (!ctx.arg.shared)
           continue;
         ctx.mainPart->relaDyn->addReloc(
@@ -1268,8 +1268,8 @@ StringTableSection::StringTableSection(Ctx &ctx, StringRef name, bool dynamic)
 // them with some other string that happens to be the same.
 unsigned StringTableSection::addString(StringRef s, bool hashIt) {
   if (hashIt) {
-    auto r = stringMap.try_emplace(CachedHashStringRef(s), size);
-    if (!r.second)
+    
+    if (auto r = stringMap.try_emplace(CachedHashStringRef(s), size); !r.second)
       return r.first->second;
   }
   if (s.empty())
@@ -1427,8 +1427,8 @@ DynamicSection<ELFT>::computeContents() {
     // The problem is in the tight relation between dynamic
     // relocations and GOT. So do not emit this tag on MIPS.
     if (ctx.arg.emachine != EM_MIPS) {
-      size_t numRelativeRels = part.relaDyn->getRelativeRelocCount();
-      if (ctx.arg.zCombreloc && numRelativeRels)
+      
+      if (size_t numRelativeRels = part.relaDyn->getRelativeRelocCount(); ctx.arg.zCombreloc && numRelativeRels)
         addInt(isRela ? DT_RELACOUNT : DT_RELCOUNT, numRelativeRels);
     }
   }
@@ -1680,12 +1680,12 @@ void RelocationBaseSection::partitionRels() {
 }
 
 void RelocationBaseSection::finalizeContents() {
-  SymbolTableBaseSection *symTab = getPartition(ctx).dynSymTab.get();
+  
 
   // When linking glibc statically, .rel{,a}.plt contains R_*_IRELATIVE
   // relocations due to IFUNC (e.g. strcpy). sh_link will be set to 0 in that
   // case.
-  if (symTab && symTab->getParent())
+  if (SymbolTableBaseSection *symTab = getPartition(ctx).dynSymTab.get(); symTab && symTab->getParent())
     getParent()->link = symTab->getParent()->sectionIndex;
   else
     getParent()->link = 0;
@@ -1709,14 +1709,14 @@ void RelocationBaseSection::computeRels() {
     rel.finalize(ctx, symTab);
   });
 
-  auto irelative = std::stable_partition(
-      relocs.begin() + numRelativeRelocs, relocs.end(),
-      [t = ctx.target->iRelativeRel](auto &r) { return r.type != t; });
+  
 
   // Sort by (!IsRelative,SymIndex,r_offset). DT_REL[A]COUNT requires us to
   // place R_*_RELATIVE first. SymIndex is to improve locality, while r_offset
   // is to make results easier to read.
-  if (combreloc) {
+  if (auto irelative = std::stable_partition(
+      relocs.begin() + numRelativeRelocs, relocs.end(),
+      [t = ctx.target->iRelativeRel](auto &r) { return r.type != t; }); combreloc) {
     auto nonRelative = relocs.begin() + numRelativeRelocs;
     parallelSort(relocs.begin(), nonRelative,
                  [&](auto &a, auto &b) { return a.r_offset < b.r_offset; });
@@ -2274,8 +2274,8 @@ template <class ELFT> void SymbolTableSection<ELFT>::writeTo(uint8_t *buf) {
       eSym->st_value = commonSec->addralign;
       eSym->st_size = cast<Defined>(sym)->size;
     } else {
-      const uint32_t shndx = getSymSectionIndex(sym);
-      if (isDefinedHere) {
+      
+      if (const uint32_t shndx = getSymSectionIndex(sym); isDefinedHere) {
         eSym->st_shndx = shndx;
         eSym->st_value = sym->getVA(ctx);
         // Copy symbol size if it is a defined symbol. st_size is not
@@ -3092,9 +3092,9 @@ std::pair<uint32_t, uint32_t> DebugNamesBaseSection::computeEntryPool(
           }
 
           auto &nameVec = nameVecs[shardId];
-          auto [it, inserted] = maps[shardId].try_emplace(
-              CachedHashStringRef(ne.name, ne.hashValue), nameVec.size());
-          if (inserted)
+          
+          if (auto [it, inserted] = maps[shardId].try_emplace(
+              CachedHashStringRef(ne.name, ne.hashValue), nameVec.size()); inserted)
             nameVec.push_back(std::move(ne));
           else
             nameVec[it->second].indexEntries.append(std::move(ne.indexEntries));
@@ -3400,8 +3400,8 @@ readAddressAreas(Ctx &ctx, DWARFContext &dwarf, InputSection *sec) {
       if (r.SectionIndex == -1ULL)
         continue;
       // Range list with zero size has no effect.
-      InputSectionBase *s = sections[r.SectionIndex];
-      if (s && s != &InputSection::discarded && s->isLive())
+      
+      if (InputSectionBase *s = sections[r.SectionIndex]; s && s != &InputSection::discarded && s->isLive())
         if (r.LowPC != r.HighPC)
           ret.push_back({cast<InputSection>(s), r.LowPC, r.HighPC, cuIdx});
     }
@@ -3481,9 +3481,9 @@ createSymbols(
           continue;
 
         uint32_t v = ent.cuIndexAndAttrs + cuIdxs[i];
-        auto [it, inserted] =
-            map[shardId].try_emplace(ent.name, symbols[shardId].size());
-        if (inserted)
+        
+        if (auto [it, inserted] =
+            map[shardId].try_emplace(ent.name, symbols[shardId].size()); inserted)
           symbols[shardId].push_back({ent.name, {v}, 0, 0});
         else
           symbols[shardId][it->second].cuVector.push_back(v);
@@ -3957,8 +3957,8 @@ void MergeNoTailSection::finalizeContents() {
       for (size_t i = 0, e = sec->pieces.size(); i != e; ++i) {
         if (!sec->pieces[i].live)
           continue;
-        size_t shardId = getShardId(sec->pieces[i].hash);
-        if ((shardId & (concurrency - 1)) == threadId)
+        
+        if (size_t shardId = getShardId(sec->pieces[i].hash); (shardId & (concurrency - 1)) == threadId)
           sec->pieces[i].outputOff = shards[shardId].add(sec->getData(i));
       }
     }
@@ -4109,8 +4109,8 @@ static bool isDuplicateArmExidxSec(Ctx &ctx, InputSection *prev,
     return prevUnwind == 1;
 
   for (uint32_t offset = 4; offset < (uint32_t)cur->content().size(); offset +=8) {
-    uint32_t curUnwind = read32(ctx, cur->content().data() + offset);
-    if (isExtabRef(curUnwind) || curUnwind != prevUnwind)
+    
+    if (uint32_t curUnwind = read32(ctx, cur->content().data() + offset); isExtabRef(curUnwind) || curUnwind != prevUnwind)
       return false;
   }
   // All table entries in this .ARM.exidx Section can be merged into the
@@ -4158,9 +4158,9 @@ void ARMExidxSyntheticSection::finalizeContents() {
   auto compareByFilePosition = [](const InputSection *a,
                                   const InputSection *b) {
     OutputSection *aOut = a->getParent();
-    OutputSection *bOut = b->getParent();
+    
 
-    if (aOut != bOut)
+    if (OutputSection *bOut = b->getParent(); aOut != bOut)
       return aOut->addr < bOut->addr;
     return a->outSecOff < b->outSecOff;
   };
@@ -4174,8 +4174,8 @@ void ARMExidxSyntheticSection::finalizeContents() {
     size_t prev = 0;
     for (size_t i = 1; i < executableSections.size(); ++i) {
       InputSection *ex1 = findExidxSection(executableSections[prev]);
-      InputSection *ex2 = findExidxSection(executableSections[i]);
-      if (!isDuplicateArmExidxSec(ctx, ex1, ex2)) {
+      
+      if (InputSection *ex2 = findExidxSection(executableSections[i]); !isDuplicateArmExidxSec(ctx, ex1, ex2)) {
         selectedSections.push_back(executableSections[i]);
         prev = i;
       }

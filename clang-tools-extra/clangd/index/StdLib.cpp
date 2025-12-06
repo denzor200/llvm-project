@@ -100,8 +100,8 @@ llvm::StringRef getStdlibUmbrellaHeader(const LangOptions &LO) {
   // Headers that are unsupported in old lang versions are usually guarded by
   // #if. Some headers may be not present in old stdlib versions, the umbrella
   // header guards with __has_include for this purpose.
-  Lang L = langFromOpts(LO);
-  switch (L) {
+  
+  switch (Lang L = langFromOpts(LO); L) {
   case CXX:
     static std::string *UmbrellaCXX = new std::string(buildUmbrella(
         mandatoryHeader(L),
@@ -164,8 +164,8 @@ SymbolSlab filter(SymbolSlab Slab, const StdLibLocation &Loc) {
     }
     for (const char *URI :
          {S.CanonicalDeclaration.FileURI, S.Definition.FileURI}) {
-      auto R = GoodHeader.try_emplace(URI, false);
-      if (R.second) {
+      
+      if (auto R = GoodHeader.try_emplace(URI, false); R.second) {
         R.first->second = llvm::any_of(
             StdLibURIPrefixes,
             [&, URIStr(llvm::StringRef(URI))](const std::string &Prefix) {
@@ -304,8 +304,8 @@ std::optional<StdLibLocation> StdLibSet::add(const LangOptions &LO,
   llvm::SmallString<256> Path; // Scratch space.
   llvm::SmallVector<std::string> SearchPaths;
   auto RecordHeaderPath = [&](llvm::StringRef HeaderPath) {
-    llvm::StringRef DirPath = llvm::sys::path::parent_path(HeaderPath);
-    if (!HS.getFileMgr().getVirtualFileSystem().getRealPath(DirPath, Path))
+    
+    if (llvm::StringRef DirPath = llvm::sys::path::parent_path(HeaderPath); !HS.getFileMgr().getVirtualFileSystem().getRealPath(DirPath, Path))
       SearchPaths.emplace_back(Path);
   };
   for (const auto &DL :

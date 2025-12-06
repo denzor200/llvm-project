@@ -457,8 +457,8 @@ bool ScopDetection::addOverApproximatedRegion(Region *AR,
   // are accesses that depend on the iteration count.
 
   for (BasicBlock *BB : AR->blocks()) {
-    Loop *L = LI.getLoopFor(BB);
-    if (AR->contains(L))
+    
+    if (Loop *L = LI.getLoopFor(BB); AR->contains(L))
       Context.BoxedLoopsSet.insert(L);
   }
 
@@ -579,8 +579,8 @@ bool ScopDetection::isValidBranch(BasicBlock &BB, BranchInst *BI,
     return true;
 
   if (BinaryOperator *BinOp = dyn_cast<BinaryOperator>(Condition)) {
-    auto Opcode = BinOp->getOpcode();
-    if (Opcode == Instruction::And || Opcode == Instruction::Or) {
+    
+    if (auto Opcode = BinOp->getOpcode(); Opcode == Instruction::And || Opcode == Instruction::Or) {
       Value *Op0 = BinOp->getOperand(0);
       Value *Op1 = BinOp->getOperand(1);
       return isValidBranch(BB, BI, Op0, IsLoopBranch, Context) &&
@@ -589,9 +589,9 @@ bool ScopDetection::isValidBranch(BasicBlock &BB, BranchInst *BI,
   }
 
   if (auto PHI = dyn_cast<PHINode>(Condition)) {
-    auto *Unique = dyn_cast_or_null<ConstantInt>(
-        getUniqueNonErrorValue(PHI, &Context.CurRegion, this));
-    if (Unique && (Unique->isZero() || Unique->isOne()))
+    
+    if (auto *Unique = dyn_cast_or_null<ConstantInt>(
+        getUniqueNonErrorValue(PHI, &Context.CurRegion, this)); Unique && (Unique->isZero() || Unique->isOne()))
       return true;
   }
 
@@ -761,9 +761,9 @@ bool ScopDetection::isValidIntrinsicInst(IntrinsicInst &II,
 
   // The access function and base pointer for memory intrinsics.
   const SCEV *AF;
-  const SCEVUnknown *BP;
+  
 
-  switch (II.getIntrinsicID()) {
+  switch (const SCEVUnknown *BP; II.getIntrinsicID()) {
   // Memory intrinsics that can be represented are supported.
   case Intrinsic::memmove:
   case Intrinsic::memcpy:
@@ -935,8 +935,8 @@ bool ScopDetection::hasValidArraySizes(DetectionContext &Context,
       break;
     }
     if (auto *Unknown = dyn_cast<SCEVUnknown>(DelinearizedSize)) {
-      auto *V = dyn_cast<Value>(Unknown->getValue());
-      if (auto *Load = dyn_cast<LoadInst>(V)) {
+      
+      if (auto *V = dyn_cast<Value>(Unknown->getValue()); auto *Load = dyn_cast<LoadInst>(V)) {
         if (Context.CurRegion.contains(Load) &&
             isHoistableLoad(Load, CurRegion, LI, SE, DT, Context.RequiredILS))
           Context.RequiredILS.insert(Load);
@@ -957,9 +957,9 @@ bool ScopDetection::hasValidArraySizes(DetectionContext &Context,
 
     for (const auto &Pair : Context.Accesses[BasePointer]) {
       const Instruction *Insn = Pair.first;
-      const SCEV *AF = Pair.second;
+      
 
-      if (!isAffine(AF, Scope, Context)) {
+      if (const SCEV *AF = Pair.second; !isAffine(AF, Scope, Context)) {
         invalid<ReportNonAffineAccess>(Context, /*Assert=*/true, AF, Insn,
                                        BaseValue);
         if (!KeepGoing)
@@ -990,9 +990,9 @@ bool ScopDetection::computeAccessFunctions(
     bool IsNonAffine = false;
     TempMemoryAccesses.insert(std::make_pair(Insn, MemAcc(Insn, Shape)));
     MemAcc *Acc = &TempMemoryAccesses.find(Insn)->second;
-    auto *Scope = LI.getLoopFor(Insn->getParent());
+    
 
-    if (!AF) {
+    if (auto *Scope = LI.getLoopFor(Insn->getParent()); !AF) {
       if (isAffine(Pair.second, Scope, Context))
         Acc->DelinearizedSubscripts.push_back(Pair.second);
       else
@@ -1055,8 +1055,8 @@ bool ScopDetection::hasAffineMemoryAccesses(DetectionContext &Context) const {
 
   for (auto &Pair : Context.NonAffineAccesses) {
     auto *BasePointer = Pair.first;
-    auto *Scope = Pair.second;
-    if (!hasBaseAffineAccesses(Context, BasePointer, Scope)) {
+    
+    if (auto *Scope = Pair.second; !hasBaseAffineAccesses(Context, BasePointer, Scope)) {
       Context.IsInvalid = true;
       if (!KeepGoing)
         return false;
@@ -1160,8 +1160,8 @@ bool ScopDetection::isValidAccess(Instruction *Inst, const SCEV *AF,
                            InvariantSize = InvariantLS.size();
 
         for (const Value *Ptr : ASPointers) {
-          Instruction *Inst = dyn_cast<Instruction>(const_cast<Value *>(Ptr));
-          if (Inst && Context.CurRegion.contains(Inst)) {
+          
+          if (Instruction *Inst = dyn_cast<Instruction>(const_cast<Value *>(Ptr)); Inst && Context.CurRegion.contains(Inst)) {
             auto *Load = dyn_cast<LoadInst>(Inst);
             if (Load && InvariantLS.count(Load))
               continue;
@@ -1213,11 +1213,11 @@ bool ScopDetection::isValidInstruction(Instruction &Inst,
       continue;
 
     if (isErrorBlock(*OpInst->getParent(), Context.CurRegion)) {
-      auto *PHI = dyn_cast<PHINode>(OpInst);
-      if (PHI) {
+      
+      if (auto *PHI = dyn_cast<PHINode>(OpInst); PHI) {
         for (User *U : PHI->users()) {
-          auto *UI = dyn_cast<Instruction>(U);
-          if (!UI || !UI->isTerminator())
+          
+          if (auto *UI = dyn_cast<Instruction>(U); !UI || !UI->isTerminator())
             return false;
         }
       } else {
@@ -1610,8 +1610,8 @@ void ScopDetection::findScops(Region &R) {
       continue;
 
     // Skip regions that had errors.
-    bool HadErrors = lookupRejectionLog(CurrentRegion)->hasErrors();
-    if (HadErrors)
+    
+    if (bool HadErrors = lookupRejectionLog(CurrentRegion)->hasErrors(); HadErrors)
       continue;
 
     Region *ExpandedR = expandRegion(*CurrentRegion);
@@ -1630,8 +1630,8 @@ bool ScopDetection::allBlocksValid(DetectionContext &Context) {
   Region &CurRegion = Context.CurRegion;
 
   for (const BasicBlock *BB : CurRegion.blocks()) {
-    Loop *L = LI.getLoopFor(BB);
-    if (L && L->getHeader() == BB) {
+    
+    if (Loop *L = LI.getLoopFor(BB); L && L->getHeader() == BB) {
       if (CurRegion.contains(L)) {
         if (!isValidLoop(L, Context)) {
           Context.IsInvalid = true;
@@ -1780,8 +1780,8 @@ bool ScopDetection::isValidRegion(DetectionContext &Context) {
   }
 
   for (BasicBlock *Pred : predecessors(CurRegion.getEntry())) {
-    Instruction *PredTerm = Pred->getTerminator();
-    if (isa<IndirectBrInst>(PredTerm) || isa<CallBrInst>(PredTerm))
+    
+    if (Instruction *PredTerm = Pred->getTerminator(); isa<IndirectBrInst>(PredTerm) || isa<CallBrInst>(PredTerm))
       return invalid<ReportIndirectPredecessor>(
           Context, /*Assert=*/true, PredTerm, PredTerm->getDebugLoc());
   }
@@ -1830,8 +1830,8 @@ void ScopDetection::printLocations(Function &F) {
 
 void ScopDetection::emitMissedRemarks(const Function &F) {
   for (auto &DIt : DetectionContextMap) {
-    DetectionContext &DC = *DIt.getSecond();
-    if (DC.Log.hasErrors())
+    
+    if (DetectionContext &DC = *DIt.getSecond(); DC.Log.hasErrors())
       emitRejectionRemarks(DIt.getFirst(), DC.Log, ORE);
   }
 }

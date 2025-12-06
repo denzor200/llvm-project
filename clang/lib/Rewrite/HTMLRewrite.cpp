@@ -200,8 +200,8 @@ std::string html::EscapeText(StringRef s, bool EscapeSpaces, bool ReplaceTabs) {
 
   for (unsigned i = 0 ; i < len; ++i) {
 
-    char c = s[i];
-    switch (c) {
+    
+    switch (char c = s[i]; c) {
     default:
       os << c; break;
 
@@ -495,8 +495,8 @@ static void SyntaxHighlightImpl(
     // Since we are lexing unexpanded tokens, all tokens are from the main
     // FileID.
     unsigned TokOffs = SM.getFileOffset(Tok.getLocation());
-    unsigned TokLen = Tok.getLength();
-    switch (Tok.getKind()) {
+    
+    switch (unsigned TokLen = Tok.getLength(); Tok.getKind()) {
     default: break;
     case tok::identifier:
       llvm_unreachable("tok::identifier in raw lexing mode!");
@@ -567,8 +567,8 @@ void html::SyntaxHighlight(Rewriter &R, FileID FID, const Preprocessor &PP,
   const char *BufferStart = FromFile.getBuffer().data();
 
   if (Cache) {
-    auto CacheIt = Cache->SyntaxHighlights.find(FID);
-    if (CacheIt != Cache->SyntaxHighlights.end()) {
+    
+    if (auto CacheIt = Cache->SyntaxHighlights.find(FID); CacheIt != Cache->SyntaxHighlights.end()) {
       for (const RelexRewriteCache::RawHighlight &H : CacheIt->second) {
         HighlightRange(RB, H.B, H.E, BufferStart, H.StartTag.data(),
                        H.EndTag.data());
@@ -739,8 +739,8 @@ static void HighlightMacrosImpl(
 void html::HighlightMacros(Rewriter &R, FileID FID, const Preprocessor &PP,
                            RelexRewriteCacheRef Cache) {
   if (Cache) {
-    auto CacheIt = Cache->MacroHighlights.find(FID);
-    if (CacheIt != Cache->MacroHighlights.end()) {
+    
+    if (auto CacheIt = Cache->MacroHighlights.find(FID); CacheIt != Cache->MacroHighlights.end()) {
       for (const RelexRewriteCache::Highlight &H : CacheIt->second) {
         HighlightRange(R, H.B, H.E, H.StartTag.data(), H.EndTag.data(),
                        H.IsTokenRange);

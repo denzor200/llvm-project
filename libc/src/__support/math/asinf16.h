@@ -73,9 +73,9 @@ LIBC_INLINE static constexpr float16 asinf16(float16 x) {
     // else, in other rounding modes,
     // asin(x) = x
     if (LIBC_UNLIKELY(x_abs <= 0x1a1e)) {
-      int rounding = fputil::quick_get_round();
+      
 
-      if ((xbits.is_pos() && rounding == FE_UPWARD) ||
+      if (int rounding = fputil::quick_get_round(); (xbits.is_pos() && rounding == FE_UPWARD) ||
           (xbits.is_neg() && rounding == FE_DOWNWARD))
         return fputil::cast<float16>(fputil::multiply_add(xf, 0x1.0p-11f, xf));
       return x;

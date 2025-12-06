@@ -201,9 +201,9 @@ void BalancedPartitioning::runIterations(const FunctionNodeRange Nodes,
   }
 
   for (unsigned I = 0; I < Config.IterationsPerSplit; I++) {
-    unsigned NumMovedNodes =
-        runIteration(Nodes, LeftBucket, RightBucket, Signatures, RNG);
-    if (NumMovedNodes == 0)
+    
+    if (unsigned NumMovedNodes =
+        runIteration(Nodes, LeftBucket, RightBucket, Signatures, RNG); NumMovedNodes == 0)
       break;
   }
 }

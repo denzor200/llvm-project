@@ -140,8 +140,8 @@ void DataflowAnalysisContext::addInvariant(const Formula &Constraint) {
 
 void DataflowAnalysisContext::addFlowConditionConstraint(
     Atom Token, const Formula &Constraint) {
-  auto Res = FlowConditionConstraints.try_emplace(Token, &Constraint);
-  if (!Res.second) {
+  
+  if (auto Res = FlowConditionConstraints.try_emplace(Token, &Constraint); !Res.second) {
     Res.first->second =
         &arena().makeAnd(*Res.first->second, Constraint);
   }

@@ -82,9 +82,9 @@ private:
 
 void AVRAsmPrinter::printOperand(const MachineInstr *MI, unsigned OpNo,
                                  raw_ostream &O) {
-  const MachineOperand &MO = MI->getOperand(OpNo);
+  
 
-  switch (MO.getType()) {
+  switch (const MachineOperand &MO = MI->getOperand(OpNo); MO.getType()) {
   case MachineOperand::MO_Register:
     O << AVRInstPrinter::getPrettyRegisterName(MO.getReg(), MRI);
     break;
@@ -185,9 +185,9 @@ bool AVRAsmPrinter::PrintAsmMemoryOperand(const MachineInstr *MI,
   // If NumOpRegs == 2, then we assume it is product of a FrameIndex expansion
   // and the second operand is an Imm.
   const InlineAsm::Flag OpFlags(MI->getOperand(OpNum - 1).getImm());
-  const unsigned NumOpRegs = OpFlags.getNumOperandRegisters();
+  
 
-  if (NumOpRegs == 2) {
+  if (const unsigned NumOpRegs = OpFlags.getNumOperandRegisters(); NumOpRegs == 2) {
     assert(MI->getOperand(OpNum).getReg() != AVR::R27R26 &&
            "Base register X can not have offset/displacement.");
     O << '+' << MI->getOperand(OpNum + 1).getImm();
@@ -210,11 +210,11 @@ void AVRAsmPrinter::emitInstruction(const MachineInstr *MI) {
 const MCExpr *AVRAsmPrinter::lowerConstant(const Constant *CV,
                                            const Constant *BaseCV,
                                            uint64_t Offset) {
-  MCContext &Ctx = OutContext;
+  
 
-  if (const GlobalValue *GV = dyn_cast<GlobalValue>(CV)) {
-    bool IsProgMem = GV->getAddressSpace() == AVR::ProgramMemory;
-    if (IsProgMem) {
+  if (MCContext &Ctx = OutContext; const GlobalValue *GV = dyn_cast<GlobalValue>(CV)) {
+    
+    if (bool IsProgMem = GV->getAddressSpace() == AVR::ProgramMemory; IsProgMem) {
       const MCExpr *Expr = MCSymbolRefExpr::create(getSymbol(GV), Ctx);
       return AVRMCExpr::create(AVR::S_PM, Expr, false, Ctx);
     }
@@ -260,8 +260,8 @@ bool AVRAsmPrinter::doFinalization(Module &M) {
       continue;
     }
 
-    auto *Section = static_cast<MCSectionELF *>(TLOF.SectionForGlobal(&GO, TM));
-    if (Section->getName().starts_with(".data"))
+    
+    if (auto *Section = static_cast<MCSectionELF *>(TLOF.SectionForGlobal(&GO, TM)); Section->getName().starts_with(".data"))
       NeedsCopyData = true;
     else if (Section->getName().starts_with(".rodata") && SubTM->hasLPM())
       // AVRs that have a separate program memory (that's most AVRs) store

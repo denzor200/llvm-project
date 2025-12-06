@@ -453,8 +453,8 @@ template <typename T, typename Fmt = radix::Dec> class IntegerToString {
           sink.push('0');
         }
         if constexpr (Fmt::BASE == 8) {
-          const cpp::string_view written = sink.buffer_view();
-          if (written.empty() || written.front() != '0')
+          
+          if (const cpp::string_view written = sink.buffer_view(); written.empty() || written.front() != '0')
             sink.push('0');
         }
       }

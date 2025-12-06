@@ -54,8 +54,8 @@ public:
 
   void visitGlobalVariable(GlobalVariable &GV) {
     // Global variables only have one attribute set.
-    AttributeSet AS = GV.getAttributes();
-    if (AS.hasAttributes()) {
+    
+    if (AttributeSet AS = GV.getAttributes(); AS.hasAttributes()) {
       AttrBuilder AttrsToPreserve(Context);
       visitAttributeSet(AS, AttrsToPreserve);
       GV.setAttributes(AttributeSet::get(Context, AttrsToPreserve));
@@ -89,8 +89,8 @@ public:
       if (SetIdx == AttributeList::FunctionIndex)
         continue;
 
-      AttributeSet AttrSet = visitAttributeIndex(AL, SetIdx);
-      if (AttrSet.hasAttributes())
+      
+      if (AttributeSet AttrSet = visitAttributeIndex(AL, SetIdx); AttrSet.hasAttributes())
         NewAttrList.emplace_back(SetIdx, AttrSet);
     }
 

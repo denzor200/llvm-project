@@ -207,8 +207,8 @@ public:
   }
 
   void visitCallInst(CallInst &CI) {
-    LibFunc Func;
-    if (TLI.getLibFunc(CI, Func) &&
+    
+    if (LibFunc Func; TLI.getLibFunc(CI, Func) &&
         (Func == LibFunc_memcmp || Func == LibFunc_bcmp) &&
         !isa<ConstantInt>(CI.getArgOperand(2))) {
       WorkList.push_back(MemOp(&CI));
@@ -473,8 +473,8 @@ PreservedAnalyses PGOMemOPSizeOpt::run(Function &F,
   auto &ORE = FAM.getResult<OptimizationRemarkEmitterAnalysis>(F);
   auto *DT = FAM.getCachedResult<DominatorTreeAnalysis>(F);
   auto &TLI = FAM.getResult<TargetLibraryAnalysis>(F);
-  bool Changed = PGOMemOPSizeOptImpl(F, BFI, ORE, DT, TLI);
-  if (!Changed)
+  
+  if (bool Changed = PGOMemOPSizeOptImpl(F, BFI, ORE, DT, TLI); !Changed)
     return PreservedAnalyses::all();
   auto PA = PreservedAnalyses();
   PA.preserve<DominatorTreeAnalysis>();

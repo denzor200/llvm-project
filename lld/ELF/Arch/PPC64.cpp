@@ -643,8 +643,8 @@ static uint32_t getEFlags(InputFile *file) {
 // object files have v2 or an unspecified version as an ABI version.
 uint32_t PPC64::calcEFlags() const {
   for (InputFile *f : ctx.objectFiles) {
-    uint32_t flag = getEFlags(f);
-    if (flag == 1)
+    
+    if (uint32_t flag = getEFlags(f); flag == 1)
       ErrAlways(ctx) << f << ": ABI version 1 is not supported";
     else if (flag > 2)
       ErrAlways(ctx) << f << ": unrecognized e_flags: " << flag;
@@ -760,8 +760,8 @@ void PPC64::relaxTlsGdToLe(uint8_t *loc, const Relocation &rel,
     // to
     //            nop
     //            addi r3, r3, x@tprel@l
-    const uintptr_t locAsInt = reinterpret_cast<uintptr_t>(loc);
-    if (locAsInt % 4 == 0) {
+    
+    if (const uintptr_t locAsInt = reinterpret_cast<uintptr_t>(loc); locAsInt % 4 == 0) {
       write32(ctx, loc, NOP);            // nop
       write32(ctx, loc + 4, 0x38630000); // addi r3, r3
       // Since we are relocating a half16 type relocation and Loc + 4 points to
@@ -821,8 +821,8 @@ void PPC64::relaxTlsLdToLe(uint8_t *loc, const Relocation &rel,
     // to
     //            nop
     //            addi r3, r3, 4096
-    const uintptr_t locAsInt = reinterpret_cast<uintptr_t>(loc);
-    if (locAsInt % 4 == 0) {
+    
+    if (const uintptr_t locAsInt = reinterpret_cast<uintptr_t>(loc); locAsInt % 4 == 0) {
       write32(ctx, loc, NOP);
       write32(ctx, loc + 4, 0x38631000); // addi r3, r3, 4096
     } else if (locAsInt % 4 == 1) {
@@ -914,8 +914,8 @@ void PPC64::relaxTlsIeToLe(uint8_t *loc, const Relocation &rel,
   // instruction, if we are accessing memory it will use any of the X-form
   // indexed load or store instructions.
 
-  unsigned offset = (ctx.arg.ekind == ELF64BEKind) ? 2 : 0;
-  switch (rel.type) {
+  
+  switch (unsigned offset = (ctx.arg.ekind == ELF64BEKind) ? 2 : 0; rel.type) {
   case R_PPC64_GOT_TPREL16_HA:
     write32(ctx, loc - offset, NOP);
     break;
@@ -934,10 +934,10 @@ void PPC64::relaxTlsIeToLe(uint8_t *loc, const Relocation &rel,
     break;
   }
   case R_PPC64_TLS: {
-    const uintptr_t locAsInt = reinterpret_cast<uintptr_t>(loc);
-    if (locAsInt % 4 == 0) {
-      uint32_t primaryOp = getPrimaryOpCode(read32(ctx, loc));
-      if (primaryOp != 31)
+    
+    if (const uintptr_t locAsInt = reinterpret_cast<uintptr_t>(loc); locAsInt % 4 == 0) {
+      
+      if (uint32_t primaryOp = getPrimaryOpCode(read32(ctx, loc)); primaryOp != 31)
         ErrAlways(ctx) << "unrecognized instruction for IE to LE R_PPC64_TLS";
       uint32_t secondaryOp = (read32(ctx, loc) & 0x000007fe) >> 1; // bits 21-30
       uint32_t dFormOp = getPPCDFormOp(secondaryOp);
@@ -956,8 +956,8 @@ void PPC64::relaxTlsIeToLe(uint8_t *loc, const Relocation &rel,
       // This version of the relocation is offset by one byte from the
       // instruction it references.
       uint32_t tlsInstr = read32(ctx, loc - 1);
-      uint32_t primaryOp = getPrimaryOpCode(tlsInstr);
-      if (primaryOp != 31)
+      
+      if (uint32_t primaryOp = getPrimaryOpCode(tlsInstr); primaryOp != 31)
         Err(ctx) << "unrecognized instruction for IE to LE R_PPC64_TLS";
       uint32_t secondaryOp = (tlsInstr & 0x000007FE) >> 1; // bits 21-30
       // The add is a special case and should be turned into a nop. The paddi
@@ -966,8 +966,8 @@ void PPC64::relaxTlsIeToLe(uint8_t *loc, const Relocation &rel,
       if (secondaryOp == 266) {
         // Check if the add uses the same result register as the input register.
         uint32_t rt = (tlsInstr & 0x03E00000) >> 21; // bits 6-10
-        uint32_t ra = (tlsInstr & 0x001F0000) >> 16; // bits 11-15
-        if (ra == rt) {
+        // bits 11-15
+        if (uint32_t ra = (tlsInstr & 0x001F0000) >> 16; ra == rt) {
           write32(ctx, loc - 1, NOP);
         } else {
           // mr rt, ra
@@ -1181,9 +1181,9 @@ static std::pair<RelType, uint64_t> toAddr16Rel(RelType type, uint64_t val) {
   // Relocations relative to the toc-base need to be adjusted by the Toc offset.
   uint64_t tocBiasedVal = val - ppc64TocOffset;
   // Relocations relative to dtv[dtpmod] need to be adjusted by the DTP offset.
-  uint64_t dtpBiasedVal = val - dynamicThreadPointerOffset;
+  
 
-  switch (type) {
+  switch (uint64_t dtpBiasedVal = val - dynamicThreadPointerOffset; type) {
   // TOC biased relocation.
   case R_PPC64_GOT16:
   case R_PPC64_GOT_TLSGD16:
@@ -1274,8 +1274,8 @@ static void checkPPC64TLSRelax(InputSectionBase &sec, Relocs<RelTy> rels) {
     return;
   bool hasGDLD = false;
   for (const RelTy &rel : rels) {
-    RelType type = rel.getType(false);
-    switch (type) {
+    
+    switch (RelType type = rel.getType(false); type) {
     case R_PPC64_TLSGD:
     case R_PPC64_TLSLD:
       return; // Found a marker
@@ -1374,8 +1374,8 @@ void PPC64::scanSectionImpl(InputSectionBase &sec, Relocs<RelTy> rels) {
 }
 
 template <class ELFT> void PPC64::scanSection1(InputSectionBase &sec) {
-  auto relocs = sec.template relsOrRelas<ELFT>();
-  if (relocs.areRelocsCrel())
+  
+  if (auto relocs = sec.template relsOrRelas<ELFT>(); relocs.areRelocsCrel())
     scanSectionImpl<ELFT>(sec, relocs.crels);
   else
     scanSectionImpl<ELFT>(sec, relocs.relas);
@@ -1675,8 +1675,8 @@ void PPC64::relaxTlsGdToIe(uint8_t *loc, const Relocation &rel,
     // to
     //            nop
     //            add r3, r3, r13
-    const uintptr_t locAsInt = reinterpret_cast<uintptr_t>(loc);
-    if (locAsInt % 4 == 0) {
+    
+    if (const uintptr_t locAsInt = reinterpret_cast<uintptr_t>(loc); locAsInt % 4 == 0) {
       write32(ctx, loc, NOP);            // bl __tls_get_addr(sym@tlsgd) --> nop
       write32(ctx, loc + 4, 0x7c636a14); // nop --> add r3, r3, r13
     } else if (locAsInt % 4 == 1) {
@@ -1697,8 +1697,8 @@ void PPC64::relocateAlloc(InputSection &sec, uint8_t *buf) const {
   uint64_t lastPPCRelaxedRelocOff = -1;
   for (const Relocation &rel : sec.relocs()) {
     uint8_t *loc = buf + rel.offset;
-    const uint64_t val = sec.getRelocTargetVA(ctx, rel, secAddr + rel.offset);
-    switch (rel.expr) {
+    
+    switch (const uint64_t val = sec.getRelocTargetVA(ctx, rel, secAddr + rel.offset); rel.expr) {
     case RE_PPC64_RELAX_GOT_PC: {
       // The R_PPC64_PCREL_OPT relocation must appear immediately after
       // R_PPC64_GOT_PCREL34 in the relocations table at the same offset.

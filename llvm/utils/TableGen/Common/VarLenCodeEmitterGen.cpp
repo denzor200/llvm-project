@@ -136,16 +136,16 @@ VarLenInst::VarLenInst(const DagInit *DI, const RecordVal *TheDef)
 void VarLenInst::buildRec(const DagInit *DI) {
   assert(TheDef && "The def record is nullptr ?");
 
-  std::string Op = DI->getOperator()->getAsString();
+  
 
-  if (Op == "ascend" || Op == "descend") {
+  if (std::string Op = DI->getOperator()->getAsString(); Op == "ascend" || Op == "descend") {
     bool Reverse = Op == "descend";
     int i = Reverse ? DI->getNumArgs() - 1 : 0;
     int e = Reverse ? -1 : DI->getNumArgs();
     int s = Reverse ? -1 : 1;
     for (; i != e; i += s) {
-      const Init *Arg = DI->getArg(i);
-      if (const auto *BI = dyn_cast<BitsInit>(Arg)) {
+      
+      if (const Init *Arg = DI->getArg(i); const auto *BI = dyn_cast<BitsInit>(Arg)) {
         if (!BI->isComplete())
           PrintFatalError(TheDef->getLoc(),
                           "Expecting complete bits init in `" + Op + "`");
@@ -207,10 +207,10 @@ void VarLenInst::buildRec(const DagInit *DI) {
       NumBits = static_cast<unsigned>(HiBitVal - LoBitVal + 1);
     }
 
-    auto [CustomEncoder, CustomDecoder] =
-        getCustomCoders(DI->getArgs().slice(3));
+    
 
-    if (NeedSwap) {
+    if (auto [CustomEncoder, CustomDecoder] =
+        getCustomCoders(DI->getArgs().slice(3)); NeedSwap) {
       // Normalization: Hi bit should always be the second argument.
       SmallVector<std::pair<const Init *, const StringInit *>> NewArgs(
           DI->getArgAndNames());

@@ -74,8 +74,8 @@ bool expandReductions(Function &F, const TargetTransformInfo *TTI) {
       // and it can't be handled by generating a shuffle sequence.
       Value *Acc = II->getArgOperand(0);
       Value *Vec = II->getArgOperand(1);
-      unsigned RdxOpcode = getArithmeticReductionInstruction(ID);
-      if (!FMF.allowReassoc())
+      
+      if (unsigned RdxOpcode = getArithmeticReductionInstruction(ID); !FMF.allowReassoc())
         Rdx = getOrderedReduction(Builder, Acc, Vec, RdxOpcode, RK);
       else {
         if (!isPowerOf2_32(
@@ -185,8 +185,8 @@ FunctionPass *llvm::createExpandReductionsPass() {
 
 PreservedAnalyses ExpandReductionsPass::run(Function &F,
                                             FunctionAnalysisManager &AM) {
-  const auto &TTI = AM.getResult<TargetIRAnalysis>(F);
-  if (!expandReductions(F, &TTI))
+  
+  if (const auto &TTI = AM.getResult<TargetIRAnalysis>(F); !expandReductions(F, &TTI))
     return PreservedAnalyses::all();
   PreservedAnalyses PA;
   PA.preserveSet<CFGAnalyses>();

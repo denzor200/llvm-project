@@ -589,9 +589,9 @@ static void ForwardPrebranchedFallthrough(llvm::BasicBlock *Exit,
                                           llvm::BasicBlock *To) {
   // Exit is the exit block of a cleanup, so it always terminates in
   // an unconditional branch or a switch.
-  llvm::Instruction *Term = Exit->getTerminator();
+  
 
-  if (llvm::BranchInst *Br = dyn_cast<llvm::BranchInst>(Term)) {
+  if (llvm::Instruction *Term = Exit->getTerminator(); llvm::BranchInst *Br = dyn_cast<llvm::BranchInst>(Term)) {
     assert(Br->isUnconditional() && Br->getSuccessor(0) == From);
     Br->setSuccessor(0, To);
   } else {
@@ -623,8 +623,8 @@ static void destroyOptimisticNormalEntry(CodeGenFunction &CGF,
     use.set(unreachableBB);
 
     // The only uses should be fixup switches.
-    llvm::SwitchInst *si = cast<llvm::SwitchInst>(use.getUser());
-    if (si->getNumCases() == 1 && si->getDefaultDest() == unreachableBB) {
+    
+    if (llvm::SwitchInst *si = cast<llvm::SwitchInst>(use.getUser()); si->getNumCases() == 1 && si->getDefaultDest() == unreachableBB) {
       // Replace the switch with a branch.
       llvm::BranchInst::Create(si->case_begin()->getCaseSuccessor(),
                                si->getIterator());
@@ -1263,11 +1263,11 @@ static void SetupCleanupBlockActivation(CodeGenFunction &CGF,
 
     // Initialize to true or false depending on whether it was
     // active up to this point.
-    llvm::Constant *value = CGF.Builder.getInt1(kind == ForDeactivation);
+    
 
     // If we're in a conditional block, ignore the dominating IP and
     // use the outermost conditional branch.
-    if (CGF.isInConditionalBranch()) {
+    if (llvm::Constant *value = CGF.Builder.getInt1(kind == ForDeactivation); CGF.isInConditionalBranch()) {
       CGF.setBeforeOutermostConditional(value, var, CGF);
     } else {
       createStoreInstBefore(value, var, dominatingIP->getIterator(), CGF);

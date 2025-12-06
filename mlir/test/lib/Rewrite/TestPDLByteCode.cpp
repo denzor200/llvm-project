@@ -34,8 +34,8 @@ static LogicalResult customMultiEntityVariadicConstraint(
 static LogicalResult customValueResultConstraint(PatternRewriter &rewriter,
                                                  PDLResultList &results,
                                                  ArrayRef<PDLValue> args) {
-  auto *op = args[0].cast<Operation *>();
-  if (op->getName().getStringRef() == "test.success_op") {
+  
+  if (auto *op = args[0].cast<Operation *>(); op->getName().getStringRef() == "test.success_op") {
     StringAttr customAttr = rewriter.getStringAttr("test.success");
     results.push_back(customAttr);
     return success();
@@ -47,8 +47,8 @@ static LogicalResult customValueResultConstraint(PatternRewriter &rewriter,
 static LogicalResult customTypeResultConstraint(PatternRewriter &rewriter,
                                                 PDLResultList &results,
                                                 ArrayRef<PDLValue> args) {
-  auto *op = args[0].cast<Operation *>();
-  if (op->getName().getStringRef() == "test.success_op") {
+  
+  if (auto *op = args[0].cast<Operation *>(); op->getName().getStringRef() == "test.success_op") {
     results.push_back(rewriter.getF32Type());
     return success();
   }

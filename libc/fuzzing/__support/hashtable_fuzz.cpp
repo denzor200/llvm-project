@@ -100,8 +100,8 @@ static struct {
   }
 
   Action next_action() {
-    uint8_t byte = next<uint8_t>();
-    switch (byte % 5) {
+    
+    switch (uint8_t byte = next<uint8_t>(); byte % 5) {
     case 4:
       return {Action::Tag::CrossCheck, {}};
     case 3:
@@ -148,8 +148,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
   for (;;) {
     if (global_status.remaining == 0)
       break;
-    Action action = global_status.next_action();
-    switch (action.tag) {
+    
+    switch (Action action = global_status.next_action(); action.tag) {
     case Action::Tag::Find: {
       if (static_cast<bool>(table_a.find(action.key.data())) !=
           static_cast<bool>(table_b.find(action.key.data())))

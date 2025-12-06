@@ -36,7 +36,9 @@ static llvm::BitVector computePersistentOrigins(const FactManager &FactMgr,
                                                              nullptr);
   for (const CFGBlock *B : C) {
     for (const Fact *F : FactMgr.getFacts(B)) {
-      auto CheckOrigin = [&](OriginID OID) {
+      
+
+      switch (auto CheckOrigin = [&](OriginID OID) {
         if (PersistentOrigins.test(OID.Value))
           return;
         auto &FirstSeenBlock = OriginToFirstSeenBlock[OID.Value];
@@ -46,9 +48,7 @@ static llvm::BitVector computePersistentOrigins(const FactManager &FactMgr,
           // We saw this origin in more than one block.
           PersistentOrigins.set(OID.Value);
         }
-      };
-
-      switch (F->getKind()) {
+      }; F->getKind()) {
       case Fact::Kind::Issue:
         CheckOrigin(F->getAs<IssueFact>()->getOriginID());
         break;
@@ -196,9 +196,9 @@ private:
   }
 
   LoanSet getLoans(Lattice L, OriginID OID) const {
-    const OriginLoanMap *Map =
-        isPersistent(OID) ? &L.PersistentOrigins : &L.BlockLocalOrigins;
-    if (auto *Loans = Map->lookup(OID))
+    
+    if (const OriginLoanMap *Map =
+        isPersistent(OID) ? &L.PersistentOrigins : &L.BlockLocalOrigins; auto *Loans = Map->lookup(OID))
       return *Loans;
     return LoanSetFactory.getEmptySet();
   }

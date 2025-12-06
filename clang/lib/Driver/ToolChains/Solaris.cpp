@@ -56,8 +56,8 @@ static bool getPIE(const ArgList &Args, const ToolChain &TC) {
 std::string solaris::Linker::getLinkerPath(const ArgList &Args) const {
   const ToolChain &ToolChain = getToolChain();
   if (const Arg *A = Args.getLastArg(options::OPT_fuse_ld_EQ)) {
-    StringRef UseLinker = A->getValue();
-    if (!UseLinker.empty()) {
+    
+    if (StringRef UseLinker = A->getValue(); !UseLinker.empty()) {
       if (llvm::sys::path::is_absolute(UseLinker) &&
           llvm::sys::fs::can_execute(UseLinker))
         return std::string(UseLinker);
@@ -390,9 +390,9 @@ void Solaris::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
 
   // Add include directories specific to the selected multilib set and multilib.
   if (GCCInstallation.isValid()) {
-    const MultilibSet::IncludeDirsFunc &Callback =
-        Multilibs.includeDirsCallback();
-    if (Callback) {
+    
+    if (const MultilibSet::IncludeDirsFunc &Callback =
+        Multilibs.includeDirsCallback(); Callback) {
       for (const auto &Path : Callback(GCCInstallation.getMultilib()))
         addExternCSystemIncludeIfExists(
             DriverArgs, CC1Args, GCCInstallation.getInstallPath() + Path);

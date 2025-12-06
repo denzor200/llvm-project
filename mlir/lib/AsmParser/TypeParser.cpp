@@ -417,8 +417,8 @@ Type Parser::parseTensorType() {
   // Parse an optional encoding attribute.
   Attribute encoding;
   if (consumeIf(Token::comma)) {
-    auto parseResult = parseOptionalAttribute(encoding);
-    if (parseResult.has_value()) {
+    
+    if (auto parseResult = parseOptionalAttribute(encoding); parseResult.has_value()) {
       if (failed(parseResult.value()))
         return nullptr;
       if (auto v = dyn_cast_or_null<VerifiableTensorEncoding>(encoding)) {

@@ -29,8 +29,8 @@ unsigned WebAssemblyTTIImpl::getNumberOfRegisters(unsigned ClassID) const {
   unsigned Result = BaseT::getNumberOfRegisters(ClassID);
 
   // For SIMD, use at least 16 registers, as a rough guess.
-  bool Vector = (ClassID == 1);
-  if (Vector)
+  
+  if (bool Vector = (ClassID == 1); Vector)
     Result = std::max(Result, 16u);
 
   return Result;
@@ -99,10 +99,10 @@ InstructionCost WebAssemblyTTIImpl::getCastInstrCost(
 
   if (I && I->hasOneUser()) {
     auto *SingleUser = cast<Instruction>(*I->user_begin());
-    int UserISD = TLI->InstructionOpcodeToISD(SingleUser->getOpcode());
+    
 
     // extmul_low support
-    if (UserISD == ISD::MUL &&
+    if (int UserISD = TLI->InstructionOpcodeToISD(SingleUser->getOpcode()); UserISD == ISD::MUL &&
         (ISD == ISD::ZERO_EXTEND || ISD == ISD::SIGN_EXTEND)) {
       // Free low extensions.
       if ((SrcVT == MVT::v8i8 && DstVT == MVT::v8i16) ||

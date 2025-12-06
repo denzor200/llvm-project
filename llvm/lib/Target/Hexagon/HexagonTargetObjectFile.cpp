@@ -297,8 +297,8 @@ unsigned HexagonTargetObjectFile::getSmallestAddressableSize(const Type *Ty,
   case Type::StructTyID: {
     const StructType *STy = cast<const StructType>(Ty);
     for (auto &E : STy->elements()) {
-      unsigned AtomicSize = getSmallestAddressableSize(E, GV, TM);
-      if (AtomicSize < SmallestElement)
+      
+      if (unsigned AtomicSize = getSmallestAddressableSize(E, GV, TM); AtomicSize < SmallestElement)
         SmallestElement = AtomicSize;
     }
     return (STy->getNumElements() == 0) ? 0 : SmallestElement;
@@ -395,8 +395,8 @@ MCSection *HexagonTargetObjectFile::selectSmallSectionForGlobal(
   // case the Kind could be wrong for it.
   if (Kind.isMergeableConst()) {
     TRACE(" const_object_as_data ");
-    const GlobalVariable *GVar = dyn_cast<GlobalVariable>(GO);
-    if (GVar->hasSection() && isSmallDataSection(GVar->getSection()))
+    
+    if (const GlobalVariable *GVar = dyn_cast<GlobalVariable>(GO); GVar->hasSection() && isSmallDataSection(GVar->getSection()))
       Kind = SectionKind::getData();
   }
 

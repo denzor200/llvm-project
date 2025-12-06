@@ -172,10 +172,10 @@ updateReturnOps(func::FuncOp func, ArrayRef<BlockArgument> appendedEntryArgs,
       bool hoistStaticAllocs =
           options.hoistStaticAllocs &&
           cast<MemRefType>(orig.getType()).hasStaticShape();
-      bool hoistDynamicAllocs =
+      
+      if (bool hoistDynamicAllocs =
           options.hoistDynamicAllocs &&
-          !cast<MemRefType>(orig.getType()).hasStaticShape();
-      if ((hoistStaticAllocs || hoistDynamicAllocs) &&
+          !cast<MemRefType>(orig.getType()).hasStaticShape(); (hoistStaticAllocs || hoistDynamicAllocs) &&
           isa_and_nonnull<bufferization::AllocationOpInterface>(
               orig.getDefiningOp())) {
         orig.replaceAllUsesWith(arg);

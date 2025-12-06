@@ -40,13 +40,13 @@ static bool containsMisleadingBidi(StringRef Buffer,
   //
   // Warn if we end up with an unclosed context.
   while (CurPtr < Buffer.end()) {
-    const unsigned char C = *CurPtr;
-    if (isASCII(C)) {
+    
+    if (const unsigned char C = *CurPtr; isASCII(C)) {
       ++CurPtr;
       const bool IsParagrapSep =
           (C == 0xA || C == 0xD || (0x1C <= C && C <= 0x1E) || C == 0x85);
-      const bool IsSegmentSep = (C == 0x9 || C == 0xB || C == 0x1F);
-      if (IsParagrapSep || IsSegmentSep)
+      
+      if (const bool IsSegmentSep = (C == 0x9 || C == 0xB || C == 0x1F); IsParagrapSep || IsSegmentSep)
         BidiContexts.clear();
       continue;
     }
@@ -75,8 +75,8 @@ static bool containsMisleadingBidi(StringRef Buffer,
       BidiContexts.push_back(PDI);
     // Close a PDI Context.
     else if (CodePoint == PDI) {
-      auto R = llvm::find(llvm::reverse(BidiContexts), PDI);
-      if (R != BidiContexts.rend())
+      
+      if (auto R = llvm::find(llvm::reverse(BidiContexts), PDI); R != BidiContexts.rend())
         BidiContexts.resize(BidiContexts.rend() - R - 1);
     }
     // Line break or equivalent
@@ -124,8 +124,8 @@ void MisleadingBidirectionalCheck::registerPPCallbacks(
 void MisleadingBidirectionalCheck::check(
     const ast_matchers::MatchFinder::MatchResult &Result) {
   if (const auto *SL = Result.Nodes.getNodeAs<StringLiteral>("strlit")) {
-    const StringRef Literal = SL->getBytes();
-    if (containsMisleadingBidi(Literal, false))
+    
+    if (const StringRef Literal = SL->getBytes(); containsMisleadingBidi(Literal, false))
       diag(SL->getBeginLoc(), "string literal contains misleading "
                               "bidirectional Unicode characters");
   }

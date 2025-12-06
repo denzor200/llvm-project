@@ -36,8 +36,8 @@ private:
 // Traverses upwards searchign for the operation mapped by the symbol.
 static Operation *getFromSymbol(Operation *baseOp, SymbolRefAttr symbol) {
   for (auto *op = baseOp; op; op = op->getParentOp()) {
-    auto *lookup = SymbolTable::lookupNearestSymbolFrom(op, symbol);
-    if (lookup)
+    
+    if (auto *lookup = SymbolTable::lookupNearestSymbolFrom(op, symbol); lookup)
       return lookup;
   }
   return nullptr;
@@ -96,8 +96,8 @@ LogicalResult MLProgramPipelineGlobals::buildGlobalMap(ModuleOp module) {
 
     for (size_t i = 0; i < work.size(); ++i) {
       callableMap[work[i]]->walk([&](CallOpInterface call) {
-        auto symbol = dyn_cast<SymbolRefAttr>(call.getCallableForCallee());
-        if (visited.insert(symbol).second)
+        
+        if (auto symbol = dyn_cast<SymbolRefAttr>(call.getCallableForCallee()); visited.insert(symbol).second)
           work.push_back(symbol);
       });
 

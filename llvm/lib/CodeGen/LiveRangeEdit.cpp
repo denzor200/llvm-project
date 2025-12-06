@@ -115,8 +115,8 @@ bool LiveRangeEdit::foldAsLoad(LiveInterval *LI,
 
   // Check that there is a single def and a single use.
   for (MachineOperand &MO : MRI.reg_nodbg_operands(LI->reg())) {
-    MachineInstr *MI = MO.getParent();
-    if (MO.isDef()) {
+    
+    if (MachineInstr *MI = MO.getParent(); MO.isDef()) {
       if (DefMI && DefMI != MI)
         return false;
       if (!MI->canFoldAsLoad())
@@ -227,12 +227,12 @@ void LiveRangeEdit::eliminateDeadDef(MachineInstr *MI, ToShrinkSet &ToShrink) {
     DestSubReg = MI->getOperand(0).getSubReg();
     Register Original = VRM->getOriginal(Dest);
     LiveInterval &OrigLI = LIS.getInterval(Original);
-    VNInfo *OrigVNI = OrigLI.getVNInfoAt(Idx);
+    
     // The original live-range may have been shrunk to
     // an empty live-range. It happens when it is dead, but
     // we still keep it around to be able to rematerialize
     // other values that depend on it.
-    if (OrigVNI)
+    if (VNInfo *OrigVNI = OrigLI.getVNInfoAt(Idx); OrigVNI)
       isOrigDef = SlotIndex::isSameInstr(OrigVNI->def, Idx);
   }
 
@@ -316,8 +316,8 @@ void LiveRangeEdit::eliminateDeadDef(MachineInstr *MI, ToShrinkSet &ToShrink) {
     MI->setDesc(TII.get(TargetOpcode::KILL));
     // Remove all operands that aren't physregs.
     for (unsigned i = MI->getNumOperands(); i; --i) {
-      const MachineOperand &MO = MI->getOperand(i-1);
-      if (MO.isReg() && MO.getReg().isPhysical())
+      
+      if (const MachineOperand &MO = MI->getOperand(i-1); MO.isReg() && MO.getReg().isPhysical())
         continue;
       MI->removeOperand(i-1);
     }

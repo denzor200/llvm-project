@@ -42,13 +42,13 @@ static FindArgsResult findArgs(const CallExpr *Call) {
 
     const auto *InitListExpr =
         dyn_cast<CXXStdInitializerListExpr>(*ArgIterator);
-    const auto *InitList =
+    
+
+    if (const auto *InitList =
         InitListExpr != nullptr
             ? dyn_cast<clang::InitListExpr>(
                   InitListExpr->getSubExpr()->IgnoreImplicit())
-            : nullptr;
-
-    if (InitList) {
+            : nullptr; InitList) {
       Result.Args.append(InitList->inits().begin(), InitList->inits().end());
       Result.First = *ArgIterator;
       Result.Last = *ArgIterator;

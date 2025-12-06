@@ -72,10 +72,10 @@ int Opcode::Dump(Stream *s, uint32_t min_byte_width) const {
     break;
   }
 
-  uint32_t bytes_written_so_far = s->GetWrittenBytes() - previous_bytes;
+  
   // Add spaces to make sure bytes display comes out even in case opcodes aren't
   // all the same size.
-  if (bytes_written_so_far < min_byte_width)
+  if (uint32_t bytes_written_so_far = s->GetWrittenBytes() - previous_bytes; bytes_written_so_far < min_byte_width)
     s->Printf("%*s", min_byte_width - bytes_written_so_far, "");
   return s->GetWrittenBytes() - previous_bytes;
 }

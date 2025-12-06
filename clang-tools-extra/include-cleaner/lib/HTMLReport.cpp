@@ -304,8 +304,8 @@ private:
     llvm::DenseMap<Symbol, /*RefIndex*/ unsigned> FirstRef;
     for (unsigned RefIndex : RefIndices) {
       const Ref &R = Refs[RefIndex];
-      auto I = FirstRef.try_emplace(R.Sym, RefIndex);
-      if (!I.second && R.Type == RefType::Explicit &&
+      
+      if (auto I = FirstRef.try_emplace(R.Sym, RefIndex); !I.second && R.Type == RefType::Explicit &&
           Refs[I.first->second].Type != RefType::Explicit)
         I.first->second = RefIndex;
     }

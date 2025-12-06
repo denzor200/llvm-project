@@ -144,10 +144,10 @@ void Scalar::GetBytes(uint8_t *storage, size_t size) const {
 void Scalar::GetBytes(llvm::MutableArrayRef<uint8_t> storage) const {
   assert(storage.size() >= GetByteSize());
 
-  const auto &store = [&](const llvm::APInt &val) {
+  
+  switch (const auto &store = [&](const llvm::APInt &val) {
     StoreIntToMemory(val, storage.data(), (val.getBitWidth() + 7) / 8);
-  };
-  switch (m_type) {
+  }; m_type) {
   case e_void:
     break;
   case e_int:
@@ -742,9 +742,9 @@ Status Scalar::SetValueFromData(const DataExtractor &data,
     break;
   }
   case lldb::eEncodingIEEE754: {
-    lldb::offset_t offset = 0;
+    
 
-    if (byte_size == sizeof(float))
+    if (lldb::offset_t offset = 0; byte_size == sizeof(float))
       operator=(data.GetFloat(&offset));
     else if (byte_size == sizeof(double))
       operator=(data.GetDouble(&offset));
@@ -760,9 +760,9 @@ Status Scalar::SetValueFromData(const DataExtractor &data,
 }
 
 bool Scalar::SignExtend(uint32_t sign_bit_pos) {
-  const uint32_t max_bit_pos = GetByteSize() * 8;
+  
 
-  if (sign_bit_pos < max_bit_pos) {
+  if (const uint32_t max_bit_pos = GetByteSize() * 8; sign_bit_pos < max_bit_pos) {
     switch (m_type) {
     case Scalar::e_void:
     case Scalar::e_float:

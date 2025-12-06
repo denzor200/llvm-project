@@ -247,10 +247,10 @@ LTOModule::makeBuffer(const void *mem, size_t length, StringRef name) {
 bool
 LTOModule::objcClassNameFromExpression(const Constant *c, std::string &name) {
   if (const ConstantExpr *ce = dyn_cast<ConstantExpr>(c)) {
-    Constant *op = ce->getOperand(0);
-    if (GlobalVariable *gvn = dyn_cast<GlobalVariable>(op)) {
-      Constant *cn = gvn->getInitializer();
-      if (ConstantDataArray *ca = dyn_cast<ConstantDataArray>(cn)) {
+    
+    if (Constant *op = ce->getOperand(0); GlobalVariable *gvn = dyn_cast<GlobalVariable>(op)) {
+      
+      if (Constant *cn = gvn->getInitializer(); ConstantDataArray *ca = dyn_cast<ConstantDataArray>(cn)) {
         if (ca->isCString()) {
           name = (".objc_class_name_" + ca->getAsCString()).str();
           return true;
@@ -269,8 +269,8 @@ void LTOModule::addObjCClass(const GlobalVariable *clgv) {
   // second slot in __OBJC,__class is pointer to superclass name
   std::string superclassName;
   if (objcClassNameFromExpression(c->getOperand(1), superclassName)) {
-    auto IterBool = _undefines.try_emplace(superclassName);
-    if (IterBool.second) {
+    
+    if (auto IterBool = _undefines.try_emplace(superclassName); IterBool.second) {
       NameAndAttributes &info = IterBool.first->second;
       info.name = IterBool.first->first();
       info.attributes = LTO_SYMBOL_DEFINITION_UNDEFINED;
@@ -375,8 +375,8 @@ void LTOModule::addDefinedDataSymbol(StringRef Name, const GlobalValue *v) {
 
   // special case if this data blob is an ObjC class definition
   if (const GlobalVariable *GV = dyn_cast<GlobalVariable>(v)) {
-    StringRef Section = GV->getSection();
-    if (Section.starts_with("__OBJC,__class,")) {
+    
+    if (StringRef Section = GV->getSection(); Section.starts_with("__OBJC,__class,")) {
       addObjCClass(GV);
     }
 
@@ -426,8 +426,8 @@ void LTOModule::addDefinedSymbol(StringRef Name, const GlobalValue *def,
   if (isFunction) {
     attr |= LTO_SYMBOL_PERMISSIONS_CODE;
   } else {
-    const GlobalVariable *gv = dyn_cast<GlobalVariable>(def);
-    if (gv && gv->isConstant())
+    
+    if (const GlobalVariable *gv = dyn_cast<GlobalVariable>(def); gv && gv->isConstant())
       attr |= LTO_SYMBOL_PERMISSIONS_RODATA;
     else
       attr |= LTO_SYMBOL_PERMISSIONS_DATA;
@@ -695,8 +695,8 @@ Expected<uint32_t> LTOModule::getMachOCPUSubType() const {
 bool LTOModule::hasCtorDtor() const {
   for (auto Sym : SymTab.symbols()) {
     if (auto *GV = dyn_cast_if_present<GlobalValue *>(Sym)) {
-      StringRef Name = GV->getName();
-      if (Name.consume_front("llvm.global_")) {
+      
+      if (StringRef Name = GV->getName(); Name.consume_front("llvm.global_")) {
         if (Name == "ctors" || Name == "dtors")
           return true;
       }

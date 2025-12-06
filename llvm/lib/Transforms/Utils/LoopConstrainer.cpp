@@ -201,17 +201,17 @@ LoopStructure::parseLoopStructure(ScalarEvolution &SE, Loop &L,
     IntegerType *WideTy =
         IntegerType::get(Ty->getContext(), Ty->getBitWidth() * 2);
 
-    const SCEVAddRecExpr *ExtendAfterOp =
-        dyn_cast<SCEVAddRecExpr>(SE.getSignExtendExpr(AR, WideTy));
-    if (ExtendAfterOp) {
+    
+    if (const SCEVAddRecExpr *ExtendAfterOp =
+        dyn_cast<SCEVAddRecExpr>(SE.getSignExtendExpr(AR, WideTy)); ExtendAfterOp) {
       const SCEV *ExtendedStart = SE.getSignExtendExpr(AR->getStart(), WideTy);
       const SCEV *ExtendedStep =
           SE.getSignExtendExpr(AR->getStepRecurrence(SE), WideTy);
 
-      bool NoSignedWrap = ExtendAfterOp->getStart() == ExtendedStart &&
-                          ExtendAfterOp->getStepRecurrence(SE) == ExtendedStep;
+      
 
-      if (NoSignedWrap)
+      if (bool NoSignedWrap = ExtendAfterOp->getStart() == ExtendedStart &&
+                          ExtendAfterOp->getStepRecurrence(SE) == ExtendedStep; NoSignedWrap)
         return true;
     }
 

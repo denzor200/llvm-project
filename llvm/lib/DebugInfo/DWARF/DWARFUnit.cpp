@@ -151,12 +151,12 @@ DWARFUnit *DWARFUnitVector::addUnit(std::unique_ptr<DWARFUnit> Unit) {
 
 DWARFUnit *DWARFUnitVector::getUnitForOffset(uint64_t Offset) const {
   auto end = begin() + getNumInfoUnits();
-  auto *CU =
+  
+  if (auto *CU =
       std::upper_bound(begin(), end, Offset,
                        [](uint64_t LHS, const std::unique_ptr<DWARFUnit> &RHS) {
                          return LHS < RHS->getNextUnitOffset();
-                       });
-  if (CU != end && (*CU)->getOffset() <= Offset)
+                       }); CU != end && (*CU)->getOffset() <= Offset)
     return CU->get();
   return nullptr;
 }
@@ -738,8 +738,8 @@ DWARFUnit::findLoclistFromOffset(uint64_t Offset) {
 
 void DWARFUnit::updateAddressDieMap(DWARFDie Die) {
   if (Die.isSubroutineDIE()) {
-    auto DIERangesOrError = Die.getAddressRanges();
-    if (DIERangesOrError) {
+    
+    if (auto DIERangesOrError = Die.getAddressRanges(); DIERangesOrError) {
       for (const auto &R : DIERangesOrError.get()) {
         // Ignore 0-sized ranges.
         if (R.LowPC == R.HighPC)
@@ -819,8 +819,8 @@ void DWARFUnit::updateVariableDieMap(DWARFDie Die) {
     if (It->getCode() == dwarf::DW_OP_addr) {
       LocationAddr = It->getRawOperand(0);
     } else if (It->getCode() == dwarf::DW_OP_addrx) {
-      uint64_t DebugAddrOffset = It->getRawOperand(0);
-      if (auto Pointer = getAddrOffsetSectionItem(DebugAddrOffset)) {
+      
+      if (uint64_t DebugAddrOffset = It->getRawOperand(0); auto Pointer = getAddrOffsetSectionItem(DebugAddrOffset)) {
         LocationAddr = Pointer->Address;
       }
     } else {
@@ -1089,9 +1089,9 @@ StrOffsetsContributionDescriptor::validateContributionSize(
   uint8_t EntrySize = getDwarfOffsetByteSize();
   // In order to ensure that we don't read a partial record at the end of
   // the section we validate for a multiple of the entry size.
-  uint64_t ValidationSize = alignTo(Size, EntrySize);
+  
   // Guard against overflow.
-  if (ValidationSize >= Size)
+  if (uint64_t ValidationSize = alignTo(Size, EntrySize); ValidationSize >= Size)
     if (DA.isValidOffsetForDataOfSize((uint32_t)Base, ValidationSize))
       return *this;
   return createStringError(errc::invalid_argument, "length exceeds section size");

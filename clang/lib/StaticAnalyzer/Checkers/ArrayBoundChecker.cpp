@@ -275,8 +275,8 @@ getSimplifiedOffsets(NonLoc offset, nonloc::ConcreteInt extent,
   std::optional<nonloc::SymbolVal> SymVal = offset.getAs<nonloc::SymbolVal>();
   if (SymVal && SymVal->isExpression()) {
     if (const SymIntExpr *SIE = dyn_cast<SymIntExpr>(SymVal->getSymbol())) {
-      llvm::APSInt constant = APSIntType(extentVal).convert(SIE->getRHS());
-      switch (SIE->getOpcode()) {
+      
+      switch (llvm::APSInt constant = APSIntType(extentVal).convert(SIE->getRHS()); SIE->getOpcode()) {
       case BO_Mul:
         // The constant should never be 0 here, becasue multiplication by zero
         // is simplified by the engine.
@@ -411,8 +411,8 @@ static bool tryDividePair(std::optional<int64_t> &Val1,
   if (!Divisor)
     return false;
   const bool Val1HasRemainder = Val1 && *Val1 % Divisor;
-  const bool Val2HasRemainder = Val2 && *Val2 % Divisor;
-  if (Val1HasRemainder || Val2HasRemainder)
+  
+  if (const bool Val2HasRemainder = Val2 && *Val2 % Divisor; Val1HasRemainder || Val2HasRemainder)
     return false;
   if (Val1)
     *Val1 /= Divisor;

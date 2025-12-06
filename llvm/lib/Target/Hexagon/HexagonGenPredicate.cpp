@@ -181,13 +181,13 @@ bool HexagonGenPredicate::isConvertibleToPredForm(const MachineInstr *MI) {
 void HexagonGenPredicate::collectPredicateGPR(MachineFunction &MF) {
   for (MachineBasicBlock &B : MF) {
     for (MachineInstr &MI : B) {
-      unsigned Opc = MI.getOpcode();
-      switch (Opc) {
+      
+      switch (unsigned Opc = MI.getOpcode(); Opc) {
         case Hexagon::C2_tfrpr:
         case TargetOpcode::COPY:
           if (isPredReg(MI.getOperand(1).getReg())) {
-            RegSubRegPair RD = getRegSubRegPair(MI.getOperand(0));
-            if (RD.Reg.isVirtual())
+            
+            if (RegSubRegPair RD = getRegSubRegPair(MI.getOperand(0)); RD.Reg.isVirtual())
               PredGPRs.insert(RD);
           }
           break;
@@ -211,8 +211,8 @@ void HexagonGenPredicate::processPredicateGPR(const RegSubRegPair &Reg) {
   }
 
   for (; I != E; ++I) {
-    MachineInstr *UseI = I->getParent();
-    if (isConvertibleToPredForm(UseI))
+    
+    if (MachineInstr *UseI = I->getParent(); isConvertibleToPredForm(UseI))
       PUsers.insert(UseI);
   }
 }
@@ -304,11 +304,11 @@ bool HexagonGenPredicate::isScalarPred(RegSubRegPair PredReg) {
     const MachineInstr *DefI = MRI->getVRegDef(PR.Reg);
     if (!DefI)
       return false;
-    unsigned DefOpc = DefI->getOpcode();
-    switch (DefOpc) {
+    
+    switch (unsigned DefOpc = DefI->getOpcode(); DefOpc) {
       case TargetOpcode::COPY: {
-        const TargetRegisterClass *PredRC = &Hexagon::PredRegsRegClass;
-        if (MRI->getRegClass(PR.Reg) != PredRC)
+        
+        if (const TargetRegisterClass *PredRC = &Hexagon::PredRegsRegClass; MRI->getRegClass(PR.Reg) != PredRC)
           return false;
         // If it is a copy between two predicate registers, fall through.
         [[fallthrough]];
@@ -491,8 +491,8 @@ bool HexagonGenPredicate::runOnMachineFunction(MachineFunction &MF) {
 
     Copy = PUsers;
     for (MachineInstr *MI : Copy) {
-      bool Done = convertToPredForm(MI);
-      if (Done) {
+      
+      if (bool Done = convertToPredForm(MI); Done) {
         Processed.insert(MI);
         Again = true;
       }

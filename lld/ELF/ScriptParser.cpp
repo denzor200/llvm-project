@@ -201,8 +201,8 @@ void ScriptParser::readDynamicList() {
 
 void ScriptParser::readVersionScript() {
   readVersionScriptCommand();
-  StringRef tok = peek();
-  if (tok.size())
+  
+  if (StringRef tok = peek(); tok.size())
     setError("EOF expected, but got " + tok);
 }
 
@@ -930,8 +930,8 @@ bool ScriptParser::readSectionDirective(OutputSection *cmd, StringRef tok) {
   } else if (consume("TYPE")) {
     expect("=");
     StringRef value = peek();
-    auto it = llvm::find_if(typeMap, [=](auto e) { return e.first == value; });
-    if (it != std::end(typeMap)) {
+    
+    if (auto it = llvm::find_if(typeMap, [=](auto e) { return e.first == value; }); it != std::end(typeMap)) {
       // The value is a recognized literal SHT_*.
       cmd->type = it->second;
       skip();
@@ -975,8 +975,8 @@ void ScriptParser::readSectionAddressType(OutputSection *cmd) {
 
   if (consume("(")) {
     SaveAndRestore saved(lexState, State::Expr);
-    StringRef tok = peek();
-    if (!readSectionDirective(cmd, tok))
+    
+    if (StringRef tok = peek(); !readSectionDirective(cmd, tok))
       setError("unknown section directive: " + tok);
   }
 }
@@ -1195,8 +1195,8 @@ SymbolAssignment *ScriptParser::readSymbolAssignment(StringRef name) {
   if (op != "=") {
     std::string loc = getCurrentLocation();
     e = [=, s = ctx.script, c = op[0], &ctx = ctx]() -> ExprValue {
-      ExprValue lhs = s->getSymbolValue(name, loc);
-      switch (c) {
+      
+      switch (ExprValue lhs = s->getSymbolValue(name, loc); c) {
       case '*':
         return lhs.getValue() * e().getValue();
       case '/':
@@ -1431,8 +1431,8 @@ std::pair<uint64_t, uint64_t> ScriptParser::readInputSectionFlags() {
   expect("(");
   while (!errCount(ctx)) {
     StringRef tok = readName();
-    bool without = tok.consume_front("!");
-    if (std::optional<uint64_t> flag = parseFlag(tok)) {
+    
+    if (bool without = tok.consume_front("!"); std::optional<uint64_t> flag = parseFlag(tok)) {
       if (without)
         withoutFlags |= *flag;
       else

@@ -193,8 +193,8 @@ Status NativeProcessProtocol::SetWatchpoint(lldb::addr_t addr, size_t size,
       // Unset the watchpoint for each thread we successfully set so that we
       // get back to a consistent state of "not set" for the watchpoint.
       for (auto unwatch_thread_sp : watchpoint_established_threads) {
-        Status remove_error = unwatch_thread_sp->RemoveWatchpoint(addr);
-        if (remove_error.Fail())
+        
+        if (Status remove_error = unwatch_thread_sp->RemoveWatchpoint(addr); remove_error.Fail())
           LLDB_LOG(log, "RemoveWatchpoint failed for pid={0}, tid={1}: {2}",
                    GetID(), unwatch_thread_sp->GetID(), remove_error);
       }
@@ -215,8 +215,8 @@ Status NativeProcessProtocol::RemoveWatchpoint(lldb::addr_t addr) {
   for (const auto &thread : m_threads) {
     assert(thread && "thread list should not have a NULL thread!");
 
-    Status thread_error = thread->RemoveWatchpoint(addr);
-    if (thread_error.Fail()) {
+    
+    if (Status thread_error = thread->RemoveWatchpoint(addr); thread_error.Fail()) {
       // Keep track of the first thread error if any threads fail. We want to
       // try to remove the watchpoint from every thread, though, even if one or
       // more have errors.
@@ -262,8 +262,8 @@ Status NativeProcessProtocol::SetHardwareBreakpoint(lldb::addr_t addr,
   for (const auto &thread : m_threads) {
     assert(thread && "thread list should not have a NULL thread!");
 
-    Status thread_error = thread->SetHardwareBreakpoint(addr, size);
-    if (thread_error.Success()) {
+    
+    if (Status thread_error = thread->SetHardwareBreakpoint(addr, size); thread_error.Success()) {
       // Remember that we set this breakpoint successfully in case we need to
       // clear it later.
       breakpoint_established_threads.push_back(thread.get());
@@ -272,9 +272,9 @@ Status NativeProcessProtocol::SetHardwareBreakpoint(lldb::addr_t addr,
       // get back to a consistent state of "not set" for this hardware
       // breakpoint.
       for (auto rollback_thread_sp : breakpoint_established_threads) {
-        Status remove_error =
-            rollback_thread_sp->RemoveHardwareBreakpoint(addr);
-        if (remove_error.Fail())
+        
+        if (Status remove_error =
+            rollback_thread_sp->RemoveHardwareBreakpoint(addr); remove_error.Fail())
           LLDB_LOG(log,
                    "RemoveHardwareBreakpoint failed for pid={0}, tid={1}: {2}",
                    GetID(), rollback_thread_sp->GetID(), remove_error);
@@ -518,10 +518,10 @@ NativeProcessProtocol::GetSoftwareBreakpointTrapOpcode(size_t size_hint) {
   static const uint8_t g_ppcle_opcode[] = {0x08, 0x00, 0xe0, 0x7f}; // trap
   static const uint8_t g_riscv_opcode[] = {0x73, 0x00, 0x10, 0x00}; // ebreak
   static const uint8_t g_riscv_opcode_c[] = {0x02, 0x90};           // c.ebreak
-  static const uint8_t g_loongarch_opcode[] = {0x05, 0x00, 0x2a,
-                                               0x00}; // break 0x5
+  // break 0x5
 
-  switch (GetArchitecture().GetMachine()) {
+  switch (static const uint8_t g_loongarch_opcode[] = {0x05, 0x00, 0x2a,
+                                               0x00}; GetArchitecture().GetMachine()) {
   case llvm::Triple::aarch64:
   case llvm::Triple::aarch64_32:
     return llvm::ArrayRef(g_aarch64_opcode);
@@ -706,8 +706,8 @@ NativeProcessProtocol::ReadCStringFromMemory(lldb::addr_t addr, char *buffer,
     if (bytes_read == 0)
       break;
 
-    void *str_end = std::memchr(curr_buffer, '\0', bytes_read);
-    if (str_end != nullptr) {
+    
+    if (void *str_end = std::memchr(curr_buffer, '\0', bytes_read); str_end != nullptr) {
       total_bytes_read =
           static_cast<size_t>((static_cast<char *>(str_end) - buffer + 1));
       status.Clear();

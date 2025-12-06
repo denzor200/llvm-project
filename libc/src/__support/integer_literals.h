@@ -112,8 +112,8 @@ template <typename T> struct Parser {
 template <size_t N> struct Parser<LIBC_NAMESPACE::UInt<N>> {
   using UIntT = UInt<N>;
   template <int base> static constexpr UIntT parse(const char *str) {
-    const DigitBuffer<UIntT, base> buffer(str);
-    if constexpr (base == 10) {
+    
+    if constexpr (const DigitBuffer<UIntT, base> buffer(str); base == 10) {
       // Slow path, we sum and multiply BigInt for each digit.
       return accumulate<UIntT>(base, buffer.digits, buffer.size);
     } else {

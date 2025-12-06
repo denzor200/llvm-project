@@ -36,10 +36,10 @@ static bool needReorderStoreMI(const MachineInstr *MI) {
 static bool mayOverlapWrite(const MachineInstr &MI0, const MachineInstr &MI1,
                             int64_t &Off0, int64_t &Off1) {
   const MachineOperand &Base0 = AArch64InstrInfo::getLdStBaseOp(MI0);
-  const MachineOperand &Base1 = AArch64InstrInfo::getLdStBaseOp(MI1);
+  
 
   // May overlapping writes if two store instructions without same base
-  if (!Base0.isIdenticalTo(Base1))
+  if (const MachineOperand &Base1 = AArch64InstrInfo::getLdStBaseOp(MI1); !Base0.isIdenticalTo(Base1))
     return true;
 
   int StoreSize0 = AArch64InstrInfo::getMemScale(MI0);

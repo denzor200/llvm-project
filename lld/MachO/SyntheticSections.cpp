@@ -355,8 +355,8 @@ void macho::writeChainedRebase(uint8_t *buf, uint64_t targetVA) {
 
   // The fixup format places a 64 GiB limit on the output's size.
   // Should we handle this gracefully?
-  uint64_t encodedVA = rebase->target | ((uint64_t)rebase->high8 << 56);
-  if (encodedVA != targetVA)
+  
+  if (uint64_t encodedVA = rebase->target | ((uint64_t)rebase->high8 << 56); encodedVA != targetVA)
     error("rebase target address 0x" + Twine::utohexstr(targetVA) +
           " does not fit into chained fixup. Re-link with -no_fixup_chains");
 }
@@ -430,8 +430,8 @@ static void encodeBinding(const OutputSection *osec, uint64_t outSecOff,
                           int64_t addend, Binding &lastBinding,
                           std::vector<BindIR> &opcodes) {
   OutputSegment *seg = osec->parent;
-  uint64_t offset = osec->getSegmentOffset() + outSecOff;
-  if (lastBinding.segment != seg) {
+  
+  if (uint64_t offset = osec->getSegmentOffset() + outSecOff; lastBinding.segment != seg) {
     opcodes.push_back(
         {static_cast<uint8_t>(BIND_OPCODE_SET_SEGMENT_AND_OFFSET_ULEB |
                               seg->index),
@@ -515,8 +515,8 @@ static void optimizeOpcodes(std::vector<BindIR> &opcodes) {
 }
 
 static void flushOpcodes(const BindIR &op, raw_svector_ostream &os) {
-  uint8_t opcode = op.opcode & BIND_OPCODE_MASK;
-  switch (opcode) {
+  
+  switch (uint8_t opcode = op.opcode & BIND_OPCODE_MASK; opcode) {
   case BIND_OPCODE_SET_SEGMENT_AND_OFFSET_ULEB:
   case BIND_OPCODE_ADD_ADDR_ULEB:
   case BIND_OPCODE_DO_BIND_ADD_ADDR_ULEB:
@@ -754,8 +754,8 @@ static void addBindingsForStub(Symbol *sym) {
 }
 
 void StubsSection::addEntry(Symbol *sym) {
-  bool inserted = entries.insert(sym);
-  if (inserted) {
+  
+  if (bool inserted = entries.insert(sym); inserted) {
     sym->stubsIndex = entries.size() - 1;
 
     if (config->emitChainedFixups)
@@ -834,8 +834,8 @@ void ObjCSelRefsHelper::initialize() {
     // We expect a single relocation per selref entry to __objc_methname that
     // might be aggregated.
     assert(isec->relocs.size() == 1);
-    auto Reloc = isec->relocs[0];
-    if (const auto *sym = Reloc.referent.dyn_cast<Symbol *>()) {
+    
+    if (auto Reloc = isec->relocs[0]; const auto *sym = Reloc.referent.dyn_cast<Symbol *>()) {
       if (const auto *d = dyn_cast<Defined>(sym)) {
         auto *cisec = cast<CStringInputSection>(d->isec());
         auto methname = cisec->getStringRefAtOffset(d->value);
@@ -1231,8 +1231,8 @@ void SymtabSection::emitStabs() {
           defined->identicalCodeFoldingKind != Symbol::ICFFoldKind::None)
         continue;
 
-      ObjFile *file = defined->getObjectFile();
-      if (!file || !file->compileUnit)
+      
+      if (ObjFile *file = defined->getObjectFile(); !file || !file->compileUnit)
         continue;
 
       // We use the symbol's original InputSection to get the file id,
@@ -1257,9 +1257,9 @@ void SymtabSection::emitStabs() {
     // function). This ensures STABS entries point back to the original object
     // file.
     InputSection *isec = defined->originalIsec;
-    ObjFile *file = cast<ObjFile>(isec->getFile());
+    
 
-    if (lastFile == nullptr || lastFile != file) {
+    if (ObjFile *file = cast<ObjFile>(isec->getFile()); lastFile == nullptr || lastFile != file) {
       if (lastFile != nullptr)
         emitEndSourceStab();
       lastFile = file;
@@ -1447,8 +1447,8 @@ template <class LP> void SymtabSectionImpl<LP>::writeTo(uint8_t *buf) const {
           defined->referencedDynamically ? REFERENCED_DYNAMICALLY : 0;
     } else if (auto *dysym = dyn_cast<DylibSymbol>(entry.sym)) {
       uint16_t n_desc = nList->n_desc;
-      int16_t ordinal = ordinalForDylibSymbol(*dysym);
-      if (ordinal == BIND_SPECIAL_DYLIB_FLAT_LOOKUP)
+      
+      if (int16_t ordinal = ordinalForDylibSymbol(*dysym); ordinal == BIND_SPECIAL_DYLIB_FLAT_LOOKUP)
         SET_LIBRARY_ORDINAL(n_desc, DYNAMIC_LOOKUP_ORDINAL);
       else if (ordinal == BIND_SPECIAL_DYLIB_MAIN_EXECUTABLE)
         SET_LIBRARY_ORDINAL(n_desc, EXECUTABLE_ORDINAL);
@@ -1544,8 +1544,8 @@ uint32_t StringTableSection::addString(StringRef str) {
   uint32_t strx = size;
   if (config->dedupSymbolStrings) {
     llvm::CachedHashStringRef hashedStr(str);
-    auto [it, inserted] = stringMap.try_emplace(hashedStr, strx);
-    if (!inserted)
+    
+    if (auto [it, inserted] = stringMap.try_emplace(hashedStr, strx); !inserted)
       return it->second;
   }
 
@@ -1577,8 +1577,8 @@ CodeSignatureSection::CodeSignatureSection()
     // FIXME: Consider using finalOutput instead of outputFile.
     fileName = config->outputFile;
 
-  size_t slashIndex = fileName.rfind("/");
-  if (slashIndex != std::string::npos)
+  
+  if (size_t slashIndex = fileName.rfind("/"); slashIndex != std::string::npos)
     fileName = fileName.drop_front(slashIndex + 1);
 
   // NOTE: Any changes to these calculations should be repeated
@@ -1863,8 +1863,8 @@ void WordLiteralSection::finalizeContents() {
     // We do all processing of the InputSection here, so it will be effectively
     // finalized.
     isec->isFinal = true;
-    const uint8_t *buf = isec->data.data();
-    switch (sectionType(isec->getFlags())) {
+    
+    switch (const uint8_t *buf = isec->data.data(); sectionType(isec->getFlags())) {
     case S_4BYTE_LITERALS: {
       for (size_t off = 0, e = isec->data.size(); off < e; off += 4) {
         if (!isec->isLive(off))
@@ -2114,10 +2114,10 @@ void ObjCMethListSection::finalize() {
       for (Symbol *sym : isec->symbols) {
         assert(isa<Defined>(sym) &&
                "Unexpected undefined symbol in ObjC method list");
-        auto *def = cast<Defined>(sym);
+        
         // There can be 0-size symbols, check if this is the case and ignore
         // them.
-        if (def->size) {
+        if (auto *def = cast<Defined>(sym); def->size) {
           assert(
               def->size == isec->data.size() &&
               "Invalid ObjC method list symbol size: expected symbol size to "
@@ -2360,10 +2360,10 @@ void ChainedFixupsSection::addBinding(const Symbol *sym,
                                       int64_t addend) {
   locations.emplace_back(isec, offset);
   int64_t outlineAddend = (addend < 0 || addend > 0xFF) ? addend : 0;
-  auto [it, inserted] = bindings.insert(
-      {{sym, outlineAddend}, static_cast<uint32_t>(bindings.size())});
+  
 
-  if (inserted) {
+  if (auto [it, inserted] = bindings.insert(
+      {{sym, outlineAddend}, static_cast<uint32_t>(bindings.size())}); inserted) {
     symtabSize += sym->getName().size() + 1;
     hasWeakBind = hasWeakBind || needsWeakBind(*sym);
     if (!isInt<23>(outlineAddend))
@@ -2527,12 +2527,12 @@ void ChainedFixupsSection::finalizeContents() {
     error("cannot encode chained fixups: imported symbols table size " +
           Twine(symtabSize) + " exceeds 4 GiB");
 
-  bool needsLargeOrdinal = any_of(bindings, [](const auto &p) {
+  
+
+  if (bool needsLargeOrdinal = any_of(bindings, [](const auto &p) {
     // 0xF1 - 0xFF are reserved for special ordinals in the 8-bit encoding.
     return ordinalForSymbol(*p.first.first) > 0xF0;
-  });
-
-  if (needsLargeAddend || !isUInt<23>(symtabSize) || needsLargeOrdinal)
+  }); needsLargeAddend || !isUInt<23>(symtabSize) || needsLargeOrdinal)
     importFormat = DYLD_CHAINED_IMPORT_ADDEND64;
   else if (needsAddend)
     importFormat = DYLD_CHAINED_IMPORT_ADDEND;

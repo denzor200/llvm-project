@@ -63,9 +63,9 @@ static Loop *getInnerMostLoop(const LoopVectorTy &Loops) {
   assert(!Loops.empty() && "Expecting a non-empy loop vector");
 
   Loop *LastLoop = Loops.back();
-  Loop *ParentLoop = LastLoop->getParentLoop();
+  
 
-  if (ParentLoop == nullptr) {
+  if (Loop *ParentLoop = LastLoop->getParentLoop(); ParentLoop == nullptr) {
     assert(Loops.size() == 1 && "Expecting a single loop");
     return LastLoop;
   }
@@ -389,9 +389,9 @@ bool IndexedReference::delinearize(const LoopInfo &LI) {
   LLVM_DEBUG(dbgs() << "Delinearizing: " << StoreOrLoadInst << "\n");
 
   const SCEV *ElemSize = SE.getElementSize(&StoreOrLoadInst);
-  const BasicBlock *BB = StoreOrLoadInst.getParent();
+  
 
-  if (Loop *L = LI.getLoopFor(BB)) {
+  if (const BasicBlock *BB = StoreOrLoadInst.getParent(); Loop *L = LI.getLoopFor(BB)) {
     const SCEV *AccessFn =
         SE.getSCEVAtScope(getPointerOperand(&StoreOrLoadInst), L);
 
@@ -441,9 +441,9 @@ bool IndexedReference::delinearize(const LoopInfo &LI) {
       // In this case, reconstruct the access function using the absolute value
       // of the step recurrence.
       const SCEVAddRecExpr *AccessFnAR = dyn_cast<SCEVAddRecExpr>(AccessFn);
-      const SCEV *StepRec = AccessFnAR ? AccessFnAR->getStepRecurrence(SE) : nullptr;
+      
 
-      if (StepRec && SE.isKnownNegative(StepRec))
+      if (const SCEV *StepRec = AccessFnAR ? AccessFnAR->getStepRecurrence(SE) : nullptr; StepRec && SE.isKnownNegative(StepRec))
         AccessFn = SE.getAddRecExpr(
             AccessFnAR->getStart(), SE.getNegativeSCEV(StepRec),
             AccessFnAR->getLoop(), SCEV::NoWrapFlags::FlagAnyWrap);
@@ -513,8 +513,8 @@ bool IndexedReference::isConsecutive(const Loop &L, const SCEV *&Stride,
 
 int IndexedReference::getSubscriptIndex(const Loop &L) const {
   for (auto Idx : seq<int>(0, getNumSubscripts())) {
-    const SCEVAddRecExpr *AR = dyn_cast<SCEVAddRecExpr>(getSubscript(Idx));
-    if (AR && AR->getLoop() == &L) {
+    
+    if (const SCEVAddRecExpr *AR = dyn_cast<SCEVAddRecExpr>(getSubscript(Idx)); AR && AR->getLoop() == &L) {
       return Idx;
     }
   }
@@ -546,9 +546,9 @@ bool IndexedReference::isSimpleAddRecurrence(const SCEV &Subscript,
     return false;
 
   const SCEV *Start = AR->getStart();
-  const SCEV *Step = AR->getStepRecurrence(SE);
+  
 
-  if (!SE.isLoopInvariant(Start, &L) || !SE.isLoopInvariant(Step, &L))
+  if (const SCEV *Step = AR->getStepRecurrence(SE); !SE.isLoopInvariant(Start, &L) || !SE.isLoopInvariant(Step, &L))
     return false;
 
   return true;
@@ -668,10 +668,10 @@ bool CacheCost::populateReferenceGroups(ReferenceGroupsTy &RefGroups) const {
        // access per iteration from opposite ends of the array
         std::optional<bool> HasTemporalReuse =
             R->hasTemporalReuse(Representative, *TRT, *InnerMostLoop, DI, AA);
-        std::optional<bool> HasSpacialReuse =
-            R->hasSpacialReuse(Representative, CLS, AA);
+        
 
-        if ((HasTemporalReuse && *HasTemporalReuse) ||
+        if (std::optional<bool> HasSpacialReuse =
+            R->hasSpacialReuse(Representative, CLS, AA); (HasTemporalReuse && *HasTemporalReuse) ||
             (HasSpacialReuse && *HasSpacialReuse)) {
           RefGroup.push_back(std::move(R));
           Added = true;

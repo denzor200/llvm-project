@@ -59,8 +59,8 @@ static unsigned getMaxCalculationWidth(const ASTContext &Context,
     if (Bop->getOpcode() == BO_Add)
       return std::max(LHSWidth, RHSWidth) + 1;
     if (Bop->getOpcode() == BO_Rem) {
-      Expr::EvalResult Result;
-      if (Bop->getRHS()->EvaluateAsInt(Result, Context))
+      
+      if (Expr::EvalResult Result; Bop->getRHS()->EvaluateAsInt(Result, Context))
         return Result.Val.getInt().getActiveBits();
     } else if (Bop->getOpcode() == BO_Shl) {
       Expr::EvalResult Result;

@@ -134,8 +134,8 @@ static SmallVector<NoLintToken> getNoLints(StringRef Buffer) {
     // Get checks, if specified.
     std::optional<StringRef> Checks;
     if (Pos < Buffer.size() && Buffer[Pos] == '(') {
-      const size_t ClosingBracket = Buffer.find_first_of("\n)", ++Pos);
-      if (ClosingBracket != StringRef::npos && Buffer[ClosingBracket] == ')') {
+      
+      if (const size_t ClosingBracket = Buffer.find_first_of("\n)", ++Pos); ClosingBracket != StringRef::npos && Buffer[ClosingBracket] == ')') {
         Checks = Buffer.slice(Pos, ClosingBracket);
         Pos = ClosingBracket + 1;
       }
@@ -359,8 +359,8 @@ bool NoLintDirectiveHandler::Impl::diagHasNoLint(
 
   // Check if there's a NOLINTNEXTLINE on the previous line.
   if (ThisLine.first > 0) {
-    auto PrevLine = getLineStartAndEnd(*Buffer, ThisLine.first - 1);
-    if (lineHasNoLint(*Buffer, PrevLine, NoLintType::NoLintNextLine, DiagName))
+    
+    if (auto PrevLine = getLineStartAndEnd(*Buffer, ThisLine.first - 1); lineHasNoLint(*Buffer, PrevLine, NoLintType::NoLintNextLine, DiagName))
       return true;
   }
 

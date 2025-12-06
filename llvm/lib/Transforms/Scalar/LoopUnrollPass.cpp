@@ -226,12 +226,12 @@ TargetTransformInfo::UnrollingPreferences llvm::gatherUnrollingPreferences(
   TTI.getUnrollingPreferences(L, SE, UP, &ORE);
 
   // Apply size attributes
-  bool OptForSize = L->getHeader()->getParent()->hasOptSize() ||
+  
+  if (bool OptForSize = L->getHeader()->getParent()->hasOptSize() ||
                     // Let unroll hints / pragmas take precedence over PGSO.
                     (hasUnrollTransformation(L) != TM_ForcedByUser &&
                      llvm::shouldOptimizeForSize(L->getHeader(), PSI, BFI,
-                                                 PGSOQueryType::IRPass));
-  if (OptForSize) {
+                                                 PGSOQueryType::IRPass)); OptForSize) {
     UP.Threshold = UP.OptSizeThreshold;
     UP.PartialThreshold = UP.PartialOptSizeThreshold;
     UP.MaxPercentThresholdBoost = 100;
@@ -574,8 +574,8 @@ static std::optional<EstimatedUnrollCost> analyzeLoopUnrollCost(
         // Can't properly model a cost of a call.
         // FIXME: With a proper cost model we should be able to do it.
         if (auto *CI = dyn_cast<CallInst>(&I)) {
-          const Function *Callee = CI->getCalledFunction();
-          if (!Callee || TTI.isLoweredToCall(Callee)) {
+          
+          if (const Function *Callee = CI->getCalledFunction(); !Callee || TTI.isLoweredToCall(Callee)) {
             LLVM_DEBUG(dbgs() << "Can't analyze cost of loop with call\n");
             return std::nullopt;
           }
@@ -765,8 +765,8 @@ static bool hasRuntimeUnrollDisablePragma(const Loop *L) {
 // If loop has an unroll_count pragma return the (necessarily
 // positive) value from the pragma.  Otherwise return 0.
 static unsigned unrollCountPragmaValue(const Loop *L) {
-  MDNode *MD = getUnrollMetadataForLoop(L, "llvm.loop.unroll.count");
-  if (MD) {
+  
+  if (MDNode *MD = getUnrollMetadataForLoop(L, "llvm.loop.unroll.count"); MD) {
     assert(MD->getNumOperands() == 2 &&
            "Unroll count hint metadata should have two operands.");
     unsigned Count =
@@ -857,9 +857,9 @@ static std::optional<unsigned> shouldFullUnroll(
           L, FullUnrollTripCount, DT, SE, EphValues, TTI,
           UP.Threshold * UP.MaxPercentThresholdBoost / 100,
           UP.MaxIterationsCountToAnalyze)) {
-    unsigned Boost =
-      getFullUnrollBoostingFactor(*Cost, UP.MaxPercentThresholdBoost);
-    if (Cost->UnrolledCost < UP.Threshold * Boost / 100)
+    
+    if (unsigned Boost =
+      getFullUnrollBoostingFactor(*Cost, UP.MaxPercentThresholdBoost); Cost->UnrolledCost < UP.Threshold * Boost / 100)
       return FullUnrollTripCount;
   }
   return std::nullopt;
@@ -1363,18 +1363,18 @@ tryToUnrollLoop(Loop *L, DominatorTree &DT, LoopInfo *LI, ScalarEvolution &SE,
     return LoopUnrollResult::Unmodified;
 
   if (RemainderLoop) {
-    std::optional<MDNode *> RemainderLoopID =
+    
+    if (std::optional<MDNode *> RemainderLoopID =
         makeFollowupLoopID(OrigLoopID, {LLVMLoopUnrollFollowupAll,
-                                        LLVMLoopUnrollFollowupRemainder});
-    if (RemainderLoopID)
+                                        LLVMLoopUnrollFollowupRemainder}); RemainderLoopID)
       RemainderLoop->setLoopID(*RemainderLoopID);
   }
 
   if (UnrollResult != LoopUnrollResult::FullyUnrolled) {
-    std::optional<MDNode *> NewLoopID =
+    
+    if (std::optional<MDNode *> NewLoopID =
         makeFollowupLoopID(OrigLoopID, {LLVMLoopUnrollFollowupAll,
-                                        LLVMLoopUnrollFollowupUnrolled});
-    if (NewLoopID) {
+                                        LLVMLoopUnrollFollowupUnrolled}); NewLoopID) {
       L->setLoopID(*NewLoopID);
 
       // Do not setLoopAlreadyUnrolled if loop attributes have been specified

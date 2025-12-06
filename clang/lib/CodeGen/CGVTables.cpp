@@ -138,13 +138,13 @@ static void resolveTopLevelMetadata(llvm::Function *Fn,
     for (auto &I : BB) {
       for (llvm::DbgVariableRecord &DVR :
            llvm::filterDbgVars(I.getDbgRecordRange())) {
-        auto *DILocal = DVR.getVariable();
-        if (!DILocal->isResolved())
+        
+        if (auto *DILocal = DVR.getVariable(); !DILocal->isResolved())
           DILocal->resolve();
       }
       if (auto *DII = dyn_cast<llvm::DbgVariableIntrinsic>(&I)) {
-        auto *DILocal = DII->getVariable();
-        if (!DILocal->isResolved())
+        
+        if (auto *DILocal = DII->getVariable(); !DILocal->isResolved())
           DILocal->resolve();
       }
     }
@@ -235,8 +235,8 @@ CodeGenFunction::GenerateVarArgsThunk(llvm::Function *Fn,
   if (!Thunk.Return.isEmpty()) {
     // Fix up the returned value, if necessary.
     for (llvm::BasicBlock &BB : *Fn) {
-      llvm::Instruction *T = BB.getTerminator();
-      if (isa<llvm::ReturnInst>(T)) {
+      
+      if (llvm::Instruction *T = BB.getTerminator(); isa<llvm::ReturnInst>(T)) {
         RValue RV = RValue::get(T->getOperand(0));
         T->eraseFromParent();
         Builder.SetInsertPoint(&BB);
@@ -421,19 +421,19 @@ void CodeGenFunction::EmitMustTailThunk(GlobalDecl GD,
   SmallVector<llvm::Value *, 8> Args(llvm::make_pointer_range(CurFn->args()));
 
   // Set the adjusted 'this' pointer.
-  const ABIArgInfo &ThisAI = CurFnInfo->arg_begin()->info;
-  if (ThisAI.isDirect()) {
+  
+  if (const ABIArgInfo &ThisAI = CurFnInfo->arg_begin()->info; ThisAI.isDirect()) {
     const ABIArgInfo &RetAI = CurFnInfo->getReturnInfo();
     int ThisArgNo = RetAI.isIndirect() && !RetAI.isSRetAfterThis() ? 1 : 0;
-    llvm::Type *ThisType = Args[ThisArgNo]->getType();
-    if (ThisType != AdjustedThisPtr->getType())
+    
+    if (llvm::Type *ThisType = Args[ThisArgNo]->getType(); ThisType != AdjustedThisPtr->getType())
       AdjustedThisPtr = Builder.CreateBitCast(AdjustedThisPtr, ThisType);
     Args[ThisArgNo] = AdjustedThisPtr;
   } else {
     assert(ThisAI.isInAlloca() && "this is passed directly or inalloca");
     Address ThisAddr = GetAddrOfLocalVar(CXXABIThisDecl);
-    llvm::Type *ThisType = ThisAddr.getElementType();
-    if (ThisType != AdjustedThisPtr->getType())
+    
+    if (llvm::Type *ThisType = ThisAddr.getElementType(); ThisType != AdjustedThisPtr->getType())
       AdjustedThisPtr = Builder.CreateBitCast(AdjustedThisPtr, ThisType);
     Builder.CreateStore(AdjustedThisPtr, ThisAddr);
   }
@@ -751,10 +751,10 @@ void CodeGenVTables::addVTableComponent(ConstantArrayBuilder &builder,
                                         bool vtableHasLocalLinkage) {
   auto &component = layout.vtable_components()[componentIndex];
 
-  auto addOffsetConstant =
-      useRelativeLayout() ? AddRelativeLayoutOffset : AddPointerLayoutOffset;
+  
 
-  switch (component.getKind()) {
+  switch (auto addOffsetConstant =
+      useRelativeLayout() ? AddRelativeLayoutOffset : AddPointerLayoutOffset; component.getKind()) {
   case VTableComponent::CK_VCallOffset:
     return addOffsetConstant(CGM, builder, component.getVCallOffset());
 
@@ -788,11 +788,11 @@ void CodeGenVTables::addVTableComponent(ConstantArrayBuilder &builder,
       const CXXMethodDecl *MD = cast<CXXMethodDecl>(GD.getDecl());
       // OK on device side: functions w/ __device__ attribute
       // OK on host side: anything except __device__-only functions.
-      bool CanEmitMethod =
+      
+      if (bool CanEmitMethod =
           CGM.getLangOpts().CUDAIsDevice
               ? MD->hasAttr<CUDADeviceAttr>()
-              : (MD->hasAttr<CUDAHostAttr>() || !MD->hasAttr<CUDADeviceAttr>());
-      if (!CanEmitMethod) {
+              : (MD->hasAttr<CUDAHostAttr>() || !MD->hasAttr<CUDADeviceAttr>()); !CanEmitMethod) {
         if (IsThunk)
           nextVTableThunkIndex++;
         return builder.add(
@@ -871,9 +871,9 @@ void CodeGenVTables::addVTableComponent(ConstantArrayBuilder &builder,
       //       globals;  fixing said issue might be intrusive, and will be done
       //       later.
       unsigned FnAS = fnPtr->getType()->getPointerAddressSpace();
-      unsigned GVAS = CGM.GlobalsInt8PtrTy->getPointerAddressSpace();
+      
 
-      if (FnAS != GVAS)
+      if (unsigned GVAS = CGM.GlobalsInt8PtrTy->getPointerAddressSpace(); FnAS != GVAS)
         fnPtr =
             llvm::ConstantExpr::getAddrSpaceCast(fnPtr, CGM.GlobalsInt8PtrTy);
       if (const auto &Schema =
@@ -949,9 +949,9 @@ llvm::GlobalVariable *CodeGenVTables::GenerateConstructionVTable(
   SmallString<256> Name(OutName);
 
   bool UsingRelativeLayout = getItaniumVTableContext().isRelativeLayout();
-  bool VTableAliasExists =
-      UsingRelativeLayout && CGM.getModule().getNamedAlias(Name);
-  if (VTableAliasExists) {
+  
+  if (bool VTableAliasExists =
+      UsingRelativeLayout && CGM.getModule().getNamedAlias(Name); VTableAliasExists) {
     // We previously made the vtable hidden and changed its name.
     Name.append(".local");
   }
@@ -1098,9 +1098,9 @@ CodeGenModule::getVTableLinkage(const CXXRecordDecl *RD) {
   // If the CXXRecordDecl is not in a module unit, we need to get
   // its key function. We're at the end of the translation unit, so the current
   // key function is fully correct.
-  const CXXMethodDecl *keyFunction =
-      IsInNamedModule ? nullptr : Context.getCurrentKeyFunction(RD);
-  if (IsInNamedModule || (keyFunction && !RD->hasAttr<DLLImportAttr>())) {
+  
+  if (const CXXMethodDecl *keyFunction =
+      IsInNamedModule ? nullptr : Context.getCurrentKeyFunction(RD); IsInNamedModule || (keyFunction && !RD->hasAttr<DLLImportAttr>())) {
     // If this class has a key function, use that to determine the
     // linkage of the vtable.
     const FunctionDecl *def = nullptr;
@@ -1110,11 +1110,11 @@ CodeGenModule::getVTableLinkage(const CXXRecordDecl *RD) {
     bool IsExternalDefinition =
         IsInNamedModule ? RD->shouldEmitInExternalSource() : !def;
 
-    TemplateSpecializationKind Kind =
-        IsInNamedModule ? RD->getTemplateSpecializationKind()
-                        : keyFunction->getTemplateSpecializationKind();
+    
 
-    switch (Kind) {
+    switch (TemplateSpecializationKind Kind =
+        IsInNamedModule ? RD->getTemplateSpecializationKind()
+                        : keyFunction->getTemplateSpecializationKind(); Kind) {
     case TSK_Undeclared:
     case TSK_ExplicitSpecialization:
       assert(
@@ -1417,9 +1417,9 @@ void CodeGenModule::EmitVTableTypeMetadata(const CXXRecordDecl *RD,
   if (getCodeGenOpts().VirtualFunctionElimination ||
       getCodeGenOpts().WholeProgramVTables) {
     llvm::DenseSet<const CXXRecordDecl *> Visited;
-    llvm::GlobalObject::VCallVisibility TypeVis =
-        GetVCallVisibilityLevel(RD, Visited);
-    if (TypeVis != llvm::GlobalObject::VCallVisibilityPublic)
+    
+    if (llvm::GlobalObject::VCallVisibility TypeVis =
+        GetVCallVisibilityLevel(RD, Visited); TypeVis != llvm::GlobalObject::VCallVisibilityPublic)
       VTable->setVCallVisibilityMetadata(TypeVis);
   }
 }

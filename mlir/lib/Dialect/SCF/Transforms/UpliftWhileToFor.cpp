@@ -179,8 +179,8 @@ FailureOr<scf::ForOp> mlir::scf::upliftWhileToForLoop(RewriterBase &rewriter,
   // block arg, other must be defined outside `scf.while` and will be treated
   // as upper bound.
   for (bool reverse : {false, true}) {
-    auto expectedPred = reverse ? Pred::sgt : Pred::slt;
-    if (cmp.getPredicate() != expectedPred)
+    
+    if (auto expectedPred = reverse ? Pred::sgt : Pred::slt; cmp.getPredicate() != expectedPred)
       continue;
 
     auto arg1 = reverse ? cmp.getRhs() : cmp.getLhs();

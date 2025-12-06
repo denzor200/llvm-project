@@ -155,8 +155,8 @@ bool TypeSetByHwMode::constrain(const TypeSetByHwMode &VTS) {
 
   for (auto &I : *this) {
     unsigned M = I.first;
-    SetType &S = I.second;
-    if (VTS.hasMode(M) || VTS.hasDefault()) {
+    
+    if (SetType &S = I.second; VTS.hasMode(M) || VTS.hasDefault()) {
       Changed |= intersect(I.second, VTS.get(M));
     } else if (!S.empty()) {
       S.clear();
@@ -234,8 +234,8 @@ bool TypeSetByHwMode::operator==(const TypeSetByHwMode &VTS) const {
       // If there is no default mode, an empty set is equivalent to not having
       // the corresponding mode.
       bool NoModeThis = !hasMode(M) || get(M).empty();
-      bool NoModeVTS = !VTS.hasMode(M) || VTS.get(M).empty();
-      if (NoModeThis != NoModeVTS)
+      
+      if (bool NoModeVTS = !VTS.hasMode(M) || VTS.get(M).empty(); NoModeThis != NoModeVTS)
         return false;
       if (!NoModeThis)
         if (get(M) != VTS.get(M))
@@ -1037,8 +1037,8 @@ std::string TreePredicateFn::getPredCode() const {
       Code += ")\nreturn false;\n";
     }
 
-    int64_t MinAlign = getMinAlignment();
-    if (MinAlign > 0) {
+    
+    if (int64_t MinAlign = getMinAlignment(); MinAlign > 0) {
       Code += "if (cast<MemSDNode>(N)->getAlign() < Align(";
       Code += utostr(MinAlign);
       Code += "))\nreturn false;\n";
@@ -1480,10 +1480,10 @@ static unsigned getPatternSize(const TreePatternNode &P,
   // Count children in the count if they are also nodes.
   for (const TreePatternNode &Child : P.children()) {
     if (!Child.isLeaf() && Child.getNumTypes()) {
-      const TypeSetByHwMode &T0 = Child.getExtType(0);
+      
       // At this point, all variable type sets should be simple, i.e. only
       // have a default mode.
-      if (T0.getMachineValueType() != MVT::Other) {
+      if (const TypeSetByHwMode &T0 = Child.getExtType(0); T0.getMachineValueType() != MVT::Other) {
         Size += getPatternSize(Child, CGP);
         continue;
       }
@@ -1645,9 +1645,9 @@ bool SDTypeConstraint::ApplyTypeConstraint(TreePatternNode &N,
 
   unsigned ResNo = 0; // The result number being referenced.
   TreePatternNode &NodeToApply = getOperandNum(OperandNo, N, NodeInfo, ResNo);
-  TypeInfer &TI = TP.getInfer();
+  
 
-  switch (ConstraintType) {
+  switch (TypeInfer &TI = TP.getInfer(); ConstraintType) {
   case SDTCisVT:
     // Operand must be a particular type.
     return NodeToApply.UpdateNodeType(ResNo, VVT, TP);
@@ -1993,9 +1993,9 @@ static unsigned GetNumNodeResults(const Record *Operator,
 
     // Subtract any defaulted outputs.
     for (unsigned i = 0; i != InstInfo.Operands.NumDefs; ++i) {
-      const Record *OperandNode = InstInfo.Operands[i].Rec;
+      
 
-      if (OperandNode->isSubClassOf("OperandWithDefaultOps") &&
+      if (const Record *OperandNode = InstInfo.Operands[i].Rec; OperandNode->isSubClassOf("OperandWithDefaultOps") &&
           !CDP.getDefaultOperand(OperandNode).DefaultOps.empty())
         --NumDefsToAdd;
     }
@@ -2142,12 +2142,12 @@ void TreePatternNode::SubstituteFormalArguments(
     return;
 
   for (unsigned i = 0, e = getNumChildren(); i != e; ++i) {
-    TreePatternNode &Child = getChild(i);
-    if (Child.isLeaf()) {
-      const Init *Val = Child.getLeafValue();
+    
+    if (TreePatternNode &Child = getChild(i); Child.isLeaf()) {
+      
       // Note that, when substituting into an output pattern, Val might be an
       // UnsetInit.
-      if (isa<UnsetInit>(Val) ||
+      if (const Init *Val = Child.getLeafValue(); isa<UnsetInit>(Val) ||
           (isa<DefInit>(Val) &&
            cast<DefInit>(Val)->getDef()->getName() == "node")) {
         // We found a use of a formal argument, replace it with its value.
@@ -2466,10 +2466,10 @@ unsigned TreePatternNode::getNumMIResults(const CodeGenDAGPatterns &CGP) const {
 
   // If MIOperandInfo is specified, that gives the count.
   if (isLeaf()) {
-    const DefInit *DI = dyn_cast<DefInit>(getLeafValue());
-    if (DI && DI->getDef()->isSubClassOf("Operand")) {
-      const DagInit *MIOps = DI->getDef()->getValueAsDag("MIOperandInfo");
-      if (MIOps->getNumArgs())
+    
+    if (const DefInit *DI = dyn_cast<DefInit>(getLeafValue()); DI && DI->getDef()->isSubClassOf("Operand")) {
+      
+      if (const DagInit *MIOps = DI->getDef()->getValueAsDag("MIOperandInfo"); MIOps->getNumArgs())
         return MIOps->getNumArgs();
     }
   }
@@ -2527,8 +2527,8 @@ static bool isOperandClass(const TreePatternNode &N, StringRef Class) {
   if (!N.isLeaf())
     return N.getOperator()->isSubClassOf(Class);
 
-  const DefInit *DI = dyn_cast<DefInit>(N.getLeafValue());
-  if (DI && DI->getDef()->isSubClassOf(Class))
+  
+  if (const DefInit *DI = dyn_cast<DefInit>(N.getLeafValue()); DI && DI->getDef()->isSubClassOf(Class))
     return true;
 
   return false;
@@ -2666,9 +2666,9 @@ bool TreePatternNode::ApplyTypeConstraints(TreePattern &TP, bool NotRegisters) {
 
       // FIXME: Generalize to multiple possible types and multiple possible
       // ImplicitDefs.
-      MVT VT = InstInfo.HasOneImplicitDefWithKnownVT(CDP.getTargetInfo());
+      
 
-      if (VT != MVT::Other)
+      if (MVT VT = InstInfo.HasOneImplicitDefWithKnownVT(CDP.getTargetInfo()); VT != MVT::Other)
         MadeChange |= UpdateNodeType(ResNo, VT, TP);
     }
 
@@ -2699,8 +2699,8 @@ bool TreePatternNode::ApplyTypeConstraints(TreePattern &TP, bool NotRegisters) {
       }
 
       for (unsigned I = 1; I < NChild; I += 2) {
-        TreePatternNode &SubIdxChild = getChild(I + 1);
-        if (!isOperandClass(SubIdxChild, "SubRegIndex")) {
+        
+        if (TreePatternNode &SubIdxChild = getChild(I + 1); !isOperandClass(SubIdxChild, "SubRegIndex")) {
           TP.error("REG_SEQUENCE requires a SubRegIndex for operand " +
                    Twine(I + 1) + "!");
           return false;
@@ -2750,8 +2750,8 @@ bool TreePatternNode::ApplyTypeConstraints(TreePattern &TP, bool NotRegisters) {
       // If the operand has sub-operands, they may be provided by distinct
       // child patterns, so attempt to match each sub-operand separately.
       if (OperandNode->isSubClassOf("Operand")) {
-        const DagInit *MIOpInfo = OperandNode->getValueAsDag("MIOperandInfo");
-        if (unsigned NumArgs = MIOpInfo->getNumArgs()) {
+        
+        if (const DagInit *MIOpInfo = OperandNode->getValueAsDag("MIOperandInfo"); unsigned NumArgs = MIOpInfo->getNumArgs()) {
           // But don't do that if the whole operand is being provided by
           // a single ComplexPattern-related Operand.
 
@@ -2801,7 +2801,7 @@ bool TreePatternNode::ApplyTypeConstraints(TreePattern &TP, bool NotRegisters) {
       assert(Types.size() == 1 && "ComplexPatterns only produce one result!");
       const Record *T = CDP.getComplexPattern(getOperator()).getValueType();
       const CodeGenHwModes &CGH = CDP.getTargetInfo().getHwModes();
-      const ValueTypeByHwMode VVT = getValueTypeByHwMode(T, CGH);
+      
       // TODO: AArch64 and AMDGPU use ComplexPattern<untyped, ...> and then
       // exclusively use those as non-leaf nodes with explicit type casts, so
       // for backwards compatibility we do no inference in that case. This is
@@ -2809,7 +2809,7 @@ bool TreePatternNode::ApplyTypeConstraints(TreePattern &TP, bool NotRegisters) {
       // however; this inconsistency should be resolved, either by adding this
       // case there or by altering the backends to not do this (e.g. using Any
       // instead may work).
-      if (!VVT.isSimple() || VVT.getSimple() != MVT::Untyped)
+      if (const ValueTypeByHwMode VVT = getValueTypeByHwMode(T, CGH); !VVT.isSimple() || VVT.getSimple() != MVT::Untyped)
         MadeChange |= UpdateNodeType(0, VVT, TP);
     }
 
@@ -2875,8 +2875,8 @@ bool TreePatternNode::canPatternMatch(std::string &Reason,
   // If this node is a commutative operator, check that the LHS isn't an
   // immediate.
   const SDNodeInfo &NodeInfo = CDP.getSDNodeInfo(getOperator());
-  bool isCommIntrinsic = isCommutativeIntrinsic(CDP);
-  if (NodeInfo.hasProperty(SDNPCommutative) || isCommIntrinsic) {
+  
+  if (bool isCommIntrinsic = isCommutativeIntrinsic(CDP); NodeInfo.hasProperty(SDNPCommutative) || isCommIntrinsic) {
     // Scan all of the operands of the node and make sure that only the last one
     // is a constant node, unless the RHS also is.
     if (!OnlyOnRHSOfCommutative(getChild(getNumChildren() - 1))) {
@@ -3143,9 +3143,9 @@ TreePatternNodePtr TreePattern::ParseTreePattern(const Init *TheInit,
       // and "(MY_PAT $b, $a)" should not be allowed in the same pattern;
       // neither should "(MY_PAT_1 $a, $b)" and "(MY_PAT_2 $a, $b)".
       auto OperandId = std::pair(Operator, i);
-      auto [PrevOp, Inserted] =
-          ComplexPatternOperands.try_emplace(Child->getName(), OperandId);
-      if (!Inserted && PrevOp->getValue() != OperandId) {
+      
+      if (auto [PrevOp, Inserted] =
+          ComplexPatternOperands.try_emplace(Child->getName(), OperandId); !Inserted && PrevOp->getValue() != OperandId) {
         error("All ComplexPattern operands must appear consistently: "
               "in the same order in just one ComplexPattern instance.");
       }
@@ -3247,8 +3247,8 @@ bool TreePattern::InferAllTypes(
           // us to match things like:
           //  def : Pat<(v1i64 (bitconvert(v2i32 DPR:$src))), (v1i64 DPR:$src)>;
           if (Node == Trees[0].get() && Node->isLeaf()) {
-            const DefInit *DI = dyn_cast<DefInit>(Node->getLeafValue());
-            if (DI && (DI->getDef()->isSubClassOf("RegisterClass") ||
+            
+            if (const DefInit *DI = dyn_cast<DefInit>(Node->getLeafValue()); DI && (DI->getDef()->isSubClassOf("RegisterClass") ||
                        DI->getDef()->isSubClassOf("RegisterOperand")))
               continue;
           }
@@ -3535,8 +3535,8 @@ static bool HandleUse(TreePattern &I, TreePatternNodePtr Pat,
   // No name -> not interesting.
   if (Pat->getName().empty()) {
     if (Pat->isLeaf()) {
-      const DefInit *DI = dyn_cast<DefInit>(Pat->getLeafValue());
-      if (DI && (DI->getDef()->isSubClassOf("RegisterClass") ||
+      
+      if (const DefInit *DI = dyn_cast<DefInit>(Pat->getLeafValue()); DI && (DI->getDef()->isSubClassOf("RegisterClass") ||
                  DI->getDef()->isSubClassOf("RegisterOperand")))
         I.error("Input " + DI->getDef()->getName() + " must be named!");
     }
@@ -3598,8 +3598,8 @@ void CodeGenDAGPatterns::FindPatternInputsAndOutputs(
   }
 
   if (Pat->isLeaf()) {
-    bool isUse = HandleUse(I, Pat, InstInputs);
-    if (!isUse && Pat->getTransformFn())
+    
+    if (bool isUse = HandleUse(I, Pat, InstInputs); !isUse && Pat->getTransformFn())
       I.error("Cannot specify a transform function for a non-input value!");
     return;
   }
@@ -3616,9 +3616,9 @@ void CodeGenDAGPatterns::FindPatternInputsAndOutputs(
 
     // If this is a non-leaf node with no children, treat it basically as if
     // it were a leaf.  This handles nodes like (imm).
-    bool isUse = HandleUse(I, Pat, InstInputs);
+    
 
-    if (!isUse && Pat->getTransformFn())
+    if (bool isUse = HandleUse(I, Pat, InstInputs); !isUse && Pat->getTransformFn())
       I.error("Cannot specify a transform function for a non-input value!");
     return;
   }
@@ -3715,9 +3715,9 @@ public:
   void AnalyzeNode(const TreePatternNode &N) {
     if (N.isLeaf()) {
       if (const DefInit *DI = dyn_cast<DefInit>(N.getLeafValue())) {
-        const Record *LeafRec = DI->getDef();
+        
         // Handle ComplexPattern leaves.
-        if (LeafRec->isSubClassOf("ComplexPattern")) {
+        if (const Record *LeafRec = DI->getDef(); LeafRec->isSubClassOf("ComplexPattern")) {
           const ComplexPattern &CP = CDP.getComplexPattern(LeafRec);
           if (CP.hasProperty(SDNPMayStore))
             mayStore = true;
@@ -3839,8 +3839,8 @@ static bool hasNullFragReference(const DagInit *DI) {
     if (auto Arg = dyn_cast<DefInit>(DI->getArg(i)))
       if (Arg->getDef()->getName() == "null_frag")
         return true;
-    const DagInit *Arg = dyn_cast<DagInit>(DI->getArg(i));
-    if (Arg && hasNullFragReference(Arg))
+    
+    if (const DagInit *Arg = dyn_cast<DagInit>(DI->getArg(i)); Arg && hasNullFragReference(Arg))
       return true;
   }
 
@@ -4013,8 +4013,8 @@ void CodeGenDAGPatterns::parseInstructionPattern(const CodeGenInstruction &CGI,
     InstInputs.erase(InIter); // It occurred, remove from map.
 
     if (InVal->isLeaf() && isa<DefInit>(InVal->getLeafValue())) {
-      const Record *InRec = cast<DefInit>(InVal->getLeafValue())->getDef();
-      if (!checkOperandClass(Op, InRec)) {
+      
+      if (const Record *InRec = cast<DefInit>(InVal->getLeafValue())->getDef(); !checkOperandClass(Op, InRec)) {
         I.error("Operand $" + OpName +
                 "'s register class disagrees"
                 " between the operand and pattern");
@@ -4094,9 +4094,9 @@ void CodeGenDAGPatterns::ParseInstructions() {
       std::vector<const Record *> Results;
       std::vector<const Record *> Operands;
 
-      const CodeGenInstruction &InstInfo = Target.getInstruction(Instr);
+      
 
-      if (InstInfo.Operands.size() != 0) {
+      if (const CodeGenInstruction &InstInfo = Target.getInstruction(Instr); InstInfo.Operands.size() != 0) {
         for (unsigned j = 0, e = InstInfo.Operands.NumDefs; j < e; ++j)
           Results.push_back(InstInfo.Operands[j].Rec);
 
@@ -4120,9 +4120,9 @@ void CodeGenDAGPatterns::ParseInstructions() {
   // If we can, convert the instructions to be patterns that are matched!
   for (const auto &[Instr, TheInst] : Instructions) {
     TreePatternNodePtr SrcPattern = TheInst.getSrcPattern();
-    TreePatternNodePtr ResultPattern = TheInst.getResultPattern();
+    
 
-    if (SrcPattern && ResultPattern) {
+    if (TreePatternNodePtr ResultPattern = TheInst.getResultPattern(); SrcPattern && ResultPattern) {
       TreePattern Pattern(Instr, SrcPattern, true, *this);
       TreePattern Result(Instr, ResultPattern, false, *this);
       ParseOnePattern(Instr, Pattern, Result, TheInst.getImpResults());
@@ -4136,9 +4136,9 @@ static void FindNames(TreePatternNode &P,
                       std::map<StringRef, NameRecord> &Names,
                       TreePattern *PatternTop) {
   if (!P.getName().empty()) {
-    NameRecord &Rec = Names[P.getName()];
+    
     // If this is the first instance of the name, remember the node.
-    if (Rec.second++ == 0)
+    if (NameRecord &Rec = Names[P.getName()]; Rec.second++ == 0)
       Rec.first = &P;
     else if (Rec.first->getExtTypes() != P.getExtTypes())
       PatternTop->error("repetition of value: $" + P.getName() +
@@ -4308,8 +4308,8 @@ void CodeGenDAGPatterns::VerifyInstructionFlags() {
     for (const Record *Instr : Instrs) {
       if (Instr != PTM.getSrcRecord())
         PrintError(Instr->getLoc(), "defined here");
-      const CodeGenInstruction &InstInfo = Target.getInstruction(Instr);
-      if (InstInfo.InferredFrom && InstInfo.InferredFrom != InstInfo.TheDef &&
+      
+      if (const CodeGenInstruction &InstInfo = Target.getInstruction(Instr); InstInfo.InferredFrom && InstInfo.InferredFrom != InstInfo.TheDef &&
           InstInfo.InferredFrom != PTM.getSrcRecord())
         PrintError(InstInfo.InferredFrom->getLoc(), "inferred from pattern");
     }
@@ -4823,11 +4823,11 @@ static void GenerateVariantsOf(TreePatternNodePtr N,
     unsigned i = 0 + Skip;
     unsigned e = 2 + Skip;
     for (; i != e; ++i) {
-      TreePatternNode &Child = N->getChild(i);
-      if (Child.isLeaf())
+      
+      if (TreePatternNode &Child = N->getChild(i); Child.isLeaf())
         if (const DefInit *DI = dyn_cast<DefInit>(Child.getLeafValue())) {
-          const Record *RR = DI->getDef();
-          if (RR->isSubClassOf("Register"))
+          
+          if (const Record *RR = DI->getDef(); RR->isSubClassOf("Register"))
             NoRegisters = false;
         }
     }

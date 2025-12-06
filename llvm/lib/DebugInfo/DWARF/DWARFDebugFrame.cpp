@@ -347,8 +347,8 @@ Error DWARFDebugFrame::parse(DWARFDataExtractor Data) {
           AddressRange = *Val;
         }
 
-        StringRef AugmentationString = Cie->getAugmentationString();
-        if (!AugmentationString.empty()) {
+        
+        if (StringRef AugmentationString = Cie->getAugmentationString(); !AugmentationString.empty()) {
           // Parse the augmentation length and data for this FDE.
           uint64_t AugmentationLength = Data.getULEB128(&Offset);
 

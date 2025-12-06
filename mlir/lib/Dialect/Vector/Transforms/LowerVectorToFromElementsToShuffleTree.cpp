@@ -512,8 +512,8 @@ static SmallVector<int64_t> computePropagationShuffleMask(
     if (hasSameInput)
       continue;
 
-    unsigned rhsIdx = i + lhsRhsOffset;
-    if (rhsShuffleMask[i] != ShuffleOp::kPoisonIndex) {
+    
+    if (unsigned rhsIdx = i + lhsRhsOffset; rhsShuffleMask[i] != ShuffleOp::kPoisonIndex) {
       assert(rhsIdx < outputVectorSize && "RHS index out of bounds");
       assert(mask[rhsIdx] == ShuffleOp::kPoisonIndex && "mask already set");
       mask[rhsIdx] = i + inputVectorSize;
@@ -704,8 +704,8 @@ struct ToFromElementsToShuffleTreeRewrite final
     // Avoid generating a shuffle tree for trivial `vector.to_elements` ->
     // `vector.from_elements` forwarding cases that do not require shuffling.
     if (toElemsDefs.size() == 1) {
-      ToElementsOp toElemsOp0 = toElemsDefs.front();
-      if (llvm::equal(fromElemsOp.getElements(), toElemsOp0.getResults())) {
+      
+      if (ToElementsOp toElemsOp0 = toElemsDefs.front(); llvm::equal(fromElemsOp.getElements(), toElemsOp0.getResults())) {
         return rewriter.notifyMatchFailure(
             fromElemsOp, "trivial forwarding case does not require shuffling");
       }

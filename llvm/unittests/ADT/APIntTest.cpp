@@ -3195,8 +3195,8 @@ TEST(APIntTest, RoundingSDiv) {
       APInt B(8, Bi, true);
       APInt QuoTowardZero = A.sdiv(B);
       {
-        APInt Quo = APIntOps::RoundingSDiv(A, B, APInt::Rounding::UP);
-        if (A.srem(B).isZero()) {
+        
+        if (APInt Quo = APIntOps::RoundingSDiv(A, B, APInt::Rounding::UP); A.srem(B).isZero()) {
           EXPECT_EQ(QuoTowardZero, Quo);
         } else if (A.isNegative() !=
                    B.isNegative()) { // if the math quotient is negative.
@@ -3206,8 +3206,8 @@ TEST(APIntTest, RoundingSDiv) {
         }
       }
       {
-        APInt Quo = APIntOps::RoundingSDiv(A, B, APInt::Rounding::DOWN);
-        if (A.srem(B).isZero()) {
+        
+        if (APInt Quo = APIntOps::RoundingSDiv(A, B, APInt::Rounding::DOWN); A.srem(B).isZero()) {
           EXPECT_EQ(QuoTowardZero, Quo);
         } else if (A.isNegative() !=
                    B.isNegative()) { // if the math quotient is negative.
@@ -3491,10 +3491,10 @@ TEST(APIntTest, SolveQuadraticEquationWrap) {
         continue;
       for (int B = Low; B != High; ++B) {
         for (int C = Low; C != High; ++C) {
-          std::optional<APInt> S = APIntOps::SolveQuadraticEquationWrap(
+          
+          if (std::optional<APInt> S = APIntOps::SolveQuadraticEquationWrap(
               APInt(Width, A, true), APInt(Width, B, true),
-              APInt(Width, C, true), Width);
-          if (S)
+              APInt(Width, C, true), Width); S)
             Validate(A, B, C, Width, S->getSExtValue());
         }
       }

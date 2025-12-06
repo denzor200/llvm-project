@@ -871,10 +871,10 @@ static bool isLinearizable(Operation *op) {
   // are Vectorizable might be linearized currently.
   StringLiteral vectorDialect = vector::VectorDialect::getDialectNamespace();
   StringRef opDialect = op->getDialect()->getNamespace();
-  bool supported = (opDialect == vectorDialect) ||
+  
+  if (bool supported = (opDialect == vectorDialect) ||
                    op->hasTrait<OpTrait::ConstantLike>() ||
-                   op->hasTrait<OpTrait::Vectorizable>();
-  if (!supported)
+                   op->hasTrait<OpTrait::Vectorizable>(); !supported)
     return false;
 
   return TypeSwitch<Operation *, bool>(op)

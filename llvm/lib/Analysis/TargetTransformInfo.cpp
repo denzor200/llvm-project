@@ -967,8 +967,8 @@ InstructionCost TargetTransformInfo::getArithmeticInstrCost(
   // ReplaceWithVecLib pass.
   if (TLibInfo && Opcode == Instruction::FRem) {
     VectorType *VecTy = dyn_cast<VectorType>(Ty);
-    LibFunc Func;
-    if (VecTy &&
+    
+    if (LibFunc Func; VecTy &&
         TLibInfo->getLibFunc(Instruction::FRem, Ty->getScalarType(), Func) &&
         TLibInfo->isFunctionVectorizable(TLibInfo->getName(Func),
                                          VecTy->getElementCount()))

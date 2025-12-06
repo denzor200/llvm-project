@@ -84,8 +84,8 @@ bool DAPTestBase::GetDebuggerSupportsTarget(StringRef platform) {
                                     .GetValueForKey("value");
   for (size_t i = 0; i < data.GetSize(); i++) {
     char buf[100] = {0};
-    size_t size = data.GetItemAtIndex(i).GetStringValue(buf, sizeof(buf));
-    if (StringRef(buf, size) == platform)
+    
+    if (size_t size = data.GetItemAtIndex(i).GetStringValue(buf, sizeof(buf)); StringRef(buf, size) == platform)
       return true;
   }
 

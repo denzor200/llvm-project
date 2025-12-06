@@ -106,8 +106,8 @@ void UnusedUsingDeclsCheck::check(const MatchFinder::MatchResult &Result) {
             Using->getEndLoc(), tok::semi, *Result.SourceManager, getLangOpts(),
             /*SkipTrailingWhitespaceAndNewLine=*/true));
     for (const auto *UsingShadow : Using->shadows()) {
-      const auto *TargetDecl = UsingShadow->getTargetDecl()->getCanonicalDecl();
-      if (shouldCheckDecl(TargetDecl)) {
+      
+      if (const auto *TargetDecl = UsingShadow->getTargetDecl()->getCanonicalDecl(); shouldCheckDecl(TargetDecl)) {
         Context.UsingTargetDecls.insert(TargetDecl);
         UsingTargetDeclsCache.insert(TargetDecl);
       }

@@ -170,7 +170,9 @@ void UseStdMinMaxCheck::check(const MatchFinder::MatchResult &Result) {
   const SourceLocation IfLocation = If->getIfLoc();
   const SourceLocation ThenLocation = If->getEndLoc();
 
-  auto ReplaceAndDiagnose = [&](const llvm::StringRef FunctionName) {
+  
+
+  if (auto ReplaceAndDiagnose = [&](const llvm::StringRef FunctionName) {
     const SourceManager &Source = *Result.SourceManager;
     diag(IfLocation, "use `%0` instead of `%1`")
         << FunctionName << BinaryOp->getOpcodeStr()
@@ -181,9 +183,7 @@ void UseStdMinMaxCheck::check(const MatchFinder::MatchResult &Result) {
                                  FunctionName, BinaryOp))
         << IncludeInserter.createIncludeInsertion(
                Source.getFileID(If->getBeginLoc()), AlgorithmHeader);
-  };
-
-  if (minCondition(BinaryOpcode, CondLhs, CondRhs, AssignLhs, AssignRhs,
+  }; minCondition(BinaryOpcode, CondLhs, CondRhs, AssignLhs, AssignRhs,
                    (*Result.Context))) {
     ReplaceAndDiagnose("std::min");
   } else if (maxCondition(BinaryOpcode, CondLhs, CondRhs, AssignLhs, AssignRhs,

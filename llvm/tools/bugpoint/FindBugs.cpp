@@ -82,8 +82,8 @@ BugDriver::runManyPasses(const std::vector<std::string> &AllPasses) {
     }
     if (*Diff) {
       outs() << "\n*** diffProgram returned true!\n";
-      Error E = debugMiscompilation();
-      if (!E)
+      
+      if (Error E = debugMiscompilation(); !E)
         return Error::success();
     }
     outs() << "\n*** diff'd output matches!\n";

@@ -152,8 +152,8 @@ outer_continue:
     if (DefMI->isPHI()) {
       for (unsigned i = 1, e = DefMI->getNumOperands(); i < e; i += 2) {
         if (DefMI->getOperand(i + 1).getMBB() == MBB) {
-          Register SrcReg = DefMI->getOperand(i).getReg();
-          if (SrcReg.isVirtual()) {
+          
+          if (Register SrcReg = DefMI->getOperand(i).getReg(); SrcReg.isVirtual()) {
             DefMI = MRI->getVRegDef(SrcReg);
             goto outer_continue;
           }
@@ -350,8 +350,8 @@ bool MLxExpansion::ExpandFPMLxInstructions(MachineBasicBlock &MBB) {
       Skip = 0;
 
       unsigned MulOpc, AddSubOpc;
-      bool NegAcc, HasLane;
-      if (!TII->isFpMLxInstruction(MCID.getOpcode(),
+      
+      if (bool NegAcc, HasLane; !TII->isFpMLxInstruction(MCID.getOpcode(),
                                    MulOpc, AddSubOpc, NegAcc, HasLane) ||
           !FindMLxHazard(MI))
         pushStack(MI);

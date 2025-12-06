@@ -70,13 +70,13 @@ template <WriteMode write_mode> struct WriteBuffer {
 
   LIBC_INLINE int flush_to_stream(cpp::string_view new_str) {
     if (buff_cur > 0) {
-      int retval = stream_writer({buff, buff_cur}, output_target);
-      if (retval < 0)
+      
+      if (int retval = stream_writer({buff, buff_cur}, output_target); retval < 0)
         return retval;
     }
     if (new_str.size() > 0) {
-      int retval = stream_writer(new_str, output_target);
-      if (retval < 0)
+      
+      if (int retval = stream_writer(new_str, output_target); retval < 0)
         return retval;
     }
     buff_cur = 0;
@@ -132,9 +132,9 @@ template <WriteMode write_mode> class Writer final {
   LIBC_INLINE int pad(char new_char, size_t length) {
     // First, fill as much of the buffer as possible with the padding char.
     size_t written = 0;
-    const size_t buff_space = wb.buff_len - wb.buff_cur;
+    
     // ASSERT: length > buff_space
-    if (buff_space > 0) {
+    if (const size_t buff_space = wb.buff_len - wb.buff_cur; buff_space > 0) {
       inline_memset(wb.buff + wb.buff_cur, new_char, buff_space);
       wb.buff_cur += buff_space;
       written = buff_space;
@@ -146,8 +146,8 @@ template <WriteMode write_mode> class Writer final {
     inline_memset(mini_buff, new_char, MINI_BUFF_SIZE);
     cpp::string_view mb_string_view(mini_buff, MINI_BUFF_SIZE);
     while (written + MINI_BUFF_SIZE < length) {
-      int result = wb.overflow_write(mb_string_view);
-      if (result != WRITE_OK)
+      
+      if (int result = wb.overflow_write(mb_string_view); result != WRITE_OK)
         return result;
       written += MINI_BUFF_SIZE;
     }

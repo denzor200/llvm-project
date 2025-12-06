@@ -445,8 +445,8 @@ void MutexInvalidAccess(ThreadState *thr, uptr pc, uptr addr) {
   StackID creation_stack_id = kInvalidStackID;
   {
     SlotLocker locker(thr);
-    auto s = ctx->metamap.GetSyncOrCreate(thr, pc, addr, true);
-    if (s)
+    
+    if (auto s = ctx->metamap.GetSyncOrCreate(thr, pc, addr, true); s)
       creation_stack_id = s->creation_stack_id;
   }
   ReportMutexMisuse(thr, pc, ReportTypeMutexInvalidAccess, addr,
@@ -517,8 +517,8 @@ void ReleaseStoreAcquire(ThreadState *thr, uptr pc, uptr addr) {
 void IncrementEpoch(ThreadState *thr) {
   DCHECK(!thr->ignore_sync);
   DCHECK(thr->slot_locked);
-  Epoch epoch = EpochInc(thr->fast_state.epoch());
-  if (!EpochOverflow(epoch)) {
+  
+  if (Epoch epoch = EpochInc(thr->fast_state.epoch()); !EpochOverflow(epoch)) {
     Sid sid = thr->fast_state.sid();
     thr->clock.Set(sid, epoch);
     thr->fast_state.SetEpoch(epoch);

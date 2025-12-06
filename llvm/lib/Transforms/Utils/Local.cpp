@@ -218,10 +218,10 @@ bool llvm::ConstantFoldTerminator(BasicBlock *BB, bool DeleteDeadConditions,
       // dest.  If so, eliminate it as an explicit compare.
       if (It->getCaseSuccessor() == DefaultDest) {
         MDNode *MD = getValidBranchWeightMDNode(*SI);
-        unsigned NCases = SI->getNumCases();
+        
         // Fold the case metadata into the default if there will be any branches
         // left, unless the metadata doesn't match the switch.
-        if (NCases > 1 && MD) {
+        if (unsigned NCases = SI->getNumCases(); NCases > 1 && MD) {
           // Collect branch weights into a vector.
           SmallVector<uint32_t, 8> Weights;
           extractBranchWeights(MD, Weights);
@@ -551,8 +551,8 @@ bool llvm::RecursivelyDeleteTriviallyDeadInstructionsPermissive(
     std::function<void(Value *)> AboutToDeleteCallback) {
   unsigned S = 0, E = DeadInsts.size(), Alive = 0;
   for (; S != E; ++S) {
-    auto *I = dyn_cast_or_null<Instruction>(DeadInsts[S]);
-    if (!I || !isInstructionTriviallyDead(I)) {
+    
+    if (auto *I = dyn_cast_or_null<Instruction>(DeadInsts[S]); !I || !isInstructionTriviallyDead(I)) {
       DeadInsts[S] = nullptr;
       ++Alive;
     }
@@ -871,11 +871,11 @@ CanPropagatePredecessorsForPHIs(BasicBlock *BB, BasicBlock *Succ,
     // If the incoming value from BB is again a PHINode in
     // BB which has the same incoming value for *PI as PN does, we can
     // merge the phi nodes and then the blocks can still be merged
-    PHINode *BBPN = dyn_cast<PHINode>(PN->getIncomingValueForBlock(BB));
-    if (BBPN && BBPN->getParent() == BB) {
+    
+    if (PHINode *BBPN = dyn_cast<PHINode>(PN->getIncomingValueForBlock(BB)); BBPN && BBPN->getParent() == BB) {
       for (unsigned PI = 0, PE = PN->getNumIncomingValues(); PI != PE; ++PI) {
-        BasicBlock *IBB = PN->getIncomingBlock(PI);
-        if (BBPreds.count(IBB) &&
+        
+        if (BasicBlock *IBB = PN->getIncomingBlock(PI); BBPreds.count(IBB) &&
             !CanMergeValues(BBPN->getIncomingValueForBlock(IBB),
                             PN->getIncomingValue(PI))) {
           LLVM_DEBUG(dbgs()
@@ -892,8 +892,8 @@ CanPropagatePredecessorsForPHIs(BasicBlock *BB, BasicBlock *Succ,
         // See if the incoming value for the common predecessor is equal to the
         // one for BB, in which case this phi node will not prevent the merging
         // of the block.
-        BasicBlock *IBB = PN->getIncomingBlock(PI);
-        if (BBPreds.count(IBB) &&
+        
+        if (BasicBlock *IBB = PN->getIncomingBlock(PI); BBPreds.count(IBB) &&
             !CanMergeValues(Val, PN->getIncomingValue(PI))) {
           LLVM_DEBUG(dbgs() << "Can't fold, phi node " << PN->getName()
                             << " in " << Succ->getName()
@@ -952,9 +952,9 @@ static void gatherIncomingValuesToPhi(PHINode *PN,
                                       IncomingValueMap &IncomingValues) {
   for (unsigned i = 0, e = PN->getNumIncomingValues(); i != e; ++i) {
     BasicBlock *BB = PN->getIncomingBlock(i);
-    Value *V = PN->getIncomingValue(i);
+    
 
-    if (!isa<UndefValue>(V))
+    if (Value *V = PN->getIncomingValue(i); !isa<UndefValue>(V))
       IncomingValues.insert(std::make_pair(BB, V));
   }
 }
@@ -992,10 +992,10 @@ static void replaceUndefValuesInPhi(PHINode *PN,
   // If there are both undef and poison values incoming, then convert those
   // values to undef. It is invalid to have different values for the same
   // incoming block.
-  unsigned PoisonCount = count_if(TrueUndefOps, [&](unsigned i) {
+  
+  if (unsigned PoisonCount = count_if(TrueUndefOps, [&](unsigned i) {
     return isa<PoisonValue>(PN->getIncomingValue(i));
-  });
-  if (PoisonCount != 0 && PoisonCount != TrueUndefOps.size()) {
+  }); PoisonCount != 0 && PoisonCount != TrueUndefOps.size()) {
     for (unsigned i : TrueUndefOps)
       PN->setIncomingValue(i, UndefValue::get(PN->getType()));
   }
@@ -1477,8 +1477,8 @@ EliminateDuplicatePHINodesSetBasedImpl(BasicBlock *BB,
   for (auto I = BB->begin(); PHINode *PN = dyn_cast<PHINode>(I++);) {
     if (ToRemove.contains(PN))
       continue;
-    auto Inserted = PHISet.insert(PN);
-    if (!Inserted.second) {
+    
+    if (auto Inserted = PHISet.insert(PN); !Inserted.second) {
       // A duplicate. Replace this PHI with its duplicate.
       ++NumPHICSEs;
       PN->replaceAllUsesWith(*Inserted.first);
@@ -1551,8 +1551,8 @@ Align llvm::tryEnforceAlignment(Value *V, Align PrefAlign,
       return CurrentAlign;
 
     if (GV->isThreadLocal()) {
-      unsigned MaxTLSAlign = GV->getParent()->getMaxTLSAlignment() / CHAR_BIT;
-      if (MaxTLSAlign && PrefAlign > Align(MaxTLSAlign))
+      
+      if (unsigned MaxTLSAlign = GV->getParent()->getMaxTLSAlignment() / CHAR_BIT; MaxTLSAlign && PrefAlign > Align(MaxTLSAlign))
         PrefAlign = Align(MaxTLSAlign);
     }
 
@@ -1681,10 +1681,10 @@ void llvm::ConvertDebugDeclareToDebugValue(DbgVariableRecord *DVR,
   // The former is adding 2 to the address of the variable, whereas the latter
   // is adding 2 to the value of the variable. As such, we insist on just a
   // deref expression.
-  bool CanConvert =
+  
+  if (bool CanConvert =
       DIExpr->isDeref() || (!DIExpr->startsWithDeref() &&
-                            valueCoversEntireFragment(DV->getType(), DVR));
-  if (CanConvert) {
+                            valueCoversEntireFragment(DV->getType(), DVR)); CanConvert) {
     insertDbgValueOrDbgVariableRecord(Builder, DV, DIVar, DIExpr, NewLoc,
                                       SI->getIterator());
     return;
@@ -1779,12 +1779,12 @@ void llvm::ConvertDebugDeclareToDebugValue(DbgVariableRecord *DVR, PHINode *APN,
   BasicBlock *BB = APN->getParent();
   auto InsertionPt = BB->getFirstInsertionPt();
 
-  DebugLoc NewLoc = getDebugValueLoc(DVR);
+  
 
   // The block may be a catchswitch block, which does not have a valid
   // insertion point.
   // FIXME: Insert DbgVariableRecord markers in the successors when appropriate.
-  if (InsertionPt != BB->end()) {
+  if (DebugLoc NewLoc = getDebugValueLoc(DVR); InsertionPt != BB->end()) {
     insertDbgValueOrDbgVariableRecord(Builder, APN, DIVar, DIExpr, NewLoc,
                                       InsertionPt);
   }
@@ -1838,8 +1838,8 @@ bool llvm::LowerDbgDeclare(Function &F) {
     while (!WorkList.empty()) {
       const Value *V = WorkList.pop_back_val();
       for (const auto &AIUse : V->uses()) {
-        User *U = AIUse.getUser();
-        if (StoreInst *SI = dyn_cast<StoreInst>(U)) {
+        
+        if (User *U = AIUse.getUser(); StoreInst *SI = dyn_cast<StoreInst>(U)) {
           if (AIUse.getOperandNo() == 1)
             ConvertDebugDeclareToDebugValue(DDI, SI, DIB);
         } else if (LoadInst *LI = dyn_cast<LoadInst>(U)) {
@@ -1912,8 +1912,8 @@ void llvm::insertDebugValuesForPHIs(BasicBlock *BB,
     if (Parent->getFirstNonPHIIt()->isEHPad())
       continue;
     for (auto VI : PHI->operand_values()) {
-      auto V = DbgValueMap.find(VI);
-      if (V != DbgValueMap.end()) {
+      
+      if (auto V = DbgValueMap.find(VI); V != DbgValueMap.end()) {
         DbgVariableRecord *DbgII = cast<DbgVariableRecord>(V->second);
         auto NewDI = NewDbgValueMap.find({Parent, DbgII});
         if (NewDI == NewDbgValueMap.end()) {
@@ -2088,9 +2088,9 @@ void llvm::salvageDebugInfoForDbgValues(Instruction &I,
 
     SalvagedExpr = SalvagedExpr->foldConstantMath();
     DVR->replaceVariableLocationOp(&I, Op0);
-    bool IsValidSalvageExpr =
-        SalvagedExpr->getNumElements() <= MaxExpressionSize;
-    if (AdditionalValues.empty() && IsValidSalvageExpr) {
+    
+    if (bool IsValidSalvageExpr =
+        SalvagedExpr->getNumElements() <= MaxExpressionSize; AdditionalValues.empty() && IsValidSalvageExpr) {
       DVR->setExpression(SalvagedExpr);
     } else if (DVR->getType() != DbgVariableRecord::LocationType::Declare &&
                IsValidSalvageExpr &&
@@ -2344,11 +2344,11 @@ static bool rewriteDebugUsers(
     // DbgVariableRecord implementation of the above.
     for (auto *DVR : DPUsers) {
       Instruction *MarkedInstr = DVR->getMarker()->MarkedInstr;
-      Instruction *NextNonDebug = MarkedInstr;
+      
 
       // It's common to see a debug user between From and DomPoint. Move it
       // after DomPoint to preserve the variable update without any reordering.
-      if (DomPointAfterFrom && NextNonDebug == &DomPoint) {
+      if (Instruction *NextNonDebug = MarkedInstr; DomPointAfterFrom && NextNonDebug == &DomPoint) {
         LLVM_DEBUG(dbgs() << "MOVE:  " << *DVR << '\n');
         DVR->removeFromParent();
         DomPoint.getParent()->insertDbgRecordAfter(DVR, &DomPoint);
@@ -2428,8 +2428,8 @@ bool llvm::replaceAllDbgUsesWith(Instruction &From, Value &To,
 
   // Handle no-op conversions.
   Module &M = *From.getModule();
-  const DataLayout &DL = M.getDataLayout();
-  if (isBitCastSemanticsPreserving(DL, FromTy, ToTy))
+  
+  if (const DataLayout &DL = M.getDataLayout(); isBitCastSemanticsPreserving(DL, FromTy, ToTy))
     return rewriteDebugUsers(From, To, DomPoint, DT, IdentityDVR);
 
   // Handle integer-to-integer widening and narrowing.
@@ -2471,8 +2471,8 @@ bool llvm::handleUnreachableTerminator(
   // RemoveDIs: erase debug-info on this instruction manually.
   I->dropDbgRecords();
   for (Use &U : I->operands()) {
-    Value *Op = U.get();
-    if (isa<Instruction>(Op) && !Op->getType()->isTokenTy()) {
+    
+    if (Value *Op = U.get(); isa<Instruction>(Op) && !Op->getType()->isTokenTy()) {
       U.set(PoisonValue::get(Op->getType()));
       PoisonedValues.push_back(Op);
       Changed = true;
@@ -2662,12 +2662,12 @@ static bool markAliveBlocks(Function &F,
         Value *Callee = CI->getCalledOperand();
         // Handle intrinsic calls.
         if (Function *F = dyn_cast<Function>(Callee)) {
-          auto IntrinsicID = F->getIntrinsicID();
+          
           // Assumptions that are known to be false are equivalent to
           // unreachable. Also, if the condition is undefined, then we make the
           // choice most beneficial to the optimizer, and choose that to also be
           // unreachable.
-          if (IntrinsicID == Intrinsic::assume) {
+          if (auto IntrinsicID = F->getIntrinsicID(); IntrinsicID == Intrinsic::assume) {
             if (match(CI->getArgOperand(0), m_CombineOr(m_Zero(), m_Undef()))) {
               // Don't insert a call to llvm.trap right before the unreachable.
               changeToUnreachable(CI, false, DTU);
@@ -2719,9 +2719,9 @@ static bool markAliveBlocks(Function &F,
         // Don't touch volatile stores.
         if (SI->isVolatile()) continue;
 
-        Value *Ptr = SI->getOperand(1);
+        
 
-        if (isa<UndefValue>(Ptr) ||
+        if (Value *Ptr = SI->getOperand(1); isa<UndefValue>(Ptr) ||
             (isa<ConstantPointerNull>(Ptr) &&
              !NullPointerIsDefined(SI->getFunction(),
                                    SI->getPointerAddressSpace()))) {
@@ -2732,11 +2732,11 @@ static bool markAliveBlocks(Function &F,
       }
     }
 
-    Instruction *Terminator = BB->getTerminator();
-    if (auto *II = dyn_cast<InvokeInst>(Terminator)) {
+    
+    if (Instruction *Terminator = BB->getTerminator(); auto *II = dyn_cast<InvokeInst>(Terminator)) {
       // Turn invokes that call 'nounwind' functions into ordinary calls.
-      Value *Callee = II->getCalledOperand();
-      if ((isa<ConstantPointerNull>(Callee) &&
+      
+      if (Value *Callee = II->getCalledOperand(); (isa<ConstantPointerNull>(Callee) &&
            !NullPointerIsDefined(BB->getParent())) ||
           isa<UndefValue>(Callee)) {
         changeToUnreachable(II, false, DTU);
@@ -2926,10 +2926,10 @@ static void combineMetadata(Instruction *K, const Instruction *J,
   for (const auto &MD : Metadata) {
     unsigned Kind = MD.first;
     MDNode *JMD = J->getMetadata(Kind);
-    MDNode *KMD = MD.second;
+    
 
     // TODO: Assert that this switch is exhaustive for fixed MD kinds.
-    switch (Kind) {
+    switch (MDNode *KMD = MD.second; Kind) {
       default:
         K->setMetadata(Kind, nullptr); // Remove unknown metadata
         break;
@@ -3054,8 +3054,8 @@ static void combineMetadata(Instruction *K, const Instruction *J,
   // This is handled separately because we also want to handle cases where K
   // doesn't have tags but J does.
   auto JMMRA = J->getMetadata(LLVMContext::MD_mmra);
-  auto KMMRA = K->getMetadata(LLVMContext::MD_mmra);
-  if (JMMRA || KMMRA) {
+  
+  if (auto KMMRA = K->getMetadata(LLVMContext::MD_mmra); JMMRA || KMMRA) {
     K->setMetadata(LLVMContext::MD_mmra,
                    MMRAMetadata::combine(K->getContext(), JMMRA, KMMRA));
   }
@@ -3108,7 +3108,7 @@ void llvm::copyMetadataForLoad(LoadInst &Dest, const LoadInst &Source) {
   const DataLayout &DL = Source.getDataLayout();
   for (const auto &MDPair : MD) {
     unsigned ID = MDPair.first;
-    MDNode *N = MDPair.second;
+    
     // Note, essentially every kind of metadata should be preserved here! This
     // routine is supposed to clone a load instruction changing *only its type*.
     // The only metadata it makes sense to drop is metadata which is invalidated
@@ -3116,7 +3116,7 @@ void llvm::copyMetadataForLoad(LoadInst &Dest, const LoadInst &Source) {
     // in LLVM, but we explicitly switch over only known metadata to be
     // conservatively correct. If you are adding metadata to LLVM which pertains
     // to loads, you almost certainly want to add it here.
-    switch (ID) {
+    switch (MDNode *N = MDPair.second; ID) {
     case LLVMContext::MD_dbg:
     case LLVMContext::MD_tbaa:
     case LLVMContext::MD_prof:
@@ -3203,8 +3203,8 @@ static unsigned replaceDominatedUsesWith(Value *From, Value *To,
 
   unsigned Count = 0;
   for (Use &U : llvm::make_early_inc_range(From->uses())) {
-    auto *II = dyn_cast<IntrinsicInst>(U.getUser());
-    if (II && II->getIntrinsicID() == Intrinsic::fake_use)
+    
+    if (auto *II = dyn_cast<IntrinsicInst>(U.getUser()); II && II->getIntrinsicID() == Intrinsic::fake_use)
       continue;
     if (!ShouldReplace(U))
       continue;
@@ -3223,8 +3223,8 @@ unsigned llvm::replaceNonLocalUsesWith(Instruction *From, Value *To) {
    unsigned Count = 0;
 
    for (Use &U : llvm::make_early_inc_range(From->uses())) {
-    auto *I = cast<Instruction>(U.getUser());
-    if (I->getParent() == BB)
+    
+    if (auto *I = cast<Instruction>(U.getUser()); I->getParent() == BB)
       continue;
     U.set(To);
     ++Count;
@@ -3446,8 +3446,8 @@ DIExpression *llvm::getExpressionForConstant(DIBuilder &DIB, const Constant &C,
 
   if (const ConstantExpr *CE = dyn_cast<ConstantExpr>(&C))
     if (CE->getOpcode() == Instruction::IntToPtr) {
-      const Value *V = CE->getOperand(0);
-      if (auto CI = dyn_cast_or_null<ConstantInt>(V))
+      
+      if (const Value *V = CE->getOperand(0); auto CI = dyn_cast_or_null<ConstantInt>(V))
         return createIntegerExpression(*CI);
     }
   return nullptr;
@@ -3456,14 +3456,14 @@ DIExpression *llvm::getExpressionForConstant(DIBuilder &DIB, const Constant &C,
 void llvm::remapDebugVariable(ValueToValueMapTy &Mapping, Instruction *Inst) {
   auto RemapDebugOperands = [&Mapping](auto *DV, auto Set) {
     for (auto *Op : Set) {
-      auto I = Mapping.find(Op);
-      if (I != Mapping.end())
+      
+      if (auto I = Mapping.find(Op); I != Mapping.end())
         DV->replaceVariableLocationOp(Op, I->second, /*AllowEmpty=*/true);
     }
   };
   auto RemapAssignAddress = [&Mapping](auto *DA) {
-    auto I = Mapping.find(DA->getAddress());
-    if (I != Mapping.end())
+    
+    if (auto I = Mapping.find(DA->getAddress()); I != Mapping.end())
       DA->setAddress(I->second);
   };
   for (DbgVariableRecord &DVR : filterDbgVars(Inst->getDbgRecordRange())) {
@@ -3614,8 +3614,8 @@ collectBitParts(Value *V, bool MatchBSwaps, bool MatchBitReversals,
 
       // Check that the mask allows a multiple of 8 bits for a bswap, for an
       // early exit.
-      unsigned NumMaskedBits = AndMask.popcount();
-      if (!MatchBitReversals && (NumMaskedBits % 8) != 0)
+      
+      if (unsigned NumMaskedBits = AndMask.popcount(); !MatchBitReversals && (NumMaskedBits % 8) != 0)
         return Result;
 
       const auto &Res = collectBitParts(X, MatchBSwaps, MatchBitReversals, BPS,
@@ -3865,8 +3865,8 @@ bool llvm::recognizeBSwapOrBitReverseIdiom(
 void llvm::maybeMarkSanitizerLibraryCallNoBuiltin(
     CallInst *CI, const TargetLibraryInfo *TLI) {
   Function *F = CI->getCalledFunction();
-  LibFunc Func;
-  if (F && !F->hasLocalLinkage() && F->hasName() &&
+  
+  if (LibFunc Func; F && !F->hasLocalLinkage() && F->hasName() &&
       TLI->getLibFunc(F->getName(), Func) && TLI->hasOptimizedCodeGen(Func) &&
       !F->doesNotAccessMemory())
     CI->addFnAttr(Attribute::NoBuiltin);

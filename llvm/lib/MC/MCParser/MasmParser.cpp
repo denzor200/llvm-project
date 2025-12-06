@@ -1063,8 +1063,8 @@ bool MasmParser::expandMacros() {
   const AsmToken &Tok = getTok();
   const std::string IDLower = Tok.getIdentifier().lower();
 
-  const llvm::MCAsmMacro *M = getContext().lookupMacro(IDLower);
-  if (M && M->IsFunction && peekTok().is(AsmToken::LParen)) {
+  
+  if (const llvm::MCAsmMacro *M = getContext().lookupMacro(IDLower); M && M->IsFunction && peekTok().is(AsmToken::LParen)) {
     // This is a macro function invocation; expand it in place.
     const SMLoc MacroLoc = Tok.getLoc();
     const StringRef MacroId = Tok.getIdentifier();
@@ -1133,8 +1133,8 @@ const AsmToken &MasmParser::Lex(ExpandKind ExpandNextToken) {
     if (StartOfStatement) {
       AsmToken NextTok;
       MutableArrayRef<AsmToken> Buf(NextTok);
-      size_t ReadCount = Lexer.peekTokens(Buf);
-      if (ReadCount && NextTok.is(AsmToken::Identifier) &&
+      
+      if (size_t ReadCount = Lexer.peekTokens(Buf); ReadCount && NextTok.is(AsmToken::Identifier) &&
           (NextTok.getString().equals_insensitive("equ") ||
            NextTok.getString().equals_insensitive("textequ"))) {
         // This looks like an EQU or TEXTEQU directive; don't expand the
@@ -1181,9 +1181,9 @@ const AsmToken MasmParser::peekTok(bool ShouldSkipSpace) {
   AsmToken Tok;
 
   MutableArrayRef<AsmToken> Buf(Tok);
-  size_t ReadCount = Lexer.peekTokens(Buf, ShouldSkipSpace);
+  
 
-  if (ReadCount == 0) {
+  if (size_t ReadCount = Lexer.peekTokens(Buf, ShouldSkipSpace); ReadCount == 0) {
     // If this is the end of an included file, pop the parent file off the
     // include stack.
     SMLoc ParentIncludeLoc = SrcMgr.getParentIncludeLoc(CurBuffer);
@@ -1381,8 +1381,8 @@ bool MasmParser::parseBracketExpr(const MCExpr *&Res, SMLoc &EndLoc) {
 bool MasmParser::parsePrimaryExpr(const MCExpr *&Res, SMLoc &EndLoc,
                                   AsmTypeInfo *TypeInfo) {
   SMLoc FirstTokenLoc = getLexer().getLoc();
-  AsmToken::TokenKind FirstTokenKind = Lexer.getKind();
-  switch (FirstTokenKind) {
+  
+  switch (AsmToken::TokenKind FirstTokenKind = Lexer.getKind(); FirstTokenKind) {
   default:
     return TokError("unknown token in expression");
   // If we have an error assume that we've already handled it.
@@ -1464,8 +1464,8 @@ bool MasmParser::parsePrimaryExpr(const MCExpr *&Res, SMLoc &EndLoc,
                                        ? BI_NO_SYMBOL
                                        : BuiltinIt->getValue();
       if (Symbol != BI_NO_SYMBOL) {
-        const MCExpr *Value = evaluateBuiltinValue(Symbol, FirstTokenLoc);
-        if (Value) {
+        
+        if (const MCExpr *Value = evaluateBuiltinValue(Symbol, FirstTokenLoc); Value) {
           Res = Value;
           return false;
         }
@@ -1504,8 +1504,8 @@ bool MasmParser::parsePrimaryExpr(const MCExpr *&Res, SMLoc &EndLoc,
     }
     if (TypeInfo) {
       if (Info.Type.Name.empty()) {
-        auto TypeIt = KnownType.find(Identifier.lower());
-        if (TypeIt != KnownType.end()) {
+        
+        if (auto TypeIt = KnownType.find(Identifier.lower()); TypeIt != KnownType.end()) {
           Info.Type = TypeIt->second;
         }
       }
@@ -1826,8 +1826,8 @@ bool MasmParser::parseStatement(ParseStatementInfo &Info,
   // If preceded by an expansion operator, first expand all text macros and
   // macro functions.
   if (getTok().is(AsmToken::Percent)) {
-    SMLoc ExpansionLoc = getTok().getLoc();
-    if (parseToken(AsmToken::Percent) || expandStatement(ExpansionLoc))
+    
+    if (SMLoc ExpansionLoc = getTok().getLoc(); parseToken(AsmToken::Percent) || expandStatement(ExpansionLoc))
       return true;
   }
 
@@ -2326,8 +2326,8 @@ bool MasmParser::parseStatement(ParseStatementInfo &Info,
 
   // If parsing succeeded, match the instruction.
   if (!ParseHadError) {
-    uint64_t ErrorInfo;
-    if (getTargetParser().matchAndEmitInstruction(
+    
+    if (uint64_t ErrorInfo; getTargetParser().matchAndEmitInstruction(
             IDLoc, Info.Opcode, Info.ParsedOperands, Out, ErrorInfo,
             getTargetParser().isParsingMSInlineAsm()))
       return true;
@@ -2396,8 +2396,8 @@ void MasmParser::DiagHandler(const SMDiagnostic &Diag, void *Context) {
 
   // Like SourceMgr::printMessage() we need to print the include stack if any
   // before printing the message.
-  unsigned DiagCurBuffer = DiagSrcMgr.FindBufferContainingLoc(DiagLoc);
-  if (!Parser->SavedDiagHandler && DiagCurBuffer &&
+  
+  if (unsigned DiagCurBuffer = DiagSrcMgr.FindBufferContainingLoc(DiagLoc); !Parser->SavedDiagHandler && DiagCurBuffer &&
       DiagCurBuffer != DiagSrcMgr.getMainFileID()) {
     SMLoc ParentIncludeLoc = DiagSrcMgr.getParentIncludeLoc(DiagCurBuffer);
     DiagSrcMgr.PrintIncludeStack(ParentIncludeLoc, OS);
@@ -2745,8 +2745,8 @@ bool MasmParser::handleMacroEntry(const MCAsmMacro *M, SMLoc NameLoc,
                                   AsmToken::TokenKind ArgumentEndTok) {
   // Arbitrarily limit macro nesting depth (default matches 'as'). We can
   // eliminate this, although we should protect against infinite loops.
-  unsigned MaxNestingDepth = AsmMacroMaxNestingDepth;
-  if (ActiveMacros.size() == MaxNestingDepth) {
+  
+  if (unsigned MaxNestingDepth = AsmMacroMaxNestingDepth; ActiveMacros.size() == MaxNestingDepth) {
     std::ostringstream MaxNestingDepthError;
     MaxNestingDepthError << "macros cannot be nested more than "
                          << MaxNestingDepth << " levels deep."
@@ -2928,8 +2928,8 @@ bool MasmParser::parseDirectiveEquate(StringRef IDVal, StringRef Name,
   if (DirKind == DK_EQU || DirKind == DK_TEXTEQU) {
     // "equ" and "textequ" both allow text expressions.
     std::string Value;
-    std::string TextItem;
-    if (!parseTextItem(TextItem)) {
+    
+    if (std::string TextItem; !parseTextItem(TextItem)) {
       Value += TextItem;
 
       // Accept a text-list, not just one text-item.
@@ -3187,8 +3187,8 @@ bool MasmParser::emitIntValue(const MCExpr *Value, unsigned Size) {
       return Error(MCE->getLoc(), "out of range literal value");
     getStreamer().emitIntValue(IntValue, Size);
   } else {
-    const MCSymbolRefExpr *MSE = dyn_cast<MCSymbolRefExpr>(Value);
-    if (MSE && MSE->getSymbol().getName() == "?") {
+    
+    if (const MCSymbolRefExpr *MSE = dyn_cast<MCSymbolRefExpr>(Value); MSE && MSE->getSymbol().getName() == "?") {
       // ? initializer; treat as 0.
       getStreamer().emitIntValue(0, Size);
     } else {
@@ -4119,8 +4119,8 @@ bool MasmParser::parseDirectiveNestedEnds() {
   // Pad to make the structure's size divisible by its alignment.
   Structure.Size = llvm::alignTo(Structure.Size, Structure.Alignment);
 
-  StructInfo &ParentStruct = StructInProgress.back();
-  if (Structure.Name.empty()) {
+  
+  if (StructInfo &ParentStruct = StructInProgress.back(); Structure.Name.empty()) {
     // Anonymous substructures' fields are addressed as if they belong to the
     // parent structure - so we transfer them to the parent here.
     const size_t OldFields = ParentStruct.Fields.size();
@@ -4222,8 +4222,8 @@ bool MasmParser::emitAlignTo(int64_t Alignment) {
 
     // Check whether we should use optimal code alignment for this align
     // directive.
-    const MCSection *Section = getStreamer().getCurrentSectionOnly();
-    if (MAI.useCodeAlign(*Section)) {
+    
+    if (const MCSection *Section = getStreamer().getCurrentSectionOnly(); MAI.useCodeAlign(*Section)) {
       getStreamer().emitCodeAlignment(Align(Alignment),
                                       &getTargetParser().getSTI(),
                                       /*MaxBytesToEmit=*/0);
@@ -5320,13 +5320,13 @@ void MasmParser::initializeDirectiveKindMap() {
 
 bool MasmParser::isMacroLikeDirective() {
   if (getLexer().is(AsmToken::Identifier)) {
-    bool IsMacroLike = StringSwitch<bool>(getTok().getIdentifier())
+    
+    if (bool IsMacroLike = StringSwitch<bool>(getTok().getIdentifier())
                            .CasesLower({"repeat", "rept"}, true)
                            .CaseLower("while", true)
                            .CasesLower({"for", "irp"}, true)
                            .CasesLower({"forc", "irpc"}, true)
-                           .Default(false);
-    if (IsMacroLike)
+                           .Default(false); IsMacroLike)
       return true;
   }
   if (peekTok().is(AsmToken::Identifier) &&
@@ -5387,8 +5387,8 @@ bool MasmParser::expandStatement(SMLoc Loc) {
 
   StringMap<std::string> BuiltinValues;
   for (const auto &S : BuiltinSymbolMap) {
-    const BuiltinSymbol &Sym = S.getValue();
-    if (std::optional<std::string> Text = evaluateBuiltinTextMacro(Sym, Loc)) {
+    
+    if (const BuiltinSymbol &Sym = S.getValue(); std::optional<std::string> Text = evaluateBuiltinTextMacro(Sym, Loc)) {
       BuiltinValues[S.getKey().lower()] = std::move(*Text);
     }
   }
@@ -5404,8 +5404,8 @@ bool MasmParser::expandStatement(SMLoc Loc) {
   }
 
   for (const auto &V : Variables) {
-    const Variable &Var = V.getValue();
-    if (Var.IsText) {
+    
+    if (const Variable &Var = V.getValue(); Var.IsText) {
       MCAsmMacroParameter P;
       MCAsmMacroArgument A;
       P.Name = Var.Name;
@@ -5898,9 +5898,9 @@ bool MasmParser::parseMSInlineAsm(
       continue;
 
     ParseStatementInfo Info(&AsmStrRewrites);
-    bool StatementErr = parseStatement(Info, &SI);
+    
 
-    if (StatementErr || Info.ParseError) {
+    if (bool StatementErr = parseStatement(Info, &SI); StatementErr || Info.ParseError) {
       // Emit pending errors if any exist.
       printPendingErrors();
       return true;
@@ -5921,9 +5921,9 @@ bool MasmParser::parseMSInlineAsm(
       // Register operand.
       if (Operand.isReg() && !Operand.needAddressOf() &&
           !getTargetParser().omitRegisterFromClobberLists(Operand.getReg())) {
-        unsigned NumDefs = Desc.getNumDefs();
+        
         // Clobber.
-        if (NumDefs && Operand.getMCOperandNum() < NumDefs)
+        if (unsigned NumDefs = Desc.getNumDefs(); NumDefs && Operand.getMCOperandNum() < NumDefs)
           ClobberRegs.push_back(Operand.getReg());
         continue;
       }
@@ -6048,13 +6048,13 @@ bool MasmParser::parseMSInlineAsm(
         StringRef OffsetName = AR.IntelExp.OffsetName;
         SMLoc OffsetLoc = SMLoc::getFromPointer(AR.IntelExp.OffsetName.data());
         size_t OffsetLen = OffsetName.size();
-        auto rewrite_it = std::find_if(
+        
+        if (auto rewrite_it = std::find_if(
             I, AsmStrRewrites.end(), [&](const AsmRewrite &FusingAR) {
               return FusingAR.Loc == OffsetLoc && FusingAR.Len == OffsetLen &&
                      (FusingAR.Kind == AOK_Input ||
                       FusingAR.Kind == AOK_CallInput);
-            });
-        if (rewrite_it == AsmStrRewrites.end()) {
+            }); rewrite_it == AsmStrRewrites.end()) {
           OS << "offset " << OffsetName;
         } else if (rewrite_it->Kind == AOK_CallInput) {
           OS << "${" << InputIdx++ << ":P}";

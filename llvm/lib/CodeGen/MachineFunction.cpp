@@ -661,9 +661,9 @@ void MachineFunction::print(raw_ostream &OS, const SlotIndexes *Indexes) const {
   // Print Constant Pool
   ConstantPool->print(OS);
 
-  const TargetRegisterInfo *TRI = getSubtarget().getRegisterInfo();
+  
 
-  if (RegInfo && !RegInfo->livein_empty()) {
+  if (const TargetRegisterInfo *TRI = getSubtarget().getRegisterInfo(); RegInfo && !RegInfo->livein_empty()) {
     OS << "Function Live Ins: ";
     for (MachineRegisterInfo::livein_iterator
          I = RegInfo->livein_begin(), E = RegInfo->livein_end(); I != E; ++I) {
@@ -732,9 +732,9 @@ struct llvm::DOTGraphTraits<const MachineFunction *>
                            const MachineFunction *Graph) {
     std::string OutStr;
     {
-      raw_string_ostream OSS(OutStr);
+      
 
-      if (isSimple()) {
+      if (raw_string_ostream OSS(OutStr); isSimple()) {
         OSS << printMBBReference(*Node);
         if (const BasicBlock *BB = Node->getBasicBlock())
           OSS << ": " << BB->getName();
@@ -830,8 +830,8 @@ LandingPadInfo &
 MachineFunction::getOrCreateLandingPadInfo(MachineBasicBlock *LandingPad) {
   unsigned N = LandingPads.size();
   for (unsigned i = 0; i < N; ++i) {
-    LandingPadInfo &LP = LandingPads[i];
-    if (LP.LandingPadBlock == LandingPad)
+    
+    if (LandingPadInfo &LP = LandingPads[i]; LP.LandingPadBlock == LandingPad)
       return LP;
   }
 
@@ -863,8 +863,8 @@ MCSymbol *MachineFunction::addLandingPad(MachineBasicBlock *LandingPad) {
     //        correct, but we need to do it this way because of how the DWARF EH
     //        emitter processes the clauses.
     for (unsigned I = LPI->getNumClauses(); I != 0; --I) {
-      Value *Val = LPI->getClause(I - 1);
-      if (LPI->isCatch(I - 1)) {
+      
+      if (Value *Val = LPI->getClause(I - 1); LPI->isCatch(I - 1)) {
         LP.TypeIds.push_back(
             getTypeIDFor(dyn_cast<GlobalValue>(Val->stripPointerCasts())));
       } else {
@@ -1589,8 +1589,8 @@ unsigned MachineConstantPool::getConstantPoolIndex(MachineConstantPoolValue *V,
   // Check to see if we already have this constant.
   //
   // FIXME, this could be made much more efficient for large constant pools.
-  int Idx = V->getExistingMachineCPValue(this, Alignment);
-  if (Idx != -1) {
+  
+  if (int Idx = V->getExistingMachineCPValue(this, Alignment); Idx != -1) {
     MachineCPVsSharingEntries.insert(V);
     return (unsigned)Idx;
   }

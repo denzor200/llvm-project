@@ -288,8 +288,8 @@ void LinkerDriver::addFile(StringRef path, bool withLOption) {
     // references for --warn-backrefs.
     SaveAndRestore saved(isInGroup, true);
     for (const std::pair<MemoryBufferRef, uint64_t> &p : members) {
-      auto magic = identify_magic(p.first.getBuffer());
-      if (magic == file_magic::elf_relocatable) {
+      
+      if (auto magic = identify_magic(p.first.getBuffer()); magic == file_magic::elf_relocatable) {
         if (!tryAddFatLTOFile(p.first, path, p.second, true))
           files.push_back(createObjFile(ctx, p.first, path, true));
       } else if (magic == file_magic::bitcode)
@@ -550,8 +550,8 @@ static GnuStackKind getZGnuStack(opt::InputArgList &args) {
 static uint8_t getZStartStopVisibility(Ctx &ctx, opt::InputArgList &args) {
   uint8_t ret = STV_PROTECTED;
   for (auto *arg : args.filtered(OPT_z)) {
-    std::pair<StringRef, StringRef> kv = StringRef(arg->getValue()).split('=');
-    if (kv.first == "start-stop-visibility") {
+    
+    if (std::pair<StringRef, StringRef> kv = StringRef(arg->getValue()).split('='); kv.first == "start-stop-visibility") {
       arg->claim();
       if (kv.second == "default")
         ret = STV_DEFAULT;
@@ -572,8 +572,8 @@ static uint8_t getZStartStopVisibility(Ctx &ctx, opt::InputArgList &args) {
 static GcsPolicy getZGcs(Ctx &ctx, opt::InputArgList &args) {
   GcsPolicy ret = GcsPolicy::Implicit;
   for (auto *arg : args.filtered(OPT_z)) {
-    std::pair<StringRef, StringRef> kv = StringRef(arg->getValue()).split('=');
-    if (kv.first == "gcs") {
+    
+    if (std::pair<StringRef, StringRef> kv = StringRef(arg->getValue()).split('='); kv.first == "gcs") {
       arg->claim();
       if (kv.second == "implicit")
         ret = GcsPolicy::Implicit;
@@ -591,8 +591,8 @@ static GcsPolicy getZGcs(Ctx &ctx, opt::InputArgList &args) {
 static ZicfilpPolicy getZZicfilp(Ctx &ctx, opt::InputArgList &args) {
   auto ret = ZicfilpPolicy::Implicit;
   for (auto *arg : args.filtered(OPT_z)) {
-    std::pair<StringRef, StringRef> kv = StringRef(arg->getValue()).split('=');
-    if (kv.first == "zicfilp") {
+    
+    if (std::pair<StringRef, StringRef> kv = StringRef(arg->getValue()).split('='); kv.first == "zicfilp") {
       arg->claim();
       if (kv.second == "unlabeled")
         ret = ZicfilpPolicy::Unlabeled;
@@ -612,8 +612,8 @@ static ZicfilpPolicy getZZicfilp(Ctx &ctx, opt::InputArgList &args) {
 static ZicfissPolicy getZZicfiss(Ctx &ctx, opt::InputArgList &args) {
   auto ret = ZicfissPolicy::Implicit;
   for (auto *arg : args.filtered(OPT_z)) {
-    std::pair<StringRef, StringRef> kv = StringRef(arg->getValue()).split('=');
-    if (kv.first == "zicfiss") {
+    
+    if (std::pair<StringRef, StringRef> kv = StringRef(arg->getValue()).split('='); kv.first == "zicfiss") {
       arg->claim();
       if (kv.second == "always")
         ret = ZicfissPolicy::Always;
@@ -684,14 +684,14 @@ void LinkerDriver::linkerMain(ArrayRef<const char *> argsArr) {
   if (const char *path = getReproduceOption(args)) {
     // Note that --reproduce is a debug option so you can ignore it
     // if you are trying to understand the whole picture of the code.
-    Expected<std::unique_ptr<TarWriter>> errOrWriter =
-        TarWriter::create(path, path::stem(path));
-    if (errOrWriter) {
+    
+    if (Expected<std::unique_ptr<TarWriter>> errOrWriter =
+        TarWriter::create(path, path::stem(path)); errOrWriter) {
       ctx.tar = std::move(*errOrWriter);
       ctx.tar->append("response.txt", createResponseFile(args));
       ctx.tar->append("version.txt", getLLDVersion() + "\n");
-      StringRef ltoSampleProfile = args.getLastArgValue(OPT_lto_sample_profile);
-      if (!ltoSampleProfile.empty())
+      
+      if (StringRef ltoSampleProfile = args.getLastArgValue(OPT_lto_sample_profile); !ltoSampleProfile.empty())
         readFile(ctx, ltoSampleProfile);
     } else {
       ErrAlways(ctx) << "--reproduce: " << errOrWriter.takeError();
@@ -1059,8 +1059,8 @@ processCallGraphRelocations(Ctx &ctx, SmallVector<uint32_t, 32> &symbolIndices,
           objSections[inputObj->cgProfileSectionIndex]));
 
   for (size_t i = 0, e = objSections.size(); i < e; ++i) {
-    const Elf_Shdr_Impl<ELFT> &sec = objSections[i];
-    if (sec.sh_info == inputObj->cgProfileSectionIndex) {
+    
+    if (const Elf_Shdr_Impl<ELFT> &sec = objSections[i]; sec.sh_info == inputObj->cgProfileSectionIndex) {
       if (sec.sh_type == SHT_CREL) {
         auto crels =
             CHECK(obj.crels(sec), "could not retrieve cg profile rela section");
@@ -1493,8 +1493,8 @@ static void readConfigs(Ctx &ctx, opt::InputArgList &args) {
 
   // Parse remarks hotness threshold. Valid value is either integer or 'auto'.
   if (auto *arg = args.getLastArg(OPT_opt_remarks_hotness_threshold)) {
-    auto resultOrErr = remarks::parseHotnessThresholdOption(arg->getValue());
-    if (!resultOrErr)
+    
+    if (auto resultOrErr = remarks::parseHotnessThresholdOption(arg->getValue()); !resultOrErr)
       ErrAlways(ctx) << arg->getSpelling() << ": invalid argument '"
                      << arg->getValue()
                      << "', only integer or 'auto' is supported";
@@ -1537,8 +1537,8 @@ static void readConfigs(Ctx &ctx, opt::InputArgList &args) {
     ctx.arg.saveTempsArgs.insert_range(saveTempsValues);
   } else {
     for (auto *arg : args.filtered(OPT_save_temps_eq)) {
-      StringRef s = arg->getValue();
-      if (llvm::is_contained(saveTempsValues, s))
+      
+      if (StringRef s = arg->getValue(); llvm::is_contained(saveTempsValues, s))
         ctx.arg.saveTempsArgs.insert(s);
       else
         ErrAlways(ctx) << "unknown --save-temps value: " << s;
@@ -1809,8 +1809,8 @@ static void readConfigs(Ctx &ctx, opt::InputArgList &args) {
   // "lto-wrapper.exe" for GCC cross-compiled for Windows), consider it an
   // unsupported LLVMgold.so option and error.
   for (opt::Arg *arg : args.filtered(OPT_plugin_opt_eq)) {
-    StringRef v(arg->getValue());
-    if (!v.ends_with("lto-wrapper") && !v.ends_with("lto-wrapper.exe"))
+    
+    if (StringRef v(arg->getValue()); !v.ends_with("lto-wrapper") && !v.ends_with("lto-wrapper.exe"))
       ErrAlways(ctx) << arg->getSpelling() << ": unknown plugin option '"
                      << arg->getValue() << "'";
   }
@@ -1825,8 +1825,8 @@ static void readConfigs(Ctx &ctx, opt::InputArgList &args) {
 
   ctx.arg.ltoKind = LtoKind::Default;
   if (auto *arg = args.getLastArg(OPT_lto)) {
-    StringRef s = arg->getValue();
-    if (s == "thin")
+    
+    if (StringRef s = arg->getValue(); s == "thin")
       ctx.arg.ltoKind = LtoKind::UnifiedThin;
     else if (s == "full")
       ctx.arg.ltoKind = LtoKind::UnifiedRegular;
@@ -1887,8 +1887,8 @@ static void readConfigs(Ctx &ctx, opt::InputArgList &args) {
 
   // Parse --hash-style={sysv,gnu,both}.
   if (auto *arg = args.getLastArg(OPT_hash_style)) {
-    StringRef s = arg->getValue();
-    if (s == "sysv")
+    
+    if (StringRef s = arg->getValue(); s == "sysv")
       ctx.arg.sysvHash = true;
     else if (s == "gnu")
       ctx.arg.gnuHash = true;
@@ -1943,8 +1943,8 @@ static void readConfigs(Ctx &ctx, opt::InputArgList &args) {
   }
 
   for (opt::Arg *arg : args.filtered(OPT_warn_backrefs_exclude)) {
-    StringRef pattern(arg->getValue());
-    if (Expected<GlobPattern> pat = GlobPattern::create(pattern))
+    
+    if (StringRef pattern(arg->getValue()); Expected<GlobPattern> pat = GlobPattern::create(pattern))
       ctx.arg.warnBackrefsExclude.push_back(std::move(*pat));
     else
       ErrAlways(ctx) << arg->getSpelling() << ": " << pat.takeError() << ": "
@@ -2374,8 +2374,8 @@ static void handleUndefinedGlob(Ctx &ctx, StringRef arg) {
 }
 
 static void handleLibcall(Ctx &ctx, StringRef name) {
-  Symbol *sym = ctx.symtab->find(name);
-  if (sym && sym->isLazy() && isa<BitcodeFile>(sym->file)) {
+  
+  if (Symbol *sym = ctx.symtab->find(name); sym && sym->isLazy() && isa<BitcodeFile>(sym->file)) {
     if (!ctx.arg.whyExtract.empty())
       ctx.whyExtractRecords.emplace_back("<libcall>", sym->file, *sym);
     sym->extract(ctx);
@@ -2586,8 +2586,8 @@ static void findKeepUniqueSections(Ctx &ctx, opt::InputArgList &args) {
   // referenced symbol as address-significant.
   for (InputFile *f : ctx.objectFiles) {
     auto *obj = cast<ObjFile<ELFT>>(f);
-    ArrayRef<Symbol *> syms = obj->getSymbols();
-    if (obj->addrsigSec) {
+    
+    if (ArrayRef<Symbol *> syms = obj->getSymbols(); obj->addrsigSec) {
       ArrayRef<uint8_t> contents =
           check(obj->getObj().getSectionContents(*obj->addrsigSec));
       const uint8_t *cur = contents.begin();
@@ -2719,8 +2719,8 @@ void LinkerDriver::compileBitcodeFiles(bool skipLinkedOutput) {
     // TODO: check if PAuth is actually used.
     if (ctx.arg.emachine == EM_AARCH64) {
       for (typename ELFT::Sym elfSym : obj->template getGlobalELFSyms<ELFT>()) {
-        StringRef elfSymName = check(elfSym.getName(obj->getStringTable()));
-        if (Symbol *sym = ctx.symtab->find(elfSymName))
+        
+        if (StringRef elfSymName = check(elfSym.getName(obj->getStringTable())); Symbol *sym = ctx.symtab->find(elfSymName))
           if (sym->type == STT_NOTYPE)
             sym->type = elfSym.getType();
       }
@@ -2920,10 +2920,10 @@ static void readSecurityNotes(Ctx &ctx) {
 
   StringRef referenceFileName;
   if (ctx.arg.emachine == EM_AARCH64) {
-    auto it = llvm::find_if(ctx.objectFiles, [](const ELFFileBase *f) {
+    
+    if (auto it = llvm::find_if(ctx.objectFiles, [](const ELFFileBase *f) {
       return f->aarch64PauthAbiCoreInfo.has_value();
-    });
-    if (it != ctx.objectFiles.end()) {
+    }); it != ctx.objectFiles.end()) {
       ctx.aarch64PauthAbiCoreInfo = (*it)->aarch64PauthAbiCoreInfo;
       referenceFileName = (*it)->getName();
     }

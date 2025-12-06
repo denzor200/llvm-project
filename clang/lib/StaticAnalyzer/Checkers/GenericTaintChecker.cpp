@@ -99,9 +99,9 @@ bool isStdin(SVal Val, const ASTContext &ACtx) {
     D = D->getCanonicalDecl();
     if (D->getName() == "stdin" && D->hasExternalStorage() && D->isExternC()) {
       const QualType FILETy = ACtx.getFILEType().getCanonicalType();
-      const QualType Ty = D->getType().getCanonicalType();
+      
 
-      if (Ty->isPointerType())
+      if (const QualType Ty = D->getType().getCanonicalType(); Ty->isPointerType())
         return Ty->getPointeeType() == FILETy;
     }
   }
@@ -893,8 +893,8 @@ void GenericTaintChecker::checkPostCall(const CallEvent &Call,
     // tainted after the call.
     if (auto V = getPointeeOf(State, Call.getArgSVal(ArgNum))) {
       State = addTaint(State, *V);
-      std::vector<SymbolRef> TaintedSyms = getTaintedSymbols(State, *V);
-      if (!TaintedSyms.empty()) {
+      
+      if (std::vector<SymbolRef> TaintedSyms = getTaintedSymbols(State, *V); !TaintedSyms.empty()) {
         TaintedSymbols.push_back(TaintedSyms[0]);
         TaintedIndexes.push_back(ArgNum);
       }
@@ -963,9 +963,9 @@ void GenericTaintRule::process(const GenericTaintChecker &Checker,
 
     // We track back tainted arguments except for stdin
     if (TaintedSVal && !isStdin(*TaintedSVal, C.getASTContext())) {
-      std::vector<SymbolRef> TaintedArgSyms =
-          getTaintedSymbols(State, *TaintedSVal);
-      if (!TaintedArgSyms.empty()) {
+      
+      if (std::vector<SymbolRef> TaintedArgSyms =
+          getTaintedSymbols(State, *TaintedSVal); !TaintedArgSyms.empty()) {
         llvm::append_range(TaintedSymbols, TaintedArgSyms);
         TaintedIndexes.push_back(I);
       }
@@ -1090,8 +1090,8 @@ static bool getPrintfFormatArgumentNum(const CallEvent &Call,
     // FIXME: Apparently the implementation of the format attribute doesn't
     // support methods with an explicit object parameter, so we cannot
     // implement proper support for that rare case either.
-    const CXXMethodDecl *MDecl = dyn_cast<CXXMethodDecl>(FDecl);
-    if (MDecl && !MDecl->isStatic())
+    
+    if (const CXXMethodDecl *MDecl = dyn_cast<CXXMethodDecl>(FDecl); MDecl && !MDecl->isStatic())
       ArgNum--;
 
     if ((Format->getType()->getName() == "printf") && CallNumArgs > ArgNum)

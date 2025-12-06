@@ -141,8 +141,8 @@ Error BTFParser::parseBTF(ParseContext &Ctx, SectionRef BTF) {
   StringsTable = Extractor.getData().slice(StrStart, StrEnd);
 
   if (TypeLen > 0 && Ctx.Opts.LoadTypes) {
-    StringRef RawData = Extractor.getData().slice(TypesInfoStart, TypesInfoEnd);
-    if (Error E = parseTypesInfo(Ctx, TypesInfoStart, RawData))
+    
+    if (StringRef RawData = Extractor.getData().slice(TypesInfoStart, TypesInfoEnd); Error E = parseTypesInfo(Ctx, TypesInfoStart, RawData))
       return E;
   }
 
@@ -280,15 +280,15 @@ Error BTFParser::parseBTFExt(ParseContext &Ctx, SectionRef BTFExt) {
 
   if (LineInfoLen > 0 && Ctx.Opts.LoadLines) {
     uint32_t LineInfoStart = HdrLen + LineInfoOff;
-    uint32_t LineInfoEnd = LineInfoStart + LineInfoLen;
-    if (Error E = parseLineInfo(Ctx, Extractor, LineInfoStart, LineInfoEnd))
+    
+    if (uint32_t LineInfoEnd = LineInfoStart + LineInfoLen; Error E = parseLineInfo(Ctx, Extractor, LineInfoStart, LineInfoEnd))
       return E;
   }
 
   if (RelocInfoLen > 0 && Ctx.Opts.LoadRelocs) {
     uint32_t RelocInfoStart = HdrLen + RelocInfoOff;
-    uint32_t RelocInfoEnd = RelocInfoStart + RelocInfoLen;
-    if (Error E = parseRelocInfo(Ctx, Extractor, RelocInfoStart, RelocInfoEnd))
+    
+    if (uint32_t RelocInfoEnd = RelocInfoStart + RelocInfoLen; Error E = parseRelocInfo(Ctx, Extractor, RelocInfoStart, RelocInfoEnd))
       return E;
   }
 
@@ -820,9 +820,9 @@ void BTFParser::symbolize(const BTF::BPFFieldReloc *Reloc,
       Stream << "[" << RawSpec[0] << "]";
     for (uint32_t I = 1; I < RawSpec.size(); ++I) {
       Type = skipModsAndTypedefs(*this, Type);
-      uint32_t Idx = RawSpec[I];
+      
 
-      if (auto *T = dyn_cast<BTF::StructType>(Type)) {
+      if (uint32_t Idx = RawSpec[I]; auto *T = dyn_cast<BTF::StructType>(Type)) {
         if (T->getVlen() <= Idx)
           return Fail(
               format("member index %d for spec sub-string %d is out of range",

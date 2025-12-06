@@ -82,8 +82,8 @@ static constexpr addr_t g_mte_tag_mask = (addr_t)0x0f << g_mte_tag_shift;
 
 bool StopInfoMachException::DetermineTagMismatch(ExecutionContext &exe_ctx) {
   const bool IsBadAccess = m_value == 1;            // EXC_BAD_ACCESS
-  const bool IsMTETagFault = (m_exc_code == 0x106); // EXC_ARM_MTE_TAG_FAULT
-  if (!IsBadAccess || !IsMTETagFault)
+  // EXC_ARM_MTE_TAG_FAULT
+  if (const bool IsMTETagFault = (m_exc_code == 0x106); !IsBadAccess || !IsMTETagFault)
     return false;
 
   if (m_exc_data_count < 2)
@@ -108,8 +108,8 @@ bool StopInfoMachException::DetermineTagMismatch(ExecutionContext &exe_ctx) {
 
 bool StopInfoMachException::DeterminePtrauthFailure(ExecutionContext &exe_ctx) {
   bool IsBreakpoint = m_value == 6; // EXC_BREAKPOINT
-  bool IsBadAccess = m_value == 1;  // EXC_BAD_ACCESS
-  if (!IsBreakpoint && !IsBadAccess)
+   // EXC_BAD_ACCESS
+  if (bool IsBadAccess = m_value == 1; !IsBreakpoint && !IsBadAccess)
     return false;
 
   // Check that we have a live process.
@@ -193,9 +193,9 @@ bool StopInfoMachException::DeterminePtrauthFailure(ExecutionContext &exe_ctx) {
   // If an authenticated load results in an exception, the instruction at the
   // current PC should be one of LDRAx.
   if (bad_address != current_pc && fixed_bad_address != current_pc) {
-    auto ptrauth_info =
-        GetPtrauthInstructionInfo(target, arch, current_address);
-    if (ptrauth_info && ptrauth_info->IsAuthenticated && ptrauth_info->IsLoad) {
+    
+    if (auto ptrauth_info =
+        GetPtrauthInstructionInfo(target, arch, current_address); ptrauth_info && ptrauth_info->IsAuthenticated && ptrauth_info->IsLoad) {
       emit_ptrauth_prologue(bad_address);
       strm.Printf("Found authenticated load instruction ");
       DescribeAddressBriefly(strm, current_address, target);
@@ -641,10 +641,10 @@ StopInfoSP StopInfoMachException::CreateStopReasonWithMachException(
       if (exc_sub_code == 5) {
         // On MacOSX, a SIGTRAP can signify that a process has called exec,
         // so we should check with our dynamic loader to verify.
-        ProcessSP process_sp(thread.GetProcess());
-        if (process_sp) {
-          DynamicLoader *dynamic_loader = process_sp->GetDynamicLoader();
-          if (dynamic_loader && dynamic_loader->ProcessDidExec()) {
+        
+        if (ProcessSP process_sp(thread.GetProcess()); process_sp) {
+          
+          if (DynamicLoader *dynamic_loader = process_sp->GetDynamicLoader(); dynamic_loader && dynamic_loader->ProcessDidExec()) {
             // The program was re-exec'ed
             return StopInfo::CreateStopReasonWithExec(thread);
           }
@@ -784,10 +784,10 @@ StopInfoSP StopInfoMachException::CreateStopReasonWithMachException(
     // Now handle watchpoints.
 
     if (stopped_watchpoint && address) {
-      WatchpointResourceSP wp_rsrc_sp =
+      
+      if (WatchpointResourceSP wp_rsrc_sp =
           target->GetProcessSP()->GetWatchpointResourceList().FindByAddress(
-              *address);
-      if (wp_rsrc_sp && wp_rsrc_sp->GetNumberOfConstituents() > 0) {
+              *address); wp_rsrc_sp && wp_rsrc_sp->GetNumberOfConstituents() > 0) {
         return StopInfo::CreateStopReasonWithWatchpointID(
             thread, wp_rsrc_sp->GetConstituentAtIndex(0)->GetID());
       }

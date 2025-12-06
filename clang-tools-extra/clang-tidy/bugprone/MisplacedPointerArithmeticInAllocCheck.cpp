@@ -70,12 +70,12 @@ void MisplacedPointerArithmeticInAllocCheck::check(
     }
     CallName = Func->getName().str();
   } else {
-    const auto *New = cast<CXXNewExpr>(AllocExpr);
-    if (New->isArray()) {
+    
+    if (const auto *New = cast<CXXNewExpr>(AllocExpr); New->isArray()) {
       CallName = "operator new[]";
     } else {
-      const auto *CtrE = New->getConstructExpr();
-      if (!CtrE || !CtrE->getArg(CtrE->getNumArgs() - 1)
+      
+      if (const auto *CtrE = New->getConstructExpr(); !CtrE || !CtrE->getArg(CtrE->getNumArgs() - 1)
                         ->getType()
                         ->isIntegralOrEnumerationType())
         return;

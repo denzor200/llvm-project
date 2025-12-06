@@ -449,10 +449,10 @@ bool ARM::appendArchExtFeatures(StringRef CPU, ARM::ArchKind AK,
     const ARM::FPUKind DefaultFPU = getDefaultFPU(CPU, AK);
     ARM::FPUKind FPUKind;
     if (ArchExt == "fp.dp") {
-      const bool IsDP = ArgFPUKind != ARM::FK_INVALID &&
+      
+      if (const bool IsDP = ArgFPUKind != ARM::FK_INVALID &&
                         ArgFPUKind != ARM::FK_NONE &&
-                        isDoublePrecision(getFPURestriction(ArgFPUKind));
-      if (Negated) {
+                        isDoublePrecision(getFPURestriction(ArgFPUKind)); Negated) {
         /* If there is no FPU selected yet, we still need to set ArgFPUKind, as
          * leaving it as FK_INVALID, would cause default FPU to be selected
          * later and that could be double precision one. */

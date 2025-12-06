@@ -469,10 +469,10 @@ isSaveReachableThroughClean(const MachineBasicBlock *SavePoint,
 static void updateTerminator(MachineBasicBlock *BBToUpdate,
                              MachineBasicBlock *NMBB,
                              const TargetInstrInfo *TII) {
-  DebugLoc DL = BBToUpdate->findBranchDebugLoc();
+  
   // if NMBB isn't the new layout successor for BBToUpdate, insert unconditional
   // branch to it
-  if (!BBToUpdate->isLayoutSuccessor(NMBB))
+  if (DebugLoc DL = BBToUpdate->findBranchDebugLoc(); !BBToUpdate->isLayoutSuccessor(NMBB))
     TII->insertUnconditionalBranch(*BBToUpdate, NMBB, DL);
 }
 
@@ -1017,9 +1017,9 @@ PreservedAnalyses ShrinkWrapPass::run(MachineFunction &MF,
 }
 
 bool ShrinkWrapImpl::isShrinkWrapEnabled(const MachineFunction &MF) {
-  const TargetFrameLowering *TFI = MF.getSubtarget().getFrameLowering();
+  
 
-  switch (EnableShrinkWrapOpt) {
+  switch (const TargetFrameLowering *TFI = MF.getSubtarget().getFrameLowering(); EnableShrinkWrapOpt) {
   case cl::BOU_UNSET:
     return TFI->enableShrinkWrapping(MF) &&
            // Windows with CFI has some limitations that make it impossible

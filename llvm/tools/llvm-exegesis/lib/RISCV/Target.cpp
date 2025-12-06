@@ -362,9 +362,9 @@ void RISCVSnippetGenerator<BaseT>::annotateWithVType(
         // NOTE: It is imperative to put this condition in the front, otherwise
         // it is tricky and difficult to know if there is an integrated
         // SEW after other rules are applied to filter the candidates.
-        const auto *RVVBase =
-            RISCVVInversePseudosTable::getBaseInfo(BaseOpcode, VLMul, SEW);
-        if (RVVBase && (RVVBase->Pseudo == VPseudoOpcode ||
+        
+        if (const auto *RVVBase =
+            RISCVVInversePseudosTable::getBaseInfo(BaseOpcode, VLMul, SEW); RVVBase && (RVVBase->Pseudo == VPseudoOpcode ||
                         isMaskedSibling(VPseudoOpcode, RVVBase->Pseudo) ||
                         isMaskedSibling(RVVBase->Pseudo, VPseudoOpcode))) {
           // There is an integrated SEW, remove all but the SEW pushed last.
@@ -414,8 +414,8 @@ void RISCVSnippetGenerator<BaseT>::annotateWithVType(
 
           // We're also enforcing the requirement of `LMUL * VLEN >= EGW` here,
           // because some of the extensions have SEW-dependant EGW.
-          unsigned EGW = getZvkEGWSize(BaseOpcode, *SEW);
-          if (multiplyLMul(ZvlVLen, VLMul) < EGW) {
+          
+          if (unsigned EGW = getZvkEGWSize(BaseOpcode, *SEW); multiplyLMul(ZvlVLen, VLMul) < EGW) {
             SEW = SEWCandidates.erase(SEW);
             continue;
           }
@@ -642,9 +642,9 @@ static std::vector<MCInst> loadFP64RegBits32(const MCSubtargetInfo &STI,
                                              const APInt &Bits) {
   double D = Bits.bitsToDouble();
   double IPart;
-  double FPart = std::modf(D, &IPart);
+  
 
-  if (std::abs(FPart) > std::numeric_limits<double>::epsilon()) {
+  if (double FPart = std::modf(D, &IPart); std::abs(FPart) > std::numeric_limits<double>::epsilon()) {
     errs() << "loadFP64RegBits32 is not implemented for doubles like " << D
            << ", please remove fractional part\n";
     return {};
@@ -832,10 +832,10 @@ ArrayRef<MCPhysReg> ExegesisRISCVTarget::getUnavailableRegisters() const {
 Error ExegesisRISCVTarget::randomizeTargetMCOperand(
     const Instruction &Instr, const Variable &Var, MCOperand &AssignedValue,
     const BitVector &ForbiddenRegs) const {
-  uint8_t OperandType =
-      Instr.getPrimaryOperand(Var).getExplicitOperandInfo().OperandType;
+  
 
-  switch (OperandType) {
+  switch (uint8_t OperandType =
+      Instr.getPrimaryOperand(Var).getExplicitOperandInfo().OperandType; OperandType) {
   case RISCVOp::OPERAND_FRMARG:
     AssignedValue = MCOperand::createImm(RISCVFPRndMode::DYN);
     break;

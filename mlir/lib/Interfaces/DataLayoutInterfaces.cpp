@@ -116,8 +116,8 @@ static uint64_t
 getIntegerTypeABIAlignment(IntegerType intType,
                            ArrayRef<DataLayoutEntryInterface> params) {
   constexpr uint64_t kDefaultSmallIntAlignment = 4u;
-  constexpr unsigned kSmallIntSize = 64;
-  if (params.empty()) {
+  
+  if (constexpr unsigned kSmallIntSize = 64; params.empty()) {
     return intType.getWidth() < kSmallIntSize
                ? llvm::PowerOf2Ceil(
                      llvm::divideCeil(intType.getWidth(), kDefaultBitsInByte))

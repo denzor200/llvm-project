@@ -31,8 +31,8 @@ static void prettyPrintBaseTypeRef(DWARFUnit *U, raw_ostream &OS,
     OS << format(" <base_type ref: 0x%" PRIx64 ">", Operands[Operand]);
     return;
   }
-  auto Die = U->getDIEForOffset(U->getOffset() + Operands[Operand]);
-  if (Die && Die.getTag() == dwarf::DW_TAG_base_type) {
+  
+  if (auto Die = U->getDIEForOffset(U->getOffset() + Operands[Operand]); Die && Die.getTag() == dwarf::DW_TAG_base_type) {
     OS << " (";
     if (DumpOpts.Verbose)
       OS << format("0x%08" PRIx64 " -> ", Operands[Operand]);
@@ -119,9 +119,9 @@ static bool printOp(const DWARFExpression::Operation *Op, raw_ostream &OS,
     for (unsigned Operand = 0; Operand < Op->getDescription().Op.size();
          ++Operand) {
       unsigned Size = Op->getDescription().Op[Operand];
-      unsigned Signed = Size & DWARFExpression::Operation::SignBit;
+      
 
-      if (Size == DWARFExpression::Operation::SizeSubOpLEB) {
+      if (unsigned Signed = Size & DWARFExpression::Operation::SignBit; Size == DWARFExpression::Operation::SizeSubOpLEB) {
         assert(Operand == 0 && "DW_OP SubOp must be the first operand");
         assert(SubOpcode && "DW_OP SubOp description is inconsistent");
       } else if (Size == DWARFExpression::Operation::BaseTypeRef && U) {
@@ -235,8 +235,8 @@ static bool printCompactDWARFExpr(
 
   while (I != E) {
     const DWARFExpression::Operation &Op = *I;
-    uint8_t Opcode = Op.getCode();
-    switch (Opcode) {
+    
+    switch (uint8_t Opcode = Op.getCode(); Opcode) {
     case dwarf::DW_OP_regx: {
       // DW_OP_regx: A register, with the register num given as an operand.
       // Printed as the plain register name.

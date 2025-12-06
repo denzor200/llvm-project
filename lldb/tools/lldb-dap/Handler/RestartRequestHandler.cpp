@@ -70,8 +70,8 @@ void RestartRequestHandler::operator()(
     return;
   }
 
-  const llvm::json::Object *arguments = request.getObject("arguments");
-  if (arguments) {
+  
+  if (const llvm::json::Object *arguments = request.getObject("arguments"); arguments) {
     // The optional `arguments` field in RestartRequest can contain an updated
     // version of the launch arguments. If there's one, use it.
     if (const llvm::json::Value *restart_arguments =
@@ -106,8 +106,8 @@ void RestartRequestHandler::operator()(
   // we don't ask the user for confirmation.
   if (process.IsValid()) {
     ScopeSyncMode scope_sync_mode(dap.debugger);
-    lldb::StateType state = process.GetState();
-    if (state != lldb::eStateConnected) {
+    
+    if (lldb::StateType state = process.GetState(); state != lldb::eStateConnected) {
       process.Kill();
     }
     // Clear the list of thread ids to avoid sending "thread exited" events

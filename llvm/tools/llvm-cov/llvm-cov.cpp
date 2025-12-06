@@ -65,7 +65,9 @@ int main(int argc, const char **argv) {
   // Check if we are invoking a specific tool command.
   if (argc > 1) {
     typedef int (*MainFunction)(int, const char *[]);
-    MainFunction Func = StringSwitch<MainFunction>(argv[1])
+    
+
+    if (MainFunction Func = StringSwitch<MainFunction>(argv[1])
                             .Case("convert-for-testing", convertForTestingMain)
                             .Case("export", exportMain)
                             .Case("gcov", gcovMain)
@@ -73,9 +75,7 @@ int main(int argc, const char **argv) {
                             .Case("show", showMain)
                             .Cases({"-h", "-help", "--help"}, helpMain)
                             .Cases({"-version", "--version"}, versionMain)
-                            .Default(nullptr);
-
-    if (Func) {
+                            .Default(nullptr); Func) {
       std::string Invocation = std::string(argv[0]) + " " + argv[1];
       argv[1] = Invocation.c_str();
       return Func(argc - 1, argv + 1);

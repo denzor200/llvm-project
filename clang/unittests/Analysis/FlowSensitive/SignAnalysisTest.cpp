@@ -299,8 +299,8 @@ void transferExpr(const Expr *E, const MatchFinder::MatchResult &M,
     return;
   }
 
-  const Sign S = getSign(R.Val.getInt().getExtValue());
-  switch (S) {
+  
+  switch (const Sign S = getSign(R.Val.getInt().getExtValue()); S) {
   case Sign::Negative:
     initNegative(*Val, State.Env);
     break;

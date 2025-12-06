@@ -82,9 +82,9 @@ raw_ostream &ErrorHandler::errs() {
 
 void lld::exitLld(int val) {
   if (hasContext()) {
-    ErrorHandler &e = errorHandler();
+    
     // Delete any temporary file, while keeping the memory mapping open.
-    if (e.outputBuffer)
+    if (ErrorHandler &e = errorHandler(); e.outputBuffer)
       e.outputBuffer->discard();
   }
 
@@ -258,9 +258,9 @@ void ErrorHandler::error(const Twine &msg) {
                          R"((\n>>> defined at \S+:\d+.*\n>>>.*))"
                          R"((\n>>> defined at \S+:\d+.*\n>>>.*))");
     std::string str = msg.str();
-    std::smatch m;
+    
 
-    if (std::regex_match(str, m, re)) {
+    if (std::smatch m; std::regex_match(str, m, re)) {
       error(m.str(1) + m.str(2));
       error(m.str(1) + m.str(3));
       return;
@@ -302,8 +302,8 @@ void ErrorHandler::error(const Twine &msg, ErrorTag tag,
     break;
   }
   scriptArgs.insert(scriptArgs.end(), args.begin(), args.end());
-  int res = llvm::sys::ExecuteAndWait(errorHandlingScript, scriptArgs);
-  if (res == 0) {
+  
+  if (int res = llvm::sys::ExecuteAndWait(errorHandlingScript, scriptArgs); res == 0) {
     return error(msg);
   } else {
     // Temporarily disable error limit to make sure the two calls to error(...)

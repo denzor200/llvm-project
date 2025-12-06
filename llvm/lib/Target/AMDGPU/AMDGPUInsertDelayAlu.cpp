@@ -34,10 +34,10 @@ public:
   // Return true if MI waits for all outstanding VALU instructions to complete.
   static bool instructionWaitsForVALU(const MachineInstr &MI) {
     // These instruction types wait for VA_VDST==0 before issuing.
-    const uint64_t VA_VDST_0 = SIInstrFlags::DS | SIInstrFlags::EXP |
+    
+    if (const uint64_t VA_VDST_0 = SIInstrFlags::DS | SIInstrFlags::EXP |
                                SIInstrFlags::FLAT | SIInstrFlags::MIMG |
-                               SIInstrFlags::MTBUF | SIInstrFlags::MUBUF;
-    if (MI.getDesc().TSFlags & VA_VDST_0)
+                               SIInstrFlags::MTBUF | SIInstrFlags::MUBUF; MI.getDesc().TSFlags & VA_VDST_0)
       return true;
     if (MI.getOpcode() == AMDGPU::S_SENDMSG_RTN_B32 ||
         MI.getOpcode() == AMDGPU::S_SENDMSG_RTN_B64)
@@ -376,8 +376,8 @@ public:
       DelayType Type = getDelayType(MI);
 
       if (instructionWaitsForSGPRWrites(MI)) {
-        auto It = State.find(LastSGPRFromVALU);
-        if (It != State.end()) {
+        
+        if (auto It = State.find(LastSGPRFromVALU); It != State.end()) {
           DelayInfo Info = It->getSecond();
           State.advanceByVALUNum(Info.VALUNum);
           // FIXME: 0 is a valid register unit.
@@ -400,8 +400,8 @@ public:
             if (MI.getOpcode() == AMDGPU::V_WRITELANE_B32 && Op.isTied())
               continue;
             for (MCRegUnit Unit : TRI->regunits(Op.getReg())) {
-              auto It = State.find(Unit);
-              if (It != State.end()) {
+              
+              if (auto It = State.find(Unit); It != State.end()) {
                 Delay.merge(It->second);
                 State.erase(Unit);
               }
@@ -411,8 +411,8 @@ public:
 
         if (SII->isVALU(MI.getOpcode())) {
           for (const auto &Op : MI.defs()) {
-            Register Reg = Op.getReg();
-            if (AMDGPU::isSGPR(Reg, TRI)) {
+            
+            if (Register Reg = Op.getReg(); AMDGPU::isSGPR(Reg, TRI)) {
               LastSGPRFromVALU = *TRI->regunits(Reg).begin();
               break;
             }
@@ -477,8 +477,8 @@ public:
       WorkList.insert(&MBB);
     while (!WorkList.empty()) {
       auto &MBB = *WorkList.pop_back_val();
-      bool Changed = runOnMachineBasicBlock(MBB, false);
-      if (Changed)
+      
+      if (bool Changed = runOnMachineBasicBlock(MBB, false); Changed)
         WorkList.insert_range(MBB.successors());
     }
 

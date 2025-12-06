@@ -469,8 +469,8 @@ bool BasicBlockSectionsProfileReaderWrapperPass::doInitialization(Module &M) {
       continue;
     DISubprogram *Subprogram = F.getSubprogram();
     if (Subprogram) {
-      llvm::DICompileUnit *CU = Subprogram->getUnit();
-      if (CU)
+      
+      if (llvm::DICompileUnit *CU = Subprogram->getUnit(); CU)
         DIFilename = sys::path::remove_leading_dotslash(CU->getFilename());
     }
     [[maybe_unused]] bool inserted =

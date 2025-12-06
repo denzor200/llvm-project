@@ -200,11 +200,11 @@ inline AsanThread::StackBounds AsanThread::GetStackBounds() const {
     return {stack_bottom_, stack_top_};
   }
   char local;
-  const uptr cur_stack = (uptr)&local;
+  
   // Note: need to check next stack first, because FinishSwitchFiber
   // may be in process of overwriting stack_top_/bottom_. But in such case
   // we are already on the next stack.
-  if (cur_stack >= next_stack_bottom_ && cur_stack < next_stack_top_)
+  if (const uptr cur_stack = (uptr)&local; cur_stack >= next_stack_bottom_ && cur_stack < next_stack_top_)
     return {next_stack_bottom_, next_stack_top_};
   return {stack_bottom_, stack_top_};
 }
@@ -428,8 +428,8 @@ AsanThread *GetCurrentThread() {
       // address. We are not entirely sure that we have correct main thread
       // limits, so only do this magic on Android, and only if the found thread
       // is the main thread.
-      AsanThreadContext *tctx = GetThreadContextByTidLocked(kMainTid);
-      if (tctx && ThreadStackContainsAddress(tctx, &context)) {
+      
+      if (AsanThreadContext *tctx = GetThreadContextByTidLocked(kMainTid); tctx && ThreadStackContainsAddress(tctx, &context)) {
         SetCurrentThread(tctx->thread);
         return tctx->thread;
       }
@@ -463,9 +463,9 @@ AsanThread *FindThreadByStackAddress(uptr addr) {
 }
 
 void EnsureMainThreadIDIsCorrect() {
-  AsanThreadContext *context =
-      reinterpret_cast<AsanThreadContext *>(AsanTSDGet());
-  if (context && (context->tid == kMainTid))
+  
+  if (AsanThreadContext *context =
+      reinterpret_cast<AsanThreadContext *>(AsanTSDGet()); context && (context->tid == kMainTid))
     context->os_id = GetTid();
 }
 

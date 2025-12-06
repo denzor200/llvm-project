@@ -280,10 +280,10 @@ static void getConstraintPredicates(pdl::ApplyNativeConstraintOp op,
   for (auto [i, result] : llvm::enumerate(results)) {
     ConstraintQuestion *q = cast<ConstraintQuestion>(pred.first);
     ConstraintPosition *pos = builder.getConstraintPosition(q, i);
-    auto [it, inserted] = inputs.try_emplace(result, pos);
+    
     // If this is an input value that has been visited in the tree, add a
     // constraint to ensure that both instances refer to the same value.
-    if (!inserted) {
+    if (auto [it, inserted] = inputs.try_emplace(result, pos); !inserted) {
       Position *first = pos;
       Position *second = it->second;
       if (comparePosDepth(second, first))
@@ -511,8 +511,8 @@ static void buildCostGraph(ArrayRef<Value> roots, RootOrderingGraph &graph,
         if (&p == &q)
           continue;
         // Insert or retrieve the property of edge from p to q.
-        RootOrderingEntry &entry = graph[q.root][p.root];
-        if (!entry.connector /* new edge */ || entry.cost.first > q.depth) {
+        
+        if (RootOrderingEntry &entry = graph[q.root][p.root]; !entry.connector /* new edge */ || entry.cost.first > q.depth) {
           if (!entry.connector)
             entry.cost.second = nextID++;
           entry.cost.first = q.depth;

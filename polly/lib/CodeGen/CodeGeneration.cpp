@@ -273,7 +273,7 @@ static bool generateCode(Scop &S, IslAstInfo &AI, LoopInfo &LI,
 
     Builder.GetInsertBlock()->getTerminator()->setOperand(0, RTC);
 
-    auto *CI = dyn_cast<ConstantInt>(RTC);
+    
     // The code below annotates the "llvm.loop.vectorize.enable" to false
     // for the code flow taken when RTCs fail. Because we don't want the
     // Loop Vectorizer to come in later and vectorize the original fall back
@@ -281,7 +281,7 @@ static bool generateCode(Scop &S, IslAstInfo &AI, LoopInfo &LI,
     // loop by Loop Vectorizer. Don't do this when Polly's RTC value is
     // false (due to code generation failure), as we are left with only one
     // version of Loop.
-    if (!(CI && CI->isZero())) {
+    if (auto *CI = dyn_cast<ConstantInt>(RTC); !(CI && CI->isZero())) {
       for (Loop *L : LI.getLoopsInPreorder()) {
         if (S.contains(L))
           addStringMetadataToLoop(L, "llvm.loop.vectorize.enable", 0);

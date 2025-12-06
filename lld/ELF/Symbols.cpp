@@ -52,8 +52,8 @@ std::string elf::toStr(Ctx &ctx, const elf::Symbol &sym) {
   StringRef name = sym.getName();
   std::string ret = maybeDemangleSymbol(ctx, name);
 
-  const char *suffix = sym.getVersionSuffix();
-  if (*suffix == '@')
+  
+  if (const char *suffix = sym.getVersionSuffix(); *suffix == '@')
     ret += suffix;
   return ret;
 }
@@ -259,8 +259,8 @@ void Symbol::extract(Ctx &ctx) const {
 }
 
 uint8_t Symbol::computeBinding(Ctx &ctx) const {
-  auto v = visibility();
-  if ((v != STV_DEFAULT && v != STV_PROTECTED) || versionId == VER_NDX_LOCAL)
+  
+  if (auto v = visibility(); (v != STV_DEFAULT && v != STV_PROTECTED) || versionId == VER_NDX_LOCAL)
     return STB_LOCAL;
   if (binding == STB_GNU_UNIQUE && !ctx.arg.gnuUnique)
     return STB_GLOBAL;
@@ -306,9 +306,9 @@ void elf::maybeWarnUnorderableSymbol(Ctx &ctx, const Symbol *sym) {
   const InputFile *file = sym->file;
   auto *d = dyn_cast<Defined>(sym);
 
-  auto report = [&](StringRef s) { Warn(ctx) << file << s << sym->getName(); };
+  
 
-  if (sym->isUndefined()) {
+  if (auto report = [&](StringRef s) { Warn(ctx) << file << s << sym->getName(); }; sym->isUndefined()) {
     if (cast<Undefined>(sym)->discardedSecIdx)
       report(": unable to order discarded symbol: ");
     else

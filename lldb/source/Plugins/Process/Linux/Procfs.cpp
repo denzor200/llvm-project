@@ -39,8 +39,8 @@ lldb_private::process_linux::GetAvailableLogicalCoreIDs(StringRef cpuinfo) {
   for (StringRef line : lines) {
     std::pair<StringRef, StringRef> key_value = line.split(':');
     auto key = key_value.first.trim();
-    auto val = key_value.second.trim();
-    if (key == "processor") {
+    
+    if (auto val = key_value.second.trim(); key == "processor") {
       cpu_id_t processor;
       if (val.getAsInteger(10, processor))
         return createStringError(

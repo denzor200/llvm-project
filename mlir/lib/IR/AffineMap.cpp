@@ -178,8 +178,8 @@ bool AffineMap::isMinorIdentityWithBroadcasting(
   unsigned suffixStart = getNumDims() - getNumResults();
   for (const auto &idxAndExpr : llvm::enumerate(getResults())) {
     unsigned resIdx = idxAndExpr.index();
-    AffineExpr expr = idxAndExpr.value();
-    if (auto constExpr = dyn_cast<AffineConstantExpr>(expr)) {
+    
+    if (AffineExpr expr = idxAndExpr.value(); auto constExpr = dyn_cast<AffineConstantExpr>(expr)) {
       // Each result may be either a constant 0 (broadcasted dimension).
       if (constExpr.getValue() != 0)
         return false;
@@ -225,10 +225,10 @@ bool AffineMap::isPermutationOfMinorIdentityWithBroadcasting(
                                 false);
   for (const auto &idxAndExpr : llvm::enumerate(getResults())) {
     unsigned resIdx = idxAndExpr.index();
-    AffineExpr expr = idxAndExpr.value();
+    
     // Each result may be either a constant 0 (broadcast dimension) or a
     // dimension.
-    if (auto constExpr = dyn_cast<AffineConstantExpr>(expr)) {
+    if (AffineExpr expr = idxAndExpr.value(); auto constExpr = dyn_cast<AffineConstantExpr>(expr)) {
       if (constExpr.getValue() != 0)
         return false;
       broadcastDims.push_back(resIdx);
@@ -343,8 +343,8 @@ bool AffineMap::isIdentity() const {
     return false;
   ArrayRef<AffineExpr> results = getResults();
   for (unsigned i = 0, numDims = getNumDims(); i < numDims; ++i) {
-    auto expr = dyn_cast<AffineDimExpr>(results[i]);
-    if (!expr || expr.getPosition() != i)
+    
+    if (auto expr = dyn_cast<AffineDimExpr>(results[i]); !expr || expr.getPosition() != i)
       return false;
   }
   return true;
@@ -355,8 +355,8 @@ bool AffineMap::isSymbolIdentity() const {
     return false;
   ArrayRef<AffineExpr> results = getResults();
   for (unsigned i = 0, numSymbols = getNumSymbols(); i < numSymbols; ++i) {
-    auto expr = dyn_cast<AffineDimExpr>(results[i]);
-    if (!expr || expr.getPosition() != i)
+    
+    if (auto expr = dyn_cast<AffineDimExpr>(results[i]); !expr || expr.getPosition() != i)
       return false;
   }
   return true;
@@ -589,8 +589,8 @@ SmallVector<int64_t, 4> AffineMap::compose(ArrayRef<int64_t> values) const {
 size_t AffineMap::getNumOfZeroResults() const {
   size_t res = 0;
   for (auto expr : getResults()) {
-    auto constExpr = dyn_cast<AffineConstantExpr>(expr);
-    if (constExpr && constExpr.getValue() == 0)
+    
+    if (auto constExpr = dyn_cast<AffineConstantExpr>(expr); constExpr && constExpr.getValue() == 0)
       res++;
   }
 
@@ -601,8 +601,8 @@ AffineMap AffineMap::dropZeroResults() {
   SmallVector<AffineExpr> newExprs;
 
   for (auto expr : getResults()) {
-    auto constExpr = dyn_cast<AffineConstantExpr>(expr);
-    if (!constExpr || constExpr.getValue() != 0)
+    
+    if (auto constExpr = dyn_cast<AffineConstantExpr>(expr); !constExpr || constExpr.getValue() != 0)
       newExprs.push_back(expr);
   }
   return AffineMap::get(getNumDims(), getNumSymbols(), newExprs, getContext());
@@ -628,8 +628,8 @@ bool AffineMap::isProjectedPermutation(bool allowZeroInResults) const {
         return false;
       seen[dim.getPosition()] = true;
     } else {
-      auto constExpr = dyn_cast<AffineConstantExpr>(expr);
-      if (!allowZeroInResults || !constExpr || constExpr.getValue() != 0)
+      
+      if (auto constExpr = dyn_cast<AffineConstantExpr>(expr); !allowZeroInResults || !constExpr || constExpr.getValue() != 0)
         return false;
     }
   }
@@ -787,9 +787,9 @@ AffineMap mlir::inversePermutation(AffineMap map) {
   assert(map.getNumSymbols() == 0 && "expected map without symbols");
   SmallVector<AffineExpr, 4> exprs(map.getNumDims());
   for (const auto &en : llvm::enumerate(map.getResults())) {
-    auto expr = en.value();
+    
     // Skip non-permutations.
-    if (auto d = dyn_cast<AffineDimExpr>(expr)) {
+    if (auto expr = en.value(); auto d = dyn_cast<AffineDimExpr>(expr)) {
       if (exprs[d.getPosition()])
         continue;
       exprs[d.getPosition()] = getAffineDimExpr(en.index(), d.getContext());

@@ -318,7 +318,8 @@ Value CodeGen::genNonInitializerVar(const ast::VariableDecl *varDecl,
   // A functor used to generate expressions nested
   auto getTypeConstraint = [&]() -> Value {
     for (const ast::ConstraintRef &constraint : varDecl->getConstraints()) {
-      Value typeValue =
+      
+      if (Value typeValue =
           TypeSwitch<const ast::Node *, Value>(constraint.constraint)
               .Case<ast::AttrConstraintDecl, ast::ValueConstraintDecl,
                     ast::ValueRangeConstraintDecl>(
@@ -327,8 +328,7 @@ Value CodeGen::genNonInitializerVar(const ast::VariableDecl *varDecl,
                       return this->genSingleExpr(typeConstraintExpr);
                     return Value();
                   })
-              .Default(Value());
-      if (typeValue)
+              .Default(Value()); typeValue)
         return typeValue;
     }
     return Value();

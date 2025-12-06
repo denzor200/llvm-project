@@ -168,9 +168,9 @@ findInsertionPoint(const Tweak::Selection &Inputs,
       break;
     if (NestedNameSpecifier Qualifier = U->getQualifier();
         Qualifier.getKind() == NestedNameSpecifier::Kind::Namespace) {
-      const auto *Namespace =
-          U->getQualifier().getAsNamespaceAndPrefix().Namespace;
-      if (Namespace->getCanonicalDecl() ==
+      
+      if (const auto *Namespace =
+          U->getQualifier().getAsNamespaceAndPrefix().Namespace; Namespace->getCanonicalDecl() ==
               QualifierToRemove.getNestedNameSpecifier()
                   .getAsNamespaceAndPrefix()
                   .Namespace->getCanonicalDecl() &&
@@ -235,8 +235,8 @@ bool isNamespaceForbidden(const Tweak::Selection &Inputs,
   std::string NamespaceStr = printNamespaceScope(*NS);
 
   for (StringRef Banned : Config::current().Style.FullyQualifiedNamespaces) {
-    StringRef PrefixMatch = NamespaceStr;
-    if (PrefixMatch.consume_front(Banned) && PrefixMatch.consume_front("::"))
+    
+    if (StringRef PrefixMatch = NamespaceStr; PrefixMatch.consume_front(Banned) && PrefixMatch.consume_front("::"))
       return true;
   }
 

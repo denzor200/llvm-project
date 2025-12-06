@@ -41,8 +41,8 @@ void ReOptimizeLayer::emit(std::unique_ptr<MaterializationResponsibility> R,
 
   bool HasNonCallable = false;
   for (auto &KV : R->getSymbols()) {
-    auto &Flags = KV.second;
-    if (!Flags.isCallable())
+    
+    if (auto &Flags = KV.second; !Flags.isCallable())
       HasNonCallable = true;
   }
 

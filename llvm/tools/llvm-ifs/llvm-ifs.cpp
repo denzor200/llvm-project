@@ -154,9 +154,9 @@ readInputFile(std::optional<FileFormat> &InputFormat, StringRef FilePath) {
 
   // Fall back to reading as a ifs.
   if (!InputFormat || *InputFormat == FileFormat::IFS) {
-    Expected<std::unique_ptr<IFSStub>> StubFromIFS =
-        readIFSFromBuffer(FileReadBuffer->getBuffer());
-    if (StubFromIFS) {
+    
+    if (Expected<std::unique_ptr<IFSStub>> StubFromIFS =
+        readIFSFromBuffer(FileReadBuffer->getBuffer()); StubFromIFS) {
       InputFormat = FileFormat::IFS;
       if ((*StubFromIFS)->IfsVersion > IfsVersionCurrent)
         EC.addError(
@@ -335,8 +335,8 @@ static DriverConfig parseArgs(int argc, char *const *argv) {
   }
   if (const opt::Arg *A = Args.getLastArg(OPT_bitwidth_EQ)) {
     size_t Width;
-    llvm::StringRef S(A->getValue());
-    if (!S.getAsInteger<size_t>(10, Width) || Width == 64 || Width == 32)
+    
+    if (llvm::StringRef S(A->getValue()); !S.getAsInteger<size_t>(10, Width) || Width == 64 || Width == 32)
       Config.OverrideBitWidth =
           Width == 64 ? IFSBitWidthType::IFS64 : IFSBitWidthType::IFS32;
     else
@@ -607,9 +607,9 @@ int llvm_ifs_main(int argc, char **argv, const llvm::ToolContext &) {
         stripIFSTarget(Stub, Config.StripIfsTarget, Config.StripIfsArch,
                        Config.StripIfsEndianness, Config.StripIfsBitwidth);
       }
-      Error IFSWriteError =
-          writeIFS(*Config.OutputIfs, Stub, Config.WriteIfChanged);
-      if (IFSWriteError)
+      
+      if (Error IFSWriteError =
+          writeIFS(*Config.OutputIfs, Stub, Config.WriteIfChanged); IFSWriteError)
         fatalError(std::move(IFSWriteError));
     }
     if (Config.OutputTbd) {

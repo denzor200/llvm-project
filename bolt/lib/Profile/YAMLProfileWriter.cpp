@@ -42,8 +42,8 @@ const BinaryFunction *YAMLProfileWriter::setCSIDestination(
   CSI.EntryDiscriminator = 0;
 
   if (Symbol) {
-    uint64_t EntryID = 0;
-    if (const BinaryFunction *Callee =
+    
+    if (uint64_t EntryID = 0; const BinaryFunction *Callee =
             BC.getFunctionForSymbol(Symbol, &EntryID)) {
       if (BAT && BAT->isBATFunction(Callee->getAddress()))
         std::tie(Callee, EntryID) = BAT->translateSymbol(BC, *Symbol, Offset);
@@ -285,9 +285,9 @@ YAMLProfileWriter::convert(const BinaryFunction &BF, bool UseDFS,
           continue;
         for (const IndirectCallProfile &CSP : ICSP.get()) {
           StringRef TargetName = "";
-          const BinaryFunction *Callee =
-              setCSIDestination(BC, CSI, CSP.Symbol, BAT);
-          if (Callee)
+          
+          if (const BinaryFunction *Callee =
+              setCSIDestination(BC, CSI, CSP.Symbol, BAT); Callee)
             TargetName = Callee->getOneName();
           CSI.Count = CSP.Count;
           CSI.Mispreds = CSP.Mispreds;
@@ -296,9 +296,9 @@ YAMLProfileWriter::convert(const BinaryFunction &BF, bool UseDFS,
       } else { // direct call or a tail call
         StringRef TargetName = "";
         const MCSymbol *CalleeSymbol = BC.MIB->getTargetSymbol(Instr);
-        const BinaryFunction *const Callee =
-            setCSIDestination(BC, CSI, CalleeSymbol, BAT);
-        if (Callee)
+        
+        if (const BinaryFunction *const Callee =
+            setCSIDestination(BC, CSI, CalleeSymbol, BAT); Callee)
           TargetName = Callee->getOneName();
 
         auto getAnnotationWithDefault = [&](const MCInst &Inst, StringRef Ann) {
@@ -404,8 +404,8 @@ std::error_code YAMLProfileWriter::writeProfile(const RewriteInstance &RI) {
   // Make sure the profile is consistent across all functions.
   uint16_t ProfileFlags = BinaryFunction::PF_NONE;
   for (const auto &BFI : Functions) {
-    const BinaryFunction &BF = BFI.second;
-    if (BF.hasProfile() && !BF.empty()) {
+    
+    if (const BinaryFunction &BF = BFI.second; BF.hasProfile() && !BF.empty()) {
       assert(BF.getProfileFlags() != BinaryFunction::PF_NONE);
       if (ProfileFlags == BinaryFunction::PF_NONE)
         ProfileFlags = BF.getProfileFlags();
@@ -424,8 +424,8 @@ std::error_code YAMLProfileWriter::writeProfile(const RewriteInstance &RI) {
 
   // Add all function objects.
   for (const auto &BFI : Functions) {
-    const BinaryFunction &BF = BFI.second;
-    if (BF.hasProfile()) {
+    
+    if (const BinaryFunction &BF = BFI.second; BF.hasProfile()) {
       if (!BF.hasValidProfile() && !RI.getProfileReader()->isTrustedSource())
         continue;
 

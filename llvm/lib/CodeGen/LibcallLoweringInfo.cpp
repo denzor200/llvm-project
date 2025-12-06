@@ -19,9 +19,9 @@ LibcallLoweringInfo::LibcallLoweringInfo(
   // call is available.
   for (RTLIB::LibcallImpl Impl : RTLIB::libcall_impls()) {
     if (RTLCI.isAvailable(Impl)) {
-      RTLIB::Libcall LC = RTLIB::RuntimeLibcallsInfo::getLibcallFromImpl(Impl);
+      
       // FIXME: Hack, assume the first available libcall wins.
-      if (LibcallImpls[LC] == RTLIB::Unsupported)
+      if (RTLIB::Libcall LC = RTLIB::RuntimeLibcallsInfo::getLibcallFromImpl(Impl); LibcallImpls[LC] == RTLIB::Unsupported)
         LibcallImpls[LC] = Impl;
     }
   }

@@ -74,8 +74,8 @@ static void printDie(DWARFUnit &DU, uint64_t DIEOffset) {
   uint64_t OriginalOffsets = DIEOffset;
   uint64_t NextCUOffset = DU.getNextUnitOffset();
   DWARFDataExtractor DebugInfoData = DU.getDebugInfoExtractor();
-  DWARFDebugInfoEntry DIEEntry;
-  if (DIEEntry.extractFast(DU, &DIEOffset, DebugInfoData, NextCUOffset, 0)) {
+  
+  if (DWARFDebugInfoEntry DIEEntry; DIEEntry.extractFast(DU, &DIEOffset, DebugInfoData, NextCUOffset, 0)) {
     if (DIEEntry.getAbbreviationDeclarationPtr()) {
       DWARFDie DDie(&DU, &DIEEntry);
       printDie(DDie);
@@ -1003,8 +1003,8 @@ void DWARFRewriter::updateUnitDebugInfo(
     default: {
       // Handle any tag that can have DW_AT_location attribute.
       DIEValue LocAttrInfo = Die->findAttribute(dwarf::DW_AT_location);
-      DIEValue LowPCAttrInfo = Die->findAttribute(dwarf::DW_AT_low_pc);
-      if (LocAttrInfo) {
+      
+      if (DIEValue LowPCAttrInfo = Die->findAttribute(dwarf::DW_AT_low_pc); LocAttrInfo) {
         if (doesFormBelongToClass(LocAttrInfo.getForm(),
                                   DWARFFormValue::FC_Constant,
                                   Unit.getVersion()) ||
@@ -1229,8 +1229,8 @@ void DWARFRewriter::updateUnitDebugInfo(
         }
       } else if (LowPCAttrInfo) {
         uint64_t Address = 0;
-        uint64_t SectionIndex = 0;
-        if (getLowPC(*Die, Unit, Address, SectionIndex)) {
+        
+        if (uint64_t SectionIndex = 0; getLowPC(*Die, Unit, Address, SectionIndex)) {
           uint64_t NewAddress = 0;
           if (const BinaryFunction *Function =
                   BC.getBinaryFunctionContainingAddress(Address)) {
@@ -1502,8 +1502,8 @@ CUOffsetMap DWARFRewriter::finalizeTypeSections(DIEBuilder &DIEBlder,
 
   for (const SectionRef &Section : Obj->sections()) {
     StringRef Contents = cantFail(Section.getContents());
-    StringRef Name = cantFail(Section.getName());
-    if (Name == ".debug_types")
+    
+    if (StringRef Name = cantFail(Section.getName()); Name == ".debug_types")
       BC.registerOrUpdateNoteSection(".debug_types", copyByteArray(Contents),
                                      Contents.size());
   }
@@ -1549,18 +1549,18 @@ void DWARFRewriter::finalizeDebugSections(
   }
 
   if (BC.isDWARF5Used()) {
-    std::unique_ptr<DebugBufferVector> LocationListSectionContents =
-        makeFinalLocListsSection(DWARFVersion::DWARF5);
-    if (!LocationListSectionContents->empty())
+    
+    if (std::unique_ptr<DebugBufferVector> LocationListSectionContents =
+        makeFinalLocListsSection(DWARFVersion::DWARF5); !LocationListSectionContents->empty())
       BC.registerOrUpdateNoteSection(
           ".debug_loclists", copyByteArray(*LocationListSectionContents),
           LocationListSectionContents->size());
   }
 
   if (BC.isDWARFLegacyUsed()) {
-    std::unique_ptr<DebugBufferVector> LocationListSectionContents =
-        makeFinalLocListsSection(DWARFVersion::DWARFLegacy);
-    if (!LocationListSectionContents->empty())
+    
+    if (std::unique_ptr<DebugBufferVector> LocationListSectionContents =
+        makeFinalLocListsSection(DWARFVersion::DWARFLegacy); !LocationListSectionContents->empty())
       BC.registerOrUpdateNoteSection(
           ".debug_loc", copyByteArray(*LocationListSectionContents),
           LocationListSectionContents->size());
@@ -1585,8 +1585,8 @@ void DWARFRewriter::finalizeDebugSections(
 
   for (const SectionRef &Secs : Obj->sections()) {
     StringRef Contents = cantFail(Secs.getContents());
-    StringRef Name = cantFail(Secs.getName());
-    if (Name == ".debug_abbrev") {
+    
+    if (StringRef Name = cantFail(Secs.getName()); Name == ".debug_abbrev") {
       BC.registerOrUpdateNoteSection(".debug_abbrev", copyByteArray(Contents),
                                      Contents.size());
     } else if (Name == ".debug_info") {
@@ -1823,7 +1823,8 @@ std::optional<StringRef> updateDebugData(
   Streamer.switchSection(SectionIter->second.first);
   uint64_t DWPOffset = 0;
 
-  auto getOverridenSection =
+  
+  switch (auto getOverridenSection =
       [&](DWARFSectionKind Kind) -> std::optional<StringRef> {
     auto Iter = OverridenSections.find(Kind);
     if (Iter == OverridenSections.end()) {
@@ -1834,8 +1835,7 @@ std::optional<StringRef> updateDebugData(
       return std::nullopt;
     }
     return Iter->second;
-  };
-  switch (SectionIter->second.second) {
+  }; SectionIter->second.second) {
   default: {
     if (SectionName != "debug_str.dwo")
       errs() << "BOLT-WARNING: unsupported debug section: " << SectionName
@@ -1951,8 +1951,8 @@ void DWARFRewriter::writeDWOFiles(
     // Handling .debug_rnglists.dwo separately. The original .o/.dwo might not
     // have .debug_rnglists so won't be part of the loop below.
     if (!RangeListssWriter->empty()) {
-      std::unique_ptr<DebugBufferVector> OutputData;
-      if (std::optional<StringRef> OutData =
+      
+      if (std::unique_ptr<DebugBufferVector> OutputData; std::optional<StringRef> OutData =
               updateDebugData((*DWOCU)->getContext(), "debug_rnglists.dwo", "",
                               KnownSections, *Streamer, *this, CUDWOEntry,
                               DWOId, OutputData, RangeListssWriter, LocWriter,
@@ -2003,8 +2003,8 @@ void DWARFRewriter::writeDWOFiles(
     if (SectionIter != KnownSections.end()) {
       Streamer->switchSection(SectionIter->second.first);
       for (size_t i = 0; i < StrDWOOutData.size(); ++i) {
-        StringRef OutData = StrDWOOutData[i];
-        if (!OutData.empty())
+        
+        if (StringRef OutData = StrDWOOutData[i]; !OutData.empty())
           Streamer->emitBytes(OutData);
       }
     }

@@ -58,8 +58,8 @@ public:
                                   CodeCompletionResult *Results,
                                   unsigned NumResults) override {
     for (unsigned I = 0; I < NumResults; ++I) {
-      auto R = Results[I];
-      if (R.Kind == CodeCompletionResult::RK_Declaration) {
+      
+      if (auto R = Results[I]; R.Kind == CodeCompletionResult::RK_Declaration) {
         auto *ND = R.getDeclaration();
         if (auto *Template = llvm::dyn_cast<FunctionTemplateDecl>(ND))
           ND = Template->getTemplatedDecl();

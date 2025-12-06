@@ -219,8 +219,8 @@ void nvgpu::createAsyncGroups(RewriterBase &rewriter, Operation *op,
       // Ignore read from a different address space.
       if (isa<vector::TransferReadOp, vector::LoadOp>(nextNode)) {
         Operation *readOp = nextNode;
-        Value memrefOperand = nvgpu::getMemrefOperand(readOp);
-        if (!nvgpu::NVGPUDialect::hasSharedMemoryAddressSpace(
+        
+        if (Value memrefOperand = nvgpu::getMemrefOperand(readOp); !nvgpu::NVGPUDialect::hasSharedMemoryAddressSpace(
                 cast<MemRefType>(memrefOperand.getType()))) {
           continue;
         }

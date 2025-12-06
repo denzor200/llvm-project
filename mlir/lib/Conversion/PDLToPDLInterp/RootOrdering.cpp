@@ -53,8 +53,8 @@ static void contract(RootOrderingGraph &graph, ArrayRef<Value> cycle,
   // Now, contract the cycle, marking the actual sources and targets.
   DenseMap<Value, RootOrderingEntry> repEntries;
   for (auto outer = graph.begin(), e = graph.end(); outer != e; ++outer) {
-    Value target = outer->first;
-    if (cycleSet.contains(target)) {
+    
+    if (Value target = outer->first; cycleSet.contains(target)) {
       // Target in the cycle => edges incoming to the cycle or within the cycle.
       unsigned parentDepth = parentDepths.lookup(target);
       for (const auto &inner : outer->second) {
@@ -90,8 +90,8 @@ static void contract(RootOrderingGraph &graph, ArrayRef<Value> cycle,
       std::pair<unsigned, unsigned> bestCost;
       auto inner = entries.begin(), innerE = entries.end();
       while (inner != innerE) {
-        Value source = inner->first;
-        if (cycleSet.contains(source)) {
+        
+        if (Value source = inner->first; cycleSet.contains(source)) {
           // Going-away edge => get its cost and erase it.
           if (!bestSource || bestCost > inner->second.cost) {
             bestSource = source;
@@ -150,8 +150,8 @@ unsigned OptimalBranching::solve() {
       Value &bestSource = parents[node];
       std::pair<unsigned, unsigned> bestCost;
       for (const auto &inner : it->second) {
-        const RootOrderingEntry &entry = inner.second;
-        if (!bestSource /* initial */ || bestCost > entry.cost) {
+        
+        if (const RootOrderingEntry &entry = inner.second; !bestSource /* initial */ || bestCost > entry.cost) {
           bestSource = inner.first;
           bestCost = entry.cost;
         }

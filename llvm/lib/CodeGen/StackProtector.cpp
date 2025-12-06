@@ -126,8 +126,8 @@ PreservedAnalyses StackProtectorPass::run(Function &F,
   // TODO(etienneb): Functions with funclets are not correctly supported now.
   // Do nothing if this is funclet-based personality.
   if (F.hasPersonalityFn()) {
-    EHPersonality Personality = classifyEHPersonality(F.getPersonalityFn());
-    if (isFuncletEHPersonality(Personality))
+    
+    if (EHPersonality Personality = classifyEHPersonality(F.getPersonalityFn()); isFuncletEHPersonality(Personality))
       return PreservedAnalyses::all();
   }
 
@@ -185,8 +185,8 @@ bool StackProtector::runOnFunction(Function &Fn) {
   // TODO(etienneb): Functions with funclets are not correctly supported now.
   // Do nothing if this is funclet-based personality.
   if (Fn.hasPersonalityFn()) {
-    EHPersonality Personality = classifyEHPersonality(Fn.getPersonalityFn());
-    if (isFuncletEHPersonality(Personality))
+    
+    if (EHPersonality Personality = classifyEHPersonality(Fn.getPersonalityFn()); isFuncletEHPersonality(Personality))
       return false;
   }
 
@@ -297,8 +297,8 @@ static bool HasAddressTaken(const Instruction *AI, TypeSize AllocSize,
     case Instruction::Call: {
       // Ignore intrinsics that do not become real instructions.
       // TODO: Narrow this to intrinsics that have store-like effects.
-      const auto *CI = cast<CallInst>(I);
-      if (!CI->isDebugOrPseudoInst() && !CI->isLifetimeStartOrEnd())
+      
+      if (const auto *CI = cast<CallInst>(I); !CI->isDebugOrPseudoInst() && !CI->isLifetimeStartOrEnd())
         return true;
       break;
     }

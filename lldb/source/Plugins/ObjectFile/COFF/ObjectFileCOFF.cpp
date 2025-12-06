@@ -121,9 +121,9 @@ size_t ObjectFileCOFF::GetModuleSpecifications(
     return 0;
   }
 
-  std::unique_ptr<COFFObjectFile> object =
-      unique_dyn_cast<COFFObjectFile>(std::move(*binary));
-  switch (static_cast<COFF::MachineTypes>(object->getMachine())) {
+  
+  switch (std::unique_ptr<COFFObjectFile> object =
+      unique_dyn_cast<COFFObjectFile>(std::move(*binary)); static_cast<COFF::MachineTypes>(object->getMachine())) {
   case COFF::IMAGE_FILE_MACHINE_I386:
     specs.Append(ModuleSpec(file, ArchSpec("i686-unknown-windows-msvc")));
     return 1;

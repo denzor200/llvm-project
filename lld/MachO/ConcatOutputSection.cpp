@@ -176,12 +176,12 @@ TextOutputSection::estimateBranchTargetThresholdVA(size_t callIdx) const {
   // which yields the maximum number of thunks we might yet place.
   size_t maxPotentialThunks = 0;
   for (auto &tp : thunkMap) {
-    ThunkInfo &ti = tp.second;
+    
     // This overcounts: Only sections that are in forward jump range from the
     // currently-active section get finalized, and all input sections are
     // finalized when estimateBranchTargetThresholdVA() is called. So only
     // backward jumps will need thunks, but we count all jumps.
-    if (ti.callSitesUsed < ti.callSiteCount)
+    if (ThunkInfo &ti = tp.second; ti.callSitesUsed < ti.callSiteCount)
       maxPotentialThunks += 1;
   }
   // Tally the total size of input sections remaining to process.
@@ -308,10 +308,10 @@ void TextOutputSection::finalize() {
     // grows. So leave room for a bunch of thunks.
     unsigned slop = 256 * thunkSize;
     while (finalIdx < endIdx) {
-      uint64_t expectedNewSize =
+      
+      if (uint64_t expectedNewSize =
           alignToPowerOf2(addr + size, inputs[finalIdx]->align) +
-          inputs[finalIdx]->getSize();
-      if (expectedNewSize >= isecVA + forwardBranchRange - slop)
+          inputs[finalIdx]->getSize(); expectedNewSize >= isecVA + forwardBranchRange - slop)
         break;
       finalizeOne(inputs[finalIdx++]);
     }
@@ -372,8 +372,8 @@ void TextOutputSection::finalize() {
       ++thunkCallCount;
       // If an existing thunk is reachable, use it ...
       if (thunkInfo.sym) {
-        uint64_t thunkVA = thunkInfo.isec->getVA();
-        if (lowVA <= thunkVA && thunkVA <= highVA) {
+        
+        if (uint64_t thunkVA = thunkInfo.isec->getVA(); lowVA <= thunkVA && thunkVA <= highVA) {
           r.referent = thunkInfo.sym;
           continue;
         }

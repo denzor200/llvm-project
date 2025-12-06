@@ -14,8 +14,8 @@ using namespace llvm;
 
 static msgpack::DocNode getNode(msgpack::DocNode DN, msgpack::Type Type,
                                 MCValue Val) {
-  msgpack::Document *Doc = DN.getDocument();
-  switch (Type) {
+  
+  switch (msgpack::Document *Doc = DN.getDocument(); Type) {
   default:
     return Doc->getEmptyNode();
   case msgpack::Type::Int:

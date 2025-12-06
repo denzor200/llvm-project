@@ -25,8 +25,8 @@ static std::vector<uint8_t> getUUID(const object::ObjectFile &Obj) {
   // Extract the UUID from the object file
   std::vector<uint8_t> UUID;
   if (auto *MachO = dyn_cast<object::MachOObjectFile>(&Obj)) {
-    const ArrayRef<uint8_t> MachUUID = MachO->getUuid();
-    if (!MachUUID.empty())
+    
+    if (const ArrayRef<uint8_t> MachUUID = MachO->getUuid(); !MachUUID.empty())
       UUID.assign(MachUUID.data(), MachUUID.data() + MachUUID.size());
   } else if (isa<object::ELFObjectFileBase>(&Obj)) {
     const StringRef GNUBuildID(".note.gnu.build-id");
@@ -55,8 +55,8 @@ static std::vector<uint8_t> getUUID(const object::ObjectFile &Obj) {
       StringRef Name(Decoder.getFixedLengthString(&Offset, NameSize));
       if (Name == "GNU" && PayloadType == NT_GNU_BUILD_ID_TAG) {
         Offset = alignTo(Offset, 4);
-        StringRef UUIDBytes(Decoder.getBytes(&Offset, PayloadSize));
-        if (!UUIDBytes.empty()) {
+        
+        if (StringRef UUIDBytes(Decoder.getBytes(&Offset, PayloadSize)); !UUIDBytes.empty()) {
           auto Ptr = reinterpret_cast<const uint8_t *>(UUIDBytes.data());
           UUID.assign(Ptr, Ptr + UUIDBytes.size());
         }
@@ -112,8 +112,8 @@ llvm::Error ObjectFileTransformer::convert(const object::ObjectFile &Obj,
     Gsym.addFunctionInfo(
         FunctionInfo(*AddrOrErr, size, Gsym.insertString(*Name, NoCopy)));
   }
-  size_t FunctionsAddedCount = Gsym.getNumFunctionInfos() - NumBefore;
-  if (Out.GetOS())
+  
+  if (size_t FunctionsAddedCount = Gsym.getNumFunctionInfos() - NumBefore; Out.GetOS())
     *Out.GetOS() << "Loaded " << FunctionsAddedCount
                  << " functions from symbol table.\n";
   return Error::success();

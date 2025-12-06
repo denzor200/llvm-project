@@ -54,8 +54,8 @@ void AArch64RelaxationPass::runOnFunction(BinaryFunction &BF) {
         continue;
 
       if (BF.hasIslandsInfo()) {
-        BinaryFunction::IslandInfo &Islands = BF.getIslandInfo();
-        if (Islands.Symbols.count(Symbol) || Islands.ProxySymbols.count(Symbol))
+        
+        if (BinaryFunction::IslandInfo &Islands = BF.getIslandInfo(); Islands.Symbols.count(Symbol) || Islands.ProxySymbols.count(Symbol))
           continue;
       }
 
@@ -63,8 +63,8 @@ void AArch64RelaxationPass::runOnFunction(BinaryFunction &BF) {
       // main fragment and BF initial size is < 1MB.
       const unsigned OneMB = 0x100000;
       if (BF.getSize() < OneMB) {
-        BinaryFunction *TargetBF = BC.getFunctionForSymbol(Symbol);
-        if (TargetBF == &BF && !BB.isSplit())
+        
+        if (BinaryFunction *TargetBF = BC.getFunctionForSymbol(Symbol); TargetBF == &BF && !BB.isSplit())
           continue;
 
         // No relaxation needed if ADR/LDR references a basic block in the same

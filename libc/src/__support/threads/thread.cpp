@@ -59,8 +59,8 @@ public:
   cpp::optional<unsigned int> new_key(TSSDtor *dtor) {
     cpp::lock_guard lock(mtx);
     for (unsigned int i = 0; i < TSS_KEY_COUNT; ++i) {
-      TSSKeyUnit &u = units[i];
-      if (!u.active) {
+      
+      if (TSSKeyUnit &u = units[i]; !u.active) {
         u = {dtor};
         return i;
       }
@@ -156,9 +156,9 @@ ThreadAtExitCallbackMgr *get_thread_atexit_callback_mgr() {
 void call_atexit_callbacks(ThreadAttributes *attrib) {
   attrib->atexit_callback_mgr->call();
   for (size_t i = 0; i < TSS_KEY_COUNT; ++i) {
-    TSSValueUnit &unit = tss_values[i];
+    
     // Both dtor and value need to nonnull to call dtor
-    if (unit.dtor != nullptr && unit.payload != nullptr)
+    if (TSSValueUnit &unit = tss_values[i]; unit.dtor != nullptr && unit.payload != nullptr)
       unit.dtor(unit.payload);
   }
 }

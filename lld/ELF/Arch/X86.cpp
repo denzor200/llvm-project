@@ -427,9 +427,9 @@ void X86::relaxTlsIeToLe(uint8_t *loc, const Relocation &rel,
   // be used with MOVL or ADDL instructions.
   // @indntpoff is similar to @gotntpoff, but for use in
   // position dependent code.
-  uint8_t reg = (loc[-1] >> 3) & 7;
+  
 
-  if (rel.type == R_386_TLS_IE) {
+  if (uint8_t reg = (loc[-1] >> 3) & 7; rel.type == R_386_TLS_IE) {
     if (loc[-1] == 0xa1) {
       // "movl foo@indntpoff,%eax" -> "movl $foo,%eax"
       // This case is different from the generic case below because
@@ -495,9 +495,9 @@ void X86::relocateAlloc(InputSection &sec, uint8_t *buf) const {
   uint64_t secAddr = sec.getOutputSection()->addr + sec.outSecOff;
   for (const Relocation &rel : sec.relocs()) {
     uint8_t *loc = buf + rel.offset;
-    const uint64_t val =
-        SignExtend64(sec.getRelocTargetVA(ctx, rel, secAddr + rel.offset), 32);
-    switch (rel.expr) {
+    
+    switch (const uint64_t val =
+        SignExtend64(sec.getRelocTargetVA(ctx, rel, secAddr + rel.offset), 32); rel.expr) {
     case R_RELAX_TLS_GD_TO_IE_GOTPLT:
       relaxTlsGdToIe(loc, rel, val);
       continue;

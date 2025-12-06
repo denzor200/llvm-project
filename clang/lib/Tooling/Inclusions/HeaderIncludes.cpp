@@ -289,9 +289,9 @@ bool IncludeCategoryManager::isMainHeader(StringRef IncludeName) const {
   else if (FileStem.equals_insensitive(HeaderStem))
     Matching = FileStem; // example 3)
   if (!Matching.empty()) {
-    llvm::Regex MainIncludeRegex(HeaderStem.str() + Style.IncludeIsMainRegex,
-                                 llvm::Regex::IgnoreCase);
-    if (MainIncludeRegex.match(Matching))
+    
+    if (llvm::Regex MainIncludeRegex(HeaderStem.str() + Style.IncludeIsMainRegex,
+                                 llvm::Regex::IgnoreCase); MainIncludeRegex.match(Matching))
       return true;
   }
   return false;
@@ -356,10 +356,10 @@ void HeaderIncludes::addExistingInclude(Include IncludeToAdd,
                                         unsigned NextLineOffset) {
   auto &Incs = ExistingIncludes[trimInclude(IncludeToAdd.Name)];
   Incs.push_back(std::move(IncludeToAdd));
-  auto &CurInclude = Incs.back();
+  
   // The header name with quotes or angle brackets.
   // Only record the offset of current #include if we can insert after it.
-  if (CurInclude.R.getOffset() <= MaxInsertOffset) {
+  if (auto &CurInclude = Incs.back(); CurInclude.R.getOffset() <= MaxInsertOffset) {
     int Priority = Categories.getIncludePriority(
         CurInclude.Name, /*CheckMainHeader=*/!MainIncludeFound);
     if (Priority == 0)
@@ -428,9 +428,9 @@ tooling::Replacements HeaderIncludes::remove(llvm::StringRef IncludeName,
     if ((IsAngled && StringRef(Inc.Name).starts_with("\"")) ||
         (!IsAngled && StringRef(Inc.Name).starts_with("<")))
       continue;
-    llvm::Error Err = Result.add(tooling::Replacement(
-        FileName, Inc.R.getOffset(), Inc.R.getLength(), ""));
-    if (Err) {
+    
+    if (llvm::Error Err = Result.add(tooling::Replacement(
+        FileName, Inc.R.getOffset(), Inc.R.getLength(), "")); Err) {
       auto ErrMsg = "Unexpected conflicts in #include deletions: " +
                     llvm::toString(std::move(Err));
       llvm_unreachable(ErrMsg.c_str());

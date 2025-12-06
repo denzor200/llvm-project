@@ -269,8 +269,8 @@ void CodeGenTypes::RefreshTypeCacheForClass(const CXXRecordDecl *RD) {
   CanQualType T = Context.getCanonicalTagType(RD);
   T = Context.getCanonicalType(T);
 
-  const Type *Ty = T.getTypePtr();
-  if (RecordsWithOpaqueMemberPointers.count(Ty)) {
+  
+  if (const Type *Ty = T.getTypePtr(); RecordsWithOpaqueMemberPointers.count(Ty)) {
     TypeCache.clear();
     RecordsWithOpaqueMemberPointers.clear();
   }
@@ -523,8 +523,8 @@ llvm::Type *CodeGenTypes::ConvertType(QualType T) {
         auto *EltTy = Info.ElementType->isMFloat8Type()
                           ? llvm::Type::getInt8Ty(getLLVMContext())
                           : ConvertType(Info.ElementType);
-        auto *VTy = llvm::VectorType::get(EltTy, Info.EC);
-        switch (Info.NumVectors) {
+        
+        switch (auto *VTy = llvm::VectorType::get(EltTy, Info.EC); Info.NumVectors) {
         default:
           llvm_unreachable("Expected 1, 2, 3 or 4 vectors!");
         case 1:
@@ -700,8 +700,8 @@ llvm::Type *CodeGenTypes::ConvertType(QualType T) {
     break;
 
   case Type::Enum: {
-    const auto *ED = Ty->castAsEnumDecl();
-    if (ED->isCompleteDefinition() || ED->isFixed())
+    
+    if (const auto *ED = Ty->castAsEnumDecl(); ED->isCompleteDefinition() || ED->isFixed())
       return ConvertType(ED->getIntegerType());
     // Return a placeholder 'i32' type.  This can be changed later when the
     // type is defined (see UpdateCompletedType), but is likely to be the
@@ -724,8 +724,8 @@ llvm::Type *CodeGenTypes::ConvertType(QualType T) {
   }
 
   case Type::MemberPointer: {
-    auto *MPTy = cast<MemberPointerType>(Ty);
-    if (!getCXXABI().isMemberPointerConvertible(MPTy)) {
+    
+    if (auto *MPTy = cast<MemberPointerType>(Ty); !getCXXABI().isMemberPointerConvertible(MPTy)) {
       CanQualType T = CGM.getContext().getCanonicalTagType(
           MPTy->getMostRecentCXXRecordDecl());
       auto Insertion =
@@ -745,8 +745,8 @@ llvm::Type *CodeGenTypes::ConvertType(QualType T) {
 
     // Pad out to the inflated size if necessary.
     uint64_t valueSize = Context.getTypeSize(valueType);
-    uint64_t atomicSize = Context.getTypeSize(Ty);
-    if (valueSize != atomicSize) {
+    
+    if (uint64_t atomicSize = Context.getTypeSize(Ty); valueSize != atomicSize) {
       assert(valueSize < atomicSize);
       llvm::Type *elts[] = {
         ResultType,

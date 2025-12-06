@@ -218,8 +218,8 @@ DWARFContext::DWARFContextState::parseMacroOrMacinfo(MacroSecType SectionType) {
       Macro = nullptr;
     }
   };
-  const DWARFObject &DObj = D.getDWARFObj();
-  switch (SectionType) {
+  
+  switch (const DWARFObject &DObj = D.getDWARFObj(); SectionType) {
   case MacinfoSection: {
     DWARFDataExtractor Data(DObj.getMacinfoSection(), D.isLittleEndian(), 0);
     ParseAndDump(Data, /*IsMacro=*/false);
@@ -341,10 +341,10 @@ public:
     DataExtractor Data(D.getDWARFObj().getTUIndexSection(),
                        D.isLittleEndian(), 0);
     TUIndex = std::make_unique<DWARFUnitIndex>(DW_SECT_EXT_TYPES);
-    bool isParseSuccessful = TUIndex->parse(Data);
+    
     // If we are parsing TU-index and for .debug_types section we don't need
     // to do anything.
-    if (isParseSuccessful && TUIndex->getVersion() != 2)
+    if (bool isParseSuccessful = TUIndex->parse(Data); isParseSuccessful && TUIndex->getVersion() != 2)
       fixupIndex(D, *TUIndex);
     return *TUIndex;
   }
@@ -552,11 +552,11 @@ public:
     Expected<OwningBinary<ObjectFile>> Obj = [&] {
       if (!CheckedForDWP) {
         SmallString<128> DWPName;
-        auto Obj = object::ObjectFile::createObjectFile(
+        
+        if (auto Obj = object::ObjectFile::createObjectFile(
             this->DWPName.empty()
                 ? (DObj.getFileName() + ".dwp").toStringRef(DWPName)
-                : StringRef(this->DWPName));
-        if (Obj) {
+                : StringRef(this->DWPName)); Obj) {
           Entry = &DWP;
           return Obj;
         } else {
@@ -761,8 +761,8 @@ static void dumpUUID(raw_ostream &OS, const ObjectFile &Obj) {
   if (!MachO)
     return;
   for (auto LC : MachO->load_commands()) {
-    raw_ostream::uuid_t UUID;
-    if (LC.C.cmd == MachO::LC_UUID) {
+    
+    if (raw_ostream::uuid_t UUID; LC.C.cmd == MachO::LC_UUID) {
       if (LC.C.cmdsize < sizeof(UUID) + sizeof(LC.C)) {
         OS << "error: UUID load command is too short.\n";
         return;
@@ -902,8 +902,8 @@ static void dumpAddrSection(raw_ostream &OS, DWARFDataExtractor &AddrData,
   uint64_t Offset = 0;
   while (AddrData.isValidOffset(Offset)) {
     DWARFDebugAddrTable AddrTable;
-    uint64_t TableOffset = Offset;
-    if (Error Err = AddrTable.extract(AddrData, &Offset, Version, AddrSize,
+    
+    if (uint64_t TableOffset = Offset; Error Err = AddrTable.extract(AddrData, &Offset, Version, AddrSize,
                                       DumpOpts.WarningHandler)) {
       DumpOpts.RecoverableErrorHandler(std::move(Err));
       // Keep going after an error, if we can, assuming that the length field
@@ -927,8 +927,8 @@ static void dumpRnglistsSection(
   uint64_t Offset = 0;
   while (rnglistData.isValidOffset(Offset)) {
     llvm::DWARFDebugRnglistTable Rnglists;
-    uint64_t TableOffset = Offset;
-    if (Error Err = Rnglists.extract(rnglistData, &Offset)) {
+    
+    if (uint64_t TableOffset = Offset; Error Err = Rnglists.extract(rnglistData, &Offset)) {
       DumpOpts.RecoverableErrorHandler(std::move(Err));
       uint64_t Length = Rnglists.length();
       // Keep going after an error, if we can, assuming that the length field
@@ -991,8 +991,8 @@ void DWARFContext::dump(
   bool IsDWO = (Extension == ".dwo") || (Extension == ".dwp");
 
   // Print UUID header.
-  const auto *ObjFile = DObj->getFile();
-  if (DumpType & DIDT_UUID)
+  
+  if (const auto *ObjFile = DObj->getFile(); DumpType & DIDT_UUID)
     dumpUUID(OS, *ObjFile);
 
   // Print a header for each explicitly-requested section.
@@ -1003,8 +1003,8 @@ void DWARFContext::dump(
   auto shouldDump = [&](bool Explicit, const char *Name, unsigned ID,
                         StringRef Section) -> std::optional<uint64_t> * {
     unsigned Mask = 1U << ID;
-    bool Should = (DumpType & Mask) && (Explicit || !Section.empty());
-    if (!Should)
+    
+    if (bool Should = (DumpType & Mask) && (Explicit || !Section.empty()); !Should)
       return nullptr;
     OS << "\n" << Name << " contents:\n";
     return &DumpOffsets[ID];
@@ -1025,8 +1025,8 @@ void DWARFContext::dump(
         U->getDIEForOffset(*DumpOffset)
             .dump(OS, 0, DumpOpts.noImplicitRecursion());
         DWARFDie CUDie = U->getUnitDIE(false);
-        DWARFDie CUNonSkeletonDie = U->getNonSkeletonUnitDIE(false);
-        if (CUNonSkeletonDie && CUDie != CUNonSkeletonDie) {
+        
+        if (DWARFDie CUNonSkeletonDie = U->getNonSkeletonUnitDIE(false); CUNonSkeletonDie && CUDie != CUNonSkeletonDie) {
           CUNonSkeletonDie.getDwarfUnit()
               ->getDIEForOffset(*DumpOffset)
               .dump(OS, 0, DumpOpts.noImplicitRecursion());
@@ -1087,8 +1087,8 @@ void DWARFContext::dump(
                      DObj->getLocDWOSection().Data)) {
     DWARFDataExtractor Data(*DObj, DObj->getLocDWOSection(), isLittleEndian(),
                             4);
-    DWARFDebugLoclists Loc(Data, /*Version=*/4);
-    if (*Off) {
+    
+    if (DWARFDebugLoclists Loc(Data, /*Version=*/4); *Off) {
       uint64_t Offset = **Off;
       Loc.dumpLocationList(&Offset, OS,
                            /*BaseAddr=*/std::nullopt, *DObj, nullptr,
@@ -1342,8 +1342,8 @@ void DWARFContext::dump(
 }
 
 DWARFTypeUnit *DWARFContext::getTypeUnitForHash(uint64_t Hash, bool IsDWO) {
-  DWARFUnitVector &DWOUnits = State->getDWOUnits();
-  if (const auto &TUI = getTUIndex()) {
+  
+  if (DWARFUnitVector &DWOUnits = State->getDWOUnits(); const auto &TUI = getTUIndex()) {
     if (const auto *R = TUI.getFromHash(Hash)) {
       if (TUI.getVersion() >= 5) {
         return dyn_cast_or_null<DWARFTypeUnit>(
@@ -1364,9 +1364,9 @@ DWARFTypeUnit *DWARFContext::getTypeUnitForHash(uint64_t Hash, bool IsDWO) {
 }
 
 DWARFCompileUnit *DWARFContext::getDWOCompileUnitForHash(uint64_t Hash) {
-  DWARFUnitVector &DWOUnits = State->getDWOUnits(LazyParse);
+  
 
-  if (const auto &CUI = getCUIndex()) {
+  if (DWARFUnitVector &DWOUnits = State->getDWOUnits(LazyParse); const auto &CUI = getCUIndex()) {
     if (const auto *R = CUI.getFromHash(Hash))
       return dyn_cast_or_null<DWARFCompileUnit>(
           DWOUnits.getUnitForIndexEntry(*R, DW_SECT_INFO));
@@ -1530,8 +1530,8 @@ DWARFCompileUnit *DWARFContext::getCompileUnitForCodeAddress(uint64_t Address) {
 }
 
 DWARFCompileUnit *DWARFContext::getCompileUnitForDataAddress(uint64_t Address) {
-  uint64_t CUOffset = getDebugAranges()->findAddress(Address);
-  if (DWARFCompileUnit *OffsetCU = getCompileUnitForOffset(CUOffset))
+  
+  if (uint64_t CUOffset = getDebugAranges()->findAddress(Address); DWARFCompileUnit *OffsetCU = getCompileUnitForOffset(CUOffset))
     return OffsetCU;
 
   // Global variables are often missed by the above search, for one of two
@@ -1565,12 +1565,12 @@ DWARFContext::DIEsForAddress DWARFContext::getDIEsForAddress(uint64_t Address,
     // complete that any information in the skeleton compile unit, so search the
     // DWO first to see if we have a match.
     DWARFDie CUDie = CU->getUnitDIE(false);
-    DWARFDie CUDwoDie = CU->getNonSkeletonUnitDIE(false);
-    if (CheckDWO && CUDwoDie && CUDie != CUDwoDie) {
+    
+    if (DWARFDie CUDwoDie = CU->getNonSkeletonUnitDIE(false); CheckDWO && CUDwoDie && CUDie != CUDwoDie) {
       // We have a DWO file, lets search it.
-      DWARFCompileUnit *CUDwo =
-          dyn_cast_or_null<DWARFCompileUnit>(CUDwoDie.getDwarfUnit());
-      if (CUDwo) {
+      
+      if (DWARFCompileUnit *CUDwo =
+          dyn_cast_or_null<DWARFCompileUnit>(CUDwoDie.getDwarfUnit()); CUDwo) {
         Result.FunctionDIE = CUDwo->getSubroutineForAddress(Address);
         if (Result.FunctionDIE)
           Result.CompileUnit = CUDwo;
@@ -1623,8 +1623,8 @@ static bool getFunctionNameAndStartLineForAddress(
 
   const DWARFDie &DIE = InlinedChain[0];
   bool FoundResult = false;
-  const char *Name = nullptr;
-  if (Kind != FunctionNameKind::None && (Name = DIE.getSubroutineName(Kind))) {
+  
+  if (const char *Name = nullptr; Kind != FunctionNameKind::None && (Name = DIE.getSubroutineName(Kind))) {
     FunctionName = Name;
     FoundResult = true;
   }
@@ -2180,8 +2180,8 @@ public:
       section_iterator RelocatedSection =
           Obj.isRelocatableObject() ? *SecOrErr : Obj.section_end();
       if (!L || !L->getLoadedSectionContents(*RelocatedSection, Data)) {
-        Expected<StringRef> E = Section.getContents();
-        if (E)
+        
+        if (Expected<StringRef> E = Section.getContents(); E)
           Data = *E;
         else
           // maybeDecompress below will error.
@@ -2297,15 +2297,15 @@ public:
         //
         // TODO Don't store Resolver in every RelocAddrEntry.
         if (Supports && Supports(Reloc.getType())) {
-          auto I = Map->try_emplace(
-              Reloc.getOffset(),
-              RelocAddrEntry{
-                  SymInfoOrErr->SectionIndex, Reloc, SymInfoOrErr->Address,
-                  std::optional<object::RelocationRef>(), 0, Resolver});
+          
           // If we didn't successfully insert that's because we already had a
           // relocation for that offset. Store it as a second relocation in the
           // same RelocAddrEntry instead.
-          if (!I.second) {
+          if (auto I = Map->try_emplace(
+              Reloc.getOffset(),
+              RelocAddrEntry{
+                  SymInfoOrErr->SectionIndex, Reloc, SymInfoOrErr->Address,
+                  std::optional<object::RelocationRef>(), 0, Resolver}); !I.second) {
             RelocAddrEntry &entry = I.first->getSecond();
             if (entry.Reloc2) {
               HandleError(createError(

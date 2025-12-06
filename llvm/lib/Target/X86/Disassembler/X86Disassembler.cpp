@@ -686,9 +686,9 @@ static int readModRM(struct InternalInstruction *insn) {
 
   switch (insn->addressSize) {
   case 2: {
-    EABase eaBaseBase = EA_BASE_BX_SI;
+    
 
-    switch (mod) {
+    switch (EABase eaBaseBase = EA_BASE_BX_SI; mod) {
     case 0x0:
       if (rm == 0x6) {
         insn->eaBase = EA_BASE_NONE;
@@ -723,9 +723,9 @@ static int readModRM(struct InternalInstruction *insn) {
   }
   case 4:
   case 8: {
-    EABase eaBaseBase = (insn->addressSize == 4 ? EA_BASE_EAX : EA_BASE_RAX);
+    
 
-    switch (mod) {
+    switch (EABase eaBaseBase = (insn->addressSize == 4 ? EA_BASE_EAX : EA_BASE_RAX); mod) {
     case 0x0:
       insn->eaDisplacement = EA_DISP_NONE; // readSIB may override this
       // In determining whether RIP-relative mode is used (rm=5),
@@ -1853,8 +1853,8 @@ X86GenericDisassembler::X86GenericDisassembler(
                                          MCContext &Ctx,
                                          std::unique_ptr<const MCInstrInfo> MII)
   : MCDisassembler(STI, Ctx), MII(std::move(MII)) {
-  const FeatureBitset &FB = STI.getFeatureBits();
-  if (FB[X86::Is16Bit]) {
+  
+  if (const FeatureBitset &FB = STI.getFeatureBits(); FB[X86::Is16Bit]) {
     fMode = MODE_16BIT;
     return;
   } else if (FB[X86::Is32Bit]) {

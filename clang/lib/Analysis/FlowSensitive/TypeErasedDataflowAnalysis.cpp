@@ -540,9 +540,9 @@ runTypeErasedDataflowAnalysis(
       if (isBackedgeNode(*Block)) {
         LatticeJoinEffect Effect1 = Analysis.widenTypeErased(
             NewBlockState.Lattice, OldBlockState->Lattice);
-        LatticeJoinEffect Effect2 =
-            NewBlockState.Env.widen(OldBlockState->Env, Analysis);
-        if (Effect1 == LatticeJoinEffect::Unchanged &&
+        
+        if (LatticeJoinEffect Effect2 =
+            NewBlockState.Env.widen(OldBlockState->Env, Analysis); Effect1 == LatticeJoinEffect::Unchanged &&
             Effect2 == LatticeJoinEffect::Unchanged) {
           // The state of `Block` didn't change from widening so there's no need
           // to revisit its successors.

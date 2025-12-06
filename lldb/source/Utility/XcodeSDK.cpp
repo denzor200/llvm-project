@@ -299,8 +299,8 @@ std::string XcodeSDK::FindXcodeContentsDirectoryInPath(llvm::StringRef path) {
   // directory.
   for (auto it = begin; it != end; ++it) {
     if (it->ends_with(".app")) {
-      auto next = it;
-      if (++next != end && *next == "Contents") {
+      
+      if (auto next = it; ++next != end && *next == "Contents") {
         llvm::SmallString<128> buffer;
         llvm::sys::path::append(buffer, begin, ++next,
                                 llvm::sys::path::Style::posix);

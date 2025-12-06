@@ -51,8 +51,8 @@ bool RISCVExegesisPostprocessing::runOnMachineFunction(MachineFunction &MF) {
   bool Changed = false;
   for (auto &MBB : MF)
     for (auto &MI : MBB) {
-      unsigned Opcode = MI.getOpcode();
-      switch (Opcode) {
+      
+      switch (unsigned Opcode = MI.getOpcode(); Opcode) {
       case RISCV::VSETVLI:
       case RISCV::VSETVL:
       case RISCV::PseudoVSETVLI:
@@ -102,8 +102,8 @@ bool RISCVExegesisPostprocessing::processVSETVL(MachineInstr &MI,
   // registers.
   for (unsigned Idx = 0U; Idx < 2; ++Idx)
     if (MI.getOperand(Idx).isReg()) {
-      Register RegOp = MI.getOperand(Idx).getReg();
-      if (RegOp.isVirtual()) {
+      
+      if (Register RegOp = MI.getOperand(Idx).getReg(); RegOp.isVirtual()) {
         MRI.replaceRegWith(RegOp, allocateGPRRegister(*MI.getMF(), MRI));
         Changed = true;
       }

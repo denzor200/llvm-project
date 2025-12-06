@@ -232,8 +232,8 @@ LogicalResult transform::tune::AlternativesOp::verify() {
   }
 
   if (auto selectedRegionAttr = getSelectedRegionAttr()) {
-    size_t regionIdx = selectedRegionAttr->getSExtValue();
-    if (regionIdx < 0 || regionIdx >= getNumRegions())
+    
+    if (size_t regionIdx = selectedRegionAttr->getSExtValue(); regionIdx < 0 || regionIdx >= getNumRegions())
       return emitOpError()
              << "'selected_region' attribute specifies region at index "
              << regionIdx << " while op has only " << getNumRegions()

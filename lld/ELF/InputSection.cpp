@@ -121,9 +121,9 @@ template <class ELFT>
 static void decompressAux(Ctx &ctx, const InputSectionBase &sec, uint8_t *out,
                           size_t size) {
   auto *hdr = reinterpret_cast<const typename ELFT::Chdr *>(sec.content_);
-  auto compressed = ArrayRef<uint8_t>(sec.content_, sec.compressedSize)
-                        .slice(sizeof(typename ELFT::Chdr));
-  if (Error e = hdr->ch_type == ELFCOMPRESS_ZLIB
+  
+  if (auto compressed = ArrayRef<uint8_t>(sec.content_, sec.compressedSize)
+                        .slice(sizeof(typename ELFT::Chdr)); Error e = hdr->ch_type == ELFCOMPRESS_ZLIB
                     ? compression::zlib::decompress(compressed, out, size)
                     : compression::zstd::decompress(compressed, out, size))
     Err(ctx) << &sec << ": decompress failed: " << std::move(e);
@@ -213,8 +213,8 @@ uint64_t SectionBase::getOffset(uint64_t offset) const {
     //
     // Second, InputSection::copyRelocations on .eh_frame. Some pieces may be
     // discarded due to GC/ICF. We should compute the output section offset.
-    const EhInputSection *es = cast<EhInputSection>(this);
-    if (!es->content().empty())
+    
+    if (const EhInputSection *es = cast<EhInputSection>(this); !es->content().empty())
       if (InputSection *isec = es->getParent())
         return isec->outSecOff + es->getParentOffset(offset);
     return offset;
@@ -416,8 +416,8 @@ template <class ELFT> void InputSection::copyShtGroup(uint8_t *buf) {
   ArrayRef<InputSectionBase *> sections = file->getSections();
   DenseSet<uint32_t> seen;
   for (uint32_t idx : from.slice(1)) {
-    OutputSection *osec = sections[idx]->getOutputSection();
-    if (osec && seen.insert(osec->sectionIndex).second)
+    
+    if (OutputSection *osec = sections[idx]->getOutputSection(); osec && seen.insert(osec->sectionIndex).second)
       *to++ = osec->sectionIndex;
   }
 }
@@ -431,9 +431,9 @@ InputSectionBase *InputSection::getRelocatedSection() const {
 
 template <class ELFT, class RelTy>
 void InputSection::copyRelocations(Ctx &ctx, uint8_t *buf) {
-  bool linkerRelax =
-      ctx.arg.relax && is_contained({EM_RISCV, EM_LOONGARCH}, ctx.arg.emachine);
-  if (!ctx.arg.relocatable && (linkerRelax || ctx.arg.branchToBranch)) {
+  
+  if (bool linkerRelax =
+      ctx.arg.relax && is_contained({EM_RISCV, EM_LOONGARCH}, ctx.arg.emachine); !ctx.arg.relocatable && (linkerRelax || ctx.arg.branchToBranch)) {
     // On LoongArch and RISC-V, relaxation might change relocations: copy
     // from internal ones that are updated by relaxation.
     InputSectionBase *sec = getRelocatedSection();
@@ -772,8 +772,8 @@ static int64_t getTlsTpOffset(Ctx &ctx, const Symbol &s) {
 
 uint64_t InputSectionBase::getRelocTargetVA(Ctx &ctx, const Relocation &r,
                                             uint64_t p) const {
-  int64_t a = r.addend;
-  switch (r.expr) {
+  
+  switch (int64_t a = r.addend; r.expr) {
   case R_ABS:
   case R_DTPREL:
   case R_RELAX_TLS_LD_TO_LE_ABS:
@@ -1447,8 +1447,8 @@ uint64_t EhInputSection::getParentOffset(uint64_t offset) const {
 
 static size_t findNull(StringRef s, size_t entSize) {
   for (unsigned i = 0, n = s.size(); i != n; i += entSize) {
-    const char *b = s.begin() + i;
-    if (std::all_of(b, b + entSize, [](char c) { return c == 0; }))
+    
+    if (const char *b = s.begin() + i; std::all_of(b, b + entSize, [](char c) { return c == 0; }))
       return i;
   }
   llvm_unreachable("");

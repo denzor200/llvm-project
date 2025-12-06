@@ -447,8 +447,8 @@ bool COFFMasmParser::parseDirectiveProc(StringRef Directive, SMLoc Loc) {
     return Error(Loc, "expected identifier for procedure");
   if (getLexer().is(AsmToken::Identifier)) {
     StringRef nextVal = getTok().getString();
-    SMLoc nextLoc = getTok().getLoc();
-    if (nextVal.equals_insensitive("far")) {
+    
+    if (SMLoc nextLoc = getTok().getLoc(); nextVal.equals_insensitive("far")) {
       // TODO(epastor): Handle far procedure definitions.
       Lex();
       return Error(nextLoc, "far procedure definitions not yet supported");

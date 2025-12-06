@@ -426,8 +426,8 @@ convertDenseElementsAttr(Location loc, DenseElementsAttr denseElementsAttr,
   // a piece of raw data.
   std::function<llvm::Constant *(StringRef)> buildCstData;
   if (isa<TensorType>(type)) {
-    auto vectorElementType = dyn_cast<VectorType>(type.getElementType());
-    if (vectorElementType && vectorElementType.getRank() == 1) {
+    
+    if (auto vectorElementType = dyn_cast<VectorType>(type.getElementType()); vectorElementType && vectorElementType.getRank() == 1) {
       buildCstData = [&](StringRef data) {
         return llvm::ConstantDataVector::getRaw(
             data, vectorElementType.getShape().back(), innermostLLVMType);
@@ -518,8 +518,8 @@ static llvm::Constant *convertDenseResourceElementsAttr(
   // Create a constructor for the innermost constant from a piece of raw data.
   std::function<llvm::Constant *(StringRef)> buildCstData;
   if (isa<TensorType>(type)) {
-    auto vectorElementType = dyn_cast<VectorType>(type.getElementType());
-    if (vectorElementType && vectorElementType.getRank() == 1) {
+    
+    if (auto vectorElementType = dyn_cast<VectorType>(type.getElementType()); vectorElementType && vectorElementType.getRank() == 1) {
       buildCstData = [&](StringRef data) {
         return llvm::ConstantDataVector::getRaw(
             data, vectorElementType.getShape().back(), innermostLLVMType);
@@ -598,8 +598,8 @@ llvm::Constant *mlir::LLVM::detail::getLLVMConstant(
     // the lack of native fp8 types in LLVM at the moment. Additionally, handle
     // targets (like AMDGPU) that don't implement bfloat and convert all bfloats
     // to i16.
-    unsigned floatWidth = APFloat::getSizeInBits(sem);
-    if (llvmType->isIntegerTy(floatWidth))
+    
+    if (unsigned floatWidth = APFloat::getSizeInBits(sem); llvmType->isIntegerTy(floatWidth))
       return llvm::ConstantInt::get(llvmType,
                                     floatAttr.getValue().bitcastToAPInt());
     if (llvmType !=
@@ -1336,9 +1336,9 @@ LogicalResult ModuleTranslation::convertGlobalsAndAliases() {
           numConstantsHit++;
           Value result = op.getResult(0);
           int numUsers = std::distance(result.use_begin(), result.use_end());
-          auto [iterator, inserted] =
-              constantAggregateUseMap.try_emplace(agg, numUsers);
-          if (!inserted) {
+          
+          if (auto [iterator, inserted] =
+              constantAggregateUseMap.try_emplace(agg, numUsers); !inserted) {
             // Key already exists, update the value
             iterator->second += numUsers;
           }
@@ -1367,8 +1367,8 @@ LogicalResult ModuleTranslation::convertGlobalsAndAliases() {
       ReturnOp ret = cast<ReturnOp>(initializer->getTerminator());
       llvm::Constant *cst =
           cast<llvm::Constant>(lookupValue(ret.getOperand(0)));
-      auto *global = cast<llvm::GlobalVariable>(lookupGlobal(op));
-      if (!shouldDropGlobalInitializer(global->getLinkage(), cst))
+      
+      if (auto *global = cast<llvm::GlobalVariable>(lookupGlobal(op)); !shouldDropGlobalInitializer(global->getLinkage(), cst))
         global->setInitializer(cst);
 
       // Try to remove the dangling constants again after all operations are
@@ -1517,8 +1517,8 @@ LogicalResult ModuleTranslation::convertOneFunction(LLVMFuncOp func) {
 
   // Check the personality and set it.
   if (func.getPersonality()) {
-    llvm::Type *ty = llvm::PointerType::getUnqual(llvmFunc->getContext());
-    if (llvm::Constant *pfunc = getLLVMConstant(ty, func.getPersonalityAttr(),
+    
+    if (llvm::Type *ty = llvm::PointerType::getUnqual(llvmFunc->getContext()); llvm::Constant *pfunc = getLLVMConstant(ty, func.getPersonalityAttr(),
                                                 func.getLoc(), *this))
       llvmFunc->setPersonalityFn(pfunc);
   }
@@ -1598,9 +1598,9 @@ LogicalResult ModuleTranslation::convertOneFunction(LLVMFuncOp func) {
   // converted before uses.
   auto blocks = getBlocksSortedByDominance(func.getBody());
   for (Block *bb : blocks) {
-    CapturingIRBuilder builder(llvmContext,
-                               llvm::TargetFolder(llvmModule->getDataLayout()));
-    if (failed(convertBlockImpl(*bb, bb->isEntryBlock(), builder,
+    
+    if (CapturingIRBuilder builder(llvmContext,
+                               llvm::TargetFolder(llvmModule->getDataLayout())); failed(convertBlockImpl(*bb, bb->isEntryBlock(), builder,
                                 /*recordInsertions=*/true)))
       return failure();
   }
@@ -1756,10 +1756,10 @@ ModuleTranslation::convertParameterAttrs(LLVMFuncOp func, int argIdx,
   Location loc = func.getLoc();
 
   for (auto namedAttr : paramAttrs) {
-    auto it = attrNameToKindMapping.find(namedAttr.getName());
-    if (it != attrNameToKindMapping.end()) {
-      llvm::Attribute::AttrKind llvmKind = it->second;
-      if (failed(convertParameterAttr(attrBuilder, llvmKind, namedAttr, *this,
+    
+    if (auto it = attrNameToKindMapping.find(namedAttr.getName()); it != attrNameToKindMapping.end()) {
+      
+      if (llvm::Attribute::AttrKind llvmKind = it->second; failed(convertParameterAttr(attrBuilder, llvmKind, namedAttr, *this,
                                       loc)))
         return failure();
     } else if (namedAttr.getNameDialect()) {
@@ -1820,10 +1820,10 @@ ModuleTranslation::convertParameterAttrs(Location loc,
   auto attrNameToKindMapping = getAttrNameToKindMapping();
 
   for (auto namedAttr : paramAttrs) {
-    auto it = attrNameToKindMapping.find(namedAttr.getName());
-    if (it != attrNameToKindMapping.end()) {
-      llvm::Attribute::AttrKind llvmKind = it->second;
-      if (failed(convertParameterAttr(attrBuilder, llvmKind, namedAttr, *this,
+    
+    if (auto it = attrNameToKindMapping.find(namedAttr.getName()); it != attrNameToKindMapping.end()) {
+      
+      if (llvm::Attribute::AttrKind llvmKind = it->second; failed(convertParameterAttr(attrBuilder, llvmKind, namedAttr, *this,
                                       loc)))
         return failure();
     }
@@ -2240,9 +2240,9 @@ void ModuleTranslation::setLoopMetadata(Operation *op,
 }
 
 void ModuleTranslation::setDisjointFlag(Operation *op, llvm::Value *value) {
-  auto iface = cast<DisjointFlagInterface>(op);
+  
   // We do a dyn_cast here in case the value got folded into a constant.
-  if (auto disjointInst = dyn_cast<llvm::PossiblyDisjointInst>(value))
+  if (auto iface = cast<DisjointFlagInterface>(op); auto disjointInst = dyn_cast<llvm::PossiblyDisjointInst>(value))
     disjointInst->setIsDisjoint(iface.getIsDisjoint());
 }
 

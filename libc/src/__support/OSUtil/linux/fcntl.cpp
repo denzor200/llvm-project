@@ -83,9 +83,9 @@ ErrorOr<int> fcntl(int fd, int cmd, void *arg) {
   }
   case F_GETOWN: {
     struct f_owner_ex fex;
-    int ret = LIBC_NAMESPACE::syscall_impl<int>(FCNTL_SYSCALL_ID, fd,
-                                                F_GETOWN_EX, &fex);
-    if (ret < 0)
+    
+    if (int ret = LIBC_NAMESPACE::syscall_impl<int>(FCNTL_SYSCALL_ID, fd,
+                                                F_GETOWN_EX, &fex); ret < 0)
       return Error(-ret);
     return fex.type == F_OWNER_PGRP ? -fex.pid : fex.pid;
   }

@@ -204,8 +204,8 @@ void PDLIndex::initialize(const ast::Module &module,
   auto insertDeclRef = [&](PDLIndexSymbol *sym, SMRange refLoc,
                            bool isDef = false) {
     const char *startLoc = refLoc.Start.getPointer();
-    const char *endLoc = refLoc.End.getPointer();
-    if (!intervalMap.overlaps(startLoc, endLoc)) {
+    
+    if (const char *endLoc = refLoc.End.getPointer(); !intervalMap.overlaps(startLoc, endLoc)) {
       intervalMap.insert(startLoc, endLoc, sym);
       if (!isDef)
         sym->references.push_back(refLoc);
@@ -1186,8 +1186,8 @@ static bool shouldAddHintFor(const ast::Expr *expr, StringRef name) {
 
   // If the argument is a reference of the same name, don't add it as a hint.
   if (auto *ref = dyn_cast<ast::DeclRefExpr>(expr)) {
-    const ast::Name *declName = ref->getDecl()->getName();
-    if (declName && declName->getName() == name)
+    
+    if (const ast::Name *declName = ref->getDecl()->getName(); declName && declName->getName() == name)
       return false;
   }
 
@@ -1787,23 +1787,23 @@ std::optional<int64_t> lsp::PDLLServer::removeDocument(const URIForFile &uri) {
 void lsp::PDLLServer::getLocationsOf(
     const URIForFile &uri, const Position &defPos,
     std::vector<llvm::lsp::Location> &locations) {
-  auto fileIt = impl->files.find(uri.file());
-  if (fileIt != impl->files.end())
+  
+  if (auto fileIt = impl->files.find(uri.file()); fileIt != impl->files.end())
     fileIt->second->getLocationsOf(uri, defPos, locations);
 }
 
 void lsp::PDLLServer::findReferencesOf(
     const URIForFile &uri, const Position &pos,
     std::vector<llvm::lsp::Location> &references) {
-  auto fileIt = impl->files.find(uri.file());
-  if (fileIt != impl->files.end())
+  
+  if (auto fileIt = impl->files.find(uri.file()); fileIt != impl->files.end())
     fileIt->second->findReferencesOf(uri, pos, references);
 }
 
 void lsp::PDLLServer::getDocumentLinks(
     const URIForFile &uri, std::vector<DocumentLink> &documentLinks) {
-  auto fileIt = impl->files.find(uri.file());
-  if (fileIt != impl->files.end())
+  
+  if (auto fileIt = impl->files.find(uri.file()); fileIt != impl->files.end())
     return fileIt->second->getDocumentLinks(uri, documentLinks);
 }
 
@@ -1817,8 +1817,8 @@ lsp::PDLLServer::findHover(const URIForFile &uri, const Position &hoverPos) {
 
 void lsp::PDLLServer::findDocumentSymbols(
     const URIForFile &uri, std::vector<DocumentSymbol> &symbols) {
-  auto fileIt = impl->files.find(uri.file());
-  if (fileIt != impl->files.end())
+  
+  if (auto fileIt = impl->files.find(uri.file()); fileIt != impl->files.end())
     fileIt->second->findDocumentSymbols(symbols);
 }
 

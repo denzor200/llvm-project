@@ -32,8 +32,8 @@ using Kind = RCToken::Kind;
 // between our representation and StringRef's one). If Representation is
 // correct, 'true' is returned and the return value is put back in Num.
 static bool rcGetAsInteger(StringRef Representation, uint32_t &Num) {
-  size_t Length = Representation.size();
-  if (Length == 0)
+  
+  if (size_t Length = Representation.size(); Length == 0)
     return false;
   // Strip the last 'L' if unnecessary.
   if (std::toupper(Representation.back()) == 'L')
@@ -199,8 +199,8 @@ Expected<std::vector<RCToken>> Tokenizer::run() {
     if (TokenKind == Kind::Identifier) {
       processIdentifier(Token);
     } else if (TokenKind == Kind::Int) {
-      uint32_t TokenInt;
-      if (!rcGetAsInteger(Token.value(), TokenInt)) {
+      
+      if (uint32_t TokenInt; !rcGetAsInteger(Token.value(), TokenInt)) {
         // The integer has incorrect format or cannot be represented in
         // a 32-bit integer.
         return getStringError("Integer invalid or too large: " +
@@ -366,9 +366,9 @@ Kind Tokenizer::classifyCurrentToken() const {
 
 void Tokenizer::processIdentifier(RCToken &Token) const {
   assert(Token.kind() == Kind::Identifier);
-  StringRef Name = Token.value();
+  
 
-  if (Name.equals_insensitive("begin"))
+  if (StringRef Name = Token.value(); Name.equals_insensitive("begin"))
     Token = RCToken(Kind::BlockBegin, Name);
   else if (Name.equals_insensitive("end"))
     Token = RCToken(Kind::BlockEnd, Name);

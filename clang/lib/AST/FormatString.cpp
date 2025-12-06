@@ -42,8 +42,8 @@ clang::analyze_format_string::ParseAmount(const char *&Beg, const char *E) {
   bool hasDigits = false;
 
   for ( ; I != E; ++I) {
-    char c = *I;
-    if (c >= '0' && c <= '9') {
+    
+    if (char c = *I; c >= '0' && c <= '9') {
       hasDigits = true;
       accumulator = (accumulator * 10) + (c - '0');
       continue;
@@ -186,8 +186,8 @@ clang::analyze_format_string::ParseVectorModifier(FormatStringHandler &H,
   if (!LO.OpenCL)
     return false;
 
-  const char *Start = I;
-  if (*I == 'v') {
+  
+  if (const char *Start = I; *I == 'v') {
     ++I;
 
     if (I == E) {
@@ -326,10 +326,10 @@ static bool namedTypeToLengthModifierKind(ASTContext &Ctx, QualType QT,
     return false;
   for (/**/; const auto *TT = QT->getAs<TypedefType>(); QT = TT->desugar()) {
     const auto *TD = TT->getDecl();
-    const auto *DC = TT->getDecl()->getDeclContext();
-    if (DC->isTranslationUnit() || DC->isStdNamespace()) {
-      StringRef Name = TD->getIdentifier()->getName();
-      if (Name == "size_t") {
+    
+    if (const auto *DC = TT->getDecl()->getDeclContext(); DC->isTranslationUnit() || DC->isStdNamespace()) {
+      
+      if (StringRef Name = TD->getIdentifier()->getName(); Name == "size_t") {
         K = LengthModifier::AsSizeT;
         return true;
       } else if (Name == "ssize_t" /*Not C99, but common in Unix.*/) {
@@ -652,8 +652,8 @@ ArgType::matchesType(ASTContext &C, QualType argTy) const {
         // to C structs representing CF types that can often be bridged
         // to Objective-C objects.  Since the compiler doesn't know which
         // structs can be toll-free bridged, we just accept them all.
-        QualType pointee = PT->getPointeeType();
-        if (pointee->isStructureType() || pointee->isVoidType())
+        
+        if (QualType pointee = PT->getPointeeType(); pointee->isStructureType() || pointee->isVoidType())
           return Match;
       }
       return NoMatch;

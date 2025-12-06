@@ -94,8 +94,8 @@ uint32_t ObjectFileJIT::GetAddressByteSize() const {
 }
 
 void ObjectFileJIT::ParseSymtab(Symtab &symtab) {
-  ObjectFileJITDelegateSP delegate_sp(m_delegate_wp.lock());
-  if (delegate_sp)
+  
+  if (ObjectFileJITDelegateSP delegate_sp(m_delegate_wp.lock()); delegate_sp)
     delegate_sp->PopulateSymtab(this, symtab);
 }
 
@@ -106,8 +106,8 @@ bool ObjectFileJIT::IsStripped() {
 void ObjectFileJIT::CreateSections(SectionList &unified_section_list) {
   if (!m_sections_up) {
     m_sections_up = std::make_unique<SectionList>();
-    ObjectFileJITDelegateSP delegate_sp(m_delegate_wp.lock());
-    if (delegate_sp) {
+    
+    if (ObjectFileJITDelegateSP delegate_sp(m_delegate_wp.lock()); delegate_sp) {
       delegate_sp->PopulateSectionList(this, *m_sections_up);
       unified_section_list = *m_sections_up;
     }
@@ -115,8 +115,8 @@ void ObjectFileJIT::CreateSections(SectionList &unified_section_list) {
 }
 
 void ObjectFileJIT::Dump(Stream *s) {
-  ModuleSP module_sp(GetModule());
-  if (module_sp) {
+  
+  if (ModuleSP module_sp(GetModule()); module_sp) {
     std::lock_guard<std::recursive_mutex> guard(module_sp->GetMutex());
     s->Printf("%p: ", static_cast<void *>(this));
     s->Indent();
@@ -127,8 +127,8 @@ void ObjectFileJIT::Dump(Stream *s) {
 
     s->EOL();
 
-    SectionList *sections = GetSectionList();
-    if (sections)
+    
+    if (SectionList *sections = GetSectionList(); sections)
       sections->Dump(s->AsRawOstream(), s->GetIndentLevel(), nullptr, true,
                      UINT32_MAX);
 
@@ -168,15 +168,15 @@ ArchSpec ObjectFileJIT::GetArchitecture() {
 bool ObjectFileJIT::SetLoadAddress(Target &target, lldb::addr_t value,
                                    bool value_is_offset) {
   size_t num_loaded_sections = 0;
-  SectionList *section_list = GetSectionList();
-  if (section_list) {
+  
+  if (SectionList *section_list = GetSectionList(); section_list) {
     const size_t num_sections = section_list->GetSize();
     // "value" is an offset to apply to each top level segment
     for (size_t sect_idx = 0; sect_idx < num_sections; ++sect_idx) {
       // Iterate through the object file sections to find all of the sections
       // that size on disk (to avoid __PAGEZERO) and load them
-      SectionSP section_sp(section_list->GetSectionAtIndex(sect_idx));
-      if (section_sp && section_sp->GetFileSize() > 0 &&
+      
+      if (SectionSP section_sp(section_list->GetSectionAtIndex(sect_idx)); section_sp && section_sp->GetFileSize() > 0 &&
           !section_sp->IsThreadSpecific()) {
         if (target.SetSectionLoadAddress(section_sp,
                                          section_sp->GetFileAddress() + value))
@@ -190,8 +190,8 @@ bool ObjectFileJIT::SetLoadAddress(Target &target, lldb::addr_t value,
 size_t ObjectFileJIT::ReadSectionData(lldb_private::Section *section,
                                       lldb::offset_t section_offset, void *dst,
                                       size_t dst_len) {
-  lldb::offset_t file_size = section->GetFileSize();
-  if (section_offset < file_size) {
+  
+  if (lldb::offset_t file_size = section->GetFileSize(); section_offset < file_size) {
     size_t src_len = file_size - section_offset;
     if (src_len > dst_len)
       src_len = dst_len;

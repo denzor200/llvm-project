@@ -400,8 +400,8 @@ private:
 
 static std::string getLegalCName(StringRef OpName) {
   std::string CName = OpName.str();
-  std::string::size_type Pos = CName.find("::");
-  if (Pos != std::string::npos)
+  
+  if (std::string::size_type Pos = CName.find("::"); Pos != std::string::npos)
     CName.replace(Pos, 2, "_");
   return CName;
 }
@@ -482,8 +482,8 @@ void FastISelMap::collectPatterns(const CodeGenDAGPatterns &CGP) {
       if (!Dst.getChild(1).isLeaf())
         continue;
 
-      const DefInit *SR = dyn_cast<DefInit>(Dst.getChild(1).getLeafValue());
-      if (SR)
+      
+      if (const DefInit *SR = dyn_cast<DefInit>(Dst.getChild(1).getLeafValue()); SR)
         SubRegNo = getQualifiedName(SR->getDef());
       else
         SubRegNo = Dst.getChild(1).getLeafValue()->getAsString();

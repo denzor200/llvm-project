@@ -154,8 +154,8 @@ Error EPCIndirectStubsManager::createStubs(const StubInitsMap &StubInits) {
     }
   }
 
-  auto &MemAccess = EPCIU.getExecutorProcessControl().getMemoryAccess();
-  switch (EPCIU.getABISupport().getPointerSize()) {
+  
+  switch (auto &MemAccess = EPCIU.getExecutorProcessControl().getMemoryAccess(); EPCIU.getABISupport().getPointerSize()) {
   case 4: {
     unsigned ASIdx = 0;
     std::vector<tpctypes::UInt32Write> PtrUpdates;
@@ -208,8 +208,8 @@ Error EPCIndirectStubsManager::updatePointer(StringRef Name,
     PtrAddr = I->second.first.PointerAddress;
   }
 
-  auto &MemAccess = EPCIU.getExecutorProcessControl().getMemoryAccess();
-  switch (EPCIU.getABISupport().getPointerSize()) {
+  
+  switch (auto &MemAccess = EPCIU.getExecutorProcessControl().getMemoryAccess(); EPCIU.getABISupport().getPointerSize()) {
   case 4: {
     tpctypes::UInt32Write PUpdate(PtrAddr, NewAddr.getValue());
     return MemAccess.writeUInt32s(PUpdate);
@@ -233,8 +233,8 @@ EPCIndirectionUtils::ABISupport::~ABISupport() = default;
 
 Expected<std::unique_ptr<EPCIndirectionUtils>>
 EPCIndirectionUtils::Create(ExecutorProcessControl &EPC) {
-  const auto &TT = EPC.getTargetTriple();
-  switch (TT.getArch()) {
+  
+  switch (const auto &TT = EPC.getTargetTriple(); TT.getArch()) {
   default:
     return make_error<StringError>(
         std::string("No EPCIndirectionUtils available for ") + TT.str(),

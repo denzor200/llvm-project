@@ -363,8 +363,8 @@ promoteSubViews(ImplicitLocOpBuilder &b, LinalgOp op,
   SmallVector<std::pair<Value, Value>, 8> writebackViews;
   writebackViews.reserve(promotedBuffersAndViews->size());
   for (OpOperand &opOperand : op->getOpOperands()) {
-    int64_t operandNumber = opOperand.getOperandNumber();
-    if (options.subViews.count(operandNumber) != 0) {
+    
+    if (int64_t operandNumber = opOperand.getOperandNumber(); options.subViews.count(operandNumber) != 0) {
       if (options.useFullTileBuffers[opOperand.get()])
         opViews.push_back(
             (*promotedBuffersAndViews)[operandNumber].fullLocalView);
@@ -405,9 +405,9 @@ mlir::linalg::promoteSubviewsPrecondition(Operation *op,
     return failure();
   // Check that at least one of the requested operands is indeed a subview.
   for (OpOperand &opOperand : linalgOp->getOpOperands()) {
-    auto sv =
-        isa_and_nonnull<memref::SubViewOp>(opOperand.get().getDefiningOp());
-    if (sv) {
+    
+    if (auto sv =
+        isa_and_nonnull<memref::SubViewOp>(opOperand.get().getDefiningOp()); sv) {
       if (!options.operandsToPromote ||
           options.operandsToPromote->count(opOperand.getOperandNumber()))
         return success();

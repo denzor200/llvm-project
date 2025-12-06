@@ -25,8 +25,8 @@ using namespace llvm::pdb;
 PDBContext::PDBContext(const COFFObjectFile &Object,
                        std::unique_ptr<IPDBSession> PDBSession)
     : DIContext(CK_PDB), Session(std::move(PDBSession)) {
-  ErrorOr<uint64_t> ImageBase = Object.getImageBase();
-  if (ImageBase)
+  
+  if (ErrorOr<uint64_t> ImageBase = Object.getImageBase(); ImageBase)
     Session->setLoadAddress(ImageBase.get());
 }
 
@@ -156,9 +156,9 @@ std::string PDBContext::getFunctionName(uint64_t Address,
     // It is not possible to get the mangled linkage name through a
     // PDBSymbolFunc.  For that we have to specifically request a
     // PDBSymbolPublicSymbol.
-    auto PublicSym =
-        Session->findSymbolByAddress(Address, PDB_SymType::PublicSymbol);
-    if (auto *PS = dyn_cast_or_null<PDBSymbolPublicSymbol>(PublicSym.get())) {
+    
+    if (auto PublicSym =
+        Session->findSymbolByAddress(Address, PDB_SymType::PublicSymbol); auto *PS = dyn_cast_or_null<PDBSymbolPublicSymbol>(PublicSym.get())) {
       // If we also have a function symbol, prefer the use of public symbol name
       // only if it refers to the same address. The public symbol uses the
       // linkage name while the function does not.

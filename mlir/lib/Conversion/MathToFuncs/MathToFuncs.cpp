@@ -820,8 +820,8 @@ void ConvertMathToFuncsPass::generateOpImplementations() {
           // Generate the software implementation of this operation,
           // if it has not been generated yet.
           auto key = std::pair(op->getName(), resultType);
-          auto entry = funcImpls.try_emplace(key, func::FuncOp{});
-          if (entry.second)
+          
+          if (auto entry = funcImpls.try_emplace(key, func::FuncOp{}); entry.second)
             entry.first->second = createCtlzFunc(&module, resultType);
         })
         .Case<math::IPowIOp>([&](math::IPowIOp op) {
@@ -833,8 +833,8 @@ void ConvertMathToFuncsPass::generateOpImplementations() {
           // Generate the software implementation of this operation,
           // if it has not been generated yet.
           auto key = std::pair(op->getName(), resultType);
-          auto entry = funcImpls.try_emplace(key, func::FuncOp{});
-          if (entry.second)
+          
+          if (auto entry = funcImpls.try_emplace(key, func::FuncOp{}); entry.second)
             entry.first->second = createElementIPowIFunc(&module, resultType);
         })
         .Case<math::FPowIOp>([&](math::FPowIOp op) {
@@ -848,8 +848,8 @@ void ConvertMathToFuncsPass::generateOpImplementations() {
           // FPowI implementations are mapped via the FunctionType
           // created from the operation's result and operands.
           auto key = std::pair(op->getName(), funcType);
-          auto entry = funcImpls.try_emplace(key, func::FuncOp{});
-          if (entry.second)
+          
+          if (auto entry = funcImpls.try_emplace(key, func::FuncOp{}); entry.second)
             entry.first->second = createElementFPowIFunc(&module, funcType);
         });
   });

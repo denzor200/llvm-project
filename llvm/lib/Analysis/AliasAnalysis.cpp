@@ -216,8 +216,8 @@ ModRefInfo AAResults::getModRefInfo(const Instruction *I, const CallBase *Call2,
   // is that if the call references what this instruction
   // defines, it must be clobbered by this location.
   const MemoryLocation DefLoc = MemoryLocation::get(I);
-  ModRefInfo MR = getModRefInfo(Call2, DefLoc, AAQI);
-  if (isModOrRefSet(MR))
+  
+  if (ModRefInfo MR = getModRefInfo(Call2, DefLoc, AAQI); isModOrRefSet(MR))
     return ModRefInfo::ModRef;
   return ModRefInfo::NoModRef;
 }
@@ -287,8 +287,8 @@ ModRefInfo AAResults::getModRefInfo(const CallBase *Call1,
       return ModRefInfo::NoModRef;
     ModRefInfo R = ModRefInfo::NoModRef;
     for (auto I = Call2->arg_begin(), E = Call2->arg_end(); I != E; ++I) {
-      const Value *Arg = *I;
-      if (!Arg->getType()->isPointerTy())
+      
+      if (const Value *Arg = *I; !Arg->getType()->isPointerTy())
         continue;
       unsigned Call2ArgIdx = std::distance(Call2->arg_begin(), I);
       auto Call2ArgLoc =
@@ -325,8 +325,8 @@ ModRefInfo AAResults::getModRefInfo(const CallBase *Call1,
       return ModRefInfo::NoModRef;
     ModRefInfo R = ModRefInfo::NoModRef;
     for (auto I = Call1->arg_begin(), E = Call1->arg_end(); I != E; ++I) {
-      const Value *Arg = *I;
-      if (!Arg->getType()->isPointerTy())
+      
+      if (const Value *Arg = *I; !Arg->getType()->isPointerTy())
         continue;
       unsigned Call1ArgIdx = std::distance(Call1->arg_begin(), I);
       auto Call1ArgLoc =
@@ -439,8 +439,8 @@ ModRefInfo AAResults::getModRefInfo(const LoadInst *L,
   // If the load address doesn't alias the given address, it doesn't read
   // or write the specified memory.
   if (Loc.Ptr) {
-    AliasResult AR = alias(MemoryLocation::get(L), Loc, AAQI, L);
-    if (AR == AliasResult::NoAlias)
+    
+    if (AliasResult AR = alias(MemoryLocation::get(L), Loc, AAQI, L); AR == AliasResult::NoAlias)
       return ModRefInfo::NoModRef;
   }
   // Otherwise, a load just reads.
@@ -537,10 +537,10 @@ ModRefInfo AAResults::getModRefInfo(const AtomicCmpXchgInst *CX,
     return ModRefInfo::ModRef;
 
   if (Loc.Ptr) {
-    AliasResult AR = alias(MemoryLocation::get(CX), Loc, AAQI, CX);
+    
     // If the cmpxchg address does not alias the location, it does not access
     // it.
-    if (AR == AliasResult::NoAlias)
+    if (AliasResult AR = alias(MemoryLocation::get(CX), Loc, AAQI, CX); AR == AliasResult::NoAlias)
       return ModRefInfo::NoModRef;
   }
 
@@ -555,10 +555,10 @@ ModRefInfo AAResults::getModRefInfo(const AtomicRMWInst *RMW,
     return ModRefInfo::ModRef;
 
   if (Loc.Ptr) {
-    AliasResult AR = alias(MemoryLocation::get(RMW), Loc, AAQI, RMW);
+    
     // If the atomicrmw address does not alias the location, it does not access
     // it.
-    if (AR == AliasResult::NoAlias)
+    if (AliasResult AR = alias(MemoryLocation::get(RMW), Loc, AAQI, RMW); AR == AliasResult::NoAlias)
       return ModRefInfo::NoModRef;
   }
 
@@ -573,9 +573,9 @@ ModRefInfo AAResults::getModRefInfo(const Instruction *I,
       return getMemoryEffects(Call, AAQIP).getModRef();
   }
 
-  const MemoryLocation &Loc = OptLoc.value_or(MemoryLocation());
+  
 
-  switch (I->getOpcode()) {
+  switch (const MemoryLocation &Loc = OptLoc.value_or(MemoryLocation()); I->getOpcode()) {
   case Instruction::VAArg:
     return getModRefInfo((const VAArgInst *)I, Loc, AAQIP);
   case Instruction::Load:

@@ -172,8 +172,8 @@ bool matchAArch64MulConstCombine(
     // folded into madd or msub.
     if (MRI.hasOneNonDBGUse(Dst)) {
       MachineInstr &UseMI = *MRI.use_instr_begin(Dst);
-      unsigned UseOpc = UseMI.getOpcode();
-      if (UseOpc == TargetOpcode::G_ADD || UseOpc == TargetOpcode::G_PTR_ADD ||
+      
+      if (unsigned UseOpc = UseMI.getOpcode(); UseOpc == TargetOpcode::G_ADD || UseOpc == TargetOpcode::G_PTR_ADD ||
           UseOpc == TargetOpcode::G_SUB)
         return false;
     }
@@ -193,8 +193,8 @@ bool matchAArch64MulConstCombine(
     // (mul x, 2^N - 1) => (sub (shl x, N), x)
     // (mul x, (2^N + 1) * 2^M) => (shl (add (shl x, N), x), M)
     APInt SCVMinus1 = ShiftedConstValue - 1;
-    APInt CVPlus1 = ConstValue + 1;
-    if (SCVMinus1.isPowerOf2()) {
+    
+    if (APInt CVPlus1 = ConstValue + 1; SCVMinus1.isPowerOf2()) {
       ShiftAmt = SCVMinus1.logBase2();
       AddSubOpc = TargetOpcode::G_ADD;
     } else if (CVPlus1.isPowerOf2()) {
@@ -206,8 +206,8 @@ bool matchAArch64MulConstCombine(
     // (mul x, -(2^N - 1)) => (sub x, (shl x, N))
     // (mul x, -(2^N + 1)) => - (add (shl x, N), x)
     APInt CVNegPlus1 = -ConstValue + 1;
-    APInt CVNegMinus1 = -ConstValue - 1;
-    if (CVNegPlus1.isPowerOf2()) {
+    
+    if (APInt CVNegMinus1 = -ConstValue - 1; CVNegPlus1.isPowerOf2()) {
       ShiftAmt = CVNegPlus1.logBase2();
       AddSubOpc = TargetOpcode::G_SUB;
       ShiftValUseIsLHS = false;
@@ -362,9 +362,9 @@ bool matchOrToBSP(MachineInstr &MI, MachineRegisterInfo &MRI,
   for (int I = 0, E = DstTy.getNumElements(); I < E; I++) {
     auto ValAndVReg1 =
         getIConstantVRegValWithLookThrough(BV1->getSourceReg(I), MRI);
-    auto ValAndVReg2 =
-        getIConstantVRegValWithLookThrough(BV2->getSourceReg(I), MRI);
-    if (!ValAndVReg1 || !ValAndVReg2 ||
+    
+    if (auto ValAndVReg2 =
+        getIConstantVRegValWithLookThrough(BV2->getSourceReg(I), MRI); !ValAndVReg1 || !ValAndVReg2 ||
         ValAndVReg1->Value != ~ValAndVReg2->Value)
       return false;
   }
@@ -488,9 +488,9 @@ bool matchExtMulToMULL(MachineInstr &MI, MachineRegisterInfo &MRI,
   if (KB && (IsZExt1 || IsZExt2) &&
       IsAtLeastDoubleExtend(IsZExt1 ? I1->getOperand(1).getReg()
                                     : I2->getOperand(1).getReg())) {
-    Register ZExtOp =
-        IsZExt1 ? MI.getOperand(2).getReg() : MI.getOperand(1).getReg();
-    if (KB->maskedValueIsZero(ZExtOp, Mask)) {
+    
+    if (Register ZExtOp =
+        IsZExt1 ? MI.getOperand(2).getReg() : MI.getOperand(1).getReg(); KB->maskedValueIsZero(ZExtOp, Mask)) {
       get<0>(MatchInfo) = true;
       get<1>(MatchInfo) = IsZExt1 ? I1->getOperand(1).getReg() : ZExtOp;
       get<2>(MatchInfo) = IsZExt1 ? ZExtOp : I2->getOperand(1).getReg();
@@ -508,9 +508,9 @@ bool matchExtMulToMULL(MachineInstr &MI, MachineRegisterInfo &MRI,
   if (KB && (IsSExt1 || IsSExt2) &&
       IsAtLeastDoubleExtend(IsSExt1 ? I1->getOperand(1).getReg()
                                     : I2->getOperand(1).getReg())) {
-    Register SExtOp =
-        IsSExt1 ? MI.getOperand(2).getReg() : MI.getOperand(1).getReg();
-    if (KB->computeNumSignBits(SExtOp) > EltSize / 2) {
+    
+    if (Register SExtOp =
+        IsSExt1 ? MI.getOperand(2).getReg() : MI.getOperand(1).getReg(); KB->computeNumSignBits(SExtOp) > EltSize / 2) {
       get<0>(MatchInfo) = false;
       get<1>(MatchInfo) = IsSExt1 ? I1->getOperand(1).getReg() : SExtOp;
       get<2>(MatchInfo) = IsSExt1 ? SExtOp : I2->getOperand(1).getReg();
@@ -703,8 +703,8 @@ bool AArch64PostLegalizerCombiner::tryOptimizeConsecStores(
   unsigned TotalInstsExpected = NumPairsExpected + (Stores.size() % 2);
   // Size savings will depend on whether we can fold the offset, as an
   // immediate of an ADD.
-  auto &TLI = *MIB.getMF().getSubtarget().getTargetLowering();
-  if (!TLI.isLegalAddImmediate(BaseOffset))
+  
+  if (auto &TLI = *MIB.getMF().getSubtarget().getTargetLowering(); !TLI.isLegalAddImmediate(BaseOffset))
     TotalInstsExpected++;
   int SavingsExpected = Stores.size() - TotalInstsExpected;
   if (SavingsExpected <= 0)

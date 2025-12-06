@@ -105,8 +105,8 @@ public:
 
       {
         llvm::sys::SmartScopedReader<false> rlock(pool.m_mutex);
-        auto it = pool.m_string_map.find(string_ref, string_hash);
-        if (it != pool.m_string_map.end())
+        
+        if (auto it = pool.m_string_map.find(string_ref, string_hash); it != pool.m_string_map.end())
           return it->getKeyData();
       }
 
@@ -233,8 +233,8 @@ bool ConstString::operator<(ConstString rhs) const {
 }
 
 Stream &lldb_private::operator<<(Stream &s, ConstString str) {
-  const char *cstr = str.GetCString();
-  if (cstr != nullptr)
+  
+  if (const char *cstr = str.GetCString(); cstr != nullptr)
     s << cstr;
 
   return s;
@@ -270,9 +270,9 @@ int ConstString::Compare(ConstString lhs, ConstString rhs,
     return 0;
   if (lhs_cstr && rhs_cstr) {
     llvm::StringRef lhs_string_ref(lhs.GetStringRef());
-    llvm::StringRef rhs_string_ref(rhs.GetStringRef());
+    
 
-    if (case_sensitive) {
+    if (llvm::StringRef rhs_string_ref(rhs.GetStringRef()); case_sensitive) {
       return lhs_string_ref.compare(rhs_string_ref);
     } else {
       return lhs_string_ref.compare_insensitive(rhs_string_ref);
@@ -287,8 +287,8 @@ int ConstString::Compare(ConstString lhs, ConstString rhs,
 
 void ConstString::Dump(Stream *s, const char *fail_value) const {
   if (s != nullptr) {
-    const char *cstr = AsCString(fail_value);
-    if (cstr != nullptr)
+    
+    if (const char *cstr = AsCString(fail_value); cstr != nullptr)
       s->PutCString(cstr);
   }
 }

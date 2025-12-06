@@ -157,8 +157,8 @@ Defined *SymbolTable::addDefined(StringRef name, InputFile *file,
       dysym->unreference();
     } else if (auto *undef = dyn_cast<Undefined>(s)) {
       if (undef->wasBitcodeSymbol) {
-        auto objFile = dyn_cast<ObjFile>(file);
-        if (!objFile) {
+        
+        if (auto objFile = dyn_cast<ObjFile>(file); !objFile) {
           // The file must be a native object file, as opposed to potentially
           // being another bitcode file. A situation arises when some symbols
           // are defined thru `module asm` and thus they are not present in the
@@ -399,8 +399,8 @@ static void handleSectionBoundarySymbol(const Undefined &sym, StringRef segSect,
 
 static void handleSegmentBoundarySymbol(const Undefined &sym, StringRef segName,
                                         Boundary which) {
-  OutputSegment *seg = getOrCreateOutputSegment(segName);
-  if (which == Boundary::Start)
+  
+  if (OutputSegment *seg = getOrCreateOutputSegment(segName); which == Boundary::Start)
     seg->segmentStartSymbols.push_back(createBoundarySymbol(sym));
   else
     seg->segmentEndSymbols.push_back(createBoundarySymbol(sym));
@@ -486,8 +486,8 @@ void macho::reportPendingDuplicateSymbols() {
 // the reference name ref.
 static bool canSuggestExternCForCXX(StringRef ref, StringRef def) {
   llvm::ItaniumPartialDemangler d;
-  std::string name = def.str();
-  if (d.partialDemangle(name.c_str()))
+  
+  if (std::string name = def.str(); d.partialDemangle(name.c_str()))
     return false;
   char *buf = d.getFunctionName(nullptr, nullptr);
   if (!buf)
@@ -575,8 +575,8 @@ static const Symbol *getAlternativeSpelling(const Undefined &sym,
   // missing extern "C".
   if (name.starts_with("__Z")) {
     std::string buf = name.str();
-    llvm::ItaniumPartialDemangler d;
-    if (!d.partialDemangle(buf.c_str()))
+    
+    if (llvm::ItaniumPartialDemangler d; !d.partialDemangle(buf.c_str()))
       if (char *buf = d.getFunctionName(nullptr, nullptr)) {
         const Symbol *s = suggest((Twine("_") + buf).str());
         free(buf);
@@ -646,8 +646,8 @@ static void reportUndefinedSymbol(const Undefined &sym,
             .str();
 
   if (correctSpelling) {
-    std::string preHint = ": ", postHint;
-    if (const Symbol *corrected =
+    
+    if (std::string preHint = ": ", postHint; const Symbol *corrected =
             getAlternativeSpelling(sym, preHint, postHint)) {
       message +=
           "\n>>> did you mean" + preHint + toString(*corrected) + postHint;

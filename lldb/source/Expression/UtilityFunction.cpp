@@ -42,10 +42,10 @@ UtilityFunction::UtilityFunction(ExecutionContextScope &exe_scope,
       m_function_text(std::move(text)), m_function_name(std::move(name)) {}
 
 UtilityFunction::~UtilityFunction() {
-  lldb::ProcessSP process_sp(m_jit_process_wp.lock());
-  if (process_sp) {
-    lldb::ModuleSP jit_module_sp(m_jit_module_wp.lock());
-    if (jit_module_sp)
+  
+  if (lldb::ProcessSP process_sp(m_jit_process_wp.lock()); process_sp) {
+    
+    if (lldb::ModuleSP jit_module_sp(m_jit_module_wp.lock()); jit_module_sp)
       process_sp->GetTarget().GetImages().Remove(jit_module_sp);
   }
 }
@@ -89,9 +89,9 @@ FunctionCaller *UtilityFunction::MakeFunctionCaller(
   if (m_caller_up) {
     DiagnosticManager diagnostics;
 
-    unsigned num_errors =
-        m_caller_up->CompileFunction(thread_to_use_sp, diagnostics);
-    if (num_errors) {
+    
+    if (unsigned num_errors =
+        m_caller_up->CompileFunction(thread_to_use_sp, diagnostics); num_errors) {
       error = Status::FromError(diagnostics.GetAsError(
           lldb::eExpressionParseError,
           "Error compiling " + m_function_name + " caller function:"));

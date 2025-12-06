@@ -185,8 +185,8 @@ bool ABISysV_i386::GetArgumentValues(Thread &thread, ValueList &values) const {
     std::optional<uint64_t> bit_size =
         llvm::expectedToOptional(compiler_type.GetBitSize(&thread));
     if (bit_size) {
-      bool is_signed;
-      if (compiler_type.IsIntegerOrEnumerationType(is_signed)) {
+      
+      if (bool is_signed; compiler_type.IsIntegerOrEnumerationType(is_signed)) {
         ReadIntegerArgument(value->GetScalar(), *bit_size, is_signed,
                             thread.GetProcess().get(), current_stack_argument);
       } else if (compiler_type.IsPointerType()) {
@@ -247,9 +247,9 @@ Status ABISysV_i386::SetReturnValueObject(lldb::StackFrameSP &frame_sp,
              (type_flags & eTypeIsEnumeration)) //'Integral' + 'Floating Point'
   {
     lldb::offset_t offset = 0;
-    const RegisterInfo *eax_info = reg_ctx->GetRegisterInfoByName("eax", 0);
+    
 
-    if (type_flags & eTypeIsInteger) // 'Integral' except enum
+    if (const RegisterInfo *eax_info = reg_ctx->GetRegisterInfoByName("eax", 0); type_flags & eTypeIsInteger) // 'Integral' except enum
     {
       switch (num_bytes) {
       default:
@@ -308,9 +308,9 @@ Status ABISysV_i386::SetReturnValueObject(lldb::StackFrameSP &frame_sp,
       0. This is in accordance
       with the document Intel 64 and IA-32 Architectures Software Developer's
       Manual, January 2015 */
-      uint32_t value_ftag_u32 = 0x00000080;
+      
 
-      if (num_bytes <= 12) // handles float, double, long double, __float80
+      if (uint32_t value_ftag_u32 = 0x00000080; num_bytes <= 12) // handles float, double, long double, __float80
       {
         long double value_long_dbl = 0.0;
         if (num_bytes == 4)
@@ -471,13 +471,13 @@ ValueObjectSP ABISysV_i386::GetReturnValueObjectSimple(
         RegisterValue st0_value;
 
         if (reg_ctx->ReadRegister(st0_info, st0_value)) {
-          DataExtractor data;
-          if (st0_value.GetData(data)) {
+          
+          if (DataExtractor data; st0_value.GetData(data)) {
             lldb::offset_t offset = 0;
-            long double value_long_double = data.GetLongDouble(&offset);
+            
 
             // float is 4 bytes.
-            if (*byte_size == 4) {
+            if (long double value_long_double = data.GetLongDouble(&offset); *byte_size == 4) {
               float value_float = (float)value_long_double;
               value.GetScalar() = value_float;
               success = true;
@@ -517,24 +517,24 @@ ValueObjectSP ABISysV_i386::GetReturnValueObjectSimple(
     // ToDo: Yet to be implemented
   } else if (type_flags & eTypeIsVector) // 'Packed'
   {
-    std::optional<uint64_t> byte_size =
-        llvm::expectedToOptional(return_compiler_type.GetByteSize(&thread));
-    if (byte_size && *byte_size > 0) {
+    
+    if (std::optional<uint64_t> byte_size =
+        llvm::expectedToOptional(return_compiler_type.GetByteSize(&thread)); byte_size && *byte_size > 0) {
       const RegisterInfo *vec_reg = reg_ctx->GetRegisterInfoByName("xmm0", 0);
       if (vec_reg == nullptr)
         vec_reg = reg_ctx->GetRegisterInfoByName("mm0", 0);
 
       if (vec_reg) {
         if (*byte_size <= vec_reg->byte_size) {
-          ProcessSP process_sp(thread.GetProcess());
-          if (process_sp) {
+          
+          if (ProcessSP process_sp(thread.GetProcess()); process_sp) {
             std::unique_ptr<DataBufferHeap> heap_data_up(
                 new DataBufferHeap(*byte_size, 0));
             const ByteOrder byte_order = process_sp->GetByteOrder();
-            RegisterValue reg_value;
-            if (reg_ctx->ReadRegister(vec_reg, reg_value)) {
-              Status error;
-              if (reg_value.GetAsMemoryData(*vec_reg, heap_data_up->GetBytes(),
+            
+            if (RegisterValue reg_value; reg_ctx->ReadRegister(vec_reg, reg_value)) {
+              
+              if (Status error; reg_value.GetAsMemoryData(*vec_reg, heap_data_up->GetBytes(),
                                             heap_data_up->GetByteSize(),
                                             byte_order, error)) {
                 DataExtractor data(DataBufferSP(heap_data_up.release()),
@@ -548,21 +548,21 @@ ValueObjectSP ABISysV_i386::GetReturnValueObjectSimple(
             }
           }
         } else if (*byte_size <= vec_reg->byte_size * 2) {
-          const RegisterInfo *vec_reg2 =
-              reg_ctx->GetRegisterInfoByName("xmm1", 0);
-          if (vec_reg2) {
-            ProcessSP process_sp(thread.GetProcess());
-            if (process_sp) {
+          
+          if (const RegisterInfo *vec_reg2 =
+              reg_ctx->GetRegisterInfoByName("xmm1", 0); vec_reg2) {
+            
+            if (ProcessSP process_sp(thread.GetProcess()); process_sp) {
               std::unique_ptr<DataBufferHeap> heap_data_up(
                   new DataBufferHeap(*byte_size, 0));
               const ByteOrder byte_order = process_sp->GetByteOrder();
               RegisterValue reg_value;
-              RegisterValue reg_value2;
-              if (reg_ctx->ReadRegister(vec_reg, reg_value) &&
+              
+              if (RegisterValue reg_value2; reg_ctx->ReadRegister(vec_reg, reg_value) &&
                   reg_ctx->ReadRegister(vec_reg2, reg_value2)) {
 
-                Status error;
-                if (reg_value.GetAsMemoryData(
+                
+                if (Status error; reg_value.GetAsMemoryData(
                         *vec_reg, heap_data_up->GetBytes(), vec_reg->byte_size,
                         byte_order, error) &&
                     reg_value2.GetAsMemoryData(

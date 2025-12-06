@@ -107,8 +107,8 @@ static std::string format(StringRef NumericLiteral, const FormatStyle &Style) {
   }
 
   if (HasSuffix) {
-    StringRef Suffix = NumericLiteral.drop_front(Info.SuffixPos);
-    if (matchesReservedSuffix(Suffix) || Suffix.front() == '_') {
+    
+    if (StringRef Suffix = NumericLiteral.drop_front(Info.SuffixPos); matchesReservedSuffix(Suffix) || Suffix.front() == '_') {
       // In C++, it is idiomatic, but NOT standardized to define user-defined
       // literals with a leading '_'. Omit user defined literals and standard
       // reserved suffixes from transformation.

@@ -47,13 +47,13 @@ LIBC_INLINE static constexpr float acoshf(float x) {
       tmp = tmp - 0x1.0p-25f;
       return tmp;
     };
-    auto round_result_slightly_up = [](float r) -> float {
+    
+
+    switch (auto round_result_slightly_up = [](float r) -> float {
       volatile float tmp = r;
       tmp = tmp + 0x1.0p-25f;
       return tmp;
-    };
-
-    switch (x_u) {
+    }; x_u) {
     case 0x4f8ffb03: // x = 0x1.1ff606p32f
       return round_result_slightly_up(0x1.6fdd34p4f);
     case 0x5c569e88: // x = 0x1.ad3d1p57f

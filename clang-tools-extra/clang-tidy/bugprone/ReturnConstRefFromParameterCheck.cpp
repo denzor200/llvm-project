@@ -63,8 +63,8 @@ static bool hasSameParameterTypes(const FunctionDecl &FD, const FunctionDecl &O,
     return false;
   for (unsigned I = 0, E = FD.getNumParams(); I < E; ++I) {
     const ParmVarDecl *DPD = FD.getParamDecl(I);
-    const QualType OPT = O.getParamDecl(I)->getType();
-    if (DPD == &PD) {
+    
+    if (const QualType OPT = O.getParamDecl(I)->getType(); DPD == &PD) {
       if (!llvm::isa<RValueReferenceType>(OPT) ||
           !isSameTypeIgnoringConstRef(DPD->getType(), OPT))
         return false;

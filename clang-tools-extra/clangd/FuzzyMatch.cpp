@@ -277,12 +277,12 @@ int FuzzyMatcher::skipPenalty(int W, Action Last) const {
 int FuzzyMatcher::matchBonus(int P, int W, Action Last) const {
   assert(LowPat[P] == LowWord[W]);
   int S = 1;
-  bool IsPatSingleCase =
-      (PatTypeSet == 1 << Lower) || (PatTypeSet == 1 << Upper);
+  
   // Bonus: case matches, or a Head in the pattern aligns with one in the word.
   // Single-case patterns lack segmentation signals and we assume any character
   // can be a head of a segment.
-  if (Pat[P] == Word[W] ||
+  if (bool IsPatSingleCase =
+      (PatTypeSet == 1 << Lower) || (PatTypeSet == 1 << Upper); Pat[P] == Word[W] ||
       (WordRole[W] == Head && (IsPatSingleCase || PatRole[P] == Head)))
     ++S;
   // Bonus: a consecutive match. First character match also gets a bonus to

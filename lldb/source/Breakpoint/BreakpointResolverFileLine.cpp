@@ -141,8 +141,8 @@ void BreakpointResolverFileLine::FilterContexts(SymbolContextList &sc_list) {
 
     SupportFileNSP file_sp = std::make_shared<SupportFile>();
     uint32_t line;
-    const Block *inline_block = sc.block->GetContainingInlinedBlock();
-    if (inline_block) {
+    
+    if (const Block *inline_block = sc.block->GetContainingInlinedBlock(); inline_block) {
       const Declaration &inline_declaration = inline_block->GetInlinedFunctionInfo()->GetDeclaration();
       if (!inline_declaration.IsValid())
         continue;
@@ -257,9 +257,9 @@ void BreakpointResolverFileLine::DeduceSourceMapping(
       if (new_mapping_to.empty())
         new_mapping_to = ".";
     } else {
-      std::optional<llvm::StringRef> new_mapping_to_opt =
-          check_suffix(request_file_dir, sc_file_dir, case_sensitive);
-      if (new_mapping_to_opt) {
+      
+      if (std::optional<llvm::StringRef> new_mapping_to_opt =
+          check_suffix(request_file_dir, sc_file_dir, case_sensitive); new_mapping_to_opt) {
         new_mapping_from = ".";
         llvm::sys::path::append(new_mapping_to, *new_mapping_to_opt);
       }
@@ -304,8 +304,8 @@ Searcher::CallbackReturn BreakpointResolverFileLine::SearchCallback(
 
   const size_t num_comp_units = context.module_sp->GetNumCompileUnits();
   for (size_t i = 0; i < num_comp_units; i++) {
-    CompUnitSP cu_sp(context.module_sp->GetCompileUnitAtIndex(i));
-    if (cu_sp) {
+    
+    if (CompUnitSP cu_sp(context.module_sp->GetCompileUnitAtIndex(i)); cu_sp) {
       if (filter.CompUnitPasses(*cu_sp))
         cu_sp->ResolveSymbolContext(m_location_spec, eSymbolContextEverything,
                                     sc_list, &realpath_prefixes);

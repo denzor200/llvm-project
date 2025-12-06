@@ -239,8 +239,8 @@ void MachODebugMapParser::switchToNewLibDebugMapObject(
   // 1) libName.dylib.dSYM/Contents/Resources/DWARF/libName_debug.dylib
   // 2) libName.dylib.dSYM/Contents/Resources/DWARF/libName.dylib
 
-  size_t libExt = LeafName.rfind(".dylib");
-  if (libExt != StringRef::npos) {
+  
+  if (size_t libExt = LeafName.rfind(".dylib"); libExt != StringRef::npos) {
     if (!VariantSuffix.empty()) {
       VariantLeafName.append(LeafName.substr(0, libExt));
       VariantLeafName.append(VariantSuffix);
@@ -345,8 +345,8 @@ void MachODebugMapParser::handleStabDebugMap(
     const MachOObjectFile &MainBinary,
     std::function<void(uint32_t, uint8_t, uint8_t, uint16_t, uint64_t)> F) {
   for (const SymbolRef &Symbol : MainBinary.symbols()) {
-    const DataRefImpl &DRI = Symbol.getRawDataRefImpl();
-    if (MainBinary.is64Bit())
+    
+    if (const DataRefImpl &DRI = Symbol.getRawDataRefImpl(); MainBinary.is64Bit())
       handleStabDebugMapEntry(MainBinary.getSymbol64TableEntry(DRI), F);
     else
       handleStabDebugMapEntry(MainBinary.getSymbolTableEntry(DRI), F);
@@ -516,8 +516,8 @@ void MachODebugMapParser::dumpSymTabEntry(raw_ostream &OS, uint64_t Index,
      // n_value
      << format_hex_no_prefix(Value, 16);
 
-  const char *Name = &MainBinaryStrings.data()[StringIndex];
-  if (Name && Name[0])
+  
+  if (const char *Name = &MainBinaryStrings.data()[StringIndex]; Name && Name[0])
     OS << " '" << Name << "'";
 
   OS << "\n";
@@ -612,8 +612,8 @@ void MachODebugMapParser::handleStabOSOEntry(
   if (Type != MachO::N_OSO)
     return;
 
-  OSO O(&MainBinaryStrings.data()[StringIndex], Value);
-  if (!OSOs.insert(O).second)
+  
+  if (OSO O(&MainBinaryStrings.data()[StringIndex], Value); !OSOs.insert(O).second)
     Duplicates.insert(O);
 }
 
@@ -697,8 +697,8 @@ void MachODebugMapParser::handleStabSymbolTableEntry(
     if (SeenAliasValues.count(Value) == 0) {
       auto Aliases = getMainBinarySymbolNames(Value);
       for (const auto &Alias : Aliases) {
-        auto It = CurrentObjectAddresses.find(Alias);
-        if (It != CurrentObjectAddresses.end()) {
+        
+        if (auto It = CurrentObjectAddresses.find(Alias); It != CurrentObjectAddresses.end()) {
           auto AliasValue = It->getValue();
           for (const auto &Alias : Aliases)
             CurrentObjectAliasMap[Alias] = AliasValue;
@@ -708,8 +708,8 @@ void MachODebugMapParser::handleStabSymbolTableEntry(
       SeenAliasValues.insert(Value);
     }
 
-    auto AliasIt = CurrentObjectAliasMap.find(Name);
-    if (AliasIt != CurrentObjectAliasMap.end())
+    
+    if (auto AliasIt = CurrentObjectAliasMap.find(Name); AliasIt != CurrentObjectAliasMap.end())
       ObjectSymIt = AliasIt;
   }
 
@@ -718,8 +718,8 @@ void MachODebugMapParser::handleStabSymbolTableEntry(
     for (auto Iter = CurrentObjectAddresses.begin();
          Iter != CurrentObjectAddresses.end(); ++Iter) {
       llvm::StringRef SymbolName = Iter->getKey();
-      auto Pos = SymbolName.rfind(".llvm.");
-      if (Pos != llvm::StringRef::npos && SymbolName.substr(0, Pos) == Name) {
+      
+      if (auto Pos = SymbolName.rfind(".llvm."); Pos != llvm::StringRef::npos && SymbolName.substr(0, Pos) == Name) {
         ObjectSymIt = Iter;
         break;
       }

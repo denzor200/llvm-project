@@ -24,9 +24,9 @@ uint16_t lldb_private::AbridgedToFullTagWord(uint8_t abridged_tw, uint16_t sw,
     tw <<= 2;
     if (abridged_tw & mask) {
       // The register is non-empty, so we need to check the value of ST(i).
-      uint16_t exp =
-          st_regs[st].comp.sign_exp & 0x7fff; // Discard the sign bit.
-      if (exp == 0) {
+      // Discard the sign bit.
+      if (uint16_t exp =
+          st_regs[st].comp.sign_exp & 0x7fff; exp == 0) {
         if (st_regs[st].comp.mantissa == 0)
           tw |= 1; // Zero
         else

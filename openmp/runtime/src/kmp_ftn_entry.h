@@ -764,8 +764,8 @@ int FTN_STDCALL KMP_EXPAND_NAME(FTN_GET_NUM_PROCS)(void) {
   if (!__kmp_affinity.flags.reset) {
     // only bind root here if its affinity reset is not requested
     int gtid = __kmp_entry_gtid();
-    kmp_info_t *thread = __kmp_threads[gtid];
-    if (thread->th.th_team->t.t_level == 0) {
+    
+    if (kmp_info_t *thread = __kmp_threads[gtid]; thread->th.th_team->t.t_level == 0) {
       __kmp_assign_root_init_mask();
     }
   }
@@ -968,8 +968,8 @@ int FTN_STDCALL KMP_EXPAND_NAME(FTN_GET_NUM_PLACES)(void) {
   if (!__kmp_affinity.flags.reset) {
     // only bind root here if its affinity reset is not requested
     int gtid = __kmp_entry_gtid();
-    kmp_info_t *thread = __kmp_threads[gtid];
-    if (thread->th.th_team->t.t_level == 0) {
+    
+    if (kmp_info_t *thread = __kmp_threads[gtid]; thread->th.th_team->t.t_level == 0) {
       __kmp_assign_root_init_mask();
     }
   }
@@ -991,8 +991,8 @@ int FTN_STDCALL KMP_EXPAND_NAME(FTN_GET_PLACE_NUM_PROCS)(int place_num) {
   if (!__kmp_affinity.flags.reset) {
     // only bind root here if its affinity reset is not requested
     int gtid = __kmp_entry_gtid();
-    kmp_info_t *thread = __kmp_threads[gtid];
-    if (thread->th.th_team->t.t_level == 0) {
+    
+    if (kmp_info_t *thread = __kmp_threads[gtid]; thread->th.th_team->t.t_level == 0) {
       __kmp_assign_root_init_mask();
     }
   }
@@ -1024,8 +1024,8 @@ void FTN_STDCALL KMP_EXPAND_NAME(FTN_GET_PLACE_PROC_IDS)(int place_num,
   if (!__kmp_affinity.flags.reset) {
     // only bind root here if its affinity reset is not requested
     int gtid = __kmp_entry_gtid();
-    kmp_info_t *thread = __kmp_threads[gtid];
-    if (thread->th.th_team->t.t_level == 0) {
+    
+    if (kmp_info_t *thread = __kmp_threads[gtid]; thread->th.th_team->t.t_level == 0) {
       __kmp_assign_root_init_mask();
     }
   }
@@ -1562,8 +1562,8 @@ int FTN_STDCALL KMP_EXPAND_NAME(FTN_PAUSE_RESOURCE)(kmp_pause_status_t kind,
   if (device_num == KMP_EXPAND_NAME(FTN_GET_INITIAL_DEVICE)())
     return __kmpc_pause_resource(kind);
   else {
-    int (*fptr)(kmp_pause_status_t, int);
-    if ((*(void **)(&fptr) = KMP_DLSYM("tgt_pause_resource")))
+    
+    if (int (*fptr)(kmp_pause_status_t, int); (*(void **)(&fptr) = KMP_DLSYM("tgt_pause_resource")))
       return (*fptr)(kind, device_num);
     else
       return 1; // just fail if there is no libomptarget

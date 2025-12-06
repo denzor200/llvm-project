@@ -109,9 +109,9 @@ void XCOFFDumper::printAuxMemberHelper(PrintStyle Style, const char *MemberName,
                                        uint16_t AuxSize,
                                        uint16_t &PartialFieldOffset,
                                        const char *&PartialFieldName) {
-  ptrdiff_t Offset = reinterpret_cast<const char *>(&Member) -
-                     reinterpret_cast<const char *>(AuxHeader);
-  if (Offset + sizeof(Member) <= AuxSize) {
+  
+  if (ptrdiff_t Offset = reinterpret_cast<const char *>(&Member) -
+                     reinterpret_cast<const char *>(AuxHeader); Offset + sizeof(Member) <= AuxSize) {
     if (Style == Hex)
       printHex(MemberName, Member);
     else
@@ -309,8 +309,8 @@ void XCOFFDumper::printFileHeader() {
   printHex("Magic:", Obj.getMagic());
   printNumber("NumberOfSections:", Obj.getNumberOfSections());
 
-  int32_t Timestamp = Obj.getTimeStamp();
-  if (Timestamp > 0) {
+  
+  if (int32_t Timestamp = Obj.getTimeStamp(); Timestamp > 0) {
     // This handling of the timestamp assumes that the host system's time_t is
     // compatible with AIX time_t. If a platform is not compatible, the lit
     // tests will let us know.
@@ -338,8 +338,8 @@ void XCOFFDumper::printFileHeader() {
     printNumber("SymbolTableEntries:", Obj.getNumberOfSymbolTableEntries64());
   } else {
     printHex("SymbolTableOffset:", Obj.getSymbolTableOffset32());
-    int32_t SymTabEntries = Obj.getRawNumberOfSymbolTableEntries32();
-    if (SymTabEntries >= 0)
+    
+    if (int32_t SymTabEntries = Obj.getRawNumberOfSymbolTableEntries32(); SymTabEntries >= 0)
       printNumber("SymbolTableEntries:", SymTabEntries);
     else
       printStrHex("SymbolTableEntries:", "Reserved Value", SymTabEntries);

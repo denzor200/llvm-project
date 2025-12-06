@@ -34,13 +34,13 @@ std::optional<Path> getCorrespondingHeaderOrSource(
         return SourceExt.equals_insensitive(PathExt);
       });
 
-  const bool IsHeader =
-      llvm::any_of(HeaderExtensions, [&PathExt](PathRef HeaderExt) {
-        return HeaderExt.equals_insensitive(PathExt);
-      });
+  
 
   // We can only switch between the known extensions.
-  if (!IsSource && !IsHeader)
+  if (const bool IsHeader =
+      llvm::any_of(HeaderExtensions, [&PathExt](PathRef HeaderExt) {
+        return HeaderExt.equals_insensitive(PathExt);
+      }); !IsSource && !IsHeader)
     return std::nullopt;
 
   // Array to lookup extensions for the switch. An opposite of where original

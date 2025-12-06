@@ -163,8 +163,8 @@ static void calcPredicateUsingBooleans(
     bool OneSuccessorDone = false;
     for (int I = 0, E = Outgoing.size() - 1; I != E; ++I) {
       BasicBlock *Out = Outgoing[I];
-      PHINode *Phi = cast<PHINode>(GuardPredicates[Out]);
-      if (Out != Succ0 && Out != Succ1) {
+      
+      if (PHINode *Phi = cast<PHINode>(GuardPredicates[Out]); Out != Succ0 && Out != Succ1) {
         Phi->addIncoming(BoolFalse, BB);
       } else if (!Succ0 || !Succ1 || OneSuccessorDone) {
         // Optimization: When only one successor is an outgoing block,

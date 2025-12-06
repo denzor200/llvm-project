@@ -45,8 +45,8 @@ getInputsOfCluster(const llvm::SmallVector<Operation *, 8> &cluster) {
 
   for (Operation *op : cluster) {
     for (Value operand : op->getOperands()) {
-      Operation *operandOp = operand.getDefiningOp();
-      if (opSet.contains(operandOp)) {
+      
+      if (Operation *operandOp = operand.getDefiningOp(); opSet.contains(operandOp)) {
         // Skip if defining op is in the cluster.
         continue;
       }
@@ -105,8 +105,8 @@ getOrderedClusters(const DenseMap<Value, DenseSet<Operation *>> &clusters,
   // to and construct the new ordered cluster as it traverses.
   DenseMap<Value, SmallVector<Operation *, 8>> orderedClusters;
   funcOp.walk([&](Operation *op) {
-    auto it = op2Shapes.find(op);
-    if (it != op2Shapes.end()) {
+    
+    if (auto it = op2Shapes.find(op); it != op2Shapes.end()) {
       Operation *cOp = it->first;
       for (Value shape : it->second)
         orderedClusters[shape].push_back(cOp);
@@ -262,8 +262,8 @@ OutlineShapeComputationPass::constructClustersForEachShape(
     const std::vector<shape::WithOp> &allWithOps, func::FuncOp funcOp) {
   DenseMap<Value, DenseSet<Operation *>> clusters;
   for (shape::WithOp withOp : allWithOps) {
-    Value shape = withOp.getShape();
-    if (clusters.count(shape) == 0)
+    
+    if (Value shape = withOp.getShape(); clusters.count(shape) == 0)
       getClusterFromValue(shape, clusters);
   }
   return getOrderedClusters(clusters, funcOp);
@@ -289,8 +289,8 @@ void OutlineShapeComputationPass::getClusterFromValue(
     if (onlyUsedByWithShapes.contains(op)) {
       cluster.insert(op);
       for (Value inp : op->getOperands()) {
-        Operation *inpDefOp = inp.getDefiningOp();
-        if (nullptr != inpDefOp && visited.insert(inpDefOp).second)
+        
+        if (Operation *inpDefOp = inp.getDefiningOp(); nullptr != inpDefOp && visited.insert(inpDefOp).second)
           queue.push(inpDefOp);
       }
     }

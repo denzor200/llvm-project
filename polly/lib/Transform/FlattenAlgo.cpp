@@ -321,8 +321,8 @@ isl::union_map polly::flattenSchedule(isl::union_map Schedule) {
   // Fixed dimension; no need to preserve variabledness.
   if (!isVariableDim(Schedule)) {
     POLLY_DEBUG(dbgs() << "Fixed dimension; try sequence flattening\n");
-    auto NewScheduleSequence = tryFlattenSequence(Schedule);
-    if (!NewScheduleSequence.is_null())
+    
+    if (auto NewScheduleSequence = tryFlattenSequence(Schedule); !NewScheduleSequence.is_null())
       return NewScheduleSequence;
   }
 

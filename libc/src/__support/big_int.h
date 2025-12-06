@@ -296,8 +296,8 @@ LIBC_INLINE constexpr cpp::array<word, N> shift(cpp::array<word, N> array,
   for (size_t index = 0; index < N; ++index) {
     const word part1 = safe_get_at(index + index_offset);
     const word part2 = safe_get_at(index + index_offset + 1);
-    word &dst = out[static_cast<unsigned>(at(index))];
-    if (bit_offset == 0)
+    
+    if (word &dst = out[static_cast<unsigned>(at(index))]; bit_offset == 0)
       dst = part1; // no crosstalk between parts.
     else if constexpr (direction == LEFT)
       dst = static_cast<word>((part1 << bit_offset) |
@@ -404,10 +404,10 @@ public:
         }
         // Pretend there are extra words of the correct sign extension as needed
 
-        const WordType extension_bits =
+        
+        if (const WordType extension_bits =
             should_sign_extend ? cpp::numeric_limits<WordType>::max()
-                               : cpp::numeric_limits<WordType>::min();
-        if ((i % WORD_SIZE_RATIO) != 0) {
+                               : cpp::numeric_limits<WordType>::min(); (i % WORD_SIZE_RATIO) != 0) {
           cur_word |= static_cast<WordType>(extension_bits)
                       << (BigIntOther::WORD_SIZE * (i % WORD_SIZE_RATIO));
         }
@@ -955,8 +955,8 @@ private:
     };
     if constexpr (Signed) {
       const bool lhs_is_neg = lhs.is_neg();
-      const bool rhs_is_neg = rhs.is_neg();
-      if (lhs_is_neg != rhs_is_neg)
+      
+      if (const bool rhs_is_neg = rhs.is_neg(); lhs_is_neg != rhs_is_neg)
         return rhs_is_neg ? 1 : -1;
     }
     for (size_t i = WORD_COUNT; i-- > 0;)

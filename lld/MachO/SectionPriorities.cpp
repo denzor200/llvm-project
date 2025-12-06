@@ -299,8 +299,8 @@ void macho::PriorityBuilder::extractCallGraphProfile() {
       assert(entry.fromIndex < obj->symbols.size() &&
              entry.toIndex < obj->symbols.size());
       auto *fromSym = dyn_cast_or_null<Defined>(obj->symbols[entry.fromIndex]);
-      auto *toSym = dyn_cast_or_null<Defined>(obj->symbols[entry.toIndex]);
-      if (fromSym && toSym &&
+      
+      if (auto *toSym = dyn_cast_or_null<Defined>(obj->symbols[entry.toIndex]); fromSym && toSym &&
           (!hasOrderFile ||
            (!getSymbolPriority(fromSym) && !getSymbolPriority(toSym))))
         callGraphProfile[{fromSym->isec(), toSym->isec()}] += entry.count;
@@ -341,8 +341,8 @@ void macho::PriorityBuilder::parseOrderFile(StringRef path) {
 
     constexpr std::array<StringRef, 2> fileEnds = {".o:", ".o):"};
     for (StringRef fileEnd : fileEnds) {
-      size_t pos = line.find(fileEnd);
-      if (pos != StringRef::npos) {
+      
+      if (size_t pos = line.find(fileEnd); pos != StringRef::npos) {
         // Split the string around the colon
         objectFile = line.take_front(pos + fileEnd.size() - 1);
         line = line.drop_front(pos + fileEnd.size());
@@ -354,12 +354,12 @@ void macho::PriorityBuilder::parseOrderFile(StringRef path) {
     // cStringEntryPrefix<cstring hash>
     line = line.trim();
     if (line.consume_front(cStringEntryPrefix)) {
-      uint32_t hash = 0;
-      if (to_integer(line, hash))
+      
+      if (uint32_t hash = 0; to_integer(line, hash))
         cStringPriorities[hash].setPriority(prio, objectFile);
     } else {
-      StringRef symbol = utils::getRootSymbol(line);
-      if (!symbol.empty())
+      
+      if (StringRef symbol = utils::getRootSymbol(line); !symbol.empty())
         priorities[symbol].setPriority(prio, objectFile);
     }
 
@@ -427,11 +427,11 @@ void macho::PriorityBuilder::forEachStringPiece(
         f(*isec, piece, stringPieceIdx);
         continue;
       }
-      uint32_t hash =
+      
+      if (uint32_t hash =
           computeHash
               ? (xxh3_64bits(isec->getStringRef(stringPieceIdx)) & 0x7fffffff)
-              : piece.hash;
-      if (auto priority = getCStringPriority(hash, isec->getFile()))
+              : piece.hash; auto priority = getCStringPriority(hash, isec->getFile()))
         orderedPieces.emplace_back(*priority, isec, stringPieceIdx);
       else
         unorderedPieces.emplace_back(isec, stringPieceIdx);

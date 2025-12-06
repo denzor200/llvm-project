@@ -150,10 +150,10 @@ CXType cxtype::MakeCXType(QualType T, CXTranslationUnit TU) {
       return MakeCXType(PTT->getInnerType(), TU);
     }
 
-    ASTContext &Ctx = cxtu::getASTUnit(TU)->getASTContext();
-    if (Ctx.getLangOpts().ObjC) {
-      QualType UnqualT = T.getUnqualifiedType();
-      if (Ctx.isObjCIdType(UnqualT))
+    
+    if (ASTContext &Ctx = cxtu::getASTUnit(TU)->getASTContext(); Ctx.getLangOpts().ObjC) {
+      
+      if (QualType UnqualT = T.getUnqualifiedType(); Ctx.isObjCIdType(UnqualT))
         TK = CXType_ObjCId;
       else if (Ctx.isObjCClassType(UnqualT))
         TK = CXType_ObjCClass;
@@ -191,9 +191,9 @@ GetTemplateArguments(QualType Type) {
     return Specialization->template_arguments();
 
   if (const auto *RecordDecl = Type->getAsCXXRecordDecl()) {
-    const auto *TemplateDecl =
-      dyn_cast<ClassTemplateSpecializationDecl>(RecordDecl);
-    if (TemplateDecl)
+    
+    if (const auto *TemplateDecl =
+      dyn_cast<ClassTemplateSpecializationDecl>(RecordDecl); TemplateDecl)
       return TemplateDecl->getTemplateArgs().asArray();
   }
 
@@ -351,9 +351,9 @@ CXType clang_getTypedefDeclUnderlyingType(CXCursor C) {
   CXTranslationUnit TU = cxcursor::getCursorTU(C);
 
   if (clang_isDeclaration(C.kind)) {
-    const Decl *D = cxcursor::getCursorDecl(C);
+    
 
-    if (const TypedefNameDecl *TD = dyn_cast_or_null<TypedefNameDecl>(D)) {
+    if (const Decl *D = cxcursor::getCursorDecl(C); const TypedefNameDecl *TD = dyn_cast_or_null<TypedefNameDecl>(D)) {
       QualType T = TD->getUnderlyingType();
       return MakeCXType(T, TU);
     }
@@ -367,9 +367,9 @@ CXType clang_getEnumDeclIntegerType(CXCursor C) {
   CXTranslationUnit TU = cxcursor::getCursorTU(C);
 
   if (clang_isDeclaration(C.kind)) {
-    const Decl *D = cxcursor::getCursorDecl(C);
+    
 
-    if (const EnumDecl *TD = dyn_cast_or_null<EnumDecl>(D)) {
+    if (const Decl *D = cxcursor::getCursorDecl(C); const EnumDecl *TD = dyn_cast_or_null<EnumDecl>(D)) {
       QualType T = TD->getIntegerType();
       return MakeCXType(T, TU);
     }
@@ -382,9 +382,9 @@ long long clang_getEnumConstantDeclValue(CXCursor C) {
   using namespace cxcursor;
 
   if (clang_isDeclaration(C.kind)) {
-    const Decl *D = cxcursor::getCursorDecl(C);
+    
 
-    if (const EnumConstantDecl *TD = dyn_cast_or_null<EnumConstantDecl>(D)) {
+    if (const Decl *D = cxcursor::getCursorDecl(C); const EnumConstantDecl *TD = dyn_cast_or_null<EnumConstantDecl>(D)) {
       return TD->getInitVal().getSExtValue();
     }
   }
@@ -396,9 +396,9 @@ unsigned long long clang_getEnumConstantDeclUnsignedValue(CXCursor C) {
   using namespace cxcursor;
 
   if (clang_isDeclaration(C.kind)) {
-    const Decl *D = cxcursor::getCursorDecl(C);
+    
 
-    if (const EnumConstantDecl *TD = dyn_cast_or_null<EnumConstantDecl>(D)) {
+    if (const Decl *D = cxcursor::getCursorDecl(C); const EnumConstantDecl *TD = dyn_cast_or_null<EnumConstantDecl>(D)) {
       return TD->getInitVal().getZExtValue();
     }
   }
@@ -410,9 +410,9 @@ int clang_getFieldDeclBitWidth(CXCursor C) {
   using namespace cxcursor;
 
   if (clang_isDeclaration(C.kind)) {
-    const Decl *D = getCursorDecl(C);
+    
 
-    if (const FieldDecl *FD = dyn_cast_or_null<FieldDecl>(D)) {
+    if (const Decl *D = getCursorDecl(C); const FieldDecl *FD = dyn_cast_or_null<FieldDecl>(D)) {
       if (FD->isBitField() && !FD->getBitWidth()->isValueDependent())
         return FD->getBitWidthValue();
     }
@@ -466,10 +466,10 @@ unsigned clang_getAddressSpace(CXType CT) {
 
 CXString clang_getTypedefName(CXType CT) {
   QualType T = GetQualType(CT);
-  const TypedefType *TT = T->getAs<TypedefType>();
-  if (TT) {
-    TypedefNameDecl *TD = TT->getDecl();
-    if (TD)
+  
+  if (const TypedefType *TT = T->getAs<TypedefType>(); TT) {
+    
+    if (TypedefNameDecl *TD = TT->getDecl(); TD)
       return cxstring::createDup(TD->getNameAsString().c_str());
   }
   return cxstring::createEmpty();
@@ -761,8 +761,8 @@ CXType clang_getArgType(CXType X, unsigned i) {
     return MakeCXType(QualType(), GetTU(X));
 
   if (const FunctionProtoType *FD = T->getAs<FunctionProtoType>()) {
-    unsigned numParams = FD->getNumParams();
-    if (i >= numParams)
+    
+    if (unsigned numParams = FD->getNumParams(); i >= numParams)
       return MakeCXType(QualType(), GetTU(X));
 
     return MakeCXType(FD->getParamType(i), GetTU(X));
@@ -784,8 +784,8 @@ CXType clang_getResultType(CXType X) {
 
 CXType clang_getCursorResultType(CXCursor C) {
   if (clang_isDeclaration(C.kind)) {
-    const Decl *D = cxcursor::getCursorDecl(C);
-    if (const ObjCMethodDecl *MD = dyn_cast_or_null<ObjCMethodDecl>(D))
+    
+    if (const Decl *D = cxcursor::getCursorDecl(C); const ObjCMethodDecl *MD = dyn_cast_or_null<ObjCMethodDecl>(D))
       return MakeCXType(MD->getReturnType(), cxcursor::getCursorTU(C));
 
     return clang_getResultType(clang_getCursorType(C));
@@ -855,9 +855,9 @@ unsigned clang_isPODType(CXType X) {
 CXType clang_getElementType(CXType CT) {
   QualType ET = QualType();
   QualType T = GetQualType(CT);
-  const Type *TP = T.getTypePtrOrNull();
+  
 
-  if (TP) {
+  if (const Type *TP = T.getTypePtrOrNull(); TP) {
     switch (TP->getTypeClass()) {
     case Type::ConstantArray:
       ET = cast<ConstantArrayType> (TP)->getElementType();
@@ -890,9 +890,9 @@ CXType clang_getElementType(CXType CT) {
 long long clang_getNumElements(CXType CT) {
   long long result = -1;
   QualType T = GetQualType(CT);
-  const Type *TP = T.getTypePtrOrNull();
+  
 
-  if (TP) {
+  if (const Type *TP = T.getTypePtrOrNull(); TP) {
     switch (TP->getTypeClass()) {
     case Type::ConstantArray:
       result = cast<ConstantArrayType> (TP)->getSize().getSExtValue();
@@ -913,9 +913,9 @@ long long clang_getNumElements(CXType CT) {
 CXType clang_getArrayElementType(CXType CT) {
   QualType ET = QualType();
   QualType T = GetQualType(CT);
-  const Type *TP = T.getTypePtrOrNull();
+  
 
-  if (TP) {
+  if (const Type *TP = T.getTypePtrOrNull(); TP) {
     switch (TP->getTypeClass()) {
     case Type::ConstantArray:
       ET = cast<ConstantArrayType> (TP)->getElementType();
@@ -939,9 +939,9 @@ CXType clang_getArrayElementType(CXType CT) {
 long long clang_getArraySize(CXType CT) {
   long long result = -1;
   QualType T = GetQualType(CT);
-  const Type *TP = T.getTypePtrOrNull();
+  
 
-  if (TP) {
+  if (const Type *TP = T.getTypePtrOrNull(); TP) {
     switch (TP->getTypeClass()) {
     case Type::ConstantArray:
       result = cast<ConstantArrayType> (TP)->getSize().getSExtValue();
@@ -984,9 +984,9 @@ CXType clang_Type_getClassType(CXType CT) {
   ASTContext &Ctx = cxtu::getASTUnit(GetTU(CT))->getASTContext();
   QualType ET = QualType();
   QualType T = GetQualType(CT);
-  const Type *TP = T.getTypePtrOrNull();
+  
 
-  if (TP && TP->getTypeClass() == Type::MemberPointer) {
+  if (const Type *TP = T.getTypePtrOrNull(); TP && TP->getTypeClass() == Type::MemberPointer) {
     ET = Ctx.getCanonicalTagType(
         cast<MemberPointerType>(TP)->getMostRecentCXXRecordDecl());
   }
@@ -1038,8 +1038,8 @@ static long long visitRecordForValidation(const RecordDecl *RD) {
     // recurse
     if (const RecordType *ChildType = I->getType()->getAs<RecordType>()) {
       if (const RecordDecl *Child = ChildType->getDecl()) {
-        long long ret = visitRecordForValidation(Child);
-        if (ret < 0)
+        
+        if (long long ret = visitRecordForValidation(Child); ret < 0)
           return ret;
       }
     }
@@ -1077,8 +1077,8 @@ static long long validateFieldParentType(CXCursor PC, CXType PT){
 long long clang_Type_getOffsetOf(CXType PT, const char *S) {
   // check that PT is not incomplete/dependent
   CXCursor PC = clang_getTypeDeclaration(PT);
-  long long Error = validateFieldParentType(PC,PT);
-  if (Error < 0)
+  
+  if (long long Error = validateFieldParentType(PC,PT); Error < 0)
     return Error;
   if (!S)
     return CXTypeLayoutError_InvalidFieldName;
@@ -1124,8 +1124,8 @@ long long clang_Cursor_getOffsetOfField(CXCursor C) {
     // we need to validate the parent type
     CXCursor PC = clang_getCursorSemanticParent(C);
     CXType PT = clang_getCursorType(PC);
-    long long Error = validateFieldParentType(PC,PT);
-    if (Error < 0)
+    
+    if (long long Error = validateFieldParentType(PC,PT); Error < 0)
       return Error;
     // proceed with the offset calculation
     const Decl *D = cxcursor::getCursorDecl(C);
@@ -1147,8 +1147,8 @@ long long clang_getOffsetOfBase(CXCursor Parent, CXCursor Base) {
 
   // we need to validate the parent type
   CXType PT = clang_getCursorType(Parent);
-  long long Error = validateFieldParentType(Parent, PT);
-  if (Error < 0)
+  
+  if (long long Error = validateFieldParentType(Parent, PT); Error < 0)
     return Error;
 
   const CXXRecordDecl *ParentRD =
@@ -1342,9 +1342,9 @@ unsigned clang_Type_visitFields(CXType PT,
 
   for (RecordDecl::field_iterator I = RD->field_begin(), E = RD->field_end();
        I != E; ++I){
-    const FieldDecl *FD = dyn_cast_or_null<FieldDecl>((*I));
+    
     // Callback to the client.
-    switch (visitor(cxcursor::MakeCXCursor(FD, GetTU(PT)), client_data)){
+    switch (const FieldDecl *FD = dyn_cast_or_null<FieldDecl>((*I)); visitor(cxcursor::MakeCXCursor(FD, GetTU(PT)), client_data)){
     case CXVisit_Break:
       return true;
     case CXVisit_Continue:
@@ -1357,8 +1357,8 @@ unsigned clang_Type_visitFields(CXType PT,
 unsigned clang_Cursor_isAnonymous(CXCursor C){
   if (!clang_isDeclaration(C.kind))
     return 0;
-  const Decl *D = cxcursor::getCursorDecl(C);
-  if (const NamespaceDecl *ND = dyn_cast_or_null<NamespaceDecl>(D)) {
+  
+  if (const Decl *D = cxcursor::getCursorDecl(C); const NamespaceDecl *ND = dyn_cast_or_null<NamespaceDecl>(D)) {
     return ND->isAnonymousNamespace();
   } else if (const TagDecl *TD = dyn_cast_or_null<TagDecl>(D)) {
     return TD->getTypedefNameForAnonDecl() == nullptr &&
@@ -1371,8 +1371,8 @@ unsigned clang_Cursor_isAnonymous(CXCursor C){
 unsigned clang_Cursor_isAnonymousRecordDecl(CXCursor C){
   if (!clang_isDeclaration(C.kind))
     return 0;
-  const Decl *D = cxcursor::getCursorDecl(C);
-  if (const RecordDecl *FD = dyn_cast_or_null<RecordDecl>(D))
+  
+  if (const Decl *D = cxcursor::getCursorDecl(C); const RecordDecl *FD = dyn_cast_or_null<RecordDecl>(D))
     return FD->isAnonymousStructOrUnion();
   return 0;
 }

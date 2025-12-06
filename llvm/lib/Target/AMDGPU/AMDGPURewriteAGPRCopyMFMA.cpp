@@ -402,8 +402,8 @@ bool AMDGPURewriteAGPRCopyMFMAImpl::tryFoldCopiesFromAGPR(
       if (!CopyUseMO.readsReg())
         continue;
 
-      MachineInstr &CopyUseMI = *CopyUseMO.getParent();
-      if (isRewriteCandidate(CopyUseMI)) {
+      
+      if (MachineInstr &CopyUseMI = *CopyUseMO.getParent(); isRewriteCandidate(CopyUseMI)) {
         if (tryReassigningMFMAChain(CopyUseMI, CopyDstReg,
                                     VRM.getPhys(CopyDstReg)))
           MadeChange = true;
@@ -476,8 +476,8 @@ void AMDGPURewriteAGPRCopyMFMAImpl::eliminateSpillsOfReassignedVGPRs() const {
     if (!MFI.isSpillSlotObjectIndex(Slot) || MFI.isDeadObjectIndex(Slot))
       continue;
 
-    const TargetRegisterClass *RC = LSS.getIntervalRegClass(Slot);
-    if (TRI.hasVGPRs(RC))
+    
+    if (const TargetRegisterClass *RC = LSS.getIntervalRegClass(Slot); TRI.hasVGPRs(RC))
       StackIntervals.push_back(&LI);
   }
 

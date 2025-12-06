@@ -248,8 +248,8 @@ Status ProcessMinidump::DoDestroy() { return Status(); }
 void ProcessMinidump::RefreshStateAfterStop() {
 
   for (const auto &[_, exception_stream] : m_exceptions_by_tid) {
-    constexpr uint32_t BreakpadDumpRequested = 0xFFFFFFFF;
-    if (exception_stream.ExceptionRecord.ExceptionCode ==
+    
+    if (constexpr uint32_t BreakpadDumpRequested = 0xFFFFFFFF; exception_stream.ExceptionRecord.ExceptionCode ==
         BreakpadDumpRequested) {
       // This "ExceptionCode" value is a sentinel that is sometimes used
       // when generating a dump for a process that hasn't crashed.
@@ -550,8 +550,8 @@ void ProcessMinidump::ReadModuleList() {
       // same UUID. If the base address is different, create a new module. If
       // we don't then we will end up setting the load address of a different
       // ObjectFilePlaceholder and an assertion will fire.
-      auto *objfile = module_sp->GetObjectFile();
-      if (objfile &&
+      
+      if (auto *objfile = module_sp->GetObjectFile(); objfile &&
           objfile->GetPluginName() ==
               ObjectFilePlaceholder::GetPluginNameStatic()) {
         if (((ObjectFilePlaceholder *)objfile)->GetBaseImageAddress() !=
@@ -849,8 +849,8 @@ public:
   Options *GetOptions() override { return &m_option_group; }
 
   void DoExecute(Args &command, CommandReturnObject &result) override {
-    const size_t argc = command.GetArgumentCount();
-    if (argc > 0) {
+    
+    if (const size_t argc = command.GetArgumentCount(); argc > 0) {
       result.AppendErrorWithFormat("'%s' take no arguments, only options",
                                    m_cmd_name.c_str());
       return;
@@ -875,8 +875,8 @@ public:
     }
     auto DumpTextStream = [&](StreamType stream_type,
                               llvm::StringRef label) -> void {
-      auto bytes = minidump.GetStream(stream_type);
-      if (!bytes.empty()) {
+      
+      if (auto bytes = minidump.GetStream(stream_type); !bytes.empty()) {
         if (label.empty())
           label = MinidumpParser::GetStreamTypeAsString(stream_type);
         s.Printf("%s:\n%s\n\n", label.data(), bytes.data());
@@ -884,8 +884,8 @@ public:
     };
     auto DumpBinaryStream = [&](StreamType stream_type,
                                 llvm::StringRef label) -> void {
-      auto bytes = minidump.GetStream(stream_type);
-      if (!bytes.empty()) {
+      
+      if (auto bytes = minidump.GetStream(stream_type); !bytes.empty()) {
         if (label.empty())
           label = MinidumpParser::GetStreamTypeAsString(stream_type);
         s.Printf("%s:\n", label.data());
@@ -921,8 +921,8 @@ public:
       DumpTextStream(StreamType::FacebookAppCustomData,
                      "Facebook App Data");
     if (DumpFacebookBuildID()) {
-      auto bytes = minidump.GetStream(StreamType::FacebookBuildID);
-      if (bytes.size() >= 4) {
+      
+      if (auto bytes = minidump.GetStream(StreamType::FacebookBuildID); bytes.size() >= 4) {
         DataExtractor data(bytes.data(), bytes.size(), eByteOrderLittle,
                            process->GetAddressByteSize());
         lldb::offset_t offset = 0;

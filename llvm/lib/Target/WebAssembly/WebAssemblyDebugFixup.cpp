@@ -90,11 +90,11 @@ bool WebAssemblyDebugFixup::runOnMachineFunction(MachineFunction &MF) {
   for (MachineBasicBlock &MBB : MF) {
     // We may insert into this list.
     for (auto MII = MBB.begin(); MII != MBB.end(); ++MII) {
-      MachineInstr &MI = *MII;
-      if (MI.isDebugValue()) {
-        auto &MO = MI.getOperand(0);
+      
+      if (MachineInstr &MI = *MII; MI.isDebugValue()) {
+        
         // Also check if not a $noreg: likely a DBG_VALUE we just inserted.
-        if (MO.isReg() && MO.getReg().isValid() &&
+        if (auto &MO = MI.getOperand(0); MO.isReg() && MO.getReg().isValid() &&
             MFI.isVRegStackified(MO.getReg())) {
           // Found a DBG_VALUE with a stackified register we will
           // change into a stack operand.

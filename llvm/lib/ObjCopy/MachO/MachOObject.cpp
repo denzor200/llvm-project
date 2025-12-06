@@ -53,8 +53,8 @@ void Object::updateLoadCommandIndexes() {
   static constexpr char TextSegmentName[] = "__TEXT";
   // Update indices of special load commands
   for (size_t Index = 0, Size = LoadCommands.size(); Index < Size; ++Index) {
-    LoadCommand &LC = LoadCommands[Index];
-    switch (LC.MachOLoadCommand.load_command_data.cmd) {
+    
+    switch (LoadCommand &LC = LoadCommands[Index]; LC.MachOLoadCommand.load_command_data.cmd) {
     case MachO::LC_CODE_SIGNATURE:
       CodeSignatureCommandIndex = Index;
       break;
@@ -159,8 +159,8 @@ uint64_t Object::nextAvailableSegmentAddress() const {
       is64Bit() ? sizeof(MachO::mach_header_64) : sizeof(MachO::mach_header);
   uint64_t Addr = HeaderSize + Header.SizeOfCmds;
   for (const LoadCommand &LC : LoadCommands) {
-    const MachO::macho_load_command &MLC = LC.MachOLoadCommand;
-    switch (MLC.load_command_data.cmd) {
+    
+    switch (const MachO::macho_load_command &MLC = LC.MachOLoadCommand; MLC.load_command_data.cmd) {
     case MachO::LC_SEGMENT:
       Addr = std::max(Addr,
                       static_cast<uint64_t>(MLC.segment_command_data.vmaddr) +
@@ -195,8 +195,8 @@ constructSegment(SegmentType &Seg, llvm::MachO::LoadCommandType CmdType,
 
 LoadCommand &Object::addSegment(StringRef SegName, uint64_t SegVMSize) {
   LoadCommand LC;
-  const uint64_t SegVMAddr = nextAvailableSegmentAddress();
-  if (is64Bit())
+  
+  if (const uint64_t SegVMAddr = nextAvailableSegmentAddress(); is64Bit())
     constructSegment(LC.MachOLoadCommand.segment_command_64_data,
                      MachO::LC_SEGMENT_64, SegName, SegVMAddr, SegVMSize);
   else
@@ -214,8 +214,8 @@ static StringRef extractSegmentName(const char *SegName) {
 }
 
 std::optional<StringRef> LoadCommand::getSegmentName() const {
-  const MachO::macho_load_command &MLC = MachOLoadCommand;
-  switch (MLC.load_command_data.cmd) {
+  
+  switch (const MachO::macho_load_command &MLC = MachOLoadCommand; MLC.load_command_data.cmd) {
   case MachO::LC_SEGMENT:
     return extractSegmentName(MLC.segment_command_data.segname);
   case MachO::LC_SEGMENT_64:
@@ -226,8 +226,8 @@ std::optional<StringRef> LoadCommand::getSegmentName() const {
 }
 
 std::optional<uint64_t> LoadCommand::getSegmentVMAddr() const {
-  const MachO::macho_load_command &MLC = MachOLoadCommand;
-  switch (MLC.load_command_data.cmd) {
+  
+  switch (const MachO::macho_load_command &MLC = MachOLoadCommand; MLC.load_command_data.cmd) {
   case MachO::LC_SEGMENT:
     return MLC.segment_command_data.vmaddr;
   case MachO::LC_SEGMENT_64:

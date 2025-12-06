@@ -1011,8 +1011,8 @@ SDValue MSP430TargetLowering::LowerSETCC(SDValue Op, SelectionDAG &DAG) const {
      break;
    }
   EVT VT = Op.getValueType();
-  SDValue One  = DAG.getConstant(1, dl, VT);
-  if (Convert) {
+  
+  if (SDValue One  = DAG.getConstant(1, dl, VT); Convert) {
     SDValue SR = DAG.getCopyFromReg(DAG.getEntryNode(), dl, MSP430::SR,
                                     MVT::i16, Flag);
     if (Shift)
@@ -1341,9 +1341,9 @@ MSP430TargetLowering::EmitShiftInstr(MachineInstr &MI,
 MachineBasicBlock *
 MSP430TargetLowering::EmitInstrWithCustomInserter(MachineInstr &MI,
                                                   MachineBasicBlock *BB) const {
-  unsigned Opc = MI.getOpcode();
+  
 
-  if (Opc == MSP430::Shl8  || Opc == MSP430::Shl16 ||
+  if (unsigned Opc = MI.getOpcode(); Opc == MSP430::Shl8  || Opc == MSP430::Shl16 ||
       Opc == MSP430::Sra8  || Opc == MSP430::Sra16 ||
       Opc == MSP430::Srl8  || Opc == MSP430::Srl16 ||
       Opc == MSP430::Rrcl8 || Opc == MSP430::Rrcl16)

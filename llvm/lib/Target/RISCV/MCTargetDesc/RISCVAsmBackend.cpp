@@ -320,8 +320,8 @@ bool RISCVAsmBackend::relaxAlign(MCFragment &F, unsigned &Size) {
   // firstLinkerRelaxable is the layout order within the subsection, which may
   // be smaller than the section's order. Therefore, alignments in a
   // lower-numbered subsection may be unnecessarily treated as linker-relaxable.
-  auto *Sec = F.getParent();
-  if (F.getLayoutOrder() <= Sec->firstLinkerRelaxable())
+  
+  if (auto *Sec = F.getParent(); F.getLayoutOrder() <= Sec->firstLinkerRelaxable())
     return false;
 
   // Use default handling unless the alignment is larger than the nop size.
@@ -742,8 +742,8 @@ std::optional<bool> RISCVAsmBackend::evaluateFixup(const MCFragment &,
 
     // MCAssembler::evaluateFixup will emit an error for this case when it sees
     // the %pcrel_hi, so don't duplicate it when also seeing the %pcrel_lo.
-    const MCExpr *AUIPCExpr = AUIPCFixup->getValue();
-    if (!AUIPCExpr->evaluateAsRelocatable(AUIPCTarget, Asm))
+    
+    if (const MCExpr *AUIPCExpr = AUIPCFixup->getValue(); !AUIPCExpr->evaluateAsRelocatable(AUIPCTarget, Asm))
       return true;
     break;
   }

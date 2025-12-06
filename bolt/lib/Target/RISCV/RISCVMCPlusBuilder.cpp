@@ -192,8 +192,8 @@ public:
     // 1: auipc xi, %pcrel_hi(sym)
     // jalr zero, %pcrel_lo(1b)(xi)
     if (Instruction.getOpcode() == RISCV::JALR && Begin != End) {
-      MCInst &PrevInst = *std::prev(End);
-      if (isRISCVCall(PrevInst, Instruction) &&
+      
+      if (MCInst &PrevInst = *std::prev(End); isRISCVCall(PrevInst, Instruction) &&
           Instruction.getOperand(0).getReg() == RISCV::X0)
         return IndirectBranchType::POSSIBLE_TAIL_CALL;
     }
@@ -340,8 +340,8 @@ public:
   }
 
   const MCSymbol *getTargetSymbol(const MCExpr *Expr) const override {
-    auto *RISCVExpr = dyn_cast<MCSpecifierExpr>(Expr);
-    if (RISCVExpr && RISCVExpr->getSubExpr())
+    
+    if (auto *RISCVExpr = dyn_cast<MCSpecifierExpr>(Expr); RISCVExpr && RISCVExpr->getSubExpr())
       return getTargetSymbol(RISCVExpr->getSubExpr());
 
     return MCPlusBuilder::getTargetSymbol(Expr);
@@ -772,8 +772,8 @@ public:
   }
 
   void convertIndirectCallToLoad(MCInst &Inst, MCPhysReg Reg) override {
-    bool IsTailCall = isTailCall(Inst);
-    if (IsTailCall)
+    
+    if (bool IsTailCall = isTailCall(Inst); IsTailCall)
       removeAnnotation(Inst, MCPlus::MCAnnotation::kTailCall);
     Inst.setOpcode(RISCV::ADD);
     Inst.insert(Inst.begin(), MCOperand::createReg(Reg));

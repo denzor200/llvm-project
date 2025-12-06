@@ -35,8 +35,8 @@ static StringRef getDefaultHvxLength(StringRef HvxVer) {
 static void handleHVXWarnings(const Driver &D, const ArgList &Args) {
   // Handle the unsupported values passed to mhvx-length.
   if (Arg *A = Args.getLastArg(options::OPT_mhexagon_hvx_length_EQ)) {
-    StringRef Val = A->getValue();
-    if (!Val.equals_insensitive("64b") && !Val.equals_insensitive("128b"))
+    
+    if (StringRef Val = A->getValue(); !Val.equals_insensitive("64b") && !Val.equals_insensitive("128b"))
       D.Diag(diag::err_drv_unsupported_option_argument)
           << A->getSpelling() << Val;
   }
@@ -366,9 +366,9 @@ constructHexagonLinkArgs(Compilation &C, const JobAction &JA,
                               options::OPT_t, options::OPT_u_Group});
     AddLinkerInputs(HTC, Inputs, Args, CmdArgs, JA);
 
-    ToolChain::UnwindLibType UNW = HTC.GetUnwindLibType(Args);
+    
 
-    if (!Args.hasArg(options::OPT_nostdlib, options::OPT_nodefaultlibs)) {
+    if (ToolChain::UnwindLibType UNW = HTC.GetUnwindLibType(Args); !Args.hasArg(options::OPT_nostdlib, options::OPT_nodefaultlibs)) {
       if (NeedsSanitizerDeps) {
         linkSanitizerRuntimeDeps(HTC, Args, CmdArgs);
 
@@ -623,8 +623,8 @@ void HexagonToolChain::AddCXXStdlibLibArgs(const ArgList &Args,
   CXXStdlibType Type = GetCXXStdlibType(Args);
   ToolChain::UnwindLibType UNW = GetUnwindLibType(Args);
   if (UNW != ToolChain::UNW_None && UNW != ToolChain::UNW_CompilerRT) {
-    const Arg *A = Args.getLastArg(options::OPT_unwindlib_EQ);
-    if (A) {
+    
+    if (const Arg *A = Args.getLastArg(options::OPT_unwindlib_EQ); A) {
       getDriver().Diag(diag::err_drv_unsupported_unwind_for_platform)
           << A->getValue() << getTriple().normalize();
       return;
@@ -684,9 +684,9 @@ void HexagonToolChain::addClangTargetOptions(const ArgList &DriverArgs,
                                              ArgStringList &CC1Args,
                                              Action::OffloadKind) const {
 
-  bool UseInitArrayDefault = getTriple().isMusl();
+  
 
-  if (!DriverArgs.hasFlag(options::OPT_fuse_init_array,
+  if (bool UseInitArrayDefault = getTriple().isMusl(); !DriverArgs.hasFlag(options::OPT_fuse_init_array,
                           options::OPT_fno_use_init_array,
                           UseInitArrayDefault))
     CC1Args.push_back("-fno-use-init-array");
@@ -747,8 +747,8 @@ void HexagonToolChain::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
 void HexagonToolChain::addLibCxxIncludePaths(
     const llvm::opt::ArgList &DriverArgs,
     llvm::opt::ArgStringList &CC1Args) const {
-  const Driver &D = getDriver();
-  if (!D.SysRoot.empty() && getTriple().isMusl())
+  
+  if (const Driver &D = getDriver(); !D.SysRoot.empty() && getTriple().isMusl())
     addLibStdCXXIncludePaths(D.SysRoot + "/usr/include/c++/v1", "", "",
                              DriverArgs, CC1Args);
   else if (getTriple().isMusl())

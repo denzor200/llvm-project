@@ -612,8 +612,8 @@ genHTML(const Index &Index, StringRef InfoPath, bool IsOutermostList) {
   std::vector<std::unique_ptr<TagNode>> Out;
   if (!Index.Name.empty()) {
     Out.emplace_back(std::make_unique<TagNode>(HTMLTag::TAG_SPAN));
-    auto &SpanBody = Out.back();
-    if (!Index.JumpToSection)
+    
+    if (auto &SpanBody = Out.back(); !Index.JumpToSection)
       SpanBody->Children.emplace_back(genReference(Index, InfoPath));
     else
       SpanBody->Children.emplace_back(
@@ -639,8 +639,8 @@ static std::unique_ptr<HTMLNode> genHTML(const CommentInfo &I) {
   case CommentKind::CK_FullComment: {
     auto FullComment = std::make_unique<TagNode>(HTMLTag::TAG_DIV);
     for (const auto &Child : I.Children) {
-      std::unique_ptr<HTMLNode> Node = genHTML(*Child);
-      if (Node)
+      
+      if (std::unique_ptr<HTMLNode> Node = genHTML(*Child); Node)
         FullComment->Children.emplace_back(std::move(Node));
     }
     return std::move(FullComment);
@@ -649,8 +649,8 @@ static std::unique_ptr<HTMLNode> genHTML(const CommentInfo &I) {
   case CommentKind::CK_ParagraphComment: {
     auto ParagraphComment = std::make_unique<TagNode>(HTMLTag::TAG_P);
     for (const auto &Child : I.Children) {
-      std::unique_ptr<HTMLNode> Node = genHTML(*Child);
-      if (Node)
+      
+      if (std::unique_ptr<HTMLNode> Node = genHTML(*Child); Node)
         ParagraphComment->Children.emplace_back(std::move(Node));
     }
     if (ParagraphComment->Children.empty())
@@ -663,8 +663,8 @@ static std::unique_ptr<HTMLNode> genHTML(const CommentInfo &I) {
     BlockComment->Children.emplace_back(
         std::make_unique<TagNode>(HTMLTag::TAG_DIV, I.Name));
     for (const auto &Child : I.Children) {
-      std::unique_ptr<HTMLNode> Node = genHTML(*Child);
-      if (Node)
+      
+      if (std::unique_ptr<HTMLNode> Node = genHTML(*Child); Node)
         BlockComment->Children.emplace_back(std::move(Node));
     }
     if (BlockComment->Children.empty())

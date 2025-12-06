@@ -88,10 +88,10 @@ bool llvm::formDedicatedExitBlocks(Loop *L, DominatorTree *DT, LoopInfo *LI,
     if (IsDedicatedExit)
       return false;
 
-    auto *NewExitBB = SplitBlockPredecessors(
-        BB, InLoopPredecessors, ".loopexit", DT, LI, MSSAU, PreserveLCSSA);
+    
 
-    if (!NewExitBB)
+    if (auto *NewExitBB = SplitBlockPredecessors(
+        BB, InLoopPredecessors, ".loopexit", DT, LI, MSSAU, PreserveLCSSA); !NewExitBB)
       LLVM_DEBUG(
           dbgs() << "WARNING: Can't create a dedicated exit block for loop: "
                  << *L << "\n");
@@ -128,8 +128,8 @@ SmallVector<Instruction *, 8> llvm::findDefsUsedOutsideOfLoop(Loop *L) {
     // FIXME: I believe that this could use copy_if if the Inst reference could
     // be adapted into a pointer.
     for (auto &Inst : *Block) {
-      auto Users = Inst.users();
-      if (any_of(Users, [&](User *U) {
+      
+      if (auto Users = Inst.users(); any_of(Users, [&](User *U) {
             auto *Use = cast<Instruction>(U);
             return !L->contains(Use->getParent());
           }))
@@ -216,17 +216,17 @@ void llvm::addStringMetadataToLoop(Loop *TheLoop, const char *StringMD,
                                    unsigned V) {
   SmallVector<Metadata *, 4> MDs(1);
   // If the loop already has metadata, retain it.
-  MDNode *LoopID = TheLoop->getLoopID();
-  if (LoopID) {
+  
+  if (MDNode *LoopID = TheLoop->getLoopID(); LoopID) {
     for (unsigned i = 1, ie = LoopID->getNumOperands(); i < ie; ++i) {
       MDNode *Node = cast<MDNode>(LoopID->getOperand(i));
       // If it is of form key = value, try to parse it.
       if (Node->getNumOperands() == 2) {
-        MDString *S = dyn_cast<MDString>(Node->getOperand(0));
-        if (S && S->getString() == StringMD) {
-          ConstantInt *IntMD =
-              mdconst::extract_or_null<ConstantInt>(Node->getOperand(1));
-          if (IntMD && IntMD->getSExtValue() == V)
+        
+        if (MDString *S = dyn_cast<MDString>(Node->getOperand(0)); S && S->getString() == StringMD) {
+          
+          if (ConstantInt *IntMD =
+              mdconst::extract_or_null<ConstantInt>(Node->getOperand(1)); IntMD && IntMD->getSExtValue() == V)
             // It is already in place. Do nothing.
             return;
           // We need to update the value, so just skip it here and it will
@@ -283,7 +283,9 @@ std::optional<MDNode *> llvm::makeFollowupLoopID(
     for (const MDOperand &Existing : drop_begin(OrigLoopID->operands())) {
       MDNode *Op = cast<MDNode>(Existing.get());
 
-      auto InheritThisAttribute = [InheritSomeAttrs,
+      
+
+      if (auto InheritThisAttribute = [InheritSomeAttrs,
                                    InheritOptionsExceptPrefix](MDNode *Op) {
         if (!InheritSomeAttrs)
           return false;
@@ -298,9 +300,7 @@ std::optional<MDNode *> llvm::makeFollowupLoopID(
 
         // Do not inherit excluded attributes.
         return !AttrName.starts_with(InheritOptionsExceptPrefix);
-      };
-
-      if (InheritThisAttribute(Op))
+      }; InheritThisAttribute(Op))
         MDs.push_back(Op);
       else
         Changed = true;
@@ -453,8 +453,8 @@ SmallVector<BasicBlock *, 16> llvm::collectChildrenInLoop(DominatorTree *DT,
   SmallVector<BasicBlock *, 16> Worklist;
   auto AddRegionToWorklist = [&](DomTreeNode *DTN) {
     // Only include subregions in the top level loop.
-    BasicBlock *BB = DTN->getBlock();
-    if (CurLoop->contains(BB))
+    
+    if (BasicBlock *BB = DTN->getBlock(); CurLoop->contains(BB))
       Worklist.push_back(DTN->getBlock());
   };
 
@@ -1255,8 +1255,8 @@ CmpInst::Predicate llvm::getMinMaxReductionPredicate(RecurKind RK) {
 
 Value *llvm::createMinMaxOp(IRBuilderBase &Builder, RecurKind RK, Value *Left,
                             Value *Right) {
-  Type *Ty = Left->getType();
-  if (Ty->isIntOrIntVectorTy() ||
+  
+  if (Type *Ty = Left->getType(); Ty->isIntOrIntVectorTy() ||
       (RK == RecurKind::FMinNum || RK == RecurKind::FMaxNum ||
        RK == RecurKind::FMinimum || RK == RecurKind::FMaximum ||
        RK == RecurKind::FMinimumNum || RK == RecurKind::FMaximumNum)) {
@@ -1279,10 +1279,10 @@ Value *llvm::getOrderedReduction(IRBuilderBase &Builder, Value *Acc, Value *Src,
   // e.g. ((((Acc + Scl[0]) + Scl[1]) + Scl[2]) + ) ... + Scl[VF-1]
   Value *Result = Acc;
   for (unsigned ExtractIdx = 0; ExtractIdx != VF; ++ExtractIdx) {
-    Value *Ext =
-        Builder.CreateExtractElement(Src, Builder.getInt32(ExtractIdx));
+    
 
-    if (Op != Instruction::ICmp && Op != Instruction::FCmp) {
+    if (Value *Ext =
+        Builder.CreateExtractElement(Src, Builder.getInt32(ExtractIdx)); Op != Instruction::ICmp && Op != Instruction::FCmp) {
       Result = Builder.CreateBinOp((Instruction::BinaryOps)Op, Result, Ext,
                                    "bin.rdx");
     } else {
@@ -1316,8 +1316,8 @@ Value *llvm::getShuffleReduction(IRBuilderBase &Builder, Value *Src,
   auto BuildShuffledOp = [&Builder, &Op,
                           &RdxKind](SmallVectorImpl<int> &ShuffleMask,
                                     Value *&TmpVec) -> void {
-    Value *Shuf = Builder.CreateShuffleVector(TmpVec, ShuffleMask, "rdx.shuf");
-    if (Op != Instruction::ICmp && Op != Instruction::FCmp) {
+    
+    if (Value *Shuf = Builder.CreateShuffleVector(TmpVec, ShuffleMask, "rdx.shuf"); Op != Instruction::ICmp && Op != Instruction::FCmp) {
       TmpVec = Builder.CreateBinOp((Instruction::BinaryOps)Op, TmpVec, Shuf,
                                    "bin.rdx");
     } else {
@@ -1402,8 +1402,8 @@ Value *llvm::createFindLastIVReduction(IRBuilderBase &Builder, Value *Src,
 
 Value *llvm::getReductionIdentity(Intrinsic::ID RdxID, Type *Ty,
                                   FastMathFlags Flags) {
-  bool Negative = false;
-  switch (RdxID) {
+  
+  switch (bool Negative = false; RdxID) {
   default:
     llvm_unreachable("Expecting a reduction intrinsic");
   case Intrinsic::vector_reduce_add:
@@ -1453,11 +1453,11 @@ Value *llvm::getRecurrenceIdentity(RecurKind K, Type *Tp, FastMathFlags FMF) {
 Value *llvm::createSimpleReduction(IRBuilderBase &Builder, Value *Src,
                                    RecurKind RdxKind) {
   auto *SrcVecEltTy = cast<VectorType>(Src->getType())->getElementType();
-  auto getIdentity = [&]() {
+  
+  switch (auto getIdentity = [&]() {
     return getRecurrenceIdentity(RdxKind, SrcVecEltTy,
                                  Builder.getFastMathFlags());
-  };
-  switch (RdxKind) {
+  }; RdxKind) {
   case RecurKind::AddChainWithSubs:
   case RecurKind::Sub:
   case RecurKind::Add:
@@ -1620,8 +1620,8 @@ static bool hasHardUserWithinLoop(const Loop *L, const Instruction *I) {
       return true;
     // Otherwise, add all its users to worklist.
     for (const auto *U : Curr->users()) {
-      auto *UI = cast<Instruction>(U);
-      if (Visited.insert(UI).second)
+      
+      if (auto *UI = cast<Instruction>(U); Visited.insert(UI).second)
         WorkList.push_back(UI);
     }
   }
@@ -1647,9 +1647,9 @@ struct RewritePhi {
 // value. If it is possible, ignore ReplaceExitValue and do rewriting
 // aggressively.
 static bool canLoopBeDeleted(Loop *L, SmallVector<RewritePhi, 8> &RewritePhiSet) {
-  BasicBlock *Preheader = L->getLoopPreheader();
+  
   // If there is no preheader, the loop will not be deleted.
-  if (!Preheader)
+  if (BasicBlock *Preheader = L->getLoopPreheader(); !Preheader)
     return false;
 
   // In LoopDeletion pass Loop can be deleted when ExitingBlocks.size() > 1.
@@ -1673,15 +1673,15 @@ static bool canLoopBeDeleted(Loop *L, SmallVector<RewritePhi, 8> &RewritePhiSet)
     // phase later. Skip it in the loop invariant check below.
     bool found = false;
     for (const RewritePhi &Phi : RewritePhiSet) {
-      unsigned i = Phi.Ith;
-      if (Phi.PN == P && (Phi.PN)->getIncomingValue(i) == Incoming) {
+      
+      if (unsigned i = Phi.Ith; Phi.PN == P && (Phi.PN)->getIncomingValue(i) == Incoming) {
         found = true;
         break;
       }
     }
 
-    Instruction *I;
-    if (!found && (I = dyn_cast<Instruction>(Incoming)))
+    
+    if (Instruction *I; !found && (I = dyn_cast<Instruction>(Incoming)))
       if (!L->hasLoopInvariantOperands(I))
         return false;
 
@@ -1769,8 +1769,8 @@ int llvm::rewriteLoopExitValues(Loop *L, LoopInfo *LI, TargetLibraryInfo *TLI,
         // to do so.
         if (ReplaceExitValue == UnusedIndVarInLoop) {
           InductionDescriptor ID;
-          PHINode *IndPhi = dyn_cast<PHINode>(Inst);
-          if (IndPhi) {
+          
+          if (PHINode *IndPhi = dyn_cast<PHINode>(Inst); IndPhi) {
             if (!checkIsIndPhi(IndPhi, L, SE, ID))
               continue;
             // This is an induction PHI. Check that the only users are PHI
@@ -1778,8 +1778,8 @@ int llvm::rewriteLoopExitValues(Loop *L, LoopInfo *LI, TargetLibraryInfo *TLI,
             if (llvm::any_of(Inst->users(), [&](User *U) {
                   if (!isa<PHINode>(U) && !isa<BinaryOperator>(U))
                     return true;
-                  BinaryOperator *B = dyn_cast<BinaryOperator>(U);
-                  if (B && B != ID.getInductionBinOp())
+                  
+                  if (BinaryOperator *B = dyn_cast<BinaryOperator>(U); B && B != ID.getInductionBinOp())
                     return true;
                   return false;
                 }))
@@ -1791,8 +1791,8 @@ int llvm::rewriteLoopExitValues(Loop *L, LoopInfo *LI, TargetLibraryInfo *TLI,
             if (!B)
               continue;
             if (llvm::any_of(Inst->users(), [&](User *U) {
-                  PHINode *Phi = dyn_cast<PHINode>(U);
-                  if (Phi != PN && !checkIsIndPhi(Phi, L, SE, ID))
+                  
+                  if (PHINode *Phi = dyn_cast<PHINode>(U); Phi != PN && !checkIsIndPhi(Phi, L, SE, ID))
                     return true;
                   return false;
                 }))
@@ -2029,16 +2029,16 @@ static PointerBounds expandBounds(const RuntimeCheckingPtrGroup *CG,
     auto *LowAR = cast<SCEVAddRecExpr>(Low);
     const Loop *OuterLoop = TheLoop->getParentLoop();
     ScalarEvolution &SE = *Exp.getSE();
-    const SCEV *Recur = LowAR->getStepRecurrence(SE);
-    if (Recur == HighAR->getStepRecurrence(SE) &&
+    
+    if (const SCEV *Recur = LowAR->getStepRecurrence(SE); Recur == HighAR->getStepRecurrence(SE) &&
         HighAR->getLoop() == OuterLoop && LowAR->getLoop() == OuterLoop) {
       BasicBlock *OuterLoopLatch = OuterLoop->getLoopLatch();
-      const SCEV *OuterExitCount = SE.getExitCount(OuterLoop, OuterLoopLatch);
-      if (!isa<SCEVCouldNotCompute>(OuterExitCount) &&
+      
+      if (const SCEV *OuterExitCount = SE.getExitCount(OuterLoop, OuterLoopLatch); !isa<SCEVCouldNotCompute>(OuterExitCount) &&
           OuterExitCount->getType()->isIntegerTy()) {
-        const SCEV *NewHigh =
-            cast<SCEVAddRecExpr>(High)->evaluateAtIteration(OuterExitCount, SE);
-        if (!isa<SCEVCouldNotCompute>(NewHigh)) {
+        
+        if (const SCEV *NewHigh =
+            cast<SCEVAddRecExpr>(High)->evaluateAtIteration(OuterExitCount, SE); !isa<SCEVCouldNotCompute>(NewHigh)) {
           LLVM_DEBUG(dbgs() << "LAA: Expanded RT check for range to include "
                                "outer loop in order to permit hoisting\n");
           High = NewHigh;

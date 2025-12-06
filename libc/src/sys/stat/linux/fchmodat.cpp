@@ -20,9 +20,9 @@ namespace LIBC_NAMESPACE_DECL {
 
 LLVM_LIBC_FUNCTION(int, fchmodat,
                    (int dirfd, const char *path, mode_t mode, int flags)) {
-  int ret =
-      LIBC_NAMESPACE::syscall_impl<int>(SYS_fchmodat, dirfd, path, mode, flags);
-  if (ret < 0) {
+  
+  if (int ret =
+      LIBC_NAMESPACE::syscall_impl<int>(SYS_fchmodat, dirfd, path, mode, flags); ret < 0) {
     libc_errno = -ret;
     return -1;
   }

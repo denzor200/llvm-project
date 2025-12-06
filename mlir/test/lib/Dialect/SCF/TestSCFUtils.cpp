@@ -44,8 +44,8 @@ struct TestSCFForUtilsPass
 
     // Annotate every loop-like operation with the static trip count.
     func.walk([&](LoopLikeOpInterface loopOp) {
-      std::optional<APInt> tripCount = loopOp.getStaticTripCount();
-      if (tripCount.has_value())
+      
+      if (std::optional<APInt> tripCount = loopOp.getStaticTripCount(); tripCount.has_value())
         loopOp->setDiscardableAttr(
             "test.trip-count",
             IntegerAttr::get(IntegerType::get(&getContext(),
@@ -157,9 +157,9 @@ struct TestSCFPipeliningPass
     forOp.walk([&schedule](Operation *op) {
       auto attrStage =
           op->getAttrOfType<IntegerAttr>(kTestPipeliningStageMarker);
-      auto attrCycle =
-          op->getAttrOfType<IntegerAttr>(kTestPipeliningOpOrderMarker);
-      if (attrCycle && attrStage) {
+      
+      if (auto attrCycle =
+          op->getAttrOfType<IntegerAttr>(kTestPipeliningOpOrderMarker); attrCycle && attrStage) {
         // TODO: Index can be out-of-bounds if ops of the loop body disappear
         // due to folding.
         schedule[attrCycle.getInt()] =

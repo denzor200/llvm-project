@@ -417,7 +417,7 @@ RelExpr SystemZ::adjustGotPcExpr(RelType type, int64_t addend,
   // Only R_390_GOTENT with addend 2 can be relaxed.
   if (!ctx.arg.relax || addend != 2 || type != R_390_GOTENT)
     return R_GOT_PC;
-  const uint16_t op = read16be(loc - 2);
+  
 
   // lgrl rx,sym@GOTENT -> larl rx, sym
   // This relaxation is legal if "sym" binds locally (which was already
@@ -425,7 +425,7 @@ RelExpr SystemZ::adjustGotPcExpr(RelType type, int64_t addend,
   // LARL instruction.  We cannot verify the latter constraint here, so
   // we assume it is true and revert the decision later on in relaxOnce
   // if necessary.
-  if ((op & 0xff0f) == 0xc408)
+  if (const uint16_t op = read16be(loc - 2); (op & 0xff0f) == 0xc408)
     return R_RELAX_GOT_PC;
 
   return R_GOT_PC;
@@ -444,9 +444,9 @@ bool SystemZ::relaxOnce(int pass) const {
         if (rel.expr != R_RELAX_GOT_PC)
           continue;
 
-        uint64_t v = sec->getRelocTargetVA(
-            ctx, rel, sec->getOutputSection()->addr + rel.offset);
-        if (isInt<33>(v) && !(v & 1))
+        
+        if (uint64_t v = sec->getRelocTargetVA(
+            ctx, rel, sec->getOutputSection()->addr + rel.offset); isInt<33>(v) && !(v & 1))
           continue;
         if (rel.sym->auxIdx == 0) {
           rel.sym->allocateAux(ctx);
@@ -466,10 +466,10 @@ void SystemZ::relaxGot(uint8_t *loc, const Relocation &rel,
          "R_390_GOTENT should not have been relaxed if it overflows");
   assert(!(val & 1) &&
          "R_390_GOTENT should not have been relaxed if it is misaligned");
-  const uint16_t op = read16be(loc - 2);
+  
 
   // lgrl rx,sym@GOTENT -> larl rx, sym
-  if ((op & 0xff0f) == 0xc408) {
+  if (const uint16_t op = read16be(loc - 2); (op & 0xff0f) == 0xc408) {
     write16be(loc - 2, 0xc000 | (op & 0x00f0));
     write32be(loc, val >> 1);
   }

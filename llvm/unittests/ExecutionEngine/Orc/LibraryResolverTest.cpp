@@ -185,8 +185,8 @@ public:
 
       sys::path::append(DylibPath, LibdirName);
       if (!sys::fs::exists(DylibPath)) {
-        auto EC = sys::fs::create_directory(DylibPath);
-        if (EC)
+        
+        if (auto EC = sys::fs::create_directory(DylibPath); EC)
           return;
       }
       sys::path::append(DylibPath, DylibFileName);

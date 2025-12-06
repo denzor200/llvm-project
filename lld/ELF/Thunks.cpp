@@ -1383,8 +1383,8 @@ void PPC32LongThunk::addSymbols(ThunkSection &isec) {
 void PPC32LongThunk::writeTo(uint8_t *buf) {
   auto ha = [](uint32_t v) -> uint16_t { return (v + 0x8000) >> 16; };
   auto lo = [](uint32_t v) -> uint16_t { return v; };
-  uint32_t d = destination.getVA(ctx, addend);
-  if (ctx.arg.isPic) {
+  
+  if (uint32_t d = destination.getVA(ctx, addend); ctx.arg.isPic) {
     uint32_t off = d - (getThunkTargetSym()->getVA(ctx) + 8);
     write32(ctx, buf + 0, 0x7c0802a6);            // mflr r12,0
     write32(ctx, buf + 4, 0x429f0005);            // bcl r20,r31,.+4
@@ -1439,8 +1439,8 @@ void PPC64R2SaveStub::writeTo(uint8_t *buf) {
     write32(ctx, buf + 4, 0x48000000 | (offset & 0x03fffffc)); // b    <offset>
   } else if (isInt<34>(offset)) {
     int nextInstOffset;
-    uint64_t tocOffset = destination.getVA(ctx) - getPPC64TocBase(ctx);
-    if (tocOffset >> 16 > 0) {
+    
+    if (uint64_t tocOffset = destination.getVA(ctx) - getPPC64TocBase(ctx); tocOffset >> 16 > 0) {
       const uint64_t addi = ADDI_R12_TO_R12_NO_DISP | (tocOffset & 0xffff);
       const uint64_t addis =
           ADDIS_R12_TO_R2_NO_DISP | ((tocOffset >> 16) & 0xffff);
@@ -1543,9 +1543,9 @@ static uint64_t getHexagonThunkDestVA(Ctx &ctx, const Symbol &s, int64_t a) {
 
 void HexagonThunk::writeTo(uint8_t *buf) {
   uint64_t s = getHexagonThunkDestVA(ctx, destination, addend);
-  uint64_t p = getThunkTargetSym()->getVA(ctx);
+  
 
-  if (ctx.arg.isPic) {
+  if (uint64_t p = getThunkTargetSym()->getVA(ctx); ctx.arg.isPic) {
     write32(ctx, buf + 0, 0x00004000); // {  immext(#0)
     ctx.target->relocateNoSym(buf, R_HEX_B32_PCREL_X, s - p);
     write32(ctx, buf + 4, 0x6a49c00e); //    r14 = add(pc,##0) }
@@ -1601,9 +1601,9 @@ static std::unique_ptr<Thunk> addThunkAArch64(Ctx &ctx, const InputSection &sec,
 //       Arm->Thumb, as in Arm state no BX PC trick; it doesn't switch state).
 static std::unique_ptr<Thunk> addThunkArmv4(Ctx &ctx, RelType reloc, Symbol &s,
                                             int64_t a) {
-  bool thumb_target = s.getVA(ctx, a) & 1;
+  
 
-  switch (reloc) {
+  switch (bool thumb_target = s.getVA(ctx, a) & 1; reloc) {
   case R_ARM_PC24:
   case R_ARM_PLT32:
   case R_ARM_JUMP24:
@@ -1660,8 +1660,8 @@ static std::unique_ptr<Thunk> addThunkArmv5v6(Ctx &ctx, RelType reloc,
 // - No interworking support is needed (all Thumb).
 static std::unique_ptr<Thunk> addThunkV6M(Ctx &ctx, const InputSection &isec,
                                           RelType reloc, Symbol &s, int64_t a) {
-  const bool isPureCode = isec.getParent()->flags & SHF_ARM_PURECODE;
-  switch (reloc) {
+  
+  switch (const bool isPureCode = isec.getParent()->flags & SHF_ARM_PURECODE; reloc) {
   case R_ARM_THM_JUMP19:
   case R_ARM_THM_JUMP24:
   case R_ARM_THM_CALL:
@@ -1813,9 +1813,9 @@ static std::unique_ptr<Thunk> addThunkPPC64(Ctx &ctx, RelType type, Symbol &s,
 std::unique_ptr<Thunk> elf::addThunk(Ctx &ctx, const InputSection &isec,
                                      Relocation &rel) {
   Symbol &s = *rel.sym;
-  int64_t a = rel.addend;
+  
 
-  switch (ctx.arg.emachine) {
+  switch (int64_t a = rel.addend; ctx.arg.emachine) {
   case EM_AARCH64:
     return addThunkAArch64(ctx, isec, rel.type, s, a);
   case EM_ARM:

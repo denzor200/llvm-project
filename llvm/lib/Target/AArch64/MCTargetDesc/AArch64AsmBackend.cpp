@@ -140,8 +140,8 @@ static unsigned AdrImmBits(unsigned Value) {
 static uint64_t adjustFixupValue(const MCFixup &Fixup, const MCValue &Target,
                                  uint64_t Value, MCContext &Ctx,
                                  const Triple &TheTriple, bool IsResolved) {
-  int64_t SignedValue = static_cast<int64_t>(Value);
-  switch (Fixup.getKind()) {
+  
+  switch (int64_t SignedValue = static_cast<int64_t>(Value); Fixup.getKind()) {
   default:
     llvm_unreachable("Unknown fixup kind!");
   case AArch64::fixup_aarch64_pcrel_adr_imm21:
@@ -431,8 +431,8 @@ void AArch64AsmBackend::applyFixup(const MCFragment &F, const MCFixup &Fixup,
 
   if (Fixup.getKind() == FK_Data_8 && TheTriple.isOSBinFormatELF()) {
     auto RefKind = static_cast<AArch64::Specifier>(Target.getSpecifier());
-    AArch64::Specifier SymLoc = AArch64::getSymbolLoc(RefKind);
-    if (SymLoc == AArch64::S_AUTH || SymLoc == AArch64::S_AUTHADDR) {
+    
+    if (AArch64::Specifier SymLoc = AArch64::getSymbolLoc(RefKind); SymLoc == AArch64::S_AUTH || SymLoc == AArch64::S_AUTHADDR) {
       const auto *Expr = dyn_cast<AArch64AuthMCExpr>(Fixup.getValue());
       if (!Expr) {
         getContext().reportError(Fixup.getValue()->getLoc(),
@@ -599,9 +599,9 @@ public:
     uint64_t CompactUnwindEncoding = 0;
     int64_t CurOffset = 0;
     for (size_t i = 0, e = Instrs.size(); i != e; ++i) {
-      const MCCFIInstruction &Inst = Instrs[i];
+      
 
-      switch (Inst.getOperation()) {
+      switch (const MCCFIInstruction &Inst = Instrs[i]; Inst.getOperation()) {
       default:
         // Cannot handle this directive:  bail out.
         return CU::UNWIND_ARM64_MODE_DWARF;

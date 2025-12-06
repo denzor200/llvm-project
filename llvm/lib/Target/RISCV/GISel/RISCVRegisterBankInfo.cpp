@@ -209,8 +209,8 @@ RISCVRegisterBankInfo::getInstrMapping(const MachineInstr &MI) const {
   // Try the default logic for non-generic instructions that are either copies
   // or already have some operands assigned to banks.
   if (!isPreISelGenericOpcode(Opc) || Opc == TargetOpcode::G_PHI) {
-    const InstructionMapping &Mapping = getInstrMappingImpl(MI);
-    if (Mapping.isValid())
+    
+    if (const InstructionMapping &Mapping = getInstrMappingImpl(MI); Mapping.isValid())
       return Mapping;
   }
 
@@ -373,8 +373,8 @@ RISCVRegisterBankInfo::getInstrMapping(const MachineInstr &MI) const {
       break;
     }
 
-    MachineInstr *DefMI = MRI.getVRegDef(MI.getOperand(0).getReg());
-    if (onlyDefinesFP(*DefMI, MRI, TRI))
+    
+    if (MachineInstr *DefMI = MRI.getVRegDef(MI.getOperand(0).getReg()); onlyDefinesFP(*DefMI, MRI, TRI))
       OpdsMapping[0] = getFPValueMapping(Ty.getSizeInBits());
     break;
   }
@@ -428,8 +428,8 @@ RISCVRegisterBankInfo::getInstrMapping(const MachineInstr &MI) const {
       // integer.
       for (unsigned Idx = 2; Idx < 4; ++Idx) {
         Register VReg = MI.getOperand(Idx).getReg();
-        MachineInstr *DefMI = MRI.getVRegDef(VReg);
-        if (getRegBank(VReg, MRI, TRI) == &RISCV::FPRBRegBank ||
+        
+        if (MachineInstr *DefMI = MRI.getVRegDef(VReg); getRegBank(VReg, MRI, TRI) == &RISCV::FPRBRegBank ||
             onlyDefinesFP(*DefMI, MRI, TRI))
           ++NumFP;
       }
@@ -499,8 +499,8 @@ RISCVRegisterBankInfo::getInstrMapping(const MachineInstr &MI) const {
                                             .getKnownMinValue());
 
     LLT ScalarTy = MRI.getType(MI.getOperand(1).getReg());
-    MachineInstr *DefMI = MRI.getVRegDef(MI.getOperand(1).getReg());
-    if ((GPRSize == 32 && ScalarTy.getSizeInBits() == 64) ||
+    
+    if (MachineInstr *DefMI = MRI.getVRegDef(MI.getOperand(1).getReg()); (GPRSize == 32 && ScalarTy.getSizeInBits() == 64) ||
         onlyDefinesFP(*DefMI, MRI, TRI)) {
       assert(MF.getSubtarget<RISCVSubtarget>().hasStdExtD());
       OpdsMapping[1] = getFPValueMapping(ScalarTy.getSizeInBits());
@@ -509,9 +509,9 @@ RISCVRegisterBankInfo::getInstrMapping(const MachineInstr &MI) const {
     break;
   }
   case TargetOpcode::G_INTRINSIC: {
-    Intrinsic::ID IntrinsicID = cast<GIntrinsic>(MI).getIntrinsicID();
+    
 
-    if (const RISCVVIntrinsicsTable::RISCVVIntrinsicInfo *II =
+    if (Intrinsic::ID IntrinsicID = cast<GIntrinsic>(MI).getIntrinsicID(); const RISCVVIntrinsicsTable::RISCVVIntrinsicInfo *II =
             RISCVVIntrinsicsTable::getRISCVVIntrinsicInfo(IntrinsicID)) {
       unsigned ScalarIdx = -1;
       if (II->hasScalarOperand()) {

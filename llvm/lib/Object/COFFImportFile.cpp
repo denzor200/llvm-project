@@ -775,8 +775,8 @@ Error writeImportLibrary(StringRef ImportName, StringRef Path,
                                              NameType, ExportName, M));
     }
     for (const auto &D : Renames) {
-      auto It = RegularImports.find(D.Export->ImportName);
-      if (It != RegularImports.end()) {
+      
+      if (auto It = RegularImports.find(D.Export->ImportName); It != RegularImports.end()) {
         // We have a regular import entry for a symbol with the name we
         // want to reference; produce an alias pointing at that.
         StringRef Symbol = It->second;

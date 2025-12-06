@@ -64,8 +64,8 @@ void AffineParallelize::runOnOperation() {
   // and control the number of outer parallel loops.
   std::vector<ParallelizationCandidate> parallelizableLoops;
   f.walk<WalkOrder::PreOrder>([&](AffineForOp loop) {
-    SmallVector<LoopReduction> reductions;
-    if (isLoopParallel(loop, parallelReductions ? &reductions : nullptr))
+    
+    if (SmallVector<LoopReduction> reductions; isLoopParallel(loop, parallelReductions ? &reductions : nullptr))
       parallelizableLoops.emplace_back(loop, std::move(reductions));
   });
 

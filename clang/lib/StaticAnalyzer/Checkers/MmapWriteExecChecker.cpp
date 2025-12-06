@@ -52,8 +52,8 @@ void MmapWriteExecChecker::checkASTDecl(const TranslationUnitDecl *TU,
   const std::optional<int> FoundProtRead = tryExpandAsInteger("PROT_READ", PP);
   const std::optional<int> FoundProtWrite =
       tryExpandAsInteger("PROT_WRITE", PP);
-  const std::optional<int> FoundProtExec = tryExpandAsInteger("PROT_EXEC", PP);
-  if (FoundProtRead && FoundProtWrite && FoundProtExec) {
+  
+  if (const std::optional<int> FoundProtExec = tryExpandAsInteger("PROT_EXEC", PP); FoundProtRead && FoundProtWrite && FoundProtExec) {
     ProtRead = *FoundProtRead;
     ProtWrite = *FoundProtWrite;
     ProtExec = *FoundProtExec;

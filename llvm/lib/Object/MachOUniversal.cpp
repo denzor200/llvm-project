@@ -46,8 +46,8 @@ MachOUniversalBinary::ObjectForArch::ObjectForArch(
     clear();
   } else {
     // Parse object header.
-    StringRef ParentData = Parent->getData();
-    if (Parent->getMagic() == MachO::FAT_MAGIC) {
+    
+    if (StringRef ParentData = Parent->getData(); Parent->getMagic() == MachO::FAT_MAGIC) {
       const char *HeaderPos = ParentData.begin() + sizeof(MachO::fat_header) +
                               Index * sizeof(MachO::fat_arch);
       Header = getUniversalBinaryStruct<MachO::fat_arch>(HeaderPos);

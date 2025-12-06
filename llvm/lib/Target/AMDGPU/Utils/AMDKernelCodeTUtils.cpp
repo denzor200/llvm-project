@@ -354,8 +354,8 @@ static ArrayRef<ParseFx> getParserTable() {
 static void printAmdKernelCodeField(const AMDGPUMCKernelCodeT &C, int FldIndex,
                                     raw_ostream &OS, MCContext &Ctx,
                                     AMDGPUMCKernelCodeT::PrintHelper Helper) {
-  auto Printer = getPrinterTable(Helper)[FldIndex];
-  if (Printer)
+  
+  if (auto Printer = getPrinterTable(Helper)[FldIndex]; Printer)
     Printer(get_amd_kernel_code_t_FldNames()[FldIndex + 1], C, OS, Ctx, Helper);
 }
 

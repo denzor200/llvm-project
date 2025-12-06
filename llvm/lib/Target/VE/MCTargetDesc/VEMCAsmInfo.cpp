@@ -97,8 +97,8 @@ VEELFMCAsmInfo::VEELFMCAsmInfo(const Triple &TheTriple) {
 void VEELFMCAsmInfo::printSpecifierExpr(raw_ostream &OS,
                                         const MCSpecifierExpr &Expr) const {
   printExpr(OS, *Expr.getSubExpr());
-  auto specifier = Expr.getSpecifier();
-  if (specifier && specifier != VE::S_REFLONG)
+  
+  if (auto specifier = Expr.getSpecifier(); specifier && specifier != VE::S_REFLONG)
     OS << '@' << getSpecifierName(specifier);
 }
 

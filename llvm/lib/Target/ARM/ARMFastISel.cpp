@@ -396,9 +396,9 @@ Register ARMFastISel::fastEmitInst_i(unsigned MachineInstOpcode,
                                      const TargetRegisterClass *RC,
                                      uint64_t Imm) {
   Register ResultReg = createResultReg(RC);
-  const MCInstrDesc &II = TII.get(MachineInstOpcode);
+  
 
-  if (II.getNumDefs() >= 1) {
+  if (const MCInstrDesc &II = TII.get(MachineInstOpcode); II.getNumDefs() >= 1) {
     AddOptionalDefs(BuildMI(*FuncInfo.MBB, FuncInfo.InsertPt, MIMD, II,
                             ResultReg).addImm(Imm));
   } else {
@@ -498,9 +498,9 @@ Register ARMFastISel::ARMMaterializeInt(const Constant *C, MVT VT) {
   // Use MVN to emit negative constants.
   if (VT == MVT::i32 && Subtarget->hasV6T2Ops() && CI->isNegative()) {
     unsigned Imm = (unsigned)~(CI->getSExtValue());
-    bool UseImm = isThumb2 ? (ARM_AM::getT2SOImmVal(Imm) != -1) :
-      (ARM_AM::getSOImmVal(Imm) != -1);
-    if (UseImm) {
+    
+    if (bool UseImm = isThumb2 ? (ARM_AM::getT2SOImmVal(Imm) != -1) :
+      (ARM_AM::getSOImmVal(Imm) != -1); UseImm) {
       unsigned Opc = isThumb2 ? ARM::t2MVNi : ARM::MVNi;
       const TargetRegisterClass *RC = isThumb2 ? &ARM::rGPRRegClass :
                                                  &ARM::GPRRegClass;
@@ -562,8 +562,8 @@ Register ARMFastISel::ARMMaterializeGV(const GlobalValue *GV, MVT VT) {
 
   // FastISel TLS support on non-MachO is broken, punt to SelectionDAG.
   const GlobalVariable *GVar = dyn_cast<GlobalVariable>(GV);
-  bool IsThreadLocal = GVar && GVar->isThreadLocal();
-  if (!Subtarget->isTargetMachO() && IsThreadLocal)
+  
+  if (bool IsThreadLocal = GVar && GVar->isThreadLocal(); !Subtarget->isTargetMachO() && IsThreadLocal)
     return Register();
 
   bool IsPositionIndependent = isPositionIndependent();
@@ -773,8 +773,8 @@ bool ARMFastISel::ARMComputeAddress(const Value *Obj, Address &Addr) {
       gep_type_iterator GTI = gep_type_begin(U);
       for (User::const_op_iterator i = U->op_begin() + 1, e = U->op_end();
            i != e; ++i, ++GTI) {
-        const Value *Op = *i;
-        if (StructType *STy = GTI.getStructTypeOrNull()) {
+        
+        if (const Value *Op = *i; StructType *STy = GTI.getStructTypeOrNull()) {
           const StructLayout *SL = DL.getStructLayout(STy);
           unsigned Idx = cast<ConstantInt>(Op)->getZExtValue();
           TmpOffset += SL->getElementOffset(Idx);
@@ -1044,8 +1044,8 @@ bool ARMFastISel::SelectLoad(const Instruction *I) {
   if (cast<LoadInst>(I)->isAtomic())
     return false;
 
-  const Value *SV = I->getOperand(0);
-  if (TLI.supportSwiftError()) {
+  
+  if (const Value *SV = I->getOperand(0); TLI.supportSwiftError()) {
     // Swifterror values can come from either a function parameter with
     // swifterror attribute or an alloca with swifterror attribute.
     if (const Argument *Arg = dyn_cast<Argument>(SV)) {
@@ -1298,8 +1298,8 @@ bool ARMFastISel::SelectBranch(const Instruction *I) {
       return true;
     }
   } else if (TruncInst *TI = dyn_cast<TruncInst>(BI->getCondition())) {
-    MVT SourceVT;
-    if (TI->hasOneUse() && TI->getParent() == I->getParent() &&
+    
+    if (MVT SourceVT; TI->hasOneUse() && TI->getParent() == I->getParent() &&
         (isLoadTypeLegal(TI->getOperand(0)->getType(), SourceVT))) {
       unsigned TstOpc = isThumb2 ? ARM::t2TSTri : ARM::TSTri;
       Register OpReg = getRegForValue(TI->getOperand(0));
@@ -1624,8 +1624,8 @@ bool ARMFastISel::SelectFPToI(const Instruction *I, bool isSigned) {
   if (!Subtarget->hasVFP2Base()) return false;
 
   MVT DstVT;
-  Type *RetTy = I->getType();
-  if (!isTypeLegal(RetTy, DstVT))
+  
+  if (Type *RetTy = I->getType(); !isTypeLegal(RetTy, DstVT))
     return false;
 
   Register Op = getRegForValue(I->getOperand(0));
@@ -1735,8 +1735,8 @@ bool ARMFastISel::SelectSelect(const Instruction *I) {
 
 bool ARMFastISel::SelectDiv(const Instruction *I, bool isSigned) {
   MVT VT;
-  Type *Ty = I->getType();
-  if (!isTypeLegal(Ty, VT))
+  
+  if (Type *Ty = I->getType(); !isTypeLegal(Ty, VT))
     return false;
 
   // If we have integer div support we should have selected this automagically.
@@ -1764,8 +1764,8 @@ bool ARMFastISel::SelectDiv(const Instruction *I, bool isSigned) {
 
 bool ARMFastISel::SelectRem(const Instruction *I, bool isSigned) {
   MVT VT;
-  Type *Ty = I->getType();
-  if (!isTypeLegal(Ty, VT))
+  
+  if (Type *Ty = I->getType(); !isTypeLegal(Ty, VT))
     return false;
 
   // Many ABIs do not provide a libcall for standalone remainder, so we need to
@@ -2602,8 +2602,8 @@ bool ARMFastISel::SelectIntrinsicCall(const IntrinsicInst &I) {
     if (isa<ConstantInt>(MTI.getLength()) && isMemCpy) {
       // Small memcpy's are common enough that we want to do them without a call
       // if possible.
-      uint64_t Len = cast<ConstantInt>(MTI.getLength())->getZExtValue();
-      if (ARMIsMemCpySmall(Len)) {
+      
+      if (uint64_t Len = cast<ConstantInt>(MTI.getLength())->getZExtValue(); ARMIsMemCpySmall(Len)) {
         Address Dest, Src;
         if (!ARMComputeAddress(MTI.getRawDest(), Dest) ||
             !ARMComputeAddress(MTI.getRawSource(), Src))
@@ -3083,8 +3083,8 @@ bool ARMFastISel::fastLowerArguments() {
   if (F->isVarArg())
     return false;
 
-  CallingConv::ID CC = F->getCallingConv();
-  switch (CC) {
+  
+  switch (CallingConv::ID CC = F->getCallingConv(); CC) {
   default:
     return false;
   case CallingConv::Fast:

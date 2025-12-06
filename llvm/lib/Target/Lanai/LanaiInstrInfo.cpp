@@ -109,8 +109,8 @@ bool LanaiInstrInfo::areMemAccessesTriviallyDisjoint(
     if (BaseOpA->isIdenticalTo(*BaseOpB)) {
       int LowOffset = std::min(OffsetA, OffsetB);
       int HighOffset = std::max(OffsetA, OffsetB);
-      LocationSize LowWidth = (LowOffset == OffsetA) ? WidthA : WidthB;
-      if (LowWidth.hasValue() &&
+      
+      if (LocationSize LowWidth = (LowOffset == OffsetA) ? WidthA : WidthB; LowWidth.hasValue() &&
           LowOffset + (int)LowWidth.getValue() <= HighOffset)
         return true;
     }
@@ -321,9 +321,9 @@ bool LanaiInstrInfo::optimizeCompareInstr(
   // instruction we want to change while searching for Sub.
   const TargetRegisterInfo *TRI = &getRegisterInfo();
   for (--I; I != E; --I) {
-    const MachineInstr &Instr = *I;
+    
 
-    if (Instr.modifiesRegister(Lanai::SR, TRI) ||
+    if (const MachineInstr &Instr = *I; Instr.modifiesRegister(Lanai::SR, TRI) ||
         Instr.readsRegister(Lanai::SR, TRI))
       // This instruction modifies or uses SR after the one we want to change.
       // We can't do this transformation.
@@ -613,8 +613,8 @@ bool LanaiInstrInfo::analyzeBranch(MachineBasicBlock &MBB,
     }
 
     // Handle conditional branches
-    unsigned Opcode = Instruction->getOpcode();
-    if (Opcode != Lanai::BRCC)
+    
+    if (unsigned Opcode = Instruction->getOpcode(); Opcode != Lanai::BRCC)
       return true; // Unknown opcode.
 
     // Multiple conditional branches are not handled here so only proceed if

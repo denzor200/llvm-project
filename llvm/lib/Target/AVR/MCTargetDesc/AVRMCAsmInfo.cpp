@@ -182,8 +182,8 @@ bool AVRMCAsmInfo::evaluateAsRelocatableImpl(const MCSpecifierExpr &Expr,
                                              const MCAssembler *Asm) const {
   auto &E = static_cast<const AVRMCExpr &>(Expr);
   MCValue Value;
-  bool isRelocatable = E.getSubExpr()->evaluateAsRelocatable(Value, Asm);
-  if (!isRelocatable)
+  
+  if (bool isRelocatable = E.getSubExpr()->evaluateAsRelocatable(Value, Asm); !isRelocatable)
     return false;
 
   if (Value.isAbsolute()) {
@@ -209,8 +209,8 @@ bool AVRMCAsmInfo::evaluateAsRelocatableImpl(const MCSpecifierExpr &Expr,
 
 bool AVRMCExpr::evaluateAsConstant(int64_t &Result) const {
   MCValue Value;
-  bool isRelocatable = getSubExpr()->evaluateAsRelocatable(Value, nullptr);
-  if (!isRelocatable)
+  
+  if (bool isRelocatable = getSubExpr()->evaluateAsRelocatable(Value, nullptr); !isRelocatable)
     return false;
 
   if (Value.isAbsolute()) {

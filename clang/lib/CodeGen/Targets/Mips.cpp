@@ -134,9 +134,9 @@ void MipsABIInfo::CoerceToIntArgs(
     ArgList.push_back(IntTy);
 
   // If necessary, add one more integer type to ArgList.
-  unsigned R = TySize % (MinABIStackAlignInBytes * 8);
+  
 
-  if (R)
+  if (unsigned R = TySize % (MinABIStackAlignInBytes * 8); R)
     ArgList.push_back(llvm::IntegerType::get(getVMContext(), R));
 }
 
@@ -174,9 +174,9 @@ llvm::Type* MipsABIInfo::HandleAggregates(QualType Ty, uint64_t TySize) const {
   for (RecordDecl::field_iterator i = RD->field_begin(), e = RD->field_end();
        i != e; ++i, ++idx) {
     const QualType Ty = i->getType();
-    const BuiltinType *BT = Ty->getAs<BuiltinType>();
+    
 
-    if (!BT || BT->getKind() != BuiltinType::Double)
+    if (const BuiltinType *BT = Ty->getAs<BuiltinType>(); !BT || BT->getKind() != BuiltinType::Double)
       continue;
 
     uint64_t Offset = Layout.getFieldOffset(idx);
@@ -267,7 +267,7 @@ MipsABIInfo::returnAggregateInRegs(QualType RetTy, uint64_t Size) const {
   if (RT && RT->isStructureOrClassType()) {
     const RecordDecl *RD = RT->getDecl()->getDefinitionOrSelf();
     const ASTRecordLayout &Layout = getContext().getASTRecordLayout(RD);
-    unsigned FieldCnt = Layout.getFieldCount();
+    
 
     // N32/64 returns struct/classes in floating point registers if the
     // following conditions are met:
@@ -278,7 +278,7 @@ MipsABIInfo::returnAggregateInRegs(QualType RetTy, uint64_t Size) const {
     //
     // Any other composite results are returned in integer registers.
     //
-    if (FieldCnt && (FieldCnt <= 2) && !Layout.getFieldOffset(0)) {
+    if (unsigned FieldCnt = Layout.getFieldCount(); FieldCnt && (FieldCnt <= 2) && !Layout.getFieldOffset(0)) {
       RecordDecl::field_iterator b = RD->field_begin(), e = RD->field_end();
       for (; b != e; ++b) {
         const BuiltinType *BT = b->getType()->getAs<BuiltinType>();
@@ -414,10 +414,10 @@ RValue MipsABIInfo::EmitVAArg(CodeGenFunction &CGF, Address VAListAddr,
 }
 
 ABIArgInfo MipsABIInfo::extendType(QualType Ty) const {
-  int TySize = getContext().getTypeSize(Ty);
+  
 
   // MIPS64 ABI requires unsigned 32 bit integers to be sign extended.
-  if (Ty->isUnsignedIntegerOrEnumerationType() && TySize == 32)
+  if (int TySize = getContext().getTypeSize(Ty); Ty->isUnsignedIntegerOrEnumerationType() && TySize == 32)
     return ABIArgInfo::getSignExtend(Ty);
 
   return ABIArgInfo::getExtend(Ty);

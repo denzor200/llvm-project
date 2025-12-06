@@ -111,9 +111,9 @@ static MaskFormat getMaskFormat(Value mask) {
     auto maskOperands = m.getOperands();
     for (Value operand : maskOperands) {
       if (auto constantOp = operand.getDefiningOp<arith::ConstantOp>()) {
-        int64_t dimSize =
-            llvm::cast<IntegerAttr>(constantOp.getValue()).getInt();
-        if (dimSize <= 0)
+        
+        if (int64_t dimSize =
+            llvm::cast<IntegerAttr>(constantOp.getValue()).getInt(); dimSize <= 0)
           return MaskFormat::AllFalse;
       }
     }
@@ -213,8 +213,8 @@ static bool isSplatWriteConsistentWithMaskedRead(vector::TransferWriteOp write,
   // or has the same mask. Note this does not allow the case where the write is
   // masked and the read is unmasked, as then the read could be of more elements
   // than the write (which may not be the same value).
-  bool couldBeSameSplat = readMask && (!writeMask || writeMask == readMask);
-  if (!couldBeSameSplat)
+  
+  if (bool couldBeSameSplat = readMask && (!writeMask || writeMask == readMask); !couldBeSameSplat)
     return false;
   // Check for constant splat (as the source of the write).
   DenseElementsAttr splatAttr;
@@ -259,9 +259,9 @@ bool mlir::vector::isDisjointTransferIndices(
     Value indexA = transferA.getIndices()[i];
     Value indexB = transferB.getIndices()[i];
     std::optional<int64_t> cstIndexA = getConstantIntValue(indexA);
-    std::optional<int64_t> cstIndexB = getConstantIntValue(indexB);
+    
 
-    if (i < rankOffset) {
+    if (std::optional<int64_t> cstIndexB = getConstantIntValue(indexB); i < rankOffset) {
       // For leading dimensions, if we can prove that index are different we
       // know we are accessing disjoint slices.
       if (cstIndexA.has_value() && cstIndexB.has_value()) {
@@ -287,8 +287,8 @@ bool mlir::vector::isDisjointTransferIndices(
       // the intervals accessed don't overlap.
       int64_t vectorDim = transferA.getVectorType().getDimSize(i - rankOffset);
       if (cstIndexA.has_value() && cstIndexB.has_value()) {
-        int64_t distance = std::abs(*cstIndexA - *cstIndexB);
-        if (distance >= vectorDim)
+        
+        if (int64_t distance = std::abs(*cstIndexA - *cstIndexB); distance >= vectorDim)
           return true;
         continue;
       }
@@ -998,8 +998,8 @@ static LogicalResult verifyOutputShape(
       VectorType v = pair.first;
       auto map = pair.second;
       for (unsigned idx = 0, e = v.getRank(); idx < e; ++idx) {
-        unsigned pos = map.getDimPosition(idx);
-        if (!extents[pos])
+        
+        if (unsigned pos = map.getDimPosition(idx); !extents[pos])
           extents[pos] = getAffineConstantExpr(v.getShape()[idx], ctx);
       }
     }
@@ -1380,8 +1380,8 @@ LogicalResult vector::ExtractOp::verify() {
         "expected position attribute of rank no greater than vector rank");
   for (auto [idx, pos] : llvm::enumerate(position)) {
     if (auto attr = dyn_cast<Attribute>(pos)) {
-      int64_t constIdx = cast<IntegerAttr>(attr).getInt();
-      if (!isValidPositiveIndexOrPoison(
+      
+      if (int64_t constIdx = cast<IntegerAttr>(attr).getInt(); !isValidPositiveIndexOrPoison(
               constIdx, kPoisonIndex, getSourceVectorType().getDimSize(idx))) {
         return emitOpError("expected position attribute #")
                << (idx + 1)
@@ -1900,8 +1900,8 @@ static Value foldExtractFromExtractStrided(ExtractOp extractOp) {
   auto sliceOffsets =
       extractVector<int64_t>(extractStridedSliceOp.getOffsets());
   while (!sliceOffsets.empty()) {
-    size_t lastOffset = sliceOffsets.size() - 1;
-    if (sliceOffsets.back() != 0 ||
+    
+    if (size_t lastOffset = sliceOffsets.size() - 1; sliceOffsets.back() != 0 ||
         extractStridedSliceOp.getType().getDimSize(lastOffset) !=
             extractStridedSliceOp.getSourceVectorType().getDimSize(lastOffset))
       break;
@@ -1968,9 +1968,9 @@ static Value foldExtractStridedOpFromInsertChain(ExtractOp extractOp) {
               ? 1
               : insertOp.getSourceVectorType().getDimSize(dim - insertRankDiff);
       int64_t end = start + size;
-      int64_t offset = extractOffsets[dim];
+      
       // Check if the start of the extract offset is in the interval inserted.
-      if (start <= offset && offset < end) {
+      if (int64_t offset = extractOffsets[dim]; start <= offset && offset < end) {
         if (dim >= insertRankDiff)
           offsetDiffs.push_back(offset - start);
         continue;
@@ -2071,10 +2071,10 @@ static Value extractInsertFoldConstantOp(OpType op, AdaptorType adaptor,
     Attribute positionAttr = dynamicPositionAttr[index];
     Value position = dynamicPosition[index++];
     if (auto attr = mlir::dyn_cast_if_present<IntegerAttr>(positionAttr)) {
-      int64_t value = attr.getInt();
+      
       // Do not fold if the value is out of bounds (-1 signifies a poison
       // value rather than OOB index).
-      if (value >= -1 && value < vectorShape[i]) {
+      if (int64_t value = attr.getInt(); value >= -1 && value < vectorShape[i]) {
         staticPosition[i] = attr.getInt();
         opChange = true;
         continue;
@@ -3098,16 +3098,16 @@ LogicalResult ShuffleOp::verify() {
   int64_t v1Rank = v1Type.getRank();
   int64_t v2Rank = v2Type.getRank();
   bool wellFormed0DCase = v1Rank == 0 && v2Rank == 0 && resRank == 1;
-  bool wellFormedNDCase = v1Rank == resRank && v2Rank == resRank;
-  if (!wellFormed0DCase && !wellFormedNDCase)
+  
+  if (bool wellFormedNDCase = v1Rank == resRank && v2Rank == resRank; !wellFormed0DCase && !wellFormedNDCase)
     return emitOpError("rank mismatch");
 
   // Verify all but leading dimension sizes.
   for (int64_t r = 1; r < v1Rank; ++r) {
     int64_t resDim = resultType.getDimSize(r);
     int64_t v1Dim = v1Type.getDimSize(r);
-    int64_t v2Dim = v2Type.getDimSize(r);
-    if (resDim != v1Dim || v1Dim != v2Dim)
+    
+    if (int64_t v2Dim = v2Type.getDimSize(r); resDim != v1Dim || v1Dim != v2Dim)
       return emitOpError("dimension mismatch");
   }
   // Verify mask length.
@@ -3326,8 +3326,8 @@ public:
     int64_t resultVectorSize = resultType.getNumElements();
     for (int i = 0, e = resultVectorSize / 2; i < e; ++i) {
       int64_t maskValueA = shuffleMask[i * 2];
-      int64_t maskValueB = shuffleMask[(i * 2) + 1];
-      if (maskValueA != i || maskValueB != (resultVectorSize / 2) + i)
+      
+      if (int64_t maskValueB = shuffleMask[(i * 2) + 1]; maskValueA != i || maskValueB != (resultVectorSize / 2) + i)
         return rewriter.notifyMatchFailure(op,
                                            "ShuffleOp mask not interleaving");
     }
@@ -3414,8 +3414,8 @@ LogicalResult InsertOp::verify() {
         "expected position attribute rank to match the dest vector rank");
   for (auto [idx, pos] : llvm::enumerate(position)) {
     if (auto attr = dyn_cast<Attribute>(pos)) {
-      int64_t constIdx = cast<IntegerAttr>(attr).getInt();
-      if (!isValidPositiveIndexOrPoison(constIdx, kPoisonIndex,
+      
+      if (int64_t constIdx = cast<IntegerAttr>(attr).getInt(); !isValidPositiveIndexOrPoison(constIdx, kPoisonIndex,
                                         destVectorType.getDimSize(idx))) {
         return emitOpError("expected position attribute #")
                << (idx + 1)
@@ -3849,8 +3849,8 @@ LogicalResult InsertStridedSliceOp::verify() {
     }
     if (sourceVectorType.getScalableDims()[idx]) {
       auto sourceSize = sourceShape[idx];
-      auto destSize = destShape[idx + rankDiff];
-      if (sourceSize != destSize) {
+      
+      if (auto destSize = destShape[idx + rankDiff]; sourceSize != destSize) {
         return emitOpError("expected size at idx=")
                << idx
                << (" to match the corresponding base size from the input "
@@ -4208,8 +4208,8 @@ LogicalResult ExtractStridedSliceOp::verify() {
   for (unsigned idx = 0; idx < sizes.size(); ++idx) {
     if (type.getScalableDims()[idx]) {
       auto inputDim = type.getShape()[idx];
-      auto inputSize = llvm::cast<IntegerAttr>(sizes[idx]).getInt();
-      if (inputDim != inputSize)
+      
+      if (auto inputSize = llvm::cast<IntegerAttr>(sizes[idx]).getInt(); inputDim != inputSize)
         return emitOpError("expected size at idx=")
                << idx
                << (" to match the corresponding base size from the input "
@@ -4253,9 +4253,9 @@ foldExtractStridedOpFromInsertChain(ExtractStridedSliceOp op) {
       int64_t start = getElement(insertOffsets, dim);
       int64_t end = start + insertOp.getSourceVectorType().getDimSize(dim);
       int64_t offset = getElement(extractOffsets, dim);
-      int64_t size = getElement(extractSizes, dim);
+      
       // Check if the start of the extract offset is in the interval inserted.
-      if (start <= offset && offset < end) {
+      if (int64_t size = getElement(extractSizes, dim); start <= offset && offset < end) {
         // If the extract interval overlaps but is not fully included we may
         // have a partial overlap that will prevent any folding.
         if (offset + size > end)
@@ -4905,8 +4905,8 @@ ParseResult TransferReadOp::parse(OpAsmParser &parser, OperationState &result) {
     }
     // Instead of adding the mask type as an op type, compute it based on the
     // vector type and the permutation map (to keep the type signature small).
-    auto maskType = inferTransferOpMaskType(vectorType, permMap);
-    if (parser.resolveOperand(maskInfo, maskType, result.operands))
+    
+    if (auto maskType = inferTransferOpMaskType(vectorType, permMap); parser.resolveOperand(maskInfo, maskType, result.operands))
       return failure();
   }
   result.addAttribute(TransferReadOp::getOperandSegmentSizeAttr(),
@@ -5029,9 +5029,9 @@ static LogicalResult foldTransferInBoundsAttribute(TransferOp op) {
   // 2. Handle broadcast dims
   // If all non-broadcast dims are "in bounds", then all bcast dims should be
   // "in bounds" as well.
-  bool allNonBcastDimsInBounds = llvm::all_of(
-      nonBcastDims, [&newInBounds](unsigned idx) { return newInBounds[idx]; });
-  if (allNonBcastDimsInBounds) {
+  
+  if (bool allNonBcastDimsInBounds = llvm::all_of(
+      nonBcastDims, [&newInBounds](unsigned idx) { return newInBounds[idx]; }); allNonBcastDimsInBounds) {
     for (size_t idx : permutationMap.getBroadcastDims()) {
       changed |= !newInBounds[idx];
       newInBounds[idx] = true;
@@ -5346,8 +5346,8 @@ ParseResult TransferWriteOp::parse(OpAsmParser &parser,
                               "expected the same rank for the vector and the "
                               "results of the permutation map");
     }
-    auto maskType = inferTransferOpMaskType(vectorType, permMap);
-    if (parser.resolveOperand(maskInfo, maskType, result.operands))
+    
+    if (auto maskType = inferTransferOpMaskType(vectorType, permMap); parser.resolveOperand(maskInfo, maskType, result.operands))
       return failure();
   }
   result.addAttribute(TransferWriteOp::getOperandSegmentSizeAttr(),
@@ -6417,8 +6417,8 @@ public:
       // Check every mask dim size to see whether it can be dropped
       for (size_t i = numMaskOperands - 1; i >= numMaskOperands - numDimsToDrop;
            --i) {
-        auto constant = maskOperands[i].getDefiningOp<arith::ConstantIndexOp>();
-        if (!constant || (constant.value() != 1))
+        
+        if (auto constant = maskOperands[i].getDefiningOp<arith::ConstantIndexOp>(); !constant || (constant.value() != 1))
           return failure();
       }
       SmallVector<Value> newMaskOperands =
@@ -6565,10 +6565,10 @@ OpFoldResult BitCastOp::fold(FoldAdaptor adaptor) {
 
   if (auto floatPack = llvm::dyn_cast<DenseFPElementsAttr>(sourceConstant)) {
     if (floatPack.isSplat()) {
-      auto splat = floatPack.getSplatValue<FloatAttr>();
+      
 
       // Casting fp16 into fp32.
-      if (srcElemType.isF16() && dstElemType.isF32()) {
+      if (auto splat = floatPack.getSplatValue<FloatAttr>(); srcElemType.isF16() && dstElemType.isF32()) {
         uint32_t bits = static_cast<uint32_t>(
             splat.getValue().bitcastToAPInt().getZExtValue());
         // Duplicate the 16-bit pattern.
@@ -6582,14 +6582,14 @@ OpFoldResult BitCastOp::fold(FoldAdaptor adaptor) {
 
   if (auto intPack = llvm::dyn_cast<DenseIntElementsAttr>(sourceConstant)) {
     if (intPack.isSplat()) {
-      auto splat = intPack.getSplatValue<IntegerAttr>();
+      
 
-      if (llvm::isa<IntegerType>(dstElemType)) {
+      if (auto splat = intPack.getSplatValue<IntegerAttr>(); llvm::isa<IntegerType>(dstElemType)) {
         uint64_t srcBitWidth = srcElemType.getIntOrFloatBitWidth();
-        uint64_t dstBitWidth = dstElemType.getIntOrFloatBitWidth();
+        
 
         // Casting to a larger integer bit width.
-        if (dstBitWidth > srcBitWidth && dstBitWidth % srcBitWidth == 0) {
+        if (uint64_t dstBitWidth = dstElemType.getIntOrFloatBitWidth(); dstBitWidth > srcBitWidth && dstBitWidth % srcBitWidth == 0) {
           APInt intBits = splat.getValue().zext(dstBitWidth);
 
           // Duplicate the lower width element.
@@ -6978,8 +6978,8 @@ public:
     for (int inputIndex = 0; inputIndex < inputRank; ++inputIndex) {
       bool notOne = inputShape[inputIndex] != 1;
       bool prevNotOne = (inputIndex != 0 && inputShape[inputIndex - 1] != 1);
-      bool groupEndFound = notOne || prevNotOne;
-      if (groupEndFound) {
+      
+      if (bool groupEndFound = notOne || prevNotOne; groupEndFound) {
         int high = inputIndex + deltaRank;
         // Return failure if not all permutation destinations for indices in
         // [low, high) are in [low, high), i.e. the permutation is not local to
@@ -7323,8 +7323,8 @@ void mlir::vector::MaskOp::print(OpAsmPrinter &p) {
 
   // Print single masked operation and skip terminator.
   p << " { ";
-  Block *singleBlock = &getMaskRegion().getBlocks().front();
-  if (singleBlock && !singleBlock->getOperations().empty())
+  
+  if (Block *singleBlock = &getMaskRegion().getBlocks().front(); singleBlock && !singleBlock->getOperations().empty())
     p.printCustomOrGenericOp(&singleBlock->front());
   p << " }";
 

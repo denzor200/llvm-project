@@ -350,8 +350,8 @@ Error WindowsResourceParser::parse(WindowsResource *WR,
   while (!End) {
 
     TreeNode *Node;
-    bool IsNewNode = Root.addEntry(Entry, Origin, Data, StringTable, Node);
-    if (!IsNewNode) {
+    
+    if (bool IsNewNode = Root.addEntry(Entry, Origin, Data, StringTable, Node); !IsNewNode) {
       if (!shouldIgnoreDuplicate(Entry))
         Duplicates.push_back(makeDuplicateResourceError(
             Entry, InputFilenames[Node->Origin], WR->getFileName()));
@@ -521,8 +521,8 @@ bool WindowsResourceParser::TreeNode::addDataChild(
 
 WindowsResourceParser::TreeNode &WindowsResourceParser::TreeNode::addIDChild(
     uint32_t ID) {
-  auto Child = IDChildren.find(ID);
-  if (Child == IDChildren.end()) {
+  
+  if (auto Child = IDChildren.find(ID); Child == IDChildren.end()) {
     auto NewChild = createIDNode();
     WindowsResourceParser::TreeNode &Node = *NewChild;
     IDChildren.emplace(ID, std::move(NewChild));
@@ -536,8 +536,8 @@ WindowsResourceParser::TreeNode &WindowsResourceParser::TreeNode::addNameChild(
   std::string NameString;
   convertUTF16LEToUTF8String(NameRef, NameString);
 
-  auto Child = StringChildren.find(NameString);
-  if (Child == StringChildren.end()) {
+  
+  if (auto Child = StringChildren.find(NameString); Child == StringChildren.end()) {
     auto NewChild = createStringNode(StringTable.size());
     StringTable.push_back(NameRef);
     WindowsResourceParser::TreeNode &Node = *NewChild;

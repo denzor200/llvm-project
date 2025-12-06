@@ -43,9 +43,9 @@ void RedundantAccessSpecifiersCheck::check(
       LastASDecl = ASDecl;
 
       if (CheckFirstDeclaration) {
-        const AccessSpecifier DefaultSpecifier =
-            MatchedDecl->isClass() ? AS_private : AS_public;
-        if (ASDecl->getAccess() == DefaultSpecifier) {
+        
+        if (const AccessSpecifier DefaultSpecifier =
+            MatchedDecl->isClass() ? AS_private : AS_public; ASDecl->getAccess() == DefaultSpecifier) {
           diag(ASDecl->getLocation(),
                "redundant access specifier has the same accessibility as the "
                "implicit access specifier")

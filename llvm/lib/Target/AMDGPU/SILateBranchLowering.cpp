@@ -92,9 +92,9 @@ static void generateEndPgm(MachineBasicBlock &MBB,
   bool HasExports = HasColorExports || HasDepthExports;
 
   // Prior to GFX10, hardware always expects at least one export for PS.
-  bool MustExport = !AMDGPU::isGFX10Plus(TII->getSubtarget());
+  
 
-  if (IsPS && (HasExports || MustExport)) {
+  if (bool MustExport = !AMDGPU::isGFX10Plus(TII->getSubtarget()); IsPS && (HasExports || MustExport)) {
     // Generate "null export" if hardware is expecting PS to export.
     const GCNSubtarget &ST = MBB.getParent()->getSubtarget<GCNSubtarget>();
     int Target =
@@ -147,8 +147,8 @@ void SILateBranchLowering::expandChainCall(MachineInstr &MI,
   int ExecIdx =
       AMDGPU::getNamedOperandIdx(MI.getOpcode(), AMDGPU::OpName::exec);
   assert(ExecIdx != -1 && "Missing EXEC operand");
-  const DebugLoc &DL = MI.getDebugLoc();
-  if (DynamicVGPR) {
+  
+  if (const DebugLoc &DL = MI.getDebugLoc(); DynamicVGPR) {
     // We have 3 extra operands and we need to:
     // * Try to change the VGPR allocation
     // * Select the callee based on the result of the reallocation attempt
@@ -209,8 +209,8 @@ PreservedAnalyses
 llvm::SILateBranchLoweringPass::run(MachineFunction &MF,
                                     MachineFunctionAnalysisManager &MFAM) {
   const GCNSubtarget &ST = MF.getSubtarget<GCNSubtarget>();
-  auto *MDT = &MFAM.getResult<MachineDominatorTreeAnalysis>(MF);
-  if (!SILateBranchLowering(ST, MDT).run(MF))
+  
+  if (auto *MDT = &MFAM.getResult<MachineDominatorTreeAnalysis>(MF); !SILateBranchLowering(ST, MDT).run(MF))
     return PreservedAnalyses::all();
 
   return getMachineFunctionPassPreservedAnalyses()

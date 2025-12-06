@@ -118,9 +118,9 @@ isl::ast_expr IslNodeBuilder::getUpperBound(isl::ast_node_for For,
   assert(isl_ast_expr_get_type(Cond.get()) == isl_ast_expr_op &&
          "conditional expression is not an atomic upper bound");
 
-  isl_ast_op_type OpType = isl_ast_expr_get_op_type(Cond.get());
+  
 
-  switch (OpType) {
+  switch (isl_ast_op_type OpType = isl_ast_expr_get_op_type(Cond.get()); OpType) {
   case isl_ast_op_le:
     Predicate = ICmpInst::ICMP_SLE;
     break;
@@ -161,8 +161,8 @@ int IslNodeBuilder::getNumberOfIterations(isl::ast_node_for For) {
     isl::ast_node_block BodyBlock = Body.as<isl::ast_node_block>();
     isl::ast_node_list List = BodyBlock.children();
     for (isl::ast_node Node : List) {
-      isl_ast_node_type NodeType = isl_ast_node_get_type(Node.get());
-      if (NodeType != isl_ast_node_user)
+      
+      if (isl_ast_node_type NodeType = isl_ast_node_get_type(Node.get()); NodeType != isl_ast_node_user)
         return -1;
     }
     break;
@@ -722,8 +722,8 @@ void IslNodeBuilder::createIf(__isl_take isl_ast_node *If) {
   GenDT->addNewBlock(ElseBB, CondBB);
   GenDT->changeImmediateDominator(MergeBB, CondBB);
 
-  Loop *L = GenLI->getLoopFor(CondBB);
-  if (L) {
+  
+  if (Loop *L = GenLI->getLoopFor(CondBB); L) {
     L->addBasicBlockToLoop(ThenBB, *GenLI);
     L->addBasicBlockToLoop(ElseBB, *GenLI);
   }
@@ -771,9 +771,9 @@ IslNodeBuilder::createNewAccesses(ScopStmt *Stmt,
         if (MA->getLatestScopArrayInfo()->getBasePtrOriginSAI())
           continue;
 
-        auto *BasePtr =
-            dyn_cast<Instruction>(MA->getLatestScopArrayInfo()->getBasePtr());
-        if (BasePtr && Stmt->getParent()->getRegion().contains(BasePtr))
+        
+        if (auto *BasePtr =
+            dyn_cast<Instruction>(MA->getLatestScopArrayInfo()->getBasePtr()); BasePtr && Stmt->getParent()->getRegion().contains(BasePtr))
           continue;
       } else {
         continue;
@@ -974,8 +974,8 @@ bool IslNodeBuilder::materializeValue(__isl_take isl_id *Id) {
           // domain. In the first and last case the instruction is dead but if
           // there is a statement or the domain is not empty Inst is not dead.
           auto MemInst = MemAccInst::dyn_cast(Inst);
-          auto Address = MemInst ? MemInst.getPointerOperand() : nullptr;
-          if (Address && SE.getUnknown(UndefValue::get(Address->getType())) ==
+          
+          if (auto Address = MemInst ? MemInst.getPointerOperand() : nullptr; Address && SE.getUnknown(UndefValue::get(Address->getType())) ==
                              SE.getPointerBase(SE.getSCEV(Address))) {
           } else if (S.getStmtFor(Inst)) {
             IsDead = false;
@@ -1018,8 +1018,8 @@ bool IslNodeBuilder::materializeParameters(__isl_take isl_set *Set) {
   for (unsigned i = 0, e = isl_set_dim(Set, isl_dim_param); i < e; ++i) {
     if (!isl_set_involves_dims(Set, isl_dim_param, i, 1))
       continue;
-    isl_id *Id = isl_set_get_dim_id(Set, isl_dim_param, i);
-    if (!materializeValue(Id))
+    
+    if (isl_id *Id = isl_set_get_dim_id(Set, isl_dim_param, i); !materializeValue(Id))
       return false;
   }
   return true;
@@ -1027,8 +1027,8 @@ bool IslNodeBuilder::materializeParameters(__isl_take isl_set *Set) {
 
 bool IslNodeBuilder::materializeParameters() {
   for (const SCEV *Param : S.parameters()) {
-    isl_id *Id = S.getIdForParam(Param).release();
-    if (!materializeValue(Id))
+    
+    if (isl_id *Id = S.getIdForParam(Param).release(); !materializeValue(Id))
       return false;
   }
   return true;

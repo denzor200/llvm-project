@@ -154,7 +154,9 @@ public:
         unsigned Opc2 = SecondMI->getOpcode();
         VOPDCombineInfo CI;
 
-        const auto checkVOPD = [&](bool VOPD3) -> bool {
+        
+
+        if (const auto checkVOPD = [&](bool VOPD3) -> bool {
           llvm::AMDGPU::CanBeVOPD FirstCanBeVOPD =
               AMDGPU::getCanBeVOPD(Opc, EncodingFamily, VOPD3);
           llvm::AMDGPU::CanBeVOPD SecondCanBeVOPD =
@@ -170,9 +172,7 @@ public:
           // cares about X-Y order in the constituted VOPD
           return llvm::checkVOPDRegConstraints(*SII, *FirstMI, *SecondMI,
                                                VOPD3);
-        };
-
-        if (checkVOPD(false) || (HasVOPD3 && checkVOPD(true))) {
+        }; checkVOPD(false) || (HasVOPD3 && checkVOPD(true))) {
           ReplaceCandidates.push_back(CI);
           ++MII;
         }

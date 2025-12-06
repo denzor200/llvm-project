@@ -1045,8 +1045,8 @@ Object SymbolGraphSerializer::serializeGraph(StringRef ModuleName,
 void SymbolGraphSerializer::serializeGraphToStream(
     raw_ostream &OS, SymbolGraphSerializerOption Options, StringRef ModuleName,
     ExtendedModule &&EM) {
-  Object Root = serializeGraph(ModuleName, std::move(EM));
-  if (Options.Compact)
+  
+  if (Object Root = serializeGraph(ModuleName, std::move(EM)); Options.Compact)
     OS << formatv("{0}", json::Value(std::move(Root))) << "\n";
   else
     OS << formatv("{0:2}", json::Value(std::move(Root))) << "\n";

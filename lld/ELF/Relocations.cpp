@@ -222,8 +222,8 @@ static SmallPtrSet<SharedSymbol *, 4> getSymbolsAt(Ctx &ctx, SharedSymbol &ss) {
         s.getType() == STT_TLS || s.st_value != ss.value)
       continue;
     StringRef name = check(s.getName(file.getStringTable()));
-    Symbol *sym = ctx.symtab->find(name);
-    if (auto *alias = dyn_cast_or_null<SharedSymbol>(sym))
+    
+    if (Symbol *sym = ctx.symtab->find(name); auto *alias = dyn_cast_or_null<SharedSymbol>(sym))
       ret.insert(alias);
   }
 
@@ -420,8 +420,8 @@ static void maybeReportDiscarded(Ctx &ctx, ELFSyncStream &msg, Undefined &sym) {
 // the reference name ref.
 static bool canSuggestExternCForCXX(StringRef ref, StringRef def) {
   llvm::ItaniumPartialDemangler d;
-  std::string name = def.str();
-  if (d.partialDemangle(name.c_str()))
+  
+  if (std::string name = def.str(); d.partialDemangle(name.c_str()))
     return false;
   char *buf = d.getFunctionName(nullptr, nullptr);
   if (!buf)
@@ -439,10 +439,10 @@ static const Symbol *getAlternativeSpelling(Ctx &ctx, const Undefined &sym,
                                             std::string &post_hint) {
   DenseMap<StringRef, const Symbol *> map;
   if (sym.file->kind() == InputFile::ObjKind) {
-    auto *file = cast<ELFFileBase>(sym.file);
+    
     // If sym is a symbol defined in a discarded section, maybeReportDiscarded()
     // will give an error. Don't suggest an alternative spelling.
-    if (sym.discardedSecIdx != 0 &&
+    if (auto *file = cast<ELFFileBase>(sym.file); sym.discardedSecIdx != 0 &&
         file->getSections()[sym.discardedSecIdx] == &InputSection::discarded)
       return nullptr;
 
@@ -515,8 +515,8 @@ static const Symbol *getAlternativeSpelling(Ctx &ctx, const Undefined &sym,
   // missing extern "C".
   if (name.starts_with("_Z")) {
     std::string buf = name.str();
-    llvm::ItaniumPartialDemangler d;
-    if (!d.partialDemangle(buf.c_str()))
+    
+    if (llvm::ItaniumPartialDemangler d; !d.partialDemangle(buf.c_str()))
       if (char *buf = d.getFunctionName(nullptr, nullptr)) {
         const Symbol *s = suggest(buf);
         free(buf);
@@ -609,8 +609,8 @@ static void reportUndefinedSymbol(Ctx &ctx, const UndefinedDiag &undef,
         << " more times";
 
   if (correctSpelling) {
-    std::string pre_hint = ": ", post_hint;
-    if (const Symbol *corrected =
+    
+    if (std::string pre_hint = ": ", post_hint; const Symbol *corrected =
             getAlternativeSpelling(ctx, sym, pre_hint, post_hint)) {
       msg << "\n>>> did you mean" << pre_hint << corrected << post_hint
           << "\n>>> defined in: " << corrected->file;
@@ -1366,8 +1366,8 @@ void TargetInfo::scanSectionImpl(InputSectionBase &sec, Relocs<RelTy> rels) {
 }
 
 template <class ELFT> void TargetInfo::scanSection1(InputSectionBase &sec) {
-  const RelsOrRelas<ELFT> rels = sec.template relsOrRelas<ELFT>();
-  if (rels.areRelocsCrel())
+  
+  if (const RelsOrRelas<ELFT> rels = sec.template relsOrRelas<ELFT>(); rels.areRelocsCrel())
     scanSectionImpl<ELFT>(sec, rels.crels);
   else if (rels.areRelocsRel())
     scanSectionImpl<ELFT>(sec, rels.rels);
@@ -1412,7 +1412,10 @@ template <class ELFT> void elf::scanRelocations(Ctx &ctx) {
   bool serial = !ctx.arg.zCombreloc || ctx.arg.emachine == EM_MIPS ||
                 ctx.arg.emachine == EM_PPC64;
   parallel::TaskGroup tg;
-  auto outerFn = [&]() {
+  
+  // If `serial` is true, call `spawn` to ensure that `scanner` runs in a thread
+  // with valid getThreadIndex().
+  if (auto outerFn = [&]() {
     for (ELFFileBase *f : ctx.objectFiles) {
       auto fn = [f, &ctx]() {
         for (InputSectionBase *s : f->getSections()) {
@@ -1442,10 +1445,7 @@ template <class ELFT> void elf::scanRelocations(Ctx &ctx) {
       scanEH();
     else
       tg.spawn(scanEH);
-  };
-  // If `serial` is true, call `spawn` to ensure that `scanner` runs in a thread
-  // with valid getThreadIndex().
-  if (serial)
+  }; serial)
     tg.spawn(outerFn);
   else
     outerFn();
@@ -1650,8 +1650,8 @@ void elf::postScanRelocations(Ctx &ctx) {
       addTpOffsetGotEntry(ctx, sym);
   };
 
-  GotSection *got = ctx.in.got.get();
-  if (ctx.needsTlsLd.load(std::memory_order_relaxed) && got->addTlsIndex()) {
+  
+  if (GotSection *got = ctx.in.got.get(); ctx.needsTlsLd.load(std::memory_order_relaxed) && got->addTlsIndex()) {
     if (ctx.arg.shared)
       ctx.mainPart->relaDyn->addReloc(
           {ctx.target->tlsModuleIndexRel, got, got->getTlsIndexOff()});
@@ -1857,9 +1857,9 @@ static int getHexagonPacketOffset(const InputSection &isec,
   for (unsigned i = 0;; i++) {
     if (i == 3 || rel.offset < (i + 1) * 4)
       return i * 4;
-    uint32_t instWord =
-        read32(isec.getCtx(), data.data() + (rel.offset - (i + 1) * 4));
-    if (((instWord & HEXAGON_MASK_END_PACKET) == HEXAGON_END_OF_PACKET) ||
+    
+    if (uint32_t instWord =
+        read32(isec.getCtx(), data.data() + (rel.offset - (i + 1) * 4)); ((instWord & HEXAGON_MASK_END_PACKET) == HEXAGON_END_OF_PACKET) ||
         ((instWord & HEXAGON_MASK_END_PACKET) == HEXAGON_END_OF_DUPLEX))
       return i * 4;
   }
@@ -1895,8 +1895,8 @@ ThunkSection *ThunkCreator::getISDThunkSec(OutputSection *os,
   for (std::pair<ThunkSection *, uint32_t> tp : isd->thunkSections) {
     ThunkSection *ts = tp.first;
     uint64_t tsBase = os->addr + ts->outSecOff - pcBias;
-    uint64_t tsLimit = tsBase + ts->getSize();
-    if (ctx.target->inBranchRange(rel.type, src,
+    
+    if (uint64_t tsLimit = tsBase + ts->getSize(); ctx.target->inBranchRange(rel.type, src,
                                   (src > tsLimit) ? tsBase : tsLimit))
       return ts;
   }
@@ -2026,10 +2026,10 @@ ThunkSection *ThunkCreator::addThunkSection(OutputSection *os,
     // 2.) The InputSectionDescription is larger than 4 KiB. This will prevent
     //     any assertion failures that an InputSectionDescription is < 4 KiB
     //     in size.
-    uint64_t isdSize = isd->sections.back()->outSecOff +
+    
+    if (uint64_t isdSize = isd->sections.back()->outSecOff +
                        isd->sections.back()->getSize() -
-                       isd->sections.front()->outSecOff;
-    if (os->size > ctx.target->getThunkSectionSpacing() && isdSize > 4096)
+                       isd->sections.front()->outSecOff; os->size > ctx.target->getThunkSectionSpacing() && isdSize > 4096)
       ts->roundUpSizeForErrata = true;
   }
   isd->thunkSections.push_back({ts, pass});

@@ -68,10 +68,10 @@ static void cacheAnnotationFromMD(const MDNode *MetadataNode,
     // property
     const MDString *prop = dyn_cast<MDString>(MetadataNode->getOperand(i));
     assert(prop && "Annotation property not a string");
-    std::string Key = prop->getString().str();
+    
 
     // value
-    if (ConstantInt *Val = mdconst::dyn_extract<ConstantInt>(
+    if (std::string Key = prop->getString().str(); ConstantInt *Val = mdconst::dyn_extract<ConstantInt>(
             MetadataNode->getOperand(i + 1))) {
       retval[Key].push_back(Val->getZExtValue());
     } else {
@@ -162,8 +162,8 @@ static bool argHasNVVMAnnotation(const Value &Val,
                                  const std::string &Annotation) {
   if (const Argument *Arg = dyn_cast<Argument>(&Val)) {
     const Function *Func = Arg->getParent();
-    std::vector<unsigned> Annot;
-    if (findAllNVVMAnnotation(Func, Annotation, Annot)) {
+    
+    if (std::vector<unsigned> Annot; findAllNVVMAnnotation(Func, Annotation, Annot)) {
       if (is_contained(Annot, Arg->getArgNo()))
         return true;
     }
@@ -181,9 +181,9 @@ static std::optional<unsigned> getFnAttrParsedInt(const Function &F,
 static SmallVector<unsigned, 3> getFnAttrParsedVector(const Function &F,
                                                       StringRef Attr) {
   SmallVector<unsigned, 3> V;
-  auto &Ctx = F.getContext();
+  
 
-  if (F.hasFnAttribute(Attr)) {
+  if (auto &Ctx = F.getContext(); F.hasFnAttribute(Attr)) {
     // We expect the attribute value to be of the form "x[,y[,z]]", where x, y,
     // and z are unsigned values.
     StringRef S = F.getFnAttribute(Attr).getValueAsString();
@@ -221,8 +221,8 @@ bool isParamGridConstant(const Argument &Arg) {
   // the C++ API and byval semantics is unobservable by the program and we can
   // lower the arg as a grid_constant.
   if (Arg.onlyReadsMemory()) {
-    const auto CI = Arg.getAttributes().getCaptureInfo();
-    if (!capturesAddress(CI) && !capturesFullProvenance(CI))
+    
+    if (const auto CI = Arg.getAttributes().getCaptureInfo(); !capturesAddress(CI) && !capturesFullProvenance(CI))
       return true;
   }
 
@@ -359,9 +359,9 @@ Function *getMaybeBitcastedCallee(const CallBase *CB) {
 }
 
 bool shouldEmitPTXNoReturn(const Value *V, const TargetMachine &TM) {
-  const auto &ST =
-      *static_cast<const NVPTXTargetMachine &>(TM).getSubtargetImpl();
-  if (!ST.hasNoReturn())
+  
+  if (const auto &ST =
+      *static_cast<const NVPTXTargetMachine &>(TM).getSubtargetImpl(); !ST.hasNoReturn())
     return false;
 
   assert((isa<Function>(V) || isa<CallInst>(V)) &&

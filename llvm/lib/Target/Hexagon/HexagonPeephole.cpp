@@ -122,9 +122,9 @@ bool HexagonPeephole::runOnMachineFunction(MachineFunction &MF) {
         MachineOperand &Dst = MI.getOperand(0);
         MachineOperand &Src = MI.getOperand(1);
         Register DstReg = Dst.getReg();
-        Register SrcReg = Src.getReg();
+        
         // Just handle virtual registers.
-        if (DstReg.isVirtual() && SrcReg.isVirtual()) {
+        if (Register SrcReg = Src.getReg(); DstReg.isVirtual() && SrcReg.isVirtual()) {
           // Map the following:
           // %170 = SXTW %166
           // PeepholeMap[170] = %166
@@ -155,8 +155,8 @@ bool HexagonPeephole::runOnMachineFunction(MachineFunction &MF) {
         assert(MI.getNumOperands() == 3);
         MachineOperand &Dst = MI.getOperand(0);
         MachineOperand &Src1 = MI.getOperand(1);
-        MachineOperand &Src2 = MI.getOperand(2);
-        if (Src2.getImm() != 32)
+        
+        if (MachineOperand &Src2 = MI.getOperand(2); Src2.getImm() != 32)
           continue;
         Register DstReg = Dst.getReg();
         Register SrcReg = Src1.getReg();
@@ -170,9 +170,9 @@ bool HexagonPeephole::runOnMachineFunction(MachineFunction &MF) {
         MachineOperand &Dst = MI.getOperand(0);
         MachineOperand &Src = MI.getOperand(1);
         Register DstReg = Dst.getReg();
-        Register SrcReg = Src.getReg();
+        
         // Just handle virtual registers.
-        if (DstReg.isVirtual() && SrcReg.isVirtual()) {
+        if (Register SrcReg = Src.getReg(); DstReg.isVirtual() && SrcReg.isVirtual()) {
           // Map the following:
           // %170 = NOT_xx %166
           // PeepholeMap[170] = %166
@@ -200,9 +200,9 @@ bool HexagonPeephole::runOnMachineFunction(MachineFunction &MF) {
             MI.removeOperand(1);
             MI.addOperand(MachineOperand::CreateReg(PeepholeSrc, false));
           } else  {
-            DenseMap<unsigned, std::pair<unsigned, unsigned> >::iterator DI =
-              PeepholeDoubleRegsMap.find(SrcReg);
-            if (DI != PeepholeDoubleRegsMap.end()) {
+            
+            if (DenseMap<unsigned, std::pair<unsigned, unsigned> >::iterator DI =
+              PeepholeDoubleRegsMap.find(SrcReg); DI != PeepholeDoubleRegsMap.end()) {
               std::pair<unsigned,unsigned> PeepholeSrc = DI->second;
               MI.removeOperand(1);
               MI.addOperand(MachineOperand::CreateReg(
@@ -220,8 +220,8 @@ bool HexagonPeephole::runOnMachineFunction(MachineFunction &MF) {
         if (QII->isPredicated(MI)) {
           MachineOperand &Op0 = MI.getOperand(0);
           Register Reg0 = Op0.getReg();
-          const TargetRegisterClass *RC0 = MRI->getRegClass(Reg0);
-          if (RC0->getID() == Hexagon::PredRegsRegClassID) {
+          
+          if (const TargetRegisterClass *RC0 = MRI->getRegClass(Reg0); RC0->getID() == Hexagon::PredRegsRegClassID) {
             // Handle instructions that have a prediate register in op0
             // (most cases of predicable instructions).
             if (Reg0.isVirtual()) {
@@ -257,8 +257,8 @@ bool HexagonPeephole::runOnMachineFunction(MachineFunction &MF) {
               break;
           }
           if (NewOp) {
-            Register PSrc = MI.getOperand(PR).getReg();
-            if (unsigned POrig = PeepholeMap.lookup(PSrc)) {
+            
+            if (Register PSrc = MI.getOperand(PR).getReg(); unsigned POrig = PeepholeMap.lookup(PSrc)) {
               BuildMI(MBB, MI.getIterator(), MI.getDebugLoc(), QII->get(NewOp),
                       MI.getOperand(0).getReg())
                   .addReg(POrig)

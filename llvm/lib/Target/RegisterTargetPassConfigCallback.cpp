@@ -32,8 +32,8 @@ RegisterTargetPassConfigCallback::RegisterTargetPassConfigCallback(
 }
 
 RegisterTargetPassConfigCallback::~RegisterTargetPassConfigCallback() {
-  const auto &It = find(TargetPassConfigCallbacks, this);
-  if (It != TargetPassConfigCallbacks.end())
+  
+  if (const auto &It = find(TargetPassConfigCallbacks, this); It != TargetPassConfigCallbacks.end())
     TargetPassConfigCallbacks.erase(It);
 }
 } // namespace llvm

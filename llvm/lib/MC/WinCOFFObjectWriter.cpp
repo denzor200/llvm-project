@@ -443,8 +443,8 @@ void WinCOFFWriter::SetSectionName(COFFSection &S) {
     return;
   }
 
-  uint64_t StringTableEntry = Strings.getOffset(S.Name);
-  if (!COFF::encodeSectionName(S.Header.Name, StringTableEntry))
+  
+  if (uint64_t StringTableEntry = Strings.getOffset(S.Name); !COFF::encodeSectionName(S.Header.Name, StringTableEntry))
     report_fatal_error("COFF string table is greater than 64 GB.");
 }
 
@@ -821,9 +821,9 @@ void WinCOFFWriter::executePostLayoutBinding() {
 
   if (Mode != DwoOnly) {
     for (const MCSymbol &Symbol : Asm->symbols()) {
-      auto &Sym = static_cast<const MCSymbolCOFF &>(Symbol);
+      
       // Define non-temporary or temporary static (private-linkage) symbols
-      if (!Sym.isTemporary() || Sym.getClass() == COFF::IMAGE_SYM_CLASS_STATIC)
+      if (auto &Sym = static_cast<const MCSymbolCOFF &>(Symbol); !Sym.isTemporary() || Sym.getClass() == COFF::IMAGE_SYM_CLASS_STATIC)
         defineSymbol(Sym);
     }
   }
@@ -901,8 +901,8 @@ void WinCOFFWriter::recordRelocation(const MCFragment &F, const MCFixup &Fixup,
     // is slightly too far away. The relocations where it really matters
     // (arm64 adrp relocations) don't get any offset though.
     if (UseOffsetLabels && !Section->OffsetSymbols.empty()) {
-      uint64_t LabelIndex = FixedValue >> OffsetLabelIntervalBits;
-      if (LabelIndex > 0) {
+      
+      if (uint64_t LabelIndex = FixedValue >> OffsetLabelIntervalBits; LabelIndex > 0) {
         if (LabelIndex <= Section->OffsetSymbols.size())
           Reloc.Symb = Section->OffsetSymbols[LabelIndex - 1];
         else
@@ -1192,8 +1192,8 @@ bool WinCOFFObjectWriter::isSymbolRefDifferenceFullyResolvedImpl(
   // point to thunks, and the /GUARD:CF flag assumes that it can use relocations
   // to approximate the set of all address taken functions. LLD's implementation
   // of /GUARD:CF also relies on the existance of these relocations.
-  uint16_t Type = static_cast<const MCSymbolCOFF &>(SymA).getType();
-  if ((Type >> COFF::SCT_COMPLEX_TYPE_SHIFT) == COFF::IMAGE_SYM_DTYPE_FUNCTION)
+  
+  if (uint16_t Type = static_cast<const MCSymbolCOFF &>(SymA).getType(); (Type >> COFF::SCT_COMPLEX_TYPE_SHIFT) == COFF::IMAGE_SYM_DTYPE_FUNCTION)
     return false;
   return &SymA.getSection() == FB.getParent();
 }

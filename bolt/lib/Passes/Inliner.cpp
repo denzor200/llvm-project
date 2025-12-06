@@ -227,8 +227,8 @@ InliningInfo getInliningInfo(const BinaryFunction &BF) {
   if (BF.size() == 1) {
     // For a regular call the last return instruction could be removed
     // (or converted to a branch).
-    const MCInst *LastInst = BF.back().getLastNonPseudoInstr();
-    if (LastInst && BC.MIB->isReturn(*LastInst) &&
+    
+    if (const MCInst *LastInst = BF.back().getLastNonPseudoInstr(); LastInst && BC.MIB->isReturn(*LastInst) &&
         !BC.MIB->isTailCall(*LastInst)) {
       const uint64_t RetInstSize = BC.computeInstructionSize(*LastInst);
       assert(Size >= RetInstSize);
@@ -511,8 +511,8 @@ bool Inliner::inlineCallsInFunction(BinaryFunction &Function) {
 
       // Check if the caller inlining status has to be adjusted.
       if (IInfo->second.Type == INL_TAILCALL) {
-        auto CallerIInfo = InliningCandidates.find(&Function);
-        if (CallerIInfo != InliningCandidates.end() &&
+        
+        if (auto CallerIInfo = InliningCandidates.find(&Function); CallerIInfo != InliningCandidates.end() &&
             CallerIInfo->second.Type == INL_ANY) {
           LLVM_DEBUG(dbgs() << "adjusting inlining status for function "
                             << Function << '\n');

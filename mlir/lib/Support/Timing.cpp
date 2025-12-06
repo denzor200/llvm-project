@@ -89,8 +89,8 @@ TimingIdentifier TimingIdentifier::get(StringRef str, TimingManager &tm) {
   // Check for an existing identifier in read-only mode.
   {
     llvm::sys::SmartScopedReader<true> contextLock(impl.identifierMutex);
-    auto it = impl.identifiers.find(str);
-    if (it != impl.identifiers.end()) {
+    
+    if (auto it = impl.identifiers.find(str); it != impl.identifiers.end()) {
       localEntry = &*it;
       return TimingIdentifier(localEntry);
     }
@@ -329,8 +329,8 @@ public:
   /// Moves all child and async child timers of `other` into this timer's child
   /// for the given unique identifier.
   void mergeChild(const void *id, std::unique_ptr<TimerImpl> &&other) {
-    auto &into = children[id];
-    if (!into) {
+    
+    if (auto &into = children[id]; !into) {
       into = std::move(other);
       into->mergeAsyncChildren();
     } else {

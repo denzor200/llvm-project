@@ -417,8 +417,8 @@ void MipsELFObjectWriter::sortRelocs(std::vector<ELFRelocationEntry> &Relocs) {
     // (3) later %lo is preferred.
     auto Best = Sorted.end();
     for (auto J = Sorted.begin(); J != Sorted.end(); ++J) {
-      auto &R1 = J->R;
-      if (R1.Type == MatchingType && R.Symbol == R1.Symbol &&
+      
+      if (auto &R1 = J->R; R1.Type == MatchingType && R.Symbol == R1.Symbol &&
           R.Addend <= R1.Addend &&
           (Best == Sorted.end() || R1.Addend < Best->R.Addend ||
            (!Best->Matched && R1.Addend == Best->R.Addend)))
@@ -449,8 +449,8 @@ bool MipsELFObjectWriter::needsRelocateWithSymbol(const MCValue &V,
            needsRelocateWithSymbol(V, (Type >> 8) & 0xff) ||
            needsRelocateWithSymbol(V, (Type >> 16) & 0xff);
 
-  auto *Sym = static_cast<const MCSymbolELF *>(V.getAddSym());
-  switch (Type) {
+  
+  switch (auto *Sym = static_cast<const MCSymbolELF *>(V.getAddSym()); Type) {
   default:
     errs() << Type << "\n";
     llvm_unreachable("Unexpected relocation");

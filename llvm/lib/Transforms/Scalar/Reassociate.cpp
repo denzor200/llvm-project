@@ -633,14 +633,14 @@ void ReassociatePass::RewriteExprTree(BinaryOperator *I,
       // the old operands with the new ones.
       LLVM_DEBUG(dbgs() << "RA: " << *Op << '\n');
       if (NewLHS != OldLHS) {
-        BinaryOperator *BO = isReassociableOp(OldLHS, Opcode);
-        if (BO && !NotRewritable.count(BO))
+        
+        if (BinaryOperator *BO = isReassociableOp(OldLHS, Opcode); BO && !NotRewritable.count(BO))
           NodesToRewrite.push_back(BO);
         Op->setOperand(0, NewLHS);
       }
       if (NewRHS != OldRHS) {
-        BinaryOperator *BO = isReassociableOp(OldRHS, Opcode);
-        if (BO && !NotRewritable.count(BO))
+        
+        if (BinaryOperator *BO = isReassociableOp(OldRHS, Opcode); BO && !NotRewritable.count(BO))
           NodesToRewrite.push_back(BO);
         Op->setOperand(1, NewRHS);
       }
@@ -657,8 +657,8 @@ void ReassociatePass::RewriteExprTree(BinaryOperator *I,
 
     // Not the last operation.  The left-hand side will be a sub-expression
     // while the right-hand side will be the current element of Ops.
-    Value *NewRHS = Ops[i].Op;
-    if (NewRHS != Op->getOperand(1)) {
+    
+    if (Value *NewRHS = Ops[i].Op; NewRHS != Op->getOperand(1)) {
       LLVM_DEBUG(dbgs() << "RA: " << *Op << '\n');
       if (NewRHS == Op->getOperand(0)) {
         // The new right-hand side was already present as the left operand.  If
@@ -666,8 +666,8 @@ void ReassociatePass::RewriteExprTree(BinaryOperator *I,
         Op->swapOperands();
       } else {
         // Overwrite with the new right-hand side.
-        BinaryOperator *BO = isReassociableOp(Op->getOperand(1), Opcode);
-        if (BO && !NotRewritable.count(BO))
+        
+        if (BinaryOperator *BO = isReassociableOp(Op->getOperand(1), Opcode); BO && !NotRewritable.count(BO))
           NodesToRewrite.push_back(BO);
         Op->setOperand(1, NewRHS);
         ExpressionChangedStart = Op;
@@ -768,10 +768,10 @@ static Value *NegateValue(Value *V, Instruction *BI,
                           ReassociatePass::OrderedSet &ToRedo) {
   if (auto *C = dyn_cast<Constant>(V)) {
     const DataLayout &DL = BI->getDataLayout();
-    Constant *Res = C->getType()->isFPOrFPVectorTy()
+    
+    if (Constant *Res = C->getType()->isFPOrFPVectorTy()
                         ? ConstantFoldUnaryOpOperand(Instruction::FNeg, C, DL)
-                        : ConstantExpr::getNeg(C);
-    if (Res)
+                        : ConstantExpr::getNeg(C); Res)
       return Res;
   }
 
@@ -895,10 +895,10 @@ static bool isLoadCombineCandidate(Instruction *Or) {
     return false; // Not an `or` reduction pattern.
 
   while (!Worklist.empty()) {
-    auto *I = Worklist.pop_back_val();
+    
 
     // Okay, which instruction is this node?
-    switch (I->getOpcode()) {
+    switch (auto *I = Worklist.pop_back_val(); I->getOpcode()) {
     case Instruction::Or:
       // Got an `or` node. That's fine, just recurse into it's operands.
       for (Value *Op : I->operands())
@@ -978,8 +978,8 @@ static bool ShouldBreakUpSubtract(Instruction *Sub) {
 
   // Don't bother to break this up unless either the LHS is an associable add or
   // subtract or if this is only used by one.
-  Value *V0 = Sub->getOperand(0);
-  if (isReassociableOp(V0, Instruction::Add, Instruction::FAdd) ||
+  
+  if (Value *V0 = Sub->getOperand(0); isReassociableOp(V0, Instruction::Add, Instruction::FAdd) ||
       isReassociableOp(V0, Instruction::Sub, Instruction::FSub))
     return true;
   Value *V1 = Sub->getOperand(1);
@@ -1042,8 +1042,8 @@ static BinaryOperator *ConvertShiftToMul(Instruction *Shl) {
   // bitwidth - 1.
   bool NSW = cast<BinaryOperator>(Shl)->hasNoSignedWrap();
   bool NUW = cast<BinaryOperator>(Shl)->hasNoUnsignedWrap();
-  unsigned BitWidth = Shl->getType()->getScalarSizeInBits();
-  if (NSW && (NUW || SA->getValue().ult(BitWidth - 1)))
+  
+  if (unsigned BitWidth = Shl->getType()->getScalarSizeInBits(); NSW && (NUW || SA->getValue().ult(BitWidth - 1)))
     Mul->setHasNoSignedWrap(true);
   Mul->setHasNoUnsignedWrap(NUW);
   return Mul;
@@ -1194,8 +1194,8 @@ static Value *OptimizeAndOrXor(unsigned Opcode,
     assert(i < Ops.size());
     Value *X;
     if (match(Ops[i].Op, m_Not(m_Value(X)))) {    // Cannot occur for ^.
-      unsigned FoundX = FindInOperandList(Ops, i, X);
-      if (FoundX != i) {
+      
+      if (unsigned FoundX = FindInOperandList(Ops, i, X); FoundX != i) {
         if (Opcode == Instruction::And)   // ...&X&~X = 0
           return Constant::getNullValue(X->getType());
 
@@ -1320,8 +1320,8 @@ bool ReassociatePass::CombineXorOpnd(BasicBlock::iterator It, XorOpnd *Opnd1,
 
     // Do not increase code size!
     if (!C3.isZero() && !C3.isAllOnes()) {
-      int NewInstNum = ConstOpnd.getBoolValue() ? 1 : 2;
-      if (NewInstNum > DeadInstNum)
+      
+      if (int NewInstNum = ConstOpnd.getBoolValue() ? 1 : 2; NewInstNum > DeadInstNum)
         return false;
     }
 
@@ -1336,8 +1336,8 @@ bool ReassociatePass::CombineXorOpnd(BasicBlock::iterator It, XorOpnd *Opnd1,
 
     // Do not increase code size
     if (!C3.isZero() && !C3.isAllOnes()) {
-      int NewInstNum = ConstOpnd.getBoolValue() ? 1 : 2;
-      if (NewInstNum > DeadInstNum)
+      
+      if (int NewInstNum = ConstOpnd.getBoolValue() ? 1 : 2; NewInstNum > DeadInstNum)
         return false;
     }
 
@@ -1381,9 +1381,9 @@ Value *ReassociatePass::OptimizeXor(Instruction *I,
   // Step 1: Convert ValueEntry to XorOpnd
   for (const ValueEntry &Op : Ops) {
     Value *V = Op.Op;
-    const APInt *C;
+    
     // TODO: Support non-splat vectors.
-    if (match(V, m_APInt(C))) {
+    if (const APInt *C; match(V, m_APInt(C))) {
       ConstOpnd ^= *C;
     } else {
       XorOpnd O(V);
@@ -1602,8 +1602,8 @@ Value *ReassociatePass::OptimizeAdd(Instruction *I,
       if (!Duplicates.insert(Factor).second)
         continue;
 
-      unsigned Occ = ++FactorOccurrences[Factor];
-      if (Occ > MaxOcc) {
+      
+      if (unsigned Occ = ++FactorOccurrences[Factor]; Occ > MaxOcc) {
         MaxOcc = Occ;
         MaxOccVal = Factor;
       }
@@ -1616,8 +1616,8 @@ Value *ReassociatePass::OptimizeAdd(Instruction *I,
           Factor = ConstantInt::get(CI->getContext(), -CI->getValue());
           if (!Duplicates.insert(Factor).second)
             continue;
-          unsigned Occ = ++FactorOccurrences[Factor];
-          if (Occ > MaxOcc) {
+          
+          if (unsigned Occ = ++FactorOccurrences[Factor]; Occ > MaxOcc) {
             MaxOcc = Occ;
             MaxOccVal = Factor;
           }
@@ -1629,8 +1629,8 @@ Value *ReassociatePass::OptimizeAdd(Instruction *I,
           Factor = ConstantFP::get(CF->getContext(), F);
           if (!Duplicates.insert(Factor).second)
             continue;
-          unsigned Occ = ++FactorOccurrences[Factor];
-          if (Occ > MaxOcc) {
+          
+          if (unsigned Occ = ++FactorOccurrences[Factor]; Occ > MaxOcc) {
             MaxOcc = Occ;
             MaxOccVal = Factor;
           }
@@ -1657,9 +1657,9 @@ Value *ReassociatePass::OptimizeAdd(Instruction *I,
     SmallVector<WeakTrackingVH, 4> NewMulOps;
     for (unsigned i = 0; i != Ops.size(); ++i) {
       // Only try to remove factors from expressions we're allowed to.
-      BinaryOperator *BOp =
-          isReassociableOp(Ops[i].Op, Instruction::Mul, Instruction::FMul);
-      if (!BOp)
+      
+      if (BinaryOperator *BOp =
+          isReassociableOp(Ops[i].Op, Instruction::Mul, Instruction::FMul); !BOp)
         continue;
 
       if (Value *V = RemoveFactorFromExpression(Ops[i].Op, MaxOccVal,
@@ -1824,8 +1824,8 @@ ReassociatePass::buildMinimalMultiplyDAG(IRBuilderBase &Builder,
 
     // Reset the base value of the first factor to the new expression tree.
     // We'll remove all the factors with the same power in a second pass.
-    Value *M = Factors[LastIdx].Base = buildMultiplyTree(Builder, InnerProduct);
-    if (Instruction *MI = dyn_cast<Instruction>(M))
+    
+    if (Value *M = Factors[LastIdx].Base = buildMultiplyTree(Builder, InnerProduct); Instruction *MI = dyn_cast<Instruction>(M))
       RedoInsts.insert(MI);
 
     LastIdx = Idx;
@@ -2023,8 +2023,8 @@ static void getNegatibleInsts(Value *V,
 
   // Handle expressions of multiplications and divisions.
   // TODO: This could look through floating-point casts.
-  const APFloat *C;
-  switch (I->getOpcode()) {
+  
+  switch (const APFloat *C; I->getOpcode()) {
     case Instruction::FMul:
       // Not expecting non-canonical code here. Bail out and wait.
       if (match(I->getOperand(0), m_Constant()))
@@ -2076,8 +2076,8 @@ Instruction *ReassociatePass::canonicalizeNegFPConstantsForOp(Instruction *I,
   // resulting subtract will be broken up later.  This can get us into an
   // infinite loop during reassociation.
   bool IsFSub = I->getOpcode() == Instruction::FSub;
-  bool NeedsSubtract = !IsFSub && Candidates.size() % 2 == 1;
-  if (NeedsSubtract && ShouldBreakUpSubtract(I))
+  
+  if (bool NeedsSubtract = !IsFSub && Candidates.size() % 2 == 1; NeedsSubtract && ShouldBreakUpSubtract(I))
     return nullptr;
 
   for (Instruction *Negatible : Candidates) {
@@ -2233,9 +2233,9 @@ void ReassociatePass::OptimizeInst(Instruction *I) {
     } else if (match(I, m_FNeg(m_Value()))) {
       // Otherwise, this is a negation.  See if the operand is a multiply tree
       // and if this is not an inner node of a multiply tree.
-      Value *Op = isa<BinaryOperator>(I) ? I->getOperand(1) :
-                                           I->getOperand(0);
-      if (isReassociableOp(Op, Instruction::FMul) &&
+      
+      if (Value *Op = isa<BinaryOperator>(I) ? I->getOperand(1) :
+                                           I->getOperand(0); isReassociableOp(Op, Instruction::FMul) &&
           (!I->hasOneUse() ||
            !isReassociableOp(I->user_back(), Instruction::FMul))) {
         // If the negate was simplified, revisit the users to see if we can
@@ -2258,8 +2258,8 @@ void ReassociatePass::OptimizeInst(Instruction *I) {
 
   // If this is an interior node of a reassociable tree, ignore it until we
   // get to the root of the tree, to avoid N^2 analysis.
-  unsigned Opcode = BO->getOpcode();
-  if (BO->hasOneUse() && BO->user_back()->getOpcode() == Opcode) {
+  
+  if (unsigned Opcode = BO->getOpcode(); BO->hasOneUse() && BO->user_back()->getOpcode() == Opcode) {
     // During the initial run we will get to the root of the tree.
     // But if we get here while we are redoing instructions, there is no
     // guarantee that the root will be visited. So Redo later
@@ -2587,8 +2587,8 @@ PreservedAnalyses ReassociatePass::run(Function &F, FunctionAnalysisManager &) {
     // dead mark it for deletion as well. Continue this process until all
     // trivially dead instructions have been removed.
     while (!ToRedo.empty()) {
-      Instruction *I = ToRedo.pop_back_val();
-      if (isInstructionTriviallyDead(I)) {
+      
+      if (Instruction *I = ToRedo.pop_back_val(); isInstructionTriviallyDead(I)) {
         RecursivelyEraseDeadInsts(I, ToRedo);
         MadeChange = true;
       }

@@ -231,8 +231,8 @@ LogicalResult mlir::detail::inferReturnTensorTypes(
     Type elementTy = shapeAndType.getElementType();
     assert(elementTy && "element type required to construct tensor");
 
-    Attribute attr = shapeAndType.getAttribute();
-    if (shapeAndType.hasRank()) {
+    
+    if (Attribute attr = shapeAndType.getAttribute(); shapeAndType.hasRank()) {
       inferredReturnTypes.push_back(
           RankedTensorType::get(shapeAndType.getDims(), elementTy, attr));
     } else {

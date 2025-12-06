@@ -197,9 +197,9 @@ public:
   void OverrideAllDeclsFromContainingFunction(clang::Decl *decl) {
     for (DeclContext *decl_context = decl->getLexicalDeclContext();
          decl_context; decl_context = decl_context->getLexicalParent()) {
-      DeclContext *redecl_context = decl_context->getRedeclContext();
+      
 
-      if (llvm::isa<FunctionDecl>(redecl_context) &&
+      if (DeclContext *redecl_context = decl_context->getRedeclContext(); llvm::isa<FunctionDecl>(redecl_context) &&
           llvm::isa<TranslationUnitDecl>(redecl_context->getLexicalParent())) {
         for (clang::Decl *child_decl : decl_context->decls()) {
           Override(child_decl);
@@ -300,9 +300,9 @@ public:
     // Filter out decls that we can't complete later.
     if (!isa<TagDecl>(to) && !isa<ObjCInterfaceDecl>(to))
       return;
-    auto *from_record_decl = dyn_cast<CXXRecordDecl>(from);
+    
     // We don't need to complete injected class name decls.
-    if (from_record_decl && from_record_decl->isInjectedClassName())
+    if (auto *from_record_decl = dyn_cast<CXXRecordDecl>(from); from_record_decl && from_record_decl->isInjectedClassName())
       return;
 
     NamedDecl *to_named_decl = dyn_cast<NamedDecl>(to);
@@ -387,17 +387,17 @@ bool ClangASTImporter::CanImport(const CompilerType &type) {
   clang::QualType qual_type(
       ClangUtil::GetCanonicalQualType(ClangUtil::RemoveFastQualifiers(type)));
 
-  const clang::Type::TypeClass type_class = qual_type->getTypeClass();
-  switch (type_class) {
+  
+  switch (const clang::Type::TypeClass type_class = qual_type->getTypeClass(); type_class) {
   case clang::Type::Record:
     return CanImport(qual_type->getAsCXXRecordDecl());
   case clang::Type::Enum:
     return CanImport(llvm::cast<clang::EnumType>(qual_type)->getDecl());
   case clang::Type::ObjCObject:
   case clang::Type::ObjCInterface: {
-    const clang::ObjCObjectType *objc_class_type =
-        llvm::dyn_cast<clang::ObjCObjectType>(qual_type);
-    if (objc_class_type) {
+    
+    if (const clang::ObjCObjectType *objc_class_type =
+        llvm::dyn_cast<clang::ObjCObjectType>(qual_type); objc_class_type) {
       clang::ObjCInterfaceDecl *class_interface_decl =
           objc_class_type->getInterface();
       // We currently can't complete objective C types through the newly added
@@ -438,21 +438,21 @@ bool ClangASTImporter::Import(const CompilerType &type) {
   clang::QualType qual_type(
       ClangUtil::GetCanonicalQualType(ClangUtil::RemoveFastQualifiers(type)));
 
-  const clang::Type::TypeClass type_class = qual_type->getTypeClass();
-  switch (type_class) {
+  
+  switch (const clang::Type::TypeClass type_class = qual_type->getTypeClass(); type_class) {
   case clang::Type::Record: {
-    const clang::CXXRecordDecl *cxx_record_decl =
-        qual_type->getAsCXXRecordDecl();
-    if (cxx_record_decl) {
+    
+    if (const clang::CXXRecordDecl *cxx_record_decl =
+        qual_type->getAsCXXRecordDecl(); cxx_record_decl) {
       if (GetDeclOrigin(cxx_record_decl).Valid())
         return CompleteAndFetchChildren(qual_type);
     }
   } break;
 
   case clang::Type::Enum: {
-    clang::EnumDecl *enum_decl =
-        llvm::cast<clang::EnumType>(qual_type)->getDecl();
-    if (enum_decl) {
+    
+    if (clang::EnumDecl *enum_decl =
+        llvm::cast<clang::EnumType>(qual_type)->getDecl(); enum_decl) {
       if (GetDeclOrigin(enum_decl).Valid())
         return CompleteAndFetchChildren(qual_type);
     }
@@ -460,14 +460,14 @@ bool ClangASTImporter::Import(const CompilerType &type) {
 
   case clang::Type::ObjCObject:
   case clang::Type::ObjCInterface: {
-    const clang::ObjCObjectType *objc_class_type =
-        llvm::dyn_cast<clang::ObjCObjectType>(qual_type);
-    if (objc_class_type) {
-      clang::ObjCInterfaceDecl *class_interface_decl =
-          objc_class_type->getInterface();
+    
+    if (const clang::ObjCObjectType *objc_class_type =
+        llvm::dyn_cast<clang::ObjCObjectType>(qual_type); objc_class_type) {
+      
       // We currently can't complete objective C types through the newly added
       // ASTContext because it only supports TagDecl objects right now...
-      if (class_interface_decl) {
+      if (clang::ObjCInterfaceDecl *class_interface_decl =
+          objc_class_type->getInterface(); class_interface_decl) {
         if (GetDeclOrigin(class_interface_decl).Valid())
           return CompleteAndFetchChildren(qual_type);
       }
@@ -709,9 +709,9 @@ bool ClangASTImporter::importRecordLayoutFromOrigin(
           "{3} bits",
           *fi, fi->getName(), fi->getType().getAsString(), field_offsets[*fi]);
     }
-    DeclFromParser<const CXXRecordDecl> parser_cxx_record =
-        DynCast<const CXXRecordDecl>(parser_record);
-    if (parser_cxx_record.IsValid()) {
+    
+    if (DeclFromParser<const CXXRecordDecl> parser_cxx_record =
+        DynCast<const CXXRecordDecl>(parser_record); parser_cxx_record.IsValid()) {
       LLDB_LOG(log, "LRT   Bases:");
       for (CXXRecordDecl::base_class_const_iterator
                bi = parser_cxx_record->bases_begin(),
@@ -869,9 +869,9 @@ bool ClangASTImporter::CompleteAndFetchChildren(clang::QualType type) {
     TagDecl *origin_tag_decl = llvm::dyn_cast<TagDecl>(decl_origin.decl);
 
     for (Decl *origin_child_decl : origin_tag_decl->decls()) {
-      llvm::Expected<Decl *> imported_or_err =
-          delegate_sp->Import(origin_child_decl);
-      if (!imported_or_err) {
+      
+      if (llvm::Expected<Decl *> imported_or_err =
+          delegate_sp->Import(origin_child_decl); !imported_or_err) {
         LLDB_LOG_ERROR(log, imported_or_err.takeError(),
                        "Couldn't import decl: {0}");
         return false;
@@ -899,9 +899,9 @@ bool ClangASTImporter::CompleteAndFetchChildren(clang::QualType type) {
           llvm::dyn_cast<ObjCInterfaceDecl>(decl_origin.decl);
 
       for (Decl *origin_child_decl : origin_interface_decl->decls()) {
-        llvm::Expected<Decl *> imported_or_err =
-            delegate_sp->Import(origin_child_decl);
-        if (!imported_or_err) {
+        
+        if (llvm::Expected<Decl *> imported_or_err =
+            delegate_sp->Import(origin_child_decl); !imported_or_err) {
           LLDB_LOG_ERROR(log, imported_or_err.takeError(),
                          "Couldn't import decl: {0}");
           return false;
@@ -1057,8 +1057,8 @@ ClangASTImporter::ASTImporterDelegate::ImportImpl(Decl *From) {
           ASTImportError::UnsupportedConstruct);
 
   if (m_std_handler) {
-    std::optional<Decl *> D = m_std_handler->Import(From);
-    if (D) {
+    
+    if (std::optional<Decl *> D = m_std_handler->Import(From); D) {
       // Make sure we don't use this decl later to map it back to it's original
       // decl. The decl the CxxModuleHandler created has nothing to do with
       // the one from debug info, and linking those two would just cause the
@@ -1099,8 +1099,8 @@ ClangASTImporter::ASTImporterDelegate::ImportImpl(Decl *From) {
   // though all these different source ASTContexts just got a copy from
   // one source AST).
   if (origin.Valid()) {
-    auto R = m_main.CopyDecl(&getToContext(), origin.decl);
-    if (R) {
+    
+    if (auto R = m_main.CopyDecl(&getToContext(), origin.decl); R) {
       RegisterImportedDecl(From, R);
       return R;
     }
@@ -1109,8 +1109,8 @@ ClangASTImporter::ASTImporterDelegate::ImportImpl(Decl *From) {
   // If we have a forcefully completed type, try to find an actual definition
   // for it in other modules.
   std::optional<ClangASTMetadata> md = m_main.GetDeclMetadata(From);
-  auto *td = dyn_cast<TagDecl>(From);
-  if (td && md && md->IsForcefullyCompleted()) {
+  
+  if (auto *td = dyn_cast<TagDecl>(From); td && md && md->IsForcefullyCompleted()) {
     Log *log = GetLog(LLDBLog::Expressions);
     LLDB_LOG(log,
              "[ClangASTImporter] Searching for a complete definition of {0} in "
@@ -1204,9 +1204,9 @@ void ClangASTImporter::ASTImporterDelegate::ImportDefinitionTo(
   // the class was originally sourced from symbols.
 
   if (ObjCInterfaceDecl *to_objc_interface = dyn_cast<ObjCInterfaceDecl>(to)) {
-    ObjCInterfaceDecl *to_superclass = to_objc_interface->getSuperClass();
+    
 
-    if (to_superclass)
+    if (ObjCInterfaceDecl *to_superclass = to_objc_interface->getSuperClass(); to_superclass)
       return; // we're not going to override it if it's set
 
     ObjCInterfaceDecl *from_objc_interface = dyn_cast<ObjCInterfaceDecl>(from);
@@ -1362,10 +1362,10 @@ void ClangASTImporter::ASTImporterDelegate::Imported(clang::Decl *from,
 
       NamespaceMetaMap &namespace_maps = from_context_md->m_namespace_maps;
 
-      NamespaceMetaMap::iterator namespace_map_iter =
-          namespace_maps.find(from_namespace);
+      
 
-      if (namespace_map_iter != namespace_maps.end())
+      if (NamespaceMetaMap::iterator namespace_map_iter =
+          namespace_maps.find(from_namespace); namespace_map_iter != namespace_maps.end())
         to_context_md->m_namespace_maps[to_namespace] =
             namespace_map_iter->second;
     }

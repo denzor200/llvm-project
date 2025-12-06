@@ -176,8 +176,8 @@ void SparcFrameLowering::emitEpilogue(MachineFunction &MF,
   }
   MachineFrameInfo &MFI = MF.getFrameInfo();
 
-  int NumBytes = (int) MFI.getStackSize();
-  if (NumBytes != 0)
+  
+  if (int NumBytes = (int) MFI.getStackSize(); NumBytes != 0)
     emitSPAdjustment(MF, MBB, MBBI, NumBytes, SP::ADDrr, SP::ADDri);
 
   // Preserve return address in %o7

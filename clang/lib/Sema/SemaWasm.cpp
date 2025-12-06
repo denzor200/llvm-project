@@ -43,8 +43,8 @@ static bool CheckWasmBuiltinArgIsTable(Sema &S, CallExpr *E, unsigned ArgIndex,
 /// Checks the argument at the given index is an integer.
 static bool CheckWasmBuiltinArgIsInteger(Sema &S, CallExpr *E,
                                          unsigned ArgIndex) {
-  Expr *ArgExpr = E->getArg(ArgIndex);
-  if (!ArgExpr->getType()->isIntegerType()) {
+  
+  if (Expr *ArgExpr = E->getArg(ArgIndex); !ArgExpr->getType()->isIntegerType()) {
     return S.Diag(ArgExpr->getBeginLoc(),
                   diag::err_wasm_builtin_arg_must_be_integer_type)
            << ArgIndex + 1 << ArgExpr->getSourceRange();
@@ -65,8 +65,8 @@ bool SemaWasm::BuiltinWasmRefIsNullExtern(CallExpr *TheCall) {
     return true;
   }
 
-  Expr *ArgExpr = TheCall->getArg(0);
-  if (!ArgExpr->getType().isWebAssemblyExternrefType()) {
+  
+  if (Expr *ArgExpr = TheCall->getArg(0); !ArgExpr->getType().isWebAssemblyExternrefType()) {
     SemaRef.Diag(ArgExpr->getBeginLoc(),
                  diag::err_wasm_builtin_arg_must_be_externref_type)
         << 1 << ArgExpr->getSourceRange();

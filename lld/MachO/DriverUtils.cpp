@@ -83,8 +83,8 @@ static void handleColorDiagnostics(CommonLinkerContext &ctx,
   } else if (arg->getOption().getID() == OPT_no_color_diagnostics) {
     errs.enable_colors(false);
   } else {
-    StringRef s = arg->getValue();
-    if (s == "always")
+    
+    if (StringRef s = arg->getValue(); s == "always")
       errs.enable_colors(true);
     else if (s == "never")
       errs.enable_colors(false);
@@ -116,8 +116,8 @@ InputArgList MachOOptTable::parse(CommonLinkerContext &ctx,
   handleColorDiagnostics(ctx, args);
 
   for (const Arg *arg : args.filtered(OPT_UNKNOWN)) {
-    std::string nearest;
-    if (findNearest(arg->getAsString(args), nearest) > 1)
+    
+    if (std::string nearest; findNearest(arg->getAsString(args), nearest) > 1)
       error("unknown argument '" + arg->getAsString(args) + "'");
     else
       error("unknown argument '" + arg->getAsString(args) +
@@ -255,8 +255,8 @@ DylibFile *macho::loadDylib(MemoryBufferRef mbref, DylibFile *umbrella,
   if (!realPath.val().empty()) {
     // Avoid map insertions here so that we do not invalidate the "file"
     // reference.
-    auto it = loadedDylibs.find(realPath);
-    if (it != loadedDylibs.end()) {
+    
+    if (auto it = loadedDylibs.find(realPath); it != loadedDylibs.end()) {
       DylibFile *realfile = it->second;
       if (explicitlyLinked)
         realfile->setExplicitlyLinked();
@@ -299,11 +299,7 @@ DylibFile *macho::loadDylib(MemoryBufferRef mbref, DylibFile *umbrella,
   }
 
   if (explicitlyLinked && !newFile->allowableClients.empty()) {
-    bool allowed =
-        llvm::any_of(newFile->allowableClients, [&](StringRef allowableClient) {
-          // We only do a prefix match to match LD64's behaviour.
-          return allowableClient.starts_with(config->clientName);
-        });
+    
 
     // TODO: This behaviour doesn't quite match the latest available source
     // release of LD64 (ld64-951.9), which allows "parents" and "siblings"
@@ -311,7 +307,11 @@ DylibFile *macho::loadDylib(MemoryBufferRef mbref, DylibFile *umbrella,
     // allowable clients. However, behaviour around this seems to have
     // changed in the latest release of Xcode (ld64-1115.7.3), so it's not
     // clear what the correct thing to do is yet.
-    if (!allowed)
+    if (bool allowed =
+        llvm::any_of(newFile->allowableClients, [&](StringRef allowableClient) {
+          // We only do a prefix match to match LD64's behaviour.
+          return allowableClient.starts_with(config->clientName);
+        }); !allowed)
       error("cannot link directly with '" +
             sys::path::filename(newFile->installName) + "' because " +
             config->clientName + " is not an allowed client");

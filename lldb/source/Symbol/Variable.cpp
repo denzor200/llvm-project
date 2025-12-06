@@ -110,8 +110,8 @@ void Variable::Dump(Stream *s, bool show_context) const {
     *s << ", name = \"" << m_name << "\"";
 
   if (m_symfile_type_sp) {
-    Type *type = m_symfile_type_sp->GetType();
-    if (type) {
+    
+    if (Type *type = m_symfile_type_sp->GetType(); type) {
       s->Format(", type = {{{0:x-16}} {1} (", type->GetID(), type);
       type->DumpTypeName(s);
       s->PutChar(')');
@@ -151,8 +151,8 @@ void Variable::Dump(Stream *s, bool show_context) const {
     s->PutCString(", location = ");
     ABISP abi;
     if (m_owner_scope) {
-      ModuleSP module_sp(m_owner_scope->CalculateSymbolContextModule());
-      if (module_sp)
+      
+      if (ModuleSP module_sp(m_owner_scope->CalculateSymbolContextModule()); module_sp)
         abi = ABI::FindPlugin(ProcessSP(), module_sp->GetArchitecture());
     }
     m_location_list.GetDescription(s, lldb::eDescriptionLevelBrief, abi.get());
@@ -194,8 +194,8 @@ bool Variable::DumpDeclaration(Stream *s, bool show_fullpaths,
 size_t Variable::MemorySize() const { return sizeof(Variable); }
 
 CompilerDeclContext Variable::GetDeclContext() {
-  Type *type = GetType();
-  if (type)
+  
+  if (Type *type = GetType(); type)
     return type->GetSymbolFile()->GetDeclContextContainingUID(GetID());
   return CompilerDeclContext();
 }
@@ -215,9 +215,9 @@ void Variable::CalculateSymbolContext(SymbolContext *sc) {
 
 bool Variable::LocationIsValidForFrame(StackFrame *frame) {
   if (frame) {
-    Function *function =
-        frame->GetSymbolContext(eSymbolContextFunction).function;
-    if (function) {
+    
+    if (Function *function =
+        frame->GetSymbolContext(eSymbolContextFunction).function; function) {
       TargetSP target_sp(frame->CalculateTarget());
 
       addr_t loclist_base_load_addr =
@@ -242,10 +242,10 @@ bool Variable::LocationIsValidForAddress(const Address &address) {
     // We need to check if the address is valid for both scope range and value
     // range.
     // Empty scope range means block range.
-    bool valid_in_scope_range =
+    
+    if (bool valid_in_scope_range =
         GetScopeRange().IsEmpty() || GetScopeRange().FindEntryThatContains(
-                                         address.GetFileAddress()) != nullptr;
-    if (!valid_in_scope_range)
+                                         address.GetFileAddress()) != nullptr; !valid_in_scope_range)
       return false;
     SymbolContext sc;
     CalculateSymbolContext(&sc);
@@ -290,8 +290,8 @@ bool Variable::IsInScope(StackFrame *frame) {
       // this variable was defined in is currently
       Block *deepest_frame_block =
           frame->GetSymbolContext(eSymbolContextBlock).block;
-      Address frame_addr = frame->GetFrameCodeAddress();
-      if (deepest_frame_block)
+      
+      if (Address frame_addr = frame->GetFrameCodeAddress(); deepest_frame_block)
         return IsInScope(*deepest_frame_block, frame_addr);
     }
     break;
@@ -344,9 +344,9 @@ Status Variable::GetValuesForVariableExpressionPath(
     }
     for (uint32_t i = 0; i < valobj_list.GetSize();) {
       Status tmp_error;
-      ValueObjectSP valobj_sp(
-          valobj_list.GetValueObjectAtIndex(i)->Dereference(tmp_error));
-      if (tmp_error.Fail()) {
+      
+      if (ValueObjectSP valobj_sp(
+          valobj_list.GetValueObjectAtIndex(i)->Dereference(tmp_error)); tmp_error.Fail()) {
         variable_list.RemoveVariableAtIndex(i);
         valobj_list.RemoveValueObjectAtIndex(i);
       } else {
@@ -362,9 +362,9 @@ Status Variable::GetValuesForVariableExpressionPath(
     if (error.Success()) {
       for (uint32_t i = 0; i < valobj_list.GetSize();) {
         Status tmp_error;
-        ValueObjectSP valobj_sp(
-            valobj_list.GetValueObjectAtIndex(i)->AddressOf(tmp_error));
-        if (tmp_error.Fail()) {
+        
+        if (ValueObjectSP valobj_sp(
+            valobj_list.GetValueObjectAtIndex(i)->AddressOf(tmp_error)); tmp_error.Fail()) {
           variable_list.RemoveVariableAtIndex(i);
           valobj_list.RemoveValueObjectAtIndex(i);
         } else {
@@ -444,8 +444,8 @@ bool Variable::DumpLocations(Stream *s, const Address &address) {
   CalculateSymbolContext(&sc);
   ABISP abi;
   if (m_owner_scope) {
-    ModuleSP module_sp(m_owner_scope->CalculateSymbolContextModule());
-    if (module_sp)
+    
+    if (ModuleSP module_sp(m_owner_scope->CalculateSymbolContextModule()); module_sp)
       abi = ABI::FindPlugin(ProcessSP(), module_sp->GetArchitecture());
   }
 
@@ -475,9 +475,9 @@ static void PrivateAutoCompleteMembers(
     const CompilerType &compiler_type, CompletionRequest &request) {
 
   // We are in a type parsing child members
-  const uint32_t num_bases = compiler_type.GetNumDirectBaseClasses();
+  
 
-  if (num_bases > 0) {
+  if (const uint32_t num_bases = compiler_type.GetNumDirectBaseClasses(); num_bases > 0) {
     for (uint32_t i = 0; i < num_bases; ++i) {
       CompilerType base_class_type =
           compiler_type.GetDirectBaseClassAtIndex(i, nullptr);
@@ -508,10 +508,10 @@ static void PrivateAutoCompleteMembers(
     for (uint32_t i = 0; i < num_fields; ++i) {
       std::string member_name;
 
-      CompilerType member_compiler_type = compiler_type.GetFieldAtIndex(
-          i, member_name, nullptr, nullptr, nullptr);
+      
 
-      if (partial_member_name.empty()) {
+      if (CompilerType member_compiler_type = compiler_type.GetFieldAtIndex(
+          i, member_name, nullptr, nullptr, nullptr); partial_member_name.empty()) {
         request.AddCompletion((prefix_path + member_name).str());
       } else if (llvm::StringRef(member_name)
                      .starts_with(partial_member_name)) {
@@ -538,8 +538,8 @@ static void PrivateAutoComplete(
   //    '%s'\n", prefix_path.c_str(), partial_path.c_str());
   std::string remaining_partial_path;
 
-  const lldb::TypeClass type_class = compiler_type.GetTypeClass();
-  if (partial_path.empty()) {
+  
+  if (const lldb::TypeClass type_class = compiler_type.GetTypeClass(); partial_path.empty()) {
     if (compiler_type.IsValid()) {
       switch (type_class) {
       default:
@@ -569,8 +569,8 @@ static void PrivateAutoComplete(
         break;
       case eTypeClassObjCObjectPointer:
       case eTypeClassPointer: {
-        bool omit_empty_base_classes = true;
-        if (llvm::expectedToStdOptional(
+        
+        if (bool omit_empty_base_classes = true; llvm::expectedToStdOptional(
                 compiler_type.GetNumChildren(omit_empty_base_classes, nullptr))
                 .value_or(0))
           request.AddCompletion((prefix_path + "->").str());
@@ -583,18 +583,18 @@ static void PrivateAutoComplete(
       if (frame) {
         const bool get_file_globals = true;
 
-        VariableList *variable_list = frame->GetVariableList(get_file_globals,
-                                                             nullptr);
+        
 
-        if (variable_list) {
+        if (VariableList *variable_list = frame->GetVariableList(get_file_globals,
+                                                             nullptr); variable_list) {
           for (const VariableSP &var_sp : *variable_list)
             request.AddCompletion(var_sp->GetName().AsCString());
         }
       }
     }
   } else {
-    const char ch = partial_path[0];
-    switch (ch) {
+    
+    switch (const char ch = partial_path[0]; ch) {
     case '*':
       if (prefix_path.str().empty()) {
         PrivateAutoComplete(frame, partial_path.substr(1), "*", compiler_type,
@@ -614,8 +614,8 @@ static void PrivateAutoComplete(
           !prefix_path.str().empty()) {
         switch (type_class) {
         case lldb::eTypeClassPointer: {
-          CompilerType pointee_type(compiler_type.GetPointeeType());
-          if (partial_path.size() > 2 && partial_path[2]) {
+          
+          if (CompilerType pointee_type(compiler_type.GetPointeeType()); partial_path.size() > 2 && partial_path[2]) {
             // If there is more after the "->", then search deeper
             PrivateAutoComplete(frame, partial_path.substr(2),
                                 prefix_path + "->",
@@ -661,8 +661,8 @@ static void PrivateAutoComplete(
         const size_t partial_path_len = partial_path.size();
         size_t pos = 1;
         while (pos < partial_path_len) {
-          const char curr_ch = partial_path[pos];
-          if (isalnum(curr_ch) || curr_ch == '_' || curr_ch == '$') {
+          
+          if (const char curr_ch = partial_path[pos]; isalnum(curr_ch) || curr_ch == '_' || curr_ch == '$') {
             ++pos;
             continue;
           }
@@ -690,11 +690,11 @@ static void PrivateAutoComplete(
             if (!var_sp)
               continue;
 
-            llvm::StringRef variable_name = var_sp->GetName().GetStringRef();
-            if (variable_name.starts_with(token)) {
+            
+            if (llvm::StringRef variable_name = var_sp->GetName().GetStringRef(); variable_name.starts_with(token)) {
               if (variable_name == token) {
-                Type *variable_type = var_sp->GetType();
-                if (variable_type) {
+                
+                if (Type *variable_type = var_sp->GetType(); variable_type) {
                   CompilerType variable_compiler_type(
                       variable_type->GetForwardCompilerType());
                   PrivateAutoComplete(

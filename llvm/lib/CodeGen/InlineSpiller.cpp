@@ -336,8 +336,8 @@ bool InlineSpiller::isSnippet(const LiveInterval &SnipLI) {
   // statepoint instructions.
   unsigned NumValNums = SnipLI.getNumValNums();
   for (auto *VNI : SnipLI.vnis()) {
-    MachineInstr *MI = LIS.getInstructionFromIndex(VNI->def);
-    if (MI->getOpcode() == TargetOpcode::STATEPOINT)
+    
+    if (MachineInstr *MI = LIS.getInstructionFromIndex(VNI->def); MI->getOpcode() == TargetOpcode::STATEPOINT)
       --NumValNums;
   }
   if (NumValNums > 2)
@@ -442,8 +442,8 @@ bool InlineSpiller::hoistSpillInsideBB(LiveInterval &SpillLI,
   LiveInterval &SrcLI = LIS.getInterval(SrcReg);
   VNInfo *SrcVNI = SrcLI.getVNInfoAt(Idx);
   LiveQueryResult SrcQ = SrcLI.Query(Idx);
-  MachineBasicBlock *DefMBB = LIS.getMBBFromIndex(SrcVNI->def);
-  if (DefMBB != CopyMI.getParent() || !SrcQ.isKill())
+  
+  if (MachineBasicBlock *DefMBB = LIS.getMBBFromIndex(SrcVNI->def); DefMBB != CopyMI.getParent() || !SrcQ.isKill())
     return false;
 
   // Conservatively extend the stack slot range to the range of the original
@@ -566,8 +566,8 @@ void InlineSpiller::markValueUsed(LiveInterval *LI, VNInfo *VNI) {
     if (VNI->isPHIDef()) {
       MachineBasicBlock *MBB = LIS.getMBBFromIndex(VNI->def);
       for (MachineBasicBlock *P : MBB->predecessors()) {
-        VNInfo *PVNI = LI->getVNInfoBefore(LIS.getMBBEndIdx(P));
-        if (PVNI)
+        
+        if (VNInfo *PVNI = LI->getVNInfoBefore(LIS.getMBBEndIdx(P)); PVNI)
           WorkList.push_back(std::make_pair(LI, PVNI));
       }
       continue;
@@ -612,8 +612,8 @@ bool InlineSpiller::canGuaranteeAssignmentAfterRemat(Register VReg,
   for (unsigned Idx = StatepointOpers(&MI).getVarIdx(),
                 EndIdx = MI.getNumOperands();
        Idx < EndIdx; ++Idx) {
-    MachineOperand &MO = MI.getOperand(Idx);
-    if (MO.isReg() && MO.getReg() == VReg)
+    
+    if (MachineOperand &MO = MI.getOperand(Idx); MO.isReg() && MO.getReg() == VReg)
       return false;
   }
   return true;
@@ -739,8 +739,8 @@ bool InlineSpiller::reMaterializeFor(LiveInterval &VirtReg, MachineInstr &MI) {
 
   // Replace operands
   for (const auto &OpPair : Ops) {
-    MachineOperand &MO = OpPair.first->getOperand(OpPair.second);
-    if (MO.isReg() && MO.isUse() && MO.getReg() == VirtReg.reg()) {
+    
+    if (MachineOperand &MO = OpPair.first->getOperand(OpPair.second); MO.isReg() && MO.isUse() && MO.getReg() == VirtReg.reg()) {
       MO.setReg(NewVReg);
       MO.setIsKill();
     }
@@ -799,9 +799,9 @@ void InlineSpiller::reMaterializeAll() {
              It != EndIt && It->isBundledWithPred(); ++It) {
 
           auto DestSrc = TII.isCopyInstr(*It);
-          bool IsCopyToDeadReg =
-              DestSrc && DestSrc->Destination->getReg() == Reg;
-          if (!IsCopyToDeadReg) {
+          
+          if (bool IsCopyToDeadReg =
+              DestSrc && DestSrc->Destination->getReg() == Reg; !IsCopyToDeadReg) {
             OnlyDeadCopies = false;
             break;
           }
@@ -1060,8 +1060,8 @@ foldMemoryOperand(ArrayRef<std::pair<MachineInstr *, unsigned>> Ops,
                          {NewNum, MachineFunction::DebugOperandMemNumber});
     };
 
-    const MachineOperand &Op0 = MI->getOperand(Ops[0].second);
-    if (Ops.size() == 1 && Op0.isDef()) {
+    
+    if (const MachineOperand &Op0 = MI->getOperand(Ops[0].second); Ops.size() == 1 && Op0.isDef()) {
       MakeSubstitution();
     } else if (Ops.size() == 2 && Op0.isDef() && MI->getOperand(1).isTied() &&
                Op0.getReg() == MI->getOperand(1).getReg()) {
@@ -1409,8 +1409,8 @@ bool HoistSpillHelper::isSpillCandBB(LiveInterval &OrigLI, VNInfo &OrigVNI,
 
   for (const Register &SibReg : Siblings) {
     LiveInterval &LI = LIS.getInterval(SibReg);
-    VNInfo *VNI = LI.getVNInfoAt(Idx);
-    if (VNI) {
+    
+    if (VNInfo *VNI = LI.getVNInfoAt(Idx); VNI) {
       LiveReg = SibReg;
       return true;
     }
@@ -1430,8 +1430,8 @@ void HoistSpillHelper::rmRedundantSpills(
   for (auto *const CurrentSpill : Spills) {
     MachineBasicBlock *Block = CurrentSpill->getParent();
     MachineDomTreeNode *Node = MDT.getNode(Block);
-    MachineInstr *PrevSpill = SpillBBToSpill[Node];
-    if (PrevSpill) {
+    
+    if (MachineInstr *PrevSpill = SpillBBToSpill[Node]; PrevSpill) {
       SlotIndex PIdx = LIS.getInstructionIndex(*PrevSpill);
       SlotIndex CIdx = LIS.getInstructionIndex(*CurrentSpill);
       MachineInstr *SpillToRm = (CIdx > PIdx) ? CurrentSpill : PrevSpill;
@@ -1677,8 +1677,8 @@ void HoistSpillHelper::hoistAllSpills() {
 
   for (unsigned i = 0, e = MRI.getNumVirtRegs(); i != e; ++i) {
     Register Reg = Register::index2VirtReg(i);
-    Register Original = VRM.getPreSplitReg(Reg);
-    if (!MRI.def_empty(Reg) && Original.isValid())
+    
+    if (Register Original = VRM.getPreSplitReg(Reg); !MRI.def_empty(Reg) && Original.isValid())
       Virt2SiblingsMap[Original].insert(Reg);
   }
 
@@ -1741,8 +1741,8 @@ void HoistSpillHelper::hoistAllSpills() {
     for (auto *const RMEnt : SpillsToRm) {
       RMEnt->setDesc(TII.get(TargetOpcode::KILL));
       for (unsigned i = RMEnt->getNumOperands(); i; --i) {
-        MachineOperand &MO = RMEnt->getOperand(i - 1);
-        if (MO.isReg() && MO.isImplicit() && MO.isDef() && !MO.isDead())
+        
+        if (MachineOperand &MO = RMEnt->getOperand(i - 1); MO.isReg() && MO.isImplicit() && MO.isDef() && !MO.isDead())
           RMEnt->removeOperand(i - 1);
       }
     }

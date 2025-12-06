@@ -119,8 +119,8 @@ static void emitAssemblyFormat(StringRef opName, StringRef format,
   os << split.first.trim() << "\n";
   do {
     split = split.second.split('\n');
-    StringRef formatChunk = split.first.trim();
-    if (!formatChunk.empty())
+    
+    if (StringRef formatChunk = split.first.trim(); !formatChunk.empty())
       os.indent(indent) << formatChunk << "\n";
   } while (!split.second.empty());
   os << "```\n";

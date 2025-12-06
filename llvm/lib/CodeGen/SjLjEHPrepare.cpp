@@ -304,8 +304,8 @@ void SjLjEHPrepareImpl::lowerAcrossUnwindEdges(Function &F,
       // Avoid iterator invalidation by copying users to a temporary vector.
       SmallVector<Instruction *, 16> Users;
       for (User *U : Inst.users()) {
-        Instruction *UI = cast<Instruction>(U);
-        if (UI->getParent() != &BB || isa<PHINode>(UI))
+        
+        if (Instruction *UI = cast<Instruction>(U); UI->getParent() != &BB || isa<PHINode>(UI))
           Users.push_back(UI);
       }
 
@@ -313,9 +313,9 @@ void SjLjEHPrepareImpl::lowerAcrossUnwindEdges(Function &F,
       SmallPtrSet<BasicBlock *, 32> LiveBBs;
       LiveBBs.insert(&BB);
       while (!Users.empty()) {
-        Instruction *U = Users.pop_back_val();
+        
 
-        if (!isa<PHINode>(U)) {
+        if (Instruction *U = Users.pop_back_val(); !isa<PHINode>(U)) {
           MarkBlocksLiveIn(U->getParent(), LiveBBs);
         } else {
           // Uses for a PHI node occur in their predecessor block.
@@ -330,8 +330,8 @@ void SjLjEHPrepareImpl::lowerAcrossUnwindEdges(Function &F,
       // it includes any of the unwind locations.
       bool NeedsSpill = false;
       for (InvokeInst *Invoke : Invokes) {
-        BasicBlock *UnwindBlock = Invoke->getUnwindDest();
-        if (UnwindBlock != &BB && LiveBBs.count(UnwindBlock)) {
+        
+        if (BasicBlock *UnwindBlock = Invoke->getUnwindDest(); UnwindBlock != &BB && LiveBBs.count(UnwindBlock)) {
           LLVM_DEBUG(dbgs() << "SJLJ Spill: " << Inst << " around "
                             << UnwindBlock->getName() << "\n");
           NeedsSpill = true;

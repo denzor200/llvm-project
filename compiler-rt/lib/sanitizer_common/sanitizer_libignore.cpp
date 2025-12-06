@@ -42,8 +42,8 @@ void LibIgnore::OnLibraryLoaded(const char *name) {
   if (name && internal_readlink(name, buf.data(), buf.size() - 1) > 0 &&
       buf[0]) {
     for (uptr i = 0; i < count_; i++) {
-      Lib *lib = &libs_[i];
-      if (!lib->loaded() && (!lib->real_name) &&
+      
+      if (Lib *lib = &libs_[i]; !lib->loaded() && (!lib->real_name) &&
           TemplateMatch(lib->templ, name))
         lib->real_name = internal_strdup(buf.data());
     }

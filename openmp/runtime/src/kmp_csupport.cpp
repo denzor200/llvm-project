@@ -36,8 +36,8 @@
  */
 void __kmpc_begin(ident_t *loc, kmp_int32 flags) {
   // By default __kmpc_begin() is no-op.
-  char *env;
-  if ((env = getenv("KMP_INITIAL_THREAD_BIND")) != NULL &&
+  
+  if (char *env; (env = getenv("KMP_INITIAL_THREAD_BIND")) != NULL &&
       __kmp_str_match_true(env)) {
     __kmp_middle_initialize();
     __kmp_assign_root_init_mask();
@@ -457,8 +457,8 @@ This call is there to support `thread_limit` clause on the `target` construct
 void __kmpc_set_thread_limit(ident_t *loc, kmp_int32 global_tid,
                              kmp_int32 thread_limit) {
   __kmp_assert_valid_gtid(global_tid);
-  kmp_info_t *thread = __kmp_threads[global_tid];
-  if (thread_limit > 0)
+  
+  if (kmp_info_t *thread = __kmp_threads[global_tid]; thread_limit > 0)
     thread->th.th_current_task->td_icvs.task_thread_limit = thread_limit;
 }
 
@@ -3578,10 +3578,10 @@ __kmp_end_critical_section_reduce_block(ident_t *loc, kmp_int32 global_tid,
 static __forceinline int
 __kmp_swap_teams_for_teams_reduction(kmp_info_t *th, kmp_team_t **team_p,
                                      int *task_state) {
-  kmp_team_t *team;
+  
 
   // Check if we are inside the teams construct?
-  if (th->th.th_teams_microtask) {
+  if (kmp_team_t *team; th->th.th_teams_microtask) {
     *team_p = team = th->th.th_team;
     if (team->t.t_level == th->th.th_teams_level) {
       // This is reduction at teams construct.

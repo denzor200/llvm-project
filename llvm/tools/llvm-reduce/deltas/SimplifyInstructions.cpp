@@ -25,8 +25,8 @@ void llvm::simplifyInstructionsDeltaPass(Oracle &O, ReducerWorkItem &WorkItem) {
   for (auto &F : Program) {
     for (auto &BB : F) {
       for (auto &Inst : make_early_inc_range(BB)) {
-        SimplifyQuery Q(DL, &Inst);
-        if (Value *Simplified = simplifyInstruction(&Inst, Q)) {
+        
+        if (SimplifyQuery Q(DL, &Inst); Value *Simplified = simplifyInstruction(&Inst, Q)) {
           if (O.shouldKeep())
             continue;
           Inst.replaceAllUsesWith(Simplified);

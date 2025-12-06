@@ -173,8 +173,8 @@ std::string Regex::sub(StringRef Repl, StringRef String,
       if (Repl.size() >= 4 && Repl[1] == '<') {
         size_t End = Repl.find('>');
         StringRef Ref = Repl.slice(2, End);
-        unsigned RefValue;
-        if (End != StringRef::npos && !Ref.getAsInteger(10, RefValue)) {
+        
+        if (unsigned RefValue; End != StringRef::npos && !Ref.getAsInteger(10, RefValue)) {
           Repl = Repl.substr(End + 1);
           if (RefValue < Matches.size())
             Res += Matches[RefValue];

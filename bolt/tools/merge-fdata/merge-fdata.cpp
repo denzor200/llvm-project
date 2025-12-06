@@ -124,9 +124,9 @@ void mergeProfileHeaders(BinaryProfileHeader &MergedHeader,
   if (!MergedHeader.Flags)
     MergedHeader.Flags = Header.Flags;
 
-  constexpr auto Mask = llvm::bolt::BinaryFunction::PF_BRANCH |
-                        llvm::bolt::BinaryFunction::PF_BASIC;
-  if ((MergedHeader.Flags & Mask) != (Header.Flags & Mask)) {
+  
+  if (constexpr auto Mask = llvm::bolt::BinaryFunction::PF_BRANCH |
+                        llvm::bolt::BinaryFunction::PF_BASIC; (MergedHeader.Flags & Mask) != (Header.Flags & Mask)) {
     errs() << "ERROR: cannot merge brstack profile with non-brstack profile\n";
     exit(1);
   }

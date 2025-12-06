@@ -289,8 +289,8 @@ bool DirectoryBasedGlobalCompilationDatabase::DirectoryCache::load(
                             CDBFile{&BuildCompileCommandsJson, parseJSON},
                             CDBFile{&CompileFlagsTxt, parseFixed}}) {
     bool Active = ActiveCachedFile == Entry.File;
-    auto Loaded = Entry.File->load(FS, Active);
-    switch (Loaded.Result) {
+    
+    switch (auto Loaded = Entry.File->load(FS, Active); Loaded.Result) {
     case CachedFile::LoadResult::FileNotFound:
       if (Active) {
         log("Unloaded compilation database from {0}", Entry.File->Path);
@@ -334,8 +334,8 @@ bool DirectoryBasedGlobalCompilationDatabase::DirectoryCache::load(
     if (Entry.getName() == "fixed-compilation-database" ||
         Entry.getName() == "json-compilation-database")
       continue;
-    auto Plugin = Entry.instantiate();
-    if (auto CDB = Plugin->loadFromDirectory(Path, Error)) {
+    
+    if (auto Plugin = Entry.instantiate(); auto CDB = Plugin->loadFromDirectory(Path, Error)) {
       log("Loaded compilation database from {0} with plugin {1}", Path,
           Entry.getName());
       this->CDB = std::move(CDB);
@@ -415,8 +415,8 @@ DirectoryBasedGlobalCompilationDatabase::lookupCDB(
     SearchDirs = {*Opts.CompileCommandsDir};
   else {
     WithContext WithProvidedContext(Opts.ContextProvider(Request.FileName));
-    const auto &Spec = Config::current().CompileFlags.CDBSearch;
-    switch (Spec.Policy) {
+    
+    switch (const auto &Spec = Config::current().CompileFlags.CDBSearch; Spec.Policy) {
     case Config::CDBSearchSpec::NoCDBSearch:
       return std::nullopt;
     case Config::CDBSearchSpec::FixedDir:
@@ -439,8 +439,8 @@ DirectoryBasedGlobalCompilationDatabase::lookupCDB(
   bool ShouldBroadcast = false;
   DirectoryCache *DirCache = nullptr;
   for (DirectoryCache *Candidate : getDirectoryCaches(SearchDirs)) {
-    bool CandidateShouldBroadcast = Request.ShouldBroadcast;
-    if ((CDB = Candidate->get(Opts.TFS, CandidateShouldBroadcast,
+    
+    if (bool CandidateShouldBroadcast = Request.ShouldBroadcast; (CDB = Candidate->get(Opts.TFS, CandidateShouldBroadcast,
                               Request.FreshTime, Request.FreshTimeMissing))) {
       DirCache = Candidate;
       ShouldBroadcast = CandidateShouldBroadcast;
@@ -683,9 +683,9 @@ public:
       if (ExitEarly()) // loading config may be slow
         return Filtered;
       WithContext WithProvidedContent(Parent.Opts.ContextProvider(AllFiles[I]));
-      const Config::CDBSearchSpec &Spec =
-          Config::current().CompileFlags.CDBSearch;
-      switch (Spec.Policy) {
+      
+      switch (const Config::CDBSearchSpec &Spec =
+          Config::current().CompileFlags.CDBSearch; Spec.Policy) {
       case Config::CDBSearchSpec::NoCDBSearch:
         break;
       case Config::CDBSearchSpec::Ancestors:
@@ -713,9 +713,9 @@ public:
 void DirectoryBasedGlobalCompilationDatabase::BroadcastThread::process(
     const CDBLookupResult &T) {
   vlog("Broadcasting compilation database from {0}", T.PI.SourceRoot);
-  std::vector<std::string> GovernedFiles =
-      Filter(T.PI.SourceRoot, Parent).filter(T.CDB->getAllFiles(), ShouldStop);
-  if (!GovernedFiles.empty())
+  
+  if (std::vector<std::string> GovernedFiles =
+      Filter(T.PI.SourceRoot, Parent).filter(T.CDB->getAllFiles(), ShouldStop); !GovernedFiles.empty())
     Parent.OnCommandChanged.broadcast(std::move(GovernedFiles));
 }
 
@@ -768,8 +768,8 @@ OverlayCDB::getCompileCommand(PathRef File) const {
   std::optional<tooling::CompileCommand> Cmd;
   {
     std::lock_guard<std::mutex> Lock(Mutex);
-    auto It = Commands.find(removeDots(File));
-    if (It != Commands.end())
+    
+    if (auto It = Commands.find(removeDots(File)); It != Commands.end())
       Cmd = It->second;
   }
   if (Cmd) {

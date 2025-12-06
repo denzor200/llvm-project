@@ -468,8 +468,8 @@ size_t transformer::detail::findSelectedCase(const MatchResult &Result,
 
   auto &NodesMap = Result.Nodes.getMap();
   for (size_t i = 0, N = Rule.Cases.size(); i < N; ++i) {
-    std::string Tag = ("Tag" + Twine(i)).str();
-    if (NodesMap.find(Tag) != NodesMap.end())
+    
+    if (std::string Tag = ("Tag" + Twine(i)).str(); NodesMap.find(Tag) != NodesMap.end())
       return i;
   }
   llvm_unreachable("No tag found for this rule.");

@@ -822,9 +822,9 @@ DiagnosedSilenceableFailure RewriteMatmulAsMmaSyncOp::applyToOne(
     }
     Location loc = linalgOp.getLoc();
     // TODO: more robust computation of laneId, for now assume a single warp.
-    Value laneId = gpu::ThreadIdOp::create(
-        rewriter, loc, rewriter.getIndexType(), gpu::Dimension::x);
-    if (succeeded(MmaSyncBuilder(rewriter, loc, laneId).buildMmaSync(linalgOp)))
+    
+    if (Value laneId = gpu::ThreadIdOp::create(
+        rewriter, loc, rewriter.getIndexType(), gpu::Dimension::x); succeeded(MmaSyncBuilder(rewriter, loc, laneId).buildMmaSync(linalgOp)))
       fail = false;
   }
 

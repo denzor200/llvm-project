@@ -838,9 +838,9 @@ Error LinuxKernelRewriter::rewriteORCTables() {
       ORCUnwindIPSection->addRelocation(UnwindIPWriter.getOffset(), Label,
                                         Relocation::getPC32(), /*Addend*/ 0);
 
-    const int32_t IPValue =
-        IP - ORCUnwindIPSection->getAddress() - UnwindIPWriter.getOffset();
-    if (Error E = UnwindIPWriter.writeInteger(IPValue))
+    
+    if (const int32_t IPValue =
+        IP - ORCUnwindIPSection->getAddress() - UnwindIPWriter.getOffset(); Error E = UnwindIPWriter.writeInteger(IPValue))
       return E;
 
     if (Error E = UnwindWriter.writeInteger(ORC.SPOffset))
@@ -1073,8 +1073,8 @@ Error LinuxKernelRewriter::rewriteStaticCalls() {
     if (!Entry.Function)
       continue;
 
-    BinaryFunction &BF = *Entry.Function;
-    if (!BC.shouldEmit(BF))
+    
+    if (BinaryFunction &BF = *Entry.Function; !BC.shouldEmit(BF))
       continue;
 
     // Create a relocation against the label.
@@ -1276,10 +1276,10 @@ void LinuxKernelRewriter::skipFunctionsWithAnnotation(
     if (!BC.shouldEmit(BF))
       continue;
     for (const BinaryBasicBlock &BB : BF) {
-      const bool HasAnnotation = llvm::any_of(BB, [&](const MCInst &Inst) {
+      
+      if (const bool HasAnnotation = llvm::any_of(BB, [&](const MCInst &Inst) {
         return BC.MIB->hasAnnotation(Inst, Annotation);
-      });
-      if (HasAnnotation) {
+      }); HasAnnotation) {
         BF.setSimple(false);
         break;
       }

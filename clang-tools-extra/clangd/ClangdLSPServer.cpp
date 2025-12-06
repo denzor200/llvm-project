@@ -372,8 +372,8 @@ private:
         assert(false && "must reply to each call only once!");
         return;
       }
-      auto Duration = std::chrono::steady_clock::now() - Start;
-      if (Reply) {
+      
+      if (auto Duration = std::chrono::steady_clock::now() - Start; Reply) {
         log("--> reply:{0}({1}) {2:ms}", Method, ID, Duration);
         if (TraceArgs)
           (*TraceArgs)["Reply"] = *Reply;
@@ -435,8 +435,8 @@ private:
     // reuse.
     return Task.first.derive(llvm::make_scope_exit([this, StrID, Cookie] {
       std::lock_guard<std::mutex> Lock(RequestCancelersMutex);
-      auto It = RequestCancelers.find(StrID);
-      if (It != RequestCancelers.end() && It->second.second == Cookie)
+      
+      if (auto It = RequestCancelers.find(StrID); It != RequestCancelers.end() && It->second.second == Cookie)
         RequestCancelers.erase(It);
     }));
   }
@@ -1440,11 +1440,11 @@ void ClangdLSPServer::applyConfiguration(
   // Per-file update to the compilation database.
   llvm::StringSet<> ModifiedFiles;
   for (auto &[File, Command] : Settings.compilationDatabaseChanges) {
-    auto Cmd =
+    
+    if (auto Cmd =
         tooling::CompileCommand(std::move(Command.workingDirectory), File,
                                 std::move(Command.compilationCommand),
-                                /*Output=*/"");
-    if (CDB->setCompileCommand(File, std::move(Cmd))) {
+                                /*Output=*/""); CDB->setCompileCommand(File, std::move(Cmd))) {
       ModifiedFiles.insert(File);
     }
   }
@@ -1491,9 +1491,9 @@ void ClangdLSPServer::onReference(
                            std::vector<ReferenceLocation> Result;
                            Result.reserve(Refs->References.size());
                            for (auto &Ref : Refs->References) {
-                             bool IsDecl =
-                                 Ref.Attributes & ReferencesResult::Declaration;
-                             if (IncludeDecl || !IsDecl)
+                             
+                             if (bool IsDecl =
+                                 Ref.Attributes & ReferencesResult::Declaration; IncludeDecl || !IsDecl)
                                Result.push_back(std::move(Ref.Loc));
                            }
                            return Reply(std::move(Result));
@@ -1856,7 +1856,9 @@ void ClangdLSPServer::onBackgroundIndexProgress(
 
   std::lock_guard<std::mutex> Lock(BackgroundIndexProgressMutex);
 
-  auto NotifyProgress = [this](const BackgroundQueue::Stats &Stats) {
+  
+
+  switch (auto NotifyProgress = [this](const BackgroundQueue::Stats &Stats) {
     if (BackgroundIndexProgressState != BackgroundIndexProgress::Live) {
       WorkDoneProgressBegin Begin;
       Begin.percentage = true;
@@ -1879,9 +1881,7 @@ void ClangdLSPServer::onBackgroundIndexProgress(
       EndWorkDoneProgress({ProgressToken, WorkDoneProgressEnd()});
       BackgroundIndexProgressState = BackgroundIndexProgress::Empty;
     }
-  };
-
-  switch (BackgroundIndexProgressState) {
+  }; BackgroundIndexProgressState) {
   case BackgroundIndexProgress::Unsupported:
     return;
   case BackgroundIndexProgress::Creating:

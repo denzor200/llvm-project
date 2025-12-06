@@ -114,8 +114,8 @@ static Value *buildTargetLegalPtr(Module *M, Value *Ptr, InsertPosition IP,
                                   SmallVector<Instruction *> *NewInsts) {
   if (M && M->getTargetTriple().isAMDGCN()) {
     // Check if we should perform an address space cast
-    PointerType *pointerType = dyn_cast<PointerType>(Ptr->getType());
-    if (pointerType && pointerType->getAddressSpace() == 8) {
+    
+    if (PointerType *pointerType = dyn_cast<PointerType>(Ptr->getType()); pointerType && pointerType->getAddressSpace() == 8) {
       // Perform address space cast from address space 8 to address space 7
       auto NewPtr = new AddrSpaceCastInst(
           Ptr, PointerType::get(M->getContext(), 7), Name + ".ASC", IP);
@@ -194,10 +194,10 @@ Value *RandomIRBuilder::findOrCreateSource(BasicBlock &BB,
       for (BasicBlock *Dom : Dominators) {
         SmallVector<Instruction *, 16> Instructions(
             llvm::make_pointer_range(*Dom));
-        auto RS =
-            makeSampler(Rand, make_filter_range(Instructions, MatchesPred));
+        
         // Also consider choosing no source, meaning we want a new one.
-        if (!RS.isEmpty()) {
+        if (auto RS =
+            makeSampler(Rand, make_filter_range(Instructions, MatchesPred)); !RS.isEmpty()) {
           return RS.getSelection();
         }
       }
@@ -248,8 +248,8 @@ Value *RandomIRBuilder::newSource(BasicBlock &BB, ArrayRef<Instruction *> Insts,
   RS.sample(Pred.generate(Srcs, KnownTypes));
 
   // If we can find a pointer to load from, use it half the time.
-  Value *Ptr = findPointer(BB, Insts);
-  if (Ptr) {
+  
+  if (Value *Ptr = findPointer(BB, Insts); Ptr) {
     // Create load from the chosen pointer
     auto IP = BB.getFirstInsertionPt();
     if (auto *I = dyn_cast<Instruction>(Ptr)) {
@@ -260,11 +260,11 @@ Value *RandomIRBuilder::newSource(BasicBlock &BB, ArrayRef<Instruction *> Insts,
     Type *AccessTy = RS.getSelection()->getType();
     // Build a legal load and track new instructions in case a rollback is
     // needed.
-    auto [NewLoad, NewInsts] =
-        buildTargetLegalLoad(AccessTy, Ptr, IP, BB.getModule(), "L");
+    
 
     // Only sample this load if it really matches the descriptor
-    if (Pred.matches(Srcs, NewLoad))
+    if (auto [NewLoad, NewInsts] =
+        buildTargetLegalLoad(AccessTy, Ptr, IP, BB.getModule(), "L"); Pred.matches(Srcs, NewLoad))
       RS.sample(NewLoad, RS.totalWeight());
     else {
       // Remove newly inserted instructions
@@ -279,8 +279,8 @@ Value *RandomIRBuilder::newSource(BasicBlock &BB, ArrayRef<Instruction *> Insts,
   if (!allowConstant && isa<Constant>(newSrc)) {
     Type *Ty = newSrc->getType();
     Function *F = BB.getParent();
-    AllocaInst *Alloca = createStackMemory(F, Ty, newSrc);
-    if (BB.getTerminator()) {
+    
+    if (AllocaInst *Alloca = createStackMemory(F, Ty, newSrc); BB.getTerminator()) {
       newSrc = new LoadInst(Ty, Alloca, /*ArrLen,*/ "L",
                             BB.getTerminator()->getIterator());
     } else {
@@ -478,8 +478,8 @@ Function *RandomIRBuilder::createFunctionDefinition(Module &M,
   LLVMContext &Context = M.getContext();
   const DataLayout &DL = M.getDataLayout();
   BasicBlock *BB = BasicBlock::Create(Context, "BB", F);
-  Type *RetTy = F->getReturnType();
-  if (RetTy != Type::getVoidTy(Context)) {
+  
+  if (Type *RetTy = F->getReturnType(); RetTy != Type::getVoidTy(Context)) {
     Instruction *RetAlloca =
         new AllocaInst(RetTy, DL.getAllocaAddrSpace(), "RP", BB);
     Instruction *RetLoad = new LoadInst(RetTy, RetAlloca, "", BB);

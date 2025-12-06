@@ -747,8 +747,8 @@ bool IndVarSimplify::simplifyAndExtend(Loop *L,
 
     for (; !WideIVs.empty(); WideIVs.pop_back()) {
       unsigned ElimExt;
-      unsigned Widened;
-      if (PHINode *WidePhi = createWideIV(WideIVs.back(), LI, SE, Rewriter,
+      
+      if (unsigned Widened; PHINode *WidePhi = createWideIV(WideIVs.back(), LI, SE, Rewriter,
                                           DT, DeadInsts, ElimExt, Widened,
                                           HasGuards, UsePostIncrementRanges)) {
         NumElimExt += ElimExt;
@@ -919,8 +919,8 @@ static bool isLoopCounter(PHINode* Phi, Loop *L,
   if (!SE->isSCEVable(Phi->getType()))
     return false;
 
-  const SCEV *S = SE->getSCEV(Phi);
-  if (!match(S, m_scev_AffineAddRec(m_SCEV(), m_scev_One(), m_SpecificLoop(L))))
+  
+  if (const SCEV *S = SE->getSCEV(Phi); !match(S, m_scev_AffineAddRec(m_SCEV(), m_scev_One(), m_SpecificLoop(L))))
     return false;
 
   int LatchIdx = Phi->getBasicBlockIndex(L->getLoopLatch());
@@ -970,8 +970,8 @@ static PHINode *FindLoopCounter(Loop *L, BasicBlock *ExitingBB,
       // We explicitly allow unknown phis as long as they are already used by
       // the loop exit test.  This is legal since performing LFTR could not
       // increase the number of undef users.
-      Value *IncPhi = Phi->getIncomingValueForBlock(LatchBlock);
-      if (!isLoopExitTestBasedOn(Phi, ExitingBB) &&
+      
+      if (Value *IncPhi = Phi->getIncomingValueForBlock(LatchBlock); !isLoopExitTestBasedOn(Phi, ExitingBB) &&
           !isLoopExitTestBasedOn(IncPhi, ExitingBB))
         continue;
     }
@@ -1032,8 +1032,8 @@ static Value *genLoopLimit(PHINode *IndVar, BasicBlock *ExitingBB,
   if (IndVar->getType()->isIntegerTy() &&
       SE->getTypeSizeInBits(AR->getType()) >
       SE->getTypeSizeInBits(ExitCount->getType())) {
-    const SCEV *IVInit = AR->getStart();
-    if (!isa<SCEVConstant>(IVInit) || !isa<SCEVConstant>(ExitCount))
+    
+    if (const SCEV *IVInit = AR->getStart(); !isa<SCEVConstant>(IVInit) || !isa<SCEVConstant>(ExitCount))
       AR = cast<SCEVAddRecExpr>(SE->getTruncateExpr(AR, ExitCount->getType()));
   }
 
@@ -1071,11 +1071,11 @@ linearFunctionTestReplace(Loop *L, BasicBlock *ExitingBB,
     // to add a potentially UB introducing use.  We need to either a) show
     // the loop test we're modifying is already in post-inc form, or b) show
     // that adding a use must not introduce UB.
-    bool SafeToPostInc =
+    
+    if (bool SafeToPostInc =
         IndVar->getType()->isIntegerTy() ||
         isLoopExitTestBasedOn(IncVar, ExitingBB) ||
-        mustExecuteUBIfPoisonOnPathTo(IncVar, ExitingBB->getTerminator(), DT);
-    if (SafeToPostInc) {
+        mustExecuteUBIfPoisonOnPathTo(IncVar, ExitingBB->getTerminator(), DT); SafeToPostInc) {
       UsePostInc = true;
       CmpIndVar = IncVar;
     }
@@ -1141,17 +1141,17 @@ linearFunctionTestReplace(Loop *L, BasicBlock *ExitingBB,
     bool Extended = false;
     const SCEV *IV = SE->getSCEV(CmpIndVar);
     const SCEV *TruncatedIV = SE->getTruncateExpr(IV, ExitCnt->getType());
-    const SCEV *ZExtTrunc =
-      SE->getZeroExtendExpr(TruncatedIV, CmpIndVar->getType());
+    
 
-    if (ZExtTrunc == IV) {
+    if (const SCEV *ZExtTrunc =
+      SE->getZeroExtendExpr(TruncatedIV, CmpIndVar->getType()); ZExtTrunc == IV) {
       Extended = true;
       ExitCnt = Builder.CreateZExt(ExitCnt, IndVar->getType(),
                                    "wide.trip.count");
     } else {
-      const SCEV *SExtTrunc =
-        SE->getSignExtendExpr(TruncatedIV, CmpIndVar->getType());
-      if (SExtTrunc == IV) {
+      
+      if (const SCEV *SExtTrunc =
+        SE->getSignExtendExpr(TruncatedIV, CmpIndVar->getType()); SExtTrunc == IV) {
         Extended = true;
         ExitCnt = Builder.CreateSExt(ExitCnt, IndVar->getType(),
                                      "wide.trip.count");
@@ -1375,8 +1375,8 @@ createReplacement(ICmpInst *ICmp, const Loop *L, BasicBlock *ExitingBB,
     MaxIter = SE->getZeroExtendExpr(MaxIter, ARTy);
   else if (SE->getTypeSizeInBits(ARTy) < SE->getTypeSizeInBits(MaxIterTy)) {
     const SCEV *MinusOne = SE->getMinusOne(ARTy);
-    const SCEV *MaxAllowedIter = SE->getZeroExtendExpr(MinusOne, MaxIterTy);
-    if (SE->isKnownPredicateAt(ICmpInst::ICMP_ULE, MaxIter, MaxAllowedIter, BI))
+    
+    if (const SCEV *MaxAllowedIter = SE->getZeroExtendExpr(MinusOne, MaxIterTy); SE->isKnownPredicateAt(ICmpInst::ICMP_ULE, MaxIter, MaxAllowedIter, BI))
       MaxIter = SE->getTruncateExpr(MaxIter, ARTy);
   }
 
@@ -1385,8 +1385,8 @@ createReplacement(ICmpInst *ICmp, const Loop *L, BasicBlock *ExitingBB,
     // wrap". getLoopInvariantExitCondDuringFirstIterations knows how to deal
     // with umin in a smart way, but umin(a, b) - 1 will likely not simplify.
     // So we manually construct umin(a - 1, b - 1).
-    SmallVector<const SCEV *, 4> Elements;
-    if (auto *UMin = dyn_cast<SCEVUMinExpr>(MaxIter)) {
+    
+    if (SmallVector<const SCEV *, 4> Elements; auto *UMin = dyn_cast<SCEVUMinExpr>(MaxIter)) {
       for (const SCEV *Op : UMin->operands())
         Elements.push_back(SE->getMinusSCEV(Op, SE->getOne(Op->getType())));
       MaxIter = SE->getUMinFromMismatchedTypes(Elements);
@@ -1443,10 +1443,10 @@ static bool optimizeLoopExitWithUnknownExitCount(
   };
 
   do {
-    Value *Curr = Worklist.pop_back_val();
+    
     // Go through AND/OR conditions. Collect leaf ICMPs. We only care about
     // those with one use, to avoid instruction duplication.
-    if (Curr->hasOneUse())
+    if (Value *Curr = Worklist.pop_back_val(); Curr->hasOneUse())
       if (!GoThrough(Curr))
         if (auto *ICmp = dyn_cast<ICmpInst>(Curr))
           LeafConditions.push_back(ICmp);
@@ -1728,9 +1728,9 @@ bool IndVarSimplify::optimizeLoopExits(Loop *L, SCEVExpander &Rewriter) {
   SmallPtrSet<const SCEV *, 8> DominatingExactExitCounts;
   for (BasicBlock *ExitingBB : ExitingBlocks) {
     const SCEV *ExactExitCount = SE->getExitCount(L, ExitingBB);
-    const SCEV *MaxExitCount = SE->getExitCount(
-        L, ExitingBB, ScalarEvolution::ExitCountKind::SymbolicMaximum);
-    if (isa<SCEVCouldNotCompute>(ExactExitCount)) {
+    
+    if (const SCEV *MaxExitCount = SE->getExitCount(
+        L, ExitingBB, ScalarEvolution::ExitCountKind::SymbolicMaximum); isa<SCEVCouldNotCompute>(ExactExitCount)) {
       // Okay, we do not know the exit count here. Can we at least prove that it
       // will remain the same within iteration space?
       auto *BI = cast<BranchInst>(ExitingBB->getTerminator());
@@ -1971,8 +1971,8 @@ bool IndVarSimplify::predicateLoopExits(Loop *L, SCEVExpander &Rewriter) {
       // changing convergence behavior.
       if (I.getType()->isTokenTy()) {
         for (User *U : I.users()) {
-          Instruction *UserInst = dyn_cast<Instruction>(U);
-          if (UserInst && !L->contains(UserInst)) {
+          
+          if (Instruction *UserInst = dyn_cast<Instruction>(U); UserInst && !L->contains(UserInst)) {
             return false;
           }
         }
@@ -2174,9 +2174,9 @@ bool IndVarSimplify::run(Loop *L) {
   // Now that we're done iterating through lists, clean up any instructions
   // which are now dead.
   while (!DeadInsts.empty()) {
-    Value *V = DeadInsts.pop_back_val();
+    
 
-    if (PHINode *PHI = dyn_cast_or_null<PHINode>(V))
+    if (Value *V = DeadInsts.pop_back_val(); PHINode *PHI = dyn_cast_or_null<PHINode>(V))
       Changed |= RecursivelyDeleteDeadPHINode(PHI, TLI, MSSAU.get());
     else if (Instruction *Inst = dyn_cast_or_null<Instruction>(V))
       Changed |=

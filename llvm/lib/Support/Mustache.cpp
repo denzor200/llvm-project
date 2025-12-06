@@ -319,9 +319,9 @@ static bool requiresCleanUp(Token::Type T) {
 //  " Line 2"
 static void stripTokenAhead(SmallVectorImpl<Token> &Tokens, size_t Idx) {
   Token &NextToken = Tokens[Idx + 1];
-  StringRef NextTokenBody = NextToken.TokenBody;
+  
   // Cut off the leading newline which could be \n or \r\n.
-  if (NextTokenBody.starts_with("\r\n"))
+  if (StringRef NextTokenBody = NextToken.TokenBody; NextTokenBody.starts_with("\r\n"))
     NextToken.TokenBody = NextTokenBody.substr(2);
   else if (NextTokenBody.starts_with("\n"))
     NextToken.TokenBody = NextTokenBody.substr(1);
@@ -443,8 +443,8 @@ static SmallVector<Token> tokenize(StringRef Template, MustacheContext &Ctx) {
     if (Kind == Tag::Kind::Triple) {
       Tokens.emplace_back(FullMatch, Ctx.Saver.save("&" + Content), '&', Ctx);
     } else { // Normal Tag
-      StringRef Interpolated = Content;
-      if (!Interpolated.trim().starts_with("=")) {
+      
+      if (StringRef Interpolated = Content; !Interpolated.trim().starts_with("=")) {
         char Front = Interpolated.empty() ? ' ' : Interpolated.trim().front();
         Tokens.emplace_back(FullMatch, Interpolated, Front, Ctx);
       } else { // Set Delimiter
@@ -626,9 +626,9 @@ void Parser::parseMustache(ASTNode *Parent) {
     Token CurrentToken = Tokens[CurrentPtr];
     CurrentPtr++;
     ArrayRef<StringRef> A = CurrentToken.getAccessor();
-    AstPtr CurrentNode;
+    
 
-    switch (CurrentToken.getType()) {
+    switch (AstPtr CurrentNode; CurrentToken.getType()) {
     case Token::Type::Text: {
       CurrentNode = createTextNode(Ctx, CurrentToken.TokenBody, Parent);
       Parent->addChild(CurrentNode);
@@ -711,15 +711,15 @@ void ASTNode::renderPartial(const json::Value &CurrentCtx,
                             MustacheOutputStream &OS) {
   LLVM_DEBUG(dbgs() << "[Render Partial] Accessor:" << AccessorValue[0]
                     << ", Indentation:" << Indentation << "\n");
-  auto Partial = Ctx.Partials.find(AccessorValue[0]);
-  if (Partial != Ctx.Partials.end())
+  
+  if (auto Partial = Ctx.Partials.find(AccessorValue[0]); Partial != Ctx.Partials.end())
     renderPartial(CurrentCtx, OS, Partial->getValue());
 }
 
 void ASTNode::renderVariable(const json::Value &CurrentCtx,
                              MustacheOutputStream &OS) {
-  auto Lambda = Ctx.Lambdas.find(AccessorValue[0]);
-  if (Lambda != Ctx.Lambdas.end()) {
+  
+  if (auto Lambda = Ctx.Lambdas.find(AccessorValue[0]); Lambda != Ctx.Lambdas.end()) {
     renderLambdas(CurrentCtx, OS, Lambda->getValue());
   } else if (const json::Value *ContextPtr = findContext()) {
     EscapeStringStream ES(OS, Ctx.Escapes);
@@ -731,8 +731,8 @@ void ASTNode::renderUnescapeVariable(const json::Value &CurrentCtx,
                                      MustacheOutputStream &OS) {
   LLVM_DEBUG(dbgs() << "[Render UnescapeVariable] Accessor:" << AccessorValue[0]
                     << "\n");
-  auto Lambda = Ctx.Lambdas.find(AccessorValue[0]);
-  if (Lambda != Ctx.Lambdas.end()) {
+  
+  if (auto Lambda = Ctx.Lambdas.find(AccessorValue[0]); Lambda != Ctx.Lambdas.end()) {
     renderLambdas(CurrentCtx, OS, Lambda->getValue());
   } else if (const json::Value *ContextPtr = findContext()) {
     OS.suspendIndentation();
@@ -764,8 +764,8 @@ void ASTNode::renderSection(const json::Value &CurrentCtx,
 void ASTNode::renderInvertSection(const json::Value &CurrentCtx,
                                   MustacheOutputStream &OS) {
   bool IsLambda = Ctx.SectionLambdas.contains(AccessorValue[0]);
-  const json::Value *ContextPtr = findContext();
-  if (isContextFalsey(ContextPtr) && !IsLambda) {
+  
+  if (const json::Value *ContextPtr = findContext(); isContextFalsey(ContextPtr) && !IsLambda) {
     renderChild(CurrentCtx, OS);
   }
 }

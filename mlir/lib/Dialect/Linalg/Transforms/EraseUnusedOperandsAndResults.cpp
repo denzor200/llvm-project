@@ -18,9 +18,9 @@ static bool isResultValueDead(linalg::GenericOp genericOp, OpResult result) {
   if (!result.use_empty())
     return false;
   // If out operand not used in payload, we can drop it.
-  OpOperand *outputOpOperand =
-      genericOp.getDpsInitOperand(result.getResultNumber());
-  if (!genericOp.payloadUsesValueFromOperand(outputOpOperand))
+  
+  if (OpOperand *outputOpOperand =
+      genericOp.getDpsInitOperand(result.getResultNumber()); !genericOp.payloadUsesValueFromOperand(outputOpOperand))
     return true;
 
   // The out operand that is part of a payload can be dropped if
@@ -151,8 +151,8 @@ llvm::SmallDenseMap<unsigned, unsigned> static deduplicateOutputOperands(
       // - The same operand is used as the out operand
       // - The same indexing map is used
       // - The same yield value is used.
-      auto it = dedupedOutpts.find(key);
-      if (it != dedupedOutpts.end()) {
+      
+      if (auto it = dedupedOutpts.find(key); it != dedupedOutpts.end()) {
         origToNewPos[outputOpOperand.index()] = it->second;
         droppedOpOperands.push_back(&outputOpOperand.value());
         continue;

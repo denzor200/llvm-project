@@ -30,8 +30,8 @@ Expected<Target> Target::create(StringRef TargetValue) {
   if (Platform == PLATFORM_UNKNOWN) {
     if (PlatformStr.starts_with("<") && PlatformStr.ends_with(">")) {
       PlatformStr = PlatformStr.drop_front().drop_back();
-      unsigned long long RawValue;
-      if (!PlatformStr.getAsInteger(10, RawValue))
+      
+      if (unsigned long long RawValue; !PlatformStr.getAsInteger(10, RawValue))
         Platform = (PlatformType)RawValue;
     }
   }

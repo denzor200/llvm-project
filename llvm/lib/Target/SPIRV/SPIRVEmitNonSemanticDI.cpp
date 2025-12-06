@@ -119,8 +119,8 @@ bool SPIRVEmitNonSemanticDI::emitGlobalDI(MachineFunction &MF) {
     const NamedMDNode *ModuleFlags = M->getNamedMetadata("llvm.module.flags");
     assert(ModuleFlags && "Expected llvm.module.flags metadata to be present");
     for (const auto *Op : ModuleFlags->operands()) {
-      const MDOperand &MaybeStrOp = Op->getOperand(1);
-      if (MaybeStrOp.equalsStr("Dwarf Version"))
+      
+      if (const MDOperand &MaybeStrOp = Op->getOperand(1); MaybeStrOp.equalsStr("Dwarf Version"))
         DwarfVersion =
             cast<ConstantInt>(
                 cast<ConstantAsMetadata>(Op->getOperand(2))->getValue())
@@ -138,8 +138,8 @@ bool SPIRVEmitNonSemanticDI::emitGlobalDI(MachineFunction &MF) {
       for (auto &BB : F) {
         for (auto &I : BB) {
           for (DbgVariableRecord &DVR : filterDbgVars(I.getDbgRecordRange())) {
-            DILocalVariable *LocalVariable = DVR.getVariable();
-            if (auto *BasicType =
+            
+            if (DILocalVariable *LocalVariable = DVR.getVariable(); auto *BasicType =
                     dyn_cast<DIBasicType>(LocalVariable->getType())) {
               BasicTypes.insert(BasicType);
             } else if (auto *DerivedType =
@@ -321,12 +321,12 @@ bool SPIRVEmitNonSemanticDI::emitGlobalDI(MachineFunction &MF) {
 
         // If the Pointer is representing a void type it's getBaseType
         // is a nullptr
-        const auto *MaybeNestedBasicType =
-            dyn_cast_or_null<DIBasicType>(PointerDerivedType->getBaseType());
-        if (MaybeNestedBasicType) {
+        
+        if (const auto *MaybeNestedBasicType =
+            dyn_cast_or_null<DIBasicType>(PointerDerivedType->getBaseType()); MaybeNestedBasicType) {
           for (const auto &BasicTypeRegPair : BasicTypeRegPairs) {
-            const auto &[DefinedBasicType, BasicTypeReg] = BasicTypeRegPair;
-            if (DefinedBasicType == MaybeNestedBasicType) {
+            
+            if (const auto &[DefinedBasicType, BasicTypeReg] = BasicTypeRegPair; DefinedBasicType == MaybeNestedBasicType) {
               [[maybe_unused]]
               const Register DebugPointerTypeReg = EmitDIInstruction(
                   SPIRV::NonSemanticExtInst::DebugTypePointer,

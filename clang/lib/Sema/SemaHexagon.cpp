@@ -268,8 +268,8 @@ bool SemaHexagon::CheckHexagonBuiltinArgument(unsigned BuiltinID,
       continue;
 
     int32_t Min = A.IsSigned ? -(1 << (A.BitWidth - 1)) : 0;
-    int32_t Max = (1 << (A.IsSigned ? A.BitWidth - 1 : A.BitWidth)) - 1;
-    if (!A.Align) {
+    
+    if (int32_t Max = (1 << (A.IsSigned ? A.BitWidth - 1 : A.BitWidth)) - 1; !A.Align) {
       Error |= SemaRef.BuiltinConstantArgRange(TheCall, A.OpNum, Min, Max);
     } else {
       unsigned M = 1 << A.Align;

@@ -206,9 +206,9 @@ bool XRayInstrumentation::run(MachineFunction &MF) {
   auto &F = MF.getFunction();
   auto InstrAttr = F.getFnAttribute("function-instrument");
   bool AlwaysInstrument = alwaysInstrument(F);
-  bool NeverInstrument = InstrAttr.isStringAttribute() &&
-                         InstrAttr.getValueAsString() == "xray-never";
-  if (NeverInstrument && !AlwaysInstrument)
+  
+  if (bool NeverInstrument = InstrAttr.isStringAttribute() &&
+                         InstrAttr.getValueAsString() == "xray-never"; NeverInstrument && !AlwaysInstrument)
     return false;
   auto IgnoreLoopsAttr = F.getFnAttribute("xray-ignore-loops");
 
@@ -225,9 +225,9 @@ bool XRayInstrumentation::run(MachineFunction &MF) {
     for (const auto &MBB : MF)
       MICount += MBB.size();
 
-    bool TooFewInstrs = MICount < XRayThreshold;
+    
 
-    if (!IgnoreLoops) {
+    if (bool TooFewInstrs = MICount < XRayThreshold; !IgnoreLoops) {
       // Get MachineDominatorTree or compute it on the fly if it's unavailable
       MachineDominatorTree ComputedMDT;
       if (!MDT) {

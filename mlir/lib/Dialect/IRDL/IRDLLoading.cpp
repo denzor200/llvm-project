@@ -574,8 +574,8 @@ static LogicalResult checkCorrectAnyOf(AnyOfOp anyOf) {
     for (TypeID id : argParamIds) {
       if (isIds.count(id))
         return failure();
-      bool inserted = paramIds.insert(id).second;
-      if (!inserted)
+      
+      if (bool inserted = paramIds.insert(id).second; !inserted)
         return failure();
     }
 
@@ -592,8 +592,8 @@ static LogicalResult checkCorrectAnyOf(AnyOfOp anyOf) {
     // `is` operations cannot refer to attributes defined with `irdl.parametric`
     // operations.
     for (Operation *op : argParamIrdlOps) {
-      bool inserted = paramIrdlOps.insert(op).second;
-      if (!inserted)
+      
+      if (bool inserted = paramIrdlOps.insert(op).second; !inserted)
         return failure();
     }
   }

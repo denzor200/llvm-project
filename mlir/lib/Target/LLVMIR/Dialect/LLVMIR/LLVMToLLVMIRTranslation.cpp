@@ -190,9 +190,9 @@ convertCallLLVMIntrinsicOp(CallIntrinsicOp op, llvm::IRBuilderBase &builder,
   // Check the arguments up to the number the function requires.
   for (unsigned i = 0, e = fn->arg_size(); i != e; ++i) {
     const llvm::Type *expected = fn->getArg(i)->getType();
-    const llvm::Type *actual =
-        moduleTranslation.convertType(op.getOperandTypes()[i]);
-    if (actual != expected) {
+    
+    if (const llvm::Type *actual =
+        moduleTranslation.convertType(op.getOperandTypes()[i]); actual != expected) {
       return mlir::emitError(op.getLoc(), "intrinsic call operand #")
              << i << " has type " << diagStr(actual) << " but "
              << op.getIntrinAttr() << " expects " << diagStr(expected);

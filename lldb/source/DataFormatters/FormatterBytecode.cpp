@@ -105,12 +105,12 @@ static llvm::Error FormatImpl(DataStack &data) {
     }
     using namespace llvm::support::detail;
     auto arg = data[data.size() - num_args + r.Index];
-    auto format = [&](format_adapter &&adapter) {
+    
+
+    if (auto format = [&](format_adapter &&adapter) {
       llvm::FmtAlign Align(adapter, r.Where, r.Width, r.Pad);
       Align.format(os, r.Options);
-    };
-
-    if (auto s = std::get_if<std::string>(&arg))
+    }; auto s = std::get_if<std::string>(&arg))
       format(build_format_adapter(s->c_str()));
     else if (auto u = std::get_if<uint64_t>(&arg))
       format(build_format_adapter(u));
@@ -135,8 +135,8 @@ static llvm::Error TypeCheck(llvm::ArrayRef<DataStackElement> data,
   if (data.size() < 1)
     return llvm::createStringError("not enough elements on data stack");
 
-  auto &elem = data.back();
-  switch (type) {
+  
+  switch (auto &elem = data.back(); type) {
   case Any:
     break;
   case String:

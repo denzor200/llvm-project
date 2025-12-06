@@ -311,15 +311,15 @@ void ArgumentCommentCheck::checkCallArgs(ASTContext *Ctx,
     }
 
     for (auto Comment : Comments) {
-      llvm::SmallVector<StringRef, 2> Matches;
-      if (IdentRE.match(Comment.second, &Matches) &&
+      
+      if (llvm::SmallVector<StringRef, 2> Matches; IdentRE.match(Comment.second, &Matches) &&
           !sameName(Matches[2], II->getName(), StrictMode)) {
         {
-          const DiagnosticBuilder Diag =
+          
+          if (const DiagnosticBuilder Diag =
               diag(Comment.first, "argument name '%0' in comment does not "
                                   "match parameter name %1")
-              << Matches[2] << II;
-          if (isLikelyTypo(Callee->parameters(), Matches[2], I)) {
+              << Matches[2] << II; isLikelyTypo(Callee->parameters(), Matches[2], I)) {
             Diag << FixItHint::CreateReplacement(
                 Comment.first, (Matches[1] + II->getName() + Matches[3]).str());
           }
@@ -347,8 +347,8 @@ void ArgumentCommentCheck::checkCallArgs(ASTContext *Ctx,
 }
 
 void ArgumentCommentCheck::check(const MatchFinder::MatchResult &Result) {
-  const auto *E = Result.Nodes.getNodeAs<Expr>("expr");
-  if (const auto *Call = dyn_cast<CallExpr>(E)) {
+  
+  if (const auto *E = Result.Nodes.getNodeAs<Expr>("expr"); const auto *Call = dyn_cast<CallExpr>(E)) {
     const FunctionDecl *Callee = Call->getDirectCallee();
     if (!Callee)
       return;

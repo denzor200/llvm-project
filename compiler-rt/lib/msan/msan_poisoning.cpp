@@ -48,8 +48,8 @@ void CopyOrigin(const void *dst, const void *src, uptr size,
   uptr beg = d & ~3UL;
   // Copy left unaligned origin if that memory is poisoned.
   if (beg < d) {
-    u32 o = GetOriginIfPoisoned((uptr)src, beg + 4 - d);
-    if (o) {
+    
+    if (u32 o = GetOriginIfPoisoned((uptr)src, beg + 4 - d); o) {
       if (__msan_get_track_origins() > 1) o = ChainOrigin(o, stack);
       *(u32 *)MEM_TO_ORIGIN(beg) = o;
     }
@@ -62,8 +62,8 @@ void CopyOrigin(const void *dst, const void *src, uptr size,
 
   // Copy right unaligned origin if that memory is poisoned.
   if (end < d + size) {
-    u32 o = GetOriginIfPoisoned((uptr)src + (end - d), (d + size) - end);
-    if (o) {
+    
+    if (u32 o = GetOriginIfPoisoned((uptr)src + (end - d), (d + size) - end); o) {
       if (__msan_get_track_origins() > 1) o = ChainOrigin(o, stack);
       *(u32 *)MEM_TO_ORIGIN(end) = o;
     }
@@ -71,9 +71,9 @@ void CopyOrigin(const void *dst, const void *src, uptr size,
 
   if (beg < end) {
     // Align src up.
-    uptr s = ((uptr)src + 3) & ~3UL;
+    
     // FIXME: factor out to msan_copy_origin_aligned
-    if (__msan_get_track_origins() > 1) {
+    if (uptr s = ((uptr)src + 3) & ~3UL; __msan_get_track_origins() > 1) {
       u32 *src = (u32 *)MEM_TO_ORIGIN(s);
       u32 *src_s = (u32 *)MEM_TO_SHADOW(s);
       u32 *src_end = (u32 *)MEM_TO_ORIGIN(s + (end - beg));
@@ -105,8 +105,8 @@ void ReverseCopyOrigin(const void *dst, const void *src, uptr size,
 
   // Copy right unaligned origin if that memory is poisoned.
   if (end < d + size) {
-    u32 o = GetOriginIfPoisoned((uptr)src + (end - d), (d + size) - end);
-    if (o) {
+    
+    if (u32 o = GetOriginIfPoisoned((uptr)src + (end - d), (d + size) - end); o) {
       if (__msan_get_track_origins() > 1)
         o = ChainOrigin(o, stack);
       *(u32 *)MEM_TO_ORIGIN(end) = o;
@@ -117,8 +117,8 @@ void ReverseCopyOrigin(const void *dst, const void *src, uptr size,
 
   if (beg + 4 < end) {
     // Align src up.
-    uptr s = ((uptr)src + 3) & ~3UL;
-    if (__msan_get_track_origins() > 1) {
+    
+    if (uptr s = ((uptr)src + 3) & ~3UL; __msan_get_track_origins() > 1) {
       u32 *src = (u32 *)MEM_TO_ORIGIN(s + end - beg - 4);
       u32 *src_s = (u32 *)MEM_TO_SHADOW(s + end - beg - 4);
       u32 *src_begin = (u32 *)MEM_TO_ORIGIN(s);
@@ -142,8 +142,8 @@ void ReverseCopyOrigin(const void *dst, const void *src, uptr size,
 
   // Copy left unaligned origin if that memory is poisoned.
   if (beg < d) {
-    u32 o = GetOriginIfPoisoned((uptr)src, beg + 4 - d);
-    if (o) {
+    
+    if (u32 o = GetOriginIfPoisoned((uptr)src, beg + 4 - d); o) {
       if (__msan_get_track_origins() > 1)
         o = ChainOrigin(o, stack);
       *(u32 *)MEM_TO_ORIGIN(beg) = o;
@@ -158,8 +158,8 @@ void MoveOrigin(const void *dst, const void *src, uptr size,
   // a normal order.
   uptr src_aligned_beg = reinterpret_cast<uptr>(src) & ~3UL;
   uptr src_aligned_end = (reinterpret_cast<uptr>(src) + size) & ~3UL;
-  uptr dst_aligned_beg = reinterpret_cast<uptr>(dst) & ~3UL;
-  if (dst_aligned_beg < src_aligned_end && dst_aligned_beg >= src_aligned_beg)
+  
+  if (uptr dst_aligned_beg = reinterpret_cast<uptr>(dst) & ~3UL; dst_aligned_beg < src_aligned_end && dst_aligned_beg >= src_aligned_beg)
     return ReverseCopyOrigin(dst, src, size, stack);
   return CopyOrigin(dst, src, size, stack);
 }
@@ -197,15 +197,15 @@ void CopyMemory(void *dst, const void *src, uptr size, StackTrace *stack) {
 void SetShadow(const void *ptr, uptr size, u8 value) {
   uptr PageSize = GetPageSizeCached();
   uptr shadow_beg = MEM_TO_SHADOW(ptr);
-  uptr shadow_end = shadow_beg + size;
-  if (value ||
+  
+  if (uptr shadow_end = shadow_beg + size; value ||
       shadow_end - shadow_beg < common_flags()->clear_shadow_mmap_threshold) {
     REAL(memset)((void *)shadow_beg, value, shadow_end - shadow_beg);
   } else {
     uptr page_beg = RoundUpTo(shadow_beg, PageSize);
-    uptr page_end = RoundDownTo(shadow_end, PageSize);
+    
 
-    if (page_beg >= page_end) {
+    if (uptr page_end = RoundDownTo(shadow_end, PageSize); page_beg >= page_end) {
       REAL(memset)((void *)shadow_beg, 0, shadow_end - shadow_beg);
     } else {
       if (page_beg != shadow_beg) {
@@ -219,8 +219,8 @@ void SetShadow(const void *ptr, uptr size, u8 value) {
 
       if (__msan_get_track_origins()) {
         // No need to set origin for zero shadow, but we can release pages.
-        uptr origin_beg = RoundUpTo(MEM_TO_ORIGIN(ptr), PageSize);
-        if (!MmapFixedSuperNoReserve(origin_beg, page_end - page_beg))
+        
+        if (uptr origin_beg = RoundUpTo(MEM_TO_ORIGIN(ptr), PageSize); !MmapFixedSuperNoReserve(origin_beg, page_end - page_beg))
           Die();
       }
     }
@@ -249,8 +249,8 @@ void PoisonMemory(const void *dst, uptr size, StackTrace *stack) {
   SetShadow(dst, size, (u8)-1);
 
   if (__msan_get_track_origins()) {
-    MsanThread *t = GetCurrentThread();
-    if (t && t->InSignalHandler())
+    
+    if (MsanThread *t = GetCurrentThread(); t && t->InSignalHandler())
       return;
     Origin o = Origin::CreateHeapOrigin(stack);
     SetOrigin(dst, size, o.raw_id());

@@ -130,8 +130,8 @@ static UUID parseModuleId(llvm::Triple::OSType os, llvm::StringRef str) {
 }
 
 std::optional<Record::Kind> Record::classify(llvm::StringRef Line) {
-  Token Tok = consume<Token>(Line);
-  switch (Tok) {
+  
+  switch (Token Tok = consume<Token>(Line); Tok) {
   case Token::Module:
     return Record::Module;
   case Token::Info:

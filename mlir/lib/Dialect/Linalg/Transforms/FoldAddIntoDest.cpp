@@ -72,15 +72,15 @@ struct FoldAddIntoDest final : public OpRewritePattern<linalg::AddOp> {
       // TODO: Can be generalized to move ops around as long as that still
       //       respects use-def chains and doesn't affect side-effects.
       if (auto rhsOp = rhs.getDefiningOp<linalg::LinalgOp>()) {
-        DominanceInfo domInfo(rhsOp);
-        if (domInfo.properlyDominates(lhs, rhsOp)) {
+        
+        if (DominanceInfo domInfo(rhsOp); domInfo.properlyDominates(lhs, rhsOp)) {
           dominatingOperand = lhs;
           dominatedOp = rhsOp;
         }
       }
       if (auto lhsOp = lhs.getDefiningOp<linalg::LinalgOp>()) {
-        DominanceInfo domInfo(lhsOp);
-        if (domInfo.properlyDominates(rhs, lhsOp)) {
+        
+        if (DominanceInfo domInfo(lhsOp); domInfo.properlyDominates(rhs, lhsOp)) {
           dominatingOperand = rhs;
           dominatedOp = lhsOp;
         }

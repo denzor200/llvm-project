@@ -34,9 +34,9 @@ bool RegisterBank::verify(const RegisterBankInfo &RBI,
     // RegisterBankInfo to find the subclasses of RC, to make sure
     // both agree on the covers.
     for (unsigned SubRCId = 0; SubRCId != End; ++SubRCId) {
-      const TargetRegisterClass &SubRC = *TRI.getRegClass(RCId);
+      
 
-      if (!RC.hasSubClassEq(&SubRC))
+      if (const TargetRegisterClass &SubRC = *TRI.getRegClass(RCId); !RC.hasSubClassEq(&SubRC))
         continue;
 
       // Verify that the Size of the register bank is big enough to cover
@@ -89,9 +89,9 @@ void RegisterBank::print(raw_ostream &OS, bool IsForDebug,
   OS << "Covered register classes:\n";
   ListSeparator LS;
   for (unsigned RCId = 0, End = TRI->getNumRegClasses(); RCId != End; ++RCId) {
-    const TargetRegisterClass &RC = *TRI->getRegClass(RCId);
+    
 
-    if (covers(RC))
+    if (const TargetRegisterClass &RC = *TRI->getRegClass(RCId); covers(RC))
       OS << LS << TRI->getRegClassName(&RC);
   }
 }

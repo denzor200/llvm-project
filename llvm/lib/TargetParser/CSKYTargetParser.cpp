@@ -79,8 +79,8 @@ StringRef CSKY::getArchName(ArchKind AK) {
 
 // The default cpu's name is same as arch name.
 StringRef CSKY::getDefaultCPU(StringRef Arch) {
-  ArchKind AK = parseArch(Arch);
-  if (AK == CSKY::ArchKind::INVALID)
+  
+  if (ArchKind AK = parseArch(Arch); AK == CSKY::ArchKind::INVALID)
     return StringRef();
 
   return Arch;

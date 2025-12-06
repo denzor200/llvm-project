@@ -112,8 +112,8 @@ bool RISCVPushPopOpt::adjustRetVal(MachineBasicBlock::iterator &MBBI) {
     MachineInstr &MI = *I;
     if (auto OperandPair = TII->isCopyInstrImpl(MI)) {
       Register DestReg = OperandPair->Destination->getReg();
-      Register Source = OperandPair->Source->getReg();
-      if (DestReg == RISCV::X10 && Source == RISCV::X0) {
+      
+      if (Register Source = OperandPair->Source->getReg(); DestReg == RISCV::X10 && Source == RISCV::X0) {
         MI.removeFromParent();
         return true;
       }

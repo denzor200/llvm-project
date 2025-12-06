@@ -517,8 +517,8 @@ static int compileModule(char **argv, LLVMContext &Context,
   // use that to indicate the MC default.
   if (!BinutilsVersion.empty() && BinutilsVersion != "none") {
     StringRef V = BinutilsVersion.getValue();
-    unsigned Num;
-    if (V.consumeInteger(10, Num) || Num == 0 ||
+    
+    if (unsigned Num; V.consumeInteger(10, Num) || Num == 0 ||
         !(V.empty() ||
           (V.consume_front(".") && !V.consumeInteger(10, Num) && V.empty()))) {
       WithColor::error(errs(), argv[0])

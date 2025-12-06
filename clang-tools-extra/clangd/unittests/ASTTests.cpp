@@ -244,9 +244,9 @@ TEST(GetDeducedType, KwAutoKwDecltypeExpansion) {
     for (Position Pos : File.points()) {
       auto Location = sourceLocationInMainFile(SM.get(), Pos);
       ASSERT_TRUE(!!Location) << llvm::toString(Location.takeError());
-      auto DeducedType = getDeducedType(AST.getASTContext(),
-                                        AST.getHeuristicResolver(), *Location);
-      if (T.DeducedType == nullptr) {
+      
+      if (auto DeducedType = getDeducedType(AST.getASTContext(),
+                                        AST.getHeuristicResolver(), *Location); T.DeducedType == nullptr) {
         EXPECT_FALSE(DeducedType);
       } else {
         ASSERT_TRUE(DeducedType);
@@ -465,8 +465,8 @@ TEST(ClangdAST, GetQualification) {
 
     ASSERT_EQ(InsertionPoints.size(), Case.Qualifications.size());
     for (size_t I = 0, E = InsertionPoints.size(); I != E; ++I) {
-      const Decl *D = InsertionPoints[I];
-      if (Case.VisibleNamespaces.empty()) {
+      
+      if (const Decl *D = InsertionPoints[I]; Case.VisibleNamespaces.empty()) {
         EXPECT_EQ(getQualification(AST.getASTContext(),
                                    D->getLexicalDeclContext(), D->getBeginLoc(),
                                    TargetDecl),

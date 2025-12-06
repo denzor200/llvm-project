@@ -581,12 +581,12 @@ static uint64_t tryToEnforceAlignment(Value value, uint64_t requestedAlignment,
   }
   // Since there is no defining op, this is a block argument. Probably this
   // comes directly from a function argument, so check that this is the case.
-  Operation *parentOp = value.getParentBlock()->getParentOp();
-  if (auto func = dyn_cast<LLVM::LLVMFuncOp>(parentOp)) {
+  
+  if (Operation *parentOp = value.getParentBlock()->getParentOp(); auto func = dyn_cast<LLVM::LLVMFuncOp>(parentOp)) {
     // Use the alignment attribute set for this argument in the parent function
     // if it has been set.
-    auto blockArg = llvm::cast<BlockArgument>(value);
-    if (Attribute alignAttr = func.getArgAttr(
+    
+    if (auto blockArg = llvm::cast<BlockArgument>(value); Attribute alignAttr = func.getArgAttr(
             blockArg.getArgNumber(), LLVM::LLVMDialect::getAlignAttrName()))
       return cast<IntegerAttr>(alignAttr).getValue().getLimitedValue();
   }
@@ -643,9 +643,9 @@ static Value handleByValArgument(OpBuilder &builder, Operation *callable,
   if (isReadOnly) {
     if (requestedAlignment <= minimumAlignment)
       return argument;
-    uint64_t currentAlignment =
-        tryToEnforceAlignment(argument, requestedAlignment, dataLayout);
-    if (currentAlignment >= requestedAlignment)
+    
+    if (uint64_t currentAlignment =
+        tryToEnforceAlignment(argument, requestedAlignment, dataLayout); currentAlignment >= requestedAlignment)
       return argument;
   }
   uint64_t targetAlignment = std::max(requestedAlignment, minimumAlignment);

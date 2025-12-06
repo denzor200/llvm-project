@@ -68,8 +68,8 @@ void X86MnemonicTablesEmitter::run(raw_ostream &OS) {
   OS << "#undef GET_X86_MNEMONIC_TABLES_CPP\n\n";
   for (StringRef Mnemonic : MnemonicToCGInstrMap.keys()) {
     OS << "bool is" << Mnemonic << "(unsigned Opcode) {\n";
-    auto Mnemonics = MnemonicToCGInstrMap[Mnemonic];
-    if (Mnemonics.size() == 1) {
+    
+    if (auto Mnemonics = MnemonicToCGInstrMap[Mnemonic]; Mnemonics.size() == 1) {
       const CodeGenInstruction *CGI = *Mnemonics.begin();
       OS << "\treturn Opcode == " << CGI->getName() << ";\n}\n\n";
     } else {

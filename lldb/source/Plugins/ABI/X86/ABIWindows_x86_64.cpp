@@ -332,9 +332,9 @@ Status ABIWindows_x86_64::SetReturnValueObject(lldb::StackFrameSP &frame_sp,
     }
     lldb::offset_t offset = 0;
     if (num_bytes <= 8) {
-      uint64_t raw_value = data.GetMaxU64(&offset, num_bytes);
+      
 
-      if (reg_ctx->WriteRegisterFromUnsigned(reg_info, raw_value))
+      if (uint64_t raw_value = data.GetMaxU64(&offset, num_bytes); reg_ctx->WriteRegisterFromUnsigned(reg_info, raw_value))
         set_it_simple = true;
     } else {
       error = Status::FromErrorString(
@@ -423,8 +423,8 @@ ValueObjectSP ABIWindows_x86_64::GetReturnValueObjectSimple(
         return return_valobj_sp;
       uint64_t raw_value = thread.GetRegisterContext()->ReadRegisterAsUnsigned(
           reg_ctx->GetRegisterInfoByName("rax", 0), 0);
-      const bool is_signed = (type_flags & eTypeIsSigned) != 0;
-      switch (*byte_size) {
+      
+      switch (const bool is_signed = (type_flags & eTypeIsSigned) != 0; *byte_size) {
       default:
         break;
 
@@ -464,17 +464,17 @@ ValueObjectSP ABIWindows_x86_64::GetReturnValueObjectSimple(
       if (type_flags & eTypeIsComplex) {
         // Don't handle complex yet.
       } else {
-        std::optional<uint64_t> byte_size =
-            llvm::expectedToOptional(return_compiler_type.GetByteSize(&thread));
-        if (byte_size && *byte_size <= sizeof(long double)) {
+        
+        if (std::optional<uint64_t> byte_size =
+            llvm::expectedToOptional(return_compiler_type.GetByteSize(&thread)); byte_size && *byte_size <= sizeof(long double)) {
           const RegisterInfo *xmm0_info =
               reg_ctx->GetRegisterInfoByName("xmm0", 0);
-          RegisterValue xmm0_value;
-          if (reg_ctx->ReadRegister(xmm0_info, xmm0_value)) {
-            DataExtractor data;
-            if (xmm0_value.GetData(data)) {
-              lldb::offset_t offset = 0;
-              if (*byte_size == sizeof(float)) {
+          
+          if (RegisterValue xmm0_value; reg_ctx->ReadRegister(xmm0_info, xmm0_value)) {
+            
+            if (DataExtractor data; xmm0_value.GetData(data)) {
+              
+              if (lldb::offset_t offset = 0; *byte_size == sizeof(float)) {
                 value.GetScalar() = (float)data.GetFloat(&offset);
                 success = true;
               } else if (*byte_size == sizeof(double)) {
@@ -502,9 +502,9 @@ ValueObjectSP ABIWindows_x86_64::GetReturnValueObjectSimple(
     return_valobj_sp = ValueObjectConstResult::Create(
         thread.GetStackFrameAtIndex(0).get(), value, ConstString(""));
   } else if (type_flags & eTypeIsVector) {
-    std::optional<uint64_t> byte_size =
-        llvm::expectedToOptional(return_compiler_type.GetByteSize(&thread));
-    if (byte_size && *byte_size > 0) {
+    
+    if (std::optional<uint64_t> byte_size =
+        llvm::expectedToOptional(return_compiler_type.GetByteSize(&thread)); byte_size && *byte_size > 0) {
       const RegisterInfo *xmm_reg =
           reg_ctx->GetRegisterInfoByName("xmm0", 0);
       if (xmm_reg == nullptr)
@@ -512,15 +512,15 @@ ValueObjectSP ABIWindows_x86_64::GetReturnValueObjectSimple(
 
       if (xmm_reg) {
         if (*byte_size <= xmm_reg->byte_size) {
-          ProcessSP process_sp(thread.GetProcess());
-          if (process_sp) {
+          
+          if (ProcessSP process_sp(thread.GetProcess()); process_sp) {
             std::unique_ptr<DataBufferHeap> heap_data_up(
                 new DataBufferHeap(*byte_size, 0));
             const ByteOrder byte_order = process_sp->GetByteOrder();
-            RegisterValue reg_value;
-            if (reg_ctx->ReadRegister(xmm_reg, reg_value)) {
-              Status error;
-              if (reg_value.GetAsMemoryData(*xmm_reg, heap_data_up->GetBytes(),
+            
+            if (RegisterValue reg_value; reg_ctx->ReadRegister(xmm_reg, reg_value)) {
+              
+              if (Status error; reg_value.GetAsMemoryData(*xmm_reg, heap_data_up->GetBytes(),
                                             heap_data_up->GetByteSize(),
                                             byte_order, error)) {
                 DataExtractor data(DataBufferSP(heap_data_up.release()),

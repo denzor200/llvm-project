@@ -96,8 +96,8 @@ llvm::Module *IncrementalAction::getCachedCodeGenModule() const {
 }
 
 std::unique_ptr<llvm::Module> IncrementalAction::GenModule() {
-  static unsigned ID = 0;
-  if (CodeGenerator *CG = getCodeGen()) {
+  
+  if (static unsigned ID = 0; CodeGenerator *CG = getCodeGen()) {
     // Clang's CodeGen is designed to work with a single llvm::Module. In many
     // cases for convenience various CodeGen parts have a reference to the
     // llvm::Module (TheModule or Module) which does not change when a new

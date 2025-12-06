@@ -64,8 +64,8 @@ void WebAssemblyMCCodeEmitter::encodeInstruction(
   raw_svector_ostream OS(CB);
   uint64_t Start = OS.tell();
 
-  uint64_t Binary = getBinaryCodeForInstr(MI, Fixups, STI);
-  if (Binary < (1 << 8)) {
+  
+  if (uint64_t Binary = getBinaryCodeForInstr(MI, Fixups, STI); Binary < (1 << 8)) {
     OS << uint8_t(Binary);
   } else if (Binary < (1 << 16)) {
     OS << uint8_t(Binary >> 8);
@@ -90,8 +90,8 @@ void WebAssemblyMCCodeEmitter::encodeInstruction(
 
   const MCInstrDesc &Desc = MCII.get(Opcode);
   for (unsigned I = 0, E = MI.getNumOperands(); I < E; ++I) {
-    const MCOperand &MO = MI.getOperand(I);
-    if (MO.isReg()) {
+    
+    if (const MCOperand &MO = MI.getOperand(I); MO.isReg()) {
       /* nothing to encode */
 
     } else if (MO.isImm()) {
@@ -153,8 +153,8 @@ void WebAssemblyMCCodeEmitter::encodeInstruction(
       llvm::MCFixupKind FixupKind;
       size_t PaddedSize = 5;
       if (I < Desc.getNumOperands()) {
-        const MCOperandInfo &Info = Desc.operands()[I];
-        switch (Info.OperandType) {
+        
+        switch (const MCOperandInfo &Info = Desc.operands()[I]; Info.OperandType) {
         case WebAssembly::OPERAND_I32IMM:
           FixupKind = WebAssembly::fixup_sleb128_i32;
           break;

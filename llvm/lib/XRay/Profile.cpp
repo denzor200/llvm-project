@@ -164,10 +164,10 @@ Profile::PathID Profile::internPath(ArrayRef<FuncID> P) {
   // Now traverse the path, re-creating if necessary.
   while (It != RootToLeafPath.end()) {
     auto NodeFuncID = *It++;
-    auto CalleeIt = find_if(Node->Callees, [NodeFuncID](TrieNode *N) {
+    
+    if (auto CalleeIt = find_if(Node->Callees, [NodeFuncID](TrieNode *N) {
       return N->Func == NodeFuncID;
-    });
-    if (CalleeIt == Node->Callees.end()) {
+    }); CalleeIt == Node->Callees.end()) {
       NodeStorage.emplace_back();
       auto NewNode = &NodeStorage.back();
       NewNode->Func = NodeFuncID;
@@ -334,8 +334,8 @@ Expected<Profile> xray::profileFromTrace(const Trace &T) {
 
   //  We then do a pass through the Trace to account data on a per-thread-basis.
   for (const auto &E : T) {
-    auto &TSD = ThreadStacks[E.TId];
-    switch (E.Type) {
+    
+    switch (auto &TSD = ThreadStacks[E.TId]; E.Type) {
     case RecordTypes::ENTER:
     case RecordTypes::ENTER_ARG:
 
@@ -385,8 +385,8 @@ Expected<Profile> xray::profileFromTrace(const Trace &T) {
   // the Profile.
   for (const auto &ThreadPaths : ThreadPathData) {
     const auto &TID = ThreadPaths.first;
-    const auto &PathsData = ThreadPaths.second;
-    if (auto E = P.addBlock({
+    
+    if (const auto &PathsData = ThreadPaths.second; auto E = P.addBlock({
             TID,
             std::vector<std::pair<Profile::PathID, Profile::Data>>(
                 PathsData.begin(), PathsData.end()),

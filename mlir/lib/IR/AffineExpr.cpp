@@ -254,8 +254,8 @@ int64_t AffineExpr::getLargestKnownDivisor() const {
     auto rhs = llvm::dyn_cast<AffineConstantExpr>(binExpr.getRHS());
     // Leave alone undefined expressions.
     if (rhs && rhs.getValue() != 0) {
-      int64_t lhsDiv = binExpr.getLHS().getLargestKnownDivisor();
-      if (lhsDiv % rhs.getValue() == 0)
+      
+      if (int64_t lhsDiv = binExpr.getLHS().getLargestKnownDivisor(); lhsDiv % rhs.getValue() == 0)
         return std::abs(lhsDiv / rhs.getValue());
     }
     return 1;
@@ -280,8 +280,8 @@ int64_t AffineExpr::getLargestKnownDivisor() const {
 
 bool AffineExpr::isMultipleOf(int64_t factor) const {
   AffineBinaryOpExpr binExpr(nullptr);
-  uint64_t l, u;
-  switch (getKind()) {
+  
+  switch (uint64_t l, u; getKind()) {
   case AffineExprKind::SymbolId:
     [[fallthrough]];
   case AffineExprKind::DimId:
@@ -945,9 +945,9 @@ static AffineExpr simplifyFloorDiv(AffineExpr lhs, AffineExpr rhs) {
   // known to be a multiple of divConst.
   if (lBin && lBin.getKind() == AffineExprKind::Add) {
     int64_t llhsDiv = lBin.getLHS().getLargestKnownDivisor();
-    int64_t lrhsDiv = lBin.getRHS().getLargestKnownDivisor();
+    
     // rhsConst is known to be a nonzero constant.
-    if (llhsDiv % rhsConst.getValue() == 0 ||
+    if (int64_t lrhsDiv = lBin.getRHS().getLargestKnownDivisor(); llhsDiv % rhsConst.getValue() == 0 ||
         lrhsDiv % rhsConst.getValue() == 0)
       return lBin.getLHS().floorDiv(rhsConst.getValue()) +
              lBin.getRHS().floorDiv(rhsConst.getValue());
@@ -1051,8 +1051,8 @@ static AffineExpr simplifyMod(AffineExpr lhs, AffineExpr rhs) {
 
   // Simplify (e % a) % b to e % b when b evenly divides a
   if (lBin && lBin.getKind() == AffineExprKind::Mod) {
-    auto intermediate = dyn_cast<AffineConstantExpr>(lBin.getRHS());
-    if (intermediate && intermediate.getValue() >= 1 &&
+    
+    if (auto intermediate = dyn_cast<AffineConstantExpr>(lBin.getRHS()); intermediate && intermediate.getValue() >= 1 &&
         mod(intermediate.getValue(), rhsConst.getValue()) == 0) {
       return lBin.getLHS() % rhsConst.getValue();
     }
@@ -1116,8 +1116,8 @@ AffineExpr mlir::getAffineExprFromFlatForm(ArrayRef<int64_t> flatExprs,
   }
 
   // Constant term.
-  int64_t constTerm = flatExprs[flatExprs.size() - 1];
-  if (constTerm != 0)
+  
+  if (int64_t constTerm = flatExprs[flatExprs.size() - 1]; constTerm != 0)
     expr = expr + constTerm;
   return expr;
 }
@@ -1300,8 +1300,8 @@ static AffineExpr getSemiAffineExprFromFlatForm(ArrayRef<int64_t> flatExprs,
   }
 
   // Constant term.
-  int64_t constTerm = flatExprs.back();
-  if (constTerm != 0)
+  
+  if (int64_t constTerm = flatExprs.back(); constTerm != 0)
     expr = expr + constTerm;
   return expr;
 }
@@ -1673,8 +1673,8 @@ std::optional<int64_t> mlir::getBoundForAffineExpr(
       // lhs mod c is always <= c - 1 and non-negative. In addition, if `lhs` is
       // bounded such that lb <= lhs <= ub and lb floordiv c == ub floordiv c
       // (same "interval"), then lb mod c <= lhs mod c <= ub mod c.
-      auto rhsConst = dyn_cast<AffineConstantExpr>(binOpExpr.getRHS());
-      if (rhsConst && rhsConst.getValue() >= 1) {
+      
+      if (auto rhsConst = dyn_cast<AffineConstantExpr>(binOpExpr.getRHS()); rhsConst && rhsConst.getValue() >= 1) {
         int64_t rhsConstVal = rhsConst.getValue();
         auto lb = getBoundForAffineExpr(binOpExpr.getLHS(), numDims, numSymbols,
                                         constLowerBounds, constUpperBounds,

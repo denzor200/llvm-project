@@ -54,8 +54,8 @@ private:
     for (MachineInstr::mop_iterator It = MI.operands_begin(),
                                     E = MI.operands_end();
          It != E; ++It) {
-      MachineOperand &MO = *It;
-      if (MO.isReg() && MO.getReg() == R600::ALU_LITERAL_X)
+      
+      if (MachineOperand &MO = *It; MO.isReg() && MO.getReg() == R600::ALU_LITERAL_X)
         ++NumLiteral;
     }
     return 1 + NumLiteral;

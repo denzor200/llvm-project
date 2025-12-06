@@ -223,8 +223,8 @@ AArch64::printEnabledExtensions(const std::set<StringRef> &EnabledFeatureNames) 
          << "Description\n";
   std::vector<ExtensionInfo> EnabledExtensionsInfo;
   for (const auto &FeatureName : EnabledFeatureNames) {
-    std::string PosFeatureName = '+' + FeatureName.str();
-    if (auto ExtInfo = targetFeatureToExtension(PosFeatureName))
+    
+    if (std::string PosFeatureName = '+' + FeatureName.str(); auto ExtInfo = targetFeatureToExtension(PosFeatureName))
       EnabledExtensionsInfo.push_back(*ExtInfo);
   }
 
@@ -380,8 +380,8 @@ void AArch64::ExtensionSet::reconstructFromParsedFeatures(
     std::vector<std::string> &NonExtensions) {
   assert(Touched.none() && "Bitset already initialized");
   for (auto &F : Features) {
-    bool IsNegated = F[0] == '-';
-    if (auto AE = targetFeatureToExtension(F)) {
+    
+    if (bool IsNegated = F[0] == '-'; auto AE = targetFeatureToExtension(F)) {
       Touched.set(AE->ID);
       if (IsNegated)
         Enabled.reset(AE->ID);

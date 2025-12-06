@@ -107,8 +107,8 @@ static void replaceBranchTerminator(BasicBlock &BB,
 static void removeUninterestingBBsFromSwitch(SwitchInst &SwInst,
                                              const BlockSet &BBsToDelete) {
   for (int I = 0, E = SwInst.getNumCases(); I != E; ++I) {
-    auto Case = SwInst.case_begin() + I;
-    if (BBsToDelete.count(Case->getCaseSuccessor())) {
+    
+    if (auto Case = SwInst.case_begin() + I; BBsToDelete.count(Case->getCaseSuccessor())) {
       SwInst.removeCase(Case);
       --I;
       --E;

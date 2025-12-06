@@ -239,8 +239,8 @@ X86TargetMachine::getSubtargetImpl(const Function &F) const {
   Attribute PreferVecWidthAttr = F.getFnAttribute("prefer-vector-width");
   if (PreferVecWidthAttr.isValid()) {
     StringRef Val = PreferVecWidthAttr.getValueAsString();
-    unsigned Width;
-    if (!Val.getAsInteger(0, Width)) {
+    
+    if (unsigned Width; !Val.getAsInteger(0, Width)) {
       Key += 'p';
       Key += Val;
       PreferVectorWidthOverride = Width;
@@ -252,8 +252,8 @@ X86TargetMachine::getSubtargetImpl(const Function &F) const {
   Attribute MinLegalVecWidthAttr = F.getFnAttribute("min-legal-vector-width");
   if (MinLegalVecWidthAttr.isValid()) {
     StringRef Val = MinLegalVecWidthAttr.getValueAsString();
-    unsigned Width;
-    if (!Val.getAsInteger(0, Width)) {
+    
+    if (unsigned Width; !Val.getAsInteger(0, Width)) {
       Key += 'm';
       Key += Val;
       RequiredVectorWidth = Width;
@@ -437,8 +437,8 @@ void X86PassConfig::addIRPasses() {
   addPass(createIndirectBrExpandPass());
 
   // Add Control Flow Guard checks.
-  const Triple &TT = TM->getTargetTriple();
-  if (TT.isOSWindows()) {
+  
+  if (const Triple &TT = TM->getTargetTriple(); TT.isOSWindows()) {
     if (TT.isX86_64()) {
       addPass(createCFGuardDispatchPass());
     } else {
@@ -497,8 +497,8 @@ bool X86PassConfig::addILPOpts() {
 
 bool X86PassConfig::addPreISel() {
   // Only add this pass for 32-bit x86 Windows.
-  const Triple &TT = TM->getTargetTriple();
-  if (TT.isOSWindows() && TT.isX86_32())
+  
+  if (const Triple &TT = TM->getTargetTriple(); TT.isOSWindows() && TT.isX86_32())
     addPass(createX86WinEHStatePass());
   return true;
 }

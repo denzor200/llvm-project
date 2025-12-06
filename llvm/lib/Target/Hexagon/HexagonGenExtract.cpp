@@ -186,8 +186,8 @@ bool HexagonGenExtract::convert(Instruction *In) {
     // If the shift right was arithmetic, it could have included some 1 bits.
     // It is still ok to generate extract, but only if the mask eliminates
     // those bits (i.e. M does not have any bits set beyond U).
-    APInt C = APInt::getHighBitsSet(BW, BW-U);
-    if (M.intersects(C) || !M.isMask(W))
+    
+    if (APInt C = APInt::getHighBitsSet(BW, BW-U); M.intersects(C) || !M.isMask(W))
       return false;
   } else {
     // Check if M starts with a contiguous sequence of W times 1 bits. Get

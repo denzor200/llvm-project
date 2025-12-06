@@ -287,8 +287,8 @@ bool SmartPtrModeling::evalCall(const CallEvent &Call,
   if (StdSwapCall.matches(Call)) {
     // Check the first arg, if it is of std::unique_ptr type.
     assert(Call.getNumArgs() == 2 && "std::swap should have two arguments");
-    const Expr *FirstArg = Call.getArgExpr(0);
-    if (!smartptr::isStdSmartPtr(FirstArg->getType()->getAsCXXRecordDecl()))
+    
+    if (const Expr *FirstArg = Call.getArgExpr(0); !smartptr::isStdSmartPtr(FirstArg->getType()->getAsCXXRecordDecl()))
       return false;
     return handleSwap(State, Call.getArgSVal(0), Call.getArgSVal(1), C);
   }
@@ -341,10 +341,10 @@ bool SmartPtrModeling::evalCall(const CallEvent &Call,
     return false;
 
   if (isBoolConversionMethod(Call)) {
-    const MemRegion *ThisR =
-        cast<CXXInstanceCall>(&Call)->getCXXThisVal().getAsRegion();
+    
 
-    if (ModelSmartPtrDereference) {
+    if (const MemRegion *ThisR =
+        cast<CXXInstanceCall>(&Call)->getCXXThisVal().getAsRegion(); ModelSmartPtrDereference) {
       // The check for the region is moved is duplicated in handleBoolOperation
       // method.
       // FIXME: Once we model std::move for smart pointers clean up this and use
@@ -436,8 +436,8 @@ bool SmartPtrModeling::evalCall(const CallEvent &Call,
 std::pair<SVal, ProgramStateRef> SmartPtrModeling::retrieveOrConjureInnerPtrVal(
     ProgramStateRef State, const MemRegion *ThisRegion, ConstCFGElementRef Elem,
     QualType Type, CheckerContext &C) const {
-  const auto *Ptr = State->get<TrackedRegionMap>(ThisRegion);
-  if (Ptr)
+  
+  if (const auto *Ptr = State->get<TrackedRegionMap>(ThisRegion); Ptr)
     return {*Ptr, State};
   auto Val = C.getSValBuilder().conjureSymbolVal(Elem, C.getLocationContext(),
                                                  Type, C.blockCount());
@@ -545,9 +545,9 @@ void SmartPtrModeling::checkDeadSymbols(SymbolReaper &SymReaper,
   TrackedRegionMapTy TrackedRegions = State->get<TrackedRegionMap>();
   for (auto E : TrackedRegions) {
     const MemRegion *Region = E.first;
-    bool IsRegDead = !SymReaper.isLiveRegion(Region);
+    
 
-    if (IsRegDead)
+    if (bool IsRegDead = !SymReaper.isLiveRegion(Region); IsRegDead)
       State = State->remove<TrackedRegionMap>(Region);
   }
   C.addTransition(State);
@@ -555,9 +555,9 @@ void SmartPtrModeling::checkDeadSymbols(SymbolReaper &SymReaper,
 
 void SmartPtrModeling::printState(raw_ostream &Out, ProgramStateRef State,
                                   const char *NL, const char *Sep) const {
-  TrackedRegionMapTy RS = State->get<TrackedRegionMap>();
+  
 
-  if (!RS.isEmpty()) {
+  if (TrackedRegionMapTy RS = State->get<TrackedRegionMap>(); !RS.isEmpty()) {
     Out << Sep << "Smart ptr regions :" << NL;
     for (auto I : RS) {
       I.first->dumpToStream(Out);
@@ -781,8 +781,8 @@ bool SmartPtrModeling::updateMovedSmartPointers(
     const MemRegion *OtherSmartPtrRegion, const CallEvent &Call) const {
   ProgramStateRef State = C.getState();
   QualType ThisType = cast<CXXMethodDecl>(Call.getDecl())->getThisType();
-  const auto *OtherInnerPtr = State->get<TrackedRegionMap>(OtherSmartPtrRegion);
-  if (OtherInnerPtr) {
+  
+  if (const auto *OtherInnerPtr = State->get<TrackedRegionMap>(OtherSmartPtrRegion); OtherInnerPtr) {
     State = State->set<TrackedRegionMap>(ThisRegion, *OtherInnerPtr);
 
     auto NullVal = C.getSValBuilder().makeNullWithType(ThisType);

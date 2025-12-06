@@ -219,8 +219,8 @@ MachineInstr *TargetInstrInfo::commuteInstructionImpl(MachineInstr &MI,
   SmallVector<unsigned> UpdateImplicitDefIdx;
   if (HasDef && MI.hasImplicitDef()) {
     for (auto [OpNo, MO] : llvm::enumerate(MI.implicit_operands())) {
-      Register ImplReg = MO.getReg();
-      if ((ImplReg.isVirtual() && ImplReg == Reg0) ||
+      
+      if (Register ImplReg = MO.getReg(); (ImplReg.isVirtual() && ImplReg == Reg0) ||
           (ImplReg.isPhysical() && Reg0.isPhysical() &&
            TRI.isSubRegisterEq(ImplReg, Reg0)))
         UpdateImplicitDefIdx.push_back(OpNo + MI.getNumExplicitOperands());
@@ -369,8 +369,8 @@ bool TargetInstrInfo::PredicateInstruction(
 
   for (unsigned j = 0, i = 0, e = MI.getNumOperands(); i != e; ++i) {
     if (MCID.operands()[i].isPredicate()) {
-      MachineOperand &MO = MI.getOperand(i);
-      if (MO.isReg()) {
+      
+      if (MachineOperand &MO = MI.getOperand(i); MO.isReg()) {
         MO.setReg(Pred[j].getReg());
         MadeChange = true;
       } else if (MO.isImm()) {
@@ -612,9 +612,9 @@ static MachineInstr *foldPatchpoint(MachineFunction &MF, MachineInstr &MI,
       // Compute the spill slot size and offset.
       const TargetRegisterClass *RC =
         MF.getRegInfo().getRegClass(MO.getReg());
-      bool Valid =
-          TII.getStackSlotRange(RC, MO.getSubReg(), SpillSize, SpillOffset, MF);
-      if (!Valid)
+      
+      if (bool Valid =
+          TII.getStackSlotRange(RC, MO.getSubReg(), SpillSize, SpillOffset, MF); !Valid)
         report_fatal_error("cannot spill patchpoint subregister operand");
       MIB.addImm(StackMaps::IndirectMemRefOp);
       MIB.addImm(SpillSize);
@@ -725,8 +725,8 @@ MachineInstr *TargetInstrInfo::foldMemoryOperand(MachineInstr &MI,
       int64_t OpSize = MFI.getObjectSize(FI);
 
       if (auto SubReg = MI.getOperand(OpIdx).getSubReg()) {
-        unsigned SubRegSize = TRI.getSubRegIdxSize(SubReg);
-        if (SubRegSize > 0 && !(SubRegSize % 8))
+        
+        if (unsigned SubRegSize = TRI.getSubRegIdxSize(SubReg); SubRegSize > 0 && !(SubRegSize % 8))
           OpSize = SubRegSize / 8;
       }
 
@@ -1489,9 +1489,9 @@ void TargetInstrInfo::genAlternativeCodeSequence(
   MachineRegisterInfo &MRI = Root.getMF()->getRegInfo();
   MachineBasicBlock &MBB = *Root.getParent();
   MachineFunction &MF = *MBB.getParent();
-  const TargetInstrInfo *TII = MF.getSubtarget().getInstrInfo();
+  
 
-  switch (Pattern) {
+  switch (const TargetInstrInfo *TII = MF.getSubtarget().getInstrInfo(); Pattern) {
   case MachineCombinerPattern::REASSOC_AX_BY:
   case MachineCombinerPattern::REASSOC_AX_YB:
   case MachineCombinerPattern::REASSOC_XA_BY:
@@ -1786,8 +1786,8 @@ unsigned TargetInstrInfo::getNumMicroOps(const InstrItineraryData *ItinData,
     return 1;
 
   unsigned Class = MI.getDesc().getSchedClass();
-  int UOps = ItinData->Itineraries[Class].NumMicroOps;
-  if (UOps >= 0)
+  
+  if (int UOps = ItinData->Itineraries[Class].NumMicroOps; UOps >= 0)
     return UOps;
 
   // The # of u-ops is dynamically determined. The specific target should
@@ -1890,11 +1890,11 @@ TargetInstrInfo::describeLoadedValue(const MachineInstr &MI,
     // callee (or by another thread).
     const MachineFrameInfo &MFI = MF->getFrameInfo();
     const MachineMemOperand *MMO = MI.memoperands()[0];
-    const PseudoSourceValue *PSV = MMO->getPseudoValue();
+    
 
     // If the address points to "special" memory (e.g. a spill slot), it's
     // sufficient to check that it isn't aliased by any high-level IR value.
-    if (!PSV || PSV->mayAlias(&MFI))
+    if (const PseudoSourceValue *PSV = MMO->getPseudoValue(); !PSV || PSV->mayAlias(&MFI))
       return std::nullopt;
 
     const MachineOperand *BaseOp;

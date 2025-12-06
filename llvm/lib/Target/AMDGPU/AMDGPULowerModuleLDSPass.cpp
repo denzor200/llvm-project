@@ -324,8 +324,8 @@ public:
 
     SmallVector<Constant *> Elements;
     for (GlobalVariable *GV : Variables) {
-      auto ConstantGepIt = LDSVarsToConstantGEP.find(GV);
-      if (ConstantGepIt != LDSVarsToConstantGEP.end()) {
+      
+      if (auto ConstantGepIt = LDSVarsToConstantGEP.find(GV); ConstantGepIt != LDSVarsToConstantGEP.end()) {
         auto *elt = ConstantExpr::getPtrToInt(ConstantGepIt->second, I32);
         Elements.push_back(elt);
       } else {
@@ -421,8 +421,8 @@ public:
       auto *GV = ModuleScopeVariables[Index];
 
       for (Use &U : make_early_inc_range(GV->uses())) {
-        auto *I = dyn_cast<Instruction>(U.getUser());
-        if (!I)
+        
+        if (auto *I = dyn_cast<Instruction>(U.getUser()); !I)
           continue;
 
         replaceUseWithTableLookup(M, Builder, LookupTable, GV, U,
@@ -1204,8 +1204,8 @@ private:
             static_cast<GlobalVariable *>(const_cast<void *>(F.Id));
         Align DataAlign = F.Alignment;
 
-        uint64_t DataAlignV = DataAlign.value();
-        if (uint64_t Rem = CurrentOffset % DataAlignV) {
+        
+        if (uint64_t DataAlignV = DataAlign.value(); uint64_t Rem = CurrentOffset % DataAlignV) {
           uint64_t Padding = DataAlignV - Rem;
 
           // Append an array of padding bytes to meet alignment requested
@@ -1248,8 +1248,8 @@ private:
     for (size_t I = 0; I < LocalVars.size(); I++) {
       GlobalVariable *GV = LocalVars[I];
       Constant *GEPIdx[] = {ConstantInt::get(I32, 0), ConstantInt::get(I32, I)};
-      Constant *GEP = ConstantExpr::getGetElementPtr(LDSTy, SGV, GEPIdx, true);
-      if (IsPaddingField[I]) {
+      
+      if (Constant *GEP = ConstantExpr::getGetElementPtr(LDSTy, SGV, GEPIdx, true); IsPaddingField[I]) {
         assert(GV->use_empty());
         GV->eraseFromParent();
       } else {

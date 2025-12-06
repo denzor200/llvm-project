@@ -229,8 +229,8 @@ bool SIOptimizeExecMaskingPreRA::optimizeVcndVcmpPair(MachineBasicBlock &MBB) {
   SlotIndex CmpIdx = LIS->getInstructionIndex(*Cmp);
   if (CCReg.isVirtual()) {
     LiveInterval &CCLI = LIS->getInterval(CCReg);
-    auto CCQ = CCLI.Query(SelIdx.getRegSlot());
-    if (CCQ.valueIn()) {
+    
+    if (auto CCQ = CCLI.Query(SelIdx.getRegSlot()); CCQ.valueIn()) {
       LIS->removeInterval(CCReg);
       LIS->createAndComputeVirtRegInterval(CCReg);
     }
@@ -256,8 +256,8 @@ bool SIOptimizeExecMaskingPreRA::optimizeVcndVcmpPair(MachineBasicBlock &MBB) {
     // Kill status must be checked before shrinking the live range.
     bool IsKill = SelLI->Query(CmpIdx.getRegSlot()).isKill();
     LIS->shrinkToUses(SelLI);
-    bool IsDead = SelLI->Query(SelIdx.getRegSlot()).isDeadDef();
-    if (MRI->use_nodbg_empty(SelReg) && (IsKill || IsDead)) {
+    
+    if (bool IsDead = SelLI->Query(SelIdx.getRegSlot()).isDeadDef(); MRI->use_nodbg_empty(SelReg) && (IsKill || IsDead)) {
       LLVM_DEBUG(dbgs() << "Erasing: " << *Sel << '\n');
 
       LIS->removeVRegDefAt(*SelLI, SelIdx.getRegSlot());
@@ -331,8 +331,8 @@ bool SIOptimizeExecMaskingPreRA::optimizeElseBranch(MachineBasicBlock &MBB) {
   SlotIndex StartIdx = LIS->getInstructionIndex(SaveExecMI);
   SlotIndex EndIdx = LIS->getInstructionIndex(*AndExecMI);
   for (MCRegUnit Unit : TRI->regunits(ExecReg)) {
-    LiveRange &RegUnit = LIS->getRegUnit(Unit);
-    if (RegUnit.find(StartIdx) != std::prev(RegUnit.find(EndIdx)))
+    
+    if (LiveRange &RegUnit = LIS->getRegUnit(Unit); RegUnit.find(StartIdx) != std::prev(RegUnit.find(EndIdx)))
       return false;
   }
 
@@ -397,8 +397,8 @@ bool SIOptimizeExecMaskingPreRA::run(MachineFunction &MF) {
       // to be careful to update / remove them.
       // S_ENDPGM always has a single imm operand that is not used other than to
       // end up in the encoding
-      MachineInstr &Term = MBB.back();
-      if (Term.getOpcode() != AMDGPU::S_ENDPGM || Term.getNumOperands() != 1)
+      
+      if (MachineInstr &Term = MBB.back(); Term.getOpcode() != AMDGPU::S_ENDPGM || Term.getNumOperands() != 1)
         continue;
 
       SmallVector<MachineBasicBlock*, 4> Blocks({&MBB});

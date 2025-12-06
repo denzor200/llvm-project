@@ -24,9 +24,9 @@ std::optional<llvm::StringRef>
 csky::getCSKYArchName(const Driver &D, const ArgList &Args,
                       const llvm::Triple &Triple) {
   if (const Arg *A = Args.getLastArg(options::OPT_march_EQ)) {
-    llvm::CSKY::ArchKind ArchKind = llvm::CSKY::parseArch(A->getValue());
+    
 
-    if (ArchKind == llvm::CSKY::ArchKind::INVALID) {
+    if (llvm::CSKY::ArchKind ArchKind = llvm::CSKY::parseArch(A->getValue()); ArchKind == llvm::CSKY::ArchKind::INVALID) {
       D.Diag(clang::diag::err_drv_invalid_arch_name) << A->getAsString(Args);
       return std::nullopt;
     }
@@ -94,8 +94,8 @@ getCSKYFPUFeatures(const Driver &D, const Arg *A, const ArgList &Args,
   auto RemoveTargetFPUFeature =
       [&Features](ArrayRef<const char *> FPUFeatures) {
         for (auto FPUFeature : FPUFeatures) {
-          auto it = llvm::find(Features, FPUFeature);
-          if (it != Features.end())
+          
+          if (auto it = llvm::find(Features, FPUFeature); it != Features.end())
             Features.erase(it);
         }
       };

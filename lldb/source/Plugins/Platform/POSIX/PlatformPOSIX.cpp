@@ -488,8 +488,8 @@ lldb::ProcessSP PlatformPOSIX::DebugProcess(ProcessLaunchInfo &launch_info,
   if (error.Success()) {
     // Hook up process PTY if we have one (which we should for local debugging
     // with llgs).
-    int pty_fd = launch_info.GetPTY().ReleasePrimaryFileDescriptor();
-    if (pty_fd != PseudoTerminal::invalid_fd) {
+    
+    if (int pty_fd = launch_info.GetPTY().ReleasePrimaryFileDescriptor(); pty_fd != PseudoTerminal::invalid_fd) {
       process_sp->SetSTDIOFileDescriptor(pty_fd);
       LLDB_LOG(log, "hooked up STDIO pty to process");
     } else
@@ -510,10 +510,10 @@ void PlatformPOSIX::CalculateTrapHandlerSymbolNames() {
 Status PlatformPOSIX::EvaluateLibdlExpression(
     lldb_private::Process *process, const char *expr_cstr,
     llvm::StringRef expr_prefix, lldb::ValueObjectSP &result_valobj_sp) {
-  DynamicLoader *loader = process->GetDynamicLoader();
-  if (loader) {
-    Status error = loader->CanLoadImage();
-    if (error.Fail())
+  
+  if (DynamicLoader *loader = process->GetDynamicLoader(); loader) {
+    
+    if (Status error = loader->CanLoadImage(); error.Fail())
       return error;
   }
 

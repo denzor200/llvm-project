@@ -236,8 +236,8 @@ static void createAllocFields(OpBuilder &builder, Location loc,
   Value posZero = constantZero(builder, loc, stt.getPosType());
   for (Level lvl = 0, lvlRank = stt.getLvlRank(); lvl < lvlRank; lvl++) {
     desc.setLvlSize(builder, loc, lvl, lvlSizesValues[lvl]);
-    const auto lt = stt.getLvlType(lvl);
-    if (isCompressedLT(lt) || isLooseCompressedLT(lt))
+    
+    if (const auto lt = stt.getLvlType(lvl); isCompressedLT(lt) || isLooseCompressedLT(lt))
       createPushback(builder, loc, desc, SparseTensorFieldKind::PosMemRef, lvl,
                      /*value=*/posZero);
   }
@@ -361,8 +361,8 @@ static void genEndInsert(OpBuilder &builder, Location loc,
   const SparseTensorType stt(desc.getRankedTensorType());
   const Level lvlRank = stt.getLvlRank();
   for (Level lvl = 0; lvl < lvlRank; lvl++) {
-    const auto lt = stt.getLvlType(lvl);
-    if (isCompressedLT(lt)) {
+    
+    if (const auto lt = stt.getLvlType(lvl); isCompressedLT(lt)) {
       // Compressed dimensions need a position cleanup for all entries
       // that were not visited during the insertion pass.
       //
@@ -474,8 +474,8 @@ public:
     Value parentPos = constantZero(builder, loc, builder.getIndexType());
     // Generate code for every level.
     for (Level lvl = 0; lvl < lvlRank; lvl++) {
-      const auto lt = stt.getLvlType(lvl);
-      if (isCompressedLT(lt) || isLooseCompressedLT(lt)) {
+      
+      if (const auto lt = stt.getLvlType(lvl); isCompressedLT(lt) || isLooseCompressedLT(lt)) {
         // Create:
         //   if (!present) {
         //     coordinates[lvl].push_back(coords[lvl])

@@ -198,8 +198,8 @@ printInlineJT(const MachineInstr *MI, int opNum, raw_ostream &O,
 void XCoreAsmPrinter::printOperand(const MachineInstr *MI, int opNum,
                                    raw_ostream &O) {
   const DataLayout &DL = getDataLayout();
-  const MachineOperand &MO = MI->getOperand(opNum);
-  switch (MO.getType()) {
+  
+  switch (const MachineOperand &MO = MI->getOperand(opNum); MO.getType()) {
   case MachineOperand::MO_Register:
     O << XCoreInstPrinter::getRegisterName(MO.getReg());
     break;

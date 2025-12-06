@@ -124,8 +124,8 @@ Value::Value(const Interpreter *In, void *Ty) : Interp(In), OpaqueType(Ty) {
   const ASTContext &C = getASTContext();
   setKind(ConvertQualTypeToKind(C, getType()));
   if (ValueKind == K_PtrOrObj) {
-    QualType Canon = getType().getCanonicalType();
-    if ((Canon->isPointerType() || Canon->isObjectType() ||
+    
+    if (QualType Canon = getType().getCanonicalType(); (Canon->isPointerType() || Canon->isObjectType() ||
          Canon->isReferenceType()) &&
         (Canon->isRecordType() || Canon->isConstantArrayType() ||
          Canon->isMemberPointerType())) {

@@ -262,8 +262,8 @@ ParseResult parseExpressionArg(AsmParser &parser, uint64_t opcode,
     uint64_t operand = 0;
     if (!args.empty() && opcode == llvm::dwarf::DW_OP_LLVM_convert) {
       // Attempt to parse a keyword.
-      StringRef keyword;
-      if (succeeded(parser.parseOptionalKeyword(&keyword))) {
+      
+      if (StringRef keyword; succeeded(parser.parseOptionalKeyword(&keyword))) {
         operand = llvm::dwarf::getAttributeEncoding(keyword);
         if (operand == 0) {
           // The keyword is invalid.

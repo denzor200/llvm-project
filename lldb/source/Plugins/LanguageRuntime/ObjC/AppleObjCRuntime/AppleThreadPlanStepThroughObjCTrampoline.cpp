@@ -361,8 +361,8 @@ bool AppleThreadPlanStepThroughDirectDispatch::ShouldStop(Event *event_ptr) {
   // implementation.  Either we went directly to the default implementation, 
   // of the overridden implementation didn't have debug info.  
   // So we should mark ourselves as done.
-  const bool step_out_should_stop = ThreadPlanStepOut::ShouldStop(event_ptr);
-  if (step_out_should_stop) {
+  
+  if (const bool step_out_should_stop = ThreadPlanStepOut::ShouldStop(event_ptr); step_out_should_stop) {
     SetPlanComplete(true);
     return true;
   }

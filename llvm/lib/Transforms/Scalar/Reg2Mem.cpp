@@ -44,8 +44,8 @@ static bool valueEscapes(const Instruction &Inst) {
 
   const BasicBlock *BB = Inst.getParent();
   for (const User *U : Inst.users()) {
-    const Instruction *UI = cast<Instruction>(U);
-    if (UI->getParent() != BB || isa<PHINode>(UI))
+    
+    if (const Instruction *UI = cast<Instruction>(U); UI->getParent() != BB || isa<PHINode>(UI))
       return true;
   }
   return false;
@@ -98,8 +98,8 @@ PreservedAnalyses RegToMemPass::run(Function &F, FunctionAnalysisManager &AM) {
   auto *DT = &AM.getResult<DominatorTreeAnalysis>(F);
   auto *LI = &AM.getResult<LoopAnalysis>(F);
   unsigned N = SplitAllCriticalEdges(F, CriticalEdgeSplittingOptions(DT, LI));
-  bool Changed = runPass(F);
-  if (N == 0 && !Changed)
+  
+  if (bool Changed = runPass(F); N == 0 && !Changed)
     return PreservedAnalyses::all();
   PreservedAnalyses PA;
   PA.preserve<DominatorTreeAnalysis>();

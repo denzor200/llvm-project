@@ -126,8 +126,8 @@ getReplacementInChangedCode(const tooling::Replacements &Replaces,
 // applying all existing Replaces first if there is conflict.
 void addOrMergeReplacement(const tooling::Replacement &R,
                            tooling::Replacements *Replaces) {
-  auto Err = Replaces->add(R);
-  if (Err) {
+  
+  if (auto Err = Replaces->add(R); Err) {
     llvm::consumeError(std::move(Err));
     auto Replace = getReplacementInChangedCode(*Replaces, R);
     *Replaces = Replaces->merge(tooling::Replacements(Replace));
@@ -163,8 +163,8 @@ void addReplacementOrDie(
     const SourceManager &SM,
     std::map<std::string, tooling::Replacements> *FileToReplacements) {
   const auto R = createReplacement(Start, End, ReplacementText, SM);
-  auto Err = (*FileToReplacements)[std::string(R.getFilePath())].add(R);
-  if (Err)
+  
+  if (auto Err = (*FileToReplacements)[std::string(R.getFilePath())].add(R); Err)
     llvm_unreachable(llvm::toString(std::move(Err)).c_str());
 }
 
@@ -778,8 +778,8 @@ void ChangeNamespaceTool::replaceQualifiedSymbolInDeclContext(
     if (!isDeclVisibleAtLocation(*Result.SourceManager, UsingNamespace, DeclCtx,
                                  Start))
       continue;
-    StringRef FromDeclNameRef = FromDeclName;
-    if (FromDeclNameRef.consume_front(UsingNamespace->getNominatedNamespace()
+    
+    if (StringRef FromDeclNameRef = FromDeclName; FromDeclNameRef.consume_front(UsingNamespace->getNominatedNamespace()
                                           ->getQualifiedNameAsString())) {
       FromDeclNameRef = FromDeclNameRef.drop_front(2);
       if (FromDeclNameRef.size() < ReplaceName.size())
@@ -792,8 +792,8 @@ void ChangeNamespaceTool::replaceQualifiedSymbolInDeclContext(
     if (!isDeclVisibleAtLocation(*Result.SourceManager, NamespaceAlias, DeclCtx,
                                  Start))
       continue;
-    StringRef FromDeclNameRef = FromDeclName;
-    if (FromDeclNameRef.consume_front(
+    
+    if (StringRef FromDeclNameRef = FromDeclName; FromDeclNameRef.consume_front(
             NamespaceAlias->getNamespace()->getQualifiedNameAsString() +
             "::")) {
       std::string AliasName = NamespaceAlias->getNameAsString();
@@ -807,9 +807,9 @@ void ChangeNamespaceTool::replaceQualifiedSymbolInDeclContext(
       if (AliasQualifiedName != AliasName) {
         // The alias is defined in some namespace.
         assert(StringRef(AliasQualifiedName).ends_with("::" + AliasName));
-        llvm::StringRef AliasNs =
-            StringRef(AliasQualifiedName).drop_back(AliasName.size() + 2);
-        if (!llvm::StringRef(OldNs).starts_with(AliasNs))
+        
+        if (llvm::StringRef AliasNs =
+            StringRef(AliasQualifiedName).drop_back(AliasName.size() + 2); !llvm::StringRef(OldNs).starts_with(AliasNs))
           continue;
       }
       std::string NameWithAliasNamespace =
@@ -826,8 +826,8 @@ void ChangeNamespaceTool::replaceQualifiedSymbolInDeclContext(
       break;
     if (isDeclVisibleAtLocation(*Result.SourceManager, Using, DeclCtx, Start)) {
       for (const auto *UsingShadow : Using->shadows()) {
-        const auto *TargetDecl = UsingShadow->getTargetDecl();
-        if (TargetDecl->getQualifiedNameAsString() ==
+        
+        if (const auto *TargetDecl = UsingShadow->getTargetDecl(); TargetDecl->getQualifiedNameAsString() ==
             FromDecl->getQualifiedNameAsString()) {
           ReplaceName = FromDecl->getNameAsString();
           Matched = true;

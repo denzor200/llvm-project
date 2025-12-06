@@ -187,8 +187,8 @@ void ExecutionDomainFix::enterBasicBlock(
       // We have a live DomainValue from more than one predecessor.
       if (LiveRegs[rx]->isCollapsed()) {
         // We are already collapsed, but predecessor is not. Force it.
-        unsigned Domain = LiveRegs[rx]->getFirstDomain();
-        if (!pdv->isCollapsed() && pdv->hasDomain(Domain))
+        
+        if (unsigned Domain = LiveRegs[rx]->getFirstDomain(); !pdv->isCollapsed() && pdv->hasDomain(Domain))
           collapse(pdv, Domain);
         continue;
       }
@@ -329,9 +329,9 @@ void ExecutionDomainFix::visitSoftInstr(MachineInstr *mi, unsigned mask) {
   SmallVector<int, 4> Regs;
   for (int rx : used) {
     assert(!LiveRegs.empty() && "no space allocated for live registers");
-    DomainValue *&LR = LiveRegs[rx];
+    
     // This useless DomainValue could have been missed above.
-    if (!LR->getCommonDomains(available)) {
+    if (DomainValue *&LR = LiveRegs[rx]; !LR->getCommonDomains(available)) {
       kill(rx);
       continue;
     }

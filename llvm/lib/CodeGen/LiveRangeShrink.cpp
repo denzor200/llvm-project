@@ -165,8 +165,8 @@ bool LiveRangeShrink::runOnMachineFunction(MachineFunction &MF) {
         else if (MO.isDead()) {
           // Barrier is the last instruction where MO get used. MI should not
           // be moved above Barrier.
-          auto It = UseMap.find(MO.getReg());
-          if (It != UseMap.end() && Barrier < It->second.first)
+          
+          if (auto It = UseMap.find(MO.getReg()); It != UseMap.end() && Barrier < It->second.first)
             std::tie(Barrier, BarrierMI) = It->second;
         }
       }

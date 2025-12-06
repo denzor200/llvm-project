@@ -67,9 +67,9 @@ protected:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'e':
         error = m_stop_on_error.SetValueFromString(option_arg);
         break;
@@ -500,9 +500,9 @@ protected:
   }
 
   bool HandleAliasingNormalCommand(Args &args, CommandReturnObject &result) {
-    size_t argc = args.GetArgumentCount();
+    
 
-    if (argc < 2) {
+    if (size_t argc = args.GetArgumentCount(); argc < 2) {
       result.AppendError("'command alias' requires at least two arguments");
       return false;
     }
@@ -814,8 +814,8 @@ protected:
       if (lines.SplitIntoLines(data)) {
         bool check_only = false;
         for (const std::string &line : lines) {
-          Status error = AppendRegexSubstitution(line, check_only);
-          if (error.Fail()) {
+          
+          if (Status error = AppendRegexSubstitution(line, check_only); error.Fail()) {
             if (!GetDebugger().GetCommandInterpreter().GetBatchCommandMode())
               GetDebugger().GetAsyncOutputStream()->Printf("error: %s\n",
                                                            error.AsCString());
@@ -847,16 +847,16 @@ protected:
       Debugger &debugger = GetDebugger();
       bool color_prompt = debugger.GetUseColor();
       const bool multiple_lines = true; // Get multiple lines
-      IOHandlerSP io_handler_sp(new IOHandlerEditline(
+      
+
+      if (IOHandlerSP io_handler_sp(new IOHandlerEditline(
           debugger, IOHandler::Type::Other,
           "lldb-regex",          // Name of input reader for history
           llvm::StringRef("> "), // Prompt
           llvm::StringRef(),     // Continuation prompt
           multiple_lines, color_prompt,
           0, // Don't show line numbers
-          *this));
-
-      if (io_handler_sp) {
+          *this)); io_handler_sp) {
         debugger.RunIOHandlerAsync(io_handler_sp);
         result.SetStatus(eReturnStatusSuccessFinishNoResult);
       }
@@ -994,9 +994,9 @@ private:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'h':
         m_help.assign(std::string(option_arg));
         break;
@@ -1661,8 +1661,8 @@ private:
         bool option_has_arg = opt_defs[cur_defs_index].option_has_arg;
         llvm::StringRef cur_arg_value;
         if (option_has_arg) {
-          int cur_arg_pos = option_elem.opt_arg_pos;
-          if (cur_arg_pos != OptionArgElement::eUnrecognizedArg &&
+          
+          if (int cur_arg_pos = option_elem.opt_arg_pos; cur_arg_pos != OptionArgElement::eUnrecognizedArg &&
               cur_arg_pos != OptionArgElement::eBareDash &&
               cur_arg_pos != OptionArgElement::eBareDoubleDash) {
             cur_arg_value =
@@ -1873,10 +1873,10 @@ public:
       // The options come as a dictionary of dictionaries.  The key of the
       // outer dict is the long option name (since that's required).  The
       // value holds all the other option specification bits.
-      StructuredData::Dictionary *options_dict 
-          = options_object_sp->GetAsDictionary();
+      
       // but if it exists, it has to be an array.
-      if (options_dict) {
+      if (StructuredData::Dictionary *options_dict 
+          = options_object_sp->GetAsDictionary(); options_dict) {
         m_options_error = m_options.SetOptionsFromArray(*(options_dict));
         // If we got an error don't bother with the arguments...
         if (m_options_error.Fail())
@@ -2012,10 +2012,10 @@ private:
     // an array of the args, the arg index and the cursor position in the arg.
     // We want the script side to have a chance to clear its state, so tell
     // it argument parsing has started:
-    Options *options = GetOptions();
+    
     // If there are not options, this will be nullptr, and in that case we
     // can just skip setting the options on the scripted side:
-    if (options)
+    if (Options *options = GetOptions(); options)
       m_options.PrepareOptionsForCompletion(request, option_vec, &m_exe_ctx);
   }
 
@@ -2187,9 +2187,9 @@ protected:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'r':
         // NO-OP
         break;
@@ -2304,9 +2304,9 @@ protected:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'f':
         if (!option_arg.empty())
           m_funct_name = std::string(option_arg);
@@ -2393,13 +2393,13 @@ protected:
                               std::string &data) override {
     LockableStreamFileSP error_sp = io_handler.GetErrorStreamFileSP();
 
-    ScriptInterpreter *interpreter = GetDebugger().GetScriptInterpreter();
-    if (interpreter) {
+    
+    if (ScriptInterpreter *interpreter = GetDebugger().GetScriptInterpreter(); interpreter) {
       StringList lines;
       lines.SplitIntoLines(data);
       if (lines.GetSize() > 0) {
-        std::string funct_name_str;
-        if (interpreter->GenerateScriptAliasFunction(lines, funct_name_str)) {
+        
+        if (std::string funct_name_str; interpreter->GenerateScriptAliasFunction(lines, funct_name_str)) {
           if (funct_name_str.empty()) {
             LockedStreamFile locked_stream = error_sp->Lock();
             locked_stream.Printf(
@@ -2408,22 +2408,22 @@ protected:
           } else {
             // everything should be fine now, let's add this alias
 
-            CommandObjectSP command_obj_sp(new CommandObjectPythonFunction(
+            
+            if (CommandObjectSP command_obj_sp(new CommandObjectPythonFunction(
                 m_interpreter, m_cmd_name, funct_name_str, m_short_help,
-                m_synchronicity, m_completion_type));
-            if (!m_container) {
-              Status error = m_interpreter.AddUserCommand(
-                  m_cmd_name, command_obj_sp, m_overwrite);
-              if (error.Fail()) {
+                m_synchronicity, m_completion_type)); !m_container) {
+              
+              if (Status error = m_interpreter.AddUserCommand(
+                  m_cmd_name, command_obj_sp, m_overwrite); error.Fail()) {
                 LockedStreamFile locked_stream = error_sp->Lock();
                 locked_stream.Printf(
                     "error: unable to add selected command: '%s'",
                     error.AsCString());
               }
             } else {
-              llvm::Error llvm_error = m_container->LoadUserSubcommand(
-                  m_cmd_name, command_obj_sp, m_overwrite);
-              if (llvm_error) {
+              
+              if (llvm::Error llvm_error = m_container->LoadUserSubcommand(
+                  m_cmd_name, command_obj_sp, m_overwrite); llvm_error) {
                 LockedStreamFile locked_stream = error_sp->Lock();
                 locked_stream.Printf(
                     "error: unable to add selected command: '%s'",
@@ -2537,15 +2537,15 @@ protected:
     // Assume we're going to succeed...
     result.SetStatus(eReturnStatusSuccessFinishNoResult);
     if (!m_container) {
-      Status add_error =
-          m_interpreter.AddUserCommand(m_cmd_name, new_cmd_sp, m_overwrite);
-      if (add_error.Fail())
+      
+      if (Status add_error =
+          m_interpreter.AddUserCommand(m_cmd_name, new_cmd_sp, m_overwrite); add_error.Fail())
         result.AppendErrorWithFormat("cannot add command: %s",
                                      add_error.AsCString());
     } else {
-      llvm::Error llvm_error =
-          m_container->LoadUserSubcommand(m_cmd_name, new_cmd_sp, m_overwrite);
-      if (llvm_error)
+      
+      if (llvm::Error llvm_error =
+          m_container->LoadUserSubcommand(m_cmd_name, new_cmd_sp, m_overwrite); llvm_error)
         result.AppendErrorWithFormat(
             "cannot add command: %s",
             llvm::toString(std::move(llvm_error)).c_str());
@@ -2767,9 +2767,9 @@ protected:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'h':
         if (!option_arg.empty())
           m_short_help = std::string(option_arg);

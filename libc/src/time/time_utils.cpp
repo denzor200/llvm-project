@@ -145,13 +145,13 @@ int64_t update_from_seconds(time_t total_seconds, tm *tm) {
           ? INT_MIN
           : INT_MIN * static_cast<int64_t>(
                           time_constants::NUMBER_OF_SECONDS_IN_LEAP_YEAR);
-  constexpr time_t time_max =
+  
+
+  if (constexpr time_t time_max =
       (sizeof(time_t) == 4)
           ? INT_MAX
           : INT_MAX * static_cast<int64_t>(
-                          time_constants::NUMBER_OF_SECONDS_IN_LEAP_YEAR);
-
-  if (total_seconds < time_min || total_seconds > time_max)
+                          time_constants::NUMBER_OF_SECONDS_IN_LEAP_YEAR); total_seconds < time_min || total_seconds > time_max)
     return time_utils::out_of_range();
 
   int64_t seconds =

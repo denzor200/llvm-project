@@ -157,9 +157,9 @@ void InterpFrame::describe(llvm::raw_ostream &OS) const {
 
   const Expr *CallExpr = Caller->getExpr(getRetPC());
   const FunctionDecl *F = getCallee();
-  bool IsMemberCall = isa<CXXMethodDecl>(F) && !isa<CXXConstructorDecl>(F) &&
-                      cast<CXXMethodDecl>(F)->isImplicitObjectMemberFunction();
-  if (Func->hasThisPointer() && IsMemberCall) {
+  
+  if (bool IsMemberCall = isa<CXXMethodDecl>(F) && !isa<CXXConstructorDecl>(F) &&
+                      cast<CXXMethodDecl>(F)->isImplicitObjectMemberFunction(); Func->hasThisPointer() && IsMemberCall) {
     if (const auto *MCE = dyn_cast_if_present<CXXMemberCallExpr>(CallExpr)) {
       const Expr *Object = MCE->getImplicitObjectArgument();
       Object->printPretty(OS, /*Helper=*/nullptr,
@@ -215,9 +215,9 @@ SourceRange InterpFrame::getCallRange() const {
   for (const InterpFrame *C = this; C; C = C->Caller) {
     if (!C->RetPC)
       continue;
-    SourceRange CallRange =
-        S.getRange(C->Caller->Func, C->RetPC - sizeof(uintptr_t));
-    if (CallRange.isValid())
+    
+    if (SourceRange CallRange =
+        S.getRange(C->Caller->Func, C->RetPC - sizeof(uintptr_t)); CallRange.isValid())
       return CallRange;
   }
   return S.EvalLocation;

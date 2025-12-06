@@ -350,9 +350,9 @@ void SizeofExpressionCheck::registerMatchers(MatchFinder *Finder) {
 }
 
 void SizeofExpressionCheck::check(const MatchFinder::MatchResult &Result) {
-  const ASTContext &Ctx = *Result.Context;
+  
 
-  if (const auto *E = Result.Nodes.getNodeAs<Expr>("sizeof-constant")) {
+  if (const ASTContext &Ctx = *Result.Context; const auto *E = Result.Nodes.getNodeAs<Expr>("sizeof-constant")) {
     diag(E->getBeginLoc(), "suspicious usage of 'sizeof(K)'; did you mean 'K'?")
         << E->getSourceRange();
   } else if (const auto *E =
@@ -409,9 +409,9 @@ void SizeofExpressionCheck::check(const MatchFinder::MatchResult &Result) {
 
     const CharUnits NumeratorSize = getSizeOfType(Ctx, NumTy);
     const CharUnits DenominatorSize = getSizeOfType(Ctx, DenomTy);
-    const CharUnits ElementSize = getSizeOfType(Ctx, ElementTy);
+    
 
-    if (DenominatorSize > CharUnits::Zero() &&
+    if (const CharUnits ElementSize = getSizeOfType(Ctx, ElementTy); DenominatorSize > CharUnits::Zero() &&
         !NumeratorSize.isMultipleOf(DenominatorSize)) {
       diag(E->getOperatorLoc(), "suspicious usage of 'sizeof(...)/sizeof(...)';"
                                 " numerator is not a multiple of denominator")
@@ -459,10 +459,10 @@ void SizeofExpressionCheck::check(const MatchFinder::MatchResult &Result) {
     const auto *LPtrTy = Result.Nodes.getNodeAs<Type>("left-ptr-type");
     const auto *RPtrTy = Result.Nodes.getNodeAs<Type>("right-ptr-type");
     const auto *SizeofArgTy = Result.Nodes.getNodeAs<Type>("sizeof-arg-type");
-    const auto *SizeOfExpr =
-        Result.Nodes.getNodeAs<UnaryExprOrTypeTraitExpr>("sizeof-ptr-mul-expr");
+    
 
-    if (ASTContext::hasSameType(LPtrTy, RPtrTy) &&
+    if (const auto *SizeOfExpr =
+        Result.Nodes.getNodeAs<UnaryExprOrTypeTraitExpr>("sizeof-ptr-mul-expr"); ASTContext::hasSameType(LPtrTy, RPtrTy) &&
         ASTContext::hasSameType(LPtrTy, SizeofArgTy)) {
       diag(SizeOfExpr->getBeginLoc(), "suspicious usage of 'sizeof(...)' in "
                                       "pointer arithmetic")
@@ -474,10 +474,10 @@ void SizeofExpressionCheck::check(const MatchFinder::MatchResult &Result) {
     const auto *LPtrTy = Result.Nodes.getNodeAs<Type>("left-ptr-type");
     const auto *RPtrTy = Result.Nodes.getNodeAs<Type>("right-ptr-type");
     const auto *SizeofArgTy = Result.Nodes.getNodeAs<Type>("sizeof-arg-type");
-    const auto *SizeOfExpr =
-        Result.Nodes.getNodeAs<UnaryExprOrTypeTraitExpr>("sizeof-ptr-div-expr");
+    
 
-    if (ASTContext::hasSameType(LPtrTy, RPtrTy) &&
+    if (const auto *SizeOfExpr =
+        Result.Nodes.getNodeAs<UnaryExprOrTypeTraitExpr>("sizeof-ptr-div-expr"); ASTContext::hasSameType(LPtrTy, RPtrTy) &&
         ASTContext::hasSameType(LPtrTy, SizeofArgTy)) {
       diag(SizeOfExpr->getBeginLoc(), "suspicious usage of 'sizeof(...)' in "
                                       "pointer arithmetic")
@@ -490,7 +490,9 @@ void SizeofExpressionCheck::check(const MatchFinder::MatchResult &Result) {
     const auto *ScaleExpr =
         Result.Nodes.getNodeAs<Expr>("sizeof-in-ptr-arithmetic-scale-expr");
     const CharUnits PointeeSize = getSizeOfType(Ctx, PointeeTy->getTypePtr());
-    const int ScaleKind = [ScaleExpr]() {
+    
+
+    if (const int ScaleKind = [ScaleExpr]() {
       if (const auto *UTTE = dyn_cast<UnaryExprOrTypeTraitExpr>(ScaleExpr))
         switch (UTTE->getKind()) {
         case UETT_SizeOf:
@@ -505,9 +507,7 @@ void SizeofExpressionCheck::check(const MatchFinder::MatchResult &Result) {
         return 2;
 
       return -1;
-    }();
-
-    if (ScaleKind != -1 && PointeeSize > CharUnits::One()) {
+    }(); ScaleKind != -1 && PointeeSize > CharUnits::One()) {
       diag(E->getExprLoc(),
            "suspicious usage of '%select{sizeof|alignof|offsetof}0(...)' in "
            "pointer arithmetic; this scaled value will be scaled again by the "

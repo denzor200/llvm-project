@@ -185,8 +185,8 @@ class LargeChunkHeader {
       return;
     }
 
-    uptr old = kAllocBegMagic;
-    if (!atomic_compare_exchange_strong(&magic, &old, 0,
+    
+    if (uptr old = kAllocBegMagic; !atomic_compare_exchange_strong(&magic, &old, 0,
                                         memory_order_release)) {
       CHECK_EQ(old, kAllocBegMagic);
     }
@@ -195,12 +195,12 @@ class LargeChunkHeader {
 
 static void FillChunk(AsanChunk *m) {
   // FIXME: Use ReleaseMemoryPagesToOS.
-  Flags &fl = *flags();
+  
 
-  if (fl.max_free_fill_size > 0) {
+  if (Flags &fl = *flags(); fl.max_free_fill_size > 0) {
     // We have to skip the chunk header, it contains free_context_id.
-    uptr scribble_start = (uptr)m + kChunkHeaderSize + kChunkHeader2Size;
-    if (m->UsedSize() >= kChunkHeader2Size) {  // Skip Header2 in user area.
+    
+    if (uptr scribble_start = (uptr)m + kChunkHeaderSize + kChunkHeader2Size; m->UsedSize() >= kChunkHeader2Size) {  // Skip Header2 in user area.
       uptr size_to_fill = m->UsedSize() - kChunkHeader2Size;
       size_to_fill = Min(size_to_fill, (uptr)fl.max_free_fill_size);
       REAL(memset)((void *)scribble_start, fl.free_fill_byte, size_to_fill);
@@ -407,8 +407,8 @@ struct Allocator {
                   CHUNK_ALLOCATED) {
       uptr beg = ac->Beg();
       uptr end = ac->Beg() + ac->UsedSize();
-      uptr chunk_end = chunk + allocated_size;
-      if (chunk < beg && beg < end && end <= chunk_end) {
+      
+      if (uptr chunk_end = chunk + allocated_size; chunk < beg && beg < end && end <= chunk_end) {
         // Looks like a valid AsanChunk in use, poison redzones only.
         PoisonShadow(chunk, beg - chunk, kAsanHeapLeftRedzoneMagic);
         uptr end_aligned_down = RoundDownTo(end, ASAN_SHADOW_GRANULARITY);
@@ -498,9 +498,9 @@ struct Allocator {
     // Prefer an allocated chunk over freed chunk and freed chunk
     // over available chunk.
     u8 left_state = atomic_load(&left_chunk->chunk_state, memory_order_relaxed);
-    u8 right_state =
-        atomic_load(&right_chunk->chunk_state, memory_order_relaxed);
-    if (left_state != right_state) {
+    
+    if (u8 right_state =
+        atomic_load(&right_chunk->chunk_state, memory_order_relaxed); left_state != right_state) {
       if (left_state == CHUNK_ALLOCATED)
         return left_chunk;
       if (right_state == CHUNK_ALLOCATED)
@@ -778,8 +778,8 @@ struct Allocator {
 
     void *new_ptr = Allocate(new_size, 8, stack, FROM_MALLOC, true);
     if (new_ptr) {
-      u8 chunk_state = atomic_load(&m->chunk_state, memory_order_acquire);
-      if (chunk_state != CHUNK_ALLOCATED)
+      
+      if (u8 chunk_state = atomic_load(&m->chunk_state, memory_order_acquire); chunk_state != CHUNK_ALLOCATED)
         ReportInvalidFree(old_ptr, chunk_state, stack);
       CHECK_NE(REAL(memcpy), nullptr);
       uptr memcpy_size = Min(new_size, m->UsedSize());
@@ -886,8 +886,8 @@ struct Allocator {
   }
 
   void Purge(BufferedStackTrace *stack) {
-    AsanThread *t = GetCurrentThread();
-    if (t) {
+    
+    if (AsanThread *t = GetCurrentThread(); t) {
       AsanThreadLocalMallocStorage *ms = &t->malloc_storage();
       quarantine.DrainAndRecycle(GetQuarantineCache(ms),
                                  QuarantineCallback(GetAllocatorCache(ms),

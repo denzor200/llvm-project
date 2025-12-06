@@ -95,8 +95,8 @@ SBThread SBQueueItem::GetExtendedBacktraceThread(const char *type) {
   SBThread result;
   if (m_queue_item_sp) {
     ProcessSP process_sp = m_queue_item_sp->GetProcessSP();
-    Process::StopLocker stop_locker;
-    if (process_sp && stop_locker.TryLock(&process_sp->GetRunLock())) {
+    
+    if (Process::StopLocker stop_locker; process_sp && stop_locker.TryLock(&process_sp->GetRunLock())) {
       ThreadSP thread_sp;
       ConstString type_const(type);
       thread_sp = m_queue_item_sp->GetExtendedBacktraceThread(type_const);

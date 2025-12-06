@@ -108,8 +108,8 @@ void SimpleRemoteEPC::callWrapperAsync(ExecutorAddr WrapperFnAddr,
     // handleDisconnect already ran) then we need to take care of it.
     {
       std::lock_guard<std::mutex> Lock(SimpleRemoteEPCMutex);
-      auto I = PendingCallWrapperResults.find(SeqNo);
-      if (I != PendingCallWrapperResults.end()) {
+      
+      if (auto I = PendingCallWrapperResults.find(SeqNo); I != PendingCallWrapperResults.end()) {
         H = std::move(I->second);
         PendingCallWrapperResults.erase(I);
       }
@@ -323,8 +323,8 @@ Error SimpleRemoteEPC::setup(Setup S) {
         using SPSSerialize =
             shared::SPSArgList<shared::SPSSimpleRemoteEPCExecutorInfo>;
         shared::SPSInputBuffer IB(SetupMsgBytes.data(), SetupMsgBytes.size());
-        SimpleRemoteEPCExecutorInfo EI;
-        if (SPSSerialize::deserialize(IB, EI))
+        
+        if (SimpleRemoteEPCExecutorInfo EI; SPSSerialize::deserialize(IB, EI))
           EIP.set_value(EI);
         else
           EIP.set_value(make_error<StringError>(

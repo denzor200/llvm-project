@@ -90,15 +90,15 @@ protected:
     TestGraph::ExternalState operator()(TestGraph::ContainerId C,
                                         TestGraph::ElementId E) {
       {
-        auto I = T.Failed.find(C);
-        if (I != T.Failed.end())
+        
+        if (auto I = T.Failed.find(C); I != T.Failed.end())
           if (I->second.count(E))
             return TestGraph::ExternalState::Failed;
       }
 
       {
-        auto I = T.Ready.find(C);
-        if (I != T.Ready.end())
+        
+        if (auto I = T.Ready.find(C); I != T.Ready.end())
           if (I->second.count(E))
             return TestGraph::ExternalState::Ready;
       }

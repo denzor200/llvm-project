@@ -324,24 +324,26 @@ static bool tryToRecognizePopCount(Instruction &I) {
   // Matching "(i * 0x01010101...) >> 24".
   if ((match(Op0, m_Mul(m_Value(MulOp0), m_SpecificInt(Mask01)))) &&
       match(Op1, m_SpecificInt(MaskShift))) {
-    Value *ShiftOp0;
+    
     // Matching "((i + (i >> 4)) & 0x0F0F0F0F...)".
-    if (match(MulOp0, m_And(m_c_Add(m_LShr(m_Value(ShiftOp0), m_SpecificInt(4)),
+    if (Value *ShiftOp0; match(MulOp0, m_And(m_c_Add(m_LShr(m_Value(ShiftOp0), m_SpecificInt(4)),
                                     m_Deferred(ShiftOp0)),
                             m_SpecificInt(Mask0F)))) {
-      Value *AndOp0;
+      
       // Matching "(i & 0x33333333...) + ((i >> 2) & 0x33333333...)".
-      if (match(ShiftOp0,
+      if (Value *AndOp0; match(ShiftOp0,
                 m_c_Add(m_And(m_Value(AndOp0), m_SpecificInt(Mask33)),
                         m_And(m_LShr(m_Deferred(AndOp0), m_SpecificInt(2)),
                               m_SpecificInt(Mask33))))) {
         Value *Root, *SubOp1;
         // Matching "i - ((i >> 1) & 0x55555555...)".
-        const APInt *AndMask;
-        if (match(AndOp0, m_Sub(m_Value(Root), m_Value(SubOp1))) &&
+        
+        if (const APInt *AndMask; match(AndOp0, m_Sub(m_Value(Root), m_Value(SubOp1))) &&
             match(SubOp1, m_And(m_LShr(m_Specific(Root), m_SpecificInt(1)),
                                 m_APInt(AndMask)))) {
-          auto CheckAndMask = [&]() {
+          
+
+          if (auto CheckAndMask = [&]() {
             if (*AndMask == Mask55)
               return true;
 
@@ -354,9 +356,7 @@ static bool tryToRecognizePopCount(Instruction &I) {
             return MaskedValueIsZero(cast<Instruction>(SubOp1)->getOperand(0),
                                      NeededMask,
                                      SimplifyQuery(I.getDataLayout()));
-          };
-
-          if (CheckAndMask()) {
+          }; CheckAndMask()) {
             LLVM_DEBUG(dbgs() << "Recognized popcount intrinsic\n");
             IRBuilder<> Builder(&I);
             I.replaceAllUsesWith(
@@ -473,9 +473,9 @@ static bool isCTTZTable(Constant *Table, const APInt &Mul, const APInt &Shift,
                         const DataLayout &DL) {
   for (unsigned Idx = 0; Idx < InputBits; Idx++) {
     APInt Index = (APInt(InputBits, 1).shl(Idx) * Mul).lshr(Shift) & AndMask;
-    ConstantInt *C = dyn_cast_or_null<ConstantInt>(
-        ConstantFoldLoadFromConst(Table, AccessTy, Index * GEPIdxFactor, DL));
-    if (!C || C->getValue() != Idx)
+    
+    if (ConstantInt *C = dyn_cast_or_null<ConstantInt>(
+        ConstantFoldLoadFromConst(Table, AccessTy, Index * GEPIdxFactor, DL)); !C || C->getValue() != Idx)
       return false;
   }
 
@@ -1317,8 +1317,8 @@ void StrNCmpInliner::inlineCompare(Value *LHS, StringRef RHS, uint64_t N,
 
       Function *F = CI->getFunction();
       assert(F && "Instruction does not belong to a function!");
-      std::optional<Function::ProfileCount> EC = F->getEntryCount();
-      if (EC && EC->getCount() > 0)
+      
+      if (std::optional<Function::ProfileCount> EC = F->getEntryCount(); EC && EC->getCount() > 0)
         setExplicitlyUnknownBranchWeights(*CondBrInst, DEBUG_TYPE);
     } else {
       B.CreateBr(BBNE);

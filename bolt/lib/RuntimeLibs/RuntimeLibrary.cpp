@@ -92,14 +92,14 @@ void RuntimeLibrary::loadLibrary(StringRef LibPath, BOLTLinker &Linker,
       MemoryBuffer::getFile(LibPath, false, false);
   check_error(MaybeBuf.getError(), LibPath);
   std::unique_ptr<MemoryBuffer> B = std::move(MaybeBuf.get());
-  file_magic Magic = identify_magic(B->getBuffer());
+  
 
-  if (Magic == file_magic::archive) {
+  if (file_magic Magic = identify_magic(B->getBuffer()); Magic == file_magic::archive) {
     Error Err = Error::success();
     object::Archive Archive(B->getMemBufferRef(), Err);
     for (const object::Archive::Child &C : Archive.children(Err)) {
-      std::unique_ptr<object::Binary> Bin = cantFail(C.getAsBinary());
-      if (object::ObjectFile *Obj = dyn_cast<object::ObjectFile>(&*Bin))
+      
+      if (std::unique_ptr<object::Binary> Bin = cantFail(C.getAsBinary()); object::ObjectFile *Obj = dyn_cast<object::ObjectFile>(&*Bin))
         Linker.loadObject(Obj->getMemoryBufferRef(), MapSections);
     }
     check_error(std::move(Err), B->getBufferIdentifier());

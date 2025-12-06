@@ -51,9 +51,9 @@ Status OptionValuePathMappings::SetValueFromString(llvm::StringRef value,
                                                    VarSetOperationType op) {
   Status error;
   Args args(value.str());
-  const size_t argc = args.GetArgumentCount();
+  
 
-  switch (op) {
+  switch (const size_t argc = args.GetArgumentCount(); op) {
   case eVarSetOperationClear:
     Clear();
     NotifyValueChanged();
@@ -64,8 +64,8 @@ Status OptionValuePathMappings::SetValueFromString(llvm::StringRef value,
     // even
     if (argc >= 3 && (((argc - 1) & 1) == 0)) {
       uint32_t idx;
-      const uint32_t count = m_path_mappings.GetSize();
-      if (!llvm::to_integer(args.GetArgumentAtIndex(0), idx) || idx > count) {
+      
+      if (const uint32_t count = m_path_mappings.GetSize(); !llvm::to_integer(args.GetArgumentAtIndex(0), idx) || idx > count) {
         error = Status::FromErrorStringWithFormat(
             "invalid file list index %s, index must be 0 through %u",
             args.GetArgumentAtIndex(0), count);
@@ -73,8 +73,8 @@ Status OptionValuePathMappings::SetValueFromString(llvm::StringRef value,
         bool changed = false;
         for (size_t i = 1; i < argc; idx++, i += 2) {
           const char *orginal_path = args.GetArgumentAtIndex(i);
-          const char *replace_path = args.GetArgumentAtIndex(i + 1);
-          if (VerifyPathExists(replace_path)) {
+          
+          if (const char *replace_path = args.GetArgumentAtIndex(i + 1); VerifyPathExists(replace_path)) {
             if (!m_path_mappings.Replace(orginal_path, replace_path, idx,
                                          m_notify_changes))
               m_path_mappings.Append(orginal_path, replace_path,
@@ -116,8 +116,8 @@ Status OptionValuePathMappings::SetValueFromString(llvm::StringRef value,
       bool changed = false;
       for (size_t i = 0; i < argc; i += 2) {
         const char *orginal_path = args.GetArgumentAtIndex(i);
-        const char *replace_path = args.GetArgumentAtIndex(i + 1);
-        if (VerifyPathExists(replace_path)) {
+        
+        if (const char *replace_path = args.GetArgumentAtIndex(i + 1); VerifyPathExists(replace_path)) {
           m_path_mappings.Append(orginal_path, replace_path, m_notify_changes);
           m_value_was_set = true;
           changed = true;
@@ -140,8 +140,8 @@ Status OptionValuePathMappings::SetValueFromString(llvm::StringRef value,
     // even
     if (argc >= 3 && (((argc - 1) & 1) == 0)) {
       uint32_t idx;
-      const uint32_t count = m_path_mappings.GetSize();
-      if (!llvm::to_integer(args.GetArgumentAtIndex(0), idx) || idx > count) {
+      
+      if (const uint32_t count = m_path_mappings.GetSize(); !llvm::to_integer(args.GetArgumentAtIndex(0), idx) || idx > count) {
         error = Status::FromErrorStringWithFormat(
             "invalid file list index %s, index must be 0 through %u",
             args.GetArgumentAtIndex(0), count);
@@ -151,8 +151,8 @@ Status OptionValuePathMappings::SetValueFromString(llvm::StringRef value,
           ++idx;
         for (size_t i = 1; i < argc; i += 2) {
           const char *orginal_path = args.GetArgumentAtIndex(i);
-          const char *replace_path = args.GetArgumentAtIndex(i + 1);
-          if (VerifyPathExists(replace_path)) {
+          
+          if (const char *replace_path = args.GetArgumentAtIndex(i + 1); VerifyPathExists(replace_path)) {
             m_path_mappings.Insert(orginal_path, replace_path, idx,
                                    m_notify_changes);
             changed = true;
@@ -179,8 +179,8 @@ Status OptionValuePathMappings::SetValueFromString(llvm::StringRef value,
     if (argc > 0) {
       std::vector<int> remove_indexes;
       for (size_t i = 0; i < argc; ++i) {
-        int idx;
-        if (!llvm::to_integer(args.GetArgumentAtIndex(i), idx) || idx < 0 ||
+        
+        if (int idx; !llvm::to_integer(args.GetArgumentAtIndex(i), idx) || idx < 0 ||
             idx >= (int)m_path_mappings.GetSize()) {
           error = Status::FromErrorStringWithFormat(
               "invalid array index '%s', aborting remove operation",

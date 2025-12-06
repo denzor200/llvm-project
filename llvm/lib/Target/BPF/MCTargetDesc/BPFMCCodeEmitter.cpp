@@ -90,8 +90,8 @@ unsigned BPFMCCodeEmitter::getMachineOpValue(const MCInst &MI,
     return MRI.getEncodingValue(MO.getReg());
   if (MO.isImm()) {
     uint64_t Imm = MO.getImm();
-    uint64_t High32Bits = Imm >> 32, High33Bits = Imm >> 31;
-    if (MI.getOpcode() != BPF::LD_imm64 && High32Bits != 0 &&
+    
+    if (uint64_t High32Bits = Imm >> 32, High33Bits = Imm >> 31; MI.getOpcode() != BPF::LD_imm64 && High32Bits != 0 &&
         High33Bits != 0x1FFFFFFFFULL) {
       Ctx.reportWarning(MI.getLoc(),
                         "immediate out of range, shall fit in 32 bits");
@@ -130,10 +130,10 @@ void BPFMCCodeEmitter::encodeInstruction(const MCInst &MI,
                                          const MCSubtargetInfo &STI) const {
   unsigned Opcode = MI.getOpcode();
   raw_svector_ostream OS(CB);
-  support::endian::Writer OSE(OS, IsLittleEndian ? llvm::endianness::little
-                                                 : llvm::endianness::big);
+  
 
-  if (Opcode == BPF::LD_imm64 || Opcode == BPF::LD_pseudo) {
+  if (support::endian::Writer OSE(OS, IsLittleEndian ? llvm::endianness::little
+                                                 : llvm::endianness::big); Opcode == BPF::LD_imm64 || Opcode == BPF::LD_pseudo) {
     uint64_t Value = getBinaryCodeForInstr(MI, Fixups, STI);
     CB.push_back(Value >> 56);
     if (IsLittleEndian)

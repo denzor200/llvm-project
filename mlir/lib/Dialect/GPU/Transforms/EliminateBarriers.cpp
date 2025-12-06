@@ -155,8 +155,8 @@ getEffectsBefore(Operation *op,
     return true;
 
   // If there is a non-structured control flow, bail.
-  Region *region = op->getBlock()->getParent();
-  if (region && !region->hasOneBlock()) {
+  
+  if (Region *region = op->getBlock()->getParent(); region && !region->hasOneBlock()) {
     addAllValuelessEffects(effects);
     return false;
   }
@@ -247,8 +247,8 @@ getEffectsAfter(Operation *op,
     return true;
 
   // If there is a non-structured control flow, bail.
-  Region *region = op->getBlock()->getParent();
-  if (region && !region->hasOneBlock()) {
+  
+  if (Region *region = op->getBlock()->getParent(); region && !region->hasOneBlock()) {
     addAllValuelessEffects(effects);
     return false;
   }
@@ -311,8 +311,8 @@ getEffectsAfter(Operation *op,
 /// Looks through known "view-like" ops to find the base memref.
 static Value getBase(Value v) {
   while (true) {
-    Operation *definingOp = v.getDefiningOp();
-    if (!definingOp)
+    
+    if (Operation *definingOp = v.getDefiningOp(); !definingOp)
       break;
 
     bool shouldContinue =

@@ -69,11 +69,11 @@ void MipsELFStreamer::emitCFIEndProcImpl(MCDwarfFrameInfo &Frame) {
 }
 
 void MipsELFStreamer::createPendingLabelRelocs() {
-  MipsTargetELFStreamer *ELFTargetStreamer =
-      static_cast<MipsTargetELFStreamer *>(getTargetStreamer());
+  
 
   // FIXME: Also mark labels when in MIPS16 mode.
-  if (ELFTargetStreamer->isMicroMipsEnabled()) {
+  if (MipsTargetELFStreamer *ELFTargetStreamer =
+      static_cast<MipsTargetELFStreamer *>(getTargetStreamer()); ELFTargetStreamer->isMicroMipsEnabled()) {
     for (auto *L : Labels) {
       auto *Label = static_cast<MCSymbolELF *>(L);
       getAssembler().registerSymbol(*Label);

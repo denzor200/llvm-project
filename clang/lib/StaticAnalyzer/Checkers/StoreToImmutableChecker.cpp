@@ -46,8 +46,8 @@ static bool isEffectivelyConstRegion(const MemRegion *MR, CheckerContext &C) {
 
   // Check if this is a SymbolicRegion with a const-qualified pointee type
   if (const auto *SR = dyn_cast<SymbolicRegion>(MR)) {
-    QualType PointeeType = SR->getPointeeStaticType();
-    if (PointeeType.isConstQualified())
+    
+    if (QualType PointeeType = SR->getPointeeStaticType(); PointeeType.isConstQualified())
       return true;
   }
 
@@ -74,8 +74,8 @@ getInnermostEnclosingConstDeclRegion(const MemRegion *MR, CheckerContext &C) {
   while (true) {
     if (const auto *DR = dyn_cast<DeclRegion>(MR)) {
       const ValueDecl *D = DR->getDecl();
-      QualType DeclaredType = D->getType();
-      if (DeclaredType.isConstQualified())
+      
+      if (QualType DeclaredType = D->getType(); DeclaredType.isConstQualified())
         return DR;
     }
     if (auto *SR = dyn_cast<SubRegion>(MR))

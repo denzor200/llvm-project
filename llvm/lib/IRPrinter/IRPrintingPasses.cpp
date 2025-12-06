@@ -53,10 +53,10 @@ PreservedAnalyses PrintModulePass::run(Module &M, ModuleAnalysisManager &AM) {
     }
   }
 
-  ModuleSummaryIndex *Index =
+  
+  if (ModuleSummaryIndex *Index =
       EmitSummaryIndex ? &(AM.getResult<ModuleSummaryIndexAnalysis>(M))
-                       : nullptr;
-  if (Index) {
+                       : nullptr; Index) {
     if (Index->modulePaths().empty())
       Index->addModule("");
     Index->print(OS);

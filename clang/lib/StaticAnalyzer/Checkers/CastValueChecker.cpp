@@ -265,9 +265,9 @@ static void addInstanceOfTransition(const CallEvent &Call,
   SmallVector<QualType, 4> CastToTyVec;
   for (unsigned idx = 0; idx < FD->getTemplateSpecializationArgs()->size() - 1;
        ++idx) {
-    TemplateArgument CastToTempArg =
-      FD->getTemplateSpecializationArgs()->get(idx);
-    switch (CastToTempArg.getKind()) {
+    
+    switch (TemplateArgument CastToTempArg =
+      FD->getTemplateSpecializationArgs()->get(idx); CastToTempArg.getKind()) {
     default:
       return;
     case TemplateArgument::Type:
@@ -491,8 +491,8 @@ bool CastValueChecker::evalCall(const CallEvent &Call,
   }
   case CallKind::InstanceOf: {
     // We need to obtain the only template argument to determinte the type.
-    const FunctionDecl *FD = Call.getDecl()->getAsFunction();
-    if (!FD || !FD->getTemplateSpecializationArgs())
+    
+    if (const FunctionDecl *FD = Call.getDecl()->getAsFunction(); !FD || !FD->getTemplateSpecializationArgs())
       return false;
 
     DV = Call.getArgSVal(0).getAs<DefinedOrUnknownSVal>();

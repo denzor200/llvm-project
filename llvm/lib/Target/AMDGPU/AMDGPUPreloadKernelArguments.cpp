@@ -236,8 +236,8 @@ public:
     auto *PreloadEnd = llvm::find_if(
         ImplicitArgLoads, [&](const std::pair<LoadInst *, unsigned> &Load) {
           unsigned LoadSize = DL.getTypeStoreSize(Load.first->getType());
-          unsigned LoadOffset = Load.second;
-          if (!canPreloadKernArgAtOffset(LoadOffset + LoadSize +
+          
+          if (unsigned LoadOffset = Load.second; !canPreloadKernArgAtOffset(LoadOffset + LoadSize +
                                          ImplicitArgsBaseOffset))
             return true;
 

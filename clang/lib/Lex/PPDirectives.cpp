@@ -176,8 +176,8 @@ static bool isLanguageDefinedBuiltin(const SourceManager &SourceMgr,
 }
 
 static bool isReservedCXXAttributeName(Preprocessor &PP, IdentifierInfo *II) {
-  const LangOptions &Lang = PP.getLangOpts();
-  if (Lang.CPlusPlus &&
+  
+  if (const LangOptions &Lang = PP.getLangOpts(); Lang.CPlusPlus &&
       hasAttribute(AttributeCommonInfo::AS_CXX11, /* Scope*/ nullptr, II,
                    PP.getTargetInfo(), Lang, /*CheckPlugins*/ false) > 0) {
     AttributeCommonInfo::AttrArgsInfo AttrArgsInfo =
@@ -206,9 +206,9 @@ static MacroDiag shouldWarnOnMacroDef(Preprocessor &PP, IdentifierInfo *II) {
 }
 
 static MacroDiag shouldWarnOnMacroUndef(Preprocessor &PP, IdentifierInfo *II) {
-  const LangOptions &Lang = PP.getLangOpts();
+  
   // Do not warn on keyword undef.  It is generally harmless and widely used.
-  if (isReservedInAllContexts(II->isReserved(Lang)))
+  if (const LangOptions &Lang = PP.getLangOpts(); isReservedInAllContexts(II->isReserved(Lang)))
     return MD_ReservedMacro;
   if (isReservedCXXAttributeName(PP, II))
     return MD_ReservedAttributeIdentifier;
@@ -228,8 +228,8 @@ static bool warnByDefaultOnWrongCase(StringRef Include) {
 
   // "condition_variable" is the longest standard header name at 18 characters.
   // If the include file name is longer than that, it can't be a standard header.
-  static const size_t MaxStdHeaderNameLen = 18u;
-  if (Include.size() > MaxStdHeaderNameLen)
+  
+  if (static const size_t MaxStdHeaderNameLen = 18u; Include.size() > MaxStdHeaderNameLen)
     return false;
 
   // Lowercase and normalize the search string.
@@ -337,8 +337,8 @@ findSimilarStr(StringRef LHS, const std::vector<StringRef> &Candidates) {
 
   std::optional<std::pair<StringRef, size_t>> SimilarStr;
   for (StringRef C : Candidates) {
-    size_t CurDist = LHS.edit_distance(C, true);
-    if (CurDist <= MaxDist) {
+    
+    if (size_t CurDist = LHS.edit_distance(C, true); CurDist <= MaxDist) {
       if (!SimilarStr) {
         // The first similar string found.
         SimilarStr = {C, CurDist};
@@ -661,8 +661,8 @@ void Preprocessor::SkipExcludedConditionalBlock(SourceLocation HashTokenLoc,
     // other common directives.
     StringRef RI = Tok.getRawIdentifier();
 
-    char FirstChar = RI[0];
-    if (FirstChar >= 'a' && FirstChar <= 'z' &&
+    
+    if (char FirstChar = RI[0]; FirstChar >= 'a' && FirstChar <= 'z' &&
         FirstChar != 'i' && FirstChar != 'e') {
       CurPPLexer->ParsingPreprocessorDirective = false;
       // Restore comment saving mode.
@@ -691,8 +691,8 @@ void Preprocessor::SkipExcludedConditionalBlock(SourceLocation HashTokenLoc,
     }
 
     if (Directive.starts_with("if")) {
-      StringRef Sub = Directive.substr(2);
-      if (Sub.empty() ||   // "if"
+      
+      if (StringRef Sub = Directive.substr(2); Sub.empty() ||   // "if"
           Sub == "def" ||   // "ifdef"
           Sub == "ndef") {  // "ifndef"
         // We know the entire #if/#ifdef/#ifndef block will be skipped, don't
@@ -705,8 +705,8 @@ void Preprocessor::SkipExcludedConditionalBlock(SourceLocation HashTokenLoc,
         SuggestTypoedDirective(Tok, Directive);
       }
     } else if (Directive[0] == 'e') {
-      StringRef Sub = Directive.substr(1);
-      if (Sub == "ndif") {  // "endif"
+      
+      if (StringRef Sub = Directive.substr(1); Sub == "ndif") {  // "endif"
         PPConditionalInfo CondInfo;
         CondInfo.WasSkipping = true; // Silence bogus warning.
         bool InCond = CurPPLexer->popConditionalLevel(CondInfo);
@@ -905,8 +905,8 @@ Module *Preprocessor::getModuleForLocation(SourceLocation Loc,
   if (!SourceMgr.isInMainFile(Loc)) {
     // Try to determine the module of the include directive.
     // FIXME: Look into directly passing the FileEntry from LookupFile instead.
-    FileID IDOfIncl = SourceMgr.getFileID(SourceMgr.getExpansionLoc(Loc));
-    if (auto EntryOfIncl = SourceMgr.getFileEntryRefForID(IDOfIncl)) {
+    
+    if (FileID IDOfIncl = SourceMgr.getFileID(SourceMgr.getExpansionLoc(Loc)); auto EntryOfIncl = SourceMgr.getFileEntryRefForID(IDOfIncl)) {
       // The include comes from an included file.
       return HeaderInfo.getModuleMap()
           .findModuleForHeader(*EntryOfIncl, AllowTextual)
@@ -1147,8 +1147,8 @@ Preprocessor::LookupEmbedFile(StringRef Filename, bool isAngled, bool OpenFile,
   if (!isAngled) {
     if (LookupFromFile) {
       // Use file-based lookup.
-      StringRef FullFileDir = LookupFromFile->tryGetRealPathName();
-      if (!FullFileDir.empty()) {
+      
+      if (StringRef FullFileDir = LookupFromFile->tryGetRealPathName(); !FullFileDir.empty()) {
         SeparateComponents(LookupPath, FullFileDir, Filename, true);
         llvm::Expected<FileEntryRef> ShouldBeEntry = FM.getFileRef(
             LookupPath, OpenFile, /*CacheFailure=*/true, /*IsText=*/false);
@@ -1160,11 +1160,11 @@ Preprocessor::LookupEmbedFile(StringRef Filename, bool isAngled, bool OpenFile,
 
     // Otherwise, do working directory lookup.
     LookupPath.clear();
-    auto MaybeWorkingDirEntry = FM.getDirectoryRef(".");
-    if (MaybeWorkingDirEntry) {
+    
+    if (auto MaybeWorkingDirEntry = FM.getDirectoryRef("."); MaybeWorkingDirEntry) {
       DirectoryEntryRef WorkingDirEntry = *MaybeWorkingDirEntry;
-      StringRef WorkingDir = WorkingDirEntry.getName();
-      if (!WorkingDir.empty()) {
+      
+      if (StringRef WorkingDir = WorkingDirEntry.getName(); !WorkingDir.empty()) {
         SeparateComponents(LookupPath, WorkingDir, Filename, false);
         llvm::Expected<FileEntryRef> ShouldBeEntry = FM.getFileRef(
             LookupPath, OpenFile, /*CacheFailure=*/true, /*IsText=*/false);
@@ -1227,8 +1227,8 @@ void Preprocessor::HandleSkippedDirectiveWhileUsingPCH(Token &Result,
     }
     if (SkippingUntilPragmaHdrStop && II->getPPKeywordID() == tok::pp_pragma) {
       Lex(Result);
-      auto *II = Result.getIdentifierInfo();
-      if (II && II->getName() == "hdrstop")
+      
+      if (auto *II = Result.getIdentifierInfo(); II && II->getName() == "hdrstop")
         return HandlePragmaHdrstop(Result);
     }
   }
@@ -1764,9 +1764,9 @@ void Preprocessor::HandleUserDiagnosticDirective(Token &Tok,
 
   // Find the first non-whitespace character, so that we can make the
   // diagnostic more succinct.
-  StringRef Msg = Message.str().ltrim(' ');
+  
 
-  if (isWarning)
+  if (StringRef Msg = Message.str().ltrim(' '); isWarning)
     Diag(Tok, diag::pp_hash_warning) << Msg;
   else
     Diag(Tok, diag::err_pp_hash_error) << Msg;
@@ -1802,8 +1802,8 @@ void Preprocessor::HandleIdentSCCSDirective(Token &Tok) {
 
   if (Callbacks) {
     bool Invalid = false;
-    std::string Str = getSpelling(StrTok, &Invalid);
-    if (!Invalid)
+    
+    if (std::string Str = getSpelling(StrTok, &Invalid); !Invalid)
       Callbacks->Ident(Tok.getLocation(), Str);
   }
 }
@@ -1822,10 +1822,10 @@ void Preprocessor::HandleMacroPublicDirective(Token &Tok) {
 
   IdentifierInfo *II = MacroNameTok.getIdentifierInfo();
   // Okay, we finally have a valid identifier to undef.
-  MacroDirective *MD = getLocalMacroDirective(II);
+  
 
   // If the macro is not defined, this is an error.
-  if (!MD) {
+  if (MacroDirective *MD = getLocalMacroDirective(II); !MD) {
     Diag(MacroNameTok, diag::err_pp_visibility_non_macro) << II;
     return;
   }
@@ -1849,10 +1849,10 @@ void Preprocessor::HandleMacroPrivateDirective() {
 
   IdentifierInfo *II = MacroNameTok.getIdentifierInfo();
   // Okay, we finally have a valid identifier to undef.
-  MacroDirective *MD = getLocalMacroDirective(II);
+  
 
   // If the macro is not defined, this is an error.
-  if (!MD) {
+  if (MacroDirective *MD = getLocalMacroDirective(II); !MD) {
     Diag(MacroNameTok, diag::err_pp_visibility_non_macro) << II;
     return;
   }
@@ -2115,9 +2115,9 @@ void Preprocessor::HandleIncludeDirective(SourceLocation HashLoc,
   SourceLocation EndLoc =
       CheckEndOfDirective(IncludeTok.getIdentifierInfo()->getNameStart(), true);
 
-  auto Action = HandleHeaderIncludeOrImport(HashLoc, IncludeTok, FilenameTok,
-                                            EndLoc, LookupFrom, LookupFromFile);
-  switch (Action.Kind) {
+  
+  switch (auto Action = HandleHeaderIncludeOrImport(HashLoc, IncludeTok, FilenameTok,
+                                            EndLoc, LookupFrom, LookupFromFile); Action.Kind) {
   case ImportAction::None:
   case ImportAction::SkippedModuleImport:
     break;
@@ -2185,12 +2185,12 @@ OptionalFileEntryRef Preprocessor::LookupHeaderIncludeOrImport(
   // brackets, we can attempt a lookup as though it were a quoted path to
   // provide the user with a possible fixit.
   if (isAngled) {
-    OptionalFileEntryRef File = LookupFile(
+    
+    if (OptionalFileEntryRef File = LookupFile(
         FilenameLoc, LookupFilename, false, LookupFrom, LookupFromFile, CurDir,
         Callbacks ? &SearchPath : nullptr, Callbacks ? &RelativePath : nullptr,
         &SuggestedModule, &IsMapped,
-        /*IsFrameworkFound=*/nullptr);
-    if (File) {
+        /*IsFrameworkFound=*/nullptr); File) {
       DiagnoseHeaderInclusion(*File);
       Diag(FilenameTok, diag::err_pp_file_not_found_angled_include_not_fatal)
           << Filename << IsImportDecl
@@ -2216,12 +2216,12 @@ OptionalFileEntryRef Preprocessor::LookupHeaderIncludeOrImport(
     StringRef TypoCorrectionName = CorrectTypoFilename(Filename);
     StringRef TypoCorrectionLookupName = CorrectTypoFilename(LookupFilename);
 
-    OptionalFileEntryRef File = LookupFile(
+    
+    if (OptionalFileEntryRef File = LookupFile(
         FilenameLoc, TypoCorrectionLookupName, isAngled, LookupFrom,
         LookupFromFile, CurDir, Callbacks ? &SearchPath : nullptr,
         Callbacks ? &RelativePath : nullptr, &SuggestedModule, &IsMapped,
-        /*IsFrameworkFound=*/nullptr);
-    if (File) {
+        /*IsFrameworkFound=*/nullptr); File) {
       DiagnoseHeaderInclusion(*File);
       auto Hint =
           isAngled ? FixItHint::CreateReplacement(
@@ -2314,8 +2314,8 @@ Preprocessor::ImportAction Preprocessor::HandleHeaderIncludeOrImport(
     // Map the filename with the brackets still attached.  If the name doesn't
     // map to anything, fall back on the filename we've already gotten the
     // spelling for.
-    StringRef NewName = HeaderInfo.MapHeaderToIncludeAlias(OriginalFilename);
-    if (!NewName.empty())
+    
+    if (StringRef NewName = HeaderInfo.MapHeaderToIncludeAlias(OriginalFilename); !NewName.empty())
       Filename = NewName;
   }
 
@@ -3240,8 +3240,8 @@ void Preprocessor::HandleDefineDirective(
 
   // When skipping just warn about macros that do not match.
   if (SkippingUntilPCHThroughHeader) {
-    const MacroInfo *OtherMI = getMacroInfo(MacroNameTok.getIdentifierInfo());
-    if (!OtherMI || !MI->isIdenticalTo(*OtherMI, *this,
+    
+    if (const MacroInfo *OtherMI = getMacroInfo(MacroNameTok.getIdentifierInfo()); !OtherMI || !MI->isIdenticalTo(*OtherMI, *this,
                              /*Syntactic=*/LangOpts.MicrosoftExt))
       Diag(MI->getDefinitionLoc(), diag::warn_pp_macro_def_mismatch_with_pch)
           << MacroNameTok.getIdentifierInfo();
@@ -3816,9 +3816,9 @@ Preprocessor::LexEmbedParameters(Token &CurTok, bool ForHasEmbed) {
               ExpectOrDiagAndSkipToEOD(tok::r_paren);
               return false;
             }
-            tok::TokenKind Matching =
-                GetMatchingCloseBracket(BracketStack.back().first);
-            if (CurTok.getKind() != Matching) {
+            
+            if (tok::TokenKind Matching =
+                GetMatchingCloseBracket(BracketStack.back().first); CurTok.getKind() != Matching) {
               DiagMismatchedBracesAndSkipToEOD(Matching, BracketStack.back());
               return false;
             }
@@ -3900,8 +3900,8 @@ Preprocessor::LexEmbedParameters(Token &CurTok, bool ForHasEmbed) {
       // If there's a left paren, we need to parse a balanced token sequence
       // and just eat those tokens.
       if (CurTok.is(tok::l_paren)) {
-        SmallVector<Token, 4> Soup;
-        if (!LexParenthesizedBalancedTokenSoup(Soup))
+        
+        if (SmallVector<Token, 4> Soup; !LexParenthesizedBalancedTokenSoup(Soup))
           return std::nullopt;
       }
       if (!ForHasEmbed) {

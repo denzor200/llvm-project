@@ -391,9 +391,9 @@ public:
     StructurizeCFG SCFG;
     SCFG.init(R);
     if (SkipUniformRegions) {
-      UniformityInfo &UA =
-          getAnalysis<UniformityInfoWrapperPass>().getUniformityInfo();
-      if (SCFG.makeUniformRegion(R, UA))
+      
+      if (UniformityInfo &UA =
+          getAnalysis<UniformityInfoWrapperPass>().getUniformityInfo(); SCFG.makeUniformRegion(R, UA))
         return false;
     }
     Function *F = R->getEntry()->getParent();
@@ -439,11 +439,11 @@ bool StructurizeCFG::isHoistableInstruction(Instruction *I, BasicBlock *BB,
 
   // If the instruction is not a zero cost instruction, return false.
   auto Cost = TTI->getInstructionCost(I, TargetTransformInfo::TCK_Latency);
-  InstructionCost::CostType CostVal =
+  
+  if (InstructionCost::CostType CostVal =
       Cost.isValid()
           ? Cost.getValue()
-          : (InstructionCost::CostType)TargetTransformInfo::TCC_Expensive;
-  if (CostVal != 0)
+          : (InstructionCost::CostType)TargetTransformInfo::TCC_Expensive; CostVal != 0)
     return false;
 
   // Check if all operands are available at the hoisting destination.
@@ -517,8 +517,8 @@ void StructurizeCFG::orderNodes() {
       // An SCC up to the size of 2, can be reduced to an entry (the last node),
       // and a possible additional node. Therefore, it is already in order, and
       // there is no need to add it to the work-list.
-      unsigned Size = SCC.size();
-      if (Size > 2)
+      
+      if (unsigned Size = SCC.size(); Size > 2)
         WorkList.emplace_back(I, I + Size);
 
       // Add the SCC nodes to the Order array.
@@ -551,14 +551,14 @@ void StructurizeCFG::orderNodes() {
 void StructurizeCFG::analyzeLoops(RegionNode *N) {
   if (N->isSubRegion()) {
     // Test for exit as back edge
-    BasicBlock *Exit = N->getNodeAs<Region>()->getExit();
-    if (Visited.count(Exit))
+    
+    if (BasicBlock *Exit = N->getNodeAs<Region>()->getExit(); Visited.count(Exit))
       Loops[Exit] = N->getEntry();
 
   } else {
     // Test for successors as back edge
-    BasicBlock *BB = N->getNodeAs<BasicBlock>();
-    if (BranchInst *Term = dyn_cast<BranchInst>(BB->getTerminator()))
+    
+    if (BasicBlock *BB = N->getNodeAs<BasicBlock>(); BranchInst *Term = dyn_cast<BranchInst>(BB->getTerminator()))
       for (BasicBlock *Succ : Term->successors())
         if (Visited.count(Succ))
           Loops[Succ] = BB;
@@ -596,8 +596,8 @@ void StructurizeCFG::gatherPredicates(RegionNode *N) {
     if (!ParentRegion->contains(P) || !dyn_cast<BranchInst>(P->getTerminator()))
       continue;
 
-    Region *R = RI->getRegionFor(P);
-    if (R == ParentRegion) {
+    
+    if (Region *R = RI->getRegionFor(P); R == ParentRegion) {
       // It's a top level block in our region
       BranchInst *Term = cast<BranchInst>(P->getTerminator());
       for (unsigned i = 0, e = Term->getNumSuccessors(); i != e; ++i) {
@@ -609,8 +609,8 @@ void StructurizeCFG::gatherPredicates(RegionNode *N) {
           // Normal forward edge
           if (Term->isConditional()) {
             // Try to treat it like an ELSE block
-            BasicBlock *Other = Term->getSuccessor(!i);
-            if (Visited.count(Other) && !Loops.count(Other) &&
+            
+            if (BasicBlock *Other = Term->getSuccessor(!i); Visited.count(Other) && !Loops.count(Other) &&
                 !Pred.count(Other) && !Pred.count(P)) {
               hoistZeroCostElseBlockPhiValues(Succ, Other);
               Pred[Other] = {BoolFalse, std::nullopt};
@@ -633,8 +633,8 @@ void StructurizeCFG::gatherPredicates(RegionNode *N) {
       if (*R == *N)
         continue;
 
-      BasicBlock *Entry = R->getEntry();
-      if (Visited.count(Entry))
+      
+      if (BasicBlock *Entry = R->getEntry(); Visited.count(Entry))
         Pred[Entry] = {BoolTrue, std::nullopt};
       else
         LPred[Entry] = {BoolFalse, std::nullopt};
@@ -719,8 +719,8 @@ void StructurizeCFG::simplifyConditions() {
   for (auto &I : concat<PredMap::value_type>(Predicates, LoopPreds)) {
     auto &Preds = I.second;
     for (auto [BB, PI] : Preds) {
-      Instruction *Inverted;
-      if (match(PI.Pred, m_Not(m_OneUse(m_Instruction(Inverted)))) &&
+      
+      if (Instruction *Inverted; match(PI.Pred, m_Not(m_OneUse(m_Instruction(Inverted)))) &&
           !PI.Pred->use_empty()) {
         if (auto *InvertedCmp = dyn_cast<CmpInst>(Inverted)) {
           InvertedCmp->setPredicate(InvertedCmp->getInversePredicate());
@@ -1106,8 +1106,8 @@ std::pair<BasicBlock *, DebugLoc> StructurizeCFG::needPrefix(bool NeedEmpty) {
   BasicBlock *Entry = PrevNode->getEntry();
 
   if (!PrevNode->isSubRegion()) {
-    DebugLoc DL = killTerminator(Entry);
-    if (!NeedEmpty || Entry->getFirstInsertionPt() == Entry->end())
+    
+    if (DebugLoc DL = killTerminator(Entry); !NeedEmpty || Entry->getFirstInsertionPt() == Entry->end())
       return {Entry, DL};
   }
 
@@ -1373,10 +1373,10 @@ bool StructurizeCFG::makeUniformRegion(Region *R, UniformityInfo &UA) {
   // We currently rely on the fact that metadata is set by earlier invocations
   // of the pass on sub-regions, and that this metadata doesn't get lost --
   // but we shouldn't rely on metadata for correctness!
-  unsigned UniformMDKindID =
-      R->getEntry()->getContext().getMDKindID("structurizecfg.uniform");
+  
 
-  if (hasOnlyUniformBranches(R, UniformMDKindID, UA)) {
+  if (unsigned UniformMDKindID =
+      R->getEntry()->getContext().getMDKindID("structurizecfg.uniform"); hasOnlyUniformBranches(R, UniformMDKindID, UA)) {
     LLVM_DEBUG(dbgs() << "Skipping region with uniform control flow: " << *R
                       << '\n');
 

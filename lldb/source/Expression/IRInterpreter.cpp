@@ -163,9 +163,9 @@ public:
 
   bool EvaluateValue(lldb_private::Scalar &scalar, const Value *value,
                      Module &module) {
-    const Constant *constant = dyn_cast<Constant>(value);
+    
 
-    if (constant) {
+    if (const Constant *constant = dyn_cast<Constant>(value); constant) {
       if (constant->getValueID() == Value::ConstantFPVal) {
         if (auto *cfp = dyn_cast<ConstantFP>(constant)) {
           if (cfp->getType()->isDoubleTy())
@@ -200,8 +200,8 @@ public:
 
     lldb::offset_t offset = 0;
     if (value_size <= 8) {
-      Type *ty = value->getType();
-      if (ty->isDoubleTy()) {
+      
+      if (Type *ty = value->getType(); ty->isDoubleTy()) {
         scalar = value_extractor.GetDouble(&offset);
         return true;
       } else if (ty->isFloatTy()) {
@@ -498,15 +498,15 @@ static bool CanResolveConstant(llvm::Constant *constant) {
       case Instruction::GetElementPtr: {
         // Check that the base can be constant-resolved.
         ConstantExpr::const_op_iterator op_cursor = constant_expr->op_begin();
-        Constant *base = dyn_cast<Constant>(*op_cursor);
-        if (!base || !CanResolveConstant(base))
+        
+        if (Constant *base = dyn_cast<Constant>(*op_cursor); !base || !CanResolveConstant(base))
           return false;
 
         // Check that all other operands are just ConstantInt.
         for (Value *op : make_range(constant_expr->op_begin() + 1,
                                     constant_expr->op_end())) {
-          ConstantInt *constant_int = dyn_cast<ConstantInt>(op);
-          if (!constant_int)
+          
+          if (ConstantInt *constant_int = dyn_cast<ConstantInt>(op); !constant_int)
             return false;
         }
         return true;
@@ -781,9 +781,9 @@ bool IRInterpreter::Interpret(llvm::Module &module, llvm::Function &function,
     case Instruction::FSub:
     case Instruction::FMul:
     case Instruction::FDiv: {
-      const BinaryOperator *bin_op = dyn_cast<BinaryOperator>(inst);
+      
 
-      if (!bin_op) {
+      if (const BinaryOperator *bin_op = dyn_cast<BinaryOperator>(inst); !bin_op) {
         LLDB_LOGF(
             log,
             "getOpcode() returns %s, but instruction is not a BinaryOperator",
@@ -975,9 +975,9 @@ bool IRInterpreter::Interpret(llvm::Module &module, llvm::Function &function,
       frame.AssignValue(inst, S_signextend, module);
     } break;
     case Instruction::Br: {
-      const BranchInst *br_inst = cast<BranchInst>(inst);
+      
 
-      if (br_inst->isConditional()) {
+      if (const BranchInst *br_inst = cast<BranchInst>(inst); br_inst->isConditional()) {
         Value *condition = br_inst->getCondition();
 
         lldb_private::Scalar C;

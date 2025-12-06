@@ -446,10 +446,10 @@ Error LVBinaryReader::createInstructions(LVScope *Scope,
     uint64_t BytesConsumed = 0;
     SmallVector<char, 64> InsnStr;
     raw_svector_ostream Annotations(InsnStr);
-    MCDisassembler::DecodeStatus const S =
+    
+    switch (MCDisassembler::DecodeStatus const S =
         MD->getInstruction(Instruction, BytesConsumed,
-                           ArrayRef<uint8_t>(Begin, End), Address, outs());
-    switch (S) {
+                           ArrayRef<uint8_t>(Begin, End), Address, outs()); S) {
     case MCDisassembler::Fail:
       LLVM_DEBUG({ dbgs() << "Invalid instruction\n"; });
       if (BytesConsumed == 0)
@@ -700,8 +700,8 @@ void LVBinaryReader::processLines(LVLines *DebugLines,
   if (DebugLines->empty()) {
     if (const LVScopes *Scopes = CompileUnit->getScopes())
       for (LVScope *Scope : *Scopes) {
-        LVLines *Lines = ScopeInstructions.find(Scope);
-        if (Lines) {
+        
+        if (LVLines *Lines = ScopeInstructions.find(Scope); Lines) {
 
           LLVM_DEBUG({
             size_t Index = 0;
@@ -915,11 +915,11 @@ void LVBinaryReader::includeInlineeLines(LVSectionIndex SectionIndex,
     if (InlineeLines->size()) {
       // First address of inlinee code.
       uint64_t InlineeStart = (InlineeLines->front())->getAddress();
-      LVLines::iterator Iter =
+      
+      if (LVLines::iterator Iter =
           llvm::find_if(CULines, [&](LVLine *Item) -> bool {
             return Item->getAddress() == InlineeStart;
-          });
-      if (Iter != CULines.end()) {
+          }); Iter != CULines.end()) {
         // 'Iter' points to the line where the inlined function is called.
         // Emulate the DW_AT_call_line attribute.
         Scope->setCallLineNumber((*Iter)->getLineNumber());

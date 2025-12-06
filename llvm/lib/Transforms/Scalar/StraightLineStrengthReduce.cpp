@@ -312,8 +312,8 @@ bool StraightLineStrengthReduce::isFoldable(const Candidate &C,
 static bool hasOnlyOneNonZeroIndex(GetElementPtrInst *GEP) {
   unsigned NumNonZeroIndices = 0;
   for (Use &Idx : GEP->indices()) {
-    ConstantInt *ConstIdx = dyn_cast<ConstantInt>(Idx);
-    if (ConstIdx == nullptr || !ConstIdx->isZero())
+    
+    if (ConstantInt *ConstIdx = dyn_cast<ConstantInt>(Idx); ConstIdx == nullptr || !ConstIdx->isZero())
       ++NumNonZeroIndices;
   }
   return NumNonZeroIndices <= 1;
@@ -410,8 +410,8 @@ void StraightLineStrengthReduce::allocateCandidatesAndFindBasisForAdd(
 void StraightLineStrengthReduce::allocateCandidatesAndFindBasisForAdd(
     Value *LHS, Value *RHS, Instruction *I) {
   Value *S = nullptr;
-  ConstantInt *Idx = nullptr;
-  if (match(RHS, m_Mul(m_Value(S), m_ConstantInt(Idx)))) {
+  
+  if (ConstantInt *Idx = nullptr; match(RHS, m_Mul(m_Value(S), m_ConstantInt(Idx)))) {
     // I = LHS + RHS = LHS + Idx * S
     allocateCandidatesAndFindBasis(Candidate::Add, SE->getSCEV(LHS), Idx, S, I);
   } else if (match(RHS, m_Shl(m_Value(S), m_ConstantInt(Idx)))) {
@@ -440,8 +440,8 @@ static bool matchesOr(Value *A, Value *&B, ConstantInt *&C) {
 void StraightLineStrengthReduce::allocateCandidatesAndFindBasisForMul(
     Value *LHS, Value *RHS, Instruction *I) {
   Value *B = nullptr;
-  ConstantInt *Idx = nullptr;
-  if (matchesAdd(LHS, B, Idx)) {
+  
+  if (ConstantInt *Idx = nullptr; matchesAdd(LHS, B, Idx)) {
     // If LHS is in the form of "Base + Index", then I is in the form of
     // "(Base + Index) * RHS".
     allocateCandidatesAndFindBasis(Candidate::Mul, SE->getSCEV(B), Idx, RHS, I);
@@ -497,7 +497,7 @@ void StraightLineStrengthReduce::factorArrayIndex(Value *ArrayIdx,
       Base, ConstantInt::get(cast<IntegerType>(ArrayIdx->getType()), 1),
       ArrayIdx, ElementSize, GEP);
   Value *LHS = nullptr;
-  ConstantInt *RHS = nullptr;
+  
   // One alternative is matching the SCEV of ArrayIdx instead of ArrayIdx
   // itself. This would allow us to handle the shl case for free. However,
   // matching SCEVs has two issues:
@@ -509,7 +509,7 @@ void StraightLineStrengthReduce::factorArrayIndex(Value *ArrayIdx,
   // 2. ScalarEvolution is designed to be control-flow oblivious. It tends
   // to strip nsw/nuw flags which are critical for SLSR to trace into
   // sext'ed multiplication.
-  if (match(ArrayIdx, m_NSWMul(m_Value(LHS), m_ConstantInt(RHS)))) {
+  if (ConstantInt *RHS = nullptr; match(ArrayIdx, m_NSWMul(m_Value(LHS), m_ConstantInt(RHS)))) {
     // SLSR is currently unsafe if i * S may overflow.
     // GEP = Base + sext(LHS *nsw RHS) * ElementSize
     allocateCandidatesAndFindBasisForGEP(Base, RHS, LHS, ElementSize, GEP);
@@ -695,8 +695,8 @@ bool StraightLineStrengthReduce::runOnFunction(Function &F) {
   // Rewrite candidates in the reverse depth-first order. This order makes sure
   // a candidate being rewritten is not a basis for any other candidate.
   while (!Candidates.empty()) {
-    const Candidate &C = Candidates.back();
-    if (C.Basis != nullptr) {
+    
+    if (const Candidate &C = Candidates.back(); C.Basis != nullptr) {
       rewriteCandidateWithBasis(C, *C.Basis);
     }
     Candidates.pop_back();
@@ -721,9 +721,9 @@ StraightLineStrengthReducePass::run(Function &F, FunctionAnalysisManager &AM) {
   const DataLayout *DL = &F.getDataLayout();
   auto *DT = &AM.getResult<DominatorTreeAnalysis>(F);
   auto *SE = &AM.getResult<ScalarEvolutionAnalysis>(F);
-  auto *TTI = &AM.getResult<TargetIRAnalysis>(F);
+  
 
-  if (!StraightLineStrengthReduce(DL, DT, SE, TTI).runOnFunction(F))
+  if (auto *TTI = &AM.getResult<TargetIRAnalysis>(F); !StraightLineStrengthReduce(DL, DT, SE, TTI).runOnFunction(F))
     return PreservedAnalyses::all();
 
   PreservedAnalyses PA;

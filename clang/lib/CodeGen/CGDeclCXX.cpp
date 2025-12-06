@@ -39,11 +39,11 @@ static void EmitDeclInit(CodeGenFunction &CGF, const VarDecl &D,
   QualType type = D.getType();
   LValue lv = CGF.MakeAddrLValue(DeclPtr, type);
 
-  const Expr *Init = D.getInit();
-  switch (CGF.getEvaluationKind(type)) {
+  
+  switch (const Expr *Init = D.getInit(); CGF.getEvaluationKind(type)) {
   case TEK_Scalar: {
-    CodeGenModule &CGM = CGF.CGM;
-    if (lv.isObjCStrong())
+    
+    if (CodeGenModule &CGM = CGF.CGM; lv.isObjCStrong())
       CGM.getObjCRuntime().EmitObjCGlobalAssign(CGF, CGF.EmitScalarExpr(Init),
                                                 DeclPtr, D.getTLSKind());
     else if (lv.isObjCWeak())
@@ -114,8 +114,8 @@ static void EmitDeclDestroy(CodeGenFunction &CGF, const VarDecl &D,
   // If __cxa_atexit is disabled via a flag, a different helper function is
   // generated elsewhere which uses atexit instead, and it takes the destructor
   // directly.
-  bool UsingExternalHelper = !CGM.getCodeGenOpts().CXAAtExit;
-  if (Record && (CanRegisterDestructor || UsingExternalHelper)) {
+  
+  if (bool UsingExternalHelper = !CGM.getCodeGenOpts().CXAAtExit; Record && (CanRegisterDestructor || UsingExternalHelper)) {
     assert(!Record->hasTrivialDestructor());
     CXXDestructorDecl *Dtor = Record->getDestructor();
 
@@ -125,8 +125,8 @@ static void EmitDeclDestroy(CodeGenFunction &CGF, const VarDecl &D,
           CGM.getTargetCodeGenInfo().getAddrSpaceOfCxaAtexitPtrParam();
       auto DestTy = llvm::PointerType::get(
           CGM.getLLVMContext(), CGM.getContext().getTargetAddressSpace(DestAS));
-      auto SrcAS = D.getType().getQualifiers().getAddressSpace();
-      if (DestAS == SrcAS)
+      
+      if (auto SrcAS = D.getType().getQualifiers().getAddressSpace(); DestAS == SrcAS)
         Argument = Addr.getPointer();
       else
         // FIXME: On addr space mismatch we are passing NULL. The generation
@@ -647,8 +647,8 @@ CodeGenModule::EmitCXXGlobalVarDeclInitFunc(const VarDecl *D,
     // If we used a COMDAT key for the global ctor, the init function can be
     // discarded if the global ctor entry is discarded.
     // FIXME: Do we need to restrict this to ELF and Wasm?
-    llvm::Comdat *C = Addr->getComdat();
-    if (COMDATKey && C &&
+    
+    if (llvm::Comdat *C = Addr->getComdat(); COMDATKey && C &&
         (getTarget().getTriple().isOSBinFormatELF() ||
          getTarget().getTriple().isOSBinFormatWasm())) {
       Fn->setComdat(C);
@@ -1168,9 +1168,9 @@ void CodeGenFunction::GenerateCXXGlobalCleanUpFunc(
         assert(Arg->getType()->isPointerTy());
         assert(CalleeTy->getParamType(0)->isPointerTy());
         unsigned ActualAddrSpace = Arg->getType()->getPointerAddressSpace();
-        unsigned ExpectedAddrSpace =
-            CalleeTy->getParamType(0)->getPointerAddressSpace();
-        if (ActualAddrSpace != ExpectedAddrSpace) {
+        
+        if (unsigned ExpectedAddrSpace =
+            CalleeTy->getParamType(0)->getPointerAddressSpace(); ActualAddrSpace != ExpectedAddrSpace) {
           llvm::PointerType *PTy =
               llvm::PointerType::get(getLLVMContext(), ExpectedAddrSpace);
           Arg = llvm::ConstantExpr::getAddrSpaceCast(Arg, PTy);

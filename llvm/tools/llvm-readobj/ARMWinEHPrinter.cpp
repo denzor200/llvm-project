@@ -225,9 +225,9 @@ ErrorOr<object::SectionRef>
 Decoder::getSectionContaining(const COFFObjectFile &COFF, uint64_t VA) {
   for (const auto &Section : COFF.sections()) {
     uint64_t Address = Section.getAddress();
-    uint64_t Size = Section.getSize();
+    
 
-    if (VA >= Address && (VA - Address) <= Size)
+    if (uint64_t Size = Section.getSize(); VA >= Address && (VA - Address) <= Size)
       return Section;
   }
   return inconvertibleErrorCode();
@@ -255,8 +255,8 @@ ErrorOr<SymbolRef> Decoder::getRelocatedSymbol(const COFFObjectFile &,
                                                const SectionRef &Section,
                                                uint64_t Offset) {
   for (const auto &Relocation : Section.relocations()) {
-    uint64_t RelocationOffset = Relocation.getOffset();
-    if (RelocationOffset == Offset)
+    
+    if (uint64_t RelocationOffset = Relocation.getOffset(); RelocationOffset == Offset)
       return *Relocation.getSymbol();
   }
   return inconvertibleErrorCode();
@@ -271,13 +271,13 @@ SymbolRef Decoder::getPreferredSymbol(const COFFObjectFile &COFF, SymbolRef Sym,
       CoffSym.getSectionDefinition() == nullptr)
     return Sym;
   for (const auto &S : COFF.symbols()) {
-    COFFSymbolRef CS = COFF.getCOFFSymbol(S);
-    if (CS.getSectionNumber() == CoffSym.getSectionNumber() &&
+    
+    if (COFFSymbolRef CS = COFF.getCOFFSymbol(S); CS.getSectionNumber() == CoffSym.getSectionNumber() &&
         CS.getValue() <= CoffSym.getValue() + SymbolOffset &&
         CS.getStorageClass() != COFF::IMAGE_SYM_CLASS_LABEL &&
         CS.getSectionDefinition() == nullptr) {
-      uint32_t Offset = CoffSym.getValue() + SymbolOffset - CS.getValue();
-      if (Offset <= SymbolOffset) {
+      
+      if (uint32_t Offset = CoffSym.getValue() + SymbolOffset - CS.getValue(); Offset <= SymbolOffset) {
         SymbolOffset = Offset;
         Sym = S;
         CoffSym = CS;
@@ -1143,8 +1143,8 @@ bool Decoder::dumpXDataRecord(const COFFObjectFile &COFF,
       SW.printNumber("EpilogueStartIndex",
                      isAArch64 ? ES.EpilogueStartIndexAArch64()
                                : ES.EpilogueStartIndexARM());
-      unsigned ReservedMask = isAArch64 ? 0xF : 0x3;
-      if ((ES.ES >> 18) & ReservedMask)
+      
+      if (unsigned ReservedMask = isAArch64 ? 0xF : 0x3; (ES.ES >> 18) & ReservedMask)
         SW.printNumber("ReservedBits", (ES.ES >> 18) & ReservedMask);
 
       ListScope Opcodes(SW, "Opcodes");
@@ -1309,8 +1309,8 @@ bool Decoder::dumpPackedEntry(const object::COFFObjectFile &COFF,
     }
     if (RF.C()) {
       // Count the number of registers pushed below R11
-      int FpOffset = 4 * llvm::popcount(GPRMask & ((1U << 11) - 1));
-      if (FpOffset)
+      
+      if (int FpOffset = 4 * llvm::popcount(GPRMask & ((1U << 11) - 1)); FpOffset)
         SW.startLine() << "add.w r11, sp, #" << FpOffset << "\n";
       else
         SW.startLine() << "mov r11, sp\n";

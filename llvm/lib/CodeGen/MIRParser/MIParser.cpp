@@ -662,8 +662,8 @@ bool MIParser::parseSectionID(std::optional<MBBSectionID> &SID) {
       return error("Unknown Section ID");
     SID = MBBSectionID{Value};
   } else {
-    const StringRef &S = Token.stringValue();
-    if (S == "Exception")
+    
+    if (const StringRef &S = Token.stringValue(); S == "Exception")
       SID = MBBSectionID::ExceptionSectionID;
     else if (S == "Cold")
       SID = MBBSectionID::ColdSectionID;
@@ -1600,8 +1600,8 @@ bool MIParser::parseRegisterClassOrBank(VRegInfo &RegInfo) {
   StringRef Name = Token.stringValue();
 
   // Was it a register class?
-  const TargetRegisterClass *RC = PFS.Target.getRegClass(Name);
-  if (RC) {
+  
+  if (const TargetRegisterClass *RC = PFS.Target.getRegClass(Name); RC) {
     lex();
 
     switch (RegInfo.Kind) {
@@ -1790,8 +1790,8 @@ bool MIParser::parseRegisterOperand(MachineOperand &Dest,
   MachineRegisterInfo &MRI = MF.getRegInfo();
   if ((Flags & RegState::Define) == 0) {
     if (consumeIfPresent(MIToken::lparen)) {
-      unsigned Idx;
-      if (!parseRegisterTiedDefIndex(Idx))
+      
+      if (unsigned Idx; !parseRegisterTiedDefIndex(Idx))
         TiedDefIdx = Idx;
       else {
         // Try a redundant low-level type.
@@ -1943,8 +1943,8 @@ static bool verifyAddrSpace(uint64_t AddrSpace) {
 
 bool MIParser::parseLowLevelType(StringRef::iterator Loc, LLT &Ty) {
   if (Token.range().front() == 's' || Token.range().front() == 'p') {
-    StringRef SizeStr = Token.range().drop_front();
-    if (SizeStr.size() == 0 || !llvm::all_of(SizeStr, isdigit))
+    
+    if (StringRef SizeStr = Token.range().drop_front(); SizeStr.size() == 0 || !llvm::all_of(SizeStr, isdigit))
       return error("expected integers after 's'/'p' type character");
   }
 
@@ -3007,8 +3007,8 @@ bool MIParser::parseMachineOperand(const unsigned OpCode, const unsigned OpIdx,
     } else
       return parseTypedImmediateOperand(Dest);
   case MIToken::dot: {
-    const auto *TII = MF.getSubtarget().getInstrInfo();
-    if (const auto *Formatter = TII->getMIRFormatter()) {
+    
+    if (const auto *TII = MF.getSubtarget().getInstrInfo(); const auto *Formatter = TII->getMIRFormatter()) {
       return parseTargetImmMnemonic(OpCode, OpIdx, Dest, *Formatter);
     }
     [[fallthrough]];
@@ -3284,8 +3284,8 @@ bool MIParser::parseMemoryPseudoSourceValue(const PseudoSourceValue *&PSV) {
     break;
   case MIToken::kw_custom: {
     lex();
-    const auto *TII = MF.getSubtarget().getInstrInfo();
-    if (const auto *Formatter = TII->getMIRFormatter()) {
+    
+    if (const auto *TII = MF.getSubtarget().getInstrInfo(); const auto *Formatter = TII->getMIRFormatter()) {
       if (Formatter->parseCustomPseudoSourceValue(
               Token.stringValue(), MF, PFS, PSV,
               [this](StringRef::iterator Loc, const Twine &Msg) -> bool {
@@ -3442,12 +3442,12 @@ bool MIParser::parseMachineMemoryOperand(MachineMemOperand *&Dest) {
 
   MachinePointerInfo Ptr = MachinePointerInfo();
   if (Token.is(MIToken::Identifier)) {
-    const char *Word =
+    
+    if (const char *Word =
         ((Flags & MachineMemOperand::MOLoad) &&
          (Flags & MachineMemOperand::MOStore))
             ? "on"
-            : Flags & MachineMemOperand::MOLoad ? "from" : "into";
-    if (Token.stringValue() != Word)
+            : Flags & MachineMemOperand::MOLoad ? "from" : "into"; Token.stringValue() != Word)
       return error(Twine("expected '") + Word + "'");
     lex();
 

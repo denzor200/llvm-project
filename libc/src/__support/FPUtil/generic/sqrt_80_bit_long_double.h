@@ -43,9 +43,9 @@ LIBC_INLINE long double sqrt(long double x) {
   constexpr StorageType ONE = StorageType(1) << int(LDBits::FRACTION_LEN);
   constexpr auto LDNAN = LDBits::quiet_nan().get_val();
 
-  LDBits bits(x);
+  
 
-  if (bits == LDBits::inf(Sign::POS) || bits.is_zero() || bits.is_nan()) {
+  if (LDBits bits(x); bits == LDBits::inf(Sign::POS) || bits.is_zero() || bits.is_nan()) {
     // sqrt(+Inf) = +Inf
     // sqrt(+0) = +0
     // sqrt(-0) = -0
@@ -90,8 +90,8 @@ LIBC_INLINE long double sqrt(long double x) {
 
     for (StorageType current_bit = ONE >> 1; current_bit; current_bit >>= 1) {
       r <<= 1;
-      StorageType tmp = (y << 1) + current_bit; // 2*y(n - 1) + 2^(-n-1)
-      if (r >= tmp) {
+      // 2*y(n - 1) + 2^(-n-1)
+      if (StorageType tmp = (y << 1) + current_bit; r >= tmp) {
         r -= tmp;
         y += current_bit;
       }

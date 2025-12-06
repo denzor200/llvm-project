@@ -66,8 +66,8 @@ class WebAssemblyCFGStackify final : public MachineFunctionPass {
   SmallVector<MachineBasicBlock *, 8> ScopeTops;
   void updateScopeTops(MachineBasicBlock *Begin, MachineBasicBlock *End) {
     int BeginNo = Begin->getNumber();
-    int EndNo = End->getNumber();
-    if (!ScopeTops[EndNo] || ScopeTops[EndNo]->getNumber() > BeginNo)
+    
+    if (int EndNo = End->getNumber(); !ScopeTops[EndNo] || ScopeTops[EndNo]->getNumber() > BeginNo)
       ScopeTops[EndNo] = Begin;
   }
 
@@ -269,8 +269,8 @@ void WebAssemblyCFGStackify::unregisterScope(MachineInstr *Begin) {
   assert(EndToBegin.count(End));
   BeginToEnd.erase(Begin);
   EndToBegin.erase(End);
-  MachineBasicBlock *EHPad = TryToEHPad.lookup(Begin);
-  if (EHPad) {
+  
+  if (MachineBasicBlock *EHPad = TryToEHPad.lookup(Begin); EHPad) {
     assert(EHPadToTry.count(EHPad));
     TryToEHPad.erase(Begin);
     EHPadToTry.erase(EHPad);
@@ -594,8 +594,8 @@ void WebAssemblyCFGStackify::placeTryMarker(MachineBasicBlock &MBB) {
   // throw.
   MachineInstr *ThrowingCall = nullptr;
   if (MBB.isPredecessor(Header)) {
-    auto TermPos = Header->getFirstTerminator();
-    if (TermPos == Header->end() ||
+    
+    if (auto TermPos = Header->getFirstTerminator(); TermPos == Header->end() ||
         TermPos->getOpcode() != WebAssembly::RETHROW) {
       for (auto &MI : reverse(*Header)) {
         if (MI.isCall()) {
@@ -787,8 +787,8 @@ void WebAssemblyCFGStackify::placeTryTableMarker(MachineBasicBlock &MBB) {
   // it, is gonna throw.
   MachineInstr *ThrowingCall = nullptr;
   if (MBB.isPredecessor(Header)) {
-    auto TermPos = Header->getFirstTerminator();
-    if (TermPos == Header->end() ||
+    
+    if (auto TermPos = Header->getFirstTerminator(); TermPos == Header->end() ||
         TermPos->getOpcode() != WebAssembly::RETHROW) {
       for (auto &MI : reverse(*Header)) {
         if (MI.isCall()) {
@@ -1042,21 +1042,21 @@ void WebAssemblyCFGStackify::removeUnnecessaryInstrs(MachineFunction &MF) {
       Cont = EndTry->getParent();
     }
 
-    bool Analyzable = !TII.analyzeBranch(*EHPadLayoutPred, TBB, FBB, Cond);
+    
     // This condition means either
     // 1. This BB ends with a single unconditional branch whose destinaion is
     //    Cont.
     // 2. This BB ends with a conditional branch followed by an unconditional
     //    branch, and the unconditional branch's destination is Cont.
     // In both cases, we want to remove the last (= unconditional) branch.
-    if (Analyzable && ((Cond.empty() && TBB && TBB == Cont) ||
+    if (bool Analyzable = !TII.analyzeBranch(*EHPadLayoutPred, TBB, FBB, Cond); Analyzable && ((Cond.empty() && TBB && TBB == Cont) ||
                        (!Cond.empty() && FBB && FBB == Cont))) {
       bool ErasedUncondBr = false;
       (void)ErasedUncondBr;
       for (auto I = EHPadLayoutPred->end(), E = EHPadLayoutPred->begin();
            I != E; --I) {
-        auto PrevI = std::prev(I);
-        if (PrevI->isTerminator()) {
+        
+        if (auto PrevI = std::prev(I); PrevI->isTerminator()) {
           assert(PrevI->getOpcode() == WebAssembly::BR);
           PrevI->eraseFromParent();
           ErasedUncondBr = true;
@@ -1155,8 +1155,8 @@ static void unstackifyVRegsUsedInSplitBB(MachineBasicBlock &MBB,
       continue;
     Register TeeReg = MI.getOperand(0).getReg();
     Register Reg = MI.getOperand(1).getReg();
-    Register DefReg = MI.getOperand(2).getReg();
-    if (!MFI.isVRegStackified(TeeReg)) {
+    
+    if (Register DefReg = MI.getOperand(2).getReg(); !MFI.isVRegStackified(TeeReg)) {
       // Now we are not using TEE anymore, so unstackify DefReg too
       MFI.unstackifyVReg(DefReg);
       unsigned CopyOpc =
@@ -1909,12 +1909,12 @@ bool WebAssemblyCFGStackify::fixCallUnwindMismatches(MachineFunction &MF) {
   for (auto &MBB : reverse(MF)) {
     bool SeenThrowableInstInBB = false;
     for (auto &MI : reverse(MBB)) {
-      bool MayThrow = WebAssembly::mayThrow(MI);
+      
 
       // If MBB has an EH pad successor and this is the last instruction that
       // may throw, this instruction unwinds to the EH pad and not to the
       // caller.
-      if (MBB.hasEHPadSuccessor() && MayThrow && !SeenThrowableInstInBB)
+      if (bool MayThrow = WebAssembly::mayThrow(MI); MBB.hasEHPadSuccessor() && MayThrow && !SeenThrowableInstInBB)
         SeenThrowableInstInBB = true;
 
       // We wrap up the current range when we see a marker even if we haven't
@@ -1958,10 +1958,10 @@ bool WebAssemblyCFGStackify::fixCallUnwindMismatches(MachineFunction &MF) {
   // destinations, we should split the end_loop into another BB.
   if (!WebAssembly::WasmUseLegacyEH)
     for (auto &[UnwindDest, _] : UnwindDestToTryRanges) {
-      auto It = EHPadToTry.find(UnwindDest);
+      
       // If UnwindDest is the fake caller block, it will not be in EHPadToTry
       // map
-      if (It != EHPadToTry.end()) {
+      if (auto It = EHPadToTry.find(UnwindDest); It != EHPadToTry.end()) {
         auto *TryTable = It->second;
         auto *EndTryTable = BeginToEnd[TryTable];
         splitEndLoopBB(EndTryTable->getParent());
@@ -1977,7 +1977,7 @@ bool WebAssemblyCFGStackify::fixCallUnwindMismatches(MachineFunction &MF) {
     for (auto Range : TryRanges) {
       MachineInstr *RangeBegin = nullptr, *RangeEnd = nullptr;
       std::tie(RangeBegin, RangeEnd) = Range;
-      auto *MBB = RangeBegin->getParent();
+      
 
       // If this BB has an EH pad successor, i.e., ends with an 'invoke', and if
       // the current range contains the invoke, now we are going to wrap the
@@ -1985,7 +1985,7 @@ bool WebAssemblyCFGStackify::fixCallUnwindMismatches(MachineFunction &MF) {
       // 'delegate' or 'end_try_table' BB the new successor instead, so remove
       // the EH pad succesor here. The BB may not have an EH pad successor if
       // calls in this BB throw to the caller.
-      if (UnwindDest != getFakeCallerBlock(MF)) {
+      if (auto *MBB = RangeBegin->getParent(); UnwindDest != getFakeCallerBlock(MF)) {
         MachineBasicBlock *EHPad = nullptr;
         for (auto *Succ : MBB->successors()) {
           if (Succ->isEHPad()) {
@@ -2180,8 +2180,8 @@ bool WebAssemblyCFGStackify::fixCatchUnwindMismatches(MachineFunction &MF) {
         // The EHPad's next unwind destination is an EH pad, whereas we
         // incorrectly unwind to another EH pad.
         else if (!EHPadStack.empty() && EHInfo->hasUnwindDest(EHPad)) {
-          auto *UnwindDest = EHInfo->getUnwindDest(EHPad);
-          if (EHPadStack.back() != UnwindDest) {
+          
+          if (auto *UnwindDest = EHInfo->getUnwindDest(EHPad); EHPadStack.back() != UnwindDest) {
             EHPadToUnwindDest[EHPad] = UnwindDest;
             LLVM_DEBUG(dbgs() << "- Catch unwind mismatch:\nEHPad = "
                               << EHPad->getName() << "  Original dest = "
@@ -2202,9 +2202,9 @@ bool WebAssemblyCFGStackify::fixCatchUnwindMismatches(MachineFunction &MF) {
   // When end_loop is before end_try_table within the same BB in unwind
   // destinations, we should split the end_loop into another BB.
   for (auto &[_, UnwindDest] : EHPadToUnwindDest) {
-    auto It = EHPadToTry.find(UnwindDest);
+    
     // If UnwindDest is the fake caller block, it will not be in EHPadToTry map
-    if (It != EHPadToTry.end()) {
+    if (auto It = EHPadToTry.find(UnwindDest); It != EHPadToTry.end()) {
       auto *TryTable = It->second;
       auto *EndTryTable = BeginToEnd[TryTable];
       splitEndLoopBB(EndTryTable->getParent());
@@ -2216,8 +2216,8 @@ bool WebAssemblyCFGStackify::fixCatchUnwindMismatches(MachineFunction &MF) {
 
   for (auto &[EHPad, UnwindDest] : EHPadToUnwindDest) {
     MachineInstr *Try = EHPadToTry[EHPad];
-    MachineInstr *EndTry = BeginToEnd[Try];
-    if (WebAssembly::WasmUseLegacyEH) {
+    
+    if (MachineInstr *EndTry = BeginToEnd[Try]; WebAssembly::WasmUseLegacyEH) {
       addNestedTryDelegate(Try, EndTry, UnwindDest);
       NewEndTryBBs.insert(EndTry->getParent());
     } else {
@@ -2537,8 +2537,8 @@ unsigned WebAssemblyCFGStackify::getRethrowDepth(
   for (auto X : reverse(Stack)) {
     const MachineInstr *End = X.second;
     if (End->getOpcode() == WebAssembly::END_TRY) {
-      auto *EHPad = TryToEHPad[EndToBegin[End]];
-      if (EHPadToRethrow == EHPad)
+      
+      if (auto *EHPad = TryToEHPad[EndToBegin[End]]; EHPadToRethrow == EHPad)
         break;
     }
     ++Depth;

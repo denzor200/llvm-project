@@ -85,9 +85,9 @@ Value *EmitAMDGPUImplicitArgPtr(CodeGenFunction &CGF) {
 Value *EmitAMDGPUWorkGroupSize(CodeGenFunction &CGF, unsigned Index) {
   llvm::LoadInst *LD;
 
-  auto Cov = CGF.getTarget().getTargetOpts().CodeObjectVersion;
+  
 
-  if (Cov == CodeObjectVersionKind::COV_None) {
+  if (auto Cov = CGF.getTarget().getTargetOpts().CodeObjectVersion; Cov == CodeObjectVersionKind::COV_None) {
     StringRef Name = "__oclc_ABI_version";
     auto *ABIVersionC = CGF.CGM.getModule().getNamedGlobal(Name);
     if (!ABIVersionC)
@@ -315,8 +315,8 @@ void CodeGenFunction::ProcessOrderScopeAMDGCN(Value *Order, Value *Scope,
 
   // Older builtins had an enum argument for the memory scope.
   const char *SSN = nullptr;
-  int scope = cast<llvm::ConstantInt>(Scope)->getZExtValue();
-  switch (scope) {
+  
+  switch (int scope = cast<llvm::ConstantInt>(Scope)->getZExtValue(); scope) {
   case AtomicScopeGenericModel::System: // __MEMORY_SCOPE_SYSTEM
     SSID = llvm::SyncScope::System;
     break;
@@ -428,8 +428,8 @@ static Intrinsic::ID getIntrinsicIDforWaveReduction(unsigned BuiltinID) {
 Value *CodeGenFunction::EmitAMDGPUBuiltinExpr(unsigned BuiltinID,
                                               const CallExpr *E) {
   llvm::AtomicOrdering AO = llvm::AtomicOrdering::SequentiallyConsistent;
-  llvm::SyncScope::ID SSID;
-  switch (BuiltinID) {
+  
+  switch (llvm::SyncScope::ID SSID; BuiltinID) {
   case AMDGPU::BI__builtin_amdgcn_wave_reduce_add_u32:
   case AMDGPU::BI__builtin_amdgcn_wave_reduce_fadd_f32:
   case AMDGPU::BI__builtin_amdgcn_wave_reduce_sub_u32:

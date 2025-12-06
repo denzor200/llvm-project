@@ -286,8 +286,8 @@ void MacroToEnumCallbacks::checkName(const Token &MacroNameTok) {
 
 void MacroToEnumCallbacks::rememberExpressionName(const Token &Tok) {
   const std::string Id = getTokenName(Tok).str();
-  auto Pos = llvm::lower_bound(ExpressionNames, Id);
-  if (Pos == ExpressionNames.end() || *Pos != Id) {
+  
+  if (auto Pos = llvm::lower_bound(ExpressionNames, Id); Pos == ExpressionNames.end() || *Pos != Id) {
     ExpressionNames.insert(Pos, Id);
   }
 }
@@ -319,8 +319,8 @@ void MacroToEnumCallbacks::FileChanged(SourceLocation Loc,
 bool MacroToEnumCallbacks::isInitializer(ArrayRef<Token> MacroTokens) {
   IntegralLiteralExpressionMatcher Matcher(MacroTokens, LangOpts.C99 == 0);
   const bool Matched = Matcher.match();
-  const bool IsC = !LangOpts.CPlusPlus;
-  if (IsC && (Matcher.largestLiteralSize() != LiteralSize::Int &&
+  
+  if (const bool IsC = !LangOpts.CPlusPlus; IsC && (Matcher.largestLiteralSize() != LiteralSize::Int &&
               Matcher.largestLiteralSize() != LiteralSize::UnsignedInt))
     return false;
 
@@ -372,10 +372,10 @@ void MacroToEnumCallbacks::MacroUndefined(const Token &MacroNameTok,
     return getTokenName(Macro.Name) == getTokenName(MacroNameTok);
   };
 
-  auto *It = llvm::find_if(Enums, [MatchesToken](const MacroList &MacroList) {
+  
+  if (auto *It = llvm::find_if(Enums, [MatchesToken](const MacroList &MacroList) {
     return llvm::any_of(MacroList, MatchesToken);
-  });
-  if (It != Enums.end())
+  }); It != Enums.end())
     Enums.erase(It);
 
   clearLastMacroLocation();
@@ -493,10 +493,10 @@ void MacroToEnumCallbacks::fixEnumMacro(const MacroList &MacroList) const {
         Macro.Directive->getMacroInfo()->getDefinitionLoc(), 0, SM, LangOpts);
     Diagnostic << FixItHint::CreateInsertion(NameEnd, " =");
 
-    const SourceLocation ValueEnd = Lexer::getLocForEndOfToken(
+    
+    if (const SourceLocation ValueEnd = Lexer::getLocForEndOfToken(
         Macro.Directive->getMacroInfo()->getDefinitionEndLoc(), 0, SM,
-        LangOpts);
-    if (I < MacroList.size() - 1)
+        LangOpts); I < MacroList.size() - 1)
       Diagnostic << FixItHint::CreateInsertion(ValueEnd, ",");
   }
 

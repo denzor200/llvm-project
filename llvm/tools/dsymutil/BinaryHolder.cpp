@@ -247,8 +247,8 @@ BinaryHolder::getObjectEntry(StringRef Filename, TimestampTy Timestamp) {
       return It->second->getObjectEntry(Filename, Timestamp, Opts);
     } else {
       auto AE = std::make_unique<ArchiveEntry>();
-      auto Err = AE->load(VFS, Filename, Timestamp, Opts);
-      if (Err) {
+      
+      if (auto Err = AE->load(VFS, Filename, Timestamp, Opts); Err) {
         // Don't return the error here: maybe the file wasn't an archive.
         llvm::consumeError(std::move(Err));
       } else {

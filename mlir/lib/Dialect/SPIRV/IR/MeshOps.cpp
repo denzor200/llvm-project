@@ -24,8 +24,8 @@ LogicalResult spirv::EXTEmitMeshTasksOp::verify() {
   if (Value payload = getPayload()) {
     // The operand definition restricts type to be SPIRV_AnyPointer, so we can
     // cast here safely.
-    auto payloadType = cast<spirv::PointerType>(payload.getType());
-    if (payloadType.getStorageClass() !=
+    
+    if (auto payloadType = cast<spirv::PointerType>(payload.getType()); payloadType.getStorageClass() !=
         spirv::StorageClass::TaskPayloadWorkgroupEXT)
       return emitOpError("payload must be a variable with a storage class of "
                          "TaskPayloadWorkgroupEXT");

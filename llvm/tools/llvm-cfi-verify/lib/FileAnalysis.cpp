@@ -176,8 +176,8 @@ bool FileAnalysis::isCFITrap(const Instr &InstrMeta) const {
 }
 
 bool FileAnalysis::willTrapOnCFIViolation(const Instr &InstrMeta) const {
-  const auto &InstrDesc = MII->get(InstrMeta.Instruction.getOpcode());
-  if (!InstrDesc.isCall())
+  
+  if (const auto &InstrDesc = MII->get(InstrMeta.Instruction.getOpcode()); !InstrDesc.isCall())
     return false;
   uint64_t Target;
   if (!MIA->evaluateBranch(InstrMeta.Instruction, InstrMeta.VMAddress,
@@ -193,8 +193,8 @@ bool FileAnalysis::canFallThrough(const Instr &InstrMeta) const {
   if (isCFITrap(InstrMeta))
     return false;
 
-  const auto &InstrDesc = MII->get(InstrMeta.Instruction.getOpcode());
-  if (InstrDesc.mayAffectControlFlow(InstrMeta.Instruction, *RegisterInfo))
+  
+  if (const auto &InstrDesc = MII->get(InstrMeta.Instruction.getOpcode()); InstrDesc.mayAffectControlFlow(InstrMeta.Instruction, *RegisterInfo))
     return InstrDesc.isConditionalBranch();
 
   return true;
@@ -343,8 +343,8 @@ uint64_t FileAnalysis::indirectCFOperandClobber(const GraphResult &Graph) const 
 
       for (auto RI = CurRegisterNumbers.begin(), RE = CurRegisterNumbers.end();
            RI != RE; ++RI) {
-        unsigned RegNum = *RI;
-        if (InstrDesc.hasDefOfPhysReg(NodeInstr.Instruction, RegNum,
+        
+        if (unsigned RegNum = *RI; InstrDesc.hasDefOfPhysReg(NodeInstr.Instruction, RegNum,
                                       *RegisterInfo)) {
           if (!canLoad || !InstrDesc.mayLoad())
             return Node;
@@ -353,8 +353,8 @@ uint64_t FileAnalysis::indirectCFOperandClobber(const GraphResult &Graph) const 
           // Add the registers this load reads to those we check for clobbers.
           for (unsigned i = InstrDesc.getNumDefs(),
                         e = InstrDesc.getNumOperands(); i != e; i++) {
-            const auto &Operand = NodeInstr.Instruction.getOperand(i);
-            if (Operand.isReg())
+            
+            if (const auto &Operand = NodeInstr.Instruction.getOperand(i); Operand.isReg())
               CurRegisterNumbers.insert(Operand.getReg());
           }
           break;
@@ -441,8 +441,8 @@ Error FileAnalysis::parseCodeSections() {
     bool LineInfoValid = false;
 
     for (auto &Unit : DWARF->compile_units()) {
-      const auto &LineTable = DWARF->getLineTableForUnit(Unit.get());
-      if (LineTable && !LineTable->Rows.empty()) {
+      
+      if (const auto &LineTable = DWARF->getLineTableForUnit(Unit.get()); LineTable && !LineTable->Rows.empty()) {
         LineInfoValid = true;
         break;
       }
@@ -542,9 +542,9 @@ void FileAnalysis::parseSectionContents(ArrayRef<uint8_t> SectionBytes,
 }
 
 void FileAnalysis::addInstruction(const Instr &Instruction) {
-  const auto &KV =
-      Instructions.insert(std::make_pair(Instruction.VMAddress, Instruction));
-  if (!KV.second) {
+  
+  if (const auto &KV =
+      Instructions.insert(std::make_pair(Instruction.VMAddress, Instruction)); !KV.second) {
     errs() << "Failed to add instruction at address "
            << format_hex(Instruction.VMAddress, 2)
            << ": Instruction at this address already exists.\n";
@@ -562,12 +562,12 @@ Error FileAnalysis::parseSymbolTable() {
   // Look through the list of symbols for functions that will trap on CFI
   // violations.
   for (auto &Sym : Object->symbols()) {
-    auto SymNameOrErr = Sym.getName();
-    if (!SymNameOrErr)
+    
+    if (auto SymNameOrErr = Sym.getName(); !SymNameOrErr)
       consumeError(SymNameOrErr.takeError());
     else if (TrapOnFailFunctions.contains(*SymNameOrErr)) {
-      auto AddrOrErr = Sym.getAddress();
-      if (!AddrOrErr)
+      
+      if (auto AddrOrErr = Sym.getAddress(); !AddrOrErr)
         consumeError(AddrOrErr.takeError());
       else
         TrapOnFailFunctionAddresses.insert(*AddrOrErr);
@@ -578,8 +578,8 @@ Error FileAnalysis::parseSymbolTable() {
       if (!Plt.Symbol)
         continue;
       object::SymbolRef Sym(*Plt.Symbol, Object);
-      auto SymNameOrErr = Sym.getName();
-      if (!SymNameOrErr)
+      
+      if (auto SymNameOrErr = Sym.getName(); !SymNameOrErr)
         consumeError(SymNameOrErr.takeError());
       else if (TrapOnFailFunctions.contains(*SymNameOrErr))
         TrapOnFailFunctionAddresses.insert(Plt.Address);

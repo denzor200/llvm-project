@@ -30,8 +30,8 @@ getDeclWithMergedLifetimeBoundAttrs(const CXXMethodDecl *CMD) {
 
 bool isNormalAssignmentOperator(const FunctionDecl *FD) {
   OverloadedOperatorKind OO = FD->getDeclName().getCXXOverloadedOperator();
-  bool IsAssignment = OO == OO_Equal || isCompoundAssignmentOperator(OO);
-  if (!IsAssignment)
+  
+  if (bool IsAssignment = OO == OO_Equal || isCompoundAssignmentOperator(OO); !IsAssignment)
     return false;
   QualType RetT = FD->getReturnType();
   if (!RetT->isLValueReferenceType())

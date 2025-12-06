@@ -394,8 +394,8 @@ struct ContractionToAMX : public OpRewritePattern<vector::ContractionOp> {
     Value res = contractOp.getResult();
     if (res.hasOneUse()) {
       auto writeOp = dyn_cast<vector::TransferWriteOp>(*res.getUsers().begin());
-      LogicalResult storeRes = storeFromTransfer(rewriter, writeOp, tileMul);
-      if (succeeded(storeRes)) {
+      
+      if (LogicalResult storeRes = storeFromTransfer(rewriter, writeOp, tileMul); succeeded(storeRes)) {
         rewriter.eraseOp(writeOp);
         rewriter.eraseOp(contractOp);
         return success();

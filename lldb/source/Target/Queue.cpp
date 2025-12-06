@@ -76,8 +76,8 @@ addr_t Queue::GetLibdispatchQueueAddress() const {
 
 const std::vector<lldb::QueueItemSP> &Queue::GetPendingItems() {
   if (m_pending_items.empty()) {
-    ProcessSP process_sp = m_process_wp.lock();
-    if (process_sp && process_sp->GetSystemRuntime()) {
+    
+    if (ProcessSP process_sp = m_process_wp.lock(); process_sp && process_sp->GetSystemRuntime()) {
       process_sp->GetSystemRuntime()->PopulatePendingItemsForQueue(this);
     }
   }

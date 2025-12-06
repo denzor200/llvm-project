@@ -98,8 +98,8 @@ static bool runImpl(Function &F, const TargetLowering &TLI) {
       if (I.getOperand(0)->getType()->isScalableTy())
         continue;
 
-      auto *IntTy = dyn_cast<IntegerType>(I.getType()->getScalarType());
-      if (!IntTy || IntTy->getIntegerBitWidth() <= MaxLegalDivRemBitWidth)
+      
+      if (auto *IntTy = dyn_cast<IntegerType>(I.getType()->getScalarType()); !IntTy || IntTy->getIntegerBitWidth() <= MaxLegalDivRemBitWidth)
         continue;
 
       // The backend has peephole optimizations for powers of two.
@@ -128,9 +128,9 @@ static bool runImpl(Function &F, const TargetLowering &TLI) {
     return false;
 
   while (!Replace.empty()) {
-    BinaryOperator *I = Replace.pop_back_val();
+    
 
-    if (I->getOpcode() == Instruction::UDiv ||
+    if (BinaryOperator *I = Replace.pop_back_val(); I->getOpcode() == Instruction::UDiv ||
         I->getOpcode() == Instruction::SDiv) {
       expandDivision(I);
     } else {

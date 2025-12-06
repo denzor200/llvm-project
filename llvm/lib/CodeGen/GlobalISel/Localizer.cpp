@@ -113,8 +113,8 @@ bool Localizer::localizeInterBlock(MachineFunction &MF,
       // edges, causing remat into each predecessor. Allow this to a certain
       // extent.
       unsigned NumPhiUses = getNumPhiUses(MOUse);
-      const unsigned PhiThreshold = 2; // FIXME: Tune this more.
-      if (NumPhiUses > PhiThreshold)
+      // FIXME: Tune this more.
+      if (const unsigned PhiThreshold = 2; NumPhiUses > PhiThreshold)
         continue;
 
       LLVM_DEBUG(dbgs() << "Fixing non-local use\n");
@@ -125,8 +125,8 @@ bool Localizer::localizeInterBlock(MachineFunction &MF,
         // Create the localized instruction.
         MachineInstr *LocalizedMI = MF.CloneMachineInstr(&MI);
         LocalizedInstrs.insert(LocalizedMI);
-        MachineInstr &UseMI = *MOUse.getParent();
-        if (MRI->hasOneUse(Reg) && !UseMI.isPHI())
+        
+        if (MachineInstr &UseMI = *MOUse.getParent(); MRI->hasOneUse(Reg) && !UseMI.isPHI())
           InsertMBB->insert(UseMI, LocalizedMI);
         else
           InsertMBB->insert(InsertMBB->SkipPHIsAndLabels(InsertMBB->begin()),
@@ -191,9 +191,9 @@ bool Localizer::localizeIntraBlock(LocalizedSetVecT &LocalizedInstrs) {
     // propagate debug location from user.
     if (Users.size() == 1) {
       const auto &DefDL = MI->getDebugLoc();
-      const auto &UserDL = (*Users.begin())->getDebugLoc();
+      
 
-      if ((!DefDL || DefDL.getLine() == 0) && UserDL && UserDL.getLine() != 0) {
+      if (const auto &UserDL = (*Users.begin())->getDebugLoc(); (!DefDL || DefDL.getLine() == 0) && UserDL && UserDL.getLine() != 0) {
         MI->setDebugLoc(UserDL);
       }
     }

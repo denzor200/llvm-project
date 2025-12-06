@@ -1336,8 +1336,8 @@ static bool isVectorOpUsedAsScalarOp(const MachineOperand &MO) {
 }
 
 bool RISCVVLOptimizer::isCandidate(const MachineInstr &MI) const {
-  const MCInstrDesc &Desc = MI.getDesc();
-  if (!RISCVII::hasVLOp(Desc.TSFlags) || !RISCVII::hasSEWOp(Desc.TSFlags))
+  
+  if (const MCInstrDesc &Desc = MI.getDesc(); !RISCVII::hasVLOp(Desc.TSFlags) || !RISCVII::hasSEWOp(Desc.TSFlags))
     return false;
 
   if (MI.getNumExplicitDefs() != 1)
@@ -1557,12 +1557,12 @@ bool RISCVVLOptimizer::checkUsers(const MachineInstr &MI) const {
       LLVM_DEBUG(dbgs().indent(4) << "Peeking through uses of INSERT_SUBREG\n");
       for (MachineOperand &UseOp :
            MRI->use_operands(UserMI.getOperand(0).getReg())) {
-        const MachineInstr &CandidateMI = *UseOp.getParent();
+        
         // We should not propagate the VL if the user is not a segmented store
         // or another INSERT_SUBREG, since VL just works differently
         // between segmented operations (per-field) v.s. other RVV ops (on the
         // whole register group).
-        if (!isTupleInsertInstr(CandidateMI) &&
+        if (const MachineInstr &CandidateMI = *UseOp.getParent(); !isTupleInsertInstr(CandidateMI) &&
             !isSegmentedStoreInstr(CandidateMI))
           return false;
         OpWorklist.insert(&UseOp);
@@ -1627,8 +1627,8 @@ bool RISCVVLOptimizer::tryReduceVL(MachineInstr &MI,
   // If the VL is defined by a vleff that doesn't dominate MI, try using the
   // vleff's AVL. It will be greater than or equal to the output VL.
   if (CommonVL.isReg()) {
-    const MachineInstr *VLMI = MRI->getVRegDef(CommonVL.getReg());
-    if (RISCVInstrInfo::isFaultOnlyFirstLoad(*VLMI) &&
+    
+    if (const MachineInstr *VLMI = MRI->getVRegDef(CommonVL.getReg()); RISCVInstrInfo::isFaultOnlyFirstLoad(*VLMI) &&
         !MDT->dominates(VLMI, &MI))
       CommonVL = VLMI->getOperand(RISCVII::getVLOpNum(VLMI->getDesc()));
   }

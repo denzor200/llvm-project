@@ -43,8 +43,8 @@ const JumpTable *BinaryBasicBlock::getJumpTable() const {
 }
 
 void BinaryBasicBlock::adjustNumPseudos(const MCInst &Inst, int Sign) {
-  BinaryContext &BC = Function->getBinaryContext();
-  if (BC.MIB->isPseudo(Inst))
+  
+  if (BinaryContext &BC = Function->getBinaryContext(); BC.MIB->isPseudo(Inst))
     NumPseudos += Sign;
 }
 
@@ -83,8 +83,8 @@ bool BinaryBasicBlock::validateSuccessorInvariants() {
         std::next(JT->Entries.begin(), Range.second));
     std::set<const MCSymbol *> UniqueSyms(Entries.begin(), Entries.end());
     for (BinaryBasicBlock *Succ : Successors) {
-      auto Itr = UniqueSyms.find(Succ->getLabel());
-      if (Itr != UniqueSyms.end()) {
+      
+      if (auto Itr = UniqueSyms.find(Succ->getLabel()); Itr != UniqueSyms.end()) {
         UniqueSyms.erase(Itr);
       } else {
         // Work on the assumption that jump table blocks don't
@@ -101,8 +101,8 @@ bool BinaryBasicBlock::validateSuccessorInvariants() {
         Valid &= (Sym == Function->getFunctionEndLabel() ||
                   Sym == Function->getFunctionEndLabel(getFragmentNum()));
         if (!Valid) {
-          const BinaryFunction *TargetBF = BC.getFunctionForSymbol(Sym);
-          if (TargetBF) {
+          
+          if (const BinaryFunction *TargetBF = BC.getFunctionForSymbol(Sym); TargetBF) {
             // It's possible for another function to be in the jump table entry
             // as a result of built-in unreachable.
             Valid = true;
@@ -123,9 +123,9 @@ bool BinaryBasicBlock::validateSuccessorInvariants() {
     const MCSymbol *TBB = nullptr;
     const MCSymbol *FBB = nullptr;
     MCInst *CondBranch = nullptr;
-    MCInst *UncondBranch = nullptr;
+    
 
-    if (analyzeBranch(TBB, FBB, CondBranch, UncondBranch)) {
+    if (MCInst *UncondBranch = nullptr; analyzeBranch(TBB, FBB, CondBranch, UncondBranch)) {
       switch (Successors.size()) {
       case 0:
         Valid = !CondBranch && !UncondBranch;
@@ -246,8 +246,8 @@ int32_t BinaryBasicBlock::getCFIStateAtInstr(const MCInst *Instr) const {
     --State;
     assert(State >= 0 && "first CFI cannot be RestoreState");
     while (Depth && State >= 0) {
-      const MCCFIInstruction &CFIInstr = FDEProgram[State];
-      if (CFIInstr.getOperation() == MCCFIInstruction::OpRestoreState)
+      
+      if (const MCCFIInstruction &CFIInstr = FDEProgram[State]; CFIInstr.getOperation() == MCCFIInstruction::OpRestoreState)
         ++Depth;
       else if (CFIInstr.getOperation() == MCCFIInstruction::OpRememberState)
         --Depth;
@@ -514,8 +514,8 @@ BinaryBasicBlock::getBranchStats(const BinaryBasicBlock *Succ) const {
     if (TotalCount > 0) {
       auto Itr = llvm::find(Successors, Succ);
       assert(Itr != Successors.end());
-      const BinaryBranchInfo &BI = BranchInfo[Itr - Successors.begin()];
-      if (BI.Count && BI.Count != COUNT_NO_PROFILE) {
+      
+      if (const BinaryBranchInfo &BI = BranchInfo[Itr - Successors.begin()]; BI.Count && BI.Count != COUNT_NO_PROFILE) {
         if (TotalMispreds == 0)
           TotalMispreds = 1;
         return std::make_pair(double(BI.Count) / TotalCount,

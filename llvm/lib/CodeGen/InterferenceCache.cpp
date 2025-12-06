@@ -173,8 +173,8 @@ void InterferenceCache::Entry::update(unsigned MBBNum) {
     // Same thing for fixed interference.
     for (RegUnitInfo &RUI : RegUnits) {
       LiveInterval::const_iterator I = RUI.FixedI;
-      LiveInterval::const_iterator E = RUI.Fixed->end();
-      if (I == E)
+      
+      if (LiveInterval::const_iterator E = RUI.Fixed->end(); I == E)
         continue;
       SlotIndex StartI = I->start;
       if (StartI >= Stop)

@@ -153,8 +153,8 @@ size_t DwarfEHPrepare::pruneUnreachableResumes(
   // Otherwise, insert unreachable instructions and call simplifycfg.
   size_t ResumesLeft = 0;
   for (size_t I = 0, E = Resumes.size(); I < E; ++I) {
-    ResumeInst *RI = Resumes[I];
-    if (ResumeReachable[I]) {
+    
+    if (ResumeInst *RI = Resumes[I]; ResumeReachable[I]) {
       Resumes[ResumesLeft++] = RI;
     } else {
       BasicBlock *BB = RI->getParent();

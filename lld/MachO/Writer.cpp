@@ -675,9 +675,9 @@ static void prepareSymbolRelocation(Symbol *sym, const InputSection *isec,
     assert(false && "referenced symbol must be live");
   }
 
-  const RelocAttrs &relocAttrs = target->getRelocAttrs(r.type);
+  
 
-  if (relocAttrs.hasAttr(RelocAttrBits::BRANCH)) {
+  if (const RelocAttrs &relocAttrs = target->getRelocAttrs(r.type); relocAttrs.hasAttr(RelocAttrBits::BRANCH)) {
     if (needsBinding(sym))
       in.stubs->addEntry(sym);
   } else if (relocAttrs.hasAttr(RelocAttrBits::GOT)) {
@@ -1076,13 +1076,13 @@ template <class LP> void Writer::createOutputSections() {
   }
 
   for (SyntheticSection *ssec : syntheticSections) {
-    auto it = concatOutputSections.find({ssec->segname, ssec->name});
+    
     // We add all LinkEdit sections here because we don't know if they are
     // needed until their finalizeContents() methods get called later. While
     // this means that we add some redundant sections to __LINKEDIT, there is
     // is no redundancy in the output, as we do not emit section headers for
     // any LinkEdit sections.
-    if (ssec->isNeeded() || ssec->segname == segment_names::linkEdit) {
+    if (auto it = concatOutputSections.find({ssec->segname, ssec->name}); ssec->isNeeded() || ssec->segname == segment_names::linkEdit) {
       if (it == concatOutputSections.end()) {
         getOrCreateOutputSegment(ssec->segname)->addOutputSection(ssec);
       } else {

@@ -104,8 +104,8 @@ Error MSFBuilder::allocateBlocks(uint32_t NumBlocks,
   if (NumBlocks == 0)
     return Error::success();
 
-  uint32_t NumFreeBlocks = FreeBlocks.count();
-  if (NumFreeBlocks < NumBlocks) {
+  
+  if (uint32_t NumFreeBlocks = FreeBlocks.count(); NumFreeBlocks < NumBlocks) {
     if (!IsGrowable)
       return make_error<MSFError>(msf_error_code::insufficient_buffer,
                                   "There are no free Blocks in the file");
@@ -157,8 +157,8 @@ Expected<uint32_t> MSFBuilder::addStream(uint32_t Size,
   // Add a new stream mapped to the specified blocks.  Verify that the specified
   // blocks are both necessary and sufficient for holding the requested number
   // of bytes, and verify that all requested blocks are free.
-  uint32_t ReqBlocks = bytesToBlocks(Size, BlockSize);
-  if (ReqBlocks != Blocks.size())
+  
+  if (uint32_t ReqBlocks = bytesToBlocks(Size, BlockSize); ReqBlocks != Blocks.size())
     return make_error<MSFError>(
         msf_error_code::invalid_format,
         "Incorrect number of blocks for requested stream size");

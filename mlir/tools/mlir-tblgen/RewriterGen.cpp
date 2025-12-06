@@ -489,8 +489,8 @@ void PatternEmitter::emitNativeCodeMatch(DagNode tree, StringRef opName,
 
       os << "::mlir::Value " << argName << ";\n";
     } else {
-      auto leaf = tree.getArgAsLeaf(i);
-      if (leaf.isAttrMatcher() || leaf.isConstantAttr()) {
+      
+      if (auto leaf = tree.getArgAsLeaf(i); leaf.isAttrMatcher() || leaf.isConstantAttr()) {
         os << "::mlir::Attribute " << argName << ";\n";
       } else if (leaf.isPropMatcher()) {
         StringRef interfaceType = leaf.getAsPropConstraint().getInterfaceType();
@@ -499,9 +499,9 @@ void PatternEmitter::emitNativeCodeMatch(DagNode tree, StringRef opName,
                                "with unspecified interface type");
         os << interfaceType << " " << argName;
         if (leaf.isPropDefinition()) {
-          Property propDef = leaf.getAsProperty();
+          
           // Ensure properties that aren't zero-arg-constructable still work.
-          if (propDef.hasDefaultValue())
+          if (Property propDef = leaf.getAsProperty(); propDef.hasDefaultValue())
             os << " = " << propDef.getDefaultValue();
         }
         os << ";\n";
@@ -531,8 +531,8 @@ void PatternEmitter::emitNativeCodeMatch(DagNode tree, StringRef opName,
                  formatv("\"{0} return ::mlir::failure\"", nativeCodeCall));
 
   for (int i = 0, e = tree.getNumArgs() - tail.numDirectives; i != e; ++i) {
-    auto name = tree.getArgName(i);
-    if (!name.empty() && name != "_") {
+    
+    if (auto name = tree.getArgName(i); !name.empty() && name != "_") {
       os << formatv("{0} = {1};\n", name, capture[i]);
     }
   }
@@ -713,8 +713,8 @@ void PatternEmitter::emitOperandMatch(DagNode tree, StringRef opName,
 
     // Only need to verify if the matcher's type is different from the one
     // of op definition.
-    Constraint constraint = operandMatcher.getAsConstraint();
-    if (operand.constraint != constraint) {
+    
+    if (Constraint constraint = operandMatcher.getAsConstraint(); operand.constraint != constraint) {
       if (operand.isVariableLength()) {
         auto error = formatv(
             "further constrain op {0}'s variadic operand #{1} unsupported now",
@@ -1054,8 +1054,8 @@ void PatternEmitter::emitMatchLogic(DagNode tree, StringRef opName) {
     auto &constraint = appliedConstraint.constraint;
     auto &entities = appliedConstraint.entities;
 
-    auto condition = constraint.getConditionTemplate();
-    if (isa<TypeConstraint>(constraint)) {
+    
+    if (auto condition = constraint.getConditionTemplate(); isa<TypeConstraint>(constraint)) {
       if (entities.size() != 1)
         PrintFatalError(loc, "type constraint requires exactly one argument");
 
@@ -1239,12 +1239,12 @@ void PatternEmitter::emitRewriteLogic() {
   // Process auxiliary result patterns.
   for (int i = 0; i < replStartIndex; ++i) {
     DagNode resultTree = pattern.getResultPattern(i);
-    auto val = handleResultPattern(resultTree, offsets[i], 0);
+    
     // Normal op creation will be streamed to `os` by the above call; but
     // NativeCodeCall will only be materialized to `os` if it is used. Here
     // we are handling auxiliary patterns so we want the side effect even if
     // NativeCodeCall is not replacing matched root op's results.
-    if (resultTree.isNativeCodeCall() &&
+    if (auto val = handleResultPattern(resultTree, offsets[i], 0); resultTree.isNativeCodeCall() &&
         resultTree.getNumReturnsOfNativeCode() == 0)
       os << val << ";\n";
   }
@@ -1254,8 +1254,8 @@ void PatternEmitter::emitRewriteLogic() {
     for (int i = 0, offset = -numSupplementalPatterns;
          i < numSupplementalPatterns; ++i) {
       DagNode resultTree = pattern.getSupplementalPattern(i);
-      auto val = handleResultPattern(resultTree, offset++, 0);
-      if (resultTree.isNativeCodeCall() &&
+      
+      if (auto val = handleResultPattern(resultTree, offset++, 0); resultTree.isNativeCodeCall() &&
           resultTree.getNumReturnsOfNativeCode() == 0)
         os << val << ";\n";
     }
@@ -1805,9 +1805,9 @@ void PatternEmitter::createSeparateLocalVarsForOpArgs(
         os << symbolInfoMap.getValueAndRangeUse(childNodeNames[argIndex]);
       } else {
         DagLeaf leaf = node.getArgAsLeaf(argIndex);
-        auto symbol =
-            symbolInfoMap.getValueAndRangeUse(node.getArgName(argIndex));
-        if (leaf.isNativeCodeCall()) {
+        
+        if (auto symbol =
+            symbolInfoMap.getValueAndRangeUse(node.getArgName(argIndex)); leaf.isNativeCodeCall()) {
           os << std::string(
               tgfmt(leaf.getNativeCodeTemplate(), &fmtCtx.withSelf(symbol)));
         } else {
@@ -1942,9 +1942,9 @@ void PatternEmitter::createAggregateLocalVarsForOpArgs(
       continue;
     }
 
-    const auto *operand =
-        cast<NamedTypeConstraint *>(resultOp.getArg(argIndex));
-    if (operand->isVariadic()) {
+    
+    if (const auto *operand =
+        cast<NamedTypeConstraint *>(resultOp.getArg(argIndex)); operand->isVariadic()) {
       ++numVariadic;
       std::string range;
       if (node.isNestedDagArg(argIndex)) {
@@ -1989,9 +1989,9 @@ void PatternEmitter::createAggregateLocalVarsForOpArgs(
 
   if (numVariadic > 1 && !hasOperandSegmentSizes) {
     // Only set size if it can't be computed.
-    const auto *sameVariadicSize =
-        resultOp.getTrait("::mlir::OpTrait::SameVariadicOperandSize");
-    if (!sameVariadicSize) {
+    
+    if (const auto *sameVariadicSize =
+        resultOp.getTrait("::mlir::OpTrait::SameVariadicOperandSize"); !sameVariadicSize) {
       if (useProperties) {
         const char *setSizes = R"(
           tblgen_props.operandSegmentSizes = {{ {0} };
@@ -2052,8 +2052,8 @@ void StaticMatcherHelper::addPattern(const Record *record) {
       if (DagNode sibling = node.getArgAsNestedDag(i))
         dfs(sibling);
       else {
-        DagLeaf leaf = node.getArgAsLeaf(i);
-        if (!leaf.isUnspecified())
+        
+        if (DagLeaf leaf = node.getArgAsLeaf(i); !leaf.isUnspecified())
           constraints.insert(leaf);
       }
 

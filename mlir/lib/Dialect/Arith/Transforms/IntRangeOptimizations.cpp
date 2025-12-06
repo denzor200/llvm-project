@@ -416,9 +416,9 @@ struct NarrowCmpI final : OpRewritePattern<arith::CmpIOp> {
     for (unsigned targetBitwidth : targetBitwidths) {
       CastKind lhsCastKind = checkTruncatability(lhsRange, targetBitwidth);
       CastKind rhsCastKind = checkTruncatability(rhsRange, targetBitwidth);
-      CastKind castKind = mergeCastKinds(lhsCastKind, rhsCastKind);
+      
       // Note: this includes target width > src width.
-      if (castKind == CastKind::None)
+      if (CastKind castKind = mergeCastKinds(lhsCastKind, rhsCastKind); castKind == CastKind::None)
         continue;
 
       Type targetType = getTargetType(srcType, targetBitwidth);

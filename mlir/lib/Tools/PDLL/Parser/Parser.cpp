@@ -675,12 +675,12 @@ LogicalResult Parser::convertOpExpressionTo(
             odsOp->getLoc());
       }
 
-      unsigned numSingleResults = llvm::count_if(
+      
+      if (unsigned numSingleResults = llvm::count_if(
           odsOp->getResults(), [](const ods::OperandOrResult &result) {
             return result.getVariableLengthKind() ==
                    ods::VariableLengthKind::Single;
-          });
-      if (numSingleResults > 1) {
+          }); numSingleResults > 1) {
         return emitErrorFn()->attachNote(
             llvm::formatv("see the definition of `{0}`, which was defined "
                           "with at least {1} results",
@@ -713,13 +713,13 @@ LogicalResult Parser::convertTupleExpressionTo(
           ctx, expr->getLoc(), expr, llvm::to_string(i),
           exprType.getElementTypes()[i]));
 
-      auto diagFn = [&](ast::Diagnostic &diag) {
+      
+      if (auto diagFn = [&](ast::Diagnostic &diag) {
         diag.attachNote(llvm::formatv("when converting element #{0} of `{1}`",
                                       i, exprType));
         if (noteAttachFn)
           noteAttachFn(diag);
-      };
-      if (failed(convertExpressionTo(newExprs.back(),
+      }; failed(convertExpressionTo(newExprs.back(),
                                      tupleType.getElementTypes()[i], diagFn)))
         return failure();
     }
@@ -1390,16 +1390,16 @@ LogicalResult Parser::parseUserConstraintOrRewriteSignature(
   // Parse the results of the decl.
   pushDeclScope();
   if (consumeIf(Token::arrow)) {
-    auto parseResultFn = [&]() -> LogicalResult {
+    
+
+    // Check for a list of results.
+    if (auto parseResultFn = [&]() -> LogicalResult {
       FailureOr<ast::VariableDecl *> result = parseResultDecl(results.size());
       if (failed(result))
         return failure();
       results.emplace_back(*result);
       return success();
-    };
-
-    // Check for a list of results.
-    if (consumeIf(Token::l_paren)) {
+    }; consumeIf(Token::l_paren)) {
       do {
         if (failed(parseResultFn()))
           return failure();
@@ -2177,9 +2177,9 @@ FailureOr<ast::Expr *> Parser::parseTupleExpr() {
           elementName = elementNameTok.getSpelling();
 
           // Check to see if this name is already used.
-          auto elementNameIt =
-              usedNames.try_emplace(elementName, elementNameTok.getLoc());
-          if (!elementNameIt.second) {
+          
+          if (auto elementNameIt =
+              usedNames.try_emplace(elementName, elementNameTok.getLoc()); !elementNameIt.second) {
             return emitErrorAndNote(
                 elementNameTok.getLoc(),
                 llvm::formatv("duplicate tuple element label `{0}`",
@@ -2355,7 +2355,8 @@ FailureOr<ast::LetStmt *> Parser::parseLetStmt() {
     // Check that the constraints are compatible with having an initializer,
     // e.g. type constraints cannot be used with initializers.
     for (ast::ConstraintRef constraint : constraints) {
-      LogicalResult result =
+      
+      if (LogicalResult result =
           TypeSwitch<const ast::Node *, LogicalResult>(constraint.constraint)
               .Case<ast::AttrConstraintDecl, ast::ValueConstraintDecl,
                     ast::ValueRangeConstraintDecl>([&](const auto *cst) {
@@ -2367,8 +2368,7 @@ FailureOr<ast::LetStmt *> Parser::parseLetStmt() {
                 }
                 return success();
               })
-              .Default(success());
-      if (failed(result))
+              .Default(success()); failed(result))
         return failure();
     }
   }
@@ -2527,12 +2527,12 @@ FailureOr<T *> Parser::createUserPDLLConstraintOrRewriteDecl(
     ast::CompoundStmt *body) {
   if (!body->getChildren().empty()) {
     if (auto *retStmt = dyn_cast<ast::ReturnStmt>(body->getChildren().back())) {
-      ast::Expr *resultExpr = retStmt->getResultExpr();
+      
 
       // Process the result of the decl. If no explicit signature results
       // were provided, check for return type inference. Otherwise, check that
       // the return expression can be converted to the expected type.
-      if (results.empty())
+      if (ast::Expr *resultExpr = retStmt->getResultExpr(); results.empty())
         resultType = resultExpr->getType();
       else if (failed(convertExpressionTo(resultExpr, resultType)))
         return failure();
@@ -2849,8 +2849,8 @@ FailureOr<ast::OperationExpr *> Parser::createOperationExpr(
   // Verify the attribute list.
   for (ast::NamedAttributeDecl *attr : attributes) {
     // Check for an attribute type, or a type awaiting resolution.
-    ast::Type attrType = attr->getValue()->getType();
-    if (!isa<ast::AttributeType>(attrType)) {
+    
+    if (ast::Type attrType = attr->getValue()->getType(); !isa<ast::AttributeType>(attrType)) {
       return emitError(
           attr->getValue()->getLoc(),
           llvm::formatv("expected `Attr` expression, but got `{0}`", attrType));
@@ -2923,11 +2923,11 @@ void Parser::checkOperationResultTypeInferrence(SMRange loc, StringRef opName,
   // result, but don't have inference support. An elided results list can mean
   // "zero-results", and we don't want to warn when that is the expected
   // behavior.
-  bool requiresInferrence =
+  
+  if (bool requiresInferrence =
       llvm::any_of(odsOp->getResults(), [](const ods::OperandOrResult &result) {
         return !result.isVariableLength();
-      });
-  if (requiresInferrence && !odsOp->hasResultTypeInferrence()) {
+      }); requiresInferrence && !odsOp->hasResultTypeInferrence()) {
     ast::InFlightDiagnostic diag = ctx.getDiagEngine().emitWarning(
         loc,
         llvm::formatv("operation result types are marked to be inferred, but "
@@ -3012,8 +3012,8 @@ LogicalResult Parser::validateOperationOperandsOrResults(
                       *odsOpLoc);
     };
     for (unsigned i = 0, e = values.size(); i < e; ++i) {
-      ast::Type expectedType = odsValues[i].isVariadic() ? rangeTy : singleTy;
-      if (failed(convertExpressionTo(values[i], expectedType, diagFn)))
+      
+      if (ast::Type expectedType = odsValues[i].isVariadic() ? rangeTy : singleTy; failed(convertExpressionTo(values[i], expectedType, diagFn)))
         return failure();
     }
     return success();
@@ -3055,8 +3055,8 @@ FailureOr<ast::TupleExpr *>
 Parser::createTupleExpr(SMRange loc, ArrayRef<ast::Expr *> elements,
                         ArrayRef<StringRef> elementNames) {
   for (const ast::Expr *element : elements) {
-    ast::Type eleTy = element->getType();
-    if (isa<ast::ConstraintType, ast::RewriteType, ast::TupleType>(eleTy)) {
+    
+    if (ast::Type eleTy = element->getType(); isa<ast::ConstraintType, ast::RewriteType, ast::TupleType>(eleTy)) {
       return emitError(
           element->getLoc(),
           llvm::formatv("unable to build a tuple with `{0}` element", eleTy));

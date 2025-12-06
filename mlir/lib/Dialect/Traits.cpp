@@ -250,8 +250,8 @@ LogicalResult OpTrait::impl::verifyCompatibleOperandBroadcast(Operation *op) {
   (void)util::getBroadcastedShape(getShape(*rankedOperands.begin()), {},
                                   resultShape);
   for (auto other : make_early_inc_range(rankedOperands)) {
-    SmallVector<int64_t, 4> temp = resultShape;
-    if (!util::getBroadcastedShape(temp, getShape(other), resultShape))
+    
+    if (SmallVector<int64_t, 4> temp = resultShape; !util::getBroadcastedShape(temp, getShape(other), resultShape))
       return op->emitOpError("operands don't have broadcast-compatible shapes");
   }
 
@@ -263,9 +263,9 @@ LogicalResult OpTrait::impl::verifyCompatibleOperandBroadcast(Operation *op) {
     return success();
 
   for (auto type : rankedResults) {
-    ArrayRef<int64_t> actualSuffix =
-        getShape(type).take_back(resultShape.size());
-    if (!isCompatibleInferredReturnShape(resultShape, actualSuffix))
+    
+    if (ArrayRef<int64_t> actualSuffix =
+        getShape(type).take_back(resultShape.size()); !isCompatibleInferredReturnShape(resultShape, actualSuffix))
       return op->emitOpError()
              << "result type " << getShapeString(getShape(type))
              << " not broadcast compatible with broadcasted operands's shapes "

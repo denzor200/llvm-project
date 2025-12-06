@@ -211,8 +211,8 @@ StorageLayout::getFieldIndexAndStride(SparseTensorFieldKind kind,
   if (kind == SparseTensorFieldKind::CrdMemRef) {
     assert(lvl.has_value());
     const Level cooStart = enc.getAoSCOOStart();
-    const Level lvlRank = enc.getLvlRank();
-    if (lvl.value() >= cooStart && lvl.value() < lvlRank) {
+    
+    if (const Level lvlRank = enc.getLvlRank(); lvl.value() >= cooStart && lvl.value() < lvlRank) {
       lvl = cooStart;
       stride = lvlRank - cooStart;
     }
@@ -527,10 +527,10 @@ SparseTensorEncodingAttr::translateShape(ArrayRef<int64_t> srcShape,
 
   for (AffineExpr exp : transMap.getResults()) {
     // Do constant propagation on the affine map.
-    AffineExpr evalExp =
-        simplifyAffineExpr(exp.replaceDims(dimRep), srcShape.size(), 0);
+    
     // use llvm namespace here to avoid ambiguity
-    if (auto c = llvm::dyn_cast<AffineConstantExpr>(evalExp)) {
+    if (AffineExpr evalExp =
+        simplifyAffineExpr(exp.replaceDims(dimRep), srcShape.size(), 0); auto c = llvm::dyn_cast<AffineConstantExpr>(evalExp)) {
       ret.push_back(c.getValue() + 1);
     } else {
       if (auto mod = llvm::dyn_cast<AffineBinaryOpExpr>(evalExp);
@@ -916,8 +916,8 @@ LogicalResult SparseTensorEncodingAttr::verifyEncoding(
            << "dimension-rank mismatch between encoding and tensor shape: "
            << getDimRank() << " != " << dimRank;
   if (auto expVal = getExplicitVal()) {
-    Type attrType = llvm::dyn_cast<TypedAttr>(expVal).getType();
-    if (attrType != elementType) {
+    
+    if (Type attrType = llvm::dyn_cast<TypedAttr>(expVal).getType(); attrType != elementType) {
       return emitError() << "explicit value type mismatch between encoding and "
                          << "tensor element type: " << attrType
                          << " != " << elementType;
@@ -1062,8 +1062,8 @@ AffineMap mlir::sparse_tensor::inverseBlockSparsity(AffineMap dimToLvl,
   // applied to the same dimension, so as to build the lvlToDim map.
   std::map<unsigned, SmallVector<AffineExpr, 3>> lvlExprComponents;
   for (unsigned i = 0, n = numLvls; i < n; i++) {
-    auto result = dimToLvl.getResult(i);
-    if (auto binOp = dyn_cast<AffineBinaryOpExpr>(result)) {
+    
+    if (auto result = dimToLvl.getResult(i); auto binOp = dyn_cast<AffineBinaryOpExpr>(result)) {
       if (result.getKind() == AffineExprKind::FloorDiv) {
         // Position of the dimension in dimToLvl.
         auto pos = dyn_cast<AffineDimExpr>(binOp.getLHS()).getPosition();
@@ -1157,9 +1157,9 @@ bool mlir::sparse_tensor::isBlockSparsity(AffineMap dimToLvl) {
         return false;
       }
     } else if (auto dimOp = dyn_cast<AffineDimExpr>(result)) {
-      auto pos = dimOp.getPosition();
+      
       // Expect dim to be unset.
-      if (!coeffientMap.try_emplace(pos, 0).second)
+      if (auto pos = dimOp.getPosition(); !coeffientMap.try_emplace(pos, 0).second)
         return false;
     } else {
       return false;
@@ -1301,13 +1301,13 @@ static LogicalResult verifyPackUnPack(Operation *op, bool requiresStaticShape,
     return op->emitError("the sparse-tensor must have an encoding attribute");
 
   // Verifies the trailing COO.
-  Level cooStartLvl = stt.getAoSCOOStart();
-  if (cooStartLvl < stt.getLvlRank()) {
+  
+  if (Level cooStartLvl = stt.getAoSCOOStart(); cooStartLvl < stt.getLvlRank()) {
     // We only supports trailing COO for now, must be the last input.
     auto cooTp = llvm::cast<ShapedType>(lvlTps.back());
     // The coordinates should be in shape of <? x rank>
-    unsigned expCOORank = stt.getLvlRank() - cooStartLvl;
-    if (cooTp.getRank() != 2 || expCOORank != cooTp.getShape().back()) {
+    
+    if (unsigned expCOORank = stt.getLvlRank() - cooStartLvl; cooTp.getRank() != 2 || expCOORank != cooTp.getShape().back()) {
       return op->emitError("input/output trailing COO level-ranks don't match");
     }
   }
@@ -1488,8 +1488,8 @@ void LvlOp::build(OpBuilder &builder, OperationState &state, Value source,
 
 LogicalResult LvlOp::verify() {
   if (std::optional<uint64_t> lvl = getConstantLvlIndex()) {
-    auto stt = getSparseTensorType(getSource());
-    if (static_cast<uint64_t>(lvl.value()) >= stt.getLvlRank())
+    
+    if (auto stt = getSparseTensorType(getSource()); static_cast<uint64_t>(lvl.value()) >= stt.getLvlRank())
       return emitError(
           "Level index exceeds the rank of the input sparse tensor");
   }
@@ -1741,8 +1741,8 @@ static LogicalResult verifyNumBlockArgs(T *op, Region &region,
                            << expectedNum << " arguments";
 
   for (unsigned i = 0; i < numArgs; i++) {
-    Type typ = region.getArgument(i).getType();
-    if (typ != inputTypes[i])
+    
+    if (Type typ = region.getArgument(i).getType(); typ != inputTypes[i])
       return op->emitError() << regionName << " region argument " << (i + 1)
                              << " type mismatch";
   }
@@ -1801,8 +1801,8 @@ LogicalResult UnaryOp::verify() {
 
   // Check correct number of block arguments and return type for each
   // non-empty region.
-  Region &present = getPresentRegion();
-  if (!present.empty()) {
+  
+  if (Region &present = getPresentRegion(); !present.empty()) {
     if (failed(verifyNumBlockArgs(this, present, "present",
                                   TypeRange{inputType}, outputType)))
       return failure();
@@ -1815,9 +1815,9 @@ LogicalResult UnaryOp::verify() {
     // Absent branch can only yield invariant values.
     Block *absentBlock = &absent.front();
     Block *parent = getOperation()->getBlock();
-    Value absentVal =
-        cast<YieldOp>(absentBlock->getTerminator()).getSingleResult();
-    if (auto arg = dyn_cast<BlockArgument>(absentVal)) {
+    
+    if (Value absentVal =
+        cast<YieldOp>(absentBlock->getTerminator()).getSingleResult(); auto arg = dyn_cast<BlockArgument>(absentVal)) {
       if (arg.getOwner() == parent)
         return emitError("absent region cannot yield linalg argument");
     } else if (Operation *def = absentVal.getDefiningOp()) {
@@ -1873,8 +1873,8 @@ LogicalResult ConcatenateOp::verify() {
   }
 
   for (Dimension d = 0; d < dimRank; d++) {
-    const Size dstSh = dstTp.getDimShape()[d];
-    if (d == concatDim) {
+    
+    if (const Size dstSh = dstTp.getDimShape()[d]; d == concatDim) {
       if (ShapedType::isStatic(dstSh)) {
         // If we reach here, then all inputs have static shapes.  So we
         // can use `getDimShape()[d]` instead of `*getDynamicDimSize(d)`
@@ -1911,8 +1911,8 @@ void PushBackOp::build(OpBuilder &builder, OperationState &result,
 
 LogicalResult PushBackOp::verify() {
   if (Value n = getN()) {
-    std::optional<int64_t> nValue = getConstantIntValue(n);
-    if (nValue && nValue.value() < 1)
+    
+    if (std::optional<int64_t> nValue = getConstantIntValue(n); nValue && nValue.value() < 1)
       return emitOpError("n must be not less than 1");
   }
   return success();

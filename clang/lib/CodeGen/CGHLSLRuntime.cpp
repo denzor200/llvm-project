@@ -395,8 +395,8 @@ CGHLSLOffsetInfo CGHLSLOffsetInfo::fromDecl(const HLSLBufferDecl &BufDecl) {
         Offset = POA->getOffsetInBytes();
         break;
       }
-      auto *RBA = dyn_cast<HLSLResourceBindingAttr>(Attr);
-      if (RBA &&
+      
+      if (auto *RBA = dyn_cast<HLSLResourceBindingAttr>(Attr); RBA &&
           RBA->getRegisterType() == HLSLResourceBindingAttr::RegisterType::C) {
         Offset = RBA->getSlotNumber() * CBufferRowSizeInBytes;
         break;
@@ -800,8 +800,8 @@ llvm::Value *CGHLSLRuntime::handleScalarSemanticLoad(
 void CGHLSLRuntime::handleScalarSemanticStore(
     IRBuilder<> &B, const FunctionDecl *FD, llvm::Value *Source,
     const clang::DeclaratorDecl *Decl, HLSLAppliedSemanticAttr *Semantic) {
-  std::optional<unsigned> Index = Semantic->getSemanticIndex();
-  if (Semantic->getAttrName()->getName().starts_with_insensitive("SV_"))
+  
+  if (std::optional<unsigned> Index = Semantic->getSemanticIndex(); Semantic->getAttrName()->getName().starts_with_insensitive("SV_"))
     emitSystemSemanticStore(B, Source, Decl, Semantic, Index);
   else
     emitUserSemanticStore(B, Source, Decl, Semantic, Index);
@@ -1056,8 +1056,8 @@ void CGHLSLRuntime::generateGlobalCtorDtorCalls() {
 
   // No need to keep global ctors/dtors for non-lib profile after call to
   // ctors/dtors added for entry.
-  Triple T(M.getTargetTriple());
-  if (T.getEnvironment() != Triple::EnvironmentType::Library) {
+  
+  if (Triple T(M.getTargetTriple()); T.getEnvironment() != Triple::EnvironmentType::Library) {
     if (auto *GV = M.getNamedGlobal("llvm.global_ctors"))
       GV->eraseFromParent();
     if (auto *GV = M.getNamedGlobal("llvm.global_dtors"))
@@ -1107,10 +1107,10 @@ void CGHLSLRuntime::initializeBufferFromBinding(const HLSLBufferDecl *BufDecl,
   auto *Index = llvm::ConstantInt::get(CGM.IntTy, 0);
   auto *RangeSize = llvm::ConstantInt::get(CGM.IntTy, 1);
   auto *Space = llvm::ConstantInt::get(CGM.IntTy, Binding.getSpace());
-  Value *Name = buildNameForResource(BufDecl->getName(), CGM);
+  
 
   // buffer with explicit binding
-  if (Binding.isExplicit()) {
+  if (Value *Name = buildNameForResource(BufDecl->getName(), CGM); Binding.isExplicit()) {
     llvm::Intrinsic::ID IntrinsicID =
         CGM.getHLSLRuntime().getCreateHandleFromBindingIntrinsic();
     auto *RegSlot = llvm::ConstantInt::get(CGM.IntTy, Binding.getSlot());
@@ -1139,8 +1139,8 @@ llvm::Instruction *CGHLSLRuntime::getConvergenceToken(BasicBlock &BB) {
 
   auto E = BB.end();
   for (auto I = BB.begin(); I != E; ++I) {
-    auto *II = dyn_cast<llvm::IntrinsicInst>(&*I);
-    if (II && llvm::isConvergenceControlIntrinsic(II->getIntrinsicID())) {
+    
+    if (auto *II = dyn_cast<llvm::IntrinsicInst>(&*I); II && llvm::isConvergenceControlIntrinsic(II->getIntrinsicID())) {
       return II;
     }
   }
@@ -1281,11 +1281,11 @@ std::optional<LValue> CGHLSLRuntime::emitResourceArraySubscriptExpr(
     // needs to be initialized.
     const ConstantArrayType *ArrayTy =
         cast<ConstantArrayType>(ResultTy.getTypePtr());
-    std::optional<llvm::Value *> EndIndex = initializeLocalResourceArray(
+    
+    if (std::optional<llvm::Value *> EndIndex = initializeLocalResourceArray(
         CGF, ResourceTy->getAsCXXRecordDecl(), ArrayTy, ValueSlot, Range, Index,
         ArrayDecl->getName(), Binding, {llvm::ConstantInt::get(CGM.IntTy, 0)},
-        ArraySubsExpr->getExprLoc());
-    if (!EndIndex)
+        ArraySubsExpr->getExprLoc()); !EndIndex)
       return std::nullopt;
   }
   return CGF.MakeAddrLValue(TmpVar, ResultTy, AlignmentSource::Decl);
@@ -1450,8 +1450,8 @@ class HLSLBufferCopyEmitter {
     // Copy the struct field by field, but skip any explicit padding.
     unsigned Skipped = 0;
     for (unsigned I = 0, E = ST->getNumElements(); I < E; ++I) {
-      llvm::Type *ElementTy = ST->getElementType(I);
-      if (CGF.CGM.getTargetCodeGenInfo().isHLSLPadding(ElementTy))
+      
+      if (llvm::Type *ElementTy = ST->getElementType(I); CGF.CGM.getTargetCodeGenInfo().isHLSLPadding(ElementTy))
         ++Skipped;
       else
         emitCopyAtIndices(ElementTy, llvm::ConstantInt::get(CGF.Int32Ty, I),

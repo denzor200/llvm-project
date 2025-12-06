@@ -36,14 +36,14 @@ using namespace lldb_private;
 
 DynamicLoader *DynamicLoader::FindPlugin(Process *process,
                                          llvm::StringRef plugin_name) {
-  DynamicLoaderCreateInstance create_callback = nullptr;
-  if (!plugin_name.empty()) {
+  
+  if (DynamicLoaderCreateInstance create_callback = nullptr; !plugin_name.empty()) {
     create_callback =
         PluginManager::GetDynamicLoaderCreateCallbackForPluginName(plugin_name);
     if (create_callback) {
-      std::unique_ptr<DynamicLoader> instance_up(
-          create_callback(process, true));
-      if (instance_up)
+      
+      if (std::unique_ptr<DynamicLoader> instance_up(
+          create_callback(process, true)); instance_up)
         return instance_up.release();
     }
   } else {
@@ -52,9 +52,9 @@ DynamicLoader *DynamicLoader::FindPlugin(Process *process,
               PluginManager::GetDynamicLoaderCreateCallbackAtIndex(idx)) !=
          nullptr;
          ++idx) {
-      std::unique_ptr<DynamicLoader> instance_up(
-          create_callback(process, false));
-      if (instance_up)
+      
+      if (std::unique_ptr<DynamicLoader> instance_up(
+          create_callback(process, false)); instance_up)
         return instance_up.release();
     }
   }
@@ -146,8 +146,8 @@ const SectionList *
 DynamicLoader::GetSectionListFromModule(const ModuleSP module) const {
   SectionList *sections = nullptr;
   if (module) {
-    ObjectFile *obj_file = module->GetObjectFile();
-    if (obj_file != nullptr) {
+    
+    if (ObjectFile *obj_file = module->GetObjectFile(); obj_file != nullptr) {
       sections = obj_file->GetSectionList();
     }
   }
@@ -366,9 +366,9 @@ ModuleSP DynamicLoader::LoadBinaryWithUUIDAndAddress(
 int64_t DynamicLoader::ReadUnsignedIntWithSizeInBytes(addr_t addr,
                                                       int size_in_bytes) {
   Status error;
-  uint64_t value =
-      m_process->ReadUnsignedIntegerFromMemory(addr, size_in_bytes, 0, error);
-  if (error.Fail())
+  
+  if (uint64_t value =
+      m_process->ReadUnsignedIntegerFromMemory(addr, size_in_bytes, 0, error); error.Fail())
     return -1;
   else
     return (int64_t)value;
@@ -376,8 +376,8 @@ int64_t DynamicLoader::ReadUnsignedIntWithSizeInBytes(addr_t addr,
 
 addr_t DynamicLoader::ReadPointer(addr_t addr) {
   Status error;
-  addr_t value = m_process->ReadPointerFromMemory(addr, error);
-  if (error.Fail())
+  
+  if (addr_t value = m_process->ReadPointerFromMemory(addr, error); error.Fail())
     return LLDB_INVALID_ADDRESS;
   else
     return value;

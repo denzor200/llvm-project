@@ -158,8 +158,8 @@ ParseFileset(DataExtractor &data, mach_header header,
     if (lc.cmd == LC_FILESET_ENTRY) {
       fileset_entry_command entry;
       data.CopyData(load_cmd_offset, sizeof(fileset_entry_command), &entry);
-      lldb::offset_t entry_id_offset = load_cmd_offset + entry.entry_id.offset;
-      if (const char *id = data.GetCStr(&entry_id_offset))
+      
+      if (lldb::offset_t entry_id_offset = load_cmd_offset + entry.entry_id.offset; const char *id = data.GetCStr(&entry_id_offset))
         entries.emplace_back(entry.vmaddr + slide, entry.fileoff,
                              std::string(id));
     }
@@ -227,11 +227,11 @@ size_t ObjectContainerMachOFileset::GetModuleSpecifications(
   data.SetData(data_sp, data_offset, data_sp->GetByteSize());
 
   if (MagicBytesMatch(data)) {
-    std::vector<Entry> entries;
-    if (ParseHeader(data, file, file_offset, entries)) {
+    
+    if (std::vector<Entry> entries; ParseHeader(data, file, file_offset, entries)) {
       for (const Entry &entry : entries) {
-        const lldb::offset_t entry_offset = entry.fileoff + file_offset;
-        if (ObjectFile::GetModuleSpecifications(
+        
+        if (const lldb::offset_t entry_offset = entry.fileoff + file_offset; ObjectFile::GetModuleSpecifications(
                 file, entry_offset, file_size - entry_offset, specs)) {
           ModuleSpec &spec = specs.GetModuleSpecRefAtIndex(specs.GetSize() - 1);
           spec.GetObjectName() = ConstString(entry.id);
@@ -252,8 +252,8 @@ bool ObjectContainerMachOFileset::MagicBytesMatch(DataBufferSP data_sp,
 
 bool ObjectContainerMachOFileset::MagicBytesMatch(const DataExtractor &data) {
   lldb::offset_t offset = 0;
-  uint32_t magic = data.GetU32(&offset);
-  switch (magic) {
+  
+  switch (uint32_t magic = data.GetU32(&offset); magic) {
   case MH_MAGIC:
   case MH_CIGAM:
   case MH_MAGIC_64:

@@ -185,9 +185,9 @@ void llvm::computeValueLLTs(const DataLayout &DL, Type &Ty,
 GlobalValue *llvm::ExtractTypeInfo(Value *V) {
   V = V->stripPointerCasts();
   GlobalValue *GV = dyn_cast<GlobalValue>(V);
-  GlobalVariable *Var = dyn_cast<GlobalVariable>(V);
+  
 
-  if (Var && Var->getName() == "llvm.eh.catch.all.value") {
+  if (GlobalVariable *Var = dyn_cast<GlobalVariable>(V); Var && Var->getName() == "llvm.eh.catch.all.value") {
     assert(Var->hasInitializer() &&
            "The EH catch-all value must have an initializer");
     Value *Init = Var->getInitializer();
@@ -344,13 +344,13 @@ static const Value *getNoopInput(const Value *V,
                    I->getType()->getPrimitiveSizeInBits().getFixedValue());
       NoopInput = Op;
     } else if (auto *CB = dyn_cast<CallBase>(I)) {
-      const Value *ReturnedOp = CB->getReturnedArgOperand();
-      if (ReturnedOp && isNoopBitcast(ReturnedOp->getType(), I->getType(), TLI))
+      
+      if (const Value *ReturnedOp = CB->getReturnedArgOperand(); ReturnedOp && isNoopBitcast(ReturnedOp->getType(), I->getType(), TLI))
         NoopInput = ReturnedOp;
     } else if (const InsertValueInst *IVI = dyn_cast<InsertValueInst>(V)) {
       // Value may come from either the aggregate or the scalar
-      ArrayRef<unsigned> InsertLoc = IVI->getIndices();
-      if (ValLoc.size() >= InsertLoc.size() &&
+      
+      if (ArrayRef<unsigned> InsertLoc = IVI->getIndices(); ValLoc.size() >= InsertLoc.size() &&
           std::equal(InsertLoc.begin(), InsertLoc.end(), ValLoc.rbegin())) {
         // The type being inserted is a nested sub-type of the aggregate; we
         // have to remove those initial indices to get the location we're

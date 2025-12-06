@@ -41,9 +41,9 @@ CreateObjectFromContainer(const lldb::ModuleSP &module_sp, const FileSpec *file,
        (callback = PluginManager::GetObjectContainerCreateCallbackAtIndex(
             idx)) != nullptr;
        ++idx) {
-    std::unique_ptr<ObjectContainer> object_container_up(callback(
-        module_sp, data_sp, data_offset, file, file_offset, file_size));
-    if (object_container_up)
+    
+    if (std::unique_ptr<ObjectContainer> object_container_up(callback(
+        module_sp, data_sp, data_offset, file, file_offset, file_size)); object_container_up)
       return object_container_up->GetObjectFile(file);
   }
   return {};
@@ -67,14 +67,14 @@ ObjectFile::FindPlugin(const lldb::ModuleSP &module_sp, const FileSpec *file,
     return {};
 
   if (!data_sp) {
-    const bool file_exists = FileSystem::Instance().Exists(*file);
+    
     // We have an object name which most likely means we have a .o file in
     // a static archive (.a file). Try and see if we have a cached archive
     // first without reading any data first
-    if (file_exists && module_sp->GetObjectName()) {
-      ObjectFileSP object_file_sp = CreateObjectFromContainer(
-          module_sp, file, file_offset, file_size, data_sp, data_offset);
-      if (object_file_sp)
+    if (const bool file_exists = FileSystem::Instance().Exists(*file); file_exists && module_sp->GetObjectName()) {
+      
+      if (ObjectFileSP object_file_sp = CreateObjectFromContainer(
+          module_sp, file, file_offset, file_size, data_sp, data_offset); object_file_sp)
         return object_file_sp;
     }
     // Ok, we didn't find any containers that have a named object, now lets
@@ -95,8 +95,8 @@ ObjectFile::FindPlugin(const lldb::ModuleSP &module_sp, const FileSpec *file,
 
     FileSpec archive_file;
     ConstString archive_object;
-    const bool must_exist = true;
-    if (ObjectFile::SplitArchivePathWithObject(path_with_object, archive_file,
+    
+    if (const bool must_exist = true; ObjectFile::SplitArchivePathWithObject(path_with_object, archive_file,
                                                archive_object, must_exist)) {
       file_size = FileSystem::Instance().GetByteSize(archive_file);
       if (file_size > 0) {
@@ -129,18 +129,18 @@ ObjectFile::FindPlugin(const lldb::ModuleSP &module_sp, const FileSpec *file,
          (callback = PluginManager::GetObjectFileCreateCallbackAtIndex(idx)) !=
          nullptr;
          ++idx) {
-      ObjectFileSP object_file_sp(callback(module_sp, data_sp, data_offset,
-                                           file, file_offset, file_size));
-      if (object_file_sp.get())
+      
+      if (ObjectFileSP object_file_sp(callback(module_sp, data_sp, data_offset,
+                                           file, file_offset, file_size)); object_file_sp.get())
         return object_file_sp;
     }
 
     // Check if this is a object container by iterating through all object
     // container plugin instances and then trying to get an object file
     // from the container.
-    ObjectFileSP object_file_sp = CreateObjectFromContainer(
-        module_sp, file, file_offset, file_size, data_sp, data_offset);
-    if (object_file_sp)
+    
+    if (ObjectFileSP object_file_sp = CreateObjectFromContainer(
+        module_sp, file, file_offset, file_size, data_sp, data_offset); object_file_sp)
       return object_file_sp;
   }
 
@@ -203,9 +203,9 @@ size_t ObjectFile::GetModuleSpecifications(const FileSpec &file,
         file.GetPath(), g_initial_bytes_to_read, file_offset);
   if (data_sp) {
     if (file_size == 0) {
-      const lldb::offset_t actual_file_size =
-          FileSystem::Instance().GetByteSize(file);
-      if (actual_file_size > file_offset)
+      
+      if (const lldb::offset_t actual_file_size =
+          FileSystem::Instance().GetByteSize(file); actual_file_size > file_offset)
         file_size = actual_file_size - file_offset;
     }
     return ObjectFile::GetModuleSpecifications(file,        // file spec
@@ -302,15 +302,15 @@ bool ObjectFile::SetModulesArchitecture(const ArchSpec &new_arch) {
 }
 
 AddressClass ObjectFile::GetAddressClass(addr_t file_addr) {
-  Symtab *symtab = GetSymtab();
-  if (symtab) {
-    Symbol *symbol = symtab->FindSymbolContainingFileAddress(file_addr);
-    if (symbol) {
+  
+  if (Symtab *symtab = GetSymtab(); symtab) {
+    
+    if (Symbol *symbol = symtab->FindSymbolContainingFileAddress(file_addr); symbol) {
       if (symbol->ValueIsAddress()) {
-        const SectionSP section_sp(symbol->GetAddressRef().GetSection());
-        if (section_sp) {
-          const SectionType section_type = section_sp->GetType();
-          switch (section_type) {
+        
+        if (const SectionSP section_sp(symbol->GetAddressRef().GetSection()); section_sp) {
+          
+          switch (const SectionType section_type = section_sp->GetType(); section_type) {
           case eSectionTypeInvalid:
             return AddressClass::eUnknown;
           case eSectionTypeCode:
@@ -391,8 +391,8 @@ AddressClass ObjectFile::GetAddressClass(addr_t file_addr) {
         }
       }
 
-      const SymbolType symbol_type = symbol->GetType();
-      switch (symbol_type) {
+      
+      switch (const SymbolType symbol_type = symbol->GetType(); symbol_type) {
       case eSymbolTypeAny:
         return AddressClass::eUnknown;
       case eSymbolTypeAbsolute:
@@ -464,9 +464,9 @@ WritableDataBufferSP ObjectFile::ReadMemory(const ProcessSP &process_sp,
   if (process_sp) {
     std::unique_ptr<DataBufferHeap> data_up(new DataBufferHeap(byte_size, 0));
     Status error;
-    const size_t bytes_read = process_sp->ReadMemory(
-        addr, data_up->GetBytes(), data_up->GetByteSize(), error);
-    if (bytes_read == byte_size)
+    
+    if (const size_t bytes_read = process_sp->ReadMemory(
+        addr, data_up->GetBytes(), data_up->GetByteSize(), error); bytes_read == byte_size)
       data_sp.reset(data_up.release());
   }
   return data_sp;
@@ -501,18 +501,18 @@ size_t ObjectFile::ReadSectionData(Section *section,
     RelocateSection(section);
 
   if (IsInMemory()) {
-    ProcessSP process_sp(m_process_wp.lock());
-    if (process_sp) {
+    
+    if (ProcessSP process_sp(m_process_wp.lock()); process_sp) {
       Status error;
-      const addr_t base_load_addr =
-          section->GetLoadBaseAddress(&process_sp->GetTarget());
-      if (base_load_addr != LLDB_INVALID_ADDRESS)
+      
+      if (const addr_t base_load_addr =
+          section->GetLoadBaseAddress(&process_sp->GetTarget()); base_load_addr != LLDB_INVALID_ADDRESS)
         return process_sp->ReadMemory(base_load_addr + section_offset, dst,
                                       dst_len, error);
     }
   } else {
-    const lldb::offset_t section_file_size = section->GetFileSize();
-    if (section_offset < section_file_size) {
+    
+    if (const lldb::offset_t section_file_size = section->GetFileSize(); section_offset < section_file_size) {
       const size_t section_bytes_left = section_file_size - section_offset;
       size_t section_dst_len = dst_len;
       if (section_dst_len > section_bytes_left)
@@ -545,14 +545,14 @@ size_t ObjectFile::ReadSectionData(Section *section,
     RelocateSection(section);
 
   if (IsInMemory()) {
-    ProcessSP process_sp(m_process_wp.lock());
-    if (process_sp) {
-      const addr_t base_load_addr =
-          section->GetLoadBaseAddress(&process_sp->GetTarget());
-      if (base_load_addr != LLDB_INVALID_ADDRESS) {
-        DataBufferSP data_sp(
-            ReadMemory(process_sp, base_load_addr, section->GetByteSize()));
-        if (data_sp) {
+    
+    if (ProcessSP process_sp(m_process_wp.lock()); process_sp) {
+      
+      if (const addr_t base_load_addr =
+          section->GetLoadBaseAddress(&process_sp->GetTarget()); base_load_addr != LLDB_INVALID_ADDRESS) {
+        
+        if (DataBufferSP data_sp(
+            ReadMemory(process_sp, base_load_addr, section->GetByteSize())); data_sp) {
           section_data.SetData(data_sp, 0, data_sp->GetByteSize());
           section_data.SetByteOrder(process_sp->GetByteOrder());
           section_data.SetAddressByteSize(process_sp->GetAddressByteSize());
@@ -572,8 +572,8 @@ bool ObjectFile::SplitArchivePathWithObject(llvm::StringRef path_with_object,
                                             FileSpec &archive_file,
                                             ConstString &archive_object,
                                             bool must_exist) {
-  size_t len = path_with_object.size();
-  if (len < 2 || path_with_object.back() != ')')
+  
+  if (size_t len = path_with_object.size(); len < 2 || path_with_object.back() != ')')
     return false;
   llvm::StringRef archive = path_with_object.substr(0, path_with_object.rfind('('));
   if (archive.empty())
@@ -587,8 +587,8 @@ bool ObjectFile::SplitArchivePathWithObject(llvm::StringRef path_with_object,
 }
 
 void ObjectFile::ClearSymtab() {
-  ModuleSP module_sp(GetModule());
-  if (module_sp) {
+  
+  if (ModuleSP module_sp(GetModule()); module_sp) {
     Log *log = GetLog(LLDBLog::Object);
     LLDB_LOGF(log, "%p ObjectFile::ClearSymtab () symtab = %p",
               static_cast<void *>(this),
@@ -603,8 +603,8 @@ void ObjectFile::ClearSymtab() {
 SectionList *ObjectFile::GetSectionList(bool update_module_section_list) {
   if (m_sections_up == nullptr) {
     if (update_module_section_list) {
-      ModuleSP module_sp(GetModule());
-      if (module_sp) {
+      
+      if (ModuleSP module_sp(GetModule()); module_sp) {
         std::lock_guard<std::recursive_mutex> guard(module_sp->GetMutex());
         CreateSections(*module_sp->GetUnifiedSectionList());
       }

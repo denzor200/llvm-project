@@ -113,8 +113,8 @@ void LogDiagnosticPrinter::HandleDiagnostic(DiagnosticsEngine::Level Level,
   // Initialize the main file name, if we haven't already fetched it.
   if (MainFilename.empty() && Info.hasSourceManager()) {
     const SourceManager &SM = Info.getSourceManager();
-    FileID FID = SM.getMainFileID();
-    if (FID.isValid()) {
+    
+    if (FileID FID = SM.getMainFileID(); FID.isValid()) {
       if (OptionalFileEntryRef FE = SM.getFileEntryRefForID(FID))
         MainFilename = std::string(FE->getName());
     }
@@ -139,12 +139,12 @@ void LogDiagnosticPrinter::HandleDiagnostic(DiagnosticsEngine::Level Level,
   DE.Line = DE.Column = 0;
   if (Info.getLocation().isValid() && Info.hasSourceManager()) {
     const SourceManager &SM = Info.getSourceManager();
-    PresumedLoc PLoc = SM.getPresumedLoc(Info.getLocation());
+    
 
-    if (PLoc.isInvalid()) {
+    if (PresumedLoc PLoc = SM.getPresumedLoc(Info.getLocation()); PLoc.isInvalid()) {
       // At least print the file name if available:
-      FileID FID = SM.getFileID(Info.getLocation());
-      if (FID.isValid()) {
+      
+      if (FileID FID = SM.getFileID(Info.getLocation()); FID.isValid()) {
         if (OptionalFileEntryRef FE = SM.getFileEntryRefForID(FID))
           DE.Filename = std::string(FE->getName());
       }

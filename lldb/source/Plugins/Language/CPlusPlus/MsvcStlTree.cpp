@@ -274,8 +274,8 @@ lldb_private::formatters::MsvcStlTreeSyntheticFrontEnd::GetValueAt(
   if (idx > 0) {
     // If we have already created the iterator for the previous
     // index, we can start from there and advance by 1.
-    auto cached_iterator = m_iterators.find(idx - 1);
-    if (cached_iterator != m_iterators.end()) {
+    
+    if (auto cached_iterator = m_iterators.find(idx - 1); cached_iterator != m_iterators.end()) {
       iterator = cached_iterator->second;
       advance_by = 1;
     }

@@ -52,12 +52,12 @@ void HexagonInstPrinter::printOperand(MCInst const *MI, unsigned OpNo,
   if (HexagonMCInstrInfo::getExtendableOp(MII, *MI) == OpNo &&
       (HasExtender || HexagonMCInstrInfo::isConstExtended(MII, *MI)))
     O << "#";
-  MCOperand const &MO = MI->getOperand(OpNo);
-  if (MO.isReg()) {
+  
+  if (MCOperand const &MO = MI->getOperand(OpNo); MO.isReg()) {
     O << getRegisterName(MO.getReg());
   } else if (MO.isExpr()) {
-    int64_t Value;
-    if (MO.getExpr()->evaluateAsAbsolute(Value))
+    
+    if (int64_t Value; MO.getExpr()->evaluateAsAbsolute(Value))
       O << formatImm(Value);
     else
       MAI.printExpr(O, *MO.getExpr());
@@ -71,8 +71,8 @@ void HexagonInstPrinter::printBrtarget(MCInst const *MI, unsigned OpNo,
   MCOperand const &MO = MI->getOperand(OpNo);
   assert (MO.isExpr());
   MCExpr const &Expr = *MO.getExpr();
-  int64_t Value;
-  if (Expr.evaluateAsAbsolute(Value))
+  
+  if (int64_t Value; Expr.evaluateAsAbsolute(Value))
     O << format("0x%" PRIx64, Value);
   else {
     if (HasExtender || HexagonMCInstrInfo::isConstExtended(MII, *MI))

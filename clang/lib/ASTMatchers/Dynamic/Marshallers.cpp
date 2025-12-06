@@ -26,8 +26,8 @@ getBestGuess(llvm::StringRef Search, llvm::ArrayRef<llvm::StringRef> Allowed,
       Res = Item;
       continue;
     }
-    unsigned Distance = Item.edit_distance(Search);
-    if (Distance < MaxEditDistance) {
+    
+    if (unsigned Distance = Item.edit_distance(Search); Distance < MaxEditDistance) {
       MaxEditDistance = Distance;
       Res = Item;
     }

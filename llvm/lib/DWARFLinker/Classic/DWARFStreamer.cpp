@@ -1381,15 +1381,15 @@ void DwarfStreamer::emitMacroTableImpl(const DWARFDebugMacro *MacroTable,
         continue;
       }
 
-      uint8_t MacroType = MacroEntry.Type;
-      switch (MacroType) {
+      
+      switch (uint8_t MacroType = MacroEntry.Type; MacroType) {
       default: {
-        bool HasVendorSpecificExtension =
+        
+
+        if (bool HasVendorSpecificExtension =
             (!hasDWARFv5Header && MacroType == dwarf::DW_MACINFO_vendor_ext) ||
             (hasDWARFv5Header && (MacroType >= dwarf::DW_MACRO_lo_user &&
-                                  MacroType <= dwarf::DW_MACRO_hi_user));
-
-        if (HasVendorSpecificExtension) {
+                                  MacroType <= dwarf::DW_MACRO_hi_user)); HasVendorSpecificExtension) {
           // Write macinfo type.
           MS->emitIntValue(MacroType, 1);
           OutOffset++;

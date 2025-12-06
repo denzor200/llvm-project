@@ -555,10 +555,10 @@ void X86FoldTablesEmitter::updateTables(const CodeGenInstruction *RegInst,
     // operand is a memory operand, add instructions to Table#i.
     for (unsigned I = RegOutSize, E = RegInst->Operands.size(); I < E; I++) {
       const Record *RegOpRec = RegInst->Operands[I].Rec;
-      const Record *MemOpRec = MemInst->Operands[I].Rec;
+      
       // RegClassByHwMode: For instructions like TAILJMPr, TAILJMPr64,
       // TAILJMPr64_REX
-      if ((isRegisterOperand(RegOpRec) ||
+      if (const Record *MemOpRec = MemInst->Operands[I].Rec; (isRegisterOperand(RegOpRec) ||
            (RegOpRec->isSubClassOf("RegClassByHwMode"))) &&
           isMemoryOperand(MemOpRec)) {
         switch (I) {
@@ -599,8 +599,8 @@ void X86FoldTablesEmitter::updateTables(const CodeGenInstruction *RegInst,
     //   MOVAPSrr => (outs VR128:$dst), (ins VR128:$src)
     //   MOVAPSmr => (outs), (ins f128mem:$dst, VR128:$src)
     const Record *RegOpRec = RegInst->Operands[RegOutSize - 1].Rec;
-    const Record *MemOpRec = MemInst->Operands[RegOutSize - 1].Rec;
-    if (isRegisterOperand(RegOpRec) && isMemoryOperand(MemOpRec) &&
+    
+    if (const Record *MemOpRec = MemInst->Operands[RegOutSize - 1].Rec; isRegisterOperand(RegOpRec) && isMemoryOperand(MemOpRec) &&
         getRegOperandSize(RegOpRec) == getMemOperandSize(MemOpRec)) {
       assert(!IsBroadcast && "Store can not be broadcast");
       addEntryWithFlags(Table0, RegInst, MemInst, S | TB_FOLDED_STORE, 0,

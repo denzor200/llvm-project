@@ -97,8 +97,8 @@ private:
         }
 
       // If there's no defined symbol then create one.
-      SectionRange SR(*GOTSection);
-      if (SR.empty())
+      
+      if (SectionRange SR(*GOTSection); SR.empty())
         GOTSymbol =
             &G.addAbsoluteSymbol(ELFGOTSymbolName, orc::ExecutorAddr(), 0,
                                  Linkage::Strong, Scope::Local, true);
@@ -114,8 +114,8 @@ private:
     if (!GOTSymbol) {
       for (auto *Sym : G.external_symbols()) {
         if (Sym->getName() != nullptr && *Sym->getName() == ELFGOTSymbolName) {
-          auto Blocks = G.blocks();
-          if (!Blocks.empty()) {
+          
+          if (auto Blocks = G.blocks(); !Blocks.empty()) {
             G.makeAbsolute(*Sym, (*Blocks.begin())->getAddress());
             GOTSymbol = Sym;
             break;
@@ -386,8 +386,8 @@ Expected<std::unique_ptr<LinkGraph>> createLinkGraphFromELFObject_systemz(
 void link_ELF_systemz(std::unique_ptr<LinkGraph> G,
                       std::unique_ptr<JITLinkContext> Ctx) {
   PassConfiguration Config;
-  const Triple &TT = G->getTargetTriple();
-  if (Ctx->shouldAddDefaultTargetPasses(TT)) {
+  
+  if (const Triple &TT = G->getTargetTriple(); Ctx->shouldAddDefaultTargetPasses(TT)) {
     // Add eh-frame passes.
     Config.PrePrunePasses.push_back(DWARFRecordSectionSplitter(".eh_frame"));
     Config.PrePrunePasses.push_back(

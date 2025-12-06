@@ -150,8 +150,8 @@ bool mlir::isLegalForBranchOpInterfaceTypeConversionPattern(
   // All successor operands of branch like operations must be rewritten.
   if (auto branchOp = dyn_cast<BranchOpInterface>(op)) {
     for (int p = 0, e = op->getBlock()->getNumSuccessors(); p < e; ++p) {
-      auto successorOperands = branchOp.getSuccessorOperands(p);
-      if (!converter.isLegal(
+      
+      if (auto successorOperands = branchOp.getSuccessorOperands(p); !converter.isLegal(
               successorOperands.getForwardedOperands().getTypes()))
         return false;
     }
@@ -188,8 +188,8 @@ bool mlir::isNotBranchOpInterfaceOrReturnLikeOp(Operation *op) {
 
   // If it is not the last operation in the block, also ignore it. We do
   // this to handle unknown operations, as well.
-  Block *block = op->getBlock();
-  if (!block || &block->back() != op)
+  
+  if (Block *block = op->getBlock(); !block || &block->back() != op)
     return true;
 
   // We don't want to handle terminators in nested regions, assume they are

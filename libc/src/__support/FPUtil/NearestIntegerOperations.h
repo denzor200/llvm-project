@@ -96,8 +96,8 @@ LIBC_INLINE T ceil(T x) {
 
 template <typename T, cpp::enable_if_t<cpp::is_floating_point_v<T>, int> = 0>
 LIBC_INLINE T floor(T x) {
-  FPBits<T> bits(x);
-  if (bits.is_neg()) {
+  
+  if (FPBits<T> bits(x); bits.is_neg()) {
     return -ceil(-x);
   } else {
     return trunc(x);
@@ -212,10 +212,10 @@ round_using_specific_rounding_mode(T x, int rnd) {
   // If exponent is 0, trimSize will be equal to the mantissa width, and
   // truncIsOdd` will not be correct. So, we handle it as a special case
   // below.
-  StorageType trunc_is_odd =
-      new_bits.get_mantissa() & (StorageType(1) << trim_size);
+  
 
-  switch (rnd) {
+  switch (StorageType trunc_is_odd =
+      new_bits.get_mantissa() & (StorageType(1) << trim_size); rnd) {
   case FP_INT_DOWNWARD:
     return is_neg ? trunc_value - T(1.0) : trunc_value;
   case FP_INT_UPWARD:
@@ -246,9 +246,9 @@ round_using_specific_rounding_mode(T x, int rnd) {
 template <typename T>
 LIBC_INLINE cpp::enable_if_t<cpp::is_floating_point_v<T>, T>
 round_using_current_rounding_mode(T x) {
-  int rounding_mode = quick_get_round();
+  
 
-  switch (rounding_mode) {
+  switch (int rounding_mode = quick_get_round(); rounding_mode) {
   case FE_DOWNWARD:
     return round_using_specific_rounding_mode(x, FP_INT_DOWNWARD);
   case FE_UPWARD:

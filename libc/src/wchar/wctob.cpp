@@ -17,8 +17,8 @@
 namespace LIBC_NAMESPACE_DECL {
 
 LLVM_LIBC_FUNCTION(int, wctob, (wint_t c)) {
-  auto result = internal::wctob(c);
-  if (result.has_value()) {
+  
+  if (auto result = internal::wctob(c); result.has_value()) {
     return result.value();
   } else {
     return EOF;

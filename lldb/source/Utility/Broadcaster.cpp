@@ -59,8 +59,8 @@ Broadcaster::BroadcasterImpl::GetListeners(uint32_t event_mask,
   listeners.reserve(max_count);
 
   for (auto it = m_listeners.begin(); it != m_listeners.end();) {
-    lldb::ListenerSP curr_listener_sp(it->first.lock());
-    if (curr_listener_sp) {
+    
+    if (lldb::ListenerSP curr_listener_sp(it->first.lock()); curr_listener_sp) {
       if (it->second & event_mask)
         listeners.emplace_back(std::move(curr_listener_sp), it->second);
       ++it;
@@ -79,8 +79,8 @@ bool Broadcaster::BroadcasterImpl::HasListeners(uint32_t event_mask) {
     return true;
   for (auto it = m_listeners.begin(); it != m_listeners.end(); it++) {
     // Don't return a listener if the other end of the WP is gone:
-    lldb::ListenerSP curr_listener_sp(it->first.lock());
-    if (curr_listener_sp && (it->second & event_mask))
+    
+    if (lldb::ListenerSP curr_listener_sp(it->first.lock()); curr_listener_sp && (it->second & event_mask))
       return true;
   }
   return false;
@@ -110,8 +110,8 @@ bool Broadcaster::BroadcasterImpl::GetEventNames(
     for (uint32_t bit = 1u, mask = event_mask; mask != 0 && bit != 0;
          bit <<= 1, mask >>= 1) {
       if (mask & 1) {
-        event_names_map::const_iterator pos = m_event_names.find(bit);
-        if (pos != end) {
+        
+        if (event_names_map::const_iterator pos = m_event_names.find(bit); pos != end) {
           if (num_names_added > 0)
             s.PutCString(", ");
 

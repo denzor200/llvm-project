@@ -86,8 +86,8 @@ static void dumpFunctionProfileJson(const FunctionSamples &S,
           JOS.attribute("discriminator", Loc.Discriminator);
         JOS.attribute("samples", Sample.getSamples());
 
-        auto CallTargets = Sample.getSortedCallTargets();
-        if (!CallTargets.empty()) {
+        
+        if (auto CallTargets = Sample.getSortedCallTargets(); !CallTargets.empty()) {
           JOS.attributeArray("calls", [&] {
             for (const auto &J : CallTargets) {
               JOS.object([&] {
@@ -122,8 +122,8 @@ static void dumpFunctionProfileJson(const FunctionSamples &S,
     if (TopLevel)
       JOS.attribute("head", S.getHeadSamples());
 
-    const auto &BodySamples = S.getBodySamples();
-    if (!BodySamples.empty())
+    
+    if (const auto &BodySamples = S.getBodySamples(); !BodySamples.empty())
       JOS.attributeArray("body", [&] { DumpBody(BodySamples); });
 
     const auto &CallsiteSamples = S.getCallsiteSamples();
@@ -266,8 +266,8 @@ static bool ParseLine(const StringRef &Input, LineType &LineTy, uint32_t &Depth,
 
   size_t n1 = Input.find(':');
   StringRef Loc = Input.substr(Depth, n1 - Depth);
-  size_t n2 = Loc.find('.');
-  if (n2 == StringRef::npos) {
+  
+  if (size_t n2 = Loc.find('.'); n2 == StringRef::npos) {
     if (Loc.getAsInteger(10, LineOffset) || !isOffsetLegal(LineOffset))
       return false;
     Discriminator = 0;
@@ -372,8 +372,8 @@ std::error_code SampleProfileReaderText::readImpl() {
   ProfileIsFS = ProfileIsFSDisciminator;
   FunctionSamples::ProfileIsFS = ProfileIsFS;
   for (; !LineIt.is_at_eof(); ++LineIt) {
-    size_t pos = LineIt->find_first_not_of(' ');
-    if (pos == LineIt->npos || (*LineIt)[pos] == '#')
+    
+    if (size_t pos = LineIt->find_first_not_of(' '); pos == LineIt->npos || (*LineIt)[pos] == '#')
       continue;
     // Read the header of each function.
     //
@@ -956,8 +956,8 @@ SampleProfileReaderExtBinaryBase::read(const DenseSet<StringRef> &FuncsToUse,
   End = Data;
   DenseSet<FunctionSamples *> ProfilesToReadMetadata;
   for (auto FName : FuncsToUse) {
-    auto I = Profiles.find(FName);
-    if (I != Profiles.end())
+    
+    if (auto I = Profiles.find(FName); I != Profiles.end())
       ProfilesToReadMetadata.insert(&I->second);
   }
 
@@ -1060,8 +1060,8 @@ std::error_code SampleProfileReaderExtBinaryBase::readFuncProfiles(
           (CommonContext && CommonContext->isPrefixOf(FContext))) {
         // Load profile for the current context which originated from
         // the common ancestor.
-        const uint8_t *FuncProfileAddr = Start + NameOffset.second;
-        if (std::error_code EC = readFuncProfile(FuncProfileAddr))
+        
+        if (const uint8_t *FuncProfileAddr = Start + NameOffset.second; std::error_code EC = readFuncProfile(FuncProfileAddr))
           return EC;
       }
     }
@@ -1111,11 +1111,11 @@ std::error_code SampleProfileReaderExtBinaryBase::readFuncProfiles() {
   // which will query FunctionSamples::HasUniqSuffix, so it has to be
   // called after FunctionSamples::HasUniqSuffix is set, i.e. after
   // NameTable section is read.
-  bool LoadFuncsToBeUsed = collectFuncsFromModule();
+  
 
   // When LoadFuncsToBeUsed is false, we are using LLVM tool, need to read all
   // profiles.
-  if (!LoadFuncsToBeUsed) {
+  if (bool LoadFuncsToBeUsed = collectFuncsFromModule(); !LoadFuncsToBeUsed) {
     while (Data < End) {
       if (std::error_code EC = readFuncProfile(Data))
         return EC;
@@ -1696,8 +1696,8 @@ std::error_code SampleProfileReaderBinary::readSummary() {
 
   std::vector<ProfileSummaryEntry> Entries;
   for (unsigned i = 0; i < *NumSummaryEntries; i++) {
-    std::error_code EC = readSummaryEntry(Entries);
-    if (EC != sampleprof_error::success)
+    
+    if (std::error_code EC = readSummaryEntry(Entries); EC != sampleprof_error::success)
       return EC;
   }
   Summary = std::make_unique<ProfileSummary>(
@@ -1985,8 +1985,8 @@ void SampleProfileReaderItaniumRemapper::applyRemapping(LLVMContext &Ctx) {
     DenseSet<FunctionId> NamesInSample;
     Sample.second.findAllNames(NamesInSample);
     for (auto &Name : NamesInSample) {
-      StringRef NameStr = Name.stringRef();
-      if (auto Key = Remappings->insert(NameStr))
+      
+      if (StringRef NameStr = Name.stringRef(); auto Key = Remappings->insert(NameStr))
         NameMap.insert({Key, NameStr});
     }
   }
@@ -1997,8 +1997,8 @@ void SampleProfileReaderItaniumRemapper::applyRemapping(LLVMContext &Ctx) {
 std::optional<StringRef>
 SampleProfileReaderItaniumRemapper::lookUpNameInProfile(StringRef Fname) {
   if (auto Key = Remappings->lookup(Fname)) {
-    StringRef Result = NameMap.lookup(Key);
-    if (!Result.empty())
+    
+    if (StringRef Result = NameMap.lookup(Key); !Result.empty())
       return Result;
   }
   return std::nullopt;

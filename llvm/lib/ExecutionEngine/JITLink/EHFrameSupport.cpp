@@ -55,8 +55,8 @@ Error EHFrameEdgeFixer::operator()(LinkGraph &G) {
     // Just record the most-canonical symbol (for eh-frame purposes) at each
     // address.
     for (auto *Sym : Sec.symbols()) {
-      auto &CurSym = PC.AddrToSym[Sym->getAddress()];
-      if (!CurSym || (std::make_tuple(Sym->getLinkage(), Sym->getScope(),
+      
+      if (auto &CurSym = PC.AddrToSym[Sym->getAddress()]; !CurSym || (std::make_tuple(Sym->getLinkage(), Sym->getScope(),
                                       !Sym->hasName(), Sym->getName()) <
                       std::make_tuple(CurSym->getLinkage(), CurSym->getScope(),
                                       !CurSym->hasName(), CurSym->getName())))
@@ -134,8 +134,8 @@ Error EHFrameEdgeFixer::processBlock(ParseContext &PC, Block &B) {
       // Otherwise check if we previously had exactly one relocation at this
       // offset. If so, we now have a second one and move it from the TargetMap
       // into the Multiple set.
-      auto [It, Inserted] = BlockEdges.TargetMap.try_emplace(E.getOffset(), E);
-      if (!Inserted) {
+      
+      if (auto [It, Inserted] = BlockEdges.TargetMap.try_emplace(E.getOffset(), E); !Inserted) {
         BlockEdges.TargetMap.erase(It);
         BlockEdges.Multiple.insert(E.getOffset());
       }
@@ -208,15 +208,15 @@ Error EHFrameEdgeFixer::processCIE(ParseContext &PC, Block &B,
 
   // Read and validate the code alignment factor.
   {
-    uint64_t CodeAlignmentFactor = 0;
-    if (auto Err = RecordReader.readULEB128(CodeAlignmentFactor))
+    
+    if (uint64_t CodeAlignmentFactor = 0; auto Err = RecordReader.readULEB128(CodeAlignmentFactor))
       return Err;
   }
 
   // Read and validate the data alignment factor.
   {
-    int64_t DataAlignmentFactor = 0;
-    if (auto Err = RecordReader.readSLEB128(DataAlignmentFactor))
+    
+    if (int64_t DataAlignmentFactor = 0; auto Err = RecordReader.readSLEB128(DataAlignmentFactor))
       return Err;
   }
 
@@ -313,10 +313,10 @@ Error EHFrameEdgeFixer::processFDE(ParseContext &PC, Block &B,
 
     auto CIEEdgeItr = BlockEdges.TargetMap.find(CIEDeltaFieldOffset);
 
-    orc::ExecutorAddr CIEAddress =
+    
+    if (orc::ExecutorAddr CIEAddress =
         RecordAddress + orc::ExecutorAddrDiff(CIEDeltaFieldOffset) -
-        orc::ExecutorAddrDiff(CIEDelta);
-    if (CIEEdgeItr == BlockEdges.TargetMap.end()) {
+        orc::ExecutorAddrDiff(CIEDelta); CIEEdgeItr == BlockEdges.TargetMap.end()) {
       LLVM_DEBUG({
         dbgs() << "        Adding edge at "
                << (RecordAddress + CIEDeltaFieldOffset)

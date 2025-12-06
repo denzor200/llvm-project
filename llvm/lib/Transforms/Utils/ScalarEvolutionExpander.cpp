@@ -241,8 +241,8 @@ Value *SCEVExpander::InsertNoopCastOfTo(Value *V, Type *Ty) {
   // expressions already based on a GEP of null should be converted to pointers
   // during expansion.
   if (Op == Instruction::IntToPtr) {
-    auto *PtrTy = cast<PointerType>(Ty);
-    if (DL.isNonIntegralPointerType(PtrTy))
+    
+    if (auto *PtrTy = cast<PointerType>(Ty); DL.isNonIntegralPointerType(PtrTy))
       return Builder.CreatePtrAdd(Constant::getNullValue(PtrTy), V, "scevgep");
   }
   // Short-circuit unnecessary bitcasts.
@@ -475,8 +475,8 @@ const Loop *SCEVExpander::getRelevantLoop(const SCEV *S) {
     return RelevantLoops[S] = L;
   }
   case scUnknown: {
-    const SCEVUnknown *U = cast<SCEVUnknown>(S);
-    if (const Instruction *I = dyn_cast<Instruction>(U->getValue()))
+    
+    if (const SCEVUnknown *U = cast<SCEVUnknown>(S); const Instruction *I = dyn_cast<Instruction>(U->getValue()))
       return Pair.first->second = SE.LI.getLoopFor(I->getParent());
     // A non-instruction has no relevant loops.
     return nullptr;
@@ -689,8 +689,8 @@ Value *SCEVExpander::visitMulExpr(const SCEVMulExpr *S) {
 Value *SCEVExpander::visitUDivExpr(const SCEVUDivExpr *S) {
   Value *LHS = expand(S->getLHS());
   if (const SCEVConstant *SC = dyn_cast<SCEVConstant>(S->getRHS())) {
-    const APInt &RHS = SC->getAPInt();
-    if (RHS.isPowerOf2())
+    
+    if (const APInt &RHS = SC->getAPInt(); RHS.isPowerOf2())
       return InsertBinop(Instruction::LShr, LHS,
                          ConstantInt::get(SC->getType(), RHS.logBase2()),
                          SCEV::FlagAnyWrap, /*IsSafeToHoist*/ true);
@@ -766,8 +766,8 @@ Instruction *SCEVExpander::getIVIncOperand(Instruction *IncV,
   // Check for a simple Add/Sub or GEP of a loop invariant step.
   case Instruction::Add:
   case Instruction::Sub: {
-    Instruction *OInst = dyn_cast<Instruction>(IncV->getOperand(1));
-    if (!OInst || SE.DT.dominates(OInst, InsertPos))
+    
+    if (Instruction *OInst = dyn_cast<Instruction>(IncV->getOperand(1)); !OInst || SE.DT.dominates(OInst, InsertPos))
       return dyn_cast<Instruction>(IncV->getOperand(0));
     return nullptr;
   }
@@ -984,8 +984,8 @@ SCEVExpander::getAddRecExprPHILiterally(const SCEVAddRecExpr *Normalized,
          "Uninitialized insert position");
 
   // Reuse a previously-inserted PHI, if present.
-  BasicBlock *LatchBlock = L->getLoopLatch();
-  if (LatchBlock) {
+  
+  if (BasicBlock *LatchBlock = L->getLoopLatch(); LatchBlock) {
     PHINode *AddRecPhiMatch = nullptr;
     Instruction *IncV = nullptr;
     TruncTy = nullptr;
@@ -1647,8 +1647,8 @@ Value *SCEVExpander::expand(const SCEV *S) {
             ScalarEvolution::maskFlags(*Flags, SCEV::FlagNSW) == SCEV::FlagNSW);
         }
       if (auto *NNI = dyn_cast<PossiblyNonNegInst>(I)) {
-        auto *Src = NNI->getOperand(0);
-        if (isImpliedByDomCondition(ICmpInst::ICMP_SGE, Src,
+        
+        if (auto *Src = NNI->getOperand(0); isImpliedByDomCondition(ICmpInst::ICMP_SGE, Src,
                                     Constant::getNullValue(Src->getType()), I,
                                     DL).value_or(false))
           NNI->setNonNeg(true);
@@ -1698,8 +1698,8 @@ void SCEVExpander::replaceCongruentIVInc(
   // original with it. As part of the "more canonical" determination,
   // respect a prior decision to use an IV chain.
   if (OrigPhi->getType() == Phi->getType()) {
-    bool Chained = ChainedPhis.contains(Phi);
-    if (!(Chained || isExpandedAddRecExprPHI(OrigPhi, OrigInc, L)) &&
+    
+    if (bool Chained = ChainedPhis.contains(Phi); !(Chained || isExpandedAddRecExprPHI(OrigPhi, OrigInc, L)) &&
         (Chained || isExpandedAddRecExprPHI(Phi, IsomorphicInc, L))) {
       std::swap(OrigPhi, Phi);
       std::swap(OrigInc, IsomorphicInc);
@@ -1835,8 +1835,8 @@ SCEVExpander::replaceCongruentIVs(Loop *L, const DominatorTree *DT,
         // Make sure we only rewrite using simple induction variables;
         // otherwise, we can make the trip count of a loop unanalyzable
         // to SCEV.
-        const SCEV *PhiExpr = SE.getSCEV(Phi);
-        if (isa<SCEVAddRecExpr>(PhiExpr)) {
+        
+        if (const SCEV *PhiExpr = SE.getSCEV(Phi); isa<SCEVAddRecExpr>(PhiExpr)) {
           // This phi can be freely truncated to the narrowest phi type. Map the
           // truncated expression to it so it will be reused for narrow types.
           const SCEV *TruncExpr =
@@ -2057,12 +2057,12 @@ bool SCEVExpander::isHighCostExpansionHelper(
   if (hasRelatedExistingExpansion(S, &At, L))
     return false; // Consider the expression to be free.
 
-  TargetTransformInfo::TargetCostKind CostKind =
+  
+
+  switch (TargetTransformInfo::TargetCostKind CostKind =
       L->getHeader()->getParent()->hasMinSize()
           ? TargetTransformInfo::TCK_CodeSize
-          : TargetTransformInfo::TCK_RecipThroughput;
-
-  switch (S->getSCEVType()) {
+          : TargetTransformInfo::TCK_RecipThroughput; S->getSCEVType()) {
   case scCouldNotCompute:
     llvm_unreachable("Attempt to use a SCEVCouldNotCompute object!");
   case scUnknown:

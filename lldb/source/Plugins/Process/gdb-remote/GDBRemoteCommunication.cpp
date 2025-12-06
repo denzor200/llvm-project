@@ -146,10 +146,10 @@ GDBRemoteCommunication::SendRawPacketNoLock(llvm::StringRef packet,
       size_t binary_start_offset = 0;
       if (strncmp(packet_data, "$vFile:pwrite:", strlen("$vFile:pwrite:")) ==
           0) {
-        const char *first_comma = strchr(packet_data, ',');
-        if (first_comma) {
-          const char *second_comma = strchr(first_comma + 1, ',');
-          if (second_comma)
+        
+        if (const char *first_comma = strchr(packet_data, ','); first_comma) {
+          
+          if (const char *second_comma = strchr(first_comma + 1, ','); second_comma)
             binary_start_offset = second_comma - packet_data + 1;
         }
       }
@@ -216,9 +216,9 @@ GDBRemoteCommunication::ReadPacket(StringExtractorGDBRemote &response,
 
   Log *log = GetLog(GDBRLog::Packets);
   for (;;) {
-    PacketResult result =
-        WaitForPacketNoLock(response, timeout, sync_on_timeout);
-    if (result != PacketResult::Success ||
+    
+    if (PacketResult result =
+        WaitForPacketNoLock(response, timeout, sync_on_timeout); result != PacketResult::Success ||
         (response.GetResponseType() != ResponseType::eAck &&
          response.GetResponseType() != ResponseType::eNack))
       return result;
@@ -653,8 +653,8 @@ GDBRemoteCommunication::CheckForPacket(const uint8_t *src, size_t src_len,
     case '$':
       // Look for a standard gdb packet?
       {
-        size_t hash_pos = m_bytes.find('#');
-        if (hash_pos != std::string::npos) {
+        
+        if (size_t hash_pos = m_bytes.find('#'); hash_pos != std::string::npos) {
           if (hash_pos + 2 < m_bytes.size()) {
             checksum_idx = hash_pos + 1;
             // Skip the dollar sign
@@ -726,8 +726,8 @@ GDBRemoteCommunication::CheckForPacket(const uint8_t *src, size_t src_len,
         // '#CC' checksum
         if (m_bytes[0] == '$' && total_length > 4) {
           for (size_t i = 0; !binary && i < total_length; ++i) {
-            unsigned char c = m_bytes[i];
-            if (!llvm::isPrint(c) && !llvm::isSpace(c)) {
+            
+            if (unsigned char c = m_bytes[i]; !llvm::isPrint(c) && !llvm::isSpace(c)) {
               binary = true;
             }
           }
@@ -744,8 +744,8 @@ GDBRemoteCommunication::CheckForPacket(const uint8_t *src, size_t src_len,
                         (uint64_t)total_length, m_bytes[0]);
           for (size_t i = content_start; i < content_end; ++i) {
             // Remove binary escaped bytes when displaying the packet...
-            const char ch = m_bytes[i];
-            if (ch == 0x7d) {
+            
+            if (const char ch = m_bytes[i]; ch == 0x7d) {
               // 0x7d is the escape character.  The next character is to be
               // XOR'd with 0x20.
               const char escapee = m_bytes[++i] ^ 0x20;
@@ -982,8 +982,8 @@ Status GDBRemoteCommunication::StartDebugserverProcess(
 
   // Read data from the pipe -- and ignore it (see comment above).
   while (error.Success()) {
-    char buf[10];
-    if (llvm::Expected<size_t> num_bytes =
+    
+    if (char buf[10]; llvm::Expected<size_t> num_bytes =
             socket_pipe.Read(buf, std::size(buf), std::chrono::seconds(10))) {
       if (*num_bytes == 0)
         break;
@@ -1010,10 +1010,10 @@ void GDBRemoteCommunication::DumpHistory(Stream &strm) { m_history.Dump(strm); }
 GDBRemoteCommunication::ScopedTimeout::ScopedTimeout(
     GDBRemoteCommunication &gdb_comm, std::chrono::seconds timeout)
     : m_gdb_comm(gdb_comm), m_saved_timeout(0), m_timeout_modified(false) {
-  auto curr_timeout = gdb_comm.GetPacketTimeout();
+  
   // Only update the timeout if the timeout is greater than the current
   // timeout. If the current timeout is larger, then just use that.
-  if (curr_timeout < timeout) {
+  if (auto curr_timeout = gdb_comm.GetPacketTimeout(); curr_timeout < timeout) {
     m_timeout_modified = true;
     m_saved_timeout = m_gdb_comm.SetPacketTimeout(timeout);
   }

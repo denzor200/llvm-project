@@ -191,9 +191,9 @@ void IntegerRangeAnalysis::visitNonControlFlowArguments(
         if (auto bound = dyn_cast_or_null<IntegerAttr>(attr))
           return bound.getValue();
       } else if (auto value = llvm::dyn_cast_if_present<Value>(*loopBound)) {
-        const IntegerValueRangeLattice *lattice =
-            getLatticeElementFor(getProgramPointBefore(block), value);
-        if (lattice != nullptr && !lattice->getValue().isUninitialized())
+        
+        if (const IntegerValueRangeLattice *lattice =
+            getLatticeElementFor(getProgramPointBefore(block), value); lattice != nullptr && !lattice->getValue().isUninitialized())
           return getUpper ? lattice->getValue().getValue().smax()
                           : lattice->getValue().getValue().smin();
       }

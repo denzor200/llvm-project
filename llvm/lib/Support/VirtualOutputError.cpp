@@ -57,8 +57,8 @@ const char *OutputErrorCategory::name() const noexcept {
 }
 
 std::string OutputErrorCategory::message(int EV) const {
-  OutputErrorCode E = static_cast<OutputErrorCode>(EV);
-  switch (E) {
+  
+  switch (OutputErrorCode E = static_cast<OutputErrorCode>(EV); E) {
   case OutputErrorCode::invalid_config:
     return "invalid config";
   case OutputErrorCode::not_closed:

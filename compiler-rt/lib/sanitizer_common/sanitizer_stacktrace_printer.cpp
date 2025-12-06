@@ -39,8 +39,8 @@ const char *StackTracePrinter::StripFunctionName(const char *function) {
   if (!function)
     return nullptr;
   auto try_strip = [function](const char *prefix) -> const char * {
-    const uptr prefix_len = internal_strlen(prefix);
-    if (!internal_strncmp(function, prefix, prefix_len))
+    
+    if (const uptr prefix_len = internal_strlen(prefix); !internal_strncmp(function, prefix, prefix_len))
       return function + prefix_len;
     return nullptr;
   };

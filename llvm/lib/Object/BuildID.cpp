@@ -103,8 +103,8 @@ std::optional<std::string> BuildIDFetcher::fetch(BuildIDRef BuildID) const {
   } else {
     for (const auto &Directory : DebugFileDirectories) {
       // Try <debug-file-directory>/.build-id/../...
-      SmallString<128> Path = GetDebugPath(Directory);
-      if (llvm::sys::fs::exists(Path))
+      
+      if (SmallString<128> Path = GetDebugPath(Directory); llvm::sys::fs::exists(Path))
         return std::string(Path);
     }
   }

@@ -138,8 +138,8 @@ struct TestGenericIRBlockVisitorInterruptPass
       return WalkResult::advance();
     };
 
-    auto result = getOperation()->walk(walker);
-    if (result.wasInterrupted())
+    
+    if (auto result = getOperation()->walk(walker); result.wasInterrupted())
       llvm::outs() << "step " << stepNo++ << " walk was interrupted\n";
   }
 };
@@ -169,8 +169,8 @@ struct TestGenericIRRegionVisitorInterruptPass
       return WalkResult::advance();
     };
 
-    auto result = getOperation()->walk(walker);
-    if (result.wasInterrupted())
+    
+    if (auto result = getOperation()->walk(walker); result.wasInterrupted())
       llvm::outs() << "step " << stepNo++ << " walk was interrupted\n";
   }
 };

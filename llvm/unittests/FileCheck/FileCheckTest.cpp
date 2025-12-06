@@ -145,8 +145,8 @@ struct ExpressionFormatParameterisedFixture
     ASSERT_TRUE(TrailExtendTo == 0 || AllowHex);
     SmallVector<StringRef, 4> Matches;
     std::string ExtendedInput = Input.str();
-    size_t PrefixSize = AlternateForm ? 2 : 0;
-    if (TrailExtendTo > Input.size() - PrefixSize) {
+    
+    if (size_t PrefixSize = AlternateForm ? 2 : 0; TrailExtendTo > Input.size() - PrefixSize) {
       size_t ExtensionSize = PrefixSize + TrailExtendTo - Input.size();
       ExtendedInput.append(ExtensionSize, Input[PrefixSize]);
     }

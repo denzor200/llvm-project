@@ -81,12 +81,12 @@ bool needsLeadingEscapePlaintext(char C, llvm::StringRef Before,
     return (After.empty() || llvm::isSpace(After.front())) &&
            (Before.empty() || llvm::isSpace(Before.back()));
   };
-  auto WordSurrounds = [&]() {
+  
+
+  switch (auto WordSurrounds = [&]() {
     return (!After.empty() && llvm::isAlnum(After.front())) &&
            (!Before.empty() && llvm::isAlnum(Before.back()));
-  };
-
-  switch (C) {
+  }; C) {
   case '\\': // Escaped character.
     return true;
   case '`': // Code block or inline code
@@ -620,8 +620,8 @@ bool Paragraph::isHardLineBreakIndicator(llvm::StringRef Rest,
     return true;
 
   if (llvm::isDigit(Rest.front())) {
-    llvm::StringRef AfterDigit = Rest.drop_while(llvm::isDigit);
-    if (AfterDigit.starts_with(".") || AfterDigit.starts_with(")"))
+    
+    if (llvm::StringRef AfterDigit = Rest.drop_while(llvm::isDigit); AfterDigit.starts_with(".") || AfterDigit.starts_with(")"))
       return true;
   }
   return false;

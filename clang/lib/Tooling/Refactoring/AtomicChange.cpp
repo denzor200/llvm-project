@@ -156,17 +156,17 @@ createReplacementsForHeaders(llvm::StringRef FilePath, llvm::StringRef Code,
       std::string ReplacementText = "#include " + EscapedHeader;
       // Offset UINT_MAX and length 0 indicate that the replacement is a header
       // insertion.
-      llvm::Error Err = HeaderReplacements.add(
-          tooling::Replacement(FilePath, UINT_MAX, 0, ReplacementText));
-      if (Err)
+      
+      if (llvm::Error Err = HeaderReplacements.add(
+          tooling::Replacement(FilePath, UINT_MAX, 0, ReplacementText)); Err)
         return std::move(Err);
     }
     for (const std::string &Header : Change.getRemovedHeaders()) {
       // Offset UINT_MAX and length 1 indicate that the replacement is a header
       // deletion.
-      llvm::Error Err =
-          HeaderReplacements.add(Replacement(FilePath, UINT_MAX, 1, Header));
-      if (Err)
+      
+      if (llvm::Error Err =
+          HeaderReplacements.add(Replacement(FilePath, UINT_MAX, 1, Header)); Err)
         return std::move(Err);
     }
   }
@@ -314,8 +314,8 @@ applyAtomicChanges(llvm::StringRef FilePath, llvm::StringRef Code,
 
   Replacements AllReplaces = std::move(*Replaces);
   for (const auto &R : *HeaderReplacements) {
-    llvm::Error Err = AllReplaces.add(R);
-    if (Err)
+    
+    if (llvm::Error Err = AllReplaces.add(R); Err)
       return make_string_error(
           "Failed to combine existing replacements with header replacements: " +
           llvm::toString(std::move(Err)));

@@ -112,8 +112,8 @@ bool RISCVPromoteConstant::runOnFunction(Function &F,
       // for an intrinsic.
       if (auto *II = dyn_cast<IntrinsicInst>(U.getUser())) {
         Function *IntrinsicFunc = II->getFunction();
-        unsigned OperandIdx = U.getOperandNo();
-        if (IntrinsicFunc && IntrinsicFunc->getAttributes().hasParamAttr(
+        
+        if (unsigned OperandIdx = U.getOperandNo(); IntrinsicFunc && IntrinsicFunc->getAttributes().hasParamAttr(
                                  OperandIdx, Attribute::ImmArg)) {
           LLVM_DEBUG(dbgs() << "Skipping promotion of constant in: " << *II
                             << " because operand " << OperandIdx

@@ -364,11 +364,11 @@ struct LegalizeTransferWriteOpsByDecomposition
     for (auto [index, smeTile] : llvm::enumerate(decomposeToSMETiles(
              rewriter, vectorType, smeTileType, transposed))) {
       auto smeMask = extractSMEMask(rewriter, loc, mask, smeTile);
-      auto smeWrite = vector::TransferWriteOp::create(
+      
+      if (auto smeWrite = vector::TransferWriteOp::create(
           rewriter, loc, inputSMETiles[index], destTensorOrMemref,
           getSMESubTileIndices(rewriter, loc, writeOp.getIndices(), smeTile),
-          writeOp.getPermutationMapAttr(), smeMask, writeOp.getInBoundsAttr());
-      if (writeOp.hasPureTensorSemantics())
+          writeOp.getPermutationMapAttr(), smeMask, writeOp.getInBoundsAttr()); writeOp.hasPureTensorSemantics())
         destTensorOrMemref = smeWrite.getResult();
     }
 

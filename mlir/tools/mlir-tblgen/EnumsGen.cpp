@@ -57,8 +57,8 @@ static void emitEnumClass(const Record &enumDef, StringRef enumName,
 
   for (const EnumCase &enumerant : enumerants) {
     auto symbol = makeIdentifier(enumerant.getSymbol());
-    auto value = enumerant.getValue();
-    if (value >= 0)
+    
+    if (auto value = enumerant.getValue(); value >= 0)
       os << formatv("  {0} = {1},\n", symbol, value);
     else
       os << formatv("  {0},\n", symbol);
@@ -263,8 +263,8 @@ inline ::llvm::raw_ostream &operator<<(::llvm::raw_ostream &p, {0} value) {{
     // Process the known multi-bit cases that use valid keywords.
     SmallVector<EnumCase *> validMultiBitCases;
     for (auto [index, caseVal] : llvm::enumerate(cases)) {
-      uint64_t value = caseVal.getValue();
-      if (value && !llvm::has_single_bit(value) && !nonKeywordCases.test(index))
+      
+      if (uint64_t value = caseVal.getValue(); value && !llvm::has_single_bit(value) && !nonKeywordCases.test(index))
         validMultiBitCases.push_back(&caseVal);
     }
     if (!validMultiBitCases.empty()) {
@@ -473,13 +473,13 @@ static void emitSymToStrFnForBitEnum(const Record &enumDef, raw_ostream &os) {
 )";
   // Add case string if the value has all case bits. Used for individual bit
   // cases, and for groups when printBitEnumPrimaryGroups is 0.
-  const char *const formatCompare = R"(
-  if ({0}u == ({0}u & val))
-    strs.push_back("{1}");
-)";
+  
   // Optionally elide bits that are members of groups that will also be printed
   // for more concise output.
-  if (enumInfo.printBitEnumPrimaryGroups()) {
+  if (const char *const formatCompare = R"(
+  if ({0}u == ({0}u & val))
+    strs.push_back("{1}");
+)"; enumInfo.printBitEnumPrimaryGroups()) {
     os << "  // Print bit enum groups before individual bits\n";
     // Emit comparisons for group bit cases in reverse tablegen declaration
     // order, removing bits for groups with all bits present.
@@ -640,8 +640,8 @@ static void emitSpecializedAttrDef(const Record &enumDef, raw_ostream &os) {
   // Assuming that it is IntegerAttr constraint
   int64_t bitwidth = 64;
   if (baseAttrDef->getValue("valueType")) {
-    auto *valueTypeDef = baseAttrDef->getValueAsDef("valueType");
-    if (valueTypeDef->getValue("bitwidth"))
+    
+    if (auto *valueTypeDef = baseAttrDef->getValueAsDef("valueType"); valueTypeDef->getValue("bitwidth"))
       bitwidth = valueTypeDef->getValueAsInt("bitwidth");
   }
 
@@ -751,7 +751,8 @@ inline ::std::optional<{0}> symbolizeEnum<{0}>(::llvm::StringRef str) {
 )";
     os << formatv(symbolizeEnumStr, enumName, strToSymFnName);
 
-    const char *const attrClassDecl = R"(
+    
+    if (const char *const attrClassDecl = R"(
 class {1} : public ::mlir::{2} {
 public:
   using ValueType = {0};
@@ -760,8 +761,7 @@ public:
   static {1} get(::mlir::MLIRContext *context, {0} val);
   {0} getValue() const;
 };
-)";
-    if (enumInfo.genSpecializedAttr()) {
+)"; enumInfo.genSpecializedAttr()) {
       StringRef attrClassName = enumInfo.getSpecializedAttrClassName();
       StringRef baseAttrClassName = "IntegerAttr";
       os << formatv(attrClassDecl, enumName, attrClassName, baseAttrClassName);

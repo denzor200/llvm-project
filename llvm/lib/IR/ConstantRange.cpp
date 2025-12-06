@@ -111,8 +111,8 @@ ConstantRange ConstantRange::makeAllowedICmpRegion(CmpInst::Predicate Pred,
   if (CR.isEmptySet())
     return CR;
 
-  uint32_t W = CR.getBitWidth();
-  switch (Pred) {
+  
+  switch (uint32_t W = CR.getBitWidth(); Pred) {
   default:
     llvm_unreachable("Invalid ICmp predicate to makeAllowedICmpRegion()");
   case CmpInst::ICMP_EQ:
@@ -334,9 +334,9 @@ ConstantRange::makeGuaranteedNoWrapRegion(Instruction::BinaryOps BinOp,
          "NoWrapKind invalid!");
 
   bool Unsigned = NoWrapKind == OBO::NoUnsignedWrap;
-  unsigned BitWidth = Other.getBitWidth();
+  
 
-  switch (BinOp) {
+  switch (unsigned BitWidth = Other.getBitWidth(); BinOp) {
   default:
     llvm_unreachable("Unsupported binary op");
 
@@ -1408,8 +1408,8 @@ ConstantRange ConstantRange::sdiv(const ConstantRange &RHS) const {
     // IR level, so we'll want to exclude this case when calculating bounds.
     // (For APInts the operation is well-defined and yields SignedMin.) We
     // handle this by dropping either SignedMin from the LHS or -1 from the RHS.
-    APInt Lo = (NegL.Upper - 1).sdiv(NegR.Lower);
-    if (NegL.Lower.isMinSignedValue() && NegR.Upper.isZero()) {
+    
+    if (APInt Lo = (NegL.Upper - 1).sdiv(NegR.Lower); NegL.Lower.isMinSignedValue() && NegR.Upper.isZero()) {
       // Remove -1 from the LHS. Skip if it's the only element, as this would
       // leave us with an empty set.
       if (!NegR.Lower.isAllOnes()) {

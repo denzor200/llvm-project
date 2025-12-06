@@ -293,8 +293,8 @@ public:
 
     spirv::MemorySpaceToStorageClassMap spaceToStorage = memorySpaceMap;
     if (spirv::TargetEnvAttr attr = spirv::lookupTargetEnv(op)) {
-      spirv::TargetEnv targetEnv(attr);
-      if (targetEnv.allows(spirv::Capability::Kernel)) {
+      
+      if (spirv::TargetEnv targetEnv(attr); targetEnv.allows(spirv::Capability::Kernel)) {
         spaceToStorage = spirv::mapMemorySpaceToOpenCLStorageClass;
       } else if (targetEnv.allows(spirv::Capability::Shader)) {
         spaceToStorage = spirv::mapMemorySpaceToVulkanStorageClass;

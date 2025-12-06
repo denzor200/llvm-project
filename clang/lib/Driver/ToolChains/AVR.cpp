@@ -620,9 +620,9 @@ void AVR::Linker::ConstructJob(Compilation &C, const JobAction &JA,
     // We directly use libclang_rt.builtins.a as input file, instead of using
     // '-lclang_rt.builtins'.
     if (RtLib == ToolChain::RLT_CompilerRT) {
-      std::string RtLib =
-          getToolChain().getCompilerRT(Args, "builtins", ToolChain::FT_Static);
-      if (llvm::sys::fs::exists(RtLib))
+      
+      if (std::string RtLib =
+          getToolChain().getCompilerRT(Args, "builtins", ToolChain::FT_Static); llvm::sys::fs::exists(RtLib))
         CmdArgs.push_back(Args.MakeArgString(RtLib));
     }
 
@@ -672,8 +672,8 @@ std::optional<std::string> AVRToolChain::findAVRLibcInstallation() const {
   // Search avr-libc installation from possible locations, and return the first
   // one that exists, if there is no avr-gcc installed.
   for (StringRef PossiblePath : PossibleAVRLibcLocations) {
-    std::string Path = getDriver().SysRoot + PossiblePath.str();
-    if (llvm::sys::fs::is_directory(Path))
+    
+    if (std::string Path = getDriver().SysRoot + PossiblePath.str(); llvm::sys::fs::is_directory(Path))
       return Path;
   }
 

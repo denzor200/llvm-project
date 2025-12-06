@@ -137,8 +137,8 @@ struct SCEVCollectAddRecMultiplies {
       bool HasAddRec = false;
       SmallVector<const SCEV *, 0> Operands;
       for (const SCEV *Op : Mul->operands()) {
-        const SCEVUnknown *Unknown = dyn_cast<SCEVUnknown>(Op);
-        if (Unknown && !isa<CallInst>(Unknown->getValue())) {
+        
+        if (const SCEVUnknown *Unknown = dyn_cast<SCEVUnknown>(Op); Unknown && !isa<CallInst>(Unknown->getValue())) {
           Operands.push_back(Op);
         } else if (Unknown) {
           HasAddRec = true;

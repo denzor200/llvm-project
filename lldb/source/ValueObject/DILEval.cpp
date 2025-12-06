@@ -69,10 +69,10 @@ Interpreter::UnaryConversion(lldb::ValueObjectSP valobj, uint32_t location) {
     // converted to `int`. Otherwise, if `unsigned int` can represent it, it
     // is converted to `unsigned int`. Otherwise, it is treated as its
     // underlying type.
-    uint32_t bitfield_size = valobj->GetBitfieldBitSize();
+    
     // Some bitfields have undefined size (e.g. result of ternary operation).
     // The AST's `bitfield_size` of those is 0, and no promotion takes place.
-    if (bitfield_size > 0 && in_type.IsInteger()) {
+    if (uint32_t bitfield_size = valobj->GetBitfieldBitSize(); bitfield_size > 0 && in_type.IsInteger()) {
       CompilerType int_type = GetBasicType(*type_system, lldb::eBasicTypeInt);
       CompilerType uint_type =
           GetBasicType(*type_system, lldb::eBasicTypeUnsignedInt);
@@ -154,9 +154,9 @@ lldb::ValueObjectSP LookupGlobalIdentifier(
   name_ref.consume_front("::");
   lldb::ValueObjectSP value_sp;
   if (variable_list) {
-    lldb::VariableSP var_sp =
-        DILFindVariable(ConstString(name_ref), *variable_list);
-    if (var_sp)
+    
+    if (lldb::VariableSP var_sp =
+        DILFindVariable(ConstString(name_ref), *variable_list); var_sp)
       value_sp =
           stack_frame->GetValueObjectForFrameVariable(var_sp, use_dynamic);
   }
@@ -206,9 +206,9 @@ lldb::ValueObjectSP LookupIdentifier(llvm::StringRef name_ref,
 
     lldb::ValueObjectSP value_sp;
     if (variable_list) {
-      lldb::VariableSP var_sp =
-          variable_list->FindVariable(ConstString(name_ref));
-      if (var_sp)
+      
+      if (lldb::VariableSP var_sp =
+          variable_list->FindVariable(ConstString(name_ref)); var_sp)
         value_sp =
             stack_frame->GetValueObjectForFrameVariable(var_sp, use_dynamic);
     }
@@ -379,9 +379,9 @@ Interpreter::Visit(const MemberOfNode *node) {
     if (!m_fragile_ivar) {
       // Make sure we aren't trying to deref an objective
       // C ivar if this is not allowed
-      const uint32_t pointer_type_flags =
-          base->GetCompilerType().GetTypeInfo(nullptr);
-      if ((pointer_type_flags & lldb::eTypeIsObjC) &&
+      
+      if (const uint32_t pointer_type_flags =
+          base->GetCompilerType().GetTypeInfo(nullptr); (pointer_type_flags & lldb::eTypeIsObjC) &&
           (pointer_type_flags & lldb::eTypeIsPointer)) {
         // This was an objective C object pointer and it was requested we
         // skip any fragile ivars so return nothing here
@@ -416,9 +416,9 @@ Interpreter::Visit(const MemberOfNode *node) {
   }
 
   if (m_check_ptr_vs_member) {
-    bool base_is_ptr = base->IsPointerType();
+    
 
-    if (expr_is_ptr != base_is_ptr) {
+    if (bool base_is_ptr = base->IsPointerType(); expr_is_ptr != base_is_ptr) {
       if (base_is_ptr) {
         std::string errMsg =
             llvm::formatv("member reference type {0} is a pointer; "
@@ -457,9 +457,9 @@ Interpreter::Visit(const MemberOfNode *node) {
 
   if (field_obj) {
     if (m_use_dynamic != lldb::eNoDynamicValues) {
-      lldb::ValueObjectSP dynamic_val_sp =
-          field_obj->GetDynamicValue(m_use_dynamic);
-      if (dynamic_val_sp)
+      
+      if (lldb::ValueObjectSP dynamic_val_sp =
+          field_obj->GetDynamicValue(m_use_dynamic); dynamic_val_sp)
         field_obj = dynamic_val_sp;
     }
     return field_obj;

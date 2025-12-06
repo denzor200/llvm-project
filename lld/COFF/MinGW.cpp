@@ -263,12 +263,12 @@ void lld::coff::wrapSymbols(SymbolTable &symtab) {
     map[w.sym] = w.wrap;
     map[w.real] = w.sym;
     if (Defined *d = dyn_cast<Defined>(w.wrap)) {
-      Symbol *imp = symtab.find(("__imp_" + w.sym->getName()).str());
+      
       // Create a new defined local import for the wrap symbol. If
       // no imp prefixed symbol existed, there's no need for it.
       // (We can't easily distinguish whether any object file actually
       // referenced it or not, though.)
-      if (imp) {
+      if (Symbol *imp = symtab.find(("__imp_" + w.sym->getName()).str()); imp) {
         if (Symbol *wrapimp =
                 symtab.find(("__imp_" + w.wrap->getName()).str())) {
           map[imp] = wrapimp;

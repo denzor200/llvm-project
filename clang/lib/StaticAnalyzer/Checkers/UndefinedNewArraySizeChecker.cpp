@@ -43,9 +43,9 @@ void UndefinedNewArraySizeChecker::checkPreCall(const CallEvent &Call,
       return;
 
     auto *SizeEx = *AC->getArraySizeExpr();
-    auto SizeVal = AC->getArraySizeVal();
+    
 
-    if (SizeVal.isUndef())
+    if (auto SizeVal = AC->getArraySizeVal(); SizeVal.isUndef())
       HandleUndefinedArrayElementCount(C, SizeVal, SizeEx,
                                        SizeEx->getSourceRange());
   }

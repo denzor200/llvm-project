@@ -139,8 +139,8 @@ bool NVPTXTargetLowering::usePrecSqrtF32(const SDNode *N) const {
     return UsePrecSqrtF32;
 
   if (N) {
-    const SDNodeFlags Flags = N->getFlags();
-    if (Flags.hasApproximateFuncs())
+    
+    if (const SDNodeFlags Flags = N->getFlags(); Flags.hasApproximateFuncs())
       return false;
   }
 
@@ -372,8 +372,8 @@ static inline SDValue getBuildVectorizedValue(unsigned N, const SDLoc &dl,
 
   SmallVector<SDValue, 8> Values;
   for (const unsigned I : llvm::seq(N)) {
-    SDValue Val = GetElement(I);
-    if (Val.getValueType().isVector())
+    
+    if (SDValue Val = GetElement(I); Val.getValueType().isVector())
       DAG.ExtractVectorElements(Val, Values);
     else
       Values.push_back(Val);
@@ -883,8 +883,8 @@ NVPTXTargetLowering::NVPTXTargetLowering(const NVPTXTargetMachine &TM,
   // Vector reduction operations. These may be turned into shuffle or tree
   // reductions depending on what instructions are available for each type.
   for (MVT VT : MVT::fixedlen_vector_valuetypes()) {
-    MVT EltVT = VT.getVectorElementType();
-    if (EltVT == MVT::f32 || EltVT == MVT::f64) {
+    
+    if (MVT EltVT = VT.getVectorElementType(); EltVT == MVT::f32 || EltVT == MVT::f64) {
       setOperationAction({ISD::VECREDUCE_FMAX, ISD::VECREDUCE_FMIN,
                           ISD::VECREDUCE_FMAXIMUM, ISD::VECREDUCE_FMINIMUM},
                          VT, Custom);
@@ -1135,16 +1135,16 @@ SDValue NVPTXTargetLowering::getSqrtEstimate(SDValue Operand, SelectionDAG &DAG,
   EVT VT = Operand.getValueType();
   bool Ftz = useF32FTZ(DAG.getMachineFunction());
 
-  auto MakeIntrinsicCall = [&](Intrinsic::ID IID) {
-    return DAG.getNode(ISD::INTRINSIC_WO_CHAIN, DL, VT,
-                       DAG.getConstant(IID, DL, MVT::i32), Operand);
-  };
+  
 
   // The sqrt and rsqrt refinement processes assume we always start out with an
   // approximation of the rsqrt.  Therefore, if we're going to do any refinement
   // (i.e. ExtraSteps > 0), we must return an rsqrt.  But if we're *not* doing
   // any refinement, we must return a regular sqrt.
-  if (Reciprocal || ExtraSteps > 0) {
+  if (auto MakeIntrinsicCall = [&](Intrinsic::ID IID) {
+    return DAG.getNode(ISD::INTRINSIC_WO_CHAIN, DL, VT,
+                       DAG.getConstant(IID, DL, MVT::i32), Operand);
+  }; Reciprocal || ExtraSteps > 0) {
     if (VT == MVT::f32)
       return MakeIntrinsicCall(Ftz ? Intrinsic::nvvm_rsqrt_approx_ftz_f
                                    : Intrinsic::nvvm_rsqrt_approx_f);
@@ -1333,8 +1333,8 @@ static MachinePointerInfo refinePtrAS(SDValue &Ptr, SelectionDAG &DAG,
   // Peel of an addrspacecast to generic and load directly from the specific
   // address space.
   if (Ptr->getOpcode() == ISD::ADDRSPACECAST) {
-    const auto *ASC = cast<AddrSpaceCastSDNode>(Ptr);
-    if (ASC->getDestAddressSpace() == ADDRESS_SPACE_GENERIC) {
+    
+    if (const auto *ASC = cast<AddrSpaceCastSDNode>(Ptr); ASC->getDestAddressSpace() == ADDRESS_SPACE_GENERIC) {
       Ptr = ASC->getOperand(0);
       return MachinePointerInfo(ASC->getSrcAddressSpace());
     }
@@ -1495,7 +1495,9 @@ SDValue NVPTXTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
     assert((!IsByVal || TySize == ArgOuts[0].Flags.getByValSize()) &&
            "type size mismatch");
 
-    const SDValue ArgDeclare = [&]() {
+    
+
+    if (const SDValue ArgDeclare = [&]() {
       if (IsVAArg)
         return VADeclareParam;
 
@@ -1507,9 +1509,7 @@ SDValue NVPTXTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
              "Only int and float types are supported as non-array arguments");
 
       return MakeDeclareScalarParam(ParamSymbol, TySize);
-    }();
-
-    if (IsByVal) {
+    }(); IsByVal) {
       assert(ArgOutVals.size() == 1 && "We must pass only one value as byval");
       SDValue SrcPtr = ArgOutVals[0];
       const auto PointerInfo = refinePtrAS(SrcPtr, DAG, DL, *this);
@@ -1620,8 +1620,8 @@ SDValue NVPTXTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   // Handle Result
   if (!Ins.empty()) {
     const SDValue RetSymbol = DAG.getExternalSymbol("retval0", MVT::i32);
-    const unsigned ResultSize = DL.getTypeAllocSize(RetTy);
-    if (shouldPassAsArray(RetTy)) {
+    
+    if (const unsigned ResultSize = DL.getTypeAllocSize(RetTy); shouldPassAsArray(RetTy)) {
       const Align RetAlign = getArgumentAlignment(CB, RetTy, 0, DL);
       MakeDeclareArrayParam(RetSymbol, RetAlign, ResultSize);
     } else {
@@ -2198,9 +2198,9 @@ SDValue NVPTXTargetLowering::LowerShiftRightParts(SDValue Op,
   SDValue ShOpLo = Op.getOperand(0);
   SDValue ShOpHi = Op.getOperand(1);
   SDValue ShAmt  = Op.getOperand(2);
-  unsigned Opc = (Op.getOpcode() == ISD::SRA_PARTS) ? ISD::SRA : ISD::SRL;
+  
 
-  if (VTBits == 32 && STI.getSmVersion() >= 35) {
+  if (unsigned Opc = (Op.getOpcode() == ISD::SRA_PARTS) ? ISD::SRA : ISD::SRL; VTBits == 32 && STI.getSmVersion() >= 35) {
     // For 32bit and sm35, we can use the funnel shift 'shf' instruction.
     // {dHi, dLo} = {aHi, aLo} >> Amt
     //   dHi = aHi >> Amt
@@ -2258,9 +2258,9 @@ SDValue NVPTXTargetLowering::LowerShiftLeftParts(SDValue Op,
   SDLoc dl(Op);
   SDValue ShOpLo = Op.getOperand(0);
   SDValue ShOpHi = Op.getOperand(1);
-  SDValue ShAmt  = Op.getOperand(2);
+  
 
-  if (VTBits == 32 && STI.getSmVersion() >= 35) {
+  if (SDValue ShAmt  = Op.getOperand(2); VTBits == 32 && STI.getSmVersion() >= 35) {
     // For 32bit and sm35, we can use the funnel shift 'shf' instruction.
     // {dHi, dLo} = {aHi, aLo} << Amt
     //   dHi = shf.l.clamp aLo, aHi, Amt
@@ -2556,8 +2556,8 @@ static SDValue lowerTcgen05St(SDValue Op, SelectionDAG &DAG) {
   // split the vector argument
   for (size_t I = 0; I < N->getNumOperands(); I++) {
     SDValue Val = N->getOperand(I);
-    EVT ValVT = Val.getValueType();
-    if (ValVT.isVector()) {
+    
+    if (EVT ValVT = Val.getValueType(); ValVT.isVector()) {
       EVT EltVT = ValVT.getVectorElementType();
       for (unsigned J = 0, NElts = ValVT.getVectorNumElements(); J < NElts; J++)
         Ops.push_back(DAG.getNode(ISD::EXTRACT_VECTOR_ELT, DL, EltVT, Val,
@@ -2577,9 +2577,9 @@ static SDValue lowerTcgen05St(SDValue Op, SelectionDAG &DAG) {
 static SDValue lowerBSWAP(SDValue Op, SelectionDAG &DAG) {
   SDLoc DL(Op);
   SDValue Src = Op.getOperand(0);
-  EVT VT = Op.getValueType();
+  
 
-  switch (VT.getSimpleVT().SimpleTy) {
+  switch (EVT VT = Op.getValueType(); VT.getSimpleVT().SimpleTy) {
   case MVT::i16: {
     SDValue Extended = DAG.getNode(ISD::ANY_EXTEND, DL, MVT::i32, Src);
     SDValue Swapped =
@@ -2683,8 +2683,8 @@ static SDValue LowerTcgen05MMADisableOutputLane(SDValue Op, SelectionDAG &DAG) {
     if (I == 1)
       continue; // skip IID
     SDValue Val = N->getOperand(I);
-    EVT ValVT = Val.getValueType();
-    if (ValVT.isVector()) {
+    
+    if (EVT ValVT = Val.getValueType(); ValVT.isVector()) {
       EVT EltVT = ValVT.getVectorElementType();
       for (unsigned J = 0, NElts = ValVT.getVectorNumElements(); J < NElts; J++)
         Ops.push_back(DAG.getNode(ISD::EXTRACT_VECTOR_ELT, DL, EltVT, Val,
@@ -2751,8 +2751,8 @@ static SDValue lowerIntrinsicVoid(SDValue Op, SelectionDAG &DAG) {
   SDValue Intrin = N->getOperand(1);
 
   // Get the intrinsic ID
-  unsigned IntrinNo = cast<ConstantSDNode>(Intrin.getNode())->getZExtValue();
-  switch (IntrinNo) {
+  
+  switch (unsigned IntrinNo = cast<ConstantSDNode>(Intrin.getNode())->getZExtValue(); IntrinNo) {
   default:
     break;
   case Intrinsic::nvvm_tcgen05_st_16x64b_x1:
@@ -3369,8 +3369,8 @@ SDValue NVPTXTargetLowering::LowerADDRSPACECAST(SDValue Op,
                                                 SelectionDAG &DAG) const {
   AddrSpaceCastSDNode *N = cast<AddrSpaceCastSDNode>(Op.getNode());
   unsigned SrcAS = N->getSrcAddressSpace();
-  unsigned DestAS = N->getDestAddressSpace();
-  if (SrcAS != llvm::ADDRESS_SPACE_GENERIC &&
+  
+  if (unsigned DestAS = N->getDestAddressSpace(); SrcAS != llvm::ADDRESS_SPACE_GENERIC &&
       DestAS != llvm::ADDRESS_SPACE_GENERIC) {
     // Shared and SharedCluster can be converted to each other through generic
     // space
@@ -5457,9 +5457,9 @@ PerformFADDCombineWithOperands(SDNode *N, SDValue N0, SDValue N1,
                                CodeGenOptLevel OptLevel) {
   EVT VT = N0.getValueType();
   if (N0.getOpcode() == ISD::FMUL) {
-    const auto *TLI = static_cast<const NVPTXTargetLowering *>(
-        &DCI.DAG.getTargetLoweringInfo());
-    if (!(TLI->allowFMA(DCI.DAG.getMachineFunction(), OptLevel) ||
+    
+    if (const auto *TLI = static_cast<const NVPTXTargetLowering *>(
+        &DCI.DAG.getTargetLoweringInfo()); !(TLI->allowFMA(DCI.DAG.getMachineFunction(), OptLevel) ||
           (N->getFlags().hasAllowContract() &&
            N0->getFlags().hasAllowContract())))
       return SDValue();
@@ -5483,12 +5483,12 @@ PerformFADDCombineWithOperands(SDNode *N, SDValue N0, SDValue N1,
     }
     if (nonAddCount) {
       int orderNo = N->getIROrder();
-      int orderNo2 = N0.getNode()->getIROrder();
+      
       // simple heuristics here for considering potential register
       // pressure, the logics here is that the differnce are used
       // to measure the distance between def and use, the longer distance
       // more likely cause register pressure.
-      if (orderNo - orderNo2 < 500)
+      if (int orderNo2 = N0.getNode()->getIROrder(); orderNo - orderNo2 < 500)
         return SDValue();
 
       // Now, check if at least one of the FMUL's operands is live beyond the
@@ -5503,8 +5503,8 @@ PerformFADDCombineWithOperands(SDNode *N, SDValue N0, SDValue N1,
 
       if (!opIsLive)
         for (const SDNode *User : left->users()) {
-          int orderNo3 = User->getIROrder();
-          if (orderNo3 > orderNo) {
+          
+          if (int orderNo3 = User->getIROrder(); orderNo3 > orderNo) {
             opIsLive = true;
             break;
           }
@@ -5512,8 +5512,8 @@ PerformFADDCombineWithOperands(SDNode *N, SDValue N0, SDValue N1,
 
       if (!opIsLive)
         for (const SDNode *User : right->users()) {
-          int orderNo3 = User->getIROrder();
-          if (orderNo3 > orderNo) {
+          
+          if (int orderNo3 = User->getIROrder(); orderNo3 > orderNo) {
             opIsLive = true;
             break;
           }
@@ -5744,8 +5744,8 @@ static SDValue combineSTORE(SDNode *N, TargetLowering::DAGCombinerInfo &DCI,
     // Here is our chance to custom lower a store with a non-simple type.
     // Unfortunately, we can't do this in the legalizer because there is no
     // way to setOperationAction for an non-simple type.
-    StoreSDNode *ST = cast<StoreSDNode>(N);
-    if (!ST->getValue().getValueType().isSimple())
+    
+    if (StoreSDNode *ST = cast<StoreSDNode>(N); !ST->getValue().getValueType().isSimple())
       return lowerSTOREVector(SDValue(ST, 0), DCI.DAG, STI);
   }
 
@@ -5942,14 +5942,14 @@ static bool IsMulWideOperandDemotable(SDValue Op,
 
   if (Op.getOpcode() == ISD::SIGN_EXTEND ||
       Op.getOpcode() == ISD::SIGN_EXTEND_INREG) {
-    EVT OrigVT = Op.getOperand(0).getValueType();
-    if (OrigVT.getFixedSizeInBits() <= OptSize) {
+    
+    if (EVT OrigVT = Op.getOperand(0).getValueType(); OrigVT.getFixedSizeInBits() <= OptSize) {
       S = Signed;
       return true;
     }
   } else if (Op.getOpcode() == ISD::ZERO_EXTEND) {
-    EVT OrigVT = Op.getOperand(0).getValueType();
-    if (OrigVT.getFixedSizeInBits() <= OptSize) {
+    
+    if (EVT OrigVT = Op.getOperand(0).getValueType(); OrigVT.getFixedSizeInBits() <= OptSize) {
       S = Unsigned;
       return true;
     }
@@ -5979,8 +5979,8 @@ static bool AreMulWideOperandsDemotable(SDValue LHS, SDValue RHS,
 
   // The RHS can be a demotable op or a constant
   if (ConstantSDNode *CI = dyn_cast<ConstantSDNode>(RHS)) {
-    const APInt &Val = CI->getAPIntValue();
-    if (LHSSign == Unsigned) {
+    
+    if (const APInt &Val = CI->getAPIntValue(); LHSSign == Unsigned) {
       return Val.isIntN(OptSize);
     } else {
       return Val.isSignedIntN(OptSize);
@@ -6353,9 +6353,9 @@ PerformBUILD_VECTORCombine(SDNode *N, TargetLowering::DAGCombinerInfo &DCI) {
 
 static SDValue combineADDRSPACECAST(SDNode *N,
                                     TargetLowering::DAGCombinerInfo &DCI) {
-  auto *ASCN1 = cast<AddrSpaceCastSDNode>(N);
+  
 
-  if (auto *ASCN2 = dyn_cast<AddrSpaceCastSDNode>(ASCN1->getOperand(0))) {
+  if (auto *ASCN1 = cast<AddrSpaceCastSDNode>(N); auto *ASCN2 = dyn_cast<AddrSpaceCastSDNode>(ASCN1->getOperand(0))) {
     assert(ASCN2->getDestAddressSpace() == ASCN1->getSrcAddressSpace());
 
     // Fold asc[B -> A](asc[A -> B](x)) -> x
@@ -6378,12 +6378,12 @@ static APInt getPRMTSelector(const APInt &Selector, unsigned Mode) {
 
   const unsigned V = Selector.trunc(2).getZExtValue();
 
-  const auto GetSelector = [](unsigned S0, unsigned S1, unsigned S2,
+  
+
+  switch (const auto GetSelector = [](unsigned S0, unsigned S1, unsigned S2,
                               unsigned S3) {
     return APInt(32, S0 | (S1 << 4) | (S2 << 8) | (S3 << 12));
-  };
-
-  switch (Mode) {
+  }; Mode) {
   case NVPTX::PTXPrmtMode::F4E:
     return GetSelector(V, V + 1, V + 2, V + 3);
   case NVPTX::PTXPrmtMode::B4E:
@@ -6522,8 +6522,8 @@ static SDValue combineProxyReg(SDNode *N,
 
 SDValue NVPTXTargetLowering::PerformDAGCombine(SDNode *N,
                                                DAGCombinerInfo &DCI) const {
-  CodeGenOptLevel OptLevel = getTargetMachine().getOptLevel();
-  switch (N->getOpcode()) {
+  
+  switch (CodeGenOptLevel OptLevel = getTargetMachine().getOptLevel(); N->getOpcode()) {
   default:
     break;
   case ISD::ADD:
@@ -6603,8 +6603,8 @@ static void ReplaceINTRINSIC_W_CHAIN(SDNode *N, SelectionDAG &DAG,
   SDLoc DL(N);
 
   // Get the intrinsic ID
-  unsigned IntrinNo = Intrin.getNode()->getAsZExtVal();
-  switch (IntrinNo) {
+  
+  switch (unsigned IntrinNo = Intrin.getNode()->getAsZExtVal(); IntrinNo) {
   default:
     return;
   case Intrinsic::nvvm_ldu_global_i:
@@ -6880,9 +6880,9 @@ NVPTXTargetLowering::shouldExpandAtomicRMWInIR(AtomicRMWInst *AI) const {
   }
 
   assert(Ty->isIntegerTy() && "Ty should be integer at this point");
-  const unsigned BitWidth = cast<IntegerType>(Ty)->getBitWidth();
+  
 
-  switch (AI->getOperation()) {
+  switch (const unsigned BitWidth = cast<IntegerType>(Ty)->getBitWidth(); AI->getOperation()) {
   default:
     return AtomicExpansionKind::CmpXChg;
   case AtomicRMWInst::BinOp::Xchg:
@@ -6982,8 +6982,8 @@ Instruction *NVPTXTargetLowering::emitLeadingFence(IRBuilderBase &Builder,
 
   // Specialize for cmpxchg
   // Emit a fence.sc leading fence for cmpxchg seq_cst which are not emulated
-  SyncScope::ID SSID = cast<AtomicCmpXchgInst>(Inst)->getSyncScopeID();
-  if (isReleaseOrStronger(Ord))
+  
+  if (SyncScope::ID SSID = cast<AtomicCmpXchgInst>(Inst)->getSyncScopeID(); isReleaseOrStronger(Ord))
     return Builder.CreateFence(Ord == AtomicOrdering::SequentiallyConsistent
                                    ? Ord
                                    : AtomicOrdering::Release,
@@ -7002,9 +7002,9 @@ Instruction *NVPTXTargetLowering::emitTrailingFence(IRBuilderBase &Builder,
   auto *CI = cast<AtomicCmpXchgInst>(Inst);
   auto CASWidth =
       cast<IntegerType>(CI->getCompareOperand()->getType())->getBitWidth();
-  SyncScope::ID SSID = CI->getSyncScopeID();
+  
   // Do not emit a trailing fence for cmpxchg seq_cst which are not emulated
-  if (isAcquireOrStronger(Ord) &&
+  if (SyncScope::ID SSID = CI->getSyncScopeID(); isAcquireOrStronger(Ord) &&
       (Ord != AtomicOrdering::SequentiallyConsistent ||
        CASWidth < STI.getMinCmpXchgSizeInBits()))
     return Builder.CreateFence(AtomicOrdering::Acquire, SSID);
@@ -7082,8 +7082,8 @@ static void computeKnownBitsForLoadV(const SDValue Op, KnownBits &Known) {
   MemSDNode *LD = cast<MemSDNode>(Op);
 
   // We can't do anything without knowing the sign bit.
-  auto ExtType = LD->getConstantOperandVal(LD->getNumOperands() - 1);
-  if (ExtType == ISD::SEXTLOAD)
+  
+  if (auto ExtType = LD->getConstantOperandVal(LD->getNumOperands() - 1); ExtType == ISD::SEXTLOAD)
     return;
 
   // ExtLoading to vector types is weird and may not work well with known bits.
@@ -7129,8 +7129,8 @@ static std::pair<APInt, APInt> getPRMTDemandedBits(const APInt &SelectorVal,
     unsigned Sign = Sel.getHiBits(1).getZExtValue();
 
     APInt &Src = Idx < 4 ? DemandedLHS : DemandedRHS;
-    unsigned ByteStart = (Idx % 4) * 8;
-    if (Sign)
+    
+    if (unsigned ByteStart = (Idx % 4) * 8; Sign)
       Src.setBit(ByteStart + 7);
     else
       Src.setBits(ByteStart, ByteStart + 8);

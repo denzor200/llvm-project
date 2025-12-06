@@ -42,8 +42,8 @@ static ParseResult parseKeyValuePair(AsmParser &parser,
 
   if (tryType) {
     Type type;
-    OptionalParseResult parsedType = parser.parseOptionalType(type);
-    if (parsedType.has_value()) {
+    
+    if (OptionalParseResult parsedType = parser.parseOptionalType(type); parsedType.has_value()) {
       if (failed(parsedType.value()))
         return parser.emitError(parser.getCurrentLocation())
                << "error while parsing type DLTI key";
@@ -211,8 +211,8 @@ Attribute DataLayoutEntryAttr::parse(AsmParser &parser, Type type) {
   if (parsedType.has_value() && failed(parsedType.value()))
     return {};
   if (!parsedType.has_value()) {
-    OptionalParseResult parsedString = parser.parseOptionalString(&identifier);
-    if (!parsedString.has_value() || failed(parsedString.value())) {
+    
+    if (OptionalParseResult parsedString = parser.parseOptionalString(&identifier); !parsedString.has_value() || failed(parsedString.value())) {
       parser.emitError(idLoc) << "expected a type or a quoted string";
       return {};
     }

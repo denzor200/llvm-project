@@ -60,12 +60,12 @@ Error CodeGenDataReader::mergeFromObjectFile(
     if (CombinedHash)
       *CombinedHash = stable_hash_combine(*CombinedHash, xxh3_64bits(Contents));
     auto *Data = reinterpret_cast<const unsigned char *>(Contents.data());
-    auto *EndData = Data + Contents.size();
+    
     // In case dealing with an executable that has concatenated cgdata,
     // we want to merge them into a single cgdata.
     // Although it's not a typical workflow, we support this scenario
     // by looping over all data in the sections.
-    if (Name == CGOutlineName) {
+    if (auto *EndData = Data + Contents.size(); Name == CGOutlineName) {
       while (Data != EndData) {
         OutlinedHashTreeRecord LocalOutlineRecord;
         LocalOutlineRecord.deserialize(Data);
@@ -98,8 +98,8 @@ Error IndexedCodeGenDataReader::read() {
 
   // The smallest header with the version 1 is 24 bytes.
   // Do not update this value even with the new version of the header.
-  const unsigned MinHeaderSize = 24;
-  if (DataBuffer->getBufferSize() < MinHeaderSize)
+  
+  if (const unsigned MinHeaderSize = 24; DataBuffer->getBufferSize() < MinHeaderSize)
     return error(cgdata_error::bad_header);
 
   auto *Start =
@@ -192,8 +192,8 @@ Error TextCodeGenDataReader::read() {
 
     if (!Line->starts_with(":"))
       break;
-    StringRef Str = Line->drop_front().rtrim();
-    if (Str.equals_insensitive("outlined_hash_tree"))
+    
+    if (StringRef Str = Line->drop_front().rtrim(); Str.equals_insensitive("outlined_hash_tree"))
       DataKind |= CGDataKind::FunctionOutlinedHashTree;
     else if (Str.equals_insensitive("stable_function_map"))
       DataKind |= CGDataKind::StableFunctionMergingMap;

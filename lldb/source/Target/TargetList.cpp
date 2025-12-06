@@ -136,13 +136,13 @@ Status TargetList::CreateTargetInternal(
     lldb::offset_t file_offset = 0;
     lldb::offset_t file_size = 0;
     ModuleSpecList module_specs;
-    const size_t num_specs = ObjectFile::GetModuleSpecifications(
-        module_spec.GetFileSpec(), file_offset, file_size, module_specs);
+    
 
-    if (num_specs > 0) {
-      ModuleSpec matching_module_spec;
+    if (const size_t num_specs = ObjectFile::GetModuleSpecifications(
+        module_spec.GetFileSpec(), file_offset, file_size, module_specs); num_specs > 0) {
+      
 
-      if (num_specs == 1) {
+      if (ModuleSpec matching_module_spec; num_specs == 1) {
         if (module_specs.GetModuleSpecAtIndex(0, matching_module_spec)) {
           if (platform_arch.IsValid()) {
             if (platform_arch.IsCompatibleMatch(
@@ -226,8 +226,8 @@ Status TargetList::CreateTargetInternal(
   } else if (platform_arch.IsValid()) {
     // If "arch" isn't valid, yet "platform_arch" is, it means we have an
     // executable file with a single architecture which should be used.
-    ArchSpec fixed_platform_arch;
-    if (!platform_sp->IsCompatibleArchitecture(
+    
+    if (ArchSpec fixed_platform_arch; !platform_sp->IsCompatibleArchitecture(
             platform_arch, {}, ArchSpec::CompatibleMatch, nullptr)) {
       platform_sp =
           platform_list.GetOrCreate(platform_arch, {}, &fixed_platform_arch);
@@ -293,8 +293,8 @@ Status TargetList::CreateTargetInternal(Debugger &debugger,
       user_exe_path_is_bundle = true;
 
     if (file.IsRelative() && !user_exe_path.empty()) {
-      llvm::SmallString<64> cwd;
-      if (! llvm::sys::fs::current_path(cwd)) {
+      
+      if (llvm::SmallString<64> cwd; ! llvm::sys::fs::current_path(cwd)) {
         FileSpec cwd_file(cwd.c_str());
         cwd_file.AppendPathComponent(file);
         if (FileSystem::Instance().Exists(cwd_file))
@@ -455,10 +455,10 @@ uint32_t TargetList::SendAsyncInterrupt(lldb::pid_t pid) {
   uint32_t num_async_interrupts_sent = 0;
 
   if (pid != LLDB_INVALID_PROCESS_ID) {
-    TargetSP target_sp(FindTargetWithProcessID(pid));
-    if (target_sp) {
-      Process *process = target_sp->GetProcessSP().get();
-      if (process) {
+    
+    if (TargetSP target_sp(FindTargetWithProcessID(pid)); target_sp) {
+      
+      if (Process *process = target_sp->GetProcessSP().get(); process) {
         process->SendAsyncInterrupt();
         ++num_async_interrupts_sent;
       }
@@ -474,8 +474,8 @@ uint32_t TargetList::SendAsyncInterrupt(lldb::pid_t pid) {
 
 uint32_t TargetList::SignalIfRunning(lldb::pid_t pid, int signo) {
   uint32_t num_signals_sent = 0;
-  Process *process = nullptr;
-  if (pid == LLDB_INVALID_PROCESS_ID) {
+  
+  if (Process *process = nullptr; pid == LLDB_INVALID_PROCESS_ID) {
     // Signal all processes with signal
     std::lock_guard<std::recursive_mutex> guard(m_target_list_mutex);
     for (const auto &target_sp : m_target_list) {
@@ -487,8 +487,8 @@ uint32_t TargetList::SignalIfRunning(lldb::pid_t pid, int signo) {
     }
   } else {
     // Signal a specific process with signal
-    TargetSP target_sp(FindTargetWithProcessID(pid));
-    if (target_sp) {
+    
+    if (TargetSP target_sp(FindTargetWithProcessID(pid)); target_sp) {
       process = target_sp->GetProcessSP().get();
       if (process && process->IsAlive()) {
         ++num_signals_sent;

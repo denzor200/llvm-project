@@ -417,9 +417,9 @@ struct MixData {
   void sanitize() {
     assert(Flags != MixFlags::Invalid && "sanitize() called on invalid bitvec");
 
-    const MixFlags CanonicalAndWorkaround =
-        MixFlags::Canonical | MixFlags::WorkaroundDisableCanonicalEquivalence;
-    if ((Flags & CanonicalAndWorkaround) == CanonicalAndWorkaround) {
+    
+    if (const MixFlags CanonicalAndWorkaround =
+        MixFlags::Canonical | MixFlags::WorkaroundDisableCanonicalEquivalence; (Flags & CanonicalAndWorkaround) == CanonicalAndWorkaround) {
       // A workaround for too eagerly equivalent canonical types was requested,
       // and a canonical equivalence was proven. Fulfill the request and throw
       // this result away.
@@ -1027,8 +1027,8 @@ approximateStandardConversionSequence(const TheCheck &Check, QualType From,
     }
 
     const auto *FromRecordPtr = FromPtr->getPointeeCXXRecordDecl();
-    const auto *ToRecordPtr = ToPtr->getPointeeCXXRecordDecl();
-    if (isDerivedToBase(FromRecordPtr, ToRecordPtr)) {
+    
+    if (const auto *ToRecordPtr = ToPtr->getPointeeCXXRecordDecl(); isDerivedToBase(FromRecordPtr, ToRecordPtr)) {
       LLVM_DEBUG(llvm::dbgs() << "--- approximateStdConv. Derived* to Base*\n");
       WorkType = QualType{ToPtr, FastQualifiersToApply};
     }
@@ -1050,9 +1050,9 @@ approximateStandardConversionSequence(const TheCheck &Check, QualType From,
     // to a non-noexcept one.
     const auto *FromFunctionPtr =
         FromPtr->getPointeeType()->getAs<FunctionProtoType>();
-    const auto *ToFunctionPtr =
-        ToPtr->getPointeeType()->getAs<FunctionProtoType>();
-    if (FromFunctionPtr && ToFunctionPtr &&
+    
+    if (const auto *ToFunctionPtr =
+        ToPtr->getPointeeType()->getAs<FunctionProtoType>(); FromFunctionPtr && ToFunctionPtr &&
         FromFunctionPtr->hasNoexceptExceptionSpec() &&
         !ToFunctionPtr->hasNoexceptExceptionSpec()) {
       LLVM_DEBUG(llvm::dbgs() << "--- approximateStdConv. noexcept function "
@@ -1345,9 +1345,9 @@ approximateImplicitConversion(const TheCheck &Check, QualType LType,
     bool FoundConversionOperator = false, FoundConvertingCtor = false;
 
     if (const auto *LRD = WorkType->getAsCXXRecordDecl()) {
-      std::optional<ConversionSequence> ConversionOperatorResult =
-          tryConversionOperators(Check, LRD, RType);
-      if (ConversionOperatorResult) {
+      
+      if (std::optional<ConversionSequence> ConversionOperatorResult =
+          tryConversionOperators(Check, LRD, RType); ConversionOperatorResult) {
         LLVM_DEBUG(llvm::dbgs() << "--- approximateImplicitConversion. Found "
                                    "conversion operator.\n");
         ImplicitSeq.update(*ConversionOperatorResult);
@@ -1360,9 +1360,9 @@ approximateImplicitConversion(const TheCheck &Check, QualType LType,
       // Use the original "LType" here, and not WorkType, because the
       // conversion to the converting constructors' parameters will be
       // modelled in the recursive call.
-      std::optional<ConversionSequence> ConvCtorResult =
-          tryConvertingConstructors(Check, LType, RRD);
-      if (ConvCtorResult) {
+      
+      if (std::optional<ConversionSequence> ConvCtorResult =
+          tryConvertingConstructors(Check, LType, RRD); ConvCtorResult) {
         LLVM_DEBUG(llvm::dbgs() << "--- approximateImplicitConversion. Found "
                                    "converting constructor.\n");
         ImplicitSeq.update(*ConvCtorResult);
@@ -2299,11 +2299,11 @@ void EasilySwappableParametersCheck::check(
           DiagText = "'%0' and '%1' may be implicitly converted: %2, %3";
 
         {
-          auto Diag =
-              diag(RVar->getOuterLocStart(), DiagText, DiagnosticIDs::Note)
-              << LTypeStr << RTypeStr;
+          
 
-          if (!LTRFmt.Trivial || !RTLFmt.Trivial)
+          if (auto Diag =
+              diag(RVar->getOuterLocStart(), DiagText, DiagnosticIDs::Note)
+              << LTypeStr << RTypeStr; !LTRFmt.Trivial || !RTLFmt.Trivial)
             Diag << LTRFmt.DiagnosticText << RTLFmt.DiagnosticText;
         }
 

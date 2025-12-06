@@ -486,10 +486,10 @@ static void __kmp_GOMP_fork_call(ident_t *loc, int gtid, unsigned num_threads,
   int ompt_team_size;
   if (ompt_enabled.enabled) {
     ompt_team_info_t *team_info = __ompt_get_teaminfo(0, NULL);
-    ompt_task_info_t *task_info = __ompt_get_task_info_object(0);
+    
 
     // implicit task callback
-    if (ompt_enabled.ompt_callback_implicit_task) {
+    if (ompt_task_info_t *task_info = __ompt_get_task_info_object(0); ompt_enabled.ompt_callback_implicit_task) {
       ompt_team_size = __kmp_team_from_gtid(gtid)->t.t_nproc;
       ompt_callbacks.ompt_callback(ompt_callback_implicit_task)(
           ompt_scope_begin, &(team_info->parallel_data),
@@ -1687,9 +1687,9 @@ bool KMP_EXPAND_NAME(KMP_API_NAME_GOMP_CANCEL)(int which, bool do_cancel) {
   MKLOC(loc, "GOMP_cancel");
   KA_TRACE(20, ("GOMP_cancel: T#%d which:%d do_cancel:%d\n", gtid, which,
                 (int)do_cancel));
-  kmp_int32 cncl_kind = __kmp_gomp_to_omp_cancellation_kind(which);
+  
 
-  if (do_cancel == FALSE) {
+  if (kmp_int32 cncl_kind = __kmp_gomp_to_omp_cancellation_kind(which); do_cancel == FALSE) {
     return __kmpc_cancellationpoint(&loc, gtid, cncl_kind);
   } else {
     return __kmpc_cancel(&loc, gtid, cncl_kind);
@@ -1749,8 +1749,8 @@ void KMP_EXPAND_NAME(KMP_API_NAME_GOMP_TEAMS)(unsigned int num_teams,
 // preallocated task structures)
 static void __kmp_gomp_task_dup(kmp_task_t *dest, kmp_task_t *src,
                                 kmp_int32 last_private) {
-  kmp_taskdata_t *taskdata = KMP_TASK_TO_TASKDATA(src);
-  if (taskdata->td_copy_func) {
+  
+  if (kmp_taskdata_t *taskdata = KMP_TASK_TO_TASKDATA(src); taskdata->td_copy_func) {
     (taskdata->td_copy_func)(dest->shareds, src->shareds);
   }
 }
@@ -2069,8 +2069,8 @@ void KMP_EXPAND_NAME(KMP_API_NAME_GOMP_TASK_REDUCTION_REMAP)(size_t cnt,
       uintptr_t reduce_data = gomp_data[2];
       uintptr_t end_reduce_data = gomp_data[6];
       for (size_t j = 0; j < num_vars; ++j) {
-        uintptr_t *entry = gomp_data + 7 + 3 * j;
-        if (entry[0] == address) {
+        
+        if (uintptr_t *entry = gomp_data + 7 + 3 * j; entry[0] == address) {
           uintptr_t offset = entry[1];
           mapped_address =
               (void *)(reduce_data + tid * per_thread_size + offset);
@@ -2088,8 +2088,8 @@ void KMP_EXPAND_NAME(KMP_API_NAME_GOMP_TASK_REDUCTION_REMAP)(size_t cnt,
         mapped_address = (void *)(reduce_data + tid * per_thread_size + offset);
         if (i < cntorig) {
           for (size_t j = 0; j < num_vars; ++j) {
-            uintptr_t *entry = gomp_data + 7 + 3 * j;
-            if (entry[1] == offset) {
+            
+            if (uintptr_t *entry = gomp_data + 7 + 3 * j; entry[1] == offset) {
               propagated_address = (void *)entry[0];
               break;
             }
@@ -2115,8 +2115,8 @@ static void __kmp_GOMP_init_reductions(int gtid, uintptr_t *data, int is_ws) {
   // First start a taskgroup
   __kmpc_taskgroup(NULL, gtid);
   // Then setup reduction data
-  void *reduce_data = KMP_ATOMIC_LD_RLX(&team->t.t_tg_reduce_data[is_ws]);
-  if (reduce_data == NULL &&
+  
+  if (void *reduce_data = KMP_ATOMIC_LD_RLX(&team->t.t_tg_reduce_data[is_ws]); reduce_data == NULL &&
       __kmp_atomic_compare_store(&team->t.t_tg_reduce_data[is_ws], reduce_data,
                                  (void *)1)) {
     // Single thread enters this block to initialize common reduction data
@@ -2475,8 +2475,8 @@ void KMP_EXPAND_NAME(KMP_API_NAME_GOMP_WORKSHARE_TASK_REDUCTION_UNREGISTER)(
   // If last thread out of workshare, then reset the team's reduce data
   // the GOMP_taskgroup_reduction_unregister() function will deallocate
   // private copies after reduction calculations take place.
-  int count = KMP_ATOMIC_INC(&team->t.t_tg_fini_counter[1]);
-  if (count == thr->th.th_team_nproc - 1) {
+  
+  if (int count = KMP_ATOMIC_INC(&team->t.t_tg_fini_counter[1]); count == thr->th.th_team_nproc - 1) {
     KMP_EXPAND_NAME(KMP_API_NAME_GOMP_TASKGROUP_REDUCTION_UNREGISTER)
     ((uintptr_t *)KMP_ATOMIC_LD_RLX(&team->t.t_tg_reduce_data[1]));
     KMP_ATOMIC_ST_REL(&team->t.t_tg_reduce_data[1], NULL);

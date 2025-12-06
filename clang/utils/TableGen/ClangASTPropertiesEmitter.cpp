@@ -298,11 +298,11 @@ void ASTPropsEmitter::Validator::validateNode(HasProperties derivedNode,
     for (Property property : nodeInfo.Properties) {
       validateType(property.getType(), property);
 
-      auto result = allProperties.insert(
-                      std::make_pair(property.getName(), property));
+      
 
       // Diagnose non-unique properties.
-      if (!result.second) {
+      if (auto result = allProperties.insert(
+                      std::make_pair(property.getName(), property)); !result.second) {
         // The existing property is more likely to be associated with a
         // derived node, so use it as the error.
         Property existingProperty = result.first->second;
@@ -744,8 +744,8 @@ ASTPropsEmitter::emitBasicReaderWriterTemplate(const ReaderWriterInfo &info) {
     };
 
     // Handled cased types.
-    auto casedIter = CasedTypeInfos.find(type);
-    if (casedIter != CasedTypeInfos.end()) {
+    
+    if (auto casedIter = CasedTypeInfos.find(type); casedIter != CasedTypeInfos.end()) {
       enterMethod("node");
       emitCasedReaderWriterMethodBody(type, casedIter->second, info);
       exitMethod();

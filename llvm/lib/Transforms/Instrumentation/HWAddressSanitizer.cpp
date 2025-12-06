@@ -509,8 +509,8 @@ PreservedAnalyses HWAddressSanitizerPass::run(Module &M,
   if (checkIfAlreadyInstrumented(M, "nosanitize_hwaddress"))
     return PreservedAnalyses::all();
   const StackSafetyGlobalInfo *SSI = nullptr;
-  const Triple &TargetTriple = M.getTargetTriple();
-  if (shouldUseStackSafetyAnalysis(TargetTriple, Options.DisableOptimization))
+  
+  if (const Triple &TargetTriple = M.getTargetTriple(); shouldUseStackSafetyAnalysis(TargetTriple, Options.DisableOptimization))
     SSI = &MAM.getResult<StackSafetyGlobalAnalysis>(M);
 
   HWAddressSanitizer HWASan(M, Options.CompileKernel, Options.Recover, SSI);
@@ -716,9 +716,9 @@ void HWAddressSanitizer::initializeModule() {
 
     createHwasanCtorComdat();
 
-    bool InstrumentPersonalityFunctions =
-        optOr(ClInstrumentPersonalityFunctions, NewRuntime);
-    if (InstrumentPersonalityFunctions)
+    
+    if (bool InstrumentPersonalityFunctions =
+        optOr(ClInstrumentPersonalityFunctions, NewRuntime); InstrumentPersonalityFunctions)
       instrumentPersonalityFunctions();
   }
 
@@ -841,8 +841,8 @@ bool HWAddressSanitizer::ignoreAccessWithoutRemark(Instruction *Inst,
                                                    Value *Ptr) {
   // Do not instrument accesses from different address spaces; we cannot deal
   // with them.
-  Type *PtrTy = cast<PointerType>(Ptr->getType()->getScalarType());
-  if (PtrTy->getPointerAddressSpace() != 0)
+  
+  if (Type *PtrTy = cast<PointerType>(Ptr->getType()->getScalarType()); PtrTy->getPointerAddressSpace() != 0)
     return true;
 
   // Ignore swifterror addresses.
@@ -1181,8 +1181,8 @@ bool HWAddressSanitizer::instrumentMemAccess(InterestingMemoryOperand &O,
       (O.TypeStoreSize / 8 <= (1ULL << (kNumberOfAccessSizes - 1))) &&
       (!O.Alignment || *O.Alignment >= Mapping.getObjectAlignment() ||
        *O.Alignment >= O.TypeStoreSize / 8)) {
-    size_t AccessSizeIndex = TypeSizeToSizeIndex(O.TypeStoreSize);
-    if (InstrumentWithCalls) {
+    
+    if (size_t AccessSizeIndex = TypeSizeToSizeIndex(O.TypeStoreSize); InstrumentWithCalls) {
       SmallVector<Value *, 2> Args{IRB.CreatePointerCast(Addr, IntptrTy)};
       if (UseMatchAllCallback)
         Args.emplace_back(ConstantInt::get(Int8Ty, *MatchAllTag));
@@ -1348,8 +1348,8 @@ Value *HWAddressSanitizer::untagPointer(IRBuilder<> &IRB, Value *PtrLong) {
 Value *HWAddressSanitizer::getHwasanThreadSlotPtr(IRBuilder<> &IRB) {
   // Android provides a fixed TLS slot for sanitizers. See TLS_SLOT_SANITIZER
   // in Bionic's libc/platform/bionic/tls_defines.h.
-  constexpr int SanitizerSlot = 6;
-  if (TargetTriple.isAArch64() && TargetTriple.isAndroid())
+  
+  if (constexpr int SanitizerSlot = 6; TargetTriple.isAArch64() && TargetTriple.isAndroid())
     return memtag::getAndroidSlotPtr(IRB, SanitizerSlot);
   return ThreadPtrGlobal;
 }
@@ -1508,11 +1508,11 @@ void HWAddressSanitizer::instrumentStack(memtag::StackInfo &SInfo,
     // postdominator analysis, and will leave us to keep memory tagged after
     // function return. Work around this by always untagging at every return
     // statement if return_twice functions are called.
-    bool StandardLifetime =
+    
+    if (bool StandardLifetime =
         !SInfo.CallsReturnTwice &&
         memtag::isStandardLifetime(Info.LifetimeStart, Info.LifetimeEnd, &DT,
-                                   &LI, ClMaxLifetimes);
-    if (DetectUseAfterScope && StandardLifetime) {
+                                   &LI, ClMaxLifetimes); DetectUseAfterScope && StandardLifetime) {
       IntrinsicInst *Start = Info.LifetimeStart[0];
       IRB.SetInsertPoint(Start->getNextNode());
       tagAlloca(IRB, AI, Tag, Size);
@@ -1703,8 +1703,8 @@ void HWAddressSanitizer::instrumentGlobal(GlobalVariable *GV, uint8_t Tag) {
   Constant *Initializer = GV->getInitializer();
   uint64_t SizeInBytes =
       M.getDataLayout().getTypeAllocSize(Initializer->getType());
-  uint64_t NewSize = alignTo(SizeInBytes, Mapping.getObjectAlignment());
-  if (SizeInBytes != NewSize) {
+  
+  if (uint64_t NewSize = alignTo(SizeInBytes, Mapping.getObjectAlignment()); SizeInBytes != NewSize) {
     // Pad the initializer out to the next multiple of 16 bytes and add the
     // required short granule tag.
     std::vector<uint8_t> Init(NewSize - SizeInBytes, 0);

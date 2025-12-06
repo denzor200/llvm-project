@@ -76,10 +76,10 @@ class InterpreterPass
     debugBindNames.reserve(debugBindTrailingArgs.size());
     for (auto &&[position, nameString] :
          llvm::enumerate(debugBindTrailingArgs)) {
-      StringRef name = nameString;
+      
 
       // Parse the integer literals.
-      if (name.starts_with("#")) {
+      if (StringRef name = nameString; name.starts_with("#")) {
         debugBindNames.push_back(std::nullopt);
         StringRef lhs = "";
         StringRef rhs = name.drop_front();

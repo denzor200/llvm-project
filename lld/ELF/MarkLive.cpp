@@ -278,8 +278,8 @@ template <class ELFT, bool TrackWhyLive>
 void MarkLive<ELFT, TrackWhyLive>::printWhyLive(Symbol *s) const {
   // Skip dead symbols. A symbol is dead if it belongs to a dead section.
   if (auto *d = dyn_cast<Defined>(s)) {
-    auto *sec = dyn_cast_or_null<InputSectionBase>(d->section);
-    if (sec && !sec->isLive())
+    
+    if (auto *sec = dyn_cast_or_null<InputSectionBase>(d->section); sec && !sec->isLive())
       return;
   }
 

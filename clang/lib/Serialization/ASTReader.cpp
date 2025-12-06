@@ -573,8 +573,8 @@ static bool checkDiagnosticGroupMappings(DiagnosticsEngine &StoredDiags,
   for (DiagnosticsEngine *MappingSource : MappingSources) {
     for (auto DiagIDMappingPair : MappingSource->getDiagnosticMappings()) {
       diag::kind DiagID = DiagIDMappingPair.first;
-      Level CurLevel = Diags.getDiagnosticLevel(DiagID, SourceLocation());
-      if (CurLevel < DiagnosticsEngine::Error)
+      
+      if (Level CurLevel = Diags.getDiagnosticLevel(DiagID, SourceLocation()); CurLevel < DiagnosticsEngine::Error)
         continue; // not significant
       Level StoredLevel =
           StoredDiags.getDiagnosticLevel(DiagID, SourceLocation());
@@ -1531,8 +1531,8 @@ bool ASTReader::ReadVisibleDeclContextStorage(
     Error(MaybeRecCode.takeError());
     return true;
   }
-  unsigned RecCode = MaybeRecCode.get();
-  switch (VisibleKind) {
+  
+  switch (unsigned RecCode = MaybeRecCode.get(); VisibleKind) {
   case VisibleDeclContextStorageKind::GenerallyVisible:
     if (RecCode != DECL_CONTEXT_VISIBLE) {
       Error("Expected visible lookup table block");
@@ -2232,9 +2232,9 @@ MacroInfo *ASTReader::ReadMacroRecord(ModuleFile &F, uint64_t Offset) {
         PreprocessingRecord &PPRec = *PP.getPreprocessingRecord();
         PreprocessingRecord::PPEntityID PPID =
             PPRec.getPPEntityID(Index, /*isLoaded=*/true);
-        MacroDefinitionRecord *PPDef = cast_or_null<MacroDefinitionRecord>(
-            PPRec.getPreprocessedEntity(PPID));
-        if (PPDef)
+        
+        if (MacroDefinitionRecord *PPDef = cast_or_null<MacroDefinitionRecord>(
+            PPRec.getPreprocessedEntity(PPID)); PPDef)
           PPRec.RegisterMacroDefinition(Macro, PPDef);
       }
 
@@ -2347,8 +2347,8 @@ HeaderFileInfoTrait::ReadData(internal_key_ref key, const unsigned char *d,
   unsigned Flags = *d++;
 
   OptionalFileEntryRef FE;
-  bool Included = (Flags >> 6) & 0x01;
-  if (Included)
+  
+  if (bool Included = (Flags >> 6) & 0x01; Included)
     if ((FE = getFile(key)))
       // Not using \c Preprocessor::markIncluded(), since that would attempt to
       // deserialize this header file info again.
@@ -2373,10 +2373,10 @@ HeaderFileInfoTrait::ReadData(internal_key_ref key, const unsigned char *d,
     // implicit module import.
     SubmoduleID GlobalSMID = Reader.getGlobalSubmoduleID(M, LocalSMID);
     Module *Mod = Reader.getSubmodule(GlobalSMID);
-    ModuleMap &ModMap =
-        Reader.getPreprocessor().getHeaderSearchInfo().getModuleMap();
+    
 
-    if (FE || (FE = getFile(key))) {
+    if (ModuleMap &ModMap =
+        Reader.getPreprocessor().getHeaderSearchInfo().getModuleMap(); FE || (FE = getFile(key))) {
       // FIXME: NameAsWritten
       Module::Header H = {std::string(key.Filename), "", *FE};
       ModMap.addHeader(Mod, H, HeaderRole, /*Imported=*/true);
@@ -2420,9 +2420,9 @@ void ASTReader::ReadDefinedMacros() {
         Error(MaybeE.takeError());
         return;
       }
-      llvm::BitstreamEntry E = MaybeE.get();
+      
 
-      switch (E.Kind) {
+      switch (llvm::BitstreamEntry E = MaybeE.get(); E.Kind) {
       case llvm::BitstreamEntry::SubBlock: // Handled for us already.
       case llvm::BitstreamEntry::Error:
         Error("malformed block record in AST file");
@@ -2443,8 +2443,8 @@ void ASTReader::ReadDefinedMacros() {
 
         case PP_MACRO_OBJECT_LIKE:
         case PP_MACRO_FUNCTION_LIKE: {
-          IdentifierInfo *II = getLocalIdentifier(I, Record[0]);
-          if (II->isOutOfDate())
+          
+          if (IdentifierInfo *II = getLocalIdentifier(I, Record[0]); II->isOutOfDate())
             updateOutOfDateIdentifier(*II);
           break;
         }
@@ -2659,8 +2659,8 @@ void ASTReader::resolvePendingMacro(IdentifierInfo *II,
   while (Idx < N) {
     MacroDirective *MD = nullptr;
     SourceLocation Loc = ReadSourceLocation(M, Record, Idx);
-    MacroDirective::Kind K = (MacroDirective::Kind)Record[Idx++];
-    switch (K) {
+    
+    switch (MacroDirective::Kind K = (MacroDirective::Kind)Record[Idx++]; K) {
     case MacroDirective::MD_Define: {
       MacroInfo *MI = getMacro(getGlobalMacroID(M, Record[Idx++]));
       MD = PP.AllocateDefMacroDirective(MI, Loc);
@@ -2693,9 +2693,9 @@ bool ASTReader::shouldDisableValidationForFile(
 
   // If a PCH is loaded and validation is disabled for PCH then disable
   // validation for the PCH and the modules it loads.
-  ModuleKind K = CurrentDeserializingModuleKind.value_or(M.Kind);
+  
 
-  switch (K) {
+  switch (ModuleKind K = CurrentDeserializingModuleKind.value_or(M.Kind); K) {
   case MK_MainFile:
   case MK_Preamble:
   case MK_PCH:
@@ -3080,40 +3080,40 @@ ASTReader::ASTReadResult ASTReader::ReadOptionsBlock(
     }
     switch ((OptionsRecordTypes)MaybeRecordType.get()) {
     case LANGUAGE_OPTIONS: {
-      bool Complain = (ClientLoadCapabilities & ARR_ConfigurationMismatch) == 0;
-      if (ParseLanguageOptions(Record, Filename, Complain, Listener,
+      
+      if (bool Complain = (ClientLoadCapabilities & ARR_ConfigurationMismatch) == 0; ParseLanguageOptions(Record, Filename, Complain, Listener,
                                AllowCompatibleConfigurationMismatch))
         Result = ConfigurationMismatch;
       break;
     }
 
     case CODEGEN_OPTIONS: {
-      bool Complain = (ClientLoadCapabilities & ARR_ConfigurationMismatch) == 0;
-      if (ParseCodeGenOptions(Record, Filename, Complain, Listener,
+      
+      if (bool Complain = (ClientLoadCapabilities & ARR_ConfigurationMismatch) == 0; ParseCodeGenOptions(Record, Filename, Complain, Listener,
                               AllowCompatibleConfigurationMismatch))
         Result = ConfigurationMismatch;
       break;
     }
 
     case TARGET_OPTIONS: {
-      bool Complain = (ClientLoadCapabilities & ARR_ConfigurationMismatch) == 0;
-      if (ParseTargetOptions(Record, Filename, Complain, Listener,
+      
+      if (bool Complain = (ClientLoadCapabilities & ARR_ConfigurationMismatch) == 0; ParseTargetOptions(Record, Filename, Complain, Listener,
                              AllowCompatibleConfigurationMismatch))
         Result = ConfigurationMismatch;
       break;
     }
 
     case FILE_SYSTEM_OPTIONS: {
-      bool Complain = (ClientLoadCapabilities & ARR_ConfigurationMismatch) == 0;
-      if (!AllowCompatibleConfigurationMismatch &&
+      
+      if (bool Complain = (ClientLoadCapabilities & ARR_ConfigurationMismatch) == 0; !AllowCompatibleConfigurationMismatch &&
           ParseFileSystemOptions(Record, Complain, Listener))
         Result = ConfigurationMismatch;
       break;
     }
 
     case HEADER_SEARCH_OPTIONS: {
-      bool Complain = (ClientLoadCapabilities & ARR_ConfigurationMismatch) == 0;
-      if (!AllowCompatibleConfigurationMismatch &&
+      
+      if (bool Complain = (ClientLoadCapabilities & ARR_ConfigurationMismatch) == 0; !AllowCompatibleConfigurationMismatch &&
           ParseHeaderSearchOptions(Record, Filename, Complain, Listener))
         Result = ConfigurationMismatch;
       break;
@@ -3185,13 +3185,13 @@ ASTReader::ReadControlBlock(ModuleFile &F,
         return Result;
 
       // Validate input files.
-      const HeaderSearchOptions &HSOpts =
-          PP.getHeaderSearchInfo().getHeaderSearchOpts();
+      
 
       // All user input files reside at the index range [0, NumUserInputs), and
       // system input files reside at [NumUserInputs, NumInputs). For explicitly
       // loaded module files, ignore missing inputs.
-      if (!DisableValidation && F.Kind != MK_ExplicitModule &&
+      if (const HeaderSearchOptions &HSOpts =
+          PP.getHeaderSearchInfo().getHeaderSearchOpts(); !DisableValidation && F.Kind != MK_ExplicitModule &&
           F.Kind != MK_PrebuiltModule) {
         bool Complain = (ClientLoadCapabilities & ARR_OutOfDate) == 0;
 
@@ -3210,8 +3210,8 @@ ASTReader::ReadControlBlock(ModuleFile &F,
               << N << F.ModuleName << F.FileName;
 
         for (unsigned I = 0; I < N; ++I) {
-          InputFile IF = getInputFile(F, I+1, Complain);
-          if (!IF.getFile() || IF.isOutOfDate())
+          
+          if (InputFile IF = getInputFile(F, I+1, Complain); !IF.getFile() || IF.isOutOfDate())
             return OutOfDate;
         }
       }
@@ -3425,9 +3425,9 @@ ASTReader::ReadControlBlock(ModuleFile &F,
                        CurrentImportLoc)) {
           auto ImportedFileRef =
               PP.getFileManager().getOptionalFileRef(ImportedFile);
-          auto StoredFileRef =
-              PP.getFileManager().getOptionalFileRef(StoredFile);
-          if ((ImportedFileRef && StoredFileRef) &&
+          
+          if (auto StoredFileRef =
+              PP.getFileManager().getOptionalFileRef(StoredFile); (ImportedFileRef && StoredFileRef) &&
               (*ImportedFileRef != *StoredFileRef)) {
             Diag(diag::warn_module_file_mapping_mismatch)
                 << ImportedFile << StoredFile;
@@ -3523,18 +3523,18 @@ ASTReader::ReadControlBlock(ModuleFile &F,
         break;
       // If we've already loaded a module map file covering this module, we may
       // have a better path for it (relative to the current build).
-      Module *M = PP.getHeaderSearchInfo().lookupModule(
+      
+      if (Module *M = PP.getHeaderSearchInfo().lookupModule(
           F.ModuleName, SourceLocation(), /*AllowSearch*/ true,
-          /*AllowExtraModuleMapSearch*/ true);
-      if (M && M->Directory) {
+          /*AllowExtraModuleMapSearch*/ true); M && M->Directory) {
         // If we're implicitly loading a module, the base directory can't
         // change between the build and use.
         // Don't emit module relocation error if we have -fno-validate-pch
         if (!bool(PP.getPreprocessorOpts().DisablePCHOrModuleValidation &
                   DisableValidationForModuleKind::Module) &&
             F.Kind != MK_ExplicitModule && F.Kind != MK_PrebuiltModule) {
-          auto BuildDir = PP.getFileManager().getOptionalDirectoryRef(Blob);
-          if (!BuildDir || *BuildDir != M->Directory) {
+          
+          if (auto BuildDir = PP.getFileManager().getOptionalDirectoryRef(Blob); !BuildDir || *BuildDir != M->Directory) {
             if (!canRecoverFromOutOfDate(F.FileName, ClientLoadCapabilities))
               Diag(diag::err_imported_module_relocated)
                   << F.ModuleName << Blob << M->Directory->getName();
@@ -3593,8 +3593,8 @@ llvm::Error ASTReader::ReadASTBlock(ModuleFile &F,
       // This usually has no cost, since we very rarely need the lookup map for
       // the translation unit outside C++.
       if (ASTContext *Ctx = ContextObj) {
-        DeclContext *DC = Ctx->getTranslationUnitDecl();
-        if (DC->hasExternalLexicalStorage() && !Ctx->getLangOpts().CPlusPlus)
+        
+        if (DeclContext *DC = Ctx->getTranslationUnitDecl(); DC->hasExternalLexicalStorage() && !Ctx->getLangOpts().CPlusPlus)
           DC->setMustBuildLookupTable();
       }
 
@@ -3885,8 +3885,8 @@ llvm::Error ASTReader::ReadASTBlock(ModuleFile &F,
                                        "invalid special-types record");
 
       for (unsigned I = 0, N = Record.size(); I != N; ++I) {
-        serialization::TypeID ID = getGlobalTypeID(F, Record[I]);
-        if (!SpecialTypes[I])
+        
+        if (serialization::TypeID ID = getGlobalTypeID(F, Record[I]); !SpecialTypes[I])
           SpecialTypes[I] = ID;
         // FIXME: If ID && SpecialTypes[I] != ID, do we need a separate
         // merge step?
@@ -4333,8 +4333,8 @@ llvm::Error ASTReader::ReadASTBlock(ModuleFile &F,
         // FIXME: Deal with macros-only imports.
         for (unsigned I = 0, N = Record.size(); I != N; /**/) {
           unsigned GlobalID = getGlobalSubmoduleID(F, Record[I++]);
-          SourceLocation Loc = ReadSourceLocation(F, Record, I);
-          if (GlobalID) {
+          
+          if (SourceLocation Loc = ReadSourceLocation(F, Record, I); GlobalID) {
             PendingImportedModules.push_back(ImportedSubmodule(GlobalID, Loc));
             if (DeserializationListener)
               DeserializationListener->ModuleImportRead(GlobalID, Loc);
@@ -4496,8 +4496,8 @@ void ASTReader::ReadModuleOffsetMap(ModuleFile &F) const {
 
     auto mapOffset = [&](uint32_t Offset, uint32_t BaseOffset,
                          RemapBuilder &Remap) {
-      constexpr uint32_t None = std::numeric_limits<uint32_t>::max();
-      if (Offset != None)
+      
+      if (constexpr uint32_t None = std::numeric_limits<uint32_t>::max(); Offset != None)
         Remap.insert(std::make_pair(Offset,
                                     static_cast<int>(BaseOffset - Offset)));
     };
@@ -4697,8 +4697,8 @@ void ASTReader::makeModuleVisible(Module *Mod,
     Mod->getExportedModules(Exports);
     for (SmallVectorImpl<Module *>::iterator
            I = Exports.begin(), E = Exports.end(); I != E; ++I) {
-      Module *Exported = *I;
-      if (Visited.insert(Exported).second)
+      
+      if (Module *Exported = *I; Visited.insert(Exported).second)
         Stack.push_back(Exported);
     }
   }
@@ -4763,9 +4763,9 @@ static bool SkipCursorToBlock(BitstreamCursor &Cursor, unsigned BlockID) {
       consumeError(MaybeEntry.takeError());
       return true;
     }
-    llvm::BitstreamEntry Entry = MaybeEntry.get();
+    
 
-    switch (Entry.Kind) {
+    switch (llvm::BitstreamEntry Entry = MaybeEntry.get(); Entry.Kind) {
     case llvm::BitstreamEntry::Error:
     case llvm::BitstreamEntry::EndBlock:
       return true;
@@ -4956,9 +4956,9 @@ ASTReader::ASTReadResult ASTReader::ReadAST(StringRef FileName, ModuleKind Type,
   for (unsigned I = 0, N = UnresolvedModuleRefs.size(); I != N; ++I) {
     UnresolvedModuleRef &Unresolved = UnresolvedModuleRefs[I];
     SubmoduleID GlobalID = getGlobalSubmoduleID(*Unresolved.File,Unresolved.ID);
-    Module *ResolvedMod = getSubmodule(GlobalID);
+    
 
-    switch (Unresolved.Kind) {
+    switch (Module *ResolvedMod = getSubmodule(GlobalID); Unresolved.Kind) {
     case UnresolvedModuleRef::Conflict:
       if (ResolvedMod) {
         Module::Conflict Conflict;
@@ -5028,8 +5028,8 @@ ASTReader::ASTReadResult ASTReader::ReadAST(StringRef FileName, ModuleKind Type,
     // up-to-date. For implicitly-built module files, ensure the corresponding
     // timestamp files are up-to-date in this build session.
     for (unsigned I = 0, N = Loaded.size(); I != N; ++I) {
-      ImportedModule &M = Loaded[I];
-      if (M.Mod->Kind == MK_ImplicitModule &&
+      
+      if (ImportedModule &M = Loaded[I]; M.Mod->Kind == MK_ImplicitModule &&
           M.Mod->InputFilesValidationTimestamp < HSOpts.BuildSessionTimestamp)
         getModuleManager().getModuleCache().updateModuleTimestamp(
             M.Mod->FileName);
@@ -5087,13 +5087,13 @@ ASTReader::ReadASTCore(StringRef FileName,
                        unsigned ClientLoadCapabilities) {
   ModuleFile *M;
   std::string ErrorStr;
-  ModuleManager::AddModuleResult AddResult
+  
+
+  switch (ModuleManager::AddModuleResult AddResult
     = ModuleMgr.addModule(FileName, Type, ImportLoc, ImportedBy,
                           getGeneration(), ExpectedSize, ExpectedModTime,
                           ExpectedSignature, readASTFileSignature,
-                          M, ErrorStr);
-
-  switch (AddResult) {
+                          M, ErrorStr); AddResult) {
   case ModuleManager::AlreadyLoaded:
     Diag(diag::remark_module_import)
         << M->ModuleName << M->FileName << (ImportedBy ? true : false)
@@ -5133,8 +5133,8 @@ ASTReader::ReadASTCore(StringRef FileName,
 
   bool ShouldFinalizePCM = false;
   auto FinalizeOrDropPCM = llvm::make_scope_exit([&]() {
-    auto &MC = getModuleManager().getModuleCache().getInMemoryModuleCache();
-    if (ShouldFinalizePCM)
+    
+    if (auto &MC = getModuleManager().getModuleCache().getInMemoryModuleCache(); ShouldFinalizePCM)
       MC.finalizePCM(FileName);
     else
       MC.tryToDropPCM(FileName);
@@ -5348,16 +5348,16 @@ ASTReader::ASTReadResult ASTReader::readUnhashedControlBlockImpl(
       }
       break;
     case DIAGNOSTIC_OPTIONS: {
-      bool Complain = (ClientLoadCapabilities & ARR_OutOfDate) == 0;
-      if (Listener && ValidateDiagnosticOptions &&
+      
+      if (bool Complain = (ClientLoadCapabilities & ARR_OutOfDate) == 0; Listener && ValidateDiagnosticOptions &&
           !AllowCompatibleConfigurationMismatch &&
           ParseDiagnosticOptions(Record, Filename, Complain, *Listener))
         Result = OutOfDate; // Don't return early.  Read the signature.
       break;
     }
     case HEADER_SEARCH_PATHS: {
-      bool Complain = (ClientLoadCapabilities & ARR_ConfigurationMismatch) == 0;
-      if (Listener && !AllowCompatibleConfigurationMismatch &&
+      
+      if (bool Complain = (ClientLoadCapabilities & ARR_ConfigurationMismatch) == 0; Listener && !AllowCompatibleConfigurationMismatch &&
           ParseHeaderSearchPaths(Record, Complain, *Listener))
         Result = ConfigurationMismatch;
       break;
@@ -6015,11 +6015,11 @@ bool ASTReader::readASTFileControlBlock(
 
       StringRef ModuleName = ReadStringBlob(Record, Idx, Blob);
 
-      bool IsStandardCXXModule = Record[Idx++];
+      
 
       // In C++20 Modules, we don't record the path to imported
       // modules in the BMI files.
-      if (IsStandardCXXModule) {
+      if (bool IsStandardCXXModule = Record[Idx++]; IsStandardCXXModule) {
         Listener.visitImport(ModuleName, /*Filename=*/"");
         continue;
       }
@@ -6837,8 +6837,8 @@ unsigned ASTReader::findNextPreprocessedEntity(
   ++SLocMapI;
   for (GlobalSLocOffsetMapType::const_iterator
          EndI = GlobalSLocOffsetMap.end(); SLocMapI != EndI; ++SLocMapI) {
-    ModuleFile &M = *SLocMapI->second;
-    if (M.NumPreprocessedEntities)
+    
+    if (ModuleFile &M = *SLocMapI->second; M.NumPreprocessedEntities)
       return M.BasePreprocessedEntityID;
   }
 
@@ -7017,8 +7017,8 @@ void ASTReader::ReadPragmaDiagnosticMappings(DiagnosticsEngine &Diag) {
 
     auto ReadDiagState = [&](const DiagState &BasedOn,
                              bool IncludeNonPragmaStates) {
-      unsigned BackrefID = Record[Idx++];
-      if (BackrefID != 0)
+      
+      if (unsigned BackrefID = Record[Idx++]; BackrefID != 0)
         return DiagStates[BackrefID - 1];
 
       // A new DiagState was created here.
@@ -7128,8 +7128,8 @@ void ASTReader::ReadPragmaDiagnosticMappings(DiagnosticsEngine &Diag) {
       // Preserve the property that the imaginary root file describes the
       // current state.
       FileID NullFile;
-      auto &T = Diag.DiagStatesByLoc.Files[NullFile].StateTransitions;
-      if (T.empty())
+      
+      if (auto &T = Diag.DiagStatesByLoc.Files[NullFile].StateTransitions; T.empty())
         T.push_back({CurState, 0});
       else
         T[0].State = CurState;
@@ -8379,8 +8379,8 @@ Decl *ASTReader::GetExistingDecl(GlobalDeclID ID) {
     if (D) {
       // Track that we have merged the declaration with ID \p ID into the
       // pre-existing predefined declaration \p D.
-      auto &Merged = KeyDecls[D->getCanonicalDecl()];
-      if (Merged.empty())
+      
+      if (auto &Merged = KeyDecls[D->getCanonicalDecl()]; Merged.empty())
         Merged.push_back(ID);
     }
     return D;
@@ -8576,8 +8576,8 @@ void ASTReader::FindExternalLexicalDecls(
   auto Visit = [&] (ModuleFile *M, LexicalContents LexicalDecls) {
     assert(LexicalDecls.size() % 2 == 0 && "expected an even number of entries");
     for (int I = 0, N = LexicalDecls.size(); I != N; I += 2) {
-      auto K = (Decl::Kind)+LexicalDecls[I];
-      if (!IsKindWeWant(K))
+      
+      if (auto K = (Decl::Kind)+LexicalDecls[I]; !IsKindWeWant(K))
         continue;
 
       auto ID = (DeclID) + LexicalDecls[I + 1];
@@ -8603,8 +8603,8 @@ void ASTReader::FindExternalLexicalDecls(
     for (const auto &Lexical : TULexicalDecls)
       Visit(Lexical.first, Lexical.second);
   } else {
-    auto I = LexicalDecls.find(DC);
-    if (I != LexicalDecls.end())
+    
+    if (auto I = LexicalDecls.find(DC); I != LexicalDecls.end())
       Visit(I->second.first, I->second.second);
   }
 
@@ -8703,8 +8703,8 @@ bool ASTReader::FindExternalVisibleDeclsByName(const DeclContext *DC,
 
   auto Find = [&, this](auto &&Table, auto &&Key) {
     for (GlobalDeclID ID : Table.find(Key)) {
-      NamedDecl *ND = cast<NamedDecl>(GetDecl(ID));
-      if (ND->getDeclName() == Name && Found.insert(ND).second)
+      
+      if (NamedDecl *ND = cast<NamedDecl>(GetDecl(ID)); ND->getDeclName() == Name && Found.insert(ND).second)
         Decls.push_back(ND);
     }
   };
@@ -8978,8 +8978,8 @@ LLVM_DUMP_METHOD void ASTReader::dump() {
 void ASTReader::getMemoryBufferSizes(MemoryBufferSizes &sizes) const {
   for (ModuleFile &I : ModuleMgr) {
     if (llvm::MemoryBuffer *buf = I.Buffer) {
-      size_t bytes = buf->getBufferSize();
-      switch (buf->getBufferKind()) {
+      
+      switch (size_t bytes = buf->getBufferSize(); buf->getBufferKind()) {
         case llvm::MemoryBuffer::MemoryBuffer_Malloc:
           sizes.malloc_bytes += bytes;
           break;
@@ -9013,8 +9013,8 @@ void ASTReader::InitializeSema(Sema &S) {
   }
 
   for (GlobalDeclID ID : DeclsWithEffectsToVerify) {
-    Decl *D = GetDecl(ID);
-    if (auto *FD = dyn_cast<FunctionDecl>(D))
+    
+    if (Decl *D = GetDecl(ID); auto *FD = dyn_cast<FunctionDecl>(D))
       SemaObj->addDeclWithEffects(FD, FD->getFunctionEffects());
     else if (auto *BD = dyn_cast<BlockDecl>(D))
       SemaObj->addDeclWithEffects(BD, BD->getFunctionEffects());
@@ -9439,8 +9439,8 @@ void ASTReader::ReadMismatchingDeleteExpressions(llvm::MapVector<
 void ASTReader::ReadTentativeDefinitions(
                   SmallVectorImpl<VarDecl *> &TentativeDefs) {
   for (unsigned I = 0, N = TentativeDefinitions.size(); I != N; ++I) {
-    VarDecl *Var = dyn_cast_or_null<VarDecl>(GetDecl(TentativeDefinitions[I]));
-    if (Var)
+    
+    if (VarDecl *Var = dyn_cast_or_null<VarDecl>(GetDecl(TentativeDefinitions[I])); Var)
       TentativeDefs.push_back(Var);
   }
   TentativeDefinitions.clear();
@@ -9449,9 +9449,9 @@ void ASTReader::ReadTentativeDefinitions(
 void ASTReader::ReadUnusedFileScopedDecls(
                                SmallVectorImpl<const DeclaratorDecl *> &Decls) {
   for (unsigned I = 0, N = UnusedFileScopedDecls.size(); I != N; ++I) {
-    DeclaratorDecl *D
-      = dyn_cast_or_null<DeclaratorDecl>(GetDecl(UnusedFileScopedDecls[I]));
-    if (D)
+    
+    if (DeclaratorDecl *D
+      = dyn_cast_or_null<DeclaratorDecl>(GetDecl(UnusedFileScopedDecls[I])); D)
       Decls.push_back(D);
   }
   UnusedFileScopedDecls.clear();
@@ -9460,9 +9460,9 @@ void ASTReader::ReadUnusedFileScopedDecls(
 void ASTReader::ReadDelegatingConstructors(
                                  SmallVectorImpl<CXXConstructorDecl *> &Decls) {
   for (unsigned I = 0, N = DelegatingCtorDecls.size(); I != N; ++I) {
-    CXXConstructorDecl *D
-      = dyn_cast_or_null<CXXConstructorDecl>(GetDecl(DelegatingCtorDecls[I]));
-    if (D)
+    
+    if (CXXConstructorDecl *D
+      = dyn_cast_or_null<CXXConstructorDecl>(GetDecl(DelegatingCtorDecls[I])); D)
       Decls.push_back(D);
   }
   DelegatingCtorDecls.clear();
@@ -9470,9 +9470,9 @@ void ASTReader::ReadDelegatingConstructors(
 
 void ASTReader::ReadExtVectorDecls(SmallVectorImpl<TypedefNameDecl *> &Decls) {
   for (unsigned I = 0, N = ExtVectorDecls.size(); I != N; ++I) {
-    TypedefNameDecl *D
-      = dyn_cast_or_null<TypedefNameDecl>(GetDecl(ExtVectorDecls[I]));
-    if (D)
+    
+    if (TypedefNameDecl *D
+      = dyn_cast_or_null<TypedefNameDecl>(GetDecl(ExtVectorDecls[I])); D)
       Decls.push_back(D);
   }
   ExtVectorDecls.clear();
@@ -9482,9 +9482,9 @@ void ASTReader::ReadUnusedLocalTypedefNameCandidates(
     llvm::SmallSetVector<const TypedefNameDecl *, 4> &Decls) {
   for (unsigned I = 0, N = UnusedLocalTypedefNameCandidates.size(); I != N;
        ++I) {
-    TypedefNameDecl *D = dyn_cast_or_null<TypedefNameDecl>(
-        GetDecl(UnusedLocalTypedefNameCandidates[I]));
-    if (D)
+    
+    if (TypedefNameDecl *D = dyn_cast_or_null<TypedefNameDecl>(
+        GetDecl(UnusedLocalTypedefNameCandidates[I])); D)
       Decls.insert(D);
   }
   UnusedLocalTypedefNameCandidates.clear();
@@ -9493,8 +9493,8 @@ void ASTReader::ReadUnusedLocalTypedefNameCandidates(
 void ASTReader::ReadDeclsToCheckForDeferredDiags(
     llvm::SmallSetVector<Decl *, 4> &Decls) {
   for (auto I : DeclsToCheckForDeferredDiags) {
-    auto *D = dyn_cast_or_null<Decl>(GetDecl(I));
-    if (D)
+    
+    if (auto *D = dyn_cast_or_null<Decl>(GetDecl(I)); D)
       Decls.insert(D);
   }
   DeclsToCheckForDeferredDiags.clear();
@@ -10137,8 +10137,8 @@ ASTRecordReader::readNestedNameSpecifierLoc() {
   unsigned N = readInt();
   NestedNameSpecifierLocBuilder Builder;
   for (unsigned I = 0; I != N; ++I) {
-    auto Kind = readNestedNameSpecifierKind();
-    switch (Kind) {
+    
+    switch (auto Kind = readNestedNameSpecifierKind(); Kind) {
     case NestedNameSpecifier::Kind::Namespace: {
       auto *NS = readDeclAs<NamespaceBaseDecl>();
       SourceRange Range = readSourceRange();
@@ -10355,10 +10355,10 @@ void ASTReader::ReadComments() {
     }
   NextCursor:
     for (RawComment *C : Comments) {
-      SourceLocation CommentLoc = C->getBeginLoc();
-      if (CommentLoc.isValid()) {
-        FileIDAndOffset Loc = SourceMgr.getDecomposedLoc(CommentLoc);
-        if (Loc.first.isValid())
+      
+      if (SourceLocation CommentLoc = C->getBeginLoc(); CommentLoc.isValid()) {
+        
+        if (FileIDAndOffset Loc = SourceMgr.getDecomposedLoc(CommentLoc); Loc.first.isValid())
           Context.Comments.OrderedComments[Loc.first].emplace(Loc.second, C);
       }
     }
@@ -10401,8 +10401,8 @@ void ASTReader::visitTopLevelModuleMaps(
     llvm::function_ref<void(FileEntryRef FE)> Visitor) {
   unsigned NumInputs = MF.InputFilesLoaded.size();
   for (unsigned I = 0; I < NumInputs; ++I) {
-    InputFileInfo IFI = getInputFileInfo(MF, I + 1);
-    if (IFI.TopLevel && IFI.ModuleMap)
+    
+    if (InputFileInfo IFI = getInputFileInfo(MF, I + 1); IFI.TopLevel && IFI.ModuleMap)
       if (auto FE = getInputFile(MF, I + 1).getFile())
         Visitor(*FE);
   }
@@ -10485,15 +10485,15 @@ void ASTReader::finishPendingActions() {
       // Initialize the macro history from chained-PCHs ahead of module imports.
       for (unsigned IDIdx = 0, NumIDs = GlobalIDs.size(); IDIdx != NumIDs;
            ++IDIdx) {
-        const PendingMacroInfo &Info = GlobalIDs[IDIdx];
-        if (!Info.M->isModule())
+        
+        if (const PendingMacroInfo &Info = GlobalIDs[IDIdx]; !Info.M->isModule())
           resolvePendingMacro(II, Info);
       }
       // Handle module imports.
       for (unsigned IDIdx = 0, NumIDs = GlobalIDs.size(); IDIdx != NumIDs;
            ++IDIdx) {
-        const PendingMacroInfo &Info = GlobalIDs[IDIdx];
-        if (Info.M->isModule())
+        
+        if (const PendingMacroInfo &Info = GlobalIDs[IDIdx]; Info.M->isModule())
           resolvePendingMacro(II, Info);
       }
     }
@@ -10678,8 +10678,8 @@ void ASTReader::finishPendingActions() {
       continue;
     }
 
-    ObjCMethodDecl *MD = cast<ObjCMethodDecl>(PB->first);
-    if (!getContext().getLangOpts().Modules || !MD->hasBody())
+    
+    if (ObjCMethodDecl *MD = cast<ObjCMethodDecl>(PB->first); !getContext().getLangOpts().Modules || !MD->hasBody())
       MD->setLazyBody(PB->second);
   }
   PendingBodies.clear();
@@ -11104,8 +11104,8 @@ void ASTReader::FinishedDeserializing() {
 void ASTReader::pushExternalDeclIntoScope(NamedDecl *D, DeclarationName Name) {
   if (const IdentifierInfo *II = Name.getAsIdentifierInfo()) {
     // Remove any fake results before adding any real ones.
-    auto It = PendingFakeLookupResults.find(II);
-    if (It != PendingFakeLookupResults.end()) {
+    
+    if (auto It = PendingFakeLookupResults.find(II); It != PendingFakeLookupResults.end()) {
       for (auto *ND : It->second)
         SemaObj->IdResolver.RemoveDecl(ND);
       // FIXME: this works around module+PCH performance issue.
@@ -12876,8 +12876,8 @@ OpenACCClause *ASTRecordReader::readOpenACCClause() {
   }
   case OpenACCClauseKind::Self: {
     SourceLocation LParenLoc = readSourceLocation();
-    bool isConditionExprClause = readBool();
-    if (isConditionExprClause) {
+    
+    if (bool isConditionExprClause = readBool(); isConditionExprClause) {
       Expr *CondExpr = readBool() ? readSubExpr() : nullptr;
       return OpenACCSelfClause::Create(getContext(), BeginLoc, LParenLoc,
                                        CondExpr, EndLoc);
@@ -13166,8 +13166,8 @@ OpenACCClause *ASTRecordReader::readOpenACCClause() {
 
   case OpenACCClauseKind::Bind: {
     SourceLocation LParenLoc = readSourceLocation();
-    bool IsString = readBool();
-    if (IsString)
+    
+    if (bool IsString = readBool(); IsString)
       return OpenACCBindClause::Create(getContext(), BeginLoc, LParenLoc,
                                        cast<StringLiteral>(readExpr()), EndLoc);
     return OpenACCBindClause::Create(getContext(), BeginLoc, LParenLoc,

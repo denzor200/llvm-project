@@ -222,8 +222,8 @@ static bool addDiscriminators(Function &F) {
           std::make_pair(CurrentDIL->getFilename(), CurrentDIL->getLine());
       if (!CallLocations.insert(L).second) {
         unsigned Discriminator = ++LDM[L];
-        auto NewDIL = CurrentDIL->cloneWithBaseDiscriminator(Discriminator);
-        if (!NewDIL) {
+        
+        if (auto NewDIL = CurrentDIL->cloneWithBaseDiscriminator(Discriminator); !NewDIL) {
           LLVM_DEBUG(dbgs()
                      << "Could not encode discriminator: "
                      << CurrentDIL->getFilename() << ":"

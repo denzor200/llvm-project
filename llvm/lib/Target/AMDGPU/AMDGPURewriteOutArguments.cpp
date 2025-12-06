@@ -149,10 +149,10 @@ Type *AMDGPURewriteOutArguments::getStoredType(Value &Arg) const {
 
 Type *AMDGPURewriteOutArguments::getOutArgumentType(Argument &Arg) const {
   const unsigned MaxOutArgSizeBytes = 4 * MaxNumRetRegs;
-  PointerType *ArgTy = dyn_cast<PointerType>(Arg.getType());
+  
 
   // TODO: It might be useful for any out arguments, not just privates.
-  if (!ArgTy || (ArgTy->getAddressSpace() != DL->getAllocaAddrSpace() &&
+  if (PointerType *ArgTy = dyn_cast<PointerType>(Arg.getType()); !ArgTy || (ArgTy->getAddressSpace() != DL->getAllocaAddrSpace() &&
                  !AnyAddressSpace) ||
       Arg.hasByValAttr() || Arg.hasStructRetAttr()) {
     return nullptr;

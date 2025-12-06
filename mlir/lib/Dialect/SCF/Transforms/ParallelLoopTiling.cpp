@@ -110,10 +110,10 @@ mlir::scf::tileParallelLoop(ParallelOp op, ArrayRef<int64_t> tileSizes,
     // loop iterations is an integer multiple of the tile size, we use a static
     // bound for the inner loop.
     if (lowerBoundConstant && upperBoundConstant && stepConstant) {
-      auto numIterations = llvm::divideCeil(upperBoundConstant.value() -
+      
+      if (auto numIterations = llvm::divideCeil(upperBoundConstant.value() -
                                                 lowerBoundConstant.value(),
-                                            stepConstant.value());
-      if (numIterations % tileSize == 0) {
+                                            stepConstant.value()); numIterations % tileSize == 0) {
         newBounds.push_back(newStep);
         continue;
       }

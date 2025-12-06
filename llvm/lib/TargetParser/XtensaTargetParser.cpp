@@ -83,8 +83,8 @@ void fillValidCPUList(std::vector<StringRef> &Values) {
   for (const auto &C : XtensaCPUInfo) {
     if (C.Kind != CK_INVALID) {
       Values.emplace_back(C.Name);
-      StringRef Name = getAliasName(C.Name);
-      if (Name != C.Name)
+      
+      if (StringRef Name = getAliasName(C.Name); Name != C.Name)
         Values.emplace_back(Name);
     }
   }

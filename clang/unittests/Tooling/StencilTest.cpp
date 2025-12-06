@@ -118,11 +118,11 @@ protected:
     if (auto ResultOrErr = Stencil->eval(StmtMatch->Result)) {
       ADD_FAILURE() << "Expected failure but succeeded: " << *ResultOrErr;
     } else {
-      auto Err = llvm::handleErrors(ResultOrErr.takeError(),
+      
+      if (auto Err = llvm::handleErrors(ResultOrErr.takeError(),
                                     [&Matcher](const StringError &Err) {
                                       EXPECT_THAT(Err.getMessage(), Matcher);
-                                    });
-      if (Err) {
+                                    }); Err) {
         ADD_FAILURE() << "Unhandled error: " << llvm::toString(std::move(Err));
       }
     }

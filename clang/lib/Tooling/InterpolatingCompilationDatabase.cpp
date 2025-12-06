@@ -235,8 +235,8 @@ struct TransferableCommand {
               ? types::lookupHeaderTypeForSourceType(*Type)
               : *Type;
       if (ClangCLMode) {
-        const StringRef Flag = toCLFlag(TargetType);
-        if (!Flag.empty())
+        
+        if (const StringRef Flag = toCLFlag(TargetType); !Flag.empty())
           Result.CommandLine.push_back(std::string(Flag));
       } else {
         Result.CommandLine.push_back("-x");

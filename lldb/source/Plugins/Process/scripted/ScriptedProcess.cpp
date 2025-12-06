@@ -523,8 +523,8 @@ ScriptedProcess::GetLoadedDynamicLibrariesInfos() {
   size_t loaded_images_size = loaded_images_sp->GetSize();
   bool print_error = true;
   for (size_t idx = 0; idx < loaded_images_size; idx++) {
-    const auto &loaded_image = loaded_images_sp->GetItemAtIndex(idx);
-    if (!reload_image(loaded_image.get()) && print_error) {
+    
+    if (const auto &loaded_image = loaded_images_sp->GetItemAtIndex(idx); !reload_image(loaded_image.get()) && print_error) {
       print_error = false;
       ScriptedInterface::ErrorWithMessage<StructuredData::ObjectSP>(
           LLVM_PRETTY_FUNCTION, "Couldn't reload all images.", error);

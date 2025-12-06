@@ -83,8 +83,8 @@ void DebugIteratorModeling::analyzerIteratorDataField(const CallExpr *CE,
 
   auto State = C.getState();
   SVal V = C.getSVal(CE->getArg(0));
-  const auto *Pos = getIteratorPosition(State, V);
-  if (Pos) {
+  
+  if (const auto *Pos = getIteratorPosition(State, V); Pos) {
     State = State->BindExpr(CE, C.getLocationContext(), get(Pos));
   } else {
     State = State->BindExpr(CE, C.getLocationContext(), Default);

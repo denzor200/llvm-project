@@ -137,8 +137,8 @@ std::vector<ArchSpec> PlatformRemoteAppleTV::GetSupportedArchitectures(
     const ArchSpec &process_host_arch) {
   ArchSpec system_arch(GetSystemArchitecture());
 
-  const ArchSpec::Core system_core = system_arch.GetCore();
-  switch (system_core) {
+  
+  switch (const ArchSpec::Core system_core = system_arch.GetCore(); system_core) {
   default:
   case ArchSpec::eCore_arm_arm64:
     return {ArchSpec("arm64-apple-tvos"), ArchSpec("armv7s-apple-tvos"),

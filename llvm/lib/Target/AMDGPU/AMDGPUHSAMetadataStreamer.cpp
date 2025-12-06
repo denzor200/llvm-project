@@ -165,8 +165,8 @@ std::string MetadataStreamerMsgPackV4::getTypeName(Type *Ty,
     if (!Signed)
       return (Twine('u') + getTypeName(Ty, true)).str();
 
-    auto BitWidth = Ty->getIntegerBitWidth();
-    switch (BitWidth) {
+    
+    switch (auto BitWidth = Ty->getIntegerBitWidth(); BitWidth) {
     case 8:
       return "char";
     case 16:
@@ -533,10 +533,10 @@ MetadataStreamerMsgPackV4::getHSAKernelProps(const MachineFunction &MF,
 
   uint32_t NumWGY = MFI.getMaxNumWorkGroupsY();
   uint32_t NumWGZ = MFI.getMaxNumWorkGroupsZ();
-  uint32_t NumWGX = MFI.getMaxNumWorkGroupsX();
+  
 
   // TODO: Should consider 0 invalid and reject in IR verifier.
-  if (NumWGX != std::numeric_limits<uint32_t>::max() && NumWGX != 0)
+  if (uint32_t NumWGX = MFI.getMaxNumWorkGroupsX(); NumWGX != std::numeric_limits<uint32_t>::max() && NumWGX != 0)
     Kern[".max_num_workgroups_x"] = Kern.getDocument()->getNode(NumWGX);
 
   if (NumWGY != std::numeric_limits<uint32_t>::max() && NumWGY != 0)
@@ -730,8 +730,8 @@ void MetadataStreamerMsgPackV5::emitKernelAttrs(const AMDGPUTargetMachine &TM,
                                                 msgpack::MapDocNode Kern) {
   MetadataStreamerMsgPackV4::emitKernelAttrs(TM, MF, Kern);
 
-  const Function &Func = MF.getFunction();
-  if (Func.getFnAttribute("uniform-work-group-size").getValueAsBool())
+  
+  if (const Function &Func = MF.getFunction(); Func.getFnAttribute("uniform-work-group-size").getValueAsBool())
     Kern[".uniform_work_group_size"] = Kern.getDocument()->getNode(1);
 }
 
@@ -752,8 +752,8 @@ void MetadataStreamerMsgPackV6::emitKernelAttrs(const AMDGPUTargetMachine &TM,
   MetadataStreamerMsgPackV5::emitKernelAttrs(TM, MF, Kern);
 
   const SIMachineFunctionInfo &MFI = *MF.getInfo<SIMachineFunctionInfo>();
-  ClusterDimsAttr Attr = MFI.getClusterDims();
-  if (Attr.isFixedDims()) {
+  
+  if (ClusterDimsAttr Attr = MFI.getClusterDims(); Attr.isFixedDims()) {
     msgpack::ArrayDocNode ClusterDimsNode = HSAMetadataDoc->getArrayNode();
     ClusterDimsNode.push_back(HSAMetadataDoc->getNode(Attr.getDims()[0]));
     ClusterDimsNode.push_back(HSAMetadataDoc->getNode(Attr.getDims()[1]));

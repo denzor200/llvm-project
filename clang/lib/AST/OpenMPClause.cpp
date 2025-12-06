@@ -1934,8 +1934,8 @@ void OMPClausePrinter::VisitOMPFinalClause(OMPFinalClause *Node) {
 
 void OMPClausePrinter::VisitOMPNumThreadsClause(OMPNumThreadsClause *Node) {
   OS << "num_threads(";
-  OpenMPNumThreadsClauseModifier Modifier = Node->getModifier();
-  if (Modifier != OMPC_NUMTHREADS_unknown) {
+  
+  if (OpenMPNumThreadsClauseModifier Modifier = Node->getModifier(); Modifier != OMPC_NUMTHREADS_unknown) {
     OS << getOpenMPSimpleClauseTypeName(Node->getClauseKind(), Modifier)
        << ": ";
   }
@@ -1997,9 +1997,9 @@ void OMPClausePrinter::VisitOMPLoopRangeClause(OMPLoopRangeClause *Node) {
   OS << "looprange";
 
   Expr *First = Node->getFirst();
-  Expr *Count = Node->getCount();
+  
 
-  if (First && Count) {
+  if (Expr *Count = Node->getCount(); First && Count) {
     OS << "(";
     First->printPretty(OS, nullptr, Policy, 0);
     OS << ",";
@@ -2260,8 +2260,8 @@ void OMPClausePrinter::VisitOMPSIMDClause(OMPSIMDClause *) { OS << "simd"; }
 
 void OMPClausePrinter::VisitOMPDeviceClause(OMPDeviceClause *Node) {
   OS << "device(";
-  OpenMPDeviceClauseModifier Modifier = Node->getModifier();
-  if (Modifier != OMPC_DEVICE_unknown) {
+  
+  if (OpenMPDeviceClauseModifier Modifier = Node->getModifier(); Modifier != OMPC_DEVICE_unknown) {
     OS << getOpenMPSimpleClauseTypeName(Node->getClauseKind(), Modifier)
        << ": ";
   }
@@ -2293,8 +2293,8 @@ void OMPClausePrinter::VisitOMPPriorityClause(OMPPriorityClause *Node) {
 
 void OMPClausePrinter::VisitOMPGrainsizeClause(OMPGrainsizeClause *Node) {
   OS << "grainsize(";
-  OpenMPGrainsizeClauseModifier Modifier = Node->getModifier();
-  if (Modifier != OMPC_GRAINSIZE_unknown) {
+  
+  if (OpenMPGrainsizeClauseModifier Modifier = Node->getModifier(); Modifier != OMPC_GRAINSIZE_unknown) {
     OS << getOpenMPSimpleClauseTypeName(Node->getClauseKind(), Modifier)
        << ": ";
   }
@@ -2304,8 +2304,8 @@ void OMPClausePrinter::VisitOMPGrainsizeClause(OMPGrainsizeClause *Node) {
 
 void OMPClausePrinter::VisitOMPNumTasksClause(OMPNumTasksClause *Node) {
   OS << "num_tasks(";
-  OpenMPNumTasksClauseModifier Modifier = Node->getModifier();
-  if (Modifier != OMPC_NUMTASKS_unknown) {
+  
+  if (OpenMPNumTasksClauseModifier Modifier = Node->getModifier(); Modifier != OMPC_NUMTASKS_unknown) {
     OS << getOpenMPSimpleClauseTypeName(Node->getClauseKind(), Modifier)
        << ": ";
   }
@@ -2879,9 +2879,9 @@ void OMPClausePrinter::VisitOMPDynGroupprivateClause(
 
 void OMPClausePrinter::VisitOMPDoacrossClause(OMPDoacrossClause *Node) {
   OS << "doacross(";
-  OpenMPDoacrossClauseModifier DepType = Node->getDependenceType();
+  
 
-  switch (DepType) {
+  switch (OpenMPDoacrossClauseModifier DepType = Node->getDependenceType(); DepType) {
   case OMPC_DOACROSS_source:
     OS << "source:";
     break;

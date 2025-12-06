@@ -108,13 +108,13 @@ PreservedAnalyses ForceFunctionAttrsPass::run(Module &M,
       if (Func) {
         if (Func->isDeclaration())
           continue;
-        auto SecondSplitPair = SplitPair.second.split('=');
-        if (!SecondSplitPair.second.empty()) {
+        
+        if (auto SecondSplitPair = SplitPair.second.split('='); !SecondSplitPair.second.empty()) {
           Func->addFnAttr(SecondSplitPair.first, SecondSplitPair.second);
           Changed = true;
         } else {
-          auto AttrKind = Attribute::getAttrKindFromName(SplitPair.second);
-          if (AttrKind != Attribute::None &&
+          
+          if (auto AttrKind = Attribute::getAttrKindFromName(SplitPair.second); AttrKind != Attribute::None &&
               Attribute::canUseAsFnAttr(AttrKind)) {
             // TODO: There could be string attributes without a value, we should
             // support those, too.

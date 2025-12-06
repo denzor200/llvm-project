@@ -297,11 +297,11 @@ static llvm::LogicalResult processPayloadBuffer(
 
   // Parse and merge the libraries into the main transform module.
   for (auto &&transformLibrary : transformLibraries) {
-    mlir::OwningOpRef<mlir::ModuleOp> libraryModule =
-        sourceMgr.parseBuffer<mlir::ModuleOp>(std::move(transformLibrary),
-                                              context, config);
+    
 
-    if (!libraryModule ||
+    if (mlir::OwningOpRef<mlir::ModuleOp> libraryModule =
+        sourceMgr.parseBuffer<mlir::ModuleOp>(std::move(transformLibrary),
+                                              context, config); !libraryModule ||
         mlir::failed(mlir::transform::detail::mergeSymbolsInto(
             *transformRoot, std::move(libraryModule))))
       return sourceMgr.checkResult(mlir::failure());

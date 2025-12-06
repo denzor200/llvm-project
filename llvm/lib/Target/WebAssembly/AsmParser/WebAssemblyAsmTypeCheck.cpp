@@ -258,8 +258,8 @@ bool WebAssemblyAsmTypeCheck::getGlobal(SMLoc ErrorLoc,
   const MCSymbolRefExpr *SymRef;
   if (getSymRef(ErrorLoc, GlobalOp, SymRef))
     return true;
-  auto *WasmSym = static_cast<const MCSymbolWasm *>(&SymRef->getSymbol());
-  switch (WasmSym->getType().value_or(wasm::WASM_SYMBOL_TYPE_DATA)) {
+  
+  switch (auto *WasmSym = static_cast<const MCSymbolWasm *>(&SymRef->getSymbol()); WasmSym->getType().value_or(wasm::WASM_SYMBOL_TYPE_DATA)) {
   case wasm::WASM_SYMBOL_TYPE_GLOBAL:
     Type = static_cast<wasm::ValType>(WasmSym->getGlobalType().Type);
     break;
@@ -558,8 +558,8 @@ bool WebAssemblyAsmTypeCheck::typeCheck(SMLoc ErrorLoc, const MCInst &Inst,
     } else if (Name == "catch") {
       // 'catch' instruction pushes values whose types are specified in the
       // tag's 'params' part
-      const wasm::WasmSignature *Sig = nullptr;
-      if (!getSignature(Operands[1]->getStartLoc(), Inst.getOperand(0),
+      
+      if (const wasm::WasmSignature *Sig = nullptr; !getSignature(Operands[1]->getStartLoc(), Inst.getOperand(0),
                         wasm::WASM_SYMBOL_TYPE_TAG, Sig))
         pushTypes(Sig->Params);
       else
@@ -581,11 +581,11 @@ bool WebAssemblyAsmTypeCheck::typeCheck(SMLoc ErrorLoc, const MCInst &Inst,
       Error |= popType(ErrorLoc, wasm::ValType::I32); // cond
     const MCOperand &Operand = Inst.getOperand(0);
     if (Operand.isImm()) {
-      unsigned Level = Operand.getImm();
-      if (Level < BlockInfoStack.size()) {
-        const auto &DestBlockInfo =
-            BlockInfoStack[BlockInfoStack.size() - Level - 1];
-        if (DestBlockInfo.IsLoop)
+      
+      if (unsigned Level = Operand.getImm(); Level < BlockInfoStack.size()) {
+        
+        if (const auto &DestBlockInfo =
+            BlockInfoStack[BlockInfoStack.size() - Level - 1]; DestBlockInfo.IsLoop)
           Error |= checkTypes(ErrorLoc, DestBlockInfo.Sig.Params, false);
         else
           Error |= checkTypes(ErrorLoc, DestBlockInfo.Sig.Returns, false);
@@ -672,8 +672,8 @@ bool WebAssemblyAsmTypeCheck::typeCheck(SMLoc ErrorLoc, const MCInst &Inst,
   // First pop all the uses off the stack and check them.
   SmallVector<wasm::ValType, 4> PopTypes;
   for (unsigned I = II.getNumDefs(); I < II.getNumOperands(); I++) {
-    const auto &Op = II.operands()[I];
-    if (Op.OperandType == MCOI::OPERAND_REGISTER)
+    
+    if (const auto &Op = II.operands()[I]; Op.OperandType == MCOI::OPERAND_REGISTER)
       PopTypes.push_back(WebAssembly::regClassToValType(Op.RegClass));
   }
   bool Error = popTypes(ErrorLoc, PopTypes);

@@ -668,9 +668,9 @@ bool ObjCPropertyOpBuilder::findSetter(bool warn) {
         front = isLowercase(front) ? toUppercase(front) : toLowercase(front);
         SmallString<100> PropertyName = thisPropertyName;
         PropertyName[0] = front;
-        const IdentifierInfo *AltMember =
-            &S.PP.getIdentifierTable().get(PropertyName);
-        if (ObjCPropertyDecl *prop1 = IFace->FindPropertyDeclaration(
+        
+        if (const IdentifierInfo *AltMember =
+            &S.PP.getIdentifierTable().get(PropertyName); ObjCPropertyDecl *prop1 = IFace->FindPropertyDeclaration(
                 AltMember, prop->getQueryKind()))
           if (prop != prop1 && (prop1->getSetterMethodDecl() == setter)) {
             S.Diag(RefExpr->getExprLoc(), diag::err_property_setter_ambiguous_use)
@@ -773,16 +773,16 @@ ExprResult ObjCPropertyOpBuilder::buildSet(Expr *op, SourceLocation opcLoc,
   // diagnostics.  "When possible" basically means anything except a
   // C++ class type.
   if (!S.getLangOpts().CPlusPlus || !op->getType()->isRecordType()) {
-    QualType paramType = (*Setter->param_begin())->getType()
+    
+    if (QualType paramType = (*Setter->param_begin())->getType()
                            .substObjCMemberType(
                              receiverType,
                              Setter->getDeclContext(),
-                             ObjCSubstitutionContext::Parameter);
-    if (!S.getLangOpts().CPlusPlus || !paramType->isRecordType()) {
+                             ObjCSubstitutionContext::Parameter); !S.getLangOpts().CPlusPlus || !paramType->isRecordType()) {
       ExprResult opResult = op;
-      AssignConvertType assignResult =
-          S.CheckSingleAssignmentConstraints(paramType, opResult);
-      if (opResult.isInvalid() ||
+      
+      if (AssignConvertType assignResult =
+          S.CheckSingleAssignmentConstraints(paramType, opResult); opResult.isInvalid() ||
           S.DiagnoseAssignmentResult(assignResult, opcLoc, paramType,
                                      op->getType(), opResult.get(),
                                      AssignmentAction::Assigning))
@@ -814,8 +814,8 @@ ExprResult ObjCPropertyOpBuilder::buildSet(Expr *op, SourceLocation opcLoc,
   if (!msg.isInvalid() && captureSetValueAsResult) {
     ObjCMessageExpr *msgExpr =
       cast<ObjCMessageExpr>(msg.get()->IgnoreImplicit());
-    Expr *arg = msgExpr->getArg(0);
-    if (CanCaptureValue(arg))
+    
+    if (Expr *arg = msgExpr->getArg(0); CanCaptureValue(arg))
       msgExpr->setArg(0, captureValueAsResult(arg));
   }
 
@@ -1276,8 +1276,8 @@ bool ObjCSubscriptOpBuilder::findAtIndexSetter() {
   }
   else if (AtIndexSetter && !arrayRef)
     for (unsigned i=0; i <2; i++) {
-      QualType T = AtIndexSetter->parameters()[i]->getType();
-      if (!T->isObjCObjectPointerType()) {
+      
+      if (QualType T = AtIndexSetter->parameters()[i]->getType(); !T->isObjCObjectPointerType()) {
         if (i == 1)
           S.Diag(RefExpr->getKeyExpr()->getExprLoc(),
                  diag::err_objc_subscript_key_type) << T;
@@ -1341,8 +1341,8 @@ ExprResult ObjCSubscriptOpBuilder::buildSet(Expr *op, SourceLocation opcLoc,
   if (!msg.isInvalid() && captureSetValueAsResult) {
     ObjCMessageExpr *msgExpr =
       cast<ObjCMessageExpr>(msg.get()->IgnoreImplicit());
-    Expr *arg = msgExpr->getArg(0);
-    if (CanCaptureValue(arg))
+    
+    if (Expr *arg = msgExpr->getArg(0); CanCaptureValue(arg))
       msgExpr->setArg(0, captureValueAsResult(arg));
   }
 
@@ -1446,8 +1446,8 @@ ExprResult MSPropertyOpBuilder::buildSet(Expr *op, SourceLocation sl,
 //===----------------------------------------------------------------------===//
 
 ExprResult SemaPseudoObject::checkRValue(Expr *E) {
-  Expr *opaqueRef = E->IgnoreParens();
-  if (ObjCPropertyRefExpr *refExpr
+  
+  if (Expr *opaqueRef = E->IgnoreParens(); ObjCPropertyRefExpr *refExpr
         = dyn_cast<ObjCPropertyRefExpr>(opaqueRef)) {
     ObjCPropertyOpBuilder builder(SemaRef, refExpr, true);
     return builder.buildRValueOperation(E);
@@ -1479,8 +1479,8 @@ ExprResult SemaPseudoObject::checkIncDec(Scope *Sc, SourceLocation opcLoc,
         OK_Ordinary, opcLoc, false, SemaRef.CurFPFeatureOverrides());
 
   assert(UnaryOperator::isIncrementDecrementOp(opcode));
-  Expr *opaqueRef = op->IgnoreParens();
-  if (ObjCPropertyRefExpr *refExpr
+  
+  if (Expr *opaqueRef = op->IgnoreParens(); ObjCPropertyRefExpr *refExpr
         = dyn_cast<ObjCPropertyRefExpr>(opaqueRef)) {
     ObjCPropertyOpBuilder builder(SemaRef, refExpr, false);
     return builder.buildIncDecOperation(Sc, opcLoc, opcode, op);
@@ -1517,8 +1517,8 @@ ExprResult SemaPseudoObject::checkAssignment(Scope *S, SourceLocation opcLoc,
   }
 
   bool IsSimpleAssign = opcode == BO_Assign;
-  Expr *opaqueRef = LHS->IgnoreParens();
-  if (ObjCPropertyRefExpr *refExpr
+  
+  if (Expr *opaqueRef = LHS->IgnoreParens(); ObjCPropertyRefExpr *refExpr
         = dyn_cast<ObjCPropertyRefExpr>(opaqueRef)) {
     ObjCPropertyOpBuilder builder(SemaRef, refExpr, IsSimpleAssign);
     return builder.buildAssignmentOperation(S, opcLoc, opcode, LHS, RHS);
@@ -1557,8 +1557,8 @@ static Expr *stripOpaqueValuesFromPseudoObjectRef(Sema &S, Expr *E) {
 /// capable of rebuilding a tree without stripping implicit
 /// operations.
 Expr *SemaPseudoObject::recreateSyntacticForm(PseudoObjectExpr *E) {
-  Expr *syntax = E->getSyntacticForm();
-  if (UnaryOperator *uop = dyn_cast<UnaryOperator>(syntax)) {
+  
+  if (Expr *syntax = E->getSyntacticForm(); UnaryOperator *uop = dyn_cast<UnaryOperator>(syntax)) {
     Expr *op = stripOpaqueValuesFromPseudoObjectRef(SemaRef, uop->getSubExpr());
     return UnaryOperator::Create(
         SemaRef.Context, op, uop->getOpcode(), uop->getType(),

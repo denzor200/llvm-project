@@ -86,14 +86,14 @@ StringRef DocNode::fromString(StringRef S, StringRef Tag) {
   }
   if (Tag == "!bool" || Tag == "") {
     *this = getDocument()->getNode(false);
-    StringRef Err = yaml::ScalarTraits<bool>::input(S, nullptr, getBool());
-    if (Err == "" || Tag != "")
+    
+    if (StringRef Err = yaml::ScalarTraits<bool>::input(S, nullptr, getBool()); Err == "" || Tag != "")
       return Err;
   }
   if (Tag == "!float" || Tag == "") {
     *this = getDocument()->getNode(0.0);
-    StringRef Err = yaml::ScalarTraits<double>::input(S, nullptr, getFloat());
-    if (Err == "" || Tag != "")
+    
+    if (StringRef Err = yaml::ScalarTraits<double>::input(S, nullptr, getFloat()); Err == "" || Tag != "")
       return Err;
   }
   assert((Tag == "!str" || Tag == "") && "unsupported tag");

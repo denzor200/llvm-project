@@ -96,8 +96,8 @@ Stream::StreamKind Stream::getKind(StreamType Type) {
 }
 
 std::unique_ptr<Stream> Stream::create(StreamType Type) {
-  StreamKind Kind = getKind(Type);
-  switch (Kind) {
+  
+  switch (StreamKind Kind = getKind(Type); Kind) {
   case StreamKind::Exception:
     return std::make_unique<ExceptionStream>();
   case StreamKind::MemoryInfoList:
@@ -416,9 +416,9 @@ void yaml::MappingTraits<minidump::Exception>::mapping(
   for (size_t Index = 0; Index < Exception.MaxParameters; ++Index) {
     SmallString<16> Name("Parameter ");
     Twine(Index).toVector(Name);
-    support::ulittle64_t &Field = Exception.ExceptionInformation[Index];
+    
 
-    if (Index < Exception.NumberParameters)
+    if (support::ulittle64_t &Field = Exception.ExceptionInformation[Index]; Index < Exception.NumberParameters)
       mapRequiredHex(IO, Name.c_str(), Field);
     else
       mapOptionalHex(IO, Name.c_str(), Field, 0);
@@ -494,8 +494,8 @@ void yaml::MappingTraits<Object>::mapping(IO &IO, Object &O) {
 
 Expected<std::unique_ptr<Stream>>
 Stream::create(const Directory &StreamDesc, const object::MinidumpFile &File) {
-  StreamKind Kind = getKind(StreamDesc.Type);
-  switch (Kind) {
+  
+  switch (StreamKind Kind = getKind(StreamDesc.Type); Kind) {
   case StreamKind::Exception: {
     Expected<const minidump::ExceptionStream &> ExpectedExceptionStream =
         File.getExceptionStream(StreamDesc);

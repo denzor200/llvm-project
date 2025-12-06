@@ -353,10 +353,10 @@ AsyncRuntimeRefCountingPass::addDropRefInDivergentLivenessSuccessor(
 
   // Collect blocks with successors with mismatching `liveIn` sets.
   for (Block &block : definingRegion->getBlocks()) {
-    const LivenessBlockInfo *blockLiveness = liveness.getLiveness(&block);
+    
 
     // Skip the block if value is not in the `liveOut` set.
-    if (!blockLiveness || !blockLiveness->isLiveOut(value))
+    if (const LivenessBlockInfo *blockLiveness = liveness.getLiveness(&block); !blockLiveness || !blockLiveness->isLiveOut(value))
       continue;
 
     BlockSet liveInSuccessors;   // `value` is in `liveIn` set
@@ -364,8 +364,8 @@ AsyncRuntimeRefCountingPass::addDropRefInDivergentLivenessSuccessor(
 
     // Collect successors that do not have `value` in the `liveIn` set.
     for (Block *successor : block.getSuccessors()) {
-      const LivenessBlockInfo *succLiveness = liveness.getLiveness(successor);
-      if (succLiveness && succLiveness->isLiveIn(value))
+      
+      if (const LivenessBlockInfo *succLiveness = liveness.getLiveness(successor); succLiveness && succLiveness->isLiveIn(value))
         liveInSuccessors.insert(successor);
       else
         noLiveInSuccessors.insert(successor);
@@ -454,8 +454,8 @@ AsyncRuntimeRefCountingPass::addAutomaticRefCounting(Value value) {
 }
 
 void AsyncRuntimeRefCountingPass::runOnOperation() {
-  auto functor = [&](Value value) { return addAutomaticRefCounting(value); };
-  if (failed(walkReferenceCountedValues(getOperation(), functor)))
+  
+  if (auto functor = [&](Value value) { return addAutomaticRefCounting(value); }; failed(walkReferenceCountedValues(getOperation(), functor)))
     signalPassFailure();
 }
 
@@ -547,7 +547,7 @@ void AsyncRuntimePolicyBasedRefCountingPass::initializeDefaultPolicy() {
 }
 
 void AsyncRuntimePolicyBasedRefCountingPass::runOnOperation() {
-  auto functor = [&](Value value) { return addRefCounting(value); };
-  if (failed(walkReferenceCountedValues(getOperation(), functor)))
+  
+  if (auto functor = [&](Value value) { return addRefCounting(value); }; failed(walkReferenceCountedValues(getOperation(), functor)))
     signalPassFailure();
 }

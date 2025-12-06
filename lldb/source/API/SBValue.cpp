@@ -133,14 +133,14 @@ public:
     }
 
     if (m_use_dynamic != eNoDynamicValues) {
-      ValueObjectSP dynamic_sp = value_sp->GetDynamicValue(m_use_dynamic);
-      if (dynamic_sp)
+      
+      if (ValueObjectSP dynamic_sp = value_sp->GetDynamicValue(m_use_dynamic); dynamic_sp)
         value_sp = dynamic_sp;
     }
 
     if (m_use_synthetic) {
-      ValueObjectSP synthetic_sp = value_sp->GetSyntheticValue();
-      if (synthetic_sp)
+      
+      if (ValueObjectSP synthetic_sp = value_sp->GetSyntheticValue(); synthetic_sp)
         value_sp = synthetic_sp;
     }
 
@@ -434,8 +434,8 @@ const char *SBValue::GetSummary(lldb::SBStream &stream,
   ValueLocker locker;
   lldb::ValueObjectSP value_sp(GetSP(locker));
   if (value_sp) {
-    std::string buffer;
-    if (value_sp->GetSummaryAsCString(buffer, options.ref()) && !buffer.empty())
+    
+    if (std::string buffer; value_sp->GetSummaryAsCString(buffer, options.ref()) && !buffer.empty())
       stream.Printf("%s", buffer.c_str());
   }
   return ConstString(stream.GetData()).GetCString();
@@ -483,8 +483,8 @@ lldb::SBTypeFormat SBValue::GetTypeFormat() {
   lldb::ValueObjectSP value_sp(GetSP(locker));
   if (value_sp) {
     if (value_sp->UpdateValueIfNeeded(true)) {
-      lldb::TypeFormatImplSP format_sp = value_sp->GetValueFormat();
-      if (format_sp)
+      
+      if (lldb::TypeFormatImplSP format_sp = value_sp->GetValueFormat(); format_sp)
         format.SetSP(format_sp);
     }
   }
@@ -499,8 +499,8 @@ lldb::SBTypeSummary SBValue::GetTypeSummary() {
   lldb::ValueObjectSP value_sp(GetSP(locker));
   if (value_sp) {
     if (value_sp->UpdateValueIfNeeded(true)) {
-      lldb::TypeSummaryImplSP summary_sp = value_sp->GetSummaryFormat();
-      if (summary_sp)
+      
+      if (lldb::TypeSummaryImplSP summary_sp = value_sp->GetSummaryFormat(); summary_sp)
         summary.SetSP(summary_sp);
     }
   }
@@ -515,9 +515,9 @@ lldb::SBTypeFilter SBValue::GetTypeFilter() {
   lldb::ValueObjectSP value_sp(GetSP(locker));
   if (value_sp) {
     if (value_sp->UpdateValueIfNeeded(true)) {
-      lldb::SyntheticChildrenSP synthetic_sp = value_sp->GetSyntheticChildren();
+      
 
-      if (synthetic_sp && !synthetic_sp->IsScripted()) {
+      if (lldb::SyntheticChildrenSP synthetic_sp = value_sp->GetSyntheticChildren(); synthetic_sp && !synthetic_sp->IsScripted()) {
         TypeFilterImplSP filter_sp =
             std::static_pointer_cast<TypeFilterImpl>(synthetic_sp);
         filter.SetSP(filter_sp);
@@ -535,9 +535,9 @@ lldb::SBTypeSynthetic SBValue::GetTypeSynthetic() {
   lldb::ValueObjectSP value_sp(GetSP(locker));
   if (value_sp) {
     if (value_sp->UpdateValueIfNeeded(true)) {
-      lldb::SyntheticChildrenSP children_sp = value_sp->GetSyntheticChildren();
+      
 
-      if (children_sp && children_sp->IsScripted()) {
+      if (lldb::SyntheticChildrenSP children_sp = value_sp->GetSyntheticChildren(); children_sp && children_sp->IsScripted()) {
         ScriptedSyntheticChildrenSP synth_sp =
             std::static_pointer_cast<ScriptedSyntheticChildren>(children_sp);
         synthetic.SetSP(synth_sp);
@@ -556,8 +556,8 @@ lldb::SBValue SBValue::CreateChildAtOffset(const char *name, uint32_t offset,
   lldb::ValueObjectSP value_sp(GetSP(locker));
   lldb::ValueObjectSP new_value_sp;
   if (value_sp) {
-    TypeImplSP type_sp(type.GetSP());
-    if (type.IsValid()) {
+    
+    if (TypeImplSP type_sp(type.GetSP()); type.IsValid()) {
       sb_value.SetSP(value_sp->GetSyntheticChildAtOffset(
                          offset, type_sp->GetCompilerType(false), true),
                      GetPreferDynamicValue(), GetPreferSyntheticValue(), name);
@@ -686,8 +686,8 @@ SBValue SBValue::GetChildAtIndex(uint32_t idx,
 
   lldb::ValueObjectSP child_sp;
   if (value_sp) {
-    const bool can_create = true;
-    if (treat_as_array &&
+    
+    if (const bool can_create = true; treat_as_array &&
         (value_sp->IsPointerType() || value_sp->IsArrayType()))
       child_sp = value_sp->GetSyntheticArrayMember(idx, can_create);
     else
@@ -862,8 +862,8 @@ void SBValue::SetSyntheticChildrenGenerated(bool is) {
   LLDB_INSTRUMENT_VA(this, is);
 
   ValueLocker locker;
-  lldb::ValueObjectSP value_sp(GetSP(locker));
-  if (value_sp)
+  
+  if (lldb::ValueObjectSP value_sp(GetSP(locker)); value_sp)
     return value_sp->SetSyntheticChildrenGenerated(is);
 }
 
@@ -1115,8 +1115,8 @@ void SBValue::SetSP(ValueImplSP impl_sp) { m_opaque_sp = impl_sp; }
 
 void SBValue::SetSP(const lldb::ValueObjectSP &sp) {
   if (sp) {
-    lldb::TargetSP target_sp(sp->GetTargetSP());
-    if (target_sp) {
+    
+    if (lldb::TargetSP target_sp(sp->GetTargetSP()); target_sp) {
       lldb::DynamicValueType use_dynamic = target_sp->GetPreferDynamicValue();
       bool use_synthetic =
           target_sp->TargetProperties::GetEnableSyntheticValue();
@@ -1130,8 +1130,8 @@ void SBValue::SetSP(const lldb::ValueObjectSP &sp) {
 void SBValue::SetSP(const lldb::ValueObjectSP &sp,
                     lldb::DynamicValueType use_dynamic) {
   if (sp) {
-    lldb::TargetSP target_sp(sp->GetTargetSP());
-    if (target_sp) {
+    
+    if (lldb::TargetSP target_sp(sp->GetTargetSP()); target_sp) {
       bool use_synthetic =
           target_sp->TargetProperties::GetEnableSyntheticValue();
       SetSP(sp, use_dynamic, use_synthetic);
@@ -1143,8 +1143,8 @@ void SBValue::SetSP(const lldb::ValueObjectSP &sp,
 
 void SBValue::SetSP(const lldb::ValueObjectSP &sp, bool use_synthetic) {
   if (sp) {
-    lldb::TargetSP target_sp(sp->GetTargetSP());
-    if (target_sp) {
+    
+    if (lldb::TargetSP target_sp(sp->GetTargetSP()); target_sp) {
       lldb::DynamicValueType use_dynamic = target_sp->GetPreferDynamicValue();
       SetSP(sp, use_dynamic, use_synthetic);
     } else
@@ -1295,8 +1295,8 @@ void SBValue::SetFormat(lldb::Format format) {
   LLDB_INSTRUMENT_VA(this, format);
 
   ValueLocker locker;
-  lldb::ValueObjectSP value_sp(GetSP(locker));
-  if (value_sp)
+  
+  if (lldb::ValueObjectSP value_sp(GetSP(locker)); value_sp)
     value_sp->SetFormat(format);
 }
 
@@ -1334,13 +1334,13 @@ lldb::SBAddress SBValue::GetAddress() {
   ValueLocker locker;
   lldb::ValueObjectSP value_sp(GetSP(locker));
   if (value_sp) {
-    TargetSP target_sp(value_sp->GetTargetSP());
-    if (target_sp) {
-      auto [value, addr_type] =
-          value_sp->GetAddressOf(/*scalar_is_load_address=*/true);
-      if (addr_type == eAddressTypeFile) {
-        ModuleSP module_sp(value_sp->GetModule());
-        if (module_sp)
+    
+    if (TargetSP target_sp(value_sp->GetTargetSP()); target_sp) {
+      
+      if (auto [value, addr_type] =
+          value_sp->GetAddressOf(/*scalar_is_load_address=*/true); addr_type == eAddressTypeFile) {
+        
+        if (ModuleSP module_sp(value_sp->GetModule()); module_sp)
           module_sp->ResolveFileAddress(value, addr);
       } else if (addr_type == eAddressTypeLoad) {
         // no need to check the return value on this.. if it can actually do
@@ -1361,8 +1361,8 @@ lldb::SBData SBValue::GetPointeeData(uint32_t item_idx, uint32_t item_count) {
   ValueLocker locker;
   lldb::ValueObjectSP value_sp(GetSP(locker));
   if (value_sp) {
-    TargetSP target_sp(value_sp->GetTargetSP());
-    if (target_sp) {
+    
+    if (TargetSP target_sp(value_sp->GetTargetSP()); target_sp) {
       DataExtractorSP data_sp(new DataExtractor());
       value_sp->GetPointeeData(*data_sp, item_idx, item_count);
       if (data_sp->GetByteSize() > 0)
@@ -1398,9 +1398,9 @@ bool SBValue::SetData(lldb::SBData &data, SBError &error) {
   bool ret = true;
 
   if (value_sp) {
-    DataExtractor *data_extractor = data.get();
+    
 
-    if (!data_extractor) {
+    if (DataExtractor *data_extractor = data.get(); !data_extractor) {
       error = Status::FromErrorString("No data to set");
       ret = false;
     } else {
@@ -1428,9 +1428,9 @@ lldb::SBValue SBValue::Clone(const char *new_name) {
   LLDB_INSTRUMENT_VA(this, new_name);
 
   ValueLocker locker;
-  lldb::ValueObjectSP value_sp(GetSP(locker));
+  
 
-  if (value_sp)
+  if (lldb::ValueObjectSP value_sp(GetSP(locker)); value_sp)
     return lldb::SBValue(value_sp->Clone(ConstString(new_name)));
   else
     return lldb::SBValue();
@@ -1443,8 +1443,8 @@ lldb::SBDeclaration SBValue::GetDeclaration() {
   lldb::ValueObjectSP value_sp(GetSP(locker));
   SBDeclaration decl_sb;
   if (value_sp) {
-    Declaration decl;
-    if (value_sp->GetDeclaration(decl))
+    
+    if (Declaration decl; value_sp->GetDeclaration(decl))
       decl_sb.SetDeclaration(decl);
   }
   return decl_sb;
@@ -1497,8 +1497,8 @@ lldb::SBWatchpoint SBValue::Watch(bool resolve_location, bool read, bool write,
 
     if (watchpoint_sp) {
       sb_watchpoint.SetSP(watchpoint_sp);
-      Declaration decl;
-      if (value_sp->GetDeclaration(decl)) {
+      
+      if (Declaration decl; value_sp->GetDeclaration(decl)) {
         if (decl.GetFile()) {
           StreamString ss;
           // True to show fullpath for declaration file.

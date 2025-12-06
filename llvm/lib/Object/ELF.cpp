@@ -390,8 +390,8 @@ ELFFile<ELFT>::decode_relrs(Elf_Relr_Range relrs) const {
 
   Addr Base = 0;
   for (Elf_Relr R : relrs) {
-    typename ELFT::uint Entry = R;
-    if ((Entry & 1) == 0) {
+    
+    if (typename ELFT::uint Entry = R; (Entry & 1) == 0) {
       // Even entry: encodes the offset for next relocation.
       Rel.r_offset = Entry;
       Relocs.push_back(Rel);
@@ -977,12 +977,12 @@ decodeBBAddrMapImpl(const ELFFile<ELFT> &EF,
           for (uint64_t I = 0; I < SuccCount; ++I) {
             uint32_t BBID = readULEB128As<uint32_t>(Data, Cur, ULEBSizeErr);
             uint32_t BrProb = readULEB128As<uint32_t>(Data, Cur, ULEBSizeErr);
-            uint32_t PostLinkFreq =
+            
+
+            if (uint32_t PostLinkFreq =
                 FeatEnable.PostLinkCfg
                     ? readULEB128As<uint32_t>(Data, Cur, ULEBSizeErr)
-                    : 0;
-
-            if (PGOAnalyses)
+                    : 0; PGOAnalyses)
               Successors.push_back(
                   {BBID, BranchProbability::getRaw(BrProb), PostLinkFreq});
           }

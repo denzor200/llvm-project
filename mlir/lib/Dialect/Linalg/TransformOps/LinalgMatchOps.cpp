@@ -181,8 +181,8 @@ DiagnosedSilenceableFailure transform::MatchStructuredBodyOp::matchOperation(
     return DiagnosedSilenceableFailure::success();
   }
   if (getPassthrough()) {
-    Block &body = linalgOp->getRegion(0).front();
-    if (body.getTerminator()->getOperands() != linalgOp.getRegionInputArgs()) {
+    
+    if (Block &body = linalgOp->getRegion(0).front(); body.getTerminator()->getOperands() != linalgOp.getRegionInputArgs()) {
       return emitSilenceableError() << "not a passthrough";
     }
     return DiagnosedSilenceableFailure::success();

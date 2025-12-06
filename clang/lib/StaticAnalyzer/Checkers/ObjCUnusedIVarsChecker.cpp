@@ -95,8 +95,8 @@ static void Scan(IvarUsageMap &M, const DeclContext *C, const FileID FID,
                  const SourceManager &SM) {
   for (const auto *I : C->decls())
     if (const auto *FD = dyn_cast<FunctionDecl>(I)) {
-      SourceLocation L = FD->getBeginLoc();
-      if (SM.getFileID(L) == FID)
+      
+      if (SourceLocation L = FD->getBeginLoc(); SM.getFileID(L) == FID)
         Scan(M, FD->getBody());
     }
 }

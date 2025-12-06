@@ -432,8 +432,8 @@ bool lldb_private::formatters::NSArraySummaryProvider(
       return false;
   } else {
     auto &map(NSArray_Additionals::GetAdditionalSummaries());
-    auto iter = map.find(class_name), end = map.end();
-    if (iter != end)
+    
+    if (auto iter = map.find(class_name), end = map.end(); iter != end)
       return iter->second(valobj, stream, options);
     else
       return false;
@@ -595,11 +595,11 @@ lldb_private::formatters::GenericNSArrayISyntheticFrontEnd<D32, D64, Inline>::
     : SyntheticChildrenFrontEnd(*valobj_sp), m_exe_ctx_ref(),
       m_data_32(nullptr), m_data_64(nullptr) {
   if (valobj_sp) {
-    CompilerType type = valobj_sp->GetCompilerType();
-    if (type) {
-      TypeSystemClangSP scratch_ts_sp = ScratchTypeSystemClang::GetForTarget(
-          *valobj_sp->GetExecutionContextRef().GetTargetSP());
-      if (scratch_ts_sp)
+    
+    if (CompilerType type = valobj_sp->GetCompilerType(); type) {
+      
+      if (TypeSystemClangSP scratch_ts_sp = ScratchTypeSystemClang::GetForTarget(
+          *valobj_sp->GetExecutionContextRef().GetTargetSP()); scratch_ts_sp)
         m_id_type = scratch_ts_sp->GetType(
             scratch_ts_sp->getASTContext().ObjCBuiltinIdTy);
     }
@@ -761,9 +761,9 @@ lldb_private::formatters::NSArray1SyntheticFrontEnd::GetChildAtIndex(
   static const ConstString g_zero("[0]");
 
   if (idx == 0) {
-    TypeSystemClangSP scratch_ts_sp =
-        ScratchTypeSystemClang::GetForTarget(*m_backend.GetTargetSP());
-    if (scratch_ts_sp) {
+    
+    if (TypeSystemClangSP scratch_ts_sp =
+        ScratchTypeSystemClang::GetForTarget(*m_backend.GetTargetSP()); scratch_ts_sp) {
       CompilerType id_type(scratch_ts_sp->GetBasicType(lldb::eBasicTypeObjCID));
       return m_backend.GetSyntheticChildAtOffset(
           m_backend.GetProcessSP()->GetAddressByteSize(), id_type, true,
@@ -846,8 +846,8 @@ lldb_private::formatters::NSArraySyntheticFrontEndCreator(
     return (new CallStackArray::NSCallStackArraySyntheticFrontEnd(valobj_sp));
   } else {
     auto &map(NSArray_Additionals::GetAdditionalSynthetics());
-    auto iter = map.find(class_name), end = map.end();
-    if (iter != end)
+    
+    if (auto iter = map.find(class_name), end = map.end(); iter != end)
       return iter->second(synth, valobj_sp);
   }
 

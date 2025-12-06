@@ -36,8 +36,8 @@ static Error loadSectionContribs(FixedStreamArray<ContribType> &Output,
         raw_error_code::corrupt_file,
         "Invalid number of bytes of section contributions");
 
-  uint32_t Count = Reader.bytesRemaining() / sizeof(ContribType);
-  if (auto EC = Reader.readArray(Output, Count))
+  
+  if (uint32_t Count = Reader.bytesRemaining() / sizeof(ContribType); auto EC = Reader.readArray(Output, Count))
     return EC;
   return Error::success();
 }
@@ -134,8 +134,8 @@ Error DbiStream::reload(PDBFile *Pdb) {
                                 "Found unexpected bytes in DBI Stream.");
 
   if (!ECSubstream.empty()) {
-    BinaryStreamReader ECReader(ECSubstream.StreamData);
-    if (auto EC = ECNames.reload(ECReader))
+    
+    if (BinaryStreamReader ECReader(ECSubstream.StreamData); auto EC = ECNames.reload(ECReader))
       return EC;
   }
 

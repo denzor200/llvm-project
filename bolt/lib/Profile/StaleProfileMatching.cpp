@@ -282,8 +282,8 @@ private:
     uint64_t BestDist = std::numeric_limits<uint64_t>::max();
     BlendedBlockHash BestHash;
     for (const auto &[Hash, Block] : BlockIt->second) {
-      uint64_t Dist = Hash.distance(BlendedHash);
-      if (BestBlock == nullptr || Dist < BestDist) {
+      
+      if (uint64_t Dist = Hash.distance(BlendedHash); BestBlock == nullptr || Dist < BestDist) {
         BestDist = Dist;
         BestBlock = Block;
         BestHash = Hash;
@@ -303,10 +303,10 @@ private:
     FlowBlock *BestBlock = nullptr;
     uint64_t BestDist = std::numeric_limits<uint64_t>::max();
     for (const auto &[Hash, Block] : BlockIt->second) {
-      uint64_t Dist = Hash.OpcodeHash > BlendedHash.OpcodeHash
+      
+      if (uint64_t Dist = Hash.OpcodeHash > BlendedHash.OpcodeHash
                           ? Hash.OpcodeHash - BlendedHash.OpcodeHash
-                          : BlendedHash.OpcodeHash - Hash.OpcodeHash;
-      if (BestBlock == nullptr || Dist < BestDist) {
+                          : BlendedHash.OpcodeHash - Hash.OpcodeHash; BestBlock == nullptr || Dist < BestDist) {
         BestDist = Dist;
         BestBlock = Block;
       }
@@ -515,8 +515,8 @@ createFlowFunction(const BinaryFunction::BasicBlockOrderType &BlockOrder) {
   // add an unlikely edge from 0 to the subsequent ones. Skips the sink block.
   assert(InDegree[0] == 0 && "dummy entry blocks shouldn't have predecessors");
   for (uint64_t I = 1; I < Func.Blocks.size() - 1; I++) {
-    const BinaryBasicBlock *BB = BlockOrder[I - 1];
-    if (BB->isEntryPoint() || InDegree[I] == 0) {
+    
+    if (const BinaryBasicBlock *BB = BlockOrder[I - 1]; BB->isEntryPoint() || InDegree[I] == 0) {
       Func.Jumps.emplace_back();
       FlowJump &Jump = Func.Jumps.back();
       Jump.Source = 0;
@@ -682,9 +682,9 @@ size_t matchWeights(
                         << " with hash " << Twine::utohexstr(BinHash.combine())
                         << "\n");
       (void)BinHash;
-      uint64_t ExecCount = YamlBB->ExecCount;
+      
       // Update matching stats accounting for the matched block.
-      switch (Method) {
+      switch (uint64_t ExecCount = YamlBB->ExecCount; Method) {
       case StaleMatcher::MATCH_EXACT:
         ++BC.Stats.NumExactMatchedBlocks;
         BC.Stats.ExactMatchedSampleCount += ExecCount;
@@ -776,8 +776,8 @@ void preprocessUnreachableBlocks(FlowFunction &Func) {
   std::queue<uint64_t> Queue;
   std::vector<bool> VisitedEntry(NumBlocks, false);
   for (uint64_t I = 0; I < NumBlocks; I++) {
-    FlowBlock &Block = Func.Blocks[I];
-    if (Block.isEntry()) {
+    
+    if (FlowBlock &Block = Func.Blocks[I]; Block.isEntry()) {
       Queue.push(I);
       VisitedEntry[I] = true;
       break;
@@ -787,8 +787,8 @@ void preprocessUnreachableBlocks(FlowFunction &Func) {
     const uint64_t Src = Queue.front();
     Queue.pop();
     for (FlowJump *Jump : Func.Blocks[Src].SuccJumps) {
-      const uint64_t Dst = Jump->Target;
-      if (!VisitedEntry[Dst]) {
+      
+      if (const uint64_t Dst = Jump->Target; !VisitedEntry[Dst]) {
         Queue.push(Dst);
         VisitedEntry[Dst] = true;
       }
@@ -798,8 +798,8 @@ void preprocessUnreachableBlocks(FlowFunction &Func) {
   // Start bfs from all sinks
   std::vector<bool> VisitedExit(NumBlocks, false);
   for (uint64_t I = 0; I < NumBlocks; I++) {
-    FlowBlock &Block = Func.Blocks[I];
-    if (Block.isExit() && VisitedEntry[I]) {
+    
+    if (FlowBlock &Block = Func.Blocks[I]; Block.isExit() && VisitedEntry[I]) {
       Queue.push(I);
       VisitedExit[I] = true;
     }
@@ -808,8 +808,8 @@ void preprocessUnreachableBlocks(FlowFunction &Func) {
     const uint64_t Src = Queue.front();
     Queue.pop();
     for (FlowJump *Jump : Func.Blocks[Src].PredJumps) {
-      const uint64_t Dst = Jump->Source;
-      if (!VisitedExit[Dst]) {
+      
+      if (const uint64_t Dst = Jump->Source; !VisitedExit[Dst]) {
         Queue.push(Dst);
         VisitedExit[Dst] = true;
       }
@@ -913,14 +913,14 @@ void assignProfile(BinaryFunction &BF,
       // Skips the artificial sink block.
       if (Jump->Target == Func.Blocks.size() - 1)
         continue;
-      BinaryBasicBlock &SuccBB = *BlockOrder[Jump->Target - 1];
+      
       // Check if the edge corresponds to a regular jump or a landing pad
-      if (BB->getSuccessor(SuccBB.getLabel())) {
+      if (BinaryBasicBlock &SuccBB = *BlockOrder[Jump->Target - 1]; BB->getSuccessor(SuccBB.getLabel())) {
         BinaryBasicBlock::BinaryBranchInfo &BI = BB->getBranchInfo(SuccBB);
         BI.Count += Jump->Flow;
       } else {
-        BinaryBasicBlock *LP = BB->getLandingPad(SuccBB.getLabel());
-        if (LP && LP->getKnownExecutionCount() < Jump->Flow)
+        
+        if (BinaryBasicBlock *LP = BB->getLandingPad(SuccBB.getLabel()); LP && LP->getKnownExecutionCount() < Jump->Flow)
           LP->setExecutionCount(Jump->Flow);
       }
     }
@@ -941,14 +941,14 @@ void assignProfile(BinaryFunction &BF,
       if (BC.MIB->isPseudo(Instr))
         continue;
       // Ignore jump tables
-      const MCInst *LastInstr = BB->getLastNonPseudoInstr();
-      if (BC.MIB->getJumpTable(*LastInstr) && LastInstr == &Instr)
+      
+      if (const MCInst *LastInstr = BB->getLastNonPseudoInstr(); BC.MIB->getJumpTable(*LastInstr) && LastInstr == &Instr)
         continue;
 
       if (BC.MIB->isIndirectCall(Instr) || BC.MIB->isIndirectBranch(Instr)) {
-        auto &ICSP = BC.MIB->getOrCreateAnnotationAs<IndirectCallSiteProfile>(
-            Instr, "CallProfile");
-        if (!ICSP.empty()) {
+        
+        if (auto &ICSP = BC.MIB->getOrCreateAnnotationAs<IndirectCallSiteProfile>(
+            Instr, "CallProfile"); !ICSP.empty()) {
           // Try to evenly distribute the counts among the call sites
           const uint64_t TotalCount = Block.Flow;
           const uint64_t NumSites = ICSP.size();

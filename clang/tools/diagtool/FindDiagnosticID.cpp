@@ -30,8 +30,8 @@ static StringRef getNameFromID(StringRef Name) {
 static std::optional<DiagnosticRecord>
 findDiagnostic(ArrayRef<DiagnosticRecord> Diagnostics, StringRef Name) {
   for (const auto &Diag : Diagnostics) {
-    StringRef DiagName = Diag.getName();
-    if (DiagName == Name)
+    
+    if (StringRef DiagName = Diag.getName(); DiagName == Name)
       return Diag;
   }
   return std::nullopt;

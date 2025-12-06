@@ -354,22 +354,22 @@ void CompileUnit::ResolveSymbolContext(
         // We only have to descend through the regular blocks, looking for
         // immediate inlines, since those are the only ones that will have this
         // callsite.
-        const InlineFunctionInfo *inline_info =
-            sibling_block->GetInlinedFunctionInfo();
-        if (inline_info) {
+        
+        if (const InlineFunctionInfo *inline_info =
+            sibling_block->GetInlinedFunctionInfo(); inline_info) {
           // If this is the call-site we are looking for, record that:
           // We need to be careful because the call site from the debug info
           // will generally have a column, but the user might not have specified
           // it.
           Declaration found_decl = inline_info->GetCallSite();
-          uint32_t sought_column = sought_decl.GetColumn();
-          if (found_decl.FileAndLineEqual(sought_decl, false) &&
+          
+          if (uint32_t sought_column = sought_decl.GetColumn(); found_decl.FileAndLineEqual(sought_decl, false) &&
               (sought_column == LLDB_INVALID_COLUMN_NUMBER ||
                sought_column == found_decl.GetColumn())) {
             // If we found a call site, it belongs not in this inlined block,
             // but in the parent block that inlined it.
-            Address parent_start_addr;
-            if (sibling_block->GetParent()->GetStartAddress(
+            
+            if (Address parent_start_addr; sibling_block->GetParent()->GetStartAddress(
                     parent_start_addr)) {
               SymbolContext sc;
               parent_start_addr.CalculateSymbolContext(&sc, resolve_scope);

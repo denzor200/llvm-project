@@ -102,8 +102,8 @@ lldb::ChildCacheState LibStdcppUniquePtrSyntheticFrontEnd::Update() {
   // the deleter is empty and should be hidden.
   if (llvm::expectedToOptional(tuple_sp->GetByteSize()).value_or(0) >
       llvm::expectedToOptional(ptr_obj->GetByteSize()).value_or(0)) {
-    ValueObjectSP del_obj = tuple_frontend->GetChildAtIndex(1);
-    if (del_obj)
+    
+    if (ValueObjectSP del_obj = tuple_frontend->GetChildAtIndex(1); del_obj)
       m_del_obj = del_obj->Clone(ConstString("deleter")).get();
   }
 
@@ -119,8 +119,8 @@ LibStdcppUniquePtrSyntheticFrontEnd::GetChildAtIndex(uint32_t idx) {
   if (idx == 2) {
     if (m_ptr_obj) {
       Status status;
-      auto value_sp = m_ptr_obj->Dereference(status);
-      if (status.Success()) {
+      
+      if (auto value_sp = m_ptr_obj->Dereference(status); status.Success()) {
         return value_sp;
       }
     }

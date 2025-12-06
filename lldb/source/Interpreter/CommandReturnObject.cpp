@@ -61,8 +61,8 @@ void CommandReturnObject::AppendErrorWithFormat(const char *format, ...) {
   sstrm.PrintfVarArg(format, args);
   va_end(args);
 
-  const std::string &s = std::string(sstrm.GetString());
-  if (!s.empty()) {
+  
+  if (const std::string &s = std::string(sstrm.GetString()); !s.empty()) {
     error(GetErrorStream());
     DumpStringToStreamWithNewline(GetErrorStream(), s);
   }

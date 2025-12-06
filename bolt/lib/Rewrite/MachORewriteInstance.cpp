@@ -216,8 +216,8 @@ std::optional<uint64_t> readStartAddress(const MachOObjectFile &O) {
 void MachORewriteInstance::discoverFileObjects() {
   std::vector<SymbolRef> FunctionSymbols;
   for (const SymbolRef &S : InputFile->symbols()) {
-    SymbolRef::Type Type = cantFail(S.getType(), "cannot get symbol type");
-    if (Type == SymbolRef::ST_Function)
+    
+    if (SymbolRef::Type Type = cantFail(S.getType(), "cannot get symbol type"); Type == SymbolRef::ST_Function)
       FunctionSymbols.push_back(S);
   }
   if (FunctionSymbols.empty())
@@ -259,9 +259,9 @@ void MachORewriteInstance::discoverFileObjects() {
     const uint64_t SymbolSize = EndAddress - Address;
     const auto It = BC->getBinaryFunctions().find(Address);
     if (It == BC->getBinaryFunctions().end()) {
-      BinaryFunction *Function = BC->createBinaryFunction(
-          std::move(SymbolName), *Section, Address, SymbolSize);
-      if (!opts::Instrument)
+      
+      if (BinaryFunction *Function = BC->createBinaryFunction(
+          std::move(SymbolName), *Section, Address, SymbolSize); !opts::Instrument)
         Function->setOutputAddress(Function->getAddress());
 
     } else {

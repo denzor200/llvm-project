@@ -143,8 +143,8 @@ static std::string disambiguateSpellingInScope(StringRef Spelling,
     // different scope.
     StringRef Head = CurSpelling.split("::").first;
     for (const auto *NS : EnclosingNamespaces) {
-      auto LookupRes = NS->lookup(DeclarationName(&AST.Idents.get(Head)));
-      if (!LookupRes.empty()) {
+      
+      if (auto LookupRes = NS->lookup(DeclarationName(&AST.Idents.get(Head))); !LookupRes.empty()) {
         for (const NamedDecl *Res : LookupRes)
           // If `Res` is not visible in `UseLoc`, we don't consider it
           // ambiguous. For example, a reference in a header file should not be
@@ -191,10 +191,10 @@ std::string tooling::replaceNestedName(NestedNameSpecifier Use,
   const bool class_name_only = !Use;
   const bool in_global_namespace =
       isa<TranslationUnitDecl>(FromDecl->getDeclContext());
-  const bool is_class_forward_decl =
+  
+  if (const bool is_class_forward_decl =
       isa<CXXRecordDecl>(FromDecl) &&
-      !cast<CXXRecordDecl>(FromDecl)->isCompleteDefinition();
-  if (class_name_only && !in_global_namespace && !is_class_forward_decl &&
+      !cast<CXXRecordDecl>(FromDecl)->isCompleteDefinition(); class_name_only && !in_global_namespace && !is_class_forward_decl &&
       !usingFromDifferentCanonicalNamespace(FromDecl->getDeclContext(),
                                             UseContext)) {
     auto Pos = ReplacementString.rfind("::");

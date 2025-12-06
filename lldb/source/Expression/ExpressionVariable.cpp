@@ -40,9 +40,9 @@ PersistentExpressionState::PersistentExpressionState() = default;
 PersistentExpressionState::~PersistentExpressionState() = default;
 
 lldb::addr_t PersistentExpressionState::LookupSymbol(ConstString name) {
-  SymbolMap::iterator si = m_symbol_map.find(name.GetCString());
+  
 
-  if (si != m_symbol_map.end())
+  if (SymbolMap::iterator si = m_symbol_map.find(name.GetCString()); si != m_symbol_map.end())
     return si->second;
   else
     return LLDB_INVALID_ADDRESS;

@@ -143,10 +143,10 @@ static bool SetBackdoorDriverOutputsFromEnvVars(Driver &TheDriver) {
     TheDriver.CCPrintHeadersFormat = HIFMT_Textual;
     TheDriver.CCPrintHeadersFiltering = HIFIL_None;
   } else {
-    std::string EnvVar = checkEnvVar<std::string>(
+    
+    if (std::string EnvVar = checkEnvVar<std::string>(
         "CC_PRINT_HEADERS_FORMAT", "CC_PRINT_HEADERS_FILE",
-        TheDriver.CCPrintHeadersFilename);
-    if (!EnvVar.empty()) {
+        TheDriver.CCPrintHeadersFilename); !EnvVar.empty()) {
       TheDriver.CCPrintHeadersFormat =
           stringToHeaderIncludeFormatKind(EnvVar.c_str());
       if (!TheDriver.CCPrintHeadersFormat) {

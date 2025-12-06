@@ -665,8 +665,8 @@ LogicalResult mlir::tryToPromoteMemorySlots(
           continue;
 
         MemorySlotPromotionAnalyzer analyzer(slot, dominance, dataLayout);
-        std::optional<MemorySlotPromotionInfo> info = analyzer.computeInfo();
-        if (info) {
+        
+        if (std::optional<MemorySlotPromotionInfo> info = analyzer.computeInfo(); info) {
           std::optional<PromotableAllocationOpInterface> newAllocator =
               MemorySlotPromoter(slot, allocator, builder, dominance,
                                  dataLayout, std::move(*info), statistics,

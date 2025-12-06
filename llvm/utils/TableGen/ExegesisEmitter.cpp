@@ -71,8 +71,8 @@ collectPfmCounters(const RecordKeeper &Records) {
   std::map<llvm::StringRef, unsigned> PfmCounterNameTable;
   const auto AddPfmCounterName = [&PfmCounterNameTable](
                                      const Record *PfmCounterDef) {
-    const llvm::StringRef Counter = PfmCounterDef->getValueAsString("Counter");
-    if (!Counter.empty())
+    
+    if (const llvm::StringRef Counter = PfmCounterDef->getValueAsString("Counter"); !Counter.empty())
       PfmCounterNameTable.emplace(Counter, 0);
   };
   for (const Record *Def :

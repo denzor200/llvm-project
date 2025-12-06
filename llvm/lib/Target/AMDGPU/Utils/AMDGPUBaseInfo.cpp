@@ -324,9 +324,9 @@ unsigned getAddrSizeMIMGOp(const MIMGBaseOpcodeInfo *BaseOpcode,
                            const MIMGDimInfo *Dim, bool IsA16,
                            bool IsG16Supported) {
   unsigned AddrWords = BaseOpcode->NumExtraArgs;
-  unsigned AddrComponents = (BaseOpcode->Coordinates ? Dim->NumCoords : 0) +
-                            (BaseOpcode->LodOrClampOrMip ? 1 : 0);
-  if (IsA16)
+  
+  if (unsigned AddrComponents = (BaseOpcode->Coordinates ? Dim->NumCoords : 0) +
+                            (BaseOpcode->LodOrClampOrMip ? 1 : 0); IsA16)
     AddrWords += divideCeil(AddrComponents, 2);
   else
     AddrWords += AddrComponents;
@@ -635,8 +635,8 @@ unsigned getVOPDEncodingFamily(const MCSubtargetInfo &ST) {
 CanBeVOPD getCanBeVOPD(unsigned Opc, unsigned EncodingFamily, bool VOPD3) {
   bool IsConvertibleToBitOp = VOPD3 ? getBitOp2(Opc) : 0;
   Opc = IsConvertibleToBitOp ? (unsigned)AMDGPU::V_BITOP3_B32_e64 : Opc;
-  const VOPDComponentInfo *Info = getVOPDComponentHelper(Opc);
-  if (Info) {
+  
+  if (const VOPDComponentInfo *Info = getVOPDComponentHelper(Opc); Info) {
     // Check that Opc can be used as VOPDY for this encoding. V_MOV_B32 as a
     // VOPDX is just a placeholder here, it is supported on all encodings.
     // TODO: This can be optimized by creating tables of supported VOPDY
@@ -751,9 +751,9 @@ bool isTensorStore(unsigned Opc) {
 unsigned getTemporalHintType(const MCInstrDesc TID) {
   if (TID.TSFlags & (SIInstrFlags::IsAtomicNoRet | SIInstrFlags::IsAtomicRet))
     return CPol::TH_TYPE_ATOMIC;
-  unsigned Opc = TID.getOpcode();
+  
   // Async and Tensor store should have the temporal hint type of TH_TYPE_STORE
-  if (TID.mayStore() &&
+  if (unsigned Opc = TID.getOpcode(); TID.mayStore() &&
       (isAsyncStore(Opc) || isTensorStore(Opc) || !TID.mayLoad()))
     return CPol::TH_TYPE_STORE;
 
@@ -888,8 +888,8 @@ unsigned ComponentInfo::getIndexInParsedOperands(unsigned CompOprIdx) const {
   if (CompOprIdx == Component::DST)
     return getIndexOfDstInParsedOperands();
 
-  auto CompSrcIdx = CompOprIdx - Component::DST_NUM;
-  if (CompSrcIdx < getCompParsedSrcOperandsNum())
+  
+  if (auto CompSrcIdx = CompOprIdx - Component::DST_NUM; CompSrcIdx < getCompParsedSrcOperandsNum())
     return getIndexOfSrcInParsedOperands(CompSrcIdx);
 
   // The specified operand does not exist.
@@ -1251,8 +1251,8 @@ unsigned getSGPRAllocGranule(const MCSubtargetInfo *STI) {
 unsigned getSGPREncodingGranule(const MCSubtargetInfo *STI) { return 8; }
 
 unsigned getTotalNumSGPRs(const MCSubtargetInfo *STI) {
-  IsaVersion Version = getIsaVersion(STI->getCPU());
-  if (Version.Major >= 8)
+  
+  if (IsaVersion Version = getIsaVersion(STI->getCPU()); Version.Major >= 8)
     return 800;
   return 512;
 }
@@ -1272,8 +1272,8 @@ unsigned getAddressableNumSGPRs(const MCSubtargetInfo *STI) {
 unsigned getMinNumSGPRs(const MCSubtargetInfo *STI, unsigned WavesPerEU) {
   assert(WavesPerEU != 0);
 
-  IsaVersion Version = getIsaVersion(STI->getCPU());
-  if (Version.Major >= 10)
+  
+  if (IsaVersion Version = getIsaVersion(STI->getCPU()); Version.Major >= 10)
     return 0;
 
   if (WavesPerEU >= getMaxWavesPerEU(STI))
@@ -1396,16 +1396,16 @@ unsigned getTotalNumVGPRs(const MCSubtargetInfo *STI) {
 }
 
 unsigned getAddressableNumArchVGPRs(const MCSubtargetInfo *STI) {
-  const auto &Features = STI->getFeatureBits();
-  if (Features.test(Feature1024AddressableVGPRs))
+  
+  if (const auto &Features = STI->getFeatureBits(); Features.test(Feature1024AddressableVGPRs))
     return Features.test(FeatureWavefrontSize32) ? 1024 : 512;
   return 256;
 }
 
 unsigned getAddressableNumVGPRs(const MCSubtargetInfo *STI,
                                 unsigned DynamicVGPRBlockSize) {
-  const auto &Features = STI->getFeatureBits();
-  if (Features.test(FeatureGFX90AInsts))
+  
+  if (const auto &Features = STI->getFeatureBits(); Features.test(FeatureGFX90AInsts))
     return 512;
 
   if (DynamicVGPRBlockSize != 0)
@@ -1583,14 +1583,14 @@ std::tuple<char, unsigned, unsigned> parseAsmPhysRegName(StringRef RegName) {
     Failed |= RegName.consumeInteger(10, End);
     Failed |= !RegName.consume_back("]");
     if (!Failed) {
-      unsigned NumRegs = End - Idx + 1;
-      if (NumRegs > 1)
+      
+      if (unsigned NumRegs = End - Idx + 1; NumRegs > 1)
         return {Kind, Idx, NumRegs};
     }
   } else {
     unsigned Idx;
-    bool Failed = RegName.getAsInteger(10, Idx);
-    if (!Failed)
+    
+    if (bool Failed = RegName.getAsInteger(10, Idx); !Failed)
       return {Kind, Idx, 1};
   }
 
@@ -1692,13 +1692,13 @@ bool hasValueInRangeLikeMetadata(const MDNode &MD, int64_t Val) {
   for (unsigned I = 0, E = MD.getNumOperands() / 2; I != E; ++I) {
     auto Low =
         mdconst::extract<ConstantInt>(MD.getOperand(2 * I + 0))->getValue();
-    auto High =
-        mdconst::extract<ConstantInt>(MD.getOperand(2 * I + 1))->getValue();
+    
     // There are two types of [A; B) ranges:
     //  A < B, e.g. [4; 5) which is a range that only includes 4.
     //  A > B, e.g. [5; 4) which is a range that wraps around and includes
     //         everything except 4.
-    if (Low.ult(High)) {
+    if (auto High =
+        mdconst::extract<ConstantInt>(MD.getOperand(2 * I + 1))->getValue(); Low.ult(High)) {
       if (Low.ule(Val) && High.ugt(Val))
         return true;
     } else {
@@ -1917,8 +1917,8 @@ static unsigned getDefaultCustomOperandEncoding(const CustomOperandVal *Opr,
                                                 const MCSubtargetInfo &STI) {
   unsigned Enc = 0;
   for (int Idx = 0; Idx < Size; ++Idx) {
-    const auto &Op = Opr[Idx];
-    if (Op.isSupported(STI))
+    
+    if (const auto &Op = Opr[Idx]; Op.isSupported(STI))
       Enc |= Op.encode(Op.Default);
   }
   return Enc;
@@ -1948,8 +1948,8 @@ static bool decodeCustomOperand(const CustomOperandVal *Opr, int Size,
                                 unsigned &Val, bool &IsDefault,
                                 const MCSubtargetInfo &STI) {
   while (Idx < Size) {
-    const auto &Op = Opr[Idx++];
-    if (Op.isSupported(STI)) {
+    
+    if (const auto &Op = Opr[Idx++]; Op.isSupported(STI)) {
       Name = Op.Name;
       Val = Op.decode(Code);
       IsDefault = (Val == Op.Default);
@@ -1973,8 +1973,8 @@ static int encodeCustomOperand(const CustomOperandVal *Opr, int Size,
                                const MCSubtargetInfo &STI) {
   int InvalidId = OPR_ID_UNKNOWN;
   for (int Idx = 0; Idx < Size; ++Idx) {
-    const auto &Op = Opr[Idx];
-    if (Op.Name == Name) {
+    
+    if (const auto &Op = Opr[Idx]; Op.Name == Name) {
       if (!Op.isSupported(STI)) {
         InvalidId = OPR_ID_UNSUPPORTED;
         continue;
@@ -2278,8 +2278,8 @@ bool isValidUnifiedFormat(unsigned Id, const MCSubtargetInfo &STI) {
 
 int64_t convertDfmtNfmt2Ufmt(unsigned Dfmt, unsigned Nfmt,
                              const MCSubtargetInfo &STI) {
-  int64_t Fmt = encodeDfmtNfmt(Dfmt, Nfmt);
-  if (isGFX11Plus(STI)) {
+  
+  if (int64_t Fmt = encodeDfmtNfmt(Dfmt, Nfmt); isGFX11Plus(STI)) {
     for (int Id = UfmtGFX11::UFMT_FIRST; Id <= UfmtGFX11::UFMT_LAST; ++Id) {
       if (Fmt == DfmtNfmt2UFmtGFX11[Id])
         return Id;
@@ -2407,10 +2407,10 @@ bool getHasDepthExport(const Function &F) {
 }
 
 unsigned getDynamicVGPRBlockSize(const Function &F) {
-  unsigned BlockSize =
-      F.getFnAttributeAsParsedInteger("amdgpu-dynamic-vgpr-block-size", 0);
+  
 
-  if (BlockSize == 16 || BlockSize == 32)
+  if (unsigned BlockSize =
+      F.getFnAttributeAsParsedInteger("amdgpu-dynamic-vgpr-block-size", 0); BlockSize == 16 || BlockSize == 32)
     return BlockSize;
 
   return 0;
@@ -2745,8 +2745,8 @@ bool isKImmOperand(const MCInstrDesc &Desc, unsigned OpNo) {
 
 bool isSISrcFPOperand(const MCInstrDesc &Desc, unsigned OpNo) {
   assert(OpNo < Desc.NumOperands);
-  unsigned OpType = Desc.operands()[OpNo].OperandType;
-  switch (OpType) {
+  
+  switch (unsigned OpType = Desc.operands()[OpNo].OperandType; OpType) {
   case AMDGPU::OPERAND_REG_IMM_FP32:
   case AMDGPU::OPERAND_REG_IMM_FP64:
   case AMDGPU::OPERAND_REG_IMM_FP16:
@@ -3185,8 +3185,8 @@ bool isArgPassedInSGPR(const Argument *A) {
   const Function *F = A->getParent();
 
   // Arguments to compute shaders are never a source of divergence.
-  CallingConv::ID CC = F->getCallingConv();
-  switch (CC) {
+  
+  switch (CallingConv::ID CC = F->getCallingConv(); CC) {
   case CallingConv::AMDGPU_KERNEL:
   case CallingConv::SPIR_KERNEL:
     return true;
@@ -3212,8 +3212,8 @@ bool isArgPassedInSGPR(const Argument *A) {
 
 bool isArgPassedInSGPR(const CallBase *CB, unsigned ArgNo) {
   // Arguments to compute shaders are never a source of divergence.
-  CallingConv::ID CC = CB->getCallingConv();
-  switch (CC) {
+  
+  switch (CallingConv::ID CC = CB->getCallingConv(); CC) {
   case CallingConv::AMDGPU_KERNEL:
   case CallingConv::SPIR_KERNEL:
     return true;
@@ -3382,8 +3382,8 @@ const MCRegisterClass *getVGPRPhysRegClass(MCRegister Reg,
       AMDGPU::VReg_1024RegClassID};
 
   for (unsigned RCID : VGPRClasses) {
-    const MCRegisterClass &RC = MRI.getRegClass(RCID);
-    if (RC.contains(Reg))
+    
+    if (const MCRegisterClass &RC = MRI.getRegClass(RCID); RC.contains(Reg))
       return &RC;
   }
 

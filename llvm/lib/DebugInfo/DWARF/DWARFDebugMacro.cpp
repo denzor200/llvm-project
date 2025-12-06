@@ -128,8 +128,8 @@ Error DWARFDebugMacro::parseImpl(
       M->Offset = Offset;
       M->IsDebugMacro = IsMacro;
       if (IsMacro) {
-        auto Err = M->Header.parseMacroHeader(Data, &Offset);
-        if (Err)
+        
+        if (auto Err = M->Header.parseMacroHeader(Data, &Offset); Err)
           return Err;
       }
     }

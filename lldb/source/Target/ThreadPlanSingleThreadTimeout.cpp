@@ -222,8 +222,8 @@ bool ThreadPlanSingleThreadTimeout::IsTimeoutAsyncInterrupt(Event *event_ptr) {
 
 bool ThreadPlanSingleThreadTimeout::HandleEvent(Event *event_ptr) {
   if (IsTimeoutAsyncInterrupt(event_ptr)) {
-    Log *log = GetLog(LLDBLog::Step);
-    if (Process::ProcessEventData::GetRestartedFromEvent(event_ptr)) {
+    
+    if (Log *log = GetLog(LLDBLog::Step); Process::ProcessEventData::GetRestartedFromEvent(event_ptr)) {
       // If we were restarted, we just need to go back up to fetch
       // another event.
       LLDB_LOGF(log,

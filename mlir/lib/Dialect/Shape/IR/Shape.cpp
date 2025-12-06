@@ -733,8 +733,8 @@ struct BroadcastForwardSingleOperandPattern
 
     // Insert cast if needed.
     if (replacement.getType() != op.getType()) {
-      auto loc = op.getLoc();
-      if (llvm::isa<ShapeType>(op.getType())) {
+      
+      if (auto loc = op.getLoc(); llvm::isa<ShapeType>(op.getType())) {
         replacement = FromExtentTensorOp::create(rewriter, loc, replacement);
       } else {
         assert(!llvm::isa<ShapeType>(op.getType()) &&
@@ -760,8 +760,8 @@ struct BroadcastFoldConstantOperandsPattern
     SmallVector<Value, 8> newShapeOperands;
     for (Value shape : op.getShapes()) {
       if (auto constShape = shape.getDefiningOp<ConstShapeOp>()) {
-        SmallVector<int64_t, 8> newFoldedConstantShape;
-        if (OpTrait::util::getBroadcastedShape(
+        
+        if (SmallVector<int64_t, 8> newFoldedConstantShape; OpTrait::util::getBroadcastedShape(
                 foldedConstantShape,
                 llvm::to_vector<8>(constShape.getShape().getValues<int64_t>()),
                 newFoldedConstantShape)) {
@@ -800,9 +800,9 @@ struct CanonicalizeCastExtentTensorOperandsPattern
     auto canonicalizeOperand = [&](Value operand) -> Value {
       if (auto castOp = operand.getDefiningOp<tensor::CastOp>()) {
         // Only eliminate the cast if it holds no shape information.
-        bool isInformationLoosingCast =
-            llvm::cast<RankedTensorType>(castOp.getType()).isDynamicDim(0);
-        if (isInformationLoosingCast) {
+        
+        if (bool isInformationLoosingCast =
+            llvm::cast<RankedTensorType>(castOp.getType()).isDynamicDim(0); isInformationLoosingCast) {
           anyChange = true;
           return castOp.getSource();
         }
@@ -1351,8 +1351,8 @@ OpFoldResult GetExtentOp::fold(FoldAdaptor adaptor) {
 void GetExtentOp::build(OpBuilder &builder, OperationState &result, Value shape,
                         int64_t dim) {
   auto loc = result.location;
-  auto dimAttr = builder.getIndexAttr(dim);
-  if (llvm::isa<ShapeType>(shape.getType())) {
+  
+  if (auto dimAttr = builder.getIndexAttr(dim); llvm::isa<ShapeType>(shape.getType())) {
     Value dim = ConstSizeOp::create(builder, loc, dimAttr);
     build(builder, result, builder.getType<SizeType>(), shape, dim);
   } else {
@@ -1437,8 +1437,8 @@ LogicalResult mlir::shape::MeetOp::inferReturnTypes(
         return emitOptionalError(location, "requires all sizes or shapes");
     } else if (isExtentTensorType(l)) {
       auto rank1 = llvm::cast<RankedTensorType>(l).getShape()[0];
-      auto rank2 = llvm::cast<RankedTensorType>(r).getShape()[0];
-      if (ShapedType::isDynamic(rank1))
+      
+      if (auto rank2 = llvm::cast<RankedTensorType>(r).getShape()[0]; ShapedType::isDynamic(rank1))
         acc = l;
       else if (ShapedType::isDynamic(rank2))
         acc = r;
@@ -1900,8 +1900,8 @@ LogicalResult SplitAtOp::fold(FoldAdaptor adaptor,
   auto splitPoint = llvm::cast<IntegerAttr>(adaptor.getIndex()).getInt();
   // Verify that the split point is in the correct range.
   // TODO: Constant fold to an "error".
-  int64_t rank = shape.size();
-  if (-rank > splitPoint || splitPoint > rank)
+  
+  if (int64_t rank = shape.size(); -rank > splitPoint || splitPoint > rank)
     return failure();
   if (splitPoint < 0)
     splitPoint += shape.size();

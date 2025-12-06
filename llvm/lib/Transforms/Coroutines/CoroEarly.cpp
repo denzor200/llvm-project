@@ -172,8 +172,8 @@ void Lowerer::hidePromiseAlloca(CoroIdInst *CoroId, CoroBeginInst *CoroBegin) {
   PI->setCannotDuplicate();
   // Remove lifetime markers, as these are only allowed on allocas.
   for (User *U : make_early_inc_range(PA->users())) {
-    auto *I = cast<Instruction>(U);
-    if (I->isLifetimeStartOrEnd())
+    
+    if (auto *I = cast<Instruction>(U); I->isLifetimeStartOrEnd())
       I->eraseFromParent();
   }
   PA->replaceUsesWithIf(PI, [CoroId](Use &U) {

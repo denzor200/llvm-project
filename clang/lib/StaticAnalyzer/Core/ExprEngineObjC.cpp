@@ -198,8 +198,8 @@ void ExprEngine::VisitObjCMessage(const ObjCMessageExpr *ME,
   // such constraints yet, so for now we go with a simpler, more restrictive
   // constraint: $x != 0, from which (1) follows as a vacuous truth.
   if (Msg->isInstanceMessage()) {
-    SVal recVal = Msg->getReceiverSVal();
-    if (!recVal.isUndef()) {
+    
+    if (SVal recVal = Msg->getReceiverSVal(); !recVal.isUndef()) {
       // Bifurcate the state into nil and non-nil ones.
       DefinedOrUnknownSVal receiverVal =
           recVal.castAs<DefinedOrUnknownSVal>();
@@ -229,10 +229,10 @@ void ExprEngine::VisitObjCMessage(const ObjCMessageExpr *ME,
       }
 
       ExplodedNodeSet dstNonNil;
-      StmtNodeBuilder Bldr(Pred, dstNonNil, *currBldrCtx);
+      
       // Generate a transition to the non-nil state, dropping any potential
       // nil flow.
-      if (notNilState != State) {
+      if (StmtNodeBuilder Bldr(Pred, dstNonNil, *currBldrCtx); notNilState != State) {
         bool HasTag = Pred->getLocation().getTag();
         Pred = Bldr.generateNode(ME, Pred, notNilState);
         assert((Pred || HasTag) && "Should have cached out already!");
@@ -262,8 +262,8 @@ void ExprEngine::VisitObjCMessage(const ObjCMessageExpr *ME,
     CallEventRef<ObjCMethodCall> UpdatedMsg = Msg.cloneWithState(State);
 
     if (UpdatedMsg->isInstanceMessage()) {
-      SVal recVal = UpdatedMsg->getReceiverSVal();
-      if (!recVal.isUndef()) {
+      
+      if (SVal recVal = UpdatedMsg->getReceiverSVal(); !recVal.isUndef()) {
         if (ObjCNoRet.isImplicitNoReturn(ME)) {
           // If we raise an exception, for now treat it as a sink.
           // Eventually we will want to handle exceptions properly.

@@ -172,10 +172,10 @@ protected:
             // (either for the variable offset or for the module handle), and
             // then move the variable offset TOC load right before the node that
             // uses the OutReg of the .__tls_get_mod node.
-            unsigned LDTocOp =
+            
+            if (unsigned LDTocOp =
                 Is64Bit ? (IsLargeModel ? PPC::LDtocL : PPC::LDtoc)
-                        : (IsLargeModel ? PPC::LWZtocL : PPC::LWZtoc);
-            if (!RegInfo.use_empty(OutReg)) {
+                        : (IsLargeModel ? PPC::LWZtocL : PPC::LWZtoc); !RegInfo.use_empty(OutReg)) {
               std::set<MachineInstr *> Uses;
               // Collect all instructions that use the OutReg.
               for (MachineOperand &MO : RegInfo.use_operands(OutReg))
@@ -197,8 +197,8 @@ protected:
                 std::set<MachineInstr *> LoadFromTocs;
                 for (MachineOperand &MO : UseIter->operands())
                   if (MO.isReg() && MO.isUse()) {
-                    Register MOReg = MO.getReg();
-                    if (RegInfo.hasOneDef(MOReg)) {
+                    
+                    if (Register MOReg = MO.getReg(); RegInfo.hasOneDef(MOReg)) {
                       MachineInstr *Temp =
                           RegInfo.getOneDef(MOReg)->getParent();
                       // For the current TLSLDAIX node, get the corresponding
@@ -229,8 +229,8 @@ protected:
                                                    IE = MBB.end();
                        I != IE; ++I)
                     if (LoadFromTocs.count(&*I)) {
-                      MachineOperand MO = I->getOperand(1);
-                      if (MO.isGlobal() && MO.getGlobal()->hasName() &&
+                      
+                      if (MachineOperand MO = I->getOperand(1); MO.isGlobal() && MO.getGlobal()->hasName() &&
                           MO.getGlobal()->getName() == "_$TLSML")
                         TLSMLIter = I;
                       else

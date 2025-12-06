@@ -110,11 +110,11 @@ TEST(TBDv4, ReadFile) {
 
   ExportedSymbolSeq Exports, Reexports, Undefineds;
   for (const auto *Sym : File->symbols()) {
-    ExportedSymbol Temp =
+    
+    if (ExportedSymbol Temp =
         ExportedSymbol{Sym->getKind(), std::string(Sym->getName()),
                        Sym->isWeakDefined() || Sym->isWeakReferenced(),
-                       Sym->isThreadLocalValue()};
-    if (Sym->isUndefined()) {
+                       Sym->isThreadLocalValue()}; Sym->isUndefined()) {
       EXPECT_FALSE(Sym->isWeakDefined());
       Undefineds.emplace_back(std::move(Temp));
     }

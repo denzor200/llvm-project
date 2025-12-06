@@ -22,8 +22,8 @@ bool llvm::IsOptionRecordsLess(const Record *A, const Record *B) {
   const Record *BKind = B->getValueAsDef("Kind");
 
   bool ASent = AKind->getValueAsBit("Sentinel");
-  bool BSent = BKind->getValueAsBit("Sentinel");
-  if (ASent != BSent)
+  
+  if (bool BSent = BKind->getValueAsBit("Sentinel"); ASent != BSent)
     return ASent;
 
   std::vector<StringRef> APrefixes = A->getValueAsListOfStrings("Prefixes");

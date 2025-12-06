@@ -366,9 +366,9 @@ protected:
   bool InspectInstruction(llvm::Instruction &i) override {
     Log *log = GetLog(LLDBLog::Expressions);
 
-    CallInst *call_inst = dyn_cast<CallInst>(&i);
+    
 
-    if (call_inst) {
+    if (CallInst *call_inst = dyn_cast<CallInst>(&i); call_inst) {
       const llvm::Function *called_function = GetCalledFunction(call_inst);
 
       if (!called_function)

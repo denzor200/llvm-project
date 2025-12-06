@@ -275,8 +275,8 @@ bool WebAssemblyExplicitLocals::runOnMachineFunction(MachineFunction &MF) {
   // RegStackify remove instructions using stackified registers.
   BitVector UseEmpty(MRI.getNumVirtRegs());
   for (unsigned I = 0, E = MRI.getNumVirtRegs(); I < E; ++I) {
-    Register Reg = Register::index2VirtReg(I);
-    if (MRI.use_empty(Reg)) {
+    
+    if (Register Reg = Register::index2VirtReg(I); MRI.use_empty(Reg)) {
       UseEmpty[I] = true;
       MFI.unstackifyVReg(Reg);
     }
@@ -361,8 +361,8 @@ bool WebAssemblyExplicitLocals::runOnMachineFunction(MachineFunction &MF) {
 
       // Insert local.sets for any defs that aren't stackified yet.
       for (auto &Def : MI.defs()) {
-        Register OldReg = Def.getReg();
-        if (!MFI.isVRegStackified(OldReg)) {
+        
+        if (Register OldReg = Def.getReg(); !MFI.isVRegStackified(OldReg)) {
           const TargetRegisterClass *RC = MRI.getRegClass(OldReg);
           Register NewReg = MRI.createVirtualRegister(RC);
           auto InsertPt = std::next(MI.getIterator());

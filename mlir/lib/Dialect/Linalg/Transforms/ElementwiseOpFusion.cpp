@@ -411,8 +411,8 @@ mlir::linalg::fuseElementwiseOps(RewriterBase &rewriter,
   for (OpOperand &opOperand : consumer.getDpsInitsMutable()) {
     fusedOutputOperands.push_back(opOperand.get());
     fusedIndexMaps.push_back(consumer.getMatchingIndexingMap(&opOperand));
-    Type resultType = opOperand.get().getType();
-    if (!isa<MemRefType>(resultType))
+    
+    if (Type resultType = opOperand.get().getType(); !isa<MemRefType>(resultType))
       fusedResultTypes.push_back(resultType);
   }
 
@@ -978,8 +978,8 @@ fuseWithReshapeByExpansion(LinalgOp linalgOp, Operation *reshapeOp,
   // reshape folded into its consumer.
   SmallVector<Value> resultVals;
   for (OpResult opResult : linalgOp->getOpResults()) {
-    int64_t resultNumber = opResult.getResultNumber();
-    if (resultTypes[resultNumber] != opResult.getType()) {
+    
+    if (int64_t resultNumber = opResult.getResultNumber(); resultTypes[resultNumber] != opResult.getType()) {
       SmallVector<ReassociationIndices> reassociation =
           getReassociationForExpansion(
               linalgOp.getMatchingIndexingMap(
@@ -1216,11 +1216,11 @@ bool mlir::linalg::isDimSequencePreserved(AffineMap indexingMap,
         return false;
       // 1a. Check if sequence is preserved.
       for (const auto &dimInSequence : enumerate(dimSequence)) {
-        unsigned dimInMap =
+        
+        if (unsigned dimInMap =
             cast<AffineDimExpr>(
                 indexingMap.getResult(expr.index() + dimInSequence.index()))
-                .getPosition();
-        if (dimInMap != dimInSequence.value())
+                .getPosition(); dimInMap != dimInSequence.value())
           return false;
       }
       // Found the sequence. Projected permutation
@@ -1782,8 +1782,8 @@ FailureOr<CollapseResult> mlir::linalg::collapseOpIterationDims(
     Value collapsedOpResult = collapsedOp->getResult(originalResult.index());
     auto originalResultType =
         cast<ShapedType>(originalResult.value().getType());
-    auto collapsedOpResultType = cast<ShapedType>(collapsedOpResult.getType());
-    if (collapsedOpResultType.getRank() != originalResultType.getRank()) {
+    
+    if (auto collapsedOpResultType = cast<ShapedType>(collapsedOpResult.getType()); collapsedOpResultType.getRank() != originalResultType.getRank()) {
       AffineMap indexingMap =
           op.getIndexingMapMatchingResult(originalResult.value());
       SmallVector<ReassociationIndices> reassociation =
@@ -2060,8 +2060,8 @@ public:
       TypedAttr constantAttr;
       auto isScalarOrSplatConstantOp = [&constantAttr](Operation *def) -> bool {
         {
-          DenseElementsAttr splatAttr;
-          if (matchPattern(def, m_Constant<DenseElementsAttr>(&splatAttr)) &&
+          
+          if (DenseElementsAttr splatAttr; matchPattern(def, m_Constant<DenseElementsAttr>(&splatAttr)) &&
               splatAttr.isSplat() &&
               splatAttr.getType().getElementType().isIntOrFloat()) {
             constantAttr = splatAttr.getSplatValue<TypedAttr>();
@@ -2069,15 +2069,15 @@ public:
           }
         }
         {
-          IntegerAttr intAttr;
-          if (matchPattern(def, m_Constant<IntegerAttr>(&intAttr))) {
+          
+          if (IntegerAttr intAttr; matchPattern(def, m_Constant<IntegerAttr>(&intAttr))) {
             constantAttr = intAttr;
             return true;
           }
         }
         {
-          FloatAttr floatAttr;
-          if (matchPattern(def, m_Constant<FloatAttr>(&floatAttr))) {
+          
+          if (FloatAttr floatAttr; matchPattern(def, m_Constant<FloatAttr>(&floatAttr))) {
             constantAttr = floatAttr;
             return true;
           }

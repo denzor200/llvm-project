@@ -137,8 +137,8 @@ Selector NSAPI::getNSArraySelector(NSArrayMethodKind MK) const {
 std::optional<NSAPI::NSArrayMethodKind>
 NSAPI::getNSArrayMethodKind(Selector Sel) {
   for (unsigned i = 0; i != NumNSArrayMethods; ++i) {
-    NSArrayMethodKind MK = NSArrayMethodKind(i);
-    if (Sel == getNSArraySelector(MK))
+    
+    if (NSArrayMethodKind MK = NSArrayMethodKind(i); Sel == getNSArraySelector(MK))
       return MK;
   }
 
@@ -225,8 +225,8 @@ Selector NSAPI::getNSDictionarySelector(
 std::optional<NSAPI::NSDictionaryMethodKind>
 NSAPI::getNSDictionaryMethodKind(Selector Sel) {
   for (unsigned i = 0; i != NumNSDictionaryMethods; ++i) {
-    NSDictionaryMethodKind MK = NSDictionaryMethodKind(i);
-    if (Sel == getNSDictionarySelector(MK))
+    
+    if (NSDictionaryMethodKind MK = NSDictionaryMethodKind(i); Sel == getNSDictionarySelector(MK))
       return MK;
   }
 
@@ -274,8 +274,8 @@ Selector NSAPI::getNSSetSelector(NSSetMethodKind MK) const {
 
 std::optional<NSAPI::NSSetMethodKind> NSAPI::getNSSetMethodKind(Selector Sel) {
   for (unsigned i = 0; i != NumNSSetMethods; ++i) {
-    NSSetMethodKind MK = NSSetMethodKind(i);
-    if (Sel == getNSSetSelector(MK))
+    
+    if (NSSetMethodKind MK = NSSetMethodKind(i); Sel == getNSSetSelector(MK))
       return MK;
   }
 
@@ -337,8 +337,8 @@ Selector NSAPI::getNSNumberLiteralSelector(NSNumberLiteralMethodKind MK,
 std::optional<NSAPI::NSNumberLiteralMethodKind>
 NSAPI::getNSNumberLiteralMethodKind(Selector Sel) const {
   for (unsigned i = 0; i != NumNSNumberLiteralMethods; ++i) {
-    NSNumberLiteralMethodKind MK = NSNumberLiteralMethodKind(i);
-    if (isNSNumberLiteralSelector(MK, Sel))
+    
+    if (NSNumberLiteralMethodKind MK = NSNumberLiteralMethodKind(i); isNSNumberLiteralSelector(MK, Sel))
       return MK;
   }
 

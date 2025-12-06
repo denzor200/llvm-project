@@ -76,8 +76,8 @@ struct FoldExpressionOp : public OpRewritePattern<ExpressionOp> {
     // expression.
     for (auto [operand, arg] : llvm::zip(expressionOp.getOperands(),
                                          expressionBody->getArguments())) {
-      ExpressionOp operandExpression = operand.getDefiningOp<ExpressionOp>();
-      if (usedExpression || !operandExpression ||
+      
+      if (ExpressionOp operandExpression = operand.getDefiningOp<ExpressionOp>(); usedExpression || !operandExpression ||
           llvm::any_of(arg.getUsers(), takesItsOperandsAddress) ||
           !operandExpression.getResult().hasOneUse() ||
           operandExpression.hasSideEffects())

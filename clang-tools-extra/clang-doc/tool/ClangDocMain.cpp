@@ -445,9 +445,9 @@ Example usage for a project using a compile commands database:
 
   if (FTimeTrace) {
     std::error_code EC;
-    llvm::raw_fd_ostream OS("clang-doc-tracing.json", EC,
-                            llvm::sys::fs::OF_Text);
-    if (!EC) {
+    
+    if (llvm::raw_fd_ostream OS("clang-doc-tracing.json", EC,
+                            llvm::sys::fs::OF_Text); !EC) {
       llvm::timeTraceProfilerWrite(OS);
       llvm::timeTraceProfilerCleanup();
     } else

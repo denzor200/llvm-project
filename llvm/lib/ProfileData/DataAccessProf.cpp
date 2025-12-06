@@ -118,9 +118,9 @@ Error DataAccessProfData::addKnownSymbolWithoutSamples(
 Error DataAccessProfData::deserialize(const unsigned char *&Ptr) {
   uint64_t NumSampledSymbols =
       support::endian::readNext<uint64_t, llvm::endianness::little>(Ptr);
-  uint64_t NumColdKnownSymbols =
-      support::endian::readNext<uint64_t, llvm::endianness::little>(Ptr);
-  if (Error E = deserializeSymbolsAndFilenames(Ptr, NumSampledSymbols,
+  
+  if (uint64_t NumColdKnownSymbols =
+      support::endian::readNext<uint64_t, llvm::endianness::little>(Ptr); Error E = deserializeSymbolsAndFilenames(Ptr, NumSampledSymbols,
                                                NumColdKnownSymbols))
     return E;
 

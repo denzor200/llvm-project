@@ -43,8 +43,8 @@ Lexer::Lexer(const llvm::SourceMgr &sourceMgr, MLIRContext *context,
   if (sourceMgr.getNumBuffers() > 1) {
     unsigned lastFileID = sourceMgr.getNumBuffers();
     const llvm::MemoryBuffer *main = sourceMgr.getMemoryBuffer(bufferID);
-    const llvm::MemoryBuffer *last = sourceMgr.getMemoryBuffer(lastFileID);
-    if (main->getBufferStart() <= last->getBufferStart() &&
+    
+    if (const llvm::MemoryBuffer *last = sourceMgr.getMemoryBuffer(lastFileID); main->getBufferStart() <= last->getBufferStart() &&
         main->getBufferEnd() >= last->getBufferEnd()) {
       bufferID = lastFileID;
     }

@@ -506,8 +506,8 @@ void ELFNixPlatform::pushInitializersLoop(
     {
       std::lock_guard<std::mutex> Lock(PlatformMutex);
       for (auto &KV : JDDepMap) {
-        auto I = JITDylibToHandleAddr.find(KV.first);
-        if (I != JITDylibToHandleAddr.end())
+        
+        if (auto I = JITDylibToHandleAddr.find(KV.first); I != JITDylibToHandleAddr.end())
           HeaderAddrs[KV.first] = I->second;
       }
     }
@@ -523,8 +523,8 @@ void ELFNixPlatform::pushInitializersLoop(
       auto H = HI->second;
       ELFNixJITDylibDepInfo DepInfo;
       for (auto &Dep : KV.second) {
-        auto HJ = HeaderAddrs.find(Dep);
-        if (HJ != HeaderAddrs.end())
+        
+        if (auto HJ = HeaderAddrs.find(Dep); HJ != HeaderAddrs.end())
           DepInfo.push_back(HJ->second);
       }
       DIM.push_back(std::make_pair(H, std::move(DepInfo)));
@@ -549,8 +549,8 @@ void ELFNixPlatform::rt_recordInitializers(
   JITDylibSP JD;
   {
     std::lock_guard<std::mutex> Lock(PlatformMutex);
-    auto I = HandleAddrToJITDylib.find(JDHeaderAddr);
-    if (I != HandleAddrToJITDylib.end())
+    
+    if (auto I = HandleAddrToJITDylib.find(JDHeaderAddr); I != HandleAddrToJITDylib.end())
       JD = I->second;
   }
 
@@ -583,8 +583,8 @@ void ELFNixPlatform::rt_lookupSymbol(SendSymbolAddressFn SendResult,
 
   {
     std::lock_guard<std::mutex> Lock(PlatformMutex);
-    auto I = HandleAddrToJITDylib.find(Handle);
-    if (I != HandleAddrToJITDylib.end())
+    
+    if (auto I = HandleAddrToJITDylib.find(Handle); I != HandleAddrToJITDylib.end())
       JD = I->second;
   }
 
@@ -823,8 +823,8 @@ void ELFNixPlatform::ELFNixPlatformPlugin::addEHAndTLVSupportPasses(
     ELFPerObjectSectionsToRegister POSR;
 
     if (auto *EHFrameSection = G.findSectionByName(ELFEHFrameSectionName)) {
-      jitlink::SectionRange R(*EHFrameSection);
-      if (!R.empty())
+      
+      if (jitlink::SectionRange R(*EHFrameSection); !R.empty())
         POSR.EHFrameSection = R.getRange();
     }
 
@@ -847,8 +847,8 @@ void ELFNixPlatform::ELFNixPlatformPlugin::addEHAndTLVSupportPasses(
     // Having merged thread BSS (if present) and thread data (if present),
     // record the resulting section range.
     if (ThreadDataSection) {
-      jitlink::SectionRange R(*ThreadDataSection);
-      if (!R.empty())
+      
+      if (jitlink::SectionRange R(*ThreadDataSection); !R.empty())
         POSR.ThreadDataSection = R.getRange();
     }
 
@@ -920,9 +920,9 @@ Error ELFNixPlatform::ELFNixPlatformPlugin::registerInitSections(
         bool LHSHasPriority = LHSPrioStr.consume_front(".init_array.") &&
                               !LHSPrioStr.getAsInteger(10, LHSPriority);
         uint64_t RHSPriority;
-        bool RHSHasPriority = RHSPrioStr.consume_front(".init_array.") &&
-                              !RHSPrioStr.getAsInteger(10, RHSPriority);
-        if (LHSHasPriority)
+        
+        if (bool RHSHasPriority = RHSPrioStr.consume_front(".init_array.") &&
+                              !RHSPrioStr.getAsInteger(10, RHSPriority); LHSHasPriority)
           return RHSHasPriority ? LHSPriority < RHSPriority : true;
         else if (RHSHasPriority)
           return false;
@@ -995,14 +995,14 @@ Error ELFNixPlatform::ELFNixPlatformPlugin::fixTLVSectionsAndEdges(
     }
   }
 
-  auto *TLSInfoEntrySection = G.findSectionByName("$__TLSINFO");
+  
 
-  if (TLSInfoEntrySection) {
+  if (auto *TLSInfoEntrySection = G.findSectionByName("$__TLSINFO"); TLSInfoEntrySection) {
     std::optional<uint64_t> Key;
     {
       std::lock_guard<std::mutex> Lock(MP.PlatformMutex);
-      auto I = MP.JITDylibToPThreadKey.find(&JD);
-      if (I != MP.JITDylibToPThreadKey.end())
+      
+      if (auto I = MP.JITDylibToPThreadKey.find(&JD); I != MP.JITDylibToPThreadKey.end())
         Key = I->second;
     }
     if (!Key) {

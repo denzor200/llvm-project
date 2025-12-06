@@ -373,10 +373,10 @@ static void addVPMetadata(Module &M, Instruction &I,
     // TODO: When merging is implemented, increase this to a typical ICP value
     // (e.g., 3-6) For now, we only need to check if existing data exists, so 1
     // is sufficient
-    auto ExistingVD = getValueProfDataFromInst(I, IPVK_IndirectCallTarget,
-                                               /*MaxNumValueData=*/1, Unused);
+    
     // We don't know how to merge value profile data yet.
-    if (!ExistingVD.empty()) {
+    if (auto ExistingVD = getValueProfDataFromInst(I, IPVK_IndirectCallTarget,
+                                               /*MaxNumValueData=*/1, Unused); !ExistingVD.empty()) {
       return;
     }
   }
@@ -845,8 +845,8 @@ bool MemProfUsePass::annotateGlobalVariables(
   for (GlobalVariable &GVar : M.globals()) {
     assert(!GVar.getSectionPrefix().has_value() &&
            "GVar shouldn't have section prefix yet");
-    auto Kind = llvm::memprof::getAnnotationKind(GVar);
-    if (Kind != llvm::memprof::AnnotationKind::AnnotationOK) {
+    
+    if (auto Kind = llvm::memprof::getAnnotationKind(GVar); Kind != llvm::memprof::AnnotationKind::AnnotationOK) {
       HandleUnsupportedAnnotationKinds(GVar, Kind);
       continue;
     }

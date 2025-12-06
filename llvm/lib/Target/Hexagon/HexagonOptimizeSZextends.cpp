@@ -120,8 +120,8 @@ bool HexagonOptimizeSZextends::runOnFunction(Function &F) {
         // All is well. Replace all uses of AShr with I.
         for (auto UI = Ashr->user_begin(), UE = Ashr->user_end();
              UI != UE; ++UI) {
-          const Use &TheUse = UI.getUse();
-          if (Instruction *J = dyn_cast<Instruction>(TheUse.getUser())) {
+          
+          if (const Use &TheUse = UI.getUse(); Instruction *J = dyn_cast<Instruction>(TheUse.getUser())) {
             J->replaceUsesOfWith(Ashr, I);
           }
         }

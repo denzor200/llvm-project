@@ -49,8 +49,8 @@ clang_VirtualFileOverlay_addFileMapping(CXVirtualFileOverlay VFO,
   for (path::const_iterator
          PI = path::begin(virtualPath),
          PE = path::end(virtualPath); PI != PE; ++PI) {
-    StringRef Comp = *PI;
-    if (Comp == "." || Comp == "..")
+    
+    if (StringRef Comp = *PI; Comp == "." || Comp == "..")
       return CXError_InvalidArguments;
   }
 

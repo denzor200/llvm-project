@@ -55,9 +55,9 @@ static void replaceToken(const SourceManager &SourceMgr,
                          tooling::Replacements &Fixes,
                          const CharSourceRange &Range, std::string NewText) {
   auto Replacement = tooling::Replacement(SourceMgr, Range, NewText);
-  auto Err = Fixes.add(Replacement);
+  
 
-  if (Err) {
+  if (auto Err = Fixes.add(Replacement); Err) {
     llvm::errs() << "Error while rearranging Qualifier : "
                  << llvm::toString(std::move(Err)) << "\n";
   }
@@ -492,9 +492,9 @@ const FormatToken *LeftRightQualifierAlignmentFixer::analyzeLeft(
 
         const FormatToken *const ColonColon =
             TypeToken->getPreviousNonComment();
-        const FormatToken *const PreColonColon =
-            ColonColon->getPreviousNonComment();
-        if (PreColonColon &&
+        
+        if (const FormatToken *const PreColonColon =
+            ColonColon->getPreviousNonComment(); PreColonColon &&
             PreColonColon->isOneOf(TT_TemplateCloser, tok::identifier)) {
           TypeToken = PreColonColon;
         } else {
@@ -656,8 +656,8 @@ bool isPossibleMacro(const FormatToken *Tok) {
     return false;
 
   // It's unlikely that qualified names are object-like macros.
-  const auto *Prev = Tok->getPreviousNonComment();
-  if (Prev && Prev->is(tok::coloncolon))
+  
+  if (const auto *Prev = Tok->getPreviousNonComment(); Prev && Prev->is(tok::coloncolon))
     return false;
   const auto *Next = Tok->getNextNonComment();
   if (Next && Next->is(tok::coloncolon))

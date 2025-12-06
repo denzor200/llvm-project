@@ -44,8 +44,8 @@ GetPersistenceDataForSymbol(lldb::SBSymbol &symbol) {
 void Breakpoint::SetCondition() { m_bp.SetCondition(m_condition.c_str()); }
 
 void Breakpoint::SetHitCondition() {
-  uint64_t hitCount = 0;
-  if (llvm::to_integer(m_hit_condition, hitCount))
+  
+  if (uint64_t hitCount = 0; llvm::to_integer(m_hit_condition, hitCount))
     m_bp.SetIgnoreCount(hitCount - 1);
 }
 
@@ -95,8 +95,8 @@ protocol::Breakpoint Breakpoint::ToProtocolBreakpoint() {
         breakpoint.column = column;
     } else if (source) {
       // Assembly breakpoint.
-      auto symbol = bp_addr.GetSymbol();
-      if (symbol.IsValid()) {
+      
+      if (auto symbol = bp_addr.GetSymbol(); symbol.IsValid()) {
         breakpoint.line =
             m_bp.GetTarget()
                 .ReadInstructions(symbol.GetStartAddress(), bp_addr, nullptr)
@@ -105,9 +105,9 @@ protocol::Breakpoint Breakpoint::ToProtocolBreakpoint() {
 
         // Add persistent data so that the breakpoint can be resolved
         // in future sessions.
-        std::optional<protocol::PersistenceData> persistence_data =
-            GetPersistenceDataForSymbol(symbol);
-        if (persistence_data) {
+        
+        if (std::optional<protocol::PersistenceData> persistence_data =
+            GetPersistenceDataForSymbol(symbol); persistence_data) {
           source->adapterData =
               protocol::SourceLLDBData{std::move(persistence_data)};
         }

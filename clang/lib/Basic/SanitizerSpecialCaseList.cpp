@@ -66,8 +66,8 @@ SanitizerSpecialCaseList::inSectionBlame(SanitizerMask Mask, StringRef Prefix,
                                          StringRef Category) const {
   for (const auto &S : llvm::reverse(SanitizerSections)) {
     if (S.Mask & Mask) {
-      unsigned LineNum = S.S.getLastMatch(Prefix, Query, Category);
-      if (LineNum > 0)
+      
+      if (unsigned LineNum = S.S.getLastMatch(Prefix, Query, Category); LineNum > 0)
         return {S.S.fileIndex(), LineNum};
     }
   }

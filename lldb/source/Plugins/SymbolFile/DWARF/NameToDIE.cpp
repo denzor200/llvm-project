@@ -58,8 +58,8 @@ void NameToDIE::FindAllEntriesForUnit(
   const DWARFUnit &ns_unit = s_unit.GetNonSkeletonUnit();
   const uint32_t size = m_map.GetSize();
   for (uint32_t i = 0; i < size; ++i) {
-    const DIERef &die_ref = m_map.GetValueAtIndexUnchecked(i);
-    if (ns_unit.GetSymbolFileDWARF().GetFileIndex() == die_ref.file_index() &&
+    
+    if (const DIERef &die_ref = m_map.GetValueAtIndexUnchecked(i); ns_unit.GetSymbolFileDWARF().GetFileIndex() == die_ref.file_index() &&
         ns_unit.GetDebugSection() == die_ref.section() &&
         ns_unit.GetOffset() <= die_ref.die_offset() &&
         die_ref.die_offset() < ns_unit.GetNextUnitOffset()) {

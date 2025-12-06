@@ -700,10 +700,10 @@ DAP::ResolveAssemblySource(lldb::SBAddress address) {
   source.sourceReference = CreateSourceReference(load_addr);
   lldb::SBModule module = address.GetModule();
   if (module.IsValid()) {
-    lldb::SBFileSpec file_spec = module.GetFileSpec();
-    if (file_spec.IsValid()) {
-      std::string path = GetSBFileSpecPath(file_spec);
-      if (!path.empty())
+    
+    if (lldb::SBFileSpec file_spec = module.GetFileSpec(); file_spec.IsValid()) {
+      
+      if (std::string path = GetSBFileSpecPath(file_spec); !path.empty())
         source.path = path + '`' + name;
     }
   }
@@ -863,8 +863,8 @@ bool DAP::HandleObject(const Message &M) {
     std::unique_ptr<ResponseHandler> response_handler;
     {
       std::lock_guard<std::mutex> guard(call_mutex);
-      auto inflight = inflight_reverse_requests.find(resp->request_seq);
-      if (inflight != inflight_reverse_requests.end()) {
+      
+      if (auto inflight = inflight_reverse_requests.find(resp->request_seq); inflight != inflight_reverse_requests.end()) {
         response_handler = std::move(inflight->second);
         inflight_reverse_requests.erase(inflight);
       }
@@ -929,8 +929,8 @@ llvm::Error DAP::Disconnect() { return Disconnect(!is_attach); }
 llvm::Error DAP::Disconnect(bool terminateDebuggee) {
   lldb::SBError error;
   lldb::SBProcess process = target.GetProcess();
-  auto state = process.GetState();
-  switch (state) {
+  
+  switch (auto state = process.GetState(); state) {
   case lldb::eStateInvalid:
   case lldb::eStateUnloaded:
   case lldb::eStateDetached:
@@ -1133,8 +1133,8 @@ lldb::SBError DAP::WaitForProcessToStop(std::chrono::seconds seconds) {
   auto timeout_time =
       std::chrono::steady_clock::now() + std::chrono::seconds(seconds);
   while (std::chrono::steady_clock::now() < timeout_time) {
-    const auto state = process.GetState();
-    switch (state) {
+    
+    switch (const auto state = process.GetState(); state) {
     case lldb::eStateUnloaded:
     case lldb::eStateAttaching:
     case lldb::eStateConnected:
@@ -1410,8 +1410,8 @@ void DAP::ProgressEventThread() {
   bool done = false;
   while (!done) {
     if (listener.WaitForEvent(UINT32_MAX, event)) {
-      const auto event_mask = event.GetType();
-      if (event.BroadcasterMatchesRef(broadcaster)) {
+      
+      if (const auto event_mask = event.GetType(); event.BroadcasterMatchesRef(broadcaster)) {
         if (event_mask & eBroadcastBitStopProgressThread) {
           done = true;
         }
@@ -1423,10 +1423,10 @@ void DAP::ProgressEventThread() {
             GetUintFromStructuredData(data, "progress_id");
         const uint64_t completed = GetUintFromStructuredData(data, "completed");
         const uint64_t total = GetUintFromStructuredData(data, "total");
-        const std::string details =
-            GetStringFromStructuredData(data, "details");
+        
 
-        if (completed == 0) {
+        if (const std::string details =
+            GetStringFromStructuredData(data, "details"); completed == 0) {
           if (total == UINT64_MAX) {
             // This progress is non deterministic and won't get updated until it
             // is completed. Send the "message" which will be the combined title
@@ -1531,8 +1531,8 @@ std::vector<protocol::Breakpoint> DAP::SetSourceBreakpoints(
   // calling this function with a smaller or empty "breakpoints" list.
   for (auto it = existing_breakpoints.begin();
        it != existing_breakpoints.end();) {
-    auto request_pos = request_breakpoints.find(it->first);
-    if (request_pos == request_breakpoints.end()) {
+    
+    if (auto request_pos = request_breakpoints.find(it->first); request_pos == request_breakpoints.end()) {
       // This breakpoint no longer exists in this source file, delete it
       target.BreakpointDelete(it->second.GetID());
       it = existing_breakpoints.erase(it);

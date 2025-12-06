@@ -47,12 +47,12 @@ static StringRef getReplacementFor(StringRef FunctionName,
                                    bool IsAnnexKAvailable) {
   if (IsAnnexKAvailable) {
     // Try to find a better replacement from Annex K first.
-    StringRef AnnexKReplacementFunction =
+    
+    if (StringRef AnnexKReplacementFunction =
         StringSwitch<StringRef>(FunctionName)
             .Cases({"asctime", "asctime_r"}, "asctime_s")
             .Case("gets", "gets_s")
-            .Default({});
-    if (!AnnexKReplacementFunction.empty())
+            .Default({}); !AnnexKReplacementFunction.empty())
       return AnnexKReplacementFunction;
   }
 
@@ -69,12 +69,12 @@ static StringRef getReplacementForAdditional(StringRef FunctionName,
                                              bool IsAnnexKAvailable) {
   if (IsAnnexKAvailable) {
     // Try to find a better replacement from Annex K first.
-    StringRef AnnexKReplacementFunction = StringSwitch<StringRef>(FunctionName)
+    
+
+    if (StringRef AnnexKReplacementFunction = StringSwitch<StringRef>(FunctionName)
                                               .Case("bcopy", "memcpy_s")
                                               .Case("bzero", "memset_s")
-                                              .Default({});
-
-    if (!AnnexKReplacementFunction.empty())
+                                              .Default({}); !AnnexKReplacementFunction.empty())
       return AnnexKReplacementFunction;
   }
 

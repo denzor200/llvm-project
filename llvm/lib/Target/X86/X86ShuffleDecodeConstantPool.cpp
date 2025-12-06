@@ -135,9 +135,9 @@ void DecodePSHUFBMask(const Constant *C, unsigned Width,
       continue;
     }
 
-    uint64_t Element = RawMask[i];
+    
     // If the high bit (7) of the byte is set, the element is zeroed.
-    if (Element & (1 << 7))
+    if (uint64_t Element = RawMask[i]; Element & (1 << 7))
       ShuffleMask.push_back(SM_SentinelZero);
     else {
       // For AVX vectors with 32 bytes the base of the shuffle is the 16-byte
@@ -176,8 +176,8 @@ void DecodeVPERMILPMask(const Constant *C, unsigned ElSize, unsigned Width,
     }
 
     int Index = i & ~(NumEltsPerLane - 1);
-    uint64_t Element = RawMask[i];
-    if (ElSize == 64)
+    
+    if (uint64_t Element = RawMask[i]; ElSize == 64)
       Index += (Element >> 1) & 0x1;
     else
       Index += Element & 0x3;
@@ -216,7 +216,7 @@ void DecodeVPERMIL2PMask(const Constant *C, unsigned M2Z, unsigned ElSize,
     // Bits[2:1] - (Per Lane) PD Shuffle Mask.
     // Bits[2:0] - (Per Lane) PS Shuffle Mask.
     uint64_t Selector = RawMask[i];
-    unsigned MatchBit = (Selector >> 3) & 0x1;
+    
 
     // M2Z[0:1]     MatchBit
     //   0Xb           X        Source selected by Selector index.
@@ -224,7 +224,7 @@ void DecodeVPERMIL2PMask(const Constant *C, unsigned M2Z, unsigned ElSize,
     //   10b           1        Zero.
     //   11b           0        Zero.
     //   11b           1        Source selected by Selector index.
-    if ((M2Z & 0x2) != 0u && MatchBit != (M2Z & 0x1)) {
+    if (unsigned MatchBit = (Selector >> 3) & 0x1; (M2Z & 0x2) != 0u && MatchBit != (M2Z & 0x1)) {
       ShuffleMask.push_back(SM_SentinelZero);
       continue;
     }

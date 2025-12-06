@@ -203,8 +203,8 @@ bool Document::readFromBlob(
       auto &Array = Stack.back().Node.getArray();
       DestNode = &Array[Stack.back().Index++];
     } else {
-      auto &Map = Stack.back().Node.getMap();
-      if (!Stack.back().MapEntry) {
+      
+      if (auto &Map = Stack.back().Node.getMap(); !Stack.back().MapEntry) {
         // Reading a map key.
         Stack.back().MapKey = Node;
         Stack.back().MapEntry = &Map[Node];

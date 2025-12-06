@@ -343,8 +343,8 @@ bool GlobalAddressDescription::PointsInsideTheSameVariable(
   for (uptr i = 0; i < size; i++) {
     const __asan_global &a = globals[i];
     for (uptr j = 0; j < other.size; j++) {
-      const __asan_global &b = other.globals[j];
-      if (a.beg == b.beg &&
+      
+      if (const __asan_global &b = other.globals[j]; a.beg == b.beg &&
           a.beg <= addr &&
           b.beg <= other.addr &&
           (addr + access_size) < (a.beg + a.size) &&

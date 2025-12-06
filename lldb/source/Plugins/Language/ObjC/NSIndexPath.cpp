@@ -112,9 +112,9 @@ public:
                                            m_uint_star_type.GetPointerType(),
                                            true)
                 .get();
-        ValueObjectSP length_sp(m_backend.GetSyntheticChildAtOffset(
-            _length_id.m_offset, m_uint_star_type, true));
-        if (length_sp) {
+        
+        if (ValueObjectSP length_sp(m_backend.GetSyntheticChildAtOffset(
+            _length_id.m_offset, m_uint_star_type, true)); length_sp) {
           m_impl.m_outsourced.m_count = length_sp->GetValueAsUnsigned(0);
           if (m_impl.m_outsourced.m_indexes)
             m_impl.m_mode = Mode::Outsourced;
@@ -235,8 +235,8 @@ protected:
       }
 
       std::pair<uint64_t, bool> _indexAtPositionForInlinePayload(size_t pos) {
-        static const uint64_t PACKED_INDEX_MASK = ((1 << 13) - 1);
-        if (m_ptr_size == 8) {
+        
+        if (static const uint64_t PACKED_INDEX_MASK = ((1 << 13) - 1); m_ptr_size == 8) {
           switch (pos) {
           case 3:
           case 2:

@@ -28,9 +28,9 @@ Status CommandObjectThreadTraceExportCTF::CommandOptions::SetOptionValue(
     uint32_t option_idx, llvm::StringRef option_arg,
     ExecutionContext *execution_context) {
   Status error;
-  const int short_option = m_getopt_table[option_idx].val;
+  
 
-  switch (short_option) {
+  switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
   case 'f': {
     m_file.assign(std::string(option_arg));
     break;
@@ -66,29 +66,29 @@ void CommandObjectThreadTraceExportCTF::DoExecute(Args &command,
                                                   CommandReturnObject &result) {
   const TraceSP &trace_sp = m_exe_ctx.GetTargetSP()->GetTrace();
   Process *process = m_exe_ctx.GetProcessPtr();
-  Thread *thread = m_options.m_thread_index
+  
+
+  if (Thread *thread = m_options.m_thread_index
                        ? process->GetThreadList()
                              .FindThreadByIndexID(*m_options.m_thread_index)
                              .get()
-                       : GetDefaultThread();
-
-  if (thread == nullptr) {
+                       : GetDefaultThread(); thread == nullptr) {
     const uint32_t num_threads = process->GetThreadList().GetSize();
     size_t tid = m_options.m_thread_index.value_or(LLDB_INVALID_THREAD_ID);
     result.AppendErrorWithFormatv(
         "Thread index {0} is out of range (valid values are 1 - {1}).\n", tid,
         num_threads);
   } else {
-    auto do_work = [&]() -> Error {
+    
+
+    if (auto do_work = [&]() -> Error {
       Expected<TraceCursorSP> cursor = trace_sp->CreateNewCursor(*thread);
       if (!cursor)
         return cursor.takeError();
       TraceHTR htr(*thread, **cursor);
       htr.ExecutePasses();
       return htr.Export(m_options.m_file);
-    };
-
-    if (llvm::Error err = do_work()) {
+    }; llvm::Error err = do_work()) {
       result.AppendErrorWithFormat("%s\n", toString(std::move(err)).c_str());
     }
   }

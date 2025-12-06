@@ -184,8 +184,8 @@ bool llvm::lowerLoongArchMachineInstrToMCInst(const MachineInstr *MI,
   OutMI.setOpcode(MI->getOpcode());
 
   for (const MachineOperand &MO : MI->operands()) {
-    MCOperand MCOp;
-    if (lowerLoongArchMachineOperandToMCOperand(MO, MCOp, AP))
+    
+    if (MCOperand MCOp; lowerLoongArchMachineOperandToMCOperand(MO, MCOp, AP))
       OutMI.addOperand(MCOp);
   }
   return false;

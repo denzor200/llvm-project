@@ -589,8 +589,8 @@ Expected<StringRef> clang(ArrayRef<StringRef> InputFiles, const ArgList &Args,
 Expected<StringRef> linkDevice(ArrayRef<StringRef> InputFiles,
                                const ArgList &Args,
                                uint16_t ActiveOffloadKindMask) {
-  const llvm::Triple Triple(Args.getLastArgValue(OPT_triple_EQ));
-  switch (Triple.getArch()) {
+  
+  switch (const llvm::Triple Triple(Args.getLastArgValue(OPT_triple_EQ)); Triple.getArch()) {
   case Triple::nvptx:
   case Triple::nvptx64:
   case Triple::amdgcn:
@@ -883,9 +883,9 @@ DerivedArgList getLinkerArgs(ArrayRef<OffloadFile> Input,
   // Forward '-Xoffload-linker' options to the appropriate backend.
   for (StringRef Arg : Args.getAllArgValues(OPT_device_linker_args_EQ)) {
     auto [Triple, Value] = Arg.split('=');
-    llvm::Triple TT(Triple);
+    
     // If this isn't a recognized triple then it's an `arg=value` option.
-    if (TT.getArch() == Triple::ArchType::UnknownArch)
+    if (llvm::Triple TT(Triple); TT.getArch() == Triple::ArchType::UnknownArch)
       DAL.AddJoinedArg(nullptr, Tbl.getOption(OPT_linker_arg_EQ),
                        Args.MakeArgString(Arg));
     else if (Value.empty())
@@ -899,9 +899,9 @@ DerivedArgList getLinkerArgs(ArrayRef<OffloadFile> Input,
   // Forward '-Xoffload-compiler' options to the appropriate backend.
   for (StringRef Arg : Args.getAllArgValues(OPT_device_compiler_args_EQ)) {
     auto [Triple, Value] = Arg.split('=');
-    llvm::Triple TT(Triple);
+    
     // If this isn't a recognized triple then it's an `arg=value` option.
-    if (TT.getArch() == Triple::ArchType::UnknownArch)
+    if (llvm::Triple TT(Triple); TT.getArch() == Triple::ArchType::UnknownArch)
       DAL.AddJoinedArg(nullptr, Tbl.getOption(OPT_compiler_arg_EQ),
                        Args.MakeArgString(Arg));
     else if (Value.empty())
@@ -1322,12 +1322,12 @@ int main(int Argc, char **Argv) {
 
   parallel::strategy = hardware_concurrency(1);
   if (auto *Arg = Args.getLastArg(OPT_wrapper_jobs)) {
-    StringRef Val = Arg->getValue();
-    if (Val.equals_insensitive("jobserver"))
+    
+    if (StringRef Val = Arg->getValue(); Val.equals_insensitive("jobserver"))
       parallel::strategy = jobserver_concurrency();
     else {
-      unsigned Threads = 0;
-      if (!llvm::to_integer(Val, Threads) || Threads == 0)
+      
+      if (unsigned Threads = 0; !llvm::to_integer(Val, Threads) || Threads == 0)
         reportError(createStringError(
             "%s: expected a positive integer or 'jobserver', got '%s'",
             Arg->getSpelling().data(), Val.data()));

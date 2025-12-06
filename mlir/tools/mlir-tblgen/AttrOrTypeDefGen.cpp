@@ -39,9 +39,9 @@ static void collectAllDefs(StringRef selectedDialect,
   if (records.empty())
     return;
 
-  auto defs = llvm::map_range(
-      records, [&](const Record *rec) { return AttrOrTypeDef(rec); });
-  if (selectedDialect.empty()) {
+  
+  if (auto defs = llvm::map_range(
+      records, [&](const Record *rec) { return AttrOrTypeDef(rec); }); selectedDialect.empty()) {
     // If a dialect was not specified, ensure that all found defs belong to the
     // same dialect.
     if (!llvm::all_equal(llvm::map_range(
@@ -661,10 +661,10 @@ void DefGen::emitTraitMethod(const InterfaceMethod &method) {
 
 void DefGen::genTraitMethodUsingDecl(const InterfaceTrait &trait,
                                      const InterfaceMethod &method) {
-  std::string name = (llvm::Twine(trait.getFullyQualifiedTraitName()) + "<" +
+  
+  if (std::string name = (llvm::Twine(trait.getFullyQualifiedTraitName()) + "<" +
                       def.getCppClassName() + ">::" + method.getName())
-                         .str();
-  if (interfaceUsingNames.insert(name).second)
+                         .str(); interfaceUsingNames.insert(name).second)
     defCls.declare<UsingDeclaration>(std::move(name));
 }
 
@@ -738,14 +738,14 @@ void DefGen::emitHashKey() {
 }
 
 void DefGen::emitConstruct() {
-  Method *construct = storageCls->addMethod(
+  
+  if (Method *construct = storageCls->addMethod(
       strfmt("{0} *", def.getStorageClassName()), "construct",
       def.hasStorageCustomConstructor() ? Method::StaticDeclaration
                                         : Method::StaticInline,
       MethodParameter(strfmt("::mlir::{0}StorageAllocator &", valueType),
                       "allocator"),
-      MethodParameter("KeyTy &&", "tblgenKey"));
-  if (!def.hasStorageCustomConstructor()) {
+      MethodParameter("KeyTy &&", "tblgenKey")); !def.hasStorageCustomConstructor()) {
     auto &body = construct->body().indent();
     for (const auto &it : llvm::enumerate(params)) {
       body << formatv("auto {0} = std::move(std::get<{1}>(tblgenKey));\n",

@@ -143,8 +143,8 @@ static LogicalResult tileTransferVerifier(OpTy op) {
     if (rank < 2)
       return op.emitOpError("requires at least 2D memref");
     SmallVector<int64_t> strides;
-    int64_t offset;
-    if (failed(memrefTy.getStridesAndOffset(strides, offset)) ||
+    
+    if (int64_t offset; failed(memrefTy.getStridesAndOffset(strides, offset)) ||
         strides.back() != 1)
       return op.emitOpError("requires memref with unit innermost stride");
   }

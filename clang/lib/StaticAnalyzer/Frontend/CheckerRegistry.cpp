@@ -371,8 +371,8 @@ static void insertAndValidate(StringRef FullName, const CmdLineOption &Option,
 
   if (Option.OptionType == "int") {
     int Tmp;
-    bool HasFailed = SuppliedValue.getAsInteger(0, Tmp);
-    if (HasFailed) {
+    
+    if (bool HasFailed = SuppliedValue.getAsInteger(0, Tmp); HasFailed) {
       if (AnOpts.ShouldEmitErrorsOnInvalidConfigValue) {
         Diags.Report(diag::err_analyzer_checker_option_invalid_input)
             << FullOption << "an integer value";
@@ -473,11 +473,11 @@ static void isOptionContainedIn(const CmdLineOptionList &OptionList,
   if (!AnOpts.ShouldEmitErrorsOnInvalidConfigValue)
     return;
 
-  auto SameOptName = [SuppliedOption](const CmdLineOption &Opt) {
-    return Opt.OptionName == SuppliedOption;
-  };
+  
 
-  if (llvm::none_of(OptionList, SameOptName)) {
+  if (auto SameOptName = [SuppliedOption](const CmdLineOption &Opt) {
+    return Opt.OptionName == SuppliedOption;
+  }; llvm::none_of(OptionList, SameOptName)) {
     Diags.Report(diag::err_analyzer_checker_option_unknown)
         << SuppliedChecker << SuppliedOption;
     return;

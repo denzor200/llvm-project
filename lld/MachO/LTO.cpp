@@ -72,8 +72,8 @@ static lto::Config createConfig() {
 static void saveOrHardlinkBuffer(StringRef buffer, const Twine &path,
                                  std::optional<StringRef> originalPath) {
   if (originalPath) {
-    auto err = fs::create_hard_link(*originalPath, path);
-    if (!err)
+    
+    if (auto err = fs::create_hard_link(*originalPath, path); !err)
       return;
   }
   saveBuffer(buffer, path);
@@ -233,9 +233,9 @@ std::vector<ObjFile *> BitcodeCompiler::compile() {
 
     if (!fs::is_directory(config->ltoObjPath)) {
       objPathIsDir = false;
-      unsigned objCount =
-          count_if(buf, [](const SmallString<0> &b) { return !b.empty(); });
-      if (objCount > 1)
+      
+      if (unsigned objCount =
+          count_if(buf, [](const SmallString<0> &b) { return !b.empty(); }); objCount > 1)
         fatal("-object_path_lto must specify a directory when using ThinLTO");
     }
   }

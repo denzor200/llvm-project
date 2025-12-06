@@ -20,8 +20,8 @@ FileCollectorBase::~FileCollectorBase() = default;
 
 void FileCollectorBase::addFile(const Twine &File) {
   std::lock_guard<std::mutex> lock(Mutex);
-  std::string FileStr = File.str();
-  if (markAsSeen(FileStr))
+  
+  if (std::string FileStr = File.str(); markAsSeen(FileStr))
     addFileImpl(FileStr);
 }
 

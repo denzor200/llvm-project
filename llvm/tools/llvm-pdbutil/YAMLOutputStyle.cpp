@@ -112,8 +112,8 @@ Error YAMLOutputStyle::dumpFileHeaders() {
 Error YAMLOutputStyle::dumpStringTable() {
   bool RequiresStringTable = opts::pdb2yaml::DumpModuleFiles ||
                              !opts::pdb2yaml::DumpModuleSubsections.empty();
-  bool RequestedStringTable = opts::pdb2yaml::StringTable;
-  if (!RequiresStringTable && !RequestedStringTable)
+  
+  if (bool RequestedStringTable = opts::pdb2yaml::StringTable; !RequiresStringTable && !RequestedStringTable)
     return Error::success();
 
   auto ExpectedST = File.getStringTable();
@@ -258,8 +258,8 @@ Error YAMLOutputStyle::dumpDbiStream() {
                                   *ExpectedChecksums);
 
         for (const auto &SS : ModS.subsections()) {
-          opts::ModuleSubsection OptionKind = convertSubsectionKind(SS.kind());
-          if (!checkModuleSubsection(OptionKind))
+          
+          if (opts::ModuleSubsection OptionKind = convertSubsectionKind(SS.kind()); !checkModuleSubsection(OptionKind))
             continue;
 
           auto Converted =

@@ -139,12 +139,12 @@ bool AffectedRangeManager::nonPPLineAffected(
       Line->First->NewlinesBefore < 2 && PreviousLine &&
       PreviousLine->Affected && PreviousLine->Last->is(tok::comment);
 
-  bool IsAffectedClosingBrace =
+  
+
+  if (bool IsAffectedClosingBrace =
       Line->First->is(tok::r_brace) &&
       Line->MatchingOpeningBlockLineIndex != UnwrappedLine::kInvalidIndex &&
-      Lines[Line->MatchingOpeningBlockLineIndex]->Affected;
-
-  if (SomeTokenAffected || SomeFirstChildAffected || LineMoved ||
+      Lines[Line->MatchingOpeningBlockLineIndex]->Affected; SomeTokenAffected || SomeFirstChildAffected || LineMoved ||
       IsContinuedComment || IsAffectedClosingBrace) {
     Line->Affected = true;
     SomeLineAffected = true;

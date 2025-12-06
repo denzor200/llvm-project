@@ -90,8 +90,8 @@ size_t padFunction(std::map<std::string, size_t> &FunctionPadding,
 
   for (auto &FPI : FunctionPadding) {
     std::string Name = FPI.first;
-    size_t Padding = FPI.second;
-    if (Function.hasNameRegex(Name))
+    
+    if (size_t Padding = FPI.second; Function.hasNameRegex(Name))
       return Padding;
   }
 
@@ -324,10 +324,10 @@ bool BinaryEmitter::emitFunction(BinaryFunction &Function,
     Section->ensureMinAlignment(Align(opts::AlignFunctions));
 
     Streamer.emitCodeAlignment(Function.getMinAlign(), &*BC.STI);
-    uint16_t MaxAlignBytes = FF.isSplitFragment()
+    
+    if (uint16_t MaxAlignBytes = FF.isSplitFragment()
                                  ? Function.getMaxColdAlignmentBytes()
-                                 : Function.getMaxAlignmentBytes();
-    if (MaxAlignBytes > 0)
+                                 : Function.getMaxAlignmentBytes(); MaxAlignBytes > 0)
       Streamer.emitCodeAlignment(Function.getAlign(), &*BC.STI, MaxAlignBytes);
   } else {
     Streamer.emitCodeAlignment(Function.getAlign(), &*BC.STI);
@@ -382,17 +382,17 @@ bool BinaryEmitter::emitFunction(BinaryFunction &Function,
     if (Function.getPersonalityFunction() != nullptr)
       Streamer.emitCFIPersonality(Function.getPersonalityFunction(),
                                   Function.getPersonalityEncoding());
-    MCSymbol *LSDASymbol = Function.getLSDASymbol(FF.getFragmentNum());
-    if (LSDASymbol)
+    
+    if (MCSymbol *LSDASymbol = Function.getLSDASymbol(FF.getFragmentNum()); LSDASymbol)
       Streamer.emitCFILsda(LSDASymbol, BC.LSDAEncoding);
     else
       Streamer.emitCFILsda(0, dwarf::DW_EH_PE_omit);
     // Emit CFI instructions relative to the CIE
     for (const MCCFIInstruction &CFIInstr : Function.cie()) {
       // Only write CIE CFI insns that LLVM will not already emit
-      const std::vector<MCCFIInstruction> &FrameInstrs =
-          MAI->getInitialFrameState();
-      if (!llvm::is_contained(FrameInstrs, CFIInstr))
+      
+      if (const std::vector<MCCFIInstruction> &FrameInstrs =
+          MAI->getInitialFrameState(); !llvm::is_contained(FrameInstrs, CFIInstr))
         emitCFIInstruction(CFIInstr);
     }
   }
@@ -692,12 +692,12 @@ SMLoc BinaryEmitter::emitLineInfo(const BinaryFunction &BF, SMLoc NewLoc,
                             const DWARFDebugLine::Row &CurrentRow) {
     const uint64_t TargetUnitIndex = TargetCU.getOffset();
     unsigned TargetFilenum = CurrentRow.File;
-    const uint32_t CurrentUnitIndex = RowReference.DwCompileUnitIndex;
+    
     // If the CU id from the current instruction location does not
     // match the target CU id, it means that we have come across some
     // inlined code (by BOLT).  We must look up the CU for the instruction's
     // original function and get the line table from that.
-    if (TargetUnitIndex != CurrentUnitIndex) {
+    if (const uint32_t CurrentUnitIndex = RowReference.DwCompileUnitIndex; TargetUnitIndex != CurrentUnitIndex) {
       // Add filename from the inlined function to the current CU.
       TargetFilenum = BC.addDebugFilenameToUnit(
           TargetUnitIndex, CurrentUnitIndex, CurrentRow.File);
@@ -719,8 +719,8 @@ SMLoc BinaryEmitter::emitLineInfo(const BinaryFunction &BF, SMLoc NewLoc,
       // Check if the new line entry has the same debug info as the last one
       // to avoid duplicates. We don't compare labels since different
       // instructions can have the same line info.
-      const auto &LastEntry = It->second.back();
-      if (LastEntry.getFileNum() == NewLineEntry.getFileNum() &&
+      
+      if (const auto &LastEntry = It->second.back(); LastEntry.getFileNum() == NewLineEntry.getFileNum() &&
           LastEntry.getLine() == NewLineEntry.getLine() &&
           LastEntry.getColumn() == NewLineEntry.getColumn() &&
           LastEntry.getFlags() == NewLineEntry.getFlags() &&
@@ -1100,8 +1100,8 @@ void BinaryEmitter::emitLSDA(BinaryFunction &BF, const FunctionFragment &FF) {
   Streamer.emitValueToAlignment(Align(TTypeAlignment));
 
   for (int Index = TypeTable.size() - 1; Index >= 0; --Index) {
-    const uint64_t TypeAddress = TypeTable[Index];
-    switch (TTypeEncoding & 0x70) {
+    
+    switch (const uint64_t TypeAddress = TypeTable[Index]; TTypeEncoding & 0x70) {
     default:
       llvm_unreachable("unsupported TTypeEncoding");
     case dwarf::DW_EH_PE_absptr:
@@ -1165,8 +1165,8 @@ void BinaryEmitter::emitDebugLineInfoForOriginalFunctions() {
       // of the sequence.
       uint64_t FirstRow = Results.front();
       while (FirstRow > 0) {
-        const DWARFDebugLine::Row &PrevRow = LineTable->Rows[FirstRow - 1];
-        if (PrevRow.Address.Address != Address || PrevRow.EndSequence)
+        
+        if (const DWARFDebugLine::Row &PrevRow = LineTable->Rows[FirstRow - 1]; PrevRow.Address.Address != Address || PrevRow.EndSequence)
           break;
         --FirstRow;
       }

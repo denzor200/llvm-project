@@ -542,8 +542,8 @@ void Generator::allocateMemoryIndices(pdl_interp::FuncOp matcherFunc,
     auto processRewriterValue = [&](Value val) {
       valueToMemIndex.try_emplace(val, index++);
       if (pdl::RangeType rangeType = dyn_cast<pdl::RangeType>(val.getType())) {
-        Type elementTy = rangeType.getElementType();
-        if (isa<pdl::TypeType>(elementTy))
+        
+        if (Type elementTy = rangeType.getElementType(); isa<pdl::TypeType>(elementTy))
           valueToRangeIndex.try_emplace(val, typeRangeIndex++);
         else if (isa<pdl::ValueType>(elementTy))
           valueToRangeIndex.try_emplace(val, valueRangeIndex++);
@@ -615,8 +615,8 @@ void Generator::allocateMemoryIndices(pdl_interp::FuncOp matcherFunc,
 
       // Check to see if this value is a range type.
       if (auto rangeTy = dyn_cast<pdl::RangeType>(value.getType())) {
-        Type eleType = rangeTy.getElementType();
-        if (isa<pdl::OperationType>(eleType))
+        
+        if (Type eleType = rangeTy.getElementType(); isa<pdl::OperationType>(eleType))
           defRangeIt->second.opRangeIndex = 0;
         else if (isa<pdl::TypeType>(eleType))
           defRangeIt->second.typeRangeIndex = 0;
@@ -663,8 +663,8 @@ void Generator::allocateMemoryIndices(pdl_interp::FuncOp matcherFunc,
 
     // Try to allocate to an existing index.
     for (const auto &existingIndexIt : llvm::enumerate(allocatedIndices)) {
-      ByteCodeLiveRange &existingRange = existingIndexIt.value();
-      if (!defRange.overlaps(existingRange)) {
+      
+      if (ByteCodeLiveRange &existingRange = existingIndexIt.value(); !defRange.overlaps(existingRange)) {
         existingRange.unionWith(defRange);
         memIndex = existingIndexIt.index() + 1;
 
@@ -943,8 +943,8 @@ void Generator::generate(pdl_interp::GetDefiningOpOp op,
   writer.appendPDLValue(op.getValue());
 }
 void Generator::generate(pdl_interp::GetOperandOp op, ByteCodeWriter &writer) {
-  uint32_t index = op.getIndex();
-  if (index < 4)
+  
+  if (uint32_t index = op.getIndex(); index < 4)
     writer.append(static_cast<OpCode>(OpCode::GetOperand0 + index));
   else
     writer.append(OpCode::GetOperandN, index);
@@ -963,8 +963,8 @@ void Generator::generate(pdl_interp::GetOperandsOp op, ByteCodeWriter &writer) {
   writer.append(result);
 }
 void Generator::generate(pdl_interp::GetResultOp op, ByteCodeWriter &writer) {
-  uint32_t index = op.getIndex();
-  if (index < 4)
+  
+  if (uint32_t index = op.getIndex(); index < 4)
     writer.append(static_cast<OpCode>(OpCode::GetResult0 + index));
   else
     writer.append(OpCode::GetResultN, index);
@@ -1363,7 +1363,10 @@ private:
   void assignRangeToMemory(RangeT &&range, unsigned memIndex,
                            unsigned rangeIndex) {
     // Utility functor used to type-erase the assignment.
-    auto assignRange = [&](auto &allocatedRangeMemory, auto &rangeMemory) {
+    
+
+    // Dispatch based on the concrete range type.
+    if constexpr (auto assignRange = [&](auto &allocatedRangeMemory, auto &rangeMemory) {
       // If the input range is empty, we don't need to allocate anything.
       if (range.empty()) {
         rangeMemory[rangeIndex] = {};
@@ -1374,10 +1377,7 @@ private:
         rangeMemory[rangeIndex] = allocatedRangeMemory.back();
       }
       memory[memIndex] = &rangeMemory[rangeIndex];
-    };
-
-    // Dispatch based on the concrete range type.
-    if constexpr (std::is_same_v<T, Type>) {
+    }; std::is_same_v<T, Type>) {
       return assignRange(allocatedTypeRangeMemory, typeRangeMemory);
     } else if constexpr (std::is_same_v<T, Value>) {
       return assignRange(allocatedValueRangeMemory, valueRangeMemory);
@@ -1476,8 +1476,8 @@ void ByteCodeExecutor::processNativeFunResults(
     // Skip the according number of values on the buffer on failure and exit
     // early as there are no results to process.
     for (unsigned resultIdx = 0; resultIdx < numResults; resultIdx++) {
-      const PDLValue::Kind resultKind = read<PDLValue::Kind>();
-      if (resultKind == PDLValue::Kind::TypeRange ||
+      
+      if (const PDLValue::Kind resultKind = read<PDLValue::Kind>(); resultKind == PDLValue::Kind::TypeRange ||
           resultKind == PDLValue::Kind::ValueRange) {
         skip(2);
       } else {
@@ -1532,9 +1532,9 @@ void ByteCodeExecutor::executeAreRangesEqual() {
   LDBG() << "Executing AreRangesEqual:";
   PDLValue::Kind valueKind = read<PDLValue::Kind>();
   const void *lhs = read<const void *>();
-  const void *rhs = read<const void *>();
+  
 
-  switch (valueKind) {
+  switch (const void *rhs = read<const void *>(); valueKind) {
   case PDLValue::Kind::TypeRange: {
     const TypeRange *lhsRange = reinterpret_cast<const TypeRange *>(lhs);
     const TypeRange *rhsRange = reinterpret_cast<const TypeRange *>(rhs);
@@ -1634,15 +1634,15 @@ void ByteCodeExecutor::executeCreateOperation(PatternRewriter &rewriter,
   OperationState state(mainRewriteLoc, read<OperationName>());
   readList(state.operands);
   for (unsigned i = 0, e = read(); i != e; ++i) {
-    StringAttr name = read<StringAttr>();
-    if (Attribute attr = read<Attribute>())
+    
+    if (StringAttr name = read<StringAttr>(); Attribute attr = read<Attribute>())
       state.addAttribute(name, attr);
   }
 
   // Read in the result types. If the "size" is the sentinel value, this
   // indicates that the result types should be inferred.
-  unsigned numResults = read();
-  if (numResults == kInferTypesMarker) {
+  
+  if (unsigned numResults = read(); numResults == kInferTypesMarker) {
     InferTypeOpInterface::Concept *inferInterface =
         state.name.getInterface<InferTypeOpInterface>();
     assert(inferInterface &&
@@ -2116,8 +2116,8 @@ ByteCodeExecutor::execute(PatternRewriter &rewriter,
     // Print the location of the operation being executed.
     LDBG() << readInline<Location>();
 
-    OpCode opCode = static_cast<OpCode>(read());
-    switch (opCode) {
+    
+    switch (OpCode opCode = static_cast<OpCode>(read()); opCode) {
     case ApplyConstraint:
       executeApplyConstraint(rewriter);
       break;

@@ -37,9 +37,9 @@ Error Decompressor::consumeCompressedHeader(bool Is64Bit, bool IsLittleEndian) {
 
   DataExtractor Extractor(SectionData, IsLittleEndian, 0);
   uint64_t Offset = 0;
-  auto ChType = Extractor.getUnsigned(&Offset, Is64Bit ? sizeof(Elf64_Word)
-                                                       : sizeof(Elf32_Word));
-  switch (ChType) {
+  
+  switch (auto ChType = Extractor.getUnsigned(&Offset, Is64Bit ? sizeof(Elf64_Word)
+                                                       : sizeof(Elf32_Word)); ChType) {
   case ELFCOMPRESS_ZLIB:
     CompressionType = DebugCompressionType::Zlib;
     break;

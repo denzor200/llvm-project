@@ -29,8 +29,8 @@ StringRef Builder::Parameter::getCppType() const {
   const Record *record = cast<DefInit>(def)->getDef();
   // Inlining the first part of `Record::getValueAsString` to give better
   // error messages.
-  const llvm::RecordVal *type = record->getValue("type");
-  if (!type || !type->getValue()) {
+  
+  if (const llvm::RecordVal *type = record->getValue("type"); !type || !type->getValue()) {
     llvm::PrintFatalError("Builder DAG arguments must be either strings or "
                           "defs which inherit from CArg");
   }
@@ -55,8 +55,8 @@ std::optional<StringRef> Builder::Parameter::getDefaultValue() const {
 Builder::Builder(const Record *record, ArrayRef<SMLoc> loc) : def(record) {
   // Initialize the parameters of the builder.
   const DagInit *dag = def->getValueAsDag("dagParams");
-  auto *defInit = dyn_cast<DefInit>(dag->getOperator());
-  if (!defInit || defInit->getDef()->getName() != "ins")
+  
+  if (auto *defInit = dyn_cast<DefInit>(dag->getOperator()); !defInit || defInit->getDef()->getName() != "ins")
     PrintFatalError(def->getLoc(), "expected 'ins' in builders");
 
   bool seenDefaultValue = false;

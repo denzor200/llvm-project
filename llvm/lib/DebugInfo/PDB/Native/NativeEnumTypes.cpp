@@ -34,13 +34,13 @@ NativeEnumTypes::NativeEnumTypes(NativeSession &PDBSession,
       if (!isUdtForwardRef(CVT))
         Matches.push_back(*TI);
     } else if (K == TypeLeafKind::LF_MODIFIER) {
-      TypeIndex ModifiedTI = getModifiedType(CVT);
-      if (!ModifiedTI.isSimple()) {
-        CVType UnmodifiedCVT = Types.getType(ModifiedTI);
+      
+      if (TypeIndex ModifiedTI = getModifiedType(CVT); !ModifiedTI.isSimple()) {
+        
         // LF_MODIFIERs point to forward refs, but don't worry about that
         // here.  We're pushing the TypeIndex of the LF_MODIFIER itself,
         // so we'll worry about resolving forward refs later.
-        if (llvm::is_contained(Kinds, UnmodifiedCVT.kind()))
+        if (CVType UnmodifiedCVT = Types.getType(ModifiedTI); llvm::is_contained(Kinds, UnmodifiedCVT.kind()))
           Matches.push_back(*TI);
       }
     }

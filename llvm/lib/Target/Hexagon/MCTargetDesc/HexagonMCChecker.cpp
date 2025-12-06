@@ -54,8 +54,8 @@ void HexagonMCChecker::init() {
   if (HexagonMCInstrInfo::isBundle(MCB))
     // Unfurl a bundle.
     for (auto const &I : HexagonMCInstrInfo::bundleInstructions(MCB)) {
-      MCInst const &Inst = *I.getInst();
-      if (HexagonMCInstrInfo::isDuplex(MCII, Inst)) {
+      
+      if (MCInst const &Inst = *I.getInst(); HexagonMCInstrInfo::isDuplex(MCII, Inst)) {
         init(*Inst.getOperand(0).getInst());
         init(*Inst.getOperand(1).getInst());
       } else
@@ -187,9 +187,9 @@ void HexagonMCChecker::init(MCInst const &MCI) {
   if (HexagonMCInstrInfo::isPredicatedNew(MCII, MCI))
     for (unsigned i = MCID.getNumDefs(); i < MCID.getNumOperands(); ++i)
       if (MCI.getOperand(i).isReg()) {
-        MCRegister P = MCI.getOperand(i).getReg();
+        
 
-        if (HexagonMCInstrInfo::isPredReg(RI, P))
+        if (MCRegister P = MCI.getOperand(i).getReg(); HexagonMCInstrInfo::isPredReg(RI, P))
           NewPreds.insert(P);
       }
 }
@@ -272,8 +272,8 @@ static bool isDuplexAGroup(unsigned Opcode) {
 static bool isNeitherAnorX(MCInstrInfo const &MCII, MCInst const &ID) {
   if (HexagonMCInstrInfo::isFloat(MCII, ID))
     return true;
-  unsigned Type = HexagonMCInstrInfo::getType(MCII, ID);
-  switch (Type) {
+  
+  switch (unsigned Type = HexagonMCInstrInfo::getType(MCII, ID); Type) {
   case HexagonII::TypeALU32_2op:
   case HexagonII::TypeALU32_3op:
   case HexagonII::TypeALU32_ADDI:
@@ -345,8 +345,8 @@ bool HexagonMCChecker::checkCOFMax1() {
       BranchLocations.push_back(&I);
   }
   for (unsigned J = 0, N = BranchLocations.size(); J < N; ++J) {
-    MCInst const &I = *BranchLocations[J];
-    if (HexagonMCInstrInfo::isCofMax1(MCII, I)) {
+    
+    if (MCInst const &I = *BranchLocations[J]; HexagonMCInstrInfo::isCofMax1(MCII, I)) {
       bool Relax1 = HexagonMCInstrInfo::isCofRelax1(MCII, I);
       bool Relax2 = HexagonMCInstrInfo::isCofRelax2(MCII, I);
       if (N > 1 && !Relax1 && !Relax2) {
@@ -385,9 +385,9 @@ bool HexagonMCChecker::checkSlots() {
 bool HexagonMCChecker::checkPredicates() {
   // Check for proper use of new predicate registers.
   for (const auto &I : NewPreds) {
-    MCRegister P = I;
+    
 
-    if (!Defs.count(P) || LatePreds.count(P) || Defs.count(Hexagon::P3_0)) {
+    if (MCRegister P = I; !Defs.count(P) || LatePreds.count(P) || Defs.count(Hexagon::P3_0)) {
       // Error out if the new predicate register is not defined,
       // or defined "late"
       // (e.g., "{ if (p3.new)... ; p3 = sp1loop0(#r7:2, Rs) }").
@@ -398,9 +398,9 @@ bool HexagonMCChecker::checkPredicates() {
 
   // Check for proper use of auto-anded of predicate registers.
   for (const auto &I : LatePreds) {
-    MCRegister P = I;
+    
 
-    if (LatePreds.count(P) > 1 || Defs.count(P)) {
+    if (MCRegister P = I; LatePreds.count(P) > 1 || Defs.count(P)) {
       // Error out if predicate register defined "late" multiple times or
       // defined late and regularly defined
       // (e.g., "{ p3 = sp1loop0(...); p3 = cmp.eq(...) }".
@@ -531,8 +531,8 @@ bool HexagonMCChecker::checkRegistersReadOnly() {
     for (unsigned j = 0; j < Defs; ++j) {
       MCOperand const &Operand = Inst.getOperand(j);
       assert(Operand.isReg() && "Def is not a register");
-      MCRegister Register = Operand.getReg();
-      if (ReadOnly.find(Register) != ReadOnly.end()) {
+      
+      if (MCRegister Register = Operand.getReg(); ReadOnly.find(Register) != ReadOnly.end()) {
         reportError(Inst.getLoc(), "Cannot write to read-only register `" +
                                        Twine(RI.getName(Register)) + "'");
         return false;
@@ -547,8 +547,8 @@ bool HexagonMCChecker::registerUsed(MCRegister Register) {
     for (unsigned j = HexagonMCInstrInfo::getDesc(MCII, I).getNumDefs(),
                   n = I.getNumOperands();
          j < n; ++j) {
-      MCOperand const &Operand = I.getOperand(j);
-      if (Operand.isReg() && Operand.getReg() == Register)
+      
+      if (MCOperand const &Operand = I.getOperand(j); Operand.isReg() && Operand.getReg() == Register)
         return true;
     }
   return false;
@@ -664,9 +664,9 @@ bool HexagonMCChecker::checkRegisters() {
 
   // Check for use of temporary definitions.
   for (const auto &I : TmpDefs) {
-    MCRegister R = I;
+    
 
-    if (!Uses.count(R)) {
+    if (MCRegister R = I; !Uses.count(R)) {
       // special case for vhist
       bool vHistFound = false;
       for (auto const &HMI : HexagonMCInstrInfo::bundleInstructions(MCB)) {
@@ -787,8 +787,8 @@ void HexagonMCChecker::reportError(SMLoc Loc, Twine const &Msg) {
 
 void HexagonMCChecker::reportNote(SMLoc Loc, llvm::Twine const &Msg) {
   if (ReportErrors) {
-    auto SM = Context.getSourceManager();
-    if (SM)
+    
+    if (auto SM = Context.getSourceManager(); SM)
       SM->PrintMessage(Loc, SourceMgr::DK_Note, Msg);
   }
 }
@@ -800,9 +800,9 @@ void HexagonMCChecker::reportWarning(Twine const &Msg) {
 
 bool HexagonMCChecker::checkLegalVecRegPair() {
   const bool IsPermitted = STI.hasFeature(Hexagon::ArchV67);
-  const bool HasReversePairs = ReversePairs.size() != 0;
+  
 
-  if (!IsPermitted && HasReversePairs) {
+  if (const bool HasReversePairs = ReversePairs.size() != 0; !IsPermitted && HasReversePairs) {
     for (auto R : ReversePairs)
       reportError("register pair `" + Twine(RI.getName(R)) +
                   "' is not permitted for this architecture");
@@ -815,9 +815,9 @@ bool HexagonMCChecker::checkLegalVecRegPair() {
 bool HexagonMCChecker::checkHVXAccum()
 {
   for (const auto &I : HexagonMCInstrInfo::bundleInstructions(MCII, MCB)) {
-    bool IsTarget =
-        HexagonMCInstrInfo::isAccumulator(MCII, I) && I.getOperand(0).isReg();
-    if (!IsTarget)
+    
+    if (bool IsTarget =
+        HexagonMCInstrInfo::isAccumulator(MCII, I) && I.getOperand(0).isReg(); !IsTarget)
       continue;
     MCRegister R = I.getOperand(0).getReg();
     TmpDefsIterator It = TmpDefs.find(R);

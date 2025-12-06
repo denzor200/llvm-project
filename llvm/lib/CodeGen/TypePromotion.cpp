@@ -360,8 +360,8 @@ bool TypePromotionImpl::isSafeWrap(Instruction *I) {
     if (OverflowConst.getBitWidth() >= 64)
       return false;
 
-    APInt NewConst = -((-OverflowConst).zext(64));
-    if (!TLI->isLegalAddImmediate(NewConst.getSExtValue()))
+    
+    if (APInt NewConst = -((-OverflowConst).zext(64)); !TLI->isLegalAddImmediate(NewConst.getSExtValue()))
       return false;
   }
 
@@ -550,8 +550,8 @@ void IRPromoter::TruncateSinks() {
     if (auto *Call = dyn_cast<CallInst>(I)) {
       for (unsigned i = 0; i < Call->arg_size(); ++i) {
         Value *Arg = Call->getArgOperand(i);
-        Type *Ty = TruncTysMap[Call][i];
-        if (Instruction *Trunc = InsertTrunc(Arg, Ty)) {
+        
+        if (Type *Ty = TruncTysMap[Call][i]; Instruction *Trunc = InsertTrunc(Arg, Ty)) {
           Trunc->moveBefore(Call->getIterator());
           Call->setArgOperand(i, Trunc);
         }
@@ -581,8 +581,8 @@ void IRPromoter::TruncateSinks() {
 
     // Now handle the others.
     for (unsigned i = 0; i < I->getNumOperands(); ++i) {
-      Type *Ty = TruncTysMap[I][i];
-      if (Instruction *Trunc = InsertTrunc(I->getOperand(i), Ty)) {
+      
+      if (Type *Ty = TruncTysMap[I][i]; Instruction *Trunc = InsertTrunc(I->getOperand(i), Ty)) {
         Trunc->moveBefore(I->getIterator());
         I->setOperand(i, Trunc);
       }
@@ -1044,8 +1044,8 @@ PreservedAnalyses TypePromotionPass::run(Function &F,
   auto &LI = AM.getResult<LoopAnalysis>(F);
   TypePromotionImpl TP;
 
-  bool Changed = TP.run(F, TM, TTI, LI);
-  if (!Changed)
+  
+  if (bool Changed = TP.run(F, TM, TTI, LI); !Changed)
     return PreservedAnalyses::all();
 
   PreservedAnalyses PA;

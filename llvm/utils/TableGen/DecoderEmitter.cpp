@@ -411,9 +411,9 @@ Filter::Filter(ArrayRef<InstructionEncoding> Encodings,
     KnownBits EncodingBits = Encoding.getMandatoryBits();
 
     // Scans the segment for possibly well-specified encoding bits.
-    KnownBits FieldBits = EncodingBits.extractBits(NumBits, StartBit);
+    
 
-    if (FieldBits.isConstant()) {
+    if (KnownBits FieldBits = EncodingBits.extractBits(NumBits, StartBit); FieldBits.isConstant()) {
       // The encoding bits are well-known.  Lets add the uid of the
       // instruction into the bucket keyed off the constant field value.
       FilteredIDs[FieldBits.getConstant().getZExtValue()].push_back(EncodingID);
@@ -652,8 +652,8 @@ static std::vector<EncodingIsland> getIslands(const KnownBits &EncodingBits,
   unsigned FilterWidth = FilterBits.getBitWidth();
   for (unsigned I = 0; I != FilterWidth; ++I) {
     bool IsKnown = EncodingBits.Zero[I] || EncodingBits.One[I];
-    bool IsFiltered = FilterBits.Zero[I] || FilterBits.One[I];
-    if (!IsFiltered && IsKnown) {
+    
+    if (bool IsFiltered = FilterBits.Zero[I] || FilterBits.One[I]; !IsFiltered && IsKnown) {
       if (OnIsland) {
         // Accumulate island bits.
         FieldVal |= static_cast<uint64_t>(EncodingBits.One[I])
@@ -730,8 +730,8 @@ static void emitBinaryParser(raw_ostream &OS, indent Indent,
     }
   }
 
-  StringRef Decoder = OpInfo.Decoder;
-  if (!Decoder.empty()) {
+  
+  if (StringRef Decoder = OpInfo.Decoder; !Decoder.empty()) {
     OS << Indent << "if (!Check(S, " << Decoder
        << "(MI, tmp, Address, Decoder))) { "
        << (OpInfo.HasCompleteDecoder ? "" : "DecodeComplete = false; ")
@@ -791,9 +791,9 @@ FilterChooser::findBestFilter(ArrayRef<bitAttr_t> BitAttrs, bool AllowMixed,
       KnownBits EncodingBits = Encoding.getMandatoryBits();
 
       // Look for islands of undecoded bits of any instruction.
-      std::vector<EncodingIsland> Islands =
-          getIslands(EncodingBits, FilterBits);
-      if (!Islands.empty()) {
+      
+      if (std::vector<EncodingIsland> Islands =
+          getIslands(EncodingBits, FilterBits); !Islands.empty()) {
         // Found an instruction with island(s).  Now just assign a filter.
         return std::make_unique<Filter>(
             Encodings, EncodingIDs, Islands[0].StartBit, Islands[0].NumBits);
@@ -965,8 +965,8 @@ std::unique_ptr<Filter> FilterChooser::findBestFilter() const {
     KnownBits EncodingBits = Encoding.getMandatoryBits();
 
     for (unsigned BitIndex = 0; BitIndex != FilterWidth; ++BitIndex) {
-      bool IsKnown = EncodingBits.Zero[BitIndex] || EncodingBits.One[BitIndex];
-      switch (BitAttrs[BitIndex]) {
+      
+      switch (bool IsKnown = EncodingBits.Zero[BitIndex] || EncodingBits.One[BitIndex]; BitAttrs[BitIndex]) {
       case ATTR_NONE:
         if (IsKnown)
           BitAttrs[BitIndex] = ATTR_ALL_SET;

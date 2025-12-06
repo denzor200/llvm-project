@@ -256,8 +256,8 @@ void InstModificationIRStrategy::mutate(Instruction &Inst,
                                         RandomIRBuilder &IB) {
   SmallVector<std::function<void()>, 8> Modifications;
   CmpInst *CI = nullptr;
-  GetElementPtrInst *GEP = nullptr;
-  switch (Inst.getOpcode()) {
+  
+  switch (GetElementPtrInst *GEP = nullptr; Inst.getOpcode()) {
   default:
     break;
   // Add nsw, nuw flag
@@ -336,8 +336,8 @@ void InstModificationIRStrategy::mutate(Instruction &Inst,
   case Instruction::FRem: {
     // Verify that the after shuffle the second operand is not
     // constant 0.
-    Value *Operand = Inst.getOperand(0);
-    if (Constant *C = dyn_cast<Constant>(Operand)) {
+    
+    if (Value *Operand = Inst.getOperand(0); Constant *C = dyn_cast<Constant>(Operand)) {
       if (!C->isZeroValue()) {
         ShuffleItems = {0, 1};
       }
@@ -373,8 +373,8 @@ void InstModificationIRStrategy::mutate(Instruction &Inst,
     });
   }
 
-  auto RS = makeSampler(IB.Rand, Modifications);
-  if (RS)
+  
+  if (auto RS = makeSampler(IB.Rand, Modifications); RS)
     RS.getSelection()();
 }
 
@@ -595,8 +595,8 @@ void InsertCFGStrategy::connectBlocksToSink(ArrayRef<BasicBlock *> Blocks,
                                  IB.Rand, 0, CFGToSink::EndOfCFGToLink - 1));
     BasicBlock *BB = Blocks[i];
     Function *F = BB->getParent();
-    LLVMContext &C = F->getParent()->getContext();
-    switch (ToSink) {
+    
+    switch (LLVMContext &C = F->getParent()->getContext(); ToSink) {
     case CFGToSink::Return: {
       Type *RetTy = F->getReturnType();
       Value *RetValue = nullptr;
@@ -697,8 +697,8 @@ void ShuffleBlockStrategy::mutate(BasicBlock &BB, RandomIRBuilder &IB) {
   // been shuffled. If so, this instruction can be shuffled too.
   auto hasAliveParent = [&AliveInsts, &AliveInstsLookup](size_t Index) {
     for (Value *O : AliveInsts[Index]->operands()) {
-      Instruction *P = dyn_cast<Instruction>(O);
-      if (P && AliveInstsLookup.count(P))
+      
+      if (Instruction *P = dyn_cast<Instruction>(O); P && AliveInstsLookup.count(P))
         return true;
     }
     return false;
@@ -710,8 +710,8 @@ void ShuffleBlockStrategy::mutate(BasicBlock &BB, RandomIRBuilder &IB) {
     SmallSetVector<size_t, 8> Children;
     for (Value *U : I->users()) {
       if (Instruction *P = dyn_cast<Instruction>(U)) {
-        auto It = AliveInstsLookup.find(P);
-        if (It != AliveInstsLookup.end())
+        
+        if (auto It = AliveInstsLookup.find(P); It != AliveInstsLookup.end())
           Children.insert(It->second);
       }
     }

@@ -51,8 +51,8 @@ bool DWARFAttributes::ExtractFormValueAtIndex(
 
 DWARFDIE
 DWARFAttributes::FormValueAsReference(dw_attr_t attr) const {
-  const uint32_t attr_idx = FindAttributeIndex(attr);
-  if (attr_idx != UINT32_MAX)
+  
+  if (const uint32_t attr_idx = FindAttributeIndex(attr); attr_idx != UINT32_MAX)
     return FormValueAsReferenceAtIndex(attr_idx);
   return {};
 }

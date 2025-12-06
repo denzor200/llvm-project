@@ -55,8 +55,8 @@ public:
     dlog("MemberwiseConstructor for {0}?", Class->getName());
     // For now, don't support nontrivial initialization of bases.
     for (const CXXBaseSpecifier &Base : Class->bases()) {
-      const auto *BaseClass = Base.getType()->getAsCXXRecordDecl();
-      if (!BaseClass || !BaseClass->hasDefaultConstructor()) {
+      
+      if (const auto *BaseClass = Base.getType()->getAsCXXRecordDecl(); !BaseClass || !BaseClass->hasDefaultConstructor()) {
         dlog("  can't construct base {0}", Base.getType().getAsString());
         return false;
       }

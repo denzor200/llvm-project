@@ -99,9 +99,9 @@ INITIALIZE_PASS(LanaiDAGToDAGISelLegacy, DEBUG_TYPE, PASS_NAME, false, false)
 // Used on Lanai Load/Store instructions.
 bool LanaiDAGToDAGISel::selectAddrSls(SDValue Addr, SDValue &Offset) {
   if (ConstantSDNode *CN = dyn_cast<ConstantSDNode>(Addr)) {
-    SDLoc DL(Addr);
+    
     // Loading from a constant address.
-    if (canBeRepresentedAsSls(*CN)) {
+    if (SDLoc DL(Addr); canBeRepresentedAsSls(*CN)) {
       int32_t Imm = CN->getSExtValue();
       Offset = CurDAG->getTargetConstant(Imm, DL, CN->getValueType(0));
       return true;
@@ -249,8 +249,8 @@ bool LanaiDAGToDAGISel::selectAddrRr(SDValue Addr, SDValue &R1, SDValue &R2,
 
   // Address of the form OP + OP
   ISD::NodeType AluOperator = static_cast<ISD::NodeType>(Addr.getOpcode());
-  LPAC::AluCode AluCode = LPAC::isdToLanaiAluCode(AluOperator);
-  if (AluCode != LPAC::UNKNOWN) {
+  
+  if (LPAC::AluCode AluCode = LPAC::isdToLanaiAluCode(AluOperator); AluCode != LPAC::UNKNOWN) {
     // Skip addresses of the form FI OP const
     if (ConstantSDNode *CN = dyn_cast<ConstantSDNode>(Addr.getOperand(1)))
       if (isInt<16>(CN->getSExtValue()))

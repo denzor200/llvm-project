@@ -71,8 +71,8 @@ static unsigned getLength(const Expr *E,
       if (!isa<ParmVarDecl>(LengthVD))
         if (const Expr *LengthInit = LengthVD->getInit();
             LengthInit && !LengthInit->isValueDependent()) {
-          Expr::EvalResult Length;
-          if (LengthInit->EvaluateAsInt(Length, *Result.Context))
+          
+          if (Expr::EvalResult Length; LengthInit->EvaluateAsInt(Length, *Result.Context))
             return Length.Val.getInt().getZExtValue();
         }
 
@@ -227,10 +227,10 @@ isGivenLengthEqualToSrcLength(const MatchFinder::MatchResult &Result) {
     return true;
 
   const int GivenLength = getGivenLength(Result);
-  const int SrcLength =
-      getLength(Result.Nodes.getNodeAs<Expr>(SrcExprName), Result);
+  
 
-  if (GivenLength != 0 && SrcLength != 0 && GivenLength == SrcLength)
+  if (const int SrcLength =
+      getLength(Result.Nodes.getNodeAs<Expr>(SrcExprName), Result); GivenLength != 0 && SrcLength != 0 && GivenLength == SrcLength)
     return true;
 
   if (const auto *LengthExpr = Result.Nodes.getNodeAs<Expr>(LengthExprName))
@@ -263,9 +263,9 @@ static bool isDestCapacityOverflows(const MatchFinder::MatchResult &Result) {
 
   const Expr *DestCapacityExpr = getDestCapacityExpr(Result);
   const int DestCapacity = getLength(DestCapacityExpr, Result);
-  const int GivenLength = getGivenLength(Result);
+  
 
-  if (GivenLength != 0 && DestCapacity != 0)
+  if (const int GivenLength = getGivenLength(Result); GivenLength != 0 && DestCapacity != 0)
     return isGivenLengthEqualToSrcLength(Result) && DestCapacity == GivenLength;
 
   // Assume that the destination array's capacity cannot overflow if the
@@ -800,11 +800,11 @@ void NotNullTerminatedResultCheck::check(
     Preprocessor::macro_iterator It = PP->macro_begin();
     while (It != PP->macro_end() && !AreSafeFunctionsWanted) {
       if (It->first->getName() == "__STDC_WANT_LIB_EXT1__") {
-        const auto *MI = PP->getMacroInfo(It->first);
+        
         // PP->getMacroInfo() returns nullptr if macro has no definition.
-        if (MI) {
-          const auto &T = MI->tokens().back();
-          if (T.isLiteral() && T.getLiteralData()) {
+        if (const auto *MI = PP->getMacroInfo(It->first); MI) {
+          
+          if (const auto &T = MI->tokens().back(); T.isLiteral() && T.getLiteralData()) {
             const StringRef ValueStr =
                 StringRef(T.getLiteralData(), T.getLength());
             llvm::APInt IntValue;
@@ -846,12 +846,12 @@ void NotNullTerminatedResultCheck::memoryHandlerFunctionFix(
       (isDestAndSrcEquals(Result) || isFixedGivenLengthAndUnknownSrc(Result)))
     return;
 
-  auto Diag =
+  
+
+  if (auto Diag =
       diag(Result.Nodes.getNodeAs<CallExpr>(FunctionExprName)->getBeginLoc(),
            "the result from calling '%0' is not null-terminated")
-      << Name;
-
-  if (Name.ends_with("cpy")) {
+      << Name; Name.ends_with("cpy")) {
     memcpyFix(Name, Result, Diag);
   } else if (Name.ends_with("cpy_s")) {
     memcpySFix(Name, Result, Diag);
@@ -942,9 +942,9 @@ void NotNullTerminatedResultCheck::memchrFix(
 void NotNullTerminatedResultCheck::memmoveFix(
     StringRef Name, const MatchFinder::MatchResult &Result,
     DiagnosticBuilder &Diag) const {
-  const bool IsOverflows = isDestCapacityFix(Result, Diag);
+  
 
-  if (UseSafeFunctions && isKnownDest(Result)) {
+  if (const bool IsOverflows = isDestCapacityFix(Result, Diag); UseSafeFunctions && isKnownDest(Result)) {
     renameFunc((Name[0] != 'w') ? "memmove_s" : "wmemmove_s", Result, Diag);
     insertDestCapacityArg(IsOverflows, Name, Result, Diag);
   }
@@ -980,8 +980,8 @@ void NotNullTerminatedResultCheck::ncmpFix(
   } else {
     const int SrcLength =
         getLength(Result.Nodes.getNodeAs<Expr>(SrcExprName), Result);
-    const int GivenLength = getGivenLength(Result);
-    if (SrcLength != 0 && GivenLength != 0)
+    
+    if (const int GivenLength = getGivenLength(Result); SrcLength != 0 && GivenLength != 0)
       IsLengthTooLong = GivenLength > SrcLength;
   }
 

@@ -222,9 +222,9 @@ public:
     // onlyReadsMemory will be handled as a Load instruction,
     // all other calls will be handled as stores.
     unsigned V = VN.lookupOrAdd(Call);
-    auto Entry = std::make_pair(V, InvalidVN);
+    
 
-    if (Call->doesNotAccessMemory())
+    if (auto Entry = std::make_pair(V, InvalidVN); Call->doesNotAccessMemory())
       VNtoCallsScalars[Entry].push_back(Call);
     else if (Call->onlyReadsMemory())
       VNtoCallsLoads[Entry].push_back(Call);
@@ -420,8 +420,8 @@ private:
       const VNType &VN = R;
       SmallPtrSet<BasicBlock *, 2> VNBlocks;
       for (const auto &I : V) {
-        BasicBlock *BBI = I->getParent();
-        if (!hasEH(BBI))
+        
+        if (BasicBlock *BBI = I->getParent(); !hasEH(BBI))
           VNBlocks.insert(BBI);
       }
       // Compute the Post Dominance Frontiers of each basic block
@@ -556,8 +556,8 @@ unsigned int GVNHoist::rank(const Value *V) const {
 
   // Need to shift the instruction DFS by number of arguments + 3 to account
   // for the constant and argument ranking above.
-  auto Result = DFSNumber.lookup(V);
-  if (Result > 0)
+  
+  if (auto Result = DFSNumber.lookup(V); Result > 0)
     return 4 + NumFuncArgs + Result;
   // Unreachable or something else, just return a really large number.
   return ~0;
@@ -781,8 +781,8 @@ void GVNHoist::checkSafety(CHIArgs C, BasicBlock *BB, GVNHoist::InsKind K,
 
 void GVNHoist::fillRenameStack(BasicBlock *BB, InValuesType &ValueBBs,
                                GVNHoist::RenameStackType &RenameStack) {
-  auto it1 = ValueBBs.find(BB);
-  if (it1 != ValueBBs.end()) {
+  
+  if (auto it1 = ValueBBs.find(BB); it1 != ValueBBs.end()) {
     // Iterate in reverse order to keep lower ranked values on the top.
     LLVM_DEBUG(dbgs() << "\nVisiting: " << BB->getName()
                       << " for pushing instructions on stack";);
@@ -807,8 +807,8 @@ void GVNHoist::fillChiArgs(BasicBlock *BB, OutValuesType &CHIBBs,
     // Pop the stack until Top(V) = Ve.
     auto &VCHI = P->second;
     for (auto It = VCHI.begin(), E = VCHI.end(); It != E;) {
-      CHIArg &C = *It;
-      if (!C.Dest) {
+      
+      if (CHIArg &C = *It; !C.Dest) {
         auto si = RenameStack.find(C.VN);
         // The Basic Block where CHI is must dominate the value we want to
         // track in a CHI. In the PDom walk, there can be values in the
@@ -1000,8 +1000,8 @@ void GVNHoist::raMPHIuw(MemoryUseOrDef *NewMemAcc) {
       UsePhis.insert(Phi);
 
   for (MemoryPhi *Phi : UsePhis) {
-    auto In = Phi->incoming_values();
-    if (llvm::all_of(In, [&](Use &U) { return U == NewMemAcc; })) {
+    
+    if (auto In = Phi->incoming_values(); llvm::all_of(In, [&](Use &U) { return U == NewMemAcc; })) {
       Phi->replaceAllUsesWith(NewMemAcc);
       MSSAUpdater->removeMemoryAccess(Phi);
     }

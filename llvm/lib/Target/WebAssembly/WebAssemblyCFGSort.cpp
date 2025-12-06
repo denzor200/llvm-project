@@ -92,12 +92,12 @@ static void maybeUpdateTerminator(MachineBasicBlock *MBB) {
 
   // Find the layout successor from the original block order.
   MachineFunction *MF = MBB->getParent();
-  MachineBasicBlock *OriginalSuccessor =
+  
+
+  if (MachineBasicBlock *OriginalSuccessor =
       unsigned(MBB->getNumber() + 1) < MF->getNumBlockIDs()
           ? MF->getBlockNumbered(MBB->getNumber() + 1)
-          : nullptr;
-
-  if (AllAnalyzable)
+          : nullptr; AllAnalyzable)
     MBB->updateTerminator(OriginalSuccessor);
 }
 

@@ -72,15 +72,15 @@ decltype(auto) bindAssignmentToDecl(const char *DeclName) {
 /// helpers which are not tests themselves, but used exclusively in tests).
 static bool isTest(const Decl *D) {
   if (const auto* ND = dyn_cast<NamedDecl>(D)) {
-    std::string DeclName = ND->getNameAsString();
-    if (StringRef(DeclName).starts_with("test"))
+    
+    if (std::string DeclName = ND->getNameAsString(); StringRef(DeclName).starts_with("test"))
       return true;
   }
   if (const auto *OD = dyn_cast<ObjCMethodDecl>(D)) {
     if (const auto *CD = dyn_cast<ObjCContainerDecl>(OD->getParent())) {
       std::string ContainerName = CD->getNameAsString();
-      StringRef CN(ContainerName);
-      if (CN.contains_insensitive("test") || CN.contains_insensitive("mock"))
+      
+      if (StringRef CN(ContainerName); CN.contains_insensitive("test") || CN.contains_insensitive("mock"))
         return true;
     }
   }

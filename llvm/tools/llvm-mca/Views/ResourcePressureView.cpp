@@ -27,9 +27,9 @@ ResourcePressureView::ResourcePressureView(const llvm::MCSubtargetInfo &sti,
   const MCSchedModel &SM = getSubTargetInfo().getSchedModel();
   for (unsigned I = 0, E = SM.getNumProcResourceKinds(); I < E; ++I) {
     const MCProcResourceDesc &ProcResource = *SM.getProcResource(I);
-    unsigned NumUnits = ProcResource.NumUnits;
+    
     // Skip groups and invalid resources with zero units.
-    if (ProcResource.SubUnitsIdxBegin || !NumUnits)
+    if (unsigned NumUnits = ProcResource.NumUnits; ProcResource.SubUnitsIdxBegin || !NumUnits)
       continue;
 
     Resource2VecIndex.insert(std::pair<unsigned, unsigned>(I, R2VIndex));

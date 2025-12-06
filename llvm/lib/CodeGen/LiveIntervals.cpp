@@ -189,8 +189,8 @@ void LiveIntervals::print(raw_ostream &OS) const {
 
   // Dump the virtregs.
   for (unsigned i = 0, e = MRI->getNumVirtRegs(); i != e; ++i) {
-    Register Reg = Register::index2VirtReg(i);
-    if (hasInterval(Reg))
+    
+    if (Register Reg = Register::index2VirtReg(i); hasInterval(Reg))
       OS << getInterval(Reg) << '\n';
   }
 
@@ -443,9 +443,9 @@ void LiveIntervals::extendSegmentsToUses(LiveRange &Segments,
       for (const MachineBasicBlock *Pred : MBB->predecessors()) {
         if (!LiveOut.insert(Pred).second)
           continue;
-        SlotIndex Stop = Indexes->getMBBEndIdx(Pred);
+        
         // A predecessor is not required to have a live-out value for a PHI.
-        if (VNInfo *PVNI = OldRange.getVNInfoBefore(Stop))
+        if (SlotIndex Stop = Indexes->getMBBEndIdx(Pred); VNInfo *PVNI = OldRange.getVNInfoBefore(Stop))
           WorkList.push_back(std::make_pair(Stop, PVNI));
       }
       continue;
@@ -595,10 +595,10 @@ void LiveIntervals::shrinkToUses(LiveInterval::SubRange &SR, Register Reg) {
     if (!MO.readsReg())
       continue;
     // Maybe the operand is for a subregister we don't care about.
-    unsigned SubReg = MO.getSubReg();
-    if (SubReg != 0) {
-      LaneBitmask LaneMask = TRI->getSubRegIndexLaneMask(SubReg);
-      if ((LaneMask & SR.LaneMask).none())
+    
+    if (unsigned SubReg = MO.getSubReg(); SubReg != 0) {
+      
+      if (LaneBitmask LaneMask = TRI->getSubRegIndexLaneMask(SubReg); (LaneMask & SR.LaneMask).none())
         continue;
     }
     // We only need to visit each instruction once.
@@ -826,9 +826,9 @@ void LiveIntervals::addKillFlags(const VirtRegMap *VRM) {
           if (MO.isUse()) {
             // Reading any undefined lanes?
             unsigned SubReg = MO.getSubReg();
-            LaneBitmask UseMask = SubReg ? TRI->getSubRegIndexLaneMask(SubReg)
-                                         : MRI->getMaxLaneMaskForVReg(Reg);
-            if ((UseMask & ~DefinedLanesMask).any())
+            
+            if (LaneBitmask UseMask = SubReg ? TRI->getSubRegIndexLaneMask(SubReg)
+                                         : MRI->getMaxLaneMaskForVReg(Reg); (UseMask & ~DefinedLanesMask).any())
               goto CancelKill;
           } else if (MO.getSubReg() == 0) {
             // Writing to the full register?
@@ -843,8 +843,8 @@ void LiveIntervals::addKillFlags(const VirtRegMap *VRM) {
         // assigned.
         if (!IsFullWrite) {
           // Next segment has to be adjacent in the subregister write case.
-          LiveRange::const_iterator N = std::next(RI);
-          if (N != LI.end() && N->start == RI->end)
+          
+          if (LiveRange::const_iterator N = std::next(RI); N != LI.end() && N->start == RI->end)
             goto CancelKill;
         }
       }
@@ -911,10 +911,10 @@ float LiveIntervals::getSpillWeight(bool isDef, bool isUse,
                                     const MachineBasicBlock *MBB,
                                     ProfileSummaryInfo *PSI) {
   float Weight = isDef + isUse;
-  const auto *MF = MBB->getParent();
+  
   // When optimizing for size we only consider the codesize impact of spilling
   // the register, not the runtime impact.
-  if (PSI && llvm::shouldOptimizeForSize(MF, PSI, MBFI))
+  if (const auto *MF = MBB->getParent(); PSI && llvm::shouldOptimizeForSize(MF, PSI, MBFI))
     return Weight;
   return Weight * MBFI->getBlockFreqRelativeToEntryBlock(MBB);
 }
@@ -946,8 +946,8 @@ static bool hasLiveThroughUse(const MachineInstr *MI, Register Reg) {
     return false;
   for (unsigned Idx = SO.getNumDeoptArgsIdx(), E = SO.getNumGCPtrIdx(); Idx < E;
        ++Idx) {
-    const MachineOperand &MO = MI->getOperand(Idx);
-    if (MO.isReg() && MO.getReg() == Reg)
+    
+    if (const MachineOperand &MO = MI->getOperand(Idx); MO.isReg() && MO.getReg() == Reg)
       return true;
   }
   return false;
@@ -1174,10 +1174,10 @@ private:
           SlotIndex::isEarlierInstr(Next->start, NewIdx)) {
         // If we are here then OldIdx was just a use but not a def. We only have
         // to ensure liveness extends to NewIdx.
-        LiveRange::iterator NewIdxIn =
-          LR.advanceTo(Next, NewIdx.getBaseIndex());
+        
         // Extend the segment before NewIdx if necessary.
-        if (NewIdxIn == E ||
+        if (LiveRange::iterator NewIdxIn =
+          LR.advanceTo(Next, NewIdx.getBaseIndex()); NewIdxIn == E ||
             !SlotIndex::isEarlierInstr(NewIdxIn->start, NewIdx)) {
           LiveRange::iterator Prev = std::prev(NewIdxIn);
           Prev->end = NewIdx.getRegSlot();
@@ -1271,9 +1271,9 @@ private:
         //    |-  ?/OldIdxOut -| |- X0 -| ... |- Xn/AfterNewIdx -| |- Next -|
         // => |- X0/OldIdxOut -| ... |- Xn -| |- Xn/AfterNewIdx -| |- Next -|
         std::copy(std::next(OldIdxOut), std::next(AfterNewIdx), OldIdxOut);
-        LiveRange::iterator Prev = std::prev(AfterNewIdx);
+        
         // We have two cases:
-        if (SlotIndex::isEarlierInstr(Prev->start, NewIdxDef)) {
+        if (LiveRange::iterator Prev = std::prev(AfterNewIdx); SlotIndex::isEarlierInstr(Prev->start, NewIdxDef)) {
           // Case 1: NewIdx is inside a liverange. Split this liverange at
           // NewIdxDef into the segment "Prev" followed by "NewSegment".
           LiveRange::iterator NewSegment = AfterNewIdx;
@@ -1334,8 +1334,8 @@ private:
       // If the live-in value isn't killed here, then we have no Def at
       // OldIdx, moreover the value must be live at NewIdx so there is nothing
       // to do.
-      bool isKill = SlotIndex::isSameInstr(OldIdx, OldIdxIn->end);
-      if (!isKill)
+      
+      if (bool isKill = SlotIndex::isSameInstr(OldIdx, OldIdxIn->end); !isKill)
         return;
 
       // At this point we have to move OldIdxIn->end back to the nearest
@@ -1393,8 +1393,8 @@ private:
           OldIdxVNI = OldIdxIn->valno;
 
           SlotIndex NewDefEndPoint = std::next(NewIdxIn)->end;
-          LiveRange::iterator Prev = std::prev(OldIdxIn);
-          if (OldIdxIn != LR.begin() &&
+          
+          if (LiveRange::iterator Prev = std::prev(OldIdxIn); OldIdxIn != LR.begin() &&
               SlotIndex::isEarlierInstr(NewIdx, Prev->end)) {
             // If the segment before OldIdx read a value defined earlier than
             // NewIdx, the moved instruction also reads and forwards that
@@ -1509,8 +1509,8 @@ private:
            MRI.use_nodbg_operands(VRegOrUnit.asVirtualReg())) {
         if (MO.isUndef())
           continue;
-        unsigned SubReg = MO.getSubReg();
-        if (SubReg != 0 && LaneMask.any()
+        
+        if (unsigned SubReg = MO.getSubReg(); SubReg != 0 && LaneMask.any()
             && (TRI.getSubRegIndexLaneMask(SubReg) & LaneMask).none())
           continue;
 
@@ -1601,11 +1601,11 @@ void LiveIntervals::handleMoveIntoNewBundle(MachineInstr &BundleStart,
   for (MachineOperand &MO : BundleStart.operands()) {
     if (!MO.isReg())
       continue;
-    Register Reg = MO.getReg();
-    if (Reg.isVirtual() && hasInterval(Reg) && !MO.isUndef()) {
+    
+    if (Register Reg = MO.getReg(); Reg.isVirtual() && hasInterval(Reg) && !MO.isUndef()) {
       LiveInterval &LI = getInterval(Reg);
-      LiveQueryResult LRQ = LI.Query(Index);
-      if (LRQ.isDeadDef())
+      
+      if (LiveQueryResult LRQ = LI.Query(Index); LRQ.isDeadDef())
         MO.setIsDead();
     }
   }
@@ -1729,8 +1729,8 @@ LiveIntervals::repairIntervalsInRange(MachineBasicBlock *MBB,
         Register Reg = MO.getReg();
         if (MO.getSubReg() && hasInterval(Reg) &&
             MRI->shouldTrackSubRegLiveness(Reg)) {
-          LiveInterval &LI = getInterval(Reg);
-          if (!LI.hasSubRanges()) {
+          
+          if (LiveInterval &LI = getInterval(Reg); !LI.hasSubRanges()) {
             // If the new instructions refer to subregs but the old instructions
             // did not, throw away any old live interval so it will be
             // recomputed with subranges.
@@ -1739,8 +1739,8 @@ LiveIntervals::repairIntervalsInRange(MachineBasicBlock *MBB,
             // Similarly if a subreg def has no precise subrange match then
             // assume we need to recompute all subranges.
             unsigned SubReg = MO.getSubReg();
-            LaneBitmask Mask = TRI->getSubRegIndexLaneMask(SubReg);
-            if (llvm::none_of(LI.subranges(),
+            
+            if (LaneBitmask Mask = TRI->getSubRegIndexLaneMask(SubReg); llvm::none_of(LI.subranges(),
                               [Mask](LiveInterval::SubRange &SR) {
                                 return SR.LaneMask == Mask;
                               })) {
@@ -1785,8 +1785,8 @@ void LiveIntervals::removePhysRegDefAt(MCRegister Reg, SlotIndex Pos) {
 void LiveIntervals::removeVRegDefAt(LiveInterval &LI, SlotIndex Pos) {
   // LI may not have the main range computed yet, but its subranges may
   // be present.
-  VNInfo *VNI = LI.getVNInfoAt(Pos);
-  if (VNI != nullptr) {
+  
+  if (VNInfo *VNI = LI.getVNInfoAt(Pos); VNI != nullptr) {
     assert(VNI->def.getBaseIndex() == Pos.getBaseIndex());
     LI.removeValNo(VNI);
   }

@@ -82,9 +82,9 @@ Decl *Parser::ParseHLSLBuffer(SourceLocation &DeclEnd,
     ParsedAttributes DeclAttrs(AttrFactory);
     ParsedAttributes EmptyDeclSpecAttrs(AttrFactory);
 
-    DeclGroupPtrTy Result =
-        ParseExternalDeclaration(DeclAttrs, EmptyDeclSpecAttrs);
-    if (!validateDeclsInsideHLSLBuffer(Result, IdentifierLoc, IsCBuffer,
+    
+    if (DeclGroupPtrTy Result =
+        ParseExternalDeclaration(DeclAttrs, EmptyDeclSpecAttrs); !validateDeclsInsideHLSLBuffer(Result, IdentifierLoc, IsCBuffer,
                                        *this)) {
       T.skipToEnd();
       DeclEnd = T.getCloseLocation();

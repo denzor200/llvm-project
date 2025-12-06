@@ -692,8 +692,8 @@ LogicalResult Serializer::prepareBasicType(
     // necessary. However, it is left to support backwards compatibility.
     // Ideally, Block decorations should be inserted when converting to SPIR-V.
     if (isInterfaceStructPtrType(ptrType)) {
-      auto structType = cast<spirv::StructType>(ptrType.getPointeeType());
-      if (!structType.hasDecoration(spirv::Decoration::Block))
+      
+      if (auto structType = cast<spirv::StructType>(ptrType.getPointeeType()); !structType.hasDecoration(spirv::Decoration::Block))
         if (failed(emitDecoration(getTypeID(pointeeStruct),
                                   spirv::Decoration::Block)))
           return emitError(loc, "cannot decorate ")
@@ -744,11 +744,11 @@ LogicalResult Serializer::prepareBasicType(
       if (hasOffset) {
         auto intType = IntegerType::get(structType.getContext(), 32);
         // Decorate each struct member with an offset
-        spirv::StructType::MemberDecorationInfo offsetDecoration{
+        
+        if (spirv::StructType::MemberDecorationInfo offsetDecoration{
             elementIndex, spirv::Decoration::Offset,
             IntegerAttr::get(intType,
-                             structType.getMemberOffset(elementIndex))};
-        if (failed(processMemberDecoration(resultID, offsetDecoration))) {
+                             structType.getMemberOffset(elementIndex))}; failed(processMemberDecoration(resultID, offsetDecoration))) {
           return emitError(loc, "cannot decorate ")
                  << elementIndex << "-th member of " << structType
                  << " with its offset";
@@ -838,8 +838,8 @@ LogicalResult Serializer::prepareBasicType(
         return failure();
       }
 
-      bool shaped = llvm::all_of(dims, [](const auto &dim) { return dim > 0; });
-      if (rank > 0 && shaped) {
+      
+      if (bool shaped = llvm::all_of(dims, [](const auto &dim) { return dim > 0; }); rank > 0 && shaped) {
         auto I32Type = IntegerType::get(type.getContext(), 32);
         auto shapeType = ArrayType::get(I32Type, rank);
         if (rank == 1) {
@@ -1020,8 +1020,8 @@ Serializer::prepareDenseElementsConstant(Location loc, Type constType,
   SmallVector<uint32_t, 4> operands = {typeID, resultID};
   auto elementType = cast<spirv::CompositeType>(constType).getElementType(0);
   if (auto tensorArmType = dyn_cast<spirv::TensorArmType>(constType)) {
-    ArrayRef<int64_t> innerShape = tensorArmType.getShape().drop_front();
-    if (!innerShape.empty())
+    
+    if (ArrayRef<int64_t> innerShape = tensorArmType.getShape().drop_front(); !innerShape.empty())
       elementType = spirv::TensorArmType::get(innerShape, elementType);
   }
 
@@ -1132,10 +1132,10 @@ uint32_t Serializer::prepareConstantInt(Location loc, IntegerAttr intAttr,
   APInt value = intAttr.getValue();
   unsigned bitwidth = value.getBitWidth();
   bool isSigned = intAttr.getType().isSignedInteger();
-  auto opcode =
-      isSpec ? spirv::Opcode::OpSpecConstant : spirv::Opcode::OpConstant;
+  
 
-  switch (bitwidth) {
+  switch (auto opcode =
+      isSpec ? spirv::Opcode::OpSpecConstant : spirv::Opcode::OpConstant; bitwidth) {
     // According to SPIR-V spec, "When the type's bit width is less than
     // 32-bits, the literal's value appears in the low-order bits of the word,
     // and the high-order bits must be 0 for a floating-point type, or 0 for an

@@ -257,10 +257,10 @@ static DecodeStatus DecodeAS(MCInst &MI, uint64_t insn, uint64_t Address,
   unsigned sz = fieldFromInstruction(insn, 32, 7);
   bool cz = fieldFromInstruction(insn, 39, 1);
   uint64_t simm32 = SignExtend64<32>(fieldFromInstruction(insn, 0, 32));
-  DecodeStatus status;
+  
 
   // Decode sz.
-  if (cz) {
+  if (DecodeStatus status; cz) {
     status = DecodeI64RegisterClass(MI, sz, Address, Decoder);
     if (status != MCDisassembler::Success)
       return status;
@@ -512,8 +512,8 @@ static DecodeStatus DecodeBranchCondition(MCInst &MI, uint64_t insn,
   MI.addOperand(MCOperand::createImm(VEValToCondCode(cf, isIntegerBCKind(MI))));
 
   // Decode sy.
-  DecodeStatus status;
-  if (cy) {
+  
+  if (DecodeStatus status; cy) {
     status = DecodeI64RegisterClass(MI, sy, Address, Decoder);
     if (status != MCDisassembler::Success)
       return status;

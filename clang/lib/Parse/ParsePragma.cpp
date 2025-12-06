@@ -966,11 +966,11 @@ void Parser::HandlePragmaOpenCLExtension() {
   ConsumeAnnotationToken();
 
   auto &Opt = Actions.getOpenCLOptions();
-  auto Name = Ident->getName();
+  
   // OpenCL 1.1 9.1: "The all variant sets the behavior for all extensions,
   // overriding all previously issued extension directives, but only if the
   // behavior is set to disable."
-  if (Name == "all") {
+  if (auto Name = Ident->getName(); Name == "all") {
     if (State == Disable)
       Opt.disableAll();
     else
@@ -1029,7 +1029,9 @@ void Parser::HandlePragmaMSPragma() {
   // Figure out which #pragma we're dealing with.  The switch has no default
   // because lex shouldn't emit the annotation token for unrecognized pragmas.
   typedef bool (Parser::*PragmaHandler)(StringRef, SourceLocation);
-  PragmaHandler Handler =
+  
+
+  if (PragmaHandler Handler =
       llvm::StringSwitch<PragmaHandler>(PragmaName)
           .Case("data_seg", &Parser::HandlePragmaMSSegment)
           .Case("bss_seg", &Parser::HandlePragmaMSSegment)
@@ -1041,9 +1043,7 @@ void Parser::HandlePragmaMSPragma() {
           .Case("function", &Parser::HandlePragmaMSFunction)
           .Case("alloc_text", &Parser::HandlePragmaMSAllocText)
           .Case("optimize", &Parser::HandlePragmaMSOptimize)
-          .Case("intrinsic", &Parser::HandlePragmaMSIntrinsic);
-
-  if (!(this->*Handler)(PragmaName, PragmaLocation)) {
+          .Case("intrinsic", &Parser::HandlePragmaMSIntrinsic); !(this->*Handler)(PragmaName, PragmaLocation)) {
     // Pragma handling failed, and has been diagnosed.  Slurp up the tokens
     // until eof (really end of line) to prevent follow-on errors.
     while (Tok.isNot(tok::eof))
@@ -1231,13 +1231,13 @@ bool Parser::HandlePragmaMSInitSeg(StringRef PragmaName,
   StringLiteral *SegmentName = nullptr;
   if (Tok.isAnyIdentifier()) {
     auto *II = Tok.getIdentifierInfo();
-    StringRef Section = llvm::StringSwitch<StringRef>(II->getName())
+    
+
+    if (StringRef Section = llvm::StringSwitch<StringRef>(II->getName())
                             .Case("compiler", "\".CRT$XCC\"")
                             .Case("lib", "\".CRT$XCL\"")
                             .Case("user", "\".CRT$XCU\"")
-                            .Default("");
-
-    if (!Section.empty()) {
+                            .Default(""); !Section.empty()) {
       // Pretend the user wrote the appropriate string literal here.
       Token Toks[1];
       Toks[0].startToken();
@@ -1285,8 +1285,8 @@ bool Parser::HandlePragmaMSStrictGuardStackCheck(
 
   Sema::PragmaMsStackAction Action = Sema::PSK_Set;
   if (Tok.is(tok::identifier)) {
-    StringRef PushPop = Tok.getIdentifierInfo()->getName();
-    if (PushPop == "push") {
+    
+    if (StringRef PushPop = Tok.getIdentifierInfo()->getName(); PushPop == "push") {
       PP.Lex(Tok);
       Action = Sema::PSK_Push;
       if (ExpectAndConsume(tok::comma, diag::warn_pragma_expected_punc,
@@ -1300,8 +1300,8 @@ bool Parser::HandlePragmaMSStrictGuardStackCheck(
 
   bool Value = false;
   if (Action & Sema::PSK_Push || Action & Sema::PSK_Set) {
-    const IdentifierInfo *II = Tok.getIdentifierInfo();
-    if (II && II->isStr("off")) {
+    
+    if (const IdentifierInfo *II = Tok.getIdentifierInfo(); II && II->isStr("off")) {
       PP.Lex(Tok);
       Value = false;
     } else if (II && II->isStr("on")) {
@@ -1502,10 +1502,10 @@ bool Parser::HandlePragmaLoopHint(LoopHint &Hint) {
 
     SourceLocation StateLoc = Toks[0].getLocation();
     IdentifierInfo *StateInfo = Toks[0].getIdentifierInfo();
-    StringRef IsScalableStr = StateInfo ? StateInfo->getName() : "";
+    
 
     // Look for vectorize_width(fixed|scalable)
-    if (IsScalableStr == "scalable" || IsScalableStr == "fixed") {
+    if (StringRef IsScalableStr = StateInfo ? StateInfo->getName() : ""; IsScalableStr == "scalable" || IsScalableStr == "fixed") {
       PP.Lex(Tok); // Identifier
 
       if (Toks.size() > 2) {
@@ -1634,11 +1634,11 @@ static bool isAbstractAttrMatcherRule(attr::SubjectMatchRule Rule) {
 static void diagnoseExpectedAttributeSubjectSubRule(
     Parser &PRef, attr::SubjectMatchRule PrimaryRule, StringRef PrimaryRuleName,
     SourceLocation SubRuleLoc) {
-  auto Diagnostic =
+  
+  if (auto Diagnostic =
       PRef.Diag(SubRuleLoc,
                 diag::err_pragma_attribute_expected_subject_sub_identifier)
-      << PrimaryRuleName;
-  if (const char *SubRules = validAttributeSubjectMatchSubRules(PrimaryRule))
+      << PrimaryRuleName; const char *SubRules = validAttributeSubjectMatchSubRules(PrimaryRule))
     Diagnostic << /*SubRulesSupported=*/1 << SubRules;
   else
     Diagnostic << /*SubRulesSupported=*/0;
@@ -1648,10 +1648,10 @@ static void diagnoseUnknownAttributeSubjectSubRule(
     Parser &PRef, attr::SubjectMatchRule PrimaryRule, StringRef PrimaryRuleName,
     StringRef SubRuleName, SourceLocation SubRuleLoc) {
 
-  auto Diagnostic =
+  
+  if (auto Diagnostic =
       PRef.Diag(SubRuleLoc, diag::err_pragma_attribute_unknown_subject_sub_rule)
-      << SubRuleName << PrimaryRuleName;
-  if (const char *SubRules = validAttributeSubjectMatchSubRules(PrimaryRule))
+      << SubRuleName << PrimaryRuleName; const char *SubRules = validAttributeSubjectMatchSubRules(PrimaryRule))
     Diagnostic << /*SubRulesSupported=*/1 << SubRules;
   else
     Diagnostic << /*SubRulesSupported=*/0;
@@ -1924,9 +1924,9 @@ void Parser::HandlePragmaAttribute() {
         return;
       }
       IdentifierInfo *AttrName = Tok.getIdentifierInfo();
-      SourceLocation AttrNameLoc = ConsumeToken();
+      
 
-      if (Tok.isNot(tok::l_paren))
+      if (SourceLocation AttrNameLoc = ConsumeToken(); Tok.isNot(tok::l_paren))
         Attrs.addNew(AttrName, AttrNameLoc, AttributeScopeInfo(), nullptr, 0,
                      ParsedAttr::Form::GNU());
       else
@@ -2150,8 +2150,8 @@ void PragmaPackHandler::HandlePragma(Preprocessor &PP,
       Alignment.setLength(1);
     };
 
-    const IdentifierInfo *II = Tok.getIdentifierInfo();
-    if (II->isStr("show")) {
+    
+    if (const IdentifierInfo *II = Tok.getIdentifierInfo(); II->isStr("show")) {
       Action = Sema::PSK_Show;
       PP.Lex(Tok);
     } else if (II->isStr("packed") && PP.getLangOpts().ZOSExt) {
@@ -2264,8 +2264,8 @@ void PragmaMSStructHandler::HandlePragma(Preprocessor &PP,
     return;
   }
   SourceLocation EndLoc = Tok.getLocation();
-  const IdentifierInfo *II = Tok.getIdentifierInfo();
-  if (II->isStr("on")) {
+  
+  if (const IdentifierInfo *II = Tok.getIdentifierInfo(); II->isStr("on")) {
     Kind = PMSST_ON;
     PP.Lex(Tok);
   }
@@ -2309,8 +2309,8 @@ void PragmaClangSectionHandler::HandlePragma(Preprocessor &PP,
       return;
     }
 
-    const IdentifierInfo *SecType = Tok.getIdentifierInfo();
-    if (SecType->isStr("bss"))
+    
+    if (const IdentifierInfo *SecType = Tok.getIdentifierInfo(); SecType->isStr("bss"))
       SecKind = PragmaClangSectionKind::BSS;
     else if (SecType->isStr("data"))
       SecKind = PragmaClangSectionKind::Data;
@@ -2883,8 +2883,8 @@ void PragmaMSVtorDisp::HandlePragma(Preprocessor &PP,
   PP.Lex(Tok);
 
   Sema::PragmaMsStackAction Action = Sema::PSK_Set;
-  const IdentifierInfo *II = Tok.getIdentifierInfo();
-  if (II) {
+  
+  if (const IdentifierInfo *II = Tok.getIdentifierInfo(); II) {
     if (II->isStr("push")) {
       // #pragma vtordisp(push, mode)
       PP.Lex(Tok);
@@ -2911,8 +2911,8 @@ void PragmaMSVtorDisp::HandlePragma(Preprocessor &PP,
 
   uint64_t Value = 0;
   if (Action & Sema::PSK_Push || Action & Sema::PSK_Set) {
-    const IdentifierInfo *II = Tok.getIdentifierInfo();
-    if (II && II->isStr("off")) {
+    
+    if (const IdentifierInfo *II = Tok.getIdentifierInfo(); II && II->isStr("off")) {
       PP.Lex(Tok);
       Value = 0;
     } else if (II && II->isStr("on")) {
@@ -3964,8 +3964,8 @@ void PragmaAttributeHandler::HandlePragma(Preprocessor &PP,
 
   // Parse the optional namespace followed by a period.
   if (Tok.is(tok::identifier)) {
-    IdentifierInfo *II = Tok.getIdentifierInfo();
-    if (!II->isStr("push") && !II->isStr("pop")) {
+    
+    if (IdentifierInfo *II = Tok.getIdentifierInfo(); !II->isStr("push") && !II->isStr("pop")) {
       Info->Namespace = II;
       PP.Lex(Tok);
 
@@ -3995,8 +3995,8 @@ void PragmaAttributeHandler::HandlePragma(Preprocessor &PP,
     }
     Info->Action = PragmaAttributeInfo::Attribute;
   } else {
-    const IdentifierInfo *II = Tok.getIdentifierInfo();
-    if (II->isStr("push"))
+    
+    if (const IdentifierInfo *II = Tok.getIdentifierInfo(); II->isStr("push"))
       Info->Action = PragmaAttributeInfo::Push;
     else if (II->isStr("pop"))
       Info->Action = PragmaAttributeInfo::Pop;

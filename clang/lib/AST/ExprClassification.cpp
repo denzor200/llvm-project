@@ -157,8 +157,8 @@ static Cl::Kinds ClassifyInternal(ASTContext &Ctx, const Expr *E) {
     // when they are transparent.
   case Expr::PredefinedExprClass: {
     auto *PE = cast<PredefinedExpr>(E);
-    const StringLiteral *SL = PE->getFunctionName();
-    if (PE->isTransparent())
+    
+    if (const StringLiteral *SL = PE->getFunctionName(); PE->isTransparent())
       return SL ? ClassifyInternal(Ctx, SL) : Cl::CL_LValue;
     assert(!SL || SL->isLValue());
     return Cl::CL_LValue;
@@ -253,8 +253,8 @@ static Cl::Kinds ClassifyInternal(ASTContext &Ctx, const Expr *E) {
     if (Lang.CPlusPlus11) {
       // Step over the array-to-pointer decay if present, but not over the
       // temporary materialization.
-      auto *Base = cast<ArraySubscriptExpr>(E)->getBase()->IgnoreImpCasts();
-      if (Base->getType()->isArrayType())
+      
+      if (auto *Base = cast<ArraySubscriptExpr>(E)->getBase()->IgnoreImpCasts(); Base->getType()->isArrayType())
         return ClassifyInternal(Ctx, Base);
     }
     return Cl::CL_LValue;
@@ -292,8 +292,8 @@ static Cl::Kinds ClassifyInternal(ASTContext &Ctx, const Expr *E) {
     case UO_Real:
     case UO_Imag: {
       const Expr *Op = cast<UnaryOperator>(E)->getSubExpr()->IgnoreParens();
-      Cl::Kinds K = ClassifyInternal(Ctx, Op);
-      if (K != Cl::CL_LValue) return K;
+      
+      if (Cl::Kinds K = ClassifyInternal(Ctx, Op); K != Cl::CL_LValue) return K;
 
       if (isa<ObjCPropertyRefExpr>(Op))
         return Cl::CL_SubObjCPropertySetting;
@@ -441,8 +441,8 @@ static Cl::Kinds ClassifyInternal(ASTContext &Ctx, const Expr *E) {
     return ClassifyInternal(Ctx, cast<DesignatedInitExpr>(E)->getInit());
 
   case Expr::StmtExprClass: {
-    const CompoundStmt *S = cast<StmtExpr>(E)->getSubStmt();
-    if (const auto *LastExpr = dyn_cast_or_null<Expr>(S->body_back()))
+    
+    if (const CompoundStmt *S = cast<StmtExpr>(E)->getSubStmt(); const auto *LastExpr = dyn_cast_or_null<Expr>(S->body_back()))
       return ClassifyUnnamed(Ctx, LastExpr->getType());
     return Cl::CL_PRValue;
   }

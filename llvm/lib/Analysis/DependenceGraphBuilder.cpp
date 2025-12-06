@@ -191,8 +191,8 @@ template <class G> void AbstractDependenceGraphBuilder<G>::createPiBlocks() {
         SmallVector<EdgeType *, 10> EL;
         Src->findEdgesTo(*Dst, EL);
         for (EdgeType *OldEdge : EL) {
-          EdgeKind Kind = OldEdge->getKind();
-          if (!EdgeAlreadyCreated[Dir][Kind]) {
+          
+          if (EdgeKind Kind = OldEdge->getKind(); !EdgeAlreadyCreated[Dir][Kind]) {
             if (Dir == Direction::Incoming) {
               createEdgeOfKind(*Src, *New, Kind);
               LLVM_DEBUG(dbgs() << "created edge from Src to New.\n");
@@ -413,8 +413,8 @@ template <class G> void AbstractDependenceGraphBuilder<G>::simplify() {
   for (NodeType *N : Graph) {
     for (EdgeType *E : *N) {
       NodeType *Tgt = &E->getTargetNode();
-      auto TgtIT = TargetInDegreeMap.find(Tgt);
-      if (TgtIT != TargetInDegreeMap.end())
+      
+      if (auto TgtIT = TargetInDegreeMap.find(Tgt); TgtIT != TargetInDegreeMap.end())
         ++(TgtIT->second);
     }
   }

@@ -114,8 +114,8 @@ ArchiveMemberHeader::ArchiveMemberHeader(const Archive *Parent,
       std::string Msg("terminator characters in archive member \"" + Buf +
                       "\" not the correct \"`\\n\" values for the archive "
                       "member header ");
-      Expected<StringRef> NameOrErr = getName(Size);
-      if (!NameOrErr) {
+      
+      if (Expected<StringRef> NameOrErr = getName(Size); !NameOrErr) {
         consumeError(NameOrErr.takeError());
         uint64_t Offset = RawHeaderPtr - Parent->getData().data();
         *Err = malformedError(Msg + "at offset " + Twine(Offset));
@@ -143,8 +143,8 @@ BigArchiveMemberHeader::BigArchiveMemberHeader(const Archive *Parent,
   }
 
   if (Size < getSizeOf()) {
-    Error SubErr = createMemberHeaderParseError(this, RawHeaderPtr, Size);
-    if (Err)
+    
+    if (Error SubErr = createMemberHeaderParseError(this, RawHeaderPtr, Size); Err)
       *Err = std::move(SubErr);
   }
 }
@@ -153,8 +153,8 @@ BigArchiveMemberHeader::BigArchiveMemberHeader(const Archive *Parent,
 // valid for the kind of archive.  If it is not valid it returns an Error.
 Expected<StringRef> ArchiveMemberHeader::getRawName() const {
   char EndCond;
-  auto Kind = Parent->kind();
-  if (Kind == Archive::K_BSD || Kind == Archive::K_DARWIN64) {
+  
+  if (auto Kind = Parent->kind(); Kind == Archive::K_BSD || Kind == Archive::K_DARWIN64) {
     if (ArMemHdr->Name[0] == ' ') {
       uint64_t Offset =
           reinterpret_cast<const char *>(ArMemHdr) - Parent->getData().data();
@@ -605,8 +605,8 @@ Expected<Archive::Child> Archive::Child::getNext() const {
   if (NextLoc > Parent->Data.getBufferEnd()) {
     std::string Msg("offset to next archive member past the end of the archive "
                     "after member ");
-    Expected<StringRef> NameOrErr = getName();
-    if (!NameOrErr) {
+    
+    if (Expected<StringRef> NameOrErr = getName(); !NameOrErr) {
       consumeError(NameOrErr.takeError());
       uint64_t Offset = Data.data() - Parent->getData().data();
       return malformedError(Msg + "at offset " + Twine(Offset));
@@ -1264,8 +1264,8 @@ Expected<std::optional<Archive::Child>> Archive::findSym(StringRef name) const {
   Archive::symbol_iterator es = symbol_end();
 
   for (; bs != es; ++bs) {
-    StringRef SymName = bs->getName();
-    if (SymName == name) {
+    
+    if (StringRef SymName = bs->getName(); SymName == name) {
       if (auto MemberOrErr = bs->getMember())
         return Child(*MemberOrErr);
       else
@@ -1346,9 +1346,9 @@ BigArchive::BigArchive(MemoryBufferRef Source, Error &Err)
   ErrorAsOutParameter ErrAsOutParam(&Err);
   StringRef Buffer = Data.getBuffer();
   ArFixLenHdr = reinterpret_cast<const FixLenHdr *>(Buffer.data());
-  uint64_t BufferSize = Data.getBufferSize();
+  
 
-  if (BufferSize < sizeof(FixLenHdr)) {
+  if (uint64_t BufferSize = Data.getBufferSize(); BufferSize < sizeof(FixLenHdr)) {
     Err = malformedError("malformed AIX big archive: incomplete fixed length "
                          "header, the archive is only" +
                          Twine(BufferSize) + " byte(s)");

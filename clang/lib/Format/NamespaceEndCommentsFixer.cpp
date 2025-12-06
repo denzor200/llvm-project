@@ -128,8 +128,8 @@ std::string computeName(const FormatToken *NamespaceTok) {
     }
     FirstNSTok = Tok;
     Tok = Tok->getNextNonComment();
-    const FormatToken *TokAfterAttr = skipAttribute(Tok);
-    if (TokAfterAttr != Tok)
+    
+    if (const FormatToken *TokAfterAttr = skipAttribute(Tok); TokAfterAttr != Tok)
       FirstNSTok = Tok = TokAfterAttr;
   }
   if (!NameFinished && FirstNSTok && FirstNSTok->isNot(tok::l_brace))
@@ -180,9 +180,9 @@ bool validEndComment(const FormatToken *RBraceTok, StringRef NamespaceName,
   SmallVector<StringRef, 8> Groups;
   if (NamespaceTok->is(TT_NamespaceMacro) &&
       NamespaceMacroCommentPattern.match(Comment->TokenText, &Groups)) {
-    StringRef NamespaceTokenText = Groups.size() > 4 ? Groups[4] : "";
+    
     // The name of the macro must be used.
-    if (NamespaceTokenText != NamespaceTok->TokenText)
+    if (StringRef NamespaceTokenText = Groups.size() > 4 ? Groups[4] : ""; NamespaceTokenText != NamespaceTok->TokenText)
       return false;
   } else if (NamespaceTok->isNot(tok::kw_namespace) ||
              !NamespaceCommentPattern.match(Comment->TokenText, &Groups)) {
@@ -222,8 +222,8 @@ void addEndComment(const FormatToken *RBraceTok, StringRef EndCommentText,
                    tooling::Replacements *Fixes) {
   auto EndLoc = RBraceTok->Tok.getEndLoc();
   auto Range = CharSourceRange::getCharRange(EndLoc, EndLoc);
-  auto Err = Fixes->add(tooling::Replacement(SourceMgr, Range, EndCommentText));
-  if (Err) {
+  
+  if (auto Err = Fixes->add(tooling::Replacement(SourceMgr, Range, EndCommentText)); Err) {
     llvm::errs() << "Error while adding namespace end comment: "
                  << llvm::toString(std::move(Err)) << "\n";
   }
@@ -236,8 +236,8 @@ void updateEndComment(const FormatToken *RBraceTok, StringRef EndCommentText,
   const FormatToken *Comment = RBraceTok->Next;
   auto Range = CharSourceRange::getCharRange(Comment->getStartOfNonWhitespace(),
                                              Comment->Tok.getEndLoc());
-  auto Err = Fixes->add(tooling::Replacement(SourceMgr, Range, EndCommentText));
-  if (Err) {
+  
+  if (auto Err = Fixes->add(tooling::Replacement(SourceMgr, Range, EndCommentText)); Err) {
     llvm::errs() << "Error while updating namespace end comment: "
                  << llvm::toString(std::move(Err)) << "\n";
   }

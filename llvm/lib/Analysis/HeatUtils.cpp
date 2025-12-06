@@ -49,8 +49,8 @@ uint64_t llvm::getNumOfCalls(const Function &CallerFunction,
 uint64_t llvm::getMaxFreq(const Function &F, const BlockFrequencyInfo *BFI) {
   uint64_t MaxFreq = 0;
   for (const BasicBlock &BB : F) {
-    uint64_t FreqVal = BFI->getBlockFreq(&BB).getFrequency();
-    if (FreqVal >= MaxFreq)
+    
+    if (uint64_t FreqVal = BFI->getBlockFreq(&BB).getFrequency(); FreqVal >= MaxFreq)
       MaxFreq = FreqVal;
   }
   return MaxFreq;

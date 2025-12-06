@@ -52,8 +52,8 @@ static bool fnegFoldsIntoMI(const MachineInstr &MI) {
   case AMDGPU::G_AMDGPU_FMAX_LEGACY:
     return true;
   case AMDGPU::G_INTRINSIC: {
-    Intrinsic::ID IntrinsicID = cast<GIntrinsic>(MI).getIntrinsicID();
-    switch (IntrinsicID) {
+    
+    switch (Intrinsic::ID IntrinsicID = cast<GIntrinsic>(MI).getIntrinsicID(); IntrinsicID) {
     case Intrinsic::amdgcn_rcp:
     case Intrinsic::amdgcn_rcp_legacy:
     case Intrinsic::amdgcn_sin:
@@ -103,8 +103,8 @@ static bool hasSourceMods(const MachineInstr &MI) {
     return false;
   case AMDGPU::G_INTRINSIC:
   case AMDGPU::G_INTRINSIC_CONVERGENT: {
-    Intrinsic::ID IntrinsicID = cast<GIntrinsic>(MI).getIntrinsicID();
-    switch (IntrinsicID) {
+    
+    switch (Intrinsic::ID IntrinsicID = cast<GIntrinsic>(MI).getIntrinsicID(); IntrinsicID) {
     case Intrinsic::amdgcn_interp_p1:
     case Intrinsic::amdgcn_interp_p2:
     case Intrinsic::amdgcn_interp_mov:
@@ -166,8 +166,8 @@ static bool isConstantCostlierToNegate(MachineInstr &MI, Register Reg,
     if (FPValReg->Value.isZero() && !FPValReg->Value.isNegative())
       return true;
 
-    const GCNSubtarget &ST = MI.getMF()->getSubtarget<GCNSubtarget>();
-    if (ST.hasInv2PiInlineImm() && isInv2Pi(FPValReg->Value))
+    
+    if (const GCNSubtarget &ST = MI.getMF()->getSubtarget<GCNSubtarget>(); ST.hasInv2PiInlineImm() && isInv2Pi(FPValReg->Value))
       return true;
   }
   return false;
@@ -246,8 +246,8 @@ bool AMDGPUCombinerHelper::matchFoldableFneg(MachineInstr &MI,
     return true;
   case AMDGPU::G_INTRINSIC:
   case AMDGPU::G_INTRINSIC_CONVERGENT: {
-    Intrinsic::ID IntrinsicID = cast<GIntrinsic>(MatchInfo)->getIntrinsicID();
-    switch (IntrinsicID) {
+    
+    switch (Intrinsic::ID IntrinsicID = cast<GIntrinsic>(MatchInfo)->getIntrinsicID(); IntrinsicID) {
     case Intrinsic::amdgcn_rcp:
     case Intrinsic::amdgcn_rcp_legacy:
     case Intrinsic::amdgcn_sin:
@@ -291,8 +291,8 @@ void AMDGPUCombinerHelper::applyFoldableFneg(MachineInstr &MI,
   // Replace either register in operands with a register holding negated value.
   auto NegateEitherOperand = [&](MachineOperand &X, MachineOperand &Y) {
     Register XReg = X.getReg();
-    Register YReg = Y.getReg();
-    if (mi_match(XReg, MRI, m_GFNeg(m_Reg(XReg))))
+    
+    if (Register YReg = Y.getReg(); mi_match(XReg, MRI, m_GFNeg(m_Reg(XReg))))
       replaceRegOpWith(MRI, X, XReg);
     else if (mi_match(YReg, MRI, m_GFNeg(m_Reg(YReg))))
       replaceRegOpWith(MRI, Y, YReg);
@@ -348,8 +348,8 @@ void AMDGPUCombinerHelper::applyFoldableFneg(MachineInstr &MI,
     break;
   case AMDGPU::G_INTRINSIC:
   case AMDGPU::G_INTRINSIC_CONVERGENT: {
-    Intrinsic::ID IntrinsicID = cast<GIntrinsic>(MatchInfo)->getIntrinsicID();
-    switch (IntrinsicID) {
+    
+    switch (Intrinsic::ID IntrinsicID = cast<GIntrinsic>(MatchInfo)->getIntrinsicID(); IntrinsicID) {
     case Intrinsic::amdgcn_rcp:
     case Intrinsic::amdgcn_rcp_legacy:
     case Intrinsic::amdgcn_sin:
@@ -504,8 +504,8 @@ bool AMDGPUCombinerHelper::matchCombineFmulWithSelectToFldexp(
         Builder.buildConstant(IntDestTy, SelectTrueLog2Val),
         Builder.buildConstant(IntDestTy, SelectFalseLog2Val));
 
-    Register XReg = MI.getOperand(1).getReg();
-    if (SelectTrueVal->isNegative()) {
+    
+    if (Register XReg = MI.getOperand(1).getReg(); SelectTrueVal->isNegative()) {
       auto NegX =
           Builder.buildFNeg(DestTy, XReg, MRI.getVRegDef(XReg)->getFlags());
       Builder.buildFLdexp(Dst, NegX, NewSel, MI.getFlags());

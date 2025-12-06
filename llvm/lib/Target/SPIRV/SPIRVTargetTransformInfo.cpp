@@ -25,8 +25,8 @@ bool llvm::SPIRVTTIImpl::collectFlatAddressOperands(
 Value *llvm::SPIRVTTIImpl::rewriteIntrinsicWithAddressSpace(IntrinsicInst *II,
                                                             Value *OldV,
                                                             Value *NewV) const {
-  auto IntrID = II->getIntrinsicID();
-  switch (IntrID) {
+  
+  switch (auto IntrID = II->getIntrinsicID(); IntrID) {
   case Intrinsic::spv_generic_cast_to_ptr_explicit: {
     unsigned NewAS = NewV->getType()->getPointerAddressSpace();
     unsigned DstAS = II->getType()->getPointerAddressSpace();

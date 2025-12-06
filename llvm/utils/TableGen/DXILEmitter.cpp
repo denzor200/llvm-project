@@ -176,8 +176,8 @@ DXILOperationDesc::DXILOperationDesc(const Record *R) {
     PrintFatalError(R, Twine("Unspecified DXIL OpClass for DXIL operation - ") +
                            OpName);
 
-  auto IntrinsicSelectRecords = R->getValueAsListOfDefs("intrinsics");
-  if (IntrinsicSelectRecords.size()) {
+  
+  if (auto IntrinsicSelectRecords = R->getValueAsListOfDefs("intrinsics"); IntrinsicSelectRecords.size()) {
     for (const Record *R : IntrinsicSelectRecords) {
       DXILIntrinsicSelect IntrSelect;
       IntrSelect.Intrinsic = GetIntrinsicName(R->getValue("intrinsic"));
@@ -569,8 +569,8 @@ static void emitDXILOperationTableDataStructs(const RecordKeeper &Records,
   const std::string Removed("removed");
   int ShiftVal = 1;
   for (const auto *R : ShaderKindRecs) {
-    auto Name = R->getName();
-    if (Name.compare(Removed) == 0) {
+    
+    if (auto Name = R->getName(); Name.compare(Removed) == 0) {
       OS << "  " << Name
          << " =  0,  // Pseudo-stage indicating op not supported in any "
             "stage\n";

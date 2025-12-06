@@ -290,9 +290,9 @@ static bool addBoundsChecking(Function &F, TargetLibraryInfo &TLI,
 
 PreservedAnalyses BoundsCheckingPass::run(Function &F, FunctionAnalysisManager &AM) {
   auto &TLI = AM.getResult<TargetLibraryAnalysis>(F);
-  auto &SE = AM.getResult<ScalarEvolutionAnalysis>(F);
+  
 
-  if (!addBoundsChecking(F, TLI, SE, Opts))
+  if (auto &SE = AM.getResult<ScalarEvolutionAnalysis>(F); !addBoundsChecking(F, TLI, SE, Opts))
     return PreservedAnalyses::all();
 
   return PreservedAnalyses::none();

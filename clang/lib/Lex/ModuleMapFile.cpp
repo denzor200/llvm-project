@@ -726,8 +726,8 @@ ModuleMapFileParser::parseHeaderDecl(MMToken::TokenKind LeadingToken,
     while (!Tok.is(MMToken::RBrace) && !Tok.is(MMToken::EndOfFile)) {
       enum Attribute { Size, ModTime, Unknown };
       StringRef Str = Tok.getString();
-      SourceLocation Loc = consumeToken();
-      switch (llvm::StringSwitch<Attribute>(Str)
+      
+      switch (SourceLocation Loc = consumeToken(); llvm::StringSwitch<Attribute>(Str)
                   .Case("size", Size)
                   .Case("mtime", ModTime)
                   .Default(Unknown)) {
@@ -955,12 +955,12 @@ retry:
     // When building the module, we'll treat the rest of the file as the
     // contents of the module.
     {
-      auto NextIsIdent = [&](StringRef Str) -> bool {
+      
+      if (auto NextIsIdent = [&](StringRef Str) -> bool {
         L.LexFromRawLexer(LToken);
         return !LToken.isAtStartOfLine() && LToken.is(tok::raw_identifier) &&
                LToken.getRawIdentifier() == Str;
-      };
-      if (NextIsIdent("pragma") && NextIsIdent("clang") &&
+      }; NextIsIdent("pragma") && NextIsIdent("clang") &&
           NextIsIdent("module") && NextIsIdent("contents")) {
         Tok.Kind = MMToken::EndOfFile;
         break;

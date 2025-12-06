@@ -70,9 +70,9 @@ NoOwnershipChangeVisitor::getFunctionName(const ExplodedNode *CallEnterN) {
 
 bool NoOwnershipChangeVisitor::wasModifiedInFunction(
     const ExplodedNode *CallEnterN, const ExplodedNode *CallExitEndN) {
-  const Decl *Callee =
-      CallExitEndN->getFirstPred()->getLocationContext()->getDecl();
-  if (!doesFnIntendToHandleOwnership(
+  
+  if (const Decl *Callee =
+      CallExitEndN->getFirstPred()->getLocationContext()->getDecl(); !doesFnIntendToHandleOwnership(
           Callee,
           CallExitEndN->getState()->getAnalysisManager().getASTContext()))
     return true;
@@ -100,8 +100,8 @@ PathDiagnosticPieceRef NoOwnershipChangeVisitor::maybeEmitNoteForParameters(
   // the printing technology in UninitializedObject's FieldChainInfo.
   ArrayRef<ParmVarDecl *> Parameters = Call.parameters();
   for (unsigned I = 0; I < Call.getNumArgs() && I < Parameters.size(); ++I) {
-    SVal V = Call.getArgSVal(I);
-    if (V.getAsSymbol() == Sym)
+    
+    if (SVal V = Call.getArgSVal(I); V.getAsSymbol() == Sym)
       return emitNote(N);
   }
   return nullptr;

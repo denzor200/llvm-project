@@ -61,8 +61,8 @@ static void dump(ArrayRef<DynamicAPInt> vec) {
 static void checkSample(bool hasSample, const IntegerPolyhedron &poly,
                         TestFunction fn = TestFunction::Sample) {
   std::optional<SmallVector<DynamicAPInt, 8>> maybeSample;
-  MaybeOptimum<SmallVector<DynamicAPInt, 8>> maybeLexMin;
-  switch (fn) {
+  
+  switch (MaybeOptimum<SmallVector<DynamicAPInt, 8>> maybeLexMin; fn) {
   case TestFunction::Sample:
     maybeSample = poly.findIntegerSample();
     maybeLexMin = poly.findIntegerLexMin();

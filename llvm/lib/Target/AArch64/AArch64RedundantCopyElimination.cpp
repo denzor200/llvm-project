@@ -162,8 +162,8 @@ bool AArch64RedundantCopyElimination::knownRegValInBlock(
   MachineBasicBlock::reverse_iterator RIt = CondBr.getReverseIterator();
   for (MachineInstr &PredI : make_range(std::next(RIt), PredMBB->rend())) {
 
-    bool IsCMN = false;
-    switch (PredI.getOpcode()) {
+    
+    switch (bool IsCMN = false; PredI.getOpcode()) {
     default:
       break;
 
@@ -372,12 +372,12 @@ bool AArch64RedundantCopyElimination::optimizeBlock(MachineBasicBlock *MBB) {
     ++I;
     bool RemovedMI = false;
     bool IsCopy = MI->isCopy();
-    bool IsMoveImm = MI->isMoveImmediate();
-    if (IsCopy || IsMoveImm) {
+    
+    if (bool IsMoveImm = MI->isMoveImmediate(); IsCopy || IsMoveImm) {
       Register DefReg = MI->getOperand(0).getReg();
       Register SrcReg = IsCopy ? MI->getOperand(1).getReg() : Register();
-      int64_t SrcImm = IsMoveImm ? MI->getOperand(1).getImm() : 0;
-      if (!MRI->isReserved(DefReg) &&
+      
+      if (int64_t SrcImm = IsMoveImm ? MI->getOperand(1).getImm() : 0; !MRI->isReserved(DefReg) &&
           ((IsCopy && (SrcReg == AArch64::XZR || SrcReg == AArch64::WZR)) ||
            IsMoveImm)) {
         for (RegImm &KnownReg : KnownRegs) {
@@ -397,8 +397,8 @@ bool AArch64RedundantCopyElimination::optimizeBlock(MachineBasicBlock *MBB) {
 
             // Don't remove a move immediate that implicitly defines the upper
             // bits when only the lower 32 bits are known.
-            MCPhysReg CmpReg = KnownReg.Reg;
-            if (any_of(MI->implicit_operands(), [CmpReg](MachineOperand &O) {
+            
+            if (MCPhysReg CmpReg = KnownReg.Reg; any_of(MI->implicit_operands(), [CmpReg](MachineOperand &O) {
                   return !O.isDead() && O.isReg() && O.isDef() &&
                          O.getReg() != CmpReg;
                 }))

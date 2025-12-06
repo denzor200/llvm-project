@@ -321,9 +321,9 @@ static void HwasanDeallocate(StackTrace *stack, void *tagged_ptr) {
     CHECK_LT(tail_size, kShadowAlignment);
     void *tail_beg = reinterpret_cast<void *>(
         reinterpret_cast<uptr>(aligned_ptr) + orig_size);
-    tag_t short_granule_memtag = *(reinterpret_cast<tag_t *>(
-        reinterpret_cast<uptr>(tail_beg) + tail_size));
-    if (tail_size &&
+    
+    if (tag_t short_granule_memtag = *(reinterpret_cast<tag_t *>(
+        reinterpret_cast<uptr>(tail_beg) + tail_size)); tail_size &&
         (internal_memcmp(tail_beg, tail_magic, tail_size) ||
          (in_taggable_region && pointer_tag != short_granule_memtag)))
       ReportTailOverwritten(stack, reinterpret_cast<uptr>(tagged_ptr),

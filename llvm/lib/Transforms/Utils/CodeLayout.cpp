@@ -474,8 +474,8 @@ void ChainT::mergeEdges(ChainT *Other) {
   // Update edges adjacent to chain Other.
   for (const auto &[DstChain, DstEdge] : Other->Edges) {
     ChainT *TargetChain = DstChain == Other ? this : DstChain;
-    ChainEdge *CurEdge = getEdge(TargetChain);
-    if (CurEdge == nullptr) {
+    
+    if (ChainEdge *CurEdge = getEdge(TargetChain); CurEdge == nullptr) {
       DstEdge->changeEndpoint(Other, this);
       this->addEdge(TargetChain, DstEdge);
       if (DstChain != this && DstChain != Other)
@@ -672,9 +672,9 @@ private:
       for (JumpT *Jump : PredNode.OutJumps) {
         assert(Jump->ExecutionCount > 0 && "incorrectly initialized jump");
         NodeT *SuccNode = Jump->Target;
-        ChainEdge *CurEdge = PredNode.CurChain->getEdge(SuccNode->CurChain);
+        
         // This edge is already present in the graph.
-        if (CurEdge != nullptr) {
+        if (ChainEdge *CurEdge = PredNode.CurChain->getEdge(SuccNode->CurChain); CurEdge != nullptr) {
           assert(SuccNode->CurChain->getEdge(PredNode.CurChain) != nullptr);
           CurEdge->appendJump(Jump);
           continue;
@@ -770,8 +770,8 @@ private:
                  "incorrectly computed chain densities");
           auto [MinDensity, MaxDensity] =
               std::minmax(ChainPredDensity, ChainSuccDensity);
-          const double Ratio = MaxDensity / MinDensity;
-          if (Ratio > MaxMergeDensityRatio)
+          
+          if (const double Ratio = MaxDensity / MinDensity; Ratio > MaxMergeDensityRatio)
             continue;
 
           // Compute the gain of merging the two chains.
@@ -811,8 +811,8 @@ private:
       for (size_t Idx = 0; Idx < NumSuccs; Idx++) {
         size_t DstBB = SuccNodes[SrcBB][NumSuccs - Idx - 1];
         ChainT *SrcChain = AllNodes[SrcBB].CurChain;
-        ChainT *DstChain = AllNodes[DstBB].CurChain;
-        if (SrcChain != DstChain && !DstChain->isEntry() &&
+        
+        if (ChainT *DstChain = AllNodes[DstBB].CurChain; SrcChain != DstChain && !DstChain->isEntry() &&
             SrcChain->Nodes.back()->Index == SrcBB &&
             DstChain->Nodes.front()->Index == DstBB &&
             SrcChain->isCold() == DstChain->isCold()) {
@@ -869,8 +869,8 @@ private:
       if (Offset == 0 || Offset == ChainPred->Nodes.size())
         return;
       // Skip merging if it breaks Forced successors.
-      NodeT *Node = ChainPred->Nodes[Offset - 1];
-      if (Node->ForcedSucc != nullptr)
+      
+      if (NodeT *Node = ChainPred->Nodes[Offset - 1]; Node->ForcedSucc != nullptr)
         return;
       // Apply the merge, compute the corresponding gain, and update the best
       // value, if the merge is beneficial.
@@ -909,8 +909,8 @@ private:
         // loops above may still "break" such a jump whenever it results in a
         // new fall-through.
         const NodeT *BB = ChainPred->Nodes[Offset - 1];
-        const NodeT *BB2 = ChainPred->Nodes[Offset];
-        if (BB->isSuccessor(BB2))
+        
+        if (const NodeT *BB2 = ChainPred->Nodes[Offset]; BB->isSuccessor(BB2))
           continue;
 
         // In practice, applying X2_Y_X1 merging almost never provides benefits;
@@ -961,8 +961,8 @@ private:
     From->clear();
 
     // Update cached ext-tsp score for the new chain.
-    ChainEdge *SelfEdge = Into->getEdge(Into);
-    if (SelfEdge != nullptr) {
+    
+    if (ChainEdge *SelfEdge = Into->getEdge(Into); SelfEdge != nullptr) {
       MergedNodes = MergedNodesT(Into->Nodes.begin(), Into->Nodes.end());
       MergedJumpsT MergedJumps(&SelfEdge->jumps());
       Into->Score = extTSPScore(MergedNodes, MergedJumps);
@@ -1110,9 +1110,9 @@ private:
     for (NodeT &PredNode : AllNodes) {
       for (JumpT *Jump : PredNode.OutJumps) {
         NodeT *SuccNode = Jump->Target;
-        ChainEdge *CurEdge = PredNode.CurChain->getEdge(SuccNode->CurChain);
+        
         // This edge is already present in the graph.
-        if (CurEdge != nullptr) {
+        if (ChainEdge *CurEdge = PredNode.CurChain->getEdge(SuccNode->CurChain); CurEdge != nullptr) {
           assert(SuccNode->CurChain->getEdge(PredNode.CurChain) != nullptr);
           CurEdge->appendJump(Jump);
           continue;
@@ -1222,12 +1222,12 @@ private:
       // Apply the merge, compute the corresponding gain, and update the best
       // value, if the merge is beneficial.
       for (const MergeTypeT &MergeType : MergeTypes) {
-        MergeGainT NewGain =
-            computeMergeGain(SrcChain, DstChain, Jumps, MergeType);
+        
 
         // When forward and backward gains are the same, prioritize merging that
         // preserves the original order of the functions in the binary.
-        if (std::abs(Gain.score() - NewGain.score()) < EPS) {
+        if (MergeGainT NewGain =
+            computeMergeGain(SrcChain, DstChain, Jumps, MergeType); std::abs(Gain.score() - NewGain.score()) < EPS) {
           if ((MergeType == MergeTypeT::X_Y && SrcChain->Id < DstChain->Id) ||
               (MergeType == MergeTypeT::Y_X && SrcChain->Id > DstChain->Id)) {
             Gain = NewGain;

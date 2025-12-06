@@ -159,8 +159,8 @@ static bool canUseShiftPair(Instruction *Inst, const APInt &Imm) {
   // (and (shl x, c2), c1) will be matched to (srli (slli x, c2+c3), c3) if c1
   // is a mask shifted by c2 bits with c3 leading zeros.
   if (isShiftedMask_64(Mask)) {
-    unsigned Trailing = llvm::countr_zero(Mask);
-    if (ShAmt == Trailing)
+    
+    if (unsigned Trailing = llvm::countr_zero(Mask); ShAmt == Trailing)
       return true;
   }
 
@@ -234,8 +234,8 @@ InstructionCost RISCVTTIImpl::getIntImmCostInst(unsigned Opcode, unsigned Idx,
       return getIntImmCostImpl(getDataLayout(), getST(), Imm, Ty, CostKind,
                                /*FreeZeroes=*/true);
 
-    StoreInst *ST = cast<StoreInst>(Inst);
-    if (!getTLI()->allowsMemoryAccessForAlignment(
+    
+    if (StoreInst *ST = cast<StoreInst>(Inst); !getTLI()->allowsMemoryAccessForAlignment(
             Ty->getContext(), DL, getTLI()->getValueType(DL, Ty),
             ST->getPointerAddressSpace(), ST->getAlign()))
       return TTI::TCC_Free;
@@ -687,10 +687,10 @@ RISCVTTIImpl::getShuffleCost(TTI::ShuffleKind Kind, VectorType *DstTy,
             return 2 * LT.first * TLI->getLMULCost(LT.second);
 
           if (Mask[0] == 0 || Mask[0] == 1) {
-            auto DeinterleaveMask = createStrideMask(Mask[0], 2, Mask.size());
+            
             // Example sequence:
             //   vnsrl.wi   v10, v8, 0
-            if (equal(DeinterleaveMask, Mask))
+            if (auto DeinterleaveMask = createStrideMask(Mask[0], 2, Mask.size()); equal(DeinterleaveMask, Mask))
               return LT.first * getRISCVInstructionCost(RISCV::VNSRL_WI,
                                                         LT.second, CostKind);
           }
@@ -776,9 +776,9 @@ RISCVTTIImpl::getShuffleCost(TTI::ShuffleKind Kind, VectorType *DstTy,
 
     if (!Mask.empty() && LT.first.isValid() && LT.first != 1 &&
         shouldSplit(Kind)) {
-      InstructionCost SplitCost =
-          costShuffleViaSplitting(*this, LT.second, FVTp, Mask, CostKind);
-      if (SplitCost.isValid())
+      
+      if (InstructionCost SplitCost =
+          costShuffleViaSplitting(*this, LT.second, FVTp, Mask, CostKind); SplitCost.isValid())
         return SplitCost;
     }
   }
@@ -995,12 +995,12 @@ InstructionCost RISCVTTIImpl::getScalarizationOverhead(
     }
 
     assert(LT.second.isFixedLengthVector());
-    MVT ContainerVT = TLI->getContainerForFixedLengthVector(LT.second);
-    if (isM1OrSmaller(ContainerVT)) {
-      InstructionCost BV =
+    
+    if (MVT ContainerVT = TLI->getContainerForFixedLengthVector(LT.second); isM1OrSmaller(ContainerVT)) {
+      
+      if (InstructionCost BV =
           cast<FixedVectorType>(Ty)->getNumElements() *
-          getRISCVInstructionCost(RISCV::VSLIDE1DOWN_VX, LT.second, CostKind);
-      if (BV < Cost)
+          getRISCVInstructionCost(RISCV::VSLIDE1DOWN_VX, LT.second, CostKind); BV < Cost)
         Cost = BV;
     }
   }
@@ -1034,13 +1034,13 @@ InstructionCost RISCVTTIImpl::getInterleavedMemoryOpCost(
   // gap).
   if (!UseMaskForGaps && Factor <= TLI->getMaxSupportedInterleaveFactor()) {
     auto *VTy = cast<VectorType>(VecTy);
-    std::pair<InstructionCost, MVT> LT = getTypeLegalizationCost(VTy);
+    
     // Need to make sure type has't been scalarized
-    if (LT.second.isVector()) {
-      auto *SubVecTy =
+    if (std::pair<InstructionCost, MVT> LT = getTypeLegalizationCost(VTy); LT.second.isVector()) {
+      
+      if (auto *SubVecTy =
           VectorType::get(VTy->getElementType(),
-                          VTy->getElementCount().divideCoefficientBy(Factor));
-      if (VTy->getElementCount().isKnownMultipleOf(Factor) &&
+                          VTy->getElementCount().divideCoefficientBy(Factor)); VTy->getElementCount().isKnownMultipleOf(Factor) &&
           TLI->isLegalInterleavedAccessType(SubVecTy, Factor, Alignment,
                                             AddressSpace, DL)) {
 
@@ -1154,11 +1154,11 @@ InstructionCost RISCVTTIImpl::getExpandCompressMemoryOpCost(
   Type *DataTy = MICA.getDataType();
   bool VariableMask = MICA.getVariableMask();
   Align Alignment = MICA.getAlignment();
-  bool IsLegal = (Opcode == Instruction::Store &&
+  
+  if (bool IsLegal = (Opcode == Instruction::Store &&
                   isLegalMaskedCompressStore(DataTy, Alignment)) ||
                  (Opcode == Instruction::Load &&
-                  isLegalMaskedExpandLoad(DataTy, Alignment));
-  if (!IsLegal || CostKind != TTI::TCK_RecipThroughput)
+                  isLegalMaskedExpandLoad(DataTy, Alignment)); !IsLegal || CostKind != TTI::TCK_RecipThroughput)
     return BaseT::getExpandCompressMemoryOpCost(MICA, CostKind);
   // Example compressstore sequence:
   // vsetivli        zero, 8, e32, m2, ta, ma (ignored)
@@ -1610,8 +1610,8 @@ RISCVTTIImpl::getIntrinsicInstrCost(const IntrinsicCostAttributes &ICA,
   if (ST->hasVInstructions() && RetTy->isVectorTy()) {
     if (auto LT = getTypeLegalizationCost(RetTy);
         LT.second.isVector()) {
-      MVT EltTy = LT.second.getVectorElementType();
-      if (const auto *Entry = CostTableLookup(VectorIntrinsicCostTable,
+      
+      if (MVT EltTy = LT.second.getVectorElementType(); const auto *Entry = CostTableLookup(VectorIntrinsicCostTable,
                                               ICA.getID(), EltTy))
         return LT.first * Entry->Cost;
     }
@@ -1637,8 +1637,8 @@ InstructionCost RISCVTTIImpl::getCastInstrCost(unsigned Opcode, Type *Dst,
                                                TTI::CastContextHint CCH,
                                                TTI::TargetCostKind CostKind,
                                                const Instruction *I) const {
-  bool IsVectorType = isa<VectorType>(Dst) && isa<VectorType>(Src);
-  if (!IsVectorType)
+  
+  if (bool IsVectorType = isa<VectorType>(Dst) && isa<VectorType>(Src); !IsVectorType)
     return BaseT::getCastInstrCost(Opcode, Dst, Src, CCH, CostKind, I);
 
   // TODO: Add proper cost model for P extension fixed vectors (e.g., v4i16)
@@ -1972,8 +1972,8 @@ RISCVTTIImpl::getArithmeticReductionCost(unsigned Opcode, VectorType *Ty,
     return BaseT::getArithmeticReductionCost(Opcode, Ty, FMF, CostKind);
 
   std::pair<InstructionCost, MVT> LT = getTypeLegalizationCost(Ty);
-  Type *ElementTy = Ty->getElementType();
-  if (ElementTy->isIntegerTy(1)) {
+  
+  if (Type *ElementTy = Ty->getElementType(); ElementTy->isIntegerTy(1)) {
     // Example sequences:
     //   vfirst.m a0, v0
     //   seqz a0, a0
@@ -3076,8 +3076,8 @@ bool RISCVTTIImpl::getTgtMemIntrinsic(IntrinsicInst *Inst,
 unsigned RISCVTTIImpl::getRegUsageForType(Type *Ty) const {
   if (Ty->isVectorTy()) {
     // f16 with only zvfhmin and bf16 will be promoted to f32
-    Type *EltTy = cast<VectorType>(Ty)->getElementType();
-    if ((EltTy->isHalfTy() && !ST->hasVInstructionsF16()) ||
+    
+    if (Type *EltTy = cast<VectorType>(Ty)->getElementType(); (EltTy->isHalfTy() && !ST->hasVInstructionsF16()) ||
         EltTy->isBFloatTy())
       Ty = VectorType::get(Type::getFloatTy(Ty->getContext()),
                            cast<VectorType>(Ty));
@@ -3161,8 +3161,8 @@ bool RISCVTTIImpl::isLegalMaskedExpandLoad(Type *DataTy,
 
 bool RISCVTTIImpl::isLegalMaskedCompressStore(Type *DataTy,
                                               Align Alignment) const {
-  auto *VTy = dyn_cast<VectorType>(DataTy);
-  if (!VTy || VTy->isScalableTy())
+  
+  if (auto *VTy = dyn_cast<VectorType>(DataTy); !VTy || VTy->isScalableTy())
     return false;
 
   if (!isLegalMaskedLoadStore(DataTy, Alignment))
@@ -3181,9 +3181,9 @@ bool RISCVTTIImpl::shouldConsiderAddressTypePromotion(
   AllowPromotionWithoutCommonHeader = false;
   if (!isa<SExtInst>(&I))
     return false;
-  Type *ConsideredSExtType =
-      Type::getInt64Ty(I.getParent()->getParent()->getContext());
-  if (I.getType() != ConsideredSExtType)
+  
+  if (Type *ConsideredSExtType =
+      Type::getInt64Ty(I.getParent()->getParent()->getContext()); I.getType() != ConsideredSExtType)
     return false;
   // See if the sext is the one with the right type and used in at least one
   // GetElementPtrInst.
@@ -3368,8 +3368,8 @@ bool RISCVTTIImpl::isProfitableToSinkOperands(
     // All uses of the shuffle should be sunk to avoid duplicating it across gpr
     // and vector registers
     for (Use &U : Op->uses()) {
-      Instruction *Insn = cast<Instruction>(U.getUser());
-      if (!canSplatOperand(Insn, U.getOperandNo()))
+      
+      if (Instruction *Insn = cast<Instruction>(U.getUser()); !canSplatOperand(Insn, U.getOperandNo()))
         return false;
     }
 
@@ -3379,8 +3379,8 @@ bool RISCVTTIImpl::isProfitableToSinkOperands(
         Ops.push_back(&Op->getOperandUse(0));
     } else {
       Use *InsertEltUse = &Op->getOperandUse(0);
-      auto *InsertElt = cast<InsertElementInst>(InsertEltUse);
-      if (isa<FPExtInst>(InsertElt->getOperand(1)))
+      
+      if (auto *InsertElt = cast<InsertElementInst>(InsertEltUse); isa<FPExtInst>(InsertElt->getOperand(1)))
         Ops.push_back(&InsertElt->getOperandUse(1));
       Ops.push_back(InsertEltUse);
     }

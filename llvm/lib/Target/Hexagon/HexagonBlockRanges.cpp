@@ -46,8 +46,8 @@ bool HexagonBlockRanges::IndexRange::contains(const IndexRange &A) const {
   if (start() <= A.start()) {
     // Treat "None" in the range end as equal to the range start.
     IndexType E = (end() != IndexType::None) ? end() : start();
-    IndexType AE = (A.end() != IndexType::None) ? A.end() : A.start();
-    if (AE <= E)
+    
+    if (IndexType AE = (A.end() != IndexType::None) ? A.end() : A.start(); AE <= E)
       return true;
   }
   return false;
@@ -141,8 +141,8 @@ void HexagonBlockRanges::RangeList::subtract(const IndexRange &Range) {
   // overlapping ranges.
   RangeList T;
   for (iterator Next, I = begin(); I != end(); I = Next) {
-    IndexRange &Rg = *I;
-    if (Rg.overlaps(Range)) {
+    
+    if (IndexRange &Rg = *I; Rg.overlaps(Range)) {
       T.addsub(Rg, Range);
       Next = this->erase(I);
     } else {
@@ -240,8 +240,8 @@ HexagonBlockRanges::RegisterSet HexagonBlockRanges::getLiveIns(
       continue;
     }
     for (; S.isValid(); ++S) {
-      unsigned SI = S.getSubRegIndex();
-      if ((I.LaneMask & TRI.getSubRegIndexLaneMask(SI)).any())
+      
+      if (unsigned SI = S.getSubRegIndex(); (I.LaneMask & TRI.getSubRegIndexLaneMask(SI)).any())
         Tmp.insert({S.getSubReg(), 0});
     }
   }
@@ -358,8 +358,8 @@ void HexagonBlockRanges::computeInitialLiveRanges(InstrIndexMap &IndexMap,
           continue;
         if (BM[PR/32] & (1u << (PR%32)))
           continue;
-        RegisterRef R = { PR, 0 };
-        if (!Defs.count(R))
+        
+        if (RegisterRef R = { PR, 0 }; !Defs.count(R))
           Clobbers.insert(R);
       }
     }
@@ -439,8 +439,8 @@ HexagonBlockRanges::RegToRangeMap HexagonBlockRanges::computeDeadMap(
 
     // Try to create the initial range.
     if (A->start() != IndexType::Entry) {
-      IndexType DE = IndexMap.getPrevIndex(A->start());
-      if (DE != IndexType::Entry)
+      
+      if (IndexType DE = IndexMap.getPrevIndex(A->start()); DE != IndexType::Entry)
         DeadMap[R].add(IndexType::Entry, DE, false, false);
     }
 
@@ -450,16 +450,16 @@ HexagonBlockRanges::RegToRangeMap HexagonBlockRanges::computeDeadMap(
       IndexType AE = (A->end() == IndexType::None) ? A->start() : A->end();
       IndexType DS = IndexMap.getNextIndex(AE);
       ++A;
-      IndexType DE = IndexMap.getPrevIndex(A->start());
-      if (DS < DE)
+      
+      if (IndexType DE = IndexMap.getPrevIndex(A->start()); DS < DE)
         DeadMap[R].add(DS, DE, false, false);
     }
 
     // Try to create the final range.
     if (Z->end() != IndexType::Exit) {
       IndexType ZE = (Z->end() == IndexType::None) ? Z->start() : Z->end();
-      IndexType DS = IndexMap.getNextIndex(ZE);
-      if (DS < IndexType::Exit)
+      
+      if (IndexType DS = IndexMap.getNextIndex(ZE); DS < IndexType::Exit)
         DeadMap[R].add(DS, IndexType::Exit, false, false);
     }
   };

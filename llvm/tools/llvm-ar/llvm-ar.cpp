@@ -167,8 +167,8 @@ static void failIfError(std::error_code EC, Twine Context = "") {
   if (!EC)
     return;
 
-  std::string ContextStr = Context.str();
-  if (ContextStr.empty())
+  
+  if (std::string ContextStr = Context.str(); ContextStr.empty())
     fail(EC.message());
   fail(Context + ": " + EC.message());
 }
@@ -178,8 +178,8 @@ static void failIfError(Error E, Twine Context = "") {
     return;
 
   handleAllErrors(std::move(E), [&](const llvm::ErrorInfoBase &EIB) {
-    std::string ContextStr = Context.str();
-    if (ContextStr.empty())
+    
+    if (std::string ContextStr = Context.str(); ContextStr.empty())
       fail(EIB.message());
     fail(Context + ": " + EIB.message());
   });
@@ -538,8 +538,8 @@ static void doDisplayTable(StringRef Name, const object::Archive::Child &C) {
 
   if (C.getParent()->isThin()) {
     if (!sys::path::is_absolute(Name)) {
-      StringRef ParentDir = sys::path::parent_path(ArchiveName);
-      if (!ParentDir.empty())
+      
+      if (StringRef ParentDir = sys::path::parent_path(ArchiveName); !ParentDir.empty())
         outs() << sys::path::convert_to_slash(ParentDir) << '/';
     }
     outs() << Name;
@@ -647,8 +647,8 @@ static bool isValidInBitMode(Binary &Bin) {
     return true;
 
   if (SymbolicFile *SymFile = dyn_cast<SymbolicFile>(&Bin)) {
-    bool Is64Bit = SymFile->is64Bit();
-    if ((Is64Bit && (BitMode == BitModeTy::Bit32)) ||
+    
+    if (bool Is64Bit = SymFile->is64Bit(); (Is64Bit && (BitMode == BitModeTy::Bit32)) ||
         (!Is64Bit && (BitMode == BitModeTy::Bit64)))
       return false;
   }
@@ -768,9 +768,9 @@ static void addChildMember(std::vector<NewArchiveMember> &Members,
       identify_magic(NMOrErr->Buf->getBuffer()) == file_magic::archive) {
     Expected<std::string> FileNameOrErr = M.getFullName();
     failIfError(FileNameOrErr.takeError());
-    object::Archive &Lib = readLibrary(*FileNameOrErr);
+    
     // When creating thin archives, only flatten if the member is also thin.
-    if (!Thin || Lib.isThin()) {
+    if (object::Archive &Lib = readLibrary(*FileNameOrErr); !Thin || Lib.isThin()) {
       Error Err = Error::success();
       // Only Thin archives are recursively flattened.
       for (auto &Child : Lib.children(Err))
@@ -820,9 +820,9 @@ static void addMember(std::vector<NewArchiveMember> &Members,
 
   if (FlattenArchive &&
       identify_magic(NM.Buf->getBuffer()) == file_magic::archive) {
-    object::Archive &Lib = readLibrary(FileName);
+    
     // When creating thin archives, only flatten if the member is also thin.
-    if (!Thin || Lib.isThin()) {
+    if (object::Archive &Lib = readLibrary(FileName); !Thin || Lib.isThin()) {
       Error Err = Error::success();
       // Only Thin archives are recursively flattened.
       for (auto &Child : Lib.children(Err))
@@ -932,8 +932,8 @@ computeNewArchiveMembers(ArchiveOperation Operation,
           computeInsertAction(Operation, Child, Name, MemberI, MemberCount);
 
       auto HandleNewMember = [](auto Member, auto &Members, auto &Child) {
-        NewArchiveMember NM = getArchiveMember(*Member);
-        if (isValidInBitMode(NM))
+        
+        if (NewArchiveMember NM = getArchiveMember(*Member); isValidInBitMode(NM))
           addMember(Members, NM);
         else {
           // If a new member is not a valid object for the bit mode, add
@@ -1203,7 +1203,9 @@ static void runMRIScript() {
     Rest = Rest.trim();
     if (!Rest.empty() && Rest.front() == '"' && Rest.back() == '"')
       Rest = Rest.drop_front().drop_back();
-    auto Command = StringSwitch<MRICommand>(CommandStr.lower())
+    
+
+    switch (auto Command = StringSwitch<MRICommand>(CommandStr.lower())
                        .Case("addlib", MRICommand::AddLib)
                        .Case("addmod", MRICommand::AddMod)
                        .Case("create", MRICommand::Create)
@@ -1211,9 +1213,7 @@ static void runMRIScript() {
                        .Case("delete", MRICommand::Delete)
                        .Case("save", MRICommand::Save)
                        .Case("end", MRICommand::End)
-                       .Default(MRICommand::Invalid);
-
-    switch (Command) {
+                       .Default(MRICommand::Invalid); Command) {
     case MRICommand::AddLib: {
       if (!Create)
         fail("no output archive has been opened");
@@ -1321,8 +1321,8 @@ static cl::TokenizerCallback getRspQuoting(ArrayRef<const char *> ArgsArr) {
   for (ArrayRef<const char *>::iterator ArgIt = ArgsArr.begin();
        ArgIt != ArgsArr.end(); ++ArgIt) {
     if (const char *Match = matchFlagWithArg("rsp-quoting", ArgIt, ArgsArr)) {
-      StringRef MatchRef = Match;
-      if (MatchRef == "posix")
+      
+      if (StringRef MatchRef = Match; MatchRef == "posix")
         Ret = cl::TokenizeGNUCommandLine;
       else if (MatchRef == "windows")
         Ret = cl::TokenizeWindowsCommandLine;
@@ -1426,8 +1426,8 @@ static int ranlib_main(int argc, char **argv) {
   bool HasAIXXOption = false;
 
   for (int i = 1; i < argc; ++i) {
-    StringRef arg(argv[i]);
-    if (handleGenericOption(arg)) {
+    
+    if (StringRef arg(argv[i]); handleGenericOption(arg)) {
       return 0;
     } else if (arg.consume_front("-")) {
       // Handle the -D/-U flag
@@ -1446,8 +1446,8 @@ static int ranlib_main(int argc, char **argv) {
           if (object::Archive::getDefaultKind() == object::Archive::K_AIXBIG) {
             HasAIXXOption = true;
             arg.consume_front("X");
-            const char *Xarg = arg.data();
-            if (Xarg[0] == '\0') {
+            
+            if (const char *Xarg = arg.data(); Xarg[0] == '\0') {
               if (argv[i + 1][0] != '-')
                 BitMode = getBitMode(argv[++i]);
               else

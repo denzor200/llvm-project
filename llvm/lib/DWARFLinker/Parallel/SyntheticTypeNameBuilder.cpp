@@ -72,8 +72,8 @@ Error SyntheticTypeNameBuilder::addSignature(UnitEntryPairTy InputUnitEntryPair,
                InputUnitEntryPair.DieEntry);
        CurChild && CurChild->getAbbreviationDeclarationPtr();
        CurChild = InputUnitEntryPair.CU->getSiblingEntry(CurChild)) {
-    dwarf::Tag ChildTag = CurChild->getTag();
-    if (addTemplateParameters &&
+    
+    if (dwarf::Tag ChildTag = CurChild->getTag(); addTemplateParameters &&
         (ChildTag == dwarf::DW_TAG_template_type_parameter ||
          ChildTag == dwarf::DW_TAG_template_value_parameter))
       TemplateParameters.push_back(CurChild);

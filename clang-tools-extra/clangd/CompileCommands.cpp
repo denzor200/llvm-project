@@ -164,8 +164,8 @@ static std::string resolveDriver(llvm::StringRef Driver, bool FollowSymlink,
       return SiblingOf(*ClangPath);
     }
     // Otherwise try to look it up on PATH. This won't change basename.
-    auto Absolute = llvm::sys::findProgramByName(Driver);
-    if (Absolute && llvm::sys::path::is_absolute(*Absolute))
+    
+    if (auto Absolute = llvm::sys::findProgramByName(Driver); Absolute && llvm::sys::path::is_absolute(*Absolute))
       Driver = Storage = std::move(*Absolute);
     else if (ClangPath) // If we don't find it, use clang dir again.
       return SiblingOf(*ClangPath);
@@ -176,8 +176,8 @@ static std::string resolveDriver(llvm::StringRef Driver, bool FollowSymlink,
   // Now we have an absolute path, but it may be a symlink.
   assert(llvm::sys::path::is_absolute(Driver));
   if (FollowSymlink) {
-    llvm::SmallString<256> Resolved;
-    if (!llvm::sys::fs::real_path(Driver, Resolved))
+    
+    if (llvm::SmallString<256> Resolved; !llvm::sys::fs::real_path(Driver, Resolved))
       return SiblingOf(Resolved);
   }
   return Driver.str();
@@ -537,8 +537,8 @@ llvm::ArrayRef<ArgStripper::Rule> ArgStripper::rulesFor(llvm::StringRef Arg) {
 }
 
 void ArgStripper::strip(llvm::StringRef Arg) {
-  auto OptionRules = rulesFor(Arg);
-  if (OptionRules.empty()) {
+  
+  if (auto OptionRules = rulesFor(Arg); OptionRules.empty()) {
     // Not a recognized flag. Strip it literally.
     Storage.emplace_back(Arg);
     Rules.emplace_back();
@@ -565,9 +565,9 @@ const ArgStripper::Rule *ArgStripper::matchingRule(llvm::StringRef Arg,
       continue; // lower-priority than best candidate.
     if (!Arg.starts_with(R.Text))
       continue; // current arg doesn't match the prefix string
-    bool PrefixMatch = Arg.size() > R.Text.size();
+    
     // Can rule apply as an exact/prefix match?
-    if (unsigned Count = PrefixMatch ? R.PrefixArgs : R.ExactArgs) {
+    if (bool PrefixMatch = Arg.size() > R.Text.size(); unsigned Count = PrefixMatch ? R.PrefixArgs : R.ExactArgs) {
       BestRule = &R;
       ArgCount = Count;
     }

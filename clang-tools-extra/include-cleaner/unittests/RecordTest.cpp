@@ -246,8 +246,8 @@ TEST_F(RecordPPTest, CapturesMacroRefs) {
   std::vector<unsigned> ExpOffsets; // Expansion locs of refs in macro locs.
   for (const auto &Ref : Recorded.MacroReferences) {
     if (Ref.Target == OrigX) {
-      auto [FID, Off] = SM.getDecomposedLoc(Ref.RefLocation);
-      if (FID == SM.getMainFileID()) {
+      
+      if (auto [FID, Off] = SM.getDecomposedLoc(Ref.RefLocation); FID == SM.getMainFileID()) {
         RefOffsets.push_back(Off);
       } else if (Ref.RefLocation.isMacroID() &&
                  SM.isWrittenInMainFile(SM.getExpansionLoc(Ref.RefLocation))) {

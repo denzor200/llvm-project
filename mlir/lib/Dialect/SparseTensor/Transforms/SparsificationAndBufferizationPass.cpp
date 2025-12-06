@@ -104,8 +104,8 @@ public:
           containsSparseTensor(TypeRange(op->getOperands())))
         return true;
       if (auto funcOp = dyn_cast<func::FuncOp>(op)) {
-        FunctionType funcType = funcOp.getFunctionType();
-        if (containsSparseTensor(funcType.getInputs()) ||
+        
+        if (FunctionType funcType = funcOp.getFunctionType(); containsSparseTensor(funcType.getInputs()) ||
             containsSparseTensor(funcType.getResults()))
           return true;
       }

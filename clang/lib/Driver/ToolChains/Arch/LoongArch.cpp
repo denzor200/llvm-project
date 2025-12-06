@@ -38,8 +38,8 @@ StringRef loongarch::getLoongArchABI(const Driver &D, const ArgList &Args,
   const Arg *MFPUArg = Args.getLastArg(options::OPT_mfpu_EQ);
   int FPU = -1;
   if (MFPUArg) {
-    StringRef V = MFPUArg->getValue();
-    if (V == "64")
+    
+    if (StringRef V = MFPUArg->getValue(); V == "64")
       FPU = 64;
     else if (V == "32")
       FPU = 32;
@@ -140,8 +140,8 @@ void loongarch::getLoongArchTargetFeatures(const Driver &D,
     Features.push_back("+relax");
     // -gsplit-dwarf -mrelax requires DW_AT_high_pc/DW_AT_ranges/... indexing
     // into .debug_addr, which is currently not implemented.
-    Arg *A;
-    if (getDebugFissionKind(D, Args, A) != DwarfFissionKind::None)
+    
+    if (Arg *A; getDebugFissionKind(D, Args, A) != DwarfFissionKind::None)
       D.Diag(clang::diag::err_drv_loongarch_unsupported_with_linker_relaxation)
           << A->getAsString(Args);
   } else if (Args.getLastArg(options::OPT_mno_relax)) {
@@ -178,8 +178,8 @@ void loongarch::getLoongArchTargetFeatures(const Driver &D,
       Features.push_back("-lsx");
     }
   } else if (const Arg *A = Args.getLastArg(options::OPT_mfpu_EQ)) {
-    StringRef FPU = A->getValue();
-    if (FPU == "64") {
+    
+    if (StringRef FPU = A->getValue(); FPU == "64") {
       Features.push_back("+f");
       Features.push_back("+d");
     } else if (FPU == "32") {
@@ -206,8 +206,8 @@ void loongarch::getLoongArchTargetFeatures(const Driver &D,
   // Select lsx/lasx feature determined by -msimd=.
   // Option -msimd= precedes -m[no-]lsx and -m[no-]lasx.
   if (const Arg *A = Args.getLastArg(options::OPT_msimd_EQ)) {
-    StringRef MSIMD = A->getValue();
-    if (MSIMD == "lsx") {
+    
+    if (StringRef MSIMD = A->getValue(); MSIMD == "lsx") {
       // Option -msimd=lsx depends on 64-bit FPU.
       // -m*-float and -mfpu=none/0/32 conflict with -msimd=lsx.
       if (llvm::is_contained(Features, "-d"))

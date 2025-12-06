@@ -309,8 +309,8 @@ void SemaSwift::handleAsyncError(Decl *D, const ParsedAttr &AL) {
     if (!AL.checkExactlyNumArgs(SemaRef, 2))
       return;
 
-    Expr *IdxExpr = AL.getArgAsExpr(1);
-    if (!SemaRef.checkUInt32Argument(AL, IdxExpr, ParamIdx))
+    
+    if (Expr *IdxExpr = AL.getArgAsExpr(1); !SemaRef.checkUInt32Argument(AL, IdxExpr, ParamIdx))
       return;
     break;
   }
@@ -691,8 +691,8 @@ void SemaSwift::handleAsyncAttr(Decl *D, const ParsedAttr &AL) {
     if (!AL.checkExactlyNumArgs(SemaRef, 2))
       return;
 
-    Expr *HandlerIdx = AL.getArgAsExpr(1);
-    if (!SemaRef.checkFunctionOrMethodParameterIndex(D, AL, 2, HandlerIdx, Idx))
+    
+    if (Expr *HandlerIdx = AL.getArgAsExpr(1); !SemaRef.checkFunctionOrMethodParameterIndex(D, AL, 2, HandlerIdx, Idx))
       return;
 
     const ParmVarDecl *CompletionBlock =

@@ -299,8 +299,8 @@ CodeGenIntrinsic::CodeGenIntrinsic(const Record *R,
   // If TargetPrefix is specified, make sure that Name starts with
   // "llvm.<targetprefix>.".
   if (!TargetPrefix.empty()) {
-    StringRef Prefix = StringRef(Name).drop_front(5); // Drop llvm.
-    if (!Prefix.consume_front(TargetPrefix) || !Prefix.starts_with('.'))
+    // Drop llvm.
+    if (StringRef Prefix = StringRef(Name).drop_front(5); !Prefix.consume_front(TargetPrefix) || !Prefix.starts_with('.'))
       PrintFatalError(DefLoc, "Intrinsic '" + DefName +
                                   "' does not start with 'llvm." +
                                   TargetPrefix + ".'!");
@@ -473,9 +473,9 @@ void CodeGenIntrinsic::setProperty(const Record *R) {
 
     for (const Init *PropInit : Properties->getElements()) {
       if (const auto *PropDef = dyn_cast<DefInit>(PropInit)) {
-        const Record *PropRec = PropDef->getDef();
+        
 
-        if (PropRec->isSubClassOf("ArgName"))
+        if (const Record *PropRec = PropDef->getDef(); PropRec->isSubClassOf("ArgName"))
           ArgName = PropRec->getValueAsString("Name");
         else if (PropRec->isSubClassOf("ImmArgPrinter"))
           FuncName = PropRec->getValueAsString("FuncName");
@@ -532,10 +532,10 @@ void CodeGenIntrinsic::addArgAttribute(unsigned Idx, ArgAttrKind AK, uint64_t V,
 void CodeGenIntrinsic::addPrettyPrintFunction(unsigned ArgIdx,
                                               StringRef ArgName,
                                               StringRef FuncName) {
-  auto It = llvm::find_if(PrettyPrintFunctions, [ArgIdx](const auto &Info) {
+  
+  if (auto It = llvm::find_if(PrettyPrintFunctions, [ArgIdx](const auto &Info) {
     return Info.ArgIdx == ArgIdx;
-  });
-  if (It != PrettyPrintFunctions.end())
+  }); It != PrettyPrintFunctions.end())
     PrintFatalError(TheDef->getLoc(), "ArgInfo for argument " + Twine(ArgIdx) +
                                           " is already defined as '" +
                                           It->FuncName + "'");

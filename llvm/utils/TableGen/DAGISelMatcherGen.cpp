@@ -401,8 +401,8 @@ void MatcherGen::EmitOperatorMatchCode(const TreePatternNode &N,
     // To prevent this, we emit a dynamic check for legality before allowing
     // this to be folded.
     //
-    const TreePatternNode &Root = Pattern.getSrcPattern();
-    if (&N != &Root) { // Not the root of the pattern.
+    
+    if (const TreePatternNode &Root = Pattern.getSrcPattern(); &N != &Root) { // Not the root of the pattern.
       // If there is a node between the root and this node, then we definitely
       // need to emit the check.
       bool NeedCheck = !Root.hasChild(&N);
@@ -454,8 +454,8 @@ void MatcherGen::EmitOperatorMatchCode(const TreePatternNode &N,
 bool MatcherGen::recordUniqueNode(ArrayRef<std::string> Names) {
   unsigned Entry = 0;
   for (const std::string &Name : Names) {
-    unsigned &VarMapEntry = VariableMap[Name];
-    if (!Entry)
+    
+    if (unsigned &VarMapEntry = VariableMap[Name]; !Entry)
       Entry = VarMapEntry;
     assert(Entry == VarMapEntry);
   }
@@ -643,8 +643,8 @@ void MatcherGen::EmitResultOfNamedOperand(
   // version of the immediate so that it doesn't get selected due to some other
   // node use.
   if (!N.isLeaf()) {
-    StringRef OperatorName = N.getOperator()->getName();
-    if (OperatorName == "imm" || OperatorName == "fpimm") {
+    
+    if (StringRef OperatorName = N.getOperator()->getName(); OperatorName == "imm" || OperatorName == "fpimm") {
       AddMatcher(new EmitConvertToTargetMatcher(SlotNo, NextRecordedOperandNo));
       ResultOps.push_back(NextRecordedOperandNo++);
       return;
@@ -703,9 +703,9 @@ void MatcherGen::EmitResultLeafAsOperand(const TreePatternNode &N,
       // If the register class has an enum integer value greater than 127, the
       // encoding overflows the limit of 7 bits, which precludes the use of
       // StringIntegerMatcher. In this case, fallback to using IntegerMatcher.
-      const CodeGenRegisterClass &RC =
-          CGP.getTargetInfo().getRegisterClass(Def);
-      if (RC.EnumValue <= 127) {
+      
+      if (const CodeGenRegisterClass &RC =
+          CGP.getTargetInfo().getRegisterClass(Def); RC.EnumValue <= 127) {
         std::string Value = RC.getQualifiedIdName();
         AddMatcher(new EmitStringIntegerMatcher(Value, MVT::i32,
                                                 NextRecordedOperandNo));
@@ -719,12 +719,12 @@ void MatcherGen::EmitResultLeafAsOperand(const TreePatternNode &N,
 
     // Handle a subregister index. This is used for INSERT_SUBREG etc.
     if (Def->isSubClassOf("SubRegIndex")) {
-      const CodeGenRegBank &RB = CGP.getTargetInfo().getRegBank();
+      
       // If we have more than 127 subreg indices the encoding can overflow
       // 7 bit and we cannot use StringInteger.
-      if (RB.getSubRegIndices().size() > 127) {
-        const CodeGenSubRegIndex *I = RB.findSubRegIdx(Def);
-        if (I->EnumValue > 127) {
+      if (const CodeGenRegBank &RB = CGP.getTargetInfo().getRegBank(); RB.getSubRegIndices().size() > 127) {
+        
+        if (const CodeGenSubRegIndex *I = RB.findSubRegIdx(Def); I->EnumValue > 127) {
           AddMatcher(new EmitIntegerMatcher(I->EnumValue, MVT::i32,
                                             NextRecordedOperandNo));
           ResultOps.push_back(NextRecordedOperandNo++);
@@ -756,8 +756,8 @@ static unsigned numNodesThatMayLoadOrStore(const TreePatternNode &N,
   if (N.isLeaf())
     return 0;
 
-  const Record *OpRec = N.getOperator();
-  if (!OpRec->isSubClassOf("Instruction"))
+  
+  if (const Record *OpRec = N.getOperator(); !OpRec->isSubClassOf("Instruction"))
     return 0;
 
   unsigned Count = 0;
@@ -843,8 +843,8 @@ void MatcherGen::EmitResultInstructionAsOperand(
     // children may themselves emit multiple MI operands.
     unsigned NumSubOps = 1;
     if (OperandNode->isSubClassOf("Operand")) {
-      const DagInit *MIOpInfo = OperandNode->getValueAsDag("MIOperandInfo");
-      if (unsigned NumArgs = MIOpInfo->getNumArgs())
+      
+      if (const DagInit *MIOpInfo = OperandNode->getValueAsDag("MIOperandInfo"); unsigned NumArgs = MIOpInfo->getNumArgs())
         NumSubOps = NumArgs;
     }
 
@@ -1041,12 +1041,12 @@ void MatcherGen::EmitResultCode() {
     // If the root came from an implicit def in the instruction handling stuff,
     // don't re-add it.
     const Record *HandledReg = nullptr;
-    const TreePatternNode &DstPat = Pattern.getDstPattern();
-    if (!DstPat.isLeaf() && DstPat.getOperator()->isSubClassOf("Instruction")) {
+    
+    if (const TreePatternNode &DstPat = Pattern.getDstPattern(); !DstPat.isLeaf() && DstPat.getOperator()->isSubClassOf("Instruction")) {
       const CodeGenTarget &CGT = CGP.getTargetInfo();
-      const CodeGenInstruction &II = CGT.getInstruction(DstPat.getOperator());
+      
 
-      if (II.HasOneImplicitDefWithKnownVT(CGT) != MVT::Other)
+      if (const CodeGenInstruction &II = CGT.getInstruction(DstPat.getOperator()); II.HasOneImplicitDefWithKnownVT(CGT) != MVT::Other)
         HandledReg = II.ImplicitDefs[0];
     }
 

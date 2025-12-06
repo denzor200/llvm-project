@@ -190,8 +190,8 @@ static void dumpTokenInto(const Preprocessor &PP, raw_ostream &OS, Token Tok) {
   } else if (Tok.isLiteral() && !Tok.needsCleaning() && Tok.getLiteralData()) {
     OS << StringRef(Tok.getLiteralData(), Tok.getLength());
   } else {
-    char Tmp[256];
-    if (Tok.getLength() < sizeof(Tmp)) {
+    
+    if (char Tmp[256]; Tok.getLength() < sizeof(Tmp)) {
       const char *TokPtr = Tmp;
       // FIXME: Might use a different overload for cleaner callsite.
       unsigned Len = PP.getSpelling(Tok, TokPtr);

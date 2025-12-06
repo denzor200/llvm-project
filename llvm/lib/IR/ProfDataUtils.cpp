@@ -53,8 +53,8 @@ static bool isTargetMD(const MDNode *ProfData, const char *Name,
   if (!ProfData || !Name || MinOps < 2)
     return false;
 
-  unsigned NOps = ProfData->getNumOperands();
-  if (NOps < MinOps)
+  
+  if (unsigned NOps = ProfData->getNumOperands(); NOps < MinOps)
     return false;
 
   auto *ProfDataName = dyn_cast<MDString>(ProfData->getOperand(0));
@@ -89,8 +89,8 @@ static void extractFromBranchWeightMD(const MDNode *ProfileData,
 SmallVector<uint32_t> llvm::fitWeights(ArrayRef<uint64_t> Weights) {
   SmallVector<uint32_t> Ret;
   Ret.reserve(Weights.size());
-  uint64_t Max = *llvm::max_element(Weights);
-  if (Max > UINT_MAX) {
+  
+  if (uint64_t Max = *llvm::max_element(Weights); Max > UINT_MAX) {
     unsigned Offset = 32 - llvm::countl_zero(Max);
     for (const uint64_t &Value : Weights)
       Ret.push_back(static_cast<uint32_t>(Value >> Offset));
@@ -180,8 +180,8 @@ MDNode *llvm::getBranchWeightMDNode(const Instruction &I) {
 }
 
 MDNode *llvm::getValidBranchWeightMDNode(const Instruction &I) {
-  auto *ProfileData = getBranchWeightMDNode(I);
-  if (ProfileData && getNumBranchWeights(*ProfileData) == I.getNumSuccessors())
+  
+  if (auto *ProfileData = getBranchWeightMDNode(I); ProfileData && getNumBranchWeights(*ProfileData) == I.getNumSuccessors())
     return ProfileData;
   return nullptr;
 }
@@ -218,8 +218,8 @@ bool llvm::extractBranchWeights(const Instruction &I, uint64_t &TrueVal,
          "switch");
 
   SmallVector<uint32_t, 2> Weights;
-  auto *ProfileData = I.getMetadata(LLVMContext::MD_prof);
-  if (!extractBranchWeights(ProfileData, Weights))
+  
+  if (auto *ProfileData = I.getMetadata(LLVMContext::MD_prof); !extractBranchWeights(ProfileData, Weights))
     return false;
 
   if (Weights.size() > 2)

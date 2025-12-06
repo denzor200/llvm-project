@@ -45,8 +45,8 @@ static std::optional<uint64_t>
 foldOperationIfPossible(uint64_t Const1, uint64_t Const2,
                         dwarf::LocationAtom Operator) {
 
-  bool ResultOverflowed;
-  switch (Operator) {
+  
+  switch (bool ResultOverflowed; Operator) {
   case dwarf::DW_OP_plus: {
     auto Result = SaturatingAdd(Const1, Const2, &ResultOverflowed);
     if (ResultOverflowed)
@@ -238,9 +238,9 @@ static bool tryFoldCommutativeMath(uint64_t Const1,
 
   auto Const2 = isConstantVal(Ops[2]);
   auto Operand1 = static_cast<dwarf::LocationAtom>(Ops[1].getOp());
-  auto Operand2 = static_cast<dwarf::LocationAtom>(Ops[3].getOp());
+  
 
-  if (!Const2 || !operationsAreFoldableAndCommutative(Operand1, Operand2))
+  if (auto Operand2 = static_cast<dwarf::LocationAtom>(Ops[3].getOp()); !Const2 || !operationsAreFoldableAndCommutative(Operand1, Operand2))
     return false;
 
   auto Result = foldOperationIfPossible(Const1, *Const2, Operand1);
@@ -266,9 +266,9 @@ static bool tryFoldCommutativeMathWithArgInBetween(
   auto Const2 = isConstantVal(Ops[4]);
   auto Operand1 = static_cast<dwarf::LocationAtom>(Ops[1].getOp());
   auto Operand2 = static_cast<dwarf::LocationAtom>(Ops[3].getOp());
-  auto Operand3 = static_cast<dwarf::LocationAtom>(Ops[5].getOp());
+  
 
-  if (!Const2 || Ops[2].getOp() != dwarf::DW_OP_LLVM_arg ||
+  if (auto Operand3 = static_cast<dwarf::LocationAtom>(Ops[5].getOp()); !Const2 || Ops[2].getOp() != dwarf::DW_OP_LLVM_arg ||
       !operationsAreFoldableAndCommutative(Operand1, Operand2) ||
       !operationsAreFoldableAndCommutative(Operand2, Operand3))
     return false;

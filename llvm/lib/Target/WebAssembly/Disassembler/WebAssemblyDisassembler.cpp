@@ -194,8 +194,8 @@ MCDisassembler::DecodeStatus WebAssemblyDisassembler::getInstruction(
   MI.setOpcode(WasmInst->Opcode);
   // Parse any operands.
   for (uint8_t OPI = 0; OPI < WasmInst->NumOperands; OPI++) {
-    auto OT = OperandTable[WasmInst->OperandStart + OPI];
-    switch (OT) {
+    
+    switch (auto OT = OperandTable[WasmInst->OperandStart + OPI]; OT) {
     // ULEB operands:
     case WebAssembly::OPERAND_BASIC_BLOCK:
     case WebAssembly::OPERAND_LOCAL:
@@ -296,8 +296,8 @@ MCDisassembler::DecodeStatus WebAssemblyDisassembler::getInstruction(
       for (int64_t I = 0; I < NumCatches; I++) {
         if (!parseImmediate<uint8_t>(MI, Size, Bytes))
           return MCDisassembler::Fail;
-        int64_t CatchOpcode = MI.getOperand(MI.getNumOperands() - 1).getImm();
-        if (CatchOpcode == wasm::WASM_OPCODE_CATCH ||
+        
+        if (int64_t CatchOpcode = MI.getOperand(MI.getNumOperands() - 1).getImm(); CatchOpcode == wasm::WASM_OPCODE_CATCH ||
             CatchOpcode == wasm::WASM_OPCODE_CATCH_REF) {
           if (!parseLEBImmediate(MI, Size, Bytes, false)) // tag index
             return MCDisassembler::Fail;

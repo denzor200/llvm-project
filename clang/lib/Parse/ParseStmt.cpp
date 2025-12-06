@@ -1061,9 +1061,9 @@ bool Parser::ConsumeNullStmt(StmtVector &Stmts) {
     EndLoc = Tok.getLocation();
 
     // Don't just ConsumeToken() this tok::semi, do store it in AST.
-    StmtResult R =
-        ParseStatementOrDeclaration(Stmts, ParsedStmtContext::SubStmt);
-    if (R.isUsable())
+    
+    if (StmtResult R =
+        ParseStatementOrDeclaration(Stmts, ParsedStmtContext::SubStmt); R.isUsable())
       Stmts.push_back(R.get());
   }
 
@@ -1256,10 +1256,10 @@ bool Parser::ParseParenExprOrCondition(StmtResult *InitStmt,
   if (getLangOpts().CPlusPlus) {
     Cond = ParseCXXCondition(InitStmt, Loc, CK, false);
   } else {
-    ExprResult CondExpr = ParseExpression();
+    
 
     // If required, convert to a boolean value.
-    if (CondExpr.isInvalid())
+    if (ExprResult CondExpr = ParseExpression(); CondExpr.isInvalid())
       Cond = Sema::ConditionError();
     else
       Cond = Actions.ActOnCondition(getCurScope(), Loc, CondExpr.get(), CK,
@@ -1278,10 +1278,10 @@ bool Parser::ParseParenExprOrCondition(StmtResult *InitStmt,
   }
 
   if (Cond.isInvalid()) {
-    ExprResult CondExpr = Actions.CreateRecoveryExpr(
+    
+    if (ExprResult CondExpr = Actions.CreateRecoveryExpr(
         Start, Tok.getLocation() == Start ? Start : PrevTokLocation, {},
-        Actions.PreferredConditionType(CK));
-    if (!CondExpr.isInvalid())
+        Actions.PreferredConditionType(CK)); !CondExpr.isInvalid())
       Cond = Actions.ActOnCondition(getCurScope(), Loc, CondExpr.get(), CK,
                                     /*MissingOK=*/false);
   }
@@ -1985,8 +1985,8 @@ StmtResult Parser::ParseForStatement(SourceLocation *TrailingElseLoc,
       Diag(Tok, diag::warn_gcc_variable_decl_in_for_loop);
     }
     DeclGroupPtrTy DG;
-    SourceLocation DeclStart = Tok.getLocation(), DeclEnd;
-    if (!getLangOpts().CPlusPlus &&
+    
+    if (SourceLocation DeclStart = Tok.getLocation(), DeclEnd; !getLangOpts().CPlusPlus &&
         Tok.isOneOf(tok::kw_static_assert, tok::kw__Static_assert)) {
       ProhibitAttributes(attrs);
       Decl *D = ParseStaticAssertDeclaration(DeclEnd);
@@ -2120,12 +2120,12 @@ StmtResult Parser::ParseForStatement(SourceLocation *TrailingElseLoc,
         }
 
         if (SecondPart.isInvalid()) {
-          ExprResult CondExpr = Actions.CreateRecoveryExpr(
+          
+          if (ExprResult CondExpr = Actions.CreateRecoveryExpr(
               SecondPartStart,
               Tok.getLocation() == SecondPartStart ? SecondPartStart
                                                    : PrevTokLocation,
-              {}, Actions.PreferredConditionType(CK));
-          if (!CondExpr.isInvalid())
+              {}, Actions.PreferredConditionType(CK)); !CondExpr.isInvalid())
             SecondPart = Actions.ActOnCondition(getCurScope(), ForLoc,
                                                 CondExpr.get(), CK,
                                                 /*MissingOK=*/false);
@@ -2135,8 +2135,8 @@ StmtResult Parser::ParseForStatement(SourceLocation *TrailingElseLoc,
         // We permit 'continue' and 'break' in the condition of a for loop.
         getCurScope()->AddFlags(Scope::BreakScope | Scope::ContinueScope);
 
-        ExprResult SecondExpr = ParseExpression();
-        if (SecondExpr.isInvalid())
+        
+        if (ExprResult SecondExpr = ParseExpression(); SecondExpr.isInvalid())
           SecondPart = Sema::ConditionError();
         else
           SecondPart = Actions.ActOnCondition(
@@ -2562,8 +2562,8 @@ StmtResult Parser::ParseCXXTryBlockCommon(SourceLocation TryLoc, bool FnTry) {
     if (Tok.isNot(tok::kw_catch))
       return StmtError(Diag(Tok, diag::err_expected_catch));
     while (Tok.is(tok::kw_catch)) {
-      StmtResult Handler(ParseCXXCatchBlock(FnTry));
-      if (!Handler.isInvalid())
+      
+      if (StmtResult Handler(ParseCXXCatchBlock(FnTry)); !Handler.isInvalid())
         Handlers.push_back(Handler.get());
     }
     // Don't bother creating the full statement if we don't have any usable
@@ -2674,9 +2674,9 @@ void Parser::ParseMicrosoftIfExistsStatement(StmtVector &Stmts) {
 
   // Condition is true, parse the statements.
   while (Tok.isNot(tok::r_brace)) {
-    StmtResult R =
-        ParseStatementOrDeclaration(Stmts, ParsedStmtContext::Compound);
-    if (R.isUsable())
+    
+    if (StmtResult R =
+        ParseStatementOrDeclaration(Stmts, ParsedStmtContext::Compound); R.isUsable())
       Stmts.push_back(R.get());
   }
   Braces.consumeClose();

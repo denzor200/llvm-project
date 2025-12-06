@@ -60,8 +60,8 @@ std::string PDBSymbolCompiland::getSourceFileFullPath() const {
         }
       }
       if (!EnvWorkingDir.empty() && !EnvSrc.empty()) {
-        auto Len = EnvWorkingDir.length();
-        if (EnvWorkingDir[Len - 1] != '/' && EnvWorkingDir[Len - 1] != '\\') {
+        
+        if (auto Len = EnvWorkingDir.length(); EnvWorkingDir[Len - 1] != '/' && EnvWorkingDir[Len - 1] != '\\') {
           std::string Path = EnvWorkingDir + "\\" + EnvSrc;
           llvm::replace(Path, '/', '\\');
           // We will return it as full path if we can't find a better one.
@@ -77,9 +77,9 @@ std::string PDBSymbolCompiland::getSourceFileFullPath() const {
       return RecordedResult;
 
     // This searches name that has same basename as the one in RecordedResult.
-    auto OneSrcFile = Session.findOneSourceFile(
-        this, RecordedResult, PDB_NameSearchFlags::NS_CaseInsensitive);
-    if (OneSrcFile)
+    
+    if (auto OneSrcFile = Session.findOneSourceFile(
+        this, RecordedResult, PDB_NameSearchFlags::NS_CaseInsensitive); OneSrcFile)
       return OneSrcFile->getFileName();
   }
 
@@ -92,8 +92,8 @@ std::string PDBSymbolCompiland::getSourceFileFullPath() const {
   if (SrcFiles) {
     while (auto File = SrcFiles->getNext()) {
       std::string FileName = File->getFileName();
-      auto file_extension = sys::path::extension(FileName);
-      if (StringSwitch<bool>(file_extension.lower())
+      
+      if (auto file_extension = sys::path::extension(FileName); StringSwitch<bool>(file_extension.lower())
               .Case(".cpp", Lang == PDB_Lang::Cpp)
               .Case(".cc", Lang == PDB_Lang::Cpp)
               .Case(".cxx", Lang == PDB_Lang::Cpp)

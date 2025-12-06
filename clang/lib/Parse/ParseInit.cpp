@@ -241,11 +241,11 @@ ExprResult Parser::ParseInitializerWithPotentialDesignator(
     } else if (getLangOpts().ObjC && Tok.is(tok::identifier)) {
       IdentifierInfo *II = Tok.getIdentifierInfo();
       SourceLocation IILoc = Tok.getLocation();
-      ParsedType ReceiverType;
+      
       // Three cases. This is a message send to a type: [type foo]
       // This is a message send to super:  [super foo]
       // This is a message sent to an expr:  [super.bar foo]
-      switch (Actions.ObjC().getObjCMessageKind(
+      switch (ParsedType ReceiverType; Actions.ObjC().getObjCMessageKind(
           getCurScope(), II, IILoc, II == Ident_super,
           NextToken().is(tok::period), ReceiverType)) {
       case SemaObjC::ObjCSuperMessage:

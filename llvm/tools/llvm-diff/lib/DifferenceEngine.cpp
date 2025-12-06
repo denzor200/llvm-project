@@ -65,8 +65,8 @@ public:
     assert(!empty());
     T tmp = Storage[0];
     
-    unsigned NewSize = Storage.size() - 1;
-    if (NewSize) {
+    
+    if (unsigned NewSize = Storage.size() - 1; NewSize) {
       // Move the slot at the end to the beginning.
       if (std::is_trivially_copyable<T>::value)
         Storage[0] = Storage[NewSize];
@@ -283,8 +283,8 @@ class FunctionDifferenceEngine {
 
       // Check assumptions
       for (const auto &[L, R] : BDC.EquivalenceAssumptions) {
-        auto It = Values.find(L);
-        if (It == Values.end() || It->second != R) {
+        
+        if (auto It = Values.find(L); It == Values.end() || It->second != R) {
           BDC.KnownToDiffer = true;
           break;
         }
@@ -506,8 +506,8 @@ class FunctionDifferenceEngine {
 
       for (auto Case : RI->cases()) {
         const ConstantInt *CaseValue = Case.getCaseValue();
-        const BasicBlock *LCase = LCases[CaseValue];
-        if (LCase) {
+        
+        if (const BasicBlock *LCase = LCases[CaseValue]; LCase) {
           if (TryUnify)
             tryUnify(LCase, Case.getCaseSuccessor());
           LCases.erase(CaseValue);
@@ -537,8 +537,8 @@ class FunctionDifferenceEngine {
     }
 
     for (unsigned I = 0, E = L->getNumOperands(); I != E; ++I) {
-      Value *LO = L->getOperand(I), *RO = R->getOperand(I);
-      if (!equivalentAsOperands(LO, RO, AC)) {
+      
+      if (Value *LO = L->getOperand(I), *RO = R->getOperand(I); !equivalentAsOperands(LO, RO, AC)) {
         if (Complain) Engine.logf("operands %l and %r differ") << LO << RO;
         return true;
       }
@@ -615,12 +615,12 @@ public:
       const ConstantStruct *CSR = cast<ConstantStruct>(R);
 
       const StructType *LTy = cast<StructType>(CSL->getType());
-      const StructType *RTy = cast<StructType>(CSR->getType());
+      
 
       // The StructTypes should have the same attributes. Don't use
       // isLayoutIdentical(), because that just checks the element pointers,
       // which may not work here.
-      if (LTy->getNumElements() != RTy->getNumElements() ||
+      if (const StructType *RTy = cast<StructType>(CSR->getType()); LTy->getNumElements() != RTy->getNumElements() ||
           LTy->isPacked() != RTy->isPacked())
         return false;
 
@@ -909,8 +909,8 @@ void FunctionDifferenceEngine::runBlockDiff(BasicBlock::const_iterator LStart,
   // other is an unconditional branch immediately following a call, unify
   // the results and the destinations.
   const Instruction *LTerm = LStart->getParent()->getTerminator();
-  const Instruction *RTerm = RStart->getParent()->getTerminator();
-  if (isa<BranchInst>(LTerm) && isa<InvokeInst>(RTerm)) {
+  
+  if (const Instruction *RTerm = RStart->getParent()->getTerminator(); isa<BranchInst>(LTerm) && isa<InvokeInst>(RTerm)) {
     if (cast<BranchInst>(LTerm)->isConditional()) return;
     BasicBlock::const_iterator I = LTerm->getIterator();
     if (I == LStart->getParent()->begin()) return;
@@ -1018,8 +1018,8 @@ bool DifferenceEngine::equivalentAsOperands(const GlobalValue *L,
 
   if (isa<GlobalVariable>(L) && isa<GlobalVariable>(R)) {
     const GlobalVariable *GVL = cast<GlobalVariable>(L);
-    const GlobalVariable *GVR = cast<GlobalVariable>(R);
-    if (GVL->hasLocalLinkage() && GVL->hasUniqueInitializer() &&
+    
+    if (const GlobalVariable *GVR = cast<GlobalVariable>(R); GVL->hasLocalLinkage() && GVL->hasUniqueInitializer() &&
         GVR->hasLocalLinkage() && GVR->hasUniqueInitializer())
       return FunctionDifferenceEngine(*this, GVL, GVR)
           .equivalentAsOperands(GVL->getInitializer(), GVR->getInitializer(),

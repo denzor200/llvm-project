@@ -58,11 +58,11 @@ ExpressionParser::RunStaticInitializers(IRExecutionUnitSP &execution_unit_sp,
         llvm::ArrayRef<addr_t>(), options));
 
     DiagnosticManager execution_errors;
-    ExpressionResults results =
-        exe_ctx.GetThreadRef().GetProcess()->RunThreadPlan(
-            exe_ctx, call_static_initializer, options, execution_errors);
+    
 
-    if (results != eExpressionCompleted) {
+    if (ExpressionResults results =
+        exe_ctx.GetThreadRef().GetProcess()->RunThreadPlan(
+            exe_ctx, call_static_initializer, options, execution_errors); results != eExpressionCompleted) {
       err = Status::FromError(execution_errors.GetAsError(
           lldb::eExpressionSetupError, "couldn't run static initializer:"));
       return err;

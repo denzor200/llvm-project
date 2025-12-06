@@ -128,8 +128,8 @@ public:
   BitVector &getPreservedRegUnits(const MachineOperand &RegMaskOp,
                                   const TargetRegisterInfo &TRI) {
     const uint32_t *RegMask = RegMaskOp.getRegMask();
-    auto [It, Inserted] = RegMaskToPreservedRegUnits.try_emplace(RegMask);
-    if (!Inserted) {
+    
+    if (auto [It, Inserted] = RegMaskToPreservedRegUnits.try_emplace(RegMask); !Inserted) {
       return It->second;
     } else {
       BitVector &PreservedRegUnits = It->second;
@@ -151,8 +151,8 @@ public:
     for (MCRegister Reg : Regs) {
       // Source of copy is no longer available for propagation.
       for (MCRegUnit Unit : TRI.regunits(Reg)) {
-        auto CI = Copies.find(Unit);
-        if (CI != Copies.end())
+        
+        if (auto CI = Copies.find(Unit); CI != Copies.end())
           CI->second.Avail = false;
       }
     }
@@ -178,8 +178,8 @@ public:
     };
 
     for (MCRegUnit Unit : TRI.regunits(Reg)) {
-      auto I = Copies.find(Unit);
-      if (I != Copies.end()) {
+      
+      if (auto I = Copies.find(Unit); I != Copies.end()) {
         if (MachineInstr *MI = I->second.MI)
           InvalidateCopy(MI);
         if (MachineInstr *MI = I->second.LastSeenUseInCopy)
@@ -193,8 +193,8 @@ public:
   /// Clobber a single register unit, removing it from the tracker's copy maps.
   void clobberRegUnit(MCRegUnit Unit, const TargetRegisterInfo &TRI,
                       const TargetInstrInfo &TII, bool UseCopyInstr) {
-    auto I = Copies.find(Unit);
-    if (I != Copies.end()) {
+    
+    if (auto I = Copies.find(Unit); I != Copies.end()) {
       // When we clobber the source of a copy, we need to clobber everything
       // it defined.
       markRegsUnavailable(I->second.DefRegs, TRI);
@@ -222,8 +222,8 @@ public:
         // L4: early-clobber r9 <- Clobber r9 (L2 is still valid in tracker)
         // L5: r0 = COPY r8     <- Remove NopCopy
         for (MCRegUnit SrcUnit : TRI.regunits(Src)) {
-          auto SrcCopy = Copies.find(SrcUnit);
-          if (SrcCopy != Copies.end() && SrcCopy->second.LastSeenUseInCopy) {
+          
+          if (auto SrcCopy = Copies.find(SrcUnit); SrcCopy != Copies.end() && SrcCopy->second.LastSeenUseInCopy) {
             // If SrcCopy defines multiple values, we only need
             // to erase the record for Def in DefRegs.
             for (auto itr = SrcCopy->second.DefRegs.begin();
@@ -553,8 +553,8 @@ void MachineCopyPropagation::readSuccessorLiveIns(
   for (const MachineBasicBlock *Succ : MBB.successors()) {
     for (const auto &LI : Succ->liveins()) {
       for (MCRegUnitMaskIterator U(LI.PhysReg, TRI); U.isValid(); ++U) {
-        auto [Unit, Mask] = *U;
-        if ((Mask & LI.LaneMask).any()) {
+        
+        if (auto [Unit, Mask] = *U; (Mask & LI.LaneMask).any()) {
           if (MachineInstr *Copy = Tracker.findCopyForUnit(Unit, *TRI))
             MaybeDeadCopies.remove(Copy);
         }
@@ -884,13 +884,13 @@ void MachineCopyPropagation::ForwardCopyPropagateBlock(MachineBasicBlock &MBB) {
         isCopyInstr(MI, *TII, UseCopyInstr);
     if (CopyOperands) {
       Register RegSrc = CopyOperands->Source->getReg();
-      Register RegDef = CopyOperands->Destination->getReg();
-      if (!TRI->regsOverlap(RegDef, RegSrc)) {
+      
+      if (Register RegDef = CopyOperands->Destination->getReg(); !TRI->regsOverlap(RegDef, RegSrc)) {
         assert(RegDef.isPhysical() && RegSrc.isPhysical() &&
               "MachineCopyPropagation should be run after register allocation!");
 
         MCRegister Def = RegDef.asMCReg();
-        MCRegister Src = RegSrc.asMCReg();
+        
 
         // The two copies cancel out and the source of the first copy
         // hasn't been overridden, eliminate the second one. e.g.
@@ -907,7 +907,7 @@ void MachineCopyPropagation::ForwardCopyPropagateBlock(MachineBasicBlock &MBB) {
         //  %ecx = COPY %eax
         // =>
         //  %ecx = COPY %eax
-        if (eraseIfRedundant(MI, Def, Src) || eraseIfRedundant(MI, Src, Def))
+        if (MCRegister Src = RegSrc.asMCReg(); eraseIfRedundant(MI, Def, Src) || eraseIfRedundant(MI, Src, Def))
           continue;
       }
     }
@@ -936,12 +936,12 @@ void MachineCopyPropagation::ForwardCopyPropagateBlock(MachineBasicBlock &MBB) {
     CopyOperands = isCopyInstr(MI, *TII, UseCopyInstr);
     if (CopyOperands) {
       Register RegSrc = CopyOperands->Source->getReg();
-      Register RegDef = CopyOperands->Destination->getReg();
+      
 
-      if (!TRI->regsOverlap(RegDef, RegSrc)) {
+      if (Register RegDef = CopyOperands->Destination->getReg(); !TRI->regsOverlap(RegDef, RegSrc)) {
         // Copy is now a candidate for deletion.
-        MCRegister Def = RegDef.asMCReg();
-        if (!MRI->isReserved(Def))
+        
+        if (MCRegister Def = RegDef.asMCReg(); !MRI->isReserved(Def))
           MaybeDeadCopies.insert(&MI);
       }
     }
@@ -1028,8 +1028,8 @@ void MachineCopyPropagation::ForwardCopyPropagateBlock(MachineBasicBlock &MBB) {
 
     if (CopyOperands) {
       Register RegSrc = CopyOperands->Source->getReg();
-      Register RegDef = CopyOperands->Destination->getReg();
-      if (!TRI->regsOverlap(RegDef, RegSrc)) {
+      
+      if (Register RegDef = CopyOperands->Destination->getReg(); !TRI->regsOverlap(RegDef, RegSrc)) {
         Tracker.trackCopy(&MI, *TRI, *TII, UseCopyInstr);
       }
     }
@@ -1171,9 +1171,9 @@ void MachineCopyPropagation::BackwardCopyPropagateBlock(
         isCopyInstr(MI, *TII, UseCopyInstr);
     if (CopyOperands && MI.getNumImplicitOperands() == 0) {
       Register DefReg = CopyOperands->Destination->getReg();
-      Register SrcReg = CopyOperands->Source->getReg();
+      
 
-      if (!TRI->regsOverlap(DefReg, SrcReg)) {
+      if (Register SrcReg = CopyOperands->Source->getReg(); !TRI->regsOverlap(DefReg, SrcReg)) {
         // Unlike forward cp, we don't invoke propagateDefs here,
         // just let forward cp do COPY-to-COPY propagation.
         if (isBackwardPropagatableCopy(*CopyOperands, *MRI)) {

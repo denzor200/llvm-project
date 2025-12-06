@@ -89,10 +89,10 @@ TEST_F(PipeTest, WriteWithTimeout) {
 
   // Write to the pipe until it is full.
   while (write_bytes + write_chunk_size <= buf_size) {
-    llvm::Expected<size_t> num_bytes =
+    
+    if (llvm::Expected<size_t> num_bytes =
         pipe.Write(write_ptr + write_bytes, write_chunk_size,
-                   std::chrono::milliseconds(10));
-    if (num_bytes) {
+                   std::chrono::milliseconds(10)); num_bytes) {
       write_bytes += *num_bytes;
     } else {
       ASSERT_THAT_ERROR(num_bytes.takeError(), llvm::Failed());

@@ -138,8 +138,8 @@ VEMCCodeEmitter::getBranchTargetOpValue(const MCInst &MI, unsigned OpNo,
 uint64_t VEMCCodeEmitter::getCCOpValue(const MCInst &MI, unsigned OpNo,
                                        SmallVectorImpl<MCFixup> &Fixups,
                                        const MCSubtargetInfo &STI) const {
-  const MCOperand &MO = MI.getOperand(OpNo);
-  if (MO.isImm())
+  
+  if (const MCOperand &MO = MI.getOperand(OpNo); MO.isImm())
     return VECondCodeToVal(
         static_cast<VECC::CondCode>(getMachineOpValue(MI, MO, Fixups, STI)));
   return 0;
@@ -148,8 +148,8 @@ uint64_t VEMCCodeEmitter::getCCOpValue(const MCInst &MI, unsigned OpNo,
 uint64_t VEMCCodeEmitter::getRDOpValue(const MCInst &MI, unsigned OpNo,
                                        SmallVectorImpl<MCFixup> &Fixups,
                                        const MCSubtargetInfo &STI) const {
-  const MCOperand &MO = MI.getOperand(OpNo);
-  if (MO.isImm())
+  
+  if (const MCOperand &MO = MI.getOperand(OpNo); MO.isImm())
     return VERDToVal(static_cast<VERD::RoundingMode>(
         getMachineOpValue(MI, MO, Fixups, STI)));
   return 0;

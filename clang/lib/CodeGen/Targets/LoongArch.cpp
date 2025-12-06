@@ -104,9 +104,9 @@ bool LoongArchABIInfo::detectFARsEligibleStructHelper(
     QualType Ty, CharUnits CurOff, llvm::Type *&Field1Ty, CharUnits &Field1Off,
     llvm::Type *&Field2Ty, CharUnits &Field2Off) const {
   bool IsInt = Ty->isIntegralOrEnumerationType();
-  bool IsFloat = Ty->isRealFloatingType();
+  
 
-  if (IsInt || IsFloat) {
+  if (bool IsFloat = Ty->isRealFloatingType(); IsInt || IsFloat) {
     uint64_t Size = getContext().getTypeSize(Ty);
     if (IsInt && Size > GRLen)
       return false;
@@ -180,8 +180,8 @@ bool LoongArchABIInfo::detectFARsEligibleStructHelper(
     // If this is a C++ record, check the bases first.
     if (const CXXRecordDecl *CXXRD = dyn_cast<CXXRecordDecl>(RD)) {
       for (const CXXBaseSpecifier &B : CXXRD->bases()) {
-        const auto *BDecl = B.getType()->castAsCXXRecordDecl();
-        if (!detectFARsEligibleStructHelper(
+        
+        if (const auto *BDecl = B.getType()->castAsCXXRecordDecl(); !detectFARsEligibleStructHelper(
                 B.getType(), CurOff + Layout.getBaseClassOffset(BDecl),
                 Field1Ty, Field1Off, Field2Ty, Field2Off))
           return false;
@@ -326,8 +326,8 @@ ABIArgInfo LoongArchABIInfo::classifyArgumentType(QualType Ty, bool IsFixed,
   // Complex types for the *f or *d ABI must be passed directly rather than
   // using CoerceAndExpand.
   if (IsFixed && Ty->isComplexType() && FRLen && FARsLeft >= 2) {
-    QualType EltTy = Ty->castAs<ComplexType>()->getElementType();
-    if (getContext().getTypeSize(EltTy) <= FRLen) {
+    
+    if (QualType EltTy = Ty->castAs<ComplexType>()->getElementType(); getContext().getTypeSize(EltTy) <= FRLen) {
       FARsLeft -= 2;
       return ABIArgInfo::getDirect();
     }
@@ -340,9 +340,9 @@ ABIArgInfo LoongArchABIInfo::classifyArgumentType(QualType Ty, bool IsFixed,
     CharUnits Field2Off = CharUnits::Zero();
     int NeededGARs = 0;
     int NeededFARs = 0;
-    bool IsCandidate = detectFARsEligibleStruct(
-        Ty, Field1Ty, Field1Off, Field2Ty, Field2Off, NeededGARs, NeededFARs);
-    if (IsCandidate && NeededGARs <= GARsLeft && NeededFARs <= FARsLeft) {
+    
+    if (bool IsCandidate = detectFARsEligibleStruct(
+        Ty, Field1Ty, Field1Off, Field2Ty, Field2Off, NeededGARs, NeededFARs); IsCandidate && NeededGARs <= GARsLeft && NeededFARs <= FARsLeft) {
       GARsLeft -= NeededGARs;
       FARsLeft -= NeededFARs;
       return coerceAndExpandFARsEligibleStruct(Field1Ty, Field1Off, Field2Ty,
@@ -438,9 +438,9 @@ RValue LoongArchABIInfo::EmitVAArg(CodeGenFunction &CGF, Address VAListAddr,
 }
 
 ABIArgInfo LoongArchABIInfo::extendType(QualType Ty) const {
-  int TySize = getContext().getTypeSize(Ty);
+  
   // LA64 ABI requires unsigned 32 bit integers to be sign extended.
-  if (GRLen == 64 && Ty->isUnsignedIntegerOrEnumerationType() && TySize == 32)
+  if (int TySize = getContext().getTypeSize(Ty); GRLen == 64 && Ty->isUnsignedIntegerOrEnumerationType() && TySize == 32)
     return ABIArgInfo::getSignExtend(Ty);
   return ABIArgInfo::getExtend(Ty);
 }

@@ -46,19 +46,19 @@ ABI::~ABI() = default;
 bool RegInfoBasedABI::GetRegisterInfoByName(llvm::StringRef name,
                                             RegisterInfo &info) {
   uint32_t count = 0;
-  const RegisterInfo *register_info_array = GetRegisterInfoArray(count);
-  if (register_info_array) {
+  
+  if (const RegisterInfo *register_info_array = GetRegisterInfoArray(count); register_info_array) {
     uint32_t i;
     for (i = 0; i < count; ++i) {
-      const char *reg_name = register_info_array[i].name;
-      if (reg_name == name) {
+      
+      if (const char *reg_name = register_info_array[i].name; reg_name == name) {
         info = register_info_array[i];
         return true;
       }
     }
     for (i = 0; i < count; ++i) {
-      const char *reg_alt_name = register_info_array[i].alt_name;
-      if (reg_alt_name == name) {
+      
+      if (const char *reg_alt_name = register_info_array[i].alt_name; reg_alt_name == name) {
         info = register_info_array[i];
         return true;
       }
@@ -118,9 +118,9 @@ ValueObjectSP ABI::GetReturnValueObject(Thread &thread, CompilerType &ast_type,
 
     // Set flags and live data as appropriate
 
-    const Value &result_value = live_valobj_sp->GetValue();
+    
 
-    switch (result_value.GetValueType()) {
+    switch (const Value &result_value = live_valobj_sp->GetValue(); result_value.GetValueType()) {
     case Value::ValueType::Invalid:
       return {};
     case Value::ValueType::HostAddress:

@@ -38,9 +38,9 @@ ClangTidyCheckFactories::createChecksForLanguage(
   for (const auto &Factory : Factories) {
     if (!Context->isCheckEnabled(Factory.getKey()))
       continue;
-    std::unique_ptr<ClangTidyCheck> Check =
-        Factory.getValue()(Factory.getKey(), Context);
-    if (Check->isLanguageVersionSupported(LO))
+    
+    if (std::unique_ptr<ClangTidyCheck> Check =
+        Factory.getValue()(Factory.getKey(), Context); Check->isLanguageVersionSupported(LO))
       Checks.push_back(std::move(Check));
   }
   return Checks;

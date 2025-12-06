@@ -25,9 +25,9 @@ TestOptions parseOptions(int argc, char **argv) {
   TestOptions Options;
 
   for (int i = 1; i < argc; ++i) {
-    string_view arg{argv[i]};
+    
 
-    if (arg == "--gtest_color=no")
+    if (string_view arg{argv[i]}; arg == "--gtest_color=no")
       Options.PrintColor = false;
     else if (arg == "--gtest_print_time")
       Options.TimeInMs = true;

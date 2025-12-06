@@ -256,23 +256,23 @@ void TransferFunctions::Visit(Stmt *S) {
     }
     case Stmt::CXXMemberCallExprClass: {
       // Include the implicit "this" pointer as being live.
-      CXXMemberCallExpr *CE = cast<CXXMemberCallExpr>(S);
-      if (Expr *ImplicitObj = CE->getImplicitObjectArgument()) {
+      
+      if (CXXMemberCallExpr *CE = cast<CXXMemberCallExpr>(S); Expr *ImplicitObj = CE->getImplicitObjectArgument()) {
         AddLiveExpr(val.liveExprs, LV.ESetFact, ImplicitObj);
       }
       break;
     }
     case Stmt::ObjCMessageExprClass: {
       // In calls to super, include the implicit "self" pointer as being live.
-      ObjCMessageExpr *CE = cast<ObjCMessageExpr>(S);
-      if (CE->getReceiverKind() == ObjCMessageExpr::SuperInstance)
+      
+      if (ObjCMessageExpr *CE = cast<ObjCMessageExpr>(S); CE->getReceiverKind() == ObjCMessageExpr::SuperInstance)
         val.liveDecls = LV.DSetFact.add(val.liveDecls,
                                         LV.analysisContext.getSelfDecl());
       break;
     }
     case Stmt::DeclStmtClass: {
-      const DeclStmt *DS = cast<DeclStmt>(S);
-      if (const VarDecl *VD = dyn_cast<VarDecl>(DS->getSingleDecl())) {
+      
+      if (const DeclStmt *DS = cast<DeclStmt>(S); const VarDecl *VD = dyn_cast<VarDecl>(DS->getSingleDecl())) {
         for (const VariableArrayType* VA = FindVA(VD->getType());
              VA != nullptr; VA = FindVA(VA->getElementType())) {
           AddLiveExpr(val.liveExprs, LV.ESetFact, VA->getSizeExpr());
@@ -381,13 +381,13 @@ void TransferFunctions::VisitBinaryOperator(BinaryOperator *B) {
       return;
 
     // Assigning to a variable?
-    Expr *LHS = B->getLHS()->IgnoreParens();
+    
 
-    if (DeclRefExpr *DR = dyn_cast<DeclRefExpr>(LHS)) {
+    if (Expr *LHS = B->getLHS()->IgnoreParens(); DeclRefExpr *DR = dyn_cast<DeclRefExpr>(LHS)) {
       const Decl* D = DR->getDecl();
-      bool Killed = false;
+      
 
-      if (const BindingDecl* BD = dyn_cast<BindingDecl>(D)) {
+      if (bool Killed = false; const BindingDecl* BD = dyn_cast<BindingDecl>(D)) {
         Killed = !BD->getType()->isReferenceType();
         if (Killed) {
           if (const auto *HV = BD->getHoldingVar())
@@ -415,8 +415,8 @@ void TransferFunctions::VisitBlockExpr(BlockExpr *BE) {
 
 void TransferFunctions::VisitDeclRefExpr(DeclRefExpr *DR) {
   const Decl* D = DR->getDecl();
-  bool InAssignment = LV.inAssignment.contains(DR);
-  if (const auto *BD = dyn_cast<BindingDecl>(D)) {
+  
+  if (bool InAssignment = LV.inAssignment.contains(DR); const auto *BD = dyn_cast<BindingDecl>(D)) {
     if (!InAssignment) {
       if (const auto *HV = BD->getHoldingVar())
         val.liveDecls = LV.DSetFact.add(val.liveDecls, HV);
@@ -454,8 +454,8 @@ void TransferFunctions::VisitObjCForCollectionStmt(ObjCForCollectionStmt *OS) {
   DeclRefExpr *DR = nullptr;
   const VarDecl *VD = nullptr;
 
-  Stmt *element = OS->getElement();
-  if (DeclStmt *DS = dyn_cast<DeclStmt>(element)) {
+  
+  if (Stmt *element = OS->getElement(); DeclStmt *DS = dyn_cast<DeclStmt>(element)) {
     VD = cast<VarDecl>(DS->getSingleDecl());
   }
   else if ((DR = dyn_cast<DeclRefExpr>(cast<Expr>(element)->IgnoreParens()))) {
@@ -476,8 +476,8 @@ VisitUnaryExprOrTypeTraitExpr(UnaryExprOrTypeTraitExpr *UE)
   if (UE->getKind() != UETT_SizeOf || UE->isArgumentType())
     return;
 
-  const Expr *subEx = UE->getArgumentExpr();
-  if (subEx->getType()->isVariableArrayType()) {
+  
+  if (const Expr *subEx = UE->getArgumentExpr(); subEx->getType()->isVariableArrayType()) {
     assert(subEx->isLValue());
     val.liveExprs = LV.ESetFact.add(val.liveExprs, subEx->IgnoreParens());
   }

@@ -357,8 +357,8 @@ struct SampleProfTest : ::testing::Test {
     FunctionType *FnType =
         FunctionType::get(Type::getVoidTy(Context), {}, false);
     auto Inserted = M->getOrInsertFunction(Fname, FnType);
-    auto Fcn = cast<Function>(Inserted.getCallee());
-    if (Policy != "")
+    
+    if (auto Fcn = cast<Function>(Inserted.getCallee()); Policy != "")
       Fcn->addFnAttr("sample-profile-suffix-elision-policy", Policy);
   }
 
@@ -390,8 +390,8 @@ struct SampleProfTest : ::testing::Test {
 
     for (auto I = Expected.begin(); I != Expected.end(); ++I) {
       uint64_t Esamples = uint64_t(-1);
-      FunctionSamples *Samples = Reader->getSamplesFor(I->getKey());
-      if (Samples != nullptr)
+      
+      if (FunctionSamples *Samples = Reader->getSamplesFor(I->getKey()); Samples != nullptr)
         Esamples = Samples->getTotalSamples();
       ASSERT_EQ(I->getValue(), Esamples);
     }

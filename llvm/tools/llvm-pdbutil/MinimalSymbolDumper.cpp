@@ -409,8 +409,8 @@ std::string MinimalSymbolDumper::typeOrIdIndex(codeview::TypeIndex TI,
   if (TI.isSimple() || TI.isDecoratedItemId())
     return formatv("{0}", TI).str();
   auto &Container = IsType ? Types : Ids;
-  StringRef Name = Container.getTypeName(TI);
-  if (Name.size() > 32) {
+  
+  if (StringRef Name = Container.getTypeName(TI); Name.size() > 32) {
     Name = Name.take_front(32);
     return std::string(formatv("{0} ({1}...)", TI, Name));
   } else
@@ -730,14 +730,14 @@ Error MinimalSymbolDumper::visitKnownRecord(CVSymbol &CVR, InlineSiteSym &IS) {
       P.format(" code end 0x{0} (+0x{1})", utohexstr(CodeOffset + Length),
                utohexstr(Length));
     };
-    auto formatLineOffset = [&](int32_t Delta) {
+    
+
+    // Use the opcode to interpret the integer values.
+    switch (auto formatLineOffset = [&](int32_t Delta) {
       LineOffset += Delta;
       char Sign = Delta > 0 ? '+' : '-';
       P.format(" line {0} ({1}{2})", LineOffset, Sign, std::abs(Delta));
-    };
-
-    // Use the opcode to interpret the integer values.
-    switch (Annot.OpCode) {
+    }; Annot.OpCode) {
     case BinaryAnnotationsOpCode::Invalid:
       break;
     case BinaryAnnotationsOpCode::CodeOffset:

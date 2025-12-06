@@ -301,8 +301,8 @@ void ReaderTestWarningInternal::resolveElements() {
   std::function<void(LVScope * Parent)> TraverseScope = [&](LVScope *Parent) {
     auto Warnings = [&](auto *Entry) {
       if (Entry->getIsLine()) {
-        LVLine *Line = (LVLine *)Entry;
-        if (options().getWarningLines() && Line->getIsLineDebug() &&
+        
+        if (LVLine *Line = (LVLine *)Entry; options().getWarningLines() && Line->getIsLineDebug() &&
             !Line->getLineNumber())
           CompileUnit->addLineZero(Line);
       }

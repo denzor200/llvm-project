@@ -59,8 +59,8 @@ public:
           FirstInstr = &MI;
         if (MI.isCall()) {
           if (DILocation *DL = MI.getDebugLoc()) {
-            auto Value = DL->getDiscriminator();
-            if (DILocation::isPseudoProbeDiscriminator(Value)) {
+            
+            if (auto Value = DL->getDiscriminator(); DILocation::isPseudoProbeDiscriminator(Value)) {
               BuildMI(MBB, MI, DL, TII->get(TargetOpcode::PSEUDO_PROBE))
                   .addImm(getFuncGUID(MF.getFunction().getParent(), DL))
                   .addImm(

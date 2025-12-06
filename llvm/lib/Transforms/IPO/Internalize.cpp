@@ -144,8 +144,8 @@ bool InternalizePass::maybeInternalize(
       // nodeduplicate.
       // Note: nodeduplicate is not necessary for COFF. wasm doesn't support
       // nodeduplicate.
-      ComdatInfo &Info = ComdatMap.find(C)->second;
-      if (Info.Size == 1)
+      
+      if (ComdatInfo &Info = ComdatMap.find(C)->second; Info.Size == 1)
         GO->setComdat(nullptr);
       else if (!IsWasm)
         C->setSelectionKind(Comdat::NoDeduplicate);

@@ -70,7 +70,8 @@ static ParseResult parseCreateOperationOpAttributes(
   Builder &builder = p.getBuilder();
   SmallVector<Attribute, 4> attrNames;
   if (succeeded(p.parseOptionalLBrace())) {
-    auto parseOperands = [&]() {
+    
+    if (auto parseOperands = [&]() {
       StringAttr nameAttr;
       OpAsmParser::UnresolvedOperand operand;
       if (p.parseAttribute(nameAttr) || p.parseEqual() ||
@@ -79,8 +80,7 @@ static ParseResult parseCreateOperationOpAttributes(
       attrNames.push_back(nameAttr);
       attrOperands.push_back(operand);
       return success();
-    };
-    if (p.parseCommaSeparatedList(parseOperands) || p.parseRBrace())
+    }; p.parseCommaSeparatedList(parseOperands) || p.parseRBrace())
       return failure();
   }
   attrNamesAttr = builder.getArrayAttr(attrNames);
@@ -266,8 +266,8 @@ static void printRangeType(OpAsmPrinter &p, CreateRangeOp op,
 LogicalResult CreateRangeOp::verify() {
   Type elementType = getType().getElementType();
   for (Type operandType : getOperandTypes()) {
-    Type operandElementType = pdl::getRangeElementTypeOrSelf(operandType);
-    if (operandElementType != elementType) {
+    
+    if (Type operandElementType = pdl::getRangeElementTypeOrSelf(operandType); operandElementType != elementType) {
       return emitOpError("expected operand to have element type ")
              << elementType << ", but got " << operandElementType;
     }

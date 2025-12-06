@@ -218,8 +218,8 @@ public:
         os << "Value stored to '" << *V
            << "' during its initialization is never read";
 
-        ASTContext &ACtx = V->getASTContext();
-        if (Checker->ShowFixIts) {
+        
+        if (ASTContext &ACtx = V->getASTContext(); Checker->ShowFixIts) {
           if (V->getInit()->HasSideEffects(ACtx,
                                            /*IncludePossibleEffects=*/true)) {
             break;

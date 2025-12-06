@@ -292,8 +292,8 @@ bool lldb_private::formatters::NSSetSummaryProvider(
     value = cfbh.GetCount();
   } else {
     auto &map(NSSet_Additionals::GetAdditionalSummaries());
-    auto iter = map.find(class_name), end = map.end();
-    if (iter != end)
+    
+    if (auto iter = map.find(class_name), end = map.end(); iter != end)
       return iter->second(valobj, stream, options);
     else
       return false;
@@ -349,9 +349,9 @@ lldb_private::formatters::NSSetSyntheticFrontEndCreator(
   if (class_name == g_SetI || class_name == g_OrderedSetI) {
     return (new NSSetISyntheticFrontEnd(valobj_sp));
   } else if (class_name == g_SetM) {
-    AppleObjCRuntime *apple_runtime =
-        llvm::dyn_cast_or_null<AppleObjCRuntime>(runtime);
-    if (apple_runtime) {
+    
+    if (AppleObjCRuntime *apple_runtime =
+        llvm::dyn_cast_or_null<AppleObjCRuntime>(runtime); apple_runtime) {
       if (apple_runtime->GetFoundationVersion() >= 1437)
         return (new Foundation1437::NSSetMSyntheticFrontEnd(valobj_sp));
       else if (apple_runtime->GetFoundationVersion() >= 1428)

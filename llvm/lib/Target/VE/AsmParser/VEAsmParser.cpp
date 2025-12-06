@@ -777,9 +777,9 @@ bool VEAsmParser::matchAndEmitInstruction(SMLoc IDLoc, unsigned &Opcode,
                                           MCStreamer &Out, uint64_t &ErrorInfo,
                                           bool MatchingInlineAsm) {
   MCInst Inst;
-  unsigned MatchResult =
-      MatchInstructionImpl(Operands, Inst, ErrorInfo, MatchingInlineAsm);
-  switch (MatchResult) {
+  
+  switch (unsigned MatchResult =
+      MatchInstructionImpl(Operands, Inst, ErrorInfo, MatchingInlineAsm); MatchResult) {
   case Match_Success:
     Inst.setLoc(IDLoc);
     Out.emitInstruction(Inst, getSTI());
@@ -868,11 +868,11 @@ static StringRef parseCC(StringRef Name, unsigned Prefix, unsigned Suffix,
   // Parse instructions with a conditional code. For example, 'bne' is
   // converted into two operands 'b' and 'ne'.
   StringRef Cond = Name.slice(Prefix, Suffix);
-  VECC::CondCode CondCode =
-      IntegerCC ? stringToVEICondCode(Cond) : stringToVEFCondCode(Cond);
+  
 
   // If OmitCC is enabled, CC_AT and CC_AF is treated as a part of mnemonic.
-  if (CondCode != VECC::UNKNOWN &&
+  if (VECC::CondCode CondCode =
+      IntegerCC ? stringToVEICondCode(Cond) : stringToVEFCondCode(Cond); CondCode != VECC::UNKNOWN &&
       (!OmitCC || (CondCode != VECC::CC_AT && CondCode != VECC::CC_AF))) {
     StringRef SuffixStr = Name.substr(Suffix);
     // Push "b".
@@ -896,9 +896,9 @@ static StringRef parseRD(StringRef Name, unsigned Prefix, SMLoc NameLoc,
   // Parse instructions with a conditional code. For example, 'cvt.w.d.sx.rz'
   // is converted into two operands 'cvt.w.d.sx' and '.rz'.
   StringRef RD = Name.substr(Prefix);
-  VERD::RoundingMode RoundingMode = stringToVERD(RD);
+  
 
-  if (RoundingMode != VERD::UNKNOWN) {
+  if (VERD::RoundingMode RoundingMode = stringToVERD(RD); RoundingMode != VERD::UNKNOWN) {
     Name = Name.slice(0, Prefix);
     // push 1st like `cvt.w.d.sx`
     Operands->push_back(VEOperand::CreateToken(Name, NameLoc));
@@ -1172,8 +1172,8 @@ bool VEAsmParser::parseExpression(const MCExpr *&EVal) {
 
   // Convert MCSymbolRefExpr with specifier to MCSpecifierExpr.
   VE::Specifier Specifier;
-  const MCExpr *E = extractSpecifier(EVal, Specifier);
-  if (E)
+  
+  if (const MCExpr *E = extractSpecifier(EVal, Specifier); E)
     EVal = MCSpecifierExpr::create(E, Specifier, getParser().getContext());
 
   return false;
@@ -1537,12 +1537,12 @@ extern "C" LLVM_ABI LLVM_EXTERNAL_VISIBILITY void LLVMInitializeVEAsmParser() {
 
 unsigned VEAsmParser::validateTargetOperandClass(MCParsedAsmOperand &GOp,
                                                  unsigned Kind) {
-  VEOperand &Op = (VEOperand &)GOp;
+  
 
   // VE uses identical register name for all registers like both
   // F32 and I32 uses "%s23".  Need to convert the name of them
   // for validation.
-  switch (Kind) {
+  switch (VEOperand &Op = (VEOperand &)GOp; Kind) {
   default:
     break;
   case MCK_F32:

@@ -172,11 +172,11 @@ commonLinearIdBuilderFn(int64_t multiplicity = 1,
       predicateOps.push_back(isActiveIdPredicate);
     } else {
       // 4.b. Otherwise, handle predicates using physicalLinearId.
-      FailureOr<SmallVector<Value>> maybePredicateOps =
+      
+      if (FailureOr<SmallVector<Value>> maybePredicateOps =
           buildPredicates(rewriter, loc, physicalLinearId,
                           computeProduct(forallMappingSizes) * multiplicity,
-                          computeProduct(originalBasis), errorMsg);
-      if (succeeded(maybePredicateOps))
+                          computeProduct(originalBasis), errorMsg); succeeded(maybePredicateOps))
         predicateOps = *maybePredicateOps;
     }
 

@@ -328,8 +328,8 @@ static void convertFunctionLineTable(OutputAggregator &Out, CUInfo &CUI,
     // for DWARF64.
     const uint64_t InvalidOffset =
         Die.getDwarfUnit()->getFormParams().getDwarfMaxOffset();
-    uint64_t StmtSeqVal = dwarf::toSectionOffset(StmtSeqAttr, InvalidOffset);
-    if (StmtSeqVal != InvalidOffset)
+    
+    if (uint64_t StmtSeqVal = dwarf::toSectionOffset(StmtSeqAttr, InvalidOffset); StmtSeqVal != InvalidOffset)
       StmtSeqOffset = StmtSeqVal;
   }
 
@@ -642,8 +642,8 @@ Error DwarfTransformer::convert(uint32_t NumThreads, OutputAggregator &Out) {
       return ReturnDie;
 
     if (DwarfUnit.getDWOId()) {
-      DWARFUnit *DWOCU = DwarfUnit.getNonSkeletonUnitDIE(false).getDwarfUnit();
-      if (!DWOCU->isDWOUnit())
+      
+      if (DWARFUnit *DWOCU = DwarfUnit.getNonSkeletonUnitDIE(false).getDwarfUnit(); !DWOCU->isDWOUnit())
         Out.Report(
             "warning: Unable to retrieve DWO .debug_info section for some "
             "object files. (Remove the --quiet flag for full output)",
@@ -690,8 +690,8 @@ Error DwarfTransformer::convert(uint32_t NumThreads, OutputAggregator &Out) {
     // Now convert all DWARF to GSYM in a thread pool.
     std::mutex LogMutex;
     for (const auto &CU : DICtx.compile_units()) {
-      DWARFDie Die = getDie(*CU);
-      if (Die) {
+      
+      if (DWARFDie Die = getDie(*CU); Die) {
         CUInfo CUI(DICtx, dyn_cast<DWARFCompileUnit>(CU.get()));
         pool.async([this, CUI, &LogMutex, &Out, Die]() mutable {
           std::string storage;
@@ -787,8 +787,8 @@ llvm::Error DwarfTransformer::verify(StringRef GsymPath,
 
       for (size_t Idx = 0, count = LR->Locations.size(); Idx < count;
             ++Idx) {
-        const auto &gii = LR->Locations[Idx];
-        if (Idx < NumDwarfInlineInfos) {
+        
+        if (const auto &gii = LR->Locations[Idx]; Idx < NumDwarfInlineInfos) {
           const auto &dii = DwarfInlineInfos.getFrame(Idx);
           gsymFilename = LR->getSourceFile(Idx);
           // Verify function name

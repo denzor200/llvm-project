@@ -80,8 +80,8 @@ AliasAnalysis::AliasAnalysis(Operation *op) {
 AliasResult AliasAnalysis::alias(Value lhs, Value rhs) {
   // Check each of the alias analysis implemenations for an alias result.
   for (const std::unique_ptr<Concept> &aliasImpl : aliasImpls) {
-    AliasResult result = aliasImpl->alias(lhs, rhs);
-    if (!result.isMay())
+    
+    if (AliasResult result = aliasImpl->alias(lhs, rhs); !result.isMay())
       return result;
   }
   return AliasResult::MayAlias;

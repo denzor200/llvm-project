@@ -39,9 +39,9 @@ bool LoongArch::isValidFeatureName(StringRef Feature) {
   if (Feature.starts_with("+") || Feature.starts_with("-"))
     return false;
   for (const auto &F : AllFeatures) {
-    StringRef CanonicalName =
-        F.Name.starts_with("+") ? F.Name.drop_front() : F.Name;
-    if (CanonicalName == Feature)
+    
+    if (StringRef CanonicalName =
+        F.Name.starts_with("+") ? F.Name.drop_front() : F.Name; CanonicalName == Feature)
       return true;
   }
   return false;

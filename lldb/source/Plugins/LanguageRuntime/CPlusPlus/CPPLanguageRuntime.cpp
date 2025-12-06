@@ -217,9 +217,9 @@ CPPLanguageRuntime::FindLibCppStdFunctionCallableInfo(
   ValueObjectSP member_f_(valobj_sp->GetChildMemberWithName("__f_"));
 
   if (member_f_) {
-    ValueObjectSP sub_member_f_(member_f_->GetChildMemberWithName("__f_"));
+    
 
-    if (sub_member_f_)
+    if (ValueObjectSP sub_member_f_(member_f_->GetChildMemberWithName("__f_")); sub_member_f_)
       member_f_ = sub_member_f_;
   }
 
@@ -381,16 +381,16 @@ CPPLanguageRuntime::FindLibCppStdFunctionCallableInfo(
     return optional_info;
 
   if (vtable_cu && !has_invoke) {
-    lldb::FunctionSP func_sp =
+    
+
+    if (lldb::FunctionSP func_sp =
         vtable_cu->FindFunction([name_to_use](const FunctionSP &f) {
           auto name = f->GetName().GetStringRef();
           if (name.starts_with(name_to_use) && name.contains("operator"))
             return true;
 
           return false;
-        });
-
-    if (func_sp) {
+        }); func_sp) {
       calculate_symbol_context_helper(func_sp, scl);
     }
   }
@@ -457,10 +457,10 @@ CPPLanguageRuntime::GetStepThroughTrampolinePlan(Thread &thread,
   if (frame) {
     ValueObjectSP value_sp = frame->FindVariable(g_this);
 
-    CPPLanguageRuntime::LibCppStdFunctionCallableInfo callable_info =
-        FindLibCppStdFunctionCallableInfo(value_sp);
+    
 
-    if (callable_info.callable_case != LibCppStdFunctionCallableCase::Invalid &&
+    if (CPPLanguageRuntime::LibCppStdFunctionCallableInfo callable_info =
+        FindLibCppStdFunctionCallableInfo(value_sp); callable_info.callable_case != LibCppStdFunctionCallableCase::Invalid &&
         value_sp->GetValueIsValid()) {
       // We found the std::function wrapped callable and we have its address.
       // We now create a ThreadPlan to run to the callable.

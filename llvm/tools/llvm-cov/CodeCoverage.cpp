@@ -285,8 +285,8 @@ CodeCoverageTool::getSourceFile(StringRef SourceFile) {
   // If we've remapped filenames, look up the real location for this file.
   std::unique_lock<std::mutex> Guard{LoadedSourceFilesLock};
   if (!RemappedFilenames.empty()) {
-    auto Loc = RemappedFilenames.find(SourceFile);
-    if (Loc != RemappedFilenames.end())
+    
+    if (auto Loc = RemappedFilenames.find(SourceFile); Loc != RemappedFilenames.end())
       SourceFile = Loc->second;
   }
   for (const auto &Files : LoadedSourceFiles)
@@ -537,8 +537,8 @@ void CodeCoverageTool::remapPathNames(const CoverageMapping &Coverage) {
   for (std::string &Filename : SourceFiles) {
     SmallString<128> NativeFilename;
     sys::path::native(Filename, NativeFilename);
-    auto CovFileName = InvRemappedFilenames.find(NativeFilename);
-    if (CovFileName != InvRemappedFilenames.end())
+    
+    if (auto CovFileName = InvRemappedFilenames.find(NativeFilename); CovFileName != InvRemappedFilenames.end())
       Filename = CovFileName->second;
   }
 }
@@ -1058,8 +1058,8 @@ int CodeCoverageTool::doShow(int argc, const char **argv,
       cl::desc("<high>,<low> value indicate thresholds for high and low"
                "coverage watermark"));
 
-  auto Err = commandLineParser(argc, argv);
-  if (Err)
+  
+  if (auto Err = commandLineParser(argc, argv); Err)
     return Err;
 
   if (ViewOpts.Format == CoverageViewOptions::OutputFormat::Lcov) {
@@ -1244,8 +1244,8 @@ int CodeCoverageTool::doReport(int argc, const char **argv,
       "show-functions", cl::Optional, cl::init(false),
       cl::desc("Show coverage summaries for each function"));
 
-  auto Err = commandLineParser(argc, argv);
-  if (Err)
+  
+  if (auto Err = commandLineParser(argc, argv); Err)
     return Err;
 
   if (ViewOpts.Format == CoverageViewOptions::OutputFormat::HTML) {
@@ -1257,8 +1257,8 @@ int CodeCoverageTool::doReport(int argc, const char **argv,
   }
 
   if (PGOFilename) {
-    sys::fs::file_status Status;
-    if (std::error_code EC = sys::fs::status(PGOFilename.value(), Status)) {
+    
+    if (sys::fs::file_status Status; std::error_code EC = sys::fs::status(PGOFilename.value(), Status)) {
       error("could not read profile data!" + EC.message(), PGOFilename.value());
       return 1;
     }
@@ -1307,8 +1307,8 @@ int CodeCoverageTool::doExport(int argc, const char **argv,
                                     cl::desc("Unify function instantiations"),
                                     cl::init(true), cl::cat(ExportCategory));
 
-  auto Err = commandLineParser(argc, argv);
-  if (Err)
+  
+  if (auto Err = commandLineParser(argc, argv); Err)
     return Err;
 
   ViewOpts.SkipExpansions = SkipExpansions;
@@ -1324,8 +1324,8 @@ int CodeCoverageTool::doExport(int argc, const char **argv,
   }
 
   if (PGOFilename) {
-    sys::fs::file_status Status;
-    if (std::error_code EC = sys::fs::status(PGOFilename.value(), Status)) {
+    
+    if (sys::fs::file_status Status; std::error_code EC = sys::fs::status(PGOFilename.value(), Status)) {
       error("could not read profile data!" + EC.message(), PGOFilename.value());
       return 1;
     }

@@ -334,8 +334,8 @@ addOperandIfAlias(const MCPhysReg Reg, bool SelectDef,
                   SmallVectorImpl<RegisterOperandAssignment> &OperandValues) {
   for (const auto &Op : Operands) {
     if (Op.isReg() && Op.isDef() == SelectDef) {
-      const int SourceReg = Op.getRegisterAliasing().getOrigin(Reg);
-      if (SourceReg >= 0)
+      
+      if (const int SourceReg = Op.getRegisterAliasing().getOrigin(Reg); SourceReg >= 0)
         OperandValues.emplace_back(&Op, SourceReg);
     }
   }

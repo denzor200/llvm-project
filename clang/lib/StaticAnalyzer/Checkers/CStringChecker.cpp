@@ -953,8 +953,8 @@ SVal CStringChecker::getCStringLengthForRegion(CheckerContext &C,
                                                bool hypothetical) {
   if (!hypothetical) {
     // If there's a recorded length, go ahead and return it.
-    const SVal *Recorded = state->get<CStringLength>(MR);
-    if (Recorded)
+    
+    if (const SVal *Recorded = state->get<CStringLength>(MR); Recorded)
       return *Recorded;
   }
 
@@ -2475,10 +2475,10 @@ void CStringChecker::evalStrcmpCommon(CheckerContext &C, const CallEvent &Call,
     if (IsBounded) {
       // Get the max number of characters to compare.
       const Expr *lenExpr = Call.getArgExpr(2);
-      SVal lenVal = state->getSVal(lenExpr, LCtx);
+      
 
       // If the length is known, we can get the right substrings.
-      if (const llvm::APSInt *len = svalBuilder.getKnownValue(state, lenVal)) {
+      if (SVal lenVal = state->getSVal(lenExpr, LCtx); const llvm::APSInt *len = svalBuilder.getKnownValue(state, lenVal)) {
         // Create substrings of each to compare the prefix.
         LeftStrRef = LeftStrRef.substr(0, (size_t)len->getZExtValue());
         RightStrRef = RightStrRef.substr(0, (size_t)len->getZExtValue());
@@ -2491,8 +2491,8 @@ void CStringChecker::evalStrcmpCommon(CheckerContext &C, const CallEvent &Call,
 
     if (canComputeResult) {
       // Real strcmp stops at null characters.
-      size_t s1Term = LeftStrRef.find('\0');
-      if (s1Term != StringRef::npos)
+      
+      if (size_t s1Term = LeftStrRef.find('\0'); s1Term != StringRef::npos)
         LeftStrRef = LeftStrRef.substr(0, s1Term);
 
       size_t s2Term = RightStrRef.find('\0');
@@ -2795,8 +2795,8 @@ CStringChecker::FnCheck CStringChecker::identifyCall(const CallEvent &Call,
   // into, say, a C++ overload of any of these functions. We could not check
   // that for std::copy because they may have arguments of other types.
   for (auto I : CE->arguments()) {
-    QualType T = I->getType();
-    if (!T->isIntegralOrEnumerationType() && !T->isPointerType())
+    
+    if (QualType T = I->getType(); !T->isIntegralOrEnumerationType() && !T->isPointerType())
       return nullptr;
   }
 

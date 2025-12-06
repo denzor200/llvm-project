@@ -81,8 +81,8 @@ void zos::Assembler::ConstructJob(Compilation &C, const JobAction &JA,
 static std::string getLEHLQ(const ArgList &Args) {
   if (Args.hasArg(options::OPT_mzos_hlq_le_EQ)) {
     Arg *LEHLQArg = Args.getLastArg(options::OPT_mzos_hlq_le_EQ);
-    StringRef HLQ = LEHLQArg->getValue();
-    if (!HLQ.empty())
+    
+    if (StringRef HLQ = LEHLQArg->getValue(); !HLQ.empty())
       return HLQ.str();
   }
   return "CEE";
@@ -91,8 +91,8 @@ static std::string getLEHLQ(const ArgList &Args) {
 static std::string getClangHLQ(const ArgList &Args) {
   if (Args.hasArg(options::OPT_mzos_hlq_clang_EQ)) {
     Arg *ClangHLQArg = Args.getLastArg(options::OPT_mzos_hlq_clang_EQ);
-    StringRef HLQ = ClangHLQArg->getValue();
-    if (!HLQ.empty())
+    
+    if (StringRef HLQ = ClangHLQArg->getValue(); !HLQ.empty())
       return HLQ.str();
   }
   return getLEHLQ(Args);
@@ -101,8 +101,8 @@ static std::string getClangHLQ(const ArgList &Args) {
 static std::string getCSSHLQ(const ArgList &Args) {
   if (Args.hasArg(options::OPT_mzos_hlq_csslib_EQ)) {
     Arg *CsslibHLQArg = Args.getLastArg(options::OPT_mzos_hlq_csslib_EQ);
-    StringRef HLQ = CsslibHLQArg->getValue();
-    if (!HLQ.empty())
+    
+    if (StringRef HLQ = CsslibHLQArg->getValue(); !HLQ.empty())
       return HLQ.str();
   }
   return "SYS1";
@@ -279,10 +279,10 @@ void ZOS::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
   // - /usr/include
   if (Arg *SysIncludeArg =
           DriverArgs.getLastArg(options::OPT_mzos_sys_include_EQ)) {
-    StringRef SysInclude = SysIncludeArg->getValue();
+    
 
     // fall back to the default include path
-    if (!SysInclude.empty()) {
+    if (StringRef SysInclude = SysIncludeArg->getValue(); !SysInclude.empty()) {
 
       // -mzos-sys-include opton can have colon separated
       // list of paths, so we need to parse the value.

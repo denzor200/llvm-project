@@ -424,9 +424,9 @@ static bool hasOutsideLoopUser(const Loop *TheLoop, Instruction *Inst,
   if (!AllowedExit.count(Inst))
     // Check that all of the users of the loop are inside the BB.
     for (User *U : Inst->users()) {
-      Instruction *UI = cast<Instruction>(U);
+      
       // This user may be a reduction exit value.
-      if (!TheLoop->contains(UI)) {
+      if (Instruction *UI = cast<Instruction>(U); !TheLoop->contains(UI)) {
         LLVM_DEBUG(dbgs() << "LV: Found an outside user for : " << *UI << '\n');
         return true;
       }
@@ -553,9 +553,9 @@ public:
 
     SCEVAddRecForUniformityRewriter Rewriter(SE, StepMultiplier, Offset,
                                              TheLoop);
-    const SCEV *Result = Rewriter.visit(S);
+    
 
-    if (Rewriter.canAnalyze())
+    if (const SCEV *Result = Rewriter.visit(S); Rewriter.canAnalyze())
       return Result;
     return SE.getCouldNotCompute();
   }
@@ -835,12 +835,12 @@ bool LoopVectorizationLegality::canVectorizeInstrs() {
 
 bool LoopVectorizationLegality::canVectorizeInstr(Instruction &I) {
   BasicBlock *BB = I.getParent();
-  BasicBlock *Header = TheLoop->getHeader();
+  
 
-  if (auto *Phi = dyn_cast<PHINode>(&I)) {
-    Type *PhiTy = Phi->getType();
+  if (BasicBlock *Header = TheLoop->getHeader(); auto *Phi = dyn_cast<PHINode>(&I)) {
+    
     // Check that this PHI type is allowed.
-    if (!PhiTy->isIntegerTy() && !PhiTy->isFloatingPointTy() &&
+    if (Type *PhiTy = Phi->getType(); !PhiTy->isIntegerTy() && !PhiTy->isFloatingPointTy() &&
         !PhiTy->isPointerTy()) {
       reportVectorizationFailure(
           "Found a non-int non-pointer PHI",
@@ -947,12 +947,12 @@ bool LoopVectorizationLegality::canVectorizeInstr(Instruction &I) {
     // If the call is a recognized math libary call, it is likely that
     // we can vectorize it given loosened floating-point constraints.
     LibFunc Func;
-    bool IsMathLibCall =
+    
+
+    if (bool IsMathLibCall =
         TLI && CI->getCalledFunction() && CI->getType()->isFloatingPointTy() &&
         TLI->getLibFunc(CI->getCalledFunction()->getName(), Func) &&
-        TLI->hasOptimizedCodeGen(Func);
-
-    if (IsMathLibCall) {
+        TLI->hasOptimizedCodeGen(Func); IsMathLibCall) {
       // TODO: Ideally, we should not use clang-specific language here,
       // but it's hard to provide meaningful yet generic advice.
       // Also, should this be guarded by allowExtraAnalysis() and/or be part
@@ -1310,9 +1310,9 @@ bool LoopVectorizationLegality::canVectorizeMemory() {
         UnhandledStores.push_back(SI);
       }
 
-      bool IsOK = UnhandledStores.empty();
+      
       // TODO: we should also validate against InvariantMemSets.
-      if (!IsOK) {
+      if (bool IsOK = UnhandledStores.empty(); !IsOK) {
         reportVectorizationFailure(
             "We don't allow storing to uniform addresses",
             "write to a loop invariant address could not "
@@ -1386,8 +1386,8 @@ const InductionDescriptor *
 LoopVectorizationLegality::getIntOrFpInductionDescriptor(PHINode *Phi) const {
   if (!isInductionPhi(Phi))
     return nullptr;
-  auto &ID = getInductionVars().find(Phi)->second;
-  if (ID.getKind() == InductionDescriptor::IK_IntInduction ||
+  
+  if (auto &ID = getInductionVars().find(Phi)->second; ID.getKind() == InductionDescriptor::IK_IntInduction ||
       ID.getKind() == InductionDescriptor::IK_FpInduction)
     return &ID;
   return nullptr;
@@ -1397,8 +1397,8 @@ const InductionDescriptor *
 LoopVectorizationLegality::getPointerInductionDescriptor(PHINode *Phi) const {
   if (!isInductionPhi(Phi))
     return nullptr;
-  auto &ID = getInductionVars().find(Phi)->second;
-  if (ID.getKind() == InductionDescriptor::IK_PtrInduction)
+  
+  if (auto &ID = getInductionVars().find(Phi)->second; ID.getKind() == InductionDescriptor::IK_PtrInduction)
     return &ID;
   return nullptr;
 }
@@ -1422,8 +1422,8 @@ bool LoopVectorizationLegality::blockNeedsPredication(BasicBlock *BB) const {
   // When vectorizing early exits, create predicates for the latch block only.
   // The early exiting block must be a direct predecessor of the latch at the
   // moment.
-  BasicBlock *Latch = TheLoop->getLoopLatch();
-  if (hasUncountableEarlyExit()) {
+  
+  if (BasicBlock *Latch = TheLoop->getLoopLatch(); hasUncountableEarlyExit()) {
     assert(
         is_contained(predecessors(Latch), getUncountableEarlyExitingBlock()) &&
         "Uncountable exiting block must be a direct predecessor of latch");
@@ -1707,9 +1707,9 @@ bool LoopVectorizationLegality::isVectorizableEarlyExitLoop() {
   SmallVector<const SCEVPredicate *, 4> Predicates;
   BasicBlock *SingleUncountableExitingBlock = nullptr;
   for (BasicBlock *BB : ExitingBlocks) {
-    const SCEV *EC =
-        PSE.getSE()->getPredicatedExitCount(TheLoop, BB, &Predicates);
-    if (isa<SCEVCouldNotCompute>(EC)) {
+    
+    if (const SCEV *EC =
+        PSE.getSE()->getPredicatedExitCount(TheLoop, BB, &Predicates); isa<SCEVCouldNotCompute>(EC)) {
       if (size(successors(BB)) != 2) {
         reportVectorizationFailure(
             "Early exiting block does not have exactly two successors",
@@ -1827,8 +1827,8 @@ bool LoopVectorizationLegality::isVectorizableEarlyExitLoop() {
   // Check non-dereferenceable loads if any.
   for (LoadInst *LI : NonDerefLoads) {
     // Only support unit-stride access for now.
-    int Stride = isConsecutivePtr(LI->getType(), LI->getPointerOperand());
-    if (Stride != 1) {
+    
+    if (int Stride = isConsecutivePtr(LI->getType(), LI->getPointerOperand()); Stride != 1) {
       reportVectorizationFailure(
           "Loop contains potentially faulting strided load",
           "Cannot vectorize early exit loop with "
@@ -1931,8 +1931,8 @@ bool LoopVectorizationLegality::canUncountableExitConditionLoadBeMoved(
 
       if (I.mayWriteToMemory()) {
         if (auto *SI = dyn_cast<StoreInst>(&I)) {
-          AliasResult AR = AA->alias(Ptr, SI->getPointerOperand());
-          if (AR == AliasResult::NoAlias)
+          
+          if (AliasResult AR = AA->alias(Ptr, SI->getPointerOperand()); AR == AliasResult::NoAlias)
             continue;
         }
 
@@ -2098,8 +2098,8 @@ bool LoopVectorizationLegality::canFoldTailByMasking() const {
   for (const auto &Entry : getInductionVars()) {
     PHINode *OrigPhi = Entry.first;
     for (User *U : OrigPhi->users()) {
-      auto *UI = cast<Instruction>(U);
-      if (!TheLoop->contains(UI)) {
+      
+      if (auto *UI = cast<Instruction>(U); !TheLoop->contains(UI)) {
         LLVM_DEBUG(dbgs() << "LV: Cannot fold tail by masking, loop IV has an "
                              "outside user for "
                           << *UI << "\n");

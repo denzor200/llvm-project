@@ -245,11 +245,11 @@ bool InstructionSelect::selectMachineFunction(MachineFunction &MF) {
       if (MI.getOpcode() != TargetOpcode::COPY)
         continue;
       Register SrcReg = MI.getOperand(1).getReg();
-      Register DstReg = MI.getOperand(0).getReg();
-      if (SrcReg.isVirtual() && DstReg.isVirtual()) {
+      
+      if (Register DstReg = MI.getOperand(0).getReg(); SrcReg.isVirtual() && DstReg.isVirtual()) {
         auto SrcRC = MRI.getRegClass(SrcReg);
-        auto DstRC = MRI.getRegClass(DstReg);
-        if (SrcRC == DstRC) {
+        
+        if (auto DstRC = MRI.getRegClass(DstReg); SrcRC == DstRC) {
           MRI.replaceRegWith(DstReg, SrcReg);
           MI.eraseFromParent();
         }
@@ -368,8 +368,8 @@ bool InstructionSelect::selectInstr(MachineInstr &MI) {
     // been decided.
     //
     // Propagate that through to the source register.
-    const TargetRegisterClass *DstRC = MRI.getRegClassOrNull(DstReg);
-    if (DstRC)
+    
+    if (const TargetRegisterClass *DstRC = MRI.getRegClassOrNull(DstReg); DstRC)
       MRI.setRegClass(SrcReg, DstRC);
     assert(canReplaceReg(DstReg, SrcReg, MRI) &&
            "Must be able to replace dst with src!");

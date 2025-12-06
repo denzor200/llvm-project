@@ -424,8 +424,8 @@ Value *LibCallsShrinkWrap::generateCondForPow(CallInst *CI,
 
   // Constant Base case.
   if (ConstantFP *CF = dyn_cast<ConstantFP>(Base)) {
-    double D = CF->getValueAPF().convertToDouble();
-    if (D < 1.0f || D > APInt::getMaxValue(8).getZExtValue()) {
+    
+    if (double D = CF->getValueAPF().convertToDouble(); D < 1.0f || D > APInt::getMaxValue(8).getZExtValue()) {
       LLVM_DEBUG(dbgs() << "Not handled pow(): constant base out of range\n");
       return nullptr;
     }
@@ -514,8 +514,8 @@ static bool runImpl(Function &F, const TargetLibraryInfo &TLI,
 PreservedAnalyses LibCallsShrinkWrapPass::run(Function &F,
                                               FunctionAnalysisManager &FAM) {
   auto &TLI = FAM.getResult<TargetLibraryAnalysis>(F);
-  auto *DT = FAM.getCachedResult<DominatorTreeAnalysis>(F);
-  if (!runImpl(F, TLI, DT))
+  
+  if (auto *DT = FAM.getCachedResult<DominatorTreeAnalysis>(F); !runImpl(F, TLI, DT))
     return PreservedAnalyses::all();
   auto PA = PreservedAnalyses();
   PA.preserve<DominatorTreeAnalysis>();

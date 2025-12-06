@@ -398,8 +398,8 @@ int main(int argc, const char **argv) {
       if (auto It = CDBToAbsPaths->find(FileName); It != CDBToAbsPaths->end())
         FileName = It->second;
 
-      const std::string &FinalCode = NameAndContent.second;
-      if (auto Err = llvm::writeToOutput(
+      
+      if (const std::string &FinalCode = NameAndContent.second; auto Err = llvm::writeToOutput(
               FileName, [&](llvm::raw_ostream &OS) -> llvm::Error {
                 OS << FinalCode;
                 return llvm::Error::success();

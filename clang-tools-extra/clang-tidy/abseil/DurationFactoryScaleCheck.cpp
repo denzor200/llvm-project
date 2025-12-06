@@ -193,9 +193,9 @@ void DurationFactoryScaleCheck::check(const MatchFinder::MatchResult &Result) {
     // For division, we only check the RHS.
     const auto *FloatLit = llvm::cast<FloatingLiteral>(DivBinOp->getRHS());
 
-    std::optional<DurationScale> NewScale =
-        getNewScale(Scale, 1.0 / FloatLit->getValueAsApproximateDouble());
-    if (NewScale) {
+    
+    if (std::optional<DurationScale> NewScale =
+        getNewScale(Scale, 1.0 / FloatLit->getValueAsApproximateDouble()); NewScale) {
       const Expr *Remainder = DivBinOp->getLHS();
 
       // We've found an appropriate scaling factor and the new scale, so output

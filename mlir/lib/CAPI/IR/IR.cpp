@@ -559,12 +559,12 @@ static LogicalResult inferOperationTypes(OperationState &state) {
     auto prop = std::make_unique<char[]>(info->getOpPropertyByteSize());
     properties = OpaqueProperties(prop.get());
     if (properties) {
-      auto emitError = [&]() {
+      
+      if (auto emitError = [&]() {
         return mlir::emitError(state.location)
                << " failed properties conversion while building "
                << state.name.getStringRef() << " with `" << attributes << "`: ";
-      };
-      if (failed(info->setOpPropertiesFromAttribute(state.name, properties,
+      }; failed(info->setOpPropertiesFromAttribute(state.name, properties,
                                                     attributes, emitError)))
         return failure();
     }
@@ -696,8 +696,8 @@ MlirRegion mlirOperationGetFirstRegion(MlirOperation op) {
 MlirRegion mlirRegionGetNextInOperation(MlirRegion region) {
   Region *cppRegion = unwrap(region);
   Operation *parent = cppRegion->getParentOp();
-  intptr_t next = cppRegion->getRegionNumber() + 1;
-  if (parent->getNumRegions() > next)
+  
+  if (intptr_t next = cppRegion->getRegionNumber() + 1; parent->getNumRegions() > next)
     return wrap(&parent->getRegion(next));
   return wrap(static_cast<Region *>(nullptr));
 }

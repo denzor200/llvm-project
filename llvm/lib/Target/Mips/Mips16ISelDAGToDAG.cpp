@@ -112,8 +112,8 @@ bool Mips16DAGToDAGISel::selectAddr(bool SPAllowed, SDValue Addr, SDValue &Base,
   }
   // Addresses of the form FI+const or FI|const
   if (CurDAG->isBaseWithConstantOffset(Addr)) {
-    auto *CN = cast<ConstantSDNode>(Addr.getOperand(1));
-    if (isInt<16>(CN->getSExtValue())) {
+    
+    if (auto *CN = cast<ConstantSDNode>(Addr.getOperand(1)); isInt<16>(CN->getSExtValue())) {
       // If the first operand is a FI, get the TargetFI Node
       if (SPAllowed) {
         if (FrameIndexSDNode *FIN =
@@ -141,8 +141,8 @@ bool Mips16DAGToDAGISel::selectAddr(bool SPAllowed, SDValue Addr, SDValue &Base,
     //  lwc1 $f0, %lo($CPI1_0)($2)
     if (Addr.getOperand(1).getOpcode() == MipsISD::Lo ||
         Addr.getOperand(1).getOpcode() == MipsISD::GPRel) {
-      SDValue Opnd0 = Addr.getOperand(1).getOperand(0);
-      if (isa<ConstantPoolSDNode>(Opnd0) || isa<GlobalAddressSDNode>(Opnd0) ||
+      
+      if (SDValue Opnd0 = Addr.getOperand(1).getOperand(0); isa<ConstantPoolSDNode>(Opnd0) || isa<GlobalAddressSDNode>(Opnd0) ||
           isa<JumpTableSDNode>(Opnd0)) {
         Base = Addr.getOperand(0);
         Offset = Opnd0;
@@ -176,9 +176,9 @@ bool Mips16DAGToDAGISel::trySelect(SDNode *Node) {
   // tablegen selection should be handled here.
   ///
   EVT NodeTy = Node->getValueType(0);
-  unsigned MultOpc;
+  
 
-  switch (Opcode) {
+  switch (unsigned MultOpc; Opcode) {
   default:
     break;
 

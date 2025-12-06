@@ -85,8 +85,8 @@ bool ObjCRuntime::tryParse(StringRef input) {
   TheKind = kind;
 
   if (dash != StringRef::npos) {
-    StringRef verString = input.substr(dash + 1);
-    if (Version.tryParse(verString))
+    
+    if (StringRef verString = input.substr(dash + 1); Version.tryParse(verString))
       return true;
   }
 

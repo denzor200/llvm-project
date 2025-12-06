@@ -157,8 +157,8 @@ LogicalResult PtrCastToGenericOp::verify() {
   auto operandType = llvm::cast<spirv::PointerType>(getPointer().getType());
   auto resultType = llvm::cast<spirv::PointerType>(getResult().getType());
 
-  spirv::StorageClass operandStorage = operandType.getStorageClass();
-  if (operandStorage != spirv::StorageClass::Workgroup &&
+  
+  if (spirv::StorageClass operandStorage = operandType.getStorageClass(); operandStorage != spirv::StorageClass::Workgroup &&
       operandStorage != spirv::StorageClass::CrossWorkgroup &&
       operandStorage != spirv::StorageClass::Function)
     return emitError("pointer must point to the Workgroup, CrossWorkgroup"
@@ -185,8 +185,8 @@ LogicalResult GenericCastToPtrOp::verify() {
   auto operandType = llvm::cast<spirv::PointerType>(getPointer().getType());
   auto resultType = llvm::cast<spirv::PointerType>(getResult().getType());
 
-  spirv::StorageClass operandStorage = operandType.getStorageClass();
-  if (operandStorage != spirv::StorageClass::Generic)
+  
+  if (spirv::StorageClass operandStorage = operandType.getStorageClass(); operandStorage != spirv::StorageClass::Generic)
     return emitError("pointer type must be of storage class Generic");
 
   spirv::StorageClass resultStorage = resultType.getStorageClass();
@@ -213,8 +213,8 @@ LogicalResult GenericCastToPtrExplicitOp::verify() {
   auto operandType = llvm::cast<spirv::PointerType>(getPointer().getType());
   auto resultType = llvm::cast<spirv::PointerType>(getResult().getType());
 
-  spirv::StorageClass operandStorage = operandType.getStorageClass();
-  if (operandStorage != spirv::StorageClass::Generic)
+  
+  if (spirv::StorageClass operandStorage = operandType.getStorageClass(); operandStorage != spirv::StorageClass::Generic)
     return emitError("pointer type must be of storage class Generic");
 
   spirv::StorageClass resultStorage = resultType.getStorageClass();

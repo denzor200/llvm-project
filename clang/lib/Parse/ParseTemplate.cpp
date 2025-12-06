@@ -733,8 +733,8 @@ NamedDecl *Parser::ParseTemplateTemplateParameter(unsigned Depth,
     // or greater appear immediately or after 'struct'. In the latter case,
     // replace the keyword with 'class'.
     bool Replace = Tok.isOneOf(tok::kw_typename, tok::kw_struct);
-    const Token &Next = Tok.is(tok::kw_struct) ? NextToken() : Tok;
-    if (Tok.is(tok::kw_typename)) {
+    
+    if (const Token &Next = Tok.is(tok::kw_struct) ? NextToken() : Tok; Tok.is(tok::kw_typename)) {
       TypenameKeyword = true;
       Kind = TemplateNameKind::TNK_Type_template;
       Diag(Tok.getLocation(),
@@ -1254,9 +1254,9 @@ ParsedTemplateArgument Parser::ParseTemplateTemplateArgument() {
   if (SS.isSet() && Tok.is(tok::kw_template)) {
     // Parse the optional 'template' keyword following the
     // nested-name-specifier.
-    SourceLocation TemplateKWLoc = ConsumeToken();
+    
 
-    if (Tok.is(tok::identifier)) {
+    if (SourceLocation TemplateKWLoc = ConsumeToken(); Tok.is(tok::identifier)) {
       // We appear to have a dependent template name.
       UnqualifiedId Name;
       Name.setIdentifier(Tok.getIdentifierInfo(), Tok.getLocation());
@@ -1267,8 +1267,8 @@ ParsedTemplateArgument Parser::ParseTemplateTemplateArgument() {
       // If the next token signals the end of a template argument, then we have
       // a (possibly-dependent) template name that could be a template template
       // argument.
-      TemplateTy Template;
-      if (isEndOfTemplateArgument(Tok) &&
+      
+      if (TemplateTy Template; isEndOfTemplateArgument(Tok) &&
           Actions.ActOnTemplateName(getCurScope(), SS, TemplateKWLoc, Name,
                                     /*ObjectType=*/nullptr,
                                     /*EnteringContext=*/false, Template))
@@ -1301,12 +1301,12 @@ ParsedTemplateArgument Parser::ParseTemplateTemplateArgument() {
 
     if (isEndOfTemplateArgument(Tok)) {
       bool MemberOfUnknownSpecialization;
-      TemplateNameKind TNK = Actions.isTemplateName(
+      
+      if (TemplateNameKind TNK = Actions.isTemplateName(
           getCurScope(), SS,
           /*hasTemplateKeyword=*/false, Name,
           /*ObjectType=*/nullptr,
-          /*EnteringContext=*/false, Template, MemberOfUnknownSpecialization);
-      if (TNK == TNK_Dependent_template_name || TNK == TNK_Type_template ||
+          /*EnteringContext=*/false, Template, MemberOfUnknownSpecialization); TNK == TNK_Dependent_template_name || TNK == TNK_Type_template ||
           TNK == TNK_Var_template || TNK == TNK_Concept_template) {
         // We have an id-expression that refers to a class template or
         // (C++0x) alias template.

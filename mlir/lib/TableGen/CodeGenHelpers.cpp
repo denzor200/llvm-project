@@ -405,8 +405,8 @@ std::string StaticVerifierFunctionEmitter::getUniqueName(StringRef kind,
 void StaticVerifierFunctionEmitter::collectConstraint(ConstraintMap &map,
                                                       StringRef kind,
                                                       Constraint constraint) {
-  auto [it, inserted] = map.try_emplace(constraint);
-  if (inserted)
+  
+  if (auto [it, inserted] = map.try_emplace(constraint); inserted)
     it->second = getUniqueName(kind, map.size());
 }
 
@@ -456,8 +456,8 @@ void StaticVerifierFunctionEmitter::collectPatternConstraints(
   for (auto &leaf : constraints) {
     assert(leaf.isOperandMatcher() || leaf.isAttrMatcher() ||
            leaf.isPropMatcher());
-    Constraint constraint = leaf.getAsConstraint();
-    if (leaf.isOperandMatcher())
+    
+    if (Constraint constraint = leaf.getAsConstraint(); leaf.isOperandMatcher())
       collectConstraint(typeConstraints, "type", constraint);
     else if (leaf.isAttrMatcher())
       collectConstraint(attrConstraints, "attr", constraint);

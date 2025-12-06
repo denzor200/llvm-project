@@ -91,8 +91,8 @@ static uint32_t getFunctionControl(const Function &F,
 
 static ConstantInt *getConstInt(MDNode *MD, unsigned NumOp) {
   if (MD->getNumOperands() > NumOp) {
-    auto *CMeta = dyn_cast<ConstantAsMetadata>(MD->getOperand(NumOp));
-    if (CMeta)
+    
+    if (auto *CMeta = dyn_cast<ConstantAsMetadata>(MD->getOperand(NumOp)); CMeta)
       return dyn_cast<ConstantInt>(CMeta->getValue());
   }
   return nullptr;
@@ -116,9 +116,9 @@ fixFunctionTypeIfPtrArgs(SPIRVGlobalRegistry *GR, const Function &F,
     }
   }
   if (!hasArgPtrs) {
-    Type *RetTy = FTy->getReturnType();
+    
     // check if it's an instance of a non-typed PointerType
-    if (!RetTy->isPointerTy())
+    if (Type *RetTy = FTy->getReturnType(); !RetTy->isPointerTy())
       return FTy;
   }
 
@@ -154,8 +154,8 @@ static FunctionType *getOriginalFunctionType(const Function &F) {
     for (unsigned I = 1; I != ThisFuncMD->getNumOperands(); ++I) {
       MDNode *MD = dyn_cast<MDNode>(ThisFuncMD->getOperand(I));
       assert(MD && "MDNode operand is expected");
-      ConstantInt *Const = getConstInt(MD, 0);
-      if (Const) {
+      
+      if (ConstantInt *Const = getConstInt(MD, 0); Const) {
         auto *CMeta = dyn_cast<ConstantAsMetadata>(MD->getOperand(1));
         assert(CMeta && "ConstantAsMetadata operand is expected");
         assert(Const->getSExtValue() >= -1);
@@ -190,8 +190,8 @@ getArgAccessQual(const Function &F, unsigned ArgIdx) {
 
 static std::vector<SPIRV::Decoration::Decoration>
 getKernelArgTypeQual(const Function &F, unsigned ArgIdx) {
-  MDString *ArgAttribute = getOCLKernelArgTypeQual(F, ArgIdx);
-  if (ArgAttribute && ArgAttribute->getString() == "volatile")
+  
+  if (MDString *ArgAttribute = getOCLKernelArgTypeQual(F, ArgIdx); ArgAttribute && ArgAttribute->getString() == "volatile")
     return {SPIRV::Decoration::Volatile};
   return {};
 }
@@ -345,8 +345,8 @@ bool SPIRVCallLowering::lowerFormalArguments(MachineIRBuilder &MIRBuilder,
       if (Arg.hasName())
         buildOpName(VRegs[i][0], Arg.getName(), MIRBuilder);
       if (isPointerTyOrWrapper(Arg.getType())) {
-        auto DerefBytes = static_cast<unsigned>(Arg.getDereferenceableBytes());
-        if (DerefBytes != 0)
+        
+        if (auto DerefBytes = static_cast<unsigned>(Arg.getDereferenceableBytes()); DerefBytes != 0)
           buildOpDecorate(VRegs[i][0], MIRBuilder,
                           SPIRV::Decoration::MaxByteOffset, {DerefBytes});
       }
@@ -394,8 +394,8 @@ bool SPIRVCallLowering::lowerFormalArguments(MachineIRBuilder &MIRBuilder,
           buildOpDecorate(VRegs[i][0], MIRBuilder, Decoration, {});
       }
 
-      MDNode *Node = F.getMetadata("spirv.ParameterDecorations");
-      if (Node && i < Node->getNumOperands() &&
+      
+      if (MDNode *Node = F.getMetadata("spirv.ParameterDecorations"); Node && i < Node->getNumOperands() &&
           isa<MDNode>(Node->getOperand(i))) {
         MDNode *MD = cast<MDNode>(Node->getOperand(i));
         for (const MDOperand &MDOp : MD->operands()) {
@@ -679,8 +679,8 @@ bool SPIRVCallLowering::lowerCall(MachineIRBuilder &MIRBuilder,
     CallOp = SPIRV::OpFunctionPointerCallINTEL;
     // Collect information about the indirect call to support possible
     // specification of opaque ptr types of parent function's parameters
-    Register CalleeReg = Info.Callee.getReg();
-    if (CalleeReg.isValid()) {
+    
+    if (Register CalleeReg = Info.Callee.getReg(); CalleeReg.isValid()) {
       SPIRVCallLowering::SPIRVIndirectCall IndirectCall;
       IndirectCall.Callee = CalleeReg;
       IndirectCall.RetTy = OrigRetTy;
@@ -717,8 +717,8 @@ bool SPIRVCallLowering::lowerCall(MachineIRBuilder &MIRBuilder,
 
   if (ST->canUseExtension(SPIRV::Extension::SPV_INTEL_memory_access_aliasing)) {
     // Process aliasing metadata.
-    const CallBase *CI = Info.CB;
-    if (CI && CI->hasMetadata()) {
+    
+    if (const CallBase *CI = Info.CB; CI && CI->hasMetadata()) {
       if (MDNode *MD = CI->getMetadata(LLVMContext::MD_alias_scope))
         GR->buildMemAliasingOpDecorate(ResVReg, MIRBuilder,
                                        SPIRV::Decoration::AliasScopeINTEL, MD);

@@ -246,14 +246,14 @@ TEST(TBDv5, ReadFile) {
   ExportedSymbolSeq Exports, Reexports, Undefineds;
   for (const auto *Sym : File->symbols()) {
     TargetList SymTargets{Sym->targets().begin(), Sym->targets().end()};
-    ExportedSymbol Temp =
+    
+    if (ExportedSymbol Temp =
         ExportedSymbol{Sym->getKind(),
                        std::string(Sym->getName()),
                        Sym->isWeakDefined() || Sym->isWeakReferenced(),
                        Sym->isThreadLocalValue(),
                        Sym->isData(),
-                       SymTargets};
-    if (Sym->isUndefined())
+                       SymTargets}; Sym->isUndefined())
       Undefineds.emplace_back(std::move(Temp));
     else
       Sym->isReexported() ? Reexports.emplace_back(std::move(Temp))
@@ -1652,14 +1652,14 @@ TEST(TBDv5, MergeIF) {
   ExportedSymbolSeq Exports, Reexports, Undefineds;
   for (const auto *Sym : MergedFile->symbols()) {
     TargetList SymTargets{Sym->targets().begin(), Sym->targets().end()};
-    ExportedSymbol Temp =
+    
+    if (ExportedSymbol Temp =
         ExportedSymbol{Sym->getKind(),
                        std::string(Sym->getName()),
                        Sym->isWeakDefined() || Sym->isWeakReferenced(),
                        Sym->isThreadLocalValue(),
                        Sym->isData(),
-                       SymTargets};
-    if (Sym->isUndefined())
+                       SymTargets}; Sym->isUndefined())
       Undefineds.emplace_back(std::move(Temp));
     else
       Sym->isReexported() ? Reexports.emplace_back(std::move(Temp))
@@ -2040,14 +2040,14 @@ TEST(TBDv5, ExtractIF) {
   ExportedSymbolSeq Exports, Reexports, Undefineds;
   for (const auto *Sym : ExtractedFile->symbols()) {
     TargetList SymTargets{Sym->targets().begin(), Sym->targets().end()};
-    ExportedSymbol Temp =
+    
+    if (ExportedSymbol Temp =
         ExportedSymbol{Sym->getKind(),
                        std::string(Sym->getName()),
                        Sym->isWeakDefined() || Sym->isWeakReferenced(),
                        Sym->isThreadLocalValue(),
                        Sym->isData(),
-                       SymTargets};
-    if (Sym->isUndefined())
+                       SymTargets}; Sym->isUndefined())
       Undefineds.emplace_back(std::move(Temp));
     else
       Sym->isReexported() ? Reexports.emplace_back(std::move(Temp))
@@ -2295,14 +2295,14 @@ TEST(TBDv5, RemoveIF) {
   ExportedSymbolSeq Exports, Reexports, Undefineds;
   for (const auto *Sym : RemovedFile->symbols()) {
     TargetList SymTargets{Sym->targets().begin(), Sym->targets().end()};
-    ExportedSymbol Temp =
+    
+    if (ExportedSymbol Temp =
         ExportedSymbol{Sym->getKind(),
                        std::string(Sym->getName()),
                        Sym->isWeakDefined() || Sym->isWeakReferenced(),
                        Sym->isThreadLocalValue(),
                        Sym->isData(),
-                       SymTargets};
-    if (Sym->isUndefined())
+                       SymTargets}; Sym->isUndefined())
       Undefineds.emplace_back(std::move(Temp));
     else
       Sym->isReexported() ? Reexports.emplace_back(std::move(Temp))

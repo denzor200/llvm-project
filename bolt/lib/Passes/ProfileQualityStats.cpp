@@ -142,8 +142,8 @@ void printCFGContinuityStats(raw_ostream &OS,
       Queue.pop();
       for (const auto &[Succ, BI] :
            llvm::zip(BB->successors(), BB->branch_info())) {
-        const uint64_t Count = BI.Count;
-        if (Count == BinaryBasicBlock::COUNT_NO_PROFILE || Count == 0 ||
+        
+        if (const uint64_t Count = BI.Count; Count == BinaryBasicBlock::COUNT_NO_PROFILE || Count == 0 ||
             !Visited.insert(Succ->getLayoutIndex()).second)
           continue;
         SumReachableBBEC += Succ->getKnownExecutionCount();
@@ -210,11 +210,11 @@ void printCallGraphFlowConservationStats(
         TotalFlowMap.TotalIncomingFlows[FunctionNum];
     std::vector<uint64_t> &OutgoingFlows =
         TotalFlowMap.TotalOutgoingFlows[FunctionNum];
-    FunctionFlowMapTy &CallGraphIncomingFlows =
-        TotalFlowMap.CallGraphIncomingFlows;
+    
 
     // Only consider functions that are not a program entry.
-    if (CallGraphIncomingFlows.find(FunctionNum) ==
+    if (FunctionFlowMapTy &CallGraphIncomingFlows =
+        TotalFlowMap.CallGraphIncomingFlows; CallGraphIncomingFlows.find(FunctionNum) ==
         CallGraphIncomingFlows.end()) {
       CallGraphGaps.push_back(0.0);
       continue;
@@ -327,12 +327,12 @@ void printCFGFlowConservationStats(const BinaryContext &BC, raw_ostream &OS,
         continue;
 
       // We don't consider blocks that end with a recursive call instruction
-      const MCInst *Inst = BB.getLastNonPseudoInstr();
-      if (BC.MIB->isCall(*Inst)) {
+      
+      if (const MCInst *Inst = BB.getLastNonPseudoInstr(); BC.MIB->isCall(*Inst)) {
         const MCSymbol *DstSym = BC.MIB->getTargetSymbol(*Inst);
-        const BinaryFunction *DstFunc =
-            DstSym ? BC.getFunctionForSymbol(DstSym) : nullptr;
-        if (DstFunc == Function)
+        
+        if (const BinaryFunction *DstFunc =
+            DstSym ? BC.getFunctionForSymbol(DstSym) : nullptr; DstFunc == Function)
           continue;
       }
 
@@ -419,9 +419,9 @@ void printExceptionHandlingStats(const BinaryContext &BC, raw_ostream &OS,
       for (const MCInst &Inst : BB) {
         if (!BC.MIB->isInvoke(Inst))
           continue;
-        const std::optional<MCPlus::MCLandingPad> EHInfo =
-            BC.MIB->getEHInfo(Inst);
-        if (EHInfo->first)
+        
+        if (const std::optional<MCPlus::MCLandingPad> EHInfo =
+            BC.MIB->getEHInfo(Inst); EHInfo->first)
           InvokeECSum += BBEC;
       }
     }
@@ -541,9 +541,9 @@ void computeFlowMappings(const BinaryContext &BC, FlowInfo &TotalFlowMap) {
                           uint64_t TotalCallCount) {
       if (Count == BinaryBasicBlock::COUNT_NO_PROFILE)
         Count = 0;
-      const BinaryFunction *DstFunc =
-          DestSymbol ? BC.getFunctionForSymbol(DestSymbol) : nullptr;
-      if (DstFunc)
+      
+      if (const BinaryFunction *DstFunc =
+          DestSymbol ? BC.getFunctionForSymbol(DestSymbol) : nullptr; DstFunc)
         CallGraphIncomingFlows[DstFunc->getFunctionNumber()] += Count;
       if (SourceBB) {
         unsigned BlockIndex = SourceBB->getLayoutIndex();
@@ -559,7 +559,11 @@ void computeFlowMappings(const BinaryContext &BC, FlowInfo &TotalFlowMap) {
     // If there is no profiling data the count will be COUNT_NO_PROFILE.
     using TargetDesc = std::pair<const MCSymbol *, uint64_t>;
     using CallInfoTy = std::vector<TargetDesc>;
-    auto getCallInfo = [&](const BinaryBasicBlock *BB, const MCInst &Inst) {
+    
+
+    // If the function has an invalid profile, try to use the perf data
+    // directly. The call EC is only used to update CallGraphIncomingFlows.
+    if (auto getCallInfo = [&](const BinaryBasicBlock *BB, const MCInst &Inst) {
       CallInfoTy Counts;
       const MCSymbol *DstSym = BC.MIB->getTargetSymbol(Inst);
 
@@ -574,11 +578,7 @@ void computeFlowMappings(const BinaryContext &BC, FlowInfo &TotalFlowMap) {
       }
 
       return Counts;
-    };
-
-    // If the function has an invalid profile, try to use the perf data
-    // directly. The call EC is only used to update CallGraphIncomingFlows.
-    if (!Function->hasValidProfile() && !Function->getAllCallSites().empty()) {
+    }; !Function->hasValidProfile() && !Function->getAllCallSites().empty()) {
       for (const IndirectCallProfile &CSI : Function->getAllCallSites())
         if (CSI.Symbol)
           recordCall(nullptr, CSI.Symbol, CSI.Count, CSI.Count);
@@ -677,8 +677,8 @@ Error PrintProfileQualityStats::runOnFunctions(BinaryContext &BC) {
   // Create a list of functions with valid profiles.
   FunctionListType ValidFunctions;
   for (const auto &BFI : BC.getBinaryFunctions()) {
-    const BinaryFunction *Function = &BFI.second;
-    if (PrintProfileQualityStats::shouldOptimize(*Function))
+    
+    if (const BinaryFunction *Function = &BFI.second; PrintProfileQualityStats::shouldOptimize(*Function))
       ValidFunctions.push_back(Function);
   }
   if (ValidFunctions.empty() || opts::TopFunctionsForProfileQualityCheck == 0)

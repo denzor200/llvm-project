@@ -259,8 +259,8 @@ struct FuseExtractSliceWithConcat
 
     auto allEqual = [](ArrayRef<OpFoldResult> lhs, ArrayRef<OpFoldResult> rhs) {
       for (auto [l, r] : llvm::zip(lhs, rhs)) {
-        std::optional<int64_t> staticVal = getConstantIntValue(l);
-        if (!staticVal.has_value() || staticVal != getConstantIntValue(r))
+        
+        if (std::optional<int64_t> staticVal = getConstantIntValue(l); !staticVal.has_value() || staticVal != getConstantIntValue(r))
           return false;
       }
       return lhs.size() == rhs.size();
@@ -274,9 +274,9 @@ struct FuseExtractSliceWithConcat
 
       SmallVector<OpFoldResult> dstSizes = extractOp.getMixedSizes();
       SmallVector<OpFoldResult> dstOffsets = extractOp.getMixedOffsets();
-      SmallVector<OpFoldResult> dstStrides = extractOp.getMixedStrides();
+      
 
-      if (allEqual(srcSizes, dstSizes) && allEqual(srcOffsets, dstOffsets) &&
+      if (SmallVector<OpFoldResult> dstStrides = extractOp.getMixedStrides(); allEqual(srcSizes, dstSizes) && allEqual(srcOffsets, dstOffsets) &&
           allEqual(srcStrides, dstStrides)) {
         Value operand = concatOp.getOperand(i);
         if (operand.getType() == extractOp.getResultType())

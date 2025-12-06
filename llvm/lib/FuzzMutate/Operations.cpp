@@ -148,12 +148,12 @@ OpDescriptor llvm::fuzzerop::binOpDescriptor(unsigned Weight,
 OpDescriptor llvm::fuzzerop::cmpOpDescriptor(unsigned Weight,
                                              Instruction::OtherOps CmpOp,
                                              CmpInst::Predicate Pred) {
-  auto buildOp = [CmpOp, Pred](ArrayRef<Value *> Srcs,
+  
+
+  switch (auto buildOp = [CmpOp, Pred](ArrayRef<Value *> Srcs,
                                BasicBlock::iterator InsertPt) {
     return CmpInst::Create(CmpOp, Pred, Srcs[0], Srcs[1], "C", InsertPt);
-  };
-
-  switch (CmpOp) {
+  }; CmpOp) {
   case Instruction::ICmp:
     return {Weight, {anyIntOrVecIntType(), matchFirstType()}, buildOp};
   case Instruction::FCmp:

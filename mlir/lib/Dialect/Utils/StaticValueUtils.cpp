@@ -287,8 +287,8 @@ std::optional<APInt> constantTripCount(
       if (auto intType = dyn_cast<IntegerType>(intAttr.getType()))
         return std::make_tuple(intType.getWidth(), intType.isIndex());
     } else {
-      auto val = cast<Value>(ofr);
-      if (auto intType = dyn_cast<IntegerType>(val.getType()))
+      
+      if (auto val = cast<Value>(ofr); auto intType = dyn_cast<IntegerType>(val.getType()))
         return std::make_tuple(intType.getWidth(), intType.isIndex());
     }
     return std::make_tuple(IndexType::kInternalStorageBitWidth, true);
@@ -398,8 +398,8 @@ LogicalResult foldDynamicIndexList(SmallVectorImpl<OpFoldResult> &ofrs,
   for (OpFoldResult &ofr : ofrs) {
     if (isa<Attribute>(ofr))
       continue;
-    Attribute attr;
-    if (matchPattern(cast<Value>(ofr), m_Constant(&attr))) {
+    
+    if (Attribute attr; matchPattern(cast<Value>(ofr), m_Constant(&attr))) {
       // Note: All ofrs have index type.
       if (onlyNonNegative && *getConstantIntValue(attr) < 0)
         continue;

@@ -26,8 +26,8 @@ const MinidumpMiscInfo *MinidumpMiscInfo::Parse(llvm::ArrayRef<uint8_t> &data) {
 }
 
 std::optional<lldb::pid_t> MinidumpMiscInfo::GetPid() const {
-  uint32_t pid_flag = static_cast<uint32_t>(MinidumpMiscInfoFlags::ProcessID);
-  if (flags1 & pid_flag)
+  
+  if (uint32_t pid_flag = static_cast<uint32_t>(MinidumpMiscInfoFlags::ProcessID); flags1 & pid_flag)
     return std::optional<lldb::pid_t>(process_id);
 
   return std::nullopt;

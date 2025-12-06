@@ -65,8 +65,8 @@ recursivelyVisitUsers(GlobalValue &GV,
       continue;
 
     if (Instruction *I = dyn_cast<Instruction>(U)) {
-      Function *F = I->getFunction();
-      if (!AMDGPU::isEntryFunctionCC(F->getCallingConv())) {
+      
+      if (Function *F = I->getFunction(); !AMDGPU::isEntryFunctionCC(F->getCallingConv())) {
         // FIXME: This is a horrible hack. We should always respect noinline,
         // and just let us hit the error when we can't handle this.
         //
@@ -125,8 +125,8 @@ static bool alwaysInlineImpl(Module &M, bool GlobalOpt) {
 
   for (GlobalVariable &GV : M.globals()) {
     // TODO: Region address
-    unsigned AS = GV.getAddressSpace();
-    if ((AS == AMDGPUAS::REGION_ADDRESS) ||
+    
+    if (unsigned AS = GV.getAddressSpace(); (AS == AMDGPUAS::REGION_ADDRESS) ||
         (AS == AMDGPUAS::LOCAL_ADDRESS &&
          (!AMDGPUTargetMachine::EnableLowerModuleLDS)))
       recursivelyVisitUsers(GV, FuncsToAlwaysInline);

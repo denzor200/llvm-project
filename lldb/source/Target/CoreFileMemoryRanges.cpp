@@ -39,8 +39,8 @@ Status CoreFileMemoryRanges::FinalizeCoreFileSaveRanges() {
   this->Sort();
   for (size_t i = this->GetSize() - 1; i > 0; i--) {
     auto region_one = this->GetMutableEntryAtIndex(i);
-    auto region_two = this->GetMutableEntryAtIndex(i - 1);
-    if (Overlaps(region_one, region_two)) {
+    
+    if (auto region_two = this->GetMutableEntryAtIndex(i - 1); Overlaps(region_one, region_two)) {
       // It's okay for interesecting regions to have different permissions but
       // if they overlap we fail because we don't know what to do with them.
       if (!PermissionsMatch(region_one, region_two)) {

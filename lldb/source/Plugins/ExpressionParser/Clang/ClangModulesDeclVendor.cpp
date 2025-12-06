@@ -184,8 +184,8 @@ void StoringDiagnosticConsumer::EndSourceFile() {
 
 bool StoringDiagnosticConsumer::HandleModuleRemark(
     const clang::Diagnostic &info) {
-  Log *log = GetLog(LLDBLog::Types | LLDBLog::Expressions);
-  switch (info.getID()) {
+  
+  switch (Log *log = GetLog(LLDBLog::Types | LLDBLog::Expressions); info.getID()) {
   case clang::diag::remark_module_build: {
     const auto &module_name = info.getArgStdStr(0);
     SetCurrentModuleProgress(module_name);
@@ -291,9 +291,9 @@ ClangModulesDeclVendorImpl::AddModule(const SourceModule &module,
     imported_module.push_back(path_component);
 
   {
-    ImportedModuleMap::iterator mi = m_imported_modules.find(imported_module);
+    
 
-    if (mi != m_imported_modules.end()) {
+    if (ImportedModuleMap::iterator mi = m_imported_modules.find(imported_module); mi != m_imported_modules.end()) {
       if (exported_modules)
         ReportModuleExports(*exported_modules, mi->second);
       return llvm::Error::success();
@@ -309,11 +309,11 @@ ClangModulesDeclVendorImpl::AddModule(const SourceModule &module,
     auto sysroot_begin = llvm::sys::path::begin(module.sysroot.GetStringRef());
     auto sysroot_end = llvm::sys::path::end(module.sysroot.GetStringRef());
     // FIXME: Use C++14 std::equal(it, it, it, it) variant once it's available.
-    bool is_system_module = (std::distance(path_begin, path_end) >=
-                             std::distance(sysroot_begin, sysroot_end)) &&
-                            std::equal(sysroot_begin, sysroot_end, path_begin);
+    
     // No need to inject search paths to modules in the sysroot.
-    if (!is_system_module) {
+    if (bool is_system_module = (std::distance(path_begin, path_end) >=
+                             std::distance(sysroot_begin, sysroot_end)) &&
+                            std::equal(sysroot_begin, sysroot_end, path_begin); !is_system_module) {
       bool is_system = true;
       bool is_framework = false;
       auto dir = HS.getFileMgr().getOptionalDirectoryRef(
@@ -528,22 +528,22 @@ void ClangModulesDeclVendorImpl::ForEachMacro(
       clang::Module *module = module_macro->getOwningModule();
 
       {
-        ModulePriorityMap::iterator pi =
-            module_priorities.find(reinterpret_cast<ModuleID>(module));
+        
 
-        if (pi != module_priorities.end() && pi->second > found_priority) {
+        if (ModulePriorityMap::iterator pi =
+            module_priorities.find(reinterpret_cast<ModuleID>(module)); pi != module_priorities.end() && pi->second > found_priority) {
           macro_info = module_macro->getMacroInfo();
           found_priority = pi->second;
         }
       }
 
-      clang::Module *top_level_module = module->getTopLevelModule();
+      
 
-      if (top_level_module != module) {
-        ModulePriorityMap::iterator pi = module_priorities.find(
-            reinterpret_cast<ModuleID>(top_level_module));
+      if (clang::Module *top_level_module = module->getTopLevelModule(); top_level_module != module) {
+        
 
-        if ((pi != module_priorities.end()) && pi->second > found_priority) {
+        if (ModulePriorityMap::iterator pi = module_priorities.find(
+            reinterpret_cast<ModuleID>(top_level_module)); (pi != module_priorities.end()) && pi->second > found_priority) {
           macro_info = module_macro->getMacroInfo();
           found_priority = pi->second;
         }
@@ -602,11 +602,11 @@ void ClangModulesDeclVendorImpl::ForEachMacro(
               macro_expansion.append(token_str);
             } else {
               bool invalid = false;
-              const char *literal_source =
-                  m_compiler_instance->getSourceManager().getCharacterData(
-                      ti->getLocation(), &invalid);
+              
 
-              if (invalid) {
+              if (const char *literal_source =
+                  m_compiler_instance->getSourceManager().getCharacterData(
+                      ti->getLocation(), &invalid); invalid) {
                 lldbassert(0 && "Unhandled token kind");
                 macro_expansion.append("<unknown literal value>");
               } else {
@@ -711,9 +711,9 @@ ClangModulesDeclVendor::Create(Target &target) {
   }
 
   {
-    FileSpec clang_resource_dir = GetClangResourceDir();
+    
 
-    if (FileSystem::Instance().IsDirectory(clang_resource_dir.GetPath())) {
+    if (FileSpec clang_resource_dir = GetClangResourceDir(); FileSystem::Instance().IsDirectory(clang_resource_dir.GetPath())) {
       compiler_invocation_arguments.push_back("-resource-dir");
       compiler_invocation_arguments.push_back(clang_resource_dir.GetPath());
     }

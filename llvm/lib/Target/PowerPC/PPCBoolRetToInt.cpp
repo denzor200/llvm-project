@@ -74,10 +74,10 @@ class PPCBoolRetToInt : public FunctionPass {
     Defs.insert(V);
     while (!WorkList.empty()) {
       Value *Curr = WorkList.pop_back_val();
-      auto *CurrUser = dyn_cast<User>(Curr);
+      
       // Operands of CallInst/Constant are skipped because they may not be Bool
       // type. For CallInst, their positions are defined by ABI.
-      if (CurrUser && !isa<CallInst>(Curr) && !isa<Constant>(Curr))
+      if (auto *CurrUser = dyn_cast<User>(Curr); CurrUser && !isa<CallInst>(Curr) && !isa<Constant>(Curr))
         for (auto &Op : CurrUser->operands())
           if (Defs.insert(Op).second)
             WorkList.push_back(Op);
@@ -142,8 +142,8 @@ class PPCBoolRetToInt : public FunctionPass {
         isa<PHINode>(V);
       };
       const auto &Users = P->users();
-      const auto &Operands = P->operands();
-      if (!llvm::all_of(Users, IsValidUser) ||
+      
+      if (const auto &Operands = P->operands(); !llvm::all_of(Users, IsValidUser) ||
           !llvm::all_of(Operands, IsValidOperand))
         ToRemove.push_back(P);
     }
@@ -161,8 +161,8 @@ class PPCBoolRetToInt : public FunctionPass {
       for (const PHINode *P : Promotable) {
         // Condition 4 and 5
         const auto &Users = P->users();
-        const auto &Operands = P->operands();
-        if (!llvm::all_of(Users, IsPromotable) ||
+        
+        if (const auto &Operands = P->operands(); !llvm::all_of(Users, IsPromotable) ||
             !llvm::all_of(Operands, IsPromotable))
           ToRemove.push_back(P);
       }
@@ -238,8 +238,8 @@ class PPCBoolRetToInt : public FunctionPass {
     ++NumBoolToIntPromotion;
 
     for (Value *V : Defs) {
-      auto [It, Inserted] = BoolToIntMap.try_emplace(V);
-      if (Inserted)
+      
+      if (auto [It, Inserted] = BoolToIntMap.try_emplace(V); Inserted)
         It->second = translate(V);
     }
 

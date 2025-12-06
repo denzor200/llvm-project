@@ -43,9 +43,9 @@ struct ExtractStridedMetadataOnFatRawBufferCastFolder final
     if (metadataOp.getBaseBuffer().use_empty()) {
       results.push_back(nullptr);
     } else {
-      auto baseBufferType =
-          cast<MemRefType>(metadataOp.getBaseBuffer().getType());
-      if (baseBufferType == castOp.getResult().getType()) {
+      
+      if (auto baseBufferType =
+          cast<MemRefType>(metadataOp.getBaseBuffer().getType()); baseBufferType == castOp.getResult().getType()) {
         results.push_back(castOp.getResult());
       } else {
         results.push_back(memref::ReinterpretCastOp::create(

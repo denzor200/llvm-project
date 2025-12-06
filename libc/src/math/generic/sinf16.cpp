@@ -65,11 +65,11 @@ LLVM_LIBC_FUNCTION(float16, sinf16, (float16 x)) {
     return r.value();
 #endif // !LIBC_MATH_HAS_SKIP_ACCURATE_PASS
 
-  int rounding = fputil::quick_get_round();
+  
 
   // Exhaustive tests show that for |x| <= 0x1.f4p-11, 1ULP rounding errors
   // occur. To fix this, the following apply:
-  if (LIBC_UNLIKELY(x_abs <= 0x13d0)) {
+  if (int rounding = fputil::quick_get_round(); LIBC_UNLIKELY(x_abs <= 0x13d0)) {
     // sin(+/-0) = +/-0
     if (LIBC_UNLIKELY(x_abs == 0U))
       return x;

@@ -47,10 +47,10 @@ void SpuriouslyWakeUpFunctionsCheck::registerMatchers(MatchFinder *Finder) {
                       HasUniqueLock)))
           .bind("wait"));
 
-  auto HasWaitDescendantC = hasDescendant(
+  
+  if (auto HasWaitDescendantC = hasDescendant(
       callExpr(callee(functionDecl(hasAnyName("cnd_wait", "cnd_timedwait"))))
-          .bind("wait"));
-  if (getLangOpts().CPlusPlus) {
+          .bind("wait")); getLangOpts().CPlusPlus) {
     // Check for `CON54-CPP`
     Finder->addMatcher(
         ifStmt(HasWaitDescendantCpp,

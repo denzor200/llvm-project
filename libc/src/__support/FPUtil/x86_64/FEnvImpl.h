@@ -294,10 +294,10 @@ template <bool SKIP_X87_FPU = false> LIBC_INLINE int raise_except(int excepts) {
 }
 
 LIBC_INLINE int get_round() {
-  uint16_t bit_value =
+  
+  switch (uint16_t bit_value =
       (internal::get_mxcsr() >> internal::MXCSR_ROUNDING_CONTROL_BIT_POSITION) &
-      0x3;
-  switch (bit_value) {
+      0x3; bit_value) {
   case internal::RoundingControlValue::TO_NEAREST:
     return FE_TONEAREST;
   case internal::RoundingControlValue::DOWNWARD:

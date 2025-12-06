@@ -328,8 +328,8 @@ unsigned Decl::getTemplateDepth() const {
   // If this is a dependent lambda, there might be an enclosing variable
   // template. In this case, the next step is not the parent DeclContext (or
   // even a DeclContext at all).
-  auto *RD = dyn_cast<CXXRecordDecl>(this);
-  if (RD && RD->isDependentLambda())
+  
+  if (auto *RD = dyn_cast<CXXRecordDecl>(this); RD && RD->isDependentLambda())
     if (Decl *Context = RD->getLambdaContextDecl())
       return Context->getTemplateDepth();
 
@@ -493,8 +493,8 @@ bool Decl::isFlexibleArrayMemberLike(
   if (CAT) {
     // GCC treats an array memeber of a union as an FAM if the size is one or
     // zero.
-    llvm::APInt Size = CAT->getSize();
-    if (FD->getParent()->isUnion() && (Size.isZero() || Size.isOne()))
+    
+    if (llvm::APInt Size = CAT->getSize(); FD->getParent()->isUnion() && (Size.isZero() || Size.isOne()))
       return true;
   }
 
@@ -573,8 +573,8 @@ unsigned Decl::getMaxAlignment() const {
 }
 
 bool Decl::isUsed(bool CheckUsedAttr) const {
-  const Decl *CanonD = getCanonicalDecl();
-  if (CanonD->Used)
+  
+  if (const Decl *CanonD = getCanonicalDecl(); CanonD->Used)
     return true;
 
   // Check for used attribute.
@@ -1559,9 +1559,9 @@ static void collectAllContextsImpl(T *Self,
 void DeclContext::collectAllContexts(SmallVectorImpl<DeclContext *> &Contexts) {
   Contexts.clear();
 
-  Decl::Kind Kind = getDeclKind();
+  
 
-  if (Kind == Decl::TranslationUnit)
+  if (Decl::Kind Kind = getDeclKind(); Kind == Decl::TranslationUnit)
     collectAllContextsImpl(static_cast<TranslationUnitDecl *>(this), Contexts);
   else if (Kind == Decl::Namespace)
     collectAllContextsImpl(static_cast<NamespaceDecl *>(this), Contexts);
@@ -1773,8 +1773,8 @@ void DeclContext::removeDecl(Decl *D) {
 
     auto *DC = D->getDeclContext();
     do {
-      StoredDeclsMap *Map = DC->getPrimaryContext()->LookupPtr;
-      if (Map) {
+      
+      if (StoredDeclsMap *Map = DC->getPrimaryContext()->LookupPtr; Map) {
         StoredDeclsMap::iterator Pos = Map->find(ND->getDeclName());
         assert(Pos != Map->end() && "no lookup entry for decl");
         StoredDeclsList &List = Pos->second;
@@ -1946,8 +1946,8 @@ DeclContext::lookupImpl(DeclarationName Name,
     if (Source->FindExternalVisibleDeclsByName(this, Name, OriginalLookupDC) ||
         !R.second) {
       if (StoredDeclsMap *Map = LookupPtr) {
-        StoredDeclsMap::iterator I = Map->find(Name);
-        if (I != Map->end())
+        
+        if (StoredDeclsMap::iterator I = Map->find(Name); I != Map->end())
           return I->second.getLookupResult();
       }
     }
@@ -1976,8 +1976,8 @@ DeclContext::noload_lookup(DeclarationName Name) {
   if (getDeclKind() == Decl::LinkageSpec || getDeclKind() == Decl::Export)
     return getParent()->noload_lookup(Name);
 
-  DeclContext *PrimaryContext = getPrimaryContext();
-  if (PrimaryContext != this)
+  
+  if (DeclContext *PrimaryContext = getPrimaryContext(); PrimaryContext != this)
     return PrimaryContext->noload_lookup(Name);
 
   loadLazyLocalLexicalLookups();
@@ -2021,8 +2021,8 @@ void DeclContext::localUncachedLookup(DeclarationName Name,
   if (Name && !hasLazyLocalLexicalLookups() &&
       !hasLazyExternalLexicalLookups()) {
     if (StoredDeclsMap *Map = LookupPtr) {
-      StoredDeclsMap::iterator Pos = Map->find(Name);
-      if (Pos != Map->end()) {
+      
+      if (StoredDeclsMap::iterator Pos = Map->find(Name); Pos != Map->end()) {
         Results.insert(Results.end(),
                        Pos->second.getLookupResult().begin(),
                        Pos->second.getLookupResult().end());
@@ -2147,9 +2147,9 @@ void DeclContext::makeDeclVisibleInContextWithFlags(NamedDecl *D, bool Internal,
     getParent()->getPrimaryContext()->
         makeDeclVisibleInContextWithFlags(D, Internal, Recoverable);
 
-  auto *DCAsDecl = cast<Decl>(this);
+  
   // Notify that a decl was made visible unless we are a Tag being defined.
-  if (!(isa<TagDecl>(DCAsDecl) && cast<TagDecl>(DCAsDecl)->isBeingDefined()))
+  if (auto *DCAsDecl = cast<Decl>(this); !(isa<TagDecl>(DCAsDecl) && cast<TagDecl>(DCAsDecl)->isBeingDefined()))
     if (ASTMutationListener *L = DCAsDecl->getASTMutationListener())
       L->AddedVisibleDecl(this, D);
 }

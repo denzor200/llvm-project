@@ -114,8 +114,8 @@ void __dfsan::SetCurrentThread(DFsanThread *t) {
 }
 
 void __dfsan::DFsanTSDDtor(void *tsd) {
-  DFsanThread *t = (DFsanThread *)tsd;
-  if (t->destructor_iterations_ > 1) {
+  
+  if (DFsanThread *t = (DFsanThread *)tsd; t->destructor_iterations_ > 1) {
     t->destructor_iterations_--;
     CHECK_EQ(0, pthread_setspecific(tsd_key, tsd));
     return;

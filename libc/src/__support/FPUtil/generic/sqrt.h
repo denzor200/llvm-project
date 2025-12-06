@@ -89,9 +89,9 @@ sqrt(InType x) {
     constexpr InStorageType ONE = InStorageType(1) << InFPBits::FRACTION_LEN;
     constexpr auto FLT_NAN = OutFPBits::quiet_nan().get_val();
 
-    InFPBits bits(x);
+    
 
-    if (bits == InFPBits::inf(Sign::POS) || bits.is_zero() || bits.is_nan()) {
+    if (InFPBits bits(x); bits == InFPBits::inf(Sign::POS) || bits.is_zero() || bits.is_nan()) {
       // sqrt(+Inf) = +Inf
       // sqrt(+0) = +0
       // sqrt(-0) = -0
@@ -140,8 +140,8 @@ sqrt(InType x) {
            current_bit >>= 1) {
         r <<= 1;
         // 2*y(n - 1) + 2^(-n-1)
-        InStorageType tmp = static_cast<InStorageType>((y << 1) + current_bit);
-        if (r >= tmp) {
+        
+        if (InStorageType tmp = static_cast<InStorageType>((y << 1) + current_bit); r >= tmp) {
           r -= tmp;
           y += current_bit;
         }

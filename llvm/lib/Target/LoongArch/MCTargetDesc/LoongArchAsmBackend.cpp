@@ -207,8 +207,8 @@ bool LoongArchAsmBackend::relaxAlign(MCFragment &F, unsigned &Size) {
   // firstLinkerRelaxable is the layout order within the subsection, which may
   // be smaller than the section's order. Therefore, alignments in a
   // lower-numbered subsection may be unnecessarily treated as linker-relaxable.
-  auto *Sec = F.getParent();
-  if (F.getLayoutOrder() <= Sec->firstLinkerRelaxable())
+  
+  if (auto *Sec = F.getParent(); F.getLayoutOrder() <= Sec->firstLinkerRelaxable())
     return false;
 
   // Use default handling unless linker relaxation is enabled and the
@@ -411,11 +411,11 @@ bool LoongArchAsmBackend::addReloc(const MCFragment &F, const MCFixup &Fixup,
     const MCSymbol &SA = *Target.getAddSym();
     const MCSymbol &SB = *Target.getSubSym();
 
-    bool force = !SA.isInSection() || !SB.isInSection();
-    if (!force) {
+    
+    if (bool force = !SA.isInSection() || !SB.isInSection(); !force) {
       const MCSection &SecA = SA.getSection();
       const MCSection &SecB = SB.getSection();
-      const MCSection &SecCur = *F.getParent();
+      
 
       // To handle the case of A - B which B is same section with the current,
       // generate PCRel relocations is better than ADD/SUB relocation pair.
@@ -425,7 +425,7 @@ bool LoongArchAsmBackend::addReloc(const MCFragment &F, const MCFixup &Fixup,
       // PC - B is constant. Otherwise, we should evaluate whether PC - B
       // is constant. If it can be resolved as PCRel, use Fallback which
       // generates R_LARCH_{32,64}_PCREL relocation later.
-      if (&SecA != &SecB && &SecB == &SecCur &&
+      if (const MCSection &SecCur = *F.getParent(); &SecA != &SecB && &SecB == &SecCur &&
           isPCRelFixupResolved(Target.getSubSym(), F))
         return Fallback();
 

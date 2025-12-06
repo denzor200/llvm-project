@@ -303,10 +303,10 @@ bool X86CmovConverterPass::collectCmovCandidates(
       if (I.isDebugInstr())
         continue;
 
-      X86::CondCode CC = X86::getCondFromCMov(I);
+      
       // Check if we found a X86::CMOVrr instruction. If it is marked as
       // unpredictable, skip it and do not convert it to branch.
-      if (CC != X86::COND_INVALID &&
+      if (X86::CondCode CC = X86::getCondFromCMov(I); CC != X86::COND_INVALID &&
           !I.getFlag(MachineInstr::MIFlag::Unpredictable) &&
           (IncludeLoads || !I.mayLoad())) {
         if (Group.empty()) {
@@ -454,8 +454,8 @@ bool X86CmovConverterPass::checkForProfitableCmovCandidates(
           if (!MO.isReg() || !MO.isUse())
             continue;
           Register Reg = MO.getReg();
-          auto &RDM = RegDefMaps[Reg.isVirtual()];
-          if (MachineInstr *DefMI = RDM.lookup(Reg)) {
+          
+          if (auto &RDM = RegDefMaps[Reg.isVirtual()]; MachineInstr *DefMI = RDM.lookup(Reg)) {
             OperandToDefMap[&MO] = DefMI;
             DepthInfo Info = DepthMap.lookup(DefMI);
             MIDepth = std::max(MIDepth, Info.Depth);
@@ -553,8 +553,8 @@ bool X86CmovConverterPass::checkForProfitableCmovCandidates(
       // used with tree-search like algorithm, where the branch is unpredicted.
       auto UIs = MRI->use_instructions(MI->defs().begin()->getReg());
       if (hasSingleElement(UIs)) {
-        unsigned Op = UIs.begin()->getOpcode();
-        if (Op == X86::MOV64rm || Op == X86::MOV32rm) {
+        
+        if (unsigned Op = UIs.begin()->getOpcode(); Op == X86::MOV64rm || Op == X86::MOV32rm) {
           WorthOpGroup = false;
           break;
         }

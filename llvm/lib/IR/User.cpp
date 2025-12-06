@@ -194,8 +194,8 @@ void *User::operator new(size_t Size, HungOffOperandsAllocMarker) {
 LLVM_NO_SANITIZE_MEMORY_ATTRIBUTE void User::operator delete(void *Usr) {
   // Hung off uses use a single Use* before the User, while other subclasses
   // use a Use[] allocated prior to the user.
-  User *Obj = static_cast<User *>(Usr);
-  if (Obj->HasHungOffUses) {
+  
+  if (User *Obj = static_cast<User *>(Usr); Obj->HasHungOffUses) {
     assert(!Obj->HasDescriptor && "not supported!");
 
     Use **HungOffOperandList = static_cast<Use **>(Usr) - 1;

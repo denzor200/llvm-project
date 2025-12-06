@@ -1100,8 +1100,8 @@ static void *mmap_interceptor(Mmap real_mmap, void *addr, SIZE_T length,
   }
   void *res = real_mmap(addr, length, prot, flags, fd, offset);
   if (res != (void *)-1) {
-    void *end_res = (char *)res + (rounded_length - 1);
-    if (MEM_IS_APP(res) && MEM_IS_APP(end_res)) {
+    
+    if (void *end_res = (char *)res + (rounded_length - 1); MEM_IS_APP(res) && MEM_IS_APP(end_res)) {
       __msan_unpoison(res, rounded_length);
     } else {
       // Application has attempted to map more memory than is supported by
@@ -1555,18 +1555,18 @@ static int sigaction_impl(int signo, const __sanitizer_sigaction *act,
     if (act) {
       REAL(memcpy)(pnew_act, act, sizeof(__sanitizer_sigaction));
       uptr cb = (uptr)pnew_act->sigaction;
-      uptr new_cb = (pnew_act->sa_flags & __sanitizer::sa_siginfo)
+      
+      if (uptr new_cb = (pnew_act->sa_flags & __sanitizer::sa_siginfo)
                         ? (uptr)SignalAction
-                        : (uptr)SignalHandler;
-      if (cb != __sanitizer::sig_ign && cb != __sanitizer::sig_dfl) {
+                        : (uptr)SignalHandler; cb != __sanitizer::sig_ign && cb != __sanitizer::sig_dfl) {
         atomic_store(&sigactions[signo], cb, memory_order_relaxed);
         pnew_act->sigaction = (decltype(pnew_act->sigaction))new_cb;
       }
     }
     res = REAL(SIGACTION_SYMNAME)(signo, pnew_act, oldact);
     if (res == 0 && oldact) {
-      uptr cb = (uptr)oldact->sigaction;
-      if (cb == (uptr)SignalAction || cb == (uptr)SignalHandler) {
+      
+      if (uptr cb = (uptr)oldact->sigaction; cb == (uptr)SignalAction || cb == (uptr)SignalHandler) {
         oldact->sigaction = (decltype(oldact->sigaction))old_cb;
       }
     }
@@ -1677,8 +1677,8 @@ INTERCEPTOR(void *, shmat, int shmid, const void *shmaddr, int shmflg) {
   void *p = REAL(shmat)(shmid, shmaddr, shmflg);
   if (p != (void *)-1) {
     __sanitizer_shmid_ds ds;
-    int res = REAL(shmctl)(shmid, shmctl_ipc_stat, &ds);
-    if (!res) {
+    
+    if (int res = REAL(shmctl)(shmid, shmctl_ipc_stat, &ds); !res) {
       __msan_unpoison(p, ds.shm_segsz);
     }
   }

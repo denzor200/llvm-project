@@ -56,8 +56,8 @@ StackFrameList::~StackFrameList() {
 }
 
 void StackFrameList::CalculateCurrentInlinedDepth() {
-  uint32_t cur_inlined_depth = GetCurrentInlinedDepth();
-  if (cur_inlined_depth == UINT32_MAX) {
+  
+  if (uint32_t cur_inlined_depth = GetCurrentInlinedDepth(); cur_inlined_depth == UINT32_MAX) {
     ResetCurrentInlinedDepth();
   }
 }
@@ -69,8 +69,8 @@ uint32_t StackFrameList::GetCurrentInlinedDepth() {
     if (cur_pc != m_current_inlined_pc) {
       m_current_inlined_pc = LLDB_INVALID_ADDRESS;
       m_current_inlined_depth = UINT32_MAX;
-      Log *log = GetLog(LLDBLog::Step);
-      if (log && log->GetVerbose())
+      
+      if (Log *log = GetLog(LLDBLog::Step); log && log->GetVerbose())
         LLDB_LOGF(
             log,
             "GetCurrentInlinedDepth: invalidating current inlined depth.\n");
@@ -116,8 +116,8 @@ void StackFrameList::ResetCurrentInlinedDepth() {
 
 bool StackFrameList::DecrementCurrentInlinedDepth() {
   if (m_show_inlined_frames) {
-    uint32_t current_inlined_depth = GetCurrentInlinedDepth();
-    if (current_inlined_depth != UINT32_MAX) {
+    
+    if (uint32_t current_inlined_depth = GetCurrentInlinedDepth(); current_inlined_depth != UINT32_MAX) {
       if (current_inlined_depth > 0) {
         std::lock_guard<std::mutex> guard(m_inlined_depth_mutex);
         m_current_inlined_depth--;
@@ -429,15 +429,15 @@ bool StackFrameList::FetchFramesUpTo(uint32_t end_idx,
       // We might have already created frame zero, only create it if we need
       // to.
       if (m_frames.empty()) {
-        RegisterContextSP reg_ctx_sp(m_thread.GetRegisterContext());
+        
 
-        if (reg_ctx_sp) {
-          const bool success = unwinder.GetFrameInfoAtIndex(
-              idx, cfa, pc, behaves_like_zeroth_frame);
+        if (RegisterContextSP reg_ctx_sp(m_thread.GetRegisterContext()); reg_ctx_sp) {
+          
           // There shouldn't be any way not to get the frame info for frame
           // 0. But if the unwinder can't make one, lets make one by hand
           // with the SP as the CFA and see if that gets any further.
-          if (!success) {
+          if (const bool success = unwinder.GetFrameInfoAtIndex(
+              idx, cfa, pc, behaves_like_zeroth_frame); !success) {
             cfa = reg_ctx_sp->GetSP();
             pc = reg_ctx_sp->GetPC();
           }
@@ -461,9 +461,9 @@ bool StackFrameList::FetchFramesUpTo(uint32_t end_idx,
         break;
       }
 
-      const bool success =
-          unwinder.GetFrameInfoAtIndex(idx, cfa, pc, behaves_like_zeroth_frame);
-      if (!success) {
+      
+      if (const bool success =
+          unwinder.GetFrameInfoAtIndex(idx, cfa, pc, behaves_like_zeroth_frame); !success) {
         // We've gotten to the end of the stack.
         SetAllFramesFetched();
         break;
@@ -617,8 +617,8 @@ StackFrameSP StackFrameList::GetFrameAtIndex(uint32_t idx) {
   { // Scope for shared lock:
     std::shared_lock<std::shared_mutex> guard(m_list_mutex);
 
-    uint32_t inlined_depth = GetCurrentInlinedDepth();
-    if (inlined_depth != UINT32_MAX)
+    
+    if (uint32_t inlined_depth = GetCurrentInlinedDepth(); inlined_depth != UINT32_MAX)
       idx += inlined_depth;
 
     if (idx < m_frames.size())
@@ -693,9 +693,9 @@ StackFrameSP StackFrameList::GetFrameWithStackID(const StackID &stack_id) {
       // the shared mutex:
       std::shared_lock<std::shared_mutex> guard(m_list_mutex);
       // Do a binary search in case the stack frame is already in our cache
-      collection::const_iterator pos =
-          llvm::lower_bound(m_frames, stack_id, CompareStackID);
-      if (pos != m_frames.end() && (*pos)->GetStackID() == stack_id)
+      
+      if (collection::const_iterator pos =
+          llvm::lower_bound(m_frames, stack_id, CompareStackID); pos != m_frames.end() && (*pos)->GetStackID() == stack_id)
         return *pos;
     }
     // If we needed to add more frames, we would get to here.
@@ -760,9 +760,9 @@ void StackFrameList::SelectMostRelevantFrame() {
     // index.  We have to ask about the m_inlined_stack_depth in
     // Thread::ShouldStop since the plans need to reason with that info.
     bool inlined = false;
-    std::optional<uint32_t> stack_opt =
-        stop_info_sp->GetSuggestedStackFrameIndex(inlined);
-    if (stack_opt) {
+    
+    if (std::optional<uint32_t> stack_opt =
+        stop_info_sp->GetSuggestedStackFrameIndex(inlined); stack_opt) {
       stack_idx = *stack_opt;
       found_relevant = true;
     }
@@ -813,8 +813,8 @@ uint32_t StackFrameList::SetSelectedFrame(lldb_private::StackFrame *frame) {
   for (pos = begin; pos != end; ++pos) {
     if (pos->get() == frame) {
       m_selected_frame_idx = std::distance(begin, pos);
-      uint32_t inlined_depth = GetCurrentInlinedDepth();
-      if (inlined_depth != UINT32_MAX)
+      
+      if (uint32_t inlined_depth = GetCurrentInlinedDepth(); inlined_depth != UINT32_MAX)
         m_selected_frame_idx = *m_selected_frame_idx - inlined_depth;
       break;
     }
@@ -824,8 +824,8 @@ uint32_t StackFrameList::SetSelectedFrame(lldb_private::StackFrame *frame) {
 }
 
 bool StackFrameList::SetSelectedFrameByIndex(uint32_t idx) {
-  StackFrameSP frame_sp(GetFrameAtIndex(idx));
-  if (frame_sp) {
+  
+  if (StackFrameSP frame_sp(GetFrameAtIndex(idx)); frame_sp) {
     SetSelectedFrame(frame_sp.get());
     return true;
   } else
@@ -835,11 +835,11 @@ bool StackFrameList::SetSelectedFrameByIndex(uint32_t idx) {
 void StackFrameList::SetDefaultFileAndLineToSelectedFrame() {
   if (m_thread.GetID() ==
       m_thread.GetProcess()->GetThreadList().GetSelectedThread()->GetID()) {
-    StackFrameSP frame_sp(
-        GetFrameAtIndex(GetSelectedFrameIndex(DoNoSelectMostRelevantFrame)));
-    if (frame_sp) {
-      SymbolContext sc = frame_sp->GetSymbolContext(eSymbolContextLineEntry);
-      if (sc.line_entry.GetFile())
+    
+    if (StackFrameSP frame_sp(
+        GetFrameAtIndex(GetSelectedFrameIndex(DoNoSelectMostRelevantFrame))); frame_sp) {
+      
+      if (SymbolContext sc = frame_sp->GetSymbolContext(eSymbolContextLineEntry); sc.line_entry.GetFile())
         m_thread.CalculateTarget()->GetSourceManager().SetDefaultFileAndLine(
             sc.line_entry.file_sp, sc.line_entry.line);
     }

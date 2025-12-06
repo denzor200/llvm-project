@@ -1501,8 +1501,8 @@ std::pair<Type, std::string> Intrinsic::DagEmitter::emitDag(const DagInit *DI) {
 
 std::pair<Type, std::string>
 Intrinsic::DagEmitter::emitDagOp(const DagInit *DI) {
-  std::string Op = cast<StringInit>(DI->getArg(0))->getAsUnquotedString();
-  if (DI->getNumArgs() == 2) {
+  
+  if (std::string Op = cast<StringInit>(DI->getArg(0))->getAsUnquotedString(); DI->getNumArgs() == 2) {
     // Unary op.
     std::pair<Type, std::string> R =
         emitDagArg(DI->getArg(1), std::string(DI->getArgNameStr(1)));
@@ -1988,11 +1988,11 @@ Intrinsic &NeonEmitter::getIntrinsic(StringRef Name, ArrayRef<Type> Types,
       continue;
 
     unsigned ArgNum = 0;
-    bool MatchingArgumentTypes = all_of(Types, [&](const auto &Type) {
-      return Type == I.getParamType(ArgNum++);
-    });
+    
 
-    if (MatchingArgumentTypes)
+    if (bool MatchingArgumentTypes = all_of(Types, [&](const auto &Type) {
+      return Type == I.getParamType(ArgNum++);
+    }); MatchingArgumentTypes)
       GoodVec.push_back(&I);
   }
 
@@ -2176,8 +2176,8 @@ void NeonEmitter::genOverloadTypeCheckCode(raw_ostream &OS,
     int PtrArgNum = -1;
     bool HasConstPtr = false;
     for (unsigned I = 0; I < Def->getNumParams(); ++I) {
-      const auto &Type = Def->getParamType(I);
-      if (Type.isPointer()) {
+      
+      if (const auto &Type = Def->getParamType(I); Type.isPointer()) {
         PtrArgNum = I;
         HasConstPtr = Type.isConstPointer();
       }

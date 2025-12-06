@@ -117,8 +117,8 @@ std::error_code ModularizeUtilities::doCoverageCheck(
     auto Checker = CoverageChecker::createCoverageChecker(
         InputFilePaths[ModuleMapIndex], IncludePaths, CommandLine,
         ModMap.get());
-    std::error_code LocalEC = Checker->doChecks();
-    if (LocalEC.value() > 0)
+    
+    if (std::error_code LocalEC = Checker->doChecks(); LocalEC.value() > 0)
       EC = LocalEC;
   }
   return EC;

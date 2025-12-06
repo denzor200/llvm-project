@@ -250,9 +250,9 @@ void SimpleRemoteEPCServer::handleCallWrapper(
     using WrapperFnTy =
         shared::CWrapperFunctionResult (*)(const char *, size_t);
     auto *Fn = TagAddr.toPtr<WrapperFnTy>();
-    shared::WrapperFunctionResult ResultBytes(
-        Fn(ArgBytes.data(), ArgBytes.size()));
-    if (auto Err = sendMessage(SimpleRemoteEPCOpcode::Result, RemoteSeqNo,
+    
+    if (shared::WrapperFunctionResult ResultBytes(
+        Fn(ArgBytes.data(), ArgBytes.size())); auto Err = sendMessage(SimpleRemoteEPCOpcode::Result, RemoteSeqNo,
                                ExecutorAddr(),
                                {ResultBytes.data(), ResultBytes.size()}))
       ReportError(std::move(Err));

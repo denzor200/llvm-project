@@ -72,9 +72,9 @@ public:
 
       DiagEng.Report(Loc, ID) << String << Ranges;
       for (const FixItHint &Hint : Fixits) {
-        Replacement Repl(SM, Hint.RemoveRange, Hint.CodeToInsert);
+        
 
-        if (llvm::Error Err = Repls.add(Repl)) {
+        if (Replacement Repl(SM, Hint.RemoveRange, Hint.CodeToInsert); llvm::Error Err = Repls.add(Repl)) {
           llvm::errs() << "Error applying replacement " << Repl.toString()
                        << ": " << llvm::toString(std::move(Err)) << "\n";
         }

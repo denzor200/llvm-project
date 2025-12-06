@@ -344,8 +344,8 @@ static std::string getSourceLine(clang::Preprocessor &PP, clang::FileID FileID,
   const char *BufferEnd = MemBuffer.getBufferEnd();
   const char *BeginPtr = Buffer;
   const char *EndPtr = BufferEnd;
-  int LineCounter = 1;
-  if (Line == 1)
+  
+  if (int LineCounter = 1; Line == 1)
     BeginPtr = Buffer;
   else {
     while (Buffer < BufferEnd) {
@@ -415,8 +415,8 @@ static std::string getMacroExpandedString(clang::Preprocessor &PP,
         // Token is for an identifier.
         std::string Name = II->getName().str();
         // Check for nexted macro references.
-        clang::MacroInfo *MacroInfo = PP.getMacroInfo(II);
-        if (MacroInfo && (Name != MacroName))
+        
+        if (clang::MacroInfo *MacroInfo = PP.getMacroInfo(II); MacroInfo && (Name != MacroName))
           Expanded += getMacroExpandedString(PP, Name, MacroInfo, nullptr);
         else
           Expanded += Name;
@@ -438,14 +438,14 @@ static std::string getMacroExpandedString(clang::Preprocessor &PP,
     // Append the resulting argument expansions.
     for (unsigned ArgumentIndex = 0; ArgumentIndex < NumToks; ++ArgumentIndex) {
       const clang::Token &AT = ResultArgToks[ArgumentIndex];
-      clang::IdentifierInfo *II = AT.getIdentifierInfo();
-      if (II == nullptr)
+      
+      if (clang::IdentifierInfo *II = AT.getIdentifierInfo(); II == nullptr)
         Expanded += PP.getSpelling(AT); // Not an identifier.
       else {
         // It's an identifier.  Check for further expansion.
         std::string Name = II->getName().str();
-        clang::MacroInfo *MacroInfo = PP.getMacroInfo(II);
-        if (MacroInfo)
+        
+        if (clang::MacroInfo *MacroInfo = PP.getMacroInfo(II); MacroInfo)
           Expanded += getMacroExpandedString(PP, Name, MacroInfo, nullptr);
         else
           Expanded += Name;
@@ -886,8 +886,8 @@ public:
     if (HeaderPath.starts_with("<"))
       return;
     HeaderHandle H = findHeaderHandle(HeaderPath);
-    HeaderHandle TH;
-    if (isHeaderHandleInStack(H)) {
+    
+    if (HeaderHandle TH; isHeaderHandleInStack(H)) {
       do {
         TH = getCurrentHeaderHandle();
         popHeaderHandle();
@@ -1027,9 +1027,9 @@ public:
     StringHandle MacroName = addString(II->getName());
     PPItemKey InstanceKey(PP, MacroName, H, InstanceLoc);
     PPItemKey DefinitionKey(PP, MacroName, H, DefinitionLoc);
-    auto I = MacroExpansions.find(InstanceKey);
+    
     // If existing instance of expansion not found, add one.
-    if (I == MacroExpansions.end()) {
+    if (auto I = MacroExpansions.find(InstanceKey); I == MacroExpansions.end()) {
       std::string InstanceSourceLine =
           getSourceLocationString(PP, InstanceLoc) + ":\n" +
           getSourceLine(PP, InstanceLoc) + "\n";
@@ -1044,11 +1044,11 @@ public:
       // We've seen the macro before.  Get its tracker.
       MacroExpansionTracker &CondTracker = I->second;
       // Look up an existing instance value for the macro.
-      MacroExpansionInstance *MacroInfo =
-          CondTracker.findMacroExpansionInstance(addString(MacroExpanded),
-                                                 DefinitionKey);
+      
       // If found, just add the inclusion path to the instance.
-      if (MacroInfo)
+      if (MacroExpansionInstance *MacroInfo =
+          CondTracker.findMacroExpansionInstance(addString(MacroExpanded),
+                                                 DefinitionKey); MacroInfo)
         MacroInfo->addInclusionPathHandle(InclusionPathHandle);
       else {
         // Otherwise add a new instance with the unique value.
@@ -1075,9 +1075,9 @@ public:
       return;
     StringHandle ConditionUnexpandedHandle(addString(ConditionUnexpanded));
     PPItemKey InstanceKey(PP, ConditionUnexpandedHandle, H, InstanceLoc);
-    auto I = ConditionalExpansions.find(InstanceKey);
+    
     // If existing instance of condition not found, add one.
-    if (I == ConditionalExpansions.end()) {
+    if (auto I = ConditionalExpansions.find(InstanceKey); I == ConditionalExpansions.end()) {
       std::string InstanceSourceLine =
           getSourceLocationString(PP, InstanceLoc) + ":\n" +
           getSourceLine(PP, InstanceLoc) + "\n";
@@ -1088,10 +1088,10 @@ public:
       // We've seen the conditional before.  Get its tracker.
       ConditionalTracker &CondTracker = I->second;
       // Look up an existing instance value for the condition.
-      ConditionalExpansionInstance *MacroInfo =
-          CondTracker.findConditionalExpansionInstance(ConditionValue);
+      
       // If found, just add the inclusion path to the instance.
-      if (MacroInfo)
+      if (ConditionalExpansionInstance *MacroInfo =
+          CondTracker.findConditionalExpansionInstance(ConditionValue); MacroInfo)
         MacroInfo->addInclusionPathHandle(InclusionPathHandle);
       else {
         // Otherwise add a new instance with the unique value.
@@ -1280,9 +1280,9 @@ void PreprocessorCallbacks::FileChanged(
     PPTracker.handleHeaderEntry(PP, getSourceLocationFile(PP, Loc));
     break;
   case ExitFile: {
-    clang::OptionalFileEntryRef F =
-        PP.getSourceManager().getFileEntryRefForID(PrevFID);
-    if (F)
+    
+    if (clang::OptionalFileEntryRef F =
+        PP.getSourceManager().getFileEntryRefForID(PrevFID); F)
       PPTracker.handleHeaderExit(F->getName());
   } break;
   case SystemHeaderPragma:

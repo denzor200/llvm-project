@@ -537,8 +537,8 @@ DiagnosedSilenceableFailure transform::DecomposeInterfaceOp::applyToOne(
 
   rewriter.replaceOp(decomposableOp, *maybeNewResults);
   for (Value val : *maybeNewResults) {
-    Operation *definition = val.getDefiningOp();
-    if (definition)
+    
+    if (Operation *definition = val.getDefiningOp(); definition)
       results.push_back(definition);
   }
   return DiagnosedSilenceableFailure::success();
@@ -1007,10 +1007,10 @@ tileAndFuseFirstExtractUse(RewriterBase &rewriter, Diagnostic &diag,
         for (BlockArgument containerIterArg :
              containerLoop.getRegionIterArgs()) {
           OpOperand *bbArg = containerLoop.getTiedLoopInit(containerIterArg);
-          Value consumerOperand =
-              containerLoop->getOperand(bbArg->getOperandNumber());
+          
           // The producer has the same init as the loop bbArg, use it.
-          if (sameOrEquivalentIterArg(producerOperand, consumerOperand)) {
+          if (Value consumerOperand =
+              containerLoop->getOperand(bbArg->getOperandNumber()); sameOrEquivalentIterArg(producerOperand, consumerOperand)) {
             initOperandPtr.set(containerIterArg);
           }
         }
@@ -1259,14 +1259,14 @@ transform::FuseIntoContainingOp::apply(transform::TransformRewriter &rewriter,
     for (const auto &it : enumerate(remainingProducers)) {
       Operation *producerOp = it.value();
       // The containing op may be a user of producerOp: use isAncestor.
-      int64_t numUsesInContainingOp =
-          llvm::count_if(producerOp->getUsers(), [&](Operation *op) {
-            return containingOp->isAncestor(op);
-          });
+      
       // TODO: When resolving the TODO below (no duplicate ops), take an op
       // that has no use among the remaining producers. This is a topological
       // sorting.
-      if (numUsesInContainingOp > 0) {
+      if (int64_t numUsesInContainingOp =
+          llvm::count_if(producerOp->getUsers(), [&](Operation *op) {
+            return containingOp->isAncestor(op);
+          }); numUsesInContainingOp > 0) {
         if (numUsesInContainingOp == 1)
           remainingProducers.erase(remainingProducers.begin() + it.index());
         return producerOp;
@@ -1627,21 +1627,21 @@ transform::MatchOp::apply(transform::TransformRewriter &rewriter,
     }
 
     if (getFilterResultType().has_value()) {
-      Type t = getFilterResultType().value();
-      if (op->getNumResults() != 1 || op->getResultTypes().front() != t)
+      
+      if (Type t = getFilterResultType().value(); op->getNumResults() != 1 || op->getResultTypes().front() != t)
         return;
     }
 
     if (getFilterOperandTypes().has_value()) {
       mlir::ArrayAttr types = getFilterOperandTypes().value();
-      auto operandTypes = op->getOperandTypes();
+      
 
-      if (types.size() == 1) {
+      if (auto operandTypes = op->getOperandTypes(); types.size() == 1) {
         // All the operands must must be equal to the specified type
         auto typeattr =
             dyn_cast<mlir::TypeAttr>(getFilterOperandTypes().value()[0]);
-        Type t = cast<::mlir::Type>(typeattr.getValue());
-        if (!llvm::all_of(op->getOperandTypes(),
+        
+        if (Type t = cast<::mlir::Type>(typeattr.getValue()); !llvm::all_of(op->getOperandTypes(),
                           [&](Type operandType) { return operandType == t; }))
           return;
       } else {
@@ -1655,9 +1655,9 @@ transform::MatchOp::apply(transform::TransformRewriter &rewriter,
         for (auto [attr, operandType] :
              llvm::zip_equal(getFilterOperandTypes().value(), operandTypes)) {
           auto typeattr = cast<mlir::TypeAttr>(attr);
-          Type type = cast<::mlir::Type>(typeattr.getValue());
+          
 
-          if (type != operandType)
+          if (Type type = cast<::mlir::Type>(typeattr.getValue()); type != operandType)
             return;
         }
       }
@@ -1871,8 +1871,8 @@ LogicalResult transform::PackGreedilyOp::verify() {
     for (auto [s, nmo] :
          llvm::zip_equal(getMixedMatmulPackedSizes(),
                          getMatmulPaddedSizesNextMultipleOf())) {
-      std::optional<int64_t> maybeStaticPackedSize = getConstantIntValue(s);
-      if (nmo != 0 &&
+      
+      if (std::optional<int64_t> maybeStaticPackedSize = getConstantIntValue(s); nmo != 0 &&
           (!maybeStaticPackedSize.has_value() || *maybeStaticPackedSize != 0)) {
         return emitOpError() << "at most one of the packed_size and the "
                                 "padded_sizes_next_multiple_of can be nonzero "
@@ -2046,10 +2046,10 @@ transform::PackTransposeOp::apply(transform::TransformRewriter &rewriter,
   for (auto permType : {OuterOrInnerPerm::Outer, OuterOrInnerPerm::Inner}) {
     ArrayRef<int64_t> perm =
         (permType == OuterOrInnerPerm::Outer) ? getOuterPerm() : getInnerPerm();
-    auto errorMsg = (permType == OuterOrInnerPerm::Outer)
+    
+    if (auto errorMsg = (permType == OuterOrInnerPerm::Outer)
                         ? StringLiteral{"invalid outer_perm"}
-                        : StringLiteral{"invalid inner_perm"};
-    if (!isValidPackingPermutation(packOp, perm, permType) ||
+                        : StringLiteral{"invalid inner_perm"}; !isValidPackingPermutation(packOp, perm, permType) ||
         !isValidPackingPermutation(unPackOp, perm, permType)) {
       Operation *packOrUnpackOp =
           unPackOp ? unPackOp.getOperation() : packOp.getOperation();
@@ -2287,8 +2287,8 @@ transform::PadOp::apply(transform::TransformRewriter &rewriter,
     padOps.append(newPadOps.begin(), newPadOps.end());
     if (options.copyBackOp != LinalgPaddingOptions::CopyBackOp::None) {
       for (Value v : replacements) {
-        Operation *copyBackOp = v.getDefiningOp();
-        if (!llvm::is_contained(copyBackOps, copyBackOp))
+        
+        if (Operation *copyBackOp = v.getDefiningOp(); !llvm::is_contained(copyBackOps, copyBackOp))
           copyBackOps.push_back(copyBackOp);
       }
     }
@@ -2327,8 +2327,8 @@ LogicalResult transform::PadOp::verify() {
   ArrayAttr transposes = getTransposePaddings();
   for (Attribute attr : transposes) {
     SmallVector<int64_t> transpose = extractFromIntegerArrayAttr<int64_t>(attr);
-    auto sequence = llvm::to_vector(llvm::seq<int64_t>(0, transpose.size()));
-    if (!std::is_permutation(sequence.begin(), sequence.end(),
+    
+    if (auto sequence = llvm::to_vector(llvm::seq<int64_t>(0, transpose.size())); !std::is_permutation(sequence.begin(), sequence.end(),
                              transpose.begin(), transpose.end())) {
       return emitOpError()
              << "expects transpose_paddings to be a permutation, found "

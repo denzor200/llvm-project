@@ -19,8 +19,8 @@ StringRef Constraint::getDemangledName() const {
   StringRef demangledName = name;
 
   // Drop the "anonymous" suffix if present.
-  size_t anonymousSuffix = demangledName.find("(anonymous_");
-  if (anonymousSuffix != StringRef::npos)
+  
+  if (size_t anonymousSuffix = demangledName.find("(anonymous_"); anonymousSuffix != StringRef::npos)
     demangledName = demangledName.take_front(anonymousSuffix);
   return demangledName;
 }

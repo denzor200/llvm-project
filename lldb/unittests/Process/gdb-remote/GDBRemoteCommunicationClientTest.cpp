@@ -404,8 +404,8 @@ TEST_F(GDBRemoteCommunicationClientTest, SendTraceSupportedPacket) {
   TraceSupportedResponse trace_type;
   std::string error_message;
   auto callback = [&] {
-    std::chrono::seconds timeout(10);
-    if (llvm::Expected<TraceSupportedResponse> trace_type_or_err =
+    
+    if (std::chrono::seconds timeout(10); llvm::Expected<TraceSupportedResponse> trace_type_or_err =
             client.SendTraceSupported(timeout)) {
       trace_type = *trace_type_or_err;
       error_message = "";
@@ -500,8 +500,8 @@ check_qmemtags(TestClient &client, MockServer &server, size_t read_len,
     return result.get();
   };
 
-  auto result = ReadMemoryTags();
-  if (expected_tag_data) {
+  
+  if (auto result = ReadMemoryTags(); expected_tag_data) {
     ASSERT_TRUE(result);
     llvm::ArrayRef<uint8_t> expected(*expected_tag_data);
     llvm::ArrayRef<uint8_t> got = result->GetData();
@@ -578,8 +578,8 @@ static void check_Qmemtags(TestClient &client, MockServer &server,
     return result.get();
   };
 
-  auto result = WriteMemoryTags();
-  if (should_succeed)
+  
+  if (auto result = WriteMemoryTags(); should_succeed)
     ASSERT_TRUE(result.Success());
   else
     ASSERT_TRUE(result.Fail());

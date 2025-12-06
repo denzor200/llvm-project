@@ -176,8 +176,8 @@ CudaInstallationDetector::CudaInstallationDetector(
         SmallString<256> ptxasAbsolutePath;
         llvm::sys::fs::real_path(*ptxas, ptxasAbsolutePath);
 
-        StringRef ptxasDir = llvm::sys::path::parent_path(ptxasAbsolutePath);
-        if (llvm::sys::path::filename(ptxasDir) == "bin")
+        
+        if (StringRef ptxasDir = llvm::sys::path::parent_path(ptxasAbsolutePath); llvm::sys::path::filename(ptxasDir) == "bin")
           Candidates.emplace_back(
               std::string(llvm::sys::path::parent_path(ptxasDir)),
               /*StrictChecking=*/true);
@@ -188,8 +188,8 @@ CudaInstallationDetector::CudaInstallationDetector(
     for (const char *Ver : Versions)
       Candidates.emplace_back(D.SysRoot + "/usr/local/cuda-" + Ver);
 
-    Distro Dist(FS, llvm::Triple(llvm::sys::getProcessTriple()));
-    if (Dist.IsDebian() || Dist.IsUbuntu())
+    
+    if (Distro Dist(FS, llvm::Triple(llvm::sys::getProcessTriple())); Dist.IsDebian() || Dist.IsUbuntu())
       // Special case for Debian to have nvidia-cuda-toolkit work
       // out of the box. More info on http://bugs.debian.org/882505
       Candidates.emplace_back(D.SysRoot + "/usr/lib/cuda");
@@ -209,8 +209,8 @@ CudaInstallationDetector::CudaInstallationDetector(
 
     if (!(FS.exists(IncludePath) && FS.exists(BinPath)))
       continue;
-    bool CheckLibDevice = (!NoCudaLib || Candidate.StrictChecking);
-    if (CheckLibDevice && !FS.exists(LibDevicePath))
+    
+    if (bool CheckLibDevice = (!NoCudaLib || Candidate.StrictChecking); CheckLibDevice && !FS.exists(LibDevicePath))
       continue;
 
     Version = CudaVersion::UNKNOWN;
@@ -226,8 +226,8 @@ CudaInstallationDetector::CudaInstallationDetector(
 
     if (Version >= CudaVersion::CUDA_90) {
       // CUDA-9+ uses single libdevice file for all GPU variants.
-      std::string FilePath = LibDevicePath + "/libdevice.10.bc";
-      if (FS.exists(FilePath)) {
+      
+      if (std::string FilePath = LibDevicePath + "/libdevice.10.bc"; FS.exists(FilePath)) {
         for (int Arch = (int)OffloadArch::SM_30, E = (int)OffloadArch::LAST;
              Arch < E; ++Arch) {
           OffloadArch OA = static_cast<OffloadArch>(Arch);
@@ -324,8 +324,8 @@ void CudaInstallationDetector::CheckCudaVersionSupportsArch(
     return;
 
   auto MinVersion = MinVersionForOffloadArch(Arch);
-  auto MaxVersion = MaxVersionForOffloadArch(Arch);
-  if (Version < MinVersion || Version > MaxVersion) {
+  
+  if (auto MaxVersion = MaxVersionForOffloadArch(Arch); Version < MinVersion || Version > MaxVersion) {
     ArchsWithBadVersion[(int)Arch] = true;
     D.Diag(diag::err_drv_cuda_version_unsupported)
         << OffloadArchToString(Arch) << CudaVersionToString(MinVersion)
@@ -364,13 +364,13 @@ enum DeviceDebugInfoLevel {
 /// supported DWARF2 standard).
 static DeviceDebugInfoLevel mustEmitDebugInfo(const ArgList &Args) {
   const Arg *A = Args.getLastArg(options::OPT_O_Group);
-  bool IsDebugEnabled = !A || A->getOption().matches(options::OPT_O0) ||
+  
+  if (bool IsDebugEnabled = !A || A->getOption().matches(options::OPT_O0) ||
                         Args.hasFlag(options::OPT_cuda_noopt_device_debug,
                                      options::OPT_no_cuda_noopt_device_debug,
-                                     /*Default=*/false);
-  if (const Arg *A = Args.getLastArg(options::OPT_g_Group)) {
-    const Option &Opt = A->getOption();
-    if (Opt.matches(options::OPT_gN_Group)) {
+                                     /*Default=*/false); const Arg *A = Args.getLastArg(options::OPT_g_Group)) {
+    
+    if (const Option &Opt = A->getOption(); Opt.matches(options::OPT_gN_Group)) {
       if (Opt.matches(options::OPT_g0) || Opt.matches(options::OPT_ggdb0))
         return DisableDebugInfo;
       if (Opt.matches(options::OPT_gline_directives_only))
@@ -513,8 +513,8 @@ static bool shouldIncludePTX(const ArgList &Args, StringRef InputArch) {
   for (Arg *A : Args.filtered(options::OPT_cuda_include_ptx_EQ,
                               options::OPT_no_cuda_include_ptx_EQ)) {
     A->claim();
-    const StringRef ArchStr = A->getValue();
-    if (A->getOption().matches(options::OPT_cuda_include_ptx_EQ) &&
+    
+    if (const StringRef ArchStr = A->getValue(); A->getOption().matches(options::OPT_cuda_include_ptx_EQ) &&
         (ArchStr == "all" || ArchStr == InputArch))
       includePTX = true;
     else if (A->getOption().matches(options::OPT_no_cuda_include_ptx_EQ) &&
@@ -758,8 +758,8 @@ NVPTXToolChain::TranslateArgs(const llvm::opt::DerivedArgList &Args,
              OffloadKind == Action::OFK_None) {
     DAL->eraseArg(options::OPT_march_EQ);
   } else if (DAL->getLastArgValue(options::OPT_march_EQ) == "native") {
-    auto GPUsOrErr = getSystemGPUArchs(Args);
-    if (!GPUsOrErr) {
+    
+    if (auto GPUsOrErr = getSystemGPUArchs(Args); !GPUsOrErr) {
       getDriver().Diag(diag::err_drv_undetermined_gpu_arch)
           << getArchName() << llvm::toString(GPUsOrErr.takeError()) << "-march";
     } else {

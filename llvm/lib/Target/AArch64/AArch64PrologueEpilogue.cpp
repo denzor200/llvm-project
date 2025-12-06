@@ -202,8 +202,8 @@ AArch64PrologueEpilogueCommon::convertCalleeSaveRestoreToSPPrePostIncDec(
 
   // Get rid of the SEH code associated with the old instruction.
   if (NeedsWinCFI) {
-    auto SEH = std::next(MBBI);
-    if (AArch64InstrInfo::isSEHInstruction(*SEH))
+    
+    if (auto SEH = std::next(MBBI); AArch64InstrInfo::isSEHInstruction(*SEH))
       SEH->eraseFromParent();
   }
 
@@ -244,8 +244,8 @@ AArch64PrologueEpilogueCommon::convertCalleeSaveRestoreToSPPrePostIncDec(
 static void fixupSEHOpcode(MachineBasicBlock::iterator MBBI,
                            unsigned LocalStackSize) {
   MachineOperand *ImmOpnd = nullptr;
-  unsigned ImmIdx = MBBI->getNumOperands() - 1;
-  switch (MBBI->getOpcode()) {
+  
+  switch (unsigned ImmIdx = MBBI->getNumOperands() - 1; MBBI->getOpcode()) {
   default:
     llvm_unreachable("Fix the offset in the SEH instruction");
   case AArch64::SEH_SaveFPLR:
@@ -862,8 +862,8 @@ void AArch64PrologueEmitter::emitPrologue() {
   // function uses the base register, then the base register is used
   // directly, and is not retrieved from X1.
   if (IsFunclet && F.hasPersonalityFn()) {
-    EHPersonality Per = classifyEHPersonality(F.getPersonalityFn());
-    if (isAsynchronousEHPersonality(Per)) {
+    
+    if (EHPersonality Per = classifyEHPersonality(F.getPersonalityFn()); isAsynchronousEHPersonality(Per)) {
       BuildMI(MBB, AfterSVESavesI, DL, TII->get(TargetOpcode::COPY),
               AArch64::FP)
           .addReg(AArch64::X1)
@@ -1135,8 +1135,8 @@ void AArch64PrologueEmitter::emitWindowsStackProbe(
         .setMIFlags(MachineInstr::FrameSetup);
   }
 
-  const char *ChkStk = Subtarget.getChkStkName();
-  switch (MF.getTarget().getCodeModel()) {
+  
+  switch (const char *ChkStk = Subtarget.getChkStkName(); MF.getTarget().getCodeModel()) {
   case CodeModel::Tiny:
   case CodeModel::Small:
   case CodeModel::Medium:
@@ -1375,8 +1375,8 @@ void AArch64EpilogueEmitter::emitEpilogue() {
     assert(!NeedsWinCFI);
     auto FirstHomogenousEpilogI = MBB.getFirstTerminator();
     if (FirstHomogenousEpilogI != MBB.begin()) {
-      auto HomogeneousEpilog = std::prev(FirstHomogenousEpilogI);
-      if (HomogeneousEpilog->getOpcode() == AArch64::HOM_Epilog)
+      
+      if (auto HomogeneousEpilog = std::prev(FirstHomogenousEpilogI); HomogeneousEpilog->getOpcode() == AArch64::HOM_Epilog)
         FirstHomogenousEpilogI = HomogeneousEpilog;
     }
 
@@ -1413,11 +1413,11 @@ void AArch64EpilogueEmitter::emitEpilogue() {
       Pop = std::prev(Pop);
     // Converting the last ldp to a post-index ldp is valid only if the last
     // ldp's offset is 0.
-    const MachineOperand &OffsetOp = Pop->getOperand(Pop->getNumOperands() - 1);
+    
     // If the offset is 0 and the AfterCSR pop is not actually trying to
     // allocate more stack for arguments (in space that an untimely interrupt
     // may clobber), convert it to a post-index ldp.
-    if (OffsetOp.getImm() == 0 && AfterCSRPopSize >= 0) {
+    if (const MachineOperand &OffsetOp = Pop->getOperand(Pop->getNumOperands() - 1); OffsetOp.getImm() == 0 && AfterCSRPopSize >= 0) {
       convertCalleeSaveRestoreToSPPrePostIncDec(
           Pop, DL, ProloguePopSize, EmitCFI, MachineInstr::FrameDestroy,
           ProloguePopSize);

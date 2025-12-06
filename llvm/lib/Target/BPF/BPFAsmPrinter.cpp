@@ -58,8 +58,8 @@ const BPFTargetMachine &BPFAsmPrinter::getBTM() const {
 
 bool BPFAsmPrinter::doFinalization(Module &M) {
   // Remove unused globals which are previously used for jump table.
-  const BPFSubtarget *Subtarget = getBTM().getSubtargetImpl();
-  if (Subtarget->hasGotox()) {
+  
+  if (const BPFSubtarget *Subtarget = getBTM().getSubtargetImpl(); Subtarget->hasGotox()) {
     std::vector<GlobalVariable *> Targets;
     for (GlobalVariable &Global : M.globals()) {
       if (Global.getLinkage() != GlobalValue::PrivateLinkage)
@@ -103,9 +103,9 @@ bool BPFAsmPrinter::doFinalization(Module &M) {
 
 void BPFAsmPrinter::printOperand(const MachineInstr *MI, int OpNum,
                                  raw_ostream &O) {
-  const MachineOperand &MO = MI->getOperand(OpNum);
+  
 
-  switch (MO.getType()) {
+  switch (const MachineOperand &MO = MI->getOperand(OpNum); MO.getType()) {
   case MachineOperand::MO_Register:
     O << BPFInstPrinter::getRegisterName(MO.getReg());
     break;

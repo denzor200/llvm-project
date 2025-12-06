@@ -395,9 +395,9 @@ void ImplicitBoolConversionCheck::handleCastToBool(const ImplicitCastExpr *Cast,
   auto Diag = diag(Cast->getBeginLoc(), "implicit conversion %0 -> 'bool'")
               << Cast->getSubExpr()->getType();
 
-  const StringRef EquivalentLiteral =
-      getEquivalentBoolLiteralForExpr(Cast->getSubExpr(), Context);
-  if (!EquivalentLiteral.empty()) {
+  
+  if (const StringRef EquivalentLiteral =
+      getEquivalentBoolLiteralForExpr(Cast->getSubExpr(), Context); !EquivalentLiteral.empty()) {
     Diag << tooling::fixit::createReplacement(*Cast, EquivalentLiteral);
   } else {
     fixGenericExprCastToBool(Diag, Cast, Parent, Context,
@@ -410,14 +410,14 @@ void ImplicitBoolConversionCheck::handleCastFromBool(
     ASTContext &Context) {
   const QualType DestType =
       NextImplicitCast ? NextImplicitCast->getType() : Cast->getType();
-  auto Diag = diag(Cast->getBeginLoc(), "implicit conversion 'bool' -> %0")
-              << DestType;
+  
 
-  if (const auto *BoolLiteral =
+  if (auto Diag = diag(Cast->getBeginLoc(), "implicit conversion 'bool' -> %0")
+              << DestType; const auto *BoolLiteral =
           dyn_cast<CXXBoolLiteralExpr>(Cast->getSubExpr()->IgnoreParens())) {
-    const auto EquivalentForBoolLiteral =
-        getEquivalentForBoolLiteral(BoolLiteral, DestType, Context);
-    if (UseUpperCaseLiteralSuffix)
+    
+    if (const auto EquivalentForBoolLiteral =
+        getEquivalentForBoolLiteral(BoolLiteral, DestType, Context); UseUpperCaseLiteralSuffix)
       Diag << tooling::fixit::createReplacement(
           *Cast, EquivalentForBoolLiteral.upper());
     else

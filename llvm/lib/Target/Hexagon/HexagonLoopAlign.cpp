@@ -154,8 +154,8 @@ bool HexagonLoopAlign::attemptToBalignSmallLoop(MachineFunction &MF,
     dbgs() << "\tedge with freq(" << EdgeFreq.getFrequency() << ")\n";
   });
 
-  bool AboveThres = EdgeFreq.getFrequency() > LoopEdgeThreshold;
-  if (shouldBalignLoop(MBB, AboveThres)) {
+  
+  if (bool AboveThres = EdgeFreq.getFrequency() > LoopEdgeThreshold; shouldBalignLoop(MBB, AboveThres)) {
     // We found a loop, change its alignment to be 32 (5).
     MBB.setAlignment(llvm::Align(1 << 5));
     return true;

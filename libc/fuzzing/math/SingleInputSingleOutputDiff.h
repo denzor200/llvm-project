@@ -26,9 +26,9 @@ void SingleInputSingleOutputDiff(SingleInputSingleOutputFunc<T> func1,
   T x = *reinterpret_cast<const T *>(data);
 
   T result1 = func1(x);
-  T result2 = func2(x);
+  
 
-  if (!ValuesEqual(result1, result2))
+  if (T result2 = func2(x); !ValuesEqual(result1, result2))
     __builtin_trap();
 }
 
@@ -47,9 +47,9 @@ void SingleInputSingleOutputWithSideEffectDiff(
   T2 sideEffect1, sideEffect2;
 
   T1 result1 = func1(x, &sideEffect1);
-  T1 result2 = func2(x, &sideEffect2);
+  
 
-  if (!ValuesEqual(result1, result2))
+  if (T1 result2 = func2(x, &sideEffect2); !ValuesEqual(result1, result2))
     __builtin_trap();
 
   if (!ValuesEqual(sideEffect1, sideEffect2))

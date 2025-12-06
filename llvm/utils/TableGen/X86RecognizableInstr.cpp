@@ -35,8 +35,8 @@ std::string X86Disassembler::getMnemonic(const CodeGenInstruction *I,
 
   // Special case: CMOVCC, JCC, SETCC, CMPCCXADD have "${cond}" in mnemonic.
   // Replace it with "CC" in-place.
-  auto CondPos = Mnemonic.find("${cond}");
-  if (CondPos != std::string::npos)
+  
+  if (auto CondPos = Mnemonic.find("${cond}"); CondPos != std::string::npos)
     Mnemonic = Mnemonic.replace(CondPos, 7, "CC");
   return StringRef(Mnemonic).upper();
 }
@@ -466,9 +466,9 @@ void RecognizableInstr::emitInstructionSpecifier() {
 
   for (unsigned operandIndex = 0; operandIndex < numOperands; ++operandIndex) {
     if (!OperandList[operandIndex].Constraints.empty()) {
-      const CGIOperandList::ConstraintInfo &Constraint =
-          OperandList[operandIndex].Constraints[0];
-      if (Constraint.isTied()) {
+      
+      if (const CGIOperandList::ConstraintInfo &Constraint =
+          OperandList[operandIndex].Constraints[0]; Constraint.isTied()) {
         operandMapping[operandIndex] = operandIndex;
         operandMapping[Constraint.getTiedOperand()] = operandIndex;
       } else {

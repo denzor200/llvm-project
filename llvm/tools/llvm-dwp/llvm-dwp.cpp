@@ -169,8 +169,8 @@ int llvm_dwp_main(int argc, char **argv, const llvm::ToolContext &) {
     if (Arg->getOption().matches(OPT_dwarf64StringOffsets)) {
       Dwarf64StrOffsetsValue = Dwarf64StrOffsetsPromotion::Enabled;
     } else {
-      std::string OptValue = Arg->getValue();
-      if (OptValue == "disabled") {
+      
+      if (std::string OptValue = Arg->getValue(); OptValue == "disabled") {
         Dwarf64StrOffsetsValue = Dwarf64StrOffsetsPromotion::Disabled;
       } else if (OptValue == "enabled") {
         Dwarf64StrOffsetsValue = Dwarf64StrOffsetsPromotion::Enabled;

@@ -377,20 +377,20 @@ void RenameIndependentSubregs::computeMainRangesFixFlags(
     for (MachineOperand &MO : MRI->reg_nodbg_operands(Reg)) {
       if (!MO.isDef())
         continue;
-      unsigned SubRegIdx = MO.getSubReg();
-      if (SubRegIdx == 0)
+      
+      if (unsigned SubRegIdx = MO.getSubReg(); SubRegIdx == 0)
         continue;
       // After assigning the new vreg we may not have any other sublanes living
       // in and out of the instruction anymore. We need to add new dead and
       // undef flags in these cases.
       if (!MO.isUndef()) {
-        SlotIndex Pos = LIS->getInstructionIndex(*MO.getParent());
-        if (!subRangeLiveAt(LI, Pos))
+        
+        if (SlotIndex Pos = LIS->getInstructionIndex(*MO.getParent()); !subRangeLiveAt(LI, Pos))
           MO.setIsUndef();
       }
       if (!MO.isDead()) {
-        SlotIndex Pos = LIS->getInstructionIndex(*MO.getParent()).getDeadSlot();
-        if (!subRangeLiveAt(LI, Pos))
+        
+        if (SlotIndex Pos = LIS->getInstructionIndex(*MO.getParent()).getDeadSlot(); !subRangeLiveAt(LI, Pos))
           MO.setIsDead();
       }
     }
@@ -409,8 +409,8 @@ void RenameIndependentSubregs::computeMainRangesFixFlags(
 PreservedAnalyses
 RenameIndependentSubregsPass::run(MachineFunction &MF,
                                   MachineFunctionAnalysisManager &MFAM) {
-  auto &LIS = MFAM.getResult<LiveIntervalsAnalysis>(MF);
-  if (!RenameIndependentSubregs(&LIS).run(MF))
+  
+  if (auto &LIS = MFAM.getResult<LiveIntervalsAnalysis>(MF); !RenameIndependentSubregs(&LIS).run(MF))
     return PreservedAnalyses::all();
   auto PA = getMachineFunctionPassPreservedAnalyses();
   PA.preserveSet<CFGAnalyses>();

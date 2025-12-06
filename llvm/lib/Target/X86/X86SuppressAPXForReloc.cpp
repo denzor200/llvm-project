@@ -104,8 +104,8 @@ static bool handleInstructionWithEGPR(MachineFunction &MF,
                                           ArrayRef<unsigned> OpNoArray) {
     int MemOpNo = X86II::getMemoryOperandNo(MI.getDesc().TSFlags) +
                   X86II::getOperandBias(MI.getDesc());
-    const MachineOperand &MO = MI.getOperand(X86::AddrDisp + MemOpNo);
-    if (MO.getTargetFlags() == X86II::MO_GOTTPOFF ||
+    
+    if (const MachineOperand &MO = MI.getOperand(X86::AddrDisp + MemOpNo); MO.getTargetFlags() == X86II::MO_GOTTPOFF ||
         MO.getTargetFlags() == X86II::MO_GOTPCREL) {
       LLVM_DEBUG(dbgs() << "Transform instruction with relocation type:\n  "
                         << MI);
@@ -117,8 +117,8 @@ static bool handleInstructionWithEGPR(MachineFunction &MF,
 
   for (MachineBasicBlock &MBB : MF) {
     for (MachineInstr &MI : MBB) {
-      unsigned Opcode = MI.getOpcode();
-      switch (Opcode) {
+      
+      switch (unsigned Opcode = MI.getOpcode(); Opcode) {
         // For GOTPC32_TLSDESC, it's emitted with physical register (EAX/RAX) in
         // X86AsmPrinter::LowerTlsAddr, and there is no corresponding target
         // flag for it, so we don't need to handle LEA64r with TLSDESC and EGPR
@@ -167,23 +167,23 @@ static bool handleNDDOrNFInstructions(MachineFunction &MF,
   MachineRegisterInfo *MRI = &MF.getRegInfo();
   for (MachineBasicBlock &MBB : MF) {
     for (MachineInstr &MI : llvm::make_early_inc_range(MBB)) {
-      unsigned Opcode = MI.getOpcode();
-      switch (Opcode) {
+      
+      switch (unsigned Opcode = MI.getOpcode(); Opcode) {
       case X86::ADD64rm_NF:
       case X86::ADD64mr_NF_ND:
       case X86::ADD64rm_NF_ND: {
         int MemOpNo = X86II::getMemoryOperandNo(MI.getDesc().TSFlags) +
                       X86II::getOperandBias(MI.getDesc());
-        const MachineOperand &MO = MI.getOperand(X86::AddrDisp + MemOpNo);
-        if (MO.getTargetFlags() == X86II::MO_GOTTPOFF)
+        
+        if (const MachineOperand &MO = MI.getOperand(X86::AddrDisp + MemOpNo); MO.getTargetFlags() == X86II::MO_GOTTPOFF)
           llvm_unreachable("Unexpected NF instruction!");
         break;
       }
       case X86::ADD64rm_ND: {
         int MemOpNo = X86II::getMemoryOperandNo(MI.getDesc().TSFlags) +
                       X86II::getOperandBias(MI.getDesc());
-        const MachineOperand &MO = MI.getOperand(X86::AddrDisp + MemOpNo);
-        if (MO.getTargetFlags() == X86II::MO_GOTTPOFF ||
+        
+        if (const MachineOperand &MO = MI.getOperand(X86::AddrDisp + MemOpNo); MO.getTargetFlags() == X86II::MO_GOTTPOFF ||
             MO.getTargetFlags() == X86II::MO_GOTPCREL) {
           LLVM_DEBUG(dbgs() << "Transform instruction with relocation type:\n  "
                             << MI);
@@ -204,8 +204,8 @@ static bool handleNDDOrNFInstructions(MachineFunction &MF,
       }
       case X86::ADD64mr_ND: {
         int MemRefBegin = X86II::getMemoryOperandNo(MI.getDesc().TSFlags);
-        const MachineOperand &MO = MI.getOperand(MemRefBegin + X86::AddrDisp);
-        if (MO.getTargetFlags() == X86II::MO_GOTTPOFF) {
+        
+        if (const MachineOperand &MO = MI.getOperand(MemRefBegin + X86::AddrDisp); MO.getTargetFlags() == X86II::MO_GOTTPOFF) {
           LLVM_DEBUG(dbgs() << "Transform instruction with relocation type:\n  "
                             << MI);
           suppressEGPRRegClassInRegAndUses(MRI, MI, ST, 0);
@@ -223,12 +223,12 @@ static bool handleNDDOrNFInstructions(MachineFunction &MF,
                   .addReg(MI.getOperand(3).getReg())
                   .add(MI.getOperand(4))
                   .addReg(MI.getOperand(5).getReg());
-          MachineOperand *FlagDef =
-              MI.findRegisterDefOperand(X86::EFLAGS, /*TRI=*/nullptr);
-          if (FlagDef && FlagDef->isDead()) {
-            MachineOperand *NewFlagDef =
-                NewMIB->findRegisterDefOperand(X86::EFLAGS, /*TRI=*/nullptr);
-            if (NewFlagDef)
+          
+          if (MachineOperand *FlagDef =
+              MI.findRegisterDefOperand(X86::EFLAGS, /*TRI=*/nullptr); FlagDef && FlagDef->isDead()) {
+            
+            if (MachineOperand *NewFlagDef =
+                NewMIB->findRegisterDefOperand(X86::EFLAGS, /*TRI=*/nullptr); NewFlagDef)
               NewFlagDef->setIsDead();
           }
           MI.eraseFromParent();

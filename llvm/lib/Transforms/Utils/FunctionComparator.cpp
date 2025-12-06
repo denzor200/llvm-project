@@ -330,8 +330,8 @@ int FunctionComparator::cmpConstants(const Constant *L,
       PointerType *PTyR = dyn_cast<PointerType>(TyR);
       if (PTyL && PTyR) {
         unsigned AddrSpaceL = PTyL->getAddressSpace();
-        unsigned AddrSpaceR = PTyR->getAddressSpace();
-        if (int Res = cmpNumbers(AddrSpaceL, AddrSpaceR))
+        
+        if (unsigned AddrSpaceR = PTyR->getAddressSpace(); int Res = cmpNumbers(AddrSpaceL, AddrSpaceR))
           return Res;
       }
       if (PTyL)
@@ -392,8 +392,8 @@ int FunctionComparator::cmpConstants(const Constant *L,
     const ConstantArray *LA = cast<ConstantArray>(L);
     const ConstantArray *RA = cast<ConstantArray>(R);
     uint64_t NumElementsL = cast<ArrayType>(TyL)->getNumElements();
-    uint64_t NumElementsR = cast<ArrayType>(TyR)->getNumElements();
-    if (int Res = cmpNumbers(NumElementsL, NumElementsR))
+    
+    if (uint64_t NumElementsR = cast<ArrayType>(TyR)->getNumElements(); int Res = cmpNumbers(NumElementsL, NumElementsR))
       return Res;
     for (uint64_t i = 0; i < NumElementsL; ++i) {
       if (int Res = cmpConstants(cast<Constant>(LA->getOperand(i)),
@@ -406,8 +406,8 @@ int FunctionComparator::cmpConstants(const Constant *L,
     const ConstantStruct *LS = cast<ConstantStruct>(L);
     const ConstantStruct *RS = cast<ConstantStruct>(R);
     unsigned NumElementsL = cast<StructType>(TyL)->getNumElements();
-    unsigned NumElementsR = cast<StructType>(TyR)->getNumElements();
-    if (int Res = cmpNumbers(NumElementsL, NumElementsR))
+    
+    if (unsigned NumElementsR = cast<StructType>(TyR)->getNumElements(); int Res = cmpNumbers(NumElementsL, NumElementsR))
       return Res;
     for (unsigned i = 0; i != NumElementsL; ++i) {
       if (int Res = cmpConstants(cast<Constant>(LS->getOperand(i)),
@@ -420,8 +420,8 @@ int FunctionComparator::cmpConstants(const Constant *L,
     const ConstantVector *LV = cast<ConstantVector>(L);
     const ConstantVector *RV = cast<ConstantVector>(R);
     unsigned NumElementsL = cast<FixedVectorType>(TyL)->getNumElements();
-    unsigned NumElementsR = cast<FixedVectorType>(TyR)->getNumElements();
-    if (int Res = cmpNumbers(NumElementsL, NumElementsR))
+    
+    if (unsigned NumElementsR = cast<FixedVectorType>(TyR)->getNumElements(); int Res = cmpNumbers(NumElementsL, NumElementsR))
       return Res;
     for (uint64_t i = 0; i < NumElementsL; ++i) {
       if (int Res = cmpConstants(cast<Constant>(LV->getOperand(i)),
@@ -812,9 +812,9 @@ int FunctionComparator::cmpOperations(const Instruction *L,
 int FunctionComparator::cmpGEPs(const GEPOperator *GEPL,
                                 const GEPOperator *GEPR) const {
   unsigned int ASL = GEPL->getPointerAddressSpace();
-  unsigned int ASR = GEPR->getPointerAddressSpace();
+  
 
-  if (int Res = cmpNumbers(ASL, ASR))
+  if (unsigned int ASR = GEPR->getPointerAddressSpace(); int Res = cmpNumbers(ASL, ASR))
     return Res;
 
   // When we have target data, we can reduce the GEP down to the value in bytes
@@ -938,8 +938,8 @@ int FunctionComparator::cmpBasicBlocks(const BasicBlock *BBL,
 
       for (unsigned i = 0, e = InstL->getNumOperands(); i != e; ++i) {
         Value *OpL = InstL->getOperand(i);
-        Value *OpR = InstR->getOperand(i);
-        if (int Res = cmpValues(OpL, OpR))
+        
+        if (Value *OpR = InstR->getOperand(i); int Res = cmpValues(OpL, OpR))
           return Res;
         // cmpValues should ensure this is true.
         assert(cmpTypes(OpL->getType(), OpR->getType()) == 0);

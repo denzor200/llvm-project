@@ -47,13 +47,13 @@ StringRef ExpressionFormat::toString() const {
 Expected<std::string> ExpressionFormat::getWildcardRegex() const {
   StringRef AlternateFormPrefix = AlternateForm ? StringRef("0x") : StringRef();
 
-  auto CreatePrecisionRegex = [&](StringRef S) {
+  
+
+  switch (auto CreatePrecisionRegex = [&](StringRef S) {
     return (Twine(AlternateFormPrefix) + S + Twine('{') + Twine(Precision) +
             "}")
         .str();
-  };
-
-  switch (Value) {
+  }; Value) {
   case Kind::Unsigned:
     if (Precision)
       return CreatePrecisionRegex("([1-9][0-9]*)?[0-9]");
@@ -483,8 +483,8 @@ Expected<std::unique_ptr<ExpressionAST>> Pattern::parseNumericOperand(
   // Otherwise, parse it as a literal.
   APInt LiteralValue;
   StringRef SaveExpr = Expr;
-  bool Negative = Expr.consume_front("-");
-  if (!Expr.consumeInteger((AO == AllowedOperand::LegacyLiteral) ? 10 : 0,
+  
+  if (bool Negative = Expr.consume_front("-"); !Expr.consumeInteger((AO == AllowedOperand::LegacyLiteral) ? 10 : 0,
                            LiteralValue)) {
     LiteralValue = toSigned(LiteralValue, Negative);
     return std::make_unique<ExpressionLiteral>(SaveExpr.drop_back(Expr.size()),
@@ -663,8 +663,8 @@ Expected<std::unique_ptr<Expression>> Pattern::parseNumericSubstitutionBlock(
 
   // Parse format specifier (NOTE: ',' is also an argument separator).
   size_t FormatSpecEnd = Expr.find(',');
-  size_t FunctionStart = Expr.find('(');
-  if (FormatSpecEnd != StringRef::npos && FormatSpecEnd < FunctionStart) {
+  
+  if (size_t FunctionStart = Expr.find('('); FormatSpecEnd != StringRef::npos && FormatSpecEnd < FunctionStart) {
     StringRef FormatExpr = Expr.take_front(FormatSpecEnd);
     Expr = Expr.drop_front(FormatSpecEnd + 1);
     FormatExpr = FormatExpr.trim(SpaceChars);
@@ -687,8 +687,8 @@ Expected<std::unique_ptr<Expression>> Pattern::parseNumericSubstitutionBlock(
     if (!FormatExpr.empty()) {
       // Check for unknown matching format specifier and set matching format in
       // class instance representing this expression.
-      SMLoc FmtLoc = SMLoc::getFromPointer(FormatExpr.data());
-      switch (popFront(FormatExpr)) {
+      
+      switch (SMLoc FmtLoc = SMLoc::getFromPointer(FormatExpr.data()); popFront(FormatExpr)) {
       case 'u':
         ExplicitFormat =
             ExpressionFormat(ExpressionFormat::Kind::Unsigned, Precision);
@@ -1050,8 +1050,8 @@ bool Pattern::parsePattern(StringRef PatternStr, StringRef Prefix,
         // Handle substitution of string variables that were defined earlier on
         // the same line by emitting a backreference. Expressions do not
         // support substituting a numeric variable defined on the same line.
-        decltype(VariableDefs)::iterator It;
-        if (!IsNumBlock &&
+        
+        if (decltype(VariableDefs)::iterator It; !IsNumBlock &&
             (It = VariableDefs.find(SubstStr)) != VariableDefs.end()) {
           unsigned CaptureParenGroup = It->second;
           if (CaptureParenGroup < 1 || CaptureParenGroup > 9) {
@@ -1387,9 +1387,9 @@ void Pattern::printFuzzyMatch(const SourceMgr &SM, StringRef Buffer,
     // Compute the "quality" of this match as an arbitrary combination of the
     // match distance and the number of lines skipped to get to this match.
     unsigned Distance = computeMatchDistance(Buffer.substr(i));
-    double Quality = Distance + (NumLinesForward / 100.);
+    
 
-    if (Quality < BestQuality || Best == StringRef::npos) {
+    if (double Quality = Distance + (NumLinesForward / 100.); Quality < BestQuality || Best == StringRef::npos) {
       Best = i;
       BestQuality = Quality;
     }
@@ -1848,8 +1848,8 @@ bool FileCheck::readCheckFile(
 
     StringRef PatternInBuffer =
         CmdLine->getBuffer().substr(Prefix.size(), PatternString.size());
-    unsigned BufferID = SM.AddNewSourceBuffer(std::move(CmdLine), SMLoc());
-    if (ImpPatBufferIDRange) {
+    
+    if (unsigned BufferID = SM.AddNewSourceBuffer(std::move(CmdLine), SMLoc()); ImpPatBufferIDRange) {
       if (ImpPatBufferIDRange->first == ImpPatBufferIDRange->second) {
         ImpPatBufferIDRange->first = BufferID;
         ImpPatBufferIDRange->second = BufferID + 1;
@@ -2340,9 +2340,9 @@ bool FileCheckString::CheckSame(const SourceMgr &SM, StringRef Buffer) const {
 
   // Count the number of newlines between the previous match and this one.
   const char *FirstNewLine = nullptr;
-  unsigned NumNewLines = CountNumNewlinesBetween(Buffer, FirstNewLine);
+  
 
-  if (NumNewLines != 0) {
+  if (unsigned NumNewLines = CountNumNewlinesBetween(Buffer, FirstNewLine); NumNewLines != 0) {
     SM.PrintMessage(Loc, SourceMgr::DK_Error,
                     Prefix +
                         "-SAME: is not on the same line as the previous match");
@@ -2364,8 +2364,8 @@ bool FileCheckString::CheckNot(
   for (auto NotInfo : NotStrings) {
     assert((NotInfo->DagNotPat.getCheckTy() == Check::CheckNot) &&
            "Expect CHECK-NOT!");
-    Pattern::MatchResult MatchResult = NotInfo->DagNotPat.match(Buffer, SM);
-    if (Error Err = reportMatchResult(
+    
+    if (Pattern::MatchResult MatchResult = NotInfo->DagNotPat.match(Buffer, SM); Error Err = reportMatchResult(
             /*ExpectedMatch=*/false, SM, NotInfo->DagNotPrefix,
             NotInfo->DagNotPat.getLoc(), NotInfo->DagNotPat, 1, Buffer,
             std::move(MatchResult), Req, Diags)) {

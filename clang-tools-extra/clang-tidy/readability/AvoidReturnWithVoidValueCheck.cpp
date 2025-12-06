@@ -55,10 +55,10 @@ void AvoidReturnWithVoidValueCheck::check(
   if (SemicolonPos.isInvalid())
     return;
   if (!SurroundingBlock) {
-    const auto BraceInsertionHints = utils::getBraceInsertionsHints(
+    
+    if (const auto BraceInsertionHints = utils::getBraceInsertionsHints(
         VoidReturn, getLangOpts(), *Result.SourceManager,
-        VoidReturn->getBeginLoc());
-    if (BraceInsertionHints)
+        VoidReturn->getBeginLoc()); BraceInsertionHints)
       Diag << BraceInsertionHints.openingBraceFixIt()
            << BraceInsertionHints.closingBraceFixIt();
   }

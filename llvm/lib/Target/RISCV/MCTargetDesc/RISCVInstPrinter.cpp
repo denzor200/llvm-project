@@ -181,20 +181,20 @@ void RISCVInstPrinter::printFRMArgLegacy(const MCInst *MI, unsigned OpNo,
 void RISCVInstPrinter::printFPImmOperand(const MCInst *MI, unsigned OpNo,
                                          const MCSubtargetInfo &STI,
                                          raw_ostream &O) {
-  unsigned Imm = MI->getOperand(OpNo).getImm();
-  if (Imm == 1) {
+  
+  if (unsigned Imm = MI->getOperand(OpNo).getImm(); Imm == 1) {
     markup(O, Markup::Immediate) << "min";
   } else if (Imm == 30) {
     markup(O, Markup::Immediate) << "inf";
   } else if (Imm == 31) {
     markup(O, Markup::Immediate) << "nan";
   } else {
-    float FPVal = RISCVLoadFPImm::getFPImm(Imm);
+    
     // If the value is an integer, print a .0 fraction. Otherwise, use %g to
     // which will not print trailing zeros and will use scientific notation
     // if it is shorter than printing as a decimal. The smallest value requires
     // 12 digits of precision including the decimal.
-    if (FPVal == (int)(FPVal))
+    if (float FPVal = RISCVLoadFPImm::getFPImm(Imm); FPVal == (int)(FPVal))
       markup(O, Markup::Immediate) << format("%.1f", FPVal);
     else
       markup(O, Markup::Immediate) << format("%.12g", FPVal);
@@ -237,8 +237,8 @@ void RISCVInstPrinter::printXSfmmVType(const MCInst *MI, unsigned OpNo,
   assert(RISCVVType::isValidXSfmmVType(Imm));
   unsigned SEW = RISCVVType::getSEW(Imm);
   O << "e" << SEW;
-  bool AltFmt = RISCVVType::isAltFmt(Imm);
-  if (AltFmt)
+  
+  if (bool AltFmt = RISCVVType::isAltFmt(Imm); AltFmt)
     O << "alt";
   unsigned Widen = RISCVVType::getXSfmmWiden(Imm);
   O << ", w" << Widen;

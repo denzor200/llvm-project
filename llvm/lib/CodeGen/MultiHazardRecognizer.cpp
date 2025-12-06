@@ -33,8 +33,8 @@ bool MultiHazardRecognizer::atIssueLimit() const {
 ScheduleHazardRecognizer::HazardType
 MultiHazardRecognizer::getHazardType(SUnit *SU, int Stalls) {
   for (auto &R : Recognizers) {
-    auto res = R->getHazardType(SU, Stalls);
-    if (res != NoHazard)
+    
+    if (auto res = R->getHazardType(SU, Stalls); res != NoHazard)
       return res;
   }
   return NoHazard;

@@ -98,9 +98,9 @@ void GenerateLLVMLoweringPattern(llvm::StringRef OpName,
 }
 
 void Generate(const Record *OpRecord) {
-  std::string OpName = GetOpCppClassName(OpRecord);
+  
 
-  if (OpRecord->getValueAsBit("hasLLVMLowering")) {
+  if (std::string OpName = GetOpCppClassName(OpRecord); OpRecord->getValueAsBit("hasLLVMLowering")) {
     std::string PatternName = GetOpLLVMLoweringPatternName(OpName);
     bool IsRecursive = OpRecord->getValueAsBit("isLLVMLoweringRecursive");
     llvm::StringRef ExtraDecl =

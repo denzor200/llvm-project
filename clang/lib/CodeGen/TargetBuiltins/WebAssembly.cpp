@@ -254,8 +254,8 @@ Value *CodeGenFunction::EmitWebAssemblyBuiltinExpr(unsigned BuiltinID,
     Args.push_back(FuncRef);
 
     // Add the type information
-    llvm::Type *RetType = LLVMFuncTy->getReturnType();
-    if (!RetType->isVoidTy()) {
+    
+    if (llvm::Type *RetType = LLVMFuncTy->getReturnType(); !RetType->isVoidTy()) {
       Args.push_back(PoisonValue::get(RetType));
     }
     // The token type indicates the boundary between return types and param

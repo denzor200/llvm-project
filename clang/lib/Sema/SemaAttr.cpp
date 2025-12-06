@@ -265,8 +265,8 @@ void Sema::inferLifetimeBoundAttribute(FunctionDecl *FD) {
       } else if (CRD->getName() == "span") {
         // construct from a reference of array.
         //   span(std::type_identity_t<element_type> (&arr)[N]);
-        const auto *LRT = Param->getType()->getAs<LValueReferenceType>();
-        if (LRT && LRT->getPointeeType().IgnoreParens()->isArrayType())
+        
+        if (const auto *LRT = Param->getType()->getAs<LValueReferenceType>(); LRT && LRT->getPointeeType().IgnoreParens()->isArrayType())
           Param->addAttr(
               LifetimeBoundAttr::CreateImplicit(Context, FD->getLocation()));
       }
@@ -320,12 +320,12 @@ void Sema::inferLifetimeCaptureByAttribute(FunctionDecl *FD) {
 }
 
 void Sema::inferNullableClassAttribute(CXXRecordDecl *CRD) {
-  static const llvm::StringSet<> Nullable{
+  
+
+  if (static const llvm::StringSet<> Nullable{
       "auto_ptr",         "shared_ptr", "unique_ptr",         "exception_ptr",
       "coroutine_handle", "function",   "move_only_function",
-  };
-
-  if (CRD->isInStdNamespace() && Nullable.count(CRD->getName()) &&
+  }; CRD->isInStdNamespace() && Nullable.count(CRD->getName()) &&
       !CRD->hasAttr<TypeNullableAttr>())
     for (Decl *Redecl : CRD->redecls())
       Redecl->addAttr(TypeNullableAttr::CreateImplicit(Context));
@@ -529,12 +529,12 @@ bool Sema::ConstantFoldAttrArgs(const AttributeCommonInfo &CI,
     Notes.clear();
     Eval.Diag = &Notes;
 
-    bool Result = E->EvaluateAsConstantExpr(Eval, Context);
+    
 
     /// Result means the expression can be folded to a constant.
     /// Note.empty() means the expression is a valid constant expression in the
     /// current language mode.
-    if (!Result || !Notes.empty()) {
+    if (bool Result = E->EvaluateAsConstantExpr(Eval, Context); !Result || !Notes.empty()) {
       Diag(E->getBeginLoc(), diag::err_attribute_argument_n_type)
           << CI << (Idx + 1) << AANT_ArgumentConstantExpr;
       for (auto &Note : Notes)
@@ -602,11 +602,11 @@ void Sema::DiagnoseUnterminatedPragmaAlignPack() {
         AlignPackStack.CurrentValue == AlignPackStack.DefaultValue) {
       auto DB = Diag(AlignPackStack.CurrentPragmaLocation,
                      diag::note_pragma_pack_pop_instead_reset);
-      SourceLocation FixItLoc =
+      
+      if (SourceLocation FixItLoc =
           Lexer::findLocationAfterToken(AlignPackStack.CurrentPragmaLocation,
                                         tok::l_paren, SourceMgr, LangOpts,
-                                        /*SkipTrailing=*/false);
-      if (FixItLoc.isValid())
+                                        /*SkipTrailing=*/false); FixItLoc.isValid())
         DB << FixItHint::CreateInsertion(FixItLoc, "pop");
     }
     IsInnermost = false;
@@ -746,11 +746,11 @@ void Sema::PragmaStack<Sema::AlignPackInfo>::Act(SourceLocation PragmaLocation,
   else if (Action & PSK_Pop) {
     if (!StackSlotLabel.empty()) {
       // If we've got a label, try to find it and jump there.
-      auto I = llvm::find_if(llvm::reverse(Stack), [&](const Slot &x) {
-        return x.StackSlotLabel == StackSlotLabel;
-      });
+      
       // We found the label, so pop from there.
-      if (I != Stack.rend()) {
+      if (auto I = llvm::find_if(llvm::reverse(Stack), [&](const Slot &x) {
+        return x.StackSlotLabel == StackSlotLabel;
+      }); I != Stack.rend()) {
         CurrentValue = I->Value;
         CurrentPragmaLocation = I->PragmaLocation;
         Stack.erase(std::prev(I.base()), Stack.end());
@@ -759,11 +759,11 @@ void Sema::PragmaStack<Sema::AlignPackInfo>::Act(SourceLocation PragmaLocation,
                CurrentValue.IsPackAttr()) {
       // XL '#pragma align(reset)' would pop the stack until
       // a current in effect pragma align is popped.
-      auto I = llvm::find_if(llvm::reverse(Stack), [&](const Slot &x) {
-        return x.Value.IsAlignAttr();
-      });
+      
       // If we found pragma align so pop from there.
-      if (I != Stack.rend()) {
+      if (auto I = llvm::find_if(llvm::reverse(Stack), [&](const Slot &x) {
+        return x.Value.IsAlignAttr();
+      }); I != Stack.rend()) {
         Stack.erase(std::prev(I.base()), Stack.end());
         if (Stack.empty()) {
           CurrentValue = DefaultValue;
@@ -992,10 +992,10 @@ bool isNegatedAttrMatcherSubRule(attr::SubjectMatchRule Rule) {
 CharSourceRange replacementRangeForListElement(const Sema &S,
                                                SourceRange Range) {
   // Make sure that the ',' is removed as well.
-  SourceLocation AfterCommaLoc = Lexer::findLocationAfterToken(
+  
+  if (SourceLocation AfterCommaLoc = Lexer::findLocationAfterToken(
       Range.getEnd(), tok::comma, S.getSourceManager(), S.getLangOpts(),
-      /*SkipTrailingWhitespaceAndNewLine=*/false);
-  if (AfterCommaLoc.isValid())
+      /*SkipTrailingWhitespaceAndNewLine=*/false); AfterCommaLoc.isValid())
     return CharSourceRange::getCharRange(Range.getBegin(), AfterCommaLoc);
   else
     return CharSourceRange::getTokenRange(Range);
@@ -1112,8 +1112,8 @@ void Sema::ActOnPragmaAttributeAttribute(
     // Check remaining rules for subset matches.
     auto RulesToCheck = Rules;
     for (const auto &Rule : RulesToCheck) {
-      attr::SubjectMatchRule MatchRule = attr::SubjectMatchRule(Rule.first);
-      if (auto ParentRule = getParentAttrMatcherRule(MatchRule)) {
+      
+      if (attr::SubjectMatchRule MatchRule = attr::SubjectMatchRule(Rule.first); auto ParentRule = getParentAttrMatcherRule(MatchRule)) {
         if (llvm::any_of(StrictSubjectMatchRuleSet,
                          [ParentRule](const auto &StrictRule) {
                            return StrictRule.first == *ParentRule &&
@@ -1286,8 +1286,8 @@ void Sema::AddSectionMSAllocText(FunctionDecl *FD) {
     return;
 
   StringRef Name = FD->getName();
-  auto It = FunctionToSectionMap.find(Name);
-  if (It != FunctionToSectionMap.end()) {
+  
+  if (auto It = FunctionToSectionMap.find(Name); It != FunctionToSectionMap.end()) {
     StringRef Section;
     SourceLocation Loc;
     std::tie(Section, Loc) = It->second;
@@ -1321,9 +1321,9 @@ void Sema::AddOptnoneAttributeIfNoConflicts(FunctionDecl *FD,
 void Sema::AddImplicitMSFunctionNoBuiltinAttr(FunctionDecl *FD) {
   if (FD->isDeleted() || FD->isDefaulted())
     return;
-  SmallVector<StringRef> V(MSFunctionNoBuiltins.begin(),
-                           MSFunctionNoBuiltins.end());
-  if (!MSFunctionNoBuiltins.empty())
+  
+  if (SmallVector<StringRef> V(MSFunctionNoBuiltins.begin(),
+                           MSFunctionNoBuiltins.end()); !MSFunctionNoBuiltins.empty())
     FD->addAttr(NoBuiltinAttr::CreateImplicit(Context, V.data(), V.size()));
 }
 
@@ -1334,8 +1334,8 @@ void Sema::AddPushedVisibilityAttribute(Decl *D) {
   if (!VisContext)
     return;
 
-  NamedDecl *ND = dyn_cast<NamedDecl>(D);
-  if (ND && ND->getExplicitVisibility(NamedDecl::VisibilityForValue))
+  
+  if (NamedDecl *ND = dyn_cast<NamedDecl>(D); ND && ND->getExplicitVisibility(NamedDecl::VisibilityForValue))
     return;
 
   VisStack *Stack = static_cast<VisStack*>(VisContext);
@@ -1496,8 +1496,8 @@ void Sema::PopPragmaVisibility(bool IsNamespaceEnd, SourceLocation EndLoc) {
   VisStack *Stack = static_cast<VisStack*>(VisContext);
 
   const std::pair<unsigned, SourceLocation> *Back = &Stack->back();
-  bool StartsWithPragma = Back->first != NoVisibility;
-  if (StartsWithPragma && IsNamespaceEnd) {
+  
+  if (bool StartsWithPragma = Back->first != NoVisibility; StartsWithPragma && IsNamespaceEnd) {
     Diag(Back->second, diag::err_pragma_push_visibility_mismatch);
     Diag(EndLoc, diag::note_surrounding_namespace_ends_here);
 

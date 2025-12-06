@@ -141,14 +141,14 @@ public:
 
     if (FD && FD->hasAttr<TargetAttr>()) {
       const auto *TA = FD->getAttr<TargetAttr>();
-      ParsedTargetAttr Attr =
-          CGM.getTarget().parseTargetAttr(TA->getFeaturesStr());
-      if (!Attr.BranchProtection.empty()) {
+      
+      if (ParsedTargetAttr Attr =
+          CGM.getTarget().parseTargetAttr(TA->getFeaturesStr()); !Attr.BranchProtection.empty()) {
         TargetInfo::BranchProtectionInfo BPI{};
         StringRef DiagMsg;
-        StringRef Arch =
-            Attr.CPU.empty() ? CGM.getTarget().getTargetOpts().CPU : Attr.CPU;
-        if (!CGM.getTarget().validateBranchProtection(
+        
+        if (StringRef Arch =
+            Attr.CPU.empty() ? CGM.getTarget().getTargetOpts().CPU : Attr.CPU; !CGM.getTarget().validateBranchProtection(
                 Attr.BranchProtection, Arch, BPI, CGM.getLangOpts(), DiagMsg)) {
           CGM.getDiags().Report(
               D->getLocation(),
@@ -250,8 +250,8 @@ void ARMABIInfo::computeInfo(CGFunctionInfo &FI) const {
   if (FI.getCallingConvention() != llvm::CallingConv::C)
     return;
 
-  llvm::CallingConv::ID cc = getRuntimeCC();
-  if (cc != llvm::CallingConv::C)
+  
+  if (llvm::CallingConv::ID cc = getRuntimeCC(); cc != llvm::CallingConv::C)
     FI.setEffectiveCallingConvention(cc);
 }
 
@@ -287,8 +287,8 @@ void ARMABIInfo::setCCs() {
 
   // Don't muddy up the IR with a ton of explicit annotations if
   // they'd just match what LLVM will infer from the triple.
-  llvm::CallingConv::ID abiCC = getABIDefaultCC();
-  if (abiCC != getLLVMDefaultCC())
+  
+  if (llvm::CallingConv::ID abiCC = getABIDefaultCC(); abiCC != getLLVMDefaultCC())
     RuntimeCC = abiCC;
 }
 
@@ -416,16 +416,16 @@ ABIArgInfo ARMABIInfo::classifyArgumentType(QualType Ty, bool isVariadic,
     // Homogeneous Aggregates need to be expanded when we can fit the aggregate
     // into VFP registers.
     const Type *Base = nullptr;
-    uint64_t Members = 0;
-    if (isHomogeneousAggregate(Ty, Base, Members))
+    
+    if (uint64_t Members = 0; isHomogeneousAggregate(Ty, Base, Members))
       return classifyHomogeneousAggregate(Ty, Base, Members);
   } else if (getABIKind() == ARMABIKind::AAPCS16_VFP) {
     // WatchOS does have homogeneous aggregates. Note that we intentionally use
     // this convention even for a variadic function: the backend will use GPRs
     // if needed.
     const Type *Base = nullptr;
-    uint64_t Members = 0;
-    if (isHomogeneousAggregate(Ty, Base, Members)) {
+    
+    if (uint64_t Members = 0; isHomogeneousAggregate(Ty, Base, Members)) {
       assert(Base && Members <= 4 && "unexpected homogeneous aggregate");
       llvm::Type *Ty =
         llvm::ArrayType::get(CGT.ConvertType(QualType(Base, 0)), Members);
@@ -486,10 +486,10 @@ static bool isIntegerLikeType(QualType Ty, ASTContext &Context,
   // is called integer-like if its size is less than or equal to one word, and
   // the offset of each of its addressable sub-fields is zero.
 
-  uint64_t Size = Context.getTypeSize(Ty);
+  
 
   // Check that the type fits in a word.
-  if (Size > 32)
+  if (uint64_t Size = Context.getTypeSize(Ty); Size > 32)
     return false;
 
   // FIXME: Handle vector types!
@@ -642,8 +642,8 @@ ABIArgInfo ARMABIInfo::classifyReturnType(QualType RetTy, bool isVariadic,
   // Check for homogeneous aggregates with AAPCS-VFP.
   if (IsAAPCS_VFP) {
     const Type *Base = nullptr;
-    uint64_t Members = 0;
-    if (isHomogeneousAggregate(RetTy, Base, Members))
+    
+    if (uint64_t Members = 0; isHomogeneousAggregate(RetTy, Base, Members))
       return classifyHomogeneousAggregate(RetTy, Base, Members);
   }
 
@@ -692,9 +692,9 @@ bool ARMABIInfo::isIllegalVectorType(QualType Ty) const {
       // were legal, and so were sub 32-bit vectors (i.e. <2 x i8>). This path
       // accepts that legacy behavior for Android only.
       // Check whether VT is legal.
-      unsigned NumElements = VT->getNumElements();
+      
       // NumElements should be power of 2 or equal to 3.
-      if (!llvm::isPowerOf2_32(NumElements) && NumElements != 3)
+      if (unsigned NumElements = VT->getNumElements(); !llvm::isPowerOf2_32(NumElements) && NumElements != 3)
         return true;
     } else {
       // Check whether VT is legal.
@@ -713,8 +713,8 @@ bool ARMABIInfo::isIllegalVectorType(QualType Ty) const {
 /// Return true if a type contains any 16-bit floating point vectors
 bool ARMABIInfo::containsAnyFP16Vectors(QualType Ty) const {
   if (const ConstantArrayType *AT = getContext().getAsConstantArrayType(Ty)) {
-    uint64_t NElements = AT->getZExtSize();
-    if (NElements == 0)
+    
+    if (uint64_t NElements = AT->getZExtSize(); NElements == 0)
       return false;
     return containsAnyFP16Vectors(AT->getElementType());
   }
@@ -763,8 +763,8 @@ bool ARMABIInfo::isHomogeneousAggregateBaseType(QualType Ty) const {
         BT->getKind() == BuiltinType::LongDouble)
       return true;
   } else if (const VectorType *VT = Ty->getAs<VectorType>()) {
-    unsigned VecSize = getContext().getTypeSize(VT);
-    if (VecSize == 64 || VecSize == 128)
+    
+    if (unsigned VecSize = getContext().getTypeSize(VT); VecSize == 64 || VecSize == 128)
       return true;
   }
   return false;
@@ -800,8 +800,8 @@ RValue ARMABIInfo::EmitVAArg(CodeGenFunction &CGF, Address VAListAddr,
 
   // Empty records are ignored for parameter passing purposes.
   uint64_t Size = getContext().getTypeSize(Ty);
-  bool IsEmpty = isEmptyRecord(getContext(), Ty, true);
-  if ((IsEmpty || Size == 0) && shouldIgnoreEmptyArg(Ty))
+  
+  if (bool IsEmpty = isEmptyRecord(getContext(), Ty, true); (IsEmpty || Size == 0) && shouldIgnoreEmptyArg(Ty))
     return Slot.asRValue();
 
   CharUnits TySize = getContext().getTypeSizeInChars(Ty);

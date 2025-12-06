@@ -226,9 +226,9 @@ static bool areCommutative(ArrayRef<VPValue *> Values) {
 static SmallVector<SmallVector<VPValue *, 4>, 4>
 getOperands(ArrayRef<VPValue *> Values) {
   SmallVector<SmallVector<VPValue *, 4>, 4> Result;
-  auto *VPI = cast<VPInstruction>(Values[0]);
+  
 
-  switch (VPI->getOpcode()) {
+  switch (auto *VPI = cast<VPInstruction>(Values[0]); VPI->getOpcode()) {
   case Instruction::Load:
     llvm_unreachable("Loads terminate a tree, no need to get operands");
   case Instruction::Store:
@@ -303,8 +303,8 @@ VPlanSlp::getBest(OpMode Mode, VPValue *Last,
                     << *cast<VPInstruction>(Last)->getUnderlyingInstr() << " ");
   for (auto *Candidate : Candidates) {
     auto *LastI = cast<VPInstruction>(Last);
-    auto *CandidateI = cast<VPInstruction>(Candidate);
-    if (areConsecutiveOrMatch(LastI, CandidateI, IAI)) {
+    
+    if (auto *CandidateI = cast<VPInstruction>(Candidate); areConsecutiveOrMatch(LastI, CandidateI, IAI)) {
       LLVM_DEBUG(dbgs() << *cast<VPInstruction>(Candidate)->getUnderlyingInstr()
                         << " ");
       BestCandidates.push_back(Candidate);
@@ -384,9 +384,9 @@ SmallVector<VPlanSlp::MultiNodeOpTy, 4> VPlanSlp::reorderMultiNodeOps() {
         continue;
 
       VPValue *Last = FinalOrder[Op].second[Lane - 1];
-      std::pair<OpMode, VPValue *> Res =
-          getBest(Mode[Op], Last, Candidates, IAI);
-      if (Res.second)
+      
+      if (std::pair<OpMode, VPValue *> Res =
+          getBest(Mode[Op], Last, Candidates, IAI); Res.second)
         FinalOrder[Op].second.push_back(Res.second);
       else
         // TODO: handle this case
@@ -456,8 +456,8 @@ VPInstruction *VPlanSlp::buildGraph(ArrayRef<VPValue *> Values) {
         dumpBundle(Operands);
       });
 
-      auto OperandsOpcode = getOpcode(Operands);
-      if (OperandsOpcode && OperandsOpcode == getOpcode(Values)) {
+      
+      if (auto OperandsOpcode = getOpcode(Operands); OperandsOpcode && OperandsOpcode == getOpcode(Values)) {
         LLVM_DEBUG(dbgs() << "    Same opcode, continue building\n");
         CombinedOperands.push_back(buildGraph(Operands));
       } else {

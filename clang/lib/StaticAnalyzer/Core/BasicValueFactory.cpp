@@ -177,9 +177,9 @@ const PointerToMemberData *BasicValueFactory::getPointerToMemberData(
     llvm::ImmutableList<const CXXBaseSpecifier *> BaseSpecList) {
   llvm::SmallPtrSet<QualType, 16> BaseSpecSeen;
   for (const CXXBaseSpecifier *BaseSpec : BaseSpecList) {
-    QualType BaseType = BaseSpec->getType();
+    
     // Check whether inserted
-    if (!BaseSpecSeen.insert(BaseType).second)
+    if (QualType BaseType = BaseSpec->getType(); !BaseSpecSeen.insert(BaseType).second)
       return false;
   }
   return true;
@@ -225,10 +225,10 @@ const PointerToMemberData *BasicValueFactory::accumCXXBase(
     // BaseSpecList but not it PathRange
     auto ReducedBaseSpecList = CXXBaseListFactory.getEmptyList();
     for (const CXXBaseSpecifier *BaseSpec : BaseSpecList) {
-      auto IsSameAsBaseSpec = [&BaseSpec](const CXXBaseSpecifier *I) -> bool {
+      
+      if (auto IsSameAsBaseSpec = [&BaseSpec](const CXXBaseSpecifier *I) -> bool {
         return BaseSpec->getType() == I->getType();
-      };
-      if (llvm::none_of(PathRange, IsSameAsBaseSpec))
+      }; llvm::none_of(PathRange, IsSameAsBaseSpec))
         ReducedBaseSpecList =
             CXXBaseListFactory.add(BaseSpec, ReducedBaseSpecList);
     }

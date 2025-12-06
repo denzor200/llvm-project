@@ -58,9 +58,9 @@ SliceBoundsVerificationResult mlir::verifyInBoundsSlice(
     if (ShapedType::isDynamic(staticSizes[i]) ||
         ShapedType::isDynamic(staticStrides[i]))
       continue;
-    int64_t lastPos =
-        staticOffsets[i] + (staticSizes[i] - 1) * staticStrides[i];
-    if (lastPos >= shape[i]) {
+    
+    if (int64_t lastPos =
+        staticOffsets[i] + (staticSizes[i] - 1) * staticStrides[i]; lastPos >= shape[i]) {
       result.errorMessage = std::string("slice along dimension ") +
                             std::to_string(i) +
                             " runs out-of-bounds: " + std::to_string(lastPos) +

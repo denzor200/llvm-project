@@ -47,9 +47,9 @@ bolt::JumpTable::getEntriesForAddress(const uint64_t Addr) const {
     auto LI = Labels.find(Offset);
     if (LI != Labels.end()) {
       const auto NextLI = std::next(LI);
-      const uint64_t NextOffset =
-          NextLI == Labels.end() ? getSize() : NextLI->first;
-      if (InstOffset >= LI->first && InstOffset < NextOffset) {
+      
+      if (const uint64_t NextOffset =
+          NextLI == Labels.end() ? getSize() : NextLI->first; InstOffset >= LI->first && InstOffset < NextOffset) {
         StartIndex = I;
         EndIndex = I;
         while (Offset < NextOffset) {

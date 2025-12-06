@@ -1283,8 +1283,8 @@ struct NormalizedOther {
     const auto *Object = static_cast<ELFYAML::Object *>(YamlIO.getContext());
     MapVector<StringRef, uint8_t> Flags = getFlags(Object->getMachine());
 
-    auto It = Flags.find(Name);
-    if (It != Flags.end())
+    
+    if (auto It = Flags.find(Name); It != Flags.end())
       return It->second;
 
     uint8_t Val;
@@ -2014,8 +2014,8 @@ void MappingTraits<ELFYAML::ARMIndexTableEntry>::mapping(
   assert(IO.getContext() && "The IO context is not initialized");
   IO.mapRequired("Offset", E.Offset);
 
-  StringRef CantUnwind = "EXIDX_CANTUNWIND";
-  if (IO.outputting() && (uint32_t)E.Value == ARM::EHABI::EXIDX_CANTUNWIND)
+  
+  if (StringRef CantUnwind = "EXIDX_CANTUNWIND"; IO.outputting() && (uint32_t)E.Value == ARM::EHABI::EXIDX_CANTUNWIND)
     IO.mapRequired("Value", CantUnwind);
   else if (!IO.outputting() && getStringValue(IO, "Value") == CantUnwind)
     E.Value = ARM::EHABI::EXIDX_CANTUNWIND;

@@ -154,8 +154,8 @@ bool AArch64ExpandPseudo::expandMOVImm(MachineBasicBlock &MBB,
 
   SmallVector<MachineInstrBuilder, 4> MIBS;
   for (auto I = Insn.begin(), E = Insn.end(); I != E; ++I) {
-    bool LastItem = std::next(I) == E;
-    switch (I->Opcode)
+    
+    switch (bool LastItem = std::next(I) == E; I->Opcode)
     {
     default: llvm_unreachable("unhandled!"); break;
 
@@ -576,9 +576,9 @@ bool AArch64ExpandPseudo::expand_DestructiveOp(
 
   // Resolve the reverse opcode
   if (UseRev) {
-    int NewOpcode;
+    
     // e.g. DIV -> DIVR
-    if ((NewOpcode = AArch64::getSVERevInstr(Opcode)) != -1)
+    if (int NewOpcode; (NewOpcode = AArch64::getSVERevInstr(Opcode)) != -1)
       Opcode = NewOpcode;
     // e.g. DIVR -> DIV
     else if ((NewOpcode = AArch64::getSVENonRevInstr(Opcode)) != -1)
@@ -949,9 +949,9 @@ bool AArch64ExpandPseudo::expandStoreSwiftAsyncContext(
   Register BaseReg = MBBI->getOperand(1).getReg();
   int Offset = MBBI->getOperand(2).getImm();
   DebugLoc DL(MBBI->getDebugLoc());
-  auto &STI = MBB.getParent()->getSubtarget<AArch64Subtarget>();
+  
 
-  if (STI.getTargetTriple().getArchName() != "arm64e") {
+  if (auto &STI = MBB.getParent()->getSubtarget<AArch64Subtarget>(); STI.getTargetTriple().getArchName() != "arm64e") {
     BuildMI(MBB, MBBI, DL, TII->get(AArch64::STRXui))
         .addUse(CtxReg)
         .addUse(BaseReg)
@@ -1223,11 +1223,11 @@ bool AArch64ExpandPseudo::expandFormTuplePseudo(
       MBB.getParent()->getSubtarget().getRegisterInfo();
   for (unsigned I = 0; I < Size; ++I) {
     Register FormTupleOpReg = MI.getOperand(I + 1).getReg();
-    Register ReturnTupleSubReg =
-        TRI->getSubReg(ReturnTuple, AArch64::zsub0 + I);
+    
     // Add copies to ensure the subregisters remain in the correct order
     // for any contigious operation they are used by.
-    if (FormTupleOpReg != ReturnTupleSubReg)
+    if (Register ReturnTupleSubReg =
+        TRI->getSubReg(ReturnTuple, AArch64::zsub0 + I); FormTupleOpReg != ReturnTupleSubReg)
       BuildMI(MBB, MBBI, MI.getDebugLoc(), TII->get(AArch64::ORR_ZZZ))
           .addReg(ReturnTupleSubReg, RegState::Define)
           .addReg(FormTupleOpReg)
@@ -1247,10 +1247,10 @@ bool AArch64ExpandPseudo::expandMI(MachineBasicBlock &MBB,
   unsigned Opcode = MI.getOpcode();
 
   // Check if we can expand the destructive op
-  int OrigInstr = AArch64::getSVEPseudoMap(MI.getOpcode());
-  if (OrigInstr != -1) {
-    auto &Orig = TII->get(OrigInstr);
-    if ((Orig.TSFlags & AArch64::DestructiveInstTypeMask) !=
+  
+  if (int OrigInstr = AArch64::getSVEPseudoMap(MI.getOpcode()); OrigInstr != -1) {
+    
+    if (auto &Orig = TII->get(OrigInstr); (Orig.TSFlags & AArch64::DestructiveInstTypeMask) !=
         AArch64::NotDestructive) {
       return expand_DestructiveOp(MI, MBB, MBBI);
     }
@@ -1402,14 +1402,14 @@ bool AArch64ExpandPseudo::expandMI(MachineBasicBlock &MBB,
     MachineFunction *MF = MBB.getParent();
     Register DstReg = MI.getOperand(0).getReg();
     const MachineOperand &MO1 = MI.getOperand(1);
-    unsigned Flags = MO1.getTargetFlags();
+    
 
-    if (MF->getTarget().getCodeModel() == CodeModel::Tiny) {
+    if (unsigned Flags = MO1.getTargetFlags(); MF->getTarget().getCodeModel() == CodeModel::Tiny) {
       // Tiny codemodel expand to LDR
-      MachineInstrBuilder MIB = BuildMI(MBB, MBBI, MI.getDebugLoc(),
-                                        TII->get(AArch64::LDRXl), DstReg);
+      
 
-      if (MO1.isGlobal()) {
+      if (MachineInstrBuilder MIB = BuildMI(MBB, MBBI, MI.getDebugLoc(),
+                                        TII->get(AArch64::LDRXl), DstReg); MO1.isGlobal()) {
         MIB.addGlobalAddress(MO1.getGlobal(), 0, Flags);
       } else if (MO1.isSymbol()) {
         MIB.addExternalSymbol(MO1.getSymbolName(), Flags);
@@ -1471,8 +1471,8 @@ bool AArch64ExpandPseudo::expandMI(MachineBasicBlock &MBB,
     return true;
   }
   case AArch64::MOVaddrBA: {
-    MachineFunction &MF = *MI.getParent()->getParent();
-    if (MF.getSubtarget<AArch64Subtarget>().isTargetMachO()) {
+    
+    if (MachineFunction &MF = *MI.getParent()->getParent(); MF.getSubtarget<AArch64Subtarget>().isTargetMachO()) {
       // blockaddress expressions have to come from a constant pool because the
       // largest addend (and hence offset within a function) allowed for ADRP is
       // only 8MB.
@@ -1550,8 +1550,8 @@ bool AArch64ExpandPseudo::expandMI(MachineBasicBlock &MBB,
   case AArch64::MOVbaseTLS: {
     Register DstReg = MI.getOperand(0).getReg();
     auto SysReg = AArch64SysReg::TPIDR_EL0;
-    MachineFunction *MF = MBB.getParent();
-    if (MF->getSubtarget<AArch64Subtarget>().useEL3ForTP())
+    
+    if (MachineFunction *MF = MBB.getParent(); MF->getSubtarget<AArch64Subtarget>().useEL3ForTP())
       SysReg = AArch64SysReg::TPIDR_EL3;
     else if (MF->getSubtarget<AArch64Subtarget>().useEL2ForTP())
       SysReg = AArch64SysReg::TPIDR_EL2;

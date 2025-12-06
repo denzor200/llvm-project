@@ -67,9 +67,9 @@ void StokeInfo::checkInstr(const BinaryFunction &BF, StokeFuncInfo &FuncInfo) {
       // check if this function contains call instruction
       if (MIB->isCall(It)) {
         FuncInfo.HasCall = true;
-        const MCSymbol *TargetSymbol = MIB->getTargetSymbol(It);
+        
         // if it is an indirect call, skip
-        if (TargetSymbol == nullptr) {
+        if (const MCSymbol *TargetSymbol = MIB->getTargetSymbol(It); TargetSymbol == nullptr) {
           FuncInfo.Omitted = true;
           return;
         }

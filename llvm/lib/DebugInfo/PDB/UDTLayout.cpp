@@ -71,8 +71,8 @@ DataMemberLayoutItem::DataMemberLayoutItem(
     : LayoutItemBase(&Parent, Member.get(), Member->getName(),
                      Member->getOffset(), getTypeLength(*Member), false),
       DataMember(std::move(Member)) {
-  auto Type = DataMember->getType();
-  if (auto UDT = unique_dyn_cast<PDBSymbolTypeUDT>(Type)) {
+  
+  if (auto Type = DataMember->getType(); auto UDT = unique_dyn_cast<PDBSymbolTypeUDT>(Type)) {
     UdtLayout = std::make_unique<ClassLayout>(std::move(UDT));
     UsedBytes = UdtLayout->usedBytes();
   }
@@ -120,8 +120,8 @@ uint32_t UDTLayoutBase::tailPadding() const {
   uint32_t Abs = LayoutItemBase::tailPadding();
   if (!LayoutItems.empty()) {
     const LayoutItemBase *Back = LayoutItems.back();
-    uint32_t ChildPadding = Back->LayoutItemBase::tailPadding();
-    if (Abs < ChildPadding)
+    
+    if (uint32_t ChildPadding = Back->LayoutItemBase::tailPadding(); Abs < ChildPadding)
       Abs = 0;
     else
       Abs -= ChildPadding;

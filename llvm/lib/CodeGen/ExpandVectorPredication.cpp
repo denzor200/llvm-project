@@ -237,10 +237,10 @@ bool CachingVPExpander::expandPredicationInBinaryOperator(IRBuilder<> &Builder,
 
   Value *Op0 = VPI.getOperand(0);
   Value *Op1 = VPI.getOperand(1);
-  Value *Mask = VPI.getMaskParam();
+  
 
   // Blend in safe operands.
-  if (Mask && !isAllTrueMask(Mask)) {
+  if (Value *Mask = VPI.getMaskParam(); Mask && !isAllTrueMask(Mask)) {
     switch (OC) {
     default:
       // Can safely ignore the predicate.
@@ -345,9 +345,9 @@ bool CachingVPExpander::expandPredicationInReduction(
   }
 
   Value *Reduction;
-  Value *Start = VPI.getOperand(VPI.getStartParamPos());
+  
 
-  switch (VPI.getIntrinsicID()) {
+  switch (Value *Start = VPI.getOperand(VPI.getStartParamPos()); VPI.getIntrinsicID()) {
   default:
     llvm_unreachable("Impossible reduction kind");
   case Intrinsic::vp_reduce_add:
@@ -490,8 +490,8 @@ bool CachingVPExpander::discardEVLParameter(VPIntrinsic &VPI) {
   if (VPI.canIgnoreVectorLengthParam())
     return false;
 
-  Value *EVLParam = VPI.getVectorLengthParam();
-  if (!EVLParam)
+  
+  if (Value *EVLParam = VPI.getVectorLengthParam(); !EVLParam)
     return false;
 
   ElementCount StaticElemCount = VPI.getStaticVectorLength();

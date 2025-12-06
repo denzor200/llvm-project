@@ -1106,8 +1106,8 @@ void MCObjectFileInfo::initMCObjectFileInfo(MCContext &MCCtx, bool PIC,
   DwarfAccelNamespaceSection = nullptr; // Used only by selected targets.
   DwarfAccelTypesSection = nullptr;     // Used only by selected targets.
 
-  const Triple &TheTriple = Ctx->getTargetTriple();
-  switch (Ctx->getObjectFileType()) {
+  
+  switch (const Triple &TheTriple = Ctx->getTargetTriple(); Ctx->getObjectFileType()) {
   case MCContext::IsMachO:
     initMachOMCObjectFileInfo(TheTriple);
     break;
@@ -1239,8 +1239,8 @@ MCObjectFileInfo::getKCFITrapSection(const MCSection &TextSec) const {
 
 MCSection *
 MCObjectFileInfo::getPseudoProbeSection(const MCSection &TextSec) const {
-  auto ObjFileType = Ctx->getObjectFileType();
-  if (ObjFileType == MCContext::IsELF) {
+  
+  if (auto ObjFileType = Ctx->getObjectFileType(); ObjFileType == MCContext::IsELF) {
     const auto &ElfSec = static_cast<const MCSectionELF &>(TextSec);
     unsigned Flags = ELF::SHF_LINK_ORDER;
     StringRef GroupName;
@@ -1285,8 +1285,8 @@ MCObjectFileInfo::getPseudoProbeDescSection(StringRef FuncName) const {
   // Use a concatenation of the section name and the function name as the
   // group name so that descriptor-only groups won't be folded with groups of
   // code.
-  auto ObjFileType = Ctx->getObjectFileType();
-  if (ObjFileType == MCContext::IsELF) {
+  
+  if (auto ObjFileType = Ctx->getObjectFileType(); ObjFileType == MCContext::IsELF) {
     auto *S = static_cast<MCSectionELF *>(PseudoProbeDescSection);
     auto Flags = S->getFlags() | ELF::SHF_GROUP;
     return Ctx->getELFSection(S->getName(), S->getType(), Flags,

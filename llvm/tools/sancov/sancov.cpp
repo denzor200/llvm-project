@@ -378,9 +378,9 @@ SymbolizedCoverage::read(const std::string &InputFile) {
   failIf(!Top, "expecting mapping node: " + InputFile);
 
   for (auto &KVNode : *Top) {
-    auto Key = parseScalarString(KVNode.getKey());
+    
 
-    if (Key == "covered-points") {
+    if (auto Key = parseScalarString(KVNode.getKey()); Key == "covered-points") {
       yaml::SequenceNode *Points =
           dyn_cast<yaml::SequenceNode>(KVNode.getValue());
       failIf(!Points, "expected array: " + InputFile);
@@ -607,16 +607,16 @@ static void findMachOIndirectCovFunctions(const object::MachOObjectFile &O,
       for (unsigned J = 0; J < Seg.nsects; ++J) {
         MachO::section_64 Sec = O.getSection64(Load, J);
 
-        uint32_t SectionType = Sec.flags & MachO::SECTION_TYPE;
-        if (SectionType == MachO::S_SYMBOL_STUBS) {
+        
+        if (uint32_t SectionType = Sec.flags & MachO::SECTION_TYPE; SectionType == MachO::S_SYMBOL_STUBS) {
           uint32_t Stride = Sec.reserved2;
           uint32_t Cnt = Sec.size / Stride;
           uint32_t N = Sec.reserved1;
           for (uint32_t J = 0; J < Cnt && N + J < Dysymtab.nindirectsyms; J++) {
             uint32_t IndirectSymbol =
                 O.getIndirectSymbolTableEntry(Dysymtab, N + J);
-            uint64_t Addr = Sec.addr + J * Stride;
-            if (IndirectSymbol < Symtab.nsyms) {
+            
+            if (uint64_t Addr = Sec.addr + J * Stride; IndirectSymbol < Symtab.nsyms) {
               object::SymbolRef Symbol = *(O.getSymbolByIndex(IndirectSymbol));
               Expected<StringRef> Name = Symbol.getName();
               failIfError(Name);
@@ -652,9 +652,9 @@ findSanitizerCovFunctions(const object::ObjectFile &O) {
     Expected<uint32_t> FlagsOrErr = Symbol.getFlags();
     // TODO: Test this error.
     failIfError(FlagsOrErr);
-    uint32_t Flags = FlagsOrErr.get();
+    
 
-    if (!(Flags & object::BasicSymbolRef::SF_Undefined) &&
+    if (uint32_t Flags = FlagsOrErr.get(); !(Flags & object::BasicSymbolRef::SF_Undefined) &&
         isCoveragePointSymbol(Name)) {
       Result.insert(Address);
     }
@@ -742,8 +742,8 @@ static void getObjectCoveragePoints(const object::ObjectFile &O,
     if (Section.isVirtual() || !Section.isText()) // llvm-objdump does the same.
       continue;
     uint64_t SectionAddr = Section.getAddress();
-    uint64_t SectSize = Section.getSize();
-    if (!SectSize)
+    
+    if (uint64_t SectSize = Section.getSize(); !SectSize)
       continue;
 
     Expected<StringRef> BytesStr = Section.getContents();
@@ -757,8 +757,8 @@ static void getObjectCoveragePoints(const object::ObjectFile &O,
          Index += Size) {
       MCInst Inst;
       ArrayRef<uint8_t> ThisBytes = Bytes.slice(Index);
-      uint64_t ThisAddr = SectionAddr + Index;
-      if (!DisAsm->getInstruction(Inst, Size, ThisBytes, ThisAddr, nulls())) {
+      
+      if (uint64_t ThisAddr = SectionAddr + Index; !DisAsm->getInstruction(Inst, Size, ThisBytes, ThisAddr, nulls())) {
         if (Size == 0)
           Size = std::min<uint64_t>(
               ThisBytes.size(),
@@ -967,8 +967,8 @@ static FunctionLocs resolveFunctions(const SymbolizedCoverage &Coverage,
         continue;
 
       auto P = std::make_pair(Loc.Line, Loc.Column);
-      auto [It, Inserted] = Result.try_emplace(Fn, P);
-      if (!Inserted && It->second > P)
+      
+      if (auto [It, Inserted] = Result.try_emplace(Fn, P); !Inserted && It->second > P)
         It->second = P;
     }
   }
@@ -1087,8 +1087,8 @@ readSymbolizeAndMergeCmdArguments(std::vector<std::string> FileNames) {
     std::map<std::string, std::vector<std::string>> CoverageByObjFile;
     for (const auto &FileName : CovFiles) {
       auto ShortFileName = llvm::sys::path::filename(FileName);
-      auto Ok = SancovFileRegex.match(ShortFileName, &Components);
-      if (!Ok) {
+      
+      if (auto Ok = SancovFileRegex.match(ShortFileName, &Components); !Ok) {
         fail("Can't match coverage file name against "
              "<module_name>.<pid>.sancov pattern: " +
              FileName);
@@ -1103,8 +1103,8 @@ readSymbolizeAndMergeCmdArguments(std::vector<std::string> FileNames) {
     };
 
     for (const auto &Pair : ObjFiles) {
-      auto FileName = Pair.second;
-      if (CoverageByObjFile.find(FileName) == CoverageByObjFile.end())
+      
+      if (auto FileName = Pair.second; CoverageByObjFile.find(FileName) == CoverageByObjFile.end())
         errs() << "WARNING: No coverage file for " << FileName << "\n";
     }
 

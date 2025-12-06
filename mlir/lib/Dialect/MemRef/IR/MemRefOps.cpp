@@ -45,8 +45,8 @@ Operation *MemRefDialect::materializeConstant(OpBuilder &builder,
 LogicalResult mlir::memref::foldMemRefCast(Operation *op, Value inner) {
   bool folded = false;
   for (OpOperand &operand : op->getOpOperands()) {
-    auto cast = operand.get().getDefiningOp<CastOp>();
-    if (cast && operand.get() != inner &&
+    
+    if (auto cast = operand.get().getDefiningOp<CastOp>(); cast && operand.get() != inner &&
         !llvm::isa<UnrankedMemRefType>(cast.getOperand().getType())) {
       operand.set(cast.getOperand());
       folded = true;
@@ -246,9 +246,9 @@ struct SimplifyAllocConst : public OpRewritePattern<AllocLikeOp> {
 
     unsigned dynamicDimPos = 0;
     for (unsigned dim = 0, e = memrefType.getRank(); dim < e; ++dim) {
-      int64_t dimSize = memrefType.getDimSize(dim);
+      
       // If this is already static dimension, keep it.
-      if (ShapedType::isStatic(dimSize)) {
+      if (int64_t dimSize = memrefType.getDimSize(dim); ShapedType::isStatic(dimSize)) {
         newShapeConstants.push_back(dimSize);
         continue;
       }
@@ -700,8 +700,8 @@ bool CastOp::canFoldIntoConsumerOp(CastOp castOp) {
 
   // If cast is towards more static sizes along any dimension, don't fold.
   for (auto it : llvm::zip(sourceType.getShape(), resultType.getShape())) {
-    auto ss = std::get<0>(it), st = std::get<1>(it);
-    if (ss != st)
+    
+    if (auto ss = std::get<0>(it), st = std::get<1>(it); ss != st)
       if (ShapedType::isDynamic(ss) && ShapedType::isStatic(st))
         return false;
   }
@@ -714,8 +714,8 @@ bool CastOp::canFoldIntoConsumerOp(CastOp castOp) {
 
   // If cast is towards more static strides along any dimension, don't fold.
   for (auto it : llvm::zip(sourceStrides, resultStrides)) {
-    auto ss = std::get<0>(it), st = std::get<1>(it);
-    if (ss != st)
+    
+    if (auto ss = std::get<0>(it), st = std::get<1>(it); ss != st)
       if (ShapedType::isDynamic(ss) && ShapedType::isStatic(st))
         return false;
   }
@@ -765,8 +765,8 @@ bool CastOp::areCastCompatible(TypeRange inputs, TypeRange outputs) {
       return false;
 
     for (unsigned i = 0, e = aT.getRank(); i != e; ++i) {
-      int64_t aDim = aT.getDimSize(i), bDim = bT.getDimSize(i);
-      if (ShapedType::isStatic(aDim) && ShapedType::isStatic(bDim) &&
+      
+      if (int64_t aDim = aT.getDimSize(i), bDim = bT.getDimSize(i); ShapedType::isStatic(aDim) && ShapedType::isStatic(bDim) &&
           aDim != bDim)
         return false;
     }
@@ -852,8 +852,8 @@ void CopyOp::getCanonicalizationPatterns(RewritePatternSet &results,
 /// of the type.
 static LogicalResult FoldCopyOfCast(CopyOp op) {
   for (OpOperand &operand : op->getOpOperands()) {
-    auto castOp = operand.get().getDefiningOp<memref::CastOp>();
-    if (castOp && memref::CastOp::canFoldIntoConsumerOp(castOp)) {
+    
+    if (auto castOp = operand.get().getDefiningOp<memref::CastOp>(); castOp && memref::CastOp::canFoldIntoConsumerOp(castOp)) {
       operand.set(castOp.getOperand());
       return success();
     }
@@ -3294,8 +3294,8 @@ static bool isTrivialSubViewOp(SubViewOp subViewOp) {
   // Check all size values are static and matches the (static) source shape.
   ArrayRef<int64_t> sourceShape = subViewOp.getSourceType().getShape();
   for (const auto &size : llvm::enumerate(mixedSizes)) {
-    std::optional<int64_t> intValue = getConstantIntValue(size.value());
-    if (!intValue || *intValue != sourceShape[size.index()])
+    
+    if (std::optional<int64_t> intValue = getConstantIntValue(size.value()); !intValue || *intValue != sourceShape[size.index()])
       return false;
   }
   // All conditions met. The `SubViewOp` is foldable as a no-op.
@@ -3457,8 +3457,8 @@ OpFoldResult SubViewOp::fold(FoldAdaptor adaptor) {
     bool allOffsetsZero = llvm::all_of(offsets, isZeroInteger);
     auto strides = getMixedStrides();
     bool allStridesOne = llvm::all_of(strides, isOneInteger);
-    bool allSizesSame = llvm::equal(sizes, srcSizes);
-    if (allOffsetsZero && allStridesOne && allSizesSame &&
+    
+    if (bool allSizesSame = llvm::equal(sizes, srcSizes); allOffsetsZero && allStridesOne && allSizesSame &&
         resultMemrefType == sourceMemrefType)
       return getViewSource();
   }

@@ -517,9 +517,9 @@ public:
       // If the StackIdIndex is not yet in the map, the below insert ensures
       // that it will point to the new StackIds vector entry we push to just
       // below.
-      auto Inserted =
-          StackIdIndicesToIndex.insert({StackIdIndex, StackIds.size()});
-      if (Inserted.second)
+      
+      if (auto Inserted =
+          StackIdIndicesToIndex.insert({StackIdIndex, StackIds.size()}); Inserted.second)
         StackIds.push_back(Index.getStackIdAtIndex(StackIdIndex));
     };
 
@@ -1083,8 +1083,8 @@ void ModuleBitcodeWriter::writeAttributeTable() {
   SmallVector<uint64_t, 64> Record;
   for (const AttributeList &AL : Attrs) {
     for (unsigned i : AL.indexes()) {
-      AttributeSet AS = AL.getAttributes(i);
-      if (AS.hasAttributes())
+      
+      if (AttributeSet AS = AL.getAttributes(i); AS.hasAttributes())
         Record.push_back(VE.getAttributeGroupID({i, AS}));
     }
 
@@ -1495,8 +1495,8 @@ void ModuleBitcodeWriter::writeModuleInfo() {
   if (!M.getTargetTriple().empty())
     writeStringRecord(Stream, bitc::MODULE_CODE_TRIPLE,
                       M.getTargetTriple().str(), 0 /*TODO*/);
-  const std::string &DL = M.getDataLayoutStr();
-  if (!DL.empty())
+  
+  if (const std::string &DL = M.getDataLayoutStr(); !DL.empty())
     writeStringRecord(Stream, bitc::MODULE_CODE_DATALAYOUT, DL, 0 /*TODO*/);
   if (!M.getModuleInlineAsm().empty())
     writeStringRecord(Stream, bitc::MODULE_CODE_ASM, M.getModuleInlineAsm(),
@@ -1514,8 +1514,8 @@ void ModuleBitcodeWriter::writeModuleInfo() {
     MaxGlobalType = std::max(MaxGlobalType, VE.getTypeID(GV.getValueType()));
     if (GV.hasSection()) {
       // Give section names unique ID's.
-      unsigned &Entry = SectionMap[std::string(GV.getSection())];
-      if (!Entry) {
+      
+      if (unsigned &Entry = SectionMap[std::string(GV.getSection())]; !Entry) {
         writeStringRecord(Stream, bitc::MODULE_CODE_SECTIONNAME, GV.getSection(),
                           0 /*TODO*/);
         Entry = SectionMap.size();
@@ -1525,8 +1525,8 @@ void ModuleBitcodeWriter::writeModuleInfo() {
   for (const Function &F : M) {
     if (F.hasSection()) {
       // Give section names unique ID's.
-      unsigned &Entry = SectionMap[std::string(F.getSection())];
-      if (!Entry) {
+      
+      if (unsigned &Entry = SectionMap[std::string(F.getSection())]; !Entry) {
         writeStringRecord(Stream, bitc::MODULE_CODE_SECTIONNAME, F.getSection(),
                           0 /*TODO*/);
         Entry = SectionMap.size();
@@ -1534,8 +1534,8 @@ void ModuleBitcodeWriter::writeModuleInfo() {
     }
     if (F.hasGC()) {
       // Same for GC names.
-      unsigned &Entry = GCMap[F.getGC()];
-      if (!Entry) {
+      
+      if (unsigned &Entry = GCMap[F.getGC()]; !Entry) {
         writeStringRecord(Stream, bitc::MODULE_CODE_GCNAME, F.getGC(),
                           0 /*TODO*/);
         Entry = GCMap.size();
@@ -2104,8 +2104,8 @@ void ModuleBitcodeWriter::writeDIFile(const DIFile *N,
     Record.push_back(0);
     Record.push_back(VE.getMetadataOrNullID(nullptr));
   }
-  auto Source = N->getRawSource();
-  if (Source)
+  
+  if (auto Source = N->getRawSource(); Source)
     Record.push_back(VE.getMetadataOrNullID(Source));
 
   Stream.EmitRecord(bitc::METADATA_FILE, Record, Abbrev);
@@ -2878,8 +2878,8 @@ void ModuleBitcodeWriter::writeConstants(unsigned FirstVal, unsigned LastVal,
       }
     } else if (const ConstantFP *CFP = dyn_cast<ConstantFP>(C)) {
       Code = bitc::CST_CODE_FLOAT;
-      Type *Ty = CFP->getType()->getScalarType();
-      if (Ty->isHalfTy() || Ty->isBFloatTy() || Ty->isFloatTy() ||
+      
+      if (Type *Ty = CFP->getType()->getScalarType(); Ty->isHalfTy() || Ty->isBFloatTy() || Ty->isFloatTy() ||
           Ty->isDoubleTy()) {
         Record.push_back(CFP->getValueAPF().bitcastToAPInt().getZExtValue());
       } else if (Ty->isX86_FP80Ty()) {
@@ -2927,8 +2927,8 @@ void ModuleBitcodeWriter::writeConstants(unsigned FirstVal, unsigned LastVal,
     } else if (const ConstantDataSequential *CDS =
                   dyn_cast<ConstantDataSequential>(C)) {
       Code = bitc::CST_CODE_DATA;
-      Type *EltTy = CDS->getElementType();
-      if (isa<IntegerType>(EltTy)) {
+      
+      if (Type *EltTy = CDS->getElementType(); isa<IntegerType>(EltTy)) {
         for (uint64_t i = 0, e = CDS->getNumElements(); i != e; ++i)
           Record.push_back(CDS->getElementAsInteger(i));
       } else {
@@ -2956,8 +2956,8 @@ void ModuleBitcodeWriter::writeConstants(unsigned FirstVal, unsigned LastVal,
           Record.push_back(getEncodedBinaryOpcode(CE->getOpcode()));
           Record.push_back(VE.getValueID(C->getOperand(0)));
           Record.push_back(VE.getValueID(C->getOperand(1)));
-          uint64_t Flags = getOptimizationFlags(CE);
-          if (Flags != 0)
+          
+          if (uint64_t Flags = getOptimizationFlags(CE); Flags != 0)
             Record.push_back(Flags);
         }
         break;
@@ -2966,8 +2966,8 @@ void ModuleBitcodeWriter::writeConstants(unsigned FirstVal, unsigned LastVal,
         Code = bitc::CST_CODE_CE_UNOP;
         Record.push_back(getEncodedUnaryOpcode(CE->getOpcode()));
         Record.push_back(VE.getValueID(C->getOperand(0)));
-        uint64_t Flags = getOptimizationFlags(CE);
-        if (Flags != 0)
+        
+        if (uint64_t Flags = getOptimizationFlags(CE); Flags != 0)
           Record.push_back(Flags);
         break;
       }
@@ -3084,8 +3084,8 @@ bool ModuleBitcodeWriter::pushValueAndType(const Value *V, unsigned InstID,
 
 bool ModuleBitcodeWriter::pushValueOrMetadata(const Value *V, unsigned InstID,
                                               SmallVectorImpl<unsigned> &Vals) {
-  bool IsMetadata = V->getType()->isMetadataTy();
-  if (IsMetadata) {
+  
+  if (bool IsMetadata = V->getType()->isMetadataTy(); IsMetadata) {
     Vals.push_back(bitc::OB_METADATA);
     Metadata *MD = cast<MetadataAsValue>(V)->getMetadata();
     unsigned ValID = VE.getMetadataID(MD);
@@ -3142,8 +3142,8 @@ void ModuleBitcodeWriter::writeInstruction(const Instruction &I,
         AbbrevToUse = FUNCTION_INST_CAST_ABBREV;
       Vals.push_back(VE.getTypeID(I.getType()));
       Vals.push_back(getEncodedCastOpcode(I.getOpcode()));
-      uint64_t Flags = getOptimizationFlags(&I);
-      if (Flags != 0) {
+      
+      if (uint64_t Flags = getOptimizationFlags(&I); Flags != 0) {
         if (AbbrevToUse == FUNCTION_INST_CAST_ABBREV)
           AbbrevToUse = FUNCTION_INST_CAST_FLAGS_ABBREV;
         Vals.push_back(Flags);
@@ -3155,8 +3155,8 @@ void ModuleBitcodeWriter::writeInstruction(const Instruction &I,
         AbbrevToUse = FUNCTION_INST_BINOP_ABBREV;
       pushValue(I.getOperand(1), InstID, Vals);
       Vals.push_back(getEncodedBinaryOpcode(I.getOpcode()));
-      uint64_t Flags = getOptimizationFlags(&I);
-      if (Flags != 0) {
+      
+      if (uint64_t Flags = getOptimizationFlags(&I); Flags != 0) {
         if (AbbrevToUse == FUNCTION_INST_BINOP_ABBREV)
           AbbrevToUse = FUNCTION_INST_BINOP_FLAGS_ABBREV;
         Vals.push_back(Flags);
@@ -3168,8 +3168,8 @@ void ModuleBitcodeWriter::writeInstruction(const Instruction &I,
     if (!pushValueAndType(I.getOperand(0), InstID, Vals))
       AbbrevToUse = FUNCTION_INST_UNOP_ABBREV;
     Vals.push_back(getEncodedUnaryOpcode(I.getOpcode()));
-    uint64_t Flags = getOptimizationFlags(&I);
-    if (Flags != 0) {
+    
+    if (uint64_t Flags = getOptimizationFlags(&I); Flags != 0) {
       if (AbbrevToUse == FUNCTION_INST_UNOP_ABBREV)
         AbbrevToUse = FUNCTION_INST_UNOP_FLAGS_ABBREV;
       Vals.push_back(Flags);
@@ -3206,8 +3206,8 @@ void ModuleBitcodeWriter::writeInstruction(const Instruction &I,
     pushValueAndType(I.getOperand(1), InstID, Vals);
     pushValue(I.getOperand(2), InstID, Vals);
     pushValueAndType(I.getOperand(0), InstID, Vals);
-    uint64_t Flags = getOptimizationFlags(&I);
-    if (Flags != 0)
+    
+    if (uint64_t Flags = getOptimizationFlags(&I); Flags != 0)
       Vals.push_back(Flags);
     break;
   }
@@ -3238,8 +3238,8 @@ void ModuleBitcodeWriter::writeInstruction(const Instruction &I,
       AbbrevToUse = 0;
     pushValue(I.getOperand(1), InstID, Vals);
     Vals.push_back(cast<CmpInst>(I).getPredicate());
-    uint64_t Flags = getOptimizationFlags(&I);
-    if (Flags != 0) {
+    
+    if (uint64_t Flags = getOptimizationFlags(&I); Flags != 0) {
       Vals.push_back(Flags);
       if (AbbrevToUse)
         AbbrevToUse = FUNCTION_INST_CMP_FLAGS_ABBREV;
@@ -3250,8 +3250,8 @@ void ModuleBitcodeWriter::writeInstruction(const Instruction &I,
   case Instruction::Ret:
     {
       Code = bitc::FUNC_CODE_INST_RET;
-      unsigned NumOperands = I.getNumOperands();
-      if (NumOperands == 0)
+      
+      if (unsigned NumOperands = I.getNumOperands(); NumOperands == 0)
         AbbrevToUse = FUNCTION_INST_RET_VOID_ABBREV;
       else if (NumOperands == 1) {
         if (!pushValueAndType(I.getOperand(0), InstID, Vals))
@@ -3424,8 +3424,8 @@ void ModuleBitcodeWriter::writeInstruction(const Instruction &I,
       Vals64.push_back(VE.getValueID(PN.getIncomingBlock(i)));
     }
 
-    uint64_t Flags = getOptimizationFlags(&I);
-    if (Flags != 0)
+    
+    if (uint64_t Flags = getOptimizationFlags(&I); Flags != 0)
       Vals64.push_back(Flags);
 
     // Emit a Vals64 vector and exit.
@@ -3468,8 +3468,8 @@ void ModuleBitcodeWriter::writeInstruction(const Instruction &I,
     Bitfield::set<APV::SwiftError>(Record, AI.isSwiftError());
     Vals.push_back(Record);
 
-    unsigned AS = AI.getAddressSpace();
-    if (AS != M.getDataLayout().getAllocaAddrSpace())
+    
+    if (unsigned AS = AI.getAddressSpace(); AS != M.getDataLayout().getAllocaAddrSpace())
       Vals.push_back(AS);
     break;
   }
@@ -3795,11 +3795,11 @@ void ModuleBitcodeWriter::writeFunction(
           assert(RawLocation &&
                  "RawLocation unexpectedly null in DbgVariableRecord");
           if (ValueAsMetadata *VAM = dyn_cast<ValueAsMetadata>(RawLocation)) {
-            SmallVector<unsigned, 2> ValAndType;
+            
             // If the value is a fwd-ref the type is also pushed. We don't
             // want the type, so fwd-refs are kept wrapped (pushValueAndType
             // returns false if the value is pushed without type).
-            if (!pushValueAndType(VAM->getValue(), InstID, ValAndType)) {
+            if (SmallVector<unsigned, 2> ValAndType; !pushValueAndType(VAM->getValue(), InstID, ValAndType)) {
               Vals.push_back(ValAndType[0]);
               return true;
             }
@@ -3868,8 +3868,8 @@ void ModuleBitcodeWriter::writeFunction(
         Value *V = Worklist.pop_back_val();
         for (User *U : V->users()) {
           if (auto *I = dyn_cast<Instruction>(U)) {
-            Function *P = I->getFunction();
-            if (P != &F)
+            
+            if (Function *P = I->getFunction(); P != &F)
               BlockAddressUsers.insert(P);
           } else if (isa<Constant>(U) && !isa<GlobalValue>(U) &&
                      Visited.insert(U).second)
@@ -4297,15 +4297,15 @@ static void writeFunctionTypeMetadataRecords(BitstreamWriter &Stream,
   WriteConstVCallVec(bitc::FS_TYPE_CHECKED_LOAD_CONST_VCALL,
                      FS->type_checked_load_const_vcalls());
 
-  auto WriteRange = [&](ConstantRange Range) {
+  
+
+  if (auto WriteRange = [&](ConstantRange Range) {
     Range = Range.sextOrTrunc(FunctionSummary::ParamAccess::RangeWidth);
     assert(Range.getLower().getNumWords() == 1);
     assert(Range.getUpper().getNumWords() == 1);
     emitSignedInt64(Record, *Range.getLower().getRawData());
     emitSignedInt64(Record, *Range.getUpper().getRawData());
-  };
-
-  if (!FS->paramAccesses().empty()) {
+  }; !FS->paramAccesses().empty()) {
     Record.clear();
     for (auto &Arg : FS->paramAccesses()) {
       size_t UndoSize = Record.size();
@@ -5445,8 +5445,8 @@ static void emitDarwinBCHeaderAndTrailer(SmallVectorImpl<char> &Buffer,
     DARWIN_CPU_TYPE_POWERPC    = 18
   };
 
-  Triple::ArchType Arch = TT.getArch();
-  if (Arch == Triple::x86_64)
+  
+  if (Triple::ArchType Arch = TT.getArch(); Arch == Triple::x86_64)
     CPUType = DARWIN_CPU_TYPE_X86 | DARWIN_CPU_ARCH_ABI64;
   else if (Arch == Triple::x86)
     CPUType = DARWIN_CPU_TYPE_X86;
@@ -5524,8 +5524,8 @@ void BitcodeWriter::writeSymtab() {
 
     std::string Err;
     const Triple TT(M->getTargetTriple());
-    const Target *T = TargetRegistry::lookupTarget(TT, Err);
-    if (!T || !T->hasMCAsmParser())
+    
+    if (const Target *T = TargetRegistry::lookupTarget(TT, Err); !T || !T->hasMCAsmParser())
       return;
   }
 
@@ -5602,8 +5602,8 @@ void llvm::WriteBitcodeToFile(const Module &M, raw_ostream &Out,
     Writer.writeSymtab();
     Writer.writeStrtab();
   };
-  Triple TT(M.getTargetTriple());
-  if (TT.isOSDarwin() || TT.isOSBinFormatMachO()) {
+  
+  if (Triple TT(M.getTargetTriple()); TT.isOSDarwin() || TT.isOSBinFormatMachO()) {
     // If this is darwin or another generic macho target, reserve space for the
     // header. Note that the header is computed *after* the output is known, so
     // we currently explicitly use a buffer, write to it, and then subsequently

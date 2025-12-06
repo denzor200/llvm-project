@@ -145,9 +145,9 @@ void MPIChecker::allRegionsUsedByWait(
     llvm::SmallVector<const MemRegion *, 2> &ReqRegions,
     const MemRegion *const MR, const CallEvent &CE, CheckerContext &Ctx) const {
 
-  MemRegionManager &RegionManager = MR->getMemRegionManager();
+  
 
-  if (FuncClassifier->isMPI_Waitall(CE.getCalleeIdentifier())) {
+  if (MemRegionManager &RegionManager = MR->getMemRegionManager(); FuncClassifier->isMPI_Waitall(CE.getCalleeIdentifier())) {
     const SubRegion *SuperRegion{nullptr};
     if (const ElementRegion *const ER = MR->getAs<ElementRegion>()) {
       SuperRegion = cast<SubRegion>(ER->getSuperRegion());

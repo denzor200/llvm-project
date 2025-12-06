@@ -185,8 +185,8 @@ static Expected<COFF::MachineTypes> getBitcodeFileMachine(MemoryBufferRef MB) {
   if (!TripleStr)
     return TripleStr.takeError();
 
-  Triple T(*TripleStr);
-  switch (T.getArch()) {
+  
+  switch (Triple T(*TripleStr); T.getArch()) {
   case Triple::x86:
     return COFF::IMAGE_FILE_MACHINE_I386;
   case Triple::x86_64:
@@ -508,9 +508,9 @@ int llvm::libDriverMain(ArrayRef<const char *> ArgsArr) {
   if (Thin) {
     for (NewArchiveMember &Member : Members) {
       if (sys::path::is_relative(Member.MemberName)) {
-        Expected<std::string> PathOrErr =
-            computeArchiveRelativePath(OutputPath, Member.MemberName);
-        if (PathOrErr)
+        
+        if (Expected<std::string> PathOrErr =
+            computeArchiveRelativePath(OutputPath, Member.MemberName); PathOrErr)
           Member.MemberName = Saver.save(*PathOrErr);
       }
     }

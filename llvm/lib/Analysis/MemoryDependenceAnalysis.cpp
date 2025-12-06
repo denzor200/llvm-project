@@ -446,8 +446,8 @@ MemDepResult MemoryDependenceResults::getSimplePointerDependencyFrom(
     if (IntrinsicInst *II = dyn_cast<IntrinsicInst>(Inst)) {
       // If we reach a lifetime begin or end marker, then the query ends here
       // because the value is undefined.
-      Intrinsic::ID ID = II->getIntrinsicID();
-      switch (ID) {
+      
+      switch (Intrinsic::ID ID = II->getIntrinsicID(); ID) {
       case Intrinsic::lifetime_start: {
         MemoryLocation ArgLoc = MemoryLocation::getAfter(II->getArgOperand(0));
         if (BatchAA.isMustAlias(ArgLoc, MemLoc))
@@ -592,8 +592,8 @@ MemDepResult MemoryDependenceResults::getSimplePointerDependencyFrom(
     // looking for a clobber in many cases; that's an alias property and is
     // handled by BasicAA.
     if (isa<AllocaInst>(Inst) || isNoAliasCall(Inst)) {
-      const Value *AccessPtr = getUnderlyingObject(MemLoc.Ptr);
-      if (AccessPtr == Inst || BatchAA.isMustAlias(Inst, AccessPtr))
+      
+      if (const Value *AccessPtr = getUnderlyingObject(MemLoc.Ptr); AccessPtr == Inst || BatchAA.isMustAlias(Inst, AccessPtr))
         return MemDepResult::getDef(Inst);
     }
 
@@ -672,8 +672,8 @@ MemDepResult MemoryDependenceResults::getDependency(Instruction *QueryInst) {
       LocalCache = MemDepResult::getNonFuncLocal();
   } else {
     MemoryLocation MemLoc;
-    ModRefInfo MR = GetLocation(QueryInst, MemLoc, TLI);
-    if (MemLoc.Ptr) {
+    
+    if (ModRefInfo MR = GetLocation(QueryInst, MemLoc, TLI); MemLoc.Ptr) {
       // If we can do a pointer scan, make it happen.
       bool isLoad = !isModSet(MR);
       if (auto *II = dyn_cast<IntrinsicInst>(QueryInst))
@@ -847,8 +847,8 @@ void MemoryDependenceResults::getNonLocalPointerDependency(
   Result.clear();
   {
     // Check if there is cached Def with invariant.group.
-    auto NonLocalDefIt = NonLocalDefsCache.find(QueryInst);
-    if (NonLocalDefIt != NonLocalDefsCache.end()) {
+    
+    if (auto NonLocalDefIt = NonLocalDefsCache.find(QueryInst); NonLocalDefIt != NonLocalDefsCache.end()) {
       Result.push_back(NonLocalDefIt->second);
       ReverseNonLocalDefsCache[NonLocalDefIt->second.getResult().getInst()]
           .erase(QueryInst);
@@ -1210,11 +1210,11 @@ bool MemoryDependenceResults::getNonLocalPointerDepFromBB(
       // Get the dependency info for Pointer in BB.  If we have cached
       // information, we will use it, otherwise we compute it.
       LLVM_DEBUG(AssertSorted(*Cache, NumSortedEntries));
-      MemDepResult Dep = getNonLocalInfoForBlock(
-          QueryInst, Loc, isLoad, BB, Cache, NumSortedEntries, BatchAA);
+      
 
       // If we got a Def or Clobber, add this to the list of results.
-      if (!Dep.isNonLocal()) {
+      if (MemDepResult Dep = getNonLocalInfoForBlock(
+          QueryInst, Loc, isLoad, BB, Cache, NumSortedEntries, BatchAA); !Dep.isNonLocal()) {
         if (DT.isReachableFromEntry(BB)) {
           Result.push_back(NonLocalDepResult(BB, Dep, Pointer.getAddr()));
           continue;
@@ -1294,10 +1294,10 @@ bool MemoryDependenceResults::getNonLocalPointerDepFromBB(
       // with PHI translation when a critical edge exists and the PHI node in
       // the successor translates to a pointer value different than the
       // pointer the block was first analyzed with.
-      std::pair<DenseMap<BasicBlock *, Value *>::iterator, bool> InsertRes =
-          Visited.insert(std::make_pair(Pred, PredPtrVal));
+      
 
-      if (!InsertRes.second) {
+      if (std::pair<DenseMap<BasicBlock *, Value *>::iterator, bool> InsertRes =
+          Visited.insert(std::make_pair(Pred, PredPtrVal)); !InsertRes.second) {
         // We found the pred; take it off the list of preds to visit.
         PredList.pop_back();
 
@@ -1446,8 +1446,8 @@ void MemoryDependenceResults::removeCachedNonLocalPointerDependencies(
     }
 
     if (auto *I = dyn_cast<Instruction>(P.getPointer())) {
-      auto toRemoveIt = ReverseNonLocalDefsCache.find(I);
-      if (toRemoveIt != ReverseNonLocalDefsCache.end()) {
+      
+      if (auto toRemoveIt = ReverseNonLocalDefsCache.find(I); toRemoveIt != ReverseNonLocalDefsCache.end()) {
         for (const auto *entry : toRemoveIt->second)
           NonLocalDefsCache.erase(entry);
         ReverseNonLocalDefsCache.erase(toRemoveIt);
@@ -1527,8 +1527,8 @@ void MemoryDependenceResults::removeInstruction(Instruction *RemInst) {
   } else {
     // Otherwise, if the instructions is in the map directly, it must be a load.
     // Remove it.
-    auto toRemoveIt = NonLocalDefsCache.find(RemInst);
-    if (toRemoveIt != NonLocalDefsCache.end()) {
+    
+    if (auto toRemoveIt = NonLocalDefsCache.find(RemInst); toRemoveIt != NonLocalDefsCache.end()) {
       assert(isa<LoadInst>(RemInst) &&
              "only load instructions should be added directly");
       const Instruction *DepV = toRemoveIt->second.getResult().getInst();

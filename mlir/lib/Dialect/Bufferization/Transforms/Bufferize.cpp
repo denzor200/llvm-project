@@ -247,8 +247,8 @@ protected:
       return;
 
     // Skip ops that are not allowed to be bufferized.
-    auto const &options = analysisState.getOptions();
-    if (!options.isOpAllowed(op))
+    
+    if (auto const &options = analysisState.getOptions(); !options.isOpAllowed(op))
       return;
 
     // Add op to worklist.
@@ -279,8 +279,8 @@ LogicalResult bufferization::bufferizeOp(Operation *op,
                                          BufferizationState &bufferizationState,
                                          BufferizationStatistics *statistics) {
   if (options.copyBeforeWrite) {
-    AnalysisState analysisState(options);
-    if (failed(insertTensorCopies(op, analysisState, bufferizationState)))
+    
+    if (AnalysisState analysisState(options); failed(insertTensorCopies(op, analysisState, bufferizationState)))
       return failure();
   }
 

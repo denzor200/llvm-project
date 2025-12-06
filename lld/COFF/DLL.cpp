@@ -958,8 +958,8 @@ void DelayLoadContents::create() {
 
         if (!tm) {
           tm = newTailMergeChunk(symtab, dir);
-          Chunk *pdataChunk = newTailMergePDataChunk(symtab, tm);
-          if (pdataChunk)
+          
+          if (Chunk *pdataChunk = newTailMergePDataChunk(symtab, tm); pdataChunk)
             pdata.push_back(pdataChunk);
         }
 
@@ -1038,8 +1038,8 @@ void DelayLoadContents::create() {
 }
 
 Chunk *DelayLoadContents::newTailMergeChunk(SymbolTable &symtab, Chunk *dir) {
-  auto helper = cast_or_null<Defined>(symtab.delayLoadHelper);
-  switch (symtab.machine) {
+  
+  switch (auto helper = cast_or_null<Defined>(symtab.delayLoadHelper); symtab.machine) {
   case AMD64:
   case ARM64EC:
     return make<TailMergeChunkX64>(dir, helper);

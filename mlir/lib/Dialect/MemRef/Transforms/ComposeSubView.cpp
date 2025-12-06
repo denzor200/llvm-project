@@ -81,12 +81,12 @@ struct ComposeSubViewOpPattern : public OpRewritePattern<memref::SubViewOp> {
          llvm::zip(op.getMixedOffsets(), sourceOp.getMixedOffsets(),
                    sourceOp.getMixedStrides(), op.getMixedSizes())) {
       sizes.push_back(opSize);
-      Attribute opOffsetAttr = llvm::dyn_cast_if_present<Attribute>(opOffset),
+      
+      if (Attribute opOffsetAttr = llvm::dyn_cast_if_present<Attribute>(opOffset),
                 sourceOffsetAttr =
                     llvm::dyn_cast_if_present<Attribute>(sourceOffset),
                 sourceStrideAttr =
-                    llvm::dyn_cast_if_present<Attribute>(sourceStride);
-      if (opOffsetAttr && sourceOffsetAttr) {
+                    llvm::dyn_cast_if_present<Attribute>(sourceStride); opOffsetAttr && sourceOffsetAttr) {
 
         // If both offsets are static we can simply calculate the combined
         // offset statically.

@@ -106,8 +106,8 @@ std::optional<const MemRegion *> StoreManager::castRegion(const MemRegion *R,
 
   const auto IsSameRegionType = [&Ctx](const MemRegion *R, QualType OtherTy) {
     if (const auto *TR = dyn_cast<TypedValueRegion>(R)) {
-      QualType ObjTy = Ctx.getCanonicalType(TR->getValueType());
-      if (OtherTy == ObjTy.getLocalUnqualifiedType())
+      
+      if (QualType ObjTy = Ctx.getCanonicalType(TR->getValueType()); OtherTy == ObjTy.getLocalUnqualifiedType())
         return true;
     }
     return false;
@@ -205,8 +205,8 @@ std::optional<const MemRegion *> StoreManager::castRegion(const MemRegion *R,
       // We can only compute sizeof(PointeeTy) if it is a complete type.
       if (!PointeeTy->isIncompleteType()) {
         // Compute the size in **bytes**.
-        CharUnits pointeeTySize = Ctx.getTypeSizeInChars(PointeeTy);
-        if (!pointeeTySize.isZero()) {
+        
+        if (CharUnits pointeeTySize = Ctx.getTypeSizeInChars(PointeeTy); !pointeeTySize.isZero()) {
           // Is the offset a multiple of the size?  If so, we can layer the
           // ElementRegion (with elementType == PointeeTy) directly on top of
           // the base region.
@@ -341,9 +341,9 @@ std::optional<SVal> StoreManager::evalBaseToDerived(SVal Base,
     if (!TargetType->isVoidType() && MRClass->hasDefinition()) {
       // Static upcasts are marked as DerivedToBase casts by Sema, so this will
       // only happen when multiple or virtual inheritance is involved.
-      CXXBasePaths Paths(/*FindAmbiguities=*/false, /*RecordPaths=*/true,
-                         /*DetectVirtual=*/false);
-      if (MRClass->isDerivedFrom(TargetClass, Paths))
+      
+      if (CXXBasePaths Paths(/*FindAmbiguities=*/false, /*RecordPaths=*/true,
+                         /*DetectVirtual=*/false); MRClass->isDerivedFrom(TargetClass, Paths))
         return evalDerivedToBase(loc::MemRegionVal(MR), Paths.front());
     }
 
@@ -383,8 +383,8 @@ std::optional<SVal> StoreManager::evalBaseToDerived(SVal Base,
   // Derived{TargetClass, Element{SourceClass, SR}}?
   if (const auto *SR = dyn_cast<SymbolicRegion>(MR)) {
     QualType T = SR->getSymbol()->getType();
-    const CXXRecordDecl *SourceClass = T->getPointeeCXXRecordDecl();
-    if (TargetClass && SourceClass && TargetClass->isDerivedFrom(SourceClass))
+    
+    if (const CXXRecordDecl *SourceClass = T->getPointeeCXXRecordDecl(); TargetClass && SourceClass && TargetClass->isDerivedFrom(SourceClass))
       return loc::MemRegionVal(
           MRMgr.getCXXDerivedObjectRegion(TargetClass, SR));
     return loc::MemRegionVal(GetElementZeroRegion(SR, TargetType));
@@ -448,10 +448,10 @@ SVal StoreManager::getLValueElement(QualType elementType, NonLoc Offset,
   // Special case, if index is 0, return the same type as if
   // this was not an array dereference.
   if (Offset.isZeroConstant()) {
-    QualType BT = Base.getType(this->Ctx);
-    if (!BT.isNull() && !elementType.isNull()) {
-      QualType PointeeTy = BT->getPointeeType();
-      if (!PointeeTy.isNull() &&
+    
+    if (QualType BT = Base.getType(this->Ctx); !BT.isNull() && !elementType.isNull()) {
+      
+      if (QualType PointeeTy = BT->getPointeeType(); !PointeeTy.isNull() &&
           PointeeTy.getCanonicalType() == elementType.getCanonicalType())
         return Base;
     }
@@ -532,8 +532,8 @@ bool StoreManager::FindUniqueBinding::HandleBinding(StoreManager& SMgr,
                                                     Store store,
                                                     const MemRegion* R,
                                                     SVal val) {
-  SymbolRef SymV = val.getAsLocSymbol();
-  if (!SymV || SymV != Sym)
+  
+  if (SymbolRef SymV = val.getAsLocSymbol(); !SymV || SymV != Sym)
     return true;
 
   if (Binding) {

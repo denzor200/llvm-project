@@ -226,10 +226,10 @@ SarifDocumentWriter::createPhysicalLocation(const CharSourceRange &R) {
                                         .setRoles({"resultFile"})
                                         .setLength(FE->getSize())
                                         .setMimeType("text/plain");
-    auto StatusIter = CurrentArtifacts.insert({FileURI, Artifact});
+    
     // If inserted, ensure the original iterator points to the newly inserted
     // element, so it can be used downstream.
-    if (StatusIter.second)
+    if (auto StatusIter = CurrentArtifacts.insert({FileURI, Artifact}); StatusIter.second)
       I = StatusIter.first;
   }
   assert(I != CurrentArtifacts.end() && "Failed to insert new artifact");

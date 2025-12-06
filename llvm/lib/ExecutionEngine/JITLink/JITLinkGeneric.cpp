@@ -220,8 +220,8 @@ void JITLinkerBase::applyLookupResult(AsyncLookupResult Result) {
            "External symbol is not at the start of its addressable block");
     assert(!Sym->getAddress() && "Symbol already resolved");
     assert(!Sym->isDefined() && "Symbol being resolved is already defined");
-    auto ResultI = Result.find(Sym->getName());
-    if (ResultI != Result.end()) {
+    
+    if (auto ResultI = Result.find(Sym->getName()); ResultI != Result.end()) {
       Sym->getAddressable().setAddress(ResultI->second.getAddress());
       Sym->setLinkage(ResultI->second.getFlags().isWeak() ? Linkage::Weak
                                                           : Linkage::Strong);

@@ -472,9 +472,9 @@ static void filterByName(
     if (DumpNonSkeleton) {
       // If we have split DWARF, then recurse down into the .dwo files as well.
       DWARFDie CUDie = CU->getUnitDIE(false);
-      DWARFDie CUNonSkeletonDie = CU->getNonSkeletonUnitDIE(false);
+      
       // If we have a DWO file, we need to search it as well
-      if (CUNonSkeletonDie && CUDie != CUNonSkeletonDie)
+      if (DWARFDie CUNonSkeletonDie = CU->getNonSkeletonUnitDIE(false); CUNonSkeletonDie && CUDie != CUNonSkeletonDie)
         filterDieNames(CUNonSkeletonDie.getDwarfUnit());
     }
   }
@@ -549,8 +549,8 @@ static void findAllApple(
     for (const auto &Entry : Accel.entries()) {
       if (std::optional<uint64_t> Off = Entry.BaseEntry.getDIESectionOffset()) {
         std::optional<StringRef> MaybeName = Entry.readName();
-        DWARFDie Die = DICtx.getDIEForOffset(*Off);
-        if (Die && MaybeName)
+        
+        if (DWARFDie Die = DICtx.getDIEForOffset(*Off); Die && MaybeName)
           NameToDies[*MaybeName].insert(Die);
       }
     }
@@ -636,8 +636,8 @@ static bool collectObjectSources(ObjectFile &Obj, DWARFContext &DICtx,
     // compilation directory with the line information, in case both the include
     // directory and file names in the line table are relative.
     const DWARFDebugLine::LineTable *LT = DICtx.getLineTableForUnit(CU.get());
-    StringRef CompDir = CU->getCompilationDir();
-    if (LT) {
+    
+    if (StringRef CompDir = CU->getCompilationDir(); LT) {
       Result &= collectLineTableSources(*LT, CompDir, Sources);
     } else {
       // Since there's no line table for this CU, collect the name from the CU
@@ -818,12 +818,12 @@ static bool handleBuffer(StringRef Filename, MemoryBufferRef Buffer,
       std::string ObjName =
           (Filename + "(" + ObjForArch.getArchFlagName() + ")").str();
       if (auto MachOOrErr = ObjForArch.getAsObjectFile()) {
-        auto &Obj = **MachOOrErr;
-        if (filterArch(Obj)) {
-          std::unique_ptr<DWARFContext> DICtx = DWARFContext::create(
+        
+        if (auto &Obj = **MachOOrErr; filterArch(Obj)) {
+          
+          if (std::unique_ptr<DWARFContext> DICtx = DWARFContext::create(
               Obj, DWARFContext::ProcessDebugRelocations::Process, nullptr, "",
-              RecoverableErrorHandler);
-          if (!HandleObj(Obj, *DICtx, ObjName, OS))
+              RecoverableErrorHandler); !HandleObj(Obj, *DICtx, ObjName, OS))
             Result = false;
         }
         continue;

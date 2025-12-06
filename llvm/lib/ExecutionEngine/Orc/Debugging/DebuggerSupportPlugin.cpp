@@ -65,9 +65,9 @@ public:
       });
       SmallPtrSet<Block *, 8> PreservedBlocks;
       for (auto *Sym : Sec.symbols()) {
-        bool NewPreservedBlock =
-            PreservedBlocks.insert(&Sym->getBlock()).second;
-        if (NewPreservedBlock)
+        
+        if (bool NewPreservedBlock =
+            PreservedBlocks.insert(&Sym->getBlock()).second; NewPreservedBlock)
           Sym->setLive(true);
       }
       for (auto *B : Sec.blocks())
@@ -162,10 +162,10 @@ public:
           DebugLineSectionData, G.getEndianness() == llvm::endianness::little,
           G.getPointerSize());
       uint64_t Offset = 0;
-      DWARFDebugLine::Prologue P;
+      
 
       // Try to parse line data. Consume error on failure.
-      if (auto Err = P.parse(DebugLineData, &Offset, consumeError, *DWARFCtx)) {
+      if (DWARFDebugLine::Prologue P; auto Err = P.parse(DebugLineData, &Offset, consumeError, *DWARFCtx)) {
         handleAllErrors(std::move(Err), [&](ErrorInfoBase &EIB) {
           LLVM_DEBUG({
             dbgs() << "Cannot parse line table for \"" << G.getName() << "\": ";
@@ -329,12 +329,12 @@ Expected<std::unique_ptr<GDBJITDebugInfoRegistrationPlugin>>
 GDBJITDebugInfoRegistrationPlugin::Create(ExecutionSession &ES,
                                           JITDylib &ProcessJD,
                                           const Triple &TT) {
-  auto RegisterActionAddr =
+  
+
+  if (auto RegisterActionAddr =
       TT.isOSBinFormatMachO()
           ? ES.intern("_llvm_orc_registerJITLoaderGDBAllocAction")
-          : ES.intern("llvm_orc_registerJITLoaderGDBAllocAction");
-
-  if (auto RegisterSym = ES.lookup({&ProcessJD}, RegisterActionAddr))
+          : ES.intern("llvm_orc_registerJITLoaderGDBAllocAction"); auto RegisterSym = ES.lookup({&ProcessJD}, RegisterActionAddr))
     return std::make_unique<GDBJITDebugInfoRegistrationPlugin>(
         RegisterSym->getAddress());
   else

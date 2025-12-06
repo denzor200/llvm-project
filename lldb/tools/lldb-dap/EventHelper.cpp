@@ -239,8 +239,8 @@ llvm::Error SendThreadStoppedEvent(DAP &dap, bool on_entry) {
 
   for (const auto &tid : old_thread_ids) {
     auto end = dap.thread_ids.end();
-    auto pos = dap.thread_ids.find(tid);
-    if (pos == end)
+    
+    if (auto pos = dap.thread_ids.find(tid); pos == end)
       SendThreadExitedEvent(dap, tid);
   }
 
@@ -339,8 +339,8 @@ void HandleProcessEvent(const lldb::SBEvent &event, bool &process_exited,
   const uint32_t event_mask = event.GetType();
 
   if (event_mask & lldb::SBProcess::eBroadcastBitStateChanged) {
-    auto state = lldb::SBProcess::GetStateFromEvent(event);
-    switch (state) {
+    
+    switch (auto state = lldb::SBProcess::GetStateFromEvent(event); state) {
     case lldb::eStateConnected:
     case lldb::eStateDetached:
     case lldb::eStateInvalid:
@@ -481,8 +481,8 @@ void HandleTargetEvent(const lldb::SBEvent &event, Log *log) {
 }
 
 void HandleBreakpointEvent(const lldb::SBEvent &event, Log *log) {
-  const uint32_t event_mask = event.GetType();
-  if (!(event_mask & lldb::SBTarget::eBroadcastBitBreakpointChanged))
+  
+  if (const uint32_t event_mask = event.GetType(); !(event_mask & lldb::SBTarget::eBroadcastBitBreakpointChanged))
     return;
 
   lldb::SBBreakpoint bp = lldb::SBBreakpoint::GetBreakpointFromEvent(event);
@@ -530,9 +530,9 @@ void HandleBreakpointEvent(const lldb::SBEvent &event, Log *log) {
 }
 
 void HandleThreadEvent(const lldb::SBEvent &event, Log *log) {
-  uint32_t event_type = event.GetType();
+  
 
-  if (!(event_type & lldb::SBThread::eBroadcastBitStackChanged))
+  if (uint32_t event_type = event.GetType(); !(event_type & lldb::SBThread::eBroadcastBitStackChanged))
     return;
 
   lldb::SBThread thread = lldb::SBThread::GetThreadFromEvent(event);
@@ -606,8 +606,8 @@ void EventThread(lldb::SBDebugger debugger, lldb::SBBroadcaster broadcaster,
     if (!listener.WaitForEvent(UINT32_MAX, event))
       continue;
 
-    const uint32_t event_mask = event.GetType();
-    if (lldb::SBProcess::EventIsProcessEvent(event)) {
+    
+    if (const uint32_t event_mask = event.GetType(); lldb::SBProcess::EventIsProcessEvent(event)) {
       HandleProcessEvent(event, /*&process_exited=*/done, log);
     } else if (lldb::SBTarget::EventIsTargetEvent(event)) {
       HandleTargetEvent(event, log);

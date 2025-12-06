@@ -49,8 +49,8 @@ PlatformRemoteDarwinDevice::~PlatformRemoteDarwinDevice() = default;
 
 void PlatformRemoteDarwinDevice::GetStatus(Stream &strm) {
   Platform::GetStatus(strm);
-  const char *sdk_directory = GetDeviceSupportDirectoryForOSVersion();
-  if (sdk_directory)
+  
+  if (const char *sdk_directory = GetDeviceSupportDirectoryForOSVersion(); sdk_directory)
     strm.Printf("  SDK Path: \"%s\"\n", sdk_directory);
   else
     strm.PutCString("  SDK Path: <unable to locate SDK>\n");
@@ -103,8 +103,8 @@ Status PlatformRemoteDarwinDevice::GetSymbolFile(const FileSpec &platform_file,
   Status error;
   char platform_file_path[PATH_MAX];
   if (platform_file.GetPath(platform_file_path, sizeof(platform_file_path))) {
-    const char *os_version_dir = GetDeviceSupportDirectoryForOSVersion();
-    if (os_version_dir) {
+    
+    if (const char *os_version_dir = GetDeviceSupportDirectoryForOSVersion(); os_version_dir) {
       std::string resolved_path =
           (llvm::Twine(os_version_dir) + "/" + platform_file_path).str();
 
@@ -177,8 +177,8 @@ Status PlatformRemoteDarwinDevice::GetSharedModule(
 
     // If we are connected we migth be able to correctly deduce the SDK
     // directory using the OS build.
-    const uint32_t connected_sdk_idx = GetConnectedSDKIndex();
-    if (connected_sdk_idx < num_sdk_infos) {
+    
+    if (const uint32_t connected_sdk_idx = GetConnectedSDKIndex(); connected_sdk_idx < num_sdk_infos) {
       LLDB_LOGV(log, "Searching for {0} in sdk path {1}", platform_file,
                 m_sdk_directory_infos[connected_sdk_idx].directory);
       if (GetFileInSDK(platform_file_path, connected_sdk_idx,
@@ -290,8 +290,8 @@ uint32_t PlatformRemoteDarwinDevice::GetConnectedSDKIndex() {
       if (std::optional<std::string> build = GetRemoteOSBuildString()) {
         const uint32_t num_sdk_infos = m_sdk_directory_infos.size();
         for (uint32_t i = 0; i < num_sdk_infos; ++i) {
-          const SDKDirectoryInfo &sdk_dir_info = m_sdk_directory_infos[i];
-          if (strstr(sdk_dir_info.directory.GetFilename().AsCString(""),
+          
+          if (const SDKDirectoryInfo &sdk_dir_info = m_sdk_directory_infos[i]; strstr(sdk_dir_info.directory.GetFilename().AsCString(""),
                      build->c_str())) {
             m_connected_module_sdk_idx = i;
           }

@@ -487,8 +487,8 @@ bool __llvm_ctx_profile_fetch(ProfileWriter &Writer) {
   const auto *Pos = reinterpret_cast<const FunctionData *>(
       __sanitizer::atomic_load_relaxed(&AllFunctionsData));
   for (; Pos; Pos = Pos->Next) {
-    const auto *CR = Pos->CtxRoot;
-    if (!CR && canBeRoot(CR)) {
+    
+    if (const auto *CR = Pos->CtxRoot; !CR && canBeRoot(CR)) {
       const auto *FP = Pos->FlatCtx;
       Writer.writeFlat(FP->guid(), FP->counters(), FP->counters_size());
     }

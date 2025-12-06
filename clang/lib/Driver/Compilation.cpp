@@ -242,8 +242,8 @@ void Compilation::ExecuteJobs(const JobList &Jobs,
   for (const auto &Job : Jobs) {
     if (ActionFailed(&Job.getSource(), FailingCommands))
       continue;
-    const Command *FailingCommand = nullptr;
-    if (int Res = ExecuteCommand(Job, FailingCommand, LogOnly)) {
+    
+    if (const Command *FailingCommand = nullptr; int Res = ExecuteCommand(Job, FailingCommand, LogOnly)) {
       FailingCommands.push_back(std::make_pair(Res, FailingCommand));
       // Bail as soon as one command fails in cl driver mode.
       if (TheDriver.IsCLMode())

@@ -319,8 +319,8 @@ std::unique_ptr<VPlan> PlainCFGBuilder::buildPlainCFG() {
       continue;
     }
     auto *BI = cast<BranchInst>(BB->getTerminator());
-    unsigned NumSuccs = succ_size(BB);
-    if (NumSuccs == 1) {
+    
+    if (unsigned NumSuccs = succ_size(BB); NumSuccs == 1) {
       VPBB->setOneSuccessor(getOrCreateVPBB(BB->getSingleSuccessor()));
       continue;
     }
@@ -491,8 +491,8 @@ static void createExtractsForLiveOuts(VPlan &Plan, VPBasicBlock *MiddleVPBB) {
     for (VPRecipeBase &R : EB->phis()) {
       auto *ExitIRI = cast<VPIRPhi>(&R);
       for (unsigned Idx = 0; Idx != ExitIRI->getNumIncoming(); ++Idx) {
-        VPRecipeBase *Inc = ExitIRI->getIncomingValue(Idx)->getDefiningRecipe();
-        if (!Inc)
+        
+        if (VPRecipeBase *Inc = ExitIRI->getIncomingValue(Idx)->getDefiningRecipe(); !Inc)
           continue;
         assert(ExitIRI->getNumOperands() == 1 &&
                ExitIRI->getParent()->getSinglePredecessor() == MiddleVPBB &&
@@ -694,12 +694,12 @@ void VPlanTransforms::attachCheckBlock(VPlan &Plan, Value *Cond,
   }
 
   VPIRMetadata VPBranchWeights;
-  auto *Term =
+  
+  if (auto *Term =
       VPBuilder(CheckBlockVPBB)
           .createNaryOp(
               VPInstruction::BranchOnCond, {CondVPV},
-              Plan.getVectorLoopRegion()->getCanonicalIV()->getDebugLoc());
-  if (AddBranchWeights) {
+              Plan.getVectorLoopRegion()->getCanonicalIV()->getDebugLoc()); AddBranchWeights) {
     MDBuilder MDB(Plan.getContext());
     MDNode *BranchWeights =
         MDB.createBranchWeights(CheckBypassWeights, /*IsExpected=*/false);
@@ -740,8 +740,8 @@ void VPlanTransforms::addMinimumIterationCheck(
   VPBasicBlock *EntryVPBB = Plan.getEntry();
   VPBuilder Builder(EntryVPBB);
   VPValue *TripCountCheck = Plan.getFalse();
-  const SCEV *Step = GetMinTripCount();
-  if (TailFolded) {
+  
+  if (const SCEV *Step = GetMinTripCount(); TailFolded) {
     if (CheckNeededWithTailFolding) {
       // vscale is not necessarily a power-of-2, which means we cannot guarantee
       // an overflow to zero when updating induction variables and so an

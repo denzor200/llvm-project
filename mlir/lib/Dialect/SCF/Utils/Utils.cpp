@@ -867,8 +867,8 @@ delinearizeInductionVariable(RewriterBase &rewriter, Location loc,
 
   llvm::BitVector isUbOne(ubs.size());
   for (auto [index, ub] : llvm::enumerate(ubs)) {
-    auto ubCst = getConstantIntValue(ub);
-    if (ubCst && ubCst.value() == 1)
+    
+    if (auto ubCst = getConstantIntValue(ub); ubCst && ubCst.value() == 1)
       isUbOne.set(index);
   }
 
@@ -963,8 +963,8 @@ LogicalResult mlir::coalesceLoops(RewriterBase &rewriter,
     for (Value &yieldedVal : yieldedVals) {
       // The yielded value may be an iteration argument of the inner loop
       // which is about to be inlined.
-      auto iter = llvm::find(innerLoop.getRegionIterArgs(), yieldedVal);
-      if (iter != innerLoop.getRegionIterArgs().end()) {
+      
+      if (auto iter = llvm::find(innerLoop.getRegionIterArgs(), yieldedVal); iter != innerLoop.getRegionIterArgs().end()) {
         unsigned iterArgIndex = iter - innerLoop.getRegionIterArgs().begin();
         // `outerLoop` iter args identical to the `innerLoop` init args.
         assert(iterArgIndex < innerLoop.getInitArgs().size());
@@ -1005,10 +1005,10 @@ LogicalResult mlir::coalescePerfectlyNestedSCFForLoops(scf::ForOp op) {
   for (unsigned i = 0, e = loops.size(); i < e; ++i) {
     operandsDefinedAbove[i] = i;
     for (unsigned j = 0; j < i; ++j) {
-      SmallVector<Value> boundsOperands = {loops[i].getLowerBound(),
+      
+      if (SmallVector<Value> boundsOperands = {loops[i].getLowerBound(),
                                            loops[i].getUpperBound(),
-                                           loops[i].getStep()};
-      if (areValuesDefinedAbove(boundsOperands, loops[j].getRegion())) {
+                                           loops[i].getStep()}; areValuesDefinedAbove(boundsOperands, loops[j].getRegion())) {
         operandsDefinedAbove[i] = j;
         break;
       }
@@ -1046,10 +1046,10 @@ LogicalResult mlir::coalescePerfectlyNestedSCFForLoops(scf::ForOp op) {
   for (unsigned end = loops.size(); end > 0; --end) {
     unsigned start = 0;
     for (; start < end - 1; ++start) {
-      auto maxPos =
+      
+      if (auto maxPos =
           *std::max_element(std::next(operandsDefinedAbove.begin(), start),
-                            std::next(operandsDefinedAbove.begin(), end));
-      if (maxPos > start)
+                            std::next(operandsDefinedAbove.begin(), end)); maxPos > start)
         continue;
       if (iterArgChainStart[end - 1] > start)
         continue;
@@ -1610,8 +1610,8 @@ FailureOr<scf::ParallelOp> mlir::parallelLoopUnrollByFactors(
             "dynamic loop sizes are not supported.");
 
   for (unsigned dimIdx = firstLoopDimIdx; dimIdx < numLoops; dimIdx++) {
-    const uint64_t unrollFactor = unrollFactors[dimIdx - firstLoopDimIdx];
-    if (tripCounts[dimIdx] % unrollFactor)
+    
+    if (const uint64_t unrollFactor = unrollFactors[dimIdx - firstLoopDimIdx]; tripCounts[dimIdx] % unrollFactor)
       return rewriter.notifyMatchFailure(
           op, "Unroll factors don't divide the iteration space evenly");
   }

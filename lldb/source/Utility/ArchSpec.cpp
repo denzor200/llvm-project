@@ -546,8 +546,8 @@ void ArchSpec::Clear() {
 // Predicates.
 
 const char *ArchSpec::GetArchitectureName() const {
-  const CoreDefinition *core_def = FindCoreDefinition(m_core);
-  if (core_def)
+  
+  if (const CoreDefinition *core_def = FindCoreDefinition(m_core); core_def)
     return core_def->name;
   return "unknown";
 }
@@ -647,11 +647,11 @@ std::string ArchSpec::GetClangTargetCPU() const {
 }
 
 uint32_t ArchSpec::GetMachOCPUType() const {
-  const CoreDefinition *core_def = FindCoreDefinition(m_core);
-  if (core_def) {
-    const ArchDefinitionEntry *arch_def =
-        FindArchDefinitionEntry(&g_macho_arch_def, core_def->core);
-    if (arch_def) {
+  
+  if (const CoreDefinition *core_def = FindCoreDefinition(m_core); core_def) {
+    
+    if (const ArchDefinitionEntry *arch_def =
+        FindArchDefinitionEntry(&g_macho_arch_def, core_def->core); arch_def) {
       return arch_def->cpu;
     }
   }
@@ -659,11 +659,11 @@ uint32_t ArchSpec::GetMachOCPUType() const {
 }
 
 uint32_t ArchSpec::GetMachOCPUSubType() const {
-  const CoreDefinition *core_def = FindCoreDefinition(m_core);
-  if (core_def) {
-    const ArchDefinitionEntry *arch_def =
-        FindArchDefinitionEntry(&g_macho_arch_def, core_def->core);
-    if (arch_def) {
+  
+  if (const CoreDefinition *core_def = FindCoreDefinition(m_core); core_def) {
+    
+    if (const ArchDefinitionEntry *arch_def =
+        FindArchDefinitionEntry(&g_macho_arch_def, core_def->core); arch_def) {
       return arch_def->sub;
     }
   }
@@ -675,16 +675,16 @@ uint32_t ArchSpec::GetDataByteSize() const { return 1; }
 uint32_t ArchSpec::GetCodeByteSize() const { return 1; }
 
 llvm::Triple::ArchType ArchSpec::GetMachine() const {
-  const CoreDefinition *core_def = FindCoreDefinition(m_core);
-  if (core_def)
+  
+  if (const CoreDefinition *core_def = FindCoreDefinition(m_core); core_def)
     return core_def->machine;
 
   return llvm::Triple::UnknownArch;
 }
 
 uint32_t ArchSpec::GetAddressByteSize() const {
-  const CoreDefinition *core_def = FindCoreDefinition(m_core);
-  if (core_def) {
+  
+  if (const CoreDefinition *core_def = FindCoreDefinition(m_core); core_def) {
     if (core_def->machine == llvm::Triple::mips64 ||
         core_def->machine == llvm::Triple::mips64el) {
       // For N32/O32 applications Address size is 4 bytes.
@@ -697,8 +697,8 @@ uint32_t ArchSpec::GetAddressByteSize() const {
 }
 
 ByteOrder ArchSpec::GetDefaultEndian() const {
-  const CoreDefinition *core_def = FindCoreDefinition(m_core);
-  if (core_def)
+  
+  if (const CoreDefinition *core_def = FindCoreDefinition(m_core); core_def)
     return core_def->default_byte_order;
   return eByteOrderInvalid;
 }
@@ -846,13 +846,13 @@ bool ArchSpec::SetArchitecture(ArchitectureType arch_type, uint32_t cpu,
                                uint32_t sub, uint32_t os) {
   m_core = kCore_invalid;
   bool update_triple = true;
-  const ArchDefinition *arch_def = FindArchDefinition(arch_type);
-  if (arch_def) {
-    const ArchDefinitionEntry *arch_def_entry =
-        FindArchDefinitionEntry(arch_def, cpu, sub);
-    if (arch_def_entry) {
-      const CoreDefinition *core_def = FindCoreDefinition(arch_def_entry->core);
-      if (core_def) {
+  
+  if (const ArchDefinition *arch_def = FindArchDefinition(arch_type); arch_def) {
+    
+    if (const ArchDefinitionEntry *arch_def_entry =
+        FindArchDefinitionEntry(arch_def, cpu, sub); arch_def_entry) {
+      
+      if (const CoreDefinition *core_def = FindCoreDefinition(arch_def_entry->core); core_def) {
         m_core = core_def->core;
         update_triple = false;
         // Always use the architecture name because it might be more
@@ -922,15 +922,15 @@ bool ArchSpec::SetArchitecture(ArchitectureType arch_type, uint32_t cpu,
 }
 
 uint32_t ArchSpec::GetMinimumOpcodeByteSize() const {
-  const CoreDefinition *core_def = FindCoreDefinition(m_core);
-  if (core_def)
+  
+  if (const CoreDefinition *core_def = FindCoreDefinition(m_core); core_def)
     return core_def->min_opcode_byte_size;
   return 0;
 }
 
 uint32_t ArchSpec::GetMaximumOpcodeByteSize() const {
-  const CoreDefinition *core_def = FindCoreDefinition(m_core);
-  if (core_def)
+  
+  if (const CoreDefinition *core_def = FindCoreDefinition(m_core); core_def)
     return core_def->max_opcode_byte_size;
   return 0;
 }
@@ -987,10 +987,10 @@ bool ArchSpec::IsMatch(const ArchSpec &rhs, MatchType match) const {
   if ((lhs_triple_vendor != rhs_triple_vendor) &&
       (match == ExactMatch || !both_windows)) {
     const bool rhs_vendor_specified = rhs.TripleVendorWasSpecified();
-    const bool lhs_vendor_specified = TripleVendorWasSpecified();
+    
     // Both architectures had the vendor specified, so if they aren't equal
     // then we return false
-    if (rhs_vendor_specified && lhs_vendor_specified)
+    if (const bool lhs_vendor_specified = TripleVendorWasSpecified(); rhs_vendor_specified && lhs_vendor_specified)
       return false;
 
     // Only fail if both vendor types are not unknown
@@ -1051,8 +1051,8 @@ bool ArchSpec::IsMatch(const ArchSpec &rhs, MatchType match) const {
 
 void ArchSpec::UpdateCore() {
   llvm::StringRef arch_name(m_triple.getArchName());
-  const CoreDefinition *core_def = FindCoreDefinition(arch_name);
-  if (core_def) {
+  
+  if (const CoreDefinition *core_def = FindCoreDefinition(arch_name); core_def) {
     m_core = core_def->core;
     // Set the byte order to the default byte order for an architecture. This
     // can be modified if needed for cases when cores handle both big and
@@ -1067,8 +1067,8 @@ void ArchSpec::UpdateCore() {
 // Helper methods.
 
 void ArchSpec::CoreUpdated(bool update_triple) {
-  const CoreDefinition *core_def = FindCoreDefinition(m_core);
-  if (core_def) {
+  
+  if (const CoreDefinition *core_def = FindCoreDefinition(m_core); core_def) {
     if (update_triple)
       m_triple = llvm::Triple(core_def->name, "unknown", "unknown");
     m_byte_order = core_def->default_byte_order;
@@ -1421,8 +1421,8 @@ bool ArchSpec::IsFullySpecifiedTriple() const {
     return false;
 
   const unsigned unspecified = 0;
-  const llvm::Triple &triple = GetTriple();
-  if (triple.isOSDarwin() && triple.getOSMajorVersion() == unspecified)
+  
+  if (const llvm::Triple &triple = GetTriple(); triple.isOSDarwin() && triple.getOSMajorVersion() == unspecified)
     return false;
 
   return true;

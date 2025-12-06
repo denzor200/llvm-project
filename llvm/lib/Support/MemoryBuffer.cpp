@@ -498,10 +498,10 @@ getOpenFileImpl(sys::fs::file_t FD, const Twine &Filename, uint64_t FileSize,
   if (shouldUseMmap(FD, FileSize, MapSize, Offset, RequiresNullTerminator,
                     PageSize, IsVolatile)) {
     std::error_code EC;
-    std::unique_ptr<MB> Result(
+    
+    if (std::unique_ptr<MB> Result(
         new (NamedBufferAlloc(Filename)) MemoryBufferMMapFile<MB>(
-            RequiresNullTerminator, FD, MapSize, Offset, EC));
-    if (!EC) {
+            RequiresNullTerminator, FD, MapSize, Offset, EC)); !EC) {
       // On at least Linux, and possibly on other systems, mmap may return pages
       // from the page cache that are not properly filled with trailing zeroes,
       // if some prior user of the page wrote non-zero bytes. Detect this and
